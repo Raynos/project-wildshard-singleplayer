@@ -1,3 +1,5 @@
+import { encodeCanonicalJson, hashImmutableBytes } from '../../src/sdk/immutable';
+import { originalNalatiScriptSections } from './nalati-script-inventory';
 import { NALATI_ADMISSION } from './nalati-admission';
 import { NALATI_WEATHER } from './nalati-weather';
 import { NALATI_CHARGE } from './nalati-charge';
@@ -16,4 +18,14 @@ import { NALATI_VIEW_BLOBS } from './nalati-view-modules';
 const rows = v.parse(v.object({ crackBytes: v.array(v.number()), looks: v.unknown(), presentation: v.unknown(), hullBook: v.unknown() }),
   originalSpeciesJson('species.json'));
 /** Existing predecessor template only; source/cache product tests call prepareOutput directly. */
-export const output: ReturnType<typeof nalatiOutputRows> = nalatiOutputRows(rows, originalHeldMetadata(), paint, nalatiCover, nalatiGrass, nalatiSpear.rows, NALATI_VIEW_BLOBS, NALATI_KOKPAR, NALATI_RIDING_PROGRAMS, NALATI_TITAN_PROGRAMS, NALATI_WEATHER, NALATI_ADMISSION, NALATI_CHARGE.rows);
+const source = nalatiOutputRows(rows, originalHeldMetadata(), paint, nalatiCover, nalatiGrass, nalatiSpear.rows, NALATI_VIEW_BLOBS, NALATI_KOKPAR, NALATI_RIDING_PROGRAMS, NALATI_TITAN_PROGRAMS, NALATI_WEATHER, NALATI_ADMISSION, NALATI_CHARGE.rows);
+
+// Preserve the complete predecessor section, independently of the new course admission.
+const originalSections = originalNalatiScriptSections(originalHeldMetadata().held.program.v2, NALATI_KOKPAR, NALATI_RIDING_PROGRAMS,
+  NALATI_TITAN_PROGRAMS, NALATI_WEATHER.rows, NALATI_ADMISSION, NALATI_CHARGE.rows);
+const name = 'actors/return-scripts', path = `sections/${name}.json`;
+const bytes = new TextEncoder().encode(encodeCanonicalJson(originalSections.get(name)));
+export const output: ReturnType<typeof nalatiOutputRows> = { ...source, platform: { ...source.platform,
+  files: new Map([...source.platform.files, [path, bytes]]),
+  sections: source.platform.sections.map(row => row.name === name ? { ...row, hash: hashImmutableBytes(bytes), bytes: bytes.byteLength } : row),
+} };

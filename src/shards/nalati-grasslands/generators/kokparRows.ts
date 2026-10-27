@@ -10,7 +10,7 @@ type CompiledRow = Awaited<ReturnType<DecisionCompiler>>['rows'][number];
  *  data/kokpar.generated.json), with the round module's bytes. */
 export interface NalatiKokpar {
   readonly program: { readonly script: CompiledRow; readonly bytes: '' };
-  readonly compiled: { readonly source: string; readonly bytes: number };
+  readonly compiled: { readonly source: string; readonly bytes: number; readonly courseBytes?: number };
   readonly course: { readonly script: CompiledRow; readonly bytes: string };
   readonly home: { readonly x: number; readonly z: number };
   readonly goals: readonly { readonly x: number; readonly z: number }[];
@@ -18,21 +18,12 @@ export interface NalatiKokpar {
 }
 /** The product name the round module ships under. */
 export const NALATI_KOKPAR_MODULE = 'behaviour/nalati.kokpar.wasm';
-
-const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-/** Standard base64 (the course program's existing JSON envelope), without a runtime global. */
-function base64(bytes: Uint8Array): string {
-  let out = '';
-  for (let i = 0; i < bytes.length; i += 3) {
-    const a = bytes[i] ?? 0, b = bytes[i + 1], c = bytes[i + 2], n = (a << 16) | ((b ?? 0) << 8) | (c ?? 0);
-    out += `${B64[(n >> 18) & 63] ?? ''}${B64[(n >> 12) & 63] ?? ''}${b === undefined ? '=' : B64[(n >> 6) & 63] ?? ''}${c === undefined ? '=' : B64[n & 63] ?? ''}`;
-  }
-  return out;
-}
+/** The unchanged oval controller, admitted beside the existing return policies. */
+export const NALATI_COURSE_MODULE = 'behaviour/nalati.course.wasm';
 
 /** Build the round and course programs exactly as the retired bake did: `authored` is every behaviour/*.as source (the
  *  shard's line budget), `course` the shared course source; `compile` is the build's decision-row compiler. */
-export async function nalatiKokparRows(compile: DecisionCompiler, authored: ReadonlyMap<string, string>, course: string): Promise<{ rows: NalatiKokpar; wasm: Uint8Array }> {
+export async function nalatiKokparRows(compile: DecisionCompiler, authored: ReadonlyMap<string, string>, course: string): Promise<{ rows: NalatiKokpar; wasm: Uint8Array; courseWasm: Uint8Array }> {
   const k = KOKPAR;
   const goals = [0, Math.PI].map(t => {
     const x = Math.cos(t) * k.rx * 0.82, z = Math.sin(t) * k.rz * 0.82;
@@ -61,13 +52,13 @@ export async function nalatiKokparRows(compile: DecisionCompiler, authored: Read
   const laws = await compile([law.row], law.registries, new Map([[law.source, course]]), law.options);
   const courseScript = laws.rows[0], courseBlob = laws.blobs[0];
   if (laws.rows.length !== 1 || laws.blobs.length !== 1 || courseScript === undefined || courseBlob === undefined) throw new Error('Missing shared course program');
-  const rows: NalatiKokpar = { program: { script, bytes: '' }, compiled: { source: NALATI_KOKPAR_MODULE, bytes: blob.bytes.length },
-    course: { script: courseScript, bytes: base64(courseBlob.bytes) }, home: { x: k.x, z: k.z }, goals,
+  const rows: NalatiKokpar = { program: { script, bytes: '' }, compiled: { source: NALATI_KOKPAR_MODULE, bytes: blob.bytes.length, courseBytes: courseBlob.bytes.length },
+    course: { script: courseScript, bytes: '' }, home: { x: k.x, z: k.z }, goals,
     messages: { '1': 'You have the goat! Into a tai-qazan — keep galloping, the riders are on you',
       '2': 'You let go of the goat — it goes back to the middle', '3': 'Off the field — the goat goes back to the middle',
       '4': 'Time! The riders take the goat back', '5': 'A rider leans in and snatches the goat back — keep moving!',
       '6': '15 seconds — find a tai-qazan!', '7': 'TAI-QAZAN! The riders roar and fling their hats — the round is yours' } };
-  return { rows, wasm: blob.bytes };
+  return { rows, wasm: blob.bytes, courseWasm: courseBlob.bytes };
 }
 
 /** The round module's original critical ABI-1 admission. */

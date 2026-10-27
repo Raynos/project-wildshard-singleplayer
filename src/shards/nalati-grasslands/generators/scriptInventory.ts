@@ -19,9 +19,9 @@ function projection(id: string, program: NalatiScriptProjection): Record<string,
 }
 /** Complete sim admission, shared by emitted sections and the module-cap proof.
  * Inline ABI1 witnesses are data; only selected executable rows appear here. */
-export function nalatiScriptSections(held: NalatiScriptProjection, kokpar: Pick<NalatiKokpar, 'program'>, ridingPrograms: Pick<NalatiRidingPrograms, 'approach'>, titanProgram: Pick<NalatiTitanPrograms, 'attack' | 'wind'>, weatherDecision: NalatiWeather['rows'], admission: Pick<NalatiAdmission, 'v2'>, charge: NalatiCharge): ReadonlyMap<PlatformDataSectionName, unknown> {
+export function nalatiScriptSections(held: NalatiScriptProjection, kokpar: Pick<NalatiKokpar, 'program' | 'course'>, ridingPrograms: Pick<NalatiRidingPrograms, 'approach'>, titanProgram: Pick<NalatiTitanPrograms, 'attack' | 'wind'>, weatherDecision: NalatiWeather['rows'], admission: Pick<NalatiAdmission, 'v2'>, charge: NalatiCharge): ReadonlyMap<PlatformDataSectionName, unknown> {
   const {compiled: _chargeFile,...chargeRows} = charge;
-  const programs = [weatherDecision.script, kokpar.program.script];
+  const programs = [weatherDecision.script, kokpar.program.script, kokpar.course.script];
   const legacy = programs.filter((row, index, all) => all.findIndex(entry => entry.module === row.module) === index);
   const sections: ReadonlyMap<PlatformDataSectionName, unknown> = new Map([
   ['actors/spawn-scripts', [chargeRows]],

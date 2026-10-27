@@ -4,7 +4,10 @@ import { ClientChannels } from '@wildshard/sdk/clientChannels';
 import { createClientChannels } from '@wildshard/game/plugin/channels';
 import { parseClientChannels } from '@wildshard/format/clientChannels';
 import { isJsonData } from '@wildshard/format/json';
-import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
+import kingPose from './fixtures/nalati-goldenKingPose-original.json' with { type: 'json' };
+import herd from './fixtures/nalati-herdChannels-original.json' with { type: 'json' };
+import weather from './fixtures/nalati-weatherChannels-original.json' with { type: 'json' };
+import { peoplePrograms } from '../src/shards/nalati-grasslands/generators/peopleMotion';
 import { compactChannels } from '../src/shards/nalati-grasslands/generators/channelRows';
 import { originalSpeciesJson } from './fixtures/nalati-original-species';
 
@@ -44,7 +47,8 @@ test('eager invalid arithmetic still refuses without publishing the next local',
 });
 
 test('shipping pose and weather DAGs preserve every evaluated output', () => {
-  const read = (name: string): unknown => JSON.parse(new TextDecoder().decode(fixtureBytes(new URL(`../src/shards/nalati-grasslands/data/${name}.generated.json`, import.meta.url))));
+  const originals: Readonly<Record<string, unknown>> = { goldenKingPose: kingPose, herdChannels: herd, weatherChannels: weather, peopleChannels: { clientChannels: Object.values(peoplePrograms).flat() } };
+  const read = (name: string): unknown => originals[name];
   const species = v.parse(v.object({ poses: v.record(v.string(), v.object({ programs: v.unknown() })) }), originalSpeciesJson('species.json'));
   const rows = Object.values(species.poses).flatMap(pose => parseClientChannels(pose.programs));
   for (const name of ['goldenKingPose', 'herdChannels', 'weatherChannels', 'peopleChannels']) {

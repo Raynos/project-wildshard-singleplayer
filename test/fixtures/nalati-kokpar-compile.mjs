@@ -5,5 +5,5 @@ import { compileDecisionScripts, readDecisionSources } from '../../src/sdk/build
 import { nalatiKokparRows } from '../../src/shards/nalati-grasslands/generators/kokparRows.ts';
 
 const course = readFileSync(new URL('../../src/commons/scripts/course.as', import.meta.url), 'utf8');
-const { rows, wasm } = await nalatiKokparRows(compileDecisionScripts, readDecisionSources('src/shards/nalati-grasslands'), course);
-process.stdout.write(`${JSON.stringify({ rows, wasm: Buffer.from(wasm).toString('base64') })}\n`);
+const { rows, wasm, courseWasm } = await nalatiKokparRows(compileDecisionScripts, readDecisionSources('src/shards/nalati-grasslands'), course);
+process.stdout.write(`${JSON.stringify({ rows, wasm: Buffer.from(wasm).toString('base64'), courseWasm: Buffer.from(courseWasm).toString('base64') })}\n`);

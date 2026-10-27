@@ -86,7 +86,7 @@ export function nalatiProductRows(species: NalatiSpeciesProgramCosts, held: Nala
   if (!Number.isSafeInteger(held.compiledBytes) || held.compiledBytes < 0
     || [held.projectionPages, held.program.script.pages, held.stealthProgram.script.pages].some(pages => !Number.isSafeInteger(pages) || pages < 1)) throw new Error('Invalid held program costs');
   const programs = [held.program,held.stealthProgram,species.program,weatherDecision,kokpar.program,kokpar.course, admission, pasture, titanProgram.attack,titanProgram.fire,titanProgram.wind,titanProgram.rules, ridingPrograms.approach, ridingPrograms.breaking, ridingPrograms.riding, charge];
-  const programBytes = programs.filter((program,index,all)=>all.findIndex(entry=>entry.script.module===program.script.module)===index).reduce((sum, program) => sum + atob(program.bytes).length, weatherDecision.compiled.bytes+kokpar.compiled.bytes+admission.compiled.witnessBytes+titanProgram.compiled.witnessBytes+species.witnessBytes+ridingPrograms.compiled.witnessBytes+charge.compiled.bytes);
+  const programBytes = programs.filter((program,index,all)=>all.findIndex(entry=>entry.script.module===program.script.module)===index).reduce((sum, program) => sum + atob(program.bytes).length, weatherDecision.compiled.bytes+kokpar.compiled.bytes+(kokpar.compiled.courseBytes??0)+admission.compiled.witnessBytes+titanProgram.compiled.witnessBytes+species.witnessBytes+ridingPrograms.compiled.witnessBytes+charge.compiled.bytes);
   // Retain the legacy witness allowance and account for the one selected v2
   // module, shared by attack/rules in the original construction scope.
   const projection = titanProgram.attack.v2;
