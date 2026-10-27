@@ -22,6 +22,32 @@ const geometry = v.variant('kind',[
 ]);
 export const SceneScatterPoseSchema: v.GenericSchema<SceneScatterPoseRowsInput, SceneScatterPoseRows> = v.strictObject({x:finite,y:finite,z:finite,yaw:finite,sx:finite,sy:finite,sz:finite,far:finite,r:finite,g:finite,b:finite,
   tiltX:v.exactOptional(finite),tiltZ:v.exactOptional(finite),solid:v.exactOptional(v.union([v.literal(true),v.literal(1)]))});
+const finiteField = (row: object, key: string): number | undefined => {
+  if (!Object.hasOwn(row, key)) return undefined;
+  const value: unknown = Reflect.get(row, key);
+  if (typeof value !== 'number' || !Number.isFinite(value)) throw new Error(`Invalid scene scatter pose ${key}`);
+  return value;
+};
+/** One scatter pose by SceneScatterPoseSchema's rules in one pass: the same required finite fields, optional tilts and
+ *  solid flag, no other key, and the same output (G782: the schema's per-row strict object was ~130 ms of a phone-4x
+ *  Nalati dressing). */
+export function readSceneScatterPose(input: unknown): SceneScatterPoseRows {
+  if (typeof input !== 'object' || input === null || Array.isArray(input)) throw new Error('Invalid scene scatter pose');
+  let known = 0;
+  const field = (key: string): number => { const value = finiteField(input, key); if (value === undefined) throw new Error(`Missing scene scatter pose ${key}`); known++; return value; };
+  const pose: SceneScatterPoseRows = { x: field('x'), y: field('y'), z: field('z'), yaw: field('yaw'), sx: field('sx'), sy: field('sy'), sz: field('sz'),
+    far: field('far'), r: field('r'), g: field('g'), b: field('b') };
+  const tiltX = finiteField(input, 'tiltX'), tiltZ = finiteField(input, 'tiltZ');
+  if (tiltX !== undefined) { pose.tiltX = tiltX; known++; }
+  if (tiltZ !== undefined) { pose.tiltZ = tiltZ; known++; }
+  if (Object.hasOwn(input, 'solid')) {
+    const solid: unknown = Reflect.get(input, 'solid');
+    if (solid !== true && solid !== 1) throw new Error('Invalid scene scatter pose solid');
+    pose.solid = solid; known++;
+  }
+  if (Object.keys(input).length !== known) throw new Error('Unknown scene scatter pose key');
+  return pose;
+}
 const surface=v.exactOptional(v.picklist(['sand','wetSand','grass','rock','planks','stone','water','wood','metal','flesh','shell','ground','edge','felt','earth']));
 const point=v.strictObject({x:finite,y:finite,z:finite});
 const base={x:finite,y:finite,z:finite,surface,yaw:v.exactOptional(finite),rot:v.exactOptional(v.strictObject({x:finite,y:finite,z:finite,w:finite}))};

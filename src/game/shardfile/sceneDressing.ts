@@ -7,7 +7,7 @@ import { SceneInstanceFields } from './sceneInstances';
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { unzlibSync } from 'fflate';
-import { SceneDressingSchema, SceneScatterPoseSchema, SceneFloorSchema, type SceneDressingRows } from '@wildshard/format/sceneDressing';
+import { SceneDressingSchema, SceneFloorSchema, readSceneScatterPose, type SceneDressingRows } from '@wildshard/format/sceneDressing';
 import { FrameCamera } from '@wildshard/engine/world/frameCamera';
 import { modelContext, defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
@@ -92,7 +92,7 @@ async function sceneScatterPoses(ctx:ShardContext,row:SceneDressingRows['layers'
   else{const data=await ctx.product.json<unknown>(row.file);if(!Array.isArray(data))throw new Error('Scene scatter rows must be an array');source=data;}
   const poses:ScatterPose[]=[],selection=row.select;let at=0;
   for(const input of source){
-    const {solid,...pose}=v.parse(SceneScatterPoseSchema,input);
+    const {solid,...pose}=readSceneScatterPose(input);
     if(selection===undefined||(at%selection.modulo===selection.remainder)===selection.equal)poses.push(solid===undefined?pose:{...pose,solid:true});
     if(++at%256===0)await pause();
   }
