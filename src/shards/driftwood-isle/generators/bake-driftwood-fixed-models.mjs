@@ -1,17 +1,18 @@
 // node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs [--check]
 // The original fixed builders run offline; no colour quantization, simplification or material conversion.
-import { namedBlobOutput } from '../../../../scripts/named-blob-output.mjs';
+import { nameBlob } from '@wildshard/sdk/blobs';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { Mesh, MeshStandardMaterial } from 'three';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { castawayHead } from './castawayHead.ts';
 import { driftwoodScene } from './scene.ts';
+import { driftwoodCoarseTiles } from './coarseTiles.ts';
 import { WorldBakeRows } from '@wildshard/sdk/bake/worldRows';
 import { bakeQueryTerrain, readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { driftwoodGroundBytes } from './groundRows.ts';
 
-const blobOutput = namedBlobOutput(new URL('../', import.meta.url), 'driftwood-fixed-blobs');
+const blobRows = new Map(), blobAliases = new Map();
 const assets = new URL('../../../../public/assets/driftwood-isle/baked/fixed-models/', import.meta.url);
 const check = process.argv.includes('--check');
 const write = (url, bytes) => {
@@ -26,7 +27,11 @@ const emit = (name, geometry) => {
     .map((key) => [key === 'aSway' ? '_SWAY' : `_${key.toUpperCase()}`, key]));
   const glb = staticGlb([{ geometry, material, customAttributes, ...(['bridge-plank-unit', 'bridge-rope-unit'].includes(name) ? { nativeAttributes: true, compactIndex: true } : name === 'cover-driftwood' ? { compactIndex: true } : {}) }], name);
   write(new URL(`${name}.glb`, assets), glb);
-  blobOutput.add(`models/fixed/${name}.glb`, 'glb', glb, `/assets/driftwood-isle/baked/fixed-models/${name}.glb`);
+  const blob = nameBlob(`models/fixed/${name}.glb`, 'glb', glb), previous = blobRows.get(blob.file.hash);
+  const row = previous ?? { name: blob.file.name, kind: 'glb', source: `assets/${blob.file.hash}` };
+  blobRows.set(blob.file.hash, row);
+  blobAliases.set(`/assets/driftwood-isle/baked/fixed-models/${name}.glb`, row.name);
+  write(new URL(`../${row.source}`, import.meta.url), blob.bytes);
   geometry.dispose();
 };
 const headSource = await readSourceModel(new Uint8Array(readFileSync(new URL('../../../../public/assets/models/driftwood-hero/faces/wendell-head.glb', import.meta.url))));
@@ -50,8 +55,10 @@ for (const part of baked.pieces) {
 const libraryRows = library.finish('toon');
 const queries = bakeQueryTerrain(readNativeTerrain(driftwoodGroundBytes()), { normalEpsilon: 0.6, datum: -0.8 });
 for (const [hash, bytes] of queries.assets) baked.assets.set(hash, bytes);
-const files = [...baked.shardfile.files, ...libraryRows.files, ...queries.files].sort((a, b) => a.hash.localeCompare(b.hash));
-const product = { terrain: queries.terrain, props: { ...baked.props.props, wholeLibrary: templateFiles }, tiles: baked.shardfile.tiles, files,
+// T8 (G786) / G748: the occupied L1 parents' coarse tiles (generators/coarseTiles.ts): rows here, bytes from the output hook
+const coarse = driftwoodCoarseTiles(aoBytes), coarseTiles = coarse.tiles.filter(tile => !baked.shardfile.tiles.some(row => row.lod === 1 && row.x === tile.x && row.z === tile.z));
+const files = [...baked.shardfile.files, ...libraryRows.files, ...queries.files, ...coarse.files].sort((a, b) => a.hash.localeCompare(b.hash));
+const product = { terrain: queries.terrain, props: { ...baked.props.props, tiles: [...baked.props.props.tiles, ...coarse.models.filter(model => coarseTiles.some(tile => tile.files.includes(model.file)))], wholeLibrary: templateFiles }, tiles: [...baked.shardfile.tiles, ...coarseTiles], files,
   library: templateFiles, critical: [...baked.shardfile.critical, ...queries.critical], templateFiles,
   report: baked.props.report, libraryCost: { resident: libraryRows.files.reduce((sum, file) => sum + file.decoded + file.gpu, 0),
     compressed: libraryRows.files.reduce((sum, file) => sum + file.compressed, 0) } };
@@ -60,5 +67,7 @@ if (!check) mkdirSync(folder, { recursive: true });
 for (const [hash, bytes] of baked.assets) write(new URL(hash, folder), bytes);
 write(new URL('../data/fixedTiles.generated.json', import.meta.url), `${JSON.stringify(product)}\n`);
 console.info(`Driftwood scene: ${fixed.geometries.size} source draws, ${product.tiles.length} tiles, ${baked.pieces.length} library subsets; ${baked.scenePath}`);
-blobOutput.finish(new URL('../data/fixedBlobs.generated.json', import.meta.url));
+const blobs = [...blobRows.values()].sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+const byUrl = Object.fromEntries([...blobAliases].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
+write(new URL('../data/fixedBlobs.generated.json', import.meta.url), `${JSON.stringify({ blobs, byUrl }, null, 2)}\n`);
 material.dispose();
