@@ -33,7 +33,15 @@ function variant(input: unknown): StaticVariant {
     || !Array.isArray(contacts) || contacts.length > 1024 || !record(groups)
     || Object.keys(groups).sort().join('|') !== 'crown|early|furniture|mill') throw new Error('Sky fixed scene inventory differs');
   const colliders = contacts.map((row: unknown) => {
-    if (!record(row) || Object.keys(row).length !== 2 || !name(row['id']) || !Array.isArray(row['colliders'])) throw new Error('Sky static contact envelope differs');
+    if (!record(row) || !name(row['id']) || !Array.isArray(row['colliders']) || row['colliders'].length > 4096) throw new Error('Sky static contact envelope differs');
+    // Fixed contacts retain the original registry metadata on bridge/physics
+    // rows; ground hulls and the keeper stand carry only id and colliders.
+    const keys = Object.keys(row);
+    if (keys.length !== 2 && (keys.some(key => !['id', 'colliders', 'name', 'category', 'file', 'active', 'surface', 'mode'].includes(key))
+      || !name(row['name']) || !name(row['file']) || typeof row['active'] !== 'boolean'
+      || typeof row['category'] !== 'string' || !['ground', 'buildings', 'props'].includes(row['category'])
+      || typeof row['surface'] !== 'string' || !['grass', 'stone', 'wood'].includes(row['surface'])
+      || row['mode'] !== undefined && row['mode'] !== 'board')) throw new Error('Sky static contact envelope differs');
     const rows: readonly unknown[] = row['colliders'];
     return { id: row['id'], colliders: rows };
   });

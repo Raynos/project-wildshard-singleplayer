@@ -10,8 +10,22 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { skyStaticSceneBytes, skyStaticScenes } from '../src/shards/far-reach/generators/staticScene';
 import { fixedWorld, skyFixedWorldValues } from '../src/shards/far-reach/generators/fixedWorld';
 import { STATIC_SCENE_INPUTS, skyStaticSceneSource } from '../src/shards/far-reach/generators/staticSceneProgram';
+import { readSkyStaticSceneEnvelope } from '../src/shards/far-reach/generators/staticSceneIntake';
 import { originalSkySceneInputs } from './fixtures/sky-scene-source';
 import { WORLD_PLACEMENT_INPUTS, skyWorldPlacementValues } from '../src/shards/far-reach/generators/worldPlacementBytes';
+
+test('static contact intake admits retained registry fields and refuses malformed or extra metadata', () => {
+  const wire = (contact: unknown): Uint8Array => {
+    const variant = { models: [], recipe: {}, bindings: [], fixed: { models: [], textureOnly: [], recipe: {}, halo: {},
+      bindings: { crown: [], early: [], furniture: [], mill: [] }, colliders: [contact] } };
+    return new TextEncoder().encode(JSON.stringify({ half: 1, standalone: variant, cell: variant }));
+  };
+  const contact = { id: 'bridge', colliders: [], name: 'Bridge', category: 'buildings', file: 'bridge.ts', active: false, surface: 'wood', mode: 'board' };
+  expect(readSkyStaticSceneEnvelope(wire(contact)).standalone.fixed.colliders).toEqual([{ id: 'bridge', colliders: [] }]);
+  expect(readSkyStaticSceneEnvelope(wire({ id: 'ground', colliders: [] })).cell.fixed.colliders).toEqual([{ id: 'ground', colliders: [] }]);
+  expect(() => readSkyStaticSceneEnvelope(wire({ ...contact, active: 1 }))).toThrow('contact envelope differs');
+  expect(() => readSkyStaticSceneEnvelope(wire({ ...contact, extra: true }))).toThrow('contact envelope differs');
+});
 
 
 test('both fixed worlds retain the complete original bytes and isolate caller-owned values', async () => {
@@ -66,6 +80,12 @@ test('the static reader derives all original scene bytes from exactly eight expl
   expect(hashImmutableBytes(bytes)).toBe('1be5a532bca78ccb782a80905105ca6d6fe243676539dc04d58e78f213ddef2a');
   const { placements } = await skyWorldPlacementValues(new Map(WORLD_PLACEMENT_INPUTS.map(name => [name, new Uint8Array(readFileSync(`public${name}`))])));
   const { mill } = await originalSkySceneInputs();
+  const source = skyStaticScenes(placements, skyFixedWorldValues(mill.recipe));
+  const admitted = readSkyStaticSceneEnvelope(bytes);
+  for (const mode of ['standalone', 'cell'] as const) {
+    const original = source[mode].fixed.colliders;
+    expect(admitted[mode].fixed.colliders).toEqual(original.map(({ id, colliders }) => ({ id, colliders })));
+  }
   expect(skyStaticScenes({ ...placements, half: 123 }, skyFixedWorldValues(mill.recipe)).half).toBe(123);
 });
 
