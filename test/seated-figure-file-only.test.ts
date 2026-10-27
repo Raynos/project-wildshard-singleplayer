@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import {zlibSync} from 'fflate';
 import {MountedSpecimenSeatSchema} from '@wildshard/format/mountedSpecimenRows';
 import {prepareSeatedFigure,seatedFigureView} from '../src/game/riding/seatedFigure';
-import {MOUNTED_FIGURE} from '../src/shards/nalati-grasslands/generators/mountedFigure';
+import {MOUNTED_FIGURE} from './fixtures/nalati-poi-paint-original';
 import {SHAPE_BYTES} from './fixtures/nalatiShapes';
 import * as geometry from '../src/game/plugin/geometry';
 

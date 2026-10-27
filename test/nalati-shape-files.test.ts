@@ -6,7 +6,8 @@ import {createHash} from 'node:crypto';
 import * as v from 'valibot';
 import {expect,test} from 'vitest';
 import {BufferAttribute} from 'three';
-import {readNamedBlob} from '../src/sdk/blobs';
+import {nameBlob} from '../src/sdk/blobs';
+import {originalPoiPaintFiles} from './fixtures/nalati-poi-paint-original';
 import {FixedDrawRowsSchema} from '../src/format/fixedDraws';
 import {SceneBakedGeometrySchema} from '../src/format/sceneDressing';
 import {productFixedDraws} from '../src/game/models/fixedDraws';
@@ -16,8 +17,9 @@ import original from './fixtures/nalati-shape-blocks.json' with {type:'json'};
 const hash=(bytes:Uint8Array|string):string=>createHash('sha256').update(bytes).digest('hex');
 const rows=v.parse(FixedDrawRowsSchema,source.draws).filter(row=>'file'in row);
 const paint=v.parse(v.object({rows:v.array(v.object({key:v.string(),name:v.string(),geometry:SceneBakedGeometrySchema}))}),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/poiPaint.json','utf8')));
-const blobs=await Promise.all(source.sources.map(row=>readNamedBlob('src/shards/nalati-grasslands',row.name,row.source,'bin')));
+  JSON.parse(readFileSync('test/fixtures/nalati-poi-paint-original.json','utf8')));
+const originals=originalPoiPaintFiles();
+const blobs=source.sources.map(row=>{const bytes=originals.get(row.source);if(bytes===undefined)throw new Error(`Missing original shape ${row.source}`);return nameBlob(row.name,'bin',bytes);});
 
 test('all named shape blocks preserve the original raw bytes and geometry metadata',()=>{
   expect(blobs).toHaveLength(original.length);expect(rows).toHaveLength(original.length);

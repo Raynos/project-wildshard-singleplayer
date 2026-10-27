@@ -10,12 +10,12 @@ import { SHAPES,SHAPE_BYTES } from './fixtures/nalatiShapes';
 import { letteringMaterial } from '../src/game/looks/lettering';
 import atlases from '../src/shards/nalati-grasslands/data/signAtlases.json' with { type: 'json' };
 import { seatedFigureView } from '../src/game/riding/seatedFigure';
-import { MOUNTED_FIGURE } from '../src/shards/nalati-grasslands/generators/mountedFigure';
+import { MOUNTED_FIGURE } from './fixtures/nalati-poi-paint-original';
 import { SkyRig } from '../src/engine/world/skyRig';
 import { Mesh, BufferGeometry, BufferAttribute, Material, MeshLambertMaterial, DataTexture, Vector3, SRGBColorSpace, LinearFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping } from 'three';
 import oracle from './fixtures/nalati-poi-paint.json';
 import staticOracle from './fixtures/nalati-static-contacts.json';
-import fixed from '../src/shards/nalati-grasslands/boot/poiPaint.json';
+import fixed from './fixtures/nalati-poi-paint-original.json';
 
 const hash = (array: ArrayBufferView): string => createHash('sha256')
   .update(new Uint8Array(array.buffer, array.byteOffset, array.byteLength)).digest('hex');

@@ -7,7 +7,7 @@ import { Scope } from '../src/engine/app/scope';
 import { SeatedFigure } from '../src/game/riding/seatedFigure';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import { MOUNTED_FIGURE as rows } from '../src/shards/nalati-grasslands/generators/mountedFigure';
+import { MOUNTED_FIGURE as rows } from './fixtures/nalati-poi-paint-original';
 
 test('a marsh ferryman binds different joints and cue clocks without another channel program', () => {
   const scope = new Scope('ferryman'), oar = rows.shapes.find(shape => shape.key === 'shepherd-arm');
