@@ -9,15 +9,25 @@ import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import ts from '@typescript/typescript6';
+import * as v from 'valibot';
 import { parseOutputIndex, assembleOutputShardfile } from '@wildshard/format/outputIndex';
+import { ClientSpeciesProgramSchema } from '@wildshard/format/clientNative';
+import { SpeciesPresentationSchema } from '@wildshard/format/speciesBookRows';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { explorerRoster } from '../src/game/models/explorerCatalogue';
+import { productSpeciesCatalogue } from '../src/game/looks/speciesBook';
+import { Scope } from '@wildshard/engine/app/scope';
+import { SpeciesService } from '@wildshard/engine/entities/species/look';
+import { setSpeciesResolver } from '@wildshard/engine/entities/species/registry';
 
 const slugs = ['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-stack', 'far-reach', 'sunscar-dunes'];
 type Lists = Record<'models' | 'sets' | 'world' | 'arenas', string[] | null>;
 interface Fields extends Record<string, unknown> { lists?: unknown; features?: unknown; kind?: unknown; rows?: unknown; manifest?: unknown; pois?: unknown; default?: unknown; course?: unknown; ROSTER?: unknown }
 interface Capture { lists: Lists; gaps: string[]; inputs: Record<string, string> }
 const root = process.cwd();
+const { WS_LD4_REVISION: inheritedRevision } = process.env;
+const revision = inheritedRevision ?? execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+if (!/^[a-f0-9]{40}$/u.test(revision)) throw new Error('LD4 requires one exact committed public-asset revision');
 const hash = (value: Uint8Array | string): string => createHash('sha256').update(value).digest('hex');
 function object(value: unknown): Fields {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) throw new Error('Expected object');
@@ -28,6 +38,26 @@ function ids(value: unknown, key = 'id'): string[] {
   return rows(value).map(row => { const id = object(row)[key]; if (typeof id !== 'string') throw new Error(`Missing ${key}`); return id; });
 }
 function sorted(values: readonly string[]): string[] { return [...new Set(values)].sort((a, b) => a.localeCompare(b)); }
+
+/** A Node-only public HTTP byte capability. Read the pinned Git object, never
+ * an untracked/loose asset or the network. The defining model readers retain
+ * their original size/hash/decoder checks; this supplies no model definitions.
+ * It exists only for this fresh audit child and is restored on every outcome. */
+async function withPublicBytes<T>(inputs: Record<string, string>, read: () => Promise<T>): Promise<T> {
+  const original = globalThis.fetch, origin = 'https://ld4.invalid';
+  globalThis.fetch = (input, init) => {
+    const request = input instanceof Request ? input : null;
+    const url = new URL(request?.url ?? (input instanceof URL ? input.href : typeof input === 'string' ? input : input.url), origin);
+    if ((init?.method ?? request?.method ?? 'GET') !== 'GET' || url.origin !== origin || !url.pathname.startsWith('/assets/')) throw new Error('LD4 public reader accepts local asset GETs only');
+    const file = `public${url.pathname}`;
+    const mode = execFileSync('git', ['ls-tree', revision, '--', file], { encoding: 'utf8' });
+    if (!mode.startsWith('100644 blob ') && !mode.startsWith('100755 blob ')) throw new Error(`LD4 public asset is not a committed regular file: ${file}`);
+    const bytes = execFileSync('git', ['show', `${revision}:${file}`], { maxBuffer: 64 * 1024 * 1024 });
+    inputs[`${revision}:${file}`] = hash(bytes);
+    return Promise.resolve(new Response(Uint8Array.from(bytes), { headers: { 'content-length': String(bytes.length), 'content-type': file.endsWith('.json') ? 'application/json' : 'application/octet-stream' } }));
+  };
+  try { return await read(); } finally { globalThis.fetch = original; }
+}
 
 /** Literal declarations are separate from runtime membership. Keep every
  * conditional/dynamic registration visible in the coverage gap below. */
@@ -97,9 +127,23 @@ async function capture(slug: string, side: string): Promise<Capture> {
         const data = readFileSync(resolve(folder, row.path)); if (hash(data) !== hashId || data.byteLength !== row.compressed) throw new Error(`Invalid file ${row.path}`);
         return Promise.resolve(data);
       } });
-    try { lists.models = (await explorerRoster(product)).map(row => row.id); }
-    catch (error) { gaps.push(`models: ${error instanceof Error ? error.message : String(error)}`); }
     const features = rows(object(sections.get('client/plan')).features).map(object);
+    const scope = new Scope('ld4-product-species'), species = new SpeciesService(() => scope);
+    try {
+      // Same pure product catalogue and scoped service used by App/EngineRows;
+      // no live-world wrapper, legacy seed, preload or specimen build.
+      for (const feature of features.filter(row => row.kind === 'species.program')) {
+        const catalogueSource = v.parse(ClientSpeciesProgramSchema, feature).catalogue;
+        if (catalogueSource === undefined) continue;
+        const actors = v.parse(v.object({ species: v.pick(SpeciesPresentationSchema, ['lookBook']) }), await product.json<unknown>(catalogueSource.actors));
+        const catalogue = productSpeciesCatalogue(product, actors.species, await product.json<unknown>(catalogueSource.looks));
+        for (const row of catalogue.rows) species.registerRow(row, scope);
+        for (const row of catalogue.looks) species.registerLook(row, scope);
+      }
+      setSpeciesResolver(kind => species.get(kind));
+      lists.models = await withPublicBytes(inputs, async () => (await explorerRoster(product)).map(row => row.id));
+    } catch (error) { gaps.push(`models: ${error instanceof Error ? error.message : String(error)}`); }
+    finally { scope.dispose(); }
     lists.sets = features.filter(row => row.kind === 'world.sets').flatMap(row => ids(row.rows));
     lists.world = ids(object(object(sections.get('ui/level')).manifest).pois ?? []);
     lists.arenas = ['practice', ...features.filter(row => row.kind === 'practice.course').flatMap(row => {
@@ -118,10 +162,11 @@ if (side === '--legacy' || side === '--shardfile') {
   console.log(JSON.stringify(await capture(slug, side.slice(2))));
 } else {
   if (side === undefined) throw new Error('Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/legacy-explorer-lists.ts <report.json>');
+  if (slug !== undefined || destination !== undefined || side.startsWith('-')) throw new Error('Unexpected argument');
   const script = import.meta.filename;
   const report = slugs.map(name => {
     const read = (mode: string): Capture => {
-      const bytes = execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', script, mode, name], { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
+      const bytes = execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', script, mode, name], { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, env: { ...process.env, WS_LD4_REVISION: revision } });
       const value: unknown = JSON.parse(bytes); const row = object(value);
       // Child data is still parsed and checked before comparison.
       const lists = object(row.lists);
@@ -135,7 +180,6 @@ if (side === '--legacy' || side === '--shardfile') {
         missing: a.filter(id => !b.includes(id)), added: b.filter(id => !a.includes(id)) }];
     })) };
   });
-  writeFileSync(resolve(side), `${JSON.stringify({ version: 1, source: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(), shards: report }, null, 2)}\n`);
-  if (slug !== undefined || destination !== undefined) throw new Error('Unexpected argument');
+  writeFileSync(resolve(side), `${JSON.stringify({ version: 1, source: revision, shards: report }, null, 2)}\n`);
   console.log(`LD4: compared ${report.length} shards; coverage gaps remain explicit in the report`);
 }

@@ -89,3 +89,29 @@ Touched script types and typed lint pass. The whole ratchet command currently
 refuses its missing generated Far Reach discovery input; no allowance changed.
 The source audit is built; unresolved coverage is retained rather than counted
 as empty. LD5-LD8 remain unauthorized and untouched.
+
+
+### LD4 Node admission follow-up
+
+The `dd127fefb8` list inventory above remains the last executed comparison.
+This follow-up adds the exact data-only species seam confirmed by sp-x6:
+`productSpeciesCatalogue` over the product feature's actors/look files, then a
+fresh scoped `SpeciesService` and resolver. It calls no preload or model build;
+the live-world wrapper and legacy species seed are not used for SHARDFILE.
+
+Pine's relative public URL has no existing named-file adapter (sp-x1 confirmed).
+The Node audit therefore supplies a narrow public HTTP-byte capability: local
+asset GETs only, read from **regular files in one pinned Git revision**, never
+the dirty tree, an untracked asset, a symlink or the network. Existing model
+size/hash/decoder checks still run. Actual public input hashes join the report;
+the original fetch is restored on every outcome. No runtime loader changes.
+
+**Blocked prerequisite:** the follow-up command refused missing
+`out/driftwood-isle/shard.json`; Pine and Nalati output indexes are absent too.
+No new comparison result is claimed, and the prior JSON inventory is preserved.
+No generator/product build was started under G769. LD4-PH/NG are in flight for
+one cause-fixed Node admission when existing products return; native placed-
+model/conditional-set coverage remains explicit in all six gap rows.
+Touched types and typed lint pass. Full ratchet is invoked; after discovery
+returned it reports existing foreign source-count increases/reductions, not
+an own audit-source increase. No policy/allowance or peer source is changed.

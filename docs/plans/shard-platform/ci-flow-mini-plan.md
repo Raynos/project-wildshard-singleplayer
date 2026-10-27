@@ -489,7 +489,7 @@ No capture, cap change or smoke retry is requested.
 
 ## CF2 owned test quarantine (2026-10-27, sp-x9)
 
-Source built in this commit; **in flight (ordinary CI/end reading, G780)**.
+Source **9872fc12a0**; **in flight (ordinary CI/end reading, G780)**.
 The eight D14/D15 suites remain intact in a non-blocking two-part CI job with
 same-run verified products, normal test deadlines, complete JSON results and
 an ownership/deadline summary. No retry or assertion/byte/numeric change.
@@ -505,7 +505,7 @@ deleted. Touched types/lint pass; G769 adds controls without running tests.
 Whole ratchet remains prerequisite-refused by existing damage D37.
 
 Nine title quarantine remains `531c009fdd`, owned by sp-x1, original expiry
-unchanged. **D13's grid catalogue title quarantine remains open with sp-x6**;
+unchanged. **D13's grid preparation-barrier quarantine remains open with sp-x6**;
 no unspecific browser/pixel stage is exempted by this suite registry. CF2 is
 not marked fully done while that gap or the plan-end reading is outstanding.
 
