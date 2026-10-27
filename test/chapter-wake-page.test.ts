@@ -16,7 +16,7 @@ import type { ShardContext } from '../src/game/plugin/context';
 import { parseChapterWake } from '../src/format/chapterDirector';
 import { PAGE_STORY } from '../src/shards/driftwood-isle/generators/pageStory';
 import { WAKE_ENCOUNTER } from '../src/shards/driftwood-isle/generators/wakeEncounter';
-import source from '../src/shards/driftwood-isle/shard.config';
+import { DRIFTWOOD as source } from './fixtures/driftwood-program';
 import { CHAPTER_DIRECTOR } from '../src/shards/driftwood-isle/generators/chapterDirector';
 import declaration from '../src/shards/driftwood-isle/data/director.json';
 import {driftwoodDirector as module} from './fixtures/director-modules';

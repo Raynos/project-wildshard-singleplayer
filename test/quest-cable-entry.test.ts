@@ -14,7 +14,7 @@ import { installWorldScenes } from '../src/game/shardfile/worldScenes';
 import { parseWorldScenes } from '../src/format/worldScenes';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
-import drift from '../src/shards/driftwood-isle/shard.config';
+import { DRIFTWOOD as drift } from './fixtures/driftwood-program';
 import { PAGE_STORY as story } from '../src/shards/driftwood-isle/generators/pageStory';
 import { DRIFTWOOD_MODES } from '../src/shards/driftwood-isle/generators/modes';
 import { PINE_MODES } from '../src/shards/pine-hollow/generators/zipline';

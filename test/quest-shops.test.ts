@@ -11,7 +11,7 @@ import { RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { parseShardSlug } from '../src/game/shard/slug';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
-import source from '../src/shards/driftwood-isle/shard.config';
+import { DRIFTWOOD as source } from './fixtures/driftwood-program';
 import { TRADER_STALL as coinRows } from '../src/shards/driftwood-isle/generators/questShop';
 import { TRADER_STALL as barterRows } from '../src/shards/pine-hollow/generators/questShop';
 import { TRADES } from '../src/shards/pine-hollow/generators/trades';
