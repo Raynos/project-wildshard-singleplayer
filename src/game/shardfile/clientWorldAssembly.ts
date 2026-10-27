@@ -18,7 +18,6 @@ import { publishEntryOwner, lendEntryOwner, entryOwner, presentEntryOwner } from
 import { timeClientPreparation } from './preparationTiming';
 import { followResidentTiles, residentTiles } from './tileDriver';
 import { farStandIn } from './farStandIn';
-import { isDev } from '@wildshard/engine/core/devMode';
 
 const enteredScopes = new WeakSet<ShardContext['scope']>();
 const residents = new WeakMap<IslandLibrary<unknown> | ShardProduct, {
@@ -102,9 +101,9 @@ export async function installClientWorldAssembly(ctx: ShardContext, row: Extract
   // tile streaming T4 (pause ▸ Settings ▸ Debug ▸ Tile residency): the tiled world content's spawn and entry tiles (all
   // of them for the whole cell) before controls, once per resident; then each entry's tiles follow the player
   const owner = resident ?? scope;
-  // G748 (Developer: unfinished until Jake's pick): beyond the render ring a shard that declares it (its drawn world tiled)
+  // G748 (shipped G761): beyond the render ring a shard that declares it (its drawn world tiled)
   // draws its own near view for its occupied tiles; once per resident (its scene handles survive a re-entry)
-  if (isDev() && row.farStandIn === true && !scenes.tiled().some(content => content.id === `${product.slug}.far-stand-in`)) {
+  if (row.farStandIn === true && !scenes.tiled().some(content => content.id === `${product.slug}.far-stand-in`)) {
     const standIn = farStandIn(ctx);
     if (standIn !== null) scenes.addTiled(standIn);
   }
