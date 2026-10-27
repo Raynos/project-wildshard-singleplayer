@@ -2041,14 +2041,13 @@ installer on its own. With no selected bed or installer, the engine starts no am
 `preload` for weapon / creature SFX and music as needed; those are independent of ambience. An asset-free shard
 can omit `preload` as well. Do not invent a shard-specific silence id or inherit the template’s forest bed.
 
-Boot composes `bootFiles(level, tex, profile)` from the profile's selected
-`bootFiles(style)` subset, preserving its music/SFX order and exact counted
-sizes. The audio preload reads only that subset and retains compressed
-bytes until the existing decode boundary. Missing recordings keep their
-synth fallback. An absent preload uses `NO_AUDIO`, with no global catalogue
-download. Calling `bootFiles` without a profile retains the full inventory
-for background shard prefetch; other styles stay cacheable without
-delaying this level's controls.
+Boot composes `bootFiles(level, tex, profile, menuArt)` from the profile's
+selected `bootFiles(style)` subset, preserving music/SFX order and counted
+sizes. Grid entry passes `false` for unused menu cards; explicit precache
+art stays required. Audio preload retains compressed bytes until decoding;
+missing recordings keep synth fallback. An absent preload uses `NO_AUDIO`,
+with no global download. Omitting the profile retains the full background
+inventory, so other styles stay cacheable without delaying control.
 
 ```ts
 export const CUES = { fire: 'cue.sword.swing', impact: 'cue.sword.hit', heavy: 'cue.sword.heavy', reload: 'cue.reload' } as const;

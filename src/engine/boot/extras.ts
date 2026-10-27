@@ -49,11 +49,11 @@ const pathOf = (url: string): string => { try { return new URL(url, location.hre
 /** the shard cards' pictures among the art (the rest is the Explore viewer's) */
 const cardArt = new Set<string>();
 
-function artFor(def: BootLevel, background: boolean): { urls: string[]; bytes: Record<string, number> } {
+function artFor(def: BootLevel, background: boolean, menuArt: boolean): { urls: string[]; bytes: Record<string, number> } {
   const urls: string[] = [], bytes: Record<string, number> = {};
   // Other cards retain their authored URLs; the deck requests their pictures
   // when shown. Playing one world does not preload every world's portraits.
-  const cards = [def.card.thumb, def.card.portrait, def.card.landscape];
+  const cards = menuArt ? [def.card.thumb, def.card.portrait, def.card.landscape] : [];
   const cardUrls = new Set(cards);
   // Explorer owns its image readiness when opened; only background caching
   // needs its preview bank before the player requests that UI.
@@ -77,8 +77,9 @@ const heldAudio = new WeakMap<ChunkFiles, readonly string[]>();
 /** each preload's after-control load of the held-back files */
 const lateLoads = new WeakMap<ChunkFiles, () => Promise<AudioBanks> | undefined>();
 
-export function bootFiles(def: BootLevel, tex: TexMode = texMode(), profile?: LevelAudioProfile): ChunkFiles {
-  const art = artFor(def, profile === undefined);
+/** Grid entry omits unused menu cards; explicit precache art remains required. */
+export function bootFiles(def: BootLevel, tex: TexMode = texMode(), profile?: LevelAudioProfile, menuArt = true): ChunkFiles {
+  const art = artFor(def, profile === undefined, menuArt);
   addBytes(art.bytes);
   const inventory = profile?.files() ?? bootAudioFiles(def.boot) ?? audioFiles();
   const boot = profile?.bootFiles(getMusicStyle());

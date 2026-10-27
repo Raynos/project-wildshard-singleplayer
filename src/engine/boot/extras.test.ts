@@ -79,6 +79,20 @@ test('an explicitly required boot image stays eager even when it is also Explore
   expect(bootFiles(home,'img',NO_AUDIO).art).toEqual([critical]);
 });
 
+test('grid omits unused menu cards while keeping explicit art and original audio routing',()=>{
+  const card={thumb:'/assets/thumb.jpg',portrait:'/assets/portrait.jpg',landscape:'/assets/landscape.jpg'};
+  const home:BootLevel={...level,card,boot:{...level.boot,files:[],sources:()=>blank,precache:[card.portrait,'/assets/required.webp']}};
+  const artBytes={[card.thumb]:10,[card.portrait]:20,[card.landscape]:30,'/assets/required.webp':40};
+  setBootCatalog({levels:[home],playable:[home],find:()=>home,artBytes});
+  const grid=bootFiles(home,'img',profile,false);
+  expect(grid.art).toEqual([card.portrait,'/assets/required.webp']);
+  expect(declareTotals(grid).art).toEqual({bytes:60,files:2});
+  expect(grid.music).toEqual([music]);expect(grid.sfx).toEqual([sfx]);
+  expect(extraFetches(grid)).toEqual([...grid.art,music,sfx]);
+  expect(bootFiles(home,'img',profile).art).toEqual([...Object.values(card),'/assets/required.webp']);
+  expect(bootFiles(home,'img').art).toEqual([...Object.values(card),'/assets/required.webp']);
+});
+
 test('preload ignores foreign inventory and decodes selected compressed bytes offline without another fetch',async()=>{
   const fetch=vi.spyOn(globalThis,'fetch').mockImplementation(()=>Promise.resolve(new Response(new Uint8Array([1,2,3]))));
   const seen:string[]=[],decode=vi.fn<LevelAudioProfile['decode']>(async(style,read)=>{
