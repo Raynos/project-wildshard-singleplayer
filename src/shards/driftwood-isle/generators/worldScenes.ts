@@ -1,4 +1,4 @@
-import piers from '../data/pierScenes.generated.json' with { type: 'json' };
+import { driftwoodPierScenes } from './pierScenesBank';
 import type { DriftwoodSceneBanks } from './sceneBanks';
 import { REEF_SCENE_LIBRARY } from './reefCatalogue';
 import { driftwoodFoliageScenes } from './foliageScenesBank';
@@ -40,6 +40,7 @@ function trailProductSpecimens(): SpecimenCatalogueRows {
 
 /** Static cascade assembly; the geometry and its application channels remain the existing fixed bake. */
 export function worldScenes(banks: DriftwoodSceneBanks): WorldScenesSection {
+  const piers = driftwoodPierScenes();
   const cargoRows = parseWorldScenes({ version: 1, libraries: [banks.cargo.library], materials: [], steps: [] });
   const nativeRows = parseWorldScenes({ version: 1, libraries: [banks.native.library], materials: [], steps: [] });
   const rockRows = parseWorldScenes({ version: 1, libraries: [banks.rocks.section.library], materials: [], steps: [banks.rocks.section.step] });
@@ -65,7 +66,7 @@ export function worldScenes(banks: DriftwoodSceneBanks): WorldScenesSection {
       { id: 'rock', kind: 'lowpoly', variant: 'rock-smooth', properties: { flatShading: false, roughness: 0.82 } },
       { id: 'glow', kind: 'basic', properties: { vertexColors: true } }, { id: 'pool-look', kind: 'look', look: POOL_LOOK },
     ],
-    steps: [...rockRows.steps, { id: 'zipline', scene: 'scenes/zipline.json', geometry: { rig: { library: 'cascade', model: 'zipline-world' }, trolley: { library: 'cascade', model: 'zipline-trolley' } }, materials: { still: 'still' }, registry: [], publish: { anchor: { kind: 'vector', value: [piers.zipBindings.anchor[0] ?? 0, 0, piers.zipBindings.anchor[1] ?? 0] }, carriage: { kind: 'object', part: 'trolley' }, a: { kind: 'vector', value: piers.zipBindings.a as [number, number, number] }, b: { kind: 'vector', value: piers.zipBindings.b as [number, number, number] }, prompt: { kind: 'vector', value: piers.zipBindings.prompt as [number, number, number] } }, bounds: [], instanceAttributes: [] }, { id: 'moorings', scene: 'scenes/moorings.json', geometry: { lines: { library: 'cascade', model: 'mooringLines' } }, materials: { still: 'moor' }, registry: [], publish: { mesh: { kind: 'object', part: 'lines' } }, bounds: [], instanceAttributes: [] }, ...['palms', 'hibiscus', 'reef', 'logs'].map(kind => ({ id: kind, scene: `scenes/${kind}.json`, geometry: { plant: { library: kind === 'logs' ? 'cascade' : 'foliage', model: kind === 'logs' ? 'duneLogs' : kind } }, materials: { plant: kind === 'palms' ? 'palm' : kind === 'reef' ? 'reef' : 'kit' }, registry: [], publish: { mesh: { kind: 'object' as const, part: 'mesh' } }, bounds: [], instanceAttributes: [] })), { id: 'cascade', scene: 'scenes/cascade.json',
+    steps: [...rockRows.steps, { id: 'zipline', scene: 'scenes/zipline.json', geometry: { rig: { library: 'cascade', model: 'zipline-world' }, trolley: { library: 'cascade', model: 'zipline-trolley' } }, materials: { still: 'still' }, registry: [], publish: { anchor: { kind: 'vector', value: [piers.zipBindings.anchor[0], 0, piers.zipBindings.anchor[1]] }, carriage: { kind: 'object', part: 'trolley' }, a: { kind: 'vector', value: piers.zipBindings.a }, b: { kind: 'vector', value: piers.zipBindings.b }, prompt: { kind: 'vector', value: piers.zipBindings.prompt } }, bounds: [], instanceAttributes: [] }, { id: 'moorings', scene: 'scenes/moorings.json', geometry: { lines: { library: 'cascade', model: 'mooringLines' } }, materials: { still: 'moor' }, registry: [], publish: { mesh: { kind: 'object', part: 'lines' } }, bounds: [], instanceAttributes: [] }, ...['palms', 'hibiscus', 'reef', 'logs'].map(kind => ({ id: kind, scene: `scenes/${kind}.json`, geometry: { plant: { library: kind === 'logs' ? 'cascade' : 'foliage', model: kind === 'logs' ? 'duneLogs' : kind } }, materials: { plant: kind === 'palms' ? 'palm' : kind === 'reef' ? 'reef' : 'kit' }, registry: [], publish: { mesh: { kind: 'object' as const, part: 'mesh' } }, bounds: [], instanceAttributes: [] })), { id: 'cascade', scene: 'scenes/cascade.json',
       geometry: { sheet: { library: 'cascade', model: 'waterfallSheet' }, rings: { library: 'cascade', model: 'waterfallRings' }, puffs: { library: 'cascade', model: 'waterfallPuffs' } },
       materials: { sheet: 'curtain', rings: 'pool', puffs: 'puffs' }, registry: [], publish: {}, instanceAttributes: [],
       bounds: [{ part: 'puffs', sphere: {"center": [126.2795181274414, 5.813096046447754, 19.283491134643555], "radius": 11.813198103364037} }],

@@ -180,7 +180,6 @@
     "src/shards/driftwood-isle/data/navigation.generated.json",
     "src/shards/driftwood-isle/data/physics-ground.generated.bin",
     "src/shards/driftwood-isle/data/physics.generated.json",
-    "src/shards/driftwood-isle/data/pierScenes.generated.json",
     "src/shards/driftwood-isle/data/swordPool.generated.json",
     "src/shards/driftwood-isle/generators/sectionSchemas.generated.ts",
     "src/shards/driftwood-isle/runtime/productSections.generated.d.ts",

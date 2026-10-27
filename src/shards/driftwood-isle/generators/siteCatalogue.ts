@@ -1,4 +1,4 @@
-import piers from '../data/pierScenes.generated.json' with { type: 'json' };
+import { driftwoodPierScenes } from './pierScenesBank';
 import type { DriftwoodSceneBanks } from './sceneBanks';
 import { reefCatalogue } from './reefCatalogue';
 import { driftwoodFoliageScenes } from './foliageScenesBank';
@@ -33,5 +33,5 @@ export function siteCatalogue(banks: DriftwoodSceneBanks): unknown {
       else throw new Error(`Missing scene model layout: ${model.key}/${choice.id}`);
     }
   }
-  return { ...rows, models: [...rows.models, ...banks.rocks.catalogue, ...driftwoodFoliageScenes().models, piers.model, piers.boat, piers.zipline, ...reefCatalogue(), ...banks.cargo.models, ...banks.native.catalogue.models] };
+  return { ...rows, models: [...rows.models, ...banks.rocks.catalogue, ...driftwoodFoliageScenes().models, driftwoodPierScenes().model, driftwoodPierScenes().boat, driftwoodPierScenes().zipline, ...reefCatalogue(), ...banks.cargo.models, ...banks.native.catalogue.models] };
 }

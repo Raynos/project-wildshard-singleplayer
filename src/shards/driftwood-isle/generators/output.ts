@@ -39,7 +39,7 @@ import { parse } from 'valibot';
 import { CoverCompositionSchema } from '@wildshard/format/streamedCover';
 import coverComposition from '../data/coverComposition.json' with { type: 'json' };
 import { parseWorldScene } from '@wildshard/format/clientChannels';
-import piers from '../data/pierScenes.generated.json' with { type: 'json' };
+import { driftwoodPierScenes } from './pierScenesBank';
 import { driftwoodFoliageScenes, driftwoodFoliageSceneOutput, foliageLogPlacements } from './foliageScenesBank';
 import { FIGURE_CATALOGUE } from './figureCatalogue';
 import { driftwoodQuestFigures } from './questFigures';
@@ -128,9 +128,9 @@ const placements = emitNamedBlobs([nameBlob('actors/page-life.json', 'json', new
 
   nameBlob('world/cover-composition.json', 'json', new TextEncoder().encode(JSON.stringify(parse(CoverCompositionSchema, coverComposition)))),
 
-  nameBlob('scenes/zipline.json', 'json', sceneBytes(piers.zipScene)),
+  nameBlob('scenes/zipline.json', 'json', sceneBytes(driftwoodPierScenes().zipScene)),
   nameBlob('scenes/moorings.json', 'json', sceneBytes({ scene: { version: 1, root: 'root', nodes: [{ kind: 'group', id: 'root', children: ['lines'] }, { kind: 'mesh', id: 'lines', geometry: 'lines', material: 'still', missing: 'empty', castShadow: true }], materials: [{ kind: 'port', id: 'still', source: 'still' }] }, imports: [] })),
-  ...piers.placements.map(row => nameBlob(`world/piers/${row.id}.json`, 'json', new TextEncoder().encode(JSON.stringify(row)))),
+  ...driftwoodPierScenes().placements.map(row => nameBlob(`world/piers/${row.id}.json`, 'json', new TextEncoder().encode(JSON.stringify(row)))),
   ...['palms', 'hibiscus', 'reef', 'logs'].map(kind => nameBlob(`scenes/${kind}.json`, 'json', sceneBytes({ scene: { version: 1, root: 'root', nodes: [{ kind: 'group', id: 'root', children: ['mesh'] }, { kind: 'mesh', id: 'mesh', name: kind === 'reef' ? 'seabed' : kind === 'logs' ? 'ground-cover-driftwood' : kind, geometry: 'plant', material: 'plant', missing: 'empty', castShadow: kind !== 'reef', receiveShadow: true }], materials: [{ kind: 'port', id: 'plant', source: 'plant' }] }, imports: [] }))),
 
 

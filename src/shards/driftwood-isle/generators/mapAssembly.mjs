@@ -6,6 +6,7 @@ import { MapAssembly, mapModel, readMapJson } from '../../../../scripts/map-geom
 import { MapWorld, mapPool } from '../../../../scripts/map-world.mjs';
 import { worldScenes } from './worldScenes.ts';
 import { driftwoodFoliageScenes, foliageLogPlacements, foliageSceneFiles } from './foliageScenesBank.ts';
+import { driftwoodPierScenes } from './pierScenesBank.ts';
 import { DRIFTWOOD_OUTPUT, DRIFTWOOD_FIXED_SOURCES } from './assets.ts';
 import { siteCatalogue } from './siteCatalogue.ts';
 import { WORLD_DROP } from './sea.ts';
@@ -75,7 +76,7 @@ async function coverRest(assembly, bytes, fixed) {
 }
 
 export async function driftwoodMapAssembly() {
-  const assembly = new MapAssembly(), piers = read('data/pierScenes.generated.json');
+  const assembly = new MapAssembly(), piers = driftwoodPierScenes();
   const fixedFiles = await driftwoodFixedBytes(new Map(DRIFTWOOD_FIXED_INPUTS.map(name => [name, new Uint8Array(readFileSync(resolve(root, `public${name}`)))])));
   const banks = await driftwoodSceneBanksFrom(url => new Uint8Array(readFileSync(resolve(root, `public${url}`))), fixedFiles), catalogue = siteCatalogue(banks), WORLD_SCENES = worldScenes(banks);
   const fixedBlobs = Object.entries(FIXED_MODEL_NAMES).map(([url, name]) => {

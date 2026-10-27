@@ -13,6 +13,7 @@ import { decimateFlatBatch } from './phoneDecimate';
 import { driftwoodReefBank } from './reefBank';
 import { islandFoliageBatches, islandFoliagePlacements } from './islandDressing';
 import type { DriftwoodFixedLayouts } from './fixedLayouts';
+import { n, numbers, plainJson } from './jsonRows';
 
 /** L18.3e: how far (m) the phone's simplified batches may move a surface (board art/driftwood-isle/round-20-phone-decimation) */
 export const PHONE_ERROR: { readonly palms: number; readonly hibiscus: number; readonly reef: number } = { palms: 0.08, hibiscus: 0.1, reef: 0.1 };
@@ -42,17 +43,6 @@ export interface DriftwoodFoliageScenes {
 interface FoliageBatch { readonly kind: Kind; readonly tier: Tier; readonly file: string; readonly specs: number; readonly source: Uint8Array }
 
 /** Hull points out of their typed arrays, so a row writes as JSON. */
-/** A number as the job's JSON held it: no negative zero (placements and the client plan admit plain JSON only). */
-const n = (value: number): number => (value === 0 ? 0 : value);
-const numbers = (values: ArrayLike<number>): number[] => Array.from(values, n);
-/** A value as the job's JSON held it: typed arrays as arrays, no negative zero, no undefined field. */
-function plainJson(value: unknown): unknown {
-  if (typeof value === 'number') return n(value);
-  if (value instanceof Float32Array || value instanceof Uint32Array) return numbers(value);
-  if (Array.isArray(value)) return (value as readonly unknown[]).map(plainJson);
-  if (typeof value === 'object' && value !== null) return Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined).map(([key, item]) => [key, plainJson(item)]));
-  return value;
-}
 const plain = (rows: readonly object[]): unknown[] => rows.map(plainJson);
 const matrix = (pose: FoliagePlacement): number[] => numbers(foliagePose(pose).matrix.elements);
 const poseRows = (poses: readonly (FoliagePlacement & { readonly params?: unknown })[]): FoliagePoseRow[] => poses.map(pose => ({ x: n(pose.x), y: n(pose.y), z: n(pose.z), params: plainJson(pose.params), matrix: matrix(pose) }));

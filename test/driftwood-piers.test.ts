@@ -8,9 +8,9 @@ import { pierDeckAt, pierHalfWidthAt } from '../src/shards/driftwood-isle/genera
 import { pierColliders } from '../src/shards/driftwood-isle/generators/pierColliders';
 import type { PierParams } from '../src/shards/driftwood-isle/generators/pierContract';
 import { driftwoodPierRows } from '../src/shards/driftwood-isle/generators/fixedFacts';
-import scenes from '../src/shards/driftwood-isle/data/pierScenes.generated.json' with { type: 'json' };
+import { driftwoodPierScenes } from '../src/shards/driftwood-isle/generators/pierScenesBank';
 
-const rows = driftwoodPierRows();
+const rows = driftwoodPierRows(), scenes = driftwoodPierScenes();
 
 const plainShape = (shape: ColliderDesc): object => shape.kind === 'hull' ? { ...shape, points: [...shape.points] } : shape;
 const plain = (shapes: readonly ColliderDesc[]): object[] => shapes.map(plainShape);

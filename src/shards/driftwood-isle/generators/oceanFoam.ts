@@ -1,5 +1,5 @@
 import type { DriftwoodFixedLayouts } from './fixedLayouts';
-import piers from '../data/pierScenes.generated.json' with { type: 'json' };
+import { driftwoodPierScenes } from './pierScenesBank';
 import { ENTRY_LANDINGS } from './entryLandings';
 import { originalBridgeFacts } from './driftwoodBridge.mjs';
 import { driftwoodTrailRows } from './fixedFacts';
@@ -30,7 +30,7 @@ const bridge = islandBridge();
 export function driftwoodOceanFoam({ hut, lookout, wreck, shrine, cove }: DriftwoodFixedLayouts): Box[] {
   const { foamBand } = OCEAN_SURFACE.floor, level = OCEAN_FILES.level, cm = (value: number): number => Math.round(value * 100) / 100;
   const edges = new Set(ENTRY_LANDINGS.map(row => row.edge));
-  const boxes: Box[] = [...ENTRY_DECKS.filter(row => edges.has(row.edge)).map(row => row.slab), ...piers.facts.flatMap(row => row.boxes), ...STATIC_BOAT.walls,
+  const boxes: Box[] = [...ENTRY_DECKS.filter(row => edges.has(row.edge)).map(row => row.slab), ...driftwoodPierScenes().facts.flatMap(row => row.boxes), ...STATIC_BOAT.walls,
     ...SHORE_BOULDERS.boxes, ...placedSite(hut), ...placedSite(lookout), ...wreck.colliders, ...placedSite(shrine.world), ...trailside.colliders,
     ...bridge, ...cove.native.colliders];
   return boxes.filter(b => b.yBottom < level + foamBand && b.yTop > level - foamBand)

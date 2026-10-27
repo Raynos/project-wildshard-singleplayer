@@ -14,7 +14,7 @@ import {driftwoodModelCatalogue} from './fixtures/driftwoodModelCatalogue';
 const pins={deep:'247da8ed53b57d128fdfc9de4dc17722e85594ccc091a308ce0060224b98d47a',shallow:'fdd6865555774ed20743338b7b16afd9798d8ecf9fa7fa0609c8bd503c513548',world:'f53767fa4ff41a219b644198f806d0615e380d1be5daa55dcc41b3a7461898e4'};
 test('the complete catalogue preserves deck transport and corrected source provenance',async()=>{
   const book:unknown=await driftwoodModelCatalogue();
-  expect(hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(book)))).toBe('d41a15d87a79aa2da47d198ac07c1a2e19c3019c51117a6026c909392e090bca');
+  expect(hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(book)))).toBe('3096cd5cd18b3d995ccfdddddc91bf1f2f74c49c83e6e074d7c47bf67e5f5684');
   // The original pin used stale upstream source labels. Reverse only the six
   // proven provenance corrections and retain that full-catalogue byte oracle.
   v.assert(v.object({siteCatalogue:v.object({models:v.array(v.object({key:v.string(),file:v.string()}))})}),book);
@@ -22,7 +22,7 @@ test('the complete catalogue preserves deck transport and corrected source prove
   for(const [offset,key]of keys.entries()){
     const model=original.siteCatalogue.models[7+offset];if(model===undefined)throw new Error('Missing original source model');
     expect(model.key).toBe(key);
-    expect(model.file).toBe(offset<3?'src/shards/driftwood-isle/generators/foliageScenesBank.ts':'src/shards/driftwood-isle/generators/bake-pier-scenes.mjs');
+    expect(model.file).toBe(`src/shards/driftwood-isle/generators/${offset<3?'foliage':'pier'}ScenesBank.ts`);
     model.file='src/shards/driftwood-isle/models/catalogue.ts';
   }
   expect(hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(original)))).toBe('475877ed3676170b688c4cc64561ff012cb45ab2644a38e4b1dbd5b47f7f582c');
