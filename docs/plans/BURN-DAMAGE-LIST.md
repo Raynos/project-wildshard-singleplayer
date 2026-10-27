@@ -455,3 +455,9 @@ Completed red [40529017541](https://github.com/Raynos/project-wildshard-singlepl
 G754-ground-merge-types: fresh ground-merge.test.ts114 TS2345 from **7370950529** (owner **sp-o2**, coordinator-confirmed) is source-fixed **dac57a84b0** by narrowing the original position attribute before the unchanged Box3/sphere oracle. Exact x8 refusal retained tmp/sp-x8-g782-cuts/optional-view-types.log; no peer source edit or bounds waiver by CI lane.
 
 G754-source-input-proof: OPEN — CI40542474407@0f81b58764 refuses test/source-input-proof.test.ts before its original snapshot assertions: fixture29 passes directory source to regular-file bakeInputHashes, yielding Invalid bake input source. First bad5ae4e23d87 (fixture introduction); owner sp-x1, routed with exact memo.paths(source) caller diagnosis; retain regular-file, broad-root additions and crossed/escaping/mutation refusals.
+
+G754-Pine-contract-fixture: OPEN — CI40542474407@0f81b58764 declared-panel-lifecycle collection resolves the contract guest source URL to /src/shards/pine-hollow/behaviour/contracts.as and refuses ENOENT (test/fixtures/pine-contracts.ts10). First bad ba9b0b3a2e fixture introduction; owner sp-o5 after sp-o1 release, routed; retain the real guest compiler and all original programme/lifecycle assertions.
+
+G754-DW-quest-timeout: OPEN — CI40542474407@0f81b58764 driftwood-quest-content-product original story/POI/NPC/ordered-route case exceeds its unchanged30s rebuilding the full author project. Timing first bad unproved; caller fixture2f6c374bab, owner sp-o4, routed; retain complete quest hashes, markers, routes and save progression.
+
+G754-Sky-layout-budget: OPEN — CI40542474407@0f81b58764 sky-signal-fixed-layouts Far Reach discovery case refuses missing buildOptions.asLineCeiling after ba261ff1f2 removed implicit policy intake; caller0613a60a96. Owner sp-x1, routed for the exact official CLI denominator; retain all fixed-coordinate/palette/hash/discovery assertions.
