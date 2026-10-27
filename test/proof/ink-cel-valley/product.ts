@@ -16,14 +16,21 @@ import type { Shardfile } from '../../../src/format/shardSchema';
  * renderer-bearing producer, builds bytes, or falls back to loose assets. */
 export function inkProofProduct(): { readonly source: Shardfile; readonly assets: ReadonlyMap<string, Uint8Array> } {
   const root = fileURLToPath(new URL('../../../', import.meta.url)), folder = readBuiltShardfile(root, 'ink-cel-valley');
-  const index = parseOutputIndex(JSON.parse(readFileSync(resolve(folder, 'shard.json'), 'utf8')));
+  return readInkProofProduct(path => readFileSync(resolve(folder, path)));
+}
+
+/** Verify bytes supplied by the exact prepared-product reader. Tests can poison
+ * one read without mutating shared product files or weakening native admission. */
+export function readInkProofProduct(read: (path: string) => Uint8Array): { readonly source: Shardfile; readonly assets: ReadonlyMap<string, Uint8Array> } {
+  const decode = (bytes: Uint8Array): unknown => JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+  const index = parseOutputIndex(decode(read('shard.json')));
   assert.equal(index.identity.slug, 'ink-cel-valley', 'Ink proof product identity differs');
   const checked = (row: { readonly path: string; readonly hash: string }, bytes: number): Uint8Array => {
-    const wire = readFileSync(resolve(folder, row.path));
+    const wire = read(row.path);
     if (wire.length !== bytes || createHash('sha256').update(wire).digest('hex') !== row.hash) throw new Error(`Ink proof product bytes differ: ${row.path}`);
     return wire;
   };
-  const sections = new Map<string, unknown>(index.sections.map(row => [row.name, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(checked(row, row.bytes)))]));
+  const sections = new Map<string, unknown>(index.sections.map(row => [row.name, decode(checked(row, row.bytes))]));
   const source = assembleOutputShardfile(index, sections), files = new Map(index.files.map(row => [row.hash, row]));
   const assets = new Map<string, Uint8Array>();
   for (const file of source.files) {
