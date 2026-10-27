@@ -87,7 +87,7 @@ writeSync(1,String(child.pid));process.kill(${process.pid},'SIGUSR2');setTimeout
   }
 });
 
-test('staged deletions are checked even while their working file still exists', async () => {
+test('precommit keeps its storage and typed lint scope when a path is deleted', async () => {
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync(resolve('tmp/deleted-hook-'));
   const gitEnv = Object.fromEntries(Object.entries(env).filter(([key]) => !key.startsWith('GIT_')));
@@ -101,7 +101,7 @@ test('staged deletions are checked even while their working file still exists', 
     git('add', '--', 'src/deleted.ts', 'src/reader.ts', '.oxlintrc.json'); git('commit', '-qm', 'base');
     git('rm', '--cached', '--', 'src/deleted.ts');
     const index = readFileSync(resolve(root, '.git/index'));
-    await expect(precommitInputs(root)).rejects.toThrow('deleted paths: refused');
+    await expect(precommitInputs(root)).resolves.toBeUndefined();
     expect(readFileSync(resolve(root, 'src/deleted.ts'), 'utf8')).toContain('value = 1');
     expect(readFileSync(resolve(root, '.git/index'))).toEqual(index);
     const checker = resolve(root, 'checker.sh'); writeFileSync(checker, '#!/bin/sh\nexit 0\n'); chmodSync(checker, 0o755);

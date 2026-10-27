@@ -3,6 +3,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare every byte natively without Vitest recursively visiting millions of typed-array elements.
 import { Buffer } from 'node:buffer';
 import { BufferAttribute, BufferGeometry, Material, Mesh, type Object3D } from 'three';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { assembleWholeGeometryViews } from '../src/game/plugin/geometry';
@@ -28,7 +29,7 @@ test('the compact Driftwood tile bake reconstructs every original world draw (no
     for (const tile of tiles) for (const hash of tile.files) {
       const wire = baked.assets.get(hash);
       if (wire === undefined) throw new Error('Missing baked tile');
-      const loaded = await new GLTFLoader().parseAsync(Uint8Array.from(wire).buffer, '');
+      const loaded = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(Uint8Array.from(wire).buffer, '');
       loaded.scene.traverse(node => { if (isMesh(node)) meshes.push(node); });
     }
     for (const mesh of meshes) {

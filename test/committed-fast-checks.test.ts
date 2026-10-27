@@ -239,9 +239,16 @@ test('deleted-path guard ignores loose rescues and keeps frozen legacy reference
   const f=fixture();try {
     f.put('src/other.ts','export const other=1;');f.commit();f.git('rm','src/other.ts');
     f.put('src/main.ts',"export{other}from'./other';");const bad=f.commit();f.put('src/other.ts','export const other=1;');
+    const index=readFileSync(resolve(f.root,'.git/index'));
     const result=f.run('deleted-paths',bad,['src/other.ts']);expect(result.status,result.stderr).toBe(1);expect(result.stderr).toContain('deleted path src/other.ts');
+    expect(readFileSync(resolve(f.root,'.git/index'))).toEqual(index);
+    expect(readFileSync(resolve(f.root,'src/other.ts'),'utf8')).toBe('export const other=1;');
     f.put('src/main.ts','export const value=1;');f.put('src/shards/example-legacy/runtime/index.ts',"export{other}from'../../../other';");const fixed=f.commit();
+    f.put('src/main.ts',"export{other}from'./other';");
+    const fixedIndex=readFileSync(resolve(f.root,'.git/index'));
     expect(f.run('deleted-paths',fixed,['src/other.ts']).status).toBe(0);
+    expect(readFileSync(resolve(f.root,'.git/index'))).toEqual(fixedIndex);
+    expect(readFileSync(resolve(f.root,'src/main.ts'),'utf8')).toBe("export{other}from'./other';");
   }finally{f.close();}
 });
 
