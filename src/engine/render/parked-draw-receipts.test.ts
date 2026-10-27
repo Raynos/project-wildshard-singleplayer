@@ -168,3 +168,14 @@ test('callbacks declared draw-neutral pace as copies; a wrapped unmarked hook do
     expect(await f.warm(LIVE_PARKED_BUDGET)).toEqual({ drawn: 2, pauses: 2 });
   } finally { f.dispose(); for (const geometry of geometries) geometry.dispose(); material.dispose(); }
 });
+
+test('a known program under different blending is a new pipeline; the same state paces as a copy', async () => {
+  const opaque = new MeshBasicMaterial(), copy = new MeshBasicMaterial(), blended = new MeshBasicMaterial({ transparent: true });
+  const f = fixture([opaque, copy, blended]), geometries = [new BoxGeometry(), new BoxGeometry(), new BoxGeometry()];
+  try {
+    for (const material of [opaque, copy, blended]) f.compile(material, 7);
+    f.root.add(new Mesh(geometries[0], opaque), new Mesh(geometries[1], copy), new Mesh(geometries[2], blended));
+    // the opaque pair shares one slice (same program and state); the blended material builds its own pipeline
+    expect(await f.warm(LIVE_PARKED_BUDGET)).toEqual({ drawn: 3, pauses: 2 });
+  } finally { f.dispose(); for (const geometry of geometries) geometry.dispose(); for (const material of [opaque, copy, blended]) material.dispose(); }
+});

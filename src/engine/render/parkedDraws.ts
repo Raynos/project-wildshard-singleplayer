@@ -295,7 +295,9 @@ export const HELD_PARKED_BUDGET: ParkedDrawBudget = { drawables: 32, newMaterial
  */
 interface WarmedPipelines {
   readonly byGeometry: WeakMap<THREE.BufferGeometry, Set<string>>; readonly uploaded: WeakSet<ArrayBufferView>;
-  /** Native pipelines (program id × shape × vertex layout × state × context) a parked draw built: pacing only, never a skip. */
+  /** Native pipelines (program id × blend / depth state × shape × vertex layout × draw state × target formats) a parked
+   *  draw built: pacing only, never a skip. Lighting and environment are in the program id, so a kept program's pipelines
+   *  stay known across visits. */
   readonly pipelines: Set<string>;
   /** The dispose watches, one a geometry or material, released on delivery; past WATCH_CAP the receipt starts over. */
   readonly scope: Scope; readonly watched: WeakSet<THREE.BufferGeometry | THREE.Material>; watches: number;
@@ -326,12 +328,23 @@ function warmContextKey(renderer: ParkedDrawRenderer, scene: THREE.Scene, camera
     for (const child of object.children) visit(child);
   };
   visit(scene);
-  const env = environment === undefined ? scene.environment : environment;
-  const formats = target === null ? 'canvas'
-    : `${target.texture.type}:${target.texture.format}:${target.samples}:${target.depthBuffer ? 1 : 0}:${target.stencilBuffer ? 1 : 0}:${target.depthTexture === null ? 0 : 1}`;
+  const env = environment === undefined ? scene.environment : environment, formats = targetFormats(target);
   const tone = 'toneMapping' in renderer ? renderer.toneMapping : undefined, space = 'outputColorSpace' in renderer ? renderer.outputColorSpace : undefined;
   return `${lights.sort().join(',')}|${env?.uuid ?? ''}|${scene.fog === null ? '' : scene.fog instanceof THREE.FogExp2 ? 'e' : 'l'}` +
     `|${String(tone)}|${String(space)}|${renderer.shadowMap.type}|${formats}`;
+}
+
+/** The attachment formats a draw into `target` builds its pipeline for. */
+function targetFormats(target: THREE.WebGLRenderTarget | null): string {
+  return target === null ? 'canvas'
+    : `${target.texture.type}:${target.texture.format}:${target.samples}:${target.depthBuffer ? 1 : 0}:${target.stencilBuffer ? 1 : 0}:${target.depthTexture === null ? 0 : 1}`;
+}
+
+/** The fixed-function state a material's draw bakes into its pipeline besides its program: blending and depth / colour
+ *  writes (the program id already names its lights, fog, environment mode, tone mapping and shadow type). */
+function materialPipelineState(material: THREE.Material): string {
+  return `${material.blending}:${material.transparent ? 1 : 0}:${material.premultipliedAlpha ? 1 : 0}:${material.blendSrc}:${material.blendDst}` +
+    `:${material.blendEquation}:${material.depthTest ? 1 : 0}:${material.depthWrite ? 1 : 0}:${material.colorWrite ? 1 : 0}`;
 }
 
 /** three's per-object renderer state (`renderer.properties`); test doubles carry none. */
@@ -379,11 +392,11 @@ function pacedAsCopy(object: THREE.Object3D): boolean {
 /** `material`'s native pipeline for `object` under `context`: the program the renderer holds for it (precompile linked
  *  the entry's), the program shape, draw kind, vertex layout and draw state. Undefined keeps the material new: no program
  *  yet, or a drawable that does not pace as a copy. Pacing only: a known pipeline still draws. */
-function nativePipeline(renderer: object, object: THREE.Object3D, material: THREE.Material, camera: THREE.Camera, context: string): string | undefined {
+function nativePipeline(renderer: object, object: THREE.Object3D, material: THREE.Material, camera: THREE.Camera, formats: string): string | undefined {
   if (!pacedAsCopy(object)) return undefined;
   const index = drawableMaterials(object).indexOf(material), id = programIdList(renderer, object)?.[index];
-  return id === undefined ? undefined : `${id}|${object.type}|${programObjectKey(object)}|${vertexLayout(object)}|${object.castShadow}` +
-    `|${object.layers.test(camera.layers)}|${object.matrixWorld.determinant() < 0}|${context}`;
+  return id === undefined ? undefined : `${id}|${materialPipelineState(material)}|${object.type}|${programObjectKey(object)}|${vertexLayout(object)}` +
+    `|${object.castShadow}|${object.layers.test(camera.layers)}|${object.matrixWorld.determinant() < 0}|${formats}`;
 }
 
 /** A plain mesh or instanced mesh's exact pipeline signature under `context` (merged cells are identity-instance sets),
@@ -409,9 +422,9 @@ function alreadyWarmed(warmed: WarmedPipelines, renderer: object, object: THREE.
     && drawBuffers(object).every(buffer => warmed.uploaded.has(buffer));
 }
 
-function recordWarmed(warmed: WarmedPipelines, renderer: object, object: THREE.Object3D, camera: THREE.Camera, context: string): void {
+function recordWarmed(warmed: WarmedPipelines, renderer: object, object: THREE.Object3D, camera: THREE.Camera, context: string, formats: string): void {
   for (const material of drawableMaterials(object)) {
-    const pipeline = nativePipeline(renderer, object, material, camera, context);
+    const pipeline = nativePipeline(renderer, object, material, camera, formats);
     if (pipeline !== undefined) warmed.pipelines.add(pipeline);
   }
   const signature = warmSignature(renderer, object, camera, context);
@@ -530,11 +543,12 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
   if (options.lightingRoot !== undefined) reveal.add(options.lightingRoot);
   const drawables = parkedDrawables(root, camera, reveal);
   const warmed = warmedFor(renderer), context = warmContextKey(renderer, scene, camera, root, reveal, options.environment, target);
+  const formats = targetFormats(target);
   // G782: a material counts against a slice's new-material budget only when its native pipeline is new to this renderer
   // and to this warm (a warm crossing re-parks fresh material objects over pipelines its last visit built)
   const planned = new Set<string>();
   const slices = parkedDrawSlices(drawables, options.budget ?? DEFAULT_BUDGET, (object, material) => {
-    const pipeline = nativePipeline(renderer, object, material, camera, context);
+    const pipeline = nativePipeline(renderer, object, material, camera, formats);
     if (pipeline === undefined) return false;
     if (warmed.pipelines.has(pipeline) || planned.has(pipeline)) return true;
     planned.add(pipeline); return false;
@@ -561,7 +575,7 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
       if (slice.length === 0) { options.onProgress?.(done, total); continue; }
       try { drawSlice(renderer, scene, camera, view, target, root, slice, options.environment, standIns, reveal, benched); }
       catch (error) { console.error(`[parked draws] the pre-draw stopped after ${String(drawn)} drawables; the entry frame draws the rest`, error); return drawn; }
-      for (const object of slice) recordWarmed(warmed, renderer, object, camera, context);
+      for (const object of slice) recordWarmed(warmed, renderer, object, camera, context, formats);
       drawn += slice.length; done += slice.length;
       options.onProgress?.(done, total);
       await pause();
