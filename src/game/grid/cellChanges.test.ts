@@ -131,11 +131,11 @@ test('method installation publishes no callback before defining the wrapper', ()
 test('a watched absent field stays out of key walks until it holds a value', () => {
   // S3.7: a skinned geometry's watched morphAttributes.position read as a phantom (undefined) morph to Object.entries
   const morphs: Record<string, unknown> = {}, changes: unknown[] = [];
-  const stop = onCellField(morphs, 'position', () => { changes.push(morphs.position); });
-  expect(Object.keys(morphs)).toEqual([]); expect(morphs.position).toBeUndefined();
-  morphs.position = [1]; expect(Object.keys(morphs)).toEqual(['position']);
-  morphs.position = undefined; expect(Object.keys(morphs)).toEqual([]);
-  morphs.position = [2]; stop();
+  const stop = onCellField(morphs, 'position', () => { changes.push(morphs['position']); });
+  expect(Object.keys(morphs)).toEqual([]); expect(morphs['position']).toBeUndefined();
+  morphs['position'] = [1]; expect(Object.keys(morphs)).toEqual(['position']);
+  morphs['position'] = undefined; expect(Object.keys(morphs)).toEqual([]);
+  morphs['position'] = [2]; stop();
   expect(Object.getOwnPropertyDescriptor(morphs, 'position')).toEqual({ value: [2], writable: true, enumerable: true, configurable: true });
   expect(changes).toEqual([[1], undefined, [2]]);
   const empty: Record<string, unknown> = {}, stopEmpty = onCellField(empty, 'position', () => undefined); stopEmpty();
