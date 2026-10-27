@@ -49,7 +49,9 @@
       "src/shards/open-plots/discovery.open-plot-sky-race.generated.ts",
       "src/shards/open-plots/discovery.open-plot-starfall-observatory.generated.ts",
       "src/shards/open-plots/discovery.open-plot-thin-ice.generated.ts",
-      "src/shards/nalati-grasslands/discovery.generated.ts"
+      "src/shards/nalati-grasslands/discovery.generated.ts",
+      "out/.app/titleCatalogue.generated.ts",
+      "out/.app/shardSelection.generated.ts"
     ]
   }
 }
