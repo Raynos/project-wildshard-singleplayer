@@ -1,7 +1,7 @@
 import { CAPTAIN_FIELDS } from './captainFields';
 import { driftwoodPhysics } from './physics';
 import { driftwoodGroundSampler } from './groundSampling';
-import DRIFTWOOD_STRIKE_ROWS from '../data/strikes.json' with { type: 'json' };
+import { STRIKES as DRIFTWOOD_STRIKE_ROWS } from './strikeRows';
 
 const physics = driftwoodPhysics();
 

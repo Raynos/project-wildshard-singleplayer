@@ -1,6 +1,6 @@
 import type { BrainedSpecies } from '@wildshard/sdk/speciesBrains';
-import DRIFTWOOD_STRIKE_ROWS from '../data/strikes.json' with { type: 'json' };
-import authoredSpeciesActions from '../data/speciesActions.json' with { type: 'json' };
+import { STRIKES as DRIFTWOOD_STRIKE_ROWS } from './strikeRows';
+import * as authoredSpeciesActions from './speciesContactRows';
 import { MONKEY_VARIANTS } from './monkeyVariants';
 import { CRAB_BRAIN_PROFILE, SAILOR_BRAIN_PROFILE, MONKEY_BRAIN_PROFILE } from './brains';
 
