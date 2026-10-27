@@ -20,6 +20,8 @@ const quantized = (accessor: Accessor, array: Int16Array<ArrayBuffer> | Int8Arra
   accessor.setArray(array).setNormalized(true);
 };
 
+/** compactClearGlb's picks this process has made (null: the input was kept) */
+const cleared = new Map<string, Uint8Array | null>();
 /** compactPhoneGlb's picks this process has made (null: the input was kept) */
 const compacted = new Map<string, Uint8Array | null>();
 
@@ -151,15 +153,22 @@ export async function nameCompactBlob(name: string, bytes: Uint8Array, options: 
  *  triangles obstruct an entry footprint its exact ones did not keeps its exact bytes. Its grid never carries a vertex past
  *  the tile's own bounds (`contain`), which the cell's draw-bounds check holds to ±250 m. */
 export async function compactClearGlb(input: Uint8Array, entryways: readonly Pick<ShardEntryways[number], 'edge' | 'width'>[]): Promise<Uint8Array> {
+  // the pick (and its two triangle walks) is a pure function of the bytes and the entryways: kept for the process, as
+  // compactPhoneGlb keeps its own (a producer that prepares its output again reuses it; a hit hands back its own copy)
+  const key = `${hashImmutableBytes(input)}:${JSON.stringify(entryways.map(row => [row.edge, row.width]))}`, known = cleared.get(key);
+  if (known === null) return input;
+  if (known !== undefined) return Uint8Array.from(known);
   const compact = await compactPhoneGlb(input, { contain: true });
-  if (compact === input) return input;
+  if (compact === input) { cleared.set(key, null); return input; }
   const rectangles = entryFootprints(entryways);
   const obstructs = (bytes: Uint8Array): boolean => {
     let hit = false;
     visitGlbTriangles(bytes, triangle => { if (!hit && rectangles.some(rect => obstructsEntry(triangle, rect))) hit = true; });
     return hit;
   };
-  return obstructs(compact) && !obstructs(input) ? input : compact;
+  const result = obstructs(compact) && !obstructs(input) ? input : compact;
+  cleared.set(key, result === input ? null : Uint8Array.from(result));
+  return result;
 }
 
 /** `nameCompactBlob` over a set of shapes: one hash has one logical name (emitNamedBlobs), so a shape whose compacted bytes
