@@ -19,8 +19,7 @@ import { PLACE_SETS } from './placeSets';
 import { parseCoverAppearance } from '@wildshard/format/coverAppearance';
 import coverAppearance from '../data/coverAppearance.json' with { type: 'json' };
 import { parseQuestServiceActions, QuestServiceActionsSchema } from '@wildshard/format/questSteps';
-import keyedSky from '../data/keyedSky.generated.json' with { type: 'json' };
-import skyKeyBlobs from '../data/skyKeyBlobs.generated.json' with { type: 'json' };
+import { pineKeyedSky } from './bake-keyed-sky.mjs';
 import { ELITE_FEATURE_ROWS } from './eliteFeatureRows';
 import { pineJournal } from './journal';
 import { parseEliteFeature, spawnRegistries } from '@wildshard/sdk/rows';
@@ -94,7 +93,7 @@ import manifest from '../manifest.json' with { type: 'json' };
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 
 // GR8: called, not read from a scheduler job's output
-const props = await pineProps();
+const props = await pineProps(), { rows: keyedSky, blobs: skyKeys } = await pineKeyedSky();
 const spots = pineSpots();
 
 // GR8: called, not read from a scheduler job's output
@@ -117,7 +116,7 @@ const coverTextureIds=new Set([...coverAppearance.kinds.map(row=>row.texture),'e
 const coverTextures=Object.fromEntries(Object.entries(paintedRows.textures).filter(([key])=>coverTextureIds.has(key)));
 const collectionTextures=Object.fromEntries(Object.entries(paintedRows.textures).filter(([key])=>!coverTextureIds.has(key)));
 const forestDensity = pineDensityBlob(manifest);
-const clientJson: ReturnType<typeof emitNamedBlobs>=emitNamedBlobs([nameBlob(forestDensity.name, 'bin', forestDensity.bytes, { critical: true, decoded: forestDensity.decoded }), nameBlob('world/forest-weather.json', 'json', new TextEncoder().encode(encodeCanonicalJson(forestWeather))), FOREST_STORY_BLOB, PINE_QUEST_PAGE_BLOB, CROSSBOW_BLOB, ...SCENE_PACKED_MODELS, nameBlob('data/physics.generated.json', 'json', pinePhysicsBytes(), { jsonSchema: namedJsonSchema(PinePhysicsSchema) }), nameBlob('quests/native-story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_NATIVE_QUEST)), { jsonSchema: namedJsonSchema(NativeQuestCompositionSchema) }), nameBlob('quests/native-spots.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseNativeQuestServiceSpots({ rows: spots.rows, people: spots.people, board: spots.board, pickup: spots.rifle, cable: spots.zip, signals: spots.lanterns }))), { jsonSchema: namedJsonSchema(NativeQuestServiceSpotsSchema) }), ...RANGED_PAGE_BLOBS, FOREST_PAGE_BLOB, LANDMARK_VIEW_BLOB,
+const clientJson: ReturnType<typeof emitNamedBlobs>=emitNamedBlobs([nameBlob(forestDensity.name, 'bin', forestDensity.bytes, { critical: true, decoded: forestDensity.decoded }), nameBlob('world/forest-weather.json', 'json', new TextEncoder().encode(encodeCanonicalJson(forestWeather))), FOREST_STORY_BLOB, PINE_QUEST_PAGE_BLOB, CROSSBOW_BLOB, ...SCENE_PACKED_MODELS, ...skyKeys.map(([name, bytes]) => nameBlob(name, 'bin', bytes)), nameBlob('data/physics.generated.json', 'json', pinePhysicsBytes(), { jsonSchema: namedJsonSchema(PinePhysicsSchema) }), nameBlob('quests/native-story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_NATIVE_QUEST)), { jsonSchema: namedJsonSchema(NativeQuestCompositionSchema) }), nameBlob('quests/native-spots.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseNativeQuestServiceSpots({ rows: spots.rows, people: spots.people, board: spots.board, pickup: spots.rifle, cable: spots.zip, signals: spots.lanterns }))), { jsonSchema: namedJsonSchema(NativeQuestServiceSpotsSchema) }), ...RANGED_PAGE_BLOBS, FOREST_PAGE_BLOB, LANDMARK_VIEW_BLOB,
 nameBlob('look/cover-appearance.json','json',new TextEncoder().encode(encodeCanonicalJson(parseCoverAppearance({...coverAppearance,textures:coverTextures})))),...SCENE_BLOBS,nameBlob('quests/persistence.json','json',new TextEncoder().encode(encodeCanonicalJson(persistence))),
   nameBlob('sim/headless-assembly.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...headlessAssembly, constants: { terrain: PINE_TERRAIN, entries: headlessEntries, environment: POPULATION_ENVIRONMENT } }))),
   nameBlob('quests/chapter-director.json', 'json', new TextEncoder().encode(encodeCanonicalJson(CHAPTER_DIRECTOR))),
@@ -159,7 +158,7 @@ const heldEquipment = { ...heldTuning,
 const PLATFORM_ROWS = new Map<PlatformDataSectionName, unknown>([['explore/catalogue', EXPLORER_CATALOGUE],['world/trees', TREE_SET],['look/rigged-hulls', PINE_HULL_BOOK], ['look/hull-book', SPECIES_LOOKS], ['look/keyed-sky', keyedSky], ['client/plan', { ...clientPlan, features: [...clientPlan.features, { kind: 'audio.cues', id: 'roaming', stage: 'world', clock: 'owner', rows: NATIVE_VIEW.KING_CUES }, { kind: 'world.sets', rows: PLACE_SETS.map(({ id, place, name, x, z, r }) => ({ id, place, name, x, z, r, file: 'declared forest page', pois: [] })) }] }], ['ui/strings', strings], ['world/scenes', WORLD_SCENES], ['held/finishes', HELD_FINISHES], ['held/gear', HELD_GEAR], ['held/loadout', heldLoadout], ['held/equipment', heldEquipment], ['actors/species-programs', PINE_SPECIES_PROGRAMS], ['sim/scripts', KING_DECISION], ['actors/moves', KING_MOVES]]);
 
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
-export const output: { platform: ReturnType<typeof emitPlatformSections>; custom: ReturnType<typeof emitDefinedSections>; namedFiles: ReturnType<typeof emitNamedBlobs>["files"]; assets: ReturnType<typeof emitNamedBlobs>["assets"]; blobs: (ReturnType<typeof pinePhysicsSources>[number] | { name: string; kind: "json"; source: string; options: { jsonSchema: ReturnType<typeof namedJsonSchema>; }; } | (typeof SCENE_MODEL_BLOBS)[number] | (typeof skyKeyBlobs.blobs)[number])[]; } = { ...PINE_OUTPUT, platform: emitPlatformSections(PLATFORM_ROWS), custom, namedFiles: clientJson.files, assets: clientJson.assets, blobs: [...pinePhysicsSources(), ...SCENE_MODEL_BLOBS, ...skyKeyBlobs.blobs].map(meshoptSource) };
+export const output: { platform: ReturnType<typeof emitPlatformSections>; custom: ReturnType<typeof emitDefinedSections>; namedFiles: ReturnType<typeof emitNamedBlobs>["files"]; assets: ReturnType<typeof emitNamedBlobs>["assets"]; blobs: (ReturnType<typeof pinePhysicsSources>[number] | { name: string; kind: "json"; source: string; options: { jsonSchema: ReturnType<typeof namedJsonSchema>; }; } | (typeof SCENE_MODEL_BLOBS)[number])[]; } = { ...PINE_OUTPUT, platform: emitPlatformSections(PLATFORM_ROWS), custom, namedFiles: clientJson.files, assets: clientJson.assets, blobs: [...pinePhysicsSources(), ...SCENE_MODEL_BLOBS].map(meshoptSource) };
 
 /** Build-only mode rows; page and native owners consume the admitted section. */
 export const sections: { 'state/modes': { modes: typeof PINE_MODES; }; } = { 'state/modes': { modes: PINE_MODES } };
