@@ -3,6 +3,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {namedBlobOutput} from '../../../../scripts/named-blob-output.mjs';
 import {leverDetailPool} from './crossbowPool.ts';
+import {HANDS_POOL} from './handsPoolProduct.ts';
 
 const project=new URL('../',import.meta.url),root=new URL('../../../../',import.meta.url);
 const json=path=>JSON.parse(readFileSync(new URL(path,project),'utf8'));
@@ -15,7 +16,7 @@ add('models/trophies/mounts.bin','bin',trophies.url);
 const details=json('data/leverDetails.json');
 // GR8: the rifle's detail pool is built here (no scheduler job, no stored GLB), under its declared URL alias
 blobs.add('models/held/lever-details.glb','glb',leverDetailPool(),details.pool.url);
-const hands=json('data/handsPool.generated.json');
-add('models/held/hands.glb','glb',hands.pool.url);
+// GR8: the hands pool is built here too (no scheduler job, no stored GLB), under its SHA-256 URL alias
+blobs.add('models/held/hands.glb','glb',HANDS_POOL.glb,HANDS_POOL.rows.pool.url);
 blobs.finish(new URL('data/clientBlobs.generated.json',project));
 console.info(`Pine client inputs: immutable sources under ${fileURLToPath(project)}`);

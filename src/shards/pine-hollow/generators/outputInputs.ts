@@ -14,7 +14,7 @@ import trophies from '../data/trophyMounts.json' with {type:'json'};
 import { crossbowPool } from './crossbowPool';
 import { CROSSBOW_ROWS } from './crossbowRows';
 import { nameMeshoptBlob } from '@wildshard/sdk/blobs';
-import hands from '../data/handsPool.generated.json' with {type:'json'};
+import { HANDS_POOL } from './handsPoolProduct';
 import client from '../data/clientBlobs.generated.json' with {type:'json'};
 import night from '../behaviour/night.generated.json' with {type:'json'};
 import director from '../behaviour/director.json' with {type:'json'};
@@ -24,6 +24,9 @@ import rigs from '../data/rigBlobs.generated.json' with {type:'json'};
 import birds from '../data/birdBlobs.generated.json' with {type:'json'};
 import streams from '../data/streamBlobs.generated.json' with {type:'json'};
 import kingKit from '../data/kingKit.generated.json' with {type:'json'};
+
+// GR8: built by the program, not read from a scheduler job's output
+const hands = HANDS_POOL.rows;
 
 // GR8: the held crossbow pool is built here and named as a `meshopt: true` source is (no scheduler job, no stored file)
 const CROSSBOW = crossbowPool(), CROSSBOW_NAME = 'models/held/crossbow-pool.glb';

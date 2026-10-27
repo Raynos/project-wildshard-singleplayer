@@ -1,7 +1,10 @@
 import { BOW } from '@wildshard/game/weapons/starterBowProfile';
 import { BOW_PROFILE } from './bowProfile';
-import hands from '../data/handsPool.generated.json' with { type: 'json' };
+import { HANDS_POOL } from './handsPoolProduct';
 import { LONGBOW_MATERIAL, ARROW_MATERIAL, LONGBOW_POSES } from './longbowPresentation';
+
+// GR8: built by the program, not read from a scheduler job's output
+const hands = HANDS_POOL.rows;
 
 const { wind, ...STARTER_BOW } = BOW;
 void wind;

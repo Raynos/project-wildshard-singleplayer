@@ -2515,7 +2515,6 @@
     "src/shards/pine-hollow/data/gpuTables.generated.json",
     "src/shards/pine-hollow/data/ground.generated.json",
     "src/shards/pine-hollow/data/groundTiles.json",
-    "src/shards/pine-hollow/data/handsPool.generated.json",
     "src/shards/pine-hollow/data/heroScenes.generated.json",
     "src/shards/pine-hollow/data/journal.generated.json",
     "src/shards/pine-hollow/data/journalBlobs.generated.json",

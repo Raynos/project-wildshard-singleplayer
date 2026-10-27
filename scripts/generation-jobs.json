@@ -8149,44 +8149,6 @@
       }
     },
     {
-      "id": "pine-hollow-hands-pool",
-      "shard": "pine-hollow",
-      "entry": "src/shards/pine-hollow/generators/bake-hands-pool.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "src/shards/pine-hollow/generators/bake-hands-pool.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/pine-hollow/data/armsStyle.json",
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/format",
-        "src/shards/pine-hollow/generators/bake-hands-pool.mjs",
-        "src/shards/pine-hollow/generators/handsPool.ts",
-        "src/shards/pine-hollow/generators/longbowPresentation.ts",
-        "src/shards/pine-hollow/generators/crossbowRows.ts",
-        "src/shards/pine-hollow/data/crossbowDisplay.json",
-        "src/shards/pine-hollow/generators/handsLook.ts",
-        "src/shards/pine-hollow/generators/longbowLook.ts",
-        "scripts/bake-loader.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
-      ],
-      "outputs": [
-        "public/assets/pine-hollow/baked/9500ccf884a8bf642237d00c950f96c6aa81e6b06307d7f517adf0c7e4ae5020.glb",
-        "src/shards/pine-hollow/data/handsPool.generated.json"
-      ],
-      "platform": "portable",
-      "buildTimeOutputs": [
-        "public/assets/pine-hollow/baked/9500ccf884a8bf642237d00c950f96c6aa81e6b06307d7f517adf0c7e4ae5020.glb",
-        "src/shards/pine-hollow/data/handsPool.generated.json"
-      ]
-    },
-    {
       "id": "pine-hollow-king-kit",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-king-kit.mjs",
@@ -8996,9 +8958,7 @@
         "public/assets/pine-hollow/painted/shrubs-2d507885c1b2ad5775e11fe3b09f9a972e1f269bdab1dcdc2836fecf35b049ab.webp",
         "public/assets/pine-hollow/painted/stones-11d3ed7b4ed25b3bae62b44115e5d02fe01afb4e54a1f9df8d74209f3d27c93a.webp",
         "public/assets/pine-hollow/baked/trophies-ae6b7a974ecd.bin",
-        "src/shards/pine-hollow/generators",
-        "src/shards/pine-hollow/data/handsPool.generated.json",
-        "public/assets/pine-hollow/baked/9500ccf884a8bf642237d00c950f96c6aa81e6b06307d7f517adf0c7e4ae5020.glb"
+        "src/shards/pine-hollow/generators"
       ],
       "outputs": [
         "src/shards/pine-hollow/assets/11d3ed7b4ed25b3bae62b44115e5d02fe01afb4e54a1f9df8d74209f3d27c93a",

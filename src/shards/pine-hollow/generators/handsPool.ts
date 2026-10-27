@@ -383,7 +383,7 @@ function gripWrap(look: StaveBowLook, u: number, ph: number, sign: number): numb
 
 
 /** Every hand and Longbow part as one rest-geometry pool GLB, and the rows the runtime reads it by. */
-export async function handsPool(): Promise<{ glb: Uint8Array; rows: unknown }> {
+async function buildHandsPool() {
   await MeshoptSimplifier.ready;
   const parts = new Map<string, Geo>();
   const hands: Record<string, { geometry: string; sleeve: string | null; wrist: V3; dir: V3 }> = {};
@@ -423,3 +423,6 @@ export async function handsPool(): Promise<{ glb: Uint8Array; rows: unknown }> {
   }), 'pine-hands-pool');
   return { glb, rows: { pool: { url: '/assets/pine-hollow/baked/hands-pool.glb', parts: [...parts.keys()] }, hands, bow, presentation: { hands: HANDS_MATERIAL, coat: COAT_MATERIAL, bow: LONGBOW_MATERIAL, arrow: ARROW_MATERIAL, poses: LONGBOW_POSES } } };
 }
+/** The held hands, sleeves, longbow and arrows as one rest-geometry pool GLB, with its rows. GR8: the product builds it
+ *  (handsPoolProduct.ts), no scheduler job or stored GLB. */
+export const handsPool: () => ReturnType<typeof buildHandsPool> = buildHandsPool;
