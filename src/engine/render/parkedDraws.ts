@@ -261,7 +261,7 @@ async function prepareParkedBounds(drawables: readonly Drawable[], current: () =
       || geometry.morphAttributes.position !== undefined) continue;
     seen.add(geometry);
     const position: unknown = geometry.getAttribute('position');
-    if (!(position instanceof THREE.BufferAttribute) || !(position.array instanceof Float32Array)
+    if (!(position instanceof THREE.BufferAttribute) || !(position.array instanceof Float32Array) || !(position.array.buffer instanceof ArrayBuffer)
       || Object.getPrototypeOf(position.array) !== Float32Array.prototype || Object.hasOwn(position.array, 'length')
       || position.usage !== THREE.StaticDrawUsage || position.normalized || position.itemSize !== 3
       || position.array.length === 0 || position.count * 3 !== position.array.length
@@ -272,7 +272,10 @@ async function prepareParkedBounds(drawables: readonly Drawable[], current: () =
       for (;;) {
         if (!current()) throw new Error('Parked bounds owner left');
         // A late streamed edit must use the renderer's fresh scan, not this partial one.
-        if (geometry.boundingSphere !== null || geometry.getAttribute('position') !== position || position.array !== array || position.version !== version) break;
+        if (geometry.boundingSphere !== null || geometry.getAttribute('position') !== position || position.array !== array || position.version !== version
+          || geometry.morphAttributes.position !== undefined || position.usage !== THREE.StaticDrawUsage || position.normalized || position.itemSize !== 3
+          || position.count * 3 !== array.length || position.getX !== THREE.BufferAttribute.prototype.getX
+          || position.getY !== THREE.BufferAttribute.prototype.getY || position.getZ !== THREE.BufferAttribute.prototype.getZ) break;
         if (steps.next().done === true) break;
         if (diagnosticNow() - started >= LIVE_PRECOMPILE_SLICE_MS) { await pause(); started = diagnosticNow(); }
       }
@@ -293,13 +296,16 @@ async function prepareParkedInstanceBounds(drawables: readonly Drawable[], curre
     const geometry: unknown = object.geometry;
     if (!isBufferGeometry(geometry) || geometry.boundingSphere === null) continue;
     const attribute = object.instanceMatrix, array = attribute.array, version = attribute.version, count = object.count;
-    if (attribute.usage !== THREE.StaticDrawUsage || !(array instanceof Float32Array)
+    if (attribute.usage !== THREE.StaticDrawUsage || !(array instanceof Float32Array) || !(array.buffer instanceof ArrayBuffer)
       || Object.getPrototypeOf(array) !== Float32Array.prototype || Object.hasOwn(array, 'length')
       || !Number.isSafeInteger(count) || array.length < count * 16) continue;
     const source = geometry.boundingSphere, original = source.clone(), result = new THREE.Sphere().makeEmpty();
     const unchanged = (): boolean => object.boundingSphere === null && object.geometry === geometry
       && geometry.boundingSphere === source && source.equals(original) && object.count === count
-      && object.instanceMatrix === attribute && attribute.array === array && attribute.version === version;
+      && object.instanceMatrix === attribute && attribute.array === array && attribute.version === version
+      && attribute.usage === THREE.StaticDrawUsage && array.length >= count * 16
+      && object.getMatrixAt === THREE.InstancedMesh.prototype.getMatrixAt
+      && object.computeBoundingSphere === THREE.InstancedMesh.prototype.computeBoundingSphere;
     let index = 0;
     while (index < count) {
       if (!current()) throw new Error('Parked bounds owner left');
