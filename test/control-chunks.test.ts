@@ -19,6 +19,9 @@ test('control batches retain title, session, lazy and shard boundaries through c
   expect(select('/fixture/src/calibration.ts', graph)).toBeNull();
   expect(select('/fixture/src/shards/one/manifest.ts', graph)).toBeNull();
   expect(select('/fixture/src/styles.css', graph)).toBeNull();
+  const title = controlChunkSelector(root, [], 'title');
+  expect(title('/fixture/src/shared.ts', graph)).toBe('title-boundary');
+  expect(title('/fixture/src/services.ts', graph)).toBeNull();
 });
 
 test('a subsequent build uses its own graph, including changed optional requirements', () => {
