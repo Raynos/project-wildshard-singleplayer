@@ -23,7 +23,8 @@ import { writeGeometry, join } from '../src/shards/nalati-grasslands/generators/
 import * as v from 'valibot';
 import { SceneDressingSchema } from '../src/format/sceneDressing';
 import { dressingScene } from './fixtures/nalati-dressing-scene';
-import { DRESSING_CRAG_DECODED } from '../src/shards/nalati-grasslands/generators/dressingScene';
+import { dressingCragDecoded } from '../src/shards/nalati-grasslands/generators/dressingScene';
+import { nalatiCragRows } from './fixtures/nalati-crags';
 import { nalatiBakeBlob } from '../src/shards/nalati-grasslands/generators/placeBlobProgram';
 import { nalatiPlacesProgram } from '../src/shards/nalati-grasslands/generators/placesProgram';
 import { buildDressingWire } from '../src/shards/nalati-grasslands/generators/dressingProgram';
@@ -190,7 +191,7 @@ test('Nalati logical bakes admit the exact shipping compressed bytes and decoded
   sources.push(nameBlob('world/places.bin','bin',placeBytes,{decoded:placeCost}));
   sources.push(await nalatiBakeBlob({cached:(_step,generate)=>Promise.resolve(generate(new Map([
     ['/assets/nalati/baked/crags.bin',readFileSync('public/assets/nalati/baked/crags.bin')],
-  ])))},'crags',DRESSING_CRAG_DECODED));
+  ])))},'crags',dressingCragDecoded(nalatiCragRows)));
   expect(sources.map(source=>source.file.name).sort((a,b)=>(a??'').localeCompare(b??''))).toEqual(['world/crags.bin','world/dressing.bin','world/places.bin']);
   for(const admitted of sources){
     const name=admitted.file.name?.slice('world/'.length);

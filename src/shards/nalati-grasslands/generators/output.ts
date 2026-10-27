@@ -45,7 +45,7 @@ import { nalatiFindsCatalogue } from './finds';
 import { coverSpecimenBlobs, nalatiCoverProgram } from './coverSpecimens';
 import type { NalatiCover } from './coverBake.mjs';
 import { TREE_SET } from './treeSet';
-import { DRESSING_CONTACT_SOURCES, DRESSING_ATLAS_SOURCES, DRESSING_CRAG_DECODED, dressingSceneBlobs, nalatiDressingSpecimens } from './dressingScene';
+import { DRESSING_CONTACT_SOURCES, DRESSING_ATLAS_SOURCES, dressingCragDecoded, dressingSceneBlobs, nalatiDressingSpecimens } from './dressingScene';
 import * as v from 'valibot';
 import { makeCarriedQuestRows } from './carriedQuest';
 import { CarriedQuestSchema } from '@wildshard/format/questSteps';
@@ -99,6 +99,7 @@ import chapterView from '../data/chapterView.json' with { type: 'json' };
 import { peopleRows as peopleFrames } from './peopleRows.mjs';
 import { nalatiPeopleBlobs } from './peopleBake';
 import { nalatiTerrainSceneProgram } from './terrainSceneProgram';
+import { nalatiCragRockProgram } from './cragRockProgram';
 import { ChapterViewSchema } from '@wildshard/format/questPageComposition';
 import namePanel from '../data/namePanel.json' with {type:'json'};
 import { parsePanelDefinition } from '@wildshard/format/panelTemplate';
@@ -324,7 +325,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
     ...eliteAssembly, constants: { ...eliteAssembly.constants, nativeShelters },
   }))), nameBlob('models/shape-book.json', 'json', new TextEncoder().encode(encodeCanonicalJson(shapeDraws)),
     { jsonSchema: namedJsonSchema(FixedDrawRowsSchema) })]);
-  const crags = await nalatiBakeBlob(ctx, 'crags', DRESSING_CRAG_DECODED), people = await nalatiPeopleBlobs(ctx);
+  const cragRows = await nalatiCragRockProgram(ctx), crags = await nalatiBakeBlob(ctx, 'crags', dressingCragDecoded(cragRows)), people = await nalatiPeopleBlobs(ctx);
   // GR6: the slab and the water mesh ship; the painted ground draws from its tiles, so its whole mesh feeds only the map
   const terrainDraws = (await nalatiTerrainSceneProgram(ctx)).filter(blob => blob.file.name !== 'world/terrain/ground.glb');
   const dressingFiles = await nalatiDressingProgram(ctx), dressingBytes = dressingFiles.get('dressing.bin');
@@ -333,7 +334,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
   const decorativeFiles = await nalatiDecorativeProgram(ctx), decorativeBytes = decorativeFiles.get('decorative.json');
   if (decorativeBytes === undefined) throw new Error('Missing owned decorative profiles');
   const profiles: unknown = JSON.parse(new TextDecoder().decode(decorativeBytes));
-  const sceneBlobs = dressingSceneBlobs(profiles,runtime.runtime,balbal,specimenRows,paintRows,cover.rows);
+  const sceneBlobs = dressingSceneBlobs(profiles,runtime.runtime,balbal,specimenRows,paintRows,cover.rows,cragRows);
   const coverNames = new Set(['models/cover-phone.json', 'models/cover-desktop.json']);
   const books = [...freshEmission.files.filter(file => file.name !== undefined && coverNames.has(file.name)).map(file => {
     const bytes = freshEmission.assets.get(file.hash);

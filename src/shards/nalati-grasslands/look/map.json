@@ -4,7 +4,6 @@
     "generators",
     "data/modelMetrics.json",
     "boot/layout.generated.json",
-    "boot/cragRock.generated.json",
     "data/discovery.json",
     "data/spruceRest.generated.json",
     "../../../public/assets/nalati/baked/crags.bin",

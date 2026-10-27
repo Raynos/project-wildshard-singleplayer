@@ -12,6 +12,7 @@ import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 import { nativeNalatiDressingPlacements } from './nativeDressingPlacements.mjs';
 import { nalatiPoiPaintFromInputs, POI_PAINT_INPUTS } from './poiPaintProgram.ts';
 import { nalatiGeographySources, nalatiGeographyRows } from './geographySource.ts';
+import { nalatiCragRock } from './cragRockProgram.ts';
 
 // GR6: a pure producer. The caller supplies every input as bytes by its repository path (`source(path)`); no file, script,
 // format or engine service is read here.
@@ -152,7 +153,7 @@ export async function nalatiMapAssembly(source) {
     assembly.add(`dressing:${name}`, geometry, list.map(pose));
   }
   // the crag bank: both tiers' lane-shuffled blocks in one deflate stream
-  const cragRows = read('boot/cragRock.generated.json'), crags = cragRows.desktop;
+  const cragRows = nalatiCragRock(source('public/assets/baked/nalati-grasslands/terrain.bin')).rows, crags = cragRows.desktop;
   const cragWords = Math.max(...['phone', 'desktop'].flatMap(tier => cragRows[tier].meshes.map(mesh => mesh.offset + bakedGeometryBytes(mesh.row))));
   const cragLanes = decodeBuildDeflate(source('public/assets/nalati/baked/crags.bin'), cragWords), cragBytes = new Uint8Array(cragLanes.length);
   for (let b = 0, n = cragLanes.length / 4; b < 4; b++) for (let i = 0; i < n; i++) cragBytes[i * 4 + b] = cragLanes[b * n + i];

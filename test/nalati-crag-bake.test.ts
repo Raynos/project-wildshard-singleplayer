@@ -13,13 +13,13 @@ import { readBakedGeometry } from '@wildshard/sdk/kit/bakedGeometry';
 import { createClientScene } from '@wildshard/game/plugin/scene';
 import { unshuffleLanes as unshuffleBodyLanes } from '../src/engine/core/deflate';
 import oracle from './fixtures/nalati-crag-bake.json';
+import { nalatiCragRows } from './fixtures/nalati-crags';
 
 const finite=v.pipe(v.number(),v.finite());
 const tierSchema=v.object({meshes:v.array(v.object({key:v.string(),offset:finite,row:SceneBakedGeometrySchema})),
   recipe:PrivateSceneSchema,placements:v.array(v.unknown()),boxes:v.array(finite),colliders:v.array(v.unknown()),
   count:v.record(v.string(),finite),triangles:finite,hulls:v.array(v.unknown())});
-const rows=v.parse(v.object({phone:tierSchema,desktop:tierSchema}),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/cragRock.generated.json','utf8')));
+const rows=v.parse(v.object({phone:tierSchema,desktop:tierSchema}),nalatiCragRows);
 
 const hash = (bytes: string | Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
 
