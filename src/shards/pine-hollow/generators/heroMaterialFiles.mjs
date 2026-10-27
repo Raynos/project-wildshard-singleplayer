@@ -6,7 +6,7 @@ import rows from '../data/heroRows.json' with {type:'json'};
 
 /** The GPU twin tables the candidates come from (read as the program's sources, not imported). */
 export const HERO_TABLES=['ktx2.generated.ts','data/astc6.generated.json'];
-const tables=sources=>{
+export const gpuTables=sources=>{
  const text=new TextDecoder().decode(sources.bytes(HERO_TABLES[0]));
  return{gpu:JSON.parse(text.slice(text.indexOf(' = {')+3,text.lastIndexOf('}')+1)),astc:JSON.parse(new TextDecoder().decode(sources.bytes(HERO_TABLES[1])))};
 };
@@ -18,7 +18,7 @@ export function heroModelSources(){return rows.sources.flatMap(id=>[heroModelSou
 
 /** Every material payload a hero row may load (original, phone and GPU twins per tier); the sources keep those that exist. */
 export function heroMaterialCandidates(sources){
- const {gpu,astc}=tables(sources),urls=[];
+ const {gpu,astc}=gpuTables(sources),urls=[];
  for(const source of rows.sources)for(const id of [source,`${source}-lod1`]){
   const original=heroModelSource(id),phone=original.replace('.glb','.phone.glb');
   for(const url of [original,phone,gpu.desktop[original],gpu.desktop[phone],gpu.phone[original],gpu.phone[phone],astc[original],astc[phone]])
@@ -35,7 +35,20 @@ const productName=url=>`models/hero-materials/${url.slice('/assets/'.length)}`;
 export function heroMaterialAliases(sources){
  return Object.fromEntries(heroMaterialCandidates(sources).filter(url=>sources.has(url)).map(url=>[url,productName(url)]));
 }
-/** The compacted payloads by product name. */
+/** The compacted payloads by product name, each with the device tier that fetches it. */
 export function heroMaterialFiles(sources){
- return Object.keys(heroMaterialAliases(sources)).map(url=>[productName(url),new Uint8Array(compactMaterialGlb(Buffer.from(sources.bytes(url))))]);
+ return Object.keys(heroMaterialAliases(sources)).map(url=>[productName(url),new Uint8Array(compactMaterialGlb(Buffer.from(sources.bytes(url)))),materialTier(sources,url)]);
+}
+
+/** The device tier a material payload serves: a desktop or phone GPU twin (the KTX2 tables, the phone ASTC6 table, their
+ *  `.desktop-` / `.phone` names, any other GPU twin being the desktop's), an original with a phone original beside it (the desktop's image-mode payload), else
+ *  both tiers. */
+export function materialTier(sources,url){
+ const {gpu,astc}=gpuTables(sources);
+ if(Object.values(gpu.desktop).includes(url)||/\.desktop-[0-9a-f]+\.gltf$/u.test(url))return 'desktop';
+ if(Object.values(gpu.phone).includes(url)||Object.values(astc).includes(url)||/\.phone[.-]/u.test(url))return 'phone';
+ // a GPU twin that is not a phone twin is the desktop's
+ if(url.startsWith('/assets/gpu/'))return 'desktop';
+ if(/\.glb$/u.test(url)&&sources.has(url.replace(/\.glb$/u,'.phone.glb')))return 'desktop';
+ return undefined;
 }
