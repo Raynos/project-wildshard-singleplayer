@@ -15,12 +15,18 @@ import { FIGURE_CATALOGUE } from '../../src/shards/driftwood-isle/generators/fig
 import { NPC_FOCUS_PROGRAMS } from '../../src/shards/driftwood-isle/generators/npcFocusPrograms';
 import { createProjectGeneration } from '../../src/sdk/projectGeneration';
 import { driftwoodFixedModelOutput } from '../../src/shards/driftwood-isle/generators/fixedModels';
+import { nameMeshoptBlob } from '../../src/sdk/blobs';
+import { driftwoodSceneBanks } from './driftwoodSceneBanks';
 
 // The fixed producer owns these logical files since GR7; the static asset table
 // intentionally omits them. Admit its real native outputs into this fixture too.
 const fixedModels = driftwoodFixedModelOutput(createProjectGeneration('src/shards/driftwood-isle',
   hashImmutableBytes(new TextEncoder().encode('driftwood-fixed-product-fixture-v1')), new Map(), undefined,
   [{ prefix: '/assets/', directory: resolve('public/assets') }]));
+
+// The production scene-bank emitter uses the same lossless transport selection
+// for scaled cargo choices, which are absent from the static source table.
+const cargoModels = driftwoodSceneBanks().then(banks => Promise.all([...banks.cargo.glbs].map(([name, bytes]) => nameMeshoptBlob(name, bytes))));
 
 /** Real published GLB source bytes with the same admitted asset and layout rows as the product writer. */
 export async function driftwoodFixedProduct(legacy = false): Promise<ReturnType<typeof createShardProduct>> {
@@ -36,6 +42,10 @@ export async function driftwoodFixedProduct(legacy = false): Promise<ReturnType<
     const bytes = fixed.assets.get(file.hash);
     if (bytes === undefined) throw new Error(`Missing owned fixed fixture bytes: ${file.name}`);
     blobs.push({ name: file.name, source: `assets/${file.hash}`, bytes: Uint8Array.from(bytes), hash: file.hash });
+  }
+  for (const blob of await cargoModels) {
+    if (blob.file.name === undefined) throw new Error('Cargo fixture output must retain its logical name');
+    blobs.push({ name: blob.file.name, source: `assets/${blob.file.hash}`, bytes: Uint8Array.from(blob.bytes), hash: blob.file.hash });
   }
   const groupBytes = new TextEncoder().encode(encodeCanonicalJson(inventory.groups));
   blobs.push({ name: 'models/fixed-geometry.json', source: 'data/fixedGeometry.json', bytes: groupBytes, hash: createHash('sha256').update(groupBytes).digest('hex') });
