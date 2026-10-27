@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Device-cost source fixture uses one tracked bounded KTX2 file.
 import { readFileSync } from 'node:fs';
 import { parseKtx2, ktx2DeviceCosts, ktx2DeviceGpu } from '../src/format/ktx2Cost';
-import { runtimeOnlyProductFiles } from '../src/game/shardfile/productCost';
+import { runtimeOnlyProductFiles, deviceLibraryCostPaced } from '../src/game/shardfile/productCost';
 import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { encodeCanonicalJson as canonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
@@ -855,4 +855,23 @@ test('device footprints preserve padded tiny mips even above RGBA size', () => {
   expect(ktx2DeviceGpu({rgba:4,astc:16,bc7:16},{astc:true,bc7:false})).toBe(16);
   expect(ktx2DeviceGpu({rgba:4,astc:4,bc7:16},{astc:true,bc7:true})).toBe(16);
   expect(ktx2DeviceGpu({rgba:4,astc:16,bc7:16})).toBe(4);
+});
+
+
+test('late KTX2 cost projection uses exact receipt facts without admitting its body', async () => {
+  const bytes = Uint8Array.from(readFileSync('test/fixtures/shard-assets/pixel.ktx2'));
+  const row = fixture(true,0,1,'loader-fixture',false,true,bytes), restore = installIndexReceipt(row.index);
+  try {
+    const source = await readProductDescriptor(options(row.wires));
+    for (const support of [{astc:true,bc7:false},{astc:false,bc7:true}]) {
+      const projected = {...source};
+      const actual = await deviceLibraryCostPaced(projected,new Map(),support,undefined,source);
+      const parsed = await deviceLibraryCostPaced(projected,new Map([[hashImmutableBytes(bytes),bytes]]),support,undefined);
+      expect(actual).toEqual(parsed);
+      await expect(deviceLibraryCostPaced({...source,files:source.files.map(file=>({...file}))},new Map(),support,undefined,source))
+        .rejects.toThrow('Missing admitted texture cost bytes');
+      await expect(deviceLibraryCostPaced(projected,new Map(),support,undefined,{...source}))
+        .rejects.toThrow('Missing admitted texture cost bytes');
+    }
+  } finally {restore();}
 });

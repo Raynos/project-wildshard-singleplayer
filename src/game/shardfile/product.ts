@@ -462,7 +462,7 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
     await options.pause?.();
     const playSource = await playLibrarySourcePaced(scopedSource, options.pause);
     await options.pause?.();
-    acceptValidatedCost(source, await deviceLibraryCostPaced(playSource, assets, options.textures, options.pause), options.memory);
+    acceptValidatedCost(source, await deviceLibraryCostPaced(playSource, assets, options.textures, options.pause, source), options.memory);
     await options.pause?.();
   }
   if (!options.offline && options.cache !== undefined) {

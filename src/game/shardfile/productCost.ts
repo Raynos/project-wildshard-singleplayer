@@ -9,7 +9,7 @@ import { deviceLibraryCostSteps } from '@wildshard/format/deviceMemoryCost';
 import { frameBudgetSpent } from '@wildshard/engine/core/framePacing';
 import { preflightShardfile } from '@wildshard/format/preflight';
 import { isJsonData } from '@wildshard/format/json';
-import { outputDescriptor } from './outputDescriptor';
+import { outputDescriptor, isBuildValidatedOutput } from './outputDescriptor';
 import { isPlatformDataSection } from '@wildshard/format/outputFields';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { parseWorldSceneModels, worldSceneModelGraphs, worldSceneModelResources } from '@wildshard/format/worldSceneModels';
@@ -45,8 +45,16 @@ async function paced<T>(steps: Generator<void, T>, pause: () => Promise<void>): 
 
 /** This device's worst-disc cost of `source` (`deviceLibraryCostSteps`), paced like the specimen projection. */
 export function deviceLibraryCostPaced(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, support: TextureTranscodeSupport,
-  pause: (() => Promise<void>) | undefined): Promise<ReturnType<typeof worstContentCost>> {
-  return paced(deviceLibraryCostSteps(source, assets, support), pause ?? (() => Promise.resolve()));
+  pause: (() => Promise<void>) | undefined, validatedSource?: Shardfile): Promise<ReturnType<typeof worstContentCost>> {
+  // Projected budgets may change, but only exact original file objects inherit the build's body-cost proof.
+  const original = validatedSource !== undefined && isBuildValidatedOutput(validatedSource) ? validatedSource : undefined;
+  const facts = original === undefined ? undefined : outputDescriptor(original)?.index.ktx2Costs;
+  const files = new Set(original?.files);
+  const costs = new Map(source.files.flatMap(file => {
+    const known = facts?.[file.hash];
+    return file.kind === 'ktx2' && files.has(file) && known !== undefined ? [[file.hash, known] as const] : [];
+  }));
+  return paced(deviceLibraryCostSteps(source, assets, support, costs), pause ?? (() => Promise.resolve()));
 }
 
 /** Same complete cost projection, allowing live admission to paint between catalogue choices. */
