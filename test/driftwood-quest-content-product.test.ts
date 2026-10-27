@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { Flags } from '../src/engine/world/interact/flags';
 import { QuestState, lineFor } from '../src/engine/quest/core';
 import { parseQuestStory } from '../src/format/questStory';
-import { readProjectAssets } from '../src/sdk/project';
+import { output } from '../src/shards/driftwood-isle/generators/output';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { DRIFTWOOD_QUESTS, DRIFTWOOD_MARKERS } from '../src/shards/driftwood-isle/generators/quests';
 import { DRIFTWOOD as source } from './fixtures/driftwood-program';
@@ -21,8 +21,10 @@ const originals = {
 };
 const hash = (value: unknown): string => hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(value)));
 
-test('the retained DW producer preserves story, POI anchors, NPC policy and ordered command routes', async () => {
-  const loaded = await readProjectAssets('src/shards/driftwood-isle', undefined, { folder: 'driftwood-isle', imageRoots: [{ prefix: '/assets/', directory: 'public/assets' }] });
+test('the retained DW producer preserves story, POI anchors, NPC policy and ordered command routes', () => {
+  // The declaration Driftwood's real source program admits (the fixture builds it once) and the story bytes its producer
+  // emits (a static named file of every product), without rebuilding the whole product's assets.
+  const loaded = { shard: source, output, assets: output.assets };
   expect(hash(DRIFTWOOD_QUESTS)).toBe(originals.DRIFTWOOD_QUESTS);
   const { achievements, ...originalQuests } = loaded.shard.quests;
   expect(hash(originalQuests)).toBe(originals.DRIFTWOOD_QUESTS);
