@@ -8,7 +8,17 @@ export async function readGridAssetBytes(address: { readonly url: string; readon
   const response = await read(address.url);
   if (!response.ok) throw new Error(`${label} ${response.status}`);
   if (response.body === null) throw new Error(`${label} body is missing`);
-  const wire = new Uint8Array(address.bytes), reader = response.body.getReader();
+  let direct: ReadableStreamBYOBReader | undefined;
+  // Native byte streams can fill the admitted backing without a second JS copy.
+  // Ordinary cached/custom streams keep the original default-reader path.
+  try { direct = response.body.getReader({ mode: 'byob' }); } catch { /* Capability negotiation only; the default reader still owns every failure. */ }
+  const wire = direct === undefined ? await readChunks(response.body, address.bytes, label) : await readDirect(direct, address.bytes, label);
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', wire.buffer));
+  if (Array.from(digest, byte => byte.toString(16).padStart(2, '0')).join('') !== address.sha256) throw new Error(`${label} differs from the build`);
+  return wire;
+}
+async function readChunks(body: ReadableStream<Uint8Array>, bytes: number, label: string): Promise<Uint8Array<ArrayBuffer>> {
+  const wire = new Uint8Array(bytes), reader = body.getReader();
   let size = 0;
   try {
     for (;;) {
@@ -19,7 +29,22 @@ export async function readGridAssetBytes(address: { readonly url: string; readon
     if (size !== wire.length) throw new Error(`${label} size differs from the build`);
   } catch (error) { await reader.cancel().catch(() => undefined); throw error; }
   finally { reader.releaseLock(); }
-  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', wire.buffer));
-  if (Array.from(digest, byte => byte.toString(16).padStart(2, '0')).join('') !== address.sha256) throw new Error(`${label} differs from the build`);
   return wire;
+}
+async function readDirect(reader: ReadableStreamBYOBReader, bytes: number, label: string): Promise<Uint8Array<ArrayBuffer>> {
+  let wire = new Uint8Array(bytes), size = 0;
+  try {
+    for (;;) {
+      // A separate one-byte EOF probe preserves the completed backing: BYOB
+      // transfers its input buffer even when the next read reaches EOF.
+      const full = size === bytes, part = await reader.read(full ? new Uint8Array(1) : wire.subarray(size));
+      if (part.done) break;
+      if (full || part.value.byteLength > bytes - size) throw new Error(`${label} size differs from the build`);
+      const length = part.value.byteLength;
+      wire = new Uint8Array(part.value.buffer, 0, bytes); size += length;
+    }
+    if (size !== bytes) throw new Error(`${label} size differs from the build`);
+    return wire;
+  } catch (error) { await reader.cancel().catch(() => undefined); throw error; }
+  finally { reader.releaseLock(); }
 }
