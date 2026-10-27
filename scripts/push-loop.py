@@ -155,7 +155,7 @@ def lane(root, commits):
         except (ValueError, KeyError):
             continue
     target = next((rows[sha] for sha in commits if rows.get(sha)), None)
-    if target and not re.fullmatch(r'sp-[xo]\d+|w\w+:p\d+', target):
+    if target and not re.fullmatch(r'sp-(?:[xo]\d+|ci-deploy)|w\w+:p\d+', target):
         target = None
     # Protected plan panes are never prompted, even via a stale pane record.
     if target and not target.startswith('sp-'):
@@ -165,7 +165,7 @@ def lane(root, commits):
                            if agent['pane_id'] == target), None)
         except (subprocess.SubprocessError, ValueError, KeyError):
             target = None
-    return target if target and re.fullmatch(r'sp-[xo]\d+', target) else 'wildshard-new'
+    return target if target and re.fullmatch(r'sp-(?:[xo]\d+|ci-deploy)', target) else 'sp-ci-deploy'
 
 
 def ping(root, commits, message):

@@ -60,6 +60,27 @@ class PushLoop(unittest.TestCase):
         self.git('commit', '-qm', 'fixture')
         return self.git('rev-parse', 'HEAD')
 
+    def test_lane_routes_only_builders_and_defaults_to_ci(self):
+        self.assertEqual(PUSH['lane'](self.root, [self.base]), 'sp-ci-deploy')
+        for recorded, expected in [('sp-x6', 'sp-x6'), ('sp-o2', 'sp-o2'),
+                                   ('sp-ci-deploy', 'sp-ci-deploy'),
+                                   ('wildshard-new', 'sp-ci-deploy'),
+                                   ('wildshard-v', 'sp-ci-deploy')]:
+            with self.subTest(recorded=recorded):
+                self.put('.git/commit-lanes.jsonl', json.dumps({'sha': self.base, 'lane': recorded}))
+                self.assertEqual(PUSH['lane'](self.root, [self.base]), expected)
+        self.put('.git/commit-lanes.jsonl', json.dumps({'sha': self.base, 'pane': 'w1:p1'}))
+        check_output = subprocess.check_output
+        for resolved, expected in [('sp-x6', 'sp-x6'), ('sp-ci-deploy', 'sp-ci-deploy'),
+                                   ('wildshard-new', 'sp-ci-deploy'),
+                                   ('wildshard-v', 'sp-ci-deploy')]:
+            def inventory(command, *args, **kwargs):
+                if command[0] == 'herdr':
+                    return json.dumps({'result': {'agents': [{'pane_id': 'w1:p1', 'name': resolved}]}})
+                return check_output(command, *args, **kwargs)
+            with self.subTest(resolved=resolved), patch.object(subprocess, 'check_output', side_effect=inventory):
+                self.assertEqual(PUSH['lane'](self.root, [self.base]), expected)
+
     def test_pane_environment_drops_ephemeral_codex_path_and_keeps_session(self):
         context = {'HERDR_ENV': '1', 'HERDR_SESSION': 'fixture',
                    'HERDR_SOCKET_PATH': '/fixture/herdr.sock', 'HERDR_PANE_ID': 'w1:p1',
