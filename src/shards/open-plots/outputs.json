@@ -1,5 +1,5 @@
 {
-  "why": "SF88g (G538/G539/G541/G542): the open-plots source shard emits one product per idea row (scripts/shard-outputs.mjs). The generator and shard.config.ts read idea, name and accent; manifest overrides merge into manifest.json. Each idea's inputs live in public/assets/open-plots/<idea>/.",
+  "why": "SF88g (G538/G539/G541/G542): the open-plots source shard emits one product per idea row (scripts/shard-outputs.mjs). The generator and shard.config.ts read idea, name and accent; manifest overrides merge into manifest.json. Each idea's inputs live in public/assets/open-plots/<idea>/. A row's `lookKeys` replaces the shared look key (data/source.json look.keys) for that idea alone (D111: Night Market's violet dusk, its fill 1.4).",
   "outputs": [
     {
       "slug": "open-plot-showcase-template",
@@ -574,7 +574,55 @@
           }
         ]
       },
-      "layout": "night-market"
+      "layout": "night-market",
+      "lookKeys": [
+        {
+          "time": 0,
+          "sky": {
+            "zenith": [
+              0.15,
+              0.08,
+              0.4
+            ],
+            "horizon": [
+              0.5,
+              0.15,
+              0.36
+            ]
+          },
+          "fog": {
+            "colour": [
+              0.52,
+              0.2,
+              0.4
+            ],
+            "density": 0,
+            "near": 300,
+            "far": 1400
+          },
+          "sun": {
+            "colour": [
+              1,
+              0.82,
+              0.68
+            ],
+            "intensity": 1.5
+          },
+          "ambient": {
+            "sky": [
+              0.66,
+              0.62,
+              0.86
+            ],
+            "ground": [
+              0.55,
+              0.36,
+              0.24
+            ],
+            "intensity": 1.4
+          }
+        }
+      ]
     },
     {
       "slug": "open-plot-sky-race",
