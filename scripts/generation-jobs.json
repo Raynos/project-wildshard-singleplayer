@@ -5955,48 +5955,6 @@
       ]
     },
     {
-      "id": "sky-physics-placements",
-      "shard": "far-reach",
-      "entry": "src/shards/far-reach/generators/physicsPlacements.ts",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/far-reach/generators/physicsPlacements.ts",
-        "skyPhysicsPlacements",
-        "src/shards/far-reach/data/physicsPlacements.generated.json"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format/json.ts",
-        "src/format/package.json",
-        "src/format/portalLink.ts",
-        "src/format/socketLift.ts",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/entries.ts",
-        "src/sdk/package.json",
-        "src/sdk/physics.ts",
-        "src/sdk/sceneTransform.ts",
-        "src/shards/far-reach/generators/rows/isletDesign.ts",
-        "src/shards/far-reach/generators/layout.ts",
-        "src/shards/far-reach/data/layout.generated.json",
-        "src/shards/far-reach/data/strings.json",
-        "src/shards/far-reach/generators/physicsPlacements.ts",
-        "src/shards/far-reach/generators/risingIslets.ts",
-        "src/shards/far-reach/generators/palette.ts"
-      ],
-      "outputs": [
-        "src/shards/far-reach/data/physicsPlacements.generated.json"
-      ],
-      "platform": "portable",
-      "buildOutputs": {
-        "src/shards/far-reach/data/physicsPlacements.generated.json": "12f4de8259d2a8589352afe3229cd9f90f9f4e94d09ba845dcb420f255b849b4"
-      },
-      "seedOutputs": []
-    },
-    {
       "id": "driftwood-ground",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-driftwood-ground.mjs",
@@ -9715,7 +9673,6 @@
         "src/sdk/bake/json.mjs",
         "src/shards/far-reach/generators/bridgeColliders.ts",
         "src/shards/far-reach/generators/millSceneProgram.ts",
-        "src/shards/far-reach/data/physicsPlacements.generated.json",
         "src/shards/far-reach/generators/routeScene.ts",
         "src/shards/far-reach/generators/rows/moverBindings.ts",
         "src/shards/far-reach/generators/bridgeRest.ts",

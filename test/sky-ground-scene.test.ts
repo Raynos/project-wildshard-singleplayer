@@ -7,6 +7,7 @@ import { skyGroundValues } from '../src/shards/far-reach/generators/groundScene'
 import { skyPhysicsPlacements } from '../src/shards/far-reach/generators/physicsPlacements';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { originalSkyScenes } from './fixtures/sky-scene-source';
+import { discoverGeneration } from '../scripts/generate.mjs';
 
 const { blobs: SKY_SCENE_BLOBS, scenes: SKY_WORLD_SCENES } = await originalSkyScenes();
 
@@ -14,6 +15,17 @@ const { SKY_GROUND, SKY_GROUND_COLLIDERS } = skyGroundValues();
 const PLACEMENTS = skyPhysicsPlacements();
 
 const isMesh = (node: Object3D | undefined): node is Mesh => node instanceof Mesh;
+
+it('source contacts retain the complete original wire after scheduler retirement', () => {
+  const bytes = (): Uint8Array => new TextEncoder().encode(`${JSON.stringify(skyPhysicsPlacements())}\n`);
+  expect(bytes().byteLength).toBe(15_498);
+  expect(hashImmutableBytes(bytes())).toBe('12f4de8259d2a8589352afe3229cd9f90f9f4e94d09ba845dcb420f255b849b4');
+  const changed = skyPhysicsPlacements(); changed[0]?.colliders.splice(0);
+  expect(hashImmutableBytes(bytes())).toBe('12f4de8259d2a8589352afe3229cd9f90f9f4e94d09ba845dcb420f255b849b4');
+  const { jobs } = discoverGeneration('.');
+  expect(jobs.some(row => row.id === 'sky-physics-placements')).toBe(false);
+  for (const job of jobs) expect(job.inputRoots, job.id).not.toContain('src/shards/far-reach/data/physicsPlacements.generated.json');
+});
 
 it('source-derived ground retains the complete published scene and world declaration', () => {
   const ground = SKY_SCENE_BLOBS.find(row => row.file.name === 'world/scenes/ground.json');
