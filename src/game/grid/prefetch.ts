@@ -95,8 +95,10 @@ export function gridPrefetchOrder(assembly: Pick<GridAssembly, 'cells'>, at: Rea
 async function phoneTierFiles<T extends { readonly hash: string }>(input: unknown, files: readonly T[], base: string,
   content: { get: (hash: string) => Promise<Uint8Array | null>; put: (hash: string, bytes: Uint8Array, keep: boolean) => Promise<boolean> }): Promise<readonly T[]> {
   // loaded on the phone's first prefetch, never in the title's closure
-  const [{ isBuildValidatedOutput, resolveOutputDescriptor }, { tierProductFilesPaced }] = await Promise.all([import('../shardfile/outputDescriptor'), import('../shardfile/productCost')]);
-  const source = await resolveOutputDescriptor(input, { offline: false, firstParty: true, hash: contentHash,
+  const [{ isBuildValidatedOutput, resolveOutputDescriptor }, { tierProductFilesPaced }, { yieldTask }] = await Promise.all([import('../shardfile/outputDescriptor'), import('../shardfile/productCost'), import('@wildshard/engine/core/workSlice')]);
+  // paced: the index's receipt bytes were sorted and encoded in one task, 63-87 ms of a frame on every cold crossing at
+  // phone 4x (Driftwood, Pine, Nalati, Nine)
+  const source = await resolveOutputDescriptor(input, { offline: false, firstParty: true, hash: contentHash, pause: () => yieldTask(),
     read: (path, maximum) => readGridPrefetch(new URL(path, base).href, maximum),
     cached: hash => content.get(hash), store: (hash, bytes) => content.put(hash, bytes, true) });
   if (!isBuildValidatedOutput(source)) return files;
