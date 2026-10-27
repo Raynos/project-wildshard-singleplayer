@@ -136,7 +136,17 @@
         "src/format",
         "src/shards/nalati-grasslands/data/grassFieldLayout.json",
         "src/shards/nalati-grasslands/data/geographySources.json",
-        "src/shards/nalati-grasslands/generators/geographySource.ts"
+        "src/shards/nalati-grasslands/generators/geographySource.ts",
+        "src/engine/core/config.ts",
+        "src/engine/core/noise.ts",
+        "src/engine/core/rng.ts",
+        "src/format/contentBounds.ts",
+        "src/format/memoryGates.json",
+        "src/sdk/bake/portableBytes.ts",
+        "src/sdk/random.ts",
+        "src/sdk/package.json",
+        "src/engine/package.json",
+        "src/format/package.json"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/boot/geography.generated.json",
