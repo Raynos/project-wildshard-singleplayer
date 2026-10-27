@@ -14,15 +14,16 @@ const names = ['places.bin', 'places.json', 'specimens.bin', 'placeSpecimens.jso
 
 /** Cache fresh native construction as owned byte files; never publishes a source/public handoff.
  * The native cache key includes the bundled dressing recipe, original specimen arithmetic and codec. */
-export async function nalatiPlacesProgram(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<ReadonlyMap<string, Uint8Array>> {
+export async function nalatiPlacesProgram(ctx: Pick<ProjectGenerationContext, 'cached'>, phase: 'i3' | 'exact' = 'exact'): Promise<ReadonlyMap<string, Uint8Array>> {
   const scalarBlocks = await nalatiGeographyProgram(ctx);
-  const files = await ctx.cached({ id: 'places', native: true, inputs: [terrain] }, async inputs => {
+  // iPhone downloads I3 (in flight): 'i3' bakes under its own cache step; 'exact' is the original bake
+  const files = await ctx.cached({ id: phase === 'exact' ? 'places' : 'places-i3', native: true, inputs: [terrain] }, async inputs => {
     const bytes = inputs.get(terrain);
     if (bytes === undefined) throw new Error('Missing original Nalati placement terrain');
     // The retained native author used the non-drawing desktop tier, not a page's quality setting.
     const source = prepareNalatiDressingInputs({ terrain: bytes, scalarBlocks, forest: 'continuous', phone: false });
     const dressing = await bakeNalatiDressingSource(source);
-    const made = bakeNalatiPlacesOnTerrain(Uint8Array.from(bytes).buffer, withPortableMath, dressing);
+    const made = bakeNalatiPlacesOnTerrain(Uint8Array.from(bytes).buffer, withPortableMath, dressing, phase);
     const compress = (value: Uint8Array): Uint8Array => encodeBuildBytes(value, 'deflate', 9, 'native');
     const places = encodeNalatiPart(made.places, compress), specimens = encodeNalatiPart(made.specimens, compress);
     const parts = nalatiNativePlaceParts(made.places.rows, made.places.bin, partNames);

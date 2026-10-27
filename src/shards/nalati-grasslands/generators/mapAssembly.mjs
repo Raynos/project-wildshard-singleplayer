@@ -98,7 +98,8 @@ async function nativeMapPlaces(paint, geography, source) {
   const lattice = source('public/assets/baked/nalati-grasslands/terrain.bin'), terrain = lattice.slice().buffer;
   const dressing = await bakeNalatiDressingSource(prepareNalatiDressingInputs({ terrain: new Uint8Array(terrain), scalarBlocks: geography,
     forest: 'continuous', phone: false }));
-  const made = bakeNalatiPlacesOnTerrain(terrain, withPortableMath, dressing);
+  // the map draws the original place geometry (I3's byte normals look the same; the baked map stays)
+  const made = bakeNalatiPlacesOnTerrain(terrain, withPortableMath, dressing, 'exact');
   const places = { rows: made.places.rows, bytes: made.places.bin.byteLength };
   const prepared = nalatiRuntimeRows({ places, paint }).runtime;
   const specimens = nalatiSpecimenRows(mapJson(source(`${SHARD}data/campCatalogue.json`)), mapJson(source(`${SHARD}data/campMaterials.json`)),

@@ -1060,11 +1060,14 @@ export function bakeNalatiPoiKeepouts(ground: Ground): readonly Pick<PlaceRow, '
 }
 
 /**
+ * iPhone downloads I3 (in flight): `phase` 'i3' writes the world places' normals and in-range colours as bytes (the
+ * actors, whose parts other files carve, stay exact); 'exact', the default until its predecessor oracle lands, is the
+ * original bake.
  * The bake over the page's ground (its baked terrain sampler): the places in the page's order (the camp, the
  * bridge, the summer camp, Eagle Rock, the Wind Cairn), then the specimens (the bridge's fitted to its first placement, so after the places), then
  * the dressing's scatter shapes (their own binary, `dressing.bin`).
  */
-export function bakeNalatiPlaces(ground: Ground, specimenScope: SpecimenScope = nativeSpecimenScope, dressing?: { readonly plan: DressPlan; readonly clutter: ClutterSpots }, queries?: PlaceQueries): { places: PlacesBake<PlaceRow>; specimens: PlacesBake<SpecimenRow>; dressing: PlacesBake<DressingGeoRow> } {
+export function bakeNalatiPlaces(ground: Ground, specimenScope: SpecimenScope = nativeSpecimenScope, dressing?: { readonly plan: DressPlan; readonly clutter: ClutterSpots }, queries?: PlaceQueries, phase: 'i3' | 'exact' = 'exact'): { places: PlacesBake<PlaceRow>; specimens: PlacesBake<SpecimenRow>; dressing: PlacesBake<DressingGeoRow> } {
   if (queries === undefined) throw new Error('Native places require explicit terrain queries');
   const blocks: Uint8Array[] = [];
   const rows = [...POI_BUILDERS, (ctx: PaintCtx) => finishBuild(outcropsPlace(ctx, queries)), (ctx: PaintCtx) => finishBuild(dressingStatics(ctx, dressingInput(dressing).plan)), (ctx: PaintCtx) => finishBuild(dressingClutter(ctx, dressingInput(dressing).clutter))].map((build): PlaceRow => {
@@ -1073,7 +1076,8 @@ export function bakeNalatiPlaces(ground: Ground, specimenScope: SpecimenScope = 
     const p = build(ctx, effects), { members, instances } = p.set.rows();
     return {
       name: p.name, group: p.group, surface: p.surface, tris: p.tris, anchors: p.anchors ?? {},
-      meshes: p.meshes.map((m) => ({ name: m.name, material: m.material, slot: m.slot, geometry: writeGeometry(m.geometry, blocks, `${p.name}.${m.name}`) })),
+      // iPhone downloads I3: places.bin carries normals and in-range colours as bytes (writeGeometry `compact`)
+      meshes: p.meshes.map((m) => ({ name: m.name, material: m.material, slot: m.slot, geometry: writeGeometry(m.geometry, blocks, `${p.name}.${m.name}`, phase === 'i3') })),
       colliders: [...(p.colliders ?? p.set.boxes)], effects,
       members: members.map(([id, m]) => [id, memberRow(m, p.headings?.get(id))] as const),
       instances: instances.map(([name, l]) => [name, { look: { ...l.look }, castShadow: l.castShadow, placements: l.placements.map((q) => ({ ...q })) }] as const),
@@ -1101,11 +1105,11 @@ export function bakeNalatiPlaces(ground: Ground, specimenScope: SpecimenScope = 
 }
 
 /** the bake over the page's baked terrain grid (public/assets/baked/nalati-grasslands/terrain.bin), as the page samples it */
-export function bakeNalatiPlacesOnTerrain(terrain: ArrayBuffer, specimenScope: SpecimenScope = nativeSpecimenScope, dressing?: { readonly plan: DressPlan; readonly clutter: ClutterSpots }): ReturnType<typeof bakeNalatiPlaces> {
+export function bakeNalatiPlacesOnTerrain(terrain: ArrayBuffer, specimenScope: SpecimenScope = nativeSpecimenScope, dressing?: { readonly plan: DressPlan; readonly clutter: ClutterSpots }, phase: 'i3' | 'exact' = 'exact'): ReturnType<typeof bakeNalatiPlaces> {
   const source = readNativeTerrain(new Uint8Array(terrain));
   const trail = TERRAIN.trailDistance;
   if (trail === undefined) throw new Error('Native places require authored trail queries');
-  return bakeNalatiPlaces(source.heightAt, specimenScope, dressing, { normalAt: source.normalAt, trailDistance: trail });
+  return bakeNalatiPlaces(source.heightAt, specimenScope, dressing, { normalAt: source.normalAt, trailDistance: trail }, phase);
 }
 
 function watchtowerPlace(ctx: PaintCtx): BuiltPlace {
