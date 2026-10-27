@@ -164,11 +164,12 @@ function sourceDebtChanges(root, tree, parent, file, schema, roots, message, pre
       && outputs.producers['scripts/gen-shards.mjs'].includes(path);
   };
   for(const path of after.sources)if(!before.sources.includes(path)&&!discoveryMigration(path))failures.push(`BINARY-JSON ${file}: app source exemption grew for ${path}`);
-  const increases = Object.entries(after.files).filter(([path,count]) => (!Object.hasOwn(before.files,path) || count > (before.files[path] ?? 0))
-    && !publishedPolicyRestoration(root, previous, file, schema, path, count));
-  // Each debt file takes exact coordinator approval lines for its own increases, one per path at its new count.
+  const grown = Object.entries(after.files).filter(([path,count]) => !Object.hasOwn(before.files,path) || count > (before.files[path] ?? 0));
+  const increases = grown.filter(([path,count]) => !publishedPolicyRestoration(root, previous, file, schema, path, count));
+  // Each debt file takes exact coordinator approval lines for its own increases, one per path at its new count. A line for a
+  // grown row that a published-policy restoration already allows still matches, so its verdict cannot depend on `previous`.
   const prefix = file === 'lint/base64-debt.json' ? 'Base64-Approved:' : 'Generated-Import-Approved:';
-  const expected = new Map(increases.map(([path,count]) => [`${prefix} wildshard-new ${path} ${count}`,path]));
+  const expected = new Map(grown.map(([path,count]) => [`${prefix} wildshard-new ${path} ${count}`,path]));
   const content = message.trimEnd().replace(/\n\nAssisted-by:[^\n]+$/u,'').replaceAll(/\n[ \t]+/gu,' ');
   const footer = content.split(/\n\s*\n/u).at(-1) ?? '', approved = new Set();
   for (const line of content.split('\n').filter(row => row.startsWith(prefix))) {
