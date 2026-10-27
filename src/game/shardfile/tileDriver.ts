@@ -22,6 +22,11 @@ import { noteEnteredTiles } from './enteredTileReadout';
 type Layer = 'render' | 'colliders';
 type TileFailure = { readonly error: unknown } | null;
 interface Attachment { readonly scope: Scope; count: number; pending: Promise<TileFailure> | null }
+interface TileRingPlan {
+  readonly i: number; readonly j: number; readonly radius: number;
+  readonly wanted: Record<Layer, ReadonlySet<number>>;
+  readonly nearest: Record<Layer, readonly number[]>;
+}
 
 export class TileDriver {
   private readonly attached: Record<Layer, Map<number, Attachment>> = { render: new Map(), colliders: new Map() };
@@ -29,6 +34,7 @@ export class TileDriver {
   private centre: CellTile | null = null;
   private renderRing: ReadonlySet<number> = new Set();
   private busy = false;
+  private plan: TileRingPlan | null = null;
   private coarseScope: Scope | null = null;
   private coarseCount = 0;
   constructor(private readonly scope: Scope, private readonly contents: readonly TileContent[], private readonly radius: () => number,
@@ -50,7 +56,7 @@ export class TileDriver {
   /** T11: centre the rings on (`x`, `z`) before the first step, then build every content's coarse stand-in (the skyline
    *  beyond the render ring), each leaving out the tiles the render ring draws as it moves. */
   async coarse(x: number, z: number): Promise<void> {
-    this.centre = followTile(null, x, z); this.renderRing = ring(this.centre, this.radius());
+    this.centre = followTile(null, x, z); this.renderRing = this.ringPlan(this.centre, this.radius()).wanted.render;
     const scope = this.coarseScope ??= this.scope.child('tiles:coarse');
     for (; this.coarseCount < this.contents.length; this.coarseCount++) {
       this.live();
@@ -65,26 +71,36 @@ export class TileDriver {
    *  tile not yet attached (colliders first), one at a time. */
   step(x: number, z: number): void {
     if (this.scope.disposed || this.scope.disposing) return;
-    const centre = this.centre = followTile(this.centre, x, z), radius = this.radius();
-    const wanted: Record<Layer, Set<number>> = { render: ring(centre, radius), colliders: ring(centre, Math.min(radius, 1)) };
+    const centre = this.centre = followTile(this.centre, x, z), plan = this.ringPlan(centre, this.radius()), wanted = plan.wanted;
     this.renderRing = wanted.render;
     for (const layer of ['render', 'colliders'] as const) for (const [key, tile] of this.attached[layer]) {
       if (wanted[layer].has(key)) continue;
       this.attached[layer].delete(key); tile.scope.dispose();
     }
     if (this.busy) return;
-    const distance = (key: number): number => Math.max(Math.abs((key % 8) - centre.i), Math.abs(Math.floor(key / 8) - centre.j));
     for (const layer of ['colliders', 'render'] as const) {
-      const next = [...wanted[layer]].filter(key => {
+      const next = plan.nearest[layer].find(key => {
         const tile = this.attached[layer].get(key);
         return (tile === undefined || tile.count < this.contents.length) && !this.failed.has(`${layer}:${String(key)}`);
-      })
-        .sort((a, b) => distance(a) - distance(b) || a - b)[0];
+      });
       if (next === undefined) continue;
       this.busy = true;
       void this.attach(next, layer).finally(() => { this.busy = false; });
       return;
     }
+  }
+
+  /** Ring membership and distance ordering depend only on the followed tile and radius. Reuse them while the
+   * player stays in that tile; attachment, failure and late-content eligibility still read live state each step. */
+  private ringPlan(centre: CellTile, radius: number): TileRingPlan {
+    const known = this.plan;
+    if (known !== null && known.i === centre.i && known.j === centre.j && known.radius === radius) return known;
+    const wanted = { render: ring(centre, radius), colliders: ring(centre, Math.min(radius, 1)) };
+    const distance = (key: number): number => Math.max(Math.abs((key % 8) - centre.i), Math.abs(Math.floor(key / 8) - centre.j));
+    const ordered = (keys: ReadonlySet<number>): number[] => [...keys].sort((a, b) => distance(a) - distance(b) || a - b);
+    const plan = { i: centre.i, j: centre.j, radius, wanted, nearest: { render: ordered(wanted.render), colliders: ordered(wanted.colliders) } };
+    this.plan = plan;
+    return plan;
   }
 
   private live(): void {
@@ -167,7 +183,6 @@ export function followRing(radius: number = TILE_RING): (viewer: { readonly x: n
 
 const drivers = new WeakMap<Scope, TileDriver>();
 const started = new WeakMap<Scope, { readonly pending: Promise<void>; readonly state: { complete: boolean } }>();
-/** T5 (G775): the latest entered resident's driver and its L0 tiles' declared resident bytes, for the Developer overlay */
 const tileBytes = new WeakMap<Scope, ReadonlyMap<number, number>>();
 /** A resident's L0 tile rows (key j * 8 + i), their declared decoded + GPU bytes: what the overlay labels each tile with. */
 export function noteTileBytes(resident: Scope, rows: readonly { readonly lod: number; readonly x: number; readonly z: number; readonly decoded: number; readonly gpu: number }[]): void {

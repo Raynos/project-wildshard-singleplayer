@@ -221,3 +221,41 @@ test('loading tile stages retain their original synchronous admission', async ()
     expect(pause).toHaveBeenCalledTimes(1); // the existing end-of-required-tile pause only
   } finally { owner.dispose(); noteFrameDrawn(Number.NEGATIVE_INFINITY); clock.mockRestore(); }
 });
+
+test('stationary priority plans still admit late content in exact collider-first distance order', async () => {
+  const scope = new Scope('tile-plan-live'), events: string[] = [], all = new Set(Array.from({ length: 64 }, (_, key) => key));
+  const make = (id: string): TileContent => ({ id, tiles: () => all,
+    attach: key => { events.push(`${id}:r${String(key)}`); return Promise.resolve(); },
+    attachColliders: key => { events.push(`${id}:c${String(key)}`); return Promise.resolve(); } });
+  const contents = [make('first')], driver = new TileDriver(scope, contents, () => 1, () => Promise.resolve());
+  const order = [27, 18, 19, 20, 26, 28, 34, 35, 36];
+  const expected = (id: string): string[] => ['c', 'r'].flatMap(layer => order.map(key => `${id}:${layer}${String(key)}`));
+  try {
+    await driver.coarse(-40, -40);
+    await settle(driver, -40, -40, 100);
+    expect(events).toEqual(expected('first'));
+    events.length = 0; contents.push(make('late'));
+    await settle(driver, -30, -40, 100);
+    expect(events).toEqual(expected('late'));
+    expect([...driver.resident('render')].sort((a, b) => a - b)).toEqual([...order].sort((a, b) => a - b));
+  } finally { scope.dispose(); }
+});
+
+test('radius and hysteresis changes invalidate membership without delaying scope retirement', async () => {
+  const scope = new Scope('tile-plan-edges'), made = content(), radius = { value: 1 };
+  const driver = new TileDriver(scope, [made], () => radius.value, () => Promise.resolve());
+  try {
+    await settle(driver, -40, -40, 100);
+    const old = made.attached.get('r18');
+    if (old === undefined) throw new Error('Missing first ring');
+    radius.value = 0; driver.step(1, -40);
+    expect(old.disposed).toBe(true);
+    expect([...driver.resident('render')]).toEqual([27]);
+    await settle(driver, 4, -40, 30);
+    expect([...driver.resident('render')]).toEqual([28]);
+    radius.value = 2;
+    await settle(driver, 4, -40, 160);
+    expect(driver.resident('render').size).toBe(25);
+    expect(driver.resident('colliders').size).toBe(9);
+  } finally { scope.dispose(); }
+});
