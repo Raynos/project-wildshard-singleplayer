@@ -145,7 +145,8 @@
     "./as/groupBankV2": "./as/groupBankV2.ts",
     "./as/groupStepV2": "./as/groupStepV2.ts",
     "./bake/portableBytes": "./bake/portableBytes.ts",
-    "./bake/mapRest": "./bake/mapRest.ts"
+    "./bake/mapRest": "./bake/mapRest.ts",
+    "./worldScenes": "./worldScenes.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -685,6 +686,10 @@
       "./bake/mapRest": {
         "types": "./dist/types/sdk/bake/mapRest.d.ts",
         "default": "./dist/bake/mapRest.js"
+      },
+      "./worldScenes": {
+        "types": "./dist/types/sdk/worldScenes.d.ts",
+        "default": "./dist/worldScenes.js"
       }
     }
   }

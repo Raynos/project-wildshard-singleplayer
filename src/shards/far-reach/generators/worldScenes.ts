@@ -1,5 +1,4 @@
-import { parseWorldScene, parseWorldSceneBindings, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
-import { parseWorldScenes } from '@wildshard/format/worldScenes';
+import { worldSceneRecipe as parseWorldScene, worldSceneBindings as parseWorldSceneBindings, worldSceneRows as parseWorldScenes } from '@wildshard/sdk/worldScenes';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import type { SkyRouteValues } from './routeScene';
 import { isletScenes } from './isletScene';
@@ -7,7 +6,7 @@ import heroes from '../data/heroLibrary.generated.json' with { type: 'json' };
 import { skyWorldRows } from './worldRows';
 import { SKY_SOURCE_LIBRARIES, SKY_SOURCE_BLOBS } from './sceneSources';
 import STRINGS from '../data/strings.json' with { type: 'json' };
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 import { skyGroundValues } from './groundScene';
 import { restScenes } from './restScene';
 import { SKY_ISLAND_BLOBS, SKY_ISLAND_LIBRARY, SKY_ISLE_TILES } from './islandScenes';
@@ -33,6 +32,7 @@ const ground = skyGroundValues();
 const world = skyWorldRows();
 
 interface Reference { readonly library: string; readonly model: string }
+type WorldSceneRecipe = ReturnType<typeof parseWorldScene>;
 const json = (name: string, value: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(value)));
 /** Complete scene declarations and file bytes, freshly owned by each constructor call. */
 export interface SkyWorldSceneValues {

@@ -1,5 +1,5 @@
-import type { EffectFieldRow } from '@wildshard/engine/fx/effectField';
-import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
+import type { SceneEffectField } from '@wildshard/sdk/worldScenes';
+import * as LAYOUT from '../layout';
 
 /**
  * Sky Reach's visible wind (style bible §7, loop 3; drawn on @wildshard/engine/fx/effectField): the fan's GUST, a cone of
@@ -19,7 +19,7 @@ export const WIND_FIELDS = {
   gustPetals: { name: 'far.gust.petals', shape: 'flake', count: 14, palette: [0xffd4dc, 0xfff1e0, 0xffc6a8, 0xf5b8d0], life: 0.88 },
   updraftStreaks: { name: 'far.updraft.streaks', shape: 'streak', count: 24 },
   updraftLeaves: { name: 'far.updraft.leaves', shape: 'flake', count: 14, palette: [0xb9c868, 0xd9c060, 0x93b552, 0xf0d488] },
-} as const satisfies Record<string, EffectFieldRow>;
+} as const satisfies Record<string, SceneEffectField>;
 
 /** each WIND_FIELDS row's look id */
 export const WIND_LOOKS = { gustStreaks: 'wind-gust-streak', gustPetals: 'wind-gust-petal', updraftStreaks: 'wind-updraft-streak', updraftLeaves: 'wind-updraft-leaf' } as const satisfies Record<keyof typeof WIND_FIELDS, string>;
