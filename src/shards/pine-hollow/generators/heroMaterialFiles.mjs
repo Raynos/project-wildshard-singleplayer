@@ -57,6 +57,6 @@ export function materialTier(sources,url){
  if(Object.values(gpu.phone).includes(url)||Object.values(astc).includes(url)||/\.phone[.-]/u.test(url))return 'phone';
  // a GPU twin that is not a phone twin is the desktop's
  if(url.startsWith('/assets/gpu/'))return 'desktop';
- if(/\.glb$/u.test(url)&&sources.has(url.replace(/\.glb$/u,'.phone.glb')))return 'desktop';
+ if(url.endsWith('.glb')&&sources.has(`${url.slice(0,-'.glb'.length)}.phone.glb`))return 'desktop';
  return undefined;
 }
