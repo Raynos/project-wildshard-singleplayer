@@ -62,21 +62,21 @@ class MeshWriter {
   constructor(axis: 'x' | 'z') { this.axis = axis; }
   vertex(u: number, y: number, v: number, colour: readonly number[] = neutral): number {
     const index = this.positions.length / 3;
-    this.positions.push(...(this.axis === 'x' ? [u, y, v] : [v, y, u])); this.colours.push(...colour); return index;
+    if (this.axis === 'x') this.positions.push(u, y, v); else this.positions.push(v, y, u);
+    this.colours.push(...colour); return index;
   }
-  quad(points: readonly [Point, Point, Point, Point], feature: Omit<SeamFeature, 'firstIndex' | 'indexCount'>): void {
-    const firstIndex = this.indices.length, at = points.map(([u, y, v]) => this.vertex(u, y, v));
-    const [a, b, c, d] = at;
-    if (a === undefined || b === undefined || c === undefined || d === undefined) throw new Error('Missing seam face');
-    this.indices.push(...(this.axis === 'x' ? [a, b, c, b, d, c] : [a, c, b, b, c, d])); this.features.push({ ...feature, firstIndex, indexCount: 6 });
+  quad(points: readonly [Point, Point, Point, Point], feature: Omit<SeamFeature, 'firstIndex' | 'indexCount'>, recordFeature = true): void {
+    const firstIndex = this.indices.length;
+    const a = this.vertex(...points[0]), b = this.vertex(...points[1]), c = this.vertex(...points[2]), d = this.vertex(...points[3]);
+    if (this.axis === 'x') this.indices.push(a, b, c, b, d, c); else this.indices.push(a, c, b, b, c, d);
+    if (recordFeature) this.features.push({ ...feature, firstIndex, indexCount: 6 });
   }
   box(u: number, v0: number, v1: number, bottom: number, top: number, thickness: number, feature: Omit<SeamFeature, 'firstIndex' | 'indexCount'>): void {
     const firstIndex = this.indices.length, left = u - thickness / 2, right = u + thickness / 2;
     const a: Point = [left, bottom, v0], b: Point = [right, bottom, v0], c: Point = [left, top, v0], d: Point = [right, top, v0];
     const e: Point = [left, bottom, v1], f: Point = [right, bottom, v1], g: Point = [left, top, v1], h: Point = [right, top, v1];
-    const start = this.features.length;
-    for (const points of [[a, b, c, d], [e, g, f, h], [a, c, e, g], [b, f, d, h], [c, d, g, h], [a, e, b, f]] as const) this.quad(points, feature);
-    this.features.splice(start); this.features.push({ ...feature, firstIndex, indexCount: this.indices.length - firstIndex });
+    for (const points of [[a, b, c, d], [e, g, f, h], [a, c, e, g], [b, f, d, h], [c, d, g, h], [a, e, b, f]] as const) this.quad(points, feature, false);
+    this.features.push({ ...feature, firstIndex, indexCount: this.indices.length - firstIndex });
   }
   mesh(origin: { readonly x: number; readonly z: number }): StripMesh { return { origin: { ...origin }, positions: new Float32Array(this.positions), colours: new Float32Array(this.colours), indices: new Uint32Array(this.indices) }; }
 }
