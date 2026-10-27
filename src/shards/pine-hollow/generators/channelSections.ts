@@ -1,6 +1,5 @@
-import { parseClientChannels } from '@wildshard/format/clientChannels';
-import { parseAudioData } from '@wildshard/format/audio';
-import { parseItems } from '@wildshard/format/items';
+import { parseClientChannels, parseItems } from '@wildshard/sdk/rows';
+import { parseAudioData } from '@wildshard/sdk/audio';
 import source from '../data/audioSource.json' with { type: 'json' };
 import { pineSkyChannels } from './skyChannels';
 import { pineRainChannels } from './rainChannels';
