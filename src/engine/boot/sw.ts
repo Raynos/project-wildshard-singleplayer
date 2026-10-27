@@ -58,6 +58,8 @@ export interface SwVersion {
 
 export interface WsSw {
   ready: Promise<void>;
+  /** Explicit network-only opt-outs also disable optional code transports. */
+  readonly enabled?: boolean;
   waiting: ServiceWorker | null;
   /** `why`: what asked for it, recorded for the next boot (src/engine/boot/lastEnd.ts) */
   adopt: (to?: string, why?: string) => Promise<void>;
@@ -98,7 +100,7 @@ if (sw !== null) {
 }
 
 // declared ahead of the functions that read it (they only run after registration; `boot()` is hoisted)
-const api: WsSw = { ready: boot(), waiting: null, adopt, version };
+const api: WsSw = { ready: boot(), enabled: swAllowed(), waiting: null, adopt, version };
 
 function swAllowed(): boolean {
   if (!sw) return false;

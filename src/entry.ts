@@ -6,7 +6,7 @@ import { startPageServices } from './pageServices';
 import { persistHomeScreen } from '@wildshard/engine/saves/runtime';
 import { waitFor } from '@wildshard/engine/boot/waits';
 import { preloadModuleFiles } from '@wildshard/engine/boot/download';
-import { reserveHomeDownload, prepareHomeExtras, prepareHomeModules, prepareBootImports } from './bootDownloads';
+import { reserveHomeDownload, prepareHomeExtras, prepareHomeModules, prepareBootImports, prepareEntryCode } from './bootDownloads';
 /**
  * The page's module entry. Everything the game imports statically is evaluated in ONE task when a module graph
  * runs: three.js plus the ~150 game modules at once was a 115–157 ms long task at 4× CPU before the first boot step
@@ -25,12 +25,13 @@ import { reserveHomeDownload, prepareHomeExtras, prepareHomeModules, prepareBoot
 import { guardBoot } from '@wildshard/engine/boot/stuck';
 import { inspectPreviousBoot, previousBootLine, previousBootLevel } from '@wildshard/engine/boot/bootTrace';
 import { Scope } from '@wildshard/engine/app/scope';
-import { retried } from './engine/boot/retry';
+import { retried } from '@wildshard/engine/boot/retry';
 import { bootRoute } from './bootRoute';
-import { lastEnd } from './engine/boot/lastEnd';
+import { lastEnd } from '@wildshard/engine/boot/lastEnd';
 
 const entryScope = new Scope('entry');
 let selectedImages: Scope | undefined;
+let declareCodePack: (() => void) | null = null;
 const task = (): Promise<void> => new Promise((resolve) => { entryScope.timeout(0, resolve); });
 /** The plain home URL paints only the title. No renderer, world, or Three.js is imported until a shard is chosen. */
 startPageServices();
@@ -64,8 +65,9 @@ async function enterPage(): Promise<unknown> {
 
   /** resolves once the title or the selected shard's entry has been evaluated */
   return (gridRecoveryRefused() || (titleOnly && document.getElementById('ws-shardfile') === null)) ? showPageTitle() : (async () => {
+    declareCodePack = await prepareEntryCode(search, entryScope);
     await retried(() => import('./assetTables')).then(module => module.prepareAssetTables());
-    const { initializeTier } = await retried(() => import('./engine/core/tier'));
+    const { initializeTier } = await retried(() => import('@wildshard/engine/core/tier'));
     await initializeTier();
     await retried(() => import('three')); 
     await task();
@@ -125,6 +127,7 @@ async function startSelected(): Promise<void> {
     retried(() => import('@wildshard/engine/core/tier')),
   ]);
   const loading = beginLoading({ id: game.shard.slug, name: game.shard.name, trace: game.shard.boot?.phone?.trace === true });
+  declareCodePack?.();
   const moduleText = document.getElementById('boot-module-files')?.textContent;
   const moduleRows: unknown = moduleText === undefined ? undefined : JSON.parse(moduleText);
   const modules = (kind: 'common' | 'client' | 'grid'): void => {

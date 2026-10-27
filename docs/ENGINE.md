@@ -1286,7 +1286,8 @@ Other geometry keeps native bounds. Boot/desktop keep budgets; native draws can 
 `Game.entryPreparation` exposes root UUID, owner, completion, phase, optional
 `{done,total,detail}` progress and warm-stage times/units including painted waits.
 Match its root to the destination; it retains no resources. `warmParkedDraws` takes
-`options.onProgress(done, total)`; `warmOffscreenPasses` takes progress and an optional
+`options.onProgress(done, total)` and `onPlan(original, selected)` slice counts;
+opaque upload packing keeps every draw/cap. `warmOffscreenPasses` takes progress and an optional
 `ParkedDrawBudget` after `excludedRoots`. `PrecompileStage` is `precompileLevel`'s `options.onStage`
 and `runPrecompile`'s argument after `uploadBudget`. `cached-compile` counts cheap,
 resolved-program jobs sharing a held native budget; other fences stay unchanged.
@@ -3950,6 +3951,12 @@ replays cover both real fights, damage ranges and save continuation.
 `@wildshard/game/plugin/simulation` composes admitted terrain, prop colliders, stable actor identities, trusted item handles, numeric scripts, published-state targets, quests, brains and encounters. `createShardfileSim` owns a standalone world by default; its typed ports can borrow the normal client's physics/player/fixed-step driver and existing collider/water ports. `bindShardfileSim` reinstalls matching snapshot adapters without collider allocation or stepping in restore mode. Borrowed snapshots belong to the existing world owner. `@wildshard/engine/physics/edgeEntries` walks overlapping capsule paths across each real entry; `@wildshard/engine/physics/rapier` loads the distributed physics binary without browser globals. See [SDK-DEV.md](SDK-DEV.md) for native validation and the authoritative target update.
 
 ### Content-addressed disk cache (SF18c)
+
+`@wildshard/engine/boot/codePack.prepareCodePack` primes only a compiler-selected,
+content-addressed code bank through the controlling worker. The compressed hash,
+exact lengths and every member hash pass before original module URLs publish.
+Original ESM imports/evaluation and per-module retry/offline paths remain intact;
+unsupported workers or storage failures use those paths. Native entries opt out.
 
 `@wildshard/engine/boot/contentCache` defines `ContentCache` with storage,
 SHA-256 and quota ports. Hash-verified shared addresses persist across

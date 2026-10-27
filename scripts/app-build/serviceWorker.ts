@@ -23,6 +23,7 @@ import { PRODUCT_CACHE_NAME } from '../../src/engine/pwa/cacheNames';
 import { bootModuleFiles } from './bootModules';
 import { writtenBundle, type EmittedFile } from './writtenBundle';
 import { readModuleFiles } from '../../src/engine/boot/download';
+import { readCodePack } from '../../src/engine/boot/codePack';
 import { manifestFolders, shardProducts, outputManifest } from '../shard-outputs.mjs';
 
 /** Card metadata may be visible while its experimental entry stays locked.
@@ -48,6 +49,7 @@ interface WarmMetadata extends Record<string, unknown> {
   status?: unknown; legacy?: unknown; shardSelect?: unknown;
   selection?: unknown; optional?: unknown; groups?: unknown; files?: unknown;
   common?: unknown; client?: unknown; grid?: unknown;
+  code?: unknown; entries?: unknown;
 }
 function metadata(value: unknown): WarmMetadata {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) throw new Error('Invalid worker warm metadata');
@@ -120,7 +122,8 @@ export function workerInstallFiles(bundle: Readonly<Record<string, {
 /** The worker core for a written bundle: its stamps over the emitted files, the public static assets and the boot
  *  module bank in index.html. `buildId` is the bundle's own BUILD_ID (version.json). */
 export function serviceWorkerCore(bundle: Readonly<Record<string, EmittedFile>>, root: string, buildId: string): { core: string; build: string; assets: string; hashed: string[] } {
-  const src = `${readFileSync(join(root, 'src/engine/app/workerScope.js'), 'utf8').replaceAll(/^export /gm, '')}\n${readFileSync(join(root, 'src/engine/pwa/sw.js'), 'utf8').replace("import { workerScope } from '../app/workerScope.js';\n", '')}`;
+  const packSource = readFileSync(join(root, 'src/engine/pwa/codePack.js'), 'utf8').replaceAll(/^export /gm, '');
+  const src = `${readFileSync(join(root, 'src/engine/app/workerScope.js'), 'utf8').replaceAll(/^export /gm, '')}\n${packSource}\n${readFileSync(join(root, 'src/engine/pwa/sw.js'), 'utf8').replace("import { workerScope } from '../app/workerScope.js';\n", '').replace("import { codePackEntries, readCodePackTransport } from './codePack.js';\n", '')}`;
   const fontDir = join(root, 'public', 'fonts');
   const fonts = existsSync(fontDir) ? readdirSync(fontDir).filter(f => f.endsWith('.woff2')).sort().map(f => `/fonts/${f}`) : [];
   const assetRows = publicStamp(root, ['assets', 'basis', 'fonts']);
@@ -135,13 +138,21 @@ export function serviceWorkerCore(bundle: Readonly<Record<string, EmittedFile>>,
   const bank = /<script type="application\/json" id="boot-module-files">([^<]+)<\/script>/u.exec(new TextDecoder().decode(html.source))?.[1];
   if (bank === undefined) throw new Error('Missing worker warm module bank');
   const input: unknown = JSON.parse(bank);
+  const code = metadata(metadata(input).code ?? { files: [], entries: {} });
+  const codeFiles = code.files;
+  if (!Array.isArray(codeFiles) || codeFiles.some((file: unknown) => typeof file !== 'string' || !hashed.includes(file))) throw new Error('Invalid packed code files');
+  for (const row of Object.values(metadata(code.entries))) {
+    readCodePack(row);
+    if (!Array.isArray(row) || !Array.isArray(row[3]) || row[3].some((index: unknown) => typeof index !== 'number' || index >= codeFiles.length)
+      || new Set(row[3]).size !== row[3].length) throw new Error('Invalid packed code members');
+  }
   const title = bootModuleFiles(bundle, ['src/engine/ui/StartTitle.ts', 'src/game/mainMenu.ts', 'src/shardSelection.ts'].map(file => join(root, file))).map(row => row[0]);
   const install = workerInstallFiles(bundle, join(root, 'index.html'));
   const warm = workerWarmFiles(input, publicProducts(root), [...install, ...title]);
   if (warm.some(file => !hashed.includes(file))) throw new Error('Worker warm file is absent from the emitted bundle');
   const core = src.replaceAll('__BUILD_ID__', build).replaceAll('__ASSET_ID__', assets).replace("'__BUNDLE__'", JSON.stringify(JSON.stringify(hashed)))
     .replace("'__INSTALL__'", JSON.stringify(JSON.stringify(install))).replace("'__WARM__'", JSON.stringify(JSON.stringify(warm)))
-    .replace("'__FONTS__'", JSON.stringify(JSON.stringify(fonts))).replace('__PRODUCT_CACHE__', PRODUCT_CACHE_NAME);
+    .replace("'__FONTS__'", JSON.stringify(JSON.stringify(fonts))).replace("'__CODE_PACKS__'", JSON.stringify(JSON.stringify(code))).replace('__PRODUCT_CACHE__', PRODUCT_CACHE_NAME);
   return { core, build, assets, hashed };
 }
 

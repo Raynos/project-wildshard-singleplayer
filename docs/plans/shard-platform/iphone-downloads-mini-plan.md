@@ -774,3 +774,28 @@ and scoped ratchet pass. Source control checks late-only bytes remain
 runtime-read-only while a real LUT consumer pins them. Not executed
 before landing under G769; no build, browser, memory or wire saving
 claim. I2 retains the original heavy-three failure until a joint read.
+
+### I2 one boot-code transport per entry (2026-10-27, sp-x9)
+
+In flight (reading pending):21c before-control JS/data counts are209/528,
+215/289 and194/276. Complete product responses under64KiB are45/26/22;
+most data requests are GLB/KTX2/bin, so x2/o5 retain required/deferred pack
+separation and late-content ownership. No data pack format or content edit.
+
+The plain post-build writer packs exactly each entry's existing common,
+client, selected discovery, early-import and home-feature JS files into one
+SHA-256-named gzip transport. The controlling worker authenticates wire
+hash/length, bounded decode, complete membership and every inner hash
+before caching unchanged module bytes under their original URLs. Original
+ESM import/evaluation order stays; corrupt/unsupported/storage-failed packs
+use the original per-module whole-body retry path. No title rescue, external,
+legacy, native or explicit network-only entry starts this optional transport.
+Only the handshake is bounded; actual reads retain the original boot clock.
+The selected pack's actual transfer is declared; warm all-member cache hits
+add no invented pack download. Code-pack bytes/requests count as JS transport
+in the final split; moving code into .pack never hides it as data.
+
+Touched scoped types, standalone strict worker-codec types, typed lint and
+ratchet pass; entry's inherited public-index count21 is reduced to18 to meet
+its unchanged18 allowance. Codec/integrity/entry-isolation/offline controls,
+containing bundle guards and the joint original3 read follow this landing.

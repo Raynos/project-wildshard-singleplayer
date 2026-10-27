@@ -9,6 +9,8 @@ import { homeExtraFiles } from './bootExtras';
 import { createHash } from 'node:crypto';
 import { selectionModules } from '../title-catalogue.mjs';
 import { writtenBundle } from './writtenBundle';
+import { writeCodePacks } from './codePacks';
+import { fileURLToPath } from 'node:url';
 
 /** Only imports actually scheduled by startSelected; title, recovery and error
  * branches elsewhere in the entry module are not home requirements. */
@@ -157,6 +159,19 @@ export function startupModuleRoots(root: string): readonly string[] {
   return ids;
 }
 
+/** The selected branch's original early imports precede startSelected. ESM
+ * resolution keeps package import conditions (not Node's require/CJS entry). */
+function earlyModuleRoots(root: string): readonly string[] {
+  const entry = resolve(root, 'src/entry.ts'), file = ts.createSourceFile(entry, readFileSync(entry, 'utf8'), ts.ScriptTarget.Latest, true);
+  const node = file.statements.find(row => ts.isFunctionDeclaration(row) && row.name?.text === 'enterPage');
+  if (node === undefined) return []; // Isolated build fixtures may only define startSelected.
+  return literalImports(node).map(request => {
+    const id = request.startsWith('.') ? resolveImport(request, entry)?.id : fileURLToPath(import.meta.resolve(request));
+    if (id === undefined) throw new Error('Missing early code pack module');
+    return id;
+  });
+}
+
 /** Existing grid import requirements, shared by chunking and its bank. */
 export function gridModuleRoots(root: string): readonly string[] {
   const entry = resolve(root, 'src/entry.ts');
@@ -274,6 +289,17 @@ export function writeBootModules(outDir: string, root: string, inlineLimit = 409
     catalogueFiles=bootModuleFiles(bundle,[catalogue.id]);
   }
   const rows = { common: bootModuleFiles(bundle, ids), client: bootModuleFiles(bundle, [client.id]), grid: bootModuleFiles(bundle, gridRoots), optional: bootModuleGroups(bundle, featureRoots), selection:selected, catalogue:catalogueFiles, products, extras };
-  const json = JSON.stringify(rows).replaceAll('<', String.raw`\u003c`);
+  const early = bootModuleFiles(bundle, earlyModuleRoots(root)), packs: Record<string, readonly ModuleFile[]> = {};
+  for (const prefix of Object.keys(products)) {
+    const directory = prefix.split('/')[2];
+    if (directory === undefined) throw new Error('Missing packed home directory');
+    const home = rows.optional.groups[`home:${prefix}`];
+    if (home === undefined) throw new Error('Missing packed home code');
+    packs[directory] = [...early, ...rows.common, ...rows.client, ...selected[directory] ?? [], ...home.map(index => {
+      const row = rows.optional.files[index]; if (row === undefined) throw new Error('Missing packed home module'); return row;
+    })];
+  }
+  const code = writeCodePacks(outDir, packs);
+  const json = JSON.stringify({ ...rows, code }).replaceAll('<', String.raw`\u003c`);
   writeFileSync(htmlFile, html.replace('<head>', `<head><script type="application/json" id="boot-module-files">${json}</script>`));
 }

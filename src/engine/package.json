@@ -24,6 +24,7 @@
     "./world/scalarChannel": "./world/scalarChannel.ts",
     "./boot/waits": "./boot/waits.ts",
     "./boot/download": "./boot/download.ts",
+    "./boot/codePack": "./boot/codePack.ts",
     "./render/lightmaps": "./render/lightmaps.ts",
     "./ai/director": "./ai/director.ts",
     "./fx/effectField": "./fx/effectField.ts",

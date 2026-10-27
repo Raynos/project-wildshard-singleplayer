@@ -1,17 +1,21 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Execute the shipped worker source against deterministic browser boundaries.
-import { readFileSync } from 'node:fs';
+import { readFileSync, mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The isolated context executes the original worker rather than a copied implementation.
 import { runInNewContext } from 'node:vm';
 import { afterEach, expect, test, vi } from 'vitest';
 import { contentNamed } from '../scripts/app-build/assetHashes';
+import { writeCodePacks } from '../scripts/app-build/codePacks';
+// oxlint-disable-next-line import/no-nodejs-modules -- The transport fixture owns only its exact temporary output tree.
+import { resolve as resolvePath } from 'node:path';
 
 const base = 'https://worker.test/';
 const entry = '/assets/entry-aaaaaaaa.js', dependency = '/assets/shared-bbbbbbbb.js', css = '/assets/style-cccccccc.css';
 const lazy = '/assets/lazy-dddddddd.js', later = '/assets/later-eeeeeeee.js';
 interface WorkerEvent {
   readonly source?: { postMessage: (value: unknown) => void };
-  readonly data?: { type: string };
+  readonly data?: { type: string; readonly [key: string]: unknown };
   readonly request?: Request;
+  readonly ports?: readonly { readonly postMessage: (value: unknown) => void }[];
   waitUntil: (work: Promise<unknown>) => void;
   respondWith: (work: Promise<Response>) => void;
 }
@@ -25,7 +29,7 @@ class StoredCache {
   keys(): Promise<Request[]> { return Promise.resolve([...this.bodies.keys()].map(url => new Request(url))); }
   delete(input: Request | string): Promise<boolean> { return Promise.resolve(this.bodies.delete(this.key(input))); }
 }
-function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>, warm: readonly string[] = [entry, dependency, css, lazy, later]) {
+function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>, warm: readonly string[] = [entry, dependency, css, lazy, later], packs?: unknown) {
   const listeners = new Map<string, ((event: WorkerEvent) => void)[]>(), books = new Map<string, StoredCache>();
   const installErrors: unknown[] = [];
   const replies: unknown[] = [];
@@ -48,14 +52,16 @@ function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>, 
       for (const book of books.values()) { const held = await book.match(url); if (held !== undefined) return held; } return undefined;
     } };
   const owner = readFileSync('src/engine/app/workerScope.js', 'utf8').replaceAll(/^export /gmu, '');
-  const worker = readFileSync('src/engine/pwa/sw.js', 'utf8').replace("import { workerScope } from '../app/workerScope.js';\n", '')
+  const packSource = readFileSync('src/engine/pwa/codePack.js', 'utf8').replaceAll(/^export /gmu, '');
+  const worker = readFileSync('src/engine/pwa/sw.js', 'utf8').replace("import { workerScope } from '../app/workerScope.js';\n", '').replace("import { codePackEntries, readCodePackTransport } from './codePack.js';\n", '')
     .replaceAll('__BUILD_ID__', 'unit-build').replaceAll('__ASSET_ID__', 'unit-assets')
     .replace("'__BUNDLE__'", JSON.stringify(JSON.stringify([entry, dependency, css, lazy, later])))
     .replace("'__WARM__'", JSON.stringify(JSON.stringify(warm)))
     .replace("'__INSTALL__'", JSON.stringify(JSON.stringify([entry, dependency, css])))
+    .replace("'__CODE_PACKS__'", JSON.stringify(JSON.stringify(packs ?? { files: [], entries: {} })))
     .replace("'__FONTS__'", JSON.stringify('[]'));
-  runInNewContext(`${owner}\n${worker}`, { self, caches, fetch, URL, Request, Response, Headers, AbortController, setTimeout, clearTimeout, Date, console, crypto });
-  const dispatch = async (kind: string, payload: Pick<WorkerEvent, 'data' | 'request'> = {}): Promise<void> => {
+  runInNewContext(`${owner}\n${packSource}\n${worker}`, { self, caches, fetch, URL, Request, Response, Headers, Blob, DecompressionStream, TextDecoder, AbortController, setTimeout, clearTimeout, Date, console, crypto });
+  const dispatch = async (kind: string, payload: Pick<WorkerEvent, 'data' | 'request' | 'ports'> = {}): Promise<void> => {
     const pending: Promise<unknown>[] = [];
     for (const listener of listeners.get(kind) ?? []) listener({ ...payload, source: { postMessage: (value: unknown) => { replies.push(value); } }, waitUntil: work => { pending.push(work); }, respondWith: work => { pending.push(work); } });
     await Promise.all(pending);
@@ -63,6 +69,54 @@ function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>, 
   return { fetch, open, dispatch, navigator, installErrors, replies };
 }
 afterEach(() => { vi.useRealTimers(); });
+
+test('one selected code pack publishes exact original URLs and supports offline first use', async () => {
+  mkdirSync('tmp/code-pack-worker', { recursive: true });
+  const root = mkdtempSync(resolvePath('tmp/code-pack-worker/selected-'));
+  try {
+    mkdirSync(resolvePath(root, 'assets'));
+    writeFileSync(resolvePath(root, lazy.slice(1)), 'export const selected = 42;');
+    writeFileSync(resolvePath(root, later.slice(1)), 'export const unselected = 99;');
+    const packs = writeCodePacks(root, { selected: [[lazy, 27]], other: [[later, 29]] });
+    const row = packs.entries['selected']; if (row === undefined) throw new Error('Missing selected pack');
+    const wire = Uint8Array.from(readFileSync(resolvePath(root, row[0].slice(1))));
+    const f = fixture(url => Promise.resolve(new Response(url.endsWith('.pack') ? wire : 'ordinary module')), undefined, packs);
+    const messages: unknown[] = [];
+    await f.dispatch('message', { data: { type: 'PREPARE_CODE_PACK', url: row[0], bytes: row[1], decoded: row[2] },
+      ports: [{ postMessage: value => { messages.push(value); } }] });
+    expect(messages).toEqual([{ type: 'CODE_PACK_STARTED' }, { type: 'CODE_PACK_DONE', status: 'stored' }]);
+    expect(f.fetch.mock.calls.map(([url]) => url)).toEqual([new URL(row[0], base).href]);
+    const cache = await f.open('ws-immutable');
+    expect(await (await cache.match(new URL(lazy, base).href))?.text()).toBe('export const selected = 42;');
+    expect(await cache.match(new URL(later, base).href)).toBeUndefined();
+    f.navigator.onLine = false; f.fetch.mockRejectedValue(new Error('offline'));
+    await f.dispatch('fetch', { request: scriptRequest(lazy) });
+    await f.dispatch('message', { data: { type: 'PREPARE_CODE_PACK', url: row[0], bytes: row[1], decoded: row[2] },
+      ports: [{ postMessage: value => { messages.push(value); } }] });
+    expect(messages.at(-1)).toEqual({ type: 'CODE_PACK_DONE', status: 'hit' });
+    expect(f.fetch).toHaveBeenCalledTimes(1);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('corrupt code packs publish no module and retain the original individual fetch path', async () => {
+  mkdirSync('tmp/code-pack-worker', { recursive: true });
+  const root = mkdtempSync(resolvePath('tmp/code-pack-worker/corrupt-'));
+  try {
+    mkdirSync(resolvePath(root, 'assets')); writeFileSync(resolvePath(root, lazy.slice(1)), 'export const selected = 42;');
+    const packs = writeCodePacks(root, { selected: [[lazy, 27]] });
+    const row = packs.entries['selected']; if (row === undefined) throw new Error('Missing selected pack');
+    const wire = Uint8Array.from(readFileSync(resolvePath(root, row[0].slice(1)))); wire[0] = 0;
+    const f = fixture(url => Promise.resolve(new Response(url.endsWith('.pack') ? wire : 'ordinary module')), undefined, packs), messages: unknown[] = [];
+    await f.dispatch('message', { data: { type: 'PREPARE_CODE_PACK', url: row[0], bytes: row[1], decoded: row[2] },
+      ports: [{ postMessage: value => { messages.push(value); } }] });
+    expect(messages.at(-1)).toEqual({ type: 'CODE_PACK_DONE', status: 'failed' });
+    const cache = await f.open('ws-immutable');
+    expect(await cache.match(new URL(lazy, base).href)).toBeUndefined();
+    await f.dispatch('fetch', { request: scriptRequest(lazy) });
+    expect(await (await cache.match(new URL(lazy, base).href))?.text()).toBe('ordinary module');
+    expect(f.fetch).toHaveBeenCalledTimes(2);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
 
 test('Developer-only code stays cold until first use and then works offline', async () => {
   const f = fixture(undefined, [entry, dependency, css, lazy]);

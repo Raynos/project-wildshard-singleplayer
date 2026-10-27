@@ -1,4 +1,22 @@
 import { declareDownloadFile, reserveDownloadGroup, reserveDownloadBank, preloadModuleGroups } from '@wildshard/engine/boot/download';
+import { prepareCodePack } from '@wildshard/engine/boot/codePack';
+import type { Scope } from '@wildshard/engine/app/scope';
+
+/** Only a selected compiled home borrows its own boot transport. The plain
+ * title and external/legacy entries keep their original import path. */
+export async function prepareEntryCode(search: URLSearchParams, owner: Scope): Promise<(() => void) | null> {
+  const selected = search.get('chunk') ?? '', text = document.getElementById('boot-module-files')?.textContent;
+  if (text === undefined || document.getElementById('ws-shardfile') !== null) return null;
+  const bank: unknown = JSON.parse(text);
+  if (typeof bank !== 'object' || bank === null || !('code' in bank)) return null;
+  const code: unknown = bank.code;
+  if (typeof code !== 'object' || code === null || !('entries' in code)) throw new Error('Invalid entry code bank');
+  const entries: unknown = code.entries;
+  if (typeof entries !== 'object' || entries === null || !Object.hasOwn(entries, selected)) return null;
+  if (window.__ws_sw?.enabled === false) return null;
+  await window.__ws_sw?.ready;
+  return prepareCodePack(Reflect.get(entries, selected), owner);
+}
 
 /** Start code reads together, but report failures only at the original boot
  * barrier. A preceding import failure wins over a later admission refusal. */

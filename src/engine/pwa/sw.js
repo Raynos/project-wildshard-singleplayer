@@ -1,4 +1,5 @@
 import { workerScope } from '../app/workerScope.js';
+import { codePackEntries, readCodePackTransport } from './codePack.js';
 /* Wildshard service worker (project/archive/2026-09-22-load-perf.md §1b / §P3, docs/design/cache-policy.md).
  * Ported from game-demos/trials-gauntlet-demo/src/pwa/sw.js — it shipped on WebKit/Metal; port, don't redesign.
  *
@@ -71,6 +72,11 @@ const WARM = JSON.parse('__WARM__');
 const INSTALL = JSON.parse('__INSTALL__');
 /** @type {string[]} */
 const FONTS = JSON.parse('__FONTS__');
+/** Build-owned per-entry code transport. Unselected entries are never fetched. */
+/** @type {{files: string[], entries: Record<string, readonly [string, number, number, readonly number[]]>}} */
+const CODE_PACKS = JSON.parse('__CODE_PACKS__');
+/** @type {Map<string, Promise<string>>} */
+const codePackJobs = new Map();
 const SHELL = `ws-shell-${BUILD}`;
 const STATIC = `ws-static-${ASSETS}`;
 const IMMUTABLE_CACHE = 'ws-immutable';
@@ -401,7 +407,45 @@ workerScope.listen(self, 'message', (event) => {
   else if (data.type === 'BUILD') event.waitUntil(reply(event, Promise.resolve({ type: 'BUILD', build: BUILD, activationStage })));
   else if (data.type === 'PREFETCH' && typeof data.url === 'string') event.waitUntil(reply(event, prefetchOne(data.url)));
   else if (data.type === 'STORE' && typeof data.url === 'string' && data.blob instanceof Blob) event.waitUntil(reply(event, storeOne(data.url, data.blob)));
+  else if (data.type === 'PREPARE_CODE_PACK' && typeof data.url === 'string') {
+    const port = event.ports?.[0];
+    const declared = Object.values(CODE_PACKS.entries).find(row => Array.isArray(row) && row[0] === data.url && row[1] === data.bytes && row[2] === data.decoded);
+    if (!declared || !port) { if (port) port.postMessage({ type: 'CODE_PACK_DONE', status: 'unsupported' }); return; }
+    port.postMessage({ type: 'CODE_PACK_STARTED' });
+    let work = codePackJobs.get(data.url);
+    if (!work) {
+      work = prepareWorkerCodePack(declared).finally(() => { codePackJobs.delete(data.url); });
+      codePackJobs.set(data.url, work);
+    }
+    event.waitUntil(work.then(status => { port.postMessage({ type: 'CODE_PACK_DONE', status }); return status; }));
+  }
 });
+
+/** Whole, authenticated code only; failed storage/transport keeps the original
+ * complete per-module retry path. Never publish a partial/corrupt pack body.
+ * @param {readonly [string, number, number, readonly number[]]} row */
+async function prepareWorkerCodePack(row) {
+  try {
+    const [url, bytes, decoded, members] = row, cache = await caches.open(IMMUTABLE_CACHE);
+    const paths = members.map(index => CODE_PACKS.files[index]);
+    if (paths.some(path => typeof path !== 'string' || !BUNDLE.includes(path))) throw new Error('Invalid code pack registry');
+    let complete = true;
+    for (const path of paths) if (!await cache.match(abs(path), MATCH_OPTS)) { complete = false; break; }
+    if (complete) return 'hit';
+    const response = await fetch(abs(url));
+    if (!response.ok) throw new Error('Failed code pack transport');
+    const hash = /\/([a-f0-9]{64})\.pack$/.exec(url)?.[1];
+    if (hash === undefined) throw new Error('Invalid code pack address');
+    const entries = await codePackEntries(await readCodePackTransport(response, bytes), [bytes, decoded, hash], new Set(paths));
+    if (entries.length !== paths.length) throw new Error('Incomplete code pack registry');
+    for (let index = 0; index < entries.length; index += 4) {
+      await Promise.all(entries.slice(index, index + 4).map(([path, value]) => cache.put(abs(path), new Response(value, {
+        headers: { 'content-type': 'text/javascript; charset=utf-8', 'content-length': String(value.byteLength) },
+      }))));
+    }
+    return 'stored';
+  } catch { return 'failed'; }
+}
 
 /**
  * E158: a content-named file the page downloaded BEFORE this worker controlled it (a first visit on a slow link: the boot
