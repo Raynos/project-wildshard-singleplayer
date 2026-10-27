@@ -36,8 +36,7 @@ import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 const finite=v.pipe(v.number(),v.finite());
 const cragTier=v.object({recipe:PrivateSceneSchema,placements:v.array(v.unknown()),boxes:v.array(finite),
   hulls:v.array(v.object({points:v.array(finite)}))});
-const cragRows=v.parse(v.object({phone:cragTier,desktop:cragTier}),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/cragRock.generated.json','utf8')));
+const cragRows=v.parse(v.object({phone:cragTier,desktop:cragTier}),nalatiCragRows);
 const prepared=v.parse(v.object({places:v.object({rows:v.array(v.object({name:v.string(),members:v.array(v.unknown())}))})}),
   nalatiRuntime);
 
