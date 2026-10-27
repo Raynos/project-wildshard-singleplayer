@@ -14,6 +14,8 @@ import { emptyShardfile } from '../src/sdk/author';
 import * as runtimeProducts from '../src/game/shardfile/runtimeProduct';
 import { recordSceneProfile } from '../src/game/shardfile/sceneProfile';
 import { isDev, setDev } from '../src/engine/core/devMode';
+/** A product whose file names are their own URLs: these rows' sources and aliases are /-rooted public URLs (d9cf71547f). */
+const identityProduct = { url: (name: string): string => name };
 
 // A made-up second shard: two steps, cube variants, repeated groups and named handles.
 const recipe = { scene: { version: 1, root: 'root', nodes: [{ kind: 'group', id: 'root', children: ['stone'] },
@@ -414,8 +416,8 @@ test.each(['material', 'object'] as const)('source PBR %s intake shares original
   const rows = parseWorldScenes({ version: 1, libraries: [], materials: [{ id: 'pbr', kind: 'source', url: '/fixture.glb', ...(mode === 'object' ? { publishObject: 'fixture-source' } : {}), aliases: { '/fixture.glb': '/material-only.glb' }, anisotropy: 4, envMapIntensity: 0.8 }], steps: [] });
   const row = rows.materials[0]; if (row?.kind !== 'source') throw new Error('Missing material fixture');
   try {
-    expect(await worldSceneSourceMaterial(row, sky, owner, handles)).toBe(material);
-    expect(await worldSceneSourceMaterial(row, sky, owner, handles)).toBe(material);
+    expect(await worldSceneSourceMaterial(row, sky, identityProduct, owner, handles)).toBe(material);
+    expect(await worldSceneSourceMaterial(row, sky, identityProduct, owner, handles)).toBe(material);
     expect(loader).toHaveBeenCalledTimes(1); expect(loader).toHaveBeenCalledWith('/fixture.glb', row.aliases);
     expect(setup).toHaveBeenCalledWith(material); expect(texture.anisotropy).toBe(4); expect(material.envMapIntensity).toBe(0.8);
     if (mode === 'object') {

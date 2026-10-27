@@ -17,6 +17,8 @@ import { linkStandIn, ownSceneResource, ownSceneTree, sceneResourceOwner } from 
 import { assertCompressedMipmapsUnchanged, compressedTextureKey, finalizeCompressedMipmaps, registerCompressedMipmaps } from '../src/engine/render/compressedMipmaps';
 import { uploadCompressedTexture } from '../src/engine/render/compressedUpload';
 import { pageScope } from '../src/engine/app/resources';
+/** A product whose file names are their own URLs: these rows' sources and aliases are /-rooted public URLs (d9cf71547f). */
+const identityProduct = { url: (name: string): string => name };
 
 function retiredTexture(): CompressedTexture {
   const texture = new CompressedTexture([{ data: new Uint8Array(16), width: 4, height: 4 }], 4, 4);
@@ -155,8 +157,8 @@ test('PBR source retirement cannot free the cached atlas another cell still uses
   app.assets.register(key, texture, { retain: true, cache: true });
   app.assets.acquire(key);
   try {
-    expect(await worldSceneSourceMaterial(row, sky, owner)).toBe(material);
-    expect(await worldSceneSourceMaterial(row, sky, owner)).toBe(material);
+    expect(await worldSceneSourceMaterial(row, sky, identityProduct, owner)).toBe(material);
+    expect(await worldSceneSourceMaterial(row, sky, identityProduct, owner)).toBe(material);
     expect(load).toHaveBeenCalledTimes(1);
     expect(app.assets.retained().find(entry => entry.key === key)?.refs).toBe(2);
     owner.dispose();
