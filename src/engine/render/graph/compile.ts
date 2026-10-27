@@ -41,6 +41,7 @@ import {
   instanceIndex, isolate, max, materialEnvIntensity, materialNormal, materialReference, modelPosition, modelWorldMatrix, modelWorldMatrixInverse,
   mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, perspectiveDepthToViewZ, pointUV, pmremTexture, property, reference, positionGeometry, positionLocal,
   positionView, positionViewDirection, positionWorld, screenCoordinate, texture, time, uniform, uniformArray, uv, varying, vec2, vec3, vec4, vertexColor,
+  BRDF_GGX, BRDF_Lambert, F_Schlick, mat3, roughness as roughnessProperty, specularColor, specularColorBlended, specularF90,
 } from 'three/tsl';
 import { FRONT_LEN, FRONT_SPEED, FRONT2_LEN, WIND_DIR, windUniforms } from '../../world/wind';
 import { sampleWindField, type WindFieldMath } from '../../world/windField';
@@ -224,13 +225,72 @@ const vec3Of = (v: unknown, what: string): Node<'vec3'> => {
 };
 type DirectInput = Parameters<PhysicalLightingModel['direct']>[0];
 
+type DirectInputs = Readonly<Record<string, Node>>;
+const directInput = (inputs: DirectInputs, name: string): Node => {
+  const value = inputs[name];
+  if (value === undefined) throw new Error(`material graph: the physical direct term lacks ${name}`);
+  return value;
+};
+const directVec3 = (inputs: DirectInputs, name: string): Node<'vec3'> => new ConvertNode<'vec3'>(directInput(inputs, name), 'vec3');
+/** column `index` of a mat3 (three's typings give a matrix node no element read) */
+class MatrixColumnNode extends BaseNode<'vec3'> {
+  private readonly matrix: Node;
+  private readonly index: number;
+  constructor(matrix: Node, index: number) { super('vec3'); this.matrix = matrix; this.index = index; }
+  override generate(builder: NodeBuilder): string {
+    const matrix = this.matrix.build(builder, 'mat3');
+    if (typeof matrix !== 'string') throw new Error('material graph: a matrix generated no code');
+    return `${matrix}[ ${String(this.index)} ]`;
+  }
+}
+/**
+ * three's physical direct term (PhysicalLightingModel.direct, r186, a standard material: no sheen, clearcoat,
+ * iridescence, anisotropy or retroreflection) as one layout function, its own expressions in their order (G717.O4.4).
+ * Built inline, every light of every graph build re-made its Fresnel, GGX and Lambert nodes (~75 a light); three
+ * generates a layout function's code once per renderer, so a build now pays one call a light. It returns the light's
+ * diffuse and specular as a mat3's first two columns.
+ */
+const physicalDirect = Fn<DirectInputs, Node>((inputs: DirectInputs): Node => {
+  const lightDirection = directVec3(inputs, 'lightDirection'), viewDirection = directVec3(inputs, 'viewDirection'), normal = directVec3(inputs, 'normal');
+  const dotNL = normal.dot(lightDirection).clamp();
+  const irradiance = dotNL.mul(directVec3(inputs, 'lightColor')).toVar();
+  const halfDir = lightDirection.add(viewDirection).normalize();
+  const dotVH = viewDirection.dot(halfDir).clamp();
+  const fresnel = new ConvertNode<'vec3'>(F_Schlick({ f0: directInput(inputs, 'specularColour'), f90: directInput(inputs, 'specularF90'), dotVH }), 'vec3');
+  // BRDF_GGX reads its normal and view direction as arguments (three's typings omit `normalView`)
+  const ggx = { lightDirection, f0: directInput(inputs, 'specularBlended'), f90: float(1), roughness: directInput(inputs, 'roughness'), normalView: normal, viewDirection };
+  const specularBRDF = new ConvertNode<'vec3'>(BRDF_GGX(ggx), 'vec3');
+  const diffuse = irradiance.mul(new ConvertNode<'vec3'>(BRDF_Lambert({ diffuseColor: directInput(inputs, 'diffuse') }), 'vec3')).mul(fresnel.oneMinus());
+  const specular = irradiance.mul(specularBRDF).mul(directVec3(inputs, 'compensation'));
+  return mat3(diffuse, specular, vec3(0));
+}).setLayout({ name: 'wsPhysicalDirect', type: 'mat3', inputs: [
+  { name: 'lightDirection', type: 'vec3' }, { name: 'lightColor', type: 'vec3' }, { name: 'normal', type: 'vec3' }, { name: 'viewDirection', type: 'vec3' },
+  { name: 'specularColour', type: 'vec3' }, { name: 'specularF90', type: 'float' }, { name: 'specularBlended', type: 'vec3' }, { name: 'roughness', type: 'float' },
+  { name: 'diffuse', type: 'vec3' }, { name: 'compensation', type: 'vec3' },
+] });
+
+/** three's physical model with each light's direct term as `physicalDirect`: every lit graph material's model */
+class FunctionLightingModel extends PhysicalLightingModel {
+  override direct(input: DirectInput, builder: NodeBuilder): void { this.physical(input, builder, true, true); }
+
+  /** three's physical direct term for this light (`physicalDirect`), keeping its diffuse and / or its specular */
+  protected physical(input: DirectInput, _builder: NodeBuilder, diffuse: boolean, specular: boolean): void {
+    const compensation = this.multiScatteringCompensation;
+    if (compensation === null) throw new Error('material graph: the physical model has no multi-scattering compensation');
+    const terms = physicalDirect({ lightDirection: input.lightDirection, lightColor: input.lightColor, normal: normalView, viewDirection: positionViewDirection,
+      specularColour: specularColor, specularF90, specularBlended: specularColorBlended, roughness: roughnessProperty, diffuse: diffuseContribution, compensation });
+    if (diffuse) accumulate(input.reflectedLight.directDiffuse, new MatrixColumnNode(terms, 0));
+    if (specular) accumulate(input.reflectedLight.directSpecular, new MatrixColumnNode(terms, 1));
+  }
+}
+
 /**
  * The lighting stage's model: three's physical model, with each directional light (the sun; the sky rig's cascades are
  * one sun) lit by the graph's `sun` sub-graph instead. Physical light carries its shadow and cascade gate in
  * `lightColor`. Graph sun hooks use a cascade's separate shadow colour and result weight, so nonlinear shade floors
  * stay inside their slice; other lights recover the shadow ratio from `baseColorNode` as the families do.
  */
-class GraphLightingModel extends PhysicalLightingModel {
+class GraphLightingModel extends FunctionLightingModel {
   private readonly hooks: LitHooks;
   constructor(hooks: LitHooks) { super(); this.hooks = hooks; }
 
@@ -254,15 +314,6 @@ class GraphLightingModel extends PhysicalLightingModel {
       const specular = scale === undefined ? sun.specular : sun.specular.mul(scale);
       this.physical({ ...input, lightColor: base.mul(cascade === null ? specular : specular.mul(cascade.weight)) }, builder, false, true);
     }
-  }
-
-  /** three's physical direct term for this light, keeping its diffuse and / or its specular */
-  private physical(input: DirectInput, builder: NodeBuilder, diffuse: boolean, specular: boolean): void {
-    if (diffuse && specular) { super.direct(input, builder); return; }
-    const tmp = { directDiffuse: vec3(0).toVar(), directSpecular: vec3(0).toVar(), indirectDiffuse: vec3(0).toVar(), indirectSpecular: vec3(0).toVar() };
-    super.direct({ ...input, reflectedLight: tmp }, builder);
-    if (diffuse) accumulate(input.reflectedLight.directDiffuse, tmp.directDiffuse);
-    if (specular) accumulate(input.reflectedLight.directSpecular, tmp.directSpecular);
   }
 
   override indirect(builder: NodeBuilder): void {
@@ -311,8 +362,13 @@ class UnflippedNormalNode extends BaseNode<'vec3'> {
   }
 }
 
+/** A standard graph material: three's standard material lit by `FunctionLightingModel` */
+class GraphStandardMaterial extends MeshStandardNodeMaterial {
+  override setupLightingModel(): PhysicalLightingModel { return new FunctionLightingModel(); }
+}
+
 /** Apply authored geometry normals before morph/skin/instance transforms. */
-class GraphNormalMaterial extends MeshStandardNodeMaterial {
+class GraphNormalMaterial extends GraphStandardMaterial {
   vertexNormal: Node<'vec3'> | null = null;
   graphFogScale: Node<'float'> | null = null;
   /** `surface.targetAlpha`: the opaque draw's written alpha (the node handler's output step) */
@@ -1104,7 +1160,7 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
     const targetAlpha = out(s.targetAlpha);
     const displayColour = ir.effectState?.output === 'colour';
     const plain = vertexNormal === null && fogScale === undefined && targetAlpha === null && !displayColour;
-    const m = ir.model === 'unlit' ? plain ? new MeshBasicNodeMaterial() : new GraphUnlitNormalMaterial() : ir.model === 'toon' ? new GraphLitMaterial(withScale(toonHooks())) : lit !== undefined ? new GraphLitMaterial(withScale(litHooks(lit))) : sunScale !== undefined ? new GraphLitMaterial(withScale(PHYSICAL_HOOKS)) : plain ? new MeshStandardNodeMaterial() : new GraphNormalMaterial();
+    const m = ir.model === 'unlit' ? plain ? new MeshBasicNodeMaterial() : new GraphUnlitNormalMaterial() : ir.model === 'toon' ? new GraphLitMaterial(withScale(toonHooks())) : lit !== undefined ? new GraphLitMaterial(withScale(litHooks(lit))) : sunScale !== undefined ? new GraphLitMaterial(withScale(PHYSICAL_HOOKS)) : plain ? new GraphStandardMaterial() : new GraphNormalMaterial();
     if (targetAlpha !== null && (m instanceof GraphNormalMaterial || m instanceof GraphUnlitNormalMaterial)) m.graphTargetAlpha = asFloat(targetAlpha);
     if (displayColour && m instanceof GraphUnlitNormalMaterial) m.graphTargetAlpha = float(-1);
     if (vertexNormal !== null && (m instanceof GraphNormalMaterial || m instanceof GraphUnlitNormalMaterial)) m.vertexNormal = new ConvertNode<'vec3'>(vertexNormal.n, 'vec3');
