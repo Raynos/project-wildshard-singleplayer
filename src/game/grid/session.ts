@@ -406,7 +406,8 @@ export class GridSession {
         progress?.detail(`Terrain seams · ${++batches} verified shapes`); await construction.check();
       });
     let flatPlatform = false;
-    const strips = [...(compiled ?? await platformStrips(assembly, edges, (platform, edge) => generatePlatformSliced(platform, edge, async () => {
+    const preparedOuter = compiled?.readOuter;
+    const strips = [...(compiled?.strips ?? await platformStrips(assembly, edges, (platform, edge) => generatePlatformSliced(platform, edge, async () => {
       progress?.detail(`Terrain seams · ${++batches} batches`); await construction.check();
     }, 12, seamPlans, ring), () => {
       if (host.scope.disposed || host.scope.disposing) throw new Error('Grid admission scope disposed');
@@ -427,9 +428,10 @@ export class GridSession {
         if (owner.disposed || owner.disposing || host.scope.disposed || host.scope.disposing) throw new Error('Grid session left during outer seam preparation');
         await background.check();
       };
+      if (preparedOuter !== undefined) return preparedOuter(owner, pause);
       const compiledOuter = await readCompiledGridStrips(address.geometry, source, instance, { scope: owner, allocator },
         (url, signal) => fetch(url, { signal }), pause, 'outer');
-      return compiledOuter ?? generatePlatformSliced(source.cells, source.empty, pause, 4, seamPlans, (x, z) => !ring(x, z)); // T10: built in play after controls, 4 ms stretches beside the frame
+      return compiledOuter?.strips ?? generatePlatformSliced(source.cells, source.empty, pause, 4, seamPlans, (x, z) => !ring(x, z)); // T10: built in play after controls, 4 ms stretches beside the frame
     };
     const roadInput = { strips, home, pitch: assembly.pitch, layout: roadLayout(assembly, slug => findShard(slug)?.name ?? slug), scene: host.scene,
       scope: roadScope, camera: () => host.frame?.camera, plans, admission, ...(tileBacking === undefined ? {} : { tileBacking }) };

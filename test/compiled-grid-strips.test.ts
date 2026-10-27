@@ -86,14 +86,16 @@ test('the shipped initial ring is exactly the native subset, with all outer work
   expect(() => decodeCompiledGridStrips(outerHeader, outerPage.body.bytes, source, 'cell_0_0')).toThrow('source');
 });
 
-async function fixture(phase: GridStripPhase = 'initial') {
+async function fixture(phase: GridStripPhase = 'initial', withOuter = false) {
   const original = native(), source = await platformGeometrySource(original.cells, original.empty);
   const page = encodeGridStripPage(source, 'probe', 'fixture', original.strips, phase);
-  const directory = new TextEncoder().encode(JSON.stringify({ version: 1, pages: [page.page] }));
+  const pages = [page, ...(withOuter ? [encodeGridStripPage(source, 'probe', 'fixture', original.strips, 'outer')] : [])];
+  const directory = new TextEncoder().encode(JSON.stringify({ version: 1, pages: pages.map(row => row.page) }));
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', directory)), sha256 = Array.from(digest, byte => byte.toString(16).padStart(2, '0')).join('');
   const address: CompiledGridAddress = { url: `/assets/grid-strip-book-${sha256.slice(0, 8)}.json`, bytes: directory.length, sha256 };
-  const files = new Map([[address.url, directory], [page.header.address.url, page.header.bytes], [page.body.address.url, page.body.bytes]]);
-  return { original, source, page, selector: { directory: address, homes: [page.page.home] }, files };
+  const files = new Map<string, Uint8Array>([[address.url, directory]]);
+  for (const row of pages) { files.set(row.header.address.url, row.header.bytes); files.set(row.body.address.url, row.body.bytes); }
+  return { original, source, page, pages, selector: { directory: address, homes: pages.map(row => row.page.home) }, files };
 }
 
 test('only a completed exact page publishes arrays and a scoped source charge', async () => {
@@ -102,7 +104,7 @@ test('only a completed exact page publishes arrays and a scoped source charge', 
     urls.push(url); signals.push(signal); const bytes = f.files.get(url); if (bytes === undefined) throw new Error('Unexpected request');
     return Promise.resolve(new Response(Uint8Array.from(bytes).buffer));
   }, () => Promise.resolve());
-  if (actual === null) throw new Error('Missing compiled page'); sameStrips(actual, f.original.strips);
+  if (actual === null) throw new Error('Missing compiled page'); sameStrips(actual.strips, f.original.strips);
   expect(urls).toEqual([f.selector.directory.url, f.page.header.address.url, f.page.body.address.url]);
   expect(signals.every(signal => signal.aborted)).toBe(true);
   expect(allocator.entries().map(row => row.id)).toEqual(['product:grid:seams:probe:source']);
@@ -145,10 +147,64 @@ test('outer data is never initial demand and its source belongs to the outer chi
   expect(urls).toEqual([]);
   await readCompiledGridStrips(initial.selector, initial.original, 'probe', { scope, allocator }, read(initial.files), () => Promise.resolve());
   const result = await readCompiledGridStrips(outer.selector, outer.original, 'probe', { scope: child, allocator }, read(outer.files), () => Promise.resolve(), 'outer');
-  if (result === null) throw new Error('Missing explicit outer data'); sameStrips(result, outer.original.strips);
+  if (result === null) throw new Error('Missing explicit outer data'); sameStrips(result.strips, outer.original.strips);
   expect(allocator.entries().map(row => row.id)).toEqual(['product:grid:seams:probe:outer:source', 'product:grid:seams:probe:source']);
   child.dispose(); expect(allocator.entries().map(row => row.id)).toEqual(['product:grid:seams:probe:source']);
   scope.dispose(); expect(allocator.entries()).toEqual([]);
+});
+
+test('a verified one-shot outer continuation reuses only its original source and owner tree', async () => {
+  const f = await fixture('initial', true), scope = new Scope('continued page'), child = scope.child('outer'), foreign = new Scope('other page'), allocator = new ResidencyAllocator();
+  const urls: string[] = [];
+  const read = (url: string): Promise<Response> => {
+    urls.push(url); const bytes = f.files.get(url); if (bytes === undefined) throw new Error('Unexpected continued request');
+    return Promise.resolve(new Response(Uint8Array.from(bytes).buffer));
+  };
+  const admitted = await readCompiledGridStrips(f.selector, f.original, 'probe', { scope, allocator }, read, () => Promise.resolve());
+  const continued = admitted?.readOuter, outer = f.pages.find(row => row.phase === 'outer');
+  if (continued === undefined || outer === undefined) throw new Error('Missing deferred capability');
+  expect(urls).toEqual([f.selector.directory.url, f.page.header.address.url, f.page.body.address.url]); urls.length = 0;
+  await expect(continued(foreign, () => Promise.resolve())).rejects.toThrow('another owner'); expect(urls).toEqual([]);
+  const before = f.original.cells[0]; if (before === undefined) throw new Error('Missing source mutation probe');
+  f.original.cells[0] = { ...before, origin: { x: 777, z: 0 } };
+  await expect(readCompiledGridStrips(f.selector, f.original, 'probe', { scope, allocator }, read, () => Promise.resolve(), 'outer')).resolves.toBeNull();
+  expect(urls).toEqual([f.selector.directory.url]); urls.length = 0;
+  sameStrips(await continued(child, () => Promise.resolve()), f.original.strips);
+  expect(urls).toEqual([outer.header.address.url, outer.body.address.url]); urls.length = 0;
+  await expect(continued(child, () => Promise.resolve())).rejects.toThrow('already consumed'); expect(urls).toEqual([]);
+  child.dispose(); expect(allocator.entries().map(row => row.id)).toEqual(['product:grid:seams:probe:source']);
+  scope.dispose(); foreign.dispose(); expect(allocator.entries()).toEqual([]);
+});
+
+test('an ancestor retiring before outer demand prevents all IO and source publication', async () => {
+  const f = await fixture('initial', true), scope = new Scope('retiring continuation'), child = scope.child('outer'), allocator = new ResidencyAllocator();
+  const urls: string[] = [];
+  const read = (url: string): Promise<Response> => {
+    urls.push(url); const bytes = f.files.get(url); if (bytes === undefined) throw new Error('Unexpected continued request');
+    return Promise.resolve(new Response(Uint8Array.from(bytes).buffer));
+  };
+  const admitted = await readCompiledGridStrips(f.selector, f.original, 'probe', { scope, allocator }, read, () => Promise.resolve()), continued = admitted?.readOuter;
+  if (continued === undefined) throw new Error('Missing deferred capability'); urls.length = 0;
+  scope.onDispose(() => undefined); const retiring = scope.disposeSteps(); retiring.next();
+  expect(child.disposed).toBe(false); expect(child.disposing).toBe(true);
+  await expect(continued(child, () => Promise.resolve())).rejects.toThrow('scope disposed'); expect(urls).toEqual([]);
+  for (const _step of retiring) { /* Drain the original sliced owner teardown. */ }
+  expect(allocator.entries()).toEqual([]);
+});
+
+test('a continued outer read still verifies every body byte and releases a refused source', async () => {
+  const f = await fixture('initial', true), scope = new Scope('corrupt continuation'), child = scope.child('outer'), allocator = new ResidencyAllocator();
+  const read = (url: string): Promise<Response> => {
+    const bytes = f.files.get(url); if (bytes === undefined) throw new Error('Unexpected continued request');
+    return Promise.resolve(new Response(Uint8Array.from(bytes).buffer));
+  };
+  const admitted = await readCompiledGridStrips(f.selector, f.original, 'probe', { scope, allocator }, read, () => Promise.resolve()), continued = admitted?.readOuter;
+  const outer = f.pages.find(row => row.phase === 'outer');
+  if (continued === undefined || outer === undefined) throw new Error('Missing deferred capability');
+  const corrupt = outer.body.bytes.slice(); corrupt[0] = (corrupt[0] ?? 0) ^ 1; f.files.set(outer.body.address.url, corrupt);
+  await expect(continued(child, () => Promise.resolve())).rejects.toThrow('differs');
+  expect(allocator.entries().map(row => row.id)).toEqual(['product:grid:seams:probe:source']);
+  child.dispose(); scope.dispose(); expect(allocator.entries()).toEqual([]);
 });
 
 test('the plain app step ships exact assets only inside the existing I12 ceiling', async () => {

@@ -123,42 +123,39 @@ export function decodeCompiledGridStrips(input: unknown, bytes: Uint8Array, sour
   for (;;) { const step = steps.next(); if (step.done) return step.value; }
 }
 
-/** Optional exact-input baked initial ring. Missing entries use native construction;
- * a declared entry's corrupt bytes or header always refuse. */
-export async function readCompiledGridStrips(selector: CompiledGridSelector | undefined, input: { readonly cells: readonly PlatformCell[]; readonly empty: StripProfile }, home: string,
-  owner: { readonly scope: Scope; readonly allocator: ResidencyAllocator }, read: (url: string, signal: AbortSignal) => Promise<Response>, pause: () => Promise<void>, phase: GridStripPhase = 'initial'): Promise<readonly GeneratedStrip[] | null> {
-  const key = gridStripPageKey(home, phase);
-  if (selector === undefined || !selector.homes.includes(key)) return null;
-  const live = (): void => { if (owner.scope.disposed || owner.scope.disposing) throw new Error('Grid admission scope disposed'); };
-  live();
+interface GridStripOwner { readonly scope: Scope; readonly allocator: ResidencyAllocator }
+type GridStripFetch = (url: string, signal: AbortSignal) => Promise<Response>;
+/** Continuation of the original admitted source, restricted to its owner tree. */
+export type DeferredGridStrips = (scope: Scope, pause: () => Promise<void>) => Promise<readonly GeneratedStrip[]>;
+export interface CompiledGridRead { readonly strips: readonly GeneratedStrip[]; readonly readOuter?: DeferredGridStrips }
+
+function liveGridOwner(scope: Scope): void { if (scope.disposed || scope.disposing) throw new Error('Grid admission scope disposed'); }
+function reserveGridSource(owner: GridStripOwner, key: string, home: string, id: string, bytes: number): { readonly release: () => void } {
+  const claim = owner.allocator.reserve({ id: `product:grid:seams:${key}:${id}`, category: 'product', owner: home, bytes, distance: 0, needed: true });
+  if (claim === null) throw new Error('Grid strip metadata residency deferred');
+  return claim;
+}
+async function readDeclaredGridPage(page: CompiledGridPage, home: string, owner: GridStripOwner, read: GridStripFetch, pause: () => Promise<void>): Promise<readonly GeneratedStrip[]> {
+  liveGridOwner(owner.scope);
   const abort = new AbortController(), forget = owner.scope.capture('disposers', () => { abort.abort(); });
   const reservations: { readonly release: () => void }[] = [];
   let releaseSource: (() => void) | undefined, forgetSource: (() => void) | undefined, published = false;
-  const reserve = (id: string, bytes: number): { readonly release: () => void } => {
-    const claim = owner.allocator.reserve({ id: `product:grid:seams:${key}:${id}`, category: 'product', owner: home, bytes, distance: 0, needed: true });
-    if (claim === null) throw new Error('Grid strip metadata residency deferred');
-    return claim;
-  };
+  const reserve = (id: string, bytes: number): { readonly release: () => void } => reserveGridSource(owner, page.home, home, id, bytes);
   const fetchAsset = async (asset: CompiledGridAddress): Promise<Uint8Array<ArrayBuffer>> => {
-    live(); declareDownloadFile(asset.url, asset.bytes);
-    const bytes = await readGridAssetBytes(asset, url => read(url, abort.signal), 'strips'); live(); return bytes;
+    liveGridOwner(owner.scope); declareDownloadFile(asset.url, asset.bytes);
+    const bytes = await readGridAssetBytes(asset, url => read(url, abort.signal), 'strips'); liveGridOwner(owner.scope); return bytes;
   };
   try {
-    reservations.push(reserve('directory', selector.directory.bytes * 2));
-    const [directory, source] = await Promise.all([fetchAsset(selector.directory), platformGeometrySource(input.cells, input.empty)]); live();
-    const book = v.parse(directorySchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(directory)));
-    if (new Set(book.pages.map(page => `${page.source}/${page.home}`)).size !== book.pages.length) throw new Error('Duplicate grid strip page');
-    const page = book.pages.find(row => row.source === source && row.home === key); if (page === undefined) return null;
     reservations.push(reserve('decode', page.header.bytes * 2 + page.body.bytes * 2));
     const sourceLease = reserve('source', page.body.bytes * 2 + page.header.bytes * 4);
     let released = false;
     releaseSource = (): void => { if (!released) { released = true; sourceLease.release(); } };
     forgetSource = owner.scope.capture('disposers', releaseSource);
-    const [header, body] = await Promise.all([fetchAsset(page.header), fetchAsset(page.body)]); live();
-    const steps = stripSteps(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(header)), body, source, key);
+    const [header, body] = await Promise.all([fetchAsset(page.header), fetchAsset(page.body)]); liveGridOwner(owner.scope);
+    const steps = stripSteps(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(header)), body, page.source, page.home);
     try {
       for (;;) {
-        live(); const step = steps.next();
+        liveGridOwner(owner.scope); const step = steps.next();
         if (step.done) { published = true; return step.value; }
         await pause();
       }
@@ -167,4 +164,45 @@ export async function readCompiledGridStrips(selector: CompiledGridSelector | un
     abort.abort(); forget(); for (const reservation of reservations) reservation.release();
     if (!published) { forgetSource?.(); releaseSource?.(); }
   }
+}
+
+function deferredGridPage(page: CompiledGridPage, home: string, owner: GridStripOwner, read: GridStripFetch): DeferredGridStrips {
+  // Capture only admitted addresses/source, never the directory, input rows
+  // or decoded initial buffers. No module cache owns this continuation.
+  const snapshot = { source: page.source, home: page.home, header: { ...page.header }, body: { ...page.body } };
+  const parent = owner.scope, allocator = owner.allocator;
+  let consumed = false;
+  return (scope, pause) => {
+    if (!scope.belongsTo(parent)) return Promise.reject(new Error('Grid strip continuation has another owner'));
+    if (scope.disposed || scope.disposing) return Promise.reject(new Error('Grid admission scope disposed'));
+    if (consumed) return Promise.reject(new Error('Grid strip continuation already consumed'));
+    consumed = true;
+    return readDeclaredGridPage(snapshot, home, { scope, allocator }, read, pause);
+  };
+}
+
+/** Optional exact-input baked ring. Missing entries use native construction;
+ * corrupt declared data refuses. Initial admission may continue its SAME
+ * verified source later; each new read still fingerprints its actual inputs. */
+export async function readCompiledGridStrips(selector: CompiledGridSelector | undefined, input: { readonly cells: readonly PlatformCell[]; readonly empty: StripProfile }, home: string,
+  owner: GridStripOwner, read: GridStripFetch, pause: () => Promise<void>, phase: GridStripPhase = 'initial'): Promise<CompiledGridRead | null> {
+  const key = gridStripPageKey(home, phase);
+  if (selector === undefined || !selector.homes.includes(key)) return null;
+  liveGridOwner(owner.scope);
+  const abort = new AbortController(), forget = owner.scope.capture('disposers', () => { abort.abort(); });
+  let directoryLease: { readonly release: () => void } | undefined;
+  try {
+    directoryLease = reserveGridSource(owner, key, home, 'directory', selector.directory.bytes * 2);
+    declareDownloadFile(selector.directory.url, selector.directory.bytes);
+    const [directory, source] = await Promise.all([
+      readGridAssetBytes(selector.directory, url => read(url, abort.signal), 'strips'), platformGeometrySource(input.cells, input.empty)]);
+    liveGridOwner(owner.scope);
+    const book = v.parse(directorySchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(directory)));
+    if (new Set(book.pages.map(page => `${page.source}/${page.home}`)).size !== book.pages.length) throw new Error('Duplicate grid strip page');
+    const page = book.pages.find(row => row.source === source && row.home === key); if (page === undefined) return null;
+    const strips = await readDeclaredGridPage(page, home, owner, read, pause); liveGridOwner(owner.scope);
+    const outerKey = gridStripPageKey(home, 'outer');
+    const outer = phase === 'initial' && selector.homes.includes(outerKey) ? book.pages.find(row => row.source === source && row.home === outerKey) : undefined;
+    return { strips, ...(outer === undefined ? {} : { readOuter: deferredGridPage(outer, home, owner, read) }) };
+  } finally { abort.abort(); forget(); directoryLease?.release(); }
 }
