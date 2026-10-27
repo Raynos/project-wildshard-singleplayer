@@ -673,6 +673,13 @@ model is `@wildshard/engine/core/contentCost`, consumed by the game's
 internal product budget validator. The validator expands its 5 m search grid's
 radius by the sample spacing's half diagonal, so gaps cannot hide a heavier disc.
 
+For an authored project, return `late: [{hash, at: [-150, -138]}]` from the existing
+`prepareOutput` alongside `namedFiles`/`assets` or `blobs`. The ordinary project
+adapter validates and owns this metadata, admits the blobs first, then merges
+the hints into `source.late` after their library roots exist. `nameBlob` and its
+file metadata stay unchanged. Low-level writers may set `source.late` directly
+once those roots are declared. Both routes emit the same `admission.late`.
+
 ## Authored world source (SF55a, build input)
 
 `@wildshard/sdk/worldSource` exports `WorldSourceSchema`, `WorldSource` and

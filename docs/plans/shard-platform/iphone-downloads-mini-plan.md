@@ -560,3 +560,51 @@ before landing under the explicit code-only instruction. No build,
 preview, browser or guard waiver in this packet. No new measured I2 pass;
 the code is ready for the joint three-row read after the boot fix and
 content source join. Latest recorded transfer misses remain unchanged.
+
+### I2.6 Project producer adapter and shared boot-fixed reread (2026-10-27, sp-x2)
+
+I2.5's generic wire/reader contract is d181227f53 (origin verified).
+Its missed normal-project adapter is completed here: `prepareOutput`
+may return `late: [{hash, at?: [x,z]}]` beside blobs/namedFiles/assets.
+PreparedProjectOutput keeps a validated owned list separate from transport
+options. `mergeProjectBlobs` applies it after named bytes establish their
+library roots, then the existing parser verifies membership/duplicates.
+No `nameBlob` option or file metadata change. Ordinary readProjectAssets
+forwards it; the existing writer emits source.late as admission.late.
+Legacy outputs omit the property and retain their previous object shape.
+
+SDK and SDK-test types, touched typed lint and selected ratchet pass.
+Three control sources cover ordinary project intake, round-trip disk
+output/full costs, and malformed/missing/duplicate roots. They are typed,
+not executed before landing under G769. No build or new reading for this
+adapter. Sp-o5 can now emit actual late cabin/sky/creature declarations
+through its existing prepared output, without writing library assembly.
+
+The coordinator's blocked reread is satisfied by consuming sp-x9's
+already-completed matching cohort, not opening duplicate browsers:
+full pin b3b7b0bcd3f7787b9ce53eb8a64ab3017497e794,
+version b3b7b0b-mvqs56mh from the shared4401 preview. Full original
+checkChunks and boot-bank emission pass on that source. Retained raw
+`tmp/sp-x9-control-chunks/reading/{reading,pine-hollow,nalati-grasslands,nine-dragon-stack}.json`
+and comparison `tmp/sp-x9-control-chunks/compare.json` were inspected.
+Same original I2 reader/profile: fresh named muted iPhone16Pro sessions,
+phone/render2, CPU1/network unthrottled, original picker/HUD entry,
+Date.now control fence, all page+worker starts and encoded forwarded
+chunks by that fence, no HTML/header/body alteration. All requested
+world identities match, no page errors. No second build or browser was
+started by x2; x9 owns its shared-preview borrower cleanup.
+
+| Requested row | Encoded MB before control | Requests | JS requests | Tap to control | Page errors | I2 |
+|---|---:|---:|---:|---:|---:|---|
+| Pine | 180.917472 | 926 | 398 | 17.181 s | 0 | misses both |
+| Nalati | 103.214456 | 706 | 417 | 12.666 s | 0 | misses both |
+| Nine | 164.770903 | 638 | 362 | 17.004 s | 0 | misses both |
+
+Total request bar remains250; JS alone still exceeds it. Original24-row
+qualification remains0/24, latest3 remains0/3 despite controls completing.
+This source predates d181 late declarations/content activation, so it
+cannot measure their saving. Sp-x9 owns further generic JS fragmentation;
+sp-o5 owns actual heavy content deferral. No source-only gain, native
+memory result, isolated load attribution or Simulator pass is claimed.
+I2 remains in flight for the joined source read; boot-root refusal is
+closed on this b3 pin, and previous refused logs remain historical.

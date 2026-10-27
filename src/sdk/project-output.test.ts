@@ -267,3 +267,38 @@ export async function prepareDiscovery(ctx) {
   writeFileSync(resolve(path, 'generators/output.ts'), program.replace("{seed:files.get('seed')[0]}", '() => 7'));
   await expect(readProjectAssets(path)).rejects.toThrow('Discovery values must be plain bounded JSON');
 });
+
+test('prepared output late roots join newly admitted named blobs without dropping their library cost', async () => {
+  const blob = nameBlob('world/late-shape.bin', 'bin', binary, {decoded:12,gpu:8});
+  const input = {namedFiles:[blob.file],assets:new Map([[blob.file.hash,blob.bytes]]),late:[{hash:blob.file.hash,at:[-150,-138]}]};
+  const prepared = await prepareProjectOutput(directory(), input);
+  const merged = mergeProjectBlobs(source(), prepared.assets, prepared.blobs, prepared.options.namedFiles, prepared.late);
+  expect(merged.shard.late).toEqual(input.late); expect(merged.shard.late).not.toBe(input.late);
+  expect(merged.shard.library).toContain(blob.file.hash);
+  expect(merged.shard.budgets.library).toMatchObject({resident:20,compressed:3});
+  const destination = directory(), index = writeOutputProduct(merged.shard, merged.assets, destination, {namedFiles:merged.namedFiles});
+  expect(index.admission.late).toEqual(input.late);
+  expect(validateOutputProduct(destination).shard.late).toEqual(input.late);
+});
+
+test('ordinary project output carries late roots through its defining asset assembly', async () => {
+  const path = directory();
+  writeFileSync(resolve(path, 'shard.config.ts'), `
+import { nameBlob } from '@wildshard/sdk/blobs';
+export default ${JSON.stringify(source())};
+const blob=nameBlob('world/shape.bin','bin',new Uint8Array([1,2,3]));
+export const output={namedFiles:[blob.file],assets:new Map([[blob.file.hash,blob.bytes]]),late:[{hash:blob.file.hash,at:[-150,-138]}]};
+`);
+  const loaded = await readProjectAssets(path), [late] = loaded.shard.late ?? [];
+  if (late === undefined) throw new Error('Missing ordinary project late root');
+  expect(late.at).toEqual([-150,-138]); expect(loaded.shard.library).toContain(late.hash);
+  expect(loaded.shard.files.find(file => file.hash === late.hash)?.compressed).toBe(3);
+  expect(loaded.assets.get(late.hash)).toEqual(binary);
+});
+
+test('output late hints refuse missing library roots and malformed scheduling metadata', async () => {
+  const blob = nameBlob('world/late-shape.bin', 'bin', binary);
+  await expect(prepareProjectOutput(directory(), {late:[{hash:blob.file.hash,at:[251,0]}]})).rejects.toThrow();
+  expect(() => mergeProjectBlobs(source(), new Map(), [], [], [{hash:blob.file.hash}])).toThrow('declared library roots');
+  expect(() => mergeProjectBlobs(source(), new Map(), [blob], [], [{hash:blob.file.hash},{hash:blob.file.hash}])).toThrow('unique late');
+});

@@ -1,3 +1,4 @@
+import { AdmissionLateSchema, type AdmissionLate, type LateFile } from '@wildshard/format/admissionLate';
 import * as v from 'valibot';
 import { ScriptContractSchema, decisionModuleContracts, type ScriptContractInput, type ScriptContract } from '@wildshard/format/scriptContract';
 import { OutputIndexSchema, type OutputFile } from '@wildshard/format/outputIndex';
@@ -28,16 +29,20 @@ const declaration: v.StrictObjectSchema<{ readonly name: v.StringSchema<undefine
 const output = v.strictObject({
   blobs: v.optional(v.pipe(v.array(declaration), v.maxLength(8192)), []),
   custom: v.exactOptional(emitted), platform: v.exactOptional(emitted),
+  late: v.exactOptional(AdmissionLateSchema),
   namedFiles: v.optional(OutputIndexSchema.entries.files, []), assets: v.optional(assetMap, () => new Map()),
 });
 
 /** Build-only config export: source paths are resolved by the CLI, never by author module side effects. */
 export interface ProjectOutput extends Omit<OutputProductOptions, 'runtime' | 'discovery'> {
+  /** Existing or newly emitted library hashes; merged only after blob admission establishes every root. */
+  readonly late?: readonly LateFile[];
   readonly blobs?: readonly v.InferOutput<typeof declaration>[];
   readonly assets?: ReadonlyMap<string, Uint8Array>;
 }
 /** Prepared extensions and new named bytes, still subject to complete product/disk admission. */
 export interface PreparedProjectOutput {
+  readonly late?: AdmissionLate;
   readonly blobs: readonly NamedBlob[];
   readonly options: Omit<OutputProductOptions, 'runtime'>;
   readonly assets: ReadonlyMap<string, Uint8Array>;
@@ -82,7 +87,7 @@ export async function prepareProjectOutput(project: string, input: unknown, deci
       blobs.push({ file, bytes: owned, ...(script === undefined ? {} : { script }) });
     }
   }
-  return { blobs, assets: ownedAssets(parsed.assets), options: {
+  return { blobs, assets: ownedAssets(parsed.assets), ...(parsed.late === undefined ? {} : { late: parsed.late }), options: {
     namedFiles: overlays,
     ...(parsed.custom === undefined ? {} : { custom: ownedSections(parsed.custom) }),
     ...(parsed.platform === undefined ? {} : { platform: ownedSections(parsed.platform) }),
@@ -119,7 +124,7 @@ function libraryCost(source: Shardfile): { compressed: number; resident: number 
 
 /** Admit named bytes once. Existing declarations, conservative costs and names win when content is reused;
  * new content becomes a library root and charges only the newly reachable closure. Inputs are never mutated. */
-export function mergeProjectBlobs(input: Shardfile, inputAssets: ReadonlyMap<string, Uint8Array>, blobs: readonly NamedBlob[], namedFiles: readonly OutputFile[] = []): { shard: Shardfile; assets: Map<string, Uint8Array>; namedFiles: readonly OutputFile[] } {
+export function mergeProjectBlobs(input: Shardfile, inputAssets: ReadonlyMap<string, Uint8Array>, blobs: readonly NamedBlob[], namedFiles: readonly OutputFile[] = [], late: readonly LateFile[] = []): { shard: Shardfile; assets: Map<string, Uint8Array>; namedFiles: readonly OutputFile[] } {
   const source = parseShardfile(input), before = libraryCost(source), assets = new Map(inputAssets);
   const files = new Map(source.files.map(file => [file.hash, file]));
   const named = new Map<string, OutputFile>(), names = new Map<string, string>();
@@ -164,6 +169,7 @@ export function mergeProjectBlobs(input: Shardfile, inputAssets: ReadonlyMap<str
     names.set(name, file.hash);
     if (existing !== undefined || !common) assets.set(file.hash, Uint8Array.from(blob.bytes));
   }
+  if (late.length > 0) source.late = v.parse(AdmissionLateSchema, [...source.late ?? [], ...late]);
   const after = libraryCost(source), budget = source.budgets.library;
   budget.compressed += after.compressed - before.compressed; budget.resident += after.resident - before.resident;
   if (budget.downloadAllowance !== undefined) budget.downloadAllowance += after.compressed - before.compressed;
