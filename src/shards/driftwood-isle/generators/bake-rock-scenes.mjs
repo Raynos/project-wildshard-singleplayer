@@ -23,7 +23,8 @@ try{
   const file=`models/rocks/${id}.glb`,source=`assets/rock-scenes/${id}.glb`;
   // L18.3b: exact positions, compact normals and colours (compactChannels.ts); the intake restores the typed channels
   writer.put(fileURLToPath(new URL(source,project)),staticGlb([{geometry:compactChannels(geometry.clone()),material,compactIndex:true,quantizedChannels:true}]));
-  models.push({id,file,source});
+  // L18.3e (G769): the phone draws its own simplified rock, emitted at product build (rockPhoneProgram.ts)
+  models.push({id,file:{phone:`models/rocks/${id}-phone.glb`,desktop:file},source});
  }
  const sphere=id=>{const geometry=bake.geometry.get(id);if(geometry===undefined)throw new Error(`Missing rock bounds: ${id}`);geometry.computeBoundingSphere();const bound=geometry.boundingSphere;if(bound===null)throw new Error(`Missing rock sphere: ${id}`);return {center:[...bound.center],radius:bound.radius};};
  const catalogue=bake.catalogue.map(row=>({key:row.key,id:row.id,name:row.name,file:'src/shards/driftwood-isle/data/rockScenes.generated.json',category:'nature',pipeline:'code',surface:'rock',assembly:'parts',defaults:row.defaults,variants:row.variants,
@@ -36,6 +37,6 @@ try{
   step:{id:'rocks',scene:'scenes/rocks.json',geometry:{shore:{library:'rocks',model:'shore'},small:{library:'rocks',model:'small'}},materials:{rock:'rock'},
    registry:[],publish:{shore:{kind:'object',part:'shore'},small:{kind:'object',part:'small'}},bounds:['shore','small'].map(part=>({part,sphere:sphere(part)})),instanceAttributes:[]}};
  const copies=rows=>rows.map(row=>({...row,colliders:row.colliders.map(shape=>({...shape,...('points'in shape?{points:[...shape.points]}:{})}))}));
- writer.put(fileURLToPath(new URL('data/rockScenes.generated.json',project)),jsonBytes({blobs:models.map(({file,source})=>({name:file,source,kind:'glb'})),section,scene,catalogue,world:{shore:copies(bake.world.shore),small:copies(bake.world.small)}}));
+ writer.put(fileURLToPath(new URL('data/rockScenes.generated.json',project)),jsonBytes({blobs:models.map(({file,source})=>({name:file.desktop,source,kind:'glb'})),section,scene,catalogue,world:{shore:copies(bake.world.shore),small:copies(bake.world.small)}}));
  writer.finish();
 }finally{material.dispose();for(const geometry of bake.geometry.values())geometry.dispose();}

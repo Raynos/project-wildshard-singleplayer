@@ -1,5 +1,6 @@
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { driftwoodIslandProtoOutput } from './islandProtoProgram';
+import { driftwoodPhoneRockOutput } from './rockPhoneProgram';
 import { driftwoodPageFileOutput } from './productPageFiles';
 import { driftwoodCatalogueFeatures } from './catalogueEconomy';
 import { WORLD_STAGES } from './worldAssembly';
@@ -174,6 +175,6 @@ export const sections: { 'world/movers': { movers: ({ id: string; execution: str
 /** Prototype geometry and the cove's and sea's page files (I8) belong to the owned-byte cache, never a generated asset
  *  under src. */
 export async function prepareOutput(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<typeof output> {
-  const protos = await driftwoodIslandProtoOutput(ctx), pages = await driftwoodPageFileOutput(ctx);
-  return { ...output, namedFiles: [...output.namedFiles, ...protos.files, ...pages.files], assets: new Map([...output.assets, ...protos.assets, ...pages.assets]) };
+  const protos = await driftwoodIslandProtoOutput(ctx), pages = await driftwoodPageFileOutput(ctx), phoneRocks = await driftwoodPhoneRockOutput(ctx);
+  return { ...output, namedFiles: [...output.namedFiles, ...protos.files, ...pages.files, ...phoneRocks.files], assets: new Map([...output.assets, ...protos.assets, ...pages.assets, ...phoneRocks.assets]) };
 }
