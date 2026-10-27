@@ -32,6 +32,7 @@ export class Ledger {
   private readonly instances: Map<string, string>;
   private readonly rules: Map<string, { revision: number; rule: LedgerRule }>;
   private readonly pending = new Set<string>();
+  private records = 0;
   private readonly catalogue: ReadonlyMap<string, LedgerRewardPolicy>;
   constructor(store: SaveStore, instances: readonly LedgerInstance[], mappings: readonly { shard: string; revision: number; rules: readonly LedgerRule[] }[], catalogue: readonly LedgerCatalogueItem[]) {
     this.instances = new Map(instances.map((instance) => [instance.id, instance.shard]));
@@ -57,7 +58,12 @@ export class Ledger {
   }
   /** Includes pending in-memory saves, following SaveStore's offline fallback; receipts distinguish durability. */
   state(): LedgerState { return this.slot.read(); }
+  /** Facts offered so far (recorded or not): a checkpoint that skips idle writes treats any as a change. */
+  get recordCount(): number { return this.records; }
+  /** A grant still waits for a durable write. */
+  get unsaved(): boolean { return this.pending.size > 0; }
   record(input: LedgerFact): LedgerReceipt {
+    this.records++;
     const fact = v.parse(LedgerFactSchema, input), id = ledgerFactId(fact), mapping = this.rules.get(JSON.stringify([fact.shard, fact.revision, fact.name]));
     if (this.instances.get(fact.instance) !== fact.shard || mapping === undefined || mapping.revision !== fact.revision
       || mapping.rule.origin.kind !== fact.origin.kind || mapping.rule.origin.source !== fact.origin.source) throw new Error('Fact identity or provenance is not admitted');

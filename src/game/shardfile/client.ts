@@ -65,7 +65,7 @@ import { tileRing } from './tileDriver';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import { clientSimStep } from './clientStep';
 import { clientScene, projectItemFields, handledItemInputs } from './clientItems';
-import { captureClientState, restoreClientState, installClientItemState, clientStateSave, clientCheckpoint } from './clientState';
+import { captureClientState, clientStateParts, restoreClientState, installClientItemState, clientStateSave, clientCheckpoint } from './clientState';
 import { portalTransitioning } from './portalTraversal';
 import { syncTargetColliders } from './targets';
 import type { ClientAssets } from './clientAssets';
@@ -434,6 +434,7 @@ export class ShardfileClient {
     });
     yield;
     const saved = instanceSave(ctx.app.saves, encounterSave, { id: identity.instance, shard: identity.shard }), encounters = saved.read();
+    let encounterWrites = 0;
     let simulationActive = true, installing = true; // SF67: no sim step between the installation's parts
     const ladderCommand = { x: 0, z: 0, release: true };
     const sim = createShardfileSim(source, this.assets.retained, { sections: outputDescriptor(source)?.sections, rapier: world.physics.R, physics: world.physics,
@@ -465,7 +466,7 @@ export class ShardfileClient {
         const host = this.sim?.host; if (host === undefined) throw new Error('Missing local coin host');
         const key = `coins.${entity}`, prior = host.slots.questState[key]; host.slots.questState[key] = (typeof prior === 'number' ? prior : 0) + amount;
       } },
-      encounters: (id) => ({ saved: encounters[id] ?? { defeated: false, rewardTaken: false, kills: 0 }, persist: (value) => { encounters[id] = value; saved.write(encounters); },
+      encounters: (id) => ({ saved: encounters[id] ?? { defeated: false, rewardTaken: false, kills: 0 }, persist: (value) => { encounters[id] = value; encounterWrites++; saved.write(encounters); },
         reward: () => { for (const rule of source.ledger) if (rule.origin.kind === 'engine' && rule.origin.source === 'encounter.complete') fact(rule.fact, id, rule.origin.source); },
       }),
     });
@@ -534,8 +535,22 @@ export class ShardfileClient {
       canCheckpoint: () => !portalTransitioning(sim.host.physics),
       encounters: () => saved.write(encounters), continuation: () => continuation.write(captureClientState(source, sim, items.runtimes)),
     });
-    const checkpoint = saver.checkpoint;
-    sim.host.onStep('client.save', () => { if (sim.host.state.tick % 300 === 0) checkpoint(); });
+    // A periodic checkpoint whose progress matches the last one it wrote, with only the clock advanced, touches no save
+    // document (each write rereads and rewrites the whole shard document). Any other checkpoint (pagehide, hidden,
+    // dispose, a grid crossing) always writes the current clock and clears the mark; a lane without a state revision,
+    // a ledger fact, an encounter write or unsaved coins always write.
+    let quiet: string | undefined;
+    const mark = (): string | undefined => {
+      const lane = sim.lane, revision = lane === undefined ? 0 : lane.stateRevision?.();
+      if (revision === undefined || ledger.unsaved || loot?.purse?.unsaved === true) return undefined;
+      return `${String(revision)}|${String(ledger.recordCount)}|${String(encounterWrites)}|${JSON.stringify(clientStateParts(source, sim, items.runtimes))}`;
+    };
+    const checkpoint = (): boolean => { quiet = undefined; return saver.checkpoint(); };
+    sim.host.onStep('client.save', () => {
+      if (sim.host.state.tick % 300 !== 0 || portalTransitioning(sim.host.physics)) return;
+      const now = mark(); if (now !== undefined && now === quiet) return;
+      quiet = saver.checkpoint() ? now : undefined;
+    });
     ctx.scope.onDispose(() => { checkpoint(); });
     ctx.scope.listen(window, 'pagehide', () => { checkpoint(); });
     ctx.scope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'hidden') checkpoint(); });

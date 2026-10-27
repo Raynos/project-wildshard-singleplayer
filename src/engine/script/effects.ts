@@ -19,6 +19,7 @@ export class ScriptWorld {
   private entities = new Map<number, ScriptEntity>();
   private next = 1;
   private revision = 0;
+  private content = 0;
   private readonly rules: EffectRules;
   constructor(rules: EffectRules, entities: readonly ScriptEntity[]) {
     if (!Number.isSafeInteger(rules.maxEntities) || rules.maxEntities < 1 || rules.maxEntities > 10000 || entities.length > rules.maxEntities) throw new Error('Entity cap');
@@ -42,10 +43,13 @@ export class ScriptWorld {
   /** Restore validated host-owned state without publishing a partially checked entity list. */
   restore(entities: readonly ScriptEntity[]): void {
     const checked = new ScriptWorld(this.rules, entities);
-    this.entities = checked.entities; this.next = checked.next; this.revision++;
+    this.entities = checked.entities; this.next = checked.next; this.revision++; this.content++;
   }
   /** Quarantine or explicitly resume an entity after a failed script call. */
-  freeze(handle: number, frozen: boolean): void { const e = this.entities.get(handle); if (e) { this.entities.set(handle, { ...e, frozen, interactive: !frozen }); this.revision++; } }
+  freeze(handle: number, frozen: boolean): void { const e = this.entities.get(handle); if (e) { this.entities.set(handle, { ...e, frozen, interactive: !frozen }); this.revision++; this.content++; } }
+  /** Advances only when entity state changes (a commit that wrote something, a freeze or a restore); a commit of
+   * no-op effects keeps it, unlike the transaction fence. */
+  get contentRevision(): number { return this.content; }
   private field(key: number, value: number): void {
     const range = this.rules.fields[key];
     if (!Number.isSafeInteger(key) || !range || !Number.isFinite(value) || value < range[0] || value > range[1]) throw new Error('Field id/value outside declared range');
@@ -78,6 +82,10 @@ export class ScriptWorld {
         if (events.length >= eventAllowance) throw new Error('Event allowance'); events.push({ type: a, target: b, value: c });
       } else throw new Error('Unknown effect operation');
     }
-    return { spawns, events: events ?? NO_EVENTS, commit: () => { if (this.revision !== revision) throw new Error('Stale effect transaction'); this.entities = next; this.next = nextId; this.revision++; } };
+    return { spawns, events: events ?? NO_EVENTS, commit: () => {
+      if (this.revision !== revision) throw new Error('Stale effect transaction');
+      if (next !== this.entities || nextId !== this.next) this.content++;
+      this.entities = next; this.next = nextId; this.revision++;
+    } };
   }
 }

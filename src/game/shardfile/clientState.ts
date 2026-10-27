@@ -54,10 +54,15 @@ export function captureClientState(source: Shardfile, sim: ShardfileSimulation, 
   if (portalTransitioning(sim.host.physics)) throw new Error('Cannot checkpoint during a portal transfer');
   const lane = sim.lane?.snapshot() ?? null;
   return v.parse(logicalCheckpoint, { version: 2, shard: source.identity.slug, state: migrateLogicalState(logicalStateFromLane(source.state.version, lane), source.state), revision: source.identity.revision, tick: sim.host.state.tick,
-    lane, liftRider: captureLiftRider(source, sim), moverPending: sim.movers?.snapshot(new Set(socketLiftEntries(source.entryways).flatMap(entry => [entry.lift.mover, entry.lift.gate]))) ?? [], items: itemStates(items), flags: sim.host.flags.all,
+    lane, ...clientStateParts(source, sim, items) });
+}
+/** Every continuation field except the clock and the script lane (and the logical state read from that lane), unparsed:
+ * the continuation's schema admits them. */
+export function clientStateParts(source: Shardfile, sim: ShardfileSimulation, items: Runtimes): Readonly<Record<string, unknown>> {
+  return { liftRider: captureLiftRider(source, sim), moverPending: sim.movers?.snapshot(new Set(socketLiftEntries(source.entryways).flatMap(entry => [entry.lift.mover, entry.lift.gate]))) ?? [], items: itemStates(items), flags: sim.host.flags.all,
     health: Object.fromEntries([...sim.host.entities].map(([id, entity]) => [id, { hp: entity.hp, maxHp: entity.maxHp, alive: entity.alive }])),
     props: Object.fromEntries([...sim.colliders].map(([id, port]) => [id, port.active()])),
-    quests: sim.quest.quests.map((quest) => quest.snapshot()), dialogue: sim.quest.snapshot() });
+    quests: sim.quest.quests.map((quest) => quest.snapshot()), dialogue: sim.quest.snapshot() };
 }
 /** Persist a portable companion to a same-engine region snapshot, so later revisions never need its old Rapier bytes. Legacy regions supply their known state-version-1 origin. */
 export function clientStateFromRegion(source: Shardfile, snapshot: Omit<SimSnapshot, 'physics'>, revision: number = source.identity.revision, stateVersion: number = source.state.version, props: Readonly<Record<string, boolean>> = {}): ClientCheckpoint {

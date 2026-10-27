@@ -16,6 +16,8 @@ export interface ScriptLanePort {
   readonly host: ScriptHost; readonly world: DeclaredScriptWorld; readonly divisor: number;
   step: (tick: number, commands?: ReadonlyMap<string, number>) => readonly ScriptCall[];
   enqueue: (event: ScriptEvent) => void; snapshot: () => string; restore: (text: string) => void;
+  /** Advances when snapshot() may differ other than in its tick; a lane without one is always treated as changed. */
+  stateRevision?: () => number;
 }
 const finite = v.pipe(v.number(), v.finite());
 const natural = v.pipe(finite, v.integer(), v.minValue(0));
@@ -83,6 +85,7 @@ export class ScriptLane {
   private readonly driver: ScriptDriver;
   private readonly schedule: ScriptSchedule;
   private commands: ReadonlyMap<string, number> = NO_COMMANDS;
+  private readonly marks = { host: -1, world: -1, revision: 0 };
   constructor(options: ScriptLaneOptions) {
     this.driver = new ScriptDriver(options); this.world = this.driver.world; this.divisor = this.driver.divisor;
     this.schedule = this.driver.schedule('numeric', 'numeric', () => this.commands); this.host = new ScriptHost(options);
@@ -103,6 +106,13 @@ export class ScriptLane {
   }
   /** Schedule a declared scene/gameplay event for the next tick; conditions read the resulting declared fields. */
   enqueue(event: ScriptEvent): void { this.host.enqueue(event); }
+  /** Advances when the snapshot's world, module state, budgets, pending events or failure history changed since the
+   * previous call; the tick alone never advances it. */
+  stateRevision(): number {
+    const host = this.host.stateRevision(), world = this.world.contentRevision, marks = this.marks;
+    if (host !== marks.host || world !== marks.world) { marks.host = host; marks.world = world; marks.revision++; }
+    return marks.revision;
+  }
   /** JSON snapshot includes all world state, complete module state, budgets, pending events and failure history. */
   snapshot(): string { return `{"version":0,"contract":${JSON.stringify(this.driver.contract)},"world":${JSON.stringify(this.world.checkpoint())},"host":${this.host.checkpointText()}}`; }
   /** Restores a matching installed lane, without invoking author initialization. */

@@ -18,6 +18,7 @@ export class DeclaredScriptWorld extends ScriptWorld {
   private shared: number[];
   private players = new Map<string, number[]>();
   private declaredRevision = 0;
+  private declaredContent = 0;
   private readonly views = new Map<string, { shared: Record<string, number>; player: Record<string, number> }>();
   private readonly actors: ReadonlyMap<number, string>;
   private readonly defaults: readonly number[];
@@ -70,8 +71,10 @@ export class DeclaredScriptWorld extends ScriptWorld {
     const check = (fields: readonly ScriptStateField[], values: readonly number[]): boolean => fields.length === values.length && fields.every((f, i) => valid(f, values[i] ?? Number.NaN));
     if (!check(this.declaration.shared, saved.shared) || saved.players.length !== this.players.size || new Set(saved.players.map((p) => p.actorId)).size !== saved.players.length
       || saved.players.some((p) => !this.players.has(p.actorId) || !check(this.declaration.player, p.values)) || [...this.actors.keys()].some((handle) => !saved.entities.some((e) => e.id === handle))) throw new Error('Invalid declared-state snapshot');
-    super.restore(saved.entities); this.shared = [...saved.shared]; this.players = new Map(saved.players.map((p) => [p.actorId, [...p.values]])); this.declaredRevision++; this.views.clear();
+    super.restore(saved.entities); this.shared = [...saved.shared]; this.players = new Map(saved.players.map((p) => [p.actorId, [...p.values]])); this.declaredRevision++; this.declaredContent++; this.views.clear();
   }
+  /** Entity content plus declared shared/player values; a commit that rewrote nothing keeps it. */
+  override get contentRevision(): number { return super.contentRevision + this.declaredContent; }
   override prepare(effects: readonly ScriptEffect[], self: number, spawnAllowance: number, eventAllowance: number): EffectTransaction {
     const before = this.declaredRevision, actorId = this.actor(self);
     let shared = this.shared, players = this.players, ordinary: ScriptEffect[] | undefined;
@@ -101,7 +104,7 @@ export class DeclaredScriptWorld extends ScriptWorld {
     return { spawns: tx.spawns, events: tx.events, commit: () => {
       if (this.declaredRevision !== before) throw new Error('Stale declared-state transaction');
       tx.commit();
-      if (this.shared !== shared || this.players !== players) this.views.clear();
+      if (this.shared !== shared || this.players !== players) { this.views.clear(); this.declaredContent++; }
       this.shared = shared; this.players = players; this.declaredRevision++;
     } };
   }

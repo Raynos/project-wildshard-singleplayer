@@ -162,6 +162,7 @@ export class ScriptHost {
   private pending: ScriptEvent[] = [];
   private active = false;
   private reservedMemory = 0;
+  private readonly observed = { revision: 0, used: [0, 0, 0, 0, 0], pending: [] as ScriptEvent[], modules: new Map<string, { memory: Uint8Array; globals: Map<string, number | bigint>; failures: number; disabled: boolean }>() };
   constructor(options: ScriptHostOptions) {
     this.options = { ...options }; this.world = options.world;
     const limits = { ...SCRIPT_LIMITS, ...options.limits };
@@ -249,6 +250,34 @@ export class ScriptHost {
     if (this.active || this.pending.length >= this.limits.events) throw new Error('Script event queue allowance');
     const checked = this.world.prepare([{ op: SCRIPT_OP.event, a: event.type, b: event.target, c: event.value, d: 0 }], event.target, 0, 1);
     this.pending.push(...checked.events);
+  }
+  /**
+   * Advances when anything checkpoint() carries other than the tick (module memories and globals, failure history,
+   * allowances, pending events) differs from what the previous call saw. It compares in place against the copies it
+   * kept and copies only what changed, so an idle caller allocates nothing.
+   */
+  stateRevision(): number {
+    const seen = this.observed, used = this.used, last = seen.used; let changed = false;
+    if (last[0] !== used.effects || last[1] !== used.spawns || last[2] !== used.events || last[3] !== used.queries || last[4] !== used.fuel) {
+      last[0] = used.effects; last[1] = used.spawns; last[2] = used.events; last[3] = used.queries; last[4] = used.fuel; changed = true;
+    }
+    let same = seen.pending.length === this.pending.length;
+    for (let i = 0; same && i < this.pending.length; i++) { const a = seen.pending[i], b = this.pending[i]; same = a !== undefined && b !== undefined && a.type === b.type && a.target === b.target && Object.is(a.value, b.value); }
+    if (!same) { seen.pending = this.pending.map((e) => ({ ...e })); changed = true; }
+    for (const [name, state] of this.modules) {
+      const good = state.good, row = seen.modules.get(name);
+      if (row === undefined || row.memory.length !== good.memory.length) {
+        seen.modules.set(name, { memory: good.memory.slice(), globals: new Map(good.globals), failures: state.failures, disabled: state.disabled }); changed = true; continue;
+      }
+      if (row.failures !== state.failures || row.disabled !== state.disabled) { row.failures = state.failures; row.disabled = state.disabled; changed = true; }
+      let globals = row.globals.size === good.globals.size;
+      if (globals) for (const [key, value] of good.globals) if (!Object.is(row.globals.get(key), value)) { globals = false; break; }
+      if (!globals) { row.globals = new Map(good.globals); changed = true; }
+      const memory = good.memory, kept = row.memory;
+      for (let i = 0; i < memory.length; i++) if (memory[i] !== kept[i]) { kept.set(memory); changed = true; break; }
+    }
+    if (changed) seen.revision++;
+    return seen.revision;
   }
   /** Snapshot copies are safe to retain for deterministic replay. */
   snapshot(name: string): ScriptSnapshot { const state = this.modules.get(name); if (!state) throw new Error('Unknown module'); return clone(state.good); }
