@@ -1,6 +1,6 @@
 import { parseWorldEntry, type WorldEntryRows, type WorldEntryStep } from '@wildshard/format/worldEntry';
 import { ISLAND_KNOBS } from './tiers';
-import cove from '../data/coveBake.json' with { type: 'json' };
+import type { FixedCoveLayout } from './fixedLayouts';
 import composition from '../data/coveComposition.json' with { type: 'json' };
 import { ENTRY_LANDINGS } from './entryLandings';
 
@@ -17,7 +17,7 @@ const foliage = (kind: 'bushes' | 'palms', mesh: string, castShadow: (tier: type
  * @wildshard/game/shardfile/worldAssembly in world/build.ts): the shore boulders, the hibiscus bushes and the coconut palms for this tier, the wreck, the cove's piece and
  * the cove's small rocks.
  */
-export function driftwoodWorldEntry(): WorldEntryRows {
+export function driftwoodWorldEntry(cove: FixedCoveLayout): WorldEntryRows {
   return parseWorldEntry({ blocks: {
     bushes: foliage('bushes', 'hibiscus.mesh', tier => ISLAND_KNOBS[tier].bushShadows),
     palms: foliage('palms', 'palms.mesh', () => undefined),

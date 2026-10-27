@@ -1,8 +1,9 @@
+import { DRIFTWOOD_LAYOUTS } from './fixtures/driftwood-layout-source';
 import { expect, test } from 'vitest';
 import { NATIVE_VIEW } from '../src/shards/driftwood-isle/generators/nativeView';
 import { ISLAND_KNOBS } from '../src/shards/driftwood-isle/generators/tiers';
 import { DRIFTWOOD_CLIENT_SECTIONS } from '../src/shards/driftwood-isle/generators/clientSections';
-import { WORLD_STAGES } from '../src/shards/driftwood-isle/generators/worldAssembly';
+import { WORLD_STAGES } from './fixtures/driftwood-world-stages';
 import { driftwoodWorldEntry } from '../src/shards/driftwood-isle/generators/worldEntry';
 import { FIXED_MODEL_FILES, FIXED_MODEL_NAMES } from '../src/shards/driftwood-isle/generators/modelFiles';
 import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_OUTPUT, DRIFTWOOD_FIXED_SOURCES as NAMED_MODELS } from '../src/shards/driftwood-isle/generators/assets';
@@ -51,7 +52,7 @@ test('canonical palette key order retains authored rock geometry', () => {
 });
 
 test('admitted shadow tiers retain both original view choices', () => {
-  const bushes = driftwoodWorldEntry().blocks['bushes'] ?? [];
+  const bushes = driftwoodWorldEntry(DRIFTWOOD_LAYOUTS.cove).blocks['bushes'] ?? [];
   for (const tier of ['phone','desktop'] as const) {
     // the world entry's hibiscus draw casts its shadow as the tier's knob says
     const draw = bushes.find(row => row.kind === 'attach' && row.when?.tier === tier);

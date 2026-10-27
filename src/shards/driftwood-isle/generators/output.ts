@@ -5,7 +5,7 @@ import { driftwoodIslandProtoOutput } from './islandProtoProgram';
 import { driftwoodPhoneRockOutput } from './rockPhoneProgram';
 import { driftwoodPageFileOutput } from './productPageFiles';
 import { driftwoodCatalogueFeatures } from './catalogueEconomy';
-import { WORLD_STAGES } from './worldAssembly';
+import { driftwoodWorldStages } from './worldAssembly';
 import { driftwoodWorldUpdates } from './worldUpdates';
 import { DRIFTWOOD_NATIVE_QUEST } from './nativeQuest';
 import { GULL_DRAW } from './gullDraw';
@@ -172,9 +172,16 @@ function questComposition(layouts: DriftwoodFixedLayouts) {
 function hullBook(): unknown { const { fauna, ...body } = creatureBodies; return { ...fauna, body }; }
 /** The platform sections in their declared order; `world/scenes` joins once the scene banks are built (prepareOutput). */
 function platformRows(scenes: ReturnType<typeof worldScenes> | undefined, layouts?: DriftwoodFixedLayouts): Map<PlatformDataSectionName, unknown> {
-  return new Map<PlatformDataSectionName, unknown>([['explore/catalogue', EXPLORER_CATALOGUE],['look/toon', TOON_LOOK], ['look/hull-book', hullBook()], ['view/modules', [{ id: 'driftwood.bridge-sway', module: `blobs/wasm/${bridgeSwayModule.compiled.hash}.wasm`, side: 'view', ...BRIDGE_SWAY_WASM.options.script }]], ['client/plan', { ...clientPlan, features: [...driftwoodCatalogueFeatures(clientPlan.features), {kind:'world.assembly',library:'driftwood.island',catalogue:'models/world-scenes.json',farStandIn:true,rows:WORLD_STAGES}, { kind: 'world.updates', rows: driftwoodWorldUpdates() }, { kind: 'view.program', id: 'bridge-sway', rows: driftwoodBridgeSway(), module: 'views/bridge-sway.wasm' }, { kind: 'world.movers', ...driftwoodMoverOwners() }, { kind: 'world.baked', rows: [BAKED_COVE] }, { kind: 'world.water', rows: [OCEAN_WATER_ROW] }, { kind: 'world.sets', rows: placeSetRows() }] }], ...(scenes === undefined ? [] : [['world/scenes', scenes] as const]), ...(layouts === undefined ? [] : [['held/arms', driftwoodHeldArms(layouts.wreck)] as const]), ['ui/strings', strings], ['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS], ['actors/return-scripts', [RETURN_PROGRAM.script]], ['sim/scripts', [...CAPTAIN_DECISION, ...BARREL_DECISION]], ['sim/bodies', BARREL_BODIES], ['actors/moves', CAPTAIN_MOVES], ['actors/strikes', CAPTAIN_STRIKES], ['world/targets',CAPTAIN_TARGETS]]);
+  return new Map<PlatformDataSectionName, unknown>([['explore/catalogue', EXPLORER_CATALOGUE],['look/toon', TOON_LOOK], ['look/hull-book', hullBook()], ['view/modules', [{ id: 'driftwood.bridge-sway', module: `blobs/wasm/${bridgeSwayModule.compiled.hash}.wasm`, side: 'view', ...BRIDGE_SWAY_WASM.options.script }]], ['client/plan', { ...clientPlan, features: [...driftwoodCatalogueFeatures(clientPlan.features), ...(layouts === undefined ? [] : [{kind:'world.assembly',library:'driftwood.island',catalogue:'models/world-scenes.json',farStandIn:true,rows:driftwoodWorldStages(layouts)}]), { kind: 'world.updates', rows: driftwoodWorldUpdates() }, { kind: 'view.program', id: 'bridge-sway', rows: driftwoodBridgeSway(), module: 'views/bridge-sway.wasm' }, { kind: 'world.movers', ...driftwoodMoverOwners() }, { kind: 'world.baked', rows: [BAKED_COVE] }, { kind: 'world.water', rows: [OCEAN_WATER_ROW] }, { kind: 'world.sets', rows: placeSetRows() }] }], ...(scenes === undefined ? [] : [['world/scenes', scenes] as const]), ...(layouts === undefined ? [] : [['held/arms', driftwoodHeldArms(layouts.wreck)] as const]), ['ui/strings', strings], ['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS], ['actors/return-scripts', [RETURN_PROGRAM.script]], ['sim/scripts', [...CAPTAIN_DECISION, ...BARREL_DECISION]], ['sim/bodies', BARREL_BODIES], ['actors/moves', CAPTAIN_MOVES], ['actors/strikes', CAPTAIN_STRIKES], ['world/targets',CAPTAIN_TARGETS]]);
 }
 export const output: { blobs: ({ name: string; kind: string; source: string; } | { name: string; kind: "wasm"; source: string; options: { script: { abi: 0; }; }; })[]; platform: ReturnType<typeof emitDefinedSections>; namedFiles: readonly { path: string; kind: "audio" | "glb" | "ktx2" | "json" | "wasm" | "image" | "tile" | "bin"; name?: string; commons?: true; jsonSchema?: Record<string, unknown>; critical: boolean; hash: string; compressed: number; decoded: number; gpu: number; triangles: number; draws: number; dependencies: ReturnType<typeof emitNamedBlobs>["files"][number]["dependencies"]; }[]; assets: ReadonlyMap<string, Uint8Array>; custom: ReturnType<typeof emitDefinedSections>; } = { ...DRIFTWOOD_OUTPUT, blobs: [RETURN_WASM,BRIDGE_SWAY_WASM,{name:'behaviour/director.wasm',kind:'wasm' as const,source:`assets/${directorModule.module}`,options:{script:{abi:0 as const}}},...DRIFTWOOD_OUTPUT.blobs, ...SCENE_MODEL_BLOBS, ...driftwoodPhysicsSources()], platform: emitPlatformSections(platformRows(undefined)), namedFiles: placements.files, assets: placements.assets, custom };
+
+/** Complete layout-dependent rows from the owned fixed facts, before binary banks join. */
+export function driftwoodOutputRows(layouts: DriftwoodFixedLayouts): typeof output {
+  const questFiles = emitNamedBlobs([questComposition(layouts)]);
+  return { ...output, platform: emitPlatformSections(platformRows(undefined, layouts)),
+    namedFiles: [...questFiles.files, ...output.namedFiles], assets: new Map([...questFiles.assets, ...output.assets]) };
+}
 
 /** Root-mapped platform data is admitted before the canonical output writer. */
 export const sections: { 'world/movers': { movers: ({ id: string; execution: string; entity: number; kind: string; at: { x: number; y: number; z: number; }; euler: { x: number; y: number; z: number; }; enabled: boolean; boxes: { x: number; y: number; z: number; hx: number; hy: number; hz: number; rot: { x: number; y: number; z: number; w: number; }; }[]; module: string; input: number[]; trigger: { kind: string; }; driver: { kind: string; damping: number; waves: number[][]; }; chain?: never; } | { id: string; execution: string; entity: number; kind: string; at: { x: number; y: number; z: number; }; euler: { x: number; y: number; z: number; }; enabled: boolean; boxes: never[]; chain: { segments: { x: number; y: number; z: number; rot: { x: number; y: number; z: number; w: number; }; hz: number; }[]; hx: number; hy: number; mass: number; }; module: string; input: number[]; trigger: { kind: string; }; driver: { kind: string; damping?: never; waves?: never; }; })[]; }; 'state/modes': { modes: typeof DRIFTWOOD_MODES; }; } = { 'world/movers': { movers: MOVERS }, 'state/modes': { modes: DRIFTWOOD_MODES } };
@@ -184,11 +191,11 @@ export const sections: { 'world/movers': { movers: ({ id: string; execution: str
  *  under src. */
 export async function prepareOutput(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<typeof output> {
   const banks = await driftwoodSceneBanksCached(ctx), bankFiles = await driftwoodSceneBankOutput(banks);
-  const questFiles = emitNamedBlobs([questComposition(banks.layouts)]);
+  const rows = driftwoodOutputRows(banks.layouts);
   const catalogue = emitNamedBlobs([nameBlob('scenes/rocks.json', 'json', new TextEncoder().encode(encodeCanonicalJson(banks.rocks.scene))),
     nameBlob('models/world-scenes.json', 'json', new TextEncoder().encode(encodeCanonicalJson(siteCatalogue(banks))))]);
   const fixed = await driftwoodFixedModelOutput(ctx), protos = await driftwoodIslandProtoOutput(ctx), pages = await driftwoodPageFileOutput(ctx), phoneRocks = driftwoodPhoneRockOutput(banks.rocks.glbs), scenes = await driftwoodSceneModelOutput(ctx);
-  return { ...output, platform: emitPlatformSections(platformRows(worldScenes(banks), banks.layouts)),
-    namedFiles: [...questFiles.files, ...output.namedFiles, ...catalogue.files, ...protos.files, ...pages.files, ...phoneRocks.files, ...fixed.files, ...scenes.files, ...bankFiles.files],
-    assets: new Map([...questFiles.assets, ...output.assets, ...catalogue.assets, ...protos.assets, ...pages.assets, ...phoneRocks.assets, ...fixed.assets, ...scenes.assets, ...bankFiles.assets]) };
+  return { ...rows, platform: emitPlatformSections(platformRows(worldScenes(banks), banks.layouts)),
+    namedFiles: [...rows.namedFiles, ...catalogue.files, ...protos.files, ...pages.files, ...phoneRocks.files, ...fixed.files, ...scenes.files, ...bankFiles.files],
+    assets: new Map([...rows.assets, ...catalogue.assets, ...protos.assets, ...pages.assets, ...phoneRocks.assets, ...fixed.assets, ...scenes.assets, ...bankFiles.assets]) };
 }

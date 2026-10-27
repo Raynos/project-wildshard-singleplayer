@@ -16,7 +16,7 @@ import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { GULL_FLOCK } from '../src/shards/driftwood-isle/generators/gullsLook';
 import { WORLD_GULL_PERCHES } from '../src/shards/driftwood-isle/generators/staticWorld';
 import { GULL_GRAPH_LOOK } from '../src/shards/driftwood-isle/generators/gullGraphLook';
-import { WORLD_STAGES } from '../src/shards/driftwood-isle/generators/worldAssembly';
+import { WORLD_STAGES } from './fixtures/driftwood-world-stages';
 
 const row = { kind: 'ambient-flock', id: 'driftwood.gulls', label: 'Gulls', rows: GULL_FLOCK,
   draw: { slot: 'gull', look: GULL_GRAPH_LOOK, castShadow: true }, perches: WORLD_GULL_PERCHES };

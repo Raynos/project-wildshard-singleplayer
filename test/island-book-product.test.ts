@@ -10,13 +10,16 @@ import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { DRIFTWOOD_CLIENT_SECTIONS } from '../src/shards/driftwood-isle/generators/clientSections';
 import { DRIFTWOOD_CLIENT_SECTIONS as original } from './fixtures/driftwoodLegacyLayouts';
 import { SECTIONS as originalSchemas } from './fixtures/driftwoodLegacySections';
-import { WORLD_STAGES } from '../src/shards/driftwood-isle/generators/worldAssembly';
+import { WORLD_STAGES } from './fixtures/driftwood-world-stages';
 import { NATIVE_VIEW } from '../src/shards/driftwood-isle/generators/nativeView';
 import { WAKE_ENCOUNTER } from '../src/shards/driftwood-isle/generators/wakeEncounter';
-import { output } from '../src/shards/driftwood-isle/generators/output';
+import { driftwoodOutputRows } from '../src/shards/driftwood-isle/generators/output';
+import { DRIFTWOOD_LAYOUTS } from './fixtures/driftwood-layout-source';
 import source from './fixtures/driftwood-product-source';
 import manifest from '../src/shards/driftwood-isle/manifest.json' with {type:'json'};
 import headless from '../src/shards/driftwood-isle/data/headlessAssembly.json' with {type:'json'};
+
+const output = driftwoodOutputRows(DRIFTWOOD_LAYOUTS);
 
 function section(name:string):unknown{
   const bytes=output.platform.files.get(`sections/${name}.json`);if(bytes===undefined)throw new Error(`Missing section ${name}`);

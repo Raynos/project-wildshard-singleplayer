@@ -26,7 +26,7 @@ import type { BakedTiles } from '../src/game/shardfile/bakedTiles';
 import * as assets from './fixtures/driftwoodLegacyAssets';
 import { driftwoodProduct } from './fixtures/driftwoodLegacyRows';
 import { sites } from './fixtures/driftwoodLegacyCatalogue';
-import { WORLD_STAGES } from '../src/shards/driftwood-isle/generators/worldAssembly';
+import { WORLD_STAGES } from './fixtures/driftwood-world-stages';
 import manifest from '../src/shards/driftwood-isle/discovery.generated';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { buildDriftwoodWorld } from './fixtures/driftwoodWorldConstruction';
