@@ -1,9 +1,9 @@
-// G508: rest copies come from the exact declared scene and placement data.
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+// G508: rest copies come from the exact declared scene and placement data. GR7: a pure producer; its caller owns every
+// read (`source`, by repository path) and the map program paints its files in one cached step (mapProgram.ts).
 import { Matrix4, Quaternion, Vector3 } from 'three';
-import { MapAssembly, mapModel, readMapJson } from '../../../../scripts/map-geometry.mjs';
-import { MapWorld, mapPool } from '../../../../scripts/map-world.mjs';
+import { MapAssembly } from '@wildshard/sdk/bake/mapAssembly';
+import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
+import { MapWorld, mapJson, mapModel, mapPool } from './mapWorld.mjs';
 import { worldScenes } from './worldScenes.ts';
 import { driftwoodFoliageScenes, foliageLogPlacements, foliageSceneFiles } from './foliageScenesBank.ts';
 import { driftwoodPierScenes } from './pierScenesBank.ts';
@@ -20,8 +20,7 @@ import { ENTRY_DECKS } from './entryDecks.ts';
 import { driftwoodFacetedGroundBank } from './facetedGroundBank.ts';
 import { driftwoodIslandPlan } from './productPageFiles.ts';
 
-const base = resolve(import.meta.dirname, '..'), root = resolve(base, '../../..');
-const read = file => readMapJson(resolve(base, file));
+const SHARD = 'src/shards/driftwood-isle/', ISLAND = 'public/assets/models/driftwood-blender/';
 const named = (name, value) => ({ file: { name }, bytes: new TextEncoder().encode(JSON.stringify(value)) });
 const simple = (geometry, material = 'plant', name = geometry) => ({ scene: { version: 1, root: 'root', nodes: [{ id: 'root', kind: 'group', children: ['mesh'] }, { id: 'mesh', kind: 'mesh', geometry, material, name }], materials: [] }, imports: [] });
 
@@ -52,7 +51,7 @@ async function bridgeRest(assembly, fixed) {
 }
 
 // GR7: the cells are the cover bank's product bytes (islandCoverBank), no longer a source path
-async function coverRest(assembly, bytes, fixed) {
+async function coverRest(assembly, bytes, fixed, read) {
   const row = read('data/groundCover.json').GROUND_COVER, groups = read('data/fixedGeometry.json').groups.cover;
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), word = i => view.getUint32(i * 4, true);
   if (word(0) !== 0x43435357 || word(1) !== 1 || word(2) !== row.cell || word(7) !== row.kinds.length) throw new Error('Map cover cell header differs');
@@ -75,10 +74,11 @@ async function coverRest(assembly, bytes, fixed) {
   return matrices.map(list => list.length);
 }
 
-export async function driftwoodMapAssembly() {
+export async function driftwoodMapAssembly(source) {
+  const read = file => mapJson(source(`${SHARD}${file}`));
   const assembly = new MapAssembly(), piers = driftwoodPierScenes();
-  const fixedFiles = await driftwoodFixedBytes(new Map(DRIFTWOOD_FIXED_INPUTS.map(name => [name, new Uint8Array(readFileSync(resolve(root, `public${name}`)))])));
-  const banks = await driftwoodSceneBanksFrom(url => new Uint8Array(readFileSync(resolve(root, `public${url}`))), fixedFiles), catalogue = siteCatalogue(banks), WORLD_SCENES = worldScenes(banks);
+  const fixedFiles = await driftwoodFixedBytes(new Map(DRIFTWOOD_FIXED_INPUTS.map(name => [name, source(`public${name}`)])));
+  const banks = await driftwoodSceneBanksFrom(url => source(`public${url}`), fixedFiles), catalogue = siteCatalogue(banks), WORLD_SCENES = worldScenes(banks);
   const fixedBlobs = Object.entries(FIXED_MODEL_NAMES).map(([url, name]) => {
     const bytes = fixedFiles.get(`baked/fixed-models/${url.slice(url.lastIndexOf('/') + 1)}`);
     if (bytes === undefined) throw new Error(`Missing owned map fixed model: ${name}`);
@@ -99,7 +99,7 @@ export async function driftwoodMapAssembly() {
   const blobs = [...fixedBlobs, ...sceneBlobs, ...bankBlobs, ...foliageBlobs, ...DRIFTWOOD_OUTPUT.blobs], recipes = [named('scenes/rocks.json', banks.rocks.scene), named('scenes/zipline.json', piers.zipScene),
     named('scenes/moorings.json', simple('lines', 'still')), ...['palms', 'hibiscus', 'reef', 'logs'].map(kind => named(`scenes/${kind}.json`, simple('plant'))),
     ...['cascade', 'cove', 'wreck', 'trail'].map(kind => named(`scenes/${kind}.json`, read(`data/${kind === 'trail' ? 'trail' : kind}Scene.json`)))];
-  const world = new MapWorld(assembly, base, WORLD_SCENES, catalogue, [...blobs, ...recipes]), files = new Map(blobs.map(row => row.file === undefined ? [row.name, resolve(base, row.source)] : [row.file.name, row.bytes]));
+  const world = new MapWorld(assembly, WORLD_SCENES, catalogue, [...blobs, ...recipes]), files = new Map(blobs.map(row => [row.file.name, row.bytes]));
   const fixed = slot => { const file = files.get(DRIFTWOOD_FIXED_SOURCES[slot]); if (file === undefined) throw new Error(`Missing map fixed shape ${slot}`); return file; };
   for (const bytes of driftwoodFacetedGroundBank().blobs.values()) for (const [name, geometry] of await mapPool(bytes, true)) assembly.add(`ground:${name}`, geometry);
   for (const step of WORLD_SCENES.steps) await world.recipe(step, new Matrix4(), step.id === 'cascade' ? ['puffs'] : []);
@@ -116,16 +116,16 @@ export async function driftwoodMapAssembly() {
   }
   const bridge = await bridgeRest(assembly, fixed);
   // Native Blender terrain retains its node's dequantisation matrix and datum.
-  const islandBase = resolve(root, 'public/assets/models/driftwood-blender'), islandMeta = readMapJson(resolve(islandBase, 'island.json'));
-  const terrain = await mapPool(resolve(islandBase, 'island.glb'), true), protoNames = new Set(islandMeta.protos.map(row => `proto_${row.name}`));
+  const islandMeta = mapJson(source(`${ISLAND}island.json`));
+  const terrain = await mapPool(source(`${ISLAND}island.glb`), true), protoNames = new Set(islandMeta.protos.map(row => `proto_${row.name}`));
   for (const [name, geometry] of terrain) {
     if (protoNames.has(name) || name.startsWith('terrainlo')) { geometry.dispose(); continue; }
     assembly.add(`island:${name}`, geometry, [new Matrix4().makeTranslation(0, -WORLD_DROP, 0)]);
   }
-  const plan = driftwoodIslandPlan(new Uint8Array(readFileSync(resolve(islandBase, 'placements.bin'))), new Uint8Array(readFileSync(resolve(islandBase, 'island.json'))), 'desktop', banks.facts);
-  const protoFiles = await driftwoodIslandProtoSource(new Map(ISLAND_PROTO_INPUTS.map(name => [name, new Uint8Array(readFileSync(resolve(root, `public${name}`)))])));
+  const plan = driftwoodIslandPlan(source(`${ISLAND}placements.bin`), source(`${ISLAND}island.json`), 'desktop', banks.facts);
+  const protoFiles = await driftwoodIslandProtoSource(new Map(ISLAND_PROTO_INPUTS.map(name => [name, source(`public${name}`)])));
   const protoBytes = protoFiles.get('world/island/protos.glb'); if (protoBytes === undefined) throw new Error('Missing map island prototypes');
-  const prototypes = await mapPool(protoBytes), placements = new Float32Array(Uint8Array.from(readFileSync(resolve(islandBase, 'placements.bin'))).buffer);
+  const prototypes = await mapPool(protoBytes), placements = new Float32Array(Uint8Array.from(source(`${ISLAND}placements.bin`)).buffer);
   const byProto = new Map();
   for (const family of plan.families) for (const i of family.indices) {
     const o = i * 10, name = islandMeta.protos[placements[o]].name, scale = placements[o + 8];
@@ -135,7 +135,16 @@ export async function driftwoodMapAssembly() {
   for (const [name, matrices] of byProto) { const geometry = prototypes.get(name); if (geometry === undefined) throw new Error(`Missing island map prototype ${name}`); assembly.add(`island-copy:${name}`, geometry, matrices); }
   for (const [name, geometry] of prototypes) if (!byProto.has(name)) geometry.dispose();
   const cellsFile = files.get('world/cover/cells/desktop.bin'); if (cellsFile === undefined) throw new Error('Missing map cover cells');
-  const cover = await coverRest(assembly, cellsFile, fixed); world.dispose();
+  const cover = await coverRest(assembly, cellsFile, fixed, read); world.dispose();
   return { assembly, bridge, plan, byProto, cover, entryDecks };
 }
-if (import.meta.main) { const { assembly } = await driftwoodMapAssembly(); assembly.write(resolve(base, 'data/mapAssembly.generated')); }
+
+/** The map painter's files (data/map.json): the assembly's ordered scene and its geometry block, deflated as the retired
+ *  driftwood-map-assembly job wrote them. */
+export async function driftwoodMapFiles(source) {
+  const { assembly } = await driftwoodMapAssembly(source);
+  try {
+    const { json, binary } = assembly.pack();
+    return new Map([['map/assembly.json', json], ['map/geometry.bin', encodeBuildBytes(binary, 'deflate', 6, 'native')]]);
+  } finally { for (const shape of assembly.shapes) { shape.geometry.dispose(); shape.material.dispose(); } }
+}

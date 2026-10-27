@@ -1,18 +1,30 @@
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { rasterSceneMap } from '@wildshard/sdk/bake/groundMap';
+import { driftwoodMapFiles } from './mapAssembly.mjs';
+import { DRIFTWOOD_FIXED_INPUTS } from './fixedProgram';
+import { DRIFTWOOD_SCENE_BANK_INPUTS } from './sceneBanks';
+import { ISLAND_PROTO_INPUTS } from './islandProtoProgram';
 import settings from '../data/map.json' with { type: 'json' };
 
-/** The map's inputs, as build inputs by project path: the map assembly's pack and rows (driftwood-map-assembly). */
-export const DRIFTWOOD_MAP_INPUTS: readonly string[] = ['data/mapAssembly.generated.json', 'data/mapAssembly.generated.bin'];
+/** The shard's own files the map assembly reads (by project path). */
+const MAP_DATA = ['data/cascadeScene.json', 'data/coveScene.json', 'data/fixedGeometry.json', 'data/groundCover.json', 'data/trailScene.json', 'data/wreckScene.json'];
+/** Every committed input the map reads, as build inputs: the pure map producer's public files by URL (the fixed program's,
+ *  the scene banks' and the island prototypes'), the shard's own files by project path. */
+export const DRIFTWOOD_MAP_INPUTS: readonly string[] = [...[...new Set([...DRIFTWOOD_FIXED_INPUTS, ...DRIFTWOOD_SCENE_BANK_INPUTS, ...ISLAND_PROTO_INPUTS])].sort(), ...MAP_DATA];
+const SHARD = 'src/shards/driftwood-isle/';
 
-/** The map's RGBA lattice from an exact input bank, painted with the island palette (the retired driftwood-data-map
- *  job's pixels). */
+/** The map's RGBA lattice from an exact input bank: the map assembly (GR7: the retired driftwood-map-assembly job's pack),
+ *  painted with the island palette (the retired driftwood-data-map job's pixels). */
 export async function driftwoodMapPixels(inputs: ReadonlyMap<string, Uint8Array>): Promise<Uint8Array> {
-  const read = (file: string): Uint8Array => {
-    const bytes = inputs.get(file);
-    if (bytes === undefined) throw new Error(`Undeclared Driftwood map input ${file}`);
+  // the pure producer names repository paths; the bank holds build-input names
+  const repo = (path: string): Uint8Array => {
+    const name = path.startsWith('public/') ? path.slice('public'.length) : path.startsWith(SHARD) ? path.slice(SHARD.length) : path;
+    const bytes = inputs.get(name);
+    if (bytes === undefined) throw new Error(`Undeclared Driftwood map input ${path}`);
     return bytes;
   };
+  const files = await driftwoodMapFiles(repo);
+  const read = (file: string): Uint8Array => files.get(file) ?? repo(`${SHARD}${file}`);
   const json = (file: string): unknown => JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(read(file)));
   return (await rasterSceneMap(settings, { input: read, bytes: read, json })).pixels;
 }

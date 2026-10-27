@@ -1054,69 +1054,6 @@
       "catalogueDependencies": [
         "pine-map-assembly"
       ]
-    },
-    {
-      "id": "driftwood-map-assembly",
-      "shard": "driftwood-isle",
-      "entry": "src/shards/driftwood-isle/generators/mapAssembly.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "--import",
-        "./scripts/generation-level.mjs",
-        "src/shards/driftwood-isle/generators/mapAssembly.mjs",
-        "--import",
-        "./scripts/generation-level.mjs",
-        "--generation-shard=driftwood-isle",
-        "--generation-shard=driftwood-isle"
-      ],
-      "inputRoots": [
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/sdk/blobs.ts",
-        "src/sdk/package.json",
-        "src/format/package.json",
-        "src/commons",
-        "src/format",
-        "src/shards/driftwood-isle",
-        "public/assets/models/driftwood-blender",
-        "public/assets/driftwood-isle/baked",
-        "scripts/map-world.mjs",
-        "scripts/map-painter.mjs",
-        "scripts/bake-loader.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "scripts/map-geometry.mjs",
-        "public/assets/models/driftwood-hero/faces/wendell-head.glb",
-        "scripts/bake-output.mjs",
-        "scripts/generated-source.mjs",
-        "scripts/json-output-guard.mjs",
-        "scripts/no-binary-json.mjs",
-        "scripts/bake",
-        "scripts/generation-level.mjs",
-        "scripts/authored-manifest.mjs",
-        "public/assets/horizon/driftwood-isle-day.webp",
-        "public/assets/horizon/driftwood-isle-night.webp",
-        "scripts/named-blob-output.mjs",
-        "scripts/manifest-budget.mjs",
-        "scripts/manifest-spawns.mjs",
-        "scripts/bake/nativeWorld.mjs",
-        "public/assets/models/driftwood-hero/faces/sailor-head.glb",
-        "public/assets/models/driftwood-hero/captain/captain.glb"
-      ],
-      "outputs": [
-        "src/shards/driftwood-isle/data/mapAssembly.generated.json",
-        "src/shards/driftwood-isle/data/mapAssembly.generated.bin"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/driftwood-isle/data/mapAssembly.generated.json",
-        "src/shards/driftwood-isle/data/mapAssembly.generated.bin"
-      ],
-      "platform": "portable",
-      "catalogueDependencies": []
     }
   ]
 }

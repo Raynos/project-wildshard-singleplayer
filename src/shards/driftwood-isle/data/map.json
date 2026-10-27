@@ -1,7 +1,7 @@
 {
   "inputs": [
-    "data/mapAssembly.generated.json",
-    "data/mapAssembly.generated.bin",
+    "generators/mapAssembly.mjs",
+    "generators/mapWorld.mjs",
     "../../sdk/bake/mapScenes.ts",
     "../../../scripts/map-painter.mjs",
     "../../sdk/bake/mapRaster.ts",
@@ -47,9 +47,9 @@
     "scenes": {
       "packs": [
         {
-          "file": "data/mapAssembly.generated.bin",
+          "file": "map/geometry.bin",
           "rows": {
-            "file": "data/mapAssembly.generated.json",
+            "file": "map/assembly.json",
             "path": [
               "pack"
             ]
@@ -62,7 +62,7 @@
       ],
       "recipes": [
         {
-          "file": "data/mapAssembly.generated.json",
+          "file": "map/assembly.json",
           "path": [
             "scene"
           ]

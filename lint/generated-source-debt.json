@@ -171,8 +171,6 @@
     "src/shards/driftwood-isle/data/interactables.generated.json",
     "src/shards/driftwood-isle/data/islandClips.generated.json",
     "src/shards/driftwood-isle/data/islandPlanFiles.json",
-    "src/shards/driftwood-isle/data/mapAssembly.generated.bin",
-    "src/shards/driftwood-isle/data/mapAssembly.generated.json",
     "src/shards/driftwood-isle/data/movers.generated.json",
     "src/shards/driftwood-isle/data/physics-ground.generated.bin",
     "src/shards/driftwood-isle/data/physics.generated.json",
