@@ -90,6 +90,9 @@ export class ClientAssets {
     if (member.bytes !== cap) throw new Error('Resident packed member size mismatch');
     let pending = this.packs.get(pack.hash);
     if (pending === undefined) {
+      // A native tile request must not pull distant, unrequested members into
+      // the control fence merely because they share a transport envelope.
+      if (!pack.entries.every(entry => this.pending.has(entry.hash))) return undefined;
       pending = (async () => {
         const wire = await boundedResponse(await this.options.fetch(new URL(pack.path, this.options.base).href), pack.bytes);
         if (wire.length !== pack.bytes || await this.hashOf(wire) !== pack.hash) throw new Error('Resident pack hash or size mismatch');

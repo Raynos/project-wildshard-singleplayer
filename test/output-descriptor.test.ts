@@ -424,7 +424,7 @@ test('concurrent native demand reads share one pack, return owned members and re
   expect(first.buffer).not.toBe(second.buffer);first[0]=99;
   expect(assets.retained.size).toBe(0);
   expect(await assets.read(f.first.hash)).toEqual(new Uint8Array([1,2,3]));
-  expect(reads).toEqual([f.path,f.path]); // no cache: a settled pack is not a hidden H6 owner
+  expect(reads).toEqual([f.path,f.first.path]); // no cache: a settled pack is not a hidden H6 owner
 });
 
 test('native demand packs refuse corruption for every borrower and release the failed read for repair',async()=>{
@@ -436,7 +436,7 @@ test('native demand packs refuse corruption for every borrower and release the f
   const results=await Promise.allSettled([assets.read(f.first.hash),assets.read(f.second.hash)]);
   expect(results.map(result=>result.status)).toEqual(['rejected','rejected']);expect(reads).toBe(1);
   for(const result of results)if(result.status==='rejected')expect(String(result.reason)).toContain('Resident pack hash or size mismatch');
-  corrupt=false;expect(await assets.read(f.second.hash)).toEqual(new Uint8Array([4,5,6]));expect(reads).toBe(2);
+  corrupt=false;expect(await Promise.all([assets.read(f.first.hash),assets.read(f.second.hash)])).toEqual([new Uint8Array([1,2,3]),new Uint8Array([4,5,6])]);expect(reads).toBe(2);
 });
 
 test('native offline demand never fetches a pack or hides a missing member behind another cached member',async()=>{
@@ -450,8 +450,9 @@ test('native offline demand never fetches a pack or hides a missing member behin
 
 test('a valid native pack hash never substitutes for its demanded member hash',async()=>{
   const f=await demandPackFixture(true),assets=new ClientAssets(f.source,new Map(),options(f.wires));
-  await expect(assets.read(f.first.hash)).rejects.toThrow('Resident tile hash or size mismatch');
-  expect(await assets.read(f.second.hash)).toEqual(new Uint8Array([4,5,6]));
+  const [first,second]=await Promise.allSettled([assets.read(f.first.hash),assets.read(f.second.hash)]);
+  expect(first?.status).toBe('rejected');if(first?.status==='rejected')expect(String(first.reason)).toContain('Resident tile hash or size mismatch');
+  expect(second).toEqual({status:'fulfilled',value:new Uint8Array([4,5,6])});
 });
 
 test('a private build-verified admission does not reread its matching historical sections', async () => {
