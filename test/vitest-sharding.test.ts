@@ -85,7 +85,7 @@ test('native source suites start with verified inputs and never wait for a produ
   }
 });
 
-test('the product phase borrows this preparation cache before strict current admission', () => {
+test('the independent product phase prepares current inputs before strict complete admission', () => {
   const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
   const generated = workflow.split('\n  generated-inputs:\n')[1]?.split('\n  products:\n')[0];
   const products = workflow.split('\n  products:\n')[1]?.split('\n  behaviour:\n')[0];
@@ -95,7 +95,7 @@ test('the product phase borrows this preparation cache before strict current adm
     if (list === undefined) throw new Error('Missing preparation cache paths');
     return list.trim().split('\n').map(line => line.trim()).sort();
   };
-  const provider = products.split("      - name: Restore this preparation's provider products\n")[1]?.split('      - uses: actions/download-artifact@v4')[0];
+  const provider = products.split('      - name: Restore reusable preparation bytes\n')[1]?.split('      - run: python3 scripts/ci-fail-fast.py -- node scripts/gen.mjs --inputs-only')[0];
   if (provider === undefined) throw new Error('Missing provider cache loan');
   expect(paths(provider)).toEqual(paths(generated));
   expect(paths(provider)).toContain('~/.cache/wildshard/shardfiles');
@@ -109,9 +109,17 @@ test('the product phase borrows this preparation cache before strict current adm
   expect(key(provider)).toContain(`\${{ steps.inputs.outputs.tree }}`);
   expect(key(provider)).toContain(`\${{ runner.arch }}`);
   expect(provider).toContain('uses: actions/cache/restore@v4');
-  expect(provider).not.toContain('restore-keys:');
+  expect(provider).toContain('restore-keys: preparation-v3-');
   expect(products.indexOf('key: products-v1-')).toBeLessThan(products.indexOf('uses: actions/cache/restore@v4'));
   expect(products.indexOf('uses: actions/cache/restore@v4')).toBeLessThan(products.indexOf('node scripts/build-shardfiles.mjs --reuse'));
-  expect(products).toContain('python3 scripts/ci-products.py unpack-generated');
-  expect(products).toContain('python3 scripts/ci-products.py pack\n');
+  expect(products).not.toMatch(/^ {4}needs:/mu);
+  expect(products).not.toContain('actions/download-artifact');
+  expect(products).not.toContain('python3 scripts/ci-products.py unpack-generated');
+  const prepare = products.indexOf('python3 scripts/ci-fail-fast.py -- node scripts/gen.mjs --inputs-only');
+  const build = products.indexOf('python3 scripts/ci-fail-fast.py -- node scripts/build-shardfiles.mjs --reuse');
+  expect(prepare).toBeGreaterThan(products.indexOf('uses: actions/cache/restore@v4'));
+  expect(build).toBeGreaterThan(prepare);
+  expect(products.indexOf('node scripts/no-binary-json.mjs --all')).toBeGreaterThan(build);
+  expect(products.indexOf('node scripts/check-closed-components.mjs')).toBeGreaterThan(build);
+  expect(products.indexOf('python3 scripts/ci-products.py pack\n')).toBeGreaterThan(build);
 });

@@ -460,7 +460,6 @@ jobs:
           retention-days: 2
 
   products:
-    needs: generated-inputs
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -495,11 +494,9 @@ jobs:
             ~/.cache/wildshard/compiler-code/1
           key: products-v1-${{ runner.os }}-node24-${{ steps.inputs.outputs.tree }}
           restore-keys: products-v1-${{ runner.os }}-node24-
-      # Generation already constructed the six discovery-provider products.
-      # Overlay this exact source-tree snapshot onto the prior all-product cache.
-      # Reuse still checks source receipts and performs strict current admission;
-      # cache absence or a changed input follows the normal rebuild path.
-      - name: Restore this preparation's provider products
+      # This runner prepares current inputs itself, in parallel with the free-test
+      # producer. Prior caches only save construction; no cache grants admission.
+      - name: Restore reusable preparation bytes
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -509,13 +506,8 @@ jobs:
             ~/.cache/wildshard/shardfiles
             ~/.cache/wildshard/basis
           key: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-${{ steps.inputs.outputs.tree }}
-      - uses: actions/download-artifact@v4
-        with:
-          name: generated-inputs
-      - name: Verify and restore exact-run generated inputs
-        run: |
-          zstd -d --rm generated-inputs.tar.zst
-          python3 scripts/ci-products.py unpack-generated
+          restore-keys: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-
+      - run: python3 scripts/ci-fail-fast.py -- node scripts/gen.mjs --inputs-only
       - run: python3 scripts/ci-fail-fast.py -- node scripts/build-shardfiles.mjs --reuse
       - run: node scripts/no-binary-json.mjs --all
       - name: Enforce closed component source and host locks
