@@ -10,7 +10,7 @@ import { selectRelatedSuites } from './precommit-selection.mjs';
 import { candidateImportSources } from './precommit-imports.mjs';
 
 const SOURCE = /^(?:src|test|scripts)\//u;
-const TEXT = /\.(?:[cm]?[jt]sx?|json|glsl|wgsl|css|sh)$/u;
+const TEXT = /\.(?:[cm]?[jt]sx?|json|ya?ml|glsl|wgsl|css|sh)$/u;
 
 /** Consume one invocation budget, including time already spent waiting for the
  * commit lock and running mandatory guards. Direct callers get the same cap.
