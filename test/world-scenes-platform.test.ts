@@ -903,18 +903,19 @@ test.each([false, true])('a completed owned read uses its current budget (live=%
 });
 
 test('a spent owned-model completion preserves refusal and drains its leases', async () => {
-  const context = fixture(), read = context.product.file.bind(context.product), failure = new Error('original model completion refusal');
-  let loaded = false;
+  const context = fixture(), failure = new Error('original model completion refusal');
   vi.spyOn(pacing, 'presenting').mockReturnValue(true);
   vi.spyOn(pacing, 'buildHeld').mockReturnValue(true);
-  vi.spyOn(pacing, 'frameBudgetSpent').mockImplementation(() => loaded);
-  vi.spyOn(context.product, 'file').mockImplementation(async name => {
-    const bytes = await read(name); if (name === 'models/stone.glb') loaded = true; return bytes;
-  });
+  // Spend at real model adoption, after the decoder and asset lease exist.
+  // Byte arrival is earlier: parser pacing also checks the shared budget.
+  vi.spyOn(pacing, 'frameBudgetSpent').mockImplementation(() => context.app.assets.retained().some(entry => entry.refs > 0));
+  const registered = vi.spyOn(context.app.assets, 'register');
   const pause = vi.spyOn(work, 'buildYield').mockRejectedValue(failure);
   try {
     await expect(installWorldScenes(context, section())).rejects.toBe(failure);
     expect(pause).toHaveBeenCalledOnce();
+    expect(registered).toHaveBeenCalledOnce();
+    expect(registered.mock.calls[0]?.[1]).toBeInstanceOf(NativeBufferGeometry);
     expect(context.app.assets.retained().length).toBeGreaterThan(0);
     expect(context.app.assets.retained().every(entry => entry.refs === 0)).toBe(true);
   } finally { context.scope.dispose(); vi.restoreAllMocks(); }
@@ -922,17 +923,19 @@ test('a spent owned-model completion preserves refusal and drains its leases', a
 
 
 test('retiring during an owned-model completion prevents scene publication', async () => {
-  const context = fixture(), read = context.product.file.bind(context.product); let loaded = false;
+  const context = fixture();
   vi.spyOn(pacing, 'presenting').mockReturnValue(true);
   vi.spyOn(pacing, 'buildHeld').mockReturnValue(true);
-  vi.spyOn(pacing, 'frameBudgetSpent').mockImplementation(() => loaded);
-  vi.spyOn(context.product, 'file').mockImplementation(async name => {
-    const bytes = await read(name); if (name === 'models/stone.glb') loaded = true; return bytes;
-  });
+  // Spend at real model adoption, after the decoder and asset lease exist.
+  // Byte arrival is earlier: parser pacing also checks the shared budget.
+  vi.spyOn(pacing, 'frameBudgetSpent').mockImplementation(() => context.app.assets.retained().some(entry => entry.refs > 0));
+  const registered = vi.spyOn(context.app.assets, 'register');
   const pause = vi.spyOn(work, 'buildYield').mockImplementation(owner => { owner.dispose(); return Promise.resolve(); });
   try {
     await expect(installWorldScenes(context, section())).rejects.toThrow('scope has closed');
     expect(pause).toHaveBeenCalledOnce();
+    expect(registered).toHaveBeenCalledOnce();
+    expect(registered.mock.calls[0]?.[1]).toBeInstanceOf(NativeBufferGeometry);
     expect(context.app.assets.retained().length).toBeGreaterThan(0);
     expect(context.app.assets.retained().every(entry => entry.refs === 0)).toBe(true);
     expect(context.app.registry.pieces).toHaveLength(0);
