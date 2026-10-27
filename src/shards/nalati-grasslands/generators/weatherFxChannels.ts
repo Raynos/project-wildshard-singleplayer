@@ -1,6 +1,8 @@
-import ts from '@typescript/typescript6';
-import { ClientChannels } from '@wildshard/sdk/clientChannels';
-import { parseClientChannels, CLIENT_CHANNEL_LIMITS, type ClientChannelProgram } from '@wildshard/format/clientChannels';
+import { visualExpression, type VisualExpression } from './visualExpression';
+import { ClientChannels, clientChannelLimits } from '@wildshard/sdk/clientChannels';
+import { parseClientChannels, type ClientChannelProgram } from '@wildshard/sdk/rows';
+
+const CLIENT_CHANNEL_LIMITS = clientChannelLimits();
 
 /** One visual output: a numeric field of `target` at `path`, from a build-only expression. */
 export interface VisualRow { readonly target: string; readonly path: string; readonly expression: string }
@@ -9,31 +11,27 @@ const PROPERTIES = ['value', 'x', 'y', 'z', 'yaw', 'pitch', 'roll', 'scaleX', 's
 /** Build-only expressions become bounded presentation DAGs, never evaluated JS: several outputs share one program. */
 function visualProgram(rows: readonly VisualRow[], id: string, group: string): ClientChannelProgram {
   const b = new ClientChannels(id), reads = new Map<string, number>();
-  function lower(n: ts.Expression, file: ts.SourceFile): number {
-   if(ts.isParenthesizedExpression(n))return lower(n.expression,file);
-   if(ts.isNumericLiteral(n))return b.constant(Number(n.text));
-   if(ts.isIdentifier(n)||ts.isPropertyAccessExpression(n)||ts.isElementAccessExpression(n)){
-    const name=n.getText(file).replaceAll(/\[(\d+)\]/gu, '.$1'),found=reads.get(name);if(found!==undefined)return found;
+  function lower(n: VisualExpression): number {
+   if(n.kind==='number')return b.constant(n.value);
+   if(n.kind==='read'){
+    const name=n.name,found=reads.get(name);if(found!==undefined)return found;
     const node=b.read(name);reads.set(name,node);return node;
    }
-   if(ts.isConditionalExpression(n))return b.select(lower(n.condition,file),lower(n.whenTrue,file),lower(n.whenFalse,file));
-   if(ts.isPrefixUnaryExpression(n)&&n.operator===ts.SyntaxKind.MinusToken)return b.unary('neg',lower(n.operand,file));
-   if(ts.isBinaryExpression(n)){
-    const op=n.operatorToken.getText(file),a=lower(n.left,file),c=lower(n.right,file);
+   if(n.kind==='select')return b.select(lower(n.condition),lower(n.yes),lower(n.no));
+   if(n.kind==='negative')return b.unary('neg',lower(n.value));
+   if(n.kind==='binary'){
+    const op=n.op,a=lower(n.left),c=lower(n.right);
     switch(op){case '+':return b.binary('add',a,c);case '-':return b.binary('sub',a,c);case '*':return b.binary('mul',a,c);case '/':return b.binary('div',a,c);case '%':return b.binary('mod',a,c);case '>':return b.binary('gt',a,c);case '<':return b.binary('gt',c,a);case '&&':return b.binary('mul',a,c);case '||':return b.binary('max',a,c);default:throw new Error(`Unknown weather operation ${op}`);}
    }
-   if(ts.isCallExpression(n)){
-    const a=n.arguments[0],c=n.arguments[1];if(a===undefined)throw new Error('Missing visual argument');
-    switch(n.expression.getText(file)){case 'sin':return b.unary('sin',lower(a,file));case 'cos':return b.unary('cos',lower(a,file));
-     case 'ss':{const hi=n.arguments[1],x=n.arguments[2];if(hi===undefined||x===undefined)throw new Error('Missing smoothstep argument');const lo=lower(a,file),t=b.binary('min',b.constant(1),b.binary('max',b.constant(0),b.binary('div',b.binary('sub',lower(x,file),lo),b.binary('sub',lower(hi,file),lo))));return b.binary('mul',b.binary('mul',t,t),b.binary('sub',b.constant(3),b.binary('mul',b.constant(2),t)));}
-     case 'min':case 'max':if(c===undefined)throw new Error('Missing binary visual argument');return b.binary(n.expression.getText(file)==='min'?'min':'max',lower(a,file),lower(c,file));default:throw new Error('Unknown visual function');}
-   }
-   throw new Error(`Unsupported visual expression ${n.getText(file)}`);
+   const a=n.args[0],c=n.args[1];if(a===undefined)throw new Error('Missing visual argument');
+   switch(n.name){case 'sin':return b.unary('sin',lower(a));case 'cos':return b.unary('cos',lower(a));
+    case 'ss':{const hi=n.args[1],x=n.args[2];if(hi===undefined||x===undefined)throw new Error('Missing smoothstep argument');const lo=lower(a),t=b.binary('min',b.constant(1),b.binary('max',b.constant(0),b.binary('div',b.binary('sub',lower(x),lo),b.binary('sub',lower(hi),lo))));return b.binary('mul',b.binary('mul',t,t),b.binary('sub',b.constant(3),b.binary('mul',b.constant(2),t)));}
+    case 'min':case 'max':if(c===undefined)throw new Error('Missing binary visual argument');return b.binary(n.name==='min'?'min':'max',lower(a),lower(c));default:throw new Error('Unknown visual function');}
   }
   const outputs=rows.map((row,i)=>{
-   const file=ts.createSourceFile('expression.ts',`(${row.expression})`,ts.ScriptTarget.Latest,true),statement=file.statements[0],property=PROPERTIES[i];
-   if(statement===undefined||!ts.isExpressionStatement(statement)||property===undefined)throw new Error('Missing visual expression');
-   b.output(property,lower(statement.expression,file));return {property,target:row.target,path:row.path.split('.')};
+   const property=PROPERTIES[i];
+   if(property===undefined)throw new Error('Missing visual output property');
+   b.output(property,lower(visualExpression(row.expression)));return {property,target:row.target,path:row.path.split('.')};
   });
   const built=b.build();
   const row=parseClientChannels([{...built,numeric:{group,outputs,inputs:built.reads.filter(input=>input.includes('.')).map(input=>({input,owner:input.split('.')[0],path:input.split('.').slice(1).map(part=>/^\d+$/u.test(part)?Number(part):part)}))}}])[0];

@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { NumericPoseSchema, NumericPoseInputSchema, ClientChannelsSchema, parseClientChannelInputs, parseClientChannels, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
+import { CLIENT_CHANNEL_LIMITS, NumericPoseSchema, NumericPoseInputSchema, ClientChannelsSchema, parseClientChannelInputs, parseClientChannels, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
 
 type Node = ClientChannelProgram['nodes'][number];
 type Unary = Extract<Node, { a: number }>['op'];
@@ -140,3 +140,6 @@ export function creaturePoseRows(input: unknown): v.InferOutput<typeof NumericPo
   });
   return v.parse(NumericPoseSchema, { ...source, programs });
 }
+
+/** The defining channel bounds used by bounded source recipe packers. */
+export function clientChannelLimits(): typeof CLIENT_CHANNEL_LIMITS { return CLIENT_CHANNEL_LIMITS; }

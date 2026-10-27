@@ -983,7 +983,7 @@ reader and plan-end zero-import/JSON-volume reading remain in flight.
 
 | Weather scheduler retirement | in flight (reading at plan end; `9d363c33b4`) | Remove only nalati-grasslands-weather-channels, its writer and four generated handoffs/debt entries after source-owned header/output/script readers landed. All four independent original hashes verified before removal; original wire metadata/cost assertions remain. Keep the old weatherDecision.mjs helper only for the separately owned night reader until its rewrite. SDK types and named lint/selected ratchet pass; shard reader types retain the foreign paintedRows.ts36 sky-shape refusal (coordinator routed to layout owner). No tests/builds under G769; full product reading remains at plan end. |
 
-| Weather source resolver correction | in flight (reading at plan end; sp-x6, this commit) | Correct84f8c96ab8: Vite selected retained weatherDecision.mjs before new weatherDecision.ts for an extensionless import, pulling Node/compiler services into shard config. Rename the injected producer weatherDecisionSource.ts so resolution is unambiguous without changing compiler data/options. The old helper remains only for the night owner until retirement. Owned weather types, named typed/fast lint and unchanged selected ratchet pass; no tests/builds under G769. |
+| Weather source resolver correction | in flight (reading at plan end; `0a00371960`) | Correct84f8c96ab8: Vite selected retained weatherDecision.mjs before new weatherDecision.ts for an extensionless import, pulling Node/compiler services into shard config. Rename the injected producer weatherDecisionSource.ts so resolution is unambiguous without changing compiler data/options. The old helper remains only for the night owner until retirement. Owned weather types, named typed/fast lint and unchanged selected ratchet pass; no tests/builds under G769. |
 
 
 #### G8 shared typed bank/header reader (2026-10-27, sp-x9)
@@ -1012,3 +1012,5 @@ their owners; sp-x1 now owns GR12 final deletion. The shared import rule
 is 73acb48d7f, its seed guard repair 8cb75556ab and focused regression
 follow-up cfeaec5b19. Zero static imports and cold JSON <=30 MB remain
 unqualified until the plan-end reading and the owners' job retirements.
+
+| Weather visual source grammar | in flight (reading at plan end; sp-x6, this commit) | Fix D89: source-owned weather/sky lowering now parses only authored arithmetic, field reads, comparisons, boolean arithmetic, calls and selections as bounded data. Remove the runtime TypeScript compiler from the config closure, retaining original lowering traversal/node order and greedy packing. Complete original weather/sky DAG equality, precedence and refusal controls are added; types/typed/fast lint and unchanged scoped ratchet pass. No tests/builds under G769; original refused preview retained, final product reading pending. |
