@@ -235,7 +235,8 @@ export const PrivateSceneSchema: v.GenericSchema<PrivateSceneInput, PrivateScene
   for (const entry of row.nodes) {
     if (entry.kind === 'mesh' && !materials.has(entry.material)) return false;
     if (entry.kind === 'mesh' && entry.matrices !== undefined && (entry.instances === undefined || entry.matrices.length !== entry.instances * 16)) return false;
-    if ('whenTexture' in entry && !textures.has(entry.whenTexture.texture)) return false;
+    const whenTexture = 'whenTexture' in entry ? entry.whenTexture : undefined;
+    if (whenTexture !== undefined && !textures.has(whenTexture.texture)) return false;
     if (entry.kind === 'anchor') {
       if (nodes.get(entry.source)?.kind !== 'object' || parents.has(entry.id)) return false;
       parents.set(entry.id, entry.source);
