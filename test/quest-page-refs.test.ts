@@ -6,7 +6,7 @@ import { EmitterPresentation } from '../src/game/shardfile/lightEmitters';
 import { parseLightEmitters } from '../src/format/lightEmitters';
 import type { MoverRuntime } from '../src/game/plugin/mover';
 import { client as SIGNAL_CLIENT_PLAN, signalProductRows } from './fixtures/sunscar-source-program';
-import sky from '../src/shards/far-reach/data/product.generated.json' with { type: 'json' };
+import { skyProductRows } from '../src/shards/far-reach/generators/product';
 import { expect, test } from 'vitest';
 import { Group, Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
@@ -21,6 +21,7 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import type { ShardContext } from '../src/game/plugin/context';
 
 const signal = signalProductRows();
+const sky = skyProductRows();
 
 const page = { version: 1, quest: 'sunscar.signal', prompts: [
   { id: 'read', action: 'read', label: 'Read', at: { point: 'place.read-at' }, radius: 2.4 },
@@ -75,7 +76,7 @@ test('a missing publication refuses before restore changes a mesh or registers p
   } finally { f.scope.dispose(); }
 });
 
-function nativePageFixture(input: typeof signal | typeof sky, questHost: typeof SIGNAL_HOST | typeof SKY_HOST, restored: string[] = []) {
+function nativePageFixture(input: typeof signal, questHost: typeof SIGNAL_HOST | typeof SKY_HOST, restored: string[] = []) {
   const source = parseShardfile({ ...input, questHost }), rows = source.questHost?.page;
   if (rows === undefined || !('version' in rows)) throw new Error('Missing typed page');
   const scope = new Scope('native-page-rules'), flags = new Flags('native-page-rules', false), handles = new SceneHandles();

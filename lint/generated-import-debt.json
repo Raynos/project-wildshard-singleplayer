@@ -473,7 +473,6 @@
     "test/quest-continuation.test.ts": 1,
     "test/quest-mechanics.test.ts": 1,
     "test/quest-page-interactions.test.ts": 1,
-    "test/quest-page-refs.test.ts": 2,
     "test/quest-world.test.ts": 5,
     "test/return-program-shared-memory.test.ts": 1,
     "test/riding-platform.test.ts": 1,

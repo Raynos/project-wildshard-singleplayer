@@ -52,7 +52,7 @@ const product = parseShardfile({ ...base, ...SKY_SECTIONS, plumbing, state: { ..
 
 
 /** Build-time declaration rows; runtime reads the generated admitted product. */
-export function skyProductRows(): typeof product { return product; }
+export function skyProductRows(): typeof product { return structuredClone(product); }
 
 // oxlint-disable-next-line import/no-default-export -- Documented entry for SDK author projects.
 export default product;

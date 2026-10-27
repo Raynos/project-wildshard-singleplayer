@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare complete original metadata and isolate real sealed production.
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine the actual cold sealed writer cache to repository scratch.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare complete original declaration bytes without expanding assertions.
@@ -8,13 +8,13 @@ import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { PropsSchema } from '../src/format/props';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
+import { discoverGeneration } from '../scripts/generate.mjs';
 import { SKY_WORLD_TILE_ROWS } from '../src/shards/far-reach/generators/worldTileRows';
 import { SKY_ISLE_TILES, skyIsleTileLibrary } from '../src/shards/far-reach/generators/islandScenes';
 import { skyProductRows } from '../src/shards/far-reach/generators/product';
 
 const metadata = 'src/shards/far-reach/data/props.json';
-const declaration = 'src/shards/far-reach/data/product.generated.json';
+const declarationHash = '2265bbfe4606de60cdc86578d70fe70b481d84184eacf7687b0a45e9e4823f1f';
 
 test('the authored tile bank preserves complete metadata, costs and the original scene library', () => {
   const bytes = readFileSync(metadata);
@@ -24,18 +24,13 @@ test('the authored tile bank preserves complete metadata, costs and the original
 });
 
 test('the declaration retains every original field, tile payload identity and admission cost', () => {
-  expect(Buffer.compare(new TextEncoder().encode(`${JSON.stringify(skyProductRows())}\n`), readFileSync(declaration))).toBe(0);
+  const bytes = new TextEncoder().encode(`${JSON.stringify(skyProductRows())}\n`);
+  expect(bytes.byteLength).toBe(320_319);
+  expect(hashImmutableBytes(bytes)).toBe(declarationHash);
 });
 
-test('the real cold sealed declaration preserves its complete output without the tile metadata handoff', async () => {
-  const root = resolve('.'), { jobs } = discoverGeneration(root), job = jobs.find(row => row.id === 'sky-declaration');
-  if (job === undefined) throw new Error('Missing retained Sky declaration writer');
-  expect(job.inputRoots).not.toContain(metadata);
-  expect(job.inputRoots).toContain('src/shards/far-reach/generators/worldTileRows.ts');
-  const expected = hashImmutableBytes(readFileSync(declaration)), cacheDir = mkdtempSync(resolve('tmp/sky-tile-reader-inputs-'));
-  try {
-    const result = await generateShardJob(root, job, { cacheDir, forceCompare: true });
-    try { expect(result.hit).toBe(false); expect(result.hashes).toEqual({ [declaration]: expected }); }
-    finally { result.release(); }
-  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
+test('declaration publication is retired and callers retain isolated complete original values', () => {
+  expect(discoverGeneration(resolve('.')).jobs.some(row => row.id === 'sky-declaration')).toBe(false);
+  const rows = skyProductRows(); rows.entryways.length = 0; rows.files.length = 0;
+  expect(hashImmutableBytes(new TextEncoder().encode(`${JSON.stringify(skyProductRows())}\n`))).toBe(declarationHash);
 });
