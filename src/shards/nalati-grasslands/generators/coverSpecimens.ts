@@ -29,7 +29,7 @@ export function coverSpecimenBlobs(cover:NalatiCover):ReturnType<typeof nameBlob
   if(row?.source.kind!=='file')throw new Error('Missing native reins declaration');
   const binary=nameBlob(row.source.file,'bin',reins.bytes);
   const book=(name:string,input:unknown,dependencies:readonly string[]=[],tier?:'phone'|'desktop')=>nameBlob(name,'json',new TextEncoder().encode(encodeCanonicalJson(v.parse(SpecimenBookSchema,input))),{jsonSchema:namedJsonSchema(SpecimenBookSchema),dependencies,...(tier===undefined?{}:{tier})});
-  const packed=(['phone','desktop']as const).map(tier=>{const bytes=cover.bins.get(coverBinName(tier));if(bytes===undefined)throw new Error(`Missing ${tier} cover shapes`);return nameBlob(coverBinName(tier),'bin',bytes,{tier});});
+  const packed=(['phone','desktop']as const).map(tier=>{const bytes=cover.bins.get(coverBinName(tier));if(bytes===undefined)throw new Error(`Missing ${tier} cover shapes`);return nameBlob(coverBinName(tier),'bin',bytes,{tier,decoded:cover.rows[tier].packed.bytes});});
   return[binary,...packed,...(['phone','desktop']as const).map((tier,i)=>book(`models/cover-${tier}.json`,{rows:[...cover.rows[tier].catalogue,...reins.book.rows,SHEEP],packed:cover.rows[tier].packed,materials:cover.rows.materials},[binary.file.hash,...(packed[i]===undefined?[]:[packed[i].file.hash])],tier)),
     book('models/gear-book.json',{rows:gear.catalogue.map(({key,model,source})=>({key,model,source})),packed:gear.packed,materials:gear.materials})];
 }

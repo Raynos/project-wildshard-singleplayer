@@ -1,6 +1,7 @@
 // GR6: Nalati's ambient cover at build time (the retired nalati-cover job's construction): the small models' packed
 // shapes, catalogue and life rows per tier, and the boulder atlases. The client borrows the packed shapes as product files.
 import * as THREE from 'three';
+import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { fitRock } from './fittedRock.ts';
 import { wingGeo, halfBirdGeo, buildMarmotGeometry } from './ambientGeometry.ts';
@@ -22,7 +23,7 @@ const ATLASES = { 'boulder-1': '/assets/nalati/baked/cover-boulder-1.webp', 'bou
 export const COVER_FLOCKS = { butterflies: { phone: 14, desktop: 30 }, raptors: 3 };
 /** Every committed input the cover reads, for the build cache. */
 export const COVER_INPUTS = [...Object.values(ROCKS).flatMap(row => [row.desktop, row.phone]), ...Object.values(ATLASES)];
-/** The packed shapes' product file per tier (raw words; the product transport compresses them). */
+/** The packed shapes' product file per tier: lane-shuffled level-9 deflate, as the specimen pack reader inflates it. */
 export const coverBinName = tier => `models/cover-${tier}.bin`;
 
 /** Build the cover from its committed inputs (`read(url)` returns one of COVER_INPUTS): `rows` (the tier profiles,
@@ -110,8 +111,10 @@ for (const phone of [true, false]) {
   add('raptor', 'Raptor', p => pair(halfBirdGeo, 0.4, p.scale, new THREE.Color(1, 1, 1), 0.05, 0.32), 'raptor', { scale: 1.3 }, [{ id: 'kite', label: 'Kite', params: { scale: 1.3 } }, { id: 'eagle', label: 'Eagle', params: { scale: 1.7 } }], 'raptor', 'creatures');
   add('marmot', 'Grey marmot', () => buildMarmotGeometry(), 'marmot', {}, [], 'marmot', 'creatures');
   for (const [key, build, material] of [['wing', wingGeo, 'butterfly'], ['halfBird', halfBirdGeo, 'raptor'], ['marmot', buildMarmotGeometry, 'marmot']]) { const geometry = build(); rows.push({ key, parts: [{ material, geometry: writeGeometry(geometry, blocks, key) }] }); geometry.dispose(); }
-  const bin = join(blocks), tier = phone ? 'phone' : 'desktop';
-  profiles[tier] = { catalogue, packed: { bin: { file: coverBinName(tier), bytes: bin.length }, bytes: bin.length, rows } };
+  const bin = join(blocks), tier = phone ? 'phone' : 'desktop', words = bin.length / 4, lanes = new Uint8Array(bin.length);
+  for (let b = 0; b < 4; b++) for (let i = 0; i < words; i++) lanes[b * words + i] = bin[i * 4 + b];
+  const wire = encodeBuildBytes(lanes, 'deflate', 9, 'native');
+  profiles[tier] = { catalogue, packed: { bin: { file: coverBinName(tier), bytes: wire.length }, bytes: bin.length, rows } };
   profiles[tier].life = [
     { kind: 'butterfly', perches: sites, row: { ...flock(0xb077, phone ? 14 : 30, 2.8, { x: 0, z: 0 }, 6, 0.7, 1.3, true), wheeling: null, perch: null,
       visit: { enter: [0, 1], stay: [0, 1], every: 0.001, near: [2.2, 45], from: { kind: 'behind', back: 4, up: 1 }, speed: 1.3, lift: 0.6, approach: [0, 0], cling: 0, sag: 0.1,
@@ -120,7 +123,7 @@ for (const phone of [true, false]) {
         depart: { distance: 8, up: [1, 2], speed: 4.5, lift: 1, spread: 0.8 } } } },
     ...[{ x: 60, z: 140, alt: 30, r: 48 }, { x: -60, z: -110, alt: 34, r: 40 }, { x: 110, z: -60, alt: 40, r: 34 }].map((spot, i) => ({ kind: 'raptor', perches: [], row: flock(0x9011e + i, 1, i === 2 ? 1.7 : 1.3, { x: spot.x, z: spot.z }, spot.r, spot.alt, 9) })),
   ];
-  bins.set(coverBinName(tier), bin);
+  bins.set(coverBinName(tier), wire);
 }
 for (const name of ['boulder-1', 'boulder-2', 'boulder-3']) {
   const glb = await paintedModelBytes(name), header = new DataView(glb.buffer, glb.byteOffset, glb.byteLength), size = header.getUint32(12, true);

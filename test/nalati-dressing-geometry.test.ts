@@ -53,18 +53,16 @@ test('native geometry construction has no scene material or runtime dependency',
 });
 
 
-// GR6: the build constructs the cover; re-encoded as the retired job wrote them (lane-shuffled level-9 deflate, the URL
-// rows), its outputs keep every original byte, and an atlas that differs from its painted model refuses.
+// GR6: the build constructs the cover; its shape banks ship as the retired job wrote them (lane-shuffled level-9 deflate),
+// and with the rows in its URL shape its outputs keep every original byte, and an atlas that differs from its painted model refuses.
 const coverInputs = new Map(COVER_INPUTS.map(url => [url, new Uint8Array(readFileSync(`public${url}`))]));
 const coverRead = (inputs: ReadonlyMap<string, Uint8Array>) => (url: string): Uint8Array => { const bytes = inputs.get(url); if (bytes === undefined) throw new Error(`Missing cover input ${url}`); return bytes; };
 test('the build-time cover keeps every original cover file byte', async () => {
   const made = await nalatiCoverBake(coverRead(coverInputs)), files = new Map<string, Uint8Array>();
   for (const tier of ['phone', 'desktop'] as const) {
-    const raw = made.bins.get(coverBinName(tier));
-    if (raw === undefined) throw new Error(`Missing ${tier} cover shapes`);
-    const words = raw.length / 4, lanes = new Uint8Array(raw.length);
-    for (let b = 0; b < 4; b++) for (let i = 0; i < words; i++) lanes[b * words + i] = raw[i * 4 + b] ?? 0;
-    files.set(`public/assets/nalati/baked/cover-${tier}.bin`, new Uint8Array(deflateSync(lanes, { level: 9 })));
+    const bank = made.bins.get(coverBinName(tier));
+    if (bank === undefined) throw new Error(`Missing ${tier} cover shapes`);
+    files.set(`public/assets/nalati/baked/cover-${tier}.bin`, bank);
   }
   // the rows as the retired job wrote them (its URL shape banks and its own script as each model's file)
   const json = new TextEncoder().encode(`${JSON.stringify(nalatiPredecessorCoverRows, null, 2)}\n`);
