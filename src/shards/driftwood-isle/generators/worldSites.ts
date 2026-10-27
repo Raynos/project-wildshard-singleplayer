@@ -1,7 +1,7 @@
 import { CHUNK_HALF, ROAD_LENGTH } from '@wildshard/engine/core/config';
 import type { OceanDef } from '@wildshard/game/shard/manifest';
 import authoredLayout from '../data/layout.json' with { type: 'json' };
-import BRIDGE_SPANS from '../data/bridgeRows.json' with { type: 'json' };
+import { BRIDGE_SPANS } from './bridgeSpans';
 import SHRINE_SITES from '../data/shrineSites.json' with { type: 'json' };
 import WRECK_SITES from '../data/wreckSites.json' with { type: 'json' };
 import { SHORE_LEVEL, WORLD_DROP } from './sea';

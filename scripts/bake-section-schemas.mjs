@@ -99,7 +99,7 @@ export async function sectionSchemaTables(root,slug,options={}) {
     const path=resolve(root,'src/shards',slug,name);
     parseValue(schema,JSON.parse(readFileSync(path,'utf8')));
     const type=sectionType(structural(formatJsonSchema(schema,'draft-07')),typeOptions);
-    tables[relative(root,path.replace(/\.json$/u,'.d.json.ts'))]=`${header}declare const value: ${type};\n// oxlint-disable-next-line import/no-default-export -- JSON imports require the default value declaration.\nexport default value;\n`;
+    if(!options.plain)tables[relative(root,path.replace(/\.json$/u,'.d.json.ts'))]=`${header}declare const value: ${type};\n// oxlint-disable-next-line import/no-default-export -- JSON imports require the default value declaration.\nexport default value;\n`;
   }
   return {tables,report:{path:destination,sourceHash:hash,schemas:Object.keys(schemas).length,bytes:Buffer.byteLength(generated)}};
 }
