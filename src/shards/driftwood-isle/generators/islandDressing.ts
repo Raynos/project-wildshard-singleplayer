@@ -149,10 +149,11 @@ export async function islandDressing(readAsset:(url:string)=>Uint8Array, bushesR
  const logAvoid=[{x:HUT.x,z:HUT.z,r:9},{x:LOOKOUT.x,z:LOOKOUT.z,r:8},{x:SHRINE.x,z:SHRINE.z,r:9.5},{x:WRECK.x,z:WRECK.z,r:13},{x:cave.x,z:cave.z+cave.depth/2,r:8},{x:0,z:-151,r:3.2}];
  const logs=duneLogs(ground.heightAt,ground.trailDistance,logAvoid,0,manifest.seed);
  try{
-  const tiers=[];
+  // the placements before any tier pass: their scatter ends by clearing the build tier
+  const placed=islandFoliagePlacements(),tiers=[];
   for(const tier of ['phone','desktop'] as const){
    _buildAs(tier);
-   const rows=islandFoliagePlacements().tiers[tier],palms=rows.palms.specs,bushes=rows.bushes.specs;
+   const rows=placed.tiers[tier],palms=rows.palms.specs,bushes=rows.bushes.specs;
    const palmRng=new Rng(seedOf(palm)),bushRng=new Rng(seedOf(hibiscusBush));
    const palmRows=rows.palms.placements,bushRows=rows.bushes.placements;
    const pg=palmRows.map(p=>palmGeometry({...palm.defaults,...p.params},palmRng).translate(p.x,p.y,p.z));
@@ -166,7 +167,6 @@ export async function islandDressing(readAsset:(url:string)=>Uint8Array, bushesR
     tiers.push({tier,clips,cover,foliage:{palms:{specs:palms,placements:palmRows},bushes:{specs:bushes,placements:bushRows}}});
    }finally{mergedPalms.dispose();mergedBushes.dispose();for(const geometry of [...pg,...bg])geometry.dispose();}
   }
-  const placed=islandFoliagePlacements();
   return{seed:placed.seed,gullPerches:placed.gullPerches,tiers};
  }finally{logs.geometry.dispose();_buildAs(null);restoreGround();restoreLevel();}
 }
