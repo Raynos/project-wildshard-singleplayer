@@ -61,7 +61,7 @@ import type { DriftwoodIslandFacts } from './islandFacts';
 import buildingLife from '../data/buildingLife.json' with { type: 'json' };
 import coveScene from '../data/coveScene.json' with { type: 'json' };
 import { worldScenes } from './worldScenes';
-import { driftwoodSceneBankOutput, driftwoodSceneBanksCached } from './sceneBanks';
+import { driftwoodSceneBankOutput, driftwoodSceneBanksCached, type DriftwoodSceneBanks } from './sceneBanks';
 import { uprightPoses } from './worldPlacements';
 import cascadeScene from '../data/cascadeScene.json' with { type: 'json' };
 import { driftwoodHeldArms } from './heldArms';
@@ -215,6 +215,12 @@ const MOVERS = captureDriftwoodMovers();
 export const sections: { 'world/movers': { movers: ReturnType<typeof captureDriftwoodMovers> }; 'state/modes': { modes: typeof DRIFTWOOD_MODES } } = { 'world/movers': { movers: MOVERS }, 'state/modes': { modes: DRIFTWOOD_MODES } };
 
 
+/** The scene banks' own named JSON: the rock scene and the site catalogue. */
+export function driftwoodCatalogueFiles(banks: DriftwoodSceneBanks): ReturnType<typeof emitNamedBlobs> {
+  return emitNamedBlobs([nameBlob('scenes/rocks.json', 'json', new TextEncoder().encode(encodeCanonicalJson(banks.rocks.scene))),
+    nameBlob('models/world-scenes.json', 'json', new TextEncoder().encode(encodeCanonicalJson(siteCatalogue(banks))))]);
+}
+
 /** Prototype geometry and the cove's and sea's page files (I8) belong to the owned-byte cache, never a generated asset
  *  under src. */
 export async function prepareOutput(ctx: Pick<ProjectGenerationContext, 'cached' | 'inputFiles' | 'compileScript' | 'compileScriptV2' | 'compileDecisionRows'>): Promise<typeof output> {
@@ -222,8 +228,7 @@ export async function prepareOutput(ctx: Pick<ProjectGenerationContext, 'cached'
   const guestFiles = await driftwoodGuestFiles(ctx), guests = driftwoodGuestRows(guestFiles), guestModules = guestModuleFiles(guestFiles, guests);
   const floor = emitNamedBlobs([driftwoodPhysicsFloor()]);
   const rows = driftwoodOutputRows(banks.layouts, banks.facts, guests);
-  const catalogue = emitNamedBlobs([nameBlob('scenes/rocks.json', 'json', new TextEncoder().encode(encodeCanonicalJson(banks.rocks.scene))),
-    nameBlob('models/world-scenes.json', 'json', new TextEncoder().encode(encodeCanonicalJson(siteCatalogue(banks))))]);
+  const catalogue = driftwoodCatalogueFiles(banks);
   const fixed = await driftwoodFixedModelOutput(ctx), protos = await driftwoodIslandProtoOutput(ctx), pages = await driftwoodPageFileOutput(ctx), phoneRocks = await driftwoodPhoneRockOutput(banks.rocks.glbs), scenes = await driftwoodSceneModelOutput(ctx);
   return { ...rows, platform: emitPlatformSections(platformRows(worldScenes(banks), banks.layouts, banks.facts, banks.creatures, guests)),
     namedFiles: [...rows.namedFiles, ...floor.files, ...guestModules.files, ...catalogue.files, ...protos.files, ...pages.files, ...phoneRocks.files, ...fixed.files, ...scenes.files, ...bankFiles.files, ...foliageFiles.files],
