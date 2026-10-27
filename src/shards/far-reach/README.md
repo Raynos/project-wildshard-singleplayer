@@ -51,10 +51,10 @@ Storm Roc.
 | `look/light.ts` | the painted light: a `lights_fragment_end` patch adding a warm bounce wrap, a sun rim and a warm shade floor to every lit material |
 | `plugin.ts` | the hooks, the updraft's lift (on the board inside the wind column, a steady `app.player.impulse` up: it floats you off the ramp to the high step), the fan's input context (SWING relabel on `r0`, GUST verb), the winch, the hover-deck glow, the gust ring, the rays |
 
-`generators/fixedLayouts.ts` compiles the fixed coordinates and map palette to
-`data/layout.generated.json` and `data/mapPalette.generated.json`. The page reads
-those rows through its existing scene and discovery owners; coordinate recipes
-remain build-only. Crown stones compile separately to `data/crownLayout.generated.json`.
+Build-only `generators/layout.ts` and `crownLayout.ts` define the coordinates.
+`fixedLayouts.ts` lends their original rows to the map and a fresh palette to
+product discovery; the page reads admitted scene/discovery data. No scheduler
+publishes layout, crown or palette JSON handoffs.
 
 ## Budgets
 

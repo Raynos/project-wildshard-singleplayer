@@ -4,15 +4,16 @@ import { prepareOutput } from './sourceOutput';
 import { skyProductBoot } from './bootInventory';
 import { skyRigAssetSources } from './rigAssetSources';
 import { GPU_FILES } from '../ktx2.generated';
+import { skyMapPalette } from './fixedLayouts';
 
 /** Publish declaration, native output and discovery from one source invocation. */
 export async function generate(ctx: ProjectGenerationContext): Promise<{
   readonly shard: ReturnType<typeof skyProductRows>;
   readonly output: Awaited<ReturnType<typeof prepareOutput>>;
-  readonly discovery: ReturnType<typeof skyProductBoot>;
+  readonly discovery: ReturnType<typeof skyProductBoot> & { readonly mapPalette: ReturnType<typeof skyMapPalette> };
 }> {
   const output = await prepareOutput(ctx);
   const geometry = output.namedFiles.find(file => file.name === 'world/geometry/prepared-models.glb');
   if (geometry === undefined) throw new Error('Missing owned prepared geometry for boot');
-  return { shard: skyProductRows(), output, discovery: skyProductBoot(skyRigAssetSources(output.namedFiles, GPU_FILES)) };
+  return { shard: skyProductRows(), output, discovery: { ...skyProductBoot(skyRigAssetSources(output.namedFiles, GPU_FILES)), mapPalette: skyMapPalette() } };
 }

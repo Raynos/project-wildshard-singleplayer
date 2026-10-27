@@ -635,43 +635,6 @@
       "catalogueDependencies": []
     },
     {
-      "id": "sky-fixed-layouts",
-      "shard": "far-reach",
-      "entry": "src/shards/far-reach/generators/fixedLayouts.ts",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/far-reach/generators/fixedLayouts.ts",
-        "fixedLayoutFiles",
-        "src/shards/far-reach",
-        "--files"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/shards/far-reach/generators/fixedLayouts.ts",
-        "src/shards/far-reach/generators/layout.ts",
-        "src/shards/far-reach/data/strings.json",
-        "src/shards/far-reach/generators/crownLayout.ts"
-      ],
-      "outputs": [
-        "src/shards/far-reach/data/layout.generated.json",
-        "src/shards/far-reach/data/crownLayout.generated.json",
-        "src/shards/far-reach/data/mapPalette.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/far-reach/data/layout.generated.json",
-        "src/shards/far-reach/data/crownLayout.generated.json",
-        "src/shards/far-reach/data/mapPalette.generated.json"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "nalati-rifle-rows",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-rifle.mjs",
@@ -3588,7 +3551,6 @@
         "src/format/colourFunction.ts",
         "src/game/identity.ts",
         "src/game/shard/list.ts",
-        "src/shards/far-reach/data/layout.generated.json",
         "src/shards/far-reach/data/rocSlate.json",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/bake-boot-metadata.mjs",
@@ -3656,7 +3618,6 @@
         "src/sdk/sceneTransform.ts",
         "src/shards/far-reach/generators/rows/isletDesign.ts",
         "src/shards/far-reach/generators/layout.ts",
-        "src/shards/far-reach/data/layout.generated.json",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/risingIslets.ts",
         "src/shards/far-reach/generators/palette.ts",
@@ -3698,7 +3659,6 @@
         "src/sdk/sceneTransform.ts",
         "src/shards/far-reach/generators/rows/isletDesign.ts",
         "src/shards/far-reach/generators/layout.ts",
-        "src/shards/far-reach/data/layout.generated.json",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/risingIslets.ts",
         "src/shards/far-reach/generators/palette.ts",
@@ -4399,9 +4359,7 @@
         "src/sdk/package.json",
         "src/shards/far-reach/generators/rows/bookStand.ts",
         "src/shards/far-reach/generators/crownLayout.ts",
-        "src/shards/far-reach/data/crownLayout.generated.json",
         "src/shards/far-reach/generators/layout.ts",
-        "src/shards/far-reach/data/layout.generated.json",
         "src/shards/far-reach/generators/modelFrames.ts",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/rows/trees.ts",
@@ -5607,7 +5565,6 @@
         "src/shards/far-reach/data/bossStages.json",
         "src/shards/far-reach/data/flags.json",
         "src/shards/far-reach/generators/layout.ts",
-        "src/shards/far-reach/data/layout.generated.json",
         "src/shards/far-reach/generators/rows/rocFight.ts",
         "src/shards/far-reach/generators/rows/spawns.ts",
         "src/shards/far-reach/data/strings.json",
@@ -5746,7 +5703,6 @@
         "src/shards/far-reach/generators/rows/windLook.ts",
         "src/shards/far-reach/generators/rows/rayWakeLook.ts",
         "src/shards/far-reach/data/budgetCeilings.json",
-        "src/shards/far-reach/data/layout.generated.json",
         "src/engine/fx/effectField.ts",
         "src/shards/far-reach/generators/layout.ts",
         "src/shards/far-reach/data/strings.json",
@@ -6265,7 +6221,6 @@
       ],
       "inputRoots": [
         "src/shards/far-reach/shard.config.ts",
-        "src/shards/far-reach/data/layout.generated.json",
         "src/shards/far-reach/generators",
         "src/shards/far-reach/data/islets.generated.json",
         "src/shards/far-reach/data/crownInstances.generated.json",

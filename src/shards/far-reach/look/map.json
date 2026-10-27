@@ -2,7 +2,6 @@
   "why": "Sky Reach's islands float over a painted cloud sea, cloud puffs and a storm that would cover them from straight above: the bake leaves the puffs, the storm and the sun glow out and clips nothing below, so every island, the low keels and the sky isles all show (G252); the void is transparent, islands and bridges only, so the map's own dark frame shows through and the warm cloud sea never reads as junk or lava (G252b, Jake); its coordinates are compiled from generators/layout.ts to data/layout.generated.json; the fourteen decorative sky isles (world/skyIsles.ts: not walkable, no colliders, hung over and beside the decks) are left out with the firs that stand on them (\"hideStanding\"), and the playable isles' keels, which share their model names, are kept (\"keep\"): the map shows the land you can walk, not brown blobs where no place is (SF66) C1: the prepared hero geometry is built from the original authored model inputs in memory, binding every normalized/fitted channel and exact culling sphere without the public GLB handoff.",
   "inputs": [
     "shard.config.ts",
-    "data/layout.generated.json",
     "generators",
     "data/islets.generated.json",
     "data/crownInstances.generated.json",
