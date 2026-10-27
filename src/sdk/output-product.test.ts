@@ -149,7 +149,7 @@ it.each(['cold','critical','dependency','played'] as const)('packs %s whole-libr
  const shard=source(),directory=output(),bodies=[new Uint8Array(70000).fill(51),new Uint8Array(80000).fill(52)];
  const assets=new Map(bodies.map(body=>[hashImmutableBytes(body),body])),hashes=[...assets.keys()];
  const cold=hashes[0],warm=hashes[1];if(cold===undefined||warm===undefined)throw new Error('Missing whole library fixture');
- shard.files=[...assets].map(([hash,body])=>({hash,kind:'binary' as const,compressed:body.length,decoded:body.length,gpu:0,triangles:0,draws:0,dependencies:mode==='dependency'&&hash===warm?[cold]:[],critical:false}));
+ shard.files=[...assets].map(([hash,body])=>({hash,kind:'binary' as const,compressed:body.length,decoded:body.length,gpu:0,triangles:0,draws:0,dependencies:mode==='dependency'&&hash===warm?[cold]:[],critical:mode==='critical'&&hash===cold}));
  shard.library=hashes;if(mode==='critical')shard.critical=[cold];shard.budgets.library={resident:150000,compressed:150000};
  const namedFiles=shard.files.map((file,i)=>({...file,kind:'bin' as const,path:`blobs/bin/${file.hash}.bin`,name:`whole-${i}.bin`}));
  shard.files.sort((a,b)=>a.hash.localeCompare(b.hash));
