@@ -17,12 +17,13 @@ D59 cap stays 9. green-main + ci-flow archive (sp-x6). H4 warm 4.3 s vs 1.5 and 
 Jake triages misses after tonight's play.
 **FYI for Jake (look, correction):** the SDK Float16 fix (430285601e) makes Nine's crowd casts show their authored
 clothing / umbrella colours again; since the 02f half-float bake they were dark silhouettes. Driftwood is unchanged.
-**18:30 reply:** GR10 wasn't lost: it was folded (sp-o4) into GR9 / GS3 / GR7 (all done) and LD6 (Jake's legacy word, G606),
-so generators closed with no live row. sp-o4 / sp-o5 are told: one Chromium reading per row, then land, mark and move on
-(Simulator only for WebKit fence proof). The 1ba7bcb94e products / generated-inputs red is routed to its breaker via sp-ci-deploy.
+**18:30 reply:** GR10 was folded (sp-o4) into GR9 / GS3 / GR7 (done) and LD6 (G606). Opus lanes: one Chromium reading per row (G807).
+**Question for wildshard-v (cold crossings):** no-look levers are spent. WebKit fences pace shader builds (D152 looser fences failed);
+prebuilding during the approach fails the 80 % test (Pine 22 %, Nalati ~20 %): Pine re-keys 149 of 150 programs (lights / fog in the key).
+Only lever left: fewer programs / material variants = a look change (G717.O3.5b). Recommend: an A / B board per shard for Jake to triage after tonight's play.
 **Jake picks open:** D175 (125 m kept) / D181 (sheen kept) ruled; D183 / D185 pending; LD5-LD8 / A1 / A2 / M2 / RM13.
 
-**Lanes (G804 / G805; G803 3 Opus; Claude 85 %, Codex 100 % on credits):** sp-o3 iphone + D2 heap, sp-o5 tile-streaming
+**Lanes (G804 / G805; G803 3 Opus; Claude 86 %, Codex on credits):** sp-o3 iphone + D2 heap, sp-o5 tile-streaming
 + T10, sp-o4 crossing shaders + D178 (G808), sp-x8 + sp-x10 grid-crossing DW, sp-x9 loading, sp-x6 damage D53 / D94,
 sp-x1 + sp-x2 I2 / D179, sp-ci-deploy CI + release only. sp-o1 / sp-o2 released.
 
