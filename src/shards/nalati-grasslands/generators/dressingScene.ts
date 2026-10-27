@@ -50,7 +50,7 @@ export function nalatiDressingSpecimens(catalogue:unknown,materials:unknown,pack
   if(!admitted.success||!surfaces.success)throw new Error('Invalid supplied Nalati specimen declarations');
   return v.parse(specimensSchema,nalatiSpecimenRows(admitted.output,surfaces.output,v.parse(v.record(text,v.unknown()),packed)));
 }
-const paint=v.parse(paintSchema,paintInput);
+const retainedPaint=v.parse(paintSchema,paintInput);
 /** Exact raw contact files, read only by the SDK's normal named-file intake. */
 export const DRESSING_CONTACT_SOURCES=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text,
   options:v.object({decoded:v.pipe(number,v.integer(),v.minValue(0))})})), 'sources'in paintInput?paintInput.sources:[]);
@@ -96,7 +96,7 @@ const preparedContacts=(inputs:readonly unknown[],source:ContactSource)=>{
 
 
 /** Existing baked shapes and placements become Z2 rows; no page-side scatter or model constructors. */
-function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<typeof decorativeProfiles>,input:ReturnType<typeof readPreparedDressing>,balbal:v.InferOutput<typeof balbalSchema>,specimens:v.InferOutput<typeof specimensSchema>,contactSource:ContactSource=inlineContact,clothSource:ClothSource=inlineCloth) {
+function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<typeof decorativeProfiles>,input:ReturnType<typeof readPreparedDressing>,balbal:v.InferOutput<typeof balbalSchema>,specimens:v.InferOutput<typeof specimensSchema>,contactSource:ContactSource=inlineContact,clothSource:ClothSource=inlineCloth,paint:v.InferOutput<typeof paintSchema>=retainedPaint) {
   const {prepared,scenes,placed}=input;
   const phone=tier==='phone',profile=cover[tier];
   const geometry:Record<string,unknown>={},materials:Record<string,unknown>={},addresses:number[]=[];
@@ -144,7 +144,7 @@ function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<type
   statics.push({name:'cloth',recipe:{version:1,root:'root',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'group',id:'root',children:['cloth']},{kind:'mesh',id:'cloth',geometry:'shape',material:'paint',missing:'empty',castShadow:true,receiveShadow:true}]},geometry:{shape:'cloth'},materials:{paint:'cloth'},tris:cloth.row.indexCount/3,members:[]});
   geometry['wing']={kind:'packed',source:'cover',key:'wing'};geometry['halfBird']={kind:'packed',source:'cover',key:'halfBird'};
   materials['butterfly']={kind:'painterly',rim:.3,bands:.5,shade:.6,emissive:0x101010};materials['raptor']={kind:'painterly',rim:.6,bands:.6};
-  const bowl=bowlScene(tier,profiles[tier],geometry,materials,prepared,specimens);statics.push(...bowl.statics);
+  const bowl=bowlScene(tier,profiles[tier],geometry,materials,prepared,specimens,paint);statics.push(...bowl.statics);
   const crags=cragRows[tier],cragGeometry:Record<string,string>={};
   for(const part of crags.meshes){geometry[part.key]=baked('world/crags.bin',part.offset,v.parse(SceneBakedGeometrySchema,part.row));cragGeometry[part.key]=part.key;}
   const rockTexture=specimens.materials['rock']?.texture,snowTexture=specimens.materials['snow']?.texture;
@@ -201,7 +201,7 @@ function clothGeometry(prepared:ReturnType<typeof readPreparedDressing>['prepare
 }
 
 /** Supplied profiles retain exact tier rows; hulls and cloth share content-addressed binary loans. */
-export function dressingSceneBlobs(input:unknown,runtime:unknown,balbal:unknown,specimens:unknown):ReturnType<typeof nameBlob>[] {
+export function dressingSceneBlobs(input:unknown,runtime:unknown,balbal:unknown,specimens:unknown,paintRows:unknown=paintInput):ReturnType<typeof nameBlob>[] {
   const profiles=v.parse(decorativeProfiles,input),prepared=readPreparedDressing(runtime),binaries=new Map<string,ReturnType<typeof nameBlob>>();
   const source:ContactSource=raw=>{
     const bytes=zlibSync(raw),file=`world/dressing-contacts/${hashImmutableBytes(bytes)}.bin`;
@@ -213,7 +213,7 @@ export function dressingSceneBlobs(input:unknown,runtime:unknown,balbal:unknown,
     if(!binaries.has(file))binaries.set(file,nameBlob(file,'bin',bytes,{decoded:raw.byteLength}));
     return{kind:'baked-file',file};
   };
-  const tiers=(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier,profiles,prepared,v.parse(balbalSchema,balbal),v.parse(specimensSchema,specimens),source,cloth);return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:namedJsonSchema(SceneDressingSchema)}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});
+  const tiers=(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier,profiles,prepared,v.parse(balbalSchema,balbal),v.parse(specimensSchema,specimens),source,cloth,v.parse(paintSchema,paintRows));return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:namedJsonSchema(SceneDressingSchema)}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});
   return[...tiers,...binaries.values()];
 }
 
@@ -221,7 +221,7 @@ export function dressingSceneBlobs(input:unknown,runtime:unknown,balbal:unknown,
 export function dressingScene(tier:'phone'|'desktop',input:unknown,runtime:unknown,balbal:unknown,specimens:unknown):SceneDressingRows{return compileDressingScene(tier,v.parse(decorativeProfiles,input),readPreparedDressing(runtime),v.parse(balbalSchema,balbal),v.parse(specimensSchema,specimens)).rows;}
 
 /** Decorative poses keep the existing visual programs and RNG continuation; none owns gameplay actors. */
-function bowlScene(tier:'phone'|'desktop',data:v.InferOutput<typeof decorativeProfile>,geometry:Record<string,unknown>,materials:Record<string,unknown>,prepared:ReturnType<typeof readPreparedDressing>['prepared'],specimens:v.InferOutput<typeof specimensSchema>){
+function bowlScene(tier:'phone'|'desktop',data:v.InferOutput<typeof decorativeProfile>,geometry:Record<string,unknown>,materials:Record<string,unknown>,prepared:ReturnType<typeof readPreparedDressing>['prepared'],specimens:v.InferOutput<typeof specimensSchema>,paint:v.InferOutput<typeof paintSchema>){
   const phone=tier==='phone',statics:unknown[]=[],instances:unknown[]=[];
   const empty=(name:string,tris:number,members:unknown[],groupName=`nalati-${name}`)=>({name,tris,members,geometry:{},materials:{},recipe:{version:1,root:'root',materials:[],nodes:[{kind:'group',id:'root',name:groupName,children:[]}]}});
   const putMember=(model:string,member:typeof data.horses.member)=>({model,draw:member.draw,placements:member.placements,boxes:member.boxes,contacts:[...member.solid,...member.descs]});
