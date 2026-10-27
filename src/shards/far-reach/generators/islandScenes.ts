@@ -1,4 +1,5 @@
-import { MeshBasicMaterial } from 'three';
+import { Matrix4, MeshBasicMaterial } from 'three';
+import { partitionWholeGeometry } from '@wildshard/sdk/bake/props';
 import { GeometryPack, packedRows } from '@wildshard/sdk/kit/geometryPack';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
@@ -34,11 +35,20 @@ try {
 } finally { fall.dispose(); material.dispose(); }
 export const SKY_ISLAND_LIBRARY = { id: 'islands', kind: 'owned', models } as const;
 /** The static islands as whole parts of the baked tiles (`library: 'isle-tiles'`), each in its own frame. A partitioned
- * island may span tiles: the reader reads each file once and reassembles every island from its parts. */
-export function skyIsleTileLibrary(tiles: readonly { lod: number; file: string }[]): {
-  readonly id: 'isle-tiles'; readonly kind: 'whole'; readonly models: { id: string; part: string; files: string[]; matrix: number[] }[];
+ * island may span tiles: Explorer reads only that island's fine files and reassembles it from its parts.
+ * Resident scenes never read this library. */
+export function skyIsleTileLibrary(tiles: readonly { lod: number; x: number; z: number; file: string }[]): {
+  readonly id: 'isle-tiles'; readonly kind: 'whole'; readonly load: 'explorer'; readonly models: { id: string; part: string; files: string[]; matrix: number[] }[];
 } {
-  return { id: 'isle-tiles', kind: 'whole', models: tiled.map(isle => ({ id: isle.id, part: `isle_${isle.id.replace('.', '-')}`,
-    files: tiles.filter(tile => tile.lod === 0).map(tile => tile.file), matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0 - isle.x, 0 - isle.y, 0 - isle.z, 1] })) } as const;
+  return { id: 'isle-tiles', kind: 'whole', load: 'explorer', models: tiled.map(isle => {
+    const geometry = pack.geometry(baked.rows.isles.indexOf(isle.id));
+    const parts = partitionWholeGeometry(geometry, new Matrix4().makeTranslation(isle.x, isle.y, isle.z));
+    const addresses = new Set(parts.map(part => `${part.x}/${part.z}`));
+    for (const part of parts) part.geometry.dispose();
+    geometry.dispose();
+    return { id: isle.id, part: `isle_${isle.id.replace('.', '-')}`,
+      files: tiles.filter(tile => tile.lod === 0 && addresses.has(`${tile.x}/${tile.z}`)).map(tile => tile.file),
+      matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0 - isle.x, 0 - isle.y, 0 - isle.z, 1] };
+  }) };
 }
 export const SKY_ISLE_TILES = skyIsleTileLibrary(SKY_WORLD_TILE_ROWS.props.tiles);

@@ -63,3 +63,13 @@ export function skyGroundValues(): SkyGroundValues {
 export function skyGroundSource(): Uint8Array {
   return new TextEncoder().encode(`${JSON.stringify(skyGroundValues())}\n`);
 }
+
+
+/** Resident ground identities keep their transforms and contacts while fine tiles own every static island draw.
+ * The original recipe remains available to the map baker, which needs the exact whole source geometry. */
+export function skyTiledGroundValues(): SkyGroundValues {
+  const values = skyGroundValues();
+  values.SKY_GROUND.recipe.scene.nodes = values.SKY_GROUND.recipe.scene.nodes.map(node => node.kind === 'mesh'
+    ? { kind: 'group', id: node.id, ...(node.position === undefined ? {} : { position: node.position }), children: node.children } : node);
+  return values;
+}

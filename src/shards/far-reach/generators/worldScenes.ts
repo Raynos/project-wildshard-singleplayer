@@ -7,7 +7,7 @@ import { skyWorldRows } from './worldRows';
 import { SKY_SOURCE_LIBRARIES, skySourceBlobs } from './sceneSources';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import * as LAYOUT from './layout';
-import { skyGroundValues } from './groundScene';
+import { skyTiledGroundValues } from './groundScene';
 import { restScenes } from './restScene';
 import { SKY_ISLAND_BLOBS, SKY_ISLAND_LIBRARY, SKY_ISLE_TILES } from './islandScenes';
 import { SKY_MEADOW_BLOBS, SKY_MEADOW_FILE } from './meadowScene';
@@ -28,7 +28,7 @@ export function readMillSceneValues(bytes: Uint8Array): SkyMillSceneValues['MILL
     hubAt: { kind: 'vector', value: [hubAt.value[0], hubAt.value[1], hubAt.value[2]] } } };
 }
 
-const ground = skyGroundValues();
+const ground = skyTiledGroundValues();
 const world = skyWorldRows();
 
 interface Reference { readonly library: string; readonly model: string }

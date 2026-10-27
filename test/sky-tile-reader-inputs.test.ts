@@ -1,31 +1,23 @@
+import { withPortableMath } from '../src/commons/bake/portableMath';
 import { originalSkyMovers } from './fixtures/sky-movers';
 import { originalSkyNavigation } from './fixtures/sky-navigation';
-// oxlint-disable-next-line import/no-nodejs-modules -- Compare complete original metadata and isolate real sealed production.
-import { readFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Compare complete original declaration bytes without expanding assertions.
-import { Buffer } from 'node:buffer';
-import * as v from 'valibot';
 import { expect, test } from 'vitest';
-import { PropsSchema } from '../src/format/props';
-import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { SKY_WORLD_TILE_ROWS } from '../src/shards/far-reach/generators/worldTileRows';
-import { SKY_ISLE_TILES, skyIsleTileLibrary } from '../src/shards/far-reach/generators/islandScenes';
+import { hashImmutableBytes } from '../src/sdk/immutable';
+import { skyWorldTileSource } from '../src/shards/far-reach/generators/worldTileBytes';
 import { skyProductRows } from '../src/shards/far-reach/generators/product';
 
-const metadata = 'src/shards/far-reach/data/props.json';
-// G748 adds eleven L1 rows/files; 836028fd55 keeps them outside the library.
-const declarationHash = '11e51a5a7dd34311681c65c96cc0be4bbbca5bcc64886c9f11e77a5b56694b0b';
+// T8 moves the same island channels from whole residency to named fine tile draws.
+const declarationHash = '282a7d2bb522bcf61b2279ba4d52a3e4b161e009aeed6e66007e88e223bcc408';
 
-test('the authored tile bank preserves complete metadata, costs and the original scene library', () => {
-  const bytes = readFileSync(metadata);
-  expect(Buffer.compare(new TextEncoder().encode(encodeCanonicalJson(SKY_WORLD_TILE_ROWS)), bytes)).toBe(0);
-  const original = v.parse(v.object({ props: PropsSchema }), JSON.parse(bytes.toString()));
-  expect(SKY_ISLE_TILES).toEqual(skyIsleTileLibrary(original.props.tiles));
+test('the complete named tile metadata retains its publication contract', () => {
+  const bytes = withPortableMath(skyWorldTileSource).get('data/props.json');
+  if (bytes === undefined) throw new Error('Missing named island tile metadata');
+  expect(hashImmutableBytes(bytes)).toBe('15cca111b5583251f8a967828065f83ece474d23ac0fa2932ad2be86aa825d0a');
 });
 
-test('the declaration retains every original field, tile payload identity and admission cost', () => {
+test('the declaration pins complete streamed ownership and actual admission costs', () => {
   const bytes = new TextEncoder().encode(`${JSON.stringify(skyProductRows(originalSkyNavigation(), originalSkyMovers()))}\n`);
-  expect(bytes.byteLength).toBe(325_153);
+  expect(bytes.byteLength).toBe(327_396);
   expect(hashImmutableBytes(bytes)).toBe(declarationHash);
 });
 

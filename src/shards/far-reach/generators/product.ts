@@ -29,11 +29,6 @@ const isletRows = risingIsletRows(), RISING_ISLETS = isletRows.entries, ENTRYWAY
 // exactly these rows (runtime/movers.ts). world/islets.ts is the one source of the geometry.
 
 const base = emptyShardfile({ slug: 'far-reach', name: 'Sky Reach', author: 'Wildshard', revision: 1, seed: 6417 });
-/** the island tiles' own library cost (their bytes moved from the scene GLBs into the shardfile's tiles) */
-/** G748.5: the coarse L1 tiles are self-contained tile content (format: a coarse tile never reads the library) */
-const COARSE_FILES = new Set(isleProps.tiles.filter(tile => tile.lod === 1).flatMap(tile => tile.files));
-const ISLE_LIBRARY = isleProps.files.filter(file => !COARSE_FILES.has(file.hash));
-const ISLE_TILE_COST = { compressed: ISLE_LIBRARY.reduce((sum, file) => sum + file.compressed, 0), resident: ISLE_LIBRARY.reduce((sum, file) => sum + file.decoded + file.gpu, 0) };
 /** Build-time declaration rows from admitted original navigation; no source handoff is read. */
 export function skyProductRows(navigation: SkyNavigationRows, movers: MoverData): ReturnType<typeof parseShardfile> {
   return structuredClone(parseShardfile({ ...base, ...SKY_SECTIONS, plumbing, state: { ...SKY_SECTIONS.state, version: 2 }, migrations: slotMigrations, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, accent: 'pink', runtime: null,
@@ -44,12 +39,11 @@ export function skyProductRows(navigation: SkyNavigationRows, movers: MoverData)
   entryways: [...ENTRYWAYS],
   // The authored clips declare every bridge, islet and gate; both hosts install this admitted order once.
   movers,
-  // the twelve static islands baked as the shardfile's L0 tiles (generators/isleProps.ts, each island a whole node), library
-  // files the ground scene reads its islands from (islandScenes.ts SKY_ISLE_TILES), so the grid streams the same bytes
-  library: [...base.library, ...skyMaps.library, STORM_NOISE.hash, SWARD_ATLAS_FILE.hash, ...ISLE_LIBRARY.map(file => file.hash)], tiles: isleProps.tiles, files: [...skyMaps.files, { ...STORM_NOISE, dependencies: [] }, { ...SWARD_ATLAS_FILE, dependencies: [] }, ...navigation.files, ...isleProps.files], critical: [...navigation.critical],
-  budgets: { ...base.budgets, client: SKY_REACH_RUNTIME_COST, library: { ...skyMaps.budget, compressed: skyMaps.budget.compressed + STORM_NOISE.compressed + SWARD_ATLAS_FILE.compressed + ISLE_TILE_COST.compressed, resident: skyMaps.budget.resident + STORM_NOISE.decoded + STORM_NOISE.gpu + SWARD_ATLAS_FILE.gpu + ISLE_TILE_COST.resident, downloadAllowance: 8_811_813 + STORM_NOISE.compressed + SWARD_ATLAS_FILE.compressed + ISLE_TILE_COST.compressed }, sim: { resident: 1_000_000 + navigation.files.reduce((sum, file) => sum + file.decoded, 0), compressed: navigation.files.reduce((sum, file) => sum + file.compressed, 0) } },
+  // Static island geometry belongs only to the tile streamer. Explorer borrows its admitted L0 partitions cold.
+  library: [...base.library, ...skyMaps.library, STORM_NOISE.hash, SWARD_ATLAS_FILE.hash], tiles: isleProps.tiles, files: [...skyMaps.files, { ...STORM_NOISE, dependencies: [] }, { ...SWARD_ATLAS_FILE, dependencies: [] }, ...navigation.files, ...isleProps.files], critical: [...navigation.critical],
+  budgets: { ...base.budgets, client: SKY_REACH_RUNTIME_COST, library: { ...skyMaps.budget, compressed: skyMaps.budget.compressed + STORM_NOISE.compressed + SWARD_ATLAS_FILE.compressed, resident: skyMaps.budget.resident + STORM_NOISE.decoded + STORM_NOISE.gpu + SWARD_ATLAS_FILE.gpu, downloadAllowance: 8_811_813 + STORM_NOISE.compressed + SWARD_ATLAS_FILE.compressed }, sim: { resident: 1_000_000 + navigation.files.reduce((sum, file) => sum + file.decoded, 0), compressed: navigation.files.reduce((sum, file) => sum + file.compressed, 0) } },
   sim: { ...base.sim, scripts: [] },
-  props: { version: 1, family: 'toon', tiles: [], panels: [], models: [], far: null, textures: [],
+  props: { ...isleProps.props, materials: Object.fromEntries(['isle-paint', 'isle-paint-cut', 'isle-paint-cut-mill', 'isle-coarse'].map(name => [name, { id: name === 'isle-coarse' ? 'toon' : name }])),
     colliders: [...RISING_ISLETS.map((entry) => ({ id: `landing.${entry.edge}`, panel: null, initialActive: true, shapes: [{ ...entry.landing }] })),
       ...RISING_ISLETS.map((entry) => ({ id: `gate-isle.${entry.edge}`, panel: null, initialActive: true, shapes: isletRows.entries.flatMap(row => row.edge === entry.edge ? row.strips.map(strip => ({ ...strip, kind: 'box' as const, surface: 'grass' as const })) : []) }))] } }));
 }
