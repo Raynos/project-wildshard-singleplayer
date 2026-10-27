@@ -320,13 +320,14 @@ function standIn(mesh: MeshLike): MeshLike {
  * `excludedRoots` omits content that leaves with an exterior frame's lighting, without changing live visibility.
  */
 export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, per = 6, roots: readonly THREE.Object3D[] = [scene],
-  excludedRoots?: ReadonlySet<THREE.Object3D>): { jobs: CompileJob[]; materials: number } {
-  const steps = sceneJobSteps(scene, rt, per, roots, excludedRoots);
+  excludedRoots?: ReadonlySet<THREE.Object3D>, skip?: (material: THREE.Material, objectKey: string) => boolean): { jobs: CompileJob[]; materials: number } {
+  const steps = sceneJobSteps(scene, rt, per, roots, excludedRoots, undefined, skip);
   for (;;) { const step = steps.next(); if (step.done) return step.value; }
 }
 
 function* sceneJobSteps(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, per: number, roots: readonly THREE.Object3D[],
-  excludedRoots?: ReadonlySet<THREE.Object3D>, include?: (object: THREE.Object3D) => boolean): Generator<void, { jobs: CompileJob[]; materials: number }> {
+  excludedRoots?: ReadonlySet<THREE.Object3D>, include?: (object: THREE.Object3D) => boolean,
+  skip?: (material: THREE.Material, objectKey: string) => boolean): Generator<void, { jobs: CompileJob[]; materials: number }> {
   const seen = new Set<string>();
   const mats = new Set<THREE.Material>();
   const clones: { readonly object: THREE.Object3D; readonly side?: CompileJob['materialSide'] }[] = [];
@@ -341,7 +342,7 @@ function* sceneJobSteps(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, 
     const materials = shadowOnly(o) ? [] : materialsOf(mesh), list = materials.length > 0 && include !== undefined && !include(o) ? [] : materials;
     if (list.length === 0) { yield; continue; }
     const ok = programObjectKey(mesh);
-    const wanted = list.filter((m) => { mats.add(m); const k = m.uuid + ok; if (seen.has(k)) return false; seen.add(k); return true; });
+    const wanted = list.filter((m) => { mats.add(m); const k = m.uuid + ok; if (seen.has(k)) return false; seen.add(k); return skip?.(m, ok) !== true; });
     // A mesh's material array can contain many distinct programs. Count each
     // as one unit too, so a live `per = 1` job cannot hide an atomic batch.
     for (const material of wanted) {
@@ -373,8 +374,64 @@ function* sceneJobSteps(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, 
 }
 
 function pacedSceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, per: number, roots: readonly THREE.Object3D[],
-  excluded: ReadonlySet<THREE.Object3D> | undefined, current: () => boolean, owner: Scope, include?: (object: THREE.Object3D) => boolean): Promise<{ jobs: CompileJob[]; materials: number }> {
-  return pacedPreparation(sceneJobSteps(scene, rt, per, roots, excluded, include), current, owner);
+  excluded: ReadonlySet<THREE.Object3D> | undefined, current: () => boolean, owner: Scope, include?: (object: THREE.Object3D) => boolean,
+  skip?: (material: THREE.Material, objectKey: string) => boolean): Promise<{ jobs: CompileJob[]; materials: number }> {
+  return pacedPreparation(sceneJobSteps(scene, rt, per, roots, excluded, include, skip), current, owner);
+}
+
+/**
+ * G782: a live entry warms the whole page's scene again, every resident's materials too, so a crossing re-ran every
+ * (material, object layout) job even where its program already existed: a warm Nalati return ran 493 jobs for 48 new
+ * programs (2.8-3.9 s at phone 4x). Each live scene job leaves a receipt, per renderer, of what it compiled: the
+ * material's version for that layout under the page's program state (the lights a frame would gather, environment,
+ * fog, tone mapping, shadow and clipping settings, target buffer). A later live warm-up builds no job for a pair whose
+ * receipt still matches and whose material still holds a program; anything else compiles as before.
+ */
+const receipts = new WeakMap<object, WeakMap<THREE.Material, Map<string, number>>>();
+function receiptsOf(renderer: Renderer): WeakMap<THREE.Material, Map<string, number>> {
+  let book = receipts.get(renderer);
+  if (book === undefined) { book = new WeakMap(); receipts.set(renderer, book); }
+  return book;
+}
+/** A live warm-up's receipts (G782): `skip` answers whether a (material, layout) pair compiled under this page state is
+ *  still compiled; `record` keeps the scene jobs a completed run compiled. */
+export function liveProgramReceipts(renderer: Renderer, scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, future?: THREE.Object3D, futureEnvironment?: THREE.Texture): {
+  skip: (material: THREE.Material, objectKey: string) => boolean; record: (jobs: readonly CompileJob[]) => void;
+} {
+  const book = receiptsOf(renderer), state = liveProgramState(renderer, scene, rt, future, futureEnvironment);
+  return {
+    skip: (material, objectKey) => book.get(material)?.get(`${objectKey}|${state}`) === material.version
+      && materialPrograms(renderer, material).some(program => program !== undefined),
+    record: jobs => {
+      for (const job of jobs) if (job.kind === 'scene-entered' || job.kind === 'scene-other') for (const clone of job.root.children) {
+        const key = `${programObjectKey(clone)}|${state}`;
+        for (const material of materialsOf(clone)) {
+          let row = book.get(material);
+          if (row === undefined) { row = new Map(); book.set(material, row); }
+          row.set(key, material.version);
+        }
+      }
+    },
+  };
+}
+function liveProgramState(renderer: Renderer, scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, future?: THREE.Object3D, futureEnvironment?: THREE.Texture): string {
+  const counts = new Map<string, number>(), seen = new Set<THREE.Light>();
+  const count = (light: THREE.Light): void => {
+    if (seen.has(light)) return;
+    seen.add(light); const key = `${light.type}${light.castShadow ? '*' : ''}`; counts.set(key, (counts.get(key) ?? 0) + 1);
+  };
+  scene.traverseVisible(object => { if (object instanceof THREE.Light) count(object); });
+  // includeFutureLights' rule: the parked root may be hidden, its descendants' own visibility governs
+  const visit = (object: THREE.Object3D): void => {
+    if (object !== future && !object.visible) return;
+    if (object instanceof THREE.Light) count(object);
+    for (const child of object.children) visit(child);
+  };
+  if (future !== undefined && future !== scene) visit(future);
+  const environment = futureEnvironment ?? (future instanceof THREE.Scene ? future.environment : null) ?? scene.environment;
+  const fog = scene.fog === null ? '-' : scene.fog instanceof THREE.FogExp2 ? 'e' : 'l';
+  return JSON.stringify([[...counts].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0), environment?.uuid ?? null, fog, renderer.toneMapping, renderer.shadowMap.enabled, renderer.shadowMap.type,
+    renderer.localClippingEnabled, renderer.clippingPlanes.length, rt?.texture.colorSpace ?? null, rt?.texture.type ?? null]);
 }
 
 /** Discovery shares the ordinary measured build budget. Live root callers retain their completed-draw barrier; cheap
@@ -1284,10 +1341,11 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const single = options.isolateImageUploads === true || options.sliceMs !== undefined;
     const per = single ? 1 : 6;
     const excludedRoots = entryFrameExclusions(scene, options.futureLighting);
+    const programReceipts = live ? liveProgramReceipts(game.renderer, scene, rt, options.futureLighting, options.futureEnvironment) : undefined;
     const kinded = (kind: string, list: CompileJob[]): CompileJob[] => { for (const job of list) job.kind = kind; return list; };
     const { jobs, materials } = policy?.scene === false ? { jobs: [], materials: 0 }
       : live || options.drawnOnly === true
-        ? await pacedSceneJobs(scene, rt, per, [scene], excludedRoots, options.current ?? (() => true), pageScope, options.drawnOnly === true ? drawnFrom(game.camera) : undefined)
+        ? await pacedSceneJobs(scene, rt, per, [scene], excludedRoots, options.current ?? (() => true), pageScope, options.drawnOnly === true ? drawnFrom(game.camera) : undefined, programReceipts?.skip)
         : sceneJobs(scene, rt, per, [scene], excludedRoots);
     // Diagnostic split: the entered root's own materials, else the rest of the page compiled under its lights.
     const entered = new Set<THREE.Material>();
@@ -1322,6 +1380,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     };
     if (live) { await setup.yield(); if (options.current?.() === false) throw new Error('Shader warm-up owner left'); }
     const report = await runPrecompile(game.renderer, game.camera, jobs, materials, progress, collectTextures(jobs), options.current, options.isolateImageUploads, options.pause, options.uploadBudget, options.onStage, options.sliceMs);
+    programReceipts?.record(jobs);
     if (warm.length > 0) await warmPostJobs(game.renderer, warm, options.pause ?? frame, options.current ?? (() => true),
       (done, count, detail) => { onProgress?.(completed + done, total + count, detail); });
     if (tracedBoot) recordGpuCheckpoint(game.renderer, 'compile:after');
