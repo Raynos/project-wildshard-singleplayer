@@ -7,6 +7,7 @@ import { baselineCeilings } from './parity/budgetCeilings.mjs';
 import { shardFolders } from './gen-shards.mjs';
 import { productManifestPath } from './authored-manifest.mjs';
 import { shardProducts } from './shard-outputs.mjs';
+import { keptBudgets } from './budget-ratchet.mjs';
 
 await import('./bake-loader.mjs');
 const { deriveBudget } = await import('../src/engine/render/budgets');
@@ -78,8 +79,9 @@ for (const slug of specs.keys()) {
   else if (existsSync(join(root, 'src/shards', slug, 'data/budgetCeilings.ts'))) writeFileSync(join(root, 'src/shards', slug, 'data/budgetCeilings.ts'), `${doc}\nexport const BUDGET_CEILINGS = ${JSON.stringify(ceilings, null, 2)};\n`);
   else writeFileSync(join(root, 'src/shards', slug, 'budgetCeilings.ts'), `import type { LevelSpec } from '@wildshard/engine/level/spec';\n\n${doc}\nexport const BUDGET_CEILINGS = ${JSON.stringify(ceilings, null, 2)} satisfies NonNullable<LevelSpec['budgets']['ceilings']>;\n`);
 }
-// Manifest data now owns every rollout ceiling; the legacy fallback must not duplicate it.
-ratchet.budgets = {};
+// Manifest data now owns every rollout ceiling; the legacy fallback must not duplicate it. The ratchet's other budgets
+// (js/* chunk and wire/* phone ceilings) stay.
+ratchet.budgets = keptBudgets(ratchet.budgets);
 writeFileSync(ratchetPath, `${JSON.stringify(ratchet, null, 2)}\n`);
 mkdirSync(join(root, 'budgets'), { recursive: true });
 writeFileSync(join(root, 'budgets/ceiling-sources.json'), `${JSON.stringify({ source: 'F2 max(lanes) plus recorded parity band; ceilings only decrease except explicit provenance-bearing GL re-records', lanes, calibration: calibration?.measuredAt ?? null, calibrationSha256: calibration ? createHash('sha256').update(readFileSync(current)).digest('hex') : null, derived: Object.fromEntries([...specs].map(([slug, inputs]) => [slug, Object.fromEntries(['phone', 'desktop'].map((tier) => [tier, calibration ? deriveBudget({ phone: inputs.phone, desktop: inputs.desktop, load: inputs.load }, tier === 'phone' ? 'phone' : 'desktop', calibration) : null]))])), baselines: provenance, reRecords }, null, 2)}\n`);
