@@ -16,6 +16,19 @@ from contextlib import contextmanager
 LIVE = runpy.run_path(str(Path(__file__).with_name('live-prepush.py')))
 git = LIVE['git']
 PUSH_GATE_SECONDS = 180  # G756: one hard batch cap; no successful budget skips.
+RED_HOLD = runpy.run_path(str(Path(__file__).with_name('push_red_hold.py')))
+latest_verdict = RED_HOLD['completed_push_verdict']
+
+
+def fix_prefix(root, base, tip):
+    records = git(root, 'log', '-z', '--reverse', '--format=%H%x00%B', base + '..' + tip).split('\0')
+    if records and records[-1] == '':
+        records.pop()
+    if len(records) % 2:
+        raise ValueError('Invalid ordered commit messages')
+    commits = [{'sha': records[index].strip(), 'message': records[index + 1]}
+               for index in range(0, len(records), 2)]
+    return RED_HOLD['red_hold_tip'](commits, True)
 
 
 def deferred_blobs(root, base, tip, name):
@@ -263,6 +276,18 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
         return {'status': 'idle', 'tip': tip}
     if git(root, 'merge-base', base, tip) != base:
         return {'status': 'diverged', 'tip': tip}
+    batch_tip = tip
+    try:
+        verdict = latest_verdict(root, deadline)
+        if verdict['red']:
+            tip = fix_prefix(root, base, tip)
+            if tip is None:
+                return {'status': 'held', 'tip': base, 'batchTip': batch_tip, 'ciRun': verdict['id'],
+                        'reason': 'main-red-no-fix', 'gateSeconds': round(time.monotonic()-started, 2)}
+    except (OSError, ValueError, KeyError, subprocess.SubprocessError) as error:
+        return finish({'status': 'red', 'tip': batch_tip, 'bad': None, 'phase': 'ci-verdict',
+                       'types': 'unverified', 'gateSeconds': round(time.monotonic()-started, 2),
+                       'output': 'Publication held: ' + str(error)})
     result = checker(root, base, tip, deadline)
     attempts.append((tip, result.get('steps', [])))
     candidate = tip
@@ -273,6 +298,8 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
         attempts.append((tip, [{'step': 'attribution', 'seconds': round(time.monotonic()-attribution_started, 4),
                                 'status': 'passed'}]))
         candidate = git(root, 'rev-parse', bad + '^') if bad else base
+        if verdict['red'] and candidate != base:
+            candidate = fix_prefix(root, base, candidate) or base
         # The prefix must pass too, in the remaining original 45s budget.
         if candidate != base:
             prefix = checker(root, base, candidate, deadline)
@@ -333,7 +360,7 @@ def main():
     with (common / 'push.log').open('a') as log:
         log.write(time.strftime('%Y-%m-%dT%H:%M:%S%z ') + json.dumps(result) + '\n')
     print(json.dumps(result))
-    return 0 if result['status'] in ('idle', 'pushed', 'quiet') else 1
+    return 0 if result['status'] in ('idle', 'pushed', 'quiet', 'held') else 1
 
 
 if __name__ == '__main__':
