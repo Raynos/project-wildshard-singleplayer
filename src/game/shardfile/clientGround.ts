@@ -1,3 +1,4 @@
+import type { ShardManifest } from '../shard/manifest';
 import { bilinearTerrainSamplers, decodeTerrainTile, terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 import type { TerrainField } from '@wildshard/engine/level/data';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -59,4 +60,12 @@ export function clientPageGround(source: Shardfile, assets: ReadonlyMap<string, 
   const plan = parseNativeRuntimePlan(outputDescriptor(source)?.sections.get('sim/runtime-plan'));
   const tiled = source.props !== null && source.props.tiles.length > 0 && splatTerrainOf(source.props) !== undefined;
   return { paths: 'plugin', terrain: clientGround(source, assets), ...(plan.recipe.terrain === 'none' ? { structures: true } : {}), ...(tiled ? { tiled: true } : {}) };
+}
+
+/** A props-bound native transition already replaces its whole splat mesh with tiles.
+ * Carry that draw ownership into bootstrap, before the discarded mesh loads public texture arrays. */
+export function tiledBootstrapGround(ground: ShardManifest['ground'], props: Shardfile['props'], binds: readonly string[]): ShardManifest['ground'] {
+  if (ground.tiled === true || !binds.includes('terrain') || !binds.includes('props') || props === null
+    || props.tiles.length === 0 || splatTerrainOf(props) === undefined) return ground;
+  return { ...ground, tiled: true };
 }

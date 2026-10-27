@@ -1,5 +1,5 @@
 import { prepareClientModuleGroups } from './clientModules';
-import { outputDescriptor } from './outputDescriptor';
+import { outputDescriptor, isBuildValidatedOutput } from './outputDescriptor';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { runtimeAccountedBytes } from '@wildshard/format/runtimeCost';
 import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
@@ -19,17 +19,17 @@ import { bootPageMode, pageGridRecovery } from '../grid/pageEntry';
 import { firstPartyInstance } from '../grid/instances';
 import { game } from '../shard/registry';
 import { installShards, shards } from '../shard/list';
-import { shardEntries } from '../shard/entryMode';
+import { shardEntries, shardEntry } from '../shard/entryMode';
 import type { ShardManifest } from '../shard/manifest';
 import { toLevelSpec } from '../shard/spec';
 import { productPaintedLook } from '../looks/paintedLook';
 import { emptyLook } from './emptyLook';
 import { shardfileLook } from './look';
-import { admitProduct, boundedResponse, readProductInput, type AdmittedProduct, type ProductOptions } from './product';
+import { admitProduct, boundedResponse, readProductInput, readProductDescriptor, type AdmittedProduct, type ProductOptions } from './product';
 import { provideManifestAdmission } from './runtimeProduct';
 import { ClientAssets } from './clientAssets';
 import type { ShardfileClientBindings } from './client';
-import { clientGround, clientPageGround } from './clientGround';
+import { clientGround, clientPageGround, tiledBootstrapGround } from './clientGround';
 import { shardfileWater } from './water';
 import { clientResidency } from './clientResidency';
 
@@ -138,7 +138,19 @@ function selectSource(source: ShardManifest, firstParty: boolean): ShardManifest
  * A trusted preparation barrier may overlap admission, but precedes every live binding and publication. */
 export async function installManifestShardfile(manifest: ShardManifest, providedOptions: ProductOptions, bindings: ShardfileClientBindings, prepared?: () => Promise<unknown>): Promise<ShardManifest> {
   const options = withPageMemory(providedOptions, bindings);
-  if (manifest.shardfile === undefined) return manifest;
+  if (manifest.shardfile === undefined) {
+    // Transitional entries bootstrap their native terrain before admitting the world plugin.
+    // Read only the receipted header here; never retain an admission or pin its transport to the page owner.
+    if (!options.firstParty || manifest.gridShardfile === undefined || shardEntry(manifest) !== 'shardfile') return manifest;
+    const url = new URL(manifest.gridShardfile, options.base);
+    if (url.origin !== new URL(options.base).origin || url.search !== '' || url.hash !== '') throw new Error('Manifest shardfile must be an unqualified same-origin source');
+    const source = await readProductDescriptor({ ...options, base: new URL('.', url).href, descriptorPath: url.pathname });
+    const { slug: authoredIdentity } = source.identity, expectedIdentity = manifest.slug.replace(/^_/u, '');
+    if (authoredIdentity !== expectedIdentity) throw new Error('Manifest and shardfile identities differ');
+    if (!isBuildValidatedOutput(source) || source.runtime === null) return manifest;
+    const ground = tiledBootstrapGround(manifest.ground, source.props, source.runtime.binds ?? []);
+    return ground === manifest.ground ? manifest : selectSource({ ...manifest, ground }, true);
+  }
   if (!options.firstParty) throw new Error('Manifest shardfile descriptors require first-party provenance');
   const url = new URL(manifest.shardfile, options.base);
   if (url.origin !== new URL(options.base).origin || url.search !== '' || url.hash !== '') throw new Error('Manifest shardfile must be an unqualified same-origin source');
