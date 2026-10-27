@@ -1,6 +1,8 @@
 import {nineCastBlobs} from './fixtures/nine-cast-blobs';
 // @vitest-environment happy-dom
-import { expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, expect, test, vi } from 'vitest';
+import { installBrowserScopeEnvironment } from '../src/engine/app/view/scopeEnvironment';
+import { installScopeEnvironment, scopeEnvironment } from '../src/engine/app/scopeEnvironment';
 import { Box3, BufferAttribute as NativeBufferAttribute, BufferGeometry as NativeBufferGeometry, Group, Mesh, MeshStandardMaterial, Object3D, Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { AssetService } from '../src/engine/app/assets';
@@ -16,6 +18,11 @@ import { recordSceneProfile } from '../src/game/shardfile/sceneProfile';
 import { isDev, setDev } from '../src/engine/core/devMode';
 import * as pacing from '../src/engine/core/framePacing';
 import * as work from '../src/engine/core/workSlice';
+// Late scene work now crosses the same controlled paint as the browser host.
+const nativeScopeEnvironment = scopeEnvironment();
+beforeEach(() => { installBrowserScopeEnvironment(); });
+afterEach(() => { installScopeEnvironment(nativeScopeEnvironment); });
+
 /** A product whose file names are their own URLs: these rows' sources and aliases are /-rooted public URLs (d9cf71547f). */
 const identityProduct = { url: (name: string): string => name };
 

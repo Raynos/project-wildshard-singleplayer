@@ -17,7 +17,7 @@ export async function readWholeLibrary(owner: Scope, product: ShardProduct, row:
   const files = [...new Set([...models.values()].flatMap(model => model.files))], taken = new Set<string>();
   // Explorer-only models borrow admitted fine partitions on demand; resident libraries still require library ownership.
   // Coarse proxies cannot reconstruct original models and are never an exact source.
-  const fineFiles = new Set(row.load === 'explorer' ? product.shardfile.tiles.filter(tile => tile.lod === 0).flatMap(tile => tile.files) : []);
+  const fineFiles = new Set(row.load === 'explorer' || row.load === 'refine' ? product.shardfile.tiles.filter(tile => tile.lod === 0).flatMap(tile => tile.files) : []);
   const glbs = new Set(product.shardfile.files.filter(file => file.kind === 'glb').map(file => file.hash));
   for (const file of files) if (!product.shardfile.library.includes(file) && !(fineFiles.has(file) && glbs.has(file))) throw new Error(`Missing whole library file: ${file}`);
   const scope = owner.child(`whole/${row.id}`);

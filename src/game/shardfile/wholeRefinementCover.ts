@@ -5,14 +5,13 @@ import { clientTileViews } from './clientViews';
 import { prepareClientTile, ring, type ResidentTile, type TileContent } from './tileContent';
 import { tileOf } from './tileOrder';
 import { tileRing } from './tileDriver';
-import { residentTileEntry } from './tileEntry';
 import { runtimeLookMaterials, runtimeProduct } from './runtimeProduct';
 import type { ControlRefinement } from './controlRefinement';
 
 /** Declared L1 props cover a refine-only native library. The entry ring's
  * parents precede control; other parents share the nearest-first late cursor.
  * A fine read always awaits its parent, and masks it only after publication. */
-export function wholeRefinementCover(ctx: ShardContext, owner: Scope, queue: ControlRefinement): {
+export function wholeRefinementCover(ctx: ShardContext, owner: Scope, queue: ControlRefinement, entry: { readonly x: number; readonly z: number }): {
   readonly content: TileContent; readonly ensure: (tile: number) => Promise<void>;
 } {
   const source = ctx.product.shardfile, props = source.props, product = runtimeProduct(source);
@@ -46,7 +45,7 @@ export function wholeRefinementCover(ctx: ShardContext, owner: Scope, queue: Con
   };
   const ensure = (tile: number): Promise<void> => load(Math.floor(tile / 16) * 4 + Math.floor(tile % 8 / 2));
   const content: TileContent = { id: 'whole.refinement.coarse', tiles: () => new Set(), attach: () => Promise.resolve(), coarse: async (scope, rendered) => {
-    const at = residentTileEntry(owner) ?? source.spawn, spawn = new Set([...ring(tileOf(at.x, at.z), tileRing())].map(tile => Math.floor(tile / 16) * 4 + Math.floor(tile % 8 / 2)));
+    const at = entry, spawn = new Set([...ring(tileOf(at.x, at.z), tileRing())].map(tile => Math.floor(tile / 16) * 4 + Math.floor(tile % 8 / 2)));
     const distance = (key: number): number => (-250 + (key % 4 + 0.5) * 125 - at.x) ** 2 + (-250 + (Math.floor(key / 4) + 0.5) * 125 - at.z) ** 2;
     const order = [...parents.keys()].sort((a, b) => distance(a) - distance(b));
     for (const key of order) if (spawn.has(key)) await load(key);

@@ -19,6 +19,8 @@ import { admitWorldSceneSurface, prepareWorldSceneSurfaces, worldSceneSurfaceMat
 import { worldSceneSourceMaterial } from './worldSceneMaterials';
 import { WorldScenePlacement } from './worldScenePlacement';
 import { readWholeLibrary } from './wholeLibrary';
+import { RefiningWholeLibrary } from './refiningWholeLibrary';
+import { wholeRefinementCover } from './wholeRefinementCover';
 import { lendWorldSceneTextures } from './worldSceneTextures';
 import { lendWorldSceneUniforms } from './worldSceneUniforms';
 import { WorldSceneBatch } from './worldSceneBatch';
@@ -283,7 +285,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
   // Specimen graphs are fully admitted above; their buffers belong to a requested
   // Explorer choice, rather than every resident world and inactive profile.
   const residentModels = catalogue === undefined ? undefined : { ...catalogue, models: catalogue.models.filter(model => model.assembly !== 'scene') };
-  const coldOnly = (ref: { readonly library: string }): boolean => { const row = libraryRows.get(ref.library); return row?.kind === 'whole' && row.load === 'explorer'; };
+  const coldOnly = (ref: { readonly library: string }): boolean => { const row = libraryRows.get(ref.library); return row?.kind === 'whole' && (row.load === 'explorer' || row.load === 'refine'); };
   const modelGeometry = residentModels === undefined ? [] : worldSceneModelResources(residentModels).geometry.filter(ref => !coldOnly(ref));
   const activeSteps = section.steps.filter(step => step.load !== 'explorer' && (step.cube === undefined || step.cube === (ctx.cube === null ? 'standalone' : 'cell')));
   // Collision predicates may only read an already published scalar from the
@@ -300,10 +302,18 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     // I2: a late weld's own drawn geometry is read after control; its published resources (other draws borrow them) stay
     ...welds.flatMap(row => row.resources.flatMap(resource => resource.kind === 'geometry' ? [resource.source] : [])
       .concat(lateWelds.has(row.id) ? [] : row.nodes.flatMap(node => 'geometry' in node ? [node.geometry] : [])))].map(ref => JSON.stringify([ref.library, ref.model])));
+  const refined = (ref: { readonly library: string }): boolean => { const row = libraryRows.get(ref.library); return row?.kind === 'whole' && row.load === 'refine'; };
+  if (activeSteps.some(step => Object.values(step.geometry).some(refined)) || [...batches.values()].some(row => row.geometry.some(refined))
+    || welds.some(row => row.resources.some(resource => resource.kind === 'geometry' && refined(resource.source)))) throw new Error('Fine refinement requires a plain weld mesh consumer');
   await reads.close();
   reads.validate();
   const owner = resident.child('world-scenes'), libraries = new Map<string, Library>(), materials = new Map<string, Material>(), finish: (() => void)[] = [];
   const handles = new SceneHandles(ctx.game.runtime?.world?.sky);
+  const refinementOrigin = residentTileEntry(resident) ?? product.shardfile.spawn;
+  const refinement = new ControlRefinement(owner, ctx.game.runtime?.world?.game.levelScope, () => ctx.game.runtime?.world?.player.position ?? refinementOrigin, () => buildYield(owner));
+  const refining = new Map<string, RefiningWholeLibrary>();
+  const coarse = section.libraries.some(row => row.kind === 'whole' && row.load === 'refine') ? wholeRefinementCover(ctx, owner, refinement, refinementOrigin) : undefined;
+  if (coarse !== undefined) handles.addTiled(coarse.content);
   const bufferedContents: TileContent[] = [];
   if (section.cosmeticDraws !== undefined) {
     const random = ctx.app.rng.stream('cosmetic');
@@ -333,6 +343,11 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
           } else if (row.kind === 'whole') {
             const used = new Set(row.models.flatMap(model => residentReferences.has(JSON.stringify([row.id, model.id])) ? [model.id] : []));
             if (row.load === 'explorer' || used.size === 0) { libraryProgress(libraryIndex + 1, `${row.id} · deferred`); return; }
+            if (row.load === 'refine') {
+              if (coarse === undefined) throw new Error('Fine refinement requires coarse coverage');
+              const whole = new RefiningWholeLibrary(owner, product, row, refinement, coarse.ensure); refining.set(row.id, whole);
+              libraries.set(row.id, { geometry: id => whole.geometry(id) }); return;
+            }
             const whole = await readWholeLibrary(owner, product, row, used, () => buildYield(owner), ctx.app.assets);
             finish.push(whole.done); libraries.set(row.id, { geometry: whole.geometry });
           } else if (row.kind === 'owned') {
@@ -470,15 +485,22 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     };
     const publishAssembly = async (row: WorldSceneWeld, geometryOf: (library: string, model: string) => BufferGeometry | null | undefined): Promise<void> => {
       const geometry = new Map<string, BufferGeometry>();
+      const refine = new Map<string, (mesh: Mesh, scope: Scope) => TileContent>();
       for (const node of row.nodes) if ('geometry' in node) {
         const key = JSON.stringify([node.geometry.library, node.geometry.model]);
         if (geometry.has(key)) continue;
         const shape = geometryOf(node.geometry.library, node.geometry.model);
         if (shape === undefined || shape === null) throw new Error('Missing frozen scene geometry');
         // Decoder-only staging is adopted by the assembly, never uploaded.
-        geometry.set(key, shape); await copies.check();
+        geometry.set(key, shape);
+        const library = refining.get(node.geometry.library);
+        if (library !== undefined) {
+          if (node.kind !== 'mesh') throw new Error('Fine refinement needs a plain frozen mesh');
+          const model = node.geometry.model; refine.set(key, (mesh, scope) => library.bind(model, mesh, scope));
+        }
+        await copies.check();
       }
-      handles.publish(row.id, new WorldSceneWeldAssembly(row, handles, { geometry, materials, plumbing: product.shardfile.plumbing }, owner, registry(), ctx.root));
+      handles.publish(row.id, new WorldSceneWeldAssembly(row, handles, { geometry, materials, refine, plumbing: product.shardfile.plumbing }, owner, registry(), ctx.root));
     };
     const residentGeometry = (library: string, model: string): BufferGeometry | null | undefined => libraries.get(library)?.geometry(model);
     for (const row of welds) { publishResources(row, residentGeometry); if (!lateWelds.has(row.id)) await publishAssembly(row, residentGeometry); }
@@ -488,8 +510,6 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       const from = residentTileEntry(resident) ?? product.shardfile.spawn, owned = new Map(section.libraries.flatMap(row => row.kind === 'owned' ? [[row.id, row] as const] : []));
       const away = (row: WorldSceneWeld): number => { const at = lateWelds.get(row.id) ?? [0, 0]; return Math.hypot(at[0] - from.x, at[1] - from.z); };
       const late = welds.filter(row => lateWelds.has(row.id)).sort((a, b) => away(a) - away(b));
-      const level = ctx.game.runtime?.world?.game.levelScope;
-      const refinement = new ControlRefinement(owner, level, () => ctx.game.runtime?.world?.player.position ?? from, () => buildYield(owner));
       const pending = late.map(row => refinement.add(`weld:${row.id}`, { x: lateWelds.get(row.id)?.[0] ?? 0, z: lateWelds.get(row.id)?.[1] ?? 0 }, async () => {
           const shapes = new Map<string, WorldSceneGeometry>();
           try {
