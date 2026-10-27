@@ -15,6 +15,7 @@ import { censusReadSource } from './parity/tile-census-scene.mjs';
 import { summarizeTileCensus } from './parity/tile-census.mjs';
 import { TilesSchema } from '../src/format/shardSections.ts';
 import { TILE_STATE, TILE_PAINT_INIT, TILE_FRAMES, TILE_LEG_START, TILE_LEG_END } from './tile-plan-page.mjs';
+import { tilePlanMarkdown } from './tile-plan-report.mjs';
 import { floorGridBenchmarkUrl, FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
 import { gridFloorDocumentIdentity, runFloorGridRoute, gridFloorWitnessFailures, readFloorGridEntryways } from './frame-floor-grid.mjs';
 import { tileRetirementRoute, tileRetirementPortalPlans, seedTileRetirementHome } from './tile-retirement-proof.mjs';
@@ -23,8 +24,11 @@ const arg = (/** @type {string} */ name) => process.argv.find(s => s.startsWith(
 if (process.argv.includes('--help')) {
   console.info('browser-lane.sh --max 45 node --experimental-transform-types --import ./scripts/shard-platform-format.mjs scripts/tile-plan-reading.mjs --base=URL --pin=FULL_SHA --out=FRESH_DIR');
   console.info('8 families x 3x3/5x5 spawn; one resident-road reference and streamed-road DW/Sky handoff cohort. No retry/build/GC/Simulator.');
+  console.info('--report=READING_JSON renders the retained cohort offline, without opening a browser.');
   process.exit(0);
 }
+const report=arg('report');
+if(report!==undefined){console.info(tilePlanMarkdown(JSON.parse(readFileSync(report,'utf8'))));process.exit(0);}
 const base = v.parse(v.pipe(v.string(),v.url()),arg('base'));
 const pin = v.parse(v.pipe(v.string(),v.regex(/^[a-f0-9]{40}$/u)),arg('pin'));
 const out = v.parse(v.pipe(v.string(),v.minLength(1)),arg('out'));
@@ -200,3 +204,4 @@ const failures=[...result.rows.flatMap(row=>Reflect.get(row,'failures')??[]),...
 })];
 if(result.errors.length>0||failures.length>0)process.exitCode=2;
 console.info(JSON.stringify({complete:result.complete,rows:result.rows.length,grid:result.grid.length,errors:result.errors,failures}));
+writeFileSync(resolvePath(out,'report.md'),tilePlanMarkdown(result));
