@@ -1,5 +1,4 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- The compiler runs in plain Node, outside the test's happy-dom.
-import { execFileSync } from 'node:child_process';
+import { nalatiNativeProgram } from './nalati-native-program';
 import * as v from 'valibot';
 import type { NalatiTitanProgram, NalatiTitanPrograms } from '../../src/shards/nalati-grasslands/generators/stormTitanRows.mjs';
 import { nalatiTitanWire, type NalatiTitan } from '../../src/shards/nalati-grasslands/generators/stormTitanProgram';
@@ -8,7 +7,7 @@ import { nalatiTitanWire, type NalatiTitan } from '../../src/shards/nalati-grass
  *  compiled once in a plain Node child (`nalati-titan-compile.mjs`); the retired job's generated files no longer exist. */
 const Module = v.object({ wasm: v.string(), witness: v.string() });
 const compiled = v.parse(v.object({ programs: v.unknown(), titan: Module, pasture: Module }),
-  JSON.parse(execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', 'test/fixtures/nalati-titan-compile.mjs'], { encoding: 'utf8', maxBuffer: 1 << 26 })));
+  JSON.parse(await nalatiNativeProgram('titan')));
 const bytes = (text: string): Uint8Array => new Uint8Array(Buffer.from(text, 'base64'));
 // the builder's own key order survives (an object schema would move its declared keys first)
 export const NALATI_TITAN_PROGRAMS: NalatiTitanPrograms = nalatiTitanWire(JSON.stringify(compiled.programs));

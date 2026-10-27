@@ -590,8 +590,12 @@ jobs:
             !~/.cache/wildshard/generate/witness-*/*.lock
             !~/.cache/wildshard/generate/witness-*/*.readers
             !~/.cache/wildshard/generate/witness-*/evicting-*
-          key: native-witness-v1-${{ runner.os }}-${{ runner.arch }}-node24-${{ matrix.shard }}-${{ github.sha }}
-          restore-keys: native-witness-v1-${{ runner.os }}-${{ runner.arch }}-node24-${{ matrix.shard }}-
+            ~/.cache/wildshard/generate/fixture-*/[0-9a-f]*
+            !~/.cache/wildshard/generate/fixture-*/*.lock
+            !~/.cache/wildshard/generate/fixture-*/*.readers
+            !~/.cache/wildshard/generate/fixture-*/evicting-*
+          key: native-witness-v2-${{ runner.os }}-${{ runner.arch }}-node24-${{ matrix.shard }}-${{ github.sha }}
+          restore-keys: native-witness-v2-${{ runner.os }}-${{ runner.arch }}-node24-${{ matrix.shard }}-
       - uses: actions/download-artifact@v4
         with:
           name: generated-inputs
@@ -658,6 +662,10 @@ jobs:
             !~/.cache/wildshard/generate/witness-*/*.lock
             !~/.cache/wildshard/generate/witness-*/*.readers
             !~/.cache/wildshard/generate/witness-*/evicting-*
+            ~/.cache/wildshard/generate/fixture-*/[0-9a-f]*
+            !~/.cache/wildshard/generate/fixture-*/*.lock
+            !~/.cache/wildshard/generate/fixture-*/*.readers
+            !~/.cache/wildshard/generate/fixture-*/evicting-*
           key: native-witness-products-v1-${{ runner.os }}-${{ runner.arch }}-node24-${{ matrix.shard }}-${{ github.sha }}
           restore-keys: native-witness-products-v1-${{ runner.os }}-${{ runner.arch }}-node24-${{ matrix.shard }}-
       - uses: actions/download-artifact@v4
