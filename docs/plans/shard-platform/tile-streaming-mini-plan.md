@@ -1176,3 +1176,22 @@ Original loaded runner/page bytes and their receipt hashes match the saved
 values. All owned browser/context/Inspector processes exited naturally;
 both distinct preview borrows released, peers' parent servers preserved.
 No new build, forced GC, official quiet or Simulator was started.
+
+
+### Authorized unqualified-row recovery reader (2026-10-27, sp-x2)
+
+Coordinator supplies Nalati D106 c4ddbdb2cf and Nine f2f8c38b9a and calls
+only Nalati/Nine plus T7/S3.7 again. No existing ready pin contains both;
+one shared HEAD preview a423f4d305 was built, all products/app passing,
+ready4404. The original5f1/bc0 observations stay unchanged.
+The maintained body-free reader retains the original phone profile and
+deadlines, now preserves exact failure phase/wall, full scalar grid state,
+stack, partial crossings and portrait refusal capture. Five completed
+returns, if reached, each retain renderer+GPU private footprint delta
+against the original baseline with the unchanged absolute20MB bar.
+Dumps remain outside measured travel windows, with no forced GC.
+The offline report prints these observed walls/returns and leaves missing
+values unavailable. Scoped runner/report types and typed lint pass.
+Required full ratchet is attempted; existing shared deletion snapshot
+refuses missing vite/backdropPrefix.ts before measuring, no allowance edit.
+This reader is in flight and confers no new acceptance PASS.

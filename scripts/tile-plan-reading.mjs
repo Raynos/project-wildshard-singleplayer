@@ -108,7 +108,7 @@ async function open(ring,road){
   await harnessPins(context,{seed:357,browser:'Chromium / iPhone 16 Pro',lane:'tile-plan-end'});
   await context.addInitScript({content:GL_FULL_INIT});await context.addInitScript({content:TILE_PAINT_INIT});
   /** @type {string[]} */const errors=[];
-  page.on('pageerror',e=>errors.push(e.message));page.on('crash',()=>errors.push('Page crashed'));
+  page.on('pageerror',e=>errors.push(e.stack??e.message));page.on('crash',()=>errors.push('Page crashed'));
   page.on('response',r=>{if(r.status()>=400&&!new URL(r.url()).pathname.startsWith('/api/'))errors.push(`HTTP${r.status()} ${r.url()}`);});
   return {context,page,cdp,errors};
 }
@@ -178,43 +178,72 @@ try{
   // The same road source/setting, one resident reference then one streamed cohort.
   for(const road of spawnOnly?[]:/** @type {const} */(['resident','tiles'])){
     const visit=await open('5x5',road);
+    const gridStartedAt=Date.now();let phase='grid navigation',phaseAt=gridStartedAt;
+    const mark=(/** @type {string} */ next)=>{phase=next;phaseAt=Date.now();};
+    /** @type {Awaited<ReturnType<typeof sample>>|null} */let before=null;
+    /** @type {object[]} */const crossings=[];
+    /** @type {object[]} */const returns=[];
     try{
       await visit.page.goto(floorGridBenchmarkUrl(base),{waitUntil:'load'});await visit.page.locator('.ws-main-grid').click();
+      mark('grid gameplay readiness');
       await visit.page.waitForFunction('window.__wildshard?.shard?.grid?.state().live?.live?.gameplayReady',undefined,{timeout:240000});
+      mark('controls and spawn frames');
       await ready(visit.page);
       const gridState=await visit.page.evaluate('window.__wildshard.shard.grid.state()');
       const identity=await visit.page.evaluate(gridFloorDocumentIdentity),route=tileRetirementRoute(gridState);
+      mark('initial home seed streaming');
       await visit.page.evaluate(`(${seedTileRetirementHome.toString()})(${JSON.stringify(route.reference)},${JSON.stringify(identity)},(${gridFloorDocumentIdentity.toString()}))`);
-      const before=await sample(visit.page,`road-${road}-before`);
-      /** @type {object[]} */const crossings=[];
+      mark('baseline census');
+      before=await sample(visit.page,`road-${road}-before`);
       if(road==='tiles'){
         const entries=new Map();for(const cell of gridState.cells.filter((/** @type {{slug:string}} */ c)=>['driftwood-isle','far-reach'].includes(c.slug)))
           entries.set(cell.slug,await visit.page.evaluate(`(${readFloorGridEntryways.toString()})(${JSON.stringify(`/shardfiles/${cell.slug}/shard.json`)})`));
         const plans=tileRetirementPortalPlans(gridState,entries);
-        for(let round=0;round<5;round++)for(const plan of plans){
-          const startedAt=await visit.page.evaluate(TILE_LEG_START);
-          const witness=await runFloorGridRoute(visit.page,plan,identity),routeFailures=gridFloorWitnessFailures(witness),failures=[...routeFailures];
-          const frames=await visit.page.evaluate(TILE_LEG_END),state=await visit.page.evaluate(TILE_STATE);
-          const timings=state.grid.timing.filter((/** @type {{requestedAt:number}} */ t)=>t.requestedAt>=startedAt);
-          const limitMs=round===0?8000:5000;
-          if(frames.maxMs>100)failures.push(`Crossing frame ${frames.maxMs}ms exceeds100ms`);
-          for(const t of timings)if(t.to!==null&&t.end-t.requestedAt>=limitMs)failures.push(`Entry wall exceeds ${limitMs}ms`);
-          if(state.grid.tileGhosts!==0||state.grid.regionGhosts!==0)failures.push('Retired tile/region ghosts');
-          crossings.push({round:round+1,witness,frames,state,timings,limitMs,failures});writeFileSync(resolvePath(out,'crossings.json'),JSON.stringify(crossings,null,2));
-          if(routeFailures.length>0)throw new Error(`Crossing route: ${routeFailures.join('; ')}`);
+        for(let round=0;round<5;round++){
+          for(const plan of plans){
+            mark(`crossing round${round+1} ${plan.name}`);
+            const startedAt=await visit.page.evaluate(TILE_LEG_START);
+            const witness=await runFloorGridRoute(visit.page,plan,identity),routeFailures=gridFloorWitnessFailures(witness),failures=[...routeFailures];
+            const frames=await visit.page.evaluate(TILE_LEG_END),state=await visit.page.evaluate(TILE_STATE);
+            const timings=state.grid.timing.filter((/** @type {{requestedAt:number}} */ t)=>t.requestedAt>=startedAt);
+            const limitMs=round===0?8000:5000;
+            if(frames.maxMs>100)failures.push(`Crossing frame ${frames.maxMs}ms exceeds100ms`);
+            for(const t of timings)if(t.to!==null&&t.end-t.requestedAt>=limitMs)failures.push(`Entry wall exceeds ${limitMs}ms`);
+            if(state.grid.tileGhosts!==0||state.grid.regionGhosts!==0)failures.push('Retired tile/region ghosts');
+            crossings.push({round:round+1,witness,frames,state,timings,limitMs,failures});writeFileSync(resolvePath(out,'crossings.json'),JSON.stringify(crossings,null,2));
+            if(routeFailures.length>0)throw new Error(`Crossing route: ${routeFailures.join('; ')}`);
+          }
+          mark(`return census round${round+1}`);
+          const state=await visit.page.evaluate(TILE_STATE),process=await processMemory(`road-${road}-return-${round+1}`),failures=[];
+          const deltaBytes=process.renderer+process.gpu-before.process.renderer-before.process.gpu;
+          if(Math.abs(deltaBytes)>20_000_000)failures.push('Return footprint differs from baseline by more than20MB');
+          if(state.grid.current!==state.grid.home||!state.grid.ready||!state.controls||state.grid.pending.length>0
+            ||state.grid.retiring.length>0||state.grid.inFlight!==0||state.grid.queued!==0)failures.push('Return is not the settled original home');
+          if(state.grid.tileGhosts!==0||state.grid.regionGhosts!==0)failures.push('Return has retired ghosts');
+          returns.push({round:round+1,state,process,deltaBytes,failures});
+          writeFileSync(resolvePath(out,'returns.json'),JSON.stringify(returns,null,2));
         }
       }
+      mark('final census');
       const after=await sample(visit.page,`road-${road}-after`);
       if(road==='tiles'&&after.state.grid.roadTiles?.ready!==true)throw new Error('S3 road archive/stream did not become ready');
-      result.grid.push({road,before,after,crossings,errors:visit.errors});
-    }catch(error){result.grid.push({road,error:String(error),errors:visit.errors});result.errors.push(`road-${road}: ${String(error)}`);}
+      result.grid.push({road,before,after,crossings,returns,errors:visit.errors});
+    }catch(error){
+      const failedAt=Date.now(),lastState=await visit.page.evaluate(TILE_STATE).catch((/** @type {unknown} */ e)=>({unavailable:String(e)}));
+      const diagnostic=await visit.page.evaluate('window.__wildshard?.shard?.grid?.state()??null').catch((/** @type {unknown} */ e)=>({unavailable:String(e)}));
+      const refusalCapture=await visit.page.screenshot({path:resolvePath(out,`road-${road}-refusal.jpg`),type:'jpeg',quality:65})
+        .then(()=>null).catch(String);
+      result.grid.push({road,error:String(error),errorStack:error instanceof Error?error.stack:null,errors:visit.errors,
+        failurePhase:phase,phaseMs:failedAt-phaseAt,elapsedMs:failedAt-gridStartedAt,lastState,diagnostic,refusalCapture,
+        ...(before===null?{}:{before}),crossings,returns});
+      result.errors.push(`road-${road}: ${String(error)}`);
+    }
     finally{await visit.context.close();write();}
   }
   result.complete=true;
 }finally{await memoryBrowser.close();write();}
-const failures=[...result.rows.flatMap(row=>Reflect.get(row,'failures')??[]),...result.grid.flatMap(row=>{
-  const crossings=Reflect.get(row,'crossings');return Array.isArray(crossings)?crossings.flatMap(c=>Reflect.get(c,'failures')??[]):[];
-})];
+const failures=[...result.rows.flatMap(row=>Reflect.get(row,'failures')??[]),...result.grid.flatMap(row=>
+  ['crossings','returns'].flatMap(key=>{const values=Reflect.get(row,key);return Array.isArray(values)?values.flatMap(c=>Reflect.get(c,'failures')??[]):[];}))];
 if(result.errors.length>0||failures.length>0)process.exitCode=2;
 console.info(JSON.stringify({complete:result.complete,rows:result.rows.length,grid:result.grid.length,errors:result.errors,failures}));
 writeFileSync(resolvePath(out,'report.md'),tilePlanMarkdown(result));
