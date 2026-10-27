@@ -2,7 +2,7 @@
 // spawns it, on its rigged hulls (src/shards/pine-hollow/species/looks.ts registers the row and look); its procedural lofts
 // are Pine's offline rig input (src/shards/pine-hollow/generators/creatureLofts.ts, sp-o194).
 import type { SpeciesDef } from '@wildshard/engine/entities/species/registry';
-import type { RGB } from '@wildshard/engine/level/data';
+import type { RGB } from '@wildshard/sdk/bake/species';
 
 /**
  * Deer — red-deer proportions: 0.92 m at the spine, long neck, stags carry a 6-point rack.
