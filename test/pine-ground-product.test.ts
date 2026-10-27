@@ -1,9 +1,7 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- the committed ground tile GLBs are the product's files.
-import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { checkTileMaterialNames, splatTerrainOf, splatTextureRefs } from '@wildshard/format/splatTerrain';
 import { preflightDeclaredCosts } from '@wildshard/format/assetAdmission';
-import { PINE as product } from './fixtures/pine-program';
+import { PINE as product, PINE_ASSETS } from './fixtures/pine-program';
 import { PINE_SOURCES } from './fixtures/pine-sources';
 import { timberWorld } from '../src/shards/pine-hollow/generators/timberWorldRows';
 
@@ -25,7 +23,9 @@ test('the ground joins every props tile, the timber after it', () => {
     const file = files.get(tile.file); if (file === undefined) throw new Error('ground file missing');
     // L0 draws the splat layers; L1 its own colours, with no dependency (a coarse tile may not reach the library)
     expect(tile.lod === 0 ? splatTextureRefs(splat).every(ref => file.dependencies.includes(ref)) : file.dependencies.length === 0).toBe(true);
-    checkTileMaterialNames(undefined, splat, new Uint8Array(readFileSync(new URL(`../src/shards/pine-hollow/assets/${tile.file}`, import.meta.url))));
+    // the ground GLB's bytes as the program handed them to the product (ctx.asset), never a file
+    const bytes = PINE_ASSETS.get(tile.file); if (bytes === undefined) throw new Error('ground bytes missing');
+    checkTileMaterialNames(undefined, splat, bytes);
   }
   expect(splat.phone).toBeDefined(); // Pine's phone draws its ASTC 6x6 ground layers
   // every tile's declared cost covers its closure (the ground GLB, its layer KTX2s, the timber), as the build admits it

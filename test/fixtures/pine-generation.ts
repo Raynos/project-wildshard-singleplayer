@@ -8,7 +8,8 @@ const project = 'src/shards/pine-hollow';
 export const PINE_INPUT_ROOTS: readonly { prefix: string; directory: string }[] = [
   { prefix: '/src/shards/pine-hollow/', directory: project }, { prefix: '/assets/', directory: resolve('public/assets') },
 ];
-/** A Pine generation context over its declared roots, caching under `cache`. */
-export function pineGeneration(label: string, cache: string): ProjectGenerationContext {
-  return createProjectGeneration(project, hashImmutableBytes(new TextEncoder().encode(label)), new Map(), cache, PINE_INPUT_ROOTS);
+/** A Pine generation context over its declared roots, caching under `cache`; `assets` receives what the program hands over
+ *  with `ctx.asset`, by hash. */
+export function pineGeneration(label: string, cache: string, assets: Map<string, Uint8Array> = new Map()): ProjectGenerationContext {
+  return createProjectGeneration(project, hashImmutableBytes(new TextEncoder().encode(label)), assets, cache, PINE_INPUT_ROOTS);
 }

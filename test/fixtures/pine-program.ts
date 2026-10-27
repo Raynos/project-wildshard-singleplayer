@@ -15,9 +15,12 @@ import { pineGeneration } from './pine-generation';
 
 // GR8: Pine's producers run in its program (generate(ctx), prepareOutput(ctx)), so tests read what the program
 // admits, not the static rows the retired scheduler jobs used to fill. One run per test worker, over the shared cache.
-const context = { ...pineGeneration('pine-program-fixture-v1', resolve(homedir(), '.cache/wildshard/gen')), ...nativeCompilers };
+const assets = new Map<string, Uint8Array>();
+const context = { ...pineGeneration('pine-program-fixture-v1', resolve(homedir(), '.cache/wildshard/gen'), assets), ...nativeCompilers };
 /** Pine's declaration as its source program admits it. */
 export const PINE: Shardfile = (await generate(context)).shard;
+/** The bytes Pine's program handed its product with `ctx.asset` (the splat ground's tiles and layers), by hash. */
+export const PINE_ASSETS: ReadonlyMap<string, Uint8Array> = new Map(assets);
 /** Pine's journal (its admitted row, files and named images), as the program computes it. */
 export const PINE_JOURNAL: Awaited<ReturnType<typeof pineJournal>> = await pineJournal(context);
 /** The Antler King's baked kit (its named pool and rows), as the program bakes it. */
