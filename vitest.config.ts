@@ -16,8 +16,9 @@ export default defineConfig({
   resolve: { alias: rapierAlias }, assetsInclude: ['**/*.bin', '**/*.wasm'],
   // Reuse transformed code in CI; each test still executes in its isolated worker.
   test: { fsModuleCache: Boolean(ci ?? githubActions), ...(maxWorkers === undefined ? {} : { maxWorkers }), testTimeout: 30_000, environment: 'node',
-    // This Node-only reader verifies sealed files; DOM suites must retain file URLs.
-    server: { deps: { external: [/\/scripts\/built-product\.mjs$/u] } },
+    // Native product/hash readers own filesystem URLs, even in DOM suites.
+    // Vite's browser query injection must not rewrite the hash CLI's hashbang.
+    server: { deps: { external: [/\/scripts\/(?:built-product|bake-input-hashes)\.mjs$/u] } },
     sequence: { sequencer: DurationSequencer },
     include: ['src/**/*.test.ts', 'test/**/*.test.ts', 'admin/test/**/*.test.ts', 'drafts/test/**/*.test.ts'],
     setupFiles: ['test/setup.ts'], restoreMocks: true },
