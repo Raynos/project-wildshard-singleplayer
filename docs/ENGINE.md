@@ -5925,6 +5925,9 @@ unbounded catalogues and paths outside `/assets/`.
 SDK `@wildshard/sdk/bake/specimenCatalogue`: strict `defineSpecimenCatalogue`
 book/model lookup, canonical `nameSpecimenBook` JSON/schema, and fresh
 `sharedPickupCatalogue()` metadata without runtime/I/O.
+`@wildshard/sdk/bake/canvasAtlas`: `canvasAtlasRows` admits JSON;
+`paintSteps` replays ordered expressions/RNG; browser-only
+`paintCanvasAtlas` returns the original mipmapped sRGB texture.
 
 `@wildshard/engine/core/ktx2.parseKtx2Bytes(bytes)` validates bounded KTX2,
 copies its view and uses the configured loader/Zstd worker without asset URL

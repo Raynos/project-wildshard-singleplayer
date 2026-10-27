@@ -1,6 +1,4 @@
-import * as v from 'valibot';
-import { paintCanvasAtlas, type CanvasAtlasRow } from '@wildshard/game/plugin/geometry';
-import { isJsonData } from '@wildshard/format/json';
+import { canvasAtlasRows, paintCanvasAtlas } from '@wildshard/sdk/bake/canvasAtlas';
 import decals from '../data/decals.json' with { type: 'json' };
 import plumbing from '../data/plumbing.json' with { type: 'json' };
 
@@ -9,7 +7,7 @@ declare global { interface Window { bakeNineDecal: (tier: 'phone' | 'desktop') =
 
 /** Retain the old native canvas raster at each declared tier scale. */
 window.bakeNineDecal = async tier => {
-  const row = v.parse(v.custom<CanvasAtlasRow>(isJsonData), decals.JIAN_DECALS);
+  const row = canvasAtlasRows(decals.JIAN_DECALS);
   const scale = plumbing.knobs.find(knob => knob.id === 'nine.decalScale')?.[tier];
   if (scale === undefined) throw new Error('Missing authored decal scale');
   const texture = paintCanvasAtlas(row, scale);

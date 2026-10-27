@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
 import { paintSteps, type CanvasAtlasRow } from '@wildshard/game/plugin/geometry';
+import { paintSteps as paintAuthorSteps, canvasAtlasRows } from '../src/sdk/bake/canvasAtlas';
 import decals from '../src/shards/nine-dragon-stack/data/decals.json' with { type: 'json' };
 
 // Captured from the executable rows at fe0386a05 before their JSON migration.
@@ -19,10 +20,19 @@ test.each([
       return true;
     },
   });
-  paintSteps(context, (row as CanvasAtlasRow).steps);
-  expect(calls).toHaveLength(count);
-  const hash = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(calls))));
-  expect(Array.from(hash, byte => byte.toString(16).padStart(2, '0')).join('')).toBe(digest);
+  for (const paint of [paintSteps, paintAuthorSteps]) {
+    calls.length = 0;
+    paint(context, (row as CanvasAtlasRow).steps);
+    expect(calls).toHaveLength(count);
+    const hash = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(calls))));
+    expect(Array.from(hash, byte => byte.toString(16).padStart(2, '0')).join('')).toBe(digest);
+  }
+});
+
+test('author atlas admission preserves the original JSON-only boundary', () => {
+  expect(canvasAtlasRows(decals.JIAN_DECALS)).toEqual(decals.JIAN_DECALS);
+  expect(() => canvasAtlasRows({ w: 2, h: 2, steps: [() => undefined] })).toThrow();
+  expect(() => canvasAtlasRows({ w: 2, h: Number.NaN, steps: [] })).toThrow();
 });
 
 test('decal dimensions and UV cells retain their authored frames', () => {
