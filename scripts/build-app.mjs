@@ -7,6 +7,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { writeChunkReport } from './app-build/chunkReport.mjs';
+import { bakeGridSeams, writeGridSeams } from './app-build/gridSeams.mjs';
 import { checkNoTopLevelAwait } from './app-build/noTopLevelAwait.mjs';
 import { copyOutputProducts } from './app-build/outputProducts.mjs';
 import { stampBuildDocuments } from './app-build/buildIdentity.mjs';
@@ -39,11 +40,17 @@ for (const baker of ['bake-chunk', 'bake-sky']) {
 }
 step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', "(await import('./scripts/app-build/gen.ts')).generateBootTables();"]);
 step(['scripts/gen-shards.mjs']);
+// the certified grid seams over the generated catalogue (was vite/gridSeamPlans.ts): the config defines their address
+try { bakeGridSeams(process.cwd()); }
+catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exit(1); }
 
 const vite = resolve(import.meta.dirname, '../node_modules/vite/bin/vite.js');
 const build = spawnSync(process.execPath, [vite, 'build', ...args], { stdio: 'inherit' });
 if (build.error !== undefined) throw build.error;
 if (build.status !== 0) { process.exitCode = build.status ?? 1; process.exit(); }
+
+// the seams' exact bytes as their hashed asset, beside the bundle that names it
+writeGridSeams(outDir, process.cwd());
 
 // no emitted app JavaScript may suspend its module's evaluation (was vite/noTopLevelAwait.ts); inline workers are iife,
 // where the bundler refuses top-level await itself

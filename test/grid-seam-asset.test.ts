@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { gridSeamAsset } from '../vite/gridSeamPlans';
+import { gridSeamAsset } from '../scripts/app-build/gridSeams.mjs';
 import { checkChunks } from '../scripts/check-chunks.mjs';
 import { writeChunkReport } from '../scripts/app-build/chunkReport.mjs';
 import { build, type InlineConfig } from 'vite';

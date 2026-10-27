@@ -1,6 +1,6 @@
 import { defineConfig, type Plugin } from 'vite';
 import { assetTablesPlugin } from './vite/assetTables';
-import { gridSeamPlansPlugin } from './vite/gridSeamPlans';
+import { readGridSeams } from './scripts/app-build/gridSeams.mjs';
 import { worldMapAtlasPlugin } from './vite/worldMapAtlas';
 import { execSync } from 'node:child_process';
 import { rmSync, readdirSync, existsSync, readFileSync } from 'node:fs';
@@ -114,7 +114,7 @@ export default defineConfig(({ mode, command }) => {
       },
     assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
     resolve: { alias: rapierAlias }, // Rapier's wasm-importing module → plain bindings (vite/rapier.ts)
-    define: { __SHARDFILE_VALIDATOR__: JSON.stringify(validationRevision), __SHARDFILE_VERDICTS__: JSON.stringify(buildValidationReceipts(validationRevision)), __DEVSERVER__: mode === 'devserver', __BUILD_ID__: BUILD_ID_EXPRESSION, __SAVE_NAMESPACES__: JSON.stringify(readdirSync('src/shards').filter((slug) => existsSync(join('src/shards', slug, 'manifest.ts')))) },
-    plugins: native ? [assetTablesPlugin(), gridSeamPlansPlugin(), worldMapAtlasPlugin(), versionPlugin(), nativePlugin()] : [assetTablesPlugin(), gridSeamPlansPlugin(), worldMapAtlasPlugin(), versionPlugin(), bootModulesPlugin()],
+    define: { __GRID_SEAM_ASSET__: JSON.stringify(readGridSeams(process.cwd()).address), __SHARDFILE_VALIDATOR__: JSON.stringify(validationRevision), __SHARDFILE_VERDICTS__: JSON.stringify(buildValidationReceipts(validationRevision)), __DEVSERVER__: mode === 'devserver', __BUILD_ID__: BUILD_ID_EXPRESSION, __SAVE_NAMESPACES__: JSON.stringify(readdirSync('src/shards').filter((slug) => existsSync(join('src/shards', slug, 'manifest.ts')))) },
+    plugins: native ? [assetTablesPlugin(), worldMapAtlasPlugin(), versionPlugin(), nativePlugin()] : [assetTablesPlugin(), worldMapAtlasPlugin(), versionPlugin(), bootModulesPlugin()],
   };
 });
