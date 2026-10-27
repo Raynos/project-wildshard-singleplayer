@@ -57,6 +57,7 @@ export interface NearPlaceholderState {
 export class NearPlaceholders {
   private readonly slots = new Map<string, Slot>();
   private readonly missing = new Set<string>();
+  private readonly deferred = new Map<string, number>();
   private eye: { x: number; z: number } | null = null;
   private readonly distances = new Map<string, number>();
   private generation = 0;
@@ -77,8 +78,9 @@ export class NearPlaceholders {
     for (const [instance, slot] of this.slots) if (!wanted.has(instance)) this.drop(slot);
     for (const [instance, distance] of wanted) {
       const slot = this.slots.get(instance);
-      if (slot === undefined) this.start(instance, distance);
-      else slot.lease?.update({ distance });
+      if (slot === undefined) {
+        if (this.deferred.get(instance) !== this.host.allocator.revision) this.start(instance, distance);
+      } else slot.lease?.update({ distance });
     }
   }
 
@@ -122,11 +124,13 @@ export class NearPlaceholders {
     if (this.disposed) return;
     this.disposed = true;
     for (const slot of Array.from(this.slots.values())) this.drop(slot);
+    this.deferred.clear();
   }
 
   private readonly bytes = new Map<string, number>();
 
   private start(instance: string, distance: number): void {
+    this.deferred.delete(instance);
     const slot: Slot = { instance, generation: ++this.generation, view: null, lease: null, undo: null, owns: false, ready: false };
     this.slots.set(instance, slot);
     const generation = slot.generation;
@@ -140,9 +144,14 @@ export class NearPlaceholders {
       // cancel-safe: a cell that left the plan (or a disposed owner) discards what arrived
       if (this.disposed || this.slots.get(instance)?.generation !== generation) { prepared.geometry.dispose(); prepared.light?.dispose(); prepared.colour?.dispose(); return; }
       const root = this.host.root(instance);
-      const lease = root === undefined ? null : this.host.allocator.reserve({ id: `near:${instance}`, category: 'near', bytes, owner: instance, distance, needed: false,
+      // Richer neighbour views are optional: never evict a complete return world.
+      const lease = root === undefined ? null : this.host.allocator.reserveIfFits({ id: `near:${instance}`, category: 'near', bytes, owner: instance, distance, needed: false,
         evictSync: () => { const live = this.slots.get(instance); if (live !== undefined) this.drop(live, false); } });
-      if (root === undefined || lease === null) { prepared.geometry.dispose(); prepared.light?.dispose(); prepared.colour?.dispose(); this.slots.delete(instance); return; } // refused: the far proxy stays
+      if (root === undefined || lease === null) {
+        prepared.geometry.dispose(); prepared.light?.dispose(); prepared.colour?.dispose(); this.slots.delete(instance);
+        if (root !== undefined) this.deferred.set(instance, this.host.allocator.revision);
+        return; // No headroom: far stays drawn; retry only after charged costs change.
+      }
       const view = installFarProxy(root, prepared.geometry, prepared.look, prepared.positionalMask === true, this.host.decorate, true, null, prepared.light ?? null, prepared.colour ?? null);
       view.mesh.name = 'near-placeholder';
       slot.view = view; slot.lease = lease; slot.owns = owns;

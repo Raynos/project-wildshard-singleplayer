@@ -102,3 +102,35 @@ test('a missing near view keeps the far proxy and is not repeatedly requested', 
     expect(near.state().cells).toEqual([{ instance: 'cell', shows: 'none' }]);
   } finally { near.dispose(); }
 });
+
+test('optional near refinement preserves a kept world and retries after headroom changes', async () => {
+  const base = new ResidencyAllocator().cost().playing;
+  const allocator = new ResidencyAllocator({ playing: base + 1000 }), evict = vi.fn();
+  const kept = allocator.reserve({ id: 'kept-world', category: 'sim', owner: 'kept', bytes: 800, distance: 100, needed: false, evictSync: () => { evict(); } });
+  if (kept === null) throw new Error('Missing kept world');
+  const root = new Group(), cover = vi.fn(), disposed = vi.fn();
+  const load = vi.fn<NearPlaceholderHost['load']>(() => {
+    const geometry = new BoxGeometry(), light = new BoxGeometry(), colour = new BoxGeometry();
+    for (const part of [geometry, light, colour]) part.addEventListener('dispose', () => { disposed(); });
+    return Promise.resolve({ prepared: { geometry, light, colour, look: { family: 'toon', haze: { colour: [1, 1, 1] } } }, bytes: 200 });
+  });
+  const near = new NearPlaceholders({ allocator, root: () => root, pitch: 555,
+    cells: [{ instance: 'cell', slug: 'content', cell: [0, 0], origin: { x: 0, y: 0, z: 0 } }],
+    load, mask: () => new Set<number>(), cover: (instance, covered) => { cover(instance, covered); } });
+  let required: ReturnType<ResidencyAllocator['reserve']> = null;
+  try {
+    near.update({ x: 0, z: 0 }, null); await Promise.resolve();
+    expect(allocator.has('kept-world')).toBe(true); expect(evict).not.toHaveBeenCalled();
+    expect(disposed).toHaveBeenCalledTimes(3); expect(root.children).toHaveLength(0);
+    expect(cover).not.toHaveBeenCalled(); expect(near.absent('cell')).toBe(false);
+    near.update({ x: 0, z: 0 }, null); await Promise.resolve();
+    expect(load).toHaveBeenCalledOnce();
+    required = allocator.reserve({ id: 'actual-entry', category: 'sim', owner: 'actual', bytes: 800, distance: 0, needed: true });
+    expect(required).not.toBeNull(); expect(evict).toHaveBeenCalledOnce();
+    required?.release(); required = null;
+    near.update({ x: 0, z: 0 }, null); await Promise.resolve(); await Promise.resolve();
+    expect(load).toHaveBeenCalledTimes(2); expect(near.shows('cell')).toBe(true);
+    expect(cover).toHaveBeenCalledExactlyOnceWith('cell', true);
+    near.dispose(); expect(disposed).toHaveBeenCalledTimes(6); expect(allocator.entries()).toEqual([]);
+  } finally { near.dispose(); required?.release(); kept.release(); }
+});
