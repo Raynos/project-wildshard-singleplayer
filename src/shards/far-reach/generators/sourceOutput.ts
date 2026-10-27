@@ -31,6 +31,8 @@ import { GPU_FILES } from '../ktx2.generated';
 import { skyMillSceneProgram } from './millSceneProgram';
 import { skyStaticSceneProgram } from './staticSceneProgram';
 import { readSkyStaticSceneEnvelope } from './staticSceneIntake';
+import { skyRouteSceneProgram } from './routeSceneProgram';
+import { readSkyRouteValues } from './routeScene';
 
 type SectionName = Parameters<Parameters<typeof emitPlatformSections>[0]['get']>[0];
 /** Build-only declarations; the compiled client features own all presentation. */
@@ -63,9 +65,10 @@ export function skyOutputValues(scenes: SkyWorldSceneValues): SkySourceOutput {
 /** Publish original prepared geometry, world pieces and island tiles through normal owned-asset admission. */
 export async function prepareOutput(ctx: ProjectGenerationContext): Promise<SkySourceOutput> {
   const millScenes = await skyMillSceneProgram(ctx), staticScenes = await skyStaticSceneProgram(ctx);
+  const routeScenes = await skyRouteSceneProgram(ctx), routeWire = routeScenes.get('route-scenes.json');
   const millWire = millScenes.get('mill-scene.json'), staticWire = staticScenes.get('static-scenes.json');
-  if (millWire === undefined || staticWire === undefined) throw new Error('Missing owned scene hierarchy');
-  const sceneValues = skyWorldSceneValues(readMillSceneValues(millWire), readSkyStaticSceneEnvelope(staticWire));
+  if (millWire === undefined || staticWire === undefined || routeWire === undefined) throw new Error('Missing owned scene hierarchy');
+  const sceneValues = skyWorldSceneValues(readMillSceneValues(millWire), readSkyStaticSceneEnvelope(staticWire), readSkyRouteValues(routeWire));
   const prepared = skyOutputValues(sceneValues);
   const rigs = await skyCreatureRigOutput(ctx);
   const rigSources = skyRigAssetSources(rigs.files, GPU_FILES);

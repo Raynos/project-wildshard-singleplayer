@@ -6,6 +6,7 @@ import { PREPARED_MODEL_INPUTS, preparedModelSource } from './preparedModelProgr
 import { BRIDGE_REST_INPUTS, skyBridgeRestSource } from './bridgeRestProgram.ts';
 import { MILL_REST_INPUTS, skyMillRestSource } from './millRestProgram.ts';
 import { STATIC_SCENE_INPUTS, skyStaticSceneSource } from './staticSceneProgram.ts';
+import { skyRouteSceneSource } from './routeSceneProgram.ts';
 
 // The registered sealed runner starts at its workspace root. Native model
 // reads remain confined to the source program's explicit declared URL list.
@@ -24,6 +25,9 @@ sources.set('prepared-models.glb', await preparedModelSource(inputs));
 const bridgeInputs = new Map(BRIDGE_REST_INPUTS.map(url => [url,
   new Uint8Array(readFileSync(new URL(`../../../../public${url}`, import.meta.url)))]));
 const bridge = await skyBridgeRestSource(bridgeInputs);
+const routes = (await skyRouteSceneSource(bridgeInputs)).get('route-scenes.json');
+if (routes === undefined) throw new Error('Missing owned map route scenes');
+sources.set('owned-route-scenes.json', routes);
 const bridgeGeometry = bridge.get('bridge-rest.glb');
 if (bridgeGeometry === undefined) throw new Error('Missing owned map bridge inputs');
 sources.set('../../../public/assets/far-reach/baked/bridge-rest.glb', bridgeGeometry);

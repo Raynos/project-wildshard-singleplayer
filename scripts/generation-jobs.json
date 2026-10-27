@@ -7650,54 +7650,6 @@
       "platform": "portable"
     },
     {
-      "id": "sky-route-scene",
-      "shard": "far-reach",
-      "entry": "src/shards/far-reach/generators/routeScene.ts",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/far-reach/generators/routeScene.ts",
-        "skyRouteSource",
-        "src/shards/far-reach/data/routeScene.generated.json",
-        "--bytes"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/format",
-        "src/sdk",
-        "src/shards/far-reach/generators/routeScene.ts",
-        "src/shards/far-reach/generators/risingIslets.ts",
-        "src/shards/far-reach/generators/palette.ts",
-        "src/shards/far-reach/generators/layout.ts",
-        "src/shards/far-reach/data/layout.generated.json",
-        "src/shards/far-reach/data/strings.json",
-        "src/shards/far-reach/generators/rows/isletDesign.ts",
-        "src/shards/far-reach/data/restScenes.generated.json",
-        "src/shards/far-reach/generators/rows/moverBindings.ts",
-        "src/shards/far-reach/data/flags.json",
-        "public/assets/far-reach/models/bridge-deck/bridge-deck.glb",
-        "src/shards/far-reach/generators/bridgeRest.ts",
-        "src/shards/far-reach/generators/bridgeSine.ts",
-        "src/shards/far-reach/generators/bridges.ts",
-        "src/shards/far-reach/generators/fileInventory.ts",
-        "src/shards/far-reach/generators/modelFrames.ts",
-        "src/shards/far-reach/generators/modelIntake.ts",
-        "src/shards/far-reach/generators/restFiles.ts",
-        "src/shards/far-reach/generators/rows/bookStand.ts",
-        "src/shards/far-reach/generators/rows/trees.ts"
-      ],
-      "outputs": [
-        "src/shards/far-reach/data/routeScene.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/far-reach/data/routeScene.generated.json"
-      ],
-      "platform": "native"
-    },
-    {
       "id": "sky-crown-scene",
       "shard": "far-reach",
       "entry": "src/shards/far-reach/generators/crownScene.ts",
@@ -10478,7 +10430,6 @@
         "src/shards/far-reach/manifest.json",
         "src/shards/far-reach/data/rocSlate.json",
         "src/shards/far-reach/data/lookGraphs.json",
-        "src/shards/far-reach/data/routeScene.generated.json",
         "src/shards/far-reach/data/isletScenes.generated.json",
         "src/shards/far-reach/data/mapRest.generated.json",
         "src/shards/far-reach/data/mapRest.json",
@@ -10713,7 +10664,14 @@
         "src/sdk/bake/json.mjs",
         "src/shards/far-reach/generators/bridgeColliders.ts",
         "src/shards/far-reach/generators/millSceneProgram.ts",
-        "src/shards/far-reach/data/physicsPlacements.generated.json"
+        "src/shards/far-reach/data/physicsPlacements.generated.json",
+        "src/shards/far-reach/generators/routeScene.ts",
+        "src/shards/far-reach/generators/rows/moverBindings.ts",
+        "src/shards/far-reach/generators/bridgeRest.ts",
+        "src/shards/far-reach/generators/bridgeSine.ts",
+        "src/shards/far-reach/generators/bridges.ts",
+        "src/shards/far-reach/generators/modelFrames.ts",
+        "src/shards/far-reach/generators/routeSceneProgram.ts"
       ],
       "outputs": [
         "public/assets/far-reach/map/top.webp",

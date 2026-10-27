@@ -1,4 +1,4 @@
-import { parsePrivateScene, type PrivateScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
+import { parsePrivateScene, parseWorldScene, parseWorldSceneBindings, type PrivateScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
 import { bridgeRestValues } from './bridgeRest';
 import REST from '../data/restScenes.generated.json' with { type: 'json' };
 import { FALLEN_BRIDGE, NOTES, SPANS, UPDRAFT, VANES, WINCH } from "./layout";
@@ -115,10 +115,52 @@ export async function skyRouteValues(read: (url: string) => Uint8Array): Promise
   const vanes = { recipe: { scene: vaneWorld, imports: [] }, kinds: vaneKinds, ports: vanePorts,
     rows: skyVaneRows(),
     bindings: VANES.map(row => ({ piece: `far.vane.${row.id}`, part: `${row.id}.vane` })) };
-  return { SKY_ROUTE_SCENE: scene, SKY_ROUTES: { registry, bindings }, SKY_ROUTE_FRAMES: frames, SKY_BRIDGE_KIT: kit, SKY_VANES: vanes, SKY_VANE: vane };
+  return structuredClone({ SKY_ROUTE_SCENE: scene, SKY_ROUTES: { registry, bindings }, SKY_ROUTE_FRAMES: frames, SKY_BRIDGE_KIT: kit, SKY_VANES: vanes, SKY_VANE: vane });
 }
 
 /** Retained publication keeps the original complete JSON transport over owned source values. */
 export async function skyRouteSource(read: (url: string) => Uint8Array): Promise<Uint8Array> {
   return new TextEncoder().encode(`${JSON.stringify(await skyRouteValues(read))}\n`);
+}
+
+const record = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
+function bindingRows(value: unknown): SkyRouteValues['SKY_ROUTES']['bindings'] {
+  if (!Array.isArray(value) || value.length > 1024) throw new Error('Sky route bindings differ');
+  return value.map((row: unknown) => {
+    if (!record(row) || Object.keys(row).length !== 2 || typeof row['piece'] !== 'string' || typeof row['part'] !== 'string'
+      || row['piece'].length > 128 || row['part'].length > 128) throw new Error('Sky route binding differs');
+    return { piece: row['piece'], part: row['part'] };
+  });
+}
+
+/** Admit the bounded owned wire through the defining hierarchy/binding parsers before publication. */
+export function readSkyRouteValues(bytes: Uint8Array): SkyRouteValues {
+  if (bytes.byteLength === 0 || bytes.byteLength > 1_000_000) throw new Error('Sky route wire exceeds its bound');
+  const value: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+  if (!record(value) || Object.keys(value).sort().join('|') !== 'SKY_BRIDGE_KIT|SKY_ROUTES|SKY_ROUTE_FRAMES|SKY_ROUTE_SCENE|SKY_VANE|SKY_VANES'
+    || !record(value['SKY_ROUTES']) || !record(value['SKY_ROUTE_FRAMES']) || !record(value['SKY_VANES'])) throw new Error('Sky route envelope differs');
+  const routes = value['SKY_ROUTES'], frames = value['SKY_ROUTE_FRAMES'], vanes = value['SKY_VANES'];
+  const registry = skyRouteRegistry(), rows = skyVaneRows();
+  if (Object.keys(routes).length !== 2 || Object.keys(frames).length !== 2 || Object.keys(vanes).length !== 5
+    || JSON.stringify(routes['registry']) !== JSON.stringify(registry) || JSON.stringify(vanes['rows']) !== JSON.stringify(rows)) throw new Error('Sky route identity inventory differs');
+  const scene = parsePrivateScene(value['SKY_ROUTE_SCENE']), bindings = bindingRows(routes['bindings']);
+  if (bindings.length !== registry.length || bindings.some((row, index) => row.piece !== registry[index]?.id || !scene.nodes.some(node => node.id === row.part))) throw new Error('Sky route registry bindings differ');
+  const frameBindings = parseWorldSceneBindings(frames['bindings']);
+  const fallen = frameBindings['fallen'], winchAt = frameBindings['winchAt'], notesAt = frameBindings['notesAt'];
+  if (Object.keys(frameBindings).length !== 3 || fallen?.kind !== 'group' || winchAt?.kind !== 'vector' || notesAt?.kind !== 'vector') throw new Error('Sky route frame bindings differ');
+  const expectedKinds: Record<string, 'group' | 'vector'> = Object.fromEntries(rows.flatMap((row): [string, 'group' | 'vector'][] => [[row.rotor, 'group'], [row.at, 'vector']]));
+  if (JSON.stringify(vanes['kinds']) !== JSON.stringify(expectedKinds)) throw new Error('Sky vane port inventory differs');
+  const vaneRecipe = parseWorldScene(vanes['recipe']), parsedPorts = parseWorldSceneBindings(vanes['ports']);
+  const vaneBindings = bindingRows(vanes['bindings']);
+  if (JSON.stringify(vaneBindings) !== JSON.stringify(rows.map(row => ({ piece: `far.vane.${row.id}`, part: `${row.id}.vane` })))) throw new Error('Sky vane registry differs');
+  if (Object.keys(parsedPorts).length !== Object.keys(expectedKinds).length) throw new Error('Sky vane bindings differ');
+  const ports: SkyRouteValues['SKY_VANES']['ports'] = Object.fromEntries(Object.entries(expectedKinds).map(([key, kind]): [string, SkyRouteValues['SKY_VANES']['ports'][string]] => {
+    const port = parsedPorts[key];
+    if (kind === 'group' && port?.kind === 'group' && vaneRecipe.scene.nodes.some(node => node.id === port.part)) return [key, { kind: 'group', part: port.part }];
+    if (kind === 'vector' && port?.kind === 'vector') return [key, { kind: 'vector', value: [...port.value] }];
+    throw new Error('Sky vane binding kind differs');
+  }));
+  return { SKY_ROUTE_SCENE: scene, SKY_ROUTES: { registry, bindings }, SKY_ROUTE_FRAMES: { recipe: parseWorldScene(frames['recipe']),
+    bindings: { fallen: { kind: 'group', part: fallen.part }, winchAt: { kind: 'vector', value: winchAt.value }, notesAt: { kind: 'vector', value: notesAt.value } } },
+    SKY_BRIDGE_KIT: parsePrivateScene(value['SKY_BRIDGE_KIT']), SKY_VANES: { recipe: vaneRecipe, kinds: expectedKinds, ports, rows, bindings: vaneBindings }, SKY_VANE: parsePrivateScene(value['SKY_VANE']) };
 }

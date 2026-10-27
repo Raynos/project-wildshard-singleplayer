@@ -1,7 +1,7 @@
 import { parseWorldScene, parseWorldSceneBindings, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { nameBlob } from '@wildshard/sdk/blobs';
-import routes from '../data/routeScene.generated.json' with { type: 'json' };
+import type { SkyRouteValues } from './routeScene';
 import islets from '../data/isletScenes.generated.json' with { type: 'json' };
 import heroes from '../data/heroLibrary.generated.json' with { type: 'json' };
 import { skyWorldRows } from './worldRows';
@@ -41,7 +41,7 @@ export interface SkyWorldSceneValues {
 }
 
 /** Build the original scene world with an optional owned mill hierarchy. */
-export function skyWorldSceneValues(millScene: SkyMillSceneValues['MILL_SCENE'], staticScenes: SkyStaticSceneEnvelope): SkyWorldSceneValues {
+export function skyWorldSceneValues(millScene: SkyMillSceneValues['MILL_SCENE'], staticScenes: SkyStaticSceneEnvelope, routes: SkyRouteValues): SkyWorldSceneValues {
   const fixed = staticScenes;
   const mill = { MILL_SCENE: millScene };
   const blobs = structuredClone([...SKY_SOURCE_BLOBS, ...SKY_ISLAND_BLOBS, ...SKY_MEADOW_BLOBS]);

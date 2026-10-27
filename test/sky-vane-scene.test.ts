@@ -1,9 +1,9 @@
 import { expect, it } from 'vitest';
 import { BoxGeometry, Group, Mesh, Vector3 } from 'three';
 import { bindWorldSceneParts, createWorldScene } from '../src/game/plugin/scene';
-import routeScene from '../src/shards/far-reach/data/routeScene.generated.json' with { type: 'json' };
+import { originalSkySceneInputs } from './fixtures/sky-scene-source';
 
-const { SKY_VANES } = routeScene;
+const { routes: { SKY_VANES } } = await originalSkySceneInputs();
 
 it('keeps each vane rotor independently movable at its declared interaction anchor', () => {
   const geometry = new BoxGeometry(), made = createWorldScene(SKY_VANES.recipe, {

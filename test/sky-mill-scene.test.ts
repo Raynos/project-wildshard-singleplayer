@@ -2,10 +2,8 @@ import { expect, it } from 'vitest';
 import { BoxGeometry, Group, Mesh, MeshStandardMaterial, Texture } from 'three';
 import { bindWorldSceneParts, createWorldScene } from '../src/game/plugin/scene';
 import { originalSkySceneInputs } from './fixtures/sky-scene-source';
-import routeScene from '../src/shards/far-reach/data/routeScene.generated.json' with { type: 'json' };
 
-const { mill: MILL_SCENE } = await originalSkySceneInputs();
-const { SKY_ROUTE_FRAMES } = routeScene;
+const { mill: MILL_SCENE, routes: { SKY_ROUTE_FRAMES } } = await originalSkySceneInputs();
 
 it('keeps mill parts borrowed under a native spinning hub', () => {
   const parts = new Map<string, Group>(MILL_SCENE.parts.map(name => { const part = new Group(); part.name = name; return [name, part]; }));
@@ -55,7 +53,7 @@ it('keeps the authored fallen deck under its native pivot and copies interaction
   expect(deck?.children.length).toBeGreaterThan(0);
   expect(parts.fallen).toBe(made.root);
   parts.winchAt.y += 1;
-  expect(parts.winchAt.y).toBe(Number(SKY_ROUTE_FRAMES.bindings.winchAt.value[1]) + 1);
+  expect(parts.winchAt.y).toBe(SKY_ROUTE_FRAMES.bindings.winchAt.value[1] + 1);
   expect(parts.notesAt.toArray()).toEqual(SKY_ROUTE_FRAMES.bindings.notesAt.value);
   made.dispose(); geometry.dispose(); material.dispose();
 });

@@ -20,7 +20,7 @@
     "data/rocSlate.json",
     "data/lookGraphs.json",
     "owned-static-scenes.json",
-    "data/routeScene.generated.json",
+    "owned-route-scenes.json",
     "data/isletScenes.generated.json",
     "owned-world-rows.json",
     "data/mapRest.generated.json",
@@ -323,20 +323,20 @@
           ]
         },
         {
-          "file": "data/routeScene.generated.json",
+          "file": "owned-route-scenes.json",
           "path": [
             "SKY_ROUTE_SCENE"
           ]
         },
         {
-          "file": "data/routeScene.generated.json",
+          "file": "owned-route-scenes.json",
           "path": [
             "SKY_ROUTE_FRAMES",
             "recipe"
           ]
         },
         {
-          "file": "data/routeScene.generated.json",
+          "file": "owned-route-scenes.json",
           "path": [
             "SKY_VANES",
             "recipe"

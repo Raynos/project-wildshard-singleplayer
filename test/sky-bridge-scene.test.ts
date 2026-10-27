@@ -9,9 +9,9 @@ import { bridgeRestValues } from '../src/shards/far-reach/generators/bridgeRest'
 import { skyBridgePhysicsPlacements } from '../src/shards/far-reach/generators/bridgeColliders';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { discoverGeneration } from '../scripts/generate.mjs';
-import routeScene from '../src/shards/far-reach/data/routeScene.generated.json' with { type: 'json' };
+import { originalSkySceneInputs } from './fixtures/sky-scene-source';
 
-const { SKY_ROUTE_SCENE, SKY_ROUTES } = routeScene;
+const { routes: { SKY_ROUTE_SCENE, SKY_ROUTES } } = await originalSkySceneInputs();
 const COLLIDERS = skyBridgePhysicsPlacements();
 
 it('retires bridge contact publication while retaining the complete original wire', () => {
