@@ -1,5 +1,8 @@
 import { expect, test } from 'vitest';
 import { bootPackParts } from '../scripts/boot-pack-parts.mjs';
+import { Scope } from '../src/engine/app/scope';
+import type { PackFile, PackPart } from '../src/engine/boot/tables';
+import { TexturePackReads } from '../src/engine/boot/texturePack';
 
 test('texture cohorts isolate revisions, unrelated families and non-texture files', () => {
   const paths = [
@@ -30,4 +33,49 @@ test('non-texture parts retain boot order and image-before-glTF adjacency', () =
   const paths = ['/assets/models/prop/textures/color.png', '/assets/models/prop/textures/normal.png',
     '/assets/models/prop/prop.gltf', '/assets/world.bin'];
   expect(bootPackParts(paths, () => 3_000_000)).toEqual([paths.slice(0, 3), paths.slice(3)]);
+});
+
+test('emitted texture cohorts combine independently through the real demand reader', async () => {
+  const scope = new Scope('cohort-pack-transport');
+  const bodies = new Map<string, Uint8Array<ArrayBuffer>>();
+  const digest = async (body: Uint8Array<ArrayBuffer>): Promise<string> =>
+    [...new Uint8Array(await crypto.subtle.digest('SHA-256', body))].map(value => value.toString(16).padStart(2, '0')).join('').slice(0, 8);
+  const family = (name: string, seed: number): Promise<string[]> => Promise.all(['color', 'normal', 'arm'].map(async (slot, index) => {
+    const body = new Uint8Array(20 + index).fill(seed + index);
+    const path = `/assets/gpu/${name}/${slot}-${await digest(body)}.ktx2`;
+    bodies.set(path, body); return path;
+  }));
+  const first = await family('first', 1), second = await family('second', 4);
+  const wire = (path: string): Uint8Array<ArrayBuffer> => {
+    const body = bodies.get(path); if (body === undefined) throw new Error('Missing declared pack bytes'); return body;
+  };
+  const paths = [...first, ...second];
+  const parts: PackPart[] = await Promise.all(bootPackParts(paths, path => wire(path).length).map(async group => {
+    const bytes = new Uint8Array(group.reduce((sum, path) => sum + wire(path).length, 0));
+    const files: PackFile[] = []; let offset = 0;
+    for (const path of group) { const body = wire(path); bytes.set(body, offset); files.push([path, offset, body.length, 'image/ktx2']); offset += body.length; }
+    const url = `/assets/packs/fixture.phone-${await digest(bytes)}.bin`;
+    bodies.set(url, bytes); return { url, bytes: bytes.length, files };
+  }));
+  const reads: string[] = [];
+  const net: typeof fetch = input => {
+    const path = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+    reads.push(path); return Promise.resolve(new Response(wire(path).slice()));
+  };
+  const reader = new TexturePackReads({ parts, bytes: parts.reduce((sum, part) => sum + part.bytes, 0), files: parts.flatMap(part => part.files) }, scope, () => Promise.resolve(undefined));
+  const read = (path: string): Promise<Response> => {
+    const response = reader.read(path, net); if (response === undefined) throw new Error('Missing declared texture'); return response;
+  };
+  try {
+    const lone = second[0]; if (lone === undefined) throw new Error('Missing partial fixture');
+    const requested = [...first, lone];
+    const responses = await Promise.all(requested.map(read));
+    expect(reads).toEqual([parts[0]?.url, lone]);
+    expect(parts).toHaveLength(2);
+    for (const [index, response] of responses.entries()) {
+      const path = requested[index]; if (path === undefined) throw new Error('Missing response owner');
+      expect(new Uint8Array(await response.arrayBuffer())).toEqual(wire(path));
+      expect(response.headers.get('content-type')).toBe('image/ktx2');
+    }
+  } finally { reader.dispose(); scope.dispose(); }
 });
