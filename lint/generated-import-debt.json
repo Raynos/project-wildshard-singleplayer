@@ -69,7 +69,7 @@
     "src/shards/driftwood-isle/generators/oceanFoam.ts": 7,
     "src/shards/driftwood-isle/generators/output.ts": 13,
     "src/shards/driftwood-isle/generators/populationProjection.ts": 2,
-    "src/shards/driftwood-isle/generators/product.ts": 3,
+    "src/shards/driftwood-isle/generators/product.ts": 2,
     "src/shards/driftwood-isle/generators/questWorld.ts": 5,
     "src/shards/driftwood-isle/generators/returnProgram.ts": 1,
     "src/shards/driftwood-isle/generators/siteCatalogue.ts": 3,

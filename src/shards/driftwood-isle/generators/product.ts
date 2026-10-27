@@ -3,7 +3,7 @@ import { CAPTAIN_FIELDS } from './captainFields';
 import { DRIFTWOOD_LOOT as LOOT } from './loot';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
-import questRows from '../data/questRows.generated.json' with { type: 'json' };
+import { driftwoodQuestRows } from './questRows';
 import { DRIFTWOOD_LEDGER } from './ledger';
 import { driftwoodItems } from './items';
 import { DRIFTWOOD_SPAWNS } from './spawns';
@@ -42,6 +42,7 @@ const row = (authored: readonly number[]): { heights: number[]; colours: [number
 };
 /** Compose the unchanged admitted declaration from caller-owned fixed-world values. */
 export function driftwoodProductRows(fixed: DriftwoodFixedProduct, audio: AudioData): ReturnType<typeof parseShardfile> {
+const questRows = driftwoodQuestRows();
 const simulationFiles = [...navigation.files, ...fixed.files.filter(file => fixed.critical.includes(file.hash))];
 // G7: the Drowned Captain's painted coat, an admitted look texture his graph samples by hash (generators/bake-captain-coat.mjs)
 const coat = captainCoat.file;

@@ -6,7 +6,8 @@ import { QUEST_NPCS } from './questNpcs';
 import { QUEST_HOST } from './questHost';
 
 /** Compile the shipping story, dialogue, route order and POI/anchor recipes without a play-time assembler. */
-export function driftwoodQuestRows(): Record<string, unknown> {
+export function driftwoodQuestRows(): { quests: typeof DRIFTWOOD_QUESTS; markers: typeof DRIFTWOOD_MARKERS;
+  npcs: v.InferOutput<typeof QuestNpcBindingsSchema>; host: ReturnType<typeof parseQuestHost> } {
   return { quests: DRIFTWOOD_QUESTS, markers: DRIFTWOOD_MARKERS,
     npcs: v.parse(QuestNpcBindingsSchema, QUEST_NPCS), host: parseQuestHost(QUEST_HOST) };
 }
