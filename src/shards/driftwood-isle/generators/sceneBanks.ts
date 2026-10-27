@@ -8,6 +8,7 @@ import { driftwoodIslandPlan } from './productPageFiles';
 import { BLENDER_MODELS } from './blenderArea';
 import { DRIFTWOOD_BANK_BLOBS } from './assets';
 import { trailSpecimenBank } from './trailsideModels';
+import { islandCoverBank } from './islandDressing';
 import { driftwoodIslandFacts, driftwoodIslandFactsFrom, type DriftwoodIslandFacts } from './islandFacts';
 
 /**
@@ -21,6 +22,8 @@ export interface DriftwoodSceneBanks {
   readonly facts: DriftwoodIslandFacts;
   readonly layouts: DriftwoodFixedLayouts;
   readonly rocks: DriftwoodRockBank;
+  /** the streamed cover's transports and per-cell plants by product name (islandCoverBank) */
+  readonly cover: ReadonlyMap<string, Uint8Array>;
 }
 /** The committed public files the banks read beside the fixed program's: the Blender island's placement table and
  *  metadata (the island plan's small rocks). */
@@ -46,7 +49,7 @@ export async function driftwoodSceneBanks(inputs: DriftwoodSceneBankInputs): Pro
   const smallRocks = plan('phone').smallRocks;
   if (JSON.stringify(smallRocks) !== JSON.stringify(plan('desktop').smallRocks)) throw new Error('Small-rock tier placements differ');
   const layouts = inputs.layouts ?? driftwoodFixedLayouts(inputs.fixed);
-  return { layouts, facts, cargo: await driftwoodCargoBank(inputs.fixed, layouts.wreck), rocks: driftwoodRockBank(smallRocks) };
+  return { layouts, facts, cargo: await driftwoodCargoBank(inputs.fixed, layouts.wreck), rocks: driftwoodRockBank(smallRocks), cover: await islandCoverBank(file, facts) };
 }
 /** The product build's banks: the fixed files and the public inputs come through the owned-byte cache. */
 export async function driftwoodSceneBanksCached(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<DriftwoodSceneBanks> {
@@ -66,6 +69,8 @@ export async function driftwoodSceneBankOutput(banks: DriftwoodSceneBanks): Prom
     ...[...banks.rocks.glbs].map(([name, bytes]) => nameBlob(name, 'glb', bytes)),
     // the trail specimens' Explorer GLBs, as the product files their catalogue rows name (worldScenes)
     ...[...trailSpecimenBank().glbs].map(([name, bytes]) => nameBlob(name, 'glb', bytes)),
+    // the cover's transports and cells, plain as their sources were
+    ...[...banks.cover].map(([name, bytes]) => nameBlob(name, 'bin', bytes)),
     // the synchronous banks' shipped blobs (the reef's), named as assets.ts names its sources: GLBs meshopt, the rest plain
     ...await Promise.all(DRIFTWOOD_BANK_BLOBS.map(row => row.kind === 'glb' ? nameMeshoptBlob(row.name, row.bytes) : Promise.resolve(nameBlob(row.name, row.kind, row.bytes))))]);
 }

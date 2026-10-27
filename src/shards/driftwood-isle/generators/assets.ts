@@ -7,7 +7,7 @@ import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { driftwoodReefBank } from './reefBank';
 import { driftwoodZiplineBank } from './ziplineBank';
 import { driftwoodFacetedGroundBank } from './facetedGroundBank';
-import dressingJob from '../data/dressingBlobs.generated.json' with { type: 'json' };
+import ISLAND_COVER_FILES from '../data/islandCoverFiles.json' with { type: 'json' };
 import { islandFoliageBatches } from './islandDressing';
 
 // GR7: the reef's, the zipline's and the faceted ground's rows come from their banks, keyed by content as the job's `assets/<hash>` sources were, so equal payloads
@@ -21,10 +21,16 @@ const bankManifest = (blobs: Iterable<readonly [string, { readonly kind: 'glb' |
   }), byUrl: Object.fromEntries(Object.entries(byUrl).sort(byKey)) });
 const reef = bankManifest(reefBank.blobs, reefBank.byUrl), ziplineBank = driftwoodZiplineBank(), ziplineRows = ziplineBank.rows;
 const zipline = bankManifest([...ziplineBank.blobs].map(([name, bytes]) => [name, { kind: 'glb', bytes }] as const), ziplineBank.byUrl);
-// the dressing's palm and hibiscus rows from their bank; its cover rows are still the job's (in name order, as it wrote them)
-const foliageBatches = bankManifest(islandFoliageBatches().blobs, islandFoliageBatches().byUrl), batched = new Set(foliageBatches.blobs.map(row => row.name));
-const dressing = { blobs: [...foliageBatches.blobs, ...dressingJob.blobs.filter(row => !batched.has(row.name))].sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0),
-  byUrl: Object.fromEntries([...Object.entries(dressingJob.byUrl).filter(([, name]) => !batched.has(name)), ...Object.entries(foliageBatches.byUrl)].sort(byKey)) };
+// the dressing's palm and hibiscus rows from their bank, its cover rows from the committed islandCoverFiles.json (the cover
+// bank, built later and asynchronously, must hash to them); all in name order, as the job wrote them
+const foliageBatches = bankManifest(islandFoliageBatches().blobs, islandFoliageBatches().byUrl);
+const COVER_TIERS = ['phone', 'desktop'] as const;
+const coverRows = COVER_TIERS.flatMap(tier => [{ name: `world/cover/${tier}.bin`, kind: 'bin', source: `assets/${ISLAND_COVER_FILES[tier].hash}` },
+  { name: `world/cover/cells/${tier}.bin`, kind: 'bin', source: `bank:world/cover/cells/${tier}.bin` }]);
+/** the shipped rows an asynchronous bank emits (sceneBanks.ts's cover): kept out of DRIFTWOOD_OUTPUT's sources */
+const asyncBanked = new Set(coverRows.map(row => row.name));
+const dressing = { blobs: [...foliageBatches.blobs, ...coverRows].sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0),
+  byUrl: Object.fromEntries([...COVER_TIERS.map(tier => [ISLAND_COVER_FILES[tier].url, `world/cover/${tier}.bin`] as const), ...Object.entries(foliageBatches.byUrl)].sort(byKey)) };
 const groundBank = driftwoodFacetedGroundBank();
 const ground = bankManifest([...groundBank.blobs].map(([name, bytes]) => [name, { kind: 'glb', bytes }] as const), groundBank.byUrl);
 const manifests = [reef, ground, dressing, zipline];
@@ -78,7 +84,7 @@ export const DRIFTWOOD_BANK_BLOBS: readonly { readonly name: string; readonly ki
   const banked = bankBytes.get(row.source); return banked === undefined ? [] : [{ name: row.name, kind: banked.kind, bytes: banked.bytes }];
 });
 export const DRIFTWOOD_OUTPUT: { blobs: { name: string; kind: string; source: string; }[]; } = {
-  blobs: shipped.filter(row => !bankBytes.has(row.source)).map(row => {
+  blobs: shipped.filter(row => !bankBytes.has(row.source) && !asyncBanked.has(row.name)).map(row => {
     if (row.kind !== 'glb') return row;
     const result = { ...row };
     return Object.assign(result, { options: { meshopt: true } });

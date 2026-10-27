@@ -17,7 +17,8 @@ import { leafClump } from './hibiscus';
 import { driftwoodGroundBytes } from './groundRows';
 import { duneLogs } from './duneLogs';
 import { bakeFullIslandCover } from './islandCover';
-import { driftwoodIslandFactsFrom } from './islandFacts';
+import { driftwoodIslandFactsFrom, type DriftwoodIslandFacts } from './islandFacts';
+import ISLAND_COVER_FILES from '../data/islandCoverFiles.json' with { type: 'json' };
 import { inArea } from './blenderArea';
 import { GULL_CORRIDORS } from './gullsLook';
 import { retainedIslandRuns, type ClipRuns } from './clipDressing';
@@ -190,6 +191,32 @@ function buildIslandFoliageBatchRows(): IslandFoliageBatches {
    }finally{mergedPalms.dispose();mergedBushes.dispose();for(const geometry of [...pg,...bg])geometry.dispose();}
   }
  return{blobs,byUrl};
+}
+let coverBank: Promise<ReadonlyMap<string, Uint8Array>> | undefined;
+/** The streamed cover (GR7: the dressing job's cover outputs): each tier's cover transport and per-cell plants by product
+ *  name, baked over the Blender island (`readAsset` its committed public files) on the bound native ground as the dressing
+ *  bakes it. Each cover must hash to its committed islandCoverFiles.json row, whose URL and metadata the build names it by.
+ *  Built once per build process. */
+export function islandCoverBank(readAsset: (url: string) => Uint8Array, facts: DriftwoodIslandFacts): Promise<ReadonlyMap<string, Uint8Array>> {
+ coverBank ??= bakeIslandCoverBank(readAsset, facts); return coverBank;
+}
+async function bakeIslandCoverBank(readAsset: (url: string) => Uint8Array, facts: DriftwoodIslandFacts): Promise<ReadonlyMap<string, Uint8Array>> {
+ // the placements before any tier pass: their scatter puts back the build tier it found
+ const placed=islandFoliagePlacements(),files=new Map<string,Uint8Array>();
+ const terrain=manifest.ground.terrain;if(terrain===undefined)throw new Error('Native island ground is required');
+ const level={id:manifest.slug,ground:{terrain},spawn:manifest.spawn,sky:manifest.sky,atmosphere:manifest.atmosphere,grade:manifest.grade,
+  budgets:{},mechanisms:[],fight:{},boot:{files:[]},audio:{ambience:'none',score:'none'},loadout:{weapons:[],tools:[],start:[]},species:[],spawns:[],minimap:{},kitLook:'toon' as const};
+ const restoreLevel=bindLevelSelection(level),binding=new HeightfieldBinding(level),previous:Tier=buildTier();
+ binding.install(readNativeTerrain(driftwoodGroundBytes()));const restoreGround=bindHeightfield(binding),ground=binding.field;
+ try{
+  for(const tier of ['phone','desktop'] as const){
+   _buildAs(tier);
+   const baked=await bakeFullIslandCover(readAsset,tier==='phone',placed.tiers[tier].palms.specs,ground,manifest.seed,facts);
+   if(hashImmutableBytes(baked.bytes)!==ISLAND_COVER_FILES[tier].hash)throw new Error(`Driftwood ${tier} cover differs from its committed islandCoverFiles.json row`);
+   files.set(`world/cover/${tier}.bin`,baked.bytes);files.set(`world/cover/cells/${tier}.bin`,baked.cells);
+  }
+ }finally{_buildAs(previous===TIER?null:previous);restoreGround();restoreLevel();}
+ return files;
 }
 /** Compile both tiers from their actual scatter, native shapes and original height binding. */
 export async function islandDressing(readAsset:(url:string)=>Uint8Array, bushesReady?: (tier:'phone'|'desktop', geometry:THREE.BufferGeometry, originals:readonly THREE.BufferGeometry[], clips:ClipRuns) => void, palmsReady?: (tier:'phone'|'desktop', geometry:THREE.BufferGeometry, originals:readonly THREE.BufferGeometry[], clips:ClipRuns) => void):Promise<{seed:number;gullPerches:ReturnType<typeof beachGullPerches>;tiers:{foliage:FoliagePlacements;tier:'phone'|'desktop';clips:{palms:ClipRuns;bushes:ClipRuns;logs:ClipRuns};cover:Awaited<ReturnType<typeof bakeFullIslandCover>>}[]}> {
