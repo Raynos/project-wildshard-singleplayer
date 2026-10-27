@@ -128,8 +128,10 @@ export const cabinScene: (sources: PineSources) => Promise<CabinScene> = perSour
   }), ...living.CABIN_LIVING_SHAPES];
   const CABIN_RAW_MODELS: NamedBlob[] = shapes.map(([name, bytes]) => nameBlob(name, 'glb', bytes));
   const CABIN_PACKED_MODELS: NamedBlob[] = await Promise.all(shapes.map(([name, bytes]) => nameMeshoptBlob(name, bytes)));
-  const livingShapes = new Set(living.CABIN_LIVING_SHAPES.map(([name]) => name));
-  const CABIN_LATE = [...new Set(CABIN_PACKED_MODELS.filter(blob => blob.file.name !== undefined && !livingShapes.has(blob.file.name)).map(blob => blob.file.hash))]
+  // the living libraries' models name shared shape files too: those are the resources' files, read at intake
+  const livingFiles = new Set([...living.CABIN_LIVING_SHAPES.map(([name]) => name), ...living.CABIN_LIVING_LIBRARIES.flatMap(library => library.models.map(model => model.file))]);
+  const resident = new Set(CABIN_PACKED_MODELS.filter(blob => blob.file.name !== undefined && livingFiles.has(blob.file.name)).map(blob => blob.file.hash));
+  const CABIN_LATE = [...new Set(CABIN_PACKED_MODELS.map(blob => blob.file.hash).filter(hash => !resident.has(hash)))]
     .map(hash => ({ hash, at: [HAMLET.x, HAMLET.z] as [number, number] }));
   const CABIN_MATERIALS: unknown[] = metadata.sourceMaterials.map(row => ({ id: slot(row.id), kind: 'source', load: 'placement', url: row.url,
     aliases: authored.propMaterials, part: row.part, ...(row.id.includes('.pit.') ? { publishObject: 'cabins.source.pit' } : row.id.includes('.lantern.') ? { publishObject: 'cabins.source.lantern' } : {}), ...(row.id.includes('.prop.') ? { anisotropy: 8, anisotropyMaps: ['map', 'normalMap', 'roughnessMap', 'aoMap'] } : {}) }));

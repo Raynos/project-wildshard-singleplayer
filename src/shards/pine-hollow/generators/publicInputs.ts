@@ -29,18 +29,19 @@ export async function readPublicBlobs(ctx: Pick<ProjectGenerationContext, 'cache
 
 /** The thrall's extras, both tiers (the extras bake stays their geometry owner). */
 export async function pineCreatureBlobs(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<EmittedBlobs> {
-  const rows = declared.creatures.map(row => ({ name: row.name, kind: 'glb' as const, url: row.url }));
+  // I2: each tier fetches only its own extras (PINE_HULL_BOOK names `thrall-extras[.phone].glb` per tier)
+  const rows = declared.creatures.map(row => ({ name: row.name, kind: 'glb' as const, url: row.url, options: { tier: row.name.endsWith('.phone.glb') ? 'phone' as const : 'desktop' as const } }));
   return emitNamedBlobs(await readPublicBlobs(ctx, 'creature-inputs', rows));
 }
 
 /** Each rigged hull's raw GLB and its existing KTX2 twin (the bake the retired rigBlobs.mjs looked up in the KTX2 cache
  *  by its bytes; ktx2.generated.ts names the same twin by URL, both tiers). */
-function rigInputs(): { name: string; raw: string; twin: string }[] {
+function rigInputs(): { name: string; raw: string; twin: string; tier: 'desktop' | 'phone' }[] {
   return (['desktop', 'phone'] as const).flatMap(tier => PINE_HULLS.rigs.map(hull => {
     const name = `${hull}${tier === 'phone' ? '.phone' : ''}`;
     const entry = Object.entries(GPU_FILES[tier]).find(([url]) => url.endsWith(`/creatures/${name}.rigged.glb`));
     if (entry === undefined) throw new Error(`Missing existing creature KTX2 bake: ${name}`);
-    return { name, raw: entry[0], twin: entry[1] };
+    return { name, raw: entry[0], twin: entry[1], tier };
   }));
 }
 
@@ -56,10 +57,11 @@ export async function pineRigBlobs(ctx: Pick<ProjectGenerationContext, 'cached'>
   for (const rig of rigs) {
     const raw = files.get(`${rig.name}.glb`), twin = files.get(`${rig.name}.ktx2.glb`);
     if (raw === undefined || twin === undefined) throw new Error(`Missing cached Pine rig ${rig.name}`);
-    const baked = split(twin);
-    blobs.push(nameBlob(`models/creatures/${rig.name}.base.ktx2`, 'ktx2', texture(baked, 'base')),
-      nameBlob(`models/creatures/${rig.name}.normal.ktx2`, 'ktx2', texture(baked, 'normal')),
-      await nameMeshoptBlob(`models/creatures/${rig.name}.rigged.glb`, geometry(split(raw))));
+    // I2: each tier fetches only its own rig (PINE_HULL_BOOK names `<hull>[.phone]` per tier), as its coat pages do
+    const baked = split(twin), tier = { tier: rig.tier };
+    blobs.push(nameBlob(`models/creatures/${rig.name}.base.ktx2`, 'ktx2', texture(baked, 'base'), tier),
+      nameBlob(`models/creatures/${rig.name}.normal.ktx2`, 'ktx2', texture(baked, 'normal'), tier),
+      await nameMeshoptBlob(`models/creatures/${rig.name}.rigged.glb`, geometry(split(raw)), tier));
   }
   return emitNamedBlobs(blobs);
 }
