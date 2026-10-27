@@ -232,10 +232,23 @@ export async function loadShardProduct(expectedIdentity: string, options: Produc
   return entry.product;
 }
 
-const manifestAdmissions = new WeakMap<ShardManifest, { readonly admitted: AdmittedProduct; readonly options: ProductOptions }>();
-/** An installed data-client manifest already owns an admission; its context reuses it. */
-export function provideManifestAdmission(manifest: ShardManifest, admitted: AdmittedProduct, options: ProductOptions): void {
-  manifestAdmissions.set(manifest, { admitted, options });
+const manifestAdmissions = new WeakMap<ShardManifest, { readonly admitted: AdmittedProduct; readonly options: ProductOptions; readonly reader?: ClientAssets }>();
+/** An installed data-client manifest already owns an admission (and its client's asset reader); its context reuses it. */
+export function provideManifestAdmission(manifest: ShardManifest, admitted: AdmittedProduct, options: ProductOptions, reader?: ClientAssets): void {
+  manifestAdmissions.set(manifest, { admitted, options, ...(reader === undefined ? {} : { reader }) });
+}
+/**
+ * js-heap H6: once a page's boot has built what its admitted product's transport fed, neither the admission nor its client
+ * keeps that transport. Every file the content cache holds (or, online, the immutable product URL serves) leaves both
+ * maps; a later read rechecks the cache or the network, as released tiles already do. A grid cell's resident product
+ * releases through its own reader (finish.ts).
+ */
+export async function releaseManifestTransport(manifest: ShardManifest): Promise<void> {
+  const installed = manifestAdmissions.get(manifest); if (installed === undefined) return;
+  try {
+    const released = await installed.admitted.releasePreparedTransport?.(installed.admitted.source.files.map(file => file.hash), 'cache-or-fetch') ?? [];
+    installed.reader?.releaseTransport(released);
+  } catch (error) { console.warn('[boot] transport release failed (the transport stays resident):', error); }
 }
 /** I2: only the active page's after-control hook may complete its deferred offline copy. */
 export async function completeManifestCache(manifest: ShardManifest, scope: Scope, product?: ShardProduct): Promise<void> {

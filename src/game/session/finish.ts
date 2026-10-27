@@ -18,7 +18,7 @@ import { textureBytes } from '@wildshard/engine/render/textureBytes';
 import { setPoseProvider } from '@wildshard/engine/ui/ReloadPrompt';
 import { registerBeforeReload } from '@wildshard/engine/boot/lastEnd';
 import { gridPrefetchOrder, startGridPrefetch } from '../grid/prefetch';
-import { admittedRuntimeProduct, completeManifestCache } from '../shardfile/runtimeProduct';
+import { admittedRuntimeProduct, completeManifestCache, releaseManifestTransport } from '../shardfile/runtimeProduct';
 import { enterSkyClock } from './clockSettings';
 import { settleEntryPrograms } from './settlePrograms';
 import { harnessPins } from '@wildshard/engine/app/identity';
@@ -149,6 +149,8 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   if (level === undefined) app.events.emit('level.loaded', { id: slug });
   // js-heap H6: the boot has built everything its admitted product's transport fed (clientAssets.ts `releaseAll`)
   admittedRuntimeProduct(slug)?.assets.releaseAll();
+  // and a solo page's own admission (its manifest's); an offline cache check never holds the boot
+  void releaseManifestTransport(manifest);
   // the programs the first frame did not draw, a few a frame in play (the Shaders step built only the drawn ones)
   const levelScope = game.levelScope;
   // A page that opens straight into the Explorer walks no world: the cards draw first, and the world's undrawn

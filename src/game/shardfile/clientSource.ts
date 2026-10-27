@@ -113,7 +113,7 @@ function clientSource(admitted: AdmittedProduct, options: ProductOptions, bindin
     render: product => product.has('look/painted') ? productPaintedLook(product) : Promise.resolve(source.look.keys.length === 0 ? emptyLook(source.look.dayOverride) : shardfileLook(source.look, assets.retained)),
     load: async () => { const { ShardfileClient } = await import('./client'); return { default: class extends ShardfileClient { constructor() { super(source, assets, clientBindings); } } }; },
   };
-  provideManifestAdmission(result, admitted, options);
+  provideManifestAdmission(result, admitted, options, assets);
   return result;
 }
 
