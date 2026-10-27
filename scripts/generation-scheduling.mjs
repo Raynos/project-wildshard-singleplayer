@@ -23,7 +23,7 @@ export function generationConcurrency(args = process.argv.slice(2), cores = avai
 // Cold seconds from G668's 7c8e3b33a2 audit. Unknown jobs retain catalogue order.
 const coldSeconds = { 'nine-layout': 90, 'open-plots-world': 64,
   'nalati-rifle-rows': 33, 'driftwood-data-map': 32,
-  'camp-specimen-catalogue': 26, 'pine-data-map': 26 };
+  'camp-specimen-catalogue': 26 };
 
 /** Rank by audited cost, preserving original indices for dependency admission.
  * @param {readonly string[]} ids @param {Readonly<Record<string,number>>} [costs] */

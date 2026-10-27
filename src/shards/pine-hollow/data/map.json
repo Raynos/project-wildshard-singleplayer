@@ -77,14 +77,12 @@
   },
   "inputs": [
     "generators/mapAssembly.mjs",
-    "generators/mapWorld.mjs"
+    "generators/mapWorld.mjs",
+    "generators/mapProgram.ts"
   ],
   "painter": {
     "version": 1,
-    "job": "pine-data-map",
-    "prerequisites": [
-      "pine-map-assembly"
-    ],
+    "program": true,
     "scenes": {
       "packs": [
         {
