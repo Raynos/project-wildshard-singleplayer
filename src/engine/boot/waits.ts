@@ -1,4 +1,5 @@
 import { currentLoadingTimeline } from './timeline';
+import { diagnosticNow } from '../core/clock';
 /** Pending asynchronous work is observed without changing its owner, queue or concurrency. */
 export type WaitKind = 'work' | 'file' | 'admission' | 'worker' | 'wasm' | 'shader';
 export interface BootWait { id: number; label: string; kind: WaitKind; startedAt: number; ageMs: number; step: string | null; owner: symbol | null }
@@ -6,7 +7,7 @@ export class WaitRegistry {
   private sequence = 0;
   private readonly pending = new Map<number, Omit<BootWait, 'ageMs'>>();
   private readonly now: () => number;
-  constructor(now: () => number = () => performance.now()) { this.now = now; }
+  constructor(now: () => number = diagnosticNow) { this.now = now; }
   /** Register an already-started operation and remove it on either resolution or rejection. */
   async waitFor<T>(label: string, promise: Promise<T>, kind: WaitKind = 'work', step: string | null = null, owner: symbol | null = null): Promise<T> {
     const id = ++this.sequence;
