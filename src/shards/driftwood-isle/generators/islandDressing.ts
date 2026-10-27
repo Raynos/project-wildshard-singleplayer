@@ -17,6 +17,7 @@ import { leafClump } from './hibiscus';
 import { driftwoodGroundBytes } from './groundRows';
 import { duneLogs } from './duneLogs';
 import { bakeFullIslandCover } from './islandCover';
+import { driftwoodIslandFactsFrom } from './islandFacts';
 import { inArea } from './blenderArea';
 import { GULL_CORRIDORS } from './gullsLook';
 import { retainedIslandRuns, type ClipRuns } from './clipDressing';
@@ -192,6 +193,7 @@ function buildIslandFoliageBatchRows(): IslandFoliageBatches {
 }
 /** Compile both tiers from their actual scatter, native shapes and original height binding. */
 export async function islandDressing(readAsset:(url:string)=>Uint8Array, bushesReady?: (tier:'phone'|'desktop', geometry:THREE.BufferGeometry, originals:readonly THREE.BufferGeometry[], clips:ClipRuns) => void, palmsReady?: (tier:'phone'|'desktop', geometry:THREE.BufferGeometry, originals:readonly THREE.BufferGeometry[], clips:ClipRuns) => void):Promise<{seed:number;gullPerches:ReturnType<typeof beachGullPerches>;tiers:{foliage:FoliagePlacements;tier:'phone'|'desktop';clips:{palms:ClipRuns;bushes:ClipRuns;logs:ClipRuns};cover:Awaited<ReturnType<typeof bakeFullIslandCover>>}[]}> {
+ const facts=await driftwoodIslandFactsFrom(readAsset);
  const terrain=manifest.ground.terrain;if(terrain===undefined)throw new Error('Native island ground is required');
  const level={id:manifest.slug,ground:{terrain},spawn:manifest.spawn,sky:manifest.sky,atmosphere:manifest.atmosphere,grade:manifest.grade,
   budgets:{},mechanisms:[],fight:{},boot:{files:[]},audio:{ambience:'none',score:'none'},loadout:{weapons:[],tools:[],start:[]},species:[],spawns:[],minimap:{},kitLook:'toon' as const}; // Only the real authored ground frame is evaluated by this isolated producer.
@@ -216,7 +218,7 @@ export async function islandDressing(readAsset:(url:string)=>Uint8Array, bushesR
     const clips={palms:retainedIslandRuns(mergedPalms,palmKeep(palms)),bushes:retainedIslandRuns(mergedBushes,(x,z)=>!inArea(x,z)),logs:retainedIslandRuns(logs.geometry,(x,z)=>!inArea(x,z))};
     bushesReady?.(tier,mergedBushes,bg,clips.bushes);
     palmsReady?.(tier,mergedPalms,pg,clips.palms);
-    const cover=await bakeFullIslandCover(readAsset,tier==='phone',palms,ground,manifest.seed);
+    const cover=await bakeFullIslandCover(readAsset,tier==='phone',palms,ground,manifest.seed,facts);
     tiers.push({tier,clips,cover,foliage:{palms:{specs:palms,placements:palmRows},bushes:{specs:bushes,placements:bushRows}}});
    }finally{mergedPalms.dispose();mergedBushes.dispose();for(const geometry of [...pg,...bg])geometry.dispose();}
   }

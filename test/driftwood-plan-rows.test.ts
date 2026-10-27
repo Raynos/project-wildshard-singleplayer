@@ -1,3 +1,4 @@
+import { DRIFTWOOD_ISLAND_FACTS } from './fixtures/driftwood-island-facts';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare retained authored inputs and shipped plan bytes.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Hash-only witness predates the unused-field deletion.
@@ -16,7 +17,7 @@ const placements = islandPlacements(Uint8Array.from(readFileSync('public/assets/
 const hash = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
 
 test.each(['phone', 'desktop'] as const)('%s retains every consumed plan field without packed unused bounds', tier => {
-  const rows = bakeIslandPlan(placements, meta, tier === 'phone'), bytes = new TextEncoder().encode(JSON.stringify(rows));
+  const rows = bakeIslandPlan(placements, meta, tier === 'phone', DRIFTWOOD_ISLAND_FACTS), bytes = new TextEncoder().encode(JSON.stringify(rows));
   const before = original[tier], file = files[tier], shipped = readFileSync(`public${file.url}`);
   expect(hash(bytes)).toBe(before.hash);
   expect(new Uint8Array(shipped)).toEqual(bytes);

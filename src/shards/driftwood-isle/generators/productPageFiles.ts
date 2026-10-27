@@ -5,6 +5,7 @@ import { BLENDER_MODELS } from './blenderArea';
 import { OCEAN_FILES } from './oceanFiles';
 import { driftwoodOceanBank, type DriftwoodOceanBank } from './oceanBank';
 import { bakeIslandPlan, islandPlacements } from './islandCover';
+import { driftwoodIslandFacts, type DriftwoodIslandFacts } from './islandFacts';
 
 type Kind = 'glb' | 'bin' | 'image';
 /** iPhone downloads I8: the sea (clientSections.ts) and the spawn cove (bakedCove.ts) read these as product files, so they
@@ -54,17 +55,18 @@ export function pageFile(name: string): { readonly file: string } {
 }
 
 /** The tier's compiled placement plan bytes (the dressing producer's `island-plan-<hash>.json`). */
-export function driftwoodPlanBytes(table: Uint8Array, metadata: Uint8Array, tier: 'phone' | 'desktop'): Uint8Array {
-  return new TextEncoder().encode(JSON.stringify(driftwoodIslandPlan(table, metadata, tier)));
+export function driftwoodPlanBytes(table: Uint8Array, metadata: Uint8Array, tier: 'phone' | 'desktop', facts: DriftwoodIslandFacts): Uint8Array {
+  return new TextEncoder().encode(JSON.stringify(driftwoodIslandPlan(table, metadata, tier, facts)));
 }
 /** The tier's compiled placement plan (`driftwoodPlanBytes` before encoding). */
-export function driftwoodIslandPlan(table: Uint8Array, metadata: Uint8Array, tier: 'phone' | 'desktop'): ReturnType<typeof bakeIslandPlan> {
+export function driftwoodIslandPlan(table: Uint8Array, metadata: Uint8Array, tier: 'phone' | 'desktop', facts: DriftwoodIslandFacts): ReturnType<typeof bakeIslandPlan> {
   const meta = islandPlanMeta(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(metadata)));
-  return bakeIslandPlan(islandPlacements(Uint8Array.from(table).buffer), meta, tier === 'phone');
+  return bakeIslandPlan(islandPlacements(Uint8Array.from(table).buffer), meta, tier === 'phone', facts);
 }
 
 /** The exact public bytes under their product names, through the build's owned-byte cache (no file under src). */
 export async function driftwoodPageFileOutput(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<EmittedBlobs> {
+  const facts = await driftwoodIslandFacts(ctx);
   const files = await ctx.cached({ id: 'driftwood-page-files', inputs: INPUTS }, inputs => {
     const read = (url: string, name: string): Uint8Array => {
       const bytes = inputs.get(url);
@@ -73,7 +75,7 @@ export async function driftwoodPageFileOutput(ctx: Pick<ProjectGenerationContext
     };
     const table = read(TABLE, 'placements'), metadata = read(ISLAND_META, 'island metadata');
     return new Map([...PUBLIC.map(name => [name, read(DRIFTWOOD_PAGE_FILES[name]?.url ?? '', name)] as const),
-      ...(['phone', 'desktop'] as const).map(tier => [DRIFTWOOD_PLAN_FILES[tier], driftwoodPlanBytes(table, metadata, tier)] as const)]);
+      ...(['phone', 'desktop'] as const).map(tier => [DRIFTWOOD_PLAN_FILES[tier], driftwoodPlanBytes(table, metadata, tier, facts)] as const)]);
   });
   const bank = driftwoodOceanBank().files;
   // iPhone downloads I3: the phone-only sea grid ships with 16-bit grid positions (compactPhoneGlb; 364 -> 173 KB br);

@@ -2,6 +2,7 @@ import {namedBlobOutput} from '../../../../scripts/named-blob-output.mjs';
 import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {bakeIslandPlan,islandPlacements} from './islandCover.ts';
+import {driftwoodIslandFactsFrom} from './islandFacts.ts';
 import {islandDressing} from './islandDressing.ts';
 import {palmGeometry} from './palm.ts';
 import {palm,hibiscusBush} from './foliageModels.ts';
@@ -52,10 +53,11 @@ console.log(`cover-files ${JSON.stringify(Object.fromEntries(Object.entries(tier
 writeFileSync(new URL('../data/foliagePlacements.generated.json',import.meta.url),`${JSON.stringify({seed:data.seed,gullPerches:data.gullPerches,tiers:Object.fromEntries(data.tiers.map(row=>[row.tier,row.foliage]))})}\n`);
 
 const islandBase=new URL('public/assets/models/driftwood-blender/',root);
+const facts=await driftwoodIslandFactsFrom(url=>new Uint8Array(readFileSync(new URL(`public${url}`,root))));
 const islandMeta=JSON.parse(readFileSync(new URL('island.json',islandBase),'utf8'));
 const placementBytes=readFileSync(new URL('placements.bin',islandBase)),planFiles={};
 for(const tier of ['phone','desktop']){
- const plan=bakeIslandPlan(islandPlacements(Uint8Array.from(placementBytes).buffer),islandMeta,tier==='phone');
+ const plan=bakeIslandPlan(islandPlacements(Uint8Array.from(placementBytes).buffer),islandMeta,tier==='phone',facts);
  const bytes=new TextEncoder().encode(JSON.stringify(plan));
  planFiles[tier]={url:emit(bytes,'json','island-plan'),bytes:bytes.length,used:plan.used};
 }

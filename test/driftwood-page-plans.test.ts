@@ -1,3 +1,4 @@
+import { DRIFTWOOD_ISLAND_FACTS } from './fixtures/driftwood-island-facts';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the tracked Blender placement table and metadata.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
@@ -13,7 +14,7 @@ test('product cove plans equal the published plans', () => {
   const table = Uint8Array.from(readFileSync('public/assets/models/driftwood-blender/placements.bin'));
   const metadata = Uint8Array.from(readFileSync('public/assets/models/driftwood-blender/island.json'));
   for (const tier of ['phone', 'desktop'] as const) {
-    const bytes = driftwoodPlanBytes(table, metadata, tier);
+    const bytes = driftwoodPlanBytes(table, metadata, tier, DRIFTWOOD_ISLAND_FACTS);
     expect(bytes.length).toBe(published[tier].bytes);
     expect(published[tier].url).toBe(`/assets/driftwood-isle/baked/island-plan-${hashImmutableBytes(bytes)}.json`);
   }

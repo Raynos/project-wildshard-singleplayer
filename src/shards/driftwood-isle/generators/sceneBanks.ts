@@ -7,6 +7,7 @@ import { driftwoodRockBank, type DriftwoodRockBank } from './rockBank';
 import { driftwoodIslandPlan } from './productPageFiles';
 import { BLENDER_MODELS } from './blenderArea';
 import { DRIFTWOOD_BANK_BLOBS } from './assets';
+import { driftwoodIslandFacts, driftwoodIslandFactsFrom, type DriftwoodIslandFacts } from './islandFacts';
 
 /**
  * GR7: the scene producers' rows and bytes, built once per build from owned inputs instead of read back from
@@ -16,17 +17,19 @@ import { DRIFTWOOD_BANK_BLOBS } from './assets';
  */
 export interface DriftwoodSceneBanks {
   readonly cargo: DriftwoodCargoBank;
+  readonly facts: DriftwoodIslandFacts;
   readonly layouts: DriftwoodFixedLayouts;
   readonly rocks: DriftwoodRockBank;
 }
 /** The committed public files the banks read beside the fixed program's: the Blender island's placement table and
  *  metadata (the island plan's small rocks). */
-export const DRIFTWOOD_SCENE_BANK_INPUTS: readonly string[] = [`${BLENDER_MODELS}placements.bin`, `${BLENDER_MODELS}island.json`];
+export const DRIFTWOOD_SCENE_BANK_INPUTS: readonly string[] = [`${BLENDER_MODELS}placements.bin`, `${BLENDER_MODELS}island.json`, `${BLENDER_MODELS}island.glb`];
 /** The owned inputs every bank is built from, explicit so a bank never reads a copied file: the fixed program's files
  *  (`driftwoodFixedBytes`) and `DRIFTWOOD_SCENE_BANK_INPUTS` by URL. */
 export interface DriftwoodSceneBankInputs {
   readonly fixed: ReadonlyMap<string, Uint8Array>;
   readonly layouts?: DriftwoodFixedLayouts;
+  readonly facts?: DriftwoodIslandFacts;
   readonly files: ReadonlyMap<string, Uint8Array>;
 }
 
@@ -36,17 +39,18 @@ export async function driftwoodSceneBanks(inputs: DriftwoodSceneBankInputs): Pro
     const bytes = inputs.files.get(url); if (bytes === undefined || bytes.byteLength === 0) throw new Error(`Missing Driftwood scene bank input: ${url}`);
     return bytes;
   };
+  const facts = inputs.facts ?? await driftwoodIslandFactsFrom(file);
   const [table = '', metadata = ''] = DRIFTWOOD_SCENE_BANK_INPUTS;
-  const plan = (tier: 'phone' | 'desktop'): ReturnType<typeof driftwoodIslandPlan> => driftwoodIslandPlan(file(table), file(metadata), tier);
+  const plan = (tier: 'phone' | 'desktop'): ReturnType<typeof driftwoodIslandPlan> => driftwoodIslandPlan(file(table), file(metadata), tier, facts);
   const smallRocks = plan('phone').smallRocks;
   if (JSON.stringify(smallRocks) !== JSON.stringify(plan('desktop').smallRocks)) throw new Error('Small-rock tier placements differ');
   const layouts = inputs.layouts ?? driftwoodFixedLayouts(inputs.fixed);
-  return { layouts, cargo: await driftwoodCargoBank(inputs.fixed, layouts.wreck), rocks: driftwoodRockBank(smallRocks) };
+  return { layouts, facts, cargo: await driftwoodCargoBank(inputs.fixed, layouts.wreck), rocks: driftwoodRockBank(smallRocks) };
 }
 /** The product build's banks: the fixed files and the public inputs come through the owned-byte cache. */
 export async function driftwoodSceneBanksCached(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<DriftwoodSceneBanks> {
   const files = await ctx.cached({ id: 'driftwood-scene-bank-inputs', inputs: DRIFTWOOD_SCENE_BANK_INPUTS }, inputs => new Map(inputs));
-  return driftwoodSceneBanks({ fixed: await driftwoodFixedFiles(ctx), files });
+  return driftwoodSceneBanks({ fixed: await driftwoodFixedFiles(ctx), files, facts: await driftwoodIslandFacts(ctx) });
 }
 /** A retained build driver's banks (the map bake, the specimen catalogue): the fixed program runs on its declared public
  *  inputs, which the driver reads (`read('/assets/…')`), as do the banks' own. */

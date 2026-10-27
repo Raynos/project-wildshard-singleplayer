@@ -1,8 +1,36 @@
 import { Box3, Vector3 } from 'three';
 import * as v from 'valibot';
 import { islandProtos, type IslandProto } from './islandProtos';
+import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 
 interface ProtoFacts { name:string;present:boolean;empty:boolean;min:{x:number;y:number;z:number};max:{x:number;y:number;z:number};half:number;top:number }
+export interface DriftwoodIslandFacts {
+ protos: ProtoFacts[];
+ extraPalms: { x:number;z:number;h:number;lean:number;leanDir:number;rot:number;fronds:number }[];
+ bake: { bounceGain:number;sunY:number };
+}
+export const DRIFTWOOD_ISLAND_FACT_INPUTS: readonly string[] = ['/assets/models/driftwood-blender/island.glb', '/assets/models/driftwood-blender/island.json'];
+
+/** Admit complete native prototype observations before synchronous declaration readers use them. */
+export function parseDriftwoodIslandFacts(bytes: Uint8Array): DriftwoodIslandFacts {
+ const n=v.pipe(v.number(),v.finite()),point=v.object({x:n,y:n,z:n});
+ return v.parse(v.object({protos:v.array(v.object({name:v.string(),present:v.boolean(),empty:v.boolean(),min:point,max:point,half:n,top:n})),
+  extraPalms:v.array(v.object({x:n,z:n,h:n,lean:n,leanDir:n,rot:n,fronds:n})),bake:v.object({bounceGain:n,sunY:n})}),JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)));
+}
+
+/** Retained drivers provide only committed native inputs, never a copied facts file. */
+export async function driftwoodIslandFactsFrom(read: (url:string)=>Uint8Array): Promise<DriftwoodIslandFacts> {
+ return parseDriftwoodIslandFacts(await islandPrototypeFacts(read));
+}
+
+/** One owned facts cache shared by declaration, page-file and scene-bank consumers. */
+export async function driftwoodIslandFacts(ctx: Pick<ProjectGenerationContext,'cached'>): Promise<DriftwoodIslandFacts> {
+ const files=await ctx.cached({id:'island-facts',native:true,inputs:DRIFTWOOD_ISLAND_FACT_INPUTS},async inputs=>new Map([['facts.json',await islandPrototypeFacts(url=>{
+  const bytes=inputs.get(url);if(bytes===undefined||bytes.byteLength===0)throw new Error(`Missing island facts input: ${url}`);return bytes;
+ })]]));
+ const bytes=files.get('facts.json');if(files.size!==1||bytes===undefined)throw new Error('Invalid island facts cache inventory');
+ return parseDriftwoodIslandFacts(bytes);
+}
 /** Prototype bounds and original rock fit dimensions; no vertices or placements are duplicated. */
 export function prototypeFacts(name:string,proto:IslandProto|undefined):ProtoFacts {
  const box=new Box3(),point=new Vector3();

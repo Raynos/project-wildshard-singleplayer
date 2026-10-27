@@ -9,7 +9,7 @@ import { bakeCoverCells, coverJitter } from './coverCells';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { area } from './blenderArea';
-import ISLAND_FACTS from '../data/islandFacts.generated.json' with {type:'json'};
+import type { DriftwoodIslandFacts } from './islandFacts';
 import { coveFamilyOf, type CoveFamily } from './coveModels';
 import { WORLD_DROP } from './sea';
 import { ISLAND_LOOK, ISLAND_TIERS } from './islandRows';
@@ -105,11 +105,11 @@ export function coverTexture(data: Float32Array, rect: { x: number; z: number; w
 /** island.glb's terrain tiles of a tier (the 1 m grid, or the phone's 2 m `terrainlo_*`) in the order the page loads them,
  *  each with its world matrix (meshopt's dequantisation lives there). */
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
-async function islandTerrainTiles(glb: Uint8Array, phone: boolean): Promise<{ geometry: THREE.BufferGeometry; matrix: THREE.Matrix4 }[]> {
+async function islandTerrainTiles(glb: Uint8Array, phone: boolean, facts: DriftwoodIslandFacts): Promise<{ geometry: THREE.BufferGeometry; matrix: THREE.Matrix4 }[]> {
   await MeshoptDecoder.ready;
   const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(Uint8Array.from(glb).buffer, '');
   gltf.scene.updateMatrixWorld(true);
-  const protoNames = new Set(ISLAND_FACTS.protos.map((p) => `${ISLAND_LOOK.protoPrefix}${p.name}`)), tiles: { geometry: THREE.BufferGeometry; matrix: THREE.Matrix4 }[] = [];
+  const protoNames = new Set(facts.protos.map((p) => `${ISLAND_LOOK.protoPrefix}${p.name}`)), tiles: { geometry: THREE.BufferGeometry; matrix: THREE.Matrix4 }[] = [];
   gltf.scene.traverse((o) => { if (isMesh(o) && !protoNames.has(o.name) && o.name.startsWith('terrainlo') === phone) tiles.push({ geometry: o.geometry, matrix: o.matrixWorld.clone() }); });
   return tiles;
 }
@@ -160,7 +160,7 @@ export function islandSets(f: Float32Array, meta: CoverMeta, used: number, phone
 
 /** The tier's cover file (a vertex wear row, game/looks/vertexWear.ts): the ground map, then each terrain's cover bytes — part 0 the faceted
  *  ground's grid (TERRAIN_RES², row by row), then the island's terrain tiles — and the layout its declaration carries. */
-export async function bakeFullIslandCover(readAsset: (url: string) => Uint8Array, phone: boolean, palms: readonly {x:number;z:number}[], ground: {heightAt:(x:number,z:number)=>number;normalAt:(x:number,z:number,eps:number)=>[number,number,number];trailDistance:(x:number,z:number)=>number}, seed: number): Promise<{bytes:Uint8Array;cells:Uint8Array;used:number;texture:{width:number;height:number};groundRect:[number,number,number,number];parts:[number,number][]}> {
+export async function bakeFullIslandCover(readAsset: (url: string) => Uint8Array, phone: boolean, palms: readonly {x:number;z:number}[], ground: {heightAt:(x:number,z:number)=>number;normalAt:(x:number,z:number,eps:number)=>[number,number,number];trailDistance:(x:number,z:number)=>number}, seed: number, facts: DriftwoodIslandFacts): Promise<{bytes:Uint8Array;cells:Uint8Array;used:number;texture:{width:number;height:number};groundRect:[number,number,number,number];parts:[number,number][]}> {
   const base = '/assets/models/driftwood-blender/';
   const meta = v.parse(v.object({ protos: v.array(v.object({ name: v.string(), kind: v.string() })), mustDraw: v.number() }), JSON.parse(new TextDecoder().decode(readAsset(`${base}island.json`))));
   const protos = await islandProtos(readAsset(`${base}island.glb`), meta), f = islandPlacements(Uint8Array.from(readAsset(`${base}placements.bin`)).buffer);
@@ -169,7 +169,7 @@ export async function bakeFullIslandCover(readAsset: (url: string) => Uint8Array
   grid.writeBlock(islandCoverBlock(coverTrianglesOf(protos,f,[sets.covers,sets.bigs])),area.x0,area.x1,area.z0,area.z1);
   const {data,rect}=grid.crop(),texture=coverTexture(data,rect,grid.step),res=TERRAIN_RES,d=CHUNK_SIZE/(res-1);
   const chunks=[texture.bytes,terrainCoverBytes(grid,res*res,(i,p)=>p.set(Math.fround(-CHUNK_HALF+(i%res)*d),0,Math.fround(-CHUNK_HALF+Math.floor(i/res)*d)))];
-  for(const tile of await islandTerrainTiles(readAsset(`${base}island.glb`),phone)){
+  for(const tile of await islandTerrainTiles(readAsset(`${base}island.glb`),phone,facts)){
     const pos=tile.geometry.getAttribute('position');
     chunks.push(terrainCoverBytes(grid,pos.count,(i,p)=>p.fromBufferAttribute(pos,i).applyMatrix4(tile.matrix)));
   }
@@ -217,7 +217,7 @@ interface IslandPlanMeta extends CoverMeta { colliders:IslandBox[] }
 interface IslandFamily { key:CoveFamily;indices:number[];colliders:IslandBox[] }
 interface IslandPlacementPlan { version:1;used:number;sets:{casters:number[][];covers:number[][];bigs:number[][]};smallRocks:{x:number;y:number;z:number;matrix:number[];params:{r:number;sq:number}}[];families:IslandFamily[];unclaimed:IslandBox[] }
 /** Compile the native placement partitions and collider ownership once. */
-export function bakeIslandPlan(f:Float32Array,meta:IslandPlanMeta,phone:boolean):IslandPlacementPlan {
+export function bakeIslandPlan(f:Float32Array,meta:IslandPlanMeta,phone:boolean,facts:DriftwoodIslandFacts):IslandPlacementPlan {
   const look=phone?ISLAND_TIERS.phone:ISLAND_TIERS.desktop,used=islandUsed(f,meta,phone);
   const sets=placementSets(f,meta.protos,used,area,{casterTiles:look.casterTiles,coverTiles:look.coverTiles,...ISLAND_LOOK.names});
   const families=new Map<CoveFamily,IslandFamily>();
@@ -226,14 +226,14 @@ export function bakeIslandPlan(f:Float32Array,meta:IslandPlanMeta,phone:boolean)
   const m=new THREE.Matrix4(),q=new THREE.Quaternion(),scale=new THREE.Vector3(),t=new THREE.Vector3();
   for(let i=0;i<used;i++){
     const o=i*10,pi=f[o]??0,name=meta.protos[pi]?.name??'',key=coveFamilyOf(name);
-    if(key===undefined||ISLAND_FACTS.protos[pi]?.present!==true)continue;
+    if(key===undefined||facts.protos[pi]?.present!==true)continue;
     t.set(f[o+1]??0,f[o+2]??0,f[o+3]??0);
     let entry=families.get(key);if(entry===undefined){entry={key,indices:[],colliders:[]};families.set(key,entry);}
     entry.indices.push(i);
     const own=claim.get(spot(t.x,t.z));if(own!==undefined){entry.colliders.push(own);claim.delete(spot(t.x,t.z));}
   }
   const smallRocks=sets.apart.map(i=>{
-    const o=i*10,pi=f[o]??0,sc=f[o+8]??1,{half,top}=ISLAND_FACTS.protos[pi]??{half:0.4,top:0.25};
+    const o=i*10,pi=f[o]??0,sc=f[o+8]??1,{half,top}=facts.protos[pi]??{half:0.4,top:0.25};
     t.set(f[o+1]??0,f[o+2]??0,f[o+3]??0);q.set(f[o+4]??0,f[o+5]??0,f[o+6]??0,f[o+7]??1);
     const r=(half*sc)/1.1,sq=THREE.MathUtils.clamp((top*sc)/(0.92*r),0.4,0.9);
     return{x:t.x,y:t.y,z:t.z,matrix:m.compose(t,q,scale.set(1,1,1)).toArray(),params:{r,sq}};
