@@ -37,6 +37,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { StepProgress } from '@wildshard/engine/boot/plan';
 import { workSlice } from '@wildshard/engine/core/workSlice';
 import { app } from '@wildshard/engine/app/runtime';
+import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { harnessPins } from '@wildshard/engine/app/identity';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
@@ -778,7 +779,7 @@ export class GridSession {
       }
     }
     if (target === undefined) { this.loadingSince.clear(); return null; }
-    const id = target.instance, since = this.loadingSince.get(id) ?? performance.now(); this.loadingSince.set(id, since);
+    const id = target.instance, since = this.loadingSince.get(id) ?? diagnosticNow(); this.loadingSince.set(id, since);
     const raw = live.refusal(id), refusal = this.refusal(id);
     const reason = refusal !== null ? refusalReason(refusal)
       : raw instanceof GridCellWaitingError ? GAME_STRINGS.grid.waiting(this.shardName(id)) : null;
@@ -799,7 +800,7 @@ export class GridSession {
   }
   /** At most four times a second: the loading screen reads the allocator and the live session. */
   private stepCellLoading(): void {
-    const now = performance.now(); if (now - this.cellLoadingPolled < 250) return;
+    const now = diagnosticNow(); if (now - this.cellLoadingPolled < 250) return;
     this.cellLoadingPolled = now; this.cellLoading.step(this.cellLoadingInput());
     // G580 T2 (Developer): the traveller waits at the wall while its screen shows, so its warm-up may issue more a frame
     // G580 T2 / T5: a held traveller's warm-up issues more programs a frame and its builds run a bigger budget
@@ -852,6 +853,18 @@ export class GridSession {
       ...(this.admitNeighbour === undefined ? {} : { prepareDataTiles: async (cell: GridCell, scope: Scope, start: { readonly x: number; readonly z: number }) => {
         await this.admitNeighbour?.(cell);
         await this.clientTiles.enterOffered(cell.instance, scope, start);
+      }, prepareNeighbourTiles: async (cell: GridCell, start: { readonly x: number; readonly z: number }, signal: AbortSignal) => {
+        const owner = this.host.scope.child(`grid.tile-approach.${cell.instance}`);
+        const release = (): void => { owner.dispose(); };
+        owner.listen(signal, 'abort', release, { once: true });
+        try {
+          if (signal.aborted) throw new Error('Tile approach abandoned');
+          await this.admitNeighbour?.(cell);
+          if (owner.disposed || owner.disposing || signal.aborted) throw new Error('Tile approach abandoned');
+          const prepare = this.clientTiles.prepareOffered;
+          if (prepare === undefined) throw new Error('Tile approach preparation is unavailable');
+          await prepare(cell.instance, owner, start);
+        } catch (error) { owner.dispose(); throw error; }
       } }),
       neighbourEdges: (cell, origin) => neighbourEdges(cell, { origin }), rimEdges: (origin) => rimEdges(this.assembly, { origin }) }, page);
     return this.live;

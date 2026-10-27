@@ -249,3 +249,21 @@ test('invalid standalone instance data releases the construction scope before li
   } finally { f.scope.dispose(); }
   expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
 });
+
+
+test('approach pins entry render tiles without entering or replacing the neighbour', async () => {
+  const f = fixture(), approach = f.scope.child('approach');
+  try {
+    const prepare = f.registration.prepareOffered;
+    if (prepare === undefined) throw new Error('Missing tile-only approach port');
+    const pending = prepare('home', approach, camera);
+    await f.drive(); await pending;
+    expect(f.registration.owns('home')).toBe(false);
+    expect(f.instances.get('home')?.root).toBe(f.neighbour.root);
+    expect(f.entered.root.children).toHaveLength(0);
+    expect(f.neighbour.root.children.length).toBeGreaterThan(0);
+    approach.dispose();
+    await expect(prepare('home', approach, camera)).rejects.toThrow('owner left');
+  } finally { f.scope.dispose(); }
+  expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
+});

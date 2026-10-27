@@ -1,7 +1,7 @@
 import type { LiveGridAdmission } from './live';
 
 /** Prefetch has no world constructor and owns no regional durability registration. */
-export type GridAdmissionMetadata = Pick<LiveGridAdmission, 'bytes' | 'exclusiveRuntime' | 'isolatedPreparation' | 'reloadsCheckpoint' | 'prepareRuntime' | 'cancel'>;
+export type GridAdmissionMetadata = Pick<LiveGridAdmission, 'bytes' | 'exclusiveRuntime' | 'isolatedPreparation' | 'tilePreparation' | 'reloadsCheckpoint' | 'prepareRuntime' | 'cancel'>;
 
 /** Cached admission keeps metadata only; every world, including re-entry, borrows verified preparation inputs anew. */
 export async function preparationAdmission(metadata: () => Promise<GridAdmissionMetadata>, prepare: () => Promise<LiveGridAdmission>): Promise<LiveGridAdmission> {
@@ -12,6 +12,7 @@ export async function preparationAdmission(metadata: () => Promise<GridAdmission
     bytes: first.bytes,
     ...(first.exclusiveRuntime === undefined ? {} : { exclusiveRuntime: first.exclusiveRuntime }),
     ...(first.isolatedPreparation === undefined ? {} : { isolatedPreparation: first.isolatedPreparation }),
+    ...(first.tilePreparation === undefined ? {} : { tilePreparation: first.tilePreparation }),
     ...(first.reloadsCheckpoint === undefined ? {} : { reloadsCheckpoint: first.reloadsCheckpoint }),
     ...(first.prepareRuntime === undefined ? {} : { prepareRuntime: first.prepareRuntime }),
     cancel: () => { generation++; },

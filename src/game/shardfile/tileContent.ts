@@ -315,6 +315,8 @@ export interface ClientTileRegistration {
   coverageReady?: (instance: string) => boolean;
   dispose: () => void;
   offer: (instance: string, entry: ClientRingInstance) => void;
+  /** Pin only the approached entry's render tiles; never install an entered root or simulation. */
+  prepareOffered?: (instance: string, scope: Scope, start: { readonly x: number; readonly z: number }) => Promise<void>;
   /** A data-only cell borrows its admitted neighbour views with required entry coverage. */
   enterOffered: (instance: string, scope: Scope, start: { readonly x: number; readonly z: number }) => Promise<void>;
   enter: (instance: string, entry: ClientRingInstance, scope: Scope, start: { readonly x: number; readonly z: number }) => Promise<{ readonly fine: ReadonlySet<string>; refresh: () => Promise<void> }>;
@@ -331,6 +333,18 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
     coverageReady: instance => covered.has(instance),
     dispose: () => { if (disposed) return; disposed = true; for (const release of entered.values()) release(); },
     offer: (instance, entry) => { if (disposed) throw new Error('Tile registration disposed'); fallback.set(instance, entry); if (!entered.has(instance)) instances.set(instance, entry); },
+    prepareOffered: async (instance, scope, start) => {
+      const left = (): boolean => disposed || scope.disposed || scope.disposing;
+      if (left()) throw new Error('Approached tile owner left');
+      if (!fallback.has(instance)) throw new Error('Approached tile views have not been admitted');
+      const order = tileOrder(start);
+      const required = streamer.require(instance, order.tiles.filter(tile => order.rank(tile) === 0).map(tile => tile.j * 8 + tile.i));
+      let held = true;
+      const release = (): void => { if (held) { held = false; required.release(); } };
+      scope.onDispose(release);
+      try { await required.ready; if (left()) throw new Error('Approached tile owner left'); }
+      catch (error) { release(); throw error; }
+    },
     enterOffered: async (instance, scope, start) => {
       const entry = fallback.get(instance);
       if (entry === undefined) throw new Error('Data cell tile views have not been admitted');

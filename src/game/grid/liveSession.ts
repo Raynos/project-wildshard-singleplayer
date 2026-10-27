@@ -130,6 +130,8 @@ export interface LiveGridPage {
 export interface LiveGridSessionPorts {
   /** Data-only cells publish gameplay only after their admitted entry tiles are resident. */
   readonly prepareDataTiles?: (cell: GridCell, scope: Scope, start: { readonly x: number; readonly z: number }) => Promise<void>;
+  /** Render-only destination preparation; the signal releases its temporary entry-tile pins. */
+  readonly prepareNeighbourTiles?: (cell: GridCell, start: { readonly x: number; readonly z: number }, signal: AbortSignal) => Promise<void>;
   /** Borrow the page render scheduler when an entered data region replaces neighbour views. */
   readonly tiles?: ClientTileRegistration;
   /** Told once the lighting a crossing changes is in place (an entered runtime's activation settled, or the road again
@@ -272,6 +274,7 @@ export class LiveGridSession {
         return { physics: ports.physics, walls: ports.walls, dispose: () => { highwayScope.dispose(); } };
       } },
       admit: (cell) => this.admit(cell),
+      ...(ports.prepareNeighbourTiles === undefined ? {} : { prepareNeighbour: ports.prepareNeighbourTiles }),
       prioritize: (cell) => prioritizeGridProduct(cell.slug, { allocator: ports.allocator, scope }),
       pause: () => yieldGridAdmission(scope),
       prefetchable: (cell) => { const manifest = findShard(cell.slug); return (manifest?.shardfile ?? manifest?.gridShardfile) !== undefined; },
@@ -639,7 +642,7 @@ export class LiveGridSession {
       return finish(await (metadata ? this.admitRuntime(cell, retained, true) : this.admitRuntime(cell, retained, false)));
     }
     const bytes = regionalDataCellBytes(cell.slug, source, findShard(cell.slug));
-    if (metadata) return finish({ bytes, isolatedPreparation: true, reloadsCheckpoint: true, cancel: retained.release });
+    if (metadata) return finish({ bytes, isolatedPreparation: true, tilePreparation: source.tiles.some(tile => tile.lod === 0), reloadsCheckpoint: true, cancel: retained.release });
     let durability = this.durability.get(cell.instance);
     if (durability === undefined) {
       durability = new GridRegionDurability(this.page.saves, { id: cell.instance, shard: cell.slug }, source, this.page.catalogue);
@@ -765,7 +768,7 @@ export class LiveGridSession {
     // Only admitted declarative/client-plan worlds supply reversible construction bindings. The live host
     // also requires the strict page/owner projection and serializes every constructor through its cleanup.
     const isolatedPreparation = dataPage || manifest.clientPlanRuntime === true;
-    if (metadata) return { bytes, exclusiveRuntime: true, isolatedPreparation, reloadsCheckpoint: true, cancel: retained.release, prepareRuntime: prepareEntry };
+    if (metadata) return { bytes, exclusiveRuntime: true, isolatedPreparation, tilePreparation: retained.admitted.source.tiles.some(tile => tile.lod === 0), reloadsCheckpoint: true, cancel: retained.release, prepareRuntime: prepareEntry };
     const saved = new GridRegionDurability(this.page.saves, { id: cell.instance, shard: cell.slug }, retained.admitted.source, this.page.catalogue);
     this.durability.set(cell.instance, saved);
     let closed = false;

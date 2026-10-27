@@ -42,6 +42,8 @@ export interface LiveGridAdmission {
   /** Trusted bodyless declarative/client-plan construction owns its bindings and defers entered services.
    * Unknown/legacy factories never opt in merely because they accept an abort signal. */
   isolatedPreparation?: boolean;
+  /** Declared render tiles can prepare a neighbour without constructing its region. */
+  tilePreparation?: boolean;
 }
 /** G226: the initial home is an ordinary owned region; the neutral page constructs none of its opaque content. */
 export interface LiveGridOwnedHome { mode: 'owned'; instance: string; bytes: number; residency: HomeResidencyClaim }
@@ -56,6 +58,8 @@ export interface LiveGridPorts {
   admit: (cell: GridCell) => Promise<LiveGridAdmission>;
   /** Actual world construction outranks product-only prefetch until its queued preparation drains. */
   prioritize?: (cell: GridCell) => () => void;
+  /** Render-only approach: the signal owns the pin, including after preparation completes. */
+  prepareNeighbour?: (cell: GridCell, start: { readonly x: number; readonly z: number }, signal: AbortSignal) => Promise<void>;
   /** Strict speculative pair limits, independent of report-only ordinary admission. No port: no paired preparation. */
   preparationBudget?: { readonly playing: number; readonly loading: number };
   /** Browser presentation boundary between admission batches; absent leaves the standalone Node scheduler unchanged. */
@@ -283,6 +287,18 @@ export class LiveGridHost {
   }
   /** A road-approach guess remains speculative after construction, until entry or abandonment. */
   private approach: { instance: string; controller: AbortController; demanded: boolean } | null = null;
+  private tileApproach: { instance: string; controller: AbortController } | null = null;
+  private prepareNeighbour(cell: GridCell, feet: GridPoint): void {
+    if (this.tileApproach?.instance === cell.instance) return;
+    this.tileApproach?.controller.abort();
+    const controller = new AbortController();
+    this.tileApproach = { instance: cell.instance, controller };
+    const start = { x: Math.max(-CHUNK_HALF, Math.min(CHUNK_HALF, feet.x - cell.origin.x)),
+      z: Math.max(-CHUNK_HALF, Math.min(CHUNK_HALF, feet.z - cell.origin.z)) };
+    const prepare = this.ports.prepareNeighbour;
+    if (prepare === undefined) return;
+    void background(cell.instance, prepare(cell, start, controller.signal), () => !this.disposed && !controller.signal.aborted);
+  }
   private ensure(instance: string, guess = false): Promise<void> {
     if (this.disposed) return Promise.reject(new Error('Live grid is disposed'));
     const cell = this.assembly.cell(instance);
@@ -456,6 +472,9 @@ export class LiveGridHost {
     finally{work.candidates.length=0;work.nearby.length=0;work.boulevard.length=0;work.bounded.length=0;if(!this.disposed)this.approachWork.push(work);}
   }
   private beforeFixedWithWork(work:{candidates:GridCell[];nearby:GridCell[];boulevard:GridCell[];bounded:GridCell[]}):void{
+    if (this.tileApproach?.instance === this.active && this.ports.gameplayReady(this.tileApproach.instance)) {
+      this.tileApproach.controller.abort(); this.tileApproach = null;
+    }
     const feet = this.worldFeet(), previous = this.previousFeet;
     const travelledDistance = previous === undefined ? 0 : Math.hypot(feet.x - previous.x, feet.z - previous.z);
     // More than a second of modeled travel between fixed samples is a pose/portal jump.
@@ -485,6 +504,14 @@ export class LiveGridHost {
     // One constructor owns the queue until its cleanup settles, including an aborted guess.
     const moving = !travelled ? undefined : candidates.find(cell => headsToEntry(cell, feet, previous)
       && this.distance(cell, feet) < this.distance(cell, previous) - 0.000001);
+    const tileApproach = this.tileApproach;
+    if (tileApproach !== null) {
+      const cell = this.assembly.cell(tileApproach.instance);
+      if (moving !== undefined && moving.instance !== cell.instance
+        || this.distance(cell, feet) > readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link).distance) {
+        tileApproach.controller.abort(); this.tileApproach = null;
+      }
+    }
     const pendingApproach = this.approach;
     if (this.requests.size === 0 || pendingApproach === null || pendingApproach.demanded || pendingApproach.controller.signal.aborted
       || travelledDistance > this.ports.readiness.link.speed) this.approachRedirect = undefined;
@@ -540,6 +567,7 @@ export class LiveGridHost {
         // Opaque alternatives at an ambiguous junction stay product/module-only until the turn identifies one destination.
         const roadWidth = this.assembly.pitch - 2 * CHUNK_HALF;
         const approachedProduct = this.products.get(approach.instance);
+        const tileOnly = approachedProduct?.tilePreparation === true && this.ports.prepareNeighbour !== undefined;
         const reach = early === approach ? Infinity : approachedProduct?.isolatedPreparation === true
           ? readinessModel(this.ports.readiness.bundle(approach), this.ports.readiness.link).distance
           : moving === undefined ? wallReach : Math.max(wallReach, roadWidth);
@@ -550,10 +578,11 @@ export class LiveGridHost {
         // Inside a playing source, only a real direct heading and admitted isolated factory may use its lead time.
         // Stationary proximity and ambiguous boulevard alternatives remain road-only; the source keeps its traveller.
         const sourceApproach = this.active === null || moving === approach && approachedProduct !== undefined
-          && this.canPrepareAlongside(approach.instance, approachedProduct);
+          && (tileOnly || this.canPrepareAlongside(approach.instance, approachedProduct));
         if (sourceApproach && this.distance(approach, feet) <= reach && (samePrediction || travelled && this.abandonApproach(approach.instance))
-          && !this.residents.has(approach.instance) && (!kept || approachedProduct !== undefined && this.canPrepareAlongside(approach.instance, approachedProduct))) {
-          void background(approach.instance, this.ensure(approach.instance, true), () => !this.disposed);
+          && !this.residents.has(approach.instance) && (!kept || tileOnly || approachedProduct !== undefined && this.canPrepareAlongside(approach.instance, approachedProduct))) {
+          if (tileOnly) this.prepareNeighbour(approach, feet);
+          else void background(approach.instance, this.ensure(approach.instance, true), () => !this.disposed);
         }
       }
     }
@@ -729,6 +758,7 @@ export class LiveGridHost {
    * and can be retried; the neutral highway disposer never owns the page physics or latest traveller motor. */
   dispose(): void {
     this.disposed = true;
+    this.tileApproach?.controller.abort(); this.tileApproach = null;
     for (const cancel of this.frames) cancel(); this.unbind?.(); this.unbind = undefined;
     // Return the still-live page traveller before freeing a world that contains its current controller.
     const page = null;
