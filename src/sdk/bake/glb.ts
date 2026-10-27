@@ -150,7 +150,14 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     // Read through Three's channel API, including normalized, half and interleaved
     // attributes, without first allocating a boxed copy of every component.
     const length = 'length' in values ? values.length : values.count * width;
-    const read = 'length' in values ? (i: number) => values[i] : (i: number) => values.getComponent(Math.floor(i / width), i % width);
+    // Three's Float16BufferAttribute inherits getComponent, which returns
+    // Uint16 storage bits. Its axis getters decode the numeric channel value.
+    const read = 'length' in values ? (i: number) => values[i]
+      : values instanceof Float16BufferAttribute ? (i: number) => {
+        const row = Math.floor(i / width), component = i % width;
+        return component === 0 ? values.getX(row) : component === 1 ? values.getY(row)
+          : component === 2 ? values.getZ(row) : values.getW(row);
+      } : (i: number) => values.getComponent(Math.floor(i / width), i % width);
     if (length === 0 || length % width !== 0) throw new Error('Invalid GLB attribute');
     // Validate, encode and collect component bounds in one ordered pass. Bounds
     // retain the unrounded source values, while the wire keeps its old storage.

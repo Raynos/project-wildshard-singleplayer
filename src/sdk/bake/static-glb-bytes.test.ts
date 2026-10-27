@@ -1,4 +1,4 @@
-import {BufferAttribute,BufferGeometry,Color,Float16BufferAttribute,InterleavedBuffer,InterleavedBufferAttribute,Matrix4,MeshBasicMaterial,MeshStandardMaterial} from 'three';
+import {BufferAttribute,BufferGeometry,Color,DataUtils,Float16BufferAttribute,InterleavedBuffer,InterleavedBufferAttribute,Matrix4,MeshBasicMaterial,MeshStandardMaterial} from 'three';
 import {expect,test} from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Golden full-wire digests independently pin the pre-optimization GLBs.
 import {createHash} from 'node:crypto';
@@ -43,6 +43,18 @@ function dispose(cases:ReturnType<typeof glbByteCases>):void {
  for(const {parts} of cases)for(const {geometry,material} of parts){geometry.dispose();material.dispose();}
 }
 
+/** Locate only a declared portable channel; the native raw storage remains independent. */
+function channelView(bytes:Uint8Array,semantic:string):{view:DataView;count:number} {
+ const header=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),length=header.getUint32(12,true);
+ const doc=v.parse(v.object({meshes:v.array(v.object({primitives:v.array(v.object({attributes:v.record(v.string(),v.number())}))})),
+  accessors:v.array(v.object({bufferView:v.number(),count:v.number()})),bufferViews:v.array(v.object({byteOffset:v.number(),byteLength:v.number()}))}),
+  JSON.parse(new TextDecoder().decode(bytes.subarray(20,20+length))));
+ const id=doc.meshes[0]?.primitives[0]?.attributes[semantic],accessor=id===undefined?undefined:doc.accessors[id];
+ const buffer=accessor===undefined?undefined:doc.bufferViews[accessor.bufferView];
+ if(accessor===undefined||buffer===undefined)throw new Error(`Missing portable channel ${semantic}`);
+ return {view:new DataView(bytes.buffer,bytes.byteOffset+28+length+buffer.byteOffset,buffer.byteLength),count:accessor.count};
+}
+
 test('retains every pre-optimization GLB byte across accessor and instance encodings',()=>{
  const expected:Record<string,string>={
   'source-floats':'32cb6b6c74d3f24b3fdc50a812e402429374bac71fcc30cb6d18b3493bd473ae',
@@ -54,7 +66,22 @@ test('retains every pre-optimization GLB byte across accessor and instance encod
  const cases=glbByteCases();
  try {
   expect(cases.map(row=>row.name).sort()).toEqual(Object.keys(expected).sort());
-  for(const {name,parts} of cases)expect(createHash('sha256').update(staticGlb(parts)).digest('hex'),name).toBe(expected[name]);
+  for(const {name,parts} of cases){
+   const bytes=staticGlb(parts);
+   if(name==='compact-native'){
+    const normal=parts[0]?.geometry.getAttribute('normal');
+    if(!(normal instanceof Float16BufferAttribute))throw new Error('Missing half normal');
+    const current=channelView(bytes,'NORMAL'),before=bytes.slice(),legacy=channelView(before,'NORMAL');
+    for(let i=0;i<current.count;i++)for(let c=0;c<3;c++){
+     const numeric=c===0?normal.getX(i):c===1?normal.getY(i):normal.getZ(i);
+     expect(current.view.getFloat32((i*3+c)*4,true)).toBe(numeric);
+     // Keep the old full-wire pin as a before-control: only the portable
+     // numeric normal changes; native half storage and every other byte stay.
+     legacy.view.setFloat32((i*3+c)*4,normal.getComponent(i,c),true);
+    }
+    expect(createHash('sha256').update(before).digest('hex'),name).toBe(expected[name]);
+   }else expect(createHash('sha256').update(bytes).digest('hex'),name).toBe(expected[name]);
+  }
  }finally{dispose(cases);}
 });
 
@@ -79,4 +106,30 @@ test.each(['position','normal','custom'] as const)('rejects non-finite %s values
    expect(()=>staticGlb(entry.parts)).toThrow('Invalid GLB attribute');
   }finally{dispose(cases);}
  }
+});
+
+
+test.each([1,2,3,4])('writes width-%s half channels with numeric axis semantics, including normalization and signed zero',width=>{
+ for(const normalized of [false,true]){
+  const geometry=new BufferGeometry(),material=new MeshStandardMaterial();
+  geometry.setAttribute('position',new BufferAttribute(new Float32Array([0,0,0,1,0,0,0,1,0]),3));
+  const samples=[-0,1,-2,3.2,65504,2**-24],half=new Float16BufferAttribute(Uint16Array.from({length:3*width},(_,i)=>DataUtils.toHalfFloat(samples[i%samples.length]??0)),width,normalized);
+  geometry.setAttribute('half',half);
+  try{
+   const bytes=staticGlb([{geometry,material,customAttributes:{_HALF:'half'}}]),channel=channelView(bytes,'_HALF');
+   expect(channel.count).toBe(3);
+   for(let i=0;i<half.count;i++)for(let c=0;c<width;c++){
+    const numeric=c===0?half.getX(i):c===1?half.getY(i):c===2?half.getZ(i):half.getW(i);
+    expect(Object.is(channel.view.getFloat32((i*width+c)*4,true),Math.fround(numeric))).toBe(true);
+   }
+  }finally{geometry.dispose();material.dispose();}
+ }
+});
+
+test.each([0x7c00,0xfc00,0x7e01])('rejects non-finite decoded half storage %s',bits=>{
+ const geometry=new BufferGeometry(),material=new MeshStandardMaterial();
+ geometry.setAttribute('position',new BufferAttribute(new Float32Array([0,0,0,1,0,0,0,1,0]),3));
+ geometry.setAttribute('half',new Float16BufferAttribute(Uint16Array.of(bits,0,0),1));
+ try{expect(()=>staticGlb([{geometry,material,customAttributes:{_HALF:'half'}}])).toThrow('Invalid GLB attribute');}
+ finally{geometry.dispose();material.dispose();}
 });
