@@ -1,10 +1,11 @@
 // G636: parallel exact-source checks within one five-second wall budget.
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
-import { posix, resolve } from 'node:path';
+import { matchesGlob, posix, resolve } from 'node:path';
 import * as v from 'valibot';
 import { parseSync } from 'vite';
 import { runCommitJobs } from './precommit-jobs.mjs';
+import { readLintConfig } from './guard-counts.mjs';
 
 /** Only exact declared generated imports may be absent from a cold sealed
  * snapshot. Ordinary missing modules remain failures of the selected guard.
@@ -32,11 +33,16 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
   const git = (/** @type {string[]} */ args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' });
   const files = git(['diff', '--cached', '--name-only', '-z', '--diff-filter=ACMR']).split('\0')
     .filter(file => /\.[cm]?[jt]sx?$/u.test(file));
+  const config = resolve(root, '.oxlintrc.json');
+  /** @type {string[]} */
+  const ignored = files.length > 0 && existsSync(config) ? readLintConfig(config).ignorePatterns ?? [] : [];
+  const eligible = files.filter(file => !ignored.some(pattern => matchesGlob(file, pattern)));
   /** @type {import('./precommit-jobs.mjs').CommitJob[]} */
   const jobs = [];
   if (existsSync(resolve(root, 'scripts/repo-size.mjs'))) jobs.push({ name: 'storage', command: [process.execPath, 'scripts/repo-size.mjs', '--index'] });
-  if (files.length > 0 && git(['diff', '--name-only', '--', ...files]).trim() === '')
-    jobs.push({ name: 'typed lint', command: [executable, '--type-aware', '-c', '.oxlintrc.json', ...files] });
+  if (eligible.length > 0 && git(['diff', '--name-only', '--', ...eligible]).trim() === '')
+    jobs.push({ name: 'typed lint', command: [executable, '--type-aware', '-c', '.oxlintrc.json', ...eligible] });
+  else if (files.length > 0 && eligible.length === 0) console.info('pre-commit: no staged paths eligible for typed lint under the existing ignore policy');
   const results = await runCommitJobs(root, jobs, deadline);
   for (const result of results) {
     if (result.output !== '') console.error(result.output.trimEnd());

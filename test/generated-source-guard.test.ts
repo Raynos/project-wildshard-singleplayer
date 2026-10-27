@@ -10,6 +10,7 @@ import { expect, test } from 'vitest';
 import { GENERATED_SOURCE_POLICY, checkGeneratedSourceRevision, checkGeneratedSourceTree,
   generatedSourceIncreases, generatedSourcePolicy } from '../scripts/generated-source.mjs';
 import { commitCheckFailed } from '../scripts/precommit-jobs.mjs';
+import { precommitInputs } from '../scripts/precommit-inputs.mjs';
 
 const old = 'src/shards/fixture/data/old.generated.json', source = 'a'.repeat(40);
 const policy = (files: string[] = [old]) => generatedSourcePolicy({ schema: 'generated-source/1', source, files });
@@ -34,6 +35,15 @@ test('source debt is exact, canonical and shrinking without wildcard or dependen
     expect(() => policy(file === old ? [old, old] : [file])).toThrow('policy');
   }
 });
+
+test('fixture-only commits respect ignore eligibility while ordinary source still requires typed lint', () => fixture(async (root, git, put) => {
+  put('.oxlintrc.json', JSON.stringify({ignorePatterns:['test/fixtures/**']}));
+  put('test/fixtures/rows.ts', 'export const rows = [];'); git('add', '.');
+  const missing = resolve(root, 'missing-oxlint');
+  await expect(precommitInputs(root, missing)).resolves.toBeUndefined();
+  put('src/checked.ts', 'export const checked = true;'); git('add', 'src/checked.ts');
+  await expect(precommitInputs(root, missing)).rejects.toThrow('typed lint: refused');
+}));
 
 test('new staged generated files and headers refuse even when the working copy is clean', () => fixture((root, git, put) => {
   put('src/authored.ts', 'export const rows = [];'); put('src/rows.json', '{"rows":[]}'); git('add', 'src/authored.ts', 'src/rows.json');
