@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { Bone, BoxGeometry, Float32BufferAttribute, Group, InstancedMesh, Mesh, MeshBasicMaterial, PCFShadowMap, PerspectiveCamera, Scene, Skeleton,
+import { Bone, BoxGeometry, BufferGeometry, Float32BufferAttribute, Group, InstancedMesh, Mesh, MeshBasicMaterial, PCFShadowMap, PerspectiveCamera, Scene, Skeleton,
   SkinnedMesh, Uint16BufferAttribute, Vector4, WebGLRenderTarget, type Camera, type Material, type Object3D } from 'three';
 import { warmParkedDraws, type ParkedDrawBudget, type ParkedDrawRenderer } from './parkedDraws';
 import { drawNeutral } from './drawNeutral';
@@ -17,6 +17,7 @@ function fixture(materials: readonly Material[]) {
   const properties = new WeakMap<object, { currentProgram?: { id: number } }>();
   let current: WebGLRenderTarget | null = null, scissorTest = false, program = 1;
   const draws: Object3D[][] = [];
+  const plans: { original: number; selected: number }[] = [];
   const renderer: ParkedDrawRenderer & { properties: { get: (object: object) => { currentProgram?: { id: number } } } } = {
     properties: { get: object => { let row = properties.get(object); if (row === undefined) { row = {}; properties.set(object, row); } return row; } },
     render: (world: Object3D, view: Camera) => {
@@ -40,13 +41,78 @@ function fixture(materials: readonly Material[]) {
   };
   const warm = async (budget: ParkedDrawBudget = ONE_A_SLICE): Promise<{ drawn: number; pauses: number }> => {
     let pauses = 0;
-    const drawn = await warmParkedDraws(renderer, scene, camera, target, root, () => true, () => { pauses++; return Promise.resolve(); }, { budget });
+    const drawn = await warmParkedDraws(renderer, scene, camera, target, root, () => true, () => { pauses++; return Promise.resolve(); },
+      { budget, onPlan: (original, selected) => { plans.push({ original, selected }); } });
     return { drawn, pauses };
   };
   /** precompile's link: the material holds the program its entry draw will use before any parked draw */
   const compile = (material: Material, id: number): void => { renderer.properties.get(material).currentProgram = { id }; };
-  return { root, draws, warm, compile, dispose: () => { target.dispose(); } };
+  return { root, draws, plans, warm, compile, dispose: () => { target.dispose(); } };
 }
+
+function uploadGeometry(bytes: number): BufferGeometry {
+  return new BufferGeometry().setAttribute('position', new Float32BufferAttribute(new Float32Array(bytes / 4), 3));
+}
+const isGeometry = (value: unknown): value is BufferGeometry => value instanceof BufferGeometry;
+
+test('opaque upload packing reduces slices without changing any draw or byte/frame cap', async () => {
+  const material = new MeshBasicMaterial(), f = fixture([material]);
+  const geometries = [384, 288, 192, 96].map(uploadGeometry), objects = geometries.map(geometry => new Mesh(geometry, material));
+  const budget: ParkedDrawBudget = { drawables: 8, newMaterials: 2, newBindings: 2, bufferBytes: 480 };
+  try {
+    f.compile(material, 7); f.root.add(...objects);
+    expect(await f.warm(budget)).toEqual({ drawn: 4, pauses: 2 });
+    expect(f.plans).toEqual([{ original: 3, selected: 2 }]);
+    expect(f.draws).toEqual([[objects[0], objects[3]], [objects[1], objects[2]]]);
+    expect(f.draws.flat()).toHaveLength(new Set(f.draws.flat()).size);
+    for (const slice of f.draws) {
+      expect(slice).toHaveLength(2);
+      expect(slice.reduce((sum, object) => {
+        const geometry: unknown = object instanceof Mesh ? object.geometry : undefined;
+        return sum + (isGeometry(geometry) ? geometry.getAttribute('position').array.byteLength : 0);
+      }, 0)).toBeLessThanOrEqual(480);
+    }
+  } finally { f.dispose(); for (const geometry of geometries) geometry.dispose(); material.dispose(); }
+});
+
+test('an oversized upload stays alone while smaller ordinary draws fill their original caps', async () => {
+  const material = new MeshBasicMaterial(), f = fixture([material]);
+  const geometries = [600, 384, 288, 192, 96].map(uploadGeometry), objects = geometries.map(geometry => new Mesh(geometry, material));
+  try {
+    f.compile(material, 7); f.root.add(...objects);
+    expect(await f.warm({ drawables: 8, newMaterials: 2, newBindings: 2, bufferBytes: 480 })).toEqual({ drawn: 5, pauses: 3 });
+    expect(f.plans).toEqual([{ original: 4, selected: 3 }]);
+    expect(f.draws[0]).toEqual([objects[0]]);
+    expect(new Set(f.draws.flat())).toEqual(new Set(objects));
+  } finally { f.dispose(); for (const geometry of geometries) geometry.dispose(); material.dispose(); }
+});
+
+test('hooked and transparent draws preserve their cursor, including draw-neutral hooks', async () => {
+  for (const barrier of ['hook', 'neutral', 'transparent'] as const) {
+    const material = new MeshBasicMaterial(), special = new MeshBasicMaterial({ transparent: barrier === 'transparent' }), f = fixture([material, special]);
+    const geometries = [384, 288, 192, 96].map(uploadGeometry), objects = geometries.map((geometry, i) => new Mesh(geometry, i === 1 ? special : material));
+    const middle = objects[1]; if (middle === undefined) throw new Error('Missing warm barrier');
+    if (barrier === 'hook') middle.onBeforeRender = () => undefined;
+    if (barrier === 'neutral') middle.onBeforeRender = drawNeutral(() => undefined);
+    try {
+      f.compile(material, 7); f.compile(special, 7); f.root.add(...objects);
+      expect(await f.warm({ drawables: 8, newMaterials: 2, newBindings: 2, bufferBytes: 480 })).toEqual({ drawn: 4, pauses: 3 });
+      expect(f.plans).toEqual([{ original: 3, selected: 3 }]);
+      expect(f.draws.flat()).toEqual(objects);
+    } finally { f.dispose(); for (const geometry of geometries) geometry.dispose(); material.dispose(); special.dispose(); }
+  }
+});
+
+test('packing cannot bypass distinct-program admission and keeps original order on a tied plan', async () => {
+  const materials = Array.from({ length: 4 }, () => new MeshBasicMaterial()), f = fixture(materials);
+  const geometries = [384, 288, 192, 96].map(uploadGeometry), objects = geometries.map((geometry, i) => new Mesh(geometry, materials[i]));
+  try {
+    materials.forEach((material, i) => f.compile(material, 10 + i)); f.root.add(...objects);
+    expect(await f.warm({ drawables: 8, newMaterials: 1, newBindings: 1, bufferBytes: 480 })).toEqual({ drawn: 4, pauses: 4 });
+    expect(f.plans).toEqual([{ original: 4, selected: 4 }]);
+    expect(f.draws.flat()).toEqual(objects);
+  } finally { f.dispose(); for (const geometry of geometries) geometry.dispose(); for (const material of materials) material.dispose(); }
+});
 
 test('a later parked warm of the same pipelines draws nothing new; a fresh geometry still draws', async () => {
   const geometry = new BoxGeometry(), material = new MeshBasicMaterial(), other = new BoxGeometry(), f = fixture([material]);

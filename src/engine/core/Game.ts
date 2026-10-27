@@ -845,6 +845,8 @@ export class Game {
   }
 
   private _entryPreparation: EntryPreparation | null = null;
+  /** S1: the boot's entered roots whose exterior (road) variants wait for play (`warmDeferredEntryRoots`) */
+  private deferredEntryRoots: { readonly owner: Scope; readonly roots: readonly THREE.Object3D[] }[] = [];
   /** Last entered-frame preparation's running phase, measured work counts and scalar timings. Painted waits are
    * included; no content resources are retained. The root identifies the exact destination. */
   get entryPreparation(): Readonly<EntryPreparation> | null { return this._entryPreparation; }
@@ -927,8 +929,33 @@ export class Game {
     const { prepareSceneRoots, waitForDrawnFrame, LIVE_UPLOAD_BUDGET } = await import('../render/precompile');
     const live = (): boolean => current() && this._composer === composer;
     const pause = this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, live) : undefined;
+    // S1: at boot (no frame yet) the roots' scene programs are the Shaders step's (drawn only) and their exterior (road)
+    // variants, which draw only once the player leaves the cell, link in play (`warmDeferredEntryRoots`, after control)
+    const boot = this.frameCount === 0;
+    if (boot && exteriorPrograms) this.deferredEntryRoots.push({ owner, roots });
     await prepareSceneRoots(this.renderer, this.camera, scene, composer.inputBuffer, roots, live, pause,
-      LIVE_UPLOAD_BUDGET, this.frameCount > 0, futureLighting, futureEnvironment ?? undefined, exteriorPrograms);
+      LIVE_UPLOAD_BUDGET, !boot, futureLighting, futureEnvironment ?? undefined, exteriorPrograms && !boot);
+  }
+
+  /**
+   * S1: link the exterior (road) variants of the roots the boot's entry left for play (`warmEnteredRoots`), nearest first,
+   * in live slices spaced by drawn frames, as an entered frame's own roots link (G639: without them the first road frame
+   * linked each environment's variant, 150-270 ms each). Roots whose owner has left are dropped. Call once control is up.
+   */
+  async warmDeferredEntryRoots(current: () => boolean): Promise<void> {
+    const pending = this.deferredEntryRoots;
+    this.deferredEntryRoots = [];
+    const composer = this._composer;
+    if (composer === null) return;
+    const { prepareSceneRoots, waitForDrawnFrame, LIVE_UPLOAD_BUDGET } = await import('../render/precompile');
+    for (const { owner, roots } of pending) {
+      if (owner.disposed || owner.disposing) continue;
+      const live = (): boolean => current() && !owner.disposed && !owner.disposing && this._composer === composer;
+      if (!live()) return;
+      await prepareSceneRoots(this.renderer, this.camera, this.rootScene, composer.inputBuffer, roots, live,
+        () => waitForDrawnFrame(owner, () => this.frameCount, live), LIVE_UPLOAD_BUDGET, false, undefined, undefined, true,
+        this.camera.getWorldPosition(new THREE.Vector3()));
+    }
   }
 
   /** The same complete program inventory may run before content finishes. It never draws or publishes readiness;
@@ -1003,7 +1030,8 @@ export class Game {
       // Every submission waits for a completed game frame; a CPU construction
       // budget cannot measure pending native pipeline work.
       const drawn = await warmParkedDraws(this.renderer, this.rootScene, this.camera, composer.inputBuffer, futureRoot, current,
-        drawnPause, { ...drawBudget, onProgress: (done, total) => { progress(done, total, `${done} / ${total} scene draws warmed`); }, environment: futureEnvironment });
+        drawnPause, { ...drawBudget, onProgress: (done, total) => { progress(done, total, `${done} / ${total} scene draws warmed`); },
+          onPlan: (original, selected) => { onStage('parked-slices-original', 0, original); onStage('parked-slices-selected', 0, selected); }, environment: futureEnvironment });
       onStage('parked-draws', diagnosticNow() - start, drawn);
     }
     // op-hitch37: a registered offscreen pass (Nalati's look bake) built its casters' pipelines on its first real

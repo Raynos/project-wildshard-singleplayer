@@ -180,6 +180,54 @@ export function parkedDrawSlices<T extends THREE.Object3D>(drawables: readonly T
   return slices;
 }
 
+/** Only ordinary opaque draws may move within the warm inventory. Hooks and
+ * special draw kinds keep their original cursor as barriers. This changes
+ * submission packing, never the exact receipt that permits skipping a draw. */
+function packable(object: Drawable): boolean {
+  const prototype: unknown = Object.getPrototypeOf(object), base = THREE.Object3D.prototype;
+  return (prototype === THREE.Mesh.prototype || prototype === THREE.InstancedMesh.prototype)
+    && object instanceof THREE.Mesh && object.morphTargetInfluences === undefined
+    && (!(object instanceof THREE.InstancedMesh) || object.morphTexture === null)
+    && object.customDepthMaterial === undefined && object.customDistanceMaterial === undefined
+    && object.onBeforeRender === base.onBeforeRender && object.onAfterRender === base.onAfterRender
+    && object.onBeforeShadow === base.onBeforeShadow && object.onAfterShadow === base.onAfterShadow
+    && drawableMaterials(object).every(material => !material.transparent && material.blending === THREE.NormalBlending);
+}
+
+/** Bounded first-fit upload packing. The original planner rechecks every budget
+ * afterward; its result wins unless the candidate needs strictly fewer slices.
+ * Oversized objects stay alone, and shared typed-array storage is counted once. */
+function packedDrawables(drawables: readonly Drawable[], budget: ParkedDrawBudget): readonly Drawable[] {
+  const cap = budget.bufferBytes;
+  if (cap === undefined || !Number.isFinite(cap) || cap <= 0 || budget.drawables < 2) return drawables;
+  const result: Drawable[] = [], pending: Drawable[] = [];
+  const flush = (): void => {
+    const rows = pending.map((object, index) => {
+      const buffers = drawBuffers(object);
+      return { object, index, buffers, bytes: buffers.reduce((sum, buffer) => sum + buffer.byteLength, 0) };
+    }).sort((a, b) => b.bytes - a.bytes || a.index - b.index);
+    const bins: { objects: Drawable[]; buffers: Set<ArrayBufferView>; bytes: number }[] = [];
+    for (const row of rows) {
+      const bin = bins.find(entry => entry.objects.length < budget.drawables && entry.bytes <= cap
+        && entry.bytes + row.buffers.reduce((sum, buffer) => sum + (entry.buffers.has(buffer) ? 0 : buffer.byteLength), 0) <= cap);
+      const entry = bin ?? { objects: [], buffers: new Set<ArrayBufferView>(), bytes: 0 };
+      if (bin === undefined) bins.push(entry);
+      entry.objects.push(row.object);
+      for (const buffer of row.buffers) if (!entry.buffers.has(buffer)) { entry.buffers.add(buffer); entry.bytes += buffer.byteLength; }
+    }
+    for (const bin of bins) result.push(...bin.objects);
+    pending.length = 0;
+  };
+  for (const object of drawables) {
+    if (!packable(object)) { flush(); result.push(object); continue; }
+    pending.push(object);
+    // Keep planning work bounded even for a large authored inventory.
+    if (pending.length === 64) flush();
+  }
+  flush();
+  return result;
+}
+
 /**
  * A `width`×`height` render target with `real`'s attachment formats (colour type and format, depth buffer or depth
  * texture, stencil, samples, mipmaps): a draw into it builds the driver pipelines a draw into `real` builds, and
@@ -541,7 +589,9 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
     /** A parked world's lights must be present for camera equipment to acquire its entry-frame programs. */
     lightingRoot?: THREE.Object3D;
     /** Completed drawables and their fixed total, without changing draw/pause cadence. */
-    onProgress?: (done: number, total: number) => void } = {}): Promise<number> {
+    onProgress?: (done: number, total: number) => void;
+    /** Original and selected slice counts, before any submission; no timing or readiness gate. */
+    onPlan?: (original: number, selected: number) => void } = {}): Promise<number> {
   const reveal = new Set(options.revealChildren === true ? root.children : []);
   if (options.lightingRoot !== undefined) reveal.add(options.lightingRoot);
   const drawables = parkedDrawables(root, camera, reveal);
@@ -549,13 +599,20 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
   const formats = targetFormats(target);
   // G782: a material counts against a slice's new-material budget only when its native pipeline is new to this renderer
   // and to this warm (a warm crossing re-parks fresh material objects over pipelines its last visit built)
-  const planned = new Set<string>();
-  const slices = parkedDrawSlices(drawables, options.budget ?? DEFAULT_BUDGET, (object, material) => {
-    const pipeline = nativePipeline(renderer, object, material, camera, formats);
-    if (pipeline === undefined) return false;
-    if (warmed.pipelines.has(pipeline) || planned.has(pipeline)) return true;
-    planned.add(pipeline); return false;
-  });
+  const budget = options.budget ?? DEFAULT_BUDGET;
+  const plan = (rows: readonly Drawable[]): Drawable[][] => {
+    const planned = new Set<string>();
+    return parkedDrawSlices(rows, budget, (object, material) => {
+      const pipeline = nativePipeline(renderer, object, material, camera, formats);
+      if (pipeline === undefined) return false;
+      if (warmed.pipelines.has(pipeline) || planned.has(pipeline)) return true;
+      planned.add(pipeline); return false;
+    });
+  };
+  const original = plan(drawables), packed = packedDrawables(drawables, budget);
+  const candidate = packed.every((object, index) => object === drawables[index]) ? original : plan(packed);
+  const slices = candidate.length < original.length ? candidate : original;
+  options.onPlan?.(original.length, slices.length);
   // The scene holds the real camera equipment. Copy only the view: recursive
   // camera copies clone that unused hierarchy and can prepare fresh materials.
   const view = THREE.Object3D.prototype.clone.call(camera, false);
