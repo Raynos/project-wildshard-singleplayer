@@ -899,7 +899,7 @@ read-only prior products, not a new current-source build.
 | Nine | Retained64L0/12L1 with complete occupied parents; b1f6916531 fills four proven-empty metadata parents | Dense L0 remains: centre0/3/3 has240585 triangles/38 draws, and large wire/resident debt. sp-o3 owns dense producer/library-to-streamer work; not done. |
 | Sky | sp-x10 build11.8s:64L0/16L1,16 full5x5,zero bake debt (pre-migration evidence only) | Fine render ownership source migrated in T8.S3:22 L0 GLBs leave the resident library; ground anchors draw no islands; generic tile reader uses original named paint. Explorer borrows1–4 files per model. Exact runtime ownership reading remains open at plan end. |
 | Sunscar | sp-x10 fresh build11.1s:64L0/16L1,16 full5x5,zero tile-cap debt | Source confirmed: generic terrain producer/reader owns all80 rows; no fine GLB belongs to its resident library. Types and named lint pass. G773 build1/1; final runtime reading remains open at plan end. |
-| Open plots | Retained64L0/16L1; Night Market and the other plots retain wire/resident/draw overages | sp-x2 owns the generic SDK tile producer cut; no shard-name branch or cap waiver. |
+| Open plots | Generic tiledPlot L1 producer `1361eb295e`: Night Market own build0, every L1 tile2 draws/no texture,23468–48768B wire/114376–223736B declared resident;40 obsolete L1 debt rows removed | Source in flight (reading at plan end), sp-o3; L0 rows unchanged apart from names, no debt/cap increase. No duplicate build or capture by sp-x2. |
 | Template | Own current-source G773 product PASS4.86s:64L0/16L1,16 full5x5 windows,zero cap debt | T8 producer qualified once; final runtime/read qualification remains at plan end. No source or cap changes needed. |
 
 | Slice | State | Change and checks |
@@ -909,9 +909,10 @@ read-only prior products, not a new current-source build.
 ### T8 open-plot cost boundary (2026-10-27, sp-x2)
 
 Pine's source handoff is `88fd3ebe2b`; its actual product and final selected
-checks are recorded above. The next open-plot cut is blocked on graphical
-material/texture consolidation, routed to the coordinator for an Opus owner.
-This is an actual retained cost audit, not a new product or acceptance run.
+checks are recorded above. This retained audit identified the L1 material/texture
+blocker, now source-fixed by sp-o3 in `1361eb295e` through generic L0 detail
+and L1 vertex-colour stand-ins. The before data remains below; it is not the
+current producer result or a new acceptance run.
 Night Market retained product `8b1243d3d0250c022af95ed03ef0275fc4ab63a498aeb0d069d3c6c66e1c1a0f`
 already uses quantized meshopt and complete64L0/16L1 rows:
 
@@ -985,3 +986,21 @@ Nine signAtlasOutput node:zlib type admission (D95). Full ratchet retains
 the independent global audit (D94). No test suite, product build,
 browser, GC or Simulator reading under G769; retained-byte encoding is
 the requested exact cost record, not plan-end product/GC qualification.
+
+### T8 open-plot source handoff and T10 boundary
+
+`1361eb295e` closes the routed coarse-material source blocker. The generic
+producer keeps water, pools, posters, landmark and ring paving in L0 detail;
+its existing source-colour stand-ins join Kit at L1, retaining Glow separately.
+Night Market's one owner build passes with every L1 tile2 draws/no texture,
+23468–48768B wire and114376–223736B declared resident (old maxima about3.0MB
+and11.1MB). Forty exact L1 debt rows are removed, none raised. Owner phone
+wire16.05→15.07MB; L0 rows keep their original geometry, renamed. This is
+producer qualification, not a pixel or native-memory acceptance claim.
+
+No sp-x2 rebuild/preview is started for this already-checked source. The one
+plan-end reading remains outstanding. The current T10 source audit confirms
+whole-cell ring selection and permanent missing-L1 fine coverage are already
+removed by `45086a7db8`, `89f7d3598a` and `404b717e02`. Sky fine-library migration is now landed in `8bf41b2b33`; consume that
+producer boundary. Nine migration remains unlanded at this audit; preserve
+its still-used reader/Explorer paths until its defining producer lands. G606 frozen sources untouched.
