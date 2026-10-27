@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin original executable bytes.
 import {createHash} from 'node:crypto';
 import {expect,test} from 'vitest';
-import {readNamedBlob} from '../src/sdk/blobs';
+import { NALATI_VIEW_BLOBS } from './fixtures/nalati-view-modules';
 import {admitScriptV2} from '../src/format/scriptAdmissionV2';
 import {output} from './fixtures/nalati-output-original';
 import {outputPlatformPayloads} from '../src/sdk/outputProduct';
@@ -48,11 +48,10 @@ const originals = [
     "ioBytes": 16384
   }
 ] as const;
-test.each(originals)('raw $stem keeps the original bytes and view admission',async original=>{
+test.each(originals)('raw $stem keeps the original bytes and view admission',original=>{
   const name=`views/nalati.${original.slug}.wasm`;
-  const row=output.blobs.find(blob=>blob.name===name);
-  if(row===undefined||row.kind!=='wasm'||!('options' in row))throw new Error('Missing named view source');
-  const blob=await readNamedBlob('src/shards/nalati-grasslands',row.name,row.source,row.kind,row.options);
+  const blob=NALATI_VIEW_BLOBS.find(row=>row.file.name===name);
+  if(blob===undefined||blob.file.kind!=='wasm')throw new Error('Missing owned named view module');
   expect(blob.bytes.length).toBe(original.bytes);
   expect(createHash('sha256').update(blob.bytes).digest('hex')).toBe(original.hash);
   expect(blob.file).toMatchObject({critical:true,hash:original.hash});
