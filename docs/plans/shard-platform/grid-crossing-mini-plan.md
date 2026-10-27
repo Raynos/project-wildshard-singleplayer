@@ -185,7 +185,7 @@ speedup or physical-device claim follows.
 Both visits finish current/ready DW with errors0, skipped0, contextLost
 false; unchanged8s cold/5s warm timing bars FAIL. Entry max stays below
 200ms but p95 exceeds35ms, so the cadence gate also fails. The native
-foundation is605.1/459.0ms; the world hook is8.454/3.006s, an aggregate
+foundation is605.1/459.0ms; the world hook is8.454/3.154s, an aggregate
 phase wall span, not sampled CPU. Library detail cold/warm: cargo188.3/
 117.6ms, native specimens32.2/6.0ms, reef345.9/64.6ms, rocks236.5/334.6ms,
 foliage1702.9/281.5ms and cascade464.6/221.6ms. Placement admission81.1/
