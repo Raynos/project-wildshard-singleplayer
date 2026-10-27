@@ -303,6 +303,26 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     const random = ctx.app.rng.stream('cosmetic');
     for (let draw = 0; draw < section.cosmeticDraws; draw++) random.next();
   }
+  // Carry the same four-file window across owned-library boundaries. The next
+  // library's first transport can overlap the previous library's final decode;
+  // parsing and publication still follow the original library/model cursor.
+  const ownedModels = section.libraries.flatMap(row => row.kind === 'owned' ? row.models
+    .filter(model => residentReferences.has(JSON.stringify([row.id, model.id])))
+    .map(model => ({ model, file: typeof model.file === 'string' ? model.file : model.file[TIER] })) : []);
+  const ahead = new Map<string, Promise<Uint8Array>>();
+  let nextModel = 0;
+  const readAhead = (): void => {
+    requireSceneOwner(owner);
+    while (ahead.size < MODEL_READ_AHEAD && nextModel < ownedModels.length) {
+      const model = ownedModels[nextModel++];
+      if (model === undefined || ahead.has(model.file) || cachedWorldSceneGeometry(product, { file: model.file, attributes: model.model.attributes, ...(model.model.segments === undefined ? {} : { segments: model.model.segments }) }, ctx.app.assets)) continue;
+      const pending = product.file(model.file); void pending.catch(() => undefined); ahead.set(model.file, pending);
+    }
+  };
+  const reader = { url: (name: string) => product.url(name), file: (name: string): Promise<Uint8Array> => {
+    const pending = ahead.get(name); if (pending === undefined) return product.file(name);
+    ahead.delete(name); return pending;
+  } };
   try {
     await timeClientPreparation(product.slug, 'scene.library-intake', async () => {
       const libraryProgress = loadingUnits('Model libraries', section.libraries.length);
@@ -324,22 +344,9 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
             const neededModels = row.models.filter(model => residentReferences.has(JSON.stringify([row.id, model.id])));
             const modelProgress = loadingUnits('Home models', neededModels.length);
             modelProgress(0, row.id);
-            // read ahead: the next MODEL_READ_AHEAD models' bytes are read while the current one decodes (one model after
-            // another waited on each read: much of the home's ~0.46 s library intake at 4x CPU)
-            // (a model whose decoded template is already cached reads nothing: a retired resident's storage is reused)
-            const files = neededModels.map(model => typeof model.file === 'string' ? model.file : model.file[TIER]), ahead = new Map<string, Promise<Uint8Array>>();
-            const readAhead = (index: number): void => {
-              const name = files[index], model = neededModels[index]; if (name === undefined || model === undefined || ahead.has(name)) return;
-              if (cachedWorldSceneGeometry(product, { file: name, attributes: model.attributes, ...(model.segments === undefined ? {} : { segments: model.segments }) }, ctx.app.assets)) return;
-              const read = product.file(name); void read.catch(() => undefined); ahead.set(name, read);
-            };
-            const reader = { url: (name: string) => product.url(name), file: (name: string): Promise<Uint8Array> => {
-              const read = ahead.get(name); if (read === undefined) return product.file(name);
-              ahead.delete(name); return read;
-            } };
             for (const [modelIndex, model] of neededModels.entries()) {
-              for (let next = modelIndex; next < modelIndex + MODEL_READ_AHEAD; next++) readAhead(next);
-              const file = files[modelIndex] ?? (typeof model.file === 'string' ? model.file : model.file[TIER]);
+              readAhead();
+              const file = typeof model.file === 'string' ? model.file : model.file[TIER];
               const geometry = await readWorldSceneGeometry(owner, reader, { file, attributes: model.attributes, ...(model.segments === undefined ? {} : { segments: model.segments }) }, ctx.app.assets);
               finish.push(geometry.done); models.set(model.id, geometry);
               modelProgress(modelIndex + 1, model.id);
@@ -550,4 +557,5 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     libraries.clear(); packets.clear(); for (const done of finish) done();
     return handles;
   } catch (error) { owner.dispose(); throw error; }
+  finally { await Promise.allSettled(ahead.values()); ahead.clear(); }
 }
