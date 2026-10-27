@@ -143,7 +143,6 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
   }
   let catalogue: ReturnType<typeof parseWorldSceneModels> | undefined;
   let modelScenes: ReadonlyMap<string, WorldSceneWeld> = new Map();
-  const frozenSlots = new Set<string>();
   if (section.catalogue !== undefined) {
     requireFile(section.catalogue);
     catalogue = parseWorldSceneModels(JSON.parse(decoder.decode(await reads.file(section.catalogue))));
@@ -163,7 +162,6 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     const resources = worldSceneModelResources(catalogue, [...modelScenes.values()]);
     for (const draw of resources.geometry) { reference(draw); if (!source(draw)) throw new Error('Frozen specimens need owned geometry'); }
     for (const slot of resources.materials) if (!slots.has(slot)) throw new Error('Missing frozen specimen material slot');
-    for (const slot of worldSceneModelResources({ ...catalogue, models: catalogue.models.filter(model => model.assembly === 'scene') }, [...modelScenes.values()]).materials) frozenSlots.add(slot);
   }
   const immediate = new Set(section.steps.flatMap(step => Object.values(step.materials)));
   if (section.materials.some(row => row.kind === 'source' && row.load === 'placement' && immediate.has(row.id))) throw new Error('Deferred source material requires a named model placement');
@@ -380,8 +378,13 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     await timeClientPreparation(product.slug, 'scene.material-intake', async () => {
       const materialProgress = loadingUnits('Materials and textures', section.materials.length);
       materialProgress(0);
-      const deferred = (row: (typeof section.materials)[number]): boolean => row.kind === 'source' && row.load === 'placement' && row.publishObject === undefined
-        && !welds.some(weld => weld.nodes.some(node => 'material' in node && node.material === row.id)) && !frozenSlots.has(row.id);
+      // A cold specimen has its own captured material intake. Only played draws,
+      // published source objects and eagerly copied map dependencies need this
+      // world's source textures before control; late welds prepare theirs below.
+      const earlySlots = new Set([...batches.values()].map(row => row.material));
+      for (const row of section.materials) if (row.kind === 'mapped' && row.material.source !== undefined) earlySlots.add(row.material.source.material);
+      for (const weld of welds) if (!lateWelds.has(weld.id)) for (const node of weld.nodes) if ('material' in node) earlySlots.add(node.material);
+      const deferred = (row: (typeof section.materials)[number]): boolean => row.kind === 'source' && row.load === 'placement' && row.publishObject === undefined && !earlySlots.has(row.id);
       // G782: a surface or source material's textures load up to MODEL_READ_AHEAD rows ahead and are taken in order, so their
       // waits overlap (Pine's material intake idled on one row's textures at a time); every other kind, each take, publish
       // and checkpoint stays in order. Started loads are drained before a failure leaves.
@@ -463,6 +466,16 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       const buildLate = async (): Promise<void> => {
         for (const row of late) {
           const shapes = new Map<string, WorldSceneGeometry>();
+          try {
+          for (const id of new Set(row.nodes.flatMap(node => 'material' in node && node.material !== '$shadow' ? [node.material] : []))) {
+            if (materials.has(id)) continue;
+            const declared = section.materials.find(material => material.id === id);
+            if (declared?.kind !== 'source' || declared.load !== 'placement' || sky === undefined) throw new Error('Missing late scene material');
+            const material = await worldSceneSourceMaterial(declared, sky, product, owner, handles); requireSceneOwner(owner);
+            const current = materials.get(id);
+            if (current !== undefined && current !== material) throw new Error('Late scene material identity changed');
+            if (current === undefined) { materials.set(id, material); handles.publish(`materials.${id}`, material); }
+          }
           for (const ref of row.nodes.flatMap(node => 'geometry' in node ? [node.geometry] : [])) {
             const key = JSON.stringify([ref.library, ref.model]); if (shapes.has(key)) continue;
             const model = owned.get(ref.library)?.models.find(candidate => candidate.id === ref.model);
@@ -472,7 +485,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
             await buildYield(owner);
           }
           await publishAssembly(row, (library, model) => shapes.get(JSON.stringify([library, model]))?.copy() ?? null);
-          for (const shape of shapes.values()) shape.done();
+          } finally { for (const shape of shapes.values()) shape.done(); }
         }
       };
       // the level whose host signals control (session/finish.ts); with no world host there is no spawn view to protect
