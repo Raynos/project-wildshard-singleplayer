@@ -17,10 +17,12 @@ function trailDistance(x: number, z: number): number {
   for (const poly of layout.TRAIL) for (let i = 0; i < poly.length - 1; i++) {
     const a = poly[i], b = poly[i + 1];
     if (a === undefined || b === undefined) continue;
-    const vx = b[0] - a[0], vz = b[1] - a[1], wx = x - a[0], wz = z - a[1];
+    const [ax, az] = a, [bx, bz] = b;
+    if (ax === undefined || az === undefined || bx === undefined || bz === undefined) throw new Error('Template trail requires coordinate pairs');
+    const vx = bx - ax, vz = bz - az, wx = x - ax, wz = z - az;
     const length = vx * vx + vz * vz;
     const t = length > 0 ? Math.min(1, Math.max(0, (wx * vx + wz * vz) / length)) : 0;
-    const dx = x - (a[0] + vx * t), dz = z - (a[1] + vz * t);
+    const dx = x - (ax + vx * t), dz = z - (az + vz * t);
     distance = Math.min(distance, dx * dx + dz * dz);
   }
   return Math.sqrt(distance);
