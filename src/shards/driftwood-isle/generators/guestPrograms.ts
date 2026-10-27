@@ -2,6 +2,7 @@ import { compileDecisionScripts } from '@wildshard/sdk/buildDecisionScripts';
 import { compileScriptV2 } from '@wildshard/sdk/compileScriptV2';
 import { compileBehaviourModule } from '@wildshard/sdk/buildBehaviour';
 import { generateDirectorAbi } from '@wildshard/sdk/directorAbi';
+import { generateDecisionBindings } from '@wildshard/sdk/decisionScriptBindings';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 
@@ -60,4 +61,43 @@ export function driftwoodGuestFiles(ctx: Pick<ProjectGenerationContext, 'cached'
   if (ctx.inputFiles === undefined) throw new Error('Guest programs require their complete authored input inventory');
   const inputs = [...ctx.inputFiles([`${PREFIX}behaviour/`]).filter(url => url.endsWith('.as')), `${PREFIX}data/director.json`];
   return ctx.cached({ id: 'guest-programs', native: true, inputs }, driftwoodGuestBytes);
+}
+
+interface CompiledGuest { source: string; bytes: number; hash: string }
+export interface DriftwoodGuestRows {
+  returnProgram: { script: ReturnType<typeof generateDecisionBindings>['row']; bytes: '' };
+  returns: { script: ReturnType<typeof generateDecisionBindings>['row']; bytes: ''; compiled: CompiledGuest };
+  bridge: { lane: 'view'; pages: 1; ioBytes: 4096; bytes: ''; compiled: CompiledGuest };
+  director: { module: string; bytes: '' };
+}
+const record = (value: unknown): value is Readonly<Record<string, unknown>> => typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/** Validate cached metadata against its owned raw files and the defining capability bindings before admission. */
+export function driftwoodGuestRows(files: ReadonlyMap<string, Uint8Array>): DriftwoodGuestRows {
+  const json = (name: string): unknown => {
+    const bytes = files.get(name); if (bytes === undefined) throw new Error(`Missing owned guest metadata: ${name}`);
+    return JSON.parse(decode.decode(bytes));
+  };
+  const compiled = (input: unknown, source: string): CompiledGuest => {
+    const bytes = files.get(source);
+    if (!record(input) || input['source'] !== source || bytes === undefined || bytes.byteLength === 0 || input['bytes'] !== bytes.byteLength
+      || input['hash'] !== hashImmutableBytes(bytes)) throw new Error(`Invalid owned guest compilation: ${source}`);
+    return { source, bytes: bytes.byteLength, hash: hashImmutableBytes(bytes) };
+  };
+  const returns = json('behaviour/returns.generated.json');
+  if (!record(returns) || returns['bytes'] !== '') throw new Error('Invalid owned return metadata');
+  const script = generateDecisionBindings(returns['script'], { fields: registry(DRIFTWOOD_RETURN_FIELDS), channels: registry(DRIFTWOOD_RETURN_CHANNELS),
+    signals: registry(DRIFTWOOD_RETURN_SIGNALS) }).row;
+  const returnCompiled = compiled(returns['compiled'], 'behaviour/returns.generated.wasm');
+  if (script.module !== `blobs/wasm/${returnCompiled.hash}.wasm`) throw new Error('Return declaration and raw module differ');
+  const bridge = json('behaviour/bridgeSway.generated.json');
+  if (!record(bridge) || bridge['lane'] !== 'view' || bridge['pages'] !== 1 || bridge['ioBytes'] !== 4096 || bridge['bytes'] !== '')
+    throw new Error('Invalid owned bridge metadata');
+  const director = json('behaviour/director.json');
+  if (!record(director) || typeof director['module'] !== 'string' || director['bytes'] !== '') throw new Error('Invalid owned director metadata');
+  const module = director['module'], binary = files.get(`assets/${module}`);
+  if (binary === undefined || hashImmutableBytes(binary) !== module) throw new Error('Director declaration and raw module differ');
+  return { returnProgram: { script, bytes: '' }, returns: { script, bytes: '', compiled: returnCompiled },
+    bridge: { lane: 'view', pages: 1, ioBytes: 4096, bytes: '', compiled: compiled(bridge['compiled'], 'behaviour/bridgeSway.generated.wasm') },
+    director: { module, bytes: '' } };
 }
