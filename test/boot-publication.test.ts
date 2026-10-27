@@ -4,6 +4,7 @@ import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, wr
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { BOOT_PUBLICATION, bootPublicationTableSources, parseBootPublication, publishBootPublication, readBootPublication } from '../scripts/boot-publication.mjs';
+import { verifiedBootPublicationTables } from '../scripts/boot-publication-proof.mjs';
 
 const facts = (offset = 0, length = 3, total = 3) => ({
   schema: 'boot-publication/1', bytes: { '/assets/raw.bin': 3 }, versions: { '/assets/raw.bin': '1234abcd' },
@@ -55,5 +56,39 @@ test('malformed publication cannot replace the last complete record', () => {
     expect(readdirSync(resolve(f.root, 'scripts'))).toEqual(['boot-publication.generated.json']);
     writeFileSync(file, '{}');
     expect(() => bootPublicationTableSources(f.root)).toThrow();
+  } finally { f.close(); }
+});
+
+test('live publication tables require complete current assets and exact packed payloads', () => {
+  const f = fixture();
+  const original = { ...facts(), versions: { '/assets/raw.bin': 'ba7816bf' },
+    packs: { demo: { phone: { parts: [{ url: '/assets/packs/demo.phone-ba7816bf.bin', bytes: 3,
+      files: [['/assets/raw.bin', 0, 3, 'application/octet-stream']],
+    }] } } } };
+  const raw = resolve(f.root, 'public/assets/raw.bin'), pack = resolve(f.root, 'public/assets/packs/demo.phone-ba7816bf.bin');
+  try {
+    mkdirSync(resolve(f.root, 'public/assets/packs'), { recursive: true });
+    writeFileSync(raw, 'abc'); writeFileSync(pack, 'abc'); publishBootPublication(f.root, original);
+    expect(verifiedBootPublicationTables(f.root)).toEqual(bootPublicationTableSources(f.root));
+    writeFileSync(raw, 'def');
+    expect(() => verifiedBootPublicationTables(f.root)).toThrow('content version differs');
+    writeFileSync(raw, 'abc'); writeFileSync(pack, 'abd');
+    expect(() => verifiedBootPublicationTables(f.root)).toThrow('pack identity differs');
+    writeFileSync(pack, 'abc');
+    const otherPack = resolve(f.root, 'public/assets/packs/demo.phone-cb8379ac.bin');
+    rmSync(pack); writeFileSync(otherPack, 'def');
+    publishBootPublication(f.root, { ...original, packs: { demo: { phone: { parts: [{
+      url: '/assets/packs/demo.phone-cb8379ac.bin', bytes: 3,
+      files: [['/assets/raw.bin', 0, 3, 'application/octet-stream']],
+    }] } } } });
+    expect(() => verifiedBootPublicationTables(f.root)).toThrow('packed payload differs');
+    rmSync(otherPack); writeFileSync(pack, 'abc'); publishBootPublication(f.root, original);
+    const extra = resolve(f.root, 'public/assets/extra.bin'); writeFileSync(extra, 'abc');
+    expect(() => verifiedBootPublicationTables(f.root)).toThrow('asset inventory differs');
+    rmSync(extra);
+    publishBootPublication(f.root, { ...original, packs: {} });
+    expect(() => verifiedBootPublicationTables(f.root)).toThrow('pack inventory differs');
+    publishBootPublication(f.root, original); rmSync(pack);
+    expect(() => verifiedBootPublicationTables(f.root)).toThrow('pack inventory differs');
   } finally { f.close(); }
 });
