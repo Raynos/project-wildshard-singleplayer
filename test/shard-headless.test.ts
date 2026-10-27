@@ -13,12 +13,16 @@ import { productHeadlessSections } from '../src/sdk/headlessSections';
 import { createNativeProofWorker } from './fixtures/headless-worker';
 import { TEMPLATE_SOURCE as template } from './fixtures/templateSource';
 import { PASTEL_SOURCE as pastel } from './fixtures/pastelSource';
-import driftwood from '../src/shards/driftwood-isle/shard.config';
+import driftwood from './fixtures/driftwood-product-source';
 import { PINE as pine } from './fixtures/pine-program';
 import nalati from './fixtures/nalati-product-source';
 import nine from './fixtures/nine-product-inputs';
 import { source as signal } from './fixtures/sunscar-source-program';
-import sky from '../src/shards/far-reach/shard.config';
+import { skyProductRows } from '../src/shards/far-reach/generators/product';
+import { originalSkyNavigation } from './fixtures/sky-navigation';
+import { originalSkyMovers } from './fixtures/sky-movers';
+
+const sky = skyProductRows(originalSkyNavigation(), originalSkyMovers());
 
 const cases = [
   ['_template', template, false], ['pastel-plain', pastel, false],
