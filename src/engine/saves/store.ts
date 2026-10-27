@@ -139,6 +139,14 @@ export class SaveStore {
     if (!doc(parsed)) throw new Error('Invalid serialized save document');
     this.documents.set(name, { raw, value: parsed }); return result;
   }
+  /** One changed entry of an owned cached document (js-heap D2: a shard's 270 KB continuation was written every 5 s):
+   *  the entry's data is an owned parse of its serialized `text`, which is kept for the next equality check, and the
+   *  document is serialized once and cached as is instead of parsed back from storage text. */
+  private putEntry(scope: SaveScope, name: string, saved: Document, key: string, value: Entry, text: string): boolean {
+    saved.keys[key] = value; this.entryTexts.set(value, text);
+    const raw = JSON.stringify(saved), result = this.put(scope, name, raw);
+    this.documents.set(name, { raw, value: saved }); return result;
+  }
   private entryText(value: Entry): string | undefined {
     if (this.entryTexts.has(value)) return this.entryTexts.get(value);
     const text = JSON.stringify(value.data); this.entryTexts.set(value, text); return text;
@@ -194,10 +202,10 @@ export class SaveStore {
       if (!result.success) { this.report(scopeOf(name), definition.key, definition.version, result.issues[0].message); return false; }
       // Equality is exact JSON content, not object identity. A failed durable
       // write still retries even when this page already retained the value.
-      if (entry(prior) && prior.v === definition.version && !this.failedWrites.has(name)
-        && this.entryText(prior) === JSON.stringify(result.output)) return true;
-      savedDoc.keys[definition.key] = { v: definition.version, data: result.output };
-      return this.putDocument(definition.scope, name, savedDoc);
+      const text = JSON.stringify(result.output);
+      if (entry(prior) && prior.v === definition.version && !this.failedWrites.has(name) && this.entryText(prior) === text) return true;
+      if (text === undefined) { savedDoc.keys[definition.key] = { v: definition.version, data: result.output }; return this.putDocument(definition.scope, name, savedDoc); }
+      return this.putEntry(definition.scope, name, savedDoc, definition.key, { v: definition.version, data: JSON.parse(text) }, text);
     };
     const peek = (namespace?: string): T | null => {
       this.initialize();

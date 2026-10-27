@@ -23,14 +23,16 @@ type ShadowRenderer = Pick<Renderer, 'renderBufferDirect'> & { shadowMap: Pick<R
  * stay as they were; a multi-material caster takes a kind only when every one of its materials has the same depth facts.
  */
 function depthKind(object: Object3D): string | null {
+  // a plain caster has no kind: answered before any fact string is built (this runs for it on every shadow draw)
+  const base = object instanceof InstancedMesh ? `instanced${object.instanceColor === null ? '' : '+colour'}${object.morphTexture === null ? '' : '+morph'}`
+    : object instanceof SkinnedMesh ? 'skinned' : null;
+  if (base === null) return null;
   const own: unknown = Reflect.get(object, 'material');
   const materials: readonly unknown[] = Array.isArray(own) ? own : [own];
   const facts = materials.map(depthFacts);
   const first = facts[0];
   if (first === undefined || first === null || facts.some(fact => fact !== first)) return null;
-  const base = object instanceof InstancedMesh ? `instanced${object.instanceColor === null ? '' : '+colour'}${object.morphTexture === null ? '' : '+morph'}`
-    : object instanceof SkinnedMesh ? 'skinned' : null;
-  return base === null ? null : `${base}|${first}`;
+  return `${base}|${first}`;
 }
 
 /** the depth facts three copies from a caster's material onto its depth material, or null where three gives that material
