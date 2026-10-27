@@ -17,6 +17,9 @@ export function runPushSubset(root: string, jobs: PushSubsetJob[], deadline: num
 export function pushSubsetVerdict(results: readonly PushSubsetResult[]): {
   failed: string[]; unfinished: string[];
 };
+export function pushSubsetControlRecord(results: readonly PushSubsetResult[]): {
+  results: PushSubsetResult[]; verdict: { failed: string[]; unfinished: string[] };
+};
 /** CI replays named unfinished steps plus their actual prerequisites. */
 export function selectPushSteps(jobs: readonly PushSubsetJob[], names: readonly string[]): PushSubsetJob[];
 /** Replay the unchanged native intake only after ordinary declared generation. */

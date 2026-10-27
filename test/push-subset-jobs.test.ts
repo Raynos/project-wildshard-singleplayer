@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { pushSubsetJobs, runPushSubset, pushSubsetVerdict, selectPushSteps, nativeOutputReplayJob, type PushSubsetPorts } from '../scripts/push-subset-jobs.mjs';
+import { pushSubsetJobs, runPushSubset, pushSubsetVerdict, selectPushSteps, nativeOutputReplayJob, pushSubsetControlRecord, type PushSubsetPorts } from '../scripts/push-subset-jobs.mjs';
 import type { GateSelection } from '../scripts/gate-selection.mjs';
 import type { CommitJob } from '../scripts/precommit-jobs.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Retain the owned detached-child marker and remove its tiny fixture.
@@ -11,6 +11,26 @@ import { execFileSync, spawnSync } from 'node:child_process';
 
 const paths = ['scripts/heavy-lane.py', 'scripts/gen.mjs', '.oxlintrc.json', 'scripts/vitest-push.config.ts',
   'test/source.test.ts', 'test/reader.test.ts', 'test/native.test.mjs', 'src/game/example.ts', 'tsconfig.game.json'];
+
+test('compact control records retain refusals and cap ownership without huge diagnostics', () => {
+  const diagnostic = 'error: exact retained refusal\n'.repeat(10_000);
+  const results = [
+    { name: 'types', code: 1, timedOut: false, output: diagnostic },
+    { name: 'products', code: 124, timedOut: true, output: diagnostic },
+    { name: 'tests-products', code: 1, timedOut: false, blocked: ['products'], output: 'Blocked by products' },
+    { name: 'typed-lint', code: 124, timedOut: true, output: 'error TS2322: exact observed refusal' },
+  ];
+  const record = pushSubsetControlRecord(results), encoded = JSON.stringify(record);
+  expect(encoded.length).toBeLessThan(4096);
+  expect(JSON.parse(encoded)).toEqual(record);
+  expect(record.verdict).toEqual(pushSubsetVerdict(results));
+  expect(record.verdict.failed).toContain('types');
+  expect(record.verdict.failed).toContain('typed-lint');
+  expect(record.verdict.unfinished).toContain('products');
+  expect(record.results[2]?.blocked).toEqual(['products']);
+  expect(record.results.map(result => result.output)).toEqual(['', '', '', '']);
+  expect(results[0]?.output).toBe(diagnostic);
+});
 
 function selection(overrides: Partial<GateSelection> = {}): GateSelection {
   return { tests: ['test/source.test.ts', 'test/reader.test.ts', 'test/native.test.mjs'], projects: ['tsconfig.game.json'],

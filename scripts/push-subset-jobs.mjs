@@ -163,6 +163,12 @@ export function selectPushSteps(jobs, names) {
   return jobs.filter(job => selected.has(job.name));
 }
 
+/** Keep the pipe control write compact; full diagnostics are emitted separately.
+ * @param {readonly import('./push-subset-jobs.mjs').PushSubsetResult[]} results */
+export function pushSubsetControlRecord(results) {
+  return { results: results.map(result => ({ ...result, output: '' })), verdict: pushSubsetVerdict(results) };
+}
+
 /** @param {readonly import('./push-subset-jobs.mjs').PushSubsetJob[]} jobs @param {readonly string[]} roots
  * @returns {import('./push-subset-jobs.mjs').PushSubsetJob} */
 export function nativeOutputReplayJob(jobs, roots) {

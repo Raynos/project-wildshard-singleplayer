@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import * as v from 'valibot';
 import { stagedFiles } from './precommit-projects.mjs';
 import { selectGateChecks } from './gate-selection.mjs';
-import { pushSubsetJobs, runPushSubset, pushSubsetVerdict } from './push-subset-jobs.mjs';
+import { pushSubsetJobs, runPushSubset, pushSubsetVerdict, pushSubsetControlRecord } from './push-subset-jobs.mjs';
 
 if (import.meta.main) {
   const [encoded] = process.argv.slice(2);
@@ -28,6 +28,6 @@ if (import.meta.main) {
   // The adapter keeps this record separate from tool diagnostics and never
   // treats a missing record or collection failure as a successful subset.
   const verdict = pushSubsetVerdict(results);
-  process.stdout.write(`PUSH_SUBSET_RESULT ${JSON.stringify({ selection, results, verdict })}\n`);
+  process.stdout.write(`PUSH_SUBSET_RESULT ${JSON.stringify(pushSubsetControlRecord(results))}\n`);
   process.exitCode = verdict.failed.length > 0 ? 1 : verdict.unfinished.length > 0 ? 2 : 0;
 }
