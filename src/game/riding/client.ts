@@ -79,7 +79,7 @@ export function createPageTaming(ctx: LevelContext, player: Player, animals: Ani
       get breakRoll() { return mount.breakRoll; }, set breakRoll(value) { mount.breakRoll = value; },
       mount: (actor, breaking) => mount.mount(actor.entityId, breaking), dismount: thrown => { mount.dismount(thrown); },
       addMountable: (actor, name) => { mount.addMountable(actor.entityId, name); }, removeMountable: actor => { mount.removeMountable(actor.entityId); } },
-    hud: { offer: false, lean: 0 }, herds: () => herds, rest: rows.rest, wind: () => { if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('Missing riding wind'); return wind; }, random: Math.random,
+    hud: { offer: false, lean: 0 }, herds: () => herds, rest: rows.rest, wind: () => { if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('Missing riding wind'); return wind; }, random: () => ctx.app.rng.stream('gameplay').next(),
     hideStallion: actor => { actor.hidden = true; actor.mesh.visible = false; actor.position.y = -1e4; },
     retireBonded: actor => {
       actor.hidden = true; actor.mesh.visible = false; actor.alive = false; actor.position.y = -1e4;
