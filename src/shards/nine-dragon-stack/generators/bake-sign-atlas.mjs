@@ -3,7 +3,7 @@ import { fixedKitRows, readFixedSlots } from './casts.ts';
 // Native WebKit reference raster; portable product intake reads these retained bytes.
 import { resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { constants, zstdCompressSync } from 'node:zlib';
+import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
 import { build } from 'vite';
 import { webkit, devices } from 'playwright';
 import { byteWriter, outputHash, browserBakeBytes } from '../../../../scripts/bake-output.mjs';
@@ -29,7 +29,7 @@ const signRows = parseSignView(JSON.parse(readFileSync(resolve(root, 'src/shards
 async function ktx(png, mono, file) {
   const image = await readImagePixels(png, { flipY: true });
   const pixels = mono ? Uint8Array.from({ length: image.width * image.height }, (_, i) => image.pixels[i * 4]) : image.pixels;
-  const packed = zstdCompressSync(pixels, { params: { [constants.ZSTD_c_compressionLevel]: 19 } });
+  const packed = encodeBuildBytes(Uint8Array.from(pixels), 'zstd', 19);
   const descriptor = mono ? 44 : 92, offset = 104 + descriptor, out = new Uint8Array(offset + packed.length), view = new DataView(out.buffer);
   out.set([171, 75, 84, 88, 32, 50, 48, 187, 13, 10, 26, 10]);
   [mono ? 9 : 43, 1, image.width, image.height, 0, 0, 1, 1, 2, 104, descriptor].forEach((value, i) => view.setUint32(12 + i * 4, value, true));
