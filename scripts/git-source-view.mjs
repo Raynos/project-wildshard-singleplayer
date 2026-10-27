@@ -18,6 +18,8 @@ export function gitSourceView(root, revision) {
   const derived = new Map();
   /** @type {Map<string,string>} */
   const generatedProofs = new Map();
+  /** @type {Map<string,{id:string,outputs:string[],buildTimeOutputs:string[]}>} */
+  const sourceProviders = new Map();
   const directories = new Set(['']);
   for(const record of tree.split('\0')) {
     if(record==='')continue;
@@ -35,10 +37,14 @@ export function gitSourceView(root, revision) {
     if(generatedPins===undefined){
       generatedPins=new Map();
       if(files.has('scripts/generation-jobs.json')){
-        const catalogue=v.parse(v.object({jobs:v.array(v.object({outputs:v.array(v.string()),buildOutputs:v.optional(v.record(v.string(),v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{})}))}),JSON.parse(command(['show',`${revision}:scripts/generation-jobs.json`]).toString('utf8')));
-        for(const job of catalogue.jobs)for(const [file,hash] of Object.entries(job.buildOutputs)){
-          if(!job.outputs.includes(file))throw new Error(`Undeclared generated pin: ${file}`);
-          generatedPins.set(file,hash);
+        const catalogue=v.parse(v.object({jobs:v.array(v.object({id:v.optional(v.string(),''),outputs:v.array(v.string()),buildTimeOutputs:v.optional(v.array(v.string()),[]),buildOutputs:v.optional(v.record(v.string(),v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{})}))}),JSON.parse(command(['show',`${revision}:scripts/generation-jobs.json`]).toString('utf8')));
+        for(const job of catalogue.jobs){
+          for(const [file,hash] of Object.entries(job.buildOutputs)){
+            if(!job.outputs.includes(file))throw new Error(`Undeclared generated pin: ${file}`);
+            generatedPins.set(file,hash);
+          }
+          if(job.buildTimeOutputs.length>0&&job.id==='')throw new Error('Source provider requires its declared identity');
+          for(const file of job.buildTimeOutputs)if(!sourceProviders.has(file))sourceProviders.set(file,job);
         }
       }
     }
@@ -74,7 +80,7 @@ export function gitSourceView(root, revision) {
     }
   };
   const matches=(/** @type {string} */ path)=>{try{return read(path).equals(actualRead(resolve(root,path)));}catch{return false;}};
-  return {root,revision,files,directories,derived,read,matches,prime,admitGenerated,generatedProofs};
+  return {root,revision,files,directories,derived,read,matches,prime,admitGenerated,generatedProofs,sourceProviders};
 }
 
 /** Pin synchronous policy readers and JS imports to one Git inventory. Scratch and packages stay native.
@@ -184,31 +190,38 @@ export async function deriveGitStarterTables(view) {
 export function deriveGitDiscovery(view,path) {
   const {WS_GIT_NATIVE_ROOT:nativeRoot}=process.env;
   if(nativeRoot!==view.root||!view.files.has('scripts/generation-jobs.json'))return false;
-  const catalogue=v.parse(v.object({jobs:v.array(v.object({id:v.string(),outputs:v.array(v.string()),buildTimeOutputs:v.optional(v.array(v.string()),[])}))}),JSON.parse(view.read('scripts/generation-jobs.json').toString('utf8')));
-  const job=catalogue.jobs.find(row=>row.buildTimeOutputs.includes(path));
+  if(view.admitGenerated(path))return true;
+  const job=view.sourceProviders.get(path);
   if(job===undefined)return false;
-  for(const file of job.buildTimeOutputs)if(view.files.has(file)||!job.outputs.includes(file)||!file.startsWith('src/')&&!file.startsWith('public/')||file.split('/').includes('..'))throw new Error(`Invalid native source output: ${file}`);
+  for(const file of job.buildTimeOutputs)if(!job.outputs.includes(file)||!file.startsWith('src/')&&!file.startsWith('public/')||file.split('/').includes('..'))throw new Error(`Invalid native source output: ${file}`);
+  const tracked=job.buildTimeOutputs.filter(file=>view.files.has(file));
   const source=`
     import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
     import {resolve,dirname} from 'node:path';
     import {generateShardJob,discoverGeneration} from './scripts/generate.mjs';
     const job=discoverGeneration(process.cwd()).jobs.find(row=>row.id===process.argv[1]);
     if(job===undefined)throw new Error('Missing declared source provider');
+    const tracked=new Set(JSON.parse(process.argv[2]));
     const result=await generateShardJob(process.cwd(),job);
     try {
       for(const file of job.buildTimeOutputs??[]){
+        if(tracked.has(file))continue;
         const output=resolve(file);mkdirSync(dirname(output),{recursive:true});
         writeFileSync(output,readFileSync(resolve(result.directory,file)));
       }
       console.log(JSON.stringify(result.hashes));
     } finally {result.release();}
   `;
-  const output=execFileSync('python3',['scripts/heavy-lane.py','build','--',process.execPath,'--input-type=module','--eval',source,job.id],{cwd:view.root,encoding:'utf8',maxBuffer:8*1024*1024});
+  const output=execFileSync('python3',['scripts/heavy-lane.py','build','--',process.execPath,'--input-type=module','--eval',source,'--',job.id,JSON.stringify(tracked)],{cwd:view.root,encoding:'utf8',maxBuffer:8*1024*1024});
   const line=output.trim().split('\n').at(-1);
   if(line===undefined)throw new Error('Missing generated-output proof');
   const hashes=v.parse(v.record(v.string(),v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),JSON.parse(line));
   for(const file of job.buildTimeOutputs){
     const hash=hashes[file];if(hash===undefined)throw new Error(`Missing native source proof: ${file}`);
+    if(view.files.has(file)){
+      if(createHash('sha256').update(view.read(file)).digest('hex')!==hash||!view.matches(file))throw new Error(`Generated output differs from committed source: ${file}`);
+      continue;
+    }
     view.generatedProofs.set(file,hash);
     if(!view.admitGenerated(file))throw new Error(`Native source output differs: ${file}`);
   }
