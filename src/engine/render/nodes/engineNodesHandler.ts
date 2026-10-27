@@ -51,7 +51,7 @@
 import * as THREE from 'three';
 import { WebGLNodesHandler } from 'three/examples/jsm/tsl/WebGLNodesHandler.js';
 import { ConvertNode, MaterialReferenceNode, MeshBasicNodeMaterial, NodeFrame, NodeMaterial, PMREMNode, TextureNode, type Node, type NodeBuilder } from 'three/webgpu';
-import { Fn, and, cameraPosition, context, mix, modelWorldMatrix, nodeObject, normalLocal, positionWorld, reference, step, uniform, vec2, vec3, vec4, workingToColorSpace } from 'three/tsl';
+import { Fn, and, cameraPosition, context, materialEnvRotation, mix, modelWorldMatrix, nodeObject, normalLocal, positionWorld, reference, step, uniform, vec2, vec3, vec4, workingToColorSpace } from 'three/tsl';
 import { shaderPatchProgramKey, shaderPatchSet, shaderPatchSceneShape } from '../shaderPatches';
 import { fogPatches, materialNodeFogOf } from '../fogPatches';
 import { planeBiasShadowFilterOn, tentShadowFilterOn } from '../../world/shadowFilter';
@@ -75,6 +75,7 @@ import { bindGraphAttributeDefaults, copyGraphAttributeDefaults, prepareGraphAtt
 import { buildWithInstanceAttributes, instanceAttributeShader, nodeInstanceKey } from './nodeInstancing';
 import { TextureUpdates } from './textureUpdates';
 import { withNodeChildSnapshots } from './nodeChildren';
+import { cubeUVSample } from './cubeUVSample';
 import { SceneShaderKeys } from './sceneShaderKey';
 import { GraphCodeKeys } from './graphCodeKeys';
 import { NodeProgramVariants } from './nodeProgramVariants';
@@ -154,17 +155,17 @@ export function retargetableTexture(map: THREE.Texture, uvNode?: Node<'vec2'>): 
 /** a texture, typed as three's default texture (`instanceof` alone narrows to `Texture<any>`) */
 function isTexture(value: unknown): value is THREE.Texture { return value instanceof THREE.Texture; }
 
-/** a direction node's y negated (a vec3 node: three's d.ts types context reads as unknown) */
-function negateY(direction: unknown): Node<'vec3'> {
-  if (typeof direction !== 'object' || direction === null || !isNode(direction)) throw new Error('EngineNodesHandler: an environment direction that is not a node');
-  const d = new ConvertNode<'vec3'>(direction, 'vec3');
-  return vec3(d.x, d.y.negate(), d.z);
+/** a lighting context's environment input (its lookup direction or level), as a node */
+function environmentInput(value: unknown, what: string): Node {
+  if (typeof value !== 'object' || value === null || !isNode(value)) throw new Error(`EngineNodesHandler: an environment ${what} that is not a node`);
+  return value;
 }
 
 /**
  * The classic renderer's PMREM environment sampled as `cube_uv_reflection_fragment` samples it (module comment, 7):
- * the atlas upright (its texture node never flips) and the lookup direction as it is. PMREMNode negates a render-target
- * PMREM's direction y in `setup`; the direction it is handed is pre-negated so the two cancel.
+ * the atlas upright (its texture node never flips) and the lookup direction as it is (PMREMNode negates a render-target
+ * PMREM's direction y). `setup` is PMREMNode's (r186) otherwise, its lookup three's `textureCubeUV` with the arithmetic
+ * in shared layout functions (`cubeUVSample`, S1).
  */
 class ClassicPMREMNode extends PMREMNode {
   constructor(value: THREE.Texture) {
@@ -178,12 +179,17 @@ class ClassicPMREMNode extends PMREMNode {
     const outer: unknown = builder.context;
     const getUV: unknown = typeof outer === 'object' && outer !== null ? Reflect.get(outer, 'getUV') : undefined;
     if (typeof outer !== 'object' || outer === null || this.uvNode !== null || typeof getUV !== 'function') throw new Error('EngineNodesHandler: an environment read without a lighting context');
-    builder.context = { ...outer, getUV: (node: unknown, b: unknown): Node<'vec3'> => negateY(Reflect.apply(getUV, undefined, [node, b])) };
-    try {
-      const built: unknown = super.setup(builder);
-      if (typeof built !== 'object' || built === null || !isNode(built)) throw new Error('EngineNodesHandler: PMREMNode built no node');
-      return built;
-    } finally { builder.context = outer; }
+    // the atlas' size uniforms follow its PMREM before the build reads them (a classic PMREM is its own: no generator)
+    const update: unknown = Reflect.get(PMREMNode.prototype, 'updateBefore');
+    if (typeof update !== 'function') throw new Error('EngineNodesHandler: PMREMNode keeps no update');
+    Reflect.apply(update, this, [builder]);
+    const direction = materialEnvRotation.mul(new ConvertNode<'vec3'>(environmentInput(Reflect.apply(getUV, undefined, [this, builder]), 'direction'), 'vec3'));
+    const getLevel: unknown = Reflect.get(outer, 'getTextureLevel');
+    const level = this.levelNode ?? (typeof getLevel === 'function' ? environmentInput(Reflect.apply(getLevel, undefined, [this]), 'level') : null);
+    if (level === null) throw new Error('EngineNodesHandler: an environment read without a level');
+    const atlas: unknown = Reflect.get(this, '_texture'), width: unknown = Reflect.get(this, '_width'), height: unknown = Reflect.get(this, '_height'), maxMip: unknown = Reflect.get(this, '_maxMip');
+    if (!(atlas instanceof TextureNode)) throw new Error('EngineNodesHandler: PMREMNode keeps no texture node');
+    return cubeUVSample(atlas, direction, level, environmentInput(width, 'texel width'), environmentInput(height, 'texel height'), environmentInput(maxMip, 'top mip'));
   }
 }
 
