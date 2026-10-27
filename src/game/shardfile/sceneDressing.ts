@@ -22,7 +22,7 @@ import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import { mergeStaticSiblingsSliced } from '@wildshard/engine/models/staticSets';
 import { createPackedSpecimens, defineSpecimenCatalogue, prepareSpecimenCatalogue, loadBoundSpecimen, loadSpecimenTexture, specimenMaterial } from '../models/specimenCatalogue';
-import { expandBakedGeometrySliced, fetchLaneBake, readBakedGeometry, bakedGeometryBytes } from '../plugin/geometry';
+import { fetchLaneBake, readBakedGeometry, bakedGeometryBytes } from '../plugin/geometry';
 import { createClientScene } from '../plugin/scene';
 import { AmbientWingField } from '../ambient/wingField';
 import { EncounterSites } from '../boss/encounterView';
@@ -201,7 +201,7 @@ export class SceneDressing {
     await timeClientPreparation(ctx.product.slug,'dressing.packs',()=>Promise.all([...packs.values()].map(pack=>pack.load())));
     const bytes=new Map<string,Promise<Uint8Array>>(),addresses=new Map<string,Promise<Uint8Array>>(),geometry=new Map<string,THREE.BufferGeometry>(),materials=new Map<string,THREE.Material>();
     await timeClientPreparation(ctx.product.slug,'dressing.geometry',async()=>{
-    const at=dressingPhases(ctx.product.slug,'dressing.geometry',['asset','read','address','decode','expand','pause']);
+    const at=dressingPhases(ctx.product.slug,'dressing.geometry',['asset','read','address','decode','pause']);
     for(const [key,source]of Object.entries(rows.geometry)){
       let shape:THREE.BufferGeometry;
       if(source.kind==='asset'){shape=(await at.run('asset',()=>loadBoundSpecimen(sky,source.row,files))).geometry.clone();}
@@ -217,7 +217,9 @@ export class SceneDressing {
         let offset=0;if(source.kind==='baked'||source.kind==='baked-file'){let pending=addresses.get(source.address.file);if(pending===undefined){pending=ctx.product.file(source.address.file);addresses.set(source.address.file,pending);}const read=pending;offset=readSceneGeometryAddress(await at.run('address',()=>read),source.address.word);}
         if(offset+bakedGeometryBytes(source.row)>raw.byteLength)throw new Error('Scene geometry address exceeds its source');
         const decoded=at.sync('decode',()=>readBakedGeometry(raw,offset,source.row));
-        shape=source.row.expand?await at.run('expand',()=>expandBakedGeometrySliced(decoded,workSlice(undefined,ctx.scope))):decoded;
+        // G782: a welded row (`expand`) draws through its own index: each corner's attributes are the original's exact bits, so
+        // its triangles rasterize as the expanded copy did (Nalati's cold crossing spent a 458 ms expand span copying them out)
+        shape=decoded;
       }
       if((source.kind==='file'||source.kind==='baked-file')&&source.sphere!==undefined)shape.boundingSphere=new THREE.Sphere(new THREE.Vector3(...source.sphere.slice(0,3)),source.sphere[3]);
       geometry.set(key,shape);ctx.scope.own(shape);await at.run('pause',pause);
