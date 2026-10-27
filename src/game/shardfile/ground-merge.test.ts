@@ -111,6 +111,7 @@ test('merged bounds are the union of the drawn members bounds', async () => {
     const geometry = merge.mesh?.geometry; if (geometry === undefined) throw new Error('no merged mesh');
     const box = geometry.boundingBox, sphere = geometry.boundingSphere, position = geometry.getAttribute('position');
     if (box === null || sphere === null) throw new Error('merged bounds missing');
+    if (!(position instanceof THREE.BufferAttribute)) throw new Error('merged positions are a plain attribute');
     expect(box.equals(new THREE.Box3().setFromBufferAttribute(position))).toBe(true);
     for (let i = 0; i < position.count; i++) expect(sphere.containsPoint(new THREE.Vector3().fromBufferAttribute(position, i))).toBe(true);
   };
