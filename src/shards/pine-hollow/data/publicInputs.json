@@ -52,7 +52,15 @@
     "/assets/horizon/",
     "/assets/lut/",
     "/assets/models/",
-    "/assets/pine-hollow/",
-    "/assets/tex/"
+    "/assets/tex/",
+    "/assets/pine-hollow/astc6/",
+    "/assets/pine-hollow/baked/",
+    "/assets/pine-hollow/creatures/",
+    "/assets/pine-hollow/journal/",
+    "/assets/pine-hollow/life/",
+    "/assets/pine-hollow/npcs/",
+    "/assets/pine-hollow/painted/",
+    "/assets/pine-hollow/scalars/",
+    "/assets/pine-hollow/weapons/"
   ]
 }

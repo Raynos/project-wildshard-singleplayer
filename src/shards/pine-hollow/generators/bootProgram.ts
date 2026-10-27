@@ -13,7 +13,7 @@ const TERRAIN_URL = `/${bindings.terrain.replace(/^public\//u, '')}`;
 
 /** GR8 G35: the page-mode boot rows, GPU tables and capture poses as program discovery, as the retired
  *  bake-boot-metadata.mjs wrote them: the public inventory is listed through `ctx.inputFiles` over its declared roots
- *  (`publicInputs.json` `bootInventory`, the bake's eight), and each diagnostic eye keeps its probe's angles at the
+ *  (`publicInputs.json` `bootInventory`: the bake's trees, Pine's own by its authored subfolders), and each diagnostic eye keeps its probe's angles at the
  *  shipping lattice's height (the terrain read through `ctx.cached`). */
 export async function pineBootProgram(ctx: Pick<ProjectGenerationContext, 'cached' | 'inputFiles'>): Promise<{
   readonly 'boot.pageModes': ReturnType<typeof pineBootInventory>; readonly 'ktx2.pageModes': ReturnType<typeof pineKtx2Tables>;
@@ -21,7 +21,11 @@ export async function pineBootProgram(ctx: Pick<ProjectGenerationContext, 'cache
 }> {
   const list = ctx.inputFiles;
   if (list === undefined) throw new Error('Pine boot discovery requires the inputFiles capability');
-  const inventory = Object.fromEntries(list(declared.bootInventory).filter(url => !url.endsWith('.DS_Store')).sort().map((url): [string, true] => [url, true]));
+  // the declared roots, eight to a listing (the build's prefix cap); Pine's own public folder by its authored subfolders, so
+  // the program's own outputs written there (the map's public alias, map/top.webp) never enter the inventory it lists
+  const roots = declared.bootInventory, listed: string[] = [];
+  for (let at = 0; at < roots.length; at += 8) listed.push(...list(roots.slice(at, at + 8)));
+  const inventory = Object.fromEntries(listed.filter(url => !url.endsWith('.DS_Store')).sort().map((url): [string, true] => [url, true]));
   const files = await ctx.cached({ id: 'boot-inputs', inputs: [TERRAIN_URL, ASTC] }, inputs => {
     const terrain = inputs.get(TERRAIN_URL), aliases = inputs.get(ASTC);
     if (terrain === undefined || terrain.byteLength === 0 || aliases === undefined) throw new Error('Missing declared Pine boot inputs');
