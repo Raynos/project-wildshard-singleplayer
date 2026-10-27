@@ -5,17 +5,15 @@ import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { parseSync } from 'vite';
 import { generatorImportViolation } from '../lint/shard-imports.mjs';
-import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { nineProductFrom } from '../src/shards/nine-dragon-stack/generators/productDefinition';
 import product, { nineProduct, inputs } from './fixtures/nine-product-inputs';
+import { expectNineDeclaration } from './fixtures/nine-declaration-pins';
 
 
 test('owned inputs preserve the complete original Nine declaration and view contract', () => {
   const declaration = nineProductFrom(inputs);
   expect(declaration).toEqual(product);
-  const bytes = new TextEncoder().encode(encodeCanonicalJson(declaration));
-  expect(bytes.byteLength).toBe(734805);
-  expect(hashImmutableBytes(bytes)).toBe('c80c8026c7662c9bc3dff769ce6d5306d0cd5b573558128c6d02aa9ac94c0562');
+  expectNineDeclaration(declaration);
   expect(nineProductFrom(inputs, { pages: 3 })).toEqual(nineProduct({ pages: 3 }));
 });
 

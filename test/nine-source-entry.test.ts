@@ -4,6 +4,7 @@ import { expect, test } from 'vitest';
 import { build } from 'vite';
 import entry, { generate } from '../src/shards/nine-dragon-stack/shard.config';
 import product from './fixtures/nine-product-inputs';
+import { expectNineDeclaration } from './fixtures/nine-declaration-pins';
 import { generated } from './fixtures/nine-source-program';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
@@ -15,9 +16,7 @@ import { parseFixedPractice } from '../src/shards/nine-dragon-stack/generators/s
 test('the source entry owns both outputs and preserves the complete original declaration', () => {
   expect(entry).toBe(generate);
   expect(generated.shard).toEqual(product);
-  const bytes = new TextEncoder().encode(encodeCanonicalJson(generated.shard));
-  expect(bytes.length).toBe(734805);
-  expect(hashImmutableBytes(bytes)).toBe('c80c8026c7662c9bc3dff769ce6d5306d0cd5b573558128c6d02aa9ac94c0562');
+  expectNineDeclaration(generated.shard);
   const mover = generated.output.namedFiles.find(row => row.name === 'views/movers.wasm');
   expect(mover).toMatchObject({ compressed: 4859, hash: '3548c07ed2ac758a530cb973e7fe45962f084a76135701152486ffdb013bb276' });
 });
