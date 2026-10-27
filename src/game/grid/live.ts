@@ -61,6 +61,9 @@ export interface LiveGridPorts {
   prioritize?: (cell: GridCell) => () => void;
   /** Render-only approach: the signal owns the pin, including after preparation completes. */
   prepareNeighbour?: (cell: GridCell, start: { readonly x: number; readonly z: number }, signal: AbortSignal) => Promise<void>;
+  /** Verified, charged inputs for one named source-exit approach, held until
+   * abort. No regional world/readiness may publish from this IO-only port. */
+  prepareTransport?: (cell: GridCell, signal: AbortSignal) => Promise<void>;
   /** Browser presentation boundary between admission batches; absent leaves the standalone Node scheduler unchanged. */
   pause?: () => Promise<void>;
   /** Metadata-only prefetch eligibility. Unsupported far proxies do not consume cold request slots; explicit transfers
@@ -274,6 +277,28 @@ export class LiveGridHost {
     this.productRequests.set(instance, request); return request;
   }
   private tileApproach: { instance: string; tile: CellTile; controller: AbortController } | null = null;
+  private transportApproach: { instance: string; controller: AbortController; work: Promise<void> } | null = null;
+  private retiredTransport: Promise<void> = Promise.resolve();
+  private stopApproachTransport(): void {
+    const previous = this.transportApproach; if (previous === null) return;
+    this.transportApproach = null; previous.controller.abort();
+    this.retiredTransport = this.settle(previous.work);
+  }
+  private prepareApproachTransport(cell: GridCell): void {
+    const prepare = this.ports.prepareTransport;
+    if (prepare === undefined || this.transportApproach?.instance === cell.instance) return;
+    this.stopApproachTransport();
+    const controller = new AbortController(), previous = this.retiredTransport;
+    // Acquire priority synchronously, before this tick's speculative IO runs.
+    // The old key keeps its own priority until its already-started reads drain.
+    const releasePriority = this.ports.prioritize?.(cell);
+    const work = (async (): Promise<void> => {
+      try { await previous; if (!this.disposed && !controller.signal.aborted) await prepare(cell, controller.signal); }
+      finally { releasePriority?.(); }
+    })();
+    const approach = { instance: cell.instance, controller, work }; this.transportApproach = approach;
+    void background(cell.instance, work, () => !this.disposed && !controller.signal.aborted);
+  }
   private prepareNeighbour(cell: GridCell, feet: GridPoint): void {
     const start = { x: Math.max(-CHUNK_HALF, Math.min(CHUNK_HALF, feet.x - cell.origin.x)),
       z: Math.max(-CHUNK_HALF, Math.min(CHUNK_HALF, feet.z - cell.origin.z)) };
@@ -296,14 +321,18 @@ export class LiveGridHost {
   private ensure(instance: string): Promise<void> {
     if (this.disposed) return Promise.reject(new Error('Live grid is disposed'));
     const cell = this.assembly.cell(instance);
+    if (this.transportApproach?.instance !== instance) this.stopApproachTransport();
     if (this.residents.has(instance)) return Promise.resolve();
     const pending = this.requests.get(instance); if (pending !== undefined) return pending;
     const issue = this.issues.get(instance); if (issue !== undefined) return Promise.reject(new Error(issue));
     const bundle = this.ports.readiness.bundle(cell), estimate = readinessModel(bundle, this.ports.readiness.link);
     const ticket = this.readiness.request(instance, 0, estimate, bundle.hybridWireBytes > 0);
     if (ticket === null) return Promise.reject(new Error('Stale live grid readiness request'));
-    const releasePriority = this.ports.prioritize?.(cell);
-    const request = this.admitRegion(cell, bundle, ticket, this.sequence).finally(() => { releasePriority?.(); });
+    const transport = this.transportApproach, releasePriority = this.ports.prioritize?.(cell);
+    const request = this.admitRegion(cell, bundle, ticket, this.sequence).finally(() => {
+      if (transport !== null && this.transportApproach === transport) this.stopApproachTransport();
+      releasePriority?.();
+    });
     this.requests.set(instance, request); this.sequence = this.settle(request); return request;
   }
   private assertAlive(): void { if (this.disposed) throw new Error('Live grid is disposed'); }
@@ -313,6 +342,7 @@ export class LiveGridHost {
     let admission: LiveGridAdmission | undefined;
     try {
       await (timing === undefined ? previous : timing.run('queue', () => previous));
+      await this.retiredTransport;
       this.assertAlive();
       const admitted = timing === undefined ? await this.prefetchProduct(instance) : await timing.run('metadata', () => this.prefetchProduct(instance));
       admission = admitted;
@@ -432,6 +462,15 @@ export class LiveGridHost {
     // Approach preparation owns render tiles only, never a regional world or gameplay hooks.
     const moving = !travelled ? undefined : candidates.find(cell => headsToEntry(cell, feet, previous)
       && this.distance(cell, feet) < this.distance(cell, previous) - 0.000001);
+    const source = this.active === null ? undefined : this.assembly.cell(this.active);
+    const sourceDistance = source === undefined ? Infinity : Math.max(Math.abs(feet.x - source.origin.x), Math.abs(feet.z - source.origin.z));
+    const transportApproach = this.transportApproach;
+    if (transportApproach !== null) {
+      const cell = this.assembly.cell(transportApproach.instance);
+      if (moving !== undefined && moving.instance !== cell.instance
+        || this.distance(cell, feet) >= this.assembly.pitch
+        || source !== undefined && source.instance !== cell.instance && sourceDistance < CHUNK_HALF - 1) this.stopApproachTransport();
+    }
     const tileApproach = this.tileApproach;
     if (tileApproach !== null) {
       const cell = this.assembly.cell(tileApproach.instance);
@@ -466,6 +505,9 @@ export class LiveGridHost {
       const heldApproach = this.tileApproach === null ? undefined : this.assembly.cell(this.tileApproach.instance);
       const approach = moving ?? predicted ?? heldApproach
         ?? nearby.find(cell => cell.instance !== departed && this.distance(cell, feet) <= wallReach);
+      const named = moving ?? predicted, outsideSource = sourceDistance >= CHUNK_HALF;
+      if (named !== undefined && outsideSource && !this.residents.has(named.instance) && !this.issues.has(named.instance)
+        && this.distance(named, feet) < this.assembly.pitch) this.prepareApproachTransport(named);
       if (approach !== undefined && this.ports.prepareNeighbour !== undefined && this.tileMetadata.has(approach.instance)
         && !this.residents.has(approach.instance) && !this.issues.has(approach.instance)
         && (this.active === null || moving === approach)
@@ -652,6 +694,7 @@ export class LiveGridHost {
    * and can be retried; the neutral highway disposer never owns the page physics or latest traveller motor. */
   dispose(): void {
     this.disposed = true;
+    this.stopApproachTransport();
     this.tileApproach?.controller.abort(); this.tileApproach = null;
     this.tileMetadata.clear();
     for (const cancel of this.frames) cancel(); this.unbind?.(); this.unbind = undefined;

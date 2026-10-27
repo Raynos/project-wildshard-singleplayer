@@ -49,6 +49,7 @@ import type { GridAssembly, GridCell } from './assembly';
 import type { ResidencyAllocator } from './allocator';
 import type { HomeResidencyClaim } from './pageResidency';
 import { LiveGridHost, type LiveGridAdmission, type LiveGridFrame, type LiveGridState } from './live';
+import { prepareApproachProductInputs } from './approachProductInputs';
 import { installGridCrossing, type GridCheckpointResult, type GridCrossingSession, type GridCrossingState } from './crossing';
 import { GridWallet, stowGridMount } from './wallet';
 import { GridRegionDurability } from './durability';
@@ -273,6 +274,7 @@ export class LiveGridSession {
         return { physics: ports.physics, walls: ports.walls, dispose: () => { highwayScope.dispose(); } };
       } },
       admit: (cell) => this.admit(cell),
+      prepareTransport: (cell, signal) => prepareApproachProductInputs(cell.slug, { allocator: ports.allocator, scope }, signal),
       ...(ports.prepareNeighbourTiles === undefined ? {} : { prepareNeighbour: ports.prepareNeighbourTiles }),
       prioritize: (cell) => prioritizeGridProduct(cell.slug, { allocator: ports.allocator, scope }),
       pause: () => yieldGridAdmission(scope),

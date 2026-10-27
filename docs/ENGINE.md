@@ -3869,13 +3869,11 @@ fences without constructing a status record. Movement callers query it at each
 original step; `status(instance)` still returns detached detail for UI readers.
 Both keep unknown instances, proxy edges and invalidated generations closed.
 
-`LiveGridPorts.prioritize(cell)` optionally holds product read priority until actual
-world preparation settles. The grid page supplies `prioritizeGridProduct` for its
-allocator: speculative network and cache reads wait at their next IO boundary,
-while already-started reads and older serialized world construction drain. Shared
-product holds are reference counted. Releasing the last hold resumes speculation;
-page disposal rejects unstarted reads. No validator, parser or worker slot is held
-while waiting, and transport, residency and motor limits stay unchanged.
+`LiveGridPorts.prioritize(cell)` holds reference-counted product IO priority;
+unstarted speculative reads wait without owning a parser/worker slot. Page
+disposal rejects them; started reads drain. `prepareTransport(cell, signal)`
+loans verified inputs for one named source-exit approach, never a world.
+Redirect/disposal drains that loan; actual construction borrows it before release.
 
 `@wildshard/engine/sim/readiness` computes a cold-cache distance from speed, request latency, critical wire transfer at the configured link rate, stall and decode. Its separate hybrid line conservatively adds runtime-chunk request, transfer and parse work on the shared link. Critical wire is capped at 2,000,000 bytes: 30 m/s, 5 Mbit/s, 0.5 s latency, 10 s stall and 0.8 s decode give 435 m; a 500 kB hybrid chunk plus 0.2 s parsing raises it to 480 m. `TraversalReadiness` requests by radial edge distance, tracks completion of colliders/sim/runtime separately and invalidates stale generations on unload or failure. `@wildshard/engine/physics/readinessWalls` installs closed WORLD colliders in each frame and opens them only after all fences pass; call `sync` before the traveler moves. Null-instance proxy edges stay closed. Highway, strip and proxy ground belong to a separate platform scope and survive wall removal. Grid entry barrier centres sit 5 m outside the cell, allowing the 0.38 m capsule, 0.25 m wall half-width and 0.02 m controller skin to reach the unchanged 6 m entry trigger. Closed readiness barriers and the independent transfer fences still hold the traveller outside the authored cell until admission and a fixed-boundary reframe complete. Walls carry the same platform owner tag as deck/strip colliders. The joined Node fixture drives a gravity-bearing capsule at 30 m/s through the actual generated strip and residency driver with 3 s and 10 s stalls, a deliberately late collider, a U-turn, two world transfers, one enabled traveler capsule, unload/stale completion and a closed proxy edge.
 
@@ -5322,18 +5320,14 @@ Undeclared refs refuse before
 any deletion; host-referenced unbound/shared files remain. Caller-provided Maps
 without this callback are never mutated.
 
-TB1's grid preparation inputs have a separate lifetime from the product
-descriptor. `ProductInputs.acquire()` borrows a synchronous input Map;
-overlapping preparations share it until the last idempotent asynchronous
-release. Later acquisitions rehydrate missing inputs through the same
-size/hash-checked `ClientAssets.read` before publishing the Map. Rehydration
-reserves temporary residency before reading; failures publish no partial
-Map and release that temporary claim. First-party
-`AdmittedProduct.releasePreparedTransport` permits completed preparations
-to release their synchronous inputs, but keeps the same declared-reference,
-offline durable-presence and corrupt-cache refusals. The ordinary
-`releaseTransport` classification remains unchanged. Without preparation
-release authority, supplied input Maps and reader mirrors stay intact.
+`ProductInputs.acquire()` borrows a synchronous Map until its last idempotent
+async release. Refills verify size/hash and reserve bytes before reading;
+failures publish nothing. `acquireTransport(signal)` restores only the original
+admitted tier, four reads at once; abort drains the started batch, not its suffix.
+`GridProduct.prepareInputs(signal)` exposes that loan. Constructor overlaps share
+it. `releasePreparedTransport` retains declared-reference/offline/corrupt-cache
+refusals; ordinary release classification stays. Supplied maps without release
+authority stay intact.
 
 The grid's settled tile-preparation promise carries source, decoded views and
 one verified reader, never the complete input Map. Each late same-slug cell

@@ -94,6 +94,7 @@ test('T7: failed source disposal stays charged and blocks another world', async 
 async function fixture(options: { paired?: boolean; loading?: number; isolation?: boolean; allNeighbours?: boolean; horizonSeconds?: number;
   tilePreparation?: boolean; tileApproaches?: string[];
   tileReady?: () => Promise<void>; priorities?: string[];
+  transports?: { instance: string; signal: AbortSignal }[]; transportRead?: () => Promise<void>;
   tilePins?: { instance: string; start: { readonly x: number; readonly z: number }; signal: AbortSignal }[];
   runtimeReady?: (instance: string) => Promise<void> } = {}) {
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
@@ -118,6 +119,11 @@ async function fixture(options: { paired?: boolean; loading?: number; isolation?
     } }),
     ...(options.tileApproaches === undefined && options.tilePins === undefined ? {} : { prepareNeighbour: (cell: { instance: string }, start: { readonly x: number; readonly z: number }, signal: AbortSignal) => {
       options.tileApproaches?.push(cell.instance); options.tilePins?.push({ instance: cell.instance, start, signal }); return options.tileReady?.() ?? Promise.resolve();
+    } }),
+    ...(options.transports === undefined ? {} : { prepareTransport: async (cell: { instance: string }, signal: AbortSignal) => {
+      options.transports?.push({ instance: cell.instance, signal });
+      await options.transportRead?.();
+      if (!signal.aborted) await new Promise<void>(resolve => { signal.addEventListener('abort', () => { resolve(); }, { once: true }); });
     } }),
     highway: { bytes: 1000, create: () => ({ physics: page.physics, dispose: () => undefined }) },
     prefetchable: cell => options.allNeighbours === true || [home.instance, east.instance, north.instance].includes(cell.instance),
@@ -335,6 +341,50 @@ test('T7: a direct heading prepares render tiles without transferring the source
     expect(f.events.indexOf(`disposed:${f.home.instance}`)).toBeLessThan(f.events.indexOf(`frame:${f.east.instance}`));
     expect(f.allocated.find(row => row.instance === f.east.instance)?.owners).not.toContain(f.home.instance);
     expect(f.live.state().residents).toEqual([f.east.instance]);
+  } finally { f.close(); }
+});
+
+test('source exit starts only named transport before the readiness horizon, with no second world', async () => {
+  const transports: { instance: string; signal: AbortSignal }[] = [], priorities: string[] = [];
+  const f = await fixture({ transports, priorities, horizonSeconds: 0 });
+  try {
+    await f.enterHome(); priorities.length = 0;
+    f.player.position.x = CHUNK_HALF - 30; travel(f.live, f.player.position, 1, 0); await f.settle();
+    expect(transports).toEqual([]);
+    f.player.position.x = CHUNK_HALF + 0.1; travel(f.live, f.player.position, 1, 0); await f.settle();
+    expect(transports.map(row => row.instance)).toEqual([f.east.instance]);
+    expect(priorities).toContain(`hold:${f.east.instance}`);
+    expect(f.created()).toEqual([f.home.instance]); expect(f.live.ready(f.east.instance)).toBe(false);
+    expect(f.live.current()).toBe(f.home.instance);
+    await f.cross(f.home.instance, f.east.instance); await f.settle();
+    expect(transports[0]?.signal.aborted).toBe(true);
+    expect(f.created()).toEqual([f.home.instance, f.east.instance]);
+  } finally { f.close(); }
+});
+
+test('redirected transport drains its pending read before the next named acquisition starts', async () => {
+  const transports: { instance: string; signal: AbortSignal }[] = [];
+  let finish = (): void => undefined, first = true;
+  const reading = new Promise<void>(resolve => { finish = resolve; });
+  const f = await fixture({ transports, transportRead: () => { if (!first) return Promise.resolve(); first = false; return reading; } });
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    await f.approachEast(); expect(transports.map(row => row.instance)).toEqual([f.east.instance]);
+    f.player.position.x = 0; f.player.position.z = -(CHUNK_HALF + 1); travel(f.live, f.player.position, 0, -1); await f.settle();
+    expect(transports[0]?.signal.aborted).toBe(true); expect(transports).toHaveLength(1);
+    finish(); await f.settle();
+    expect(transports.map(row => row.instance)).toEqual([f.east.instance, f.north.instance]);
+    expect(f.created()).toEqual([f.home.instance]); expect(f.live.ready(f.north.instance)).toBe(false);
+  } finally { finish(); f.close(); }
+});
+
+test('stationary or teleported highway poses do not invent a transport destination', async () => {
+  const transports: { instance: string; signal: AbortSignal }[] = [], f = await fixture({ transports });
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    f.player.position.x = CHUNK_HALF + 1; f.live.beforeFixed(); await f.settle();
+    expect(transports).toEqual([]);
+    f.live.dispose(); await f.settle(); expect(transports).toEqual([]);
   } finally { f.close(); }
 });
 

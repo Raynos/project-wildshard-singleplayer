@@ -8,7 +8,7 @@ import { admitProduct, boundedResponse, checkBuiltIndex, readIndexBytes, type Ad
 import { browserShardfileOptions } from '../shardfile/runtimeProduct';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { ProductLeases } from './productLeases';
-import { ProductInputs } from './productInputs';
+import { ProductInputs, type ProductInputLease } from './productInputs';
 import type { ClientAssets } from '../shardfile/clientAssets';
 import { GridPostCosts } from './postPairs';
 import { postStackCost } from '@wildshard/format/postStack';
@@ -199,6 +199,8 @@ export interface GridProductMetadata {
 /** One admitted product and the options its assets resolve against (ClientAssets reads further tiles through them). */
 export interface GridProduct extends GridProductMetadata {
   readonly reader: ClientAssets;
+  /** Refill the admitted tier's transport under the existing input claim, before construction. */
+  readonly prepareInputs: (signal: AbortSignal) => Promise<ProductInputLease>;
   /** End synchronous preparation while retaining the page's source/decoded-view owner. */
   releaseInputs: () => Promise<void>;
 }
@@ -273,6 +275,7 @@ export function gridShardfileProduct(slug: string, owner: GridProductOwner, mode
     };
     const input = await readIndexBytes(await boundedResponse(await options.fetch(url.href), limits.sourceBytes), options);
     const admitted = await timeClientPreparation(slug, 'product.admission', () => admitProduct(input, { ...options, reserve }));
+    const selectedInputs = [...admitted.assets.keys()];
     // admission already refused a stack past the budget on its own; the cost is what placement sums per adjacent pair
     gridPostCosts(owner.allocator).record(slug, postStackCost(admitted.source, (hash) => admitted.assets.get(hash)).cost);
     const preparation: { inputs?: ProductInputs } = {};
@@ -291,7 +294,7 @@ export function gridShardfileProduct(slug: string, owner: GridProductOwner, mode
       const claim = owner.allocator.reserve({ id: `product-input:grid:${slug}:${++generation}`, category: 'product', owner: 'grid', bytes, distance: 0, needed: true });
       if (claim === null) throw new Error('Product input residency admission deferred');
       return claim;
-    }, keep);
+    }, keep, selectedInputs);
     preparation.inputs = inputs;
     return { admitted, options, inputs };
   }).then(async lease => {
@@ -310,7 +313,8 @@ export function gridShardfileProduct(slug: string, owner: GridProductOwner, mode
         catch (error) { console.warn('[grid] product input release:', error); }
         finally { lease.release(); }
       };
-      return { admitted: { ...admitted, assets: input.assets }, options, reader: inputs.reader, releaseInputs: input.release, release: () => {
+      return { admitted: { ...admitted, assets: input.assets }, options, reader: inputs.reader,
+        prepareInputs: signal => inputs.acquireTransport(signal), releaseInputs: input.release, release: () => {
         if (!live) return; live = false;
         void close();
       } };
