@@ -250,5 +250,8 @@
   ],
   "test/sky-prepared-model-product.test.ts": [
     "far-reach"
+  ],
+  "test/nine-memory-floor.test.ts": [
+    "nine-dragon-stack"
   ]
 }
