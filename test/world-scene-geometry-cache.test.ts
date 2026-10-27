@@ -8,7 +8,7 @@ import { AssetResidencyBridge } from '../src/game/grid/assetResidency';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { MemoryAdmission } from '../src/format/memoryAdmission';
 import { staticGlb } from '../src/sdk/bake/glb';
-import { cachedWorldSceneGeometry, readWorldSceneGeometry } from '../src/game/shardfile/worldSceneGeometry';
+import { cachedWorldSceneGeometry, readWorldSceneGeometries, readWorldSceneGeometry } from '../src/game/shardfile/worldSceneGeometry';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 
 const originalTier = TIER;
@@ -38,6 +38,74 @@ function fixture(limit = 10000) {
   } };
 }
 const row = { file: 'fixed.glb' };
+
+function orderedIntake() {
+  const f = fixture(), owner = new Scope('ordered-model-window');
+  const rows = Array.from({ length: 6 }, (_, index) => ({ file: `model-${String(index)}.glb` }));
+  const pending = new Map<string, { resolve: () => void; reject: (error: Error) => void }>(), started: string[] = [];
+  const product = { ...f.product, file: (name: string): Promise<Uint8Array> => {
+    started.push(name);
+    return new Promise((resolve, reject) => { pending.set(name, { resolve: () => { resolve(f.bytes); }, reject }); });
+  } };
+  const intake = readWorldSceneGeometries(owner, product, rows, f.assets);
+  const release = (): void => { for (const entry of pending.values()) entry.resolve(); };
+  return { ...f, owner, rows, pending, started, intake, release };
+}
+
+test('the four-model window refills before publication pauses and drains untaken leases on close', async () => {
+  const f = orderedIntake(), next = f.intake.next();
+  try {
+    expect(f.started).toEqual(f.rows.slice(0, 4).map(source => source.file));
+    f.pending.get('model-0.glb')?.resolve();
+    const first = await next;
+    if (first.done) throw new Error('Missing first prepared model');
+    expect(f.started).toEqual(f.rows.slice(0, 5).map(source => source.file));
+    let closed = false;
+    const closing = (async () => { await f.intake.return(); closed = true; })();
+    await Promise.resolve(); expect(closed).toBe(false);
+    f.release(); await closing;
+    expect(f.started).toHaveLength(5);
+    expect(f.assets.retained().map(entry => entry.refs).sort((a, b) => a - b)).toEqual([0, 0, 0, 0, 1]);
+    const copy = first.value.copy();
+    expect([...copy.getAttribute('position').array]).toEqual([0, 0, 0, 1, 0, 0, 0, 1, 0]);
+    copy.dispose(); first.value.done();
+    expect(f.assets.retained().every(entry => entry.refs === 0)).toBe(true);
+  } finally { f.release(); await f.intake.return(); f.owner.dispose(); f.close(); }
+});
+
+test('an ordered model failure drains later reads and preserves the cursor failure', async () => {
+  const f = orderedIntake(), first = f.intake.next();
+  try {
+    f.pending.get('model-1.glb')?.reject(new Error('cursor failure'));
+    f.pending.get('model-0.glb')?.resolve();
+    const result = await first;
+    if (result.done) throw new Error('Missing first model');
+    result.value.done();
+    let settled = false;
+    const outcome = (async () => {
+      try { await f.intake.next(); return null; }
+      catch (error: unknown) { return error; }
+      finally { settled = true; }
+    })();
+    await Promise.resolve(); await Promise.resolve();
+    expect(settled).toBe(false);
+    f.pending.get('model-3.glb')?.reject(new Error('later failure'));
+    f.release();
+    expect(String(await outcome)).toContain('cursor failure');
+    expect(f.started).toHaveLength(5);
+    expect(f.assets.retained().every(entry => entry.refs === 0)).toBe(true);
+  } finally { f.release(); await f.intake.return(); f.owner.dispose(); f.close(); }
+});
+
+test('a retired model window drains its four reads without starting a suffix', async () => {
+  const f = orderedIntake(), next = f.intake.next();
+  const refused = expect(next).rejects.toThrow('disposed or retiring');
+  try {
+    f.owner.dispose(); f.release(); await refused;
+    expect(f.started).toHaveLength(4);
+    expect(f.assets.retained()).toEqual([]);
+  } finally { f.release(); await f.intake.return(); f.owner.dispose(); f.close(); }
+});
 
 test('segmented geometry starts every read with its primary and restores the original segment order', async () => {
   const f = fixture(), scope = new Scope('segment-reads'), names = ['fixed.glb', 'part-a.glb', 'part-b.glb'];

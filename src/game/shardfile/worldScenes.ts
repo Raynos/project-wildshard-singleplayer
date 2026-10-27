@@ -26,7 +26,7 @@ import { WorldSceneWeldAssembly, worldSceneWeldFile, worldSceneWeldFiles, admitW
 import { parseWorldSceneWeld, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { parseWorldScenePlacement, type WorldScenePlacementRow } from '@wildshard/format/worldScenePlacement';
 import { poseOf, placeCollider, readColliderRows } from '@wildshard/engine/models/colliders';
-import { cachedWorldSceneGeometry, readWorldSceneGeometry, type WorldSceneGeometry } from './worldSceneGeometry';
+import { readWorldSceneGeometries, readWorldSceneGeometry, type WorldSceneGeometry } from './worldSceneGeometry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { buildYield, workSlice } from '@wildshard/engine/core/workSlice';
@@ -56,7 +56,7 @@ interface Library {
   readonly geometry: (id: string) => BufferGeometry | null;
   readonly models?: Pick<ModelLibrary<string, string>, 'painted'>;
 }
-/** Owned-library models read ahead of the one being decoded (bytes held at once stay bounded by this many files). */
+/** Material preparations ahead of their original ordered publication cursor. */
 const MODEL_READ_AHEAD = 4;
 const decoder = new TextDecoder('utf-8', { fatal: true });
 const residents = new WeakMap<Scope, WeakMap<ShardContext['product'], Promise<SceneHandles>>>();
@@ -307,26 +307,15 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     const random = ctx.app.rng.stream('cosmetic');
     for (let draw = 0; draw < section.cosmeticDraws; draw++) random.next();
   }
-  // Carry the same four-file window across owned-library boundaries. The next
-  // library's first transport can overlap the previous library's final decode;
-  // parsing and publication still follow the original library/model cursor.
+  // One bounded read/decode window spans all needed owned libraries. No
+  // unrelated Explorer-only model enters this resident's preparation.
   const ownedModels = section.libraries.flatMap(row => row.kind === 'owned' ? row.models
     .filter(model => residentReferences.has(JSON.stringify([row.id, model.id])))
-    .map(model => ({ model, file: typeof model.file === 'string' ? model.file : model.file[TIER] })) : []);
-  const ahead = new Map<string, Promise<Uint8Array>>();
-  let nextModel = 0;
-  const readAhead = (): void => {
-    requireSceneOwner(owner);
-    while (ahead.size < MODEL_READ_AHEAD && nextModel < ownedModels.length) {
-      const model = ownedModels[nextModel++];
-      if (model === undefined || ahead.has(model.file) || cachedWorldSceneGeometry(product, { file: model.file, attributes: model.model.attributes, ...(model.model.segments === undefined ? {} : { segments: model.model.segments }) }, ctx.app.assets, { revisit: true })) continue;
-      const pending = product.file(model.file); void pending.catch(() => undefined); ahead.set(model.file, pending);
-    }
-  };
-  const reader = { url: (name: string) => product.url(name), file: (name: string): Promise<Uint8Array> => {
-    const pending = ahead.get(name); if (pending === undefined) return product.file(name);
-    ahead.delete(name); return pending;
-  } };
+    .map(model => {
+      const source = { file: typeof model.file === 'string' ? model.file : model.file[TIER], attributes: model.attributes };
+      return model.segments === undefined ? source : Object.assign(source, { segments: model.segments });
+    }) : []);
+  const geometryIntake = readWorldSceneGeometries(owner, product, ownedModels, ctx.app.assets, { revisit: true });
   try {
     await timeClientPreparation(product.slug, 'scene.library-intake', async () => {
       const libraryProgress = loadingUnits('Model libraries', section.libraries.length);
@@ -348,32 +337,17 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
             const neededModels = row.models.filter(model => residentReferences.has(JSON.stringify([row.id, model.id])));
             const modelProgress = loadingUnits('Home models', neededModels.length);
             modelProgress(0, row.id);
-            // G782: each model's read and decode start up to MODEL_READ_AHEAD models ahead and are taken in order, so
-            // their waits overlap (Pine's crags paid a decode wait per model in turn); every take, registration and slice
-            // yield stays in order. Started reads are drained before a failure leaves.
-            const started = new Map<number, Promise<WorldSceneGeometry>>();
-            const start = (index: number): void => {
-              const model = neededModels[index];
-              if (model === undefined || started.has(index)) return;
-              const file = typeof model.file === 'string' ? model.file : model.file[TIER];
-              const pending = readWorldSceneGeometry(owner, reader, { file, attributes: model.attributes, ...(model.segments === undefined ? {} : { segments: model.segments }) }, ctx.app.assets, { revisit: true });
-              void pending.catch(() => undefined); started.set(index, pending);
-            };
-            try {
-              for (const [modelIndex, model] of neededModels.entries()) {
-                readAhead();
-                for (let next = modelIndex; next < Math.min(neededModels.length, modelIndex + MODEL_READ_AHEAD); next++) start(next);
-                const pending = started.get(modelIndex);
-                if (pending === undefined) throw new Error(`Missing scene model read: ${model.id}`);
-                const geometry = await pending; started.delete(modelIndex);
-                finish.push(geometry.done); models.set(model.id, geometry);
-                modelProgress(modelIndex + 1, model.id);
-                // Cached templates retain the same budget without a forced task hop per lease.
-                // Consumers keep private mutable copies; finish releases the construction lease.
-                requireSceneOwner(owner);
-                if (modelSlice.due()) await modelSlice.yield();
-              }
-            } finally { await Promise.allSettled(started.values()); }
+            // The four-model window crosses library boundaries and refills
+            // before this cursor's budget pause. Adoption stays in row order.
+            for (const [modelIndex, model] of neededModels.entries()) {
+              const result = await geometryIntake.next();
+              if (result.done) throw new Error(`Missing scene model read: ${model.id}`);
+              const geometry = result.value;
+              finish.push(geometry.done); models.set(model.id, geometry);
+              modelProgress(modelIndex + 1, model.id);
+              requireSceneOwner(owner);
+              if (modelSlice.due()) await modelSlice.yield();
+            }
             libraries.set(row.id, { geometry: id => models.get(id)?.copy() ?? null });
           } else {
             requireSceneOwner(owner);
@@ -494,7 +468,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
             const model = owned.get(ref.library)?.models.find(candidate => candidate.id === ref.model);
             if (model === undefined) throw new Error('A late weld reads only owned library models');
             const file = typeof model.file === 'string' ? model.file : model.file[TIER];
-            shapes.set(key, await readWorldSceneGeometry(owner, reader, { file, attributes: model.attributes, ...(model.segments === undefined ? {} : { segments: model.segments }) }, ctx.app.assets));
+            shapes.set(key, await readWorldSceneGeometry(owner, product, { file, attributes: model.attributes, ...(model.segments === undefined ? {} : { segments: model.segments }) }, ctx.app.assets));
             await buildYield(owner);
           }
           await publishAssembly(row, (library, model) => shapes.get(JSON.stringify([library, model]))?.copy() ?? null);
@@ -622,6 +596,6 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     // Every live/deferred consumer now owns a copy; retire decoder templates.
     libraries.clear(); packets.clear(); for (const done of finish) done();
     return handles;
-  } catch (error) { owner.dispose(); throw error; }
-  finally { await Promise.allSettled(ahead.values()); ahead.clear(); }
+  } catch (error) { await geometryIntake.return(); owner.dispose(); throw error; }
+  finally { await geometryIntake.return(); }
 }

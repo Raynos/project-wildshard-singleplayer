@@ -101,3 +101,34 @@ export async function readWorldSceneGeometry(owner: Scope, product: Pick<ShardPr
     throw error;
   }
 }
+
+/** One four-model preparation window across ordered library cursors. Refill
+ * before yielding a completed lease so transport/decode can use a caller's
+ * publication pause. Closing drains all started work and releases untaken
+ * leases; yielded leases retain their original independent owner. */
+export async function* readWorldSceneGeometries(owner: Scope, product: Pick<ShardProduct, 'url' | 'file'>,
+  rows: readonly Source[], assets: Assets, reuse: GeometryReuse = {}): AsyncGenerator<WorldSceneGeometry, void> {
+  const pending = new Map<number, Promise<WorldSceneGeometry>>();
+  let next = 0;
+  const fill = (): void => {
+    requireLive(owner);
+    while (pending.size < 4 && next < rows.length) {
+      const row = rows[next]; if (row === undefined) throw new Error('Missing world geometry preparation row');
+      const ready = readWorldSceneGeometry(owner, product, row, assets, reuse);
+      void ready.catch(() => undefined); pending.set(next++, ready);
+    }
+  };
+  try {
+    fill();
+    for (let index = 0; index < rows.length; index++) {
+      const ready = pending.get(index); if (ready === undefined) throw new Error('Missing world geometry preparation');
+      const geometry = await ready; pending.delete(index);
+      fill();
+      yield geometry;
+    }
+  } finally {
+    const settled = await Promise.allSettled(pending.values());
+    for (const result of settled) if (result.status === 'fulfilled') result.value.done();
+    pending.clear();
+  }
+}
