@@ -5,6 +5,7 @@ import { declareDownloadFile } from '@wildshard/engine/boot/download';
 import type { GeneratedStrip, PlatformCell, StripMesh, StripProfile } from '@wildshard/engine/sim/strips';
 import type { ResidencyAllocator } from './allocator';
 import { readGridAssetBytes } from './gridAssetBytes';
+import type { SeamGeometryChannels } from './seamLook';
 
 type SeamFeature = GeneratedStrip['features'][number];
 type SeamFeatureKind = SeamFeature['kind'];
@@ -23,6 +24,8 @@ export interface CompiledGridHeader {
   readonly shapes: readonly { readonly features: { readonly offset: number; readonly count: number }; readonly turnIn?: SeamTurnIn }[];
   readonly strips: readonly { readonly id: string; readonly shape: number; readonly origin: { readonly x: number; readonly z: number };
     readonly duplicates: readonly { readonly instance: string; readonly origin: { readonly x: number; readonly z: number } }[] }[];
+  readonly look?: { readonly origin: SeamGeometryChannels['origin']; readonly pitch: number; readonly vertices: number; readonly offset: number;
+    readonly sphere: SeamGeometryChannels['sphere'] };
 }
 const hash = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
@@ -38,7 +41,9 @@ export const GRID_STRIP_FEATURE_KINDS: readonly SeamFeatureKind[] = ['deck', 'ne
 const headerSchema = v.strictObject({ version: v.literal(1), source: hash, home: text, rows: PackedGeometryRowsSchema,
   surfaces: v.pipe(v.array(text), v.maxLength(2048)),
   shapes: v.pipe(v.array(v.strictObject({ features: v.strictObject({ offset: natural, count: v.pipe(natural, v.maxValue(100_000)) }), turnIn: v.exactOptional(v.strictObject({ at: v.literal(0), widths: v.tuple([finite, finite]) })) })), v.minLength(1), v.maxLength(128)),
-  strips: v.pipe(v.array(v.strictObject({ id: text, shape: natural, origin: point, duplicates: v.pipe(v.array(v.strictObject({ instance: text, origin: point })), v.maxLength(4)) })), v.minLength(1), v.maxLength(256)) });
+  strips: v.pipe(v.array(v.strictObject({ id: text, shape: natural, origin: point, duplicates: v.pipe(v.array(v.strictObject({ instance: text, origin: point })), v.maxLength(4)) })), v.minLength(1), v.maxLength(256)),
+  look: v.exactOptional(v.strictObject({ origin: point, pitch: v.pipe(v.number(), v.finite(), v.minValue(1)), vertices: natural, offset: natural,
+    sphere: v.strictObject({ centre: v.tuple([finite, finite, finite]), radius: v.pipe(v.number(), v.finite(), v.minValue(0)) }) })) });
 
 /** Exact source identity, independent of object property order and preserving -0. */
 export async function platformGeometrySource(cells: readonly PlatformCell[], empty: StripProfile): Promise<string> {
@@ -73,13 +78,15 @@ function finiteWords(values: Float32Array): boolean {
   return true;
 }
 
-function* stripSteps(input: unknown, bytes: Uint8Array, source: string, home: string): Generator<void, readonly GeneratedStrip[]> {
+interface DecodedGridStrips { readonly strips: readonly GeneratedStrip[]; readonly look?: SeamGeometryChannels }
+function* stripSteps(input: unknown, bytes: Uint8Array, source: string, home: string): Generator<void, DecodedGridStrips> {
   const header = parseCompiledGridHeader(input);
   if (header.source !== source || header.home !== home || header.rows.geometries.length !== header.shapes.length) throw new Error('Grid strip source differs from this page');
   const featureStart = Math.ceil(header.rows.bytes / 8) * 8;
-  if (featureStart > bytes.length || (bytes.length - featureStart) % 72 !== 0 || new Set(header.surfaces).size !== header.surfaces.length) throw new Error('Grid strip feature layout differs');
+  const featureEnd = header.look?.offset ?? bytes.length;
+  if (featureStart > featureEnd || featureEnd > bytes.length || (featureEnd - featureStart) % 72 !== 0 || new Set(header.surfaces).size !== header.surfaces.length) throw new Error('Grid strip feature layout differs');
   const pack = new GeometryPackData(bytes.subarray(0, header.rows.bytes), header.rows, 'Grid strips');
-  const featureWords = new DataView(bytes.buffer, bytes.byteOffset + featureStart, bytes.length - featureStart);
+  const featureWords = new DataView(bytes.buffer, bytes.byteOffset + featureStart, featureEnd - featureStart);
   const shapes: { readonly mesh: Omit<StripMesh, 'origin'>; readonly features: readonly SeamFeature[] }[] = [];
   let featureOffset = 0;
   for (const [index, row] of header.rows.geometries.entries()) {
@@ -114,11 +121,28 @@ function* stripSteps(input: unknown, bytes: Uint8Array, source: string, home: st
     for (const row of strip.duplicates) duplicates.push({ instance: row.instance, mesh: { ...shape.mesh, origin: row.origin } });
     result.push({ id: strip.id, mesh, features: shape.features, ...(metadata.turnIn === undefined ? {} : { turnIn: metadata.turnIn }), duplicates });
   }
-  return result;
+  const look = header.look;
+  if (look === undefined) return { strips: result };
+  const vertices = result.reduce((sum, strip) => sum + strip.mesh.positions.length / 3, 0);
+  if (look.offset % 4 !== 0 || look.vertices !== vertices || look.offset + vertices * 20 !== bytes.length) throw new Error('Grid strip look layout differs');
+  const floats = (offset: number, count: number): Float32Array => {
+    const data = bytes.subarray(offset, offset + count * 4), aligned = data.byteOffset % 4 === 0 ? data : data.slice();
+    const values = new Float32Array(aligned.buffer, aligned.byteOffset, count);
+    if (!finiteWords(values)) throw new Error('Invalid grid strip look channels');
+    return values;
+  };
+  const normals = floats(look.offset, vertices * 3), uvs = floats(look.offset + vertices * 12, vertices * 2);
+  return { strips: result, look: { origin: look.origin, pitch: look.pitch, sphere: look.sphere, normals, uvs } };
 }
 
 /** Renderer-free exact decoder for authoring and byte-parity qualification. */
 export function decodeCompiledGridStrips(input: unknown, bytes: Uint8Array, source: string, home: string): readonly GeneratedStrip[] {
+  const steps = stripSteps(input, bytes, source, home);
+  for (;;) { const step = steps.next(); if (step.done) return step.value.strips; }
+}
+
+/** Decode the optional source-verified normal/UV channels alongside the original collision triangles. */
+export function decodeCompiledGridLook(input: unknown, bytes: Uint8Array, source: string, home: string): DecodedGridStrips {
   const steps = stripSteps(input, bytes, source, home);
   for (;;) { const step = steps.next(); if (step.done) return step.value; }
 }
@@ -127,7 +151,7 @@ interface GridStripOwner { readonly scope: Scope; readonly allocator: ResidencyA
 type GridStripFetch = (url: string, signal: AbortSignal) => Promise<Response>;
 /** Continuation of the original admitted source, restricted to its owner tree. */
 export type DeferredGridStrips = (scope: Scope, pause: () => Promise<void>) => Promise<readonly GeneratedStrip[]>;
-export interface CompiledGridRead { readonly strips: readonly GeneratedStrip[]; readonly readOuter?: DeferredGridStrips }
+export interface CompiledGridRead extends DecodedGridStrips { readonly readOuter?: DeferredGridStrips }
 
 function liveGridOwner(scope: Scope): void { if (scope.disposed || scope.disposing) throw new Error('Grid admission scope disposed'); }
 function reserveGridSource(owner: GridStripOwner, key: string, home: string, id: string, bytes: number): { readonly release: () => void } {
@@ -135,7 +159,7 @@ function reserveGridSource(owner: GridStripOwner, key: string, home: string, id:
   if (claim === null) throw new Error('Grid strip metadata residency deferred');
   return claim;
 }
-async function readDeclaredGridPage(page: CompiledGridPage, home: string, owner: GridStripOwner, read: GridStripFetch, pause: () => Promise<void>): Promise<readonly GeneratedStrip[]> {
+async function readDeclaredGridPage(page: CompiledGridPage, home: string, owner: GridStripOwner, read: GridStripFetch, pause: () => Promise<void>): Promise<DecodedGridStrips> {
   liveGridOwner(owner.scope);
   const abort = new AbortController(), forget = owner.scope.capture('disposers', () => { abort.abort(); });
   const reservations: { readonly release: () => void }[] = [];
@@ -159,7 +183,7 @@ async function readDeclaredGridPage(page: CompiledGridPage, home: string, owner:
         if (step.done) { published = true; return step.value; }
         await pause();
       }
-    } finally { steps.return([]); }
+    } finally { steps.return({ strips: [] }); }
   } finally {
     abort.abort(); forget(); for (const reservation of reservations) reservation.release();
     if (!published) { forgetSource?.(); releaseSource?.(); }
@@ -177,7 +201,7 @@ function deferredGridPage(page: CompiledGridPage, home: string, owner: GridStrip
     if (scope.disposed || scope.disposing) return Promise.reject(new Error('Grid admission scope disposed'));
     if (consumed) return Promise.reject(new Error('Grid strip continuation already consumed'));
     consumed = true;
-    return readDeclaredGridPage(snapshot, home, { scope, allocator }, read, pause);
+    return readDeclaredGridPage(snapshot, home, { scope, allocator }, read, pause).then(result => result.strips);
   };
 }
 
@@ -200,9 +224,9 @@ export async function readCompiledGridStrips(selector: CompiledGridSelector | un
     const book = v.parse(directorySchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(directory)));
     if (new Set(book.pages.map(page => `${page.source}/${page.home}`)).size !== book.pages.length) throw new Error('Duplicate grid strip page');
     const page = book.pages.find(row => row.source === source && row.home === key); if (page === undefined) return null;
-    const strips = await readDeclaredGridPage(page, home, owner, read, pause); liveGridOwner(owner.scope);
+    const decoded = await readDeclaredGridPage(page, home, owner, read, pause); liveGridOwner(owner.scope);
     const outerKey = gridStripPageKey(home, 'outer');
     const outer = phase === 'initial' && selector.homes.includes(outerKey) ? book.pages.find(row => row.source === source && row.home === outerKey) : undefined;
-    return { strips, ...(outer === undefined ? {} : { readOuter: deferredGridPage(outer, home, owner, read) }) };
+    return { ...decoded, ...(outer === undefined ? {} : { readOuter: deferredGridPage(outer, home, owner, read) }) };
   } finally { abort.abort(); forget(); directoryLease?.release(); }
 }

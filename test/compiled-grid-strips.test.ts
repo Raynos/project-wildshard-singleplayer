@@ -5,7 +5,8 @@ import { Scope } from '../src/engine/app/scope';
 import { CONTENT_CAPS } from '../src/format/contentBounds';
 import { generatePlatform, type GeneratedStrip, type PlatformCell, type StripProfile } from '../src/engine/sim/strips';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { decodeCompiledGridStrips, parseCompiledGridHeader, platformGeometrySource, readCompiledGridStrips, type CompiledGridAddress, type GridStripPhase } from '../src/game/grid/compiledStrips';
+import { decodeCompiledGridLook, decodeCompiledGridStrips, parseCompiledGridHeader, platformGeometrySource, readCompiledGridStrips, type CompiledGridAddress, type GridStripPhase } from '../src/game/grid/compiledStrips';
+import { seamLookGeometrySteps } from '../src/game/grid/seamLook';
 import { encodeGridStripPage, writeGridStripPages } from '../scripts/app-build/gridStripPages';
 import { gridSeamAsset, readGridSeams, writeGridSeams } from '../scripts/app-build/gridSeams.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- This artifact fixture owns and removes only its bounded tmp directory.
@@ -56,6 +57,42 @@ test.each([256, 257])('shipped typed triangles match native construction word fo
     const nonfinite = page.body.bytes.slice(); new DataView(nonfinite.buffer).setUint32(0, bits, true);
     expect(() => decodeCompiledGridStrips(header, nonfinite, source, 'probe')).toThrow('geometry');
   }
+});
+
+test.each([256, 257])('baked seam channels retain every rendered word and bound (%s samples)', async count => {
+  const original = native(count), source = await platformGeometrySource(original.cells, original.empty);
+  const frame = { origin: { x: 17.25, z: -8.5 }, pitch: CONTENT_CAPS.pitch };
+  const page = encodeGridStripPage(source, 'probe', 'fixture', original.strips, 'initial', frame);
+  const header: unknown = JSON.parse(new TextDecoder().decode(page.header.bytes));
+  const decoded = decodeCompiledGridLook(header, page.body.bytes, source, 'probe');
+  if (decoded.look === undefined) throw new Error('Missing baked channels');
+  sameStrips(decoded.strips, original.strips);
+  const build = (...args: Parameters<typeof seamLookGeometrySteps>) => {
+    const steps = seamLookGeometrySteps(...args);
+    for (;;) { const next = steps.next(); if (next.done) return next.value; }
+  };
+  for (const explicit of [false, true]) {
+    const surfaces = explicit ? () => [0.2, 0.4, 0.6] as const : undefined;
+    const before = build(original.strips, frame, surfaces, frame.pitch);
+    const after = build(decoded.strips, frame, surfaces, frame.pitch, decoded.look);
+    try {
+      for (const name of ['position', 'normal', 'color', 'uv']) {
+        const a = before.geometry.getAttribute(name).array, b = after.geometry.getAttribute(name).array;
+        expect(Buffer.from(b.buffer, b.byteOffset, b.byteLength)).toEqual(Buffer.from(a.buffer, a.byteOffset, a.byteLength));
+      }
+      expect(after.geometry.getIndex()?.array).toEqual(before.geometry.getIndex()?.array);
+      expect(after.geometry.groups).toEqual(before.geometry.groups);
+      expect(after.geometry.boundingSphere).toEqual(before.geometry.boundingSphere);
+      expect(after.state).toEqual(before.state);
+    } finally { before.geometry.dispose(); after.geometry.dispose(); }
+  }
+  expect(() => build(decoded.strips, { origin: { x: 0, z: 0 } }, undefined, frame.pitch, decoded.look)).toThrow('home frame');
+  const metadata = parseCompiledGridHeader(header).look;
+  if (metadata === undefined) throw new Error('Missing baked metadata');
+  const bad = page.body.bytes.slice(); new DataView(bad.buffer).setFloat32(metadata.offset, Number.NaN, true);
+  expect(() => decodeCompiledGridLook(header, bad, source, 'probe')).toThrow('look channels');
+  const wrongCount = structuredClone(header);
+  expect(() => decodeCompiledGridLook({ ...parseCompiledGridHeader(wrongCount), look: { ...metadata, vertices: metadata.vertices + 1 } }, page.body.bytes, source, 'probe')).toThrow('look layout');
 });
 
 test('baked source identity ignores property order but distinguishes changed values and signed zero', async () => {

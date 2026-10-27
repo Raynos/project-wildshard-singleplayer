@@ -23,7 +23,7 @@ import type { LookScope, RoadLayout } from './roadLayout';
 import { allocateRenderSteps, type PlatformRenderAdmission } from './renderResidency';
 import { installRoadLookSteps, RoadOverlayLight, type RoadLookState } from './roadLook';
 import { installVoidLook } from './voidLook';
-import { CURTAIN_FLOATS, curtainGeometry, curtainMaterial, curtainSource, gravel, riprap, seamSolidSteps, stone, strata, type SeamLookState, type SeamPiece } from './seamLook';
+import { CURTAIN_FLOATS, curtainGeometry, curtainMaterial, curtainSource, gravel, riprap, seamSolidSteps, stone, strata, type SeamGeometryChannels, type SeamLookState, type SeamPiece } from './seamLook';
 import { bytePlan, cullIntoSteps, finishRoadSteps, gpuOnlyRoad, meshBytesSteps, ROAD_LOD, type CullPlan, type RoadCuller } from './roadCull';
 import { GRAIN_LAYERS, GRAIN_SIZE, gpuOnlyTextureBytes, grainArray, SOLID_FLOATS, solidGeometrySteps, solidMaterial, solidSource, type SolidPart } from './roadSolid';
 
@@ -31,6 +31,8 @@ import { GRAIN_LAYERS, GRAIN_SIZE, gpuOnlyTextureBytes, grainArray, SOLID_FLOATS
 export interface PlatformRoadInput {
   /** the generator's strips (the same triangles the colliders use) */
   readonly strips: readonly SeamPiece[];
+  /** Source-verified channels for exactly this selected ring, absent on native/outer construction. */
+  readonly seamChannels?: SeamGeometryChannels;
   readonly home: GridCell;
   readonly pitch: number;
   readonly layout: RoadLayout;
@@ -130,7 +132,7 @@ function* platformRoadSteps(input: PlatformRoadInput): Generator<void, PlatformR
   const tileSize = backing === undefined ? undefined : CONTENT_CAPS.l0.size;
   const culler: RoadCuller = { pitch, ...(tileSize === undefined ? {} : { tileSize }), plans: input.plans, ...(backing === undefined ? {} : { prepare: (mesh: Mesh, plan: CullPlan): Generator<void, void> => backing.capture(mesh, plan) }), ...(input.camera === undefined ? {} : { camera: input.camera }) };
   // the seams' materials keyed by the generator's feature ranges: the same triangles the world collides with
-  const seams = yield* seamSolidSteps(strips, home, undefined, pitch);
+  const seams = yield* seamSolidSteps(strips, home, undefined, pitch, input.seamChannels);
   const parts: SolidPart[] = [...seams.parts], solid = (part: SolidPart): void => { parts.push(part); };
   const overlayLight = new RoadOverlayLight();
   const road = yield* installRoadLookSteps({ layout, home, scene, scope, solid, cull: culler, admission, overlayLight, retireGeometry });

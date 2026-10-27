@@ -73,7 +73,7 @@ for (const developer of [false, true]) for (const devserver of [false, true]) fo
     /** @param {import('../src/engine/sim/strips.ts').GeneratedStrip} strip */
     const within = strip => Math.abs(strip.mesh.origin.x - home.origin.x) <= reach && Math.abs(strip.mesh.origin.z - home.origin.z) <= reach;
     const initial = strips.filter(within);
-    compiled.push(encodeGridStripPage(source, home.instance, home.slug, initial));
+    compiled.push(encodeGridStripPage(source, home.instance, home.slug, initial, 'initial', { origin: home.origin, pitch: assembly.pitch }));
     if (!existsSync(resolve(root, 'out', home.slug, 'shard.json'))) continue;
     try { compiled.push(encodeGridStripPage(source, home.instance, home.slug, strips.filter(strip => !within(strip)), 'outer')); }
     catch (error) {

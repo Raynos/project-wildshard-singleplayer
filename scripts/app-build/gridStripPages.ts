@@ -6,7 +6,8 @@ import { isDeepStrictEqual } from 'node:util';
 import { BufferAttribute, BufferGeometry } from 'three';
 import { GeometryPackWriter } from '../../src/sdk/kit/geometryPack';
 import type { GeneratedStrip } from '../../src/engine/sim/strips';
-import { GRID_STRIP_FEATURE_KINDS, decodeCompiledGridStrips, gridStripPageKey, parseCompiledGridHeader, type CompiledGridAddress, type CompiledGridHeader, type CompiledGridPage, type CompiledGridSelector, type GridStripPhase } from '../../src/game/grid/compiledStrips';
+import { GRID_STRIP_FEATURE_KINDS, decodeCompiledGridLook, gridStripPageKey, parseCompiledGridHeader, type CompiledGridAddress, type CompiledGridHeader, type CompiledGridPage, type CompiledGridSelector, type GridStripPhase } from '../../src/game/grid/compiledStrips';
+import { seamLookGeometrySteps, type SeamGeometryChannels } from '../../src/game/grid/seamLook';
 import { servedBytes } from '../phone-wire.mjs';
 
 export interface CompiledGridArtifact { readonly address: CompiledGridAddress; readonly bytes: Uint8Array }
@@ -27,8 +28,21 @@ function artifact(bytes: Uint8Array, extension: 'json' | 'bin', kind: 'book' | '
   return { bytes, address: { url: `/assets/grid-strip-${kind}-${sha256.slice(0, 8)}.${extension}`, bytes: bytes.length, sha256 } };
 }
 
+function bakeLookChannels(strips: readonly GeneratedStrip[], frame: Pick<SeamGeometryChannels, 'origin' | 'pitch'>): SeamGeometryChannels {
+  const steps = seamLookGeometrySteps(strips, { origin: frame.origin }, undefined, frame.pitch);
+  for (;;) {
+    const next = steps.next(); if (!next.done) continue;
+    const { geometry } = next.value;
+    try {
+      const normals = geometry.getAttribute('normal').array, uvs = geometry.getAttribute('uv').array, sphere = geometry.boundingSphere;
+      if (!(normals instanceof Float32Array) || !(uvs instanceof Float32Array) || sphere === null) throw new Error('Missing native seam look channels');
+      return { ...frame, normals, uvs, sphere: { centre: [sphere.center.x, sphere.center.y, sphere.center.z], radius: sphere.radius } };
+    } finally { geometry.dispose(); }
+  }
+}
+
 /** Store the original indexed words, never deduplicate vertices or quantize them. */
-export function encodeGridStripPage(source: string, home: string, slug: string, strips: readonly GeneratedStrip[], phase: GridStripPhase = 'initial'): CompiledGridCandidate {
+export function encodeGridStripPage(source: string, home: string, slug: string, strips: readonly GeneratedStrip[], phase: GridStripPhase = 'initial', frame?: Pick<SeamGeometryChannels, 'origin' | 'pitch'>): CompiledGridCandidate {
   const keyHome = gridStripPageKey(home, phase);
   const writer = new GeometryPackWriter('Grid strips'), indices = new Map<string, number>(), shapes: CompiledGridHeader['shapes'][number][] = [];
   const rows: CompiledGridHeader['strips'][number][] = [];
@@ -67,17 +81,33 @@ export function encodeGridStripPage(source: string, home: string, slug: string, 
     rows.push({ id: strip.id, shape, origin: { ...mesh.origin }, duplicates });
   }
   const geometry = writer.bytes(), featureStart = Math.ceil(geometry.length / 8) * 8;
-  const packed = new Uint8Array(featureStart + featureWords.length * 8); packed.set(geometry);
+  const featureEnd = featureStart + featureWords.length * 8;
+  let look = frame === undefined ? undefined : bakeLookChannels(strips, frame);
+  // Optional render channels cannot remove a native triangle bank that fits.
+  if (look !== undefined && featureEnd + look.normals.byteLength + look.uvs.byteLength > 16 * 1024 * 1024) look = undefined;
+  const packed = new Uint8Array(featureEnd + (look === undefined ? 0 : look.normals.byteLength + look.uvs.byteLength)); packed.set(geometry);
   const view = new DataView(packed.buffer);
   for (const [index, value] of featureWords.entries()) view.setFloat64(featureStart + index * 8, value, true);
-  const header = artifact(json({ version: 1, source, home: keyHome, rows: writer.rows(), surfaces, shapes, strips: rows } satisfies CompiledGridHeader), 'json', 'page');
+  if (look !== undefined) {
+    packed.set(new Uint8Array(look.normals.buffer, look.normals.byteOffset, look.normals.byteLength), featureEnd);
+    packed.set(new Uint8Array(look.uvs.buffer, look.uvs.byteOffset, look.uvs.byteLength), featureEnd + look.normals.byteLength);
+  }
+  const header = artifact(json({ version: 1, source, home: keyHome, rows: writer.rows(), surfaces, shapes, strips: rows,
+    ...(look === undefined ? {} : { look: { origin: look.origin, pitch: look.pitch, vertices: look.normals.length / 3, offset: featureEnd, sphere: look.sphere } }) } satisfies CompiledGridHeader), 'json', 'page');
   // Exercise the same valibot grammar the runtime admits, including signed zero.
   parseCompiledGridHeader(JSON.parse(new TextDecoder().decode(header.bytes)));
   const body = artifact(packed, 'bin', 'mesh');
   // Certify the bytes that will ship against this build's actual native output.
-  const decoded = decodeCompiledGridStrips(JSON.parse(new TextDecoder().decode(header.bytes)), body.bytes, source, keyHome);
+  const decoded = decodeCompiledGridLook(JSON.parse(new TextDecoder().decode(header.bytes)), body.bytes, source, keyHome);
+  if (look !== undefined) {
+    const copy = decoded.look; if (copy === undefined || !isDeepStrictEqual(copy.sphere, look.sphere)) throw new Error('Grid strip bake changed look bounds');
+    for (const channel of ['normals', 'uvs'] as const) {
+      const a = look[channel], b = copy[channel];
+      if (!Buffer.from(a.buffer, a.byteOffset, a.byteLength).equals(Buffer.from(b.buffer, b.byteOffset, b.byteLength))) throw new Error('Grid strip bake changed look words');
+    }
+  }
   for (const [index, original] of strips.entries()) {
-    const copy = decoded[index]; if (copy === undefined || copy.id !== original.id) throw new Error('Grid strip bake changed its order');
+    const copy = decoded.strips[index]; if (copy === undefined || copy.id !== original.id) throw new Error('Grid strip bake changed its order');
     for (const field of ['positions', 'colours', 'indices'] as const) {
       const a = original.mesh[field], b = copy.mesh[field];
       if (!Buffer.from(a.buffer, a.byteOffset, a.byteLength).equals(Buffer.from(b.buffer, b.byteOffset, b.byteLength))) throw new Error('Grid strip bake changed native words');

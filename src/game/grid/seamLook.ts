@@ -17,7 +17,7 @@
  * - **curtain** (the road wall at an edge that can't blend, G99 / G101): a faint cyan grid, unlit and additive, no glass.
  * - **rail** (its top bar): the thin glowing cyan rail, unlit, past tone mapping like the void's rail (G89).
  */
-import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, ShaderMaterial } from 'three';
+import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, ShaderMaterial, Sphere, Vector3 } from 'three';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { vertexNormalSteps } from '@wildshard/engine/world/Terrain';
 import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
@@ -40,6 +40,13 @@ export type SeamSurfaces = (name: string) => readonly [number, number, number] |
 /** The readout: triangles and draws per material (the road's tight budget, G101). */
 export interface SeamLookState { readonly triangles: number; readonly draws: number; readonly buckets: Readonly<Partial<Record<SeamBucket, number>>> }
 
+/** Exact author-built channels for this ordered ring and home frame; colours remain runtime-owned. */
+export interface SeamGeometryChannels {
+  readonly origin: { readonly x: number; readonly z: number }; readonly pitch: number;
+  readonly normals: Float32Array; readonly uvs: Float32Array;
+  readonly sphere: { readonly centre: readonly [number, number, number]; readonly radius: number };
+}
+
 /** What the look reads from a generated strip (`GeneratedStrip` fits it): its mesh and its ordered feature ranges. */
 export interface SeamPiece {
   readonly mesh: { readonly origin: { readonly x: number; readonly z: number }; readonly positions: Float32Array; readonly colours: Float32Array; readonly indices: Uint32Array };
@@ -58,9 +65,11 @@ const fromRoad = (v: number, pitch: number): number => Math.abs(v - (Math.round(
  * In steps (D12: the whole merge was one 104 ms task of the road's sliced install on the phone tier): a step a strip, then
  * three's vertex normals and bounding sphere in the engine's exact steps, so the same bytes.
  */
-export function* seamLookGeometrySteps(pieces: readonly SeamPiece[], home: { readonly origin: { readonly x: number; readonly z: number } }, surfaces?: SeamSurfaces, pitch: number = CONTENT_CAPS.pitch): Generator<void, { geometry: BufferGeometry; state: SeamLookState }> {
+export function* seamLookGeometrySteps(pieces: readonly SeamPiece[], home: { readonly origin: { readonly x: number; readonly z: number } }, surfaces?: SeamSurfaces, pitch: number = CONTENT_CAPS.pitch, channels?: SeamGeometryChannels): Generator<void, { geometry: BufferGeometry; state: SeamLookState }> {
   let vertices = 0;
   for (const { mesh } of pieces) vertices += mesh.positions.length / 3;
+  if (channels !== undefined && (!Object.is(channels.origin.x, home.origin.x) || !Object.is(channels.origin.z, home.origin.z)
+    || channels.pitch !== pitch || channels.normals.length !== vertices * 3 || channels.uvs.length !== vertices * 2)) throw new Error('Baked seam channels differ from the home frame');
   const position = new Float32Array(vertices * 3), colour = new Float32Array(vertices * 3), bucketOf = new Int8Array(vertices).fill(-1);
   const lists = new Map<SeamBucket, number[]>(SEAM_BUCKETS.map((b) => [b, []]));
   let base = 0;
@@ -109,15 +118,16 @@ export function* seamLookGeometrySteps(pieces: readonly SeamPiece[], home: { rea
   const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(position, 3)).setAttribute('color', new BufferAttribute(colour, 3))
     .setIndex(new BufferAttribute(new Uint32Array(index), 1));
   // the zeroed normal three's computeVertexNormals makes, then its arithmetic in steps
-  const normal = new BufferAttribute(new Float32Array(vertices * 3), 3);
+  const normal = new BufferAttribute(channels?.normals ?? new Float32Array(vertices * 3), 3);
   geometry.setAttribute('normal', normal);
   yield;
-  yield* vertexNormalSteps(geometry);
+  if (channels === undefined) yield* vertexNormalSteps(geometry);
   yield;
-  geometry.setAttribute('uv', new BufferAttribute(planarUv(position, normal.array, bucketOf), 2));
+  geometry.setAttribute('uv', new BufferAttribute(channels?.uvs ?? planarUv(position, normal.array, bucketOf), 2));
   groups.forEach((g) => { geometry.addGroup(g.start, g.count, SEAM_BUCKETS.indexOf(g.bucket)); });
   yield;
-  yield* geometryBoundsSteps(geometry, 'sphere');
+  if (channels === undefined) yield* geometryBoundsSteps(geometry, 'sphere');
+  else geometry.boundingSphere = new Sphere(new Vector3(...channels.sphere.centre), channels.sphere.radius);
   const buckets: Partial<Record<SeamBucket, number>> = {};
   for (const g of groups) buckets[g.bucket] = g.count / 3;
   return { geometry, state: { triangles: index.length / 3, draws: groups.length, buckets } };
@@ -236,8 +246,8 @@ const LAYER_OF: Readonly<Record<Exclude<SeamBucket, 'curtain'>, GrainLayer>> = {
 
 /** `seamSolid` with the curtain still as arrays, so its geometry is built (and admitted, G144) by `roadLookPlatform.ts`; in
  *  steps (`seamLookGeometrySteps`), so the road's sliced install pauses inside it. */
-export function* seamSolidSteps(pieces: readonly SeamPiece[], home: { readonly origin: { readonly x: number; readonly z: number } }, surfaces?: SeamSurfaces, pitch: number = CONTENT_CAPS.pitch): Generator<void, { parts: SolidPart[]; curtain: SeamCurtain; state: SeamLookState }> {
-  const { geometry, state } = yield* seamLookGeometrySteps(pieces, home, surfaces, pitch), bucketOfTriangle = new Int8Array((geometry.getIndex()?.count ?? 0) / 3).fill(-1);
+export function* seamSolidSteps(pieces: readonly SeamPiece[], home: { readonly origin: { readonly x: number; readonly z: number } }, surfaces?: SeamSurfaces, pitch: number = CONTENT_CAPS.pitch, channels?: SeamGeometryChannels): Generator<void, { parts: SolidPart[]; curtain: SeamCurtain; state: SeamLookState }> {
+  const { geometry, state } = yield* seamLookGeometrySteps(pieces, home, surfaces, pitch, channels), bucketOfTriangle = new Int8Array((geometry.getIndex()?.count ?? 0) / 3).fill(-1);
   for (const g of geometry.groups) bucketOfTriangle.fill(g.materialIndex ?? 0, g.start / 3, (g.start + g.count) / 3);
   yield;
   const split = splitByKey(geometry, (t) => bucketOfTriangle[t] ?? 0, SEAM_BUCKETS.length), parts: SolidPart[] = [];
