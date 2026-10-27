@@ -45,9 +45,6 @@ class PushLoop(unittest.TestCase):
         self.put('scripts/push-inputs.mjs', 'console.log(JSON.stringify(process.argv.slice(2)));')
         self.base = self.commit('src/base.ts')
         self.git('update-ref', 'refs/remotes/origin/main', self.base)
-        verdict = patch.dict(PUSH, latest_verdict=lambda *_: {'id': 1, 'sha': self.base, 'red': False})
-        verdict.start()
-        self.addCleanup(verdict.stop)
         subset = patch.dict(PUSH, check_subset=lambda *_: {'ok': True, 'files': [], 'output': 'exact subset passed'})
         subset.start()
         self.addCleanup(subset.stop)
@@ -612,65 +609,8 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertGreater(deadlines[0], 179)
         self.assertLessEqual(deadlines[0], 180)
 
-    def test_red_ci_checks_only_the_newest_fix_prefix_and_keeps_local_tail(self):
-        self.commit('src/feature-before.ts')
-        self.put('src/fix.ts', 'export const repaired=1;')
-        self.git('add', 'src/fix.ts')
-        self.git('commit', '-qm', 'fix: repair\n\nRed-fix: 123\n\nAssisted-by: lane:model')
-        fix = self.git('rev-parse', 'HEAD')
-        tail = self.commit('src/feature-after.ts')
-        checked, uploads = [], []
-        def checker(root, base, candidate, deadline):
-            checked.append(candidate)
-            return {'ok': True, 'phase': 'passed', 'files': [], 'output': '', 'types': 'checked'}
-        with patch.dict(PUSH, latest_verdict=lambda *_: {'id': 123, 'red': True}):
-            result = PUSH['tick'](self.root, checker=checker,
-                                  uploader=lambda *args: uploads.append(args) or 0)
-        self.assertEqual(result['status'], 'pushed')
-        self.assertEqual(result['tip'], fix)
-        self.assertEqual(checked, [fix])
-        self.assertEqual(len(uploads), 1)
-        self.assertEqual(self.git('rev-parse', 'main'), tail)
 
-    def test_red_without_fix_and_unknown_ci_never_check_or_upload(self):
-        tip = self.commit('src/feature.ts')
-        def unexpected(*_):
-            self.fail('Held batch executed checks or upload')
-        with patch.dict(PUSH, latest_verdict=lambda *_: {'id': 123, 'red': True}):
-            held = PUSH['tick'](self.root, checker=unexpected, uploader=unexpected)
-        self.assertEqual(held['status'], 'held')
-        self.assertEqual(held['tip'], self.base)
-        self.assertEqual(held['batchTip'], tip)
-        def unavailable(*_):
-            raise ValueError('No completed verdict')
-        with patch.dict(PUSH, latest_verdict=unavailable):
-            refused = PUSH['tick'](self.root, checker=unexpected, uploader=unexpected)
-        self.assertEqual(refused['status'], 'red')
-        self.assertEqual(refused['phase'], 'ci-verdict')
 
-    def test_failed_fix_cannot_publish_an_unmarked_tail_prefix_while_red(self):
-        self.put('src/fix-one.ts', 'export const repaired=1;')
-        self.git('add', 'src/fix-one.ts')
-        self.git('commit', '-qm', 'fix: first\n\nRed-fix: 123')
-        first = self.git('rev-parse', 'HEAD')
-        self.commit('src/feature.ts')
-        self.put('src/fix-two.ts', 'export const bad=1;')
-        self.git('add', 'src/fix-two.ts')
-        self.git('commit', '-qm', 'fix: second\n\nRed-fix: 123')
-        bad = self.git('rev-parse', 'HEAD')
-        checked = []
-        def checker(root, base, candidate, deadline):
-            checked.append(candidate)
-            return {'ok': candidate == first, 'phase': 'tests', 'files': ['src/fix-two.ts'],
-                    'output': 'original failure', 'types': 'checked'}
-        with patch.dict(PUSH, latest_verdict=lambda *_: {'id': 123, 'red': True}):
-            result = PUSH['tick'](self.root, checker=checker, uploader=lambda *_: 0,
-                                  notify=lambda *_: True)
-        self.assertEqual(result['status'], 'pushed')
-        self.assertEqual(result['tip'], first)
-        self.assertEqual(result['bad'], bad)
-        self.assertEqual(checked, [bad, first])
-        self.assertEqual(self.git('rev-parse', 'main'), bad)
 
     def test_unfinished_gate_never_uploads_the_candidate(self):
         tip = self.commit('src/good.ts')

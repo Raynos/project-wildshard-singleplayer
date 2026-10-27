@@ -16,22 +16,9 @@ from contextlib import contextmanager
 LIVE = runpy.run_path(str(Path(__file__).with_name('live-prepush.py')))
 git = LIVE['git']
 PUSH_GATE_SECONDS = 45  # G768: unfinished and unverifiable work goes to CI.
-RED_HOLD = runpy.run_path(str(Path(__file__).with_name('push_red_hold.py')))
-latest_verdict = RED_HOLD['completed_push_verdict']
 BATCH = runpy.run_path(str(Path(__file__).with_name('push_batch.py')))
 HANDOFF = runpy.run_path(str(Path(__file__).with_name('push_handoff.py')))
 publish_handoff = HANDOFF['publish_handoff']
-
-
-def fix_prefix(root, base, tip):
-    records = git(root, 'log', '-z', '--reverse', '--format=%H%x00%B', base + '..' + tip).split('\0')
-    if records and records[-1] == '':
-        records.pop()
-    if len(records) % 2:
-        raise ValueError('Invalid ordered commit messages')
-    commits = [{'sha': records[index].strip(), 'message': records[index + 1]}
-               for index in range(0, len(records), 2)]
-    return RED_HOLD['red_hold_tip'](commits, True)
 
 
 def deferred_blobs(root, base, tip, name):
