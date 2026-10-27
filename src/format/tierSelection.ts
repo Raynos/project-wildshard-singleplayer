@@ -26,7 +26,8 @@ export function* stringsSteps(roots: readonly unknown[], found: (text: string) =
     if (++visited % 4096 === 0) yield;
     if (typeof value === 'string') found(value);
     else if (Array.isArray(value)) { const items: readonly unknown[] = value; for (const item of items) pending.push(item); }
-    else if (typeof value === 'object' && value !== null) for (const [key, child] of Object.entries(value)) { found(key); pending.push(child); }
+    // Own enumerable keys in Object.entries order, without an entry pair per key (admission walks every product field).
+    else if (typeof value === 'object' && value !== null) for (const key in value) if (Object.hasOwn(value, key)) { found(key); const child: unknown = Reflect.get(value, key); pending.push(child); }
   }
 }
 

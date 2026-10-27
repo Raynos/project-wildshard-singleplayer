@@ -29,12 +29,15 @@ const coarseTiles = new WeakMap<Mesh, TileState>();
 /** True when this tile is a coarse tile whose quadrants refinement may hide. */
 function isCoarse(data: TerrainTileData): boolean { return data.resolution === COARSE.resolution && data.size === COARSE.size; }
 
-/** A grid's slope along one axis at sample `at` of `n`: central inside, second-order one-sided on the grid's edge. */
-function gridSlope(at: number, n: number, step: number, sample: (i: number) => number): number {
-  if (n === 2) return (sample(1) - sample(0)) / step;
-  if (at === 0) return (-3 * sample(0) + 4 * sample(1) - sample(2)) / (2 * step);
-  if (at === n - 1) return (3 * sample(n - 1) - 4 * sample(n - 2) + sample(n - 3)) / (2 * step);
-  return (sample(at + 1) - sample(at - 1)) / (2 * step);
+/** A grid's slope along one axis at sample `at` of `n`: central inside, second-order one-sided on the grid's edge. Sample
+ * `i` of the line is `heights[base + i * stride]` (no closure per vertex: a tile's normals run once per sample at boot). */
+function gridSlope(at: number, n: number, step: number, heights: ArrayLike<number>, base: number, stride: number): number {
+  const s0 = heights[base] ?? 0, s1 = heights[base + stride] ?? 0;
+  if (n === 2) return (s1 - s0) / step;
+  if (at === 0) return (-3 * s0 + 4 * s1 - (heights[base + 2 * stride] ?? 0)) / (2 * step);
+  const last = heights[base + (n - 1) * stride] ?? 0, before = heights[base + (n - 2) * stride] ?? 0;
+  if (at === n - 1) return (3 * last - 4 * before + (heights[base + (n - 3) * stride] ?? 0)) / (2 * step);
+  return ((heights[base + (at + 1) * stride] ?? 0) - (heights[base + (at - 1) * stride] ?? 0)) / (2 * step);
 }
 
 /** Write the unit normal of slopes (dx, dz) at vertex `vertex`. */
@@ -45,8 +48,8 @@ function writeNormal(out: Float32Array, vertex: number, dx: number, dz: number):
 
 /** Grid normals from the tile's own heights (one-sided at its edges, so neighbours agree only to O(h²)). */
 function gridNormals(data: TerrainTileData, out: Float32Array): void {
-  const r = data.resolution, step = data.size / (r - 1), h = (x: number, z: number): number => data.heights[z * r + x] ?? 0;
-  for (let z = 0; z < r; z++) for (let x = 0; x < r; x++) writeNormal(out, z * r + x, gridSlope(x, r, step, (i) => h(i, z)), gridSlope(z, r, step, (i) => h(x, i)));
+  const r = data.resolution, step = data.size / (r - 1), heights = data.heights;
+  for (let z = 0; z < r; z++) for (let x = 0; x < r; x++) writeNormal(out, z * r + x, gridSlope(x, r, step, heights, z * r, 1), gridSlope(z, r, step, heights, x, r));
 }
 
 /** The lattice sample index of world coordinate `w` on one axis, or −1 when `w` is not one of its samples. */
@@ -67,10 +70,10 @@ function latticeNormals(data: TerrainTileData, lattice: TerrainTileData, out: Fl
     if (x < 0 || z < 0) return false;
     columns.push(x); rows.push(z);
   }
-  const h = (x: number, z: number): number => lattice.heights[z * n + x] ?? 0;
+  const heights = lattice.heights;
   for (let z = 0; z < r; z++) for (let x = 0; x < r; x++) {
     const lx = columns[x] ?? 0, lz = rows[z] ?? 0;
-    writeNormal(out, z * r + x, gridSlope(lx, n, step, (i) => h(i, lz)), gridSlope(lz, n, step, (i) => h(lx, i)));
+    writeNormal(out, z * r + x, gridSlope(lx, n, step, heights, lz * n, 1), gridSlope(lz, n, step, heights, lx, n));
   }
   return true;
 }
