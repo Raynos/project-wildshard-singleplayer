@@ -133,6 +133,8 @@ held boundary if a subsequent ordinary run fails.
 
 ### CF2 grid: parser attribution (2026-10-26, sp-x6; G751)
 
+**Attribution packet done (`af760cc864`); the CF2 flake remains open.**
+
 CF-open was already in flight with sp-x8, so sp-x6 takes this next top row.
 The retained failing `2b112` receipt and the one `12750ad` local reproduction
 still do not identify the held await. No retry or new browser capture is

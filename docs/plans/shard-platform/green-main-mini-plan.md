@@ -158,6 +158,9 @@ All answered 2026-10-26 ~22:40: Q1 split then tagged CI handoff (G757), Q2 quara
 
 ## GM4: render-source identity assertions (sp-x6)
 
+Checked source repair: `9c30863d2d`; its publication is blocked by the
+shared GM0 generated-discovery intake. The broader GM4 reading stays open.
+
 CI `40445771616` times out independent render-source construction from
 `68cab0ecb3`. Moving construction out of the test still leaves 24,477 ms
 in identity assertions. Vitest's object `toBe` computes deep-equality

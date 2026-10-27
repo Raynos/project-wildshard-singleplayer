@@ -2,13 +2,17 @@
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the actual checkout and its owned scratch catalogue.
 import { relative, resolve } from 'node:path';
-import { afterAll, beforeAll, describe, expect, test } from 'vitest';
+import { afterAll, describe, expect, test } from 'vitest';
 import { discoverGeneration, generateShardJob, type ShardGenerationJob } from '../scripts/generate.mjs';
+import { InputHashMemo } from '../scripts/bake-input-hashes.mjs';
 import { MapRaster } from '../src/sdk/bake/mapRaster';
 import { paintMapGeometry } from '../src/sdk/bake/mapScenes';
 import images from './fixtures/map-stage-images.json' with { type: 'json' };
 
 const root = resolve('.'), sceneSource = 'src/sdk/bake/mapScenes.ts';
+// Only source digests are shared. Each producer still stages, executes and
+// verifies its own sealed tree; every memo hit rechecks the file identity.
+const inputHashes = new InputHashMemo(root);
 
 test('output notes remain metadata while malformed selected exclusions refuse', async () => {
   const raster = new MapRaster(2), config = { painter: { version: 1 }, outputs: { why: 'Shared map author note', plot: { exclude: 1 } } };
@@ -40,8 +44,8 @@ for (const [id, original] of Object.entries(images)) {
       const descriptor = { ...job, inputRoots: job.inputRoots.filter(file => file !== sceneSource) };
       const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
       writeFileSync(resolve(root, catalogPath), JSON.stringify({ schema: 'generation-jobs/1', notice: 'DO NOT EDIT sealed negative fixture', jobs: [descriptor] }));
-      await expect(generateShardJob(root, descriptor, { cacheDir, catalogPath, forceCompare: true })).rejects.toThrow('Generator exited 1');
-      const result = await generateShardJob(root, job, { cacheDir, forceCompare: true });
+      await expect(generateShardJob(root, descriptor, { cacheDir, catalogPath, forceCompare: true, inputHashes })).rejects.toThrow('Generator exited 1');
+      const result = await generateShardJob(root, job, { cacheDir, forceCompare: true, inputHashes });
       try {
         expect(Object.keys(result.hashes).sort()).toEqual([...job.outputs].sort());
         for (const [file, hash] of Object.entries(original)) expect(result.hashes[file], file).toBe(hash);
@@ -50,38 +54,38 @@ for (const [id, original] of Object.entries(images)) {
   });
 }
 
-describe('isolated open-plot map outputs', () => {
-  let cacheDir: string, catalogPath: string, original: ShardGenerationJob, worlds: ShardGenerationJob, maps: ShardGenerationJob[];
-  let prepared: Awaited<ReturnType<typeof generateShardJob>> | undefined;
-  beforeAll(() => {
-    const job = discoverGeneration(root).jobs.find(row => row.id === 'open-plots-world');
-    if (job === undefined) throw new Error('Missing registered open-plot producer');
-    original = job; cacheDir = mkdtempSync(resolve(root, 'tmp/plot-map-inputs-'));
-    catalogPath = relative(root, resolve(cacheDir, 'jobs.json'));
-    const worldOutputs = job.outputs.filter(file => file.endsWith('.glb'));
-    worlds = { ...job, id: 'fixture-plot-worlds', command: [...job.command, '--worlds-only'], outputs: worldOutputs, buildTimeOutputs: worldOutputs };
-    maps = [];
+// One genuinely cold world is fixture preparation, shared by every original
+// positive and omission case. Failed initialization owns its cleanup too.
+const openPlotFixture = await (async () => {
+  const original = discoverGeneration(root).jobs.find(row => row.id === 'open-plots-world');
+  if (original === undefined) throw new Error('Missing registered open-plot producer');
+  const cacheDir = mkdtempSync(resolve(root, 'tmp/plot-map-inputs-'));
+  try {
+    const catalogPath = relative(root, resolve(cacheDir, 'jobs.json'));
+    const worldOutputs = original.outputs.filter(file => file.endsWith('.glb'));
+    const worlds: ShardGenerationJob = { ...original, id: 'fixture-plot-worlds', command: [...original.command, '--worlds-only'], outputs: worldOutputs, buildTimeOutputs: worldOutputs };
+    const maps: ShardGenerationJob[] = [];
     for (const [index, file] of Object.keys(images['open-plots-world']).entries()) {
       const slug = file.split('/')[2]; if (slug === undefined) throw new Error('Missing map output identity');
       const outputs = [file, `src/shards/open-plots/look/map.${slug}.baked.json`];
-      maps.push({ ...job, id: `fixture-plot-map-${String(index)}`, command: [...job.command, `--map-only=${slug}`],
-        inputRoots: [...job.inputRoots, 'src/shards/open-plots'], outputs, buildTimeOutputs: outputs, catalogueDependencies: [worlds.id] });
+      maps.push({ ...original, id: `fixture-plot-map-${String(index)}`, command: [...original.command, `--map-only=${slug}`],
+        inputRoots: [...original.inputRoots, 'src/shards/open-plots'], outputs, buildTimeOutputs: outputs, catalogueDependencies: [worlds.id] });
     }
-    expect([...worlds.outputs, ...maps.flatMap(row => row.outputs)].sort()).toEqual([...job.outputs].sort());
+    expect([...worlds.outputs, ...maps.flatMap(row => row.outputs)].sort()).toEqual([...original.outputs].sort());
     writeFileSync(resolve(root, catalogPath), JSON.stringify({ schema: 'generation-jobs/1', notice: 'DO NOT EDIT isolated map fixtures', jobs: [worlds, ...maps] }));
-  });
+    const prepared = await generateShardJob(root, worlds, { cacheDir, catalogPath, forceCompare: true, inputHashes });
+    return { cacheDir, catalogPath, original, worlds, maps, prepared };
+  } catch (error) { rmSync(cacheDir, { recursive: true, force: true }); throw error; }
+})();
+
+describe('isolated open-plot map outputs', () => {
+  const { cacheDir, catalogPath, original, worlds, maps, prepared } = openPlotFixture;
   afterAll(() => {
-    prepared?.release();
-    if (cacheDir !== undefined) rmSync(cacheDir, { recursive: true, force: true });
+    try { prepared.release(); } finally { rmSync(cacheDir, { recursive: true, force: true }); }
   });
-  let preparing: Promise<Awaited<ReturnType<typeof generateShardJob>>> | undefined;
-  const options = async () => {
-    // The lifecycle hook declares the fixture only. The first dependent test
-    // owns real cold world production under its unchanged producer budget.
-    preparing ??= generateShardJob(root, worlds, { cacheDir, catalogPath, forceCompare: true });
-    prepared = await preparing;
+  const options = () => {
     expect(Object.keys(prepared.hashes).sort()).toEqual([...worlds.outputs].sort());
-    return { cacheDir, catalogPath, forceCompare: true, preparation: { outputs: original.outputs, upstream: new Map([[worlds.id, prepared]]) } };
+    return Promise.resolve({ cacheDir, catalogPath, forceCompare: true, inputHashes, preparation: { outputs: original.outputs, upstream: new Map([[worlds.id, prepared]]) } });
   };
   test('all isolated map consumers borrow one verified cold world publication', async () => {
     const first = await options(), second = await options();
