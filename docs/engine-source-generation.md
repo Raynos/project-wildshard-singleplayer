@@ -142,3 +142,9 @@ override it through `PropWhole.materialName`. Names select admitted
 materials without changing channels or transforms; omitted names keep
 predecessor bytes. Supply matching `props.materials` bindings for every
 named surface, including coarse content.
+
+An Explorer-only whole library (`load: 'explorer'`) may reconstruct models
+from admitted L0 tile GLBs without adding those files to the resident
+library. L1 proxies and non-GLB files refuse. Resident whole libraries
+still require resident library membership. The normal product, owner,
+transport, cache and cancellation checks apply to both paths.

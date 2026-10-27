@@ -170,3 +170,27 @@ test('cache hits retain transport release authority and cancellation releases th
   expect(f.assets.retained().map(row => row.refs)).toEqual([0]);
   release.mockRestore(); f.close();
 });
+
+
+test.each([false, true])('only Explorer whole libraries borrow fine tile GLBs (cached=%s)', async cached => {
+  const f = fixture(), source = f.product.shardfile;
+  source.library.splice(0);
+  const fine = { lod: 0 as const, x: 4, z: 4, geometricError: 0, bounds: { min: [0, 0, 0] as [number, number, number], max: [62.5, 1, 62.5] as [number, number, number] },
+    files: [f.hash], compressed: f.bytes.length, decoded: f.bytes.length, gpu: 72, triangles: 1, draws: 1 };
+  source.tiles.push(fine);
+  const assets = cached ? f.assets : undefined;
+  try {
+    await expect(readWholeLibrary(f.owner, f.product, f.row, ids, undefined, assets)).rejects.toThrow('Missing whole library file');
+    const reader = await readWholeLibrary(f.owner, f.product, { ...f.row, load: 'explorer' }, ids, undefined, assets);
+    const geometry = reader.geometry('plain');
+    expect(words(geometry)).toMatchObject({ position: new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]) });
+    geometry?.dispose(); reader.done();
+    source.tiles.splice(0, source.tiles.length, { ...fine, lod: 1 });
+    await expect(readWholeLibrary(f.owner, f.product, { ...f.row, load: 'explorer' }, ids, undefined, assets)).rejects.toThrow('Missing whole library file');
+    source.tiles.splice(0, source.tiles.length, fine);
+    const file = source.files.find(row => row.hash === f.hash);
+    if (file === undefined) throw new Error('Missing fixture GLB');
+    file.kind = 'json';
+    await expect(readWholeLibrary(f.owner, f.product, { ...f.row, load: 'explorer' }, ids, undefined, assets)).rejects.toThrow('Missing whole library file');
+  } finally { f.close(); }
+});
