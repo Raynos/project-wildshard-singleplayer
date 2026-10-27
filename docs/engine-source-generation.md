@@ -129,3 +129,7 @@ supplied by the CLI's manifest intake. Each URL must select exactly one root;
 traversal, encoded separators, ambiguous roots and symlink escapes refuse.
 The bounded bytes are detached and hashed on every hit, like project-relative
 inputs. No repository layout, shard name or ambient parent path grants access.
+
+`@wildshard/sdk/decisionScripts` admits decision and return-projection metadata
+with `parseDecisionScripts` and `parseReturnProjectionV2`. These pure admission
+functions carry no compiler or filesystem dependency into author programs.
