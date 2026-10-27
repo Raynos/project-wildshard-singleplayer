@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { ReturnModulesSchema } from '../src/format/scriptContract';
 import { expect, test } from 'vitest';
 import { ReturnProgram } from '../src/game/population/returnProgram';
@@ -77,10 +78,15 @@ test('weather policy holds the titan storm and restores calm after its wind ends
 });
 
 test('the actual return-script catalogue admits the shared weather/night module once', async () => {
-  const { output } = await import('./fixtures/nalati-output-original');
-  const bytes = output.platform.files.get('sections/actors/return-scripts.json');
-  if (bytes === undefined) throw new Error('Missing return-script catalogue');
-  const rows = v.parse(ReturnModulesSchema, JSON.parse(new TextDecoder().decode(bytes)));
+  // the catalogue section exactly as fixtures/nalati-output-original publishes it (that fixture swaps in these rows), built
+  // from its script inventory alone rather than from the whole Nalati output
+  const [{ originalNalatiScriptSections }, { originalHeldMetadata }, { NALATI_KOKPAR }, { NALATI_RIDING_PROGRAMS }, { NALATI_TITAN_PROGRAMS },
+    { NALATI_WEATHER }, { NALATI_ADMISSION }, { NALATI_CHARGE }] = await Promise.all([import('./fixtures/nalati-script-inventory'),
+    import('./fixtures/nalati-held-original'), import('./fixtures/nalati-kokpar'), import('./fixtures/nalati-riding'), import('./fixtures/nalati-titan'),
+    import('./fixtures/nalati-weather'), import('./fixtures/nalati-admission'), import('./fixtures/nalati-charge')]);
+  const sections = originalNalatiScriptSections(originalHeldMetadata().held.program.v2, NALATI_KOKPAR, NALATI_RIDING_PROGRAMS, NALATI_TITAN_PROGRAMS,
+    NALATI_WEATHER.rows, NALATI_ADMISSION, NALATI_CHARGE.rows);
+  const rows = v.parse(ReturnModulesSchema, JSON.parse(encodeCanonicalJson(sections.get('actors/return-scripts'))));
   expect(night.program.script.module).toBe(weather.script.module);
   expect(rows.filter(row => row.module === weather.script.module)).toHaveLength(1);
   expect(rows.find(row => row.module === weather.script.module)?.abi).toBe('1.0');
