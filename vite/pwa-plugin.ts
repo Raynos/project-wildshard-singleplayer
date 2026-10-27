@@ -26,7 +26,7 @@
 import type { Plugin } from 'vite';
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { hashTree } from './assetHashes';
+import { hashTree } from '../scripts/app-build/assetHashes';
 import { PRODUCT_CACHE_NAME } from '../src/engine/pwa/cacheNames';
 import { join } from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';

@@ -1,6 +1,6 @@
 import type { Plugin } from 'vite';
 import { execFileSync } from 'node:child_process';
-import { generateBootTables } from './gen';
+import { generateBootTables } from '../scripts/app-build/gen';
 
 /** Generate before any baker imports the registry, including direct `vite build` on a clean export. */
 export function genShardsPlugin(): Plugin {

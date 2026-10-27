@@ -7,7 +7,7 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-const ROOT = fileURLToPath(new URL('..', import.meta.url));
+const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const SOURCE = `${ROOT}node_modules/three/examples/jsm/libs/basis/`;
 const FILES = ['basis_transcoder.js', 'basis_transcoder.wasm'];
 

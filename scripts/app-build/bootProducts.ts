@@ -3,9 +3,9 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import * as v from 'valibot';
 import { createHash } from 'node:crypto';
-import { parseClientPlan, clientPlanModuleGroups } from '../src/format/clientPlan';
-import { SKIN_LOOK_RECIPE } from '../src/format/skins';
-import { readOutputDownloadIndex } from '../src/format/outputDownload';
+import { parseClientPlan, clientPlanModuleGroups } from '../../src/format/clientPlan';
+import { SKIN_LOOK_RECIPE } from '../../src/format/skins';
+import { readOutputDownloadIndex } from '../../src/format/outputDownload';
 import { sceneSourceUsesGltf } from './bootExtras';
 
 /** Compact compiler facts, not a second product admission or a file inventory.

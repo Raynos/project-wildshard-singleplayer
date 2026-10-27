@@ -8,8 +8,8 @@ import { mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Give the fixture its actual admitted hashes.
 import { createHash } from 'node:crypto';
-import { sceneSourceUrls, homeExtraFiles } from '../vite/bootExtras';
-import { homeClientModuleGroups, productDownloadTotal } from '../vite/bootProducts';
+import { sceneSourceUrls, homeExtraFiles } from '../scripts/app-build/bootExtras';
+import { homeClientModuleGroups, productDownloadTotal } from '../scripts/app-build/bootProducts';
 
 test('lists exactly the model reader preloads, deduplicating URLs and excluding unused mappings/specimen metadata', () => {
   expect(sceneSourceUrls('models', { rows: {

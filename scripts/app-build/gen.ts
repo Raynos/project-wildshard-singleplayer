@@ -1,13 +1,13 @@
-import { manifestClosure } from '../scripts/gen-shards.mjs';
-import { genStarterBag } from '../scripts/gen-starter-bag.mjs';
-import { genStarterArmClips } from '../scripts/gen-starter-arm-clips.mjs';
-import { genStarterWeapons } from '../scripts/gen-starter-weapons.mjs';
-import { genStarterEffects } from '../scripts/gen-starter-effects.mjs';
+import { manifestClosure } from '../gen-shards.mjs';
+import { genStarterBag } from '../gen-starter-bag.mjs';
+import { genStarterArmClips } from '../gen-starter-arm-clips.mjs';
+import { genStarterWeapons } from '../gen-starter-weapons.mjs';
+import { genStarterEffects } from '../gen-starter-effects.mjs';
 import { execFileSync } from 'node:child_process';
 import { readdirSync, statSync, readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { contentNamed, hashTree } from './assetHashes';
-import { copyRapierWasm } from './rapier';
+import { copyRapierWasm } from '../../vite/rapier';
 import { copyBasisTranscoder } from './basis';
 
 // /asset-index.json: every file under public/assets with its byte size, so the loading

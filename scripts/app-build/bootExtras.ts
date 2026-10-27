@@ -3,8 +3,8 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import * as v from 'valibot';
-import { readOutputDownloadIndex } from '../src/format/outputDownload';
-import { PickupCatalogueSchema } from '../src/format/specimenCatalogue';
+import { readOutputDownloadIndex } from '../../src/format/outputDownload';
+import { PickupCatalogueSchema } from '../../src/format/specimenCatalogue';
 
 interface Asset { readonly type: string; readonly originalFileNames?: readonly string[]; readonly source?: string | Uint8Array }
 type Bundle = Readonly<Record<string, Asset | undefined>>;

@@ -4,8 +4,8 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve that compiler fixture without changing cwd.
 import { resolve } from 'node:path';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { bootProductTotals, productDownloadTotal, homeClientModuleGroups } from '../vite/bootProducts';
-import {bootTierProductTotals} from '../vite/bootProductTiers';
+import { bootProductTotals, productDownloadTotal, homeClientModuleGroups } from '../scripts/app-build/bootProducts';
+import {bootTierProductTotals} from '../scripts/app-build/bootProductTiers';
 import { outputSectionPayloads } from '../src/format/outputFields';
 // oxlint-disable-next-line import/no-nodejs-modules -- Record exact section hashes in the real output fixture.
 import { createHash } from 'node:crypto';

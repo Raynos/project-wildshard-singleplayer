@@ -3,9 +3,9 @@ import ts from '@typescript/typescript6';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { readModuleFiles } from '../src/engine/boot/download';
-import { homeClientModuleGroups } from './bootProducts';
-import { bootTierProductTotals } from './bootProductTiers';
-import { homeExtraFiles } from './bootExtras';
+import { homeClientModuleGroups } from '../scripts/app-build/bootProducts';
+import { bootTierProductTotals } from '../scripts/app-build/bootProductTiers';
+import { homeExtraFiles } from '../scripts/app-build/bootExtras';
 import { createHash } from 'node:crypto';
 import { selectionModules } from '../scripts/title-catalogue.mjs';
 

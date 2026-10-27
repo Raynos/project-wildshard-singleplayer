@@ -62,7 +62,7 @@ await emitProgramTables(root, plan, {
   },
   writeTables: async () => {
     await step('shards', () => generationTailCached(root, 'shards-before', () => genShards(undefined, false, false, vocabularyShard)));
-    const { generateBootTables } = await import('../vite/gen.ts');
+    const { generateBootTables } = await import('./app-build/gen.ts');
     await step('boot-tables', () => generationTailCached(`${import.meta.dirname}/..`, 'boot', async () => {
       if (buildInputs && process.env.WS_PRECOMMIT_BOOT_CACHE) {
         const { generateBootTablesCached } = await import('./gen-boot-cache.mjs');

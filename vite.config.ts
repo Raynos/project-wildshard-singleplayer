@@ -9,9 +9,9 @@ import { shardfileValidationRevision } from './scripts/shardfile-validation-revi
 import { join } from 'node:path';
 import type { ServerResponse } from 'node:http';
 import { pwaPlugin } from './vite/pwa-plugin';
-import { hashTree } from './vite/assetHashes';
+import { hashTree } from './scripts/app-build/assetHashes';
 import { rapierAlias, rapierPreviewPlugin } from './vite/rapier';
-import { assetIndex } from './vite/gen';
+import { assetIndex } from './scripts/app-build/gen';
 import { genShardsPlugin } from './vite/genShards';
 import { backdropPrefixPlugin } from './vite/backdropPrefix';
 import { chunkReport } from './vite/chunkReport';

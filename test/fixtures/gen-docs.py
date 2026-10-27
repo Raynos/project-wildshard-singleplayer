@@ -29,7 +29,7 @@ with tempfile.TemporaryDirectory(dir=repo/'tmp', prefix='gen-docs-test-') as fol
     for file, function in [('gen-budget-derivations','genBudgetDerivations'),('generate','prepareGeneration'),('gen-starter-arm-clips','genStarterArmClips'),('gen-starter-weapons','genStarterWeapons'),('gen-starter-bag','genStarterBag'),('gen-starter-effects','genStarterEffects'),('gen-decision-policy','genDecisionPolicies'),('gen-format-schema','writeFormatJsonSchemas'),('gen-shard-words','genShardWords')]:
         module(file, 'export function '+function+'(){'+record(function)+'}')
     module('push-post-inputs', 'export function beginPushInputs(){return ()=>{'+record('seal')+'}}')
-    put('vite/gen.ts', "import {appendFileSync} from 'node:fs';export function generateBootTables(){"+record('boot')+'}')
+    put('scripts/app-build/gen.ts', "import {appendFileSync} from 'node:fs';export function generateBootTables(){"+record('boot')+'}')
     put('scripts/gen.mjs', game_source)
     put('scripts/docs.mjs', docs_source)
     for file, function in [('gen-api','writeApiDocs'),('gen-host-catalogue','writeHostCatalogue'),('generator-inventory','writeGeneratorInventory')]:

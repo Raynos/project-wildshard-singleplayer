@@ -69,10 +69,10 @@ export const SOURCE_GENERATORS = [
   {
     id: 'boot-audio',
     outputs: ['src/game/boot/audio.generated.ts'],
-    inputs: ['public/assets/music/*/music.json', 'public/assets/sfx/*/sfx.json', 'vite/gen.ts'],
+    inputs: ['public/assets/music/*/music.json', 'public/assets/sfx/*/sfx.json', 'scripts/app-build/gen.ts'],
     committed: true,
     // the writer reads public/assets from the working directory (the repo root)
-    generate: async root => ({ 'src/game/boot/audio.generated.ts': (await import(pathToFileURL(`${root}/vite/gen.ts`).href)).audioTableSource() }),
+    generate: async root => ({ 'src/game/boot/audio.generated.ts': (await import(pathToFileURL(`${root}/scripts/app-build/gen.ts`).href)).audioTableSource() }),
   },
   {
     id: 'boot-tables',
@@ -81,7 +81,7 @@ export const SOURCE_GENERATORS = [
     committed: false,
     note: 'size and hash every public/assets file (the shard builds\' baked outputs included) and walk the discovery modules',
     // the boot writers read public/assets and the manifests from the working directory (the repo root)
-    generate: async root => (await import(pathToFileURL(`${root}/vite/gen.ts`).href)).bootTableSources(),
+    generate: async root => (await import(pathToFileURL(`${root}/scripts/app-build/gen.ts`).href)).bootTableSources(),
   },
   {
     id: 'packs',

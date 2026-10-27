@@ -2,9 +2,9 @@
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {createHash} from 'node:crypto';
-import {entryFileSteps} from '../src/format/tierSelection';
+import {entryFileSteps} from '../../src/format/tierSelection';
 import {bootProductTotals} from './bootProducts';
-import {readOutputDownloadIndex} from '../src/format/outputDownload';
+import {readOutputDownloadIndex} from '../../src/format/outputDownload';
 import * as v from 'valibot';
 
 type Total = readonly [number,number] | readonly [number,number,number,number];
