@@ -237,6 +237,8 @@ const manifestAdmissions = new WeakMap<ShardManifest, { readonly admitted: Admit
 export function provideManifestAdmission(manifest: ShardManifest, admitted: AdmittedProduct, options: ProductOptions, reader?: ClientAssets): void {
   manifestAdmissions.set(manifest, { admitted, options, ...(reader === undefined ? {} : { reader }) });
 }
+/** The asset reader recorded with a manifest's admission (an installed manifest passes its data client's on). */
+export function manifestReader(manifest: ShardManifest): ClientAssets | undefined { return manifestAdmissions.get(manifest)?.reader; }
 /**
  * js-heap H6: once a page's boot has built what its admitted product's transport fed, neither the admission nor its client
  * keeps that transport. Every file the content cache holds (or, online, the immutable product URL serves) leaves both

@@ -26,7 +26,7 @@ import { productPaintedLook } from '../looks/paintedLook';
 import { emptyLook } from './emptyLook';
 import { shardfileLook } from './look';
 import { admitProduct, boundedResponse, readProductInput, readProductDescriptor, type AdmittedProduct, type ProductOptions } from './product';
-import { provideManifestAdmission } from './runtimeProduct';
+import { manifestReader, provideManifestAdmission } from './runtimeProduct';
 import { ClientAssets } from './clientAssets';
 import type { ShardfileClientBindings } from './client';
 import { clientGround, clientPageGround, tiledBootstrapGround } from './clientGround';
@@ -204,7 +204,7 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
     // and its listed places, the full map's pins (SF66): the admitted source has none
     ...(manifest.pois === undefined ? {} : { pois: manifest.pois }),
   };
-  provideManifestAdmission(installed, admitted, productOptions);
+  provideManifestAdmission(installed, admitted, productOptions, manifestReader(client));
   return selectSource(installed, true);
 }
 
