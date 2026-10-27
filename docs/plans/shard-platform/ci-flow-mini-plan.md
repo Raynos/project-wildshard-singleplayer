@@ -621,12 +621,19 @@ D13 qualification: the unchanged maintained full grid case passed on pinned
 gameplay7.359s, ten-frame check38→51, full Template entry/durable return
 and Signal road entry complete25.336s, faults0/fatal0. This is one local
 production Chromium smoke, not a phone performance or historical CI replay.
-The controlled ordered/unordered real-parser startup cases and16 retained
-coverage/wait/quarantine cases pass; touched game/test types, typed lint and
-scoped ratchet pass. Full repository ratchet still has shared count drift.
+Final focus passes38cases/8suites, including the real-parser startup controls
+and retained coverage/wait assertions. Script/reference and scoped fixture
+types, typed lint and actionlint pass. Full ratchet retains shared count drift.
 
 The full case now blocks in boot-grid. Remove only the skip branch and
 report-only duplicate job; retain original150s preparation,90s gameplay,
 ten live frames, native pixel captures, durable checkpoint and road checks.
 Quarantine94cc3dc3aa is retired before its original2026-10-28T08:20Z expiry;
 it was not extended. Ordinary CI observes this blocking case on its next run.
+
+D13 blocking-case restoration source: `a5e5ffc88f`. Publication requested,
+then ejected by foreign D25 `3ff1d6d765` binary-json admission (generated
+source declarations and generated-import debt growth), not an executed D13
+smoke or type failure. Exact refusal routed to sp-ci-deploy; no duplicate
+browser visit or guard change. Local fix/qualification is complete; origin
+publication remains with that producer repair and the scheduled pusher.
