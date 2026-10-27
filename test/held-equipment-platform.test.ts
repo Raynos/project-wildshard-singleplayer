@@ -14,7 +14,8 @@ const items = pineItems();
 
 // Another shard authors its own assets, hand materials, action presentation and motion.
 test('a fictional harbour shard drives held equipment entirely from platform rows', async () => {
-  const authored = await readProjectAssets('src/shards/pine-hollow');
+  // the build's declared intake (scripts/wildshard.mjs): Pine's program lists its public inputs through it (b8a8db5fd4)
+  const authored = await readProjectAssets('src/shards/pine-hollow', undefined, { folder: 'pine-hollow', imageRoots: [{ prefix: '/assets/', directory: 'public/assets' }] });
   const rows = structuredClone(v.parse(HeldEquipmentSchema, outputPlatformPayloads(authored.output.platform, ['held/equipment']).get('held/equipment')));
   rows.firearm.asset.url = '/assets/harbour/weapons/harpoon-carbine.glb';
   rows.firearm.pool.url = 'harbour/carbine-details.glb'; rows.launcher.pool.url = 'harbour/harpoon.glb'; rows.hands.pool.url = 'harbour/hands.glb';
