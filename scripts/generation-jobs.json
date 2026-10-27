@@ -4341,6 +4341,9 @@
         "--import",
         "./scripts/generation-level.mjs",
         "src/shards/driftwood-isle/generators/mapAssembly.mjs",
+        "--import",
+        "./scripts/generation-level.mjs",
+        "--generation-shard=driftwood-isle",
         "--generation-shard=driftwood-isle"
       ],
       "inputRoots": [
