@@ -196,7 +196,9 @@ readiness signal, app scheduling change, capture change or deadline was introduc
 
 ### CF2 title owner completion (2026-10-26, sp-x1)
 
-In flight. Observe the existing `warmRest` promise and the existing delayed
+Source fix done (`b26e4be1d7`) and G758 quarantine done (`531c009fdd`), both
+on origin/main. Ordinary CI acceptance remains open. Observe the existing
+`warmRest` promise and the existing delayed
 1,200 ms `primeFrame` through its actual completed draw counter. The smoke
 requires both owners to finish before starting the unchanged ten-second native
 PNG allowance; its original 150-second title deadline still bounds that wait.

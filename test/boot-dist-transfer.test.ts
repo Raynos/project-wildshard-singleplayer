@@ -18,9 +18,10 @@ test('smoke downloads each exact source-run leg directly without a full-dist rel
   expect(central).not.toContain('actions/upload-artifact');
   expect(workflow).toMatch(/run-id: \$\{\{ needs\.build\.outputs\.source_run \}\}/u);
   expect(workflow).toContain('python3 scripts/boot-dist.py restore');
-  expect(workflow).toMatch(/continue-on-error: \$\{\{ matrix\.part == 'phone-route' \}\}/u);
+  expect(workflow).toMatch(/continue-on-error: \$\{\{ matrix\.part == 'phone-route' \|\| matrix\.part == 'title-quarantine' \}\}/u);
   expect(workflow.match(/timeout-minutes: 20/gu)).toHaveLength(2);
-  expect(workflow).toContain('part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer, phone-route]');
+  expect(workflow).toContain('part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer, phone-route, title-quarantine]');
+  expect(workflow).toMatch(/SMOKE_PART: \$\{\{ matrix\.part == 'title-quarantine' && 'boot-developer' \|\| matrix\.part \}\}/u);
 });
 
 
