@@ -17,16 +17,10 @@ shader builds (sp-x8 scheduling seam). L18: DW 107 -> 78 MB, then rocks -4.57 / 
 
 **Memory (G682: Template <= 198.5 MiB):** native Template 268 / 246 MiB (C4.3, sp-x2); C6.2 closed (G762).
 
-**For wildshard-v (G711):** DONE: G720 cb756b79df (cap b8cf2c73da; in cell 7.4 s), G721 22248f9b6a+49af17b6b6
-(cap 0993a458aa), G719 dcd3379372 (caps a74b837aa0; NM twice = G700/RP3), G722 191aee7b15
-(board 95d25c95da), G724+G725 d8598ec213 (re-entry 17.7 ms, no panel/static, one world). L16 0dd7ce4722: hero
-0.48 s (was 1.43 s blank); the 0.32 s black is iOS's launch zoom, outside the page.
-G630 done: Sunscar glow 006d87b0fa, Nine near view 7e4f33be44 + d56e767bf3. G733 badges 94ef588da9 (blank thumbnails never reproduced; U1: updates apply in 720 ms); L17
-2511ddea95 + f30e0be71c. Now (green main first, G751-G760): GM0 push-gate unblock sp-x9/sp-x2 -> GM2 sp-x2, GM3 sp-x9, GM4 sp-x6/sp-x1, GM5 sp-x1,
-GM6 sp-x2, GM7 sp-x9; sp-x8 frame regression + G743; GR5 37 / GR6 40 jobs after.
-**Blocked on Jake:** road B pilot play; boards as they land. C6.2 closed (G762: measured native memory gates). Picked: G749 lighter RT B (sp-o4); G750 toon clouds
-shipped 1d4a4f738f. Bridge question: no clipping bug, the capture stood past the pier deck's end (capture.mjs fixed).
-G744 hero shipped (1873e9ca2c + capture f577daebff).
+**For wildshard-v (G711):** plan cleanup applied (96e933e1a0, a223c570e7, 34ed8e8f82); lane paths in ready-queue.md (MB10,
+f913ec3105); counter ~71 % (149.5/210). Generators are the long pole: GR5 sp-x1, GR6 sp-x6 + sp-o5, GR7 sp-x10 + sp-o4,
+GR8 sp-o1 + sp-o3, GR9 sp-o2; GS1-GS5 landed (sp-o3). Crossings sp-x8; T10 + tile S1-S3 sp-x2; js-heap/LD4/J6 sp-x9.
+**Blocked on Jake:** road B pilot play; boards as they land; LD5-LD8 / A1 / A2 / M2 / RM13 (counted, G779).
 
 **Lanes (G735; Claude active 17 %, Codex 41 %):** 5 Opus + 5 Codex + sp-x7 (releases/reds only, no cancels). sp-o1 RM8.1 -> RM8.6 -> G755 figures -> RM13;
 sp-o2 L15 -> NM look; sp-o3 crossing non-build frames; sp-o4 per-build frontend CPU; sp-o5 G748 stand-ins (G761 DW ships).
