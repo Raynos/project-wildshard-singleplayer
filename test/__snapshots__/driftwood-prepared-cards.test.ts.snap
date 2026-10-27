@@ -26,39 +26,39 @@ exports[`matches the original warm cards for every authored geometry and variant
   "driftwood-isle/captain-hat/default": [
     {
       "castShadow": true,
-      "geometry": "d2c24d4dfda6715fc2d61eb1c6a71881ccc6b442d226467925f083c3e9db8710",
+      "geometry": "332e8775f8a22ff0b58748a4df71b1f45e039a449455eec37d3f5e149857b409",
       "receiveShadow": true,
     },
   ],
   "driftwood-isle/castaway/default": [
     {
       "castShadow": true,
-      "geometry": "77319bf1b06ef7f7a4743d0dfea3f27646c72cf585bb81d59deadeaabbcb43e8",
+      "geometry": "bd7c517c5d962e5835d5583af66e0c814775643a3e7d6f21880eb97e0118dce5",
       "receiveShadow": true,
     },
     {
       "castShadow": false,
-      "geometry": "8f29f4761cfcb9bb7002cdebde78517d07589bb2e64641fe57b779a8690dd56a",
+      "geometry": "1867fff61fdc1765b97f3d2300b42588ff2717eea725d78cd04922d3364f7e5a",
       "receiveShadow": false,
     },
     {
       "castShadow": false,
-      "geometry": "acc890e8a8e131c0cac6ad69e636c9063194549030a94eb492b2086c94d0ef86",
+      "geometry": "15eb76ab080935bfc3e2fe719debabbd0069e5c28ea724b37f428a8e814a88fb",
       "receiveShadow": false,
     },
     {
       "castShadow": true,
-      "geometry": "d8da5334d062b6a2867755b0139bf20131151b3f63499a05e61f928f2bfcbd14",
+      "geometry": "919581404a5b3a804db9aa40b9d42be75af2343fbdfa4187ef19f61d551ad788",
       "receiveShadow": true,
     },
     {
       "castShadow": false,
-      "geometry": "0f7bc627d3419076c77511f73d03da29b770523f0002dedc4539b3190187fef9",
+      "geometry": "df17303c2e3386371e2e0ae7c3cf1e1cec475f7d8c086c1521f88156ef955421",
       "receiveShadow": false,
     },
     {
       "castShadow": false,
-      "geometry": "4bef59ce11dd343f378617acede9f8fa445a9bfa7c4e7a47ef49e9b699192721",
+      "geometry": "bb74d038d518e86c1a38e933030120f0a9891ed1b51d0d8944225de3cbb0f39b",
       "receiveShadow": false,
     },
   ],
@@ -100,106 +100,106 @@ exports[`matches the original warm cards for every authored geometry and variant
   "driftwood-isle/sailcloth-cape/default": [
     {
       "castShadow": true,
-      "geometry": "8be699dbfd323586a87024ac5dcf0cb59fe6e3e38ad1391bc7832e236ceecb30",
+      "geometry": "20a5b480c6561ef720066ef51041bd62eb75f8906885916fedeb5497ecfcbe15",
       "receiveShadow": true,
     },
   ],
   "driftwood-isle/sea-glass-chime/0": [
     {
       "castShadow": true,
-      "geometry": "c67e8cfce86d8000bc35012abeaf544c535acd82ee7e255ba7a37ba713d1e2ba",
+      "geometry": "c8c549add7f8b2851a58ead9d7b6ffb8e04571f47401d0e6a7599bf8b97419fe",
       "receiveShadow": true,
     },
   ],
   "driftwood-isle/sea-glass-chime/10": [
     {
       "castShadow": true,
-      "geometry": "685c49c0743ebc3d3538b0cb12032f6b4189fa1e3fdbe9499639c269ffe589d6",
+      "geometry": "250f67dd7136a1a6d7283919babdc9718a60e2923d52b2b5cda1553de0323065",
       "receiveShadow": true,
     },
   ],
   "driftwood-isle/sea-glass-chime/15": [
     {
       "castShadow": true,
-      "geometry": "fd77c79bcaed82a6727ea470768f54e210e03be6a3cb5c2885b9df70a273706d",
+      "geometry": "13b0f5980de7ed70836941296dc0f52a601922f13b45afd222a0ef021e91870b",
       "receiveShadow": true,
     },
   ],
   "driftwood-isle/sea-glass-chime/5": [
     {
       "castShadow": true,
-      "geometry": "0cd8d60cc5173f75030c03b936a51f56b8ebc3152255d9ec8de1cec91dc745a7",
+      "geometry": "aa91dab1017f9723af9b825a8d747891b53f9ba49893a8bcc8d59ca752af99f7",
       "receiveShadow": true,
     },
   ],
   "driftwood-isle/sea-glass-chime/default": [
     {
       "castShadow": true,
-      "geometry": "fd77c79bcaed82a6727ea470768f54e210e03be6a3cb5c2885b9df70a273706d",
+      "geometry": "13b0f5980de7ed70836941296dc0f52a601922f13b45afd222a0ef021e91870b",
       "receiveShadow": true,
     },
   ],
   "driftwood-isle/trade-counter/default": [
     {
       "castShadow": true,
-      "geometry": "e5d58631c49d1dc05d83af6cf47bbedbc9e685f335d3cfb3db874fe7bfba9c7d",
+      "geometry": "6c3fa5ec84956e6a7e52525400980fb23ddf8f66ce3bbbeabed6c95d6b8b50f7",
       "receiveShadow": true,
     },
   ],
   "driftwood-isle/trader/default": [
     {
       "castShadow": true,
-      "geometry": "28ecb53f93a8d28a1671ec4d9bae13be46f0ef1b5dc6ad47388fc81ce300824a",
+      "geometry": "e3eaa2f133767daf7a50e893ce20d6f6ad640581cbcf23f28cbcce2a79ddd61b",
       "receiveShadow": true,
     },
     {
       "castShadow": false,
-      "geometry": "0862dbd36e2e22688e06601b9e018eecc06da007d2750779991af5f043d5ddad",
+      "geometry": "bc5e4633c6fd7a6e176a69dd3c19669016fdbbc49aa55804881d210d2641d87a",
       "receiveShadow": false,
     },
     {
       "castShadow": false,
-      "geometry": "0b5c06c30c86f08822cf5d5f4c3886f719ac733baf16403ce37d551ff97ea8db",
+      "geometry": "600aaa8c072892913a2a9c0c47660490f4089ef7300e75c4ad67b103a60b7ad9",
       "receiveShadow": false,
     },
     {
       "castShadow": false,
-      "geometry": "123755cb9114031505791549a2b1c6c50c216494a7e6c4a913538c572a07b486",
+      "geometry": "b530552fa8a7bef88ad571b712a513be1c61f7b022ae55d0924f130fd21f907b",
       "receiveShadow": false,
     },
   ],
   "driftwood-isle/trophy-plaques/bear": [
     {
       "castShadow": true,
-      "geometry": "4fedadf1dfb89c31f28ef8928f5d0c8e770bf49faa404052f82a2b73ed849e61",
+      "geometry": "fae2b0332dfcd8b5b46f28fa2c37fd3e2b9c3a69147c93688e263946ded11074",
       "receiveShadow": true,
     },
   ],
   "driftwood-isle/trophy-plaques/boar": [
     {
       "castShadow": true,
-      "geometry": "6eaba1a9401e87e005b0884c500a025768fa267d773fa250399a2d06146a0150",
+      "geometry": "6dda26632c7abcefb3f61bad67d441bfb58ac46a0837b437c2aa9a2fb272c080",
       "receiveShadow": true,
     },
   ],
   "driftwood-isle/trophy-plaques/both": [
     {
       "castShadow": true,
-      "geometry": "59abbc56f331bb9e721e90c7cc0c79b9e74e7759aa6f8eb494a21ce4919d2e5a",
+      "geometry": "e65772f1b44bac436861b9fa55c51280bfaaf2d48416a868eb96d8d2efbd670c",
       "receiveShadow": true,
     },
   ],
   "driftwood-isle/trophy-plaques/default": [
     {
       "castShadow": true,
-      "geometry": "59abbc56f331bb9e721e90c7cc0c79b9e74e7759aa6f8eb494a21ce4919d2e5a",
+      "geometry": "e65772f1b44bac436861b9fa55c51280bfaaf2d48416a868eb96d8d2efbd670c",
       "receiveShadow": true,
     },
   ],
   "driftwood-isle/trophy-plaques/empty": [
     {
       "castShadow": true,
-      "geometry": "45db36d480468d302cf936bc2875ba994288a8bad979d27731e0c3b876663a4a",
+      "geometry": "14ab99fdd19a9a1205d0d5e5ee34d04fe291f776d955938ba9f7548e52c3964f",
       "receiveShadow": true,
     },
   ],
