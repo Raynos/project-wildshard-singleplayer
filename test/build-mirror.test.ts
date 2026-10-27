@@ -1,13 +1,13 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Commit into an owned throwaway Git repository.
 import { execFileSync, spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Every write is confined to an owned fixture under ./tmp.
-import { existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, readlinkSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, readlinkSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture paths.
 import { dirname, join, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- The mirror root comes from the fixture's environment.
 import { env as processEnv, pid } from 'node:process';
 import { afterEach, expect, it, vi } from 'vitest';
-import { openMirror,mainMirrorRevision,scratchCaller } from '../scripts/build-mirror.mjs';
+import { openMirror,openStagedMirror,mainMirrorRevision,scratchCaller } from '../scripts/build-mirror.mjs';
 import { InputHashMemo } from '../scripts/bake-input-hashes.mjs';
 
 const owned: string[] = [];
@@ -70,6 +70,60 @@ function fixture(): { repo: string; commit: (files: Record<string, string | null
   const env = Object.fromEntries(Object.entries(processEnv).filter(([key]) => !key.startsWith('WS_HEAVY_')));
   return { repo, commit, env: { ...env, WILDSHARD_BUILD_MIRROR: join(base, 'mirror') } };
 }
+
+it('staged checks use the private candidate and restore ordinary landed admission in the same pool', () => {
+  const {repo,commit,env}=fixture(), parent=commit({'src/value.ts':'export const value=1;'});
+  const index=join(repo,'.git','candidate-index');copyFileSync(join(repo,'.git','index'),index);
+  const candidateEnv={...env,WS_COMMIT_WRAPPER:'1',GIT_INDEX_FILE:index};
+  writeFileSync(join(repo,'src/value.ts'),'export const value=2;');
+  execFileSync('git',['add','src/value.ts'],{cwd:repo,env:candidateEnv});
+  const tree=execFileSync('git',['write-tree'],{cwd:repo,env:candidateEnv,encoding:'utf8'}).trim();
+  writeFileSync(join(repo,'src/value.ts'),'export const value=99;');
+  const shared=readFileSync(join(repo,'.git','index'));
+  const mirror=openStagedMirror(repo,{env:candidateEnv});
+  try {
+    expect(mirror.tree).toBe(tree);
+    expect(readFileSync(join(mirror.dir,'src/value.ts'),'utf8')).toBe('export const value=2;');
+    expect(readFileSync(join(repo,'src/value.ts'),'utf8')).toBe('export const value=99;');
+    expect(readFileSync(join(repo,'.git','index'))).toEqual(shared);
+    expect(()=>mainMirrorRevision(tree,repo)).toThrow('only landed main commits');
+  }finally{mirror.release();}
+  const landed=openMirror(parent,{repo,env});
+  try{expect(readFileSync(join(landed.dir,'src/value.ts'),'utf8')).toBe('export const value=1;');}
+  finally{landed.release();}
+});
+
+it('staged admission refuses ordinary callers and the shared index before acquiring a slot',()=>{
+  const {repo,commit,env}=fixture();commit({'src/value.ts':'1'});
+  const clean={...env};delete clean['WS_COMMIT_WRAPPER'];delete clean['GIT_INDEX_FILE'];
+  expect(()=>openStagedMirror(repo,{env:clean})).toThrow('requires commit.sh candidate index');
+  expect(()=>openStagedMirror(repo,{env:{...clean,WS_COMMIT_WRAPPER:'1',GIT_INDEX_FILE:join(repo,'.git','index')}})).toThrow('refuses the shared index');
+  expect(existsSync(env['WILDSHARD_BUILD_MIRROR']??'')).toBe(false);
+});
+
+it('an exhausted gate deadline refuses before creating a mirror or queue',()=>{
+  const {repo,commit,env}=fixture();commit({'src/value.ts':'1'});
+  for(const deadline of [Date.now()-1,Number.NaN,Infinity])
+    expect(()=>openMirror('HEAD',{repo,env,deadline})).toThrow('invalid or exhausted gate deadline');
+  expect(existsSync(env['WILDSHARD_BUILD_MIRROR']??'')).toBe(false);
+});
+
+it('a gate queue uses its shorter deadline and leaves live holders untouched',()=>{
+  const {repo,commit,env}=fixture();commit({'src/value.ts':'1'});
+  const root=env['WILDSHARD_BUILD_MIRROR']??'';
+  for(const slot of ['check','check2','check3','check4','check5']) {
+    const lock=join(root,`${slot}.lock`);mkdirSync(lock,{recursive:true});
+    writeFileSync(join(lock,'owner'),String(pid));
+  }
+  const now=Date.now(),deadline=now+60_000;
+  const clock=vi.spyOn(Date,'now').mockReturnValueOnce(now).mockReturnValueOnce(now).mockReturnValueOnce(now).mockReturnValue(deadline);
+  try {
+    expect(()=>openMirror('HEAD',{repo,env,deadline})).toThrow(/gate deadline reached.*slot=check.*slot=check5/u);
+    expect(readdirSync(join(root,'checks.queue'))).toEqual([]);
+    for(const slot of ['check','check2','check3','check4','check5'])
+      expect(readFileSync(join(root,`${slot}.lock`,'owner'),'utf8')).toBe(String(pid));
+  }finally{clock.mockRestore();}
+});
 
 it('syncs only what differs, drops art/progress/sources, and leaves the checkout untouched', () => {
   const { repo, commit, env } = fixture();

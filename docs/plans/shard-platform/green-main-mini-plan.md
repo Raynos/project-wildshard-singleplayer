@@ -118,7 +118,13 @@ modules from the checked parent, preserving unfinished shared-tree edits.
 Two real-wrapper controls failed before this wiring: loose policy could both
 reject a valid candidate and bypass a committed refusal. All five isolation
 controls pass after it. Unknown hooks retain whole-parent freshness checking.
-Remaining: wire exact candidate types/products and commit/push consumers,
+Wrapper wiring `638dd3bf5e` is done: canonical checks passed with
+32.031 s wall, 1.340 s held and zero lock wait. The sealed candidate mirror
+adapter uses the existing five pooled slots and refuses the shared index;
+a shorter gate deadline bounds its queue wait without changing preview
+admission. Root project types, 22 mirror controls, 28 related cases and all
+24 products pass (109.78 s for the complete product build).
+Remaining: execute exact candidate types/products and commit/push consumers,
 G757 split/tag handling, and the original SW11 long-cohort cost refusal.
 
 ## Questions for Jake

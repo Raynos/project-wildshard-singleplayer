@@ -115,8 +115,8 @@ function holder(path, pid, slot) {
   return `slot=${slot} pid=${pid === 0 ? 'unavailable' : pid} lane=${details?.lane ?? 'unknown'} age=${Number.isFinite(elapsed) ? `${Math.max(0, elapsed / 1000).toFixed(1)}s` : 'unavailable'} command=${JSON.stringify(details?.command ?? (pid ? inspect('command') : 'unavailable'))} start=${started}`;
 }
 
-function acquire(root, slots) {
-  const deadline = Date.now() + LOCK_WAIT_MS;
+function acquire(root, slots, gateDeadline) {
+  const deadline = Math.min(Date.now() + LOCK_WAIT_MS, gateDeadline ?? Infinity);
   const queueDir = join(root, `${slots.length > 1 ? 'checks' : slots[0]}.queue`);
   mkdirSync(queueDir, { recursive: true });
   const ticket = `${String(Date.now()).padStart(15, '0')}-${process.pid}`;
@@ -133,7 +133,7 @@ function acquire(root, slots) {
       let owner = 0;
       try { owner = Number(readFileSync(join(lockDir, 'owner'), 'utf8')); } catch { /* Not published yet, or free. */ }
       if (owner && !alive(owner)) rmSync(lockDir, { recursive: true, force: true });
-      if (head) {
+      if (head && Date.now() < deadline) {
         try {
           mkdirSync(lockDir);
           writeFileSync(join(lockDir, 'owner'), `${process.pid}\n`);
@@ -147,7 +147,7 @@ function acquire(root, slots) {
     const remaining = deadline - Date.now();
     if (remaining <= 0) {
       const queued = !head && first ? `; queue head ${holder(join(queueDir, first), Number(first.slice(first.lastIndexOf('-') + 1)), slots.join(','))}` : '';
-      throw new Error(`build-mirror: timed out after 5 min waiting for ${slots.join(',')}; holders: ${holders.join('; ')}${queued}`);
+      throw new Error(`build-mirror: ${gateDeadline === undefined ? 'timed out after 5 min' : 'gate deadline reached'} waiting for ${slots.join(',')}; holders: ${holders.join('; ')}${queued}`);
     }
     sleep(Math.min(head ? 250 : 2000, remaining));
   } } finally { leave(); }
@@ -209,7 +209,26 @@ export function defaultSlot(env = process.env) {
 const CHECK_SLOTS = ['check', 'check2', 'check3', 'check4', 'check5'];
 const MIRROR_SLOTS = new Set(CHECK_SLOTS);
 
-export function openMirror(rev, { repo = REPO, slot = 'check', full = false, env = process.env, linkModules = true } = {}) {
+export function openMirror(rev, options = {}) {
+  return prepareMirror(rev, undefined, options);
+}
+
+/** Commit checks alone may sync the wrapper's sealed candidate index into the
+ * same pool. Preview/CLI admission still accepts only landed main commits.
+ * @param {string} repo @param {import('./build-mirror.mjs').MirrorOptions} [options] */
+export function openStagedMirror(repo, options = {}) {
+  const env = options.env ?? process.env;
+  const { GIT_INDEX_FILE: index, WS_COMMIT_WRAPPER: wrapper } = env;
+  if (wrapper !== '1' || index === undefined || !existsSync(index)) throw new Error('Staged mirror requires commit.sh candidate index');
+  const git = (/** @type {string[]} */ args) => execFileSync('git', args, { cwd: repo, env, encoding: 'utf8' }).trim();
+  const common = git(['rev-parse', '--path-format=absolute', '--git-common-dir']);
+  if (resolve(index) === resolve(common, 'index')) throw new Error('Staged mirror refuses the shared index');
+  const parent = git(['rev-parse', 'HEAD']), tree = git(['write-tree']);
+  const mirror = prepareMirror(parent, tree, { ...options, repo, env });
+  return { ...mirror, tree };
+}
+
+function prepareMirror(rev, candidateTree, { repo = REPO, slot = 'check', full = false, env = process.env, linkModules = true, deadline } = {}) {
   assertMirrorCaller();
   const sha = mainMirrorRevision(rev, repo);
   if (!MIRROR_SLOTS.has(slot)) throw new Error(`build-mirror: invalid slot ${slot}; use pooled check..check5`);
@@ -224,7 +243,9 @@ export function openMirror(rev, { repo = REPO, slot = 'check', full = false, env
       if (held) throw new Error('build-mirror: acquire the mirror slot before the heavy lease; run heavy-lane inside build-mirror');
     }
   }
-  const admitted = acquire(mirrorRoot(env, repo), CHECK_SLOTS);
+  if (deadline !== undefined && (!Number.isFinite(deadline) || deadline <= Date.now()))
+    throw new Error('build-mirror: invalid or exhausted gate deadline before acquiring a slot');
+  const admitted = acquire(mirrorRoot(env, repo), CHECK_SLOTS, deadline);
   const root = join(mirrorRoot(env, repo), admitted.slot);
   const dir = join(root, 'tree');
   // ./tmp ignores itself, so scratch there never shows up in `git status` or a commit.
@@ -247,7 +268,7 @@ export function openMirror(rev, { repo = REPO, slot = 'check', full = false, env
     const previous = generatedGroups(dir).flat();
     // Byte-identical generator rewrites must not look like source overlays.
     refreshIndex(git);
-    git(['read-tree', '--reset', '-u', buildTree(repo, sha, full)]);
+    git(['read-tree', '--reset', '-u', buildTree(repo, candidateTree ?? sha, full)]);
     refreshIndex(git);
     const drifted = git(['diff-files', '--name-only', '-z']);
     if (drifted.length > 0) git(['checkout-index', '-f', '-z', '--stdin'], { input: drifted });
