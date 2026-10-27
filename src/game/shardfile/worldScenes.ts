@@ -373,7 +373,25 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     await lendWorldSceneTextures(section.lent ?? [], owner, product, handles, section.lent?.some(row => row.kind === 'product') === true ? ctx.game.runtime?.world?.game.renderer : undefined,
       ctx.cube === null ? 'standalone' : 'cell');
     lendWorldSceneUniforms(section.uniforms ?? [], owner, handles);
-    const surfaces = section.materials.filter(row => row.kind === 'surface');
+    const weldSlots = (row: WorldSceneWeld): string[] => row.nodes.flatMap(node => 'material' in node && node.material !== '$shadow' ? [node.material] : [])
+      .concat(row.materials.flatMap(material => material.source === undefined ? [] : [material.source.material]));
+    const lateSlots = new Set(welds.filter(row => lateWelds.has(row.id)).flatMap(weldSlots));
+    const earlySlots = new Set([...batches.values()].map(row => row.material)
+      .concat(activeSteps.flatMap(step => Object.values(step.materials))));
+    for (const row of section.materials) if (row.kind === 'mapped' && row.material.source !== undefined) earlySlots.add(row.material.source.material);
+    for (const weld of welds) if (!lateWelds.has(weld.id)) for (const slot of weldSlots(weld)) earlySlots.add(slot);
+    // A placed model can share a surface with late scenery. Keep its original
+    // material intake unless that placement belongs to a declared late weld.
+    const latePlaces = new Set(welds.filter(row => lateWelds.has(row.id)).flatMap(row => row.placements));
+    const placedKeys = new Set(placements.filter(row => !latePlaces.has(row.id)).map(row => row.model));
+    const placedModels = catalogue === undefined ? undefined : { ...catalogue, models: catalogue.models.filter(model => placedKeys.has(model.key)) };
+    const placedGraphs = new Set(placedModels?.models.flatMap(model => model.choices.flatMap(worldSceneModelGraphs)).flatMap(row => 'file' in row ? [row.file] : []));
+    const placedSlots = new Set(placedModels === undefined ? [] : worldSceneModelResources(placedModels,
+      [...modelScenes].flatMap(([file, graph]) => placedGraphs.has(file) ? [graph] : [])).materials);
+    const deferred = (row: (typeof section.materials)[number]): boolean => !earlySlots.has(row.id)
+      && (row.kind === 'source' && row.load === 'placement' && row.publishObject === undefined
+        || row.kind === 'surface' && lateSlots.has(row.id) && !placedSlots.has(row.id));
+    const surfaces = section.materials.filter((row): row is Extract<typeof row, { kind: 'surface' }> => row.kind === 'surface' && !deferred(row));
     if (surfaces.length > 0) {
       const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Scene surface needs world sky');
       await timeClientPreparation(product.slug, 'scene.surface-intake', () => prepareWorldSceneSurfaces(surfaces, sky, product, owner));
@@ -381,13 +399,8 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     await timeClientPreparation(product.slug, 'scene.material-intake', async () => {
       const materialProgress = loadingUnits('Materials and textures', section.materials.length);
       materialProgress(0);
-      // A cold specimen has its own captured material intake. Only played draws,
-      // published source objects and eagerly copied map dependencies need this
-      // world's source textures before control; late welds prepare theirs below.
-      const earlySlots = new Set([...batches.values()].map(row => row.material));
-      for (const row of section.materials) if (row.kind === 'mapped' && row.material.source !== undefined) earlySlots.add(row.material.source.material);
-      for (const weld of welds) if (!lateWelds.has(weld.id)) for (const node of weld.nodes) if ('material' in node) earlySlots.add(node.material);
-      const deferred = (row: (typeof section.materials)[number]): boolean => row.kind === 'source' && row.load === 'placement' && row.publishObject === undefined && !earlySlots.has(row.id);
+      // Cold specimens have captured intake. Played consumers keep their maps;
+      // late welds prepare their otherwise unused source/surface rows below.
       // G782: a surface or source material's textures load up to MODEL_READ_AHEAD rows ahead and are taken in order, so their
       // waits overlap (Pine's material intake idled on one row's textures at a time); every other kind, each take, publish
       // and checkpoint stays in order. Started loads are drained before a failure leaves.
@@ -470,11 +483,14 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
         for (const row of late) {
           const shapes = new Map<string, WorldSceneGeometry>();
           try {
-          for (const id of new Set(row.nodes.flatMap(node => 'material' in node && node.material !== '$shadow' ? [node.material] : []))) {
+          for (const id of new Set(weldSlots(row))) {
             if (materials.has(id)) continue;
             const declared = section.materials.find(material => material.id === id);
-            if (declared?.kind !== 'source' || declared.load !== 'placement' || sky === undefined) throw new Error('Missing late scene material');
-            const material = await worldSceneSourceMaterial(declared, sky, product, owner, handles); requireSceneOwner(owner);
+            if (declared === undefined || !deferred(declared) || sky === undefined) throw new Error('Missing late scene material');
+            const material = declared.kind === 'surface' ? await worldSceneSurfaceMaterial(declared, sky, product, owner)
+              : declared.kind === 'source' ? await worldSceneSourceMaterial(declared, sky, product, owner, handles) : undefined;
+            if (material === undefined) throw new Error('Missing late scene material');
+            requireSceneOwner(owner);
             const current = materials.get(id);
             if (current !== undefined && current !== material) throw new Error('Late scene material identity changed');
             if (current === undefined) { materials.set(id, material); handles.publish(`materials.${id}`, material); }

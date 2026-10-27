@@ -830,3 +830,34 @@ test.each(['late','played','published','retired'] as const)('source maps shared 
     expect(load).toHaveBeenCalledOnce();expect(handles.has('late.draw')).toBe(true);
   }finally{ctx.scope.dispose();material.dispose();vi.restoreAllMocks();}
 });
+
+test.each(['late','played','placed','immediate','mapped','retired'] as const)('late surface scans preserve %s material consumers',async mode=>{
+  const [surfaces,{SkyRig},{reachControl}]=await Promise.all([import('../src/game/shardfile/worldSceneSurface'),import('../src/engine/world/skyRig'),import('../src/engine/boot/prefetch')]);
+  const sky:unknown=Object.create(SkyRig.prototype);if(!(sky instanceof SkyRig))throw new Error('Missing late surface sky');
+  const ctx=fixture(),level=ctx.scope.child('control'),material=new MeshStandardMaterial();
+  Object.assign(ctx.game,{levelScope:level,runtime:{world:{sky,game:ctx.game,registry:ctx.app.registry}}});
+  const graph={id:'specimen.shape',root:'specimen.root',nodes:[{id:'shape',parent:'specimen.root',kind:'mesh',geometry:{library:'shapes',model:'stone'},material:'paint',sphere:[0,0,0,2]}]};
+  const late={...graph,id:'late.draw',root:'late.root',nodes:graph.nodes.map(node=>({...node,parent:'late.root'}))};
+  const catalogue={product:'fixture-harbour',models:[{key:'shape',id:'fixture-harbour/shape',name:'Shape',file:'shape.json',category:'props',pipeline:'code',assembly:'scene',defaults:{},
+    choices:[{id:'only',params:{},size:[1,1,1],draws:[],colliders:[],scene:{file:'scenes/specimen.json'}}]}]};
+  const declarations:readonly(readonly[string,unknown])[]=[['models/catalogue.json',catalogue],['scenes/specimen.json',graph],['scenes/late.json',late]];
+  const extra=new Map(declarations.map(([name,value])=>[name,new TextEncoder().encode(JSON.stringify(value))] as const));
+  const file=ctx.product.file.bind(ctx.product),has=ctx.product.hasFile.bind(ctx.product);
+  vi.spyOn(ctx.product,'file').mockImplementation(name=>extra.has(name)?Promise.resolve(extra.get(name)??new Uint8Array()):file(name));
+  vi.spyOn(ctx.product,'hasFile').mockImplementation(name=>extra.has(name)||has(name));
+  const load=vi.spyOn(surfaces,'worldSceneSurfaceMaterial').mockResolvedValue(material);
+  const prepare=vi.spyOn(surfaces,'prepareWorldSceneSurfaces').mockResolvedValue(undefined);
+  try{
+    const base=section(),rows=parseWorldScenes({...base,catalogue:'models/catalogue.json',materials:[{id:'paint',kind:'surface',scan:'fixture-scan',properties:{}},
+      ...(mode==='mapped'?[{id:'copied',kind:'mapped',material:{kind:'standard',properties:{},source:{material:'paint',maps:[]}}}]:[])],
+      steps:mode==='immediate'?base.steps:[],placements:mode==='placed'?[{id:'placed.shape',model:'shape',draw:'single',poses:[{x:0,y:0,z:0,yxz:{yaw:0,scale:1}}]}]:[],
+      welds:[{id:'late.draw',file:'scenes/late.json',...(mode==='played'?{}:{late:{at:[100,100]}})}]});
+    const handles=await installWorldScenes(ctx,rows),early=mode!=='late'&&mode!=='retired';
+    expect(load).toHaveBeenCalledTimes(early?1:0);
+    expect(prepare).toHaveBeenCalledTimes(early?1:0);
+    if(early)expect(prepare.mock.calls[0]?.[0].map(row=>row.id)).toEqual(['paint']);
+    if(mode==='retired'){ctx.scope.dispose();reachControl(level);expect(load).not.toHaveBeenCalled();return;}
+    const published=handles.published('late.draw');reachControl(level);await published;
+    expect(load).toHaveBeenCalledOnce();expect(handles.has('late.draw')).toBe(true);
+  }finally{ctx.scope.dispose();material.dispose();vi.restoreAllMocks();}
+});
