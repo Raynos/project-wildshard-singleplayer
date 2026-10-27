@@ -120,6 +120,8 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D68 | Native whole-shape storage changes invalidate registered Pine timber stream output hashes (`40473058629` / `40473133905`, missing `assets/0c1f2a18...`) | `210f87d040` and `46f7f5ec4a` | sp-o2 | fixed source `19f9dce77a`: compaction/nativeOnce opt in through Nine; owner exact timber compare exit 0 and Nine build exit 0; sp-ci-deploy independent run stopped on uncommitted D65 pineSources closure, frozen CI pending; follow-up `4c12de2422` declares new SDK worldGeometry in both explicit navigation closures, real sealed comparisons pass (Driftwood 0.65 s, Sky 0.41 s) |
 | D69 | Pre-existing taming handoff pin mismatch: local 85,858 B SHA 93d2101b641c092d213b0485dc9b831e0b809b56a5531d36fb9ddee66dd1a28a differs from registered 44aa3290d263ba0b05ca743b2cc5ce89164c03074e6c8c642033436fffc4d7fe. Complete local bytes retained independently; no repin or byte-equivalence claim. | observed `4c12de2422` before taming retirement; first bad unknown | sp-x6 (GR6 plan-end reading) | open |
 
+| D70 | Full working-tree ratchet aborts before counts because `bake-titan-fire-view.mjs` is absent while its generator-import allowance remains. HEAD still contains both the file and allowance; scoped crossing/tile checks pass. Exact `tmp/sp-x8-g717/t7-mouths-ratchet.log`. | live uncommitted retirement; no first-bad main SHA established | GR6 live retirement owner (sp-x6) | open; preserve foreign source/policy edits, no allowance growth |
+
 ## Rows
 
 Parked: none of these is built until SHARD-PLATFORM completes and Jake says go.

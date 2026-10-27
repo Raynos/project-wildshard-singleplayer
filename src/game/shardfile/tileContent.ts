@@ -317,7 +317,7 @@ export interface ClientTileRegistration {
   preparing?: (instance: string) => boolean;
   dispose: () => void;
   offer: (instance: string, entry: ClientRingInstance) => void;
-  /** Pin only the approached entry's render tiles; never install an entered root or simulation. */
+  /** Pin required entry render tiles, spawn first; never install an entered root or simulation. */
   prepareOffered?: (instance: string, scope: Scope, start: { readonly x: number; readonly z: number }) => Promise<void>;
   /** A data-only cell borrows its admitted neighbour views with required entry coverage. */
   enterOffered: (instance: string, scope: Scope, start: { readonly x: number; readonly z: number }) => Promise<void>;
@@ -341,23 +341,33 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
     prepareOffered: async (instance, scope, start) => {
       const left = (): boolean => disposed || scope.disposed || scope.disposing;
       if (left()) throw new Error('Approached tile owner left');
-      if (!fallback.has(instance)) throw new Error('Approached tile views have not been admitted');
+      const entry = fallback.get(instance);
+      if (entry === undefined) throw new Error('Approached tile views have not been admitted');
       const order = tileOrder(start);
       approaches.set(instance, (approaches.get(instance) ?? 0) + 1);
-      let required: TileRequirement | undefined;
+      const requirements: TileRequirement[] = [];
       let held = true;
       const release = (): void => {
         if (!held) return; held = false;
         approachReleases.delete(release);
         const count = approaches.get(instance) ?? 0;
         if (count <= 1) approaches.delete(instance); else approaches.set(instance, count - 1);
-        required?.release();
+        for (const required of requirements) required.release();
       };
       approachReleases.add(release);
       scope.onDispose(release);
       try {
-        required = streamer.require(instance, order.tiles.filter(tile => order.rank(tile) === 0).map(tile => tile.j * 8 + tile.i));
-        await required.ready; if (left()) throw new Error('Approached tile owner left');
+        const spawnKeys = order.tiles.filter(tile => order.rank(tile) === 0).map(tile => tile.j * 8 + tile.i);
+        const spawn = streamer.require(instance, spawnKeys); requirements.push(spawn);
+        await spawn.ready; if (left()) throw new Error('Approached tile owner left');
+        // The same entryway set is mandatory on actual entry. Start its missing
+        // tiles during the approach, after the spawn ring has priority.
+        const pinned = new Set(spawnKeys), critical = tileOrder(start, entry.source.entryways);
+        const missing = critical.tiles.filter(tile => critical.rank(tile) === 0 && !pinned.has(tile.j * 8 + tile.i)).map(tile => tile.j * 8 + tile.i);
+        if (missing.length > 0) {
+          const mouths = streamer.require(instance, missing); requirements.push(mouths);
+          await mouths.ready; if (left()) throw new Error('Approached tile owner left');
+        }
       }
       catch (error) { release(); throw error; }
     },

@@ -1,5 +1,5 @@
 import { Group, type Object3D } from 'three';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { Scope, disposalErrorMessages } from '../src/engine/app/scope';
 import { TileStreamer } from '../src/engine/world/tileStreamer';
 import { emptyShardfile } from '../src/sdk/author';
@@ -9,6 +9,7 @@ import { TileDecoder } from '../src/game/grid/tileDecoder';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { standaloneClientTiles, clientRingCatalogue, clientRingPorts, clientTileRegistration, type ClientRingInstance } from '../src/game/shardfile/tileContent';
 import type { Shardfile } from '../src/format/shardSchema';
+import { tileOrder } from '../src/game/shardfile/tileOrder';
 
 function isGroup(object: Object3D): object is Group { return object instanceof Group; }
 
@@ -267,5 +268,28 @@ test('approach pins entry render tiles without entering or replacing the neighbo
     expect(f.registration.preparing?.('home')).toBe(false);
     await expect(prepare('home', approach, camera)).rejects.toThrow('owner left');
   } finally { f.scope.dispose(); }
+  expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
+});
+
+test('approach gives its spawn ring priority then pins the unchanged critical entryway set', async () => {
+  const f = fixture(), approach = f.scope.child('approach-entryways'), required = vi.spyOn(f.streamer, 'require');
+  try {
+    const prepare = f.registration.prepareOffered;
+    if (prepare === undefined) throw new Error('Missing tile-only approach port');
+    const pending = prepare('home', approach, camera);
+    expect(required).toHaveBeenCalledTimes(1);
+    const spawn = tileOrder(camera), critical = tileOrder(camera, f.neighbour.source.entryways);
+    const spawnKeys = spawn.tiles.filter(tile => spawn.rank(tile) === 0).map(tile => tile.j * 8 + tile.i);
+    expect(required.mock.calls[0]?.[1]).toEqual(spawnKeys);
+    await f.drive(); await pending;
+    const [first, second] = required.mock.calls;
+    if (first === undefined || second === undefined) throw new Error('Missing critical approach phases');
+    expect(required).toHaveBeenCalledTimes(2);
+    expect([...second[1]].every(key => !spawnKeys.includes(key))).toBe(true);
+    const actual = [...new Set([...first[1], ...second[1]])].sort((a, b) => a - b);
+    expect(actual).toEqual(critical.tiles.filter(tile => critical.rank(tile) === 0).map(tile => tile.j * 8 + tile.i).sort((a, b) => a - b));
+    expect(f.registration.owns('home')).toBe(false); expect(f.instances.get('home')?.root).toBe(f.neighbour.root);
+    approach.dispose(); expect(f.registration.preparing?.('home')).toBe(false);
+  } finally { required.mockRestore(); f.scope.dispose(); }
   expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
 });
