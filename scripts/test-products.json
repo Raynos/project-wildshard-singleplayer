@@ -1,4 +1,5 @@
 {
+  "test/driftwood-product-reads.test.ts": ["driftwood-isle"],
   "test/nalati-dressing-inputs.test.ts": ["nalati-grasslands"],
   "test/nalati-dressing-placement-program.test.ts": ["nalati-grasslands"],
   "test/nalati-dressing-source.test.ts": ["nalati-grasslands"],
