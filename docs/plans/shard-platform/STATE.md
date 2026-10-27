@@ -2,13 +2,13 @@
 
 **Order (G639):** (1) live reds → (2) NALATI 0 → (3) grid / frame floor → extras.
 
-**(1) LIVE 14a3d5d935 (18:54Z 10-26); ~20 hourly releases since 10-25 (sp-x7, G705). Smoke per-leg bundles 23-70 s. Open:
-Night Market map hash red (sp-o2); CF2 title-capture stall (trace: GPU busy compiling on the Nine title), intermittent grid far-cell wait. Council: done (4 rounds, G59). G745 phone-route smoke leg: sp-x7. G736-G739 iPhone downloads + G741 JS payload/heap: after the extras.
+**(1) LIVE 59a595ab10 (00:56Z 10-27). Push blocker cleared ~03:50Z (gate reads committed source; backlog pushed).
+Green main (G751-G760) tops the queue: GM2/GM6 sp-x2, GM3/GM7 sp-x9, GM4 sp-x6/sp-x1, GM5 sp-x1; no CI cancels (GM1).
 
 **(2) NALATI 0 done (27dd969127).** HOST-AUDIT (G679) parked until every mini plan finishes. Legacy waits (G606).
 
-**(3) Frame floor:** G717 48/48 latches; official quiet Sim 12/15 on 878846e (d1c48fd82f): Pine whole 49/123 and
-Template-return 318 ms regressed with G743.2f (sp-x8), spawn 38/70. Pine whole + DW spawn misses are first-time shader
+**(3) Frame floor:** G717 48/48 latches; official quiet Sim 11/15 on 93514 (verdict pending, sp-x8), after
+12/15 on 878846e; per-build frontend cut O4.1-3 (sp-o4: DW -40 %); O4.4 next. Pine whole + DW spawn misses are first-time shader
 builds (~30 of 40 long frames are one TSL node build each) plus named CPU costs: sp-o4 cuts per-build frontend CPU (ac48460a76), sp-o3 the rest (viewmodel key, animal spawn, isBuffer, ripples). G717 B dropped
 (ce114ddbd7, no GPU gain). A (spawn hold) pinned. G743 crossings: cold Pine 34.5 s, afterPlay =
 shader builds (sp-x8 scheduling seam). L18: DW 107 -> 78 MB, then rocks -4.57 / foliage -3.03 MB (sp-o3).
@@ -26,7 +26,7 @@ GM6 sp-x2, GM7 sp-x9; sp-x8 frame regression + G743; GR5 37 / GR6 40 jobs after.
 shipped 1d4a4f738f. Bridge question: no clipping bug, the capture stood past the pier deck's end (capture.mjs fixed).
 G744 hero shipped (1873e9ca2c + capture f577daebff).
 
-**Lanes (G735):** 5 Opus + 5 Codex + sp-x7 (releases/reds only, no cancels). sp-o1 RM8.1 -> RM8.6 -> G755 figures -> RM13;
+**Lanes (G735; Claude active 17 %, Codex 41 %):** 5 Opus + 5 Codex + sp-x7 (releases/reds only, no cancels). sp-o1 RM8.1 -> RM8.6 -> G755 figures -> RM13;
 sp-o2 L15 -> NM look; sp-o3 crossing non-build frames; sp-o4 per-build frontend CPU; sp-o5 G748 stand-ins (G761 DW ships).
 
 **Rules:** G704 (<= ~20 files/move commit, one big move: T3). G605. Fix forward, no reverts (G674). No new Debug rows (G669). G670. Never herdr wildshard-v.
