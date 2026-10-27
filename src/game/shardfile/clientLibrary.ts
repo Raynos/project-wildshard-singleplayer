@@ -12,7 +12,7 @@ import { TIER } from '@wildshard/engine/core/tier';
 
 /** Re-read released transport through the verified reader before reserving costs.
  * Exact build-receipted file objects use their already validated decoded/GPU metadata.
- * Before control, late KTX2 keeps its full validated GPU bound; its consumer still verifies the body.
+ * Late KTX2 without device metadata keeps its full validated GPU bound; its consumer still verifies the body.
  * Build-receipted KTX2 device footprints select the same charge without a cost-only body read.
  * Old indexes without footprints and unreceipted files retain verified body reads. Images
  * use admitted pixel/GPU metadata; their consumers own body reads. Costing

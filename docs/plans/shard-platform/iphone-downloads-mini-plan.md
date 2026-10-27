@@ -862,6 +862,8 @@ at their next containing reading; no new build or competing capture.
 
 ### I2.14 Device texture costs without cost-only I/O (2026-10-27, sp-x2)
 
+Source: `7bf455e8f1` (landed; normal push requested).
+
 In flight (reading at plan end): take the largest verified generic item
 from I2.12: twelve Pine product/public KTX2 pairs,10998478B on each side,
 whose complete bodies hash identically. Library device costing reads
