@@ -935,10 +935,10 @@ function newUploadBatch(budget: UploadBudget): UploadBatch {
  * cancellation or the presented-time warm-up bound rejects before another batch. Does not advance simulation,
  * force a draw or change frame pacing. */
 export function waitForDrawnFrame(scope: Scope, drawn: () => number, current: () => boolean): Promise<void> {
-  if (scope.disposed || !current()) return Promise.reject(new Error('Shader warm-up owner left'));
+  if (scope.disposed || scope.disposing || !current()) return Promise.reject(new Error('Shader warm-up owner left'));
   return boundEntryWarmup(scope, drawn, () => 'drawn-frame', async withinBound => {
     const wait = scope.child('drawn-frame');
-    try { await drawnFrame(wait, drawn, () => withinBound() && current()); }
+    try { await drawnFrame(wait, drawn, () => !scope.disposing && withinBound() && current()); }
     finally { wait.dispose(); }
   });
 }

@@ -65,3 +65,30 @@ test('without message ports the completed draw retains its timer task', async ()
     await vi.advanceTimersByTimeAsync(1); await pending; expect(done).toBe(true);
   } finally { scope.dispose(); }
 });
+
+
+test('a queued native task cannot advance during an ancestor sliced retirement', async () => {
+  vi.useFakeTimers(); const frame = frames(), turns = messages(), parent = new Scope('native-parent'), scope = parent.child('native-child'); let drawn = 1;
+  parent.onDispose(() => undefined); // First disposal step precedes the child.
+  const pending = waitForDrawnFrame(scope, () => drawn, () => true);
+  const refused = expect(pending).rejects.toThrow('owner left');
+  drawn++; frame(); expect(turns.queued).toHaveLength(1);
+  const retirement = parent.disposeSteps(); retirement.next();
+  try {
+    expect(scope.disposed).toBe(false); expect(scope.disposing).toBe(true);
+    turns.queued[0]?.(); await refused;
+    expect(turns.closed.every(closed => closed())).toBe(true);
+    await expect(waitForDrawnFrame(scope, () => drawn, () => true)).rejects.toThrow('owner left');
+  } finally { for (const _step of retirement) { /* Complete the same retirement. */ } }
+});
+
+test('an undelivered message retains the presented-time bound and closes its ports', async () => {
+  vi.useFakeTimers(); const frame = frames(), turns = messages(), scope = new Scope('native-lost-message'); let drawn = 1;
+  try {
+    const pending = waitForDrawnFrame(scope, () => drawn, () => true);
+    const refused = expect(pending).rejects.toThrow('over 30000 ms');
+    drawn++; frame(); expect(turns.queued).toHaveLength(1);
+    for (let i = 0; i < 1900; i++) { drawn++; frame(); }
+    await refused; expect(turns.closed.every(closed => closed())).toBe(true);
+  } finally { scope.dispose(); }
+});
