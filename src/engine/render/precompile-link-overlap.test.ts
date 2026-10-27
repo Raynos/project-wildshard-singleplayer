@@ -116,7 +116,10 @@ test('a capped multi-program job retains a nested completed frame without exceed
   const result = await issue({ compileMs: .5, queryMs: 1, readyMs: 12, initialPrograms: 4 });
   const firstUse = result.events.find(event => event.kind === 'uniforms');
   expect(firstUse?.frame).toBe(1);
-  expect(result.events.find(event => event.kind === 'compile' && event.id === 4)?.frame).toBe(firstUse?.frame);
+  // The remainder serves the next mandatory readiness query. Its slow query
+  // then owes another completed draw before the next compile can start.
+  expect(result.events.find(event => event.kind === 'ready' && event.id === 1)?.frame).toBe(firstUse?.frame);
+  expect(result.events.find(event => event.kind === 'compile' && event.id === 4)?.frame).toBe(2);
   for (const frame of new Set(result.events.map(event => event.frame))) {
     expect(result.events.filter(event => event.frame === frame && event.kind === 'compile').length).toBeLessThanOrEqual(4);
     expect(result.events.filter(event => event.frame === frame && event.kind === 'uniforms').length).toBeLessThanOrEqual(4);
