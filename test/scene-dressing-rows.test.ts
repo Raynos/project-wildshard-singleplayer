@@ -51,7 +51,7 @@ test.each([['geometry','world'],['geometry','retire'],['geometry','length'],['le
   const rows={name:'raw-orchard',catalogues:[],packs:{},geometry:kind==='geometry'?{marker:{kind:'file',file:'held.bin',row:layout},
     ...(failure==='length'?{bad:{kind:'file',file:'bad.bin',row:layout}}:{})}:{},materials:kind==='lettering'?{paint:{kind:'lettering-file',file:'held.bin',width:1,height:join(blocks).byteLength/4,rim:.2},
     ...(failure==='length'?{bad:{kind:'lettering-file',file:'bad.bin',width:1,height:1,rim:.2}}:{})}:{},layers:[],statics:[],animations:[]};
-  const pending=SceneDressing.install(ctx,rows);expect(read).toHaveBeenCalledTimes(1);expect(owned).not.toHaveBeenCalled();
+  const pending=SceneDressing.install(ctx,rows);expect(read.mock.calls).toEqual(failure==='length'?[['held.bin'],['bad.bin']]:[['held.bin']]);expect(owned).not.toHaveBeenCalled();
   if(failure==='world')runtime.world=legacyDouble<NonNullable<Runtime['world']>>({});
   const retiring=failure==='retire'?parent.disposeSteps():undefined;retiring?.next();finish(join(blocks));
   await expect(pending).rejects.toThrow(failure==='length'?'byte count':failure==='retire'?'retired':'owner changed');

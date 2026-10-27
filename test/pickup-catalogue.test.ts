@@ -138,14 +138,21 @@ it('preflights the complete file bank before changing any existing pickup factor
   for(const [i,row]of data.looks.entries())expect(pickupLook(row.id)).toBe(before[i]);
 });
 
-it('retiring an ancestor during a raw read refuses before later reads or installation',async()=>{
+it('retiring an ancestor drains the raw-read window without later reads or installation',async()=>{
   const parent=new Scope('pickup-parent'),scope=parent.child('pickup-preparation');
-  let finish:(bytes:Uint8Array)=>void=()=>undefined;
-  const held=new Promise<Uint8Array>(resolve=>{finish=resolve;}),read=vi.fn(()=>held);
-  const pending=preparePickupCatalogue({file:read},data,scope);expect(read).toHaveBeenCalledTimes(1);
-  const first=data.geometries[0];if(first===undefined)throw new Error('Missing pickup');
-  const steps=parent.disposeSteps();steps.next();finish(pickupFiles.get(first.file)??new Uint8Array());
-  await expect(pending).rejects.toThrow('owner retired');expect(read).toHaveBeenCalledTimes(1);
+  const expected=[...new Set(data.geometries.map(row=>row.file))].slice(0,4),before=data.looks.map(row=>pickupLook(row.id));
+  const started=new Map<string,{wire:Promise<Uint8Array>;finish:(bytes:Uint8Array)=>void}>();
+  const read=vi.fn((name:string)=>{
+    let finish:(bytes:Uint8Array)=>void=()=>undefined;const wire=new Promise<Uint8Array>(resolve=>{finish=resolve;});started.set(name,{wire,finish});return wire;
+  });
+  const pending=preparePickupCatalogue({file:read},data,scope);expect(read.mock.calls).toEqual(expected.map(name=>[name]));
+  let settled=false;void pending.then(()=>{settled=true;return undefined;},()=>{settled=true;return undefined;});
+  const first=expected[0],held=first===undefined?undefined:started.get(first);if(first===undefined||held===undefined)throw new Error('Missing pickup read');
+  const steps=parent.disposeSteps();steps.next();held.finish(pickupFiles.get(first)??new Uint8Array());
+  await held.wire;await Promise.resolve();expect(settled).toBe(false);
+  for(const [name,row]of started)if(name!==first)row.finish(pickupFiles.get(name)??new Uint8Array());
+  await expect(pending).rejects.toThrow('owner retired');expect(read.mock.calls).toEqual(expected.map(name=>[name]));
+  for(const [i,row]of data.looks.entries())expect(pickupLook(row.id)).toBe(before[i]);
   for(const _step of steps){ /* finish the original owner retirement */ }
 });
 
