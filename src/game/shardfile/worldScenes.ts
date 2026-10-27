@@ -90,6 +90,14 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
 async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, resident: Scope, reads: WorldSceneReads): Promise<SceneHandles> {
   const registry = () => ctx.game.runtime?.world?.registry ?? ctx.app.registry;
   const product = ctx.product, recipes = new Map<string, WorldSceneRecipe>(), packets = new Map<string, Uint8Array>(), libraryRows = new Map(section.libraries.map(row => [row.id, row]));
+  const geometryNames = new Map<string, ReadonlySet<string>>(), paintedNames = new Map<string, ReadonlySet<string>>();
+  for (const library of section.libraries) {
+    if (library.kind === 'owned' || library.kind === 'whole') geometryNames.set(library.id, new Set(library.models.map(model => model.id)));
+    else if (library.kind === 'pool') {
+      geometryNames.set(library.id, new Set(library.files.flatMap(file => file.parts)));
+      paintedNames.set(library.id, new Set(library.painted.map(model => model.id)));
+    }
+  }
   const specimenInput = async (): Promise<ReadonlyMap<string, Uint8Array>> => {
     const files = await prepareSpecimenCatalogue(product, section.specimens ?? [], resident); return files;
   };
@@ -110,7 +118,8 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
   const reference = (ref: { readonly library: string; readonly model: string }, mapped = false): void => {
     const library = libraryRows.get(ref.library);
     if (library?.kind === 'models') { if (!sceneSourceDeclares(product, ref.library, ref.model, mapped ? 'painted' : 'geometry')) throw new Error('Missing declared scene source'); return; }
-    if (library === undefined || library.kind === 'baked' || !(mapped ? library.kind === 'pool' && library.painted.some(row => row.id === ref.model) : library.kind === 'owned' || library.kind === 'whole' ? library.models.some(row => row.id === ref.model) : library.files.some(row => row.parts.includes(ref.model)))) throw new Error(`Missing world scene model: ${ref.library}/${ref.model}`);
+    if (library === undefined || library.kind === 'baked' || !(mapped ? library.kind === 'pool' && paintedNames.get(ref.library)?.has(ref.model) === true
+      : geometryNames.get(ref.library)?.has(ref.model) === true)) throw new Error(`Missing world scene model: ${ref.library}/${ref.model}`);
   };
   // Admission precedes geometry/material allocation, including both cube variants.
   for (const row of section.libraries) for (const file of row.kind === 'whole' ? [] : row.kind === 'models' || row.kind === 'baked' ? [row.file] : row.kind === 'owned' ? row.models.flatMap(model => [tierFile(model.file), ...model.segments ?? []]) : [...row.files.map(entry => tierFile(entry.file)), ...row.painted.map(entry => entry.file)]) requireFile(file);
@@ -133,7 +142,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     if (!Object.is(catalogue.product, product.shardfile.identity.slug)) throw new Error('Scene catalogue product identity differs');
     // a draw (and a LOD draw's attribute donor) reads an owned or whole model, or a part of a pool's files
     const source = (ref: { readonly library: string; readonly model: string }): boolean => { const library = libraryRows.get(ref.library);
-      return library?.kind === 'owned' || library?.kind === 'whole' || library?.kind === 'pool' && library.files.some(file => file.parts.includes(ref.model)); };
+      return library?.kind === 'owned' || library?.kind === 'whole' || library?.kind === 'pool' && geometryNames.get(ref.library)?.has(ref.model) === true; };
     for (const model of catalogue.models) for (const choice of model.choices) for (const level of choice.lods) for (const part of level.draws) {
       if (part.attributes !== undefined && !source(part.attributes)) throw new Error('Scene catalogue needs owned geometry and declared material slots');
     }
@@ -191,7 +200,8 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     for (const source of row.geometry) { reference(source); if (libraryRows.get(source.library)?.kind !== 'owned') throw new Error('Scene batch requires owned geometry'); }
     published.add(row.id); reservations.set(row.id, row.fixed.length);
   }
-  const placements: WorldScenePlacementRow[] = [];
+  const placements: WorldScenePlacementRow[] = [], declaredModels = new Map((catalogue?.models ?? []).map(model => [model.key, model]));
+  const specimenKeys = new Set((section.specimens ?? []).map(model => model.key));
   await timeClientPreparation(product.slug, 'scene.placement-admission', async () => {
     const declarations = section.placements ?? [];
     for (const declared of declarations) {
@@ -200,9 +210,10 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       const row = 'file' in declared ? parseWorldScenePlacement(JSON.parse(decoder.decode(bytes))) : declared;
       if (row.id !== declared.id) throw new Error('Scene placement blob identity differs');
       placements.push(row);
-      if (catalogue?.models.some(model => model.key === row.model) !== true && section.specimens?.some(model => model.key === row.model) !== true) throw new Error(`Missing scene placement model: ${row.model}`);
+      const model = declaredModels.get(row.model);
+      if (model === undefined && !specimenKeys.has(row.model)) throw new Error(`Missing scene placement model: ${row.model}`);
       if (row.batch !== undefined) {
-        const batch = batches.get(row.batch), model = catalogue?.models.find(entry => entry.key === row.model);
+        const batch = batches.get(row.batch);
         if (batch === undefined || row.draw !== 'batched' || model === undefined || model.choices.some(choice => [choice.draws, ...choice.lods.map(level => level.draws)].some(draws => draws.length !== 1 || draws.some(draw => draw.material !== batch.material)))) throw new Error('Scene placement cannot share the declared batch');
         const count = (reservations.get(row.batch) ?? 0) + row.poses.length;
         if (count > batch.capacity.instances) throw new Error('Scene batch instance capacity exceeded');
