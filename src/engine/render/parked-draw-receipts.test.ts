@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { BoxGeometry, Group, InstancedMesh, Mesh, MeshBasicMaterial, PCFShadowMap, PerspectiveCamera, Scene, Vector4, WebGLRenderTarget,
-  type Camera, type Material, type Object3D } from 'three';
+import { Bone, BoxGeometry, Float32BufferAttribute, Group, InstancedMesh, Mesh, MeshBasicMaterial, PCFShadowMap, PerspectiveCamera, Scene, Skeleton,
+  SkinnedMesh, Uint16BufferAttribute, Vector4, WebGLRenderTarget, type Camera, type Material, type Object3D } from 'three';
 import { LIVE_PARKED_BUDGET, warmParkedDraws, type ParkedDrawBudget, type ParkedDrawRenderer } from './parkedDraws';
 
 const ONE_A_SLICE: ParkedDrawBudget = { drawables: 1, newMaterials: 1 };
@@ -126,4 +126,26 @@ test('under the live WebKit budget, fresh geometry over a built pipeline is not 
     expect(await f.warm(LIVE_PARKED_BUDGET)).toEqual({ drawn: 3, pauses: 3 });
     for (const material of distinct) material.dispose();
   } finally { f.dispose(); for (const geometry of geometries) geometry.dispose(); for (const material of shared) material.dispose(); }
+});
+
+test('skins over a built pipeline pace as copies; a per-object callback keeps a first use of its own', async () => {
+  const material = new MeshBasicMaterial(), f = fixture([material]);
+  const geometries: BoxGeometry[] = [];
+  const skinned = (): SkinnedMesh => {
+    const geometry = new BoxGeometry(), count = geometry.getAttribute('position').count; geometries.push(geometry);
+    geometry.setAttribute('skinIndex', new Uint16BufferAttribute(new Uint16Array(count * 4), 4));
+    geometry.setAttribute('skinWeight', new Float32BufferAttribute(new Float32Array(count * 4), 4));
+    const mesh = new SkinnedMesh(geometry, material), bone = new Bone();
+    mesh.add(bone); mesh.bind(new Skeleton([bone])); return mesh;
+  };
+  try {
+    f.compile(material, 7);
+    f.root.add(skinned(), skinned(), skinned());
+    expect(await f.warm(LIVE_PARKED_BUDGET)).toEqual({ drawn: 3, pauses: 1 });
+    f.root.clear();
+    const hooked = [new Mesh(new BoxGeometry(), material), new Mesh(new BoxGeometry(), material)];
+    for (const mesh of hooked) { geometries.push(mesh.geometry); mesh.onBeforeRender = () => undefined; }
+    f.root.add(...hooked);
+    expect(await f.warm(LIVE_PARKED_BUDGET)).toEqual({ drawn: 2, pauses: 2 });
+  } finally { f.dispose(); for (const geometry of geometries) geometry.dispose(); material.dispose(); }
 });

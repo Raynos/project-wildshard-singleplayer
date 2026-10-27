@@ -356,13 +356,28 @@ function programIdList(renderer: object, object: THREE.Object3D): string[] | und
   return ids;
 }
 
+/** Whether a drawable's first draw is wholly described by its programs, vertex layout and draw kind, so a built pipeline
+ *  lets it pace as a copy. Skins qualify (the skinning and bone count are in the program, the skin attributes in the
+ *  layout; their only own upload is a small bone texture), as do points, lines and sprites. A per-object callback can
+ *  change the draw on its first render (painterly's adds a colour attribute, a new layout), and morph targets and custom
+ *  depth or distance materials bring programs the key does not name: those keep a first use of their own. */
+function pacedAsCopy(object: THREE.Object3D): boolean {
+  const geometry: unknown = (object as THREE.Object3D & { geometry?: unknown }).geometry;
+  if (!isBufferGeometry(geometry) || object instanceof THREE.BatchedMesh) return false;
+  if (object instanceof THREE.Mesh && (object.morphTargetInfluences !== undefined || geometry.morphAttributes.position !== undefined
+    || object instanceof THREE.InstancedMesh && object.morphTexture !== null)) return false;
+  return object.customDepthMaterial === undefined && object.customDistanceMaterial === undefined
+    && object.onBeforeRender === THREE.Object3D.prototype.onBeforeRender && object.onAfterRender === THREE.Object3D.prototype.onAfterRender
+    && object.onBeforeShadow === THREE.Object3D.prototype.onBeforeShadow && object.onAfterShadow === THREE.Object3D.prototype.onAfterShadow;
+}
+
 /** `material`'s native pipeline for `object` under `context`: the program the renderer holds for it (precompile linked
- *  the entry's), the program shape, vertex layout and draw state. Undefined keeps the material new: no program yet, or a
- *  drawable with its own first draw (skins, morphs, callbacks, custom depth). Pacing only: a known pipeline still draws. */
+ *  the entry's), the program shape, draw kind, vertex layout and draw state. Undefined keeps the material new: no program
+ *  yet, or a drawable that does not pace as a copy. Pacing only: a known pipeline still draws. */
 function nativePipeline(renderer: object, object: THREE.Object3D, material: THREE.Material, camera: THREE.Camera, context: string): string | undefined {
-  if (warmSignature(renderer, object, camera, context) === undefined) return undefined;
+  if (!pacedAsCopy(object)) return undefined;
   const index = drawableMaterials(object).indexOf(material), id = programIdList(renderer, object)?.[index];
-  return id === undefined ? undefined : `${id}|${programObjectKey(object)}|${vertexLayout(object)}|${object.castShadow}` +
+  return id === undefined ? undefined : `${id}|${object.type}|${programObjectKey(object)}|${vertexLayout(object)}|${object.castShadow}` +
     `|${object.layers.test(camera.layers)}|${object.matrixWorld.determinant() < 0}|${context}`;
 }
 
