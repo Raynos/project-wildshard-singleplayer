@@ -1,3 +1,4 @@
+import { parseRiggedHullBook } from '@wildshard/format/riggedHulls';
 import { AdmissionLateSchema, lateLibraryRootsValid, type AdmissionLate, type LateFile } from '@wildshard/format/admissionLate';
 import * as v from 'valibot';
 import { ScriptContractSchema, decisionModuleContracts, type ScriptContractInput, type ScriptContract } from '@wildshard/format/scriptContract';
@@ -60,6 +61,21 @@ function ownedSections(input: EmittedSections): EmittedSections {
   return { sections: input.sections.map(row => ({ ...row })), files: new Map([...input.files].map(([path, value]) => [path, Uint8Array.from(value)])) };
 }
 
+/** Coat fallback images are asynchronous URL consumers, not synchronous admitted-map inputs.
+ * Keep their complete files/costs; early demand and critical/dependency roots still win. */
+function fallbackCoatLate(platform: EmittedSections | undefined, files: readonly OutputFile[], critical: ReadonlySet<string>): LateFile[] {
+  const section = platform?.sections.find(row => row.name === 'look/rigged-hulls');
+  if (section === undefined) return [];
+  const wire = platform?.files.get(section.path);
+  if (wire === undefined || wire.length !== section.bytes || hashImmutableBytes(wire) !== section.hash)
+    throw new Error('Rigged hull coat section differs from its declared bytes');
+  const book = parseRiggedHullBook(JSON.parse(new TextDecoder().decode(wire)));
+  if (!book.productFiles) return [];
+  const names = new Set(Object.values(book.tiers).flatMap(tier => Object.values(tier.coats).map(coat => coat.image)));
+  return [...new Set(files.filter(file => file.kind === 'image' && !file.critical && !critical.has(file.hash) && file.name !== undefined && names.has(file.name)).map(file => file.hash))]
+    .map(hash => ({ hash }));
+}
+
 /** Parse the optional output export and compile project-contained inputs (including glTF) into immutable blobs. */
 export async function prepareProjectOutput(project: string, input: unknown, decisions?: { source: Shardfile; options: DecisionBuildOptions }): Promise<PreparedProjectOutput> {
   let parsed = v.parse(output, input === undefined ? {} : input);
@@ -87,7 +103,10 @@ export async function prepareProjectOutput(project: string, input: unknown, deci
       blobs.push({ file, bytes: owned, ...(script === undefined ? {} : { script }) });
     }
   }
-  return { blobs, assets: ownedAssets(parsed.assets), ...(parsed.late === undefined ? {} : { late: parsed.late }), options: {
+  const explicit = new Set(parsed.late?.map(row => row.hash));
+  const critical = new Set([...(decisions?.source.critical ?? []), ...(decisions?.source.files.filter(file => file.critical).map(file => file.hash) ?? [])]);
+  const late = [...parsed.late ?? [], ...fallbackCoatLate(parsed.platform, inventory, critical).filter(row => !explicit.has(row.hash))];
+  return { blobs, assets: ownedAssets(parsed.assets), ...(parsed.late === undefined && late.length === 0 ? {} : { late }), options: {
     namedFiles: overlays,
     ...(parsed.custom === undefined ? {} : { custom: ownedSections(parsed.custom) }),
     ...(parsed.platform === undefined ? {} : { platform: ownedSections(parsed.platform) }),
