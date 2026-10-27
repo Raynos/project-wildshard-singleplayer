@@ -240,8 +240,10 @@ const DEFAULT_BUDGET: ParkedDrawBudget = { drawables: 8, newMaterials: 2, buffer
 /** Live WebKit first-use work: one drawable per completed game frame, even while held. */
 export const LIVE_PARKED_BUDGET: ParkedDrawBudget = { drawables: 1, newMaterials: 1, bufferBytes: 4 * 1024 * 1024 };
 /** G580 T5: while the traveller waits at the wall (engine/core/framePacing buildHeld), a slice may draw four times as
- *  much: each slice costs a drawn frame, and the held view's longer frames cost no movement. */
-export const HELD_PARKED_BUDGET: ParkedDrawBudget = { drawables: 32, newMaterials: 8, bufferBytes: 16 * 1024 * 1024 };
+ *  many drawables: each slice costs a drawn frame, and the held view's longer frames cost no movement. Its new buffers
+ *  stay under 6 MiB (G743): a cold Driftwood crossing's held slices of 12.8 and 15.6 MB filled Chromium's transfer
+ *  buffer, and one 0.6-0.85 MB `bufferData` waited 125-145 ms for the GPU process (200 / 250 ms afterPlay frames). */
+export const HELD_PARKED_BUDGET: ParkedDrawBudget = { drawables: 32, newMaterials: 8, bufferBytes: 6 * 1024 * 1024 };
 
 /**
  * Draw every visible drawable under the hidden `root` into a 1×1 scissor of `target`, and its casters into the shadow
@@ -269,13 +271,14 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
   const view = THREE.Object3D.prototype.clone.call(camera, false);
   if (!(view instanceof THREE.Camera)) throw new Error('Parked view must retain its camera type');
   const standIns = new ShadowStandIns(renderer instanceof THREE.WebGLRenderer ? renderer : null);
+  const benched: BenchedLayers = { objects: [], masks: [] };
   let drawn = 0;
   const total = slices.reduce((count, slice) => count + slice.length, 0);
   try {
     options.onProgress?.(0, total);
     for (const slice of slices) {
       if (!current()) throw new Error('Parked draw owner left');
-      try { drawSlice(renderer, scene, camera, view, target, root, slice, options.environment, standIns, reveal); }
+      try { drawSlice(renderer, scene, camera, view, target, root, slice, options.environment, standIns, reveal, benched); }
       catch (error) { console.error(`[parked draws] the pre-draw stopped after ${String(drawn)} drawables; the entry frame draws the rest`, error); return drawn; }
       drawn += slice.length;
       options.onProgress?.(drawn, total);
@@ -285,15 +288,18 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
   return drawn;
 }
 
+/** Capacity is reused, but no scene object survives a restored slice in these arrays. */
+interface BenchedLayers { readonly objects: THREE.Object3D[]; readonly masks: number[] }
+
 function drawSlice(renderer: ParkedDrawRenderer, scene: THREE.Scene, camera: THREE.Camera, view: THREE.Camera,
   target: THREE.WebGLRenderTarget | null, root: THREE.Object3D, slice: readonly THREE.Object3D[],
-  environment: THREE.Texture | null | undefined, standIns: ShadowStandIns, reveal: ReadonlySet<THREE.Object3D>): void {
+  environment: THREE.Texture | null | undefined, standIns: ShadowStandIns, reveal: ReadonlySet<THREE.Object3D>,
+  benched: BenchedLayers): void {
   view.copy(camera, false);
   view.layers.set(WARM_LAYER);
   const inSlice = new Set(slice);
   const lights: { light: THREE.Light; mask: number }[] = [];
   // shadow-only casters (SHADOW_LAYER: the shadow pass sees them through the view camera) outside the slice sit it out
-  const benched: { object: THREE.Object3D; mask: number }[] = [];
   // an instanced drawable of no instances (a culled set none of whose copies shows yet) draws one for the warm: a draw of no
   // instances is refused (drawGuards `noInstances`), and its first real draw would build its pipeline in play
   const objects = slice.map(object => ({ object, mask: object.layers.mask, culled: object.frustumCulled, colour: object.layers.test(camera.layers),
@@ -312,7 +318,7 @@ function drawSlice(renderer: ParkedDrawRenderer, scene: THREE.Scene, camera: THR
     // Hidden retained worlds cannot contribute lights/casters and need no per-slice inventory or shadow stand-ins.
     scene.traverseVisible(object => {
       if (object instanceof THREE.Light) { if (object.layers.test(camera.layers)) lights.push({ light: object, mask: object.layers.mask }); }
-      else if (!inSlice.has(object) && object.layers.isEnabled(SHADOW_LAYER)) benched.push({ object, mask: object.layers.mask });
+      else if (!inSlice.has(object) && object.layers.isEnabled(SHADOW_LAYER)) { benched.objects.push(object); benched.masks.push(object.layers.mask); }
     });
     if (environment !== undefined) scene.environment = environment;
     for (const { light } of lights) light.layers.enable(WARM_LAYER);
@@ -320,7 +326,7 @@ function drawSlice(renderer: ParkedDrawRenderer, scene: THREE.Scene, camera: THR
       if (colour) object.layers.enable(WARM_LAYER); object.frustumCulled = false;
       if (object instanceof THREE.InstancedMesh && object.count === 0) object.count = 1;
     }
-    for (const { object } of benched) object.layers.disableAll();
+    for (const object of benched.objects) object.layers.disableAll();
     // the slice's casters draw into each light's stand-in map in the same render (the entry frame's depth pipelines)
     const swapped = swapShadows(lights.map(({ light }) => light), standIns, renderer.shadowMap.type === THREE.VSMShadowMap);
     shadows = swapped.swaps;
@@ -337,7 +343,8 @@ function drawSlice(renderer: ParkedDrawRenderer, scene: THREE.Scene, camera: THR
       object.layers.mask = mask; object.frustumCulled = culled;
       if (object instanceof THREE.InstancedMesh && count >= 0) object.count = count;
     }
-    for (const { object, mask } of benched) object.layers.mask = mask;
+    for (const [i, object] of benched.objects.entries()) object.layers.mask = benched.masks[i] ?? object.layers.mask;
+    benched.objects.length = 0; benched.masks.length = 0;
     restoreShadows(shadows);
     renderer.shadowMap.autoUpdate = shadowAuto; renderer.shadowMap.needsUpdate = shadowNeeds;
     if (target !== null && scissor !== undefined) { target.scissor.copy(scissor); target.scissorTest = scissorTest; }
