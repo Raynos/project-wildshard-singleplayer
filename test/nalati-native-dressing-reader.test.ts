@@ -14,6 +14,7 @@ test('native Node authors preserve every original sampled placement with no gene
     import fs from 'node:fs';
     import {syncBuiltinESMExports} from 'node:module';
     import {selectedLevel} from '@wildshard/engine/level/selection';
+    import {originalGeographyFiles} from './test/fixtures/nalati-geography-original.ts';
     const originalRead=fs.readFileSync,reads=new Map();
     fs.readFileSync=(path,...options)=>{
       const file=String(path).replaceAll('\\\\','/');
