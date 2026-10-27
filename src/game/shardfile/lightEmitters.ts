@@ -36,7 +36,7 @@ export class EmitterPresentation {
     for (const row of rows.rows) {
       const group = handles.group(row.parent), state = { lit: row.initially };
       this.states.set(row.id, state); this.groups.set(row.id, group);
-      drawSceneRows(ctx.product, row.draws, group, scope, materials, ctx.app.assets);
+      drawSceneRows(ctx.product, row.draws, group, scope, materials);
       if (row.light !== undefined) {
         const light = row.light, key = JSON.stringify(light.waves);
         let sites = shared.get(key);

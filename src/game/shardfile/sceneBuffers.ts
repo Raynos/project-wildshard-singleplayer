@@ -114,7 +114,7 @@ function buildGeometries(row: SceneBuffers, counts: readonly (number | undefined
 /** Fresh draw objects can borrow fixed storage through charged, pressure-evictable assets.
  * Content identity, tier and every resolved instance count isolate reusable builds.
  * Binary files are verified product reads; decoded geometry never mutates their storage. */
-export function createSceneBuffers(input: unknown, material: Material, scope: Scope, plumbing?: PlumbingData | null, reuse?: SceneBufferReuse, files?: ReadonlyMap<string, Uint8Array>): Group {
+function prepareBufferDraws(input: unknown, scope: Scope, plumbing?: PlumbingData | null, reuse?: SceneBufferReuse, files?: ReadonlyMap<string, Uint8Array>): (material: Material) => Group {
   if (scope.disposed || scope.disposing) throw new Error('Scene buffer scope is disposed or retiring');
   const row = namedSceneBuffers(input), counts = instanceCounts(row, plumbing), owner = scope.child('buffered-draws');
   try {
@@ -152,6 +152,25 @@ export function createSceneBuffers(input: unknown, material: Material, scope: Sc
         forgetWhenDisposed(geometries, memo, key, geometries); // its listener holds no owner of this build
       }
     }
+    return bufferDrawer(row, geometries, owner);
+  } catch (error) { owner.dispose(); throw error; }
+}
+
+/** A scope-local fixed build: prepare its channels once, then make independent draw objects and materials.
+ * The factory owns no transport reader and cannot draw after its construction scope retires. */
+export function prepareSceneBufferDraws(input: unknown, scope: Scope, plumbing?: PlumbingData | null, files?: ReadonlyMap<string, Uint8Array>): (material: Material) => Group {
+  return prepareBufferDraws(input, scope, plumbing, undefined, files);
+}
+
+/** Construct one buffered scene; explicit reusable callers retain their existing charged-cache contract. */
+export function createSceneBuffers(input: unknown, material: Material, scope: Scope, plumbing?: PlumbingData | null, reuse?: SceneBufferReuse, files?: ReadonlyMap<string, Uint8Array>): Group {
+  return prepareBufferDraws(input, scope, plumbing, reuse, files)(material);
+}
+
+function bufferDrawer(row: SceneBuffers, geometries: ReadonlyMap<string, BufferGeometry>, owner: Scope): (material: Material) => Group {
+  return material => {
+    if (owner.disposed || owner.disposing) throw new Error('Scene buffer draw owner is retired');
+    try {
     const group = new Group(); group.name = row.name;
     const make = (draw: NonNullable<SceneBuffers['draws'][number]['draw']> | undefined): Object3D => {
       if (draw === undefined) return new Object3D();
@@ -167,5 +186,6 @@ export function createSceneBuffers(input: unknown, material: Material, scope: Sc
     }
     owner.onDispose(() => { group.removeFromParent(); });
     return group;
-  } catch (error) { owner.dispose(); throw error; }
+    } catch (error) { owner.dispose(); throw error; }
+  };
 }

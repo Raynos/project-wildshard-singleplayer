@@ -70,7 +70,7 @@ export function scenePartSpecimen(product: ShardProduct, row: ScenePartSpecimen)
       ownSceneTree(made.root, owner, app.assets);
       for (const effect of row.effects ?? []) {
         const parent = made.group(effect.part); if (parent === null) throw new Error('Missing specimen effect group');
-        drawSceneRows(product, effect.draws, parent, owner, new Map(effect.draws.map(draw => [draw.material, look(draw.material) ?? lentLook(draw.material)])), app.assets);
+        drawSceneRows(product, effect.draws, parent, owner, new Map(effect.draws.map(draw => [draw.material, look(draw.material) ?? lentLook(draw.material)])));
       }
       const result = { root: made.root, part: (id: string) => {
         const binding = step.publish[id]; return binding !== undefined && 'part' in binding ? made.parts.get(binding.part) ?? null : made.parts.get(id) ?? null;

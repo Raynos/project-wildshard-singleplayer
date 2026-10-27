@@ -1,14 +1,15 @@
-import { Mesh, type BufferGeometry, type Object3D, type Material } from 'three';
+import { Mesh, type BufferGeometry, type Object3D, type Material, type Group } from 'three';
 import * as v from 'valibot';
 import { SceneDrawsSchema } from '@wildshard/format/sceneDraws';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardProduct } from './shardProduct';
 import { sceneModelSource } from './sceneSources';
-import { admitSceneBuffers, createSceneBuffers, type SceneBufferReuse } from './sceneBuffers';
+import { admitSceneBuffers, prepareSceneBufferDraws } from './sceneBuffers';
 import { parseSceneBuffers, type SceneBuffers } from '@wildshard/format/sceneBuffers';
 import { TIER } from '@wildshard/engine/core/tier';
 
 const books = new WeakMap<Scope, WeakMap<ShardProduct, Map<string, BufferGeometry>>>();
+const drawBooks = new WeakMap<Scope, WeakMap<ShardProduct, Map<string, (material: Material) => Group>>>();
 const buffers = new WeakMap<ShardProduct, Map<string, { row: SceneBuffers; files: ReadonlyMap<string, Uint8Array>; content: string }>>();
 
 /** Admit named draw bytes before any material or geometry allocation. Missing files refuse, with no runtime fallback. */
@@ -30,21 +31,26 @@ export async function prepareSceneDrawRows(product: ShardProduct, input: unknown
 }
 
 /** Client-only draw construction shared by specimen and resident emitters.
- * The lifetime and already-compiled material book belong to the caller. An asset owner shares fixed buffer builds
- * under every admitted descriptor/binary address; draw objects and material bindings remain private. */
-export function drawSceneRows(product: ShardProduct, input: unknown, parent: Object3D, scope: Scope, materials: ReadonlyMap<string, Material>, assets?: SceneBufferReuse['assets']): void {
+ * The lifetime and already-compiled material book belong to the caller. Fixed buffer builds are shared only
+ * within that scope and admitted product. Draw objects and material bindings remain private. */
+export function drawSceneRows(product: ShardProduct, input: unknown, parent: Object3D, scope: Scope, materials: ReadonlyMap<string, Material>): void {
   const rows = v.parse(SceneDrawsSchema, input);
   let products = books.get(scope); if (products === undefined) { products = new WeakMap(); books.set(scope, products); }
   let geometries = products.get(product); if (geometries === undefined) { geometries = new Map(); products.set(product, geometries); }
-  if (scope.disposed) throw new Error('Scene draw scope is disposed');
+  if (scope.disposed || scope.disposing) throw new Error('Scene draw scope is disposed or retiring');
+  let buffered = drawBooks.get(scope); if (buffered === undefined) { buffered = new WeakMap(); drawBooks.set(scope, buffered); }
+  let drawers = buffered.get(product);
+  if (drawers === undefined) { drawers = new Map(); buffered.set(product, drawers); const held = drawers; scope.onDispose(() => { held.clear(); }); }
   for (const row of rows) {
     const material = materials.get(row.material); if (material === undefined) throw new Error('Missing scene draw material');
     if (row.kind === 'buffered') {
       if (row.tier !== undefined && row.tier !== TIER) continue;
       const source = buffers.get(product)?.get(row.file);
       if (source === undefined) throw new Error('Scene draw buffers were not admitted');
-      const reuse = assets === undefined ? undefined : { content: source.content, assets };
-      const group = createSceneBuffers(source.row, material, scope, product.shardfile.plumbing, reuse, source.files);
+      const key = JSON.stringify([source.content, TIER]);
+      let draw = drawers.get(key);
+      if (draw === undefined) { draw = prepareSceneBufferDraws(source.row, scope, product.shardfile.plumbing, source.files); drawers.set(key, draw); }
+      const group = draw(material);
       group.scale.setScalar(row.scale); group.position.y = row.y; parent.add(group);
       if (row.order !== undefined) for (const mesh of group.children) mesh.renderOrder = row.order;
     } else {
