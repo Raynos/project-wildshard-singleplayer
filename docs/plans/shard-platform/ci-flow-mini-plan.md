@@ -171,6 +171,21 @@ normal animation frame are not a completion barrier for both owners;
 public combined warm-idle signal to use for the permitted capture wait. No new
 readiness signal, app scheduling change, capture change or deadline was introduced.
 
+### CF2 title owner completion (2026-10-26, sp-x1)
+
+In flight. Observe the existing `warmRest` promise and the existing delayed
+1,200 ms `primeFrame` through its actual completed draw counter. The smoke
+requires both owners to finish before starting the unchanged ten-second native
+PNG allowance; its original 150-second title deadline still bounds that wait.
+The grid catalogue title has no world owner; hydrated titles must expose valid
+owner state, and original compile failures refuse. No new shader compile, world
+draw, script suspension, retry, image substitution or scheduling change.
+
+Controlled owner/draw/lifetime regressions and smoke-admission controls pass;
+touched game/script project types and typed lint pass. Historical traces remain
+contention evidence without assigning an exact callback to either owner. The
+ordinary exact-artifact smoke acceptance is still open until this source ships.
+
 ## G745: Jake's phone smoke route
 
 **In flight (2026-10-26, sp-x9; transferred from sp-x7).** A seventh exact-artifact leg follows

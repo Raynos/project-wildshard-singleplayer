@@ -29,9 +29,10 @@ export function publicPolicyAdmission(observation) {
 export function bootObservation() {
   const fatal = [...document.querySelectorAll('#wserr,.ws-load-error,.ws-game-dev-alert,[data-boot-fatal]')].map(node => node.textContent || 'fatal');
   const probe = /** @type {import('../../src/engine/debug/probe').EngineProbe | undefined} */ (window.__wildshard);
-  if (!probe?.world) return { fatal, ready: false, frame: -1, shard: '', grid: null, appState: 'unavailable', playerValid: false, renderFrame: -1 };
+  if (!probe?.world) return { fatal, ready: false, frame: -1, shard: '', grid: null, titlePreparation: null, appState: 'unavailable', playerValid: false, renderFrame: -1 };
   const world = probe.requireWorld(), state = probe.state();
-  const { grid: exposed } = world.game.app.debug.snapshot();
+  const { grid: exposed, titlePreparation: titleOwner } = world.game.app.debug.snapshot();
+  /** @type {unknown} */ const titlePreparation = typeof titleOwner === 'object' && titleOwner !== null && 'state' in titleOwner && typeof titleOwner.state === 'function' ? titleOwner.state() : null;
   const grid = typeof exposed === 'object' && exposed !== null && 'state' in exposed && typeof exposed.state === 'function' ? exposed.state() : null;
   const hud = document.querySelector('#hud');
   const revealing = document.querySelector('.ws-grid-reveal') !== null;
@@ -42,16 +43,29 @@ export function bootObservation() {
   return { fatal, ready, entered, revealing, frameGate, frame: probe.app.clock.frame, drawnFrame: world.game.frameCount,
     clockPaused: world.game.app.clock.paused, held: world.game.hold, dead: world.game.dead,
     visibility: document.visibilityState, states: [...world.game.app.stateHistory],
-    shard: probe.shard.slug, grid, appState: state.appState, playerValid, renderFrame: world.game.renderer.info.render.frame };
+    shard: probe.shard.slug, grid, titlePreparation, appState: state.appState, playerValid, renderFrame: world.game.renderer.info.render.frame };
 }
 
-/** @param {import('playwright').Page} page @param {string[]} faults @param {() => Promise<boolean>} condition @param {string} label @param {number} deadline */
+/** Require actual warm-owner completion before starting the native capture clock.
+ * The grid's initial catalogue title has no world or finish-stage owners.
+ * @param {{appState:string,titlePreparation:unknown}} observation @param {boolean} [catalogueOnly] */
+export function titleCaptureReady(observation, catalogueOnly = false) {
+  if (observation.appState === 'unavailable') return catalogueOnly && observation.titlePreparation === null;
+  const state = observation.titlePreparation;
+  if (typeof state !== 'object' || state === null || !('pending' in state) || !Array.isArray(state.pending) ||
+    !state.pending.every((/** @type {unknown} */ name) => name === 'shaders' || name === 'first-world-frame') ||
+    !('issue' in state) || (state.issue !== null && typeof state.issue !== 'string')) throw new Error('Missing title preparation owners');
+  if (state.issue !== null) throw new Error(`Title preparation failed: ${state.issue}`);
+  return state.pending.length === 0;
+}
+
+/** @param {import('playwright').Page} page @param {string[]} faults @param {(observation:ReturnType<typeof bootObservation>) => Promise<boolean>} condition @param {string} label @param {number} deadline */
 async function until(page, faults, condition, label, deadline) {
   while (Date.now() < deadline) {
     if (faults.length > 0) throw new Error(faults.join('\n'));
     const observed = await page.evaluate(bootObservation);
     if (observed.fatal.length > 0) throw new Error(`Fatal boot: ${observed.fatal.join('\n')}`);
-    if (await condition()) return;
+    if (await condition(observed)) return;
     await new Promise(resolve => { setTimeout(resolve, 100); });
   }
   throw new Error(`Boot deadline: ${label}; ${JSON.stringify(await page.evaluate(bootObservation))}`);
@@ -329,7 +343,7 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
     for (const [key, value] of Object.entries({ tier: 'phone', touch: '1', mute: '1', nolock: '1', sw: '0' })) url.searchParams.set(key, value);
     if (mode !== 'grid') url.searchParams.set('chunk', shard);
     await page.goto(url.href, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await until(page, faults, async () => await page.locator('.ws-main-logo').isVisible() && !(await page.locator('.ws-load').isVisible()), 'rendered usable title', deadline);
+    await until(page, faults, async observed => await page.locator('.ws-main-logo').isVisible() && !(await page.locator('.ws-load').isVisible()) && titleCaptureReady(observed, mode === 'grid'), 'rendered usable title with completed warm-up', deadline);
     phases.titleMs = Date.now() - started;
     await observeTitleCapture(page, join(out, `${receipt}-title`), () => captureBootFrame(page, 'title', deadline, frames));
     if (mode !== 'grid') {

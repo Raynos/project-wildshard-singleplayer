@@ -20,6 +20,7 @@ import { gridPrefetchOrder, startGridPrefetch } from '../grid/prefetch';
 import { enterSkyClock } from './clockSettings';
 import { settleEntryPrograms } from './settlePrograms';
 import { harnessPins } from '@wildshard/engine/app/identity';
+import { observeTitlePreparation, prepareTitleFrame } from './titlePreparation';
 
 /** how often the in-play warm-up asks whether an arrival's Explorer has closed, and how long it waits for one to open */
 const EXPLORER_POLL_MS = 1000, EXPLORER_OPEN_MS = 30_000;
@@ -161,9 +162,12 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   const warmRest = async (): Promise<void> => {
     await afterExplorer();
     try { await precompileLevel(game, undefined, { sliceMs: 6, current: () => !levelScope.disposed }); }
-    catch (error: unknown) { if (!levelScope.disposed) console.warn('[shaders] the in-play warm-up stopped:', error); }
+    catch (error: unknown) {
+      if (!levelScope.disposed) console.warn('[shaders] the in-play warm-up stopped:', error);
+      throw error;
+    }
   };
-  void warmRest();
+  const titleShaders = warmRest();
   if (arrival?.mode === 'enter' || arrival?.mode === 'arena' || ctx.continuingGridEntry || (arrival === null && loading.playRequested)) enter();
   else if (arrival?.mode === 'explore') hud.startExplore(); // import the viewer only after shader compilation and the loader's peak
   if (arrival?.mode === 'arena') hud.enterArenaNow();
@@ -183,10 +187,12 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   // first frame after the title paid every first-time cost at once — Pine Hollow's four elites built, the cover filled,
   // textures that arrived after the boot uploaded: EXPLORE WORLD's first tap stalled ~1.3 s at 4× CPU (and ENTER WORLD's
   // first frame the same). A return from the background already draws such a frame on the title (Game.start).
-  if (menuFirst) game.levelScope.timeout(1200, () => {
-    if (hud.entered || exploring()) return;
-    game.primeFrame();
-  });
+  const titleFrame = menuFirst ? prepareTitleFrame({
+    later: (ms, run) => { levelScope.timeout(ms, run); }, next: run => { levelScope.raf(run); },
+    onDispose: run => { levelScope.onDispose(run); }, disposed: () => levelScope.disposed,
+    skip: () => hud.entered || exploring(), frame: () => game.frameCount, prime: () => { game.primeFrame(); },
+  }) : Promise.resolve();
+  levelScope.onDispose(app.debug.scopedExpose('titlePreparation', observeTitlePreparation(titleShaders, titleFrame)));
   const handle = { ...world, get physics() { return world.physics; }, boundary, water, streams: edgeDressing.streams, hands, props, animals, interactables, crossbow, hud, audio, music, lockSys, lockState, weapons, get arena() { return getArena(); }, playground: getPlayground, ...boot.runtime.objects };
   // O18: what came from the world and the runtime's objects reads through, each time: a copy taken at boot kept the home's
   // first visit (on the grid, its whole world) after that visit retired. The runtime's objects still win, as spread last.

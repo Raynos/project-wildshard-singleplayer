@@ -1,6 +1,9 @@
 import type { FloorGridPlan, FloorGridWitness } from '../frame-floor-grid.mjs';
 import type { Browser } from 'playwright';
 
+/** Require both actual warm owners before the native title capture clock starts. */
+export function titleCaptureReady(observation:{appState:string;titlePreparation:unknown},catalogueOnly?:boolean):boolean;
+
 /** Preserve a static-preview error transport's original payload for CI diagnosis, including nonfatal lifecycle diagnostics. */
 export function bootErrorReport(url: string, method: string, body: string | null): unknown;
 /** Only nonfatal boot-after-hide/nav-navigate diagnostics following observed grid navigation are acknowledged. */
