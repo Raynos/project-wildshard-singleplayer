@@ -3543,7 +3543,6 @@
         "scripts/no-binary-json.mjs"
       ],
       "catalogueDependencies": [
-        "driftwood-fixed-models",
         "driftwood-npc-scenes"
       ],
       "outputs": [
@@ -3557,7 +3556,6 @@
     {
       "id": "trail-specimen-catalogue",
       "catalogueDependencies": [
-        "driftwood-entry-decks",
         "driftwood-native-specimens"
       ],
       "shard": "driftwood-isle",
@@ -5979,8 +5977,6 @@
       ],
       "platform": "portable",
       "catalogueDependencies": [
-        "nalati-spruce",
-        "nalati-terrain-scene",
         "nalati-kurgan",
         "nalati-layout"
       ]
@@ -6213,7 +6209,6 @@
       ],
       "platform": "portable",
       "catalogueDependencies": [
-        "driftwood-fixed-models",
         "driftwood-island-dressing",
         "driftwood-foliage-scenes",
         "driftwood-pier-scenes",
