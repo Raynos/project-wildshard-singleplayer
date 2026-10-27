@@ -6,11 +6,10 @@ import { readImagePixels } from '@wildshard/sdk/bake/image';
 import { CABIN_LIFE } from './cabinLook';
 import { CABIN_LIGHT } from './cabinAssembly';
 import { HEARTH_LOOKS } from './hearthLook';
-// oxlint-disable-next-line import/no-nodejs-modules -- The static output's sources are read from disk, as a Node script reads them.
-import { readFileSync } from 'node:fs';
-import { pineSourcesFrom } from './pineSources';
+import { pineScriptSources } from './scriptSources.mjs';
 
-const output = await staticOutput(pineSourcesFrom(path => readFileSync(path)), readImagePixels);
+// the program's sources (GR8 G37: the timber world is baked in the program, so no disk file holds it)
+const output = await staticOutput(await pineScriptSources('pine-cabin-product-test'), readImagePixels);
 
 test('admitted cabin JSON retains every authored material and life value and rejects malformed rows', () => {
   const section = output.custom.sections.find(row => row.name === 'custom/cabinAppearance');

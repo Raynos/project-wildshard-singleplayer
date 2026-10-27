@@ -2,7 +2,8 @@ import { DRIFTWOOD_ISLAND_FACTS } from './fixtures/driftwood-island-facts';
 import { DRIFTWOOD_LAYOUTS } from './fixtures/driftwood-layout-source';
 import {expect,it} from 'vitest';
 import {parseAudioData} from '@wildshard/format/audio';
-import {readProjectAssets} from '@wildshard/sdk/project';
+import {loadHeadlessProduct} from '../src/sdk/headlessProduct';
+import {builtProduct} from './fixtures/builtProduct';
 import pineSource from '../src/shards/pine-hollow/data/audioSource.json' with {type:'json'};
 import islandSource from '../src/shards/driftwood-isle/data/audioSource.json' with {type:'json'};
 import cove from '../src/shards/driftwood-isle/data/coveComposition.json' with {type:'json'};
@@ -18,8 +19,9 @@ it.each([
   expect(cove.audioBounds).toEqual(islandCoveSpec().caveBounds);
   expect(cove.audioFall.foot).toEqual(islandCoveSpec().fall.foot);
   expect(islandCoveSpec().cave).toMatchObject(cove.audioCave);
-  const product=await readProjectAssets(`src/shards/${slug}`,undefined,{folder:slug,imageRoots:[{prefix:'/assets/',directory:'public/assets'}]});
-  expect(product.shard.audio).toEqual(rows);
+  // the verified built product (the product cohort), not a whole author build inside the assertion
+  const product=await loadHeadlessProduct(builtProduct(slug));
+  expect(product.shardfile.audio).toEqual(rows);
   // The producer uses the public wire parser: invalid PCM or zone rows still refuse.
   expect(()=>parseAudioData({...source.audio,pcm:{bad:{seed:[1,2],values:[],samples:0}}})).toThrow();
   expect(()=>parseAudioData({...source.audio,zones:{...source.audio.zones,tickHz:0}})).toThrow();

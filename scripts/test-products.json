@@ -267,5 +267,9 @@
   ],
   "test/pine-quest-content-product.test.ts": [
     "pine-hollow"
+  ],
+  "test/audio-authoring.test.ts": [
+    "driftwood-isle",
+    "pine-hollow"
   ]
 }
