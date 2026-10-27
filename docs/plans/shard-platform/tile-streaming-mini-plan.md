@@ -543,7 +543,7 @@ baked L1, and Pine/Nalati draw their terrain tiles with their own code. Rows add
 |---|---|---|
 | U1 | Every shard bakes all 64 L0 squares (empty sea / sky squares as near-empty tiles) | **done** `7093891d97`: exact `3c488ee9ab` preview, all 24 products have 64 L0 / full 5 × 5; strict receipts and section hashes |
 | U2 | Every shard bakes all 16 L1 squares (Driftwood and Sky first) | **in flight (reading at plan end, G780) (sp-o5, T8/G748: Sky, Driftwood, Nine and Nalati 16/16 with coarse occupied parents; Pine, Sunscar, the plots already 16/16):** safe Codex slice done `9b179032ff`: L0-only exact-reader fences and 7 DW / 5 Sky proven-empty parents. Remaining 9 DW / 11 Sky occupied parents need real coarse proxies: Opus or Jake look pick, not a Codex row. All 16 L1 per shard remains the bar |
-| U3 | Pine and Nalati terrain tiles go through the one shared streamer (T2), not shard code | no shard-owned tile drawing left |
+| U3 | Pine and Nalati terrain tiles go through the one shared streamer (T2), not shard code | no shard-owned tile drawing left; **in flight (reading at plan end, G780; sp-o5 audit 10-27):** no shard folder draws tiles. Pine's 64 L0 + 16 L1 splat ground files are its props tiles' first file (`withPineGround`, P1), attached by the shared T2 driver (`residentTiles`, `c010d0a9f5`). Nalati's painted ground is drawn by the game's painterly look (`painterlyLook.ts`, N1: spawn ring first, L1 squares beyond); its own ring loop follows the merged mesh's draws, so it works in a grid neighbour too, and stays until T2 can follow a non-entered view |
 
 U1 source slices (sp-x2, 2026-10-24): `6fc5b91533` completes the two full-world
 SDK emitters and treats explicit zero-cost/no-file rows as empty readiness;
