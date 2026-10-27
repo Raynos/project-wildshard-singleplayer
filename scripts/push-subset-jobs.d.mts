@@ -20,4 +20,4 @@ export function pushSubsetVerdict(results: readonly PushSubsetResult[]): {
 /** CI replays named unfinished steps plus their actual prerequisites. */
 export function selectPushSteps(jobs: readonly PushSubsetJob[], names: readonly string[]): PushSubsetJob[];
 /** Replay the unchanged native intake only after ordinary declared generation. */
-export function nativeOutputReplayJob(jobs: readonly PushSubsetJob[]): PushSubsetJob;
+export function nativeOutputReplayJob(jobs: readonly PushSubsetJob[], roots: readonly string[]): PushSubsetJob;

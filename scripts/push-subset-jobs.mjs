@@ -163,11 +163,14 @@ export function selectPushSteps(jobs, names) {
   return jobs.filter(job => selected.has(job.name));
 }
 
-/** @param {readonly import('./push-subset-jobs.mjs').PushSubsetJob[]} jobs
+/** @param {readonly import('./push-subset-jobs.mjs').PushSubsetJob[]} jobs @param {readonly string[]} roots
  * @returns {import('./push-subset-jobs.mjs').PushSubsetJob} */
-export function nativeOutputReplayJob(jobs) {
-  const native = jobs.find(job => job.name === 'fast-lint');
-  if (native === undefined || !jobs.some(job => job.name === 'generated-inputs'))
-    throw new Error('Native output handoff requires the real producer and native intake');
-  return { ...native, name: 'native-outputs', after: [...new Set([...native.after, 'generated-inputs'])] };
+export function nativeOutputReplayJob(jobs, roots) {
+  if (!jobs.some(job => job.name === 'generated-inputs') || roots.length === 0 ||
+      roots.some(file => file.startsWith('-') || file.startsWith('/') || file.split('/').some(part => ['', '.', '..'].includes(part)) || !/\.[cm]?[jt]sx?$/u.test(file)))
+    throw new Error('Native output handoff requires the real producer and exact source roots');
+  // Normal CI generation already owns and verifies these bytes. The ordinary
+  // native linter reads that exact checkout, without a second Git-only provider.
+  return { name: 'native-outputs', after: ['generated-inputs'],
+    command: [process.execPath, 'scripts/lint-fast.mjs', ...new Set(roots)] };
 }

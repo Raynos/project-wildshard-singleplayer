@@ -3,11 +3,11 @@ import { pushSubsetJobs, runPushSubset, pushSubsetVerdict, selectPushSteps, nati
 import type { GateSelection } from '../scripts/gate-selection.mjs';
 import type { CommitJob } from '../scripts/precommit-jobs.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Retain the owned detached-child marker and remove its tiny fixture.
-import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native process fixtures stay under the repository's tmp directory.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Inspect the owned worker's actual execution state after cancellation.
-import { spawnSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 
 const paths = ['scripts/heavy-lane.py', 'scripts/gen.mjs', '.oxlintrc.json', 'scripts/vitest-push.config.ts',
   'test/source.test.ts', 'test/reader.test.ts', 'test/native.test.mjs', 'src/game/example.ts', 'tsconfig.game.json'];
@@ -117,14 +117,15 @@ test('CI replays only named unfinished steps and their real producer prerequisit
   expect(() => selectPushSteps(jobs, ['types', 'types'])).toThrow('Duplicate');
 });
 
-test('native-output handoff preserves the exact native guard after real generation', async () => {
+test('native-output handoff runs ordinary native lint on exact roots after generation', async () => {
   const producer = { name: 'generated-inputs', command: ['real-producer'], after: [] };
   const native = { name: 'fast-lint', command: ['node', 'committed-fast-checks.mjs', 'unchanged-guard'], after: [] };
-  const replay = nativeOutputReplayJob([producer, native]);
-  expect(replay.command).toBe(native.command);
+  const replay = nativeOutputReplayJob([producer, native], ['src/changed.ts', 'src/changed.ts']);
+  expect(replay.command).toEqual([process.execPath, 'scripts/lint-fast.mjs', 'src/changed.ts']);
   expect(replay.after).toEqual(['generated-inputs']);
-  expect(() => nativeOutputReplayJob([native])).toThrow('real producer');
-  expect(() => nativeOutputReplayJob([producer])).toThrow('native intake');
+  expect(() => nativeOutputReplayJob([native], ['src/changed.ts'])).toThrow('real producer');
+  expect(() => nativeOutputReplayJob([producer], [])).toThrow('exact source roots');
+  expect(() => nativeOutputReplayJob([producer], ['--disable-rules'])).toThrow('exact source roots');
   const jobs = selectPushSteps([producer, native, replay], ['native-outputs']);
   expect(jobs.map(job => job.name)).toEqual(['generated-inputs', 'native-outputs']);
   const run = vi.fn<PushSubsetPorts['run']>((_root, batch) => Promise.resolve(batch.map(job => ({
@@ -134,6 +135,31 @@ test('native-output handoff preserves the exact native guard after real generati
   expect(run).toHaveBeenCalledOnce();
   expect(results.find(result => result.name === 'native-outputs')).toMatchObject({ blocked: ['generated-inputs'], code: 1 });
   expect(pushSubsetVerdict(results).failed).toEqual(['generated-inputs', 'native-outputs']);
+});
+
+test('the handed-off ordinary CLI retains a real syntax-lint refusal', () => {
+  const repository = resolve(import.meta.dirname, '..');
+  mkdirSync(resolve(repository, 'tmp'), { recursive: true });
+  const root = mkdtempSync(resolve(repository, 'tmp/native-output-lint-'));
+  const environment = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')));
+  const git = (...args: string[]): void => { execFileSync('git', args, { cwd: root, env: environment, stdio: 'ignore' }); };
+  try {
+    mkdirSync(resolve(root, 'src')); mkdirSync(resolve(root, 'node_modules/.bin'), { recursive: true });
+    symlinkSync(resolve(repository, 'node_modules/oxlint/bin/oxlint'), resolve(root, 'node_modules/.bin/oxlint'));
+    writeFileSync(resolve(root, '.oxlintrc.json'), JSON.stringify({ rules: { 'eslint/no-eval': 'error' } }));
+    writeFileSync(resolve(root, 'src/target.ts'), 'export const value=eval("1+1");\n');
+    git('init', '-q'); git('add', '.oxlintrc.json', 'src/target.ts');
+    git('ls-files', '--error-unmatch', 'src/target.ts');
+    const job = nativeOutputReplayJob([{ name: 'generated-inputs', command: ['real-producer'], after: [] }], ['src/target.ts']);
+    const script = job.command[1];
+    if (script === undefined) throw new Error('Missing ordinary native linter');
+    const run = () => spawnSync(process.execPath, [resolve(repository, script), ...job.command.slice(2)], { cwd: root, env: environment, encoding: 'utf8' });
+    const bad = run();
+    expect(bad.status, bad.stderr).toBe(1);
+    expect(bad.stdout).toContain('no-eval');
+    writeFileSync(resolve(root, 'src/target.ts'), 'export const value=1+1;\n'); git('add', 'src/target.ts');
+    const good = run(); expect(good.status, good.stderr).toBe(0);
+  } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
 test('deadline cleanup drains detached build descendants before returning the mirror', async () => {

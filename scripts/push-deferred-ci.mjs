@@ -31,7 +31,8 @@ if (import.meta.main) {
   const complete = steps.some(step => step === 'ci-subset' || step === 'tool-inputs');
   const names = [...new Set(steps.filter(step => step !== 'ci-subset' && step !== 'tool-inputs').concat(complete ? subset.map(job => job.name) : []))];
   const candidates = [...policy, ...subset];
-  if (steps.includes('native-outputs')) candidates.push(nativeOutputReplayJob(candidates));
+  if (steps.includes('native-outputs')) candidates.push(nativeOutputReplayJob(candidates,
+    changed.filter(file => candidate.paths.includes(file) && /\.[cm]?[jt]sx?$/u.test(file))));
   const jobs = selectPushSteps(candidates, names);
   const deadline = performance.now() + 38 * 60_000;
   const results = await runPushSubset(root, jobs, deadline);
