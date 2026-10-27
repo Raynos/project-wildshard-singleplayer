@@ -15,8 +15,12 @@ import { isletGlb, isletScenes } from '../src/shards/far-reach/generators/isletS
 const jsonBytes = (value: unknown): Uint8Array => new TextEncoder().encode(`${JSON.stringify(value)}\n`);
 const cases = [
   { id: 'sky-islet-motion', output: 'src/shards/far-reach/data/isletMotion.generated.json', make: () => jsonBytes(isletMotionRows()) },
-  { id: 'sky-islet-scenes', output: 'src/shards/far-reach/data/isletScenes.generated.json', make: () => jsonBytes(isletScenes()) },
-  { id: 'sky-islet-rest', output: 'public/assets/far-reach/baked/rest-islets.glb', make: isletGlb },
+];
+// GR5: the islet scenes and pool are no longer written to files (the product and the map call these functions);
+// their original bytes stay pinned by hash.
+const pinned = [
+  { id: 'islet scenes', make: () => jsonBytes(isletScenes()), bytes: 10_644, hash: 'c78727f373fef3a73e342c63969681e2322cf7400ba9614dffb48df51197b905' },
+  { id: 'islet pool', make: isletGlb, bytes: 12_956, hash: '3c18959354dfbd48b6faa7f68d5a4072b88e2b4c2133084b9cee8e07f6c1f048' },
 ];
 const original = v.parse(v.object({ rigs: v.unknown(), rails: v.unknown() }), JSON.parse(readFileSync('src/shards/far-reach/data/isletRig.json', 'utf8')));
 
@@ -34,6 +38,12 @@ test('each authored rig bank owns its chain and rail arrays', () => {
 
 test.each(cases)('$id retains its complete original output from authored rig rows', ({ output, make }) => {
   expect(Buffer.compare(make(), readFileSync(output))).toBe(0);
+});
+
+test.each(pinned)('the $id keep their complete original bytes from authored rig rows', ({ make, bytes, hash }) => {
+  const made = make();
+  expect(made.byteLength).toBe(bytes);
+  expect(hashImmutableBytes(made)).toBe(hash);
 });
 
 test.each(cases)('the real cold sealed $id writer retains every byte without the rig metadata handoff', async ({ id, output }) => {
