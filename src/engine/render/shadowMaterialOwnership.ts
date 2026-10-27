@@ -36,7 +36,7 @@ export function installShadowMaterialOwnership(renderer: ShadowRenderer, assets:
     if (kind === undefined) {
       kind = new MeshDepthMaterial();
       kinds.set(key, kind);
-      assets.register(`renderer:shadow-kind:${key}`, kind, { retain: true });
+      assets.register(`renderer:shadow-kind:${key}`, kind, { retain: true, native: true });
       const material: Material = kind;
       scope.listenOnceEmitter(material, 'dispose', () => { kinds.delete(key); assets.forgetDisposed(`renderer:shadow-kind:${key}`); });
     }
@@ -49,7 +49,8 @@ export function installShadowMaterialOwnership(renderer: ShadowRenderer, assets:
       // asked by resource, not by key: a key string per shadow draw was garbage on every frame
       material !== object.customDepthMaterial && material !== object.customDistanceMaterial && !assets.isAcquired(material)) {
       const key = `renderer:shadow:${material.uuid}`;
-      assets.register(key, material, { retain: true });
+      // native: three disposes a per-material depth variant with its source, maybe while a resident still leases it
+      assets.register(key, material, { retain: true, native: true });
       scope.listenOnceEmitter(material, 'dispose', () => { assets.forgetDisposed(key); });
     }
     if (drawing && material instanceof MeshDepthMaterial && object.customDepthMaterial === undefined) {

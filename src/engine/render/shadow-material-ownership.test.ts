@@ -54,3 +54,30 @@ test('the existing submission port refuses guarded draws and releases each guard
     second.dispose(); draw(); expect(allow).toHaveBeenCalledOnce(); expect(submit).toHaveBeenCalledTimes(2);
   } finally { first.dispose(); second.dispose(); page.dispose(); geometry.dispose(); material.dispose(); }
 });
+
+test('a native depth variant three disposes with its source while a resident leases it leaves at the lease\'s release', () => {
+  const page = new Scope('renderer'), resident = new Scope('resident'), assets = new AssetService();
+  const root = new Group(), geometry = new BufferGeometry(), mesh = new Mesh(geometry, new MeshBasicMaterial());
+  root.add(mesh); ownSceneTree(root, resident, assets);
+  const variant = new MeshDepthMaterial(), camera = new PerspectiveCamera(), scene = new Scene();
+  const renderer = {
+    properties: { has: () => false, get: (object: unknown) => object, remove: () => undefined, update: () => undefined, dispose: () => undefined },
+    renderBufferDirect: vi.fn<Renderer['renderBufferDirect']>(),
+    shadowMap: { render: vi.fn<Renderer['shadowMap']['render']>(() => { renderer.renderBufferDirect(camera, scene, geometry, variant, mesh, { start: 0, count: 0, materialIndex: 0 }); }) },
+  };
+  new UploadOwnership(page, assets).attach(renderer);
+  installShadowMaterialOwnership(renderer, assets, page);
+  renderer.shadowMap.render([], scene, camera);
+  expect(assets.retained()).toEqual([{ key: `renderer:shadow:${variant.uuid}`, refs: 1, retained: true }]);
+  // the resident's materials step disposes the source; three's shadow map disposes the variant with it, before the
+  // resident's own leases release (G782 warm Pine crossing: 'Disposed asset still acquired: renderer:shadow:…')
+  expect(() => variant.dispose()).not.toThrow();
+  expect(assets.retained()).toEqual([{ key: `renderer:shadow:${variant.uuid}`, refs: 1, retained: true }]);
+  expect(() => resident.dispose()).not.toThrow();
+  expect(assets.retained()).toEqual([]);
+  // an ordinary asset still refuses a native disposal while it is acquired
+  const plain = new MeshBasicMaterial();
+  assets.register('plain', plain); assets.acquire('plain');
+  expect(() => { assets.forgetDisposed('plain'); }).toThrow('Disposed asset still acquired: plain');
+  page.dispose();
+});
