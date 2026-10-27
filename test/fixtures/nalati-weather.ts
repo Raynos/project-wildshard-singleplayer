@@ -9,6 +9,7 @@ import { parseClientChannels } from '../../src/sdk/rows';
 import { parseDecisionScripts } from '../../src/sdk/decisionScripts';
 import { hashImmutableBytes } from '../../src/sdk/immutable';
 import type { NalatiWeather } from '../../src/shards/nalati-grasslands/generators/weatherProgram';
+import { originalScriptOrder } from './original-script-order';
 
 const binary = Uint8Array.from(readFileSync(resolve('test/fixtures', 'nalati-weather-original.wasm')));
 const script = parseDecisionScripts([rows.script])[0];
@@ -16,7 +17,7 @@ if (script === undefined || script.module !== `blobs/wasm/${hashImmutableBytes(b
   || rows.compiled.bytes !== binary.byteLength) throw new Error('Original weather executable differs');
 /** Complete independent predecessor inputs; production always constructs its own weather. */
 export const NALATI_WEATHER: NalatiWeather = {
-  binary, rows: { ...rows, bytes: '', script },
+  binary, rows: { ...rows, bytes: '', script: originalScriptOrder(rows.script, script) },
   channels: {
     weather: { ...weather, clientChannels: parseClientChannels(weather.clientChannels) },
     herd: { ...herd, clientChannels: parseClientChannels(herd.clientChannels) },
