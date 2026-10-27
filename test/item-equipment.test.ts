@@ -1,11 +1,14 @@
 import { expect, test } from 'vitest';
 import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
 import { parseItems } from '../src/format/items';
-import PINE_ITEMS from '../src/shards/pine-hollow/data/items.generated.json' with { type: 'json' };
+import { pineItems } from '../src/shards/pine-hollow/generators/channelSections';
 import DRIFTWOOD_SWORDS from '../src/shards/driftwood-isle/data/items.generated.json' with { type: 'json' };
 import NINE_ITEMS from '../src/shards/nine-dragon-stack/data/items.json' with { type: 'json' };
 import { CROSSBOW, LEVER, LONGBOW } from '../src/shards/pine-hollow/generators/equipment';
 import { SWORD_WOOD, SWORD_IRON } from '../src/game/weapons/starterMeleeProfile';
+
+// GR8: called, not read from a scheduler job's output
+const PINE_ITEMS = pineItems();
 
 test('admitted equipment preserves the five shipping rows across canonical product JSON', () => {
   const pine: unknown = structuredClone(PINE_ITEMS);

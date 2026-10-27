@@ -9,8 +9,11 @@ import { createNativeCombatFrame, installNativeItems } from '../src/game/plugin/
 import { HEADLESS_ASSEMBLY_JSON_SCHEMA } from '../src/format/namedJsonContracts';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import { parseItems } from '../src/format/items';
-import items from '../src/shards/pine-hollow/data/items.generated.json' with { type: 'json' };
+import { pineItems } from '../src/shards/pine-hollow/generators/channelSections';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+
+// GR8: called, not read from a scheduler job's output
+const items = pineItems();
 
 const native = { $native: { kind: 'combat.motion', speed: 7.2 } };
 const base = { version: 1, modules: {}, constants: {}, prepare: [], install: [{ name: 'motion', value: native }],

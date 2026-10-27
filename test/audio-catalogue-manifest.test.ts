@@ -7,8 +7,11 @@ import {productAudioCatalogue} from '../src/game/shardfile/audioCatalogue';
 import {parseAudioData} from '@wildshard/format/audio';
 import {MANIFEST as pine} from '../src/shards/pine-hollow/discovery.generated';
 import {MANIFEST as island} from '../src/shards/driftwood-isle/discovery.generated';
-import pineAudio from '../src/shards/pine-hollow/data/audio.generated.json' with {type:'json'};
+import { pineAudio as pineAudioSection } from '../src/shards/pine-hollow/generators/channelSections';
 import islandAudio from '../src/shards/driftwood-isle/data/audio.generated.json' with {type:'json'};
+
+// GR8: called, not read from a scheduler job's output
+const pineAudio = pineAudioSection();
 
 it.each([[pine,pineAudio],[island,islandAudio]] as const)('%s boots from admitted catalogue rows without a shard facade',async(manifest,rows)=>{
  const source=emptyShardfile({slug:manifest.slug,name:'Catalogue',author:'Wildshard',revision:1,seed:1});

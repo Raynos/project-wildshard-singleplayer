@@ -2,8 +2,11 @@ import { expect, test } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { absentShardProduct, createShardProduct } from '../src/game/shardfile/shardProduct';
 import {productAudioCatalogue} from '../src/game/shardfile/audioCatalogue';
-import AUDIO from '../src/shards/pine-hollow/data/audio.generated.json' with { type: 'json' };
+import { pineAudio } from '../src/shards/pine-hollow/generators/channelSections';
 import { parseAudioData } from '@wildshard/format/audio';
+
+// GR8: called, not read from a scheduler job's output
+const AUDIO = pineAudio();
 
 const PINE_AUDIO = parseAudioData(AUDIO.audio);
 

@@ -7,7 +7,10 @@ import { heldFirearmSettings, heldLauncherProfile } from '../src/game/plugin/hel
 import { LEVER_PROFILE } from './fixtures/weapon-oracle/leverBridge';
 import { CROSSBOW_PROFILE } from './fixtures/weapon-oracle/crossbowProfile';
 import LEVER_DETAILS from '../src/shards/pine-hollow/data/leverDetails.json' with { type: 'json' };
-import ITEMS from '../src/shards/pine-hollow/data/items.generated.json' with { type: 'json' };
+import { pineItems } from '../src/shards/pine-hollow/generators/channelSections';
+
+// GR8: called, not read from a scheduler job's output
+const ITEMS = pineItems();
 
 const items = parseItems(ITEMS), view = v.parse(HeldEquipmentSchema.entries.firearm.entries.rows.entries.view, LEVER_DETAILS.rows.view);
 function profile(id: string): unknown {

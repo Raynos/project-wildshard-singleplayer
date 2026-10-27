@@ -2,12 +2,9 @@ import { PINE_FEATS } from './questInventory';
 import { tradeEconomy } from './trades';
 import plumbing from '../data/plumbing.json' with { type: 'json' };
 import identity from '../data/identity.json' with { type: 'json' };
-import weatherChannels from '../data/weatherChannels.generated.json' with {type:'json'};
-import skyChannels from '../data/skyChannels.generated.json' with { type: 'json' };
+import { pineWeatherChannelSection, pineSkyChannelSection, pineAudio, pineItems } from './channelSections';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
-import AUDIO from '../data/audio.generated.json' with { type: 'json' };
-import PINE_ITEMS from '../data/items.generated.json' with { type: 'json' };
 import { PINE_LEDGER } from './ledger';
 import { parseQuestData } from '@wildshard/sdk/quests';
 import { PINE_RUNTIME_SPAWNS } from './spawns';
@@ -22,6 +19,18 @@ import people from '../data/questNpcs.generated.json' with { type: 'json' };
 import journal from '../data/journal.generated.json' with { type: 'json' };
 import { PINE_QUEST_HOST } from './questHost';
 import shelterProgram from '../behaviour/shelter.generated.json' with { type: 'json' };
+
+// GR8: called, not read from a scheduler job's output
+const weatherChannels = pineWeatherChannelSection();
+
+// GR8: called, not read from a scheduler job's output
+const skyChannels = pineSkyChannelSection();
+
+// GR8: called, not read from a scheduler job's output
+const AUDIO = pineAudio();
+
+// GR8: called, not read from a scheduler job's output
+const PINE_ITEMS = pineItems();
 
 // GR8: called, not read from a scheduler job's output
 const looks = pineLookMaterials();

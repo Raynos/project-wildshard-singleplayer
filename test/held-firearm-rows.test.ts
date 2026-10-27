@@ -9,7 +9,10 @@ import model from '../src/shards/nalati-grasslands/data/heldRifle.json' with { t
 import { AR15 } from './fixtures/weapon-oracle/nalatiRifleProfile';
 import { heldFirearmSettings } from '../src/game/plugin/heldEquipment';
 import leverDetails from '../src/shards/pine-hollow/data/leverDetails.json' with { type: 'json' };
-import pineItems from '../src/shards/pine-hollow/data/items.generated.json' with { type: 'json' };
+import { pineItems as pineItemsSection } from '../src/shards/pine-hollow/generators/channelSections';
+
+// GR8: called, not read from a scheduler job's output
+const pineItems = pineItemsSection();
 
 test('generated carbine keeps every native profile, model and playback value', () => {
   const item = items.rows.find(row => row.id === 'weapon.rifle');
@@ -25,7 +28,7 @@ test('generated carbine keeps every native profile, model and playback value', (
 test('lever admission retains additional view and timing fields read by playback', () => {
   const details = {rows:{view:v.parse(HeldEquipmentSchema.entries.firearm.entries.rows.entries.view,leverDetails.rows.view)}};
   const item = pineItems.rows.find(row => row.id === 'weapon.lever');
-  const { view } = heldFirearmSettings(item?.profile, details.rows.view,tuning.firearmTuning);
+  const { view } = heldFirearmSettings(item !== undefined && 'profile' in item ? item.profile : undefined, details.rows.view,tuning.firearmTuning);
   expect(parseHeldFirearmView(view)).toEqual(view);
   expect(parseHeldFirearmView(rifle.view)).toEqual(rifle.view);
 });

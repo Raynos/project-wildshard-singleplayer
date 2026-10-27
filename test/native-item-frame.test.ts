@@ -7,13 +7,16 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { createNativeCombatFrame, installNativeItems } from '../src/game/plugin/nativeItems';
 import { fillNativeCombatFrame } from '../src/sdk/headlessRuntime';
 import { parseItems } from '../src/format/items';
-import PINE_ITEMS from '../src/shards/pine-hollow/data/items.generated.json' with { type: 'json' };
+import { pineItems } from '../src/shards/pine-hollow/generators/channelSections';
 import { GustContinuation } from '../src/engine/world/weatherContinuation';
 import weatherProgram from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
 import { installPineCrossbow, boltFlight } from './fixtures/weapon-oracle/headlessCrossbow';
 import { installPineLongbow } from './fixtures/weapon-oracle/nativeLongbow';
 import { installPineLever } from './fixtures/weapon-oracle/nativeLever';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+
+// GR8: called, not read from a scheduler job's output
+const PINE_ITEMS = pineItems();
 
 const items = parseItems(PINE_ITEMS);
 const declaration = (id: string) => {

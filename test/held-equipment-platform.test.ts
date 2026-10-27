@@ -7,7 +7,10 @@ import { HeldEquipmentSchema } from '../src/format/heldEquipment';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { HeldEquipment, heldLauncherProfile, heldFirearmSettings } from '../src/game/plugin/heldEquipment';
 import { CROSSBOW_WEAPON_PROFILE } from '../src/shards/pine-hollow/generators/crossbowProfile';
-import items from '../src/shards/pine-hollow/data/items.generated.json' with { type: 'json' };
+import { pineItems } from '../src/shards/pine-hollow/generators/channelSections';
+
+// GR8: called, not read from a scheduler job's output
+const items = pineItems();
 
 // Another shard authors its own assets, hand materials, action presentation and motion.
 test('a fictional harbour shard drives held equipment entirely from platform rows', async () => {
@@ -31,7 +34,7 @@ test('a fictional harbour shard drives held equipment entirely from platform row
   const launcher = heldLauncherProfile({ ...CROSSBOW_WEAPON_PROFILE, reserve: 4, interval: .6 }, rows.launcherTuning);
   expect(launcher).toMatchObject({ quiver: 5, cooldown: .6, bury: .04, kick: .01, adsBlend: .25, maxStuck: 17 });
   const rifle = items.rows.find(row => row.id === 'weapon.lever');
-  const firearm = heldFirearmSettings(rifle?.profile, rows.firearm.rows.view, rows.firearmTuning);
+  const firearm = heldFirearmSettings(rifle !== undefined && 'profile' in rifle ? rifle.profile : undefined, rows.firearm.rows.view, rows.firearmTuning);
   expect(firearm.profile.kick).toBe(.02); expect(firearm.profile.brass).toEqual({ count: 2, life: .8 });
   expect(() => new HeldEquipment(createShardProduct({ slug: shardfile.identity.slug, revision: 1, shardfile,
     sections: new Map([['held/equipment', { ...rows, launcherTuning: { ...rows.launcherTuning, maxStuck: -1 } }]]), files: new Map(),

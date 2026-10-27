@@ -3,8 +3,11 @@ import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
 import { parseItems } from '../src/format/items';
 import { wetFlight } from '../src/engine/combat/ammo';
 import weatherProgram from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
-import PINE_ITEMS from '../src/shards/pine-hollow/data/items.generated.json' with { type: 'json' };
+import { pineItems } from '../src/shards/pine-hollow/generators/channelSections';
 import { boltFlight } from './fixtures/weapon-oracle/headlessCrossbow';
+
+// GR8: called, not read from a scheduler job's output
+const PINE_ITEMS = pineItems();
 
 test('page ammunition keeps shipping labels, wet multipliers and every native flight/target coefficient', () => {
   const ammunition = new ItemCatalogue(PINE_ITEMS).ammunition('weapon.crossbow');

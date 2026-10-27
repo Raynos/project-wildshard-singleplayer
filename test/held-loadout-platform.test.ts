@@ -5,7 +5,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { HOST_PROBE } from '../src/game/plugin/simulation';
 import { createNativeCombatFrame, installNativeItems } from '../src/game/plugin/nativeItems';
 import { parseItems } from '../src/format/items';
-import itemRows from '../src/shards/pine-hollow/data/items.generated.json' with { type: 'json' };
+import { pineItems } from '../src/shards/pine-hollow/generators/channelSections';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { AmmoPouch } from '../src/game/loadout/pouch';
@@ -15,6 +15,9 @@ import { restoreHeldOwnership } from '../src/game/loadout/held';
 import { SaveStore } from '../src/engine/saves/store';
 import { LoadoutSchema } from '../src/format/loadout';
 import pineRows from '../src/shards/pine-hollow/data/loadout.json' with { type: 'json' };
+
+// GR8: called, not read from a scheduler job's output
+const itemRows = pineItems();
 
 test('harbour rows cycle unrelated ammunition and retain the selected live stack', () => {
   const pouch = new AmmoPouch({ kinds: ['harpoon', 'flare', 'net'], fallback: 'harpoon', capacity: 12 }, { flare: 4 });
