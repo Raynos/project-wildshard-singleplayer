@@ -6,12 +6,12 @@
 // `shelterTrees`, the authored forest trunks). GR8 G26: `pineProps` gives every copy's pose to the scene model rows, the
 // output's world/props.json and the prop scenes, instead of the retired pine-props job's data/props.json.
 import { readFileSync, readdirSync } from 'node:fs';
-import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { bakePineProps, propKit } from './props.ts';
 import { pineCragGround } from './bake-pine-crags.mjs';
 import { emptyShardfile } from '@wildshard/sdk/author';
+import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { compactMaterialGlb } from './materialGlb.mjs';
 
 const root = resolve(import.meta.dirname, '../../../..');
@@ -62,7 +62,7 @@ export function pinePropMaterialFiles() {
     const urls = [...new Set([original, phone, GPU_FILES.desktop[original], GPU_FILES.phone[phone], ASTC6_PHONE[phone], ...readdirSync(resolve(root, `public/assets/gpu/models/${id}`)).filter(file => file.endsWith('.glb')).sort().map(file => `/assets/gpu/models/${id}/${file}`)].filter(Boolean))];
     for (const url of urls) {
       const bytes = readFileSync(resolve(root, `public${url}`));
-      const packed = compactMaterialGlb(bytes), hash = createHash('sha256').update(packed).digest('hex'), target = `/assets/pine-hollow/baked/prop-materials/${hash}.glb`;
+      const packed = compactMaterialGlb(bytes), hash = hashImmutableBytes(packed), target = `/assets/pine-hollow/baked/prop-materials/${hash}.glb`;
       aliases[url] = target; outputs[`public${target}`] = packed; costs.push({ original: url, before: bytes.length, after: packed.length });
     }
   }
