@@ -34,15 +34,23 @@ import { bootModuleFiles } from './bootModules';
 import { readModuleFiles } from '../src/engine/boot/download';
 import { manifestFolders, shardProducts, outputManifest } from '../scripts/shard-outputs.mjs';
 
-/** The title's own visibility rule, applied to authored build-time data. Frozen
- * TS manifests are reference-only; they never seed speculative downloads. */
+/** Card metadata may be visible while its experimental entry stays locked.
+ * Only ordinary public admission seeds speculative executable downloads. */
+export function publicWorkerProduct(slug: string, input: unknown): boolean {
+  const row = metadata(input);
+  if (typeof row.status !== 'string' || !['live', 'earlyAccess', 'experimental', 'hidden'].includes(row.status)
+    || row.legacy !== undefined && typeof row.legacy !== 'boolean'
+    || row.shardSelect !== undefined && typeof row.shardSelect !== 'boolean') throw new Error('Invalid worker public-entry metadata');
+  return !slug.startsWith('_') && row.status !== 'hidden' && row.status !== 'experimental' && row.legacy !== true && row.shardSelect !== false;
+}
+
+/** Frozen TS manifests are reference-only and do not seed downloads. */
 function publicProducts(root: string): string[] {
   return shardProducts(root, manifestFolders(root)).flatMap(product => {
     const file = join(root, 'src/shards', product.folder, 'manifest.json');
     if (!existsSync(file)) return [];
     const value: unknown = product.output === null ? JSON.parse(readFileSync(file, 'utf8')) : outputManifest(root, product.folder, product.output);
-    const row = metadata(value);
-    return product.slug.startsWith('_') || row.status === 'hidden' || row.legacy === true || row.shardSelect === false ? [] : [product.slug];
+    return publicWorkerProduct(product.slug, value) ? [product.slug] : [];
   });
 }
 interface WarmMetadata extends Record<string, unknown> {

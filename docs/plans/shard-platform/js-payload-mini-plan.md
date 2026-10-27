@@ -197,8 +197,8 @@ Code landed in this commit; **in flight (reading at plan end, G780)**.
 The worker now has separate full cache/prune and public warm inventories.
 Warming uses the existing loading-bar module bank: common/client/grid static
 closures, public selected manifests and their selected feature groups, plus
-the title/select static roots and stylesheet. Public products use the same
-hidden/underscore/legacy/shardSelect rules as the title. Arbitrary dynamic
+the title/select static roots and stylesheet. Public executable products use ordinary admission, excluding experimental
+entries as well as hidden/underscore/legacy/shardSelect exclusions. Arbitrary dynamic
 imports are never followed. Missing bank entries or invalid group indexes
 refuse the build, rather than warming an incomplete guessed closure.
 
@@ -216,3 +216,21 @@ Install/deploy byte savings and the real offline public-play reading remain
 pending the single plan-end reading. J6.1's explicit Settings download action
 is separate and remains queued. LD4's Node comparison code is `dd127fefb8`;
 its six explicit coverage rows remain open in the legacy-deletion plan.
+
+
+### J6 public admission correction
+
+The warm transport source is **5d2b18a811**; this commit corrects its product
+classification. A visible experimental card is still locked to ordinary play,
+so its executable root must remain cold. Only live/early-access entries seed
+automatic warming; hidden, underscore, legacy, experimental and grid-only
+picker exclusions retain on-use loading. Their card metadata remains in the
+public title/select closure. Shared chunks required by public roots remain warm.
+Malformed admission metadata refuses at build time. Boundary controls are added;
+touched types and typed lint pass, with no manual tests/build/preview under G769.
+J6 stays **in flight (reading at plan end, G780)**; no byte-saving claim is made.
+
+LD4's exact recorded phone capture is **7aa20be8f8**. It admits all six declared
+catalogues with five exact Model-list matches and one explicit Nine fp-arms gap;
+late/native world registrations remain open in its six named coverage rows.
+The committed collector matches the executed inventory's SHA256.

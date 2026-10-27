@@ -4,7 +4,18 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { join, resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { preview } from 'vite';
-import { pwaPlugin, workerInstallFiles, workerScripts, workerWarmFiles } from '../vite/pwa-plugin';
+import { pwaPlugin, workerInstallFiles, workerScripts, workerWarmFiles, publicWorkerProduct } from '../vite/pwa-plugin';
+
+test('visible experimental cards never seed executable public warming', () => {
+  expect(publicWorkerProduct('public', { status: 'live' })).toBe(true);
+  expect(publicWorkerProduct('early', { status: 'earlyAccess' })).toBe(true);
+  expect(publicWorkerProduct('visible-locked', { status: 'experimental' })).toBe(false);
+  expect(publicWorkerProduct('hidden', { status: 'hidden' })).toBe(false);
+  expect(publicWorkerProduct('_internal', { status: 'live' })).toBe(false);
+  expect(publicWorkerProduct('reference', { status: 'live', legacy: true })).toBe(false);
+  expect(publicWorkerProduct('grid-only', { status: 'live', shardSelect: false })).toBe(false);
+  expect(() => publicWorkerProduct('bad', { status: 'unknown' })).toThrow('Invalid worker public-entry metadata');
+});
 
 test('public warming uses declared closures, leaving Developer-only code on use', () => {
   const bank = { common: [['/assets/common-aaaaaaaa.js', 1]], client: [['/assets/client-bbbbbbbb.js', 2]], grid: [],
