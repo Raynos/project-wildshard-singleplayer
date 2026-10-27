@@ -32,6 +32,7 @@ test('a partial checkout fetches dependency waves together without reading impor
     };
     const base=commit();
     writeFileSync(resolve(source,'src/dependency-39.js'),'export const value=999;\n');
+    const dependency=commit();
     writeFileSync(resolve(source,'src/data.json'),JSON.stringify({value:'new'.repeat(4000)}));
     const sha=commit(),dataHash=git(source,'rev-parse',`${sha}:src/data.json`);
     git(reader,'init','-q');git(reader,'remote','add','origin',pathToFileURL(source).href);
@@ -42,7 +43,9 @@ test('a partial checkout fetches dependency waves together without reading impor
     expect(dataPresent()).toBe(`${dataHash} missing`);
     env['GIT_TRACE']=trace;
     const report=culpritReport(reader,base,sha,['test/failure.test.ts']);
-    expect(report.candidates.map(row=>row.sha)).toEqual([sha]);
+    // A data-only change must remain a candidate even though its payload is
+    // deliberately never downloaded or parsed by this source-import walk.
+    expect(report.candidates.map(row=>row.sha)).toEqual([sha,dependency]);
     expect(report.missingImports).toEqual([]);
     expect(dataPresent()).toBe(`${dataHash} missing`);
     const fetches=readFileSync(trace,'utf8').match(/built-in: git fetch /gu)??[];
