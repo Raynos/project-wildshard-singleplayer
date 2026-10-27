@@ -133,13 +133,13 @@ function exclusiveMaterials(scene: THREE.Scene, excluded: ReadonlySet<THREE.Obje
 }
 
 function exteriorJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, shadows: boolean, roots?: readonly THREE.Object3D[], per = 6,
-  resolve?: ShadowDepthResolver, leaving: readonly THREE.Object3D[] = []): CompileJob[] {
-  const steps = exteriorJobSteps(scene, rt, shadows, roots, per, resolve, leaving);
+  resolve?: ShadowDepthResolver, leaving: readonly THREE.Object3D[] = [], from?: THREE.Vector3): CompileJob[] {
+  const steps = exteriorJobSteps(scene, rt, shadows, roots, per, resolve, leaving, from);
   for (;;) { const step = steps.next(); if (step.done) return step.value; }
 }
 
 function* exteriorJobSteps(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, shadows: boolean, roots?: readonly THREE.Object3D[], per = 6,
-  resolve?: ShadowDepthResolver, leaving: readonly THREE.Object3D[] = []): Generator<void, CompileJob[]> {
+  resolve?: ShadowDepthResolver, leaving: readonly THREE.Object3D[] = [], from?: THREE.Vector3): Generator<void, CompileJob[]> {
   const registered = exteriorLighting.get(scene);
   if (registered === undefined) return [];
   // `leaving`: content that goes with the entered frame's owner (its staged camera models) never draws outside either
@@ -158,7 +158,7 @@ function* exteriorJobSteps(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | nul
     for (let i = object.children.length - 1; i >= 0; i--) { const child = object.children[i]; if (child !== undefined) pending.push(child); }
     yield;
   }
-  const exterior = (yield* sceneJobSteps(scene, rt, roots === undefined ? per : 1, roots ?? [scene], state.roots)).jobs;
+  const exterior = (yield* sceneJobSteps(scene, rt, roots === undefined ? per : 1, roots ?? [scene], state.roots, undefined, from)).jobs;
   // Only whole-scene family preparation consumes this exclusion set. A root warm-up (a sky or clip variant) must
   // not walk every parked resident just to discard its material inventory.
   const excludedMaterials = new Set<THREE.Material>();
@@ -318,18 +318,19 @@ function standIn(mesh: MeshLike): MeshLike {
  * variant, without touching live visibility or parents (gauntlet's compileMaterials).
  * `roots` restricts the borrowed inventory while retaining the target scene's lights, fog and environment.
  * `excludedRoots` omits content that leaves with an exterior frame's lighting, without changing live visibility.
+ * `from` orders the jobs by distance from it to what each draws, nearest first.
  */
 export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, per = 6, roots: readonly THREE.Object3D[] = [scene],
-  excludedRoots?: ReadonlySet<THREE.Object3D>): { jobs: CompileJob[]; materials: number } {
-  const steps = sceneJobSteps(scene, rt, per, roots, excludedRoots);
+  excludedRoots?: ReadonlySet<THREE.Object3D>, from?: THREE.Vector3): { jobs: CompileJob[]; materials: number } {
+  const steps = sceneJobSteps(scene, rt, per, roots, excludedRoots, undefined, from);
   for (;;) { const step = steps.next(); if (step.done) return step.value; }
 }
 
 function* sceneJobSteps(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, per: number, roots: readonly THREE.Object3D[],
-  excludedRoots?: ReadonlySet<THREE.Object3D>, include?: (object: THREE.Object3D) => boolean): Generator<void, { jobs: CompileJob[]; materials: number }> {
+  excludedRoots?: ReadonlySet<THREE.Object3D>, include?: (object: THREE.Object3D) => boolean, from?: THREE.Vector3): Generator<void, { jobs: CompileJob[]; materials: number }> {
   const seen = new Set<string>();
   const mats = new Set<THREE.Material>();
-  const clones: { readonly object: THREE.Object3D; readonly side?: CompileJob['materialSide'] }[] = [];
+  const clones: { readonly object: THREE.Object3D; readonly side?: CompileJob['materialSide']; readonly distance: number }[] = [];
   const pending = [...roots].reverse();
   while (pending.length > 0) {
     const o = pending.pop();
@@ -342,6 +343,7 @@ function* sceneJobSteps(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, 
     if (list.length === 0) { yield; continue; }
     const ok = programObjectKey(mesh);
     const wanted = list.filter((m) => { mats.add(m); const k = m.uuid + ok; if (seen.has(k)) return false; seen.add(k); return true; });
+    const distance = from === undefined || wanted.length === 0 ? 0 : boundsDistance(o, from);
     // A mesh's material array can contain many distinct programs. Count each
     // as one unit too, so a live `per = 1` job cannot hide an atomic batch.
     for (const material of wanted) {
@@ -351,12 +353,14 @@ function* sceneJobSteps(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, 
       for (const side of sides) {
         const copy = standIn(mesh);
         copy.material = material;
-        clones.push({ object: copy, ...(side === undefined ? {} : { side: { material, side } }) });
+        clones.push({ object: copy, distance, ...(side === undefined ? {} : { side: { material, side } }) });
       }
       yield;
     }
     if (wanted.length === 0) yield;
   }
+  // nearest first: what the player reaches soonest links soonest (a stable sort keeps a material's face pair together)
+  if (from !== undefined) clones.sort((a, b) => a.distance - b.distance);
   const jobs: CompileJob[] = [];
   for (let i = 0; i < clones.length;) {
     const root = new THREE.Group();
@@ -373,8 +377,20 @@ function* sceneJobSteps(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, 
 }
 
 function pacedSceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, per: number, roots: readonly THREE.Object3D[],
-  excluded: ReadonlySet<THREE.Object3D> | undefined, current: () => boolean, owner: Scope, include?: (object: THREE.Object3D) => boolean): Promise<{ jobs: CompileJob[]; materials: number }> {
-  return pacedPreparation(sceneJobSteps(scene, rt, per, roots, excluded, include), current, owner);
+  excluded: ReadonlySet<THREE.Object3D> | undefined, current: () => boolean, owner: Scope, include?: (object: THREE.Object3D) => boolean,
+  from?: THREE.Vector3): Promise<{ jobs: CompileJob[]; materials: number }> {
+  return pacedPreparation(sceneJobSteps(scene, rt, per, roots, excluded, include, from), current, owner);
+}
+
+const boundsCentre = new THREE.Vector3();
+/** How far `object`'s drawn bounds lie from `at`: its bounding sphere's (an instanced or batched mesh's own, else its
+ *  geometry's, as three's frustum test last computed it) centre's distance less the radius; its origin's without one. */
+function boundsDistance(object: THREE.Object3D, at: THREE.Vector3): number {
+  const own: unknown = Reflect.get(object, 'boundingSphere'), geometry: unknown = Reflect.get(object, 'geometry');
+  const sphere = own instanceof THREE.Sphere ? own : geometry instanceof THREE.BufferGeometry ? geometry.boundingSphere : null;
+  if (sphere === null) return boundsCentre.setFromMatrixPosition(object.matrixWorld).distanceTo(at);
+  boundsCentre.copy(sphere.center).applyMatrix4(object.matrixWorld);
+  return Math.max(0, boundsCentre.distanceTo(at) - sphere.radius * object.matrixWorld.getMaxScaleOnAxis());
 }
 
 /** Discovery shares the ordinary measured build budget. Live root callers retain their completed-draw barrier; cheap
@@ -1262,8 +1278,12 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     /** Optional scalar stage timings, including painted waits. Does not retain materials or native handles. */ onStage?: PrecompileStage;
     /** Warm post draw pipelines one material per paint during initial loading; never used by live preparation. */ warmPost?: boolean;
     /** A live warm-up's slice bound (LIVE_PRECOMPILE_SLICE_MS): one material a job, each slice checked against it. */ sliceMs?: number;
-    /** Scene programs only for what the camera draws now (the first frame's); the rest is the caller's later warm-up.
-     *  Shadow, family, post, background and exterior jobs stay whole. */ drawnOnly?: boolean } = {}): Promise<number> {
+    /** Programs only for what the camera draws now (the first frame's); the rest is the caller's later warm-up (S1): the
+     *  scene's undrawn materials, material families and the exterior (road) lighting variants, none of which draws until
+     *  a look swaps or the player leaves the cell. Shadow, offscreen, post and background jobs stay whole: any of them
+     *  can draw in the first seconds (a turn moves casters into a cascade, a menu blurs). */ drawnOnly?: boolean;
+    /** Scene and exterior programs ordered by the camera's distance to what draws them, nearest first (the after-control
+     *  warm-up: what the player reaches soonest links soonest). */ nearest?: boolean } = {}): Promise<number> {
 
     if (options.current?.() === false) throw new Error('Shader warm-up owner left');
     if (options.futureLighting !== undefined) {
@@ -1312,9 +1332,10 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const per = single ? 1 : 6;
     const excludedRoots = entryFrameExclusions(scene, options.futureLighting);
     const kinded = (kind: string, list: CompileJob[]): CompileJob[] => { for (const job of list) job.kind = kind; return list; };
+    const from = options.nearest === true ? game.camera.getWorldPosition(new THREE.Vector3()) : undefined, drawnOnly = options.drawnOnly === true;
     const { jobs, materials } = policy?.scene === false ? { jobs: [], materials: 0 }
-      : live || options.drawnOnly === true
-        ? await pacedSceneJobs(scene, rt, per, [scene], excludedRoots, options.current ?? (() => true), pageScope, options.drawnOnly === true ? drawnFrom(game.camera) : undefined)
+      : live || drawnOnly
+        ? await pacedSceneJobs(scene, rt, per, [scene], excludedRoots, options.current ?? (() => true), pageScope, drawnOnly ? drawnFrom(game.camera) : undefined, from)
         : sceneJobs(scene, rt, per, [scene], excludedRoots);
     // Diagnostic split: the entered root's own materials, else the rest of the page compiled under its lights.
     const entered = new Set<THREE.Material>();
@@ -1322,7 +1343,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     for (const job of jobs) job.kind = job.root.children.some(clone => materialsOf(clone).some(material => entered.has(material))) ? 'scene-entered' : 'scene-other';
     await pace();
     // material families (SF10a): live family programs the scene does not hold yet (none live: no jobs)
-    if (policy?.scene !== false) jobs.push(...kinded('family', familyCompileJobs(scene, rt, per, exclusiveMaterials(scene, excludedRoots))), ...kinded('offscreen', offscreenJobs(scene, 1, excludedRoots)));
+    if (policy?.scene !== false) jobs.push(...kinded('family', drawnOnly ? [] : familyCompileJobs(scene, rt, per, exclusiveMaterials(scene, excludedRoots))), ...kinded('offscreen', offscreenJobs(scene, 1, excludedRoots)));
     await pace();
     if (policy?.shadows !== false) jobs.push(...kinded('shadow', shadowJobs(scene, rt, per, excludedRoots, depthVariants)));
     await pace();
@@ -1338,7 +1359,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     await pace();
     if (options.futureLighting !== undefined) includeFutureLights(jobs, scene, options.futureLighting, options.futureEnvironment);
     jobs.push(...previousShadows);
-    if (policy?.scene !== false) jobs.push(...kinded('exterior', exteriorJobs(scene, rt, policy?.shadows !== false, undefined, per, depthVariants, options.leaving)));
+    if (policy?.scene !== false && !drawnOnly) jobs.push(...kinded('exterior', exteriorJobs(scene, rt, policy?.shadows !== false, undefined, per, depthVariants, options.leaving, from)));
     await pace();
     if (policy?.post !== false) jobs.push(readbackPreparation(owner));
     for (const job of jobs) if (job.dispose !== undefined) owner.onDispose(job.dispose);
