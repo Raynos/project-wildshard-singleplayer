@@ -180,6 +180,8 @@ async function metadataPressure() {
   const cap = probe.owner.allocator.cost().playing + 4;
   metadata.release(); probe.owner.scope.dispose();
   const f = fixture(false, cap), evict = vi.fn();
+  // The sizing probe shares the module spy; count only this owner's admissions.
+  f.admit.mockClear();
   const kept = f.owner.allocator.reserve({ id: 'kept', category: 'sim', owner: 'kept', bytes: 3, distance: 1, needed: false, evictSync: () => { evict(); } });
   if (kept === null) throw new Error('Kept world did not fit');
   return { ...f, evict, kept };
