@@ -118,9 +118,8 @@ test('a disposed named-scene owner publishes nothing and never starts field read
 // Actual source compilation/native construction belongs to fixture preparation,
 // before the unchanged 30 s assertions over the complete admitted envelope.
 const nalatiEnvelope=await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
-    { prefix: '/assets/nalati/baked/', directory: 'public/assets/nalati/baked' },
-    { prefix: '/assets/nalati/models/', directory: 'public/assets/nalati/models' },
-    { prefix: '/assets/baked/nalati-grasslands/', directory: 'public/assets/baked/nalati-grasslands' },
+    { prefix: '/src/shards/nalati-grasslands/', directory: 'src/shards/nalati-grasslands' },
+    { prefix: '/assets/', directory: 'public/assets' },
   ] });
 
 test('the actual Nalati envelope keeps its complete audio scene outside the 100000-node source budget',()=>{

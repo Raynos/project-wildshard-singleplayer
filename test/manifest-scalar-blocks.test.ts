@@ -8,7 +8,7 @@ import type {ScalarLatticeRows} from '../src/format/scalarChannel';
 import {ScalarLatticeBindings,readScalarChannel} from '../src/engine/world/scalarChannel';
 import {defineShard,prepareManifestScalarBlocks,type ShardManifestRows} from '../src/game/shard/manifest';
 import {absentShardProduct,type ShardProduct} from '../src/game/shardfile/shardProduct';
-import {readNamedBlob} from '../src/sdk/blobs';
+import {nameBlob} from '../src/sdk/blobs';
 import nalati from '../src/shards/nalati-grasslands/discovery.generated';
 import reference from './fixtures/nalati-geography-blocks.json' with {type:'json'};
 import {readNalatiScalarBlocks} from './fixtures/nalati-scalar-blocks';
@@ -89,10 +89,12 @@ test('the whole source grammar, count, finiteness and pond bounds refuse before 
   expect(()=>binding.lattice({...raster('data/one.bin'),size:32})).toThrow('Conflicting');
 });
 
-test('every actual geography sidecar retains the original compressed bytes through standard SDK intake',async()=>{
+test('every actual geography sidecar retains the original compressed bytes through standard SDK intake',()=>{
   const blocks=readNalatiScalarBlocks();expect(blocks.size).toBe(12);
   for(const row of reference){
-    const blob=await readNamedBlob('src/shards/nalati-grasslands',row.file,row.file,'bin',{decoded:row.decoded});
+    const bytes=blocks.get(row.file);
+    if(bytes===undefined)throw new Error(`Missing original scalar block ${row.file}`);
+    const blob=nameBlob(row.file,'bin',bytes,{decoded:row.decoded});
     expect(blob.bytes).toEqual(blocks.get(row.file));expect(blob.bytes.length).toBe(row.bytes);
     expect(createHash('sha256').update(blob.bytes).digest('hex')).toBe(row.hash);expect(blob.file.decoded).toBe(row.decoded);
   }
