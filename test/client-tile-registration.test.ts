@@ -83,17 +83,20 @@ test('entered tiles use the existing streamer, keep coarse coverage and restore 
   expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
 });
 
-test('a missing coarse tier keeps its fine patches as coverage beyond the selected full ring', async () => {
+test('a missing occupied coarse parent refuses before resident registration after T8', async () => {
   const f = fixture(false);
   try {
-    const pending = f.registration.enter('home', f.entered, f.resident, camera); await f.drive(); const world = await pending;
-    expect(world.fine.size).toBe(64); expect(f.coverage(f.entered.root)).toEqual(Array.from({ length: 64 }, () => 1));
+    await expect(f.registration.enter('home', f.entered, f.resident, camera)).rejects.toThrow('T8 coarse parent');
+    expect(f.registration.owns('home')).toBe(false);
+    expect(f.instances.get('home')).toBe(f.neighbour);
+    expect(f.entered.root.children).toHaveLength(0);
+    expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
   } finally { f.scope.dispose(); }
   expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
 });
 
 test('data entry waits for offered near coverage and retires with its regional owner', async () => {
-  const f = fixture(false);
+  const f = fixture();
   try {
     await expect(f.registration.enterOffered('unknown', f.resident, camera)).rejects.toThrow('not been admitted');
     f.registration.offer('home', f.entered);

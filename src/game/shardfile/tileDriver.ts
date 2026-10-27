@@ -144,8 +144,7 @@ export const tileKeys = (tiles: readonly CellTile[]): number[] => tiles.map(tile
 
 /** The render ring's radius in tiles (G669 DR11: the 5 x 5 around the player's tile; its colliders the 3 x 3 inside). */
 export const TILE_RING = 2;
-/** Tile streaming T5 (G775): the render ring the Debug row picks (Developer; off, the shipped 5 x 5): 3 x 3 is 1, the whole
- *  cell 8. Creatures keep sleeping beyond the 5 x 5 (`followRing`'s default). */
+/** T5/T10: Developer picks 3 x 3 or the shipped 5 x 5. Creatures sleep beyond the 5 x 5 (`followRing`'s default). */
 export function tileRing(): number { return tileResidencyRadius(); }
 
 /**
