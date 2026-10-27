@@ -17,11 +17,7 @@ import { ClientChannels } from '../src/sdk/clientChannels';
 import { installChannelPrograms } from '../src/game/plugin/channelPrograms';
 import { compactChannels } from '../src/shards/nalati-grasslands/generators/channelRows';
 import { isJsonData } from '../src/format/json';
-import layout from '../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
-import places from '../src/shards/nalati-grasslands/boot/poiLayout.generated.json' with { type: 'json' };
-import clearings from '../src/shards/nalati-grasslands/boot/clearings.generated.json' with { type: 'json' };
 import * as authoredLayout from '../src/shards/nalati-grasslands/generators/layout';
-import * as authoredPlaces from '../src/shards/nalati-grasslands/generators/poiLayout';
 import * as authoredClearings from '../src/shards/nalati-grasslands/generators/clearings';
 import { riverZAt, riverHalfAt } from '../src/shards/nalati-grasslands/generators/edgeRecipe';
 import { TERRAIN, zoneAt, snowValleyX, snowValleyHalf, snowValleyFloor, inPoiClearing, inSpruceClearing } from '../src/shards/nalati-grasslands/generators/terrainRecipe';
@@ -44,13 +40,6 @@ const grass=v.parse(v.object({...GrassPresentationSchema.entries,phone:grassTier
   nalatiGrassJson());
 
 const bound = GROUND.terrain,wetMask = readScalarLattice(geography.channels.wet,scalarBlocks);
-
-test('baked layout owns every derived anchor and clearing', () => {
-  const data = (source: object): object => Object.fromEntries(Object.entries(source).filter(([, value]) => typeof value !== 'function'));
-  expect(layout).toEqual(data(authoredLayout));
-  expect(places).toEqual(data(authoredPlaces));
-  expect(clearings).toEqual(data(authoredClearings));
-});
 
 test('live profile and clearance consumers keep exact authored answers', () => {
   for (let i = -1000; i <= 1000; i++) {

@@ -14,7 +14,7 @@ export const NALATI_MAP_INPUTS: readonly string[] = [
   '/assets/nalati/models/firewood.glb', '/assets/nalati/models/horse-saddled.glb', '/assets/nalati/models/horse-wild.far.glb',
   '/assets/nalati/models/kokpar-rider.glb', '/assets/nalati/models/kumis-churn.glb', '/assets/nalati/models/saddle.glb',
   '/assets/nalati/models/snow-lotus.glb', '/assets/nalati/models/watchtower.glb',
-  'boot/layout.generated.json', 'data/campCatalogue.json', 'data/campMaterials.json', 'data/discovery.json', 'data/modelMetrics.json',
+  'data/campCatalogue.json', 'data/campMaterials.json', 'data/discovery.json', 'data/modelMetrics.json',
 ];
 const SHARD = 'src/shards/nalati-grasslands/';
 

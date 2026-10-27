@@ -3,7 +3,6 @@
   "inputs": [
     "generators",
     "data/modelMetrics.json",
-    "boot/layout.generated.json",
     "data/discovery.json",
     "../../../public/assets/nalati/baked/crags.bin",
     "../../../public/assets/nalati/models/eagle.glb",
@@ -44,9 +43,7 @@
     "../../sdk/immutable.ts",
     "../../sdk/noise.ts",
     "data/grassFieldLayout.json",
-    "data/layout.generated.json",
     "data/paintedTextures.json",
-    "data/poiLayout.generated.json",
     "data/staticCapture.json",
     "data/worldView.json",
     "manifest.json",
