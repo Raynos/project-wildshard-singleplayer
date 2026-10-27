@@ -15,7 +15,7 @@ import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { parseOutputIndex } from '@wildshard/format/outputIndex';
 import { buildShardfiles } from '../scripts/build-shardfiles.mjs';
 import { mapPixelHash, mapTilesHash } from '../scripts/map-hash.mjs';
-import { outputProductsPlugin } from '../vite/outputProducts';
+import { copyOutputProducts } from '../scripts/app-build/outputProducts.mjs';
 import metadata from '../src/shards/far-reach/manifest.json';
 
 const owned: string[] = [], png = Uint8Array.from(readFileSync('test/fixtures/world-source/image.png'));
@@ -106,9 +106,10 @@ it('builds copied runtimes while publishing only data products with the app', as
   expect(readdirSync(output).sort()).toEqual(['alpha', 'beta']);
   put(root, 'main.js', 'export const ready = true;\n');
   put(output, 'alpha/.build-key', 'not shipped');
-  await viteBuild({ root, configFile: false, publicDir: false, logLevel: 'silent', plugins: [outputProductsPlugin()], build: {
+  await viteBuild({ root, configFile: false, publicDir: false, logLevel: 'silent', build: {
     outDir: resolve(root, 'dist'), lib: { entry: resolve(root, 'main.js'), formats: ['es'], fileName: 'app' },
   } });
+  copyOutputProducts(root, resolve(root, 'dist'));
   const shipped = resolve(root, 'dist/shardfiles');
   expect(readdirSync(shipped).sort()).toEqual(['alpha', 'beta']);
   for (const slug of ['alpha', 'beta']) {
