@@ -96,8 +96,6 @@ src/**/*.generated.*
 /src/shards/nalati-grasslands/assets/3e6bce711c85df2ed170797d6d5ac606e89436e21d7865b07bc91f13d7912de1
 /src/shards/nalati-grasslands/behaviour/ghostVolley.generated.json
 
-# Retained Rising Islet authoring; regenerated through the verified content-hash cache.
-/src/shards/far-reach/data/islets.generated.json
 
 # G331: local tool state, logs and temporary merge files are not source.
 *.tsbuildinfo
@@ -189,8 +187,6 @@ src/shards/nalati-grasslands/data/dressing.scene.generated.json
 # G394: portable fan action is built fresh and checked against its authored address.
 /src/shards/far-reach/assets/06cf86e445a8fc5b8c156e6c0a6f36551203c866d90e1ba4b2f36abd430c2982
 
-# Cheap admitted held playback programs are built from the retained rows.
-src/shards/far-reach/data/heldPlayback.generated.json
 
 # G405: pure source-derived WebGPU inventory, emitted before CI checks.
 /docs/design/webgpu-port-inventory.md
@@ -199,19 +195,15 @@ src/shards/far-reach/data/heldPlayback.generated.json
 /public/assets/far-reach/models/wind-vane/post.glb
 /public/assets/far-reach/models/wind-vane/rotor.glb
 
-# Retained Sky Crown instance recipe, generated at build time.
-src/shards/far-reach/data/crownInstances.generated.json
 
 
 
 # Sky static bridge author products
-/src/shards/far-reach/data/bridgeRest.generated.json
 /public/assets/far-reach/baked/bridge-rest.glb
 
 # Held fan geometry is a cheap authoring product (G405).
 /public/assets/far-reach/baked/fan.glb
 
-/src/shards/far-reach/data/millRest.generated.json
 /public/assets/far-reach/baked/mill-rest.glb
 
 # G412: fast derived meadow transport has an immutable content address.
@@ -219,8 +211,6 @@ src/shards/far-reach/data/crownInstances.generated.json
 
 # Fire cards and ground pools are restored from their author recipe.
 
-# Sky runtime declaration is rebuilt from authored rows (G405).
-/src/shards/far-reach/data/product.generated.json
 
 # Signal static world metadata is rebuilt from its author declaration.
 
@@ -725,9 +715,6 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 
 # Nine portal frames are baked from the authored portal nodes.
 
-# Shared saved-quest pages compile from author-only recipes.
-/src/shards/far-reach/data/questPage.generated.json
-/src/shards/far-reach/data/questPrompts.generated.json
 
 /public/assets/nalati/baked/people/
 
@@ -841,8 +828,6 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 
 # G508: far-reach data map outputs.
 /public/assets/far-reach/map/top.webp
-/src/shards/far-reach/look/map.baked.json
-/src/shards/far-reach/data/mapRest.generated.json
 
 
 
