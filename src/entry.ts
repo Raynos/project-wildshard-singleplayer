@@ -2,6 +2,7 @@
 import './identity';
 import { TITLE_MANIFESTS } from '../out/.app/titleCatalogue.generated';
 import { installTitleManifests } from '@wildshard/game/shard/titleList';
+import { installOfflineDownload } from '@wildshard/engine/ui/offlineDownload';
 import { startPageServices } from './pageServices';
 import { persistHomeScreen } from '@wildshard/engine/saves/runtime';
 import { waitFor } from '@wildshard/engine/boot/waits';
@@ -36,6 +37,11 @@ const task = (): Promise<void> => new Promise((resolve) => { entryScope.timeout(
 /** The plain home URL paints only the title. No renderer, world, or Three.js is imported until a shard is chosen. */
 startPageServices();
 installTitleManifests(TITLE_MANIFESTS);
+// G727 / I9: Settings' "Download everything"; the prefetch loads only when the player opens or presses it
+installOfflineDownload({
+  size: async () => (await import('@wildshard/game/grid/prefetch')).remainingDownloadBytes(),
+  start: async (owner, progress) => (await import('@wildshard/game/grid/prefetch')).downloadEverything(owner, progress),
+});
 persistHomeScreen();
 const search = new URLSearchParams(location.search);
 // Do not depend on the sibling sw.ts module finishing first; both entry points share the same consumed record.

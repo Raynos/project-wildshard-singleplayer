@@ -79,6 +79,7 @@
     "./ambient/flock": "./ambient/flock.ts",
     "./grid/pageMode": "./grid/pageMode.ts",
     "./grid/pageEntry": "./grid/pageEntry.ts",
+    "./grid/prefetch": "./grid/prefetch.ts",
     "./grid/farView": "./grid/farView.ts",
     "./grid/frameModel": "./grid/frameModel.ts",
     "./shard/declaredEntry": "./shard/declaredEntry.ts",

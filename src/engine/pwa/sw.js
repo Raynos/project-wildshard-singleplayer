@@ -367,11 +367,13 @@ async function pruneImmutable() {
 let warming = null, warmAbort = null, foregroundAt = 0;
 /** A title-ready page requests one low-priority code read at a time. A real
  * request aborts that speculative body before entering the foreground path. */
-async function warmBundle() {
-  if (warming !== null) { await warming; return; }
+/** Warm the public entry closures (`WARM`, no images), or with `all` the whole bundle, images included: Settings'
+ *  "Download everything" for offline play (G727 / iPhone downloads I9). */
+async function warmBundle(all = false) {
+  if (warming !== null) { await warming; if (!all) return; }
   const run = async () => {
     const cache = await caches.open(IMMUTABLE_CACHE);
-    for (const path of WARM.filter(p => !IMAGE_RE.test(p))) {
+    for (const path of all ? BUNDLE : WARM.filter(p => !IMAGE_RE.test(p))) {
       if (await cache.match(abs(path), MATCH_OPTS)) continue;
       let complete = false;
       while (!complete) {
@@ -398,6 +400,7 @@ workerScope.listen(self, 'message', (event) => {
   if (!data) return;
   if (data.type === 'SKIP_WAITING') self.skipWaiting();
   else if (data.type === 'WARM_CODE') event.waitUntil(warmBundle());
+  else if (data.type === 'WARM_ALL_CODE') event.waitUntil(warmBundle(true));
   // A replacement document can start listening after install fetches finish.
   // Replay the browser's existing bounded timing buffer; live/replayed entries
   // share the same identity in the page accounting. Do not grow that buffer.

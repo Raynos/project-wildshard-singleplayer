@@ -19,7 +19,9 @@
 import { PrefetchQuota, PrefetchBytes } from '@wildshard/engine/boot/prefetchQuota';
 import { saves } from '@wildshard/engine/saves/runtime';
 import type { OutputDownloadIndex } from '@wildshard/format/outputDownload';
-import { findTitleManifest } from '../shard/titleList';
+import { findTitleManifest, titleManifests } from '../shard/titleList';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { OfflineDownloadEnd } from '@wildshard/engine/ui/offlineDownload';
 import type { ProductCache, ProductOptions } from '../shardfile/product';
 import { browserContentStore, contentHash } from '../shardfile/contentStore';
 import { hashOwnedBytes, prepareContentHash } from '@wildshard/engine/boot/contentHash';
@@ -98,6 +100,8 @@ class GridPrefetch {
   /** I9: the phone tier's home cell and ring (every caller's ring so far); the run reads only these on the phone */
   private readonly ring = new Set<string>();
   private tier: Tier = 'desktop';
+  /** G727 / I9: Settings' "Download everything" asked for it: every product, past Save-Data and the phone ring */
+  explicit = false;
   private status: Omit<{ -readonly [K in keyof GridPrefetchStatus]: GridPrefetchStatus[K] }, 'inFlightBytes' | 'peakInFlightBytes' | 'limitInFlightBytes'> = { phase: 'running', reason: null,
     products: 0, productsRead: 0, knownFiles: 0, knownBytes: 0, presentFiles: 0, presentBytes: 0, storedFiles: 0, storedBytes: 0 };
   /** Queue these slugs ahead of the rest (already read ones are skipped); start the run if it is not running. */
@@ -114,7 +118,7 @@ class GridPrefetch {
   }
   async run(): Promise<void> {
     try {
-      if (saveData()) { this.stop('save-data'); return; }
+      if (!this.explicit && saveData()) { this.stop('save-data'); return; }
       // the tier loads here, off the title's static graph (the render tiers stay cold until a world needs them)
       this.tier = (await import('@wildshard/engine/core/tier')).TIER;
       // I10 / D133: the page's one persistence request (the save store's, once a page, its answer kept for the Debug storage
@@ -123,7 +127,7 @@ class GridPrefetch {
       if (quota === null) { this.stop('no storage estimate'); return; }
       for (let next = this.queue.shift(); next !== undefined && this.status.reason === null; next = this.queue.shift()) {
         if (!navigator.onLine) { this.stop('offline'); return; }
-        if (this.tier === 'phone' && !this.ring.has(next)) continue;
+        if (this.tier === 'phone' && !this.explicit && !this.ring.has(next)) continue;
         try { await this.product(next, quota); }
         catch (error: unknown) { console.warn(`[grid prefetch] ${next} skipped`, error); } // one product's failure skips only it
         this.status.productsRead++;
@@ -233,11 +237,11 @@ class GridPrefetch {
 declare global { interface Window { __ws_gridPrefetch?: () => GridPrefetchStatus | null } }
 let current: GridPrefetch | null = null;
 /** Start (or re-prioritize) the page's one whole-set prefetch; it runs on its own and never throws into the caller. */
-export function startGridPrefetch(slugs: readonly string[], ring: readonly string[] = slugs): void {
+export function startGridPrefetch(slugs: readonly string[], ring: readonly string[] = slugs, explicit = false): void {
   if (typeof caches === 'undefined' || !('storage' in navigator)) return;
   const running = current;
-  if (running !== null) { running.prioritize(slugs, ring); return; }
-  const run = new GridPrefetch(); current = run; run.prioritize(slugs, ring);
+  if (running !== null) { if (explicit) running.explicit = true; running.prioritize(slugs, ring); return; }
+  const run = new GridPrefetch(); current = run; run.explicit = explicit; run.prioritize(slugs, ring);
   window.__ws_gridPrefetch = gridPrefetchStatus; // captures and the bench read the counts
   void (async (): Promise<void> => {
     try { await run.run(); }
@@ -246,3 +250,48 @@ export function startGridPrefetch(slugs: readonly string[], ring: readonly strin
 }
 /** The run's counts (null before any start): for the loading screen's download line and captures. */
 export function gridPrefetchStatus(): GridPrefetchStatus | null { return current?.snapshot() ?? null; }
+
+/** Every product the title list knows (G727's "everything"). */
+function everyProduct(): string[] {
+  return titleManifests().filter(row => (row.shardfile ?? row.gridShardfile) !== undefined).map(row => row.slug);
+}
+/** G727 / I9: the wire bytes "Download everything" still has to fetch: each product's files of this device's tier (I1's
+ *  filter, as the prefetch reads them), counted once across products, less what the content cache already holds. The
+ *  code bundle is not counted (a few MB beside the products; the worker warms it alongside). Null without a cache. */
+export async function remainingDownloadBytes(): Promise<number | null> {
+  if (typeof caches === 'undefined') return null;
+  const tier = (await import('@wildshard/engine/core/tier')).TIER;
+  prepareContentHash();
+  const content = browserContentStore(caches), indexes = import.meta.env.DEV ? null : builtIndexHashes(), seen = new Set<string>();
+  let bytes = 0;
+  for (const slug of everyProduct()) {
+    const manifest = findTitleManifest(slug), descriptor = manifest?.shardfile ?? manifest?.gridShardfile;
+    if (descriptor === undefined) continue;
+    const index = await readPrefetchIndex({ url: new URL(descriptor, location.href).href, indexHashes: indexes === null ? null : [...indexes], phone: tier === 'phone' }, content);
+    if (index === null) return null;
+    for (const row of [...index.sections, ...index.schemas, ...index.files.map(file => ({ hash: file.hash, bytes: file.compressed }))]) {
+      if (seen.has(row.hash)) continue;
+      seen.add(row.hash);
+      if (!await content.holds(row.hash, row.bytes)) bytes += row.bytes;
+    }
+  }
+  return bytes;
+}
+/** G727 / I9: download everything for offline play: every product of the title list (all of this tier's files, past
+ *  the phone ring and Save-Data: the player asked) through the page's one prefetch, a finished run replaced by a new
+ *  one; the worker warms the whole code bundle beside it. `progress` gets the stored and present bytes of the known set. */
+export async function downloadEverything(owner: Scope, progress: (done: number, total: number) => void): Promise<OfflineDownloadEnd> {
+  if (typeof caches === 'undefined' || !('storage' in navigator)) return 'stopped';
+  const slugs = everyProduct(), running = current;
+  if (running === null || running.snapshot().phase !== 'running') current = null; // a finished run makes way for a new one
+  startGridPrefetch(slugs, slugs, true);
+  navigator.serviceWorker?.controller?.postMessage({ type: 'WARM_ALL_CODE' });
+  for (;;) {
+    const status = gridPrefetchStatus();
+    if (status === null) return 'stopped';
+    progress(status.presentBytes + status.storedBytes, status.knownBytes);
+    if (status.phase !== 'running') return status.phase;
+    await new Promise<void>((resolve) => { owner.timeout(500, resolve); });
+    if (owner.disposed) return 'stopped';
+  }
+}

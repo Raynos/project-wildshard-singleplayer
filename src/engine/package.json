@@ -303,6 +303,7 @@
     "./saves/store": "./saves/store.ts",
     "./strings": "./strings.ts",
     "./ui/BossBar": "./ui/BossBar.ts",
+    "./ui/offlineDownload": "./ui/offlineDownload.ts",
     "./ui/Combat": "./ui/Combat.ts",
     "./ui/DeathFade": "./ui/DeathFade.ts",
     "./ui/EliteBar": "./ui/EliteBar.ts",

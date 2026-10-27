@@ -5,6 +5,7 @@ import type { Scope } from '../app/scope';
 import { app } from '../app/runtime';
 import { markReload } from '../boot/lastEnd';
 import { SAVE_STRINGS as strings } from './saveStrings';
+import { offlineDownload, type OfflineDownload } from './offlineDownload';
 
 function download(name: string, contents: string): void {
   const url = URL.createObjectURL(new Blob([contents], { type: 'application/json' }));
@@ -15,6 +16,36 @@ const button = (scope: Scope, text: string, run: () => void): HTMLButtonElement 
   const element = document.createElement('button'); element.type = 'button'; element.className = 'ws-gmenu-btn'; element.textContent = text;
   scope.listen(element, 'click', run); return element;
 };
+const megabytes = (bytes: number): string => Math.max(1, Math.round(bytes / 1e6)).toString();
+/** G727 / I9: "Download everything" for offline play, its size first, then its progress; again resumes a stopped one */
+function offlineRow(scope: Scope, port: OfflineDownload): HTMLElement {
+  const box = document.createElement('div');
+  const label = document.createElement('div'); label.className = 'ws-gmenu-label'; label.textContent = engineString('s_offline_title');
+  const note = document.createElement('div'); note.className = 'ws-gmenu-note'; note.textContent = engineString('s_offline_note');
+  const status = document.createElement('div'); status.className = 'ws-gmenu-note'; status.setAttribute('role', 'status');
+  let busy = false;
+  const go = document.createElement('button'); go.type = 'button'; go.className = 'ws-gmenu-btn';
+  const size = (): void => {
+    go.disabled = true; go.textContent = engineString('s_offline_sizing');
+    void port.size().then((bytes) => {
+      if (busy) return undefined;
+      go.textContent = bytes === 0 ? engineString('s_offline_ready') : bytes === null ? engineString('s_offline_unknown') : engineString('s_offline_download', [megabytes(bytes)]);
+      go.disabled = bytes === 0; return undefined;
+    }).catch(() => { if (!busy) { go.textContent = engineString('s_offline_unknown'); go.disabled = false; } });
+  };
+  scope.listen(go, 'click', () => {
+    if (busy) return;
+    busy = true; go.disabled = true;
+    void port.start(scope, (done, total) => { status.textContent = engineString('s_offline_progress', [megabytes(done), megabytes(total)]); })
+      .then((end) => { status.textContent = end === 'done' ? engineString('s_offline_done') : engineString('s_offline_stopped'); return undefined; })
+      .catch(() => { status.textContent = engineString('s_offline_stopped'); })
+      .finally(() => { busy = false; size(); });
+  });
+  size();
+  box.append(label, note, go, status);
+  return box;
+}
+
 export function buildSavePanel(): HTMLDivElement & { refresh: () => void } {
   const scope = (app.levelScope ?? currentOwner() ?? app.engineScope).child('save-panel');
   const card = document.createElement('div'); card.className = 'ws-gmenu-card';
@@ -44,5 +75,8 @@ export function buildSavePanel(): HTMLDivElement & { refresh: () => void } {
       reload.hidden = report.imported.length === 0; renderAside(); return undefined;
     }).catch(() => { status.textContent = strings.failed; });
   });
-  card.append(title, note, row, picker, status, reload, aside); renderAside(); return Object.assign(card, { refresh: renderAside });
+  card.append(title, note, row, picker, status, reload, aside);
+  const offline = offlineDownload();
+  if (offline !== null) card.append(offlineRow(scope, offline));
+  renderAside(); return Object.assign(card, { refresh: renderAside });
 }
