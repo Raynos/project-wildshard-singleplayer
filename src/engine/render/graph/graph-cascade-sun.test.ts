@@ -5,11 +5,20 @@ import { ConditionalNode, ConstNode, ConvertNode, MathNode, JoinNode, MeshStanda
 import { positionView, vec3 } from 'three/tsl';
 import { compileGraph } from './compile';
 import { EngineDirectionalLightNode } from '../nodes/cascadeLightNode';
+import { MatrixColumnNode } from '../nodes/matrixColumn';
 import { registerCascades } from '../../world/cascadeLights';
 
 /** Evaluate the actual light result's small arithmetic tree at a view depth. */
 function values(node: unknown, depth: number): number[] {
   if (node === positionView) return [0, 0, -depth];
+  // the gate is a shared layout function returning its results as a mat3's columns: its body over the call's own inputs
+  if (node instanceof MatrixColumnNode) return values(node.matrix, depth).slice(3 * node.index, 3 * node.index + 3);
+  if (typeof node === 'object' && node !== null && Reflect.get(node, 'isShaderCallNodeInternal') === true) {
+    const shader: unknown = Reflect.get(node, 'shaderNode'), raw: unknown = Reflect.get(node, 'rawInputs');
+    const body: unknown = typeof shader === 'object' && shader !== null ? Reflect.get(shader, 'jsFunc') : undefined;
+    if (typeof body !== 'function') throw new Error('Missing layout function body');
+    return values(Reflect.apply(body, undefined, [Array.isArray(raw) ? raw[0] : raw]), depth);
+  }
   if (node instanceof JoinNode) return node.nodes.flatMap(n => values(n, depth));
   if (node instanceof ConvertNode || node instanceof VarNode) return values(node.node, depth);
   if (node instanceof SplitNode) { const a = values(node.node, depth); return node.components.split('').map(c => a['xyzw'.indexOf(c)] ?? 0); }

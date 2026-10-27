@@ -19,10 +19,11 @@
  * copy of the chunk predates; TSL's physical model carries that term already, so it needs no node.
  */
 import * as THREE from 'three';
-import { DirectionalLightNode, type Node, type NodeBuilder } from 'three/webgpu';
+import { ConvertNode, DirectionalLightNode, type Node, type NodeBuilder } from 'three/webgpu';
 import type { DirectLightData } from 'three/src/nodes/lighting/LightsNode.js';
-import { clamp, min, mix, positionView, reference, select, shadow, uniform, vec3 } from 'three/tsl';
+import { Fn, clamp, mat3, min, mix, positionView, reference, select, shadow, uniform, vec3 } from 'three/tsl';
 import { cascadeOf, ghostOf } from '../../world/cascadeLights';
+import { MatrixColumnNode } from './matrixColumn';
 
 /** a light's colour node (three's d.ts types DirectLightData's colour as a bare Node) */
 const isColour = (value: unknown): value is Node<'vec3'> => typeof value === 'object' && value !== null && Reflect.get(value, 'isNode') === true;
@@ -32,6 +33,43 @@ function colour(value: unknown): Node<'vec3'> {
 }
 const nearFar = (camera: THREE.Camera): { near: number; far: number } =>
   camera instanceof THREE.PerspectiveCamera || camera instanceof THREE.OrthographicCamera ? { near: camera.near, far: camera.far } : { near: 0, far: 1 };
+
+type GateInputs = Readonly<Record<string, Node>>;
+function gateInput(inputs: GateInputs, name: string): Node {
+  const value = inputs[name];
+  if (value === undefined) throw new Error(`cascadeLightNode: the cascade gate lacks ${name}`);
+  return value;
+}
+/**
+ * A cascade's slice gate (the module comment's maths, in its order) as a layout function, one for the last cascade and
+ * one for the others (G717.O4.4): three generates a layout function's code once per renderer, so a node build pays one
+ * call a cascade, not the gate's ~60 nodes. It takes the view depth over the span `d`, the slice `range`, the light's
+ * plain colour `base` and its shadowed colour, and returns the gated light colour, the shadowed colour the graph's sun
+ * hook reads and the weight (all three components) as a mat3's columns.
+ */
+function cascadeGate(last: boolean): (inputs: GateInputs) => Node {
+  return Fn<GateInputs, Node>((inputs: GateInputs): Node => {
+    const d = new ConvertNode<'float'>(gateInput(inputs, 'd'), 'float'), range = new ConvertNode<'vec2'>(gateInput(inputs, 'range'), 'vec2');
+    const base = new ConvertNode<'vec3'>(gateInput(inputs, 'base'), 'vec3'), shadowed = new ConvertNode<'vec3'>(gateInput(inputs, 'shadowed'), 'vec3');
+    const x = range.x, y = range.y;
+    const centre = x.add(y).mul(0.5);
+    const edge = select(d.lessThan(centre), x, y);
+    const margin = edge.mul(edge).mul(0.25);
+    const lo = x.sub(margin.mul(0.5)), hi = y.add(margin.mul(0.5));
+    const ratio = clamp(min(d.sub(lo), hi.sub(d)).div(margin), 0, 1);
+    const weight = last
+      ? select(d.greaterThanEqual(lo), select(d.lessThan(centre), ratio, 1), 0)
+      : select(d.greaterThanEqual(lo).and(d.lessThan(hi)), ratio, 0);
+    const gated = last ? select(d.lessThan(centre), shadowed, mix(base, shadowed, ratio)) : shadowed;
+    const lightColor = last
+      ? select(d.greaterThanEqual(lo), select(d.lessThan(centre), shadowed.mul(ratio), mix(base, shadowed, ratio)), vec3(0))
+      : select(d.greaterThanEqual(lo).and(d.lessThan(hi)), shadowed.mul(ratio), vec3(0));
+    return mat3(lightColor, gated, vec3(weight));
+  }).setLayout({ name: last ? 'wsCascadeGateLast' : 'wsCascadeGate', type: 'mat3', inputs: [
+    { name: 'd', type: 'float' }, { name: 'range', type: 'vec2' }, { name: 'base', type: 'vec3' }, { name: 'shadowed', type: 'vec3' },
+  ] });
+}
+const GATES = { last: cascadeGate(true), other: cascadeGate(false) };
 
 /** three's directional light node, gated as a cascade where the sky rig registered the light as one */
 export class EngineDirectionalLightNode extends DirectionalLightNode {
@@ -72,20 +110,10 @@ export class EngineDirectionalLightNode extends DirectionalLightNode {
       return Math.min(far, csm.maxFar) - near;
     });
     const d = positionView.z.negate().div(depthSpan);
-    const x = range.x, y = range.y;
-    const centre = x.add(y).mul(0.5);
-    const edge = select(d.lessThan(centre), x, y);
-    const margin = edge.mul(edge).mul(0.25);
-    const lo = x.sub(margin.mul(0.5)), hi = y.add(margin.mul(0.5));
-    const ratio = clamp(min(d.sub(lo), hi.sub(d)).div(margin), 0, 1);
     const last = index === csm.cascades - 1;
-    const weight = last
-      ? select(d.greaterThanEqual(lo), select(d.lessThan(centre), ratio, 1), 0)
-      : select(d.greaterThanEqual(lo).and(d.lessThan(hi)), ratio, 0);
-    this.graphCascade = { colour: base, weight, shadowed: last ? select(d.lessThan(centre), shadowed, mix(base, shadowed, ratio)) : shadowed };
-    const lightColor = last
-      ? select(d.greaterThanEqual(lo), select(d.lessThan(centre), shadowed.mul(ratio), mix(base, shadowed, ratio)), vec3(0))
-      : select(d.greaterThanEqual(lo).and(d.lessThan(hi)), shadowed.mul(ratio), vec3(0));
+    const gate = (last ? GATES.last : GATES.other)({ d, range, base, shadowed });
+    const lightColor = new MatrixColumnNode(gate, 0);
+    this.graphCascade = { colour: base, weight: new MatrixColumnNode(gate, 2).x, shadowed: last ? new MatrixColumnNode(gate, 1) : shadowed };
     return { lightDirection: data.lightDirection, lightColor };
   }
 }

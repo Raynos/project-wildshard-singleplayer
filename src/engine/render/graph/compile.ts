@@ -52,6 +52,7 @@ import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import { Pass } from 'postprocessing';
 import { retargetableTexture } from '../nodes/engineNodesHandler';
 import { EngineDirectionalLightNode } from '../nodes/cascadeLightNode';
+import { MatrixColumnNode } from '../nodes/matrixColumn';
 import { skinDirection } from '../nodes/skinDirection';
 import { GraphNodeOwner, ownGraphNodes } from '../nodes/nodeBuildReuse';
 import { optionalGraphAttribute } from '../nodes/graphAttributes';
@@ -232,17 +233,6 @@ const directInput = (inputs: DirectInputs, name: string): Node => {
   return value;
 };
 const directVec3 = (inputs: DirectInputs, name: string): Node<'vec3'> => new ConvertNode<'vec3'>(directInput(inputs, name), 'vec3');
-/** column `index` of a mat3 (three's typings give a matrix node no element read) */
-class MatrixColumnNode extends BaseNode<'vec3'> {
-  private readonly matrix: Node;
-  private readonly index: number;
-  constructor(matrix: Node, index: number) { super('vec3'); this.matrix = matrix; this.index = index; }
-  override generate(builder: NodeBuilder): string {
-    const matrix = this.matrix.build(builder, 'mat3');
-    if (typeof matrix !== 'string') throw new Error('material graph: a matrix generated no code');
-    return `${matrix}[ ${String(this.index)} ]`;
-  }
-}
 /**
  * three's physical direct term (PhysicalLightingModel.direct, r186, a standard material: no sheen, clearcoat,
  * iridescence, anisotropy or retroreflection) as one layout function, its own expressions in their order (G717.O4.4).
