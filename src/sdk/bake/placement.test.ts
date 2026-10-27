@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import { boxDesc as nativeBox } from '@wildshard/engine/world/registry';
-import { boxDesc, type BoxSpec, type ContactSurface } from './placement';
+import { yawWorld as nativeWorld } from '@wildshard/engine/world/yawFrame';
+import { boxDesc, yawWorld, type BoxSpec, type ContactSurface } from './placement';
 
 const rows: readonly BoxSpec[] = [
   { x: 0, z: 0, hw: 2, hd: 3, rot: 0, yBottom: -1, yTop: 5 },
@@ -15,5 +16,14 @@ test.each(rows)('authored box %j retains every native field, signed yaw, clamped
     expect(actual).toEqual(original);
     expect(JSON.stringify(actual)).toBe(JSON.stringify(original));
     expect(Object.hasOwn(actual, 'surface')).toBe(surface !== undefined);
+  }
+});
+
+test('author yaw frames retain exact native axes, signs and double arithmetic', () => {
+  for (const yaw of [0, -0, Math.PI / 2, -Math.PI / 3, 8.7]) {
+    const frame = { x: -7.25, z: 13.5, yaw };
+    for (const x of [-2.9, 0, 100]) for (const z of [-1.2, -0, 75.3]) {
+      expect(yawWorld(frame, x, z)).toEqual(nativeWorld(frame, x, z));
+    }
   }
 });

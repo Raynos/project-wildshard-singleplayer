@@ -21,6 +21,14 @@ export function boxDesc(c: BoxSpec, surface?: ContactSurface): Extract<ColliderD
 /** Authored placement batching grammar; no renderer is installed. */
 export type Draw = 'single' | 'merged' | 'instanced' | 'batched';
 
+/** A ground author frame; local +Z turns about +Y by yaw, with heights owned by the caller. */
+export interface YawFrame { readonly x: number; readonly z: number; readonly yaw: number }
+/** Map authored local offsets to world coordinates, preserving native operation order. */
+export function yawWorld(frame: YawFrame, lx: number, lz: number): [number, number] {
+  const c = Math.cos(frame.yaw), s = Math.sin(frame.yaw);
+  return [frame.x + lx * c + lz * s, frame.z - lx * s + lz * c];
+}
+
 /** Stable specimen identity preserves parameter insertion order and native JSON spelling. */
 export function specimenKey(id: string, params: object): string { return `${id} ${JSON.stringify(params)}`; }
 

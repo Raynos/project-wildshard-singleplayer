@@ -3395,7 +3395,8 @@ Build-only `@wildshard/sdk/noise` owns native seeded simplex, `fbm`, `ridged`,
 `BoxSpec`, `FloorRect`, `Draw`, contact tags and ordered-JSON `specimenKey`.
 `boxDesc(spec, surface?)` keeps the half-height clamp, signed yaw and optional
 contact tag; `siteFloor(rot,lz,hw,hd,y,slope?)` keeps native local-z rotation
-and ramp arithmetic. No live registry; byte/type parity fences these contracts.
+and ramp arithmetic. `yawWorld(frame,lx,lz)` preserves local offset order.
+No live registry; byte/type parity fences these contracts.
 
 `src/engine/models/ownedGeometry.ts` defines `createOwnedGeometry(url, channels?)`:
 an explicit owned-template intake for a single identity-space offline GLB.

@@ -5,7 +5,7 @@ import water from '../data/waterLook.json' with { type: 'json' };
 import { contractCatalogue } from './contractRows';
 import { WEAPON_FINISHES } from './weaponFinishes';
 import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
-import { yawWorld } from '@wildshard/engine/world/yawFrame';
+import { yawWorld } from '@wildshard/sdk/bake/placement';
 import loadout from '../data/loadout.json' with { type: 'json' };
 import policy from '../data/forestStory.json' with { type: 'json' };
 import { timberWorld } from './timberWorldRows';
