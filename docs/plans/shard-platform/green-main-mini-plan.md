@@ -112,20 +112,37 @@ existing import selector and type-project membership with declared generator
 roots/outputs and CF3's product-consumer registry. It reads index bytes only.
 Selected-test product prerequisites do not recursively expand the touched
 consumer cohort; shared source/recipe changes include every primary output.
-Selection producer `3a17943f8e` is done. Checker snapshot producer
-`2245e4ea61` is done; the wrapper now loads its controller and both CF1 entry
+Selection producer `3a17943f8e` and checker snapshot producer
+`2245e4ea61` are landed locally; the wrapper now loads its controller and both CF1 entry
 modules from the checked parent, preserving unfinished shared-tree edits.
 Two real-wrapper controls failed before this wiring: loose policy could both
 reject a valid candidate and bypass a committed refusal. All five isolation
 controls pass after it. Unknown hooks retain whole-parent freshness checking.
-Wrapper wiring `638dd3bf5e` is done: canonical checks passed with
+Wrapper wiring `638dd3bf5e` is landed locally: canonical checks passed with
 32.031 s wall, 1.340 s held and zero lock wait. The sealed candidate mirror
 adapter uses the existing five pooled slots and refuses the shared index;
 a shorter gate deadline bounds its queue wait without changing preview
 admission. Root project types, 22 mirror controls, 28 related cases and all
 24 products pass (109.78 s for the complete product build).
-Remaining: execute exact candidate types/products and commit/push consumers,
-G757 split/tag handling, and the original SW11 long-cohort cost refusal.
+Candidate mirror producer `3e6244b932` is landed locally. Its canonical
+collection refusal overlapped a missing discovery input; after a strict
+29.06 s normal restore and the existing I8 producer's natural completion,
+all 30 cases in those three refused files and root types pass. The earlier
+refusals remain recorded; they are not passing attempts.
+
+The candidate executor now keeps native compiler/source/Git reads inside
+that same mirror, runs pure checks during product preparation, and starts
+product consumers only after successful preparation. Node tests retain
+their native runner. Exact-step cap outcomes preserve owning test reds,
+compiler diagnostics and tooling failures; cancellation never hands off.
+A detached-child cap regression fails before the ownership cleanup fix and
+passes after it. All 95 related cases in 13 files, strict fixture/JS types
+and typed lint pass. Reader activation and G757 commit tags remain open.
+Publication is held by GM2's observed main-red policy, with no feature push
+or manual CI cancellation to bypass it.
+
+Remaining: activate exact candidate checks in the live entry, record G757
+split/tag handoffs, and close the original SW11 long-cohort cost refusal.
 
 ## Questions for Jake
 

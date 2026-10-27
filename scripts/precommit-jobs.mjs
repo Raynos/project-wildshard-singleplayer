@@ -45,7 +45,8 @@ export function runCommitJobs(root, jobs, deadline, env, signal, onResult) {
     };
     const cancel = () => { cancelled = true; stop(true); };
     signal?.addEventListener('abort', cancel, { once: true });
-    const timer = setTimeout(() => { timedOut = true; stop(); }, Math.max(0, deadline - performance.now()));
+    // Product leases may create detached children just like nested hook fixtures.
+    const timer = setTimeout(() => { timedOut = true; stop(true); }, Math.max(0, deadline - performance.now()));
     const clean = () => { clearTimeout(timer); signal?.removeEventListener('abort', cancel); };
     let finished = false;
     const finish = (/** @type {CommitResult} */ result) => {
