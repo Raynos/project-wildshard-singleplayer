@@ -70,9 +70,13 @@ export function installPlatformRoad(input: PlatformRoadInput): PlatformRoad {
   return road;
 }
 
+/** How long road construction runs before it asks `pause` (ms). In play the outer road builds right after controls, beside
+ *  the frame's own work, and `pause` only ends the stretch once the frame's shared build budget is spent: 12 ms stretches
+ *  left spawn frames 50-80 ms apart on the Simulator (T10). Loading screens pause only after their own longer stretch. */
+const ROAD_SLICE_MS = 4;
 /** Paint between admission and cull batches; synchronous callers retain the identical ordered builder. */
 export async function installPlatformRoadSliced(input: PlatformRoadInput, pause: () => Promise<void>, options: { readonly budgetMs?: number; readonly now?: () => number } = {}): Promise<PlatformRoad> {
-  const budget = options.budgetMs ?? 12, now = options.now ?? diagnosticNow;
+  const budget = options.budgetMs ?? ROAD_SLICE_MS, now = options.now ?? diagnosticNow;
   if (!Number.isFinite(budget) || budget < 0) throw new RangeError('Invalid road construction slice budget');
   const steps = platformRoadSteps(input);
   let start = now(), completed = false;

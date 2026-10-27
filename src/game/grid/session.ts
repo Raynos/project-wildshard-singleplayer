@@ -425,7 +425,7 @@ export class GridSession {
       return generatePlatformSliced(source.cells, source.empty, async () => {
         if (host.scope.disposed || host.scope.disposing) throw new Error('Grid session left during outer seam preparation');
         await background.check();
-      }, 8, seamPlans, (x, z) => !ring(x, z));
+      }, 4, seamPlans, (x, z) => !ring(x, z)); // T10: built in play after controls, 4 ms stretches beside the frame
     };
     const roadInput = { strips, home, pitch: assembly.pitch, layout: roadLayout(assembly, slug => findShard(slug)?.name ?? slug), scene: host.scene,
       scope: roadScope, camera: () => host.frame?.camera, plans, admission, ...(tileBacking === undefined ? {} : { tileBacking }) };
