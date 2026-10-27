@@ -1,12 +1,19 @@
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { emitNamedBlobs, nameBlob, type EmittedBlobs } from '@wildshard/sdk/blobs';
+import { BLENDER_MODELS } from './blenderArea';
 import { OCEAN_FILES } from './oceanFiles';
 
-type Kind = 'glb' | 'bin';
-/** iPhone downloads I8: the sea (clientSections.ts) reads these as product files, so they are cached, tier-selected and
- *  prefetched with the product instead of fetched as page assets (the spawn cove follows, I8.4). Each logical name maps
+type Kind = 'glb' | 'bin' | 'image';
+/** iPhone downloads I8: the sea (clientSections.ts) and the spawn cove's tiles and lightmaps (bakedCove.ts) read these as
+ *  product files, so they are cached, tier-selected and prefetched with the product instead of fetched as page assets
+ *  (the cove's placement table and plans stay page files until a typed island-plan reader exists). Each logical name maps
  *  its exact public build output; the bytes are copied unchanged. */
 export const DRIFTWOOD_PAGE_FILES: Readonly<Record<string, { readonly url: string; readonly kind: Kind }>> = {
+  'world/island/island.glb': { url: `${BLENDER_MODELS}island.glb`, kind: 'glb' },
+  'world/island/lm-ao.phone.webp': { url: `${BLENDER_MODELS}lm-ao.phone.webp`, kind: 'image' },
+  'world/island/lm-bounce.phone.webp': { url: `${BLENDER_MODELS}lm-bounce.phone.webp`, kind: 'image' },
+  'world/island/lm-ao.webp': { url: `${BLENDER_MODELS}lm-ao.webp`, kind: 'image' },
+  'world/island/lm-bounce.webp': { url: `${BLENDER_MODELS}lm-bounce.webp`, kind: 'image' },
   'world/ocean/phone.glb': { url: OCEAN_FILES.phone, kind: 'glb' },
   'world/ocean/desktop.glb': { url: OCEAN_FILES.desktop, kind: 'glb' },
   'world/ocean/floor.bin': { url: OCEAN_FILES.floor, kind: 'bin' },

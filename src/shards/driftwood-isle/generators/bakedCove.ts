@@ -9,11 +9,13 @@ import { COVE_MODELS } from './coveModels';
 import { ISLAND_LOOKS } from './islandLook';
 import { ISLAND_LOOK, ISLAND_TIERS } from './islandRows';
 import { BLENDER_MODELS } from './blenderArea';
+import { pageFile } from './productPageFiles';
 import { WORLD_DROP } from './sea';
 import { DRIFTWOOD_ASSET_NAMES } from './assets';
 import coverFiles from '../data/islandCoverFiles.json' with { type: 'json' };
 
-const at = (name: string) => ({ url: `${BLENDER_MODELS}${name}` });
+// iPhone downloads I8: the cove's tiles and lightmaps are product files (productPageFiles.ts)
+const at = (name: string) => pageFile(`world/island/${name}`);
 const lightmap = (param: string, name: string) => ({ param, source: { phone: at(`${name}.phone.webp`), desktop: at(`${name}.webp`) }, channel: 0, anisotropy: 4 });
 const cells = { size: 16, pad: 4 };
 /** E156: the island cover (generators/islandCover.ts) as vertex wear rows: its ground map, then per part aCover (rgba) and
@@ -32,7 +34,7 @@ export const BAKED_COVE: InferOutput<typeof BakedTilesSchema> = parse(BakedTiles
   lightmaps: [lightmap('ao', 'lm-ao'), lightmap('bounceMap', 'lm-bounce')],
   sun: { param: 'bounce', referenceY: ISLAND_FACTS.bake.sunY, gain: ISLAND_FACTS.bake.bounceGain },
   instances: {
-    table: at('placements.bin'), protos: { file: 'world/island/protos.glb' }, plan: { phone: plan('phone'), desktop: plan('desktop') },
+    table: { url: `${BLENDER_MODELS}placements.bin` }, protos: { file: 'world/island/protos.glb' }, plan: { phone: plan('phone'), desktop: plan('desktop') },
     names: ISLAND_FACTS.protos.map(proto => proto.name),
     looks: {
       cast: { look: ISLAND_LOOKS.props, cull: { phone: { flat: true, casters: 4 }, desktop: { flat: true, casters: 4 } } },

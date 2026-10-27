@@ -15,7 +15,7 @@ test('offline boot rows preserve ordered sources and filtered late reads for all
   expect({ sources, files, lateReads }).toEqual(driftwoodBootInventory());
   for (const tier of ['phone', 'desktop'] as const) for (const mode of ['img', 'ktx2'] as const) {
     const expected = resolveBootSources(DRIFTWOOD_BOOT_FILES, DRIFTWOOD_BOOT_SOURCES, tier, mode, GPU_FILES);
-    const named = new Set(['reef', 'ground', 'palms', 'hibiscus', 'cover'].flatMap(group => resolveBootFiles(DRIFTWOOD_BOOT_FILES, group, tier, mode, GPU_FILES)));
+    const named = new Set(['reef', 'ground', 'palms', 'hibiscus', 'cover', 'island', 'lights'].flatMap(group => resolveBootFiles(DRIFTWOOD_BOOT_FILES, group, tier, mode, GPU_FILES)));
     const expectedLate = resolveBootFiles(DRIFTWOOD_BOOT_FILES, 'late', tier, mode, GPU_FILES).filter(url => !named.has(url));
     expect(bootSourceFiles(sources, tier, mode)).toEqual(expected);
     expect(bootLateReads(lateReads, tier, mode)).toEqual(expectedLate);

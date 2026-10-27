@@ -11,7 +11,7 @@ export function driftwoodBootInventory(inventory?: Readonly<Record<string, numbe
   const inputs = inventory === undefined ? {} : { inventory };
   const resolve = (tier: 'phone' | 'desktop', tex: 'img' | 'ktx2') => {
     const sources = resolveBootSources(DRIFTWOOD_BOOT_FILES, DRIFTWOOD_BOOT_SOURCES, tier, tex, GPU_FILES, inputs);
-    const named = new Set(['reef', 'ground', 'palms', 'hibiscus', 'cover'].flatMap(group => resolveBootFiles(DRIFTWOOD_BOOT_FILES, group, tier, tex, GPU_FILES, inputs)));
+    const named = new Set(['reef', 'ground', 'palms', 'hibiscus', 'cover', 'island', 'lights'].flatMap(group => resolveBootFiles(DRIFTWOOD_BOOT_FILES, group, tier, tex, GPU_FILES, inputs)));
     return { sources, files: Object.values(sources).flat(),
       lateReads: resolveBootFiles(DRIFTWOOD_BOOT_FILES, 'late', tier, tex, GPU_FILES, inputs).filter(url => !named.has(url)) };
   };
