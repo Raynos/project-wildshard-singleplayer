@@ -1,10 +1,10 @@
 // G532 (4): the Blender spawn cove as one baked-tiles row (format/bakedTiles; the platform's `world.baked` feature draws it):
 // its terrain tiles in the island's graph toon look with the Cycles AO and bounce lightmaps, and its prototypes placed
-// instanced by family with their collider boxes. The numbers are islandRows.ts's and islandFacts.generated.json's.
+// instanced by family with their collider boxes. Authored island rows and owned native facts supply its numbers.
 import { parse, type InferOutput } from 'valibot';
 import { BakedTilesSchema } from '@wildshard/format/bakedTiles';
 import PLAN_FILES from '../data/islandPlanFiles.json' with { type: 'json' };
-import ISLAND_FACTS from '../data/islandFacts.generated.json' with { type: 'json' };
+import type { DriftwoodIslandFacts } from './islandFacts';
 import { COVE_MODELS } from './coveModels';
 import { ISLAND_LOOKS } from './islandLook';
 import { ISLAND_LOOK, ISLAND_TIERS } from './islandRows';
@@ -27,14 +27,15 @@ const coverWear = ({ url, texture, groundRect, parts }: (typeof coverFiles)['pho
 const fade = (reach: { near: number; far: number; grow: number }) => [reach.near + reach.grow, reach.far, reach.grow];
 const plan = (tier: 'phone' | 'desktop') => ({ source: pageFile(DRIFTWOOD_PLAN_FILES[tier]), bytes: PLAN_FILES[tier].bytes, used: PLAN_FILES[tier].used });
 
-export const BAKED_COVE: InferOutput<typeof BakedTilesSchema> = parse(BakedTilesSchema, {
+export function driftwoodBakedCove(facts: DriftwoodIslandFacts): InferOutput<typeof BakedTilesSchema> {
+  return parse(BakedTilesSchema, {
   id: 'cove', glb: at('island.glb'), tiles: { phone: 'terrainlo_', desktop: 'terrain_' }, look: ISLAND_LOOKS.terrain,
   drop: WORLD_DROP, meshPrefix: ISLAND_LOOK.meshPrefix, sky: false, toonDay: true,
   lightmaps: [lightmap('ao', 'lm-ao'), lightmap('bounceMap', 'lm-bounce')],
-  sun: { param: 'bounce', referenceY: ISLAND_FACTS.bake.sunY, gain: ISLAND_FACTS.bake.bounceGain },
+  sun: { param: 'bounce', referenceY: facts.bake.sunY, gain: facts.bake.bounceGain },
   instances: {
     table: at('placements.bin'), protos: { file: 'world/island/protos.glb' }, plan: { phone: plan('phone'), desktop: plan('desktop') },
-    names: ISLAND_FACTS.protos.map(proto => proto.name),
+    names: facts.protos.map(proto => proto.name),
     looks: {
       cast: { look: ISLAND_LOOKS.props, cull: { phone: { flat: true, casters: 4 }, desktop: { flat: true, casters: 4 } } },
       cover: { look: ISLAND_LOOKS.cover, cull: { phone: { far: ISLAND_TIERS.phone.cover.far + 1, cells }, desktop: { far: ISLAND_TIERS.desktop.cover.far + 1, cells } } },
@@ -47,3 +48,4 @@ export const BAKED_COVE: InferOutput<typeof BakedTilesSchema> = parse(BakedTiles
     { look: ISLAND_LOOKS.cover, fade: { phone: fade(ISLAND_TIERS.phone.cover), desktop: fade(ISLAND_TIERS.desktop.cover) } },
     { look: ISLAND_LOOKS.coverBig, fade: { phone: fade(ISLAND_TIERS.phone.big), desktop: fade(ISLAND_TIERS.desktop.big) } }] },
 });
+}

@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import { readProjectAssets } from '../src/sdk/project';
 import { validateDefinedSection } from '../src/sdk/sections';
 import { SECTIONS } from '../src/shards/driftwood-isle/generators/sections';
-import { BAKED_COVE } from '../src/shards/driftwood-isle/generators/bakedCove';
+import { BAKED_COVE } from './fixtures/driftwood-baked-cove';
 
 test('Driftwood fixed draws and island cover files name admitted product blobs (no legacy URL table)', async () => {
   const loaded = await readProjectAssets('src/shards/driftwood-isle', undefined, { folder: 'driftwood-isle', imageRoots: [{ prefix: '/assets/', directory: 'public/assets' }] }), custom = loaded.output.custom;

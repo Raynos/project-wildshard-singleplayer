@@ -58,7 +58,8 @@ import { siteCatalogue } from './siteCatalogue';
 import wreckScene from '../data/wreckScene.json' with { type: 'json' };
 import trailScene from '../data/trailScene.json' with { type: 'json' };
 import clientPlan from '../data/clientPlan.json' with { type: 'json' };
-import { BAKED_COVE } from './bakedCove';
+import { driftwoodBakedCove } from './bakedCove';
+import type { DriftwoodIslandFacts } from './islandFacts';
 import buildingLife from '../data/buildingLife.json' with { type: 'json' };
 import coveScene from '../data/coveScene.json' with { type: 'json' };
 import { worldScenes, SCENE_MODEL_BLOBS } from './worldScenes';
@@ -125,7 +126,7 @@ const sceneBytes = (value: unknown): Uint8Array => new TextEncoder().encode(enco
 const BRIDGE_SWAY_WASM = {name:'views/bridge-sway.wasm',kind:'wasm' as const,source:bridgeSwayModule.compiled.source,options:
   {critical:true,script:{abi:2 as const,lane:'view' as const,pages:1,ioBytes:4096,
     compilerRevision:SCRIPT_V2_REVISIONS.compiler,admissionRevision:SCRIPT_V2_REVISIONS.admission}}};
-const placements = emitNamedBlobs([nameBlob('actors/projection.json', 'json', new TextEncoder().encode(encodeCanonicalJson(populationProjectionRows()))), nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
+const placements = emitNamedBlobs([nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
 
   nameBlob('world/cover-composition.json', 'json', new TextEncoder().encode(JSON.stringify(parse(CoverCompositionSchema, coverComposition)))),
 
@@ -168,18 +169,21 @@ const placements = emitNamedBlobs([nameBlob('actors/projection.json', 'json', ne
 function questComposition(layouts: DriftwoodFixedLayouts) {
   return nameBlob('quests/page-composition.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(QuestPageCompositionSchema, { ...pageComposition, frames: questFrames, events: questEvents, deaths: questDeaths.page, entryResources: { world: driftwoodQuestWorld(layouts), figures: driftwoodQuestFigures(), continuation: driftwoodQuestContinuation() } }))));
 }
+function populationComposition(facts: DriftwoodIslandFacts) {
+  return nameBlob('actors/projection.json', 'json', new TextEncoder().encode(encodeCanonicalJson(populationProjectionRows(facts))));
+}
 /** The island's fauna looks over its packed creature bodies (`look/hull-book`; data/creatureBodies.generated.json). */
 function hullBook(): unknown { const { fauna, ...body } = creatureBodies; return { ...fauna, body }; }
 /** The platform sections in their declared order; `world/scenes` joins once the scene banks are built (prepareOutput). */
-function platformRows(scenes: ReturnType<typeof worldScenes> | undefined, layouts?: DriftwoodFixedLayouts): Map<PlatformDataSectionName, unknown> {
-  return new Map<PlatformDataSectionName, unknown>([['explore/catalogue', EXPLORER_CATALOGUE],['look/toon', TOON_LOOK], ['look/hull-book', hullBook()], ['view/modules', [{ id: 'driftwood.bridge-sway', module: `blobs/wasm/${bridgeSwayModule.compiled.hash}.wasm`, side: 'view', ...BRIDGE_SWAY_WASM.options.script }]], ['client/plan', { ...clientPlan, features: [...driftwoodCatalogueFeatures(clientPlan.features), ...(layouts === undefined ? [] : [{kind:'world.assembly',library:'driftwood.island',catalogue:'models/world-scenes.json',farStandIn:true,rows:driftwoodWorldStages(layouts)}]), { kind: 'world.updates', rows: driftwoodWorldUpdates() }, { kind: 'view.program', id: 'bridge-sway', rows: driftwoodBridgeSway(), module: 'views/bridge-sway.wasm' }, { kind: 'world.movers', ...driftwoodMoverOwners() }, { kind: 'world.baked', rows: [BAKED_COVE] }, ...(layouts === undefined ? [] : [{ kind: 'world.water', rows: [driftwoodOceanWaterRow(layouts)] }]), { kind: 'world.sets', rows: placeSetRows() }] }], ...(scenes === undefined ? [] : [['world/scenes', scenes] as const]), ...(layouts === undefined ? [] : [['held/arms', driftwoodHeldArms(layouts.wreck)] as const]), ['ui/strings', strings], ['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS], ['actors/return-scripts', [RETURN_PROGRAM.script]], ['sim/scripts', [...CAPTAIN_DECISION, ...BARREL_DECISION]], ['sim/bodies', BARREL_BODIES], ['actors/moves', CAPTAIN_MOVES], ['actors/strikes', CAPTAIN_STRIKES], ['world/targets',CAPTAIN_TARGETS]]);
+function platformRows(scenes: ReturnType<typeof worldScenes> | undefined, layouts?: DriftwoodFixedLayouts, facts?: DriftwoodIslandFacts): Map<PlatformDataSectionName, unknown> {
+  return new Map<PlatformDataSectionName, unknown>([['explore/catalogue', EXPLORER_CATALOGUE],['look/toon', TOON_LOOK], ['look/hull-book', hullBook()], ['view/modules', [{ id: 'driftwood.bridge-sway', module: `blobs/wasm/${bridgeSwayModule.compiled.hash}.wasm`, side: 'view', ...BRIDGE_SWAY_WASM.options.script }]], ['client/plan', { ...clientPlan, features: [...driftwoodCatalogueFeatures(clientPlan.features), ...(layouts === undefined ? [] : [{kind:'world.assembly',library:'driftwood.island',catalogue:'models/world-scenes.json',farStandIn:true,rows:driftwoodWorldStages(layouts)}]), { kind: 'world.updates', rows: driftwoodWorldUpdates() }, { kind: 'view.program', id: 'bridge-sway', rows: driftwoodBridgeSway(), module: 'views/bridge-sway.wasm' }, { kind: 'world.movers', ...driftwoodMoverOwners() }, ...(facts === undefined ? [] : [{ kind: 'world.baked', rows: [driftwoodBakedCove(facts)] }]), ...(layouts === undefined ? [] : [{ kind: 'world.water', rows: [driftwoodOceanWaterRow(layouts)] }]), { kind: 'world.sets', rows: placeSetRows() }] }], ...(scenes === undefined ? [] : [['world/scenes', scenes] as const]), ...(layouts === undefined ? [] : [['held/arms', driftwoodHeldArms(layouts.wreck)] as const]), ['ui/strings', strings], ['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS], ['actors/return-scripts', [RETURN_PROGRAM.script]], ['sim/scripts', [...CAPTAIN_DECISION, ...BARREL_DECISION]], ['sim/bodies', BARREL_BODIES], ['actors/moves', CAPTAIN_MOVES], ['actors/strikes', CAPTAIN_STRIKES], ['world/targets',CAPTAIN_TARGETS]]);
 }
 export const output: { blobs: ({ name: string; kind: string; source: string; } | { name: string; kind: "wasm"; source: string; options: { script: { abi: 0; }; }; })[]; platform: ReturnType<typeof emitDefinedSections>; namedFiles: readonly { path: string; kind: "audio" | "glb" | "ktx2" | "json" | "wasm" | "image" | "tile" | "bin"; name?: string; commons?: true; jsonSchema?: Record<string, unknown>; critical: boolean; hash: string; compressed: number; decoded: number; gpu: number; triangles: number; draws: number; dependencies: ReturnType<typeof emitNamedBlobs>["files"][number]["dependencies"]; }[]; assets: ReadonlyMap<string, Uint8Array>; custom: ReturnType<typeof emitDefinedSections>; } = { ...DRIFTWOOD_OUTPUT, blobs: [RETURN_WASM,BRIDGE_SWAY_WASM,{name:'behaviour/director.wasm',kind:'wasm' as const,source:`assets/${directorModule.module}`,options:{script:{abi:0 as const}}},...DRIFTWOOD_OUTPUT.blobs, ...SCENE_MODEL_BLOBS, ...driftwoodPhysicsSources()], platform: emitPlatformSections(platformRows(undefined)), namedFiles: placements.files, assets: placements.assets, custom };
 
 /** Complete layout-dependent rows from the owned fixed facts, before binary banks join. */
-export function driftwoodOutputRows(layouts: DriftwoodFixedLayouts): typeof output {
-  const questFiles = emitNamedBlobs([questComposition(layouts)]);
-  return { ...output, platform: emitPlatformSections(platformRows(undefined, layouts)),
+export function driftwoodOutputRows(layouts: DriftwoodFixedLayouts, facts: DriftwoodIslandFacts): typeof output {
+  const questFiles = emitNamedBlobs([questComposition(layouts), populationComposition(facts)]);
+  return { ...output, platform: emitPlatformSections(platformRows(undefined, layouts, facts)),
     namedFiles: [...questFiles.files, ...output.namedFiles], assets: new Map([...questFiles.assets, ...output.assets]) };
 }
 
@@ -191,11 +195,11 @@ export const sections: { 'world/movers': { movers: ({ id: string; execution: str
  *  under src. */
 export async function prepareOutput(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<typeof output> {
   const banks = await driftwoodSceneBanksCached(ctx), bankFiles = await driftwoodSceneBankOutput(banks);
-  const rows = driftwoodOutputRows(banks.layouts);
+  const rows = driftwoodOutputRows(banks.layouts, banks.facts);
   const catalogue = emitNamedBlobs([nameBlob('scenes/rocks.json', 'json', new TextEncoder().encode(encodeCanonicalJson(banks.rocks.scene))),
     nameBlob('models/world-scenes.json', 'json', new TextEncoder().encode(encodeCanonicalJson(siteCatalogue(banks))))]);
   const fixed = await driftwoodFixedModelOutput(ctx), protos = await driftwoodIslandProtoOutput(ctx), pages = await driftwoodPageFileOutput(ctx), phoneRocks = await driftwoodPhoneRockOutput(banks.rocks.glbs), scenes = await driftwoodSceneModelOutput(ctx);
-  return { ...rows, platform: emitPlatformSections(platformRows(worldScenes(banks), banks.layouts)),
+  return { ...rows, platform: emitPlatformSections(platformRows(worldScenes(banks), banks.layouts, banks.facts)),
     namedFiles: [...rows.namedFiles, ...catalogue.files, ...protos.files, ...pages.files, ...phoneRocks.files, ...fixed.files, ...scenes.files, ...bankFiles.files],
     assets: new Map([...rows.assets, ...catalogue.assets, ...protos.assets, ...pages.assets, ...phoneRocks.assets, ...fixed.assets, ...scenes.assets, ...bankFiles.assets]) };
 }

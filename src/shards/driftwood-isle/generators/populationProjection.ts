@@ -6,13 +6,13 @@ import { DRIFTWOOD_SPECIES_PROGRAMS } from './speciesPrograms';
 import { RETURN_PROGRAM } from './returnProgram';
 import { driftwoodItems } from './items';
 import { islandFoliagePlacements } from './islandDressing';
-import island from '../data/islandFacts.generated.json' with { type: 'json' };
+import type { DriftwoodIslandFacts } from './islandFacts';
 import physics from '../data/physics.generated.json' with { type: 'json' };
 
 const foliage = islandFoliagePlacements();
 
 /** Compile presentation rows from the same placement, physical and species inputs. */
-export function populationProjectionRows(): v.InferOutput<typeof PopulationProjectionSchema> {
+export function populationProjectionRows(island: DriftwoodIslandFacts): v.InferOutput<typeof PopulationProjectionSchema> {
   const items = driftwoodItems();
   const launch = items.launches?.['coconut'];
   if (launch === undefined) throw new Error('Missing authored coconut launch');

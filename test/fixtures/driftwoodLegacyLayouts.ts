@@ -14,7 +14,7 @@ import { ISLAND_KNOBS } from '../../src/shards/driftwood-isle/generators/tiers';
 import { ENTRY_DECKS } from '../../src/shards/driftwood-isle/generators/entryDecks';
 import npcScenes from '../../src/shards/driftwood-isle/data/npcScenes.generated.json' with {type:'json'};
 import { islandFoliagePlacements } from '../../src/shards/driftwood-isle/generators/islandDressing';
-import islandFacts from '../../src/shards/driftwood-isle/data/islandFacts.generated.json' with { type: 'json' };
+import { DRIFTWOOD_ISLAND_FACTS as islandFacts } from './driftwood-island-facts';
 import cumulusPuffs from '../../src/shards/driftwood-isle/data/cumulusPuffs.json' with { type: 'json' };
 import { driftwoodPierRows } from '../../src/shards/driftwood-isle/generators/fixedFacts';
 import { GULL_FLOCK } from '../../src/shards/driftwood-isle/generators/gullsLook';

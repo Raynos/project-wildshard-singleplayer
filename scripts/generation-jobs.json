@@ -3000,49 +3000,6 @@
       "platform": "portable"
     },
     {
-      "id": "driftwood-island-facts",
-      "shard": "driftwood-isle",
-      "entry": "src/shards/driftwood-isle/generators/islandFacts.ts",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/driftwood-isle/generators/islandFacts.ts",
-        "islandPrototypeFacts",
-        "src/shards/driftwood-isle/data/islandFacts.generated.json",
-        "--bytes"
-      ],
-      "inputRoots": [
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/commons",
-        "src/shards/driftwood-isle",
-        "scripts/bake-loader.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "public/assets/models/driftwood-blender/island.glb",
-        "public/assets/models/driftwood-blender/island.json",
-        "src/format/colourFunction.ts",
-        "src/format/json.ts",
-        "src/format/materialFamilies.ts",
-        "src/format/materialGraph.ts",
-        "src/format/materials.ts",
-        "src/format/paintedLook.ts",
-        "src/format/runtimeBinds.ts"
-      ],
-      "outputs": [
-        "src/shards/driftwood-isle/data/islandFacts.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/driftwood-isle/data/islandFacts.generated.json"
-      ],
-      "seedOutputs": [],
-      "platform": "native"
-    },
-    {
       "id": "driftwood-creature-bodies",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-driftwood-creatures.mjs",
