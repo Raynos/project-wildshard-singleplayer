@@ -5,7 +5,7 @@ import type { ResidencyAllocator, ResidencyLease, ResidencyEviction } from './al
 type AssetPort = Parameters<App['assets']['bindResidency']>[0];
 /** Renderer composition supplies concrete allocation identities; Node residency imports no rendering module. */
 export type AssetAllocationReader = (resource: Disposable3) => readonly { identity: object; bytes: number; kind: 'cpu' | 'gpu' }[];
-interface CacheConsumer { readonly users: Set<Scope>; readonly evict: (() => boolean) | undefined; readonly reusable: boolean; active: boolean; lastUse: number; retired: boolean }
+interface CacheConsumer { readonly users: Set<Scope>; readonly evict: (() => boolean) | undefined; readonly reusable: boolean; readonly revisit: boolean; active: boolean; lastUse: number; retired: boolean }
 interface Allocation { readonly identity: object; lease: ResidencyLease; readonly bytes: number; readonly kind: 'cpu' | 'gpu'; readonly consumers: Set<CacheConsumer>; refs: number; covering: string | undefined }
 const bridges = new WeakMap<ResidencyAllocator, AssetResidencyBridge>();
 
@@ -72,8 +72,9 @@ export class AssetResidencyBridge implements AssetPort {
   }
   private evictUnused(consumer: CacheConsumer): void {
     for (const user of consumer.users) if (user.disposed) consumer.users.delete(user);
-    // Reuse spans live residents, not retired visits. Active acquisitions still protect shared storage.
-    if (consumer.retired && consumer.users.size === 0 && (!consumer.reusable || !consumer.active)) consumer.evict?.();
+    // Ordinary reuse spans live residents. Explicit revisit builds keep their real
+    // idle charges until budget pressure evicts them; active acquisitions stay protected.
+    if (consumer.retired && consumer.users.size === 0 && !consumer.revisit && (!consumer.reusable || !consumer.active)) consumer.evict?.();
   }
   private prepareEviction(identity: object): ResidencyEviction | null {
     // G639: asked once per eviction candidate (a burst of idle builds on an entry over target): check the set in place and
@@ -96,7 +97,8 @@ export class AssetResidencyBridge implements AssetPort {
     }
   }
   /** AssetService calls this before adopting a cache; refusal releases every partially prepared allocation. */
-  register(_key: string, resource: Disposable3, owner: Scope | null, evict?: () => boolean, reusable = false): ReturnType<AssetPort['register']> {
+  register(_key: string, resource: Disposable3, owner: Scope | null, evict?: () => boolean, reusable = false, revisit = false): ReturnType<AssetPort['register']> {
+    if (revisit && !reusable) throw new Error('Revisit cache requires reusable ownership');
     const held: Allocation[] = [], covering = this.covering(owner ?? this.readOwner());
     const unhold: (() => void)[] = [];
     try {
@@ -110,7 +112,7 @@ export class AssetResidencyBridge implements AssetPort {
       }
     } catch (error) { this.release(held); for (const release of unhold) release(); throw error; }
     let live = true;
-    const consumer: CacheConsumer = { users: new Set(), evict, reusable, active: false, lastUse: ++this.uses, retired: false };
+    const consumer: CacheConsumer = { users: new Set(), evict, reusable, revisit, active: false, lastUse: ++this.uses, retired: false };
     for (const entry of held) entry.consumers.add(consumer);
     const initialOwner = this.runtimeOwner(owner ?? this.readOwner());
     this.consumers.add(consumer);

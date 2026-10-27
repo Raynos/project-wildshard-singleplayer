@@ -61,6 +61,8 @@ export function admitSceneBuffers(input: unknown, files?: ReadonlyMap<string, Ui
 /** An admitted content URL and its authoritative resource owner, never an entered root or material. */
 export interface SceneBufferReuse {
   readonly content: string;
+  /** Fixed world storage may remain charged and idle between region visits. */
+  readonly revisit?: boolean;
   readonly assets: Pick<App['assets'], 'register' | 'acquireResource' | 'evictCached'>;
 }
 const builds = new WeakMap<SceneBufferReuse['assets'], Map<string, ReadonlyMap<string, BufferGeometry>>>();
@@ -122,30 +124,35 @@ function buildGeometries(row: SceneBuffers, counts: readonly (number | undefined
 /** Fresh draw objects can borrow fixed storage through charged, pressure-evictable assets.
  * Content identity, tier and every resolved instance count isolate reusable builds.
  * Binary files are verified product reads; decoded geometry never mutates their storage. */
-function prepareBufferDraws(input: unknown, scope: Scope, plumbing?: PlumbingData | null, reuse?: SceneBufferReuse, files?: ReadonlyMap<string, Uint8Array>): (material: Material) => Group {
+export interface SceneBufferDrawer {
+  (material: Material): Group;
+  readonly cache: 'private' | 'hit' | 'miss';
+}
+
+function prepareBufferDraws(input: unknown, scope: Scope, plumbing?: PlumbingData | null, reuse?: SceneBufferReuse, files?: ReadonlyMap<string, Uint8Array>): SceneBufferDrawer {
   if (scope.disposed || scope.disposing) throw new Error('Scene buffer scope is disposed or retiring');
   const row = namedSceneBuffers(input), counts = instanceCounts(row, plumbing), owner = scope.child('buffered-draws');
   try {
-    let geometries: ReadonlyMap<string, BufferGeometry>;
+    let geometries: ReadonlyMap<string, BufferGeometry>, cache: SceneBufferDrawer['cache'] = 'private';
     if (reuse === undefined) geometries = buildGeometries(row, counts, geometry => { owner.own(geometry); }, files);
     else {
       if (reuse.content.length === 0) throw new Error('Reusable scene buffers need admitted content identity');
       let memo = builds.get(reuse.assets);
       if (memo === undefined) { memo = new Map(); builds.set(reuse.assets, memo); }
-      const key = JSON.stringify([reuse.content, TIER, counts]), known = memo.get(key);
+      const key = JSON.stringify([reuse.content, TIER, counts, reuse.revisit === true]), known = memo.get(key);
       if (known !== undefined) {
-        geometries = known;
+        cache = 'hit'; geometries = known;
         for (const geometry of geometries.values()) {
           const release = reuse.assets.acquireResource(geometry);
           if (release === null) throw new Error('Reusable scene geometry has retired');
           owner.onDispose(release);
         }
       } else {
-        const registered: string[] = [];
+        cache = 'miss'; const registered: string[] = [];
         try {
           geometries = buildGeometries(row, counts, geometry => {
             const asset = `scene:${geometry.uuid}`;
-            withOwner(owner, () => reuse.assets.register(asset, geometry, { retain: true, cache: true, reusable: true }));
+            withOwner(owner, () => reuse.assets.register(asset, geometry, { retain: true, cache: true, reusable: true, revisit: reuse.revisit === true }));
             registered.push(asset);
             const release = reuse.assets.acquireResource(geometry);
             if (release === null) throw new Error('New scene geometry has no owner');
@@ -160,14 +167,15 @@ function prepareBufferDraws(input: unknown, scope: Scope, plumbing?: PlumbingDat
         forgetWhenDisposed(geometries, memo, key, geometries); // its listener holds no owner of this build
       }
     }
-    return bufferDrawer(row, geometries, owner);
+    return Object.assign(bufferDrawer(row, geometries, owner), { cache });
   } catch (error) { owner.dispose(); throw error; }
 }
 
-/** A scope-local fixed build: prepare its channels once, then make independent draw objects and materials.
+/** A fixed build: prepare channels once, then make independent draw objects and materials.
+ * Reuse is explicit and keeps exact content/tier/instance counts under the supplied asset budget.
  * The factory owns no transport reader and cannot draw after its construction scope retires. */
-export function prepareSceneBufferDraws(input: unknown, scope: Scope, plumbing?: PlumbingData | null, files?: ReadonlyMap<string, Uint8Array>): (material: Material) => Group {
-  return prepareBufferDraws(input, scope, plumbing, undefined, files);
+export function prepareSceneBufferDraws(input: unknown, scope: Scope, plumbing?: PlumbingData | null, files?: ReadonlyMap<string, Uint8Array>, reuse?: SceneBufferReuse): SceneBufferDrawer {
+  return prepareBufferDraws(input, scope, plumbing, reuse, files);
 }
 
 /** Construct one buffered scene; explicit reusable callers retain their existing charged-cache contract. */

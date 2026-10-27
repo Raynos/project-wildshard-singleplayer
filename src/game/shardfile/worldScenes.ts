@@ -480,7 +480,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       const made = createWorldScene(recipe, sources.ports);
       owner.onDispose(() => { made.dispose(); });
       const buffered: { root: Group; rows: SceneBuffers }[] = [];
-      drawSceneRows(product, step.draws ?? [], made.root, owner, materials, (root, rows) => { buffered.push({ root, rows }); });
+      drawSceneRows(product, step.draws ?? [], made.root, owner, materials, (root, rows) => { buffered.push({ root, rows }); }, ctx.app.assets);
       if (instance.position !== undefined) made.root.position.set(...instance.position);
       if (instance.rotation !== undefined) made.root.rotation.set(...instance.rotation);
       for (const row of step.bounds) {

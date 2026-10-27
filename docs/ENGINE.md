@@ -469,13 +469,11 @@ through those after an `await` ends with the resident. Anything else that reads 
 **Owned vs acquired.** `own` only what your level creates. A shared engine or kit asset comes through
 `app.assets.acquire(key)` and is released, never disposed (`AssetService`, `AssetCensus`, `AssetRecord`).
 `retainCachedResources` marks engine caches that survive a level.
-Fixed builds may register with `{ retain: true, cache: true, reusable: true }`.
-Their live acquisitions prevent eviction. Runtime retirement evicts a cache after
-its last live scope user and acquisition release it; re-entry reconstructs storage
-through the invalidated memo. Other idle CPU/GPU claims stay charged and ordinary
-allocator pressure can evict them in least-recently-used order.
-Every reusable memo invalidates on resource disposal with `cacheUntilDisposed`
-or `memoUntilDisposed`; it never reuses retired buffers or adds a page pin.
+Fixed builds use `{ retain: true, cache: true, reusable: true }`; live leases prevent eviction.
+By default retirement evicts after the last live scope user and lease. Fixed buffered
+worlds add `revisit: true`: idle CPU/GPU stays charged across retirement and pressure-evictable
+in LRU order. Disposal invalidates reusable memos through `cacheUntilDisposed` or
+`memoUntilDisposed`; never reuse disposed storage or add a page pin.
 World-scene buffered draws reuse geometry by admitted content URL, tier and every
 resolved instance count. Each entered scope acquires that storage and constructs
 fresh draw objects with its own materials. Unkeyed callers keep scope disposal;
