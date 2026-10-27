@@ -291,9 +291,9 @@ export function authoredHtmlSites(root, filename, supplied = null) {
       if (memberNames(left).some(name => sinks.has(name))) pending.push({ node, value: node.right });
     }
     if (node.type === 'Property' && sinkProperties.has(keyOf(node.key))) pending.push({ node, value: node.value });
-    for (const entry of children(node)) scan(entry);
   }
-  scan(program);
+  // The lexical graph already indexed every primary node in preorder.
+  for (const node of primary.parents.keys()) scan(node);
   function record(node) {
     const start = node.start ?? node.range[0], loc = node.loc?.start ?? { line: source.slice(0, start).split('\n').length, column: start - source.lastIndexOf('\n', start - 1) - 1 };
     sites.set(start, { line: loc.line, column: loc.column, message });

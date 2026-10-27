@@ -14,13 +14,38 @@ const unwrap = node => {
   while (['TSAsExpression', 'TSSatisfiesExpression', 'ParenthesizedExpression', 'TSNonNullExpression', 'ChainExpression'].includes(value?.type)) value = value.expression;
   return value;
 };
-const children = node => Object.entries(node).flatMap(([key, value]) => key === 'parent' ? [] : Array.isArray(value) ? value.filter(item => item && typeof item.type === 'string') : value && typeof value.type === 'string' ? [value] : []);
-const walk = (node, visit, parent = null) => { if (!node || typeof node.type !== 'string') return; visit(node, parent); for (const child of children(node)) walk(child, visit, node); };
+// Each analysis has several whole-file and function-body passes. Index the
+// immutable parse once; subtree intervals preserve the original preorder.
+const indexedWalk = program => {
+  const rows = [], ranges = new Map();
+  const index = (node, parent = null) => {
+    if (!node || typeof node.type !== 'string') return;
+    const start = rows.length;
+    rows.push({ node, parent });
+    for (const key of Object.keys(node)) {
+      if (key === 'parent') continue;
+      const value = node[key];
+      if (Array.isArray(value)) { for (const item of value) index(item, node); }
+      else index(value, node);
+    }
+    ranges.set(node, { start, end: rows.length });
+  };
+  index(program);
+  return (node, visit) => {
+    const range = ranges.get(node);
+    if (range === undefined) return;
+    for (let i = range.start; i < range.end; i++) {
+      const row = rows[i];
+      visit(row.node, i === range.start ? null : row.parent);
+    }
+  };
+};
 
 /** Exact source-site identities survive line moves, but never allow new code or another copy of a violation. */
 export function runtimePerformanceSites(source, filename = 'runtime.ts') {
   const parsed = parseSync(filename, source), issues = [], constants = new Map(), funcs = [], parents = new Map();
   if (parsed.errors.length > 0) return [{ kind: 'syntax', start: 0, end: source.length, line: 1, site: 'syntax', message: 'Runtime source must parse before it can be checked' }];
+  const walk = indexedWalk(parsed.program);
   const ambiguous = new Set();
   walk(parsed.program, (node, parent) => {
     parents.set(node, parent);

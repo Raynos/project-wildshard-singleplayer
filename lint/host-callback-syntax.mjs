@@ -1,6 +1,6 @@
 // G642: callback admission from syntax; the typed catalogue is a separate build tool.
 import { hostPlayFile } from './host-files.mjs';
-import { createSyntaxGraph, syntaxChild as child, syntaxChildren as children,
+import { createSyntaxGraph, syntaxChild as child,
   syntaxFunctions as functions, syntaxClasses as classes } from './syntax-values.mjs';
 
 const platform = file => /^src\/(?:engine|game|sdk)\//u.test(file);
@@ -56,8 +56,7 @@ export function hostCallbackSites(root, file, program) {
         }
       }
     }
-    for (const entry of children(node)) visit(entry);
   }
-  visit(program);
+  for (const node of primary.parents.keys()) visit(node);
   return issues;
 }

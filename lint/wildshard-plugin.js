@@ -348,6 +348,10 @@ const layerWalk = (kind) => (context) => {
   if (kind === 'words') {
     if (own.name !== 'engine') return {};
     const words = (node, text) => {
+      // Most identifiers contain no forbidden token. Avoid allocating a match
+      // iterator for them; retain the full matching loop for every positive.
+      if (!WORDS.test(text)) return;
+      WORDS.lastIndex = 0;
       for (const match of text.matchAll(WORDS)) {
         const path = pathOf(context);
         // F10's save protocol names a shard scope; its one-time reset table necessarily names historical keys.
