@@ -5,7 +5,7 @@ import { noteFrameDrawn, setBuildHeld } from '../core/framePacing';
 import { runPrecompile, type CompileJob, type PrecompileStage } from './precompile';
 import { linkedGl } from '../test/linkedGl';
 
-async function schedule(options: { held?: boolean; cost?: number; prepare?: boolean; cancel?: boolean; retireTarget?: boolean; separate?: boolean; allocated?: boolean; samples?: number; replaceTarget?: boolean; external?: boolean; depthSwap?: boolean }) {
+async function schedule(options: { held?: boolean; cost?: number; prepare?: boolean; cancel?: boolean; retireTarget?: boolean; separate?: boolean; allocated?: boolean; samples?: number; replaceTarget?: boolean; external?: boolean; depthSwap?: boolean; externalFramebuffer?: boolean; framebufferArray?: boolean; unfencedTarget?: boolean }) {
   const renderer: unknown = Object.create(WebGLRenderer.prototype);
   if (!(renderer instanceof WebGLRenderer)) throw new Error('Missing renderer');
   const geometry = new BoxGeometry(), material = new MeshBasicMaterial(), root = new Scene();
@@ -21,8 +21,9 @@ async function schedule(options: { held?: boolean; cost?: number; prepare?: bool
     program: {}, isReady: () => true, getUniforms: () => { uniforms++; return {}; } };
   const fields: Record<string, unknown> = {
     info: { programs: [program], render: { frame: 0 } }, extensions: { has: () => false },
-    properties: { get: (owner: object) => owner === target ? { __webglFramebuffer: framebuffer,
-      __boundDepthTexture: options.depthSwap === true ? undefined : target?.depthTexture, __hasExternalTextures: options.external === true }
+    properties: { get: (owner: object) => owner === target ? { __webglFramebuffer: options.framebufferArray === true ? [framebuffer] : framebuffer,
+      __boundDepthTexture: options.depthSwap === true ? undefined : target?.depthTexture, __hasExternalTextures: options.external === true,
+      __useDefaultFramebuffer: options.externalFramebuffer === true ? false : undefined }
       : { programs: new Map([['cached', program]]) }, has: (owner: object) => owner !== target || framebuffer !== undefined },
     getContext: linkedGl, getRenderTarget: () => activeTarget,
     setRenderTarget: (value: WebGLRenderTarget | null) => { activeTarget = value; if (value !== null) framebuffer ??= {}; },
@@ -41,7 +42,7 @@ async function schedule(options: { held?: boolean; cost?: number; prepare?: bool
   try {
     noteFrameDrawn(now, now, 30); setBuildHeld(true);
     // Only a completed first-use/link fence can qualify an existing program.
-    await runPrecompile(renderer, new PerspectiveCamera(), [job], 1, undefined, [], () => true, true, pause);
+    await runPrecompile(renderer, new PerspectiveCamera(), [{ ...job, ...(options.unfencedTarget === true ? { rt: null } : {}) }], 1, undefined, [], () => true, true, pause);
     expect(uniforms).toBe(1);
     now = 1000; frame = 0; current = true; issued.length = 0;
     cost = options.cost ?? 3; noteFrameDrawn(now, now, 30); setBuildHeld(options.held ?? true);
@@ -116,7 +117,14 @@ test('independent roots reuse only a stable already allocated composer target', 
   expect(result.cached).toBe(9);
 });
 
-test.each([{ samples: 2 }, { replaceTarget: true }, { retireTarget: true }, { external: true }, { depthSwap: true }])(
+test('an allocated target waits for its own first completed-draw fence', async () => {
+  const result = await schedule({ separate: true, allocated: true, unfencedTarget: true });
+  expect(result.issued).toEqual([0, 1, 1, 1, 1, 1, 1, 1, 1]);
+  expect(result.cached).toBe(8);
+});
+
+test.each([{ samples: 2 }, { replaceTarget: true }, { retireTarget: true }, { external: true }, { depthSwap: true },
+  { externalFramebuffer: true }, { framebufferArray: true }])(
   'an allocated target keeps native fences when its allocation is uncertain: %o', async options => {
     const result = await schedule({ ...options, separate: true, allocated: true });
     expect(result.issued).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8]);

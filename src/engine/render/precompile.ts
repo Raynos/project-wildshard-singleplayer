@@ -30,6 +30,9 @@ import { waitFor } from '../boot/waits';
 import { isDev } from '../core/devMode';
 
 let censusSlot = 0;
+// Weak identities only: a target becomes known after its own completed-draw
+// barrier, not merely because another concurrent warm-up allocated it.
+const fencedTargets = new WeakMap<Renderer, WeakMap<THREE.WebGLRenderTarget, object>>();
 
 /**
  * Shader precompile for the `shaders` boot step (project/archive/2026-09-22-load-perf.md §P2.3, Status table).
@@ -1052,6 +1055,8 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   let tFrame = performance.now(), programsAtFrame = programCount(renderer);
   let nativeInSlice = false, cachedCpuJobs = 0, cachedCpuMs = 0;
   const preparedTargets = new Set<THREE.WebGLRenderTarget | null>([null]);
+  let targetFences = fencedTargets.get(renderer);
+  if (targetFences === undefined) { targetFences = new WeakMap(); fencedTargets.set(renderer, targetFences); }
   const watchedTargets = new Set<THREE.WebGLRenderTarget>();
   let stageStart = tFrame;
   const programsByKind = new Map<string, number>();
@@ -1111,7 +1116,8 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       if (job.environment !== undefined && job.target) job.target.environment = environment;
     }
     const made = programCount(renderer) - programsBefore;
-    const targetKnown = preparedTargets.has(job.rt) || targetBefore !== undefined && targetBefore === allocatedTarget(renderer, job.rt);
+    const targetKnown = preparedTargets.has(job.rt) || job.rt !== null && targetBefore !== undefined
+      && targetFences.get(job.rt) === targetBefore && targetBefore === allocatedTarget(renderer, job.rt);
     let cachedOnly = made === 0 && job.materialSide === undefined && job.prepare === undefined && targetKnown;
     let knownPrograms = 0;
     const acquired = isolateImageUploads ? snapshotPrograms(renderer) : undefined;
@@ -1151,6 +1157,10 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     if (sliceDone || capped || i === jobs.length - 1 && !cachedCompletion) {
       if (isolateImageUploads && !spent(tFrame)) await settleOne(tFrame);
       await pause(); tFrame = performance.now(); programsAtFrame = programCount(renderer); nativeInSlice = false;
+      for (const target of preparedTargets) if (target !== null) {
+        const framebuffer = allocatedTarget(renderer, target);
+        if (framebuffer !== undefined) targetFences.set(target, framebuffer);
+      }
     }
   }
   created.push(...newProgramsSince(renderer, before));
