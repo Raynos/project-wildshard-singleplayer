@@ -4,12 +4,14 @@ import { array, finite, number, object, parse, pipe, string } from 'valibot';
 import { expect, test } from 'vitest';
 import { parseWorldSceneModels } from '../src/format/worldSceneModels';
 import { parseWorldScenes } from '../src/format/worldScenes';
-import rows from '../src/shards/pine-hollow/data/props.json' with { type: 'json' };
+import { pineProps } from '../src/shards/pine-hollow/generators/bake-pine-props.mjs';
 import { PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';
 import { MODEL_SCENES, SCENE_MODELS, SCENE_PLACEMENTS } from '../src/shards/pine-hollow/generators/sceneModelRows';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
 
+// GR8 (97e4918e1f): the props rows are the producer's, not a committed data/props.json
+const rows = await pineProps();
 const baked=parse(object({groups:array(object({id:string(),matrices:array(pipe(number(),finite()))}))}),
   JSON.parse(readFileSync('src/shards/pine-hollow/data/propScenes.generated.json','utf8')));
 
