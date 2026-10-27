@@ -1290,8 +1290,8 @@ Other geometry keeps native bounds. Boot/desktop keep budgets; native draws can 
 Match its root to the destination; it retains no resources. `warmParkedDraws` takes
 `options.onProgress(done, total)`; `warmOffscreenPasses` takes progress and an optional
 `ParkedDrawBudget` after `excludedRoots`. `PrecompileStage` is `precompileLevel`'s `options.onStage`
-and `runPrecompile`'s argument after `uploadBudget`. Callbacks run after draw flags
-are restored and change no work order, pacing or readiness. Older pins omit this trace.
+and `runPrecompile`'s argument after `uploadBudget`. `cached-compile` counts cheap,
+resolved-program jobs sharing a held native budget; other fences stay unchanged.
 
 `Game.nodeBuilds.log` retains 1,024 scalar records with total `ms`, names and reuse
 reason. `prepareMs` times shape/key/reuse lookup; `frontendMs` times only the stock

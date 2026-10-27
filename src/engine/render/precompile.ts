@@ -25,7 +25,7 @@ import { installedGraphBackend } from './graphBackend';
 import { boundEntryWarmup } from './entryWarmupBound';
 import { workSlice } from '../core/workSlice';
 import { SHADOW_LAYER } from '../core/shadowLayer';
-import { heldBudget, nativeBudgetSpent, presenting } from '../core/framePacing';
+import { buildHeld, heldBudget, nativeBudgetSpent, presenting } from '../core/framePacing';
 import { waitFor } from '../boot/waits';
 
 /**
@@ -92,7 +92,7 @@ export interface CompileJob {
 export interface PrecompileReport { materials: number; jobs: number; programs: number; parallel: boolean }
 
 /** Scalar preparation stage observation. Elapsed time includes painted waits; units count completed jobs/resources. */
-export type PrecompileStage = (phase: 'compile' | 'link' | 'upload' | 'upload-kib' | `programs:${string}`, elapsedMs: number, units: number) => void;
+export type PrecompileStage = (phase: 'compile' | 'cached-compile' | 'link' | 'upload' | 'upload-kib' | `programs:${string}`, elapsedMs: number, units: number) => void;
 
 const exteriorLighting = new WeakMap<THREE.Scene, { environment: THREE.Texture | null; roots: Set<THREE.Object3D> }>();
 
@@ -927,7 +927,7 @@ export async function runPrecompile(
     watched.add(texture); observer.listenOnceEmitter(texture, 'dispose', () => { retired.add(texture); });
   };
   for (const texture of textures) watch(texture);
-  try { return await runPrecompileWork(renderer, camera, jobs, materials, onProgress, textures, current, retired, watch, isolateImageUploads, pause, uploadBudget, onStage, sliceMs); }
+  try { return await runPrecompileWork(renderer, camera, jobs, materials, onProgress, textures, current, retired, watch, isolateImageUploads, pause, uploadBudget, onStage, sliceMs, observer); }
   finally {
     observer.dispose();
     for (const lights of new Set(jobs.flatMap(job => job.lights === undefined ? [] : [job.lights]))) lights.dispose();
@@ -937,7 +937,7 @@ export async function runPrecompile(
 async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs: CompileJob[], materials: number,
   onProgress: ((done: number, total: number, detail: string) => void) | undefined, textures: THREE.Texture[],
   current: () => boolean, retired: WeakSet<THREE.Texture>, watch: (texture: THREE.Texture) => void, isolateImageUploads: boolean, pause: () => Promise<void>,
-  uploadBudget: UploadBudget | undefined, onStage: PrecompileStage | undefined, sliceMs: number): Promise<PrecompileReport> {
+  uploadBudget: UploadBudget | undefined, onStage: PrecompileStage | undefined, sliceMs: number, observer: Scope): Promise<PrecompileReport> {
   const checkCurrent = (): void => { if (!current()) throw new Error('Shader warm-up owner left'); };
   checkCurrent();
   for (const texture of collectTextures(jobs)) watch(texture);
@@ -948,6 +948,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   // offscreen factory such as PMREM issues its own in `_compileMaterial` during capture). Without them the replayed
   // draw was their first use: a blocking link query (53-99 ms getProgramInfoLog on the Simulator) in one frame.
   const jobPrograms = new Set<unknown>();
+  const issuedPrograms = new Set<unknown>();
   const nodeMaterials = new Map<unknown, Set<THREE.Material>>();
   const prepareBlocks = (program: ProgramLike): void => {
     const handler = installedGraphBackend(renderer);
@@ -992,6 +993,9 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   const total = () => jobs.length + Math.max(created.length, 1) + textures.length;
   const mode = parallel ? 'parallel' : 'serial';
   let tFrame = performance.now(), programsAtFrame = programCount(renderer);
+  let nativeInSlice = false, cachedCpuJobs = 0, cachedCpuMs = 0;
+  const preparedTargets = new Set<THREE.WebGLRenderTarget | null>([null]);
+  const watchedTargets = new Set<THREE.WebGLRenderTarget>();
   let stageStart = tFrame;
   const programsByKind = new Map<string, number>();
   for (const [i, job] of jobs.entries()) {
@@ -999,8 +1003,13 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     // on a stale local slice, and don't append first-use/link preparation after a compile has consumed the budget.
     // Another queued warm-up can spend the frame while this wait is pending.
     // Recheck on delivery instead of admitting every waiter behind one draw.
-    while (nativeBudgetSpent(sliceMs)) { await pause(); checkCurrent(); tFrame = performance.now(); programsAtFrame = programCount(renderer); }
+    while (nativeBudgetSpent(sliceMs)) { await pause(); checkCurrent(); tFrame = performance.now(); programsAtFrame = programCount(renderer); nativeInSlice = false; }
     checkCurrent();
+    const jobStart = performance.now(); issuedPrograms.clear();
+    if (job.rt !== null && !watchedTargets.has(job.rt)) {
+      const target = job.rt; watchedTargets.add(target);
+      observer.listenOnceEmitter(target, 'dispose', () => { preparedTargets.delete(target); watchedTargets.delete(target); });
+    }
     const programsBefore = programCount(renderer);
     const prevRt = renderer.getRenderTarget(), prevTone = renderer.toneMapping;
     const fog = job.target?.fog ?? null;
@@ -1030,6 +1039,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       job.root.traverse(object => { for (const material of materialsOf(object)) {
         for (const program of materialPrograms(renderer, material)) {
           jobPrograms.add(program);
+          issuedPrograms.add(program);
           if (Reflect.get(material, 'isNodeMaterial') !== true) continue;
           let variants = nodeMaterials.get(program);
           if (variants === undefined) { variants = new Set(); nodeMaterials.set(program, variants); }
@@ -1044,24 +1054,41 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       if (job.environment !== undefined && job.target) job.target.environment = environment;
     }
     const made = programCount(renderer) - programsBefore;
+    let cachedOnly = made === 0 && job.materialSide === undefined && job.prepare === undefined && preparedTargets.has(job.rt);
+    let knownPrograms = 0;
+    const acquired = isolateImageUploads ? snapshotPrograms(renderer) : undefined;
+    if (acquired !== undefined) for (const program of acquired) if (issuedPrograms.has(program)) {
+      knownPrograms++; if (needsPreparation(program)) cachedOnly = false;
+    }
+    cachedOnly &&= knownPrograms > 0 && knownPrograms === issuedPrograms.size;
+    if (job.rt === null || watchedTargets.has(job.rt)) preparedTargets.add(job.rt);
     if (made > 0 && job.kind !== undefined) programsByKind.set(job.kind, (programsByKind.get(job.kind) ?? 0) + made);
     if (isolateImageUploads) {
-      for (const program of snapshotPrograms(renderer)) if (!before.has(program) || jobPrograms.has(program)) queue(program);
+      for (const program of acquired ?? []) if (!before.has(program) || jobPrograms.has(program)) queue(program);
     }
     onProgress?.(i + 1, total(), `${materials} materials · ${i + 1} / ${jobs.length} batches · ${mode}`);
     // op-hitch37: a live WebKit warm-up also yields once a slice has issued LIVE_PROGRAMS_PER_FRAME programs: WebKit
     // queues compile/link to its GPU process, so the JS slice is cheap but the frame that presents it waits for all of
     // them (Sky Reach's entry: 18 programs in one 217 ms Simulator frame of afterPlay).
     const capped = isolateImageUploads && programCount(renderer) - programsAtFrame >= programsPerFrame();
+    // A held frame may share its existing native-time budget with cheap jobs
+    // that only revisit fully resolved programs. Do not rebase a slice that
+    // issued any new/unknown native work, side variant or first-use metadata.
+    // The global native budget and program cap still end this same frame.
+    const jobMs = performance.now() - jobStart;
+    if (cachedOnly && !nativeInSlice && isolateImageUploads && buildHeld() && presenting() && jobMs < sliceMs) {
+      tFrame = performance.now(); cachedCpuJobs++; cachedCpuMs += jobMs;
+    } else if (!cachedOnly || jobMs >= sliceMs) nativeInSlice = true;
     if (spent(tFrame) || capped || i === jobs.length - 1) {
       if (isolateImageUploads && !spent(tFrame)) await settleOne(tFrame);
-      await pause(); tFrame = performance.now(); programsAtFrame = programCount(renderer);
+      await pause(); tFrame = performance.now(); programsAtFrame = programCount(renderer); nativeInSlice = false;
     }
   }
   created.push(...newProgramsSince(renderer, before));
   for (const program of before) if (jobPrograms.has(program)) created.push(program);
   if (onStage !== undefined) {
     for (const [kind, count] of programsByKind) onStage(`programs:${kind}`, 0, count);
+    onStage('cached-compile', cachedCpuMs, cachedCpuJobs);
     onStage('compile', performance.now() - stageStart, jobs.length); stageStart = performance.now();
   }
   const pending = created.filter(needsPreparation);
