@@ -6,6 +6,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
  * title and external/legacy entries keep their original import path. */
 export async function prepareEntryCode(search: URLSearchParams, owner: Scope): Promise<(() => void) | null> {
   const selected = search.get('chunk') ?? '', text = document.getElementById('boot-module-files')?.textContent;
+  if (!/^[a-zA-Z0-9_-]+$/u.test(selected)) return null;
   if (text === undefined || document.getElementById('ws-shardfile') !== null) return null;
   const bank: unknown = JSON.parse(text);
   if (typeof bank !== 'object' || bank === null || !('code' in bank)) return null;

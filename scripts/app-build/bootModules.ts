@@ -289,7 +289,10 @@ export function writeBootModules(outDir: string, root: string, inlineLimit = 409
     catalogueFiles=bootModuleFiles(bundle,[catalogue.id]);
   }
   const rows = { common: bootModuleFiles(bundle, ids), client: bootModuleFiles(bundle, [client.id]), grid: bootModuleFiles(bundle, gridRoots), optional: bootModuleGroups(bundle, featureRoots), selection:selected, catalogue:catalogueFiles, products, extras };
-  const early = bootModuleFiles(bundle, earlyModuleRoots(root)), packs: Record<string, readonly ModuleFile[]> = {};
+  const early = bootModuleFiles(bundle, earlyModuleRoots(root));
+  // The installer borrows only the document's original static JS closure;
+  // fonts/CSS and every strict INSTALL check retain their existing path.
+  const packs: Record<string, readonly ModuleFile[]> = { $shell: bootModuleFiles(bundle, [resolve(root, 'index.html')]) };
   for (const prefix of Object.keys(products)) {
     const directory = prefix.split('/')[2];
     if (directory === undefined) throw new Error('Missing packed home directory');

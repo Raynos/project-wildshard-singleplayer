@@ -218,6 +218,8 @@ workerScope.listen(self, 'install', (event) => {
         // STRICT (E144): every static entry dependency and extracted stylesheet
         // must exist before this worker can serve its document. Lazy shard code
         // is verified on demand, then warmed after the title is usable.
+        const shellPack = CODE_PACKS.entries.$shell;
+        if (shellPack) await prepareWorkerCodePack(shellPack);
         await fillMissing(await caches.open(IMMUTABLE_CACHE), INSTALL, true);
         await fillMissing(await caches.open(STATIC), [...STATIC_OPTIONAL, ...FONTS]);
       } catch (error) {

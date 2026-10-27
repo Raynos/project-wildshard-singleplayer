@@ -118,6 +118,31 @@ test('corrupt code packs publish no module and retain the original individual fe
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
+test('the shell pack replaces installer module reads while every INSTALL requirement stays strict', async () => {
+  mkdirSync('tmp/code-pack-worker', { recursive: true });
+  const root = mkdtempSync(resolvePath('tmp/code-pack-worker/install-'));
+  try {
+    mkdirSync(resolvePath(root, 'assets'));
+    const first = 'export const entry = 1;', second = 'export const shared = 2;';
+    writeFileSync(resolvePath(root, entry.slice(1)), first); writeFileSync(resolvePath(root, dependency.slice(1)), second);
+    const packs = writeCodePacks(root, { $shell: [[entry, first.length], [dependency, second.length]] }), row = packs.entries['$shell'];
+    if (row === undefined) throw new Error('Missing shell packet');
+    const wire = new Uint8Array(readFileSync(resolvePath(root, row[0].slice(1))));
+    const read = (url: string): Promise<Response> => Promise.resolve(new Response(url.endsWith('.pack') ? wire
+      : url.endsWith('/index.html') ? `<script src="${entry}"></script>` : 'original bytes'));
+    const f = fixture(read, undefined, packs);
+    await f.dispatch('install');
+    expect(f.fetch.mock.calls.filter(([url]) => new URL(typeof url === 'string' ? url : url.url).pathname.endsWith('.pack'))).toHaveLength(1);
+    expect(f.fetch.mock.calls.some(([url]) => [entry, dependency].includes(new URL(typeof url === 'string' ? url : url.url).pathname))).toBe(false);
+    const cache = await f.open('ws-immutable');
+    expect(await (await cache.match(new URL(entry, base).href))?.text()).toBe(first);
+    expect(await (await cache.match(new URL(dependency, base).href))?.text()).toBe(second);
+    const refused = fixture(url => url.endsWith(css) ? Promise.resolve(new Response('missing', { status: 404 })) : read(url), undefined, packs);
+    await expect(refused.dispatch('install')).rejects.toThrow('precache');
+    expect(refused.installErrors).toContainEqual(expect.objectContaining({ type: 'WS_SW_INSTALL_ERROR' }));
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
 test('Developer-only code stays cold until first use and then works offline', async () => {
   const f = fixture(undefined, [entry, dependency, css, lazy]);
   await f.dispatch('install');

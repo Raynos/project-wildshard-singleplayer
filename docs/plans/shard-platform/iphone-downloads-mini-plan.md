@@ -893,3 +893,20 @@ and padded tiny blocks; typed but not executed before landing G769.
 No new product/preview/browser run for this source slice. Next joint
 cohort should include x9's coming title pack and o5's content hints;
 435 remains the actual recorded baseline, not a claimed saving here.
+
+### I2 installer duplicate cut (2026-10-27, sp-x9)
+
+The one authoritative joint435 read (x2, recordedda877588a2) reaches
+control/errors0 for all3: totals637/396/379, JS109/107/103 including code
+packs, data528/289/276. Pine has90 JS requests before the selected tap,
+48 unique: installer precaching duplicates the initial HTML graph. The
+entry-code pack itself is working and contains exact original module bytes.
+
+Follow-on: pack the document's original static JS closure for its worker
+installer. Prime those verified original URLs once, then run the unchanged
+strict INSTALL fillMissing (including original CSS requirement). A corrupt
+or unavailable shell pack falls back to those same strict per-file reads;
+never cache unselected lazy code. The title page gets no new wait/import.
+Reserved installer entries cannot be selected by an arbitrary chunk key.
+Types/typed lint/scoped ratchet pass; enabled-pack CSS-failure regression
+and containing build/read follow. No deadline or inventory guard changed.
