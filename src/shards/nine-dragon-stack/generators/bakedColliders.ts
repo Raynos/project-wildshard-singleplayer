@@ -7,8 +7,7 @@
 //   const { Surface, Collider } = bakedColliderSchemas(['wood', 'stone']);
 //   const colliders = v.parse(v.array(Collider), piece.colliders).map(bakedColliderDesc);
 import * as v from 'valibot';
-import type { Material } from '@wildshard/engine/physics/surface';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import type { ContactSurface as Material, ColliderDesc } from '@wildshard/sdk/bake/placement';
 
 const finite = v.pipe(v.number(), v.finite());
 const Vec = v.strictObject({ x: finite, y: finite, z: finite });
