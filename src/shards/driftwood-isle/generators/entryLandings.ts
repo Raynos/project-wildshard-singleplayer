@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import generated from '../data/entryFloors.generated.json' with { type: 'json' };
+import { driftwoodEntryFloorRows } from './entryFloors';
 import authoredEntryRows from '../data/entryRows.json' with { type: 'json' };
 
 const { DRY_ENTRIES } = authoredEntryRows;
@@ -19,4 +19,4 @@ function decodeEntryLandings(source: unknown): EntryLanding[] {
   return v.parse(transport, source).rows;
 }
 /** Native slabs compiled at build time; no runtime recipe or generator enters the client. */
-export const ENTRY_LANDINGS: readonly EntryLanding[] = decodeEntryLandings(generated);
+export const ENTRY_LANDINGS: readonly EntryLanding[] = decodeEntryLandings(driftwoodEntryFloorRows());

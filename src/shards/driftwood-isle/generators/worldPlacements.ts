@@ -1,7 +1,7 @@
 import composition from '../data/coveComposition.json' with { type: 'json' };
 import type { DriftwoodSceneBanks } from './sceneBanks';
 import { driftwoodTrailRows } from './fixedFacts';
-import landings from '../data/entryFloors.generated.json' with { type: 'json' };
+import { ENTRY_LANDINGS } from './entryLandings';
 import { ENTRY_DECKS } from './entryDecks';
 import { ENTRY_FLOORS } from './staticWorld';
 import { parseWorldScenePlacement, type WorldScenePlacementRow } from '@wildshard/format/worldScenePlacement';
@@ -45,7 +45,7 @@ export function uprightPoses(poses: readonly Readonly<{ matrix: readonly number[
  *  order: merged, the platform's socket floor carried on over it (piece `entry-decks`, its slabs as solid floors) */
 function entryDecks(): WorldScenePlacementRow {
   return parseWorldScenePlacement({ id: 'entry.decks', model: 'entryDeck', draw: 'merged', piece: { id: 'entry-decks', floors: ENTRY_FLOORS, floorPolicy: 'first', solidFloor: true },
-    poses: landings.rows.map(({ edge }) => {
+    poses: ENTRY_LANDINGS.map(({ edge }) => {
       const deck = ENTRY_DECKS.find(row => row.edge === edge); if (deck === undefined) throw new Error('Missing admitted entry deck');
       const { x, y, z, yaw } = deck.placement; return { x, y, z, params: { deck: 'world' }, yxz: { yaw, scale: 1 } };
     }) });

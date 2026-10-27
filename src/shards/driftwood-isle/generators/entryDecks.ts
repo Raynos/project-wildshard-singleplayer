@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import generated from '../data/entryDecks.generated.json' with { type: 'json' };
+import { driftwoodEntryDeckRows } from './entryDeck';
 import authoredEntryRows from '../data/entryRows.json' with { type: 'json' };
 
 const { DRY_ENTRIES } = authoredEntryRows;
@@ -21,4 +21,4 @@ export function decodeEntryDecks(source: unknown): v.InferOutput<typeof row>[] {
   return v.parse(transport, source).rows;
 }
 /** Original dry footprints, foam slabs and seabed-derived column placements. */
-export const ENTRY_DECKS: readonly v.InferOutput<typeof row>[] = decodeEntryDecks(generated);
+export const ENTRY_DECKS: readonly v.InferOutput<typeof row>[] = decodeEntryDecks(driftwoodEntryDeckRows());

@@ -6,12 +6,12 @@ import * as v from 'valibot';
 import { parseWorldScenePlacement,WorldScenePlacementSchema } from '../src/format/worldScenePlacement';
 import { output } from '../src/shards/driftwood-isle/generators/output';
 import { decodeEntryDecks } from '../src/shards/driftwood-isle/generators/entryDecks';
-import decks from '../src/shards/driftwood-isle/data/entryDecks.generated.json' with { type: 'json' };
+import { driftwoodEntryDeckRows } from '../src/shards/driftwood-isle/generators/entryDeck';
 import { worldPlacements,uprightPoses } from '../src/shards/driftwood-isle/generators/worldPlacements';
 import { driftwoodSceneBanks } from './fixtures/driftwoodSceneBanks';
 import { islandFoliagePlacements } from '../src/shards/driftwood-isle/generators/islandDressing';
 
-const foliage = islandFoliagePlacements();
+const foliage = islandFoliagePlacements(), decks = driftwoodEntryDeckRows();
 
 const finite=v.pipe(v.number(),v.finite());
 const placement=v.strictObject({...WorldScenePlacementSchema.entries,poses:v.array(v.object({x:finite,y:finite,z:finite,

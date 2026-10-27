@@ -208,8 +208,6 @@
     "src/shards/driftwood-isle/data/entry-deck-deep.generated.bin",
     "src/shards/driftwood-isle/data/entry-deck-shallow.generated.bin",
     "src/shards/driftwood-isle/data/entry-deck-world.generated.bin",
-    "src/shards/driftwood-isle/data/entryDecks.generated.json",
-    "src/shards/driftwood-isle/data/entryFloors.generated.json",
     "src/shards/driftwood-isle/data/foliagePlacements.generated.json",
     "src/shards/driftwood-isle/data/foliageScenes.generated.json",
     "src/shards/driftwood-isle/data/interactables.generated.d.json.ts",

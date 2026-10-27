@@ -14,6 +14,7 @@ import { DRIFTWOOD_FIXED_INPUTS, driftwoodFixedBytes } from './fixedProgram.ts';
 import { FIXED_MODEL_NAMES } from './modelFiles.ts';
 import { driftwoodSceneModelBytes } from './sceneModelProgram.ts';
 import { driftwoodSceneBanksFrom, driftwoodSceneBankOutput } from './sceneBanks.ts';
+import { ENTRY_DECKS } from './entryDecks.ts';
 import { driftwoodFacetedGroundBank } from './facetedGroundBank.ts';
 
 const base = resolve(import.meta.dirname, '..'), root = resolve(base, '../../..');
@@ -102,7 +103,7 @@ export async function driftwoodMapAssembly() {
     const model = catalogue.models.find(row => row.key === key), choice = model.choices.find(row => row.id === 'world');
     await world.placement({ id: `sites.${key}`, model: key, poses: [{ ...choice.site.origin, params: choice.params, yxz: { yaw: 0, scale: 1 } }] });
   }
-  const entryDecks = read('data/entryDecks.generated.json').rows, groups = read('data/fixedGeometry.json').groups.entryDecks;
+  const entryDecks = ENTRY_DECKS, groups = read('data/fixedGeometry.json').groups.entryDecks;
   for (const row of entryDecks) {
     const p = row.placement, slot = p.params.bed === -6 ? groups.deep : p.params.bed === -2.5 ? groups.shallow : groups.world;
     assembly.add(`entry:${row.edge}`, await mapModel(fixed(slot)), [new Matrix4().compose(new Vector3(p.x, p.y, p.z), new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), p.yaw), new Vector3(1, 1, 1))]);
