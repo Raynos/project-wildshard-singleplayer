@@ -422,7 +422,7 @@ context intact. Compile4.1129/2.5159s and parked4.4303/4.1009s dominate the
 remaining readiness envelope. The generic loop finding was shared with O2;
 network-priority or decoder-concurrency increases were not justified.
 
-The requested after pair has not started: a2b818c95c5 preview completes app
+The requested after pair has not started: the2b818c95c5 preview completes app
 emission then refuses Invalid boot module file; cause-fixed0d4c (contains2f6)
 passes that grammar and then refuses Missing or ambiguous boot module root
 src/shardSelection.ts. Exact logs: tmp/serve/failed-20261027-091536-4412.log
