@@ -9,16 +9,47 @@ import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { SOURCE_GENERATORS, selectSourceGenerators } from './source-generators.mjs';
 
+/** @param {{changed?:readonly string[],committed?:boolean}} options */
+function selectedRows({ changed, committed = false }) {
+  return (changed === undefined ? SOURCE_GENERATORS : selectSourceGenerators(changed)).filter(row => !committed || row.committed);
+}
+
+/** @param {string} root @param {import('./source-generators.mjs').SourceGenerator} row */
+async function generatedTexts(root, row) {
+  if (row.generate === undefined || row.run !== undefined) throw new Error(`gen:source: ${row.id} needs a plain producer`);
+  for (const path of row.outputs) if (path.startsWith('/') || /[\\:]/u.test(path) || path.includes(String.fromCodePoint(0)) || path.split('/').some(part => part === '' || part === '.' || part === '..')) throw new Error(`gen:source: invalid output path ${path}`);
+  const outputs = await row.generate(root);
+  if (Object.keys(outputs).sort().join('\n') !== [...row.outputs].sort().join('\n')) throw new Error(`gen:source: ${row.id} outputs differ from its registry row`);
+  for (const [path, text] of Object.entries(outputs)) if (typeof text !== 'string') throw new Error(`gen:source: ${path} must be text`);
+  return outputs;
+}
+
+/** Compute pure source text in the caller's input view, without publishing files.
+ * The commit wrapper can put these bytes directly in its checked candidate.
+ * @param {string} root @param {{changed?:readonly string[],committed?:boolean}} [options] */
+export async function sourceTableTexts(root, options = {}) {
+  /** @type {Record<string,string>} */
+  const texts = {};
+  for (const row of selectedRows(options)) {
+    const outputs = await generatedTexts(root, row);
+    for (const [path, text] of Object.entries(outputs)) {
+      if (Object.hasOwn(texts, path)) throw new Error(`gen:source: multiple owners of ${path}`);
+      texts[path] = text;
+    }
+  }
+  return texts;
+}
+
 /** Run the registered rows (all, or those `changed` feeds; only committed ones with `committed`); returns the outputs
- *  written (or stale, with `check`) and every output the selected generate rows own. */
+ * written (or stale, with `check`) and every output the selected generate rows own.
+ * @param {string} root @param {{check?:boolean,changed?:readonly string[],committed?:boolean}} [options] */
 export async function genSource(root, { check = false, changed, committed = false } = {}) {
-  const rows = (changed === undefined ? SOURCE_GENERATORS : selectSourceGenerators(changed)).filter(row => !committed || row.committed);
+  const rows = selectedRows({ changed, committed });
   const touched = [], owned = [];
   for (const row of rows) {
     if (Number(row.generate !== undefined) + Number(row.run !== undefined) !== 1) throw new Error(`gen:source: ${row.id} needs exactly one producer`);
     if (row.generate !== undefined) {
-      const outputs = await row.generate(root);
-      if (Object.keys(outputs).sort().join('\n') !== [...row.outputs].sort().join('\n')) throw new Error(`gen:source: ${row.id} outputs differ from its registry row`);
+      const outputs = await generatedTexts(root, row);
       for (const [path, text] of Object.entries(outputs)) {
         owned.push(path);
         const file = resolve(root, path), now = existsSync(file) ? readFileSync(file, 'utf8') : null;

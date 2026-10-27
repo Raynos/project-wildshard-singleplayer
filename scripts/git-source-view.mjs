@@ -90,7 +90,11 @@ export function installGitSourceView(view) {
   Reflect.set(fs,'readFileSync',(/** @type {unknown} */ path,/** @type {unknown} */ options)=>{
     const local=name(path);if(local===null)return Reflect.apply(native.read,fs,[path,options]);
     const bytes=view.read(local),encoding=typeof options==='string'?options:typeof options==='object'&&options!==null?Reflect.get(options,'encoding'):null;
-    return typeof encoding==='string'?bytes.toString(encoding):Buffer.from(bytes);
+    if(typeof encoding==='string') {
+      if(!Buffer.isEncoding(encoding))throw new TypeError(`Unknown encoding: ${encoding}`);
+      return bytes.toString(encoding);
+    }
+    return Buffer.from(bytes);
   });
   Reflect.set(fs,'existsSync',(/** @type {unknown} */ path)=>{const local=name(path);return local===null?Reflect.apply(native.exists,fs,[path]):view.files.has(local)||view.derived.has(local)||view.directories.has(local)||view.admitGenerated(local);});
   const stat=(/** @type {unknown} */ path,/** @type {unknown} */ options,/** @type {'stat'|'lstat'} */ original)=>{
@@ -118,7 +122,7 @@ export function installGitSourceView(view) {
   });
   Reflect.set(fs,'globSync',(/** @type {string|string[]} */ pattern,/** @type {{cwd?:string|URL,exclude?:string[]}|undefined} */ options)=>{
     const cwd=options?.cwd instanceof URL?fileURLToPath(options.cwd):options?.cwd??process.cwd(),base=name(cwd);
-    if(base===null)return native.glob(pattern,options);
+    if(base===null)return native.glob(pattern,options??{});
     const patterns=Array.isArray(pattern)?pattern:[pattern],prefix=base===''?'':`${base}/`;
     return [...view.files.keys()].filter(p=>p.startsWith(prefix)).map(p=>p.slice(prefix.length)).filter(p=>patterns.some(glob=>matchesGlob(p,glob))&&!options?.exclude?.some(glob=>matchesGlob(p,glob)));
   });
