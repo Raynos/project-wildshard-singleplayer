@@ -57,7 +57,6 @@ import { PINE_MODES } from './zipline';
 import { contractCatalogue } from './contractRows';
 import { ContractCatalogueSchema } from '@wildshard/format/contracts';
 import { PanelDefinitionSchema } from '@wildshard/format/panelTemplate';
-import movers from '../data/movers.generated.json' with { type: 'json' };
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
 import { PINE_SPECIES_PROGRAMS } from './speciesPrograms';
@@ -159,7 +158,7 @@ const PLATFORM_ROWS = new Map<PlatformDataSectionName, unknown>([['explore/catal
 export const output: { platform: ReturnType<typeof emitPlatformSections>; custom: ReturnType<typeof emitDefinedSections>; namedFiles: ReturnType<typeof emitNamedBlobs>["files"]; assets: ReturnType<typeof emitNamedBlobs>["assets"]; blobs: ((typeof PINE_OUTPUT.blobs)[number] | ReturnType<typeof pinePhysicsSources>[number] | { name: string; kind: "json"; source: string; options: { jsonSchema: ReturnType<typeof namedJsonSchema>; }; } | (typeof SCENE_MODEL_BLOBS)[number] | (typeof skyKeyBlobs.blobs)[number])[]; } = { ...PINE_OUTPUT, platform: emitPlatformSections(PLATFORM_ROWS), custom, namedFiles: clientJson.files, assets: clientJson.assets, blobs: [...PINE_OUTPUT.blobs, ...pinePhysicsSources(), ...SCENE_MODEL_BLOBS, ...skyKeyBlobs.blobs].map(meshoptSource) };
 
 /** Build-only mode rows; page and native owners consume the admitted section. */
-export const sections: { 'state/modes': { modes: typeof PINE_MODES; }; 'world/movers': { movers: typeof movers; }; } = { 'state/modes': { modes: PINE_MODES }, 'world/movers': { movers } };
+export const sections: { 'state/modes': { modes: typeof PINE_MODES; }; } = { 'state/modes': { modes: PINE_MODES } };
 
 /** Compile a declared return guest through injected capabilities, without source-tree byte handoffs (GR8: the retired
  *  bake-life.mjs / bake-shelter.mjs rows live in returnPrograms.ts; the compiled row names the module). */

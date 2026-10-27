@@ -1,10 +1,10 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Sample declared retained terrain at build time only.
-import { readFileSync } from 'node:fs';
+import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { parseMovers, type MoverData } from '@wildshard/format/movers';
 import { lowerMoverMotion } from '@wildshard/format/moverMotion';
 import * as LAYOUT from './layout';
 import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
+import bindings from '../data/terrainBindings.json' with { type: 'json' };
 
 /** Resolve the old terrain/deck sampling offline; runtime receives one ordinary winch path. */
 export function canoeMover(heightAt: (x: number, z: number) => number): MoverData[number] {
@@ -36,8 +36,17 @@ export function canoeMover(heightAt: (x: number, z: number) => number): MoverDat
       arrival: { flag: 'secret:islet', hint: 'The islet. Nobody has stood here in a long time' } } }]);
   const row = rows[0]; if (row === undefined) throw new Error('Missing admitted canoe path'); return row;
 }
-/** Build-only section input; no runtime imports this generated inventory. */
-export function canoeMovers(): MoverData {
-  const ground = readNativeTerrain(readFileSync(new URL('../../../../public/assets/baked/pine-hollow/terrain.bin', import.meta.url)));
-  return [canoeMover(ground.heightAt)];
+/** The declared retained terrain's URL (its public path under `/assets/`). */
+const TERRAIN_URL = `/${bindings.terrain.replace(/^public\//u, '')}`;
+/** The declaration's movers, sampled from the retained terrain read through `ctx.cached` (GR8: the program calls
+ *  this; no scheduler job writes a movers inventory). */
+export async function canoeMovers(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<MoverData> {
+  const files = await ctx.cached({ id: 'canoe-terrain', inputs: [TERRAIN_URL] }, inputs => {
+    const bytes = inputs.get(TERRAIN_URL);
+    if (bytes === undefined || bytes.byteLength === 0) throw new Error(`Missing declared Pine terrain ${TERRAIN_URL}`);
+    return new Map([['terrain.bin', bytes]]);
+  });
+  const terrain = files.get('terrain.bin');
+  if (terrain === undefined || files.size !== 1) throw new Error('Missing cached Pine terrain');
+  return [canoeMover(readNativeTerrain(terrain).heightAt)];
 }
