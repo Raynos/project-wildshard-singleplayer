@@ -23,18 +23,18 @@
         "hash": "634c840a601484d1dd548760105a388ca392ac00d7bc8819c322fae0c077ffe7"
       },
       "aFace": {
-        "type": "Float32Array",
+        "type": "Uint16Array",
         "size": 4,
         "normalized": false,
         "count": 23994,
-        "hash": "c6ae0206bcb5dce9a3a31205c8ec956e8fa2cf0ad367e457def55e182fce3f09"
+        "hash": "517a80cbde57e1abeda11251e95ecc23e0db657df035290dfc27e71b6805927f"
       },
       "aPat": {
-        "type": "Float32Array",
+        "type": "Uint16Array",
         "size": 4,
         "normalized": false,
         "count": 23994,
-        "hash": "80d10a8376ff1e71ae6be221a0d35a3265af219d6fa03b370aaa6d19f8eb8d20"
+        "hash": "1e554d295ac108aa38bff21cb8fd3cdeb0518fecb354f64e5b6135f8e7856c5a"
       },
       "aMisc": {
         "type": "Float32Array",
@@ -97,18 +97,18 @@
         "hash": "634c840a601484d1dd548760105a388ca392ac00d7bc8819c322fae0c077ffe7"
       },
       "aFace": {
-        "type": "Float32Array",
+        "type": "Uint16Array",
         "size": 4,
         "normalized": false,
         "count": 23994,
-        "hash": "c6ae0206bcb5dce9a3a31205c8ec956e8fa2cf0ad367e457def55e182fce3f09"
+        "hash": "517a80cbde57e1abeda11251e95ecc23e0db657df035290dfc27e71b6805927f"
       },
       "aPat": {
-        "type": "Float32Array",
+        "type": "Uint16Array",
         "size": 4,
         "normalized": false,
         "count": 23994,
-        "hash": "80d10a8376ff1e71ae6be221a0d35a3265af219d6fa03b370aaa6d19f8eb8d20"
+        "hash": "1e554d295ac108aa38bff21cb8fd3cdeb0518fecb354f64e5b6135f8e7856c5a"
       },
       "aMisc": {
         "type": "Float32Array",
@@ -263,18 +263,18 @@
         "hash": "1a2bb54da1011b0076a6dfe453e1671fe6caae11743381534ae598b11fce5690"
       },
       "aFace": {
-        "type": "Float32Array",
+        "type": "Uint16Array",
         "size": 4,
         "normalized": false,
         "count": 4089,
-        "hash": "eb095e21e7179112dc9772b1a15559029ac295f0b4d9a29909619bfcaceceb6b"
+        "hash": "3e0e7f61394c7b5330f49ac5db1a92ab52ce5cbcda2c68e270ddf8299c50cbe5"
       },
       "aPat": {
-        "type": "Float32Array",
+        "type": "Uint16Array",
         "size": 4,
         "normalized": false,
         "count": 4089,
-        "hash": "886bfbcb8003fc0845e0a0117a73d51719f7f249695de3f996a4700f44b076fb"
+        "hash": "93f90928da1e74f65ee91a1dfb36965c26d679b253265b11d1e711282f7ea0ec"
       },
       "aMisc": {
         "type": "Float32Array",
@@ -337,18 +337,18 @@
         "hash": "1a2bb54da1011b0076a6dfe453e1671fe6caae11743381534ae598b11fce5690"
       },
       "aFace": {
-        "type": "Float32Array",
+        "type": "Uint16Array",
         "size": 4,
         "normalized": false,
         "count": 4089,
-        "hash": "eb095e21e7179112dc9772b1a15559029ac295f0b4d9a29909619bfcaceceb6b"
+        "hash": "3e0e7f61394c7b5330f49ac5db1a92ab52ce5cbcda2c68e270ddf8299c50cbe5"
       },
       "aPat": {
-        "type": "Float32Array",
+        "type": "Uint16Array",
         "size": 4,
         "normalized": false,
         "count": 4089,
-        "hash": "886bfbcb8003fc0845e0a0117a73d51719f7f249695de3f996a4700f44b076fb"
+        "hash": "93f90928da1e74f65ee91a1dfb36965c26d679b253265b11d1e711282f7ea0ec"
       },
       "aMisc": {
         "type": "Float32Array",
@@ -415,7 +415,7 @@
         "size": 4,
         "normalized": false,
         "count": 86,
-        "hash": "8c3c1eccfc47a6abab6952c9647bf8d413089b167929c4d0c566444f2372403b"
+        "hash": "f48c79807cd9e732b2299529dfb5053b99b7a3d18a2d4f82d6d52708a504f72f"
       },
       "aPat": {
         "type": "Float32Array",
@@ -489,7 +489,7 @@
         "size": 4,
         "normalized": false,
         "count": 4089,
-        "hash": "eb095e21e7179112dc9772b1a15559029ac295f0b4d9a29909619bfcaceceb6b"
+        "hash": "9acf33a14d3575811ac7b59264e4d0c3936ea684148a5601222d42cbefc04ebb"
       },
       "aPat": {
         "type": "Float32Array",
@@ -563,7 +563,7 @@
         "size": 4,
         "normalized": false,
         "count": 4089,
-        "hash": "eb095e21e7179112dc9772b1a15559029ac295f0b4d9a29909619bfcaceceb6b"
+        "hash": "9acf33a14d3575811ac7b59264e4d0c3936ea684148a5601222d42cbefc04ebb"
       },
       "aPat": {
         "type": "Float32Array",
@@ -637,7 +637,7 @@
         "size": 4,
         "normalized": false,
         "count": 86,
-        "hash": "8c3c1eccfc47a6abab6952c9647bf8d413089b167929c4d0c566444f2372403b"
+        "hash": "f48c79807cd9e732b2299529dfb5053b99b7a3d18a2d4f82d6d52708a504f72f"
       },
       "aPat": {
         "type": "Float32Array",
@@ -711,7 +711,7 @@
         "size": 4,
         "normalized": false,
         "count": 4089,
-        "hash": "eb095e21e7179112dc9772b1a15559029ac295f0b4d9a29909619bfcaceceb6b"
+        "hash": "9acf33a14d3575811ac7b59264e4d0c3936ea684148a5601222d42cbefc04ebb"
       },
       "aPat": {
         "type": "Float32Array",
@@ -785,7 +785,7 @@
         "size": 4,
         "normalized": false,
         "count": 4089,
-        "hash": "eb095e21e7179112dc9772b1a15559029ac295f0b4d9a29909619bfcaceceb6b"
+        "hash": "9acf33a14d3575811ac7b59264e4d0c3936ea684148a5601222d42cbefc04ebb"
       },
       "aPat": {
         "type": "Float32Array",
@@ -859,7 +859,7 @@
         "size": 4,
         "normalized": false,
         "count": 86,
-        "hash": "8c3c1eccfc47a6abab6952c9647bf8d413089b167929c4d0c566444f2372403b"
+        "hash": "f48c79807cd9e732b2299529dfb5053b99b7a3d18a2d4f82d6d52708a504f72f"
       },
       "aPat": {
         "type": "Float32Array",
@@ -929,18 +929,18 @@
         "hash": "bc2685e15420d1031099ede1c9ce1b454e60a789f3a2986fe1c9d6e811556365"
       },
       "aFace": {
-        "type": "Float32Array",
+        "type": "Uint16Array",
         "size": 4,
         "normalized": false,
         "count": 4089,
-        "hash": "eb095e21e7179112dc9772b1a15559029ac295f0b4d9a29909619bfcaceceb6b"
+        "hash": "3e0e7f61394c7b5330f49ac5db1a92ab52ce5cbcda2c68e270ddf8299c50cbe5"
       },
       "aPat": {
-        "type": "Float32Array",
+        "type": "Uint16Array",
         "size": 4,
         "normalized": false,
         "count": 4089,
-        "hash": "886bfbcb8003fc0845e0a0117a73d51719f7f249695de3f996a4700f44b076fb"
+        "hash": "93f90928da1e74f65ee91a1dfb36965c26d679b253265b11d1e711282f7ea0ec"
       },
       "aMisc": {
         "type": "Float32Array",
@@ -1003,18 +1003,18 @@
         "hash": "bc2685e15420d1031099ede1c9ce1b454e60a789f3a2986fe1c9d6e811556365"
       },
       "aFace": {
-        "type": "Float32Array",
+        "type": "Uint16Array",
         "size": 4,
         "normalized": false,
         "count": 4089,
-        "hash": "eb095e21e7179112dc9772b1a15559029ac295f0b4d9a29909619bfcaceceb6b"
+        "hash": "3e0e7f61394c7b5330f49ac5db1a92ab52ce5cbcda2c68e270ddf8299c50cbe5"
       },
       "aPat": {
-        "type": "Float32Array",
+        "type": "Uint16Array",
         "size": 4,
         "normalized": false,
         "count": 4089,
-        "hash": "886bfbcb8003fc0845e0a0117a73d51719f7f249695de3f996a4700f44b076fb"
+        "hash": "93f90928da1e74f65ee91a1dfb36965c26d679b253265b11d1e711282f7ea0ec"
       },
       "aMisc": {
         "type": "Float32Array",
@@ -1081,7 +1081,7 @@
         "size": 4,
         "normalized": false,
         "count": 86,
-        "hash": "8c3c1eccfc47a6abab6952c9647bf8d413089b167929c4d0c566444f2372403b"
+        "hash": "f48c79807cd9e732b2299529dfb5053b99b7a3d18a2d4f82d6d52708a504f72f"
       },
       "aPat": {
         "type": "Float32Array",
@@ -1155,7 +1155,7 @@
         "size": 4,
         "normalized": false,
         "count": 4089,
-        "hash": "eb095e21e7179112dc9772b1a15559029ac295f0b4d9a29909619bfcaceceb6b"
+        "hash": "9acf33a14d3575811ac7b59264e4d0c3936ea684148a5601222d42cbefc04ebb"
       },
       "aPat": {
         "type": "Float32Array",
@@ -1229,7 +1229,7 @@
         "size": 4,
         "normalized": false,
         "count": 4089,
-        "hash": "eb095e21e7179112dc9772b1a15559029ac295f0b4d9a29909619bfcaceceb6b"
+        "hash": "9acf33a14d3575811ac7b59264e4d0c3936ea684148a5601222d42cbefc04ebb"
       },
       "aPat": {
         "type": "Float32Array",
@@ -1303,7 +1303,7 @@
         "size": 4,
         "normalized": false,
         "count": 86,
-        "hash": "8c3c1eccfc47a6abab6952c9647bf8d413089b167929c4d0c566444f2372403b"
+        "hash": "f48c79807cd9e732b2299529dfb5053b99b7a3d18a2d4f82d6d52708a504f72f"
       },
       "aPat": {
         "type": "Float32Array",
@@ -1373,18 +1373,18 @@
         "hash": "bc26abe4ae7f0021f3ce1b83ff7590e21457731dd121c33a044d6d69d152d216"
       },
       "aFace": {
-        "type": "Float32Array",
+        "type": "Uint16Array",
         "size": 4,
         "normalized": false,
         "count": 4749,
-        "hash": "ae85a2c1a23b270042721a8b05f9407ff09c34f92335c370876b460249f71965"
+        "hash": "e35333cea1e6bbcce6f1410ebc4c4ac3dde7430067efd5789e3101e5a5580061"
       },
       "aPat": {
-        "type": "Float32Array",
+        "type": "Uint16Array",
         "size": 4,
         "normalized": false,
         "count": 4749,
-        "hash": "9786bda8640328d2f2e23b925b84e785b3f4f0fb57cdbb81a17d50e4e3401dce"
+        "hash": "cd9398ef59549c3660a4cf46e0ea8aad16ba5e6dd1ec4519a78920f900d567a2"
       },
       "aMisc": {
         "type": "Float32Array",
@@ -1447,18 +1447,18 @@
         "hash": "bc26abe4ae7f0021f3ce1b83ff7590e21457731dd121c33a044d6d69d152d216"
       },
       "aFace": {
-        "type": "Float32Array",
+        "type": "Uint16Array",
         "size": 4,
         "normalized": false,
         "count": 4749,
-        "hash": "ae85a2c1a23b270042721a8b05f9407ff09c34f92335c370876b460249f71965"
+        "hash": "e35333cea1e6bbcce6f1410ebc4c4ac3dde7430067efd5789e3101e5a5580061"
       },
       "aPat": {
-        "type": "Float32Array",
+        "type": "Uint16Array",
         "size": 4,
         "normalized": false,
         "count": 4749,
-        "hash": "9786bda8640328d2f2e23b925b84e785b3f4f0fb57cdbb81a17d50e4e3401dce"
+        "hash": "cd9398ef59549c3660a4cf46e0ea8aad16ba5e6dd1ec4519a78920f900d567a2"
       },
       "aMisc": {
         "type": "Float32Array",
@@ -1525,7 +1525,7 @@
         "size": 4,
         "normalized": false,
         "count": 94,
-        "hash": "c2e2e37c0f607c20e352c751841db6cdde6e84b6648c62e9835b9ce0b736b327"
+        "hash": "145ddf5a2b9d773a863f3650bccef8a27b5a012004918c474b2ff8d615370394"
       },
       "aPat": {
         "type": "Float32Array",
@@ -1595,18 +1595,18 @@
         "hash": "84e0172f5c4a6438b343436ab58089e531dc7ae457e91676486c42560cde0867"
       },
       "aFace": {
-        "type": "Float32Array",
+        "type": "Uint16Array",
         "size": 4,
         "normalized": false,
         "count": 4749,
-        "hash": "ae85a2c1a23b270042721a8b05f9407ff09c34f92335c370876b460249f71965"
+        "hash": "e35333cea1e6bbcce6f1410ebc4c4ac3dde7430067efd5789e3101e5a5580061"
       },
       "aPat": {
-        "type": "Float32Array",
+        "type": "Uint16Array",
         "size": 4,
         "normalized": false,
         "count": 4749,
-        "hash": "9786bda8640328d2f2e23b925b84e785b3f4f0fb57cdbb81a17d50e4e3401dce"
+        "hash": "cd9398ef59549c3660a4cf46e0ea8aad16ba5e6dd1ec4519a78920f900d567a2"
       },
       "aMisc": {
         "type": "Float32Array",
@@ -1669,18 +1669,18 @@
         "hash": "84e0172f5c4a6438b343436ab58089e531dc7ae457e91676486c42560cde0867"
       },
       "aFace": {
-        "type": "Float32Array",
+        "type": "Uint16Array",
         "size": 4,
         "normalized": false,
         "count": 4749,
-        "hash": "ae85a2c1a23b270042721a8b05f9407ff09c34f92335c370876b460249f71965"
+        "hash": "e35333cea1e6bbcce6f1410ebc4c4ac3dde7430067efd5789e3101e5a5580061"
       },
       "aPat": {
-        "type": "Float32Array",
+        "type": "Uint16Array",
         "size": 4,
         "normalized": false,
         "count": 4749,
-        "hash": "9786bda8640328d2f2e23b925b84e785b3f4f0fb57cdbb81a17d50e4e3401dce"
+        "hash": "cd9398ef59549c3660a4cf46e0ea8aad16ba5e6dd1ec4519a78920f900d567a2"
       },
       "aMisc": {
         "type": "Float32Array",
@@ -1747,7 +1747,7 @@
         "size": 4,
         "normalized": false,
         "count": 94,
-        "hash": "c2e2e37c0f607c20e352c751841db6cdde6e84b6648c62e9835b9ce0b736b327"
+        "hash": "145ddf5a2b9d773a863f3650bccef8a27b5a012004918c474b2ff8d615370394"
       },
       "aPat": {
         "type": "Float32Array",
