@@ -1,7 +1,17 @@
-import type { EliteDef } from '@wildshard/game/Elite';
-import type { ItemId } from '@wildshard/game/Inventory';
 import * as LAYOUT from './layout';
 import { GHOST_LAIR } from './eliteHomes';
+
+/** Pine's authored encounter metadata, independent of the live elite controller. */
+interface PineEliteDefinition {
+  id: string; name: string; epithet: string;
+  lair: { x: number; z: number; r: number };
+  awareR: number; engageR: number; leashR: number;
+  rule: 'always' | 'dusk' | 'night' | 'storm';
+  respawnMin: number; once?: boolean; signature: string; phase2: string;
+  drop: { skin: string | null; skinName: string; weapon: string; blurb: string; trophyName?: string };
+}
+/** The four trophies this roster can publish; inventory admission remains with its existing owner. */
+type PineEliteTrophy = 'ironhide-tusk' | 'ghost-antler' | 'blackpaw-claw' | 'imperial-crown';
 
 /**
  * Pine Hollow's four named elites as data (PH-C3): their lairs, encounter rows, species identities and the boot swap that
@@ -13,7 +23,7 @@ export const IRONHIDE_LAIR = { x: -44, z: -76, r: 16 };
 export const IMPERIAL_LAIR = { x: -40, z: 78, r: 20 };
 export const BLACKPAW_LAIR: { x: number; z: number; r: number; } = { x: LAYOUT.DEN.x + 2, z: LAYOUT.DEN.z + 2, r: 20 };
 
-export const PINE_ELITE_DEFS: Record<string, EliteDef> = {
+export const PINE_ELITE_DEFS: Record<string, PineEliteDefinition> = {
   ironhide: {
     id: 'ironhide', name: 'Old Ironhide', epithet: 'Terror of the Hollow', lair: IRONHIDE_LAIR,
     awareR: 55, engageR: 32, leashR: 85, rule: 'always', respawnMin: 20, signature: 'GORE CHARGE', phase2: 'BOTH TUSKS NOW',
@@ -37,7 +47,7 @@ export const PINE_ELITE_DEFS: Record<string, EliteDef> = {
 };
 
 /** each elite's species variant (its identity) and its trophy */
-export const PINE_ELITE_ANIMALS: Record<string, { kind: string; variant: string; trophy: ItemId }> = {
+export const PINE_ELITE_ANIMALS: Record<string, { kind: string; variant: string; trophy: PineEliteTrophy }> = {
   ironhide: { kind: 'boar', variant: 'ironhide', trophy: 'ironhide-tusk' },
   'ghost-stag': { kind: 'deer', variant: 'ghost', trophy: 'ghost-antler' },
   blackpaw: { kind: 'bear', variant: 'black-old', trophy: 'blackpaw-claw' },
