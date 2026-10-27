@@ -103,6 +103,13 @@ badlands. A **glowing boundary lattice and light columns** stitch the grid toget
 ruins** give identity. One coherent visual language — not unrelated asset packs, not a default Minecraft look. See
 the concept art in [`concept-art/`](concept-art/).
 
+**The 1.0 world map** ([`art/world-map/round-4-plots/board.jpg`](../../../art/world-map/round-4-plots/board.jpg), E505, map v3,
+2026-10-26): a hundred user-built shards, each ending at its own 500 m plot edge, joined only by the grid's Boulevard
+and one skinny entry lane per edge; the most played hold the Heart, the quiet drift to the Frontier, placeholder
+plots fringe the edge, and the flat world floats in the void. The map is drawn by code from
+[`art/world-map/round-4-plots/worldmap.py`](../../../art/world-map/round-4-plots/worldmap.py), which also holds the
+hundred shard ideas; run it for the full 4400 × 5300 poster (a scale argument of 2 draws 8800 × 10600).
+
 The singleplayer repo has since explored **four** distinct looks (faceted toon, photoreal PBR, painterly, Jiehua
 Neon) — an open question is whether "one coherent visual language" becomes "one engine, several look stacks"
 (see [SHARD-PLATFORM-PLAN §6.2](SHARD-PLATFORM-PLAN.md#62-new-shaders-and-looks-look-stacks--material-graphs)).
