@@ -36,12 +36,12 @@ test('source debt is exact, canonical and shrinking without wildcard or dependen
   }
 });
 
-test('fixture-only commits respect ignore eligibility while ordinary source still requires typed lint', () => fixture(async (root, git, put) => {
-  put('.oxlintrc.json', JSON.stringify({ignorePatterns:['test/fixtures/**']}));
+test.each(['test/fixtures/**', 'test/fixtures/'])('fixture-only commits respect ignore eligibility while ordinary source still requires typed lint (%s)', pattern => fixture(async (root, git, put) => {
+  put('.oxlintrc.json', JSON.stringify({ignorePatterns:[pattern]}));
   put('test/fixtures/rows.ts', 'export const rows = [];'); git('add', '.');
   const missing = resolve(root, 'missing-oxlint');
   await expect(precommitInputs(root, missing)).resolves.toBeUndefined();
-  put('src/checked.ts', 'export const checked = true;'); git('add', 'src/checked.ts');
+  put('test/fixtures-neighbour/checked.ts', 'export const checked = true;'); git('add', 'test/fixtures-neighbour/checked.ts');
   await expect(precommitInputs(root, missing)).rejects.toThrow('typed lint: refused');
 }));
 

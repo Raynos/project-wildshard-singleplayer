@@ -35,7 +35,7 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
   const config = resolve(root, '.oxlintrc.json');
   /** @type {string[]} */
   const ignored = files.length > 0 && existsSync(config) ? readLintConfig(config).ignorePatterns ?? [] : [];
-  const eligible = files.filter(file => !ignored.some(pattern => matchesGlob(file, pattern)));
+  const eligible = files.filter(file => !ignored.some(pattern => pattern.endsWith('/') ? file.startsWith(pattern) : matchesGlob(file, pattern)));
   /** @type {import('./precommit-jobs.mjs').CommitJob[]} */
   const jobs = [];
   if (existsSync(resolve(root, 'scripts/repo-size.mjs'))) jobs.push({ name: 'storage', command: [process.execPath, 'scripts/repo-size.mjs', '--index'] });
