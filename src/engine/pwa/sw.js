@@ -76,8 +76,9 @@ const STATIC = `ws-static-${ASSETS}`;
 const IMMUTABLE_CACHE = 'ws-immutable';
 // Content-addressed author bytes and visited manifests have their own admission/quota policy, independent of a build.
 const KEEP = [SHELL, STATIC, IMMUTABLE_CACHE, 'ws-content-v0', '__PRODUCT_CACHE__']; // src/engine/pwa/cacheNames.ts
-/** E160: a name that carries its content hash (a pack, `<name>-<hash8>.m4a`) — scripts/app-build/assetHashes.ts contentNamed: keep in step */
-const CONTENT_NAMED_RE = /^\/assets\/packs\/|-[0-9a-f]{8}\.[a-z0-9]+$/;
+/** E160: content names include packs, `<name>-<hash8>.<ext>` and `<sha256>.<ext>`.
+ * scripts/app-build/assetHashes.ts contentNamed: keep in step. */
+const CONTENT_NAMED_RE = /^\/assets\/packs\/|-[0-9a-f]{8}\.[a-z0-9]+$|\/[0-9a-f]{64}\.[a-z0-9]+$/;
 const FONT_SET = new Set(FONTS);
 /** what the last activate freed and kept (the VERSION reply and the console) */
 const gc = { entries: 0, bytes: 0, caches: 0, kept: 0, migrated: 0, hashed: 0 };
@@ -502,8 +503,14 @@ workerScope.listen(self, 'fetch', (event) => {
     event.respondWith(cacheFirst(req, cacheFor(url.pathname)));
     return;
   }
-  if (url.pathname.startsWith('/assets/') && url.searchParams.has('v')) { // E160: `?v=<content hash>` names its bytes, forever
+  if (url.pathname.startsWith('/assets/') && url.searchParams.has('v')) {
     event.respondWith(cacheFirst(req, STATIC));
+    return;
+  }
+  if (url.pathname.startsWith('/assets/') && CONTENT_NAMED_RE.test(url.pathname)) {
+    // Content-addressed files stay immutable even under the legacy baked prefix.
+    // Mutable, unversioned bakes still take the network-first branch below.
+    event.respondWith(cacheFirst(req, cacheFor(url.pathname)));
     return;
   }
   if (url.pathname.startsWith('/assets/baked/')) { // unversioned: fresh bake first, cache only as the offline fallback
@@ -561,6 +568,18 @@ async function cacheFirst(req, name) {
   const cache = await caches.open(name);
   const hit = await cache.match(req, MATCH_OPTS);
   if (hit) return transportReceipt(hit, true);
+  // Older boot tables added ?v even to SHA-256 basenames. The same exact
+  // content can now use its plain URL, including immediately after an offline
+  // update. Match only its own hash prefix; never ignore arbitrary queries.
+  const url = new URL(req.url);
+  const namedHash = /\/([0-9a-f]{64})\.[a-z0-9]+$/.exec(url.pathname)?.[1];
+  if (name === STATIC && url.pathname.startsWith('/assets/') && url.search === '' && namedHash !== undefined) {
+    const held = await cache.match(`${abs(url.pathname)}?v=${namedHash.slice(0, 8)}`, MATCH_OPTS);
+    if (held) {
+      await cache.put(req, held.clone()).catch(() => undefined);
+      return transportReceipt(held, true);
+    }
+  }
   if (req.destination === 'script' || CODE_RE.test(new URL(req.url).pathname)) return fetchWhole(req, cache);
   const res = await fetch(req);
   if (res.ok) cache.put(req, res.clone()).catch(() => undefined);

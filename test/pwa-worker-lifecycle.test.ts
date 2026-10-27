@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The isolated context executes the original worker rather than a copied implementation.
 import { runInNewContext } from 'node:vm';
 import { afterEach, expect, test, vi } from 'vitest';
+import { contentNamed } from '../scripts/app-build/assetHashes';
 
 const base = 'https://worker.test/';
 const entry = '/assets/entry-aaaaaaaa.js', dependency = '/assets/shared-bbbbbbbb.js', css = '/assets/style-cccccccc.css';
@@ -206,6 +207,63 @@ test('verified plain image aliases survive migration without an identical downlo
   await f.dispatch('fetch', { request: new Request(new URL(path, base)) });
   await f.dispatch('fetch', { request: new Request(new URL(`${path}?v=${hash}`, base)) });
   expect(f.fetch).not.toHaveBeenCalled();
+});
+
+test('full content names survive static-cache migration without repeating baked downloads', async () => {
+  const kept = `/assets/baked/fixture/${'1'.repeat(64)}.bin`, changed = `/assets/baked/fixture/${'2'.repeat(64)}.bin`;
+  const removed = `/assets/baked/fixture/${'3'.repeat(64)}.bin`;
+  expect(contentNamed(kept)).toBe(true);
+  expect(contentNamed(`/assets/baked/fixture/${'1'.repeat(63)}.bin`)).toBe(false);
+  expect(contentNamed(`/assets/baked/fixture/${'1'.repeat(65)}.bin`)).toBe(false);
+  expect(contentNamed(`${kept}/mutable`)).toBe(false);
+  const f = fixture(url => Promise.resolve(url.endsWith('/asset-manifest.json')
+    ? Response.json({ [kept]: '11111111', [changed]: '22222222' }) : new Response('changed bytes')));
+  const old = await f.open('ws-static-previous');
+  await old.put(new URL(kept, base).href, new Response('unchanged bytes'));
+  await old.put(new URL(`${kept}?v=11111111`, base).href, new Response('unchanged bytes'));
+  await old.put(new URL(removed, base).href, new Response('removed bytes'));
+  await f.dispatch('activate');
+  const current = await f.open('ws-static-unit-assets');
+  expect(await (await current.match(new URL(kept, base).href))?.text()).toBe('unchanged bytes');
+  expect(await current.match(new URL(removed, base).href)).toBeUndefined();
+  f.fetch.mockClear();
+  await f.dispatch('fetch', { request: new Request(new URL(kept, base)) });
+  expect(f.fetch).not.toHaveBeenCalled();
+  await f.dispatch('fetch', { request: new Request(new URL(changed, base)) });
+  expect(f.fetch).toHaveBeenCalledTimes(1);
+  await vi.waitFor(async () => { expect(await (await current.match(new URL(changed, base).href))?.text()).toBe('changed bytes'); });
+  await f.dispatch('fetch', { request: new Request(new URL(changed, base)) });
+  expect(f.fetch).toHaveBeenCalledTimes(1);
+  f.navigator.onLine = false; f.fetch.mockRejectedValue(new Error('offline'));
+  await f.dispatch('fetch', { request: new Request(new URL(kept, base)) });
+  expect(f.fetch).toHaveBeenCalledTimes(1);
+});
+
+test('a full content name reuses only its matching legacy versioned alias offline', async () => {
+  const kept = `/assets/baked/fixture/${'1'.repeat(64)}.bin`, absent = `/assets/baked/fixture/${'2'.repeat(64)}.bin`;
+  const f = fixture(), cache = await f.open('ws-static-unit-assets');
+  await cache.put(new URL(`${kept}?v=11111111`, base).href, new Response('verified previous alias'));
+  await cache.put(new URL(`${absent}?v=ffffffff`, base).href, new Response('wrong version'));
+  f.navigator.onLine = false; f.fetch.mockRejectedValue(new Error('offline'));
+  await f.dispatch('fetch', { request: new Request(new URL(kept, base)) });
+  expect(f.fetch).not.toHaveBeenCalled();
+  expect(await (await cache.match(new URL(kept, base).href))?.text()).toBe('verified previous alias');
+  await expect(f.dispatch('fetch', { request: new Request(new URL(absent, base)) })).rejects.toThrow('offline');
+  expect(await cache.match(new URL(absent, base).href)).toBeUndefined();
+});
+
+test('mutable unversioned bakes keep fresh network reads and their offline fallback', async () => {
+  const path = '/assets/baked/fixture/current.bin';
+  expect(contentNamed(path)).toBe(false);
+  const f = fixture(() => Promise.resolve(new Response('fresh bytes'))), cache = await f.open('ws-static-unit-assets');
+  await cache.put(new URL(path, base).href, new Response('previous bytes'));
+  await f.dispatch('fetch', { request: new Request(new URL(path, base)) });
+  await f.dispatch('fetch', { request: new Request(new URL(path, base)) });
+  expect(f.fetch).toHaveBeenCalledTimes(2);
+  await vi.waitFor(async () => { expect(await (await cache.match(new URL(path, base).href))?.text()).toBe('fresh bytes'); });
+  f.navigator.onLine = false; f.fetch.mockRejectedValue(new Error('offline'));
+  await f.dispatch('fetch', { request: new Request(new URL(path, base)) });
+  expect(f.fetch).toHaveBeenCalledTimes(2);
 });
 
 test('background code is serial, yields its body to foreground reads, then supports offline access', async () => {

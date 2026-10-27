@@ -1,3 +1,4 @@
+/// <reference types="node" />
 /**
  * Content hashes of the files under public/ (E160: "a deploy re-downloads only what changed").
  *
@@ -6,7 +7,8 @@
  * cache's name) share one pass over the ~250 MB of art per process, and a rebuild re-reads only what changed.
  *
  * `contentNamed(path)`: a file whose NAME already carries its content hash — the boot packs
- * (`/assets/packs/<slug>.<tier>-<hash8>.bin`), the audio (`<name>-<sha1[:8]>.m4a`), and any later `<name>-<hash8>.<ext>`
+ * (`/assets/packs/<slug>.<tier>-<hash8>.bin`), the audio (`<name>-<sha1[:8]>.m4a`), `<name>-<hash8>.<ext>` and full
+ * SHA-256 basenames (`<sha256>.<ext>`, the admitted named-blob contract)
  * (E157's KTX2). Such a URL is content-addressed as it stands: it gets no `?v=`, and the worker keeps it while the build
  * names it. The same rule lives in src/engine/pwa/sw.js (CONTENT_NAMED_RE) — keep the two in step.
  */
@@ -14,7 +16,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-export const CONTENT_NAMED_RE = /^\/assets\/packs\/|-[0-9a-f]{8}\.[a-z0-9]+$/;
+export const CONTENT_NAMED_RE = /^\/assets\/packs\/|-[0-9a-f]{8}\.[a-z0-9]+$|\/[0-9a-f]{64}\.[a-z0-9]+$/;
 export const contentNamed = (path: string): boolean => CONTENT_NAMED_RE.test(path);
 
 const memo = new Map<string, { key: string; hash: string }>();
