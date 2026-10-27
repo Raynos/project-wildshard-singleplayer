@@ -1,3 +1,4 @@
+import { PropMaterialsSchema } from '../src/format/propMaterials';
 import * as v from 'valibot';
 import { AdmissionLateSchema } from '../src/format/admissionLate';
 import { expect, test } from 'vitest';
@@ -63,4 +64,16 @@ test('a late global LUT remains a required control dependency', () => {
   source.library = [hash]; source.late = [{hash,at:[200,0]}]; source.look.grade.lut = hash;
   expect(controlFiles(source,source.files)).toEqual(source.files);
   expect(lateFiles(source,source.files)).toEqual([]);
+});
+
+
+test('material construction keeps prop-only textures ready outside the library and critical lists', () => {
+  const source = emptyShardfile({slug:'material-roots',name:'Materials',author:'Fixture',seed:1,revision:1}), texture = 'a'.repeat(64), graph = 'b'.repeat(64), dependency = 'c'.repeat(64);
+  source.files = [texture,graph,dependency].map(hash => ({hash,kind:'ktx2',compressed:3,decoded:0,gpu:8,triangles:0,draws:0,dependencies:hash===graph?[dependency]:[],critical:false}));
+  source.props = {version:1,family:'toon',tiles:[],panels:[],models:[],far:null,textures:[],colliders:[],materials:v.parse(PropMaterialsSchema,{Landmark:{id:'toon',colour:{file:texture}}})};
+  source.look.materials = {surface:{family:'graph',file:graph}};
+  expect(source.library).toEqual([]); expect(source.critical).toEqual([]);
+  expect(controlFiles(source,source.files)).toEqual(source.files);
+  const missing = {...source,files:source.files.filter(row => row.hash!==texture)};
+  expect(() => controlFiles(missing,missing.files)).toThrow('Control file is not declared');
 });

@@ -799,3 +799,61 @@ Touched scoped types, standalone strict worker-codec types, typed lint and
 ratchet pass; entry's inherited public-index count21 is reduced to18 to meet
 its unchanged18 allowance. Codec/integrity/entry-isolation/offline controls,
 containing bundle guards and the joint original3 read follow this landing.
+
+### I2.12 Joint HEAD three-shard read (2026-10-27, sp-x2)
+
+Actual single shared pin435373b6d280c58765892eb25858c11efb436daf,
+version435373b-mvqu6ks6, all products/app built and served on4406.
+Contains late contractd181227f53, adapter9e4f6f359e, body-pack split
+6a9ab1609a, Explorer hints1655f7fd74, arrival ringf466081bbe,
+wire fix9738809b3f, residency hint fix150bb74376 and x9 JS pack435373b6d2.
+Late-weld hostc359e658ef is contained; Pine cabin publicationb5ef2ff17c
+landed after this pin and is NOT contained. No retry or pin movement.
+
+Original I2 protocol: fresh named muted iPhone16Pro Chromium sessions,
+phone/render2, CPU1/unthrottled network, unchanged actual picker/entry,
+Date.now first entered/unpaused/frame-gated control fence. All page and
+worker requests started by that fence, encoded chunks forwarded by it,
+including in-flight bodies; no response modification or clock increase.
+All requested identities reach control with zero page errors.
+
+| Shard | Before-control encoded bytes | Requests | Tap-to-control | JS requests (code packs included) | Data requests |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Pine |180441696 |637 |13.319s |109 |528 |
+| Nalati |102998641 |396 |6.998s |107 |289 |
+| Nine |164463577 |379 |10.888s |103 |276 |
+
+Code packs are counted as JS, never hidden in data: actual pack bodies
+2206745/2153951/1955024B. Total JS transfer2569688/2504307/2287733B.
+Original12MB/250-total bar still fails0/3; no I2 completion or native
+phone claim. Different containing source pins are not an isolated
+speed experiment. Raw tmp/sp-x2/i2-joint/reading; original21c retained.
+Owned three browsers/proxies closed and parent4406 stopped/released.
+
+Largest verified generic duplicate in this cohort: twelve Pine KTX2
+product/public URL pairs have identical SHA-256 bodies,10998478B each
+side. This is a candidate for the next cost-only transport cut, not a
+saving. Heavy Pine cabin/creature, Nalati places/atlases and Nine weld
+content remains sp-o5's split; x9 owns the remaining JS transport.
+
+### I2.13 Material construction roots (2026-10-27, sp-x2)
+
+Immediate guarded-red repair before that next cut. O4's actual Night
+Market refusal names606e99663b2e... Landmark colour1101130B; companion
+028ee2f47969... is492790B. Both are declared phone KTX2 tile dependencies
+but outside library/critical/commons, so the existing control subset
+omits them while clientMaterials synchronously requires them. Original
+refusal retained; first-bad SHA remains unproved, not attributed solely
+to the pack split. No guard/content/cap change or browser repeat here.
+
+controlFileHashes now includes the defining material-construction roots:
+look/preset/inline texture refs, graph files (their validated dependency
+closure covers graph texture params), prop texture colours, named prop
+slots and both splat tier sets (device selection still filters files).
+Read-only exact retained NightMarket product control changes both known
+refs from false to true without changing library membership. All actual
+asset size/hash verification remains; missing declared roots still refuse.
+Format/game/SDK and scoped fixture types, typed lint and ratchet pass.
+Source regression covers a tile-only prop slot plus graph dependencies;
+not executed before landing under G769. O4/CI consume this source once
+at their next containing reading; no new build or competing capture.

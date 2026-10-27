@@ -688,7 +688,9 @@ and costs remain declared; opening Explorer may demand its art immediately.
 Small-file transport packs separate descriptor sections, required control bodies,
 and deferred bodies. The SDK writer and phone admission use the same dependency
 closure: commons, critical flags, navigation, presentation images and the global
-LUT override late hints. An early pack cannot carry a deferred small file just
+LUT override late hints. Material-construction roots (look textures and graph
+files with their dependencies, prop colour/slot textures and splat layers) are
+also required even when they are only tile dependencies, outside the library. An early pack cannot carry a deferred small file just
 because both fit under the existing pack limit. Member paths, hashes, sizes and
 full content costs stay unchanged; pack hashes and grouping may change.
 
