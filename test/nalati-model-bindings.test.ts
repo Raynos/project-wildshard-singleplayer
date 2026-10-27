@@ -2,10 +2,23 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { SpecimenAssetSchema } from '../src/format/specimenCatalogue';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { nalatiPaintedAtlasFile, nalatiPaintedGeometryFile, nalatiPaintedBindings, nalatiPaintedModelNames } from '../src/shards/nalati-grasslands/generators/modelBindings';
+import { nalatiPaintedAtlasFile, nalatiPaintedGeometryFile, nalatiPaintedBindings, nalatiPaintedModelNames, nalatiLatePaintedNames } from '../src/shards/nalati-grasslands/generators/modelBindings';
 
 const prefix = '/assets/nalati/baked/painted-models/';
 const material = { id: 'rock', family: 'painterly', rim: .3, bands: .8, floor: .2 } as const;
+
+test('only unselected painted alternatives enter the late transport seam', () => {
+  const file = (name: string) => ({ file: `models/painted/${name}`, bytes: 7 });
+  const asset = { url: file('large.glb'), phoneUrl: file('small.glb'), atlas: file('large.ktx2'), phoneAtlas: file('small.ktx2') };
+  const books = [asset, { again: asset }, { url: file('unchanged.glb') }], before = structuredClone(books);
+  expect(nalatiLatePaintedNames(books)).toEqual(['models/painted/large.glb', 'models/painted/large.ktx2']);
+  expect(books).toStrictEqual(before);
+  expect(nalatiLatePaintedNames([asset, { shared: file('large.glb') }])).toEqual(['models/painted/large.ktx2']);
+  expect(nalatiLatePaintedNames([asset, { url: file('large.glb'), atlas: file('large.ktx2') }])).toEqual([]);
+  expect(nalatiLatePaintedNames({ url: file('same.glb'), phoneUrl: file('same.glb') })).toEqual([]);
+  expect(nalatiLatePaintedNames({ url: file('needed.glb') })).toEqual([]);
+  expect(nalatiLatePaintedNames({ url: { file: 'other/full.glb' }, phoneUrl: file('small.glb') })).toEqual([]);
+});
 const asset = { url: `${prefix}boulder-1.glb`, phoneUrl: `${prefix}boulder-1.phone.glb`, material, geometrySlot: 0, materialSlot: 0, retainedAttribute: '_paint_clone' };
 const files = new Map([['boulder-1.glb', new Uint8Array(128)], ['boulder-1.phone.glb', new Uint8Array(64)], ['boulder-1.ktx2', new Uint8Array(180)], ['boulder-1.phone.ktx2', new Uint8Array(100)]]);
 

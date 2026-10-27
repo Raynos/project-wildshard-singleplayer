@@ -54,3 +54,26 @@ export function nalatiPaintedBindings(input: unknown, files: ReadonlyMap<string,
   }
   return out;
 }
+
+/** Unselected desktop alternatives stay admitted but warm after control. A
+ * shared or phone-selected reference anywhere in the books keeps its source. */
+export function nalatiLatePaintedNames(input: unknown): readonly string[] {
+  const candidates = new Set<string>(), selected = new Set<string>();
+  const location = (value: unknown): string | undefined => {
+    if (value === null || typeof value !== 'object' || !('file' in value)) return undefined;
+    return typeof value.file === 'string' && value.file.startsWith('models/painted/') ? value.file : undefined;
+  };
+  const visit = (value: unknown): void => {
+    if (typeof value === 'string') { selected.add(value); return; }
+    if (Array.isArray(value)) { for (const child of value) visit(child); return; }
+    if (value === null || typeof value !== 'object') return;
+    const skipped = new Set<string>();
+    for (const [normal, phone] of [['url', 'phoneUrl'], ['atlas', 'phoneAtlas']] as const) {
+      const full = location(Reflect.get(value, normal)), small = location(Reflect.get(value, phone));
+      if (full !== undefined && small !== undefined) { candidates.add(full); skipped.add(normal); }
+    }
+    for (const [key, child] of Object.entries(value)) if (!skipped.has(key)) visit(child);
+  };
+  visit(input);
+  return [...candidates].filter(name => !selected.has(name)).sort();
+}

@@ -8,7 +8,7 @@ import { nalatiSpeciesProgram } from './speciesProgram';
 import { nalatiHeldSource, type NalatiHeldRows } from './heldMetadata';
 import type { NalatiSpeciesSourceInputs } from './speciesPreparation';
 import { nalatiModelPartsProgram } from './modelPartsProgram';
-import { nalatiPaintedAtlasFile, nalatiPaintedGeometryFile, nalatiPaintedBindings, nalatiPaintedModelNames } from './modelBindings';
+import { nalatiPaintedAtlasFile, nalatiPaintedGeometryFile, nalatiPaintedBindings, nalatiPaintedModelNames, nalatiLatePaintedNames } from './modelBindings';
 import { nalatiQuestProp } from './questProp';
 import { nalatiBalbalSpecimen } from './balbalSpecimen';
 import modelMetrics from '../data/modelMetrics.json' with { type: 'json' };
@@ -210,6 +210,7 @@ export interface NalatiOutputRows {
   platform: ReturnType<typeof emitPlatformSections>;
   namedFiles: ReturnType<typeof emitNamedBlobs>['files'][number][];
   assets: Map<string, Uint8Array>;
+  late?: NonNullable<ProjectOutput['late']>;
 }
 function outputRowsFrom(speciesRows: SpeciesEmissionRows, emitted: ReturnType<typeof emitSpeciesOutput>, heldRows: NalatiHeldRows, views: readonly NamedBlob[], kokpar: NalatiKokpar, ridingPrograms: NalatiRidingPrograms, titanProgram: NalatiTitanPrograms, weather: NalatiWeather, admissionInput: NalatiAdmission, charge: NalatiCharge): NalatiOutputRows {
   const { cues: nightCues } = nalatiNightRows({ script: weather.rows.script, bytes: weather.rows.bytes });
@@ -402,15 +403,22 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
     }
   }
   const modelBlobs = [...modelFiles.values()];
+  const boundBooks: unknown[] = [];
   const ownedBooks = new Map(documents.map(({ blob, rows }) => {
     const name = blob.file.name;
     if (name === undefined) throw new Error('Missing named Nalati model book');
-    const owned = nameBlob(name, 'json', new TextEncoder().encode(encodeCanonicalJson(nalatiPaintedBindings(rows, parts))), {
+    const bound = nalatiPaintedBindings(rows, parts); boundBooks.push(bound);
+    const owned = nameBlob(name, 'json', new TextEncoder().encode(encodeCanonicalJson(bound)), {
       critical: blob.file.critical, dependencies: blob.file.dependencies,
       ...(blob.file.jsonSchema === undefined ? {} : { jsonSchema: blob.file.jsonSchema }),
     });
     return [name, owned] as const;
   }));
+  const late = nalatiLatePaintedNames(boundBooks).map(name => {
+    const blob = modelFiles.get(name);
+    if (blob === undefined) throw new Error('Missing late painted alternative');
+    return { hash: blob.file.hash };
+  });
   const sourceFiles = freshEmission.files.map(file => file.name === undefined ? file : ownedBooks.get(file.name)?.file ?? file);
   const scenes = emitNamedBlobs(sceneBlobs.map(blob => blob.file.name === undefined ? blob : ownedBooks.get(blob.file.name) ?? blob));
   const namedFiles = [...sourceFiles.filter(file => file.name !== 'quests/carried.json'), carriedBlob.file, ...ownedMetadata.files, ...placements.files, ...scenes.files].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
@@ -419,7 +427,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
     if (bytes === undefined) throw new Error(`Missing owned paint shape ${row.source}`);
     return nameBlob(row.name, row.kind, bytes);
   })], runtime.floors.map(floor => nameBlob(floor.name, 'bin', floor.bytes)), [propBlob], carvings, held, [...renderPairs, ...coarseTiles], ownedGeography, views, [kokpar.blob, kokpar.courseBlob], ridingModules, nalatiTitanBlobs(titan), nalatiAdmissionBlobs(admissionBank), [nalatiChargeBlob(charge)]));
-  return { ...template, platform, blobs: [], namedFiles: [...sources.map(source => source.file), ...modelBlobs.map(source => source.file), ...namedFiles, ...taming.files, places.file, crags.file, dressingBlob.file, specimenBank.file, speciesBank.file, ...people.map(blob => blob.file), ...terrainDraws.map(blob => blob.file), ...grassBlobs.map(blob => blob.file)], assets: new Map([...template.assets, ...freshEmission.assets, ...[...ownedBooks.values()].map(blob => [blob.file.hash, blob.bytes] as const), ...sources.map(source => [source.file.hash, source.bytes] as const), ...modelBlobs.map(source => [source.file.hash, source.bytes] as const), ...ownedMetadata.assets, ...placements.assets, ...scenes.assets, [carriedBlob.file.hash, carriedBlob.bytes], [places.file.hash, places.bytes], [crags.file.hash, crags.bytes], [dressingBlob.file.hash, dressingBlob.bytes], [specimenBank.file.hash, specimenBank.bytes], [speciesBank.file.hash, speciesBank.bytes], ...people.map(blob => [blob.file.hash, blob.bytes] as const), ...terrainDraws.map(blob => [blob.file.hash, blob.bytes] as const), ...grassBlobs.map(blob => [blob.file.hash, blob.bytes] as const)]) };
+  return { ...template, platform, late, blobs: [], namedFiles: [...sources.map(source => source.file), ...modelBlobs.map(source => source.file), ...namedFiles, ...taming.files, places.file, crags.file, dressingBlob.file, specimenBank.file, speciesBank.file, ...people.map(blob => blob.file), ...terrainDraws.map(blob => blob.file), ...grassBlobs.map(blob => blob.file)], assets: new Map([...template.assets, ...freshEmission.assets, ...[...ownedBooks.values()].map(blob => [blob.file.hash, blob.bytes] as const), ...sources.map(source => [source.file.hash, source.bytes] as const), ...modelBlobs.map(source => [source.file.hash, source.bytes] as const), ...ownedMetadata.assets, ...placements.assets, ...scenes.assets, [carriedBlob.file.hash, carriedBlob.bytes], [places.file.hash, places.bytes], [crags.file.hash, crags.bytes], [dressingBlob.file.hash, dressingBlob.bytes], [specimenBank.file.hash, specimenBank.bytes], [speciesBank.file.hash, speciesBank.bytes], ...people.map(blob => [blob.file.hash, blob.bytes] as const), ...terrainDraws.map(blob => [blob.file.hash, blob.bytes] as const), ...grassBlobs.map(blob => [blob.file.hash, blob.bytes] as const)]) };
 }
 
 /** GR6: Nalati's boot declaration as discovery (bootProgram.ts; the retired nalati-boot-metadata job's rows). */
