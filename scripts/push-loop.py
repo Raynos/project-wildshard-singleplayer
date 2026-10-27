@@ -16,31 +16,12 @@ from contextlib import contextmanager
 LIVE = runpy.run_path(str(Path(__file__).with_name('live-prepush.py')))
 git = LIVE['git']
 PUSH_GATE_SECONDS = 45  # G768: unfinished and unverifiable work goes to CI.
-BATCH = runpy.run_path(str(Path(__file__).with_name('push_batch.py')))
-HANDOFF = runpy.run_path(str(Path(__file__).with_name('push_handoff.py')))
-publish_handoff = HANDOFF['publish_handoff']
 
 
-def deferred_blobs(root, base, tip, name):
-    common = Path(git(root, 'rev-parse', '--path-format=absolute', '--git-common-dir'))
-    pending = load(common / name, {})
-    files = []
-    for path in LIVE['changed'](root, base, tip):
-        if path not in pending:
-            continue
-        blob = subprocess.run(['git', 'rev-parse', '--verify', tip + ':' + path], cwd=root,
-                              text=True, capture_output=True)
-        if blob.returncode == 0 and blob.stdout.strip() in pending[path]:
-            files.append(path)
-    return files
 
 
-def deferred_types(root, base, tip):
-    return deferred_blobs(root, base, tip, 'push-deferred-types.json')
 
 
-def deferred_policy(root, base, tip):
-    return deferred_blobs(root, base, tip, 'push-deferred-policy.json')
 
 
 def check_binary_json(root, base, tip, deadline):
@@ -96,51 +77,6 @@ def fast_tools(root, revision, deadline):
         yield folder
 
 
-def check_subset(root, tip, files, deadline):
-    environment = dict(os.environ, WS_GIT_CHECK_DEADLINE=str(int((time.time() + max(0, deadline-time.monotonic())) * 1000)))
-    rc, output = LIVE['run'](['node', str(root / 'scripts/push-subset-mirror.mjs'),
-                              str(root), tip, json.dumps(files)], root, deadline, environment)
-    lines = [line[len('PUSH_SUBSET_RESULT '):] for line in output.splitlines()
-             if line.startswith('PUSH_SUBSET_RESULT ')]
-    observed = re.search(r'(?:FAIL\s+|Tests\s+\d+ failed|Test Files\s+\d+ failed|\berror(?:\s|\[|\()|(?:Error|TypeError|SyntaxError|RangeError|ReferenceError):)', LIVE['ANSI'].sub('', output), re.I)
-    if rc == 124 and not lines and observed is None:
-        return {'ok': False, 'budget': True, 'unfinished': ['ci-subset'], 'output': output, 'files': []}
-    try:
-        if len(lines) != 1:
-            raise ValueError('Expected one exact subset result')
-        payload = json.loads(lines[0])
-        rows = payload['results']
-        if (not isinstance(rows, list) or any(not isinstance(row, dict) or
-                not isinstance(row.get('name'), str) or type(row.get('code')) is not int or
-                type(row.get('timedOut')) is not bool or not isinstance(row.get('output'), str)
-                for row in rows) or len({row['name'] for row in rows}) != len(rows)):
-            raise ValueError('Invalid subset results')
-        failed, unfinished = payload['verdict']['failed'], payload['verdict']['unfinished']
-        BATCH['batch_disposition']([tip], failed, unfinished)
-        names = {row['name'] for row in rows}
-        if not set(failed + unfinished).issubset(names):
-            raise ValueError('Subset verdict names an absent step')
-        nonzero = {row['name'] for row in rows if row['code'] != 0}
-        if nonzero != set(failed + unfinished):
-            raise ValueError('Subset verdict lost an unfinished or refused step')
-        for row in rows:
-            if row['name'] not in unfinished:
-                continue
-            blocked = row.get('blocked')
-            if blocked is not None:
-                if (not isinstance(blocked, list) or not blocked or
-                        not all(isinstance(name, str) and name in unfinished for name in blocked)):
-                    raise ValueError('Unfinished reader has no unfinished producer')
-            elif row['code'] != 124 or not row['timedOut']:
-                raise ValueError('A real subset refusal cannot be handed to CI')
-        expected = 1 if failed else 2 if unfinished else 0
-        if rc != expected:
-            raise ValueError('Subset process and result disagree')
-        return {'ok': not failed and not unfinished, 'budget': bool(unfinished) and not failed,
-                'unfinished': unfinished, 'failed': failed, 'output': output,
-                'files': LIVE['failure_paths'](output) if failed else []}
-    except (KeyError, TypeError, ValueError) as error:
-        return {'ok': False, 'output': output + '\nUnverified CI subset: ' + str(error), 'files': []}
 
 
 def check_committed(root, base, tip, deadline):
@@ -308,7 +244,6 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
         return {'status': 'idle', 'tip': tip}
     if git(root, 'merge-base', base, tip) != base:
         return {'status': 'diverged', 'tip': tip}
-    batch_file = common / 'push-batch.json'
     try:
         result = checker(root, base, tip, deadline)
     except (OSError, ValueError, TimeoutError, subprocess.SubprocessError) as error:

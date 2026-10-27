@@ -22,7 +22,6 @@ if '--candidate-stdin' in sys.argv:
 else:
     candidate_source = Path(os.environ.get('WS_SW8_CANDIDATE', TOOL_ROOT / 'push-loop.py')).read_text()
 exec(compile(candidate_source, str(TOOL_ROOT / 'push-loop.py'), 'exec'), PUSH)
-CHECK_SUBSET = PUSH.get('check_subset')
 SOURCE = runpy.run_path(str(TOOL_ROOT / 'push-source.py'))
 LIVE = PUSH['LIVE']
 RESTORE_RUNTIME = runpy.run_path(str(TOOL_ROOT / 'runtime_input_copies.py'))['restore_runtime_inputs']
@@ -45,12 +44,6 @@ class PushLoop(unittest.TestCase):
         self.put('scripts/push-inputs.mjs', 'console.log(JSON.stringify(process.argv.slice(2)));')
         self.base = self.commit('src/base.ts')
         self.git('update-ref', 'refs/remotes/origin/main', self.base)
-        subset = patch.dict(PUSH, check_subset=lambda *_: {'ok': True, 'files': [], 'output': 'exact subset passed'})
-        subset.start()
-        self.addCleanup(subset.stop)
-        handoff = patch.dict(PUSH, publish_handoff=lambda *_: None)
-        handoff.start()
-        self.addCleanup(handoff.stop)
 
     def git(self, *args):
         env = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
@@ -428,129 +421,12 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertNotIn('ci-G675', str(steps))
         self.assertEqual(steps['deleted-paths']['reason'], 'no-deletions')
 
-    def test_native_output_handoff_does_not_accept_source_refusals(self):
-        tip = self.commit('src/good.ts')
-        @contextmanager
-        def prepared(*_):
-            yield self.root / 'scripts'
-        for code in (0, 1):
-            def runner(command, root, deadline, env):
-                if command[-2] == 'fast-lint':
-                    self.assertEqual(env['WS_GIT_CHECKER_DIRECTORY'], str(self.root / 'scripts'))
-                    return code, 'Gate-deferred: native-outputs\n' + ('error: bad source' if code else 'lint passed')
-                return 0, 'passed'
-            with patch.dict(PUSH, fast_tools=prepared), patch.dict(LIVE, run=runner):
-                result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
-            self.assertEqual(result['ok'], code == 0)
-            if code == 0:
-                self.assertEqual(result['deferred'], ['Gate-deferred: native-outputs'])
-                self.assertEqual(result['types'], 'checked-partial')
-            else:
-                self.assertEqual(result['phase'], 'fast-lint')
 
-    def test_ci_subset_intake_requires_one_complete_consistent_result(self):
-        self.assertIsNotNone(CHECK_SUBSET)
-        row = {'name': 'types', 'code': 0, 'timedOut': False, 'output': ''}
-        payload = {'results': [row], 'verdict': {'failed': [], 'unfinished': []}}
-        cases = [(0, '', False), (0, 'PUSH_SUBSET_RESULT {}', False),
-                 (0, 'PUSH_SUBSET_RESULT ' + json.dumps(payload), True)]
-        for rc, output, accepted in cases:
-            with patch.dict(LIVE, run=lambda *_: (rc, output)):
-                result = CHECK_SUBSET(self.root, self.base, [], time.monotonic() + 5)
-            self.assertEqual(result['ok'], accepted)
-        payload['results'][0]['code'] = 1
-        with patch.dict(LIVE, run=lambda *_: (0, 'PUSH_SUBSET_RESULT ' + json.dumps(payload))):
-            result = CHECK_SUBSET(self.root, self.base, [], time.monotonic() + 5)
-        self.assertFalse(result['ok'])
-        self.assertNotIn('budget', result)
-        with patch.dict(LIVE, run=lambda *_: (124, 'TypeError: observed original refusal')):
-            result = CHECK_SUBSET(self.root, self.base, [], time.monotonic() + 5)
-        self.assertFalse(result['ok'])
-        self.assertNotIn('budget', result)
 
-    def test_ci_subset_refusal_and_named_cap_remain_distinct(self):
-        for code, timed, failed, unfinished, budget in [
-                (1, False, ['types'], [], False), (124, True, [], ['types'], True)]:
-            payload = {'results': [{'name': 'types', 'code': code, 'timedOut': timed, 'output': 'original'}],
-                       'verdict': {'failed': failed, 'unfinished': unfinished}}
-            with patch.dict(LIVE, run=lambda *_: (1 if failed else 2, 'PUSH_SUBSET_RESULT ' + json.dumps(payload))):
-                result = CHECK_SUBSET(self.root, self.base, [], time.monotonic() + 5)
-            self.assertFalse(result['ok'])
-            self.assertEqual(result['budget'], budget)
-            self.assertEqual(result['unfinished'], unfinished)
-        payload = {'results': [{'name': 'types', 'code': 7, 'timedOut': False, 'output': 'actual refusal'}],
-                   'verdict': {'failed': [], 'unfinished': ['types']}}
-        with patch.dict(LIVE, run=lambda *_: (2, 'PUSH_SUBSET_RESULT ' + json.dumps(payload))):
-            result = CHECK_SUBSET(self.root, self.base, [], time.monotonic() + 5)
-        self.assertFalse(result['ok'])
-        self.assertNotIn('budget', result)
 
-    def test_an_over_cap_batch_splits_before_any_upload_or_handoff(self):
-        first = self.commit('src/one.ts')
-        tip = self.commit('src/two.ts')
-        checked, uploads = [], []
-        def checker(_root, _base, candidate, _deadline):
-            checked.append(candidate)
-            return {'ok': False, 'budget': True, 'phase': 'ci-subset', 'unfinished': ['types'],
-                    'files': [], 'output': 'partial', 'steps': []}
-        result = PUSH['tick'](self.root, checker=checker, uploader=lambda *args: uploads.append(args))
-        self.assertEqual(result['status'], 'split')
-        self.assertEqual(result['nextTip'], first)
-        self.assertEqual(uploads, [])
-        def passed(_root, _base, candidate, _deadline):
-            checked.append(candidate)
-            return {'ok': True, 'phase': 'passed', 'files': [], 'output': '', 'steps': [], 'types': 'checked'}
-        result = PUSH['tick'](self.root, checker=passed, uploader=lambda *_: 0)
-        self.assertEqual(checked, [tip, first])
-        self.assertEqual(result['tip'], first)
-        self.assertFalse((self.root / '.git/push-batch.json').exists())
-        self.assertEqual(self.git('rev-parse', 'main'), tip)
 
-    def test_native_handoff_cannot_split_before_its_committed_ci_consumer(self):
-        self.commit('src/one.ts')
-        self.put('scripts/push-deferred-ci.mjs', 'export function nativeOutputReplayJob() {}')
-        tip = self.commit('src/two.ts')
-        uploads = []
-        def checker(*_):
-            return {'ok': False, 'budget': True, 'phase': 'ci-subset', 'unfinished': ['types'],
-                    'deferred': ['Gate-deferred: native-outputs'], 'files': [], 'output': '', 'steps': []}
-        result = PUSH['tick'](self.root, checker=checker, uploader=lambda *args: uploads.append(args) or 0)
-        self.assertEqual(result['status'], 'pushed')
-        self.assertEqual(result['tip'], tip)
-        self.assertEqual(result['gateDeferred'], ['Gate-deferred: native-outputs', 'Gate-deferred: types'])
-        self.assertEqual(len(uploads), 1)
-        self.assertFalse((self.root / '.git/push-batch.json').exists())
 
-    def test_irreducible_cap_records_only_named_steps_and_exact_batch(self):
-        tip = self.commit('src/one.ts')
-        def checker(*_):
-            return {'ok': False, 'budget': True, 'phase': 'ci-subset', 'unfinished': ['products', 'tests-products'],
-                    'files': [], 'output': 'original partial', 'steps': []}
-        result = PUSH['tick'](self.root, checker=checker, uploader=lambda *_: 0)
-        self.assertEqual(result['status'], 'pushed')
-        self.assertEqual(result['types'], 'ci-partial')
-        self.assertEqual(result['gateDeferred'], ['Gate-deferred: products', 'Gate-deferred: tests-products'])
-        self.assertEqual(result['batchCommits'], [tip])
-        self.assertIn('original partial', result['output'])
 
-    def test_handoff_metadata_is_required_before_upload_and_failure_holds(self):
-        tip = self.commit('src/one.ts')
-        events = []
-        def checker(*_):
-            return {'ok': False, 'budget': True, 'phase': 'ci-subset', 'unfinished': ['types'],
-                    'files': [], 'output': '', 'steps': []}
-        with patch.dict(PUSH, publish_handoff=lambda *_: events.append('published')):
-            result = PUSH['tick'](self.root, checker=checker, uploader=lambda *_: events.append('uploaded') or 0)
-        self.assertEqual(result['status'], 'pushed')
-        self.assertEqual(events, ['published', 'uploaded'])
-        def refused(*_):
-            raise ValueError('metadata write refused')
-        events.clear()
-        with patch.dict(PUSH, publish_handoff=refused):
-            result = PUSH['tick'](self.root, checker=checker, uploader=lambda *_: events.append('uploaded') or 0)
-        self.assertEqual(result['status'], 'red')
-        self.assertEqual(result['phase'], 'ci-handoff')
-        self.assertEqual(events, [])
 
     def test_step_timings_cover_policy_recent_related_and_typed_work_once(self):
         tip = self.commit('src/timed.ts')
@@ -774,14 +650,6 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertNotEqual(key, CACHE['source_key']([b'100644 blob ddd\tsrc/author.ts', records[1]], ['src']))
         self.assertNotEqual(key, CACHE['source_key']([*records, b'100644 blob eee\tsrc/new.ts'], ['src']))
 
-    def test_deferred_types_bind_exact_commit_blobs_not_working_edits(self):
-        tip = self.commit('src/good.ts')
-        blob = self.git('rev-parse', tip + ':src/good.ts')
-        self.put('.git/push-deferred-types.json', json.dumps({'src/good.ts': [blob]}))
-        self.put('src/good.ts', 'foreign WIP')
-        self.assertEqual(PUSH['deferred_types'](self.root, self.base, tip), ['src/good.ts'])
-        self.put('.git/push-deferred-types.json', json.dumps({'src/good.ts': ['wrong blob']}))
-        self.assertEqual(PUSH['deferred_types'](self.root, self.base, tip), [])
 
     def test_deferred_types_stay_in_ci_even_with_generated_cache(self):
         tip = self.commit('src/good.ts')

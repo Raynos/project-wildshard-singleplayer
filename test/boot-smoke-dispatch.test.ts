@@ -46,7 +46,7 @@ function runSource(watchStatus: number, sourceSha = sha) {
 
 test('only a fully successful push dispatches all seven exact-artifact smoke legs', () => {
   const dispatch = deploy.split('\n  dispatch-boot-smoke:\n')[1];
-  expect(dispatch).toContain('needs: [gate-deferred, build-and-deploy, typecheck-lint, derived-docs, generated-inputs, products, behaviour, behaviour-products]');
+  expect(dispatch).toContain('needs: [build-and-deploy, typecheck-lint, derived-docs, generated-inputs, products, behaviour, behaviour-products]');
   expect(dispatch).toContain("if: github.event_name == 'push'");
   expect(dispatch).toContain('-f sha="$GITHUB_SHA" -f source_run="$GITHUB_RUN_ID" -f automatic=true');
   expect(deploy).toContain('run: python3 scripts/ci-fail-fast.py -- pnpm run docs');
