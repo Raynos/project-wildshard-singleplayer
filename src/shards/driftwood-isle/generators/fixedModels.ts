@@ -1,4 +1,4 @@
-import { emitNamedBlobs, nameMeshoptBlob, type EmittedBlobs, type NamedBlob } from '@wildshard/sdk/blobs';
+import { emitNamedBlobs, nameMeshoptBlob, type BlobOptions, type EmittedBlobs, type NamedBlob } from '@wildshard/sdk/blobs';
 import { nameCompactBlob } from '@wildshard/sdk/bake/compactGlb';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
@@ -21,7 +21,12 @@ export async function driftwoodFixedModelOutput(ctx: Pick<ProjectGenerationConte
   for (const [url, name] of Object.entries(FIXED_MODEL_NAMES)) {
     const filename = url.slice(url.lastIndexOf('/') + 1), bytes = files.get(`baked/fixed-models/${filename}`);
     if (bytes === undefined || bytes.byteLength === 0) throw new Error(`Missing owned fixed model: ${name}`);
-    blobs.push(exact(name) ? await nameMeshoptBlob(name, bytes) : await nameCompactBlob(name, bytes));
+    // The entered fixed library reconstructs every slot from this producer's
+    // L0 partitions and whole templates. Individual copies remain addressable
+    // for Explorer and no-owner reads, but do not enter the phone play set.
+    // Posed libraries read their own geometry independently of that assembly.
+    const options: BlobOptions = EXACT.has(name) ? {} : { tier: 'desktop' };
+    blobs.push(exact(name) ? await nameMeshoptBlob(name, bytes, options) : await nameCompactBlob(name, bytes, options));
   }
   const output = emitNamedBlobs(blobs), assets = new Map(output.assets);
   // Coarse tile rows belong to the root declaration; their bytes have already

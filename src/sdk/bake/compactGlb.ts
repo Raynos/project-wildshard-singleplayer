@@ -4,7 +4,7 @@ import { WebIO, type Accessor, type Document } from '@gltf-transform/core';
 import { ALL_EXTENSIONS, KHRMeshQuantization, type InstancedMesh } from '@gltf-transform/extensions';
 import { MeshoptDecoder } from 'meshoptimizer';
 import { compressGlb } from './glbCompression';
-import { nameBlob, nameMeshoptBlob, type NamedBlob } from '../blobs';
+import { nameBlob, nameMeshoptBlob, type BlobOptions, type NamedBlob } from '../blobs';
 import { entryFootprints, obstructsEntry } from '@wildshard/format/entryGeometry';
 import type { ShardEntryways } from '@wildshard/format/entryways';
 import { visitGlbTriangles } from '@wildshard/format/product';
@@ -103,9 +103,9 @@ export async function compactPhoneGlb(input: Uint8Array): Promise<Uint8Array> {
 
 /** Name a built GLB the way a phone-geometry producer ships it (I3): `compactPhoneGlb`'s pick when it compacts the file,
  *  else the lossless meshopt pick of a `meshopt: true` source (`nameMeshoptBlob`). */
-export async function nameCompactBlob(name: string, bytes: Uint8Array): Promise<NamedBlob> {
+export async function nameCompactBlob(name: string, bytes: Uint8Array, options: BlobOptions = {}): Promise<NamedBlob> {
   const compact = await compactPhoneGlb(bytes);
-  return compact === bytes ? nameMeshoptBlob(name, bytes) : nameBlob(name, 'glb', compact);
+  return compact === bytes ? nameMeshoptBlob(name, bytes, options) : nameBlob(name, 'glb', compact, options);
 }
 
 /** `compactPhoneGlb` for a placed tile beside the cell's entryways: rounding onto the grid may lift a road-height vertex by

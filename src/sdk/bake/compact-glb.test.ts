@@ -6,7 +6,7 @@ import { MeshoptDecoder } from 'meshoptimizer';
 import { createOwnedGeometry, identitySpaceGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { staticGlb } from './glb';
-import { brotliBytes, compactPhoneGlb } from './compactGlb';
+import { brotliBytes, compactPhoneGlb, nameCompactBlob } from './compactGlb';
 import { compressGlb } from './glbCompression';
 
 /** A phone-tier model big enough for the grid to pay: a 20 m sphere off the origin with per-vertex colours (`native`:
@@ -17,6 +17,19 @@ function sphereGlb(native = false): Uint8Array {
   geometry.setAttribute('color', new BufferAttribute(colours, 3));
   return staticGlb([{ geometry, material: new MeshStandardMaterial(), ...(native ? { nativeAttributes: true } : {}) }]);
 }
+
+it('keeps named-file selection metadata through compact and unchanged geometry', async () => {
+  const material = new MeshStandardMaterial(), geometry = new SphereGeometry(1);
+  try {
+    const unchanged = staticGlb([{ geometry, material }, { geometry, material }]);
+    for (const input of [sphereGlb(), unchanged]) {
+      const original = await nameCompactBlob('fixed.glb', input);
+      const tiered = await nameCompactBlob('fixed.glb', input, { tier: 'desktop' });
+      expect(tiered.file).toEqual({ ...original.file, tier: 'desktop' });
+      expect(tiered.bytes).toEqual(original.bytes);
+    }
+  } finally { geometry.dispose(); material.dispose(); }
+});
 
 it('quantizes and meshopt-compresses a phone model only when its brotli bytes shrink', async () => {
   const input = sphereGlb(), packed = await compactPhoneGlb(input);
