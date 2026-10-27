@@ -50,12 +50,16 @@ const isDrawable = (object: THREE.Object3D): object is Drawable => {
 /** The drawables an entry frame would draw under `root` (the root itself is the parked, hidden node). */
 /** A geometry with three's default attribute map (an `instanceof` alone keeps `any` generics). */
 const isBufferGeometry = (value: unknown): value is THREE.BufferGeometry => value instanceof THREE.BufferGeometry;
-/** What a drawable's first draw builds in the driver: its programs' inputs (materials), vertex layout and draw kind. */
-function pipelineKey(object: Drawable, camera: THREE.Camera): string {
+/** A geometry's vertex layout as the driver binds it: attribute names, sizes and normalisation, and its index type. */
+function vertexLayout(object: THREE.Object3D): string {
   const geometry: unknown = (object as THREE.Object3D & { geometry?: unknown }).geometry;
-  const layout = isBufferGeometry(geometry) ? Object.keys(geometry.attributes).sort().map(name => {
+  return isBufferGeometry(geometry) ? Object.keys(geometry.attributes).sort().map(name => {
     const a = geometry.getAttribute(name); return `${name}:${String(a.itemSize)}:${a.normalized ? 1 : 0}`;
   }).join(',') + (geometry.index === null ? '' : `|i${geometry.index.array.constructor.name}`) : '';
+}
+/** What a drawable's first draw builds in the driver: its programs' inputs (materials), vertex layout and draw kind. */
+function pipelineKey(object: Drawable, camera: THREE.Camera): string {
+  const layout = vertexLayout(object);
   const kind = object instanceof THREE.InstancedMesh ? 'instanced' : object instanceof THREE.SkinnedMesh ? 'skinned' : object.type;
   return `${drawableMaterials(object).map(material => material.uuid).join(',')}|${layout}|${kind}|${object.castShadow}|${object.layers.test(camera.layers)}`;
 }
@@ -143,14 +147,17 @@ function drawBuffers(object: THREE.Object3D): ArrayBufferView[] {
  * bounded amount of new buffer data (sp-o6: a whole cell's first draws queued enough `bufferData` to stall Chromium's GPU
  * process, 43 ms `WaitForToken` waits and once a 1.47 s render). Slicing changes no pixel: the next frame redraws the
  * scissor texel. */
-export function parkedDrawSlices<T extends THREE.Object3D>(drawables: readonly T[], budget: ParkedDrawBudget): T[][] {
+export function parkedDrawSlices<T extends THREE.Object3D>(drawables: readonly T[], budget: ParkedDrawBudget,
+  /** G782: a material whose native pipeline for this drawable is already built (or planned by an earlier drawable of this
+   *  warm) is not new: its first draw builds no program or pipeline, only its bounded buffer uploads. */
+  known: (object: T, material: THREE.Material) => boolean = () => false): T[][] {
   const slices: T[][] = [];
   const seen = new Set<THREE.Material>(), uploaded = new Set<ArrayBufferView>();
   const bindings = new Set<string>();
   const byteCap = budget.bufferBytes ?? Number.POSITIVE_INFINITY;
   let slice: T[] = [], fresh = 0, bytes = 0, freshBindings = 0;
   for (const object of drawables) {
-    const unseen = drawableMaterials(object).filter(material => !seen.has(material));
+    const unseen = drawableMaterials(object).filter(material => !seen.has(material) && !known(object, material));
     const binding = budget.newBindings === undefined ? undefined : drawBindingKey(object);
     const firstUse = binding !== undefined && !bindings.has(binding) ? 1 : 0;
     const buffers = Number.isFinite(byteCap) ? drawBuffers(object).filter(buffer => !uploaded.has(buffer)) : [];
@@ -283,6 +290,8 @@ export const HELD_PARKED_BUDGET: ParkedDrawBudget = { drawables: 32, newMaterial
  */
 interface WarmedPipelines {
   readonly byGeometry: WeakMap<THREE.BufferGeometry, Set<string>>; readonly uploaded: WeakSet<ArrayBufferView>;
+  /** Native pipelines (program id × shape × vertex layout × state × context) a parked draw built: pacing only, never a skip. */
+  readonly pipelines: Set<string>;
   /** The dispose watches, one a geometry or material, released on delivery; past WATCH_CAP the receipt starts over. */
   readonly scope: Scope; readonly watched: WeakSet<THREE.BufferGeometry | THREE.Material>; watches: number;
 }
@@ -295,7 +304,7 @@ function warmedFor(renderer: object): WarmedPipelines {
   let warmed = warmedPipelines.get(renderer);
   if (warmed === undefined || warmed.watches >= WATCH_CAP) {
     warmed?.scope.dispose();
-    warmed = { byGeometry: new WeakMap(), uploaded: new WeakSet(), scope: pageScope.child('parked-warm-receipt'), watched: new WeakSet(), watches: 0 };
+    warmed = { byGeometry: new WeakMap(), uploaded: new WeakSet(), pipelines: new Set(), scope: pageScope.child('parked-warm-receipt'), watched: new WeakSet(), watches: 0 };
     warmedPipelines.set(renderer, warmed);
   }
   return warmed;
@@ -327,6 +336,9 @@ const isPropertyStore = (value: unknown): value is PropertyStore =>
 
 /** The renderer's current program of each material (three's WebGLProgram ids), or undefined when one has none yet. */
 function programIds(renderer: object, object: THREE.Object3D): string | undefined {
+  return programIdList(renderer, object)?.join(',');
+}
+function programIdList(renderer: object, object: THREE.Object3D): string[] | undefined {
   const store = 'properties' in renderer ? renderer.properties : undefined;
   if (!isPropertyStore(store)) return undefined;
   const ids: string[] = [];
@@ -337,7 +349,17 @@ function programIds(renderer: object, object: THREE.Object3D): string | undefine
     if (typeof id !== 'number') return undefined;
     ids.push(String(id));
   }
-  return ids.join(',');
+  return ids;
+}
+
+/** `material`'s native pipeline for `object` under `context`: the program the renderer holds for it (precompile linked
+ *  the entry's), the program shape, vertex layout and draw state. Undefined keeps the material new: no program yet, or a
+ *  drawable with its own first draw (skins, morphs, callbacks, custom depth). Pacing only: a known pipeline still draws. */
+function nativePipeline(renderer: object, object: THREE.Object3D, material: THREE.Material, camera: THREE.Camera, context: string): string | undefined {
+  if (warmSignature(renderer, object, camera, context) === undefined) return undefined;
+  const index = drawableMaterials(object).indexOf(material), id = programIdList(renderer, object)?.[index];
+  return id === undefined ? undefined : `${id}|${programObjectKey(object)}|${vertexLayout(object)}|${object.castShadow}` +
+    `|${object.layers.test(camera.layers)}|${object.matrixWorld.determinant() < 0}|${context}`;
 }
 
 /** A plain mesh or instanced mesh's exact pipeline signature under `context` (merged cells are identity-instance sets),
@@ -364,6 +386,10 @@ function alreadyWarmed(warmed: WarmedPipelines, renderer: object, object: THREE.
 }
 
 function recordWarmed(warmed: WarmedPipelines, renderer: object, object: THREE.Object3D, camera: THREE.Camera, context: string): void {
+  for (const material of drawableMaterials(object)) {
+    const pipeline = nativePipeline(renderer, object, material, camera, context);
+    if (pipeline !== undefined) warmed.pipelines.add(pipeline);
+  }
   const signature = warmSignature(renderer, object, camera, context);
   if (signature === undefined) return;
   const { geometry, key } = signature;
@@ -479,14 +505,22 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
   const reveal = new Set(options.revealChildren === true ? root.children : []);
   if (options.lightingRoot !== undefined) reveal.add(options.lightingRoot);
   const drawables = parkedDrawables(root, camera, reveal);
-  const slices = parkedDrawSlices(drawables, options.budget ?? DEFAULT_BUDGET);
+  const warmed = warmedFor(renderer), context = warmContextKey(renderer, scene, camera, root, reveal, options.environment, target);
+  // G782: a material counts against a slice's new-material budget only when its native pipeline is new to this renderer
+  // and to this warm (a warm crossing re-parks fresh material objects over pipelines its last visit built)
+  const planned = new Set<string>();
+  const slices = parkedDrawSlices(drawables, options.budget ?? DEFAULT_BUDGET, (object, material) => {
+    const pipeline = nativePipeline(renderer, object, material, camera, context);
+    if (pipeline === undefined) return false;
+    if (warmed.pipelines.has(pipeline) || planned.has(pipeline)) return true;
+    planned.add(pipeline); return false;
+  });
   // The scene holds the real camera equipment. Copy only the view: recursive
   // camera copies clone that unused hierarchy and can prepare fresh materials.
   const view = THREE.Object3D.prototype.clone.call(camera, false);
   if (!(view instanceof THREE.Camera)) throw new Error('Parked view must retain its camera type');
   const standIns = new ShadowStandIns(renderer instanceof THREE.WebGLRenderer ? renderer : null);
   const benched: BenchedLayers = { objects: [], masks: [] };
-  const warmed = warmedFor(renderer), context = warmContextKey(renderer, scene, camera, root, reveal, options.environment, target);
   let drawn = 0, done = 0;
   const total = slices.reduce((count, slice) => count + slice.length, 0);
   try {

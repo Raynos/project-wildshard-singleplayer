@@ -39,7 +39,9 @@ function fixture(materials: readonly Material[]) {
     const drawn = await warmParkedDraws(renderer, scene, camera, target, root, () => true, () => { pauses++; return Promise.resolve(); }, { budget });
     return { drawn, pauses };
   };
-  return { root, draws, warm, dispose: () => { target.dispose(); } };
+  /** precompile's link: the material holds the program its entry draw will use before any parked draw */
+  const compile = (material: Material, id: number): void => { renderer.properties.get(material).currentProgram = { id }; };
+  return { root, draws, warm, compile, dispose: () => { target.dispose(); } };
 }
 
 test('a later parked warm of the same pipelines draws nothing new; a fresh geometry still draws', async () => {
@@ -82,4 +84,28 @@ test('every drawn slice gets its own completed frame, under the live WebKit budg
     expect(pauses).toBe(3);
     expect(f.draws.map(slice => slice.length)).toEqual([8, 8, 4]);
   } finally { f.dispose(); geometry.dispose(); material.dispose(); }
+});
+
+test('fresh materials over an already built pipeline do not count as new; distinct programs still do', async () => {
+  const shared = Array.from({ length: 8 }, () => new MeshBasicMaterial()), f = fixture(shared);
+  const geometries = Array.from({ length: 8 }, () => new BoxGeometry());
+  const budget: ParkedDrawBudget = { drawables: 8, newMaterials: 1 };
+  try {
+    // one program for four new materials: the first builds the pipeline, the other three ride it in the same slice
+    for (const material of shared.slice(0, 4)) f.compile(material, 7);
+    f.root.add(...shared.slice(0, 4).map((material, i) => new Mesh(geometries[i], material)));
+    expect(await f.warm(budget)).toEqual({ drawn: 4, pauses: 1 });
+    // the next crossing re-parks fresh geometries and materials over that program: drawn (new buffers), one slice
+    f.root.clear();
+    for (const material of shared.slice(4)) f.compile(material, 7);
+    f.root.add(...shared.slice(4).map((material, i) => new Mesh(geometries[i + 4], material)));
+    expect(await f.warm(budget)).toEqual({ drawn: 4, pauses: 1 });
+    // four distinct programs: a slice each
+    f.root.clear();
+    const distinct = Array.from({ length: 4 }, () => new MeshBasicMaterial());
+    distinct.forEach((material, i) => { f.compile(material, 20 + i); });
+    f.root.add(...distinct.map(material => new Mesh(new BoxGeometry(), material)));
+    expect(await f.warm(budget)).toEqual({ drawn: 4, pauses: 4 });
+    for (const material of distinct) material.dispose();
+  } finally { f.dispose(); for (const geometry of geometries) geometry.dispose(); for (const material of shared) material.dispose(); }
 });
