@@ -6,6 +6,6 @@ test('committed checker entry ignores staged/loose poison while ordinary source 
   const result = spawnSync('python3', ['-m','unittest','discover','-s','test','-p','test_commit_checker_snapshot.py'], {encoding:'utf8'});
   expect(result.error).toBeUndefined();
   expect(result.status,result.stdout+result.stderr).toBe(0);
-  expect(result.stderr).toContain('Ran 6 tests');
+  expect(result.stderr).toContain('Ran 10 tests');
   expect(result.stderr).toContain('OK');
 });

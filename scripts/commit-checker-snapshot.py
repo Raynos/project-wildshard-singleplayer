@@ -48,3 +48,30 @@ def snapshot_checkers(root, parent, folder, environment=None, read_set=None):
         with Path(read_set).open('a') as output:
             output.write(json.dumps({'root': str(root), 'paths': list(CHECKERS)}) + '\n')
     return env
+
+
+def gate_handoff_message(file, root, tree, message):
+    """Accept only this invocation's exact-tree named cap records (G757)."""
+    import re
+    path = Path(file)
+    steps = set()
+    for line in path.read_text().splitlines() if path.exists() else []:
+        row = json.loads(line)
+        if not isinstance(row, dict) or not isinstance(row.get('root'), str):
+            raise RuntimeError('Invalid gate handoff record')
+        # Nested test repositories cannot tag the enclosing commit.
+        if row['root'] != str(Path(root).resolve()):
+            continue
+        step = row.get('step')
+        if row.get('tree') != tree or not isinstance(step, str) or not re.fullmatch(r'[a-z][a-z0-9 ():/.-]{0,54}', step):
+            raise RuntimeError('Unverified gate handoff record')
+        steps.add(step)
+    if not steps:
+        return message, []
+    tags = '\n'.join('Gate-deferred: ' + step for step in sorted(steps))
+    body, separator, attribution = message.rpartition('\n\nAssisted-by:')
+    if separator:
+        message = body.rstrip() + '\n\n' + tags + '\n\nAssisted-by:' + attribution
+    else:
+        message = message.rstrip() + '\n\n' + tags
+    return message, sorted(steps)

@@ -153,8 +153,21 @@ nonblocking open; all original bytes, acknowledgements, index checks and
 clock limits remain. Pending cap-tag wrapper work stays outside the live
 entry until that packet is qualified.
 
-Remaining: activate exact candidate checks in the live entry, record G757
-split/tag handoffs, and close the original SW11 long-cohort cost refusal.
+Racy-index/FIFO repair `9dfbfad573` is landed locally with its Red-fix
+marker: 11 canonical cases in six files pass in 47.198 s wall,
+1.075 s held, zero wait. Original source, index and timing assertions stay.
+
+The G757 wrapper protocol now accepts only this invocation's exact-tree
+named cap records and writes `Gate-deferred: <step>` before attribution.
+Stale trees, malformed names and missing installed controllers refuse;
+nested fixture records cannot tag the outer commit. The timing ledger
+retains cap step names even when another check refuses. New named
+intent-to-add entries advance to the committed bytes while genuine foreign
+stages stay untouched. Ten Python controls and all four wrapper suites,
+fixture types and typed lint pass; live cap producers are not activated yet.
+
+Remaining: activate exact candidate checks in the live entry and close the
+original SW11 long-cohort cost refusal, then measure the cross-lane tail.
 
 ## Questions for Jake
 

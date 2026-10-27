@@ -97,10 +97,13 @@ try:
         if record:
             metadata, path = record.split(b"\t", 1)
             staged.setdefault(path, []).append(metadata)
+    # Intent-to-add has no staged delta against an absent parent path. Advance
+    # that owned entry without overwriting a real foreign staged addition.
+    staged_changes = set(git("diff", "--cached", "--ita-invisible-in-index", "--name-only", "-z", parent, "--", *paths).split(b"\0"))
     updates = []
     for name in paths:
         path = os.fsencode(name)
-        if staged.get(path, []) != ([] if path not in before else [before[path]]):
+        if staged.get(path, []) != ([] if path not in before else [before[path]]) and not (path not in before and path not in staged_changes):
             continue
         row = after.get(path, b"0 " + b"0" * 40 + b" 0")
         updates.append(row + b"\t" + path + b"\0")
@@ -120,6 +123,7 @@ from pathlib import Path
 common, message, patch, *paths = sys.argv[1:]
 started = time.monotonic()
 waiting = acquired = released = None
+handoffs = []
 os.environ["WS_COMMIT_STARTED_AT"] = str(int(time.time() * 1000))
 os.environ["WS_COMMIT_MESSAGE"] = message
 os.environ["WS_COMMIT_WRAPPER"] = "1"
@@ -220,17 +224,30 @@ try:
         (view / "commondir").write_text(common + "\n")
         check_env = {**candidate_env, "GIT_DIR": str(view), "GIT_COMMON_DIR": common,
                      "GIT_WORK_TREE": os.getcwd(), "GIT_EDITOR": ":", "WS_COMMIT_READ_SET": str(read_set)}
+        handoff_file = scratch / "handoffs.jsonl"
+        check_env["WS_COMMIT_HANDOFF_FILE"] = str(handoff_file)
         # Execute installed CF1 policy from the committed parent, never another
         # lane's unfinished entry-module edits. Ordinary candidate source still
         # flows through the normal staged-byte adapter used by those checkers.
         checker_path = "scripts/commit-checker-snapshot.py"
         checker_installed = git("ls-tree", "--name-only", parent, "--", checker_path).strip()
+        controller_namespace = {}
         if checker_installed:
             controller = scratch / "checker-controller.py"
             controller.write_bytes(git("show", parent + ":" + checker_path))
-            check_env = runpy.run_path(str(controller))["snapshot_checkers"](
+            controller_namespace = runpy.run_path(str(controller))
+            check_env = controller_namespace["snapshot_checkers"](
                 os.getcwd(), parent, scratch / "checkers", check_env)
         code = subprocess.run(["git", "hook", "run", "--ignore-missing", "pre-commit"], env=check_env).returncode
+        if handoff_file.exists():
+            parser = controller_namespace.get("gate_handoff_message")
+            if parser is None:
+                refuse("gate handoff controller is not installed")
+            message, handoffs = parser(handoff_file, os.getcwd(), tree, message)
+            if os.path.isfile(validator):
+                error = runpy.run_path(validator)["validate"](message, human=os.getenv("SKIP_ATTRIB") == "1")
+                if error:
+                    refuse(error)
         if code:
             raise SystemExit(code)
         if checker_installed and read_set.exists():
@@ -347,6 +364,7 @@ finally:
     timing = {"version": 1, "id": str(os.getpid()) + ":" + os.environ["WS_COMMIT_STARTED_AT"],
               "at": time.time(), "elapsedMs": round(elapsed), "waitMs": round(wait),
               "workMs": round(work), "lockMs": round(hold), "exitCode": code,
+              "gateDeferred": handoffs,
               "lane": os.getenv("WS_COMMIT_LANE") or os.getenv("HERDR_PANE_ID")}
     try:
         with open(Path(common) / "commit-times.jsonl", "a") as ledger:

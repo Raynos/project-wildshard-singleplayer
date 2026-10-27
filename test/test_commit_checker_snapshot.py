@@ -7,7 +7,9 @@ import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-snapshot = runpy.run_path(str(ROOT / 'scripts/commit-checker-snapshot.py'))['snapshot_checkers']
+controller = runpy.run_path(str(ROOT / 'scripts/commit-checker-snapshot.py'))
+snapshot = controller['snapshot_checkers']
+handoff_message = controller['gate_handoff_message']
 
 
 class CheckerSnapshotTest(unittest.TestCase):
@@ -72,11 +74,15 @@ class CheckerSnapshotTest(unittest.TestCase):
         self.assertEqual(snapshot(self.root, 'HEAD', self.root / 'owned-pin', self.env), self.env)
         self.assertFalse((self.root / 'owned-pin').exists())
 
-    def real_wrapper(self, reject=False):
+    def real_wrapper(self, reject=False, handoff=False):
         self.put('scripts/commit-checker-snapshot.py',
                  (ROOT / 'scripts/commit-checker-snapshot.py').read_text())
         self.put('scripts/precommit-inputs.mjs', "throw Error('committed checker refusal');" if reject
                  else "import{value}from'./precommit-related.mjs';if(value!=='committed')throw Error('wrong checker');")
+        if handoff:
+            self.put('scripts/precommit-inputs.mjs', """import{writeFileSync}from'node:fs';import{execFileSync}from'node:child_process';
+const file=process.env.WS_COMMIT_HANDOFF_FILE;if(!file)throw Error('missing invocation handoff file');
+writeFileSync(file,JSON.stringify({root:process.cwd(),tree:execFileSync('git',['write-tree'],{encoding:'utf8'}).trim(),step:'candidate types'})+'\\n');""")
         self.put('.githooks/pre-commit', '#!/bin/sh\nexec node scripts/precommit-inputs.mjs\n')
         hook = self.root / '.githooks/pre-commit'
         hook.chmod(0o755)
@@ -107,6 +113,53 @@ class CheckerSnapshotTest(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('committed checker refusal', result.stdout + result.stderr)
         self.assertEqual(self.git('rev-parse', 'HEAD').stdout.strip(), parent)
+
+
+    def test_gate_handoff_tags_the_exact_tree_and_ignores_nested_fixtures(self):
+        import json
+        file = self.root / 'handoffs'
+        tree = self.git('write-tree').stdout.strip()
+        rows = [{'root': str(self.root), 'tree': tree, 'step': 'candidate types'},
+                {'root': str(self.root), 'tree': tree, 'step': 'candidate types'},
+                {'root': 'nested fixture', 'tree': 'foreign', 'step': 'unrelated'}]
+        file.write_text('\n'.join(json.dumps(row) for row in rows))
+        message = 'test(commit): keep cap tags\n\nAssisted-by: Codex:gpt-6.1-sol'
+        tagged, steps = handoff_message(file, self.root, tree, message)
+        self.assertEqual(steps, ['candidate types'])
+        self.assertEqual(tagged.count('Gate-deferred: candidate types'), 1)
+        self.assertTrue(tagged.endswith('\n\nAssisted-by: Codex:gpt-6.1-sol'))
+
+    def test_gate_handoff_rejects_stale_trees_and_unbounded_names(self):
+        import json
+        file = self.root / 'handoffs'
+        tree = self.git('write-tree').stdout.strip()
+        for row in [{'root': str(self.root), 'tree': 'stale', 'step': 'candidate types'},
+                    {'root': str(self.root), 'tree': tree, 'step': 'forged\ntrailer'},
+                    {'root': str(self.root), 'tree': tree, 'step': 'x' * 56}, {}]:
+            file.write_text(json.dumps(row))
+            with self.assertRaisesRegex(RuntimeError, 'gate handoff record'):
+                handoff_message(file, self.root, tree, 'test(commit): refuse malformed cap')
+
+    def test_real_wrapper_records_only_the_sealed_named_cap_in_its_message(self):
+        parent, result = self.real_wrapper(handoff=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertNotEqual(self.git('rev-parse', 'HEAD').stdout.strip(), parent)
+        self.assertIn('Gate-deferred: candidate types', self.git('log', '-1', '--format=%B').stdout)
+
+    def test_real_wrapper_aligns_own_new_intent_entry_and_keeps_foreign_stage(self):
+        _, installed = self.real_wrapper()
+        self.assertEqual(installed.returncode, 0, installed.stdout + installed.stderr)
+        self.put('src/new.mjs', 'export const value=2;')
+        self.put('src/peer.mjs', 'export const peer=3;')
+        self.git('add', '-N', 'src/new.mjs')
+        self.git('add', 'src/peer.mjs')
+        result = subprocess.run(['bash', str(ROOT / 'scripts/commit.sh'),
+            'test(commit): align added source', '--', 'src/new.mjs'], cwd=self.root,
+            env=self.env, text=True, capture_output=True, check=False, timeout=15)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(self.git('diff', '--cached', '--name-only').stdout.strip(), 'src/peer.mjs')
+        self.assertEqual(self.git('show', ':src/peer.mjs').stdout, 'export const peer=3;')
+
 
 
     def test_racy_index_metadata_cannot_hide_a_same_length_candidate_change(self):
