@@ -11,6 +11,7 @@ import {DownloadAccounting,installDownloadAccounting} from './download';
 import * as settings from '../ui/Settings';
 import {LoadingTimeline,installLoadingTimeline} from './timeline';
 import {STEP_INFO} from './steps';
+import { TIER, initializeTier } from '../core/tier';
 
 const music='/assets/music/folk/title.m4a',sfx='/assets/sfx/field/step.m4a';
 const foreignMusic='/assets/music/electronic/other.m4a',foreignSfx='/assets/sfx/other/unused.m4a';
@@ -62,9 +63,10 @@ test('active boot declares its own card; Explorer previews stay in background in
     [foreign.thumb]:1000,[foreign.portrait]:2000,[foreign.landscape]:3000 };
   setBootCatalog({levels:[other,home],playable:[other,home],find:()=>home,artBytes});
   const files=bootFiles({...home},'img',NO_AUDIO);
-  expect(files.art).toEqual(Object.values(own));
+  const activeArt=TIER==='phone'?[own.thumb,innerWidth>=innerHeight?own.landscape:own.portrait]:Object.values(own);
+  expect(files.art).toEqual(activeArt);
   expect(extraFetches(files)).toEqual(files.art);
-  expect(declareTotals(files).art).toEqual({bytes:60,files:3});
+  expect(declareTotals(files).art).toEqual({bytes:activeArt.reduce((sum,path)=>sum+(artBytes[path]??0),0),files:activeArt.length});
   const background=bootFiles(home,'img');
   expect(background.art).toEqual([...Object.values(own),'/assets/own-explore.webp']);
   expect(declareTotals(background).art).toEqual({bytes:100,files:4});
@@ -89,8 +91,28 @@ test('grid omits unused menu cards while keeping explicit art and original audio
   expect(declareTotals(grid).art).toEqual({bytes:60,files:2});
   expect(grid.music).toEqual([music]);expect(grid.sfx).toEqual([sfx]);
   expect(extraFetches(grid)).toEqual([...grid.art,music,sfx]);
-  expect(bootFiles(home,'img',profile).art).toEqual([...Object.values(card),'/assets/required.webp']);
+  const active=TIER==='phone'?[card.thumb,innerWidth>=innerHeight?card.landscape:card.portrait]:Object.values(card);
+  expect(bootFiles(home,'img',profile).art).toEqual([...new Set([...active,card.portrait,'/assets/required.webp'])]);
   expect(bootFiles(home,'img').art).toEqual([...Object.values(card),'/assets/required.webp']);
+});
+
+test('active phone menu art follows orientation while background and desktop retain both originals',()=>{
+  const prior=TIER;
+  const card={thumb:'/assets/orientation-thumb.jpg',portrait:'/assets/orientation-portrait.jpg',landscape:'/assets/orientation-landscape.jpg'};
+  const home:BootLevel={...level,card},artBytes={[card.thumb]:10,[card.portrait]:20,[card.landscape]:30};
+  setBootCatalog({levels:[home],playable:[home],find:()=>home,artBytes});
+  try{
+    initializeTier('phone');
+    vi.stubGlobal('innerWidth',402);vi.stubGlobal('innerHeight',874);
+    expect(bootFiles(home,'img',NO_AUDIO).art).toEqual([card.thumb,card.portrait]);
+    expect(declareTotals(bootFiles(home,'img',NO_AUDIO)).art).toEqual({bytes:30,files:2});
+    vi.stubGlobal('innerWidth',874);vi.stubGlobal('innerHeight',402);
+    expect(bootFiles(home,'img',NO_AUDIO).art).toEqual([card.thumb,card.landscape]);
+    expect(bootFiles(home,'img').art).toEqual(Object.values(card));
+    initializeTier('desktop');
+    expect(bootFiles(home,'img',NO_AUDIO).art).toEqual(Object.values(card));
+    expect(home.card).toBe(card);
+  }finally{vi.unstubAllGlobals();initializeTier(prior);}
 });
 
 test('preload ignores foreign inventory and decodes selected compressed bytes offline without another fetch',async()=>{

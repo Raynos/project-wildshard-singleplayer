@@ -5,7 +5,7 @@
  *
  *  - `bootFiles(def)`       the boot manifest (src/engine/boot/manifest.ts) + the profile's selected music/SFX, or its
  *                           complete inventory for background prefetch when no profile is supplied, + every card's thumbnail and hero
- *                           stills (both orientations — the title swipes between cards and a phone can turn) and, on a shard
+ *                           stills (active phones use the viewport orientation; background/desktop keep both) and, on a shard
  *                           with the Explore viewer, its panel art. Bundled files with hashed URLs, sized from
  *                           src/game/shard/art.generated.ts (Vite copies them byte for byte).
  *  - `extraFetches(files)`  the art and the audio for the prefetch queue (after the shard's own files), in the order they
@@ -53,7 +53,11 @@ function artFor(def: BootLevel, background: boolean, menuArt: boolean): { urls: 
   const urls: string[] = [], bytes: Record<string, number> = {};
   // Other cards retain their authored URLs; the deck requests their pictures
   // when shown. Playing one world does not preload every world's portraits.
-  const cards = menuArt ? [def.card.thumb, def.card.portrait, def.card.landscape] : [];
+  // Rotation keeps those same URLs; only the active preload is narrowed.
+  const landscape = typeof innerWidth === 'number' && typeof innerHeight === 'number' && innerWidth >= innerHeight;
+  const cards = !menuArt ? [] : background || TIER !== 'phone'
+    ? [def.card.thumb, def.card.portrait, def.card.landscape]
+    : [def.card.thumb, landscape ? def.card.landscape : def.card.portrait];
   const cardUrls = new Set(cards);
   // Explorer owns its image readiness when opened; only background caching
   // needs its preview bank before the player requests that UI.
