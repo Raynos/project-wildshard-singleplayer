@@ -505,7 +505,7 @@ deleted. Touched types/lint pass; G769 adds controls without running tests.
 Whole ratchet remains prerequisite-refused by existing damage D37.
 
 Nine title quarantine remains `531c009fdd`, owned by sp-x1, original expiry
-unchanged. **D13's grid preparation-barrier quarantine remains open with sp-x6**;
+unchanged. **D13's grid preparation-barrier quarantine remains open with sp-x8**;
 no unspecific browser/pixel stage is exempted by this suite registry. CF2 is
 not marked fully done while that gap or the plan-end reading is outstanding.
 
@@ -604,3 +604,13 @@ source/generator reductions and ordinary end reading must qualify the bar.
 GM1 exact policy wording: `b958e653be`. CF5's unchanged progress guard
 now also bounds stuck protocol reads: `28f36f3987`. Both source rows are
 built and remain in flight for their applicable G780 acceptance readings.
+
+## D13 visible-far startup priority (2026-10-27, sp-x8)
+
+In flight, source this commit. Home readiness released automatic dense near views and neighbour model admission while critical visible far files were still arriving. Both enter the same serial GLTF parser. A slow optional near decode can therefore hold a later critical far parse even though home gameplay is ready. The original receipt labels the pending work only fetching, so it cannot identify an exact blocked mesh or prove a unique historical await.
+
+The focused grid-far-startup control uses the real shared RigLoader, NearPlaceholders, far ports, TileStreamer and allocator. Delay the far file and hold the cached near decode: without ordering, far readiness remains false behind that decode; with ordering, far coverage settles before optional near decoding starts. Near publication/coverage and final lease cleanup are still asserted. The original positive regression fails before the fix; both controlled cases pass afterward.
+
+GridSession now latches initial visible-far readiness only after home background release and the actual ring scheduler step. Automatic near/full-model refinement waits for that latch. Far discovery/reads, outer far declaration and explicit crossing/tile preparation remain live; no blank-ready shortcut or timeout/budget change. Current game/test types, typed lint and scoped ratchet pass; full ratchet retains independent shared count drift.
+
+Quarantine owner becomes sp-x8; openedAt and expiry stay exactly2026-10-27T08:20Z and2026-10-28T08:20Z. The original150s preparation,90s gameplay, pixels, routes and elapsed clock remain unchanged. Maintained smoke qualification follows this landing before removing quarantine; no extension or replay of the old CI run.

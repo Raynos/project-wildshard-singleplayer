@@ -5,7 +5,7 @@ import { gridQuarantine, quarantinedGrid } from '../scripts/parity/grid-quaranti
 
 test('only the retained grid case reports for exactly 24 hours', () => {
   const start = Date.parse(gridQuarantine.openedAt), end = Date.parse(gridQuarantine.expiresAt);
-  expect(gridQuarantine.owner).toBe('sp-ci-deploy');
+  expect(gridQuarantine.owner).toBe('sp-x8');
   expect(gridQuarantine.failure).toBe('40371580877');
   expect(gridQuarantine.sha).toBe('2b11287c5fb143b960b15cf3e37fe17be1ead3c3');
   expect(end - start).toBe(24 * 60 * 60 * 1000);

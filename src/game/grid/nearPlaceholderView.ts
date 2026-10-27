@@ -28,6 +28,9 @@ export interface NearPlaceholderHost {
   readonly pitch: number;
   /** at most this many cells near, the nearest (absent: every cell; the phone tier's `PHONE_NEAR_CELLS`) */
   readonly limit?: number;
+  /** Optional startup dependency: richer views must not enter the shared decode
+   * queue before the visible coarse fallback is ready. Existing views stay owned. */
+  readonly readyToRefine?: () => boolean;
   /** the cell's render root (absent: not a neighbour of this session) */
   root: (instance: string) => Object3D | undefined;
   /** fetch and parse the cell's near placeholder; rejects when its shard has none (the far proxy stays). `owns`: the bake
@@ -62,7 +65,7 @@ export class NearPlaceholders {
 
   /** Re-plan around the eye (grid metres; the caller converts from its frame) and stream the difference. */
   update(eye: Readonly<{ x: number; z: number }>, entered: string | null): void {
-    if (this.disposed) return;
+    if (this.disposed || this.host.readyToRefine?.() === false) return;
     const skip = new Set(this.missing);
     for (const cell of this.host.cells) if (this.host.root(cell.instance) === undefined) skip.add(cell.instance);
     const plan = planNearPlaceholders(this.host.cells, this.host.pitch, eye, entered, { held: new Set(this.slots.keys()), skip,

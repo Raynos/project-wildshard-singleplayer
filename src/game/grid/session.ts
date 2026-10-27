@@ -311,6 +311,9 @@ export class GridSession {
   /** loading-speed A1: builds the outer ring's road once (null: none to build, or started) */
   private startOuterRoad: (() => void) | null = null;
   private startOuterFar: (() => void) | null = null;
+  /** Initial visible fallbacks precede optional near/model decoding. Once ready,
+   * ordinary distance streaming and explicit crossings keep their own fences. */
+  private initialFarReady = false;
   private readonly roadPlans: Map<Mesh, CullPlan>;
   private roadTiles: RoadTileBacking | null = null;
   private readonly roadBudget: { readonly view: () => RoadViewCost | null; readonly resident: () => RoadResident };
@@ -632,6 +635,7 @@ export class GridSession {
     // its nearest PHONE_NEAR_CELLS (the rest on their far proxies, still unhazed)
     const near = new NearPlaceholders({
       allocator: this.allocator, cells: this.assembly.cells, pitch: this.assembly.pitch, root: (id) => roots.get(id),
+      readyToRefine: () => this.initialFarReady,
       ...(TIER === 'phone' ? { limit: PHONE_NEAR_CELLS } : {}),
       load: (id) => loadNear(this.assembly.cell(id).slug, { allocator: this.allocator, scope: host.scope }),
       cover: (id, covered) => { const drawn = drawnFar.get(id); if (drawn !== undefined) drawn.view.mesh.visible = !covered && drawn.excluded.size < 16; },
@@ -949,7 +953,7 @@ export class GridSession {
     // Match L1's 400 m reach plus the rings' four-second travel lookahead. Distant
     // cells keep their baked proxy without admitting their full product at boot.
     if (this.startOuterRoad !== null && this.roadSettled && this.host.backgroundReady?.() !== false) { const start = this.startOuterRoad; this.startOuterRoad = null; start(); }
-    if (this.host.backgroundReady?.() !== false) for (const cell of this.neighbours) {
+    if (this.initialFarReady && this.host.backgroundReady?.() !== false) for (const cell of this.neighbours) {
       const distance = Math.hypot(Math.max(0, Math.abs(at.x - cell.origin.x) - CHUNK_HALF), Math.max(0, Math.abs(at.z - cell.origin.z) - CHUNK_HALF));
       if (this.assembly.approaching(distance, 400 + Math.min(speed, 60) * 4)) void this.admitNeighbour?.(cell).catch(() => undefined);
     }
@@ -984,6 +988,9 @@ export class GridSession {
     this.refreshCellCover();
     const at = this.last ?? this.world(), speed = Math.hypot(this.velocity.x, this.velocity.z), clamp = speed > 60 ? 60 / speed : 1; // a respawn's jump is not a velocity
     this.rings.step({ x: at.x, z: at.z, vx: this.velocity.x * clamp, vz: this.velocity.z * clamp });
+    // Home readiness alone cannot release optional model work: its parser can
+    // otherwise queue ahead of far files still arriving for the startup barrier.
+    if (!this.initialFarReady && this.host.backgroundReady?.() !== false && this.rings.ready()) this.initialFarReady = true;
     this.roadTiles?.step({ x: at.x, z: at.z, vx: this.velocity.x * clamp, vz: this.velocity.z * clamp });
     for (const cell of this.neighbours) if (this.placeholderBlocksTiles(cell.instance)) this.rings.retireRefinement(cell.instance);
     this.stepCellLoading();
