@@ -815,6 +815,15 @@ test('file-backed scene specimens prepare exact bytes before publishing resident
   }
 });
 
+test('late material hints require unique finite declared texture sources', () => {
+  const rows = { ...section(), materials: [{ id: 'paint', kind: 'source', url: '/original.glb' }], steps: [] };
+  expect(parseWorldScenes({ ...rows, lateMaterials: [{ id: 'paint', at: [10, -20] }] }).lateMaterials).toEqual([{ id: 'paint', at: [10, -20] }]);
+  expect(() => parseWorldScenes({ ...rows, lateMaterials: [{ id: 'missing', at: [10, -20] }] })).toThrow();
+  expect(() => parseWorldScenes({ ...rows, lateMaterials: [{ id: 'paint', at: [10, -20] }, { id: 'paint', at: [20, 30] }] })).toThrow();
+  expect(() => parseWorldScenes({ ...rows, lateMaterials: [{ id: 'paint', at: [Infinity, -20] }] })).toThrow();
+  expect(() => parseWorldScenes({ ...rows, materials: [{ id: 'paint', kind: 'basic', properties: {} }], lateMaterials: [{ id: 'paint', at: [10, -20] }] })).toThrow();
+});
+
 test.each(['late','played','published','retired','hinted','hinted-played','hinted-retired','hinted-living'] as const)('source maps shared with a cold specimen respect %s draw ownership',async mode=>{
   const [sources,{SkyRig},{reachControl}]=await Promise.all([import('../src/game/shardfile/worldSceneMaterials'),import('../src/engine/world/skyRig'),import('../src/engine/boot/prefetch')]);
   const sky:unknown=Object.create(SkyRig.prototype);if(!(sky instanceof SkyRig))throw new Error('Missing late material sky');

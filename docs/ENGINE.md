@@ -10766,15 +10766,16 @@ A cold subset contains distinct file-row references from that declared pool;
 foreign rows refuse. Channel names and sources are unique per file, with
 nonempty, distinct part subsets contained in the file's complete roster.
 
-`game/shardfile/worldSceneMaterials` owns source PBR slots (`kind: 'source'`).
-They declare a source URL, asset-manager aliases,
-material ordinal, sampler anisotropy and environment intensity. The existing
-GLB decoder retains the original material and embedded maps; source mesh
-geometry is retired immediately. Aliases preserve tier and compressed-texture
-routing. Their owning resident retires the maps and materials. A source slot's
-`load: 'placement'` defers decoding until its first named placement, preserving
-ordered construction and native opaque-material ordering; static recipe slots
-use the default resident load.
+`game/shardfile/worldSceneMaterials` owns PBR source slots: URL, aliases,
+material ordinal, anisotropy and environment intensity. Its GLB decoder
+retains original materials/maps, retires unused geometry and preserves
+tier/texture routing. The resident owns disposal. `load: 'placement'` waits
+for the first placement with original material order; static recipes load
+eagerly.
+
+`lateMaterials:[{id,at}]` warms off-view source/surface rows after control;
+resident consumers stay eager. Forest `buildings.late:{at,materials}` and
+`SceneHandles.afterControl(id,at,materials,run)` share that fenced cursor.
 
 `game/shardfile/worldScenePlacement` executes deferred `placements`: named
 model draws, exact matrices, culling
