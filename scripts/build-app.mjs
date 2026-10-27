@@ -51,6 +51,9 @@ checkNoTopLevelAwait(outDir, resolve('public'));
 if (mode !== 'native') {
   try { writeChunkReport(outDir, process.cwd()); }
   catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exit(1); }
+  // the service worker over the bundle as written (was vite/pwa-plugin.ts): sw.js and its content-named core
+  step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
+    "(await import('./scripts/app-build/serviceWorker.ts')).writeServiceWorker(process.argv[1], process.cwd());", outDir]);
 }
 
 // the compiled DEVSERVER mode, as a machine-readable artifact beside the bundle (scripts/check-devserver.mjs, sdk/dev.ts);

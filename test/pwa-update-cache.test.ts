@@ -4,7 +4,8 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { join, resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { preview } from 'vite';
-import { pwaPlugin, workerInstallFiles, workerScripts, workerWarmFiles, publicWorkerProduct } from '../vite/pwa-plugin';
+import { workerInstallFiles, workerScripts, workerWarmFiles, publicWorkerProduct } from '../scripts/app-build/serviceWorker';
+import { previewHeadersPlugin } from '../vite/preview';
 
 test('visible experimental cards never seed executable public warming', () => {
   expect(publicWorkerProduct('public', { status: 'live' })).toBe(true);
@@ -66,7 +67,7 @@ test('worker updates revalidate unchanged bytes and fetch a changed script in fu
   mkdirSync(join(root, 'dist/sw-core'));
   writeFileSync(join(root, 'dist', scripts.fileName), original);
   const server = await preview({ root, configFile: false, logLevel: 'silent',
-    plugins: [pwaPlugin('test')], preview: { host: '127.0.0.1', port: 0 }, build: { outDir: 'dist' } });
+    plugins: [previewHeadersPlugin()], preview: { host: '127.0.0.1', port: 0 }, build: { outDir: 'dist' } });
   try {
     const base = server.resolvedUrls?.local[0];
     if (base === undefined) throw new Error('Preview did not bind its fixture');

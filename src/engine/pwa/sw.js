@@ -2,7 +2,7 @@ import { workerScope } from '../app/workerScope.js';
 /* Wildshard service worker (project/archive/2026-09-22-load-perf.md §1b / §P3, docs/design/cache-policy.md).
  * Ported from game-demos/trials-gauntlet-demo/src/pwa/sw.js — it shipped on WebKit/Metal; port, don't redesign.
  *
- * Emitted by `vite/pwa-plugin.ts` with three stamps replaced per build:
+ * Written by `scripts/app-build/serviceWorker.ts` with three stamps replaced per build:
  *   __BUILD_ID__  `<vite.config BUILD_ID>-<content hash of every emitted file + the public/ list>`. A deploy
  *                 that changes bytes is a byte-different worker (the browser installs it); a rebuild of the
  *                 same tree is the SAME worker, so a rebuild does not throw the player's 70 MB away.

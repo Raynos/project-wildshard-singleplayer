@@ -2030,7 +2030,7 @@
     "vite.config.ts",
     "scripts/app-build/assetHashes.ts",
     "scripts/app-build/basis.ts",
-    "vite/pwa-plugin.ts",
+    "scripts/app-build/serviceWorker.ts",
     "vite/rapier.ts"
   ],
   "gitMoves": [

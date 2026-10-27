@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { dirname, join, resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { preview } from 'vite';
-import { pwaPlugin } from '../vite/pwa-plugin';
+import { previewHeadersPlugin } from '../vite/preview';
 
 // iPhone downloads I6: a product blob is content-addressed (`blobs/<kind>/<hash>.<ext>`), so it never revalidates;
 // sections keep fixed paths and Rapier keeps its fixed name (the boot lists name it), so both revalidate.
@@ -16,7 +16,7 @@ test('product blobs are immutable; sections and Rapier revalidate', async () => 
     'shardfiles/driftwood-isle/sections/world/tiles.json', 'shardfiles/driftwood-isle/shard.json', 'assets/physics/rapier.wasm'];
   for (const file of files) { mkdirSync(dirname(join(root, 'dist', file)), { recursive: true }); writeFileSync(join(root, 'dist', file), 'x'); }
   const server = await preview({ root, configFile: false, logLevel: 'silent',
-    plugins: [pwaPlugin('test')], preview: { host: '127.0.0.1', port: 0 }, build: { outDir: 'dist' } });
+    plugins: [previewHeadersPlugin()], preview: { host: '127.0.0.1', port: 0 }, build: { outDir: 'dist' } });
   try {
     const base = server.resolvedUrls?.local[0];
     if (base === undefined) throw new Error('Preview did not bind its fixture');

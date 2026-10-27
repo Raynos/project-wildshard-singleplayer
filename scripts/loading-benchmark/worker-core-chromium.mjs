@@ -6,7 +6,7 @@ import {gzipSync} from 'node:zlib';
 import {mkdirSync,writeFileSync} from 'node:fs';
 import {dirname} from 'node:path';
 import {chromium,devices} from 'playwright';
-import {workerScripts} from '../../vite/pwa-plugin.ts';
+import {workerScripts} from '../../scripts/app-build/serviceWorker.ts';
 
 const out=process.argv.find(value=>value.startsWith('--out='))?.slice(6);
 if(!out)throw new Error('Requires --out=receipt.json');

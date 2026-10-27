@@ -2,7 +2,7 @@
  * Content hashes of the files under public/ (E160: "a deploy re-downloads only what changed").
  *
  * `hashTree(sub)` → `{ '/<sub>/<path>': '<sha256 hex, first 8>' }` for every file under public/<sub>. Memoised on path +
- * size + mtime, so vite.config.ts (the page's `?v=` table, `/asset-manifest.json`) and vite/pwa-plugin.ts (the static
+ * size + mtime, so vite.config.ts (the page's `?v=` table, `/asset-manifest.json`) and scripts/app-build/serviceWorker.ts (the static
  * cache's name) share one pass over the ~250 MB of art per process, and a rebuild re-reads only what changed.
  *
  * `contentNamed(path)`: a file whose NAME already carries its content hash — the boot packs

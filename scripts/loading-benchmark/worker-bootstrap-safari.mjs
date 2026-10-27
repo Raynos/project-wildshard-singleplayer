@@ -6,7 +6,7 @@ import { spawn, execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { soakInspector } from '../soak/inspector.mjs';
-import { workerScripts } from '../../vite/pwa-plugin.ts';
+import { workerScripts } from '../../scripts/app-build/serviceWorker.ts';
 
 const udid = process.env.SIM_UDID;
 const out = process.argv.find(value => value.startsWith('--out='))?.slice(6);
