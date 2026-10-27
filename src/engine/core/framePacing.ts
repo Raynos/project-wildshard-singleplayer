@@ -43,6 +43,8 @@ export const HELD_FRAME_FLOOR_MS: number = 1000 / 30;
 const HELD_SLICE_MIN_MS = 4;
 /** When a held CPU slice last asked for the shared budget (`frameBudgetSpent`), for `heldDrawDeferred`. */
 let heldSliceAt = Number.NEGATIVE_INFINITY;
+/** Frames drawn while held, for `heldFrameTurn`. */
+let heldFrames = 0;
 /** Whether the traveller waits for the build (a grid cell's loading screen shows); the grid sets it, off by default. */
 export function setBuildHeld(on: boolean): void { held = on; heldSliceAt = Number.NEGATIVE_INFINITY; }
 /** The latest a held frame may start: HELD_FRAME_FLOOR_MS after the last drawn one started, less the due slack. */
@@ -65,7 +67,13 @@ export function noteFrameDrawn(at: number = diagnosticNow(), frameAt?: number, c
   else if (gap > 4 && gap < 70) interval = capFps === 0 ? Math.min(interval, gap) : interval + (gap - interval) * 0.2;
   lastVsyncAt = frameAt ?? Number.NEGATIVE_INFINITY;
   lastFrameAt = start; lastDrawn = at;
+  if (held) heldFrames++;
 }
+
+/** G782: whether a per-frame system whose output does not change what a held second shows (a minimap, a slow sky curve)
+ *  runs this frame: on every `every`-th drawn frame while the traveller is held (`phase` spreads several over the frames),
+ *  and on every frame otherwise, so it is back at full rate the frame the hold ends. */
+export function heldFrameTurn(every: number, phase = 0): boolean { return !held || heldFrames % every === phase % every; }
 
 /** Whether the engine loop is drawing frames: a build now runs between drawn frames, in play. */
 export function presenting(now: number = diagnosticNow()): boolean { return now - lastDrawn < PRESENTING_MS; }

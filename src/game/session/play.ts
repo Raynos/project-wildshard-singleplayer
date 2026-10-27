@@ -42,6 +42,7 @@ import { equipmentEntry, toolEntries } from '../bag/equipment';
 import type { WeaponId } from '@wildshard/engine/combat/Equipment';
 import type { DeathCause } from '@wildshard/engine/combat/pipeline';
 import { type Bucket, frameCost } from '@wildshard/engine/core/frameCost';
+import { heldFrameTurn } from '@wildshard/engine/core/framePacing';
 import type { Explore, ExploreMode } from '@wildshard/engine/explore/Explore';
 import { type AimTarget, meleeLock, setAimTargets } from '@wildshard/engine/player/AimTargets';
 import { type SkinDef, applySkin } from '@wildshard/engine/player/Skins';
@@ -726,7 +727,8 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
     hud.setAimInfo(aimReadout(weapons.aimInfo)); // a boss by its name (PH-C1)
     lockOn.update();
     speedLines.update(dt, player.dashing, meleeLock.lunging);
-    if (hud.entered) { const at = mapAt(); hud.setAnimals(away() ? [] : animalPositions(animals.animals)); minimap.update(at, player.yaw, away() ? [] : animals.animals); fullMap.update(at, player.yaw); } // a practice room's map is its own (Minimap.setRoom, E321), not the shard's terrain
+    // G782: held at a cell's wall, the maps redraw every 4th drawn frame (a held second shows no travel)
+    if (hud.entered && heldFrameTurn(4)) { const at = mapAt(); hud.setAnimals(away() ? [] : animalPositions(animals.animals)); minimap.update(at, player.yaw, away() ? [] : animals.animals); fullMap.update(at, player.yaw); } // a practice room's map is its own (Minimap.setRoom, E321), not the shard's terrain
     hud.setState({
       bolts: weapons.state.ammo, maxBolts: weapons.state.magazine, reserve: weapons.state.reserve, loaded: weapons.state.loaded, reloading: weapons.state.reloading, reloadProgress: weapons.state.reloadProgress,
       weaponUi: weapons.current.row.ui,

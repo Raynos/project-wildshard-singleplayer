@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from 'vitest';
-import { frameBudgetSpent, heldBudget, heldDrawDeferred, HELD_BUILD_MS, HELD_FRAME_FLOOR_MS, nativeBudgetSpent, noteFrameDrawn, setBuildHeld } from './framePacing';
+import { frameBudgetSpent, heldBudget, heldDrawDeferred, heldFrameTurn, HELD_BUILD_MS, HELD_FRAME_FLOOR_MS, nativeBudgetSpent, noteFrameDrawn, setBuildHeld } from './framePacing';
 
 afterEach(() => { setBuildHeld(false); noteFrameDrawn(Number.NEGATIVE_INFINITY); });
 
@@ -44,4 +44,16 @@ test('held CPU slices defer the next draw up to the 30 fps floor', () => {
   setBuildHeld(false);
   expect(frameBudgetSpent(8, 1040)).toBe(false);
   expect(heldDrawDeferred(1050)).toBe(false);
+});
+
+// G782: held, a throttled system runs on every n-th drawn frame (spread by its phase); not held, on every frame.
+test('a held frame turn comes every n-th drawn frame and every frame once the hold ends', () => {
+  expect(heldFrameTurn(4)).toBe(true);
+  setBuildHeld(true);
+  const turns: boolean[] = [];
+  for (let i = 0; i < 8; i++) { noteFrameDrawn(1000 + i * 33, 1000 + i * 33 - 4, 30); turns.push(heldFrameTurn(4, 2)); }
+  expect(turns.filter(Boolean)).toHaveLength(2);
+  expect(turns.indexOf(true)).not.toBe(turns.lastIndexOf(true));
+  setBuildHeld(false);
+  expect(heldFrameTurn(4, 2)).toBe(true);
 });

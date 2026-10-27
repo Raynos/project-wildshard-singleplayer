@@ -1,5 +1,6 @@
 import { loadLUT, preloadBakedTextures } from '@wildshard/engine/boot/bakedApi';
 import { resourceScope } from '@wildshard/engine/app/resources';
+import { heldFrameTurn } from '@wildshard/engine/core/framePacing';
 import type { OffscreenPass, SkyBackdrop, SkyBackdropContext, SkyBackdropFactory, SkyBackdropPost, SkyBackdropTargets } from '@wildshard/engine/render/look';
 import { prepareOffscreenBuild } from '@wildshard/engine/render/offscreenBuild';
 import { SkyEnvironment, type SkyEnvironmentRefresh, type SkyEnvironmentSource } from '@wildshard/engine/render/skyEnvironment';
@@ -209,7 +210,8 @@ export function graphDaySkyBackdrop<K>(spec: GraphDaySkySpec<K>): SkyBackdropFac
         body.tick?.(dt);
         clock.update(dt);
         if (body.follow) dome.position.copy(camera.position);
-        drive(false);
+        // G782: held at a cell's wall, the day curves re-evaluate every 4th drawn frame (their targets keep the last values)
+        if (heldFrameTurn(4, 2)) drive(false);
         env.update(dt);
       },
       rebuild: () => { body.rebuild?.(); env.rebuild(); void clock.set(clock.phase); }, // a fresh generator: the old one's targets belong to the lost context
