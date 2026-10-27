@@ -3,9 +3,9 @@
 // globs that feed them and how they are made: `generate` returns every output's text from plain producers (no Vite
 // plugin, no virtual module, no shard build, G799); `run` drives a producer that writes its own outputs and has its own
 // --check. `pnpm gen:source` (scripts/gen-source.mjs) runs them; the pre-commit hook and CI select them by input.
-// GS3: a `committed` row's inputs are all tracked sources, so its outputs are committed (.gitignore un-ignores them);
-// the other rows read what the shard builds write (discovery modules, baked public/assets files) and stay build-written,
-// ignored files.
+// GS3: all sixteen rows own twenty committed outputs. The artifact publisher owns
+// its bounded boot-publication facts; these plain formatters never build native
+// assets, read discovery modules or depend on ignored intermediate tables.
 import { matchesGlob } from 'node:path';
 import { pathToFileURL } from 'node:url';
 

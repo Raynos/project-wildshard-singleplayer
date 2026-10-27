@@ -12,6 +12,8 @@ test('source void palette retains every raster byte of the original painter', as
   try {
     const mesh = new Mesh(geometry, material); mesh.name = 'floor';
     const group = new Group(); group.add(mesh);
+    expect(() => clientSceneGlb(group, new Map([[material, 'floor']]))).toThrow('unique loader-safe part names');
+    group.name = 'floor-map';
     const bytes = clientSceneGlb(group, new Map([[material, 'floor']])).glb;
     const read = (file: string): Uint8Array => { if (file !== 'floor.glb') throw new Error('Undeclared map input'); return bytes; };
     const readers = { input: read, bytes: read, json: (): never => { throw new Error('No JSON input'); } };

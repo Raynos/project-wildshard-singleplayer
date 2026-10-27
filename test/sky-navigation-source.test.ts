@@ -8,7 +8,9 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 const original = (): Uint8Array => new Uint8Array(readFileSync(`src/shards/far-reach/${SKY_NAVIGATION_INPUT}`));
 
 test('navigation source retains every original wire byte, cost and critical identity', async () => {
-  const bytes = original(), rows = skyNavigationRows(bytes), wire = new TextEncoder().encode(JSON.stringify(rows));
+  // The retained navigation-json publisher writes a terminal newline. This
+  // compares the complete original document, not an unterminated object string.
+  const bytes = original(), rows = skyNavigationRows(bytes), wire = new TextEncoder().encode(`${JSON.stringify(rows)}\n`);
   expect(bytes.byteLength).toBe(8486); expect(hashImmutableBytes(bytes)).toBe(SKY_NAVIGATION_HASH);
   expect(wire.byteLength).toBe(1139);
   expect(hashImmutableBytes(wire)).toBe('5443cd040c33defa75a97cca08a0155c86491170105defcadadc1bb0c9a66e68');
