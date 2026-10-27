@@ -5,7 +5,10 @@ import { NATIVE_VIEW } from './nativeView';
 import { LEG_BONE_NAMES } from './npcSkin';
 import type { PineNpcSkins } from './npcSkinInputs';
 import packed from '../data/codeParts.json' with { type: 'json' };
-import metadata from '../data/explorerMetadata.generated.json' with { type: 'json' };
+import { pineQuestNpcs } from './questNpcs';
+
+/** Each person's display name, by kind (the quest NPC rows'; GR8 G35: was the retired explorer metadata's `names`). */
+const NAMES = new Map(pineQuestNpcs().rows.map(row => [row.npc.id, row.npc.name]));
 
 /** The live people and Explorer consume one set of baked figures and anchors; `skins` (GR8: npcSkinInputs.ts) are the
  *  baked skins the product names, omitted for readers that never draw a skin. */
@@ -23,12 +26,13 @@ function catalogue(skins?: PineNpcSkins): FigureCatalogueRowType {
       visible: [], drawDistance: NPC_FIGURE.drawDistance,
       pointAt: [NATIVE_VIEW.KINGS_CLEARING.x, 0, NATIVE_VIEW.KINGS_CLEARING.z], points: kind === 'ranger',
     };
-    const names = { ranger: 'ranger-hale', miller: 'miller-brandt', trader: 'trader-mott' };
+    const names = { ranger: 'ranger-hale', miller: 'miller-brandt', trader: 'trader-mott' }, name = NAMES.get(kind);
+    if (name === undefined) throw new Error(`Missing Pine person ${kind}`);
     const surface = { name: `ph-npc-${kind}`, roughness: 0.85, metalness: 0, normalScale: [1, -1] };
     const skinned = (tier: 'phone' | 'desktop') => skins === undefined ? row : { ...row, skin: { ...skins[kind][tier], surface } };
     return [kind, { phone: skinned('phone'), desktop: skinned('desktop'),
       body: packed.parts[`npc-${kind}`], glass: kind === 'ranger' ? packed.parts['npc-ranger-glass'] : null,
-      card: { id: `pine-hollow/${names[kind]}`, name: metadata.names[kind], file: 'src/shards/pine-hollow/roster.ts', pipeline: ['hunyuan', 'code'], rig: { clips: ['idle', 'talk', 'point'] } } }];
+      card: { id: `pine-hollow/${names[kind]}`, name, file: 'src/shards/pine-hollow/roster.ts', pipeline: ['hunyuan', 'code'], rig: { clips: ['idle', 'talk', 'point'] } } }];
   })),
 });
 }

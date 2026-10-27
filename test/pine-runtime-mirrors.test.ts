@@ -16,15 +16,18 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { resolveBootSources } from '../src/engine/boot/filePolicy';
 import { PINE_BOOT_FILES, PINE_BOOT_SOURCES } from '../src/shards/pine-hollow/generators/bootFiles';
-import metadata from '../src/shards/pine-hollow/data/bootMetadata.generated.json' with { type: 'json' };
-import { FINISH_CARDS } from '../src/shards/pine-hollow/generators/finishCards';
 import authored from '../src/shards/pine-hollow/data/timberWorld.generated.json' with { type: 'json' };
 import { GPU_FILES } from '../src/shards/pine-hollow/ktx2.generated';
 import ASTC6_PHONE from '../src/shards/pine-hollow/data/astc6.generated.json' with {type:'json'};
 import { pageModeBoot, pageModeKtx2 } from '../src/game/shard/pageBoot';
 import { pageModeValue, pageModeCap } from '../src/game/shard/pagePolicy';
 import policy from '../src/shards/pine-hollow/data/pagePolicy.json' with { type: 'json' };
-import gpuTables from '../src/shards/pine-hollow/data/gpuTables.generated.json' with { type: 'json' };
+import { pineBootProgram } from '../src/shards/pine-hollow/generators/bootProgram';
+import { pineGeneration } from './fixtures/pine-generation';
+// oxlint-disable-next-line import/no-nodejs-modules -- The program's boot discovery runs over the shared generation cache.
+import { homedir } from 'node:os';
+// oxlint-disable-next-line import/no-nodejs-modules -- The program's boot discovery runs over the shared generation cache.
+import { resolve } from 'node:path';
 import { currentPageMode, setPageMode } from '../src/game/grid/pageMode';
 import { PINE_SOURCES } from './fixtures/pine-sources';
 
@@ -43,9 +46,11 @@ test('world view rows come from the admitted section', () => {
   expect(() => v.parse(NativeViewSchema, { ...NATIVE_VIEW, ...logKit, BOSS_ENCOUNTER: { ...NATIVE_VIEW.BOSS_ENCOUNTER, profile: { ...NATIVE_VIEW.BOSS_ENCOUNTER.profile, fight: { ...NATIVE_VIEW.BOSS_ENCOUNTER.profile.fight, strike: { ...NATIVE_VIEW.BOSS_ENCOUNTER.profile.fight.strike, action: 'unknown' } } } } })).toThrow();
 });
 
-test('pre-admission metadata preserves Explorer identities and ordered boot recipes', () => {
-  const explorer: unknown = JSON.parse(readFileSync(new URL('../src/shards/pine-hollow/data/explorerMetadata.generated.json', import.meta.url), 'utf8'));
-  expect(explorer).toMatchObject({ cards: FINISH_CARDS });
+// GR8 G35: the boot rows, GPU tables and capture poses are the program's discovery (generators/bootProgram.ts)
+const discovery = await pineBootProgram(pineGeneration('pine-boot-fixture-v1', resolve(homedir(), '.cache/wildshard/gen')));
+const metadata = discovery['boot.pageModes'], gpuTables = discovery['ktx2.pageModes'];
+
+test('program boot discovery preserves the ordered boot recipes', () => {
   const inputs = { aliases:{ props:authored.propMaterials } };
   const before = currentPageMode();
   const boot = pageModeBoot(metadata);
@@ -71,7 +76,7 @@ test('pre-admission metadata preserves Explorer identities and ordered boot reci
 test('generated diagnostic eyes retain the authored probes and native terrain height', () => {
   const poses = v.parse(v.record(v.string(), v.strictObject({ probe: ManifestMetadataSchema.entries.captureProbes.wrapped.item,
     eye: v.tuple([v.number(), v.number(), v.number()]), yaw: v.number(), pitch: v.number(), mockup: v.string(), frame: v.string(),
-  })), JSON.parse(readFileSync(new URL('../src/shards/pine-hollow/data/boot-poses.generated.json', import.meta.url), 'utf8')));
+  })), discovery.poses);
   const grid = parseBakedTerrain(Uint8Array.from(readFileSync(new URL('../public/assets/baked/pine-hollow/terrain.bin', import.meta.url))), { seed:1337 });
   if (grid === null) throw new Error('Missing Pine lattice');
   const source = bakedSamplers(grid);

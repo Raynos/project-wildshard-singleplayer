@@ -7,6 +7,7 @@ import { canoeMovers } from './canoe';
 import { prepareOutput } from './sourceOutput';
 import { PINE_MODES } from './zipline';
 import { pineGeographyRows } from './geographyRows';
+import { pineBootProgram } from './bootProgram';
 
 /** GR8 (G19, G30): Pine's source program. It computes the rows the declaration reads from committed inputs through
  *  `ctx` (the journal from its art, the canoe mover from the retained terrain), admits the declaration with them and
@@ -20,8 +21,10 @@ export async function generate(ctx: ProjectGenerationContext): Promise<Generated
   const critical = output.namedFiles.reduce((n, file) => file.critical ? n + file.decoded + file.gpu : n, 0);
   const shard = parseShardfile({ ...product, serverBudget: { ...product.serverBudget, memory: product.serverBudget.memory + critical },
     movers: await canoeMovers(ctx), modes: PINE_MODES });
-  // G33b: the declared ground, forest-query and pond-clip rows the manifest binds as program discovery
+  // G33b: the declared ground, forest-query and pond-clip rows the manifest binds as program discovery; G35: the
+  // page-mode boot rows, GPU tables and capture poses
   const geography = pineGeographyRows();
   return { shard, output,
-    discovery: { 'ground.rows': geography.ground, 'forestQueries.rows': geography.forestQueries, 'pondClip.rows': geography.pondClip } };
+    discovery: { 'ground.rows': geography.ground, 'forestQueries.rows': geography.forestQueries, 'pondClip.rows': geography.pondClip,
+      ...await pineBootProgram(ctx) } };
 }

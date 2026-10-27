@@ -11,10 +11,13 @@ const root = resolve(import.meta.dirname, '..');
 const manifest = parseManifestMetadata(JSON.parse(readFileSync(resolve(root, 'src/shards/pine-hollow/manifest.json'), 'utf8')));
 const boot = { platform: 'page-mode', rows: { module: './data/bootMetadata.generated.json', export: 'default' } };
 const ktx2 = { platform: 'page-mode', rows: { module: './data/gpuTables.generated.json', export: 'default' } };
+// Pine's other program rows (poses, ground, forest queries, pond clip) need their own discovery values; these cases
+// compose only the boot and KTX2 bindings under test
+const others = Object.fromEntries(Object.entries(manifest.bindings).filter(([key]) => !['poses', 'ground', 'forestQueries', 'pondClip'].includes(key)));
 
 test('page boot discovery keeps GPU rows inside the lazy KTX2 call', () => {
   const source = authoredManifestSource(root, 'pine-hollow', { metadataOnly: true,
-    composed: { ...manifest, bindings: { ...manifest.bindings, boot, ktx2 } } });
+    composed: { ...manifest, bindings: { ...others, boot, ktx2 } } });
   expect(source).toContain('bootBindings: pageModeBoot(');
   expect(source).toContain('ktx2: async () =>');
   expect(source).toContain('pageModeKtx2((await import("./data/gpuTables.generated.json", { with: { type: \'json\' } })).default)');
@@ -28,7 +31,7 @@ test('page boot program bindings take both page modes from the discovery values'
   const gpu = { phone: { '/sky.png': '/sky.ktx2' }, desktop: {} };
   const discovery = parseDiscoveryValues({ 'boot.pageModes': { shard: sources, grid: sources, bakedUnreadPrefixes: ['cabins'] },
     'ktx2.pageModes': { shard: gpu, grid: gpu } });
-  const composed = { ...manifest, bindings: { ...manifest.bindings, boot: { platform: 'page-mode', rows: { program: true } },
+  const composed = { ...manifest, bindings: { ...others, boot: { platform: 'page-mode', rows: { program: true } },
     ktx2: { platform: 'page-mode', rows: { program: true } } } };
   expect(parseManifestMetadata(composed)).toEqual(composed);
   const source = authoredManifestSource(root, 'pine-hollow', { metadataOnly: true, composed, discovery });

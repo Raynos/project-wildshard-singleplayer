@@ -772,14 +772,12 @@
       "trimRow": "memoryTrim"
     },
     "poses": {
-      "module": "./data/boot-poses.generated.json",
-      "export": "default"
+      "program": true
     },
     "boot": {
       "platform": "page-mode",
       "rows": {
-        "module": "./data/bootMetadata.generated.json",
-        "export": "default"
+        "program": true
       }
     },
     "forestQueries": {
@@ -797,8 +795,7 @@
     "ktx2": {
       "platform": "page-mode",
       "rows": {
-        "module": "./data/gpuTables.generated.json",
-        "export": "default"
+        "program": true
       }
     },
     "entry": {

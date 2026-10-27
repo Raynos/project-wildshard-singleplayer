@@ -34,7 +34,13 @@ const sources = v.union([modes(v.record(text, strings)), v.strictObject({
 const files = v.union([strings, modes(strings), v.strictObject({ sources, tier: v.picklist(['phone', 'desktop']), tex: v.picklist(['img', 'ktx2']) })]);
 const gpuUrl = v.pipe(text, v.regex(/^\/[a-zA-Z0-9_.-]+(?:\/[a-zA-Z0-9_.-]+)*$/u),
   v.check(url => !url.split('/').some(part => part === '.' || part === '..'), 'GPU mapping URL escapes its root'));
-const gpuTier = v.pipe(v.custom<Record<string, string>>(input => typeof input === 'object' && input !== null && !Array.isArray(input), 'GPU tier must be an object'), v.record(gpuUrl, gpuUrl), v.check(rows => Object.keys(rows).length <= 8192, 'GPU mapping inventory exceeds cap'));
+// A table key names a public source file or a procedural texture (`procedural:<its public name>`, e.g. a baked coat),
+// optionally one view of it (`#layer`: the file as a texture-array layer).
+const gpuKey = v.pipe(text, v.check(key => {
+  const name = key.startsWith('procedural:') ? key.slice('procedural:'.length) : key, view = /#[a-z]+$/u.exec(name);
+  return v.is(gpuUrl, view === null ? name : name.slice(0, view.index));
+}, 'GPU mapping key must be a public or procedural URL'));
+const gpuTier = v.pipe(v.custom<Record<string, string>>(input => typeof input === 'object' && input !== null && !Array.isArray(input), 'GPU tier must be an object'), v.record(gpuKey, gpuUrl), v.check(rows => Object.keys(rows).length <= 8192, 'GPU mapping inventory exceeds cap'));
 const gpuFiles = v.strictObject({ phone: gpuTier, desktop: gpuTier });
 
 // These are build results, never module paths or runtime loaders. Keep the

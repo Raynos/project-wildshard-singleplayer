@@ -44,5 +44,15 @@
       "desktop": "/assets/pine-hollow/npcs/miller.glb",
       "phone": "/assets/pine-hollow/npcs/miller.phone.glb"
     }
-  }
+  },
+  "bootInventory": [
+    "/assets/baked/pine-hollow/",
+    "/assets/gpu/",
+    "/assets/hdri/",
+    "/assets/horizon/",
+    "/assets/lut/",
+    "/assets/models/",
+    "/assets/pine-hollow/",
+    "/assets/tex/"
+  ]
 }
