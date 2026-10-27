@@ -142,6 +142,8 @@ export interface RegionalRuntimeFoundation {
   readonly enter: (scope: Scope) => void;
   /** Bind reversible terrain/scene construction services without lights, entered systems or presentation. */
   readonly prepare?: (scope: Scope) => void;
+  /** Private tile publication may overlap the world hook; it must finish before afterWorld or kit. */
+  readonly renderReady?: Promise<void>;
   readonly afterWorld?: (context: ShardContext, world: ShardWorld) => Promise<void> | void;
   /** Build regional creatures after kit registrations; apply skins through the existing regional view adapter. */
   readonly afterKit: (context: ShardContext, world: ShardWorld) => Promise<{
@@ -178,6 +180,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
     const prepare = ports.prepareFoundation;
     if (prepare === undefined) throw new Error('Regional terrain/forest/animals binding is not prepared');
     const scope = request.scope.child(`grid.runtime:${request.cell.instance}`);
+    let rendering: Promise<[PromiseSettledResult<void>]> | undefined;
     try {
       if (request.entryPoint !== undefined) bindResidentTileEntry(scope, request.entryPoint);
       const measured = request.textures?.mode === 'img' ? declaration?.cost?.imagesFirst ?? declaration?.cost : declaration?.cost;
@@ -187,7 +190,8 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
       }
       if (declaration !== null) coverRuntimeAssets(request.allocator, scope, request.claim);
       const foundation = await timeClientPreparation(request.cell.slug, 'native.foundation', () => prepare({ ...request, scope }));
-      if (scope.disposed) { foundation.region.dispose(); throw new Error('Regional runtime left during foundation admission'); }
+      if (foundation.renderReady !== undefined) rendering = Promise.allSettled([foundation.renderReady]);
+      if (scope.disposed) { if (rendering !== undefined) await rendering; foundation.region.dispose(); throw new Error('Regional runtime left during foundation admission'); }
       // G598: the region's world is the runtime's heaviest cleanup (Driftwood's whole resident scope, 22-28 ms in one step of
       // the Pine entry's retirement); a sliced retirement steps through its own cleanups in the same place
       const retireWorld = foundation.region.retire;
@@ -240,6 +244,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
         return progress && inventory && native && logical;
       };
       const resident: HybridResident = { instance: request.cell.instance, slug: request.cell.slug, declaration, firstParty: true,
+        ...(foundation.renderReady === undefined ? {} : { renderReady: foundation.renderReady }),
         scope, product: shardProductFromAdmission(request.admitted, scope), runtime: parent, retainRuntime: true, context: (owner, runtime) => {
           viewmodelSets ??= startViewmodelTextures(request.manifest.boot?.viewmodelSets ?? false);
           localRuntime = runtime; runtime.world = { ...world, registry: view.registry }; runtime.play = null;
@@ -416,6 +421,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
           if (localPlay !== null && localRuntime?.play === localPlay) { localPlay.weapons.stowed = false; localPlay.weapons.visible = true; }
         } } };
     } catch (error) {
+      if (rendering !== undefined) await rendering;
       try { scope.dispose(); } catch (cleanup) { throw new AggregateError([error, cleanup], 'Regional admission and cleanup failed', { cause: cleanup }); }
       throw error;
     }

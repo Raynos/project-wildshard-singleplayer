@@ -160,7 +160,7 @@ async function prepareRegionalPresentation(admitted: AdmittedProduct, renderer: 
 
 /** Bind prepared data at its original ordered cursor. Curves and tiles advance
  * only while entered; the material reader never publishes a regional frame. */
-async function regionalPresentation(admitted: AdmittedProduct, start: { readonly x: number; readonly z: number }, root: Object3D, renderer: Parameters<typeof clientMaterials>[2], scope: Scope, hour: () => number | null, allocator: ResidencyAllocator, instance: string, sky: ShardWorld['sky'], input: RegionalPresentationInputs, registration?: ClientTileRegistration): Promise<{ tick: (dt: number) => void; follow: (x: number, z: number) => void } | null> {
+async function regionalPresentation(admitted: AdmittedProduct, start: { readonly x: number; readonly z: number }, root: Object3D, renderer: Parameters<typeof clientMaterials>[2], scope: Scope, hour: () => number | null, allocator: ResidencyAllocator, instance: string, sky: ShardWorld['sky'], input: RegionalPresentationInputs, registration?: ClientTileRegistration): Promise<{ ready: Promise<void>; tick: (dt: number) => void; follow: (x: number, z: number) => void } | null> {
   if (input === null) return null;
   const full = admitted.source, data = full, terrain = data.terrain, assets = runtimeProduct(full).assets;
   const { collider, presentation } = input, slug = full.identity.slug;
@@ -183,17 +183,25 @@ async function regionalPresentation(admitted: AdmittedProduct, start: { readonly
   let frame: (() => void) | undefined, position = start;
   if (registration !== undefined && data.props !== null) { const props = data.props; await timeClientPreparation(slug, 'native.presentation.props-library', () => views.library(props, assets.retained, scope)); }
   const entry = { source: data, assets, root, views: views.tiles };
-  const tiles = await timeClientPreparation(slug, 'native.presentation.tiles', (): Promise<Awaited<ReturnType<typeof standaloneClientTiles>> | Awaited<ReturnType<ClientTileRegistration['enter']>>> => registration === undefined ? standaloneClientTiles(entry, scope, {
+  let tiles: Awaited<ReturnType<typeof standaloneClientTiles>> | Awaited<ReturnType<ClientTileRegistration['enter']>> | undefined;
+  const ready = timeClientPreparation(slug, 'native.presentation.tiles', (): Promise<NonNullable<typeof tiles>> => registration === undefined ? standaloneClientTiles(entry, scope, {
     instance, budget: allocator, radius: tileRing, start, viewer: () => position,
     library: owner => data.props === null ? Promise.resolve(null) : views.library(data.props, assets.retained, owner),
     pause: () => buildYield(scope), frame: run => { frame = run; },
-  }) : registration.enter(instance, entry, scope, start));
+  }) : registration.enter(instance, entry, scope, start)).then(value => {
+    if (scope.disposed || scope.disposing) throw new Error('Regional world left while preparing its tiles');
+    tiles = value;
+    return undefined;
+  });
+  // Capture early tile refusal while the private world builds; the runtime
+  // gates afterWorld/kit on this original promise and drains before teardown.
+  void ready.catch(() => undefined);
   const distance = terrain?.follow ?? 5;
   let priorX = start.x, priorZ = start.z;
-  return { tick: dt => { presentation.tick(dt); frame?.(); }, follow: (x, z) => {
+  return { ready, tick: dt => { presentation.tick(dt); frame?.(); }, follow: (x, z) => {
     position = { x, z };
     if (Math.hypot(x - priorX, z - priorZ) < distance) return;
-    priorX = x; priorZ = z; void tiles.refresh(x, z);
+    priorX = x; priorZ = z; void tiles?.refresh(x, z);
   } };
 }
 
@@ -274,6 +282,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
     LightPool.for(scene).mirrorInto(LightPool.for(game.rootScene), resident);
     let bound = 0;
     let presentationReady: Promise<[PromiseSettledResult<RegionalPresentationInputs>]> | undefined;
+    let rendering: Promise<[PromiseSettledResult<void>]> | undefined;
     ownSceneTree(scene, resident, app.assets);
     try {
       await timeClientPreparation(identity, 'native.shard-assets', () => prepareShardAssets(request.manifest, registerGpuFiles));
@@ -340,6 +349,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       if (presentationInput.status === 'rejected') throw presentationInput.reason;
       if (left() || resident.disposing) throw new Error('Regional world left before binding its presentation');
       const presented = await timeClientPreparation(identity, 'native.presentation', () => regionalPresentation(request.admitted, request.entryPoint ?? request.manifest.spawn, scene, game.renderer, resident, () => game.sky.dayNight?.hour ?? null, request.allocator, cell.instance, sky, presentationInput.value, ports.tiles));
+      if (presented !== null) rendering = Promise.allSettled([presented.ready]);
       if (left()) throw new Error('Regional world left while drawing its presentation ground');
       // a painter that bound its own ground (its compiled collider) moves the collision built above onto it
       if (terrain.groundBound) frame.run(app, () => { resampleTerrain(host.physics); });
@@ -375,6 +385,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
         // O20: its world retires as steps inside its runtime's sliced retirement (a crossing's), never as one cleanup
         region: { host, dispose: () => { resident.dispose(); }, retire: () => resident.disposeSteps(), ghostRoots: [resident] },
         ground,
+        ...(presented === null ? {} : { renderReady: presented.ready }),
         world: view => {
           if (world !== null) throw new Error('Regional world is already composed');
           if (resident.disposed) throw new Error('Regional world left before composition');
@@ -552,6 +563,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       // No async material allocation may arrive after the owner's teardown.
       // Earlier ground/native failures keep their original precedence.
       await presentationReady;
+      if (rendering !== undefined) await rendering;
       resident.dispose();
       throw error;
     } finally { leaveTextures(); }

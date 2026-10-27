@@ -52,6 +52,8 @@ export interface HybridResident {
   readonly firstParty: boolean;
   readonly scope: Scope;
   readonly runtime: ShardRuntime;
+  /** Scoped render preparation can overlap the private world; gates afterWorld and drains before teardown. */
+  readonly renderReady?: Promise<void>;
   /** Adapted runtimes park geometry/state while their entered services and singleton bindings leave. */
   readonly retainRuntime?: boolean;
   readonly context: (scope: Scope, runtime: ShardRuntime) => {
@@ -444,6 +446,7 @@ export class HybridRuntimeSession {
     if (!preparing) this.leave();
     const generation = this.generation;
     let construction: (() => void) | undefined, preparingScope: Scope | undefined;
+    let rendering: Promise<[PromiseSettledResult<void>]> | undefined;
     try {
       const parked = this.retained.get(cell.instance);
       if (parked !== undefined && !parked.scope.disposed && parked.retained !== undefined) {
@@ -469,8 +472,16 @@ export class HybridRuntimeSession {
           if (this.completedHooks.length > 32) this.completedHooks.shift();
         }
       }
+      const renderReady = resident.renderReady;
+      if (renderReady !== undefined) rendering = Promise.allSettled([renderReady]);
       const Plugin = await this.prepare(cell.instance);
       if ((!preparing && generation !== this.generation) || resident.scope.disposed || signal?.aborted === true) return false;
+      // Ordinary entry keeps the original fence before any runtime aliases
+      // activate. Only neutral-road private construction overlaps rendering.
+      if (!preparing && renderReady !== undefined) {
+        await renderReady;
+        if (this.disposed || generation !== this.generation || resident.scope.disposed) return false;
+      }
       const scope = resident.scope.child(`runtime:${cell.instance}`), active: ActiveRuntime = { resident, scope, ready: false };
       if (preparing) {
         preparingScope = scope;
@@ -498,7 +509,11 @@ export class HybridRuntimeSession {
         await runtimeClientPhase(context, 'world', resident.scope); await plugin.world?.(context);
         await runtimeClientPhase(context, 'world-bindings', resident.scope);
       })); if (!live()) return false;
-      await this.stage(scope, cell.instance, 'afterWorld', () => ownerTask(scope, () => installation.afterWorld?.(context))); if (!live()) return false;
+      await this.stage(scope, cell.instance, 'afterWorld', () => ownerTask(scope, async () => {
+        if (renderReady !== undefined) await renderReady;
+        if (!live()) throw new Error('Hybrid runtime left while preparing render tiles');
+        await installation.afterWorld?.(context);
+      })); if (!live()) return false;
       installation.openKit();
       try { await this.stage(scope, cell.instance, 'kit', () => ownerTask(scope, async () => {
         await enterDeclaredAudioPhase(context, 'kit'); await plugin.kit?.(context); await runtimeClientPhase(context, 'kit', resident.scope);
@@ -513,11 +528,15 @@ export class HybridRuntimeSession {
       if (active.retained !== undefined) this.retained.set(cell.instance, active);
       return true;
     } catch (error) {
+      // Keep a world/construction failure authoritative while every started
+      // render allocation finishes under its still-live resident owner.
+      if (rendering !== undefined) await rendering;
       if (preparing) { preparingScope?.dispose(); throw error; }
       if (generation !== this.generation) return false;
       try { this.leave(); } catch (cleanup) { throw new AggregateError([error, cleanup], 'Hybrid activation and cleanup failed', { cause: cleanup }); }
       throw error;
     } finally {
+      if (rendering !== undefined) await rendering;
       construction?.();
       if (preparingScope !== undefined && !this.retained.has(cell.instance)) preparingScope.dispose();
     }
