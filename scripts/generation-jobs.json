@@ -4462,8 +4462,6 @@
         "package.json",
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
-        "src/shards/pine-hollow/data/geography.generated.json",
-        "public/assets/pine-hollow/scalars/forest-density.bin",
         "scripts/map-geometry.mjs"
       ],
       "outputs": [
