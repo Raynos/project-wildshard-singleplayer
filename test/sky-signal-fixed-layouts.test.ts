@@ -13,6 +13,7 @@ import * as skySource from '../src/shards/far-reach/generators/layout';
 import * as signalSource from '../src/shards/sunscar-dunes/generators/layout';
 import * as crownSource from '../src/shards/far-reach/generators/crownLayout';
 import { readProjectAssets } from '../src/sdk/project';
+import { decisionLegacyLines } from '../scripts/decision-legacy-lines.mjs';
 
 // The old transport sorts top-level export names; Vite namespaces retain
 // declaration order, so keep the original wire ordering in these byte oracles.
@@ -55,10 +56,15 @@ for (const [label, compile, rows] of [
 
 for (const [slug, palette] of [['far-reach', skyMap], ['sunscar-dunes', signalMap]] as const) {
   test(`${slug} discovery lends fixed palette JSON without executable authoring`, async () => {
-    const discovery = slug === 'sunscar-dunes' ? parseDiscoveryValues(signalProgram.discovery)
-      : (await readProjectAssets(`src/shards/${slug}`, undefined, {
+    let discovery: ReturnType<typeof parseDiscoveryValues> | undefined;
+    if (slug === 'sunscar-dunes') discovery = parseDiscoveryValues(signalProgram.discovery);
+    else {
+      const lines = decisionLegacyLines(cwd(), slug);
+      if (lines === undefined) throw new Error('Missing original Far Reach decision budget');
+      discovery = (await readProjectAssets(`src/shards/${slug}`, undefined, {
         folder: slug, imageRoots: [{ prefix: '/assets/', directory: resolve('public/assets') }],
-      })).output.discovery;
+      }, { decisionLegacyLines: lines })).output.discovery;
+    }
     if (discovery === undefined) throw new Error('Missing current source discovery');
     const source = authoredManifestSource(cwd(), slug, { discovery });
     expect(source).toContain(`mapPalette: ${JSON.stringify(palette)}`);
