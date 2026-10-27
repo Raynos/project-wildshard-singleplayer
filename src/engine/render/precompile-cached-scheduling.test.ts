@@ -5,23 +5,28 @@ import { noteFrameDrawn, setBuildHeld } from '../core/framePacing';
 import { runPrecompile, type CompileJob, type PrecompileStage } from './precompile';
 import { linkedGl } from '../test/linkedGl';
 
-async function schedule(options: { held?: boolean; cost?: number; prepare?: boolean; cancel?: boolean; retireTarget?: boolean; separate?: boolean }) {
+async function schedule(options: { held?: boolean; cost?: number; prepare?: boolean; cancel?: boolean; retireTarget?: boolean; separate?: boolean; allocated?: boolean; samples?: number; replaceTarget?: boolean; external?: boolean; depthSwap?: boolean }) {
   const renderer: unknown = Object.create(WebGLRenderer.prototype);
   if (!(renderer instanceof WebGLRenderer)) throw new Error('Missing renderer');
   const geometry = new BoxGeometry(), material = new MeshBasicMaterial(), root = new Scene();
   root.add(new Mesh(geometry, material));
   let now = 1000, frame = 0, cost = 0, current = true, uniforms = 0;
   const issued: number[] = [], stages: { phase: string; units: number }[] = [];
-  const target = options.retireTarget === true ? new WebGLRenderTarget(1, 1) : null;
+  const target = options.retireTarget === true || options.allocated === true ? new WebGLRenderTarget(1, 1) : null;
+  if (target !== null) target.samples = options.samples ?? 0;
+  let framebuffer: object | undefined = options.allocated === true ? {} : undefined;
+  target?.addEventListener('dispose', () => { framebuffer = undefined; });
   let activeTarget: WebGLRenderTarget | null = null;
   const program: ProgramLike = { type: 'test', name: 'cached', cacheKey: 'cached', usedTimes: 1, id: 1,
     program: {}, isReady: () => true, getUniforms: () => { uniforms++; return {}; } };
   const fields: Record<string, unknown> = {
     info: { programs: [program], render: { frame: 0 } }, extensions: { has: () => false },
-    properties: { get: () => ({ programs: new Map([['cached', program]]) }), has: () => true },
+    properties: { get: (owner: object) => owner === target ? { __webglFramebuffer: framebuffer,
+      __boundDepthTexture: options.depthSwap === true ? undefined : target?.depthTexture, __hasExternalTextures: options.external === true }
+      : { programs: new Map([['cached', program]]) }, has: (owner: object) => owner !== target || framebuffer !== undefined },
     getContext: linkedGl, getRenderTarget: () => activeTarget,
-    setRenderTarget: (value: WebGLRenderTarget | null) => { activeTarget = value; },
-    compile: () => { issued.push(frame); now += cost; },
+    setRenderTarget: (value: WebGLRenderTarget | null) => { activeTarget = value; if (value !== null) framebuffer ??= {}; },
+    compile: () => { issued.push(frame); now += cost; if (options.replaceTarget === true && target !== null) framebuffer = {}; },
   };
   for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
   const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
@@ -103,4 +108,17 @@ test.each([{ held: false }, { prepare: true }, { cost: 12 }, { retireTarget: tru
   'independent roots keep native or moving completion fences: %o', async options => {
     const result = await schedule({ ...options, separate: true });
     expect(result.issued).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+  });
+
+test('independent roots reuse only a stable already allocated composer target', async () => {
+  const result = await schedule({ separate: true, allocated: true });
+  expect(result.issued).toEqual([0, 0, 0, 0, 0, 0, 0, 0, 1]);
+  expect(result.cached).toBe(9);
+});
+
+test.each([{ samples: 2 }, { replaceTarget: true }, { retireTarget: true }, { external: true }, { depthSwap: true }])(
+  'an allocated target keeps native fences when its allocation is uncertain: %o', async options => {
+    const result = await schedule({ ...options, separate: true, allocated: true });
+    expect(result.issued).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+    expect(result.cached).toBe(0);
   });

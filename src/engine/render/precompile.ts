@@ -224,6 +224,23 @@ function materialProperties(renderer: Renderer, material: THREE.Material): objec
   return typeof properties === 'object' && properties !== null ? properties : undefined;
 }
 
+/** Only an already allocated, ordinary single-sample 2D target can be cheap
+ * before this warm-up. Compare its native handle across setRenderTarget and
+ * compile; absent stores, allocation, replacement and disposal stay unknown. */
+function allocatedTarget(renderer: Renderer, target: THREE.WebGLRenderTarget | null): object | undefined {
+  if (target === null || Object.getPrototypeOf(target) !== THREE.WebGLRenderTarget.prototype || target.samples !== 0 || target.textures.length !== 1) return undefined;
+  const store: unknown = Reflect.get(renderer, 'properties');
+  if (typeof store !== 'object' || store === null) return undefined;
+  const has: unknown = Reflect.get(store, 'has'), get: unknown = Reflect.get(store, 'get');
+  if (typeof has !== 'function' || typeof get !== 'function' || Reflect.apply(has, store, [target]) !== true) return undefined;
+  const properties: unknown = Reflect.apply(get, store, [target]);
+  if (typeof properties !== 'object' || properties === null || Reflect.get(properties, '__useDefaultFramebuffer') !== undefined
+    || Reflect.get(properties, '__hasExternalTextures') === true
+    || target.depthBuffer && Reflect.get(properties, '__boundDepthTexture') !== target.depthTexture) return undefined;
+  const framebuffer: unknown = Reflect.get(properties, '__webglFramebuffer');
+  return typeof framebuffer === 'object' && framebuffer !== null && !Array.isArray(framebuffer) ? framebuffer : undefined;
+}
+
 /** The program a material last compiled to (three's material properties), or undefined; identity only. */
 function currentProgram(renderer: Renderer, material: THREE.Material): unknown {
   const properties = materialProperties(renderer, material);
@@ -1050,7 +1067,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       const target = job.rt; watchedTargets.add(target);
       observer.listenOnceEmitter(target, 'dispose', () => { preparedTargets.delete(target); watchedTargets.delete(target); });
     }
-    const programsBefore = programCount(renderer);
+    const programsBefore = programCount(renderer), targetBefore = allocatedTarget(renderer, job.rt);
     const prevRt = renderer.getRenderTarget(), prevTone = renderer.toneMapping;
     const fog = job.target?.fog ?? null;
     const environment = job.target?.environment ?? null;
@@ -1094,7 +1111,8 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       if (job.environment !== undefined && job.target) job.target.environment = environment;
     }
     const made = programCount(renderer) - programsBefore;
-    let cachedOnly = made === 0 && job.materialSide === undefined && job.prepare === undefined && preparedTargets.has(job.rt);
+    const targetKnown = preparedTargets.has(job.rt) || targetBefore !== undefined && targetBefore === allocatedTarget(renderer, job.rt);
+    let cachedOnly = made === 0 && job.materialSide === undefined && job.prepare === undefined && targetKnown;
     let knownPrograms = 0;
     const acquired = isolateImageUploads ? snapshotPrograms(renderer) : undefined;
     if (acquired !== undefined) for (const program of acquired) if (issuedPrograms.has(program)) {
