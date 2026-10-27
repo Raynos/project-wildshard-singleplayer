@@ -44,6 +44,7 @@ import { rangedPage } from '../loadout/rangedPage';
 import { installPageMap, installPageMover, pageCollectionCalls } from './pageFacets';
 import { installPageDoor } from './pageDoors';
 import { installQuestFigures } from './figures';
+import { startQuestPageReads } from './pageReads';
 
 const isCustom = (id: string): id is `custom/${string}` => id.startsWith('custom/');
 /** The page borrows the actual native boss and its baked reward pose. */
@@ -77,14 +78,16 @@ async function preparePage(ctx: ShardContext, rows: QuestPageRows, lent: Readonl
     ctx.system({ id, phase: 'update', after: [rows.systems.kit], before: rows.systems.before, run });
   };
   const ironDrop = rows.held === undefined ? null : HeldClaims.current(ctx.manifest.slug).claim(rows.held);
-  const content = rows.files.discovery === undefined ? null : await ctx.product.json<AdventureContent>(rows.files.discovery);
-  const traderStall: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await ctx.product.file(rows.files.stall)));
+  // Independent immutable inputs share the same admitted reader, while their
+  // values and refusals are consumed at the original publication boundaries.
+  const files = startQuestPageReads(ctx.product, rows.files);
+  const content = await files.discovery();
+  const traderStall = await files.stall();
   const entry = await prepareQuestEntry(ctx, { story: 'quests/story.json', services: rows.files.services,
     placement: { ...(rows.world === undefined ? {} : { world: rows.world }), ...(rows.frames === undefined ? {} : { frames: rows.frames }), ...rows.placement } });
   const { story, flags, services, floorAt, place, setAnchor, anchors } = entry;
 
-  const assembly = rows.files.assembly === undefined ? null
-    : (await ctx.product.json<{ constants: { interact: InteractTable; interactSpots: unknown } }>(rows.files.assembly)).constants;
+  const assembly = await files.assembly();
   const section = rows.kit?.section, table = section === undefined || !isCustom(section) ? assembly?.interact : ctx.product.section<{ table: InteractTable }>(section).table;
   if (table === undefined) throw new Error('Quest page requires its interaction table');
   const kit = await entry.interact({ table, ...(assembly === null ? {} : { placements: assembly.interactSpots }),
