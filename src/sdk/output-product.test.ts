@@ -99,6 +99,7 @@ it('keeps explicit phone, desktop and shared pack bodies separate in each admiss
  shard.library=hashes;shard.late=hashes.slice(3).map(hash=>({hash}));shard.budgets.library={resident:786_432,compressed:786_432};
  const namedFiles=shard.files.map((file,i)=>({...file,kind:'bin' as const,path:`blobs/bin/${file.hash}.bin`,name:`medium-${i}.bin`,
   ...(i%3===0?{}:{tier:i%3===1?'phone' as const:'desktop' as const})}));
+ shard.files.sort((a,b)=>a.hash.localeCompare(b.hash));
  const index=writeOutputProduct(shard,assets,directory,{namedFiles});
  const packs=(index.packs??[]).filter(pack=>pack.entries.some(entry=>assets.has(entry.hash)));
  expect(packs).toHaveLength(6);
