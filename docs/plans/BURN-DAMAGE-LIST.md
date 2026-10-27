@@ -37,11 +37,11 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 
 | Item | What broke | First bad SHA | Owner after the plan | Status |
 |---|---|---|---|---|
-| D1 | `src/engine/core/entered-shader-pause.test.ts`: "Entered shader pause wiring missing" | `ac3e62895d` | breaker (sp-x7 finds) | open; not seen since (masked) |
-| D2 | `test/boot-dist-transfer.test.ts`: smoke legs download without a relay | `0acf223e06` | sp-x7 (G771) | fixing now |
+| D1 | `src/engine/core/entered-shader-pause.test.ts`: "Entered shader pause wiring missing" | `ac3e62895d` | sp-ci-deploy | fix landed 23dc524329; focused verification awaits generation |
+| D2 | `test/boot-dist-transfer.test.ts`: smoke legs download without a relay | `0acf223e06` | sp-ci-deploy | fix landed 508d4143fe; focused verification awaits generation |
 | D3 | `test/title-shell-graph.test.ts`: cold title stays off the world graph | `a49bb564ce` | sp-x7 (G771) | fixing now |
-| D4 | `test/nalati-render-source.test.ts`: 30 s timeout | `0acf223e06` | sp-x6 | open; maybe a flake |
-| D5 | `test/world-targets.test.ts`: move/contain error not thrown | `06d14d8288` | breaker (sp-x7 finds) | open |
+| D4 | `test/nalati-render-source.test.ts`: 30 s timeout | `0acf223e06` | sp-ci-deploy | fix landed 9c30863d2d; focused verification awaits generation |
+| D5 | `test/world-targets.test.ts`: move/contain error not thrown | `06d14d8288` | sp-ci-deploy | fix landed cbe29231a5; focused verification awaits generation |
 | D6 | `test/tile-bakes.test.ts`: exact coordinate debt | `06d14d8288` | tiles lane (sp-x8) | open |
 | D7 | `test/night-market-kit-budget.test.ts`: RM8 target over | `06d14d8288` | sp-o2 | open |
 | D8 | `test/open-plot-collision.test.ts`: quarter-turns | `06d14d8288` | breaker (sp-x7 finds) | fixed (sp-o1, `8907eeef3e`: per-part evidence, intended RM10/RM11 art) |
@@ -66,14 +66,16 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D27 | Seven leftover `.push-config-*.json` files at the repo root (untracked) | — (tree) | sp-x7 | open |
 | D28 | Nalati generation stage: `generators/geographySource.ts` (new) is not in its job's inputRoots, so HEAD previews fail with ERR_MODULE_NOT_FOUND (log tmp/serve/failed-20261027-013000-4402.log) | c954d624a0 | breaker (sp-x7 finds) | fixed 435c66d088 |
 | D29 | Far Reach product build: far-reach/generators/product.ts:33 parseShardfile throws 'shardfile semantic rules' (no rule named), so `serve-build --head` and `--rev 2896dc0d85` fail (log tmp/serve/failed-20261027-011921-4400.log); a127a8a built | between `112cbc3787` and `84f531f9dc` (refactor(sky) handoff commits) | Far Reach generator lane (sp-x1, GR5) | open |
-| D30 | HEAD preview build: `Missing or duplicate catalogue dependency: nalati-poi-paint` (log tmp/serve/failed-20261027-012330-4400.log) | `aec0cd6ff9` (refactor(nalati): own POI paint construction) or later | Nalati generator lane | open |
-| D31 | Shared tree: uncommitted `scripts/generation-jobs.json` edit leaves job `pine-grazers` incomplete, so `pnpm gen` / working-tree previews stop ('Incomplete generation job pine-grazers') and generated discovery files (e.g. far-reach/discovery.generated.ts) go missing for focused tests | — (working tree) | owner of the pine-grazers edit (sp-x7 finds) | open |
+| D30 | HEAD preview build: `Missing or duplicate catalogue dependency: nalati-poi-paint` (log tmp/serve/failed-20261027-012330-4400.log) | `aec0cd6ff9` (refactor(nalati): own POI paint construction) or later | sp-o1 | fixed 117a93c517 |
+| D31 | Shared tree: uncommitted `scripts/generation-jobs.json` edit leaves job `pine-grazers` incomplete, so `pnpm gen` / working-tree previews stop ('Incomplete generation job pine-grazers') and generated discovery files (e.g. far-reach/discovery.generated.ts) go missing for focused tests | — (working tree) | sp-o1 | fixed bc073a04c9; working catalogue synced |
 | D34 | Developer Tile residency Whole cell selects radius8 but the entered-content helper caps2; static source mismatch, no capture run; prepared G790 T10 removes this choice after T8 | `ef46afdc19` (T5 choice after89f7d3598a cap) | sp-x2 (T10 after T8) | open |
 | D32 | Pine generation stage: `src/shards/pine-hollow/generators/quests.ts` imports `@wildshard/sdk/quests`, which the generation stage's linked node_modules does not export, so `serve-build --rev 8a832edf7b` fails (ERR_MODULE_NOT_FOUND; log tmp/serve/failed-20261027-012212-4400.log:643) | `8a832edf7b` or earlier (sent to sp-x7 01:22) | breaker (sp-x7 finds) | open |
 | D33 | Pre-G769 legacy GR5 related walk returned rc1/zero suites without a reported cause; no executed assertion result, and no repeat under G769 | — (local, before `83d1cd4c39`) | sp-x1 | open; classify after the plan |
 | D35 | docs/ENGINE.md exceeds the 1 MB blob cap (1,000,366 B); additional API prose cannot land there. H11 notes stay in source/the counted heap plan. | `4b18cede14` | sp-x9 | open |
-| D36 | Generation catalogue: 'Missing or duplicate catalogue dependency: pine-layout' stops every HEAD preview (log tmp/serve/failed-20261027-014157-4401.log) | 4645a57294 | breaker (sp-x7 finds) | open |
+| D36 | Generation catalogue: 'Missing or duplicate catalogue dependency: pine-layout' stops every HEAD preview (log tmp/serve/failed-20261027-014157-4401.log) | 4645a57294 | sp-o1 | fixed 117a93c517 |
 | D37 | Local `node lint/ratchet.mjs` (full or `--files-from`) aborts on the stale allowance `wildshard/no-build-time-import src/shards/far-reach/discovery.generated.ts` before counting, so lanes cannot self-check the ratchet (three GR8 ejects passed the local run) | — (tree) | sp-x7 (tooling) | open |
+
+| D38 | Sealed `nalati-geography` cannot resolve `@wildshard/sdk/random` from `geographySource.ts`; generation still masks tests | `c954d624a0` | sp-x6 | routed by sp-ci-deploy; full source closure requested |
 
 ## Rows
 
