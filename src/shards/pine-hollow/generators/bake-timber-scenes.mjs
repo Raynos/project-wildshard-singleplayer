@@ -1,24 +1,27 @@
 #!/usr/bin/env node
-// Finish the shipping whole-geometry draws with their original weld and shadow proxies.
-import {readFileSync} from 'node:fs';
-import {createHash} from 'node:crypto';
-import {inflateSync} from 'node:zlib';
+// Finish the shipping whole-geometry draws with their original weld and shadow proxies. D65: the timber world, its GLBs,
+// the native code parts and the ground come from the program's sources.
 import {Mesh,MeshStandardMaterial} from 'three';
 import {GeometryPack,packedRows} from '@wildshard/sdk/kit/geometryPack';
 import {readSourceModel} from '@wildshard/sdk/bake/skinned';
 import {staticGlb} from '@wildshard/sdk/bake/glb';
 import {readNativeTerrain} from '@wildshard/sdk/bake/terrain';
 import {questSites} from './questSites.ts';
+import {cabinAmbienceRows} from './ambience.ts';
 import {timberWholeViews} from './timberWholeViews.ts';
 import {bakeTimberCopy} from './timberScenes.ts';
+import {hashImmutableBytes} from '@wildshard/sdk/immutable';
+import {decodeBuildDeflate} from '@wildshard/sdk/bake/byteCodec';
+import codeParts from '../data/codeParts.json' with {type:'json'};
+import rideModels from '../data/questRideModels.json' with {type:'json'};
+import {TERRAIN_SOURCE,TIMBER_SOURCE,perSources,sourceJson} from './pineSources.ts';
 
-const root=new URL('../../../../',import.meta.url),project=new URL('../',import.meta.url);
-export async function timberNativeViews(){
- const authored=JSON.parse(readFileSync(new URL('data/timberWorld.generated.json',project),'utf8')),meshes=[];
+export async function timberNativeViews(sources){
+ const authored=sourceJson(sources,TIMBER_SOURCE),meshes=[];
  try{
   for(const file of authored.shardfile.files.filter(row=>row.kind==='glb')){
-   const input=readFileSync(new URL(`assets/${file.hash}`,project));
-   if(createHash('sha256').update(input).digest('hex')!==file.hash)throw new Error('Native timber source hash differs');
+   const input=sources.bytes(`assets/${file.hash}`);
+   if(hashImmutableBytes(input)!==file.hash)throw new Error('Native timber source hash differs');
    const source=await readSourceModel(input);
    source.gltf.scene.traverse(node=>{if(node instanceof Mesh)meshes.push(node);});
   }
@@ -26,8 +29,14 @@ export async function timberNativeViews(){
  }finally{for(const mesh of meshes){mesh.geometry.dispose();for(const material of Array.isArray(mesh.material)?mesh.material:[mesh.material])material.dispose();}}
 }
 const timberRow=({parts,glass,colliders,floors,anchors})=>({parts,glass,colliders,floors,anchors});
-export async function bakeTimberSceneSources(){
- const {authored,views}=await timberNativeViews(),copies=[],geometry=new Map();
+/** The native code parts, inflated and checked against their declared hash. */
+function codePartBytes(sources,label){
+ const bytes=decodeBuildDeflate(sources.bytes(codeParts.url),codeParts.rows.bytes);
+ if(hashImmutableBytes(bytes)!==codeParts.sha256)throw new Error(`${label} hash differs`);
+ return bytes;
+}
+export async function bakeTimberSceneSources(sources){
+ const {authored,views}=await timberNativeViews(sources),copies=[],geometry=new Map();
  const records=[['fire-lookout',authored.lookout,6],['zipline-landing',authored.sites.landing.world,4],
   ['zipline-landing-turntable',authored.sites.landing.turntable,4],['creek-footbridge',authored.sites.bridge.world,12],
   ['creek-footbridge-turntable',authored.sites.bridge.turntable,12]];
@@ -40,37 +49,29 @@ export async function bakeTimberSceneSources(){
    for(const [id,shape] of baked.geometry){if(geometry.has(id))throw new Error('Duplicate timber geometry');geometry.set(id,shape);}
   }
  }finally{for(const view of views.values())view.geometry.dispose();}
- const parts=JSON.parse(readFileSync(new URL('data/codeParts.json',project),'utf8'));
- const packed=readFileSync(new URL(`public${parts.url}`,root));
- const bytes=Uint8Array.from(inflateSync(packed));
- if(createHash('sha256').update(bytes).digest('hex')!==parts.sha256)throw new Error('Native code part hash differs');
- const pack=new GeometryPack(bytes,packedRows(parts.rows),'pine native code parts');
- for(const id of ['zip-cable','token-shelf','hollow-log-outer','hollow-log-inner','hollow-log-rim-0','hollow-log-rim-1','hollow-log-bed'])geometry.set(id,pack.geometry(parts.parts[id]));
+ const pack=new GeometryPack(codePartBytes(sources,'Native code part'),packedRows(codeParts.rows),'pine native code parts');
+ for(const id of ['zip-cable','token-shelf','hollow-log-outer','hollow-log-inner','hollow-log-rim-0','hollow-log-rim-1','hollow-log-bed'])geometry.set(id,pack.geometry(codeParts.parts[id]));
  return {copies,geometry};
 }
 /** GR8 G31: the quest sites (the hollow log's floor and mouths, the rifle) over the page's baked ground. */
-export function pineQuestSites(){
- return questSites(readNativeTerrain(readFileSync(new URL('public/assets/baked/pine-hollow/terrain.bin',root))).heightAt);
+export function pineQuestSites(sources){
+ return questSites(readNativeTerrain(sources.bytes(TERRAIN_SOURCE)).heightAt,cabinAmbienceRows(sources).floors);
 }
 /** GR8 G31: the quest rides' GLBs (data/questRideModels.json rows) by product name, from the native code parts. */
-export function questRideGlbs(){
- const parts=JSON.parse(readFileSync(new URL('data/codeParts.json',project),'utf8'));
- const bytes=Uint8Array.from(inflateSync(readFileSync(new URL(`public${parts.url}`,root))));
- if(createHash('sha256').update(bytes).digest('hex')!==parts.sha256)throw new Error('Quest ride code-part hash differs');
- const pack=new GeometryPack(bytes,packedRows(parts.rows),'quest rides');
+export function questRideGlbs(sources){
+ const pack=new GeometryPack(codePartBytes(sources,'Quest ride code-part'),packedRows(codeParts.rows),'quest rides');
  const material=new MeshStandardMaterial({vertexColors:true}),glbs=[];
- const models=JSON.parse(readFileSync(new URL('data/questRideModels.json',project),'utf8'));
  try{
-  for(const row of models){
-   const geometry=pack.geometry(parts.parts[row.index]);
+  for(const row of rideModels){
+   const geometry=pack.geometry(codeParts.parts[row.index]);
    try{glbs.push([row.file,staticGlb([{geometry,material,compactIndex:true,nativeAttributes:true}],row.id)]);}
    finally{geometry.dispose();}
   }
  }finally{material.dispose();}
  return glbs;
 }
-async function bakeTimberScenes(){
- const {copies,geometry}=await bakeTimberSceneSources(),glbs=[],models=[],material=new MeshStandardMaterial();
+async function bakeTimberScenes(sources){
+ const {copies,geometry}=await bakeTimberSceneSources(sources),glbs=[],models=[],material=new MeshStandardMaterial();
  try{
   for(const [id,shape] of geometry){
    const name=`models/timbers/${id}.glb`,customAttributes={};
@@ -81,10 +82,6 @@ async function bakeTimberScenes(){
   return {copies,geometry:models,glbs};
  }finally{material.dispose();for(const shape of geometry.values())shape.dispose();}
 }
-let scenes;
 /** GR8 G31: the timber copies, the timbers library's geometry rows and every timber GLB by product name (not deduplicated),
- *  built once per process (no scheduler job, no stored files under assets/). */
-export function pineTimberScenes(){
- scenes??=bakeTimberScenes();
- return scenes;
-}
+ *  built once per sources (no scheduler job, no stored files under assets/). */
+export const pineTimberScenes=perSources(bakeTimberScenes);

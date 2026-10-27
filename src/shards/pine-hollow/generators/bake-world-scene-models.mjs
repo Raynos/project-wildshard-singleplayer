@@ -1,6 +1,7 @@
 // Cheap deterministic world-scene sources: restore the retained native water, the spray quad and the beaver pool's
 // still and trickle meshes from their baked rows. GR8 G27: `pineWorldSceneModels` gives the four GLBs by product name;
-// worldScenes.ts names them in memory (no scheduler job, no stored files under assets/).
+// worldScenes.ts names them in memory (no scheduler job, no stored files under assets/). D65: their ground comes from the
+// program's sources.
 import { BufferGeometry, Float32BufferAttribute, PlaneGeometry, MeshStandardMaterial } from 'three';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { streamGeometry } from './streamCodec.ts';
@@ -16,9 +17,9 @@ const pool = (row) => {
 };
 
 /** The world scenes' four raw models (stream water and spray quad, pool still and trickle) by product name. */
-export function pineWorldSceneModels() {
-  const { rows, bin } = bakeStreamRows(), water = streamGeometry(bin, rows), quad = new PlaneGeometry(1, 1), placeholder = new MeshStandardMaterial();
-  const poolRows = bakeBeaverPool(pineCragGround().heightAt), still = pool(poolRows.still), trickle = pool(poolRows.trickle);
+export function pineWorldSceneModels(sources) {
+  const { rows, bin } = bakeStreamRows(sources), water = streamGeometry(bin, rows), quad = new PlaneGeometry(1, 1), placeholder = new MeshStandardMaterial();
+  const poolRows = bakeBeaverPool(pineCragGround(sources).heightAt), still = pool(poolRows.still), trickle = pool(poolRows.trickle);
   try {
     return new Map([
       ['models/stream-water.glb', staticGlb([{ geometry: water, material: placeholder, compactIndex: true, customAttributes: { _AWATER: 'aWater' } }])],

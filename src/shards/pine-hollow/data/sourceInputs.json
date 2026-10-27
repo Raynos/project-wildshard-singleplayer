@@ -1,0 +1,13 @@
+{
+  "crags": {
+    "crags.glb": "/assets/models/pine-hollow-crags/crags.glb",
+    "crags-b.glb": "/assets/models/pine-hollow-crags/crags-b.glb",
+    "cave.glb": "/assets/models/pine-hollow-crags/cave.glb",
+    "cave.json": "/assets/models/pine-hollow-crags/cave.json"
+  },
+  "propScans": {
+    "rock_moss_set_01": "/assets/models/rock_moss_set_01/rock_moss_set_01_lod.glb",
+    "tree_stump_01": "/assets/models/tree_stump_01/tree_stump_01_lod.glb",
+    "dead_tree_trunk": "/assets/models/dead_tree_trunk/dead_tree_trunk_lod.glb"
+  }
+}

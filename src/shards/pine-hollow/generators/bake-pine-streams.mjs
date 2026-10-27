@@ -4,20 +4,17 @@
 // heights and normals): `bakeStreamRows` gives the water mesh's raw binary and its rows (the binary's hash and size, the
 // counts, the fall's anchors), which the world scene models (bake-world-scene-models.mjs) and the spray puffs
 // (sprayPuffs.ts) call. GR8 G23 retired the standalone outputs (streams.bin, streams.json, the streams Scene, its tiles and
-// named blobs): their only readers now call this.
-import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+// named blobs): their only readers now call this. D65: the grid comes from the program's sources.
+import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { bakePineStreams } from './streams.ts';
-
-const root = resolve(import.meta.dirname, '../../../..');
+import { TERRAIN_SOURCE } from './pineSources.ts';
 
 /** the bake: the rows and the raw binary */
-export function bakeStreamRows() {
-  const { bin, rows } = bakePineStreams(pineStreamGround());
-  return { rows: { bin: createHash('sha256').update(bin).digest('hex'), bytes: bin.length, ...rows }, bin };
+export function bakeStreamRows(sources) {
+  const { bin, rows } = bakePineStreams(pineStreamGround(sources));
+  return { rows: { bin: hashImmutableBytes(bin), bytes: bin.length, ...rows }, bin };
 }
 
 /** Original renderer lattice; no active level, terrain service or browser is installed. */
-export function pineStreamGround() { return readNativeTerrain(readFileSync(resolve(root, 'public/assets/baked/pine-hollow/terrain.bin'))); }
+export function pineStreamGround(sources) { return readNativeTerrain(sources.bytes(TERRAIN_SOURCE)); }

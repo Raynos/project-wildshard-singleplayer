@@ -9,11 +9,14 @@ import { bakeBeaverPool, pinePoolShapes } from './beaverPool.ts';
 import { pinePropShapes } from './propShapes.ts';
 import { pineCabinPropShapes } from './cabinPropShapes.ts';
 import { pineCabinMaterialFiles, pineCabinPropParts } from './cabinPropMaterials.mjs';
-import { pinePropScan, pinePropMaterialFiles } from './bake-pine-props.mjs';
+import { pinePropScan } from './bake-pine-props.mjs';
+import { compactMaterialGlb } from './materialGlb.mjs';
+import { hashImmutableBytes } from '@wildshard/sdk/immutable';
+import { pineSourcesFrom } from './pineSources.ts';
 import { pineLandmarkSites } from './landmarkSites.ts';
 import { pineLandmarkFacts } from './bake-pine-landmark-facts.mjs';
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { bakeQueryTerrain, readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { bakeFireLookout } from './fireLookout.ts';
@@ -25,6 +28,8 @@ import { pineCragAssembly } from './cragAssembly.ts';
 import { bakeCragRows, pineCragGround, pineCragKit } from './bake-pine-crags.mjs';
 
 const root = resolve(import.meta.dirname, '../../../..');
+/** D65: the bakes this script calls read Pine's sources from disk (the program reads them through `ctx.cached`). */
+const sources = pineSourcesFrom(path => readFileSync(resolve(root, path)));
 
 /** the bake: the rows and the raw binary, the Pine level selected (its seed is the engine SEED, as on the page) */
 export function bakeLookoutRows() {
@@ -34,6 +39,23 @@ export function bakeLookoutRows() {
 
 /** Original renderer lattice, read explicitly with no active world or engine service. */
 export function pineTimberGround() { return readNativeTerrain(readFileSync(resolve(root, 'public/assets/baked/pine-hollow/terrain.bin'))); }
+
+/** Retain every original material/image byte and drop the redundant source mesh payload. */
+function pinePropMaterialFiles() {
+  const literal = (path) => { const text = readFileSync(resolve(root, path), 'utf8'); return JSON.parse(text.slice(text.indexOf(' = {') + 3, text.lastIndexOf('}') + 1)); };
+  const GPU_FILES = literal('src/shards/pine-hollow/ktx2.generated.ts'), ASTC6_PHONE = JSON.parse(readFileSync(resolve(root, 'src/shards/pine-hollow/data/astc6.generated.json'), 'utf8'));
+  const aliases = {}, outputs = {}, costs = [];
+  for (const id of ['rock_moss_set_01', 'tree_stump_01', 'dead_tree_trunk']) {
+    const original = `/assets/models/${id}/${id}_lod.glb`, phone = original.replace('.glb', '.phone.glb');
+    const urls = [...new Set([original, phone, GPU_FILES.desktop[original], GPU_FILES.phone[phone], ASTC6_PHONE[phone], ...readdirSync(resolve(root, `public/assets/gpu/models/${id}`)).filter(file => file.endsWith('.glb')).sort().map(file => `/assets/gpu/models/${id}/${file}`)].filter(Boolean))];
+    for (const url of urls) {
+      const bytes = readFileSync(resolve(root, `public${url}`));
+      const packed = compactMaterialGlb(bytes), hash = hashImmutableBytes(packed), target = `/assets/pine-hollow/baked/prop-materials/${hash}.glb`;
+      aliases[url] = target; outputs[`public${target}`] = packed; costs.push({ original: url, before: bytes.length, after: packed.length });
+    }
+  }
+  return { aliases, outputs, costs };
+}
 
 /** Identical byte views share storage; every accessor, type and native shape stays independent. */
 function compactLibraryGlb(original, compactMaterials = false) {
@@ -79,18 +101,18 @@ function compactLibraryGlb(original, compactMaterials = false) {
 
 /** Write the admitted world tiles and Explorer library through the same confined launcher. */
 async function writeTimberWorld() {
-  const crags = await bakeCragRows(), ground = pineTimberGround();
+  const crags = await bakeCragRows(sources), ground = pineTimberGround();
   const landmarkSites=pineLandmarkSites(ground.heightAt), placements=pineTimberPlacements(ground.heightAt), lookout=bakeLookoutRows().rows, sites=bakeSiteTimberRows().rows;
   const landmarkFacts=await pineLandmarkFacts(landmarkSites,placements,lookout,sites.landing.world,sites.bridge.world);
-  const [kit,cave]=await Promise.all([pineCragKit(),pineCragKit(['cave.glb'])]);
+  const [kit,cave]=await Promise.all([pineCragKit(sources),pineCragKit(sources,['cave.glb'])]);
   const caveMeta=JSON.parse(readFileSync(resolve(root,'public/assets/models/pine-hollow-crags/cave.json'),'utf8'));
   const cragAssembly=pineCragAssembly(kit,cave,caveMeta,{phone:{bin:crags.bins.phone,tiles:crags.rows.skin.phone.tiles},desktop:{bin:crags.bins.desktop,tiles:crags.rows.skin.desktop.tiles}},crags.rows.places,ground);
   const scanMaterials = pinePropMaterialFiles(), cabinMaterials = pineCabinMaterialFiles();
   const materialFiles = { aliases: { ...scanMaterials.aliases, ...cabinMaterials.aliases }, outputs: { ...scanMaterials.outputs, ...cabinMaterials.outputs }, costs: [...scanMaterials.costs, ...cabinMaterials.costs] };
   for (const [path, bytes] of Object.entries(materialFiles.outputs)) { mkdirSync(resolve(root, path, '..'), { recursive: true }); writeFileSync(resolve(root, path), bytes); }
-  const shapes = pinePropShapes({ rocks: await pinePropScan('rock_moss_set_01'), stumps: await pinePropScan('tree_stump_01'), logs: await pinePropScan('dead_tree_trunk') });
+  const shapes = pinePropShapes({ rocks: await pinePropScan(sources, 'rock_moss_set_01'), stumps: await pinePropScan(sources, 'tree_stump_01'), logs: await pinePropScan(sources, 'dead_tree_trunk') });
   const cabinProps = pineCabinPropShapes(shapes.piece, await pineCabinPropParts());
-  const pool = bakeBeaverPool(pineCragGround().heightAt); pinePoolShapes(shapes.piece, pool);
+  const pool = bakeBeaverPool(pineCragGround(sources).heightAt); pinePoolShapes(shapes.piece, pool);
   const baked = pineTimberWorldBake(ground.heightAt, root, ground, shapes.piece);
   const piece = baked.pieces.find(row => row.name === 'pine-timber-explorer'), cabins = baked.pieces.find(row => row.name === 'pine.cabins'), under = baked.pieces.find(row => row.name === 'pine.undergrowth'), propsPiece = baked.pieces.find(row => row.name === 'pine.props');
   if (piece === undefined || cabins === undefined || under === undefined || propsPiece === undefined || baked.props === null) throw new Error('Pine timber Scene omitted its declared sources');

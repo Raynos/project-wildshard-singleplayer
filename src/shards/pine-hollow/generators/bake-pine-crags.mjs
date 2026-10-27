@@ -6,32 +6,29 @@
 // (src/shards/pine-hollow/data/physicsRows.json `shelterTrees`, the authored forest trunks). GR8 G33: `pineCrags` gives
 // the rows (the placements, each tier's binary hash, size and tile table) and each tier's raw face-skin binary to the
 // crag scenes and the timber world, instead of the retired pine-crags job's data/crags.json and baked crags.<tier>.bin.
-import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+// D65: the lattice, the kit and the trunk rows come from the program's sources.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { pineCragQueries } from './cragGround.ts';
 import { bakePineCrags, canonicalCragTiltX } from './crags.ts';
-
-const root = resolve(import.meta.dirname, '../../../..');
-const read = (path) => { const bytes = readFileSync(resolve(root, path)); return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength); };
+import { hashImmutableBytes } from '@wildshard/sdk/immutable';
+import { PHYSICS_SOURCE, TERRAIN_SOURCE, cragSource, perSources, sourceJson } from './pineSources.ts';
 
 /** The original renderer lattice, with explicit retained trail and cabin exclusion laws and no installed level. */
-export function pineCragGround() {
-  const ground = readNativeTerrain(readFileSync(resolve(root, 'public/assets/baked/pine-hollow/terrain.bin')));
+export function pineCragGround(sources) {
+  const ground = readNativeTerrain(sources.bytes(TERRAIN_SOURCE));
   if (ground.grid.seed !== 1337) throw new Error('bake-pine-crags: wrong Pine terrain seed');
   return pineCragQueries(ground);
 }
 
 /** the kit's nodes as the page's PineCrags.load reads them: float positions in the node's world frame, bounds computed */
-export async function pineCragKit(files = ['crags.glb', 'crags-b.glb']) {
+export async function pineCragKit(sources, files = ['crags.glb', 'crags-b.glb']) {
   await MeshoptDecoder.ready;
   const kit = new Map();
   for (const file of files) {
-    const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(read(`public/assets/models/pine-hollow-crags/${file}`), '');
+    const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(sources.bytes(cragSource(file)).buffer, '');
     gltf.scene.updateMatrixWorld(true);
     gltf.scene.traverse((o) => {
       if (!o.isMesh) return;
@@ -49,22 +46,17 @@ export async function pineCragKit(files = ['crags.glb', 'crags-b.glb']) {
 }
 
 /** the forest's trunks the crags step round (the authored trunk rows, data/physicsRows.json `shelterTrees`: x, z, ...) */
-export function pineTrunks() {
-  const physics = JSON.parse(readFileSync(resolve(root, 'src/shards/pine-hollow/data/physicsRows.json'), 'utf8'));
-  return physics.shelterTrees.map(([x, z]) => ({ x, z }));
+export function pineTrunks(sources) {
+  return sourceJson(sources, PHYSICS_SOURCE).shelterTrees.map(([x, z]) => ({ x, z }));
 }
 
 /** the bake: the rows and each tier's raw binary */
-export async function bakeCragRows() {
-  const { places, skin } = bakePineCrags(await pineCragKit(), pineTrunks(), pineCragGround());
+export async function bakeCragRows(sources) {
+  const { places, skin } = bakePineCrags(await pineCragKit(sources), pineTrunks(sources), pineCragGround(sources));
   for (const placement of places) placement.tiltX = canonicalCragTiltX(placement.tiltX);
-  const tier = (t) => ({ bin: createHash('sha256').update(skin[t].bin).digest('hex'), bytes: skin[t].bin.length, tiles: skin[t].tiles });
+  const tier = (t) => ({ bin: hashImmutableBytes(skin[t].bin), bytes: skin[t].bin.length, tiles: skin[t].tiles });
   return { rows: { places, skin: { phone: tier('phone'), desktop: tier('desktop') } }, bins: { phone: skin.phone.bin, desktop: skin.desktop.bin } };
 }
 
-let crags;
-/** The crag bake's rows and each tier's raw binary, built once per process. */
-export function pineCrags() {
-  crags ??= bakeCragRows();
-  return crags;
-}
+/** The crag bake's rows and each tier's raw binary, built once per sources. */
+export const pineCrags = perSources(bakeCragRows);

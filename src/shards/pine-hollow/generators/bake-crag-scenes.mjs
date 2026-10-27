@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+// D65: the crag kit, the cave and the crag bake come from the program's sources.
 import { Matrix4, MeshStandardMaterial, Vector3 } from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
@@ -7,20 +7,17 @@ import { CragSkin } from './cragCodec.ts';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import { pineCrags } from './bake-pine-crags.mjs';
 import * as layout from './layout.ts';
-
-const root = new URL('../../../../', import.meta.url);
-const directory = 'public/assets/models/pine-hollow-crags/';
-const read = path => readFileSync(new URL(path, root));
+import { cragSource, perSources, sourceJson } from './pineSources.ts';
 
 /** Native kit and skin streams, before the original BatchedMesh copies them. */
-export async function bakeCragSceneSources() {
+export async function bakeCragSceneSources(sources) {
   const shapes = new Map();
   for (const file of ['crags.glb', 'crags-b.glb', 'cave.glb']) {
-    const source = await readSourceModel(read(directory + file));
+    const source = await readSourceModel(sources.bytes(cragSource(file)));
     for (const [id, geometry] of cragNodeGeometry(source.gltf.scene)) shapes.set(id, geometry);
   }
   // GR8 G33: the crag rows and raw skins are the producer's (bake-pine-crags.mjs), not the retired job's stored files
-  const { rows: sourceRows, bins } = await pineCrags();
+  const { rows: sourceRows, bins } = await pineCrags(sources);
   for (const tier of ['phone', 'desktop']) {
     const raw = bins[tier];
     const pairs = await new CragSkin(raw, sourceRows.skin[tier]).tiles(() => Promise.resolve());
@@ -78,23 +75,19 @@ export function caveShellRows(shapes) {
   return { kind: 'trimesh', x: origin.x, y: origin.y, z: origin.z, surface: 'rock', vertices: Array.from(vertices), indices };
 }
 
-async function bakeCragScenes() {
-  const shapes = await bakeCragSceneSources(), material = new MeshStandardMaterial(), glbs = [], models = [];
+async function bakeCragScenes(sources) {
+  const shapes = await bakeCragSceneSources(sources), material = new MeshStandardMaterial(), glbs = [], models = [];
   try {
     for (const [id, geometry] of shapes) {
       const name = `models/crags/${id}.glb`;
       glbs.push([name, staticGlb([{ geometry, material, compactIndex: true, nativeAttributes: true, customAttributes: { _CDATA: 'aCdata', _CTINT: 'aCtint' } }])]);
       models.push({ id, file: name, attributes: {} });
     }
-    const cave = { meta: JSON.parse(read(`${directory}cave.json`).toString()), shell: caveShellRows(shapes) };
+    const cave = { meta: sourceJson(sources, cragSource('cave.json')), shell: caveShellRows(shapes) };
     return { rows: { models, ...cragWorldRows(shapes), cave }, glbs };
   } finally { material.dispose(); for (const geometry of shapes.values()) geometry.dispose(); }
 }
 
-let scenes;
 /** GR8 G30: the crag scenes' rows (library models, module models, batches, placements, cave) and each shape's GLB by
- *  product name, built once per process (no scheduler job, no stored files under assets/). */
-export function pineCragScenes() {
-  scenes ??= bakeCragScenes();
-  return scenes;
-}
+ *  product name, built once per sources (no scheduler job, no stored files under assets/). */
+export const pineCragScenes = perSources(bakeCragScenes);

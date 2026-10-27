@@ -1,18 +1,17 @@
 // The original ordered scatter, with instance uploads and native body placement fully authored. GR8 G28:
 // `pinePropScenes` gives the scatter rows, the props library's geometry rows and each prop shape's GLB by product name;
-// sceneModelRows.ts names them in memory (no scheduler job, no stored files under assets/).
-import {readFileSync} from 'node:fs';
+// sceneModelRows.ts names them in memory (no scheduler job, no stored files under assets/). D65: the timber world's rows
+// and the scans come from the program's sources.
 import {Mesh,MeshStandardMaterial} from 'three';
 import {staticGlb} from '@wildshard/sdk/bake/glb';
 import {bakePropSceneRows} from './propSceneRows.ts';
 import {pinePropShapes} from './propShapes.ts';
 import {pinePropScan,pineProps} from './bake-pine-props.mjs';
+import {TIMBER_SOURCE,perSources,sourceJson} from './pineSources.ts';
 
-const project=new URL('../',import.meta.url),read=path=>JSON.parse(readFileSync(new URL(path,project),'utf8'));
-
-async function bakePropScenes(){
- const source=read('data/timberWorld.generated.json'),rows=bakePropSceneRows(await pineProps(),source.propShapes);
- const [rocks,stumps,logs]=await Promise.all([pinePropScan('rock_moss_set_01'),pinePropScan('tree_stump_01'),pinePropScan('dead_tree_trunk')]);
+async function bakePropScenes(sources){
+ const source=sourceJson(sources,TIMBER_SOURCE),rows=bakePropSceneRows(await pineProps(sources),source.propShapes);
+ const [rocks,stumps,logs]=await Promise.all([pinePropScan(sources,'rock_moss_set_01'),pinePropScan(sources,'tree_stump_01'),pinePropScan(sources,'dead_tree_trunk')]);
  const shapes=pinePropShapes({rocks,stumps,logs}),models=[],geometry=[];
  if(JSON.stringify(shapes.rows)!==JSON.stringify(source.propShapes))throw new Error('Prop rest facts differ from admitted timber bake');
  const material=new MeshStandardMaterial(),owned=[];
@@ -26,9 +25,5 @@ async function bakePropScenes(){
  return{rows,geometry,models};
 }
 
-let scenes;
-/** The prop scenes, built once per process. */
-export function pinePropScenes(){
- scenes??=bakePropScenes();
- return scenes;
-}
+/** The prop scenes, built once per sources. */
+export const pinePropScenes=perSources(bakePropScenes);

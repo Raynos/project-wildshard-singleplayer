@@ -6,8 +6,9 @@ import { MapAssembly, readMapJson } from '../../../../scripts/map-geometry.mjs';
 import { MapWorld, mapGround, mapPool, mapForest } from '../../../../scripts/map-world.mjs';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
-import { WORLD_SCENES, SCENE_BLOBS, SCENE_MODEL_BLOBS, SCENE_RAW_MODELS } from './worldScenes.ts';
-import { SCENE_MODELS, SCENE_PLACEMENTS } from './sceneModelRows.ts';
+import { worldScenes } from './worldScenes.ts';
+import { sceneModelRows } from './sceneModelRows.ts';
+import { pineSourcesFrom } from './pineSources.ts';
 import { mapLilies } from './mapLilies.mjs';
 import { bakeBeaverPool } from './beaverPool.ts';
 import { pineCragGround } from './bake-pine-crags.mjs';
@@ -22,11 +23,14 @@ import { pineForestRows } from './forestRows.ts';
 
 const base = resolve(import.meta.dirname, '..'), root = resolve(base, '../../..');
 const read = file => readMapJson(resolve(base, file));
+// D65: Pine's sources from disk (the program reads them through ctx.cached)
+const sources = pineSourcesFrom(path => readFileSync(resolve(root, path)));
 const palette = ['#847553', '#46603a', '#948a7c', '#504640'].map(value => new Color(value).toArray());
 export async function pineMapAssembly() {
+  const { WORLD_SCENES, SCENE_BLOBS, SCENE_MODEL_BLOBS, SCENE_RAW_MODELS } = await worldScenes(sources), { SCENE_MODELS, SCENE_PLACEMENTS } = await sceneModelRows(sources);
   const assembly = new MapAssembly(), world = new MapWorld(assembly, base, WORLD_SCENES, SCENE_MODELS, [...SCENE_MODEL_BLOBS, ...SCENE_RAW_MODELS, ...SCENE_BLOBS]);
   const layout = PINE_LAYOUT, native = readNativeTerrain(readFileSync(resolve(root, 'public/assets/baked/pine-hollow/terrain.bin')));
-  const crags = (await pineCragScenes()).rows, cave = layout.BEAR_CAVE, c = Math.cos(cave.rot), s = Math.sin(cave.rot);
+  const crags = (await pineCragScenes(sources)).rows, cave = layout.BEAR_CAVE, c = Math.cos(cave.rot), s = Math.sin(cave.rot);
   const hole = points => {
     const local = points.map(([x, y, z]) => [(x - cave.x) * c - (z - cave.z) * s, y, (x - cave.x) * s + (z - cave.z) * c]);
     const lo = [0, 1, 2].map(i => Math.min(...local.map(p => p[i]))), hi = [0, 1, 2].map(i => Math.max(...local.map(p => p[i])));
@@ -49,13 +53,13 @@ export async function pineMapAssembly() {
   await world.weld(cabins.graphs.find(row => row.file === shells.file).graph);
 
   const timbers = read('data/timberWorld.generated.json'), underShapes = bakePineUndergrowth();
-  const floor = pineFloorLayout();
+  const floor = pineFloorLayout(sources);
   for (const [kind, rows] of Object.entries(floor.layout)) {
     const shape = underShapes[kind]; if (shape === undefined) throw new Error(`Missing map floor shape ${kind}`);
     const geometry = new BufferGeometry().setAttribute('position', new Float32BufferAttribute(shape.position, 3)).setIndex(shape.index);
     assembly.add(`floor:${kind}`, geometry, rows.map(row => new Matrix4().fromArray(row.matrix)));
   }
-  const pool = bakeBeaverPool(pineCragGround().heightAt).still;
+  const pool = bakeBeaverPool(pineCragGround(sources).heightAt).still;
   const poolGeometry = new BufferGeometry().setAttribute('position', new Float32BufferAttribute(pool.position, 3)).setIndex(pool.index), positions = poolGeometry.getAttribute('position');
   for (let i = 0; i < positions.count; i++) { const h = timbers.poolGround[i], d = layout.BEAVER_POOL.full - h; positions.setY(i, d < 0 && d > -.45 ? h + .05 : layout.BEAVER_POOL.full); }
   assembly.add('beaver-pool', poolGeometry);
@@ -86,7 +90,7 @@ export async function pineMapAssembly() {
     manifest.trees.setVariants.map(row => ({ trunkRadius: row.trunk, height: row.height, species: row.species, collider: row.collider })));
   const lilies = mapLilies(manifest.seed, pond, native.heightAt, manifest.pondLilyExclusions ?? []);
   if (lilies !== null) assembly.add('pond-lilies', lilies);
-  const shapes = await mapPool(await pineTreeRest());
+  const shapes = await mapPool(await pineTreeRest(sources));
   for (const [variant, row] of manifest.trees.setVariants.entries()) {
     const matrices = trees.filter(tree => tree.variant === variant).map(tree => new Matrix4().compose(new Vector3(tree.x, tree.y, tree.z), new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), tree.rot), new Vector3().setScalar(tree.scale)));
     for (const part of ['trunk', 'hi', 'twigs']) {

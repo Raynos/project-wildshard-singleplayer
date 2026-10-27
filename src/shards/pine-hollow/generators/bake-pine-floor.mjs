@@ -1,20 +1,19 @@
 // GR8 G24: the forest floor's placements over the page's baked ground, quantised to the 12-byte records the floor
 // binary stored and decoded as the page read them. `output.ts` (world/floor.json), the map assembly and the floor test
 // call `pineFloorLayout`; the retired pine-floor-placements job wrote the same rows to data/floorLayout.generated.json.
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+// D65: the ground and the trunk rows come from the program's sources.
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { decodeFloorRecords } from './floorRows.mjs';
 import { pineFloorPlacements } from './floorPlacements.ts';
+import { PHYSICS_SOURCE, TERRAIN_SOURCE, sourceJson } from './pineSources.ts';
 
-const root = resolve(import.meta.dirname, '../../../..');
 const kinds = ['ferns', 'shrubs', 'litter', 'stones', 'moss', 'reeds'];
 const tints = [[.5, .78], [.8, 1], [.7, .9], [.75, 1], [.6, .85], [.75, 1]];
 
 /** The floor's counts per kind and its decoded layout. */
-export function pineFloorLayout() {
-  const source = readNativeTerrain(readFileSync(resolve(root, 'public/assets/baked/pine-hollow/terrain.bin')));
-  const trunks = JSON.parse(readFileSync(resolve(root, 'src/shards/pine-hollow/data/physicsRows.json'), 'utf8')).shelterTrees.map(([x, z, r]) => ({ x, z, r }));
+export function pineFloorLayout(sources) {
+  const source = readNativeTerrain(sources.bytes(TERRAIN_SOURCE));
+  const trunks = sourceJson(sources, PHYSICS_SOURCE).shelterTrees.map(([x, z, r]) => ({ x, z, r }));
   const pass = pineFloorPlacements(trunks, source);
   let step = pass.next(); while (!step.done) step = pass.next();
   const places = step.value, counts = kinds.map(kind => places[kind].length), count = counts.reduce((n, k) => n + k, 0);

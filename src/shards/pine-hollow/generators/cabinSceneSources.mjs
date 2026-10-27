@@ -7,10 +7,13 @@ import {readSourceModel} from '@wildshard/sdk/bake/skinned';
 import {pineCabinPropParts} from './cabinPropMaterials.mjs';
 import {pineCabinPropShapes} from './cabinPropShapes.ts';
 import {pineCabins} from './bake-pine-cabins.mjs';
+import {pineSourcesFrom} from './pineSources.ts';
 import {BakedPiece} from '@wildshard/sdk/bake';
 
 const root=new URL('../../../../',import.meta.url),project=new URL('../',import.meta.url);
 const readJson=url=>JSON.parse(readFileSync(url,'utf8'));
+// D65: the cabin bake reads Pine's sources from disk here (the program reads them through ctx.cached)
+const sources=pineSourcesFrom(path=>readFileSync(new URL(path,root)));
 function pack(doc,bin){
  const json=Buffer.from(JSON.stringify(doc)),text=Buffer.concat([json,Buffer.alloc((-json.length)&3,0x20)]),binary=Buffer.concat([bin,Buffer.alloc((-bin.length)&3)]),header=Buffer.alloc(20),binaryHeader=Buffer.alloc(8);
  header.writeUInt32LE(0x46546c67);header.writeUInt32LE(2,4);header.writeUInt32LE(28+text.length+binary.length,8);header.writeUInt32LE(text.length,12);header.writeUInt32LE(0x4e4f534a,16);
@@ -56,7 +59,7 @@ async function model(url){
 /** All shape data comes from the published native pack or original glTF buffers. */
 export async function cabinSceneSources(tier){
  if(!['phone','desktop'].includes(tier))throw new Error('Cabin author tier differs');
- const {rows,bin:bytes}=pineCabins();
+ const {rows,bin:bytes}=pineCabins(sources);
  if(createHash('sha256').update(bytes).digest('hex')!==rows.bin)throw new Error('Cabin native geometry pack hash differs');
  const geometryPack=new GeometryPack(bytes,packedRows(rows),'native cabin scene'),geometry=new Map();
  for(let i=0;i<rows.geometries.length;i++){

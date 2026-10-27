@@ -1018,6 +1018,8 @@
         "--world"
       ],
       "inputRoots": [
+        "src/shards/pine-hollow/generators/pineSources.ts",
+        "src/shards/pine-hollow/data/sourceInputs.json",
         "package.json",
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
@@ -1221,6 +1223,12 @@
         "src/shards/pine-hollow/generators/bake-cabin-scenes.mjs"
       ],
       "inputRoots": [
+        "src/shards/pine-hollow/generators/pineSources.ts",
+        "src/shards/pine-hollow/data/sourceInputs.json",
+        "src/shards/pine-hollow/data/sky.json",
+        "src/shards/pine-hollow/data/codeParts.json",
+        "src/shards/pine-hollow/data/terrainBindings.json",
+        "src/shards/pine-hollow/data/publicInputs.json",
         "src/shards/pine-hollow/generators/logCabin.ts",
         "src/shards/pine-hollow/generators/cabinShapes.ts",
         "src/shards/pine-hollow/generators/seedStream.ts",
@@ -2828,6 +2836,12 @@
         "src/shards/pine-hollow/generators/bake-cabin-living.mjs"
       ],
       "inputRoots": [
+        "src/shards/pine-hollow/generators/pineSources.ts",
+        "src/shards/pine-hollow/data/sourceInputs.json",
+        "src/shards/pine-hollow/data/sky.json",
+        "src/shards/pine-hollow/data/codeParts.json",
+        "src/shards/pine-hollow/data/terrainBindings.json",
+        "src/shards/pine-hollow/data/publicInputs.json",
         "src/shards/pine-hollow/generators/logCabin.ts",
         "src/shards/pine-hollow/generators/cabinShapes.ts",
         "src/shards/pine-hollow/generators/seedStream.ts",
@@ -4279,6 +4293,7 @@
         "src/shards/pine-hollow/generators/mapAssembly.mjs"
       ],
       "inputRoots": [
+        "src/shards/pine-hollow/generators/pineSources.ts",
         "public/assets/gpu/models/dead_tree_trunk/dead_tree_trunk_lod-e185e9f6.glb",
         "public/assets/gpu/models/dead_tree_trunk/dead_tree_trunk_lod.phone-6cc05129.glb",
         "public/assets/gpu/models/rock_moss_set_01/rock_moss_set_01_lod-66c8e78b.glb",
