@@ -7,7 +7,7 @@ import { Scope } from '../src/engine/app/scope';
 import { ENGINE_CONTENT_STRINGS } from '../src/game/engineStrings';
 import { installEngineStrings } from '../src/engine/strings';
 import { prepareNativeScalarBlocks } from '../scripts/bake/nativeWorld.mjs';
-import { nalatiGeographySources } from '../src/shards/nalati-grasslands/generators/geographySource';
+import { nalatiNativeGeography } from './fixtures/nalati-native-program';
 import { pineDensityBlob } from '../src/shards/pine-hollow/generators/forestRows';
 import pineManifest from '../src/shards/pine-hollow/manifest.json' with { type: 'json' };
 /**
@@ -50,7 +50,7 @@ const {shards:scalarDefinitions}=await import('../src/game/shard/list');
 for (const definition of scalarDefinitions()) {
   const intake = definition.scalarBlocks;
   if (definition.slug === 'nalati-grasslands' && intake !== undefined && !intake.prepared) {
-    const sources = nalatiGeographySources();
+    const sources = await nalatiNativeGeography();
     intake.prepare(new Map(intake.files.map(file => {
       const bytes = sources.get(file);
       if (bytes === undefined) throw new Error(`Missing owned Nalati scalar source: ${file}`);
