@@ -16,6 +16,11 @@ Nalati warm green ground (G784): sp-o4.
 D129): accept ~24 s single-run as R4's bar. (b) D2 heap: the idle Template's major GCs come from the 5 s periodic save
 (271 KB continuation): checkpoint every 30 s, skipped while idle, keeping pagehide / hidden / dispose / crossing saves
 (<= 30 s lost on a crash); alternative a delta save format with a migration. sp-o3 holds the cadence until answered.
+(c) D59: decision-module cap 8 -> 9 product-wide (Pine contract guest, Nalati practice course), built on the recommended
+9 under G769; confirm 9 or name a module-budget design.
+(d) G808 cold crossings: arrival-first entry (compile / draw only content within ~125 m of the entry before reveal;
+farther content behind its stand-ins, appearing nearest-first after reveal): DW cold ~10.3 -> ~6-7 s est.; built behind
+Developer meanwhile (sp-o4). Recommend arrival-first; the alternative keeps ~10 / 14 / 17 s (DW / Nalati / Pine).
 **Jake picks open:** D175 (125 m kept) / D181 (sheen kept) ruled; D183 / D185 pending; LD5-LD8 / A1 / A2 / M2 / RM13.
 
 **Lanes (G804 / G805; G803 3 Opus; Claude 82 %, Codex 99 % on credits):** sp-o3 iphone + D2 heap, sp-o5 tile-streaming
