@@ -125,11 +125,18 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
 | GR5 | **in flight (2026-10-26, sp-x1): Far Reach** (47 at claim; 36 remain). Prepared-model, world, bridge, mill rest, meadow blade held fan pool sward atlas and creature rig writers retired after owned source/cache, charged product and retained-reader adoption. Continue the largest remaining producer; frozen legacy bytes stay held. | L | same bar |
 | GR6 | **in flight (2026-10-25, sp-x6): Nalati** (54 at claim; 38 remain). Direct owned bytes replace source handoffs; preserve native geometry/image oracles, then largest remaining producer first. | L | same bar |
 | GR7 | **Driftwood** (41; chain of 5, `rockScenes` / `mapAssembly` number arrays) | L | same bar |
-| GR8 | **in flight (2026-10-27, sp-o1): Pine** (62 at claim; HDRI keys and painted per D2). An owned program entry first, then the 37 jobs no other job reads, smallest reader set first; `pine-layout` (17 downstream jobs, 83 readers) last. Slices below. | XL | same bar |
+| GR8 | **in flight (2026-10-27, sp-o1): Pine** (62 at claim; 58 remain; HDRI keys and painted per D2). An owned program entry first, then the 37 jobs no other job reads, smallest reader set first; `pine-layout` (17 downstream jobs, 83 readers) last. Slices below. | XL | same bar |
 | GR9 | Small shards (ink-cel, blender-template, open-plots) and the 5 shared `scripts/bake-*` (pickups, textures, terrain, schemas) as game functions | M | catalogue empty |
 | GR10 | Runtime: the 7 runtime / plugin imports of outputs read shardfile sections | M | no runtime file imports a step output |
 | GR11 | App tables to virtual modules (D4): starter tables, slugs, discovery, boot tables, budgets | M | no `*.generated.*` anywhere under `src/` |
 | GR12 | Delete `generation-jobs.json`, `generate.mjs`, the `generation-*` helpers, the `*.d.json.ts` shims and the generated `.gitignore` lines; burn-down lists empty | M | the files are gone and both bans have no exceptions |
+
+### GR8 current ≤ 1 h slices (G711)
+
+| Slice | Status | Boundary |
+|---|---|---|
+| G1 grazers | done (sp-o1, this commit) | `pine-grazers` retired: `generators/grazers.ts` `grazerRows()` (deer then elk) is called by `output.ts` (`custom/grazers`) and `nativeView.ts` (`SPECIES_LOOKS.definitions`, typed from the function); `bake-grazers.mjs` and `data/grazers.generated.json` gone. |
+| G2 King clips and collision | done (sp-o1, this commit) | `pine-king-clips` and `pine-king-collision` retired: `pineKingClips()` (typed per authored clip, no casts) and `pineKingCollision()` (a `KingCollision` table) are called by `nativeView`, `population`, `roamingProjection`, four tests and the two King measurement scripts. 61 → 58 jobs with G1. G769: types and lint only. |
 
 ### GR5 current ≤ 1 h slices (G711)
 

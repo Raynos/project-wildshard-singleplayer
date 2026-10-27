@@ -137,7 +137,7 @@ const REAR_SET: readonly SetRow[] = [
   [5, ['max', 0, 'tyR'], 'armR_hoof'], [6, 'tzR', 'armR_hoof'], [7, ['*', -0.9, 'fold'], 'armR_hoof'],
 ];
 
-const CLIPS: Readonly<Record<string, Clip>> = {
+const CLIPS = {
   idle: {
     x: [0, 100, 400, 1],
     lets: [['br', ['sin', ['*', 'x', 'TAU', 0.22]]]],
@@ -241,26 +241,31 @@ const CLIPS: Readonly<Record<string, Clip>> = {
       [14, ['*', 0.1, 'H', 'hind']], [15, ['*', 0.35, 'hind']],
     ],
   },
-};
+} satisfies Readonly<Record<string, Clip>>;
 
 /** four decimals: a tenth of a millimetre or a milliradian, and the same bytes on every platform's sin / cos */
 const round = (v: number): number => { const r = Math.round(v * 1e4) / 1e4; return Object.is(r, -0) ? 0 : r; };
 
-/** The baked table: per clip its channels, its grids and the samples (row-major: t, then x, then channel). */
-export function pineKingClips(): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [id, clip] of Object.entries(CLIPS)) {
-    const live = clip.set.filter(row => row[2] === undefined || restAt(row[2]) !== undefined);
-    const [from, to, n, wrap] = clip.x, tn = clip.t?.[1] ?? 1, period = clip.t?.[0] ?? 0;
-    const values: number[] = [];
-    for (let j = 0; j < tn; j++) {
-      for (let i = 0; i < n; i++) {
-        const s: Scope = { x: from + (to - from) * (wrap === 1 ? i / n : i / (n - 1)), t: period * j / tn, lets: new Map() };
-        for (const [k, e] of clip.lets ?? []) s.lets.set(k, ev(e, s));
-        for (const row of live) values.push(round(ev(row[1], s)));
-      }
+/** One baked clip: its channels, its x grid (and t grid), and the samples (row-major: t, then x, then channel). */
+export interface BakedKingClip { channels: Channel[]; x: number[]; t?: number[]; values: number[] }
+const bake = (clip: Clip): BakedKingClip => {
+  const live = clip.set.filter(row => row[2] === undefined || restAt(row[2]) !== undefined);
+  const [from, to, n, wrap] = clip.x, tn = clip.t?.[1] ?? 1, period = clip.t?.[0] ?? 0;
+  const values: number[] = [];
+  for (let j = 0; j < tn; j++) {
+    for (let i = 0; i < n; i++) {
+      const s: Scope = { x: from + (to - from) * (wrap === 1 ? i / n : i / (n - 1)), t: period * j / tn, lets: new Map() };
+      for (const [k, e] of clip.lets ?? []) s.lets.set(k, ev(e, s));
+      for (const row of live) values.push(round(ev(row[1], s)));
     }
-    out[id] = { channels: live.map(row => row[0]), x: clip.x, ...(clip.t === undefined ? {} : { t: [period, tn] }), values };
   }
-  return { version: 1, clips: out };
+  return { channels: live.map(row => row[0]), x: [...clip.x], ...(clip.t === undefined ? {} : { t: [period, tn] }), values };
+};
+
+/** The baked table, keyed in the authored clip order. GR8: the product calls this directly (no scheduler job, no
+ *  generated file). */
+export function pineKingClips(): { version: number; clips: { [Id in keyof typeof CLIPS]: BakedKingClip } } {
+  const { idle, walk, charge, strike, roar, sweep, brace, hit, die } = CLIPS;
+  return { version: 1, clips: { idle: bake(idle), walk: bake(walk), charge: bake(charge), strike: bake(strike), roar: bake(roar),
+    sweep: bake(sweep), brace: bake(brace), hit: bake(hit), die: bake(die) } };
 }

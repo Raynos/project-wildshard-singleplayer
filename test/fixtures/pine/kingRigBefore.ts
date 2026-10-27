@@ -3,7 +3,10 @@ import type { RigAnimCtx } from '@wildshard/engine/entities/species/registry';
 import { clamp, lookAngles, step } from '@wildshard/engine/entities/species/rigs';
 import { addLimbPose, applyLimbPose, limbRest, newLimbPose, playBakedClip, readBakedClips, scaleLimbPose, zeroLimbPose, type BakedPoseClip, type LimbPose, type LimbPoseRest, type LimbRest, type LimbRigSpec } from './limbRigBefore';
 import { KING_GAITS as GAITS, KING_RIG as RIG } from '../../../src/shards/pine-hollow/generators/kingRig';
-import baked from '../../../src/shards/pine-hollow/data/kingClips.generated.json' with { type: 'json' };
+import { pineKingClips } from '../../../src/shards/pine-hollow/generators/kingClips';
+
+// GR8: called, not read from a scheduler job's output
+const baked = pineKingClips();
 
 /**
  * The Antler King's OWN rig (E322 F-M1; Jake picked B — A, the Bark Warden hull baked onto the elk's bones, walking like
@@ -16,7 +19,7 @@ import baked from '../../../src/shards/pine-hollow/data/kingClips.generated.json
  *
  * The skeleton and the solve are the limb rig's (../runtime/species/limbRig.ts, SHARD-PLATFORM M3): the bone names and
  * proportions (and the stand-in skeleton) are ../generators/kingRig.ts, and every clip is baked from rows offline (../generators/kingClips.ts →
- * data/kingClips.generated.json, looked up here, never evaluated); this file keeps the King's
+ * pineKingClips(), called here since GR8, never evaluated per frame); this file keeps the King's
  * blend (`advanceKingPose`: walk ↔ charge by ground speed, the fight's named attack held and eased out, the recoil, the look).
  *
  * The fight names its move in `Animal.mem.act` before `startAttack` (ACT_*); a charge is the speed (the lane runs at

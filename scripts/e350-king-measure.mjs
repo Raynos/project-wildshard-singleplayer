@@ -22,7 +22,10 @@ import { LimbAnimator } from '../src/game/animation/limbBlend.ts';
 import { parseLimbBlend } from '../src/format/limbRig.ts';
 import { KING_RIG } from '../src/shards/pine-hollow/generators/kingRig.ts';
 import blend from '../src/shards/pine-hollow/data/kingBlend.json' with { type: 'json' };
-import clips from '../src/shards/pine-hollow/data/kingClips.generated.json' with { type: 'json' };
+import { pineKingClips } from '../src/shards/pine-hollow/generators/kingClips.ts';
+
+// GR8: called, not read from a scheduler job's output
+const clips = pineKingClips();
 
 const animator = new LimbAnimator(parseLimbBlend(blend), clips, KING_RIG.spine.head);
 const kingRest = bones => limbRest(KING_RIG, bones);

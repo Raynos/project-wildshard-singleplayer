@@ -2,6 +2,13 @@ import rows from '../data/kingCollisionRows.json' with { type: 'json' };
 import physics from '../data/physicsRows.json' with { type: 'json' };
 
 type Triple = [number, number, number];
+/** The Antler King's collision table. GR8: the product calls `pineKingCollision()` directly (no scheduler job, no
+ *  generated file). */
+export interface KingCollision {
+  version: number; hz: number; joints: typeof rows.joints; rest: typeof rows.rest;
+  volumes: { head: Triple; body: { at: Triple; pitch: number; halfLength: number }; fore: { at: Triple; halfLength: number }; ribs: Triple };
+  clips: { name: string; duration: number; frames: { tick: number; phase: number; transforms: (typeof rows.clips)[number]['transforms'][number] }[] }[];
+}
 const triple = (row: readonly number[] | undefined, what: string): Triple => {
   const [x, y, z] = row ?? [];
   if (row?.length !== 3 || x === undefined || y === undefined || z === undefined) throw new Error(`King collision: ${what} is not x, y, z`);
@@ -12,7 +19,7 @@ const triple = (row: readonly number[] | undefined, what: string): Triple => {
  * the rest pose and each attack clip's per-tick joint transforms; the sample clock (tick, phase) comes from the clip
  * duration, and the hit volumes from the King's physics rows: head, body and fore from its dims, the rib cage relative to
  * the rest chest. No rig, skeleton, engine or runtime code runs. */
-export function pineKingCollision(): Record<string, unknown> {
+export function pineKingCollision(): KingCollision {
   const king = physics.parked.find(row => row.kind === 'antler-king');
   if (king === undefined || !('dims' in king.spec)) throw new Error('King collision: missing the antler-king physics row');
   const { dims } = king.spec, chest = rows.rest.at.chest, ribs = triple(physics.kingHit.ribs, 'the rib cage');

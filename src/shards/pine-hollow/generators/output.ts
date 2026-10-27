@@ -82,11 +82,14 @@ import props from '../data/props.json' with { type: 'json' };
 import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
 import floorRows from '../data/floorLayout.generated.json' with { type: 'json' };
 import { PINE_OUTPUT } from './outputInputs';
-import grazers from '../data/grazers.generated.json' with { type: 'json' };
+import { grazerRows } from './grazers';
 import { NATIVE_VIEW, SPECIES_LOOKS } from './nativeView';
 import { pineDensityBlob } from './forestRows';
 import manifest from '../manifest.json' with { type: 'json' };
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+
+// GR8: the grazer rows are called, not read from a scheduler job's output
+const grazers = grazerRows();
 
 /** Preserve logical names and tier selection while packing named geometry losslessly. */
 function meshoptSource<T extends { kind: string; options?: BlobSourceOptions }>(row: T) {

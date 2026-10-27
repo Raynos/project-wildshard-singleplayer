@@ -4,9 +4,12 @@ import { Color } from 'three';
 import * as v from 'valibot';
 import { RoamingBossProjectionSchema , type RoamingBossProjectionRows as RoamingBossProjectionRowsType } from '@wildshard/format/roamingBossProjection';
 import { NATIVE_VIEW } from './nativeView';
-import bossCollision from '../data/kingCollision.generated.json' with { type: 'json' };
+import { pineKingCollision } from './kingCollision';
 import { PINE_OUTPUT } from './outputInputs';
 import look from '../data/antlerKingLook.json' with { type: 'json' };
+
+// GR8: called, not read from a scheduler job's output
+const bossCollision = pineKingCollision();
 
 const D = look.KING_DRESS, O = D.open, source = PINE_OUTPUT.custom['custom/kingKit'];
 const material = (id: string, gain: number) => ({ id, colour: new Color(D.glowMat.color).toArray(), emissive: D.amber,

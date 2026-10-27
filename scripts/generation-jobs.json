@@ -983,34 +983,6 @@
       "platform": "portable"
     },
     {
-      "id": "pine-grazers",
-      "shard": "pine-hollow",
-      "entry": "src/shards/pine-hollow/generators/bake-grazers.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/pine-hollow/generators/bake-grazers.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/pine-hollow/generators/bake-grazers.mjs",
-        "src/shards/pine-hollow/generators/deerRows.ts",
-        "src/shards/pine-hollow/generators/elkRows.ts",
-        "src/shards/pine-hollow/generators/grazerBodies.ts",
-        "src/sdk/bake/source-loader.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
-      ],
-      "outputs": [
-        "src/shards/pine-hollow/data/grazers.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/pine-hollow/data/grazers.generated.json"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "driftwood-isle-humanoid-clips",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-humanoid-clips.mjs",
@@ -4806,69 +4778,6 @@
         "src/shards/pine-hollow/data/cragBlobs.generated.json": "fd22894fb06a50f3a460afd68941acffaf09346f0c18dba9a267cc3b40eaf718",
         "src/shards/pine-hollow/data/cragScene.generated.json": "1dc8269238b46ad6b6e7df54722818a414ef940ce231a631214e393cad7c88fd"
       }
-    },
-    {
-      "id": "pine-king-collision",
-      "shard": "pine-hollow",
-      "entry": "src/shards/pine-hollow/generators/kingCollision.ts",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/pine-hollow/generators/kingCollision.ts",
-        "pineKingCollision",
-        "src/shards/pine-hollow/data/kingCollision.generated.json"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format/package.json",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/package.json",
-        "src/shards/pine-hollow/data/kingCollisionRows.json",
-        "src/shards/pine-hollow/data/physicsRows.json",
-        "src/shards/pine-hollow/generators/kingCollision.ts"
-      ],
-      "outputs": [
-        "src/shards/pine-hollow/data/kingCollision.generated.json"
-      ],
-      "platform": "portable",
-      "buildOutputs": {
-        "src/shards/pine-hollow/data/kingCollision.generated.json": "0126e1f737a6c88f60ba42b2bf2acc78865e46e39605087c01407f605b1133af"
-      },
-      "seedOutputs": []
-    },
-    {
-      "id": "pine-king-clips",
-      "shard": "pine-hollow",
-      "entry": "src/shards/pine-hollow/generators/kingClips.ts",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/pine-hollow/generators/kingClips.ts",
-        "pineKingClips",
-        "src/shards/pine-hollow/data/kingClips.generated.json"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format/package.json",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/package.json",
-        "src/shards/pine-hollow/data/kingCollisionRows.json",
-        "src/shards/pine-hollow/generators/kingClips.ts"
-      ],
-      "outputs": [
-        "src/shards/pine-hollow/data/kingClips.generated.json"
-      ],
-      "platform": "portable",
-      "buildOutputs": {
-        "src/shards/pine-hollow/data/kingClips.generated.json": "7cdc75dd26e5a63c9eb9bac7c92b8d838cc5114b85dcb8d768e6b6a0126caf27"
-      },
-      "seedOutputs": []
     },
     {
       "id": "pine-lookout",

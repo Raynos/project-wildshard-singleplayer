@@ -6,7 +6,10 @@ import { NativeCreaturePose, type NativeCreaturePoseRecipe } from '@wildshard/ga
 import { advanceKingPose, newPose, type KingPose, type KingPoseRest } from './kingRigBefore';
 import { readLimbCollisionBake as readKingCollisionBake } from '../../../src/format/limbCollision';
 import { bindNativeRangedVolumes } from '@wildshard/game/plugin/nativeItems';
-import raw from '../../../src/shards/pine-hollow/data/kingCollision.generated.json' with { type: 'json' };
+import { pineKingCollision } from '../../../src/shards/pine-hollow/generators/kingCollision';
+
+// GR8: called, not read from a scheduler job's output
+const raw = pineKingCollision();
 
 const MAX_KINGS = 512; // The roster's same bounded live-body capacity, including unlisted encounter bodies.
 const NEAR_SQUARED = 140 * 140; // AnimalManager's shipping custom-pose near/far boundary.

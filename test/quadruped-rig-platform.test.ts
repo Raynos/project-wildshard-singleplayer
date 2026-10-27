@@ -17,10 +17,15 @@ import { advanceKingPose, kingRest, applyKingPose, newPose, clipPose } from './f
 import { pineKingCollision } from '../src/shards/pine-hollow/generators/kingCollision';
 import { KING_RIG } from '../src/shards/pine-hollow/generators/kingRig';
 import blend from '../src/shards/pine-hollow/data/kingBlend.json' with { type: 'json' };
-import clips from '../src/shards/pine-hollow/data/kingClips.generated.json' with { type: 'json' };
-import collision from '../src/shards/pine-hollow/data/kingCollision.generated.json' with { type: 'json' };
+import { pineKingClips } from '../src/shards/pine-hollow/generators/kingClips';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native fixture reads the committed physics runtime.
 import { readFileSync } from 'node:fs';
+
+// GR8: called, not read from a scheduler job's output
+const collision = pineKingCollision();
+
+// GR8: called, not read from a scheduler job's output
+const clips = pineKingClips();
 
 const input = (): LimbPoseInput => ({ dt: 1/60, t: 0, scale: 2.6, speed: 0, deathT: -1,
   flinch: 0, brace: 0, attack: -1, lookWeight: 1, yaw: .4,

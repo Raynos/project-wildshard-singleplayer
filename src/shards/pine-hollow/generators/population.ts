@@ -1,11 +1,17 @@
 
-import collision from '../data/kingCollision.generated.json' with { type: 'json' };
+import { pineKingCollision } from './kingCollision';
 import blend from '../data/kingBlend.json' with { type: 'json' };
-import clips from '../data/kingClips.generated.json' with { type: 'json' };
+import { pineKingClips } from './kingClips';
 import { parseNativePopulationRows , type NativePopulationRows as NativePopulationRowsType } from '@wildshard/format/populationRoster';
 import { PINE_FAUNA } from '../data/fauna.generated';
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { PINE_ELITE_DEFS, PINE_ELITE_ANIMALS, ORDINARY } from './eliteRoster';
+
+// GR8: called, not read from a scheduler job's output
+const collision = pineKingCollision();
+
+// GR8: called, not read from a scheduler job's output
+const clips = pineKingClips();
 
 /** Native spawn/population rows; encounter behaviour remains with the existing elite and King owners. */
 export const POPULATION_ROSTER: NativePopulationRowsType = parseNativePopulationRows({
