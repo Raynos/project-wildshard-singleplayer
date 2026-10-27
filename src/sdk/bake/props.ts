@@ -45,6 +45,8 @@ interface PreparedWhole {
   id: string; at: Vector3; castShadow: boolean; geometry: BufferGeometry; material: MeshStandardMaterial; transform: Matrix4;
   customAttributes: GlbPrimitive['customAttributes']; nativeAttributes: GlbPrimitive['nativeAttributes'];
   owner: { x: number; z: number } | null; extras: GlbPrimitive['extras'];
+  /** I3: the normals / colours are normalized Int8 / Uint8 on the wire (`compactWholeChannels`) */
+  quantized: boolean;
 }
 
 function subsetAttribute(attribute: BufferAttribute, selected: readonly number[]): BufferAttribute {
@@ -120,6 +122,22 @@ export function partitionWholeGeometry(sourceGeometry: BufferGeometry, transform
     if (index !== null) part.setIndex(new BufferAttribute(index.array instanceof Uint16Array ? new Uint16Array(group.indices) : new Uint32Array(group.indices), 1));
     return { x: group.x, z: group.z, geometry: part, vertices: group.vertices, triangles: group.triangles };
   });
+}
+/** iPhone downloads I3: a native whole shape's float vec3 normals become normalized Int8 (within ~0.5 degree) and its
+ *  float colours in [0, 1] normalized Uint8 (within 1/510), each written once as its own typed accessor
+ *  (`quantizedChannels`); the shape's exact-copy readers restore those stored values. False, changing nothing, when a
+ *  channel cannot be stored that way. A vec4 normal is a shader channel and stays as it is. */
+function compactWholeChannels(g: BufferGeometry): boolean {
+  const normal = g.hasAttribute('normal') ? g.getAttribute('normal') : undefined, colour = g.hasAttribute('color') ? g.getAttribute('color') : undefined;
+  const floatNormal = normal instanceof BufferAttribute && normal.itemSize === 3 && normal.array instanceof Float32Array;
+  const okNormal = normal === undefined || floatNormal || (normal instanceof BufferAttribute && normal.itemSize === 4)
+    || (normal instanceof BufferAttribute && normal.array instanceof Int8Array && normal.normalized);
+  const floatColour = colour instanceof BufferAttribute && colour.array instanceof Float32Array && colour.array.every(value => value >= 0 && value <= 1);
+  const okColour = colour === undefined || floatColour || (colour instanceof BufferAttribute && colour.normalized && !(colour.array instanceof Float32Array));
+  if (!okNormal || !okColour || (!floatNormal && !floatColour)) return false;
+  if (floatNormal) g.setAttribute('normal', new BufferAttribute(Int8Array.from(normal.array, value => Math.max(-127, Math.min(127, Math.round(value * 127)))), 3, true));
+  if (floatColour) g.setAttribute('color', new BufferAttribute(Uint8Array.from(colour.array, value => Math.round(value * 255)), colour.itemSize, true));
+  return true;
 }
 /** Content-addressed GLBs and tile rows, including actual budget numbers and an independent far proxy (none for whole shapes alone). */
 export interface BakedProps {
@@ -214,11 +232,12 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
     const channels = retain ? Object.keys(mesh.geometry.attributes) : ['position', 'normal', 'color', ...Object.values(entry.customAttributes ?? {})];
     for (const key of channels) if (mesh.geometry.hasAttribute(key)) g.setAttribute(key, mesh.geometry.getAttribute(key));
     g.setIndex(mesh.geometry.getIndex());
+    const quantized = retain && compactWholeChannels(g);
     const automatic = Object.fromEntries(Object.keys(g.attributes)
       .filter(key => !['position', 'normal', 'color', 'uv', 'tangent'].includes(key) && !Object.values(entry.customAttributes ?? {}).includes(key)).map((key, i) => [`_WS_CHANNEL_${i}`, key]));
     const customAttributes = retain ? { ...automatic, ...entry.customAttributes } : entry.customAttributes;
     const base = { id: entry.id, at, castShadow: mesh.castShadow, geometry: g, material: new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: m.roughness }), transform: entry.transform, customAttributes,
-      nativeAttributes: entry.partition !== undefined ? true as const : entry.nativeAttributes };
+      nativeAttributes: entry.partition !== undefined ? true as const : entry.nativeAttributes, quantized };
     if (entry.partition === undefined) return [{ ...base, owner: null, extras: undefined }];
     const ordinals = entry.partition === 'runs' ? wholePartitionRuns : (list: number[]): number[] => list;
     const preparedParts: PreparedWhole[] = [];
@@ -258,7 +277,7 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
         // Scatter keeps a model in one owning tile; its conservative bounds may extend into its neighbours.
         const local = geometry(vertices(batch.model)); primitives.push({ geometry: local, material: mergedMaterial(), instances: transforms });
       }
-      for (const w of lod === 0 ? whole : coarseWhole) if (w.owner === null ? w.at.x >= x0 && w.at.x < x0 + size && w.at.z >= z0 && w.at.z < z0 + size : w.owner.x === x && w.owner.z === z) primitives.push({ geometry: w.geometry, material: w.material, castShadow: w.castShadow, name: w.id, transform: w.transform, compactIndex: true, ...(w.customAttributes === undefined ? {} : { customAttributes: w.customAttributes }), ...(w.nativeAttributes === undefined ? {} : { nativeAttributes: w.nativeAttributes }), ...(w.extras === undefined ? {} : { extras: w.extras }) });
+      for (const w of lod === 0 ? whole : coarseWhole) if (w.owner === null ? w.at.x >= x0 && w.at.x < x0 + size && w.at.z >= z0 && w.at.z < z0 + size : w.owner.x === x && w.owner.z === z) primitives.push({ geometry: w.geometry, material: w.material, castShadow: w.castShadow, name: w.id, transform: w.transform, compactIndex: true, ...(w.customAttributes === undefined ? {} : { customAttributes: w.customAttributes }), ...(w.nativeAttributes === undefined ? {} : { nativeAttributes: w.nativeAttributes }), ...(w.quantized ? { quantizedChannels: true } : {}), ...(w.extras === undefined ? {} : { extras: w.extras }) });
       const hasPanel = lod === 0 && panelFiles.some((p) => p.bounds !== null && p.bounds.max.x >= x0 && p.bounds.min.x <= x0 + size && p.bounds.max.z >= z0 && p.bounds.min.z <= z0 + size);
       if (primitives.length === 0 && !hasPanel) continue;
       const batches: GlbPrimitive[][] = [];

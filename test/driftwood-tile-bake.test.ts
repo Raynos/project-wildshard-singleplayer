@@ -13,7 +13,7 @@ const partition = v.object({ vertices: ordinals, triangles: ordinals });
 const isMesh = (node: Object3D): node is Mesh => node instanceof Mesh;
 const bytes = (attribute: BufferAttribute): Buffer => Buffer.from(attribute.array.buffer, attribute.array.byteOffset, attribute.array.byteLength);
 
-test('the compact Driftwood tile bake reconstructs every original world draw bit for bit', async () => {
+test('the compact Driftwood tile bake reconstructs every original world draw (normals / colours within their storage step)', async () => {
   mkdirSync('tmp', { recursive: true });
   const project = mkdtempSync('tmp/driftwood-tile-bake-'), meshes: Mesh[] = [];
   const head = new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]), 3));
@@ -47,6 +47,18 @@ test('the compact Driftwood tile bake reconstructs every original world draw bit
         for (const [name, attribute] of Object.entries(original.attributes)) {
           const channel = actual.geometry.getAttribute(name);
           if (!(attribute instanceof BufferAttribute) || !(channel instanceof BufferAttribute)) throw new Error('Expected exact plain channels');
+          // iPhone downloads I3: float vec3 normals and float colours ship as normalized Int8 / Uint8 (compactWholeChannels,
+          // G415 similar); every other channel and the index stay bit for bit
+          const compact = attribute.array instanceof Float32Array && channel.normalized && ((name === 'normal' && attribute.itemSize === 3 && channel.array instanceof Int8Array)
+            || (name === 'color' && channel.array instanceof Uint8Array));
+          if (compact) {
+            expect(channel.itemSize).toBe(attribute.itemSize);
+            const tolerance = name === 'normal' ? 0.5 / 127 + 1e-6 : 0.5 / 255 + 1e-6;
+            let worst = 0;
+            for (let i = 0; i < attribute.count; i++) for (let c = 0; c < attribute.itemSize; c++) worst = Math.max(worst, Math.abs(channel.getComponent(i, c) - attribute.getComponent(i, c)));
+            expect(worst, `${id}.${name} within its storage step`).toBeLessThanOrEqual(tolerance);
+            continue;
+          }
           expect(channel.array.constructor).toBe(attribute.array.constructor);
           expect([channel.itemSize, channel.normalized]).toEqual([attribute.itemSize, attribute.normalized]);
           expect(bytes(channel).equals(bytes(attribute)), `${id}.${name} bytes`).toBe(true);
