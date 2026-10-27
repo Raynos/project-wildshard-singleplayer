@@ -99,7 +99,7 @@ export class ScriptLane {
   /** Schedule a declared scene/gameplay event for the next tick; conditions read the resulting declared fields. */
   enqueue(event: ScriptEvent): void { this.host.enqueue(event); }
   /** JSON snapshot includes all world state, complete module state, budgets, pending events and failure history. */
-  snapshot(): string { return JSON.stringify({ version: 0, contract: this.driver.contract, world: this.world.checkpoint(), host: this.host.checkpoint() }); }
+  snapshot(): string { return `{"version":0,"contract":${JSON.stringify(this.driver.contract)},"world":${JSON.stringify(this.world.checkpoint())},"host":${this.host.checkpointText()}}`; }
   /** Restores a matching installed lane, without invoking author initialization. */
   restore(text: string): void {
     const raw: unknown = JSON.parse(text), saved = v.parse(checkpointSchema, raw), previousWorld = this.world.checkpoint();

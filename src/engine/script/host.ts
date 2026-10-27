@@ -8,6 +8,7 @@ import { freshScriptMemory } from './fixedMemory';
 import { constructionOwner, currentOwner, ownerOr } from '../app/ownership';
 import type { Scope } from '../app/scope';
 import { nextDrawnFrame, presenting } from '../core/framePacing';
+import { checkpointByteText } from './checkpointBytes';
 
 /** Existing host limit type is defined by pure format admission. */
 export type ScriptLimits = scriptLimits.ScriptLimits;
@@ -233,6 +234,18 @@ export class ScriptHost {
     return { tick: this.tick, used: { ...this.used }, pending: this.pending.map((e) => ({ ...e })), modules: [...this.modules].map(([name, state]) => ({
       name, memory: checkpointMemory(state.good.memory), globals: [...state.good.globals].map(([key, value]) => ({ name: key, type: typeof value === 'bigint' ? 'bigint' as const : 'number' as const, value: String(value) })), failures: state.failures, disabled: state.disabled,
     })) };
+  }
+  /** Same historical replay wire as checkpoint(), without boxed byte arrays.
+   * Public checkpoint() stays detached and mutable for in-memory callers. */
+  checkpointText(): string {
+    if (this.active) throw new Error('Active script checkpoint');
+    const modules: string[] = [];
+    for (const [name, state] of this.modules) {
+      const globals = [...state.good.globals].map(([key, value]) => ({ name: key,
+        type: typeof value === 'bigint' ? 'bigint' : 'number', value: String(value) }));
+      modules.push(`{"name":${JSON.stringify(name)},"memory":${checkpointByteText(state.good.memory)},"globals":${JSON.stringify(globals)},"failures":${state.failures},"disabled":${state.disabled}}`);
+    }
+    return `{"tick":${this.tick},"used":${JSON.stringify(this.used)},"pending":${JSON.stringify(this.pending)},"modules":[${modules.join(',')}]}`;
   }
   /** Validate every module before publishing; reuse equal-sized memories without running initialization, queries or author functions. */
   restoreState(saved: ScriptHostState): void {

@@ -39,6 +39,7 @@ function originalModules(host: ScriptHost): ScriptHostState['modules'] {
 test('checkpoint JSON preserves every byte, globals and insertion order', () => {
   const host = fixture(), checkpoint = host.checkpoint();
   expect(checkpoint.modules).toEqual(originalModules(host));
+  expect(host.checkpointText()).toBe(JSON.stringify(checkpoint));
   expect(JSON.stringify(checkpoint)).toBe(JSON.stringify({ tick: 7,
     used: { effects: 0, spawns: 0, events: 0, queries: 0, fuel: 0 },
     pending: [{ type: 9, target: 1, value: -0 }], modules: originalModules(host) }));

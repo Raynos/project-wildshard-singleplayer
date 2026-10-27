@@ -57,10 +57,12 @@ const doc = (value: unknown): value is Document => object(value) && object(value
 const clone = <T>(value: T): T => structuredClone(value);
 
 
-/** Renderer-free, write-through save service. Re-read each savedDoc before writing to preserve other keys. */
+/** Renderer-free, write-through save service. Compare persisted text before borrowing a parsed document, preserving other writers. */
 export class SaveStore {
   private readonly definitions = new Map<string, SaveKeyDef<unknown>>();
   private readonly memory = new Map<string, string>();
+  private readonly documents = new Map<string, { raw: string | null; value: Document }>();
+  private readonly entryTexts = new WeakMap<Entry, string | undefined>();
   private readonly failedWrites = new Set<string>();
   private readonly readonlyKeys = new Set<string>();
   private initialized = false;
@@ -88,11 +90,11 @@ export class SaveStore {
     try { if (this.failedWrites.has(name)) return this.memory.get(name) ?? null; const storage = this.storage(scope); return storage ? storage.getItem(name) : this.memory.get(name) ?? null; } catch { return this.memory.get(name) ?? null; }
   }
   private put(scope: SaveScope, name: string, value: string): boolean {
-    this.memory.set(name, value);
+    this.documents.delete(name); this.memory.set(name, value);
     try { const storage = this.storage(scope); if (!storage) { this.failedWrites.add(name); return false; } storage.setItem(name, value); this.failedWrites.delete(name); return true; } catch { this.failedWrites.add(name); return false; }
   }
   private remove(scope: SaveScope, name: string): void {
-    this.memory.delete(name);
+    this.documents.delete(name); this.memory.delete(name);
     try { this.storage(scope)?.removeItem(name); } catch { /* already absent from memory */ }
   }
   private names(scope: SaveScope): string[] {
@@ -114,16 +116,32 @@ export class SaveStore {
   }
   private savedDoc(scope: SaveScope, name: string): Document {
     this.initialize();
-    const raw = this.get(scope, name);
-    if (raw === null) return { keys: {} };
-    try { const parsed: unknown = JSON.parse(raw); if (doc(parsed)) return parsed; } catch { /* set aside below */ }
+    const raw = this.get(scope, name), cached = this.documents.get(name);
+    if (cached !== undefined && cached.raw === raw) return cached.value;
+    if (raw === null) { const value: Document = { keys: {} }; this.documents.set(name, { raw, value }); return value; }
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      if (doc(parsed)) { this.documents.set(name, { raw, value: parsed }); return parsed; }
+    } catch { /* set aside below */ }
     const prefix = `${name}.corrupt.`;
     this.put(scope, prefix + this.at(), raw);
     this.prune(this.names(scope).filter((key) => key.startsWith(prefix)), (key) => { this.remove(scope, key); });
     const fresh: Document = { keys: {} };
-    this.put(scope, name, JSON.stringify(fresh));
+    this.putDocument(scope, name, fresh);
     this.report(scopeOf(name), '*', 0, 'Invalid save savedDoc: expected JSON with a keys object');
     return fresh;
+  }
+  private putDocument(scope: SaveScope, name: string, value: Document): boolean {
+    const raw = JSON.stringify(value), result = this.put(scope, name, raw);
+    // The cache must reflect JSON storage semantics and own its payload. A
+    // caller's mutable object, Date or undefined cannot leak through a cache.
+    const parsed: unknown = JSON.parse(raw);
+    if (!doc(parsed)) throw new Error('Invalid serialized save document');
+    this.documents.set(name, { raw, value: parsed }); return result;
+  }
+  private entryText(value: Entry): string | undefined {
+    if (this.entryTexts.has(value)) return this.entryTexts.get(value);
+    const text = JSON.stringify(value.data); this.entryTexts.set(value, text); return text;
   }
   define<T>(definition: SaveKeyDef<T>): SaveSlot<T> {
     const id = `${definition.scope}/${definition.key}`;
@@ -154,7 +172,7 @@ export class SaveStore {
           const first = result.issues[0];
           throw new Error(`${first.path?.map((item) => String(item.key)).join('.') ?? ''}: ${first.message}`);
         }
-        if (version !== raw.v) { savedDoc.keys[definition.key] = { v: version, data: result.output }; this.put(definition.scope, name, JSON.stringify(savedDoc)); }
+        if (version !== raw.v) { savedDoc.keys[definition.key] = { v: version, data: result.output }; this.putDocument(definition.scope, name, savedDoc); }
         return clone(result.output);
       } catch (error) { issue = error instanceof Error ? error.message : 'Migration failed'; }
       const prefix = `${definition.key}.corrupt.`;
@@ -162,7 +180,7 @@ export class SaveStore {
       this.prune(Object.keys(savedDoc.keys).filter((key) => key.startsWith(prefix)), (key) => { delete savedDoc.keys[key]; });
       const initial = definition.initial();
       savedDoc.keys[definition.key] = { v: definition.version, data: initial };
-      this.put(definition.scope, name, JSON.stringify(savedDoc));
+      this.putDocument(definition.scope, name, savedDoc);
       this.report(scopeOf(name), definition.key, version, issue);
       return clone(initial);
     };
@@ -174,8 +192,12 @@ export class SaveStore {
       if (this.readonlyKeys.has(`${name}/${definition.key}`) || (entry(prior) && prior.v > definition.version)) return false;
       const result = v.safeParse(definition.schema, value);
       if (!result.success) { this.report(scopeOf(name), definition.key, definition.version, result.issues[0].message); return false; }
+      // Equality is exact JSON content, not object identity. A failed durable
+      // write still retries even when this page already retained the value.
+      if (entry(prior) && prior.v === definition.version && !this.failedWrites.has(name)
+        && this.entryText(prior) === JSON.stringify(result.output)) return true;
       savedDoc.keys[definition.key] = { v: definition.version, data: result.output };
-      return this.put(definition.scope, name, JSON.stringify(savedDoc));
+      return this.putDocument(definition.scope, name, savedDoc);
     };
     const peek = (namespace?: string): T | null => {
       this.initialize();
@@ -318,7 +340,7 @@ export class SaveStore {
       try { granted = await (this.options.persist?.() ?? saveEnvironment().persist()); } catch { /* API missing or denied */ }
       const name = this.name('device'), savedDoc = this.savedDoc('device', name);
       savedDoc.keys['storage.persisted'] = { v: 1, data: granted };
-      this.put('device', name, JSON.stringify(savedDoc));
+      this.putDocument('device', name, savedDoc);
       return granted;
     })();
     return this.persistence;
@@ -352,7 +374,7 @@ export class SaveStore {
           const result = v.safeParse(definition.schema, data);
           if (!result.success) throw new Error(result.issues[0].message);
           target.keys[key] = { v: version, data: result.output };
-          if (this.put(kind, savePrefix() + scope, JSON.stringify(target))) report.imported.push(identity);
+          if (this.putDocument(kind, savePrefix() + scope, target)) report.imported.push(identity);
           else report.skipped.push({ key: identity, reason: 'Storage unavailable or full: kept in memory for this page only' });
         } catch (error) { report.skipped.push({ key: identity, reason: error instanceof Error ? error.message : 'Invalid data' }); }
       }
