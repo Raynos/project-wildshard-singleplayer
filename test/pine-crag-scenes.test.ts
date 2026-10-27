@@ -1,10 +1,5 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Compare authored and generated GLB bytes without a browser fetch.
-import { readFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Verify static shape bytes against their map-input hashes.
-import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare complete geometry byte ranges without per-byte matcher overhead.
 import { Buffer } from 'node:buffer';
-import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { Matrix4, type BufferGeometry } from 'three';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
@@ -13,7 +8,6 @@ import { bakeCragSceneSources, caveShellRows, pineCragScenes } from '../src/shar
 import * as layout from '../src/shards/pine-hollow/generators/layout';
 import { PINE_SOURCES } from './fixtures/pine-sources';
 
-const root = new URL('../', import.meta.url);
 const bytes = (array: ArrayBufferView): Uint8Array => new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
 function sameGeometry(actual: BufferGeometry, expected: BufferGeometry): void {
   expect(Object.keys(actual.attributes).sort()).toEqual(Object.keys(expected.attributes).sort());
@@ -47,18 +41,4 @@ test('all generated kit and both skin tiers round-trip without channel or index 
     if (native.kind !== 'trimesh') throw new Error('Expected cave triangles');
     expect(caveShellRows(sources)).toEqual({ ...native, vertices: Array.from(native.vertices), indices: Array.from(native.indices) });
   } finally { for (const geometry of sources.values()) geometry.dispose(); }
-});
-
-const shapeManifest = v.object({ blobs: v.array(v.object({ source: v.string() })),
-  geometryHashes: v.record(v.string(), v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u))) });
-test('every emitted static scene shape participates in its map-input facts', () => {
-  // GR8 G28 / G30: the prop and crag scenes' shapes are built in memory, so only the stored hero scenes are checked here
-  for (const id of ['heroScenes']) {
-    const data = v.parse(shapeManifest, JSON.parse(readFileSync(new URL(`src/shards/pine-hollow/data/${id}.generated.json`, root), 'utf8')));
-    expect(Object.keys(data.geometryHashes)).toHaveLength(data.blobs.length);
-    for (const blob of data.blobs) {
-      const file = new URL(`src/shards/pine-hollow/${blob.source}`, root);
-      expect(data.geometryHashes[blob.source], blob.source).toBe(createHash('sha256').update(readFileSync(file)).digest('hex'));
-    }
-  }
 });

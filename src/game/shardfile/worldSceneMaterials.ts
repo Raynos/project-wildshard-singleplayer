@@ -8,6 +8,7 @@ import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 
 import type { SceneHandles } from './sceneHandles';
+import type { ShardProduct } from './shardProduct';
 
 type Source = Extract<WorldScenesSection['materials'][number], { kind: 'source' }>;
 const loaded = new WeakMap<Scope, Map<string, Promise<{ readonly materials: readonly Material[]; readonly root: Object3D }>>>();
@@ -17,16 +18,18 @@ const textureValue = (value: unknown): value is Texture => value instanceof Text
 /** not disposed and not retiring (itself or an ancestor): every await re-reads it */
 const live = (owner: Scope): boolean => !owner.disposed && !owner.disposing;
 
-/** Client-only original PBR intake. Aliases retain the asset manager's tier and texture routing.
+/** Client-only original PBR intake. Aliases retain the asset manager's tier and texture routing; an alias that names a
+ * product file (no leading '/') loads through the product's own URL for it (GR8, as a product-named figure skin does).
  * An optional named source root retains its original geometry and shares the exact prepared materials. */
-export async function worldSceneSourceMaterial(row: Source, sky: SkyRig, owner: Scope, handles?: SceneHandles): Promise<Material> {
+export async function worldSceneSourceMaterial(row: Source, sky: SkyRig, product: Pick<ShardProduct, 'url'>, owner: Scope, handles?: SceneHandles): Promise<Material> {
   if (!live(owner)) throw new Error('Scene material owner is disposed');
   let files = loaded.get(owner);
   if (files === undefined) { files = new Map(); loaded.set(owner, files); owner.onDispose(() => { loaded.delete(owner); }); }
-  const key = JSON.stringify([row.url, row.aliases, row.anisotropy, row.anisotropyMaps, row.envMapIntensity, row.publishObject !== undefined && handles !== undefined, row.gpuOnlyMaps === true]);
+  const aliases = Object.fromEntries(Object.entries(row.aliases).map(([from, to]) => [from, to.startsWith('/') ? to : product.url(to)]));
+  const key = JSON.stringify([row.url, aliases, row.anisotropy, row.anisotropyMaps, row.envMapIntensity, row.publishObject !== undefined && handles !== undefined, row.gpuOnlyMaps === true]);
   let pending = files.get(key);
   if (pending === undefined) {
-    pending = loadRigFile(row.url, row.aliases).then(file => {
+    pending = loadRigFile(row.url, aliases).then(file => {
       const materials: Material[] = [], geometries = new Set<BufferGeometry>();
       file.scene.traverse(node => {
         if (!(node instanceof Mesh)) return;

@@ -34,7 +34,7 @@ test('a GPU-only source releases once across aliased slots while keeping its nat
     render: () => undefined };
   installTextureUploadEvents(renderer);
   try {
-    expect(await worldSceneSourceMaterial(row, sky, owner)).toBe(a);
+    expect(await worldSceneSourceMaterial(row, sky, { url: name => name }, owner)).toBe(a);
     for (const texture of [shared, normal]) {
       const hook = hooks.get(texture);
       expect(texture.onUpdate).toBe(hook);
@@ -55,7 +55,7 @@ test('a load held across its cell retiring takes nothing up: no sky setup, no ar
   const load = vi.spyOn(rig, 'loadRigFile').mockImplementation(async () => { await held; return file; });
   const disposed = [a, b, shared, normal, geometry].map(resource => vi.spyOn(resource, 'dispose'));
   try {
-    const material = worldSceneSourceMaterial(row, sky, owner);
+    const material = worldSceneSourceMaterial(row, sky, { url: name => name }, owner);
     cell.onDispose(() => undefined);
     const steps = cell.disposeSteps(); steps.next();
     expect(owner.disposing).toBe(true);

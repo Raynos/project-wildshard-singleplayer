@@ -357,7 +357,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
           material = await worldSceneSurfaceMaterial(row, sky, product, owner);
         } else if (row.kind === 'source') {
           const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Source scene materials need a world sky');
-          material = await worldSceneSourceMaterial(row, sky, owner, handles);
+          material = await worldSceneSourceMaterial(row, sky, product, owner, handles);
         } else if (row.kind === 'standard') material = new MeshStandardMaterial(row.properties);
         else if (row.kind === 'basic') material = new MeshBasicMaterial(row.properties);
         else if (row.kind === 'mapped') material = weldSceneMaterial(row.material, id => { const source = materials.get(id); if (source === undefined) throw new Error('Missing mapped scene material source'); return source; }, () => {

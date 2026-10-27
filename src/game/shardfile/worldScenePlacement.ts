@@ -201,7 +201,7 @@ export class WorldScenePlacement {
   private async prepareMaterials(sky: Parameters<typeof worldSceneSourceMaterial>[1]): Promise<void> {
     await Promise.all(this.sources.map(async source => {
       if (this.materials.has(source.id)) return;
-      const material = await worldSceneSourceMaterial(source, sky, this.owner);
+      const material = await worldSceneSourceMaterial(source, sky, this.ctx.product, this.owner);
       this.materials.set(source.id, material);
     }));
   }

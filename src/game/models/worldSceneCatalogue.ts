@@ -188,7 +188,7 @@ async function load(ctx: ModelContext, product: string, catalogue: WorldSceneMod
       if (materials.has(row.id)) continue;
       let material: Material;
       if (row.kind === 'surface') material = await worldSceneSurfaceMaterial(row, ctx.sky, admitted, owner);
-      else if (row.kind === 'source') material = await worldSceneSourceMaterial(row, ctx.sky, owner);
+      else if (row.kind === 'source') material = await worldSceneSourceMaterial(row, ctx.sky, admitted, owner);
       else if (row.kind === 'look') { if (row.over !== undefined) throw new Error('Cold scene models require direct graph slots'); material = lentLook(row.look); }
       else if (row.kind === 'basic') material = new MeshBasicMaterial(row.properties);
       else if (row.kind === 'standard') material = new MeshStandardMaterial(row.properties);

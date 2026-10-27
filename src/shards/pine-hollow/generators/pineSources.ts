@@ -4,6 +4,7 @@ import bindings from '../data/terrainBindings.json' with { type: 'json' };
 import codeParts from '../data/codeParts.json' with { type: 'json' };
 import sky from '../data/sky.json' with { type: 'json' };
 import inputs from '../data/sourceInputs.json' with { type: 'json' };
+import { HERO_TABLES, heroMaterialCandidates, heroMaterialFolders, heroModelSources } from './heroMaterialFiles.mjs';
 
 /** GR8 (D65): the committed files Pine's in-memory producers read (the baked terrain, the tree set, the crag kit, the
  *  prop scans, the native code parts, the sky keys, the authored trunk rows and the timber world with its GLBs), by
@@ -13,6 +14,8 @@ import inputs from '../data/sourceInputs.json' with { type: 'json' };
 export interface PineSources {
   /** One declared input's bytes (a fresh copy, as a file read gives); an undeclared key refuses. */
   readonly bytes: (key: string) => Uint8Array;
+  /** Whether an input exists (the hero material payloads are read where they exist). */
+  readonly has: (key: string) => boolean;
 }
 
 /** The retained terrain's URL (its public path under `/assets/`). */
@@ -37,7 +40,7 @@ export function propScanSource(id: string): string {
 export const skyKeySource = (template: string, id: string): string => template.replaceAll('{id}', id);
 
 const FIXED: readonly string[] = [
-  TERRAIN_SOURCE, PHYSICS_SOURCE, TIMBER_SOURCE, declared.trees.glb, declared.trees.sidecar, codeParts.url,
+  TERRAIN_SOURCE, PHYSICS_SOURCE, TIMBER_SOURCE, ...HERO_TABLES, declared.trees.glb, declared.trees.sidecar, codeParts.url,
   ...Object.values(inputs.crags), ...Object.values(inputs.propScans),
   ...Object.values(sky.keys).flatMap(key => [skyKeySource(sky.keyFiles.color, key.id), skyKeySource(sky.keyFiles.gain, key.id)]),
 ];
@@ -72,31 +75,38 @@ async function cachedSources(ctx: Pick<ProjectGenerationContext, 'cached'>, id: 
 }
 
 function fromMap(files: ReadonlyMap<string, Uint8Array>): PineSources {
-  return { bytes: key => {
+  return { has: key => files.has(key), bytes: key => {
     const bytes = files.get(key);
     if (bytes === undefined) throw new Error(`Undeclared Pine source ${key}`);
     return bytes.slice();
   } };
 }
 
-/** GR8 (D65): every Pine source, read through `ctx.cached` (the fixed inputs, then the timber GLBs their rows name). */
-export async function readPineSources(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<PineSources> {
+/** GR8 (D65): every Pine source, read through `ctx.cached`: the fixed inputs, then the timber GLBs their rows name, then
+ *  the hero GLBs and the hero material payloads the declared folders hold. */
+export async function readPineSources(ctx: Pick<ProjectGenerationContext, 'cached' | 'inputFiles'>): Promise<PineSources> {
+  if (ctx.inputFiles === undefined) throw new Error('Pine sources need the build inventory (ctx.inputFiles)');
   const fixed = await cachedSources(ctx, 'pine-sources', FIXED);
   const timbers = await cachedSources(ctx, 'pine-timber-sources', timberGlbSources(fromMap(fixed)));
-  return fromMap(new Map([...fixed, ...timbers]));
+  const tables = fromMap(fixed), listed = new Set(ctx.inputFiles(heroMaterialFolders(tables)));
+  const heroes = [...new Set([...heroModelSources(), ...heroMaterialCandidates(tables).filter(url => listed.has(url))])];
+  return fromMap(new Map([...fixed, ...timbers, ...await cachedSources(ctx, 'pine-hero-sources', heroes)]));
 }
 
 /** Pine's sources for a Node script: `read` takes a repo-relative path (public URLs live under `public/`). */
 export function pineSourcesFrom(read: (path: string) => Uint8Array): PineSources {
   const files = new Map<string, Uint8Array>();
-  return { bytes: key => {
-    let bytes = files.get(key);
-    if (bytes === undefined) {
+  const bytes = (key: string): Uint8Array => {
+    let file = files.get(key);
+    if (file === undefined) {
       // an owned copy: a Node Buffer may be a view into a shared pool
-      bytes = new Uint8Array(read(key.startsWith('/') ? `public${key}` : `src/shards/pine-hollow/${key}`));
-      files.set(key, bytes);
+      file = new Uint8Array(read(key.startsWith('/') ? `public${key}` : `src/shards/pine-hollow/${key}`));
+      files.set(key, file);
     }
-    return bytes.slice();
+    return file.slice();
+  };
+  return { bytes, has: key => {
+    try { bytes(key); return true; } catch { return false; }
   } };
 }
 
