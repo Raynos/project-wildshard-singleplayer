@@ -125,6 +125,30 @@ export async function deriveGitVocabulary(view) {
     view.derived.set('lint/shard-words.generated.json',Buffer.from(JSON.stringify(shardWordData(view.root))));
   }
 }
+
+/** Pure pre-generation tables use their canonical writers and Git-owned JSON,
+ * never an ignored file left in the shared checkout.
+ * @param {ReturnType<typeof gitSourceView>} view */
+export async function deriveGitStarterTables(view) {
+  const tables = [
+    ['gen-starter-weapons.mjs','starterWeaponsTableSource','src/game/weapons/starter.generated.ts'],
+    ['gen-starter-bag.mjs','starterBagTableSource','src/game/bag/starter.generated.ts'],
+    ['gen-starter-effects.mjs','starterEffectsTableSource','src/game/systems/effects/starter.generated.ts'],
+    ['gen-starter-arm-clips.mjs','starterArmClipsTableSource','src/game/systems/viewmodel/clips.generated.ts'],
+  ];
+  for (const [file, binding, output] of tables) {
+    if (file === undefined || binding === undefined || output === undefined) throw new Error('Invalid starter table declaration');
+    const source = `scripts/${file}`;
+    if (!view.files.has(source)) continue;
+    /** @type {unknown} */ const module = await import(pathToFileURL(resolve(view.root,source)).href);
+    if (typeof module !== 'object' || module === null) throw new Error('Missing starter table module');
+    const emit = Reflect.get(module,binding);
+    if (typeof emit !== 'function') throw new Error(`Missing starter table writer: ${binding}`);
+    /** @type {unknown} */ const text = emit();
+    if (typeof text !== 'string') throw new Error(`Invalid starter table source: ${output}`);
+    view.derived.set(output,Buffer.from(text));
+  }
+}
 if(process.env.WS_GIT_CHECK_ROOT!==undefined&&process.env.WS_GIT_CHECK_REV!==undefined) {
   const view=gitSourceView(resolve(process.env.WS_GIT_CHECK_ROOT),process.env.WS_GIT_CHECK_REV);
   installGitSourceView(view);await deriveGitVocabulary(view);

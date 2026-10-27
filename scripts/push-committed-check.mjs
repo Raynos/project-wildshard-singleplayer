@@ -17,6 +17,18 @@ const NATIVE_PORTS = {
 export function runCommittedCheck(root, base, tip, phase, files, ports = NATIVE_PORTS) {
   const mirror = ports.open(tip, { repo: root });
   try {
+    // These four pure writers run before discovery in ordinary gen. Native
+    // lint needs their files too; run only the exact mirror-owned writers.
+    const prepare = ports.run(process.execPath, ['--input-type=module','--eval', `
+      for (const [file,name] of [['weapons','genStarterWeapons'],['bag','genStarterBag'],['effects','genStarterEffects'],['arm-clips','genStarterArmClips']]) {
+        const module = await import('./scripts/gen-starter-'+file+'.mjs');
+        module[name](process.cwd());
+      }
+    `], { cwd: mirror.dir, encoding: 'utf8', maxBuffer: 8 * 1024 * 1024,
+      env: { ...process.env, GIT_DIR: ports.gitDirectory(root), GIT_WORK_TREE: mirror.dir,
+        GIT_INDEX_FILE: resolve(mirror.dir, '../index') } });
+    if (prepare.error !== undefined) throw prepare.error;
+    if (prepare.status !== 0) return { status: prepare.status ?? 1, stdout: prepare.stdout ?? '', stderr: prepare.stderr ?? '' };
     const result = ports.run(process.execPath, [resolve(mirror.dir, 'scripts/committed-fast-checks.mjs'),
       mirror.dir, base, mirror.sha, phase, JSON.stringify(files)], {
       cwd: mirror.dir, encoding: 'utf8', maxBuffer: 8 * 1024 * 1024,

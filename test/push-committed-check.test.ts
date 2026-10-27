@@ -12,13 +12,23 @@ test('native checks use the exact committed mirror and its own index', () => {
   const f = fixture();
   expect(runCommittedCheck('/dirty', 'base', 'tip', 'fast-lint', ['src/main.ts'], f.ports).status).toBe(0);
   expect(f.open).toHaveBeenCalledWith('tip', { repo: '/dirty' });
-  const call = f.run.mock.calls[0];
+  const preparation = f.run.mock.calls[0];
+  expect(preparation?.[2].cwd).toBe('/clean/tree');
+  expect(preparation?.[1][2]).toContain('gen-starter-');
+  const call = f.run.mock.calls[1];
   if (call === undefined) throw new Error('No native checker executed');
   expect(call[1]).toEqual(['/clean/tree/scripts/committed-fast-checks.mjs', '/clean/tree', 'base', 'exact-tip', 'fast-lint', '["src/main.ts"]']);
   expect(call[2].cwd).toBe('/clean/tree');
   expect(call[2].env.GIT_DIR).toBe('/shared/.git');
   expect(call[2].env.GIT_WORK_TREE).toBe('/clean/tree');
   expect(call[2].env.GIT_INDEX_FILE).toBe('/clean/index');
+  expect(f.release).toHaveBeenCalledOnce();
+});
+
+test('table preparation failure refuses before native lint', () => {
+  const f = fixture(); f.run.mockReturnValue({ status: 7, stdout: '', stderr: 'table refused' });
+  expect(runCommittedCheck('/dirty', 'base', 'tip', 'fast-lint', [], f.ports)).toEqual({ status: 7, stdout: '', stderr: 'table refused' });
+  expect(f.run).toHaveBeenCalledOnce();
   expect(f.release).toHaveBeenCalledOnce();
 });
 

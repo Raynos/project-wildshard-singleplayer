@@ -130,6 +130,31 @@ test('committed good policy ignores a loose poison and still checks the source',
   }finally{f.close();}
 });
 
+test('native generated inputs match canonical committed producer bytes',()=>{
+  const f=fixture();try {
+    f.put('scripts/gen-starter-weapons.mjs',readFileSync(resolve('scripts/gen-starter-weapons.mjs'),'utf8'));
+    f.put('src/game/weapons/starterBow.json','{"damage":1}');
+    f.put('src/main.ts',"import {STARTER_BOW} from './game/weapons/starter.generated';export const value=STARTER_BOW;");
+    f.put('.gitignore','.gitignore\ntmp/\nnode_modules/\n*.generated.ts\n');
+    const tip=f.commit();
+    const generate=()=>execFileSync('node',['--input-type=module','--eval',"import {genStarterWeapons} from './scripts/gen-starter-weapons.mjs';genStarterWeapons();"],{cwd:f.root});
+    generate();
+    const passed=f.run('fast-lint',tip);
+    expect(passed.status,passed.stdout+passed.stderr).toBe(0);
+    expect(passed.stdout).toContain('Fast lint passed on 1 exact changed files');
+    expect(passed.stdout).not.toContain('DEFERRED TO CI');
+    f.put('src/game/weapons/starter.generated.ts','export const STARTER_BOW={damage:999};');
+    const poisoned=f.run('fast-lint',tip);
+    expect(poisoned.stdout).toContain('unverified inputs src/game/weapons/starter.generated.ts');
+    expect(poisoned.stdout).not.toContain('Fast lint passed');
+    f.put('src/game/weapons/starterBow.json','{"damage":2}');
+    const changed=f.commit();generate();
+    const changedResult=f.run('fast-lint',changed);
+    expect(changedResult.status,changedResult.stdout+changedResult.stderr).toBe(0);
+    expect(changedResult.stdout).toContain('Fast lint passed on 1 exact changed files');
+  }finally{f.close();}
+});
+
 test('deleted-path guard ignores loose rescues and keeps frozen legacy references historical',()=>{
   const f=fixture();try {
     f.put('src/other.ts','export const other=1;');f.commit();f.git('rm','src/other.ts');
