@@ -7,6 +7,7 @@ import { Scope } from '../src/engine/app/scope';
 import { ENGINE_CONTENT_STRINGS } from '../src/game/engineStrings';
 import { installEngineStrings } from '../src/engine/strings';
 import { prepareNativeScalarBlocks } from '../scripts/bake/nativeWorld.mjs';
+import { nalatiGeographySources } from '../src/shards/nalati-grasslands/generators/geographySource';
 /**
  * Test environment: plain node plus the two browser globals the game's pure modules touch at import time —
  * `localStorage` (Settings / Inventory / Progress / boot timings persist there) and `location` (the chunk registry
@@ -44,7 +45,18 @@ const [{ installAssetTables }, { PUBLIC_BYTES }, { ASSET_VERSIONS }, audioTables
 installAssetTables({ bytes: PUBLIC_BYTES, versions: ASSET_VERSIONS, music: audioTables.MUSIC_MANIFESTS, sfx: audioTables.SFX_MANIFESTS, packs: PACKS });
 await import('../src/shardList');
 const {shards:scalarDefinitions}=await import('../src/game/shard/list');
-for (const definition of scalarDefinitions()) prepareNativeScalarBlocks(definition, process.cwd());
+for (const definition of scalarDefinitions()) {
+  const intake = definition.scalarBlocks;
+  if (definition.slug === 'nalati-grasslands' && intake !== undefined && !intake.prepared) {
+    const sources = nalatiGeographySources();
+    intake.prepare(new Map(intake.files.map(file => {
+      const bytes = sources.get(file);
+      if (bytes === undefined) throw new Error(`Missing owned Nalati scalar source: ${file}`);
+      return [file, bytes];
+    })));
+  }
+  prepareNativeScalarBlocks(definition, process.cwd());
+}
 const { registerAchievements } = await import('../src/game/achievements');
 const { PINE_FEATS } = await import('../src/shards/pine-hollow/generators/questInventory');
 const { DRIFTWOOD_ITEMS, DRIFTWOOD_FEATS } = await import('../src/shards/driftwood-isle/generators/questInventory');
