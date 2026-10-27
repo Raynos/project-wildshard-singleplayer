@@ -29,7 +29,11 @@ test('the shared assembly document retains the complete page elite roster and it
   const boot = v.parse(v.object({ combatTargets: CombatTargetRowsSchema }), JSON.parse(new TextDecoder().decode(bootBytes)));
   expect(boot.combatTargets).toEqual(combatTargets);
   const scripts=outputScriptAdmissionRows(product.output.platform);
-  expect(new Set(scripts.filter(row=>row.side==='sim').map(row=>row.module)).size).toBe(8);
+  const sim = scripts.filter(row=>row.side==='sim');
+  // The original eight stay; GR6 publishes the formerly inline course as the ninth.
+  expect(new Set(sim.filter(row=>row.id!=='practice.course').map(row=>row.module)).size).toBe(8);
+  expect(sim.filter(row=>row.id==='practice.course').map(row=>row.module)).toEqual(['blobs/wasm/6ffc72748c1709f4239ac983fdda5841a524a026512287fe16f0fa498b276102.wasm']);
+  expect(new Set(sim.map(row=>row.module)).size).toBe(9);
   expect(()=>validateShardfileAssets(product.shard,product.assets,contentHash,undefined,undefined,scripts)).not.toThrow();
   expect(product.output.namedFiles?.some(row=>row.name==='behaviour/nalati.titan.attack.wasm')).toBe(false);
   const fightFile=product.output.namedFiles?.find(row=>row.name==='combat/titan-fight.json');
