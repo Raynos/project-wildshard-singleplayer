@@ -30,6 +30,12 @@ export interface CabinSpecimen {
 type Distance = number | { readonly knob: string; readonly multiply: number; readonly add: number };
 const propKinds = ['crate', 'barrel', 'bucket', 'hatchet'] as const;
 const propIds = { crate: 'wooden-crate', barrel: 'wine-barrel', bucket: 'wooden-bucket', hatchet: 'hatchet' };
+const propMaterialSources: Readonly<Record<PropKind, string>> = {
+  crate: '/assets/models/wooden_crate_02/wooden_crate_02.gltf',
+  barrel: '/assets/models/wine_barrel_01/wine_barrel_01.gltf',
+  bucket: '/assets/models/wooden_bucket_01/wooden_bucket_01.gltf',
+  hatchet: '/assets/models/hatchet/hatchet.gltf',
+};
 const partKeys = ['log', 'endGrain', 'chink', 'roof', 'beam', 'deck', 'door', 'stone', 'bark', 'iron', 'cloth', 'char'] as const;
 const particleKeys = ['flame', 'ember', 'smoke'] as const;
 const words = (values: Float32Array): number[] => [...new Uint32Array(values.buffer, values.byteOffset, values.length)];
@@ -73,7 +79,7 @@ export class CabinSceneRecorder {
     for (const kind of propKinds) {
       const material = new THREE.MeshStandardMaterial(), id = `materials.cabin.prop.${kind}`;
       material.name = id; result.set(`prop.${kind}`, material); this.materialIds.set(material, id);
-      this.sourceMaterials.set(id, { id, url: `/assets/models/${{ crate: 'wooden_crate_02', barrel: 'wine_barrel_01', bucket: 'wooden_bucket_01', hatchet: 'hatchet' }[kind]}/${{ crate: 'wooden_crate_02', barrel: 'wine_barrel_01', bucket: 'wooden_bucket_01', hatchet: 'hatchet' }[kind]}.gltf`, part: 0 });
+      this.sourceMaterials.set(id, { id, url: propMaterialSources[kind], part: 0 });
     }
     for (const [name, model] of [['pit', source.firePit], ['lantern', source.lantern]] as const) {
       let part = 0;

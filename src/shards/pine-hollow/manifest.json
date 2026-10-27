@@ -51,6 +51,11 @@
   },
   "debugOptions": [],
   "assetGlobs": [
+    "public/assets/models/wooden_crate_02/wooden_crate_02.gltf",
+    "public/assets/models/wine_barrel_01/wine_barrel_01.gltf",
+    "public/assets/models/wooden_bucket_01/wooden_bucket_01.gltf",
+    "public/assets/models/hatchet/hatchet.gltf",
+    "public/assets/models/Lantern_01/Lantern_01_lod.glb",
     "public/assets/models/pine-hollow-crags/**",
     "public/assets/models/pine-hollow-hero/**",
     "public/assets/models/pine-hollow-trees/**",
