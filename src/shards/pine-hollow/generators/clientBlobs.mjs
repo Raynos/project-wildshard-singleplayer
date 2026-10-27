@@ -2,6 +2,7 @@
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {namedBlobOutput} from '../../../../scripts/named-blob-output.mjs';
+import {leverDetailPool} from './crossbowPool.ts';
 
 const project=new URL('../',import.meta.url),root=new URL('../../../../',import.meta.url);
 const json=path=>JSON.parse(readFileSync(new URL(path,project),'utf8'));
@@ -12,7 +13,8 @@ for(const [key,row]of Object.entries(painted.textures))add(`textures/painted/${k
 const trophies=json('data/trophyMounts.json');
 add('models/trophies/mounts.bin','bin',trophies.url);
 const details=json('data/leverDetails.json');
-add('models/held/lever-details.glb','glb',details.pool.url);
+// GR8: the rifle's detail pool is built here (no scheduler job, no stored GLB), under its declared URL alias
+blobs.add('models/held/lever-details.glb','glb',leverDetailPool(),details.pool.url);
 const hands=json('data/handsPool.generated.json');
 add('models/held/hands.glb','glb',hands.pool.url);
 blobs.finish(new URL('data/clientBlobs.generated.json',project));
