@@ -672,7 +672,7 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
       await pause();
       if (widen !== undefined) {
         // each pause is one completed frame: a late one is the GPU process still building, so the next draw narrows
-        const now = performance.now(), took = now - frameAt; frameAt = now;
+        const now = diagnosticNow(), took = now - frameAt; frameAt = now;
         if (!Number.isNaN(took)) width = took <= widen.frameMs ? Math.min(widen.max, width * 2) : Math.max(1, Math.floor(width / 2));
       }
     }
