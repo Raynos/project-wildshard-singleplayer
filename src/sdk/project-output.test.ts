@@ -247,3 +247,23 @@ test('source entry and sidecar share one immutable construction and invalidate b
   expect(keys[6]).toBe(keys[7]); expect(keys[6]).not.toBe(keys[4]);
   } finally { observer.unsubscribe(observe); }
 });
+
+
+test('sidecar discovery uses fresh bounded inputs and rejects executable values', async () => {
+  const path = directory(); mkdirSync(resolve(path, 'generators'));
+  writeFileSync(resolve(path, 'shard.config.ts'), `export default ${JSON.stringify(source())};`);
+  writeFileSync(resolve(path, 'seed.bin'), new Uint8Array([7]));
+  const program = `export const output = {};
+export async function prepareDiscovery(ctx) {
+  const files = await ctx.cached({id:'discovery-seed',inputs:['seed.bin']}, bytes => new Map([['seed',bytes.get('seed.bin')]]));
+  return {'ground.rows':{seed:files.get('seed')[0]}};
+}`;
+  writeFileSync(resolve(path, 'generators/output.ts'), program);
+  const first = await readProjectAssets(path);
+  expect(first.output.discovery).toEqual({'ground.rows':{seed:7}});
+  writeFileSync(resolve(path, 'seed.bin'), new Uint8Array([9]));
+  expect((await readProjectAssets(path)).output.discovery).toEqual({'ground.rows':{seed:9}});
+  expect(first.output.discovery).toEqual({'ground.rows':{seed:7}});
+  writeFileSync(resolve(path, 'generators/output.ts'), program.replace("{seed:files.get('seed')[0]}", '() => 7'));
+  await expect(readProjectAssets(path)).rejects.toThrow('Discovery values must be plain bounded JSON');
+});

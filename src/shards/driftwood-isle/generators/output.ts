@@ -106,6 +106,7 @@ import { DRIFTWOOD_OUTPUT } from '../generators/assets';
 import { DRIFTWOOD_CLIENT_SECTIONS, driftwoodOceanWaterRow } from './clientSections';
 import type { DriftwoodCreatureBodyBank } from './creatureBodyBank';
 import { driftwoodMap } from './mapProgram';
+import { driftwoodGroundDeclaration } from './groundDeclaration';
 
 const schemas:Readonly<Record<string,v.GenericSchema>>=SECTIONS;
 const placed = enemyPlacements();
@@ -225,4 +226,9 @@ export async function prepareOutput(ctx: Pick<ProjectGenerationContext, 'cached'
 /** GR7: the map lattice (the source-owned map: the SDK publishes it as `ui/images/map` and the public alias). */
 export async function prepareMap(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<{ pixels: Uint8Array; name: string }> {
   return { pixels: await driftwoodMap(ctx), name: 'ui/images/map' };
+}
+
+/** Bounded discovery data from defining source producers, admitted by the SDK. */
+export function prepareDiscovery(): { 'ground.rows': ReturnType<typeof driftwoodGroundDeclaration> } {
+  return { 'ground.rows': driftwoodGroundDeclaration() };
 }

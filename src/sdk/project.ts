@@ -153,6 +153,13 @@ async function projectModule(project: string, decisionLegacyLines?: number, sele
     if (map !== undefined) throw new Error('Generated project declares its map twice');
     map = await generatedProjectMap(await prepareMap(generation), mapSourceHash ?? program.hash);
   }
+  // A sidecar may compute finite discovery data through the same explicit input context.
+  const prepareDiscovery = sidecar?.['prepareDiscovery'];
+  if (prepareDiscovery !== undefined) {
+    if (!isProjectGenerator(prepareDiscovery)) throw new Error('Discovery preparation must be a build function');
+    if (discovery !== undefined) throw new Error('Generated project declares its discovery twice');
+    discovery = parseDiscoveryValues(await prepareDiscovery(generation));
+  }
   shard = mergeProjectSections(shard, sidecar?.['sections']);
   const output = await prepareProjectOutput(project, generatedOutput ?? (sidecar === undefined ? loaded['output'] : sidecarOutput), { source: shard, options: projectDecisionOptions(loaded['buildOptions'], projectDecisionBudget(project, decisionLegacyLines)) });
   // The CLI-only sidecar may declare the runtime/const.ts mirrors too (a browser config cannot import data/ values).
