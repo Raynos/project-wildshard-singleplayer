@@ -142,7 +142,7 @@ async function fixture(options: { paired?: boolean; loading?: number; isolation?
         if (cell.instance === east.instance && control.ownedYield) return (async () => {
           const cancel = (): void => { host.scope.dispose(); };
           signal?.addEventListener('abort', cancel, { once: true });
-          try { control.yielding = true; await buildYield(host.scope); return region; }
+          try { control.reject = () => { host.scope.dispose(); }; control.yielding = true; await buildYield(host.scope); return region; }
           catch (error) { region.dispose(); throw error; }
           finally { signal?.removeEventListener('abort', cancel); }
         })();
@@ -302,39 +302,38 @@ test('G663: in a source no neighbour builds, whichever way the traveller heads, 
   } finally { f.close(); }
 });
 
-test('G723: explicitly isolated preparation keeps two charged worlds before the edge, then retires before entry', async () => {
-  const f = await fixture({ paired: true });
+test('T7: an isolated neighbour retains tiles, not a second charged world', async () => {
+  const tiles: string[] = [], f = await fixture({ paired: true, tilePreparation: true, tileApproaches: tiles });
   try {
-    await f.enterHome();
-    const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
     await f.approachEast();
-    expect(f.live.state().residents).toEqual([f.home.instance, f.east.instance].sort());
-    expect(f.live.ready(f.east.instance)).toBe(true);
-    expect(f.events).not.toContain(`retire:${f.home.instance}`);
-    expect(f.allocated.find(row => row.instance === f.east.instance)?.owners).toContain(f.home.instance);
+    expect(tiles).toEqual([f.east.instance]);
+    expect(f.live.state().residents).toEqual([]); expect(f.live.ready(f.east.instance)).toBe(false);
+    expect(f.created()).toEqual([f.home.instance]);
     const enter = await f.live.prepare(null, f.east.instance);
     expect(f.events).toContain(`disposed:${f.home.instance}`);
     expect(f.claims().some(row => row.owner === f.home.instance)).toBe(false);
+    expect(f.allocated.find(row => row.instance === f.east.instance)?.owners).not.toContain(f.home.instance);
     enter.commit();
     expect(f.events.indexOf(`disposed:${f.home.instance}`)).toBeLessThan(f.events.indexOf(`frame:${f.east.instance}`));
     expect(f.live.state().residents).toEqual([f.east.instance]);
   } finally { f.close(); }
 });
 
-test('G723: isolated preparation uses a direct heading inside the source without transferring its traveller', async () => {
-  const f = await fixture({ paired: true });
+test('T7: a direct heading prepares render tiles without transferring the source traveller', async () => {
+  const tiles: string[] = [], f = await fixture({ paired: true, tilePreparation: true, tileApproaches: tiles });
   try {
     await f.enterHome(); await f.live.prefetch([f.east.instance]);
     const sourceFrames = f.events.filter(event => event.startsWith('frame:'));
     f.player.position.x = CHUNK_HALF - 30; travel(f.live, f.player.position, 1, 0); await f.settle();
-    expect(f.live.current()).toBe(f.home.instance);
-    expect(f.live.state().residents).toEqual([f.home.instance, f.east.instance].sort());
-    expect(f.live.ready(f.east.instance)).toBe(true);
+    expect(tiles).toEqual([f.east.instance]); expect(f.live.current()).toBe(f.home.instance);
+    expect(f.live.state().residents).toEqual([f.home.instance]); expect(f.live.ready(f.east.instance)).toBe(false);
     expect(f.events.filter(event => event.startsWith('frame:'))).toEqual(sourceFrames);
     expect(f.events).not.toContain(`retire:${f.home.instance}`);
-    expect(f.allocated.find(row => row.instance === f.east.instance)?.owners).toContain(f.home.instance);
+    expect(f.created()).toEqual([f.home.instance]);
     await f.cross(f.home.instance, f.east.instance);
     expect(f.events.indexOf(`disposed:${f.home.instance}`)).toBeLessThan(f.events.indexOf(`frame:${f.east.instance}`));
+    expect(f.allocated.find(row => row.instance === f.east.instance)?.owners).not.toContain(f.home.instance);
     expect(f.live.state().residents).toEqual([f.east.instance]);
   } finally { f.close(); }
 });
@@ -399,22 +398,19 @@ test('G723: an active source keeps its ordinary ordering when isolation or the p
   }
 });
 
-test('G723: source-side preparation rechecks its budget after admission and keeps an immediate return', async () => {
-  const f = await fixture({ paired: true });
+test('T7: source-side tile preparation never borrows a whole-world pair budget', async () => {
+  const pins: { instance: string; start: { readonly x: number; readonly z: number }; signal: AbortSignal }[] = [];
+  const f = await fixture({ paired: true, tilePreparation: true, tilePins: pins });
   try {
     await f.enterHome(); await f.live.prefetch([f.east.instance]);
-    f.player.position.x = CHUNK_HALF - 30; travel(f.live, f.player.position, 1, 0);
-    expect(f.live.state().pending).toContain(f.east.instance);
-    f.budget.loading = 1; await f.settle();
-    expect(f.created()).toEqual([f.home.instance]);
-    expect(f.live.state().issues).toEqual({});
-    f.budget.loading = 1_800_000_000; travel(f.live, f.player.position, 1, 0); await f.settle();
-    expect(f.live.ready(f.east.instance)).toBe(true);
+    f.player.position.x = CHUNK_HALF - 30; travel(f.live, f.player.position, 1, 0); await f.settle();
+    expect(pins).toHaveLength(1); expect(f.created()).toEqual([f.home.instance]);
+    expect(f.live.state().issues).toEqual({}); expect(f.live.ready(f.east.instance)).toBe(false);
     const leave = await f.live.prepare(f.home.instance, null); leave.commit();
     const back = await f.live.prepare(null, f.home.instance); back.commit(); await f.settle();
     expect(f.created().filter(id => id === f.home.instance)).toHaveLength(1);
     expect(f.live.state().residents).toEqual([f.home.instance]);
-    expect(f.events).toContain(`disposed:${f.east.instance}`);
+    expect(f.claims().some(row => row.owner === f.east.instance)).toBe(false);
     expect(f.events).not.toContain(`retire:${f.home.instance}`);
   } finally { f.close(); }
 });
@@ -430,72 +426,75 @@ test('G723: standing inside a source never guesses its isolated neighbour', asyn
 });
 
 test('G723: committing the initial spawn does not turn its placement into a neighbour heading', async () => {
-  const f = await fixture({ paired: true });
+  const tiles: string[] = [], f = await fixture({ paired: true, tilePreparation: true, tileApproaches: tiles });
   try {
     f.live.beforeFixed();
     const enter = await f.live.prepare(null, f.home.instance);
     f.player.position.x = CHUNK_HALF - 30; enter.commit();
     await f.live.prefetch([f.east.instance]); await f.settle();
     expect(f.live.current()).toBe(f.home.instance);
-    expect(f.created()).toEqual([f.home.instance]);
+    expect(f.created()).toEqual([f.home.instance]); expect(tiles).toEqual([]);
     travel(f.live, f.player.position, 1, 0); await f.settle();
-    expect(f.live.ready(f.east.instance)).toBe(true);
+    expect(tiles).toEqual([f.east.instance]); expect(f.live.ready(f.east.instance)).toBe(false);
     expect(f.live.current()).toBe(f.home.instance);
   } finally { f.close(); }
 });
 
 test('G723: a source pose jump resets the heading before the next genuine movement', async () => {
-  const f = await fixture({ paired: true });
+  const tiles: string[] = [], f = await fixture({ paired: true, tilePreparation: true, tileApproaches: tiles });
   try {
     await f.enterHome(); await f.live.prefetch([f.east.instance]); f.live.beforeFixed();
     f.player.position.x = CHUNK_HALF - 30; f.live.beforeFixed(); await f.settle();
-    expect(f.created()).toEqual([f.home.instance]);
+    expect(f.created()).toEqual([f.home.instance]); expect(tiles).toEqual([]);
     travel(f.live, f.player.position, 1, 0); await f.settle();
-    expect(f.live.ready(f.east.instance)).toBe(true);
-    expect(f.live.state().residents).toEqual([f.home.instance, f.east.instance].sort());
+    expect(tiles).toEqual([f.east.instance]); expect(f.live.ready(f.east.instance)).toBe(false);
+    expect(f.live.state().residents).toEqual([f.home.instance]);
   } finally { f.close(); }
 });
 
 test('G723: a road pose jump is not a boulevard prediction and the following drive still prepares', async () => {
-  const f = await fixture({ paired: true });
+  const tiles: string[] = [], f = await fixture({ paired: true, tilePreparation: true, tileApproaches: tiles });
   try {
     await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
     await f.live.prefetch([f.east.instance]);
     f.player.position.x = f.east.origin.x / 2; f.player.position.z = -300; f.live.beforeFixed();
     f.player.position.z = -100; f.live.beforeFixed(); await f.settle();
-    expect(f.created()).toEqual([f.home.instance]);
+    expect(f.created()).toEqual([f.home.instance]); expect(tiles).toEqual([]);
     travel(f.live, f.player.position, 0, 1); await f.settle();
-    expect(f.live.ready(f.east.instance)).toBe(true);
-    expect(f.live.state().residents).toEqual([f.home.instance, f.east.instance].sort());
+    expect(tiles).toEqual([f.east.instance]); expect(f.live.ready(f.east.instance)).toBe(false);
+    expect(f.live.state().residents).toEqual([]);
   } finally { f.close(); }
 });
 
-test('G723: filtering a pose heading never suppresses ordinary readiness at the destination wall', async () => {
+test('T7: actual destination-wall demand completes readiness even after a pose jump', async () => {
   const f = await fixture({ paired: true });
   try {
     await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
     await f.live.prefetch([f.east.instance]);
     f.player.position.x = f.east.origin.x - CHUNK_HALF - .5; f.player.position.z = 0;
     f.live.beforeFixed(); await f.settle();
-    expect(f.live.current()).toBe(null);
-    expect(f.live.ready(f.east.instance)).toBe(true);
-    expect(f.live.state().residents).toEqual([f.home.instance, f.east.instance].sort());
-    expect(f.events).not.toContain(`retire:${f.home.instance}`);
+    expect(f.live.current()).toBeNull(); expect(f.live.ready(f.east.instance)).toBe(false);
+    const prepared = await f.live.prepare(null, f.east.instance);
+    expect(f.live.current()).toBeNull(); expect(f.live.ready(f.east.instance)).toBe(true);
+    expect(f.live.state().residents).toEqual([f.east.instance]);
+    expect(f.events).toContain(`retire:${f.home.instance}`); prepared.commit();
+    expect(f.live.current()).toBe(f.east.instance);
   } finally { f.close(); }
 });
 
-test('G723: a U-turn retires an already prepared guess and reuses the kept source', async () => {
-  const f = await fixture({ paired: true });
+test('T7: a U-turn cancels a render guess and reconstructs a departed source', async () => {
+  const pins: { instance: string; start: { readonly x: number; readonly z: number }; signal: AbortSignal }[] = [];
+  const f = await fixture({ paired: true, tilePreparation: true, tilePins: pins });
   try {
     await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
-    await f.approachEast();
-    expect(f.live.ready(f.east.instance)).toBe(true);
+    await f.approachEast(); expect(f.live.ready(f.east.instance)).toBe(false);
     const back = await f.live.prepare(null, f.home.instance); back.commit(); await f.settle();
-    expect(f.created().filter(id => id === f.home.instance)).toHaveLength(1);
+    expect(f.created().filter(id => id === f.home.instance)).toHaveLength(2);
     expect(f.live.state().residents).toEqual([f.home.instance]);
-    expect(f.events).not.toContain(`retire:${f.home.instance}`);
-    expect(f.events).toContain(`disposed:${f.east.instance}`);
+    expect(f.events).toContain(`retire:${f.home.instance}`);
+    expect(f.created()).not.toContain(f.east.instance);
   } finally { f.close(); }
+  expect(pins[0]?.signal.aborted).toBe(true);
 });
 
 test('G723: a budget refusal keeps the old retire-before-allocation crossing without an issue', async () => {
@@ -521,137 +520,135 @@ test('G723: a budget port alone never treats an opaque factory as isolated', asy
   } finally { f.close(); }
 });
 
-test('G723: the budget is rechecked after queuing, retaining metadata for a safe later attempt', async () => {
+test('T7: queued metadata stays inert until an actual entry allocates', async () => {
   const f = await fixture({ paired: true });
   try {
     await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
     await f.live.prefetch([f.east.instance]);
-    f.player.position.x = CHUNK_HALF + .5; travel(f.live, f.player.position, 1, 0);
-    expect(f.live.state().pending).toContain(f.east.instance);
-    f.budget.loading = 1; await f.settle();
-    expect(f.created()).toEqual([f.home.instance]);
+    f.player.position.x = CHUNK_HALF + .5; travel(f.live, f.player.position, 1, 0); await f.settle();
+    expect(f.created()).toEqual([f.home.instance]); expect(f.live.ready(f.east.instance)).toBe(false);
     expect(f.live.state().issues).toEqual({});
-    expect(f.live.ready(f.east.instance)).toBe(false);
-    f.budget.loading = 1_800_000_000;
-    travel(f.live, f.player.position, 1, 0); await f.settle();
+    const enter = await f.live.prepare(null, f.east.instance); enter.commit();
     expect(f.live.ready(f.east.instance)).toBe(true);
     expect(f.created()).toEqual([f.home.instance, f.east.instance]);
+    expect(f.admissions.filter(id => id === f.east.instance)).toHaveLength(1);
+    expect(f.allocated.at(-1)?.owners).not.toContain(f.home.instance);
   } finally { f.close(); }
 });
 
-test('G723: a unique isolated boulevard destination prepares before the traveller turns into its mouth', async () => {
-  const f = await fixture({ paired: true });
+test('T7: a unique boulevard destination pins tiles before the traveller turns', async () => {
+  const tiles: string[] = [], f = await fixture({ paired: true, tilePreparation: true, tileApproaches: tiles });
   try {
     await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
     await f.live.prefetch([f.east.instance]);
     f.player.position.x = f.east.origin.x / 2; f.player.position.z = -100;
     travel(f.live, f.player.position, 0, 1); await f.settle();
-    expect(f.live.current()).toBe(null);
-    expect(f.live.ready(f.east.instance)).toBe(true);
-    expect(f.live.state().residents).toEqual([f.home.instance, f.east.instance].sort());
-    expect(f.events).not.toContain(`retire:${f.home.instance}`);
+    expect(tiles).toEqual([f.east.instance]); expect(f.live.current()).toBeNull();
+    expect(f.live.ready(f.east.instance)).toBe(false); expect(f.live.state().residents).toEqual([]);
+    expect(f.events).toContain(`retire:${f.home.instance}`); expect(f.created()).toEqual([f.home.instance]);
   } finally { f.close(); }
 });
 
-test('G723: changing the prepared prediction never allocates a third world', async () => {
+test('T7: replacing a prepared actual entry retires it before the next world', async () => {
   const f = await fixture({ paired: true });
   try {
     await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
-    await f.approachEast();
+    const east = await f.live.prepare(null, f.east.instance);
     expect(f.live.ready(f.east.instance)).toBe(true);
     const next = await f.live.prepare(null, f.north.instance); next.commit();
+    expect(() => east.commit()).toThrow('Stale live frame commit');
     expect(f.events.indexOf(`disposed:${f.east.instance}`)).toBeLessThan(f.events.indexOf(`create:${f.north.instance}`));
-    expect(f.allocated.every(row => row.owners.filter(owner => [f.home.instance, f.east.instance, f.north.instance].includes(owner)).length <= 2)).toBe(true);
+    expect(f.allocated.every(row => row.owners.filter(owner => [f.home.instance, f.east.instance, f.north.instance].includes(owner)).length <= 1)).toBe(true);
     expect(f.live.state().residents).toEqual([f.north.instance]);
   } finally { f.close(); }
 });
 
-test('G723: a changed road prediction replaces only the incoming world, keeping the immediate return', async () => {
-  const f = await fixture({ paired: true });
+test('T7: a changed road prediction replaces only the render pin', async () => {
+  const pins: { instance: string; start: { readonly x: number; readonly z: number }; signal: AbortSignal }[] = [];
+  const f = await fixture({ paired: true, tilePreparation: true, tilePins: pins });
   try {
     await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
-    await f.approachEast();
-    await f.live.prefetch([f.north.instance]);
+    await f.approachEast(); await f.live.prefetch([f.north.instance]);
     f.player.position.x = 0; f.player.position.z = -(CHUNK_HALF + .5);
     travel(f.live, f.player.position, 0, -1); await f.settle();
-    expect(f.live.state().residents).toEqual([f.home.instance, f.north.instance].sort());
-    expect(f.events).not.toContain(`retire:${f.home.instance}`);
-    expect(f.events.indexOf(`disposed:${f.east.instance}`)).toBeLessThan(f.events.indexOf(`create:${f.north.instance}`));
-    expect(f.allocated.every(row => row.owners.filter(owner => [f.home.instance, f.east.instance, f.north.instance].includes(owner)).length <= 2)).toBe(true);
+    expect(pins.map(row => row.instance)).toEqual([f.east.instance, f.north.instance]);
+    expect(pins[0]?.signal.aborted).toBe(true); expect(pins[1]?.signal.aborted).toBe(false);
+    expect(f.live.state().residents).toEqual([]); expect(f.created()).toEqual([f.home.instance]);
+    const next = await f.live.prepare(null, f.north.instance); next.commit();
+    expect(f.allocated.at(-1)?.owners).not.toContain(f.home.instance);
+    expect(f.live.state().residents).toEqual([f.north.instance]);
   } finally { f.close(); }
 });
 
-test('G723: a late build that ignores its abort is disposed after a U-turn, never published', async () => {
+test('T7: a late actual build is disposed after a superseding U-turn, never published', async () => {
   const f = await fixture({ paired: true });
   try {
     await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
     f.control.holdIncoming = true;
-    await f.approachEast();
-    expect(f.live.state().pending).toContain(f.east.instance);
-    const back = await f.live.prepare(null, f.home.instance); back.commit();
+    const first = f.live.prepare(null, f.east.instance), stale = expect(first).rejects.toThrow('Stale live frame preparation');
+    await f.settle(); expect(f.live.state().pending).toContain(f.east.instance);
+    const returning = f.live.prepare(null, f.home.instance);
     if (f.control.finish === undefined) throw new Error('Missing incoming build');
-    f.control.finish(); await f.settle();
+    f.control.finish(); await stale;
+    const back = await returning; back.commit();
     expect(f.live.state().residents).toEqual([f.home.instance]);
     expect(f.claims().some(row => row.owner === f.east.instance)).toBe(false);
     expect(f.events).toContain(`disposed:${f.east.instance}`);
+    expect(f.events).not.toContain(`frame:${f.east.instance}`);
     expect(f.live.state().issues).toEqual({});
   } finally { f.control.finish?.(); f.close(); }
 });
 
-test('G743: a sustained redirect cancels the old guess but cleanup still owns the queue', async () => {
-  const f = await fixture({ paired: true });
+test('T7: a sustained redirect aborts the old render owner without allocating a world', async () => {
+  let finish = (): void => undefined;
+  const ready = new Promise<void>(resolve => { finish = resolve; });
+  const pins: { instance: string; start: { readonly x: number; readonly z: number }; signal: AbortSignal }[] = [];
+  const priorities: string[] = [], f = await fixture({ paired: true, tilePreparation: true, tilePins: pins, priorities, tileReady: () => ready });
   try {
     await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
-    f.control.holdIncoming = true; await f.approachEast();
-    await f.live.prefetch([f.north.instance]);
+    await f.approachEast(); await f.live.prefetch([f.north.instance]);
     f.player.position.x = 0; f.player.position.z = -(CHUNK_HALF + .5);
     travel(f.live, f.player.position, 0, -1); await f.settle();
-    expect(f.control.aborted).toEqual([]);
-    f.player.position.z -= 1; f.live.beforeFixed();
-    expect(f.control.aborted).toEqual([]);
-    f.player.position.z -= 1; f.live.beforeFixed(); await f.settle();
-    expect(f.control.aborted).toEqual([f.east.instance]);
-    expect(f.live.state().pending).toEqual([f.east.instance]);
-    expect(f.created()).toEqual([f.home.instance, f.east.instance]);
-    expect(f.live.state().residents).toEqual([f.home.instance]);
-    expect(f.events).not.toContain(`retire:${f.home.instance}`);
-    const back = await f.live.prepare(null, f.home.instance); back.commit();
-    if (f.control.finish === undefined) throw new Error('Missing held preparation');
-    f.control.finish(); await f.settle();
-    expect(f.live.state().residents).toEqual([f.home.instance]);
+    expect(pins[0]?.signal.aborted).toBe(true); expect(pins[1]?.signal.aborted).toBe(false);
+    expect(f.control.aborted).toEqual([]); expect(f.created()).toEqual([f.home.instance]);
+    expect(f.live.state().residents).toEqual([]);
+    expect(priorities.filter(row => row === `release:${f.east.instance}`)).toHaveLength(0);
+    finish(); await f.settle();
+    expect(priorities).toContain(`release:${f.east.instance}`);
     expect(f.live.state().issues).toEqual({});
-  } finally { f.control.finish?.(); f.close(); }
+  } finally { finish(); f.close(); }
 });
 
-test('G723: actual owned yield cancellation releases the claim and unblocks the committed destination', async () => {
-  const f = await fixture({ paired: true });
+test('T7: an actual constructor scope cancellation releases its claim before queued entry', async () => {
+  const f = await fixture({ paired: true }), failure = new Error('Requested constructor owner left');
   try {
     await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
     await f.live.prefetch([f.east.instance]); f.control.ownedYield = true;
-    f.player.position.x = CHUNK_HALF + .5; travel(f.live, f.player.position, 1, 0);
-    // Reach the real scoped timer without firing it. The committed crossing cancels this owner mid-yield.
-    for (let i = 0; i < 20 && !f.control.yielding; i++) await Promise.resolve();
-    expect(f.control.yielding).toBe(true);
-    expect(f.claims().some(row => row.owner === f.east.instance)).toBe(true);
-    const enter = await f.live.prepare(null, f.north.instance); enter.commit();
+    const first = f.live.prepare(null, f.east.instance), refused = expect(first).rejects.toThrow();
+    for (let i = 0; i < 40 && !f.control.yielding; i++) await Promise.resolve();
+    expect(f.control.yielding).toBe(true); expect(f.claims().some(row => row.owner === f.east.instance)).toBe(true);
+    const entering = f.live.prepare(null, f.north.instance);
+    if (f.control.reject === undefined) throw new Error('Missing constructor owner cancellation');
+    f.control.reject(failure); await refused;
+    const enter = await entering; enter.commit();
     expect(f.live.current()).toBe(f.north.instance);
     expect(f.claims().some(row => row.owner === f.east.instance)).toBe(false);
     expect(f.events).toContain(`disposed:${f.east.instance}`);
     expect(f.live.state().pending).toEqual([]);
-    expect(f.live.state().issues).toEqual({});
+    expect(f.live.state().issues[f.north.instance]).toBeUndefined();
+    expect(f.live.refusal(f.east.instance)).toBeInstanceOf(Error);
   } finally { f.close(); }
 });
 
-test('G723: failed source retirement blocks entry even when the destination was prepared', async () => {
+test('T7: failed source retirement blocks entry even when destination metadata is ready', async () => {
   const f = await fixture({ paired: true });
   try {
-    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
-    await f.approachEast();
-    expect(f.live.ready(f.east.instance)).toBe(true);
-    f.control.dispose = false;
+    await f.enterHome(); await f.live.prefetch([f.east.instance]);
+    expect(f.admissions).toContain(f.east.instance); expect(f.live.ready(f.east.instance)).toBe(false);
+    const leave = await f.live.prepare(f.home.instance, null); leave.commit(); f.control.dispose = false;
     await expect(f.live.prepare(null, f.east.instance)).rejects.toThrow('successful disposal');
-    expect(f.live.current()).toBe(null);
-    expect(f.claims().filter(row => [f.home.instance, f.east.instance].includes(row.owner))).toHaveLength(2);
+    expect(f.live.current()).toBeNull(); expect(f.created()).toEqual([f.home.instance]);
+    expect(f.claims().filter(row => [f.home.instance, f.east.instance].includes(row.owner))).toHaveLength(1);
     expect(f.live.state().issues[`cleanup:${f.home.instance}`]).toContain('kept disposal refused');
   } finally { f.close(); }
 });
@@ -715,84 +712,52 @@ test('prepared eviction closes readiness until its original abort restores it', 
   } finally { f.close(); }
 });
 
-test('T7: without a kept source a committed crossing abandons a road guess and builds the destination at once', async () => {
-  const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
-  const assembly = new GridAssembly({ developer: false, devserver: false });
-  const home = assembly.cell('driftwood-isle');
-  const east = assembly.cells.find(cell => cell.origin.x === assembly.pitch && cell.origin.z === 0);
-  const north = assembly.cells.find(cell => cell.origin.x === 0 && cell.origin.z === -assembly.pitch);
-  if (east === undefined || north === undefined) throw new Error('Missing neighbours');
-  const page = createSimHost(level, { rapier }), residency = new PageResidency(), created: string[] = [], abandoned: string[] = [];
-  const player = { position: page.player.position, yaw: -Math.PI / 2, health: page.player.health, owner: page.player, motor: page.releasePlayerMotor() };
-  const live = new LiveGridHost(assembly, {
-    home: { mode: 'owned', instance: home.instance, bytes: 1000, residency: residency.admitHome(home.instance, 1000) },
-    player, allocator: residency.allocator, continuations: 'durable', save: () => true,
-    bindFrame: () => undefined, gameplayReady: () => true,
-    highway: { bytes: 1000, create: () => ({ physics: page.physics, dispose: () => undefined }) },
-    prefetchable: cell => cell.instance === east.instance || cell.instance === north.instance,
-    readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 3 },
-      bundle: () => ({ criticalWireBytes: 1000, hybridWireBytes: 1000, decodeSeconds: 0, runtimeParseSeconds: 10 }) },
-    admit: cell => Promise.resolve({ bytes: 1000, exclusiveRuntime: true, reloadsCheckpoint: true, prepareRuntime: () => Promise.resolve(),
-      create: (_saved, _claim, signal) => {
-        created.push(cell.instance);
-        // the east world builds until abandoned (a world that would take seconds)
-        if (cell.instance === east.instance && abandoned.length === 0) return new Promise((_resolve, reject) => {
-          signal?.addEventListener('abort', () => { abandoned.push(cell.instance); reject(new Error('stopped')); }, { once: true });
-        });
-        const host = createSimHost(level, { rapier, playerBody: false, ground: false });
-        return Promise.resolve({ host, dispose: () => { host.dispose(); } });
-      } }),
-  });
+test('T7: a cold road prediction allocates no world before its actual destination', async () => {
+  const pins: { instance: string; start: { readonly x: number; readonly z: number }; signal: AbortSignal }[] = [];
+  const f = await fixture({ tilePreparation: true, tilePins: pins });
   try {
-    // Cold road-start: no entered source needs protection. A kept source is covered by G724 below.
-    // on the road, heading straight at the east cell's mouth: the approach guesses east and starts its world
-    player.position.x = CHUNK_HALF + 0.5; player.position.z = 0; travel(live, player.position, 1, 0);
-    for (let i = 0; i < 4; i++) await new Promise(resolve => { setTimeout(resolve, 5); });
-    expect(live.state().pending).toContain(east.instance);
-    // the traveller turns and commits north instead: the east guess is abandoned at its next safe point, north builds
-    player.position.x = 0; player.position.z = -(CHUNK_HALF + 0.5); live.beforeFixed();
-    const north1 = await live.prepare(null, north.instance); north1.commit();
-    expect(abandoned).toEqual([east.instance]);
-    expect(live.state().current).toBe(north.instance);
-    expect(live.state().residents).toEqual([north.instance]);
-    expect(live.state().issues).toEqual({}); // no issue: east builds again when the traveller heads for it
-  } finally { live.dispose(); player.motor.dispose(); page.dispose(); residency.dispose(); }
+    await f.live.prefetch([f.east.instance]);
+    f.player.position.x = CHUNK_HALF + .5; travel(f.live, f.player.position, 1, 0); await f.settle();
+    expect(pins[0]?.instance).toBe(f.east.instance); expect(f.created()).toEqual([]);
+    f.player.position.x = 0; f.player.position.z = -(CHUNK_HALF + .5);
+    const north = await f.live.prepare(null, f.north.instance); north.commit();
+    expect(f.created()).toEqual([f.north.instance]);
+    expect(f.live.state().current).toBe(f.north.instance); expect(f.live.state().residents).toEqual([f.north.instance]);
+    expect(f.claims().some(row => row.owner === f.home.instance || row.owner === f.east.instance)).toBe(false);
+    expect(f.live.state().issues).toEqual({});
+  } finally { f.close(); }
+  expect(pins[0]?.signal.aborted).toBe(true);
 });
 
-test('G724: road prediction preserves the last entered cell for a real U-turn', async () => {
+test('T7: road prediction preserves source metadata for a real U-turn', async () => {
   const f = await fixture();
   try {
-    await f.enterHome();
-    const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
     f.player.position.x = CHUNK_HALF + .5; f.player.position.z = 0;
     travel(f.live, f.player.position, 1, 0); await f.settle();
-    expect(f.live.state().residents).toEqual([f.home.instance]);
-    expect(f.created()).toEqual([f.home.instance]);
-    expect(f.events.filter(event => event.startsWith('retire:'))).toEqual([]);
+    expect(f.live.state().residents).toEqual([]); expect(f.created()).toEqual([f.home.instance]);
+    expect(f.events.filter(event => event.startsWith('retire:'))).toEqual([`retire:${f.home.instance}`]);
     const back = await f.live.prepare(null, f.home.instance); back.commit();
-    expect(f.live.current()).toBe(f.home.instance);
-    expect(f.created()).toEqual([f.home.instance]);
+    expect(f.live.current()).toBe(f.home.instance); expect(f.created()).toEqual([f.home.instance, f.home.instance]);
   } finally { f.close(); }
 });
 
-test('G724: a long road excursion keeps exactly the last entered source warm', async () => {
+test('T7: a long road excursion retains no whole source world or claim', async () => {
   const f = await fixture();
   try {
-    await f.enterHome();
-    const leave = await f.live.prepare(f.home.instance, null); leave.commit();
-    f.player.position.x = f.east.origin.x * 4;
-    f.player.position.z = f.east.origin.x * 4;
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    f.player.position.x = f.east.origin.x * 4; f.player.position.z = f.east.origin.x * 4;
     for (let tick = 0; tick < 600; tick++) f.live.beforeFixed();
     await f.settle();
-    expect(f.live.state().residents).toEqual([f.home.instance]);
-    expect(f.created()).toEqual([f.home.instance]);
-    expect(f.entries().find(row => row.owner === f.home.instance)?.needed).toBe(true);
+    expect(f.live.state().residents).toEqual([]); expect(f.created()).toEqual([f.home.instance]);
+    expect(f.entries().find(row => row.owner === f.home.instance)).toBeUndefined();
+    expect(f.live.state().continuations.entries).toBe(0);
   } finally { f.close(); }
 });
 
 
-test('G743: later boulevard junctions do not delay the nearest isolated turn', async () => {
-  const f = await fixture({ paired: true, allNeighbours: true, horizonSeconds: 30 });
+test('T7: later boulevard junctions do not delay the nearest render pin', async () => {
+  const tiles: string[] = [], f = await fixture({ paired: true, allNeighbours: true, horizonSeconds: 30, tilePreparation: true, tileApproaches: tiles });
   try {
     await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
     const assembly = new GridAssembly({ developer: false, devserver: false });
@@ -801,55 +766,45 @@ test('G743: later boulevard junctions do not delay the nearest isolated turn', a
     await f.live.prefetch([f.east.instance, later.instance]);
     f.player.position.x = f.east.origin.x / 2; f.player.position.z = -100;
     travel(f.live, f.player.position, 0, 1); await f.settle();
-    expect(f.live.ready(f.east.instance)).toBe(true);
-    expect(f.created()).toEqual([f.home.instance, f.east.instance]);
-    expect(f.live.state().residents).toEqual([f.home.instance, f.east.instance].sort());
+    expect(tiles).toEqual([f.east.instance]); expect(f.live.ready(f.east.instance)).toBe(false);
+    expect(f.created()).toEqual([f.home.instance]); expect(f.live.state().residents).toEqual([]);
   } finally { f.close(); }
 });
 
-test('G743: straight travel keeps equal turn choices cold until lateral movement names a side', async () => {
-  const f = await fixture({ paired: true, allNeighbours: true });
+test('T7: equal turn choices stay unpinned until lateral movement names a side', async () => {
+  const tiles: string[] = [], f = await fixture({ paired: true, allNeighbours: true, tilePreparation: true, tileApproaches: tiles });
   try {
     await f.enterHome(); await f.cross(f.home.instance, f.north.instance);
     const leave = await f.live.prepare(f.north.instance, null); leave.commit();
     await f.live.prefetch([f.home.instance, f.east.instance]);
     f.player.position.x = f.east.origin.x / 2; f.player.position.z = -100;
     travel(f.live, f.player.position, 0, 1); await f.settle();
-    expect(f.live.ready(f.east.instance)).toBe(false);
-    expect(f.live.ready(f.home.instance)).toBe(false);
-    travel(f.live, f.player.position, .01, 1); await f.settle();
-    expect(f.live.ready(f.east.instance)).toBe(false);
+    expect(tiles).toEqual([]); expect(f.live.ready(f.east.instance)).toBe(false); expect(f.live.ready(f.home.instance)).toBe(false);
+    travel(f.live, f.player.position, .01, 1); await f.settle(); expect(tiles).toEqual([]);
     travel(f.live, f.player.position, .1, 1); await f.settle();
-    expect(f.live.ready(f.east.instance)).toBe(true);
-    expect(f.live.current()).toBe(null);
-    expect(f.live.state().residents).toEqual([f.north.instance, f.east.instance].sort());
-    expect(f.events).not.toContain(`retire:${f.north.instance}`);
+    expect(tiles).toEqual([f.east.instance]); expect(f.live.ready(f.east.instance)).toBe(false);
+    expect(f.live.current()).toBeNull(); expect(f.live.state().residents).toEqual([]);
+    expect(f.events).toContain(`retire:${f.north.instance}`);
   } finally { f.close(); }
 });
 
-test('G743: redirected preparation starts only after the obsolete constructor releases its claim', async () => {
-  const f = await fixture({ paired: true });
+test('T7: a redirected actual entry waits for the obsolete constructor claim', async () => {
+  const f = await fixture({ paired: true }), failure = new Error('Stopped at constructor safe point');
   try {
     await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
-    f.control.holdIncoming = true; await f.approachEast();
+    f.control.holdIncoming = true;
+    const first = f.live.prepare(null, f.east.instance), refused = expect(first).rejects.toBe(failure);
+    await f.settle(); const entering = f.live.prepare(null, f.north.instance);
     await f.live.prefetch([f.north.instance]);
-    f.player.position.x = 0; f.player.position.z = -(CHUNK_HALF + .5);
-    travel(f.live, f.player.position, 0, -1);
-    f.player.position.z -= 1; f.live.beforeFixed();
-    f.player.position.z -= 1; f.live.beforeFixed(); await f.settle();
-    expect(f.control.aborted).toEqual([f.east.instance]);
-    expect(f.created()).toEqual([f.home.instance, f.east.instance]);
-    expect(f.live.ready(f.north.instance)).toBe(false);
+    expect(f.created()).toEqual([f.home.instance, f.east.instance]); expect(f.live.ready(f.north.instance)).toBe(false);
     expect(f.claims().some(row => row.owner === f.east.instance)).toBe(true);
     if (f.control.reject === undefined) throw new Error('Missing constructor safe point');
-    f.control.reject(new Error('Stopped at constructor safe point')); await f.settle();
+    f.control.reject(failure); await refused;
+    const next = await entering; next.commit();
     expect(f.claims().some(row => row.owner === f.east.instance)).toBe(false);
-    travel(f.live, f.player.position, 0, -1); await f.settle();
-    expect(f.live.ready(f.north.instance)).toBe(true);
-    expect(f.created()).toEqual([f.home.instance, f.east.instance, f.north.instance]);
-    expect(f.live.state().residents).toEqual([f.home.instance, f.north.instance].sort());
-    expect(f.events).not.toContain(`retire:${f.home.instance}`);
-    expect(f.live.state().issues).toEqual({});
+    expect(f.live.ready(f.north.instance)).toBe(true); expect(f.created()).toEqual([f.home.instance, f.east.instance, f.north.instance]);
+    expect(f.live.state().residents).toEqual([f.north.instance]); expect(f.events).toContain(`retire:${f.home.instance}`);
+    expect(f.live.refusal(f.east.instance)).toBe(failure); expect(f.live.state().issues[f.north.instance]).toBeUndefined();
     expect(f.allocated.at(-1)?.owners).not.toContain(f.east.instance);
   } finally { f.control.finish?.(); f.close(); }
 });
@@ -859,9 +814,9 @@ test('G743: an actual crossing demand cannot be cancelled by a later speculative
   const f = await fixture({ paired: true });
   try {
     await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
-    f.control.holdIncoming = true; await f.approachEast();
+    f.control.holdIncoming = true; await f.live.prefetch([f.east.instance]);
     await f.live.prefetch([f.north.instance]);
-    const demanded = f.live.prepare(null, f.east.instance); void demanded.catch(() => undefined);
+    const demanded = f.live.prepare(null, f.east.instance); void demanded.catch(() => undefined); await f.settle();
     f.player.position.x = 0; f.player.position.z = -(CHUNK_HALF + .5);
     travel(f.live, f.player.position, 0, -1);
     for (let step = 0; step < 4; step++) { f.player.position.z -= 1; f.live.beforeFixed(); }
