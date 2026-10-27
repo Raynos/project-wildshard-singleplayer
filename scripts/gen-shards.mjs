@@ -252,10 +252,12 @@ export function genShards(root = resolve(import.meta.dirname, '..'), check = fal
 
 /**
  * D25 (G799: no virtual module, no Vite plugin): the title's catalogue and the selected discovery loaders, as two
- * build-written, typed modules beside the shard list (src/titleCatalogue.generated.ts, src/shardSelection.generated.ts).
- * They are not committed: their rows come from every product's
+ * build-written, typed modules beside the products (out/.app/titleCatalogue.generated.ts,
+ * out/.app/shardSelection.generated.ts). They are not committed: their rows come from every product's
  * discovery module (open-plot outputs composed per output, legacy rows, derived entries), which this script writes from
- * the built products, so a committed copy would follow local product state rather than the commit.
+ * the built products, so a committed copy would follow local product state rather than the commit. Generated products
+ * leave src (GR0), so they live under out/ (a dot folder, which no product scan reads); the app's imports of them
+ * still count as generated imports.
  */
 export function titleTables(root) {
   const output = execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', 'scripts/title-catalogue.mjs'],
@@ -267,14 +269,14 @@ export function titleTables(root) {
     if (typeof value !== 'string') throw new Error(`gen-shards: invalid ${prefix.trim()}`);
     return value;
   };
-  // typed modules beside the shard list (relative specifiers, so the app's type check resolves them as it does the list)
+  // typed modules beside the products (relative specifiers into src, so the app's type check resolves them)
   const swap = (text, from, to) => { if (!text.includes(from)) throw new Error(`gen-shards: the title tables lost ${from}`); return text.replaceAll(from, to); };
-  const catalogue = swap(swap(read('TITLE-CATALOGUE '), ' from "/src/', ' from "./'), 'export const TITLE_MANIFESTS=[', 'export const TITLE_MANIFESTS: readonly TitleManifest[] = [');
-  const selection = swap(swap(swap(swap(read('TITLE-SELECTION '), 'import("/src/', 'import("./'), '.ts")', '")'),
+  const catalogue = swap(swap(read('TITLE-CATALOGUE '), ' from "/src/', ' from "../../src/'), 'export const TITLE_MANIFESTS=[', 'export const TITLE_MANIFESTS: readonly TitleManifest[] = [');
+  const selection = swap(swap(swap(swap(read('TITLE-SELECTION '), 'import("/src/', 'import("../../src/'), '.ts")', '")'),
     'export const LEGACY_CONTENT_IDENTITIES=', 'export const LEGACY_CONTENT_IDENTITIES: Readonly<Record<string, string>> = '),
     'export const SHARD_LOADERS=', 'export const SHARD_LOADERS: Readonly<Record<string, () => Promise<ShardManifest>>> = ');
-  return { 'src/titleCatalogue.generated.ts': `import type { TitleManifest } from './game/shard/titleList';\n${catalogue}`,
-    'src/shardSelection.generated.ts': `import type { ShardManifest } from './game/shard/manifest';\n${selection}` };
+  return { 'out/.app/titleCatalogue.generated.ts': `import type { TitleManifest } from '../../src/game/shard/titleList';\n${catalogue}`,
+    'out/.app/shardSelection.generated.ts': `import type { ShardManifest } from '../../src/game/shard/manifest';\n${selection}` };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {

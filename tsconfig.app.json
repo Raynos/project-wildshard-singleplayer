@@ -17,6 +17,6 @@
     { "path": "./tsconfig.commons.json" },
     { "path": "./tsconfig.shards.json" }
   ],
-  "include": ["src/*.ts", "src/*.json", "src/engine/**/*.d.ts", "src/game/**/*.merge.d.ts"],
+  "include": ["src/*.ts", "src/*.json", "out/.app/*.generated.ts", "src/engine/**/*.d.ts", "src/game/**/*.merge.d.ts"],
   "exclude": ["src/*.test.ts"]
 }

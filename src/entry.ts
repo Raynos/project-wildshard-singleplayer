@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-unassigned-import -- evaluated for its effect: the app identity is installed before any other module body runs (E414)
 import './identity';
-import { TITLE_MANIFESTS } from './titleCatalogue.generated';
+import { TITLE_MANIFESTS } from '../out/.app/titleCatalogue.generated';
 import { installTitleManifests } from '@wildshard/game/shard/titleList';
 import { startPageServices } from './pageServices';
 import { persistHomeScreen } from '@wildshard/engine/saves/runtime';
