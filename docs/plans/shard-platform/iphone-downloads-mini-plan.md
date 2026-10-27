@@ -939,3 +939,18 @@ that new fixture to a declared critical, reachable non-library file
 with exact sim costs; preserve the orphan guard and original assertions.
 SDK-fixture types, typed lint and scoped ratchet pass; only the same
 negative case recovers after this fixture source landing.
+
+### I2 medium named-file packs (2026-10-27, sp-x9)
+
+In flight (reading at plan end). The joint435 census has528/289/276
+before-control data requests. Product bodies64KiB–1MiB alone account for
+259/124/133 of them. Extend existing named-file pack membership from
+below64KiB to below1MiB, keeping the4MiB pack cap, exact member hashes,
+paths, offsets and full decoded/GPU charges. Required and deferred roots
+remain separate; KTX2 cost metadata and Range transport are unchanged.
+
+Regression covers medium bodies across the fixed cap, disjoint late
+packs, the excluded1MiB boundary, duplicate prevention and complete
+byte/hash reconstruction. Touched types, typed lint and scoped ratchet
+pass. Join installer-pack9b3e0e4e34, KTX2-cost7bf455e8f1 and cabin-late
+b5ef2ff17c in x2's next single original3 request reading; no new baseline.

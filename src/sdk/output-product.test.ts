@@ -64,6 +64,34 @@ it('refuses canonical but schema-invalid section bytes with updated hash and siz
  writeFileSync(resolve(directory,'shard.json'),encodeCanonicalJson(index));expect(()=>validateOutputProduct(directory)).toThrow();
 });
 
+it('packs medium bodies within 4 MiB without pulling late bytes into required reads',()=>{
+ const shard=source(),directory=output();
+ const bodies=Array.from({length:9},(_,i)=>new Uint8Array(i===8?1_048_576:716_800).fill(i+1));
+ const assets=new Map(bodies.map(body=>[hashImmutableBytes(body),body])),hashes=[...assets.keys()];
+ const late=hashes.slice(6,8),unpacked=hashes[8];
+ shard.files=[...assets].map(([hash,body])=>({hash,kind:'binary' as const,compressed:body.length,decoded:body.length,gpu:0,triangles:0,draws:0,dependencies:[],critical:false})).sort((a,b)=>a.hash.localeCompare(b.hash));
+ shard.library=hashes;shard.late=late.map(hash=>({hash}));shard.budgets.library={resident:8_000_000,compressed:8_000_000};
+ const index=writeOutputProduct(shard,assets,directory),seen=new Set<string>();
+ const bodyPacks=(index.packs??[]).filter(pack=>pack.entries.some(entry=>assets.has(entry.hash)));
+ expect(bodyPacks).toHaveLength(3);
+ for(const pack of bodyPacks){
+  expect(pack.bytes).toBeLessThanOrEqual(4_194_304);
+  const wire=readFileSync(resolve(directory,pack.path));
+  expect(hashImmutableBytes(wire)).toBe(pack.hash);
+  const phases=new Set(pack.entries.map(entry=>late.includes(entry.hash)));
+  expect(phases.size).toBe(1);
+  for(const entry of pack.entries){
+   expect(seen.has(entry.hash)).toBe(false);seen.add(entry.hash);
+   const original=assets.get(entry.hash);if(original===undefined)throw new Error('Missing original medium body');
+   expect(wire.subarray(entry.offset,entry.offset+entry.bytes).equals(original)).toBe(true);
+  }
+ }
+ expect([...seen].sort()).toEqual(hashes.filter(hash=>hash!==unpacked).sort());
+ const restored=validateOutputProduct(directory);
+ expect(restored.shard).toEqual(shard);expect([...restored.assets.keys()].sort()).toEqual([...assets.keys()].sort());
+ for(const [hash,original]of assets){const body=restored.assets.get(hash);if(body===undefined)throw new Error('Missing restored body');expect(hashImmutableBytes(body)).toBe(hash);expect(body.length).toBe(original.length);}
+});
+
 it('allows only installed public runtime packages and copied TypeScript targets',()=>{
  for(const name of ['three','three/webgpu','valibot','@wildshard/engine/app/scope','@wildshard/game/plugin/headless','@wildshard/sdk/headlessRuntime'])expect(runtimePackageAllowed(name),name).toBe(true);
  for(const name of ['node:fs','@wildshard/commons/trees','@wildshard/engine/not-public','three/package.json','@wildshard/sdk/bake?raw'])expect(runtimePackageAllowed(name),name).toBe(false);

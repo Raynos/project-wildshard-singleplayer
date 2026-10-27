@@ -29,7 +29,7 @@ import { parseDiscoveryValues, type DiscoveryValues } from '@wildshard/format/di
 
 const encoder = new TextEncoder();
 /** I5: files below this size are packed; a pack holds at most this many bytes. */
-const PACK_MEMBER_BYTES = 65_536, PACK_BYTES = 4_194_304;
+const PACK_MEMBER_BYTES = 1_048_576, PACK_BYTES = 4_194_304;
 function jsonBytes(value: unknown): Uint8Array { return encoder.encode(encodeCanonicalJson(value)); }
 function readJson(bytes: Uint8Array): unknown {
   const text = new TextDecoder('utf-8', {fatal:true}).decode(bytes), value: unknown = JSON.parse(text);
