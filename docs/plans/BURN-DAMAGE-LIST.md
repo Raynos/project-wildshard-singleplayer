@@ -89,11 +89,13 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 
 | D46 | Shared-tree generation cannot discover `open-plots-world`: its declared `generators/bake-plots.mjs` was removed in an in-flight migration; real discovery restore is masked | — (working tree after `d6ca33cfc8`) | sp-o2 | working catalogue synced by sp-o2; committed GR9 retirement pending |
 
-| D47 | CI `generated-inputs`: Driftwood map assembly cannot resolve owned geometry `cascade/mooringLines` (`scripts/map-world.mjs:44`, `mapAssembly.mjs:76`) | `c7a57488e4` (run 40464950813) | sp-x10 | routed by sp-ci-deploy; defining model/source correspondence requested; also blocks sp-x8 plan-end preview `46cbe1f407` after 25.67 s (`tmp/serve/failed-20261027-021509-4407.log:391`), zero browser samples, exact failure sent to sp-x10 |
+| D47 | CI `generated-inputs`: Driftwood map assembly cannot resolve owned geometry `cascade/mooringLines` (`scripts/map-world.mjs:44`, `mapAssembly.mjs:76`) | `c7a57488e4` (run 40464950813) | sp-x10 | fixed `15f149539c`; sp-x8 pinned `8422baac07` normal generation passes the map, then hits the separate Nine coarse L1 blocker below |
 
 | D48 | Real strict discovery-provider build fails Far Reach with `Sky static contact envelope differs` (`staticSceneIntake.ts:36`); discovery modules cannot be restored | `452dadcbf1` (defining intake; observed in local provider restore) | sp-x1 | routed by sp-ci-deploy; source/intake correspondence fix requested |
 
 | D49 | Driftwood's `shard.config.ts` default export is now a build function, so five tests that treat it as a Shardfile no longer typecheck or pass typed lint (`chapter-story`, `grid-query-terrain`, `quest-catalogue-sites`, `quest-story`, `runtime-equipment`: "Property 'identity' does not exist on type 'Shardfile \| ((ctx) => Promise<Shardfile>)'"); found by sp-o1 moving Pine's readers to `test/fixtures/pine-program.ts` | `60e393b0e8` | sp-x10 (GR7 Driftwood) | open; those five keep reading Pine's static rows until fixed |
+
+| D50 | Nine T8 coarse L1 city breaks strict product admission: tile/1/1/1 compressed 530,372 > 200,000, triangles 10,160 > 10,000 and draws 17 > 2, plus ten other exact L1 metrics; plan-end preview `8422baac07` refuses after 66.12 s (`tmp/serve/failed-20261027-022131-4407.log:901`), zero browser samples | `82ac81812d` | sp-o5 (G748.6) | routed to sp-o5 and sp-ci-deploy; no cap/allowance change or competing source patch |
 
 ## Rows
 
