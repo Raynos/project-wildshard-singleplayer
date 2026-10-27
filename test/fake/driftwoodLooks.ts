@@ -1,9 +1,8 @@
 import { HullLookBook } from '../../src/game/looks/speciesBook';
 import bake from '../../src/shards/driftwood-isle/data/creatureBodies.generated.json' with { type: 'json' };
 import rows from '../../src/shards/driftwood-isle/data/creatureLookRows.json' with { type: 'json' };
-import sailor from '../../src/shards/driftwood-isle/data/sailorClips.generated.json' with { type: 'json' };
-import crab from '../../src/shards/driftwood-isle/data/crabClips.generated.json' with { type: 'json' };
-import captain from '../../src/shards/driftwood-isle/data/captainClips.generated.json' with { type: 'json' };
+import { SAILOR_CLIPS as sailor, CAPTAIN_CLIPS as captain } from '../../src/shards/driftwood-isle/generators/humanoidClips';
+import { CRAB_CLIPS as crab } from '../../src/shards/driftwood-isle/generators/crabClips';
 
 /** Test-only authored intake; shipping consumers bind the verified product file and `look/hull-book` section. */
 const { fauna, ...body } = bake;
