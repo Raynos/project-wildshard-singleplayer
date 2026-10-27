@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Frustum, Matrix4, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, Sphere, Vector3 } from 'three';
-import { cullIntoSteps, cullPlanSteps, finishRoadSteps, type CullPlan } from './roadCull';
+import { cullIntoSteps, cullPlanSteps, finishRoadSteps, roadResident, type CullPlan } from './roadCull';
 
 function fixture(main = true) {
   const geometry = new BufferGeometry(), positions: number[] = [], indices: number[] = [];
@@ -111,4 +111,12 @@ test('bin bounds keep every indexed point while sharing repeated vertex reads', 
     // Three distinct vertices per bin, once for the box and once for radius.
     expect(read).toHaveBeenCalledTimes(12);
   } finally { read.mockRestore(); geometry.dispose(); }
+});
+
+test('the resident census counts a road mesh with no index or position yet as drawing nothing', () => {
+  // T7 / S3 plan-end reading (b6423e3cdb): a road mesh still being painted in steps threw on its missing position
+  const root = new Scene(), painted = new BufferGeometry();
+  painted.setAttribute('position', new BufferAttribute(new Float32Array(9), 3));
+  root.add(new Mesh(new BufferGeometry(), new MeshBasicMaterial()), new Mesh(painted, new MeshBasicMaterial()));
+  expect(roadResident([root])).toMatchObject({ meshes: 2, triangles: 1 });
 });

@@ -408,7 +408,8 @@ export interface RoadResident { readonly triangles: number; readonly instanced: 
 
 const isMesh = (o: Object3D): o is Mesh => o instanceof Mesh;
 const trianglesOf = (geometry: BufferGeometry, start: number, count: number): number => {
-  const total = geometry.getIndex()?.count ?? geometry.getAttribute('position').count;
+  // a mesh still being painted in steps (9c533f9ac1) can stand with no index or position yet: it draws nothing
+  const total = geometry.getIndex()?.count ?? (geometry.hasAttribute('position') ? geometry.getAttribute('position').count : 0);
   return Math.max(0, Math.min(total, start + count) - Math.max(0, start)) / 3;
 };
 
