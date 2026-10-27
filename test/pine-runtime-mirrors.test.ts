@@ -55,7 +55,8 @@ const discovery = await pineBootProgram(pineGeneration('pine-boot-fixture-v1', r
 const metadata = discovery['boot.pageModes'], gpuTables = discovery['ktx2.pageModes'];
 
 test('program boot discovery preserves the ordered boot recipes', () => {
-  const inputs = { aliases:{ props:authored.propMaterials } };
+  // GR8 G37 (generators/bootInventory.ts): the boot pack keeps the original prop payloads, so no prop aliases apply
+  const inputs = { aliases:{ props:{} } };
   const before = currentPageMode();
   const boot = pageModeBoot(metadata);
   if (typeof boot.sources !== 'function' || typeof boot.files !== 'function') throw new Error('Missing boot selectors');
