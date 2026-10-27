@@ -136,7 +136,7 @@ function skipWhileTransparent(effect: Effect, paused: () => boolean): void {
   effect.update = (renderer, inputBuffer, deltaTime) => { if (effect.blendMode.opacity.value > 0 && !paused()) update(renderer, inputBuffer, deltaTime); };
 }
 
-/** D188 (Developer): where a crossing reveals the player (render space) and how far round it the entry prepares first. */
+/** D188 (G815): where a crossing reveals the player (render space) and how far round it the entry prepares first. */
 interface EntryArrival { readonly at: THREE.Vector3; readonly radius: number }
 /** D188: the arrival's radius, the held view's draw range (D175, G813): what the player sees from the entry is drawn
  *  before the reveal; beyond it, content waits for the after-reveal warm-up. */
@@ -894,14 +894,14 @@ export class Game {
    * it may prepare already-built roots while other content constructs, then await that content before returning.
    * Early roots and whole-page programs share this bound. Final complete inventory still gates readiness.
    * nothing here can wait silently forever (`boundEntryWarmup`); a stall rejects naming its stage.
-   * D188 (Developer, Jake's pick open): `arrivalAt` (where the crossing reveals the player, render space) prepares only
+   * D188 (Jake's G815, shipped): `arrivalAt` (where the crossing reveals the player, render space) prepares only
    * the destination content within ARRIVAL_RADIUS of it before the reveal; the rest sits out live draws (a frame gate)
    * until `warmArrivalRest` has linked and first-drawn it after the reveal, nearest first. */
   async warmEnteredFrame(owner: Scope, futureRoot?: THREE.Object3D,
     before?: (prepare: (roots: readonly THREE.Object3D[], exteriorPrograms?: boolean) => Promise<void>, prepareFrame: () => Promise<void>) => Promise<void> | void,
     arrivalAt?: THREE.Vector3): Promise<void> {
     const composer = this._composer;
-    const arrival = arrivalAt !== undefined && futureRoot !== undefined && futureRoot !== this.rootScene && this.frameCount > 0 && isDev()
+    const arrival = arrivalAt !== undefined && futureRoot !== undefined && futureRoot !== this.rootScene && this.frameCount > 0
       ? { at: arrivalAt.clone(), radius: ARRIVAL_RADIUS } : undefined;
     if (composer === null) { await before?.(() => Promise.resolve(), () => Promise.resolve()); return; }
     const trace: EntryPreparation = { root: (futureRoot ?? this.scene).uuid, owner: owner.name,
@@ -980,7 +980,7 @@ export class Game {
   }
 
   /**
-   * D188 (Developer): after an arrival's reveal, what it left (`rest`, gated out of live draws) is linked and first-drawn
+   * D188 (G815): after an arrival's reveal, what it left (`rest`, gated out of live draws) is linked and first-drawn
    * nearest the player first: the whole remaining program inventory under the live slice budget, then the rest's 1×1
    * draws a live budget a completed frame, each slice released to the live draw as it lands. The owner leaving (or a
    * failure) releases the gate: the content then draws as before, building on first sight.

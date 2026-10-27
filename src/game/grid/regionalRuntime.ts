@@ -41,9 +41,6 @@ import { coverRuntimeAssets } from './assetResidency';
 import { FrameCamera } from '@wildshard/engine/world/frameCamera';
 import { pacedResolve } from '@wildshard/engine/core/workSlice';
 
-/** D188: whether crossings hand their arrival point to the entered warm-up (arrival-first, Developer). */
-const ARRIVAL_FIRST = false;
-
 function isSceneNode(value: unknown): value is Object3D { return value instanceof Object3D; }
 
 function sameMeasurement(a: RuntimeCost, b: RuntimeCost): boolean {
@@ -214,11 +211,10 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
         scope, ground: foundation.ground,
         prepare: (node, root) => request.page.world.game.warmSceneRoots([node], () => !scope.disposed && node.parent !== null, root) });
       request.page.world.game.bindHiddenFrameRoot(scope, view.root);
-      // D188 (Developer): where the crossing reveals the player, in render space (the cell's root carries its origin).
-      // Inert until arrival-first reads clean: on e03fba56d3 its first pairs regressed Nalati (17.5 s against ~14.3 s)
-      // and left post-reveal frames of 333-750 ms; Developer readings of every lane must not carry that meanwhile.
+      // D188 (Jake's G815): where the crossing reveals the player, in render space (the cell's root carries its origin);
+      // the entered warm-up prepares what lies round it first (Game.warmEnteredFrame)
       const arrivalAt = (): Vector3 | undefined => {
-        const entry = ARRIVAL_FIRST ? request.entryPoint : undefined; if (entry === undefined) return undefined;
+        const entry = request.entryPoint; if (entry === undefined) return undefined;
         view.root.updateWorldMatrix(true, false);
         return view.root.localToWorld(new Vector3(entry.x, 0, entry.z));
       };

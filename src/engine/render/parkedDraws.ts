@@ -622,7 +622,7 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
     onPlan?: (original: number, selected: number) => void;
     /** Adaptive slices per completed frame (held, off WebKit); absent, every planned slice gets its own frame. */
     widen?: ParkedDrawWiden;
-    /** D188 (Developer): only these shown drawables (an arrival's set, or the rest it left); hidden alternates keep their
+    /** D188 (G815): only these shown drawables (an arrival's set, or the rest it left); hidden alternates keep their
      *  one-per-pipeline warm-up either way. */
     include?: (object: THREE.Object3D) => boolean;
     /** D188: shown drawables nearest this point first (an after-reveal warm-up meets what the player reaches soonest). */

@@ -4,7 +4,7 @@ import type { Scope } from '../app/scope';
 /** Temporary live-frame presentation only. Preparation renders do not use it. */
 export interface FrameDrawRange { enabled: boolean; readonly distance: number }
 interface RangeLease { readonly range: FrameDrawRange; readonly owner: Scope }
-/** D188 (Developer): objects an arrival left unwarmed sit out every live draw until released; the warm-up's own 1×1
+/** D188 (G815): objects an arrival left unwarmed sit out every live draw until released; the warm-up's own 1×1
  *  draws and every other view still see them. Released with its owner. */
 export interface FrameGate { release: (objects: Iterable<Object3D>) => void; readonly size: () => number }
 

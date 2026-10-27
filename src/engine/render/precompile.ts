@@ -1396,11 +1396,12 @@ function drawnFrom(camera: THREE.Camera): (object: THREE.Object3D) => boolean {
 }
 
 /**
- * D188 (G808, Developer): what an arrival needs drawn before its reveal. Content outside `root` (the page: roads, other
- * cells, the sky) keeps its whole inventory. Inside `root` (the parked destination, hidden while it waits), a node under
- * a hidden subtree is left out; a drawable whose bounds reach within `radius` of `at` (horizontal, every direction: the
- * player can turn on the reveal) is in; so is one whose bounds can't be trusted (unbounded, unculled, skinned, morphed,
- * drawn through callbacks), which draws wherever it is.
+ * D188 (G808, G815): what an arrival needs drawn before its reveal. Content outside `root` (the page: roads, other
+ * cells, the sky) keeps its whole inventory. Inside `root` (the parked destination, hidden while it waits), a drawable
+ * whose bounds reach within `radius` of `at` (horizontal, every direction: the player can turn on the reveal) is in; so
+ * is one whose bounds can't be trusted (unbounded, unculled, skinned, morphed, drawn through callbacks), which draws
+ * wherever it is, and one under a hidden subtree (a placement's other LOD level, an alternate shown later): the parked
+ * draws warm one of each such pipeline wherever it is, and left out here it compiled inside those held draws.
  */
 export function arrivalSet(root: THREE.Object3D, at: THREE.Vector3, radius: number): (object: THREE.Object3D) => boolean {
   const centre = new THREE.Vector3();
@@ -1410,7 +1411,7 @@ export function arrivalSet(root: THREE.Object3D, at: THREE.Vector3, radius: numb
       if (node === root) { inside = true; break; }
     }
     if (!inside) return true;
-    for (let node: THREE.Object3D | null = object; node !== null && node !== root; node = node.parent) if (!node.visible) return false;
+    for (let node: THREE.Object3D | null = object; node !== null && node !== root; node = node.parent) if (!node.visible) return true;
     if (object instanceof THREE.InstancedMesh && object.count === 0) return false;
     if (!object.frustumCulled || object instanceof THREE.SkinnedMesh || object.onBeforeRender !== THREE.Object3D.prototype.onBeforeRender
       || object.onAfterRender !== THREE.Object3D.prototype.onAfterRender) return true;
@@ -1443,7 +1444,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
      *  scene's undrawn materials, material families and the exterior (road) lighting variants, none of which draws until
      *  a look swaps or the player leaves the cell. Shadow, offscreen, post and background jobs stay whole: any of them
      *  can draw in the first seconds (a turn moves casters into a cascade, a menu blurs). */ drawnOnly?: boolean;
-    /** D188 (Developer): scene programs only for what `arrivalSet` keeps; like `drawnOnly`, material families and the
+    /** D188 (G815): scene programs only for what `arrivalSet` keeps; like `drawnOnly`, material families and the
      *  exterior variants wait for the caller's after-reveal warm-up. Shadow, offscreen, post and background stay whole. */
     arrival?: (object: THREE.Object3D) => boolean;
     /** Scene and exterior programs ordered by the camera's distance to what draws them, nearest first (the after-control
