@@ -368,6 +368,7 @@ export function prepareSpecimenCatalogue(product:BinaryFileReader,input:unknown,
   const declarations=rows.flatMap(row=>row.source.kind==='selection'?row.source.variants.map(variant=>variant.source):[row.source]);
   const assets=[...declaredAssets,...declarations.flatMap(source=>source.kind==='asset'?[source.asset]:[])];
   const sources=[...declarations.flatMap(source=>source.kind==='file'?[{source:{file:source.file},bytes:bakedGeometryBytes(source.geometry)}]:[]),
+    ...declarations.flatMap(source=>source.kind==='owned'?source.variants.flatMap(variant=>typeof variant.url==='string'?[]:[{source:{file:variant.url.file},bytes:variant.url.bytes}]):[]),
     ...assets.flatMap(row=>{const location=assetLocation(row);return typeof location==='string'?[]:[{source:{file:location.file},bytes:location.bytes}];})];
   const rawNames=new Set(sources.map(source=>source.source.file));
   const atlases = assets.flatMap(asset => {
@@ -428,8 +429,11 @@ export function defineSpecimenCatalogue<Params extends { readonly [K in keyof Pa
         const variant = source.variants.find(candidate => parameterKey(candidate.params) === parameterKey(params));
         if (variant === undefined) throw new Error(`No authored specimen: ${row.model.id}`);
         const material = specimenMaterial(ctx.sky, source.material);
+        // a variant names a page URL (fetched on first use) or a product file (prepared with the catalogue)
+        const location = variant.url, bytes = typeof location === 'string' ? undefined : files.get(location.file);
+        if (typeof location !== 'string' && bytes?.byteLength !== location.bytes) throw new Error(`Owned specimen file was not prepared: ${row.model.id}`);
         return loadingSpecimen(row.model.id, variant.size, async () => {
-          const intake = createOwnedGeometry(variant.url); await intake.load();
+          const intake = createOwnedGeometry(typeof location === 'string' ? location : location.file); await intake.load(bytes);
           const mesh = new THREE.Mesh(intake.take(), material); mesh.castShadow = true; mesh.receiveShadow = true; return mesh;
         });
       }

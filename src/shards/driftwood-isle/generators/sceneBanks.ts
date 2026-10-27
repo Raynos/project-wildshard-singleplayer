@@ -7,6 +7,7 @@ import { driftwoodRockBank, type DriftwoodRockBank } from './rockBank';
 import { driftwoodIslandPlan } from './productPageFiles';
 import { BLENDER_MODELS } from './blenderArea';
 import { DRIFTWOOD_BANK_BLOBS } from './assets';
+import { trailSpecimenBank } from './trailsideModels';
 import { driftwoodIslandFacts, driftwoodIslandFactsFrom, type DriftwoodIslandFacts } from './islandFacts';
 
 /**
@@ -63,6 +64,8 @@ export async function driftwoodSceneBanksFrom(read: (url: string) => Uint8Array,
 export async function driftwoodSceneBankOutput(banks: DriftwoodSceneBanks): Promise<EmittedBlobs> {
   return emitNamedBlobs([...await Promise.all([...banks.cargo.glbs].map(([name, bytes]) => nameMeshoptBlob(name, bytes))),
     ...[...banks.rocks.glbs].map(([name, bytes]) => nameBlob(name, 'glb', bytes)),
+    // the trail specimens' Explorer GLBs, as the product files their catalogue rows name (worldScenes)
+    ...[...trailSpecimenBank().glbs].map(([name, bytes]) => nameBlob(name, 'glb', bytes)),
     // the synchronous banks' shipped blobs (the reef's), named as assets.ts names its sources: GLBs meshopt, the rest plain
     ...await Promise.all(DRIFTWOOD_BANK_BLOBS.map(row => row.kind === 'glb' ? nameMeshoptBlob(row.name, row.bytes) : Promise.resolve(nameBlob(row.name, row.kind, row.bytes))))]);
 }

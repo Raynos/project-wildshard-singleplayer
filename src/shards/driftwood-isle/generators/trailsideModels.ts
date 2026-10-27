@@ -2,8 +2,11 @@ import { fencePost as fencePostDefinition, signpost as signpostDefinition, plank
 import * as THREE from 'three';
 import { trailFontFacts } from './trailFont';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { Rng } from '@wildshard/engine/core/rng';
-import { defineModel, type ModelContext, type ModelPart, type ModelDef as ModelDefType } from '@wildshard/engine/models/model';
+import { Rng } from '@wildshard/engine/core/rng';
+import { defineModel, modelContext, seedOf, type ModelContext, type ModelPart, type ModelDef as ModelDefType } from '@wildshard/engine/models/model';
+import { staticGlb } from '@wildshard/sdk/bake/glb';
+import { hashImmutableBytes } from '@wildshard/sdk/immutable';
+import publicInputs from '../data/publicInputs.json' with { type: 'json' };
 
 
 /**
@@ -127,3 +130,27 @@ export const plankStep: ModelDefType<PlankStepParams> = defineModel<PlankStepPar
     return one(ctx, parts);
   },
 });
+
+/** The trail specimens' Explorer GLBs (GR7: the `driftwood-trail-specimens` job's hash-named public copies): each fence post,
+ *  signpost and plank-step variant's one native draw by product name, and the public URL each had (trailCatalogue.json's
+ *  variant URLs, trailSpecimens.ts) mapped to that name. */
+export interface TrailSpecimenBank { readonly glbs: ReadonlyMap<string, Uint8Array>; readonly byUrl: Readonly<Record<string, string>> }
+const isParts = (built: unknown): built is readonly ModelPart[] => Array.isArray(built);
+let trailSpecimens: TrailSpecimenBank | undefined;
+/** Built once per build process (no file is read); every reader treats it as read-only. */
+export function trailSpecimenBank(): TrailSpecimenBank { trailSpecimens ??= buildTrailSpecimens(); return trailSpecimens; }
+function buildTrailSpecimens(): TrailSpecimenBank {
+  const ctx = modelContext(null), material = new THREE.MeshStandardMaterial(), glbs = new Map<string, Uint8Array>(), byUrl: Record<string, string> = {};
+  ctx.once('driftwood-isle/trail:material', () => material);
+  const add = <P extends object>(model: ModelDefType<P>): void => {
+    for (const variant of model.variants ?? [{ id: 'fencePost', params: {} }]) {
+      const parts = model.build(ctx, { ...model.defaults, ...variant.params }, new Rng(seedOf(model)));
+      const part = isParts(parts) && parts.length === 1 ? parts[0] : undefined;
+      if (part === undefined) throw new Error('Trail specimen needs one native draw');
+      const bytes = staticGlb([{ geometry: part.geometry, material, compactIndex: true }], model.id), name = `models/trail/${variant.id}.glb`;
+      glbs.set(name, bytes); byUrl[`${publicInputs.baked}trail-${hashImmutableBytes(bytes)}.glb`] = name; part.geometry.dispose();
+    }
+  };
+  try { add(fencePost); add(signpost); add(plankStep); } finally { material.dispose(); }
+  return { glbs, byUrl };
+}

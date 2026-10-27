@@ -13,7 +13,8 @@ import authoredPoolLook from '../data/poolLook.json' with { type: 'json' };
 import { CASCADE_LOOKS } from './waterfallLook';
 import { worldPlacements, TRAIL_PLACEMENTS } from './worldPlacements';
 import trailSpecimens from '../data/trailCatalogue.json' with { type: 'json' };
-import { SpecimenCatalogueSchema } from '@wildshard/format/specimenCatalogue';
+import { SpecimenCatalogueSchema, type SpecimenCatalogueRows, type SpecimenLocationRows } from '@wildshard/format/specimenCatalogue';
+import { trailSpecimenBank } from './trailsideModels';
 import { entryDeckSpecimen,entryDeckFiles } from './entryDeckSpecimen';
 import * as v from 'valibot';
 
@@ -22,6 +23,23 @@ const trail = driftwoodTrailRows();
 const { POOL_LOOK, SHRINE_POOL_LOOK } = authoredPoolLook;
 const nativeRows = parseWorldScenes({ version: 1, libraries: [native.library], materials: [], steps: [] });
 
+/** The trail's code-built specimens with each owned variant naming its product file (the trail-specimen bank, GR7)
+ *  instead of the retired job's public URL. */
+function trailProductSpecimens(): SpecimenCatalogueRows {
+  const bank = trailSpecimenBank(), rows: SpecimenCatalogueRows = [];
+  const located = (url: SpecimenLocationRows): SpecimenLocationRows => {
+    if (typeof url !== 'string') return url;
+    const file = bank.byUrl[url], bytes = file === undefined ? undefined : bank.glbs.get(file);
+    if (file === undefined || bytes === undefined) throw new Error(`Trail specimen has no banked file: ${url}`);
+    return { file, bytes: bytes.byteLength };
+  };
+  for (const row of v.parse(SpecimenCatalogueSchema, trailSpecimens)) {
+    if (row.source.kind === 'owned') for (const variant of row.source.variants) variant.url = located(variant.url);
+    rows.push(row);
+  }
+  return rows;
+}
+
 /** Static cascade assembly; the geometry and its application channels remain the existing fixed bake. */
 export function worldScenes(banks: DriftwoodSceneBanks): WorldScenesSection {
   const cargoRows = parseWorldScenes({ version: 1, libraries: [banks.cargo.library], materials: [], steps: [] });
@@ -29,7 +47,7 @@ export function worldScenes(banks: DriftwoodSceneBanks): WorldScenesSection {
   return {
     version: 1, catalogue: 'models/world-scenes.json',
     // the trail's fence post, signpost and plank step and the entry road deck: code-built specimens its placements name (G3)
-    specimens: [...v.parse(SpecimenCatalogueSchema, trailSpecimens), entryDeckSpecimen()],
+    specimens: [...trailProductSpecimens(), entryDeckSpecimen()],
     libraries: [...cargoRows.libraries, ...nativeRows.libraries, REEF_SCENE_LIBRARY, ...rockRows.libraries, ...parseWorldScenes({ version: 1, libraries: foliage.libraries, materials: [], steps: [] }).libraries, { id: 'cascade', kind: 'owned', models: ['waterfallSheet', 'waterfallRings', 'waterfallPuffs', 'coveStructure', 'coveRocks', 'coveGlow', 'covePools', 'wreckKit', 'wreckGlow', 'wreckRocks', 'trailside', 'hutKit', 'hutFlames', 'lookout', 'shipwreckKit', 'shipwreckGlow', 'shrineKit', 'shrineWater', 'shrineGlyphs', 'shrineSpecimenKit', 'shrineSpecimenWater', 'shrineSpecimenGlyphs', ...piers.slots, 'boatHull', 'boatSail', 'boatGear', 'mooringLines', 'duneLogs', ...Object.values(inventory.groups.driftLogs)].map(id => {
       const row = inventory.draws.find(entry => entry.slot === id), file = id === 'covePools' ? 'models/scene-pools.glb' : id === 'waterfallRings' ? 'models/scene-rings.glb' : DRIFTWOOD_FIXED_SOURCES[id];
       if (row === undefined || file === undefined) throw new Error(`Missing cascade bake: ${id}`);
