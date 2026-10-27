@@ -8,7 +8,7 @@ import { expect, test } from 'vitest';
 import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
 import { bridgeRestPool, bridgeRestValues } from '../src/shards/far-reach/generators/bridgeRest';
 import { MODEL_URLS } from '../src/shards/far-reach/generators/fileInventory';
-import { skyRouteSource } from '../src/shards/far-reach/generators/routeScene';
+import { skyRouteSource, skyRouteValues } from '../src/shards/far-reach/generators/routeScene';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
 const model = `public${MODEL_URLS['bridge-deck']}`, source = 'src/shards/far-reach/generators/bridgeRest.ts';
@@ -33,6 +33,16 @@ test('the route owner retains every original hierarchy, material, binding and bo
   expect(reads).toEqual([MODEL_URLS['bridge-deck']]);
   expect(bytes.byteLength).toBe(52_508); expect(hashImmutableBytes(bytes)).toBe(hash);
   expect(Buffer.compare(bytes, readFileSync(route))).toBe(0);
+});
+
+test('typed route values retain the complete original wire and isolate caller mutation', async () => {
+  const rows = await skyRouteValues(read);
+  expect(hashImmutableBytes(new TextEncoder().encode(`${JSON.stringify(rows)}\n`))).toBe(hash);
+  rows.SKY_ROUTE_SCENE.nodes.length = 0;
+  rows.SKY_BRIDGE_KIT.materials.length = 0;
+  const fresh = await skyRouteValues(read);
+  expect(hashImmutableBytes(new TextEncoder().encode(`${JSON.stringify(fresh)}\n`))).toBe(hash);
+  expect(hashImmutableBytes(await skyRouteSource(read))).toBe(hash);
 });
 
 test('actual cold sealed route generation has no hierarchy handoff and preserves the complete original output', async () => {

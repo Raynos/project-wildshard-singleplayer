@@ -1,4 +1,4 @@
-import { parsePrivateScene, type PrivateScene } from '@wildshard/format/clientChannels';
+import { parsePrivateScene, type PrivateScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
 import { bridgeRestValues } from './bridgeRest';
 import REST from '../data/restScenes.generated.json' with { type: 'json' };
 import { FALLEN_BRIDGE, NOTES, SPANS, UPDRAFT, VANES, WINCH } from "./layout";
@@ -17,12 +17,36 @@ const GLASS: SceneMaterial = { kind: 'standard', id: 'glass', properties: { colo
 const KIT_DECK: SceneMaterial = { kind: 'standard', id: 'deck', properties: { color: 0xffffff, vertexColors: true, flatShading: false, roughness: 0.9, metalness: 0 } };
 const declared = (materials: readonly SceneMaterial[], own: readonly SceneMaterial[]): SceneMaterial[] => materials.map(row => own.find(entry => entry.id === row.id) ?? row);
 
+/** Source-owned route hierarchies, original registry identities and native motion ports. */
+export interface SkyRouteValues {
+  readonly SKY_ROUTE_SCENE: PrivateScene;
+  readonly SKY_ROUTES: {
+    readonly registry: readonly { readonly id: string; readonly name: string; readonly category: 'buildings'; readonly file: string; readonly surface: 'wood'; readonly mode?: 'board' }[];
+    readonly bindings: readonly { readonly piece: string; readonly part: string }[];
+  };
+  readonly SKY_ROUTE_FRAMES: {
+    readonly recipe: WorldSceneRecipe;
+    readonly bindings: { readonly fallen: { readonly kind: 'group'; readonly part: string };
+      readonly winchAt: { readonly kind: 'vector'; readonly value: readonly [number, number, number] };
+      readonly notesAt: { readonly kind: 'vector'; readonly value: readonly [number, number, number] } };
+  };
+  readonly SKY_BRIDGE_KIT: PrivateScene;
+  readonly SKY_VANES: {
+    readonly recipe: WorldSceneRecipe;
+    readonly kinds: Readonly<Record<string, 'group' | 'vector'>>;
+    readonly ports: Readonly<Record<string, { kind: 'group'; part: string } | { kind: 'vector'; value: number[] }>>;
+    readonly rows: readonly { readonly id: string; readonly flag: string; readonly rotor: string; readonly at: string }[];
+    readonly bindings: readonly { readonly piece: string; readonly part: string }[];
+  };
+  readonly SKY_VANE: PrivateScene;
+}
+
 /** Place the static spans and board-only updraft in their original world frames. */
-export async function skyRouteSource(read: (url: string) => Uint8Array): Promise<Uint8Array> {
+export async function skyRouteValues(read: (url: string) => Uint8Array): Promise<SkyRouteValues> {
   const BRIDGES = await bridgeRestValues(read);
   const root = { kind: 'group' as const, id: 'routes', children: [] as string[] };
   const nodes: PrivateScene['nodes'] = [root];
-  const registry = [], bindings = [];
+  const registry: SkyRouteValues['SKY_ROUTES']['registry'][number][] = [], bindings: SkyRouteValues['SKY_ROUTES']['bindings'][number][] = [];
   for (const span of [...SPANS, ...RISING_ISLETS.map(entry => entry.bridge), UPDRAFT]) {
     const hover = span.kind === 'hover', row = hover ? REST.hover.find(entry => entry.id === span.id) : BRIDGES.spans.find(entry => entry.id === span.id);
     if (row === undefined) throw new Error(`Missing route scene ${span.id}`);
@@ -51,7 +75,7 @@ export async function skyRouteSource(read: (url: string) => Uint8Array): Promise
   ] };
   for (const node of deck.nodes) fallen.nodes.push({ ...node, id: deckId(node.id), children: node.children.map(deckId) });
   parsePrivateScene(fallen);
-  const frames = { recipe: { scene: fallen, imports: [] }, bindings: { fallen: { kind: 'group', part: 'fallen' },
+  const frames: SkyRouteValues['SKY_ROUTE_FRAMES'] = { recipe: { scene: fallen, imports: [] }, bindings: { fallen: { kind: 'group', part: 'fallen' },
     winchAt: { kind: 'vector', value: [WINCH.x, WINCH.y + 1.2, WINCH.z] }, notesAt: { kind: 'vector', value: [NOTES.x, NOTES.y + 1.3, NOTES.z] } } };
   const vaneNodes: PrivateScene['nodes'] = [
     { kind: 'group', id: 'vane', children: ['post', 'rotor'] },
@@ -78,5 +102,10 @@ export async function skyRouteSource(read: (url: string) => Uint8Array): Promise
   const vanes = { recipe: { scene: vaneWorld, imports: [] }, kinds: vaneKinds, ports: vanePorts,
     rows: VANES.map(row => ({ id: row.id, flag: row.flag, rotor: `${row.id}.rotor`, at: `${row.id}.at` })),
     bindings: VANES.map(row => ({ piece: `far.vane.${row.id}`, part: `${row.id}.vane` })) };
-  return new TextEncoder().encode(`${JSON.stringify({ SKY_ROUTE_SCENE: scene, SKY_ROUTES: { registry, bindings }, SKY_ROUTE_FRAMES: frames, SKY_BRIDGE_KIT: kit, SKY_VANES: vanes, SKY_VANE: vane })}\n`);
+  return { SKY_ROUTE_SCENE: scene, SKY_ROUTES: { registry, bindings }, SKY_ROUTE_FRAMES: frames, SKY_BRIDGE_KIT: kit, SKY_VANES: vanes, SKY_VANE: vane };
+}
+
+/** Retained publication keeps the original complete JSON transport over owned source values. */
+export async function skyRouteSource(read: (url: string) => Uint8Array): Promise<Uint8Array> {
+  return new TextEncoder().encode(`${JSON.stringify(await skyRouteValues(read))}\n`);
 }
