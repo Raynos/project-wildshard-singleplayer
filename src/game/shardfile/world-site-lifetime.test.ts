@@ -17,13 +17,17 @@ import { entryOwner } from './entryOwners';
 import type { SceneHandles } from './sceneHandles';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import * as v from 'valibot';
+import { DRIFTWOOD_LAYOUTS } from '../../../test/fixtures/driftwood-layout-source';
 
 const keys = ['hut', 'lookout', 'shrine'];
+const fixedLayouts: Readonly<Record<string, unknown>> = {
+  hut: DRIFTWOOD_LAYOUTS.hut, lookout: DRIFTWOOD_LAYOUTS.lookout, shrine: DRIFTWOOD_LAYOUTS.shrine,
+};
 const shipped = v.parse(v.looseObject({ product: v.string(), models: v.array(v.looseObject({ key: v.string(), choices: v.array(v.looseObject({ id: v.string() })) })) }),
   JSON.parse(readFileSync('src/shards/driftwood-isle/data/siteCatalogue.json', 'utf8')));
 const layoutSchema = v.looseObject({ origin: v.unknown(), colliders: v.array(v.unknown()), floors: v.array(v.unknown()), anchors: v.unknown(), descs: v.array(v.unknown()) });
 const layouts = new Map(keys.map(key => {
-  const input: unknown = JSON.parse(readFileSync(`src/shards/driftwood-isle/data/${key}Bake.json`, 'utf8'));
+  const input: unknown = fixedLayouts[key];
   return [key, v.parse(layoutSchema, key === 'shrine' ? v.parse(v.looseObject({ world: v.unknown() }), input).world : input)] as const;
 }));
 const models: unknown[] = [];
