@@ -70,7 +70,7 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
               }
               if(target===null)continue;
               let resolved,deferred=false;
-              for(const path of [target,`${target}.ts`,`${target}.tsx`,`${target}.mts`,`${target}.mjs`,`${target}.js`,`${target}/index.ts`]){
+              for(const path of [target,`${target}.ts`,`${target}.tsx`,`${target}.mts`,`${target}.mjs`,`${target}.js`,`${target}.d.ts`,`${target}.d.mts`,`${target}.d.cts`,`${target}/index.ts`]){
                 if(view.files.has(path)||view.derived.has(path)||view.admitGenerated(path)){resolved=path;break;}
                 const provider=view.sourceProviders.get(path);
                 if(deferNative&&provider!==undefined){

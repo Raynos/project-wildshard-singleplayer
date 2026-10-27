@@ -63,6 +63,18 @@ test('native-output handoff keeps ordinary source errors blocking',()=>{
   }finally{f.close();}
 });
 
+test('native closure admits tracked declaration modules without a generation handoff',()=>{
+  const f=fixture();try{
+    f.put('src/shape.d.ts','export interface Shape {value:number}\n');
+    f.put('src/main.ts',"import type {Shape} from './shape';export const value:Shape={value:1};");
+    const result=f.run('fast-lint',f.commit(),undefined,undefined,false,true,true);
+    expect(result.status,result.stderr).toBe(0);
+    expect(result.stdout).toContain('Fast lint passed on 1 exact changed files');
+    expect(result.stdout).not.toContain('DEFERRED');
+    expect(result.stdout).not.toContain('Gate-deferred');
+  }finally{f.close();}
+});
+
 test('lint refuses exact bad text and openly defers dirty or staged inputs',()=>{
   const f=fixture();try {
     f.put('src/main.ts','export const value=eval("1");');const bad=f.commit();
