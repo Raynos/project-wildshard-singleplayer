@@ -1,9 +1,9 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep frozen predecessor identities and isolate actual sealed consumers.
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine expanded omission descriptors to repository scratch.
-import { dirname, relative, resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
+import { discoverGeneration } from '../scripts/generate.mjs';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { MILL_REST_INPUTS, skyMillRestProgram } from '../src/shards/far-reach/generators/millRestProgram';
 import { hashImmutableBytes } from '../src/sdk/immutable';
@@ -95,27 +95,16 @@ test('world geometry has no scheduled writer or declared handoff readers and eve
   }
 });
 
-test.each(Object.entries(readers))('%s preserves its complete original outputs with all former world files absent', async (id, expected) => {
-  const root = resolve('.'), { jobs } = discoverGeneration(root), job = jobs.find(row => row.id === id);
-  if (job === undefined) throw new Error(`Missing retained world consumer ${id}`);
-  const files = new Set(Object.keys(held));
-  const inputRoots = [...new Set(job.inputRoots.flatMap(path => {
-    if (![...files].some(file => file.startsWith(`${path}/`))) return [path];
-    return readdirSync(resolve(root, path), { recursive: true, withFileTypes: true }).filter(file => file.isFile())
-      .map(file => relative(root, resolve(file.parentPath, file.name)));
-  }))].filter(file => !files.has(file));
-  const omitted = { ...job, inputRoots }, cacheDir = mkdtempSync(resolve('tmp/sky-world-retired-'));
-  try {
-    const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
-    writeFileSync(resolve(root, catalogPath), JSON.stringify({ schema: 'generation-jobs/1',
-      notice: 'DO NOT EDIT isolated former-world-input omission', jobs: jobs.map(row => row.id === id ? omitted : row) }));
-    const result = await generateShardJob(root, omitted, { cacheDir, catalogPath, forceCompare: true });
-    try {
-      expect(result.hit).toBe(false);
-      for (const file of files) expect(existsSync(resolve(result.directory, file)), file).toBe(false);
-      expect(result.hashes).toEqual(expected);
-    } finally { result.release(); }
-  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
+test.each(Object.entries(readers))('%s has no publisher or handoff readers and retains all original byte oracles', (id, expected) => {
+  const { jobs } = discoverGeneration(resolve('.'));
+  expect(jobs.some(row => row.id === id)).toBe(false);
+  for (const [file, hash] of Object.entries(expected)) {
+    expect(hashImmutableBytes(readFileSync(file)), file).toBe(hash);
+    for (const job of jobs) {
+      expect(job.outputs, job.id).not.toContain(file);
+      expect(job.inputRoots, job.id).not.toContain(file);
+    }
+  }
 });
 
 test('the retired mill owners preserve both complete outputs in a cold native cache with all former world files absent', async () => {
