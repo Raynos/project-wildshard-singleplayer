@@ -138,9 +138,17 @@ test.each(['borrow', 'take'] as const)('signed grid extremes retain the original
 function completePartition(gridded: boolean, encoded: boolean): Mesh {
   const node = partition([0, 1, 2, 3], 0, gridded);
   node.geometry.setIndex([0, 1, 2, 1, 3, 2]);
+  node.geometry.setAttribute('_seed', new BufferAttribute(new Float32Array([0, -0, 1e-20, 1 / 3]), 1));
+  const native: unknown = node.userData['nativeAttributes'];
+  if (native === null || typeof native !== 'object') throw new Error('Missing native channels');
+  node.userData['nativeAttributes'] = { ...native, seed: { semantic: '_SEED', storage: 'Float32Array', normalized: false, itemSize: 1 } };
+  if (gridded) {
+    const position = node.geometry.getAttribute('position');
+    for (const [i, words] of [[-32768, 32767, -1], [32766, -32767, 1], [12345, -23456, 0], [-1, 0, 32767]].entries()) position.setXYZ(i, words[0] ?? 0, words[1] ?? 0, words[2] ?? 0);
+  }
   node.userData['wholePartition'] = { id: 'source', vertices: encoded ? { runs: [0, 4] } : [0, 1, 2, 3],
     triangles: { runs: [0, 2] }, vertexCount: 4, indexCount: 6, index: 'u16',
-    ...(gridded ? { grid: { origin: [0.125, -1.75, 4.25], step: 0.0625 } } : {}) };
+    ...(gridded ? { grid: { origin: [12345.678901234567, -0.0000123456789, 1e-20], step: 0.00031250000000000006 } } : {}) };
   return node;
 }
 
@@ -166,10 +174,16 @@ test.each(['partial', 'offset', 'shared', 'duplicate-triangle', 'spoofed-proof']
   if (kind === 'offset') node.userData['wholePartition'] = { id: 'source', vertices: { runs: [1, 4] }, triangles: [0, 1], vertexCount: 4, indexCount: 6, index: 'u16' };
   if (kind === 'shared') other.geometry.getAttribute('position').setX(0, 99);
   if (kind === 'spoofed-proof') node.userData['wholePartition'] = { id: 'source', vertices: [0, 1, 2, 3], triangles: [0, 1], vertexCount: 4, indexCount: 6, index: 'u16', denseVertices: true };
-  const error = kind === 'partial' ? 'Whole missing triangle vertex' : kind === 'offset' ? 'Whole vertex ordinal outside source'
+  const error = kind === 'partial' ? 'Whole source source is incomplete' : kind === 'offset' ? 'Whole vertex ordinal outside source'
     : kind === 'shared' ? 'Whole shared vertex differs' : kind === 'duplicate-triangle' ? 'Whole duplicate or invalid triangle' : undefined;
   try {
     const read = () => assembleWholeGeometryViews(kind === 'shared' || kind === 'duplicate-triangle' ? [node, other] : [node], 'take');
     if (error === undefined) expect(read).toThrow(); else expect(read).toThrow(error);
+    if (kind === 'partial') {
+      // The predecessor explicit-list route refuses at the same original
+      // completeness gate; no required triangle is consumed beyond its list.
+      other.userData['wholePartition'] = { id: 'source', vertices: [0, 1, 2], triangles: [0], vertexCount: 4, indexCount: 6, index: 'u16' };
+      expect(() => assembleWholeGeometryViews([other], 'take')).toThrow('Whole source source is incomplete');
+    }
   } finally { node.geometry.dispose(); other.geometry.dispose(); }
 });
