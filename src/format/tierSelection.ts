@@ -51,7 +51,7 @@ export function* entryFileSteps(source: TierSelectionSource, tier: 'phone' | 'de
   return inactive;
 }
 
-export function* tierLibrarySteps(source: TierSelectionSource, tier: 'phone' | 'desktop', descriptor: { readonly index: { readonly files: readonly { readonly hash: string; readonly path: string; readonly name?: string; readonly tier?: 'phone' | 'desktop' }[] }; readonly sections: ReadonlyMap<string, unknown> }, assets?: ReadonlyMap<string, Uint8Array>): Generator<void, ReadonlySet<string>> {
+export function* tierLibrarySteps(source: TierSelectionSource, tier: 'phone' | 'desktop', descriptor: { readonly index: { readonly files: readonly { readonly hash: string; readonly path: string; readonly name?: string; readonly tier?: 'phone' | 'desktop'; readonly variantOf?: string; readonly compressed?: number }[] }; readonly sections: ReadonlyMap<string, unknown> }, assets?: ReadonlyMap<string, Uint8Array>): Generator<void, ReadonlySet<string>> {
   const names = new Map<string, string>();
   for (const file of descriptor.index.files) {
     for (const name of [file.hash, file.path, `/shardfiles/${source.identity.slug}/${file.path}`]) names.set(name, file.hash);
@@ -61,6 +61,14 @@ export function* tierLibrarySteps(source: TierSelectionSource, tier: 'phone' | '
   // a named file marked for the other device tier is that tier's download only, even where an active row names it (an
   // alias table naming both tiers' payloads); only a critical pin or a file dependency keeps it
   const otherTier = new Set(descriptor.index.files.filter(file => file.tier !== undefined && file.tier !== tier).map(file => file.hash));
+  // variants of one payload (its texture modes' alternatives): the device fetches one, so this tier keeps only its largest
+  const variants = new Map<string, { readonly hash: string; readonly compressed: number }[]>();
+  for (const file of descriptor.index.files) if (file.variantOf !== undefined && !otherTier.has(file.hash))
+    variants.set(file.variantOf, [...variants.get(file.variantOf) ?? [], { hash: file.hash, compressed: file.compressed ?? 0 }]);
+  for (const group of variants.values()) {
+    const kept = group.reduce((best, row) => row.compressed > best.compressed || (row.compressed === best.compressed && row.hash < best.hash) ? row : best);
+    for (const row of group) if (row !== kept) otherTier.add(row.hash);
+  }
   for (const hash of otherTier) inactive.add(hash);
   const alternative = (selected: string, other: string): void => {
     const off = names.get(other); if (off !== undefined) inactive.add(off);

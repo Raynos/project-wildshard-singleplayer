@@ -19,7 +19,7 @@ const sectionName = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9-]*\/[a-zA-Z][a-
 const measuredFile = { path, hash: ShardHashSchema, bytes: ShardNaturalSchema };
 const section = v.strictObject({ ...measuredFile, name: sectionName, schema: v.pipe(v.string(), v.maxLength(240)) });
 const costs = v.omit(FilesSchema.pipe[0].item, ['kind']).entries;
-const fileSchema = v.strictObject({ ...costs, path, kind: v.picklist(['glb', 'ktx2', 'audio', 'json', 'wasm', 'tile', 'bin', 'image']), name: v.exactOptional(v.pipe(v.string(), v.maxLength(240))), tier: v.exactOptional(v.picklist(['phone', 'desktop'])), commons: v.exactOptional(v.literal(true)), jsonSchema: v.exactOptional(v.record(v.string(), v.unknown())) });
+const fileSchema = v.strictObject({ ...costs, path, kind: v.picklist(['glb', 'ktx2', 'audio', 'json', 'wasm', 'tile', 'bin', 'image']), name: v.exactOptional(v.pipe(v.string(), v.maxLength(240))), tier: v.exactOptional(v.picklist(['phone', 'desktop'])), variantOf: v.exactOptional(v.pipe(v.string(), v.minLength(1), v.maxLength(240))), commons: v.exactOptional(v.literal(true)), jsonSchema: v.exactOptional(v.record(v.string(), v.unknown())) });
 const runtime = v.union([
   v.strictObject({ ...v.omit(LegacyRuntimeSchema.pipe[0], ['spawns']).entries, trust: v.literal('first-party'), files: v.array(v.strictObject({ ...measuredFile, lines: ShardNaturalSchema })), lines: ShardNaturalSchema }),
   v.strictObject({ ...v.omit(ClientPlanRuntimeSchema.pipe[0], ['spawns']).entries, trust: v.literal('first-party'), files: v.pipe(v.array(v.strictObject({ ...measuredFile, lines: ShardNaturalSchema })), v.maxLength(0)), lines: v.literal(0) }),
@@ -75,7 +75,7 @@ function parseOutputIndexRows(input: unknown): OutputIndex {
     if (refs.has(ref)) throw new Error('Duplicate output blob reference'); refs.add(ref);
     if (entry.name !== undefined) { if (logical.has(entry.name)) throw new Error('Duplicate logical blob name'); logical.add(entry.name); }
     // a tiered file is one device tier's named, non-critical download (the other tier's selection drops it)
-    if (entry.tier !== undefined && (entry.name === undefined || entry.commons === true || entry.critical)) throw new Error('A tiered output file is a named, non-critical product file');
+    if ((entry.tier !== undefined || entry.variantOf !== undefined) && (entry.name === undefined || entry.commons === true || entry.critical)) throw new Error('A tiered or variant output file is a named, non-critical product file');
   }
   // I5: a pack lives beside the blobs, is listed once, and holds only listed members at their exact sizes, in order
   const members = new Map([...index.sections, ...index.schemas].map(entry => [entry.hash, entry.bytes] as const));
@@ -163,6 +163,7 @@ interface OutputIndexRowsInputFields {
         kind: "audio" | "glb" | "ktx2" | "json" | "wasm" | "image" | "tile" | "bin";
         name?: string;
         tier?: 'phone' | 'desktop';
+        variantOf?: string;
         commons?: true;
         jsonSchema?: Record<string, unknown>;
         critical: boolean;
@@ -280,6 +281,7 @@ interface OutputIndexRowsFields {
         kind: "audio" | "glb" | "ktx2" | "json" | "wasm" | "image" | "tile" | "bin";
         name?: string;
         tier?: 'phone' | 'desktop';
+        variantOf?: string;
         commons?: true;
         jsonSchema?: Record<string, unknown>;
         critical: boolean;

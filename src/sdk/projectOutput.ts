@@ -139,14 +139,14 @@ export function mergeProjectBlobs(input: Shardfile, inputAssets: ReadonlyMap<str
     let overlay: OutputFile;
     if (existing !== undefined) {
       if (existing.kind !== (file.kind === 'bin' || file.kind === 'tile' ? 'binary' : file.kind) || existing.compressed !== blob.bytes.length) throw new Error('Blob kind or size differs from admitted declaration');
-      overlay = nameBlob(name, file.kind, blob.bytes, { ...existing, ...(file.jsonSchema === undefined ? {} : { jsonSchema: file.jsonSchema }), ...(file.tier === undefined ? {} : { tier: file.tier }), ...(blob.script === undefined ? {} : { script: blob.script }) }).file;
+      overlay = nameBlob(name, file.kind, blob.bytes, { ...existing, ...(file.jsonSchema === undefined ? {} : { jsonSchema: file.jsonSchema }), ...(file.tier === undefined ? {} : { tier: file.tier }), ...(file.variantOf === undefined ? {} : { variantOf: file.variantOf }), ...(blob.script === undefined ? {} : { script: blob.script }) }).file;
     } else if (common) {
       const cost = source.requires.commonsCosts[file.hash];
       if (cost === undefined || source.requires.commonsWire[file.hash] !== blob.bytes.length) throw new Error('Blob differs from admitted commons');
       overlay = { ...nameBlob(name, file.kind, blob.bytes, { ...cost, ...(file.jsonSchema === undefined ? {} : { jsonSchema: file.jsonSchema }), ...(blob.script === undefined ? {} : { script: blob.script }) }).file, commons: true };
     } else {
       // the tier is the named file's (the output index carries it); the declaration's file row has none
-      const { name: _name, path: _path, jsonSchema: _schema, tier: _tier, kind, ...metadata } = file;
+      const { name: _name, path: _path, jsonSchema: _schema, tier: _tier, variantOf: _variant, kind, ...metadata } = file;
       const added = { ...metadata, kind: kind === 'bin' || kind === 'tile' ? 'binary' as const : kind };
       source.files.push(added); files.set(file.hash, added);
       if (file.critical) {

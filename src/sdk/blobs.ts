@@ -14,7 +14,10 @@ export type NamedBlobKind = OutputFile['kind'];
 export interface BlobOptions extends Partial<AssetCost> { readonly script?: ScriptContract; readonly critical?: boolean; readonly dependencies?: readonly string[]; readonly jsonSchema?: JsonSchema | Readonly<Record<string, unknown>>;
   /** The one device tier that fetches this file (absent: both). The other tier's selection drops it, as it drops a
    *  tiered tile or texture entry; a critical file serves both tiers and takes no tier. */
-  readonly tier?: 'phone' | 'desktop' }
+  readonly tier?: 'phone' | 'desktop';
+  /** The payload this file is one variant of (its texture modes' alternatives: image, KTX2, ASTC, ...); a device
+   *  fetches one variant, so each tier's selection keeps only its largest variant (the worst case it can fetch). */
+  readonly variantOf?: string }
 /** Build-only meshopt candidate, kept only if gzip-9 does not grow; compressed input needs no option. */
 export interface BlobSourceOptions extends BlobOptions { readonly meshopt?: boolean }
 /** One owned byte array and the exact index entry that names it. */

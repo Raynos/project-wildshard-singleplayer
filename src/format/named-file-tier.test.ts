@@ -27,3 +27,12 @@ test('a critical pin or a file dependency keeps a tiered file', () => {
   expect([...select('phone', [hash(3)])]).toEqual([]);
   expect([...select('phone', [], [hash(3)])]).toEqual([]);
 });
+
+test('a tier keeps only the largest variant of a payload it can fetch', () => {
+  const source = { identity: { slug: 'variants' }, files: [file(5), file(6), file(7), file(8)], library: [hash(5), hash(6), hash(7), hash(8)], critical: [] };
+  const row = (n: number, name: string, compressed: number, tier?: 'phone' | 'desktop') => ({ hash: hash(n), path: `blobs/bin/${hash(n)}.bin`, name, compressed, variantOf: 'model.glb', ...(tier === undefined ? {} : { tier }) });
+  const descriptor = { index: { files: [row(5, 'image.bin', 10), row(6, 'ktx2.bin', 30, 'phone'), row(7, 'astc.bin', 20, 'phone'), row(8, 'desktop.bin', 50, 'desktop')] }, sections: new Map<string, unknown>() };
+  const run = (tier: 'phone' | 'desktop') => { const steps = tierLibrarySteps(source, tier, descriptor); let step = steps.next(); while (step.done !== true) step = steps.next(); return [...step.value].sort(); };
+  expect(run('phone')).toEqual([hash(5), hash(7), hash(8)].sort());
+  expect(run('desktop')).toEqual([hash(5), hash(6), hash(7)].sort());
+});

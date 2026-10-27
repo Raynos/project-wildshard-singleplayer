@@ -52,9 +52,11 @@ export function nameBlobBytes(name: string, kind: NamedBlobKind, input: Uint8Arr
   const dependencies = [...options.dependencies ?? []];
   if (dependencies.some(hash => !reference.test(hash)) || new Set(dependencies).size !== dependencies.length || (options.critical !== undefined && typeof options.critical !== 'boolean')) throw new Error('Invalid blob dependencies or admission policy');
   if (options.tier !== undefined && (options.critical === true || (options.tier !== 'phone' && options.tier !== 'desktop'))) throw new Error('A tiered named blob is a non-critical phone or desktop file');
+  if (options.variantOf !== undefined && (options.critical === true || options.variantOf.length === 0 || options.variantOf.length > 240)) throw new Error('A variant is a non-critical file of a named payload');
   const hash = hashImmutableBytes(bytes);
   const file = { name, path: `blobs/${kind}/${hash}.${suffix}`, kind, hash, compressed: bytes.length, ...costs, critical: options.critical ?? false, dependencies,
     ...(options.tier === undefined ? {} : { tier: options.tier }),
+    ...(options.variantOf === undefined ? {} : { variantOf: options.variantOf }),
     ...(options.jsonSchema === undefined ? {} : { jsonSchema: structuredClone(Object.fromEntries(Object.entries(options.jsonSchema))) }) };
   outputBlobPath(file);
   return { file, bytes, ...(options.script === undefined ? {} : { script: { ...options.script } }) };
