@@ -14,6 +14,12 @@ import { nalatiPoiPaintFromInputs, POI_PAINT_INPUTS } from './poiPaintProgram.ts
 import { nalatiGeographySources, nalatiGeographyRows } from './geographySource.ts';
 import { nalatiCragRock } from './cragRockProgram.ts';
 import { nalatiSprucePool, SPRUCE_REST } from './sprucePool.ts';
+import { nalatiModelPaintProgram } from './modelPaintProgram.ts';
+import { nalatiRuntimeRows } from './runtimeRows.ts';
+import { nalatiSpecimenRows } from './specimenRows.ts';
+import { bakeNalatiPlacesOnTerrain } from './places.ts';
+import { prepareNalatiDressingInputs } from './dressingInputs.ts';
+import { bakeNalatiDressingSource } from './dressingSource.ts';
 
 // GR6: a pure producer. The caller supplies every input as bytes by its repository path (`source(path)`); no file, script,
 // format or engine service is read here.
@@ -60,7 +66,6 @@ function ownedModelReader(source) {
     const name = path.slice(prefix.length);
     let bytes = models.get(name);
     if (bytes === undefined) {
-      const { nalatiModelPaintProgram } = await import('./modelPaintProgram.ts');
       const files = await nalatiModelPaintProgram({ cached: (step, make) => {
         const inputs = new Map();
         for (const input of step.inputs ?? []) inputs.set(input, source(`public${input}`));
@@ -88,10 +93,11 @@ export function readNalatiMapScalar(source, directory) {
 /** Native construction and the defining row preparation own map geometry/metadata.
  * The raw words never cross a compressed public or prepared-runtime handoff. */
 async function nativeMapPlaces(paint, geography, source) {
-  const { nativeNalatiPlaces } = await import('./bake-nalati-painted.mjs');
-  const { nalatiRuntimeRows } = await import('./runtimeRows.ts');
-  const { nalatiSpecimenRows } = await import('./specimenRows.ts');
-  const made = await nativeNalatiPlaces(geography);
+  // the native construction of bake-nalati-painted.mjs, over the supplied terrain bytes (that tool reads the file)
+  const lattice = source('public/assets/baked/nalati-grasslands/terrain.bin'), terrain = lattice.slice().buffer;
+  const dressing = await bakeNalatiDressingSource(prepareNalatiDressingInputs({ terrain: new Uint8Array(terrain), scalarBlocks: geography,
+    forest: 'continuous', phone: false }));
+  const made = bakeNalatiPlacesOnTerrain(terrain, withPortableMath, dressing);
   const places = { rows: made.places.rows, bytes: made.places.bin.byteLength };
   const prepared = nalatiRuntimeRows({ places, paint }).runtime;
   const specimens = nalatiSpecimenRows(mapJson(source(`${SHARD}data/campCatalogue.json`)), mapJson(source(`${SHARD}data/campMaterials.json`)),

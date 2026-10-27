@@ -34,7 +34,7 @@ test('the runtime publication job and both aliases stay retired',()=>{
 });
 
 test('the map freshness recipe names native source inputs instead of retired handoffs',()=>{
- const settings=v.parse(v.object({inputs:v.array(v.string())}),JSON.parse(readFileSync('src/shards/nalati-grasslands/look/map.json','utf8')));
+ const settings=v.parse(v.object({inputs:v.array(v.string())}),JSON.parse(readFileSync('src/shards/nalati-grasslands/data/map.json','utf8')));
  expect(settings.inputs).not.toContain('data/placeRuntime.generated.json');
  expect(settings.inputs).not.toContain('../../../public/assets/nalati/baked/places.bin');
  expect(settings.inputs).toContain('../../sdk/bake/annulus.ts');

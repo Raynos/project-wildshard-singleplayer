@@ -99,6 +99,7 @@ import chapterView from '../data/chapterView.json' with { type: 'json' };
 import { peopleRows as peopleFrames } from './peopleRows.mjs';
 import { nalatiPeopleBlobs } from './peopleBake';
 import { nalatiTerrainSceneProgram } from './terrainSceneProgram';
+import { nalatiMap } from './mapProgram';
 import { nalatiCragRockProgram } from './cragRockProgram';
 import { nalatiSprucePool, SPRUCE_POOL_NAME } from './sprucePool';
 import { ChapterViewSchema } from '@wildshard/format/questPageComposition';
@@ -388,4 +389,9 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
     return nameBlob(row.name, row.kind, bytes);
   }), runtime.floors.map(floor => nameBlob(floor.name, 'bin', floor.bytes)), [propBlob], carvings, held, renderPairs, ownedGeography, views, [kokpar.blob]));
   return { ...template, platform, blobs: [], namedFiles: [...sources.map(source => source.file), ...modelBlobs.map(source => source.file), ...namedFiles, ...taming.files, places.file, crags.file, dressingBlob.file, specimenBank.file, speciesBank.file, ...people.map(blob => blob.file), ...terrainDraws.map(blob => blob.file), ...grassBlobs.map(blob => blob.file)], assets: new Map([...template.assets, ...freshEmission.assets, ...[...ownedBooks.values()].map(blob => [blob.file.hash, blob.bytes] as const), ...sources.map(source => [source.file.hash, source.bytes] as const), ...modelBlobs.map(source => [source.file.hash, source.bytes] as const), ...ownedMetadata.assets, ...placements.assets, ...scenes.assets, [carriedBlob.file.hash, carriedBlob.bytes], [places.file.hash, places.bytes], [crags.file.hash, crags.bytes], [dressingBlob.file.hash, dressingBlob.bytes], [specimenBank.file.hash, specimenBank.bytes], [speciesBank.file.hash, speciesBank.bytes], ...people.map(blob => [blob.file.hash, blob.bytes] as const), ...terrainDraws.map(blob => [blob.file.hash, blob.bytes] as const), ...grassBlobs.map(blob => [blob.file.hash, blob.bytes] as const)]) };
+}
+
+/** GR6: the map lattice (the source-owned map: the SDK publishes it as `ui/images/map` and the public alias). */
+export async function prepareMap(ctx: ProjectGenerationContext): Promise<{ pixels: Uint8Array; name: string }> {
+  return { pixels: await nalatiMap(ctx), name: 'ui/images/map' };
 }

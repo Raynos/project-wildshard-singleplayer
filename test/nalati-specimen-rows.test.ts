@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare the complete original specimen declaration and source inputs.
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only the owned source entry and confined omitted-input stage.
-import { relative, resolve } from 'node:path';
+import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
 import * as v from 'valibot';
@@ -9,8 +9,9 @@ import { nalatiSpecimenRows } from '../src/shards/nalati-grasslands/generators/s
 import { SpecimenCatalogueSchema, SpecimenMaterialSchema } from '../src/format/specimenCatalogue';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
-import { discoverGeneration, generateShardJob, generationInputs } from '../scripts/generate.mjs';
+import { discoverGeneration } from '../scripts/generate.mjs';
 import {withOwnedModelFiles} from './fixtures/nalati-owned-models';
+import { NALATI_MAP_INPUTS, nalatiMapPixels } from '../src/shards/nalati-grasslands/generators/mapProgram';
 
 const project = 'src/shards/nalati-grasslands/';
 // This schema only validates values. Keep original key order for the complete historical wire pin.
@@ -71,19 +72,9 @@ test('source-owned specimens retire the publisher and retain all three historica
   for (const [path, text] of historical) expect(hashImmutableBytes(new TextEncoder().encode(text)), path).toBe(pins.get(path));
 });
 
-test('the owning sealed map publisher still refuses an omitted specimen composer', async () => {
-  const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'nalati-data-map');
-  if (job === undefined) throw new Error('Missing native map publisher');
-  const helper = `${project}generators/specimenRows.ts`;
-  const roots = Object.keys(generationInputs(root, job.inputRoots));
-  expect(roots).toContain(helper);
-  const cacheDir = mkdtempSync(resolve('tmp/nalati-specimen-source-'));
-  try {
-    const descriptor = { ...job, inputRoots: roots.filter(path => path !== helper) };
-    const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
-    const catalog = v.parse(v.looseObject({ jobs: v.array(v.unknown()) }), JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));
-    catalog.jobs = catalog.jobs.map(row => typeof row === 'object' && row !== null && Reflect.get(row, 'id') === job.id ? descriptor : row);
-    writeFileSync(resolve(root, catalogPath), JSON.stringify(catalog));
-    await expect(generateShardJob(root, descriptor, { cacheDir, catalogPath, forceCompare: true })).rejects.toThrow('Generator exited 1');
-  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
+// GR6: the map is a source program; without the specimen composer's camp catalogue it refuses
+test('the map program refuses an omitted specimen composer input', async () => {
+  const bank = new Map(NALATI_MAP_INPUTS.map(name => [name, new Uint8Array(readFileSync(name.startsWith('/') ? `public${name}` : `${project}${name}`))]));
+  bank.delete('data/campCatalogue.json');
+  await expect(nalatiMapPixels(bank)).rejects.toThrow('Undeclared Nalati map input');
 });

@@ -519,7 +519,6 @@
     "src/shards/nalati-grasslands/data/weatherChannels.generated.json",
     "src/shards/nalati-grasslands/generators/edges.ts",
     "src/shards/nalati-grasslands/generators/panoramaData.ts",
-    "src/shards/nalati-grasslands/look/map.baked.json",
     "src/shards/nine-dragon-stack-legacy/ktx2.generated.ts",
     "src/shards/nine-dragon-stack/.wildshard/build-policy.json",
     "src/shards/nine-dragon-stack/assets/0005afe3b1043a080e66952d62e438df931f335eacd43ba661d4477b023bc85b",

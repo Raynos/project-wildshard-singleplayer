@@ -22,27 +22,19 @@ it('retires public painted publication while cover and map use defining authored
  const {jobs}=v.parse(v.object({jobs:v.array(v.object({id:v.string(),inputRoots:v.array(v.string()),outputs:v.array(v.string()),catalogueDependencies:v.optional(v.array(v.string()),[])}))}),
   JSON.parse(readFileSync('scripts/generation-jobs.json','utf8')));
  expect(jobs.some(job=>job.id==='nalati-model-paint')).toBe(false);
- for(const id of ['nalati-cover','nalati-data-map']){
-  const job=jobs.find(row=>row.id===id);if(job===undefined)throw new Error('Missing native Nalati consumer');
-  expect(job.inputRoots).toContain('src/shards/nalati-grasslands/generators/modelPaint.mjs');
-  expect(job.catalogueDependencies).not.toContain('nalati-model-paint');
-  expect(job.inputRoots.some(file=>file.endsWith('/bake-model-paint.mjs'))).toBe(false);
- }
+ // GR6: cover and the map left the scheduler; their build-time producers read the defining painter directly
+ for(const id of ['nalati-cover','nalati-data-map'])expect(jobs.some(job=>job.id===id)).toBe(false);
+ expect(readFileSync('src/shards/nalati-grasslands/generators/coverBake.mjs','utf8')).toContain("from './modelPaint.mjs'");
+ expect(readFileSync('src/shards/nalati-grasslands/generators/mapAssembly.mjs','utf8')).toContain("from './modelPaintProgram.ts'");
  expect(originals).toHaveLength(43);
  for(const pin of originals)expect(existsSync(`public/assets/nalati/baked/painted-models/${pin.file}`),pin.file).toBe(false);
 });
 
-it('owns grass keep-outs through explicit native terrain and scalar inputs',()=>{
- const {jobs}=v.parse(v.object({jobs:v.array(v.object({id:v.string(),inputRoots:v.array(v.string()),outputs:v.array(v.string()),buildTimeOutputs:v.optional(v.array(v.string()),[])}))}),
-  JSON.parse(readFileSync('scripts/generation-jobs.json','utf8')));
- const grass=jobs.find(job=>job.id==='nalati-grass');
- if(grass===undefined)throw new Error('Missing Nalati producer');
- const coverInputs=grass.inputRoots.filter(file=>file.includes('/dressing-')&&file.endsWith('.generated.json'));
- expect(coverInputs).toEqual([]);
- expect(grass.inputRoots).toContain('src/shards/nalati-grasslands/generators/nativeDressingPlacements.mjs');
- expect(grass.inputRoots).toContain('src/shards/nalati-grasslands/generators/dressingPlacementProgram.ts');
- expect(grass.inputRoots).toContain('public/assets/baked/nalati-grasslands/terrain.bin');
- for(const field of ['pond','red','green','blue','forest'])expect(grass.inputRoots).toContain(`src/shards/nalati-grasslands/data/geography-${field}.bin`);
+it('owns grass keep-outs through the build-time native placements',()=>{
+ const {jobs}=v.parse(v.object({jobs:v.array(v.object({id:v.string()}))}),JSON.parse(readFileSync('scripts/generation-jobs.json','utf8')));
+ // GR6: the grass left the scheduler; the product bakes it over the lattice and the native dressing placements
+ expect(jobs.some(job=>job.id==='nalati-grass')).toBe(false);
+ expect(readFileSync('src/shards/nalati-grasslands/generators/output.ts','utf8')).toContain('nalatiGrassBake(bytes, await nalatiDressingPlacementProgram(ctx))');
 });
 
 it('retires the dressing publisher and all eighteen physical row handoffs',()=>{

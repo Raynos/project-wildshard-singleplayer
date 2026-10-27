@@ -181,8 +181,7 @@
   },
   "painter": {
     "version": 1,
-    "job": "nalati-data-map",
-    "prerequisites": [],
+    "program": true,
     "glbs": [
       "assets/world-terrain/ground.generated.glb",
       "assets/world-terrain/slab.generated.glb",
