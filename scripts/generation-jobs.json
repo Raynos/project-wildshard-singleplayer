@@ -671,9 +671,7 @@
         "./scripts/bake-loader.mjs",
         "scripts/bake-pickups.mjs"
       ],
-      "catalogueDependencies": [
-        "pine-spots"
-      ],
+      "catalogueDependencies": [],
       "inputRoots": [
         "scripts/bake-pickups.mjs",
         "scripts/bake-loader.mjs",
@@ -756,9 +754,7 @@
         "src/shards/pine-hollow/data/pondClip.generated.json"
       ],
       "platform": "portable",
-      "catalogueDependencies": [
-        "pine-layout"
-      ]
+      "catalogueDependencies": []
     },
     {
       "id": "sky-fixed-layouts",
@@ -11862,7 +11858,6 @@
       ],
       "platform": "portable",
       "catalogueDependencies": [
-        "nalati-poi-paint",
         "nalati-crags",
         "nalati-spruce",
         "nalati-terrain-scene",
