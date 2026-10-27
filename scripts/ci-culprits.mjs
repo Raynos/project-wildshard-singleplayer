@@ -1,5 +1,5 @@
 // CF4: likely source commits from exact Git bytes; never execute the failing imports.
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { dirname, posix, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import ts from '@typescript/typescript6';
@@ -23,18 +23,45 @@ const packageSchema=v.object({exports:v.optional(v.record(v.string(),v.string())
 /** @param {string} root @param {string[]} args */
 function git(root,args){return execFileSync('git',['--literal-pathspecs',...args],{cwd:root,encoding:'utf8',timeout:10000,maxBuffer:8*1024*1024}).trim();}
 
+/** Fetch a dependency wave in one promisor request instead of one RPC per
+ * cat-file miss. Every byte still comes from the exact immutable blob id.
+ * @param {string} root @param {ReturnType<typeof gitSourceView>} view
+ * @param {string[]} paths @param {boolean} promisor */
+function primeSources(root,view,paths,promisor){
+  if(promisor && paths.length>0){
+    const hashes=[...new Set(paths.map(path=>view.files.get(path)).filter(hash=>hash!==undefined))];
+    const replies=execFileSync('git',['--no-lazy-fetch','cat-file','--batch-check=%(objectname) %(objecttype)'],{
+      cwd:root,input:`${hashes.join('\n')}\n`,encoding:'utf8',timeout:10000,maxBuffer:8*1024*1024,
+    }).trim().split('\n');
+    /** @type {string[]} */ const missing=[];
+    if(replies.length!==hashes.length)throw new Error('Invalid immutable blob inventory reply');
+    for(let i=0;i<hashes.length;i++){
+      const [hash,kind]=replies[i]?.split(' ')??[];
+      if(hash!==hashes[i] || (kind!=='blob' && kind!=='missing'))throw new Error('Invalid immutable blob identity');
+      if(kind==='missing' && hash!==undefined)missing.push(hash);
+    }
+    if(missing.length>0)execFileSync('git',['fetch','--no-tags','--no-write-fetch-head','--filter=blob:none','origin','--stdin'],{
+      cwd:root,input:`${missing.join('\n')}\n`,timeout:10000,maxBuffer:8*1024*1024,
+    });
+  }
+  view.prime(paths);
+}
+
 /** Resolve only literal relative imports and the committed workspace exports.
- * @param {ReturnType<typeof gitSourceView>} view @param {string[]} roots */
-function closure(view,roots){
+ * @param {string} root @param {ReturnType<typeof gitSourceView>} view
+ * @param {string[]} roots @param {boolean} promisor */
+function closure(root,view,roots,promisor){
   const seen=new Set(roots);
   /** @type {Set<string>} */ const missing=new Set();
   let pending=[...roots];
   while(pending.length>0){
     if(seen.size>3000)throw new Error('dependency inventory exceeds 3000 files');
     for(const file of pending)if(!view.files.has(file))missing.add(file);
-    const batch=pending.filter(file=>view.files.has(file));pending=[];view.prime(batch);
+    // Non-code imports still belong to the commit/path inventory, but their
+    // payload cannot contain another literal module import to discover.
+    const batch=pending.filter(file=>view.files.has(file)&&/\.[cm]?[jt]sx?$/u.test(file));
+    pending=[];primeSources(root,view,batch,promisor);
     for(const file of batch){
-      if(!/\.[cm]?[jt]sx?$/u.test(file))continue;
       for(const row of ts.preProcessFile(view.read(file).toString('utf8'),true,true).importedFiles){
         const source=row.fileName.split('?')[0]??row.fileName;
         let target=source.startsWith('.')?posix.normalize(posix.join(dirname(file),source)):null;
@@ -82,7 +109,11 @@ export function priorGreen(sha,query){
 export function culpritReport(root,base,sha,files){
   if(!SHA.test(base)||!SHA.test(sha)||files.length===0||files.length>16||files.some(file=>!safePath(file)))throw new Error('invalid culprit report inputs');
   git(root,['merge-base','--is-ancestor',base,sha]);
-  const current=closure(gitSourceView(root,sha),files),previous=closure(gitSourceView(root,base),files);
+  const remote=spawnSync('git',['config','--bool','--get','remote.origin.promisor'],{cwd:root,encoding:'utf8',timeout:10000});
+  if(remote.error!==undefined)throw remote.error;
+  if(remote.status!==0 && remote.status!==1)throw new Error('Cannot read immutable source remote');
+  const promisor=remote.status===0&&remote.stdout.trim()==='true';
+  const current=closure(root,gitSourceView(root,sha),files,promisor),previous=closure(root,gitSourceView(root,base),files,promisor);
   const paths=[...new Set([...current.paths,...previous.paths])].sort((a,b)=>a.localeCompare(b));
   const commits=(/** @type {string[]} */ selected)=>git(root,['log','-n','3','--format=%H',`${base}..${sha}`,'--',...selected]).split('\n').filter(Boolean);
   const direct=commits(files),related=commits(paths);

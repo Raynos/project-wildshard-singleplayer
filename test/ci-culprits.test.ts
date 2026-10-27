@@ -1,13 +1,58 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise real Git history in a tiny owned fixture.
 import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture owns and removes only its tiny scratch tree.
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve fixture paths without a checkout or application build.
 import { dirname, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Supply the explicit GitHub identity to the pure API selection fixture.
 import { env } from 'node:process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Exercise a real promisor remote using only this tiny owned fixture.
+import { pathToFileURL } from 'node:url';
 import { expect, test } from 'vitest';
 import { culpritReport, prepareHistory, priorGreen } from '../scripts/ci-culprits.mjs';
+
+test('a partial checkout fetches dependency waves together without reading imported data', () => {
+  mkdirSync('tmp',{recursive:true});
+  const root=mkdtempSync(resolve('tmp/ci-culprits-promisor-')),source=resolve(root,'source'),reader=resolve(root,'reader');
+  mkdirSync(source);mkdirSync(reader);
+  const git=(cwd:string,...args:string[]):string=>execFileSync('git',args,{cwd,encoding:'utf8',stdio:['pipe','pipe','pipe']}).trim();
+  const trace=resolve(root,'trace.log'),priorTrace=env['GIT_TRACE'];
+  try {
+    git(source,'init','-q','-b','main');mkdirSync(resolve(source,'src'));mkdirSync(resolve(source,'test'));
+    git(source,'config','uploadpack.allowFilter','true');
+    git(source,'config','uploadpack.allowAnySHA1InWant','true');
+    const imports=Array.from({length:40},(_,i)=>`import '../src/dependency-${i}.js';`);
+    writeFileSync(resolve(source,'test/failure.test.ts'),`${imports.join('\n')}\nimport '../src/data.json';\n`);
+    for(let i=0;i<40;i++)writeFileSync(resolve(source,`src/dependency-${i}.js`),`export const value=${i};\n`);
+    writeFileSync(resolve(source,'src/data.json'),JSON.stringify({value:'old'.repeat(4000)}));
+    const commit=():string=>{
+      git(source,'add','.');git(source,'-c','core.hooksPath=/dev/null','-c','user.name=Fixture','-c','user.email=fixture@example.invalid',
+        'commit','-qm','fixture\n\nAssisted-by: fixture:recorded');
+      return git(source,'rev-parse','HEAD');
+    };
+    const base=commit();
+    writeFileSync(resolve(source,'src/dependency-39.js'),'export const value=999;\n');
+    writeFileSync(resolve(source,'src/data.json'),JSON.stringify({value:'new'.repeat(4000)}));
+    const sha=commit(),dataHash=git(source,'rev-parse',`${sha}:src/data.json`);
+    git(reader,'init','-q');git(reader,'remote','add','origin',pathToFileURL(source).href);
+    git(reader,'fetch','--quiet','--filter=blob:none','origin',sha);
+    expect(git(reader,'config','--bool','--get','remote.origin.promisor')).toBe('true');
+    const dataPresent=():string=>execFileSync('git',['--no-lazy-fetch','cat-file','--batch-check=%(objectname) %(objecttype)'],
+      {cwd:reader,encoding:'utf8',input:`${dataHash}\n`}).trim();
+    expect(dataPresent()).toBe(`${dataHash} missing`);
+    env['GIT_TRACE']=trace;
+    const report=culpritReport(reader,base,sha,['test/failure.test.ts']);
+    expect(report.candidates.map(row=>row.sha)).toEqual([sha]);
+    expect(report.missingImports).toEqual([]);
+    expect(dataPresent()).toBe(`${dataHash} missing`);
+    const fetches=readFileSync(trace,'utf8').match(/built-in: git fetch /gu)??[];
+    expect(fetches.length).toBeGreaterThan(0);
+    expect(fetches.length).toBeLessThanOrEqual(8);
+  } finally {
+    if(priorTrace===undefined)delete env['GIT_TRACE'];else env['GIT_TRACE']=priorTrace;
+    rmSync(root,{recursive:true,force:true});
+  }
+});
 
 test('a red window beyond 1000 commits still reaches the exact previous green from a shallow checkout', () => {
   mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/ci-culprits-shallow-'));
