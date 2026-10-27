@@ -16,7 +16,7 @@ for(const name of ["pine-hollow/generators/bootFiles"])test(`${name} emits isola
 
 test('Pine boot declarations preserve exact readonly selections',()=>{
  const consumer=resolve('src/shards/t4-pine-boot-consumer.ts');
- let source="import {PINE_BOOT_FILES} from './pine-hollow/generators/bootFiles';\nexport const first:'/assets/hdri/qwantani_sunset_puresky_2k.sky.jpg'=PINE_BOOT_FILES.skyHdr.source.available[0];\nexport const stage:'rapier'=PINE_BOOT_FILES.physics.source.concat[0];\nexport const group:'props'=PINE_BOOT_FILES.propBase.aliases;\nexport const coats:'coats'=PINE_BOOT_FILES.coats.source.pages;\n";
+ let source="import {PINE_BOOT_FILES} from './pine-hollow/generators/bootFiles';\nexport const first:'/assets/hdri/qwantani_sunset_puresky_2k.sky.jpg'=PINE_BOOT_FILES.skyHdr.source.available[0];\nexport const stage:'rapier'=PINE_BOOT_FILES.physics.source.concat[0];\nexport const group:'props'=PINE_BOOT_FILES.propBase.aliases;\nexport const coats:'procedural:/assets/pine-hollow/creatures/'=PINE_BOOT_FILES.coats.source.tablePrefix;\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   noPropertyAccessFromIndexSignature:true,target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,
   moduleResolution:ts.ModuleResolutionKind.Bundler,types:['node'],allowArbitraryExtensions:true,skipLibCheck:true,noEmit:true};
