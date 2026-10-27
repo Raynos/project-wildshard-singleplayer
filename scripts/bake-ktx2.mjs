@@ -40,7 +40,7 @@
 // terrain splat, the bark) are baked a second time unflipped (`<url>#layer`): loadPBRArray keeps the file's orientation.
 //
 //   node --import ./scripts/bake-loader.mjs scripts/bake-ktx2.mjs [--dry] [--force] [--only=<substr>] [--jobs=4] [--tiers=phone,desktop] [--desktop-max=16384]
-import { COMMON, CLASS, glbKtx2Key } from './ktx2-settings.mjs';
+import { COMMON, CLASS, FAR, glbKtx2Key } from './ktx2-settings.mjs';
 import { writeKtx2Tables } from './ktx2-tables.mjs';
 import { createHash } from 'node:crypto';
 import { execFileSync, spawn } from 'node:child_process';
@@ -161,7 +161,7 @@ async function encode(srcFile, w, h, cls, flip) {
   const d = dims(srcFile);
   const resize = d.w === w && d.h === h ? [] : hasAlpha(srcFile) ? ['-separate', '-resize', `${w}x${h}!`, '-combine'] : ['-resize', `${w}x${h}!`];
   await execFile('magick', [`${srcFile}[0]`, ...resize, '-strip', `PNG32:${png}`]);
-  await execFile('basisu', [...COMMON, ...CLASS[cls], ...(flip ? ['-y_flip'] : []), png, '-output_file', out]);
+  await execFile('basisu', [...COMMON, ...(cls === 'far' ? FAR : CLASS[cls]), ...(flip ? ['-y_flip'] : []), png, '-output_file', out]);
   const bytes = readFileSync(out);
   rmSync(png); rmSync(out);
   return bytes;
@@ -369,9 +369,12 @@ function imageClasses(json) {
   return out;
 }
 const glbDone = new Map();
+/** G738 / I4: GLBs drawn only far away, whose colour images take the FAR encode (the phone's ambient bird flock: its
+ *  atlas 782 → 175 KB, board art/pine-hollow/round-37-phone-birds-etc1s) */
+const FAR_GLBS = new Set(['/assets/pine-hollow/life/birds.phone.glb']);
 async function glbOut(file, served) {
-  const src = readFileSync(file);
-  const key = glbKtx2Key(src, ENCODER);
+  const src = readFileSync(file), far = FAR_GLBS.has(served);
+  const key = glbKtx2Key(src, ENCODER, far);
   usedKeys.add(key);
   const hit = cache[key];
   if (!FORCE && hit && (hit === 'none' || existsSync(abs(hit)))) { reused++; return hit === 'none' ? null : hit; }
@@ -386,7 +389,8 @@ async function glbOut(file, served) {
     writeFileSync(tmp, imageBytes(json, bin, img.bufferView));
     const d = dims(tmp);
     const t = fit(d.w, d.h, 1 << 14);
-    swap.set(img.bufferView, await encode(tmp, t.w, t.h, classes.get(i) ?? 'color', false));
+    const cls = classes.get(i) ?? 'color';
+    swap.set(img.bufferView, await encode(tmp, t.w, t.h, far && cls === 'color' ? 'far' : cls, false));
     rmSync(tmp);
     img.mimeType = 'image/ktx2';
   }

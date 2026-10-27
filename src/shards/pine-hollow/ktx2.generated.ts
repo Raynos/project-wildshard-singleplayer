@@ -34,7 +34,7 @@ export const GPU_FILES: { readonly phone: Readonly<Record<string, string>>; read
     "/assets/pine-hollow/creatures/deer-stag.phone.rigged.glb": "/assets/gpu/pine-hollow/creatures/deer-stag.phone.rigged-3411c5fe.glb",
     "/assets/pine-hollow/creatures/elk-bull.phone.rigged.glb": "/assets/gpu/pine-hollow/creatures/elk-bull.phone.rigged-e616d5c8.glb",
     "/assets/pine-hollow/creatures/elk-cow.phone.rigged.glb": "/assets/gpu/pine-hollow/creatures/elk-cow.phone.rigged-c9e2aff7.glb",
-    "/assets/pine-hollow/life/birds.phone.glb": "/assets/gpu/pine-hollow/life/birds.phone-3c606615.glb",
+    "/assets/pine-hollow/life/birds.phone.glb": "/assets/gpu/pine-hollow/life/birds.phone-8f6a9e72.glb",
     "/assets/pine-hollow/npcs/miller.phone.glb": "/assets/gpu/pine-hollow/npcs/miller.phone-41e2a3f5.glb",
     "/assets/pine-hollow/npcs/ranger.phone.glb": "/assets/gpu/pine-hollow/npcs/ranger.phone-b1032381.glb",
     "/assets/pine-hollow/npcs/trader.phone.glb": "/assets/gpu/pine-hollow/npcs/trader.phone-50f93677.glb",
