@@ -89,7 +89,9 @@ export interface LevelSpec {
   /** Offline creature-navigation policy; the ground exclusion does not remove registered walkable decks. */
   navmesh?: { excludeGroundAt: (x: number,z: number,y: number) => boolean; ground?: never } | { ground: NavmeshGroundRows; excludeGroundAt?: never };
   /** `water`: the level's water bodies, registered in `app.world.water` at level.data (before any world step reads them) */
-  ground: { terrain?: TerrainField; structures?: true; paths?: 'plugin'; water?: readonly WaterBody[] };
+  ground: { terrain?: TerrainField; structures?: true; paths?: 'plugin'; water?: readonly WaterBody[];
+    /** A separate tile owner draws the ground; height queries, collision and the cliff slab remain. */
+    tiled?: true };
   spawn: SpawnPose; bounds?: Bounds; camera?: { portraitFov: number };
   /** Optional creature death plane; absent keeps existing worlds unchanged. */
   world?: { killY: number; fallCause?: FallCause };

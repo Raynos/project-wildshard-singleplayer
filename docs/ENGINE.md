@@ -101,26 +101,22 @@ sound operations exactly once, preserves surface / pan / gain and the melee-sile
 policy, returns false for unknown cues, and installs nothing on import. Sound
 recipes and authored audio assets remain separate content; this router carries none.
 
-Generated BackdropLayer LUTs retire with their resident layer. Full-screen
-post passes borrow these explicitly marked samplers; ordinary page textures,
-asset-cache references and explicitly owned scene consumers retain their normal
-shared lifetime. Composer teardown also releases a sampled stable-depth texture
-whose render target was never initialized, while preserving the original target
-cleanup when it already released that texture. Neither lifetime rule changes
-uniform values, passes, draw order or pixel generation.
+BackdropLayer LUTs retire with their layer; post passes borrow marked samplers.
+Other textures/cache/owned consumers retain shared lifetime. Composer teardown
+releases stable-depth textures even if their targets were never initialized,
+without double cleanup. Uniforms, passes, draw order and pixels stay exact.
 
-`core/gpuOnly.gpuOnlyTexture` releases immutable images, raw pixels and mips
-after upload. Compressed 2D/array mips wait for a successful native draw;
-cube faces keep their storage. Sizes, formats and samplers stay, with no old
-backing. CPU readers/redraws/clones are ineligible; context loss reloads.
+`core/gpuOnly.gpuOnlyTexture` releases immutable image/pixel/mip backing after upload (compressed2D/array: native draw). Cubes retain backing; sizes/formats/samplers stay. CPU readers/redraws/clones are ineligible; context loss reloads.
 `render/textureUploadEvents.onceTextureUploaded` observes completed native
 texture/source versions and preserves `Texture.onUpdate`.
 `render/compressedTextureRetirement.installCompressedTextureRetirement`
 observes direct draws; provisional loaders keep their preparation fence.
 
-`@wildshard/engine/render/memorySaver.releaseOnUpload(source, done)` opts an exclusively owned, immutable decoded image into the existing Memory saver upload retirement. The callback closes the private bitmap or releases its cache owner after upload; the texture keeps its dimensions and GPU allocation. Register only when no later CPU reader or different-sampler clone needs the pixels, and also release on owner disposal. Memory saver OFF keeps the decode until disposal; GPU-only context-loss recovery reloads the page.
+`render/memorySaver.releaseOnUpload(source, done)` retires exclusive immutable images after upload: close the bitmap/release its owner, keep dimensions/GPU storage. No later CPU reader or different-sampler clone may need pixels. Also release on disposal; Memory saver OFF retains the decode until then. GPU-only context loss reloads.
 
-`@wildshard/engine/world/BakedTerrain.installBakedGrid(grid, binding?)` installs original native samplers and undergrowth decisions into the selected binding without a second fetch. It refuses a mismatched seed. The Node authored-world bake uses this before forest/model construction; geometry capture still supplies the production terrain constructor and retains native collision ownership.
+`world/BakedTerrain.installBakedGrid(grid, binding?)` installs original samplers/undergrowth without refetching; wrong seeds refuse. Authored-world bakes install it before forest/models; geometry capture retains the production constructor and native collision owner.
+
+`LevelSpec.ground.tiled` skips temporary whole-ground vertices/layer arrays. Tiles draw the surface; samples, collision and cliff slab stay. Painters keep their preparation; `structures` independently controls collision.
 
 `@wildshard/engine/world/forest/placement.placeForest(variants, source?)` and
 `placeForestSteps(variants, source?)` share one ordered placement algorithm.

@@ -4,6 +4,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import { decodeMeshCollision, lowestMeshHeight } from '@wildshard/format/meshCollisionBytes';
 import { parseNativeRuntimePlan } from '@wildshard/format/nativeRuntimePlan';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
+import { splatTerrainOf } from '@wildshard/format/splatTerrain';
 import { outputDescriptor } from './outputDescriptor';
 
 /** Keep temporary byte readers outside the context retained by height/normal/water callbacks. */
@@ -54,7 +55,8 @@ export function clientGround(source: Shardfile, assets: ReadonlyMap<string, Uint
 
 /** Native pages keep the recipe's real terrain collision policy at both entry points.
  * Structure floors omit a terrain collider; sampled terrain uses the normal level bootstrap. */
-export function clientPageGround(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>): { paths: 'plugin'; terrain: TerrainField; structures?: true } {
+export function clientPageGround(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>): { paths: 'plugin'; terrain: TerrainField; structures?: true; tiled?: true } {
   const plan = parseNativeRuntimePlan(outputDescriptor(source)?.sections.get('sim/runtime-plan'));
-  return { paths: 'plugin', terrain: clientGround(source, assets), ...(plan.recipe.terrain === 'none' ? { structures: true } : {}) };
+  const tiled = source.props !== null && source.props.tiles.length > 0 && splatTerrainOf(source.props) !== undefined;
+  return { paths: 'plugin', terrain: clientGround(source, assets), ...(plan.recipe.terrain === 'none' ? { structures: true } : {}), ...(tiled ? { tiled: true } : {}) };
 }

@@ -529,8 +529,8 @@ export interface ShardManifest {
   card: { thumb: string; portrait: string; landscape: string };
   /** landscape terrain, a structure-first world, or both; every shard supplies at least one */
   ground: {
-    paths?: 'plugin'; terrain: ChunkTerrain; structures?: true | ChunkStructures; water?: readonly WaterBody[] }
-    | { paths?: 'plugin'; terrain?: ChunkTerrain; structures: true | ChunkStructures; water?: readonly WaterBody[] };
+    paths?: 'plugin'; terrain: ChunkTerrain; structures?: true | ChunkStructures; water?: readonly WaterBody[]; tiled?: true }
+    | { paths?: 'plugin'; terrain?: ChunkTerrain; structures: true | ChunkStructures; water?: readonly WaterBody[]; tiled?: true };
   /** the PBR ground's texture sets; omitted by a shard that loads none (the low-poly Driftwood, E318) */
   assets?: ChunkAssets;
   assetGlobs?: readonly string[];

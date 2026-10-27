@@ -455,6 +455,15 @@ export class Terrain {
       return this;
     }
     const { assets } = binding === undefined ? activeLevel() : binding.level;
+    if (ground.tiled === true) {
+      // The tile owner supplies the surface and its textures. Keep the same
+      // sampled field and cliff slab without allocating a temporary full mesh.
+      await loadBakedTerrain(captured);
+      this.buildNone();
+      this.retired = true;
+      this.group.add(await this.buildSlab(assets, captured.field));
+      return this;
+    }
     const [layers] = await Promise.all([loadPBRArray([...groundSet({ assets }).layers], 1024), loadBakedTerrain(captured)]); // baked heights/splat → captured frame
     await macrotask(); // the layer copies above and the mesh below were one ~110 ms task at 4x CPU
     // the ground in work slices (it runs in play when a grid cell enters): the same bytes as terrainChunkGeometry
