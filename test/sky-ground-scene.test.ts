@@ -23,17 +23,17 @@ it('source contacts retain the complete original wire after scheduler retirement
   expect(hashImmutableBytes(bytes())).toBe('12f4de8259d2a8589352afe3229cd9f90f9f4e94d09ba845dcb420f255b849b4');
 });
 
-it('source-derived ground retains the complete published scene and world declaration', () => {
+it('streamed ground pins its complete anchor scene and cold world declaration', () => {
   const ground = SKY_SCENE_BLOBS.find(row => row.file.name === 'world/scenes/ground.json');
   if (ground === undefined) throw new Error('Missing original published ground');
   expect(ground.file).toEqual({ name: 'world/scenes/ground.json',
-    path: 'blobs/json/4f0303edc133f9a55afe6f2499bdf782f0cd03919871f00831c393d63cbfb25b.json', kind: 'json',
-    hash: '4f0303edc133f9a55afe6f2499bdf782f0cd03919871f00831c393d63cbfb25b', compressed: 2628, decoded: 2628,
+    path: 'blobs/json/7681a36b74533468e874b8bd2a7da9070cc4ba929e64935e19c3717e11b72d9c.json', kind: 'json',
+    hash: '7681a36b74533468e874b8bd2a7da9070cc4ba929e64935e19c3717e11b72d9c', compressed: 1849, decoded: 1849,
     gpu: 0, triangles: 0, draws: 0, critical: false, dependencies: [] });
   expect(hashImmutableBytes(ground.bytes)).toBe(ground.file.hash);
   const world = new TextEncoder().encode(encodeCanonicalJson(SKY_WORLD_SCENES));
-  expect(world.byteLength).toBe(329_351);
-  expect(hashImmutableBytes(world)).toBe('27f1bf00f36fecbf34936dff22d2e9791498006a92aa2404236883111f417884');
+  expect(world.byteLength).toBe(313_596);
+  expect(hashImmutableBytes(world)).toBe('fbaad205460b7338145a8c31192f8fe2a1ef2f80c9d1c6a04bc419914aca62e9');
 });
 
 it('registers the authored walkable ground while borrowing loaded island geometry', async () => {

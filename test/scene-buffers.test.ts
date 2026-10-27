@@ -194,6 +194,8 @@ test('static islands draw from their baked props tiles in their own frame; only 
   const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
   const native = skyIsleProps(), nodes = new Map<string, { files: string[]; mesh: Mesh }>();
   for (const row of native.props.tiles) {
+    // Exact island models read only L0 partitions; L1 proxies never carry original assembly ordinals.
+    if (row.lod !== 0) continue;
     const bytes = native.assets.get(row.file); if (bytes === undefined) throw new Error('Missing original island tile');
     const gltf = await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer, '');
     gltf.scene.traverse(node => { if (!mesh3(node)) return; const id = v.parse(v.object({ id: v.string() }), node.userData['wholePartition']).id;
@@ -201,9 +203,10 @@ test('static islands draw from their baked props tiles in their own frame; only 
   }
   try {
     expect(nodes.size).toBe(12); expect(SKY_ISLE_TILES.models).toHaveLength(12);
+    expect(SKY_ISLE_TILES.load).toBe('explorer');
     for (const model of SKY_ISLE_TILES.models) {
       const node = nodes.get(model.part); if (node === undefined) throw new Error(`Missing baked island ${model.part}`);
-      for (const file of node.files) expect(model.files).toContain(file);
+      expect([...model.files].sort()).toEqual([...new Set(node.files)].sort());
       expect(model.matrix.slice(12, 15)).toEqual(new Matrix4().fromArray(v.parse(v.array(v.number()), node.mesh.userData['matrix64'])).elements.slice(12, 15).map(value => 0 - value));
       expect(SKY_ISLAND_LIBRARY.models.some(row => row.id === model.id)).toBe(false);
     }
