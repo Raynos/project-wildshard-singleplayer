@@ -1,7 +1,5 @@
-import { MeshoptSimplifier } from 'meshoptimizer/simplifier';
 import { BufferAttribute, BufferGeometry } from 'three';
-
-await MeshoptSimplifier.ready;
+import { simplifyWithin } from '@wildshard/sdk/bake/simplifier';
 
 /**
  * L18.3e (G769 on the recommended option; board art/driftwood-isle/round-20-phone-decimation): the phone tier's flat
@@ -21,8 +19,7 @@ export function decimateFlatBatch(source: BufferGeometry, error: number): Buffer
     if (at === undefined) { at = firstCorner.length; welded.set(key, at); points.push(position.getX(i), position.getY(i), position.getZ(i)); firstCorner.push(i); }
     remap[i] = at;
   }
-  const positions = Float32Array.from(points), scale = MeshoptSimplifier.getScale(positions, 3);
-  const [kept] = MeshoptSimplifier.simplify(remap, positions, 3, 0, error / scale, []);
+  const positions = Float32Array.from(points), kept = simplifyWithin(remap, positions, error);
   // nearest original triangle by centroid, on a 1 m hash grid (the toon faces' flat colours)
   const cell = (v: number): number => Math.floor(v);
   const grid = new Map<string, number[]>(), centroid = (corner: (k: number) => number, axis: number): number => (corner(0 * 3 + axis) + corner(1 * 3 + axis) + corner(2 * 3 + axis)) / 3;

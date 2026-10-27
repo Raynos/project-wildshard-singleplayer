@@ -44,6 +44,7 @@
     "./plumbing": "./plumbing.ts",
     "./bake/props": "./bake/props.ts",
     "./bake/tileGrid": "./bake/tileGrid.ts",
+    "./bake/simplifier": "./bake/simplifier.ts",
     "./bake/glb": "./bake/glb.ts",
     "./bake/coarseCopy": "./bake/coarseCopy.ts",
     "./bake/glbCompression": "./bake/glbCompression.ts",
