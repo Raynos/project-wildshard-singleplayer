@@ -15,7 +15,7 @@
  * Generic game code (E405): no shard is named here.
  */
 
-/** Hide a cell's coarse root while the returned release has not run. Releases are idempotent. */
+/** Cover the coarse root after replacement is ready, until the idempotent release. */
 export interface CellCoverPort { readonly cover: (instance: string) => () => void }
 
 const ports = new WeakMap<object, CellCoverPort>();
@@ -29,16 +29,19 @@ export function bindCellCover(scene: object, port: CellCoverPort): () => void {
 export function cellCoverOf(scene: object): CellCoverPort | null { return ports.get(scene) ?? null; }
 
 /**
- * The session's port over its coarse roots: covers count per instance, a root is visible only while its count is zero.
+ * The session's port over its coarse roots: active covers hide only after `ready` confirms complete replacement.
+ * Until then the streamer masks the retained far view by its uploaded child quadrants.
  * An instance without a root (or one whose root has left) covers nothing.
  */
-export function cellCoverPort(root: (instance: string) => { visible: boolean } | undefined): CellCoverPort & { readonly covered: (instance: string) => boolean } {
+export function cellCoverPort(root: (instance: string) => { visible: boolean } | undefined,
+  ready: (instance: string) => boolean = () => true): CellCoverPort & { readonly covered: (instance: string) => boolean; readonly refresh: () => void } {
   const counts = new Map<string, number>();
   return {
     covered: (instance) => (counts.get(instance) ?? 0) > 0,
+    refresh: () => { for (const instance of counts.keys()) { const target = root(instance); if (target !== undefined) target.visible = !ready(instance); } },
     cover: (instance) => {
       counts.set(instance, (counts.get(instance) ?? 0) + 1);
-      const target = root(instance); if (target !== undefined) target.visible = false;
+      const target = root(instance); if (target !== undefined) target.visible = !ready(instance);
       let released = false;
       return () => {
         if (released) return; released = true;

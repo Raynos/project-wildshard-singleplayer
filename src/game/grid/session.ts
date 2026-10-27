@@ -277,6 +277,7 @@ export class GridSession {
   private readonly tileGhosts = new GhostWorlds();
   private readonly neighbours: readonly GridCell[];
   private readonly clientTiles: ClientTileRegistration;
+  private refreshCellCover: () => void = () => undefined;
   private readonly costs = new Map<string, number>();
   /** each neighbour cell's view root (its far proxy and ring tiles hang here) */
   private readonly viewRoots = new Map<string, Group>();
@@ -513,7 +514,9 @@ export class GridSession {
       if (marks !== null) { root.add(marks.object); marks.object.updateMatrixWorld(true); host.scope.onDispose(marks.dispose); }
     }
     // G223: an entered regional runtime draws its own cell; its coarse root (far proxy, tiles) hides until it leaves
-    host.scope.onDispose(bindCellCover(host.scene, cellCoverPort((id) => roots.get(id))));
+    const cover = cellCoverPort(id => roots.get(id), id => this.clientTiles.coverageReady?.(id) ?? true);
+    this.refreshCellCover = cover.refresh;
+    host.scope.onDispose(bindCellCover(host.scene, cover));
     const preparedBands = new WeakMap<FarProxyView, Object3D>();
     // G630: a shard's haze band stands in the strip outside its cell (BAND_OUTSET), so it hangs on a holder of its own beside
     // the cell root: under the root, the G550 containment fence discarded every fragment past the cell edge, the whole band
@@ -631,7 +634,7 @@ export class GridSession {
     });
     this.rings = new TileStreamer(this.neighbours, this.allocator, catalogue,
       levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports), { farRadius: FAR_RING.reach, uploadsPerFrame: 1, uploadBytesPerFrame: 4_000_000 });
-    this.clientTiles = clientTileRegistration(tiles.instances, this.rings, () => TILE_RING);
+    this.clientTiles = clientTileRegistration(tiles.instances, this.rings, () => TILE_RING, id => this.farMeshes.has(id));
     this.admitNeighbour = host.renderer === undefined ? undefined : this.tileAdmission(host.renderer, roots);
     host.scope.onDispose(() => {
       this.clientTiles.dispose(); this.rings.dispose();
@@ -834,6 +837,7 @@ export class GridSession {
 
   /** What only draws, from the last fixed step's pose and velocity: the rings, the screens, the shimmer, the near view. */
   private viewStep(): void {
+    this.refreshCellCover();
     const at = this.last ?? this.world(), speed = Math.hypot(this.velocity.x, this.velocity.z), clamp = speed > 60 ? 60 / speed : 1; // a respawn's jump is not a velocity
     this.rings.step({ x: at.x, z: at.z, vx: this.velocity.x * clamp, vz: this.velocity.z * clamp });
     for (const cell of this.neighbours) if (this.placeholderBlocksTiles(cell.instance)) this.rings.retireRefinement(cell.instance);

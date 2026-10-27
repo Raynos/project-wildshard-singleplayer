@@ -311,6 +311,8 @@ export function clientRingPorts(instances: ReadonlyMap<string, ClientRingInstanc
 /** A page's one render scheduler accepts entered roots as scoped replacements for its neighbour views. */
 export interface ClientTileRegistration {
   owns: (instance: string) => boolean;
+  /** True only after the entered root has replaced its whole coarse cover. */
+  coverageReady?: (instance: string) => boolean;
   dispose: () => void;
   offer: (instance: string, entry: ClientRingInstance) => void;
   /** A data-only cell borrows its admitted neighbour views with required entry coverage. */
@@ -320,11 +322,13 @@ export interface ClientTileRegistration {
 
 /** Borrow the existing scheduler; late neighbour admissions update its fallback without replacing an entered root. */
 export function clientTileRegistration(instances: Map<string, ClientRingInstance>,
-  streamer: Pick<TileStreamer<unknown>, 'require' | 'resident' | 'setFullRing' | 'retireRefinement'>, radius: () => number): ClientTileRegistration {
-  const entered = new Map<string, () => void>(), fallback = new Map(instances);
+  streamer: Pick<TileStreamer<unknown>, 'require' | 'resident' | 'setFullRing' | 'retireRefinement'>, radius: () => number,
+  retainFar: (instance: string) => boolean = () => false): ClientTileRegistration {
+  const entered = new Map<string, () => void>(), fallback = new Map(instances), covered = new Set<string>();
   let disposed = false;
   const registration: ClientTileRegistration = {
     owns: instance => entered.has(instance),
+    coverageReady: instance => covered.has(instance),
     dispose: () => { if (disposed) return; disposed = true; for (const release of entered.values()) release(); },
     offer: (instance, entry) => { if (disposed) throw new Error('Tile registration disposed'); fallback.set(instance, entry); if (!entered.has(instance)) instances.set(instance, entry); },
     enterOffered: async (instance, scope, start) => {
@@ -345,7 +349,7 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
         if (!registered) return;
         for (const requirement of requirements) requirement.release();
         streamer.retireRefinement(instance); streamer.setFullRing(instance, null);
-        entered.delete(instance);
+        entered.delete(instance); covered.delete(instance);
         const prior = fallback.get(instance); if (prior === undefined) instances.delete(instance); else instances.set(instance, prior);
       };
       try {
@@ -362,15 +366,29 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
         requirements.push(spawn);
         await spawn.ready;
         if (ownerLeft()) throw new Error('Entered tile owner left');
-        // Entered scenes hide the neighbour root: keep every coarse quadrant there until this region leaves.
-        const coarse = streamer.require(instance, Array.from({ length: 16 }, (_, key) => key), 'l1');
-        requirements.push(coarse);
-        // A cell without an L1 for a patch needs that patch's L0 as its permanent coverage.
-        const uncovered = renderRows.filter(tile => tile.lod === 0 && !keys.has(`1/${Math.floor(tile.x / 2)}/${Math.floor(tile.z / 2)}`));
-        const coverage = streamer.require(instance, uncovered.map(tile => tile.z * 8 + tile.x)); requirements.push(coverage);
+        // Entryways remain critical: the same declared rank-zero set must be
+        // ready before entry, independently of a distant coarse fallback.
         const order = tileOrder(start, entry.source.entryways);
         const initial = streamer.require(instance, order.tiles.filter(tile => order.rank(tile) === 0).map(tile => tile.j * 8 + tile.i)); requirements.push(initial);
-        await Promise.all(requirements.map(requirement => requirement.ready));
+        await initial.ready;
+        if (ownerLeft()) throw new Error('Entered tile owner left');
+        // Pin complete coverage for this owner, but let an admitted far proxy
+        // cover the unfinished quadrants while the page scheduler fills them.
+        const coarse = streamer.require(instance, Array.from({ length: 16 }, (_, key) => key), 'l1');
+        requirements.push(coarse);
+        const uncovered = renderRows.filter(tile => tile.lod === 0 && !keys.has(`1/${Math.floor(tile.x / 2)}/${Math.floor(tile.z / 2)}`));
+        const coverage = streamer.require(instance, uncovered.map(tile => tile.z * 8 + tile.x)); requirements.push(coverage);
+        const complete = async (): Promise<void> => {
+          await Promise.all([coarse.ready, coverage.ready]);
+          if (!ownerLeft() && !closed) covered.add(instance);
+        };
+        if (retainFar(instance)) void (async () => {
+          try { await complete(); }
+          catch (error: unknown) {
+            if (!ownerLeft() && !closed) console.warn('[tiles] distant coverage retains its far proxy', error);
+          }
+        })();
+        else await complete();
         spawn.release(); initial.release(); entry.assets.releaseTiles();
         if (ownerLeft()) throw new Error('Entered tile owner left');
         return {
