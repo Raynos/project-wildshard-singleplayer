@@ -26,10 +26,8 @@ export function validationSourceBytes(source: unknown): Uint8Array {
       for (let i = 0; i < value.length; i++) out += (i > 0 ? ',' : '') + (write(value[i]) ?? 'null');
       out += ']';
     } else {
-      const keys = Object.keys(value), index = keys.filter(indexKey).sort((a, b) => Number(a) - Number(b));
-      const rest = keys.filter(key => !indexKey(key)).sort(byCodeUnit);
       out = '{'; let first = true;
-      for (const key of index.length === 0 ? rest : [...index, ...rest]) {
+      for (const key of orderedKeys(value)) {
         const text = write(Reflect.get(value, key));
         if (text === undefined) continue;
         out += `${first ? '' : ','}${JSON.stringify(key)}:${text}`; first = false;

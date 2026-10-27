@@ -127,8 +127,17 @@ export function worstContentCost(shard: Shardfile, commons = 0): LocationCost {
  *  a live admission paints between them (Pine's activation spent ~90 ms of a frame in this scan at 4x CPU). */
 export function* worstContentCostSteps(shard: Shardfile, commons = 0): Generator<void, LocationCost> {
   const bytesOf = ownTileBytes(shard);
-  const key = JSON.stringify([shard.tiles.map(tile => [tile.lod, bytesOf(tile), (tile.drawBounds ?? tile.bounds).min[0], (tile.drawBounds ?? tile.bounds).min[2], (tile.drawBounds ?? tile.bounds).max[0], (tile.drawBounds ?? tile.bounds).max[2]]), shard.far === null ? null : [shard.far.decoded, shard.far.gpu], shard.budgets.library.resident, shard.budgets.sim.resident, shard.budgets.overlap, shard.serverBudget.memory, commons,
-    shard.near === undefined ? 0 : nearPlaceholderCost(shard.near, shard).total.resident]);
+  // The cache key is the JSON of every tile's [lod, bytes, x0, z0, x1, z1] and the shard's budgets, written row by row
+  // (the same text, without an array per tile).
+  const json = (n: number): string => Number.isFinite(n) ? String(n) : 'null';
+  let rows = '';
+  for (let i = 0; i < shard.tiles.length; i++) {
+    const tile = shard.tiles[i]; if (tile === undefined) continue;
+    const bounds = tile.drawBounds ?? tile.bounds;
+    rows += `${i > 0 ? ',' : ''}[${json(tile.lod)},${json(bytesOf(tile))},${json(bounds.min[0])},${json(bounds.min[2])},${json(bounds.max[0])},${json(bounds.max[2])}]`;
+  }
+  const key = `[[${rows}],${JSON.stringify([shard.far === null ? null : [shard.far.decoded, shard.far.gpu], shard.budgets.library.resident, shard.budgets.sim.resident, shard.budgets.overlap, shard.serverBudget.memory, commons,
+    shard.near === undefined ? 0 : nearPlaceholderCost(shard.near, shard).total.resident]).slice(1)}`;
   const cached = worstCache.get(key);
   if (cached !== undefined) return { ...cached, location: [...cached.location] };
   let worst: LocationCost = { playing: 0, loading: 0, accounted: 0, location: [0, 0] };
