@@ -1,4 +1,7 @@
+import { nativeCompilers } from './nativeCompilers';
+// oxlint-disable-next-line import/no-nodejs-modules -- Use the fixture's existing native production cache root.
 import { homedir } from 'node:os';
+// oxlint-disable-next-line import/no-nodejs-modules -- Keep the fixture's explicit production input roots.
 import { resolve } from 'node:path';
 import type { Shardfile } from '../../src/sdk/shardfile';
 import { generate } from '../../src/shards/pine-hollow/generators/generate';
@@ -12,7 +15,7 @@ import { pineGeneration } from './pine-generation';
 
 // GR8: Pine's producers run in its program (generate(ctx), prepareOutput(ctx)), so tests read what the program
 // admits, not the static rows the retired scheduler jobs used to fill. One run per test worker, over the shared cache.
-const context = pineGeneration('pine-program-fixture-v1', resolve(homedir(), '.cache/wildshard/gen'));
+const context = { ...pineGeneration('pine-program-fixture-v1', resolve(homedir(), '.cache/wildshard/gen')), ...nativeCompilers };
 /** Pine's declaration as its source program admits it. */
 export const PINE: Shardfile = (await generate(context)).shard;
 /** Pine's journal (its admitted row, files and named images), as the program computes it. */
