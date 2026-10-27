@@ -138,7 +138,7 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
     emitted.set(path,bytes);
     files.push({hash,kind,path,compressed:bytes.length,decoded:declaration?.decoded ?? pinned?.decoded ?? 0,gpu:declaration?.gpu ?? pinned?.gpu ?? 0,triangles:declaration?.triangles ?? pinned?.triangles ?? 0,draws:declaration?.draws ?? pinned?.draws ?? 0,dependencies:commons ? [] : declaration?.dependencies ?? [],critical:commons ? false : declaration?.critical ?? false,...(commons ? {commons:true as const} : {})});
   }
-  for(const file of files){const named=names.get(file.hash);if(named!==undefined){const {name,jsonSchema,...metadata}=named;if(encodeCanonicalJson(metadata)!==encodeCanonicalJson(file))throw new Error('Named blob differs from its admitted declaration');if(name!==undefined)file.name=name;if(jsonSchema!==undefined)file.jsonSchema=jsonSchema;names.delete(file.hash);}}
+  for(const file of files){const named=names.get(file.hash);if(named!==undefined){const {name,jsonSchema,tier,...metadata}=named;if(encodeCanonicalJson(metadata)!==encodeCanonicalJson(file))throw new Error('Named blob differs from its admitted declaration');if(name!==undefined)file.name=name;if(tier!==undefined)file.tier=tier;if(jsonSchema!==undefined)file.jsonSchema=jsonSchema;names.delete(file.hash);}}
   if(names.size>0)throw new Error('Unadmitted named blob');
   // iPhone downloads I5: the sections, schemas and small files again as a few content-hashed packs, so a reader fetches
   // one pack instead of hundreds of files; every member keeps its own path, which stays on disk for any other reader

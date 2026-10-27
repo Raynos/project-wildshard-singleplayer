@@ -11,7 +11,10 @@ import { compressGlb } from './bake/glbCompression';
 /** Named assets, including lazily read JSON bakes, occupy kind-specific content-addressed paths. */
 export type NamedBlobKind = OutputFile['kind'];
 /** Conservative owner costs may exceed measured minima; undersized claims refuse before emission. */
-export interface BlobOptions extends Partial<AssetCost> { readonly script?: ScriptContract; readonly critical?: boolean; readonly dependencies?: readonly string[]; readonly jsonSchema?: JsonSchema | Readonly<Record<string, unknown>> }
+export interface BlobOptions extends Partial<AssetCost> { readonly script?: ScriptContract; readonly critical?: boolean; readonly dependencies?: readonly string[]; readonly jsonSchema?: JsonSchema | Readonly<Record<string, unknown>>;
+  /** The one device tier that fetches this file (absent: both). The other tier's selection drops it, as it drops a
+   *  tiered tile or texture entry; a critical file serves both tiers and takes no tier. */
+  readonly tier?: 'phone' | 'desktop' }
 /** Build-only meshopt candidate, kept only if gzip-9 does not grow; compressed input needs no option. */
 export interface BlobSourceOptions extends BlobOptions { readonly meshopt?: boolean }
 /** One owned byte array and the exact index entry that names it. */

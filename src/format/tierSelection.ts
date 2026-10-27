@@ -51,13 +51,17 @@ export function* entryFileSteps(source: TierSelectionSource, tier: 'phone' | 'de
   return inactive;
 }
 
-export function* tierLibrarySteps(source: TierSelectionSource, tier: 'phone' | 'desktop', descriptor: { readonly index: { readonly files: readonly { readonly hash: string; readonly path: string; readonly name?: string }[] }; readonly sections: ReadonlyMap<string, unknown> }, assets?: ReadonlyMap<string, Uint8Array>): Generator<void, ReadonlySet<string>> {
+export function* tierLibrarySteps(source: TierSelectionSource, tier: 'phone' | 'desktop', descriptor: { readonly index: { readonly files: readonly { readonly hash: string; readonly path: string; readonly name?: string; readonly tier?: 'phone' | 'desktop' }[] }; readonly sections: ReadonlyMap<string, unknown> }, assets?: ReadonlyMap<string, Uint8Array>): Generator<void, ReadonlySet<string>> {
   const names = new Map<string, string>();
   for (const file of descriptor.index.files) {
     for (const name of [file.hash, file.path, `/shardfiles/${source.identity.slug}/${file.path}`]) names.set(name, file.hash);
     if (file.name !== undefined) names.set(file.name, file.hash);
   }
   const inactive = new Set<string>(), used = new Set(source.critical);
+  // a named file marked for the other device tier is that tier's download only, even where an active row names it (an
+  // alias table naming both tiers' payloads); only a critical pin or a file dependency keeps it
+  const otherTier = new Set(descriptor.index.files.filter(file => file.tier !== undefined && file.tier !== tier).map(file => file.hash));
+  for (const hash of otherTier) inactive.add(hash);
   const alternative = (selected: string, other: string): void => {
     const off = names.get(other); if (off !== undefined) inactive.add(off);
     const on = names.get(selected); if (on !== undefined) used.add(on);
@@ -161,6 +165,7 @@ export function* tierLibrarySteps(source: TierSelectionSource, tier: 'phone' | '
   if (inactive.size === 0) return inactive;
   const { files: _files, library: _library, critical: _critical, manifest: _manifest, ...fields } = source;
   yield* stringsSteps([{ ...fields, manifest }, ...sections.values()], text => { const hash = names.get(text); if (hash !== undefined) used.add(hash); });
+  const pinned = new Set([...source.critical, ...source.files.flatMap(file => file.dependencies)]);
   for (const file of source.files) for (const ref of file.dependencies) used.add(ref);
-  return new Set([...inactive].filter(hash => !used.has(hash)));
+  return new Set([...inactive].filter(hash => otherTier.has(hash) ? !pinned.has(hash) : !used.has(hash)));
 }

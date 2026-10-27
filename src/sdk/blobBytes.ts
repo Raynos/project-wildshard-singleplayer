@@ -51,8 +51,10 @@ export function nameBlobBytes(name: string, kind: NamedBlobKind, input: Uint8Arr
   for (const key of ['decoded', 'gpu', 'triangles', 'draws'] as const) if (!Number.isSafeInteger(costs[key]) || costs[key] < actual[key]) throw new Error('Blob costs cannot understate actual bytes or geometry');
   const dependencies = [...options.dependencies ?? []];
   if (dependencies.some(hash => !reference.test(hash)) || new Set(dependencies).size !== dependencies.length || (options.critical !== undefined && typeof options.critical !== 'boolean')) throw new Error('Invalid blob dependencies or admission policy');
+  if (options.tier !== undefined && (options.critical === true || (options.tier !== 'phone' && options.tier !== 'desktop'))) throw new Error('A tiered named blob is a non-critical phone or desktop file');
   const hash = hashImmutableBytes(bytes);
   const file = { name, path: `blobs/${kind}/${hash}.${suffix}`, kind, hash, compressed: bytes.length, ...costs, critical: options.critical ?? false, dependencies,
+    ...(options.tier === undefined ? {} : { tier: options.tier }),
     ...(options.jsonSchema === undefined ? {} : { jsonSchema: structuredClone(Object.fromEntries(Object.entries(options.jsonSchema))) }) };
   outputBlobPath(file);
   return { file, bytes, ...(options.script === undefined ? {} : { script: { ...options.script } }) };
