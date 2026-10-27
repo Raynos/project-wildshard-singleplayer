@@ -11,7 +11,10 @@ import { prepareTestBuildTools } from './test-build-tools';
 import { quarantineCohort, readQuarantines } from './test-quarantine';
 
 export const DURATIONS_FILE = 'test/durations.json';
-const FILE_OVERHEAD_S = 0.3;
+// CI40579806098 part3: 85% of 837.21s / 114 files is already 6.24s
+// per file before accounting for parallel workers. This is a packing weight,
+// not a deadline; every isolated file still pays setup and module collection.
+const FILE_OVERHEAD_S = 6;
 // CF1 preselects exact paths without Vitest's broad related-module transform.
 // Capture its existing worker token before the runner clears child inheritance.
 const { WS_COMMIT_RELATED_TOKEN } = process.env;
@@ -32,7 +35,7 @@ export function readDurations(root: string): Map<string, number> | null {
 export function packShards(paths: readonly string[], durations: ReadonlyMap<string, number>, count: number): string[][] {
   const known = [...durations.values()].sort((a, b) => a - b);
   const median = known.length > 0 ? known[Math.floor(known.length / 2)] ?? 1 : 1;
-  // the recorded duration is the tests' own time; every file also pays its import and collection (~0.3 s under load)
+  // Recorded test-body time alone underweights files with expensive setup/imports.
   const weight = (path: string): number => (durations.get(path) ?? median) + FILE_OVERHEAD_S;
   const order = [...paths].sort((a, b) => weight(b) - weight(a) || (a < b ? -1 : a > b ? 1 : 0));
   const shards = Array.from({ length: count }, () => ({ total: 0, paths: [] as string[] }));

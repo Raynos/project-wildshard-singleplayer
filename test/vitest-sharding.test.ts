@@ -24,6 +24,18 @@ test('measured long tests get separate partitions instead of sharing a fallback 
   for (const part of parts) expect(part.filter(path => path.startsWith('long-')).length).toBeLessThanOrEqual(1);
 });
 
+test('isolated setup cost balances short-file tails against long test bodies', () => {
+  const paths = [...Array.from({ length: 4 }, (_, i) => `long-${i}`),
+    ...Array.from({ length: 160 }, (_, i) => `short-${i}`)];
+  const durations = new Map(paths.map(path => [path, path.startsWith('long-') ? 100 : .001]));
+  const parts = packShards(paths, durations, 8);
+  // The observed six-second setup belongs to each file, including tiny bodies.
+  const wall = parts.map(files => files.reduce((sum, path) => sum + (durations.get(path) ?? 0) + 6, 0));
+  expect(Math.max(...wall) - Math.min(...wall)).toBeLessThanOrEqual(6.01);
+  expect(Math.max(...parts.map(files => files.length))).toBeLessThan(40);
+  expect(parts.flat().sort()).toEqual([...paths].sort());
+});
+
 test('cohorts separate real product consumers before duration or fallback sharding',()=>{
  const registry={'test/product.test.ts':['pine-hollow'],'test/declared-pure.test.ts':[]};
  const files=['test/new.test.ts','test/product.test.ts','test/declared-pure.test.ts'];
