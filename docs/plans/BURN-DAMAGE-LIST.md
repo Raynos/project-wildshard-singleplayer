@@ -125,6 +125,7 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D72 | Native bridge facts carry `-0` in descs/ownDescs yaw after the JSON handoff was retired; world client-plan admission refuses non-JSON rows | `e2eb77bc47` (bridge fact handoff retirement; exposed through world stages) | sp-ci-deploy (G754 takeover) | fixed in this commit: normalize only negative zero yaw in fresh metadata descriptors, preserving original JSON values and native geometry; island-book-product 4 cases pass; separate new foliage-bank collection refusal tracked below |
 
 | D73 | Current untracked foliageScenesBank.ts returns placement colliders that fail plain-JSON admission, so driftwood-world-build-data fails collection after the bridge yaw fix | live WIP (no first-bad main SHA) | sp-o4 (GR7 foliage bank; pinged) | open; preserve original assertions and peer source; exact tmp/sp-ci-deploy-driftwood-yaws.log |
+| D74 | A local Nalati product build (`build-shardfiles.mjs --shard=nalati-grasslands`) stops at "shardfile carries JSON data only ... JSON nodes 100173 (limit 100000)": the declaration is 173 JSON nodes over its cap (seen while landing GR6's kokpar, `f9b729690e`, whose rows are unchanged) | unknown | sp-x6 / sp-o2 (GR6) | open |
 
 ## Rows
 
