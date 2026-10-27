@@ -80,7 +80,8 @@ import { GraphCodeKeys } from './graphCodeKeys';
 import { NodeProgramVariants } from './nodeProgramVariants';
 import { classicModelUniform } from './nodeObjectUniforms';
 import { registerShadowDepthResolver } from '../shadowDepthVariants';
-import { bindLazy, buildCensus, captureBuild, graphNodeOwner, graphShape, lazyReads, pairShapes, rebindBuild, recordBuild, reuseKey, unboundReads, type BuildCensus, type BuildOutput, type GraphShape, type LazyUniform } from './nodeBuildReuse';
+import { bindLazy, buildCensus, captureBuild, graphShape, lazyReads, pairShapes, rebindBuild, recordBuild, reuseKey, unboundReads, type BuildCensus, type BuildOutput, type GraphShape, type LazyUniform } from './nodeBuildReuse';
+import { graphNodeOwner } from './graphOwners';
 import { harnessPins } from '../../app/identity';
 
 /** Depth displacement reads the same authored local normal as its surface. */

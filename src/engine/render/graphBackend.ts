@@ -7,7 +7,7 @@
  */
 import { Texture, Material, Vector2 } from 'three';
 import type { Scope } from '../app/scope';
-import { graphNodeOwner, ownGraphNodes } from './nodes/nodeBuildReuse';
+import { graphNodeOwner, ownGraphNodes } from './nodes/graphOwners';
 import type { attachOutline, compileGraph, GraphNormalPrepass, GraphPostPass } from './graph/compile';
 import type { EngineNodesHandler } from './nodes/engineNodesHandler';
 import type { Renderer } from './renderer';

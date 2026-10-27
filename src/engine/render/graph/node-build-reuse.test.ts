@@ -1,7 +1,7 @@
 import { afterAll, afterEach, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { TextureNode, UniformArrayNode } from 'three/webgpu';
-import { graphNodeOwner } from '../nodes/nodeBuildReuse';
+import { graphNodeOwner } from '../nodes/graphOwners';
 import { WebGLNodesHandler } from 'three/examples/jsm/tsl/WebGLNodesHandler.js';
 import { compileGraph } from './compile';
 import { EngineNodesHandler } from '../nodes/engineNodesHandler';

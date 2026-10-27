@@ -81,11 +81,6 @@ export class GraphNodeOwner {
   madeAtCompile(node: Node): boolean { return this.made.has(node); }
   owns(node: Node): boolean { return this.made.has(node) || this.built.has(node); }
 }
-const owners = new WeakMap<THREE.Material, GraphNodeOwner>();
-/** `material` was compiled by `owner`'s compile (the graph compiler registers its materials) */
-export function ownGraphNodes(material: THREE.Material, owner: GraphNodeOwner): void { owners.set(material, owner); }
-/** the compile that made `material`'s graph (undefined: not a compiled graph, never reused) */
-export function graphNodeOwner(material: THREE.Material): GraphNodeOwner | undefined { return owners.get(material); }
 
 /**
  * The program key a reused build must match, without the material's own node hash: the program parameters three keys
