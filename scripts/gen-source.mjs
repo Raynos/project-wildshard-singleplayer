@@ -15,6 +15,7 @@ export async function genSource(root, { check = false, changed, committed = fals
   const rows = (changed === undefined ? SOURCE_GENERATORS : selectSourceGenerators(changed)).filter(row => !committed || row.committed);
   const touched = [], owned = [];
   for (const row of rows) {
+    if (Number(row.generate !== undefined) + Number(row.run !== undefined) !== 1) throw new Error(`gen:source: ${row.id} needs exactly one producer`);
     if (row.generate !== undefined) {
       const outputs = await row.generate(root);
       if (Object.keys(outputs).sort().join('\n') !== [...row.outputs].sort().join('\n')) throw new Error(`gen:source: ${row.id} outputs differ from its registry row`);

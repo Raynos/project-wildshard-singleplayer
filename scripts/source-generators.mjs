@@ -94,9 +94,10 @@ export const SOURCE_GENERATORS = [
   {
     id: 'ktx2',
     outputs: ['src/engine/boot/ktx2.generated.ts'],
-    inputs: ['scripts/bake-ktx2.cache.json', 'scripts/bake-ktx2.list.json', 'scripts/ktx2-tables.mjs'],
+    inputs: ['scripts/ktx2-engine-map.json', 'scripts/ktx2-tables.mjs'],
     committed: true,
-    note: 'written by the encoder (scripts/bake-ktx2.mjs) beside the KTX2 files it maps; committed as is, never regenerated here',
+    note: 'the encoder publishes its activated common mappings beside assets; the plain table needs no native encoder',
+    generate: async root => ({ 'src/engine/boot/ktx2.generated.ts': (await import(pathToFileURL(`${root}/scripts/ktx2-tables.mjs`).href)).engineKtx2TableSource(root) }),
   },
   {
     id: 'port-shares',
