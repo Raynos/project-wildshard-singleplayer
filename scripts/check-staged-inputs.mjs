@@ -4,20 +4,9 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { discoverGeneration, generateShardJob } from './generate.mjs';
 import { compareRuntimeFiles, RUNTIME_FILES_LIST } from '../lint/runtime-files.mjs';
 import { compareCustomSections, CUSTOM_SECTION_POLICY } from './custom-section-policy.mjs';
 import { compareClosedComponents } from './check-closed-components.mjs';
-
-/** A warm mirror needs missing declared build outputs before resolving typed imports. */
-export async function prepareMissingCheapInputs(root = resolve(import.meta.dirname, '..')) {
-  for (const job of discoverGeneration(root).jobs) {
-    const outputs = [...(job.buildTimeOutputs ?? []), ...Object.keys(job.buildOutputs ?? {})];
-    if (outputs.some(file => !existsSync(resolve(root, file)))) {
-      await generateShardJob(root, job, { restore: true, restoreOutputs: outputs });
-    }
-  }
-}
 
 /** Check this immutable source tree against the original repository private/pathspec index. */
 export function checkStagedInputs(root = resolve(import.meta.dirname, '..')) {
@@ -45,7 +34,6 @@ export function checkStagedInputs(root = resolve(import.meta.dirname, '..')) {
   // The stamp sits beside the slot's tree: the sync deletes untracked files inside it, but keeps ignored outputs.
   const generated = resolve(scratch, '..', 'precommit-generated');
   if (!existsSync(generated)) { run(process.execPath, ['scripts/gen.mjs', '--build-inputs']); writeFileSync(generated, `${new Date().toISOString()}\n`); }
-  run(process.execPath, ['scripts/check-staged-inputs.mjs', '--missing-cheap']);
   // Discovery changes when authored manifests change, even in an already warm
   // slot. Refresh this cheap source glue before typed lint resolves imports.
   run(process.execPath, ['scripts/gen-shards.mjs']);
@@ -66,7 +54,6 @@ export function checkStagedInputs(root = resolve(import.meta.dirname, '..')) {
 }
 if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename)) {
   try {
-    if (process.argv.includes('--missing-cheap')) await prepareMissingCheapInputs();
-    else checkStagedInputs(process.argv[2]);
+    checkStagedInputs(process.argv[2]);
   } catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }
 }
