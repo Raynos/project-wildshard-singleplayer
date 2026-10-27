@@ -51,6 +51,7 @@ test('an injected pause error propagates without a second attempt', async () => 
 
 test('a spent shared frame yields even when this builder has spent no local time', async () => {
   vi.spyOn(clock, 'diagnosticNow').mockReturnValue(0);
+  vi.spyOn(framePacing, 'presenting').mockReturnValue(true);
   vi.spyOn(framePacing, 'frameBudgetSpent').mockReturnValue(true);
   const owner = new Scope('foundation-shared-budget'), pause = vi.fn(() => Promise.resolve());
   const checkpoint = regionalBuildCheckpoint(owner, pause);

@@ -1,7 +1,19 @@
 # Grid-ready for one shard: mini plan for the builder (G557)
 
-**2026-10-27 (G784):** 9 of 10 shards are grid-ready. Nalati's row stays open until Nalati crosses under the G782 bar
-(every crossing under 5 s warm and under 8 s cold), measured in [grid-crossing](grid-crossing-mini-plan.md). Latest Nalati reading, `e580168ca6` (2026-10-27, sp-o1): complete with 0 errors, over the bar: cold 24.2 s, warm 17.2 s (`325740f3a5`: cold 27.7–32.4 s, warm 19.6–21.3 s); the row stays open.
+**2026-10-27 (G784):** 9 of 10 shards are grid-ready. Nalati stays open:
+one original G780 end pair on `dba3eef2a0f67b5e51b56cf17a0627e17e4e8e64`
+records **15.7350s cold FAIL8 /0.0339s retained warm PASS5**, page/transport/
+console errors0, iPhone16Pro Chromium phone4x/DPR2. World4.521s,
+shaders/composer4.381s (compile3.708s /451jobs), parked2.368s /218draws.
+The retained warm has no repeated world/afterPlay build. Its flat-green
+ground differs from the textured cold road (also observed on2e71f1ccbd),
+so visual acceptance remains unqualified as G782-Nalati-retained-ground;
+this does not reopen fixed D154. Cold/warm drive p95/max50.0/150.0 and
+33.4/66.7ms. The unchanged G782 bars and full four-edge table are in
+[grid-crossing](grid-crossing-mini-plan.md#g780-end-reading--2026-10-27-dba3eef2a0).
+Raw pair: `tmp/sp-x8-g782-end/nalati-grasslands/receipt.json`; both portraits
+inspected, browser/borrower closed. Prior e580 cold24.2/warm17.2s and
+325740 cold27.7–32.4/warm19.6–21.3s remain historical, not this qualification.
 
 Jake, 2026-10-21 ~08:20 Cancun: *"FFS grid readiness will never complete right? Make me a mini plan to complete grid
 readiness for one shard."* And: *"grid readiness should not be blocked on my iPhone; we should have a final iPhone
