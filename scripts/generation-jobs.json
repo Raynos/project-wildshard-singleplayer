@@ -5383,58 +5383,6 @@
       "platform": "portable"
     },
     {
-      "id": "nalati-terrain-scene",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-terrain-scene.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-terrain-scene.mjs"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/sdk",
-        "src/engine",
-        "src/format",
-        "scripts/bake-output.mjs",
-        "src/shards/nalati-grasslands/generators/bake-terrain-scene.mjs",
-        "src/shards/nalati-grasslands/generators/terrainScene.ts",
-        "src/shards/nalati-grasslands/generators/terrainPainter.ts",
-        "src/shards/nalati-grasslands/generators/zones.ts",
-        "src/shards/nalati-grasslands/generators/nalatiGroundSource.ts",
-        "src/shards/nalati-grasslands/generators/terrainRecipe.ts",
-        "src/shards/nalati-grasslands/generators/terrainSeed.ts",
-        "src/shards/nalati-grasslands/generators/edgeRecipe.ts",
-        "src/shards/nalati-grasslands/boot/layout.generated.json",
-        "src/shards/nalati-grasslands/boot/clearings.generated.json",
-        "src/shards/nalati-grasslands/boot/poiLayout.generated.json",
-        "src/shards/nalati-grasslands/generators/waterStrips.ts",
-        "public/assets/baked/nalati-grasslands/terrain.bin",
-        "scripts/bake-loader.mjs",
-        "src/game",
-        "src/commons",
-        "src/shards/nalati-grasslands/data/layout.generated.json",
-        "src/shards/nalati-grasslands/data/poiLayout.generated.json",
-        "src/shards/nalati-grasslands/generators/clearings.ts",
-        "src/shards/nalati-grasslands/generators/layout.ts",
-        "src/shards/nalati-grasslands/generators/poiLayout.ts"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/assets/world-terrain/ground.generated.glb",
-        "src/shards/nalati-grasslands/assets/world-terrain/slab.generated.glb",
-        "src/shards/nalati-grasslands/assets/world-terrain/water.generated.glb"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/assets/world-terrain/ground.generated.glb",
-        "src/shards/nalati-grasslands/assets/world-terrain/slab.generated.glb",
-        "src/shards/nalati-grasslands/assets/world-terrain/water.generated.glb"
-      ],
-      "platform": "native"
-    },
-    {
       "id": "nalati-elite-charge",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-elite-charge.mjs",
@@ -6121,9 +6069,6 @@
         "src/sdk/kit/bakedGeometry.ts",
         "src/sdk/kit/geometryPack.ts",
         "src/sdk/package.json",
-        "src/shards/nalati-grasslands/assets/world-terrain/ground.generated.glb",
-        "src/shards/nalati-grasslands/assets/world-terrain/slab.generated.glb",
-        "src/shards/nalati-grasslands/assets/world-terrain/water.generated.glb",
         "src/shards/nalati-grasslands/boot/cragRock.generated.json",
         "src/shards/nalati-grasslands/boot/layout.generated.json",
         "src/shards/nalati-grasslands/data/modelMetrics.json",
@@ -6165,7 +6110,6 @@
         "src/shards/nalati-grasslands/generators/bake-spruce.mjs",
         "src/shards/nalati-grasslands/generators/bake-storm-titan.mjs",
         "src/shards/nalati-grasslands/generators/bake-taming-poses.mjs",
-        "src/shards/nalati-grasslands/generators/bake-terrain-scene.mjs",
         "src/shards/nalati-grasslands/generators/bake-titan-fire-view.mjs",
         "src/shards/nalati-grasslands/generators/bake-titan-view.mjs",
         "src/shards/nalati-grasslands/generators/bake-titan-whirls-view.mjs",
@@ -6799,7 +6743,15 @@
         "src/shards/nalati-grasslands/data/feats.json",
         "src/shards/nalati-grasslands/data/finds.json",
         "src/shards/nalati-grasslands/data/questContent.json",
-        "src/shards/nalati-grasslands/data/weaponEffects.json"
+        "src/shards/nalati-grasslands/data/weaponEffects.json",
+        "src/sdk",
+        "src/engine",
+        "src/format",
+        "src/shards/nalati-grasslands/boot/clearings.generated.json",
+        "src/shards/nalati-grasslands/boot/poiLayout.generated.json",
+        "src/game",
+        "src/commons",
+        "src/shards/nalati-grasslands/generators/terrainSceneProgram.ts"
       ],
       "outputs": [
         "public/assets/nalati-grasslands/map/top.webp",

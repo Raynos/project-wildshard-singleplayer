@@ -1,5 +1,5 @@
 /**
- * Nalati's water, baked with its terrain draws (generators/bake-terrain-scene.mjs, over the native lattice): the braided Kunes (a strip over its gravel corridor) and the
+ * Nalati's water, baked with its terrain draws (generators/terrainSceneProgram.ts, over the native lattice): the braided Kunes (a strip over its gravel corridor) and the
  * meltwater brook in Snow Lotus Valley (a ribbon draped down its bed; the waterfall is cut, layout v2), one mesh on the
  * water-surface host (`surface`, worn as the 'nalati-water' graph of data/lookGraphs.json). Each vertex carries `aWater` =
  * (depth over the bed m, flow 0..1 along the stream, across −1..1, brook 0 | 1): the graph paints by depth (turquoise over
