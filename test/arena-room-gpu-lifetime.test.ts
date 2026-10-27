@@ -134,7 +134,7 @@ test('uploaded fixed backing collects while its room remains live', async () => 
     mkdirSync('tmp', { recursive: true });const directory = mkdtempSync(resolvePath('tmp/arena-upload-gc-'));
     try {
       const config = resolvePath(directory, 'vitest.config.mjs');
-      writeFileSync(config, `import config from '../../vitest.config.ts';export default {...config,test:{...config.test,include:['test/arena-room-gpu-lifetime.test.ts'],maxWorkers:1,execArgv:['--expose-gc']}};`);
+      writeFileSync(config, `import config from '../../vitest.config.ts';export default {...config,test:{...config.test,include:['test/arena-room-gpu-lifetime.test.ts'],setupFiles:['test/fixtures/arena-room-setup.ts'],maxWorkers:1,execArgv:['--expose-gc']}};`);
       const output = execFileSync(process.execPath, ['--expose-gc', resolvePath('node_modules/vitest/vitest.mjs'), 'run', 'test/arena-room-gpu-lifetime.test.ts', '--config', config, '-t', 'uploaded fixed backing collects'], {
         env: { ...process.env, WS_ARENA_GC: '1', NO_COLOR: '1' }, encoding: 'utf8', stdio: 'pipe', timeout: 30_000,
       });expect(output).toContain('1 passed');
