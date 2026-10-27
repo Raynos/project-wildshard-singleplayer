@@ -1,10 +1,12 @@
-import { afterEach, expect, test, vi } from 'vitest';
+import { afterEach, expect, test } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
 import { ResidencyAllocator } from './allocator';
 import { ROAD_GRAIN_PLANES, type RoadGrainKind } from './roadGrain';
 import { startRoadGrain } from './roadGrainPreparation';
 
 const workers: TestWorker[] = [];
+const globals = ['Worker', 'OffscreenCanvas'].map(key => ({ key, descriptor: Object.getOwnPropertyDescriptor(globalThis, key) }));
+function stub(key: string, value: unknown): void { Object.defineProperty(globalThis, key, { value, configurable: true, writable: true }); }
 class TestWorker extends EventTarget {
   readonly sent: unknown[] = [];
   terminated = 0;
@@ -16,9 +18,14 @@ class TestWorker extends EventTarget {
     this.dispatchEvent(new MessageEvent('message', { data: { kind, pixels: pixels ?? new Uint8ClampedArray(width * height * 4), fillStyle: 'rgba(45,47,51,0.55)' } }));
   }
 }
-afterEach(() => { vi.unstubAllGlobals(); workers.length = 0; });
+afterEach(() => {
+  for (const { key, descriptor } of globals) {
+    if (descriptor === undefined) Reflect.deleteProperty(globalThis, key); else Object.defineProperty(globalThis, key, descriptor);
+  }
+  workers.length = 0;
+});
 function worker(): TestWorker { const found = workers[0]; if (found === undefined) throw new Error('Missing grain worker'); return found; }
-function support(): void { vi.stubGlobal('Worker', TestWorker); vi.stubGlobal('OffscreenCanvas', () => undefined); }
+function support(): void { stub('Worker', TestWorker); stub('OffscreenCanvas', () => undefined); }
 
 test('both complete planes share one charged worker and release all retained source bytes', async () => {
   support(); const scope = new Scope('road grain test'), allocator = new ResidencyAllocator();
@@ -55,7 +62,7 @@ test('malformed planes never publish partial data and keep original painting ava
 });
 
 test('unsupported hosts start no worker or residency claim', () => {
-  vi.stubGlobal('Worker', undefined); const scope = new Scope('native road grain'), allocator = new ResidencyAllocator();
+  stub('Worker', undefined); const scope = new Scope('native road grain'), allocator = new ResidencyAllocator();
   try { expect(startRoadGrain(scope, allocator, 'probe')).toBeUndefined(); expect(workers).toEqual([]); expect(allocator.entries()).toEqual([]); }
   finally { scope.dispose(); }
 });
