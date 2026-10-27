@@ -23,11 +23,27 @@ export async function prepareBinarySources(product:BinaryFileReader,input:unknow
   const live=():void=>{alive();if(product.file!==read||product.hasFile!==has)throw new Error('Binary source reader changed');};
   if(read===undefined)throw new Error('Binary source requires its product reader');
   live();for(const file of lengths.keys())if(has!==undefined&&!has.call(product,file))throw new Error(`Missing binary source ${file}`);
-  for(const [file,length] of lengths){
-    live();const bytes=await read.call(product,file);live();
-    if(!(bytes instanceof Uint8Array)||bytes.byteLength!==length)throw new Error(`Binary source byte count differs: ${file}`);
-    files.set(file,bytes);
-  }
+  // Four original reads overlap so adjacent named pack members can share one
+  // demand range. Decoding/publication and refusal remain in authored order.
+  const rows=[...lengths],pending=new Map<number,Promise<Uint8Array>>();
+  try {
+    for(const [index,[file]] of rows.entries()){
+      for(let at=index;at<Math.min(rows.length,index+4);at++){
+        if(pending.has(at))continue;
+        const row=rows[at];if(row===undefined)throw new Error('Missing binary source request');
+        const [name,length]=row;live();
+        const work=(async()=>{
+          const bytes=await read.call(product,name);live();
+          if(!(bytes instanceof Uint8Array)||bytes.byteLength!==length)throw new Error(`Binary source byte count differs: ${name}`);
+          return bytes;
+        })();
+        void work.catch(()=>undefined);pending.set(at,work);
+      }
+      const work=pending.get(index);if(work===undefined)throw new Error('Missing binary source read');
+      files.set(file,await work);pending.delete(index);
+    }
+  } finally {await Promise.allSettled(pending.values());}
+
   return files;
 }
 /** Borrow one prepared raw file; inline content refuses before storage access. */

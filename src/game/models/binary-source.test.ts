@@ -45,3 +45,22 @@ test('held reads refuse reader replacement and sliced ancestor retirement withou
   const scope=new Scope('binary.ended');scope.dispose();const file=vi.fn(()=>Promise.resolve(new Uint8Array(4)));
   await expect(prepareBinarySources({file},[{source:{file:'shape'},bytes:4}],scope)).rejects.toThrow('retired');expect(file).not.toHaveBeenCalled();
 });
+
+test('binary preparation overlaps at most four files and preserves declared result order',async()=>{
+  let release:()=>void=()=>undefined;const gate=new Promise<void>(resolve=>{release=resolve;});let active=0,maximum=0;
+  const rows=Array.from({length:9},(_,i)=>({source:{file:`field-${i}`},bytes:1}));
+  const file=vi.fn(async(name:string)=>{active++;maximum=Math.max(maximum,active);await gate;active--;return new Uint8Array([Number(name.slice(6))]);});
+  const task=prepareBinarySources({file},rows);expect(file).toHaveBeenCalledTimes(4);release();
+  const files=await task;expect(maximum).toBe(4);expect(file).toHaveBeenCalledTimes(9);expect([...files.keys()]).toEqual(rows.map(row=>row.source.file));
+  for(const [i,row]of rows.entries())expect(files.get(row.source.file)).toEqual(new Uint8Array([i]));
+});
+
+test('binary read-ahead retains the first authored failure and starts no tail after it',async()=>{
+  let refuse:(error:Error)=>void=()=>undefined;const first=new Promise<Uint8Array>((_resolve,reject)=>{refuse=reject;});
+  const file=vi.fn((name:string)=>name==='field-0'?first:name==='field-1'?Promise.reject(new Error('second refusal')):Promise.resolve(new Uint8Array([3])));
+  const rows=Array.from({length:9},(_,i)=>({source:{file:`field-${i}`},bytes:1}));
+  const task=prepareBinarySources({file},rows);expect(file).toHaveBeenCalledTimes(4);refuse(new Error('first refusal'));
+  await expect(task).rejects.toThrow('first refusal');expect(file).toHaveBeenCalledTimes(4);
+  const unread=vi.fn(()=>Promise.resolve(new Uint8Array([0])));
+  await expect(prepareBinarySources({file:unread,hasFile:name=>name!=='field-8'},rows)).rejects.toThrow('Missing binary source field-8');expect(unread).not.toHaveBeenCalled();
+});
