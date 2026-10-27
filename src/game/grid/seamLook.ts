@@ -66,13 +66,18 @@ export function* seamLookGeometrySteps(pieces: readonly SeamPiece[], home: { rea
   let base = 0;
   for (const { mesh, features } of pieces) {
     const dx = mesh.origin.x - home.origin.x, dz = mesh.origin.z - home.origin.z, count = mesh.positions.length / 3;
+    let previousX = Number.NaN, previousZ = Number.NaN, roadX = Number.NaN, roadZ = Number.NaN;
     for (let k = 0; k < count; k++) {
       position[(base + k) * 3] = (mesh.positions[k * 3] ?? 0) + dx; position[(base + k) * 3 + 1] = mesh.positions[k * 3 + 1] ?? 0; position[(base + k) * 3 + 2] = (mesh.positions[k * 3 + 2] ?? 0) + dz;
       // the platform's neutral grey reads as a dark gravel verge; the shard's own colour at the gradient's far edge is kept
       const r = mesh.colours[k * 3] ?? 0, g = mesh.colours[k * 3 + 1] ?? 0, b = mesh.colours[k * 3 + 2] ?? 0;
       // only near the road: the darkening fades out across the gradient, so the cell edge keeps the shard's exact colour
       const wx = (mesh.positions[k * 3] ?? 0) + mesh.origin.x, wz = (mesh.positions[k * 3 + 2] ?? 0) + mesh.origin.z;
-      const road = Math.max(0, Math.min(1, (GAP_HALF - Math.min(fromRoad(wx, pitch), fromRoad(wz, pitch))) / (GAP_HALF - BUFFER)));
+      // A lattice row repeats one coordinate. Reuse only that scalar result;
+      // arbitrary meshes and every change of coordinate take the same formula.
+      if (wx !== previousX) { roadX = fromRoad(wx, pitch); previousX = wx; }
+      if (wz !== previousZ) { roadZ = fromRoad(wz, pitch); previousZ = wz; }
+      const road = Math.max(0, Math.min(1, (GAP_HALF - Math.min(roadX, roadZ)) / (GAP_HALF - BUFFER)));
       const shade = 1 - VERGE * road * Math.max(0, 1 - (Math.abs(r - NEUTRAL) + Math.abs(g - NEUTRAL) + Math.abs(b - NEUTRAL)) / 0.15);
       colour[(base + k) * 3] = r * shade; colour[(base + k) * 3 + 1] = g * shade; colour[(base + k) * 3 + 2] = b * shade;
     }
