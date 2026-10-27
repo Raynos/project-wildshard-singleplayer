@@ -527,11 +527,13 @@ export class PolearmSet {
   }
  })(this);
  private need():NonNullable<PolearmSet['data']>{if(this.data===null)throw new Error('Polearm rows not prepared');return this.data;}
- async prepare(product:Pick<ShardProduct,'file'|'shardfile'>):Promise<void>{
+ async prepare(product:Pick<ShardProduct,'file'|'shardfile'|'hasFile'|'url'>):Promise<void>{
   const rows=schema.parse(PolearmRowsSchema,JSON.parse(new TextDecoder().decode(await product.file(this.rows.file))));
+  // a pool the product names (GR6) loads by its content-addressed URL; any other pool URL is fetched as written
+  const pool=product.hasFile(rows.pool.url)?{...rows.pool,url:product.url(rows.pool.url)}:rows.pool;
   const item=product.shardfile.items.rows.find(row=>row.id===this.rows.item);
   const javelin=schema.parse(ThrownWeaponProfileSchema,item?.kind==='weapon'?item.profile:undefined);
-  const parts=createModelLibrary<never,never>({meshes:[],hd:[],meshUrls:{},hdUrls:{},hdLooks:{},aoFloor:1,geometryPools:[rows.pool]},'held-polearm');await parts.preload();
+  const parts=createModelLibrary<never,never>({meshes:[],hd:[],meshUrls:{},hdUrls:{},hdLooks:{},aoFloor:1,geometryPools:[pool]},'held-polearm');await parts.preload();
   const p=rows.view.poses;
   this.data={parts,rows,profile:{...SWORD_WOOD,...new ItemCatalogue(product.shardfile.items).equipment(this.rows.item),parent:SWORD_WOOD.id,...rows.profile},javelin,view:{...rows.view,poses:{rest:spearPose(p.rest),cock:spearPose(p.cock),jab:spearPose(p.jab),leftLow:spearPose(p.leftLow),sprint:spearPose(p.sprint),lance:spearPose(p.lance),javCock:spearPose(p.javCock),javOut:spearPose(p.javOut)},wrists:{left:new THREE.Vector3(...rows.view.wrists.left),right:new THREE.Vector3(...rows.view.wrists.right)},elbows:{left:new THREE.Vector3(...rows.view.elbows.left),right:new THREE.Vector3(...rows.view.elbows.right)}}};
  }

@@ -2,8 +2,6 @@ import { PolearmSet } from '../src/game/weapons/heldPolearm';
 import loadout from '../src/shards/nalati-grasslands/data/loadout.json' with { type: 'json' };
 import ARM_STYLE from '../src/shards/nalati-grasslands/data/armsStyle.json' with {type:'json'};
 import { originalHeldMetadata } from './fixtures/nalati-held-original';
-// oxlint-disable-next-line import/no-nodejs-modules -- Compare the production GLB with retained source geometry.
-import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The runtime URL must name its exact content-addressed bytes.
 import { createHash } from 'node:crypto';
 import { expect, test, vi } from 'vitest';
@@ -15,22 +13,25 @@ import { merge } from '../src/shards/nalati-grasslands/generators/meleeGeo';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseItems } from '../src/format/items';
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
-import rows from '../src/shards/nalati-grasslands/data/spear.generated.json' with { type: 'json' };
+import { nalatiSpearPool, SPEAR_POOL_NAME } from '../src/shards/nalati-grasslands/generators/spearPool';
 
 const { held: heldWeapons } = originalHeldMetadata();
 
 installPortableMath();
 const { buildSpear: authorSpear, buildJavelin: authorJavelin, SPEAR_VIEW, SPEAR_PROFILE } = await import('../src/shards/nalati-grasslands/generators/spear');
 
+const { glb: poolGlb, rows } = await nalatiSpearPool();
 const polearm = new PolearmSet({file:loadout.polearm.file,item:'weapon.spear'});
 
 test('baked spear retains all geometry channels, poses, coefficients and independent copies', async () => {
-  const bytes = readFileSync(`public${rows.pool.url}`);
-  expect(rows.pool.url).toBe(`/assets/nalati/baked/${createHash('sha256').update(bytes).digest('hex')}.glb`);
+  // the built pool keeps the retired job's exact bytes (its public file was named by this hash)
+  const bytes = poolGlb;
+  expect(rows.pool.url).toBe(SPEAR_POOL_NAME);
+  expect(createHash('sha256').update(bytes).digest('hex')).toBe('8d37c76dd72b69080e869d35de880a0547fd6ea2353bb6cfe229fc93e1532cac');
   const gltf = await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer, '');
   const load = vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockResolvedValue(gltf);
   try {
-    await polearm.prepare({ shardfile: { ...emptyShardfile({ slug: 'spear-test', name: 'Spear', author: 'Wildshard', revision: 1, seed: 1 }), items: parseItems(items) }, file: () => Promise.resolve(new TextEncoder().encode(JSON.stringify({...rows,program:heldWeapons.programs.polearm,presentation:heldWeapons.polearm}))) });
+    await polearm.prepare({ shardfile: { ...emptyShardfile({ slug: 'spear-test', name: 'Spear', author: 'Wildshard', revision: 1, seed: 1 }), items: parseItems(items) }, hasFile: () => false, url: (name: string) => name, file: () => Promise.resolve(new TextEncoder().encode(JSON.stringify({...rows,program:heldWeapons.programs.polearm,presentation:heldWeapons.polearm}))) });
     expect(polearm.profile()).toEqual(SPEAR_PROFILE);
     const spear = authorSpear(), javelin = authorJavelin(), { hands, leftHandY } = SPEAR_VIEW;
     const fist = (direction: readonly [number, number, number], mirror: boolean) => {
@@ -50,7 +51,7 @@ test('baked spear retains all geometry channels, poses, coefficients and indepen
       part.dispose(); second.dispose(); original.dispose();
     }
     left.geometry.dispose();
-    for (const [name, pose] of Object.entries(SPEAR_VIEW.poses)) expect(rows.view.poses[name as keyof typeof rows.view.poses]).toEqual({ pos: pose.pos.toArray(), q: pose.q.toArray() });
+    for (const [name, pose] of Object.entries(SPEAR_VIEW.poses)) expect(rows.view.poses[name]).toEqual({ pos: pose.pos.toArray(), q: pose.q.toArray() });
     expect(rows.view.wrists).toEqual({ left: left.wrist.clone().setY(left.wrist.y + leftHandY).toArray(), right: right.wrist.toArray() });
   } finally { load.mockRestore(); }
 });

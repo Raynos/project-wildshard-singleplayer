@@ -70,7 +70,7 @@ it('delays the bolt and applies the whole bounded area snapshot',()=>{
 it('binds unrelated native polearm, blade and power rows without shard callbacks',async()=>{
  const [{PolearmSet},{BladeSet},{staticGlb},{emptyShardfile},{parseItems},{GLTFLoader},three,{Player},{AnimalManager}]=await Promise.all([
   import('../src/game/weapons/heldPolearm'),import('../src/game/weapons/mountedBlade'),import('../src/sdk/bake/glb'),import('../src/sdk/author'),import('../src/format/items'),import('three/examples/jsm/loaders/GLTFLoader.js'),import('three'),import('../src/engine/player/Player'),import('../src/engine/entities/AnimalManager')]);
- const [{default:spear},{nalatiSabrePool},{default:items}]=await Promise.all([import('../src/shards/nalati-grasslands/data/spear.generated.json'),import('../src/shards/nalati-grasslands/generators/sabrePool'),import('../src/shards/nalati-grasslands/data/items.json')]);
+ const [{nalatiSpearPool},{nalatiSabrePool},{default:items}]=await Promise.all([import('../src/shards/nalati-grasslands/generators/spearPool'),import('../src/shards/nalati-grasslands/generators/sabrePool'),import('../src/shards/nalati-grasslands/data/items.json')]);
  const {vi}=await import('vitest'),material=new three.MeshBasicMaterial(),geometry=new three.BoxGeometry(.1,1,.1);
  const pool={url:'/fixtures/orchard-tools.glb',parts:['handle','tip','grip','sleeve','world']};
  const bytes=staticGlb(pool.parts.map(name=>({name,geometry,material,extras:{restGroups:geometry.groups.map(group=>[group.start,group.count,group.materialIndex??0]),restBox:null,restSphere:null}}))),gltf=await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer,'');
@@ -79,6 +79,7 @@ it('binds unrelated native polearm, blade and power rows without shard callbacks
   const identity={slug:'orchard-fixture',name:'Orchard',author:'Fixture',revision:1,seed:31};
   const orchardItems=parseItems(JSON.parse(JSON.stringify(items).replaceAll('weapon.spear','weapon.fruit-hook').replaceAll('weapon.sabre','weapon.pruner').replaceAll('nalati-grasslands','orchard-fixture')));
   const powerRows={program:rows.programs.power,powers:{...rows.powers,crescentDamage:9},item:'weapon.pruner',name:'Pruner',blue:[.5,1,.4],glow:[0,.1,0]};
+  const spear=(await nalatiSpearPool()).rows;
   const polearmRows={...spear,pool,profile:{...spear.profile,damage:7,reach:1.8},program:rows.programs.polearm,presentation:{...rows.polearm,parts:{leftArm:'sleeve',rightArm:'sleeve',body:'handle',metal:'tip',fist:'grip',projectile:'handle',projectileMetal:'tip',world:'world'}}};
   const bladeRows={...nalatiSabrePool().rows,pool,program:rows.programs.blade,power:powerRows,parts:{body:'handle',arms:'sleeve',metal:'tip'}};
   const files=new Map<string,unknown>([['tools/fruit-hook.json',polearmRows],['tools/pruner.json',bladeRows]]);

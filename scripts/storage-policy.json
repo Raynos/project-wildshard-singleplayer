@@ -44,13 +44,6 @@
       "purpose": "Sky Reach prepared world model pool, shipped and used by cold map builds"
     },
     {
-      "path": "public/assets/nalati/baked/8d37c76dd72b69080e869d35de880a0547fd6ea2353bb6cfe229fc93e1532cac.glb",
-      "oid": "d8739fa59575d340468e68060f28c1e5f8b06dbd",
-      "bytes": 2512520,
-      "kind": "runtime",
-      "purpose": "Nalati portable spear and javelin geometry, shipped"
-    },
-    {
       "path": "src/shards/pine-hollow/assets/06d57c11228b0045c9b02eb13fc05ad97ba8a98c3e2dcf8d1ebb8b078d3060b0",
       "oid": "80120fa6e7cbffeed9f34c997966d156ef81451b",
       "bytes": 1348902,
