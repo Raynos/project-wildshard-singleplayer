@@ -122,9 +122,11 @@ import fcntl, hashlib, json, os, runpy, shutil, signal, subprocess, sys, tempfil
 from pathlib import Path
 common, message, patch, *paths = sys.argv[1:]
 started = time.monotonic()
+source_seconds = 0.0
 waiting = acquired = released = None
 handoffs = []
-os.environ["WS_COMMIT_STARTED_AT"] = str(int(time.time() * 1000))
+budget_started_ms = int(time.time() * 1000)
+os.environ["WS_COMMIT_STARTED_AT"] = str(budget_started_ms)
 os.environ["WS_COMMIT_MESSAGE"] = message
 os.environ["WS_COMMIT_WRAPPER"] = "1"
 base_env = dict(os.environ)
@@ -197,6 +199,7 @@ try:
         # so an input never lands without its output. It runs before the hook, outside the five-second cap.
         regenerated = []
         if os.path.isfile("scripts/gen-source.mjs"):
+            source_started = time.monotonic()
             source_tree = git("write-tree", env=candidate_env).decode().strip()
             stage = subprocess.run(["node", "scripts/committed-source-tables.mjs", "--tree=" + source_tree,
                 *["--changed=" + name for name in paths]], env=base_env, capture_output=True, text=True)
@@ -230,6 +233,14 @@ try:
             paths += regenerated
             if regenerated:
                 print("commit.sh: gen:source tables join the commit: " + ", ".join(regenerated), flush=True)
+            if texts:
+                # G798 exempts only source generation/staging, not ordinary
+                # checks. Keep the full wall clock while preserving their 5 s.
+                source_seconds = time.monotonic() - source_started
+                budget_start = str(budget_started_ms + int(source_seconds * 1000))
+                os.environ["WS_COMMIT_STARTED_AT"] = budget_start
+                base_env["WS_COMMIT_STARTED_AT"] = budget_start
+                candidate_env["WS_COMMIT_STARTED_AT"] = budget_start
         staged = git("ls-files", "--stage", "-z", "--", *paths).hex()
         # Freeze working bytes before staging; Git must stage precisely that view.
         def working(name):
@@ -405,19 +416,21 @@ finally:
     work = elapsed - wait
     print(f"commit.sh: {wait:.0f} ms lock wait; {hold:.0f} ms lock held; {work - hold:.0f} ms outside lock", flush=True)
     print(f"commit.sh: {elapsed:.0f} ms total wall (lock wait included)", flush=True)
+    if source_seconds:
+        print(f"commit.sh: {source_seconds * 1000:.0f} ms G798 source work outside check cap", flush=True)
     exception = sys.exc_info()[1]
     code = exception.code if isinstance(exception, SystemExit) else None
     code = code if code is None or isinstance(code, int) else 1
-    timing = {"version": 1, "id": str(os.getpid()) + ":" + os.environ["WS_COMMIT_STARTED_AT"],
+    timing = {"version": 1, "id": str(os.getpid()) + ":" + str(budget_started_ms),
               "at": time.time(), "elapsedMs": round(elapsed), "waitMs": round(wait),
               "workMs": round(work), "lockMs": round(hold), "exitCode": code,
-              "gateDeferred": handoffs,
+              "gateDeferred": handoffs, "sourceMs": round(source_seconds * 1000),
               "lane": os.getenv("WS_COMMIT_LANE") or os.getenv("HERDR_PANE_ID")}
     try:
         with open(Path(common) / "commit-times.jsonl", "a") as ledger:
             ledger.write(json.dumps(timing, separators=(",", ":")) + "\n")
     except OSError as error:
         print("commit.sh: timing log unavailable: " + str(error), file=sys.stderr)
-    if elapsed > 5000:
+    if elapsed - source_seconds * 1000 > 5000:
         print("commit.sh: five-second check cap; only serialized Git completion follows", file=sys.stderr)
 PYCOMMIT

@@ -10,7 +10,7 @@ import { linkNodeModules } from '../scripts/link-node-modules.mjs';
 test('source staging uses candidate inputs and preserves loose files and peer stages', () => {
   mkdirSync('tmp', { recursive: true });
   const repository = resolve('.'), root = mkdtempSync(resolve('tmp', 'source-stage-commit-'));
-  const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_') && !['WS_GIT_CHECK_ROOT', 'WS_GIT_CHECK_REV', 'WS_GIT_NATIVE_ROOT'].includes(key)));
+  const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_') && !key.startsWith('WS_COMMIT_') && !['WS_GIT_CHECK_ROOT', 'WS_GIT_CHECK_REV', 'WS_GIT_NATIVE_ROOT'].includes(key)));
   const git = (...args: string[]): string => execFileSync('git', args, { cwd: root, env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
   const put = (file: string, text: string): void => {
     mkdirSync(resolve(root, file, '..'), { recursive: true }); writeFileSync(resolve(root, file), text);
@@ -25,13 +25,21 @@ test('source staging uses candidate inputs and preserves loose files and peer st
       copyFileSync(resolve(repository, 'scripts', file), resolve(root, 'scripts', file));
     chmodSync(resolve(root, 'scripts/commit.sh'), 0o755);
     put('scripts/source-generators.mjs', `import {readFileSync} from 'node:fs';import {resolve} from 'node:path';
-export const SOURCE_GENERATORS=[{id:'fixture',outputs:['src/table.ts'],inputs:['src/input.json'],committed:true,generate:async root=>{
+export const SOURCE_GENERATORS=[{id:'fixture',outputs:['src/table.ts','src/budget.json'],inputs:['src/input.json'],committed:true,generate:async root=>{
  const data=JSON.parse(readFileSync(resolve(root,'src/input.json'),'utf8'));
  if(typeof data.value!=='number')throw Error('Invalid fixture source value');
- return {'src/table.ts':'export const value='+data.value+';\\n'};
+ return {'src/table.ts':'export const value='+data.value+';\\n','src/budget.json':JSON.stringify({startedAt:process.env.WS_COMMIT_STARTED_AT})};
 }}];export function selectSourceGenerators(paths){return paths.some(path=>path==='src/input.json'||path==='src/table.ts')?SOURCE_GENERATORS:[];}`);
-    put('src/input.json', '{"value":1}\n'); put('src/table.ts', 'export const value=1;\n'); put('peer.txt', 'original\n');
+    put('src/input.json', '{"value":1}\n'); put('src/table.ts', 'export const value=1;\n'); put('src/budget.json', '{}'); put('peer.txt', 'original\n');
+    put('.githooks/pre-commit', `#!/usr/bin/env python3
+import json, os, subprocess
+if os.getenv('WS_COMMIT_WRAPPER') == '1':
+    row=json.loads(subprocess.check_output(['git','show',':src/budget.json']))
+    assert int(os.environ['WS_COMMIT_STARTED_AT']) > int(row['startedAt']), 'source work consumed ordinary hook budget'
+`);
+    chmodSync(resolve(root, '.githooks/pre-commit'), 0o755);
     git('add', '.'); git('commit', '-qm', 'fixture');
+    git('config', 'core.hooksPath', '.githooks');
     linkNodeModules(repository, root);
     put('src/input.json', '{"value":7}\n'); put('src/table.ts', 'foreign loose output\n'); put('peer.txt', 'peer stage\n');
     git('add', 'src/input.json', 'peer.txt');
