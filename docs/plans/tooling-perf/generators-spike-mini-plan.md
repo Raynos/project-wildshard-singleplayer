@@ -786,7 +786,7 @@ is done only when its folded rows are done too.
 |---|---|---|---|---|
 | GR12 ← gen G1 | [gen speed](../../../project/archive/2026-10-27-gen-speed.md) G1 | Stop c007: commit ask-ids/rest-storm or move them out of gen's writes; build-mirror refreshes the index before `diff-files` and clears only groups whose own bytes changed (saves 100–230 s on the next slot user) | in flight, reading at plan end (sp-o2): gen no longer writes a tracked file: the ask-ids inventory had no live reader and left with its writer (`01e30a9a8a`, push carve-out `e52a5b3484`); the committed rest-storm.glb equals its pinned build output; the mirror's index refresh before `diff-files` and per-group clears landed in `95fa00a109` | every slot keeps > 2,800 accepted outputs after a gen |
 | GR12 ← gen G6 | [gen speed](../../../project/archive/2026-10-27-gen-speed.md) G6 | Narrow keys: drop the file inventory from the recipe (keep the recorder's negative probes), replace whole-layer roots with traced modules, hash only the package.json exports entries a job resolves, catalogue projection for every job; find why nine-layout re-keys on a Nalati edit (saves C 215→≤20 s, D2 139→~2 s). Partly landed: `b9979499bb` narrows immutable upstream keys. Once GR12 deletes the catalogue, the keys are the shard programs' own | waits on the catalogue deletion (sp-o2; GR12, sp-x2): its keys live in `generate.mjs`, which GR12 deletes; product builds already key on each shard program's own `ctx.cached` inputs, so the done-when is read at plan end on the products, not engineered into the scheduler | a one-shard edit regenerates only that shard's dependants; Loading.ts edit regenerates 0 |
-| GR12 ← gen G8 | [gen speed](../../../project/archive/2026-10-27-gen-speed.md) G8 (covered by G654 / GR0 and G649 since G668) | Generated data is files, not TypeScript: base64-in-JSON becomes .bin/.glb; numeric-array JSON and instance tables become typed .bin + small JSON header; generators `readFileSync` + valibot-parse the header at run time; lint bans importing `*.generated.json` | in flight (2026-10-27, sp-x9; shared rule `73acb48d7f`, reader next; reading at plan end G780) | 0 static generated-JSON imports; JSON written per cold gen ≤ 30 MB |
+| GR12 ← gen G8 | [gen speed](../../../project/archive/2026-10-27-gen-speed.md) G8 (covered by G654 / GR0 and G649 since G668) | Generated data is files, not TypeScript: base64-in-JSON becomes .bin/.glb; numeric-array JSON and instance tables become typed .bin + small JSON header; generators `readFileSync` + valibot-parse the header at run time; lint bans importing `*.generated.json` | in flight (2026-10-27, sp-x9; shared rule `73acb48d7f`, typed-bank reader this commit; reading at plan end G780) | 0 static generated-JSON imports; JSON written per cold gen ≤ 30 MB |
 | GR12 ← oxlint R4 | [oxlint](../../../project/archive/2026-10-27-oxlint.md) R4 | Dependency on GR source migration; G655 supersedes G643: authored JSON stays typed. Read-only config census finds 443 generated JSON roots / 122,264,132 B in the shard project (914 JSON roots / 135,548,644 B total), plus 59,017 B of declared generated game JSON. GR0 still records 978 allowed import sites across 501 files; this is debt, not proof every allowance is live. No ambient-unknown escape, broad exclusion or legacy-path change. Keep five CI partitions until the generated inputs are removed and the target passes | in flight, reading at plan end (sp-o2): generated-import allowances exact (`fb1e461d8b`: 726 → 475 sites, 402 → 268 files); the rest shrinks with GR3–GR8's retirements, then the lint timing is read | full typed lint ≤ 15 s / ≤ 8 GB |
 | GR12 ← TS T1 + T6 | [TypeScript speed](../../../project/archive/2026-10-27-typescript-speed.md) T1, T6 | T1: generated JSON leaves the program through the generator redesign; authored JSON remains typed. T6 (needs T1): retain the Mac-only eight-checker comparison after generated inputs retire (historical 62 → 25 s, +3.4 GB; no new measurement) | in flight, reading at plan end (sp-o2): T1 shrinks with each retired JSON handoff (GR5's `dce253bd03`, `c1842953a4`, `54f0941a09`, `0905f49f74` turned 10 JSON / module imports into calls) and the exact allowances (`fb1e461d8b`); T6's eight-checker comparison is the plan-end reading | retained acceptance: root program ≤ 6 GB |
 | GR12.1 Unreached catalogue helper family | GR12 deletion (sp-x2) | Remove generation-registry.mjs (old import-time SHARDS installer) and generation-linux.mjs/.d.mts (unreferenced catalogue portability experiment). No current script, test, hook, package command, workflow or source reader names these modules/compareGeneration outside the deleted files. Retire71 source/declaration lines; no test/guard deletion or scheduler change. Live generate.mjs, generation-jobs.json and their active helpers remain until their producer/consumer migration. | source landed `d07389aa80` | Three modules gone; surviving touched source set is empty, so no type/lint target. Read-only current-reference census only, no test/build/generator/reading under G769. |
@@ -981,3 +981,31 @@ reader and plan-end zero-import/JSON-volume reading remain in flight.
 | Weather scheduler retirement | in flight (reading at plan end; `9d363c33b4`) | Remove only nalati-grasslands-weather-channels, its writer and four generated handoffs/debt entries after source-owned header/output/script readers landed. All four independent original hashes verified before removal; original wire metadata/cost assertions remain. Keep the old weatherDecision.mjs helper only for the separately owned night reader until its rewrite. SDK types and named lint/selected ratchet pass; shard reader types retain the foreign paintedRows.ts36 sky-shape refusal (coordinator routed to layout owner). No tests/builds under G769; full product reading remains at plan end. |
 
 | Weather source resolver correction | in flight (reading at plan end; sp-x6, this commit) | Correct84f8c96ab8: Vite selected retained weatherDecision.mjs before new weatherDecision.ts for an extensionless import, pulling Node/compiler services into shard config. Rename the injected producer weatherDecisionSource.ts so resolution is unambiguous without changing compiler data/options. The old helper remains only for the night owner until retirement. Owned weather types, named typed/fast lint and unchanged selected ratchet pass; no tests/builds under G769. |
+
+
+#### G8 shared typed bank/header reader (2026-10-27, sp-x9)
+
+**In flight (reading at plan end, G780; reader source this commit).**
+`@wildshard/format/typedDataBank` owns the runtime-valibot header schema:
+one named sibling binary, explicit little-endian scalar kinds, complete
+aligned ranges, unique columns and row widths. The Node author reader
+`@wildshard/sdk/bake/typedDataBank` bounds header/binary reads, verifies
+the binary length/hash and returns detached typed arrays. The encoder
+returns owned bytes plus the small header for the existing output writer;
+no filesystem writer, generated import or Vite plugin is introduced.
+
+Instance matrices use width 16; numeric arrays retain their original
+integer/F32/F64 representation and signed zero, with no quantization.
+Source controls cover malformed headers, ranges, hash/size, padding,
+numeric refusals and the sibling-file reader. These are tracked source
+controls, not an executed-test or product-parity claim under G769.
+The shared API and its source/cache input requirements are in SHARDS.md.
+
+Format and scoped reader/fixture types, named typed lint and exact source
+ratchet counts pass. Full ratchet still refuses the stale Pine discovery
+allowance; no allowance is changed. No tests, builds, generator, browser
+or Simulator run for this reader slice. GR5-GR8 job sources stay with
+their owners; sp-x1 now owns GR12 final deletion. The shared import rule
+is 73acb48d7f, its seed guard repair 8cb75556ab and focused regression
+follow-up cfeaec5b19. Zero static imports and cold JSON <=30 MB remain
+unqualified until the plan-end reading and the owners' job retirements.

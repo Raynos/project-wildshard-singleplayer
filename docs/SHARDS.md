@@ -80,6 +80,21 @@ hard rule with no ratchet allowance. Exact registered legacy files keep their
 existing import/layout paths (**held for LD**); a `-legacy` suffix grants no
 exemption. The LEGACY entry and Developer buttons remain available for QA.
 
+**G8 generated data banks.** Keep `.bin` / `.glb` payloads as named files,
+never base64 in JSON or numeric payloads in generated TypeScript. Node author
+programs can use `@wildshard/sdk/bake/typedDataBank`: `encodeTypedDataBank`
+returns an owned little-endian `.bin` and a small JSON header; publish both
+through the existing output writer. `readTypedDataBank(headerPath)` reads the
+bounded header at run time, valibot-parses the defining
+`@wildshard/format/typedDataBank` schema and verifies the sibling binary's
+length/hash before returning detached typed columns. Width 16 describes
+instance matrices; width 3 describes positions. Use `Float64Array` when
+preserving JS-number precision, and `Float32Array` only for data already
+defined as float32. Signed zero and integer bits are retained. Declare both
+header and bank in the source/cache inputs. Do not statically import a
+`*.generated.json` header: that import is a per-file shrink-only lint ratchet.
+This Node reader is for author programs, not a runtime or config declaration.
+
 To start a shard, run `pnpm gen` in this repository before copying
 `src/shards/_template` to a fresh project folder. This restores its pinned CPU
 outputs from retained authoring sources; then install

@@ -9,6 +9,7 @@
     "./dist/*/**/*"
   ],
   "exports": {
+    "./bake/typedDataBank": "./bake/typedDataBank.ts",
     "./bake/basisGlb": "./bake/basisGlb.ts",
     "./bake/placement": "./bake/placement.ts",
     "./bake/forest": "./bake/forest.ts",

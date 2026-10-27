@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./typedDataBank": "./typedDataBank.ts",
     "./glbBuffers": "./glbBuffers.ts",
     "./glbCost": "./glbCost.ts",
     "./stateLineage": "./stateLineage.ts",
