@@ -134,6 +134,23 @@ test('syntax dependencies follow changed bytes in a long-lived process',()=>{
  }finally{f.close();}
 });
 
+test('reused dependency scopes still read transitive changes and new edges',()=>{
+ const f=fixture(`import {markup} from './values';declare const node:HTMLElement;node.innerHTML=markup;`);
+ try{
+  f.put('src/engine/values.ts',`export {markup} from './leaf';`);
+  f.put('src/engine/leaf.ts','export const markup="<i>safe</i>";');
+  expect(authoredHtmlSites(f.root,f.file)).toEqual([]);
+  expect(authoredHtmlSites(f.root,f.file)).toEqual([]);
+  f.put('src/engine/leaf.ts','export const markup:string=globalThis.name;');
+  expect(authoredHtmlSites(f.root,f.file)).toHaveLength(1);
+  f.put('src/engine/values.ts',`export {markup} from './other';`);
+  f.put('src/engine/other.ts','export const markup="<b>safe again</b>";');
+  expect(authoredHtmlSites(f.root,f.file)).toEqual([]);
+  f.put('src/engine/other.ts','export const markup:string=globalThis.name;');
+  expect(authoredHtmlSites(f.root,f.file)).toHaveLength(1);
+ }finally{f.close();}
+});
+
 test('typed static record values remain safe through nested string helpers',()=>{
  const f=fixture(`import {engineString} from './strings';declare const node:HTMLElement;
 const esc=(value:string):string=>value.replaceAll('&','&amp;').replaceAll('<','&lt;');

@@ -14,9 +14,18 @@ const unwrap = input => {
 const decorate = (ref, extra) => ({ ...ref, ...extra });
 export const syntaxChild = (ref, node) => ({ unit: ref.unit, node, ...(ref.types ? { types: ref.types } : {}) });
 const keyOf = node => node?.type === 'Identifier' ? node.name : node?.type === 'Literal' ? String(node.value) : null;
-export const syntaxChildren = node => Object.entries(node).flatMap(([key, value]) => ['parent', 'loc', 'range', 'tokens', 'comments'].includes(key) ? []
-  : Array.isArray(value) ? value.filter(item => item && typeof item.type === 'string')
-  : value && typeof value.type === 'string' ? [value] : []);
+const metadataKeys = new Set(['parent', 'loc', 'range', 'tokens', 'comments']);
+export const syntaxChildren = node => {
+  const children = [];
+  for (const key of Object.keys(node)) {
+    if (metadataKeys.has(key)) continue;
+    const value = node[key];
+    if (Array.isArray(value)) {
+      for (const item of value) if (item && typeof item.type === 'string') children.push(item);
+    } else if (value && typeof value.type === 'string') children.push(value);
+  }
+  return children;
+};
 const parsedModules = new Map();
 
 function moduleFile(root, from, source) {
@@ -111,9 +120,15 @@ export function createSyntaxGraph(root, file, program) {
       const result = parseSync(target, text);
       if (result.errors.length > 0) throw new Error(`Syntax dependency must parse: ${target}`);
       ast = result.program;
-      parsedModules.set(resolve(root, target), { text, program: ast });
+      parsedModules.set(resolve(root, target), { text, program: ast, units: new Map() });
     }
-    const unit = syntaxUnit(target, ast);
+    // Only our parsed dependency ASTs own reusable lexical scopes. The supplied
+    // primary AST belongs to oxlint's current file and is never retained here.
+    // Re-read every dependency above; changed bytes replace both AST and scopes.
+    const entry = parsedModules.get(resolve(root, target));
+    const key = `${root}\0${target}`;
+    let unit = entry.units.get(key);
+    if (unit === undefined) { unit = syntaxUnit(target, ast); entry.units.set(key, unit); }
     units.set(target, unit);
     return unit;
   }
