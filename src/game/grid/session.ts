@@ -997,7 +997,15 @@ export class GridSession {
 
   /** Tile streaming T5.3 (G775): the entered cell's resident L0 tiles (key j * 8 + i) and its origin from the home cell,
    *  for the Developer minimap overlay. */
+  private overlayState: { readonly at: number; readonly state: ReturnType<GridSession['tileOverlayState']> } | null = null;
+  /** T5's Developer overlay state, rebuilt at most every 250 ms (T10: rebuilt for every minimap paint it sorted every ring
+   *  key, 12-13 ms of a Simulator spawn frame); residency moves slower than that and the overlay is a readout. */
   tileOverlayState(): { readonly origin: { readonly x: number; readonly z: number }; readonly render: ReadonlySet<number>; readonly bytes: ReadonlyMap<number, number> } {
+    const now = diagnosticNow(), held = this.overlayState;
+    if (held !== null && now - held.at < 250) return held.state;
+    const state = this.readTileOverlayState(); this.overlayState = { at: now, state }; return state;
+  }
+  private readTileOverlayState(): ReturnType<GridSession['tileOverlayState']> {
     const entered = (this.live === null ? null : this.live.live.current()) ?? this.home.instance, cell = this.assembly.cell(entered), prefix = `${entered}:l0/`;
     const render = new Set(this.rings.resident().filter(key => key.startsWith(prefix)).map(key => {
       const [x, z] = key.slice(prefix.length).split('/').map(Number); return (z ?? 0) * 8 + (x ?? 0);
