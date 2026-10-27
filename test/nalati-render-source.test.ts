@@ -10,11 +10,12 @@ const originalNative = hashImmutableBytes(native);
 // One genuine construction supplies all original files; timed assertions preserve complete pins.
 const made = await nalatiRenderTileSources(native);
 
-test('the explicit terrain source reproduces all 73 complete original publications', () => {
-  expect(originals).toHaveLength(73);
+// 72 original L0 tile files, the tile metadata and (T8, G748.6) the 16 L1 squares' pair files
+test('the explicit terrain source reproduces all 89 complete publications', () => {
+  expect(originals).toHaveLength(89);
   expect([...made.files.keys()].sort((a, b) => a.localeCompare(b)))
     .toEqual(originals.map(row => row.path).sort((a, b) => a.localeCompare(b)));
-  expect(made.tiles).toBe(64);
+  expect(made.tiles).toBe(80);
   expect(made.nativeGround).toBe(originalNative);
   expect(made.bytes).toBe(originals.reduce((sum, row) => sum + row.bytes, 0));
   for (const pin of originals) {
