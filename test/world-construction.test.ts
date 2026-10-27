@@ -209,14 +209,22 @@ test('construction parses its private assembly once while public admission remai
   const { library: _library, ...ports } = f.ports;
   const data = sceneConstruction();
   ports.scenes.publish('first.root', new Group()); ports.scenes.publish('second.root', new Group());
-  const parse = vi.spyOn(WorldAssemblySchema, '~run');
+  const parse = vi.spyOn(WorldAssemblySchema, '~run'), originalAdmit = WorldAssembly.admit.bind(WorldAssembly);
+  let privateInput: unknown;
+  const cursor = vi.spyOn(WorldAssembly, 'admit').mockImplementation((input, supplied) => { privateInput = input; return originalAdmit(input, supplied); });
   try {
     await WorldAssembly.construct(data, ports);
+    cursor.mockRestore();
     expect(parse).toHaveBeenCalledTimes(1);
     parse.mockClear();
     const source = { stages: [{ kind: 'group', id: 'public', label: 'Public', part: 'second.root' }] };
     WorldAssembly.admit(source, { scope: f.scope, scenes: ports.scenes, context: model.sharedModelContext(f.world.sky, f.world.game), registry: f.world.registry, slice: () => Promise.resolve() });
     expect(parse).toHaveBeenCalledTimes(1);
     expect(() => WorldAssembly.admit({ ...source, unexpected: true }, { scope: f.scope, context: model.sharedModelContext(f.world.sky, f.world.game), registry: f.world.registry, slice: () => Promise.resolve() })).toThrow();
-  } finally { parse.mockRestore(); f.finish(); }
+    // The exact object that lent the cursor must become ordinary untrusted
+    // input as soon as cursor creation returns, even while the owner lives.
+    if (typeof privateInput !== 'object' || privateInput === null) throw new Error('Missing private construction input');
+    Reflect.set(privateInput, 'unexpected', true);
+    expect(() => originalAdmit(privateInput, { scope: f.scope, context: model.sharedModelContext(f.world.sky, f.world.game), registry: f.world.registry, slice: () => Promise.resolve() })).toThrow();
+  } finally { cursor.mockRestore(); parse.mockRestore(); f.finish(); }
 });
