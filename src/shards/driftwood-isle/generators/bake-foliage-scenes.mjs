@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { MeshStandardMaterial } from 'three';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
+import { compactPhoneGlb } from '@wildshard/sdk/bake/compactGlb';
 import { poseOf, placeCollider } from '@wildshard/engine/models/colliders';
 import { decodePalmWorld, decodeHibiscusWorld, decodeReefWorld } from './foliageGeometry.ts';
 import { DRIFT_SPECIMENS } from './driftLogs.ts';
@@ -56,7 +57,9 @@ try {
       // L18.3c: exact positions, compact normals and colours (compactChannels.ts)
       // L18.3e (G769): the phone's batch with fewer triangles (phoneDecimate.ts, within PHONE_ERROR metres); desktop exact
       const drawn = tier === 'phone' ? decimateFlatBatch(batch.geometry, PHONE_ERROR[kind]) : batch.geometry.clone();
-      writer.put(fileURLToPath(new URL(output, project)), staticGlb([{ geometry: compactChannels(drawn), material, customAttributes: { _SWAY: 'aSway' }, compactIndex: true, nativeAttributes: true, quantizedChannels: true }]));
+      const glb = staticGlb([{ geometry: compactChannels(drawn), material, customAttributes: { _SWAY: 'aSway' }, compactIndex: true, nativeAttributes: true, quantizedChannels: true }]);
+      // iPhone downloads I3: the phone batches ship with 16-bit grid positions when smaller (compactPhoneGlb); desktop exact
+      writer.put(fileURLToPath(new URL(output, project)), tier === 'phone' ? await compactPhoneGlb(glb) : glb);
       blobs.push({ name: file, kind: 'glb', source: output, options: { meshopt: true } });
       const model = modelRows.get(kind) ?? { id: kind, file: {}, attributes: {} }; model.file[tier] = file; modelRows.set(kind, model);
       if (kind !== 'reef') {

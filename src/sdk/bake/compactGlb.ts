@@ -72,6 +72,17 @@ export async function compactPhoneGlb(input: Uint8Array): Promise<Uint8Array> {
     }
   }
   node.setTranslation(centre).setScale([half, half, half]);
+  // a native-attribute file (its intake restores each channel's declared storage) declares the new storage too
+  const extras = node.getExtras(), native: unknown = extras['nativeAttributes'];
+  if (typeof native === 'object' && native !== null) {
+    const stored: Readonly<Record<string, readonly [string, boolean]>> = { POSITION: ['Int16Array', true], NORMAL: ['Int8Array', true], COLOR_0: ['Uint8Array', true] };
+    const rows = Object.fromEntries(Object.entries(native).map(([name, row]: [string, unknown]) => {
+      if (typeof row !== 'object' || row === null || !('semantic' in row) || typeof row.semantic !== 'string') return [name, row];
+      const accessor = primitives[0]?.getAttribute(row.semantic), next = stored[row.semantic];
+      return [name, accessor !== null && accessor !== undefined && done.has(accessor) && next !== undefined ? { ...row, storage: next[0], normalized: next[1] } : row];
+    }));
+    node.setExtras({ ...extras, nativeAttributes: rows });
+  }
   if (!used.has('KHR_mesh_quantization')) doc.createExtension(KHRMeshQuantization).setRequired(true);
   // the quantized file with and without meshopt: a triangle soup often packs better under brotli alone
   const plain = await io.writeBinary(doc), packed = compressGlb(plain);

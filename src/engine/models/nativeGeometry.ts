@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, Float16BufferAttribute, type Mesh } from 'three';
+import { BufferAttribute, BufferGeometry, Float16BufferAttribute, InterleavedBufferAttribute, type Mesh, type TypedArray } from 'three';
 import * as v from 'valibot';
 
 /** Portable accessor metadata for one original typed application channel. */
@@ -6,6 +6,15 @@ export const NativeAttributeSchema: v.GenericSchema<BoundedNativeAttributeInput,
 /** Original application channel names mapped to their exact stored accessors. */
 export const NativeAttributesSchema: v.GenericSchema<BoundedNativeAttributesInput, BoundedNativeAttributes> = v.record(v.string(), NativeAttributeSchema);
 const semantics: Readonly<Record<string, string>> = { POSITION: 'position', NORMAL: 'normal', COLOR_0: 'color', TEXCOORD_0: 'uv', TANGENT: 'tangent' };
+
+/** iPhone downloads I3: a padded channel (a 16-bit grid position has an 8-byte stride) reads back interleaved; its stored
+ *  values are copied out unchanged into a plain attribute of the same storage. */
+function plain(attribute: unknown): unknown {
+  if (!(attribute instanceof InterleavedBufferAttribute)) return attribute;
+  const data = attribute.data, source: TypedArray = data.array, out = new (source.constructor as new (length: number) => TypedArray)(attribute.count * attribute.itemSize);
+  for (let i = 0; i < attribute.count; i++) for (let c = 0; c < attribute.itemSize; c++) out[i * attribute.itemSize + c] = source[i * data.stride + attribute.offset + c] ?? 0;
+  return new BufferAttribute(out, attribute.itemSize, attribute.normalized);
+}
 
 /** Restore original typed GLB channels, including half-float bits and vec4 shader normals.
  * Borrowed input is copied. An exclusively owned decoded mesh may transfer its
@@ -15,7 +24,7 @@ export function nativeWholeGeometry(node: Mesh, ownership: 'borrow' | 'take' = '
   if (!(input instanceof BufferGeometry)) throw new Error('Whole shape needs geometry');
   const result = new BufferGeometry();
   for (const [name, row] of Object.entries(v.parse(NativeAttributesSchema, metadata))) {
-    const channel = semantics[row.semantic] ?? row.semantic.toLowerCase(), attribute: unknown = input.getAttribute(channel);
+    const channel = semantics[row.semantic] ?? row.semantic.toLowerCase(), attribute: unknown = plain(input.getAttribute(channel));
     if (!(attribute instanceof BufferAttribute) || attribute.itemSize !== row.itemSize || attribute.normalized !== row.normalized) throw new Error(`Whole shape missing typed channel ${channel}`);
     if (row.storage === 'Float16Array') {
       if (!(attribute.array instanceof Uint16Array)) throw new Error('Whole half-float channel needs uint16 bits');

@@ -4,12 +4,13 @@ import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { staticGlb } from './glb';
 import { brotliBytes, compactPhoneGlb } from './compactGlb';
 
-/** A phone-tier model big enough for the grid to pay: a 20 m sphere off the origin with per-vertex colours. */
-function sphereGlb(): Uint8Array {
+/** A phone-tier model big enough for the grid to pay: a 20 m sphere off the origin with per-vertex colours (`native`:
+ *  written with its exact channel storage declared, as the foliage batches are). */
+function sphereGlb(native = false): Uint8Array {
   const geometry = new SphereGeometry(10, 96, 64).translate(30, 4, -12), colours = new Float32Array(geometry.getAttribute('position').count * 3);
   for (let i = 0; i < colours.length; i++) colours[i] = (i % 7) / 7;
   geometry.setAttribute('color', new BufferAttribute(colours, 3));
-  return staticGlb([{ geometry, material: new MeshStandardMaterial() }]);
+  return staticGlb([{ geometry, material: new MeshStandardMaterial(), ...(native ? { nativeAttributes: true } : {}) }]);
 }
 
 it('quantizes and meshopt-compresses a phone model only when its brotli bytes shrink', async () => {
@@ -23,8 +24,8 @@ it('quantizes and meshopt-compresses a phone model only when its brotli bytes sh
   expect(await compactPhoneGlb(pair)).toBe(pair);
 });
 
-it('the owned-geometry intake reads a compacted model back in its own space', async () => {
-  const input = sphereGlb(), original = createOwnedGeometry('/original.glb'), compact = createOwnedGeometry('/compact.glb');
+it.each([false, true])('the owned-geometry intake reads a compacted model back in its own space (native=%s)', async native => {
+  const input = sphereGlb(native), original = createOwnedGeometry('/original.glb'), compact = createOwnedGeometry('/compact.glb');
   await original.load(input); await compact.load(await compactPhoneGlb(input));
   const a = original.take(), b = compact.take();
   try {

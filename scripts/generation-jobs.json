@@ -3653,19 +3653,13 @@
         "src/shards/driftwood-isle/assets/b215817e315b21685f4860a94a6e706466ffaf53ac9edc4d1c29fec3aa6f2392",
         "src/game",
         "src/shards/driftwood-isle/generators/driftLogs.ts",
-        "src/format/colourFunction.ts",
-        "src/format/json.ts",
-        "src/format/materialFamilies.ts",
-        "src/format/materialGraph.ts",
-        "src/format/materials.ts",
-        "src/format/paintedLook.ts",
-        "src/format/runtimeBinds.ts",
         "public/assets/models/driftwood-blender/voxel-ao.bin",
         "public/assets/models/driftwood-hero/faces/wendell-head.glb",
         "scripts/generated-source.mjs",
         "scripts/json-output-guard.mjs",
         "scripts/no-binary-json.mjs",
-        "src/shards/driftwood-isle"
+        "src/shards/driftwood-isle",
+        "src/format"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/foliageScenes.generated.json",
