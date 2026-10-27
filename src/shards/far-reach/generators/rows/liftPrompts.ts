@@ -1,6 +1,6 @@
 import { ClientChannels } from '@wildshard/sdk/clientChannels';
 import entries from '../../data/islets.generated.json' with { type: 'json' };
-import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from '../layout';
 import { ISLET, ISLET_EDGES } from './isletDesign';
 import STRINGS from '../../data/strings.json' with { type: 'json' };
 

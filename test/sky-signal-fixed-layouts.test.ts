@@ -10,16 +10,16 @@ import skyMap from '../src/shards/far-reach/data/mapPalette.generated.json' with
 import { SIGNAL_DUNES_MAP as signalMap } from '../src/shards/sunscar-dunes/generators/minimap';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { fixedLayoutFiles as skyFiles } from '../src/shards/far-reach/generators/fixedLayouts';
-import sky from '../src/shards/far-reach/data/layout.generated.json' with { type: 'json' };
+import * as skySource from '../src/shards/far-reach/generators/layout';
 import * as signalSource from '../src/shards/sunscar-dunes/generators/layout';
-import crown from '../src/shards/far-reach/data/crownLayout.generated.json' with { type: 'json' };
+import * as crownSource from '../src/shards/far-reach/generators/crownLayout';
 import { readProjectAssets } from '../src/sdk/project';
 
 // The old transport sorts top-level export names; Vite namespaces retain
 // declaration order, so keep the original wire ordering in these byte oracles.
 const ordered = (rows: Readonly<Record<string, unknown>>) => Object.fromEntries(
   Object.entries(rows).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
-const signal = ordered(signalSource);
+const signal = ordered(signalSource), sky = ordered(skySource), crown = ordered(crownSource);
 
 // Captured from 68807c271 before moving the coordinate recipes: every derived
 // bridge endpoint, pad, trail, island, map mark and crown stone is included.

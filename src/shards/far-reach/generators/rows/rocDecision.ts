@@ -1,5 +1,5 @@
-import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
-import CROWN_LAYOUT from '../../data/crownLayout.generated.json' with { type: 'json' };
+import * as LAYOUT from '../layout';
+import * as CROWN_LAYOUT from '../crownLayout';
 import { STORM } from './storm';
 
 const tallest = CROWN_LAYOUT.CROWN_STONES.reduce((best, stone) => stone.h > best.h ? stone : best);

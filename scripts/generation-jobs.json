@@ -2700,7 +2700,8 @@
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/restScene.ts",
         "src/shards/far-reach/generators/palette.ts",
-        "src/format/inputDeclarations.ts"
+        "src/format/inputDeclarations.ts",
+        "src/shards/far-reach/generators/rows/layoutTypes.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/rest-winch.glb"
@@ -2829,7 +2830,8 @@
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/restScene.ts",
         "src/shards/far-reach/generators/palette.ts",
-        "src/format/inputDeclarations.ts"
+        "src/format/inputDeclarations.ts",
+        "src/shards/far-reach/generators/rows/layoutTypes.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/rest-hover-0.glb"
@@ -2958,7 +2960,8 @@
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/restScene.ts",
         "src/shards/far-reach/generators/palette.ts",
-        "src/format/inputDeclarations.ts"
+        "src/format/inputDeclarations.ts",
+        "src/shards/far-reach/generators/rows/layoutTypes.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/rest-hover-1.glb"
@@ -3087,7 +3090,8 @@
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/restScene.ts",
         "src/shards/far-reach/generators/palette.ts",
-        "src/format/inputDeclarations.ts"
+        "src/format/inputDeclarations.ts",
+        "src/shards/far-reach/generators/rows/layoutTypes.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/rest-hover-2.glb"
@@ -3216,7 +3220,8 @@
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/restScene.ts",
         "src/shards/far-reach/generators/palette.ts",
-        "src/format/inputDeclarations.ts"
+        "src/format/inputDeclarations.ts",
+        "src/shards/far-reach/generators/rows/layoutTypes.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/rest-storm.glb"
@@ -5081,7 +5086,8 @@
         "src/shards/far-reach/generators/worldTextures.ts",
         "src/shards/far-reach/ktx2.generated.ts",
         "src/format/json.ts",
-        "src/format/materialGraph.ts"
+        "src/format/materialGraph.ts",
+        "src/shards/far-reach/generators/rows/layoutTypes.ts"
       ],
       "outputs": [
         "src/shards/far-reach/boot/assets.generated.json",
@@ -5130,7 +5136,8 @@
         "src/shards/far-reach/data/layout.generated.json",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/risingIslets.ts",
-        "src/shards/far-reach/generators/palette.ts"
+        "src/shards/far-reach/generators/palette.ts",
+        "src/shards/far-reach/generators/rows/layoutTypes.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/islets.generated.json"
@@ -5171,7 +5178,8 @@
         "src/shards/far-reach/data/layout.generated.json",
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/risingIslets.ts",
-        "src/shards/far-reach/generators/palette.ts"
+        "src/shards/far-reach/generators/palette.ts",
+        "src/shards/far-reach/generators/rows/layoutTypes.ts"
       ],
       "outputs": [
         "src/shards/far-reach/generators/rows/islets.generated.ts"
@@ -5875,7 +5883,8 @@
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/rows/trees.ts",
         "src/shards/far-reach/generators/crownInstances.ts",
-        "src/shards/far-reach/generators/palette.ts"
+        "src/shards/far-reach/generators/palette.ts",
+        "src/shards/far-reach/generators/rows/layoutTypes.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/crownInstances.generated.json"
@@ -6086,7 +6095,8 @@
         "src/shards/far-reach/generators/isletRigRows.ts",
         "src/shards/far-reach/generators/layoutMath.ts",
         "src/shards/far-reach/generators/risingIslets.ts",
-        "src/shards/far-reach/generators/rows/isletDesign.ts"
+        "src/shards/far-reach/generators/rows/isletDesign.ts",
+        "src/shards/far-reach/generators/rows/layoutTypes.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/isletScenes.generated.json"
@@ -6253,7 +6263,8 @@
         "src/shards/far-reach/generators/isletRigRows.ts",
         "src/shards/far-reach/generators/layoutMath.ts",
         "src/shards/far-reach/generators/risingIslets.ts",
-        "src/shards/far-reach/generators/rows/isletDesign.ts"
+        "src/shards/far-reach/generators/rows/isletDesign.ts",
+        "src/shards/far-reach/generators/rows/layoutTypes.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/rest-islets.glb"
@@ -6452,7 +6463,8 @@
         "src/shards/far-reach/data/strings.json",
         "src/shards/far-reach/generators/restScene.ts",
         "src/shards/far-reach/generators/palette.ts",
-        "src/format/inputDeclarations.ts"
+        "src/format/inputDeclarations.ts",
+        "src/shards/far-reach/generators/rows/layoutTypes.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/rest-books.glb"
@@ -7683,7 +7695,8 @@
         "src/shards/far-reach/generators/questPage.ts",
         "src/shards/far-reach/generators/questPrompts.ts",
         "src/shards/far-reach/generators/questRows.ts",
-        "src/shards/far-reach/generators/quests.ts"
+        "src/shards/far-reach/generators/quests.ts",
+        "src/shards/far-reach/generators/rows/layoutTypes.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/questPage.generated.json",
@@ -7814,7 +7827,10 @@
         "src/shards/far-reach/generators/rows/rayWakeLook.ts",
         "src/shards/far-reach/data/budgetCeilings.json",
         "src/shards/far-reach/data/layout.generated.json",
-        "src/engine/fx/effectField.ts"
+        "src/engine/fx/effectField.ts",
+        "src/shards/far-reach/generators/layout.ts",
+        "src/shards/far-reach/data/strings.json",
+        "src/shards/far-reach/generators/rows/layoutTypes.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/budgets.generated.json",

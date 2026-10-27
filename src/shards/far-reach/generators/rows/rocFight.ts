@@ -1,7 +1,7 @@
 import { parseBossOwnerRow, type BossOwnerRow } from '@wildshard/format/bossProfiles';
 import stages from '../../data/bossStages.json' with { type: 'json' };
 import FLAGS from '../../data/flags.json' with { type: 'json' };
-import LAYOUT from '../../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from '../layout';
 import STRINGS from '../../data/strings.json' with { type: 'json' };
 
 /** The Storm Roc's encounter id (its boss row, its ledger fact's actor, its saved body). */
