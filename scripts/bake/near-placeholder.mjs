@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { shardManifestPath } from '../authored-manifest.mjs';
+import { decisionLegacyLines } from '../decision-legacy-lines.mjs';
 // G342: bake one shard's near placeholder (public/assets/baked/<slug>/near.glb + near.json). Its drawn static world is
 // built in Node from the shard's own authored world through the bake world host, as the physics bakes build it (no
 // browser, no game page), harvested as prototypes with their placed copies, reduced by the SDK producer
@@ -35,7 +36,8 @@ const at = path => import(pathToFileURL(resolve(root, path)).href);
 // (its generation input roots as the author CLI declares them, scripts/wildshard.mjs: a generator listing its own files needs them)
 const folder = resolve(root, 'src/shards', slug), manifestSource = { folder: slug, ...(existsSync(resolve(folder, 'manifest.json')) ? { file: resolve(folder, 'manifest.json') } : {}),
   imageRoots: [{ prefix: `/src/shards/${slug}/`, directory: folder }, { prefix: '/assets/', directory: resolve(root, 'public/assets') }] };
-const project = existsSync(resolve(folder, 'shard.config.ts')) ? await (await at('src/sdk/project.ts')).readProjectAssets(folder, undefined, manifestSource) : null;
+const legacy = decisionLegacyLines(root, slug);
+const project = existsSync(resolve(folder, 'shard.config.ts')) ? await (await at('src/sdk/project.ts')).readProjectAssets(folder, undefined, manifestSource, legacy === undefined ? {} : { decisionLegacyLines: legacy }) : null;
 const environment = installBakeEnvironment(root);
 // G342: a colour map's mean colour, decoded from its encoded bytes (PNG / JPEG / WebP) by Pillow, so a textured prop keeps
 // its own paint (Pine's cabins, Driftwood's huts) instead of a guessed wood tint; the bitmap is that one mean texel

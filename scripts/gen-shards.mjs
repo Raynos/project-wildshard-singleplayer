@@ -8,7 +8,6 @@ import { productManifestPath, authoredManifestSource } from './authored-manifest
 import { outputManifest, shardProducts } from './shard-outputs.mjs';
 import { genShardWords } from './gen-shard-words.mjs';
 import { legacyInventory, legacyPrimary } from './legacy-shards.mjs';
-import { genDecisionPolicies } from './gen-decision-policy.mjs';
 import { readProgramDiscovery, usesProgramDiscovery } from './program-discovery.mjs';
 
 /** Static runtime imports only: lazy plugin/look thunks and erased types stay out of the startup closure. */
@@ -218,7 +217,6 @@ export function shardTables(root) {
 
 export function genShards(root = resolve(import.meta.dirname, '..'), check = false, initializeMissing = false, shard = '') {
   genShardWords(root, check, shard);
-  genDecisionPolicies(root, check, initializeMissing);
   for (const product of shardProducts(root, shardFolders(root))) {
     if (!existsSync(resolve(root, `src/shards/${product.folder}/manifest.json`))) continue;
     const path = resolve(root, productManifestPath(root, product)), source = discoverySource(root, product);

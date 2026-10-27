@@ -9,7 +9,6 @@ import { genStarterArmClips } from './gen-starter-arm-clips.mjs';
 import { genStarterWeapons } from './gen-starter-weapons.mjs';
 import { genStarterBag } from './gen-starter-bag.mjs';
 import { genStarterEffects } from './gen-starter-effects.mjs';
-import { genDecisionPolicies } from './gen-decision-policy.mjs';
 import { genShardWords } from './gen-shard-words.mjs';
 import { quietCli } from './quiet-cli.mjs';
 import { beginPushInputs } from './push-post-inputs.mjs';
@@ -43,9 +42,6 @@ await step('arm-clips', () => genStarterArmClips());
 await step('starter-weapons', () => genStarterWeapons());
 await step('starter-bag', () => genStarterBag());
 await step('starter-effects', () => genStarterEffects());
-// Policies are real producer inputs under shard roots. Creating them after
-// the phase invalidates its negative inventories in the next CI job.
-await step('decision-policies', () => genDecisionPolicies(`${import.meta.dirname}/..`));
 await import('./bake-loader.mjs');
 // DS1.1: structural wire schemas are small deterministic authoring outputs, never committed.
 const { writeFormatJsonSchemas } = await import('./gen-format-schema.mjs');
