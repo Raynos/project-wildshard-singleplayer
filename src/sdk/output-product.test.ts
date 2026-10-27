@@ -144,3 +144,21 @@ it('separates implicit entry alternatives from demanded pack members without tie
  expect(restored.shard).toEqual(shard);
  for(const [hash,wire] of assets)expect(restored.assets.get(hash)).toEqual(wire);
 });
+
+it.each(['cold','critical','dependency','played'] as const)('packs %s whole-library readers in the same phase as admission',mode=>{
+ const shard=source(),directory=output(),bodies=[new Uint8Array(70000).fill(51),new Uint8Array(80000).fill(52)];
+ const assets=new Map(bodies.map(body=>[hashImmutableBytes(body),body])),hashes=[...assets.keys()];
+ const cold=hashes[0],warm=hashes[1];if(cold===undefined||warm===undefined)throw new Error('Missing whole library fixture');
+ shard.files=[...assets].map(([hash,body])=>({hash,kind:'binary' as const,compressed:body.length,decoded:body.length,gpu:0,triangles:0,draws:0,dependencies:mode==='dependency'&&hash===warm?[cold]:[],critical:false}));
+ shard.library=hashes;if(mode==='critical')shard.critical=[cold];shard.budgets.library={resident:150000,compressed:150000};
+ const namedFiles=shard.files.map((file,i)=>({...file,kind:'bin' as const,path:`blobs/bin/${file.hash}.bin`,name:`whole-${i}.bin`}));
+ shard.files.sort((a,b)=>a.hash.localeCompare(b.hash));
+ const platform=emitPlatformSections(new Map([['world/scenes',{version:1,libraries:[{id:'cold',kind:'whole',load:'explorer',models:[{id:'shape',part:'shape',files:['whole-0.bin']}]},
+  ...(mode==='played'?[{id:'played',kind:'whole',models:[{id:'same',part:'same',files:['whole-0.bin']}]}]:[])],materials:[],steps:[]}]]));
+ const index=writeOutputProduct(shard,assets,directory,{namedFiles,platform});
+ const packs=(index.packs??[]).filter(pack=>pack.entries.some(entry=>assets.has(entry.hash)));
+ expect(packs).toHaveLength(mode==='cold'?2:1);
+ if(mode==='cold')for(const pack of packs)expect(pack.entries).toHaveLength(1);
+ expect(packs.flatMap(pack=>pack.entries.map(entry=>entry.hash)).sort()).toEqual([...hashes].sort());
+ expect(validateOutputProduct(directory).shard).toEqual(shard);
+});

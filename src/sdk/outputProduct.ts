@@ -1,5 +1,5 @@
 import { ktx2DeviceCosts } from '@wildshard/format/ktx2Cost';
-import { controlFileHashes } from '@wildshard/format/admissionControl';
+import { controlFileHashes, playLibrarySteps } from '@wildshard/format/admissionControl';
 import { entryFileSteps } from '@wildshard/format/tierSelection';
 import { HEADLESS_CONTEXT_SECTIONS } from './headlessSections';
 /** Author-only format-2 emission and on-disk inventory validation. */
@@ -154,7 +154,7 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
   // Descriptor, required-body and deferred-body reads are distinct phases. A required member must never bring
   // late/spatial bytes along in its pack; every member keeps its unchanged path/hash, and all pack caps stay fixed.
   // Explicit device variants also stay apart: selecting a phone member cannot fetch a packed desktop alternative.
-  const required = controlFileHashes(source), small = files.filter(file=>file.compressed<PACK_MEMBER_BYTES).sort((a,b)=>a.hash.localeCompare(b.hash));
+  const small = files.filter(file=>file.compressed<PACK_MEMBER_BYTES).sort((a,b)=>a.hash.localeCompare(b.hash));
   // A typed alternative need not have an explicit file.tier. Use the same entry
   // projection as admission so an inactive variant cannot poison a whole pack.
   const selection = { index: { files }, sections: new Map(sections.map(row => {
@@ -165,6 +165,10 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
     const steps = entryFileSteps(source, tier, selection);
     for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
   };
+  const play = playLibrarySteps(source, selection);
+  let projected = play.next(); while (projected.done !== true) projected = play.next();
+  const cold = projected.value;
+  const required = controlFileHashes({ ...source, library: source.library.filter(hash => !cold.has(hash)) });
   const phone = excluded('phone'), desktop = excluded('desktop');
   const membership = (hash: string): number => (phone.has(hash) ? 0 : 1) + (desktop.has(hash) ? 0 : 2);
   const groups=[[...[...sections].sort((a,b)=>a.name.localeCompare(b.name)),...[...schemas].sort((a,b)=>a.path.localeCompare(b.path))],
