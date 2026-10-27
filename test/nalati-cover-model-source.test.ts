@@ -4,12 +4,11 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep every sealed producer fixture beneath repository tmp.
 import { resolve } from 'node:path';
-import { expect, test, vi } from 'vitest';
+import { expect, test } from 'vitest';
 import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
-import { runGenerationJob } from '../scripts/generation-cache.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
-for (const entry of ['bake-cover','bake-poi-paint']) {
+for (const entry of ['bake-cover']) {
   test(`${entry} preserves its complete existing outputs without public painted models or repeated authored reads`, () => {
     const source = `
       import assert from 'node:assert/strict';
@@ -33,7 +32,7 @@ for (const entry of ['bake-cover','bake-poi-paint']) {
   });
 }
 
-for (const id of ['nalati-cover', 'nalati-poi-paint']) {
+for (const id of ['nalati-cover']) {
   test(`${id} honors its platform contract with authored inputs and unchanged output bytes`, async () => {
     const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === id);
     if (job === undefined) throw new Error('Missing retained cover or POI producer');
@@ -63,13 +62,8 @@ for (const id of ['nalati-cover', 'nalati-poi-paint']) {
   });
 }
 
-test('the retained Darwin POI job refuses a Linux host before staging or invoking its producer',async()=>{
-  const root=resolve('.'),job=discoverGeneration(root).jobs.find(row=>row.id==='nalati-poi-paint');
-  if(job===undefined)throw new Error('Missing retained POI producer');
-  expect(job.platform).toBe('darwin');
-  const cacheDir=mkdtempSync(resolve('tmp/nalati-poi-platform-')),generate=vi.fn(()=>Promise.resolve());
-  try{
-    await expect(runGenerationJob(root,{id:job.id,inputs:{[job.entry]:hashImmutableBytes(readFileSync(job.entry))},command:job.command,outputs:job.outputs,platform:job.platform},{cacheDir,platform:'linux',generate})).rejects.toThrow('Darwin-only generator: nalati-poi-paint');
-    expect(generate).not.toHaveBeenCalled();expect(readdirSync(cacheDir)).toEqual([]);
-  }finally{rmSync(cacheDir,{recursive:true,force:true});}
+test('the POI scheduler retires in favor of an explicit native source cache', () => {
+  const jobs = discoverGeneration(resolve('.')).jobs;
+  expect(jobs.some(job => job.id === 'nalati-poi-paint')).toBe(false);
+  expect(jobs.flatMap(job => job.outputs).some(file => /poi-shape-|\/poiPaint\.json$/u.test(file))).toBe(false);
 });
