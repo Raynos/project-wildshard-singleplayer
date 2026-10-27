@@ -1,5 +1,6 @@
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { driftwoodIslandProtoOutput } from './islandProtoProgram';
+import { driftwoodPageFileOutput } from './productPageFiles';
 import { driftwoodCatalogueFeatures } from './catalogueEconomy';
 import { WORLD_STAGES } from './worldAssembly';
 import { driftwoodWorldUpdates } from './worldUpdates';
@@ -170,8 +171,9 @@ export const output: { blobs: ({ name: string; kind: string; source: string; } |
 export const sections: { 'world/movers': { movers: ({ id: string; execution: string; entity: number; kind: string; at: { x: number; y: number; z: number; }; euler: { x: number; y: number; z: number; }; enabled: boolean; boxes: { x: number; y: number; z: number; hx: number; hy: number; hz: number; rot: { x: number; y: number; z: number; w: number; }; }[]; module: string; input: number[]; trigger: { kind: string; }; driver: { kind: string; damping: number; waves: number[][]; }; chain?: never; } | { id: string; execution: string; entity: number; kind: string; at: { x: number; y: number; z: number; }; euler: { x: number; y: number; z: number; }; enabled: boolean; boxes: never[]; chain: { segments: { x: number; y: number; z: number; rot: { x: number; y: number; z: number; w: number; }; hz: number; }[]; hx: number; hy: number; mass: number; }; module: string; input: number[]; trigger: { kind: string; }; driver: { kind: string; damping?: never; waves?: never; }; })[]; }; 'state/modes': { modes: typeof DRIFTWOOD_MODES; }; } = { 'world/movers': { movers: MOVERS }, 'state/modes': { modes: DRIFTWOOD_MODES } };
 
 
-/** Prototype geometry belongs to the existing owned-byte cache, never a generated asset under src. */
+/** Prototype geometry and the cove's and sea's page files (I8) belong to the owned-byte cache, never a generated asset
+ *  under src. */
 export async function prepareOutput(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<typeof output> {
-  const protos = await driftwoodIslandProtoOutput(ctx);
-  return { ...output, namedFiles: [...output.namedFiles, ...protos.files], assets: new Map([...output.assets, ...protos.assets]) };
+  const protos = await driftwoodIslandProtoOutput(ctx), pages = await driftwoodPageFileOutput(ctx);
+  return { ...output, namedFiles: [...output.namedFiles, ...protos.files, ...pages.files], assets: new Map([...output.assets, ...protos.assets, ...pages.assets]) };
 }
