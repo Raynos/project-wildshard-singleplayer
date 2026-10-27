@@ -67,7 +67,7 @@ export interface ProjectGenerationContext {
   normalizeWorldGlb?: typeof normalizeWorldGlb;
   /** Trusted original UASTC build recipe; older adapters may omit this capability. */
   basisEncoder?: typeof createBasisEncoder;
-  /** Fresh bounded names below declared URL roots; older adapters may omit this build-only capability. */
+  /** Fresh bounded names below project-relative directories or declared URL roots; older adapters may omit it. */
   inputFiles?: (prefixes: readonly string[]) => readonly string[];
   cached: (step: ProjectGenerationStep, generate: (inputs: ReadonlyMap<string, Uint8Array>) => ReadonlyMap<string, Uint8Array> | Promise<ReadonlyMap<string, Uint8Array>>) => Promise<ReadonlyMap<string, Uint8Array>>;
   asset: (bytes: Uint8Array) => string;
@@ -105,7 +105,7 @@ export function createProjectGeneration(project: string, programHash: string, as
   return {
     compileScript, compileScriptV2, compileDecisionScripts: compileDeclaredDecisionScripts, compileDecisionRows: compileDecisionScripts, compileReturnProjection: compileReturnProjectionV2, proveStaticPortalEntries, readImagePixels, writeImagePixels, normalizeWorldGlb,
     basisEncoder: createBasisEncoder,
-    inputFiles: prefixes => projectInputFiles(roots, prefixes),
+    inputFiles: prefixes => projectInputFiles(roots, prefixes, root),
     asset(bytes) {
       if (!(bytes instanceof Uint8Array) || bytes.byteLength > 256_000_000) throw new Error('Invalid generation asset bytes');
       const copy = new Uint8Array(bytes), key = hashImmutableBytes(copy); assets.set(key, copy); return key;

@@ -20,6 +20,24 @@ function fixture() {
 }
 afterEach(() => { for (const path of owned.splice(0)) rmSync(path, { recursive: true, force: true }); });
 
+test('project-relative inventories stay fresh, feed cached inputs and refuse escaped or linked directories', async () => {
+  const { root, cache, assets } = fixture(), outside = fixture();
+  mkdirSync(resolve(root, 'behaviour'));
+  writeFileSync(resolve(root, 'behaviour', 'first.as'), 'first');
+  const context = createProjectGeneration(root, program, assets, cache), inventory = context.inputFiles;
+  if (inventory === undefined) throw new Error('Missing generation inventory');
+  expect(inventory(['behaviour/'])).toEqual(['behaviour/first.as']);
+  writeFileSync(resolve(root, 'behaviour', 'second.as'), 'second');
+  const names = inventory(['behaviour/']);
+  expect(names).toEqual(['behaviour/first.as', 'behaviour/second.as']);
+  const files = await context.cached({ id: 'source-inventory', inputs: names }, inputs => new Map([['first.txt', inputs.get('behaviour/first.as') ?? new Uint8Array()]]));
+  expect(new TextDecoder().decode(files.get('first.txt'))).toBe('first');
+  for (const prefix of ['../', './behaviour/', 'behaviour/../', '/undeclared/']) expect(() => inventory([prefix])).toThrow();
+  expect(() => inventory(['behaviour/', 'behaviour/'])).toThrow('Overlapping');
+  symlinkSync(outside.root, resolve(root, 'linked'));
+  expect(() => inventory(['linked/'])).toThrow('Linked');
+});
+
 test('cold/hit/concurrent steps preserve bytes and isolate callers, inputs and asset ownership', async () => {
   const { root, cache, assets } = fixture(); writeFileSync(resolve(root, 'input.bin'), new Uint8Array([1, 2, 3]));
   const ctx = createProjectGeneration(root, program, assets, cache); let calls = 0;

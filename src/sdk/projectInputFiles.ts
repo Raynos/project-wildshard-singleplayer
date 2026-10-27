@@ -4,17 +4,17 @@ import { lstatSync, readdirSync, realpathSync } from 'node:fs';
 import { resolve, sep } from 'node:path';
 
 /** Fresh presence facts only: no file payload or native service enters the author module. */
-export function projectInputFiles(roots: readonly { readonly prefix: string; readonly directory: string }[], prefixes: readonly string[]): readonly string[] {
+export function projectInputFiles(roots: readonly { readonly prefix: string; readonly directory: string }[], prefixes: readonly string[], project?: string): readonly string[] {
   if (prefixes.length === 0 || prefixes.length > 8) throw new Error('Invalid generation inventory prefix count');
   const selected = [...prefixes].sort();
   for (const [index, prefix] of selected.entries()) {
-    if (!/^\/(?:[a-zA-Z0-9._-]+\/)+$/u.test(prefix) || prefix.split('/').some(part => part === '.' || part === '..')) throw new Error('Invalid generation inventory prefix');
+    if (!/^\/?(?:[a-zA-Z0-9._-]+\/)+$/u.test(prefix) || prefix.split('/').some(part => part === '.' || part === '..')) throw new Error('Invalid generation inventory prefix');
     const previous = selected[index - 1];
     if (previous !== undefined && prefix.startsWith(previous)) throw new Error('Overlapping generation inventory prefixes');
   }
   const files: string[] = []; let directories = 0;
   for (const prefix of selected) {
-    const matches = roots.filter(root => prefix.startsWith(root.prefix)), root = matches[0];
+    const matches = prefix.startsWith('/') ? roots.filter(root => prefix.startsWith(root.prefix)) : project === undefined ? [] : [{ prefix: '', directory: project }], root = matches[0];
     if (matches.length !== 1 || root === undefined) throw new Error('Generation inventory needs exactly one declared root');
     const relative = prefix.slice(root.prefix.length), directory = resolve(root.directory, relative);
     if (directory !== root.directory && !directory.startsWith(root.directory + sep)) throw new Error('Generation inventory escaped its declared root');

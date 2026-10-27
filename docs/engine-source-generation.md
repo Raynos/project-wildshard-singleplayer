@@ -48,8 +48,10 @@ bilinear query over that storage; separate calls share no mutable samples.
 Existing scalar count, finite-value, type, path and missing-block refusals stay
 in the defining intake. Native input blocks are read only during admission.
 
-`inputFiles(prefixes)` lists current file URL names beneath the context's
-explicit input roots without reading payloads. It accepts at most eight
+`inputFiles(prefixes)` lists current names beneath project-relative directories
+or explicit URL input roots without reading payloads. `inputFiles(['behaviour/'])`
+returns relative names usable directly in `cached.inputs`; absolute URL prefixes
+require caller-declared roots. It accepts at most eight
 nonoverlapping directory prefixes and returns at most 4,096 sorted names;
 traversal is bounded to 4,096 directories and depth 32. Symlinks, duplicate
 prefixes and escaped paths refuse. Directory reads enter the existing product

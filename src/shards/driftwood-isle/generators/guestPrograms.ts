@@ -6,7 +6,6 @@ import { generateDecisionBindings } from '@wildshard/sdk/decisionScriptBindings'
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 
-const PREFIX = '/src/shards/driftwood-isle/';
 const text = new TextEncoder(), decode = new TextDecoder('utf-8', { fatal: true });
 /** The return ABI's original registration order; numeric registries sort these names before assigning IDs. */
 export const DRIFTWOOD_RETURN_FIELDS = ['candidates', 'away', 'draw', 'due', 'fixed', 'maximum', 'minimum', 'night', 'nocturnal', 'now', 'playerX', 'playerZ', 'water', 'x', 'z',
@@ -19,14 +18,12 @@ const registry = (values: readonly string[]): ReadonlyMap<string, number> => new
 /** Compile the original three guest programs from explicit authored bytes; no copied metadata or module is read. */
 export async function driftwoodGuestBytes(inputs: ReadonlyMap<string, Uint8Array>): Promise<ReadonlyMap<string, Uint8Array>> {
   const read = (path: string): string => {
-    const bytes = inputs.get(`${PREFIX}${path}`);
+    const bytes = inputs.get(path);
     if (bytes === undefined || bytes.byteLength === 0) throw new Error(`Missing Driftwood guest input: ${path}`);
     return decode.decode(bytes);
   };
   const authored = new Map<string, string>();
-  for (const [url, bytes] of inputs) {
-    if (!url.startsWith(PREFIX)) throw new Error('Guest input is outside Driftwood');
-    const path = url.slice(PREFIX.length);
+  for (const [path, bytes] of inputs) {
     if (path.startsWith('behaviour/') && path.endsWith('.as')) authored.set(path, decode.decode(bytes));
     else if (path !== 'data/director.json') throw new Error(`Unexpected Driftwood guest input: ${path}`);
   }
@@ -59,7 +56,7 @@ export async function driftwoodGuestBytes(inputs: ReadonlyMap<string, Uint8Array
 /** Capture every authored AS source for the unchanged line budget, then retain only owned program files in the cache. */
 export function driftwoodGuestFiles(ctx: Pick<ProjectGenerationContext, 'cached' | 'inputFiles'>): Promise<ReadonlyMap<string, Uint8Array>> {
   if (ctx.inputFiles === undefined) throw new Error('Guest programs require their complete authored input inventory');
-  const inputs = [...ctx.inputFiles([`${PREFIX}behaviour/`]).filter(url => url.endsWith('.as')), `${PREFIX}data/director.json`];
+  const inputs = [...ctx.inputFiles(['behaviour/']).filter(path => path.endsWith('.as')), 'data/director.json'];
   return ctx.cached({ id: 'guest-programs', native: true, inputs }, driftwoodGuestBytes);
 }
 
