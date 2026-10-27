@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 // oxlint-disable-next-line import/no-nodejs-modules -- Execute repository source with explicit preparation ports, never a copied implementation.
 import { runInNewContext } from 'node:vm';
-import { DataTexture, Group, Scene, type Object3D } from 'three';
+import { DataTexture, Group, Scene, Vector3, type Object3D } from 'three';
 import { Scope } from '../app/scope';
 import { installScopeEnvironment, scopeEnvironment } from '../app/scopeEnvironment';
 import { boundEntryWarmup } from '../render/entryWarmupBound';
@@ -142,6 +142,40 @@ test('early programs use the rendered page scene and the installing region envir
     await Reflect.apply(method, game, [owner, composer, [root], root, () => !owner.disposed, false]);
     expect(calls[1]?.[11]).toBe(false);
   } finally { owner.dispose(); environment.dispose(); }
+});
+
+test('the boot entry leaves its roots\' road variants for play, then links them nearest-first after control (S1)', async () => {
+  const source = readFileSync(new URL('Game.ts', import.meta.url), 'utf8'), loader = "await import('../render/precompile')";
+  const slice = (name: string): string => {
+    const start = source.indexOf(name), end = source.indexOf('\n  private async ', start + 1);
+    if (start === -1 || end < start) throw new Error(`${name} missing`);
+    return source.slice(start, end);
+  };
+  const early = slice('  private async warmEnteredRoots('), later = early.slice(early.indexOf('  async warmDeferredEntryRoots('));
+  const calls: unknown[][] = [];
+  const preparation = { prepareSceneRoots: (...args: unknown[]): Promise<void> => { calls.push(args); return Promise.resolve(); },
+    waitForDrawnFrame: () => Promise.resolve(), LIVE_UPLOAD_BUDGET: { ms: 6, bytes: 1 } };
+  const harness = (body: string, name: string): unknown => runInNewContext(stripTypeScriptTypes(`class Harness { ${body.replaceAll(loader, 'preparation')} }\nHarness.prototype.${name}`),
+    { preparation, THREE: { Vector3 } });
+  const enterRoots = harness(early.slice(0, early.indexOf('  async warmDeferredEntryRoots(')), 'warmEnteredRoots'), warmDeferred = harness(later, 'warmDeferredEntryRoots');
+  if (typeof enterRoots !== 'function' || typeof warmDeferred !== 'function') throw new Error('Entry root methods are not callable');
+  const rootScene = new Scene(), home = new Group(), gone = new Group(), owner = new Scope('home-programs'), left = new Scope('left-programs');
+  const composer = { inputBuffer: null }, camera = { getWorldPosition: (at: Vector3): Vector3 => at.set(1, 2, 3) };
+  const game = { rootScene, scene: rootScene, renderer: {}, camera, frameCount: 0, _composer: composer, deferredEntryRoots: [] as unknown[] };
+  try {
+    await Reflect.apply(enterRoots, game, [owner, composer, [home], home, () => true]);
+    await Reflect.apply(enterRoots, game, [left, composer, [gone], gone, () => true]);
+    // at boot: resources only, no scene or road programs yet
+    expect(calls.map(call => [call[8], call[11]])).toEqual([[false, false], [false, false]]);
+    expect(game.deferredEntryRoots).toHaveLength(2);
+    left.dispose(); game.frameCount = 5;
+    await Reflect.apply(warmDeferred, game, [() => true]);
+    expect(calls).toHaveLength(3);
+    const linked = calls[2] ?? [];
+    expect(linked[4]).toEqual([home]); expect(linked[8]).toBe(false); expect(linked[11]).toBe(true);
+    expect(typeof linked[6]).toBe('function'); expect(linked[12]).toEqual(new Vector3(1, 2, 3));
+    expect(game.deferredEntryRoots).toHaveLength(0);
+  } finally { owner.dispose(); left.dispose(); }
 });
 
 test('page preparation uses final program inputs without drawing and fences a changed composer', async () => {

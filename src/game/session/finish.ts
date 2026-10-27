@@ -167,7 +167,10 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   const warmRest = async (): Promise<void> => {
     await afterExplorer();
     // what the boot left (shaders: drawnOnly) links nearest-first under the live slice budget
-    try { await precompileLevel(game, undefined, { sliceMs: 6, current: () => !levelScope.disposed, nearest: true }); }
+    try {
+      await precompileLevel(game, undefined, { sliceMs: 6, current: () => !levelScope.disposed, nearest: true });
+      await game.warmDeferredEntryRoots(() => !levelScope.disposed);
+    }
     catch (error: unknown) {
       if (!levelScope.disposed) console.warn('[shaders] the in-play warm-up stopped:', error);
       throw error;

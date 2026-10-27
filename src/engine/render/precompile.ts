@@ -421,10 +421,12 @@ export const LIVE_PRECOMPILE_SLICE_MS = 6;
  * visibility, uniforms, lighting and render targets stay unchanged; the resident owner fences every slice.
  * An optional live-draw barrier spaces batches; initial boot uses ordinary browser paint opportunities.
  * An optional upload budget batches the isolated image uploads per drawn frame (op-hitch32).
- * A parked group may borrow its installing scene's environment; owner-only equipment can omit exterior variants. */
+ * A parked group may borrow its installing scene's environment; owner-only equipment can omit exterior variants.
+ * `from` orders the exterior variants by distance from it to what draws them, nearest first. */
 export async function prepareSceneRoots(renderer: Renderer, camera: THREE.Camera, scene: THREE.Scene,
   target: THREE.WebGLRenderTarget | null, roots: readonly THREE.Object3D[], current: () => boolean, pause?: () => Promise<void>,
-  uploadBudget?: UploadBudget, scenePrograms = true, futureLighting?: THREE.Object3D, futureEnvironment?: THREE.Texture, exteriorPrograms = true): Promise<void> {
+  uploadBudget?: UploadBudget, scenePrograms = true, futureLighting?: THREE.Object3D, futureEnvironment?: THREE.Texture, exteriorPrograms = true,
+  from?: THREE.Vector3): Promise<void> {
   await prepareSceneResources(roots, camera, current);
   // `scenePrograms` false: the roots' resources and exterior variants only (the boot's Shaders step builds what its first
   // frame draws, and the rest is warmed in play)
@@ -437,8 +439,8 @@ export async function prepareSceneRoots(renderer: Renderer, camera: THREE.Camera
   // Keep the existing discovery barriers. Within discovery, only a spent measured budget waits for a completed draw;
   // cheap objects stay together. Exterior light collection never walks the excluded residents' material inventories.
   if (pause !== undefined) await pause();
-  if (exteriorPrograms) jobs.push(...(pause === undefined ? exteriorJobs(scene, target, false, roots)
-    : await pacedPreparation(exteriorJobSteps(scene, target, false, roots), current, pageScope, pause)));
+  if (exteriorPrograms) jobs.push(...(pause === undefined ? exteriorJobs(scene, target, false, roots, 6, undefined, [], from)
+    : await pacedPreparation(exteriorJobSteps(scene, target, false, roots, 6, undefined, [], from), current, pageScope, pause)));
   if (pause !== undefined) await pause();
   await runPrecompile(renderer, camera, jobs, materials, undefined, undefined, current, pause !== undefined, pause, uploadBudget, undefined,
     pause === undefined ? undefined : LIVE_PRECOMPILE_SLICE_MS);
