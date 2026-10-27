@@ -7,6 +7,13 @@ test('G554: the whole set is read nearest cell first, each product once', () => 
   expect(gridPrefetchOrder({ cells }, { x: 10, z: -5 })).toEqual(['home', 'plot', 'next', 'far']);
 });
 
+test('I9: the phone tier prefetches only the home cell and its ring', () => {
+  const cell = (slug: string, x: number, z: number) => ({ instance: `${slug}@${x},${z}`, slug, cell: [x, z] as const, origin: { x: x * 555, y: 0, z: z * 555 } });
+  const cells = [cell('far', 3, 0), cell('corner', 2, 2), cell('east', 2, 1), cell('home', 1, 1), cell('west', 0, 0)];
+  expect(gridPrefetchOrder({ cells }, { x: 600, z: 555 }, 'phone')).toEqual(['home', 'east', 'corner', 'west']);
+  expect(gridPrefetchOrder({ cells }, { x: 600, z: 555 }, 'desktop')).toEqual(['home', 'east', 'corner', 'west', 'far']);
+});
+
 test('prefetch persistence bypasses HTTP cache and preserves exact response bytes', async () => {
   const requests: (RequestInit | undefined)[] = [];
   const fetcher: typeof fetch = (_url, init) => {

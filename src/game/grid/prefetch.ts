@@ -12,7 +12,9 @@
  * index lookup, so a later launch resumes where this one stopped. Off on Save-Data and offline; a product whose index is
  * from a newer deployment stops the run (the page's own load handles that reload, never this). One run per page: a second
  * start (the grid after the menu) only moves its cells to the front of the queue. Its fetches are not boot waits.
- * `window.__ws_gridPrefetch()` (captures, the bench) returns the counts.
+ * `window.__ws_gridPrefetch()` (captures, the bench) returns the counts. The phone tier (iPhone downloads I9, G737) reads
+ * only the home cell and its ring, and of those only the files its tier admits; the rest waits for Settings' download
+ * everything (G727).
  */
 import { PrefetchQuota, PrefetchBytes } from '@wildshard/engine/boot/prefetchQuota';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
@@ -25,6 +27,8 @@ import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
 import { builtIndexHashes } from '@wildshard/format/builtIndexes';
 import { readCheckedOutputIndex } from '../shardfile/outputIndexChecks';
 import type { GridAssembly } from './assembly';
+import { TIER, type Tier } from '@wildshard/engine/core/tier';
+import { prefetchRing } from './titleOrder';
 
 /** Files in flight at once: the page's own reads keep most of the pipe. */
 const CONCURRENCY = 2;
@@ -78,10 +82,26 @@ function saveData(): boolean {
   return typeof connection === 'object' && connection !== null && Reflect.get(connection, 'saveData') === true;
 }
 
-/** The grid's distinct slugs, nearest cell to `at` first (the home cell, then its neighbours, then the rest). */
-export function gridPrefetchOrder(assembly: Pick<GridAssembly, 'cells'>, at: Readonly<{ x: number; z: number }>): string[] {
+/** The grid's distinct slugs, nearest cell to `at` first (the home cell, then its neighbours, then the rest); the phone
+ * tier keeps only the home cell and its ring (I9). */
+export function gridPrefetchOrder(assembly: Pick<GridAssembly, 'cells'>, at: Readonly<{ x: number; z: number }>, tier: Tier = TIER): string[] {
   const near = [...assembly.cells].sort((a, b) => Math.hypot(a.origin.x - at.x, a.origin.z - at.z) - Math.hypot(b.origin.x - at.x, b.origin.z - at.z));
-  return [...new Set(near.map(cell => cell.slug))];
+  const home = near[0];
+  return [...new Set((home === undefined ? near : prefetchRing(near, home.cell, tier)).map(cell => cell.slug))];
+}
+
+/** I9: of a build-proved product, only the files the phone tier admits (I1's filter); its sections come from (and go to)
+ * the content cache, so the file rows below find them held. Unproved (development) input keeps every file. */
+async function phoneTierFiles<T extends { readonly hash: string }>(input: unknown, files: readonly T[], base: string,
+  content: { get: (hash: string) => Promise<Uint8Array | null>; put: (hash: string, bytes: Uint8Array, keep: boolean) => Promise<boolean> }): Promise<readonly T[]> {
+  // loaded on the phone's first prefetch, never in the title's closure
+  const [{ isBuildValidatedOutput, resolveOutputDescriptor }, { tierProductFilesPaced }] = await Promise.all([import('../shardfile/outputDescriptor'), import('../shardfile/productCost')]);
+  const source = await resolveOutputDescriptor(input, { offline: false, firstParty: true, hash: contentHash,
+    read: (path, maximum) => readGridPrefetch(new URL(path, base).href, maximum),
+    cached: hash => content.get(hash), store: (hash, bytes) => content.put(hash, bytes, true) });
+  if (!isBuildValidatedOutput(source)) return files;
+  const kept = new Set((await tierProductFilesPaced(source, 'phone')).map(file => file.hash));
+  return files.filter(file => kept.has(file.hash));
 }
 
 class GridPrefetch {
@@ -138,7 +158,8 @@ class GridPrefetch {
     // A known build's complete index was checked above; this only schedules
     // verified disk copies. Unverified input needs checked Node ingestion.
     const index = indexes === null ? await readCheckedOutputIndex(input) : readOutputDownloadIndex(input);
-    const listed: Row[] = [...index.sections, ...index.schemas, ...index.files.map(file => ({ path: file.path, hash: file.hash, bytes: file.compressed }))];
+    const files = TIER === 'phone' && indexes !== null ? await phoneTierFiles(input, index.files, base, content) : index.files;
+    const listed: Row[] = [...index.sections, ...index.schemas, ...files.map(file => ({ path: file.path, hash: file.hash, bytes: file.compressed }))];
     // a commons blob or a shared section is listed by several products: count and store it once
     const rows = listed.filter(row => { if (this.hashes.has(row.hash)) return false; this.hashes.add(row.hash); return true; });
     this.status.knownFiles += rows.length; this.status.knownBytes += rows.reduce((sum, row) => sum + row.bytes, 0);
