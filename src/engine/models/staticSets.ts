@@ -1,11 +1,12 @@
 import { BufferGeometry, InstancedMesh, Mesh, Object3D, SkinnedMesh, type Material } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import type { WorkSlice } from '../core/workSlice';
 
 /**
  * Static sibling meshes as one draw (G639 frame floor; scene dressing always merges, DR7 / G669).
  *
  * A placed static piece (a camp, a run of fences, a set of crags) is often built as several sibling meshes that share one
- * material: each costs a draw (~100 µs of script a draw at phone 4x) for no difference on screen. `mergeStaticSiblings`
+ * material: each costs a draw (~100 µs of script a draw at phone 4x) for no difference on screen. `mergeStaticSiblingsSliced`
  * merges a root's direct children that are plain meshes with the same material instance and the same draw state into one
  * mesh per group, their geometry baked in the root's frame. Instanced, skinned, morphing, grouped, hidden or hooked meshes,
  * and meshes with children, are left as they are. The source geometries are not disposed (a catalogue may share them);
@@ -27,9 +28,15 @@ function signature(node: Mesh<BufferGeometry, Material>): string {
   return [node.material.uuid, node.castShadow, node.receiveShadow, node.renderOrder, node.frustumCulled, node.layers.mask, geometry.index === null ? 'flat' : 'indexed', ...attributes].join('|');
 }
 
-/** Merge `root`'s mergeable sibling meshes, per material and draw state, into one mesh each; returns the merged geometries
- *  (for the caller to own) and how many draws that removed. */
-export function mergeStaticSiblings(root: Object3D): { readonly geometries: readonly BufferGeometry[]; readonly saved: number } {
+/** Merge `root`'s mergeable sibling meshes, per material and draw state, into one mesh each, under `slice`: it yields after
+ *  each member's transformed copy and each merged group (one task was ~84 ms of Nalati's dressing in a cold crossing's
+ *  world step at phone 4× CPU). Returns the merged geometries (for the caller to own) and how many draws that removed. */
+export async function mergeStaticSiblingsSliced(root: Object3D, slice: WorkSlice): Promise<{ readonly geometries: readonly BufferGeometry[]; readonly saved: number }> {
+  const steps = mergeSteps(root);
+  for (let step = steps.next(); ; step = steps.next()) { if (step.done === true) return step.value; await slice.check(); }
+}
+
+function* mergeSteps(root: Object3D): Generator<void, { readonly geometries: readonly BufferGeometry[]; readonly saved: number }> {
   const groups = new Map<string, Mesh<BufferGeometry, Material>[]>();
   for (const child of root.children) if (mergeable(child)) {
     const key = signature(child), list = groups.get(key);
@@ -40,7 +47,8 @@ export function mergeStaticSiblings(root: Object3D): { readonly geometries: read
   for (const members of groups.values()) {
     const first = members[0];
     if (members.length < 2 || first === undefined) continue;
-    const parts = members.map((member) => { member.updateMatrix(); return member.geometry.clone().applyMatrix4(member.matrix); });
+    const parts: BufferGeometry[] = [];
+    for (const member of members) { member.updateMatrix(); parts.push(member.geometry.clone().applyMatrix4(member.matrix)); yield; }
     // typed non-null, but null on a layout mismatch
     const merged: unknown = mergeGeometries(parts, false);
     for (const part of parts) part.dispose();
@@ -53,6 +61,7 @@ export function mergeStaticSiblings(root: Object3D): { readonly geometries: read
     for (const member of members) root.remove(member);
     root.add(mesh);
     geometries.push(merged); saved += members.length - 1;
+    yield;
   }
   return { geometries, saved };
 }
