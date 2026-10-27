@@ -96,6 +96,8 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D49 | Driftwood's `shard.config.ts` default export is now a build function, so five tests that treat it as a Shardfile no longer typecheck or pass typed lint (`chapter-story`, `grid-query-terrain`, `quest-catalogue-sites`, `quest-story`, `runtime-equipment`: "Property 'identity' does not exist on type 'Shardfile \| ((ctx) => Promise<Shardfile>)'"); found by sp-o1 moving Pine's readers to `test/fixtures/pine-program.ts` | `60e393b0e8` | sp-x10 (GR7 Driftwood) | open; those five keep reading Pine's static rows until fixed |
 
 | D50 | Nine T8 coarse L1 city breaks strict product admission: tile/1/1/1 compressed 530,372 > 200,000, triangles 10,160 > 10,000 and draws 17 > 2, plus ten other exact L1 metrics; plan-end preview `8422baac07` refuses after 66.12 s (`tmp/serve/failed-20261027-022131-4407.log:901`), zero browser samples | `82ac81812d` | sp-o5 (G748.6) | routed to sp-o5 and sp-ci-deploy; no cap/allowance change or competing source patch |
+| D51 | Test types: `driftwood-creature-look`, `driftwood-island-look` and `driftwood-product-reads` read the Driftwood product default as an object (`.look`, `.rows`), but it is now `(ctx) => Promise<Shardfile>` (`tsc -p tsconfig.json`) | `60e393b0e8` | sp-x10 | open |
+| D52 | Driftwood map bake: `generators/mapAssembly.mjs` still calls `siteCatalogue()` and imports `WORLD_SCENES`; both take the scene banks since the cargo bank landed (`driftwoodSceneBanksFrom(read)` is its direct seam) | the cargo-bank commit (sp-o4, GR7) | sp-x10 (agreed: adapts mapAssembly after the bank lands) | open |
 
 ## Rows
 

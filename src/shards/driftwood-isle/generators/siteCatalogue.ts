@@ -1,5 +1,5 @@
 import piers from '../data/pierScenes.generated.json' with { type: 'json' };
-import cargo from '../data/cargoScenes.generated.json' with { type: 'json' };
+import type { DriftwoodSceneBanks } from './sceneBanks';
 import { reefCatalogue } from './reefCatalogue';
 import foliage from '../data/foliageScenes.generated.json' with { type: 'json' };
 import rocks from '../data/rockScenes.generated.json' with { type: 'json' };
@@ -20,7 +20,7 @@ interface Layout {
 }
 
 /** Shared author facts for product admission and pre-admission Explorer metadata. */
-export function siteCatalogue(): unknown {
+export function siteCatalogue(banks: DriftwoodSceneBanks): unknown {
   const layouts: Readonly<Record<string, Readonly<Record<string, Layout>>>> = { hut: { world: hut }, lookout: { world: lookout }, shrine };
   const wreckLayouts: Readonly<Record<string, unknown>> = wreck;
   const rows = structuredClone(authored);
@@ -37,5 +37,5 @@ export function siteCatalogue(): unknown {
       else throw new Error(`Missing scene model layout: ${model.key}/${choice.id}`);
     }
   }
-  return { ...rows, models: [...rows.models, ...rocks.catalogue, ...foliage.models, piers.model, piers.boat, piers.zipline, ...reefCatalogue(), ...cargo.models, ...native.catalogue.models] };
+  return { ...rows, models: [...rows.models, ...rocks.catalogue, ...foliage.models, piers.model, piers.boat, piers.zipline, ...reefCatalogue(), ...banks.cargo.models, ...native.catalogue.models] };
 }

@@ -15,7 +15,7 @@ import { parseWorldSceneModels } from '../src/format/worldSceneModels';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { Scope } from '../src/engine/app/scope';
 import native from '../src/shards/driftwood-isle/data/nativeSpecimens.generated.json' with { type: 'json' };
-import cargo from '../src/shards/driftwood-isle/data/cargoScenes.generated.json' with { type: 'json' };
+import { driftwoodSceneBanks } from './fixtures/driftwoodSceneBanks';
 import { kitFigureCard } from '../src/game/models/kitFigureCard';
 import { castawayFigure } from './fixtures/driftwoodCastawayOracle';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
@@ -61,6 +61,7 @@ function partsOf(built: readonly ModelPart[] | Object3D): readonly ModelPart[] {
 }
 
 it('matches the original warm cards for every authored geometry and variant', async () => {
+  const { cargo } = await driftwoodSceneBanks();
   const product = await driftwoodFixedProduct(), material = new MeshStandardMaterial();
   const castaway = kitFigureCard(product, driftwoodKitFigureCards(), 'castaway');
   const borrowed = vi.spyOn(lowPolyKit, 'lowPolyLookMaterial').mockReturnValue(material);

@@ -4,13 +4,12 @@ import { PALM_FILES } from './palmFiles';
 import { HIBISCUS_FILES } from './hibiscusFiles';
 import { REEF_FILES } from './reefFiles';
 import { FIXED_MODEL_FILES, FIXED_MODEL_NAMES } from './modelFiles';
-import cargo from '../data/cargoBlobs.generated.json' with { type: 'json' };
 import reef from '../data/reefBlobs.generated.json' with { type: 'json' };
 import ground from '../data/groundBlobs.generated.json' with { type: 'json' };
 import dressing from '../data/dressingBlobs.generated.json' with { type: 'json' };
 import zipline from '../data/ziplineBlobs.generated.json' with { type: 'json' };
 
-const manifests = [reef, ground, dressing, zipline, cargo];
+const manifests = [reef, ground, dressing, zipline];
 const blobs = manifests.flatMap(row => row.blobs);
 const canonical = new Map<string, (typeof blobs)[number]>();
 const names = new Map<string, string>();

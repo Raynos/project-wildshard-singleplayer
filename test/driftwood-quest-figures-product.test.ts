@@ -2,16 +2,17 @@ import { expect, test } from 'vitest';
 import { driftwoodQuestFigures } from '../src/shards/driftwood-isle/generators/questFigures';
 import { FIGURE_CATALOGUE } from '../src/shards/driftwood-isle/generators/figureCatalogue';
 import { siteCatalogue } from '../src/shards/driftwood-isle/generators/siteCatalogue';
+import { driftwoodSceneBanks } from './fixtures/driftwoodSceneBanks';
 import { parseWorldSceneModels } from '../src/format/worldSceneModels';
 import inventory from '../src/shards/driftwood-isle/data/fixedGeometry.json' with { type: 'json' };
 import page from '../src/shards/driftwood-isle/data/questPageComposition.json' with { type: 'json' };
 import stall from '../src/shards/driftwood-isle/data/traderStall.json' with { type: 'json' };
 
-test('entered figures resolve real kit, fixed-draw, model and quest identities in original order', () => {
+test('entered figures resolve real kit, fixed-draw, model and quest identities in original order', async () => {
   const rows = driftwoodQuestFigures().figures;
   const slots = new Set<string>(inventory.draws.map(draw => draw.slot));
   const kits = new Set(Object.keys(FIGURE_CATALOGUE.figures));
-  const models = new Set(parseWorldSceneModels(siteCatalogue()).models.map(model => model.key));
+  const models = new Set(parseWorldSceneModels(siteCatalogue(await driftwoodSceneBanks())).models.map(model => model.key));
   expect(rows.map(row => row.id)).toEqual([page.speaker.figure, page.trader.figure]);
   for (const row of rows) {
     expect(kits.has(row.kit)).toBe(true);
