@@ -1,7 +1,7 @@
 import {prepareBinarySources,binarySourceBytes} from '../models/binarySource';
 import { decodeLaneBytes } from '@wildshard/engine/core/deflate';
 import { floorAtRects } from '@wildshard/engine/physics/box';
-import { timeClientPreparation } from './preparationTiming';
+import { clientPreparationBatch, timeClientPreparation } from './preparationTiming';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { SceneInstanceFields } from './sceneInstances';
 import * as THREE from 'three';
@@ -80,6 +80,12 @@ function* sceneNumericRows(bytes: Uint8Array): IterableIterator<Record<string, n
 
 // Only the final draw poses survive a decode slice; raw records and validation
 // scratch never accumulate into a second full numeric table.
+/** G782: Developer phase totals inside a dressing step (`wildshard.prepare:<slug>:<step>.<phase>`, the awaited time of each
+ *  kind of wait); public pages time nothing. */
+function dressingPhases<P extends string>(slug:string,step:string,names:readonly P[]):{run:<T>(phase:P,work:()=>Promise<T>)=>Promise<T>;sync:<T>(phase:P,work:()=>T)=>T;finish:()=>void}{
+  const batch=clientPreparationBatch(slug,step,names);
+  return {run:(phase,work)=>batch===undefined?work():batch.run(phase,work),sync:(phase,work)=>batch===undefined?work():batch.sync(phase,work),finish:()=>{batch?.finish();}};
+}
 async function sceneScatterPoses(ctx:ShardContext,row:SceneDressingRows['layers'][number],pause:()=>Promise<void>):Promise<ScatterPose[]>{
   let source:Iterable<unknown>;
   if(row.binary)source=sceneNumericRows(await ctx.product.file(row.file));
@@ -194,9 +200,10 @@ export class SceneDressing {
     await timeClientPreparation(ctx.product.slug,'dressing.packs',()=>Promise.all([...packs.values()].map(pack=>pack.load())));
     const bytes=new Map<string,Promise<Uint8Array>>(),addresses=new Map<string,Promise<Uint8Array>>(),geometry=new Map<string,THREE.BufferGeometry>(),materials=new Map<string,THREE.Material>();
     await timeClientPreparation(ctx.product.slug,'dressing.geometry',async()=>{
+    const at=dressingPhases(ctx.product.slug,'dressing.geometry',['asset','read','address','decode','expand','pause']);
     for(const [key,source]of Object.entries(rows.geometry)){
       let shape:THREE.BufferGeometry;
-      if(source.kind==='asset'){shape=(await loadBoundSpecimen(sky,source.row,files)).geometry.clone();}
+      if(source.kind==='asset'){shape=(await at.run('asset',()=>loadBoundSpecimen(sky,source.row,files))).geometry.clone();}
       else if(source.kind==='packed'){
         const sourceRows=rows.packs[source.source],part=sourceRows===undefined?undefined:packs.get(source.source)?.parts(source.key,models,sourceRows.materials)?.[0];
         if(part===undefined)throw new Error('Missing scene packed shape');shape=part.geometry;
@@ -204,16 +211,17 @@ export class SceneDressing {
         let raw:Uint8Array;
         if(source.kind==='file')raw=binarySourceBytes({file:source.file},files);
         else if(source.kind==='inline')throw new Error('Scene geometry requires named files');
-        else if(source.kind==='baked-file'){let pending=bytes.get(source.file);if(pending===undefined){pending=ctx.product.file(source.file).then(decodeLaneBytes);bytes.set(source.file,pending);}raw=await pending;}
-        else{let pending=bytes.get(source.url);if(pending===undefined){pending=fetchLaneBake(source.url);bytes.set(source.url,pending);}raw=await pending;}
-        let offset=0;if(source.kind==='baked'||source.kind==='baked-file'){let pending=addresses.get(source.address.file);if(pending===undefined){pending=ctx.product.file(source.address.file);addresses.set(source.address.file,pending);}offset=readSceneGeometryAddress(await pending,source.address.word);}
+        else if(source.kind==='baked-file'){let pending=bytes.get(source.file);if(pending===undefined){pending=ctx.product.file(source.file).then(decodeLaneBytes);bytes.set(source.file,pending);}const read=pending;raw=await at.run('read',()=>read);}
+        else{let pending=bytes.get(source.url);if(pending===undefined){pending=fetchLaneBake(source.url);bytes.set(source.url,pending);}const read=pending;raw=await at.run('read',()=>read);}
+        let offset=0;if(source.kind==='baked'||source.kind==='baked-file'){let pending=addresses.get(source.address.file);if(pending===undefined){pending=ctx.product.file(source.address.file);addresses.set(source.address.file,pending);}const read=pending;offset=readSceneGeometryAddress(await at.run('address',()=>read),source.address.word);}
         if(offset+bakedGeometryBytes(source.row)>raw.byteLength)throw new Error('Scene geometry address exceeds its source');
-        const decoded=readBakedGeometry(raw,offset,source.row);
-        shape=source.row.expand?await expandBakedGeometrySliced(decoded,workSlice(undefined,ctx.scope)):decoded;
+        const decoded=at.sync('decode',()=>readBakedGeometry(raw,offset,source.row));
+        shape=source.row.expand?await at.run('expand',()=>expandBakedGeometrySliced(decoded,workSlice(undefined,ctx.scope))):decoded;
       }
       if((source.kind==='file'||source.kind==='baked-file')&&source.sphere!==undefined)shape.boundingSphere=new THREE.Sphere(new THREE.Vector3(...source.sphere.slice(0,3)),source.sphere[3]);
-      geometry.set(key,shape);ctx.scope.own(shape);await pause();
+      geometry.set(key,shape);ctx.scope.own(shape);await at.run('pause',pause);
     }
+    at.finish();
     });
     // Shapes now own their arrays; retire inflated bake and pack scratch before material/contact preparation.
     bytes.clear();addresses.clear();packs.clear();
@@ -235,17 +243,19 @@ export class SceneDressing {
       const {surface,seed,variants,specimenYaw,...metadata}=row.model;
       definitions.set(row.model.id,defineModel<object>({...metadata,...(surface===undefined?{}:{surface}),...(seed===undefined?{}:{seed}),...(variants===undefined?{}:{variants}),...(specimenYaw===undefined?{}:{specimenYaw}),build:()=>[{geometry:shape.clone(),material,castShadow:false,receiveShadow:true}]}));}
     await timeClientPreparation(ctx.product.slug,'dressing.layers',async()=>{
+    const at=dressingPhases(ctx.product.slug,'dressing.layers',['poses','place','registered','pause']);
     for(const row of rows.layers){
       await timeClientPreparation(ctx.product.slug,`dressing.layer.${row.id}`,async()=>{
-      const poses=await timeClientPreparation(ctx.product.slug,`dressing.poses.${row.id}`,()=>sceneScatterPoses(ctx,row,pause));
+      const poses=await at.run('poses',()=>timeClientPreparation(ctx.product.slug,`dressing.poses.${row.id}`,()=>sceneScatterPoses(ctx,row,pause)));
       if(poses.length===0)return;
       const layer=scatterLayer(row.id,needGeometry(row.geometry),needMaterial(row.material),poses,row.far,row.castShadow,row.keepNear);this.layers.push(layer);this.group.add(layer.mesh);
       const colliderRows=Array.isArray(row.contacts)?contacts(row.contacts):unpackHulls(row.contacts,files);
-      const registered=withOwner(ctx.scope,()=>place(needModel(row.model),poses.map(it=>({x:it.x,y:it.y,z:it.z})),{
+      const registered=at.sync('place',()=>withOwner(ctx.scope,()=>place(needModel(row.model),poses.map(it=>({x:it.x,y:it.y,z:it.z})),{
         ctx:models,draw:'instanced',registry:ctx.app.registry,drawnInto:{object:layer.mesh,boxes:instanceBoxes(layer.mesh.geometry,poses),colliders:colliderRows},piece:{solidFloor:true,collide:false,split:{every:150,yieldTask:pause}},
-      }));await registered.registered;this.placed.push(registered);this.byTile(row.id,needModel(row.model),registered.colliders);
-      });await pause();
+      })));await at.run('registered',()=>registered.registered);this.placed.push(registered);this.byTile(row.id,needModel(row.model),registered.colliders);
+      });await at.run('pause',pause);
     }
+    at.finish();
     });
     await timeClientPreparation(ctx.product.slug,'dressing.statics',async()=>{
     for(const row of rows.statics){
