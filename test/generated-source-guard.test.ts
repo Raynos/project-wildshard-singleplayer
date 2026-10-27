@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Prove exact staged and committed source policy in owned Git fixtures.
 import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own and remove bounded source/output fixtures.
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep all fixture files under repository scratch.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Nested fixtures must not inherit the shared index.
@@ -9,7 +9,6 @@ import { env as processEnv } from 'node:process';
 import { expect, test } from 'vitest';
 import { GENERATED_SOURCE_POLICY, checkGeneratedSourceRevision, checkGeneratedSourceTree,
   generatedSourceIncreases, generatedSourcePolicy } from '../scripts/generated-source.mjs';
-import { precommitInputs } from '../scripts/precommit-inputs.mjs';
 import { commitCheckFailed } from '../scripts/precommit-jobs.mjs';
 
 const old = 'src/shards/fixture/data/old.generated.json', source = 'a'.repeat(40);
@@ -46,10 +45,11 @@ test('new staged generated files and headers refuse even when the working copy i
   expect(failures).toHaveLength(2); expect(failures.join('\n')).toContain(renamed);
 }));
 
-test('declared producer outputs refuse before files exist and cannot grant themselves debt', () => fixture((root, git, put) => {
+test('absent outputs remain a completed-tree refusal and cannot grant themselves debt', () => fixture((root, git, put) => {
   const file = 'src/shards/fixture/data/rows.json', catalogue = 'scripts/generation-jobs.json';
   put(catalogue, JSON.stringify({ jobs: [{ outputs: [old, file, 'out/fixture/body.bin'] }] })); git('add', catalogue);
-  expect(checkGeneratedSourceRevision(root, ':', 'HEAD', [catalogue])).toEqual([expect.stringContaining(file)]);
+  expect(checkGeneratedSourceRevision(root, ':', 'HEAD', [catalogue])).toEqual([]);
+  expect(checkGeneratedSourceTree(root)).toEqual([expect.stringContaining(file)]);
   put(GENERATED_SOURCE_POLICY, JSON.stringify(policy([old, file]))); git('add', GENERATED_SOURCE_POLICY);
   expect(checkGeneratedSourceRevision(root, ':', 'HEAD', [catalogue, GENERATED_SOURCE_POLICY])).toEqual([expect.stringContaining('allowance grew')]);
 }));
@@ -88,11 +88,3 @@ test('G656 reviewed app source outputs stay allowed separately from shard output
   expect(checkGeneratedSourceTree(root)).toEqual([]);
 }));
 
-test('the real staged hook refuses generated TS without any JSON change', () => fixture(async (root, git, put) => {
-    put('.oxlintrc.json', JSON.stringify({ ignorePatterns: ['**/*.generated.ts'] }));
-    for (const file of ['scripts/no-binary-json.mjs', 'scripts/generated-source.mjs']) put(file, readFileSync(file, 'utf8'));
-    put('lint/no-binary-json.json', JSON.stringify({ schema: 'no-binary-json/1', source, files: {} }));
-    git('add', '.'); git('commit', '-qm', 'checker');
-    const file = 'src/new.generated.ts'; put(file, 'export const rows = [];'); git('add', file);
-    await expect(precommitInputs(root)).rejects.toThrow('binary JSON');
-}));

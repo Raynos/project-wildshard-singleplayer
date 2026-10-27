@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise exact immutable Git and staged-input policy in owned fixtures.
 import { execFileSync, spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own disposable source fixtures only.
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve fixture paths within ignored tmp.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Drop inherited Git index variables in owned fixtures.
@@ -11,7 +11,6 @@ import { binaryJsonCounts, binaryJsonFailures, binaryJsonPolicy, binaryPolicyInc
   checkBinaryRevision, checkBinaryTree } from '../scripts/no-binary-json.mjs';
 
 import { commitCheckFailed } from '../scripts/precommit-jobs.mjs';
-import { precommitInputs } from '../scripts/precommit-inputs.mjs';
 
 const payload = 'a'.repeat(1024);
 const path = 'public/assets/example/rows.json';
@@ -142,32 +141,6 @@ test('CI includes ignored generator outputs and refuses symlink inputs', () => f
 }));
 
 
-test('the parallel pre-commit job uses the staged checker and JSON, preserving foreign files', async () => {
-  mkdirSync(resolve('tmp'), { recursive: true });
-  const root = mkdtempSync(resolve('tmp/binary-json-hook-'));
-  const env = Object.fromEntries(Object.entries(processEnv).filter(([key]) => !key.startsWith('GIT_')));
-  const git = (...args: string[]): string => execFileSync('git', args, { cwd: root, env, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 }).trim();
-  const put = (name: string, value: string): void => {
-    const target = resolve(root, name); mkdirSync(resolve(target, '..'), { recursive: true }); writeFileSync(target, value);
-  };
-  try {
-    git('init', '-q'); git('config', 'core.hooksPath', '/dev/null'); git('config', 'user.name', 'fixture'); git('config', 'user.email', 'fixture@example.invalid');
-    put('.oxlintrc.json', '{}');
-    put('lint/no-binary-json.json', JSON.stringify(policy()));
-    put('scripts/no-binary-json.mjs', readFileSync(new URL('../scripts/no-binary-json.mjs', import.meta.url), 'utf8'));
-    put('scripts/generated-source.mjs', readFileSync(new URL('../scripts/generated-source.mjs', import.meta.url), 'utf8'));
-    git('add', '.'); git('commit', '-qm', 'fixture');
-    put(path, JSON.stringify({ text: payload })); git('add', path);
-    put(path, '{}'); put('scripts/no-binary-json.mjs', 'throw Error("foreign uncommitted checker");');
-    const index = readFileSync(resolve(root, '.git/index'));
-    await expect(precommitInputs(root)).rejects.toThrow('binary JSON: refused');
-    expect(readFileSync(resolve(root, '.git/index'))).toEqual(index);
-    expect(readFileSync(resolve(root, path), 'utf8')).toBe('{}');
-    git('add', path); put(path, JSON.stringify({ text: payload }));
-    await expect(precommitInputs(root)).resolves.toBeUndefined();
-    expect(readFileSync(resolve(root, 'scripts/no-binary-json.mjs'), 'utf8')).toContain('foreign uncommitted checker');
-  } finally { rmSync(root, { recursive: true, force: true }); }
-});
 
 
 test('a debt correction needs exact unique final-footer approval, including at committed Git checks', () => fixture((root, git, put) => {

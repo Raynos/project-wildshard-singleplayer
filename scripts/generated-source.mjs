@@ -81,7 +81,7 @@ function failures(outputs, policy, exempt) {
     .map(file => `GENERATED-SOURCE ${file}: new generated file under src; return rows or bytes to the build instead`);
 }
 /** @param {string} root @param {string[]} args @param {Buffer} [input] */
-function git(root, args, input) { return execFileSync('git', args, { cwd: root, input, maxBuffer: 256 * 1024 * 1024 }); }
+function git(root, args, input) { return execFileSync('git', args, { cwd: root, input, maxBuffer: 256 * 1024 * 1024, stdio: ['pipe', 'pipe', 'pipe'] }); }
 /** @param {string} root @param {string} revision @returns {GitTree} */
 function entries(root, revision) {
   const raw = git(root, revision === ':' ? ['ls-files', '--stage', '-z'] : ['ls-tree', '-rz', revision]), tree = new Map();
