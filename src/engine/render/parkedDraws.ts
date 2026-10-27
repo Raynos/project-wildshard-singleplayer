@@ -281,6 +281,41 @@ async function prepareParkedBounds(drawables: readonly Drawable[], current: () =
   if (!current()) throw new Error('Parked bounds owner left');
 }
 
+/** Native sort depth also asks an instanced mesh for its whole-instance sphere, even with culling disabled. */
+async function prepareParkedInstanceBounds(drawables: readonly Drawable[], current: () => boolean, pause: () => Promise<void>): Promise<void> {
+  let started = diagnosticNow();
+  const matrix = new THREE.Matrix4(), transformed = new THREE.Sphere();
+  for (const object of drawables) {
+    if (!current()) throw new Error('Parked bounds owner left');
+    if (!(object instanceof THREE.InstancedMesh) || object.boundingSphere !== null || object.count <= 0
+      || object.computeBoundingSphere !== THREE.InstancedMesh.prototype.computeBoundingSphere
+      || object.getMatrixAt !== THREE.InstancedMesh.prototype.getMatrixAt) continue;
+    const geometry: unknown = object.geometry;
+    if (!isBufferGeometry(geometry) || geometry.boundingSphere === null) continue;
+    const attribute = object.instanceMatrix, array = attribute.array, version = attribute.version, count = object.count;
+    if (attribute.usage !== THREE.StaticDrawUsage || !(array instanceof Float32Array)
+      || Object.getPrototypeOf(array) !== Float32Array.prototype || Object.hasOwn(array, 'length')
+      || !Number.isSafeInteger(count) || array.length < count * 16) continue;
+    const source = geometry.boundingSphere, original = source.clone(), result = new THREE.Sphere().makeEmpty();
+    const unchanged = (): boolean => object.boundingSphere === null && object.geometry === geometry
+      && geometry.boundingSphere === source && source.equals(original) && object.count === count
+      && object.instanceMatrix === attribute && attribute.array === array && attribute.version === version;
+    let index = 0;
+    while (index < count) {
+      if (!current()) throw new Error('Parked bounds owner left');
+      if (!unchanged()) break;
+      const end = Math.min(count, index + 512);
+      for (; index < end; index++) {
+        object.getMatrixAt(index, matrix);
+        result.union(transformed.copy(source).applyMatrix4(matrix));
+      }
+      if (index < count && diagnosticNow() - started >= LIVE_PRECOMPILE_SLICE_MS) { await pause(); started = diagnosticNow(); }
+    }
+    if (index === count && unchanged()) object.boundingSphere = result;
+  }
+  if (!current()) throw new Error('Parked bounds owner left');
+}
+
 /**
  * Draw every visible drawable under the hidden `root` into a 1×1 scissor of `target`, and its casters into the shadow
  * stand-ins, a slice per `pause()`. `environment` is the environment the entry frame will draw with (a parked sky can
@@ -314,6 +349,7 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
   try {
     options.onProgress?.(0, total);
     await prepareParkedBounds(drawables, current, pause);
+    await prepareParkedInstanceBounds(drawables, current, pause);
     for (const slice of slices) {
       if (!current()) throw new Error('Parked draw owner left');
       try { drawSlice(renderer, scene, camera, view, target, root, slice, options.environment, standIns, reveal, benched); }

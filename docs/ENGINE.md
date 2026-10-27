@@ -1279,7 +1279,7 @@ ordinary grouping and 12 ms bound; readiness still awaits the complete inventory
 
 Live WebKit uses `LIVE_PARKED_BUDGET` (1 drawable / 1 material / 4 MiB).
 Native slices wait for completed draws, even held; skipped rAFs cannot release them.
-Static bounds use exact 32K-vertex scans in 6 ms painted slices first.
+Static bounds use 6 ms painted scans: 32K vertices / 512 instances per step.
 Other geometry keeps native bounds. Boot/desktop keep budgets; native draws can stall.
 `Game.entryPreparation` exposes root UUID, owner, completion, phase, optional
 `{done,total,detail}` progress and warm-stage times/units including painted waits.

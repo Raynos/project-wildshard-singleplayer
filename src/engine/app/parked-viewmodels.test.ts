@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { BoxGeometry, BufferAttribute, BufferGeometry, DirectionalLight, Group, Mesh, MeshBasicMaterial, PCFShadowMap, PerspectiveCamera, PointLight, Scene, Vector4, WebGLRenderer, WebGLRenderTarget, type Camera, type Material, type Object3D } from 'three';
+import { BoxGeometry, BufferAttribute, BufferGeometry, DirectionalLight, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, PCFShadowMap, PerspectiveCamera, PointLight, Scene, Vector4, WebGLRenderer, WebGLRenderTarget, type Camera, type Material, type Object3D } from 'three';
 import { Scope } from './scope';
 import { bindConstructionEnvironment, withOwner } from './ownership';
 import { ViewmodelRoot } from '../render/viewmodel';
@@ -162,6 +162,24 @@ test.each([false, true])('static bounds prepare in painted CPU slices before any
       expect(position.array).toEqual(positions);
     }
   } finally { time.mockRestore(); expected.dispose(); f.dispose(); }
+});
+
+test.each([false, true])('static instance spheres publish exactly after sliced scans (cancel=%s)', async cancel => {
+  const f = fixture(), geometry = new BoxGeometry(), material = new MeshBasicMaterial();
+  const mesh = new InstancedMesh(geometry, material, 2048), oracle = new InstancedMesh(geometry, material, 2048), matrix = new Matrix4();
+  for (let i = 0; i < mesh.count; i++) mesh.setMatrixAt(i, matrix.makeTranslation(i * 2, i % 7, -i));
+  oracle.instanceMatrix = mesh.instanceMatrix; oracle.computeBoundingSphere(); f.stage.add(mesh);
+  let current = true, boundsPauses = 0, clock = 0;
+  const time = vi.spyOn(performance, 'now').mockImplementation(() => { clock += 7; return clock; });
+  try {
+    const pending = warmParkedDraws(f.renderer, f.scene, f.camera, f.target, f.stage, () => current, () => {
+      f.restored();
+      if (f.draws.length === 0) { boundsPauses++; if (cancel) current = false; }
+      return Promise.resolve();
+    }, { revealChildren: true });
+    if (cancel) { await expect(pending).rejects.toThrow('bounds owner left'); expect(mesh.boundingSphere).toBeNull(); expect(f.draws).toEqual([]); }
+    else { expect(await pending).toBe(3); expect(boundsPauses).toBeGreaterThan(1); expect(mesh.boundingSphere).toEqual(oracle.boundingSphere); }
+  } finally { time.mockRestore(); mesh.dispose(); oracle.dispose(); geometry.dispose(); material.dispose(); f.dispose(); }
 });
 
 test('streamed roots compile without exposing or drawing them', async () => {
