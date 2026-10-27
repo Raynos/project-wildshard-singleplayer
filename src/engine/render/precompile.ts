@@ -1126,7 +1126,11 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     const sliceDone = !isolateImageUploads && buildHeld() && presenting()
       ? jobMs >= sliceMs || performance.now() - tFrame >= heldBudget(sliceMs) || nativeBudgetSpent(sliceMs)
       : spent(tFrame);
-    if (sliceDone || capped || i === jobs.length - 1) {
+    // A fully resolved cached-only root issued no native work to fence. Keep
+    // its cheap completion in the held slice; fresh programs/targets, custom
+    // preparation, side variants and texture uploads retain their own fences.
+    const cachedCompletion = cachedOnly && !nativeInSlice && isolateImageUploads && buildHeld() && presenting();
+    if (sliceDone || capped || i === jobs.length - 1 && !cachedCompletion) {
       if (isolateImageUploads && !spent(tFrame)) await settleOne(tFrame);
       await pause(); tFrame = performance.now(); programsAtFrame = programCount(renderer); nativeInSlice = false;
     }

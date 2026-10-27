@@ -5,7 +5,7 @@ import { noteFrameDrawn, setBuildHeld } from '../core/framePacing';
 import { runPrecompile, type CompileJob, type PrecompileStage } from './precompile';
 import { linkedGl } from '../test/linkedGl';
 
-async function schedule(options: { held?: boolean; cost?: number; prepare?: boolean; cancel?: boolean; retireTarget?: boolean }) {
+async function schedule(options: { held?: boolean; cost?: number; prepare?: boolean; cancel?: boolean; retireTarget?: boolean; separate?: boolean }) {
   const renderer: unknown = Object.create(WebGLRenderer.prototype);
   if (!(renderer instanceof WebGLRenderer)) throw new Error('Missing renderer');
   const geometry = new BoxGeometry(), material = new MeshBasicMaterial(), root = new Scene();
@@ -41,12 +41,17 @@ async function schedule(options: { held?: boolean; cost?: number; prepare?: bool
     now = 1000; frame = 0; current = true; issued.length = 0;
     cost = options.cost ?? 3; noteFrameDrawn(now, now, 30); setBuildHeld(options.held ?? true);
     const jobs = Array.from({ length: 9 }, () => ({ ...job, ...(options.prepare === true ? { prepare: () => undefined } : {}) }));
-    const warming = runPrecompile(renderer, new PerspectiveCamera(), jobs, 1, undefined, [], () => current, true,
-      pause, undefined, observe, 6);
+    const warming = (async (): Promise<void> => {
+      if (options.separate === true) {
+        for (const rootJob of jobs) await runPrecompile(renderer, new PerspectiveCamera(), [rootJob], 1, undefined, [], () => current, true,
+          pause, undefined, observe, 6);
+      } else await runPrecompile(renderer, new PerspectiveCamera(), jobs, 1, undefined, [], () => current, true,
+        pause, undefined, observe, 6);
+    })();
     await (options.cancel === true ? expect(warming).rejects.toThrow('Shader warm-up owner left') : warming);
     expect(uniforms).toBe(1);
     expect(activeTarget).toBeNull();
-    return { issued, cached: stages.find(stage => stage.phase === 'cached-compile')?.units ?? 0 };
+    return { issued, cached: stages.filter(stage => stage.phase === 'cached-compile').reduce((sum, stage) => sum + stage.units, 0) };
   } finally {
     setBuildHeld(false); clock.mockRestore(); noteFrameDrawn(Number.NEGATIVE_INFINITY);
     geometry.dispose(); material.dispose(); target?.dispose();
@@ -87,3 +92,15 @@ test('a disposed target cannot retain its cached preparation receipt', async () 
   expect(result.issued).toEqual([0, 0, 1, 1, 2, 2, 3, 3, 4]);
   expect(result.cached).toBe(0);
 });
+
+test('independent cached-only roots share only the original held native budget', async () => {
+  const result = await schedule({ separate: true });
+  expect(result.issued).toEqual([0, 0, 0, 0, 0, 0, 0, 0, 1]);
+  expect(result.cached).toBe(9);
+});
+
+test.each([{ held: false }, { prepare: true }, { cost: 12 }, { retireTarget: true }])(
+  'independent roots keep native or moving completion fences: %o', async options => {
+    const result = await schedule({ ...options, separate: true });
+    expect(result.issued).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+  });
