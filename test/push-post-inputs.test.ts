@@ -11,9 +11,7 @@ test('only completed stable generation seals post tables and lint words', () => 
   const put = (name: string, value: string): void => { const path = resolve(root, name); mkdirSync(resolve(path, '..'), { recursive: true }); writeFileSync(path, value); };
   try {
     put('src/author.ts', 'export const value = 1;');
-    put('lint/ask-ids.json', '[]');
-    const finish = beginPushInputs(root, { revision: 'a'.repeat(40), files: ['src/author.ts', 'lint/ask-ids.json'] });
-    put('lint/ask-ids.json', '["E2"]');
+    const finish = beginPushInputs(root, { revision: 'a'.repeat(40), files: ['src/author.ts'] });
     put('src/shards/fixture/discovery.generated.ts', 'export default {};');
     put('lint/shard-words.generated.json', '{}');
     put('lint/host-catalogue.generated.json', '{"staleDocs":true}');

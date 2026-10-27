@@ -81,7 +81,7 @@ def phase_outputs(repo, revision, generated, records, deadline=None):
             raise ValueError('Invalid post-generation proof')
         def source(name):
             return (name.startswith(('src/', 'scripts/', 'lint/', 'vite/', 'budgets/')) or '/' not in name) and (
-                re.search(r'\.(?:[cm]?[jt]sx?|jsonc?|yaml|yml|as|py|sh|html|css|wgsl|glsl)$', name) is not None) and '.generated.' not in name and name != 'lint/ask-ids.json'
+                re.search(r'\.(?:[cm]?[jt]sx?|jsonc?|yaml|yml|as|py|sh|html|css|wgsl|glsl)$', name) is not None) and '.generated.' not in name
         expected = {name for name in tracked if source(name)}
         if not expected.issubset(post['inputs']) or not set(post['inputs']).issubset(tracked):
             raise ValueError('Post-generation input inventory differs')
