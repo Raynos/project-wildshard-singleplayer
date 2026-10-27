@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Frustum, Matrix4, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, Sphere, Vector3 } from 'three';
-import { cullIntoSteps, finishRoadSteps, type CullPlan } from './roadCull';
+import { cullIntoSteps, cullPlanSteps, finishRoadSteps, type CullPlan } from './roadCull';
 
 function fixture(main = true) {
   const geometry = new BufferGeometry(), positions: number[] = [], indices: number[] = [];
@@ -89,4 +89,26 @@ test('a configured main camera ignores shadow cameras before changing shared cul
     expect(Array.from(index.array)).toEqual(before); expect(f.mesh.geometry.drawRange).toEqual(range); expect(index.version).toBe(version);
     f.render(); expect(index.version).toBe(version);
   } finally { f.dispose(); }
+});
+
+// Shared vertices must be counted anew in each bin, including negative cells.
+test('bin bounds keep every indexed point while sharing repeated vertex reads', () => {
+  const geometry = new BufferGeometry();
+  const points = [-300, 2, -300, 0, 9, 0, 300, -4, 300, 300, 7, -300];
+  geometry.setAttribute('position', new BufferAttribute(Float32Array.from(points), 3));
+  geometry.setIndex([0, 1, 3, 1, 2, 3, 0, 1, 3, 1, 2, 3]);
+  const position = geometry.getAttribute('position'), read = vi.spyOn(position, 'getY');
+  try {
+    const plan = finishRoadSteps(cullPlanSteps(geometry, 500));
+    expect(Array.from(plan.source)).toEqual([0, 1, 3, 0, 1, 3, 1, 2, 3, 1, 2, 3]);
+    expect(plan.bins).toHaveLength(2);
+    for (const bin of plan.bins) {
+      const vertices = Array.from(plan.source.subarray(bin.start, bin.start + bin.count), n => new Vector3().fromArray(points, n * 3));
+      const originalSphere = new Sphere().setFromPoints(vertices);
+      expect(bin.sphere.center.toArray()).toEqual(originalSphere.center.toArray());
+      expect(bin.sphere.radius).toBe(originalSphere.radius);
+    }
+    // Three distinct vertices per bin, once for the box and once for radius.
+    expect(read).toHaveBeenCalledTimes(12);
+  } finally { read.mockRestore(); geometry.dispose(); }
 });

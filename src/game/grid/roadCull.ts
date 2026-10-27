@@ -156,14 +156,22 @@ export function* cullPlanSteps(geometry: BufferGeometry, pitch: number, lod: rea
   const ordered: { readonly key: string; readonly x: number; readonly z: number; readonly list: number[] }[] = [];
   for (const row of byBin.values()) for (const bin of row.values()) ordered.push(bin);
   ordered.sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
+  // A shared indexed vertex contributes once per bin to both bounds scans.
+  // Keep triangle publication and LOD representative order unchanged.
+  const boundedIn = new Uint32Array(position.count);
+  let binId = 0;
   for (const { list, x: tileX, z: tileZ } of ordered) {
-    const start = out.length;
+    const start = out.length, unique: number[] = [];
+    binId++;
     let minX = Infinity, minY = Infinity, minZ = Infinity, maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
     for (let i = 0; i < list.length; i++) {
       if (i % 256 === 0) yield;
       const t = list[i] ?? 0;
       for (let c = 0; c < 3; c++) {
-        const n = index.getX(t * 3 + c), x = position.getX(n), y = position.getY(n), z = position.getZ(n); out.push(n);
+        const n = index.getX(t * 3 + c); out.push(n);
+        if (boundedIn[n] === binId) continue;
+        boundedIn[n] = binId; unique.push(n);
+        const x = position.getX(n), y = position.getY(n), z = position.getZ(n);
         minX = Math.min(minX, x); minY = Math.min(minY, y); minZ = Math.min(minZ, z); maxX = Math.max(maxX, x); maxY = Math.max(maxY, y); maxZ = Math.max(maxZ, z);
       }
     }
@@ -173,8 +181,8 @@ export function* cullPlanSteps(geometry: BufferGeometry, pitch: number, lod: rea
     sphere.center.set(minX + maxX, minY + maxY, minZ + maxZ).multiplyScalar(0.5);
     if (count === 0) sphere.center.set(0, 0, 0);
     let farthest = 0;
-    for (let k = start; k < start + count; k++) {
-      const n = out[k] ?? 0, dx = sphere.center.x - position.getX(n), dy = sphere.center.y - position.getY(n), dz = sphere.center.z - position.getZ(n);
+    for (const n of unique) {
+      const dx = sphere.center.x - position.getX(n), dy = sphere.center.y - position.getY(n), dz = sphere.center.z - position.getZ(n);
       farthest = Math.max(farthest, dx * dx + dy * dy + dz * dz);
     }
     sphere.radius = Math.sqrt(farthest);
