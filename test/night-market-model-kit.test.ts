@@ -63,10 +63,10 @@ for(const variant of [0,1,2]){const w=writer();props.placeModel(w,'props',varian
 const trees=await prepareModelKit({},new Map([['trees',new Uint8Array(readFileSync('public/assets/open-plots/kit/trees.glb'))]]));
 for(const variant of [0,1,2]){const w=writer();trees.placeModel(w,'trees',variant,0,0,{scale:0.5});const ys=w.tris.flatMap(t=>t.points.map(q=>q[1]));
  assert.equal(w.lights.length,0);assert.ok(w.tris.length>=300&&w.tris.length<=(variant===2?850:600));assert.ok(Math.max(...ys)>3.8&&Math.max(...ys)<4.2&&Math.min(...ys)>-0.05);}
-// RM4.8: static posed figures (vendor, shopper, elder; TRELLIS.2), 1.75 m and 450 triangles, coloured by their own clustered slots
+// G755: hand-built figures (vendor, shopper, elder; kit.py scripted_figure), 1.75 m, ~360 triangles, painted faces
 const figures=await prepareModelKit({},new Map([['figures',new Uint8Array(readFileSync('public/assets/open-plots/kit/figures.glb'))]]));
 for(const variant of [0,1,2]){const w=writer();figures.placeModel(w,'figures',variant,0,0);const ys=w.tris.flatMap(t=>t.points.map(q=>q[1]));
- assert.ok(w.tris.length>=350&&w.tris.length<=550);assert.ok(Math.max(...ys)>1.7&&Math.max(...ys)<1.8);}
+ assert.ok(w.tris.length>=250&&w.tris.length<=450);assert.ok(Math.max(...ys)>1.7&&Math.max(...ys)<1.8);}
 // RM7.1: canal coping (plain, bollard, steps), its origin on the wall line and its lip over the water in front (+z)
 const canal=await prepareModelKit({},new Map([['canal',new Uint8Array(readFileSync('public/assets/open-plots/kit/canal.glb'))]]));
 for(const variant of [0,1,2]){const w=writer();canal.placeModel(w,'canal',variant,0,0);const zs=w.tris.flatMap(t=>t.points.map(q=>q[2]));

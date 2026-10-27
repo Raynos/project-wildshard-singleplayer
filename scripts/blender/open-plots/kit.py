@@ -411,7 +411,6 @@ def coping_steps():
     return p
 
 
-FACE_RGB = {}  # each generated model's face colours (sRGB), by object name, for generated_figure
 SOURCES = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sources')
 
 
@@ -555,40 +554,50 @@ def generated_tree(name, height, faces, voxel=45):
     for attr in list(mesh.color_attributes):
         mesh.color_attributes.remove(attr)
     obj.name = f'tree-{name}'
-    FACE_RGB[obj.name] = rgb
     return obj
 
 
-def generated_figure(name, height, faces, slots, clusters=5):
-    """A static posed figure from its image-to-3D source (sources/<name>.glb), `height` metres tall with its feet at the
-    origin: voxel-remeshed and decimated to about `faces` flat triangles like generated_tree, each face coloured from the
-    nearest source face, then the colours clustered (k-means) into `clusters` slots `<name><i>` whose default colours
-    (their centroids) are added to `slots`; each face keeps its brightness against its cluster as a tint."""
-    import bpy
-    obj = generated_tree(name, height, faces, voxel=70)
-    mesh = obj.data
-    tints = mesh.attributes['tint']
-    # generated_tree sorted green / not green; re-sort by colour clusters from the face colours it recorded
-    rgb = FACE_RGB[obj.name]
-    centres = [rgb[int(i * (len(rgb) - 1) / max(1, clusters - 1))] for i in range(clusters)]
-    for _ in range(12):
-        groups = [[] for _ in centres]
-        for c in rgb:
-            k = min(range(len(centres)), key=lambda j: sum((c[t] - centres[j][t]) ** 2 for t in range(3)))
-            groups[k].append(c)
-        centres = [[sum(c[t] for c in g) / len(g) for t in range(3)] if g else centres[i] for i, g in enumerate(groups)]
-    label = ''.join(ch for ch in name.replace('fig-', '') if ch.isalnum())  # a slot name is letters and digits
-    mesh.materials.clear()
-    for i, centre in enumerate(centres):
-        slot = f'{label}{i}'
-        slots[slot] = '#' + ''.join(f'{round(max(0.0, min(1.0, v)) * 255):02x}' for v in centre)  # pixels are sRGB
-        mesh.materials.append(bpy.data.materials.get(f'Kit.{slot}') or bpy.data.materials.new(f'Kit.{slot}'))
-    for poly, c in zip(mesh.polygons, rgb):
-        k = min(range(len(centres)), key=lambda j: sum((c[t] - centres[j][t]) ** 2 for t in range(3)))
-        poly.material_index = k
-        lum, ref = 0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2], 0.3 * centres[k][0] + 0.59 * centres[k][1] + 0.11 * centres[k][2]
-        tints.data[poly.index].value = max(0.6, min(1.0, 0.85 * lum / max(1e-6, ref)))
-    obj.name = name
+# G755: the figures' own colours (sRGB); a layout's palette may override any of them
+FIGURE_SLOTS = {'figSkin': '#e9b892', 'figFace': '#2a1a16', 'figHair': '#2e2420', 'figShoe': '#2b2b33',
+                'vendorRobe': '#c8342c', 'vendorApron': '#f1e4c8', 'vendorCap': '#f1e4c8',
+                'shopperTop': '#3d74b8', 'shopperSkirt': '#e9b949', 'elderRobe': '#6d5b8e', 'elderHat': '#d8b26a'}
+
+
+def scripted_figure(kind, height=1.75):
+    """G755: a hand-built low-poly market figure (`vendor`, `shopper` or `elder`) facing -y (the kit's front), feet at
+    the origin: a robe (or a top over a skirt), arms bent forward, a big round head with a painted face (two dot eyes
+    and a mouth line, just proud of the head's front facet) under the figure's own cap, hair bun or straw hat. About
+    300 flat-shaded triangles in its own colour slots."""
+    p = Piece()
+    lower, upper = {'vendor': ('Kit.vendorRobe', 'Kit.vendorRobe'), 'shopper': ('Kit.shopperSkirt', 'Kit.shopperTop'),
+                    'elder': ('Kit.elderRobe', 'Kit.elderRobe')}[kind]
+    turn = math.pi / 8  # a facet, not a ridge, faces -y: the face sits flat on it
+    for x in (-0.09, 0.09):
+        p.box((x - 0.06, -0.12, 0), (x + 0.06, 0.06, 0.07), 'Kit.figShoe')
+    p.lathe(0, 0, [(0.27, 0.05), (0.25, 0.35), (0.2, 0.8)], 8, [lower], spin=turn, cap_top=False, cap_bottom=True)
+    p.lathe(0, 0, [(0.2, 0.8), (0.21, 1.1), (0.23, 1.32), (0.1, 1.43), (0.06, 1.47)], 8, [upper], spin=turn)
+    for side in (-1, 1):
+        hand = (side * 0.19, -0.2, 0.98)
+        tube(p, [(side * 0.22, 0, 1.33), (side * 0.27, -0.05, 1.1), hand], [0.06, 0.055, 0.05], 4, upper, (side, 0, 0))
+        p.box((hand[0] - 0.045, hand[1] - 0.05, hand[2] - 0.05), (hand[0] + 0.045, hand[1] + 0.03, hand[2] + 0.04), 'Kit.figSkin')
+    p.lathe(0, 0, [(0.07, 1.45), (0.14, 1.5), (0.17, 1.57), (0.17, 1.67), (0.13, 1.75), (0.06, 1.79), (0, 1.8)], 8, ['Kit.figSkin'], spin=turn)
+    # the painted face: the front facet is 0.157 m out (0.17 x cos 22.5 degrees) between 1.57 and 1.67 m
+    for x in (-0.055, 0.055):
+        p.box((x - 0.016, -0.168, 1.622), (x + 0.016, -0.15, 1.652), 'Kit.figFace')
+    p.box((-0.045, -0.165, 1.586), (0.045, -0.15, 1.598), 'Kit.figFace')
+    if kind == 'vendor':  # a cloth cap and an apron
+        p.lathe(0, 0, [(0.178, 1.68), (0.16, 1.77), (0.1, 1.82), (0, 1.84)], 8, ['Kit.vendorCap'], spin=turn, cap_bottom=True)
+        p.panel([(-0.15, -0.247, 0.3), (0.15, -0.247, 0.3), (0.13, -0.202, 1.05), (-0.13, -0.202, 1.05)], 'Kit.vendorApron')
+    elif kind == 'shopper':  # hair over the crown and a bun at the back
+        p.lathe(0, 0.01, [(0.178, 1.66), (0.165, 1.75), (0.1, 1.81), (0, 1.83)], 8, ['Kit.figHair'], spin=turn, cap_bottom=True)
+        p.lathe(0, 0.15, [(0.05, 1.66), (0.08, 1.71), (0.06, 1.77), (0, 1.79)], 6, ['Kit.figHair'])
+    else:  # a wide straw hat and a cane
+        p.lathe(0, 0, [(0.36, 1.71), (0.3, 1.73), (0.12, 1.82), (0, 1.92)], 8, ['Kit.elderHat'], spin=turn, cap_bottom=True)
+        tube(p, [(0.19, -0.2, 0.98), (0.23, -0.27, 0.0)], [0.02, 0.02], 4, 'Kit.wood', (1, 0, 0))
+    obj = realise(p, f'fig-{kind}', 0)
+    fit = height / max(v.co.z for v in obj.data.vertices)  # crown (or hat) top at `height`
+    for v in obj.data.vertices:
+        v.co *= fit
     return obj
 
 
@@ -687,9 +696,8 @@ def main():
     build_family(out, 'trees', [lambda: generated_tree('tree-round', 8.0, 420), lambda: generated_tree('tree-tall', 8.0, 420),
                                 scripted_willow], TRIMS, {'slots': SLOTS})
     reset_scene()
-    figure_slots = dict(SLOTS)  # each figure adds its own colour clusters' defaults
-    build_family(out, 'figures', [lambda n=n: generated_figure(f'fig-{n}', 1.75, 450, figure_slots) for n in ('vendor', 'shopper', 'elder')],
-                 TRIMS, {'slots': figure_slots})
+    build_family(out, 'figures', [lambda n=n: scripted_figure(n) for n in ('vendor', 'shopper', 'elder')], TRIMS,
+                 {'slots': {**SLOTS, **FIGURE_SLOTS}})
     reset_scene(ground=-1.0)  # the string's bulbs and lanterns hang below their hooks (origin y 0)
     build_family(out, 'strings', [string_bulb, string_lantern, lane_post], TRIMS, {'slots': SLOTS})
     reset_scene(ground=BRIDGE['water'])
