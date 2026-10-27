@@ -17,7 +17,6 @@ import {shuffleNalatiWords} from './placeWire';
 import { nalatiPoiScenes } from './poiScenes';
 import { nalatiSpecimenRows } from './specimenRows';
 import contactInput from '../data/poiContacts.json' with {type:'json'};
-import coverInput from '../data/cover.generated.json' with {type:'json'};
 import atlases from '../data/signAtlases.json' with {type:'json'};
 import * as v from 'valibot';
 import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, SpecimenAssetSchema } from '@wildshard/format/specimenCatalogue';
@@ -62,7 +61,6 @@ const cragDecoded=Math.max(...Object.values(cragRows).flatMap(tier=>tier.meshes.
   return part.offset+row.attrs.reduce((bytes,attribute)=>bytes+row.count*attribute[2]*4,0)+(row.index===null?0:row.indexCount*4);
 })));
 export const DRESSING_CRAG_DECODED=cragDecoded;
-const cover=v.parse(coverSchema,coverInput);
 // The owning runtime preparation supplies place anchors and baked camp smoke.
 const spot=v.object({x:number,y:number,z:number}),placedSchema=v.object({places:v.object({rows:v.array(v.object({name:text,
   anchors:v.optional(v.object({entrance:v.exactOptional(v.object({...spot.entries,facing:number})),ledges:v.exactOptional(v.array(v.object({...spot.entries,r:number}))),
@@ -95,7 +93,7 @@ const preparedContacts=(inputs:readonly unknown[],source:ContactSource)=>{
 
 
 /** Existing baked shapes and placements become Z2 rows; no page-side scatter or model constructors. */
-function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<typeof decorativeProfiles>,input:ReturnType<typeof readPreparedDressing>,balbal:v.InferOutput<typeof balbalSchema>,specimens:v.InferOutput<typeof specimensSchema>,paint:v.InferOutput<typeof paintSchema>,contactSource:ContactSource=inlineContact,clothSource:ClothSource=inlineCloth) {
+function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<typeof decorativeProfiles>,input:ReturnType<typeof readPreparedDressing>,balbal:v.InferOutput<typeof balbalSchema>,specimens:v.InferOutput<typeof specimensSchema>,paint:v.InferOutput<typeof paintSchema>,cover:v.InferOutput<typeof coverSchema>,contactSource:ContactSource=inlineContact,clothSource:ClothSource=inlineCloth) {
   const {prepared,scenes,placed}=input;
   const phone=tier==='phone',profile=cover[tier];
   const geometry:Record<string,unknown>={},materials:Record<string,unknown>={},addresses:number[]=[];
@@ -200,7 +198,7 @@ function clothGeometry(prepared:ReturnType<typeof readPreparedDressing>['prepare
 }
 
 /** Supplied profiles retain exact tier rows; hulls and cloth share content-addressed binary loans. */
-export function dressingSceneBlobs(input:unknown,runtime:unknown,balbal:unknown,specimens:unknown,paintRows:unknown):ReturnType<typeof nameBlob>[] {
+export function dressingSceneBlobs(input:unknown,runtime:unknown,balbal:unknown,specimens:unknown,paintRows:unknown,coverRows:unknown):ReturnType<typeof nameBlob>[] {
   const profiles=v.parse(decorativeProfiles,input),prepared=readPreparedDressing(runtime),binaries=new Map<string,ReturnType<typeof nameBlob>>();
   const source:ContactSource=raw=>{
     const bytes=zlibSync(raw),file=`world/dressing-contacts/${hashImmutableBytes(bytes)}.bin`;
@@ -212,12 +210,12 @@ export function dressingSceneBlobs(input:unknown,runtime:unknown,balbal:unknown,
     if(!binaries.has(file))binaries.set(file,nameBlob(file,'bin',bytes,{decoded:raw.byteLength}));
     return{kind:'baked-file',file};
   };
-  const tiers=(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier,profiles,prepared,v.parse(balbalSchema,balbal),v.parse(specimensSchema,specimens),v.parse(paintSchema,paintRows),source,cloth);return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:namedJsonSchema(SceneDressingSchema)}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});
+  const tiers=(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier,profiles,prepared,v.parse(balbalSchema,balbal),v.parse(specimensSchema,specimens),v.parse(paintSchema,paintRows),v.parse(coverSchema,coverRows),source,cloth);return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:namedJsonSchema(SceneDressingSchema)}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});
   return[...tiers,...binaries.values()];
 }
 
 /** Admitted tier rows from caller-owned runtime metadata for catalogue and format consumers. */
-export function dressingScene(tier:'phone'|'desktop',input:unknown,runtime:unknown,balbal:unknown,specimens:unknown,paintRows:unknown):SceneDressingRows{return compileDressingScene(tier,v.parse(decorativeProfiles,input),readPreparedDressing(runtime),v.parse(balbalSchema,balbal),v.parse(specimensSchema,specimens),v.parse(paintSchema,paintRows)).rows;}
+export function dressingScene(tier:'phone'|'desktop',input:unknown,runtime:unknown,balbal:unknown,specimens:unknown,paintRows:unknown,coverRows:unknown):SceneDressingRows{return compileDressingScene(tier,v.parse(decorativeProfiles,input),readPreparedDressing(runtime),v.parse(balbalSchema,balbal),v.parse(specimensSchema,specimens),v.parse(paintSchema,paintRows),v.parse(coverSchema,coverRows)).rows;}
 
 /** Decorative poses keep the existing visual programs and RNG continuation; none owns gameplay actors. */
 function bowlScene(tier:'phone'|'desktop',data:v.InferOutput<typeof decorativeProfile>,geometry:Record<string,unknown>,materials:Record<string,unknown>,prepared:ReturnType<typeof readPreparedDressing>['prepared'],specimens:v.InferOutput<typeof specimensSchema>,paint:v.InferOutput<typeof paintSchema>){

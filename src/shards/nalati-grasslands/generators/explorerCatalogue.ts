@@ -1,5 +1,5 @@
 import ecology from '../data/ecology.generated.json' with {type:'json'};
-import cover from '../data/cover.generated.json' with {type:'json'};
+import { COVER_FLOCKS } from './coverBake.mjs';
 import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
 import PEOPLE from '../data/peopleVariants.json' with {type:'json'};
 import { peopleRows } from './peopleRows.mjs';
@@ -129,7 +129,7 @@ export const EXPLORER_CATALOGUE: ReturnType<typeof parseExplorerCatalogue> = par
       ]
     },
     {kind:'cloud',id:'nalati-grasslands/storm-titan',name:'Jel Ata, the Storm Titan',json:'models/cloud-specimen.json',file:'src/shards/nalati-grasslands/generators/explorerCatalogue.ts',category:'creatures',pipeline:'code',copies:1,drawnAs:'instanced'},
-    ...(['butterfly','raptor']as const).map(model=>({kind:'specimen',books:{phone:'models/cover-phone.json',desktop:'models/cover-desktop.json'},model,drawnAs:'instanced',tierCopies:model==='raptor'?{phone:cover.raptors,desktop:cover.raptors}:cover.butterflies})),
+    ...(['butterfly','raptor']as const).map(model=>({kind:'specimen',books:{phone:'models/cover-phone.json',desktop:'models/cover-desktop.json'},model,drawnAs:'instanced',tierCopies:model==='raptor'?{phone:COVER_FLOCKS.raptors,desktop:COVER_FLOCKS.raptors}:COVER_FLOCKS.butterflies})),
     {kind:'specimen',books:{phone:'models/cover-phone.json',desktop:'models/cover-desktop.json'},model:'reins',copies:1},
     {kind:'kit-figure',id:'nalati-grasslands/camp-people',name:'Camp people',file:'src/shards/nalati-grasslands/generators/explorerCatalogue.ts',category:'people',
       pipeline:['hunyuan','code'],surface:'flesh',copies:PEOPLE.length,drawnAs:'skinned',atlases:campAtlases},

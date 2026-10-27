@@ -6,10 +6,12 @@ import { readProjectAssets } from '../src/sdk/project';
 import { readSceneNumericTable as readDressingTable } from '../src/game/shardfile/sceneDressing';
 import { DRESSING_SCHEMAS } from '../src/shards/nalati-grasslands/generators/dressingSchemas';
 import { SceneScatterPoseSchema } from '../src/format/sceneDressing';
-import cover from '../src/shards/nalati-grasslands/boot/cover.generated.json' with { type: 'json' };
+import { nalatiCover } from './fixtures/nalati-cover';
 import { AmbientGroup } from '../src/game/ambient/flock';
 import { SpecimenCatalogueSchema } from '../src/format/specimenCatalogue';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
+
+const cover = nalatiCover.rows;
 
 // Prepare the complete live source product before the unchanged timed
 // assertions; compiler/native setup failures still refuse collection.

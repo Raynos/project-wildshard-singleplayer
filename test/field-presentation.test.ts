@@ -10,9 +10,11 @@ import { compileGraph } from '../src/engine/render/graph/compile';
 import { scatterLayer, captureScatterSource, instanceBoxes } from '../src/engine/render/scatterInstances';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { AmbientWingField } from '../src/game/ambient/wingField';
-import cover from '../src/shards/nalati-grasslands/boot/cover.generated.json' with { type: 'json' };
+import { nalatiCover } from './fixtures/nalati-cover';
 import view from '../src/shards/nalati-grasslands/data/grassView.json' with { type: 'json' };
 import capture from '../src/shards/nalati-grasslands/data/staticCapture.json' with { type: 'json' };
+
+const cover = nalatiCover.rows;
 
 const files=new Map<string,Uint8Array>();
 const encoded = (name:string,array:Uint8Array):{file:string}=>{files.set(name,zlibSync(array));return {file:name};};

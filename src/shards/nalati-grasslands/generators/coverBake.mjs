@@ -1,7 +1,5 @@
-// Small-model construction runs offline; the client borrows immutable packed shapes.
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { deflateSync } from 'node:zlib';
+// GR6: Nalati's ambient cover at build time (the retired nalati-cover job's construction): the small models' packed
+// shapes, catalogue and life rows per tier, and the boulder atlases. The client borrows the packed shapes as product files.
 import * as THREE from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { fitRock } from './fittedRock.ts';
@@ -9,20 +7,37 @@ import { wingGeo, halfBirdGeo, buildMarmotGeometry } from './ambientGeometry.ts'
 import { writeGeometry, join } from './geometryWriter.ts';
 import { bakeDressing } from './dressingGeometryRows.ts';
 import { bakeModelPaint } from './modelPaint.mjs';
-import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
+import sites from '../data/ambientSites.json' with { type: 'json' };
 
-const root = resolve(import.meta.dirname, '../../../..'), shard = resolve(import.meta.dirname, '..');
+/** The authored boulder models the cover paints (committed under public/), by name and tier. */
+const ROCKS = {
+  'boulder-1': { desktop: '/assets/nalati/models/boulder-1.glb', phone: '/assets/nalati/models/boulder-1.phone.glb' },
+  'boulder-2': { desktop: '/assets/nalati/models/boulder-2.glb', phone: '/assets/nalati/models/boulder-2.phone.glb' },
+  'boulder-3': { desktop: '/assets/nalati/models/boulder-3.glb', phone: '/assets/nalati/models/boulder-3.phone.glb' },
+};
+/** The boulders' atlases (committed under public/: the painted models' own WebP images, checked against them here). */
+const ATLASES = { 'boulder-1': '/assets/nalati/baked/cover-boulder-1.webp', 'boulder-2': '/assets/nalati/baked/cover-boulder-2.webp',
+  'boulder-3': '/assets/nalati/baked/cover-boulder-3.webp' };
+/** The flocks' sizes (the Explorer's specimen counts read them too). */
+export const COVER_FLOCKS = { butterflies: { phone: 14, desktop: 30 }, raptors: 3 };
+/** Every committed input the cover reads, for the build cache. */
+export const COVER_INPUTS = [...Object.values(ROCKS).flatMap(row => [row.desktop, row.phone]), ...Object.values(ATLASES)];
+/** The packed shapes' product file per tier (raw words; the product transport compresses them). */
+export const coverBinName = tier => `models/cover-${tier}.bin`;
+
+/** Build the cover from its committed inputs (`read(url)` returns one of COVER_INPUTS): `rows` (the tier profiles,
+ *  materials and flock facts) and `bins` (each tier's packed shapes by product name). */
+export async function nalatiCoverBake(read) {
 const paintedModels = new Map();
 async function paintedModelBytes(name, phone = false) {
-  const file = `${name}${phone ? '.phone' : ''}.glb`;
+  const file = phone ? ROCKS[name].phone : ROCKS[name].desktop;
   let bytes = paintedModels.get(file);
   if (bytes === undefined) {
-    bytes = Buffer.from(await bakeModelPaint(readFileSync(resolve(root, 'public/assets/nalati/models', file)), name));
+    bytes = await bakeModelPaint(read(file), name);
     paintedModels.set(file, bytes);
   }
   return bytes;
 }
-const read = path => JSON.parse(readFileSync(resolve(shard, path), 'utf8'));
 const dressing = bakeDressing(), raw = dressing.bin;
 const bytesOf = geometry => geometry.attrs.reduce((sum, [, type, size]) => sum + Math.ceil(geometry.count * size * (type === 'f32' ? 4 : type === 'u8' || type === 'i8' ? 1 : 2) / 4) * 4, 0) + geometry.indexCount * 4;
 const sources = new Map(); let offset = 0;
@@ -37,7 +52,7 @@ for (const tier of ['phone', 'desktop']) for (const [name, model, half] of [['bo
   const row = writeGeometry(geometry, parts, name); sources.set(`dressing:${tier}:${name}`, { geometry: row, bytes: join(parts) }); geometry.dispose();
   loaded.gltf.scene.traverse(child => { if (child instanceof THREE.Mesh) { child.geometry.dispose(); for (const material of Array.isArray(child.material) ? child.material : [child.material]) material.dispose(); } });
 }
-const file = 'src/shards/nalati-grasslands/generators/bake-cover.mjs';
+const file = 'src/shards/nalati-grasslands/generators/coverBake.mjs';
 const materials = {
   rock: { id: 'nalati-dress-rock', family: 'painterly', rim: 0.3, bands: 0.8 },
   shrub: { id: 'nalati-dress-shrub', family: 'painterly', rim: 0.5, bands: 0.7, sway: 0.05 },
@@ -48,7 +63,6 @@ const materials = {
   marmot: { id: 'nalati-marmot', family: 'painterly', rim: 0.8, bands: 0.85 },
 };
 const hue = ['#f08a2a', '#f4f1e2', '#7fa0f0', '#f2d23c', '#f4f1e2', '#e9702a'];
-const sites = read('data/ambientSites.json');
 const flock = (seed, count, scale, centre, radius, altitude, speed, butterfly = false) => ({
   seed, count, scale, foot: 0.35, wingbeat: 'beat',
   flight: { wave: 0.7, amplitude: butterfly ? 0.2 : 3, pitch: 0.7, pitchRate: 4, bank: 0.5, bankLimit: 0.75, bankRate: 2.5 },
@@ -58,7 +72,7 @@ const flock = (seed, count, scale, centre, radius, altitude, speed, butterfly = 
   perch: butterfly ? { share: 0.25, flush: 2.2, flushJitter: [1, 1], settle: 0.3, clear: 4, idle: [0.6, 2.2], every: [3, 7], hop: { chance: 0, duration: 0.3, height: 0.2, turn: 0.9 }, head: { rate: 0, range: 0, duration: [0.3, 0.3] }, takeoff: { duration: 1.2, out: 5, up: 2, beats: 6, bank: 0.2 }, landing: { speed: 1.3, minimum: 1, rise: 0.6, flare: 0.8, bank: 0.2 } } : null,
   guide: null, call: null, scavenge: null, visit: null, channels: [['flap', 0, 0, 0], null], attributes: ['aAnim', null], system: { id: `ambient.${seed}`, after: [], before: [] },
 });
-const profiles = {};
+const profiles = {}, bins = new Map();
 for (const phone of [true, false]) {
   const blocks = [], rows = [], catalogue = [];
   const add = (key, name, shape, material, params = {}, variants = [], id = key, category = 'nature') => {
@@ -96,10 +110,8 @@ for (const phone of [true, false]) {
   add('raptor', 'Raptor', p => pair(halfBirdGeo, 0.4, p.scale, new THREE.Color(1, 1, 1), 0.05, 0.32), 'raptor', { scale: 1.3 }, [{ id: 'kite', label: 'Kite', params: { scale: 1.3 } }, { id: 'eagle', label: 'Eagle', params: { scale: 1.7 } }], 'raptor', 'creatures');
   add('marmot', 'Grey marmot', () => buildMarmotGeometry(), 'marmot', {}, [], 'marmot', 'creatures');
   for (const [key, build, material] of [['wing', wingGeo, 'butterfly'], ['halfBird', halfBirdGeo, 'raptor'], ['marmot', buildMarmotGeometry, 'marmot']]) { const geometry = build(); rows.push({ key, parts: [{ material, geometry: writeGeometry(geometry, blocks, key) }] }); geometry.dispose(); }
-  const bin = join(blocks), shuffled = new Uint8Array(bin.length), n = bin.length / 4;
-  for (let b = 0; b < 4; b++) for (let i = 0; i < n; i++) shuffled[b * n + i] = bin[i * 4 + b];
-  const tier = phone ? 'phone' : 'desktop', url = `/assets/nalati/baked/cover-${tier}.bin`;
-  profiles[tier] = { catalogue, packed: { bin: url, bytes: bin.length, rows } };
+  const bin = join(blocks), tier = phone ? 'phone' : 'desktop';
+  profiles[tier] = { catalogue, packed: { bin: { file: coverBinName(tier), bytes: bin.length }, bytes: bin.length, rows } };
   profiles[tier].life = [
     { kind: 'butterfly', perches: sites, row: { ...flock(0xb077, phone ? 14 : 30, 2.8, { x: 0, z: 0 }, 6, 0.7, 1.3, true), wheeling: null, perch: null,
       visit: { enter: [0, 1], stay: [0, 1], every: 0.001, near: [2.2, 45], from: { kind: 'behind', back: 4, up: 1 }, speed: 1.3, lift: 0.6, approach: [0, 0], cling: 0, sag: 0.1,
@@ -108,17 +120,16 @@ for (const phone of [true, false]) {
         depart: { distance: 8, up: [1, 2], speed: 4.5, lift: 1, spread: 0.8 } } } },
     ...[{ x: 60, z: 140, alt: 30, r: 48 }, { x: -60, z: -110, alt: 34, r: 40 }, { x: 110, z: -60, alt: 40, r: 34 }].map((spot, i) => ({ kind: 'raptor', perches: [], row: flock(0x9011e + i, 1, i === 2 ? 1.7 : 1.3, { x: spot.x, z: spot.z }, spot.r, spot.alt, 9) })),
   ];
-  profiles[tier].bytes = shuffled;
+  bins.set(coverBinName(tier), bin);
 }
-const writer = byteWriter(process.argv.includes('--check'), 'nalati-cover');
 for (const name of ['boulder-1', 'boulder-2', 'boulder-3']) {
-  const glb = await paintedModelBytes(name), size = glb.readUInt32LE(12), document = JSON.parse(glb.subarray(20, 20 + size).toString()), binary = 28 + size;
-  const image = document.images[0], view = document.bufferViews[image.bufferView], url = `/assets/nalati/baked/cover-${name}.webp`;
+  const glb = await paintedModelBytes(name), header = new DataView(glb.buffer, glb.byteOffset, glb.byteLength), size = header.getUint32(12, true);
+  const document = JSON.parse(new TextDecoder().decode(glb.subarray(20, 20 + size))), binary = 28 + size;
+  const image = document.images[0], view = document.bufferViews[image.bufferView], url = ATLASES[name];
   if (image.mimeType !== 'image/webp') throw new Error('Prepared cover atlas must be WebP');
-  writer.put(resolve(root, `public${url}`), glb.subarray(binary + (view.byteOffset ?? 0), binary + (view.byteOffset ?? 0) + view.byteLength));
+  const atlas = glb.subarray(binary + (view.byteOffset ?? 0), binary + (view.byteOffset ?? 0) + view.byteLength), committed = read(url);
+  if (atlas.length !== committed.length || atlas.some((value, i) => value !== committed[i])) throw new Error(`Committed cover atlas differs from its painted model: ${url}`);
   materials[name] = { id: `nalati-cover-${name}`, family: 'painterly', rim: 0.3, bands: 0.8, texture: { url, phoneUrl: url, name } };
 }
-for (const [tier, profile] of Object.entries(profiles)) { writer.put(resolve(root, `public/assets/nalati/baked/cover-${tier}.bin`), deflateSync(profile.bytes, { level: 9 })); delete profile.bytes; }
-writer.put(resolve(shard, 'boot/cover.generated.json'), jsonBytes({ ...profiles, materials, butterflies: { phone: 14, desktop: 30 }, hue, flyScale: 2.8, raptors: 3 }));
-writer.put(resolve(shard, 'data/cover.generated.json'), jsonBytes({ ...profiles, materials, butterflies: { phone: 14, desktop: 30 }, hue, flyScale: 2.8, raptors: 3 }));
-writer.finish();
+return { rows: { ...profiles, materials, butterflies: COVER_FLOCKS.butterflies, hue, flyScale: 2.8, raptors: COVER_FLOCKS.raptors }, bins };
+}

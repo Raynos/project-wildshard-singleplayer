@@ -1,12 +1,12 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the complete retained native wire files.
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The original wire uses Node zlib level 9.
 import { deflateSync } from 'node:zlib';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bundle the defining geometry producer in isolation.
-import { relative, resolve } from 'node:path';
+import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
+import { COVER_INPUTS, coverBinName, nalatiCoverBake } from '../src/shards/nalati-grasslands/generators/coverBake.mjs';
 import { build } from 'vite';
 import { bakeDressing } from '../src/shards/nalati-grasslands/generators/dressingGeometryRows';
 import { encodeNalatiPart } from '../src/shards/nalati-grasslands/generators/placeWire';
@@ -53,32 +53,42 @@ test('native geometry construction has no scene material or runtime dependency',
 });
 
 
-for (const omit of [true, false]) {
-  test(`the native cover reader ${omit ? 'refuses omitted geometry source' : 'preserves every original file without dressing handoffs'}`, async () => {
-    const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'nalati-cover');
-    if (job === undefined) throw new Error('Missing native cover producer');
-    const source = 'src/shards/nalati-grasslands/generators/dressingGeometryRows.ts';
-    expect(job.inputRoots).toContain(source);
-    const cacheDir = mkdtempSync(resolve('tmp/nalati-cover-owned-'));
-    try {
-      if (omit) {
-        const descriptor = { ...job, inputRoots: job.inputRoots.filter(file => file !== source) };
-        const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
-        const catalog = v.parse(v.object({ schema: v.string(), notice: v.string(), jobs: v.array(v.unknown()) }), JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));
-        writeFileSync(resolve(root, catalogPath), JSON.stringify({ ...catalog, jobs: catalog.jobs.map(row => typeof row === 'object' && row !== null && Reflect.get(row, 'id') === job.id ? descriptor : row) }));
-        await expect(generateShardJob(root, descriptor, { cacheDir, catalogPath, forceCompare: true })).rejects.toThrow('Generator exited 1');
-      } else {
-        const made = await generateShardJob(root, job, { cacheDir, forceCompare: true });
-        try {
-          expect(Object.keys(made.hashes).sort()).toEqual([...job.outputs].sort());
-          expect(Object.keys(made.hashes).sort()).toEqual(Object.keys(coverPins).sort());
-          for (const [file, pin] of Object.entries(coverPins)) {
-            expect(made.hashes[file], file).toBe(pin.hash);
-            const original = readFileSync(file);
-            expect({ bytes: original.length, hash: hashImmutableBytes(original) }, file).toEqual(pin);
-          }
-        } finally { made.release(); }
-      }
-    } finally { rmSync(cacheDir, { recursive: true, force: true }); }
-  });
-}
+// GR6: the build constructs the cover; re-encoded as the retired job wrote them (lane-shuffled level-9 deflate, the URL
+// rows), its outputs keep every original byte, and an atlas that differs from its painted model refuses.
+const coverInputs = new Map(COVER_INPUTS.map(url => [url, new Uint8Array(readFileSync(`public${url}`))]));
+const coverRead = (inputs: ReadonlyMap<string, Uint8Array>) => (url: string): Uint8Array => { const bytes = inputs.get(url); if (bytes === undefined) throw new Error(`Missing cover input ${url}`); return bytes; };
+test('the build-time cover keeps every original cover file byte', async () => {
+  const made = await nalatiCoverBake(coverRead(coverInputs)), files = new Map<string, Uint8Array>();
+  for (const tier of ['phone', 'desktop'] as const) {
+    const raw = made.bins.get(coverBinName(tier));
+    if (raw === undefined) throw new Error(`Missing ${tier} cover shapes`);
+    const words = raw.length / 4, lanes = new Uint8Array(raw.length);
+    for (let b = 0; b < 4; b++) for (let i = 0; i < words; i++) lanes[b * words + i] = raw[i * 4 + b] ?? 0;
+    files.set(`public/assets/nalati/baked/cover-${tier}.bin`, new Uint8Array(deflateSync(lanes, { level: 9 })));
+  }
+  // the retired job named its own script as each model's file and the public shape banks as the packed URLs
+  const tierRows = (tier: 'phone' | 'desktop'): unknown => {
+    const catalogue: unknown[] = [];
+    for (const row of made.rows[tier].catalogue) {
+      const parsed = v.parse(v.looseObject({ model: v.looseObject({}) }), row);
+      catalogue.push({ ...parsed, model: { ...parsed.model, file: 'src/shards/nalati-grasslands/generators/bake-cover.mjs' } });
+    }
+    return { ...made.rows[tier], catalogue, packed: { ...made.rows[tier].packed, bin: `/assets/nalati/baked/cover-${tier}.bin` } };
+  };
+  const legacy = { phone: tierRows('phone'), desktop: tierRows('desktop'), materials: made.rows.materials, butterflies: made.rows.butterflies,
+    hue: made.rows.hue, flyScale: made.rows.flyScale, raptors: made.rows.raptors };
+  const json = new TextEncoder().encode(`${JSON.stringify(legacy, null, 2)}\n`);
+  files.set('src/shards/nalati-grasslands/boot/cover.generated.json', json); files.set('src/shards/nalati-grasslands/data/cover.generated.json', json);
+  for (const name of ['boulder-1', 'boulder-2', 'boulder-3']) { const url = `/assets/nalati/baked/cover-${name}.webp`; files.set(`public${url}`, coverRead(coverInputs)(url)); }
+  expect([...files.keys()].sort()).toEqual(Object.keys(coverPins).sort());
+  for (const [file, pin] of Object.entries(coverPins)) {
+    const bytes = files.get(file);
+    if (bytes === undefined) throw new Error(`Missing cover file ${file}`);
+    expect({ bytes: bytes.length, hash: hashImmutableBytes(bytes) }, file).toEqual(pin);
+  }
+});
+test('a committed cover atlas that differs from its painted model refuses', async () => {
+  const url = '/assets/nalati/baked/cover-boulder-2.webp', bytes = coverRead(coverInputs)(url).slice();
+  bytes[bytes.length - 1] = (bytes[bytes.length - 1] ?? 0) ^ 1;
+  await expect(nalatiCoverBake(coverRead(new Map([...coverInputs, [url, bytes]])))).rejects.toThrow('Committed cover atlas differs');
+});

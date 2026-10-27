@@ -9,6 +9,7 @@ import {prepareSpecimenCatalogue} from '../src/game/models/specimenCatalogue';
 import {reinsCardBinary} from '../src/shards/nalati-grasslands/generators/reinsCard';
 import {coverSpecimenBlobs} from '../src/shards/nalati-grasslands/generators/coverSpecimens';
 import reins from '../src/shards/nalati-grasslands/data/reins.json' with {type:'json'};
+import { nalatiCover } from './fixtures/nalati-cover';
 
 type Book=ReturnType<typeof parse<typeof SpecimenBookSchema>>;
 const encode=(input:unknown):Uint8Array=>new TextEncoder().encode(encodeCanonicalJson(input));
@@ -48,7 +49,7 @@ test('raw producer calls own detached bytes and declarations',()=>{
 });
 
 test('both complete cover books share one admitted binary and retain every predecessor field',()=>{
-  const blobs=coverSpecimenBlobs(),binary=blobs.find(row=>row.file.name==='models/specimens/reins.bin');
+  const blobs=coverSpecimenBlobs(nalatiCover),binary=blobs.find(row=>row.file.name==='models/specimens/reins.bin');
   if(binary===undefined)throw new Error('Missing published reins');
   expect(blobs.map(row=>row.file.name).sort((a,b)=>(a??'').localeCompare(b??''))).toEqual(['models/cover-desktop.json','models/cover-phone.json','models/gear-book.json','models/specimens/reins.bin']);
   expect([binary.bytes.byteLength,hashImmutableBytes(binary.bytes)]).toEqual([3024,'bf5749fc2dd6f8160197c903a85a8ac293f5eaf709126c2eded4ad0f9ce57714']);
@@ -67,7 +68,7 @@ test('both complete cover books share one admitted binary and retain every prede
 });
 
 test('the real specimen intake prepares both tiers and refuses missing, truncated or retired loans',async()=>{
-  const blobs=coverSpecimenBlobs(),binary=blobs.find(row=>row.file.name==='models/specimens/reins.bin');
+  const blobs=coverSpecimenBlobs(nalatiCover),binary=blobs.find(row=>row.file.name==='models/specimens/reins.bin');
   if(binary===undefined||binary.file.name===undefined)throw new Error('Missing raw reins');
   for(const tier of ['phone','desktop']as const){
     const file=blobs.find(row=>row.file.name===`models/cover-${tier}.json`);if(file===undefined)throw new Error('Missing book');

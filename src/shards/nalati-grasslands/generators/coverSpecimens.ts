@@ -3,7 +3,8 @@ import { SpecimenBookSchema } from '@wildshard/format/specimenCatalogue';
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { nameBlob } from '@wildshard/sdk/blobs';
-import cover from '../data/cover.generated.json' with {type:'json'};
+import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import { COVER_INPUTS, coverBinName, nalatiCoverBake, type NalatiCover } from './coverBake.mjs';
 import gear from '../data/gear.generated.json' with {type:'json'};
 import { reinsCardBinary } from './reinsCard';
 
@@ -15,11 +16,19 @@ const SHEEP = { key: 'sheep', model: { id: 'nalati-grasslands/sheep', name: 'Fat
 
 /** The Explorer admits the prepared ambient cards, the baked reins card and the sheep without a shard builder module; the
  *  gear book (one for both tiers) is the held gear's catalogue, read by the Explorer and the entered arsenal alike. */
-export function coverSpecimenBlobs():ReturnType<typeof nameBlob>[] {
+/** GR6: the cover at build time (the retired nalati-cover job's construction) over its committed inputs, read through the
+ *  build cache. */
+export async function nalatiCoverProgram(ctx:Pick<ProjectGenerationContext,'cached'>):Promise<NalatiCover> {
+  const files=await ctx.cached({id:'cover-sources',inputs:COVER_INPUTS},read=>new Map(COVER_INPUTS.map(url=>{
+    const bytes=read.get(url);if(bytes===undefined||bytes.length===0)throw new Error(`Missing cover input ${url}`);return[url,bytes];})));
+  return nalatiCoverBake(url=>{const bytes=files.get(url);if(bytes===undefined)throw new Error(`Missing cover input ${url}`);return bytes;});
+}
+export function coverSpecimenBlobs(cover:NalatiCover):ReturnType<typeof nameBlob>[] {
   const reins=reinsCardBinary(),row=reins.book.rows[0];
   if(row?.source.kind!=='file')throw new Error('Missing native reins declaration');
   const binary=nameBlob(row.source.file,'bin',reins.bytes);
   const book=(name:string,input:unknown,dependencies:readonly string[]=[])=>nameBlob(name,'json',new TextEncoder().encode(encodeCanonicalJson(v.parse(SpecimenBookSchema,input))),{jsonSchema:namedJsonSchema(SpecimenBookSchema),dependencies});
-  return[binary,...(['phone','desktop']as const).map(tier=>book(`models/cover-${tier}.json`,{rows:[...cover[tier].catalogue,...reins.book.rows,SHEEP],packed:cover[tier].packed,materials:cover.materials},[binary.file.hash])),
+  const packed=(['phone','desktop']as const).map(tier=>{const bytes=cover.bins.get(coverBinName(tier));if(bytes===undefined)throw new Error(`Missing ${tier} cover shapes`);return nameBlob(coverBinName(tier),'bin',bytes);});
+  return[binary,...packed,...(['phone','desktop']as const).map((tier,i)=>book(`models/cover-${tier}.json`,{rows:[...cover.rows[tier].catalogue,...reins.book.rows,SHEEP],packed:cover.rows[tier].packed,materials:cover.rows.materials},[binary.file.hash,...(packed[i]===undefined?[]:[packed[i].file.hash])])),
     book('models/gear-book.json',{rows:gear.catalogue.map(({key,model,source})=>({key,model,source})),packed:gear.packed,materials:gear.materials})];
 }
