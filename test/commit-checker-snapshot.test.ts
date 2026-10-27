@@ -2,7 +2,7 @@
 import { spawnSync } from 'node:child_process';
 import { expect, test } from 'vitest';
 
-test('committed checker entry ignores staged/loose poison while ordinary source remains live', () => {
+test('explicit checker units and the active wrapper preserve their own source contracts', () => {
   const result = spawnSync('python3', ['-m','unittest','discover','-s','test','-p','test_commit_checker_snapshot.py'], {encoding:'utf8'});
   expect(result.error).toBeUndefined();
   expect(result.status,result.stdout+result.stderr).toBe(0);

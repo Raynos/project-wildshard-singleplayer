@@ -1,4 +1,4 @@
-"""Real Node imports prove checker-only Git pinning without touching live hooks."""
+"""Explicit controller units and real-wrapper controls without touching live hooks."""
 import os
 from pathlib import Path
 import runpy
@@ -83,6 +83,7 @@ class CheckerSnapshotTest(unittest.TestCase):
             self.put('scripts/precommit-inputs.mjs', """import{writeFileSync}from'node:fs';import{execFileSync}from'node:child_process';
 const file=process.env.WS_COMMIT_HANDOFF_FILE;if(!file)throw Error('missing invocation handoff file');
 writeFileSync(file,JSON.stringify({root:process.cwd(),tree:execFileSync('git',['write-tree'],{encoding:'utf8'}).trim(),step:'candidate types'})+'\\n');""")
+        live_handoff = (self.root / 'scripts/precommit-inputs.mjs').read_text()
         self.put('.githooks/pre-commit', '#!/bin/sh\nexec node scripts/precommit-inputs.mjs\n')
         hook = self.root / '.githooks/pre-commit'
         hook.chmod(0o755)
@@ -91,8 +92,8 @@ writeFileSync(file,JSON.stringify({root:process.cwd(),tree:execFileSync('git',['
         self.git('config', 'core.hooksPath', '.githooks')
         parent = self.git('rev-parse', 'HEAD').stdout.strip()
         self.put('scripts/commit-checker-snapshot.py', "raise RuntimeError('loose controller poison')\n")
-        self.put('scripts/precommit-inputs.mjs', "export const rescue='loose';" if reject
-                 else "throw Error('loose checker poison');")
+        self.put('scripts/precommit-inputs.mjs', live_handoff if handoff else
+                 "export const rescue='loose';" if reject else "throw Error('loose checker poison');")
         self.put('scripts/precommit-related.mjs', "throw Error('loose related poison');")
         self.put('src/user.mjs', "export const value='changed';")
         result = subprocess.run(['bash', str(ROOT / 'scripts/commit.sh'),
@@ -100,19 +101,23 @@ writeFileSync(file,JSON.stringify({root:process.cwd(),tree:execFileSync('git',['
             env=self.env, text=True, capture_output=True, check=False, timeout=15)
         return parent, result
 
-    def test_real_wrapper_pins_parent_and_preserves_uncommitted_checker_poison(self):
+    def test_real_wrapper_refuses_live_hook_poison_without_snapshotting_it(self):
         parent, result = self.real_wrapper()
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertNotEqual(self.git('rev-parse', 'HEAD').stdout.strip(), parent)
-        self.assertIn('changed', self.git('show', 'HEAD:src/user.mjs').stdout)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('loose checker poison', result.stdout + result.stderr)
+        self.assertEqual(self.git('rev-parse', 'HEAD').stdout.strip(), parent)
+        self.assertIn('original', self.git('show', 'HEAD:src/user.mjs').stdout)
+        self.assertIn('changed', (self.root / 'src/user.mjs').read_text())
         self.assertIn('loose checker poison', (self.root / 'scripts/precommit-inputs.mjs').read_text())
         self.assertIn('loose controller poison', (self.root / 'scripts/commit-checker-snapshot.py').read_text())
 
-    def test_real_wrapper_keeps_committed_refusal_against_loose_rescue(self):
+    def test_real_wrapper_uses_live_rescue_and_keeps_committed_checker_bytes(self):
         parent, result = self.real_wrapper(reject=True)
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn('committed checker refusal', result.stdout + result.stderr)
-        self.assertEqual(self.git('rev-parse', 'HEAD').stdout.strip(), parent)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertNotEqual(self.git('rev-parse', 'HEAD').stdout.strip(), parent)
+        self.assertIn('changed', self.git('show', 'HEAD:src/user.mjs').stdout)
+        self.assertIn('committed checker refusal', self.git('show', 'HEAD:scripts/precommit-inputs.mjs').stdout)
+        self.assertIn('rescue', (self.root / 'scripts/precommit-inputs.mjs').read_text())
 
 
     def test_gate_handoff_tags_the_exact_tree_and_ignores_nested_fixtures(self):
@@ -140,14 +145,14 @@ writeFileSync(file,JSON.stringify({root:process.cwd(),tree:execFileSync('git',['
             with self.assertRaisesRegex(RuntimeError, 'gate handoff record'):
                 handoff_message(file, self.root, tree, 'test(commit): refuse malformed cap')
 
-    def test_real_wrapper_records_only_the_sealed_named_cap_in_its_message(self):
+    def test_real_wrapper_does_not_publish_retired_handoff_trailers(self):
         parent, result = self.real_wrapper(handoff=True)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertNotEqual(self.git('rev-parse', 'HEAD').stdout.strip(), parent)
-        self.assertIn('Gate-deferred: candidate types', self.git('log', '-1', '--format=%B').stdout)
+        self.assertNotIn('Gate-deferred:', self.git('log', '-1', '--format=%B').stdout)
 
     def test_real_wrapper_aligns_own_new_intent_entry_and_keeps_foreign_stage(self):
-        _, installed = self.real_wrapper()
+        _, installed = self.real_wrapper(reject=True)
         self.assertEqual(installed.returncode, 0, installed.stdout + installed.stderr)
         self.put('src/new.mjs', 'export const value=2;')
         self.put('src/peer.mjs', 'export const peer=3;')
