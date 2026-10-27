@@ -9,7 +9,9 @@ import { originalBridgeDecks } from './driftwoodBridge.mjs';
 
 /** Shapes that keep exact float positions (iPhone downloads I3): the cover and held / effect looks read object-space
  *  position (`positionLocal` / `positionGeometry`, data/lookGraphs.json), which a grid node would change. */
-export const EXACT_SHAPES = /^(cover-|gull$|iron-sword-|castaway-smoke$|shrine-fireflies$|waterfall-|npc-castaway-flames$)/u;
+const EXACT_SHAPES = /^(cover-|gull$|iron-sword-|castaway-smoke$|shrine-fireflies$|waterfall-|npc-castaway-flames$)/u;
+/** Whether shape `id` keeps exact float positions (`EXACT_SHAPES`; the tile-bake oracle reads it). */
+export function exactShape(id: string): boolean { return EXACT_SHAPES.test(id); }
 
 /** Original static world draws and own-space equipment/cover templates; each source draw is assembled exactly once. */
 export function driftwoodScene(project: string, head: BufferGeometry, aoBytes: Uint8Array): { baked: BakedScene; fixed: ReturnType<typeof driftwoodFixedSource> } {

@@ -7,7 +7,7 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { assembleWholeGeometryViews } from '../src/game/plugin/geometry';
-import { EXACT_SHAPES, driftwoodScene } from '../src/shards/driftwood-isle/generators/scene';
+import { driftwoodScene, exactShape } from '../src/shards/driftwood-isle/generators/scene';
 
 const ordinals = v.union([v.array(v.number()), v.strictObject({ runs: v.array(v.number()) })]);
 const partition = v.object({ id: v.string(), vertices: ordinals, triangles: ordinals,
@@ -34,14 +34,14 @@ test('the compact Driftwood tile bake reconstructs every original world draw (no
       loaded.scene.traverse(node => { if (isMesh(node)) meshes.push(node); });
     }
     // iPhone downloads I3 (c457a244d6): a compact world shape ships its positions as Int16 on one grid per shape, which every
-    // partition of it declares; a shape drawn through an object-space look (EXACT_SHAPES) declares none and stays bit exact
+    // partition of it declares; a shape drawn through an object-space look (exactShape) declares none and stays bit exact
     const grids = new Map<string, number>();
     for (const mesh of meshes) {
       const row = v.parse(partition, mesh.userData['wholePartition']);
       expect(Array.isArray(row.vertices)).toBe(false);
       expect(Array.isArray(row.triangles)).toBe(false);
       if (row.grid === undefined) { expect(grids.has(row.id), `${row.id} grid on every partition`).toBe(false); continue; }
-      expect(EXACT_SHAPES.test(row.id), `${row.id} is an exact shape`).toBe(false);
+      expect(exactShape(row.id), `${row.id} is an exact shape`).toBe(false);
       expect(grids.get(row.id) ?? row.grid.step, `${row.id} one grid`).toBe(row.grid.step);
       grids.set(row.id, row.grid.step);
     }
