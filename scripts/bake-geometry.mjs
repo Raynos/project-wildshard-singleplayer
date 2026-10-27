@@ -30,11 +30,7 @@ if (tierArg === undefined) {
   const scratch = mkdtempSync(join(tmpdir(), 'bake-geometry-'));
   let failed = false;
   try {
-    if (only.length === 0 || only.includes('driftwood-isle')) {
-      const run = spawnSync(process.execPath, [...process.execArgv, resolve(ROOT, 'src/shards/driftwood-isle/generators/bake-rock-scenes.mjs'),
-        ...(verify || check ? ['--check'] : [])], { cwd: ROOT, stdio: 'inherit' });
-      if (run.status !== 0) failed = true;
-    }
+    // Driftwood's rocks are built in its product (generators/rockBank.ts, GR7), not baked here.
     for (const [slug, out] of Object.entries(OUTPUT)) {
       if (only.length > 0 && !only.includes(slug)) continue;
       const merged = new Map();
