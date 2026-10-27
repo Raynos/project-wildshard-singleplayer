@@ -19,9 +19,7 @@ import { portalLookRows } from './portalLook';
 // and layout-set tiles. The world's banyan crown, the Well's mist, the painted sky and the scroll screen are one
 // `dressing` scene step over the same tiles and two owned shapes.
 import * as v from 'valibot';
-import { parseWorldScene } from '@wildshard/format/clientChannels';
-import { parseWorldSceneModels, type WorldSceneModels } from '@wildshard/format/worldSceneModels';
-import { parseWorldScenes } from '@wildshard/format/worldScenes';
+import { worldSceneRecipe as parseWorldScene, worldSceneModels as parseWorldSceneModels, worldSceneRows as parseWorldScenes } from '@wildshard/sdk/worldScenes';
 import { NINE_SHARED } from './sharedRows';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
@@ -38,6 +36,8 @@ import { architectureGraphs } from './architectureGraphs';
 import { lightVolumeRows } from './lightVolumes';
 import paint from '../data/paint.json' with { type: 'json' };
 import canopy from '../data/canopy.json' with { type: 'json' };
+
+type WorldSceneModels = ReturnType<typeof parseWorldSceneModels>;
 
 function buildWorldScenes(layout: NineSourceWorld['layout'], hookMaterial: Parameters<typeof castMaterials>[0], signs: NineSourceSigns, worldRows: NineWorldDeclarations, fine: ReadonlySet<string>): { worldRows: NineWorldDeclarations; SET_TILES: Set<string>; NINE_SCENE_BLOBS: NamedBlob[]; SET_PLACEMENTS: { id: string; model: string; name: string; draw: "instanced"; cull: { bounds: "sphere"; }; piece: { id: string; }; poses: { params?: { turn: number; }; x: number; y: number; z: number; matrix: number[]; }[]; }[]; LION_PLACEMENTS: { id: string; model: string; name: string; draw: "instanced"; cull: { bounds: "sphere"; }; piece: { id: string; }; poses: { color?: number[]; x: number; y: number; z: number; matrix: number[]; }[]; }[]; LAYOUT_PLACEMENTS: ({ id: string; model: string; draw: "merged"; drawnInto: { part: string; boxes: number[]; }; piece: { id: string; }; poses: { x: number; y: number; z: number; yxz: { yaw: number; scale: number; }; variant: string; params: { style: "box" | "paper" | "tube" | "plaque" | "talisman" | "etch" | "banner"; text: string; color: string; vertical: boolean; size: number; blade: boolean; ink?: string; board?: number; gain?: number; }; }[]; } | { id: string; model: string; draw: "instanced"; cull: { bounds: "sphere"; }; piece: { id: string; }; poses: { color?: number[]; x: number; y: number; z: number; matrix: number[]; }[]; } | { id: string; model: string; draw: "merged"; drawnInto: { part: string; boxes: number[]; }; piece: { id: string; }; poses: { params?: Record<string, string | number | boolean>; variant?: string; x: number; y: number; z: number; yxz: { yaw: number; scale: number; }; }[]; } | { id: string; model: string; draw: "merged"; drawnInto: { part: string; boxes: number[]; }; piece: { id: string; name: string; }; poses: { color?: number[]; x: number; y: number; z: number; matrix: number[]; }[]; })[]; NINE_WORLD_SCENES: ReturnType<typeof parseWorldScenes>; LAYOUT_PLACEMENT_BLOBS: NamedBlob[]; } {
 const { rows: SIGN_ATLAS_ROWS, libraries: SIGN_POOL_LIBRARIES } = signs;
