@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// G726 RM2: scripts/browser-lane.sh --max 30 node scripts/capture-night-market-domes.mjs --base=URL --pin=SHA --out=DIR
+// G726 RM2: scripts/browser-lane.sh --max 30 node scripts/capture-night-market-domes.mjs --base=URL --pin=SHA --out=DIR [--milestone=RM2|RM3|END] [--domes=A1,A2,D1,D2] [--clip=<view>]
 // Existing free camera only: no forced tile residency, changed world visibility, lens defaults, fog or far plane.
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, resolve as resolvePath } from 'node:path';
@@ -16,10 +16,14 @@ import { chromiumProcessPeaks, ownedResidencyBytes } from './grid-ready-memory.m
 const argument = (name, fallback = '') => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const base = argument('base'), pin = argument('pin'), out = argument('out'), instance = argument('instance', 'open-plot-nw');
 const milestone = argument('milestone', 'RM2');
-if (!['RM2', 'RM3'].includes(milestone)) throw new Error('Invalid dome milestone');
-const label = milestone === 'RM2' ? 'RM2 BASELINE' : 'RM3 KIT PARITY';
+if (!['RM2', 'RM3', 'END'].includes(milestone)) throw new Error('Invalid dome milestone');
+// END: the plan's G780 end reading (RM5 / RM10 bars) on the remastered kit
+const label = milestone === 'RM2' ? 'RM2 BASELINE' : milestone === 'RM3' ? 'RM3 KIT PARITY' : 'PLAN-END READING';
 if (!base || !/^[a-f0-9]{40}$/u.test(pin) || !out) throw new Error('Requires --base, full --pin and --out');
 const selected = argument('domes', 'A1,A2,D1,D2').split(',');
+// --clip=<view>: that view also as a 5 s clip, ten frames 500 ms apart (RM10's life: lanterns, steam, fireflies, banners)
+const clip = Number(argument('clip', '0'));
+if (!Number.isInteger(clip) || clip < 0 || clip > 9) throw new Error('Invalid clip view');
 if (selected.some(value => !/^[A-D][12]$/u.test(value)) || new Set(selected).size !== selected.length) throw new Error('Invalid dome selection');
 const source = resolvePath('art/grid/round-63-night-market-domes');
 const plans = readdirSync(source, { withFileTypes: true }).filter(row => row.isDirectory()).map(row =>
@@ -129,6 +133,10 @@ try {
         await page.evaluate(text => { document.querySelector('#dome-caption').textContent = text; },
           `${label} · ${plan.dome} · ${view.n} ${view.name} · ${pin.slice(0, 7)}\n${sample.maxCalls} draws · ${sample.maxTriangles} tris · ${(ownBytes / 1048576).toFixed(1)} MiB claims`);
         await page.screenshot({ path: join(folder, `view-${view.n}.jpg`), type: 'jpeg', quality: 74, scale: 'css' });
+        if (view.n === clip) for (let k = 0; k < 10; k++) {
+          await page.waitForTimeout(500);
+          await page.screenshot({ path: join(folder, `clip-${view.n}-${String(k)}.jpg`), type: 'jpeg', quality: 74, scale: 'css' });
+        }
         save();
       }
       row.pageProcessBytes = await processMemory(session);
@@ -136,7 +144,7 @@ try {
       await sharp({ create: { width: 1206, height: 1849, channels: 3, background: '#071521' } }).composite([
         { input: Buffer.from(heading), left: 0, top: 0 },
         ...plan.views.map(view => ({ input: join(folder, `view-${view.n}.jpg`), left: ((view.n - 1) % 3) * 402, top: 40 + Math.floor((view.n - 1) / 3) * 603 })),
-      ]).jpeg({ quality: 72 }).toFile(join(folder, milestone === 'RM2' ? 'sheet-baseline-3x3.jpg' : 'sheet-kit-3x3.jpg'));
+      ]).jpeg({ quality: 72 }).toFile(join(folder, milestone === 'RM2' ? 'sheet-baseline-3x3.jpg' : milestone === 'RM3' ? 'sheet-kit-3x3.jpg' : 'sheet-end-3x3.jpg'));
       row.complete = true; save();
       console.info(JSON.stringify({ dome: row.dome, complete: row.complete, pageProcessBytes: row.pageProcessBytes,
         maxCalls: Math.max(...row.views.map(view => view.sample.maxCalls)), maxTriangles: Math.max(...row.views.map(view => view.sample.maxTriangles)) }));
