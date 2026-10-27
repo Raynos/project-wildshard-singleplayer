@@ -22,9 +22,12 @@ work="$(cd "$(mktemp -d "${TMPDIR:-/tmp}/wildshard-site-deploy.XXXXXX")" && pwd 
 trap 'rm -rf "$work"' EXIT
 git archive HEAD site tsconfig.json package.json | tar -x -C "$work"
 node "$repo/scripts/link-node-modules.mjs" "$repo" "$work" # E432: no whole-folder node_modules symlink
+# E506 RD14: the site's numbers come from the game's files, which the export leaves out: read them in the checkout
+# (CI's checkout is HEAD; by hand, commit first as above)
+node "$repo/site/tools/facts.ts" > "$work/site-facts.json"
 
 echo "deploy-site: building $sha"
-(cd "$work" && SITE_BUILD_SHA="$sha" "$repo/node_modules/.bin/vite" build --config site/vite.config.ts --logLevel warn)
+(cd "$work" && SITE_BUILD_SHA="$sha" SITE_FACTS="$work/site-facts.json" "$repo/node_modules/.bin/vite" build --config site/vite.config.ts --logLevel warn)
 
 # Link the output folder to the project (ids are not secrets; the CLI's own login is the credential).
 mkdir -p "$work/dist-site/.vercel"

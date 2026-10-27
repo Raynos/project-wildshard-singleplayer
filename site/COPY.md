@@ -24,11 +24,11 @@ Project Wildshard · the infinite MMO built by its players
 
 ## Page · image description
 
-The Project Wildshard logo over Sky Reach's floating islands, in engine
+Shards side by side on one grid, seen from the air, in engine
 
 ## Page · description
 
-The infinite MMO in your browser, where every shard of the world is built by a player with Claude or any coding agent.
+The infinite MMO in your browser: one world of shards, each built by a player with Claude or any coding agent.
 
 # Hero
 
@@ -54,11 +54,11 @@ build me a bright island with a pier, a wreck and a shrine
 
 ## Hero · image description
 
-Driftwood Isle in the game: a long pier into a turquoise sea under a ringed planet
+The grid from the air, in engine: Driftwood Isle between Sky Reach and Nalati, joined by roads
 
 ## Hero · image tag
 
-In engine · Driftwood Isle
+In engine · the grid, in testing
 
 ## Hero · kicker
 
@@ -96,7 +96,7 @@ with Claude or any coding agent
 
 ## Hero · status
 
-**Alpha today:** seven single-player shards. **Next:** multiplayer, uploads and creator keys.
+**Alpha today:** seven shards, every one built from data alone. **Next:** one world, then multiplayer and uploads.
 
 ## Trailer · description
 
@@ -114,22 +114,33 @@ An infinite MMO, built by its players.
 
 ## What · intro
 
-Wildshard is an infinite MMO that runs in your browser. Every piece of content is its own shard, built by another player with Claude or any coding agent, and the world grows with every one. Play anything, with anyone: a step beyond a Minecraft server.
+An infinite MMO in your browser. Every shard of it is built by a player with Claude or any coding agent, and the world grows with each one: a step beyond a Minecraft server.
 
 ## What · points
 
 - Explore an open world that never stops growing.
 - Fight, quest and ride together, on desktop or phone.
-- Every shard has its own look, its own rules and its own author.
-- Anyone can add one: describe it to Claude or any coding agent, then bring it into the world.
+- Anyone can add a shard, with its own look and rules: describe it to Claude or any coding agent.
 
 ## Mockup · tag
 
 GPT mockup
 
-## What · painting 1 description
+## What · map description
 
-Concept painting: three travellers on a ruined ledge above a frontier of shards in their own looks, a lagoon, red canyons, snowy peaks, a lava field and floating islands, joined by straight highways
+Concept map, drawn by code: the Heart of the world after a hundred shards, its plots ringed by roads
+
+## What · map tag
+
+Concept · a draft of the world after 100 shards
+
+## What · map note
+
+Every name on this map is made up. None of these shards exist yet.
+
+## What · map link
+
+Explore the map →
 
 # Shards you can play
 
@@ -140,6 +151,10 @@ show me the shards I can play today
 ## Shards · title
 
 Seven shards. Seven looks. One engine.
+
+## Shards · grid note
+
+The grid · in testing
 
 ## Driftwood Isle · prompt
 
@@ -288,7 +303,7 @@ Many authors. One world.
 
 ## Together · intro
 
-A shard is a sealed package of data and baked assets, built against one versioned API. The engine runs every shard the same way, so worlds by different authors sit side by side on one map, with one player, one inventory and one set of rules, and no shard can break another.
+The game is the console, a shard the cartridge: data, baked assets and small sandboxed scripts, never code of its own. The engine runs every shard the same way, so worlds by different authors sit side by side with one player and one set of rules, and none can break another.
 
 ## Together · package heading
 
@@ -429,19 +444,19 @@ The journey so far.
 
 ## Journey · intro
 
-Three weeks, one engine, seven shards, built by two humans and a fleet of agents.
+Six weeks, one engine, seven shards, built by two humans and a fleet of agents.
 
 ## Journey · 1 date
 
-16 Sep 2026
+16–18 Sep 2026
 
 ## Journey · 1 title
 
-Day one: a single shard
+First shards
 
 ## Journey · 1 text
 
-Pine Hollow: a pine forest, a crossbow and a herd of deer, built in a day by Claude Code agents.
+Pine Hollow in a day, then Driftwood Isle.
 
 ## Journey · 1 image description
 
@@ -449,103 +464,103 @@ Pine Hollow, the first shard
 
 ## Journey · 2 date
 
-18 Sep 2026
+22–25 Sep 2026
 
 ## Journey · 2 title
 
-The second shard
+A horse, a city
 
 ## Journey · 2 text
 
-Driftwood Isle, a bright low-poly island with a sword, and a title screen to choose between worlds.
+Nalati on horseback; Nine Dragon, 500 m tall.
 
 ## Journey · 2 image description
 
-Driftwood Isle, the second shard
+Nalati Grasslands
 
 ## Journey · 3 date
 
-22 Sep 2026
+1 Oct 2026
 
 ## Journey · 3 title
 
-On horseback
+One engine
 
 ## Journey · 3 text
 
-Nalati Grasslands: a painted steppe you cross on a horse you tamed.
+Every shard one game; two new shards in a day.
 
 ## Journey · 3 image description
 
-Nalati Grasslands
+Sky Reach, built on the one engine
 
 ## Journey · 4 date
 
-25 Sep 2026
+9 Oct 2026
 
 ## Journey · 4 title
 
-A city 500 metres tall
+The grid, in testing
 
 ## Journey · 4 text
 
-Nine Dragon Stack: a neon city stacked into the sky, Lantern Square halfway up.
+Walk shard to shard. Developer only, for now.
 
 ## Journey · 4 image description
 
-Nine Dragon Stack
+Driftwood Isle from the air, on the grid
 
 ## Journey · 5 date
 
-1 Oct 2026
+20 Oct 2026
 
 ## Journey · 5 title
 
-One engine
+A 5 × 5 world with open plots
 
 ## Journey · 5 text
 
-Every shard became a module of one game, and agents built two new shards on it in a day: Signal Dunes and Sky Reach.
+Open plots round the shards, each with an idea.
 
 ## Journey · 5 image description
 
-Sky Reach, built on the one engine
+Open plots on the grid, each with its idea as a hologram
 
 ## Journey · 6 date
 
-1 Oct 2026
+23 Oct 2026
 
 ## Journey · 6 title
 
-One sentence to a shard
+Every shard on one format
 
 ## Journey · 6 text
 
-The Thin Ice dry run: a single line, "a frozen fjord where you are the last ferryman", to a playable plan.
+About 99,000 lines of one-off code, to zero.
 
 ## Journey · 6 image description
 
-Thin Ice, from one sentence
+Signal Dunes, one of the shards rebuilt as data
 
 ## Journey · 7 date
 
-9 Oct 2026
+24 Oct 2026
 
 ## Journey · 7 title
 
-The grid goes public
+The road between shards
 
 ## Journey · 7 text
 
-Walk from one shard into the next with no loading screen.
+No loading panel between them. In testing.
 
 ## Journey · 7 image description
 
-Driftwood Isle from the air, on the grid
+The road between Pine Hollow, the Template and Nalati
 
 ## Journey · next
 
-Next: multiplayer, uploads, and the infinite world.
+Next: one world for everyone, then multiplayer and uploads.
 
 # Coming worlds
 
@@ -789,11 +804,11 @@ FAQ.
 
 ## FAQ · 1 question
 
-What can I play it on?
+What can I play today?
 
 ## FAQ · 1 answer
 
-Any modern browser, on desktop and phone. No install.
+Any browser, desktop or phone; no install, no account. Not here yet: multiplayer, uploads, creator keys.
 
 ## FAQ · 2 question
 
@@ -893,7 +908,7 @@ Play · Project Wildshard
 
 ## Play page · description
 
-What it's like to play Project Wildshard: seven shards in seven looks, in your browser, free.
+What it is like to play Project Wildshard: seven shards in seven looks, growing into one world, free in your browser.
 
 ## Play · question
 
@@ -1194,11 +1209,10 @@ Coming for players
 
 ## Play · coming
 
-- **Infinite Wildshard:** the shards on one 3 × 3 grid, joined by roads: walk from one into the next, no loading screen. In testing now.
-- **Travel, not teleport:** the hoverboard at 30 m/s on the highway, about 14 m/s inside a shard. No fast travel.
+- **One world, in testing:** all {=shardsWord} shards on one {=side} × {=side} grid with {=plots} open plots, joined by a road: ride from one into the next, no loading screen. Behind Settings ▸ Developer for now.
+- **Travel, not teleport:** the hoverboard at 30 m/s on the road, 14 m/s inside a shard. No fast travel.
 - **Multiplayer:** play a shard with other people, on a server that runs the rules. Rooms of 32; a full shard opens a copy and keeps your party together.
 - **You travel too:** your name, with a title beneath it, and chat: everyone, this shard, and nearby.
-- **The 5 × 5 grid:** 25 shards, most of them built by players.
 
 ## Play · mmo page link
 
@@ -1262,7 +1276,7 @@ Build · Project Wildshard
 
 ## Build page · description
 
-What it is like to build a shard of Project Wildshard with Claude or any coding agent.
+What it is like to build a shard of Project Wildshard, for one shared world, with Claude or any coding agent.
 
 ## Build · question
 
@@ -1308,7 +1322,7 @@ a lighthouse on a storm coast, and a keeper who won't leave
 
 ## Build · status
 
-**Today:** the SDK and its checks build the shards of our own alpha. **When creator keys open:** you install them and build yours.
+**Today:** the SDK and its checks build every shard of our own alpha, with no exceptions. **When creator keys open:** you install them and build yours.
 
 ## Build · you title
 
@@ -1354,7 +1368,7 @@ Keys aren't open yet. Join the waitlist and we'll write when they are. Your key 
 
 ## Build · step 2 text
 
-The SDK is the shard format and four commands: `new`, `build`, `validate`, `dev`. The skill teaches your agent the order to work in: the idea and a playable slice first, the look last.
+The SDK is the shard format and four commands: `new`, `build`, `validate`, `dev`. The skill teaches your agent the order: a playable slice first, the look last.
 
 ## Build · step 2 command
 
@@ -1366,7 +1380,7 @@ wildshard new my-shard
 
 ## Build · step 3 text
 
-Start with one line. Before it builds anything, your agent comes back with pictures: three pitches, a look, a map, first-person views. You pick at every stage. Then it builds the world in grey, so you play it before it's pretty.
+Start with one line; your agent brings pictures first and you pick at every stage. Then it writes the shard: generators that fill the 500 m cell, the look as data, behaviour as small sandboxed scripts. Grey first, so you play it before it's pretty.
 
 ## Build · step 3 link
 
@@ -1374,7 +1388,7 @@ See one sentence become a shard ↓
 
 ## Build · step 4 text
 
-Every build is measured against the shard's budgets, and anything over them refuses to build. Validate then runs your shard with no screen and walks every road in from the edges.
+One path for every shard, ours too: `wildshard build` bakes one package, its ground in tiles that stream in near you, and refuses anything over budget. Validate walks every road in from the edges, with no screen.
 
 ## Build · step 4 terminal
 
@@ -1489,7 +1503,7 @@ A shard has to run on a phone, next to its neighbours. So every build is measure
 
 ## Build · budgets
 
-- **1 GB** memory while you play, 1.8 GB while loading: everything in view, neighbours and engine included.
+- **{=memoryPlaying}** of memory a shard while you play, {=memoryLoading} while loading, engine included.
 - **8 MB** for a shard's shared library, and about 300 KB for each tile of ground.
 - **8 draws** and 40,000 triangles for each tile near you; one draw for a whole shard far away.
 - **¼ frame** for scripts, about 4 ms, in a sandbox with a fuel limit.
@@ -1615,7 +1629,7 @@ Planned for the MMO · not live yet
 
 ## Build · grid description
 
-The first 5 by 5 grid: seven shards and the centre placed, seventeen cells still empty
+A 5 by 5 wish map: seven shards and the centre placed, the other cells open for a wish
 
 ## Build · grid yours
 
@@ -1623,7 +1637,7 @@ Yours?
 
 ## Build · grid note
 
-The first grid · seventeen cells still empty
+A wish map · claim a cell when you join
 
 ## Build · author button
 
@@ -1641,7 +1655,7 @@ The MMO · Project Wildshard
 
 ## MMO page · description
 
-How Project Wildshard works: the shardfile, the grid, the engine and the road to the MMO.
+How Project Wildshard becomes one world: the shardfile, the grid, the engine and the honest road to the MMO.
 
 ## MMO · question
 
@@ -1655,11 +1669,12 @@ How the MMO works.
 
 The technical side, for the curious and for authors: what a shard is, how shards fit together, and how far along the road we are.
 
-<!-- MS31. Every claim on this page comes from a doc or the code; each block's note says where. Status as of 2026-10-10. -->
+<!-- MS31. Every claim on this page comes from a doc or the code; each block's note says where. Status as of 2026-10-27 (E506).
+     {=name} numbers are read from the game's files at build time: site/tools/facts.ts. -->
 
 ## MMO · status
 
-**Today:** a single-player alpha: seven shards, and a 3 × 3 grid you can walk across. **Next:** multiplayer, uploads, creator keys. Every part below says which it is.
+**Today:** a single-player alpha: seven shards, all built from data, on a {=side} × {=side} grid in testing. **Next:** multiplayer, uploads, creator keys. Every part below says which it is.
 
 <!-- The flow: MMO-REQUIREMENTS A2, A3, S1, W6; docs/SHARDFILE.md (the build product); src/sdk/cli.ts (new, dev, build, validate). -->
 
@@ -1752,7 +1767,7 @@ What else is in a shard.json?
 
 ## MMO · shardfile sections note
 
-Version 0.1: 6,018 schema paths, every one in the generated reference. An unknown key fails.
+Version 0.1: {=schemaPaths} schema paths, every one in the generated reference. An unknown key fails.
 
 <!-- Budgets: docs/SHARDFILE.md "Budget-first admission", its section table (budgets, entryways), "Minimal singleplayer load"; src/engine/core/config.ts CONTENT_CAPS. -->
 
@@ -1802,7 +1817,7 @@ Hard caps
 
 ## MMO · budgets step 3 text
 
-Library ≤ 25 MB in memory, 8 MB to download; simulation ≤ 25 MB and 2 MB. The whole page: 1,000 MB playing, 1,800 loading.
+Library ≤ 25 MB in memory, 8 MB to download; simulation ≤ 25 MB and 2 MB. Each shard: {=memoryPlaying} playing, {=memoryLoading} loading.
 
 ## MMO · budgets step 4
 
@@ -1822,7 +1837,7 @@ The simulation runs headless for 240 ticks to measure script CPU and fuel.
 
 ## MMO · budgets note
 
-Built for the phone: an iPhone at 30 fps, inside 1.0 GB
+Built for the phone: an iPhone at 30 fps, inside {=memoryPlaying} a shard
 
 <!-- The sandbox: docs/SCRIPT-ABI.md; MMO-REQUIREMENTS R1, R3, R4 and §7 O4 (AssemblyScript first). -->
 
@@ -1880,7 +1895,7 @@ clocks, randomness, network, DOM or files
 
 Script ABI v0 · AssemblyScript first; other languages can target the same interface later
 
-<!-- The grid: src/game/grid/singleplayer.json (today's 3 × 3, pitch 555), src/engine/core/config.ts, MMO-REQUIREMENTS W1–W8, docs/GRID-SIMULATION.md (6 m / 10 m, four sims), the journey (9 Oct, the grid goes public). -->
+<!-- The grid: drawn and counted from src/game/grid/singleplayer.json at build time (site/tools/facts.ts); src/engine/core/config.ts (the road), MMO-REQUIREMENTS W1–W8, docs/GRID-SIMULATION.md (6 m / 10 m, four sims, the 23.75 m verges). -->
 
 ## MMO · grid question
 
@@ -1892,11 +1907,11 @@ The grid.
 
 ## MMO · grid intro
 
-Every shard is a 500 m cube, built alone, then placed on the grid. A 15 m highway runs between shards and the platform eases each edge down to it: centres sit 555 m apart.
+Every shard is a {=cellSize} m cube, built alone, then placed on the grid. Between cells runs a {=gap} m gap with a {=road} m road down its middle: centres sit {=pitch} m apart.
 
 ## MMO · grid map description
 
-Today's grid to scale: a 3 by 3 of 500 metre cells with the highway between them. Pine Hollow north, the Template north-east, Signal Dunes west, Driftwood Isle in the middle, Nalati east, Sky Reach south, three open plots.
+Today's grid to scale: a {=side} by {=side} of {=cellSize} metre cells with the road between them. Driftwood Isle in the middle, Pine Hollow north, the Template north-east, Signal Dunes west, Nalati east, Sky Reach south, Nine Dragon south-east, and {=plots} open plots round them.
 
 ## MMO · grid open plot
 
@@ -1904,11 +1919,11 @@ Open plot
 
 ## MMO · grid cell size
 
-500 m
+{=cellSize} m
 
 ## MMO · grid pitch
 
-555 m
+{=pitch} m
 
 ## MMO · grid north
 
@@ -1916,11 +1931,11 @@ N ↑
 
 ## MMO · grid map caption
 
-Today's grid, to scale: six shards and three open plots, live in single player. The MMO's first grid is 5 × 5.
+Today's grid, to scale: {=shardsWord} shards and {=plots} open plots, in testing.
 
 ## MMO · seam description
 
-A seam, to scale: a shard's edge, a 20 metre strip, the 15 metre highway, a 20 metre strip, the next shard
+A seam, to scale: a shard's edge, a {=verge} metre verge, the {=road} metre road, a {=verge} metre verge, the next shard
 
 ## MMO · seam shard
 
@@ -1928,11 +1943,11 @@ shard
 
 ## MMO · seam strip
 
-20 m strip
+{=verge} m verge
 
 ## MMO · seam highway
 
-15 m highway
+{=road} m road
 
 ## MMO · seam next shard
 
@@ -1940,15 +1955,15 @@ next
 
 ## MMO · seam note
 
-The platform builds each strip from both neighbours' edges, so the seam always meets
+The platform builds each verge from both neighbours' edges, so the seam always meets
 
 ## MMO · grid points
 
 - **No loading screen.** The next shard gets ready while you're on the road. You enter its simulation 6 m before its edge and leave 10 m after, so a border never flickers.
-- **The crossroads is the worst case.** Where four shards meet, four corners are within ~39 m, so every budget is proven there. At most four shard simulations are in memory.
-- **Each shard owns its frame.** Inside, it sets the sky, sun, fog, grade and post. On the highway, the neutral road look.
+- **The crossroads is the worst case.** Where four shards meet, four corners are within ~{=corner} m, so every budget is proven there. At most four shard simulations are in memory.
+- **Each shard owns its frame.** Inside, it sets the sky, sun, fog, grade and post. On the road, the neutral road look.
 
-<!-- The layers: AGENTS.md "Engine layers" (E405), docs/ENGINE.md, src/sdk/cli.ts; MMO-REQUIREMENTS T2–T4; SHARD-PLATFORM STATE (2026-10-10). -->
+<!-- The layers: AGENTS.md "Engine layers" (E405), docs/ENGINE.md, src/sdk/cli.ts; MMO-REQUIREMENTS T2–T4; SHARD-PLATFORM M3 (27dd969127, 2026-10-23: every shard at zero custom source, 98,854 lines cut). -->
 
 ## MMO · layers question
 
@@ -1996,7 +2011,7 @@ Rendering, physics, input, audio. Knows no game and no shard: content arrives as
 
 ## MMO · layers today
 
-**The truth today:** the template is pure data. The six older shards still carry their own TypeScript in a `runtime/` folder while they move onto the format, in stages: 80/20, then 90/10, then 100/0.
+**The game is the console, a shard the cartridge:** data, baked art and small sandboxed scripts, run the same way for every shard. Every shard you can play was rebuilt so: about 99,000 lines of one-off code, down to zero.
 
 <!-- Multiplayer, as planned (not built): MMO-REQUIREMENTS M1, M2, M6, M8, M9; OCTOBER-BACKLOG saga 3 ("no live plan yet"); SHARD-PLATFORM M1 (headless sim). -->
 
@@ -2076,7 +2091,7 @@ You keep the rights to what you build. Uploading gives Wildshard a licence to ho
 
 Promised in the MMO's requirements (O9, O10, U5). Uploads and keys aren't built yet.
 
-<!-- The road: MMO-REQUIREMENTS §5 (milestones), SHARD-PLATFORM STATE.md 2026-10-10 (M1 done; M2 SF22 desktop pass, Safari cadence fail; M3 0 of 6 at 80/20), OCTOBER-BACKLOG ("no live plan yet for multiplayer or the API server"). No dates (§1.1). -->
+<!-- The road: MMO-REQUIREMENTS §5 (milestones), SHARD-PLATFORM (M3 100 % on 2026-10-23; the grid behind Developer, src/game/grid/menu.ts GRID_GATES_PASSED; the crossing and loading-speed mini plans open), OCTOBER-BACKLOG ("no live plan yet for multiplayer or the API server"). No dates (§1.1). -->
 
 ## MMO · road question
 
@@ -2088,15 +2103,15 @@ The honest road.
 
 ## MMO · road intro
 
-States, not dates: the MMO's milestones, read from the plans on 10 October 2026.
+States, not dates: the milestones, read from the plans as of 27 October 2026.
 
 ## MMO · road done
 
 ✓ done
 
-## MMO · road doing
+## MMO · road testing
 
-in progress
+in testing
 
 ## MMO · road todo
 
@@ -2112,19 +2127,19 @@ The template boots from its shardfile with no trusted code, and its simulation r
 
 ## MMO · road 2 title
 
-The grid
+Every shard on the format
 
 ## MMO · road 2 text
 
-A 3 × 3 you can walk across with no loading screen. The crossroads test passes on desktop; on iPhone, frame pacing still misses.
+Every shard is data, baked assets and sandboxed scripts.
 
 ## MMO · road 3 title
 
-Every shard on the format
+The grid
 
 ## MMO · road 3 text
 
-The template is data only; the six older shards are moving onto it, none at 80/20 yet.
+A {=side} × {=side}: {=shardsWord} shards, {=plots} open plots, one road. Developer only; crossing and loading are being made faster.
 
 ## MMO · road 4 title
 
@@ -2144,11 +2159,11 @@ An outside author uploads a validated shard and it appears on the grid.
 
 ## MMO · road 6 title
 
-The 25-shard grid
+The first player-built grid
 
 ## MMO · road 6 text
 
-Twenty-five shards live, the highway between them, and profiles that travel.
+Twenty-five shards live, most of them built by players, and profiles that travel.
 
 ## MMO · next label
 
@@ -2169,6 +2184,108 @@ Play →
 ## MMO · next play note
 
 every shard in full
+
+# Map page (wildshard.io/map/: the world-map concept, art/world-map/round-4-plots, E506 MR4)
+
+<!-- The map is drawn by code (art/world-map/round-4-plots/worldmap.py, scale 2), cut into zoom tiles in
+site/public/map/tiles/. Names as drawn (RD3); the legend and the most-played list are the map's own panels, as text.
+The entry lane's width is left out on purpose (the format opens 8 m; the drawing says otherwise). -->
+
+## Map page · title
+
+The world map · Project Wildshard
+
+## Map page · description
+
+A concept map of Wildshard's one world after a hundred shards: the most played at the Heart, the quiet ones drifting out. Every name on it is made up.
+
+## Map page · image description
+
+Concept map of the world after a hundred shards, drawn by code: plots on a flat world adrift in space, joined by roads
+
+## Map · question
+
+what could the world look like?
+
+## Map · title
+
+The world, at a hundred shards.
+
+## Map · intro
+
+A draft, drawn by code, of the grid once players start uploading: a hundred shards on one flat world adrift in space, joined by one road. Each season the most played move toward the Heart and the quiet ones drift out.
+
+## Map · viewer description
+
+The world map. Pinch or scroll to zoom, drag to look around.
+
+## Map · zoom in
+
+Zoom in
+
+## Map · zoom out
+
+Zoom out
+
+## Map · zoom fit
+
+Fit
+
+## Map · hint
+
+pinch to zoom · drag to look around
+
+## Map · legend title
+
+Legend
+
+## Map · legend
+
+- **The Boulevard:** the one thing the grid owns
+- **Interchange** and light column
+- **The Heart** of the grid, at its centre
+- **Entry:** one lane at each edge
+- **Hamlet,** pier, sky landing, turnaround
+- **Server verge:** fades a shard's edge to the road
+- **Cut-off edge,** left high by its author
+- **Sea wall,** where a shard ends in water
+- **Placeholder plot** from the server
+- **World's end:** the Boulevard stops, then the void
+
+## Map · rings
+
+The Heart holds ranks 1–4, the Inner Ring 5–16, the Middle Ring 17–36, the Outer Ring 37–64 and the Frontier 65–100.
+
+## Map · most played title
+
+The most played
+
+## Map · most played
+
+- Serpent Way
+- The White Tiers
+- Tilted Towers
+- Dragonspire
+- Spicefall
+- Totoro Hollow
+- The Upside Down
+- Mini Stormwind
+- Rainbow Road
+- Pocket Hyrule
+- Skyharbor
+- The Drowned Colossus
+- Neon Lotus
+- The Hollow Crown
+- Touch Grass
+- The Backrooms
+
+## Map · invented
+
+Every name on this chart is invented for the draft.
+
+## Map · back link
+
+← Back to Project Wildshard
 
 # Footer
 

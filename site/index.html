@@ -43,7 +43,7 @@
     </div>
   </div>
   <div class="world" id="world">
-    <img src="/media/hero-driftwood-pier-m.webp" srcset="/media/hero-driftwood-pier-m.webp 800w, /media/hero-driftwood-pier.webp 1600w" sizes="(min-width: 1024px) 50vw, 100vw" alt="{{@Hero · image description}}" fetchpriority="high">
+    <img src="/media/hero-grid-m.webp" srcset="/media/hero-grid-m.webp 800w, /media/hero-grid.webp 1600w" sizes="(min-width: 1024px) 50vw, 100vw" alt="{{@Hero · image description}}" fetchpriority="high">
     <span class="tag">{{Hero · image tag}}</span>
   </div>
   <div class="masthead">
@@ -75,9 +75,11 @@
     </div>
     <div class="body">
       <figure class="plate bk">
-        <img src="/media/concept-atlas-m.webp" srcset="/media/concept-atlas-m.webp 800w, /media/concept-atlas.webp 1600w" sizes="(min-width: 1024px) 50vw, 100vw" alt="{{@What · painting 1 description}}" loading="lazy" decoding="async">
-        <span class="tag warn">{{Mockup · tag}}</span>
+        <a href="/map/"><img src="/media/map-heart-m.webp" srcset="/media/map-heart-m.webp 800w, /media/map-heart.webp 1600w" sizes="(min-width: 1024px) 50vw, 100vw" alt="{{@What · map description}}" loading="lazy" decoding="async"></a>
+        <span class="tag warn">{{What · map tag}}</span>
       </figure>
+      <div class="note">{{What · map note}}</div>
+      <a class="more-page" href="/map/">{{What · map link}}</a>
       <ul class="grow">{{list:What · points}}</ul>
     </div>
   </section>
@@ -86,46 +88,47 @@
     <div class="side">
       <div class="q"><p class="ask">{{Shards · question}}</p></div>
       <h2>{{Shards · title}}</h2>
+      <figure class="grid-mini"><!--gen:gridmini--><figcaption>{{Shards · grid note}}</figcaption></figure>
     </div>
     <div class="body">
       <ul class="shards">
-        <li class="shard">
+        <li class="shard" data-cell="driftwood-isle">
           <p class="ask">{{Driftwood Isle · prompt}}</p>
           <div class="shot" data-loop="driftwood-isle"><picture class="d"><source media="(min-width: 1024px)" srcset="/media/wide-driftwood.webp"><img src="/media/card-driftwood.webp" alt="{{@Driftwood Isle · image description}}" loading="lazy" decoding="async"></picture><span class="tag loop">{{Shards · loop tag}}</span></div>
           <h3>{{Driftwood Isle · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
           <p>{{Driftwood Isle · line}}</p>
         </li>
-        <li class="shard">
+        <li class="shard" data-cell="nalati-grasslands">
           <p class="ask">{{Nalati Grasslands · prompt}}</p>
           <div class="shot" data-loop="nalati-grasslands"><picture class="d"><source media="(min-width: 1024px)" srcset="/media/wide-nalati.webp"><img src="/media/card-nalati.webp" alt="{{@Nalati Grasslands · image description}}" loading="lazy" decoding="async"></picture><span class="tag loop">{{Shards · loop tag}}</span></div>
           <h3>{{Nalati Grasslands · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
           <p>{{Nalati Grasslands · line}}</p>
         </li>
-        <li class="shard">
+        <li class="shard" data-cell="pine-hollow">
           <p class="ask">{{Pine Hollow · prompt}}</p>
           <div class="shot" data-loop="pine-hollow"><picture class="d"><source media="(min-width: 1024px)" srcset="/media/wide-pine.webp"><img src="/media/card-pine.webp" alt="{{@Pine Hollow · image description}}" loading="lazy" decoding="async"></picture><span class="tag loop">{{Shards · loop tag}}</span></div>
           <h3>{{Pine Hollow · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
           <p>{{Pine Hollow · line}}</p>
         </li>
-        <li class="shard more">
+        <li class="shard more" data-cell="far-reach">
           <p class="ask">{{Sky Reach · prompt}}</p>
           <div class="shot" data-loop="far-reach"><picture class="d"><source media="(min-width: 1024px)" srcset="/media/wide-skyreach.webp"><img src="/media/card-skyreach.webp" alt="{{@Sky Reach · image description}}" loading="lazy" decoding="async"></picture><span class="tag loop">{{Shards · loop tag}}</span><span class="tag warn xp">{{Play · badge experimental}}</span></div>
           <h3>{{Sky Reach · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
           <p>{{Sky Reach · line}}</p>
         </li>
-        <li class="shard more">
+        <li class="shard more" data-cell="sunscar-dunes">
           <p class="ask">{{Signal Dunes · prompt}}</p>
           <div class="shot" data-loop="sunscar-dunes"><img src="/media/card-dunes.webp" alt="{{@Signal Dunes · image description}}" loading="lazy" decoding="async"><span class="tag loop">{{Shards · loop tag}}</span><span class="tag warn xp">{{Play · badge experimental}}</span></div>
           <h3>{{Signal Dunes · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
           <p>{{Signal Dunes · line}}</p>
         </li>
-        <li class="shard more">
+        <li class="shard more" data-cell="nine-dragon-stack">
           <p class="ask">{{Nine Dragon Stack · prompt}}</p>
           <div class="shot" data-loop="nine-dragon-stack"><picture class="d"><source media="(min-width: 1024px)" srcset="/media/wide-ninedragon.webp"><img src="/media/card-ninedragon.webp" alt="{{@Nine Dragon Stack · image description}}" loading="lazy" decoding="async"></picture><span class="tag loop">{{Shards · loop tag}}</span><span class="tag warn xp">{{Play · badge experimental}}</span></div>
           <h3>{{Nine Dragon Stack · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
           <p>{{Nine Dragon Stack · line}}</p>
         </li>
-        <li class="shard grey more">
+        <li class="shard grey more" data-cell="_template">
           <p class="ask">{{The Template · prompt}}</p>
           <div class="shot"><img src="/media/card-template.webp" alt="{{@The Template · image description}}" loading="lazy" decoding="async"></div>
           <h3>{{The Template · name}} <a href="#author">{{Shards · build link}}</a></h3>
@@ -192,12 +195,12 @@
     <div class="body">
       <ol class="journey">
         <li><img src="/media/card-pine.webp" alt="{{@Journey · 1 image description}}" loading="lazy" decoding="async"><div><time>{{Journey · 1 date}}</time><b>{{Journey · 1 title}}</b><p>{{Journey · 1 text}}</p></div></li>
-        <li><img src="/media/card-driftwood.webp" alt="{{@Journey · 2 image description}}" loading="lazy" decoding="async"><div><time>{{Journey · 2 date}}</time><b>{{Journey · 2 title}}</b><p>{{Journey · 2 text}}</p></div></li>
-        <li><img src="/media/card-nalati.webp" alt="{{@Journey · 3 image description}}" loading="lazy" decoding="async"><div><time>{{Journey · 3 date}}</time><b>{{Journey · 3 title}}</b><p>{{Journey · 3 text}}</p></div></li>
-        <li><img src="/media/card-ninedragon.webp" alt="{{@Journey · 4 image description}}" loading="lazy" decoding="async"><div><time>{{Journey · 4 date}}</time><b>{{Journey · 4 title}}</b><p>{{Journey · 4 text}}</p></div></li>
-        <li><img src="/media/card-skyreach.webp" alt="{{@Journey · 5 image description}}" loading="lazy" decoding="async"><div><time>{{Journey · 5 date}}</time><b>{{Journey · 5 title}}</b><p>{{Journey · 5 text}}</p></div></li>
-        <li data-tag="{{@Mockup · tag}}"><img src="/media/thinice-pitch.webp" alt="{{@Journey · 6 image description}}" loading="lazy" decoding="async"><div><time>{{Journey · 6 date}}</time><b>{{Journey · 6 title}}</b><p>{{Journey · 6 text}}</p></div></li>
-        <li><img src="/media/hero-driftwood-aerial.webp" alt="{{@Journey · 7 image description}}" loading="lazy" decoding="async"><div><time>{{Journey · 7 date}}</time><b>{{Journey · 7 title}}</b><p>{{Journey · 7 text}}</p></div></li>
+        <li><img src="/media/card-nalati.webp" alt="{{@Journey · 2 image description}}" loading="lazy" decoding="async"><div><time>{{Journey · 2 date}}</time><b>{{Journey · 2 title}}</b><p>{{Journey · 2 text}}</p></div></li>
+        <li><img src="/media/card-skyreach.webp" alt="{{@Journey · 3 image description}}" loading="lazy" decoding="async"><div><time>{{Journey · 3 date}}</time><b>{{Journey · 3 title}}</b><p>{{Journey · 3 text}}</p></div></li>
+        <li><img src="/media/hero-driftwood-aerial.webp" alt="{{@Journey · 4 image description}}" loading="lazy" decoding="async"><div><time>{{Journey · 4 date}}</time><b>{{Journey · 4 title}}</b><p>{{Journey · 4 text}}</p></div></li>
+        <li><img src="/media/journey-plots.webp" alt="{{@Journey · 5 image description}}" loading="lazy" decoding="async"><div><time>{{Journey · 5 date}}</time><b>{{Journey · 5 title}}</b><p>{{Journey · 5 text}}</p></div></li>
+        <li><img src="/media/card-dunes.webp" alt="{{@Journey · 6 image description}}" loading="lazy" decoding="async"><div><time>{{Journey · 6 date}}</time><b>{{Journey · 6 title}}</b><p>{{Journey · 6 text}}</p></div></li>
+        <li><img src="/media/journey-road.webp" alt="{{@Journey · 7 image description}}" loading="lazy" decoding="async"><div><time>{{Journey · 7 date}}</time><b>{{Journey · 7 title}}</b><p>{{Journey · 7 text}}</p></div></li>
       </ol>
       <p class="next">{{Journey · next}}</p>
     </div>
@@ -341,6 +344,16 @@
       new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) start(v, wide ? m.wide : m.card); else if (v.src) v.pause(); }); }, { threshold: 0.4 }).observe(shot);
     }
   });
+
+  // desktop (MR5): the shard card in the middle of the screen lights its own cell on the sticky 5 × 5
+  var mini = document.querySelector(".grid-mini");
+  if (mini && wide && "IntersectionObserver" in window) {
+    var lights = new IntersectionObserver(function (es) { es.forEach(function (e) {
+      var g = mini.querySelector('[data-cell="' + e.target.getAttribute("data-cell") + '"]');
+      if (g) g.classList.toggle("lit", e.isIntersecting);
+    }); }, { rootMargin: "-40% 0px -40% 0px" });
+    document.querySelectorAll(".shard[data-cell]").forEach(function (li) { lights.observe(li); });
+  }
 
   // phones: "+4 more shards" opens the rest of the cards
   var moreBtn = document.querySelector(".more-shards");

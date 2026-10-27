@@ -14,14 +14,14 @@
 <meta property="og:title" content="{{@MMO page · title}}">
 <meta property="og:description" content="{{@MMO page · description}}">
 <meta property="og:url" content="https://wildshard.io/mmo/">
-<meta property="og:image" content="https://wildshard.io/og.jpg">
+<meta property="og:image" content="https://wildshard.io/og-mmo.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="{{@Page · image description}}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{@MMO page · title}}">
 <meta name="twitter:description" content="{{@MMO page · description}}">
-<meta name="twitter:image" content="https://wildshard.io/og.jpg">
+<meta name="twitter:image" content="https://wildshard.io/og-mmo.jpg">
 <link rel="preload" href="/fonts/rajdhani-700.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/style.css">
 </head>
@@ -124,54 +124,10 @@
     </div>
     <div class="body">
       <figure class="mmo-map bk">
-        <svg viewBox="-850 -850 1700 1830" role="img" aria-label="{{@MMO · grid map description}}">
-          <!-- to scale, in metres: 500 m cells, centres 555 m apart; between them two 20 m strips and the 15 m highway. North (+z) is up. -->
-          <g class="strip">
-            <rect x="-845" y="-845" width="1690" height="1690"/>
-          </g>
-          <g class="hw">
-            <rect x="-840" y="-840" width="1680" height="15"/><rect x="-840" y="825" width="1680" height="15"/>
-            <rect x="-840" y="-840" width="15" height="1680"/><rect x="825" y="-840" width="15" height="1680"/>
-            <rect x="-840" y="-285" width="1680" height="15"/><rect x="-840" y="270" width="1680" height="15"/>
-            <rect x="-285" y="-840" width="15" height="1680"/><rect x="270" y="-840" width="15" height="1680"/>
-          </g>
-          <g class="cells">
-            <rect class="plot" x="-805" y="-805" width="500" height="500"/>
-            <rect class="on" x="-250" y="-805" width="500" height="500"/>
-            <rect class="on" x="305" y="-805" width="500" height="500"/>
-            <rect class="on" x="-805" y="-250" width="500" height="500"/>
-            <rect class="on home" x="-250" y="-250" width="500" height="500"/>
-            <rect class="on" x="305" y="-250" width="500" height="500"/>
-            <rect class="plot" x="-805" y="305" width="500" height="500"/>
-            <rect class="on" x="-250" y="305" width="500" height="500"/>
-            <rect class="plot" x="305" y="305" width="500" height="500"/>
-          </g>
-          <g class="entries">
-            <!-- each cell's four midpoint entries -->
-            <path d="M-555-805v-14M-555-305v14M-805-555h-14M-305-555h14 M0-805v-14M0-305v14M-250-555h-14M250-555h14 M555-805v-14M555-305v14M305-555h-14M805-555h14 M-555-250v-14M-555 250v14M-805 0h-14M-305 0h14 M0-250v-14M0 250v14M-250 0h-14M250 0h14 M555-250v-14M555 250v14M305 0h-14M805 0h14 M-555 305v-14M-555 805v14M-805 555h-14M-305 555h14 M0 305v-14M0 805v14M-250 555h-14M250 555h14 M555 305v-14M555 805v14M305 555h-14M805 555h14"/>
-          </g>
-          <g class="names">
-            <text class="p" x="-555" y="-540">{{MMO · grid open plot}}</text>
-            <text x="0" y="-540">{{Map · Pine}}</text>
-            <text x="555" y="-540">{{Map · Template}}</text>
-            <text x="-555" y="15">{{Map · Dunes}}</text>
-            <text x="0" y="15">{{Map · Driftwood}}</text>
-            <text x="555" y="15">{{Map · Nalati}}</text>
-            <text class="p" x="-555" y="570">{{MMO · grid open plot}}</text>
-            <text x="0" y="570">{{Map · Sky Reach}}</text>
-            <text class="p" x="555" y="570">{{MMO · grid open plot}}</text>
-          </g>
-          <g class="dim">
-            <path d="M-805 890h500M-805 870v40M-305 870v40"/>
-            <text x="-555" y="955">{{MMO · grid cell size}}</text>
-            <path d="M0 890h555M0 870v40M555 870v40"/>
-            <text x="277.5" y="955">{{MMO · grid pitch}}</text>
-            <text class="north" x="820" y="955">{{MMO · grid north}}</text>
-          </g>
-        </svg>
+        <!--gen:grid-->
         <figcaption>{{MMO · grid map caption}}</figcaption>
       </figure>
-      <div class="mmo-seam" aria-label="{{@MMO · seam description}}">
+      <div class="mmo-seam" style="%SEAM%" aria-label="{{@MMO · seam description}}">
         <div class="cell-a"><span>{{MMO · seam shard}}</span></div>
         <div class="st"><span>{{MMO · seam strip}}</span></div>
         <div class="hw"><span>{{MMO · seam highway}}</span></div>
@@ -240,8 +196,8 @@
     <div class="body">
       <ol class="mmo-road">
         <li class="done"><span class="st">{{MMO · road done}}</span><b>{{MMO · road 1 title}}</b><p>{{MMO · road 1 text}}</p></li>
-        <li class="doing"><span class="st">{{MMO · road doing}}</span><b>{{MMO · road 2 title}}</b><p>{{MMO · road 2 text}}</p></li>
-        <li class="doing"><span class="st">{{MMO · road doing}}</span><b>{{MMO · road 3 title}}</b><p>{{MMO · road 3 text}}</p></li>
+        <li class="done"><span class="st">{{MMO · road done}}</span><b>{{MMO · road 2 title}}</b><p>{{MMO · road 2 text}}</p></li>
+        <li class="doing"><span class="st">{{MMO · road testing}}</span><b>{{MMO · road 3 title}}</b><p>{{MMO · road 3 text}}</p></li>
         <li><span class="st">{{MMO · road todo}}</span><b>{{MMO · road 4 title}}</b><p>{{MMO · road 4 text}}</p></li>
         <li><span class="st">{{MMO · road todo}}</span><b>{{MMO · road 5 title}}</b><p>{{MMO · road 5 text}}</p></li>
         <li><span class="st">{{MMO · road todo}}</span><b>{{MMO · road 6 title}}</b><p>{{MMO · road 6 text}}</p></li>
