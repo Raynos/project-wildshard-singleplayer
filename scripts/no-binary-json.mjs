@@ -181,10 +181,11 @@ function sourceDebtChanges(root, tree, parent, file, schema, roots, message, pre
 }
 
 /** Check exact immutable/index blobs, never a neighbour's working file.
- * @param {string} root @param {string} revision @param {string} previous @param {readonly string[]} changed */
-export function checkBinaryRevision(root, revision, previous, changed) {
+ * @param {string} root @param {string} revision @param {string} previous @param {readonly string[]} changed
+ * @param {string} [rangeMessage] the approvals of every commit in previous..revision, for a multi-commit range */
+export function checkBinaryRevision(root, revision, previous, changed, rangeMessage) {
   const tree = entries(root, revision), parent = entries(root, previous);
-  const message = revision === ':' ? process.env.WS_COMMIT_MESSAGE ?? '' : git(root, ['show', '-s', '--format=%B', revision]).toString();
+  const message = rangeMessage ?? (revision === ':' ? process.env.WS_COMMIT_MESSAGE ?? '' : git(root, ['show', '-s', '--format=%B', revision]).toString());
   const base64 = [
     ...sourceDebtChanges(root,tree,parent,'lint/base64-debt.json','no-base64/1',/^(?:src|scripts)\//u,message,previous),
     ...sourceDebtChanges(root,tree,parent,'lint/generated-import-debt.json','no-generated-import/1',/^(?:src|test)\//u,message,previous),
@@ -241,7 +242,14 @@ if (import.meta.main) {
     failures.push(...checkBinaryRevision(root, ':', 'HEAD', paths));
   } else if (mode === '--range' && base !== undefined && tip !== undefined) {
     const paths = git(root, ['diff', '--name-only', '--no-renames', '-z', base, tip]).toString().split('\0').filter(Boolean);
-    failures.push(...checkBinaryRevision(root, tip, base, paths));
+    // A range is one base..tip diff, so an approval in any of its commits counts, not only the tip's: each commit's
+    // final-footer approval lines join one synthetic footer (deduplicated, in commit order).
+    const approvals = [];
+    for (const commit of git(root, ['rev-list', '--reverse', `${base}..${tip}`]).toString().split('\n').filter(Boolean)) {
+      const content = git(root, ['show', '-s', '--format=%B', commit]).toString().trimEnd().replace(/\n\nAssisted-by:[^\n]+$/u,'').replaceAll(/\n[ \t]+/gu,' ');
+      for (const line of (content.split(/\n\s*\n/u).at(-1) ?? '').split('\n')) if (/^[A-Za-z0-9-]+-Approved: /u.test(line) && !approvals.includes(line)) approvals.push(line);
+    }
+    failures.push(...checkBinaryRevision(root, tip, base, paths, `range ${base}..${tip}\n\n${approvals.join('\n')}`));
   } else if (mode === '--all') failures.push(...checkBinaryTree(root));
   else throw new Error('usage: no-binary-json.mjs --staged | --range <base> <tip> | --all');
   if (failures.length > 0) { for (const failure of failures) console.error(failure); process.exitCode = 1; }
