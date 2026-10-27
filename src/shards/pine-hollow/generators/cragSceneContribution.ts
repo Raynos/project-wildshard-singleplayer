@@ -3,7 +3,8 @@
 import { parseWorldScenePlacement , type WorldScenePlacementRow as WorldScenePlacementRowType } from '@wildshard/format/worldScenePlacement';
 import { pineCragScenes, type CragBatchRow, type CragCaveRows, type CragModelRow } from './bake-crag-scenes.mjs';
 import { perSources, type PineSources } from './pineSources';
-import { nameBlob, nameMeshoptBlob, type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
+import { nameBlob, type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
+import { nameCompactBlobs } from '@wildshard/sdk/bake/compactGlb';
 import { CRAG_LOOK } from './cragLook';
 
 /** Only fixed skin templates and their batch/placement wrappers are tier-exclusive. */
@@ -41,7 +42,8 @@ export const cragScene: (sources: PineSources) => Promise<CragScene> = perSource
   /** The crag shapes' raw GLBs. */
   const CRAG_RAW_MODELS: NamedBlobType[] = glbs.map(([name, bytes]) => nameBlob(name, 'glb', bytes));
   /** The crag shapes' GLBs, meshopt-named as their `meshopt: true` sources were. */
-  const CRAG_PACKED_MODELS: NamedBlobType[] = await Promise.all(glbs.map(([name, bytes]) => nameMeshoptBlob(name, bytes)));
+  // iPhone downloads I3: shipped in phone geometry when that serves fewer bytes (nameCompactBlob), else the meshopt pick
+  const CRAG_PACKED_MODELS: NamedBlobType[] = await nameCompactBlobs(glbs);
   const CRAG_CAVE_ROWS: CragCaveRows = crags.cave;
   return { CRAG_MODEL_ROWS, CRAG_PLACEMENT_ROWS, CRAG_BATCH_ROWS, CRAG_LIBRARY, CRAG_MATERIAL, CRAG_RAW_MODELS, CRAG_PACKED_MODELS, CRAG_CAVE_ROWS };
 });

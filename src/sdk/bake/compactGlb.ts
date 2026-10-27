@@ -105,6 +105,20 @@ export async function nameCompactBlob(name: string, bytes: Uint8Array): Promise<
   return compact === bytes ? nameMeshoptBlob(name, bytes) : nameBlob(name, 'glb', compact);
 }
 
+/** `nameCompactBlob` over a set of shapes: one hash has one logical name (emitNamedBlobs), so a shape whose compacted bytes
+ *  equal an earlier one's (two shapes that differ only below the grid step) keeps its meshopt pick instead. */
+export async function nameCompactBlobs(shapes: readonly (readonly [string, Uint8Array])[]): Promise<NamedBlob[]> {
+  const named = await Promise.all(shapes.map(([name, bytes]) => nameCompactBlob(name, bytes))), seen = new Set<string>();
+  const out: NamedBlob[] = [];
+  for (const [i, blob] of named.entries()) {
+    const shape = shapes[i];
+    if (shape === undefined) throw new Error('Missing compact shape');
+    if (seen.has(blob.file.hash)) out.push(await nameMeshoptBlob(shape[0], shape[1]));
+    else { seen.add(blob.file.hash); out.push(blob); }
+  }
+  return out;
+}
+
 /** Fold a grid (`centre`, uniform `half`) into each instance: T' = T + R(S * centre), S' = S * half, so that
  *  T' R S' q = T R S (half q + centre). Refuses (false) instance rows that are not plain float TRS. */
 function foldGrid(doc: Document, instances: InstancedMesh, centre: readonly [number, number, number], half: number): boolean {

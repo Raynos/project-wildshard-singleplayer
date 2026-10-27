@@ -2,7 +2,8 @@
  * bundled declarations free of file I/O; the product still emits individual graphs. */
 import { Matrix4 } from 'three';
 import * as v from 'valibot';
-import { nameBlob, nameMeshoptBlob, type NamedBlob } from '@wildshard/sdk/blobs';
+import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
+import { nameCompactBlobs } from '@wildshard/sdk/bake/compactGlb';
 import { parseWorldSceneWeld, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
 import { cabinSceneBake } from './bake-cabin-scenes.mjs';
@@ -127,7 +128,9 @@ export const cabinScene: (sources: PineSources) => Promise<CabinScene> = perSour
     return [row.name, bytes];
   }), ...living.CABIN_LIVING_SHAPES];
   const CABIN_RAW_MODELS: NamedBlob[] = shapes.map(([name, bytes]) => nameBlob(name, 'glb', bytes));
-  const CABIN_PACKED_MODELS: NamedBlob[] = await Promise.all(shapes.map(([name, bytes]) => nameMeshoptBlob(name, bytes)));
+  // iPhone downloads I3: the shipped shapes in phone geometry when that serves fewer bytes (nameCompactBlob: 16-bit grid
+  // positions, 8-bit normals and colours, the owned-geometry intake baking the grid back), else the meshopt pick
+  const CABIN_PACKED_MODELS: NamedBlob[] = await nameCompactBlobs(shapes);
   // the living libraries' models name shared shape files too: those are the resources' files, read at intake
   const livingFiles = new Set([...living.CABIN_LIVING_SHAPES.map(([name]) => name), ...living.CABIN_LIVING_LIBRARIES.flatMap(library => library.models.map(model => model.file))]);
   const resident = new Set(CABIN_PACKED_MODELS.filter(blob => blob.file.name !== undefined && livingFiles.has(blob.file.name)).map(blob => blob.file.hash));
