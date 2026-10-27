@@ -52,3 +52,58 @@ test('a late look cannot survive a retired regional owner', async () => {
   owner.dispose(); appearance.resolve({ compose: () => ({}), dispose }); await rejected;
   expect(dispose).toHaveBeenCalledTimes(1);
 });
+
+
+test('look material preparation starts before navigation and both remain required', async () => {
+  const owner = new Scope('regional-material-overlap'), nav = deferred<null>(), materials = deferred<undefined>(), started = deferred<undefined>();
+  const dispose = vi.fn((): void => undefined), look: LookStrategy = { compose: () => ({}), dispose };
+  let settled = false;
+  const pending = (async () => {
+    try {
+      return await prepareRegionalInputs({ look: () => Promise.resolve(look) }, owner, () => nav.promise,
+        value => { expect(value).toBe(look); started.resolve(undefined); return materials.promise; });
+    } finally { settled = true; }
+  })();
+  await started.promise;
+  expect(settled).toBe(false);
+  materials.resolve(undefined); await Promise.resolve();
+  expect(settled).toBe(false);
+  nav.resolve(null);
+  try { expect(await pending).toEqual({ navmesh: null, look }); }
+  finally { owner.dispose(); }
+  expect(dispose).toHaveBeenCalledTimes(1);
+});
+
+test('navigation failure drains material preparation and keeps failure precedence', async () => {
+  const owner = new Scope('regional-material-refusal'), nav = deferred<null>(), materials = deferred<undefined>(), started = deferred<undefined>();
+  const navigationError = new Error('Navigation refused'), materialError = new Error('Material refused'), dispose = vi.fn((): void => undefined);
+  let settled = false;
+  const pending = (async (): Promise<unknown> => {
+    try {
+      await prepareRegionalInputs({ look: () => Promise.resolve({ compose: () => ({}), dispose }) }, owner, () => nav.promise,
+        () => { started.resolve(undefined); return materials.promise; });
+      return null;
+    } catch (error) { return error; }
+    finally { settled = true; }
+  })();
+  await started.promise;
+  nav.reject(navigationError); await Promise.resolve();
+  expect(settled).toBe(false);
+  materials.reject(materialError);
+  try { expect(await pending).toBe(navigationError); }
+  finally { owner.dispose(); }
+  expect(dispose).toHaveBeenCalledTimes(1);
+});
+
+
+test('retirement during material preparation cannot publish regional inputs', async () => {
+  const owner = new Scope('regional-material-retirement'), materials = deferred<undefined>(), started = deferred<undefined>();
+  const dispose = vi.fn((): void => undefined);
+  const pending = prepareRegionalInputs({ look: () => Promise.resolve({ compose: () => ({}), dispose }) }, owner, undefined,
+    () => { started.resolve(undefined); return materials.promise; });
+  const refused = expect(pending).rejects.toThrow('left while loading its inputs');
+  await started.promise;
+  owner.dispose(); materials.resolve(undefined);
+  await refused;
+  expect(dispose).toHaveBeenCalledTimes(1);
+});

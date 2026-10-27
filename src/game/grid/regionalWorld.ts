@@ -264,8 +264,28 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       // (the session's readers read them), never downloaded again
       provideRuntimeProduct(request.admitted, resident);
       const navigation = ports.navmesh;
-      const { navmesh, look: levelLook } = await prepareRegionalInputs(level, resident,
-        navigation === undefined ? undefined : () => navigation(level));
+      const terrainBinding: { current?: LevelFrameBinding['terrain'] } = {};
+      const field = (): LevelFrameBinding['terrain']['field'] => {
+        if (terrainBinding.current === undefined) throw new Error('Regional ground is not bound');
+        return terrainBinding.current.field;
+      };
+      // This bodyless shell has no ground, entities or player motor yet. Its
+      // native initialization can overlap product-backed navigation/look reads;
+      // no height query or collider is published until the frame binds below.
+      const [inputs, simulation] = await Promise.allSettled([
+        prepareRegionalInputs(level, resident, navigation === undefined ? undefined : () => navigation(level),
+          look => prepareWorldLook(look, { renderer: game.renderer, sky, scope: resident })),
+        Promise.resolve().then(() => {
+          if (left() || resident.disposing) throw new Error('Regional world left before its physics shell');
+          return withOwner(resident, () => createSimHost(simLevel(level), { rapier: ports.rapier, playerBody: false, ground: false,
+            heightAt: (x, z) => field().heightAt(x, z), scope: resident }));
+        }),
+      ]);
+      // Drain both before teardown. Navigation/look keeps its original failure
+      // precedence; every successful shell is already owned by resident.
+      if (inputs.status === 'rejected') throw inputs.reason;
+      if (simulation.status === 'rejected') throw simulation.reason;
+      const { navmesh, look: levelLook } = inputs.value, host = simulation.value;
       await ports.pause();
       if (left()) throw new Error('Regional world left while loading its navmesh');
       const water = ports.water?.(level) ?? new WaterBodies();
@@ -276,21 +296,18 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       // the level's own look parts its content builds from while its frame is bound (SF63: its grass driver)
       if (left()) throw new Error('Regional world left while loading its look');
       const frame = new LevelFrameBinding({ level, scope: resident, levelScope: request.scope, navmesh, water, textures, look: levelLook });
+      terrainBinding.current = frame.terrain;
       // Required manifest ground must enter before collision sampling or native home construction.
       if (bakedTerrainSource(frame.terrain.base) !== null) {
         await loadBakedTerrain(frame.terrain);
         if (left()) throw new Error('Regional world left while loading its required ground');
       }
-      const field = (): typeof frame.terrain.field => frame.terrain.field;
-      const host = withOwner(resident, () => createSimHost(simLevel(level), { rapier: ports.rapier, playerBody: false, ground: false,
-        heightAt: (x, z) => field().heightAt(x, z), scope: resident }));
       // The real ground of the region's level, sampled from its own bound heightfield (never the home's).
       const groundGrid = await slicedTerrainGrid((rows) => frame.run(app, rows), left);
       frame.run(app, () => { addTerrain(host.physics, groundGrid); });
       ports.install?.(host, request);
       await ports.pause();
       if (left()) throw new Error('Regional world left while building its collision');
-      await prepareWorldLook(levelLook, { renderer: game.renderer, sky, scope: resident });
       const terrain = ports.terrain === undefined ? await regionalTerrain(level, resident, frame.terrain, levelLook) : await ports.terrain(level, resident, frame.terrain);
       await ports.pause();
       if (left()) throw new Error('Regional world left while building its terrain');

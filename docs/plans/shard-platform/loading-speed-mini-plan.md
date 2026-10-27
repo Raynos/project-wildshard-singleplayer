@@ -389,3 +389,25 @@ would not establish a construction reduction. Touched source types, typed
 lint and scoped ratchet remain green. Both source commits are on origin.
 Raw:tmp/sp-x9-h4-follow/after-road and cpu-after-road.json. Browser closed,
 owned preview use released; follow-up H4 reads consume coherent owned cuts.
+
+### H4 native foundation overlap (2026-10-27)
+
+The last qualified warm home foundation is385.700ms on1ff6fd569f.
+Its restricted CPU profile (tmp/sp-x9-h4-follow/cpu-foundation.json) finds
+63.076ms in the new-world native physics step, further native setup, and
+roughly45ms navigation reconstruction. These samples are not disjoint wall
+spans. Nothing physical is skipped or pushed past control.
+
+The already-budgeted, bodyless destination shell now initializes alongside
+product-backed navigation/look reads. A scoped look starts its required
+material preparation when it resolves, before waiting for navigation.
+Every task drains before failure/teardown; navigation/look failure retains
+precedence and resident owns successful shell/look resources. A guarded
+heightfield binding stays unavailable until the original frame binds.
+All original required ground, lattice sampling, colliders, install, terrain,
+forest, and pre-control gates remain. No renderer/frame/API cap changes.
+
+Touched game and fixture types, typed lint and scoped ratchet pass. Initial
+wide types hit foreign untracked cubeUVSample mid-edit; owner correction
+then makes game tsc-b pass. H4 remains open until one containing shared read
+also includes x2 admission573a3bebd7 and x1 assemblyae65879548.
