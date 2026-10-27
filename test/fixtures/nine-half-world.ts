@@ -5,6 +5,7 @@ import { hashImmutableBytes } from '../../src/sdk/immutable';
 import type { Shardfile } from '../../src/sdk/shardfile';
 import { halfFloatBeforeControl } from './half-float-before-control';
 import { nativeSignAtlas } from './nine-native-atlas';
+import { nineWorldProgram } from '../../src/shards/nine-dragon-stack/generators/worldProgram';
 
 await prepareAssetDecoders();
 const changed = new Map<string, Uint8Array>();
@@ -13,22 +14,30 @@ export const beforeHalfWorld = await halfFloatBeforeControl(() => Promise.resolv
   const old = hashImmutableBytes(before);
   if (old !== hashImmutableBytes(current)) changed.set(old, current);
 });
+/** Admit the real predecessor wires through unchanged publication/inventory/hash validation. */
+export const beforeHalfSourceWorld = await nineWorldProgram({
+  cached: () => Promise.resolve(new Map([
+    ['world.json', new TextEncoder().encode(`${JSON.stringify(beforeHalfWorld.metadata, nineLayoutWord)}\n`)],
+    ['layout.json', new TextEncoder().encode(JSON.stringify(beforeHalfWorld.layout, nineLayoutWord))],
+    ...[...beforeHalfWorld.assets].map(([hash, bytes]) => [`blobs/${hash}`, bytes] as const),
+  ])), asset: hashImmutableBytes,
+}, nativeSignAtlas.atlas);
 const reverse = new Map([...changed].map(([old, bytes]) => [hashImmutableBytes(bytes), old]));
 const encode = (value: unknown): string => JSON.stringify(value, nineLayoutWord);
 /** Only content references change; no arbitrary byte/hash is excluded from the oracle. */
-function previousReferences<T>(value: T): T {
+export function previousHalfReferences<T>(value: T): T {
   return JSON.parse(encode(value).replace(/[a-f0-9]{64}/gu, hash => reverse.get(hash) ?? hash)) as T;
 }
 /** Native world files/library are explicitly hash-sorted by worldProduct. */
 export function previousHalfWorldMetadata<T extends { shardfile: { files: { hash: string }[]; library: string[] } }>(metadata: T): T {
-  const original = previousReferences(metadata);
+  const original = previousHalfReferences(metadata);
   original.shardfile.files.sort((a, b) => a.hash.localeCompare(b.hash));
   original.shardfile.library.sort();
   return original;
 }
 /** Product declarations retain the same explicit sorted file/library collections. */
 export function previousHalfDeclaration(product: Shardfile): Shardfile {
-  const original = previousReferences(product);
+  const original = previousHalfReferences(product);
   original.files.sort((a, b) => a.hash.localeCompare(b.hash));
   const size = beforeHalfWorld.metadata.shardfile.library.length;
   const prefix = original.library.slice(0, size).sort();

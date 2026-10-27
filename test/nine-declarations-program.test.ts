@@ -8,6 +8,7 @@ import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { ownedWorld } from './fixtures/nine-product-inputs';
+import { beforeHalfSourceWorld, expectHalfWorld, previousHalfReferences } from './fixtures/nine-half-world';
 import { nineDeclarationsProgram, nineDeclarationFiles } from '../src/shards/nine-dragon-stack/generators/declarationsProgram';
 import { worldPartitionIds } from '../src/shards/nine-dragon-stack/generators/worldRows';
 import before from './fixtures/nine-declaration-files.json' with { type: 'json' };
@@ -18,7 +19,8 @@ async function coldFixture() {
     const context = () => createProjectGeneration(resolve('src/shards/nine-dragon-stack'), 'f'.repeat(64), new Map(), cache,
       [{ prefix: '/assets/', directory: resolve('public/assets') }]);
     const cold = await nineDeclarationsProgram(context(), ownedWorld);
-    return { cold, context, dispose: () => { rmSync(cache, { recursive: true, force: true }); } };
+    const predecessor = await nineDeclarationsProgram(context(), beforeHalfSourceWorld);
+    return { cold, predecessor, context, dispose: () => { rmSync(cache, { recursive: true, force: true }); } };
   } catch (error) { rmSync(cache, { recursive: true, force: true }); throw error; }
 }
 // Cold production belongs to fixture admission; all complete byte/hit oracles keep their ordinary budgets.
@@ -28,9 +30,16 @@ const digest = (value: unknown): string => hashImmutableBytes(new TextEncoder().
 
 test('the source declaration retains both original canonical wires and every partition owner', () => {
   expect(fixture.cold.files.size).toBe(2);
+  expectHalfWorld(ownedWorld);
+  for (const [name, bytes] of fixture.cold.files) {
+    const old = fixture.predecessor.files.get(name);
+    if (old === undefined) throw new Error(`Missing predecessor declaration ${name}`);
+    const value: unknown = JSON.parse(new TextDecoder().decode(bytes));
+    expect(encodeCanonicalJson(previousHalfReferences(value)), name).toBe(encodeCanonicalJson(JSON.parse(new TextDecoder().decode(old))));
+  }
   for (const row of before) {
     const key = row.file === 'declarations.generated.json' ? 'declarations.json' : 'world-rows.json';
-    const bytes = fixture.cold.files.get(key); if (bytes === undefined) throw new Error(`Missing declaration ${key}`);
+    const bytes = fixture.predecessor.files.get(key); if (bytes === undefined) throw new Error(`Missing declaration ${key}`);
     expect(bytes.byteLength, key).toBe(row.bytes); expect(hashImmutableBytes(bytes), key).toBe(row.hash);
   }
   expect(fixture.cold.world.rows.records).toBe(fixture.cold.world.records.length);
