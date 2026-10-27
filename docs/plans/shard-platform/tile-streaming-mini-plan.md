@@ -300,7 +300,7 @@ Each engineering slice below is at most one hour; milestone measurements stay se
 | T6.2 Presentation lease / rebind | in flight (reading at plan end; `0bec059f9f`, sp-o3) | Entry 5x5 census: Pine dormant-only ~14.4 MB GPU (antler-king and two bear rigs, 5 bear coats), above its T0 band; DW ~0 (one shared creature bank); Nalati marginal (bitmap coats, not leasable). Last-reader lease of file-backed KTX2 textures: a model asleep 10 s gives them back unless an awake model of any factory reads them; a waking model stays dormant until they are refilled into the same textures (no rebind, no pop-in); generic, Debug Tile residency only. DW boar-fight Chromium capture at plan end. |
 | T3.I Instanced recipe parts by tile | done (sp-o5, `06d63e5b21`) | A step's instanced part sorts its instances once by tile; one draw whose first `count` instances are the resident tiles', every per-instance channel compacted alike. Parts with their own per-frame hook (a culler) or in one tile stay whole. Measured at Driftwood's spawn: 253/334 draws and triangles unchanged before/after (its foliage already streams as cove dressing); generic for recipe parts. |
 | T8.1 Complete-L0 bake fences | done (`7093891d97`) | All 24 products declare 64 L0 slots; strict caps and the exact 6/4 exception remain. |
-| T8.2 Driftwood lossless route | waits: low value (50–80 build-only lines for 6,778 B delivered) | Read-only sizing complete: tile 2/4 bypasses named-blob compression and needs an opt-in encoder before the compiler derives hashes/costs, plus parity/GC proofs and registered-job output refresh. Coordinator says skip this route; no implementation or geometry writes. 3/1 and 3/3 remain held because gzip grows. Seek a larger delivered-byte or frame saving. |
+| T8.2 Driftwood lossless route | in flight (sp-x9; reading at plan end) | Coordinator reassigns the bounded tile2/4 route to sp-x9. Generic optional named encoder follows compression selection and precedes byte-derived hash/cost publication, on the defining Pine SDK boundary `88fd3ebe2b`. Existing public bytes/defaults, cap accounting and 6/4 exception remain unchanged. Earlier sizing remains evidence, not acceptance: tile2/4 saves6778B delivered;3/1 and3/3 gzip grows. |
 | T8.3 Occupied L1 appearance | in flight (reading at plan end, G780) (sp-o5; G748.5 Sky `60535f5995`, G748.6 Driftwood `806ea146aa`, Nine `82ac81812d`, Nalati `4177cc91fc`, G748.7 Pine `f18c504569`) | Real coarse stand-ins for occupied tiles beyond the render ring, per shard in its own style. |
 | G748.1 Entered far stand-in | done (sp-o5, this code commit; Developer) | The entered cell draws its own near view beyond the render ring: ground triangles (all corners within 1.2 m of its terrain) left to the real ground, the ring's tiles masked per fragment (8 x 8 positional far mask). No new bake or file. |
 | G748.2 Per-shard check | done (sp-o5, `dc2e445ae6`) | Opt-in per shard (`world.assembly` row `farStandIn`): Driftwood gains its far palms; Pine and Nalati draw their far content whole today (no change); Nine draws its city whole and the stand-in only darkened it (left out). Sky, Sunscar, template and plots run no world assembly. |
@@ -903,4 +903,28 @@ read-only prior products, not a new current-source build.
 
 | Slice | State | Change and checks |
 |---|---|---|
-| T8.P1 Pine compact timber transport | in flight (reading at plan end), source landed (this code commit) | Generic opt-in PropsBakeSource.tileCompression emits the existing lossless meshopt GLB only when it is smaller; hashes and all file/tile costs come from selected bytes. Default, panels/library/far keep their original byte path. Pine uses existing WholeShape compact channels/shared position grid and run ordinals, no triangle removal/reorder. Its offline reader accepts padded interleaved portable channels, restores the shared grid and retains pose/layout/complete/shared-vertex refusals; strict metadata parsers live on the defining SDK authoring surface. Retained tile0/1/3 wire447440→210768B, declared resident830580→669700B;0/4/7 wire690720→263188B,resident1273984→925082B. Triangles6116/7450 and draws5/6 unchanged. Own product passes26.69s after original grid/channel refusals;64/16 and all16 full5x5 windows have zero cap debt. Then unchanged parsing moved to SDK to satisfy the author import ratchet, no further build. SDK/test and scoped Pine types, touched typed lint and selected shrink-only ratchet pass, no allowance increase. One source-only transport/view/hash/cost case added, not run under G769. Remove only the two obsolete wire exceptions. No pixel/native memory claim, previews, related walk, soak or Simulator. |
+| T8.P1 Pine compact timber transport | in flight (reading at plan end), source `88fd3ebe2b` | Generic opt-in PropsBakeSource.tileCompression emits the existing lossless meshopt GLB only when it is smaller; hashes and all file/tile costs come from selected bytes. Default, panels/library/far keep their original byte path. Pine uses existing WholeShape compact channels/shared position grid and run ordinals, no triangle removal/reorder. Its offline reader accepts padded interleaved portable channels, restores the shared grid and retains pose/layout/complete/shared-vertex refusals; strict metadata parsers live on the defining SDK authoring surface. Retained tile0/1/3 wire447440→210768B, declared resident830580→669700B;0/4/7 wire690720→263188B,resident1273984→925082B. Triangles6116/7450 and draws5/6 unchanged. Own product passes26.69s after original grid/channel refusals;64/16 and all16 full5x5 windows have zero cap debt. Then unchanged parsing moved to SDK to satisfy the author import ratchet, no further build. SDK/test and scoped Pine types, touched typed lint and selected shrink-only ratchet pass, no allowance increase. One source-only transport/view/hash/cost case added, not run under G769. Remove only the two obsolete wire exceptions. No pixel/native memory claim, previews, related walk, soak or Simulator. |
+
+### T8 open-plot cost boundary (2026-10-27, sp-x2)
+
+Pine's source handoff is `88fd3ebe2b`; its actual product and final selected
+checks are recorded above. The next open-plot cut is blocked on graphical
+material/texture consolidation, routed to the coordinator for an Opus owner.
+This is an actual retained cost audit, not a new product or acceptance run.
+Night Market retained product `8b1243d3d0250c022af95ed03ef0275fc4ab63a498aeb0d069d3c6c66e1c1a0f`
+already uses quantized meshopt and complete64L0/16L1 rows:
+
+| Tile | Geometry wire / declared resident B | Texture dependencies wire / declared resident B | Total wire / declared resident B | Triangles / draws |
+|---|---|---|---|---|
+| L0 3/3 | 259032 / 1224056 | 1593920 / 8738112 | 1852952 / 9962168 | 13213 / 9 |
+| L1 1/1 | 101472 / 417444 | 1593920 / 8738112 | 1695392 / 9155556 | 5169 / 6 |
+
+The L1's real material slots are Kit, Water, Glow, Pool, Poster and Landmark;
+its cap is2 draws. The dependency rows have0 triangles/draws: there is no
+geometry double charge to remove. These distinct look/blend states and the
+full original texture footprints require a graphical producer change to fit;
+lossless transport alone cannot solve them. Do not relabel the same assets as
+library/global cost or fabricate empty occupied parents. Existing exact debt,
+wire/resident/draw caps, source geometry and texture pixels stay unchanged.
+Remaining T10 source deletion waits for the actual all-seven T8 ownership
+migrations; no new preview, reading, product build or render gain is claimed.
