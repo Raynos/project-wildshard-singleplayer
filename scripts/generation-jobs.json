@@ -135,7 +135,8 @@
         "src/sdk",
         "src/format",
         "src/shards/nalati-grasslands/data/grassFieldLayout.json",
-        "src/shards/nalati-grasslands/data/geographySources.json"
+        "src/shards/nalati-grasslands/data/geographySources.json",
+        "src/shards/nalati-grasslands/generators/geographySource.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/boot/geography.generated.json",
