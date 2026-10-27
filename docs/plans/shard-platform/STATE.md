@@ -15,6 +15,11 @@ Nalati warm green ground (G784): sp-o4.
 removed); D2 30 s idle-skipped checkpoint (sp-o3 building); R4 closes at ~24 s (sp-x1 marks; generators archives at 100 %);
 D59 cap stays 9. green-main + ci-flow archive (sp-x6). H4 warm 4.3 s vs 1.5 and Nalati cold 14.7 s vs 8 are real misses;
 Jake triages misses after tonight's play.
+**FYI for Jake (look, correction):** the SDK Float16 fix (430285601e) makes Nine's crowd casts show their authored
+clothing / umbrella colours again; since the 02f half-float bake they were dark silhouettes. Driftwood is unchanged.
+**18:30 reply:** GR10 wasn't lost: it was folded (sp-o4) into GR9 / GS3 / GR7 (all done) and LD6 (Jake's legacy word, G606),
+so generators closed with no live row. sp-o4 / sp-o5 are told: one Chromium reading per row, then land, mark and move on
+(Simulator only for WebKit fence proof). The 1ba7bcb94e products / generated-inputs red is routed to its breaker via sp-ci-deploy.
 **Jake picks open:** D175 (125 m kept) / D181 (sheen kept) ruled; D183 / D185 pending; LD5-LD8 / A1 / A2 / M2 / RM13.
 
 **Lanes (G804 / G805; G803 3 Opus; Claude 85 %, Codex 100 % on credits):** sp-o3 iphone + D2 heap, sp-o5 tile-streaming
