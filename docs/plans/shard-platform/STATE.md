@@ -18,21 +18,20 @@ once per plan at the end (G780); official Simulator readings last (G777).
 `generation-jobs.json` deleted. Every product builds under its phone ceiling. Met today: RM5 / RM10, H10, J6, H2,
 T11, T3, D122, D121, D110, D24, H1, I11, D152 (Simulator-proven fence raise), D154 NaN blocks. **G782 crossings:
 warm solved** by last-cell retention (~0.03-1 s, < 1.2 GB); Sky rebuild look fixed (f808697807). **Sky passes both
-bars** (7.58 s cold / 35.5 ms warm). Cold over 8 s: DW 11.8 (sp-x8 + sp-x10), Nalati ~15 (sp-o5 hooks), Pine 18.3
-(no Pine-side lever left; needs Jake's D178 / D181). Official quiet Sim frame floor 10 / 15 (T10, sp-o4 cutting:
-spawn p95 81 ms, one 224 ms template-return frame, Pine / Nalati drive 36-43 ms). Jake picks: D175 / D178 / D179 /
-D181 / D183. Plans: generators 94 %, loading 94 %, tile-streaming 83 %, shared-waits 85 %, grid-crossing 70 %,
-iphone-downloads 58 % (I2 left; DW phone 14.9 MB, Nalati 71.8 -> 67.5 MB), legacy 50 % (Jake), ci-flow 40 % (CF3 13
-min). js-heap 100 % archived. Counter 177 / 209 = 85 %. CI: every known source red has a qualified fix; the last
-blocker is the GS5 post-publication check (sp-x1); live still 59a595ab10.
+bars** (7.58 s cold / 35.5 ms warm); warm passes on every crossing. Cold over 8 s: DW ~11.8 (sp-x8 + sp-x10), Nalati
+~15-16 (sp-o4 shaders, G808), Pine 18.3 (needs D178 / D181). Nalati warm green ground (G784): sp-o4. Official quiet
+Sim frame floor 10 / 15 (T10, now sp-o5). Jake picks: D175 / D178 / D179 / D181 / D183 / D185. Plans: generators 94 %,
+loading 94 %, shared-waits 85 %, tile-streaming 83 %, grid-crossing 70 %, iphone-downloads 67 % (I2 honest status in
+row: 3-12x over 12 MB; Pine 64.6 MB phone), legacy 50 % (Jake), ci-flow 40 %. Counter 178 / 209 = 85 %. CI: every
+known source red has a qualified fix; awaiting a whole green run + six-leg smoke; live still 59a595ab10.
 **G807-G810 applied (15:45):** a row is done on landed code + one Chromium reading by its own lane, marked at once
 (G807 replaces G780; every held reading is being taken now). sp-o4 joins sp-x8 on cold crossing shaders (G808); sp-o5
 owns T10's frame floor. SW3 / CF3-CF5 / GM1 / build-speed close on the first green push run (G809, sp-ci-deploy).
 **Blocked on Jake:** his phone QA tonight (G810, nothing waits); LD5-LD8 / A1 / A2 / M2 / RM13 (counted, G779).
 
-**Lanes (G804 / G805; G803 3 Opus; Claude 80 %, Codex 96 % on credits):** sp-o3 iphone-downloads (+ sp-x2), sp-o5
-tile-streaming + T7 Nalati, sp-o4 T10 frame floor, sp-x8 + sp-x10 grid-crossing DW, sp-x9 loading, sp-x6 ci-flow + GM1,
+**Lanes (G804 / G805; G803 3 Opus; Claude 82 %, Codex 99 % on credits):** sp-o3 iphone + D2 heap (+ sp-x2), sp-o5
+tile-streaming + T10, sp-o4 crossing shaders (G808), sp-x8 + sp-x10 grid-crossing DW, sp-x9 loading (+ sp-x6),
 sp-x1 generators, sp-ci-deploy CI reds only. sp-o1 / sp-o2 released.
 
-**Rules:** G704 (<= ~20 files/move commit). G803. No reverts (G674). No new Debug rows (G669). G670.
+**Rules:** G704. G803. G807. No reverts (G674). No new Debug rows (G669). G670.
 Never herdr wildshard-v.
