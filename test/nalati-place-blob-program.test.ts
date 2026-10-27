@@ -284,6 +284,7 @@ test('the actual cold output hook preserves every predecessor file cost and bina
       const projected=projectedScenes.find(row=>row.file.name===name);
       if(projected===undefined)throw new Error('Missing owned dressing scene');
       const {file,bytes}=projected;
+      if (file.kind === 'json') expect(JSON.parse(new TextDecoder().decode(bytes))).toEqual(JSON.parse(new TextDecoder().decode(expected.bytes)));
       expect(file).toEqual(expected.file);
       expect(bytes.length).toBe(expected.file.compressed);
       expect(hashImmutableBytes(bytes)).toBe(expected.file.hash);
