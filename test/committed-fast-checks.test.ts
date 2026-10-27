@@ -37,7 +37,7 @@ export default {
   put('src/main.ts','export const value=1;\n');
   const commit=()=>{git('add','.');git('commit','-qm','fixture');return git('rev-parse','HEAD');};
   const base=commit();linkNodeModules(repository,root);
-  const run=(phase:string,tip:string,files=['src/main.ts'],from=base,trace=false)=>spawnSync('node',[resolve('scripts/committed-fast-checks.mjs'),root,from,tip,phase,JSON.stringify(files)],{cwd:repository,encoding:'utf8',timeout:15_000,env:{...process.env,...(trace?{GIT_TRACE:'1'}:{})}});
+  const run=(phase:string,tip:string,files=['src/main.ts'],from=base,trace=false,native=false)=>spawnSync('node',[resolve('scripts/committed-fast-checks.mjs'),root,from,tip,phase,JSON.stringify(files)],{cwd:repository,encoding:'utf8',timeout:15_000,env:{...process.env,...(trace?{GIT_TRACE:'1'}:{}),...(native?{WS_GIT_NATIVE_ROOT:root}:{})}});
   return {root,git,put,commit,base,run,close:()=>rmSync(root,{recursive:true,force:true})};
 }
 
@@ -171,6 +171,31 @@ test('native generated data requires its exact committed catalogue hash',()=>{
     const changed=f.run('fast-lint',tip);
     expect(changed.stdout).toContain('unverified inputs src/layout.generated.json');
     expect(changed.stdout).not.toContain('Fast lint passed');
+  }finally{f.close();}
+});
+
+test('native source providers need the mirror context and verify every returned digest',()=>{
+  const f=fixture();try {
+    const file='src/derived.generated.ts';
+    f.put('.gitignore','tmp/\nnode_modules/\n*.generated.ts\n');
+    f.put('src/main.ts',"import {value} from './derived.generated';export const result=value;");
+    f.put('scripts/generation-jobs.json',JSON.stringify({jobs:[{id:'source',outputs:[file],buildTimeOutputs:[file]}]}));
+    // Explicit process dependencies: no real machine lease or generation cache
+    // is acquired by this tiny native-protocol fixture.
+    f.put('scripts/heavy-lane.py','import os,sys\nos.execvp(sys.argv[3],sys.argv[3:])\n');
+    f.put('scripts/generate.mjs',`import{mkdirSync,writeFileSync}from'node:fs';import{resolve}from'node:path';import{createHash}from'node:crypto';
+export function discoverGeneration(){return {jobs:[{id:'source',buildTimeOutputs:['${file}']}]};}
+export async function generateShardJob(){const directory=resolve('tmp/provider');mkdirSync(directory+'/src',{recursive:true});const bytes='export const value=1;';writeFileSync(directory+'/${file}',bytes);return {directory,hashes:{'${file}':createHash('sha256').update(bytes).digest('hex')},release(){}};}`);
+    const tip=f.commit();
+    const ordinary=f.run('fast-lint',tip);
+    expect(ordinary.stdout).toContain('unverified inputs src/derived.generated');
+    const native=f.run('fast-lint',tip,['src/main.ts'],f.base,false,true);
+    expect(native.status,native.stdout+native.stderr).toBe(0);
+    expect(native.stdout).toContain('Fast lint passed on 1 exact changed files');
+    expect(native.stdout).not.toContain('DEFERRED TO CI');
+    f.put('scripts/generate.mjs',readFileSync(resolve(f.root,'scripts/generate.mjs'),'utf8').replace("createHash('sha256').update(bytes).digest('hex')",`'${'0'.repeat(64)}'`));
+    const bad=f.run('fast-lint',f.commit(),['src/main.ts'],f.base,false,true);
+    expect(bad.status).toBe(1);expect(bad.stderr).toContain('Native source output differs');
   }finally{f.close();}
 });
 

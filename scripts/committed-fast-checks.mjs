@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, matchesGlob, relative, resolve } from 'node:path';
 import ts from '@typescript/typescript6';
 import { pathToFileURL } from 'node:url';
-import { gitSourceView, installGitSourceView, deriveGitVocabulary, deriveGitStarterTables } from './git-source-view.mjs';
+import { gitSourceView, installGitSourceView, deriveGitVocabulary, deriveGitStarterTables, deriveGitDiscovery } from './git-source-view.mjs';
 import { gitRuleCount } from './git-rule-counts.mjs';
 import * as v from 'valibot';
 
@@ -66,7 +66,10 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
                 target=`src/${packageName[1]}/${entry.slice(2)}`;
               }
               if(target===null)continue;
-              const resolved=[target,`${target}.ts`,`${target}.tsx`,`${target}.mts`,`${target}.mjs`,`${target}.js`,`${target}/index.ts`].find(path=>view.files.has(path)||view.derived.has(path)||view.admitGenerated(path));
+              let resolved;
+              for(const path of [target,`${target}.ts`,`${target}.tsx`,`${target}.mts`,`${target}.mjs`,`${target}.js`,`${target}/index.ts`]){
+                if(view.files.has(path)||view.derived.has(path)||view.admitGenerated(path)||deriveGitDiscovery(view,path)){resolved=path;break;}
+              }
               if(resolved===undefined)missing.add(target);else visit(resolved);
             }
           };visit(selected);return {inputs:[...seen],missing:[...missing],mismatched:[...mismatched]};

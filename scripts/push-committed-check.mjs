@@ -25,14 +25,14 @@ export function runCommittedCheck(root, base, tip, phase, files, ports = NATIVE_
         module[name](process.cwd());
       }
     `], { cwd: mirror.dir, encoding: 'utf8', maxBuffer: 8 * 1024 * 1024,
-      env: { ...process.env, GIT_DIR: ports.gitDirectory(root), GIT_WORK_TREE: mirror.dir,
+      env: { ...process.env, WS_GIT_NATIVE_ROOT: mirror.dir, GIT_DIR: ports.gitDirectory(root), GIT_WORK_TREE: mirror.dir,
         GIT_INDEX_FILE: resolve(mirror.dir, '../index') } });
     if (prepare.error !== undefined) throw prepare.error;
     if (prepare.status !== 0) return { status: prepare.status ?? 1, stdout: prepare.stdout ?? '', stderr: prepare.stderr ?? '' };
     const result = ports.run(process.execPath, [resolve(mirror.dir, 'scripts/committed-fast-checks.mjs'),
       mirror.dir, base, mirror.sha, phase, JSON.stringify(files)], {
       cwd: mirror.dir, encoding: 'utf8', maxBuffer: 8 * 1024 * 1024,
-      env: { ...process.env, GIT_DIR: ports.gitDirectory(root), GIT_WORK_TREE: mirror.dir,
+      env: { ...process.env, WS_GIT_NATIVE_ROOT: mirror.dir, GIT_DIR: ports.gitDirectory(root), GIT_WORK_TREE: mirror.dir,
         GIT_INDEX_FILE: resolve(mirror.dir, '../index') },
     });
     if (result.error !== undefined) throw result.error;
