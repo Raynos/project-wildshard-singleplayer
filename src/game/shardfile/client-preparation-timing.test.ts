@@ -67,3 +67,35 @@ test('batched preparation stays absent in public mode and replaces a completed r
     }
   } finally { setDev(previous); performance.clearMeasures(name); }
 });
+
+
+test('optional completion totals keep synchronous progress and actual waited failures', async () => {
+  const previous = isDev(), name = 'wildshard.prepare:fixture:whole-check.yield';
+  const clock = vi.spyOn(performance, 'now'); let now = 100;
+  clock.mockImplementation(() => now);
+  try {
+    setDev(true);
+    const batch = clientPreparationBatch('fixture', 'whole-check', ['yield']);
+    if (batch === undefined) throw new Error('Missing Developer batch');
+    expect(batch.checkpoint('yield', () => { now += 2; return undefined; })).toBeUndefined();
+    now = 200;
+    let finish = (): void => undefined;
+    const pause = new Promise<void>(resolve => { finish = resolve; });
+    const waited = batch.checkpoint('yield', () => { now += 3; return pause; });
+    expect(waited).toBeInstanceOf(Promise);
+    now = 250; finish(); await waited;
+    const failure = new Error('original completion refusal');
+    now = 300;
+    expect(() => batch.checkpoint('yield', () => { now += 7; throw failure; })).toThrow(failure);
+    now = 400;
+    await expect(batch.checkpoint('yield', () => { now += 5; return Promise.reject(failure); })).rejects.toBe(failure);
+    batch.finish();
+    const spans = performance.getEntriesByName(name), entry = spans[0];
+    expect(spans).toHaveLength(1);
+    if (entry === undefined) throw new Error('Missing completion total');
+    expect(entry.duration).toBe(305);
+    const detail: unknown = Reflect.get(entry, 'detail');
+    expect(detail).toEqual({ calls: 4, failures: 2, elapsedMs: 64, longestMs: 50 });
+    expect(() => batch.checkpoint('yield', () => undefined)).toThrow('Client preparation batch is finished');
+  } finally { setDev(previous); clock.mockRestore(); performance.clearMeasures(name); }
+});

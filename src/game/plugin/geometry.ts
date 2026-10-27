@@ -1898,7 +1898,7 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
         if (checkpoint !== undefined) wait = () => checkpoint;
       } else if (slice.due()) wait = slice.yield;
     }
-    if (wait === undefined) return undefined;
+    if (wait === undefined) { assertLive(); return undefined; }
     // Keep real pauses and their retirement race; cheap default completions
     // need neither a pending promise nor a microtask handoff.
     const suspend = async (): Promise<void> => {

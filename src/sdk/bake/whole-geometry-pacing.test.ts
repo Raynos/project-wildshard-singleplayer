@@ -263,3 +263,24 @@ test('lane restoration keeps its page lifetime after the construction owner reti
   try { expect(await fetchLaneBake('https://test.example/page-lanes')).toEqual(unshuffleLanes(lanes)); }
   finally { enterOwner(null); }
 });
+
+
+test('an unspent completion still rechecks an owner retired by its budget query', async () => {
+  const owner = new Scope('whole-budget-retires'), fixture = source(owner);
+  const nativeDispose: unknown = Reflect.get(BufferGeometry.prototype, 'dispose');
+  if (typeof nativeDispose !== 'function') throw new Error('Missing native geometry disposal');
+  let assembled = false;
+  const disposed = vi.spyOn(BufferGeometry.prototype, 'dispose').mockImplementation(function disposeTemporary(this: BufferGeometry) {
+    if (this.getAttribute('position')?.count === 65538) assembled = true;
+    Reflect.apply(nativeDispose, this, []);
+  });
+  vi.spyOn(pacing, 'presenting').mockReturnValue(true);
+  vi.spyOn(pacing, 'buildHeld').mockReturnValue(true);
+  vi.spyOn(pacing, 'frameBudgetSpent').mockImplementation(() => {
+    if (assembled) owner.dispose();
+    return false;
+  });
+  await expect(readWholeGeometry(owner, 'whole-pace', [fixture.ref])).rejects.toThrow('Whole geometry unloaded while reading');
+  expect(assembled).toBe(true); expect(owner.disposed).toBe(true);
+  expect(disposed.mock.contexts).not.toContain(fixture.geometry);
+});
