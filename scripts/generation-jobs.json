@@ -108,64 +108,6 @@
       "platform": "portable"
     },
     {
-      "id": "nalati-taming-poses",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-taming-poses.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-taming-poses.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/nalati-grasslands/data/horsePresentation.json",
-        "src/shards/nalati-grasslands/data/bodies.json",
-        "src/shards/nalati-grasslands/data/brains.json",
-        "src/shards/nalati-grasslands/data/ecology.generated.json",
-        "src/shards/nalati-grasslands/data/strikeProfiles.generated.json",
-        "src/shards/nalati-grasslands/generators/bake-taming-poses.mjs",
-        "src/shards/nalati-grasslands/generators/balbalBody.ts",
-        "src/shards/nalati-grasslands/generators/bodies.ts",
-        "src/shards/nalati-grasslands/generators/canidBody.ts",
-        "src/shards/nalati-grasslands/generators/eagleBody.ts",
-        "src/shards/nalati-grasslands/generators/goldenKingBody.ts",
-        "src/shards/nalati-grasslands/generators/horseBody.ts",
-        "src/shards/nalati-grasslands/generators/leopardBody.ts",
-        "src/shards/nalati-grasslands/generators/shape.ts",
-        "src/shards/nalati-grasslands/generators/bodyKey.ts",
-        "src/shards/nalati-grasslands/generators/ghostFigure.ts",
-        "src/shards/nalati-grasslands/generators/speciesRows.ts",
-        "src/shards/nalati-grasslands/species/horse.json",
-        "src/shards/nalati-grasslands/data/speciesLooks.json",
-        "src/shards/nalati-grasslands/data/wolfPalette.json",
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/format",
-        "scripts/bake-loader.mjs",
-        "scripts/bake-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "scripts/bake-loader.mjs",
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/format",
-        "src/shards/nalati-grasslands/species/horse.json",
-        "src/shards/nalati-grasslands/species/horse.d.json.ts",
-        "src/shards/nalati-grasslands/data/speciesRows.json",
-        "src/shards/nalati-grasslands/generators/speciesPoses.ts"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/data/tamingPoses.generated.json"
-      ],
-      "platform": "portable",
-      "buildOutputs": {
-        "src/shards/nalati-grasslands/data/tamingPoses.generated.json": "44aa3290d263ba0b05ca743b2cc5ce89164c03074e6c8c642033436fffc4d7fe"
-      }
-    },
-    {
       "id": "nalati-admission",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-admission.mjs",
@@ -3776,7 +3718,6 @@
         "src/shards/nalati-grasslands/generators/sabrePool.ts",
         "src/shards/nalati-grasslands/generators/bake-sign-atlases.mjs",
         "src/shards/nalati-grasslands/generators/bake-storm-titan.mjs",
-        "src/shards/nalati-grasslands/generators/bake-taming-poses.mjs",
         "src/shards/nalati-grasslands/generators/bake-titan-fire-view.mjs",
         "src/shards/nalati-grasslands/generators/bake-titan-view.mjs",
         "src/shards/nalati-grasslands/generators/bake-titan-whirls-view.mjs",

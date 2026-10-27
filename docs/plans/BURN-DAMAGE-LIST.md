@@ -118,6 +118,7 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D67 | `scripts/family-props-board/board.js` imports `src/shards/driftwood-isle/boot/modelCatalogue.generated.json`, which the retired specimen-catalogue job wrote; the board needs the site catalogue from `siteCatalogue(banks)` (sceneBanks.ts) when its harness is repaired (its browser runner is already removed) | the specimen-catalogue retirement (sp-o4, GR7) | the family-props board row (generators GR7 ← B3) | open |
 
 | D68 | Native whole-shape storage changes invalidate registered Pine timber stream output hashes (`40473058629` / `40473133905`, missing `assets/0c1f2a18...`) | `210f87d040` and `46f7f5ec4a` | sp-o2 | fixed source `19f9dce77a`: compaction/nativeOnce opt in through Nine; owner exact timber compare exit 0 and Nine build exit 0; sp-ci-deploy independent run stopped on uncommitted D65 pineSources closure, frozen CI pending |
+| D69 | Pre-existing taming handoff pin mismatch: local 85,858 B SHA 93d2101b641c092d213b0485dc9b831e0b809b56a5531d36fb9ddee66dd1a28a differs from registered 44aa3290d263ba0b05ca743b2cc5ce89164c03074e6c8c642033436fffc4d7fe. Complete local bytes retained independently; no repin or byte-equivalence claim. | observed `4c12de2422` before taming retirement; first bad unknown | sp-x6 (GR6 plan-end reading) | open |
 
 ## Rows
 

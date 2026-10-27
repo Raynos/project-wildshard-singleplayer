@@ -529,7 +529,6 @@
     "src/shards/nalati-grasslands/data/stormTitanFight.generated.json",
     "src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json",
     "src/shards/nalati-grasslands/data/strikeProfiles.generated.json",
-    "src/shards/nalati-grasslands/data/tamingPoses.generated.json",
     "src/shards/nalati-grasslands/data/weatherChannels.generated.json",
     "src/shards/nalati-grasslands/generators/edges.ts",
     "src/shards/nalati-grasslands/generators/panoramaData.ts",
