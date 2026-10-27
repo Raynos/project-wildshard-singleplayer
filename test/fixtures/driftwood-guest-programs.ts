@@ -1,12 +1,13 @@
-import { readFileSync } from 'node:fs';
-import { createProjectGeneration } from '../../src/sdk/projectGeneration';
-import { hashImmutableBytes } from '../../src/sdk/immutable';
-import { driftwoodGuestFiles, driftwoodGuestRows } from '../../src/shards/driftwood-isle/generators/guestPrograms';
+// oxlint-disable-next-line import/no-nodejs-modules -- Compile the real fixture outside happy-dom in Node's native Response realm.
+import { execFileSync } from 'node:child_process';
+import * as v from 'valibot';
+import { driftwoodGuestRows } from '../../src/shards/driftwood-isle/generators/guestPrograms';
 
-const source = 'src/shards/driftwood-isle/generators/guestPrograms.ts';
-const context = createProjectGeneration('src/shards/driftwood-isle', hashImmutableBytes(new Uint8Array(readFileSync(source))), new Map());
-/** The same native source cache as the product, keyed by owner source, authored inputs and complete compiler identity. */
-export const DRIFTWOOD_GUEST_FILES = await driftwoodGuestFiles(context);
+const compiled = v.parse(v.array(v.tuple([v.string(), v.string()])), JSON.parse(execFileSync(process.execPath,
+  ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', 'test/fixtures/driftwood-guest-compile.mjs'], { encoding: 'utf8', maxBuffer: 1 << 26 })));
+if (new Set(compiled.map(([name]) => name)).size !== compiled.length) throw new Error('Duplicate native guest fixture file');
+/** The same production builder/cache identity in Node; consumers retain every original byte/ABI guard. */
+export const DRIFTWOOD_GUEST_FILES: ReadonlyMap<string, Uint8Array> = new Map(compiled.map(([name, bytes]) => [name, Uint8Array.from(Buffer.from(bytes, 'base64'))]));
 export const DRIFTWOOD_GUEST_ROWS = driftwoodGuestRows(DRIFTWOOD_GUEST_FILES);
 export const RETURN_PROGRAM = DRIFTWOOD_GUEST_ROWS.returnProgram;
 
