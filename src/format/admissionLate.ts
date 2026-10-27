@@ -13,3 +13,10 @@ export const AdmissionLateSchema: v.GenericSchema<AdmissionLate, AdmissionLate> 
   v.array(v.strictObject({ hash: ShardHashSchema, at: v.exactOptional(v.tuple([coordinate, coordinate])) })),
   v.maxLength(SHARDFILE_ADMISSION_LIMITS.files), v.check(rows => new Set(rows.map(row => row.hash)).size === rows.length, 'unique late file hashes'),
 );
+
+
+/** Exact local library membership shared by source, output-index and project assembly boundaries.
+ * Schema validation owns shape/uniqueness; aliases and commons names never replace the declared local hash. */
+export function lateLibraryRootsValid(rows: readonly LateFile[], files: Pick<ReadonlySet<string>, 'has'>, library: Pick<ReadonlySet<string>, 'has'>): boolean {
+  return rows.every(row => files.has(row.hash) && library.has(row.hash));
+}

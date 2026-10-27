@@ -1,5 +1,5 @@
 import type { Ktx2DeviceCosts } from './ktx2Cost';
-import { AdmissionLateSchema, type AdmissionLate } from './admissionLate';
+import { AdmissionLateSchema, lateLibraryRootsValid, type AdmissionLate } from './admissionLate';
 /** Versioned, renderer-free disk contract shared by the writer and network reader. */
 import { isOutputIndex, outputBlobPath } from './outputAddress';
 import { OUTPUT_SECTIONS, assembleOutputTransport, isPlatformDataSection, type OutputHostSectionName } from './outputFields';
@@ -88,7 +88,7 @@ function parseOutputIndexRows(input: unknown): OutputIndex {
     if ((entry.tier !== undefined || entry.variantOf !== undefined) && (entry.name === undefined || entry.commons === true || entry.critical)) throw new Error('A tiered or variant output file is a named, non-critical product file');
   }
   const library = new Set(v.parse(ShardfileFieldSchemas.library, index.admission.library));
-  for (const row of index.admission.late ?? []) if (!library.has(row.hash) || !refs.has(row.hash)) throw new Error('Late output file must be a declared library root');
+  if (!lateLibraryRootsValid(index.admission.late ?? [], refs, library)) throw new Error('Late output file must be a declared library root');
   // I5: a pack lives beside the blobs, is listed once, and holds only listed members at their exact sizes, in order
   const members = new Map([...index.sections, ...index.schemas].map(entry => [entry.hash, entry.bytes] as const));
   for (const entry of index.files) members.set(entry.hash, entry.compressed);

@@ -1,4 +1,4 @@
-import { AdmissionLateSchema } from './admissionLate';
+import { AdmissionLateSchema, lateLibraryRootsValid } from './admissionLate';
 import { ManifestMetadataSchema } from '@wildshard/format/minimap';
 import { hasDeclaredClientPage } from './runtimeBinds';
 import { diverPreset } from '@wildshard/format/flyers';
@@ -219,7 +219,7 @@ export function shardfileRules(s: Shardfile): string[] {
   if (commonsWire.length !== commons.size || commonsWire.some((id) => !commons.has(id))) errors.push('commons wire declarations match the exact commons hash keyset');
   const files = new Map(s.files.map((f) => [f.hash, f]));
   if (files.size !== s.files.length) errors.push('unique file hashes');
-  if ((s.late ?? []).some(row => !files.has(row.hash) || !s.library.includes(row.hash))) errors.push('late files are declared library roots');
+  if (!lateLibraryRootsValid(s.late ?? [], files, new Set(s.library))) errors.push('late files are declared library roots');
   const refs = [...s.files.flatMap((f) => f.dependencies), ...s.tiles.flatMap((t) => t.files), ...s.library, ...s.critical, ...s.sim.scripts, ...(s.far?.files ?? []), ...nearPlaceholderRoots(s.near), ...(s.look.grade.lut === null ? [] : [s.look.grade.lut])];
   for (const r of refs) if (r.startsWith('commons:') ? !s.requires.commons.includes(r.slice(8)) : !files.has(r)) errors.push(`undeclared reference ${r}`);
   const visited = new Set<string>(), active = new Set<string>();

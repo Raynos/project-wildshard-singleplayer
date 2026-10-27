@@ -910,3 +910,22 @@ never cache unselected lazy code. The title page gets no new wait/import.
 Reserved installer entries cannot be selected by an arbitrary chunk key.
 Types/typed lint/scoped ratchet pass; enabled-pack CSS-failure regression
 and containing build/read follow. No deadline or inventory guard changed.
+
+### I2.15 Exact project late-root refusal (2026-10-27, sp-x2)
+
+Red-fix for CI40529017541 at973, B15: the9e4f6f359e regression
+expects the missing-root diagnostic, but final generic parseShardfile
+reports only shardfile semantic rules. Keep the original assertions.
+After all named blobs establish their local file/library rows, the SDK
+now validates the merged late schema and the exact local-root predicate
+before assigning hints and entering final semantic parsing. Source,
+output-index and project assembly reuse one membership predicate; their
+existing boundary-specific refusal text stays. No malformed/duplicate,
+commons/alias, byte/hash/cost or final semantic guard is weakened.
+
+Format/SDK and SDK-test types, touched typed lint and scoped ratchet
+pass. Additional source controls cover an existing local non-library
+file, a logical-name hint, a valid content alias and duplicate aliases;
+all original missing-root/out-of-cell/duplicate assertions remain.
+Land source first under G769, then recover only the original failed
+negative case; no product, generator, preview or related walk.

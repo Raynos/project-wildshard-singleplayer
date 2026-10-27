@@ -1,4 +1,4 @@
-import { AdmissionLateSchema, type AdmissionLate, type LateFile } from '@wildshard/format/admissionLate';
+import { AdmissionLateSchema, lateLibraryRootsValid, type AdmissionLate, type LateFile } from '@wildshard/format/admissionLate';
 import * as v from 'valibot';
 import { ScriptContractSchema, decisionModuleContracts, type ScriptContractInput, type ScriptContract } from '@wildshard/format/scriptContract';
 import { OutputIndexSchema, type OutputFile } from '@wildshard/format/outputIndex';
@@ -169,7 +169,11 @@ export function mergeProjectBlobs(input: Shardfile, inputAssets: ReadonlyMap<str
     names.set(name, file.hash);
     if (existing !== undefined || !common) assets.set(file.hash, Uint8Array.from(blob.bytes));
   }
-  if (late.length > 0) source.late = v.parse(AdmissionLateSchema, [...source.late ?? [], ...late]);
+  if (late.length > 0) {
+    const scheduled = v.parse(AdmissionLateSchema, [...source.late ?? [], ...late]);
+    if (!lateLibraryRootsValid(scheduled, files, new Set(source.library))) throw new Error('late files are declared library roots');
+    source.late = scheduled;
+  }
   const after = libraryCost(source), budget = source.budgets.library;
   budget.compressed += after.compressed - before.compressed; budget.resident += after.resident - before.resident;
   if (budget.downloadAllowance !== undefined) budget.downloadAllowance += after.compressed - before.compressed;

@@ -302,6 +302,14 @@ test('output late hints refuse missing library roots and malformed scheduling me
   await expect(prepareProjectOutput(directory(), {late:[{hash:blob.file.hash,at:[251,0]}]})).rejects.toThrow();
   expect(() => mergeProjectBlobs(source(), new Map(), [], [], [{hash:blob.file.hash}])).toThrow('declared library roots');
   expect(() => mergeProjectBlobs(source(), new Map(), [blob], [], [{hash:blob.file.hash},{hash:blob.file.hash}])).toThrow('unique late');
+  const local = source(), {name:_name,path:_path,kind:_kind,...metadata} = blob.file;
+  local.files.push({...metadata,kind:'binary'});
+  expect(() => mergeProjectBlobs(local,new Map([[blob.file.hash,blob.bytes]]),[blob],[],[{hash:blob.file.hash}])).toThrow('declared library roots');
+  expect(local.library).toEqual([]); expect(local.late).toBeUndefined();
+  expect(() => mergeProjectBlobs(source(),new Map(),[blob],[],[{hash:'world/late-shape.bin'}])).toThrow();
+  const alias = nameBlob('world/alias.bin','bin',binary);
+  expect(mergeProjectBlobs(source(),new Map(),[blob,alias],[],[{hash:blob.file.hash}]).shard.late).toEqual([{hash:blob.file.hash}]);
+  expect(() => mergeProjectBlobs(source(),new Map(),[blob,alias],[],[{hash:blob.file.hash},{hash:alias.file.hash}])).toThrow('unique late');
 });
 
 test('small late bodies never ride a required control body pack', () => {
