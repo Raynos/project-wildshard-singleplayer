@@ -4,7 +4,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { gunzipSync, gzipSync } from 'node:zlib';
 import { readWitnessManifest } from '../../../scripts/witness-checkpoints.mjs';
 import * as v from 'valibot';
-import source from '../../../src/shards/far-reach/shard.config';
+import { productClosureFile } from '../../../src/game/shardfile/shardProduct';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
@@ -37,7 +37,9 @@ import { ROC_STEP, ROC_ID } from '../../../src/shards/far-reach/generators/rows/
  */
 export const ENTRY = 'runtime/headless.ts';
 const ROOT = new URL('../../../', import.meta.url);
-const assets = new Map(source.files.map(file => [file.hash, new Uint8Array(readFileSync(new URL(`src/shards/far-reach/assets/${file.hash}`, ROOT)))]));
+const product = await loadHeadlessProduct('out/far-reach'), source = product.shardfile;
+const refs = [...source.files.map(file => file.hash), ...source.requires.commons.map(hash => `commons:${hash}`)];
+const assets = new Map(await Promise.all(refs.map(async (ref): Promise<[string, Uint8Array]> => [ref, await productClosureFile(product, ref)])));
 const EYE = 1.68;
 const identity = { instance: 'far-reach-witness', shard: source.identity.slug, revision: source.identity.revision };
 
@@ -59,7 +61,7 @@ const requireValue = <T>(value: T | undefined | null, message: string): T => { i
 const digest = (host: SimHost): string => canonicalSimDigest(snapshotSimHost(host));
 
 export function skyRapier(): Promise<Rapier> { return loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', ROOT))); }
-export async function skyPlan(rapier: Rapier): Promise<HeadlessRuntimePlan> { return prepareNativeRuntime({ shard: source, assets, rapier, product: await loadHeadlessProduct('out/far-reach') }); }
+export function skyPlan(rapier: Rapier): Promise<HeadlessRuntimePlan> { return prepareNativeRuntime({ shard: source, assets, rapier, product }); }
 
 function context(session: Omit<Session, 'host'>, saved?: string): HeadlessRuntimeInstallation {
   return { restoring: saved !== undefined, ...(saved === undefined ? {} : { snapshot: decodeSimSnapshot(saved) }), commands: () => session.tape, emit: effect => { session.tick.push(effect); } };

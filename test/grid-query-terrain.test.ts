@@ -5,9 +5,13 @@ import { clientMaterials } from '../src/game/shardfile/clientMaterials';
 import { clientTileViews } from '../src/game/shardfile/clientViews';
 import { DRIFTWOOD as driftwood } from './fixtures/driftwood-program';
 import nalati from './fixtures/nalati-product-source';
-import sky from '../src/shards/far-reach/shard.config';
+import { skyProductRows } from '../src/shards/far-reach/generators/product';
+import { originalSkyNavigation } from './fixtures/sky-navigation';
+import { originalSkyMovers } from './fixtures/sky-movers';
 import { source as signal } from './fixtures/sunscar-source-program';
 import { PINE as pine } from './fixtures/pine-program';
+
+const sky = skyProductRows(originalSkyNavigation(), originalSkyMovers());
 
 for (const source of [driftwood, nalati]) {
   it(`${source.identity.slug}: admits query-only ground without an unused terrain material`, async () => {
