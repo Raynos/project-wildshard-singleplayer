@@ -1,4 +1,5 @@
 import { originalEmberTransport } from './fixtures/signal-inline-embers';
+import { originalInlineMaterialGraphs } from './fixtures/inline-material-graphs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the exact retired catalogue row in the shared source registry.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the real SDK project reader at its defining author folder.
@@ -54,7 +55,9 @@ test('the SDK admits all original physical bytes, platform metadata and mirrors 
   if (lines === undefined) throw new Error('Missing pinned Sunscar decision line basis');
   const loaded = await readProjectAssets(resolve('src/shards/sunscar-dunes'), undefined, { folder: 'sunscar-dunes', imageRoots: [{ prefix: '/assets/', directory: resolve('public/assets') }] }, { decisionLegacyLines: lines });
   const priorTransport = originalEmberTransport(loaded.output.namedFiles ?? [], loaded.assets);
-  const result = { ...loaded, assets: priorTransport.assets, shard: priorTransport.shard(loaded.shard), output: { ...loaded.output, namedFiles: priorTransport.namedFiles } };
+  // D74 moved inline material graphs into files; the original golden keeps them inline
+  const inline = originalInlineMaterialGraphs(priorTransport.shard(loaded.shard), priorTransport.assets);
+  const result = { ...loaded, assets: inline.assets, shard: inline.shard, output: { ...loaded.output, namedFiles: priorTransport.namedFiles } };
   const changedNames = ['world/sources/models.json', 'world/sources/bakes.json'];
   const descriptors = changedNames.map(name => {
     const old = output.namedFiles.find(file => file.name === name), current = result.output.namedFiles?.find(file => file.name === name);
