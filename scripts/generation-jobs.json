@@ -7709,46 +7709,6 @@
       "platform": "portable"
     },
     {
-      "id": "driftwood-shore-boulders",
-      "shard": "driftwood-isle",
-      "entry": "src/shards/driftwood-isle/generators/shoreBoulders.ts",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/driftwood-isle/generators/shoreBoulders.ts",
-        "shoreBoulderFacts",
-        "src/shards/driftwood-isle/data/shoreBoulders.generated.json"
-      ],
-      "inputRoots": [
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/commons",
-        "src/shards/driftwood-isle",
-        "scripts/bake-loader.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/format/colourFunction.ts",
-        "src/format/json.ts",
-        "src/format/materialFamilies.ts",
-        "src/format/materialGraph.ts",
-        "src/format/materials.ts",
-        "src/format/paintedLook.ts",
-        "src/format/runtimeBinds.ts"
-      ],
-      "outputs": [
-        "src/shards/driftwood-isle/data/shoreBoulders.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/driftwood-isle/data/shoreBoulders.generated.json"
-      ],
-      "seedOutputs": [],
-      "platform": "native"
-    },
-    {
       "id": "driftwood-rock-scenes",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-rock-scenes.mjs",
@@ -7770,7 +7730,13 @@
         "src/shards/driftwood-isle/generators/rocks.ts",
         "src/shards/driftwood-isle/generators/rockProfiles.ts",
         "src/shards/driftwood-isle/generators/compactChannels.ts",
-        "src/shards/driftwood-isle/data/shoreBoulders.generated.json",
+        "src/shards/driftwood-isle/data/wreckSites.json",
+        "src/shards/driftwood-isle/generators/groundField.ts",
+        "src/shards/driftwood-isle/generators/groundRows.ts",
+        "src/shards/driftwood-isle/generators/landscape.ts",
+        "src/shards/driftwood-isle/generators/landscapeNoise.ts",
+        "src/shards/driftwood-isle/generators/landscapeRows.ts",
+        "src/shards/driftwood-isle/generators/shoreBoulders.ts",
         "src/shards/driftwood-isle/data/islandPlanFiles.json",
         "scripts/bake-loader.mjs",
         "scripts/bake-output.mjs",
@@ -7908,7 +7874,7 @@
         "src/shards/driftwood-isle/generators/entryDecks.ts",
         "src/shards/driftwood-isle/data/zipline.generated.json",
         "src/shards/driftwood-isle/data/layout.json",
-        "src/shards/driftwood-isle/data/shoreBoulders.generated.json",
+        "src/shards/driftwood-isle/generators/shoreBoulders.ts",
         "src/shards/driftwood-isle/data/foliagePlacements.generated.json",
         "src/shards/driftwood-isle/data/entryDecks.generated.json",
         "src/shards/driftwood-isle/data/entryRows.json",

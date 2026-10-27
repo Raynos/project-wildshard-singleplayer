@@ -8,11 +8,12 @@ import { bakeRockScenes } from '../src/shards/driftwood-isle/generators/rockScen
 import { compactChannels } from '../src/shards/driftwood-isle/generators/compactChannels';
 import { expect, it } from 'vitest';
 import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generated.json';
-import shore from '../src/shards/driftwood-isle/data/shoreBoulders.generated.json';
 import { STATIC_BOAT, WORLD_GULL_PERCHES, SHORE_BOULDERS } from '../src/shards/driftwood-isle/generators/staticWorld';
 import { SEED } from '../src/shards/driftwood-isle/generators/landscapeRows';
 import WRECK_SITES from '../src/shards/driftwood-isle/data/wreckSites.json' with { type: 'json' };
-import { scatterShore } from '../src/shards/driftwood-isle/generators/shoreBoulders';
+import { scatterShore, shoreBoulderFacts } from '../src/shards/driftwood-isle/generators/shoreBoulders';
+
+const shore = shoreBoulderFacts();
 
 const finite=v.pipe(v.number(),v.finite());
 const copy={matrix:v.pipe(v.array(finite),v.length(16)),from:finite,count:finite,

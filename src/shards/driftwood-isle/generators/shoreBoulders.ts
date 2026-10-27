@@ -38,13 +38,18 @@ export function scatterShore(seed: number, count: number, ground: Ground): Bould
     return out.filter((b) => Math.hypot(b.x - WRECK.x, b.z - WRECK.z) > 16 + b.r);
 }
 
+interface ShoreBoulderFacts { seed: number; count: number; specs: BoulderSpec[]; placements: ShorePlacement[]; boxes: ShoreBox[]; perches: [number, number, number][] }
+let facts: ShoreBoulderFacts | undefined;
 /**
  * The authored island shoreline scatter; reused by both detail tiers without geometry payloads. With it, what the world
  * used to work out from each spec at load (G467): the shore boulder model's placements (yawed, leaned with the slope by
  * the terrain normal 1.5 m out, sunk to a third of their height), the legacy boxes of the rocks that collide (r > 0.9)
- * and the gull perches on the big rocks' tops (r > 1.8).
+ * and the gull perches on the big rocks' tops (r > 1.8). Built once per build process from the native ground; every
+ * reader (the static world, the rock scenes, the Blender export) treats it as read-only (GR7: it was the
+ * `driftwood-shore-boulders` job's JSON).
  */
-export function shoreBoulderFacts(): { seed: number; count: number; specs: BoulderSpec[]; placements: ShorePlacement[]; boxes: ShoreBox[]; perches: [number, number, number][] } {
+export function shoreBoulderFacts(): ShoreBoulderFacts { facts ??= buildShoreBoulderFacts(); return facts; }
+function buildShoreBoulderFacts(): ShoreBoulderFacts {
   const source = readNativeTerrain(driftwoodGroundBytes());
   const heightAt = (x: number, z: number): number => source.heightAt(x, z) - WORLD_DROP;
   const seed = SEED, count = 110, specs = scatterShore(seed, count, { heightAt });

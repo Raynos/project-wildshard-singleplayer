@@ -1,5 +1,4 @@
 import { readFileSync } from 'node:fs';
-import SHORE from '../data/shoreBoulders.generated.json' with {type:'json'};
 import FOLIAGE from '../data/foliagePlacements.generated.json' with {type:'json'};
 
 // Driftwood Isle's half of scripts/blender/lib/export-scene.mjs (DRIFTWOOD-REMASTER X2, E52): the game's low-poly ground
@@ -36,6 +35,7 @@ export async function layout({ THREE, imp, def, addObject, tryBuild }) {
   const { HUT } = island;
   if (FOLIAGE.seed !== def.seed) throw new Error('Foliage placements require their authored seed');
   const palms = FOLIAGE.tiers.desktop.palms.specs;
+  const SHORE = (await imp('src/shards/driftwood-isle/generators/shoreBoulders.ts')).shoreBoulderFacts();
   if (SHORE.seed !== def.seed) throw new Error('Shore placements require their authored seed');
   const rocks = structuredClone(SHORE.specs);
   const bushes = FOLIAGE.tiers.desktop.bushes.specs;

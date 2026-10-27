@@ -83,7 +83,7 @@ if (process.argv.includes('--original-rocks')) {
   const { bakeRockScenes } = await import('../src/shards/driftwood-isle/generators/rockScenes.ts');
   const read = path => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
   const plans = read('../src/shards/driftwood-isle/data/islandPlanFiles.json');
-  const plan = read(`../public${plans.phone.url}`), shore = read('../src/shards/driftwood-isle/data/shoreBoulders.generated.json');
+  const plan = read(`../public${plans.phone.url}`), shore = (await import('../src/shards/driftwood-isle/generators/shoreBoulders.ts')).shoreBoulderFacts();
   const bake = bakeRockScenes(shore.placements, plan.smallRocks);
   try {
     for (const [id, name] of [['shore', 'driftwood-isle/shore-boulder'], ['small', 'driftwood-isle/small-rock']]) {

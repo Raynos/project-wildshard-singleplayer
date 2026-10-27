@@ -5,9 +5,11 @@ import authoredLayout from '../data/layout.json' with { type: 'json' };
 import { SHORE_LEVEL, WORLD_DROP } from './landscapeRows';
 import { BOAT_LAYOUT } from './boatLayout';
 import { ENTRY_DECKS } from './entryDecks';
-import shore from '../data/shoreBoulders.generated.json' with { type: 'json' };
+import { shoreBoulderFacts } from './shoreBoulders';
 import { driftwoodPierRows } from './fixedFacts';
 import foliage from '../data/foliagePlacements.generated.json' with { type: 'json' };
+
+const shore = shoreBoulderFacts();
 
 const piers = driftwoodPierRows();
 
@@ -45,7 +47,7 @@ export const WORLD_GULL_PERCHES: { x: number; y: number; z: number; }[] = [
   ...pier.posts.map(([x, z]) => ({ x, y: pier.deckY + 1.02, z })),
   ...pier.bollards.map(([x, z]) => ({ x, y: pier.deckY + 1.41, z })),
   { x: -4.2, y: LOWERED_SEA + 0.78, z: -CHUNK_HALF + 6 - 3.0 }, { x: -4.2, y: LOWERED_SEA + 0.7, z: -CHUNK_HALF + 6 + 3.0 },
-  ...shore.perches.map(([x = 0, y = 0, z = 0]) => ({ x, y, z })),
+  ...shore.perches.map(([x, y, z]) => ({ x, y, z })),
   ...foliage.gullPerches,
 ];
 export const SHORE_BOULDERS: { placements: { x: number; y: number; z: number; yaw: number; leanX: number; leanZ: number; params: { r: number; squash: number; }; }[]; boxes: { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number; }[]; } = { placements: shore.placements, boxes: shore.boxes };

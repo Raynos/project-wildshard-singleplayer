@@ -6,6 +6,7 @@ import {MeshStandardMaterial} from 'three';
 import {parseWorldScene} from '@wildshard/format/clientChannels';
 import {staticGlb} from '@wildshard/sdk/bake/glb';
 import {bakeRockScenes} from './rockScenes.ts';
+import {shoreBoulderFacts} from './shoreBoulders.ts';
 import {compactChannels} from './compactChannels.ts';
 import {byteWriter,jsonBytes} from '../../../../scripts/bake-output.mjs';
 
@@ -14,7 +15,7 @@ const json=path=>JSON.parse(readFileSync(new URL(path,root),'utf8'));
 const sources=json('src/shards/driftwood-isle/data/islandPlanFiles.json');
 const phone=json(`public${sources.phone.url}`),desktop=json(`public${sources.desktop.url}`);
 if(JSON.stringify(phone.smallRocks)!==JSON.stringify(desktop.smallRocks))throw new Error('Small-rock tier placements differ');
-const shore=json('src/shards/driftwood-isle/data/shoreBoulders.generated.json');
+const shore=shoreBoulderFacts();
 const bake=bakeRockScenes(shore.placements,phone.smallRocks),writer=byteWriter(process.argv.includes('--check'),'driftwood-rock-scenes');
 const material=new MeshStandardMaterial({vertexColors:true,flatShading:false,roughness:0.82});
 try{
