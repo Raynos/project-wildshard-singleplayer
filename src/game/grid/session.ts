@@ -707,9 +707,11 @@ export class GridSession {
       }
       for (const [root, holder] of bandHolders) holder.visible = root.visible;
     };
-    host.frame?.onLate((dt) => { this.viewStep(); this.life.late(dt); this.panels.late(); bands(); frame?.frame(); });
+    // the one late system (play.ts binds every onLate to game.grid.frame): the ring tiles' static-matrix checks run in it too
+    let ringStep: (() => void) | undefined;
+    host.frame?.onLate((dt) => { this.viewStep(); this.life.late(dt); this.panels.late(); bands(); frame?.frame(); ringStep?.(); });
     const tiles = neighbourTiles(host.scope, async (tile) => { await host.prepareTile?.(tile); },
-      (tile, retiredRoots) => { this.tileGhosts.retired(tile.key, retiredRoots); }, host.frame === undefined ? undefined : step => { host.frame?.onLate(() => { step(); }); }),
+      (tile, retiredRoots) => { this.tileGhosts.retired(tile.key, retiredRoots); }, host.frame === undefined ? undefined : step => { ringStep = step; }),
       tileCost = clientRingCatalogue(tiles.instances);
     // G342 round 3: a cell whose near view draws and carries its own world owns it whole (its dense
     // ground over the cell), so the rings stop refining it to its own L1 / L0 tiles, which would mask the near view near

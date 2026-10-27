@@ -495,9 +495,11 @@ export async function standaloneClientTiles(entry: ClientRingInstance, parent: S
   if (parent.disposed || parent.disposing) throw new Error('Standalone tile owner left');
   const scope = parent.child('standalone-tiles'), instances = new Map<string, ClientRingInstance>(), decoder = new TileDecoder();
   scope.onDispose(() => { decoder.dispose(); });
+  let ringStep: (() => void) | undefined;
   try {
     const streamer = new TileStreamer([{ instance: ports.instance, origin: { x: 0, z: 0 } }], ports.budget,
-      clientRingCatalogue(instances), clientRingPorts(instances, { scope, decoder, frame: ports.frame }), { uploadsPerFrame: 1, uploadBytesPerFrame: 4_000_000 });
+      // the host's frame takes one step from this world (one system id): the ring tiles' static-matrix checks ride on it
+      clientRingCatalogue(instances), clientRingPorts(instances, { scope, decoder, frame: step => { ringStep = step; } }), { uploadsPerFrame: 1, uploadBytesPerFrame: 4_000_000 });
     // Separate cleanups still run if construction or an earlier disposal reports an error.
     scope.onDispose(() => { streamer.dispose(); });
     const registration = clientTileRegistration(instances, streamer, ports.radius);
@@ -520,7 +522,7 @@ export async function standaloneClientTiles(entry: ClientRingInstance, parent: S
       const fine = world.fine;
       return { render: new Set(fineRows.filter(tile => fine.has(`0/${tile.x}/${tile.z}`)).map(tile => tileKey({ i: tile.x, j: tile.z }))), colliders: null, bytes };
     });
-    ports.frame(() => { if (!scope.disposed && !scope.disposing) { const at = ports.viewer(); streamer.step({ x: at.x, z: at.z, vx: 0, vz: 0 }); } });
+    ports.frame(() => { if (!scope.disposed && !scope.disposing) { const at = ports.viewer(); streamer.step({ x: at.x, z: at.z, vx: 0, vz: 0 }); ringStep?.(); } });
     return { props, refresh: world.refresh, get fine() { return world.fine; } };
   } catch (error) {
     try { scope.dispose(); } catch (cleanup) { throw new AggregateError([error, cleanup], 'Standalone tile work and cleanup failed', { cause: cleanup }); }
