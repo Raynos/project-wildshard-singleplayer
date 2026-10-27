@@ -1,5 +1,5 @@
 import treeRest from '../data/treeRest.generated.json' with {type:'json'};
-import painted from '../data/paintedTextures.generated.json' with {type:'json'};
+import painted from '../data/paintedTextures.json' with {type:'json'};
 import skins from '../data/npcSkins.generated.json' with {type:'json'};
 
 const PINE_BOOT_ASSET_1="/assets/baked/pine-hollow/sky.json";

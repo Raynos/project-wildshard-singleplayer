@@ -5,7 +5,7 @@
 // atlas need a 2D canvas and the hand font: ./paintedPage.ts is bundled and run on a blank page in headless Chromium
 // (muted, as the iPhone 16 Pro). The forest floor's six ground-cover textures (./undergrowthPaint.ts rows) are painted
 // on the same page by ./undergrowthPaintPage.ts. Every file is named by its SHA-256 under public/assets/pine-hollow/painted/, and
-// ../data/paintedTextures.generated.json holds their URLs, colour spaces and wraps, and the chalk atlas's layout.
+// ../data/paintedTextures.json (GR8 / D2: committed with the PNGs) holds their URLs, colour spaces and wraps, and the chalk atlas's layout.
 //
 //   scripts/browser-lane.sh node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs \
 //     src/shards/pine-hollow/generators/bake-pine-painted.mjs [--check]
@@ -119,4 +119,4 @@ for (const file of readdirSync(OUT)) if (!keep.has(file)) {
   if (check) throw new Error(`bake-pine-painted: obsolete output ${file}`); else rmSync(resolve(OUT, file));
 }
 const urls = Object.values(textures).map((t) => t.url);
-publish(resolve(ROOT, 'src/shards/pine-hollow/data/paintedTextures.generated.json'), `${JSON.stringify({ textures, urls, chalk: painted.chalk }, null, 2)}\n`);
+publish(resolve(ROOT, 'src/shards/pine-hollow/data/paintedTextures.json'), `${JSON.stringify({ textures, urls, chalk: painted.chalk }, null, 2)}\n`);

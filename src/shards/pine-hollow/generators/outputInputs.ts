@@ -9,7 +9,7 @@ import sights from '../data/heldSights.json' with {type:'json'};
 import leverPlayback from '../data/leverPlayback.json' with {type:'json'};
 import leverDetails from '../data/leverDetails.json' with {type:'json'};
 import toolPlayback from '../data/heldToolPlayback.json' with {type:'json'};
-import painted from '../data/paintedTextures.generated.json' with {type:'json'};
+import painted from '../data/paintedTextures.json' with {type:'json'};
 import trophies from '../data/trophyMounts.json' with {type:'json'};
 import { crossbowPool } from './crossbowPool';
 import { CROSSBOW_ROWS } from './crossbowRows';

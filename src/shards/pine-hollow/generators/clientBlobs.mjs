@@ -7,7 +7,7 @@ const project=new URL('../',import.meta.url),root=new URL('../../../../',import.
 const json=path=>JSON.parse(readFileSync(new URL(path,project),'utf8'));
 const blobs=namedBlobOutput(project,'pine-client-blobs');
 const add=(name,kind,url)=>blobs.add(name,kind,new Uint8Array(readFileSync(new URL(`public${url}`,root))),url);
-const painted=json('data/paintedTextures.generated.json');
+const painted=json('data/paintedTextures.json');
 for(const [key,row]of Object.entries(painted.textures))add(`textures/painted/${key}.${row.url.split('.').at(-1)}`,'image',row.url);
 const trophies=json('data/trophyMounts.json');
 add('models/trophies/mounts.bin','bin',trophies.url);
