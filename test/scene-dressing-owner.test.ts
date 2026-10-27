@@ -8,7 +8,8 @@ import { WorldRegistry } from '../src/engine/world/registry';
 import { writeGeometry, join } from '../src/shards/nalati-grasslands/generators/geometryWriter';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
-test('sliced dressing expansion keeps its declared owner after await instead of borrowing the ambient owner', async () => {
+// 3fc133e001: a welded row (`expand`) draws through its own index, so the dressing's only frame turn here is its per-shape pause
+test('a welded dressing row installs under its declared owner after await instead of borrowing the ambient owner', async () => {
   const scope = new Scope('dressing.owner'), foreign = new Scope('dressing.foreign'), root = new Group();
   const shape = new BufferGeometry();
   shape.setAttribute('position', new BufferAttribute(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]), 3));
@@ -29,6 +30,6 @@ test('sliced dressing expansion keeps its declared owner after await instead of 
       geometry: { shape: { kind: 'file', file: 'shape.bin', row } }, materials: {}, layers: [], statics: [], animations: [] }));
     expect(root.children).toContain(dressing.group);
     expect(foreignTimeout).not.toHaveBeenCalled();
-    expect(ownedTimeout.mock.calls.length).toBeGreaterThan(2);
+    expect(ownedTimeout).toHaveBeenCalled();
   } finally { enterOwner(null); scope.dispose(); foreign.dispose(); shape.dispose(); vi.restoreAllMocks(); }
 });

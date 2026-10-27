@@ -151,7 +151,7 @@ test.each([false,true])('packed dressing hulls register exact independent float 
   const loan=offset?backing.subarray(4):packed;expect(unzlibSync(loan)).toEqual(new Uint8Array(points.buffer));
   const shape=new THREE.BoxGeometry(1,1,1);shape.clearGroups();const blocks:Uint8Array[]=[],layout=writeGeometry(shape,blocks,'packed-contact');shape.dispose();
   const modelBytes=join(blocks);
-  const scope=new Scope('packed-dressing'),registry=new WorldRegistry(),ctx={} as ShardContext,shardfile={spawn:{x:0,y:0,z:0},entryways:[]};
+  const scope=new Scope('packed-dressing'),registry=new WorldRegistry(),ctx={} as ShardContext,shardfile={spawn:{x:0,y:0,z:0},entryways:[],tiles:[]};
   const product={shardfile,hasFile:(name:string)=>name==='contacts.bin'||name==='shape.bin',file(name:string):Promise<Uint8Array>{expect(this).toBe(product);expect(['contacts.bin','shape.bin']).toContain(name);return Promise.resolve(name==='contacts.bin'?loan:modelBytes);}};
   Object.assign(ctx,{scope,root:new THREE.Group(),system:vi.fn(),app:{registry},product,game:{runtime:{world:{sky:null}}}});
   const dressing=await SceneDressing.install(ctx,{name:'packed',catalogues:[],packs:{},geometry:{shape:{kind:'file',file:'shape.bin',row:layout}},materials:{paint:{kind:'painterly',rim:.2,bands:.5}},layers:[],animations:[],
