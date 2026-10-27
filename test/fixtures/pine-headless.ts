@@ -17,6 +17,7 @@ import { bindNativeLoadout } from '@wildshard/game/plugin/simulation';
 import { weaponRow } from '@wildshard/game/plugin/simulation';
 import { readDirectorProduct } from '@wildshard/game/plugin/director';
 import { installNativeQuestComposition } from './native-hosts/quest/nativeComposition';
+import { ownContractCatalogue } from '../../src/game/quest/contracts';
 import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
 import { parseBarterEconomy } from '@wildshard/format/lootEconomy';
 import { parseWeatherProgram } from '@wildshard/format/weatherProgram';
@@ -105,7 +106,7 @@ installNativeItems(host,combat,{kind: "bow",policy: need(longbowRow.ranged,"Miss
 const ammunition = installNativeHeldAmmunition(host,product.section("held/loadout"),shard.items);
 host.onStep("pine.ammunition",()=>(ammunition.update()),undefined,"afterBodies");
 host.events.on("player.died",()=>(ammunition.loadKind("iron")),host.scope);
-quest = installNativeQuestComposition(host,{source: product.shardfile,table: content.table,rows: storyPolicy,spots: storySpots,counters: counters,steps: content.steps,deaths: content.deaths,readings: content.readings,contracts: contracts,trades: trades,lead: content.lead,director: director});
+quest = installNativeQuestComposition(host,{source: product.shardfile,table: content.table,rows: storyPolicy,spots: storySpots,counters: counters,steps: content.steps,deaths: content.deaths,readings: content.readings,contracts: ownContractCatalogue(contracts,host.scope),trades: trades,lead: content.lead,director: director});
 installWeatherContinuation(host,weather,day,undefined,combat);
 installPopulationEnvironment(host,grid,constants.environment);
 installNativeHerdShelter(host,bake.shelterTrees,shelterRows);
