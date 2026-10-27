@@ -1,7 +1,7 @@
 import wreck from '../data/wreckBake.json' with { type: 'json' };
 import cove from '../data/coveBake.json' with { type: 'json' };
 import composition from '../data/coveComposition.json' with { type: 'json' };
-import rocks from '../data/rockScenes.generated.json' with { type: 'json' };
+import type { DriftwoodSceneBanks } from './sceneBanks';
 import { driftwoodTrailRows } from './fixedFacts';
 import landings from '../data/entryFloors.generated.json' with { type: 'json' };
 import { ENTRY_DECKS } from './entryDecks';
@@ -12,7 +12,7 @@ const trail = driftwoodTrailRows();
 
 interface Spot { readonly x: number; readonly y: number; readonly z: number; readonly variant?: string; readonly params?: unknown }
 interface Copies { readonly placements: readonly Spot[]; readonly boxes: readonly number[] }
-interface Baked { readonly params: Readonly<Record<string, number>>; readonly matrix: readonly number[]; readonly box: readonly number[]; readonly colliders: readonly unknown[] }
+interface Baked { readonly params: object; readonly matrix: readonly number[]; readonly box: readonly number[]; readonly colliders: readonly unknown[] }
 
 /** Upright copies drawn into a scene part's weld: their placement point, variant and params as baked; `bare` drops the
  *  model's own colliders (the reef rocks stand in the sea without hulls). */
@@ -53,19 +53,22 @@ function entryDecks(): WorldScenePlacementRow {
     }) });
 }
 
-export const WORLD_PLACEMENTS: readonly WorldScenePlacementRow[] = [
-  entryDecks(),
-  baked('rocks.small.copies', 'smallRock', 'rocks.small', { id: 'cove-small-rocks' }, rocks.world.small),
-  baked('rocks.shore.copies', 'shoreBoulder', 'rocks.shore', { id: 'rocks', solidFloor: true }, rocks.world.shore),
-  parseWorldScenePlacement({ id: 'wreck.ship', model: 'shipwreck', draw: 'merged', drawnInto: { part: 'wreck.root', boxes: wreck.shipBox },
-    poses: [{ x: wreck.spec.x, y: wreck.floorY, z: wreck.spec.z, params: { site: wreck.spec }, yxz: { yaw: wreck.spec.heading, scale: 1 } }],
-    colliders: wreck.descs, piece: { id: 'wreck', floors: wreck.floors, floorPolicy: 'first', solidFloor: true } }),
-  upright('wreck.barrels', 'barrel', 'wreck.root', 'wreck-barrels', wreck.catalogue.barrels),
-  upright('wreck.crates', 'crate', 'wreck.root', 'wreck-crates', wreck.catalogue.crates),
-  upright('wreck.coils', 'ropeCoil', 'wreck.root', 'wreck-coils', wreck.catalogue.coils),
-  upright('wreck.reef', 'reefRock', 'wreck.root', 'wreck-reef-rocks', wreck.catalogue.rocks, true),
-  upright('cove.reef', 'reefRock', composition.rocks, composition.reefPiece, cove.catalogue, true),
-];
+export function worldPlacements(banks: Pick<DriftwoodSceneBanks, 'rocks'>): readonly WorldScenePlacementRow[] {
+  const rocks = banks.rocks;
+  return [
+    entryDecks(),
+    baked('rocks.small.copies', 'smallRock', 'rocks.small', { id: 'cove-small-rocks' }, rocks.world.small),
+    baked('rocks.shore.copies', 'shoreBoulder', 'rocks.shore', { id: 'rocks', solidFloor: true }, rocks.world.shore),
+    parseWorldScenePlacement({ id: 'wreck.ship', model: 'shipwreck', draw: 'merged', drawnInto: { part: 'wreck.root', boxes: wreck.shipBox },
+      poses: [{ x: wreck.spec.x, y: wreck.floorY, z: wreck.spec.z, params: { site: wreck.spec }, yxz: { yaw: wreck.spec.heading, scale: 1 } }],
+      colliders: wreck.descs, piece: { id: 'wreck', floors: wreck.floors, floorPolicy: 'first', solidFloor: true } }),
+    upright('wreck.barrels', 'barrel', 'wreck.root', 'wreck-barrels', wreck.catalogue.barrels),
+    upright('wreck.crates', 'crate', 'wreck.root', 'wreck-crates', wreck.catalogue.crates),
+    upright('wreck.coils', 'ropeCoil', 'wreck.root', 'wreck-coils', wreck.catalogue.coils),
+    upright('wreck.reef', 'reefRock', 'wreck.root', 'wreck-reef-rocks', wreck.catalogue.rocks, true),
+    upright('cove.reef', 'reefRock', composition.rocks, composition.reefPiece, cove.catalogue, true),
+  ];
+}
 
 /** The sand paths' fence posts, signposts and plank steps (the section's specimens, G3), drawn into the trail's weld
  *  (pieces `trail-*`, their colliders with them); inline in the section (a named blob each would be a custom section). */

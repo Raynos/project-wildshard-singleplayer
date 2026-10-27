@@ -7,7 +7,8 @@ import { parseWorldScenePlacement,WorldScenePlacementSchema } from '../src/forma
 import { output } from '../src/shards/driftwood-isle/generators/output';
 import { decodeEntryDecks } from '../src/shards/driftwood-isle/generators/entryDecks';
 import decks from '../src/shards/driftwood-isle/data/entryDecks.generated.json' with { type: 'json' };
-import { WORLD_PLACEMENTS,uprightPoses } from '../src/shards/driftwood-isle/generators/worldPlacements';
+import { worldPlacements,uprightPoses } from '../src/shards/driftwood-isle/generators/worldPlacements';
+import { driftwoodSceneBanks } from './fixtures/driftwoodSceneBanks';
 import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generated.json' with { type: 'json' };
 
 const finite=v.pipe(v.number(),v.finite());
@@ -42,8 +43,8 @@ test('canonical placement admission refuses unbounded foliage', () => {
   expect(()=>v.parse(WorldScenePlacementSchema,{...data,poses:Array.from({length:8193},()=>first)})).toThrow();
 });
 
-test('compiled deck floors preserve inclusive corners and adjacent floating-point edges', () => {
-  const floors = WORLD_PLACEMENTS.find(row => row.id === 'entry.decks')?.piece?.floors ?? [], epsilon = Number.EPSILON * 256;
+test('compiled deck floors preserve inclusive corners and adjacent floating-point edges', async () => {
+  const floors = worldPlacements(await driftwoodSceneBanks()).find(row => row.id === 'entry.decks')?.piece?.floors ?? [], epsilon = Number.EPSILON * 256;
   expect(floors).toHaveLength(4);
   for (const { rect } of decks.rows) {
     const xs = [rect.minX - epsilon, rect.minX, (rect.minX + rect.maxX) / 2, rect.maxX, rect.maxX + epsilon];

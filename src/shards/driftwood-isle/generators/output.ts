@@ -55,7 +55,6 @@ import { RETURN_PROGRAM, RETURN_WASM } from './returnProgram';
 import ecology from '../data/ecology.json' with { type: 'json' };
 import { DECLARED_SEA } from './sea';
 import { siteCatalogue } from './siteCatalogue';
-import rocks from '../data/rockScenes.generated.json' with { type: 'json' };
 import wreckScene from '../data/wreckScene.json' with { type: 'json' };
 import trailScene from '../data/trailScene.json' with { type: 'json' };
 import clientPlan from '../data/clientPlan.json' with { type: 'json' };
@@ -140,7 +139,6 @@ const placements = emitNamedBlobs([nameBlob('quests/page-composition.json', 'jso
 
   nameBlob('sim/returns.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...ecology, program: RETURN_PROGRAM, water: DECLARED_SEA.level, fixed: ['sailor'], step: 'shard.driftwood-isle.installEcology' }))),
   nameBlob('people/catalogue.json', 'json', new TextEncoder().encode(encodeCanonicalJson(FIGURE_CATALOGUE))),
-  nameBlob('scenes/rocks.json', 'json', new TextEncoder().encode(encodeCanonicalJson(rocks.scene))),
   nameBlob('world/building-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(buildingLife))),
   nameBlob('scenes/wreck.json', 'json', new TextEncoder().encode(encodeCanonicalJson(wreckScene))),
   nameBlob('scenes/trail.json', 'json', new TextEncoder().encode(encodeCanonicalJson(trailScene))),
@@ -182,8 +180,9 @@ export const sections: { 'world/movers': { movers: ({ id: string; execution: str
  *  under src. */
 export async function prepareOutput(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<typeof output> {
   const banks = await driftwoodSceneBanksCached(ctx), bankFiles = await driftwoodSceneBankOutput(banks);
-  const catalogue = emitNamedBlobs([nameBlob('models/world-scenes.json', 'json', new TextEncoder().encode(encodeCanonicalJson(siteCatalogue(banks))))]);
-  const fixed = await driftwoodFixedModelOutput(ctx), protos = await driftwoodIslandProtoOutput(ctx), pages = await driftwoodPageFileOutput(ctx), phoneRocks = await driftwoodPhoneRockOutput(ctx), scenes = await driftwoodSceneModelOutput(ctx);
+  const catalogue = emitNamedBlobs([nameBlob('scenes/rocks.json', 'json', new TextEncoder().encode(encodeCanonicalJson(banks.rocks.scene))),
+    nameBlob('models/world-scenes.json', 'json', new TextEncoder().encode(encodeCanonicalJson(siteCatalogue(banks))))]);
+  const fixed = await driftwoodFixedModelOutput(ctx), protos = await driftwoodIslandProtoOutput(ctx), pages = await driftwoodPageFileOutput(ctx), phoneRocks = driftwoodPhoneRockOutput(banks.rocks.glbs), scenes = await driftwoodSceneModelOutput(ctx);
   return { ...output, platform: emitPlatformSections(platformRows(worldScenes(banks))),
     namedFiles: [...output.namedFiles, ...catalogue.files, ...protos.files, ...pages.files, ...phoneRocks.files, ...fixed.files, ...scenes.files, ...bankFiles.files],
     assets: new Map([...output.assets, ...catalogue.assets, ...protos.assets, ...pages.assets, ...phoneRocks.assets, ...fixed.assets, ...scenes.assets, ...bankFiles.assets]) };

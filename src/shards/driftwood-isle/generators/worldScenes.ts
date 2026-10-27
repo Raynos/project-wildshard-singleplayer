@@ -4,7 +4,6 @@ import type { DriftwoodSceneBanks } from './sceneBanks';
 import { REEF_SCENE_LIBRARY } from './reefCatalogue';
 import foliage from '../data/foliageScenes.generated.json' with { type: 'json' };
 import { REEF_LOOK } from './reefLook';
-import rocks from '../data/rockScenes.generated.json' with { type: 'json' };
 import { driftwoodTrailRows } from './fixedFacts';
 import { parseWorldScenes, type WorldScenesSection } from '@wildshard/format/worldScenes';
 import inventory from '../data/fixedGeometry.json' with { type: 'json' };
@@ -12,7 +11,7 @@ import zipBlobs from '../data/ziplineBlobs.generated.json' with { type: 'json' }
 import { DRIFTWOOD_FIXED_SOURCES } from './assets';
 import authoredPoolLook from '../data/poolLook.json' with { type: 'json' };
 import { CASCADE_LOOKS } from './waterfallLook';
-import { WORLD_PLACEMENTS, TRAIL_PLACEMENTS } from './worldPlacements';
+import { worldPlacements, TRAIL_PLACEMENTS } from './worldPlacements';
 import trailSpecimens from '../data/trailCatalogue.json' with { type: 'json' };
 import { SpecimenCatalogueSchema } from '@wildshard/format/specimenCatalogue';
 import { entryDeckSpecimen,entryDeckFiles } from './entryDeckSpecimen';
@@ -21,12 +20,12 @@ import * as v from 'valibot';
 const trail = driftwoodTrailRows();
 
 const { POOL_LOOK, SHRINE_POOL_LOOK } = authoredPoolLook;
-const rockRows = parseWorldScenes({ version: 1, libraries: [rocks.section.library], materials: [], steps: [rocks.section.step] });
 const nativeRows = parseWorldScenes({ version: 1, libraries: [native.library], materials: [], steps: [] });
 
 /** Static cascade assembly; the geometry and its application channels remain the existing fixed bake. */
 export function worldScenes(banks: DriftwoodSceneBanks): WorldScenesSection {
   const cargoRows = parseWorldScenes({ version: 1, libraries: [banks.cargo.library], materials: [], steps: [] });
+  const rockRows = parseWorldScenes({ version: 1, libraries: [banks.rocks.section.library], materials: [], steps: [banks.rocks.section.step] });
   return {
     version: 1, catalogue: 'models/world-scenes.json',
     // the trail's fence post, signpost and plank step and the entry road deck: code-built specimens its placements name (G3)
@@ -38,7 +37,7 @@ export function worldScenes(banks: DriftwoodSceneBanks): WorldScenesSection {
       for (const [from, to] of row.channels) { if (from === undefined || to === undefined) throw new Error('Missing cascade channel'); attributes[from] = to; }
       return { id, file, attributes };
     }).concat(['world', 'trolley', 'specimen', 'parked'].map(key => { const name = `models/zipline/${key}.glb`, blob = zipBlobs.blobs.find(row => row.name === name); if (blob === undefined) throw new Error(`Missing zipline scene: ${key}`); return { id: `zipline-${key}`, file: name, attributes: {} }; })) }],
-    placements: [...piers.placements.map(row => ({ id: row.id, file: `world/piers/${row.id}.json` })), { id: 'foliage.logs', file: 'world/foliage/logs.json' }, { id: 'wreck.logs', file: 'world/foliage/wreck-logs.json' }, ...TRAIL_PLACEMENTS, ...WORLD_PLACEMENTS, ...['phone', 'desktop'].flatMap(tier => ['palms', 'hibiscus'].map(kind => ({ id: `foliage.${kind === 'palms' ? 'palms' : 'bushes'}.${tier}`, file: `world/foliage/${kind}-${tier}.json` })))],
+    placements: [...piers.placements.map(row => ({ id: row.id, file: `world/piers/${row.id}.json` })), { id: 'foliage.logs', file: 'world/foliage/logs.json' }, { id: 'wreck.logs', file: 'world/foliage/wreck-logs.json' }, ...TRAIL_PLACEMENTS, ...worldPlacements(banks), ...['phone', 'desktop'].flatMap(tier => ['palms', 'hibiscus'].map(kind => ({ id: `foliage.${kind === 'palms' ? 'palms' : 'bushes'}.${tier}`, file: `world/foliage/${kind}-${tier}.json` })))],
     materials: [{ id: 'solid', kind: 'lowpoly', variant: 'solid', properties: {} }, { id: 'pennant', kind: 'lowpoly', variant: 'pennant', properties: {} }, { id: 'palm', kind: 'lowpoly', variant: 'palm', properties: {} }, { id: 'reef', kind: 'look', look: REEF_LOOK }, ...Object.entries(CASCADE_LOOKS).map(([id, look]) => ({ id, kind: 'look' as const, look })),
       { id: 'shrine-pool', kind: 'look', look: SHRINE_POOL_LOOK },
       { id: 'glyphs', kind: 'basic', properties: { color: 0x7fd9ff, side: 2 } },
@@ -67,5 +66,5 @@ export function worldScenes(banks: DriftwoodSceneBanks): WorldScenesSection {
 }
 
 /** The original world index widths, normalized offline rather than expanded by the standalone GLB export. */
-export const SCENE_MODEL_BLOBS: { name: string; source: string; kind: string; }[] = [...entryDeckFiles().map(({name,source,bytes})=>({name,source,kind:'bin',options:{decoded:bytes.length,gpu:bytes.length}})),...rocks.blobs, ...foliage.blobs,
+export const SCENE_MODEL_BLOBS: { name: string; source: string; kind: string; }[] = [...entryDeckFiles().map(({name,source,bytes})=>({name,source,kind:'bin',options:{decoded:bytes.length,gpu:bytes.length}})),...foliage.blobs,
 ];

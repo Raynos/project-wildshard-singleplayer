@@ -8,7 +8,8 @@ import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 const root = new URL('../', import.meta.url);
 const read = name => JSON.parse(readFileSync(new URL(`data/${name}.json`, root), 'utf8'));
 const writer = byteWriter(process.argv.includes('--check'), 'trail-specimens');
-const rows = { catalogue: [...read('trailCatalogue'), entryDeckSpecimen()], siteCatalogue: siteCatalogue(await driftwoodSceneBanksFrom(url => new Uint8Array(readFileSync(new URL(`../../../../public${url}`, root))))), rockWorld: read('rockScenes.generated').world, foliage: read('foliageScenes.generated').facts, piers: read('pierScenes.generated').facts };
+const banks = await driftwoodSceneBanksFrom(url => new Uint8Array(readFileSync(new URL(`../../../../public${url}`, root))));
+const rows = { catalogue: [...read('trailCatalogue'), entryDeckSpecimen()], siteCatalogue: siteCatalogue(banks), rockWorld: banks.rocks.world, foliage: read('foliageScenes.generated').facts, piers: read('pierScenes.generated').facts };
 for(const file of entryDeckFiles())writer.put(fileURLToPath(new URL(file.source,root)),file.bytes);
 // Pre-admission model registration needs generated boot metadata, never author imports.
 writer.put(fileURLToPath(new URL('boot/modelCatalogue.generated.json', root)), jsonBytes(rows));

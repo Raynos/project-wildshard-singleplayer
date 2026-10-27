@@ -50,8 +50,12 @@ export function pageFile(name: string): { readonly file: string } {
 
 /** The tier's compiled placement plan bytes (the dressing producer's `island-plan-<hash>.json`). */
 export function driftwoodPlanBytes(table: Uint8Array, metadata: Uint8Array, tier: 'phone' | 'desktop'): Uint8Array {
+  return new TextEncoder().encode(JSON.stringify(driftwoodIslandPlan(table, metadata, tier)));
+}
+/** The tier's compiled placement plan (`driftwoodPlanBytes` before encoding). */
+export function driftwoodIslandPlan(table: Uint8Array, metadata: Uint8Array, tier: 'phone' | 'desktop'): ReturnType<typeof bakeIslandPlan> {
   const meta = islandPlanMeta(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(metadata)));
-  return new TextEncoder().encode(JSON.stringify(bakeIslandPlan(islandPlacements(Uint8Array.from(table).buffer), meta, tier === 'phone')));
+  return bakeIslandPlan(islandPlacements(Uint8Array.from(table).buffer), meta, tier === 'phone');
 }
 
 /** The exact public bytes under their product names, through the build's owned-byte cache (no file under src). */
