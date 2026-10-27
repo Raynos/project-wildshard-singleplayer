@@ -10,6 +10,7 @@ import entry, { generate } from '../src/shards/sunscar-dunes/shard.config';
 
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { readProjectAssets } from '../src/sdk/project';
+import { decisionLegacyLines } from '../scripts/decision-legacy-lines.mjs';
 import { navigation, generated, world, originalOutput as output } from './fixtures/sunscar-source-program';
 import before from './fixtures/sunscar-source-entry.json' with { type: 'json' };
 import originalProductAssets from './fixtures/sunscar-duplicate-product.json' with { type: 'json' };
@@ -47,7 +48,11 @@ test('direct world rows preserve the original ordered aggregate without its JSON
 
 
 test('the SDK admits all original physical bytes, platform metadata and mirrors through the source entry', async () => {
-  const loaded = await readProjectAssets(resolve('src/shards/sunscar-dunes'), undefined, { folder: 'sunscar-dunes', imageRoots: [{ prefix: '/assets/', directory: resolve('public/assets') }] });
+  // The standalone SDK receives the same authored decision budget as the CLI;
+  // it no longer reads the retired repository build-policy sidecar.
+  const lines = decisionLegacyLines(resolve('.'), 'sunscar-dunes');
+  if (lines === undefined) throw new Error('Missing pinned Sunscar decision line basis');
+  const loaded = await readProjectAssets(resolve('src/shards/sunscar-dunes'), undefined, { folder: 'sunscar-dunes', imageRoots: [{ prefix: '/assets/', directory: resolve('public/assets') }] }, { decisionLegacyLines: lines });
   const priorTransport = originalEmberTransport(loaded.output.namedFiles ?? [], loaded.assets);
   const result = { ...loaded, assets: priorTransport.assets, shard: priorTransport.shard(loaded.shard), output: { ...loaded.output, namedFiles: priorTransport.namedFiles } };
   const changedNames = ['world/sources/models.json', 'world/sources/bakes.json'];
