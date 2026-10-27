@@ -70,7 +70,7 @@ it('delays the bolt and applies the whole bounded area snapshot',()=>{
 it('binds unrelated native polearm, blade and power rows without shard callbacks',async()=>{
  const [{PolearmSet},{BladeSet},{staticGlb},{emptyShardfile},{parseItems},{GLTFLoader},three,{Player},{AnimalManager}]=await Promise.all([
   import('../src/game/weapons/heldPolearm'),import('../src/game/weapons/mountedBlade'),import('../src/sdk/bake/glb'),import('../src/sdk/author'),import('../src/format/items'),import('three/examples/jsm/loaders/GLTFLoader.js'),import('three'),import('../src/engine/player/Player'),import('../src/engine/entities/AnimalManager')]);
- const [{default:spear},{default:sabre},{default:items}]=await Promise.all([import('../src/shards/nalati-grasslands/data/spear.generated.json'),import('../src/shards/nalati-grasslands/data/sabre.generated.json'),import('../src/shards/nalati-grasslands/data/items.json')]);
+ const [{default:spear},{nalatiSabrePool},{default:items}]=await Promise.all([import('../src/shards/nalati-grasslands/data/spear.generated.json'),import('../src/shards/nalati-grasslands/generators/sabrePool'),import('../src/shards/nalati-grasslands/data/items.json')]);
  const {vi}=await import('vitest'),material=new three.MeshBasicMaterial(),geometry=new three.BoxGeometry(.1,1,.1);
  const pool={url:'/fixtures/orchard-tools.glb',parts:['handle','tip','grip','sleeve','world']};
  const bytes=staticGlb(pool.parts.map(name=>({name,geometry,material,extras:{restGroups:geometry.groups.map(group=>[group.start,group.count,group.materialIndex??0]),restBox:null,restSphere:null}}))),gltf=await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer,'');
@@ -80,9 +80,9 @@ it('binds unrelated native polearm, blade and power rows without shard callbacks
   const orchardItems=parseItems(JSON.parse(JSON.stringify(items).replaceAll('weapon.spear','weapon.fruit-hook').replaceAll('weapon.sabre','weapon.pruner').replaceAll('nalati-grasslands','orchard-fixture')));
   const powerRows={program:rows.programs.power,powers:{...rows.powers,crescentDamage:9},item:'weapon.pruner',name:'Pruner',blue:[.5,1,.4],glow:[0,.1,0]};
   const polearmRows={...spear,pool,profile:{...spear.profile,damage:7,reach:1.8},program:rows.programs.polearm,presentation:{...rows.polearm,parts:{leftArm:'sleeve',rightArm:'sleeve',body:'handle',metal:'tip',fist:'grip',projectile:'handle',projectileMetal:'tip',world:'world'}}};
-  const bladeRows={...sabre,pool,program:rows.programs.blade,power:powerRows,parts:{body:'handle',arms:'sleeve',metal:'tip'}};
+  const bladeRows={...nalatiSabrePool().rows,pool,program:rows.programs.blade,power:powerRows,parts:{body:'handle',arms:'sleeve',metal:'tip'}};
   const files=new Map<string,unknown>([['tools/fruit-hook.json',polearmRows],['tools/pruner.json',bladeRows]]);
-  const product={shardfile:{...emptyShardfile(identity),items:orchardItems},file:(name:string)=>Promise.resolve(new TextEncoder().encode(JSON.stringify(files.get(name))))};
+  const product={shardfile:{...emptyShardfile(identity),items:orchardItems},hasFile:()=>false,url:(name:string)=>name,file:(name:string)=>Promise.resolve(new TextEncoder().encode(JSON.stringify(files.get(name))))};
   const polearmSet=new PolearmSet({file:'tools/fruit-hook.json',item:'weapon.fruit-hook'}),bladeSet=new BladeSet({file:'tools/pruner.json',item:'weapon.pruner'});
   await polearmSet.prepare(product);await bladeSet.prepare(product);
   expect(polearmSet.profile().damage).toBe(7);expect(polearmSet.geometry('handle').getAttribute('position').count).toBe(geometry.getAttribute('position').count);

@@ -8440,42 +8440,6 @@
       }
     },
     {
-      "id": "nalati-sabre-pool",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-sabre.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-sabre.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/nalati-grasslands/data/armsStyle.json",
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/format",
-        "src/shards/nalati-grasslands/generators/bake-sabre.mjs",
-        "src/shards/nalati-grasslands/generators/sabre.ts",
-        "src/shards/nalati-grasslands/data/items.json",
-        "scripts/bake-loader.mjs",
-        "scripts/bake-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/shards/nalati-grasslands/generators/meleeGeo.ts"
-      ],
-      "outputs": [
-        "public/assets/nalati/baked/840e919d901c0d160b4b27b72c6f534bacc3c2e4c6bb72c3f88cfe0be664506f.glb",
-        "src/shards/nalati-grasslands/data/sabre.generated.json"
-      ],
-      "platform": "portable",
-      "buildTimeOutputs": [
-        "public/assets/nalati/baked/840e919d901c0d160b4b27b72c6f534bacc3c2e4c6bb72c3f88cfe0be664506f.glb",
-        "src/shards/nalati-grasslands/data/sabre.generated.json"
-      ]
-    },
-    {
       "id": "nalati-spear-pool",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-spear.mjs",
@@ -10096,7 +10060,7 @@
         "src/shards/nalati-grasslands/generators/bake-recurve-pool.mjs",
         "src/shards/nalati-grasslands/generators/bake-riding.mjs",
         "src/shards/nalati-grasslands/generators/bake-rifle.mjs",
-        "src/shards/nalati-grasslands/generators/bake-sabre.mjs",
+        "src/shards/nalati-grasslands/generators/sabrePool.ts",
         "src/shards/nalati-grasslands/generators/bake-sign-atlases.mjs",
         "src/shards/nalati-grasslands/generators/bake-spear.mjs",
         "src/shards/nalati-grasslands/generators/bake-spruce.mjs",

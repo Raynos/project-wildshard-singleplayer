@@ -20,7 +20,9 @@ import { buildSabre as authorSabre, SABRE_PROFILE as authorProfile, PASS_LEFT, P
 import { emptyShardfile } from '../src/sdk/author';
 import { parseItems } from '../src/format/items';
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
-import rows from '../src/shards/nalati-grasslands/data/sabre.generated.json' with { type: 'json' };
+import { nalatiSabrePool, SABRE_POOL_NAME } from '../src/shards/nalati-grasslands/generators/sabrePool';
+
+const { glb: poolGlb, rows } = nalatiSabrePool();
 
 const { held: heldWeapons } = originalHeldMetadata();
 
@@ -36,7 +38,7 @@ test('re-entry rehydrates an evicted real blade pool before synchronous consumer
   const data={...rows,program:heldWeapons.programs.blade,power:{...weaponPower,program:heldWeapons.programs.power},parts:heldWeapons.blade};
   const read=vi.fn((hash:string)=>Promise.resolve(new TextEncoder().encode(JSON.stringify(hash==='blade'?data:book))));
   const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map(),
-    files:new Map([[bookFile,{hash:'book',url:'/fixture/book'}],[loadout.blade.file,{hash:'blade',url:'/fixture/blade'}]]),read});
+    files:new Map([[bookFile,{hash:'book',url:'/fixture/book'}],[loadout.blade.file,{hash:'blade',url:'/fixture/blade'}],[SABRE_POOL_NAME,{hash:'sabre-pool',url:'/fixture/sabre-pool.glb'}]]),read});
   const held=HeldClaims.fromProductSlots(product,{version:1,id:'retired-kit',slots:[
     {id:'blade',kind:'blade',item:'weapon.sabre',source:{kind:'passes',file:loadout.blade.file}}],
     registration:['blade'],equipment:{primary:'blade',extras:[]},selection:{unlock:[]},mount:[],refills:[],upgrades:[]},bookFile);
@@ -44,7 +46,7 @@ test('re-entry rehydrates an evicted real blade pool before synchronous consumer
   const ctx=legacyDouble<ShardContext>({scope,product,app:legacyDouble<ShardContext['app']>({equipment:null}),game:legacyDouble<ShardContext['game']>({runtime})});
   const baseline=new Set(app.assets.retained().map(row=>row.key)),native=held.blade('blade');
   const packed=vi.spyOn(geometryTools,'fetchLaneBake').mockResolvedValue(new Uint8Array());
-  const load=vi.spyOn(GLTFLoader.prototype,'loadAsync').mockImplementation(url=>new GLTFLoader().parseAsync(Uint8Array.from(readFileSync(`public${url}`)).buffer,''));
+  const load=vi.spyOn(GLTFLoader.prototype,'loadAsync').mockImplementation(url=>new GLTFLoader().parseAsync(Uint8Array.from(url==='/fixture/sabre-pool.glb'?poolGlb:readFileSync(`public${url}`)).buffer,''));
   const releaseCopies=():void=>{const rig=native.build(material,material);rig.sword.dispose();rig.arms.dispose();for(const extra of rig.extras??[])extra.geometry.dispose();};
   const evict=():void=>{for(const row of app.assets.retained())if(!baseline.has(row.key))expect(app.assets.evictCached(row.key)).toBe(true);};
   try {
@@ -64,11 +66,11 @@ test('baked sabre preserves every move, contact, mounted coefficient and mutable
   for (const [name, move] of [['left', PASS_LEFT], ['right', PASS_RIGHT]] as const) {
     expect(rows.moves.passes[name]).toEqual({ ...move, keys: move.keys.map(key), trail: { ...move.trail, color: move.trail.color.toArray() } });
   }
-  const gltf = await new GLTFLoader().parseAsync(Uint8Array.from(readFileSync(`public${rows.pool.url}`)).buffer, '');
+  const gltf = await new GLTFLoader().parseAsync(Uint8Array.from(poolGlb).buffer, '');
   const load = vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockResolvedValue(gltf);
   const material = new MeshBasicMaterial();
   try {
-    await blade.prepare({ shardfile: { ...emptyShardfile({ slug: 'sabre-test', name: 'Sabre', author: 'Wildshard', revision: 1, seed: 1 }), items: parseItems(items) }, file: () => Promise.resolve(new TextEncoder().encode(JSON.stringify({...rows,program:heldWeapons.programs.blade,power:{...weaponPower,program:heldWeapons.programs.power},parts:heldWeapons.blade}))) });
+    await blade.prepare({ shardfile: { ...emptyShardfile({ slug: 'sabre-test', name: 'Sabre', author: 'Wildshard', revision: 1, seed: 1 }), items: parseItems(items) }, hasFile: () => false, url: (name: string) => name, file: () => Promise.resolve(new TextEncoder().encode(JSON.stringify({...rows,program:heldWeapons.programs.blade,power:{...weaponPower,program:heldWeapons.programs.power},parts:heldWeapons.blade}))) });
     expect(blade.profile()).toEqual(authorProfile);
     const before = authorSabre(material, material), after = blade.build(material, material), second = blade.build(material, material);
     expect({ tipY: after.tipY, baseY: after.baseY, tipX: after.tipX }).toEqual({ tipY: before.tipY, baseY: before.baseY, tipX: before.tipX });
