@@ -443,7 +443,9 @@
         "src/shards/nalati-grasslands/generators/minimapRecipe.ts",
         "src/shards/nalati-grasslands/generators/poiLayout.ts",
         "src/shards/nalati-grasslands/generators/terrainRecipe.ts",
-        "src/shards/nalati-grasslands/generators/wetRecipe.ts"
+        "src/shards/nalati-grasslands/generators/wetRecipe.ts",
+        "src/sdk/package.json",
+        "src/format/package.json"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/bootMetadata.generated.json",
