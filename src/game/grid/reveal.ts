@@ -14,6 +14,7 @@
  * - `window.__wsReveal` carries the timings (ms from the reveal's start) for the menu capture (`sf21a/menu.mjs --reveal`).
  */
 import { Matrix4, Quaternion, Vector3, type PerspectiveCamera } from 'three';
+import { diagnosticNow } from '@wildshard/engine/core/clock';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { app } from '@wildshard/engine/app/runtime';
 import { listenPage } from '@wildshard/engine/input/dom';
@@ -71,7 +72,7 @@ export function installGridReveal(host: GridRevealHost): () => boolean {
   let viewmodelWas = true;
   const wasEnabled = host.weapons.enabled, wasVisible = host.weapons.visible;
   const land = new Vector3(), landQ = new Quaternion(), sky = new Vector3(), skyQ = new Quaternion(), look = new Vector3(), fwd = new Vector3(), m = new Matrix4();
-  const now = (): number => app.clock.mode === 'capture' ? app.clock.real * 1000 : performance.now();
+  const now = (): number => app.clock.mode === 'capture' ? app.clock.real * 1000 : diagnosticNow();
   const publish = (): void => {
     window.__wsReveal = { startedAt: started, pathEndMs: pathEnd, ringsReadyMs: ringsAt, homeSimMs: homeAt, endedMs: endedAt, skipped, ceiling };
   };
