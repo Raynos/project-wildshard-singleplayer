@@ -23,7 +23,7 @@ const fetchFile = async path => {
   const folder = resolve(root, product ? 'out' : 'public'), file = resolve(folder, relative);
   if (!file.startsWith(`${folder}/`)) throw new Error('Grid bake path escapes its root');
   try { return new Response(new Uint8Array(await readFile(file))); }
-  catch (error) { if (error?.code === 'ENOENT') return new Response(null, { status: 404 }); throw error; }
+  catch (error) { if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT') return new Response(null, { status: 404 }); throw error; }
 };
 const plans = new Map(), seen = new Set(), products = new Map(), sources = new Map();
 for (const developer of [false, true]) for (const devserver of [false, true]) for (const nineDragon of [false, true]) {
@@ -62,4 +62,8 @@ for (const developer of [false, true]) for (const devserver of [false, true]) fo
   try { generatePlatform(input.cells, input.empty, plans); }
   catch (error) { console.error(`[grid bake] road-level fallback: ${String(error)}`); generatePlatform(input.flat, input.empty, plans); }
 }
-process.stdout.write(JSON.stringify({ plans: [...plans], edges: [...sources] }));
+// Edge reads complete concurrently. Their completion order must not change the
+// content URL (and every importing chunk) when all certified values are equal.
+/** @template T @param {ReadonlyMap<string,T>} rows */
+const ordered = rows => [...rows].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
+process.stdout.write(JSON.stringify({ plans: ordered(plans), edges: ordered(sources) }));
