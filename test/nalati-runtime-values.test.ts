@@ -14,6 +14,7 @@ import {withOwnedModelFiles} from './fixtures/nalati-owned-models';
 import shapeBook from './fixtures/nalati-shape-book-original.json' with { type: 'json' };
 import pins from './fixtures/nalati-place-runtime-files.json' with { type: 'json' };
 import placePins from './fixtures/nalati-place-wires.json' with { type: 'json' };
+import { output as originalOutput } from './fixtures/nalati-output-original';
 
 const prefix = 'src/shards/nalati-grasslands/';
 function original(path: string): unknown { const value: unknown = JSON.parse(readFileSync(path === 'data/places.json' ? 'test/fixtures/nalati-places-original.json' : path === 'data/poiPaint.json' ? 'test/fixtures/nalati-poi-paint-original.json' : `${prefix}${path}`, 'utf8')); return value; }
@@ -72,8 +73,8 @@ test('the direct value producer stays in one config-safe source chunk', async ()
 });
 
 
-test('the shipping post file retains its complete predecessor capture values', async () => {
-  const { output } = await import('./fixtures/nalati-output-original');
+test('the shipping post file retains its complete predecessor capture values', () => {
+  const output = originalOutput;
   const file = output.namedFiles.find(row => row.name === 'look/post.json');
   if (file === undefined) throw new Error('Missing admitted Nalati post file');
   const bytes = output.assets.get(file.hash);

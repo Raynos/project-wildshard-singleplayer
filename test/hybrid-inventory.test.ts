@@ -8,6 +8,7 @@ import { emptyShardfile } from '@wildshard/sdk/author';
 import { ShardfileClient } from '../src/game/shardfile/client';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import NINE from './fixtures/nine-product-inputs';
+import NALATI from './fixtures/nalati-product-source';
 
 const boundA = 'a'.repeat(64), boundB = 'b'.repeat(64), boundC = 'c'.repeat(64), upperRef = 'A'.repeat(64);
 const boundRefs = [boundA, boundB, boundC, upperRef, 'named-ref', ''];
@@ -137,10 +138,9 @@ test('look-only trusted hybrids retain native kit and play ownership', async () 
 });
 
 test.each([
-  ['Nalati', () => import('./fixtures/nalati-product-source')],
-  ['Nine', () => Promise.resolve({ default: NINE })],
-] as const)('%s look-only native rows never request a second simulation', async (_name, load) => {
-  const source = (await load()).default;
+  ['Nalati', NALATI],
+  ['Nine', NINE],
+] as const)('%s look-only native rows never request a second simulation', (_name, source) => {
   const assets = new ClientAssets(source, new Map(), { base: 'https://example.test/native/', firstParty: true, offline: false,
     fetch: () => Promise.reject(new Error('No asset read expected')), hash: () => Promise.resolve('a'.repeat(64)) });
   let expected = 0;
