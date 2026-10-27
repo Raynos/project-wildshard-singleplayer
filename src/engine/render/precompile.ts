@@ -1053,13 +1053,16 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   const total = () => jobs.length + Math.max(created.length, 1) + textures.length;
   const mode = parallel ? 'parallel' : 'serial';
   let tFrame = performance.now(), programsAtFrame = programCount(renderer);
-  let nativeInSlice = false, cachedCpuJobs = 0, cachedCpuMs = 0, settledInFrame = 0;
+  let nativeInSlice = false, cachedCpuJobs = 0, cachedCpuMs = 0, settledInFrame = 0, settledDuringIssue = 0;
   const settleInSlice = async (): Promise<void> => {
     if (queued[settled] === undefined || settledInFrame >= programsPerFrame()) return;
-    nativeInSlice = true;
-    const previous = settled;
+    const previous = settled, started = performance.now(), priorNative = nativeInSlice;
     await settleOne(tFrame);
-    settledInFrame += settled - previous;
+    const completed = settled - previous;
+    settledInFrame += completed; settledDuringIssue += completed;
+    // A cheap completed query leaves no unresolved native unit of its own.
+    // It cannot erase an earlier issue, a slow query or an unfinished poll.
+    nativeInSlice = priorNative || completed === 0 || performance.now() - started >= sliceMs;
   };
   const preparedTargets = new Set<THREE.WebGLRenderTarget | null>([null]);
   let targetFences = fencedTargets.get(renderer);
@@ -1194,6 +1197,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   }
   if (onStage !== undefined) {
     for (const [kind, count] of programsByKind) onStage(`programs:${kind}`, 0, count);
+    onStage('link-preparation-during-compile', 0, settledDuringIssue);
     onStage('cached-compile', cachedCpuMs, cachedCpuJobs);
     onStage('compile', performance.now() - stageStart, jobs.length); stageStart = performance.now();
   }

@@ -6,7 +6,8 @@ import { linkedGl } from '../test/linkedGl';
 import { runPrecompile, setWarmUpHeld, type CompileJob } from './precompile';
 
 interface Event { readonly kind: 'compile' | 'ready' | 'uniforms'; readonly id: number; readonly frame: number; readonly cost: number }
-async function issue(options: { compileMs: number; queryMs: number; readyMs?: number; misses?: number; cancel?: boolean }) {
+async function issue(options: { compileMs: number; queryMs: number; readyMs?: number; misses?: number; cancel?: boolean;
+  shared?: boolean; initialMs?: number; failure?: Error }) {
   const renderer: unknown = Object.create(WebGLRenderer.prototype);
   if (!(renderer instanceof WebGLRenderer)) throw new Error('Renderer missing');
   const geometry = new BoxGeometry(), materials = Array.from({ length: 8 }, () => new MeshBasicMaterial());
@@ -15,7 +16,7 @@ async function issue(options: { compileMs: number; queryMs: number; readyMs?: nu
     return { label: `material-${i}`, root, target: null, rt: null };
   });
   const programs: ProgramLike[] = [], byMaterial = new WeakMap<MeshBasicMaterial, ProgramLike>(), events: Event[] = [];
-  let now = 1000, frame = 0, current = true, cancelAt = -1, pendingAfterIssue = -1;
+  let now = 1000, frame = 0, current = true, cancelAt = -1, pendingAfterIssue = -1, cachedDuringIssue = 0;
   const record = (kind: Event['kind'], id: number, cost: number): void => { events.push({ kind, id, frame, cost }); now += cost; };
   const fields: Record<string, unknown> = {
     info: { programs, render: { frame: 0 } }, extensions: { has: (name: string) => name === 'KHR_parallel_shader_compile' },
@@ -26,12 +27,14 @@ async function issue(options: { compileMs: number; queryMs: number; readyMs?: nu
     compile: (root: Scene): void => {
       root.traverse(object => {
         if (!(object instanceof Mesh) || !(object.material instanceof MeshBasicMaterial)) return;
+        const shared = options.shared === true ? programs[0] : undefined;
+        if (shared !== undefined) { record('compile', shared.id, options.compileMs); byMaterial.set(object.material, shared); return; }
         const material = object.material, id = programs.length;
         let misses = options.misses ?? 0;
         const program: ProgramLike = { type: 'test', name: `program-${id}`, cacheKey: `program-${id}`, usedTimes: 1, id,
           program: {}, isReady: () => { record('ready', id, options.readyMs ?? 0); return misses-- <= 0; },
-          getUniforms: () => { record('uniforms', id, options.queryMs); return {}; } };
-        record('compile', id, options.compileMs); programs.push(program); byMaterial.set(material, program);
+          getUniforms: () => { record('uniforms', id, options.queryMs); if (options.failure !== undefined) throw options.failure; return {}; } };
+        record('compile', id, options.initialMs ?? options.compileMs); programs.push(program); byMaterial.set(material, program);
       });
     },
   };
@@ -45,10 +48,12 @@ async function issue(options: { compileMs: number; queryMs: number; readyMs?: nu
   try {
     noteFrameDrawn(now, now, 30); setBuildHeld(true); setWarmUpHeld(true);
     const warming = runPrecompile(renderer, new PerspectiveCamera(), jobs, materials.length, undefined, [], () => current,
-      true, pause, undefined, (phase, _ms, units) => { if (phase === 'link') pendingAfterIssue = units; }, 6);
-    await (options.cancel === true ? expect(warming).rejects.toThrow('Shader warm-up owner left') : warming);
+      true, pause, undefined, (phase, _ms, units) => { if (phase === 'link') pendingAfterIssue = units;
+        if (phase === 'cached-compile') cachedDuringIssue = units; }, 6);
+    if (options.failure !== undefined) await expect(warming).rejects.toBe(options.failure);
+    else await (options.cancel === true ? expect(warming).rejects.toThrow('Shader warm-up owner left') : warming);
     expect(materials.every(material => material.side === 0 && material.version === 0)).toBe(true);
-    return { events, pendingAfterIssue, cancelAt };
+    return { events, pendingAfterIssue, cancelAt, cachedDuringIssue };
   } finally {
     setBuildHeld(false); setWarmUpHeld(false); noteFrameDrawn(Number.NEGATIVE_INFINITY); clock.mockRestore();
     geometry.dispose(); for (const material of materials) material.dispose();
@@ -85,4 +90,18 @@ test('owner cancellation during a link fence admits no following compile', async
   const result = await issue({ compileMs: 12, queryMs: 12, cancel: true });
   expect(result.cancelAt).toBeGreaterThan(0); expect(result.events.length).toBe(result.cancelAt);
   expect(result.events.filter(event => event.kind === 'compile').length).toBeLessThan(8);
+});
+
+test.each([{ queryMs: 1, frame: 1 }, { queryMs: 12, frame: 2 }])(
+  'completed queries retain the held budget for cached jobs: %o', async ({ queryMs, frame }) => {
+    const result = await issue({ compileMs: 3, initialMs: 12, queryMs, shared: true });
+    expect(result.events.filter(event => event.kind === 'compile').map(event => event.frame)).toEqual([0, frame, frame, frame, frame, frame, frame, frame]);
+    expect(result.events.filter(event => event.kind === 'uniforms')).toHaveLength(1);
+    expect(result.cachedDuringIssue).toBe(7);
+  });
+
+test('a first-use refusal retains its exact error and admits no following job', async () => {
+  const result = await issue({ compileMs: 2, queryMs: 1, failure: new Error('Exact first-use refusal') });
+  expect(result.events.filter(event => event.kind === 'compile')).toHaveLength(1);
+  expect(result.events.filter(event => event.kind === 'uniforms')).toHaveLength(1);
 });
