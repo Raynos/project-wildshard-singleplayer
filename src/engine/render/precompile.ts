@@ -1134,7 +1134,8 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   // before removing an initial-home pass. Scalar diagnostics own no resources.
   if (isDev()) {
     let cached = 0, fresh = 0;
-    for (const program of jobPrograms) { if (before.has(program)) cached++; else fresh++; }
+    for (const program of before) if (jobPrograms.has(program)) cached++;
+    for (const program of newProgramsSince(renderer, before)) if (jobPrograms.has(program)) fresh++;
     const name = `wildshard.precompile.census:${censusSlot++ % 16}`;
     performance.clearMeasures(name);
     performance.measure(name, { start: stageStart, end: performance.now(),
