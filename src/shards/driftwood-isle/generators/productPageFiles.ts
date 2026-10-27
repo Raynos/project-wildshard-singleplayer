@@ -1,5 +1,6 @@
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { emitNamedBlobs, nameBlob, type EmittedBlobs } from '@wildshard/sdk/blobs';
+import { compactPhoneGlb } from '@wildshard/sdk/bake/compactGlb';
 import { BLENDER_MODELS } from './blenderArea';
 import { OCEAN_FILES } from './oceanFiles';
 import { driftwoodOceanBank, type DriftwoodOceanBank } from './oceanBank';
@@ -74,7 +75,16 @@ export async function driftwoodPageFileOutput(ctx: Pick<ProjectGenerationContext
     return new Map([...PUBLIC.map(name => [name, read(DRIFTWOOD_PAGE_FILES[name]?.url ?? '', name)] as const),
       ...(['phone', 'desktop'] as const).map(tier => [DRIFTWOOD_PLAN_FILES[tier], driftwoodPlanBytes(table, metadata, tier)] as const)]);
   });
-  const ocean = driftwoodOceanBank().files;
+  const bank = driftwoodOceanBank().files;
+  // iPhone downloads I3: the phone-only sea grid ships with 16-bit grid positions (compactPhoneGlb; 364 -> 173 KB br);
+  // the desktop grid keeps its float bytes
+  const sea = await ctx.cached({ id: 'driftwood-phone-sea' }, async inputs => {
+    if (inputs.size > 0) throw new Error('Unexpected Driftwood phone sea input');
+    return new Map([['phone.glb', await compactPhoneGlb(bank.phone)]]);
+  });
+  const phone = sea.get('phone.glb');
+  if (sea.size !== 1 || phone === undefined) throw new Error('Driftwood phone sea cache inventory differs');
+  const ocean = { ...bank, phone };
   return emitNamedBlobs([...NAMES, ...Object.values(DRIFTWOOD_PLAN_FILES)].map(name => {
     const banked = OCEAN_PAGE[name], bytes = banked === undefined ? files.get(name) : ocean[banked];
     if (bytes === undefined) throw new Error('Driftwood page file cache inventory differs');
