@@ -1,6 +1,5 @@
 import { BufferGeometry, InstancedMesh, Material, type Matrix4, Mesh, Object3D } from 'three';
 import { poseOf } from '@wildshard/engine/models/colliders';
-import { MANIFEST as NALATI_GRASSLANDS } from '../discovery.generated';
 import { captureScatterSource as captureDressLayerSource, type ScatterSource as DressLayerSource } from '@wildshard/engine/render/scatterInstances';
 import { visitAuthoredWorld } from '../../../../scripts/bake/worldHost.mjs';
 
@@ -137,12 +136,12 @@ export class NalatiCaptureInventory {
 /** Run Nalati's ordinary authored world through the one owned host, then retain only independent inventory data.
  * The shared environment supplies native preconfiguration/real terrain; settleModels awaits actual producer loads.
  */
-export async function captureNalatiAuthoredWorld(options: Omit<Parameters<typeof visitAuthoredWorld>[1], 'visitPlacement' | 'visit'> & {
+export async function captureNalatiAuthoredWorld(manifest: Parameters<typeof visitAuthoredWorld>[0], options: Omit<Parameters<typeof visitAuthoredWorld>[1], 'visitPlacement' | 'visit'> & {
   settleModels: () => Promise<void>;
 }): Promise<{ inventory: NalatiAuthoredInventory; native: Awaited<ReturnType<typeof visitAuthoredWorld>> }> {
   const { settleModels, ...host } = options, collector = new NalatiCaptureInventory();
   const captured: { inventory?: NalatiAuthoredInventory } = {};
-  const native = await visitAuthoredWorld(NALATI_GRASSLANDS, { ...host, visitPlacement: collector.visitPlacement,
+  const native = await visitAuthoredWorld(manifest, { ...host, visitPlacement: collector.visitPlacement,
     visit: async () => { captured.inventory = await collector.snapshot(settleModels); },
   });
   if (captured.inventory === undefined) throw new Error('Nalati authored world was not captured');

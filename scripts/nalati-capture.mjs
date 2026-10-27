@@ -4,9 +4,10 @@
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as THREE from 'three';
 import { installBakeEnvironment } from './bake/environment.mjs';
+import { shardManifestPath } from './authored-manifest.mjs';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const output = process.argv.slice(2).find(arg => arg.startsWith('--out='))?.slice('--out='.length);
@@ -37,7 +38,9 @@ try {
     import('@wildshard/game/models/specimenCatalogue'), import('@wildshard/engine/world/Terrain'),
   ]);
   const nativeTerrain = readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin'));
-  const capture = await captureNalatiAuthoredWorld({ root, sky, element: environment.element, nativeTerrain,
+  // The executable owns the current discovery prerequisite; the reusable collector borrows its real manifest.
+  const { MANIFEST } = await import(pathToFileURL(resolve(root, shardManifestPath(root, 'nalati-grasslands'))).href);
+  const capture = await captureNalatiAuthoredWorld(MANIFEST, { root, sky, element: environment.element, nativeTerrain,
     createTerrain: () => {
       const source = nalatiGroundSource(nativeTerrain), geometry = new THREE.BufferGeometry(), material = new THREE.MeshLambertMaterial();
       geometry.setAttribute('position', new THREE.Float32BufferAttribute(source.positions, 3));
