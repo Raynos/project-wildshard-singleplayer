@@ -13,6 +13,7 @@ import {
 } from 'three';
 import type { GridCell } from './assembly';
 import { putRoadGrain, roadGrainSteps, type RoadGrainSource } from './roadGrain';
+import { packRoadSignPixels } from './roadSignPixels';
 import { ownRoadMesh } from './roadResources';
 import { ROAD_SKY } from './frameModel';
 import { coverageMaterial, coverageTable, gpuOnlyTextureBytes, uniformPart, type CoverageColours, type SolidPart } from './roadSolid';
@@ -407,11 +408,7 @@ function signAtlasTexture(atlas: SignAtlasLayout): DataTexture {
   const [sx, sy] = slot(keys.length); // swatches in the last cell (the grey is the material's sentinel, not a texel)
   g.fillStyle = WHITE; g.fillRect(sx + 128, sy, 64, LINE_H);
   const pixels = g.getImageData(0, 0, W, H).data; el.width = 1; el.height = 1;
-  const colours = signCoverage(), red = coverageTable(colours, 0), green = coverageTable(colours, 1), data = new Uint8Array(W * H * 2);
-  for (let y = 0; y < H; y++) { // texture row 0 is the canvas's bottom row (what a canvas upload's flipY did)
-    const from = (H - 1 - y) * W * 4, to = y * W * 2;
-    for (let x = 0; x < W; x++) { data[to + x * 2] = red[pixels[from + x * 4] ?? 0] ?? 0; data[to + x * 2 + 1] = green[pixels[from + x * 4 + 1] ?? 0] ?? 0; }
-  }
+  const colours = signCoverage(), data = packRoadSignPixels(pixels, W, H, coverageTable(colours, 0), coverageTable(colours, 1));
   const t = new DataTexture(data, W, H, RGFormat, UnsignedByteType);
   t.colorSpace = NoColorSpace; t.generateMipmaps = true; t.minFilter = LinearMipmapLinearFilter; t.magFilter = LinearFilter; t.anisotropy = 8; t.needsUpdate = true;
   return t;
