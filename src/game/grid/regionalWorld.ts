@@ -77,6 +77,7 @@ import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { prepareManifestScalarBlocks,type ShardManifest } from '../shard/manifest';
 import { prepareShardAssets } from '../shard/load';
 import { toLevelSpec } from '../shard/spec';
+import { prepareRegionalInputs } from './regionalInputs';
 import type { ShardWorld } from '../shard/world';
 import type { RegionalRuntimeFoundation, RegionalRuntimePage, RegionalRuntimeRequest, RegionalRuntimeTextures } from './regionalRuntime';
 import { frameLookOf, lookChainKind, regionChain, regionGrade, replacedKnobs, wholeChainKnobs, type FrameLookPort } from './frameLook';
@@ -262,7 +263,9 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       // it), handed over first: the level's declared navigation and a required manifest ground are that product's own files
       // (the session's readers read them), never downloaded again
       provideRuntimeProduct(request.admitted, resident);
-      const navmesh = ports.navmesh === undefined ? null : await ports.navmesh(level);
+      const navigation = ports.navmesh;
+      const { navmesh, look: levelLook } = await prepareRegionalInputs(level, resident,
+        navigation === undefined ? undefined : () => navigation(level));
       await ports.pause();
       if (left()) throw new Error('Regional world left while loading its navmesh');
       const water = ports.water?.(level) ?? new WaterBodies();
@@ -271,8 +274,6 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       // them a cell's sea answered null and the board rode the seabed under it, G254)
       if (ports.water === undefined) for (const body of level.ground.water ?? []) water.add(body, resident);
       // the level's own look parts its content builds from while its frame is bound (SF63: its grass driver)
-      const levelLook = level.look === undefined ? null : await level.look();
-      resident.onDispose(() => { levelLook?.dispose?.(); });
       if (left()) throw new Error('Regional world left while loading its look');
       const frame = new LevelFrameBinding({ level, scope: resident, levelScope: request.scope, navmesh, water, textures, look: levelLook });
       // Required manifest ground must enter before collision sampling or native home construction.
