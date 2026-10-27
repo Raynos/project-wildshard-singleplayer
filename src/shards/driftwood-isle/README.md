@@ -45,9 +45,9 @@ Layout debt (grandfathered in `lint/shard-layout.json`): `tiers.ts` (the island'
 The captain's hat, sea-glass chime, sailcloth cape and boat's three meshes are lossless offline GLBs. Their original builders live in `generators/`;
 The `data/fixedGeometry.json` inventory supplies the product’s named groups and owned geometry declarations.
 `world.assembly` loads the admitted island book before placement; the model controllers keep the original toon
-materials, wind and collectible slots. Rebuild with
-`node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs`.
-Add `--check` to compare the committed GLBs and slot rows without writing; `scripts/bake-check.mjs` runs this check.
+materials, wind and collectible slots. `generators/fixedProgram.ts` constructs the original geometry and metadata
+from committed native inputs during the shard build; `generators/fixedProduct.ts` admits its owned world assets.
+The fixed-model scheduler and its file-publishing check are retired.
 
 Phone 30 fps (9.6 ms CPU), desktop 60 fps (4.8 ms). Cold play on 4G within 30 s. F2 ceilings for the poses `pier`,
 `beach`, `wreck` in `budgetCeilings.ts`.

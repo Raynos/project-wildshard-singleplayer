@@ -8,8 +8,7 @@
  * The builder runs where the tower stands: its site (x, z, which side the stair descends toward), the native terrain
  * under its posts, stair foot and baked AO, and `zipTo` (the world point the pulley faces). It hands over the geometry in
  * own space (the site's origin subtracted) and the layout the page reads back from `data/lookoutBake.json`: the legacy
- * boxes, the physics descriptors, the anchors and the floor (platform, stair). src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs
- * writes both.
+ * boxes, the physics descriptors, the anchors and the floor (platform, stair). The defining fixed program owns both.
  */
 import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
