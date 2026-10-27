@@ -341,6 +341,25 @@ test('a product stored whole asks for persistent storage once (iPhone downloads 
   } finally { persist.mockRestore(); }
 });
 
+test('packed sections and files come from one read of each pack (iPhone downloads I5)', async () => {
+  const { wires, index } = fixture(true), packs: NonNullable<OutputIndex['packs']> = [];
+  for (const members of [[...index.sections, ...index.schemas].map(entry => ({ path: entry.path, hash: entry.hash })), index.files.map(file => ({ path: file.path, hash: file.hash }))]) {
+    const parts = members.map(member => { const part = wires.get(member.path); if (part === undefined) throw new Error('Missing fixture member'); return { hash: member.hash, part }; });
+    const bytes = new Uint8Array(parts.reduce((total, row) => total + row.part.length, 0)), entries: { hash: string; offset: number; bytes: number }[] = [];
+    let offset = 0;
+    for (const row of parts) { bytes.set(row.part, offset); entries.push({ hash: row.hash, offset, bytes: row.part.length }); offset += row.part.length; }
+    const packHash = hashImmutableBytes(bytes), path = `blobs/pack/${packHash}.pack`;
+    wires.set(path, bytes); packs.push({ path, hash: packHash, bytes: bytes.length, entries });
+  }
+  wires.set('shard.json', encodeCanonicalJson(parseOutputIndex({ ...index, packs })));
+  const reads: string[] = [], plain = options(wires), opts: ProductOptions = { ...plain, fetch: url => { reads.push(url.slice(base.length)); return plain.fetch(url); } };
+  const admitted = await admitProduct(await readProductDescriptor(opts), opts), file = index.files[0];
+  if (file === undefined) throw new Error('Missing fixture blob');
+  expect(admitted.assets.get(file.hash)).toEqual(wires.get(file.path));
+  expect(reads.filter(path => path.startsWith('blobs/pack/')).sort()).toEqual(packs.map(pack => pack.path).sort());
+  expect(reads.filter(path => path.startsWith('sections/') || path.startsWith('blobs/bin/'))).toEqual([]);
+});
+
 test('an evicted section of an older visit refetches online and replaces the offline record', async () => {
   const old = fixture(), current = fixture(false, 4), store = cacheStore();
   const oldOptions = options(old.wires, store.cache);

@@ -1,4 +1,5 @@
 import { outputBlobPath } from '@wildshard/format/outputAddress';
+import { packReads } from './packReads';
 import type { OutputIndex } from '@wildshard/format/outputIndex';
 import { assembleOutputTransport } from '@wildshard/format/outputFields';
 import { isJsonDataWithFileSchemas } from '@wildshard/format/json';
@@ -22,6 +23,10 @@ export interface OutputDescriptorReader {
   /** Expected sizes come from the parsed product index, before any section reads. */
   declare?: (path: string, bytes: number) => void;
   read: (path: string, maximum: number) => Promise<Uint8Array>;
+  /** I5: read a pack (relative path, exact size); a packed section missing from the cache then comes from its pack */
+  pack?: (path: string, maximum: number) => Promise<Uint8Array>;
+  /** I5: a section served from its pack (no request of its own) completes its declared path. */
+  packedHit?: (path: string) => void;
   hash: (bytes: Uint8Array) => Promise<string>;
   /** Trusted transport returns owned bytes already checked against this exact hash and size.
    * `stored` proves durable content-cache persistence, not merely a scheduled write. */
@@ -139,11 +144,14 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   // A historical lineage never reads blobs.
   if (current !== null && reader.deferAssetDeclarations !== true) for (const file of current.files) reader.declare?.(outputBlobPath(file), file.compressed);
   const sections = new Map<string, unknown>();
+  const packed = current === null || reader.pack === undefined || reader.offline ? undefined
+    : packReads(current.packs, new Set([...current.sections, ...current.schemas].map(entry => entry.hash)), reader.pack, reader.hash);
   let cached = reader.cached !== undefined || reader.verified !== undefined;
   const stores: Promise<void>[] = [];
   let pendingStores = 0;
   const load = async (section: OutputIndex['sections'][number]): Promise<readonly [string, unknown]> => {
-    const verified = reader.verified === undefined ? null : await reader.verified(section.hash, section.path, section.bytes);
+    const inPack = packed?.has(section.hash) === true;
+    const verified = inPack || reader.verified === undefined ? null : await reader.verified(section.hash, section.path, section.bytes);
     let bytes = verified?.bytes ?? await reader.cached?.(section.hash, section.path, section.bytes);
     if (verified !== null && verified !== undefined) {
       bytes = verified.bytes;
@@ -152,7 +160,8 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
       if (verified.cached) reader.cacheHit?.(section.path, section.hash, verified.bytes.length);
     } else if (bytes === null || bytes === undefined) {
       if (reader.offline) throw new IncompleteOutputCacheError();
-      bytes = await reader.read(section.path, section.bytes);
+      if (inPack && packed !== undefined) { bytes = await packed.read(section.hash); reader.packedHit?.(section.path); }
+      else bytes = await reader.read(section.path, section.bytes);
       if (bytes.length !== section.bytes || await reader.hash(bytes) !== section.hash) throw new Error('Shardfile section hash or size mismatch');
       if (reader.backgroundStore !== undefined) {
         // A scheduled write is not durable cache proof. Complete offline

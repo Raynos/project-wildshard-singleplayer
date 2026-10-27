@@ -1,5 +1,5 @@
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
-import { declareDownloadFile, noteDownloadRead, recordCachedDownload } from '@wildshard/engine/boot/download';
+import { declareDownloadFile, noteDownloadRead, recordCachedDownload, recordPackedDownload } from '@wildshard/engine/boot/download';
 import { waitFor } from '@wildshard/engine/boot/waits';
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -14,6 +14,7 @@ import { PRODUCT_CACHE_NAME } from '@wildshard/engine/pwa/cacheNames';
 import { saves } from '@wildshard/engine/saves/runtime';
 import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
 import { browserContentStore, contentHash } from './contentStore';
+import { packReads } from './packReads';
 import { preflightShardfile } from '@wildshard/format/preflight';
 
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
@@ -196,6 +197,8 @@ function resolveDescriptor(input: unknown, options: ProductOptions, lineage = fa
     declare: (path, bytes) => { declareDownloadFile(new URL(path, base).href, bytes); },
     cacheHit: (path, hash, bytes) => { recordCachedDownload(hash, bytes, new URL(path, base).href); },
     read: async (path, cap) => boundedResponse(await options.fetch(new URL(path, base).href), cap),
+    pack: async (path, cap) => boundedResponse(await options.fetch(new URL(path, base).href), cap),
+    packedHit: path => { recordPackedDownload(new URL(path, base).href); },
     ...(cache?.verifiedAsset === undefined && options.transport === undefined ? {} : {
       verified: (hash: string, path: string, cap: number) => waitFor(`Read ${path}`, (async () => {
         const bytes = await cache?.verifiedAsset?.(hash);
@@ -344,6 +347,9 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
     if (sent.stored) verifiedCached.add(hash); // durable now: no second write, and a later miss is repaired from these bytes
     return sent.bytes;
   };
+  // I5: a file missing from the cache comes from its pack (one read for the phase's small files) instead of its own request
+  const packed = options.offline ? undefined : packReads(outputDescriptor(source)?.index.packs, new Set(addresses.map(([hash]) => hash)),
+    async (path, cap) => boundedResponse(await options.fetch(new URL(path, base).href), cap), options.hash);
   const bytesTotal = addresses.reduce((total, [, cap]) => total + cap, 0);
   const progress = (phase: ProductProgress['phase'], detail: string): void => {
     options.progress?.({ phase, detail, bytesRead, bytesTotal, filesDone, filesTotal: addresses.length });
@@ -351,8 +357,9 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   progress('assets', `Reading immutable assets · ${reference}`);
   const load = async ([hash, cap]: [string, number]): Promise<Uint8Array> => {
     const url = outputBlobUrl(source, ownFiles.has(hash) ? hash : `commons:${hash}`, base);
+    const inPack = packed?.has(hash) === true;
     const verified = await waitFor(`${options.transport === undefined ? 'Verified cache' : 'Read'} ${hash.slice(0, 12)}`, (async () =>
-      await options.cache?.verifiedAsset?.(hash) ?? await offPage(url, hash, cap))(), 'file');
+      await options.cache?.verifiedAsset?.(hash) ?? (inPack ? null : await offPage(url, hash, cap)))(), 'file');
     let bytes = verified ?? await waitFor(`Cache ${hash.slice(0, 12)}`, (async () =>
       (options.cache?.verifiedAsset === undefined ? await options.cache?.asset(base, hash) : null)
         ?? (options.verifiedResponse === undefined ? await options.cachedResponse?.(url, hash, cap) : null))(), 'file');
@@ -360,7 +367,8 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
     if (bytes === null || bytes === undefined) {
       if (options.offline) throw new Error('Visited shardfile has an incomplete offline cache');
       progress('assets', `Fetching ${hash.slice(0, 12)}`);
-      bytes = await boundedResponse(await options.fetch(url), cap, (size) => { bytesRead += size; progress('assets', `Reading ${hash.slice(0, 12)}`); });
+      if (inPack && packed !== undefined) { bytes = await waitFor(`Pack ${hash.slice(0, 12)}`, packed.read(hash), 'file'); bytesRead += bytes.length; recordPackedDownload(url); }
+      else bytes = await boundedResponse(await options.fetch(url), cap, (size) => { bytesRead += size; progress('assets', `Reading ${hash.slice(0, 12)}`); });
     } else { bytesRead += bytes.length; progress('assets', `Cached ${hash.slice(0, 12)}`); }
     if (bytes.length !== cap) throw new Error('Shardfile asset wire size differs from declaration');
     progress('hash', `Verifying ${hash.slice(0, 12)}`);

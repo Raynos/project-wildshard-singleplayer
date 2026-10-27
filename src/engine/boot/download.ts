@@ -92,6 +92,12 @@ export class DownloadAccounting {
       const file = this.files.get(this.url(url)); if (file !== undefined) file.complete = true;
     }
   }
+  /** iPhone downloads I5: a member read from its pack completes without a receipt of its own (the pack's receipt
+   *  carries the bytes). */
+  packed(input: string): void {
+    const file = this.files.get(this.url(input)); if (file !== undefined) file.complete = true;
+    this.activity++;
+  }
   /** Resource Timing covers modules, images, fonts and undeclared fetches, including early buffered entries. */
   resource(entry: DownloadTiming): void {
     if ((entry.responseEnd ?? entry.startTime) < this.since || !/^https?:/u.test(entry.name)) return;
@@ -226,6 +232,8 @@ export function declareModuleFiles(input: unknown): void {
 }
 /** Verified immutable cache reads stay separate from downloaded bytes. */
 export function recordCachedDownload(key: string, bytes: number, url?: string): void { accountingTargets(accounting => { accounting.cached(key, bytes, url); }); }
+/** I5: a declared file served from its pack is complete; the pack's own receipt counts the bytes. */
+export function recordPackedDownload(url: string): void { accountingTargets(accounting => { accounting.packed(url); }); }
 /** Actual body reads reset the stall timer without mislabelling decoded bytes as network transport. */
 export function noteDownloadRead(bytes: number): void { accountingTargets(accounting => { accounting.noteRead(bytes); }); }
 
