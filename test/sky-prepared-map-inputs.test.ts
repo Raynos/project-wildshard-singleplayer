@@ -21,7 +21,7 @@ import { PREPARED_MODEL_INPUTS } from '../src/shards/far-reach/generators/prepar
 const handoff = 'public/assets/far-reach/baked/prepared-models.glb';
 const hash = 'a4d2c58042946dc131c67027993aa567121d45bab1e33759248acb8aa704728d';
 const worldHandoffs = [...BAKED_PIECES.map(piece => `../../../public/assets/far-reach/baked/${piece}.glb`),
-  '../../../public/assets/far-reach/baked/isles.bin', 'data/isles.json', 'data/geometries.json', 'owned-ground.json'];
+  '../../../public/assets/far-reach/baked/isles.bin', 'data/isles.json', 'data/geometries.json', 'owned-ground.json', 'owned-world-rows.json'];
 const millHandoffs = ['public/assets/far-reach/baked/mill-rest.glb', 'src/shards/far-reach/data/millRest.generated.json'];
 const bridgeHandoffs = ['public/assets/far-reach/baked/bridge-rest.glb', 'src/shards/far-reach/data/bridgeRest.generated.json'];
 const originalWorldInputs: Readonly<Record<string, { readonly bytes: number; readonly hash: string }>> = {
@@ -76,6 +76,10 @@ const originalWorldInputs: Readonly<Record<string, { readonly bytes: number; rea
   "data/geometries.json": {
     "bytes": 1615,
     "hash": "3e770922599e1ff74629e90fa1cc29a9e9843c366a8660381b0c4c3095271a93"
+  },
+  "owned-world-rows.json": {
+    "bytes": 65347,
+    "hash": "3a05afd8da12568f27c2ecaaa33d7212ba6817d006ed4f7a3fc1fa418ceb9b9d"
   },
   "owned-ground.json": {
     "bytes": 17705,
