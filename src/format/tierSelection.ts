@@ -25,9 +25,21 @@ export function* stringsSteps(roots: readonly unknown[], found: (text: string) =
     const value = pending.pop();
     if (++visited % 4096 === 0) yield;
     if (typeof value === 'string') found(value);
-    else if (Array.isArray(value)) { const items: readonly unknown[] = value; for (const item of items) pending.push(item); }
-    // Own enumerable keys in Object.entries order, without an entry pair per key (admission walks every product field).
-    else if (typeof value === 'object' && value !== null) for (const key in value) if (Object.hasOwn(value, key)) { found(key); const child: unknown = Reflect.get(value, key); pending.push(child); }
+    else if (Array.isArray(value)) {
+      const items: readonly unknown[] = value;
+      for (const item of items) {
+        if (typeof item === 'string' || typeof item === 'object' && item !== null) pending.push(item);
+        else if (++visited % 4096 === 0) yield;
+      }
+    }
+    // Preserve every own key and string callback, without queueing numeric pose
+    // words (they cannot name an asset). Count their scan toward paint
+    // checkpoints anyway; schema validation still checks those values.
+    else if (typeof value === 'object' && value !== null) for (const key in value) if (Object.hasOwn(value, key)) {
+      found(key); const child: unknown = Reflect.get(value, key);
+      if (typeof child === 'string' || typeof child === 'object' && child !== null) pending.push(child);
+      else if (++visited % 4096 === 0) yield;
+    }
   }
 }
 
