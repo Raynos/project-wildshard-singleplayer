@@ -47,9 +47,12 @@ function fixture(early: () => Promise<void> = () => Promise.resolve(), final: ()
     async prepareEnteredPrograms(_owner: Scope, _composer: unknown, current: () => boolean): Promise<void> {
       fence = current; calls.push('page-programs'); await early();
     },
+    async warmEnteredPageRoots(_owner: Scope, _composer: unknown, lighting: Object3D, current: () => boolean): Promise<void> {
+      expect(lighting).toBe(root); fence = current; calls.push('page-only'); await early();
+    },
   };
   return { owner, root, game, calls, current: () => fence(),
-    run: (before?: (prepare: Prepare, prepareFrame: () => Promise<void>) => Promise<void> | void): Promise<unknown> => Promise.resolve(Reflect.apply(method, game, [owner, root, before])),
+    run: (before?: (prepare: Prepare, prepareFrame: () => Promise<void>, preparePage: () => Promise<void>) => Promise<void> | void): Promise<unknown> => Promise.resolve(Reflect.apply(method, game, [owner, root, before])),
     frame: (): void => { game.frameCount++; now += 100; const due = [...frames.values()]; frames.clear(); for (const draw of due) draw(now); },
   };
 }
@@ -81,11 +84,30 @@ test('page programs overlap content without drawing or replacing the final inven
   } finally {content.resolve(); f.owner.dispose(); await observed;}
 });
 
-test.each(['roots', 'page'])('%s preparation and final preparation share the original total deadline', async mode => {
+test('the page-only prefix shares the bound and leaves complete preparation mandatory', async () => {
+  const content = deferred(), prepared = deferred(), f = fixture();
+  const run = f.run(async (_roots, _frame, preparePage) => {await preparePage(); prepared.resolve(); await content.promise;});
+  const observed = settled(run);
+  try {
+    expect(await Promise.race([prepared.promise.then(() => 'prepared'), observed])).toBe('prepared');
+    expect(f.calls).toEqual(['page-only']); content.resolve(); await run;
+    expect(f.calls).toEqual(['page-only', 'final']);
+  } finally {content.resolve(); f.owner.dispose(); await observed;}
+});
+
+test('an entry without a live composer exposes an inert page prefix', async () => {
+  const f = fixture(); Reflect.set(f.game, '_composer', null);
+  try {
+    await f.run(async (_roots, _frame, preparePage) => {await preparePage(); f.calls.push('noop');});
+    expect(f.calls).toEqual(['noop']);
+  } finally {f.owner.dispose();}
+});
+
+test.each(['roots', 'page', 'page-only'])('%s preparation and final preparation share the original total deadline', async mode => {
   const prepared = deferred(), content = deferred(), final = deferred(), enteredFinal = deferred();
   const f = fixture(() => prepared.promise, () => { enteredFinal.resolve(); return final.promise; });
-  const run = f.run(async (prepare, prepareFrame) => {
-    await (mode === 'roots' ? prepare([f.root]) : prepareFrame()); await content.promise;
+  const run = f.run(async (prepare, prepareFrame, preparePage) => {
+    await (mode === 'roots' ? prepare([f.root]) : mode === 'page' ? prepareFrame() : preparePage()); await content.promise;
   });
   const observed = settled(run);
   try {
@@ -111,11 +133,11 @@ test('retirement during the content rendezvous fences the abandoned final warm-u
   } finally { content.resolve(); f.owner.dispose(); await observed; }
 });
 
-test.each(['roots', 'page'])('an early %s refusal propagates without publishing a final frame', async mode => {
+test.each(['roots', 'page', 'page-only'])('an early %s refusal propagates without publishing a final frame', async mode => {
   const f = fixture(() => Promise.reject(new Error('exact program refused')));
   try {
-    await expect(f.run((prepare, prepareFrame) => mode === 'roots' ? prepare([f.root]) : prepareFrame())).rejects.toThrow('exact program refused');
-    expect(f.calls).toEqual([mode === 'roots' ? 'world' : 'page-programs']);
+    await expect(f.run((prepare, prepareFrame, preparePage) => mode === 'roots' ? prepare([f.root]) : mode === 'page' ? prepareFrame() : preparePage())).rejects.toThrow('exact program refused');
+    expect(f.calls).toEqual([mode === 'roots' ? 'world' : mode === 'page' ? 'page-programs' : 'page-only']);
   } finally { f.owner.dispose(); }
 });
 

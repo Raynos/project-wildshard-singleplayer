@@ -1,7 +1,7 @@
 import {expect, test, vi} from 'vitest';
 import {BoxGeometry, DataTexture, DirectionalLight, Fog, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, WebGLRenderer, type Object3D} from 'three';
 import {Scope} from '../app/scope';
-import {prepareSceneRoots, registerExteriorLighting} from './precompile';
+import {entryPageRoots, prepareSceneRoots, registerExteriorLighting} from './precompile';
 import {noteEnvironment} from './drawnEnvironment';
 import {compileSceneSource} from './compileLights';
 import { linkedGl } from '../test/linkedGl';
@@ -103,4 +103,21 @@ test('owner-only equipment omits exterior programs while world roots retain them
     expect(f.root.visible).toBe(false); expect(f.root.parent).toBe(f.scene);
     expect(f.compiled.every(row => row.fog === f.scene.fog && row.lights === 1)).toBe(true);
   } finally { f.dispose(); }
+});
+
+test('page prefix excludes parked inventories and borrows the real future lighting', async () => {
+  const f = fixture(), container = new Group(), material = new MeshBasicMaterial(), page = new Mesh(f.geometry, material);
+  material.name = 'page'; container.add(f.root, page); f.scene.add(container); f.excluded.visible = false;
+  const futureLight = new DirectionalLight(); f.root.add(futureLight);
+  const parked = vi.spyOn(f.excluded, 'traverse'), destination = vi.spyOn(f.root, 'traverse');
+  try {
+    const roots = entryPageRoots(f.scene, f.root);
+    expect(roots).toEqual([f.light, page]);
+    expect(entryPageRoots(f.scene, f.scene)).toEqual([]);
+    expect(parked).not.toHaveBeenCalled(); expect(destination).not.toHaveBeenCalled();
+    await prepareSceneRoots(f.renderer, f.camera, f.scene, null, roots, () => true, () => Promise.resolve(), undefined, true, f.root, undefined, false);
+    expect(f.compiled).toEqual([{material: 'page', receiver: false, fog: f.scene.fog, lights: 2, environment: null}]);
+    expect(f.root.parent).toBe(container); expect(f.root.visible).toBe(false); expect(page.parent).toBe(container);
+    expect(parked).not.toHaveBeenCalled();
+  } finally {parked.mockRestore(); destination.mockRestore(); material.dispose(); futureLight.dispose(); f.dispose();}
 });

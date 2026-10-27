@@ -301,17 +301,20 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               const equipment = new Promise<void>(resolve => { equipmentReady = resolve; });
               const content = new Promise<void>(resolve => { contentReady = resolve; });
               forgetContent = owner.capture('disposers', () => { equipmentReady(); contentReady(); });
-              enteredWarm = request.page.world.game.warmEnteredFrame(owner, view.root, async () => {
-                await equipment;
-                if (owner.disposed) throw new Error('Regional runtime left before its equipment warm-up');
-                // A complete page pass is atomic per program. Running it beside play adds those native units to
-                // the content builder's frames and discovers an incomplete inventory that must be repeated.
-                // Wait for content, then use the one final sliced inventory before publishing readiness.
-                await content;
-                if (owner.disposed) throw new Error('Regional runtime left before its final warm-up');
-                // The final hook already patches every completed world material.
-                // A second whole-scene sweep immediately before it repeats that CPU work.
-                await (foundation.beforeWarm !== undefined ? foundation.beforeWarm() : foundation.prepareWorldMaterials?.());
+              enteredWarm = request.page.world.game.warmEnteredFrame(owner, view.root, async (_prepare, _frame, preparePage) => {
+                await foundation.prepareWorldMaterials?.();
+                if (owner.disposed) throw new Error('Regional runtime left before its page warm-up');
+                // Only existing page views run early, under the completed sky.
+                // Late entered materials and all shadow/post passes stay final.
+                const page = preparePage(); void page.catch(() => undefined);
+                try {
+                  await equipment;
+                  if (owner.disposed) throw new Error('Regional runtime left before its equipment warm-up');
+                  await content;
+                  if (owner.disposed) throw new Error('Regional runtime left before its final warm-up');
+                  await page;
+                  await (foundation.beforeWarm !== undefined ? foundation.beforeWarm() : foundation.prepareWorldMaterials?.());
+                } finally { await Promise.allSettled([page]); }
               });
               // Observe an early failure now; afterPlay still awaits the original rejection before readiness.
               void enteredWarm.catch(() => undefined);
