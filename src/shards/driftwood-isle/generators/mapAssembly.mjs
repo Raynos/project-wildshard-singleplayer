@@ -9,6 +9,7 @@ import { DRIFTWOOD_OUTPUT, DRIFTWOOD_FIXED_SOURCES } from './assets.ts';
 import { siteCatalogue } from './siteCatalogue.ts';
 import { WORLD_DROP } from './sea.ts';
 import { ISLAND_PROTO_INPUTS, driftwoodIslandProtoSource } from './islandProtoProgram.ts';
+import { originalBridgeFacts } from './driftwoodBridge.mjs';
 
 const base = resolve(import.meta.dirname, '..'), root = resolve(base, '../../..');
 const read = file => readMapJson(resolve(base, file));
@@ -18,7 +19,7 @@ const simple = (geometry, material = 'plant', name = geometry) => ({ scene: { ve
 /** The native bridge's admitted segments are world poses. Its initial planks
  * and rope chords use those records without creating bodies or stepping time. */
 async function bridgeRest(assembly, fixed) {
-  const facts = read('data/bridgeBake.json')[0], origin = new Vector3(facts.origin.x, facts.origin.y, facts.origin.z);
+  const facts = originalBridgeFacts()[0], origin = new Vector3(facts.origin.x, facts.origin.y, facts.origin.z);
   const holders = facts.segments.map(segment => new Matrix4().compose(new Vector3(segment.x, segment.y, segment.z).sub(origin), new Quaternion(segment.rot.x, segment.rot.y, segment.rot.z, segment.rot.w), new Vector3(1, 1, 1)));
   const world = new Matrix4().makeTranslation(origin.x, origin.y, origin.z), planks = facts.planks.map(plank => world.clone().multiply(holders[plank.seg]).multiply(new Matrix4().compose(new Vector3(0, .05 - .03, plank.z), new Quaternion(), new Vector3(plank.w, .06, .3))));
   const shape = slot => mapModel(fixed(slot));

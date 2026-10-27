@@ -2,7 +2,7 @@ import piers from '../data/pierScenes.generated.json' with { type: 'json' };
 import landings from '../data/entryFloors.generated.json' with { type: 'json' };
 import wreck from '../data/wreckBake.json' with { type: 'json' };
 import cove from '../data/coveBake.json' with { type: 'json' };
-import bridges from '../data/bridgeBake.json' with { type: 'json' };
+import { originalBridgeFacts } from './driftwoodBridge.mjs';
 import trailside from '../data/trailsideBake.json' with { type: 'json' };
 import hut from '../data/hutBake.json' with { type: 'json' };
 import lookout from '../data/lookoutBake.json' with { type: 'json' };
@@ -19,6 +19,7 @@ interface Site { readonly origin: { readonly x: number; readonly y: number; read
 const placedSite = ({ origin, colliders }: Site): Box[] => colliders.map(box => ({ ...box, x: box.x + origin.x, z: box.z + origin.z, yTop: box.yTop + origin.y, yBottom: box.yBottom + origin.y }));
 /** The island span's baked colliders (its key as game/models/ropeDeckSite `key`: the island span has the default width). */
 function islandBridge(): readonly Box[] {
+  const bridges = originalBridgeFacts();
   const key = JSON.stringify([BRIDGE.a, BRIDGE.b, 1.4, BRIDGE.sag]), row = bridges.find(candidate => candidate.key === key);
   if (row === undefined) throw new Error('Missing baked island bridge');
   return row.colliders;

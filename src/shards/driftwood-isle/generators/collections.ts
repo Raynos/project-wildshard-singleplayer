@@ -1,9 +1,10 @@
 import { parseCollectionDisplays } from '@wildshard/format/collectionDisplay';
 import cards from '../data/collectionCards.json' with { type: 'json' };
 import keepsakes from '../data/collectionKeepsakes.json' with { type: 'json' };
-import chimeSlots from '../data/chimeSlots.json' with { type: 'json' };
-import trophySlots from '../data/trophySlots.json' with { type: 'json' };
+import { driftwoodChimeSlots, driftwoodTrophySlots } from './fixedFacts';
 import { TROPHY_LAYOUT } from './trophyLayout';
+
+const chimeSlots = driftwoodChimeSlots(), trophySlots = driftwoodTrophySlots();
 
 /** One publication path: exact baked ranges, authored card rows and the same drop mounting point as the bake. */
 export function collectionRows(): ReturnType<typeof parseCollectionDisplays> {

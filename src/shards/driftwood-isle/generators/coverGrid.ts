@@ -3,12 +3,13 @@ import { CHUNK_HALF, CHUNK_SIZE } from '@wildshard/engine/core/config';
 import { HUT, LOOKOUT, SHRINE, WRECK } from './worldSites';
 import authoredLayout from '../data/layout.json' with { type: 'json' };
 import { islandCoveSpec } from './coveLayout';
-import COVER_LOOK from '../data/coverLook.json' with { type: 'json' };
+import { driftwoodCoverLook } from './fixedFacts';
 import authoredCoverLook from '../data/groundCover.json' with { type: 'json' };
 import { DENSITY, type Site } from './coverSites';
 
 const { ISLAND } = authoredLayout;
 const { GROUND_COVER } = authoredCoverLook;
+const COVER_LOOK = driftwoodCoverLook();
 
 /** What the grid holds at a point: mean colour (linear), and top / side packed as 1 − e^−τ. */
 export interface CoverSample { r: number; g: number; b: number; top: number; side: number }
