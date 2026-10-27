@@ -1,3 +1,6 @@
+import restFiles from './fixtures/sky-rest-pool-files.json' with { type: 'json' };
+import { winchGlb, hover0Glb, hover1Glb, hover2Glb, stormGlb, bookStandGlb } from '../src/shards/far-reach/generators/restScene';
+import { isletGlb } from '../src/shards/far-reach/generators/isletScene';
 import { originalSkyMovers } from './fixtures/sky-movers';
 import { originalSkyNavigation } from './fixtures/sky-navigation';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own the isolated cache and retain the original complete GLB oracle.
@@ -51,11 +54,12 @@ const HeroRows = v.object({ rows: v.object({ meshes: v.array(v.string()), meshUr
 test('owned geometry preserves all original bytes and costs, changing only its source addresses', async () => {
   const cache = mkdtempSync(resolve('tmp/sky-prepared-output-'));
   let builds = 0;
+  const buildSteps: string[] = [];
   const context = () => {
     const ctx = createProjectGeneration(resolve('src/shards/far-reach'), 'c'.repeat(64), new Map(), cache,
       [{ prefix: '/assets/', directory: resolve('public/assets') }]);
     return { ...ctx, cached: (step: Parameters<typeof ctx.cached>[0], generate: Parameters<typeof ctx.cached>[1]) =>
-      ctx.cached(step, inputs => { builds++; return generate(inputs); }) };
+      ctx.cached(step, inputs => { builds++; buildSteps.push(step.id); return generate(inputs); }) };
   };
   try {
     const owned = await prepareOutput(context()), geometry = owned.namedFiles.find(file => file.name === geometryName);
@@ -64,7 +68,7 @@ test('owned geometry preserves all original bytes and costs, changing only its s
       compressed: 10_134_100, decoded: 10_134_072, gpu: 10_096_780, triangles: 203_025, draws: 48, critical: false, dependencies: [] });
     const bytes = owned.assets.get(hash); if (bytes === undefined) throw new Error('Missing owned GLB bytes');
     expect(Buffer.compare(bytes, original)).toBe(0);
-    expect(owned.namedFiles).toHaveLength(output.namedFiles.length + 21);
+    expect(owned.namedFiles).toHaveLength(output.namedFiles.length + 21 + restFiles.length);
     for (const file of output.namedFiles) {
       if (file.name === heroName || file.name === bakeName || file.name === skyName) continue;
       expect(owned.namedFiles.find(row => row.name === file.name)).toEqual(file);
@@ -80,6 +84,21 @@ test('owned geometry preserves all original bytes and costs, changing only its s
       .replace(JSON.stringify('/assets/far-reach/models/wind-vane/post.glb'), JSON.stringify('world/geometry/vane-post.glb'))
       .replace(JSON.stringify('/assets/far-reach/models/wind-vane/rotor.glb'), JSON.stringify('world/geometry/vane-rotor.glb'));
     for (const creature of SKY_CREATURES) expectedSky = expectedSky.replace(JSON.stringify(SKY_CREATURE_RIGS[creature]), JSON.stringify(`world/rigs/${creature}.glb`));
+    const originalRest = [winchGlb(), hover0Glb(), hover1Glb(), hover2Glb(), stormGlb(), bookStandGlb(), isletGlb()];
+    expect(restFiles).toHaveLength(7);
+    for (const [index, file] of restFiles.entries()) {
+      const sourceBytes = originalRest[index];
+      if (sourceBytes === undefined) throw new Error('Missing retained original rest-pool constructor');
+      expect(sourceBytes.byteLength, file.name).toBe(file.compressed);
+      expect(hashImmutableBytes(sourceBytes), file.name).toBe(file.hash);
+      expect(nameBlob(file.name, 'glb', sourceBytes).file).toEqual(file);
+      expect(owned.namedFiles.find(row => row.name === file.name)).toEqual(file);
+      const poolBytes = owned.assets.get(file.hash);
+      if (poolBytes === undefined) throw new Error('Missing owned rest-pool bytes');
+      expect(Buffer.compare(poolBytes, sourceBytes), file.name).toBe(0);
+      poolBytes.fill(0);
+      expectedSky = expectedSky.replace(JSON.stringify(`/assets/far-reach/baked/${file.name.slice(file.name.lastIndexOf('/') + 1)}`), JSON.stringify(file.name));
+    }
     expect(text.decode(owned.assets.get(newSky.hash))).toBe(expectedSky);
     for (const [part, size, expectedHash] of [
       ['post', 43_928, 'a5b779f379598b3e6afbf7640a0c5c30c802a2f4f51b53bb0934c29260b46a74'],
@@ -156,7 +175,14 @@ test('owned geometry preserves all original bytes and costs, changing only its s
     bytes.fill(0);
     const hit = await prepareOutput(context()), hitBytes = hit.assets.get(hash);
     if (hitBytes === undefined) throw new Error('Missing cache-hit GLB');
-    expect(Buffer.compare(hitBytes, original)).toBe(0); expect(builds).toBe(12);
+    expect(Buffer.compare(hitBytes, original)).toBe(0); expect(builds).toBe(12 + 2);
+    expect(buildSteps.filter(id => id === 'rest-pools' || id === 'islet-pool')).toEqual(['rest-pools', 'islet-pool']);
+    for (const [index, file] of restFiles.entries()) {
+      const sourceBytes = originalRest[index], restored = hit.assets.get(file.hash);
+      if (sourceBytes === undefined || restored === undefined) throw new Error('Missing cache-hit rest-pool geometry');
+      expect(Buffer.compare(restored, sourceBytes), file.name).toBe(0);
+      expect(hit.namedFiles.find(row => row.name === file.name)).toEqual(file);
+    }
     for (const file of SKY_WORLD_TILE_ROWS.files) {
       const tile = hit.assets.get(file.hash);
       if (tile === undefined) throw new Error('Missing cache-hit island tile');
