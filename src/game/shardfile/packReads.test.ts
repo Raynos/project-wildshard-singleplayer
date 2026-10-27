@@ -30,3 +30,13 @@ test('complete phase keeps both size and hash refusals', async () => {
     await expect(phase.read(a)).rejects.toThrow('Shardfile pack hash or size mismatch');
   }
 });
+
+test('an intersecting partial pack cannot hide a later complete envelope', async () => {
+  const complete = { hash: '1'.repeat(64), path: 'blobs/pack/complete.pack', bytes: 2,
+    entries: [{ hash: a, offset: 0, bytes: 2 }] };
+  const read = vi.fn((path: string) => Promise.resolve(path === complete.path ? Uint8Array.of(1, 2) : Uint8Array.of(1, 2, 3, 4)));
+  const phase = packReads([pack, complete], new Set([a]), read,
+    bytes => Promise.resolve(bytes.length === 2 ? complete.hash : pack.hash));
+  expect(await phase.read(a)).toEqual(Uint8Array.of(1, 2));
+  expect(read).toHaveBeenCalledExactlyOnceWith(complete.path, 2);
+});
