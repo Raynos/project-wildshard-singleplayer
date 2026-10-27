@@ -426,8 +426,10 @@ jobs:
           path: |
             ~/.cache/wildshard/generate
             ~/.cache/wildshard/compiler-code/1
-          key: generation-v1-${{ runner.os }}-node24-${{ steps.inputs.outputs.tree }}
-          restore-keys: generation-v1-${{ runner.os }}-node24-
+            ~/.cache/wildshard/shardfiles
+            ~/.cache/wildshard/basis
+          key: preparation-v2-${{ runner.os }}-${{ runner.arch }}-node24-${{ steps.inputs.outputs.tree }}
+          restore-keys: preparation-v2-${{ runner.os }}-${{ runner.arch }}-node24-
       - run: python3 scripts/ci-fail-fast.py -- node scripts/gen.mjs --inputs-only
       - run: node scripts/no-binary-json.mjs --all
       - name: Pack exact-run generated inputs
@@ -489,6 +491,19 @@ jobs:
             ~/.cache/wildshard/compiler-code/1
           key: products-v1-${{ runner.os }}-node24-${{ steps.inputs.outputs.tree }}
           restore-keys: products-v1-${{ runner.os }}-node24-
+      # Generation already constructed the six discovery-provider products.
+      # Overlay this exact source-tree snapshot onto the prior all-product cache.
+      # Reuse still checks source receipts and performs strict current admission;
+      # cache absence or a changed input follows the normal rebuild path.
+      - name: Restore this preparation's provider products
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cache/wildshard/generate
+            ~/.cache/wildshard/compiler-code/1
+            ~/.cache/wildshard/shardfiles
+            ~/.cache/wildshard/basis
+          key: preparation-v2-${{ runner.os }}-${{ runner.arch }}-node24-${{ steps.inputs.outputs.tree }}
       - uses: actions/download-artifact@v4
         with:
           name: generated-inputs
@@ -603,7 +618,7 @@ jobs:
       # G678/SW9: every shard reports its own first failure in this run.
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -649,7 +664,7 @@ jobs:
           python3 scripts/ci-products.py unpack
       # The verified same-run producer built these exact products; hooks must
       # not rebuild them inside every test file (CI always forces a rebuild).
-      - run: python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --shard=${{ matrix.shard }}/4 --bail=1
+      - run: python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --shard=${{ matrix.shard }}/8 --bail=1
         env:
           VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
           WS_TEST_COHORT: products

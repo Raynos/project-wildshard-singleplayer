@@ -26,8 +26,9 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   **CI is the full backstop of the push gate** (Jake, 2026-10-15): the gate runs only the tests that import the changed
   files (GIT.md). The `generated-inputs` job publishes exact-run source/public inputs first. The 16 product-free
   behaviour shards restore and verify those inputs immediately, alongside types/lint/docs and the product build.
-  The `products` job builds all products once; only the four product-consuming behaviour shards and web build wait
-  for it. Both artifact readers verify the full SHA, run ID and archive checksum. Nonempty declarations in
+  The `products` job restores the same-source preparation cache over its prior product cache, revalidates every
+  provider hit, and builds any missing or changed products. Eight product-consuming behaviour shards and the web
+  build wait for it. Both artifact readers verify the full SHA, run ID and archive checksum. Nonempty declarations in
   `scripts/test-products.json` partition suites before duration packing (or hash fallback), so every discovered
   file runs once across both cohorts. Without `WS_TEST_COHORT`, local/full/nightly selection stays complete.
   `WS_TEST_PRODUCTS_SHA` is set only for the product cohort, keeping its exact-product preflight strict; missing or

@@ -5,12 +5,12 @@
   "test/pine-life-authoring.test.ts": ["pine-hollow"],
   "test/pine-trade-catalogue.test.ts": ["pine-hollow"],
   "test/driftwood-product-reads.test.ts": ["driftwood-isle"],
-  "test/nalati-dressing-inputs.test.ts": ["nalati-grasslands"],
-  "test/nalati-dressing-placement-program.test.ts": ["nalati-grasslands"],
-  "test/nalati-dressing-source.test.ts": ["nalati-grasslands"],
-  "test/nalati-native-dressing-reader.test.ts": ["nalati-grasslands"],
-  "test/nalati-place-construction.test.ts": ["nalati-grasslands"],
-  "test/nalati-places-program.test.ts": ["nalati-grasslands"],
+  "test/nalati-dressing-inputs.test.ts": [],
+  "test/nalati-dressing-placement-program.test.ts": [],
+  "test/nalati-dressing-source.test.ts": [],
+  "test/nalati-native-dressing-reader.test.ts": [],
+  "test/nalati-place-construction.test.ts": [],
+  "test/nalati-places-program.test.ts": [],
   "test/pine-contract-offers-product.test.ts": ["pine-hollow"],
   "test/nalati-dressing-product.test.ts": [
     "nalati-grasslands"

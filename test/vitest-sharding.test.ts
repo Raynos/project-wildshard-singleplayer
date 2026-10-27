@@ -39,7 +39,7 @@ test('both CI cohorts cover every discovered test once and keep exact-run produc
  const paths=['src','test','admin/test','drafts/test'].flatMap(root=>readdirSync(root,{recursive:true,encoding:'utf8'})
   .filter(file=>file.endsWith('.test.ts')&&!file.replaceAll('\\','/').split('/').includes('node_modules')).map(file=>`${root}/${file.replaceAll('\\','/')}`));
  const selected:string[]=[];
- for(const [id,cohort,producer,total] of [['behaviour','product-free','generated-inputs',16],['behaviour-products','products','products',4]] as const){
+ for(const [id,cohort,producer,total] of [['behaviour','product-free','generated-inputs',16],['behaviour-products','products','products',8]] as const){
   const job=workflow.split(`\n  ${id}:\n`)[1]?.split(/\n {2}[a-z][\w-]*:\n/u)[0];
   if(job===undefined)throw new Error(`Missing ${id} job`);
   expect(job).toContain(`needs: ${producer}`);
@@ -69,4 +69,41 @@ test('both CI cohorts cover every discovered test once and keep exact-run produc
   expect(registry[file]?.length,`${file} must declare its product dependencies`).toBeGreaterThan(0);
  const dispatch=workflow.split('\n  dispatch-boot-smoke:\n')[1];
  expect(dispatch).toContain('products, behaviour, behaviour-products]');
+});
+
+
+test('native source suites start with verified inputs and never wait for a product', () => {
+  const registry = v.parse(v.record(v.string(), v.array(v.string())), JSON.parse(readFileSync('scripts/test-products.json', 'utf8')));
+  const native = ['nalati-dressing-inputs', 'nalati-dressing-placement-program', 'nalati-dressing-source',
+    'nalati-native-dressing-reader', 'nalati-place-construction', 'nalati-places-program'].map(name => `test/${name}.test.ts`);
+  expect(selectTestCohort(native, registry, 'product-free')).toEqual(native);
+  expect(selectTestCohort(native, registry, 'products')).toEqual([]);
+  for (const path of native) expect(readFileSync(path, 'utf8')).not.toMatch(/fixtures\/builtProduct|readBuiltShardfile/u);
+});
+
+test('the product phase borrows this preparation cache before strict current admission', () => {
+  const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
+  const generated = workflow.split('\n  generated-inputs:\n')[1]?.split('\n  products:\n')[0];
+  const products = workflow.split('\n  products:\n')[1]?.split('\n  behaviour:\n')[0];
+  if (generated === undefined || products === undefined) throw new Error('Missing preparation/product jobs');
+  const paths = (source: string): string[] => {
+    const list = source.split('          path: |\n')[1]?.split('          key:')[0];
+    if (list === undefined) throw new Error('Missing preparation cache paths');
+    return list.trim().split('\n').map(line => line.trim()).sort();
+  };
+  const provider = products.split("      - name: Restore this preparation's provider products\n")[1]?.split('      - uses: actions/download-artifact@v4')[0];
+  if (provider === undefined) throw new Error('Missing provider cache loan');
+  expect(paths(provider)).toEqual(paths(generated));
+  expect(paths(provider)).toContain('~/.cache/wildshard/shardfiles');
+  expect(paths(provider)).toContain('~/.cache/wildshard/basis');
+  const key = (source: string): string | undefined => /^ {10}key: (.+)$/mu.exec(source)?.[1];
+  expect(key(provider)).toBe(key(generated));
+  expect(key(provider)).toContain(`\${{ steps.inputs.outputs.tree }}`);
+  expect(key(provider)).toContain(`\${{ runner.arch }}`);
+  expect(provider).toContain('uses: actions/cache/restore@v4');
+  expect(provider).not.toContain('restore-keys:');
+  expect(products.indexOf('key: products-v1-')).toBeLessThan(products.indexOf('uses: actions/cache/restore@v4'));
+  expect(products.indexOf('uses: actions/cache/restore@v4')).toBeLessThan(products.indexOf('node scripts/build-shardfiles.mjs --reuse'));
+  expect(products).toContain('python3 scripts/ci-products.py unpack-generated');
+  expect(products).toContain('python3 scripts/ci-products.py pack\n');
 });
