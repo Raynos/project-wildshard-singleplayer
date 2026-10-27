@@ -40,6 +40,7 @@ import { nalatiRuntime } from './fixtures/nalati-runtime';
 import { nalatiDecorative } from './fixtures/nalati-decorative';
 import { sceneWithNativeOutcrops } from './fixtures/nalati-scene-provenance';
 import { withOwnedModelFiles, withPaintedModelParts } from './fixtures/nalati-owned-models';
+import { nativeFieldFromOriginal } from './fixtures/nalati-native-field';
 
 const modelPartFile = v.looseObject({ name: v.string(), compressed: v.number(), hash: v.string() });
 const modelPartsOriginal = v.parse(v.array(v.object({ file: v.string(), geometry: modelPartFile, atlas: v.nullable(modelPartFile) })),
@@ -283,7 +284,7 @@ test('the actual cold output hook preserves every predecessor file cost and bina
       expect(Buffer.compare(floorBytes, beforeFloor)).toBe(0);
     }
     const assembly = hit.namedFiles.find(row => row.name === assemblyOriginal.name);
-    const expectedAssembly = assemblyForField(fieldInput);
+    const expectedAssembly = assemblyForField(nativeFieldFromOriginal(fieldInput));
     expect(assembly).toEqual(expectedAssembly.file);
     const assemblyBytes = hit.assets.get(expectedAssembly.file.hash);
     if (assemblyBytes === undefined) throw new Error('Missing original native assembly bytes');
