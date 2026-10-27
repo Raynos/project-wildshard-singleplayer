@@ -991,3 +991,23 @@ Nalati151/2153717/6889390, Nine135/1956110/6310648.
 Every module is byte-exact and every existing bank member is present;
 the installer equals the manifest's entire initial static JS closure.
 Boot-bank/codec focus9PASS; medium output-product7PASS.
+
+### I2 explicit device pack isolation (2026-10-27, sp-x9)
+
+In flight (reading at plan end). Original8f2c7f92ee joint3 read reaches
+control/errors0: Pine199573386B/429requests/16.914s,
+Nalati115398069/284/5.519s, Nine174535372/205/11.300s.
+JS69/65/62 includes actual code packs; data360/219/143. Nine meets the
+250-request bar; Pine/Nalati and every12MB byte bar remain open.
+The frozen8f source predates native demand sharingfde346c539.
+
+Larger packs reduced requests but mixed explicitly tagged alternatives:
+the actually downloaded packs contain51/1/4 desktop-only members,
+28952310/124737/1698787B, on phone. Split body packs by existing
+file.tier (shared/phone/desktop) inside each existing required/deferred
+phase. No hash/path/size/cost, device selection or4MiB cap change.
+Regression covers all six phase/tier groups and original reconstruction.
+Native demand four-case recovery also passes afterd060092f68 declares
+both fixture roots; strict orphan admission was retained, not waived.
+Touched types/typed lint/scoped ratchet pass; containing request read
+must qualify this cut separately from8f, never claim an unchanged retry.

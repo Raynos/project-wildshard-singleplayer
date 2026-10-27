@@ -152,9 +152,10 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
   const packs:{path:string;hash:string;bytes:number;entries:{hash:string;offset:number;bytes:number}[]}[]=[],packed=new Set<string>();
   // Descriptor, required-body and deferred-body reads are distinct phases. A required member must never bring
   // late/spatial bytes along in its pack; every member keeps its unchanged path/hash, and all pack caps stay fixed.
+  // Explicit device variants also stay apart: selecting a phone member cannot fetch a packed desktop alternative.
   const required = controlFileHashes(source), small = files.filter(file=>file.compressed<PACK_MEMBER_BYTES).sort((a,b)=>a.hash.localeCompare(b.hash));
   const groups=[[...[...sections].sort((a,b)=>a.name.localeCompare(b.name)),...[...schemas].sort((a,b)=>a.path.localeCompare(b.path))],
-    ...[true,false].map(initial=>small.filter(file=>required.has(file.hash)===initial).map(file=>({path:file.path,hash:file.hash,bytes:file.compressed})))];
+    ...[true,false].flatMap(initial=>[undefined,'phone','desktop'].map(tier=>small.filter(file=>required.has(file.hash)===initial&&file.tier===tier).map(file=>({path:file.path,hash:file.hash,bytes:file.compressed}))))];
   let pending:{path:string;hash:string;bytes:number}[]=[],pendingBytes=0;
   const flush=():void=>{
     if(pending.length===0)return;

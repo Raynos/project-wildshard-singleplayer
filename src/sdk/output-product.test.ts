@@ -92,6 +92,21 @@ it('packs medium bodies within 4 MiB without pulling late bytes into required re
  for(const [hash,original]of assets){const body=restored.assets.get(hash);if(body===undefined)throw new Error('Missing restored body');expect(hashImmutableBytes(body)).toBe(hash);expect(body.length).toBe(original.length);}
 });
 
+it('keeps explicit phone, desktop and shared pack bodies separate in each admission phase',()=>{
+ const shard=source(),directory=output(),bodies=Array.from({length:6},(_,i)=>new Uint8Array(131_072).fill(i+1));
+ const assets=new Map(bodies.map(body=>[hashImmutableBytes(body),body])),hashes=[...assets.keys()];
+ shard.files=[...assets].map(([hash,body])=>({hash,kind:'binary' as const,compressed:body.length,decoded:body.length,gpu:0,triangles:0,draws:0,dependencies:[],critical:false}));
+ shard.library=hashes;shard.late=hashes.slice(3).map(hash=>({hash}));shard.budgets.library={resident:786_432,compressed:786_432};
+ const namedFiles=shard.files.map((file,i)=>({...file,kind:'bin' as const,path:`blobs/bin/${file.hash}.bin`,
+  ...(i%3===0?{}:{tier:i%3===1?'phone' as const:'desktop' as const})}));
+ const index=writeOutputProduct(shard,assets,directory,{namedFiles});
+ const packs=(index.packs??[]).filter(pack=>pack.entries.some(entry=>assets.has(entry.hash)));
+ expect(packs).toHaveLength(6);
+ expect(packs.flatMap(pack=>pack.entries.map(entry=>entry.hash)).sort()).toEqual(hashes.sort());
+ for(const pack of packs)expect(pack.entries).toHaveLength(1);
+ expect(validateOutputProduct(directory).shard).toEqual(shard);
+});
+
 it('allows only installed public runtime packages and copied TypeScript targets',()=>{
  for(const name of ['three','three/webgpu','valibot','@wildshard/engine/app/scope','@wildshard/game/plugin/headless','@wildshard/sdk/headlessRuntime'])expect(runtimePackageAllowed(name),name).toBe(true);
  for(const name of ['node:fs','@wildshard/commons/trees','@wildshard/engine/not-public','three/package.json','@wildshard/sdk/bake?raw'])expect(runtimePackageAllowed(name),name).toBe(false);
