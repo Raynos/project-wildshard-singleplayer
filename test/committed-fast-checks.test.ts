@@ -37,9 +37,31 @@ export default {
   put('src/main.ts','export const value=1;\n');
   const commit=()=>{git('add','.');git('commit','-qm','fixture');return git('rev-parse','HEAD');};
   const base=commit();linkNodeModules(repository,root);
-  const run=(phase:string,tip:string,files=['src/main.ts'],from=base,trace=false,native=false)=>spawnSync('node',[resolve('scripts/committed-fast-checks.mjs'),root,from,tip,phase,JSON.stringify(files)],{cwd:repository,encoding:'utf8',timeout:15_000,env:{...process.env,...(trace?{GIT_TRACE:'1'}:{}),...(native?{WS_GIT_NATIVE_ROOT:root}:{})}});
+  const run=(phase:string,tip:string,files=['src/main.ts'],from=base,trace=false,native=false,reportOnly=false)=>spawnSync('node',[resolve('scripts/committed-fast-checks.mjs'),root,from,tip,phase,JSON.stringify(files)],{cwd:repository,encoding:'utf8',timeout:15_000,env:{...process.env,...(trace?{GIT_TRACE:'1'}:{}),...(native?{WS_GIT_NATIVE_ROOT:root}:{}),...(reportOnly?{WS_GIT_NATIVE_REPORT_ONLY:'1'}:{})}});
   return {root,git,put,commit,base,run,close:()=>rmSync(root,{recursive:true,force:true})};
 }
+
+test('native-output handoff keeps ordinary source errors blocking',()=>{
+  const f=fixture();try{
+    f.put('.gitignore','tmp/\nnode_modules/\n*.generated.ts\n');
+    f.put('scripts/generation-jobs.json',JSON.stringify({jobs:[{id:'owned',outputs:['src/value.generated.ts'],buildOutputs:{},buildTimeOutputs:['src/value.generated.ts']}]}));
+    f.put('src/main.ts',"import './value.generated';export const value=1;");
+    const good=f.commit();f.put('src/value.generated.ts','eval("poison");');
+    const handed=f.run('fast-lint',good,undefined,undefined,false,true,true);
+    expect(handed.status,handed.stderr).toBe(0);
+    expect(handed.stdout).toContain('Fast lint passed on 1 exact changed files');
+    expect(handed.stdout).toContain('Gate-deferred: native-outputs');
+    expect(handed.stdout).not.toContain('DEFERRED TO CI');
+    expect(()=>readFileSync(resolve(f.root,'src/value.generated.ts'))).toThrow();
+    f.put('src/main.ts',"import './value.generated';eval('1');");
+    const refused=f.run('fast-lint',f.commit(),undefined,undefined,false,true,true);
+    expect(refused.status,refused.stderr).toBe(1);expect(refused.stderr).toContain('no-eval');
+    f.put('src/main.ts',"import './undeclared';export const value=1;");
+    const missing=f.run('fast-lint',f.commit(),undefined,undefined,false,true,true);
+    expect(missing.stdout).toContain('DEFERRED TO CI');
+    expect(missing.stdout).not.toContain('Gate-deferred: native-outputs');
+  }finally{f.close();}
+});
 
 test('lint refuses exact bad text and openly defers dirty or staged inputs',()=>{
   const f=fixture();try {

@@ -22,6 +22,15 @@ test('native checks use the exact committed mirror and its own index', () => {
   expect(call[2].env.GIT_DIR).toBe('/shared/.git');
   expect(call[2].env.GIT_WORK_TREE).toBe('/clean/tree');
   expect(call[2].env.GIT_INDEX_FILE).toBe('/clean/index');
+  expect(call[2].env.WS_GIT_NATIVE_REPORT_ONLY).toBe('1');
+  expect(f.release).toHaveBeenCalledOnce();
+});
+
+test('prefix checks use the current immutable checker against candidate inputs', () => {
+  const f = fixture();
+  runCommittedCheck('/dirty', 'base', 'tip', 'fast-lint', [], f.ports, '/immutable/tools');
+  expect(f.run.mock.calls[1]?.[1][0]).toBe('/immutable/tools/committed-fast-checks.mjs');
+  expect(f.run.mock.calls[1]?.[2].cwd).toBe('/clean/tree');
   expect(f.release).toHaveBeenCalledOnce();
 });
 

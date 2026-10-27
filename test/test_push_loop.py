@@ -431,6 +431,26 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertNotIn('ci-G675', str(steps))
         self.assertEqual(steps['deleted-paths']['reason'], 'no-deletions')
 
+    def test_native_output_handoff_does_not_accept_source_refusals(self):
+        tip = self.commit('src/good.ts')
+        @contextmanager
+        def prepared(*_):
+            yield self.root / 'scripts'
+        for code in (0, 1):
+            def runner(command, root, deadline, env):
+                if command[-2] == 'fast-lint':
+                    self.assertEqual(env['WS_GIT_CHECKER_DIRECTORY'], str(self.root / 'scripts'))
+                    return code, 'Gate-deferred: native-outputs\n' + ('error: bad source' if code else 'lint passed')
+                return 0, 'passed'
+            with patch.dict(PUSH, fast_tools=prepared), patch.dict(LIVE, run=runner):
+                result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
+            self.assertEqual(result['ok'], code == 0)
+            if code == 0:
+                self.assertEqual(result['deferred'], ['Gate-deferred: native-outputs'])
+                self.assertEqual(result['types'], 'checked-partial')
+            else:
+                self.assertEqual(result['phase'], 'fast-lint')
+
     def test_ci_subset_intake_requires_one_complete_consistent_result(self):
         self.assertIsNotNone(CHECK_SUBSET)
         row = {'name': 'types', 'code': 0, 'timedOut': False, 'output': ''}

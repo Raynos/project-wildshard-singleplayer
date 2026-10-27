@@ -13,8 +13,10 @@ const NATIVE_PORTS = {
  * mirror instead of asking dirty working inputs to match the commit.
  * @param {string} root @param {string} base @param {string} tip
  * @param {string} phase @param {string[]} files
- * @param {import('./push-committed-check.mjs').CommittedCheckPorts} [ports] */
-export function runCommittedCheck(root, base, tip, phase, files, ports = NATIVE_PORTS) {
+ * @param {import('./push-committed-check.mjs').CommittedCheckPorts} [suppliedPorts]
+ * @param {string} [checkerDirectory] */
+export function runCommittedCheck(root, base, tip, phase, files, suppliedPorts, checkerDirectory) {
+  const ports = suppliedPorts ?? NATIVE_PORTS;
   const mirror = ports.open(tip, { repo: root });
   try {
     // These four pure writers run before discovery in ordinary gen. Native
@@ -29,10 +31,12 @@ export function runCommittedCheck(root, base, tip, phase, files, ports = NATIVE_
         GIT_INDEX_FILE: resolve(mirror.dir, '../index') } });
     if (prepare.error !== undefined) throw prepare.error;
     if (prepare.status !== 0) return { status: prepare.status ?? 1, stdout: prepare.stdout ?? '', stderr: prepare.stderr ?? '' };
-    const result = ports.run(process.execPath, [resolve(mirror.dir, 'scripts/committed-fast-checks.mjs'),
+    const result = ports.run(process.execPath, [resolve(checkerDirectory ?? resolve(mirror.dir,'scripts'), 'committed-fast-checks.mjs'),
       mirror.dir, base, mirror.sha, phase, JSON.stringify(files)], {
       cwd: mirror.dir, encoding: 'utf8', maxBuffer: 8 * 1024 * 1024,
-      env: { ...process.env, WS_GIT_NATIVE_ROOT: mirror.dir, GIT_DIR: ports.gitDirectory(root), GIT_WORK_TREE: mirror.dir,
+      // G767/G757: re-enable blocking preparation only after three consecutive
+      // real-batch native-output successes. Root lint and other gates still run.
+      env: { ...process.env, WS_GIT_NATIVE_ROOT: mirror.dir, WS_GIT_NATIVE_REPORT_ONLY: '1', GIT_DIR: ports.gitDirectory(root), GIT_WORK_TREE: mirror.dir,
         GIT_INDEX_FILE: resolve(mirror.dir, '../index') },
     });
     if (result.error !== undefined) throw result.error;
@@ -42,10 +46,11 @@ export function runCommittedCheck(root, base, tip, phase, files, ports = NATIVE_
 
 if (import.meta.main) {
   const [root, base, tip, phase, encoded] = process.argv.slice(2);
+  const checkerDirectory = process.env.WS_GIT_CHECKER_DIRECTORY;
   if (root === undefined || base === undefined || tip === undefined || phase === undefined || encoded === undefined) throw new Error('Expected root base tip phase files');
   /** @type {unknown} */ const files = JSON.parse(encoded);
   if (!Array.isArray(files) || !files.every(file => typeof file === 'string')) throw new Error('Expected exact changed paths');
-  const result = runCommittedCheck(root, base, tip, phase, files);
+  const result = runCommittedCheck(root, base, tip, phase, files, NATIVE_PORTS, checkerDirectory);
   process.stdout.write(result.stdout); process.stderr.write(result.stderr);
   process.exitCode = result.status;
 }

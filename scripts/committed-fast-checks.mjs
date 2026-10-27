@@ -35,6 +35,9 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
       const roots=paths.filter(path=>/\.[cm]?[jt]sx?$/u.test(path)&&view.files.has(path));
       if(phase==='fast-lint') {
         await deriveGitStarterTables(view);
+        const {WS_GIT_NATIVE_REPORT_ONLY:reportOnly,WS_GIT_NATIVE_ROOT:nativeRoot}=process.env;
+        const deferNative=reportOnly==='1'&&nativeRoot===root;
+        const nativePending=new Set();
         const settings=fastCommitLintConfig(readLintConfig(resolve(root,'.oxlintrc.json')));
         settings.jsPlugins=(settings.jsPlugins??[]).map(/** @param {string|{specifier:string}} item */ item=>{
           if(typeof item==='string')return resolve(root,item);
@@ -66,10 +69,20 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
                 target=`src/${packageName[1]}/${entry.slice(2)}`;
               }
               if(target===null)continue;
-              let resolved;
+              let resolved,deferred=false;
               for(const path of [target,`${target}.ts`,`${target}.tsx`,`${target}.mts`,`${target}.mjs`,`${target}.js`,`${target}/index.ts`]){
-                if(view.files.has(path)||view.derived.has(path)||view.admitGenerated(path)||deriveGitDiscovery(view,path)){resolved=path;break;}
+                if(view.files.has(path)||view.derived.has(path)||view.admitGenerated(path)){resolved=path;break;}
+                const provider=view.sourceProviders.get(path);
+                if(deferNative&&provider!==undefined){
+                  for(const output of provider.nativeOutputs)if(!provider.outputs.includes(output)||!output.startsWith('src/')&&!output.startsWith('public/')||output.split('/').includes('..'))throw new Error(`Invalid native source output: ${output}`);
+                  // Never let Rust read an unproved leftover from an older
+                  // mirror. CI regenerates this dependency before full lint.
+                  rmSync(resolve(root,path),{force:true});
+                  nativePending.add(path);deferred=true;break;
+                }
+                if(deriveGitDiscovery(view,path)){resolved=path;break;}
               }
+              if(deferred)continue;
               if(resolved===undefined)missing.add(target);else visit(resolved);
             }
           };visit(selected);return {inputs:[...seen],missing:[...missing],mismatched:[...mismatched]};
@@ -90,6 +103,10 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
           const replaced=[...inputs].filter(path=>!view.matches(path));
           if(replaced.length>0)console.log(`DEFERRED TO CI fast-lint: inputs changed during checking: ${replaced.join(', ')}`);
           else console.log(`Fast lint passed on ${eligible.length} exact changed files`);
+        }
+        if(nativePending.size>0){
+          console.log(`native-outputs report-only: ${nativePending.size} declared generated dependencies require the exact CI producer phase`);
+          console.log('Gate-deferred: native-outputs');
         }
       } else {
         await deriveGitVocabulary(view);

@@ -157,7 +157,7 @@ def check_subset(root, tip, files, deadline):
 
 
 def check_committed(root, base, tip, deadline):
-    names = ('binary-json', 'tool-inputs', 'storage', 'deleted-paths', 'ratchet', 'guards', 'fast-lint',
+    names = ('binary-json', 'tool-inputs', 'storage', 'deleted-paths', 'ratchet', 'guards', 'native-outputs', 'fast-lint',
              'ci-subset')
     steps = LIVE['GateSteps'](names)
     result = {'ok': False, 'phase': 'binary-json', 'files': [], 'output': '', 'types': 'unverified', 'steps': steps.rows}
@@ -196,8 +196,12 @@ def check_committed(root, base, tip, deadline):
                 checker = root / 'scripts/push-committed-check.mjs' if phase == 'fast-lint' else folder / 'committed-fast-checks.mjs'
                 command = ['node', str(checker), str(root), base, tip, phase,
                            json.dumps(removed if phase == 'deleted-paths' else files)]
-                rc, output = steps.run(phase, LIVE['run'], command, root, deadline, env)
+                check_env = dict(env, WS_GIT_CHECKER_DIRECTORY=str(folder)) if phase == 'fast-lint' else env
+                rc, output = steps.run(phase, LIVE['run'], command, root, deadline, check_env)
                 result['output'] += '\n' + output
+                if not rc and phase == 'fast-lint' and 'Gate-deferred: native-outputs' in output:
+                    steps.row('native-outputs').update(status='deferred', reason='G767-report-only')
+                    result.setdefault('deferred', []).append('Gate-deferred: native-outputs')
                 if not rc and 'DEFERRED TO CI' in output:
                     steps.row(phase).update(status='failed', reason='unverified-inputs')
                     # No source check executed for these inputs: never blame
@@ -221,6 +225,8 @@ def check_committed(root, base, tip, deadline):
     except (OSError, subprocess.SubprocessError) as error:
         result.update(phase='tool-inputs', output=result['output'] + '\nExact checker inputs failed: ' + str(error))
         return result
+    if steps.row('native-outputs')['status'] == 'skipped':
+        steps.row('native-outputs').update(status='passed', reason='no-native-dependencies')
     with steps.measure('ci-subset') as row:
         subset = check_subset(root, tip, files, deadline)
         row['status'] = 'budget' if subset.get('budget') else 'passed' if subset['ok'] else 'failed'
@@ -229,7 +235,7 @@ def check_committed(root, base, tip, deadline):
         result.update(phase='ci-subset', files=subset['files'], budget=subset.get('budget', False),
                       unfinished=subset.get('unfinished', []))
         return result
-    result.update(ok=True, phase='passed', types='checked', output=result['output'] + '\nExact committed CI subset passed.')
+    result.update(ok=True, phase='passed', types='checked-partial' if result.get('deferred') else 'checked', output=result['output'] + '\nExact committed CI subset passed.')
     return result
 
 
@@ -373,7 +379,7 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
             # would violate G759. Keep that exact fix prefix as the handoff unit.
             decision = BATCH['batch_disposition']([tip], [], decision['unfinished'])
         if decision['kind'] == 'deferred':
-            result.update(ok=True, types='ci-partial', deferred=decision['tags'], batchCommits=commits)
+            result.update(ok=True, types='ci-partial', deferred=list(dict.fromkeys(result.get('deferred', []) + decision['tags'])), batchCommits=commits)
             result['output'] += '\n' + '\n'.join(decision['tags'])
 
     candidate = tip
