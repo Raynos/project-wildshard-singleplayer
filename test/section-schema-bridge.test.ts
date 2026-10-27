@@ -4,10 +4,10 @@ import {cwd} from 'node:process';
 import {expect,it} from 'vitest';
 import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Small disposable schema fixtures, never repository copies.
-import {mkdirSync,mkdtempSync,readFileSync,writeFileSync,rmSync} from 'node:fs';
+import {mkdirSync,mkdtempSync,readFileSync,writeFileSync,rmSync,existsSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine the fixture below the repository's ignored tmp/.
 import {join} from 'node:path';
-import {sectionSchemaTables,writeSectionSchemaBridge} from '../scripts/bake-section-schemas.mjs';
+import {sectionSchemaTables,writeSectionSchemaTables} from '../scripts/bake-section-schemas.mjs';
 import {sectionType} from '../scripts/section-types.mjs';
 import {SECTIONS as runtime} from '../src/shards/pine-hollow/generators/sections';
 import {WIRE_SCHEMAS} from '../src/shards/pine-hollow/generators/sectionSchemas';
@@ -21,23 +21,23 @@ function fixture():{root:string;source:string} {
   return {root,source:join(root,'src/shards/sample/generators/sections.ts')};
 }
 
-it('derives deterministic validator and disk schema bytes from the same registry',async()=>{
+it('derives deterministic plain schema tables from the same registry',async()=>{
   const {root,source}=fixture();
   const registry="import * as v from 'valibot'; export const SECTIONS={'custom/probe':v.strictObject({n:v.pipe(v.number(),v.minValue(1))})};";
   try {
     writeFileSync(source,registry);
-    const first=await writeSectionSchemaBridge(root,'sample'),bytes=readFileSync(first.path,'utf8');
-    expect(first.schemas).toBe(1);expect(bytes).toContain(registry);expect(bytes).toContain('WIRE_SCHEMAS');
-    const declarations=readFileSync(join(root,'src/shards/sample/runtime/productSections.generated.d.ts'),'utf8');
+    const first=await writeSectionSchemaTables(root,'sample'),bytes=readFileSync(first.path,'utf8');
+    expect(first.schemas).toBe(1);expect(bytes).not.toContain(registry);expect(bytes).toContain('WIRE_SCHEMAS');
+    const declarations=readFileSync(join(root,'src/shards/sample/runtime/productSections.d.ts'),'utf8');
     expect(declarations).toContain('"custom/probe": { "n": number; };');
     expect(declarations).not.toContain('valibot');
-    expect(readFileSync((await writeSectionSchemaBridge(root,'sample')).path,'utf8')).toBe(bytes);
-    expect((await sectionSchemaTables(root,'sample')).tables['src/shards/sample/generators/sectionSchemas.generated.ts']).toBe(bytes);
-    await writeSectionSchemaBridge(root,'sample',{check:true});
+    expect(readFileSync((await writeSectionSchemaTables(root,'sample')).path,'utf8')).toBe(bytes);
+    expect((await sectionSchemaTables(root,'sample')).tables['src/shards/sample/generators/sectionSchemas.ts']).toBe(bytes);
+    await writeSectionSchemaTables(root,'sample',{check:true});
     writeFileSync(source,registry.replace('minValue(1)','minValue(2)'));
-    await expect(writeSectionSchemaBridge(root,'sample',{check:true})).rejects.toThrow('Stale section schema tables');
+    await expect(writeSectionSchemaTables(root,'sample',{check:true})).rejects.toThrow('Stale section schema tables');
     expect(readFileSync(first.path,'utf8')).toBe(bytes);
-    const second=await writeSectionSchemaBridge(root,'sample');
+    const second=await writeSectionSchemaTables(root,'sample');
     expect(second.sourceHash).not.toBe(first.sourceHash);
     expect(readFileSync(second.path,'utf8')).toContain('"minimum":2');
   }finally{rmSync(root,{recursive:true,force:true});}
@@ -52,21 +52,21 @@ it('preserves tuple, optional and union shapes and refuses unresolved declaratio
   expect(()=>sectionType({pattern:'unknown'})).toThrow('Unsupported');
 });
 
-it('validates imported JSON and emits standalone tuple types without casts',async()=>{
+it('validates authored JSON without emitting companion declaration shims',async()=>{
   const {root,source}=fixture();
   try {
     mkdirSync(join(root,'src/shards/sample/data'),{recursive:true});
     const data=join(root,'src/shards/sample/data/points.json');
     writeFileSync(data,'{"at":[1,2]}');
     writeFileSync(source,"import * as v from 'valibot'; export const SECTIONS={}; export const FILE_SCHEMAS={'data/points.json':v.strictObject({at:v.tuple([v.number(),v.number()])})};");
-    await writeSectionSchemaBridge(root,'sample');
-    expect(readFileSync(data.replace('.json','.d.json.ts'),'utf8')).toContain('"at": [number, number]');
+    await writeSectionSchemaTables(root,'sample');
+    expect(existsSync(data.replace('.json','.d.json.ts'))).toBe(false);
     writeFileSync(data,'{"at":[1]}');
-    await expect(writeSectionSchemaBridge(root,'sample')).rejects.toThrow();
+    await expect(writeSectionSchemaTables(root,'sample')).rejects.toThrow();
     writeFileSync(source,"import * as v from 'valibot'; export const SECTIONS={}; export const FILE_SCHEMAS={'../outside.json':v.number()};");
-    await expect(writeSectionSchemaBridge(root,'sample')).rejects.toThrow('Invalid typed JSON');
+    await expect(writeSectionSchemaTables(root,'sample')).rejects.toThrow('Invalid typed JSON');
     writeFileSync(source,"export const SECTIONS={}; export const FILE_SCHEMAS=1;");
-    await expect(writeSectionSchemaBridge(root,'sample')).rejects.toThrow('FILE_SCHEMAS object');
+    await expect(writeSectionSchemaTables(root,'sample')).rejects.toThrow('FILE_SCHEMAS object');
   }finally{rmSync(root,{recursive:true,force:true});}
 });
 
@@ -74,9 +74,9 @@ it('refuses runtime dependencies and unknown custom predicates instead of droppi
   const {root,source}=fixture();
   try {
     writeFileSync(source,"import value from './index'; export const SECTIONS=value;");
-    await expect(writeSectionSchemaBridge(root,'sample')).rejects.toThrow('public format schemas');
+    await expect(writeSectionSchemaTables(root,'sample')).rejects.toThrow('public format schemas');
     writeFileSync(source,"import * as v from 'valibot'; export const SECTIONS={'custom/probe':v.pipe(v.number(),v.check(n=>n>0))};");
-    await expect(writeSectionSchemaBridge(root,'sample')).rejects.toThrow();
+    await expect(writeSectionSchemaTables(root,'sample')).rejects.toThrow();
   }finally{rmSync(root,{recursive:true,force:true});}
 });
 

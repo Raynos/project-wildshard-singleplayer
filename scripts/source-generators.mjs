@@ -23,7 +23,7 @@ const starter = (id, script, input, output, source) => ({
 /** The plain schema producer computes all tables without publishing an intermediate module.
  * @param {string} root @param {string} slug @returns {Readonly<Record<string,string>>} */
 function schemaTables(root,slug) {
-  const value=JSON.parse(execFileSync(process.execPath,['--import','./scripts/shard-platform-format.mjs','scripts/bake-section-schemas.mjs',slug,'--plain','--print'],{cwd:root,encoding:'utf8',maxBuffer:4_000_000}));
+  const value=JSON.parse(execFileSync(process.execPath,['--import','./scripts/shard-platform-format.mjs','scripts/bake-section-schemas.mjs',slug,'--print'],{cwd:root,encoding:'utf8',maxBuffer:4_000_000}));
   if(typeof value!=='object'||value===null||Array.isArray(value))throw new Error('Section schema producer must return tables');
   /** @type {Record<string,string>} */
   const tables={};
