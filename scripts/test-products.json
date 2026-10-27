@@ -1,4 +1,5 @@
 {
+  "test/driftwood-output.test.ts": ["driftwood-isle"],
   "test/driftwood-mover-entry.test.ts": ["driftwood-isle"],
   "test/driftwood-scene.test.ts": ["driftwood-isle"],
   "test/driftwood-plan-rows.test.ts": ["driftwood-isle"],
