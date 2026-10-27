@@ -97,10 +97,13 @@ test('original input refusal surfaces after successful looks without drawing a l
 test.each(['retire', 'reader', 'declaration'] as const)('%s during input overlap refuses before decode or publication', async mode => {
   const f = fixture();
   try {
-    const pending = installClientWaterSurfaces(f.ctx, f.row), refused = expect(pending).rejects.toThrow(mode === 'declaration' ? 'input declaration changed' : 'owner left or changed');
+    // The defining parser freezes rows. Only this hostile mutation control
+    // needs an independent mutable copy; assert that the mutation really took.
+    const row = mode === 'declaration' ? structuredClone(f.row) : f.row;
+    const pending = installClientWaterSurfaces(f.ctx, row), refused = expect(pending).rejects.toThrow(mode === 'declaration' ? 'input declaration changed' : 'owner left or changed');
     if (mode === 'retire') f.scope.dispose();
     else if (mode === 'reader') Reflect.set(f.product, 'file', () => Promise.resolve(new Uint8Array([9])));
-    else { const first = f.row.rows[0]; if (first === undefined) throw new Error('Missing first row'); Reflect.set(first, 'geometry', 'changed.glb'); }
+    else { const first = row.rows[0]; if (first === undefined) throw new Error('Missing first row'); expect(Reflect.set(first, 'geometry', 'changed.glb')).toBe(true); }
     f.first.resolve(new Uint8Array([1])); f.ready.resolve(f.looks); await refused;
     expect(f.loads.every(load => load.mock.calls.length === 0)).toBe(true);
     expect(f.root.children).toHaveLength(0); expect(f.system).not.toHaveBeenCalled();
