@@ -3064,7 +3064,6 @@
         "scripts/no-binary-json.mjs"
       ],
       "catalogueDependencies": [
-        "driftwood-npc-scenes"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/nativeSpecimens.generated.json"
@@ -5296,7 +5295,6 @@
       ],
       "platform": "portable",
       "catalogueDependencies": [
-        "driftwood-island-dressing",
         "driftwood-foliage-scenes",
         "driftwood-pier-scenes",
         "driftwood-native-specimens"
