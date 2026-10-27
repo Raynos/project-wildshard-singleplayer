@@ -20,6 +20,8 @@
 // whatever the path), never between a glTF's textures and the .gltf that follows them (Safari reads those textures
 // through <img>: they must land first). A resized file can move at most the cut after it; the next hash cut re-aligns.
 // Pine Hollow's 18 MB phone boot is ~8 parts; the requests row (bench.budget.json) has the room.
+// KTX2 runs instead use bounded directory/slot cohorts (boot-pack-parts.mjs): tiled entry only asks for a
+// demanded texture set, so mixing an unrelated set into its part would defeat the demand-only pack reader.
 //
 // glTF textures go before their .gltf: Safari's GLTFLoader loads textures through <img>, which the pack's fetch
 // interception cannot see — src/engine/boot/pack.ts hands those loaders a blob: URL instead, which only works when the
@@ -33,6 +35,7 @@ import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { assetIndex, assetVersionRows } from './app-build/gen.ts';
 import { parseBootPublication, publishedBootTableSources, publishBootPublication, readBootPublication } from './boot-publication.mjs';
+import { bootPackParts } from './boot-pack-parts.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const PUBLIC = resolve(ROOT, 'public');
@@ -72,24 +75,6 @@ function packOrder(paths) {
   return out;
 }
 
-const PART_MIN = 1.5 * (1 << 20), PART_MAX = 4 << 20;
-const pathHash = (p) => createHash('sha256').update(p).digest()[0];
-
-/** the boot's files, in boot order, cut into parts by the path rule above */
-function partsOf(paths) {
-  const parts = [];
-  let cur = [], bytes = 0;
-  paths.forEach((p, i) => {
-    cur.push(p);
-    bytes += readFileSync(resolve(PUBLIC, `.${p}`)).length;
-    const next = paths[i + 1];
-    const texture = /\/textures\/[^/]+$/.test(p);
-    const cut = next === undefined || (!texture && (bytes >= PART_MAX || (bytes >= PART_MIN && pathHash(p) % 4 === 0)));
-    if (cut) { parts.push(cur); cur = []; bytes = 0; }
-  });
-  return parts;
-}
-
 if (!CHECK) mkdirSync(PACK_DIR, { recursive: true });
 const packs = {};
 const keep = new Set();
@@ -101,7 +86,7 @@ for (const def of PLAYABLE_SHARDS) {
     const paths = packOrder(bootFetches(def, files));
     if (paths.length < 2) continue;
     for (const p of paths) if (!existsSync(resolve(PUBLIC, `.${p}`))) throw new Error(`bake-packs: ${def.slug} boots ${p} but public has no such file`);
-    const parts = partsOf(paths).map((group) => {
+    const parts = bootPackParts(paths, path => readFileSync(resolve(PUBLIC, `.${path}`)).length).map((group) => {
       const bodies = group.map((p) => readFileSync(resolve(PUBLIC, `.${p}`)));
       const blob = Buffer.concat(bodies);
       const name = `${def.slug}.${tierName}-${createHash('sha256').update(blob).digest('hex').slice(0, 8)}.bin`;
