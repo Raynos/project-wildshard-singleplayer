@@ -14,7 +14,7 @@ from urllib.parse import unquote
 
 ANSI = re.compile(r'\x1b\[[0-9;]*m')
 ROOT = r'(?:src|scripts|test|admin|api|drafts|lint|vite)/'
-EXTENSION = r'\.(?:json|[cm]?[jt]sx?|py|sh|mjs)'
+EXTENSION = r'\.(?:json|[cm]?[jt]sx?|py|sh|mjs|css)'
 FILE = ROOT+r'[^\s():\x1b,=]+?'+EXTENSION+r'\b'
 QUOTED_FILE = r'[\'\"]('+ROOT+r'[^\'\"\r\n]+?'+EXTENSION+r')[\'\"]'
 ANNOTATION = re.compile(r'::error(?: ([^\r\n]*?))?::')

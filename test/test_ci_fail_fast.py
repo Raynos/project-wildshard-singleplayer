@@ -20,6 +20,21 @@ class FailFastTests(unittest.TestCase):
         self.assertEqual(API['failure_files']('src/format/row.ts(2,4): error TS2322: bad'),['src/format/row.ts'])
         self.assertEqual(API['failure_files']('unknown command failed'),[])
 
+    def test_stylesheet_errors_remain_attributable_without_nonblocking_warnings(self):
+        output='warn: src/engine/ui/styles/perf.css:4: unowned class\nerror: src/engine/ui/styles/menu.css:8: wrong owner'
+        self.assertEqual(API['failure_files'](output),['src/engine/ui/styles/menu.css'])
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(API['run']([sys.executable,'-c','print('+repr(output)+');raise SystemExit(1)'],record=False),1)
+        self.assertIn('::error file=src/engine/ui/styles/menu.css',out.getvalue())
+        self.assertNotIn('::error file=src/engine/ui/styles/perf.css',out.getvalue())
+
+    def test_existing_source_guards_use_the_same_reporter(self):
+        source=Path('.github/workflows/deploy.yml').read_text()
+        for command,count in [('check-css.mjs',1),('no-binary-json.mjs --all',2),('check-closed-components.mjs',1)]:
+            with self.subTest(command=command):
+                self.assertEqual(source.count('run: python3 scripts/ci-fail-fast.py -- node scripts/'+command+'\n'),count)
+                self.assertNotIn('run: node scripts/'+command+'\n',source)
+
     def test_annotation_properties_are_not_part_of_the_file(self):
         output='::error file=test/script-v2-strip.test.ts,title=test/script-v2-strip.test.ts::Error: missing input'
         self.assertEqual(API['failure_files'](output),['test/script-v2-strip.test.ts'])

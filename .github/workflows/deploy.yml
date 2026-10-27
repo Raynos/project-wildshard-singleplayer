@@ -158,7 +158,7 @@ jobs:
 
       - name: CSS check
         if: steps.live.outputs.skip != 'true'
-        run: node scripts/check-css.mjs
+        run: python3 scripts/ci-fail-fast.py -- node scripts/check-css.mjs
 
       # A CI-green release pin skips the steps that used to run `pnpm gen` first, and the generated sources are out of
       # git (SF74 W13), so generate them here (~1 s); 21:25 / 21:45 UTC 2026-10-09 failed on portShares.generated.
@@ -434,7 +434,7 @@ jobs:
       - run: python3 scripts/ci-fail-fast.py -- node scripts/gen.mjs --inputs-only
       - name: Verify committed source tables after generation
         run: python3 scripts/ci-fail-fast.py -- node scripts/committed-source-tables.mjs --check --after-publication
-      - run: node scripts/no-binary-json.mjs --all
+      - run: python3 scripts/ci-fail-fast.py -- node scripts/no-binary-json.mjs --all
       - name: Pack exact-run generated inputs
         run: |
           node scripts/ci-product-cache.mjs
@@ -509,9 +509,9 @@ jobs:
           restore-keys: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-
       - run: python3 scripts/ci-fail-fast.py -- node scripts/gen.mjs --inputs-only
       - run: python3 scripts/ci-fail-fast.py -- node scripts/build-shardfiles.mjs --reuse
-      - run: node scripts/no-binary-json.mjs --all
+      - run: python3 scripts/ci-fail-fast.py -- node scripts/no-binary-json.mjs --all
       - name: Enforce closed component source and host locks
-        run: node scripts/check-closed-components.mjs
+        run: python3 scripts/ci-fail-fast.py -- node scripts/check-closed-components.mjs
       # A runner is isolated: save current reusable products rather than six
       # historical payload generations. Keep every input receipt for validation.
       - run: node scripts/ci-product-cache.mjs
