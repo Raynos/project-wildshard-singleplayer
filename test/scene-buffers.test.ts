@@ -23,7 +23,9 @@ import { emitNamedBlobs, nameBlob } from '../src/sdk/blobs';
 import { parseWorldScenes } from '../src/format/worldScenes';
 import { parseWorldScene } from '../src/format/clientChannels';
 import { bindWorldSceneParts, createWorldScene } from '../src/game/plugin/scene';
-import { SKY_SCENE_BLOBS, SKY_WORLD_SCENES } from '../src/shards/far-reach/generators/worldScenes';
+import { originalSkyScenes } from './fixtures/sky-scene-source';
+
+const { blobs: SKY_SCENE_BLOBS, scenes: SKY_WORLD_SCENES } = await originalSkyScenes();
 
 const plumbing = (blades: number) => ({ namespace: 'far', input: [], debug: [], knobs: [{ id: 'far.meadowBlades' as const, phone: blades, desktop: blades }] });
 const raw = (attribute: BufferAttribute | InterleavedBufferAttribute): Uint8Array => {
