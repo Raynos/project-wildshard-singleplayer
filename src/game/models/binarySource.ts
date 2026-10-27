@@ -40,11 +40,10 @@ export async function prepareBinarySources(product:BinaryFileReader,input:unknow
         void work.catch(()=>undefined);pending.set(at,work);
       }
       const work=pending.get(index);if(work===undefined)throw new Error('Missing binary source read');
-      files.set(file,await work);pending.delete(index);
+      const bytes=await work;live();files.set(file,bytes);pending.delete(index);
     }
   } finally {await Promise.allSettled(pending.values());}
-
-  return files;
+  live();return files;
 }
 /** Borrow one prepared raw file; inline content refuses before storage access. */
 export function binarySourceBytes(input:BinarySourceRows,files:ReadonlyMap<string,Uint8Array>=new Map()):Uint8Array {

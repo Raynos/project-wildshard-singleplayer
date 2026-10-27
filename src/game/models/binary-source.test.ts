@@ -64,3 +64,13 @@ test('binary read-ahead retains the first authored failure and starts no tail af
   const unread=vi.fn(()=>Promise.resolve(new Uint8Array([0])));
   await expect(prepareBinarySources({file:unread,hasFile:name=>name!=='field-8'},rows)).rejects.toThrow('Missing binary source field-8');expect(unread).not.toHaveBeenCalled();
 });
+
+test('binary completion rechecks its owner after the final drain microtask',async()=>{
+  for(const retire of [true,false]){
+    const scope=new Scope('binary.completion');let finish:(bytes:Uint8Array)=>void=()=>undefined;
+    const wire=new Promise<Uint8Array>(resolve=>{finish=resolve;}),product={file:()=>wire};
+    const pending=prepareBinarySources(product,[{source:{file:'shape'},bytes:1}],scope);
+    void wire.then(()=>{queueMicrotask(()=>{if(retire)scope.dispose();else product.file=()=>Promise.resolve(new Uint8Array([2]));});return undefined;});
+    finish(new Uint8Array([1]));await expect(pending).rejects.toThrow(retire?'retired':'changed');scope.dispose();
+  }
+});

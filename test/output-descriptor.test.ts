@@ -916,3 +916,25 @@ test('partial pack responses retain exact range, size and independent member gua
     expect(values[0]?.status).toBe('rejected');expect(values[1]?.status).toBe(mode==='member'?'fulfilled':'rejected');expect(assets.retained.size).toBe(0);
   }
 });
+
+test('offline partial native demand never invokes the range capability',async()=>{
+  const f=await rangeDemandFixture(),fetchRange=vi.fn(()=>Promise.reject(new Error('No offline range'))),fetch=vi.fn(()=>Promise.reject(new Error('No offline fetch')));
+  const assets=new ClientAssets(f.source,new Map(),{...options(f.wires),offline:true,fetchRange,fetch,cache:{
+    ...cacheStore().cache,verifiedAsset:ref=>Promise.resolve(ref===f.first.hash?new Uint8Array([1,2,3]):null),
+  }});
+  expect(await assets.read(f.first.hash)).toEqual(new Uint8Array([1,2,3]));
+  await expect(assets.read(f.second.hash)).rejects.toThrow('Missing cached resident tile');
+  expect(fetchRange).not.toHaveBeenCalled();expect(fetch).not.toHaveBeenCalled();expect(assets.retained.size).toBe(0);
+});
+
+test('an unsupported range refuses without a whole-pack fallback and a repaired wave retries',async()=>{
+  const f=await rangeDemandFixture(),fetch=vi.fn(()=>Promise.reject(new Error('Unexpected fallback')));let supported=false,reads=0;
+  const assets=new ClientAssets(f.source,new Map(),{...options(f.wires),fetch,fetchRange:()=>{
+    reads++;return Promise.resolve(new Response(f.wire.slice(0,6),{status:supported?206:200,headers:{'content-range':'bytes 0-5/9'}}));
+  }});
+  const refused=await Promise.allSettled([assets.read(f.first.hash),assets.read(f.second.hash)]);
+  for(const value of refused){expect(value.status).toBe('rejected');if(value.status==='rejected')expect(String(value.reason)).toContain('Resident pack range response differs');}
+  expect(reads).toBe(1);expect(fetch).not.toHaveBeenCalled();supported=true;
+  expect(await Promise.all([assets.read(f.first.hash),assets.read(f.second.hash)])).toEqual([new Uint8Array([1,2,3]),new Uint8Array([4,5,6])]);
+  expect(reads).toBe(2);expect(assets.retained.size).toBe(0);
+});
