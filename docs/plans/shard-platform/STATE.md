@@ -23,6 +23,11 @@ crossings** still over 5 / 8 s (Nalati 27-32 cold / 20 warm; Sky 17.8 / 12.9; pa
 sp-o1 parked draws, sp-x8 scheduling (held frames draw only the loading screen), sp-x10 Sky world, sp-x1 DW, sp-o2
 Pine. Open misses: H1 (sp-o4), S1 (sp-o3), H4 6.7 s vs 1.5 (sp-x9), I2 before-control (sp-x2), I11 2.5 vs 1 MB
 (sp-x6). Counter 156 / 209 = 75 %.
+**Reply to the 09:05 check-in:** (1) done ~09:10: sp-ci-deploy stops self-fixing and fans the reds out as one
+table (failing test -> first bad SHA -> owner) to each lane; I chase anything not fixed within 30 min. (2) Not
+archived: js-payload still has J6.1 queued (G730), and remaster has RM11.1-11.2 in flight plus RM13 (Jake's play,
+G779); they archive when those close. (3) The G801 cron is live (e7a1a5d2, every 5 min). (4) G735 holds 5 Opus
+until Jake answers.
 **Blocked on Jake:** road B pilot play; boards as they land; LD5-LD8 / A1 / A2 / M2 / RM13 (counted, G779).
 
 **Lanes (G735 overrides the G605 step-down; Claude active 61 %, Codex 71 %):** 5 Opus (sp-o1..o5) + 6 Codex (sp-x1,
