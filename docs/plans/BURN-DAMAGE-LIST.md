@@ -453,3 +453,5 @@ Completed red [40529017541](https://github.com/Raynos/project-wildshard-singlepl
 | Q2 (non-blocking) | test/nalati-state-intake.test.ts — collection root refusal | f9b729690e | sp-x6 | Already source-fixed78cdc07bea after this SHA; all native/schema/state assertions and expiry retained; no false page-roster proof credit |
 
 G754-ground-merge-types: fresh ground-merge.test.ts114 TS2345 from **7370950529** (owner **sp-o2**, coordinator-confirmed) is source-fixed **dac57a84b0** by narrowing the original position attribute before the unchanged Box3/sphere oracle. Exact x8 refusal retained tmp/sp-x8-g782-cuts/optional-view-types.log; no peer source edit or bounds waiver by CI lane.
+
+G754-source-input-proof: OPEN — CI40542474407@0f81b58764 refuses test/source-input-proof.test.ts before its original snapshot assertions: fixture29 passes directory source to regular-file bakeInputHashes, yielding Invalid bake input source. First bad5ae4e23d87 (fixture introduction); owner sp-x1, routed with exact memo.paths(source) caller diagnosis; retain regular-file, broad-root additions and crossed/escaping/mutation refusals.
