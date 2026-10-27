@@ -1,8 +1,7 @@
 import * as THREE from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import { Rng } from '@wildshard/engine/core/rng';
-import type { BoneDef, SpeciesDef, VariantDef } from '@wildshard/engine/entities/species/registry';
-import { BOAR_LOOK } from '@wildshard/game/systems/species/view/boar';
+import { Rng } from '@wildshard/sdk/random';
+import { bakeCommonBody, type AnimalSpecies, type BoneDef, type VariantDef } from '@wildshard/sdk/bake/species';
 import { PINE_HULLS } from './creatureHulls';
 import { PINE_LOFTS } from './creatureLofts';
 
@@ -21,7 +20,14 @@ const THRALLS: readonly (readonly [string, string, Readonly<Record<string, numbe
 ];
 
 /** the procedural species whose eye spots a thrall's glass eyes go on */
-const BUILDS: Readonly<Record<string, Pick<SpeciesDef, 'build'>>> = { boar: BOAR_LOOK, elk: { build: PINE_LOFTS.elk } };
+const BUILDS: Readonly<Record<string, { readonly build: (variant: VariantDef, rng: Rng) => AnimalSpecies }>> = {
+  boar: { build(variant, rng) {
+    const result = bakeCommonBody('boar', variant, rng.snapshot());
+    rng.restore(result.random);
+    return result.body;
+  } },
+  elk: { build: PINE_LOFTS.elk },
+};
 
 /** the page's model seed (AnimalFactory `hashSeed`) */
 function hashSeed(s: string): number { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.codePointAt(i) ?? 0; h = Math.imul(h, 16777619); } return h >>> 0; }
@@ -32,7 +38,7 @@ interface EyeSpot { centre: THREE.Vector3; radius: number }
 function eyeSpots(kind: string, variant: string, traits: Readonly<Record<string, number>>): EyeSpot[] {
   const builder = BUILDS[kind];
   if (builder === undefined) throw new Error(`thrall extras: no species build for ${kind}`);
-  const v: VariantDef = { id: variant, label: variant, weight: 1, rarity: 'rare', scale: [1, 1], hp: 1, traits: { ...traits } };
+  const v: VariantDef & { hp: number } = { id: variant, label: variant, weight: 1, rarity: 'rare', scale: [1, 1], hp: 1, traits: { ...traits } };
   const sp = builder.build(v, new Rng(hashSeed(`${kind}:${variant}`)));
   const eyes: EyeSpot[] = [];
   for (const g of sp.eyeParts) { g.computeBoundingSphere(); const bs = g.boundingSphere; if (bs !== null) eyes.push({ centre: bs.center.clone(), radius: bs.radius }); }
