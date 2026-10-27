@@ -236,6 +236,20 @@ function paperLantern(w, x, y, z, r, seed) {
 /** A floating sky lantern: a round paper lantern (0.4 m belly, 0.9 m tall) the glow graph bobs and drifts (+-2 m), lit
  *  orange. */
 function skyLantern(w, x, y, z) { placeMovingLight(w, 'sky-lantern', [x, y, z]); }
+/** RM10.2: steam over a food cart at (x, y, z): three small octahedra in the additive Pool draw, marked by a vertex
+ *  colour with blue and no red (no pool light has that) and seeded by green, so the pool graph lifts each 2.4 m on its own
+ *  ~3 s loop, drifting and fading in and out (24 triangles). */
+function steam(w, x, y, z) {
+  for (let k = 0; k < 3; k++) {
+    const c = [0, nextSeed(), 1], r = 0.28, at = [x + (k - 1) * 0.15, y, z];
+    const tip = [[0, r, 0], [0, -r, 0]], ring = [[r, 0, 0], [0, 0, r], [-r, 0, 0], [0, 0, -r]];
+    const v = d => [at[0] + d[0], at[1] + d[1], at[2] + d[2]];
+    for (let i = 0; i < 4; i++) {
+      const a = ring[i], b = ring[(i + 1) % 4];
+      w.tri('Pool', v(tip[0]), v(b), v(a), c); w.tri('Pool', v(tip[1]), v(a), v(b), c);
+    }
+  }
+}
 /** One moving light: consumes the next seed and writes its marked shape (a firefly's tetrahedron, a sky lantern's paper
  *  body). */
 function placeMovingLight(w, kind, position) {
@@ -304,6 +318,8 @@ function house(w, p, variant) {
   // NM12: a lawn in the court and a young tree on it (the mockup's green courts; clear of the mouth block and lanterns): a
   // trunk and one cone, half a full tree's triangles (the T8 tile caps are shrink-only)
   w.floor('Kit', -9, -16, 9, 2, 0.05, p.lawn);
+  // RM10.3: fireflies over the court's lawn
+  firefly(w, -4, 1.3, -10); firefly(w, 5, 1.7, -4);
   w.sides('Kit', [5.75, 0, -11.25], [6.25, 2, -10.75], p.trunk);
   frustum(w, 'Kit', 6, -11, 6, 2, 0, 2.6, 5.2, p.foliage, 1.2);
   w.solid([5.7, 0, -11.3], [6.3, 2, -10.7]);
@@ -408,6 +424,7 @@ function stalls(w, p) {
     w.lanternEmitter?.([x, 1.8, z], [...p.lantern]);
     w.box('Glow', [x - 0.25, 1.5, z - 0.25], [x + 0.25, 2.1, z + 0.25], p.lantern, p.lantern);
     pool(w, x, z, 4, p.pool);
+    steam(w, x, 2.6, z);
     w.solid([x - 1.4, 0, z - 0.9], [x + 1.4, 1.3, z + 0.9]);
   }
 }
@@ -438,6 +455,7 @@ function modelStalls(w, p) {
     w.placeModel('stalls', 2, x, z, { yaw: i % 2 === 0 ? Math.PI / 2 : -Math.PI / 2 });
     w.solid([x - 0.8, 0, z - 1.3], [x + 0.8, 1.1, z + 1.3]);
     pool(w, x, z, 4, p.pool);
+    steam(w, x, 2.6, z);
   }
 }
 /** The water region of a canal tile at rotation 0, as rectangles (x0, z0, x1, z1); `C` runs north-south, `L` south to east. */
@@ -452,6 +470,8 @@ function canal(w, p, type) {
   const { half, rim, rimHeight, depth } = CANAL;
   // the water and its walls, each walked with the water on its left so it faces the water
   for (const [x0, z0, x1, z1] of rects) w.floor('Water', x0, z0, x1, z1, -depth, p.water);
+  // RM10.3: fireflies over the banks (dry in both the straight and the corner)
+  firefly(w, half + 4, 1.4, -20); firefly(w, -half - 4, 1.8, 12);
   const walls = type === 'C'
     ? [[-half, HALF, -half, -HALF], [half, -HALF, half, HALF]]
     : [[-half, half, -half, -HALF], [HALF, half, -half, half], [half, -HALF, half, -half], [half, -half, HALF, -half]];

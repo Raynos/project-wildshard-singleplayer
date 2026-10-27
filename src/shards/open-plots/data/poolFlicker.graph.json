@@ -21,6 +21,14 @@
    "value": 0.23,
    "min": 0.01,
    "max": 4
+  },
+  "steam": {
+   "type": "colour",
+   "value": [
+    0.34,
+    0.32,
+    0.3
+   ]
   }
  },
  "nodes": {
@@ -151,13 +159,6 @@
     "intensity"
    ]
   },
-  "out": {
-   "op": "mul",
-   "in": [
-    "lit",
-    "flick"
-   ]
-  },
   "peak": {
    "op": "param",
    "param": "peak"
@@ -214,9 +215,239 @@
     "vc",
     "shape"
    ]
+  },
+  "poolOut": {
+   "op": "mul",
+   "in": [
+    "lit",
+    "flick"
+   ]
+  },
+  "vr": {
+   "op": "swizzle",
+   "in": [
+    "vc"
+   ],
+   "mask": "x"
+  },
+  "vg": {
+   "op": "swizzle",
+   "in": [
+    "vc"
+   ],
+   "mask": "y"
+  },
+  "vb": {
+   "op": "swizzle",
+   "in": [
+    "vc"
+   ],
+   "mask": "z"
+  },
+  "sd0": {
+   "op": "sub",
+   "in": [
+    "vb",
+    "vr"
+   ]
+  },
+  "sd1": {
+   "op": "sub",
+   "in": [
+    "sd0",
+    0.5
+   ]
+  },
+  "sd2": {
+   "op": "mul",
+   "in": [
+    "sd1",
+    1000
+   ]
+  },
+  "steamOn": {
+   "op": "saturate",
+   "in": [
+    "sd2"
+   ]
+  },
+  "st1": {
+   "op": "mul",
+   "in": [
+    "t",
+    0.35
+   ]
+  },
+  "st2": {
+   "op": "mul",
+   "in": [
+    "vg",
+    5.3
+   ]
+  },
+  "st3": {
+   "op": "add",
+   "in": [
+    "st1",
+    "st2"
+   ]
+  },
+  "rise": {
+   "op": "fract",
+   "in": [
+    "st3"
+   ]
+  },
+  "sx0": {
+   "op": "mul",
+   "in": [
+    "t",
+    0.9
+   ]
+  },
+  "sx1": {
+   "op": "mul",
+   "in": [
+    "vg",
+    13
+   ]
+  },
+  "sx2": {
+   "op": "add",
+   "in": [
+    "sx0",
+    "sx1"
+   ]
+  },
+  "sx3": {
+   "op": "sin",
+   "in": [
+    "sx2"
+   ]
+  },
+  "sx4": {
+   "op": "mul",
+   "in": [
+    "sx3",
+    0.3
+   ]
+  },
+  "sx": {
+   "op": "mul",
+   "in": [
+    "sx4",
+    "rise"
+   ]
+  },
+  "sz0": {
+   "op": "mul",
+   "in": [
+    "t",
+    0.8
+   ]
+  },
+  "sz1": {
+   "op": "mul",
+   "in": [
+    "vg",
+    7
+   ]
+  },
+  "sz2": {
+   "op": "add",
+   "in": [
+    "sz0",
+    "sz1"
+   ]
+  },
+  "sz3": {
+   "op": "cos",
+   "in": [
+    "sz2"
+   ]
+  },
+  "sz4": {
+   "op": "mul",
+   "in": [
+    "sz3",
+    0.3
+   ]
+  },
+  "sz": {
+   "op": "mul",
+   "in": [
+    "sz4",
+    "rise"
+   ]
+  },
+  "sy": {
+   "op": "mul",
+   "in": [
+    "rise",
+    2.4
+   ]
+  },
+  "soff": {
+   "op": "combine",
+   "in": [
+    "sx",
+    "sy",
+    "sz"
+   ]
+  },
+  "offset": {
+   "op": "mul",
+   "in": [
+    "soff",
+    "steamOn"
+   ]
+  },
+  "fi": {
+   "op": "smoothstep",
+   "in": [
+    0,
+    0.2,
+    "rise"
+   ]
+  },
+  "fo": {
+   "op": "sub",
+   "in": [
+    1,
+    "rise"
+   ]
+  },
+  "fade": {
+   "op": "mul",
+   "in": [
+    "fi",
+    "fo"
+   ]
+  },
+  "steamColour": {
+   "op": "param",
+   "param": "steam"
+  },
+  "steamOut": {
+   "op": "mul",
+   "in": [
+    "steamColour",
+    "fade"
+   ]
+  },
+  "out": {
+   "op": "mix",
+   "in": [
+    "poolOut",
+    "steamOut",
+    "steamOn"
+   ]
   }
  },
  "stages": {
+  "vertex.offset": {
+   "offset": "offset"
+  },
   "surface": {
    "colour": "out"
   }
