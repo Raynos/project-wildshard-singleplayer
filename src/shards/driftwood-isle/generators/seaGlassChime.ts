@@ -1,6 +1,6 @@
 /** Original full chime, including wind weights and collectible vertex ranges; offline only. */
 import * as THREE from 'three';
-import { SlotRecorder, type SlotRange } from '@wildshard/engine/models/slots';
+import { recordVertexSlots, type SlotRange } from './slotRanges';
 import { log, rock, rope } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 
@@ -29,7 +29,7 @@ const GLASS = [
 export function chimeGeometry(): { geometry: THREE.BufferGeometry; ranges: SlotRange[] } {
   const kit = new LowPolyKit(0x5ea61a55);
   const rng = kit.rng;
-  const rec = new SlotRecorder(kit);
+  const rec = recordVertexSlots(kit);
   const v = (x: number, y: number, z: number): THREE.Vector3 => new THREE.Vector3(x, y, z);
 
   // ── slot 0: the hanging cord (a V from the hook to the bar's ends) and the driftwood bar ──

@@ -1,6 +1,6 @@
 /** Original shield boards, prints and swept trophies; offline geometry only. */
 import * as THREE from 'three';
-import { SlotRecorder, type SlotRange } from '@wildshard/engine/models/slots';
+import { recordVertexSlots, type SlotRange } from './slotRanges';
 import { log, rock, tris } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 import { TROPHY_LAYOUT } from './trophyLayout';
@@ -101,8 +101,8 @@ function dot(x: number, y: number, rx: number, ry: number, sides = 7): THREE.Buf
 /** the plaques' geometry: slot 0 the plaques, then per trophy [its empty print, the trophy] */
 export function plaquesGeometry(gap: number): { geometry: THREE.BufferGeometry; ranges: SlotRange[]; boards: SlotRange[]; empty: Record<TrophyId, number>; full: Record<TrophyId, number> } {
   const kit = new LowPolyKit(0x7a0f1e5);
-  const rec = new SlotRecorder(kit);
-  const boards = new SlotRecorder(kit);
+  const rec = recordVertexSlots(kit);
+  const boards = recordVertexSlots(kit);
   const xs: Record<TrophyId, number> = { bear: -gap / 2, boar: gap / 2 };
   const extrude = (shape: THREE.Shape, depth: number, bevel: number): THREE.ExtrudeGeometry => new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: bevel > 0, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 1, curveSegments: 3 });
 
