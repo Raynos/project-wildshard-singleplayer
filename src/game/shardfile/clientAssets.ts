@@ -13,6 +13,8 @@ export class ClientAssets {
   private readonly packs = new Map<string, Promise<Uint8Array>>();
   private readonly source: Shardfile;
   private readonly options: ProductOptions;
+  // The admitted source's files by hash, built on the first lease (every tile scope leases its closure at boot).
+  private byHash: Map<string, Shardfile['files'][number]> | undefined;
   constructor(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, options: ProductOptions) {
     this.source = source; this.wire = new Map(assets); this.options = options;
     if (isDev()) for (const [ref, bytes] of this.wire) this.observe(ref, bytes);
@@ -124,7 +126,7 @@ export class ClientAssets {
   }
   private roots(): string[] { return [...this.source.critical, ...this.source.library, ...(this.source.look.grade.lut === null ? [] : [this.source.look.grade.lut])]; }
   private closure(refs: Iterable<string>): Set<string> {
-    const keep = new Set<string>(), files = new Map(this.source.files.map((file) => [file.hash, file])), pending = [...refs];
+    const keep = new Set<string>(), files = this.byHash ??= new Map(this.source.files.map((file) => [file.hash, file])), pending = [...refs];
     while (pending.length > 0) {
       const ref = pending.pop(); if (ref === undefined || keep.has(ref)) continue;
       keep.add(ref); pending.push(...files.get(ref)?.dependencies ?? []);
