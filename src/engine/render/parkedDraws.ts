@@ -6,6 +6,8 @@ import { offscreenPreparations, type OffscreenPreparation } from './offscreenPre
 import { programObjectKey, LIVE_PRECOMPILE_SLICE_MS } from './precompile';
 import { diagnosticNow } from '../core/clock';
 import { geometryBoundsSteps } from '../world/geometryBounds';
+import { pageScope } from '../app/resources';
+import type { Scope } from '../app/scope';
 
 /**
  * Draw a parked (hidden) subtree once, a few objects per painted slice, before it is first shown (op-hitch31, E435).
@@ -272,6 +274,115 @@ export const LIVE_PARKED_BUDGET: ParkedDrawBudget = { drawables: 8, newMaterials
  *  buffer, and one 0.6-0.85 MB `bufferData` waited 125-145 ms for the GPU process (200 / 250 ms afterPlay frames). */
 export const HELD_PARKED_BUDGET: ParkedDrawBudget = { drawables: 32, newMaterials: 8, bufferBytes: 6 * 1024 * 1024 };
 
+/**
+ * G782: the pipelines earlier parked warms on a renderer already built, by geometry. A warm draw of a plain mesh builds
+ * its program × vertex layout × target pipeline and uploads its buffers; once one has, a later parked copy with the same
+ * geometry, buffers, material versions, program shape, lighting and target builds nothing new on its entry draw, so it
+ * is not drawn again (a warm crossing re-parks the same library meshes). Disposing a geometry forgets it; disposing a
+ * material bumps its epoch, so its programs are rebuilt by a later warm.
+ */
+interface WarmedPipelines {
+  readonly byGeometry: WeakMap<THREE.BufferGeometry, Set<string>>; readonly uploaded: WeakSet<ArrayBufferView>;
+  /** The dispose watches, one a geometry or material, released on delivery; past WATCH_CAP the receipt starts over. */
+  readonly scope: Scope; readonly watched: WeakSet<THREE.BufferGeometry | THREE.Material>; watches: number;
+}
+const warmedPipelines = new WeakMap<object, WarmedPipelines>();
+const materialEpochs = new WeakMap<THREE.Material, number>();
+/** A bound on the receipt's watches: a resource dropped without its dispose stays watched until the receipt resets. */
+const WATCH_CAP = 4096;
+
+function warmedFor(renderer: object): WarmedPipelines {
+  let warmed = warmedPipelines.get(renderer);
+  if (warmed === undefined || warmed.watches >= WATCH_CAP) {
+    warmed?.scope.dispose();
+    warmed = { byGeometry: new WeakMap(), uploaded: new WeakSet(), scope: pageScope.child('parked-warm-receipt'), watched: new WeakSet(), watches: 0 };
+    warmedPipelines.set(renderer, warmed);
+  }
+  return warmed;
+}
+
+/** What the entry frame's program choice reads besides the object: the visible lights (with the parked root and its
+ *  revealed ancestors shown, as the slice draws them), environment, fog, tone mapping and the target's formats. */
+function warmContextKey(renderer: ParkedDrawRenderer, scene: THREE.Scene, camera: THREE.Camera, root: THREE.Object3D,
+  reveal: ReadonlySet<THREE.Object3D>, environment: THREE.Texture | null | undefined, target: THREE.WebGLRenderTarget | null): string {
+  const lights: string[] = [];
+  const visit = (object: THREE.Object3D): void => {
+    if (!(object.visible || object === root || reveal.has(object))) return;
+    if (object instanceof THREE.Light && object.layers.test(camera.layers)) lights.push(`${object.type}:${object.castShadow ? 1 : 0}`);
+    for (const child of object.children) visit(child);
+  };
+  visit(scene);
+  const env = environment === undefined ? scene.environment : environment;
+  const formats = target === null ? 'canvas'
+    : `${target.texture.type}:${target.texture.format}:${target.samples}:${target.depthBuffer ? 1 : 0}:${target.stencilBuffer ? 1 : 0}:${target.depthTexture === null ? 0 : 1}`;
+  const tone = 'toneMapping' in renderer ? renderer.toneMapping : undefined, space = 'outputColorSpace' in renderer ? renderer.outputColorSpace : undefined;
+  return `${lights.sort().join(',')}|${env?.uuid ?? ''}|${scene.fog === null ? '' : scene.fog instanceof THREE.FogExp2 ? 'e' : 'l'}` +
+    `|${String(tone)}|${String(space)}|${renderer.shadowMap.type}|${formats}`;
+}
+
+/** three's per-object renderer state (`renderer.properties`); test doubles carry none. */
+interface PropertyStore { readonly get: (object: object) => unknown }
+const isPropertyStore = (value: unknown): value is PropertyStore =>
+  typeof value === 'object' && value !== null && 'get' in value && typeof value.get === 'function';
+
+/** The renderer's current program of each material (three's WebGLProgram ids), or undefined when one has none yet. */
+function programIds(renderer: object, object: THREE.Object3D): string | undefined {
+  const store = 'properties' in renderer ? renderer.properties : undefined;
+  if (!isPropertyStore(store)) return undefined;
+  const ids: string[] = [];
+  for (const material of drawableMaterials(object)) {
+    const properties = store.get(material);
+    const program = typeof properties === 'object' && properties !== null && 'currentProgram' in properties ? properties.currentProgram : undefined;
+    const id = typeof program === 'object' && program !== null && 'id' in program ? program.id : undefined;
+    if (typeof id !== 'number') return undefined;
+    ids.push(String(id));
+  }
+  return ids.join(',');
+}
+
+/** A plain mesh or instanced mesh's exact pipeline signature under `context` (merged cells are identity-instance sets),
+ *  or undefined when it keeps its own first draw: skins, morphs, per-object callbacks and custom depth materials always
+ *  draw, as does a material the renderer has no program for. */
+function warmSignature(renderer: object, object: THREE.Object3D, camera: THREE.Camera, context: string): { geometry: THREE.BufferGeometry; key: string } | undefined {
+  if (!(object instanceof THREE.Mesh) || object instanceof THREE.SkinnedMesh || object.morphTargetInfluences !== undefined
+    || (Object.getPrototypeOf(object) !== THREE.Mesh.prototype && Object.getPrototypeOf(object) !== THREE.InstancedMesh.prototype)
+    || object instanceof THREE.InstancedMesh && object.morphTexture !== null
+    || object.customDepthMaterial !== undefined || object.customDistanceMaterial !== undefined
+    || object.onBeforeRender !== THREE.Object3D.prototype.onBeforeRender || object.onAfterRender !== THREE.Object3D.prototype.onAfterRender
+    || object.onBeforeShadow !== THREE.Object3D.prototype.onBeforeShadow || object.onAfterShadow !== THREE.Object3D.prototype.onAfterShadow) return undefined;
+  const geometry: unknown = object.geometry, programs = programIds(renderer, object);
+  if (!isBufferGeometry(geometry) || programs === undefined) return undefined;
+  const materials = drawableMaterials(object).map(material => `${material.uuid}:${material.version}:${materialEpochs.get(material) ?? 0}`).join(',');
+  return { geometry, key: `${materials}|${programs}|${programObjectKey(object)}|${object.castShadow}|${object.layers.test(camera.layers)}` +
+    `|${object.matrixWorld.determinant() < 0}|${context}` };
+}
+
+function alreadyWarmed(warmed: WarmedPipelines, renderer: object, object: THREE.Object3D, camera: THREE.Camera, context: string): boolean {
+  const signature = warmSignature(renderer, object, camera, context);
+  return signature !== undefined && warmed.byGeometry.get(signature.geometry)?.has(signature.key) === true
+    && drawBuffers(object).every(buffer => warmed.uploaded.has(buffer));
+}
+
+function recordWarmed(warmed: WarmedPipelines, renderer: object, object: THREE.Object3D, camera: THREE.Camera, context: string): void {
+  const signature = warmSignature(renderer, object, camera, context);
+  if (signature === undefined) return;
+  const { geometry, key } = signature;
+  if (!warmed.watched.has(geometry)) {
+    warmed.watched.add(geometry); warmed.watches++;
+    warmed.scope.listenOnceEmitter(geometry, 'dispose', () => { warmed.byGeometry.delete(geometry); warmed.watched.delete(geometry); warmed.watches--; });
+  }
+  for (const material of drawableMaterials(object)) if (!warmed.watched.has(material)) {
+    warmed.watched.add(material); warmed.watches++;
+    warmed.scope.listenOnceEmitter(material, 'dispose', () => {
+      materialEpochs.set(material, (materialEpochs.get(material) ?? 0) + 1); warmed.watched.delete(material); warmed.watches--;
+    });
+  }
+  let keys = warmed.byGeometry.get(geometry);
+  if (keys === undefined) { keys = new Set(); warmed.byGeometry.set(geometry, keys); }
+  keys.add(key);
+  for (const buffer of drawBuffers(object)) warmed.uploaded.add(buffer);
+}
+
 /** Do the renderer's first static sphere scan in exact CPU chunks, before a native draw can hide it in its frame. */
 async function prepareParkedBounds(drawables: readonly Drawable[], current: () => boolean, pause: () => Promise<void>): Promise<void> {
   const seen = new Set<THREE.BufferGeometry>();
@@ -375,20 +486,41 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
   if (!(view instanceof THREE.Camera)) throw new Error('Parked view must retain its camera type');
   const standIns = new ShadowStandIns(renderer instanceof THREE.WebGLRenderer ? renderer : null);
   const benched: BenchedLayers = { objects: [], masks: [] };
-  let drawn = 0;
+  const budget = options.budget ?? DEFAULT_BUDGET, byteCap = budget.bufferBytes ?? Number.POSITIVE_INFINITY;
+  const warmed = warmedFor(renderer), context = warmContextKey(renderer, scene, camera, root, reveal, options.environment, target);
+  const bindings = new Set<string>(), uploaded = new Set<ArrayBufferView>();
+  let drawn = 0, done = 0;
   const total = slices.reduce((count, slice) => count + slice.length, 0);
   try {
     options.onProgress?.(0, total);
     await prepareParkedBounds(drawables, current, pause);
     await prepareParkedInstanceBounds(drawables, current, pause);
-    for (const slice of slices) {
+    // G782: slices share a completed frame until the precompile CPU slice is spent or the frame's new buffers reach the
+    // slice cap; a live WebKit budget (`newBindings`) still gives a slice with a first-use binding a frame of its own, as
+    // its native first draws block past the JavaScript submission. Every drawn frame still ends on `pause()`.
+    let frameStart = diagnosticNow(), frameSlices = 0, frameBytes = 0;
+    for (const whole of slices) {
       if (!current()) throw new Error('Parked draw owner left');
+      const slice = whole.filter(object => !alreadyWarmed(warmed, renderer, object, camera, context));
+      done += whole.length - slice.length;
+      if (slice.length === 0) { options.onProgress?.(done, total); continue; }
+      const buffers = slice.flatMap(drawBuffers).filter(buffer => !uploaded.has(buffer));
+      const bytes = buffers.reduce((sum, buffer) => sum + buffer.byteLength, 0);
+      const cold = budget.newBindings !== undefined && slice.some(object => !bindings.has(drawBindingKey(object)));
+      if (frameSlices > 0 && (diagnosticNow() - frameStart >= LIVE_PRECOMPILE_SLICE_MS || frameBytes + bytes > byteCap || cold)) {
+        await pause();
+        if (!current()) throw new Error('Parked draw owner left');
+        frameStart = diagnosticNow(); frameSlices = 0; frameBytes = 0;
+      }
       try { drawSlice(renderer, scene, camera, view, target, root, slice, options.environment, standIns, reveal, benched); }
       catch (error) { console.error(`[parked draws] the pre-draw stopped after ${String(drawn)} drawables; the entry frame draws the rest`, error); return drawn; }
-      drawn += slice.length;
-      options.onProgress?.(drawn, total);
-      await pause();
+      for (const object of slice) { recordWarmed(warmed, renderer, object, camera, context); bindings.add(drawBindingKey(object)); }
+      for (const buffer of buffers) uploaded.add(buffer);
+      drawn += slice.length; done += slice.length; frameSlices++; frameBytes += bytes;
+      if (cold) frameStart = Number.NEGATIVE_INFINITY; // a first-use binding's frame takes nothing after it either
+      options.onProgress?.(done, total);
     }
+    if (frameSlices > 0) await pause();
   } finally { standIns.dispose(); }
   return drawn;
 }

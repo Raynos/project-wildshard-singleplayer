@@ -74,7 +74,8 @@ test('parked camera equipment draws in paced slices without revealing hidden det
       () => { pauses++; f.restored(); return Promise.resolve(); }, { revealChildren: true, budget: { drawables: 1, newMaterials: 1 },
         onProgress: (done, total) => { f.restored(); progress.push([done, total]); } });
     expect(progress).toEqual([[0, 2], [1, 2], [2, 2]]);
-    expect(drawn).toBe(2); expect(pauses).toBe(2); expect(f.draws).toEqual(f.parts.map(part => [part]));
+    // G782: the two slices draw apart but share one completed frame (well under the CPU slice), which still ends on a pause
+    expect(drawn).toBe(2); expect(pauses).toBe(1); expect(f.draws).toEqual(f.parts.map(part => [part]));
     f.restored();
     f.scope.dispose(); expect(f.models.staged(f.scope)).toBeUndefined();
   } finally { f.dispose(); }
@@ -83,11 +84,15 @@ test('parked camera equipment draws in paced slices without revealing hidden det
 test('ordinary parked roots retain hidden children and cancellation stops before the next equipment draw', async () => {
   const f = fixture();
   try {
-    expect(await warmParkedDraws(f.renderer, f.scene, f.camera, f.target, f.stage, () => true, () => Promise.resolve())).toBe(0);
+    // G743: a hidden child's pipeline is warmed with its ancestors shown for that draw only; its flags are restored after
+    expect(await warmParkedDraws(f.renderer, f.scene, f.camera, f.target, f.stage, () => true, () => Promise.resolve())).toBe(2);
+    f.restored();
+    const before = f.draws.length;
     let live = true;
     await expect(warmParkedDraws(f.renderer, f.scene, f.camera, f.target, f.stage, () => live,
-      () => { f.restored(); live = false; return Promise.resolve(); }, { revealChildren: true, budget: { drawables: 1, newMaterials: 1 } })).rejects.toThrow('owner left');
-    expect(f.draws).toHaveLength(1); f.restored();
+      () => { f.restored(); return Promise.resolve(); }, { revealChildren: true, budget: { drawables: 1, newMaterials: 1 },
+        onProgress: done => { f.restored(); if (done === 1) live = false; } })).rejects.toThrow('owner left');
+    expect(f.draws.length - before).toBe(1); f.restored();
   } finally { f.dispose(); }
 });
 
@@ -251,7 +256,7 @@ test('first-draw census observes visibility and shadow casters changed between s
   try {
     expect(await warmParkedDraws(f.renderer, f.scene, f.camera, f.target, f.stage, () => true,
       () => { expect(light.shadow.map).toBe(target); expect(light.layers.mask).toBe(1); expect(caster.layers.mask).toBe(1 << SHADOW_LAYER);
-        peer.visible = true; return Promise.resolve(); }, { revealChildren: true, budget: { drawables: 1, newMaterials: 1 } })).toBe(2);
+        peer.visible = true; return Promise.resolve(); }, { revealChildren: true, budget: { drawables: 1, newMaterials: 1, newBindings: 1 } })).toBe(2);
     expect(calls).toBe(2); expect(error).not.toHaveBeenCalled(); expect(f.draws.flat()).toEqual(f.parts); f.restored();
   } finally { error.mockRestore(); target.dispose(); f.dispose(); }
 });
