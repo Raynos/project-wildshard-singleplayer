@@ -725,7 +725,6 @@
     "src/shards/_template/generators/template-skins.mjs": 3,
     "src/shards/_template/generators/templatePropsSource.ts": 1,
     "src/shards/_template/generators/world.ts": 1,
-    "src/shards/driftwood-isle/generators/bake-driftwood-director.mjs": 3,
     "src/shards/driftwood-isle/generators/boat.ts": 2,
     "src/shards/driftwood-isle/generators/captainHat.ts": 2,
     "src/shards/driftwood-isle/generators/cove.ts": 4,

@@ -59,7 +59,7 @@
     "src/shards/driftwood-isle/generators/keeperRows.ts": 1,
     "src/shards/driftwood-isle/generators/nativeQuestProps.ts": 1,
     "src/shards/driftwood-isle/generators/oceanFoam.ts": 6,
-    "src/shards/driftwood-isle/generators/output.ts": 6,
+    "src/shards/driftwood-isle/generators/output.ts": 4,
     "src/shards/driftwood-isle/generators/populationProjection.ts": 1,
     "src/shards/driftwood-isle/generators/product.ts": 2,
     "src/shards/driftwood-isle/generators/questWorld.ts": 5,

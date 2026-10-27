@@ -19,7 +19,7 @@ for (const [slug, hash, size] of [
       const path = resolve(root, file); mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, bytes);
     };
     try {
-      const descriptor = v.parse(BehaviourBuildSchema, JSON.parse(readFileSync(resolve(source, 'behaviour/build.json'), 'utf8')));
+      const descriptor = v.parse(BehaviourBuildSchema, JSON.parse(readFileSync(slug === 'driftwood-isle' ? resolve('test/fixtures/driftwood-director-build.json') : resolve(source, 'behaviour/build.json'), 'utf8')));
       const module = descriptor.modules[0];
       if (module === undefined) throw new Error('Missing original director module');
       expect(module.embedded[0]?.raw).toBe(true);
