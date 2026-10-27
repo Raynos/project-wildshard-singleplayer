@@ -2,9 +2,12 @@ import { expect, test } from 'vitest';
 import { autoFlag, createQuestPlacements, bindInteractPlacements, readInteractPlacements, type InteractTable } from '../src/engine/world/interact/types';
 import { bindInteractionState, Flags } from '../src/engine/world/interact/flags';
 import { pineTableFromPlacements } from '../src/shards/pine-hollow/generators/questTable';
-import pine from '../src/shards/pine-hollow/data/spots.generated.json' with { type: 'json' };
+import { pineSpots } from '../src/shards/pine-hollow/generators/spots';
 import driftwood from '../src/shards/driftwood-isle/data/spots.generated.json' with { type: 'json' };
 import { DRIFTWOOD_INTERACT } from '../src/shards/driftwood-isle/generators/interactables';
+
+// GR8: called, not read from a scheduler job's output
+const pine = pineSpots();
 
 test('authored rest sites preserve quest laws and order; malformed or foreign sites refuse before building', () => {
   const table: InteractTable = { external: ['met'], rows: [

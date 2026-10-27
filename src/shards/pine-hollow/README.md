@@ -43,7 +43,7 @@ The twelve `bake-pine-*.mjs` entrypoints, their type declarations and the coats 
 the TypeScript that builds their outputs. From the repository root, run a Node baker with
 `node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/pine-hollow/generators/bake-pine-cabins.mjs`
 (substitute the baker name). The physics and quest spots products (`data/physics.generated.json`,
-`data/spots.generated.json`) come from authored rows only (`data/physicsRows.json`, `data/spotsRows.json`) through
+`pineSpots()`, called by the product since GR8) come from authored rows only (`data/physicsRows.json`, `data/spotsRows.json`) through
 `generators/physics.ts` and `generators/spots.ts` under the SDK source loader (G350-PH); no world or runtime code runs.
 The Antler King's collision table (`pineKingCollision()`, called by the product since GR8, no generated file) comes from
 `data/kingCollisionRows.json` (joints, rest pose, per-tick clip transforms) and the King rows of `data/physicsRows.json`

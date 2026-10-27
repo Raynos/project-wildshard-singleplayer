@@ -5,7 +5,7 @@ import { NativeQuestCompositionSchema, NativeQuestServiceSpotsSchema, parseNativ
 import forestWeather from '../data/forestWeather.json' with { type: 'json' };
 import { FOREST_STORY_BLOB } from './forestStory';
 import { PINE_QUEST_PAGE_BLOB } from './pageComposition';
-import spots from '../data/spots.generated.json' with { type: 'json' };
+import { pineSpots } from './spots';
 import { RANGED_PAGE_BLOBS } from './rangedPage';
 import { FOREST_PAGE_BLOB, LANDMARK_VIEW_BLOB } from './forestPage';
 import { ROAMING_COMBAT_BLOB } from './roamingCombat';
@@ -88,6 +88,9 @@ import { NATIVE_VIEW, SPECIES_LOOKS } from './nativeView';
 import { pineDensityBlob } from './forestRows';
 import manifest from '../manifest.json' with { type: 'json' };
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+
+// GR8: called, not read from a scheduler job's output
+const spots = pineSpots();
 
 // GR8: called, not read from a scheduler job's output
 const lookMaterials = pineLookMaterials();

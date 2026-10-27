@@ -3,7 +3,10 @@ import { Vector3 } from 'three';
 import { ZiplineDriver } from '../src/engine/sim/cableTraversal';
 import { ZiplineLayout } from './fixtures/driftwood-zipline/shipping';
 import { ZIPLINE, ZIP_RIDE } from '../src/shards/pine-hollow/generators/zipline';
-import spots from '../src/shards/pine-hollow/data/spots.generated.json' with { type: 'json' };
+import { pineSpots } from '../src/shards/pine-hollow/generators/spots';
+
+// GR8: called, not read from a scheduler job's output
+const spots = pineSpots();
 
 test('the default Driftwood ride keeps its deck anchors, release and silent continuation', () => {
   const row = { ...ZIPLINE, id: 'ride', top: { x: 0, y: 30, z: 0 }, bottom: { x: 0, y: 2, z: 70 }, hang: 2.9, sag: 1.6 };

@@ -2,9 +2,12 @@
 import { parseQuestHost , type QuestHostRow as QuestHostRowType } from '@wildshard/format/questHost';
 import { pineTableFromPlacements } from './questTable';
 import { PINE_GRAPH, pineQuestRows } from './questGraph';
-import spots from '../data/spots.generated.json' with { type: 'json' };
+import { pineSpots } from './spots';
 import policy from '../data/nativeStory.json' with { type: 'json' };
 import { contractCatalogue } from './contractRows';
+
+// GR8: called, not read from a scheduler job's output
+const spots = pineSpots();
 
 /** The root graph and presentation use the same placed interaction table. */
 export const PINE_QUEST_TABLE: ReturnType<typeof pineTableFromPlacements> = pineTableFromPlacements(spots.rows);

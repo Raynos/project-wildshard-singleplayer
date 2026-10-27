@@ -1,6 +1,5 @@
 // node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-pickups.mjs [--check]
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { zlibSync, unzlibSync } from 'fflate';
 import { authoredPickups } from '../src/game/generators/pickups.ts';
@@ -11,9 +10,10 @@ import { pickupLook, registerPickupLook } from '../src/engine/world/interact/typ
 import { readBakedGeometry } from '../src/game/plugin/geometry.ts';
 import { DRIFTWOOD_INTERACT } from '../src/shards/driftwood-isle/generators/interactables.ts';
 import { pineTableFromPlacements } from '../src/shards/pine-hollow/generators/questTable.ts';
+import { pineSpots } from '../src/shards/pine-hollow/generators/spots.ts';
 
 const seed = 0x1a7e, variants = new Map(), traces = {};
-const spots = JSON.parse(readFileSync(new URL('../src/shards/pine-hollow/data/spots.generated.json', import.meta.url), 'utf8'));
+const spots = pineSpots();
 const pine = pineTableFromPlacements(spots.rows);
 const add = (part, value) => {
   const key = `${part.key}:${value}`;

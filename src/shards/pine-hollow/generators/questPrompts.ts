@@ -1,4 +1,7 @@
-import baked from '../data/spots.generated.json' with { type: 'json' };
+import { pineSpots as pineSpotRows } from './spots';
+
+// GR8: called, not read from a scheduler job's output
+const baked = pineSpotRows();
 
 export const PINE_INTERACT = 'pine.interact';
 export const PINE_ACT = { talk: 0, logA: 1, logB: 2, glass: 3, flint: 4, pond: 5, ridge: 6, den: 7, zip: 8, rifle: 9,

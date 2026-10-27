@@ -2561,8 +2561,6 @@
     "src/shards/pine-hollow/data/siteTimbers.json",
     "src/shards/pine-hollow/data/siteTimbersScene.generated.json",
     "src/shards/pine-hollow/data/skyKeyBlobs.generated.json",
-    "src/shards/pine-hollow/data/spots.generated.d.json.ts",
-    "src/shards/pine-hollow/data/spots.generated.json",
     "src/shards/pine-hollow/data/streamBlobs.generated.json",
     "src/shards/pine-hollow/data/streams.json",
     "src/shards/pine-hollow/data/streamsScene.generated.json",

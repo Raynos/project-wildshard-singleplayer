@@ -642,39 +642,6 @@
       "platform": "portable"
     },
     {
-      "id": "pine-spots",
-      "shard": "pine-hollow",
-      "entry": "src/shards/pine-hollow/generators/spots.ts",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/pine-hollow/generators/spots.ts",
-        "pineSpots",
-        "src/shards/pine-hollow/data/spots.generated.json"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format/package.json",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/package.json",
-        "src/shards/pine-hollow/data/spotsRows.json",
-        "src/shards/pine-hollow/generators/spots.ts",
-        "src/shards/pine-hollow/generators/sections.ts",
-        "src/format"
-      ],
-      "outputs": [
-        "src/shards/pine-hollow/data/spots.generated.json"
-      ],
-      "platform": "portable",
-      "buildOutputs": {
-        "src/shards/pine-hollow/data/spots.generated.json": "6788f7bed529e0bc6d40da68570f0562c77c318cd9c5446beb714bad4ce45bda"
-      },
-      "seedOutputs": []
-    },
-    {
       "id": "shared-pickups",
       "shard": null,
       "entry": "scripts/bake-pickups.mjs",
@@ -697,7 +664,8 @@
         "src/shards/driftwood-isle/generators/interactables.ts",
         "src/shards/pine-hollow/generators/questTable.ts",
         "src/shards/pine-hollow/generators/interactions.ts",
-        "src/shards/pine-hollow/data/spots.generated.json"
+        "src/shards/pine-hollow/generators",
+        "src/shards/pine-hollow/data"
       ],
       "outputs": [
         "src/game/data/pickupCatalogue.json",
@@ -9854,23 +9822,20 @@
         "src/shards/pine-hollow/generators/sections.ts",
         "scripts/section-types.mjs",
         "src/shards/pine-hollow/data/cabins.json",
-        "src/shards/pine-hollow/data/physics.generated.json",
-        "src/shards/pine-hollow/data/spots.generated.json"
+        "src/shards/pine-hollow/data/physics.generated.json"
       ],
       "outputs": [
         "src/shards/pine-hollow/generators/sectionSchemas.generated.ts",
         "src/shards/pine-hollow/runtime/productSections.generated.d.ts",
         "src/shards/pine-hollow/data/cabins.d.json.ts",
-        "src/shards/pine-hollow/data/physics.generated.d.json.ts",
-        "src/shards/pine-hollow/data/spots.generated.d.json.ts"
+        "src/shards/pine-hollow/data/physics.generated.d.json.ts"
       ],
       "platform": "portable",
       "buildTimeOutputs": [
         "src/shards/pine-hollow/generators/sectionSchemas.generated.ts",
         "src/shards/pine-hollow/runtime/productSections.generated.d.ts",
         "src/shards/pine-hollow/data/cabins.d.json.ts",
-        "src/shards/pine-hollow/data/physics.generated.d.json.ts",
-        "src/shards/pine-hollow/data/spots.generated.d.json.ts"
+        "src/shards/pine-hollow/data/physics.generated.d.json.ts"
       ]
     },
     {
