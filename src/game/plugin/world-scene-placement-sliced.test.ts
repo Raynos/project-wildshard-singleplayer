@@ -69,8 +69,8 @@ test.each(['live', 'disposed', 'retiring-ancestor'] as const)('scene placement r
   const outcome = async (): Promise<unknown> => { try { await handle.attach(36, child, new Group()); return null; } catch (error) { return error; } };
   const pending = outcome();
   try {
-    for (let i = 0; i < 8; i++) await Promise.resolve();
-    expect(pauses).toBe(1); expect(contacts).not.toHaveBeenCalled(); expect(registry.pieces).toHaveLength(0);
+    await vi.waitFor(() => { expect(pauses).toBe(1); });
+    expect(contacts).not.toHaveBeenCalled(); expect(registry.pieces).toHaveLength(0);
     if (retired === 'live') {
       release(); expect(await pending).toBeNull(); expect(contacts).toHaveBeenCalledTimes(4);
       expect(registry.pieces.some(piece => piece.id === 'paused.t36')).toBe(true);

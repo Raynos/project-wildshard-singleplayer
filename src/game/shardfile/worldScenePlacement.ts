@@ -4,11 +4,11 @@ import { modelPoseMatrix } from '@wildshard/engine/models/modelPose';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { TIER } from '@wildshard/engine/core/tier';
-import { buildYield } from '@wildshard/engine/core/workSlice';
+import { buildYield, workSlice } from '@wildshard/engine/core/workSlice';
 import { slicer } from '@wildshard/engine/boot/plan';
 import { sharedModelContext } from '@wildshard/engine/models/model';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
-import { place, placeSliced, type Placed } from '@wildshard/engine/models/place';
+import { placeSliced, type Placed } from '@wildshard/engine/models/place';
 import type { CullOptions } from '@wildshard/engine/models/cull';
 import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 import { worldSceneSourceMaterial } from './worldSceneMaterials';
@@ -39,6 +39,20 @@ function posed(authored: WorldScenePlacementRow['poses'][number]) {
   const { yxz, color: _tint, ...pose } = authored; const { yawAtan2, ...rotation } = yxz;
   const yaw = yawAtan2 === undefined ? rotation.yaw : Math.atan2(yawAtan2[0], yawAtan2[1]);
   return { ...pose, ...tint, matrix: modelPoseMatrix({ ...pose, ...rotation, yaw }) };
+}
+
+/** Pose conversion can itself fill a frame before the model placer's first yield. */
+async function poseCopies(poses: readonly WorldScenePlacementRow['poses'][number][], owner: Scope): Promise<ReturnType<typeof posed>[]> {
+  const result: ReturnType<typeof posed>[] = [], slice = workSlice(undefined, owner);
+  for (let offset = 0; offset < poses.length; offset += 32) {
+    requireLive(owner);
+    const end = Math.min(poses.length, offset + 32);
+    for (let i = offset; i < end; i++) {
+      const pose = poses[i]; if (pose === undefined) throw new Error('Scene placement copy differs'); result.push(posed(pose));
+    }
+    if (slice.due()) await slice.yield();
+  }
+  requireLive(owner); return result;
 }
 
 /** Client-only deferred placement, stored in SceneHandles alongside its published parts.
@@ -144,9 +158,10 @@ export class WorldScenePlacement {
       .map((shape, i) => { const ordered = {}; return Object.assign(ordered, row.colliders?.[i], shape); });
     const definition = this.catalogue.model(row.model);
     const pieceId = row.piece === undefined || tile === undefined ? row.piece?.id : `${row.piece.id}.t${tile}`;
+    const prepared = await poseCopies(poses, owner);
     const slice = slicer();
     const placed = await withOwner(owner, () => placeSliced(row.colliders === undefined ? definition : { ...definition, colliders: () => [] },
-      poses.map(posed),
+      prepared,
       // E271 / E272: no multi-draw anywhere; a 'batched' row draws instanced (a graph look on a multi-draw batch did not compile)
       { ctx: sharedModelContext(world.sky, world.game), registry: world.registry, draw: row.draw === 'batched' ? 'instanced' : row.draw,
         ...(boxes === undefined || borrowed === undefined ? {} : { drawnInto: { object: borrowed, boxes: Float32Array.from(boxes) } }),
@@ -186,9 +201,12 @@ export class WorldScenePlacement {
     const tiles = row.poses.map(pose => tileKey(tileOf(pose.x, pose.z))), id = `${row.piece?.id ?? definition.id}.coarse`;
     // a model that builds a whole object draws `single` (one object per copy): its few copies hide by tile each frame
     const single = row.draw === 'single';
-    const placed = withOwner(scope, () => place(model, row.poses.map(posed), { ctx: sharedModelContext(world.sky, world.game), registry: world.registry,
+    const prepared = await poseCopies(row.poses, scope), slice = slicer();
+    const placed = await withOwner(scope, () => placeSliced(model, prepared, { ctx: sharedModelContext(world.sky, world.game), registry: world.registry,
       draw: single ? 'single' : 'instanced', piece: { id, collide: false },
-      ...(single ? {} : { cull: { ...this.cullOptions(world.forest), cells: { size: TILE_SIZE, pad: COARSE_REACH }, test: (i: number) => !rendered(tiles[i] ?? -1) } }) }));
+      ...(single ? {} : { cull: { ...this.cullOptions(world.forest), cells: { size: TILE_SIZE, pad: COARSE_REACH }, test: (i: number) => !rendered(tiles[i] ?? -1) } }) },
+      () => { requireLive(scope); const pause = slice.due(); return pause === null ? null : pause.then(() => requireLive(scope)); }));
+    requireLive(scope);
     placed.object.name = `${row.name ?? definition.id}.coarse`;
     await placed.registered;
     if (!single) return;
