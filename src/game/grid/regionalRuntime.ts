@@ -148,7 +148,7 @@ export interface RegionalRuntimeFoundation {
   readonly checkpoint: () => boolean;
   /** Bring every material the entered hooks added to the program it will draw with (the region look's patches) before
    *  the entered frame's shader warm-up compiles them; frames are held while the hooks install, so per-frame passes have
-   *  not run on them yet. */
+   *  not run on them yet. Includes the world-material preparation; callers need no separate sweep. */
   readonly beforeWarm?: () => Promise<void> | void;
   /** Finish the admitted sky and patch currently built world materials. Does not publish post passes or entered services. */
   readonly prepareWorldMaterials?: () => Promise<void> | void;
@@ -300,8 +300,9 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
                 // Wait for content, then use the one final sliced inventory before publishing readiness.
                 await content;
                 if (owner.disposed) throw new Error('Regional runtime left before its final warm-up');
-                await foundation.prepareWorldMaterials?.();
-                await foundation.beforeWarm?.();
+                // The final hook already patches every completed world material.
+                // A second whole-scene sweep immediately before it repeats that CPU work.
+                await (foundation.beforeWarm !== undefined ? foundation.beforeWarm() : foundation.prepareWorldMaterials?.());
               });
               // Observe an early failure now; afterPlay still awaits the original rejection before readiness.
               void enteredWarm.catch(() => undefined);

@@ -16,7 +16,7 @@ function deferred() {
 async function flush(): Promise<void> {for (let i = 0; i < 5; i++) await Promise.resolve();}
 async function settle(promise: Promise<void>): Promise<unknown> {try {await promise; return null;} catch (error) {return error;}}
 
-function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promise<void>; enabled?: boolean} = {}) {
+function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promise<void>; enabled?: boolean; worldOnly?: boolean} = {}) {
   const source = readFileSync(new URL('regionalRuntime.ts', import.meta.url), 'utf8');
   const declarationsStart = source.indexOf('          let enteredWarm:');
   const declarationsEnd = source.indexOf('          return { ...installation, context,', declarationsStart);
@@ -35,7 +35,7 @@ function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promi
   root.visible = false; models.visible = false; models.name = 'staged-equipment';
   const calls: string[] = [], worldReady = deferred();
   const ports = {owner, view: {root}, preparedModels: options.models === false ? null : models, preparing: options.enabled !== false, world: {},
-    foundation: {prepareWorldMaterials: (): void => {calls.push('look'); worldReady.resolve();}, beforeWarm: (): void => {calls.push('before-final');}},
+    foundation: {prepareWorldMaterials: (): void => {calls.push('look'); worldReady.resolve();}, ...(options.worldOnly === true ? {} : {beforeWarm: (): void => {calls.push('before-final'); worldReady.resolve();}})},
     request: {page: {world: {game: {warmEnteredFrame: async (scope: Scope, lighting: Object3D,
       before: (prepare: (roots: readonly Object3D[], exteriorPrograms?: boolean) => Promise<void>, prepareFrame: () => Promise<void>) => Promise<void>): Promise<void> => {
       expect(scope).toBe(owner); expect(lighting).toBe(root);
@@ -73,7 +73,7 @@ test('page preparation waits for play and performs only the final complete inven
     expect(f.calls).toEqual([]);
     expect(f.root.visible).toBe(false); expect(f.models.visible).toBe(false);
     f.content(); await result;
-    expect(f.calls).toEqual(['look', 'before-final', 'final']);
+    expect(f.calls).toEqual(['before-final', 'final']);
   } finally {f.kit(); f.content(); f.owner.dispose(); await observed;}
 });
 
@@ -83,7 +83,7 @@ test('the final inventory still waits for equipment when play finishes first', a
   await f.start(); const result = f.result(), observed = settle(result);
   try {
     f.content(); await flush(); expect(f.calls).toEqual([]);
-    f.kit(); await f.worldReady; await flush(); expect(f.calls).toEqual(['look', 'before-final', 'final']);
+    f.kit(); await f.worldReady; await flush(); expect(f.calls).toEqual(['before-final', 'final']);
     equipment.resolve(); await result;
     expect(f.calls.at(-1)).toBe('final');
   } finally {equipment.resolve(); f.kit(); f.content(); f.owner.dispose(); await observed;}
@@ -117,7 +117,7 @@ test('final preparation refusal propagates after content without early compilati
   try {
     f.kit(); f.content();
     expect(String(await observed)).toContain('equipment refused');
-    expect(f.calls).toEqual(['look', 'before-final', 'final']);
+    expect(f.calls).toEqual(['before-final', 'final']);
   } finally {f.kit(); f.content(); f.owner.dispose(); await observed;}
 });
 
@@ -126,7 +126,17 @@ test('no staged models preserves the final warm and ordinary entries start no sp
   await f.start(); const result = f.result(), observed = settle(result);
   try {
     f.kit(); f.content(); await result;
-    expect(f.calls).toEqual(['look', 'before-final', 'final']);
+    expect(f.calls).toEqual(['before-final', 'final']);
     await ordinary.start(); expect(ordinary.rawResult()).toBeNull(); expect(ordinary.calls).toEqual([]);
   } finally {f.kit(); f.content(); f.owner.dispose(); ordinary.owner.dispose(); await observed;}
+});
+
+
+test('a foundation without a final hook retains its world-material preparation', async () => {
+  const f = fixture({worldOnly: true});
+  await f.start(); const result = f.result(), observed = settle(result);
+  try {
+    f.kit(); f.content(); await result;
+    expect(f.calls).toEqual(['look', 'final']);
+  } finally {f.kit(); f.content(); f.owner.dispose(); await observed;}
 });

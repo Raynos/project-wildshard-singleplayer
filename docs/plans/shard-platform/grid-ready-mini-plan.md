@@ -48,6 +48,8 @@ Each slice is bounded to one hour; report misses and their observed owners first
 
 ## G743 request-to-commit crossing cuts (2026-10-26, sp-x8)
 
+Current bar (G782, 2026-10-27): phone-tier request → commit **< 5 s warm / < 8 s cold**. G777 uses Chromium for engineering qualification; Simulator runs once at the end. G780: one reading per plan at the end. G769 source slices land on touched types/lint; historical readings below retain their original verdicts.
+
 Keep the G723 two-resident admission and every durability/cancellation fence.
 Historical routed edges were DW 8.1 s, Pine 2.6 s, Nalati 11.6 s and
 Nine 8.7 s. That Pine case was primed; the current baseline below keeps
