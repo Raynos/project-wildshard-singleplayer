@@ -1,4 +1,3 @@
-import ziplineRows from '../data/zipline.generated.json' with { type: 'json' };
 import { GROUND_FILES } from './groundFiles';
 import { PALM_FILES } from './palmFiles';
 import { HIBISCUS_FILES } from './hibiscusFiles';
@@ -6,17 +5,21 @@ import { REEF_FILES } from './reefFiles';
 import { FIXED_MODEL_FILES, FIXED_MODEL_NAMES } from './modelFiles';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { driftwoodReefBank } from './reefBank';
+import { driftwoodZiplineBank } from './ziplineBank';
 import ground from '../data/groundBlobs.generated.json' with { type: 'json' };
 import dressing from '../data/dressingBlobs.generated.json' with { type: 'json' };
-import zipline from '../data/ziplineBlobs.generated.json' with { type: 'json' };
 
-// GR7: the reef's rows come from its bank, keyed by content as the job's `assets/<hash>` sources were, so equal payloads
+// GR7: the reef's and the zipline's rows come from their banks, keyed by content as the job's `assets/<hash>` sources were, so equal payloads
 // across manifests still share one name; the bank's canonical blobs are emitted by prepareOutput (DRIFTWOOD_BANK_BLOBS).
 const reefBank = driftwoodReefBank(), bankBytes = new Map<string, { readonly kind: 'glb' | 'bin'; readonly bytes: Uint8Array }>();
-const reef = { blobs: [...reefBank.blobs].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0).map(([name, row]) => {
-  const source = `assets/${hashImmutableBytes(row.bytes)}`; bankBytes.set(source, row);
-  return { name, kind: row.kind, source };
-}), byUrl: Object.fromEntries(Object.entries(reefBank.byUrl).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) };
+const byKey = ([a]: readonly [string, unknown], [b]: readonly [string, unknown]): number => a < b ? -1 : a > b ? 1 : 0;
+const bankManifest = (blobs: Iterable<readonly [string, { readonly kind: 'glb' | 'bin'; readonly bytes: Uint8Array }]>, byUrl: Readonly<Record<string, string>>) => ({
+  blobs: [...blobs].sort(byKey).map(([name, row]) => {
+    const source = `assets/${hashImmutableBytes(row.bytes)}`; bankBytes.set(source, row);
+    return { name, kind: row.kind, source };
+  }), byUrl: Object.fromEntries(Object.entries(byUrl).sort(byKey)) });
+const reef = bankManifest(reefBank.blobs, reefBank.byUrl), ziplineBank = driftwoodZiplineBank(), ziplineRows = ziplineBank.rows;
+const zipline = bankManifest([...ziplineBank.blobs].map(([name, bytes]) => [name, { kind: 'glb', bytes }] as const), ziplineBank.byUrl);
 const manifests = [reef, ground, dressing, zipline];
 const blobs = manifests.flatMap(row => row.blobs);
 const canonical = new Map<string, (typeof blobs)[number]>();

@@ -2,6 +2,7 @@ import { driftwoodPierRows } from './fixedFacts.ts';
 import { CableLayout } from '@wildshard/engine/sim/cableTraversal';
 import { Box3, Group, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 import { buildZiplineGeometry } from './lookout.ts';
+import { driftwoodZiplineBank } from './ziplineBank.ts';
 import { STATIC_BOAT } from './staticWorld.ts';
 import { BOAT_LAYOUT } from './boatLayout.ts';
 // Four named pier placements and the same three Explorer variants, with no runtime parameter resolution.
@@ -42,7 +43,7 @@ const boat = { key: 'boat', id: 'driftwood-isle/boat', name: 'Sailboat', categor
  { id: 'gear', library: 'cascade', model: 'boatGear', material: 'still', receiveShadow: true },
 ] }] };
 placements.push({ id: 'harbour.boat', model: 'boat', draw: 'single', poses: [{ ...STATIC_BOAT.placement, matrix: [...poseOf(STATIC_BOAT.placement).matrix.elements] }], piece: { id: 'boat', follows: 'copy', solidFloor: true, floors: STATIC_BOAT.floors } });
-const zipRows = read('zipline.generated'), zipSpec = zipRows.layout, lay = new CableLayout({ top: new Vector3(zipSpec.top.x, zipSpec.top.y, zipSpec.top.z), bottom: new Vector3(zipSpec.bottom.x, zipSpec.bottom.y, zipSpec.bottom.z), sag: zipSpec.sag });
+const zipRows = driftwoodZiplineBank().rows, zipSpec = zipRows.layout, lay = new CableLayout({ top: new Vector3(zipSpec.top.x, zipSpec.top.y, zipSpec.top.z), bottom: new Vector3(zipSpec.bottom.x, zipSpec.bottom.y, zipSpec.bottom.z), sag: zipSpec.sag });
 const d = lay.deck, hy = 0.1, c = Math.cos(d.yaw), s = Math.sin(d.yaw), step = 0.24, depth = 0.45, lx = d.hw + depth/2, bottom = d.y-1.6, th = (d.y-step-bottom)/2;
 const colliders = [{ kind: 'box', x: d.x, y: d.y-hy, z: d.z, hx: d.hw, hy, hz: d.hd, yaw: d.yaw },
  { kind: 'box', x: d.x+lx*c, y: bottom+th, z: d.z-lx*s, hx: depth/2, hy: th, hz: d.hd, yaw: d.yaw }];
