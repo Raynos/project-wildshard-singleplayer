@@ -28,17 +28,22 @@ import { MANIFEST as driftwood } from '../src/shards/driftwood-isle/discovery.ge
 import { DRIFTWOOD_FAUNA_PLANS } from '../src/shards/driftwood-isle/generators/fauna';
 import nineNavigation from './fixtures/nine-navigation.json' with { type: 'json' };
 import { bootDiscovery } from './fixtures/nine-boot-discovery';
+import { discovery as driftwoodProgramDiscovery } from './fixtures/driftwood-boot-discovery';
+import { discovery as pineProgramDiscovery } from './fixtures/pine-discovery';
 import { generated as signalProgram } from './fixtures/sunscar-source-program';
 import * as v from 'valibot';
 
 const root = resolve(import.meta.dirname, '..');
 const metadata = (slug: string): unknown => JSON.parse(readFileSync(resolve(root, `src/shards/${slug}/manifest.json`), 'utf8'));
 const nineDiscovery = parseDiscoveryValues({ navigation: nineNavigation, ...bootDiscovery });
+const driftwoodDiscovery = parseDiscoveryValues(driftwoodProgramDiscovery);
 const declaredSource = (slug: string): string => authoredManifestSource(root, slug,
-  slug === 'nine-dragon-stack' ? { discovery: nineDiscovery } : slug === 'sunscar-dunes' ? { discovery: parseDiscoveryValues(signalProgram.discovery) } : undefined);
+  slug === 'nine-dragon-stack' ? { discovery: nineDiscovery } : slug === 'driftwood-isle' ? { discovery: driftwoodDiscovery }
+    : slug === 'pine-hollow' ? { discovery: parseDiscoveryValues(pineProgramDiscovery) }
+    : slug === 'sunscar-dunes' ? { discovery: parseDiscoveryValues(signalProgram.discovery) } : undefined);
 describe('authored JSON discovery', () => {
   test('reads checked spawn data without importing its generator at runtime', () => {
-    const source = authoredManifestSource(root, 'driftwood-isle');
+    const source = declaredSource('driftwood-isle');
     expect(driftwood.spawns).toEqual(DRIFTWOOD_FAUNA_PLANS);
     expect(parseManifestMetadata(metadata('driftwood-isle')).spawns).toEqual(DRIFTWOOD_FAUNA_PLANS);
     expect(source).not.toMatch(/from ["']\.\/(?:generators|data)\/fauna["']/u);
