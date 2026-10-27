@@ -892,9 +892,9 @@ landing under G769; post-land focused qualification follows. X6 owns the
 separate live metadata propagation and one corrected DW pair. Existing
 11.8935s full warm miss remains the measured result; no timing gain claimed.
 
-## T4.10 — required entry uploads before background tiles
+## T4.10 — required entry uploads before background tiles (2ffe3cd126)
 
-In flight (2026-10-27, sp-x8; source in this commit, reading pending).
+In flight (2026-10-27, sp-x8; source2ffe3cd126, reading complete, misses open).
 Sky cold9.35s/warm0.03s on02f234b remains the observed result; first-ring
 registration.enter costs0.94s. Source audit finds required tiles/parents
 already lead fetches but queued uploads ignore those pins. Apply the same
@@ -915,3 +915,55 @@ metadata suite14cases collection-refused absent Driftwood discovery; routed
 to CI owner, no invented tests or duplicate generator. Foreign game-test
 TS6307 source-fixed by X10 in9e110ee81f; focused own types remain green.
 X6 owns live metadata propagation and the corrected DW pair.
+
+### T4.10 original affected Sky pair — 31eaa468cb
+
+One shared production31eaa468cb5273bdc742931a8749d022f1aa14de original
+phone4x/DPR2/muted pair, no profiler/GL observer/forced GC. Fresh cold target
+has zero prior worlds; actual road departure precedes warm, with one prior
+world. Both ready/current Sky, page/transport/errors0, issues empty,
+skipped0/contextLost false. Browser and own4405 borrower closed.
+
+| Request-to-commit and preparation | Cold | Warm |
+|---|---:|---:|
+| Request to commit |8.7144s FAIL8|5.2714s FAIL5|
+| Entry drive p95 /max |33.4 /83.3ms|33.4 /50.0ms|
+| Native presentation tiles |781.3ms|1029.0ms|
+| Native presentation total |806.5ms|1032.7ms|
+| World hook |1663.9ms|499.7ms|
+| World scenes (nested) |1506.9ms|418.2ms|
+| Scene library intake (nested) |1019.6ms|57.6ms|
+| AfterPlay hook |5363.8ms|3033.8ms|
+| Shaders/composer (nested) |3459.1ms|1491.8ms|
+| Compile (nested) |2094.8ms /377jobs|1178.1ms /395jobs|
+| Parked draws (nested) |1733.0ms /217draws|1399.7ms /217draws|
+
+Largest cold preparation envelopes remain shaders/composer, parked draws
+and world; warm tiles are also above1s. These are elapsed/nested windows,
+not exclusive long-frame CPU causes. No entry frame exceeds100ms. The cold
+leave has116.7ms with no active runtime hook, current null/crossing settled;
+current update35.6/render12.9ms accounts for48.5ms, remainder unattributed.
+No profiler was installed. Both timing bars stay open. Cold versus prior
+02f234b9.35s/tile0.94s is not an isolated priority gain: shared source changed.
+
+Warm is a rebuild (new world/afterPlay), unlike the prior0.03s retained
+activation. Its portrait repeats the existing dark/noisy rebuilt-warm look;
+cold is clear. This is routed to CI/render owner under G782-Sky-warm-look,
+with first bad unproven (prior e8cf90a0dc candidate retained). No new visual
+attribution to upload ordering. Raw receipt/summary and both labelled
+portraits: tmp/sp-x8-g782-cuts/entry-upload-reading/.
+
+Post-land scheduler qualification: all26 original/new controls PASS201ms,
+including exact trace, frame/byte/time caps, pinned-parent priority and
+released-pin distance order. T4.10 source stays in flight pending G782.
+
+D177 provider43c72900d8 now has39 distinct focused controls green. The
+restored metadata suite first ran12PASS/2fail: calibration shared its spy
+count. Fixture-only468c9d7bc1 clears that calibration before the pressure
+owner; failed-only3PASS6.89s includes one retained repeat, closing both
+failures without changing exact promotion/retry/eviction assertions. Keep
+the initial collection refusal and count failures as historical evidence.
+Full game-test tsc-b also exits0 after9e110ee81f; native source/scoped types,
+typed lint and scoped ratchet0. Full ratchet attempts retain foreign shard
+debt. X6 live propagation/corrected DW qualification remains separate;
+this Sky pin contains the provider, not that later reader change.
