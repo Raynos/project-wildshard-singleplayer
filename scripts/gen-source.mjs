@@ -1,6 +1,7 @@
 // G798 / GS2: `pnpm gen:source [--check] [--changed=<path>...]` — every app-wide generated source table from its
 // registered producer (scripts/source-generators.mjs). Writes only what differs; --check writes nothing and fails on
-// any table that differs from a fresh run; --changed runs only the rows those inputs feed (the pre-commit hook).
+// any committed table that differs from a fresh run (GS5: CI and the push gate; build-written tables never reach main);
+// --changed runs only the rows those inputs feed.
 // GS4: `--stage --changed=<path>...` is scripts/commit.sh's step: it regenerates only the committed tables the named
 // paths feed and prints `gen:source stage <json paths>`, which commit.sh adds to the commit.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -34,7 +35,7 @@ if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(resolve(p
   const changed = process.argv.filter(arg => arg.startsWith('--changed=')).map(arg => arg.slice('--changed='.length));
   const check = process.argv.includes('--check'), stage = process.argv.includes('--stage');
   if (stage && (check || changed.length === 0)) throw new Error('gen:source: --stage takes --changed=<path>... and no --check');
-  const { touched, owned } = await genSource(resolve(import.meta.dirname, '..'), { check, committed: stage, ...(changed.length > 0 ? { changed } : {}) });
+  const { touched, owned } = await genSource(resolve(import.meta.dirname, '..'), { check, committed: stage ? true : check, ...(changed.length > 0 ? { changed } : {}) });
   if (stage) console.log(`gen:source stage ${JSON.stringify(owned)}`);
   else console.log(`gen:source: ${touched.length === 0 ? 'every table current' : `${check ? 'stale' : 'wrote'} ${touched.join(', ')}`}`);
 }
