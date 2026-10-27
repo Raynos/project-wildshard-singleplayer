@@ -4,7 +4,7 @@ import { glbBuffers, prepareGlbBuffers } from '@wildshard/format/glbBuffers';
 import { hashImmutableBytes } from '../immutable';
 import { parseGlb } from '../assets';
 import { bakeProps } from './props';
-import { meshoptTileBytes } from './tileEncoder';
+import { compressGlb } from './glbCompression';
 
 function views(bytes: Uint8Array): Uint8Array[] {
   const length = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(12, true);
@@ -31,7 +31,9 @@ test('named tile encoding precedes identity and all costs, preserves exact chann
     const after = bakeProps({ ...source, encodeTileBlob(name, bytes) {
       seen.push(name);
       if (name !== 'props.0.2.4') return bytes;
-      borrowed = meshoptTileBytes(bytes); return borrowed;
+      // Exercise the compiler with changed bytes independently of delivery selection:
+      // an artificial repeated triangle can legitimately gzip better unencoded.
+      borrowed = compressGlb(bytes); return borrowed;
     } });
     expect(seen).toEqual(['props.0.2.4', 'props.0.3.4']);
     const oldTile = before.tiles.find(tile => tile.x === 2 && tile.z === 4), newTile = after.tiles.find(tile => tile.x === 2 && tile.z === 4);
