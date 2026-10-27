@@ -32,7 +32,8 @@ export class FrameDrawRanges {
         // Keep sky/backdrop draws and moving/custom pipelines unchanged. A
         // mesh with children cannot be hidden by its own geometry's bound.
         if (!(node instanceof Mesh) || node instanceof SkinnedMesh || !node.frustumCulled || node.children.length > 0
-          || node.onBeforeRender !== Object3D.prototype.onBeforeRender || node.onAfterRender !== Object3D.prototype.onAfterRender) return;
+          || node.onBeforeRender !== Object3D.prototype.onBeforeRender || node.onAfterRender !== Object3D.prototype.onAfterRender
+          || node.onBeforeShadow !== Object3D.prototype.onBeforeShadow || node.onAfterShadow !== Object3D.prototype.onAfterShadow) return;
         const geometry: unknown = node.geometry;
         if (!(geometry instanceof BufferGeometry)) return;
         for (const key in geometry.morphAttributes) if (Object.hasOwn(geometry.morphAttributes, key)) return;

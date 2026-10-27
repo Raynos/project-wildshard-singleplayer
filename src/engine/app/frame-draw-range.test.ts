@@ -36,13 +36,13 @@ test('transformed bounds and instance aggregate bounds keep an overlapping neigh
 });
 
 test('unknown bounds, skinned/custom objects and meshes containing children keep their normal draw', () => {
-  const f = fixture(), unknown = f.mesh(500), custom = f.mesh(500), parent = f.mesh(500);
+  const f = fixture(), unknown = f.mesh(500), custom = f.mesh(500), shadow = f.mesh(500), parent = f.mesh(500);
   const missing = new BoxGeometry(); unknown.geometry = missing;
-  custom.onBeforeRender = () => undefined; parent.add(new Group());
+  custom.onBeforeRender = () => undefined; shadow.onBeforeShadow = () => undefined; parent.add(new Group());
   const skin = new SkinnedMesh(f.geometry, f.material); skin.position.x = 500; f.root.add(skin);
   f.masks.bind(f.scope, 125).enabled = true;
   try { f.masks.draw(f.root, f.camera, { render: () => {
-    expect([unknown.visible, custom.visible, parent.visible, skin.visible]).toEqual([true, true, true, true]);
+    expect([unknown.visible, custom.visible, shadow.visible, parent.visible, skin.visible]).toEqual([true, true, true, true, true]);
   } }, .03); } finally { missing.dispose(); f.dispose(); }
 });
 
