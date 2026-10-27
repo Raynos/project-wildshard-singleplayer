@@ -1,3 +1,4 @@
+import { completeEmptyL1Tiles } from '@wildshard/sdk/bake/tileGrid';
 import { projectNineLayout } from './layoutSource';
 import { parseGlb } from '@wildshard/sdk/assets';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
@@ -49,7 +50,7 @@ export function nineWorldProduct(atlas: NineSpillAtlas): NineWorldProduct {
   files.sort((a, b) => a.hash.localeCompare(b.hash));
   const metadata: NineWorldProduct['metadata'] = { version: 1, notice: 'DO NOT EDIT: generators/bake-nine-layout.mjs through bake(scene, identity).',
     libraries, specimenBoxes: product.boxes,
-    shardfile: { ...baked.shardfile, files, library: [...new Set([...libraries.layout, ...libraries.boot, ...libraries.explorer,
+    shardfile: { ...baked.shardfile, tiles: completeEmptyL1Tiles(baked.shardfile.tiles), files, library: [...new Set([...libraries.layout, ...libraries.boot, ...libraries.explorer,
       ...(baked.props?.props.tiles.filter(tile => tile.lod === 0).flatMap(tile => [tile.file].concat(tile.additionalFiles ?? [])) ?? [])])].sort((a, b) => a < b ? -1 : a > b ? 1 : 0) }, props: baked.props?.props, report: baked.props?.report };
   return { metadata, layout, assets };
 }
