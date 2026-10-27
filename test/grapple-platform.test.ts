@@ -92,7 +92,10 @@ test('shared course preserves original native tool, checkpoint HUD and clock ord
  const traces:unknown[][]=[];
  for(const Course of [OriginalPracticeCourse,PracticeCourse]){
   const trace:unknown[]=[];let now=0;
-  const timer=vi.spyOn(performance,'now').mockImplementation(()=>{trace.push('clock');return ++now*1000;});
+  // One controlled sequence feeds oracle wall ms, owned app seconds and shared HUD diagnostics.
+  const readClock=():number=>{trace.push('clock');return ++now;};
+  const timer=vi.spyOn(performance,'now').mockImplementation(()=>readClock()*1000);
+  const ownedClock=vi.spyOn(app.clock,'now','get').mockImplementation(readClock);
   const scope = new Scope('quarry.practice'), previous = app.levelScope, state = app.state;
   lendNinePractice(scope);
   app.levelScope = scope;
@@ -129,7 +132,7 @@ test('shared course preserves original native tool, checkpoint HUD and clock ord
     position.y=2700;update(.1,0);course.restart();
     traces.push(trace);
     course.exit(); expect(select).toHaveBeenLastCalledWith(null); expect(course.entered).toBe(false);
-  } finally {status.mockRestore();clockView.mockRestore();timer.mockRestore();select.mockRestore(); course.exit(); scope.dispose(); app.levelScope = previous; app.setState(state); }
+  } finally {status.mockRestore();clockView.mockRestore();ownedClock.mockRestore();timer.mockRestore();select.mockRestore(); course.exit(); scope.dispose(); app.levelScope = previous; app.setState(state); }
  }
  expect(traces[1]).toEqual(traces[0]);
 });
