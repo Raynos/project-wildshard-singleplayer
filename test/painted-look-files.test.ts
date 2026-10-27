@@ -11,6 +11,8 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { readNamedBlob } from '../src/sdk/blobs';
 import { skyPaintedPresentation, SKY_PAINTED_GRAPHS, SKY_PAINTED_ATTRIBUTE_SOURCES } from '../src/shards/far-reach/generators/paintedLook';
 import dressing from '../src/shards/far-reach/data/skyDressing.json';
+import { MaterialsSchema, type MaterialEntry } from '../src/format/materials';
+import * as v from 'valibot';
 
 const card=dressing.cumulus.cards.cards[0];if(card===undefined)throw new Error('Missing original card');
 const attributes=card.instances;
@@ -25,12 +27,21 @@ function rows(instances:unknown):PaintedLookRow {
   return parsePaintedLook({look:skyPaintedPresentation().look,images:{},dressing:{name:'finite-cloud',draws:[
     {name:'copies',graph:'sky-cumulus',order:-5,geometry:{kind:'plane',size:[2,2],instances}}]}});
 }
+// D74: a built product's catalogue holds graph files, so the fixture lowers the shard's inline graphs once; their
+// reads stay beside the counted attribute-file reads.
+const graphFiles=new Map<string,Uint8Array>();
+const materials=v.parse(MaterialsSchema,Object.fromEntries(Object.entries(SKY_PAINTED_GRAPHS).map(([id,entry]):[string,MaterialEntry]=>{
+  if(entry.family!=='graph'||!('graph' in entry))return [id,entry];
+  const bytes=new TextEncoder().encode(JSON.stringify(entry.graph)),file=hashImmutableBytes(bytes);graphFiles.set(file,bytes);
+  return [id,{family:'graph',file}];
+})));
 function product(input:unknown,bank:ReadonlyMap<string,Uint8Array>=files){
   const source=emptyShardfile({slug:'painted-file-fixture',name:'Fixture',author:'Fixture',revision:1,seed:1});
   const byHash=new Map([...bank].map(([,bytes])=>[hashImmutableBytes(bytes),bytes]));
   const read=vi.fn((hash:string)=>{const bytes=byHash.get(hash);return bytes===undefined?Promise.reject(new Error('Missing test file')):Promise.resolve(bytes);});
-  return {read,value:createShardProduct({slug:'painted-file-fixture',revision:1,shardfile:{...source,look:{...source.look,materials:SKY_PAINTED_GRAPHS}},
-    sections:new Map([['look/painted',input]]),files:new Map([...bank].map(([name,bytes])=>[name,{hash:hashImmutableBytes(bytes),url:`/fixture/${name}`}])),read})};
+  return {read,value:createShardProduct({slug:'painted-file-fixture',revision:1,shardfile:{...source,look:{...source.look,materials}},
+    sections:new Map([['look/painted',input]]),files:new Map([...bank].map(([name,bytes])=>[name,{hash:hashImmutableBytes(bytes),url:`/fixture/${name}`}])),
+    read:hash=>{const graph=graphFiles.get(hash);return graph===undefined?read(hash):Promise.resolve(graph);}})};
 }
 afterEach(()=>vi.restoreAllMocks());
 
