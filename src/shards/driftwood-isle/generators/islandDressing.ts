@@ -1,7 +1,6 @@
 import { CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/core/config';
 import { Noise2D } from '@wildshard/engine/core/noise';
 import { islandKnobs } from './tiers';
-import type * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { _buildAs, buildTier, TIER, type Tier } from '@wildshard/engine/core/tier';
 import { Rng } from '@wildshard/engine/core/rng';
@@ -15,13 +14,12 @@ import { palm, hibiscusBush, type PalmParams, type HibiscusBushParams } from './
 import { palmGeometry } from './palm';
 import { leafClump } from './hibiscus';
 import { driftwoodGroundBytes } from './groundRows';
-import { duneLogs } from './duneLogs';
 import { bakeFullIslandCover } from './islandCover';
-import { driftwoodIslandFactsFrom, type DriftwoodIslandFacts } from './islandFacts';
+import type { DriftwoodIslandFacts } from './islandFacts';
 import ISLAND_COVER_FILES from '../data/islandCoverFiles.json' with { type: 'json' };
 import { inArea } from './blenderArea';
 import { GULL_CORRIDORS } from './gullsLook';
-import { retainedIslandRuns, type ClipRuns } from './clipDressing';
+import { retainedIslandRuns } from './clipDressing';
 import { MeshStandardMaterial } from 'three';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
@@ -47,7 +45,6 @@ export function beachGullPerches(heightAt: (x: number, z: number) => number, see
  return out;
 }
 
-interface FoliagePlacements { palms: {specs: PalmSpec[]; placements: Placement<PalmParams>[]}; bushes: {specs: BushSpec[]; placements: Placement<HibiscusBushParams>[]} }
 function scatterPalms(heightAt: (x: number, z: number) => number, seed: number, count = Math.round(islandKnobs().palmCount * 1.7), avoid: { x: number; z: number; r: number }[] = []): PalmSpec[] {
     const rng = new Rng(seed ^ 0x9a1e), grove = new Noise2D(seed + 21);
     const wl = waterLevel();
@@ -217,38 +214,4 @@ async function bakeIslandCoverBank(readAsset: (url: string) => Uint8Array, facts
   }
  }finally{_buildAs(previous===TIER?null:previous);restoreGround();restoreLevel();}
  return files;
-}
-/** Compile both tiers from their actual scatter, native shapes and original height binding. */
-export async function islandDressing(readAsset:(url:string)=>Uint8Array, bushesReady?: (tier:'phone'|'desktop', geometry:THREE.BufferGeometry, originals:readonly THREE.BufferGeometry[], clips:ClipRuns) => void, palmsReady?: (tier:'phone'|'desktop', geometry:THREE.BufferGeometry, originals:readonly THREE.BufferGeometry[], clips:ClipRuns) => void):Promise<{seed:number;gullPerches:ReturnType<typeof beachGullPerches>;tiers:{foliage:FoliagePlacements;tier:'phone'|'desktop';clips:{palms:ClipRuns;bushes:ClipRuns;logs:ClipRuns};cover:Awaited<ReturnType<typeof bakeFullIslandCover>>}[]}> {
- const facts=await driftwoodIslandFactsFrom(readAsset);
- const terrain=manifest.ground.terrain;if(terrain===undefined)throw new Error('Native island ground is required');
- const level={id:manifest.slug,ground:{terrain},spawn:manifest.spawn,sky:manifest.sky,atmosphere:manifest.atmosphere,grade:manifest.grade,
-  budgets:{},mechanisms:[],fight:{},boot:{files:[]},audio:{ambience:'none',score:'none'},loadout:{weapons:[],tools:[],start:[]},species:[],spawns:[],minimap:{},kitLook:'toon' as const}; // Only the real authored ground frame is evaluated by this isolated producer.
- const restoreLevel=bindLevelSelection(level),binding=new HeightfieldBinding(level);
- binding.install(readNativeTerrain(driftwoodGroundBytes()));const restoreGround=bindHeightfield(binding),ground=binding.field;
- // Ground-cover logs use the cover's own POI exclusions, not the palm/bush scatter margins.
- const {islandCoveSpec}=await import('./coveLayout');const cave=islandCoveSpec().cave;
- const logAvoid=[{x:HUT.x,z:HUT.z,r:9},{x:LOOKOUT.x,z:LOOKOUT.z,r:8},{x:SHRINE.x,z:SHRINE.z,r:9.5},{x:WRECK.x,z:WRECK.z,r:13},{x:cave.x,z:cave.z+cave.depth/2,r:8},{x:0,z:-151,r:3.2}];
- const logs=duneLogs(ground.heightAt,ground.trailDistance,logAvoid,0,manifest.seed);
- try{
-  // the placements before any tier pass: their scatter ends by clearing the build tier
-  const placed=islandFoliagePlacements(),tiers=[];
-  for(const tier of ['phone','desktop'] as const){
-   _buildAs(tier);
-   const rows=placed.tiers[tier],palms=rows.palms.specs,bushes=rows.bushes.specs;
-   const palmRng=new Rng(seedOf(palm)),bushRng=new Rng(seedOf(hibiscusBush));
-   const palmRows=rows.palms.placements,bushRows=rows.bushes.placements;
-   const pg=palmRows.map(p=>palmGeometry({...palm.defaults,...p.params},palmRng).translate(p.x,p.y,p.z));
-   const bg=bushRows.map(p=>leafClump({...hibiscusBush.defaults,...p.params},bushRng).translate(p.x,p.y,p.z));
-   const mergedPalms=mergeGeometries(pg),mergedBushes=mergeGeometries(bg);
-   try{
-    const clips={palms:retainedIslandRuns(mergedPalms,palmKeep(palms)),bushes:retainedIslandRuns(mergedBushes,(x,z)=>!inArea(x,z)),logs:retainedIslandRuns(logs.geometry,(x,z)=>!inArea(x,z))};
-    bushesReady?.(tier,mergedBushes,bg,clips.bushes);
-    palmsReady?.(tier,mergedPalms,pg,clips.palms);
-    const cover=await bakeFullIslandCover(readAsset,tier==='phone',palms,ground,manifest.seed,facts);
-    tiers.push({tier,clips,cover,foliage:{palms:{specs:palms,placements:palmRows},bushes:{specs:bushes,placements:bushRows}}});
-   }finally{mergedPalms.dispose();mergedBushes.dispose();for(const geometry of [...pg,...bg])geometry.dispose();}
-  }
-  return{seed:placed.seed,gullPerches:placed.gullPerches,tiers};
- }finally{logs.geometry.dispose();_buildAs(null);restoreGround();restoreLevel();}
 }

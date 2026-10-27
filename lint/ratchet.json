@@ -852,7 +852,6 @@
   "wildshard/no-runtime-in-build": {
     "src/shards/_template/generators/product.ts": 1,
     "src/shards/blender-template/shard.config.ts": 1,
-    "src/shards/driftwood-isle/generators/bake-island-dressing.mjs": 2,
     "src/shards/driftwood-isle/generators/boat.ts": 1,
     "src/shards/driftwood-isle/generators/cove.ts": 1,
     "src/shards/driftwood-isle/generators/coveNative.ts": 1,
