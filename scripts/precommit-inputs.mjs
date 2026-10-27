@@ -105,30 +105,8 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
     early.push({ name: 'binary JSON', command: [process.execPath, checker, '--staged'] });
   }
   const running = runCommitJobs(root, early, deadline);
-  const relatedController = new AbortController();
-  let guardsPassed = false;
-  // CF1 and the cheap guards inspect the same candidate independently. Start
-  // both before awaiting either, retaining both verdicts and the entry deadline.
-  // Settle refusals as values immediately so an early red cannot become an
-  // unhandled rejection while another guard is still finishing.
-  const related = (async () => {
-    // Shared hooks execute loose source. Keep a new CF1 implementation inert
-    // until its defining helper has actually landed, never activate a draft.
-    try {
-      const relatedLanded = git(['ls-tree', '--name-only', 'HEAD', '--', 'scripts/precommit-related.mjs']).trim() === 'scripts/precommit-related.mjs';
-      if (!relatedLanded) console.info('CF1: inactive until the defining helper lands');
-      else {
-        const { commitRelated } = await import('./precommit-related.mjs');
-        await commitRelated(root, changed, undefined, relatedController.signal);
-        if (git(['ls-files', '--stage', '-z']) !== initial)
-          console.warn('CF1 DEFERRED TO CI: candidate index changed during related checks; no exact related proof');
-      }
-    } catch (error) {
-      if (error instanceof Error && error.name === 'CommitRelatedRefusalError') return error;
-      console.warn(`CF1 DEFERRED TO CI: hook tooling: ${String(error)}`);
-    }
-    return undefined;
-  })();
+  // G769: related suites may invoke product generation. CI owns that work;
+  // landing never starts a build or waits for its admission.
   /** @type {string | undefined} */
   let tree;
   try {
@@ -195,12 +173,8 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
     if (same && git(['diff', '--name-only', '--', ...files]).trim() !== '') throw new Error('Commit inputs changed during checks');
     if (failures.length > 0) throw new Error(failures.join('\n'));
     console.info(`pre-commit: parallel checks ${(performance.now() - started).toFixed(0)} ms`);
-    guardsPassed = true;
-    const relatedFailure = await related;
-    if (relatedFailure !== undefined) throw relatedFailure;
   } finally {
-    if (!guardsPassed) relatedController.abort();
-    await Promise.all([running, related]);
+    await running;
     if (binaryTree !== undefined) rmSync(binaryTree, { recursive: true, force: true });
     if (tree !== undefined) rmSync(tree, { recursive: true, force: true });
   }
