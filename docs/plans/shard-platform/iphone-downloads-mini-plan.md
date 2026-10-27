@@ -654,3 +654,31 @@ x2/o5 admission/content cuts. I2 remains in flight; no whole-row done or
 physical-phone acceptance claim. Raw: tmp/sp-x9-control-cohort/reading
 and tmp/sp-x9-control-chunks/cohort-compare.json. All own browsers/proxies
 closed; shared preview4406 released/stopped after the read.
+
+### I2.7 Keep deferred bodies out of control packs (2026-10-27, sp-x2)
+
+In flight (reading at plan end): the producer adapter9e4f6f359e and
+clock correction09e5221805 follow late contractd181227f53. This slice
+separates small required and deferred body packs, using the same pure
+control dependency closure in the SDK writer and phone admission. It
+prevents an early body from pulling late or distant bytes along in the
+same pack. Descriptor packs remain separate; all member paths/hashes,
+compressed sizes, full cost declarations and pack limits stay unchanged.
+Global LUT and commons roots join critical/manifest dependencies, so a
+late hint cannot defer a mandatory global input. Pack hashes/grouping
+can change; this is not a product-byte-equivalence claim.
+
+Touched format/game/SDK and SDK-fixture types, scoped scenario types,
+typed lint and source-path ratchet pass. Source controls cover distinct
+early/late packs and a mandatory LUT with a late hint; tests/builds/read
+are intentionally not run before landing (G769). No transport/range or
+JavaScript/SW change. Sp-x9 owns the JS pack; sp-o5 owns the heavy-shard
+content hints. No additional baseline browser was opened.
+
+The latest actual shared21c9656927 cohort is recorded above by sp-x9:
+Pine180737209B/737requests, Nalati103024928B/504, Nine164601700B/470;
+all reach control/errors0. Data requests528/289/276 remain, and0/3 meet
+both original12MB/250-total limits. Those measurements predate this pack
+change and do not establish a saving for it. The original all24 baseline
+is retained; the eventual joint heavy-three read must include producer
+hints and this pack grouping before I2 can qualify.

@@ -680,6 +680,13 @@ the hints into `source.late` after their library roots exist. `nameBlob` and its
 file metadata stay unchanged. Low-level writers may set `source.late` directly
 once those roots are declared. Both routes emit the same `admission.late`.
 
+Small-file transport packs separate descriptor sections, required control bodies,
+and deferred bodies. The SDK writer and phone admission use the same dependency
+closure: commons, critical flags, navigation, presentation images and the global
+LUT override late hints. An early pack cannot carry a deferred small file just
+because both fit under the existing pack limit. Member paths, hashes, sizes and
+full content costs stay unchanged; pack hashes and grouping may change.
+
 ## Authored world source (SF55a, build input)
 
 `@wildshard/sdk/worldSource` exports `WorldSourceSchema`, `WorldSource` and

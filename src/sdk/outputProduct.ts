@@ -1,3 +1,4 @@
+import { controlFileHashes } from '@wildshard/format/admissionControl';
 import { HEADLESS_CONTEXT_SECTIONS } from './headlessSections';
 /** Author-only format-2 emission and on-disk inventory validation. */
 // oxlint-disable-next-line import/no-nodejs-modules -- The author CLI owns its explicit product output directory.
@@ -143,9 +144,11 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
   // iPhone downloads I5: the sections, schemas and small files again as a few content-hashed packs, so a reader fetches
   // one pack instead of hundreds of files; every member keeps its own path, which stays on disk for any other reader
   const packs:{path:string;hash:string;bytes:number;entries:{hash:string;offset:number;bytes:number}[]}[]=[],packed=new Set<string>();
-  // descriptor reads and blob admission are separate phases: their packs never mix, so each phase fetches only its own
+  // Descriptor, required-body and deferred-body reads are distinct phases. A required member must never bring
+  // late/spatial bytes along in its pack; every member keeps its unchanged path/hash, and all pack caps stay fixed.
+  const required = controlFileHashes(source), small = files.filter(file=>file.compressed<PACK_MEMBER_BYTES).sort((a,b)=>a.hash.localeCompare(b.hash));
   const groups=[[...[...sections].sort((a,b)=>a.name.localeCompare(b.name)),...[...schemas].sort((a,b)=>a.path.localeCompare(b.path))],
-    files.filter(file=>file.compressed<PACK_MEMBER_BYTES).sort((a,b)=>a.hash.localeCompare(b.hash)).map(file=>({path:file.path,hash:file.hash,bytes:file.compressed}))];
+    ...[true,false].map(initial=>small.filter(file=>required.has(file.hash)===initial).map(file=>({path:file.path,hash:file.hash,bytes:file.compressed})))];
   let pending:{path:string;hash:string;bytes:number}[]=[],pendingBytes=0;
   const flush=():void=>{
     if(pending.length===0)return;

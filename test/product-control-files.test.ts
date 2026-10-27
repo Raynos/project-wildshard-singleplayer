@@ -56,3 +56,11 @@ test('late metadata refuses duplicate roots and positions outside the cell', () 
     expect(v.safeParse(AdmissionLateSchema, input).success).toBe(false);
   }
 });
+
+test('a late global LUT remains a required control dependency', () => {
+  const source = emptyShardfile({slug:'late-lut',name:'LUT',author:'Fixture',seed:1,revision:1}), hash = 'a'.repeat(64);
+  source.files = [{hash,kind:'binary',compressed:3,decoded:3,gpu:0,triangles:0,draws:0,dependencies:[],critical:false}];
+  source.library = [hash]; source.late = [{hash,at:[200,0]}]; source.look.grade.lut = hash;
+  expect(controlFiles(source,source.files)).toEqual(source.files);
+  expect(lateFiles(source,source.files)).toEqual([]);
+});

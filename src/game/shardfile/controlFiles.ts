@@ -1,22 +1,10 @@
+import { controlFileHashes } from '@wildshard/format/admissionControl';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** I2: only an exact first-party validation receipt may use this transport subset. Keep the full declaration;
  * tile scopes verify their own later reads. Global/critical and manifest-construction bytes stay ready. */
 export function controlFiles(source: Shardfile, selected: readonly Shardfile['files'][number][]): Shardfile['files'] {
-  const card = source.presentation?.card, late = new Set((source.late ?? []).map(row => row.hash));
-  const pending = [...source.critical, ...source.library.filter(hash => !late.has(hash)), ...source.files.filter(file => file.critical).map(file => file.hash),
-    ...source.navigation === null ? [] : [source.navigation.file], ...source.map === undefined ? [] : [source.map.image],
-    ...card === undefined ? [] : [card.thumb, card.portrait, card.landscape]];
-  const needed = new Set<string>(), files = new Map(source.files.map(file => [file.hash, file]));
-  while (pending.length > 0) {
-    const ref = pending.pop(); if (ref === undefined) break;
-    const hash = ref.replace(/^commons:/u, ''); if (needed.has(hash)) continue;
-    needed.add(hash);
-    const file = files.get(hash);
-    if (file === undefined) {
-      if (!source.requires.commons.includes(hash)) throw new Error('Control file is not declared');
-    } else pending.push(...file.dependencies);
-  }
+  const needed = controlFileHashes(source);
   return selected.filter(file => needed.has(file.hash));
 }
 

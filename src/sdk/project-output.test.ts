@@ -302,3 +302,17 @@ test('output late hints refuse missing library roots and malformed scheduling me
   expect(() => mergeProjectBlobs(source(), new Map(), [], [], [{hash:blob.file.hash}])).toThrow('declared library roots');
   expect(() => mergeProjectBlobs(source(), new Map(), [blob], [], [{hash:blob.file.hash},{hash:blob.file.hash}])).toThrow('unique late');
 });
+
+test('small late bodies never ride a required control body pack', () => {
+  const early = nameBlob('world/shared.bin', 'bin', binary), late = nameBlob('world/later.bin', 'bin', new Uint8Array([4,5,6]));
+  const merged = mergeProjectBlobs(source(), new Map(), [early,late], [], [{hash:late.file.hash,at:[200,0]}]);
+  const index = writeOutputProduct(merged.shard, merged.assets, directory(), {namedFiles:merged.namedFiles});
+  const earlyPack = index.packs?.find(pack => pack.entries.some(entry => entry.hash === early.file.hash));
+  const latePack = index.packs?.find(pack => pack.entries.some(entry => entry.hash === late.file.hash));
+  if (earlyPack === undefined || latePack === undefined) throw new Error('Missing scoped body packs');
+  expect(earlyPack.hash).not.toBe(latePack.hash);
+  expect(earlyPack.entries.some(entry => entry.hash === late.file.hash)).toBe(false);
+  expect(index.files.find(file => file.hash === early.file.hash)?.compressed).toBe(3);
+  expect(index.files.find(file => file.hash === late.file.hash)?.compressed).toBe(3);
+  expect(merged.shard.library).toEqual(expect.arrayContaining([early.file.hash,late.file.hash]));
+});
