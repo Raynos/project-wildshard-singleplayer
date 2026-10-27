@@ -17,7 +17,7 @@ import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { emptyShardfile } from '../src/sdk/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { HELD_ARMS } from '../src/shards/driftwood-isle/generators/heldArms';
-import { DRIFTWOOD_OUTPUT } from '../src/shards/driftwood-isle/generators/assets';
+import { FIXED_MODEL_NAMES } from '../src/shards/driftwood-isle/generators/modelFiles';
 import recipe from '../src/shards/driftwood-isle/data/ironSwordScene.json' with { type: 'json' };
 
 afterEach(() => { vi.restoreAllMocks(); });
@@ -37,8 +37,8 @@ test('a second shard drives held claim geometry, materials and cards entirely fr
   const files = new Map<string, { hash: string; url: string }>(), bytes = new Map<string, Uint8Array>();
   const claim = rows.claims[0]; if (claim === undefined) throw new Error('Missing fixture claim');
   for (const name of Object.values(claim.geometries)) {
-    const source = DRIFTWOOD_OUTPUT.blobs.find(row => row.name === name); if (source === undefined) throw new Error('Missing shipped claim geometry');
-    const buffer = new Uint8Array(readFileSync(`src/shards/driftwood-isle/${source.source}`)), hash = hashImmutableBytes(buffer);
+    const source = Object.entries(FIXED_MODEL_NAMES).find(([, declared]) => declared === name)?.[0]; if (source === undefined) throw new Error('Missing shipped claim geometry');
+    const buffer = new Uint8Array(readFileSync(`public${source}`)), hash = hashImmutableBytes(buffer);
     bytes.set(hash, buffer); files.set(name, { hash, url: `/fixture/${hash}` });
   }
   const product = createShardProduct({ slug: rows.slug, revision: 1, shardfile: emptyShardfile({ slug: rows.slug, name: 'Harbour', author: 'Fixture', revision: 1, seed: 17 }),

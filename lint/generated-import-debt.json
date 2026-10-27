@@ -53,7 +53,7 @@
     "src/shards/driftwood-isle-legacy/boot/sources.ts": 1,
     "src/shards/driftwood-isle-legacy/manifest.ts": 1,
     "src/shards/driftwood-isle/blender/export.mjs": 2,
-    "src/shards/driftwood-isle/generators/assets.ts": 7,
+    "src/shards/driftwood-isle/generators/assets.ts": 6,
     "src/shards/driftwood-isle/generators/bake-cargo-scenes.mjs": 1,
     "src/shards/driftwood-isle/generators/bakedCove.ts": 2,
     "src/shards/driftwood-isle/generators/bootRecipes.ts": 1,

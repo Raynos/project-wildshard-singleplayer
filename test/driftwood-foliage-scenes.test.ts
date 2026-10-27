@@ -1,3 +1,4 @@
+import { FIXED_MODEL_NAMES } from '../src/shards/driftwood-isle/generators/modelFiles';
 // oxlint-disable-next-line import/no-nodejs-modules -- Admit the original foliage rows without inferring their full JSON type.
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
@@ -34,7 +35,7 @@ const data=(()=>{
 
 const project = new URL('../src/shards/driftwood-isle/', import.meta.url);
 test('runtime foliage uses the finished GLBs without dangling retired transport aliases', () => {
-  const names = new Set(DRIFTWOOD_OUTPUT.blobs.map(row => row.name));
+  const names = new Set([...DRIFTWOOD_OUTPUT.blobs.map(row => row.name), ...Object.values(FIXED_MODEL_NAMES)]);
   expect([...names].filter(name => /^world\/(?:palms\/|hibiscus\/|reef\.bin$)/u.test(name))).toEqual([]);
   for (const name of Object.values(DRIFTWOOD_ASSET_NAMES)) expect(names.has(name), name).toBe(true);
   for (const model of data.libraries.flatMap(library => library.models)) {
