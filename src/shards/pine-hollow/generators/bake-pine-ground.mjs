@@ -14,6 +14,7 @@ import { bakeSplatGround, nativeSplatGround, splatGroundSource, splatLayerFiles 
 import { parseKtx2 } from '@wildshard/sdk/assets';
 import { terrainOpeningHits } from '@wildshard/game/shardfile/pagePreparation';
 import { PINE_GROUND } from './groundTiles.ts';
+import * as PINE_LAYOUT from './layout.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
 const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
@@ -22,7 +23,7 @@ const table = (() => { const text = readFileSync(resolve(root, 'src/shards/pine-
 const terrain = new Uint8Array(readFileSync(resolve(root, 'public/assets/baked/pine-hollow/terrain.bin')));
 const ground = nativeSplatGround('pine-hollow', terrain);
 // the bear cave's drawn openings, as the page punches them (world/crag-cave.json's holes in the cave's frame)
-const layout = JSON.parse(readFileSync(resolve(root, 'src/shards/pine-hollow/data/layout.generated.json'), 'utf8'));
+const layout = PINE_LAYOUT;
 const cave = JSON.parse(readFileSync(resolve(root, 'public/assets/models/pine-hollow-crags/cave.json'), 'utf8'));
 const openings = { frame: { x: layout.BEAR_CAVE.x, z: layout.BEAR_CAVE.z, yaw: layout.BEAR_CAVE.rot }, cuts: [], holes: cave.holes };
 const tiles = await bakeSplatGround(splatGroundSource(terrain, ground.canopy, (...corners) => terrainOpeningHits(openings, ...corners)), PINE_GROUND);

@@ -4,7 +4,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout.ts';
 
 const root=resolve(import.meta.dirname,'../../../..');
 async function hero(id,phone=false){

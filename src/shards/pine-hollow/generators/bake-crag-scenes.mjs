@@ -10,7 +10,7 @@ import { cragNodeGeometry, cragFixedRows } from './cragWorldScenes.ts';
 import { CragSkin } from './cragCodec.ts';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import sourceRows from '../data/crags.json' with { type: 'json' };
-import layout from '../data/layout.generated.json' with { type: 'json' };
+import * as layout from './layout.ts';
 
 const project = new URL('../', import.meta.url), root = new URL('../../../../', import.meta.url);
 const directory = 'public/assets/models/pine-hollow-crags/';

@@ -6,7 +6,7 @@ import { ScalarChannelSchema } from '@wildshard/format/scalarChannel';
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 import { pineForestRows, PINE_DENSITY_FILE } from './forestRows.ts';
 import { creekSpan, inBeaverPool } from './geography.ts';
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout.ts';
 import TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
 import { Noise2D } from './floorNoise.ts';
 

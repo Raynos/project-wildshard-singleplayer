@@ -8,7 +8,6 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import L from '../../data/layout.generated.json' with { type: 'json' };
 
 const ROOT = resolve(import.meta.dirname, '../../../../..');
 const OUT = process.argv[2] ?? resolve(ROOT, 'cave-in.json');
@@ -16,6 +15,8 @@ const noop = () => undefined;
 Object.assign(globalThis, { window: { addEventListener: noop, location: new URL('http://localhost/'), setTimeout, clearTimeout }, location: new URL('http://localhost/'), document: { createElement: () => ({ getContext: () => null, style: {} }) } });
 Object.defineProperty(globalThis, 'navigator', { value: { userAgent: 'node', maxTouchPoints: 0, hardwareConcurrency: 8 }, configurable: true });
 const src = (p) => import(pathToFileURL(resolve(ROOT, 'src', p)).href);
+// GR8: the layout module itself (pine-layout no longer writes its JSON), loaded like the other sources
+const L = await src('shards/pine-hollow/generators/layout.ts');
 const registry = await src('game/shard/registry.ts');
 const HF = await src('engine/world/Heightfield.ts');
 const BT = await src('engine/world/BakedTerrain.ts');
