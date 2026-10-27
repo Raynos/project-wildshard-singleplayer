@@ -678,3 +678,26 @@ coverage limits, and an enclosing scene span is not decoder CPU.
 
 
 G782.S10 reading (2026-10-27, sp-x1): source cut `965ae4042e03d2a2cd2af6228d5f904df9ae24e8`, one original phone4x/DPR2 cold entry, actual road departure and warm return on pinned `965ae4042e03d2a2cd2af6228d5f904df9ae24e8`. One original phone4x cold/warm pair on965ae4042e (contains source965ae4042e): 16.487/10.234s request→commit versus8/5s; entry p95/max50.1/150.0ms/33.4/100.0ms. Assembly construction1.316/0.309s, scene2.373/1.569s, owned library1.728/0.899s, baked1.383/0.850s, compile4.064/2.099s, parked2.128/1.967s; planned slices64→62/62→59 cold/warm, drawn142/161. timing/cadence miss remains open. Both entries ready/current Driftwood, errors0; browser/preview release0. One non-quiet observation with intervening shared changes, no isolated gain claimed. Original readiness/skip/context controls: `[{"visit": "cold", "complete": true, "ready": true, "skipped": 0, "contextLost": false}, {"visit": "warm", "complete": true, "ready": true, "skipped": 0, "contextLost": false}]`. Retained memory includes the independently charged revisit backing: cold owned loading304807846B/playing297042058B, page commons-accounted59759628B, page modeled resident614.75MB/playing1009.23MB; warm owned loading304807846B/playing297042058B, page commons-accounted59759628B, page modeled resident760.83MB/playing1156.62MB. All-page modeled counters include other owners and are not physical process memory or per-shard caps; CDP/browser/GPU totals remain informational. Previous61885 pair15.852/15.966s predates intervening shared source, so this is not a matched causal comparison. Original timing/cadence/content/cancellation thresholds unchanged. Full scalar summary tmp/sp-x1-dw-parked-pack/summary.json; all12 parked-receipt controls pass9.39s. The candidate and original plan independently admit every original first draw with unchanged material, binding, draw-count and byte caps; oversized uploads remain alone and every submitted slice waits for a completed game frame. Hooks and special draw kinds preserve their order; exact receipts still decide any skipped draw. One non-quiet combined-source observation, not isolated causal proof or final acceptance.
+
+
+G782 warm-return extension (2026-10-27, sp-x6): four-shard reading is
+in flight, on one shared source pin containing `9738809b3f` and
+`b7d6c8b728`. Before starting it, the retained x8 profiled DW pair on
+`9738809b3f` establishes a real retention miss: warm request-to-commit
+11.784s, activation completed12.724s after request, world rebuilt4.518s.
+The first departure has no retained world about2.2s after commit; the
+second retains DW with27.695s left at805990121B on its strict per-owner
+playing ruler. This is not the30s expiry.
+
+The original cold-leave CPU profile gives the causal stack:
+`ProductInputs.acquireRefs` -> product-input claim in `products.ts:292`
+-> `reserve` -> `reserveClaim` -> `evictFor` -> retained-world callback
+-> `LiveGridHost.prepareUnload`. The first departure has an86.7MB Pine
+refill claim after DW disappeared. Speculative source-exit input refill
+is evicting the valid kept world. X8 owns the defining no-eviction
+speculative borrow correction; actual-entry reserve/eviction and all
+memory caps stay unchanged. No duplicate DW pair was run against these
+known failing bytes. The four-shard verdict will measure through
+activation and its first gameplay-ready drawn frame, and retain the
+full per-shard budget ruler including shared base/page costs; cold
+crossing and frame-floor misses remain with their existing owners.
