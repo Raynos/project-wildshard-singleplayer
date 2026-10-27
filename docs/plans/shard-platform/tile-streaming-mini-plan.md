@@ -823,3 +823,5 @@ The far views looked bad because today's stand-ins are crude (decimated ~1.6 MB 
 | F3 | Menu hero rendered offline at full detail and shipped as an image (no run-time streaming) | Opus | 0.5 d | hero matches the original framing; costs no run-time memory |
 
 T7.2 (2026-10-27, sp-x8; source `eb322baa11`), in flight (reading at plan end): render-only approach pins start after the admitted neighbour tile offer rather than awaiting life-script and panel construction. Actual entered data still waits for complete admission and original input cleanup. No residency, readiness, transfer or memory-cap widening; G782 warm/cold numbers remain unqualified. Game/test types, typed lint and scoped ratchet pass.
+
+T7.3 (2026-10-27, sp-x8; source this commit), in flight (reading at plan end): retarget one render-only approach pin when the destination-local entry tile changes, aborting the old pin first. Same-tile movement keeps its request; destination and pose jumps retain original heading and distance fences. No world/resident/readiness widening. Types, typed lint and scoped ratchet pass; controls unexecuted under G769, G782 times unqualified.

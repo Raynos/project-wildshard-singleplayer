@@ -15,6 +15,7 @@ import type { PreparedGridCrossing } from './crossing';
 import { GridContinuationCache, GRID_CONTINUATION_CACHE_BYTES } from './continuations';
 import type { HomeResidencyClaim } from './pageResidency';
 import { clientPreparationBatch } from '../shardfile/preparationTiming';
+import { tileOf, type CellTile } from '../shardfile/tileOrder';
 
 /** An owned region has authored colliders and logical player state, but no second traveller capsule. */
 export interface LiveGridRegion { host: SimHost; dispose: () => void;
@@ -292,14 +293,17 @@ export class LiveGridHost {
   }
   /** A road-approach guess remains speculative after construction, until entry or abandonment. */
   private approach: { instance: string; controller: AbortController; demanded: boolean } | null = null;
-  private tileApproach: { instance: string; controller: AbortController } | null = null;
+  private tileApproach: { instance: string; tile: CellTile; controller: AbortController } | null = null;
   private prepareNeighbour(cell: GridCell, feet: GridPoint): void {
-    if (this.tileApproach?.instance === cell.instance) return;
-    this.tileApproach?.controller.abort();
-    const controller = new AbortController();
-    this.tileApproach = { instance: cell.instance, controller };
     const start = { x: Math.max(-CHUNK_HALF, Math.min(CHUNK_HALF, feet.x - cell.origin.x)),
       z: Math.max(-CHUNK_HALF, Math.min(CHUNK_HALF, feet.z - cell.origin.z)) };
+    const tile = tileOf(start.x, start.z), prior = this.tileApproach;
+    if (prior?.instance === cell.instance && prior.tile.i === tile.i && prior.tile.j === tile.j) return;
+    // A diagonal approach can reach another mouth of the same destination.
+    // Retarget only across tile boundaries; keep exactly one speculative pin.
+    prior?.controller.abort();
+    const controller = new AbortController();
+    this.tileApproach = { instance: cell.instance, tile, controller };
     const prepare = this.ports.prepareNeighbour;
     if (prepare === undefined) return;
     void background(cell.instance, prepare(cell, start, controller.signal), () => !this.disposed && !controller.signal.aborted);

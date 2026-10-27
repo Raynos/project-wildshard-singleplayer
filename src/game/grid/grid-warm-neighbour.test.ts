@@ -23,7 +23,9 @@ function travel(live: LiveGridHost, at: { x: number; z: number }, dx: number, dz
 }
 
 async function fixture(options: { paired?: boolean; loading?: number; isolation?: boolean; allNeighbours?: boolean; horizonSeconds?: number;
-  tilePreparation?: boolean; tileApproaches?: string[]; runtimeReady?: (instance: string) => Promise<void> } = {}) {
+  tilePreparation?: boolean; tileApproaches?: string[];
+  tilePins?: { instance: string; start: { readonly x: number; readonly z: number }; signal: AbortSignal }[];
+  runtimeReady?: (instance: string) => Promise<void> } = {}) {
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const assembly = new GridAssembly({ developer: false, devserver: false }), home = assembly.cell('driftwood-isle');
   const east = assembly.cells.find(cell => cell.origin.x === assembly.pitch && cell.origin.z === 0);
@@ -42,7 +44,9 @@ async function fixture(options: { paired?: boolean; loading?: number; isolation?
     player, allocator: residency.allocator, continuations: 'durable', save: () => true,
     bindFrame: frame => { events.push(`frame:${frame.instance ?? 'road'}`); }, gameplayReady: () => true,
     ...(options.paired === true ? { preparationBudget: budget } : {}),
-    ...(options.tileApproaches === undefined ? {} : { prepareNeighbour: (cell: { instance: string }) => { options.tileApproaches?.push(cell.instance); return Promise.resolve(); } }),
+    ...(options.tileApproaches === undefined && options.tilePins === undefined ? {} : { prepareNeighbour: (cell: { instance: string }, start: { readonly x: number; readonly z: number }, signal: AbortSignal) => {
+      options.tileApproaches?.push(cell.instance); options.tilePins?.push({ instance: cell.instance, start, signal }); return Promise.resolve();
+    } }),
     highway: { bytes: 1000, create: () => ({ physics: page.physics, dispose: () => undefined }) },
     prefetchable: cell => options.allNeighbours === true || [home.instance, east.instance, north.instance].includes(cell.instance),
     // a large world: its readiness reach starts well inside the source
@@ -279,6 +283,25 @@ test('verified entry tiles prepare during runtime import without publishing a wo
     await f.cross(f.home.instance, f.east.instance);
     expect(f.created()).toEqual([f.home.instance, f.east.instance]);
   } finally { finish(); f.close(); }
+});
+
+test('a diagonal approach retargets its one render pin when the entry tile changes', async () => {
+  const pins: { instance: string; start: { readonly x: number; readonly z: number }; signal: AbortSignal }[] = [];
+  const f = await fixture({ paired: true, tilePreparation: true, tilePins: pins });
+  try {
+    await f.enterHome(); await f.live.prefetch([f.east.instance]);
+    f.player.position.x = 200; f.player.position.z = .1;
+    travel(f.live, f.player.position, 1, 0); await f.settle();
+    expect(pins).toHaveLength(1); expect(pins[0]?.instance).toBe(f.east.instance);
+    f.player.position.x = 212; f.player.position.z = -.1;
+    travel(f.live, f.player.position, 12, -.2); await f.settle();
+    expect(pins).toHaveLength(2); expect(pins[0]?.signal.aborted).toBe(true); expect(pins[1]?.signal.aborted).toBe(false);
+    expect(pins[1]?.start).toEqual({ x: -250, z: -.1 });
+    f.player.position.x = 224; f.player.position.z = -.2;
+    travel(f.live, f.player.position, 12, -.1); await f.settle();
+    expect(pins).toHaveLength(2); expect(f.created()).toEqual([f.home.instance]);
+    expect(f.live.current()).toBe(f.home.instance);
+  } finally { f.close(); }
 });
 
 test('G723: an active source keeps its ordinary ordering when isolation or the pair budget refuses', async () => {
