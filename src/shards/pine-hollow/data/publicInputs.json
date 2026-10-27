@@ -15,5 +15,10 @@
   "king": {
     "desktop": "/assets/pine-hollow/creatures/antler-king-rig.rigged.glb",
     "phone": "/assets/pine-hollow/creatures/antler-king-rig.phone.rigged.glb"
+  },
+  "birds": {
+    "desktop": "/assets/pine-hollow/life/birds.glb",
+    "phone": "/assets/pine-hollow/life/birds.phone.glb",
+    "sidecar": "/assets/pine-hollow/life/birds.json"
   }
 }

@@ -5,6 +5,8 @@ import { generate } from '../../src/shards/pine-hollow/generators/generate';
 import { prepareOutput } from '../../src/shards/pine-hollow/generators/output';
 import { pineJournal } from '../../src/shards/pine-hollow/generators/journal';
 import { pineKingKit } from '../../src/shards/pine-hollow/generators/publicInputs';
+import { pineBirds } from '../../src/shards/pine-hollow/generators/birdInputs';
+import { wildlifeDraw } from '../../src/shards/pine-hollow/generators/wildlifeDraw';
 import { pineGeneration } from './pine-generation';
 
 // GR8: Pine's producers run in its program (generate(ctx), prepareOutput(ctx)), so tests read what the program
@@ -16,5 +18,7 @@ export const PINE: Shardfile = await generate(context);
 export const PINE_JOURNAL: Awaited<ReturnType<typeof pineJournal>> = await pineJournal(context);
 /** The Antler King's baked kit (its named pool and rows), as the program bakes it. */
 export const PINE_KING_KIT: Awaited<ReturnType<typeof pineKingKit>> = await pineKingKit(context);
+/** The wildlife draw rows over the program's bird bake (its rest ranges). */
+export const PINE_WILDLIFE_DRAW: ReturnType<typeof wildlifeDraw> = wildlifeDraw((await pineBirds(context)).ranges);
 /** Pine's prepared output (sections, named files and their bytes). */
 export const PINE_PREPARED_OUTPUT: Awaited<ReturnType<typeof prepareOutput>> = await prepareOutput(context);

@@ -6,7 +6,7 @@ import { PosedDraw, PosedInstances } from '@wildshard/game/looks/posedInstances'
 import { lendLooks } from '@wildshard/game/shardfile/lentLooks';
 import { parseAmbientFlock } from '@wildshard/format/ambientLife';
 import { GULL_FLOCK } from '../src/shards/driftwood-isle/generators/gullsLook';
-import { WILDLIFE_DRAW } from '../src/shards/pine-hollow/generators/wildlifeDraw';
+import { PINE_WILDLIFE_DRAW as WILDLIFE_DRAW } from './fixtures/pine-program';
 
 const geometry = (): BufferGeometry => new BufferGeometry().setAttribute('position', new Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 1, 0], 3));
 const packed = (draw: PosedDraw | PosedInstances) => ({ matrix: [...draw.mesh.instanceMatrix.array],

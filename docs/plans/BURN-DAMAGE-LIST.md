@@ -99,6 +99,7 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D51 | Test types: `driftwood-creature-look`, `driftwood-island-look` and `driftwood-product-reads` read the Driftwood product default as an object (`.look`, `.rows`), but it is now `(ctx) => Promise<Shardfile>` (`tsc -p tsconfig.json`) | `60e393b0e8` | sp-x10 | open |
 | D52 | Driftwood map bake: `generators/mapAssembly.mjs` still calls `siteCatalogue()` and imports `WORLD_SCENES`; both take the scene banks since the cargo bank landed (`driftwoodSceneBanksFrom(read)` is its direct seam) | the cargo-bank commit (sp-o4, GR7) | sp-x10 (agreed: adapts mapAssembly after the bank lands) | open |
 | D53 | Full-tree ratchet now reaches counting but refuses existing shard-sandbox rises in Driftwood/Nalati/Nine generator readers (including oceanFiles/hibiscusFiles/palmFiles/bootFiles/casts/bootRecipes/coats/riggedHulls); exact S3 archive scope passes unchanged baseline. Raw list tmp/sp-x2/s3-road-owned/archive-ratchet-final.log; no guard/allowance edited. | observed `ec86872b48` (not culprit attribution) | breaker (sp-ci-deploy finds) | open |
+| D54 | `test/explorer-catalogue.test.ts` imports `output` from Far Reach's `generators/sourceOutput`, which no longer exports it, so the file fails types and typed lint; it also still imports Pine's retired `WILDLIFE_DRAW` (now `PINE_WILDLIFE_DRAW` in `test/fixtures/pine-program.ts`, GR8 G20h, sp-o1) | `22bcb2170b` | sp-x1 (GR5 Far Reach) | open; swap the Pine import when the Far Reach read is fixed |
 
 ## Rows
 

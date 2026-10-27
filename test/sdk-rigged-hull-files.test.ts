@@ -7,7 +7,7 @@ import { riggedHullMap, riggedHulls } from '@wildshard/game/looks/riggedHulls';
 import { parseRiggedHullBook, type RiggedHullFamilyRow } from '@wildshard/format/riggedHulls';
 import { parsePlatformDataSection } from '@wildshard/format/platformDataSections';
 import coatPages from '../src/shards/pine-hollow/data/coatPages.generated.json' with { type: 'json' };
-import { WILDLIFE_DRAW } from '../src/shards/pine-hollow/generators/wildlifeDraw';
+import { PINE_WILDLIFE_DRAW as WILDLIFE_DRAW } from './fixtures/pine-program';
 import { PINE_HULLS } from '../src/shards/pine-hollow/generators/creatureHulls';
 import { PINE_HULL_BOOK, pineHullResources } from '../src/shards/pine-hollow/generators/riggedHulls';
 import { NALATI_HULL_BOOK } from '../src/shards/nalati-grasslands/generators/riggedHulls';
@@ -105,7 +105,7 @@ it('keeps every baked coat\'s cache key on the rig\'s original public path', () 
   expect(pineHullResources('desktop').coats['boar:boar:thrall']?.key).toBe('procedural:/assets/pine-hollow/creatures/boar.boar.thrall.coat.png');
 });
 
-it('names Pine\'s bird blobs as the producer does (generators/birdBlobs.mjs), per tier', () => {
+it('names Pine\'s bird blobs as the producer does (generators/birdInputs.ts), per tier', () => {
   expect(WILDLIFE_DRAW.tiers.phone).toEqual({ geometry: 'models/life/birds-rest.phone.glb', atlas: 'models/life/birds.phone.base.ktx2' });
   expect(WILDLIFE_DRAW.tiers.desktop).toEqual({ geometry: 'models/life/birds-rest.glb', atlas: 'models/life/birds.base.ktx2' });
 });

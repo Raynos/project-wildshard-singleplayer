@@ -16,7 +16,7 @@ for(const name of ["pine-hollow/generators/creatureLofts", "pine-hollow/generato
 
 test("Pine resource declarations preserve skeleton, state and mutable draw contracts",()=>{
  const consumer=resolve('src/shards/t4-pine-fifth-consumer.ts');
- let source="import {LEG_BONE_NAMES,PARENT,WALK} from './pine-hollow/generators/npcSkin';\nimport {PINE_STATE} from './pine-hollow/generators/state';\nimport {WILDLIFE_DRAW} from './pine-hollow/generators/wildlifeDraw';\nexport const hip:'hips'=LEG_BONE_NAMES[0];\nexport const stride:0.24=WALK.stride;\nexport const revision:1=PINE_STATE.version;\nPARENT.push(22);\nWILDLIFE_DRAW.assets.name='another-bank';\n";
+ let source="import {LEG_BONE_NAMES,PARENT,WALK} from './pine-hollow/generators/npcSkin';\nimport {PINE_STATE} from './pine-hollow/generators/state';\nimport {wildlifeDraw} from './pine-hollow/generators/wildlifeDraw';\nconst WILDLIFE_DRAW=wildlifeDraw([]);\nexport const hip:'hips'=LEG_BONE_NAMES[0];\nexport const stride:0.24=WALK.stride;\nexport const revision:1=PINE_STATE.version;\nPARENT.push(22);\nWILDLIFE_DRAW.assets.name='another-bank';\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   noPropertyAccessFromIndexSignature:true,target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,
   moduleResolution:ts.ModuleResolutionKind.Bundler,types:['node'],allowArbitraryExtensions:true,skipLibCheck:true,noEmit:true};
@@ -29,7 +29,7 @@ test("Pine resource declarations preserve skeleton, state and mutable draw contr
   return program.getSemanticDiagnostics(file);
  };
  expect(diagnostics()).toEqual([]);
- source="import {LEG_BONE_NAMES,PARENT,WALK} from './pine-hollow/generators/npcSkin';\nimport {PINE_STATE} from './pine-hollow/generators/state';\nimport {WILDLIFE_DRAW} from './pine-hollow/generators/wildlifeDraw';\nexport const hip:'hips'=LEG_BONE_NAMES[0];\nexport const stride:0.24=WALK.stride;\nexport const revision:1=PINE_STATE.version;\nPARENT.push(22);\nWILDLIFE_DRAW.assets.name='another-bank';\nPARENT.push('22');\nLEG_BONE_NAMES[0]='head';\nWALK.stride=0.5;\nPINE_STATE.version=2;\nWILDLIFE_DRAW.assets.name=1;\nWILDLIFE_DRAW.assets.missing;\n";
+ source="import {LEG_BONE_NAMES,PARENT,WALK} from './pine-hollow/generators/npcSkin';\nimport {PINE_STATE} from './pine-hollow/generators/state';\nimport {wildlifeDraw} from './pine-hollow/generators/wildlifeDraw';\nconst WILDLIFE_DRAW=wildlifeDraw([]);\nexport const hip:'hips'=LEG_BONE_NAMES[0];\nexport const stride:0.24=WALK.stride;\nexport const revision:1=PINE_STATE.version;\nPARENT.push(22);\nWILDLIFE_DRAW.assets.name='another-bank';\nPARENT.push('22');\nLEG_BONE_NAMES[0]='head';\nWALK.stride=0.5;\nPINE_STATE.version=2;\nWILDLIFE_DRAW.assets.name=1;\nWILDLIFE_DRAW.assets.missing;\n";
  const refused=diagnostics().map(diagnostic=>diagnostic.code);
  expect(refused.filter(code=>code===2540)).toHaveLength(3);
  expect(refused.filter(code=>code===2345)).toHaveLength(1);

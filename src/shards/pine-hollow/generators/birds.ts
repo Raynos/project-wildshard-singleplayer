@@ -13,11 +13,33 @@ import { clingPose,inflateBody,type ClingFeet } from './birdFrames';
 const isMesh=(node:THREE.Object3D):node is THREE.Mesh=>node instanceof THREE.Mesh;
 type V3=readonly [number,number,number];
 interface PreparedBird {kind:number;fly:boolean;geo:THREE.BufferGeometry;parts:Uint8Array;shoulderL:V3;shoulderR:V3;neck:V3;rough:number;eyes:boolean}
-interface Side {
+/** One bird mesh's hand-read pivots (birds.json). */
+export interface Side {
   shoulderL: V3; shoulderR: V3; bodyHalfWidth: number; neck: V3; headAxis?: V3; feetY: number;
   tailRoot?: V3; tailAxis?: V3; beakTip?: V3; tailTip?: V3;
 }
-interface Sidecar { meshes: Record<string, Side | undefined> }
+/** The bird sidecar (public/assets/pine-hollow/life/birds.json): each mesh's pivots. */
+export interface Sidecar { meshes: Record<string, Side | undefined> }
+const triple = (value: unknown): value is V3 => Array.isArray(value) && value.length === 3 && value.every(item => typeof item === 'number' && Number.isFinite(item));
+/** Read the committed sidecar's JSON (GR8: the program reads it through `ctx.cached`), refusing a malformed pivot. */
+export function parseBirdSidecar(input: unknown): Sidecar {
+  if (typeof input !== 'object' || input === null || !('meshes' in input) || typeof input.meshes !== 'object' || input.meshes === null) throw new Error('Bird sidecar has no meshes');
+  const meshes: Record<string, Side> = {};
+  for (const name of Object.keys(input.meshes)) {
+    const row: unknown = Reflect.get(input.meshes, name);
+    if (typeof row !== 'object' || row === null || !('shoulderL' in row) || !('shoulderR' in row) || !('neck' in row) || !('bodyHalfWidth' in row) || !('feetY' in row)
+      || !triple(row.shoulderL) || !triple(row.shoulderR) || !triple(row.neck) || typeof row.bodyHalfWidth !== 'number' || typeof row.feetY !== 'number') throw new Error(`Bird sidecar mesh ${name} is malformed`);
+    const side: Side = { shoulderL: row.shoulderL, shoulderR: row.shoulderR, bodyHalfWidth: row.bodyHalfWidth, neck: row.neck, feetY: row.feetY };
+    for (const key of ['headAxis', 'tailRoot', 'tailAxis', 'beakTip', 'tailTip'] as const) {
+      const value: unknown = key in row ? Reflect.get(row, key) : undefined;
+      if (value === undefined) continue;
+      if (!triple(value)) throw new Error(`Bird sidecar mesh ${name} has a malformed ${key}`);
+      side[key] = value;
+    }
+    meshes[name] = side;
+  }
+  return { meshes };
+}
 
 /** a decimated generation reads faceted (its normals split along every uv seam and hard edge): one normal per position,
  *  area-weighted over the faces round it, keeping the vertices (and their uvs) split */
@@ -148,7 +170,8 @@ function parseBirds(root: THREE.Object3D,side:Sidecar):PreparedBird[] {
   return meshes;
 }
 
-interface PackedRange {kind: number; start: number; count: number; box: [number, number, number, number, number, number]}
+/** One bird kind's slice of the packed rest geometry, with its bounds. */
+export interface PackedRange {kind: number; start: number; count: number; box: [number, number, number, number, number, number]}
 function packedBox(geometry: THREE.BufferGeometry): PackedRange['box'] {
   geometry.computeBoundingBox(); const box = geometry.boundingBox;
   if (box === null) throw new Error('Missing authored wildlife bounds');
