@@ -112,7 +112,7 @@ async function tiledPlot(read, tools, layoutName) {
   const palette = Object.fromEntries(Object.entries(layout.palette).map(([key, hex]) => [key, linear(hex)]));
   // NM5: the posters' faces carry their picture's mean colour (the Poster material draws the picture alone), for the near view
   palette.picture = await meanColour(tools, read(layout.posters.image));
-  const grid = parseLayout(layout.rows), parts = { Paving: new Soup(), Kit: new Soup(), Water: new Soup(), Glow: new Soup(), Pool: new Soup(), Poster: new Soup(), far: new Soup(), solid: new Soup(), detailKit: new Soup(), detailGlow: new Soup(), coarse: new Soup() };
+  const grid = parseLayout(layout.rows), parts = { Paving: new Soup(), Kit: new Soup(), Water: new Soup(), Glow: new Soup(), Pool: new Soup(), Poster: new Soup(), far: new Soup(), solid: new Soup(), detailKit: new Soup(), detailGlow: new Soup(), coarse: new Soup(), standIns: new Soup() };
   // the plot's ground: the outer ring, then each tile's paving inside it (the lanes a shade lighter, the canals open)
   for (const [x0, z0, x1, z1] of [[-250, RING, 250, 250], [-250, -250, 250, -RING], [-250, -RING, -RING, RING], [RING, -RING, 250, RING]]) {
     parts.Paving.quad('Paving', [x0, 0, z0], [x0, 0, z1], [x1, 0, z1], [x1, 0, z0], palette.paving);
@@ -180,7 +180,31 @@ async function tiledPlot(read, tools, layoutName) {
     surface.colours = bakeLanternVertices(surface, lanterns, { gain: LANTERN_BAKE.gain, radius: LANTERN_BAKE.radius, cut: LANTERN_BAKE.cut });
   }
   console.info(`open-plots: ${layoutName} lantern bake: ${lanterns.length} emitters, gain ${LANTERN_BAKE.gain}`);
+  standIns(parts, farLandmark, linear(layout.palette.ring));
   return { parts, landmark, farLandmark, nearImage, poster: read(layout.posters.image), ring: layout.palette.ring };
+}
+
+/**
+ * T8 (tile caps: an L1 tile draws at most 2 render states): the water, posters, landmark, light pools and the ring's paving
+ * draw only at L0 (`detail_`); at L1 they stand in on the kit's own material (`coarse_standins`), in their vertex colours:
+ * the water's, the posters' picture colour (NM5), the landmark's far model in its texture's colours (lit by flat normals)
+ * and the ring in its colour, so an L1 tile draws Kit and Glow alone and holds no texture. The pools add light only near;
+ * L1 leaves them out.
+ */
+function standIns(parts, farLandmark, ring) {
+  const out = parts.standIns.part('standIns');
+  const add = (part, colour) => {
+    out.positions.push(...part.positions); out.normals.push(...part.normals);
+    if (colour === undefined) out.colours.push(...part.colours); else for (let i = 0; i < part.positions.length / 3; i++) out.colours.push(...colour);
+    for (let i = 0; i < part.positions.length / 3; i++) out.uvs.push(0, 0);
+  };
+  const p = farLandmark.positions, normals = [];
+  for (let i = 0; i + 8 < p.length; i += 9) {
+    const e1 = [p[i + 3] - p[i], p[i + 4] - p[i + 1], p[i + 5] - p[i + 2]], e2 = [p[i + 6] - p[i], p[i + 7] - p[i + 1], p[i + 8] - p[i + 2]];
+    const n = [e1[1] * e2[2] - e1[2] * e2[1], e1[2] * e2[0] - e1[0] * e2[2], e1[0] * e2[1] - e1[1] * e2[0]], l = Math.hypot(...n) || 1;
+    for (let k = 0; k < 3; k++) normals.push(n[0] / l, n[1] / l, n[2] / l);
+  }
+  add(parts.Water.part('Water')); add(parts.Poster.part('Poster')); add({ positions: p, normals, colours: farLandmark.colours }); add(parts.Paving.part('Paving'), ring);
 }
 
 /** GR9: a tiled idea's world GLB bytes, from inputs read through `read(path)`; nothing is written. */
@@ -200,7 +224,7 @@ export async function tiledWorldBytes(read, tools, idea) {
   for (const material of [materials.Landmark, materials.Poster]) material.getBaseColorTextureInfo()?.setWrapS(33071).setWrapT(33071).setMinFilter(9987).setMagFilter(9729);
   const accessor = (values, type) => doc.createAccessor().setType(type).setArray(new Float32Array(values)).setBuffer(buffer);
   // each part welded (corners sharing position, normal, colour and uv become one indexed vertex)
-  const node = (name, part, material, { uv = false, normals = true } = {}) => {
+  const node = (name, part, material, { uv = false, normals = true, parent = scene } = {}) => {
     const welded = { positions: [], normals: [], colours: [], uvs: [] }, index = [], seen = new Map(), n = part.positions.length / 3;
     for (let i = 0; i < n; i++) {
       const corner = [part.positions.slice(i * 3, i * 3 + 3), normals ? part.normals.slice(i * 3, i * 3 + 3) : [], part.colours.slice(i * 3, i * 3 + 3), uv ? part.uvs.slice(i * 2, i * 2 + 2) : []];
@@ -213,19 +237,24 @@ export async function tiledWorldBytes(read, tools, idea) {
       .setAttribute('POSITION', accessor(welded.positions, 'VEC3')).setAttribute('COLOR_0', accessor(welded.colours, 'VEC3'));
     if (normals) primitive.setAttribute('NORMAL', accessor(welded.normals, 'VEC3'));
     if (uv) primitive.setAttribute('TEXCOORD_0', accessor(welded.uvs, 'VEC2'));
-    scene.addChild(doc.createNode(name).setMesh(doc.createMesh(name).addPrimitive(primitive)));
+    parent.addChild(doc.createNode(name).setMesh(doc.createMesh(name).addPrimitive(primitive)));
   };
-  node('ws_terrain_floor', parts.Paving.part('Paving'), materials.Paving);
+  // T8: the ring's paving, the water, pools, posters and landmark draw only at L0 (their L1 stand-ins: `standIns`); the
+  // ring stays the terrain's sampling surface under its `detail_` group
+  const ringGroup = doc.createNode('detail_paving');
+  scene.addChild(ringGroup);
+  node('ws_terrain_floor', parts.Paving.part('Paving'), materials.Paving, { parent: ringGroup });
   node('draw_kit', parts.Kit.part('Kit'), materials.Kit);
-  node('draw_water', parts.Water.part('Water'), materials.Water);
+  node('detail_water', parts.Water.part('Water'), materials.Water);
   node('draw_glow', parts.Glow.part('Glow'), materials.Glow);
-  node('draw_pool', parts.Pool.part('Pool'), materials.Pool, { normals: false });
-  node('draw_poster', parts.Poster.part('Poster'), materials.Poster, { uv: true });
-  node('draw_landmark', landmark, materials.Landmark, { uv: true });
+  node('detail_pool', parts.Pool.part('Pool'), materials.Pool, { normals: false });
+  node('detail_poster', parts.Poster.part('Poster'), materials.Poster, { uv: true });
+  node('detail_landmark', landmark, materials.Landmark, { uv: true });
   // RM8.2: the kit's models, full detail only (L0), and the big ones' boxes standing in for them in the coarse (L1) tiles
   node('detail_kit', parts.detailKit.part('detailKit'), materials.Kit);
   node('detail_glow', parts.detailGlow.part('detailGlow'), materials.Glow);
   node('coarse_kit', parts.coarse.part('coarse'), materials.Kit);
+  node('coarse_standins', parts.standIns.part('standIns'), materials.Kit);
   // the far proxy's own nodes (far only): the tiles' stand-ins and boards, the landmark's far model
   node('far_tiles', parts.far.part('far'), materials.Kit, { normals: false });
   node('far_landmark', { ...farLandmark, normals: [], uvs: [] }, materials.Kit, { normals: false });

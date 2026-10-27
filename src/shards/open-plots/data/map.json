@@ -29,7 +29,7 @@
     ]
   },
   "outputs": {
-    "why": "G633 (Night Market pilot NM4): a tiled plot paints its own palette (data/layouts/<layout>.json) as itself, so its top-down reads apart from the hologram plots; the gate and posters (textured, white in the source) read as the gate red with a lantern-gold rim. Its collision boxes stand over its roofs, so its map leaves them out, and its additive light pools.",
+    "why": "G633 (Night Market pilot NM4): a tiled plot paints its own palette (data/layouts/<layout>.json) as itself, so its top-down reads apart from the hologram plots; the gate and posters (textured, white in the source) read as the gate red with a lantern-gold rim. Its collision boxes stand over its roofs, so its map leaves them out, its additive light pools and its L1 stand-ins (T8: copies of what it already paints).",
     "open-plot-night-market": {
       "style": {
         "kind": "ground",
@@ -151,7 +151,8 @@
       },
       "exclude": [
         "collide_",
-        "draw_pool"
+        "detail_pool",
+        "coarse_standins"
       ]
     }
   },
