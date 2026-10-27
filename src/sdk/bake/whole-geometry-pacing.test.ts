@@ -7,6 +7,7 @@ import { isDev, setDev } from '@wildshard/engine/core/devMode';
 import { enterOwner } from '@wildshard/engine/app/ownership';
 import { fetchDeflatedBytes } from '@wildshard/engine/core/deflate';
 import * as pacing from '@wildshard/engine/core/framePacing';
+import * as workSlices from '@wildshard/engine/core/workSlice';
 import { assembleWholeGeometryViews, fetchLaneBake, readWholeGeometry, unshuffleLanes } from '@wildshard/game/plugin/geometry';
 import { provideRuntimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { emptyShardfile } from '../author';
@@ -169,6 +170,22 @@ test.each([false, true])('live whole completions keep their shared budget and ex
   expect(timeout).not.toHaveBeenCalled();
   if (explicit) expect(pause.mock.calls.length).toBeGreaterThan(4);
   else expect(pause).not.toHaveBeenCalled();
+});
+
+test('a spent live completion preserves its budget refusal and releases unpublished geometry', async () => {
+  const owner = new Scope('whole-live-refusal'), fixture = source(owner), failure = new Error('original live budget refusal');
+  vi.spyOn(pacing, 'presenting').mockReturnValue(true);
+  vi.spyOn(pacing, 'buildHeld').mockReturnValue(true);
+  vi.spyOn(pacing, 'frameBudgetSpent').mockReturnValue(true);
+  const pause = vi.spyOn(workSlices, 'buildYield').mockRejectedValue(failure), disposed = vi.spyOn(BufferGeometry.prototype, 'dispose');
+  await expect(readWholeGeometry(owner, 'whole-pace', [fixture.ref])).rejects.toBe(failure);
+  expect(pause).toHaveBeenCalledExactlyOnceWith(owner);
+  expect(disposed.mock.contexts).not.toContain(fixture.geometry);
+  expect(disposed.mock.contexts.some((geometry: unknown) => {
+    if (!(geometry instanceof BufferGeometry)) return false;
+    const position: unknown = geometry.getAttribute('position');
+    return position instanceof BufferAttribute && position.count === 65538;
+  })).toBe(true);
 });
 
 test('closing the default yield owner cannot strand a reconstruction', async () => {
