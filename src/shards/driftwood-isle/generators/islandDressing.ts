@@ -1,9 +1,9 @@
 import { CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/core/config';
-import { Noise2D } from '@wildshard/engine/core/noise';
+import { Noise2D } from '@wildshard/sdk/noise';
 import { islandKnobs } from './tiers';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { _buildAs, buildTier, TIER, type Tier } from '@wildshard/engine/core/tier';
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng } from '@wildshard/sdk/random';
 import { seedOf, type Placement } from '@wildshard/engine/models/model';
 import { bindLevelSelection } from '@wildshard/engine/level/selection';
 import { HeightfieldBinding, bindHeightfield, normalAt, waterLevel, inChunk } from '@wildshard/engine/world/Heightfield';
