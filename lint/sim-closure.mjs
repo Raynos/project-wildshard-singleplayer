@@ -9,6 +9,7 @@ const MATH = new Set(['Vector2', 'Vector3', 'Vector4', 'Euler', 'Quaternion', 'M
 const DOM = new Set(['window', 'document', 'navigator', 'localStorage', 'sessionStorage', 'HTMLElement', 'HTMLCanvasElement', 'Element', 'requestAnimationFrame', 'cancelAnimationFrame', 'matchMedia', 'ResizeObserver', 'Image', 'Audio']);
 export const simRoot = (path) => /^src\/(?:engine\/(?:ai|combat|events|quest|saves)\/|shards\/[^/]+\/(?:data|behaviour)\/|engine\/entities\/AnimalSim\.ts$|engine\/sim(?:\.ts$|\/))/u.test(path) && !VIEW.test(path);
 const astCache = new Map();
+const eventCache = new WeakMap();
 function parsed(file) {
   const text = readFileSync(file, 'utf8');
   const cached = astCache.get(file);
@@ -34,6 +35,20 @@ function walk(node, visit, parent = null) {
     else if (child && typeof child === 'object') walk(child, visit, node);
   }
 }
+// Cache only local syntax candidates, never a closure verdict or resolved edge.
+// parsed() still checks current bytes; every visit keeps its own path and trace.
+function events(program) {
+  let entries = eventCache.get(program);
+  if (entries !== undefined) return entries;
+  entries = [];
+  walk(program, (node, parent) => {
+    if (['ImportDeclaration', 'ExportNamedDeclaration', 'ExportAllDeclaration', 'ImportExpression'].includes(node.type)
+      || node.type === 'Identifier' && DOM.has(node.name)
+      || node.type === 'MemberExpression' && ['window', 'globalThis'].includes(node.object?.name)) entries.push({ node, parent });
+  });
+  eventCache.set(program, entries);
+  return entries;
+}
 function reference(node, parent) {
   if (!parent || parent.type.startsWith('TS')) return false;
   if (['ImportSpecifier', 'ImportDefaultSpecifier', 'ImportNamespaceSpecifier', 'ExportSpecifier'].includes(parent.type)) return false;
@@ -53,7 +68,7 @@ export function simClosure(root, entries = globSync('src/**/*.ts', { cwd: root }
       const item = violations.get(id) ?? { id, count: 0, trace };
       item.count++; violations.set(id, item);
     };
-    walk(parsed(file), (node, parent) => {
+    const inspect = (node, parent) => {
       if (['ImportDeclaration', 'ExportNamedDeclaration', 'ExportAllDeclaration', 'ImportExpression'].includes(node.type)) {
         if (simRoot(path) && value(node.source) === 'three' && node.importKind === 'type' && node.specifiers?.some((s) => s.type !== 'ImportSpecifier' || !MATH.has(s.imported.name))) add('import', 'three');
         if (node.importKind === 'type' || node.exportKind === 'type' || (node.specifiers?.length && node.specifiers.every((s) => s.importKind === 'type'))) return;
@@ -76,7 +91,8 @@ export function simClosure(root, entries = globSync('src/**/*.ts', { cwd: root }
       if (simRoot(path) && node.type === 'Identifier' && ['HTMLElement', 'HTMLCanvasElement'].includes(node.name) && parent?.type === 'TSTypeReference') add('global', node.name);
       if (node.type === 'MemberExpression' && ['window', 'globalThis'].includes(node.object?.name) && DOM.has(node.property?.name) && node.property?.name !== 'window') add('global', node.property.name);
       if (node.type === 'Identifier' && reference(node, parent) && DOM.has(node.name)) add('global', node.name);
-    });
+    };
+    for (const { node, parent } of events(parsed(file))) inspect(node, parent);
     for (const dest of next) visit(dest, [...trace, dest]);
   };
   for (const entry of entries) visit(entry, [entry]);

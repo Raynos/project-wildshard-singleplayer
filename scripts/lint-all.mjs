@@ -3,6 +3,7 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { availableParallelism } from 'node:os';
 
 const root = resolve(import.meta.dirname, '..');
 const args = process.argv.slice(2);
@@ -28,6 +29,9 @@ if (selected.length === 0) {
   process.exit(1);
 }
 console.info(`lint-all: typed shard ${part}/${parts}, ${selected.length} files`);
-const result = spawnSync('pnpm', ['exec', 'oxlint', '--type-aware', ...selected], { cwd: root, stdio: 'inherit' });
+// Avoid multiplying checker/GC workers across every logical core on the Mac.
+// Smaller CI machines retain their available width; selection/rules are exact.
+const threads = Math.min(8, availableParallelism());
+const result = spawnSync('pnpm', ['exec', 'oxlint', '--type-aware', '--threads', String(threads), ...selected], { cwd: root, stdio: 'inherit' });
 if (result.error !== undefined) console.error(result.error.message);
 process.exitCode = result.status ?? 1;

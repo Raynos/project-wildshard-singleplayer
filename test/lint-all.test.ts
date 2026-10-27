@@ -24,7 +24,9 @@ if (args.join(' ') === 'exec oxlint --debug files') {
   process.stdout.write(fs.readFileSync(process.env.LINT_ALL_SELECTION, 'utf8'));
 } else {
   if (args[2] !== '--type-aware') process.exit(9);
-  fs.appendFileSync(process.env.LINT_ALL_CALLS, args.slice(3).join('\n') + '\n--batch--\n');
+  const threads = Number(args[4]);
+  if (args[3] !== '--threads' || !Number.isSafeInteger(threads) || threads < 1 || threads > 8) process.exit(9);
+  fs.appendFileSync(process.env.LINT_ALL_CALLS, args.slice(5).join('\n') + '\n--batch--\n');
   if (process.env.LINT_ALL_FAIL === 'yes' && args.some(file => file.endsWith('source 256.ts'))) process.exit(7);
 }
 `, { mode: 0o755 });
