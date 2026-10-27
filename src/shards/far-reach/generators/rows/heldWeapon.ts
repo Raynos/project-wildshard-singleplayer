@@ -1,11 +1,11 @@
-import playback from '../../data/heldPlayback.generated.json' with {type:'json'};
+import { heldPlayback } from '../heldPlayback';
 import scene from '../../data/fanScene.json' with {type:'json'};
 import hand from '../../data/fanHandScene.json' with {type:'json'};
 import { FAN_ROW } from './equipment';
 import { FAN_PHASE } from './meleePhase';
 
 /** One held/Explorer assembly, borrowing the optional original hero-hand resources. */
-export const FAN_HELD_RECIPE = {equipment:FAN_ROW,phases:FAN_PHASE,playback,scene,
+export const FAN_HELD_RECIPE = {equipment:FAN_ROW,phases:FAN_PHASE,playback:heldPlayback(),scene,
   resources:{reads:[{id:'hand',from:{owner:'hero',path:['read']},args:['hand-hd'],discardGeometry:true}],geometry:[
     {id:'panels',from:{owner:'library',path:['geometry']},args:['shape0'],emptyGeometry:true},
     {id:'sticks',from:{owner:'library',path:['geometry']},args:['shape1'],emptyGeometry:true},

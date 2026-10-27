@@ -107,7 +107,6 @@
     "src/shards/far-reach/generators/rows/brains.ts": 1,
     "src/shards/far-reach/generators/rows/devPoses.ts": 1,
     "src/shards/far-reach/generators/rows/gearModels.ts": 1,
-    "src/shards/far-reach/generators/rows/heldWeapon.ts": 1,
     "src/shards/far-reach/generators/rows/liftPrompts.ts": 2,
     "src/shards/far-reach/generators/rows/modes.ts": 1,
     "src/shards/far-reach/generators/rows/moverViews.ts": 1,

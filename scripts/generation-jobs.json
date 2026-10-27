@@ -6279,38 +6279,6 @@
       "seedOutputs": []
     },
     {
-      "id": "sky-held-playback",
-      "shard": "far-reach",
-      "entry": "src/shards/far-reach/generators/heldPlayback.ts",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/far-reach/generators/heldPlayback.ts",
-        "heldPlayback",
-        "src/shards/far-reach/data/heldPlayback.generated.json"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format/clientChannels.ts",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/clientChannels.ts",
-        "src/sdk/package.json",
-        "src/shards/far-reach/generators/rows/fanView.ts",
-        "src/shards/far-reach/generators/heldPlayback.ts",
-        "src/shards/far-reach/generators/palette.ts"
-      ],
-      "outputs": [
-        "src/shards/far-reach/data/heldPlayback.generated.json"
-      ],
-      "platform": "portable",
-      "buildTimeOutputs": [
-        "src/shards/far-reach/data/heldPlayback.generated.json"
-      ]
-    },
-    {
       "id": "sky-vane-post",
       "shard": "far-reach",
       "entry": "src/shards/far-reach/generators/preparedModels.ts",
