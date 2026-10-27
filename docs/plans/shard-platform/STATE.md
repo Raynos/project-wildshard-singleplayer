@@ -27,6 +27,8 @@ known source red has a qualified fix; awaiting a whole green run + six-leg smoke
 **G807-G810 applied (15:45):** a row is done on landed code + one Chromium reading by its own lane, marked at once
 (G807 replaces G780; every held reading is being taken now). sp-o4 joins sp-x8 on cold crossing shaders (G808); sp-o5
 owns T10's frame floor. SW3 / CF3-CF5 / GM1 / build-speed close on the first green push run (G809, sp-ci-deploy).
+**For Jake's play tonight (G812):** Driftwood -7 MB phone cut A / B board: `art/driftwood-isle/round-21-phone-geometry-ab/board.jpg`
+(beafaf290c; A = 3c91324491 before I3, B = 6cf56be1d6; phone 23.3 -> 14.9 MB served; 4 labelled poses; static geometry identical).
 **Blocked on Jake:** his phone QA tonight (G810, nothing waits); LD5-LD8 / A1 / A2 / M2 / RM13 (counted, G779).
 
 **Lanes (G804 / G805; G803 3 Opus; Claude 82 %, Codex 99 % on credits):** sp-o3 iphone + D2 heap (+ sp-x2), sp-o5
