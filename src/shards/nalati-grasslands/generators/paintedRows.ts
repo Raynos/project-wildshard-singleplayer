@@ -33,4 +33,4 @@ const fog = { start: 30, end: 600, aerial: [0.0032, 30, -10, 0.002], edge: [0.95
 const air = { tile: 520, threshold: 0.53, strength: 0.66, softness: 0.06, drift: [1.6, 2] };
 /** GR6: the painterly look's rows (the retired nalati-boot-metadata job's `paintedTextures.generated.json`): the painted
  *  textures with the ground, panorama, key light, world, fog and air rows over them. */
-export const NALATI_PAINTED: typeof paintedTextures & { ground: typeof ground; panorama: typeof panorama; key: typeof key; world: typeof world; fog: typeof fog; air: typeof air } = { ...paintedTextures, ground, panorama, key, world, fog, air };
+export const NALATI_PAINTED: Omit<typeof paintedTextures, 'panorama'> & { ground: typeof ground; panorama: typeof panorama; key: typeof key; world: typeof world; fog: typeof fog; air: typeof air } = { ...paintedTextures, ground, panorama, key, world, fog, air };
