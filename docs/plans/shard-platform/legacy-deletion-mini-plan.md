@@ -43,9 +43,9 @@ Rows LD1–LD4 delete nothing and need no QA; LD5–LD8 wait for Jake's word (G6
 
 | Row | What | Size | Done when |
 |---|---|---|---|
-| **LD1** | Each shard declares its own AS budget (`shard.config.ts` or `legacy-line-basis.json`; Driftwood 1716, Pine 2130, Nalati 2837 already hard-code theirs in their bake scripts) | S | all six build in a mirror with the legacy list emptied; budgets unchanged |
-| **LD2** | Pickups generator without the legacy tables | XS | pickup test green; the job has no `-legacy` input |
-| **LD3** | Ruler baselines read by shard name, not through the legacy list | S | an empty legacy list gives the same numbers and zero verdicts |
+| **LD1 — done (`a3922936a5`)** | Each shard declares its own AS budget (`shard.config.ts` or `legacy-line-basis.json`; Driftwood 1716, Pine 2130, Nalati 2837 already hard-code theirs in their bake scripts) | S | all six build in a mirror with the legacy list emptied; budgets unchanged |
+| **LD2 — done (`c5165d06f9`, `5f6e4fcf55`)** | Pickups generator without the legacy tables | XS | pickup test green; the job has no `-legacy` input |
+| **LD3 — done (`007cfe778e`)** | Ruler baselines read by shard name, not through the legacy list | S | an empty legacy list gives the same numbers and zero verdicts |
 | **LD4** (G795: Node list compare, now) | Explorer parity in Node, built now, no browser lane (G795; was once per shard at a milestone in a browser): the LEGACY and SHARDFILE model / set / world / arena lists compared; deletes nothing | S | each diff empty, or every gap is a row in that shard's zero plan |
 | **LD5** | Remove the LEGACY button: Debug row, dual buttons, legacy entry mode and loading path, `shard/legacy.ts`, `entries.legacy` | S | SHARD SELECT shows one ENTER WORLD everywhere |
 | **LD6** | Delete the folders, one commit per shard: Sky + Signal (already unreachable), then Driftwood + Pine, then Nalati + Nine; each drops its list entry, regenerates `slugs.generated.json`, prunes lint entries | M | gates green per commit |
@@ -150,3 +150,30 @@ with a model refusal. The inventory pins the executed collector's SHA256 as well
 as the public revision and all selected data. Touched types and typed lint pass.
 Full lint:ratchet is invoked; unrelated current source-count differences remain
 with their owners. This audit adds no source allowance or policy exception.
+
+## G805 preparation ownership and current checks (2026-10-27, sp-x2)
+
+LD1-LD3 source is already landed; mark the actual defining commits in
+those rows rather than rebuilding existing adapters. LD1's six-project
+empty-inventory compile regression landed with a3922936a5. LD3's
+empty-inventory full-ruler equality control landed in007cfe778e. LD2's
+plain committed pickup producer c5165d06f9 imports modern authored
+rows, and5f6e4fcf55 preserves raw prepared geometry intake; its existing
+regression refuses any frozen-legacy import.
+
+A new direct empty-inventory check compares all six pinned baseline
+records exactly (98854 lines total) and asserts unchanged ceilings:
+DW1716/Pine2130/Nalati2837/Far677/Sunscar412/Nine2111. It passes;
+no legacy list/folder/budget is edited. The focused three-file Vitest
+attempt collected zero tests because test/setup imports the missing
+Driftwood discovery module through src/shards.generated.ts (the existing
+shared generated-input prerequisite). It is retained as a refusal,
+not a new green test claim. Do not mutate test setup or frozen files.
+
+LD4 remains in flight. The report now links every shard's nonempty
+diff and every unqualified native-registration boundary to its exact
+LD4-DW/PH/NG/ND/FR/SD row and owner, instead of leaving an unassigned
+list. All six original category comparisons, full input hashes,
+null/refusal states and qualified=false boundaries remain unchanged.
+Source types, typed lint and scoped ratchet pass; no runtime/build/
+browser/Simulator path changed. LD5-LD8 remain unapproved and untouched.

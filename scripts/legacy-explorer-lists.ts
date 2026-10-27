@@ -25,6 +25,9 @@ import { initializeTier } from '@wildshard/engine/core/tier';
 import { recorderCacheRoot, recorderOutputHashes } from './native-recorder-cache.mjs';
 
 const slugs = ['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-stack', 'far-reach', 'sunscar-dunes'];
+/** Every observed difference and unresolved native registration stays in the live LD4 prep rows. */
+const followups: Readonly<Record<string, string>> = { 'driftwood-isle': 'LD4-DW', 'pine-hollow': 'LD4-PH',
+  'nalati-grasslands': 'LD4-NG', 'nine-dragon-stack': 'LD4-ND', 'far-reach': 'LD4-FR', 'sunscar-dunes': 'LD4-SD' };
 type Lists = Record<'models' | 'sets' | 'world' | 'arenas', string[] | null>;
 interface Fields extends Record<string, unknown> { lists?: unknown; features?: unknown; kind?: unknown; rows?: unknown; manifest?: unknown; pois?: unknown; default?: unknown; course?: unknown; ROSTER?: unknown; shards?: unknown; shard?: unknown; shardfile?: unknown; inputs?: unknown }
 interface Capture { lists: Lists; gaps: string[]; inputs: Record<string, string>; infrastructureWarnings: string[] }
@@ -268,7 +271,11 @@ if (side === '--legacy' || side === '--shardfile') {
       throw new Error(`Exact recorded cache product unavailable: ${name}`);
     };
     const shardfile = recorded ? cached() : read('--shardfile');
-    return { shard: name, legacy, shardfile, differences: Object.fromEntries(Object.keys(legacy.lists).map(key => {
+    const gapRow = followups[name];
+    if (gapRow === undefined) throw new Error(`Missing LD4 follow-up owner for ${name}`);
+    return { shard: name, followup: { plan: 'docs/plans/shard-platform/legacy-deletion-mini-plan.md', row: gapRow,
+      owner: 'sp-x2', status: 'open', covers: ['every missing/added identifier below', ...legacy.gaps, ...shardfile.gaps] },
+      legacy, shardfile, differences: Object.fromEntries(Object.keys(legacy.lists).map(key => {
       const list = key as keyof Lists, a = legacy.lists[list], b = shardfile.lists[list];
       return [key, a === null || b === null ? { qualified: false } : { qualified: list === 'arenas',
         missing: a.filter(id => !b.includes(id)), added: b.filter(id => !a.includes(id)) }];
