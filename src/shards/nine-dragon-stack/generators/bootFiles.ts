@@ -1,12 +1,9 @@
-import type { ChunkFiles } from '@wildshard/engine/boot/bytes';
-import { filePolicy } from '@wildshard/engine/boot/filePolicy';
-import type { TexMode } from '@wildshard/engine/boot/gpuFiles';
-import type { Tier } from '@wildshard/engine/core/tier';
+import { bootFilePolicy, type BootSources, type BootTextures, type BootTier } from '@wildshard/sdk/bootInventory';
 import { GPU_FILES } from '../ktx2.generated';
 
 /** The structure-first world's original counted inventory, authored beside its manifest. */
-export function bootSources(tier: Tier, tex: TexMode, world: readonly string[], inventory: Readonly<Record<string, number | true>>): ChunkFiles {
-  const { gpu } = filePolicy(tier, tex, GPU_FILES, inventory);
+export function bootSources(tier: BootTier, tex: BootTextures, world: readonly string[], inventory: Readonly<Record<string, number | true>>): BootSources {
+  const { gpu } = bootFilePolicy(tier, tex, GPU_FILES, inventory);
   const root = '/assets/baked/nine-dragon-stack/';
   return {
     sky: [], baked: Object.keys(inventory).filter((url) => url.startsWith(`${root}tex/`) && !url.includes('.phone.')).map(gpu),
