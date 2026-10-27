@@ -432,6 +432,8 @@
         "src/format/contentBounds.ts",
         "src/format/memoryGates.json",
         "src/sdk/bake/portableBytes.ts",
+        "src/sdk/bake/terrain.ts",
+        "src/sdk/immutable.ts",
         "src/sdk/random.ts",
         "src/shards/nalati-grasslands/data/geographySources.json",
         "src/shards/nalati-grasslands/data/grassFieldLayout.json",
