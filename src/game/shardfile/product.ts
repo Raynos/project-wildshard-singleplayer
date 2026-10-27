@@ -11,6 +11,7 @@ import { isOutputIndex } from '@wildshard/format/outputAddress';
 
 import { acceptValidatedCost } from '@wildshard/format/deviceMemoryCost';
 import { PRODUCT_CACHE_NAME } from '@wildshard/engine/pwa/cacheNames';
+import { saves } from '@wildshard/engine/saves/runtime';
 import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
 import { browserContentStore, contentHash } from './contentStore';
 import { preflightShardfile } from '@wildshard/format/preflight';
@@ -450,6 +451,9 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
         try {
           await cache.putProduct(base, { source: descriptor.index, firstParty: options.firstParty,
             ...(revisionKey === null ? {} : { validation: { revision: revisionKey, sourceHash, indexHash: descriptor.indexHash, worst } }) });
+          // iPhone downloads I10: a stored product is worth keeping, so ask once a page for persistent storage (the
+          // browser may evict the content cache otherwise); the answer shows in Settings ▸ Debug's storage line
+          void saves.persist();
         } catch (error: unknown) {
           // A full disk cannot reject admitted online bytes. No visited index
           // was published; a later offline entry must still prove its cache.

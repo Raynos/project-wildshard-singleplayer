@@ -10,6 +10,7 @@ import { provideHybridDeclaration, runtimeProduct } from '../src/game/shardfile/
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { DownloadAccounting, installDownloadAccounting } from '../src/engine/boot/download';
+import { saves } from '../src/engine/saves/runtime';
 import { installManifestShardfile, installShardfileProduct } from '../src/game/shardfile/clientSource';
 import { prepareBootImports } from '../src/bootDownloads';
 import { sourceManifest } from '../src/game/plugin/context';
@@ -326,6 +327,18 @@ test('admission preserves v2 addressing across parser copies and offline section
   const section = index.sections[0]; if (section === undefined) throw new Error('Missing section');
   store.bytes.delete(section.hash);
   await expect(readProductDescriptor(offline)).rejects.toThrow('incomplete section cache');
+});
+
+test('a product stored whole asks for persistent storage once (iPhone downloads I10)', async () => {
+  const { wires } = fixture(), store = cacheStore(), opts = options(wires, store.cache);
+  const persist = vi.spyOn(saves, 'persist').mockResolvedValue(true);
+  try {
+    await admitProduct(await readProductDescriptor(opts), opts);
+    expect(store.product()).not.toBeNull(); expect(persist).toHaveBeenCalledTimes(1);
+    persist.mockClear();
+    await admitProduct(await readProductDescriptor(options(wires)), options(wires));
+    expect(persist).not.toHaveBeenCalled();
+  } finally { persist.mockRestore(); }
 });
 
 test('an evicted section of an older visit refetches online and replaces the offline record', async () => {
