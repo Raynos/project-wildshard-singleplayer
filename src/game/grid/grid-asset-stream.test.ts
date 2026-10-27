@@ -62,3 +62,17 @@ test('invalid address, oversized admission, HTTP and missing body still refuse',
   await expect(readGridAssetBytes(locator, () => Promise.resolve(new Response(null, { status: 404 })), 'strips')).rejects.toThrow('404');
   await expect(readGridAssetBytes(locator, read, 'strips')).rejects.toThrow('body is missing');
 });
+test('custom direct methods retain the copying fallback and cannot lend mutable payload backing', async () => {
+  const bytes = Uint8Array.from({ length: 64 }, (_, i) => i + 1), locator = await address(bytes);
+  const stream = new ReadableStream({ type: 'bytes', start(controller) { controller.enqueue(bytes.slice()); controller.close(); } });
+  const getReader = stream.getReader.bind(stream); let customReads = 0;
+  Object.defineProperty(stream, 'getReader', { value: (options?: ReadableStreamGetReaderOptions) => {
+    if (options?.mode !== 'byob') return getReader();
+    const reader = getReader({ mode: 'byob' });
+    Object.defineProperty(reader, 'read', { value: () => { customReads++; return Promise.resolve({ done: false, value: bytes }); } });
+    return reader;
+  } });
+  const wire = await readGridAssetBytes(locator, () => Promise.resolve(new Response(stream)), 'strips');
+  expect(customReads).toBe(0); expect(wire).toEqual(bytes); expect(stream.locked).toBe(false);
+  bytes.fill(0); expect(wire[63]).toBe(64);
+});
