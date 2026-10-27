@@ -30,6 +30,15 @@
       ]
     },
     {
+      "source": "/assets/physics/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
       "source": "/assets/tex/(.*)",
       "headers": [
         {
@@ -223,7 +232,7 @@
       ]
     },
     {
-      "source": "/shardfiles/([^/]+)/([a-f0-9]{64})",
+      "source": "/shardfiles/(.*)/blobs/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
