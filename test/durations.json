@@ -2274,7 +2274,6 @@
  "test/skin-export.test.ts": 22.1,
  "test/skin-playback.test.ts": 25.7,
  "test/sky-backdrop.test.ts": 0,
- "test/sky-boot-inventory.test.ts": 0.029,
  "test/sky-bridge-colliders-authoring.test.ts": 0.2,
  "test/sky-bridge-scene.test.ts": 0.018,
  "test/sky-crown-scene.test.ts": 0.012,

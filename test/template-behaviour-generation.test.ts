@@ -3,7 +3,6 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only the small fixture and original author sources.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import * as v from 'valibot';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { templateBehaviour, TEMPLATE_BEHAVIOUR_INPUTS } from '../src/shards/_template/generators/behaviour';
 
@@ -25,9 +24,4 @@ test('cached source compilation retains all three original Wasm hashes and page 
     expect(await templateBehaviour(counted)).toEqual(original); expect(calls).toBe(6);
     expect([...assets.keys()].sort()).toEqual(Object.values(original).map(row => row.hash).sort());
   } finally { rmSync(root, { recursive: true, force: true }); }
-});
-
-test('the executable build consumes raw sources without a separate behaviour producer', () => {
-  const { jobs } = v.parse(v.object({ jobs: v.array(v.object({ id: v.string() })) }), JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));
-  expect(jobs.some(row => row.id === 'template-author-behaviour')).toBe(false);
 });

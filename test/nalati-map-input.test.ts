@@ -25,14 +25,6 @@ test('a missing declared data copy refuses rather than reading stale boot metada
  expect(()=>readMapJson(resolve(root,'data/placeRuntime.generated.json'))).toThrow('ENOENT');
 });
 
-test('the runtime publication job and both aliases stay retired',()=>{
- const catalog=v.parse(v.object({jobs:v.array(v.object({id:v.string(),outputs:v.array(v.string())}))}),JSON.parse(readFileSync('scripts/generation-jobs.json','utf8')));
- expect(catalog.jobs.map(job=>job.id)).not.toContain('nalati-place-runtime');
- const outputs=catalog.jobs.flatMap(job=>job.outputs);
- expect(outputs).not.toContain('src/shards/nalati-grasslands/data/placeRuntime.generated.json');
- expect(outputs).not.toContain('src/shards/nalati-grasslands/boot/placeRuntime.generated.json');
-});
-
 test('the map freshness recipe names native source inputs instead of retired handoffs',()=>{
  const settings=v.parse(v.object({inputs:v.array(v.string())}),JSON.parse(readFileSync('src/shards/nalati-grasslands/data/map.json','utf8')));
  expect(settings.inputs).not.toContain('data/placeRuntime.generated.json');

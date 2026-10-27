@@ -160,7 +160,6 @@
     "test/sdk-rigged-hull-files.test.ts": 1,
     "test/setup.ts": 4,
     "test/shard-select-entries.test.ts": 1,
-    "test/sky-boot-inventory.test.ts": 6,
     "test/timed-encounters.test.ts": 1,
     "test/world-site-life.test.ts": 1
   }

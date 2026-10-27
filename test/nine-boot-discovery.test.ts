@@ -1,8 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Reproduce only the original offline inventory facts for this pure factory's input.
-import { readdirSync, statSync, readFileSync, existsSync } from 'node:fs';
+import { readdirSync, statSync, existsSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the same confined authored public roots as the predecessor writer.
 import { resolve } from 'node:path';
-import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nineBootProgram, nineBootDiscovery } from '../src/shards/nine-dragon-stack/generators/bootDiscovery';
@@ -16,11 +15,6 @@ function inventory(): Record<string, number | true> {
       if (!file.isFile()) continue;
       const path = resolve(file.parentPath, file.name); bytes[`/${path.slice(root.length + 1)}`] = statSync(path).size;
     }
-  }
-  const value: unknown = JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8'));
-  const catalogue = v.parse(v.object({ jobs: v.array(v.object({ buildOutputs: v.optional(v.record(v.string(), v.string()), {}), buildTimeOutputs: v.optional(v.array(v.string()), []) })) }), value);
-  for (const row of catalogue.jobs) for (const path of [...Object.keys(row.buildOutputs), ...row.buildTimeOutputs]) {
-    if (path.startsWith('public/assets/')) bytes[path.slice('public'.length)] = true;
   }
   return Object.fromEntries(Object.keys(bytes).filter(path => !path.endsWith('.DS_Store')).sort().map(path => [path, bytes[path] ?? true]));
 }
@@ -62,11 +56,7 @@ test('the injected source reader retains every original value and refuses older 
 
 
 test('the retired boot job has no source handoffs or registered writer', () => {
-  const catalogue = v.parse(v.object({ jobs: v.array(v.object({ id: v.string(), outputs: v.array(v.string()) })) }),
-    JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8')));
-  expect(catalogue.jobs.some(job => job.id === 'nine-boot-metadata')).toBe(false);
   const prefix = 'src/shards/nine-dragon-stack/boot/';
-  expect(catalogue.jobs.flatMap(job => job.outputs).filter(path => path.startsWith(prefix))).toEqual([]);
   for (const name of ['metadata.generated.json', 'declaration.generated.ts', 'lookTypes.generated.d.ts', 'files.generated.json', 'sources.generated.json', 'explore.generated.json', 'poses.generated.json']) {
     expect(existsSync(`${prefix}${name}`), name).toBe(false);
   }

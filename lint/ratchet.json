@@ -1339,7 +1339,6 @@
     "test/pine-runtime-mirrors.test.ts": 2,
     "test/project-sections.test.ts": 1,
     "test/quest-chapter-view.test.ts": 2,
-    "test/sky-boot-inventory.test.ts": 6,
     "test/slot-encounter-view.test.ts": 1,
     "test/timed-encounters.test.ts": 1,
     "test/world-arena-script-stage.test.ts": 2

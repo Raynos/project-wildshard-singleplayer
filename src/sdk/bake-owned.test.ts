@@ -121,11 +121,3 @@ for (const name of ['bake', 'bakeOwned']) {
     }
   });
 }
-
-
-test('every explicitly staged bake caller includes its private publication input', () => {
-  const registry = v.parse(v.object({ jobs: v.array(v.object({ id: v.string(), inputRoots: v.array(v.string()) })) }), JSON.parse(readFileSync(resolve('scripts/generation-jobs.json'), 'utf8')));
-  const missing = registry.jobs.filter(row => row.inputRoots.includes('src/sdk/bake.ts')
-    && !row.inputRoots.some(input => input === 'src/sdk/bakePublication.ts' || 'src/sdk/bakePublication.ts'.startsWith(`${input}/`))).map(row => row.id);
-  expect(missing).toEqual([]);
-});

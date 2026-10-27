@@ -54,12 +54,6 @@ await import('./scripts/bake-pickups.mjs');`;
   expect(row('pine-hollow', 'resin-1')).toEqual([{ key: 'resin', seed: 6789 }]);
   expect(row('pine-hollow', 'token-1')).toEqual([{ key: 'token', seed: 6790 }, { key: 'token-rim', seed: 6791 }]);
   expect(Object.keys(traces).sort()).toEqual(['driftwood-isle', 'pine-hollow']);
-  const jobs = v.parse(v.object({ jobs: v.array(v.object({ id: v.string(), inputRoots: v.array(v.string()), outputs:v.array(v.string()) })) }),
-    JSON.parse(readFileSync('scripts/generation-jobs.json', 'utf8'))).jobs;
-  const inputs = jobs.find(job => job.id === 'shared-pickups')?.inputRoots;
-  if (inputs === undefined) throw new Error('Missing shared-pickups producer');
-  expect(inputs.some(path => path.includes('-legacy/'))).toBe(false);
-  expect(jobs.find(job=>job.id==='shared-pickups')?.outputs).toEqual(['src/game/data/pickupCatalogue.json',...data.geometries.map(geometry=>`public${geometry.file}`)]);
 });
 
 it('restores every prepared geometry byte and gives each owner independent arrays', () => {

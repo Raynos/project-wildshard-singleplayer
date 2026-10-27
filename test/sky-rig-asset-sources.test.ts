@@ -11,6 +11,7 @@ import { TIER, initializeTier } from '../src/engine/core/tier';
 import { parseDiscoveryValues } from '../src/format/discoveryValues';
 import { skyRigAssetSources } from '../src/shards/far-reach/generators/rigAssetSources';
 import { SKY_RIG_LIBRARY, skyRigLibrary } from '../src/shards/far-reach/generators/rigLibrary';
+import { SKY_PAGE_PROGRAM } from '../src/shards/far-reach/generators/rows/population';
 import { skyModelSource } from '../src/shards/far-reach/generators/sceneSources';
 import { skyProductBoot, LATE_READS } from '../src/shards/far-reach/generators/bootInventory';
 import { SKY_CREATURES, SKY_CREATURE_RIGS } from '../src/shards/far-reach/generators/fileInventory';
@@ -24,6 +25,7 @@ if (roc === undefined || phone === undefined) throw new Error('Missing complete 
 const url = (path: string): string => `/shardfiles/far-reach/${path}`;
 
 test('all original rig bytes resolve through the native product with only the admitted phone substitution', async () => {
+  expect(SKY_PAGE_PROGRAM.species.library).toBe(SKY_RIG_LIBRARY);
   const product = createShardProduct({ slug: 'far-reach', revision: 1,
     shardfile: emptyShardfile({ slug: 'far-reach', name: 'Sky', author: 'Fixture', revision: 1, seed: 6417 }),
     sections: new Map(), files: new Map(files.map(file => [file.name ?? '', { hash: file.hash, url: url(file.path) }])),
