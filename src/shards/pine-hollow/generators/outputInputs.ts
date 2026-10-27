@@ -16,8 +16,6 @@ import { CROSSBOW_ROWS } from './crossbowRows';
 import { nameMeshoptBlob } from '@wildshard/sdk/blobs';
 import { HANDS_POOL } from './handsPoolProduct';
 import { CLIENT_BY_URL } from './clientInputs';
-import night from '../behaviour/night.generated.json' with {type:'json'};
-import director from '../behaviour/director.json' with {type:'json'};
 import king from '../data/kingBlobs.generated.json' with {type:'json'};
 import birds from '../data/birdBlobs.generated.json' with {type:'json'};
 import streams from '../data/streamBlobs.generated.json' with {type:'json'};
@@ -58,8 +56,6 @@ for(const value of [playback,inputs,sights,leverPlayback,toolPlayback])checkProg
 /** Authored input rows, never imported by a client runtime. */
 export const PINE_OUTPUT: { blobs: ((typeof journal.blobs)[number] | (typeof king.blobs)[number] | (typeof birds.blobs)[number] | (typeof streams.blobs)[number] | { name: string; kind: "wasm"; source: string; options: { critical: boolean; script: { abi: 1; pages: number; }; }; } | { name: string; kind: "wasm"; source: string; options: { script: { abi: 0; }; }; })[]; custom: typeof values; }={
  blobs:[...journal.blobs,...king.blobs,...birds.blobs,...streams.blobs,
- ...elites.fights.map(fight => ({name:`behaviour/elites/${fight.def.id}.wasm`,kind:'wasm' as const,source:`assets/${fight.program.script.module.slice('blobs/wasm/'.length, -'.wasm'.length)}`,options:{critical:true,script:{abi:1 as const,pages:1}}})),
- {name:'behaviour/night.wasm',kind:'wasm' as const,source:`assets/${night.script.module.slice('blobs/wasm/'.length, -'.wasm'.length)}`,options:{critical:true,script:{abi:1 as const,pages:1}}},
- {name:'behaviour/director.wasm',kind:'wasm' as const,source:`assets/${director.module}`,options:{script:{abi:0 as const}}}],
+ ...elites.fights.map(fight => ({name:`behaviour/elites/${fight.def.id}.wasm`,kind:'wasm' as const,source:`assets/${fight.program.script.module.slice('blobs/wasm/'.length, -'.wasm'.length)}`,options:{critical:true,script:{abi:1 as const,pages:1}}}))],
  custom:values,
 };

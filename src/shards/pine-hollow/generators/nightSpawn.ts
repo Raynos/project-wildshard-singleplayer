@@ -1,6 +1,6 @@
 
 import { Rng } from '@wildshard/sdk/random';
-import { parseSpawnScript , type SpawnScriptRows as SpawnScriptRowsType } from '@wildshard/format/spawnScripts';
+import { parseSpawnScript, spawnScriptRegistries, type SpawnScriptRows as SpawnScriptRowsType } from '@wildshard/format/spawnScripts';
 import { pineNightSpec } from './nightSpec';
 import tuning from '../data/populationWaves.json' with { type: 'json' };
 import rule from '../data/populationNight.json' with { type: 'json' };
@@ -36,3 +36,6 @@ export const NIGHT_SPAWN: SpawnScriptRowsType = parseSpawnScript({step:rule.step
  {key:'race',active:'race',slots:slots.slice(4).map(row=>row.id),values:['woke0','woke1','woke2'],value:'woke',type:'bool'},
  ]},
 });
+
+/** The night guest's registry ids, for its compilation in the product (GR8: output.ts nightModule). */
+export function nightRegistries(): ReturnType<typeof spawnScriptRegistries> { return spawnScriptRegistries(NIGHT_SPAWN); }

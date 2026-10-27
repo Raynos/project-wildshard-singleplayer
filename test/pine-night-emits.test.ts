@@ -8,14 +8,14 @@ import { createSimHost } from '../src/engine/sim';
 import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
 import { Rng } from '../src/engine/core/rng';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
-import rawNight from '../src/shards/pine-hollow/behaviour/night.generated.json' with { type: 'json' };
+import { PINE_NIGHT as rawNight, PINE_NIGHT_MODULE } from './fixtures/pine-night';
 import { readSpeciesPrograms } from '../src/format/speciesPrograms';
 import { parseSpawnScript } from '../src/format/spawnScripts';
 import type { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { installPopulationRoster } from '../src/game/population/roster';
 import { PINE_SPECIES_PROGRAMS } from '../src/shards/pine-hollow/generators/speciesPrograms';
 
-const moduleBytes=Uint8Array.from(readFileSync(`src/shards/pine-hollow/assets/${rawNight.script.module.slice('blobs/wasm/'.length,-'.wasm'.length)}`));
+const moduleBytes=Uint8Array.from(PINE_NIGHT_MODULE);
 const encode=(bytes:Uint8Array):string=>btoa(String.fromCodePoint(...bytes));
 // The original inline fixture remains the independent execution/save oracle.
 const night={...rawNight,bytes:encode(moduleBytes)};

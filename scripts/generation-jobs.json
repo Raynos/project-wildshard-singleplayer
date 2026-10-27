@@ -5875,41 +5875,6 @@
       "platform": "portable"
     },
     {
-      "id": "pine-night-director",
-      "shard": "pine-hollow",
-      "entry": "src/shards/pine-hollow/generators/bake-pine-night-director.mjs",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/pine-hollow/generators/bake-pine-night-director.mjs"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format",
-        "src/sdk",
-        "src/shards/pine-hollow/behaviour/night.as",
-        "src/shards/pine-hollow/generators",
-        "src/shards/pine-hollow/data",
-        "src/shards/pine-hollow/data/populationWaves.json",
-        "src/shards/pine-hollow/data/populationNight.json",
-        "src/shards/pine-hollow/generators/nightSpawn.ts",
-        "src/shards/pine-hollow/generators/bake-pine-night-director.mjs",
-        "src/sdk/decisionScriptBindings.ts",
-        "src/format/scriptAbiV1.ts",
-        "src/format/decisionScripts.ts"
-      ],
-      "outputs": [
-        "src/shards/pine-hollow/behaviour/night.generated.json",
-        "src/shards/pine-hollow/assets/3ecd8e5debc556c6c8aa1576f4bfee55d8e4f328a74b3627e6d238ec0ff8b135"
-      ],
-      "platform": "portable",
-      "buildOutputs": {
-        "src/shards/pine-hollow/behaviour/night.generated.json": "f4619d3f064a457b799f0b5ddc45b98e1df6ef54a9d9840c0c3433d0b916f8cf",
-        "src/shards/pine-hollow/assets/3ecd8e5debc556c6c8aa1576f4bfee55d8e4f328a74b3627e6d238ec0ff8b135": "3ecd8e5debc556c6c8aa1576f4bfee55d8e4f328a74b3627e6d238ec0ff8b135"
-      }
-    },
-    {
       "id": "sky-rising-islets",
       "shard": "far-reach",
       "entry": "src/shards/far-reach/generators/risingIslets.ts",
@@ -6232,49 +6197,6 @@
       "buildTimeOutputs": [
         "src/shards/driftwood-isle/assets/25121a8616589da2265bc6d0537c86eabec4d64d26d0bd757268d80dac2cba1b",
         "src/shards/driftwood-isle/behaviour/director.json"
-      ]
-    },
-    {
-      "id": "pine-clock-director",
-      "shard": "pine-hollow",
-      "entry": "src/shards/pine-hollow/generators/bake-pine-clock-director.mjs",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/pine-hollow/generators/bake-pine-clock-director.mjs"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format/admissionLimits.ts",
-        "src/format/director.ts",
-        "src/format/directorStages.ts",
-        "src/format/directorWhen.ts",
-        "src/format/package.json",
-        "src/format/state.ts",
-        "src/sdk/assemblyscriptCompiler.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/buildBehaviour.ts",
-        "src/sdk/bake/compileScript.ts",
-        "src/sdk/directorAbi.ts",
-        "src/sdk/immutable.ts",
-        "src/sdk/package.json",
-        "src/sdk/sourceReader.ts",
-        "src/shards/pine-hollow/behaviour/director.as",
-        "src/shards/pine-hollow/data/director.json",
-        "src/shards/pine-hollow/generators/bake-pine-clock-director.mjs",
-        "src/sdk/decisionScriptBindings.ts",
-        "src/format/scriptAbiV1.ts",
-        "src/format/decisionScripts.ts"
-      ],
-      "outputs": [
-        "src/shards/pine-hollow/assets/4bca3aaa1d0e5b78ef167939efa53c7a67c50377529cff637044aae9c5c84251",
-        "src/shards/pine-hollow/behaviour/director.json"
-      ],
-      "platform": "portable",
-      "buildTimeOutputs": [
-        "src/shards/pine-hollow/assets/4bca3aaa1d0e5b78ef167939efa53c7a67c50377529cff637044aae9c5c84251",
-        "src/shards/pine-hollow/behaviour/director.json"
       ]
     },
     {
