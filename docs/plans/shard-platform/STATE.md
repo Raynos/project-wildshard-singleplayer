@@ -17,21 +17,19 @@ once per plan at the end (G780); official Simulator readings last (G777).
 **For wildshard-v (G711):** generation catalogue **empty** (dd873bc775, ~10:30Z; was 41 / 41 / 61 / 38 jobs);
 `generation-jobs.json` deleted. Every product builds under its phone ceiling. Met today: RM5 / RM10, H10, J6, H2,
 T11, T3, D122, D121, D110, D24, H1, I11, D152 (Simulator-proven fence raise), D154 NaN blocks. **G782 crossings:
-warm solved** by last-cell retention (Sky / Pine / Nalati ~1 s full warm, < 1.2 GB); DW fixed (05 / 49de); Sky warm
-still rebuilds on a71 (allocator retires it on approach: sp-o5). **Cold** over 8 s: Sky 8.7-9.4, DW 16.5, Nalati
-19.4, Pine 20.7 s; owners sp-x8 (+ sp-x10) grid-crossing, sp-o5 T7 Nalati + D176 shaders; held view >= 30 fps.
-Jake picks: D175 / D178 / D179. Closed as misses: S1 1.6 s (D176), I1 closed on the filter with its 26 MB target
-moved to I3. Open: H4 (sp-x9: 6.0 / 5.1 s), I2 (Pine 55 MB / 146 req; sp-o3 + sp-x2). Plans: js-heap 50 %,
-legacy 50 % (Jake's boundary), grid-crossing 50 %, generators 63 %, shared-waits 93 % (SW3 waits on a CI green).
-Counter 144 / 184 = 78 %. CI: all known reds routed to their breaking lanes (G754); newest green + smoke candidate
-is still 59a595ab10 (live).
+warm solved** by last-cell retention (~0.03-1 s, < 1.2 GB). **Sky passes both bars** (7.58 s cold / 35.5 ms
+warm, f782e7ebab). Cold over 8 s: DW 16.5 (sp-x8 + sp-x10), Nalati 19.4 (sp-o5), Pine 18.3 (sp-o4 afterPlay
+budget); held view >= 30 fps. Jake picks: D175 / D178 / D179 / D181 + Sky retention A / B. Closed as misses: S1
+(D176), I1 (26 MB target moved to I3; I3 now measured on real brotli wire). js-heap 100 % archived; I7 / I10 / I12
+done (iphone 10 / 12). Open: H4 (sp-x9), I2 (Pine 140 MB raw / 404 req; sp-o3 + sp-x2). Counter 171.5 / 209 = 82 %.
+CI: every known red routed to its breaker or taken by sp-ci-deploy as G754 backup; live still 59a595ab10.
 **12:15 reply:** SW12 done (sp-x10). Codex runs past 100 % on credits (G590). G806 applied. Awaiting-reading list:
 [finish-line](finish-line.md#landed-awaiting-the-plan-end-reading-g780-1120-cancun-10-27).
 **Blocked on Jake:** road B pilot play; boards as they land; LD5-LD8 / A1 / A2 / M2 / RM13 (counted, G779).
 
-**Lanes (G804 / G805; G803 3 Opus; Claude 74 %, Codex 85 % on credits):** sp-o3 iphone-downloads (+ sp-x2 helping), sp-o5 tile-streaming
-(+ crossing T7), sp-o4 js-heap, sp-x8 grid-crossing, sp-x9 loading, sp-x6 ci-flow + GM1, sp-x10 shared-waits -> helping grid-crossing, sp-x1
-generators, sp-x2 legacy prep (at Jake's boundary), sp-ci-deploy CI reds only. sp-o1 / sp-o2 released.
+**Lanes (G804 / G805; G803 3 Opus; Claude 76 %, Codex 89 % on credits):** sp-o3 iphone-downloads (+ sp-x2), sp-o5
+tile-streaming + crossing T7, sp-o4 grid-crossing Pine (js-heap done), sp-x8 grid-crossing (+ sp-x10), sp-x9 loading,
+sp-x6 ci-flow + GM1, sp-x1 generators, sp-ci-deploy CI reds only. sp-o1 / sp-o2 released.
 
 **Rules:** G704 (<= ~20 files/move commit). G803. No reverts (G674). No new Debug rows (G669). G670.
 Never herdr wildshard-v.
