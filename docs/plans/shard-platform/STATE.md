@@ -16,17 +16,18 @@ once per plan at the end (G780); official Simulator readings last (G777).
 
 **For wildshard-v (G711):** generation catalogue **empty** (dd873bc775, ~10:30Z; was 41 / 41 / 61 / 38 jobs);
 `generation-jobs.json` deleted, GR12 tail sp-x1 + sp-x9. Every product builds under its phone ceiling (Nalati 93.5 /
-96.3, Pine 110.5 / 112.2, Nine 160.3 / 210.2 after I3). D96 / D97 / D103 / D106 fixed. **Plan-end readings
-are running (G780):** tile 12 spawn rows (sp-x2), heap / loading (sp-x9: G1 pass, D107-D109 misses), Night Market
-(sp-o4: RM14 done, RM5 palette D111 and RM10 life D112 open), T3 draws within 10 % and walk 0 stuck (sp-o1), Pine T8
-(sp-o5), Nine T8 via T3 (sp-o3), I3 Nine -6.44 MB br (sp-o2). **Long pole: G782 crossings** miss badly (DW 13-17 s,
-Sky 20-27 s, Pine 35 s cold, warm refused, against 5 / 8 s): sp-x8 Pine + DW, sp-x10 Sky, sp-o4 shaders. Also D24 vite/
-files sp-o5, Nine memory banner sp-o3, iphone reading sp-x6. Counter 146 / 209 = 70 %.
+96.3, Pine 110.5 / 112.2, Nine 160.3 / 210.2 after I3). Plan-end readings mostly recorded (G780). Met since:
+RM5 / RM10 (D111 / D112), H10 shader text 15.4 -> 2.4 MiB, J6, H2, T11 landmarks, T3, T10 source-complete, Nine
+memory banner (D122), Pine lease crash D121, D110 frame budget, D24 SW + preview server. **Long pole: G782
+crossings** still over 5 / 8 s (Nalati 27-32 cold / 20 warm; Sky 17.8 / 12.9; parked draws ~7 s on every visit):
+sp-o1 parked draws, sp-x8 scheduling (held frames draw only the loading screen), sp-x10 Sky world, sp-x1 DW, sp-o2
+Pine. Open misses: H1 (sp-o4), S1 (sp-o3), H4 6.7 s vs 1.5 (sp-x9), I2 before-control (sp-x2), I11 2.5 vs 1 MB
+(sp-x6). Counter 156 / 209 = 75 %.
 **Blocked on Jake:** road B pilot play; boards as they land; LD5-LD8 / A1 / A2 / M2 / RM13 (counted, G779).
 
-**Lanes (G735 overrides the G605 step-down; Claude active 58 %, Codex 68 %):** 5 Opus (sp-o1..o5) + 6 Codex (sp-x1,
-x2, x6, x8, x9, x10) + sp-ci-deploy (CI / deploy / reds, no cancels). origin/main d6738df69a; CI generation passes
-now, the --all source guard is the next red (D114-D117, routed).
+**Lanes (G735 overrides the G605 step-down; Claude active 61 %, Codex 71 %):** 5 Opus (sp-o1..o5) + 6 Codex (sp-x1,
+x2, x6, x8, x9, x10) + sp-ci-deploy (CI / deploy / reds, no cancels). origin/main 6771130d13; CI lint / docs /
+generation green, types and behaviour reds routed (D135-D142).
 
 **Rules:** G704 (<= ~20 files/move commit). G605. Fix forward, no reverts (G674). No new Debug rows (G669). G670.
 Never herdr wildshard-v.
