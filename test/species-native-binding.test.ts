@@ -9,6 +9,7 @@ import type { ThinkCtx } from '../src/engine/entities/species/registry';
 import { CRAB, MONKEY, SAILOR } from './fake/driftwoodSpecies';
 import { Rng } from '../src/engine/core/rng';
 import { speciesBrains } from '../src/sdk/speciesBrains';
+import { strike } from '../src/sdk/species';
 import { DRIFTWOOD_ENEMY_SPECIES } from '../src/shards/driftwood-isle/generators/enemySpecies';
 import { CRAB_LOOK, SAILOR_LOOK, MONKEY_LOOK } from './fake/driftwoodLooks';
 import { SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES } from '../src/shards/sunscar-dunes/generators/rows/brains';
@@ -63,7 +64,7 @@ test('standalone decision homes allocate declared page identities and refill thr
 });
 
 test('the species host constructs once on the first act and keeps subsequent contexts live', () => {
-  const made = body(CRAB, CRAB_LOOK), catalogue = speciesBrains(DRIFTWOOD_ENEMY_SPECIES, Object.values(DRIFTWOOD_STRIKE_ROWS));
+  const made = body(CRAB, CRAB_LOOK), catalogue = speciesBrains(DRIFTWOOD_ENEMY_SPECIES, Object.values(DRIFTWOOD_STRIKE_ROWS).map(strike));
   const first = context(), later = context(), constructions: ThinkCtx[] = [], calls: ThinkCtx[] = [];
   const bound = catalogue.bind('crab', (_actor, _decision, initial) => {
     if (initial === undefined) throw new Error('Missing first context');
@@ -135,7 +136,7 @@ test('the declared patrol species uses the same lazy callback owner through its 
 });
 
 test('declared contacts retain scale, damage, sound and cover through both body paths', () => {
-  const catalogue = speciesBrains(DRIFTWOOD_ENEMY_SPECIES, Object.values(DRIFTWOOD_STRIKE_ROWS));
+  const catalogue = speciesBrains(DRIFTWOOD_ENEMY_SPECIES, Object.values(DRIFTWOOD_STRIKE_ROWS).map(strike));
   const made = body(CRAB, CRAB_LOOK, 2), ctx = context(), hits: number[] = [], sounds: string[] = [];
   ctx.hurt = amount => { hits.push(amount); }; ctx.sound = name => { sounds.push(name); };
   const native = catalogue.actions('crab', made.actor);
@@ -163,7 +164,7 @@ test('contact rows refuse an unresolved strike before a body or decision exists'
   const actions = [];
   for (const action of crab.body.actions.actions) actions.push({ ...action, strike: 'strike.missing' });
   const invalid = { ...crab, body: { ...crab.body, actions: { ...crab.body.actions, actions } } };
-  expect(() => speciesBrains([invalid], Object.values(DRIFTWOOD_STRIKE_ROWS))).toThrow('undeclared strike strike.missing');
+  expect(() => speciesBrains([invalid], Object.values(DRIFTWOOD_STRIKE_ROWS).map(strike))).toThrow('undeclared strike strike.missing');
 });
 
 test('a pack decision requires the existing body and contact authority', () => {

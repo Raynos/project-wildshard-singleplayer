@@ -10,7 +10,7 @@ import { validateDefinedJson } from '../src/sdk/sections';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { SceneDressingSchema } from '../src/format/sceneDressing';
-import { dressingScene } from '../src/shards/nalati-grasslands/generators/dressingScene';
+import { dressingScene } from './fixtures/nalati-dressing-scene';
 
 const encode = (value: unknown): Uint8Array => new TextEncoder().encode(encodeCanonicalJson(value));
 const accepts = (work: () => unknown): boolean => { try { work(); return true; } catch { return false; } };
