@@ -252,8 +252,8 @@ export function genShards(root = resolve(import.meta.dirname, '..'), check = fal
 
 /**
  * D25 (G799: no virtual module, no Vite plugin): the title's catalogue and the selected discovery loaders, as two
- * build-written modules beside the shard list (src/titleCatalogue.generated.js, src/shardSelection.generated.js; their
- * types are the committed .d.ts files next to them). They are not committed: their rows come from every product's
+ * build-written, typed modules beside the shard list (src/titleCatalogue.generated.ts, src/shardSelection.generated.ts).
+ * They are not committed: their rows come from every product's
  * discovery module (open-plot outputs composed per output, legacy rows, derived entries), which this script writes from
  * the built products, so a committed copy would follow local product state rather than the commit.
  */
@@ -267,7 +267,14 @@ export function titleTables(root) {
     if (typeof value !== 'string') throw new Error(`gen-shards: invalid ${prefix.trim()}`);
     return value;
   };
-  return { 'src/titleCatalogue.generated.js': read('TITLE-CATALOGUE '), 'src/shardSelection.generated.js': read('TITLE-SELECTION ') };
+  // typed modules beside the shard list (relative specifiers, so the app's type check resolves them as it does the list)
+  const swap = (text, from, to) => { if (!text.includes(from)) throw new Error(`gen-shards: the title tables lost ${from}`); return text.replaceAll(from, to); };
+  const catalogue = swap(swap(read('TITLE-CATALOGUE '), ' from "/src/', ' from "./'), 'export const TITLE_MANIFESTS=[', 'export const TITLE_MANIFESTS: readonly TitleManifest[] = [');
+  const selection = swap(swap(swap(swap(read('TITLE-SELECTION '), 'import("/src/', 'import("./'), '.ts")', '")'),
+    'export const LEGACY_CONTENT_IDENTITIES=', 'export const LEGACY_CONTENT_IDENTITIES: Readonly<Record<string, string>> = '),
+    'export const SHARD_LOADERS=', 'export const SHARD_LOADERS: Readonly<Record<string, () => Promise<ShardManifest>>> = ');
+  return { 'src/titleCatalogue.generated.ts': `import type { TitleManifest } from './game/shard/titleList';\n${catalogue}`,
+    'src/shardSelection.generated.ts': `import type { ShardManifest } from './game/shard/manifest';\n${selection}` };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {

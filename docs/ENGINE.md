@@ -609,7 +609,7 @@ are the row types; `EngineRows` is the verb set.
 
 **Identity and the title deck**
 
-The cold title consumes `titleCatalogue.generated.js` (gen-shards): only
+The cold title consumes `titleCatalogue.generated.ts` (gen-shards): only
 discovery labels, entry choices, descriptor URLs and card image imports. Full
 shard discovery and renderer services load for world boot (or the Settings tap),
 not to draw the deck. `game/shard/titleList` installs these metadata rows;

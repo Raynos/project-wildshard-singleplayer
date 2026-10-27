@@ -64,7 +64,7 @@ export function titleClosureBudgetErrors(modules, budgets) {
   // D25: the title's own catalogue (labels, entries and card image imports, gen-shards writes it) is the one generated
   // module the cold title loads; it replaced the virtual:wildshard-title module
   return closureBudgetErrors(modules, budgets, 'title', titleRoots, id => /node_modules\/(?:three|@dimforge\/rapier[^/]*)(?:\/|$)/u.test(id)
-    || /^src\/shards\/.*\.[cm]?[jt]sx?$/u.test(id) || (/\.generated(?:\.|$)/u.test(id) && id !== 'src/titleCatalogue.generated.js')
+    || /^src\/shards\/.*\.[cm]?[jt]sx?$/u.test(id) || (/\.generated(?:\.|$)/u.test(id) && id !== 'src/titleCatalogue.generated.ts')
     || /^src\/engine\/(?:explore|calibrate)\//u.test(id)
     || /^src\/format\/.*\.ts$/u.test(id) && !titleFormat.has(id.slice('src/format/'.length)));
 }
