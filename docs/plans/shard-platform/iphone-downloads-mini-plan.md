@@ -1024,6 +1024,24 @@ The next original3 is owned by x2, must contain47fd/f944, and remains
 pending;8f is the last measured receipt, not a qualification of these
 newer source cuts. No owned preview/browser/Simulator remains here.
 
+### I2 joint three-shard read on `4c2d76c` (2026-10-27, sp-x2; recorded by sp-o3, plan owner since G804)
+
+The next original three-shard read, on `4c2d76c122a94cb252f9eba05a6bc272b7a1fd1e` (contains `f9443f0bb8` explicit-tier
+isolation, `47fd45dc34` native demand sharing and `8505673985`, Pine's tile fix). Same protocol as `8f2c7f92ee`: a
+fresh muted phone context (402×874, DPR 3, render scale 2, CPU 1×), page and worker requests started up to control,
+encoded bytes. Raw: `tmp/sp-x2/i2-joint-final/reading/reading.json` (+ three indices).
+
+| Shard | Before control (B) | Requests | Control | vs `8f2c7f92ee` |
+|---|---:|---:|---:|---|
+| Pine | 170,943,598 | 421 | 9.449 s | 199,573,386 B / 429 / 16.914 s |
+| Nalati | 115,400,388 | 288 | 12.289 s | 115,398,069 B / 284 / 5.519 s |
+| Nine | 172,837,900 | 206 | 9.775 s | 174,535,372 B / 205 / 11.300 s |
+
+All three reach control with 0 errors. Only Nine meets the 250-request half of I2's bar; none meets both bars (≤ 12 MB and
+≤ 250 requests before control): 0/3. One read each, no isolated speed claim (control times move with the run). Pine is
+−28.6 MB from the tier isolation; Nalati and Nine are unchanged in bytes. I2 stays in flight: sp-x2 owns its mechanism
+(late admission, request counts, duplicate fetches); sp-o3 takes Nalati's `world/places.bin` (11.55 MB, D131).
+
 ### I2.16 One combined8f cohort (2026-10-27, sp-x2)
 
 One shared frozen pin8f2c7f92eee92fc7a82e19ba5cfc1451dc23d755,
