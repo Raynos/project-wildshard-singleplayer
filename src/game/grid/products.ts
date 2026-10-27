@@ -163,7 +163,7 @@ export async function readGridProductNear(url: string, identity: string, options
   if (near === undefined || near.content.length === 0) return null;
   const look = await readGridSection(at, 'look/look'), fog = look === null ? null : v.parse(farRows.look, look).look.keys[0]?.fog.colour ?? null;
   // the index's file rows as the shardfile's (outputIndex assembleOutputFields): tile and bin blobs are binary files
-  const files = at.index.files.filter(row => row.commons !== true).map(({ path: _path, name: _name, commons: _commons, jsonSchema: _schema, kind, ...rest }) =>
+  const files = at.index.files.filter(row => row.commons !== true).map(({ path: _path, name: _name, tier: _tier, commons: _commons, jsonSchema: _schema, kind, ...rest }) =>
     Object.assign(rest, { kind: kind === 'tile' || kind === 'bin' ? 'binary' as const : kind }));
   const rows: ShardfileNearRows = { near, fog, inventory: { files, requires: at.index.requires } };
   const read = (ref: string): Promise<Uint8Array> => {
