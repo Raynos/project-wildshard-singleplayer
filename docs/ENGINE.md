@@ -469,15 +469,13 @@ through those after an `await` ends with the resident. Anything else that reads 
 **Owned vs acquired.** `own` only what your level creates. A shared engine or kit asset comes through
 `app.assets.acquire(key)` and is released, never disposed (`AssetService`, `AssetCensus`, `AssetRecord`).
 `retainCachedResources` marks engine caches that survive a level.
-Fixed builds use `{ retain: true, cache: true, reusable: true }`; live leases prevent eviction.
-By default retirement evicts after the last live scope user and lease. Fixed buffered
-worlds add `revisit: true`: CPU/GPU stays independently charged across visits and pressure-evictable
-in LRU order. Disposal invalidates reusable memos through `cacheUntilDisposed` or
-`memoUntilDisposed`; never reuse disposed storage or add a page pin.
-World-scene buffered draws reuse geometry by admitted content URL, tier and every
-resolved instance count. Each entered scope acquires that storage and constructs
-fresh draw objects with its own materials. Unkeyed callers keep scope disposal;
-a retiring scope cannot prepare or acquire a new draw.
+Fixed builds use `{ retain: true, cache: true, reusable: true }`; leases prevent eviction.
+Default retirement evicts after the last scope/lease. `revisit: true` keeps CPU/GPU
+independently charged and LRU pressure-evictable. Disposal invalidates
+`cacheUntilDisposed`/`memoUntilDisposed`; never reuse disposed storage or add a pin.
+World-scene geometry keys include content URL, tier and all instance counts.
+Each scope acquires storage with fresh draw objects/materials. Unkeyed storage
+retires with its scope; a retired scope cannot prepare or acquire draws.
 Owned world-scene GLB templates use the same charged idle retention, keyed by
 admitted content URL, ordered segment URLs, tier and sorted channel mapping.
 Each construction scope acquires its own lease and gives consumers deep private
@@ -2075,6 +2073,10 @@ The credits "Music: MiniMax-Music3" and "Powered by Stability AI" are licence co
 `loadRigFile(url, aliases?)` can lend a file's dependency aliases by resolved URL pathname.
 Alias and ordinary dependency URLs still pass through the default loading manager's tier and pack routing;
 the aliases use a private manager and never replace the session's resolver.
+
+`loadRigAtlas(url)` reads the first indexed/UV atlas for prepared geometry.
+Static GLBs skip unused mesh decode; native material/sampler/UV loading,
+parser pacing and complex-rig fallback stay unchanged.
 
 `prepareRigLoader()` in `@wildshard/engine/anim/rig` publishes the selected
 `models.gltf` compiler file group before awaiting parser code. It uses the existing

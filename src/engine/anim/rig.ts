@@ -1,8 +1,9 @@
 import { declareModuleGroups } from '../boot/download';
 import { retried } from '../boot/retry';
-import { type AnimationClip, type Object3D, BufferGeometry, DefaultLoadingManager, InstancedBufferAttribute, InstancedMesh, LoadingManager, SkinnedMesh } from 'three';
+import { type AnimationClip, type Object3D, type Texture, BufferGeometry, DefaultLoadingManager, InstancedBufferAttribute, InstancedMesh, LoadingManager, SkinnedMesh } from 'three';
 import type * as RigParser from './rigParser';
 import type { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { rigAtlasReader } from './rigAtlas';
 import { labelObjectTree } from '../render/gpuLabels';
 
 export type ClipName = `${'idle' | 'walk' | 'run' | 'attack' | 'hit' | 'die' | 'turn' | 'swim' | 'fly'}${'' | `.${string}`}`;
@@ -67,6 +68,15 @@ export async function loadRigFile(url: string, aliases: Readonly<Record<string, 
   applyExactInstanceMatrices(gltf.scene);
   labelObjectTree(gltf.scene, 'engine/loadRigFile', url);
   return gltf;
+}
+
+/** Read the original first indexed/UV standard-material atlas for separately prepared geometry.
+ * Uses the same bounded native parser; complex rigs retain full file intake. */
+export async function loadRigAtlas(url: string): Promise<Texture | null> {
+  const { createRigLoader } = await prepareRigLoader();
+  const read = createRigLoader(), atlas = rigAtlasReader(read);
+  const file = await read.loadAsync(url);
+  return atlas(file.scene);
 }
 
 /** A loaded file's root object (its default scene's group): what a level's runtime reads instead of the loader's raw

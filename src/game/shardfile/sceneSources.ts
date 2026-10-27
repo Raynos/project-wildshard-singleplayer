@@ -1,5 +1,6 @@
 /** Client-only data sources shared by world scenes, held models and Explorer
  * specimens. Descriptors retain the existing library and baked-kind formats. */
+import { loadRigAtlas } from '@wildshard/engine/anim/rig';
 import { sceneScalar, sceneVectors } from './sceneInputs';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { LentLooks } from './lentLooks';
@@ -73,7 +74,7 @@ export function prepareSceneSources(product: ShardProduct): Promise<void> {
         const name = key(product.slug, row.id);
         modelRows.set(name, source);
         if (!libraries.has(name)) {
-          const library = createModelLibrary(source.rows, 'scene source', inputs(product.slug, source.inputs));
+          const library = createModelLibrary(source.rows, 'scene source', inputs(product.slug, source.inputs), undefined, loadRigAtlas);
           // The existing rows distinguish facet meshes from pooled primitives;
           // a declared geometry reference selects its original reader by kind.
           libraries.set(name, { ...library, geometry: (id, options) => source.rows.meshes.includes(id) ? library.mesh(id) : library.geometry(id, options) });

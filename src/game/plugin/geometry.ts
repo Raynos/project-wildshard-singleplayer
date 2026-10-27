@@ -202,7 +202,7 @@ function cacheModelEntry<K, V extends object>(memo: Map<K, V>, key: K, value: V,
 }
 
 /** Load named resources once; each owner takes independent geometry over shared painted textures. */
-export function createModelLibrary<M extends string, H extends string>(rows: ModelLibraryRows<M, H>, fault: string, surfaceInputs: SurfaceInputs = {}, readModel: (url: string) => Promise<{ readonly scene: Object3D }> = loadRigFile): ModelLibrary<M, H> {
+export function createModelLibrary<M extends string, H extends string>(rows: ModelLibraryRows<M, H>, fault: string, surfaceInputs: SurfaceInputs = {}, readModel: (url: string) => Promise<{ readonly scene: Object3D }> = loadRigFile, readAtlas?: (url: string) => Promise<Texture | null>): ModelLibrary<M, H> {
   let lookPorts: Parameters<ModelLibrary<M, H>['bindLooks']>[1] | null = null;
   const fallback = rows.mappedFallback;
   if (fallback !== undefined && [fallback.roughness, fallback.metalness].some(value => !Number.isFinite(value) || value < 0 || value > 1)) throw new Error('Invalid mapped look fallback');
@@ -229,12 +229,13 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
 
   async function loadPainted(row: PaintedModelRow): Promise<void> {
     try {
-      const source = await readModel(row.url), maps: Texture[] = [];
-      source.scene.traverse(node => {
+      const maps: Texture[] = [];
+      if (readAtlas !== undefined) { const atlas = await readAtlas(row.url); if (atlas !== null) maps.push(atlas); }
+      else { const source = await readModel(row.url); source.scene.traverse(node => {
         if (maps.length > 0 || !isMesh(node)) return;
         const material = Array.isArray(node.material) ? node.material[0] : node.material;
         if (material instanceof MeshStandardMaterial && material.map !== null && node.geometry.hasAttribute('uv') && node.geometry.index !== null) maps.push(material.map);
-      });
+      }); }
       const map = maps[0], geometry = rest.get(row.geometry);
       if (map === undefined || geometry === undefined) throw new Error('Prepared painted resources unavailable');
       const part = (index: number): BufferGeometry => {
