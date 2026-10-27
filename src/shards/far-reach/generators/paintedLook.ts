@@ -14,12 +14,6 @@ export const SKY_PAINTED_ATTRIBUTE_SOURCES=[
     .map(([name,row])=>({name:row.file,kind:'bin' as const,source:`data/sky-glow-${name}.bin`,options:{critical:true,gpu:row.count*4}}))),
 ];
 
-/** Resolve the fixed golden-hour look, image samplers and dressing graphs offline. */
-export function paintedLookRows(): unknown {
-  const { look, day, haze, ...rows } = SKY_PAINTED;
-  return { ...rows, look: { ...look, lightScope: 'page', clock: day, sky: { kind: 'haze', row: haze } } };
-}
-
 /** Product presentation preserves original image samplers, geometry and draw order. */
 export function skyPaintedPresentation(): PaintedLookRow {
   const { look, images, dressing } = SKY_PAINTED;

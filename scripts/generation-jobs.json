@@ -8276,49 +8276,6 @@
       "platform": "portable"
     },
     {
-      "id": "sky-painted-look",
-      "shard": "far-reach",
-      "entry": "src/shards/far-reach/generators/paintedLook.ts",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/far-reach/generators/paintedLook.ts",
-        "paintedLookRows",
-        "src/shards/far-reach/data/paintedLook.generated.json"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/format/package.json",
-        "src/format/paintedLook.ts",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/package.json",
-        "src/shards/far-reach/data/panorama.json",
-        "src/shards/far-reach/data/skyDressing.json",
-        "src/shards/far-reach/generators/fileInventory.ts",
-        "src/shards/far-reach/generators/paintedLook.ts",
-        "src/shards/far-reach/generators/rows/skyLook.ts",
-        "src/shards/far-reach/generators/rows/skyPaintedLook.ts",
-        "src/format/json.ts",
-        "src/format/materialFamilies.ts",
-        "src/format/materialGraph.ts",
-        "src/format/materials.ts",
-        "src/format/runtimeBinds.ts",
-        "src/shards/far-reach/generators/worldTextures.ts"
-      ],
-      "outputs": [
-        "src/shards/far-reach/data/paintedLook.generated.json"
-      ],
-      "platform": "portable",
-      "buildOutputs": {},
-      "buildTimeOutputs": [
-        "src/shards/far-reach/data/paintedLook.generated.json"
-      ]
-    },
-    {
       "id": "pine-packed-sky-keys",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-keyed-sky.mjs",

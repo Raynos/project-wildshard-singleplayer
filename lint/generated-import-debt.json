@@ -384,7 +384,6 @@
     "test/page-population-planner.test.ts": 2,
     "test/page-preparation.test.ts": 1,
     "test/page-quest-stages.test.ts": 1,
-    "test/painted-look-rows.test.ts": 2,
     "test/painted-world-stages.test.ts": 2,
     "test/painted-world.test.ts": 2,
     "test/patrol-encounter-view.test.ts": 1,

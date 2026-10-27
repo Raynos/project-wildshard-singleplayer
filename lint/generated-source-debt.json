@@ -544,7 +544,6 @@
     "src/shards/far-reach/data/millRest.generated.json",
     "src/shards/far-reach/data/movers.generated.json",
     "src/shards/far-reach/data/navigation.generated.json",
-    "src/shards/far-reach/data/paintedLook.generated.json",
     "src/shards/far-reach/data/panorama.json",
     "src/shards/far-reach/data/physics.generated.json",
     "src/shards/far-reach/data/physicsPlacements.generated.json",

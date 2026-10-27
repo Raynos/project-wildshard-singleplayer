@@ -18,9 +18,11 @@ import { skyPaintedPresentation, SKY_PAINTED_GRAPHS } from '../src/shards/far-re
 import { signalPaintedPresentation } from '../src/shards/sunscar-dunes/generators/paintedLook';
 import { LAST_LIGHT_SUN } from '../src/shards/sunscar-dunes/generators/rows/lightLook';
 import { paintedLookFromRow, painterLightGlsl, painterLightPatch } from '../src/engine/render/dataLook';
-import sky from '../src/shards/far-reach/data/paintedLook.generated.json' with { type: 'json' };
+import { SKY_PAINTED } from '../src/shards/far-reach/generators/rows/skyPaintedLook';
 
 const signal = parsePaintedLook(signalPaintedPresentation());
+// The authored golden-hour rows as the product reads them: page light, the day clock and the haze sky.
+const sky = { look: { ...SKY_PAINTED.look, lightScope: 'page', clock: SKY_PAINTED.day, sky: { kind: 'haze', row: SKY_PAINTED.haze } } };
 
 test('both authored looks admit their clock, sky and light without changing values', () => {
   for (const rows of [signal.look, sky.look]) {
