@@ -108,6 +108,7 @@ import { CellScreen, facingEdge } from './cellScreens';
 import { readGridSeamData, type GridSeamAddress } from './seamData';
 import { readCompiledGridStrips } from './compiledStrips';
 import { startRoadGrain } from './roadGrainPreparation';
+import { startRoadSigns } from './roadSignPreparation';
 import { declareDownloadFile } from '@wildshard/engine/boot/download';
 import { admittedRuntimeProduct } from '../shardfile/runtimeProduct';
 
@@ -368,8 +369,14 @@ export class GridSession {
     const assembly = new GridAssembly(gridMode(DEVSERVER)), empty = assembly.emptyNeighbour.edge;
     const instance = pageGridInstance();
     if (instance === null) throw new Error('A grid session needs a grid page');
-    const home = assembly.cell(instance), grain = startRoadGrain(host.scope, allocator, instance);
+    const home = assembly.cell(instance);
+    const reach = 1.5 * assembly.pitch + 1;
+    const ring = (x: number, z: number): boolean => Math.abs(x - home.origin.x) <= reach && Math.abs(z - home.origin.z) <= reach;
+    const layout = roadLayout(assembly, slug => findShard(slug)?.name ?? slug);
+    const grain = startRoadGrain(host.scope, allocator, instance);
+    let signs: ReturnType<typeof startRoadSigns>;
     try {
+    signs = startRoadSigns(host.scope, allocator, instance, layout.signs.filter(sign => ring(sign.at.x, sign.at.z)));
     let prepared = 0;
     progress?.set(0, 3, 'Grid seam data · 0 / 1 files');
     const address = __GRID_SEAM_ASSET__, abort = new AbortController();
@@ -400,8 +407,6 @@ export class GridSession {
     let batches = 0;
     progress?.set(1, 3, 'Terrain seams · 0 batches');
     const seamPlans = new Map(data.plans);
-    const reach = 1.5 * assembly.pitch + 1;
-    const ring = (x: number, z: number): boolean => Math.abs(x - home.origin.x) <= reach && Math.abs(z - home.origin.z) <= reach;
     const original = platformInputs(assembly, edges);
     const compiled = await readCompiledGridStrips(address.geometry, original, instance, { scope: host.scope, allocator },
       (url, signal) => fetch(url, { signal }), async () => {
@@ -416,6 +421,7 @@ export class GridSession {
       flatPlatform = true;
     }))];
     if (grain !== undefined) await waitFor('Grid road grain', grain.ready, 'worker');
+    if (signs !== undefined) await waitFor('Grid road signs', signs.ready, 'worker');
     if (host.scope.disposed || host.scope.disposing) throw new Error('Grid session left during seam preparation');
     const roadScope = host.scope.child('grid-road-construction');
     progress?.set(2, 3, `Road geometry · ${strips.length} initial seams`);
@@ -436,12 +442,15 @@ export class GridSession {
         (url, signal) => fetch(url, { signal }), pause, 'outer');
       return compiledOuter?.strips ?? generatePlatformSliced(source.cells, source.empty, pause, 4, seamPlans, (x, z) => !ring(x, z)); // T10: built in play after controls, 4 ms stretches beside the frame
     };
-    const roadInput = { strips, home, pitch: assembly.pitch, layout: roadLayout(assembly, slug => findShard(slug)?.name ?? slug), scene: host.scene,
+    const roadInput = { strips, home, pitch: assembly.pitch, layout, scene: host.scene,
       scope: roadScope, camera: () => host.frame?.camera, plans, admission, ...(tileBacking === undefined ? {} : { tileBacking }),
-      ...(grain === undefined ? {} : { grain: grain.get }) };
+      ...(grain === undefined ? {} : { grain: grain.get }), ...(signs === undefined ? {} : { signs: signs.get }) };
     const pause = async (): Promise<void> => { await construction.check(); };
-    const road = installPlatformRoadSliced({ ...roadInput, allocationKey: 'road.inner', within: ring,
-      ...(compiled?.look === undefined ? {} : { seamChannels: compiled.look }) }, pause);
+    const road = (async () => {
+      try { return await installPlatformRoadSliced({ ...roadInput, allocationKey: 'road.inner', within: ring,
+        ...(compiled?.look === undefined ? {} : { seamChannels: compiled.look }) }, pause); }
+      finally { signs?.release(); }
+    })();
     const outer = async (): Promise<PlatformRoad> => {
       try { return await installPlatformRoadSliced({ ...roadInput, allocationKey: 'road.outer', within: (x, z) => !ring(x, z), voidFloor: false }, pause); }
       finally { grain?.release(); strips.length = 0; } // Native collision views retain positions/indices, never render-only colours.
@@ -462,7 +471,7 @@ export class GridSession {
       await construction.yield();
       return session;
     } catch (error) { roadScope.dispose(); throw error; }
-    } catch (error) { grain?.release(); throw error; }
+    } catch (error) { signs?.release(); grain?.release(); throw error; }
   }
 
   constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[], preparedRoad?: { readonly road: PlatformRoad | Promise<PlatformRoad>; readonly outer?: () => Promise<PlatformRoad>; readonly outerStrips?: (scope: Scope) => Promise<readonly GeneratedStrip[]>; readonly publishStrips?: (strips: readonly GeneratedStrip[]) => void; readonly plans: Map<Mesh, CullPlan>; readonly collidersInstalled?: true }) {

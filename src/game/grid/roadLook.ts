@@ -14,6 +14,7 @@ import {
 import type { GridCell } from './assembly';
 import { putRoadGrain, roadGrainSteps, type RoadGrainSource } from './roadGrain';
 import { packRoadSignPixels } from './roadSignPixels';
+import { paintRoadSignCanvas, roadSignPaintLayout, roadSignLineKey as lineKey, SIGN_LINE_W as LINE_W, SIGN_LINE_H as LINE_H, type RoadSignSource } from './roadSignPaint';
 import { ownRoadMesh } from './roadResources';
 import { ROAD_SKY } from './frameModel';
 import { coverageMaterial, coverageTable, gpuOnlyTextureBytes, uniformPart, type CoverageColours, type SolidPart } from './roadSolid';
@@ -32,6 +33,8 @@ export interface RoadLookInput {
   readonly scope: LookScope;
   /** Optional scoped worker pixels; absent planes use the identical original paint steps. */
   readonly grain?: RoadGrainSource;
+  /** Scoped initial-ring coverage; mismatched rows retain the original painter. */
+  readonly signs?: RoadSignSource;
   /** the road system's one solid material takes the kerbs, islands and streetlights (SF17b per-view budget) */
   readonly solid: (part: SolidPart) => void;
   /** the per-view cull for each textured mesh (`roadCull.ts`); a bare hook is the pre-G144 call (no admission with it) */
@@ -361,11 +364,10 @@ function streetlights(layout: RoadLayout, home: GridCell): { poles: SolidPart; h
  * v = 1 that the material paints SIGN_GREY (a constant uv always read the swatch's one texel at level 0, so the grey is
  * unchanged). progress/shard-platform/platform-atlas/ holds the before / after captures.
  */
-const LINE_W = 512, LINE_H = 64, SIGN_GREY = '#6f7378', GREY_V = 2;
+const SIGN_GREY = '#6f7378', GREY_V = 2;
 /** Blue's coverage as red's and green's blend (least worst over every green-to-white canvas blend: within 1.4 LSB). */
 const SIGN_BLUE_FROM_RED = 0.45;
 const signCoverage = (): CoverageColours => ({ from: SIGN_GREEN, to: WHITE, blueFromRed: SIGN_BLUE_FROM_RED, sentinel: { v: GREY_V - 0.5, colour: SIGN_GREY } });
-function lineKey(line: SignLine): string { return `${line.arrow}|${line.names.join(' · ')}|${line.metres === null ? '' : String(line.metres)}`; }
 /** The atlas's layout, pure (its size and every uv), so the sign mesh and its byte plan never need the canvas. */
 interface SignAtlasLayout {
   readonly keys: readonly string[]; readonly lines: ReadonlyMap<string, SignLine>; readonly width: number; readonly height: number;
@@ -374,10 +376,7 @@ interface SignAtlasLayout {
   readonly swatch: Readonly<Record<'green' | 'grey' | 'white', readonly [number, number]>>;
 }
 function signAtlasLayout(signs: readonly RoadSign[]): SignAtlasLayout {
-  const keys = [...new Set(signs.flatMap((s) => s.lines.map(lineKey)))], lines = new Map<string, SignLine>();
-  for (const s of signs) for (const l of s.lines) lines.set(lineKey(l), l);
-  const W = 1024, perRow = W / LINE_W, rows = Math.ceil((keys.length + 1) / perRow), H = rows * LINE_H;
-  const slot = (k: number): [number, number] => [(k % perRow) * LINE_W, Math.floor(k / perRow) * LINE_H];
+  const { keys, lines, width: W, height: H, slot } = roadSignPaintLayout(signs);
   const [sx, sy] = slot(keys.length); // swatches in the last cell
   const uv = (px: number, py: number): readonly [number, number] => [px / W, 1 - py / H];
   const index = new Map(keys.map((k, i) => [k, i]));
@@ -387,28 +386,14 @@ function signAtlasLayout(signs: readonly RoadSign[]): SignAtlasLayout {
     swatch: { green: uv(sx + 32, sy + LINE_H / 2), grey: [0.5, GREY_V], white: uv(sx + 160, sy + LINE_H / 2) },
   };
 }
-function signAtlasTexture(atlas: SignAtlasLayout): DataTexture {
-  const { keys, lines, slot, width: W, height: H } = atlas, { el, g } = canvas(W, H);
-  g.fillStyle = SIGN_GREEN; g.fillRect(0, 0, W, H);
-  keys.forEach((key, k) => {
-    const line = lines.get(key); if (line === undefined) return;
-    const [x, y] = slot(k), mid = y + LINE_H / 2;
-    g.fillStyle = WHITE; g.strokeStyle = WHITE; g.lineWidth = 6;
-    const ax = line.arrow === 'right' ? x + LINE_W - 40 : x + 28; // the arrow: left / right at that edge, ahead on the left
-    g.beginPath();
-    if (line.arrow === 'ahead') { g.moveTo(ax, mid + 18); g.lineTo(ax, mid - 14); g.moveTo(ax - 12, mid - 4); g.lineTo(ax, mid - 18); g.lineTo(ax + 12, mid - 4); }
-    else { const s = line.arrow === 'left' ? -1 : 1; g.moveTo(ax - s * 16, mid); g.lineTo(ax + s * 16, mid); g.moveTo(ax + s * 4, mid - 12); g.lineTo(ax + s * 18, mid); g.lineTo(ax + s * 4, mid + 12); }
-    g.stroke();
-    const text = line.names.join(' · ').toUpperCase(), dist = line.metres === null ? '' : `${String(line.metres)} M`, left = line.arrow === 'right' ? x + 18 : x + 64, right = line.arrow === 'right' ? x + LINE_W - 72 : x + LINE_W - 18;
-    g.font = '600 34px "Helvetica Neue", Arial, sans-serif'; g.textBaseline = 'middle';
-    const dw = g.measureText(dist).width, room = right - left - dw - 22, tw = g.measureText(text).width;
-    g.save(); g.translate(left, mid); g.scale(Math.min(1, room / Math.max(1, tw)), 1); g.textAlign = 'left'; g.fillText(text, 0, 2); g.restore();
-    g.textAlign = 'right'; g.fillText(dist, right, 2);
-  });
-  const [sx, sy] = slot(keys.length); // swatches in the last cell (the grey is the material's sentinel, not a texel)
-  g.fillStyle = WHITE; g.fillRect(sx + 128, sy, 64, LINE_H);
-  const pixels = g.getImageData(0, 0, W, H).data; el.width = 1; el.height = 1;
-  const colours = signCoverage(), data = packRoadSignPixels(pixels, W, H, coverageTable(colours, 0), coverageTable(colours, 1));
+function signAtlasTexture(atlas: SignAtlasLayout, signs?: RoadSignSource): DataTexture {
+  const { width: W, height: H } = atlas;
+  let data: Uint8Array | undefined = signs?.(atlas);
+  if (data === undefined) {
+    const { el, g } = canvas(W, H); paintRoadSignCanvas(g, atlas);
+    const pixels = g.getImageData(0, 0, W, H).data; el.width = 1; el.height = 1;
+    const colours = signCoverage(); data = packRoadSignPixels(pixels, W, H, coverageTable(colours, 0), coverageTable(colours, 1));
+  }
   const t = new DataTexture(data, W, H, RGFormat, UnsignedByteType);
   t.colorSpace = NoColorSpace; t.generateMipmaps = true; t.minFilter = LinearMipmapLinearFilter; t.magFilter = LinearFilter; t.anisotropy = 8; t.needsUpdate = true;
   return t;
@@ -454,12 +439,12 @@ interface TexturedSource {
 const overlayMaterial = (map: Texture): MeshLambertMaterial => new MeshLambertMaterial({ map, emissiveMap: map, emissive: 0x000000, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
 /** A texture painted in one stretch, as a paint step. */
 function* paintNow(paint: () => Texture): Generator<void, Texture> { yield; return paint(); }
-function texturedSources(layout: RoadLayout, home: GridCell, grain?: RoadGrainSource): TexturedSource[] {
+function texturedSources(layout: RoadLayout, home: GridCell, grain?: RoadGrainSource, signs?: RoadSignSource): TexturedSource[] {
   const atlas = signAtlasLayout(layout.signs);
   return [
     { id: 'road.asphalt', name: 'grid-asphalt', mesher: asphalt(layout, home), width: 1024, height: 512, paint: () => roadTextureSteps(grain), overlay: true, texelBytes: 4, source: 'canvas', material: overlayMaterial },
     { id: 'road.junctions', name: 'grid-junctions', mesher: junctionAsphalt(layout, home), width: 1024, height: 1024, paint: () => junctionTextureSteps(grain), overlay: true, texelBytes: 4, source: 'canvas', material: overlayMaterial },
-    { id: 'road.signs', name: 'grid-signs', mesher: signMesher(layout.signs, home, atlas), width: atlas.width, height: atlas.height, paint: () => paintNow(() => signAtlasTexture(atlas)), overlay: false, texelBytes: 2, source: 'data', material: (map) => coverageMaterial(map, signCoverage(), 'g227-grid-sign-cover') },
+    { id: 'road.signs', name: 'grid-signs', mesher: signMesher(layout.signs, home, atlas), width: atlas.width, height: atlas.height, paint: () => paintNow(() => signAtlasTexture(atlas, signs)), overlay: false, texelBytes: 2, source: 'data', material: (map) => coverageMaterial(map, signCoverage(), 'g227-grid-sign-cover') },
   ];
 }
 
@@ -470,7 +455,7 @@ export function* installRoadLookSteps(input: RoadLookInput): Generator<void, Roa
   const { layout, home, scene, scope, admission } = input, group = new Group(), hook = typeof input.cull === 'function' ? input.cull : undefined, cull = typeof input.cull === 'function' ? undefined : input.cull;
   if (admission !== undefined && hook !== undefined) throw new Error('Road admission needs a RoadCuller (its pitch plans the culled bytes)');
   group.name = 'grid-boulevard';
-  const sources = texturedSources(layout, home, input.grain);
+  const sources = texturedSources(layout, home, input.grain, input.signs);
   const { poles, heads } = streetlights(layout, home);
   for (const part of [kerbs(layout, home), poles, heads]) input.solid(part);
   scene.add(group);

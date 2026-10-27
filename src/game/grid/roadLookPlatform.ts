@@ -1,3 +1,4 @@
+import type { RoadSignSource } from './roadSignPaint';
 /**
  * The platform's road system in one call (SHARD-PLATFORM SF17b look and per-view budget, G144 admission): the seams' solid
  * parts and curtain (`seamLook.ts`), the boulevard (`roadLook.ts`), the void and its rail (`voidLook.ts`), and the deck: the
@@ -35,6 +36,7 @@ export interface PlatformRoadInput {
   /** Source-verified channels for exactly this selected ring, absent on native/outer construction. */
   readonly seamChannels?: SeamGeometryChannels;
   readonly grain?: RoadGrainSource;
+  readonly signs?: RoadSignSource;
   readonly home: GridCell;
   readonly pitch: number;
   readonly layout: RoadLayout;
@@ -138,7 +140,8 @@ function* platformRoadSteps(input: PlatformRoadInput): Generator<void, PlatformR
   const parts: SolidPart[] = [...seams.parts], solid = (part: SolidPart): void => { parts.push(part); };
   const overlayLight = new RoadOverlayLight();
   const road = yield* installRoadLookSteps({ layout, home, scene, scope, solid, cull: culler, admission, overlayLight, retireGeometry,
-    ...(input.grain === undefined ? {} : { grain: input.grain }) });
+    ...(input.grain === undefined ? {} : { grain: input.grain }),
+    ...(input.signs === undefined ? {} : { signs: input.signs }) });
   const voidLook = input.voidFloor === false ? null : installVoidLook({ rail: layout.rail, home, scene, scope, solid, admission });
   // this build's own boulevard group (a split road adds one per build)
   let boulevard: Object3D | undefined;
