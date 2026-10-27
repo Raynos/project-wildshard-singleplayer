@@ -6,7 +6,7 @@
  * the optional `outline` hook (`clientMaterials().outline`): a graph that declares `stages.outline` draws its hull as each
  * mesh's second draw (terrain tiles, fine prop tiles, library panels and models; the coarse L1 proxy keeps one draw).
  */
-import { AdditiveBlending, Material, Mesh, type Object3D, type Texture } from 'three';
+import { AdditiveBlending, Box3, Material, Mesh, type Object3D, type Texture } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { TerrainTileData } from '@wildshard/format/terrainTileBytes';
 import { installTerrainTile, maskTerrainTile } from '@wildshard/engine/world/terrainTileView';
@@ -18,6 +18,9 @@ import { groundMerge } from './groundMerge';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
 const isMaterial = (value: unknown): value is Material => value instanceof Material;
+/** A tile mesh no taller than this (m) is flat; within FLOOR of the tile's lowest mesh it lies on the floor and casts no
+ *  shadow. */
+const FLAT = 0.01, FLOOR = 0.1;
 
 function isMesh(object: Object3D): object is Mesh { return object instanceof Mesh; }
 /** a fine tile has nothing under it to hide */
@@ -111,13 +114,20 @@ export function clientTileViews(ports: ViewPorts): ClientTileViews {
       if (row.lod !== 1) outlineProps(root, ports, ports.materials.get(props.family), scope);
       // what each mesh was baked to do (a GLB node's castShadow flag); the shadow disc only ever turns it off. An additive
       // material is light (a pool, a hologram, a beam): it casts nothing (RM12: Night Market's pools were a shadow-map draw a
-      // tile; at runtime, so no tile byte changes)
-      const casters: Mesh[] = []; root.traverse((object) => {
+      // tile; at runtime, so no tile byte changes). A flat mesh at the tile's floor (water, a ground sheet) has nothing in
+      // its tile under it to shade, so it casts nothing either; a raised flat one (an awning, a deck) still does (RM12: the
+      // canals' water was another depth draw a tile)
+      const lit: { mesh: Mesh; box: Box3 }[] = []; let floor = Infinity;
+      root.traverse((object) => {
         if (!isMesh(object) || !object.castShadow) return;
         const drawn: unknown = object.material;
         if (isMaterial(drawn) && drawn.blending === AdditiveBlending) { object.castShadow = false; return; }
-        casters.push(object);
+        const box = new Box3().setFromObject(object); lit.push({ mesh: object, box }); floor = Math.min(floor, box.min.y);
       });
+      const casters: Mesh[] = [];
+      for (const { mesh, box } of lit) {
+        if (box.max.y - box.min.y < FLAT && box.max.y <= floor + FLOOR) mesh.castShadow = false; else casters.push(mesh);
+      }
       const shadow = (enabled: boolean): void => { for (const mesh of casters) mesh.castShadow = enabled; };
       if (row.lod === 1) { const mask = coarseTileMask(root, row.x, row.z, scope); shadow(false); return { mask, shadow: () => undefined }; }
       return { mask: noMask, shadow };
