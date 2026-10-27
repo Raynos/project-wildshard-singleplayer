@@ -14,7 +14,7 @@ import { compactChannels } from '../src/shards/driftwood-isle/generators/compact
 import { decimateFlatBatch } from '../src/shards/driftwood-isle/generators/phoneDecimate';
 
 import { withPortableMath } from '../src/commons/bake/portableMath';
-import { islandFoliagePlacements } from '../src/shards/driftwood-isle/generators/islandDressing';
+import { islandFoliageBatches, islandFoliagePlacements } from '../src/shards/driftwood-isle/generators/islandDressing';
 import { driftwoodReefBank } from '../src/shards/driftwood-isle/generators/reefBank';
 import dressingBlobs from '../src/shards/driftwood-isle/data/dressingBlobs.generated.json' with { type: 'json' };
 import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_BANK_BLOBS, DRIFTWOOD_OUTPUT } from '../src/shards/driftwood-isle/generators/assets';
@@ -64,7 +64,7 @@ test('finished foliage scene GLBs preserve every (compact) native channel, full 
     for (const kind of ['palms', 'hibiscus', 'reef'] as const) {
       if (kind === 'reef' && tier === 'desktop') continue;
       const name = kind === 'reef' ? 'world/reef.bin' : `world/${kind}/${tier}.bin`;
-      const source = dressingBlobs.blobs.find(row => row.name === name), banked = reefBank.blobs.get(name);
+      const source = dressingBlobs.blobs.find(row => row.name === name), banked = reefBank.blobs.get(name) ?? islandFoliageBatches().blobs.get(name);
       const blob = data.blobs.find(row => row.name === `models/foliage/${kind}-${tier}.glb`);
       if ((source === undefined && banked === undefined) || blob === undefined) throw new Error('Missing native foliage source');
       const rows = kind === 'reef' ? undefined : kind === 'palms' ? foliage.tiers[tier].palms : foliage.tiers[tier].bushes;

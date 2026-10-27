@@ -7,7 +7,8 @@ import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { driftwoodReefBank } from './reefBank';
 import { driftwoodZiplineBank } from './ziplineBank';
 import { driftwoodFacetedGroundBank } from './facetedGroundBank';
-import dressing from '../data/dressingBlobs.generated.json' with { type: 'json' };
+import dressingJob from '../data/dressingBlobs.generated.json' with { type: 'json' };
+import { islandFoliageBatches } from './islandDressing';
 
 // GR7: the reef's, the zipline's and the faceted ground's rows come from their banks, keyed by content as the job's `assets/<hash>` sources were, so equal payloads
 // across manifests still share one name; the bank's canonical blobs are emitted by prepareOutput (DRIFTWOOD_BANK_BLOBS).
@@ -20,6 +21,10 @@ const bankManifest = (blobs: Iterable<readonly [string, { readonly kind: 'glb' |
   }), byUrl: Object.fromEntries(Object.entries(byUrl).sort(byKey)) });
 const reef = bankManifest(reefBank.blobs, reefBank.byUrl), ziplineBank = driftwoodZiplineBank(), ziplineRows = ziplineBank.rows;
 const zipline = bankManifest([...ziplineBank.blobs].map(([name, bytes]) => [name, { kind: 'glb', bytes }] as const), ziplineBank.byUrl);
+// the dressing's palm and hibiscus rows from their bank; its cover rows are still the job's (in name order, as it wrote them)
+const foliageBatches = bankManifest(islandFoliageBatches().blobs, islandFoliageBatches().byUrl), batched = new Set(foliageBatches.blobs.map(row => row.name));
+const dressing = { blobs: [...foliageBatches.blobs, ...dressingJob.blobs.filter(row => !batched.has(row.name))].sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0),
+  byUrl: Object.fromEntries([...Object.entries(dressingJob.byUrl).filter(([, name]) => !batched.has(name)), ...Object.entries(foliageBatches.byUrl)].sort(byKey)) };
 const groundBank = driftwoodFacetedGroundBank();
 const ground = bankManifest([...groundBank.blobs].map(([name, bytes]) => [name, { kind: 'glb', bytes }] as const), groundBank.byUrl);
 const manifests = [reef, ground, dressing, zipline];

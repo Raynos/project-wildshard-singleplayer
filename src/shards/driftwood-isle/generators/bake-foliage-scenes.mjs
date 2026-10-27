@@ -10,7 +10,7 @@ import { palm, hibiscusBush, palmColliders } from './foliageModels.ts';
 import { compactChannels } from './compactChannels.ts';
 import { decimateFlatBatch } from './phoneDecimate.ts';
 import { driftwoodReefBank } from './reefBank.ts';
-import { islandFoliagePlacements } from './islandDressing.ts';
+import { islandFoliageBatches, islandFoliagePlacements } from './islandDressing.ts';
 import { DRIFTWOOD_FIXED_INPUTS, driftwoodFixedBytes } from './fixedProgram.ts';
 import { driftwoodFixedLayouts } from './fixedLayouts.ts';
 
@@ -27,7 +27,7 @@ const restoreMath = installPortableMath();
 const project = new URL('../', import.meta.url);
 const read = name => JSON.parse(readFileSync(new URL(`data/${name}.json`, project), 'utf8'));
 const manifests = [read('dressingBlobs.generated')], reefBank = driftwoodReefBank();
-const source = name => { const banked = reefBank.blobs.get(name); if (banked !== undefined) return banked.bytes; const row = manifests.flatMap(m => m.blobs).find(candidate => candidate.name === name); if (row === undefined) throw new Error(`Missing native foliage: ${name}`); return new Uint8Array(readFileSync(new URL(row.source, project))); };
+const source = name => { const banked = reefBank.blobs.get(name) ?? islandFoliageBatches().blobs.get(name); if (banked !== undefined) return banked.bytes; const row = manifests.flatMap(m => m.blobs).find(candidate => candidate.name === name); if (row === undefined) throw new Error(`Missing native foliage: ${name}`); return new Uint8Array(readFileSync(new URL(row.source, project))); };
 const foliage = islandFoliagePlacements(), reef = reefBank.layout;
 const logs = layouts.logs, wreckLogs = layouts.wreck.catalogue.logs, inventory = read('fixedGeometry');
 const writer = byteWriter(process.argv.includes('--check'), 'foliage-scenes'), material = new MeshStandardMaterial();

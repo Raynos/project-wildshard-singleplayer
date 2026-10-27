@@ -3,7 +3,7 @@ import { Noise2D } from '@wildshard/engine/core/noise';
 import { islandKnobs } from './tiers';
 import type * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { _buildAs } from '@wildshard/engine/core/tier';
+import { _buildAs, buildTier, TIER, type Tier } from '@wildshard/engine/core/tier';
 import { Rng } from '@wildshard/engine/core/rng';
 import { seedOf, type Placement } from '@wildshard/engine/models/model';
 import { bindLevelSelection } from '@wildshard/engine/level/selection';
@@ -20,6 +20,11 @@ import { bakeFullIslandCover } from './islandCover';
 import { inArea } from './blenderArea';
 import { GULL_CORRIDORS } from './gullsLook';
 import { retainedIslandRuns, type ClipRuns } from './clipDressing';
+import { MeshStandardMaterial } from 'three';
+import { staticGlb } from '@wildshard/sdk/bake/glb';
+import { hashImmutableBytes } from '@wildshard/sdk/immutable';
+import { hibiscusTransport, foliageTransport } from './hibiscusTransport';
+import publicInputs from '../data/publicInputs.json' with { type: 'json' };
 
 export interface PalmSpec { x: number; z: number; h: number; lean: number; leanDir: number; rot: number; fronds: number }
 export interface BushSpec { x: number; z: number; r: number; flowers: boolean }
@@ -121,7 +126,13 @@ const avoidSites=():{x:number;z:number;r:number}[]=>[{x:HUT.x,z:HUT.z,r:11},{x:L
 /** Built once per build process: both tiers' scatter on the bound native ground, as the dressing bakes it (its rows are
  *  these); every reader treats it as read-only. */
 export function islandFoliagePlacements(): IslandFoliagePlacements { foliagePlacements ??= scatterIslandFoliage(); return foliagePlacements; }
-function scatterIslandFoliage(): IslandFoliagePlacements {
+/** Run `build` and put the build tier back as it was (a memo may first fill inside a caller's tier pass). */
+function keepingTier<T>(build: () => T): T {
+ const previous: Tier = buildTier();
+ try { return build(); } finally { _buildAs(previous === TIER ? null : previous); }
+}
+function scatterIslandFoliage(): IslandFoliagePlacements { return keepingTier(scatterIslandFoliageRows); }
+function scatterIslandFoliageRows(): IslandFoliagePlacements {
  const terrain=manifest.ground.terrain;if(terrain===undefined)throw new Error('Native island ground is required');
  const level={id:manifest.slug,ground:{terrain},spawn:manifest.spawn,sky:manifest.sky,atmosphere:manifest.atmosphere,grade:manifest.grade,
   budgets:{},mechanisms:[],fight:{},boot:{files:[]},audio:{ambience:'none',score:'none'},loadout:{weapons:[],tools:[],start:[]},species:[],spawns:[],minimap:{},kitLook:'toon' as const};
@@ -135,7 +146,49 @@ function scatterIslandFoliage(): IslandFoliagePlacements {
   };
   const phone=tier('phone'),desktop=tier('desktop');
   return{seed:manifest.seed,gullPerches:beachGullPerches(ground.heightAt,manifest.seed),tiers:{phone,desktop}};
- }finally{_buildAs(null);restoreGround();restoreLevel();}
+ }finally{restoreGround();restoreLevel();}
+}
+/** One dressing blob: its product name's kind and bytes. */
+export interface IslandFoliageBlob { readonly kind: 'glb' | 'bin'; readonly bytes: Uint8Array }
+/** The palms' and bushes' bytes (GR7: the dressing job's palm and hibiscus outputs): each tier's world transport and Explorer
+ *  variant GLBs by product name (equal payloads keep the first name, as the job's writer did), and the hash-named public URLs
+ *  (palmFiles.ts / hibiscusFiles.ts) as aliases of those names. */
+export interface IslandFoliageBatches { readonly blobs: ReadonlyMap<string, IslandFoliageBlob>; readonly byUrl: Readonly<Record<string, string>> }
+let foliageBatches: IslandFoliageBatches | undefined;
+/** Built once per build process from the foliage placements (no file is read); every reader treats it as read-only. */
+export function islandFoliageBatches(): IslandFoliageBatches { foliageBatches ??= buildIslandFoliageBatches(); return foliageBatches; }
+function buildIslandFoliageBatches(): IslandFoliageBatches { return keepingTier(buildIslandFoliageBatchRows); }
+function buildIslandFoliageBatchRows(): IslandFoliageBatches {
+ // the placements first: their scatter ends by clearing the build tier, so they must not be filled inside a tier pass
+ const placed=islandFoliagePlacements(),blobs=new Map<string,IslandFoliageBlob>(),byUrl:Record<string,string>={},names=new Map<string,string>();
+ const emit=(bytes:Uint8Array,kind:IslandFoliageBlob['kind'],prefix:string,name:string):void=>{
+  const hash=hashImmutableBytes(bytes),owner=names.get(hash)??name;
+  if(!names.has(hash)){names.set(hash,name);blobs.set(name,{kind,bytes});}
+  byUrl[`${publicInputs.baked}${prefix}-${hash}.${kind}`]=owner;
+ };
+ for(const tier of ['phone','desktop'] as const){
+   _buildAs(tier);
+   const rows=placed.tiers[tier],palms=rows.palms.specs;
+   const palmRng=new Rng(seedOf(palm)),bushRng=new Rng(seedOf(hibiscusBush));
+   const pg=rows.palms.placements.map(p=>palmGeometry({...palm.defaults,...p.params},palmRng).translate(p.x,p.y,p.z));
+   const bg=rows.bushes.placements.map(p=>leafClump({...hibiscusBush.defaults,...p.params},bushRng).translate(p.x,p.y,p.z));
+   const mergedPalms=mergeGeometries(pg),mergedBushes=mergeGeometries(bg);
+   try{
+    emit(hibiscusTransport(mergedBushes,bg,retainedIslandRuns(mergedBushes,(x,z)=>!inArea(x,z))),'bin','hibiscus',`world/hibiscus/${tier}.bin`);
+    for(const variant of hibiscusBush.variants){
+     const shape=leafClump({...hibiscusBush.defaults,...variant.params},new Rng(seedOf(hibiscusBush))),material=new MeshStandardMaterial();
+     try{emit(staticGlb([{geometry:shape,material,customAttributes:{_SWAY:'aSway'},compactIndex:true}],`hibiscus-${variant.id}`),'glb','hibiscus',`models/hibiscus/${tier}/${variant.id}.glb`);}
+     finally{shape.dispose();material.dispose();}
+    }
+    emit(foliageTransport(mergedPalms,pg,retainedIslandRuns(mergedPalms,palmKeep(palms)),0x314d4c50,['position','color','sway']),'bin','palm',`world/palms/${tier}.bin`);
+    for(const variant of palm.variants){
+     const shape=palmGeometry({...palm.defaults,...variant.params},new Rng(seedOf(palm))),material=new MeshStandardMaterial();
+     try{emit(staticGlb([{geometry:shape,material,customAttributes:{_SWAY:'sway'},compactIndex:true}],`palm-${variant.id}`),'glb','palm',`models/palms/${tier}/${variant.id}.glb`);}
+     finally{shape.dispose();material.dispose();}
+    }
+   }finally{mergedPalms.dispose();mergedBushes.dispose();for(const geometry of [...pg,...bg])geometry.dispose();}
+  }
+ return{blobs,byUrl};
 }
 /** Compile both tiers from their actual scatter, native shapes and original height binding. */
 export async function islandDressing(readAsset:(url:string)=>Uint8Array, bushesReady?: (tier:'phone'|'desktop', geometry:THREE.BufferGeometry, originals:readonly THREE.BufferGeometry[], clips:ClipRuns) => void, palmsReady?: (tier:'phone'|'desktop', geometry:THREE.BufferGeometry, originals:readonly THREE.BufferGeometry[], clips:ClipRuns) => void):Promise<{seed:number;gullPerches:ReturnType<typeof beachGullPerches>;tiers:{foliage:FoliagePlacements;tier:'phone'|'desktop';clips:{palms:ClipRuns;bushes:ClipRuns;logs:ClipRuns};cover:Awaited<ReturnType<typeof bakeFullIslandCover>>}[]}> {
