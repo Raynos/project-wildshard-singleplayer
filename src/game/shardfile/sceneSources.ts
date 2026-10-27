@@ -56,34 +56,53 @@ export function prepareSceneSources(product: ShardProduct): Promise<void> {
   const prepare = (async () => {
     if (!product.has('world/scenes')) throw new Error('Scene sources require world/scenes');
     const rows = product.section('world/scenes');
-    for (const row of rows.libraries) {
-      if (row.kind !== 'models') continue;
-      const declared = await product.json<SceneModelSource>(row.file);
-      if (!isJsonData(declared) || declared.rows.meshes.length > 256 || declared.rows.hd.length > 256) throw new Error('Invalid declared model source');
-      const source = { ...declared, rows: sceneRigFiles(declared.rows, product) };
-      const name = key(product.slug, row.id);
-      modelRows.set(name, source);
-      if (!libraries.has(name)) {
-        const library = createModelLibrary(source.rows, 'scene source', inputs(product.slug, source.inputs));
-        // The existing rows distinguish facet meshes from pooled primitives;
-        // a declared geometry reference selects its original reader by kind.
-        libraries.set(name, { ...library, geometry: (id, options) => source.rows.meshes.includes(id) ? library.mesh(id) : library.geometry(id, options) });
+    const models = rows.libraries.filter(row => row.kind === 'models');
+    // Read independent declarations together, then publish in original order.
+    // Every started batch settles before validation can reject its caller.
+    for (let offset = 0; offset < models.length; offset += 4) {
+      const batch = models.slice(offset, offset + 4);
+      const ready = await Promise.allSettled(batch.map(async row => {
+        const declared = await product.json<SceneModelSource>(row.file); return declared;
+      }));
+      for (const [index, row] of batch.entries()) {
+        const result = ready[index]; if (result === undefined) throw new Error('Missing model declaration read');
+        if (result.status === 'rejected') throw result.reason;
+        const declared = result.value;
+        if (!isJsonData(declared) || declared.rows.meshes.length > 256 || declared.rows.hd.length > 256) throw new Error('Invalid declared model source');
+        const source = { ...declared, rows: sceneRigFiles(declared.rows, product) };
+        const name = key(product.slug, row.id);
+        modelRows.set(name, source);
+        if (!libraries.has(name)) {
+          const library = createModelLibrary(source.rows, 'scene source', inputs(product.slug, source.inputs));
+          // The existing rows distinguish facet meshes from pooled primitives;
+          // a declared geometry reference selects its original reader by kind.
+          libraries.set(name, { ...library, geometry: (id, options) => source.rows.meshes.includes(id) ? library.mesh(id) : library.geometry(id, options) });
+        }
       }
     }
-    for (const row of rows.libraries) {
-      if (row.kind !== 'baked') continue;
-      const declared = await product.json<SceneBakeSource>(row.file);
-      if (!isJsonData(declared) || Object.keys(declared.rows).length > 128) throw new Error('Invalid declared bake source');
-      const source = sceneBakeFiles(declared, product);
-      const name = key(product.slug, row.id), surfaces = inputs(product.slug, source.inputs);
-      bakeRows.set(name, source);
-      if (!bakes.has(name)) bakes.set(name, bakedMeshWorld(source.rows, source.urls, 'scene source', {
-        ...(source.attributes === undefined ? {} : { attributes: source.attributes }),
-        ...(source.resources === undefined ? {} : { resources: source.resources, readBytes: fetchDeflatedBytes }),
-        ...(source.placements === undefined ? {} : { placements: source.placements }),
-        material: kind => kind.look === undefined ? undefined : need(libraries, product.slug, source.materialLibrary ?? '').material(kind.look),
-        decorate: (material, kind) => { if (kind.surface !== undefined) applySurfaceLooks(material, kind.surface, surfaces); },
+    // Bakes may borrow model materials, so their publication stays after models.
+    const baked = rows.libraries.filter(row => row.kind === 'baked');
+    for (let offset = 0; offset < baked.length; offset += 4) {
+      const batch = baked.slice(offset, offset + 4);
+      const ready = await Promise.allSettled(batch.map(async row => {
+        const declared = await product.json<SceneBakeSource>(row.file); return declared;
       }));
+      for (const [index, row] of batch.entries()) {
+        const result = ready[index]; if (result === undefined) throw new Error('Missing bake declaration read');
+        if (result.status === 'rejected') throw result.reason;
+        const declared = result.value;
+        if (!isJsonData(declared) || Object.keys(declared.rows).length > 128) throw new Error('Invalid declared bake source');
+        const source = sceneBakeFiles(declared, product);
+        const name = key(product.slug, row.id), surfaces = inputs(product.slug, source.inputs);
+        bakeRows.set(name, source);
+        if (!bakes.has(name)) bakes.set(name, bakedMeshWorld(source.rows, source.urls, 'scene source', {
+          ...(source.attributes === undefined ? {} : { attributes: source.attributes }),
+          ...(source.resources === undefined ? {} : { resources: source.resources, readBytes: fetchDeflatedBytes }),
+          ...(source.placements === undefined ? {} : { placements: source.placements }),
+          material: kind => kind.look === undefined ? undefined : need(libraries, product.slug, source.materialLibrary ?? '').material(kind.look),
+          decorate: (material, kind) => { if (kind.surface !== undefined) applySurfaceLooks(material, kind.surface, surfaces); },
+        }));
+      }
     }
   })();
   pending.set(product, prepare);
