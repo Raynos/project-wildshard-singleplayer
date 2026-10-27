@@ -135,6 +135,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
   game.levelScope.onDispose(() => { minimap.setDebugExtras(null); });
   const fullMap = new FullMap(minimap); // the menu's MAP tab (Menu.ts mounts it); tap the minimap / M to open
   const keepAlive = new KeepAlive();
+  let gridBackgroundReady = false;
   await macrotask();
   // SF21a / the grid client: EXPERIMENTAL Wildshard's 3 × 3 around this home cell (deck, soft walls, neighbours' far proxies)
   const grid = await step('assembly', async p => {
@@ -142,7 +143,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
     const { GridSession } = await waitFor('Read grid session module', import('../grid/session'), 'file');
     if (game.levelScope.disposed) throw new Error('Grid owner retired while loading its session');
     return GridSession.create({ scene: game.rootScene, physics: world.physics, scope: game.levelScope, feet: () => player.position, renderer: game.renderer,
-    backgroundReady: () => hud.entered,
+    backgroundReady: () => hud.entered && gridBackgroundReady,
     // G371: the near tier plans from the drawn eye (a free / hero camera gets the cells it is over)
     eye: () => ({ x: game.camera.position.x - player.position.x, z: game.camera.position.z - player.position.z }),
     prepareTile: (tile) => game.warmSceneRoots([tile.group], () => !tile.scope.disposed),
@@ -552,6 +553,12 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
     if (game.levelScope.disposed || game.levelScope.disposing) throw new Error('Grid owner retired while loading presentation');
     const revealing = session.recovery === undefined || initialGridReload(session.recovery) ? installGridReveal({ scope: game.levelScope, camera: game.camera, hudRoot: hud.root, canvas: game.renderer.domElement, onLate: (fn) => { game.onLate(fn, 'game.grid.reveal'); },
       home: chunk.name, ringsReady: () => grid.ringsReady(), homeSimReady: () => !gridHomeSim.pending, weapons, viewmodel: game.viewmodel, entered: () => hud.entered }) : () => false;
+    // A1: markEntered precedes the reveal and home installation. Open outer
+    // seams/road/far and near views only after the first controllable frame.
+    // Latch once: pausing later must not retire already admitted outer views.
+    game.onLate(() => {
+      if (hud.entered && !hud.paused && !revealing() && !gridHomeSim.pending) gridBackgroundReady = true;
+    }, 'game.grid.background');
     const gridHud = installGridHud({ scope: game.levelScope, hudRoot: hud.root, camera: game.camera, cells: gridCells,
       title: (cell) => { const shard = findShard(cell.slug); return { name: shard?.name ?? cell.slug, subtitle: shard?.biome ?? '' }; },
       accent: (cell) => { const id = findShard(cell.slug)?.accent; return id === undefined ? null : ACCENTS[id]; },

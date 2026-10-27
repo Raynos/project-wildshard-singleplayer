@@ -170,3 +170,30 @@ build, preview or per-row reading was run under G769. No no-pop-in or
 loading-time acceptance is claimed before the plan-end reading.
 sp-x8 confirmed no active hunk in these assembly paths; its newer T4/T7
 and entryway-prepin changes remain in HEAD and are preserved.
+
+
+### A1 ring-first release (2026-10-27, sp-x9)
+
+**In flight (reading at plan end, G780).** Consume the existing inner/outer
+native-seam split (`46547f8e95`): the home and its eight neighbours' seams
+and road remain the initial construction set. Before controls, far catalogue
+demand and far-size declaration reads are limited to that same clipped 3x3
+ring. Background release invalidates the existing catalogue revision once,
+so the unchanged outer cells become eligible in the ordinary scheduler.
+
+The page's old `hud.entered` signal was true before the reveal finished.
+Latch the background release only after home readiness and reveal release
+on an unpaused play frame. Outer seams/road, outer far declarations,
+neighbour admission and the phone's existing four near views then run in
+play. A later pause does not re-close or evict the already-open ring.
+No loading barrier waits on outer cells or near views. `ringsReady` remains
+observational; the reveal's existing timed/touch release is unchanged.
+All source bytes, native collision sets, crossing readiness walls, far/near
+budgets and scope disposal stay intact. No new fallback or gate is added.
+
+Touched source types/lint and exact candidate-path ratchet pass. Full
+ratchet still refuses the existing stale Pine discovery allowance. G769:
+no tests, browser, build or per-row reading. The World assembly budget and
+no-pop-in acceptance remain for the one plan-end reading. Shared assembly
+hunks were agreed with sp-x8; its separate liveSession metadata-import
+barrier change is untouched. H3 source is `52e5052165`.

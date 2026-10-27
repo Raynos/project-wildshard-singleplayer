@@ -310,6 +310,7 @@ export class GridSession {
   private roadLanding: Promise<void> = Promise.resolve();
   /** loading-speed A1: builds the outer ring's road once (null: none to build, or started) */
   private startOuterRoad: (() => void) | null = null;
+  private startOuterFar: (() => void) | null = null;
   private readonly roadPlans: Map<Mesh, CullPlan>;
   private roadTiles: RoadTileBacking | null = null;
   private readonly roadBudget: { readonly view: () => RoadViewCost | null; readonly resident: () => RoadResident };
@@ -451,13 +452,19 @@ export class GridSession {
     const home = this.home;
     // the root world is neutral highway physics and the home an owned region like every cell, so every cell is a neighbour
     this.neighbours = [...this.assembly.cells];
+    const initialRing = new Set(this.neighbours.filter(cell => Math.abs(cell.cell[0] - home.cell[0]) <= 1
+      && Math.abs(cell.cell[1] - home.cell[1]) <= 1).map(cell => cell.instance));
+    const backgroundReady = (): boolean => host.backgroundReady?.() !== false;
     // ringsReady: the far ring charges each proxy its declared bytes before it loads, not the 1.6 MB cap, so placeholder
     // charges never leave a visible cell out of the ring (12 visible proxies of 0.4-1.6 MB fit its 14.4 MB)
     const declare = async (cell: GridCell): Promise<void> => {
       try { const bytes = await gridShardfileFarBytes(cell.slug); if (bytes !== null) this.declaredFar.set(cell.instance, bytes); }
       catch { /* the proxy's own load charges it */ }
     };
-    for (const cell of this.neighbours) void declare(cell);
+    for (const cell of this.neighbours) if (backgroundReady() || initialRing.has(cell.instance)) void declare(cell);
+    if (!backgroundReady()) this.startOuterFar = () => {
+      for (const cell of this.neighbours) if (!initialRing.has(cell.instance)) void declare(cell);
+    };
     for (const cell of this.assembly.cells) { const manifest = findShard(cell.slug); this.names.set(cell.slug, manifest?.name ?? cell.slug); }
     // the deck: one generator run (`create` runs it sliced and hands it over), one draw, the same vertices as the platform colliders
     const strips = prebuilt ?? platformStripsNow(this.assembly, edges);
@@ -672,10 +679,15 @@ export class GridSession {
     // the road (round 3's first A = B); a terrain-only near view (the template, its world in its tiles) keeps them; a cell
     // with no near view keeps its far proxy until entered (only the entered world lights its tiles)
     const farCosts = new Map<string, number>(), blocked = new Map<string, boolean>();
-    let catalogueRevision = 0, tileRevision = -1;
-    const catalogue = Object.assign((id: string, level: RingTile['level'], x: number, z: number): number | null => (level === 'far'
-      ? this.costs.get(id) ?? this.declaredFar.get(id) ?? 1_600_000 : this.placeholderBlocksTiles(id) ? null : tileCost(id, level, x, z)), {
+    let catalogueRevision = 0, tileRevision = -1, backgroundWasReady = backgroundReady();
+    const catalogue = Object.assign((id: string, level: RingTile['level'], x: number, z: number): number | null => {
+      if (!backgroundReady() && !initialRing.has(id)) return null;
+      return level === 'far' ? this.costs.get(id) ?? this.declaredFar.get(id) ?? 1_600_000
+        : this.placeholderBlocksTiles(id) ? null : tileCost(id, level, x, z);
+    }, {
       revision: (): number => {
+        const background = backgroundReady();
+        if (background !== backgroundWasReady) { backgroundWasReady = background; catalogueRevision++; }
         const current = tileCost.revision?.() ?? -1;
         if (current !== tileRevision) { tileRevision = current; catalogueRevision++; }
         for (const cell of this.neighbours) {
@@ -933,6 +945,7 @@ export class GridSession {
     if (this.last !== null && dt > 0) { this.velocity = { x: (at.x - this.last.x) / dt, z: (at.z - this.last.z) / dt }; }
     this.last = at;
     const speed = Math.hypot(this.velocity.x, this.velocity.z);
+    if (this.startOuterFar !== null && this.host.backgroundReady?.() !== false) { const start = this.startOuterFar; this.startOuterFar = null; start(); }
     // Match L1's 400 m reach plus the rings' four-second travel lookahead. Distant
     // cells keep their baked proxy without admitting their full product at boot.
     if (this.startOuterRoad !== null && this.roadSettled && this.host.backgroundReady?.() !== false) { const start = this.startOuterRoad; this.startOuterRoad = null; start(); }
