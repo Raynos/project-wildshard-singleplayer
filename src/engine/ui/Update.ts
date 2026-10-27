@@ -1,4 +1,5 @@
 import { Scope } from '../app/scope';
+import { diagnosticNow } from '../core/clock';
 import { hudSlots } from './hudSlots';
 import { engineString } from '../strings';
 /**
@@ -42,10 +43,10 @@ async function reload(): Promise<void> {
   if (busy) return;
   busy = true;
   const text = el.querySelector('[data-el="text"]'), attempt = scope.child('update');
-  const started = performance.now(), downloads = new DownloadAccounting(location.href, started);
+  const started = diagnosticNow(), downloads = new DownloadAccounting(location.href, started);
   attempt.onDispose(observeDownloadAccounting(downloads));
   const progress = (): void => {
-    if (text) text.textContent = engineString('s_41273a4673fc', [downloads.snapshot().filesDone, ((performance.now() - started) / 1000).toFixed(1)]);
+    if (text) text.textContent = engineString('s_41273a4673fc', [downloads.snapshot().filesDone, ((diagnosticNow() - started) / 1000).toFixed(1)]);
   };
   progress();
   attempt.interval(250, progress);
