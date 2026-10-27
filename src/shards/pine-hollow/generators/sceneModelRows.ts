@@ -9,7 +9,6 @@ import { parseWorldScenes , type ParsedWorldScenes as ParsedWorldScenesType } fr
 import { parseWorldScenePlacement , type WorldScenePlacementRow as WorldScenePlacementRowType } from '@wildshard/format/worldScenePlacement';
 import heroes from '../data/heroScenes.generated.json' with { type: 'json' };
 import heroRows from '../data/heroRows.json' with { type: 'json' };
-import props from '../data/propScenes.generated.json' with { type: 'json' };
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 
 import { CRAG_MODEL_ROWS, CRAG_PLACEMENT_ROWS, CRAG_BATCH_ROWS, CRAG_LIBRARY, CRAG_MATERIAL, CRAG_MODEL_BLOBS } from './cragSceneContribution';
@@ -17,8 +16,10 @@ import { CRAG_MODEL_ROWS, CRAG_PLACEMENT_ROWS, CRAG_BATCH_ROWS, CRAG_LIBRARY, CR
 import { TIMBER_MODEL_ROWS, TIMBER_PLACEMENTS, TIMBER_LIBRARY, TIMBER_BLOBS, TIMBER_SURFACES } from './timberSceneContribution';
 import { CABIN_MODEL_ROWS, CABIN_PLACEMENTS, CABIN_LIBRARIES, CABIN_BLOBS, CABIN_MATERIALS, CABIN_WELDS } from './cabinSceneContribution';
 import { pineProps } from './bake-pine-props.mjs';
+import { pinePropScenes } from './bake-prop-scenes.mjs';
+import { nameBlob, nameMeshoptBlob, type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
 
-const scatter = await pineProps();
+const scatter = await pineProps(), props = await pinePropScenes();
 const materials: unknown[] = [CRAG_MATERIAL, ...TIMBER_SURFACES, ...CABIN_MATERIALS];
 const models: unknown[] = [...CRAG_MODEL_ROWS, ...TIMBER_MODEL_ROWS, ...CABIN_MODEL_ROWS];
 const placements: unknown[] = [...CRAG_PLACEMENT_ROWS, ...TIMBER_PLACEMENTS, ...CABIN_PLACEMENTS];
@@ -101,4 +102,9 @@ export const MODEL_SCENES: ParsedWorldScenesType = parseWorldScenes({ version: 1
   { id: 'heroes', kind: 'owned', models: heroes.blobs.map(row => ({ id: row.name.slice('models/heroes/'.length, -'.glb'.length), file: row.name })) },
   { id: 'props', kind: 'owned', models: props.geometry },
 ], materials, placements: SCENE_PLACEMENTS.map(placementReference), steps: [] });
-export const MODEL_BLOBS: { name: string; kind: string; source: string; }[] = [...heroes.blobs, ...props.blobs, ...CRAG_MODEL_BLOBS, ...TIMBER_BLOBS, ...CABIN_BLOBS];
+export const MODEL_BLOBS: { name: string; kind: string; source: string; }[] = [...heroes.blobs, ...CRAG_MODEL_BLOBS, ...TIMBER_BLOBS, ...CABIN_BLOBS];
+// GR8 G28: the prop shapes' GLBs, built in memory: raw for the map assembly, meshopt-named for the output.
+/** The prop shapes' raw GLBs. */
+export const PROP_RAW_MODELS: NamedBlobType[] = props.models.map(([name, bytes]) => nameBlob(name, 'glb', bytes));
+/** The prop shapes' GLBs, meshopt-named as their `meshopt: true` sources were. */
+export const PROP_PACKED_MODELS: NamedBlobType[] = await Promise.all(props.models.map(([name, bytes]) => nameMeshoptBlob(name, bytes)));

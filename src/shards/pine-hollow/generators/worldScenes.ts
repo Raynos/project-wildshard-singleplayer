@@ -7,7 +7,7 @@ import { CRAG_CAVE_ROWS } from './cragSceneContribution';
 import { CaveInteriorSchema } from '@wildshard/format/caveInterior';
 import { CRAG_LOOK, CAVE_LOOK } from './cragLook';
 import * as layout from './layout';
-import { MODEL_SCENES, MODEL_BLOBS, SCENE_MODELS, SCENE_PLACEMENTS } from './sceneModelRows';
+import { MODEL_SCENES, MODEL_BLOBS, SCENE_MODELS, SCENE_PLACEMENTS, PROP_RAW_MODELS, PROP_PACKED_MODELS } from './sceneModelRows';
 import { CABIN_JSON_BLOBS } from './cabinSceneContribution';
 import { nameBlob, nameMeshoptBlob, type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
 import { pineWorldSceneModels } from './bake-world-scene-models.mjs';
@@ -50,9 +50,9 @@ export const SCENE_MODEL_BLOBS: { name: string; kind: string; source: string; }[
 // raw for the map assembly, meshopt-named for the output as their `meshopt: true` sources were.
 const rawModels = [...pineWorldSceneModels()];
 /** The four raw world-scene models, named as the map assembly reads them. */
-export const SCENE_RAW_MODELS: NamedBlobType[] = rawModels.map(([name, bytes]) => nameBlob(name, 'glb', bytes));
+export const SCENE_RAW_MODELS: NamedBlobType[] = [...rawModels.map(([name, bytes]) => nameBlob(name, 'glb', bytes)), ...PROP_RAW_MODELS];
 /** The same four, meshopt-named as the output publishes them. */
-export const SCENE_PACKED_MODELS: NamedBlobType[] = await Promise.all(rawModels.map(([name, bytes]) => nameMeshoptBlob(name, bytes)));
+export const SCENE_PACKED_MODELS: NamedBlobType[] = [...await Promise.all(rawModels.map(([name, bytes]) => nameMeshoptBlob(name, bytes))), ...PROP_PACKED_MODELS];
 /** Ordered stream assembly plus named raw-model placement sets, over shared material slots. */
 export const WORLD_SCENES: WorldScenesSection = {
   version: 1, catalogue: 'models/world-scenes.json', placements: MODEL_SCENES.placements, batches: MODEL_SCENES.batches, welds: MODEL_SCENES.welds,

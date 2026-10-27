@@ -49,7 +49,8 @@ test('all generated kit and both skin tiers round-trip without channel or index 
 const shapeManifest = v.object({ blobs: v.array(v.object({ source: v.string() })),
   geometryHashes: v.record(v.string(), v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u))) });
 test('every emitted static scene shape participates in its map-input facts', () => {
-  for (const id of ['cragScenes', 'heroScenes', 'propScenes']) {
+  // GR8 G28: the prop scenes' shapes are built in memory, so only the stored crag and hero scenes are checked here
+  for (const id of ['cragScenes', 'heroScenes']) {
     const data = v.parse(shapeManifest, JSON.parse(readFileSync(new URL(`src/shards/pine-hollow/data/${id}.generated.json`, root), 'utf8')));
     expect(Object.keys(data.geometryHashes)).toHaveLength(data.blobs.length);
     for (const blob of data.blobs) {
