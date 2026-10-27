@@ -14,10 +14,10 @@ import { templateTerrain } from '../src/shards/_template/generators/terrain';
 import { paintDataMap } from '../scripts/bake-data-maps.mjs';
 import { mapTilesHash } from '../scripts/map-hash.mjs';
 import { paintMapScenes } from '../src/sdk/bake/mapScenes';
-import { mapRest } from '../scripts/bake-map-rest.mjs';
+import { mapSceneRest as mapRest } from '../src/sdk/bake/mapRest';
 import { parseClientChannels } from '../src/format/clientChannels';
 import { isletScenes } from '../src/shards/far-reach/generators/isletScene';
-import isletMotion from '../src/shards/far-reach/data/isletMotion.generated.json' with { type: 'json' };
+import { isletMotionRows } from '../src/shards/far-reach/generators/isletMotion';
 import { nalatiMapAssembly } from '../src/shards/nalati-grasslands/generators/mapAssembly.mjs';
 import { nineMapAssemblyFrom } from '../src/shards/nine-dragon-stack/generators/mapAssemblySource';
 import { scenes as nineScenes, casts as nineCasts } from './fixtures/nine-product-inputs';
@@ -29,6 +29,7 @@ import { pineMapAssembly } from '../src/shards/pine-hollow/generators/mapAssembl
 import pinePhysics from '../src/shards/pine-hollow/data/physicsRows.json' with { type: 'json' };
 
 const isletScene = isletScenes();
+const isletMotion = isletMotionRows();
 
 const grey = [[120, 120, 120], [120, 120, 120], [120, 120, 120]];
 const triangle = [[200, 4, 200], [150, 4, 200], [200, 4, 150]];

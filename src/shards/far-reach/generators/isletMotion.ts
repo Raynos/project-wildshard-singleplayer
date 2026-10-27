@@ -59,4 +59,4 @@ const rows = entries.entries.flatMap((entry, index) => {
   return [row.build(), gate.build()];
 });
 /** Native poses are copied in the existing late visual phase; these rows own neither collision nor motion. */
-export function isletMotionRows(): { counts: typeof ISLET_VIEW_COUNTS; rest: typeof ISLET_VIEW_REST; channels: typeof rows } { return { counts: ISLET_VIEW_COUNTS, rest: ISLET_VIEW_REST, channels: rows }; }
+export function isletMotionRows(): { counts: typeof ISLET_VIEW_COUNTS; rest: typeof ISLET_VIEW_REST; channels: typeof rows } { return structuredClone({ counts: ISLET_VIEW_COUNTS, rest: ISLET_VIEW_REST, channels: rows }); }

@@ -3123,52 +3123,6 @@
       ]
     },
     {
-      "id": "sky-islet-motion",
-      "shard": "far-reach",
-      "entry": "src/shards/far-reach/generators/isletMotion.ts",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/far-reach/generators/isletMotion.ts",
-        "isletMotionRows",
-        "src/shards/far-reach/data/isletMotion.generated.json"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format/clientChannels.ts",
-        "src/format/package.json",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/clientChannels.ts",
-        "src/sdk/package.json",
-        "src/shards/far-reach/data/islets.generated.json",
-        "src/shards/far-reach/generators/isletMotion.ts",
-        "src/shards/far-reach/generators/palette.ts",
-        "src/format/json.ts",
-        "src/format/portalLink.ts",
-        "src/format/socketLift.ts",
-        "src/sdk/bake/placement.ts",
-        "src/sdk/entries.ts",
-        "src/sdk/sceneTransform.ts",
-        "src/shards/far-reach/data/strings.json",
-        "src/shards/far-reach/generators/isletRigRows.ts",
-        "src/shards/far-reach/generators/layout.ts",
-        "src/shards/far-reach/generators/layoutMath.ts",
-        "src/shards/far-reach/generators/risingIslets.ts",
-        "src/shards/far-reach/generators/rows/isletDesign.ts"
-      ],
-      "outputs": [
-        "src/shards/far-reach/data/isletMotion.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/far-reach/data/isletMotion.generated.json"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "sky-hero-library",
       "shard": "far-reach",
       "entry": "src/shards/far-reach/generators/preparedModels.ts",
@@ -4861,7 +4815,6 @@
       ],
       "inputRoots": [
         "src/shards/far-reach/shard.config.ts",
-        "src/shards/far-reach/generators",
         "src/shards/far-reach/data/islets.generated.json",
         "src/shards/far-reach/data/plumbing.json",
         "src/shards/far-reach/manifest.json",
@@ -5145,7 +5098,22 @@
         "src/shards/far-reach/generators/crownScene.ts",
         "scripts/sim-node-loader.mjs",
         "lint/sim-schema-leaves.json",
-        "scripts/bake-sky-map.mjs"
+        "scripts/bake-sky-map.mjs",
+        "src/shards/far-reach/generators/bridgeRestProgram.ts",
+        "src/shards/far-reach/generators/crownInstances.ts",
+        "src/shards/far-reach/generators/fixedLayouts.ts",
+        "src/shards/far-reach/generators/isleRim.ts",
+        "src/shards/far-reach/generators/isles.ts",
+        "src/shards/far-reach/generators/isletMotion.ts",
+        "src/shards/far-reach/generators/isletScene.ts",
+        "src/shards/far-reach/generators/keeperFigure.ts",
+        "src/shards/far-reach/generators/mapWorldSources.ts",
+        "src/shards/far-reach/generators/millRestProgram.ts",
+        "src/shards/far-reach/generators/preparedModelBytes.ts",
+        "src/shards/far-reach/generators/preparedModelProgram.ts",
+        "src/shards/far-reach/generators/rows/keeperFigure.ts",
+        "src/shards/far-reach/generators/rows/layoutTypes.ts",
+        "src/shards/far-reach/generators/worldPackBytes.ts"
       ],
       "outputs": [
         "public/assets/far-reach/map/top.webp",
