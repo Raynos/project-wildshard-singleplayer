@@ -58,6 +58,16 @@ class FailFastTests(unittest.TestCase):
             self.assertEqual(API['run']([sys.executable,'-c','print("FAIL test/real.test.ts > actual");raise SystemExit(7)'],record=False),7)
         self.assertIn('::error file=test/real.test.ts',out.getvalue())
 
+    def test_source_publication_red_uses_existing_reporter(self):
+        source=Path('.github/workflows/deploy.yml').read_text()
+        step=source.split('      - name: Verify committed source tables after generation\n',1)[1].split('\n      - ',1)[0]
+        self.assertEqual(step.strip(),'run: python3 scripts/ci-fail-fast.py -- node scripts/committed-source-tables.mjs --check --after-publication')
+        message='Error: Committed source output differs: src/game/boot/bytes.generated.ts'
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(API['run']([sys.executable,'-c','print('+repr(message)+');raise SystemExit(1)'],record=False),1)
+        self.assertIn(message,out.getvalue())
+        self.assertIn('::error file=src/game/boot/bytes.generated.ts',out.getvalue())
+
     def test_every_ci_job_finishes_its_own_verdict_without_peer_io(self):
         main=API['main'];run=API['run']
         jobs=('behaviour','behaviour-products','products','typecheck-lint',
