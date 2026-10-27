@@ -126,6 +126,7 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 
 | D73 | Current untracked foliageScenesBank.ts returns placement colliders that fail plain-JSON admission, so driftwood-world-build-data fails collection after the bridge yaw fix | live WIP (no first-bad main SHA) | sp-o4 (GR7 foliage bank; pinged) | open; preserve original assertions and peer source; exact tmp/sp-ci-deploy-driftwood-yaws.log |
 | D74 | A local Nalati product build (`build-shardfiles.mjs --shard=nalati-grasslands`) stops at "shardfile carries JSON data only ... JSON nodes 100173 (limit 100000)": the declaration is 173 JSON nodes over its cap (seen while landing GR6's kokpar, `f9b729690e`, whose rows are unchanged) | unknown | sp-x6 / sp-o2 (GR6) | open |
+| D75 | Pine generation stage misses `heroMaterialFiles.mjs`: a HEAD preview build (`serve-build.sh --head --shard driftwood-isle`) stops in `pine-timber-world` with ERR_MODULE_NOT_FOUND `src/shards/pine-hollow/generators/heroMaterialFiles.mjs` imported from `pineSources.ts`; the job does not declare it as an input root | observed HEAD `8a10cd2e0e` (not first-bad attribution; `d9cf71547f` retired the pine hero-scenes job) | owner of `d9cf71547f` (pine hero scenes) | open
 
 ## Rows
 
