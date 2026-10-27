@@ -29,6 +29,7 @@ import type { BootStep, ByteKey } from './steps';
 import { tierUrl, versionedUrl, type ChunkFiles } from './bytes';
 import { TIER } from '../core/tier';
 import { Scope } from '../app/scope';
+import { installTexturePackReads } from './texturePack';
 
 const pathOf = (url: string): string => { try { return new URL(url, location.href).pathname; } catch { return url; } };
 
@@ -36,6 +37,10 @@ const pathOf = (url: string): string => { try { return new URL(url, location.hre
 export function packFor(def: { slug: string }): PackDef | null {
   return bootPacks()[def.slug]?.[TIER] ?? null;
 }
+
+/** Tiled phone boots borrow existing pack textures only when adjacent files are
+ * demanded together. No whole-world prefetch or settled pack backing. */
+export function demandPack(pack: PackDef, owner: Scope): void { installTexturePackReads(pack, owner); }
 
 /**
  * The parts of `pack` a boot declaring `files` reads: every part that carries one of them. The pack is baked for the

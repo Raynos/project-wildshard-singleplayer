@@ -16,7 +16,7 @@ import { app } from '@wildshard/engine/app/runtime';
 import { declareTotals, installByteCounter } from '@wildshard/engine/boot/bytes';
 import { bootFiles, extraFetches, startAudioPreload, startDeferredAudioPreload, startMenuPreload, type Preload, type AudioBanks } from '@wildshard/engine/boot/extras';
 import { registerGpuFiles, setTexturePolicy } from '@wildshard/engine/boot/gpuFiles';
-import { packFor, streamPack } from '@wildshard/engine/boot/pack';
+import { demandPack, packFor, streamPack } from '@wildshard/engine/boot/pack';
 import { bootFetches, prefetch, prefetchAfter, whenPrefetched } from '@wildshard/engine/boot/prefetch';
 import { useShardSteps } from '@wildshard/engine/boot/steps';
 import { startViewmodelTextures } from '@wildshard/engine/combat/view/ranged';
@@ -72,6 +72,7 @@ async function buildData(ctx: SessionContext) : Promise<{ loading: Loading; audi
   // Frozen legacy and untiled/desktop boots retain their original pack path.
   const demandWorld = TIER === 'phone' && manifest.legacy !== true && ctx.product.has('client/plan') && ctx.product.shardfile.tiles.length > 0;
   const eagerWorld = !demandWorld;
+  if (demandWorld) { const declaredPack = packFor(manifest); if (declaredPack !== null) demandPack(declaredPack, currentOwner() ?? app.engineScope); }
   const pack = eagerWorld ? packFor(manifest) : null;
   const packed = new Set(pack ? pack.files.map(([p]) => p) : []);
   const packStreamed = pack ? streamPack(pack, plan, files) : Promise.resolve();

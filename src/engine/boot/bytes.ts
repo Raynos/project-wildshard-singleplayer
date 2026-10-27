@@ -21,6 +21,7 @@ import { declareDownloadFile } from './download';
 import { pageScope } from '../app/resources';
 import { presenting } from '../core/framePacing';
 import { workSlice } from '../core/workSlice';
+import { demandTextureResponse } from './texturePack';
 
 export type ChunkFiles = Readonly<Record<ByteKey, readonly string[]>>;
 type Bytes = Record<string, number>;
@@ -90,6 +91,8 @@ export function versionedUrl(url: string): string {
 /** `fetch` with `versionedUrl` applied (three's FileLoader hands fetch a Request) */
 function versionedFetch(net: typeof window.fetch): typeof window.fetch {
   return (input, init) => {
+    const packed = demandTextureResponse(input, init, net);
+    if (packed !== undefined) return packed;
     if (typeof input === 'string') return net(versionedUrl(input), init);
     if (input instanceof URL) return net(versionedUrl(input.href), init);
     const u = versionedUrl(input.url);
