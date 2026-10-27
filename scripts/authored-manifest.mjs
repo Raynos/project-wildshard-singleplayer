@@ -113,7 +113,9 @@ export function authoredManifestSource(root, slug, { generation = false, metadat
     rows.push(`${key}: ${palette ? JSON.stringify(JSON.parse(readFileSync(resolve(root, `src/shards/${folder}`, b[key].module), 'utf8'))) : value(b[key], key)}`);
   }
   if (b.spawns) {
-    const path = modulePath(b.spawns.module);
+    // a generator's export runs below (manifest-spawns.mjs); any other module is a JSON or generated one
+    const generator = typeof b.spawns.module === 'string' && b.spawns.module.startsWith('./generators/');
+    const path = generator ? localPath(b.spawns.module) : modulePath(b.spawns.module);
     const spawns = path.startsWith('./generators/')
       ? execFileSync(process.execPath, [resolve(import.meta.dirname, 'manifest-spawns.mjs'), resolve(root, `src/shards/${folder}`, path.endsWith('.ts') ? path : `${path}.ts`), b.spawns.export], { cwd: root, encoding: 'utf8', timeout: 10_000, maxBuffer: 65_536 }).trim()
       : value(b.spawns);
