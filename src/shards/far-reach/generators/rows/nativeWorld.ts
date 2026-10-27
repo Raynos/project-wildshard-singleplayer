@@ -1,10 +1,12 @@
-import questPrompts from '../../data/questPrompts.generated.json' with { type: 'json' };
+import { skyQuestPrompts } from '../questRows';
 import { SKY_NATIVE_POPULATION } from './population';
 import { ROC_OWNER } from './rocFight';
 import * as LAYOUT from '../layout';
 import { SKY_ANALYTIC_FLOOR } from './spawns';
 import { SKY_MOVER_BINDING, SKY_CLIENT_MOTION, SKY_NATIVE_MOVER_COMPOSITION, SKY_NATIVE_MOVER_OWNERS } from './moverBindings';
 import { FAN_ID } from './items';
+
+const questPrompts = skyQuestPrompts();
 
 /** Native collision, spawn and motion facts; the shared host installs their original owners. */
 export const SKY_NATIVE_WORLD = { runtime: { weapon: { id: FAN_ID, stowOnBoard: true }, quest: { spots: { interact: questPrompts.SKY_SPOTS, crack: [] } }, columns: true }, population: { rows: SKY_NATIVE_POPULATION, sources: 'actors', seed: 'identity', owner: ROC_OWNER }, terrain: 'none', floor: 'solids', ground: { size: 500, height: SKY_ANALYTIC_FLOOR },

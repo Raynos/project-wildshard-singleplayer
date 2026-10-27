@@ -1,8 +1,9 @@
-import questPage from '../../data/questPage.generated.json' with { type: 'json' };
+import { skyQuestPage } from '../questRows';
 import { FAN_HELD_RECIPE } from './heldWeapon';
 import STRINGS from '../../data/strings.json' with { type: 'json' };
 
 const FILE = 'src/shards/far-reach/models/gear.ts';
+const questPage = skyQuestPage();
 /** Original lazy Explorer metadata and order; live material owners remain borrowed. */
 export const GEAR_SCENE_ROWS = [
   {builder:'fan',specimen:{kind:'held',recipe:FAN_HELD_RECIPE},model:{id:'far-reach/war-fan',name:STRINGS.fan,category:'gear',pipeline:'code',file:FILE}},

@@ -3,6 +3,10 @@ import { PLATFORM_DATA_SECTIONS, parsePlatformDataSection, type PlatformDataSect
 import { parseWorldPhysics, type WorldPhysics } from '@wildshard/format/worldPhysics';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import type { DefinedSectionEntry, EmittedSections } from './sections';
+import { parseClientPlan, type ClientPlan } from '@wildshard/format/clientPlan';
+
+/** Admit source-owned client feature rows with the defining detached/frozen platform contract. */
+export function clientPlanSection(input: unknown): ClientPlan { return parseClientPlan(input); }
 
 /** Select the native bake's common fields at build time, keeping owner-specific metadata in its own custom section.
  * The raw source bake remains unchanged. No body, collider, buffer or renderer is constructed by this operation. */

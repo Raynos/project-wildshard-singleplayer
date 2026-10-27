@@ -3329,53 +3329,6 @@
       ]
     },
     {
-      "id": "sky-quest-page",
-      "shard": "far-reach",
-      "entry": "src/shards/far-reach/generators/questRows.ts",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/far-reach/generators/questRows.ts",
-        "questPageFiles",
-        "src/shards/far-reach",
-        "--files"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/format",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/package.json",
-        "src/sdk/quests.ts",
-        "src/shards/far-reach/data/bossStages.json",
-        "src/shards/far-reach/data/flags.json",
-        "src/shards/far-reach/generators/layout.ts",
-        "src/shards/far-reach/generators/rows/rocFight.ts",
-        "src/shards/far-reach/generators/rows/spawns.ts",
-        "src/shards/far-reach/data/strings.json",
-        "src/shards/far-reach/generators/persistence.ts",
-        "src/shards/far-reach/generators/places.ts",
-        "src/shards/far-reach/generators/questPage.ts",
-        "src/shards/far-reach/generators/questPrompts.ts",
-        "src/shards/far-reach/generators/questRows.ts",
-        "src/shards/far-reach/generators/quests.ts",
-        "src/shards/far-reach/generators/rows/layoutTypes.ts"
-      ],
-      "outputs": [
-        "src/shards/far-reach/data/questPage.generated.json",
-        "src/shards/far-reach/data/questPrompts.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/far-reach/data/questPage.generated.json",
-        "src/shards/far-reach/data/questPrompts.generated.json"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "sky-view-data",
       "shard": "far-reach",
       "entry": "src/shards/far-reach/generators/viewData.ts",

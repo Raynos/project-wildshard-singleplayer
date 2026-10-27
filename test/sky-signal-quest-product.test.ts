@@ -4,13 +4,24 @@ import { resolve } from 'node:path';
 import { readProjectAssets } from '../src/sdk/project';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { parsePersistedQuestPage } from '../src/sdk/quests';
-import skyPage from '../src/shards/far-reach/data/questPage.generated.json' with { type: 'json' };
+import { skyQuestPage, skyQuestPrompts } from '../src/shards/far-reach/generators/questRows';
 import { page as signalPage } from './fixtures/sunscar-source-program';
 import { SIGNAL_PHYSICS as signalPhysics } from '../src/shards/sunscar-dunes/generators/physics';
-import skyPrompts from '../src/shards/far-reach/data/questPrompts.generated.json' with { type: 'json' };
 import { SKY_SPOTS, SKY_ACT, SKY_INTERACT, QUEST_STEP, ROOST_IDS } from '../src/shards/far-reach/generators/questPrompts';
 import { KEEPER_AT } from '../src/shards/far-reach/generators/quests';
 import type { QuestHostRow } from '../src/format/questHost';
+
+const skyPage = skyQuestPage(), skyPrompts = skyQuestPrompts();
+
+test('Sky source page and prompts retain complete original wires and fresh caller ownership', () => {
+  const page = (): Uint8Array => new TextEncoder().encode(`${JSON.stringify(skyQuestPage())}\n`);
+  const prompts = (): Uint8Array => new TextEncoder().encode(`${JSON.stringify(skyQuestPrompts())}\n`);
+  expect(page().byteLength).toBe(5_206); expect(hashImmutableBytes(page())).toBe('f08bc3f2155b582bf52dcb8ed32a8da4d96913a0154df67202d0519255655aa8');
+  expect(prompts().byteLength).toBe(405); expect(hashImmutableBytes(prompts())).toBe('337de63636fc91233c9f05163e733b32f64b4fadceaf402c3aee4cb23f5c26d0');
+  Reflect.set(skyQuestPage().strings, 'notes', 'changed'); Reflect.set(skyQuestPrompts().SKY_SPOTS[0], 'x', 999);
+  expect(hashImmutableBytes(page())).toBe('f08bc3f2155b582bf52dcb8ed32a8da4d96913a0154df67202d0519255655aa8');
+  expect(hashImmutableBytes(prompts())).toBe('337de63636fc91233c9f05163e733b32f64b4fadceaf402c3aee4cb23f5c26d0');
+});
 
 /** Z1 replaces reflected presentation wiring with typed refs. Keep the whole
  * quest policy frozen independently; typed page effects and restore behavior
