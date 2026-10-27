@@ -29,8 +29,14 @@ export function driftwoodGroundRows(seed: number = SEED): DriftwoodGroundRows {
     resolution, size, datum: -WORLD_DROP, heights: Array.from(heights) };
 }
 
-/** Compile the original WSTR v1 transport from source, never from a retained native grid. */
+let groundBytes: Uint8Array | undefined;
+/** Compile the original WSTR v1 transport from source, never from a retained native grid. It reads only constants, so
+ *  the lattice is compiled once a process (eight producers read it per build); each caller gets its own copy. */
 export function driftwoodGroundBytes(): Uint8Array {
+  groundBytes ??= compileGroundBytes();
+  return groundBytes.slice();
+}
+function compileGroundBytes(): Uint8Array {
   const rows = driftwoodGroundRows(), field = driftwoodGroundField();
   const source = { heightAt: (x: number, z: number): number => (field.heightAt(x, z) - WORLD_DROP) + WORLD_DROP };
   const count = rows.resolution ** 2, header = 24, buffer = new ArrayBuffer(header + count * 8), view = new DataView(buffer);
