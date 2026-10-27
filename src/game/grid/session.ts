@@ -398,9 +398,9 @@ export class GridSession {
     const roadInput = { strips, home, pitch: assembly.pitch, layout: roadLayout(assembly, slug => findShard(slug)?.name ?? slug), scene: host.scene,
       scope: roadScope, camera: () => host.frame?.camera, plans, admission };
     const pause = async (): Promise<void> => { await construction.check(); };
-    const road = installPlatformRoadSliced({ ...roadInput, within: ring }, pause);
+    const road = installPlatformRoadSliced({ ...roadInput, allocationKey: 'road.inner', within: ring }, pause);
     const outer = async (): Promise<PlatformRoad> => {
-      try { return await installPlatformRoadSliced({ ...roadInput, within: (x, z) => !ring(x, z), voidFloor: false }, pause); }
+      try { return await installPlatformRoadSliced({ ...roadInput, allocationKey: 'road.outer', within: (x, z) => !ring(x, z), voidFloor: false }, pause); }
       finally { strips.length = 0; } // Native collision views retain positions/indices, never render-only colours.
     };
     road.catch(() => { roadScope.dispose(); });

@@ -40,6 +40,8 @@ export interface PlatformRoadInput {
   readonly plans: Map<Mesh, CullPlan>;
   /** G144: admit each allocation's byte plan before building it. */
   readonly admission: PlatformRenderAdmission;
+  /** Distinct allocation namespace for independently prepared pieces of one road session. */
+  readonly allocationKey?: string;
   /** loading-speed A1 (ring-first): build only the strips and road pieces standing at these grid points (absent: all) */
   readonly within?: (x: number, z: number) => boolean;
   /** build the void floor and its rail (default true; one build of a split road draws it) */
@@ -100,7 +102,12 @@ export function combinePlatformRoads(first: PlatformRoad, second: PlatformRoad):
 }
 
 function* platformRoadSteps(input: PlatformRoadInput): Generator<void, PlatformRoad | undefined> {
-  const { home, pitch, scene, scope, admission, within } = input;
+  const { home, pitch, scene, scope, within } = input;
+  const allocationKey = input.allocationKey;
+  if (allocationKey !== undefined && !/^[a-z][a-z0-9.-]{0,39}$/u.test(allocationKey)) throw new Error('Invalid road allocation namespace');
+  const admission: PlatformRenderAdmission = allocationKey === undefined ? input.admission : {
+    allocate: (plan, build) => input.admission.allocate({ ...plan, id: `${allocationKey}.${plan.id}` }, build),
+  };
   const strips = within === undefined ? input.strips : input.strips.filter(strip => within(strip.mesh.origin.x, strip.mesh.origin.z));
   const layout = within === undefined ? input.layout : layoutWithin(input.layout, within);
   const tileSize = CONTENT_CAPS.l0.size;

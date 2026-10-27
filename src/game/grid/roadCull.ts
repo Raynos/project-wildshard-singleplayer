@@ -230,6 +230,12 @@ export interface RoadCuller { readonly pitch: number; readonly tileSize?: number
 export function* cullIntoSteps(culler: RoadCuller, mesh: Mesh, lod: readonly CullLod[] = []): Generator<void> {
   yield* clipToBinsSteps(mesh.geometry, culler.pitch, culler.tileSize);
   const plan = yield* cullPlanSteps(mesh.geometry, culler.pitch, lod, culler.tileSize);
+  publishRoadPlan(culler, mesh, plan);
+}
+
+/** Publish a fully prepared plan (including compact road tiles) behind the same
+ * single indexed-draw culler. The caller owns geometry and must admit it first. */
+export function publishRoadPlan(culler: RoadCuller, mesh: Mesh, plan: CullPlan): void {
   attachRoadCull(mesh, plan, culler.camera);
   culler.plans.set(mesh, plan);
 }
