@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { gridSeamAsset } from '../vite/gridSeamPlans';
 import { checkChunks } from '../scripts/check-chunks.mjs';
-import { chunkReport } from '../vite/chunkReport';
+import { writeChunkReport } from '../scripts/app-build/chunkReport.mjs';
 import { build, type InlineConfig } from 'vite';
 // oxlint-disable-next-line import/no-nodejs-modules -- The build guard fixture owns and removes only its small tmp tree.
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
@@ -32,17 +32,18 @@ test('the grid chunk guard refuses inline data, missing measurements and either 
   expect(checkChunks(manifest, { ...modules, 'grid.js': { name: 'grid', moduleIds: modules['grid.js'].moduleIds, gzBytes: 50000 } }, {}, caps).errors).toContainEqual(expect.stringContaining('missing grid session raw bytes'));
 });
 
-test('an actual Vite build refuses a grid chunk above the ratchet', async () => {
+test('the app build\'s chunk report refuses a grid chunk above the ratchet', async () => {
   const root = mkdtempSync(resolve('tmp/js-grid-budget-'));
   try {
     mkdirSync(resolve(root, 'src/game/grid'), { recursive: true }); mkdirSync(resolve(root, 'lint'));
     writeFileSync(resolve(root, 'src/game/grid/session.ts'), `globalThis.grid = ${JSON.stringify('exact data'.repeat(100))};`);
     const policy = resolve(root, 'lint/ratchet.json');
     writeFileSync(policy, JSON.stringify({ budgets: { 'js/grid-session/raw': 10, 'js/grid-session/gzip': 10 } }));
-    const options: InlineConfig = { root, configFile: false, logLevel: 'silent', plugins: [chunkReport()],
-      build: { write: false, minify: false, rolldownOptions: { input: resolve(root, 'src/game/grid/session.ts') } } };
-    await expect(build(options)).rejects.toThrow('grid session raw');
+    const outDir = resolve(root, 'dist'), options: InlineConfig = { root, configFile: false, logLevel: 'silent',
+      build: { outDir, minify: false, manifest: true, sourcemap: 'hidden', rolldownOptions: { input: resolve(root, 'src/game/grid/session.ts') } } };
+    await build(options);
+    expect(() => writeChunkReport(outDir, root)).toThrow('grid session raw');
     writeFileSync(policy, JSON.stringify({ budgets: { 'js/grid-session/raw': 2000, 'js/grid-session/gzip': 1000 } }));
-    await expect(build(options)).resolves.toBeDefined();
+    expect(Object.values(writeChunkReport(outDir, root)).map(row => row.moduleIds)).toEqual([['src/game/grid/session.ts']]);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

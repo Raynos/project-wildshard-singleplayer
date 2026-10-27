@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { titleClosureBudgetErrors, type ChunkModuleReport } from '../scripts/check-chunks.mjs';
-import { chunkReport } from '../vite/chunkReport';
+import { writeChunkReport } from '../scripts/app-build/chunkReport.mjs';
 import { build, type InlineConfig } from 'vite';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own only this isolated tiny Vite fixture, never the app build tree.
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
@@ -33,17 +33,18 @@ test('missing roots, imports, measurements and dependency rows fail closed', () 
   expect(titleClosureBudgetErrors(modules, caps)).toContain('missing title raw bytes (shared.js)');
   delete modules['shared.js']; expect(titleClosureBudgetErrors(modules, caps)).toContain('missing title chunk shared.js');
 });
-test('the actual Vite publication hook refuses an over-budget title before output', async () => {
+test('the app build\'s chunk report refuses an over-budget title', async () => {
   const root = mkdtempSync(resolve('tmp/js-title-budget-'));
   const put = (file: string, text: string): void => { const target = resolve(root, file); mkdirSync(dirname(target), { recursive: true }); writeFileSync(target, text); };
   try {
     put('src/entry.ts', roots.slice(1).map(source => `void import(${JSON.stringify(`./${source.slice(4)}`)});`).join('\n'));
     for (const source of roots.slice(1)) put(source, `Reflect.set(globalThis,${JSON.stringify(source)},true);`);
     put('lint/ratchet.json', JSON.stringify({ budgets: { 'js/title/raw': 1, 'js/title/gzip': 1 } }));
-    const options: InlineConfig = { root, configFile: false, logLevel: 'silent', plugins: [chunkReport()],
-      build: { write: false, minify: false, rolldownOptions: { input: resolve(root, 'src/entry.ts') } } };
-    await expect(build(options)).rejects.toThrow('title raw');
+    const outDir = resolve(root, 'dist'), options: InlineConfig = { root, configFile: false, logLevel: 'silent',
+      build: { outDir, minify: false, manifest: true, sourcemap: 'hidden', rolldownOptions: { input: resolve(root, 'src/entry.ts') } } };
+    await build(options);
+    expect(() => writeChunkReport(outDir, root)).toThrow('title raw');
     put('lint/ratchet.json', JSON.stringify({ budgets: { 'js/title/raw': 10000, 'js/title/gzip': 10000 } }));
-    await expect(build(options)).resolves.toBeDefined();
+    expect(Object.keys(writeChunkReport(outDir, root))).toHaveLength(roots.length);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

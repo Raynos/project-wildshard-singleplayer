@@ -6,6 +6,7 @@
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { writeChunkReport } from './app-build/chunkReport.mjs';
 import { checkNoTopLevelAwait } from './app-build/noTopLevelAwait.mjs';
 import { copyOutputProducts } from './app-build/outputProducts.mjs';
 
@@ -44,6 +45,13 @@ if (build.status !== 0) { process.exitCode = build.status ?? 1; process.exit(); 
 // no emitted app JavaScript may suspend its module's evaluation (was vite/noTopLevelAwait.ts); inline workers are iife,
 // where the bundler refuses top-level await itself
 checkNoTopLevelAwait(outDir, resolve('public'));
+
+// which modules land in which chunk, and the title and grid session budgets over the bytes as written (was
+// vite/chunkReport.ts); the web build only, which writes the manifest and hidden source maps it reads
+if (mode !== 'native') {
+  try { writeChunkReport(outDir, process.cwd()); }
+  catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exit(1); }
+}
 
 // the compiled DEVSERVER mode, as a machine-readable artifact beside the bundle (scripts/check-devserver.mjs, sdk/dev.ts);
 // the bundle itself takes it from the __DEVSERVER__ define (was vite/devserver.ts)
