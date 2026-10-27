@@ -7,7 +7,6 @@
     "src/game/boot/bytes.generated.ts",
     "src/game/boot/packs.generated.ts",
     "src/game/boot/versions.generated.ts",
-    "src/game/data/pickupCatalogue.json",
     "src/game/draftTitles.ts",
     "src/game/shard/art.generated.ts",
     "src/game/shard/manifest-closure.generated.json",
