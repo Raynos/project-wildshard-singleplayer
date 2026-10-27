@@ -94,20 +94,20 @@ export function culpritReport(root,base,sha,files){
   return {base,sha,files,candidates,missingImports:[...new Set([...current.missing,...previous.missing])].sort((a,b)=>a.localeCompare(b))};
 }
 
-/** Fetch immutable history only, bounded to 1,000 commits and the existing Git deadline.
- * A long red window can put the previous green outside checkout's shallow tree.
+/** Fetch the immutable commit graph within the existing Git deadline.
+ * A fixed depth cannot cover a long red window, even when its exact base is known.
  * @param {string} root @param {string} sha */
 export function prepareHistory(root,sha){
   if(!SHA.test(sha))throw new Error('invalid history revision');
-  if(git(root,['rev-parse','--is-shallow-repository'])==='true')git(root,['fetch','--no-tags','--filter=blob:none','--depth=1000','origin',sha]);
+  if(git(root,['rev-parse','--is-shallow-repository'])==='true')git(root,['fetch','--no-tags','--filter=blob:none','--unshallow','origin',sha]);
 }
 
 function main(){
   const option=(/** @type {string} */ key)=>process.argv.find(value=>value.startsWith(`--${key}=`))?.slice(key.length+3);
   const root=resolve(option('root')??'.'),sha=option('sha')??process.env.GITHUB_SHA??'',base=option('base')??priorGreen(sha);
   const files=v.parse(v.array(v.string()),JSON.parse(option('files')??'[]'));
-  // checkout@v4 normally has one commit. Fetch objects only, with a bounded
-  // history; a missing ancestor remains unavailable rather than a guessed range.
+  // checkout@v4 normally has one commit. Fetch the immutable graph within
+  // the Git deadline; a missing ancestor remains unavailable.
   prepareHistory(root,sha);
   console.log(JSON.stringify(culpritReport(root,base,sha,files)));
 }

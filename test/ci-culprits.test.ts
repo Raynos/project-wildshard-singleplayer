@@ -9,7 +9,7 @@ import { env } from 'node:process';
 import { expect, test } from 'vitest';
 import { culpritReport, prepareHistory, priorGreen } from '../scripts/ci-culprits.mjs';
 
-test('a red window beyond 200 commits still reaches the exact previous green from a shallow checkout', () => {
+test('a red window beyond 1000 commits still reaches the exact previous green from a shallow checkout', () => {
   mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/ci-culprits-shallow-'));
   const source=resolve(root,'source'),reader=resolve(root,'reader');mkdirSync(source);mkdirSync(reader);
   const git=(cwd:string,...args:string[]):string=>execFileSync('git',args,{cwd,encoding:'utf8',stdio:['pipe','pipe','pipe']}).trim();
@@ -20,7 +20,7 @@ test('a red window beyond 200 commits still reaches the exact previous green fro
     const base=git(source,'rev-parse','HEAD');
     // Fast-import constructs only this tiny fixture's history, not a repo copy.
     let history='';
-    for(let index=1;index<=202;index++){
+    for(let index=1;index<=1002;index++){
       const message=`change ${index}`,bytes=`export const value=${index};`;
       history+=`commit refs/heads/main\nmark :${index}\ncommitter Fixture <fixture@example.invalid> ${1700000000+index} +0000\ndata ${message.length}\n${message}\nfrom ${index===1?base:`:${index-1}`}\nM 100644 inline test/failure.test.ts\ndata ${bytes.length}\n${bytes}\n\n`;
     }
