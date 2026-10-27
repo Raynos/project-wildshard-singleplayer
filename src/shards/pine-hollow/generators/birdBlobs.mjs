@@ -13,7 +13,8 @@ const blobs=namedBlobOutput(project,'pine-bird-blob-inputs','assets/bird-blobs')
 for(const tier of ['desktop','phone']){
  const suffix=tier==='phone'?'.phone':'',url=`/assets/pine-hollow/life/birds${suffix}.glb`,bytes=read(url),encoded=cache[glbKtx2Key(bytes,'v2.50.0',tier==='phone')];
  if(typeof encoded!=='string'||!encoded.startsWith('/assets/gpu/pine-hollow/life/'))throw new Error(`Missing existing bird KTX2 bake: ${url}`);
- blobs.add(`models/life/birds${suffix}.base.ktx2`,'ktx2',texture(split(read(encoded)),'base'));
+ // the phone's atlas is an owned-byte build output (birdAtlas.ts), never a generated blob under src (GR0)
+ if(tier==='desktop')blobs.add(`models/life/birds${suffix}.base.ktx2`,'ktx2',texture(split(read(encoded)),'base'));
  blobs.add(`models/life/birds${suffix}.glb`,'glb',geometry(split(bytes)),url);
  const posed=tier==='phone'?rows.geometry.replace(/\.glb$/u,'.phone.glb'):rows.geometry;
  blobs.add(`models/life/birds-rest${suffix}.glb`,'glb',read(posed),posed);
