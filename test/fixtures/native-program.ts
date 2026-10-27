@@ -26,7 +26,7 @@ export async function nativeProgramFixture(spec: {
   const output = 'fixture.json';
   const result = await runNativeRecorder(root, {
     id: `fixture-${spec.id}`, inputs, command, outputs: [output], platform: 'native',
-    tools: { nodeOptions: process.env['NODE_OPTIONS'] ?? '' },
+    tools: { cwd: memo.root, nodeOptions: process.env['NODE_OPTIONS'] ?? '' },
   }, {
     inputHashes: memo, ...(spec.cacheDir === undefined ? {} : { cacheDir: spec.cacheDir }),
     generate: directory => {

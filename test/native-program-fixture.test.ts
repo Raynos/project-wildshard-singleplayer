@@ -55,3 +55,16 @@ test('same-length damaged cached bytes rebuild rather than inherit an old outcom
   const readers = resolve(root, 'cache/fixture-program', `${entry}.readers`);
   expect(existsSync(readers) ? readdirSync(readers) : []).toEqual([]);
 });
+
+test('a shared cache never lends a construction from another working directory', async () => {
+  const first = fixture(), second = fixture();
+  for (const { root } of [first, second]) {
+    const script = resolve(root, 'compiler.mjs');
+    writeFileSync(script, readFileSync(script, 'utf8').replace('value:fs.readFileSync', 'cwd:process.cwd(),value:fs.readFileSync'));
+  }
+  const a: unknown = JSON.parse(await nativeProgramFixture(first.spec));
+  const b: unknown = JSON.parse(await nativeProgramFixture({ ...second.spec, cacheDir: first.spec.cacheDir }));
+  expect(a).toEqual({ cwd: first.root, value: 'one', files: ['value.txt'] });
+  expect(b).toEqual({ cwd: second.root, value: 'one', files: ['value.txt'] });
+  expect(first.calls()).toBe(1); expect(second.calls()).toBe(1);
+});
