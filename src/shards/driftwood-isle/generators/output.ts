@@ -2,6 +2,7 @@ import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration'
 import { driftwoodIslandProtoOutput } from './islandProtoProgram';
 import { driftwoodPhoneRockOutput } from './rockPhoneProgram';
 import { driftwoodPageFileOutput } from './productPageFiles';
+import { driftwoodCoarseOutput } from './coarseTiles';
 import { driftwoodCatalogueFeatures } from './catalogueEconomy';
 import { WORLD_STAGES } from './worldAssembly';
 import { driftwoodWorldUpdates } from './worldUpdates';
@@ -176,5 +177,7 @@ export const sections: { 'world/movers': { movers: ({ id: string; execution: str
  *  under src. */
 export async function prepareOutput(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<typeof output> {
   const protos = await driftwoodIslandProtoOutput(ctx), pages = await driftwoodPageFileOutput(ctx), phoneRocks = await driftwoodPhoneRockOutput(ctx);
-  return { ...output, namedFiles: [...output.namedFiles, ...protos.files, ...pages.files, ...phoneRocks.files], assets: new Map([...output.assets, ...protos.assets, ...pages.assets, ...phoneRocks.assets]) };
+  // T8 (G786): the coarse L1 tiles' bytes (their rows come from the fixed-models job, generators/coarseTiles.ts)
+  const coarse = await driftwoodCoarseOutput(ctx);
+  return { ...output, namedFiles: [...output.namedFiles, ...protos.files, ...pages.files, ...phoneRocks.files], assets: new Map([...output.assets, ...protos.assets, ...pages.assets, ...phoneRocks.assets, ...coarse]) };
 }
