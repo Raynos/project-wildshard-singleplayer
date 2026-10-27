@@ -140,8 +140,17 @@ export interface ParsedWorldScenes { version: 1; libraries: (({ id: string; kind
 export type WorldScenesSection = Omit<ParsedWorldScenes, 'placements' | 'batches' | 'welds' | 'lent' | 'uniforms'> & { readonly placements?: ParsedWorldScenes['placements']; readonly batches?: ParsedWorldScenes['batches']; readonly welds?: ParsedWorldScenes['welds']; readonly lent?: ParsedWorldScenes['lent']; readonly uniforms?: ParsedWorldScenes['uniforms'] };
 export type WorldSceneLentTexture = ParsedWorldScenes['lent'][number];
 export type WorldSceneUniformSet = ParsedWorldScenes['uniforms'][number];
+/** each admitted section object's parse: an entry parsed the same section four times (tier selection twice, the cost
+ *  projection, the scene host; ~186 ms of validation at 4x CPU, loading-speed H4.3). Every reader treats the result as
+ *  read-only (`worldScenesForTier` copies), and a section object is immutable admitted data. */
+const parsedScenes = new WeakMap<object, ParsedWorldScenes>();
 /** Reject executable values, duplicate identities and unknown fields before allocating visuals. */
-export function parseWorldScenes(input: unknown): ParsedWorldScenes { return v.parse(WorldScenesSchema, input); }
+export function parseWorldScenes(input: unknown): ParsedWorldScenes {
+  if (typeof input !== 'object' || input === null) return v.parse(WorldScenesSchema, input);
+  let parsed = parsedScenes.get(input);
+  if (parsed === undefined) { parsed = v.parse(WorldScenesSchema, input); parsedScenes.set(input, parsed); }
+  return parsed;
+}
 
 /** Select declared presentation membership before decoding or allocating any library/batch.
  * Unmarked rows remain shared; recipe/profile variants inside a tier retain their existing selectors. */
