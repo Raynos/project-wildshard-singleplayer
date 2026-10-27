@@ -1,16 +1,18 @@
-// G508: complete map rest assembly, exclusively from shipping source data.
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+// G508: complete map rest assembly, exclusively from shipping source data. A pure producer: its caller owns every read
+// (`sources`, Pine's program sources) and the map's painter takes its files (`pineMapFiles`).
 import { BufferGeometry, Color, Float32BufferAttribute, Matrix4, Quaternion, Vector3 } from 'three';
-import { MapAssembly, readMapJson } from '../../../../scripts/map-geometry.mjs';
-import { MapWorld, mapGround, mapPool, mapForest } from '../../../../scripts/map-world.mjs';
+import { MapAssembly } from '@wildshard/sdk/bake/mapAssembly';
+import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
-import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
+import { bakeForestPlacements, nativeTerrainQueries } from '@wildshard/sdk/bake/forest';
+import { MapWorld, mapGround, mapPool } from './mapWorld.mjs';
+import { TERRAIN_SOURCE } from './pineSources.ts';
+import manifest from '../manifest.json' with { type: 'json' };
+import plumbing from '../data/plumbing.json' with { type: 'json' };
 import { worldScenes } from './worldScenes.ts';
 import { sceneModelRows } from './sceneModelRows.ts';
 import { cabinSceneBake } from './bake-cabin-scenes.mjs';
 import { cabinLivingBake } from './bake-cabin-living.mjs';
-import { pineScriptSources } from './scriptSources.mjs';
 import { timberWorld } from './timberWorldRows.ts';
 import { mapLilies } from './mapLilies.mjs';
 import { bakeBeaverPool } from './beaverPool.ts';
@@ -24,15 +26,11 @@ import { inBeaverPool } from './geography.ts';
 import { pineGeographyRows } from './geographyRows.ts';
 import { pineForestRows } from './forestRows.ts';
 
-const base = resolve(import.meta.dirname, '..'), root = resolve(base, '../../..');
-const read = file => readMapJson(resolve(base, file));
 const palette = ['#847553', '#46603a', '#948a7c', '#504640'].map(value => new Color(value).toArray());
-export async function pineMapAssembly() {
-  // GR8 G37: Pine's sources as the program reads them (the timber world is the program's)
-  const sources = await pineScriptSources('pine-map-assembly');
+export async function pineMapAssembly(sources) {
   const { WORLD_SCENES, SCENE_BLOBS, SCENE_RAW_MODELS } = await worldScenes(sources), { SCENE_MODELS, SCENE_PLACEMENTS } = await sceneModelRows(sources);
-  const assembly = new MapAssembly(), world = new MapWorld(assembly, base, WORLD_SCENES, SCENE_MODELS, [...SCENE_RAW_MODELS, ...SCENE_BLOBS]);
-  const layout = PINE_LAYOUT, native = readNativeTerrain(readFileSync(resolve(root, 'public/assets/baked/pine-hollow/terrain.bin')));
+  const assembly = new MapAssembly(), world = new MapWorld(assembly, WORLD_SCENES, SCENE_MODELS, [...SCENE_RAW_MODELS, ...SCENE_BLOBS]);
+  const layout = PINE_LAYOUT, native = readNativeTerrain(sources.bytes(TERRAIN_SOURCE));
   const crags = (await pineCragScenes(sources)).rows, cave = layout.BEAR_CAVE, c = Math.cos(cave.rot), s = Math.sin(cave.rot);
   const hole = points => {
     const local = points.map(([x, y, z]) => [(x - cave.x) * c - (z - cave.z) * s, y, (x - cave.x) * s + (z - cave.z) * c]);
@@ -48,8 +46,8 @@ export async function pineMapAssembly() {
   }
   for (const row of WORLD_SCENES.batches.filter(batch => batch.tier !== 'phone')) await world.batch(row);
   const cabins = (await cabinSceneBake(sources)).rows, live = (await cabinLivingBake(sources)).rows;
-  const shadows = read('data/plumbing.json').knobs.find(row => row.id === 'pine.cabinDetailShadows').desktop;
-  const shared = read('data/plumbing.json').knobs.find(row => row.id === 'pine.sharedCabinLights')?.desktop ?? false;
+  const shadows = plumbing.knobs.find(row => row.id === 'pine.cabinDetailShadows').desktop;
+  const shared = plumbing.knobs.find(row => row.id === 'pine.sharedCabinLights')?.desktop ?? false;
   const living = live.profiles.find(row => row.tier === 'desktop' && row.shadow === shadows && row.shared === shared);
   await world.weld(living.graph);
   const shells = cabins.worlds.find(row => row.tier === 'desktop' && row.shadow === shadows);
@@ -81,15 +79,17 @@ export async function pineMapAssembly() {
   assembly.add('pond', new BufferGeometry().setAttribute('position', new Float32BufferAttribute(points, 3)).setIndex(indices));
 
   // GR8 G33b: the program's geography rows and the candidates' own densities (the retired pine-geography job's files)
-  const manifest = read('manifest.json'), geography = pineGeographyRows().forestQueries;
+  const geography = pineGeographyRows().forestQueries;
   const density = Float64Array.from(pineForestRows(manifest), row => row.density);
   if (density.length !== geography.forest.length) throw new Error('Map forest density differs');
   const candidates = new Map(geography.forest.map((row,index) => [`${row.x},${row.z}`,{ row,index }]));
   const at = (x, z) => { const row = candidates.get(`${x},${z}`); if (row === undefined) throw new Error('Map forest candidate differs'); return row; };
   const trails = [layout.S_ROAD, layout.N_ROAD, layout.W_ROAD, layout.E_ROAD, ...Object.values(layout.SPURS)];
-  const field = { ...buildTerrainMetadata(manifest.seed, { trails, cabinSites: layout.CABIN_SITES, pond }, () => pond.level), ...native };
-  const trees = mapForest({ slug: manifest.slug, label: 'map', seed: manifest.seed, treeCount: manifest.treeCount }, field,
-    { ...manifest.forest, density: (x, z) => density[at(x, z).index], scale: (x, z) => at(x, z).row.scale, species: (x, z) => at(x, z).row.species },
+  const field = { ...nativeTerrainQueries(manifest.seed, { trails, cabinSites: layout.CABIN_SITES, pond }, () => pond.level), ...native };
+  // the page's forest law over this explicit field and policy (scripts/map-world.mjs mapForest installed them as a level)
+  const { trees } = bakeForestPlacements({ heightAt: field.heightAt, normalAt: field.normalAt, trailDistance: field.trailDistance, cabinMask: field.cabinMask,
+    pondMask: field.pondMask, seed: manifest.seed, treeCount: manifest.treeCount,
+    forest: { ...manifest.forest, density: (x, z) => density[at(x, z).index], scale: (x, z) => at(x, z).row.scale, species: (x, z) => at(x, z).row.species } },
     manifest.trees.setVariants.map(row => ({ trunkRadius: row.trunk, height: row.height, species: row.species, collider: row.collider })));
   const lilies = mapLilies(manifest.seed, pond, native.heightAt, manifest.pondLilyExclusions ?? []);
   if (lilies !== null) assembly.add('pond-lilies', lilies);
@@ -112,4 +112,13 @@ export async function pineMapAssembly() {
   }
   return { assembly, trees, floor, living, shells };
 }
-if (import.meta.main) { const { assembly } = await pineMapAssembly(); assembly.write(resolve(base, 'data/mapAssembly.generated')); }
+
+/** The map painter's files (look/map.json): the assembly's ordered scene and its geometry block, deflated as the retired
+ *  pine-map-assembly job wrote them. */
+export async function pineMapFiles(sources) {
+  const { assembly } = await pineMapAssembly(sources);
+  try {
+    const { json, binary } = assembly.pack();
+    return new Map([['map/assembly.json', json], ['map/geometry.bin', encodeBuildBytes(binary, 'deflate', 6, 'native')]]);
+  } finally { for (const shape of assembly.shapes) { shape.geometry.dispose(); shape.material.dispose(); } }
+}

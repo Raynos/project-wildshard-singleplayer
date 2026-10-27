@@ -794,7 +794,6 @@
     "src/shards/pine-hollow/generators/bake-pine-crags.mjs": 3,
     "src/shards/pine-hollow/generators/bake-pine-props.mjs": 2,
     "src/shards/pine-hollow/generators/bake-pine-streams.mjs": 3,
-    "src/shards/pine-hollow/generators/mapAssembly.mjs": 5,
     "src/shards/pine-hollow/generators/pine-world-inventory.mjs": 4,
     "src/shards/pine-hollow/generators/sections.ts": 10,
     "src/shards/pine-hollow/generators/sourceOutput.ts": 11,
@@ -994,8 +993,7 @@
     "src/shards/nalati-grasslands/generators/places.ts": 3,
     "src/shards/nalati-grasslands/generators/yard.ts": 1,
     "src/shards/nalati-grasslands/generators/yurt.ts": 3,
-    "src/shards/nine-dragon-stack/generators/well-bridges.ts": 1,
-    "src/shards/pine-hollow/generators/mapAssembly.mjs": 1
+    "src/shards/nine-dragon-stack/generators/well-bridges.ts": 1
   },
   "wildshard/shard-game-imports": {
     "src/shards/driftwood-isle/blender/fp-arms/bake.mjs": 1,

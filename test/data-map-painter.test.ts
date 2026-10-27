@@ -26,6 +26,7 @@ import { nativeGlyphs } from './fixtures/nine-native-glyphs';
 import { Matrix4, Quaternion, Vector3 } from 'three';
 import { driftwoodMapAssembly } from '../src/shards/driftwood-isle/generators/mapAssembly.mjs';
 import { pineMapAssembly } from '../src/shards/pine-hollow/generators/mapAssembly.mjs';
+import { pineScriptSources } from '../src/shards/pine-hollow/generators/scriptSources.mjs';
 import pinePhysics from '../src/shards/pine-hollow/data/physicsRows.json' with { type: 'json' };
 
 const isletScene = isletScenes();
@@ -180,7 +181,7 @@ test('Nine map contains every facade copy, queued set and rest mover', async () 
 });
 
 test('Pine rest assembly preserves every floor and native forest placement', async () => {
-  const { assembly, trees, floor } = await pineMapAssembly();
+  const { assembly, trees, floor } = await pineMapAssembly(await pineScriptSources('pine-map-test'));
   expect(trees).toHaveLength(pinePhysics.shelterTrees.length);
   for (const tree of trees) expect(pinePhysics.shelterTrees.some(row => row[0] === tree.x && row[1] === tree.z && row[2] === tree.r)).toBe(true);
   for (const [kind, rows] of Object.entries(floor.layout)) {
