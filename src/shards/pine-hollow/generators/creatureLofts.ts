@@ -1,9 +1,8 @@
 import * as THREE from 'three';
-import { smoothstep as sstep } from '@wildshard/engine/core/noise';
-import type { Rng } from '@wildshard/engine/core/rng';
+import { smoothstep as sstep } from '@wildshard/sdk/noise';
+import type { Rng } from '@wildshard/sdk/random';
 import { loft, tube, skinPlain, S, boneIndex, srgb, mix, paintNoise, setShag, isLowPoly, toonPaint, paletteColors, type Paint } from '@wildshard/engine/entities/species/loft';
-import type { AnimalSpecies, BoneDef, VariantDef } from '@wildshard/engine/entities/species/registry';
-import type { RGB } from '@wildshard/engine/level/data';
+import type { AnimalSpecies, BoneDef, VariantDef, RGB } from '@wildshard/sdk/bake/species';
 
 /**
  * Pine Hollow's deer and elk as procedural lofts, OFFLINE only (SHARD-PLATFORM, sp-o194; moved out of
