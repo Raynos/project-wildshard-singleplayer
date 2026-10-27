@@ -17,6 +17,28 @@
 import { BufferAttribute, DynamicDrawUsage, InstancedBufferAttribute, InstancedMesh, type Matrix4, type Mesh, Object3D, SkinnedMesh } from 'three';
 import { compactResident, tileRanges, type TileContent } from './tileContent';
 
+const attributeReaders: readonly unknown[] = ['getX', 'getY', 'getZ'].map((key): unknown => Reflect.get(BufferAttribute.prototype, key));
+function originalReader(attribute: BufferAttribute, key: string, expected: unknown): boolean {
+  let cursor: object | null = attribute;
+  while (cursor !== null) {
+    const descriptor = Object.getOwnPropertyDescriptor(cursor, key);
+    if (descriptor !== undefined) return 'value' in descriptor && descriptor.value === expected;
+    const parent: unknown = Object.getPrototypeOf(cursor);
+    cursor = typeof parent === 'object' && parent !== null ? parent : null;
+  }
+  return false;
+}
+function centroidArrays(index: BufferAttribute, position: BufferAttribute): { indices: Uint16Array | Uint32Array; positions: Float32Array } | null {
+  for (const attribute of [index, position]) for (const key of ['array', 'itemSize', 'normalized']) {
+    if (Object.getOwnPropertyDescriptor(attribute, key)?.value === undefined) return null;
+  }
+  if (index.normalized || position.normalized || index.itemSize !== 1 || position.itemSize !== 3
+    || !originalReader(index, 'getX', attributeReaders[0]) || !originalReader(position, 'getX', attributeReaders[0])
+    || !originalReader(position, 'getY', attributeReaders[1]) || !originalReader(position, 'getZ', attributeReaders[2])) return null;
+  return (index.array instanceof Uint16Array || index.array instanceof Uint32Array) && position.array instanceof Float32Array
+    ? { indices: index.array, positions: position.array } : null;
+}
+
 /** The tiles content of `mesh` (its geometry in `toCell` cell-local space), drawing nothing until a tile attaches. */
 export function tiledMesh(id: string, mesh: Mesh, toCell: Matrix4, options: { readonly single?: boolean } = {}): TileContent | null {
   if (instanced(mesh)) return tiledInstances(id, mesh, toCell);
@@ -25,9 +47,18 @@ export function tiledMesh(id: string, mesh: Mesh, toCell: Matrix4, options: { re
     || Object.keys(geometry.morphAttributes).length > 0 || !(position instanceof BufferAttribute) || position.count === 0) return null;
   const index = geometry.index ?? new BufferAttribute(position.count > 65535 ? Uint32Array.from({ length: position.count }, (_, k) => k) : Uint16Array.from({ length: position.count }, (_, k) => k), 1);
   const triangles = Math.floor(index.count / 3), centroids = new Float32Array(triangles * 2), e = toCell.elements;
+  const arrays = centroidArrays(index, position);
   for (let t = 0; t < triangles; t++) {
     let x = 0, y = 0, z = 0;
-    for (let c = 0; c < 3; c++) { const v = index.getX(t * 3 + c); x += position.getX(v); y += position.getY(v); z += position.getZ(v); }
+    if (arrays === null) {
+      for (let c = 0; c < 3; c++) { const v = index.getX(t * 3 + c); x += position.getX(v); y += position.getY(v); z += position.getZ(v); }
+    } else {
+      const { indices, positions } = arrays, a = (indices[t * 3] ?? Number.NaN) * 3, b = (indices[t * 3 + 1] ?? Number.NaN) * 3, c = (indices[t * 3 + 2] ?? Number.NaN) * 3;
+      // Keep the original zero-first accumulation, including signed zero.
+      x = ((0 + (positions[a] ?? Number.NaN)) + (positions[b] ?? Number.NaN)) + (positions[c] ?? Number.NaN);
+      y = ((0 + (positions[a + 1] ?? Number.NaN)) + (positions[b + 1] ?? Number.NaN)) + (positions[c + 1] ?? Number.NaN);
+      z = ((0 + (positions[a + 2] ?? Number.NaN)) + (positions[b + 2] ?? Number.NaN)) + (positions[c + 2] ?? Number.NaN);
+    }
     x /= 3; y /= 3; z /= 3;
     centroids[t * 2] = e[0] * x + e[4] * y + e[8] * z + e[12];
     centroids[t * 2 + 1] = e[2] * x + e[6] * y + e[10] * z + e[14];

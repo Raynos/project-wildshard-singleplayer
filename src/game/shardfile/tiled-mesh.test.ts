@@ -15,6 +15,42 @@ function made(): Mesh {
 }
 const key = (x: number, z: number): number => tileKey(tileOf(x, z));
 
+test.each([false, true])('numeric centroids preserve exact tile draws against custom readers (wide index=%s)', wide => {
+  const points = [-249.999, -187.5, -125.001, -62.5, -0, 0, 62.499, 125, 187.501, 249.999];
+  const array = Float32Array.from(points.flatMap((x, i) => [x, i / 7, x, x + 0.003, -i, x, x, i / 3, x - 0.003]));
+  const build = (custom: boolean): { mesh: Mesh; calls: () => number } => {
+    const geometry = new BufferGeometry(), position = new BufferAttribute(array.slice(), 3);
+    geometry.setAttribute('position', position);
+    geometry.setIndex(new BufferAttribute(wide ? Uint32Array.from({ length: array.length / 3 }, (_, i) => i) : Uint16Array.from({ length: array.length / 3 }, (_, i) => i), 1));
+    let calls = 0;
+    if (custom) { const read = position.getX.bind(position); position.getX = i => { calls++; return read(i); }; }
+    return { mesh: new Mesh(geometry, new MeshBasicMaterial()), calls: () => calls };
+  };
+  const fast = build(false), oracle = build(true), scope = new Scope('centroid oracle');
+  const transform = new Matrix4().makeRotationY(0.37).premultiply(new Matrix4().makeTranslation(-17, 3, 41));
+  const actual = tiledMesh('numeric', fast.mesh, transform), expected = tiledMesh('readers', oracle.mesh, transform);
+  if (actual === null || expected === null) throw new Error('Expected multiple tiles');
+  expect(oracle.calls()).toBe(array.length / 3);
+  expect([...actual.tiles()]).toEqual([...expected.tiles()]);
+  for (const tile of [...actual.tiles()].reverse()) {
+    void actual.attach(tile, scope); void expected.attach(tile, scope);
+    expect(fast.mesh.geometry.drawRange).toEqual(oracle.mesh.geometry.drawRange);
+    expect(fast.mesh.geometry.index?.array).toEqual(oracle.mesh.geometry.index?.array);
+  }
+  scope.dispose(); expect(fast.mesh.geometry.drawRange).toEqual(oracle.mesh.geometry.drawRange);
+  for (const { mesh } of [fast, oracle]) { mesh.geometry.dispose(); if (!Array.isArray(mesh.material)) mesh.material.dispose(); }
+});
+
+test.each(['array', 'getX'])('centroid guards do not invoke custom property readers (%s)', property => {
+  const mesh = made(), position = mesh.geometry.getAttribute('position');
+  const array = position.array, read = position.getX.bind(position);
+  let calls = 0;
+  Object.defineProperty(position, property, { configurable: true, get: () => { calls++; return property === 'array' ? array : read; } });
+  expect(tiledMesh('custom property', mesh, new Matrix4())).not.toBeNull();
+  expect(calls).toBe(property === 'array' ? 27 : 9);
+  mesh.geometry.dispose(); if (!Array.isArray(mesh.material)) mesh.material.dispose();
+});
+
 test('a merged mesh draws only its resident tiles, one draw throughout', () => {
   const mesh = made(), content = tiledMesh('rocks.shore', mesh, new Matrix4()), scope = new Scope('tiles');
   if (content === null) throw new Error('expected a tiled mesh');
