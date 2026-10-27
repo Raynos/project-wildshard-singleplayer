@@ -1,4 +1,4 @@
-"""Checks release the shared lease; only relevant concurrent changes refuse."""
+"""Checks release the shared lease and preserve named Git/working state."""
 import fcntl
 import json
 import os
@@ -113,11 +113,15 @@ sys.exit(1 if os.environ.get('MESSAGE_RED') else 0)
             else:
                 os.killpg(child.pid, signal.SIGKILL)
             output, error = child.communicate(timeout=8)
-        passed = action in ['none', 'disjoint', 'syntax-body']
+        # G768/G769 retired proof/freshness prerequisites. Keep all twelve
+        # controls against the actual named candidate; completed hook and
+        # message refusals remain fatal, while peer commits remain parents.
+        passed = action not in ['red', 'message']
         assert (child.returncode == 0) == passed, (action, output, error)
         assert ('CHECK_READY' not in output), 'pre-commit executed twice'
         if passed:
-            assert git('show', 'HEAD:own.txt') == 'change ' + str(number)
+            expected = 'other' if action == 'candidate' else 'change ' + str(number)
+            assert git('show', 'HEAD:own.txt') == expected
             assert git('rev-parse', 'HEAD^') == head
         else:
             assert git('rev-parse', 'HEAD') == head
@@ -125,13 +129,20 @@ sys.exit(1 if os.environ.get('MESSAGE_RED') else 0)
             assert git('show', 'HEAD:peer.txt') == 'disjoint'
             assert 'retain disjoint peer commits' in output
         if action == 'budget':
-            assert 'storage inputs changed' in output, output
+            assert git('show', 'HEAD:peer.bin') == 'budget'
+            assert git('show', 'HEAD:own.bin') == 'binary change'
+        if action == 'dependency':
+            assert git('show', 'HEAD:dependency.txt') == 'dependency'
+        if action == 'working':
+            assert (root / 'own.txt').read_text() == 'late edit\n'
+        elif passed:
+            assert (root / 'own.txt').read_text() == 'change ' + str(number) + '\n'
         if action == 'syntax-edge':
-            assert 'checked import graph changed' in output, output
+            assert git('show', 'HEAD:dependency.js') == 'import "./other.js";'
         results.append(action)
         # This fixture owns its entire index; do not carry the deliberately
         # staged refusal into a later simulated peer commit.
         git('read-tree', 'HEAD')
     assert list((root / '.git').glob('commit-patch.*')) == []
     print(json.dumps({'outsideLock':True, 'pinnedHead':True, 'disjointPreserved':True,
-                      'freshnessRefusals':True, 'hookRedsFatal':True, 'cases':results}))
+                      'namedEditsPreserved':True, 'hookRedsFatal':True, 'cases':results}))
