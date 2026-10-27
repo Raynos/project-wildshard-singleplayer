@@ -6,7 +6,7 @@ import { readPouncerSpec, readHowlerSpec } from '../src/engine/ai/stalker';
 import { buildEliteEntryRows, buildEliteEntryPageRows } from '../src/shards/nalati-grasslands/generators/eliteEntryRows';
 import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/generators/ecology.mjs';
 import source from '../src/shards/nalati-grasslands/data/eliteRoster.json' with { type: 'json' };
-import charge from '../src/shards/nalati-grasslands/data/eliteCharge.generated.json' with { type: 'json' };
+import { charge } from '../src/shards/nalati-grasslands/generators/eliteCharge';
 import { ELITE_BODY_COLUMNS, ELITE_CONDITION_COLUMNS } from '../src/format/eliteEntryRows';
 
 test('the existing elite producer declares the original ordered controllers and condition observations', () => {

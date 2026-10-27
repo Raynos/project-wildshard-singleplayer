@@ -3,7 +3,7 @@ import { isJsonData as gameIsJsonData } from '@wildshard/format/json';
 import { parseItems as gameParseItems, type ShardItems as GameShardItems } from '@wildshard/format/items';
 import { parseClientChannels as gameParseClientChannels, type ClientChannelProgram as GameClientChannelProgram } from '@wildshard/format/clientChannels';
 import { parseEliteFeature as gameParseEliteFeature, type EliteFeatureRows as GameEliteFeatureRows } from '@wildshard/format/eliteFeature';
-import { spawnScriptRegistries as gameSpawnScriptRegistries } from '@wildshard/format/spawnScripts';
+import { parseSpawnScript as gameParseSpawnScript, spawnScriptRegistries as gameSpawnScriptRegistries, type SpawnScriptRows as GameSpawnScriptRows } from '@wildshard/format/spawnScripts';
 import type { DecisionRegistries as GameDecisionRegistries } from '@wildshard/format/decisionBindings';
 import { JournalRowSchema as GameJournalRowSchema, journalRowRules as gameJournalRowRules, type JournalRow as GameJournalRow } from '@wildshard/format/compendiumRows';
 import { parseContractCatalogue as gameParseContractCatalogue, type ContractCatalogue as GameContractCatalogue } from '@wildshard/format/contracts';
@@ -35,6 +35,10 @@ export type EliteFeature = GameEliteFeatureRows;
 export function parseEliteFeature(input: unknown): EliteFeature { return gameParseEliteFeature(input); }
 /** The registry ids a spawn program's generated ABI header uses (GR8: a shard program compiles its guests with them). */
 export function spawnRegistries(program: Parameters<typeof gameSpawnScriptRegistries>[0]): DecisionRegistries { return gameSpawnScriptRegistries(program); }
+/** A spawn script's admitted rows (its ABI-1 script, slots, sites, strikes and moves), as the decision compiler reads them. */
+export type SpawnScript = GameSpawnScriptRows;
+/** Admit an authored spawn script; the decision compiler builds its module from these rows (spawnRegistries). */
+export function parseSpawnScript(input: unknown): SpawnScript { return gameParseSpawnScript(input); }
 /** A decision script's registry ids by kind. */
 export type DecisionRegistries = GameDecisionRegistries;
 /** One admitted compendium journal row. */

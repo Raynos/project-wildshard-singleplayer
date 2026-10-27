@@ -5,9 +5,8 @@ import type { NalatiKokpar } from './kokparRows';
 import admission from '../behaviour/admission.generated.json' with { type: 'json' };
 import type { NalatiRidingPrograms } from './ridingRows.mjs';
 import type { NalatiTitanPrograms } from './stormTitanRows.mjs';
-import charge from '../data/eliteCharge.generated.json' with { type: 'json' };
+import type { NalatiCharge } from './chargeRows';
 
-const {compiled: _chargeFile,...chargeRows} = charge;
 /** The already-admitted executable fields consumed by script-section composition. */
 export interface NalatiScriptProjection {
   readonly artifact: { readonly hash: string; readonly pages: number; readonly ioBytes: number };
@@ -20,7 +19,8 @@ function projection(id: string, program: NalatiScriptProjection): Record<string,
 }
 /** Complete sim admission, shared by emitted sections and the module-cap proof.
  * Inline ABI1 witnesses are data; only selected executable rows appear here. */
-export function nalatiScriptSections(held: NalatiScriptProjection, kokpar: Pick<NalatiKokpar, 'program'>, ridingPrograms: Pick<NalatiRidingPrograms, 'approach'>, titanProgram: Pick<NalatiTitanPrograms, 'attack' | 'wind'>, weatherDecision: NalatiWeather['rows']): ReadonlyMap<PlatformDataSectionName, unknown> {
+export function nalatiScriptSections(held: NalatiScriptProjection, kokpar: Pick<NalatiKokpar, 'program'>, ridingPrograms: Pick<NalatiRidingPrograms, 'approach'>, titanProgram: Pick<NalatiTitanPrograms, 'attack' | 'wind'>, weatherDecision: NalatiWeather['rows'], charge: NalatiCharge): ReadonlyMap<PlatformDataSectionName, unknown> {
+  const {compiled: _chargeFile,...chargeRows} = charge;
   const programs = [weatherDecision.script, kokpar.program.script];
   const legacy = programs.filter((row, index, all) => all.findIndex(entry => entry.module === row.module) === index);
   const sections: ReadonlyMap<PlatformDataSectionName, unknown> = new Map([

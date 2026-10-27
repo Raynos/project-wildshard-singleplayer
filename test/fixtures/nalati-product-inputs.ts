@@ -1,4 +1,5 @@
 import { NALATI_WEATHER } from './nalati-weather';
+import { NALATI_CHARGE } from './nalati-charge';
 import query from './nalati-query-terrain-original.json' with { type: 'json' };
 import { NALATI_TITAN_PROGRAMS } from './nalati-titan';
 import { NALATI_RIDING_PROGRAMS } from './nalati-riding';
@@ -16,5 +17,5 @@ const nav = { navigation: navigationRows, files: parseShardfileField('files', na
 
 /** Original complete spatial inputs for unchanged header/cost controls; never a live source fallback. */
 export function originalNalatiProductRows(species: Inputs[0], held: Inputs[1], render: Inputs[2]): ReturnType<typeof nalatiProductRows> {
-  return nalatiProductRows(species, held, render, queryRows, nav, NALATI_KOKPAR, NALATI_RIDING_PROGRAMS, NALATI_TITAN_PROGRAMS, NALATI_WEATHER);
+  return nalatiProductRows(species, held, render, queryRows, nav, NALATI_KOKPAR, NALATI_RIDING_PROGRAMS, NALATI_TITAN_PROGRAMS, NALATI_WEATHER, NALATI_CHARGE.rows);
 }

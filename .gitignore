@@ -737,7 +737,6 @@ src/shards/driftwood-isle/data/bridgeBake.json
 /src/shards/nine-dragon-stack/data/specimenProfiles.d.json.ts
 
 
-/src/shards/nalati-grasslands/data/eliteCharge.generated.json
 
 # Nalati held gear is rebuilt from the retained C6 recipe.
 /public/assets/nalati/baked/gear-specimens.bin
