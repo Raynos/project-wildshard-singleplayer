@@ -277,7 +277,7 @@ export class Mount extends MountedBody {
     const stride = sp < 3 ? 1.7 : sp < 6.5 ? 2.6 : sp < 11 ? 3.4 : 4.6;
     this.bobPh += dt * sp / stride * Math.PI * 2;
     const g1 = Math.sin(this.bobPh), g2 = Math.sin(this.bobPh * 2);
-    const amp = this.gait === 'walk' ? BOB.walk : this.gait === 'trot' ? BOB.trot : this.gait === 'canter' ? BOB.canter : this.gait === 'gallop' ? BOB.gallop : 0.004 * Math.sin(performance.now() * 0.0015);
+    const amp = this.gait === 'walk' ? BOB.walk : this.gait === 'trot' ? BOB.trot : this.gait === 'canter' ? BOB.canter : this.gait === 'gallop' ? BOB.gallop : 0.004 * Math.sin(this.ctx.app.clock.now * 1.5);
     const bob = this.gait === 'trot' ? Math.abs(g2) * amp * 1.4 - amp * 0.7 : this.gait === 'stand' ? amp : g1 * amp;
     this.bobY += (bob - this.bobY) * Math.min(1, dt * 18);
     const swayT = this.gait === 'walk' ? Math.cos(this.bobPh) * BOB.sway : this.gait === 'trot' ? Math.cos(this.bobPh) * BOB.sway * 0.4 : 0;
@@ -289,7 +289,7 @@ export class Mount extends MountedBody {
     const lowT = this.galloping && this.speed > 11 && !this.drawing ? 1 : 0;
     this.leanLow += (lowT - this.leanLow) * Math.min(1, dt * 3);
     this.jolt = Math.max(0, this.jolt - dt * 2.5);
-    const jolt = this.jolt > 0 ? (Math.random() - 0.5) * this.jolt * 0.06 : 0;
+    const jolt = this.jolt > 0 ? (this.ctx.app.rng.stream('cosmetic').next() - 0.5) * this.jolt * 0.06 : 0;
     const scale = a.scale;
     const fwdOff = -0.04 - 0.06 * this.leanLow, eye = EYE * scale - 0.08 * this.leanLow;   // low over the neck, not into it
     const cam = p.camera;
@@ -303,7 +303,7 @@ export class Mount extends MountedBody {
       cam.position.set(this.swingFrom.x + (ex - this.swingFrom.x) * u, this.swingFrom.y + (ey - this.swingFrom.y) * u + Math.sin(u * Math.PI) * 0.35, this.swingFrom.z + (ez - this.swingFrom.z) * u);
       if (this.swingT >= 1) this.swingDir = 0;
     } else cam.position.set(ex, ey, ez);
-    const shake = this.breakShake > 0 ? (Math.random() - 0.5) * this.breakShake * 0.05 : 0;
+    const shake = this.breakShake > 0 ? (this.ctx.app.rng.stream('cosmetic').next() - 0.5) * this.breakShake * 0.05 : 0;
     cam.position.y += shake + jolt;
     _e.set(p.pitch + this.rock - SEAT_TILT - 0.03 * this.leanLow - 0.06 * this.skidDip + shake * 0.4 - hm.x * TILT_FOLLOW, p.yaw, this.roll + this.breakRoll + jolt * 2 - hm.z * TILT_FOLLOW, 'YXZ');
     cam.rotation.copy(_e);
@@ -337,7 +337,7 @@ export class Mount extends MountedBody {
         if (d > 3.2) { a.state = d > 12 ? 'flee' : 'wander'; a.setMotion(Math.atan2(p.x - a.position.x, p.z - a.position.z), d > 25 ? this.opts.speeds.gallop * 0.85 : d > 8 ? this.opts.speeds.canter * 0.7 : this.opts.speeds.walk, 2.5); }
         else { m.comeT = 0; a.setMotion(Math.atan2(p.x - a.position.x, p.z - a.position.z), 0, 2); a.state = 'idle'; a.mem['toss'] = 1; }
       } else if (this.horse !== a) {
-        if (a.speed < 0.1) a.state = Math.sin(performance.now() * 0.0002 + a.seed * 9) > 0.1 ? 'graze' : 'idle';
+        if (a.speed < 0.1) a.state = Math.sin(this.ctx.app.clock.now * 0.2 + a.seed * 9) > 0.1 ? 'graze' : 'idle';
         a.lookTarget.copy(p); a.lookWeight = a.position.distanceTo(p) < 6 && a.state !== 'graze' ? 0.6 : 0;
       }
       m.it.label = this.horse === a ? 'Dismount' : m.restT > 0 || m.bolting ? `${m.name} is resting` : `Mount ${m.name}`;

@@ -77,6 +77,49 @@ test.each([
   } finally { f.mount.dismount(); f.scope.dispose(); }
 });
 
+test('mount presentation uses the owned clock and cosmetic stream', () => {
+  const a = fixture('fixture-mule', { walk: 1, trot: 3, canter: 5, gallop: 8 });
+  const b = fixture('fixture-mule', { walk: 1, trot: 3, canter: 5, gallop: 8 });
+  const wall = vi.spyOn(performance, 'now'), random = vi.spyOn(Math, 'random');
+  try {
+    for (const f of [a, b]) {
+      f.ctx.app.clock.tick(2); f.ctx.app.rng.seed(418);
+      expect(f.mount.mount(f.actor.entityId)).toBe(true);
+      f.mount.jolt = 0.7; f.mount.breakShake = 0.8;
+    }
+    const gameplay = a.ctx.app.rng.stream('gameplay').snapshot();
+    wall.mockReturnValue(10); random.mockReturnValue(0.1);
+    a.mount.pose(1 / 30, 1);
+    wall.mockReturnValue(987654); random.mockReturnValue(0.9);
+    b.mount.pose(1 / 30, 1);
+    expect(a.camera.position.toArray()).toEqual(b.camera.position.toArray());
+    expect(a.camera.quaternion.toArray()).toEqual(b.camera.quaternion.toArray());
+    expect(a.ctx.app.rng.stream('cosmetic').snapshot()).toEqual(b.ctx.app.rng.stream('cosmetic').snapshot());
+    expect(a.ctx.app.rng.stream('gameplay').snapshot()).toEqual(gameplay);
+    expect(b.ctx.app.rng.stream('gameplay').snapshot()).toEqual(gameplay);
+  } finally {
+    wall.mockRestore(); random.mockRestore();
+    a.mount.dismount(); b.mount.dismount(); a.scope.dispose(); b.scope.dispose();
+  }
+});
+
+test('idle mount grazing advances with simulation time and stays fixed when paused', () => {
+  const f = fixture('fixture-mule', { walk: 1, trot: 3, canter: 5, gallop: 8 });
+  const wall = vi.spyOn(performance, 'now');
+  try {
+    f.mount.addMountable(f.actor.entityId, 'Companion');
+    f.ctx.app.clock.tick(5); wall.mockReturnValue(999999);
+    f.mount.update(0);
+    expect(f.actor.state).toBe('idle');
+    f.ctx.app.clock.paused = true; f.ctx.app.clock.tick(100);
+    wall.mockReturnValue(1); f.mount.update(0);
+    expect(f.actor.state).toBe('idle');
+    f.ctx.app.clock.paused = false; f.ctx.app.clock.tick(15);
+    f.mount.update(0);
+    expect(f.actor.state).toBe('graze');
+  } finally { wall.mockRestore(); f.scope.dispose(); }
+});
+
 test('HUD accepts a fictional second shard observation and retains the baseline slots and strings', () => {
   const f = fixture('fixture-mule', { walk: 1, trot: 3, canter: 5, gallop: 8 });
   const root = document.createElement('div'); root.id = 'hud'; document.body.append(root);
