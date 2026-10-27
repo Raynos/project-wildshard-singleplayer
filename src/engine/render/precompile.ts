@@ -27,6 +27,9 @@ import { workSlice } from '../core/workSlice';
 import { SHADOW_LAYER } from '../core/shadowLayer';
 import { buildHeld, heldBudget, nativeBudgetSpent, presenting } from '../core/framePacing';
 import { waitFor } from '../boot/waits';
+import { isDev } from '../core/devMode';
+
+let censusSlot = 0;
 
 /**
  * Shader precompile for the `shaders` boot step (project/archive/2026-09-22-load-perf.md §P2.3, Status table).
@@ -1127,6 +1130,16 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   }
   created.push(...newProgramsSince(renderer, before));
   for (const program of before) if (jobPrograms.has(program)) created.push(program);
+  // H4: distinguish repeated native identities from newly created identities
+  // before removing an initial-home pass. Scalar diagnostics own no resources.
+  if (isDev()) {
+    let cached = 0, fresh = 0;
+    for (const program of jobPrograms) { if (before.has(program)) cached++; else fresh++; }
+    const name = `wildshard.precompile.census:${censusSlot++ % 16}`;
+    performance.clearMeasures(name);
+    performance.measure(name, { start: stageStart, end: performance.now(),
+      detail: { jobs: jobs.length, cachedProgramIdentities: cached, newProgramIdentities: fresh } });
+  }
   if (onStage !== undefined) {
     for (const [kind, count] of programsByKind) onStage(`programs:${kind}`, 0, count);
     onStage('cached-compile', cachedCpuMs, cachedCpuJobs);

@@ -433,3 +433,22 @@ warm CPU profile; protocol remains the existing warm-home reader. The reader
 initially queued behind four valid browser leases, then completed naturally.
 No reader/browser remains; owned shared preview:4409 was released with
 serve-build.sh stop after the coordinator's slot request. No repeat queued.
+
+### H4 initial-home duplicate preparation census (G804)
+
+In flight (sp-x9). Current shared02f234b950 cold/warm grid pair:
+Home5983.7/5059.1ms versus8000/1500; assembly976.9/1165.6ms
+versus1000/600. Both control/movement paths pass/errors0. The pair
+is not quiet and is a fresh cost ranking, not an isolated gain claim.
+Warm home includes304ms road geometry/culling,182ms product admission,
+and active construction/render preparation. Exact cached/new native
+program identities must be counted before removing the second warm.
+
+Add a Developer-only16-slot scalar precompile census over the existing
+native program object identities; it retains no program, material or
+scene handle and changes no shader job, budget or first-use fence.
+Next: count the drawn-only page pass following warmEnteredFrame, then
+reuse only already-prepared identities for the same actual composer.
+Proof requested by Jake: one cold and one warm DW-home capture before
+and after, plus the original warm Home row. First-frame checks remain.
+Engine types, touched typed lint and scoped ratchet pass.
