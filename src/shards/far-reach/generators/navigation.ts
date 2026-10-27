@@ -1,5 +1,3 @@
-import { Scene } from 'three';
-import { bake, type BakedScene } from '@wildshard/sdk/bake';
 import { navigationSourceRows } from '@wildshard/sdk/bake/navigationAsset';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
@@ -33,5 +31,3 @@ export async function skyNavigationProgram(ctx: Pick<ProjectGenerationContext, '
   return { rows, assets: new Map([[rows.navigation.file, Uint8Array.from(bytes)]]) };
 }
 
-/** Declare original navigation through the same author bake as the world, without changing bytes. */
-export function navigationProduct(bytes: Uint8Array): BakedScene { return bake(new Scene(), { slug: 'far-reach' }, { navigation: bytes }); }
