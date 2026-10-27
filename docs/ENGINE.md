@@ -9757,12 +9757,11 @@ registration order and has unique kinds; empty arrays install nothing. This is
 separate from the normalized `actors/species` inventory. Both owners read admitted
 product rows; visuals remain with existing species looks and bodies.
 
-`@wildshard/sdk/bake/species.bakeSpecies(row, id)` extracts the callback-free
-gameplay fields and ordered variants at build time. It refuses native think/act
-callbacks, strips visual variant fields, and admits the result through the same
-canonical schema as `@wildshard/sdk/species.species`. Pine and Driftwood emit both
-catalogues in their output producers; their existing hunt/brain and save owners
-remain unchanged.
+`@wildshard/sdk/bake/species.bakeSpecies(row, id)` admits ordered gameplay
+fields, strips visual variants and refuses think/act callbacks.
+`commonSpeciesRows(kind,id)` admits fresh boar/bear metadata;
+`deriveSpeciesRows(parent,patch)` merges tuning and strictly admits the result.
+Pine/Driftwood retain existing hunt, brain and save owners.
 
 Pine's `world/ambience.json` emits cabin-then-hamlet floor rectangles and
 fire-pit positions from the building records. The page passes those rows

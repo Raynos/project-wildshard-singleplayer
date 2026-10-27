@@ -1,28 +1,25 @@
-import { deriveSpecies, type SpeciesRow } from '@wildshard/engine/ai/species';
-import type { VariantDef } from '@wildshard/engine/entities/species/registry';
-import { BEAR } from '@wildshard/game/systems/species/bear';
-import { BOAR } from '@wildshard/game/systems/species/boar';
+import { bakeSpecies, commonSpeciesRows, deriveSpeciesRows } from '@wildshard/sdk/bake/species';
 import { DEER } from './deerRows';
 import { ELK } from './elkRows';
 
 /** The night-only thrall is authored by Pine; ordinary weighted variants retain their original order. */
-export const PINE_BOAR: SpeciesRow = deriveSpecies(BOAR, {
+export const PINE_BOAR: ReturnType<typeof bakeSpecies> = deriveSpeciesRows(commonSpeciesRows('boar', 'kit.creature.boar'), {
   id: 'pine.creature.boar',
   spawnOnly: [{ id: 'thrall', label: 'Thrall', weight: 1, rarity: 'rare', scale: [1.1, 1.2], hp: 140, mods: { chargeDist: 1.4 } }],
 });
 /** The elk's thrall variant (pineElk's one spawn-only row; the renderer-free runtime reads it beside the kit's elk). */
-export const PINE_ELK_THRALL: VariantDef = { id: 'thrall', label: 'Thrall', weight: 1, rarity: 'rare', scale: [1.1, 1.2], hp: 220, mods: { damageTaken: 0.8, speed: 0.9 } };
-export const PINE_BEAR: SpeciesRow = deriveSpecies(BEAR, { id: 'pine.creature.bear' });
+export const PINE_ELK_THRALL: ReturnType<typeof bakeSpecies>['variants'][number] = { id: 'thrall', label: 'Thrall', weight: 1, rarity: 'rare', scale: [1.1, 1.2], hp: 220, mods: { damageTaken: 0.8, speed: 0.9 } };
+export const PINE_BEAR: ReturnType<typeof bakeSpecies> = commonSpeciesRows('bear', 'pine.creature.bear');
 /** Pine's elk: the kit's (its simulation fields, read at registration) plus the Antler King's thrall, spawned by id at
  *  night and in his fight, never rolled (PH-U9 / PH-M2; E405: the thrall is Pine's, not the engine's or the kit's); its coat
  *  and stiff gait are the elk look's (./looks.ts) */
-export function pineElk(): SpeciesRow {
+export function pineElk(): ReturnType<typeof bakeSpecies> {
   const { fur: _fur, rigContract: _rig, pose: _pose, gait: _gait, postPose: _postPose, rig: _rigKind, animate: _animate, ...sim } = ELK;
-  return { ...sim, id: 'pine.creature.elk', spawnOnly: [PINE_ELK_THRALL] };
+  return bakeSpecies({ ...sim, spawnOnly: [PINE_ELK_THRALL] }, 'pine.creature.elk');
 }
 /** Pine's deer: the deer's simulation fields (its look and baked body are ./looks.ts's). */
-export function pineDeer(): SpeciesRow {
+export function pineDeer(): ReturnType<typeof bakeSpecies> {
   const { fur: _fur, rigContract: _rig, pose: _pose, gait: _gait, postPose: _postPose, rig: _rigKind, animate: _animate, ...sim } = DEER;
-  return { ...sim, id: 'pine.creature.deer' };
+  return bakeSpecies(sim, 'pine.creature.deer');
 }
-export const PINE_SPECIES: SpeciesRow[] = [PINE_BOAR, PINE_BEAR];
+export const PINE_SPECIES: ReturnType<typeof bakeSpecies>[] = [PINE_BOAR, PINE_BEAR];

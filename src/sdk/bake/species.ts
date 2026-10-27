@@ -26,6 +26,18 @@ export function bakeSpecies(row: Omit<SpeciesRow, 'id'>, speciesId: string): Spe
   return readSpecies(fields);
 }
 
+/** Admit fresh shared boar/bear gameplay metadata; no live species or parent identity escapes. */
+export function commonSpeciesRows(kind: 'boar' | 'bear', speciesId: string): SpeciesData {
+  return bakeSpecies(kind === 'boar' ? BOAR : BEAR, speciesId);
+}
+
+/** Derive callback-free author data, preserving inherited fields and the original tuning merge. */
+export function deriveSpeciesRows(parent: SpeciesData, patch: Partial<SpeciesData> & { id: string }): SpeciesData {
+  const row = { ...parent, ...patch };
+  if (parent.tuning !== undefined && patch.tuning !== undefined) row.tuning = { ...parent.tuning, ...patch.tuning };
+  return readSpecies(row);
+}
+
 /** A geometry recipe's palette and shape knobs, without simulation or runtime owners. */
 export interface VariantDef {
   id: string; label: string; weight: number;
