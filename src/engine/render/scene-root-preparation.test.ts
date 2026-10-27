@@ -43,7 +43,7 @@ test('root preparation skips unused parked-material inventories and retains exac
     });
     expect(walk).not.toHaveBeenCalled();
     expect(f.compiled).toEqual([false, true, false, true].map(receiver => ({material: 'borrowed', receiver, fog: f.scene.fog, lights: 1, environment: null})));
-    expect(pauses).toBe(3); // The two existing discovery barriers and final compile barrier; no cheap-work fence.
+    expect(pauses).toBe(1); // Only the final native compile barrier; cheap CPU discovery stays in this slice.
     expect(f.material.version).toBe(0);
     expect(f.scene.children).toEqual([f.root, f.excluded, f.light]);
   } finally {time.mockRestore(); walk.mockRestore(); f.dispose();}
@@ -78,7 +78,7 @@ test('costly light discovery yields between objects and cancellation stops befor
       if (visits >= 8) current = false;
       return Promise.resolve();
     })).rejects.toThrow('Shader preparation owner left');
-    expect(pauses).toBe(3); expect(visits).toBe(8); expect(f.compiled).toEqual([]);
+    expect(pauses).toBe(2); expect(visits).toBe(8); expect(f.compiled).toEqual([]);
     expect(f.root.visible).toBe(false); expect(f.root.parent).toBe(f.scene);
   } finally {time.mockRestore(); f.dispose();}
 });

@@ -446,6 +446,7 @@ export async function prepareSceneRoots(renderer: Renderer, camera: THREE.Camera
   target: THREE.WebGLRenderTarget | null, roots: readonly THREE.Object3D[], current: () => boolean, pause?: () => Promise<void>,
   uploadBudget?: UploadBudget, scenePrograms = true, futureLighting?: THREE.Object3D, futureEnvironment?: THREE.Texture, exteriorPrograms = true,
   from?: THREE.Vector3): Promise<void> {
+  let discovery = workSlice(undefined, pageScope);
   await prepareSceneResources(roots, camera, current);
   // `scenePrograms` false: the roots' resources and exterior variants only (the boot's Shaders step builds what its first
   // frame draws, and the rest is warmed in play)
@@ -455,12 +456,14 @@ export async function prepareSceneRoots(renderer: Renderer, camera: THREE.Camera
   // a parked region's content compiles against the lights its first visible frame has (G639: a Nalati clip variant made
   // during entry was prepared under the road's lights and linked again at its first lit draw, 134 ms)
   if (futureLighting !== undefined) includeFutureLights(jobs, scene, futureLighting, futureEnvironment);
-  // Keep the existing discovery barriers. Within discovery, only a spent measured budget waits for a completed draw;
-  // cheap objects stay together. Exterior light collection never walks the excluded residents' material inventories.
-  if (pause !== undefined) await pause();
+  // Discovery only constructs detached jobs. Cheap phases share the CPU slice;
+  // native compile/link/upload retain runPrecompile's completed-draw fences.
+  if (pause !== undefined && discovery.due()) { await pause(); discovery = workSlice(undefined, pageScope); }
+  if (!current()) throw new Error('Shader preparation owner left');
   if (exteriorPrograms) jobs.push(...(pause === undefined ? exteriorJobs(scene, target, false, roots, 6, undefined, [], from)
     : await pacedPreparation(exteriorJobSteps(scene, target, false, roots, 6, undefined, [], from), current, pageScope, pause)));
-  if (pause !== undefined) await pause();
+  if (pause !== undefined && discovery.due()) await pause();
+  if (!current()) throw new Error('Shader preparation owner left');
   await runPrecompile(renderer, camera, jobs, materials, undefined, undefined, current, pause !== undefined, pause, uploadBudget, undefined,
     pause === undefined ? undefined : LIVE_PRECOMPILE_SLICE_MS);
 
