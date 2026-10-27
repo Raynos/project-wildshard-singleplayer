@@ -146,7 +146,7 @@ class GraphRig {
   beginTrail(): void {
     const name = this.rig.move ?? 'light'; this.ribbon.reset();
     this.trailLife = (this.rig.meta.clips[name]?.timing?.total ?? this.row.trail.total) * this.row.trail.life;
-    this.looks.setParam(this.row.trail.look, this.row.trail.seed, Math.random() * 100);
+    this.looks.setParam(this.row.trail.look, this.row.trail.seed, app.rng.stream('cosmetic').next() * 100);
   }
 
   setClawVisible(on: boolean): void { for (const mesh of this.rig.meshes()) if (mesh.name.startsWith(this.row.claw)) mesh.visible = on; }
