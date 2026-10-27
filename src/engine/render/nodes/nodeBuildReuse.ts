@@ -188,7 +188,18 @@ export function holdsAny(values: readonly unknown[], inputs: readonly object[]):
 }
 
 /** a node's fields that never reach its code: identity, cache bookkeeping */
-const UNCODED = new Set(['id', 'uuid', 'version', '_cacheKey', '_cacheKeyVersion']);
+// `_uuid`: a node's lazily made uuid (an identity, G782: it put a fresh uuid in each visit's signature)
+const UNCODED = new Set(['id', 'uuid', '_uuid', 'version', '_cacheKey', '_cacheKeyVersion']);
+/** A reference node's runtime targets: the object it reads (`object`, `reference`) and the uniform its build makes from it
+ *  (`node`). Its code follows its property, uniform type and count; these name only what it reads at draw time (G782: a
+ *  live value such as a clock, or a built uniform's global id, put a new signature in each visit). Their kind stays. */
+const REFERENCE_TARGETS = new Set(['object', 'reference', 'node']);
+function referenceTargetShape(value: unknown): string {
+  if (value === null || value === undefined) return String(value);
+  if (typeof value !== 'object') return typeof value;
+  if (Reflect.get(value, 'isNode') === true) return 'node';
+  return Object.getPrototypeOf(value) === Object.prototype ? `{${Object.keys(value).sort().join(',')}}` : value.constructor.name;
+}
 /** what a texture contributes to the code: its kind, formats and sampling flags (never its image) */
 function textureShape(value: object): string {
   const field = (name: string): string => String(Reflect.get(value, name));
@@ -208,7 +219,8 @@ export interface GraphShape { readonly nodes: readonly Node[]; readonly signatur
  * The shape of the nodes `owner`'s compile made: the material's class, plain fields and node slots, then each node in
  * the order the compile made it, with its class, its primitive fields, its constants and its textures' kinds, and the
  * nodes it holds (another of the compile's by its position, any other node by its id: shared nodes are the same in
- * every compile). Uniform values and which texture a node samples are left out: a reuse binds the second material's own.
+ * every compile). Uniform values, a reference node's runtime targets and which texture a node samples are left out: a
+ * reuse binds the second material's own.
  */
 export function graphShape(material: THREE.Material, owner: GraphNodeOwner): GraphShape {
   const nodes = owner.compiled, index = new Map<Node, number>(nodes.map((node, i) => [node, i]));
@@ -234,6 +246,7 @@ export function graphShape(material: THREE.Material, owner: GraphNodeOwner): Gra
     for (const property of Object.getOwnPropertyNames(node).sort()) {
       if (UNCODED.has(property)) continue;
       const value: unknown = Reflect.get(node, property);
+      if (node instanceof ReferenceNode && REFERENCE_TARGETS.has(property)) { fields.push(`${property}~${referenceTargetShape(value)}`); continue; }
       if (uniform && (property === 'value' || property === '_value') && !isNode(value)) {
         fields.push(`${property}~${typeof value === 'object' && value !== null && Reflect.get(value, 'isTexture') === true ? textureShape(value) : typeof value}`);
       } else if (constant && property === 'value') fields.push(`value=${constantShape(value)}`);
