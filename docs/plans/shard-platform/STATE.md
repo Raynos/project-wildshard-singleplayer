@@ -24,15 +24,16 @@ entry 16.9 -> 13.4 s, fps held), S1 setup -53 %, D154 NaN black blocks fixed (4d
 warm solved** by last-cell retention (b7d6c8b728: Sky / Pine / Nalati ~1.0 s full warm, memory 677-817 MB < 1.2 GB;
 DW 11.9 s until sp-x8 / sp-x6 stop a speculative reserve evicting the kept world). **Cold** still over 8 s after the
 held duty fix (18736fc479): Pine 20.7, Nalati 19.4, DW 16.5, Sky 10.6 s; owners sp-o1 Pine world, sp-o2 Nalati
-world, sp-o3 shaders, sp-x1 DW, sp-x10 Sky; held view >= 30 fps. Jake's picks pending: D175 (held mask). Misses
-closed honest: S1 1.6 s (D176). Open: H4 (sp-x9), I2 (Pine 100 MB / 296 product req; sp-x2 / sp-o5 / sp-x9).
+world, sp-o3 shaders, sp-x1 DW, sp-x10 Sky; held view >= 30 fps. Jake picks: D175 / D178 / D179. Closed
+as a miss: S1 1.6 s (D176). Open: H4 (sp-x9), I2 (Pine 100 MB / 296 product req; sp-x2 / sp-o5 / sp-x9).
 Counter 157 / 209 = 75 %.
 **CI:** owner table in BURN-DAMAGE-LIST; 973 red on tests only (gen / products / docs / types / lint / web green);
-25 cases routed and mostly source-fixed. Awaiting a qualifying CI + boot smoke.
+25 cases routed, mostly fixed. Awaiting a qualifying CI + boot smoke.
 **Blocked on Jake:** road B pilot play; boards as they land; LD5-LD8 / A1 / A2 / M2 / RM13 (counted, G779).
 
-**Lanes (G735 overrides the G605 step-down; Claude active 70 %, Codex 81 %):** 5 Opus (sp-o1..o5) + 6 Codex (sp-x1,
-x2, x6, x8, x9, x10) + sp-ci-deploy (CI / deploy / reds, no cancels). origin/main d060092f68.
+**Lanes (G605 back per Jake 09:10; Claude active 70 % -> 2 Opus):** sp-o1 + sp-o3 stay; sp-o2 / sp-o4 / sp-o5 finish
+their task and stop (no new rows). 6 Codex (sp-x1, x2, x6, x8, x9, x10) + sp-ci-deploy (CI / deploy, no cancels).
+Next: 1 Opus at 80 %, 0 at 90 %. origin/main d060092f68.
 
 **Rules:** G704 (<= ~20 files/move commit). G605. Fix forward, no reverts (G674). No new Debug rows (G669). G670.
 Never herdr wildshard-v.
