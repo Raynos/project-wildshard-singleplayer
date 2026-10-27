@@ -188,9 +188,12 @@ test.each(['shared', 'fog', 'environment', 'lights'] as const)('an exterior comp
       finally { handler.renderEnd(); }
     };
     draw(page);
-    const builds = field === 'shared' ? 1 : 2;
+    // js-heap H1 / grid-crossing T2 (d10303ddee): a build that reads no scene environment (this unlit fog graph) keeps its
+    // binding across an environment handoff, as a shared scene does; a fog or light handoff still rebuilds it
+    const kept = field === 'shared' || field === 'environment';
+    const builds = kept ? 1 : 2;
     expect(handler.builds).toBe(builds);
-    if (field === 'shared') expect(properties.uniforms).toBe(before);
+    if (kept) expect(properties.uniforms).toBe(before);
     else expect(properties.uniforms).not.toBe(before);
     page.fog = new THREE.Fog(0x0000ff, 1, 10); draw(page);
     expect(handler.builds).toBe(builds + 1); expect(properties.uniforms).not.toBe(before);
@@ -318,12 +321,18 @@ test.each(['fog', 'environment'] as const)('a restored scene %s keeps its existi
     expect(handler.builds).toBe(1);
     expect(properties.uniforms).toBe(before);
     handler.renderEnd();
-    // An actual replacement still needs its own live bindings, even with the same shader shape.
+    // An actual replacement of a read input still needs its own live bindings, even with the same shader shape; an
+    // environment this unlit fog graph never reads keeps them (js-heap H1 / grid-crossing T2, d10303ddee)
     borrow(); handler.renderStart(scene, camera); handler.updateLights([]); handler.setObject(mesh, material);
     material.onBeforeRender(renderer, scene, camera, geometry, mesh, new THREE.Group());
-    expect(handler.builds).toBe(2);
-    expect(handler.buildLog.at(-1)?.how).toMatch(new RegExp(`^scene binding ${field}: `, 'u'));
-    expect(properties.uniforms).not.toBe(before);
+    if (field === 'environment') {
+      expect(handler.builds).toBe(1);
+      expect(properties.uniforms).toBe(before);
+    } else {
+      expect(handler.builds).toBe(2);
+      expect(handler.buildLog.at(-1)?.how).toMatch(new RegExp(`^scene binding ${field}: `, 'u'));
+      expect(properties.uniforms).not.toBe(before);
+    }
     expect(Object.values(properties.uniforms ?? {}).some(uniform => typeof uniform === 'object' && uniform !== null
       && Reflect.get(uniform, 'value') === scene.fog?.color)).toBe(true);
     handler.renderEnd();
