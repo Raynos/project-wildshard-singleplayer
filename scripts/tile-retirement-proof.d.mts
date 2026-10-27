@@ -19,6 +19,8 @@ export interface RetirementBoundary {
 export function tileRetirementRoute(state: Pick<FloorGridState, 'home' | 'cells' | 'pitch'>): {
   reference: { x: number; z: number }; plans: FloorGridPlan[];
 };
+export function tileRetirementPortalPlans(state: Pick<FloorGridState, 'home' | 'cells' | 'pitch'>,
+  entryways: ReadonlyMap<string, unknown>): FloorGridPlan[];
 export function tileRetirementTracker(): {
   observe: (keys: readonly string[]) => void;
   result: () => { cycles: number; byKey: Record<string, number> };

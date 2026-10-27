@@ -1,4 +1,11 @@
-import { ownedSoakPlans } from './soak/owned.mjs';
+import { ownedSoakPlans, soakPortalPlan } from './soak/owned.mjs';
+
+/** Use the maintained two-ended declared-portal adapter for the original DW/Sky route.
+ * @param {Parameters<typeof tileRetirementRoute>[0]} state
+ * @param {ReadonlyMap<string, unknown>} entryways */
+export function tileRetirementPortalPlans(state, entryways) {
+  return tileRetirementRoute(state).plans.map(plan => soakPortalPlan(plan, state.cells, entryways, state.pitch));
+}
 
 /** Use the original soak's road and declared-portal route, restricted to DW/Sky.
  * @param {Pick<import('./frame-floor-grid.mjs').FloorGridState, 'home' | 'cells' | 'pitch'>} state */

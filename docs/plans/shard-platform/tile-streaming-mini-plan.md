@@ -1007,3 +1007,38 @@ whole-cell ring selection and permanent missing-L1 fine coverage are already
 removed by `45086a7db8`, `89f7d3598a` and `404b717e02`. Sky fine-library migration is now landed in `8bf41b2b33`; consume that
 producer boundary. Nine migration remains unlanded at this audit; preserve
 its still-used reader/Explorer paths until its defining producer lands. G606 frozen sources untouched.
+
+### One plan-end Chromium reader (G780/G777, sp-x2)
+
+S3.7 joins the single `scripts/tile-plan-reading.mjs` cohort, on one shared
+HEAD preview, not a Simulator or a quiet-window reading. The queued source
+is `5f1eadb19e95c38e376efaecd1e86ad4b8e48553`, D96 fixed, shared4402.
+Eight families (DW plus G790's seven) each visit spawn once at3x3 and once
+at5x5: actual SHARDFILE button, phone tier, iPhone16Pro,4xCPU,2x render.
+Read the existing live scope names / admitted fine keys without adding an
+app probe or altering rendering. Whole comparison is the declared unique
+fine-file dependency closure, not a reintroduced Whole-cell Debug option.
+Observed GPU/CPU backing capacities, allocator claims and Chromium private
+footprints remain separate; T0 share is a same-source spawn census, with
+unknown classifications retained. Actual clipped minimap border/ring/MB
+paint is the T5 sanity witness; it is not assumed to cover offscreen cells.
+
+S3 has one Resident-road reference and one streamed-road cohort in that same
+browser. The original maintained DW/Sky declared-portal route runs five
+round trips with held input, preserving document/ownership/retirement gates.
+Initial staging uses the maintained seed only before travel. Record phase
+walls (first cold8s, then warm5s) and100ms frame misses without rerunning;
+structural route failures stop dependent legs. No forced GC or app/cache
+mutation for a lower memory number. Raw scalar/trace/JPEG output stays under
+`tmp/sp-x2/tile-plan-reading/reading-5f1`; final numbers go into T0/T5/T7/S3.7.
+One browser-lane invocation owns cleanup; the distinct preview borrower is
+`sp-x2-tile-plan-reader`, released after reading. No new preview build.
+
+Reader preflight retained one Node import refusal before Chromium opened;
+its corrected invocation uses `--import ./scripts/shard-platform-format.mjs`.
+The one actual cohort is running on shared5f1/4402, no new build. The first
+DW3x3 row retains two actual page errors (`reading waiting`) routed to
+sp-ci-deploy, and a separate reader predicate miss: levelDebugRows excludes
+global tile-residency rows. The final reusable reader labels that absent
+counter unavailable. Original run scripts/tool hashes and all raw failures
+remain retained; no sample is replaced or promoted to a PASS.
