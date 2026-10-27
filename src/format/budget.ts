@@ -18,6 +18,29 @@ export function memoryTargetWarnings(shard: Shardfile): { category: string; byte
   return warnings;
 }
 
+/**
+ * Each L0 tile's resident bytes beyond what the shard's library already charges: a tile whose files the library holds
+ * (Nine Dragon draws its whole L0 city from its library) is charged once there, never again as a resident tile. A
+ * tile's declared bytes less its library files' bytes, never below zero; other tiles are unchanged.
+ */
+function ownTileBytes(shard: Shardfile): (tile: Shardfile['tiles'][number]) => number {
+  const files = new Map(shard.files.map(file => [file.hash, file]));
+  const closure = (roots: readonly string[]): Set<string> => {
+    const seen = new Set<string>(), pending = [...roots];
+    for (let ref = pending.pop(); ref !== undefined; ref = pending.pop()) if (!seen.has(ref)) { seen.add(ref); pending.push(...files.get(ref)?.dependencies ?? []); }
+    return seen;
+  };
+  const library = closure(shard.library);
+  return tile => {
+    let shared = 0;
+    if (library.size > 0) for (const ref of closure(tile.files)) {
+      const file = library.has(ref) ? files.get(ref) : undefined;
+      if (file !== undefined) shared += file.decoded + file.gpu;
+    }
+    return Math.max(0, tile.decoded + tile.gpu - shared);
+  };
+}
+
 const distance2 = (x: number, z: number, x0: number, z0: number, x1: number, z1: number): number => {
   const dx = Math.max(x0 - x, x - x1, 0), dz = Math.max(z0 - z, z - z1, 0); return dx * dx + dz * dz;
 };
@@ -37,9 +60,9 @@ interface LocationModel {
 }
 
 function locationModels(shard: Shardfile, commons: number): LocationModel[] {
-  const own = shard.tiles.filter(tile => tile.lod === 0).map(tile => {
+  const bytesOf = ownTileBytes(shard), own = shard.tiles.filter(tile => tile.lod === 0).map(tile => {
     const bounds = tile.drawBounds ?? tile.bounds;
-    return { x0: bounds.min[0], z0: bounds.min[2], x1: bounds.max[0], z1: bounds.max[2], bytes: tile.decoded + tile.gpu };
+    return { x0: bounds.min[0], z0: bounds.min[2], x1: bounds.max[0], z1: bounds.max[2], bytes: bytesOf(tile) };
   });
   const coarseExcess = shard.tiles.filter(tile => tile.lod === 1).reduce((sum, tile) => sum + Math.max(0, tile.decoded + tile.gpu - C.l1.resident), 0);
   const models: LocationModel[] = [];
@@ -103,7 +126,8 @@ export function worstContentCost(shard: Shardfile, commons = 0): LocationCost {
 /** `worstContentCost` in steps, one per own tile and synthetic neighbour tile the grids sum, then one per scanned row:
  *  a live admission paints between them (Pine's activation spent ~90 ms of a frame in this scan at 4x CPU). */
 export function* worstContentCostSteps(shard: Shardfile, commons = 0): Generator<void, LocationCost> {
-  const key = JSON.stringify([shard.tiles.map(tile => [tile.lod, tile.decoded, tile.gpu, (tile.drawBounds ?? tile.bounds).min[0], (tile.drawBounds ?? tile.bounds).min[2], (tile.drawBounds ?? tile.bounds).max[0], (tile.drawBounds ?? tile.bounds).max[2]]), shard.far === null ? null : [shard.far.decoded, shard.far.gpu], shard.budgets.library.resident, shard.budgets.sim.resident, shard.budgets.overlap, shard.serverBudget.memory, commons,
+  const bytesOf = ownTileBytes(shard);
+  const key = JSON.stringify([shard.tiles.map(tile => [tile.lod, bytesOf(tile), (tile.drawBounds ?? tile.bounds).min[0], (tile.drawBounds ?? tile.bounds).min[2], (tile.drawBounds ?? tile.bounds).max[0], (tile.drawBounds ?? tile.bounds).max[2]]), shard.far === null ? null : [shard.far.decoded, shard.far.gpu], shard.budgets.library.resident, shard.budgets.sim.resident, shard.budgets.overlap, shard.serverBudget.memory, commons,
     shard.near === undefined ? 0 : nearPlaceholderCost(shard.near, shard).total.resident]);
   const cached = worstCache.get(key);
   if (cached !== undefined) return { ...cached, location: [...cached.location] };
@@ -143,7 +167,7 @@ export function* worstContentCostSteps(shard: Shardfile, commons = 0): Generator
   };
   const ownL0 = new Float64Array(n * n).fill(8 * C.l0.resident), ownActive = new Uint8Array(n * n);
   for (const tile of shard.tiles) if (tile.lod === 0) {
-    const bounds = tile.drawBounds ?? tile.bounds, bytes = tile.decoded + tile.gpu;
+    const bounds = tile.drawBounds ?? tile.bounds, bytes = bytesOf(tile);
     near(bounds.min[0], bounds.min[2], bounds.max[0], bounds.max[2], ownL0, bytes);
     yield;
   }

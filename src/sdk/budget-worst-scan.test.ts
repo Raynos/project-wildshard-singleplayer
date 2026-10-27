@@ -54,3 +54,21 @@ test.each([-1e-10, 0, 1e-10])('worst-disc intervals preserve tangent draw bounds
   expect(worst.playing).toBe(best);
   expect(nearbyContentCost(source, wx, wz)).toEqual(worst);
 });
+
+test('a tile whose files the library holds is charged once, in the library', () => {
+  const file = (hash: string, decoded: number, gpu: number) => ({ hash, kind: 'glb', compressed: 1, decoded, gpu, triangles: 0, draws: 0, dependencies: [], critical: false });
+  const tile = (files: string[], decoded: number, gpu: number) => ({ lod: 0, x: 4, z: 4, bounds: { min: [0, 0, 0], max: [62.5, 10, 62.5] }, geometricError: 0,
+    files, compressed: 1, decoded, gpu, triangles: 0, draws: 0 });
+  const make = (library: string[], declared = 1) => {
+    const source = emptyShardfile({ slug: 'library-tiles', name: 'Library tiles', author: 'Test', revision: 1, seed: 9 });
+    source.files = [file('a'.repeat(64), 40 * MB, 60 * MB), file('b'.repeat(64), 5 * MB, 5 * MB)];
+    source.tiles = [tile(['a'.repeat(64)], 40 * MB * declared, 60 * MB * declared), tile(['b'.repeat(64)], 5 * MB, 5 * MB)];
+    source.library = library; source.budgets.library.resident = library.length === 0 ? 0 : 100 * MB;
+    return source;
+  };
+  const streamed = nearbyContentCost(make([]), 30, 30), held = nearbyContentCost(make(['a'.repeat(64)]), 30, 30);
+  // the library's 100 MB replaces the tile's own 100 MB: nothing is counted twice; the other tile still counts
+  expect(held.accounted).toBe(streamed.accounted);
+  // anywhere in the cell, holding the tile's files in the library costs what declaring that tile empty does
+  expect(worstContentCost(make(['a'.repeat(64)])).playing).toBe(worstContentCost(make(['a'.repeat(64)], 0)).playing);
+});
