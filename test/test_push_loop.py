@@ -51,6 +51,9 @@ class PushLoop(unittest.TestCase):
         subset = patch.dict(PUSH, check_subset=lambda *_: {'ok': True, 'files': [], 'output': 'exact subset passed'})
         subset.start()
         self.addCleanup(subset.stop)
+        handoff = patch.dict(PUSH, publish_handoff=lambda *_: None)
+        handoff.start()
+        self.addCleanup(handoff.stop)
 
     def git(self, *args):
         env = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
@@ -497,6 +500,25 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertEqual(result['gateDeferred'], ['Gate-deferred: products', 'Gate-deferred: tests-products'])
         self.assertEqual(result['batchCommits'], [tip])
         self.assertIn('original partial', result['output'])
+
+    def test_handoff_metadata_is_required_before_upload_and_failure_holds(self):
+        tip = self.commit('src/one.ts')
+        events = []
+        def checker(*_):
+            return {'ok': False, 'budget': True, 'phase': 'ci-subset', 'unfinished': ['types'],
+                    'files': [], 'output': '', 'steps': []}
+        with patch.dict(PUSH, publish_handoff=lambda *_: events.append('published')):
+            result = PUSH['tick'](self.root, checker=checker, uploader=lambda *_: events.append('uploaded') or 0)
+        self.assertEqual(result['status'], 'pushed')
+        self.assertEqual(events, ['published', 'uploaded'])
+        def refused(*_):
+            raise ValueError('metadata write refused')
+        events.clear()
+        with patch.dict(PUSH, publish_handoff=refused):
+            result = PUSH['tick'](self.root, checker=checker, uploader=lambda *_: events.append('uploaded') or 0)
+        self.assertEqual(result['status'], 'red')
+        self.assertEqual(result['phase'], 'ci-handoff')
+        self.assertEqual(events, [])
 
     def test_step_timings_cover_policy_recent_related_and_typed_work_once(self):
         tip = self.commit('src/timed.ts')

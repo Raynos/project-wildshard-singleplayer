@@ -19,6 +19,8 @@ PUSH_GATE_SECONDS = 180  # G756: one hard batch cap; no successful budget skips.
 RED_HOLD = runpy.run_path(str(Path(__file__).with_name('push_red_hold.py')))
 latest_verdict = RED_HOLD['completed_push_verdict']
 BATCH = runpy.run_path(str(Path(__file__).with_name('push_batch.py')))
+HANDOFF = runpy.run_path(str(Path(__file__).with_name('push_handoff.py')))
+publish_handoff = HANDOFF['publish_handoff']
 
 
 def fix_prefix(root, base, tip):
@@ -413,6 +415,13 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
             return subprocess.run(['git', 'push', '-q', 'origin', revision + ':refs/heads/main'], cwd=root, env=environment).returncode
     gate_seconds = round(time.monotonic() - started, 2)
     upload_started = time.monotonic()
+    if result.get('deferred'):
+        try:
+            publish_handoff(root, base, candidate, result['deferred'])
+        except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as error:
+            return finish({'status': 'red', 'tip': candidate, 'bad': None, 'phase': 'ci-handoff',
+                           'types': 'unverified', 'gateSeconds': gate_seconds,
+                           'output': result['output'] + '\nUpload held: ' + str(error)})
     rc = uploader(candidate, env)
     if rc == 0:
         batch_file.unlink(missing_ok=True)

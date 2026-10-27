@@ -56,6 +56,66 @@ env:
   DEPLOY: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
 
 jobs:
+  # G757: exact handed-off steps run in a separate early job. Full CI stays required.
+  gate-deferred:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      WS_GATE_DEFERRED: ${{ vars.WS_GATE_DEFERRED }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+          sparse-checkout-cone-mode: false
+      - name: Select this exact push handoff
+        id: handoff
+        run: python3 scripts/push_handoff.py --select
+      - uses: pnpm/action-setup@v4
+        if: steps.handoff.outputs.active == 'true'
+        with: {version: 10}
+      - uses: actions/setup-node@v4
+        if: steps.handoff.outputs.active == 'true'
+        with: {node-version: 24, cache: pnpm}
+      - name: Install handoff tools
+        if: steps.handoff.outputs.active == 'true'
+        run: pnpm install --frozen-lockfile
+      # These are byte-keyed caches, never proof. Normal generation and strict
+      # product admission revalidate every restored entry before a reader runs.
+      - uses: actions/cache@v4
+        if: steps.handoff.outputs.active == 'true'
+        with:
+          path: |
+            ~/.cache/wildshard/generate
+            ~/.cache/wildshard/compiler-code/1
+            ~/.cache/wildshard/shardfiles
+          key: gate-deferred-v1-${{ runner.os }}-node24-${{ github.sha }}
+          restore-keys: |
+            gate-deferred-v1-${{ runner.os }}-node24-
+            generation-v1-${{ runner.os }}-node24-
+            products-v1-${{ runner.os }}-node24-
+      - name: Run the named unfinished steps first
+        if: steps.handoff.outputs.active == 'true'
+        env:
+          HANDOFF_BASE: ${{ steps.handoff.outputs.base }}
+          HANDOFF_STEPS: ${{ steps.handoff.outputs.steps }}
+          VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
+        run: python3 scripts/ci-fail-fast.py -- node scripts/push-deferred-ci.mjs "$HANDOFF_BASE" "$HANDOFF_STEPS"
+      - name: Publish exact handoff failure paths
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-failures-gate-deferred
+          path: tmp/ci-failures/*.json
+          if-no-files-found: ignore
+          retention-days: 2
+
   build-and-deploy:
     needs: products
     # Release runs intentionally skip products; push/PR builds require its
@@ -669,7 +729,7 @@ jobs:
 
   dispatch-boot-smoke:
     # All push checks must pass; release/PR runs never create skipped smoke runs.
-    needs: [build-and-deploy, typecheck-lint, derived-docs, generated-inputs, products, behaviour, behaviour-products]
+    needs: [gate-deferred, build-and-deploy, typecheck-lint, derived-docs, generated-inputs, products, behaviour, behaviour-products]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 5

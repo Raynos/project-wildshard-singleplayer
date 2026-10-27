@@ -17,3 +17,5 @@ export function runPushSubset(root: string, jobs: PushSubsetJob[], deadline: num
 export function pushSubsetVerdict(results: readonly PushSubsetResult[]): {
   failed: string[]; unfinished: string[];
 };
+/** CI replays named unfinished steps plus their actual prerequisites. */
+export function selectPushSteps(jobs: readonly PushSubsetJob[], names: readonly string[]): PushSubsetJob[];

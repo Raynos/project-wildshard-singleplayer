@@ -1,11 +1,13 @@
 import { expect, test, vi } from 'vitest';
-import { pushSubsetJobs, runPushSubset, pushSubsetVerdict, type PushSubsetPorts } from '../scripts/push-subset-jobs.mjs';
+import { pushSubsetJobs, runPushSubset, pushSubsetVerdict, selectPushSteps, type PushSubsetPorts } from '../scripts/push-subset-jobs.mjs';
 import type { GateSelection } from '../scripts/gate-selection.mjs';
 import type { CommitJob } from '../scripts/precommit-jobs.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Retain the owned detached-child marker and remove its tiny fixture.
 import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native process fixtures stay under the repository's tmp directory.
 import { resolve } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- Inspect the owned worker's actual execution state after cancellation.
+import { spawnSync } from 'node:child_process';
 
 const paths = ['scripts/heavy-lane.py', 'scripts/gen.mjs', '.oxlintrc.json', 'scripts/vitest-push.config.ts',
   'test/source.test.ts', 'test/reader.test.ts', 'test/native.test.mjs', 'src/game/example.ts', 'tsconfig.game.json'];
@@ -107,6 +109,14 @@ test('observed failures cannot be handed off as timeouts, including blocked read
   expect(() => pushSubsetVerdict([{ name: 'missing', code: 1, timedOut: false, blocked: ['absent'], output: '' }])).toThrow('Invalid');
 });
 
+test('CI replays only named unfinished steps and their real producer prerequisites', () => {
+  const jobs = pushSubsetJobs(selection(), ['src/game/example.ts'], paths, { 'test/reader.test.ts': ['example'] });
+  expect(selectPushSteps(jobs, ['tests-products']).map(job => job.name)).toEqual(['generated-inputs', 'products', 'tests-products']);
+  expect(selectPushSteps(jobs, ['typed-lint']).map(job => job.name)).toEqual(['generated-inputs', 'types', 'typed-lint']);
+  expect(() => selectPushSteps(jobs, ['unknown'])).toThrow('Invalid');
+  expect(() => selectPushSteps(jobs, ['types', 'types'])).toThrow('Duplicate');
+});
+
 test('deadline cleanup drains detached build descendants before returning the mirror', async () => {
   const root = resolve(import.meta.dirname, '..');
   mkdirSync(resolve(root, 'tmp'), { recursive: true });
@@ -114,15 +124,24 @@ test('deadline cleanup drains detached build descendants before returning the mi
   const marker = resolve(dir, 'child.json');
   let pid: number | undefined;
   try {
-    const child = `const {spawn}=require('node:child_process');const {writeFileSync}=require('node:fs');
+    const child = `const {spawn,execFileSync}=require('node:child_process');const {writeFileSync}=require('node:fs');
       const nested=spawn(process.execPath,['-e','setInterval(()=>{},1000)'],{detached:true,stdio:'ignore'});
-      writeFileSync(${JSON.stringify(marker)},JSON.stringify(nested.pid));setInterval(()=>{},1000);`;
+      writeFileSync(${JSON.stringify(marker)},JSON.stringify(nested.pid));
+      process.stdout.write('LIVE:'+execFileSync('ps',['-p',String(nested.pid),'-o','stat='],{encoding:'utf8'}).trim()+'\\n');setInterval(()=>{},1000);`;
     const results = await runPushSubset(root, [{ name: 'detached-build', command: [process.execPath, '-e', child], after: [] }], performance.now() + 5000);
     const raw: unknown = JSON.parse(readFileSync(marker, 'utf8'));
     if (typeof raw !== 'number' || !Number.isSafeInteger(raw) || raw <= 1) throw new Error('Invalid owned descendant PID');
     pid = raw;
     expect(results[0]).toMatchObject({ name: 'detached-build', code: 124, timedOut: true });
-    expect(() => process.kill(raw, 0)).toThrow();
+    expect(results[0]?.output).toMatch(/LIVE:(?!Z)[A-Z]/u);
+    const status = spawnSync('ps', ['-p', String(raw), '-o', 'stat='], { encoding: 'utf8' });
+    // A dead process can retain its PID until init reaps it. It owns no live
+    // worker or open files; kill(pid,0) alone cannot distinguish that from work.
+    if (status.status === 1) expect(status.stdout.trim()).toBe('');
+    else {
+      expect(status.status).toBe(0);
+      expect(status.stdout.trim()).toMatch(/^Z/u);
+    }
   } finally {
     if (pid !== undefined) try { process.kill(pid, 'SIGKILL'); } catch { /* Already reaped by owned deadline cleanup. */ }
     rmSync(dir, { recursive: true, force: true });

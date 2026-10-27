@@ -145,3 +145,20 @@ export function pushSubsetVerdict(results) {
   return { failed: results.filter(result => state(result.name) === 'failed').map(result => result.name),
     unfinished: results.filter(result => state(result.name) === 'unfinished').map(result => result.name) };
 }
+
+/** @param {readonly import('./push-subset-jobs.mjs').PushSubsetJob[]} jobs @param {readonly string[]} names */
+export function selectPushSteps(jobs, names) {
+  const byName = new Map(jobs.map(job => [job.name, job]));
+  if (byName.size !== jobs.length || new Set(names).size !== names.length) throw new Error('Duplicate CI handoff step');
+  const selected = new Set(), visiting = new Set();
+  const include = (/** @type {string} */ name) => {
+    if (selected.has(name)) return;
+    const job = byName.get(name);
+    if (job === undefined || visiting.has(name)) throw new Error(`Invalid CI handoff dependency: ${name}`);
+    visiting.add(name);
+    for (const parent of job.after) include(parent);
+    visiting.delete(name); selected.add(name);
+  };
+  for (const name of names) include(name);
+  return jobs.filter(job => selected.has(job.name));
+}
