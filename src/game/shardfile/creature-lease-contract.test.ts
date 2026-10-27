@@ -1,5 +1,5 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import type { Texture } from 'three';
+import { Texture } from 'three';
 import { AnimalFactory, type TextureLease } from '@wildshard/engine/entities/AnimalFactory';
 import { Scope } from '@wildshard/engine/app/scope';
 import { app } from '@wildshard/engine/app/runtime';
@@ -27,6 +27,16 @@ function fixture() {
   if (!(factory instanceof AnimalFactory)) throw new Error('Missing creature factory');
   factory.lease = fake;
   const animal = scope.run(() => f.manager.spawn('bear', 0, 200, 0, 'brown', { y: 0 }));
+  // the shared manager draws untextured low-poly bodies; a lease gives back a model's file textures, so the bear's model
+  // paints with one before its rig first draws
+  const models: unknown = Reflect.get(factory, 'models');
+  if (!(models instanceof Map) || models.size !== 1) throw new Error('Missing creature model');
+  const listed: unknown = Reflect.get(factory, 'textures');
+  const built: unknown[] = [...models.values()];
+  for (const model of built) if (typeof model === 'object' && model !== null) {
+    Reflect.set(model, 'map', new Texture());
+    if (listed instanceof Map || listed instanceof WeakMap) listed.delete(model); // the list its first draw took, without it
+  }
   f.manager.setResidency(followRing());
   let t = 0;
   return { ...f, animal, scope, factory, step: (dt = .5): void => { t += dt; scope.run(() => { f.manager.update(dt, t, f.player.position, false); }); } };
