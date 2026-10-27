@@ -10,7 +10,7 @@ import { Matrix4, type BufferGeometry } from 'three';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { placedGeometryCollider } from './fixtures/placedGeometryCollider';
 import { bakeCragSceneSources, caveShellRows } from '../src/shards/pine-hollow/generators/bake-crag-scenes.mjs';
-import layout from '../src/shards/pine-hollow/data/layout.generated.json';
+import * as layout from '../src/shards/pine-hollow/generators/layout';
 
 const root = new URL('../', import.meta.url);
 const bytes = (array: ArrayBufferView): Uint8Array => new Uint8Array(array.buffer, array.byteOffset, array.byteLength);

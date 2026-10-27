@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the registered native density output for exact-byte parity.
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
-import pine from '../src/shards/pine-hollow/data/layout.generated.json' with { type: 'json' };
+import * as pine from '../src/shards/pine-hollow/generators/layout';
 import clipRows from '../src/shards/pine-hollow/data/pondClip.generated.json' with { type: 'json' };
 import { creekWaterAt, inBeaverPool as originalPool } from '../src/shards/pine-hollow/generators/geography';
 import groundRows from '../src/shards/pine-hollow/data/ground.generated.json' with { type: 'json' };

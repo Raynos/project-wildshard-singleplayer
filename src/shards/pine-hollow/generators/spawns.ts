@@ -1,4 +1,4 @@
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 
 /** The encounter owns when this body exists; forest herds and elite/random dressing remain native G51 recipes. */
 export const PINE_RUNTIME_SPAWNS: { homes: never[]; bosses: { id: string; kind: string; look: string; at: number[]; yaw: number; }[]; } = { homes: [], bosses: [

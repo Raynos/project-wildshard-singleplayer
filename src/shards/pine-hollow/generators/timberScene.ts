@@ -7,7 +7,7 @@ import { TimberRecorder } from './timberBake';
 import { bakeFireLookout } from './fireLookout';
 import { bakeSiteTimbers } from './siteTimbers';
 import { timberFrame, ZIP_YAW, landingSite, bridgeSite } from './timberPlacement';
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 
 /** Original non-indexed material draws, before any world placement or finishing policy. */
 export function timberDraws(timber: TimberBuilder): Map<string, THREE.BufferGeometry> {

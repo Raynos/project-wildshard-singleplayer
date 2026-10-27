@@ -6,7 +6,7 @@ import { Matrix4 } from 'three';
 import { CRAG_CAVE_ROWS } from './cragSceneContribution';
 import { CaveInteriorSchema } from '@wildshard/format/caveInterior';
 import { CRAG_LOOK, CAVE_LOOK } from './cragLook';
-import layout from '../data/layout.generated.json' with { type: 'json' };
+import * as layout from './layout';
 import { MODEL_SCENES, MODEL_BLOBS, SCENE_MODELS, SCENE_PLACEMENTS } from './sceneModelRows';
 import { CABIN_JSON_BLOBS } from './cabinSceneContribution';
 import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';

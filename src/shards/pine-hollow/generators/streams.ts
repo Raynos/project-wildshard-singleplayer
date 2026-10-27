@@ -7,7 +7,7 @@
  * anchors); the page draws it (../runtime/world/streams.ts) and never runs this. test/shards/pine-hollow/streams-bake.test.ts is
  * the stale gate.
  */
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 import { creekSpan, creekSurfaceAt } from './geography';
 import * as THREE from 'three';
 import { bake, WholeShape, type BakedScene } from '@wildshard/sdk/bake';

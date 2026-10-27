@@ -1,5 +1,5 @@
 // Private visual scalar DAGs; native clocks, rain, animals and audio stay with their owners.
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 import {parseClientChannels} from '@wildshard/format/clientChannels';
 
 const PINE_WEATHER_CHANNELS = [

@@ -33,7 +33,7 @@ import { readScalarLattice } from '../src/engine/world/scalarChannel';
 
 const scalarBlocks=readNalatiScalarBlocks();
 const finite=v.pipe(v.number(),v.finite());
-const geographyInput:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/geography.generated.json','utf8'));
+const geographyInput:unknown=JSON.parse(readFileSync('test/fixtures/nalati-geography-original.json','utf8'));
 const geography=v.parse(v.object({res:finite,size:finite,seed:finite,channels:v.object({wet:ScalarLatticeSchema})}),
   geographyInput);
 const originalTier=GrassPresentationSchema.entries.phone;

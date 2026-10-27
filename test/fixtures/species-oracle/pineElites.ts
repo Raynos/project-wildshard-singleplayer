@@ -8,7 +8,7 @@ import { bugleHour, fleeHeading, behindPlayer, fadeCooldown, headingTo } from '.
 import { PINE_STRIKES, pineContact, PINE_LANES } from './pineStrikes';
 import { EliteBrain, type EliteActor } from '@wildshard/engine/ai/EliteBrain';
 import { pinBrain } from '@wildshard/engine/ai/pinning';
-import LAYOUT from '../../../src/shards/pine-hollow/data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from '../../../src/shards/pine-hollow/generators/layout';
 import { PINE_ELITE_ANIMALS, PINE_ELITE_DEFS } from '../../../src/shards/pine-hollow/generators/eliteRoster';
 import { pineEliteStreams, type PineEliteStreams } from './pineEliteStreams';
 

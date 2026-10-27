@@ -10,7 +10,7 @@ import { PINE_OUTPUT } from './outputInputs';
 import { tradeCatalogue } from './trades';
 import { CRAG_CAVE_ROWS } from './cragSceneContribution';
 import { PINE_QUEST_RUNTIME } from './questRuntime';
-import layout from '../data/layout.generated.json' with { type: 'json' };
+import * as layout from './layout';
 import questScenes from '../data/timberScenes.generated.json' with { type: 'json' };
 import waterRows from '../data/waterLook.json' with { type: 'json' };
 import rainBake from '../data/rain.json' with { type: 'json' };

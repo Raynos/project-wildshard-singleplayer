@@ -1,6 +1,6 @@
 /** The original Pine placement arithmetic, evaluated over explicit renderer queries at author time only. */
 import * as THREE from 'three';
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 
 /** The unchanged tower and landing yaw, in radians. */
 export const ZIP_YAW: number = Math.atan2(LAYOUT.ZIPLINE.from.x - LAYOUT.ZIPLINE.to.x, LAYOUT.ZIPLINE.from.z - LAYOUT.ZIPLINE.to.z);

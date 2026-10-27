@@ -14,7 +14,7 @@
  */
 import type * as THREE from 'three';
 import { PINE_TIMBER_SEED as SEED, type SiteTimberRows } from './timberRows';
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 import { TimberBuilder, V } from './timberKit';
 import { BRIDGE, BRIDGE_HALF, LANDING, bridgeSite, landingSite } from './timberPlacement';
 import { TimberRecorder } from './timberBake';

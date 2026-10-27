@@ -7,7 +7,7 @@ import { pineLookoutScene, pineSiteTimberScene, timberDraws } from './timberScen
 import { bakeSiteTimbers } from './siteTimbers';
 import { TimberRecorder } from './timberBake';
 import { landingSite, bridgeSite, timberFrame, ZIP_YAW } from './timberPlacement';
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 import { pineStreamScene, type PineStreamGround } from './streams';
 
 /** Real placement doubles and native yaw rows; runtime queries never recompute these author-owned frames. */

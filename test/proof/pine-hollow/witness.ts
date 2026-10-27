@@ -22,7 +22,7 @@ import PINE_TERRAIN from '../../../src/shards/pine-hollow/data/terrainBindings.j
 import { prepareHeadlessRuntime } from '../../fixtures/pine-headless';
 import { PINE_ACT, PINE_INTERACT, QUEST_STEP, pineSpots, type PineSpots } from '../../../src/shards/pine-hollow/generators/questPrompts';
 import { nativeInventorySchema } from '../../../src/game/inventoryLaw';
-import LAYOUT from '../../../src/shards/pine-hollow/data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from '../../../src/shards/pine-hollow/generators/layout';
 import leadJson from '../../../src/shards/pine-hollow/data/questLead.json' with { type: 'json' };
 import { parseQuestLeadRows } from '../../../src/shards/pine-hollow/generators/sections';
 import wardens from '../../../src/shards/pine-hollow/data/wardensHollow.json' with { type: 'json' };
