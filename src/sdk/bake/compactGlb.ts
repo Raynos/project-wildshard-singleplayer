@@ -5,9 +5,10 @@ import { ALL_EXTENSIONS, KHRMeshQuantization, type InstancedMesh } from '@gltf-t
 import { MeshoptDecoder } from 'meshoptimizer';
 import { compressGlb } from './glbCompression';
 
-/** The brotli size a phone pays for a file over the wire (the deploy's own encoder settings). */
+/** The brotli size a phone pays for a file over the wire: the deploy's own encoding, quality 3 (Vercel's responses match it
+ *  byte for byte; scripts/phone-wire.mjs measures the same). */
 export function brotliBytes(bytes: Uint8Array): number {
-  return brotliCompressSync(bytes, { params: { [constants.BROTLI_PARAM_QUALITY]: 11, [constants.BROTLI_PARAM_LGWIN]: 24 } }).length;
+  return brotliCompressSync(bytes, { params: { [constants.BROTLI_PARAM_QUALITY]: 3, [constants.BROTLI_PARAM_SIZE_HINT]: bytes.length } }).length;
 }
 
 const quantized = (accessor: Accessor, array: Int16Array<ArrayBuffer> | Int8Array<ArrayBuffer> | Uint8Array<ArrayBuffer>): void => {
