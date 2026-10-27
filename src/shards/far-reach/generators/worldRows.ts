@@ -4,10 +4,9 @@ import { skyWorldPieceValues, type SkyWorldPieceRows } from './worldPieceBytes';
 import { FALLEN_BRIDGE, MILL, NOTES, STEP, VANES, WINCH, WINCH_HOUSE } from "./layout";
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import { skyGroundValues } from './groundScene';
-import routeScene from '../data/routeScene.generated.json' with { type: 'json' };
+import { skyRouteRegistry } from './routeScene';
 
 const { SKY_GROUND } = skyGroundValues();
-const { SKY_ROUTES } = routeScene;
 const pieces = skyWorldPieceValues();
 function piece(name: BakedPiece): SkyWorldPieceRows {
   const value = pieces.get(name);
@@ -29,7 +28,7 @@ const FILE = 'src/shards/far-reach/world/build.ts';
 export const SKY_PIECES = [
   { id: 'far.docks', name: STRINGS.skyDock, category: 'buildings', file: FILE, surface: 'wood', baked: 'docks', node: 'far.docks' },
   ...SKY_GROUND.registry as readonly WorldPieceRow<BakedPiece>[],
-  ...SKY_ROUTES.registry as readonly WorldPieceRow<BakedPiece>[],
+  ...skyRouteRegistry(),
   { id: 'far.sky-isles', name: STRINGS.skyIsles, category: 'props', file: FILE },
   { id: 'far.pines', name: STRINGS.pines, category: 'props', file: FILE },
   { id: 'far.dressing', name: STRINGS.meadow, category: 'props', file: FILE },

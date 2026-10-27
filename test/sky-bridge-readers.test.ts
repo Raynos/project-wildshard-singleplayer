@@ -8,7 +8,7 @@ import { expect, test } from 'vitest';
 import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
 import { bridgeRestPool, bridgeRestValues } from '../src/shards/far-reach/generators/bridgeRest';
 import { MODEL_URLS } from '../src/shards/far-reach/generators/fileInventory';
-import { skyRouteSource, skyRouteValues } from '../src/shards/far-reach/generators/routeScene';
+import { skyRouteSource, skyRouteValues, skyRouteRegistry, skyVaneRows } from '../src/shards/far-reach/generators/routeScene';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
 const model = `public${MODEL_URLS['bridge-deck']}`, source = 'src/shards/far-reach/generators/bridgeRest.ts';
@@ -37,6 +37,8 @@ test('the route owner retains every original hierarchy, material, binding and bo
 
 test('typed route values retain the complete original wire and isolate caller mutation', async () => {
   const rows = await skyRouteValues(read);
+  expect(skyRouteRegistry()).toEqual(rows.SKY_ROUTES.registry);
+  expect(skyVaneRows()).toEqual(rows.SKY_VANES.rows);
   expect(hashImmutableBytes(new TextEncoder().encode(`${JSON.stringify(rows)}\n`))).toBe(hash);
   rows.SKY_ROUTE_SCENE.nodes.length = 0;
   rows.SKY_BRIDGE_KIT.materials.length = 0;

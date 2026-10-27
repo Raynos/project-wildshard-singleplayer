@@ -1,8 +1,6 @@
 import { ClientChannels } from '@wildshard/sdk/clientChannels';
 import type { SceneMotion } from '@wildshard/format/sceneMotion';
-import routeScene from '../data/routeScene.generated.json' with { type: 'json' };
-
-const { SKY_VANES } = routeScene;
+import { skyVaneRows } from './routeScene';
 
 const deck = new ClientChannels('far.dressing.deck');
 const riding = deck.read('riding');
@@ -21,7 +19,7 @@ for (const cube of ['standalone', 'cell'] as const) {
   programs.push(mill.build());
   frames.push({ id: `mill-${cube}`, cube, program: id, targets: { mill: part }, inputs: { angle: { part, property: 'roll' } }, materials: [] });
 }
-for (const row of SKY_VANES.rows) {
+for (const row of skyVaneRows()) {
   const id = `far.dressing.${row.id}`, part = `vanes.${row.rotor}`, vane = new ClientChannels(id);
   const angle = vane.local({ read: 'angle' }), speed = vane.select(vane.read('turned'), vane.constant(6), vane.constant(0.25));
   const next = vane.binary('add', angle, vane.binary('mul', vane.clock('delta'), speed));

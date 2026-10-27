@@ -41,12 +41,27 @@ export interface SkyRouteValues {
   readonly SKY_VANE: PrivateScene;
 }
 
+/** Registry identity does not require borrowing or constructing native bridge geometry. */
+export function skyRouteRegistry(): SkyRouteValues['SKY_ROUTES']['registry'] {
+  return [...SPANS, ...RISING_ISLETS.map(entry => entry.bridge), UPDRAFT].map(span => {
+    const hover = span.kind === 'hover';
+    const row: SkyRouteValues['SKY_ROUTES']['registry'][number] = { id: span.id, name: span.id === UPDRAFT.id ? STRINGS.updraft : hover ? STRINGS.hover : STRINGS.rope,
+      category: 'buildings', file: 'src/shards/far-reach/world/build.ts', surface: 'wood' };
+    return hover ? Object.assign(row, { mode: 'board' as const }) : row;
+  });
+}
+
+/** Motion owners consume only the authored vane identities and flags, independent of a visual bake. */
+export function skyVaneRows(): SkyRouteValues['SKY_VANES']['rows'] {
+  return VANES.map(row => ({ id: row.id, flag: row.flag, rotor: `${row.id}.rotor`, at: `${row.id}.at` }));
+}
+
 /** Place the static spans and board-only updraft in their original world frames. */
 export async function skyRouteValues(read: (url: string) => Uint8Array): Promise<SkyRouteValues> {
   const BRIDGES = await bridgeRestValues(read);
   const root = { kind: 'group' as const, id: 'routes', children: [] as string[] };
   const nodes: PrivateScene['nodes'] = [root];
-  const registry: SkyRouteValues['SKY_ROUTES']['registry'][number][] = [], bindings: SkyRouteValues['SKY_ROUTES']['bindings'][number][] = [];
+  const registry = skyRouteRegistry(), bindings: SkyRouteValues['SKY_ROUTES']['bindings'][number][] = [];
   for (const span of [...SPANS, ...RISING_ISLETS.map(entry => entry.bridge), UPDRAFT]) {
     const hover = span.kind === 'hover', row = hover ? REST.hover.find(entry => entry.id === span.id) : BRIDGES.spans.find(entry => entry.id === span.id);
     if (row === undefined) throw new Error(`Missing route scene ${span.id}`);
@@ -58,8 +73,6 @@ export async function skyRouteValues(read: (url: string) => Uint8Array): Promise
           rotation: [Math.atan2(span.y1 - span.y, Math.hypot(span.x1 - span.x0, span.z1 - span.z0)), Math.atan2(-(span.x1 - span.x0), -(span.z1 - span.z0)), 0],
           order: 'YXZ' } : {}) });
     }
-    registry.push({ id: span.id, name: span.id === UPDRAFT.id ? STRINGS.updraft : hover ? STRINGS.hover : STRINGS.rope,
-      category: 'buildings', file: 'src/shards/far-reach/world/build.ts', surface: 'wood', ...(hover ? { mode: 'board' } : {}) });
     bindings.push({ piece: span.id, part: prefix + scene.root });
   }
   const scene: PrivateScene = { version: 1, root: root.id, nodes, textures: [], materials: declared(['deck', 'posts', 'rails', 'glass', 'frame'].map(id => ({ kind: 'port', id, source: id })), [ROPE, GLASS]) };
@@ -100,7 +113,7 @@ export async function skyRouteValues(read: (url: string) => Uint8Array): Promise
   }
   parsePrivateScene(vane); parsePrivateScene(vaneWorld);
   const vanes = { recipe: { scene: vaneWorld, imports: [] }, kinds: vaneKinds, ports: vanePorts,
-    rows: VANES.map(row => ({ id: row.id, flag: row.flag, rotor: `${row.id}.rotor`, at: `${row.id}.at` })),
+    rows: skyVaneRows(),
     bindings: VANES.map(row => ({ piece: `far.vane.${row.id}`, part: `${row.id}.vane` })) };
   return { SKY_ROUTE_SCENE: scene, SKY_ROUTES: { registry, bindings }, SKY_ROUTE_FRAMES: frames, SKY_BRIDGE_KIT: kit, SKY_VANES: vanes, SKY_VANE: vane };
 }
