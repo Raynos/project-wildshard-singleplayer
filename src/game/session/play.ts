@@ -90,6 +90,7 @@ import { LockOn } from '@wildshard/engine/ui/LockOn';
 import { FullMap } from '@wildshard/engine/ui/Map';
 import { GameMenu } from '@wildshard/engine/ui/Menu';
 import { Minimap } from '@wildshard/engine/ui/Minimap';
+import { tileOverlay } from '../shardfile/tileOverlay';
 import { Perf } from '@wildshard/engine/ui/Perf';
 import { rotateGated } from '@wildshard/engine/ui/RotateGate';
 import { getNumber, onNumber, type getMusicStyle } from '@wildshard/engine/ui/Settings';
@@ -129,6 +130,8 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
   const perf = new Perf(game); // frame meter top-right (?perf=0 hides)
   const minimap = new Minimap(); // circular minimap (Heightfield is installed by now)
   if (chunk.hud?.dayBadge === true) minimap.showDayBadge(); // the sun / moon on its rim (Nalati)
+  // tile streaming T5 (G775): Developer ▸ the entered world's tile borders, resident rings and MB per tile on the minimap
+  if (pageMode() !== 'grid') { minimap.setDebugExtras(tileOverlay); game.levelScope.onDispose(() => { minimap.setDebugExtras(null); }); }
   const fullMap = new FullMap(minimap); // the menu's MAP tab (Menu.ts mounts it); tap the minimap / M to open
   const keepAlive = new KeepAlive();
   await macrotask();

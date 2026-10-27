@@ -280,6 +280,10 @@ export class Minimap {
   /** Extra content around the level's own terrain each frame (MapExtras, data only); null clears it. */
   setExtras(source: (() => MapExtras | null) | null): void { this.extrasSource = source; }
   private extrasSource: (() => MapExtras | null) | null = null;
+  /** Developer overlay over everything (tile streaming T5, G775: tile borders, resident colour, MB per tile); null hides it.
+   *  Its rects paint over the map and its labels only inside the disc (never pinned to the rim). */
+  setDebugExtras(source: (() => MapExtras | null) | null): void { this.debugSource = source; }
+  private debugSource: (() => MapExtras | null) | null = null;
 
   /** has the player been near (x, z)? — the fog-of-war coverage (a place on the full map is named once explored, else "?") */
   explored(x: number, z: number): boolean {
@@ -446,6 +450,11 @@ export class Minimap {
     }
 
     if (overlay !== null && overlay.labels.length > 0) this.paintExtraLabels(overlay.labels, pos, c, k);
+    const debug = this.debugSource?.() ?? null;
+    if (debug !== null) {
+      this.paintExtraGround(debug, pos, c, k);
+      this.paintExtraLabels(debug.labels.filter(label => Math.hypot(label.x - pos.x, label.z - pos.z) < VIEW_RADIUS - 9), pos, c, k);
+    }
 
     // 4. the player arrow (heading is clockwise from north; canvas rotate() is clockwise on screen)
     ctx.translate(c, c); ctx.rotate((deg * Math.PI) / 180);

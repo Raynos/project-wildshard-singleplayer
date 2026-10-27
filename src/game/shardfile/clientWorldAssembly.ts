@@ -16,7 +16,7 @@ import { installWorldScenes } from './worldScenes';
 import { residentBakedTiles } from './bakedTiles';
 import { publishEntryOwner, lendEntryOwner, entryOwner, presentEntryOwner } from './entryOwners';
 import { timeClientPreparation } from './preparationTiming';
-import { followResidentTiles, residentTiles } from './tileDriver';
+import { followResidentTiles, noteTileBytes, residentTiles } from './tileDriver';
 import { farStandIn } from './farStandIn';
 
 const enteredScopes = new WeakSet<ShardContext['scope']>();
@@ -107,7 +107,7 @@ export async function installClientWorldAssembly(ctx: ShardContext, row: Extract
     const standIn = farStandIn(ctx);
     if (standIn !== null) scenes.addTiled(standIn);
   }
-  await residentTiles(owner, scenes.tiled(), source.spawn, source.entryways); live();
+  noteTileBytes(owner, source.tiles); await residentTiles(owner, scenes.tiled(), source.spawn, source.entryways); live();
   const follow = followResidentTiles(owner, () => world.player.position);
   if (follow !== null) ctx.system({ id: 'client.world.tiles', phase: 'update', run: () => { follow(); } });
 }
