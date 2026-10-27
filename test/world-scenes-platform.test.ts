@@ -919,3 +919,22 @@ test('a spent owned-model completion preserves refusal and drains its leases', a
     expect(context.app.assets.retained().every(entry => entry.refs === 0)).toBe(true);
   } finally { context.scope.dispose(); vi.restoreAllMocks(); }
 });
+
+
+test('retiring during an owned-model completion prevents scene publication', async () => {
+  const context = fixture(), read = context.product.file.bind(context.product); let loaded = false;
+  vi.spyOn(pacing, 'presenting').mockReturnValue(true);
+  vi.spyOn(pacing, 'buildHeld').mockReturnValue(true);
+  vi.spyOn(pacing, 'frameBudgetSpent').mockImplementation(() => loaded);
+  vi.spyOn(context.product, 'file').mockImplementation(async name => {
+    const bytes = await read(name); if (name === 'models/stone.glb') loaded = true; return bytes;
+  });
+  const pause = vi.spyOn(work, 'buildYield').mockImplementation(owner => { owner.dispose(); return Promise.resolve(); });
+  try {
+    await expect(installWorldScenes(context, section())).rejects.toThrow('scope has closed');
+    expect(pause).toHaveBeenCalledOnce();
+    expect(context.app.assets.retained().length).toBeGreaterThan(0);
+    expect(context.app.assets.retained().every(entry => entry.refs === 0)).toBe(true);
+    expect(context.app.registry.pieces).toHaveLength(0);
+  } finally { context.scope.dispose(); vi.restoreAllMocks(); }
+});
