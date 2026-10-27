@@ -187,7 +187,13 @@ test('owned geometry preserves all original bytes and costs, changing only its s
     bytes.fill(0);
     const hit = await prepareOutput(context()), hitBytes = hit.assets.get(hash);
     if (hitBytes === undefined) throw new Error('Missing cache-hit GLB');
-    expect(Buffer.compare(hitBytes, original)).toBe(0); expect(builds).toBe(12 + 2);
+    expect(Buffer.compare(hitBytes, original)).toBe(0); expect(builds).toBe(18);
+    expect(buildSteps).toEqual([
+      'navigation', 'mill-scene', 'static-scenes', 'route-scenes', 'hero-library',
+      expect.stringMatching(/^phone-rig-[a-f0-9]{64}$/u), 'creature-rigs',
+      'prepared-models', 'world-pieces', 'bridge-rest', 'mill-rest', 'fan-pool',
+      'rest-pools', 'islet-pool', 'wind-vane', 'sward-atlas', 'storm-texture-input', 'world-tiles',
+    ]);
     expect(buildSteps.filter(id => id === 'rest-pools' || id === 'islet-pool')).toEqual(['rest-pools', 'islet-pool']);
     for (const [index, file] of restFiles.entries()) {
       const sourceBytes = originalRest[index], restored = hit.assets.get(file.hash);
