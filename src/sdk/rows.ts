@@ -5,6 +5,8 @@ import { parseClientChannels as gameParseClientChannels, type ClientChannelProgr
 import { parseEliteFeature as gameParseEliteFeature, type EliteFeatureRows as GameEliteFeatureRows } from '@wildshard/format/eliteFeature';
 import { spawnScriptRegistries as gameSpawnScriptRegistries } from '@wildshard/format/spawnScripts';
 import type { DecisionRegistries as GameDecisionRegistries } from '@wildshard/format/decisionBindings';
+import { JournalRowSchema as GameJournalRowSchema, journalRowRules as gameJournalRowRules, type JournalRow as GameJournalRow } from '@wildshard/format/compendiumRows';
+import * as v from 'valibot';
 
 /** Numeric row declarations and registered view/presentation recipes. */
 export type ShardRows = GameShardRows;
@@ -30,3 +32,11 @@ export function parseEliteFeature(input: unknown): EliteFeature { return gamePar
 export function spawnRegistries(program: Parameters<typeof gameSpawnScriptRegistries>[0]): DecisionRegistries { return gameSpawnScriptRegistries(program); }
 /** A decision script's registry ids by kind. */
 export type DecisionRegistries = GameDecisionRegistries;
+/** One admitted compendium journal row. */
+export type JournalRow = GameJournalRow;
+/** Validate a journal row and its cross references before it is serialized (GR8: a shard program calls this). */
+export function parseJournalRow(input: unknown): JournalRow {
+  const row = v.parse(GameJournalRowSchema, input), errors = gameJournalRowRules(row);
+  if (errors.length > 0) throw new Error(errors.join(', '));
+  return row;
+}

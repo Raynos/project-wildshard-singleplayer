@@ -19,7 +19,7 @@ test('default products retain the complete admitted shardfile contract',()=>{
  let source=`import driftwood from '../../test/fixtures/driftwood-product-source';
 import ink from './ink-cel-valley/generators/product';
 import nalati from '../../test/fixtures/nalati-product-source';
-import pine from './pine-hollow/generators/product';
+import {PINE as pine} from '../../test/fixtures/pine-program';
 import type {Shardfile} from '@wildshard/sdk/shardfile';
 export const products:Shardfile[]=[driftwood,ink,nalati,pine];
 export const slug:string=driftwood.identity.slug;

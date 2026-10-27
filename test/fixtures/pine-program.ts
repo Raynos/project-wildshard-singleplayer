@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import type { Shardfile } from '../../src/sdk/shardfile';
 import { generate } from '../../src/shards/pine-hollow/generators/generate';
 import { prepareOutput } from '../../src/shards/pine-hollow/generators/output';
+import { pineJournal } from '../../src/shards/pine-hollow/generators/journal';
 import { pineGeneration } from './pine-generation';
 
 // GR8: Pine's producers run in its program (generate(ctx), prepareOutput(ctx)), so tests read what the program
@@ -10,5 +11,7 @@ import { pineGeneration } from './pine-generation';
 const context = pineGeneration('pine-program-fixture-v1', resolve(homedir(), '.cache/wildshard/gen'));
 /** Pine's declaration as its source program admits it. */
 export const PINE: Shardfile = await generate(context);
+/** Pine's journal (its admitted row, files and named images), as the program computes it. */
+export const PINE_JOURNAL: Awaited<ReturnType<typeof pineJournal>> = await pineJournal(context);
 /** Pine's prepared output (sections, named files and their bytes). */
 export const PINE_PREPARED_OUTPUT: Awaited<ReturnType<typeof prepareOutput>> = await prepareOutput(context);

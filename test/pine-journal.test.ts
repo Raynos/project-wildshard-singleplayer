@@ -4,7 +4,7 @@ import * as v from 'valibot';
 import { JournalRowSchema } from '../src/format/compendiumRows';
 import { declaredCompendium } from '../src/game/shard/declaredRows';
 import { emptyShardfile } from '../src/sdk/author';
-import journalRows from '../src/shards/pine-hollow/data/journal.generated.json' with { type: 'json' };
+import { PINE_JOURNAL as journalRows } from './fixtures/pine-program';
 
 const row = v.parse(JournalRowSchema, journalRows.row);
 const PINE_HOLLOW_COMPENDIUM = declaredCompendium(row, emptyShardfile({slug:'journal-test',name:'Journal',author:'Test',revision:1,seed:1}).rows, row.chunkId, hash => `https://test.invalid/${hash}.webp`);

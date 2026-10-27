@@ -1,7 +1,6 @@
 import { PINE_HELD_BOW } from './longbow';
 import { HANDS_MATERIAL, COAT_MATERIAL } from './handsLook';
 import {parseClientChannels,parsePrivateScene} from '@wildshard/format/clientChannels';
-import journal from '../data/journalBlobs.generated.json' with {type:'json'};
 import playback from '../data/heldPlayback.json' with {type:'json'};
 import inputs from '../data/heldInputs.json' with {type:'json'};
 import sights from '../data/heldSights.json' with {type:'json'};
@@ -52,7 +51,7 @@ function checkPrograms(value:unknown):void{
 }
 for(const value of [playback,inputs,sights,leverPlayback,toolPlayback])checkPrograms(value);
 /** Authored input rows, never imported by a client runtime. */
-export const PINE_OUTPUT: { blobs: ((typeof journal.blobs)[number] | (typeof king.blobs)[number] | (typeof birds.blobs)[number])[]; custom: typeof values; }={
- blobs:[...journal.blobs,...king.blobs,...birds.blobs],
+export const PINE_OUTPUT: { blobs: ((typeof king.blobs)[number] | (typeof birds.blobs)[number])[]; custom: typeof values; }={
+ blobs:[...king.blobs,...birds.blobs],
  custom:values,
 };

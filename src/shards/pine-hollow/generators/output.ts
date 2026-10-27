@@ -22,6 +22,7 @@ import { parseQuestServiceActions, QuestServiceActionsSchema } from '@wildshard/
 import keyedSky from '../data/keyedSky.generated.json' with { type: 'json' };
 import skyKeyBlobs from '../data/skyKeyBlobs.generated.json' with { type: 'json' };
 import { ELITE_FEATURE_ROWS } from './eliteFeatureRows';
+import { pineJournal } from './journal';
 import { parseEliteFeature, spawnRegistries } from '@wildshard/sdk/rows';
 import strings from '../data/strings.json' with { type: 'json' };
 import clientPlan from '../data/clientPlan.json' with { type: 'json' };
@@ -256,12 +257,12 @@ async function eliteModules(ctx: ProjectGenerationContext) {
 /** Preserve the original named inventory and its ordering while compiling both existing slots. */
 export async function prepareOutput(ctx: ProjectGenerationContext): Promise<typeof output> {
   const shelter = await returnModule(ctx, 'shelter');
-  const life = await returnModule(ctx, 'life'), birds = await phoneBirdsAtlasOutput(ctx), client = await pineClientBlobs(ctx), creatures = await pineCreatureBlobs(ctx), rigs = await pineRigBlobs(ctx), night = await nightModule(ctx), clock = await clockDirector(ctx), elites = await eliteModules(ctx);
+  const life = await returnModule(ctx, 'life'), birds = await phoneBirdsAtlasOutput(ctx), client = await pineClientBlobs(ctx), creatures = await pineCreatureBlobs(ctx), rigs = await pineRigBlobs(ctx), night = await nightModule(ctx), clock = await clockDirector(ctx), elites = await eliteModules(ctx), journal = emitNamedBlobs((await pineJournal(ctx)).blobs);
   const lifeProgram = { script: life.script, bytes: '' };
   const programs = emitNamedBlobs([nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...PAGE_LIFE, program: lifeProgram }))),
     nameBlob('actors/shelter.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ step: 'pine.rain-shelter', environment: 'pine.habitat', roster: 'pine.roster', weather: 'pine.air', herdLimit: 512, look: shelterLook, program: { script: shelter.script, bytes: '' } })))]);
-  const namedFiles = [...output.namedFiles, life.file, ...birds.files, ...client.files, ...creatures.files, ...rigs.files, ...programs.files, ...elites.files.files, night.blob.file, clock.file].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
-  const assets = new Map([...output.assets, ...birds.assets, ...client.assets, ...creatures.assets, ...rigs.assets, ...programs.assets, ...elites.files.assets, [night.blob.file.hash, night.blob.bytes], [clock.file.hash, clock.bytes]]);
+  const namedFiles = [...output.namedFiles, life.file, ...birds.files, ...client.files, ...creatures.files, ...rigs.files, ...programs.files, ...elites.files.files, ...journal.files, night.blob.file, clock.file].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
+  const assets = new Map([...output.assets, ...birds.assets, ...client.assets, ...creatures.assets, ...rigs.assets, ...programs.assets, ...elites.files.assets, ...journal.assets, [night.blob.file.hash, night.blob.bytes], [clock.file.hash, clock.bytes]]);
   assets.set(life.file.hash, life.bytes);
   const sortedAssets = [...assets].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
   const platform = emitPlatformSections(new Map<PlatformDataSectionName, unknown>([...PLATFORM_ROWS, ['actors/return-scripts', [life.script, shelter.script]], ['actors/spawn-scripts', [night.row, ...elites.programs]]]));
