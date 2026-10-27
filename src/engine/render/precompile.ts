@@ -393,6 +393,21 @@ function receiptsOf(renderer: Renderer): WeakMap<THREE.Material, Map<string, num
   if (book === undefined) { book = new WeakMap(); receipts.set(renderer, book); }
   return book;
 }
+/**
+ * G782: three's compile() gathers lights by walking its whole target scene on every call; a live warm-up targets the page
+ * scene (every resident) with each of its ~500 one-material jobs, so at phone 4x most of a Nalati entry's compile stage
+ * was those walks. A live warm-up's scene jobs instead target one stand-in per warm-up holding what a frame's programs
+ * read from the page scene: its fog, environment and background, and a detached clone of each light the camera would
+ * gather (type, castShadow and shadow settings, layers), so the same light state and the same programs result.
+ */
+export function compileTarget(scene: THREE.Scene, camera: THREE.Camera): THREE.Scene {
+  const target = new THREE.Scene();
+  target.fog = scene.fog; target.environment = scene.environment; target.background = scene.background;
+  target.environmentIntensity = scene.environmentIntensity; target.environmentRotation.copy(scene.environmentRotation);
+  scene.traverseVisible(object => { if (object instanceof THREE.Light && object.layers.test(camera.layers)) target.add(object.clone(false)); });
+  return target;
+}
+
 /** A live warm-up's receipts (G782): `skip` answers whether a (material, layout) pair compiled under this page state is
  *  still compiled; `record` keeps the scene jobs a completed run compiled. */
 export function liveProgramReceipts(renderer: Renderer, scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, future?: THREE.Object3D, futureEnvironment?: THREE.Texture): {
@@ -1368,6 +1383,10 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
       ? kinded('previous-shadow', shadowJobs(scene, rt, per, excludedRoots, depthVariants)) : [];
     await pace();
     if (options.futureLighting !== undefined) includeFutureLights(jobs, scene, options.futureLighting, options.futureEnvironment);
+    if (live) {
+      const target = compileTarget(scene, game.camera);
+      for (const job of jobs) if (job.target === scene && (job.kind === 'scene-entered' || job.kind === 'scene-other')) job.target = target;
+    }
     jobs.push(...previousShadows);
     if (policy?.scene !== false) jobs.push(...kinded('exterior', exteriorJobs(scene, rt, policy?.shadows !== false, undefined, per, depthVariants, options.leaving)));
     await pace();

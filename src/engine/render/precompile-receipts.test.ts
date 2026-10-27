@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { BoxGeometry, DirectionalLight, Mesh, MeshStandardMaterial, Scene, WebGLRenderer } from 'three';
-import { liveProgramReceipts, sceneJobs } from './precompile';
+import { BoxGeometry, DirectionalLight, Fog, Mesh, MeshStandardMaterial, PerspectiveCamera, PointLight, Scene, Texture, WebGLRenderer } from 'three';
+import { compileTarget, liveProgramReceipts, sceneJobs } from './precompile';
 
 /** A renderer double whose property store says whether each material holds a compiled program. */
 function renderer(compiled: Set<object>): WebGLRenderer {
@@ -33,4 +33,19 @@ test('a live warm-up builds no scene job for a pair its receipts show compiled u
   scene.add(new DirectionalLight());
   expect(sceneJobs(scene, null, 1, [scene], undefined, liveProgramReceipts(page, scene, null).skip).jobs).toHaveLength(2);
   geometry.dispose(); a.dispose(); b.dispose();
+});
+
+test('a live warm-up compiles against a stand-in with the page\'s light state, fog and environment, not its world (G782)', () => {
+  const scene = new Scene(), camera = new PerspectiveCamera(), geometry = new BoxGeometry(), material = new MeshStandardMaterial();
+  const sun = new DirectionalLight(); sun.castShadow = true;
+  const hidden = new PointLight(); hidden.visible = false;
+  const elsewhere = new PointLight(); elsewhere.layers.set(3);
+  scene.add(sun, new PointLight(), hidden, elsewhere, new Mesh(geometry, material));
+  scene.fog = new Fog(0xffffff); scene.environment = new Texture();
+  const target = compileTarget(scene, camera);
+  // only the lights a frame would gather, in kind and shadow; no meshes
+  expect(target.children.map(child => `${child.type}${child.castShadow ? '*' : ''}`).sort()).toEqual(['DirectionalLight*', 'PointLight']);
+  expect(target.fog).toBe(scene.fog); expect(target.environment).toBe(scene.environment);
+  expect(sun.parent).toBe(scene);
+  geometry.dispose(); material.dispose(); scene.environment.dispose();
 });
