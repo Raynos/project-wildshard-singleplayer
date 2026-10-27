@@ -99,6 +99,7 @@ import { CellLoading, type CellLoadingInput } from './cellLoading';
 import { CellScreen, facingEdge } from './cellScreens';
 import { readGridSeamData, type GridSeamAddress } from './seamData';
 import { declareDownloadFile } from '@wildshard/engine/boot/download';
+import { admittedRuntimeProduct } from '../shardfile/runtimeProduct';
 
 /** The page lights kept for the grid's region lights (LightPool.reserve): the most one region shows at once, Pine Hollow's
  *  five cabin lights. A point light costs every lit fragment a loop step, so this is the grid's real maximum, not more;
@@ -854,12 +855,15 @@ export class GridSession {
 
   /** Tile streaming T5.3 (G775): the entered cell's resident L0 tiles (key j * 8 + i) and its origin from the home cell,
    *  for the Developer minimap overlay. */
-  tileOverlayState(): { readonly origin: { readonly x: number; readonly z: number }; readonly render: ReadonlySet<number> } {
+  tileOverlayState(): { readonly origin: { readonly x: number; readonly z: number }; readonly render: ReadonlySet<number>; readonly bytes: ReadonlyMap<number, number> } {
     const entered = (this.live === null ? null : this.live.live.current()) ?? this.home.instance, cell = this.assembly.cell(entered), prefix = `${entered}:l0/`;
     const render = new Set(this.rings.resident().filter(key => key.startsWith(prefix)).map(key => {
       const [x, z] = key.slice(prefix.length).split('/').map(Number); return (z ?? 0) * 8 + (x ?? 0);
     }));
-    return { origin: { x: cell.origin.x - this.home.origin.x, z: cell.origin.z - this.home.origin.z }, render };
+    // T5: each L0 tile's declared resident bytes, from the entered cell's admitted product (none while it is not resident)
+    const bytes = new Map<number, number>();
+    for (const tile of admittedRuntimeProduct(cell.slug)?.source.tiles ?? []) if (tile.lod === 0) bytes.set(tile.z * 8 + tile.x, tile.decoded + tile.gpu);
+    return { origin: { x: cell.origin.x - this.home.origin.x, z: cell.origin.z - this.home.origin.z }, render, bytes };
   }
 
   private placeholderBlocksTiles(instance:string):boolean {

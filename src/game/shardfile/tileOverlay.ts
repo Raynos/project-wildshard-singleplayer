@@ -14,11 +14,12 @@ export function tileOverlay(): MapExtras | null {
   const tiles = isDev() ? enteredTiles() : null;
   return tiles === null ? null : tileOverlayExtras(tiles, { x: 0, z: 0 });
 }
-/** T5.3: a grid page's entered cell (its resident L0 tiles, its origin from the home cell; no declared bytes there yet). */
-export function gridTileOverlay(state: () => { readonly origin: { readonly x: number; readonly z: number }; readonly render: ReadonlySet<number> }): MapExtras | null {
+/** T5.3: a grid page's entered cell (its resident L0 tiles and each tile's declared resident bytes, at its origin from the
+ *  home cell). */
+export function gridTileOverlay(state: () => { readonly origin: { readonly x: number; readonly z: number }; readonly render: ReadonlySet<number>; readonly bytes: ReadonlyMap<number, number> }): MapExtras | null {
   if (!isDev()) return null;
-  const { origin, render } = state();
-  return tileOverlayExtras({ render, colliders: new Set(), bytes: new Map() }, origin);
+  const { origin, render, bytes } = state();
+  return tileOverlayExtras({ render, colliders: new Set(), bytes }, origin);
 }
 
 function tileOverlayExtras(tiles: { readonly render: ReadonlySet<number>; readonly colliders: ReadonlySet<number>; readonly bytes: ReadonlyMap<number, number> },
