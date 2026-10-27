@@ -9,15 +9,9 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { smoothstep as sstep } from '@wildshard/engine/core/noise';
-import { Rng } from '@wildshard/engine/core/rng';
-import { loft, skinPlain, S, boneIndex, mix, paletteColors, registerToonPaint, setLowPoly, srgb, type Paint, type RGB } from '@wildshard/engine/entities/species/loft';
-import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
-import type { AnimalSpecies, BoneDef, VariantDef } from '@wildshard/engine/entities/species/registry';
-import { BEAR } from '@wildshard/game/systems/species/bear';
-import { BOAR } from '@wildshard/game/systems/species/boar';
-import { BEAR_LOOK } from '@wildshard/game/systems/species/view/bear';
-import { BOAR_LOOK } from '@wildshard/game/systems/species/view/boar';
+import { smoothstep as sstep } from '@wildshard/sdk/noise';
+import { Rng } from '@wildshard/sdk/random';
+import { loft, skinPlain, S, boneIndex, mix, paletteColors, srgb, withSpeciesGeometry, commonBodyVariants, bakeCommonBody, type CommonBodyKind, type Paint, type RGB, type AnimalSpecies, type BoneDef, type VariantDef } from '@wildshard/sdk/bake/species';
 
 // three returns null for incompatible attributes (its types say otherwise), as the engine's mergeAnimalGeometry reads it
 const merge = (parts: THREE.BufferGeometry[]): THREE.BufferGeometry | null => mergeGeometries(parts, false);
@@ -542,8 +536,12 @@ function hashSeed(key: string): number { let h = 2166136261; for (let i = 0; i <
 const variantOf = (id: string, look: Pick<VariantDef, 'tint' | 'traits'> = {}): VariantDef => ({ id, label: id, weight: 1, rarity: 'common', scale: [1, 1], ...look });
 
 /** A shared species' bodies: each row variant with its look's knobs, built by the look's own builder. */
-function sharedBodies(kind: string, variants: readonly Pick<VariantDef, 'id'>[], look: SpeciesLook): { kind: string; variant: VariantDef; build: (v: VariantDef, rng: Rng) => AnimalSpecies }[] {
-  return variants.map(({ id }) => ({ kind, variant: variantOf(id, look.variants?.[id]), build: look.build }));
+function sharedBodies(kind: CommonBodyKind): { kind: string; variant: VariantDef; build: (v: VariantDef, rng: Rng) => AnimalSpecies }[] {
+  return commonBodyVariants(kind).map(variant => ({ kind, variant, build(v, rng) {
+    const baked = bakeCommonBody(kind, v, rng.snapshot());
+    rng.restore(baked.random);
+    return baked.body;
+  } }));
 }
 
 /** Every lofted body the page built: (kind, variant) with the look's variant knobs. */
@@ -555,7 +553,7 @@ const BODIES: readonly { readonly kind: string; readonly variant: VariantDef; re
   { kind: 'sailor', variant: variantOf('sailor'), build: buildSailor },
   // the shared boar and bear, every coat of their rows (the island spawns boar sow black big, brown black black-blaze;
   // the Model Explorer offers the rest), each with the look's knobs exactly as the factory's variant carries them
-  ...sharedBodies('boar', BOAR.variants, BOAR_LOOK), ...sharedBodies('bear', BEAR.variants, BEAR_LOOK),
+  ...sharedBodies('boar'), ...sharedBodies('bear'),
 ];
 
 /** One baked body: its skeleton and size, and each material group's parts merged into one geometry (null: none), less the
@@ -577,9 +575,7 @@ const merged = (parts: THREE.BufferGeometry[]): THREE.BufferGeometry | null => {
 
 /** `run` as the island's factory built its models: in low-poly mode, the boar and bear asking the island's toon paints. */
 export function asIsland<T>(run: () => T): T {
-  setLowPoly(true);
-  registerToonPaint('boar', boarPaintLow); registerToonPaint('bear', bearPaintLow);
-  try { return run(); } finally { setLowPoly(false); }
+  return withSpeciesGeometry({ boar: boarPaintLow, bear: bearPaintLow }, run);
 }
 
 /** Every lofted body's un-merged parts, as the island's low-poly factory built them on the page (`AnimalFactory.model`). */

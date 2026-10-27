@@ -4917,7 +4917,7 @@ The adapter supplies the existing pattern ports: the ram's live home and shared 
 
 ## Author schema discovery (OS-F3)
 
-`namedFormatJsonSchema(key)` emits a registered named draft-07 document; unknown keys refuse.
+`bake/species`: offline body geometry. `namedFormatJsonSchema(key)`: named contracts.
 
 The author CLI `wildshard schema list` lists every format JSON Schema and the complete shardfile declaration. `wildshard schema shardfile /properties` discovers all sections without Valibot internals. `schemaDeclaration` and `schemaAt` are defined in `@wildshard/sdk/formatJsonSchema`; discovery preserves native semantic checks and grants no admission. See [schema discovery](authoring/schema-discovery.md) for pointers, tuple arity, identifier grammars and installed declaration locations.
 
