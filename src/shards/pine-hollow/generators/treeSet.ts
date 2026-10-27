@@ -2,8 +2,11 @@
 import type { TreeSetVariant, TreeSpeciesTraits } from '@wildshard/engine/world/forest/treeSpecies';
 import * as v from 'valibot';
 import { TreeSetSchema , type TreeSetRows as TreeSetRowsType } from '@wildshard/format/treeSetRows';
-import treeRest from '../data/treeRest.generated.json' with { type: 'json' };
+import { pineTreeRestRows } from './bake-tree-rest.mjs';
 import FOREST_LOOKS from '../data/forestLook.json' with { type: 'json' };
+
+// GR8 G32: the rest pool is a product file built by bake-tree-rest.mjs, not the retired job's public GLB
+const treeRest = pineTreeRestRows();
 
 /**
  * Pine Hollow's Blender-built photoreal tree set (PH-B4, Jake's PH-U17; moved from the engine, E405; the page reads them as TREE_SET's rows): its species and how

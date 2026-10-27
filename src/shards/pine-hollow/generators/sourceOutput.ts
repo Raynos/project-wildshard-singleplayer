@@ -55,6 +55,7 @@ import { KING_DECISION, KING_MOVES } from './kingDecision';
 import { KNIFE_LOOK } from './knifeLook';
 import toolPlayback from '../data/heldToolPlayback.json' with { type: 'json' };
 import { contractCatalogue } from './contractRows';
+import { CONTRACT_PROGRAM_SCRIPT, contractProgramRegistries } from './contractProgram';
 import { ContractCatalogueSchema } from '@wildshard/format/contracts';
 import { PanelDefinitionSchema } from '@wildshard/format/panelTemplate';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
@@ -68,6 +69,7 @@ import {emitDefinedSections} from '@wildshard/sdk/sections';
 import {isJsonData} from '@wildshard/format/json';
 import {SECTIONS,CabinAmbienceSchema,CabinSeedsSchema,parseFloorRows,PoolGroundSchema,PinePhysicsSchema} from './sections';
 import { nameBlob, emitNamedBlobs, type BlobSourceOptions, type NamedBlobKind } from '@wildshard/sdk/blobs';
+import { TREE_REST_FILE, pineTreeRest } from './bake-tree-rest.mjs';
 import type { ProjectOutput } from '@wildshard/sdk/projectOutput';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { formatJsonSchema, namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
@@ -138,7 +140,6 @@ nameBlob('look/cover-appearance.json','json',new TextEncoder().encode(encodeCano
   nameBlob('quests/services.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestServiceActions(PINE_QUEST_SERVICES))), { jsonSchema: namedJsonSchema(QuestServiceActionsSchema) }),
   nameBlob('quests/story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_STORY))),
   nameBlob('quests/achievements.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseAchievementCounterData(counterRows))), { jsonSchema: namedJsonSchema(AchievementCounterDataSchema) }),
-  nameBlob('quests/contracts.json', 'json', new TextEncoder().encode(encodeCanonicalJson(contractCatalogue())), { jsonSchema: namedJsonSchema(ContractCatalogueSchema) }),
   nameBlob('quests/mill-door.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(PINE_MILL_DOOR)))),
 nameBlob('quests/lanterns.json','json',new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(PINE_LANTERN_PAGE)))),nameBlob('people/catalogue.json', 'json', new TextEncoder().encode(encodeCanonicalJson(FIGURE_CATALOGUE))), nameBlob('world/floor.json','json',new TextEncoder().encode(JSON.stringify(parseFloorRows(pineFloorLayout()), (_key: string, value: unknown) => typeof value === 'number' ? Math.round(value * 1e5) / 1e5 : value))), nameBlob('world/prop-shapes.json','json',new TextEncoder().encode(JSON.stringify(timbers.propShapes))), nameBlob('world/props.json','json',new TextEncoder().encode(JSON.stringify(props))), nameBlob('loadout/finishes.json','json',new TextEncoder().encode(JSON.stringify(WEAPON_FINISHES)))]);
 
@@ -202,6 +203,29 @@ async function returnModule(ctx: ProjectGenerationContext, name: 'shelter' | 'li
   const blob = nameBlob(`behaviour/pine.${name}.wasm`, 'wasm', bytes, { critical: true, script: { abi: 1, pages: 1 } });
   if (typeof script !== 'object' || script === null || !('module' in script) || script.module !== blob.file.path) throw new Error(`Pine ${name} module differs from metadata`);
   return { ...blob, script };
+}
+
+/** GR8 (B5, G20a): compile the contract guest from its authored sources, as the retired bake-contracts.mjs did, and
+ *  name its Wasm as a return module (the ninth decision module): quests/contracts.json carries the row with no bytes,
+ *  and the board borrows the loan through ownContractCatalogue. */
+async function contractModule(ctx: ProjectGenerationContext) {
+  const compiler = ctx.compileDecisionRows;
+  if (compiler === undefined) throw new Error('Pine contracts need decision-row compilation');
+  const sources = ['behaviour/contracts.as', 'behaviour/contractsRandom.as', 'behaviour/contractsRules.as'];
+  const files = await ctx.cached({ id: 'contract-program', inputs: sources }, async inputs => {
+    const authored = new Map([...inputs].map(([file, bytes]) => [file, new TextDecoder('utf-8', { fatal: true }).decode(bytes)]));
+    const built = await compiler([CONTRACT_PROGRAM_SCRIPT], contractProgramRegistries(), authored, { asLineCeiling: 256, singleSignal: true });
+    const row = built.rows[0], blob = built.blobs[0];
+    if (row === undefined || blob === undefined || built.rows.length !== 1 || built.blobs.length !== 1 || blob.file.path !== row.module) throw new Error('Missing compiled contract programme');
+    return new Map([['contracts.wasm', blob.bytes], ['contracts.json', new TextEncoder().encode(encodeCanonicalJson(row))]]);
+  });
+  const bytes = files.get('contracts.wasm'), row = files.get('contracts.json');
+  if (bytes === undefined || row === undefined || files.size !== 2) throw new Error('Missing contract programme bytes');
+  const script: unknown = JSON.parse(new TextDecoder().decode(row));
+  const blob = nameBlob('behaviour/pine.contracts.wasm', 'wasm', bytes, { critical: true, script: { abi: 1, pages: 1 } });
+  if (typeof script !== 'object' || script === null || !('module' in script) || script.module !== blob.file.path) throw new Error('Pine contract module differs from its row');
+  const catalogue = nameBlob('quests/contracts.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...contractCatalogue(), program: { script, bytes: '' } })), { jsonSchema: namedJsonSchema(ContractCatalogueSchema) });
+  return { script, files: emitNamedBlobs([blob, catalogue]) };
 }
 
 /** GR8: the night population guest, compiled as the retired bake-pine-night-director.mjs did; its compiled row goes
@@ -277,16 +301,18 @@ async function eliteModules(ctx: ProjectGenerationContext) {
 /** Preserve the original named inventory and its ordering while compiling both existing slots. */
 export async function prepareOutput(ctx: ProjectGenerationContext): Promise<typeof output> {
   const shelter = await returnModule(ctx, 'shelter');
-  const life = await returnModule(ctx, 'life'), birds = await phoneBirdsAtlasOutput(ctx), client = await pineClientBlobs(ctx), creatures = await pineCreatureBlobs(ctx), rigs = await pineRigBlobs(ctx), night = await nightModule(ctx), clock = await clockDirector(ctx), elites = await eliteModules(ctx), journal = emitNamedBlobs((await pineJournal(ctx)).blobs), king = await pineKingKit(ctx), kingFiles = emitNamedBlobs([king.blob, roamingCombatBlob(king.rows)]), flock = await pineBirds(ctx);
+  const life = await returnModule(ctx, 'life'), birds = await phoneBirdsAtlasOutput(ctx), client = await pineClientBlobs(ctx), creatures = await pineCreatureBlobs(ctx), rigs = await pineRigBlobs(ctx), contracts = await contractModule(ctx), night = await nightModule(ctx), clock = await clockDirector(ctx), elites = await eliteModules(ctx), journal = emitNamedBlobs((await pineJournal(ctx)).blobs), king = await pineKingKit(ctx), kingFiles = emitNamedBlobs([king.blob, roamingCombatBlob(king.rows)]), flock = await pineBirds(ctx);
+  // GR8 G32: the forest trees' rest pool, a critical product file (was the pine-tree-rest job's public GLB)
+  const trees = emitNamedBlobs([nameBlob(TREE_REST_FILE, 'glb', await pineTreeRest(), { critical: true })]);
   const drawFile = emitNamedBlobs([nameBlob('look/wildlife-draw.json', 'json', new TextEncoder().encode(encodeCanonicalJson(wildlifeDraw(flock.ranges))))]);
   const lifeProgram = { script: life.script, bytes: '' };
   const programs = emitNamedBlobs([nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...PAGE_LIFE, program: lifeProgram }))),
     nameBlob('actors/shelter.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ step: 'pine.rain-shelter', environment: 'pine.habitat', roster: 'pine.roster', weather: 'pine.air', herdLimit: 512, look: shelterLook, program: { script: shelter.script, bytes: '' } })))]);
-  const namedFiles = [...output.namedFiles, life.file, ...birds.files, ...client.files, ...creatures.files, ...rigs.files, ...programs.files, ...elites.files.files, ...journal.files, ...kingFiles.files, ...flock.files.files, ...drawFile.files, night.blob.file, clock.file].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
-  const assets = new Map([...output.assets, ...birds.assets, ...client.assets, ...creatures.assets, ...rigs.assets, ...programs.assets, ...elites.files.assets, ...journal.assets, ...kingFiles.assets, ...flock.files.assets, ...drawFile.assets, [night.blob.file.hash, night.blob.bytes], [clock.file.hash, clock.bytes]]);
+  const namedFiles = [...output.namedFiles, ...trees.files, life.file, ...birds.files, ...client.files, ...creatures.files, ...rigs.files, ...programs.files, ...contracts.files.files, ...elites.files.files, ...journal.files, ...kingFiles.files, ...flock.files.files, ...drawFile.files, night.blob.file, clock.file].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
+  const assets = new Map([...output.assets, ...trees.assets, ...birds.assets, ...client.assets, ...creatures.assets, ...rigs.assets, ...programs.assets, ...contracts.files.assets, ...elites.files.assets, ...journal.assets, ...kingFiles.assets, ...flock.files.assets, ...drawFile.assets, [night.blob.file.hash, night.blob.bytes], [clock.file.hash, clock.bytes]]);
   assets.set(life.file.hash, life.bytes);
   const sortedAssets = [...assets].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
-  const platform = emitPlatformSections(new Map<PlatformDataSectionName, unknown>([...PLATFORM_ROWS, ['actors/return-scripts', [life.script, shelter.script]], ['actors/spawn-scripts', [night.row, ...elites.programs]]]));
+  const platform = emitPlatformSections(new Map<PlatformDataSectionName, unknown>([...PLATFORM_ROWS, ['actors/return-scripts', [life.script, shelter.script, contracts.script]], ['actors/spawn-scripts', [night.row, ...elites.programs]]]));
   const customRows = emitCustom(new Map<string, unknown>([['custom/questRuntime', { ...PINE_QUEST_PAYLOAD, lead: { ...PINE_QUEST_PAYLOAD.lead, program: lifeProgram } }], ['custom/kingKit', king.rows]]));
   return { ...output, platform, custom: customRows, namedFiles: [...namedFiles, shelter.file], assets: new Map([...sortedAssets, [shelter.file.hash, shelter.bytes]]) };
 }

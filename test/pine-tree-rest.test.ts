@@ -9,7 +9,9 @@ import { loadTreeSetGeometry } from '../src/engine/world/forest/treeSet';
 import { readSourceModel } from '../src/sdk/bake/skinned';
 import { createModelLibrary } from '../src/game/plugin/geometry';
 import { PINE_TREE_SET } from '../src/shards/pine-hollow/generators/treeSet';
-import rows from '../src/shards/pine-hollow/data/treeRest.generated.json';
+import { pineTreeRestRows } from '../src/shards/pine-hollow/generators/bake-tree-rest.mjs';
+
+const rows = pineTreeRestRows();
 
 afterEach(()=>{vi.restoreAllMocks();});
 it('bakes every original tree part and borrows its exact graph channels and bounds',async()=>{

@@ -13,6 +13,7 @@ import { mapLilies } from './mapLilies.mjs';
 import { bakeBeaverPool } from './beaverPool.ts';
 import { pineCragGround } from './bake-pine-crags.mjs';
 import { pineCragScenes } from './bake-crag-scenes.mjs';
+import { pineTreeRest } from './bake-tree-rest.mjs';
 import { pineFloorLayout } from './bake-pine-floor.mjs';
 import * as PINE_LAYOUT from './layout.ts';
 import { bakePineUndergrowth } from './undergrowth.ts';
@@ -84,7 +85,7 @@ export async function pineMapAssembly() {
     manifest.trees.setVariants.map(row => ({ trunkRadius: row.trunk, height: row.height, species: row.species, collider: row.collider })));
   const lilies = mapLilies(manifest.seed, pond, native.heightAt, manifest.pondLilyExclusions ?? []);
   if (lilies !== null) assembly.add('pond-lilies', lilies);
-  const rest = read('data/treeRest.generated.json'), shapes = await mapPool(resolve(root, `public${rest.geometry}`));
+  const shapes = await mapPool(await pineTreeRest());
   for (const [variant, row] of manifest.trees.setVariants.entries()) {
     const matrices = trees.filter(tree => tree.variant === variant).map(tree => new Matrix4().compose(new Vector3(tree.x, tree.y, tree.z), new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), tree.rot), new Vector3().setScalar(tree.scale)));
     for (const part of ['trunk', 'hi', 'twigs']) {

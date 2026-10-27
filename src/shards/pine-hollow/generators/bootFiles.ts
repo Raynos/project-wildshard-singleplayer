@@ -1,4 +1,3 @@
-import treeRest from '../data/treeRest.generated.json' with {type:'json'};
 import painted from '../data/paintedTextures.json' with {type:'json'};
 import skins from '../data/npcSkins.generated.json' with {type:'json'};
 
@@ -123,7 +122,6 @@ export const PINE_BOOT_FILES: {
     readonly treeMeshes: {
         readonly source: {
             readonly urls: readonly [
-                string,
                 "/assets/models/pine-hollow-trees/cards-albedo.png",
                 "/assets/models/pine-hollow-trees/cards-normal.jpg",
                 "/assets/models/pine-hollow-trees/cards-arm.jpg",
@@ -447,7 +445,6 @@ export const PINE_BOOT_FILES: {
   "treeMeshes": {
     "source": {
       "urls": [
-        treeRest.geometry,
         "/assets/models/pine-hollow-trees/cards-albedo.png",
         "/assets/models/pine-hollow-trees/cards-normal.jpg",
         "/assets/models/pine-hollow-trees/cards-arm.jpg",

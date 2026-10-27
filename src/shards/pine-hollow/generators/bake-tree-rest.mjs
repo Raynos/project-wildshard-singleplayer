@@ -1,16 +1,28 @@
-import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+// GR8 G32: the forest trees' rest geometry pool, baked in memory from the Blender species set
+// (public/assets/models/pine-hollow-trees/trees.glb) and published as the product's critical models/trees/rest.glb
+// (sourceOutput.ts), instead of the retired pine-tree-rest job's hashed public/assets/pine-hollow/baked/trees-<sha>.glb.
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { bakeTreeRest } from './treeRest.ts';
 
 const root = resolve(import.meta.dirname, '../../../..'), source = resolve(root, 'public/assets/models/pine-hollow-trees');
-const variants = JSON.parse(readFileSync(resolve(source, 'trees.json'), 'utf8')).variants;
-const bytes = await bakeTreeRest(new Uint8Array(readFileSync(resolve(source, 'trees.glb'))), variants);
-const hash = createHash('sha256').update(bytes).digest('hex'), geometry = `/assets/pine-hollow/baked/trees-${hash}.glb`;
-mkdirSync(resolve(root, 'public/assets/pine-hollow/baked'), {recursive: true});
-writeFileSync(resolve(root, `public${geometry}`), bytes);
-const parts = variants.flatMap(row => ['trunk','trunkLo','hi','lo','twigs','far'].map(part => `${row.name}__${part}`));
-const bark = variants.flatMap(row => ['trunk','trunkLo'].map(part => `${row.name}__${part}`));
-writeFileSync(resolve(root, 'src/shards/pine-hollow/data/treeRest.generated.json'), `${JSON.stringify({geometry, parts,
-  channels: [{name:'aWindWeight',source:'_wind_weight',width:1},{name:'aBarkLayer',source:'_bark_layer',width:1,parts:bark}]})}\n`);
-console.log(JSON.stringify({geometry,bytes:bytes.length,parts:parts.length}));
+const variants = () => JSON.parse(readFileSync(resolve(source, 'trees.json'), 'utf8')).variants;
+
+/** The pool's product file name. */
+export const TREE_REST_FILE = 'models/trees/rest.glb';
+
+/** The tree set's geometry rows: the pool's product name, its parts and its custom channels. */
+export function pineTreeRestRows() {
+  const rows = variants();
+  const parts = rows.flatMap(row => ['trunk', 'trunkLo', 'hi', 'lo', 'twigs', 'far'].map(part => `${row.name}__${part}`));
+  const bark = rows.flatMap(row => ['trunk', 'trunkLo'].map(part => `${row.name}__${part}`));
+  return { geometry: TREE_REST_FILE, parts,
+    channels: [{ name: 'aWindWeight', source: '_wind_weight', width: 1 }, { name: 'aBarkLayer', source: '_bark_layer', width: 1, parts: bark }] };
+}
+
+let bytes;
+/** The pool's GLB, baked once per process (about 0.3 s). */
+export function pineTreeRest() {
+  bytes ??= bakeTreeRest(new Uint8Array(readFileSync(resolve(source, 'trees.glb'))), variants());
+  return bytes;
+}

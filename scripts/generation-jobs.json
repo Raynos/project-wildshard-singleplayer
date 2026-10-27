@@ -975,41 +975,6 @@
       "platform": "portable"
     },
     {
-      "id": "pine-tree-rest",
-      "shard": "pine-hollow",
-      "entry": "src/shards/pine-hollow/generators/bake-tree-rest.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/pine-hollow/generators/bake-tree-rest.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/pine-hollow/generators/bake-tree-rest.mjs",
-        "src/shards/pine-hollow/generators/treeRest.ts",
-        "src/sdk/bake/glb.ts",
-        "src/sdk/bake/skinned.ts",
-        "src/sdk/assets.ts",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/package.json",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "public/assets/models/pine-hollow-trees/trees.glb",
-        "public/assets/models/pine-hollow-trees/trees.json"
-      ],
-      "outputs": [
-        "public/assets/pine-hollow/baked/trees-9c39e53e6e71ceaff706b4a012a4fc0fe3c4f6307aaea754fbf965ae9c2f3e19.glb",
-        "src/shards/pine-hollow/data/treeRest.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "public/assets/pine-hollow/baked/trees-9c39e53e6e71ceaff706b4a012a4fc0fe3c4f6307aaea754fbf965ae9c2f3e19.glb",
-        "src/shards/pine-hollow/data/treeRest.generated.json"
-      ],
-      "seedOutputs": [],
-      "platform": "native"
-    },
-    {
       "id": "pine-ambient-perches",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-perches.mjs",
@@ -7509,7 +7474,6 @@
         "pine-cabin-scenes",
         "pine-cabin-living",
         "pine-hero-scenes",
-        "pine-tree-rest",
         "pine-geography"
       ]
     },
