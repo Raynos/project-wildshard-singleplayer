@@ -76,7 +76,7 @@ const STATIC = `ws-static-${ASSETS}`;
 const IMMUTABLE_CACHE = 'ws-immutable';
 // Content-addressed author bytes and visited manifests have their own admission/quota policy, independent of a build.
 const KEEP = [SHELL, STATIC, IMMUTABLE_CACHE, 'ws-content-v0', '__PRODUCT_CACHE__']; // src/engine/pwa/cacheNames.ts
-/** E160: a name that carries its content hash (a pack, `<name>-<hash8>.m4a`) — vite/assetHashes.ts contentNamed: keep in step */
+/** E160: a name that carries its content hash (a pack, `<name>-<hash8>.m4a`) — scripts/app-build/assetHashes.ts contentNamed: keep in step */
 const CONTENT_NAMED_RE = /^\/assets\/packs\/|-[0-9a-f]{8}\.[a-z0-9]+$/;
 const FONT_SET = new Set(FONTS);
 /** what the last activate freed and kept (the VERSION reply and the console) */

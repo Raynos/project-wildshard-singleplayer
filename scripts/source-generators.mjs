@@ -77,7 +77,7 @@ export const SOURCE_GENERATORS = [
   {
     id: 'boot-tables',
     outputs: ['src/game/boot/bytes.generated.ts', 'src/game/boot/versions.generated.ts', 'src/game/shard/art.generated.ts'],
-    inputs: ['public/assets/**', 'src/shards/*/manifest.ts', 'src/shards/*/manifest.json', 'src/shards/**/*.jpg', 'src/shards/**/*.jpeg', 'src/shards/**/*.png', 'src/shards/**/*.webp', 'vite/gen.ts', 'vite/assetHashes.ts'],
+    inputs: ['public/assets/**', 'src/shards/*/manifest.ts', 'src/shards/*/manifest.json', 'src/shards/**/*.jpg', 'src/shards/**/*.jpeg', 'src/shards/**/*.png', 'src/shards/**/*.webp', 'scripts/app-build/gen.ts', 'scripts/app-build/assetHashes.ts'],
     committed: false,
     note: 'size and hash every public/assets file (the shard builds\' baked outputs included) and walk the discovery modules',
     // the boot writers read public/assets and the manifests from the working directory (the repo root)

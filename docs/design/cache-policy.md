@@ -62,7 +62,7 @@ bytes changed:
 
 - **`?v=<hash8>` on every unhashed asset.** `src/engine/boot/versions.generated.ts` (vite.config.ts `writeVersionsModule`) holds
   the content hash of every file under `public/assets` whose name is not already content-addressed
-  (`vite/assetHashes.ts contentNamed`: the packs, `<name>-<hash8>.<ext>`). `versionedUrl` (src/engine/boot/bytes.ts) puts it on
+  (`scripts/app-build/assetHashes.ts contentNamed`: the packs, `<name>-<hash8>.<ext>`). `versionedUrl` (src/engine/boot/bytes.ts) puts it on
   every fetch after the byte counter and on the loading manager's URLs (Safari's `<img>`-loaded glTF textures). The
   worker answers any `/assets/…?v=` request cache-first: the key names the bytes. Unversioned requests (an `<img>` in the
   DOM, a worker's fetch) keep the old routes.

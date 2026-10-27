@@ -2028,8 +2028,8 @@
     "test/wind.test.ts",
     "test/worldClock.test.ts",
     "vite.config.ts",
-    "vite/assetHashes.ts",
-    "vite/basis.ts",
+    "scripts/app-build/assetHashes.ts",
+    "scripts/app-build/basis.ts",
     "vite/pwa-plugin.ts",
     "vite/rapier.ts"
   ],
