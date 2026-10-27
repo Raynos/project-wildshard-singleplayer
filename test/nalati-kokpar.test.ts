@@ -19,7 +19,7 @@ import * as terrainService from '../src/engine/world/terrainHeight';
 import { Scope } from '../src/engine/app/scope';
 import { SkyRig } from '../src/engine/world/skyRig';
 import { practiceRoom } from '../src/engine/core/practiceRoom';
-import rows from '../src/shards/nalati-grasslands/data/kokpar.generated.json' with { type: 'json' };
+import { NALATI_KOKPAR as rows } from './fixtures/nalati-kokpar';
 import { buildKokparRound, KOKPAR_GOALS, type KokparMount } from './fixtures/nalati-kokpar-oracle';
 
 

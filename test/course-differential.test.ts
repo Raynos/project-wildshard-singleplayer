@@ -1,5 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Compile frozen predecessor laws as independent differential oracles.
 import { readFileSync } from 'node:fs';
+import { NALATI_KOKPAR } from './fixtures/nalati-kokpar';
 import { afterEach, beforeAll, expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
@@ -16,7 +17,7 @@ import { practiceFrame } from '../src/shards/nine-dragon-stack/generators/practi
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const initial={lap:0,started:0,running:0,half:0,best:-1,last:-1,prevX:0,phase:0,elapsed:0,checkpoint:0,visited:0};
-const horse=horseCourseRows();
+const horse=horseCourseRows(NALATI_KOKPAR.course);
 const owners:Scope[]=[];afterEach(()=>{for(const owner of owners.splice(0))owner.dispose();});
 function checkpoints(scope?:Scope):ReturnProgram {const owner=scope??new Scope('checkpoint differential');if(scope===undefined)owners.push(owner);lendNinePractice(owner);return ReturnProgram.page(hookProgram,owner);}
 let ovalOracle:ReturnProgram,checkpointOracle:ReturnProgram;

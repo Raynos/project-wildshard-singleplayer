@@ -1,4 +1,5 @@
 import { nalatiSpecimens } from './fixtures/nalati-specimens';
+import { NALATI_KOKPAR } from './fixtures/nalati-kokpar';
 import { nalatiRuntime } from './fixtures/nalati-runtime';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the complete original admitted prop bytes.
 import { readFileSync } from 'node:fs';
@@ -31,9 +32,9 @@ test('computed carried-prop geometry and admitted material preserve the whole or
 
 test('supplied prop declarations retain the complete carried quest with strict refusal', () => {
   const supplied: unknown = JSON.parse(readFileSync('test/fixtures/nalati-quest-prop-original.json', 'utf8'));
-  const rows = makeCarriedQuestRows(supplied);
+  const rows = makeCarriedQuestRows(supplied, NALATI_KOKPAR);
   expect(encodeCanonicalJson(rows)).toBe(encodeCanonicalJson(carriedQuestRows));
   expect(rows.model).not.toBe(carriedQuestRows.model);
-  expect(() => makeCarriedQuestRows({})).toThrow();
-  expect(() => makeCarriedQuestRows(undefined)).toThrow();
+  expect(() => makeCarriedQuestRows({}, NALATI_KOKPAR)).toThrow();
+  expect(() => makeCarriedQuestRows(undefined, NALATI_KOKPAR)).toThrow();
 });

@@ -1,4 +1,5 @@
 import {expect,test} from 'vitest';
+import { NALATI_KOKPAR } from './fixtures/nalati-kokpar';
 import {namedJsonSchema} from '@wildshard/sdk/formatJsonSchema';
 import {nameBlob} from '@wildshard/sdk/blobs';
 import {PracticeSceneSchema,RidingPracticeSchema} from '@wildshard/format/practiceCourseRows';
@@ -9,7 +10,7 @@ import { ninePracticeRows } from './fixtures/nine-practice-product';
 import course from '../src/shards/nine-dragon-stack/data/grappleCourse.json' with {type:'json'};
 
 test('both native practice rooms have defining named-file admission',()=>{
- const horse=horseCourseRows(),grapple=grappleCourseScene(course, ninePracticeRows),bytes=(value:unknown)=>new TextEncoder().encode(JSON.stringify(value));
+ const horse=horseCourseRows(NALATI_KOKPAR.course),grapple=grappleCourseScene(course, ninePracticeRows),bytes=(value:unknown)=>new TextEncoder().encode(JSON.stringify(value));
  const scene=namedJsonSchema(PracticeSceneSchema),riding=namedJsonSchema(RidingPracticeSchema),fixed=namedJsonSchema(FixedPracticeFileSchema);
  expect(nameBlob('horse.json','json',bytes(horse),{jsonSchema:riding}).file.jsonSchema).toEqual(riding);
  expect(nameBlob('grapple.json','json',bytes({practice:grapple}),{jsonSchema:fixed}).file.jsonSchema).toEqual(fixed);

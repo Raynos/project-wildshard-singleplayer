@@ -1,5 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the original generated wire and raw sidecar bytes.
 import {readFileSync} from 'node:fs';
+import { NALATI_KOKPAR, NALATI_KOKPAR_WASM } from './fixtures/nalati-kokpar';
 import * as v from 'valibot';
 import {expect,test} from 'vitest';
 import {ReturnProgramSchema} from '../src/format/namedJsonContracts';
@@ -9,11 +10,12 @@ import {NALATI_SCRIPT_SECTIONS} from './fixtures/nalati-script-inventory';
 import {Scope} from '../src/engine/app/scope';
 import {ReturnProgram} from '../src/game/population/returnProgram';
 import {hashImmutableBytes} from '../src/sdk/immutable';
-import {readNamedBlob} from '../src/sdk/blobs';
+import {nameBlob} from '../src/sdk/blobs';
+import {kokparModuleOptions,NALATI_KOKPAR_MODULE} from '../src/shards/nalati-grasslands/generators/kokparRows';
 import {kokparProgram,kokparModuleBytes,lendNalatiKokpar} from './fixtures/nalati-return-modules';
 
 const original='9b537d68433363e0ab4e432ef35f73fcd799638b31be7c83d0a499042ef3557f';
-const input:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/data/kokpar.generated.json','utf8'));
+const input:unknown=structuredClone(NALATI_KOKPAR);
 const stored=v.parse(v.looseObject({program:ReturnProgramSchema,course:ReturnProgramSchema,
   compiled:v.strictObject({source:v.string(),bytes:v.number()})}),
   input);
@@ -24,7 +26,7 @@ test('the original quest and bow guest retains every metadata and module byte',(
   expect(hashImmutableBytes(kokparModuleBytes)).toBe(original);
   expect(kokparProgram.script.module).toBe(`blobs/wasm/${original}.wasm`);
   const {compiled,...wire}=stored;
-  expect(compiled).toEqual({source:'behaviour/kokpar.generated.wasm',bytes:10468});
+  expect(compiled).toEqual({source:'behaviour/nalati.kokpar.wasm',bytes:10468});
   // Compare the original producer order, before schema default normalization.
   const metadata=Object.fromEntries(Object.entries(v.parse(v.record(v.string(),v.unknown()),input)).filter(([key])=>key!=='compiled'));
   const programme=v.parse(v.record(v.string(),v.unknown()),metadata['program']);
@@ -38,12 +40,10 @@ test('the original quest and bow guest retains every metadata and module byte',(
   expect(new Set(scriptAdmissionRows(NALATI_SCRIPT_SECTIONS).map(row=>row.module)).size).toBe(8);
 });
 
-test('the original named ABI1 file ships directly from its registered raw producer',async()=>{
-  const {output}=await import('./fixtures/nalati-output-original');
-  const row=output.blobs.find(file=>file.name==='behaviour/nalati.kokpar.wasm');
-  expect(row).toMatchObject({kind:'wasm',source:stored.compiled.source,options:{critical:true,script:{abi:1,pages:1}}});
-  expect(output.namedFiles.some(file=>file.name==='behaviour/nalati.kokpar.wasm')).toBe(false);
-  const blob=await readNamedBlob('src/shards/nalati-grasslands','behaviour/nalati.kokpar.wasm',stored.compiled.source,'wasm',{critical:true,script:{abi:1,pages:1}});
+test('the original named ABI1 module ships as the build program blob, every byte unchanged',()=>{
+  // GR6: kokparProgram.ts publishes the compiled round module itself; no template row names a generated source file
+  const blob=nameBlob(NALATI_KOKPAR_MODULE,'wasm',NALATI_KOKPAR_WASM,kokparModuleOptions());
+  expect(blob.file).toMatchObject({name:'behaviour/nalati.kokpar.wasm',kind:'wasm',critical:true});
   expect(blob.file.hash).toBe(original);expect(blob.bytes).toEqual(kokparModuleBytes);
   expect(blob.file.compressed).toBe(10468);expect(blob.file.decoded).toBe(10468);
 });

@@ -16,7 +16,7 @@ import { manager } from '@wildshard/engine/test/manager';
 import { bossArena } from './fake/bossArena';
 import { overrideTerrain } from '@wildshard/engine/test/terrain';
 import { mockCanvas } from '@wildshard/engine/test/weaponParity';
-import king from '../src/shards/nalati-grasslands/data/goldenKing.generated.json' with { type: 'json' };
+import king from './fixtures/nalati-goldenKing-original.json' with { type: 'json' };
 import titan from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
 import geometry from '../src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json' with { type: 'json' };
 import arenaFire from '../src/shards/nalati-grasslands/data/arenaFire.json' with { type: 'json' };
@@ -45,7 +45,7 @@ import { installEntryChapterView } from '../src/game/shardfile/clientQuestCompos
 import { publishEntryOwner } from '../src/game/shardfile/entryOwners';
 import { peopleRows } from '../src/shards/nalati-grasslands/generators/peopleRows.mjs';
 import content from '../src/shards/nalati-grasslands/data/questContent.json' with { type: 'json' };
-import guest from '../src/shards/nalati-grasslands/data/kokpar.generated.json' with { type: 'json' };
+import { NALATI_KOKPAR as guest } from './fixtures/nalati-kokpar';
 import view from '../src/shards/nalati-grasslands/data/chapterView.json' with { type: 'json' };
 
 afterEach(() => { vi.restoreAllMocks(); });

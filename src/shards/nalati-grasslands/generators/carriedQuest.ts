@@ -1,8 +1,8 @@
-import kokpar from '../data/kokpar.generated.json' with {type:'json'};
+import type { NalatiKokpar } from './kokparRows';
 import { parseCarriedQuest } from '@wildshard/format/questSteps';
 
 /** The existing round program chooses poses and existing quest service effects. */
-export function makeCarriedQuestRows(input: unknown): ReturnType<typeof parseCarriedQuest> {
+export function makeCarriedQuestRows(input: unknown, kokpar: Pick<NalatiKokpar, 'program' | 'home' | 'goals' | 'messages'>): ReturnType<typeof parseCarriedQuest> {
   return parseCarriedQuest({
   quest:'tulpar',objectName:'nalati-kokpar-goat',model:[input],program:kokpar.program,floorWindow:2,step:.1,home:kokpar.home,goals:kokpar.goals,
   state:{carrying:0,left:0,slow:0,cheer:0,warned:0},

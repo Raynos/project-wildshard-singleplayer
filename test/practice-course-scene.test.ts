@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
+import { NALATI_KOKPAR } from './fixtures/nalati-kokpar';
 import { Vector3, Mesh, type BufferGeometry } from 'three';
 import { parsePracticeScene } from '@wildshard/format/practiceCourseRows';
 import { buildPracticeScene } from '@wildshard/game/practice/scene';
@@ -9,7 +10,7 @@ import { ninePracticeRows } from './fixtures/nine-practice-product';
 import course from '../src/shards/nine-dragon-stack/data/grappleCourse.json' with { type: 'json' };
 
 test('both shipping courses publish bounded local scenes with their real obstacles and targets', () => {
-  const horse = horseCourseRows(), grapple = grappleCourseScene(course, ninePracticeRows);
+  const horse = horseCourseRows(NALATI_KOKPAR.course), grapple = grappleCourseScene(course, ninePracticeRows);
   expect(horse.road.at(0)).toEqual(horse.road.at(-1));
   expect(horse.presentation.colliders.filter(row => row.surface === 'wood')).toHaveLength(8);
   expect(grapple.hooks).toHaveLength(course.hooks.length);
@@ -25,7 +26,7 @@ test('both shipping courses publish bounded local scenes with their real obstacl
 test('one presenter translates drawings, native collision and minimap coordinates together', () => {
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
   try {
-    for (const [data, offset] of [[horseCourseRows().presentation, new Vector3(40, 3000, 60)], [grappleCourseScene(course, ninePracticeRows).presentation, new Vector3(-17, 3000, 23)]] as const) {
+    for (const [data, offset] of [[horseCourseRows(NALATI_KOKPAR.course).presentation, new Vector3(40, 3000, 60)], [grappleCourseScene(course, ninePracticeRows).presentation, new Vector3(-17, 3000, 23)]] as const) {
       const view = buildPracticeScene(data, offset, 'practice');
       const first = data.colliders[0]; if (first === undefined) throw new Error('Missing course floor');
       expect(view.colliders[0]).toMatchObject({ x: first.x + offset.x, y: first.y + offset.y, z: first.z + offset.z });
@@ -40,7 +41,7 @@ test('one presenter translates drawings, native collision and minimap coordinate
 });
 
 test('admission rejects malformed triangles, negative solids and executable fields before drawing', () => {
-  const original = horseCourseRows().presentation;
+  const original = horseCourseRows(NALATI_KOKPAR.course).presentation;
   const mesh = original.parts.find(part => part.kind === 'mesh'); if (mesh === undefined) throw new Error('Missing track mesh');
   expect(() => parsePracticeScene({ ...original, parts: [{ ...mesh, index: [99999, 0, 1] }] })).toThrow();
   expect(() => parsePracticeScene({ ...original, parts: [{ kind: 'box', tone: 'grey', at: [0, 0, 0], size: [-1, 1, 1], tint: 1 }] })).toThrow();

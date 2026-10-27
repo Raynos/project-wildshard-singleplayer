@@ -27,7 +27,7 @@ import NALATI_RUNTIME_SPAWNS from '../data/spawns.json' with { type: 'json' };
 import type { nalatiNavigationProgram } from './navigation';
 import lookGraphs from '../data/lookGraphs.json' with { type: 'json' };
 import presentationGraphs from '../data/painterlyGraphs.json' with { type: 'json' };
-import kokpar from '../data/kokpar.generated.json' with { type: 'json' };
+import type { NalatiKokpar } from './kokparRows';
 import titanProgram from '../behaviour/titan.generated.json' with { type: 'json' };
 import { nalatiGoldenKingPose } from './kurganRows';
 import admission from '../behaviour/admission.generated.json' with { type: 'json' };
@@ -78,7 +78,7 @@ function renderRows(value: unknown): { files: readonly unknown[]; tiles: readonl
 
 /** Compose the complete header with caller-owned costs; retain original module deduplication and page charges. */
 export function nalatiProductRows(species: NalatiSpeciesProgramCosts, held: NalatiHeldProgramCosts, render: unknown,
-  queryTerrain: Omit<BakedQueryTerrain, 'assets'>, navigation: Awaited<ReturnType<typeof nalatiNavigationProgram>>): ReturnType<typeof parseShardfile> {
+  queryTerrain: Omit<BakedQueryTerrain, 'assets'>, navigation: Awaited<ReturnType<typeof nalatiNavigationProgram>>, kokpar: Pick<NalatiKokpar, 'program' | 'course' | 'compiled'>): ReturnType<typeof parseShardfile> {
   const files = [...navigation.files, ...queryTerrain.files].sort((a, b) => a.hash.localeCompare(b.hash));
   const resident = files.reduce((sum, file) => sum + file.decoded, 0);
   const renderTiles = parseShardfile({ ...base, ...renderRows(render) });

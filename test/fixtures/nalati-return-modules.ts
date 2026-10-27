@@ -1,4 +1,5 @@
 import { originalHeldMetadata } from './nalati-held-original';
+import { NALATI_KOKPAR, NALATI_KOKPAR_WASM } from './nalati-kokpar';
 import { originalSpeciesFile } from './nalati-original-species';
 import {afterEach} from 'vitest';
 import {parseDecisionScripts} from '../../src/format/decisionScripts';
@@ -13,11 +14,11 @@ import {ReturnProjectionV2Schema} from '../../src/format/returnProjectionV2';
 import {readFileSync} from 'node:fs';
 import {titanWitnessBytes,pastureWitnessBytes} from './titanInlineWitness';
 
-const kokparInput=v.parse(v.object({program:ReturnProgramSchema}),JSON.parse(readFileSync('src/shards/nalati-grasslands/data/kokpar.generated.json','utf8')));
+const kokparInput=v.parse(v.object({program:ReturnProgramSchema}),JSON.parse(JSON.stringify(NALATI_KOKPAR)));
 const kokparScript=parseDecisionScripts([kokparInput.program.script])[0];
 if(kokparScript===undefined)throw new Error('Missing actual Kokpar script');
 export const kokparProgram={...kokparInput.program,script:kokparScript};
-export const kokparModuleBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/kokpar.generated.wasm'));
+export const kokparModuleBytes=Uint8Array.from(NALATI_KOKPAR_WASM);
 const admissionInput=v.parse(v.object({...ReturnProgramSchema.entries}),JSON.parse(readFileSync('src/shards/nalati-grasslands/behaviour/admission.generated.json','utf8')));
 const admissionScript=parseDecisionScripts([admissionInput.script])[0];
 if(admissionScript===undefined||admissionInput.v2===undefined)throw new Error('Missing actual admission script');

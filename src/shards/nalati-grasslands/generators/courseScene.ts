@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import kokpar from '../data/kokpar.generated.json' with {type:'json'};
+import type { NalatiKokpar } from './kokparRows';
 import { CourseKit as DevKit, courseLabel as devLabel, courseMaterial as devMaterial, courseChecker as checkerLine, captureCourse } from '@wildshard/sdk/bake/practiceCourse';
 import {parseRidingPractice,type RidingPracticeLayout,type PracticeScene} from '@wildshard/format/practiceCourseRows';
 import { FIELD_AT, RIDER_PITCH, SHOULDER, FIELD, HORSE_START, JUMPS, JUMP_WIDTH, LINE_X, OVAL, POST_GAP, POST_OFF, RIDER_START, ovalLine } from './horseCourse';
@@ -135,8 +135,8 @@ function trackBand(o: THREE.Vector3): THREE.Mesh {
 }
 
 
-export function horseCourseRows(): RidingPracticeLayout { const origin = new THREE.Vector3(); const {root,colliders}=build(origin); const data: Omit<RidingPracticeLayout,'controller'> = { title:'Horse playground',chip:'Horse track',piece:{id:'playground-horse',name:'Horse playground',file:'src/shards/nalati-grasslands/generators/courseScene.ts'},
-actor:{kind:'horse',variant:'camp-bay',name:'Track horse'},riderPitch:RIDER_PITCH,shoulder:SHOULDER,program:kokpar.course,sampleEpsilon:0,
+export function horseCourseRows(course: NalatiKokpar['course']): RidingPracticeLayout { const origin = new THREE.Vector3(); const {root,colliders}=build(origin); const data: Omit<RidingPracticeLayout,'controller'> = { title:'Horse playground',chip:'Horse track',piece:{id:'playground-horse',name:'Horse playground',file:'src/shards/nalati-grasslands/generators/courseScene.ts'},
+actor:{kind:'horse',variant:'camp-bay',name:'Track horse'},riderPitch:RIDER_PITCH,shoulder:SHOULDER,program:course,sampleEpsilon:0,
 words:{ready:'READY · MOUNT UP',ride:'RIDE OVER THE LINE ▶',lap:'LAP {lap}{half}{last}',half:' · ½',last:' · LAST {time}',best:' · BEST',fell:'OFF THE FIELD · BACK ON THE START',lapNotice:'LAP {lap} · {time}{best}',halfNotice:'HALF WAY · {time}'},
 presentation: captureCourse(root,colliders,fieldMap(origin)), road: ovalLine(4), fieldAt: FIELD_AT, horseStart: HORSE_START, riderStart: RIDER_START, oval: OVAL, lineX: LINE_X };
 const rows:RidingPracticeLayout={...data,controller:{title:data.title,chip:data.chip,piece:{...data.piece,surface:'wood'},center:{kind:'fixed',...data.fieldAt},

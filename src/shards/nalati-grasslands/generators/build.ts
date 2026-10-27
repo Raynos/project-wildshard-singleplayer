@@ -4,6 +4,7 @@ import { nalatiProductRows } from './product';
 import { prepareSpecies } from './output';
 import { nalatiRenderTileProgram } from './renderTileProgram';
 import { nalatiQueryTerrainProgram } from './terrain';
+import { nalatiKokparProgram } from './kokparProgram';
 
 /** Partial source construction retains the scheduler until the last producer retires. */
 export async function build(ctx: ProjectGenerationContext): Promise<ReturnType<typeof nalatiProductRows>> {
@@ -17,5 +18,5 @@ export async function build(ctx: ProjectGenerationContext): Promise<ReturnType<t
   return nalatiProductRows(species.rows, {
     program: species.rows.program, stealthProgram: species.rows.program,
     compiledBytes: species.rows.compiled.bytes, projectionPages: species.rows.program.v2.artifact.pages,
-  }, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(metadata)) as unknown, await nalatiQueryTerrainProgram(ctx), await nalatiNavigationProgram(ctx));
+  }, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(metadata)) as unknown, await nalatiQueryTerrainProgram(ctx), await nalatiNavigationProgram(ctx), (await nalatiKokparProgram(ctx)).rows);
 }

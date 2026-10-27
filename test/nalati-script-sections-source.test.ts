@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest';
+import { NALATI_KOKPAR } from './fixtures/nalati-kokpar';
 import * as v from 'valibot';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nalatiScriptSections } from '../src/shards/nalati-grasslands/generators/scriptInventory';
@@ -18,12 +19,12 @@ function fullPin(sections: ReadonlyMap<string, unknown>): void {
 
 test('explicit held projection preserves the complete original admission inventory', () => {
   fullPin(NALATI_SCRIPT_SECTIONS);
-  fullPin(nalatiScriptSections(original));
+  fullPin(nalatiScriptSections(original, NALATI_KOKPAR));
 });
 
 test('only the selected held executable consumes supplied artifact fields', () => {
   const artifact = { hash: '1'.repeat(64), pages: original.artifact.pages + 1, ioBytes: original.artifact.ioBytes + 64 };
-  const sections = nalatiScriptSections({ artifact });
+  const sections = nalatiScriptSections({ artifact }, NALATI_KOKPAR);
   const rows = v.parse(v.array(v.unknown()), sections.get('actors/return-scripts'));
   let changed = 0;
   for (const row of rows) {
@@ -43,10 +44,10 @@ test('only the selected held executable consumes supplied artifact fields', () =
 });
 
 test('owned result mutations cannot change another construction or retained default', () => {
-  const sections = nalatiScriptSections(original);
+  const sections = nalatiScriptSections(original, NALATI_KOKPAR);
   const rows = v.parse(v.array(v.unknown()), sections.get('actors/return-scripts'));
   for (const row of rows) if (v.is(selected, row)) row.module = 'changed';
   expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify([...sections])))).not.toBe(pin.sha256);
   fullPin(NALATI_SCRIPT_SECTIONS);
-  fullPin(nalatiScriptSections(original));
+  fullPin(nalatiScriptSections(original, NALATI_KOKPAR));
 });

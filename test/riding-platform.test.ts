@@ -1,4 +1,5 @@
 import {lendNalatiRiding} from './fixtures/nalati-return-modules';
+import { NALATI_KOKPAR } from './fixtures/nalati-kokpar';
 import { installTamingEntry } from '../src/game/shardfile/clientEntryBinds';
 import { entryOwner, publishEntryOwner } from '../src/game/shardfile/entryOwners';
 import { parseClientPlan } from '../src/format/clientPlan';
@@ -203,7 +204,7 @@ test.each([OriginalPracticeCourse,PracticeCourse])('%s reuses its entered mount 
   const f = fixture('horse', { walk: 1.8, trot: 4.5, canter: 8.5, gallop: 13 });
   const previousScope = pageApp.levelScope, previousState = pageApp.state;
   pageApp.levelScope = f.scope;
-  const rows = horseCourseRows(), registrations: string[] = [];
+  const rows = horseCourseRows(NALATI_KOKPAR.course), registrations: string[] = [];
   let spawned = 0, update: Parameters<PlaygroundHost['game']['onUpdate']>[0] = () => undefined;
   f.player.mountedOn = null;
   f.animals.spawn = () => { spawned++; return f.actor; };
@@ -238,7 +239,7 @@ test.each([OriginalPracticeCourse,PracticeCourse])('%s reuses its entered mount 
 test('shared controller retains the original mounted HUD, fall/reset and clock call order',()=>{
   const traces:unknown[][]=[];
   for(const Course of [OriginalPracticeCourse,PracticeCourse]){
-    const f=fixture('horse',{walk:1.8,trot:4.5,canter:8.5,gallop:13}),rows=horseCourseRows(),trace:unknown[]=[];
+    const f=fixture('horse',{walk:1.8,trot:4.5,canter:8.5,gallop:13}),rows=horseCourseRows(NALATI_KOKPAR.course),trace:unknown[]=[];
     const previousScope=pageApp.levelScope,previousState=pageApp.state;pageApp.levelScope=f.scope;
     let update:Parameters<PlaygroundHost['game']['onUpdate']>[0]=()=>undefined,t=0;
     const timer=vi.spyOn(performance,'now').mockImplementation(()=>{trace.push('clock');return ++t*1000;});

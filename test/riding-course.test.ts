@@ -1,10 +1,11 @@
 import { expect, test } from 'vitest';
+import { NALATI_KOKPAR } from './fixtures/nalati-kokpar';
 import { ProjectedState, ReturnProgram } from '../src/game/population/returnProgram';
 import { parseRidingPractice } from '../src/format/practiceCourseRows';
 import { horseCourseRows } from '../src/shards/nalati-grasslands/generators/courseScene';
 import { parseDecisionScripts } from '../src/format/decisionScripts';
 
-const original = horseCourseRows();
+const original = horseCourseRows(NALATI_KOKPAR.course);
 const originalScript = parseDecisionScripts([original.program.script])[0];
 if(originalScript===undefined)throw new Error('Missing mounted course guest');
 // An unrelated orchard shard declares its own room, mount and guest parameters.

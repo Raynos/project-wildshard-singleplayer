@@ -81,7 +81,11 @@ try {
     packed: { bin: '/assets/nalati/baked/gear-specimens.bin', bytes: bytes.length, rows } }));
   writer.put(resolve(import.meta.dirname,'../boot/bowTrail.json'),jsonBytes(JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/bowTrail.json'),'utf8'))));
   const variant=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/bowVariant.json'),'utf8'));
-  variant.program=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/kokpar.generated.json'),'utf8')).program;
+  // GR6: the kokpar round program as the product builds it (kokparRows.ts), not the retired job's generated JSON
+  const { compileDecisionScripts, readDecisionSources } = await import('@wildshard/sdk/buildDecisionScripts');
+  const { nalatiKokparRows } = await import('./kokparRows.ts');
+  variant.program=(await nalatiKokparRows(compileDecisionScripts, readDecisionSources(resolve(import.meta.dirname,'..')),
+    readFileSync(resolve(import.meta.dirname,'../../../commons/scripts/course.as'),'utf8'))).rows.program;
   const multipliers=parse(BowSourceMultipliersSchema,effects.multipliers);
   const kinds=new Set(multipliers.flatMap(row=>row.when.targetTags??[]).filter(tag=>tag.startsWith('creature.')).map(tag=>{
     if(tag.endsWith('.*'))throw new Error('Bow damage bake requires explicit creature identities');

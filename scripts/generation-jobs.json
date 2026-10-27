@@ -2359,45 +2359,6 @@
       }
     },
     {
-      "id": "nalati-kokpar",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-kokpar.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-kokpar.mjs"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format",
-        "src/sdk",
-        "src/shards/nalati-grasslands/behaviour",
-        "src/shards/nalati-grasslands/data/layout.generated.json",
-        "src/shards/nalati-grasslands/generators/bake-kokpar.mjs",
-        "src/shards/nalati-grasslands/generators/horseCourse.ts",
-        "src/shards/nalati-grasslands/data/questContent.json",
-        "src/sdk/decisionScriptBindings.ts",
-        "src/format/scriptAbiV1.ts",
-        "src/format/decisionScripts.ts",
-        "src/commons/package.json",
-        "src/commons/practiceCourse.ts",
-        "src/commons/courseProgram.ts",
-        "src/commons/scripts/course.as",
-        "scripts/bake-output.mjs"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/data/kokpar.generated.json",
-        "src/shards/nalati-grasslands/behaviour/kokpar.generated.wasm"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/kokpar.generated.json",
-        "src/shards/nalati-grasslands/behaviour/kokpar.generated.wasm"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "nalati-elite-charge",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-elite-charge.mjs",
