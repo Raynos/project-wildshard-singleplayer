@@ -1,4 +1,4 @@
-import { Matrix4, type Material, Color, type Group, InstancedMesh, Vector3 } from 'three';
+import { Box3, Matrix4, type Material, Color, type Group, InstancedMesh, Mesh, type Object3D, Vector3 } from 'three';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import { modelPoseMatrix } from '@wildshard/engine/models/modelPose';
 import { withOwner } from '@wildshard/engine/app/ownership';
@@ -16,7 +16,8 @@ import type { WorldScenePlacementRow } from '@wildshard/format/worldScenePlaceme
 import type { ShardContext } from '../plugin/context';
 import type { defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
 import type { SceneHandles } from './sceneHandles';
-import { bucketByTile, colliderTileKeys, SharedTileBuilds, tileKey } from './tileContent';
+import { bucketByTile, colliderTileKeys, SharedTileBuilds, tileKey, type TileContent } from './tileContent';
+import { tiledMesh } from './tiledMesh';
 import { TILE_SIZE, tileOf } from './tileOrder';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 
@@ -31,6 +32,7 @@ export function anchorOf(rows: readonly ColliderDesc[]): Vector3 {
   return at.divideScalar(Math.max(1, rows.length));
 }
 
+function isMesh(node: Object3D): node is Mesh { return node instanceof Mesh; }
 function requireLive(owner: Scope): void { if (owner.disposed || owner.disposing) throw new Error('Scene placement owner is disposed'); }
 /** An authored copy as the model placer takes it: its fields, its tint and its pose matrix. */
 function posed(authored: WorldScenePlacementRow['poses'][number]) {
@@ -65,6 +67,7 @@ export class WorldScenePlacement {
   private buckets: Map<number, number[]> | undefined;
   private shared: SharedTileBuilds<Placed> | undefined;
   private authored: Map<number, ColliderDesc[]> | undefined;
+  private ranges: Promise<{ readonly placed: Placed; readonly contents: readonly TileContent[] }> | undefined;
   constructor(private readonly ctx: ShardContext, private readonly row: WorldScenePlacementRow,
     private readonly catalogue: Pick<ReturnType<typeof defineWorldSceneCatalogue>, 'model'>, private readonly owner: Scope,
     private readonly materials: Map<string, Material>, private readonly sources: readonly Extract<WorldScenesSection['materials'][number], { kind: 'source' }>[], private readonly handles?: Pick<SceneHandles, 'object'>) {}
@@ -89,6 +92,13 @@ export class WorldScenePlacement {
   async attach(tile: number, scope: Scope, container: Group | null): Promise<Placed | null> {
     if (!this.bucketed().has(tile)) return null;
     if (this.pending !== undefined) throw new Error('Scene placement is built whole');
+    if (this.ranged()) {
+      // one draw for the whole placement; the tile draws its range of it (the collider ring builds the tile's colliders)
+      const ranged = await this.rangedDraw(container);
+      if (scope.disposed || scope.disposing) return ranged.placed;
+      await Promise.all(ranged.contents.map(content => content.tiles().has(tile) ? content.attach(tile, scope) : Promise.resolve()));
+      return ranged.placed;
+    }
     const placed = await this.tileBuilds().hold(tile, scope);
     // Another ring can keep the shared build live while this holder retires.
     if (scope.disposed || scope.disposing || this.row.drawnInto !== undefined) return placed;
@@ -116,13 +126,52 @@ export class WorldScenePlacement {
       ...(row.piece?.solidFloor === undefined ? {} : { solidFloor: row.piece.solidFloor }),
       ...(row.piece?.floors === undefined ? {} : { floor: this.floorAt.bind(this) }) }));
   }
-  /** T3: one build of a tile's copies (draws, picks, computed colliders) shared by its render and collider holds */
+  /** T3: one build of a tile's copies (draws, picks, computed colliders) shared by its render and collider holds; a ranged
+   *  placement's tile builds only its copies' colliders, drawn into the placement's one draw */
   private tileBuilds(): SharedTileBuilds<Placed> {
-    this.shared ??= new SharedTileBuilds(this.owner, (tile, scope) => {
+    this.shared ??= new SharedTileBuilds(this.owner, async (tile, scope) => {
       const copies = this.bucketed().get(tile);
-      return copies === undefined ? Promise.reject(new Error('Scene placement tile has no copies')) : this.build(copies, scope, tile);
+      if (copies === undefined) throw new Error('Scene placement tile has no copies');
+      if (!this.ranged()) return this.build(copies, scope, tile);
+      const { placed } = await this.rangedDraw(null), box = new Box3(), boxes = new Float32Array(copies.length * 6);
+      copies.forEach((index, k) => { placed.copyBox(index, box); boxes.set([box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z], k * 6); });
+      return this.build(copies, scope, tile, { object: placed.object, boxes });
     });
     return this.shared;
+  }
+  /**
+   * T3 (one draw per model): an instanced or merged placement spanning tiles, not drawn into a set, culled by a culler of
+   * its own or following a copy, draws all its copies in one draw, each resident tile drawing its range of it (its copies'
+   * instances, or its copies' triangles by centroid: `tiledMesh`), so tiling never multiplies its draws.
+   */
+  private ranged(): boolean {
+    const row = this.row;
+    return (row.draw === 'instanced' || row.draw === 'batched' || row.draw === 'merged') && row.drawnInto === undefined
+      && row.cull === undefined && row.piece?.follows === undefined && this.bucketed().size > 1;
+  }
+  /** T3: the ranged placement's one draw (built whole, once, with no colliders: the collider ring has them) and the tile
+   *  contents its meshes draw by; nothing draws until a tile attaches. */
+  private rangedDraw(container: Group | null): Promise<{ readonly placed: Placed; readonly contents: readonly TileContent[] }> {
+    this.ranges ??= (async () => {
+      const placed = await this.build(null, this.owner, undefined, 'whole');
+      const parent = placed.object.parent;
+      if (container !== null) {
+        if (container.parent === null && parent !== null) parent.add(container);
+        container.add(placed.object);
+      }
+      // each mesh by tile in cell-local space: its transform relative to the cell's world group (copies are posed cell-local)
+      const cell = container?.parent ?? parent;
+      cell?.updateMatrixWorld(true); placed.object.updateMatrixWorld(true);
+      const toCell = new Matrix4().copy(cell?.matrixWorld ?? new Matrix4()).invert(), contents: TileContent[] = [];
+      const meshes: Mesh[] = [];
+      placed.object.traverse((node: Object3D) => { if (isMesh(node)) meshes.push(node); });
+      for (const mesh of meshes) {
+        const content = tiledMesh(`${this.row.id}.${String(contents.length)}`, mesh, new Matrix4().multiplyMatrices(toCell, mesh.matrixWorld));
+        if (content !== null) contents.push(content);
+      }
+      return { placed, contents };
+    })();
+    return this.ranges;
   }
   /** T3: the row's authored colliders by every tile their footprint reaches */
   private authoredByTile(): Map<number, ColliderDesc[]> {
@@ -140,13 +189,16 @@ export class WorldScenePlacement {
   }
   /** Query the same authored floor the placement lends to its registry piece. */
   floorAt(x: number, z: number): number | undefined { return floorAtRects(this.row.piece?.floors ?? [], x, z, this.row.piece?.floorPolicy ?? 'first'); }
-  /** The whole placement (`copies` null) or one tile's copies, built under `owner`. */
-  private async build(copies: readonly number[] | null, owner: Scope, tile?: number): Promise<Placed> {
+  /** The whole placement (`copies` null) or one tile's copies, built under `owner`. A ranged placement's whole draw
+   *  (`'whole'`) registers one piece with no colliders; its tiles' builds (`into`, the whole draw and their copies' boxes)
+   *  draw nothing and register nothing: the collider ring registers their colliders. */
+  private async build(copies: readonly number[] | null, owner: Scope, tile?: number, ranged?: 'whole' | { readonly object: Object3D; readonly boxes: Float32Array }): Promise<Placed> {
     const world = this.ctx.game.runtime?.world, row = this.row;
     if (world === undefined || world === null || owner.disposed) throw new Error('Scene placement needs its resident world');
     const poses = copies === null ? row.poses : copies.map(index => { const pose = row.poses[index]; if (pose === undefined) throw new Error('Scene placement copy differs'); return pose; });
-    const boxes = row.drawnInto === undefined ? undefined : copies === null ? row.drawnInto.boxes : copies.flatMap(index => row.drawnInto?.boxes.slice(index * 6, index * 6 + 6) ?? []);
-    const borrowed = row.drawnInto === undefined ? undefined : this.handles?.object(row.drawnInto.part);
+    const into = typeof ranged === 'object' ? ranged : undefined;
+    const boxes = into !== undefined ? into.boxes : row.drawnInto === undefined ? undefined : copies === null ? row.drawnInto.boxes : copies.flatMap(index => row.drawnInto?.boxes.slice(index * 6, index * 6 + 6) ?? []);
+    const borrowed = into !== undefined ? into.object : row.drawnInto === undefined ? undefined : this.handles?.object(row.drawnInto.part);
     if (row.drawnInto !== undefined && borrowed === undefined) throw new Error('Scene placement needs its named part owner');
     await this.prepareMaterials(world.sky);
     requireLive(owner);
@@ -163,12 +215,13 @@ export class WorldScenePlacement {
     const placed = await withOwner(owner, () => placeSliced(row.colliders === undefined ? definition : { ...definition, colliders: () => [] },
       prepared,
       // E271 / E272: no multi-draw anywhere; a 'batched' row draws instanced (a graph look on a multi-draw batch did not compile)
-      { ctx: sharedModelContext(world.sky, world.game), registry: world.registry, draw: row.draw === 'batched' ? 'instanced' : row.draw,
+      { ctx: sharedModelContext(world.sky, world.game), registry: into !== undefined ? null : world.registry, draw: row.draw === 'batched' ? 'instanced' : row.draw,
         ...(boxes === undefined || borrowed === undefined ? {} : { drawnInto: { object: borrowed, boxes: Float32Array.from(boxes) } }),
         ...(row.cull === undefined ? {} : { cull }), ...(row.sortObjects === undefined ? {} : { sortObjects: row.sortObjects }),
-        ...(row.piece === undefined && preplaced === undefined && tile === undefined ? {} : { piece: { ...(pieceId === undefined ? {} : { id: pieceId }), ...(row.piece?.name === undefined ? {} : { name: row.piece.name }),
+        ...(row.piece === undefined && preplaced === undefined && tile === undefined && ranged !== 'whole' ? {} : { piece: { ...(pieceId === undefined ? {} : { id: pieceId }), ...(row.piece?.name === undefined ? {} : { name: row.piece.name }),
           // T3: a tile's colliders go on the collider ring (`attachColliders`), never with its draws
-          ...(tile !== undefined ? { collide: false as const } : preplaced === undefined ? {} : { colliders: preplaced }),
+          // a ranged placement's whole draw carries none either (its tiles' colliders are on the ring too)
+          ...(tile !== undefined || ranged === 'whole' ? { collide: false as const } : preplaced === undefined ? {} : { colliders: preplaced }),
           ...(row.piece?.solidFloor === undefined ? {} : { solidFloor: row.piece.solidFloor }),
           ...(row.piece?.follows === undefined ? {} : { follows: row.piece.follows }),
           ...(row.piece?.floors === undefined ? {} : { floor: this.floorAt.bind(this) }),
