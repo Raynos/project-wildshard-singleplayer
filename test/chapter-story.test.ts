@@ -27,11 +27,13 @@ import { buildQuestChapter } from '../src/game/quest/chapter';
 import { bindAdventurePersistence } from '../src/game/quest/persistence';
 import { FigureRows } from '../src/game/systems/npc/figureRows';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import persistenceRows from '../src/shards/nalati-grasslands/data/persistence.generated.json' with { type: 'json' };
+import { nalatiPersistenceRows } from '../src/shards/nalati-grasslands/generators/persistence';
 import { publishBoundQuest } from '../src/game/quest/boundState';
 import { PINE_LIFE_ORIGINAL as pineProgram } from './fixtures/pine-life';
 import pinePage from '../src/shards/pine-hollow/data/forestStory.json' with { type: 'json' };
 import kokpar from '../src/shards/nalati-grasslands/data/kokpar.generated.json' with { type: 'json' };
+
+const persistenceRows = nalatiPersistenceRows();
 
 afterEach(() => { vi.useRealTimers(); document.body.replaceChildren(); });
 

@@ -1,3 +1,4 @@
+import originalPersistence from './fixtures/nalati-persistence-original.json' with { type: 'json' };
 import { expect, test,vi } from 'vitest';
 import { entryOwner } from '../src/game/shardfile/entryOwners';
 import { enteredAdventurePersistence } from '../src/game/quest/chapterBindings';
@@ -11,10 +12,13 @@ import { bossesSave, elitesSave, progressSave } from '../src/game/saves';
 import { legacyAdventureNames,legacyAdventureCosmetics,legacyAdventureBond } from '../src/game/quest/legacyRecords';
 import { bindAdventurePersistence, installClientAdventurePersistence } from '../src/game/quest/persistence';
 import source from './fixtures/nalati-product-source';
-import rows from '../src/shards/nalati-grasslands/data/persistence.generated.json' with { type: 'json' };
+import { nalatiPersistenceRows } from '../src/shards/nalati-grasslands/generators/persistence';
 import { CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';
 
+const rows = nalatiPersistenceRows();
+
 test('Nalati adopts old saves, replays stable feat identities and reloads only declared records', () => {
+  expect(rows).toEqual(originalPersistence);
   const slug = source.identity.slug, instance = 'declared-nalati-old-save';
   const scope = new Scope(instance), next = new Scope(`${instance}-reload`);
   const previous = { bosses: bossesSave.read(slug), elites: elitesSave.read(slug), progress: progressSave.read(slug) };

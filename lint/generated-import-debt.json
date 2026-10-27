@@ -102,7 +102,7 @@
     "src/shards/nalati-grasslands/generators/nalati-world-inventory.mjs": 1,
     "src/shards/nalati-grasslands/generators/nativeGroups.ts": 7,
     "src/shards/nalati-grasslands/generators/nightProgram.mjs": 1,
-    "src/shards/nalati-grasslands/generators/output.ts": 27,
+    "src/shards/nalati-grasslands/generators/output.ts": 26,
     "src/shards/nalati-grasslands/generators/places.ts": 1,
     "src/shards/nalati-grasslands/generators/postChain.ts": 1,
     "src/shards/nalati-grasslands/generators/product.ts": 18,

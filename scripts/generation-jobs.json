@@ -547,39 +547,6 @@
       "platform": "portable"
     },
     {
-      "id": "nalati-persistence",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-persistence.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-persistence.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/nalati-grasslands/generators/bake-persistence.mjs",
-        "src/shards/nalati-grasslands/data/persistence.json",
-        "src/shards/nalati-grasslands/data/feats.json",
-        "src/shards/nalati-grasslands/data/chapterFeats.json",
-        "src/sdk/ledger.ts",
-        "src/format",
-        "scripts/bake-output.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/immutable.ts",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/sdk/package.json"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/data/persistence.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/persistence.generated.json"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "driftwood-isle-monkey-clips",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-monkey-clips.mjs",
@@ -5388,7 +5355,6 @@
         "src/shards/nalati-grasslands/generators/bake-nalati-places.d.mts",
         "src/shards/nalati-grasslands/generators/bake-nalati-places.mjs",
         "src/shards/nalati-grasslands/generators/peopleBake.ts",
-        "src/shards/nalati-grasslands/generators/bake-persistence.mjs",
         "src/shards/nalati-grasslands/generators/bake-recurve-pool.mjs",
         "src/shards/nalati-grasslands/generators/bake-riding.mjs",
         "src/shards/nalati-grasslands/generators/bake-rifle.mjs",
