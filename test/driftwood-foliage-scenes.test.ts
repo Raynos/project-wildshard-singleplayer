@@ -10,12 +10,16 @@ import { placeCollider, poseOf } from '../src/engine/models/colliders';
 import { decodePalmWorld, decodeHibiscusWorld, decodeReefWorld } from '../src/shards/driftwood-isle/generators/foliageGeometry';
 import { palmColliders } from '../src/shards/driftwood-isle/generators/foliageModels';
 import { compactChannels } from '../src/shards/driftwood-isle/generators/compactChannels';
+import { decimateFlatBatch } from '../src/shards/driftwood-isle/generators/phoneDecimate';
+
 import { withPortableMath } from '../src/commons/bake/portableMath';
 import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generated.json' with { type: 'json' };
 import reef from '../src/shards/driftwood-isle/data/reefLayout.generated.json' with { type: 'json' };
 import dressingBlobs from '../src/shards/driftwood-isle/data/dressingBlobs.generated.json' with { type: 'json' };
 import reefBlobs from '../src/shards/driftwood-isle/data/reefBlobs.generated.json' with { type: 'json' };
 import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_OUTPUT } from '../src/shards/driftwood-isle/generators/assets';
+/** the bake's phone errors (bake-foliage-scenes.mjs PHONE_ERROR) */
+const PHONE_ERROR = { palms: 0.08, hibiscus: 0.1, reef: 0.1 } as const;
 
 const finite=v.pipe(v.number(),v.finite());
 const placement=v.strictObject({...WorldScenePlacementSchema.entries,
@@ -64,7 +68,8 @@ test('finished foliage scene GLBs preserve every (compact) native channel, full 
       const expected = decode(fixtureBytes(new URL(source.source, project)), rows?.specs.length ?? reef.items.length);
       const intake = createOwnedGeometry(blob.name); await intake.load(fixtureBytes(new URL(blob.source, project)));
       // L18.3c: the bake ships the decode in compact storage (Int8 normals, Uint16 colours); every channel is that exactly
-      const actual = intake.take(), compact = compactChannels(expected.geometry.clone());
+      // L18.3e: the phone's batch is simplified first (phoneDecimate.ts, the bake's own errors); desktop ships the decode
+      const actual = intake.take(), compact = compactChannels(tier === 'phone' ? decimateFlatBatch(expected.geometry, PHONE_ERROR[kind]) : expected.geometry.clone());
       try {
         sameGeometry(actual, compact);
         if (kind !== 'reef') expect(data.placements[tier][kind].drawnInto.boxes).toEqual([...expected.boxes]);

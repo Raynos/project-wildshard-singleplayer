@@ -8,8 +8,12 @@ import { decodePalmWorld, decodeHibiscusWorld, decodeReefWorld } from './foliage
 import { DRIFT_SPECIMENS } from './driftLogs.ts';
 import { palm, hibiscusBush, palmColliders } from './foliageModels.ts';
 import { compactChannels } from './compactChannels.ts';
+import { decimateFlatBatch } from './phoneDecimate.ts';
+
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 import { installPortableMath } from '@wildshard/commons/bake/portableMath';
+/** L18.3e: how far (m) the phone's simplified batches may move a surface (board art/driftwood-isle/round-20-phone-decimation) */
+const PHONE_ERROR = { palms: 0.08, hibiscus: 0.1, reef: 0.1 };
 
 // Collider quaternions and placement matrices enter the exact map-world key.
 const restoreMath = installPortableMath();
@@ -44,7 +48,9 @@ try {
       if (kind === 'reef' && tier === 'desktop') continue;
       const batch = decode(source(name), rows.specs.length), file = `models/foliage/${kind}-${tier}.glb`, output = `assets/foliage-scenes/${kind}-${tier}.glb`;
       // L18.3c: exact positions, compact normals and colours (compactChannels.ts)
-      writer.put(fileURLToPath(new URL(output, project)), staticGlb([{ geometry: compactChannels(batch.geometry.clone()), material, customAttributes: { _SWAY: 'aSway' }, compactIndex: true, nativeAttributes: true, quantizedChannels: true }]));
+      // L18.3e (G769): the phone's batch with fewer triangles (phoneDecimate.ts, within PHONE_ERROR metres); desktop exact
+      const drawn = tier === 'phone' ? decimateFlatBatch(batch.geometry, PHONE_ERROR[kind]) : batch.geometry.clone();
+      writer.put(fileURLToPath(new URL(output, project)), staticGlb([{ geometry: compactChannels(drawn), material, customAttributes: { _SWAY: 'aSway' }, compactIndex: true, nativeAttributes: true, quantizedChannels: true }]));
       blobs.push({ name: file, kind: 'glb', source: output, options: { meshopt: true } });
       const model = modelRows.get(kind) ?? { id: kind, file: {}, attributes: {} }; model.file[tier] = file; modelRows.set(kind, model);
       if (kind !== 'reef') {
