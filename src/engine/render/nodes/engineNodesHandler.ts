@@ -80,7 +80,7 @@ import { GraphCodeKeys } from './graphCodeKeys';
 import { NodeProgramVariants } from './nodeProgramVariants';
 import { classicModelUniform } from './nodeObjectUniforms';
 import { registerShadowDepthResolver } from '../shadowDepthVariants';
-import { bindLazy, buildCensus, captureBuild, graphShape, keepBuild, lazyReads, pairShapes, rebindBuild, recordBuild, restoreBuild, reuseKey, unboundReads, type BuildCensus, type BuildOutput, type GraphShape, type KeptBuild, type LazyUniform } from './nodeBuildReuse';
+import { bindLazy, buildCensus, buildReads, captureBuild, graphShape, keepBuild, lazyReads, pairShapes, rebindBuild, recordBuild, restoreBuild, reuseKey, unboundReads, type BuildCensus, type BuildOutput, type GraphShape, type KeptBuild, type LazyUniform } from './nodeBuildReuse';
 import { graphNodeOwner } from './graphOwners';
 import { harnessPins } from '../../app/identity';
 
@@ -265,7 +265,9 @@ function sameSceneInput(held: WeakRef<object> | null, live: object | null): bool
 const KEPT_BUILDS = 96, KEPT_BYTES = 12 * 1024 * 1024;
 interface SceneBinding {
   readonly scene: WeakRef<object>; readonly rawKey: unknown; readonly lights: string;
-  readonly inputs: { readonly fog: WeakRef<object> | null; readonly environment: WeakRef<object> | null } | null;
+  /** the scene's fog and environment when built, and whether the build reads each (`buildReads`): one it does not read
+   *  may be swapped without a rebuild */
+  readonly inputs: { readonly fog: WeakRef<object> | null; readonly environment: WeakRef<object> | null; readonly reads: { readonly fog: boolean; readonly environment: boolean } } | null;
   readonly parameters: THREE.WebGLProgramParametersWithUniforms;
 }
 interface PendingBuild { readonly binding: SceneBinding | null; readonly uniformsGroups: unknown[]; readonly updateNodes: unknown; readonly uniforms: Record<string, unknown>; readonly programs: unknown; readonly slot: number }
@@ -895,7 +897,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       const real = key === null ? null : captureBuild(Reflect.get(material, '_latestBuilder'));
       if (key !== null && real !== null && shape !== null && owner !== undefined) {
         const { lazy, rest: unbound } = lazyReads(unboundReads(real, material, owner), owner);
-        if (unbound.length === 0) { this.reusable.set(key, new WeakRef(material)); this.reusableKeys.set(material, key); this.reusableBuilds.set(material, { output: real, shape, lazy, binding: this.sceneBinding(parameters) }); how += ' + kept'; }
+        if (unbound.length === 0) { this.reusable.set(key, new WeakRef(material)); this.reusableKeys.set(material, key); this.reusableBuilds.set(material, { output: real, shape, lazy, binding: this.sceneBinding(parameters, Reflect.get(material, '_latestBuilder')) }); how += ' + kept'; }
       }
     }
     this.disposeFirst(material);
@@ -936,7 +938,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
         console.warn(`[programShare] ${material.name || material.type} wrote other code under a shared program key: it keys by its own nodes from now on`);
       }
     }
-    pending.push({ binding: this.sceneBinding(parameters), uniformsGroups, updateNodes,
+    pending.push({ binding: this.sceneBinding(parameters, builder), uniformsGroups, updateNodes,
       uniforms: parameters.uniforms, programs, slot: programs instanceof Map ? programs.size : -1 });
     // A cold precompile may never draw. Retain only the stock fallback's runtime
     // view, not the builder's graph caches, source strings, scene and geometry.
@@ -1022,12 +1024,19 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     return next;
   }
 
-  private sceneBinding(parameters: THREE.WebGLProgramParametersWithUniforms): SceneBinding | null {
+  /** `builder`: the finished build (its uniforms and update lists, `buildReads`). An input absent when it was built counts
+   *  as read: a later one may be what its material lights with. */
+  private sceneBinding(parameters: THREE.WebGLProgramParametersWithUniforms, builder: unknown): SceneBinding | null {
     if (typeof parameters.customProgramCacheKey !== 'string' || !parameters.customProgramCacheKey.includes('|scene:shape:')) return null;
     const facts = this.currentBindingFacts();
-    return facts === null ? null : { scene: new WeakRef(facts.scene), rawKey: facts.rawKey, lights: facts.lights,
-      inputs: facts.inputs === null ? null : { fog: facts.inputs.fog === null ? null : new WeakRef(facts.inputs.fog),
-        environment: facts.inputs.environment === null ? null : new WeakRef(facts.inputs.environment) }, parameters };
+    if (facts === null) return null;
+    const inputs = facts.inputs, environmentNode: unknown = typeof builder === 'object' && builder !== null ? Reflect.get(builder, 'environmentNode') : undefined;
+    const reads = (input: object | null, node?: unknown): boolean => input === null
+      || buildReads(builder, typeof node === 'object' && node !== null ? [input, node] : [input]);
+    return { scene: new WeakRef(facts.scene), rawKey: facts.rawKey, lights: facts.lights,
+      inputs: inputs === null ? null : { fog: inputs.fog === null ? null : new WeakRef(inputs.fog),
+        environment: inputs.environment === null ? null : new WeakRef(inputs.environment),
+        reads: { fog: reads(inputs.fog), environment: reads(inputs.environment, environmentNode) } }, parameters };
   }
 
   private sameSceneBinding(binding: Omit<SceneBinding, 'parameters'> | null): boolean {
@@ -1047,8 +1056,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     if (binding.inputs === null || facts.inputs === null) {
       if (binding.rawKey !== facts.rawKey) mismatch += '+key';
     } else {
-      if (!sameSceneInput(binding.inputs.fog, facts.inputs.fog)) mismatch += '+fog';
-      if (!sameSceneInput(binding.inputs.environment, facts.inputs.environment)) mismatch += '+environment';
+      // a fog or environment the build never read binds nothing of it: swapping it changes none of its uniforms
+      if (binding.inputs.reads.fog && !sameSceneInput(binding.inputs.fog, facts.inputs.fog)) mismatch += '+fog';
+      if (binding.inputs.reads.environment && !sameSceneInput(binding.inputs.environment, facts.inputs.environment)) mismatch += '+environment';
     }
     return mismatch === '' ? null : mismatch.slice(1);
   }

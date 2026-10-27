@@ -136,6 +136,52 @@ export function captureBuild(builder: unknown): BuildOutput | null {
   return { vertexShader, fragmentShader, uniforms: { vertex: vertexUniforms, fragment: fragmentUniforms }, uniformGroups, updateNodes: updateNodes.filter(isNode) };
 }
 
+/**
+ * Whether a finished build reads any of `inputs` (a scene's environment texture and its node, or its fog): some node the
+ * build binds as a uniform or updates holds one, at any depth of its node fields. A material that lights with the scene's
+ * environment makes a PMREM node of that texture (`EnvironmentNode`), which the build updates before each render; a fog
+ * reads the scene's Fog through reference nodes. A build that holds none draws alike under any other one, so a swapped
+ * page environment (a region's own sky PMREM, made new each entry) does not change what it binds. True when the
+ * builder's lists cannot be read.
+ */
+export function buildReads(builder: unknown, inputs: readonly object[]): boolean {
+  if (typeof builder !== 'object' || builder === null) return true;
+  const roots: unknown[] = [];
+  for (const key of ['updateNodes', 'updateBeforeNodes', 'updateAfterNodes']) {
+    const nodes = list(builder, key);
+    if (nodes === null) return true;
+    roots.push(...nodes);
+  }
+  const uniforms: unknown = Reflect.get(builder, 'uniforms');
+  if (typeof uniforms !== 'object' || uniforms === null) return true;
+  for (const stage of ['vertex', 'fragment']) {
+    const entries = list(uniforms, stage);
+    if (entries === null) return true;
+    for (const entry of entries) roots.push(typeof entry === 'object' && entry !== null ? Reflect.get(entry, 'node') : entry);
+  }
+  const groups: unknown = Reflect.get(builder, 'uniformGroups');
+  const grouped: readonly unknown[] = typeof groups === 'object' && groups !== null ? Object.values(groups) : [];
+  for (const group of grouped) {
+    const members = typeof group === 'object' && group !== null ? list(group, 'uniforms') : null;
+    if (members === null) return true;
+    for (const member of members) {
+      const uniform: unknown = typeof member === 'object' && member !== null ? Reflect.get(member, 'nodeUniform') : undefined;
+      roots.push(typeof uniform === 'object' && uniform !== null ? Reflect.get(uniform, 'node') : member);
+    }
+  }
+  const held = new Set(inputs), seen = new Set<object>();
+  const reads = (value: unknown): boolean => {
+    if (typeof value !== 'object' || value === null) return false;
+    if (held.has(value)) return true;
+    if (seen.has(value)) return false;
+    if (!isNode(value) && !Array.isArray(value) && Object.getPrototypeOf(value) !== Object.prototype) return false;
+    seen.add(value);
+    const fields: readonly unknown[] = Array.isArray(value) ? value : Object.getOwnPropertyNames(value).map((name): unknown => Reflect.get(value, name));
+    return fields.some(reads);
+  };
+  return roots.some(reads);
+}
+
 /** a node's fields that never reach its code: identity, cache bookkeeping */
 const UNCODED = new Set(['id', 'uuid', 'version', '_cacheKey', '_cacheKeyVersion']);
 /** what a texture contributes to the code: its kind, formats and sampling flags (never its image) */
