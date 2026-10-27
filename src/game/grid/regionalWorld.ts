@@ -78,6 +78,7 @@ import { prepareManifestScalarBlocks,type ShardManifest } from '../shard/manifes
 import { prepareShardAssets } from '../shard/load';
 import { toLevelSpec } from '../shard/spec';
 import { prepareRegionalInputs } from './regionalInputs';
+import { regionalBuildCheckpoint } from './regionalBuildCheckpoint';
 import type { ShardWorld } from '../shard/world';
 import type { RegionalRuntimeFoundation, RegionalRuntimePage, RegionalRuntimeRequest, RegionalRuntimeTextures } from './regionalRuntime';
 import { frameLookOf, lookChainKind, regionChain, regionGrade, replacedKnobs, wholeChainKnobs, type FrameLookPort } from './frameLook';
@@ -246,6 +247,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
     const { slug: identity } = request.manifest;
     if (level.id !== identity) throw new Error('Regional level identity differs from its trusted manifest');
     const resident = request.scope.child(`grid.world:${cell.instance}`), left = (): boolean => resident.disposed;
+    const checkpoint = regionalBuildCheckpoint(resident, ports.pause);
     const textures = request.textures ?? resolveRegionalRuntimeTextures(request.manifest);
     // Exclusive runtime construction has retired the source. Keep the destination's policy through asynchronous
     // setup, then restore the page on the road. Entered frame scopes reinstall this same resolved policy for hooks.
@@ -286,7 +288,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       if (inputs.status === 'rejected') throw inputs.reason;
       if (simulation.status === 'rejected') throw simulation.reason;
       const { navmesh, look: levelLook } = inputs.value, host = simulation.value;
-      await ports.pause();
+      await checkpoint();
       if (left()) throw new Error('Regional world left while loading its navmesh');
       const water = ports.water?.(level) ?? new WaterBodies();
       // the level's own water bodies (its sea, a river, a pond), registered as a standalone boot registers them at level.data:
@@ -306,10 +308,10 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       const groundGrid = await slicedTerrainGrid((rows) => frame.run(app, rows), left);
       frame.run(app, () => { addTerrain(host.physics, groundGrid); });
       ports.install?.(host, request);
-      await ports.pause();
+      await checkpoint();
       if (left()) throw new Error('Regional world left while building its collision');
       const terrain = ports.terrain === undefined ? await regionalTerrain(level, resident, frame.terrain, levelLook) : await ports.terrain(level, resident, frame.terrain);
-      await ports.pause();
+      await checkpoint();
       if (left()) throw new Error('Regional world left while building its terrain');
       const presented = await regionalPresentation(request.admitted, request.entryPoint ?? request.manifest.spawn, scene, game.renderer, resident, () => game.sky.dayNight?.hour ?? null, request.allocator, cell.instance, sky, ports.tiles);
       if (left()) throw new Error('Regional world left while drawing its presentation ground');
@@ -321,12 +323,12 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       if (splatGroundDrawn(request.admitted.source.props)) terrain.retireMesh();
       const trees = level.trees?.factory;
       const factory = typeof trees === 'function' ? await (await trees())(game.renderer, sky) : new TreeFactory(game.renderer).buildEmpty();
-      await ports.pause();
+      await checkpoint();
       if (left()) throw new Error('Regional world left while building its trees');
       const forest = frame.run(app, () => new Forest(factory, sky).build({ drawnBy: level.trees?.drawnBy ?? 'self' }));
       if (forest.trees.length === 0) forest.group.visible = false; else scene.add(forest.group);
       terrain.applyCanopy(forest.canopyMap);
-      await ports.pause();
+      await checkpoint();
       if (left()) throw new Error('Regional world left while building its forest');
       // its look's sky dressing reads the cloud field at composition: the common bake arrives first, never a marched fbm
       if (levelLook?.sky?.build !== undefined && sky instanceof SkyRig) {
