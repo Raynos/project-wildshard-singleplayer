@@ -10,7 +10,7 @@ should be running in pre-push if they were fast."*
 
 ## Separate plans it links to (G647, never copied here)
 
-[TypeScript speed](tooling-perf/typescript-mini-plan.md) + [quick wins](tooling-perf/typescript-quick-wins-mini-plan.md) and
+[TypeScript speed](tooling-perf/typescript-mini-plan.md) + [quick wins](../../project/archive/2026-10-26-typescript-quick-wins.md) and
 [oxlint speed](tooling-perf/oxlint-mini-plan.md) (open, the builder builds them); [no binaries in JSON](tooling-perf/no-binaries-in-json-mini-plan.md)
 (open, G649); [generators spike / redesign](tooling-perf/generators-spike-mini-plan.md) (draft, G648/G650); `pnpm gen` speed
 (benchmark running → `tooling-perf/gen-mini-plan.md`); [fail fast](../../project/archive/2026-10-27-fail-fast.md) and G627/G628/G636

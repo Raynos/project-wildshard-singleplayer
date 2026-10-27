@@ -2,7 +2,7 @@
 
 **State:** `open` 2026-10-23 — **to the builder (G647)**; D1–D3 build on the recommended option until Jake picks. Benchmark by a plan-agent subagent. Its own plan, separate
 from [TOOLING-PERF](../TOOLING-PERF.md) and the [oxlint plan](oxlint-mini-plan.md) (Jake, 2026-10-23: *"three different mini
-plans. Don't merge them"*). Five-minute rows went to the builder as [typescript-quick-wins-mini-plan.md](typescript-quick-wins-mini-plan.md) (G646).
+plans. Don't merge them"*). Five-minute rows went to the builder as [archived TypeScript quick wins](../../../project/archive/2026-10-26-typescript-quick-wins.md) (G646).
 
 Goal (Jake): a full TypeScript check of the whole repo before push, warm in seconds (*"a warm full-type check taking seconds is fantastic"*).
 
