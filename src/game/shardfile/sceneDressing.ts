@@ -347,11 +347,14 @@ function unpackHulls(row:Exclude<SceneDressingRows['layers'][number]['contacts']
   const packed=files.get(row.file);
   if(packed===undefined)throw new Error('Missing scene contact bytes');
   const bytes=unzlibSync(packed),view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);let at=0;
-  // Bound temporary number lanes without rebuilding the admission schema for every hull.
+  // G782: each hull reads its packed float32 lane straight into its own owned points, finite-checked as the collider
+  // grammar does; its origin and surface were admitted with the dressing rows (no temporary number lane, no second copy).
   const owned:ReturnType<typeof contacts>=[];
-  for(let start=0;start<row.origins.length;start+=64){
-    const rows=row.origins.slice(start,start+64).map(([x,y,z,count])=>{const points=Array.from({length:count},(_,i)=>view.getFloat32((at+i)*4,true));at+=count;return{kind:'hull',x,y,z,points,surface:row.surface};});
-    owned.push(...contacts(rows));
+  for(const [x,y,z,count] of row.origins){
+    if((at+count)*4>bytes.length)throw new Error('Packed scene contacts differ from their origins');
+    const points=new Float32Array(count);
+    for(let i=0;i<count;i++){const value=view.getFloat32((at+i)*4,true);if(!Number.isFinite(value))throw new Error('Collider values must be finite');points[i]=value;}
+    at+=count;owned.push({kind:'hull',x,y,z,surface:row.surface,points});
   }
   if(at*4!==bytes.length)throw new Error('Packed scene contacts differ from their origins');return owned;
 }
