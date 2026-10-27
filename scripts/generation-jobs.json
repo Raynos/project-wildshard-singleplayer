@@ -10657,7 +10657,8 @@
         "package.json",
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
-        "scripts/map-geometry.mjs"
+        "scripts/map-geometry.mjs",
+        "public/assets/models/driftwood-hero/faces/wendell-head.glb"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/mapAssembly.generated.json",

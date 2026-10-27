@@ -41,7 +41,7 @@ export class MapWorld {
     if (geometry !== undefined) return geometry.clone();
     const library = this.section.libraries.find(row => row.id === ref.library);
     const model = library?.models.find(row => row.id === ref.model), file = this.files.get(typeof model?.file === 'string' ? model.file : model?.file?.desktop);
-    if (typeof file !== 'string') throw new Error(`Missing map world geometry ${key}`);
+    if (typeof file !== 'string' && !(file instanceof Uint8Array)) throw new Error(`Missing map world geometry ${key}`);
     geometry = await mapModel(file); this.geometry.set(key, geometry); return geometry.clone();
   }
   ghost(id, locals = []) {

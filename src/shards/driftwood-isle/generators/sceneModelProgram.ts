@@ -13,7 +13,12 @@ const isMesh = (value: unknown): value is Mesh => value instanceof Mesh;
  *  streams: built from the owned fixed models at product build (GR7: they were the `driftwood-world-scene-models` job's
  *  GLBs under src). */
 export async function driftwoodSceneModelOutput(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<EmittedBlobs> {
-  const fixed = await driftwoodFixedFiles(ctx), material = new MeshStandardMaterial();
+  return driftwoodSceneModelBytes(await driftwoodFixedFiles(ctx));
+}
+
+/** The same original scene-model bytes over an explicit owned fixed bank, including retained map callers. */
+export async function driftwoodSceneModelBytes(fixed: ReadonlyMap<string, Uint8Array>): Promise<EmittedBlobs> {
+  const material = new MeshStandardMaterial();
   try {
     const blobs = [];
     for (const [source, name] of SCENE_MODELS) {

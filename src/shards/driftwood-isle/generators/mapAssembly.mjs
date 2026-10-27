@@ -10,6 +10,9 @@ import { siteCatalogue } from './siteCatalogue.ts';
 import { WORLD_DROP } from './sea.ts';
 import { ISLAND_PROTO_INPUTS, driftwoodIslandProtoSource } from './islandProtoProgram.ts';
 import { originalBridgeFacts } from './driftwoodBridge.mjs';
+import { DRIFTWOOD_FIXED_INPUTS, driftwoodFixedBytes } from './fixedProgram.ts';
+import { FIXED_MODEL_NAMES } from './modelFiles.ts';
+import { driftwoodSceneModelBytes } from './sceneModelProgram.ts';
 
 const base = resolve(import.meta.dirname, '..'), root = resolve(base, '../../..');
 const read = file => readMapJson(resolve(base, file));
@@ -67,10 +70,21 @@ async function coverRest(assembly, file, fixed) {
 
 export async function driftwoodMapAssembly() {
   const assembly = new MapAssembly(), catalogue = siteCatalogue(), piers = read('data/pierScenes.generated.json'), foliage = read('data/foliageScenes.generated.json');
-  const blobs = [...DRIFTWOOD_OUTPUT.blobs, ...SCENE_MODEL_BLOBS], recipes = [named('scenes/rocks.json', read('data/rockScenes.generated.json').scene), named('scenes/zipline.json', piers.zipScene),
+  const fixedFiles = await driftwoodFixedBytes(new Map(DRIFTWOOD_FIXED_INPUTS.map(name => [name, new Uint8Array(readFileSync(resolve(root, `public${name}`)))])));
+  const fixedBlobs = Object.entries(FIXED_MODEL_NAMES).map(([url, name]) => {
+    const bytes = fixedFiles.get(`baked/fixed-models/${url.slice(url.lastIndexOf('/') + 1)}`);
+    if (bytes === undefined) throw new Error(`Missing owned map fixed model: ${name}`);
+    return { file: { name, kind: 'glb' }, bytes };
+  });
+  const scenes = await driftwoodSceneModelBytes(fixedFiles), sceneBlobs = scenes.files.map(file => {
+    const bytes = scenes.assets.get(file.hash);
+    if (bytes === undefined) throw new Error(`Missing owned map scene model: ${file.name}`);
+    return { file, bytes };
+  });
+  const blobs = [...fixedBlobs, ...sceneBlobs, ...DRIFTWOOD_OUTPUT.blobs, ...SCENE_MODEL_BLOBS], recipes = [named('scenes/rocks.json', read('data/rockScenes.generated.json').scene), named('scenes/zipline.json', piers.zipScene),
     named('scenes/moorings.json', simple('lines', 'still')), ...['palms', 'hibiscus', 'reef', 'logs'].map(kind => named(`scenes/${kind}.json`, simple('plant'))),
     ...['cascade', 'cove', 'wreck', 'trail'].map(kind => named(`scenes/${kind}.json`, read(`data/${kind === 'trail' ? 'trail' : kind}Scene.json`)))];
-  const world = new MapWorld(assembly, base, WORLD_SCENES, catalogue, [...blobs, ...recipes]), files = new Map(blobs.map(row => [row.name, resolve(base, row.source)]));
+  const world = new MapWorld(assembly, base, WORLD_SCENES, catalogue, [...blobs, ...recipes]), files = new Map(blobs.map(row => row.file === undefined ? [row.name, resolve(base, row.source)] : [row.file.name, row.bytes]));
   const fixed = slot => { const file = files.get(DRIFTWOOD_FIXED_SOURCES[slot]); if (file === undefined) throw new Error(`Missing map fixed shape ${slot}`); return file; };
   for (const blob of read('data/groundBlobs.generated.json').blobs) for (const [name, geometry] of await mapPool(resolve(base, blob.source), true)) assembly.add(`ground:${name}`, geometry);
   for (const step of WORLD_SCENES.steps) await world.recipe(step, new Matrix4(), step.id === 'cascade' ? ['puffs'] : []);
