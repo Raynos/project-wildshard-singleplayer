@@ -81,11 +81,13 @@ export function workSlice(budgetMs: number = WORK_SLICE_MS, owner?: Scope): Work
   const slice: WorkSlice = {
     // in play the budget is also the frame's (op-hitch44): every build running at once shares it, so a second build's
     // stretch never follows the first one's before the frame they both owe is drawn
-    due: () => { const now = diagnosticNow(); return now - start >= heldBudget(budgetMs) || frameBudgetSpent(budgetMs, now); },
+    // A read/decode may have awaited several draws since this slice started.
+    // Only work since the current drawn frame spends a live CPU slice.
+    due: () => { const now = diagnosticNow(); return presenting(now) ? frameBudgetSpent(budgetMs, now) : now - start >= heldBudget(budgetMs); },
     // in play with a frame due, the stretch ends only once the loop has drawn it (op-hitch26: timer tasks ran back to back)
     yield: async () => {
       const scope = owner ?? resourceScope();
-      await paceYield(() => yieldTask(scope), scope, budgetMs);
+      await paceYield(() => buildTurn(scope), scope, budgetMs);
       if (scope.disposed) throw new Error('build stopped: its scope has closed');
       start = diagnosticNow();
     },
