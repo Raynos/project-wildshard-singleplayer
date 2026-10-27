@@ -137,11 +137,14 @@ function planarUv(position: Float32Array, normal: ArrayLike<number>, bucketOf: I
  */
 function rockColours(positions: Float32Array, colours: Float32Array, bucketOf: Int8Array, surface: ReadonlyMap<number, readonly [number, number, number] | undefined>, out: Float32Array): void {
   if (surface.size === 0) return;
-  const cell = 2, key = (x: number, z: number): string => `${String(Math.round(x / cell))},${String(Math.round(z / cell))}`;
-  const ground = new Map<string, number[]>();
+  const cell = 2, ground = new Map<number, Map<number, number[]>>();
   for (let k = 0; k < bucketOf.length; k++) if (bucketOf[k] === 0) {
-    const id = key(positions[k * 3] ?? 0, positions[k * 3 + 2] ?? 0), list = ground.get(id) ?? [];
-    list.push(k); ground.set(id, list);
+    const x = Math.round((positions[k * 3] ?? 0) / cell), z = Math.round((positions[k * 3 + 2] ?? 0) / cell);
+    let column = ground.get(x);
+    if (column === undefined) { column = new Map(); ground.set(x, column); }
+    let list = column.get(z);
+    if (list === undefined) { list = []; column.set(z, list); }
+    list.push(k);
   }
   for (const [k, resolved] of surface) {
     let rgb: readonly [number, number, number] | undefined = resolved;
@@ -149,7 +152,7 @@ function rockColours(positions: Float32Array, colours: Float32Array, bucketOf: I
       const x = positions[k * 3] ?? 0, z = positions[k * 3 + 2] ?? 0, cx = Math.round(x / cell), cz = Math.round(z / cell);
       let best = Infinity, found = -1;
       for (let r = 0; r <= 3 && found < 0; r++) for (let i = -r; i <= r; i++) for (let j = -r; j <= r; j++) {
-        for (const g of ground.get(`${String(cx + i)},${String(cz + j)}`) ?? []) {
+        for (const g of ground.get(cx + i)?.get(cz + j) ?? []) {
           const d = ((positions[g * 3] ?? 0) - x) ** 2 + ((positions[g * 3 + 2] ?? 0) - z) ** 2 + ((positions[g * 3 + 1] ?? 0) - (positions[k * 3 + 1] ?? 0)) ** 2 * 0.01;
           if (d < best) { best = d; found = g; }
         }

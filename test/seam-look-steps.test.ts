@@ -38,3 +38,23 @@ test('the seam merge in steps yields between strips and keeps three\'s own norma
   expect(geometry.boundingSphere?.radius).toBe(reference.boundingSphere?.radius);
   expect(geometry.getAttribute('normal')).toBeInstanceOf(BufferAttribute);
 });
+
+test('palette lookup preserves negative-zero bins, neighbour order and explicit surfaces', () => {
+  const positions = Float32Array.of(-2, 0, 0, 0, 0, 0, 2, 0, 0, 1, 3, 0, 0, 4, 1, -1, 2, 0);
+  const colours = Float32Array.of(0.1, 0.1, 0.8, 0.8, 0.1, 0.1, 0.1, 0.8, 0.1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+  const grey = [0.32, 0.3, 0.28], expectedGround = [2, 1, 1];
+  for (const resolved of [false, true]) {
+    const piece: SeamPiece = { mesh: { origin: { x: 0, z: 0 }, positions, colours, indices: Uint32Array.of(0, 1, 2, 3, 4, 5) },
+      features: [{ kind: 'deck', firstIndex: 0, indexCount: 3 }, { kind: 'cliff', firstIndex: 3, indexCount: 3, sourceSurface: 'soil' }] };
+    const surface = [0.4, 0.2, 0.6] as const;
+    const steps = seamLookGeometrySteps([piece], { origin: { x: 0, z: 0 } }, resolved ? () => surface : undefined);
+    let result = steps.next(); while (!result.done) result = steps.next();
+    const geometry = result.value.geometry, actual = geometry.getAttribute('color');
+    try {
+      for (let k = 0; k < expectedGround.length; k++) for (let c = 0; c < 3; c++) {
+        const g = expectedGround[k] ?? 0, own = resolved ? surface[c] ?? 0 : colours[g * 3 + c] ?? 0;
+        expect(actual.array[(k + 3) * 3 + c]).toBe(Math.fround((own * 0.6 + (grey[c] ?? 0) * 0.4) * 0.9));
+      }
+    } finally { geometry.dispose(); }
+  }
+});
