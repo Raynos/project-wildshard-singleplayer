@@ -48,6 +48,7 @@
     "./bake/glb": "./bake/glb.ts",
     "./bake/coarseCopy": "./bake/coarseCopy.ts",
     "./bake/glbCompression": "./bake/glbCompression.ts",
+    "./bake/compactGlb": "./bake/compactGlb.ts",
     "./bake/nearPlaceholder": "./bake/nearPlaceholder.ts",
     "./bake/placeholders": "./bake/placeholders.ts",
     "./bake/farImpostor": "./bake/farImpostor.ts",

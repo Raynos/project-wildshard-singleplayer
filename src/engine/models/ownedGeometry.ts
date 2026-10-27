@@ -7,6 +7,26 @@ function isGeometryMesh(node: Object3D): node is Mesh {
   return geometry instanceof BufferGeometry && (material instanceof Material || (Array.isArray(material) && material.every((item: unknown) => item instanceof Material)));
 }
 
+/** iPhone downloads I3: a phone-tier model whose positions are 16-bit integers on its own grid (KHR_mesh_quantization):
+ *  its node carries only the grid's uniform scale and translation (compactPhoneGlb), no rotation. */
+function gridQuantized(mesh: Mesh): boolean {
+  const position = mesh.geometry.getAttribute('position'), e = mesh.matrixWorld.elements;
+  // a padded 8-byte stride reads back interleaved; either way the storage is normalized Int16
+  const array: unknown = 'isInterleavedBufferAttribute' in position ? position.data.array : position.array;
+  if (!(array instanceof Int16Array) || !position.normalized) return false;
+  const scale = e[0];
+  return scale !== undefined && scale > 0 && e[5] === scale && e[10] === scale && e[15] === 1
+    && [1, 2, 3, 4, 6, 7, 8, 9, 11].every(i => e[i] === 0);
+}
+/** Float positions back in the model's own space: the grid scale and translation baked in, the node left out (every
+ *  intake reader draws a baked model in identity space). Normals and colours keep their compact normalized storage. */
+function dequantizeIntoSpace(geometry: BufferGeometry, mesh: Mesh): void {
+  const position = geometry.getAttribute('position'), out = new Float32Array(position.count * 3);
+  for (let i = 0; i < position.count; i++) { out[i * 3] = position.getX(i); out[i * 3 + 1] = position.getY(i); out[i * 3 + 2] = position.getZ(i); }
+  geometry.setAttribute('position', new BufferAttribute(out, 3));
+  geometry.applyMatrix4(mesh.matrixWorld);
+}
+
 const raw = (attribute: BufferAttribute): Uint8Array => new Uint8Array(attribute.array.buffer, attribute.array.byteOffset, attribute.array.byteLength);
 const storage = (value: unknown): value is (new(buffer: ArrayBuffer) => TypedArray) => [Float32Array, Float64Array, Uint32Array, Int32Array, Uint16Array, Int16Array, Uint8Array, Int8Array, Uint8ClampedArray].some(type => type === value);
 function appendAttributes(parts: readonly BufferAttribute[]): BufferAttribute {
@@ -79,11 +99,13 @@ export function createOwnedGeometry(url: string, channels: Readonly<Record<strin
       const [mesh] = meshes;
       if (mesh === undefined || meshes.length !== 1) throw new Error(`Baked model needs one mesh: ${url}`);
       gltf.scene.updateMatrixWorld(true);
-      if (mesh.matrixWorld.elements.some((value, i) => value !== (i % 5 === 0 ? 1 : 0))) throw new Error(`Baked model needs identity space: ${url}`);
+      const quantized = gridQuantized(mesh);
+      if (!quantized && mesh.matrixWorld.elements.some((value, i) => value !== (i % 5 === 0 ? 1 : 0))) throw new Error(`Baked model needs identity space: ${url}`);
       // The parser and this intake are the only owners of this single mesh.
       // Borrowed BufferGeometry input still copies in load(); private GLB
       // attributes can pass directly into the intake instead of doubling them.
       const geometry = mesh.userData['nativeAttributes'] === undefined ? mesh.geometry : nativeWholeGeometry(mesh, 'take');
+      if (quantized) dequantizeIntoSpace(geometry, mesh);
       const index = geometry.getIndex();
       // The deterministic GLB writer emits identity indices for an authored triangle soup; restore its original draw.
       if (mesh.userData['nativeAttributes'] === undefined && index !== null && index.count === geometry.getAttribute('position').count && index.array.every((value, i) => value === i)) geometry.setIndex(null);
