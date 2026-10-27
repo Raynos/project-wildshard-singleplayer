@@ -19,7 +19,7 @@ import { driftwoodLookMaterials } from './lookMaterials';
 import { driftwoodSkyChannels } from './skyChannels';
 import { parseClientChannels } from '@wildshard/sdk/rows';
 import captainCoat from '../data/captainCoat.json' with { type: 'json' };
-import bridgeSwayModule from '../behaviour/bridgeSway.generated.json' with { type: 'json' };
+import type { DriftwoodGuestRows } from './guestPrograms';
 
 
 // SF46 step 1: content and the existing look stay in the declared trusted entry until the grid-ready bake lands.
@@ -41,13 +41,13 @@ const row = (authored: readonly number[]): { heights: number[]; colours: [number
   return { heights, colours: heights.map((): [number, number, number] => [0.5, 0.5, 0.5]), roadHeight: 0 };
 };
 /** Compose the unchanged admitted declaration from caller-owned fixed-world values. */
-export function driftwoodProductRows(fixed: DriftwoodFixedProduct, audio: AudioData): ReturnType<typeof parseShardfile> {
+export function driftwoodProductRows(fixed: DriftwoodFixedProduct, audio: AudioData, bridgePages: DriftwoodGuestRows['bridge']['pages']): ReturnType<typeof parseShardfile> {
 const questRows = driftwoodQuestRows();
 const simulationFiles = [...navigation.files, ...fixed.files.filter(file => fixed.critical.includes(file.hash))];
 // G7: the Drowned Captain's painted coat, an admitted look texture his graph samples by hash (generators/bake-captain-coat.mjs)
 const coat = captainCoat.file;
 // The fixed view guest retains live and rewind memory under the existing client limits.
-const viewMemory = bridgeSwayModule.pages * 65536 * 2;
+const viewMemory = bridgePages * 65536 * 2;
 return parseShardfile({
   ...base,state:{...base.state,shared:CAPTAIN_FIELDS}, rows: { ...base.rows, loot: [LOOT] },
   sim: { ...base.sim, scripts: [] },
