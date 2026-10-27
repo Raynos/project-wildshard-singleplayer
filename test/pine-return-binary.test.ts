@@ -174,8 +174,9 @@ test('shelter preparation keeps detached cached bytes and refuses a missing comp
 test('shelter preparation rejects stale compiler metadata and a substituted cache payload', async () => {
   const compiler = context.compileDecisionRows;
   if (compiler === undefined) throw new Error('Real build compiler is required');
-  const cold = { ...context, cached: (_step: Parameters<typeof context.cached>[0], generate: Parameters<typeof context.cached>[1]) =>
-    Promise.resolve(generate(new Map([['behaviour/shelter.as', new Uint8Array(readFileSync('src/shards/pine-hollow/behaviour/shelter.as'))]]))) };
+  // only the shelter compile runs cold: every other step (the program's declared sources among them) reads as built
+  const cold = { ...context, cached: (step: Parameters<typeof context.cached>[0], generate: Parameters<typeof context.cached>[1]) => step.id !== 'shelter-program' ? context.cached(step, generate)
+    : Promise.resolve(generate(new Map([['behaviour/shelter.as', new Uint8Array(readFileSync('src/shards/pine-hollow/behaviour/shelter.as'))]]))) };
   await expect(prepareOutput({ ...cold, compileDecisionRows: async (...args) => {
     const built = await compiler(...args);
     return { ...built, rows: built.rows.map(row => { const changed = structuredClone(row); changed.pages = 2; return changed; }) };

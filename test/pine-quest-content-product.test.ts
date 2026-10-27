@@ -4,6 +4,8 @@ import boss from '../src/shards/pine-hollow/data/bossEncounter.json' with { type
 import sky from '../src/shards/pine-hollow/data/sky.json' with { type: 'json' };
 import { pineSpots as pineSpotRows } from '../src/shards/pine-hollow/generators/spots';
 import { pineSpots } from '../src/shards/pine-hollow/generators/questPrompts';
+// oxlint-disable-next-line import/no-nodejs-modules -- the build's input roots are repository folders
+import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { readProjectAssets } from '../src/sdk/project';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
@@ -14,6 +16,7 @@ import { PINE_QUEST_RUNTIME } from '../src/shards/pine-hollow/generators/questRu
 import { parseNativeQuestComposition } from '../src/format/nativeQuestComposition';
 import { NATIVE_CHAPTER_DIRECTOR } from '../src/shards/pine-hollow/generators/chapterDirector';
 import { PINE_SOURCES } from './fixtures/pine-sources';
+import { decisionLegacyLines } from '../scripts/decision-legacy-lines.mjs';
 
 const { FOREST_STORY } = forestStory(PINE_SOURCES);
 
@@ -35,7 +38,12 @@ const originals = {
 const hash = (value: unknown): string => hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(value)));
 
 test('the retained producer preserves the entire quest and NPC declarations in the admitted product', async () => {
-  const loaded = await readProjectAssets('src/shards/pine-hollow');
+  // the build's declared input roots and decision line budget (scripts/wildshard.mjs): Pine's ground tiles list the baked
+  // terrain under /assets/, and its decision scripts compile under the shard's line ceiling
+  const legacyLines = decisionLegacyLines(resolve('.'), 'pine-hollow');
+  const loaded = await readProjectAssets('src/shards/pine-hollow', undefined, { folder: 'pine-hollow', imageRoots: [
+    { prefix: '/src/shards/pine-hollow/', directory: resolve('src/shards/pine-hollow') }, { prefix: '/assets/', directory: resolve('public/assets') }] },
+  legacyLines === undefined ? {} : { decisionLegacyLines: legacyLines });
   const quests = parseQuestData(pinePeople.quests);
   const { achievements: _achievements, ...gameplay } = loaded.shard.quests;
   // Quest-owned interaction flags must not change the existing AS handles or
