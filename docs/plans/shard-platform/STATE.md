@@ -2,7 +2,8 @@
 
 **Order (G639):** (1) live reds → (2) NALATI 0 → (3) grid / frame floor → extras.
 
-**(1) LIVE 59a595ab10 (00:56Z 10-27). Push blocker cleared ~03:50Z (gate reads committed source; backlog pushed).
+**(1) LIVE 59a595ab10 (00:56Z 10-27). Push gate red again since ~03:50Z on sp-x7's committed-tree native-output step
+(60ae4c0e2d chain; 47 commits local at 05:17Z): fallback ordered, that step 'Gate-deferred: native-outputs' (G757).
 Green main (G751-G760) tops the queue: GM2/GM6 sp-x2, GM3/GM7 sp-x9, GM4 sp-x6/sp-x1, GM5 sp-x1; no CI cancels (GM1).
 
 **(2) NALATI 0 done (27dd969127).** HOST-AUDIT (G679) parked until every mini plan finishes. Legacy waits (G606).
