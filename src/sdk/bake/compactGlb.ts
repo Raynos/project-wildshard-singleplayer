@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The build measures each file's wire bytes with the deploy's brotli.
 import { brotliCompressSync, constants } from 'node:zlib';
-import { WebIO, type Accessor, type Document } from '@gltf-transform/core';
+import { WebIO, type Accessor, type Document, type Mesh, type Node } from '@gltf-transform/core';
 import { ALL_EXTENSIONS, KHRMeshQuantization, type InstancedMesh } from '@gltf-transform/extensions';
 import { MeshoptDecoder } from 'meshoptimizer';
 import { compressGlb } from './glbCompression';
@@ -32,11 +32,12 @@ const compacted = new Map<string, Uint8Array | null>();
  * instead (the instance applies after the vertex). A meshopt input is decoded first and competes as it was. Only a file
  * with exactly one mesh on one identity-space node, float positions and no skin, morph target or animation is compacted
  * (channels already quantized stay as they are); every other file, and every channel but POSITION / NORMAL / COLOR_0, passes through unchanged.
+ * `each`: a bank of named meshes, each on its own root identity node (a rest pool), puts every node on its own grid.
  */
-export async function compactPhoneGlb(input: Uint8Array, options: { readonly contain?: true } = {}): Promise<Uint8Array> {
+export async function compactPhoneGlb(input: Uint8Array, options: { readonly contain?: true; readonly each?: true } = {}): Promise<Uint8Array> {
   // the pick is a pure function of the bytes: a producer that prepares its output again (a test's second prepareOutput, a
   // rebuild in one process) reuses it instead of re-running the meshopt and brotli trials; a hit hands back its own copy
-  const key = `${options.contain === true ? 'contain' : 'grid'}:${hashImmutableBytes(input)}`, known = compacted.get(key);
+  const key = `${options.contain === true ? 'contain' : 'grid'}${options.each === true ? '-each' : ''}:${hashImmutableBytes(input)}`, known = compacted.get(key);
   if (known === null) return input;
   if (known !== undefined) return Uint8Array.from(known);
   const result = await compactOnce(input, options);
@@ -44,22 +45,16 @@ export async function compactPhoneGlb(input: Uint8Array, options: { readonly con
   return result;
 }
 
-async function compactOnce(input: Uint8Array, options: { readonly contain?: true }): Promise<Uint8Array> {
-  await MeshoptDecoder.ready;
-  const io = new WebIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
-  const doc = await io.readBinary(Uint8Array.from(input)), root = doc.getRoot();
-  const used = new Set(root.listExtensionsUsed().map(extension => extension.extensionName));
-  const nodes = root.listNodes().filter(node => node.getMesh() !== null), node = nodes[0], mesh = node?.getMesh();
-  if (nodes.length !== 1 || node === undefined || mesh === null || mesh === undefined || root.listMeshes().length !== 1
-    || root.listSkins().length > 0 || root.listAnimations().length > 0
-    || node.getMatrix().some((value, i) => value !== (i % 5 === 0 ? 1 : 0)) || node.getParentNode() !== null) return input;
+/** Put one root mesh node on its own uniform grid (16-bit positions, Int8 normals, Uint8 colours in [0, 1]); false,
+ *  changing nothing, when its mesh cannot be (no float vec3 positions, morph targets, or instances that will not fold). */
+function gridNode(doc: Document, node: Node, mesh: Mesh, contain: boolean): boolean {
   const primitives = mesh.listPrimitives();
-  if (primitives.length === 0 || primitives.some(primitive => primitive.listTargets().length > 0)) return input;
+  if (primitives.length === 0 || primitives.some(primitive => primitive.listTargets().length > 0)) return false;
   // one uniform grid for the whole mesh (a non-uniform scale would bend its normals)
   const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity], point: number[] = [];
   for (const primitive of primitives) {
     const position = primitive.getAttribute('POSITION');
-    if (position === null || position.getComponentType() !== 5126 || position.getElementSize() !== 3) return input;
+    if (position === null || position.getComponentType() !== 5126 || position.getElementSize() !== 3) return false;
     for (let i = 0; i < position.getCount(); i++) {
       position.getElement(i, point);
       for (let axis = 0; axis < 3; axis++) { const value = point[axis] ?? 0; min[axis] = Math.min(min[axis] ?? 0, value); max[axis] = Math.max(max[axis] ?? 0, value); }
@@ -69,7 +64,7 @@ async function compactOnce(input: Uint8Array, options: { readonly contain?: true
   const centre: [number, number, number] = [mid(0), mid(1), mid(2)];
   const half = Math.max(...[0, 1, 2].map(axis => ((max[axis] ?? 0) - (min[axis] ?? 0)) / 2), 1e-6);
   const instances = node.getExtension<InstancedMesh>('EXT_mesh_gpu_instancing');
-  if (instances !== null && !foldGrid(doc, instances, centre, half)) return input;
+  if (instances !== null && !foldGrid(doc, instances, centre, half)) return false;
   const done = new Set<Accessor>();
   for (const primitive of primitives) {
     const position = primitive.getAttribute('POSITION'), normal = primitive.getAttribute('NORMAL'), colour = primitive.getAttribute('COLOR_0');
@@ -80,7 +75,7 @@ async function compactOnce(input: Uint8Array, options: { readonly contain?: true
         for (let axis = 0; axis < 3; axis++) {
           let q = Math.round(((point[axis] ?? 0) - (centre[axis] ?? 0)) / half * 32767);
           // `contain`: a grid step never carries a vertex past the mesh's own bounds (a placed tile's cell edge, ±250 m)
-          if (options.contain === true) {
+          if (contain) {
             const at = (step: number): number => step / 32767 * half + (centre[axis] ?? 0);
             while (q > -32767 && at(q) > (max[axis] ?? 0)) q--;
             while (q < 32767 && at(q) < (min[axis] ?? 0)) q++;
@@ -116,6 +111,25 @@ async function compactOnce(input: Uint8Array, options: { readonly contain?: true
     }));
     node.setExtras({ ...extras, nativeAttributes: rows });
   }
+  return true;
+}
+
+async function compactOnce(input: Uint8Array, options: { readonly contain?: true; readonly each?: true }): Promise<Uint8Array> {
+  await MeshoptDecoder.ready;
+  const io = new WebIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
+  const doc = await io.readBinary(Uint8Array.from(input)), root = doc.getRoot();
+  const used = new Set(root.listExtensionsUsed().map(extension => extension.extensionName));
+  const nodes = root.listNodes().filter(node => node.getMesh() !== null), node = nodes[0], mesh = node?.getMesh();
+  if (root.listSkins().length > 0 || root.listAnimations().length > 0 || node === undefined || mesh === null || mesh === undefined) return input;
+  if (options.each !== true && (nodes.length !== 1 || root.listMeshes().length !== 1
+    || node.getMatrix().some((value, i) => value !== (i % 5 === 0 ? 1 : 0)) || node.getParentNode() !== null)) return input;
+  if (options.each === true) {
+    // `each`: every mesh on its own root identity node, each node gridded alone (a rest-pool bank of named shapes)
+    const meshes = new Set(nodes.map(row => row.getMesh()));
+    if (meshes.size !== nodes.length || nodes.some(row => row.getParentNode() !== null || row.getExtension('EXT_mesh_gpu_instancing') !== null
+      || row.getMatrix().some((value, i) => value !== (i % 5 === 0 ? 1 : 0)))) return input;
+    for (const row of nodes) { const own = row.getMesh(); if (own === null || !gridNode(doc, row, own, options.contain === true)) return input; }
+  } else if (!gridNode(doc, node, mesh, options.contain === true)) return input;
   if (!used.has('KHR_mesh_quantization')) doc.createExtension(KHRMeshQuantization).setRequired(true);
   // a meshopt input was decoded on read: the quantized file is written plain, and packed again below
   for (const extension of root.listExtensionsUsed()) if (extension.extensionName === 'EXT_meshopt_compression') extension.dispose();

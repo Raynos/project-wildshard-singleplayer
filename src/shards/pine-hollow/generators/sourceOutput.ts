@@ -101,6 +101,7 @@ import { pineDensityBlob } from './forestRows';
 import manifest from '../manifest.json' with { type: 'json' };
 import publicInputs from '../data/publicInputs.json' with { type: 'json' };
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import { compactPhoneGlb } from '@wildshard/sdk/bake/compactGlb';
 
 // GR8: called, not read from a scheduler job's output
 const spots = pineSpots();
@@ -324,7 +325,9 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Pine
   const shelter = await returnModule(ctx, 'shelter');
   const life = await returnModule(ctx, 'life'), birds = await phoneBirdsAtlasOutput(ctx), client = await pineClientBlobs(ctx), creatures = await pineCreatureBlobs(ctx), rigs = await pineRigBlobs(ctx), contracts = await contractModule(ctx), night = await nightModule(ctx), clock = await clockDirector(ctx), elites = await eliteModules(ctx), journal = emitNamedBlobs((await pineJournal(ctx)).blobs), king = await pineKingKit(ctx), kingFiles = emitNamedBlobs([king.blob, roamingCombatBlob(king.rows)]), flock = await pineBirds(ctx), people = await pineNpcSkins(ctx), coats = await pineCoatPages(ctx);
   // GR8 G32: the forest trees' rest pool, a critical product file (was the pine-tree-rest job's public GLB)
-  const trees = emitNamedBlobs([nameBlob(TREE_REST_FILE, 'glb', await pineTreeRest(sources), { critical: true })]);
+  // iPhone downloads I2: the rest pool's 84 named shapes each on their own 16-bit grid (compactPhoneGlb `each`); the rest
+  // pool reads every node back to identity-space float32 (identitySpaceGeometry)
+  const trees = emitNamedBlobs([nameBlob(TREE_REST_FILE, 'glb', await compactPhoneGlb(await pineTreeRest(sources), { each: true }), { critical: true })]);
   // GR8: the hero material payloads, compacted (heroMaterialFiles.mjs), named as product files the material aliases name;
   // opaque bytes (some carry ASTC KTX2 the product's GLB intake refuses), as uncharged as their retired public files were
   const heroMaterials = emitNamedBlobs(heroMaterialFiles(sources).map(([name, bytes, tier, variantOf]) => nameBlob(name, 'bin', bytes, { variantOf, ...(tier === undefined ? {} : { tier }) })));
