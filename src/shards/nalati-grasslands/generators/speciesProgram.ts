@@ -1,10 +1,11 @@
+import { nalatiAdmissionProgram } from './admissionProgram';
 import { nalatiStrikeRows, nalatiGoldenKingPose } from './kurganRows';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { decodeBuildDeflate } from '@wildshard/sdk/bake/byteCodec';
 import type { prepareNalatiSpecies, NalatiSpeciesSourceInputs } from './speciesPreparation';
 
 const body = '/assets/nalati/baked/bodies.bin';
-const metadata = ['data/bodies.json', 'behaviour/admission.generated.json'];
+const metadata = ['data/bodies.json'];
 // Preserve the complete authored AS inventory: the existing compiler charges all source lines.
 const authored = [
   'behaviour/admission.as',
@@ -49,9 +50,10 @@ type GuestAdmission = Parameters<typeof prepareNalatiSpecies>[3];
 
 /** Construct and persist original species outputs through explicit build inputs, never a generated species fallback.
  * Schema admission and the retained public body locator belong to the existing product adapter. */
-export async function nalatiSpeciesProgram(ctx: Pick<ProjectGenerationContext, 'cached' | 'compileReturnProjection'>,
+export async function nalatiSpeciesProgram(ctx: Pick<ProjectGenerationContext, 'cached' | 'compileReturnProjection' | 'compileDecisionRows'>,
   admitInput: (input: unknown) => NalatiSpeciesSourceInputs, admitGuest: GuestAdmission,
   bodyFile: (hash: string) => string): Promise<ReadonlyMap<string, Uint8Array>> {
+  const admission = (await nalatiAdmissionProgram(ctx)).program;
   const files = await ctx.cached({ id: 'species', native: true, inputs: [body, ...metadata, ...authored] }, async inputs => {
     const required = (name: string): Uint8Array => {
       const bytes = inputs.get(name);
@@ -61,7 +63,7 @@ export async function nalatiSpeciesProgram(ctx: Pick<ProjectGenerationContext, '
     const text = new TextDecoder('utf-8', { fatal: true });
     const json = (name: string): unknown => JSON.parse(text.decode(required(name))) as unknown;
     const strike = nalatiStrikeRows();
-    const input = admitInput({ body: json('data/bodies.json'), admission: json('behaviour/admission.generated.json'),
+    const input = admitInput({ body: json('data/bodies.json'), admission,
       strike: strike.balbal, kingPose: nalatiGoldenKingPose() });
     const lanes = decodeBuildDeflate(required(body), input.body.bytes);
     if (lanes.length % 4 !== 0) throw new Error('Creature body source is not whole words');

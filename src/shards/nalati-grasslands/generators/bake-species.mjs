@@ -1,3 +1,4 @@
+import { compileDecisionScripts } from '@wildshard/sdk/buildDecisionScripts';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import * as v from 'valibot';
@@ -14,7 +15,7 @@ const inputSchema = v.object({
 
 /** Construct from explicitly declared source loans; this retained CLI helper has no publication path. */
 export async function nalatiSpeciesSource() {
-  const files = await nalatiSpeciesProgram({ compileReturnProjection: compileReturnProjectionV2, cached: (step, make) => {
+  const files = await nalatiSpeciesProgram({ compileDecisionRows: compileDecisionScripts, compileReturnProjection: compileReturnProjectionV2, cached: (step, make) => {
     const inputs = new Map(step.inputs?.map(name => [name, Uint8Array.from(readFileSync(fileURLToPath(
       new URL(name.startsWith('/') ? `../../../../public${name}` : `../${name}`, import.meta.url))))]));
     return Promise.resolve(make(inputs));

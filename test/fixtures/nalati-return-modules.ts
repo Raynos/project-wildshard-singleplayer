@@ -1,3 +1,4 @@
+import { NALATI_ADMISSION, NALATI_ADMISSION_PROGRAM } from './nalati-admission';
 import { originalHeldMetadata } from './nalati-held-original';
 import { NALATI_TITAN, NALATI_TITAN_PROGRAMS as programs } from './nalati-titan';
 import { NALATI_RIDING_PROGRAMS, NALATI_RIDING_WASM, NALATI_RIDING_WITNESS_BYTES } from './nalati-riding';
@@ -12,7 +13,6 @@ import {Scope} from '../../src/engine/app/scope';
 import {ReturnProgram} from '../../src/game/population/returnProgram';
 import {ReturnProgramSchema} from '../../src/format/namedJsonContracts';
 import {ReturnProjectionV2Schema} from '../../src/format/returnProjectionV2';
-import {readFileSync} from 'node:fs';
 import {titanWitnessBytes,pastureWitnessBytes} from './titanInlineWitness';
 
 const kokparInput=v.parse(v.object({program:ReturnProgramSchema}),JSON.parse(JSON.stringify(NALATI_KOKPAR)));
@@ -20,14 +20,14 @@ const kokparScript=parseDecisionScripts([kokparInput.program.script])[0];
 if(kokparScript===undefined)throw new Error('Missing actual Kokpar script');
 export const kokparProgram={...kokparInput.program,script:kokparScript};
 export const kokparModuleBytes=Uint8Array.from(NALATI_KOKPAR_WASM);
-const admissionInput=v.parse(v.object({...ReturnProgramSchema.entries}),JSON.parse(readFileSync('src/shards/nalati-grasslands/behaviour/admission.generated.json','utf8')));
+const admissionInput=v.parse(v.object({...ReturnProgramSchema.entries}),NALATI_ADMISSION);
 const admissionScript=parseDecisionScripts([admissionInput.script])[0];
 if(admissionScript===undefined||admissionInput.v2===undefined)throw new Error('Missing actual admission script');
 export const admission={...admissionInput,script:admissionScript,v2:admissionInput.v2};
-export const admissionWitnessBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/admission-witness.generated.bin'));
+export const admissionWitnessBytes=Uint8Array.from(NALATI_ADMISSION_PROGRAM.witness);
 /** Rebuild only the original unit-test oracle; production borrows the raw witness. */
 export const admissionLegacy={script:admissionScript,bytes:Buffer.from(admissionWitnessBytes).toString('base64')};
-export const admissionModuleBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/admission.generated.wasm'));
+export const admissionModuleBytes=Uint8Array.from(NALATI_ADMISSION_PROGRAM.wasm);
 const projection=programs.wind.v2;
 const held=v.parse(v.object({program:v.strictObject({...ReturnProgramSchema.entries,v2:ReturnProjectionV2Schema})}),
   originalHeldMetadata().held);

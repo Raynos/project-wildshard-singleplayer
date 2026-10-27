@@ -27,7 +27,7 @@ import presentationGraphs from '../data/painterlyGraphs.json' with { type: 'json
 import type { NalatiKokpar } from './kokparRows';
 import type { NalatiTitanPrograms } from './stormTitanRows.mjs';
 import { nalatiGoldenKingPose } from './kurganRows';
-import admission from '../behaviour/admission.generated.json' with { type: 'json' };
+import type { NalatiAdmission } from './admissionProgram';
 
 const kingPose = nalatiGoldenKingPose();
 
@@ -75,7 +75,7 @@ function renderRows(value: unknown): { files: readonly unknown[]; tiles: readonl
 
 /** Compose the complete header with caller-owned costs; retain original module deduplication and page charges. */
 export function nalatiProductRows(species: NalatiSpeciesProgramCosts, held: NalatiHeldProgramCosts, render: unknown,
-  queryTerrain: Omit<BakedQueryTerrain, 'assets'>, navigation: Awaited<ReturnType<typeof nalatiNavigationProgram>>, kokpar: Pick<NalatiKokpar, 'program' | 'course' | 'compiled'>, ridingPrograms: Pick<NalatiRidingPrograms, 'approach' | 'breaking' | 'riding' | 'compiled'>, titanProgram: NalatiTitanPrograms, weather: Pick<NalatiWeather, 'rows' | 'channels'>, charge: Pick<NalatiCharge, 'script' | 'bytes' | 'compiled'>): ReturnType<typeof parseShardfile> {
+  queryTerrain: Omit<BakedQueryTerrain, 'assets'>, navigation: Awaited<ReturnType<typeof nalatiNavigationProgram>>, kokpar: Pick<NalatiKokpar, 'program' | 'course' | 'compiled'>, ridingPrograms: Pick<NalatiRidingPrograms, 'approach' | 'breaking' | 'riding' | 'compiled'>, titanProgram: NalatiTitanPrograms, weather: Pick<NalatiWeather, 'rows' | 'channels'>, admission: NalatiAdmission, charge: Pick<NalatiCharge, 'script' | 'bytes' | 'compiled'>): ReturnType<typeof parseShardfile> {
   const weatherDecision = weather.rows, weatherChannels = weather.channels.weather, herdChannels = weather.channels.herd;
   const pasture = titanProgram.wind;
   const files = [...navigation.files, ...queryTerrain.files].sort((a, b) => a.hash.localeCompare(b.hash));

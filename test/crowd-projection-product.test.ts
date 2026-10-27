@@ -1,9 +1,8 @@
+import { NALATI_ADMISSION, NALATI_ADMISSION_PROGRAM } from './fixtures/nalati-admission';
+import { nalatiAdmissionBlobs } from '../src/shards/nalati-grasslands/generators/admissionProgram';
 import * as v from 'valibot';
 import {ReturnProgramSchema} from '../src/format/namedJsonContracts';
-// oxlint-disable-next-line import/no-nodejs-modules -- Compare actual registered module bytes and descriptor witnesses.
-import {readFileSync} from 'node:fs';
 import {Scope} from '../src/engine/app/scope';
-import {readNamedBlob} from '../src/sdk/blobs';
 import {expect,test} from 'vitest';
 import {NALATI_SCRIPT_SECTIONS} from './fixtures/nalati-script-inventory';
 import {emitPlatformSections} from '../src/sdk/platformSections';
@@ -31,7 +30,7 @@ test('complete emitted return AND spawn admission replaces the admission witness
 
 
 test('the raw admission file retains the exact complete inline descriptor and selected owner',async()=>{
-  const input:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/behaviour/admission.generated.json','utf8'));
+  const input:unknown=NALATI_ADMISSION;
   const declaration=v.parse(v.object({...ReturnProgramSchema.entries,compiled:v.object({witnessBytes:v.number(),source:v.string(),bytes:v.number(),hash:v.string()})}),input);
   const {compiled,...wire}=declaration;
   expect(compiled).toEqual({witnessBytes:21529,source:'behaviour/admission.generated.wasm',bytes:15747,hash:'b05ee4ff6fe77d8e269a40f23ac3d53bec85ec197a3d7af87beba1c17a65faaf'});
@@ -39,19 +38,21 @@ test('the raw admission file retains the exact complete inline descriptor and se
   const original={...wire,bytes:admissionLegacy.bytes,v2:{...wire.v2,bytes:btoa(String.fromCodePoint(...admissionModuleBytes))}};
   expect(contentHash(new TextEncoder().encode(JSON.stringify(original)))).toBe('680ff5770a009920b97ced733cc077c75672123b9a13b9a2fdf791ce6aba3fbe');
   const {output}=await import('./fixtures/nalati-output-original');
-  const source=output.blobs.find(row=>row.name==='behaviour/nalati.admission.wasm');
-  expect(source).toMatchObject({source:compiled.source,kind:'wasm',options:{dependencies:[contentHash(admissionWitnessBytes)]}});
-  expect(output.blobs.find(row=>row.name==='behaviour/admission-witness.bin')).toMatchObject({source:'behaviour/admission-witness.generated.bin',kind:'bin',options:{critical:true}});
+  const owned = nalatiAdmissionBlobs(NALATI_ADMISSION_PROGRAM);
   const bootFile=output.namedFiles.find(row=>row.name==='sim/headless-boot.json');
   const bootBytes=bootFile===undefined?undefined:output.assets.get(bootFile.hash);
   if(bootBytes===undefined)throw new Error('Missing emitted native boot');
   const payload:unknown=JSON.parse(new TextDecoder().decode(bootBytes));
   expect(v.parse(v.object({admission:ReturnProgramSchema}),payload).admission).toEqual(wire);
   expect(v.parse(v.object({admission:v.record(v.string(),v.unknown())}),payload).admission).not.toHaveProperty('compiled');
-  const blob=await readNamedBlob('src/shards/nalati-grasslands','behaviour/nalati.admission.wasm',compiled.source,'wasm',
-    {critical:true,script:{abi:2,lane:'project',pages:admission.v2.artifact.pages,ioBytes:admission.v2.artifact.ioBytes,compilerRevision:1,admissionRevision:1}});
+  const blob = owned.find(row => row.file.name === 'behaviour/nalati.admission.wasm');
+  if (blob === undefined) throw new Error('Missing owned admission executable');
+  expect(blob.file).toMatchObject({kind:'wasm',path:`blobs/wasm/${compiled.hash}.wasm`,dependencies:[contentHash(admissionWitnessBytes)],critical:true});
+  expect(blob.script).toEqual({abi:2,lane:'project',pages:admission.v2.artifact.pages,ioBytes:admission.v2.artifact.ioBytes,compilerRevision:1,admissionRevision:1});
   expect(blob.bytes).toEqual(admissionModuleBytes);expect(blob.file.hash).toBe(compiled.hash);
-  const witness=await readNamedBlob('src/shards/nalati-grasslands','behaviour/admission-witness.bin','behaviour/admission-witness.generated.bin','bin',{critical:true});
+  const witness = owned.find(row => row.file.name === 'behaviour/admission-witness.bin');
+  if (witness === undefined) throw new Error('Missing owned admission witness');
+  expect(witness.file).toMatchObject({kind:'bin',critical:true});
   expect(witness.bytes).toEqual(admissionWitnessBytes);expect(witness.file.hash).toBe(admission.script.module.slice('blobs/wasm/'.length,-'.wasm'.length));
   expect(witness.file.compressed).toBe(21529);expect(witness.file.decoded).toBe(21529);
   const scope=new Scope('admission.raw');lendNalatiAdmission(scope);

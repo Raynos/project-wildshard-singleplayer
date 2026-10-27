@@ -1,3 +1,4 @@
+import { nameBlob } from '@wildshard/sdk/blobs';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { parseDecisionScripts, parseReturnProjectionV2, type DecisionScriptRow, type ReturnProjectionV2Rows } from '@wildshard/sdk/decisionScripts';
@@ -55,4 +56,16 @@ export async function nalatiAdmissionProgram(ctx: Pick<ProjectGenerationContext,
   const document = files.get('admission.json'), wasm = files.get('admission.wasm'), witness = files.get('admission-witness.bin');
   if (files.size !== 3 || document === undefined || wasm === undefined || witness === undefined) throw new Error('Invalid owned admission inventory');
   return { program: nalatiAdmissionRows(JSON.parse(decode.decode(document)), wasm, witness), wasm, witness };
+}
+
+
+/** The original critical selected module and its ABI1 witness dependency, as named owned bytes. */
+export function nalatiAdmissionBlobs(bank: NalatiAdmissionProgram): ReturnType<typeof nameBlob>[] {
+  const artifact = bank.program.v2.artifact;
+  return [nameBlob('behaviour/admission-witness.bin', 'bin', bank.witness, { critical: true }),
+    nameBlob('behaviour/nalati.admission.wasm', 'wasm', bank.wasm, {
+      dependencies: [bank.program.script.module.slice('blobs/wasm/'.length, -'.wasm'.length)], critical: true,
+      script: { abi: 2, lane: 'project', pages: artifact.pages, ioBytes: artifact.ioBytes,
+        compilerRevision: artifact.compilerRevision, admissionRevision: artifact.admissionRevision },
+    })];
 }

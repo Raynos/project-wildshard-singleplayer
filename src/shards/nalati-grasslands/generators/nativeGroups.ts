@@ -12,12 +12,11 @@ import boot from '../data/headlessBoot.json' with { type: 'json' };
 import { NALATI_ECOLOGY as ecology } from './ecology.mjs';
 import brains from '../data/brains.json' with { type: 'json' };
 import { nalatiStrikeRows } from './kurganRows';
-import admissionInput from '../behaviour/admission.generated.json' with { type: 'json' };
+import type { NalatiAdmission } from './admissionProgram';
 
 const contacts = nalatiStrikeRows();
 
 const physics = nalatiPhysics();
-const {compiled:_admissionCompiled,...admission}=admissionInput;
 const herd = (index: number): string[] => {
   const row = boot.roster.herds[index]; if (row === undefined) throw new Error('Missing authored herd');
   return row.members.map(body => body.id);
@@ -31,9 +30,10 @@ const riding = { population: nalatiRidingPopulation(ecology) };
 const nativeKnockdown=parsePopulationKnockdownSource(riding);
 const forager = parsePopulationForagerSource(riding);
 /** The headless assembly: the native and page groups and the wildlife rows around the shared pasture programme. */
-export type NalatiHeadlessAssembly = Omit<typeof assembly, 'constants'> & { constants: Omit<typeof assembly.constants, 'nativeKnockdown' | 'groupRows' | 'groupAdmission' | 'nativeField' | 'pageGroups' | 'nativeDayClock' | 'pageWildlife'> & { nativeKnockdown: ReturnType<typeof parsePopulationKnockdownSource>; groupRows: ReturnType<typeof parseNativeGroupRows>; groupAdmission: Omit<typeof admissionInput, 'compiled'>; nativeField: ReturnType<typeof parsePopulationField>; pageGroups: ReturnType<typeof parsePageGroupRows>; nativeDayClock: ReturnType<typeof nalatiDayClockRow>; pageWildlife: ReturnType<typeof parseWildlifePopulation> } };
+export type NalatiHeadlessAssembly = Omit<typeof assembly, 'constants'> & { constants: Omit<typeof assembly.constants, 'nativeKnockdown' | 'groupRows' | 'groupAdmission' | 'nativeField' | 'pageGroups' | 'nativeDayClock' | 'pageWildlife'> & { nativeKnockdown: ReturnType<typeof parsePopulationKnockdownSource>; groupRows: ReturnType<typeof parseNativeGroupRows>; groupAdmission: Omit<NalatiAdmission, 'compiled'>; nativeField: ReturnType<typeof parsePopulationField>; pageGroups: ReturnType<typeof parsePageGroupRows>; nativeDayClock: ReturnType<typeof nalatiDayClockRow>; pageWildlife: ReturnType<typeof parseWildlifePopulation> } };
 /** GR6: the assembly around the build's compiled pasture programme (stormTitanProgram.ts). */
-export function nalatiHeadlessAssembly(pasture: NalatiTitanProgram): NalatiHeadlessAssembly {
+export function nalatiHeadlessAssembly(pasture: NalatiTitanProgram, admissionInput: NalatiAdmission): NalatiHeadlessAssembly {
+  const {compiled:_admissionCompiled,...admission}=admissionInput;
   /** Preserve setup order, including the two guest-owned draws before adoption. */
   const nalatiNativeGroupRows = parseNativeGroupRows( {
     id: 'nalati.groups', herds: 'nalati.herds', tokens: 'nalati.tokens', bounds: [-250,250,-250,250],

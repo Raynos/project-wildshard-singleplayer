@@ -1,3 +1,4 @@
+import { NALATI_ADMISSION } from './fixtures/nalati-admission';
 import { originalSpeciesOutput } from './fixtures/nalati-original-species';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read only the authored raw body and immutable original output pins.
 import { readFileSync } from 'node:fs';
@@ -26,7 +27,7 @@ const inputSchema = v.object({
 });
 const strikes = v.parse(v.object({ balbal: v.unknown() }), readJson('test/fixtures/nalati-strikeProfiles-original.json'));
 const metadata: unknown = { body: readJson('src/shards/nalati-grasslands/data/bodies.json'),
-  admission: readJson('src/shards/nalati-grasslands/behaviour/admission.generated.json'),
+  admission: NALATI_ADMISSION,
   strike: strikes.balbal, kingPose: readJson('test/fixtures/nalati-goldenKingPose-original.json') };
 if (!v.is(inputSchema, metadata)) throw new Error('Invalid original species source metadata');
 const input: NalatiSpeciesSourceInputs = metadata;
