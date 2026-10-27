@@ -143,7 +143,10 @@ test('writer and full inventory validator refuse dangling target identities even
     const entry = index.sections.find(row => row.name === 'world/targets'); if (entry === undefined) throw new Error('Missing section');
     const bytes = new TextEncoder().encode(encodeCanonicalJson(ray()));
     entry.hash = hashImmutableBytes(bytes); entry.bytes = bytes.length;
-    writeFileSync(resolve(folder, entry.path), bytes); writeFileSync(resolve(folder, 'shard.json'), encodeCanonicalJson(index));
+    // the rewritten section no longer matches its pack (I5), which refuses first; this case checks the target contract
+    const { packs: _packs, ...unpacked } = index;
+    rmSync(resolve(folder, 'blobs/pack'), { recursive: true, force: true });
+    writeFileSync(resolve(folder, entry.path), bytes); writeFileSync(resolve(folder, 'shard.json'), encodeCanonicalJson(unpacked));
     expect(() => validateOutputProduct(folder)).toThrow('world target move/contact');
   } finally { rmSync(folder, { recursive: true, force: true }); }
 });

@@ -168,6 +168,8 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
   // A writer owns this product directory, never a source folder. Preserve only the
   // already-copied runtime files; refuse unrelated leftovers in validation below.
   mkdirSync(destination,{recursive:true});
+  // I5: a pack's hash follows every member, so a rewrite into the same product leaves no stale pack behind
+  rmSync(resolve(destination,'blobs/pack'),{recursive:true,force:true});
   for (const [path,bytes] of emitted) put(destination,path,bytes);
   put(destination,'shard.json',jsonBytes(index));
   validateOutputProduct(destination);
