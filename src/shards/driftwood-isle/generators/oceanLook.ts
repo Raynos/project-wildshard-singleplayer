@@ -1,4 +1,4 @@
-// SHARD-PLATFORM W2c: the graphs are built only at build time (generators/oceanGraphs.ts → data/lookMaterials.generated.json).
+// SHARD-PLATFORM W2c: the graphs are built only at build time (generators/oceanGraphs.ts → generators/lookMaterials.ts).
 
 /**
  * Driftwood's open sea (runtime/looks/facetedOcean.ts, world/Ocean.ts) as an SF59 material graph (SHARD-PLATFORM W2 C2;

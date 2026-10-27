@@ -1,5 +1,5 @@
 // SHARD-PLATFORM W2c (build-time look graphs): data/oceanLook.ts's SF59 material graphs, built only at build time and emitted
-// as JSON (generators/lookMaterials.ts → data/lookMaterials.generated.json, the shardfile's `look.materials`); play code
+// as JSON (generators/lookMaterials.ts → generators/product.ts, the shardfile's `look.materials`); play code
 // reads the ids and rows in data/oceanLook.ts, never these builders.
 import type { GraphIr, GraphNode, GraphParam, GraphRef } from '@wildshard/format/materialGraph';
 import { OCEAN_LOOK, OCEAN_DRY_SLOTS, OCEAN_NO_DRY, SEA_RES } from './oceanLook';

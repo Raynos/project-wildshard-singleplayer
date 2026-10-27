@@ -1,4 +1,4 @@
-// SHARD-PLATFORM W2c: the graphs are built only at build time (generators/reefGraphs.ts → data/lookMaterials.generated.json).
+// SHARD-PLATFORM W2c: the graphs are built only at build time (generators/reefGraphs.ts → generators/lookMaterials.ts).
 
 /**
  * The lagoon reef's material (models/reef.ts, welded by world/Seabed.ts) as an SF59 material graph (SHARD-PLATFORM W2 C2;

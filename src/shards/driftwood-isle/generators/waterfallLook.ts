@@ -1,4 +1,4 @@
-// SHARD-PLATFORM W2c: the graphs are built only at build time (generators/waterfallGraphs.ts → data/lookMaterials.generated.json).
+// SHARD-PLATFORM W2c: the graphs are built only at build time (generators/waterfallGraphs.ts → generators/lookMaterials.ts).
 
 /**
  * Driftwood's toon cascade (E150) as SF59 material graphs (SHARD-PLATFORM W2 C2; the shardfile's `look.materials`,

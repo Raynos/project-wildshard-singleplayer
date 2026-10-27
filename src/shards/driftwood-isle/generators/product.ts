@@ -15,7 +15,7 @@ import { DECLARED_SEA, WORLD_DROP } from './sea';
 import { ENTRY_LANDINGS } from './entryLandings';
 import navigation from '../data/navigation.generated.json' with { type: 'json' };
 import type { DriftwoodFixedProduct } from './fixedProduct';
-import lookGraphs from '../data/lookMaterials.generated.json' with { type: 'json' };
+import { driftwoodLookMaterials } from './lookMaterials';
 import skyChannels from '../data/skyChannels.generated.json' with { type: 'json' };
 import captainCoat from '../data/captainCoat.json' with { type: 'json' };
 import bridgeSwayModule from '../behaviour/bridgeSway.generated.json' with { type: 'json' };
@@ -59,8 +59,8 @@ return parseShardfile({
   // the faceted sky's dome and cumulus (compiled by the sky backdrop before the world stage, game/looks/toonSky.ts; its frame is the `driftwood.sky` channel group);
   // the faceted ground and its slab, and the low-poly kit's variants (compiled by the look's prepareWorld before the ground builds, game/looks/toonLook.ts)
   // the castaway arms, their swords and their swimming (compiled by the kit hook, runtime/hybrid.ts)
-  // W2c: every graph arrives as build-time JSON (generators/lookMaterials.ts → data/lookMaterials.generated.json)
-  look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries(lookGraphs).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) },
+  // W2c: every graph is built here at build time (generators/lookMaterials.ts)
+  look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries(driftwoodLookMaterials()).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) },
     samplers: { [coat.hash]: { wrap: 'repeat' } } },
   runtime: { kind: 'client-plan', cost: DRIFTWOOD_RUNTIME_COST, binds: ['state', 'quests', 'ledger', 'items', 'spawns', 'modes', 'props', 'terrain', 'movers', 'loot', 'clientChannels'], spawns: DRIFTWOOD_SPAWNS },
   clientChannels: [...skyChannels.clientChannels, ...NPC_FOCUS_PROGRAMS],
