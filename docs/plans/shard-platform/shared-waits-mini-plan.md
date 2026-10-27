@@ -10,48 +10,47 @@ checks), G620 (red main 30-minute cap, shared previews, third build lease), G662
 [BUILD-SPEED](../BUILD-SPEED.md) (Wave 1 landed; 3.4/3.5 quiet-vs-not not asked), [TOOLING-PERF](../TOOLING-PERF.md)
 (G671 quick wins un-parked: H1 H3 H4 C4 C5 C6 P1 P3 K4 L4 V1 V3 S3; P4 and M1–M3 still parked).
 
-## Latest reading (2026-10-27 11:20 Cancun: 10-26 23:15 → 10-27 11:20, 12.1 h; mega build from ~01:00, G768/G769; rates per hour to compare with the 10-26 17:20 reading)
+## Latest reading (2026-10-27 16:50 Cancun review: 11:20 → 17:23, 6.05 h; mega build G768/G769, one lane one plan G804/G805; rates per hour to compare with the 11:20 reading)
 
-Read with `python3 scripts/agent-time.py --hours 12`, `.git/push.log`, `.git/commit-times.jsonl`, `gh run list` (push runs,
-cancelled ignored) plus the failed jobs of 16 sampled reds, `~/.wildshard-heavy-lanes/build-day.log`, the reap logs, the
-eight Codex transcripts and the Opus transcripts (read only), `herdr agent list` and `openusage`. **Lanes:** Codex sp-x1,
-x2, x6, x8, x9 all window, sp-x7 to 01:41 (then sp-ci-deploy, G802), sp-x10 from 01:16; Opus sp-o1–sp-o5 all window on
-the second Claude account, plus the coordinator: ~12 lanes, ~140 lane-h. G768's switch-off landed at 00:59
-(`7d70d351bb`). 1,265 commits (105/h, from 23/h): Claude 594, Codex 569, sp-x2 73; 0 reverts (G674).
+Read with `python3 scripts/agent-time.py --hours 6`, `.git/push.log`, `.git/commit-times.jsonl`, `gh run list` (push runs,
+cancelled ignored) plus the failed jobs of 8 reds, `~/.wildshard-heavy-lanes/build-day.log`, the reap logs, the seven
+Codex transcripts and the Opus transcripts (read only), `herdr agent list` and `openusage`. **Lanes:** Codex sp-x1, x2,
+x6, x8, x9, x10 and sp-ci-deploy all window; Opus sp-o3, sp-o4, sp-o5 all window (G803), sp-o1 and sp-o2 released at
+~11:30 (G804); plus the coordinator: ~11 lanes, ~66 lane-h. 491 commits (81/h, from 105/h): Codex 305, Claude 139,
+sp-x2 45; 0 reverts (G674).
 
-| Shared resource | Held or waited, 12 h | Who was blocked | Worst wait | Change vs 10-26 17:20 (per hour) |
+| Shared resource | Held or waited, 6 h | Who was blocked | Worst wait | Change vs 10-27 11:20 (per hour) |
 |---|---|---|---|---|
-| Push gate (one push loop) | 405 ticks: 278 pushed, 108 red in 19 streaks, **213.7 min blocked**: the fail-closed `fast-lint` stall **23:18–00:43, 85 min with no push**, then 01:03–06:28 129 min of `binary-json` (61 step fails), `ratchet` (42) and `deleted-paths` (26) streaks, the longest 29.5 min at 05:58; **0 red ticks since 06:28**; 3 quiet, 11 idle. Gate median 20.7 s, p90 43.4 s, max 180 s (before 00:59); 07:00–11:20 p90 27.7 s, max 44.7 s | every lane until 00:59; nobody since (G768: no lane waits for a push) | 85 min with no push | blocked 0.85 → 17.7 min/h; gate p90 23 → 43 s (28 s after 07:00) |
-| Commit → origin | 1,254 commits: median 106 s, p90 836 s, max 88 min; before 07:00 p90 18 min; 07:00–11:20 median 57 s, p90 4.0 min | nobody waits on it since 00:59 | 88 min | median 26 → 106 s; p90 58 → 836 s (241 s after 07:00) |
-| CI and red main | **Red the whole window**: one window open since 22:43 10-26 (**~12.6 h at 11:20**; the last green push run, `59a595ab10`, ended 10-26 18:27). 01:22–~08:00 every sampled push run failed `generated-inputs` first (9 jobs), so no test shard reported for ~7 h; from ~09:15 `typecheck-lint (types)` plus 20–24 behaviour shards per run. Push runs: 0 green, 93 red, 159 cancelled (63 % of 254), 2 running. The breaks are on BURN-DAMAGE-LIST (D47, D116, D119, D135 …) | nobody holds (G768); fix-forward debt | 12.6 h (open) | red share 64 → 100 %; windows 12 → 1 |
-| Release and boot smoke | 0 boot-smoke runs (no green to smoke); 2 scheduled deploys succeeded (01:23, 08:20) on the last CI-green build, so production has not moved since 10-26 evening | releases | — | smoke runs 1.6/h → 0 |
-| CI verdict time (CF3) | Red verdicts median 3.8 min while `generated-inputs` failed first and hid the shards (n=86); 28.6 min once the full matrix ran (n=7); no green | every lane's verdict | 35 min | red 16.0 → 3.8 min (by hiding the shards) |
-| Build mirror and previews | 0 `build-mirror.mjs run`, 0 `tmp/*/check.sh`; 177 Opus `serve-build.sh --rev` commands, 1.03 h of serve-build Bash; agent-time's 17 preview and 4 mirror five-minute hits are mostly source and diff reads | the Opus lanes | — | `--rev` 58 in 3.3 h → 177 in 12 h |
-| Heavy-lane builds (3 leases) | 771 builds (262 failed, 34 %), median 13 s, p90 121 s, 8.4 build-h; 1 queue over 60 s (69 s); 0 lease timeouts; load median 11, p90 19 | — | 69 s | 15.5 → 64 builds/h; queues over 60 s 9 → 1 |
+| Push gate (one push loop) | 169 ticks: 156 pushed, 2 red (one `ratchet` streak 12:59–13:01, ~2 min blocked), 11 idle, 0 quiet. Gate median 17.7 s, p90 23.3 s, max 44.7 s (`guards` median 13.8 s of it). **One 17-minute stretch with no tick at all, 11:37–11:54, while 23 commits waited** | nobody (G768) | 17 min with no tick | blocked 17.7 → 0.3 min/h; gate p90 28 → 23 s (vs 07:00–11:20) |
+| Commit → origin | 489 commits: median 66 s, p90 253 s, max 17.1 min (the no-tick stretch) | nobody waits on it | 17 min | median 57 → 66 s; p90 241 → 253 s (vs 07:00–11:20) |
+| CI and red main | **The red window open since 22:43 10-26 closed on the first green push run `0012c73e11` (created 15:57, verdict 16:28): 17.2 h in all.** Its reds narrowed from `types` plus 19 behaviour shards (11:35) to `generated-inputs` (14:34, 15:00) and 4 shards (15:38). **Red again from 16:28 (`c76f7885e9`):** two runs failed one or two behaviour shards each (`world-scenes-platform` at its 30 s timeout, `world-scene-weld`, `world-scene-baked-model`); open ~55 min at 17:23 with one run in flight. Push runs: 1 green, 17 red, 122 cancelled (87 % of 142), 2 running; red ~91 % of the window | nobody holds (G768); sp-ci-deploy fixes forward | 17.2 h (closed 15:57) | red share 100 → ~91 %; windows 1 → 2 (one closed) |
+| Release and boot smoke | Boot smoke green on `c76f7885e9` (16:28); deploy dispatched 16:46 on `106d099395`, green 17:09: **production's first move since 10-26 evening**; 1 scheduled deploy (14:28, checks skipped) | releases | — | smoke runs 0 → 1 |
+| CI verdict time (CF3) | Red verdicts median 21.9 min (n=17, 5–34 min); the green run 31 min | every lane's verdict | 34 min | red 3.8 → 21.9 min (the shards are no longer hidden behind `generated-inputs`) |
+| Build mirror and previews | 0 `build-mirror.mjs run`, 0 `tmp/*/check.sh`; Opus `serve-build.sh --rev`/`--head` 39 commands, 0.82 h; 0 real preview or registry 5-minute timeouts (agent-time's 6 preview and 1 mirror hits are source reads) | — | — | `--rev` 177 in 12 h → 39 in 6 h |
+| Heavy-lane builds (3 leases) | 231 builds (69 failed, 30 %), median 56 s, p90 166 s, 5.1 build-h; 1 queue over 60 s (159 s at 17:20); 0 lease timeouts; load at build start median 9.8, p90 21.9 | — | 159 s | 64 → 38 builds/h; queues over 60 s 1 → 1 |
 | Full-test lane | CI only (SF74 W1) | — | — | same |
-| Simulator | reap log 0 new lines; `sim-quiet.py status` polled twice (sp-x8); Opus `quiet` Bash 0.70 h in 46 commands | — | — | polls 5 → 0.2/h |
-| Browsers (4 slots) | 126 reaps (125 orphan preview outputs, 1 expired preview); **26 "all 4 slots in use" waits and 6 admission timeouts (300 s), 01:17–09:12**, 12 of them sp-o4's Chromium parity series; Opus browser-lane Bash 6.95 h in 327 commands (G777 readings and G797 captures); 3 headless shells live at 11:27 | the Opus lanes | 5 min (×6) | reaps 31 → 126; slot waits 0 → 26 |
-| Quiet window | 3 quiet ticks (00:17–00:22, before G768 removed the hold); none since | — | — | 2.8 → 0.25 min/h |
-| Commit lock (commit.sh), SW11 | 0 lock timeouts. **1,510 wrapper invocations (252 refusals): median 2.5 s, p90 4.1 s, max 95.3 s; lock wait p90 0, held p90 1.2 s.** Before 00:59 (116): p90 33.2 s; after (1,394): p90 3.5 s, max 10.3 s. 1.5 lane-h in all | every committer | 95.3 s (before 00:59) | p90 37.5 → 4.1 s (SW11's bar met); 0.14 → 0.12 lane-h/h |
-| Peer herdr (G708) | **873 `herdr-prompt.sh` sends in the Codex transcripts (~72/h)**: sp-ci-deploy 229, sp-x8 160, sp-x2 103, sp-x10 91, sp-x6 89, sp-x1 88, sp-x9 78, sp-x7 35 | each message is a turn for the receiver | — | ~35 → ~72/h |
-| Separate docs commits (G708) | 315 docs commits (26/h): 107 `docs(plan)`, 58 `docs(ci)`, 56 `docs(grid)` | — | — | 2.3 → 26/h |
-| One index / tree | 1,293 changed paths: 1,258 untracked (812 under `src/shards/nine-dragon-stack/assets`, 142 Driftwood assets, 50 Driftwood baked GLBs), 40 tracked | `git status` and every pathspec commit | — | 137 → 1,293 |
-| Generated inputs | CI `generated-inputs` failed first on all 12 sampled push runs 01:22–07:11 (86 reds 23:15–08:00; D47 and successors); push `types` 259 `ci`, 124 `unverified` | the whole CI matrix behind it | ~7 h | 6 reds → ~86 |
-| Machine | load 14.3 / 13.1 / 11.9 on 18 cores at 11:21 (8.7 at 11:27), CPU idle 49–57 %; rebooted 10-26 ~18:47; swap 0 used; 33 GB RAM unused; fseventsd 0.1 %; Logitech updater 57 % CPU; /private/tmp 34.5k files; **$TMPDIR 153k files: 281 new Vitest `<nanoid>/{client,ssr}` folders since 23:15 (152.6k files, ~12.7k/h) after SW12's `eb21d73553`**; 2.0 TiB free | the next reboot (500k in ~27 h at this rate) | — | load 21 → 14; TMPDIR 729k → 153k, growing again |
-| Budgets | Claude main account 100 % (resets 13:00 Cancun today); second account 72 % (G803). **Codex weekly 83 %** (34 % at 10-26 17:20, ~2.7 points an hour; 17 left until 11-02 01:08 Cancun). Codex sleep commands 0, `wait` 53 calls (0.07 h), poll share 4 % | — | — | Codex sleep 0.33 → ~0.01 h/h |
-| Lane idle | Codex: **sp-x8 76 min and sp-x1 58 min idle in the push stall** (from 23:33 and 23:51), no gap over 5 min after 01:00. Opus gaps over 5 min (end of turn to next prompt, waits on background jobs included): 3.3 lane-h 23:15–01:00 (the stall), **2.6 lane-h 01:00–11:20** (sp-o4 69 min in 12 gaps, sp-o3 37, sp-o1 22, sp-o2 21, sp-o5 0); coordinator 73 min. At 11:27 sp-o1 and sp-o2 done (released, G804), the rest working | the plan | 76 min (sp-x8) | Codex 0.01 → 0.18 lane-h/h (all in the stall); Opus newly measured |
-| **Total** | **~10.7 lane-h of waits in 12.1 h (0.88/h)**: the pre-G768 push stall 5.5 (Codex 2.2, Opus 3.3), Opus gaps after 01:00 2.6, commit.sh 1.5, browser slots ~1.0, Codex `wait` 0.1. **After 00:59: ~4.8 lane-h in 10.3 h (0.47/h).** Red main is not a wait under G768; by the old 0.66 lane-h per red hour it would add ~8 | — | sp-x8 76 min | non-red waits 0.62 → 0.88/h (0.47/h after G768); with red main 1.04 → ~1.5/h |
+| Simulator | reap log 0 new lines; no `.git/quiet`; 2 open Simulator rows (the official readings at the end, G777) | — | — | same |
+| Browsers (4 slots) | 52 reaps (orphan preview outputs); **~7 "all 4 slots in use" episodes (sp-x8 2, sp-x9 2, sp-x2, sp-x10, sp-x6, sp-o5 once), ~25 min, 0 admission timeouts**; Opus browser-lane Bash 4.05 h in 182 commands (sp-o5 1.83, sp-o4 1.22, sp-o3 1.00: the G807 Chromium readings); 1 of 4 slots in use at 17:21 | Codex lanes, briefly | ~6 min (sp-x8, 14:19) | reaps 126 → 52; slot waits 26 → ~7, timeouts 6 → 0; Opus browser Bash 0.57 → 0.67 h/h |
+| Quiet window | 0 quiet ticks | — | — | 0.25 → 0 min/h |
+| Commit lock (commit.sh), SW11 | 0 lock timeouts. 546 wrapper invocations (54 refusals): median 2.6 s, p90 10.4 s, max 16.4 s; lock wait p90 0, held p90 1.05 s. **The p90 rise is G798's table regeneration** (since `e3ca0f21c2`, 13:27): the 104 commits that touch a registered input spend 9–13 s in it (0.24 lane-h); without it p90 is ~3 s. 0.66 lane-h in all | every committer | 16.4 s | p90 4.1 → 10.4 s; 0.12 → 0.11 lane-h/h |
+| Peer herdr (G708) | 463 `herdr-prompt.sh` sends in the Codex transcripts (~77/h): sp-ci-deploy 158, sp-x8 79, sp-x10 72, sp-x2 56, sp-x6 52, sp-x1 28, sp-x9 18 | each message is a turn for the receiver | — | ~72 → ~77/h |
+| Separate docs commits (G708) | 135 docs commits (22/h) | — | — | 26 → 22/h |
+| One index / tree | 1,250 changed paths: 1,210 untracked, 40 tracked | `git status` and every pathspec commit | — | 1,293 → 1,250 |
+| Generated inputs | push `types` 157 `ci`, 2 `unverified`; CI `generated-inputs` failed first on 2 runs (14:34, 15:00) | — | — | ~86 reds → 2 |
+| Machine | load 30.5 / 24.8 / 19.7 at 17:18 (18 % idle) and 8.1 / 14.8 / 16.5 at 17:23 (81 % idle) on 18 cores; swap 0; 38 GB RAM unused; Logitech agent 13 % CPU; 2.0 TiB free. **$TMPDIR 9.3k files (153k at 11:20): SW12's `372e2725db` (11:45) and its cleanup hold; 28 new Vitest `<nanoid>/{client,ssr}` folders since 11:20 (8.9k files, ~1.5k/h, from ~12.7k/h).** /private/tmp 45.4k (+10.9k; 13.5k of it Claude Code's `claude-501/bash-edit-diff`) | nobody (500k is ~300 h away) | — | TMPDIR 153k → 9.3k, growth ~12.7k → ~1.5k files/h |
+| Budgets | **Codex weekly 100 %** (83 % at 11:20; resets 11-02 01:08 Cancun); the Codex lanes kept working (305 commits). Claude second account 84 % (72 % at 11:20, ~2 points an hour: 100 % around 01:00 Cancun); the main account still shows 100 % with its 13:00 reset not yet reflected. Codex `wait` 55 calls (0.06 h), 1 sleep | — | — | Codex 83 → 100 %; Claude second account 72 → 84 % |
+| Lane idle | Codex building lanes: no gap over 5 min. sp-ci-deploy 38 min in 3 gaps (15:00–16:12, waiting on CI verdicts). Opus gaps over 5 min (end of turn to next prompt, background readings included): sp-o5 35 min (22 min at 15:49 on its own T6/T7 Chromium reading), sp-o4 18, sp-o3 0; coordinator 0. sp-o1 and sp-o2 released (G804), not counted | the plan | 22 min (sp-o5) | Opus 0.25 → 0.14 lane-h/h; Codex building 0 → 0 |
+| **Total** | **~2.7 lane-h of waits in 6.05 h (0.44/h)**: Opus gaps 0.9, commit.sh 0.7 (G798 0.24 of it), sp-ci-deploy gaps 0.6, browser slots 0.4, Codex `wait` 0.06, heavy-lane queue 0.06. Red main is not a wait under G768; by the old 0.66 lane-h per red hour it would add ~3.7 | — | sp-o5 22 min | 0.47 → 0.44/h (vs 11:20's after-00:59 rate); 0.88 → 0.44/h overall |
 
 **Rules broken in the window (SW7 (4)):** 0 `build-mirror.mjs run`, 0 `tmp/*/check.sh`, previews only through
-`serve-build.sh --rev` of landed SHAs, 3 quiet ticks before G768 and none after, 0 reverts. SW12's Vitest cache leak is
-back (281 folders in 12 h). G692's 45-minute cap no longer applies (G768: main may be red).
+`serve-build.sh --rev`/`--head` of landed SHAs, 0 quiet ticks, 0 reverts. **No new row:** no loss reaches 2 lane-h a
+day; the nearest are G798's regeneration (~1.7 lane-h a day at this commit mix, Jake's exception) and browser slots
+(~1.6). Every SW row is done; SW12 holds at ~12 % of its old leak rate.
 
 Measurement notes: a lane gap runs from end of turn (Codex `task_complete`, Claude `end_turn`) to the next turn start,
-over 5 min; Opus sessions restarted in the window are joined (sp-o1 `39d85db3`→`71f79073` at 03:48, sp-o3
-`8bf832e9`→`34f41e47` at 03:24, sp-o4 `67ef5fd4`→`ffe7285b` at 11:16). Browser waits are tool outputs containing
-"all 4 slots in use"; the ~1.0 lane-h is 6 timeouts × 5 min plus ~1.5 min per other wait. Commit → origin maps each
-first-parent commit to the first pushed tick whose tip contains it. The red window starts at the first red push run after
-the last all-green one; the fail-closed gate pushed nothing 18:19–22:43, so no push run ran in between.
+over 5 min. Codex tool output is `custom_tool_call_output`; a slot-wait episode is a run of consecutive minutes with
+"all 4 slots in use" in one lane, ~1.5–6 min each. Commit → origin maps each commit to the first pushed tick whose tip
+contains it. A red window runs from the first red push run after a green one to the next green run's creation.
 
 ## Top 5 losses (from the 10-26 17:20 reading; lane-hours, 24 h; per active hour)
 
