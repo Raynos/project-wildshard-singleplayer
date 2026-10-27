@@ -48,6 +48,79 @@ export const CacheReplySchema: v.GenericSchema<BoundedCacheReplyInput,BoundedCac
   RefusalSchema,
 ]);
 
+/* js-heap H9: the page's hot per-message checks, written out. They accept and refuse exactly what the strict schemas above
+ * do (test/content-cache-checks.test.ts runs both over every shape), without valibot's datasets or copied output: on the
+ * Template's boot those were 2.1 MiB. The schemas stay the declaration and the failure path's message. */
+const isCount = (n: unknown): n is number => typeof n === 'number' && Number.isInteger(n) && n >= 0 && n <= Number.MAX_SAFE_INTEGER;
+const isNumber = (n: unknown): n is number => typeof n === 'number' && !Number.isNaN(n);
+const HASH = /^[a-f0-9]{64}$/u;
+const isHash = (s: unknown): boolean => typeof s === 'string' && HASH.test(s);
+const isBytes = (b: unknown): b is Uint8Array => b instanceof Uint8Array && b.length <= CONTENT_CACHE_WIRE_CAP;
+const isFlag = (b: unknown): boolean => b === undefined || typeof b === 'boolean';
+const isWire = (n: unknown): boolean => isCount(n) && n <= CONTENT_CACHE_WIRE_CAP;
+const isRecord = (o: unknown): o is Record<string, unknown> => typeof o === 'object' && o !== null;
+/** valibot's strict object: an object (arrays too) holding every required key (`in`) and no other enumerable key */
+function strict(o: unknown, required: readonly string[], optional: readonly string[] = []): Record<string, unknown> | null {
+  if (!isRecord(o)) return null;
+  for (const key of required) if (!(key in o)) return null;
+  for (const key in o) if (!required.includes(key) && !optional.includes(key)) return null;
+  return o;
+}
+/** `CacheReplyEnvelopeSchema`'s verdict */
+export function isCacheReplyEnvelope(data: unknown): data is BoundedCacheEnvelope {
+  if (!isRecord(data) || !('ok' in data)) return false;
+  if (data['ok'] === true) { const o = strict(data, ['id', 'ok', 'value']); return o !== null && isCount(o['id']); }
+  if (data['ok'] === false) {
+    const o = strict(data, ['id', 'ok', 'error']), error = o?.['error'];
+    return o !== null && isCount(o['id']) && typeof error === 'string' && error.length <= 2048;
+  }
+  return false;
+}
+function isTiming(t: unknown): boolean {
+  if (t === null) return true;
+  const o = strict(t, ['name', 'startTime', 'responseEnd', 'transferSize', 'encodedBodySize']);
+  return o !== null && typeof o['name'] === 'string' && isNumber(o['startTime']) && isNumber(o['responseEnd']) && isCount(o['transferSize']) && isCount(o['encodedBodySize']);
+}
+/** `CacheValueSchemas[op]`'s verdict */
+export function isCacheValue(op: CacheCommand['op'], value: unknown): value is CacheValue {
+  switch (op) {
+    case 'get': return value === null || isBytes(value);
+    case 'has': case 'holds': case 'put': return typeof value === 'boolean';
+    case 'stats': { const o = strict(value, ['bytes', 'entries']); return o !== null && isCount(o['bytes']) && isCount(o['entries']); }
+    case 'fetch': {
+      const o = strict(value, ['fetched', 'stored', 'cached', 'origin', 'timing']);
+      return o !== null && (o['fetched'] === null || isBytes(o['fetched'])) && typeof o['stored'] === 'boolean' && typeof o['cached'] === 'boolean'
+        && isNumber(o['origin']) && isTiming(o['timing']);
+    }
+    case 'flush': case 'pin': case 'release': return value === null;
+    default: return false;
+  }
+}
+/** `CacheCommandSchema`'s verdict */
+export function isCacheCommand(command: unknown): command is CacheCommand {
+  if (!isRecord(command) || !('op' in command)) return false;
+  const c = (required: readonly string[], optional: readonly string[] = []): Record<string, unknown> | null => {
+    const o = strict(command, required, optional); return o !== null && isCount(o['id']) ? o : null;
+  };
+  switch (command['op']) {
+    case 'get': { const o = c(['id', 'op', 'hash']); return o !== null && isHash(o['hash']); }
+    case 'has': case 'holds': { const o = c(['id', 'op', 'hash', 'bytes']); return o !== null && isHash(o['hash']) && isWire(o['bytes']); }
+    case 'put': { const o = c(['id', 'op', 'hash', 'bytes'], ['keep']); return o !== null && isHash(o['hash']) && isBytes(o['bytes']) && isFlag(o['keep']); }
+    case 'pin': {
+      const o = c(['id', 'op', 'lease', 'hashes']), hashes = o?.['hashes'];
+      return o !== null && isCount(o['lease']) && Array.isArray(hashes) && hashes.length <= 10_000 && hashes.every(isHash);
+    }
+    case 'release': { const o = c(['id', 'op', 'lease']); return o !== null && isCount(o['lease']); }
+    case 'flush': case 'stats': return c(['id', 'op']) !== null;
+    case 'fetch': {
+      const o = c(['id', 'op', 'url', 'hash', 'bytes', 'reply'], ['keep', 'urlCache']), url = o?.['url'];
+      return o !== null && typeof url === 'string' && URL.canParse(url) && url.length <= 2048 && isHash(o['hash']) && isWire(o['bytes'])
+        && (o['reply'] === 'bytes' || o['reply'] === 'stored') && isFlag(o['keep']) && isFlag(o['urlCache']);
+    }
+    default: return false;
+  }
+}
+
 type BoundedCachePinInput = BoundedCachePin;
 interface BoundedCachePinFields {
     op: "pin";

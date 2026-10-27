@@ -5,7 +5,7 @@ import type { ContentCache } from './contentCache';
 import { ContentCacheQueue, isCacheRead } from './contentCacheQueue';
 import { waitFor } from './waits';
 import { receiveWorkerDownloads } from './download';
-import { CONTENT_CACHE_WIRE_CAP, CacheCommandSchema, CachePinCommandSchema, CacheReplySchema, CacheReplyEnvelopeSchema, CacheValueSchemas, type CacheCommand, type CacheOperation, type CacheValue, type FetchedContent } from './contentCacheProtocol';
+import { CONTENT_CACHE_WIRE_CAP, CacheCommandSchema, CachePinCommandSchema, CacheReplySchema, isCacheCommand, isCacheReplyEnvelope, isCacheValue, type CacheCommand, type CacheOperation, type CacheValue, type FetchedContent } from './contentCacheProtocol';
 
 export interface CacheWorkerPort extends EventTarget {
   postMessage: (message: unknown) => void;
@@ -128,20 +128,21 @@ export class ContentCacheWorker {
   }
   private receive(event: Event): void {
     if (!(event instanceof MessageEvent)) { this.failover('not a message'); return; }
-    const reply = v.safeParse(CacheReplyEnvelopeSchema, event.data);
-    if (!reply.success) { this.failover('invalid reply'); return; }
-    const row = this.pending.get(reply.output.id);
+    // js-heap H9: the protocol's written-out checks (the schemas' exact verdicts) on the hot path; the schemas name a failure
+    const reply: unknown = event.data;
+    if (!isCacheReplyEnvelope(reply)) { this.failover('invalid reply'); return; }
+    const row = this.pending.get(reply.id);
     if (row === undefined) { this.failover(v.safeParse(CacheReplySchema, event.data).success ? 'unknown reply' : 'invalid reply'); return; }
-    const value = reply.output.ok ? v.safeParse(CacheValueSchemas[row.command.op], reply.output.value) : undefined;
-    if (value !== undefined && !value.success) {
+    const value: unknown = reply.ok ? reply.value : undefined;
+    if (reply.ok && !isCacheValue(row.command.op, value)) {
       this.failover(v.safeParse(CacheReplySchema, event.data).success ? `invalid ${row.command.op} value` : 'invalid reply'); return;
     }
-    this.pending.delete(reply.output.id);
-    if (value?.success === true) {
+    this.pending.delete(reply.id);
+    if (reply.ok && isCacheValue(row.command.op, value)) {
       if (row.command.op === 'release') { this.leases.delete(row.command.lease); this.pinned.delete(row.command.lease); }
-      row.resolve(value.output);
+      row.resolve(value);
     }
-    else if (!reply.output.ok) row.reject(new Error(reply.output.error)); // A verified refusal is not an infrastructure failure.
+    else if (!reply.ok) row.reject(new Error(reply.error)); // A verified refusal is not an infrastructure failure.
     this.pump();
     if (this.pending.size === 0) { this.life.cancelTimer(this.deadline); this.deadline = undefined; this.wakeAt = Infinity; }
     if (this.pending.size === 0 && this.deferred.size === 0 && this.closing === undefined) {
@@ -171,7 +172,8 @@ export class ContentCacheWorker {
     return waitFor(`Content cache ${operation.op}${'hash' in operation ? ` ${operation.hash.slice(0, 12)}` : ''}`, this.requestWork(operation), 'worker');
   }
   private requestWork(operation: CacheOperation): Promise<CacheValue> {
-    const id = ++this.sequence, command = v.parse(CacheCommandSchema, { id, ...operation });
+    const id = ++this.sequence, candidate: unknown = { id, ...operation };
+    const command = isCacheCommand(candidate) ? candidate : v.parse(CacheCommandSchema, candidate);
     return this.requestChecked(command);
   }
   /** Only private commands that already passed the defining schema enter here. */
