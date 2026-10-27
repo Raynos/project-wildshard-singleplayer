@@ -108,9 +108,7 @@ export default defineConfig(({ mode, command }) => {
   const validationRevision = shardfileValidationRevision();
   return {
     server: { port: 5173, host: true },
-    // keepNames: the uncaught-exception modal shows raw stacks on phones (no source-map resolution there), so keep
-    // function / class names readable; hidden source maps for desktop devtools (not referenced from the bundle).
-    esbuild: { keepNames: true, minifyIdentifiers: false }, // readable stacks in the exception modal (identifier mangling saves ~15 % gzip; not worth blind bug reports)
+    // js-payload D2 (Jake): on-phone stacks show Rolldown's mangled names; hidden source maps resolve them on desktop
     // native: no source maps at all — they would ship inside the app and in every OTA bundle
     build: native
       ? { target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: false, outDir: 'dist-native' }
