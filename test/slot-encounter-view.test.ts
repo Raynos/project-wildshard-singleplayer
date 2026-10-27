@@ -10,7 +10,7 @@ import { overrideTerrain } from '@wildshard/engine/test/terrain';
 import { CueDirector } from '../src/game/audio/cueDirector';
 import { SlotEncounterView } from '../src/game/boss/encounterView';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import nightInput from '../src/shards/nalati-grasslands/data/night.generated.json' with {type:'json'};
+import { NALATI_NIGHT as nightInput } from './fixtures/nalati-night';
 import {withWeatherWitness} from './fixtures/weatherInlineWitness';
 
 const night=withWeatherWitness(nightInput);

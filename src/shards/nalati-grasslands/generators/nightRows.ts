@@ -1,21 +1,25 @@
 import bindings from '../data/nightBindings.json' with { type: 'json' };
-import { weatherDecision } from './weatherDecision.mjs';
-import { BOWL } from './layout.ts';
+import { BOWL } from './layout';
 import { NALATI_ECOLOGY as ecology } from './ecology.mjs';
-import { ghostArrowKind, nightCues } from './nightGeometry.ts';
+import { ghostArrowKind, nightCues } from './nightGeometry';
+import type { DecisionScriptRow } from '@wildshard/sdk/decisionScripts';
 
-export async function nightProgram() {
-  const ridge = Array.from({length:16}, (_,i) => {
+/** The night roster's ABI-1 return programme: the shard's weather decision (its script; the bytes stay a named file). */
+export interface NalatiNightProgram { readonly script: DecisionScriptRow; readonly bytes: string }
+
+function nightRowsOf(program: NalatiNightProgram) {
+  const ridge = Array.from({length:16}, (_,i): [number, number] => {
     const t = i * Math.PI / 8, c = Math.cos(t), s = Math.sin(t), b = BOWL;
     return [b.x + b.ax * .85 * Math.sign(c) * Math.abs(c) ** (2/3), b.z + b.az * .85 * Math.sign(s) * Math.abs(s) ** (2/3)];
   });
-  const params = {canter:ecology.modes.ride[0].gaits.canter,center:BOWL.z};
-  for (let i=0;i<4;i++) params[`x${i}`]=ridge[i][0];
-  for (let i=1;i<=4;i++) params[`z${i}`]=ridge[i][1]-BOWL.z;
+  const point = (i: number): [number, number] => { const row = ridge[i]; if (row === undefined) throw new Error('Missing night ridge point'); return row; };
+  const gaits = ecology.modes.ride[0]?.gaits;
+  if (gaits === undefined) throw new Error('Missing night ride gaits');
   let distance = 0;
-  for (let i=0;i<4;i++) {distance+=Math.hypot(ridge[i+1][0]-ridge[i][0],ridge[i+1][1]-ridge[i][1]);params[`d${i+1}`]=distance;}
-  const {script,bytes} = await weatherDecision();
-  const program={script,bytes};
+  const leg = (i: number): number => { const a = point(i - 1), b = point(i); distance += Math.hypot(b[0] - a[0], b[1] - a[1]); return distance; };
+  // the original key order: canter, centre, x0..x3, z1..z4, then the running distances d1..d4
+  const params = { canter: gaits.canter, center: BOWL.z, x0: point(0)[0], x1: point(1)[0], x2: point(2)[0], x3: point(3)[0],
+    z1: point(1)[1] - BOWL.z, z2: point(2)[1] - BOWL.z, z3: point(3)[1] - BOWL.z, z4: point(4)[1] - BOWL.z, d1: leg(1), d2: leg(2), d3: leg(3), d4: leg(4) };
   const {geometry,material,...arrow}=ghostArrowKind();
   const shape={data:geometry.toJSON().data};geometry.dispose();material.dispose();
   const view = {cycle:{wake:"spawn",dawn:"dissolve"},states:{broken:"broken",retire:"retire",home:"statue"},
@@ -33,4 +37,12 @@ export async function nightProgram() {
     targets:[{at:[0,.86,.3],radius:.36,head:false},{at:[0,1.26,.42],radius:.2,head:true}],
     arrow:{...arrow,geometry:shape,colour:[.7,2.6,3],renderOrder:13}};
   return {...bindings,ride,view:{...view,tell:{...view.tell,...bindings.tell}},cues:nightCues(),program,parameters:params,motion:{signal:"patrolMotion",initial:{x:0,z:0,vx:0,vz:0,first:1},parameters:{radius:20},retain:{x:"x",z:"z",vx:"vx",vz:"vz",first:"first"}},slots:{actors:{kind:"balbal",variant:"warrior",variants:{"1":"capped"},herd:-1,yaw:Math.PI,sink:-2.5,memory:{field:1,rise:0},home:{x:"homeX",z:"homeZ",yaw:"homeYaw"},dawn:"dawn",gone:"gone"},release:"statue",cycle:{signal:"warriorCycle",initial:{phase:-1,t:-1}},member:{signal:"warrior",initial:{t:0}},select:{signal:"tonight",count:5}},patrol:{actors:{kind:"ghost-rider",variant:"rider",leader:"captain",count:3,herd:-1,player:{x:"px",z:"pz"},target:{x:"tx",z:"tz"},steering:{tx:"tx",tz:"tz",v:"v",turn:"turn"}},parameters:params,member:{fade:0,fadeTarget:1,dying:0,dead:0},group:{s:0,mode:0,theta:0,dir:1,t:0},signals:{cycle:"patrolCycle",empty:"patrolEmpty",dissolve:"patrolDissolve",member:"rider",fire:"patrolFire",retry:"retry",start:"lineStart",slot:"lineSlot",group:"line",target:"target"}},respawn:60};
+}
+
+/** GR6 (G783): the night roster rows (the retired `nalati-elite-charge` job's data/night.generated.json) around the
+ *  shard's weather decision programme; the build and tests call this with the compiled weather rows. */
+export function nalatiNightRows(program: NalatiNightProgram): ReturnType<typeof nightRowsOf> {
+  // the rows read exactly as the job's JSON did (-0 as 0, no undefined fields)
+  const wire = JSON.stringify(nightRowsOf(program)), exact: unknown = JSON.parse(wire);
+  return exact as ReturnType<typeof nightRowsOf>;
 }

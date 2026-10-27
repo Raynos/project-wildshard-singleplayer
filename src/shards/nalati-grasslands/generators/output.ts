@@ -60,7 +60,7 @@ import nativeRide from '../data/nativeRiding.json' with { type: 'json' };
 import skinFinishes from '../data/skinFinishes.json' with { type: 'json' };
 import { nalatiDressingPlacementBlobs } from './dressingSchemas';
 import { nalatiDressingPlacementProgram } from './dressingPlacementProgram';
-import night from '../data/night.generated.json' with {type:'json'};
+import { nalatiNightRows } from './nightRows';
 import { nalatiRidingProgram, ridingModuleOptions, NALATI_RIDING_MODULE, NALATI_RIDING_WITNESS } from './ridingProgram';
 import { nalatiRidingPopulation, type NalatiRidingPrograms } from './ridingRows.mjs';
 import arenaRoom from '../data/bossArenaRoom.json' with { type: 'json' };
@@ -149,7 +149,6 @@ const eliteAssemblyOf = (headlessAssembly: NalatiHeadlessAssembly) => {
 /** Author weather once; page and native owners consume the same admitted numeric program. */
 const titanGeometry = titanGeometryRows();
 const cloudSpecimen = { name: 'storm-titan', pose: { rise: 1, bend: 0, kneel: 0, raise: .2, castL: 0, stride: 0, heartOpen: 0 }, ports: { place: { ...titanFight.TITAN_ARENA.titan, ground: { heightAt: [CAIRN.x, CAIRN.z] } } }, ...Object.fromEntries(['phone', 'desktop'].map(tier => [tier, { ...titanGeometry.body, geometry: { ...titanGeometry.body.geometry, eyes: titanGeometry.eyes }, poses: titanGeometry.poses, puffs: { ...titanGeometry.body.puffs, rows: (tier === 'phone' ? titanGeometry.phone : titanGeometry.desktop).puffs } }])) };
-const { cues: nightCues, ...nightRows } = night;
 // G613: the whole look as one row (game/looks/postGraphLook over its painted world, the manifest's render): the grade's
 // post graph, then the painted world's fog, air, ground, grass and the panorama / key light / capture world rows
 const lookRows = postChainRows(), painted = NALATI_PAINTED;
@@ -167,6 +166,7 @@ const chapterContentOf = (kokpar: NalatiKokpar): { figures: typeof peopleFrames;
 const weatherModule = (weather: NalatiWeather): NamedBlob => nameBlob('behaviour/nalati.weather.wasm', 'wasm', weather.binary, { critical: true, script: { abi: 1, pages: weather.rows.script.pages } });
 interface SpeciesEmissionRows { crackBytes: readonly number[]; looks: unknown; presentation: unknown; hullBook: unknown }
 const emitSpeciesOutput = (speciesRows: SpeciesEmissionRows, { held: heldWeapons }: NalatiHeldRows, mounted: ReturnType<typeof nalatiMountedFigure>, cover: NalatiCover, grass: NalatiGrass, spear: SpearPoolRows, kokpar: NalatiKokpar, ridingPrograms: NalatiRidingPrograms, titanProgram: NalatiTitanPrograms, weatherSource: NalatiWeather, admissionInput: NalatiAdmission) => {
+  const { cues: _nightCues, ...nightRows } = nalatiNightRows({ script: weatherSource.rows.script, bytes: weatherSource.rows.bytes });
   const { compiled: _weatherCompiled, ...weatherDecision } = weatherSource.rows, weatherPresentation = weatherSource.channels.weather;
   const {compiled:_admissionCompiled,...admission}=admissionInput;
   const pasture = titanProgram.wind, headlessAssembly = nalatiHeadlessAssembly(pasture, admissionInput);
@@ -212,6 +212,7 @@ export interface NalatiOutputRows {
   assets: Map<string, Uint8Array>;
 }
 function outputRowsFrom(speciesRows: SpeciesEmissionRows, emitted: ReturnType<typeof emitSpeciesOutput>, heldRows: NalatiHeldRows, views: readonly NamedBlob[], kokpar: NalatiKokpar, ridingPrograms: NalatiRidingPrograms, titanProgram: NalatiTitanPrograms, weather: NalatiWeather, admissionInput: NalatiAdmission, charge: NalatiCharge): NalatiOutputRows {
+  const { cues: nightCues } = nalatiNightRows({ script: weather.rows.script, bytes: weather.rows.bytes });
   const weatherBlob = weatherModule(weather);
   const taming = tamingOf(ridingPrograms), headlessAssembly = nalatiHeadlessAssembly(titanProgram.wind, admissionInput);
   const { held: heldWeapons, stealth } = heldRows;

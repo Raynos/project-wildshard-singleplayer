@@ -11,7 +11,7 @@ import * as titan from '../src/shards/nalati-grasslands/generators/stormTitanFig
 import { titanGeometryRows } from '../src/shards/nalati-grasslands/generators/stormTitanGeometry';
 import arenaFire from '../src/shards/nalati-grasslands/data/arenaFire.json' with {type:'json'};
 import {titanPrograms as programs} from './fixtures/titanInlineWitness';
-import nightInput from '../src/shards/nalati-grasslands/data/night.generated.json' with {type:'json'};
+import { NALATI_NIGHT as nightInput } from './fixtures/nalati-night';
 import {withWeatherWitness} from './fixtures/weatherInlineWitness';
 import strikes from './fixtures/nalati-strikeProfiles-original.json' with {type:'json'};
 

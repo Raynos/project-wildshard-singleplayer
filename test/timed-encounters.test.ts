@@ -16,7 +16,7 @@ import { TimedEncounters } from '../src/game/boss/timedEncounters';
 import { setTerrainHeight, setTerrainPlacement } from '../src/engine/world/terrainHeight';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
-import nightInput from '../src/shards/nalati-grasslands/data/night.generated.json' with {type:'json'};
+import { NALATI_NIGHT as nightInput } from './fixtures/nalati-night';
 import {withWeatherWitness} from './fixtures/weatherInlineWitness';
 import strikes from './fixtures/nalati-strikeProfiles-original.json' with { type: 'json' };
 

@@ -1,6 +1,6 @@
 import { expect,test } from 'vitest';
 import { ProjectedState,ReturnProgram } from '../src/game/population/returnProgram';
-import nightInput from '../src/shards/nalati-grasslands/data/night.generated.json' with {type:'json'};
+import { NALATI_NIGHT as nightInput } from './fixtures/nalati-night';
 import {withWeatherWitness} from './fixtures/weatherInlineWitness';
 
 const night=withWeatherWitness(nightInput);

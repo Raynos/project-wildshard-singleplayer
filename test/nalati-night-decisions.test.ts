@@ -3,7 +3,7 @@ import { ReturnModulesSchema } from '../src/format/scriptContract';
 import { expect, test } from 'vitest';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
-import nightInput from '../src/shards/nalati-grasslands/data/night.generated.json' with {type:'json'};
+import { NALATI_NIGHT as nightInput } from './fixtures/nalati-night';
 import {weatherWitness as weather,withWeatherWitness} from './fixtures/weatherInlineWitness';
 
 const night=withWeatherWitness(nightInput);

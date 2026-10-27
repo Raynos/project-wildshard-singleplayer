@@ -1,51 +1,5 @@
 {
   "schema": "generation-jobs/1",
   "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their retained source commands and SHA256-pinned build outputs. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Only explicitly admitted buildOutputs are restored on a build-time cache miss; other outputs remain committed.",
-  "jobs": [
-    {
-      "id": "nalati-elite-charge",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-elite-charge.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-elite-charge.mjs"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format",
-        "src/sdk",
-        "src/shards/nalati-grasslands/generators/poiLayout.ts",
-        "src/shards/nalati-grasslands/generators/clearings.ts",
-        "scripts/bake-output.mjs",
-        "src/shards/nalati-grasslands/generators/ecology.mjs",
-        "src/shards/nalati-grasslands/data/ecology.json",
-        "src/shards/nalati-grasslands/data/ecologyTypes.d.ts",
-        "src/shards/nalati-grasslands/data/aqbarsProfile.json",
-        "src/shards/nalati-grasslands/data/kokboriProfile.json",
-        "pnpm-workspace.yaml",
-        "src/shards/nalati-grasslands/data/qyranProfile.json",
-        "src/shards/nalati-grasslands/generators/bake-elite-charge.mjs",
-        "src/shards/nalati-grasslands/generators/nightProgram.mjs",
-        "src/shards/nalati-grasslands/data/nightBindings.json",
-        "src/shards/nalati-grasslands/generators/nightGeometry.ts",
-        "src/shards/nalati-grasslands/generators/layout.ts",
-        "src/shards/nalati-grasslands/generators/weatherDecision.mjs",
-        "src/shards/nalati-grasslands/behaviour/weather.as",
-        "src/sdk/decisionScriptBindings.ts",
-        "src/format/scriptAbiV1.ts",
-        "src/format/decisionScripts.ts"
-      ],
-      "catalogueDependencies": [],
-      "outputs": [
-        "src/shards/nalati-grasslands/data/night.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/night.generated.json"
-      ],
-      "platform": "portable"
-    }
-  ]
+  "jobs": []
 }

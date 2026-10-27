@@ -14,7 +14,7 @@ import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { PatrolEncounterView } from '../src/game/boss/encounterView';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
-import nightInput from '../src/shards/nalati-grasslands/data/night.generated.json' with {type:'json'};
+import { NALATI_NIGHT as nightInput } from './fixtures/nalati-night';
 import {withWeatherWitness} from './fixtures/weatherInlineWitness';
 
 const night=withWeatherWitness(nightInput);

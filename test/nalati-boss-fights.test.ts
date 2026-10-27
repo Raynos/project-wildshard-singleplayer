@@ -34,7 +34,7 @@ import { CueDirector } from '../src/game/audio/cueDirector';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Mount } from '../src/game/riding/mount';
 import type { LevelContext } from '../src/engine/level/context';
-import nightInput from '../src/shards/nalati-grasslands/data/night.generated.json' with {type:'json'};
+import { NALATI_NIGHT as nightInput } from './fixtures/nalati-night';
 import {withWeatherWitness} from './fixtures/weatherInlineWitness';
 import { bossArena } from './fake/bossArena';
 import fireView from '../src/shards/nalati-grasslands/data/arenaFire.json' with { type: 'json' };

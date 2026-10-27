@@ -1,6 +1,7 @@
 // Preserve the original inline unit oracle; production borrows the admitted
 // raw module through its original scope, exercised by return-program-raw-modules.
 import {readFileSync} from 'node:fs';
+import { NALATI_NIGHT } from './nalati-night';
 import * as v from 'valibot';
 import {WeatherReactionsSchema} from '../../src/format/weatherProgram';
 import {DecisionScriptsSchema} from '../../src/format/decisionScripts';
@@ -18,4 +19,4 @@ export function withWeatherWitness<T extends {program:{script:{module:string};by
 }
 
 export const nightParameters=v.parse(v.object({parameters:v.record(v.string(),v.number())}),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/night.generated.json','utf8'))).parameters;
+  structuredClone(NALATI_NIGHT)).parameters;
