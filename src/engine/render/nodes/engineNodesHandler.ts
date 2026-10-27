@@ -1308,6 +1308,14 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     }
   }
 
+  /** Pair new groups only when this physical program's catalogue is known.
+   * A false result performs no GL query, upload, draw or variant selection. */
+  prepareCachedProgram(material: THREE.Material, program: Pick<ProgramLike, 'program'>): boolean {
+    if (this.blocks !== null && !this.blocks.hasProgram(program.program)) return false;
+    this.prepareProgram(material, program);
+    return true;
+  }
+
   /**
    * Bind the uniform groups of `material`'s program (`program`, else the program it last drew with) through the engine's
    * per-draw plain uniforms (`nodePlainUniforms.ts`) and leave the classic renderer none of them: its global binding point

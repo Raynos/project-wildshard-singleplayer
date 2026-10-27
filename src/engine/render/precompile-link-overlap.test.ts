@@ -3,14 +3,16 @@ import { BoxGeometry, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, WebGLRe
 import type { ProgramLike } from '../boot/perflog';
 import { noteFrameDrawn, setBuildHeld } from '../core/framePacing';
 import { linkedGl } from '../test/linkedGl';
+import { loadGraphBackend } from './graphBackend';
 import { runPrecompile, setWarmUpHeld, type CompileJob } from './precompile';
 
 interface Event { readonly kind: 'compile' | 'ready' | 'uniforms'; readonly id: number; readonly frame: number; readonly cost: number }
 async function issue(options: { compileMs: number; queryMs: number; readyMs?: number; misses?: number; cancel?: boolean;
-  shared?: boolean; initialMs?: number; failure?: Error }) {
+  shared?: boolean; initialMs?: number; failure?: Error; groups?: 'cached' | 'cold' | 'slow' }) {
   const renderer: unknown = Object.create(WebGLRenderer.prototype);
   if (!(renderer instanceof WebGLRenderer)) throw new Error('Renderer missing');
   const geometry = new BoxGeometry(), materials = Array.from({ length: 8 }, () => new MeshBasicMaterial());
+  if (options.groups !== undefined) for (const material of materials) Reflect.set(material, 'isNodeMaterial', true);
   const jobs: CompileJob[] = materials.map((material, i) => {
     const root = new Scene(); root.add(new Mesh(geometry, material));
     return { label: `material-${i}`, root, target: null, rt: null };
@@ -20,6 +22,7 @@ async function issue(options: { compileMs: number; queryMs: number; readyMs?: nu
   const record = (kind: Event['kind'], id: number, cost: number): void => { events.push({ kind, id, frame, cost }); now += cost; };
   const fields: Record<string, unknown> = {
     info: { programs, render: { frame: 0 } }, extensions: { has: (name: string) => name === 'KHR_parallel_shader_compile' },
+    setNodesHandler: () => undefined,
     properties: { has: () => true, get: (material: MeshBasicMaterial) => {
       const program = byMaterial.get(material);
       return { programs: program === undefined ? new Map() : new Map([['linked', program]]) };
@@ -39,6 +42,13 @@ async function issue(options: { compileMs: number; queryMs: number; readyMs?: nu
     },
   };
   for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
+  const backend = options.groups === undefined ? null : await loadGraphBackend(renderer);
+  const prepare = backend === null ? undefined : vi.spyOn(backend, 'prepareProgram').mockImplementation(() => undefined);
+  const cachedPrepare = backend === null ? undefined : vi.spyOn(backend, 'prepareCachedProgram').mockImplementation(() => {
+    if (options.groups === 'cold') return false;
+    if (options.groups === 'slow') now += 12;
+    return true;
+  });
   const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
   const pause = (): Promise<void> => {
     frame++; now = 1000 + frame * (1000 / 30); noteFrameDrawn(now, now, 30);
@@ -56,6 +66,8 @@ async function issue(options: { compileMs: number; queryMs: number; readyMs?: nu
     return { events, pendingAfterIssue, cancelAt, cachedDuringIssue };
   } finally {
     setBuildHeld(false); setWarmUpHeld(false); noteFrameDrawn(Number.NEGATIVE_INFINITY); clock.mockRestore();
+    prepare?.mockRestore();
+    cachedPrepare?.mockRestore();
     geometry.dispose(); for (const material of materials) material.dispose();
   }
 }
@@ -104,4 +116,24 @@ test('a first-use refusal retains its exact error and admits no following job', 
   const result = await issue({ compileMs: 2, queryMs: 1, failure: new Error('Exact first-use refusal') });
   expect(result.events.filter(event => event.kind === 'compile')).toHaveLength(1);
   expect(result.events.filter(event => event.kind === 'uniforms')).toHaveLength(1);
+});
+
+test('new material groups reuse a proven uniform catalogue in the cached slice', async () => {
+  const result = await issue({ compileMs: 3, initialMs: 12, queryMs: 1, shared: true, groups: 'cached' });
+  expect(result.events.filter(event => event.kind === 'compile').map(event => event.frame)).toEqual([0, 1, 1, 1, 1, 1, 1, 1]);
+  expect(result.cachedDuringIssue).toBe(7);
+  expect(result.events.filter(event => event.kind === 'uniforms')).toHaveLength(1);
+});
+
+test('a missing catalogue retains the ordinary group-preparation queue', async () => {
+  const result = await issue({ compileMs: 3, initialMs: 12, queryMs: 1, shared: true, groups: 'cold' });
+  expect(result.cachedDuringIssue).toBe(0);
+  expect(result.events.filter(event => event.kind === 'compile')).toHaveLength(8);
+  expect(result.events.filter(event => event.kind === 'uniforms')).toHaveLength(1);
+});
+
+test('slow cached group work keeps its explicit slice rather than rebasing', async () => {
+  const result = await issue({ compileMs: 3, initialMs: 12, queryMs: 1, shared: true, groups: 'slow' });
+  expect(result.cachedDuringIssue).toBe(0);
+  expect(result.events.filter(event => event.kind === 'compile').map(event => event.frame)).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
 });

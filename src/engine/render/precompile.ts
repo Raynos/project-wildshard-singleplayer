@@ -1012,15 +1012,18 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   const jobPrograms = new Set<unknown>();
   const issuedPrograms = new Set<unknown>();
   const nodeMaterials = new Map<unknown, Set<THREE.Material>>();
-  const prepareBlocks = (program: ProgramLike): void => {
+  const prepareBlocks = (program: ProgramLike, cachedOnly = false): boolean => {
     const handler = installedGraphBackend(renderer);
-    if (handler === null) return;
+    if (handler === null) return false;
     let prepared = preparedBlocks.get(program);
     if (prepared === undefined) { prepared = new WeakSet(); preparedBlocks.set(program, prepared); }
     for (const material of nodeMaterials.get(program) ?? []) {
       if (prepared.has(material)) continue;
-      handler.prepareProgram(material, program); prepared.add(material);
+      if (cachedOnly) { if (!handler.prepareCachedProgram(material, program)) return false; }
+      else handler.prepareProgram(material, program);
+      prepared.add(material);
     }
+    return true;
   };
   const needsBlocks = (program: ProgramLike): boolean => {
     for (const material of nodeMaterials.get(program) ?? []) if (preparedBlocks.get(program)?.has(material) !== true) return true;
@@ -1143,6 +1146,10 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     let knownPrograms = 0;
     const acquired = isolateImageUploads ? snapshotPrograms(renderer) : undefined;
     if (acquired !== undefined) for (const program of acquired) if (issuedPrograms.has(program)) {
+      // A later material can reuse this resolved program with new CPU-only
+      // group bindings. The handler must prove its native catalogue exists;
+      // missing catalogues retain the ordinary first-use/link queue.
+      if (cachedOnly && resolvedPrograms.has(program) && needsBlocks(program)) prepareBlocks(program, true);
       knownPrograms++; if (needsPreparation(program)) cachedOnly = false;
     }
     cachedOnly &&= knownPrograms > 0 && knownPrograms === issuedPrograms.size;

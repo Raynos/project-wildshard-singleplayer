@@ -1,17 +1,19 @@
 import { expect, test } from 'vitest';
-import { Matrix3, Vector3, Vector4 } from 'three';
+import { Material, Matrix3, Vector3, Vector4 } from 'three';
 import { NodePlainUniforms, plainUniformShader, type PlainUniformGl } from './nodePlainUniforms';
+import { EngineNodesHandler } from './engineNodesHandler';
 
 const FLOAT = 0x1406, VEC3 = 0x8b51, VEC4 = 0x8b52, MAT3 = 0x8b5b, UINT = 0x1405;
 /** a linked program's active uniforms and every upload made to it */
 class Gl implements PlainUniformGl {
   readonly ACTIVE_UNIFORMS = 0x8b86;
   readonly sent: [string, number[]][] = [];
+  readonly queries: string[] = [];
   private readonly active: readonly { name: string; type: number; size: number }[];
   constructor(active: readonly { name: string; type: number; size: number }[]) { this.active = active; }
-  getProgramParameter(): number { return this.active.length; }
-  getActiveUniform(_p: WebGLProgram, i: number): WebGLActiveInfo | null { const a = this.active[i]; return a === undefined ? null : { ...a }; }
-  getUniformLocation(_p: WebGLProgram, name: string): WebGLUniformLocation { return { name }; }
+  getProgramParameter(): number { this.queries.push('program'); return this.active.length; }
+  getActiveUniform(_p: WebGLProgram, i: number): WebGLActiveInfo | null { this.queries.push('uniform'); const a = this.active[i]; return a === undefined ? null : { ...a }; }
+  getUniformLocation(_p: WebGLProgram, name: string): WebGLUniformLocation { this.queries.push('location'); return { name }; }
   private log(at: WebGLUniformLocation | null, data: Iterable<number>): void { this.sent.push([String(Reflect.get(at ?? {}, 'name')), Array.from(data)]); }
   uniform1fv(at: WebGLUniformLocation | null, d: Float32List): void { this.log(at, d); }
   uniform2fv(at: WebGLUniformLocation | null, d: Float32List): void { this.log(at, d); }
@@ -85,4 +87,34 @@ test('a render group compares once per camera pass; another material on the same
   gl.sent.length = 0;
   plain.bind(program, [b], 2);
   expect(gl.sent).toEqual([['nodeUniform5', [3]]]);
+});
+
+test('cached group preparation proves the physical catalogue and never queries or uploads', () => {
+  const gl = new Gl([{name: 'nodeUniform0', type: VEC3, size: 1}]), blocks = new NodePlainUniforms(gl);
+  const program = {program: {}}, first = new Material(), second = new Material();
+  const a = {name: 'object', uniforms: [{value: new Vector3(1, 2, 3)}, {value: new Matrix3()}, {value: 0}]};
+  const b = {name: 'object', uniforms: [{value: new Vector3(9, 8, 7)}, {value: new Matrix3()}, {value: 0}]};
+  blocks.declare({vertexShader: VERTEX, fragmentShader: FRAGMENT}, [a]);
+  blocks.declare({vertexShader: VERTEX, fragmentShader: FRAGMENT}, [b]);
+  const handler = new EngineNodesHandler();
+  Reflect.set(handler, 'blocks', blocks);
+  Reflect.set(handler, 'programCache', new Map([
+    [first, new Map([[program, {uniformsGroups: [a]}]])], [second, new Map([[program, {uniformsGroups: [b]}]])],
+  ]));
+  try {
+    expect(blocks.hasProgram(program.program)).toBe(false);
+    expect(handler.prepareCachedProgram(first, program)).toBe(false);
+    expect(gl.queries).toEqual([]); expect(gl.sent).toEqual([]);
+    handler.prepareProgram(first, program);
+    expect(blocks.hasProgram(program.program)).toBe(true);
+    const queries = [...gl.queries]; expect(queries).toEqual(['program', 'uniform', 'location']);
+    expect(gl.sent).toEqual([]);
+    blocks.bind(program.program, [a], 1); expect(gl.sent).toEqual([['nodeUniform0', [1, 2, 3]]]);
+    gl.sent.length = 0;
+    expect(handler.prepareCachedProgram(second, program)).toBe(true);
+    expect(gl.queries).toEqual(queries); expect(gl.sent).toEqual([]);
+    blocks.bind(program.program, [b], 1); expect(gl.sent).toEqual([['nodeUniform0', [9, 8, 7]]]);
+    expect(handler.prepareCachedProgram(second, {program: {}})).toBe(false);
+    expect(gl.queries).toEqual(queries);
+  } finally {first.dispose(); second.dispose();}
 });

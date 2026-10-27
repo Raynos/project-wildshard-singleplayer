@@ -1272,9 +1272,9 @@ One whole-pass compile, driver query or node build remains atomic; slicing canno
 Ready programs are not polled again; weak resolved identities avoid repeating work for borrowed variants.
 KHR completion is checked before uniforms are resolved, and shader-error diagnostics remain enabled.
 Paced herd pages retain their original 16-slot capacity; loading-screen construction starts at eight slots.
-The same linked-program slice calls `EngineNodesHandler.prepareProgram` for its node materials.
-`NodeUniformBuffers.prepare` resolves their block indices without allocating buffers, uploading values,
-selecting a material variant or changing bindings; the first draw retains ordinary pairing and uploads.
+`EngineNodesHandler.prepareProgram` resolves node uniform metadata in the linked-program slice.
+`prepareCachedProgram` refuses a missing `NodePlainUniforms.hasProgram` catalogue without GL calls.
+Known catalogues pair new groups on CPU; actual draws retain their ordinary value uploads/bindings.
 A two-sided material can still issue two variants; one native query can still overshoot. Paced live world
 preparation uses the existing 6 ms slice on both browser families. Initial boot retains its
 ordinary grouping and 12 ms bound; readiness still awaits the complete inventory before exposure.

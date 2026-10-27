@@ -147,6 +147,10 @@ export class NodePlainUniforms {
     for (const group of groups) this.bound(known, group);
   }
 
+  /** Whether this exact physical program already has its uniform catalogue.
+   * Reading this proof never queries GL or uploads a value. */
+  hasProgram(program: WebGLProgram): boolean { return this.programs.has(program); }
+
   /**
    * Upload what changed in `groups` since `program` last received it. `program` must be in use: gl.uniform* writes the
    * current program, so the handler sends a draw's uniforms from setProgram, after its useProgram. `pass` names the
