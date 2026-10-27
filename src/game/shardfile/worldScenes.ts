@@ -310,9 +310,15 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
   const owner = resident.child('world-scenes'), libraries = new Map<string, Library>(), materials = new Map<string, Material>(), finish: (() => void)[] = [];
   const handles = new SceneHandles(ctx.game.runtime?.world?.sky);
   const refinementOrigin = residentTileEntry(resident) ?? product.shardfile.spawn;
-  const refinement = new ControlRefinement(owner, ctx.game.runtime?.world?.game.levelScope, () => ctx.game.runtime?.world?.player.position ?? refinementOrigin, () => buildYield(owner));
+  let refinement: ControlRefinement | undefined;
+  // Ordinary/headless declarations need no control clock. Acquire it only at
+  // the first actual after-control consumer, retaining that host's real fence.
+  const refinementQueue = (): ControlRefinement => {
+    refinement ??= new ControlRefinement(owner, ctx.game.runtime?.world?.game.levelScope, () => ctx.game.runtime?.world?.player.position ?? refinementOrigin, () => buildYield(owner));
+    return refinement;
+  };
   const refining = new Map<string, RefiningWholeLibrary>();
-  const coarse = section.libraries.some(row => row.kind === 'whole' && row.load === 'refine') ? wholeRefinementCover(ctx, owner, refinement, refinementOrigin) : undefined;
+  const coarse = section.libraries.some(row => row.kind === 'whole' && row.load === 'refine') ? wholeRefinementCover(ctx, owner, refinementQueue(), refinementOrigin) : undefined;
   if (coarse !== undefined) handles.addTiled(coarse.content);
   const bufferedContents: TileContent[] = [];
   if (section.cosmeticDraws !== undefined) {
@@ -345,7 +351,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
             if (row.load === 'explorer' || used.size === 0) { libraryProgress(libraryIndex + 1, `${row.id} · deferred`); return; }
             if (row.load === 'refine') {
               if (coarse === undefined) throw new Error('Fine refinement requires coarse coverage');
-              const whole = new RefiningWholeLibrary(owner, product, row, refinement, coarse.ensure); refining.set(row.id, whole);
+              const whole = new RefiningWholeLibrary(owner, product, row, refinementQueue(), coarse.ensure); refining.set(row.id, whole);
               libraries.set(row.id, { geometry: id => whole.geometry(id) }); return;
             }
             const whole = await readWholeLibrary(owner, product, row, used, () => buildYield(owner), ctx.app.assets);
@@ -511,7 +517,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       const from = residentTileEntry(resident) ?? product.shardfile.spawn, owned = new Map(section.libraries.flatMap(row => row.kind === 'owned' ? [[row.id, row] as const] : []));
       const away = (row: WorldSceneWeld): number => { const at = lateWelds.get(row.id) ?? [0, 0]; return Math.hypot(at[0] - from.x, at[1] - from.z); };
       const late = welds.filter(row => lateWelds.has(row.id)).sort((a, b) => away(a) - away(b));
-      const pending = late.map(row => refinement.add(`weld:${row.id}`, { x: lateWelds.get(row.id)?.[0] ?? 0, z: lateWelds.get(row.id)?.[1] ?? 0 }, async () => {
+      const pending = late.map(row => refinementQueue().add(`weld:${row.id}`, { x: lateWelds.get(row.id)?.[0] ?? 0, z: lateWelds.get(row.id)?.[1] ?? 0 }, async () => {
           const shapes = new Map<string, WorldSceneGeometry>();
           try {
           for (const id of new Set(weldSlots(row))) {
