@@ -812,7 +812,6 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 # Nine fixed geometry is rebuilt by its retained author.
 
 # Z2 cheap scene-model build outputs
-/src/shards/pine-hollow/assets/crag-scenes/
 /src/shards/driftwood-isle/assets/world-scenes/pools.glb
 /src/shards/driftwood-isle/assets/world-scenes/rings.glb
 

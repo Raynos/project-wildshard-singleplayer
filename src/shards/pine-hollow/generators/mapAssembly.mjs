@@ -12,6 +12,7 @@ import { SCENE_MODELS, SCENE_PLACEMENTS } from './sceneModelRows.ts';
 import { mapLilies } from './mapLilies.mjs';
 import { bakeBeaverPool } from './beaverPool.ts';
 import { pineCragGround } from './bake-pine-crags.mjs';
+import { pineCragScenes } from './bake-crag-scenes.mjs';
 import { pineFloorLayout } from './bake-pine-floor.mjs';
 import * as PINE_LAYOUT from './layout.ts';
 import { bakePineUndergrowth } from './undergrowth.ts';
@@ -23,7 +24,7 @@ const palette = ['#847553', '#46603a', '#948a7c', '#504640'].map(value => new Co
 export async function pineMapAssembly() {
   const assembly = new MapAssembly(), world = new MapWorld(assembly, base, WORLD_SCENES, SCENE_MODELS, [...SCENE_MODEL_BLOBS, ...SCENE_RAW_MODELS, ...SCENE_BLOBS]);
   const layout = PINE_LAYOUT, native = readNativeTerrain(readFileSync(resolve(root, 'public/assets/baked/pine-hollow/terrain.bin')));
-  const crags = read('data/cragScenes.generated.json'), cave = layout.BEAR_CAVE, c = Math.cos(cave.rot), s = Math.sin(cave.rot);
+  const crags = (await pineCragScenes()).rows, cave = layout.BEAR_CAVE, c = Math.cos(cave.rot), s = Math.sin(cave.rot);
   const hole = points => {
     const local = points.map(([x, y, z]) => [(x - cave.x) * c - (z - cave.z) * s, y, (x - cave.x) * s + (z - cave.z) * c]);
     const lo = [0, 1, 2].map(i => Math.min(...local.map(p => p[i]))), hi = [0, 1, 2].map(i => Math.max(...local.map(p => p[i])));

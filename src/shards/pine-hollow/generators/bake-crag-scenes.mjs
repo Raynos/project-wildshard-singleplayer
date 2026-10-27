@@ -1,18 +1,15 @@
 import { readFileSync } from 'node:fs';
-import { createHash } from 'node:crypto';
-import { fileURLToPath } from 'node:url';
 import { inflateSync } from 'node:zlib';
 import { Matrix4, MeshStandardMaterial, Vector3 } from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 import { cragNodeGeometry, cragFixedRows } from './cragWorldScenes.ts';
 import { CragSkin } from './cragCodec.ts';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import sourceRows from '../data/crags.json' with { type: 'json' };
 import * as layout from './layout.ts';
 
-const project = new URL('../', import.meta.url), root = new URL('../../../../', import.meta.url);
+const root = new URL('../../../../', import.meta.url);
 const directory = 'public/assets/models/pine-hollow-crags/';
 const read = path => readFileSync(new URL(path, root));
 
@@ -82,19 +79,23 @@ export function caveShellRows(shapes) {
   return { kind: 'trimesh', x: origin.x, y: origin.y, z: origin.z, surface: 'rock', vertices: Array.from(vertices), indices };
 }
 
-if (import.meta.main) {
-  const shapes = await bakeCragSceneSources(), material = new MeshStandardMaterial(), blobs = [], models = [], geometryHashes = {};
-  const writer = byteWriter(process.argv.includes('--check'), 'pine-crag-scenes');
+async function bakeCragScenes() {
+  const shapes = await bakeCragSceneSources(), material = new MeshStandardMaterial(), glbs = [], models = [];
   try {
     for (const [id, geometry] of shapes) {
-      const name = `models/crags/${id}.glb`, source = `assets/crag-scenes/${id}.glb`;
-      const encoded = staticGlb([{ geometry, material, compactIndex: true, nativeAttributes: true, customAttributes: { _CDATA: 'aCdata', _CTINT: 'aCtint' } }]);
-      writer.put(fileURLToPath(new URL(source, project)), encoded);
-      geometryHashes[source] = createHash('sha256').update(encoded).digest('hex');
-      blobs.push({ name, kind: 'glb', source }); models.push({ id, file: name, attributes: {} });
+      const name = `models/crags/${id}.glb`;
+      glbs.push([name, staticGlb([{ geometry, material, compactIndex: true, nativeAttributes: true, customAttributes: { _CDATA: 'aCdata', _CTINT: 'aCtint' } }])]);
+      models.push({ id, file: name, attributes: {} });
     }
     const cave = { meta: JSON.parse(read(`${directory}cave.json`).toString()), shell: caveShellRows(shapes) };
-    writer.put(fileURLToPath(new URL('data/cragScenes.generated.json', project)), jsonBytes({ blobs, models, geometryHashes, ...cragWorldRows(shapes), cave }, 0));
-    writer.finish();
+    return { rows: { models, ...cragWorldRows(shapes), cave }, glbs };
   } finally { material.dispose(); for (const geometry of shapes.values()) geometry.dispose(); }
+}
+
+let scenes;
+/** GR8 G30: the crag scenes' rows (library models, module models, batches, placements, cave) and each shape's GLB by
+ *  product name, built once per process (no scheduler job, no stored files under assets/). */
+export function pineCragScenes() {
+  scenes ??= bakeCragScenes();
+  return scenes;
 }
