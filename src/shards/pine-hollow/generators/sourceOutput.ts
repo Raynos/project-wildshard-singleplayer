@@ -70,7 +70,7 @@ import { PINE_QUEST_SERVICES, PINE_MILL_DOOR } from './questConsequences';
 import {emitDefinedSections} from '@wildshard/sdk/sections';
 import {isJsonData} from '@wildshard/format/json';
 import {SECTIONS,CabinAmbienceSchema,CabinSeedsSchema,parseFloorRows,PoolGroundSchema,PinePhysicsSchema} from './sections';
-import { nameBlob, emitNamedBlobs, type BlobSourceOptions, type NamedBlobKind } from '@wildshard/sdk/blobs';
+import { nameBlob, emitNamedBlobs, type BlobSourceOptions, type NamedBlob, type NamedBlobKind } from '@wildshard/sdk/blobs';
 import { pineTreeRest } from './bake-tree-rest.mjs';
 import type { PineSources } from './pineSources';
 import { readPineSources } from './programSources';
@@ -201,8 +201,9 @@ export async function staticOutput(sources: PineSources, readImagePixels: Projec
 
 
 /** Compile a declared return guest through injected capabilities, without source-tree byte handoffs (GR8: the retired
- *  bake-life.mjs / bake-shelter.mjs rows live in returnPrograms.ts; the compiled row names the module). */
-async function returnModule(ctx: ProjectGenerationContext, name: 'shelter' | 'life') {
+ *  bake-life.mjs / bake-shelter.mjs rows live in returnPrograms.ts; the compiled row names the module). Exported for its
+ *  producer proof (test/pine-life-authoring), which compiles the guest alone, not the whole output. */
+export async function returnModule(ctx: ProjectGenerationContext, name: 'shelter' | 'life'): Promise<Omit<NamedBlob, 'script'> & { readonly script: object }> {
   const compiler = ctx.compileDecisionRows;
   if (compiler === undefined) throw new Error('Pine return modules need decision-row compilation');
   const guest = returnGuest(name);

@@ -1,6 +1,7 @@
 import { beforeAll, expect, test } from 'vitest';
 import ORIGINAL from './fixtures/pine-trade-catalogue.json' with { type: 'json' };
-import { readProjectAssets } from '../src/sdk/project';
+import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import { builtProduct } from './fixtures/builtProduct';
 import { parseTradeCatalogue, type TradeCatalogue } from '../src/shards/pine-hollow/generators/sections';
 import { Exchange } from '../src/game/loot/exchange';
 import type { ExchangeRows } from '../src/format/exchange';
@@ -16,10 +17,11 @@ let declared: TradeCatalogue | undefined;
 let exchangeRows: ExchangeRows | undefined;
 let economy: BarterEconomy | undefined;
 beforeAll(async () => {
-  const loaded = await readProjectAssets('src/shards/pine-hollow');
-  economy = declaredLootEconomy(loaded.shard.rows.loot, 'barter');
-  expect(loaded.output.custom?.sections.some(row => row.name === 'custom/tradeCatalogue')).toBe(false);
-  expect(loaded.output.namedFiles?.some(file => file.name === 'quests/exchange.json')).toBe(false);
+  // Pine's built product (CI's build or the matching local cache), not its whole author output rebuilt in the hook
+  const pine = await loadHeadlessProduct(builtProduct('pine-hollow'));
+  economy = declaredLootEconomy(pine.shardfile.rows.loot, 'barter');
+  expect(pine.has('custom/tradeCatalogue')).toBe(false);
+  expect(pine.hasFile('quests/exchange.json')).toBe(false);
   exchangeRows = economy.exchange;
   declared = parseTradeCatalogue(tradeCatalogue());
 }, 30_000);
