@@ -142,6 +142,20 @@ export function gridFloorPlans(state, scenario, options = {}) {
       waypoints: [homeRoad, { x: h.x, z: h.z - 210 }], requiredResidents: [home.instance], finishOnArrival: false };
     return [entry, leave, back, { ...entry, name: 'nine-reentry', start: homeRoad }, { ...leave, name: 'nine-leave-2' }, { ...back, name: 'home-return-2' }];
   }
+  if (scenario === 'sky-cycle') {
+    // G782 / grid-crossing T2: the leak cycle. Sky Reach entered from the road, left to the road, home again, three times:
+    // a node build a re-entry repeats is a key the keep (nodeBuildReuse.ts keepBuild) or the approach pre-build missed
+    const sky = state.cells.find(cell => cell.slug === 'far-reach');
+    if (!sky) throw new Error('Sky cycle requires the Sky Reach cell');
+    const [entry] = gridFloorPlans(state, 'cell', { cell: sky.instance, roadApproach: true });
+    if (!entry) throw new Error('Missing Sky Reach road entry');
+    const s = origin(sky), road = { x: s.x, z: s.z + half }, homeRoad = { x: h.x, z: road.z };
+    const leave = { name: 'sky-leave', from: sky.instance, to: null, movement: 'road-hover', hoverMaxSpeed: 30, waypoints: [road], requiredResidents: [], finishOnArrival: false };
+    const back = { name: 'home-return', from: null, to: home.instance, movement: 'road-hover', hoverMaxSpeed: 30,
+      waypoints: [homeRoad, { x: h.x, z: h.z - 210 }], requiredResidents: [home.instance], finishOnArrival: false };
+    return [1, 2, 3].flatMap(round => [{ ...entry, name: `sky-entry-${round}`, ...(round === 1 ? {} : { start: homeRoad }) },
+      { ...leave, name: `sky-leave-${round}` }, { ...back, name: `home-return-${round}` }]);
+  }
   // O17: `cold` is the cell entry with no standing pose beside the cell first (frame-floor.mjs skips the deck poses)
   if (scenario === 'cell' || scenario === 'cold') {
     // op-frame22 (SF63 / G158): any assembled cell by its slug, entered from the road at the edge that faces home (a corner

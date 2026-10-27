@@ -154,7 +154,7 @@ const gpuTraceDir = flag('gpu-trace', '');
 if (gpuTraceDir !== '' && (surface !== 'desktop' || gridScenario === 'baseline' || !existsSync(gpuTraceDir))) throw new Error('--gpu-trace=<existing dir> traces desktop grid drives only');
 const GPU_TRACE_CATEGORIES = ['toplevel', 'gpu', 'gpu.service', 'gpu.decoder', 'gpu.angle', 'gpu.capture', 'viz', 'cc', 'blink', 'blink.user_timing', 'devtools.timeline', 'disabled-by-default-devtools.timeline', 'disabled-by-default-devtools.timeline.frame', 'disabled-by-default-gpu.service', 'disabled-by-default-gpu.device', 'disabled-by-default-gpu.decoder', 'disabled-by-default-gpu_cmd_queue', 'disabled-by-default-skia.gpu', 'v8.execute', 'scheduler', 'disabled-by-default-v8.cpu_profiler'];
 const LONGTASK_SCRIPT = cpuProfileDir === '' ? '' : `window.__frameFloorLongTasks=[];try{new PerformanceObserver(l=>{for(const e of l.getEntries())window.__frameFloorLongTasks.push([e.startTime,e.duration]);}).observe({type:'longtask',buffered:true});}catch{}`;
-if (!['baseline', 'template', 'runtime-travel', 'sun-entry', 'cell', 'all', 'milestone', 'reentry', 'outer-road', 'cold', 'nine-return'].includes(gridScenario) || (gridScenario !== 'baseline' && !shards.includes('grid'))) throw new Error('Invalid grid scenario');
+if (!['baseline', 'template', 'runtime-travel', 'sun-entry', 'cell', 'all', 'milestone', 'reentry', 'outer-road', 'cold', 'nine-return', 'sky-cycle'].includes(gridScenario) || (gridScenario !== 'baseline' && !shards.includes('grid'))) throw new Error('Invalid grid scenario');
 if (publicGrid && (gridScenario === 'milestone' || gridScenario === 'reentry')) throw new Error('Milestone and re-entry floors require Developer mode');
 if (publicGrid && gridScenario === 'sun-entry') throw new Error('Signal Dunes entered floor requires Developer mode');
 if (args.includes('--help')) {
@@ -476,7 +476,7 @@ async function measureShard(driver, shard, deadline) {
     console.log(`${surface} ${shard} spawn: ${spawnRow.medianFps} fps, p95 ${spawnRow.p95Ms} ms, p99 ${spawnRow.p99Ms} ms — ${spawnRow.pass ? 'PASS' : 'FAIL'}`);
     // O11: the outer road starts with no inner cell admitted; deck-east stands on Nine's boulevard and admits it. O17: a
     // cold entry likewise approaches its cell with no standing pose beside it first
-    const gridPoses = shard === 'grid' && !['outer-road', 'cold', 'nine-return'].includes(gridScenario)
+    const gridPoses = shard === 'grid' && !['outer-road', 'cold', 'nine-return', 'sky-cycle'].includes(gridScenario)
       ? gridFloorPoses(await driver.evaluate('(() => { const pitch = window.__wildshard.shard.grid.state().pitch; return pitch === undefined ? 555 : pitch; })()')) : [];
     const declared = [...await driver.evaluate(`(${cameras.toString()})()`), ...gridPoses];
     const candidates = declared.length > 0 ? declared : [{ ...meta.spawn, name: 'spawn-reverse', yaw: meta.spawn.yaw + Math.PI }];
@@ -517,10 +517,12 @@ async function measureShard(driver, shard, deadline) {
     if (shard === 'grid' && gridScenario !== 'baseline') {
       // Standing camera probes did not cross: reset only the initial source pose, then use real input at every seam.
       const state = await driver.evaluate('window.__wildshard.shard.grid.state()');
+      // G782 (grid-crossing T2): every node-build key this run built, so a drive counts the builds an earlier leg already made
+      const builtKeys = new Map();
       for (let plan of selectFloorGridPlans(publicGrid ? publicGridPlans(state) : gridFloorPlans(state, gridScenario, { cell: gridCell, roadApproach, entrySocket, ...(risingIslet === '' ? {} : { risingIslet }) }), gridRoutes)) {
         if (Date.now() > deadline) throw new Error('Ten-minute run budget exhausted');
         // nine-return also leaves Nine by its declared portal (a plan from a cell to the road)
-        if ((['milestone', 'reentry', 'cell', 'cold'].includes(gridScenario) && plan.from === null) || (gridScenario === 'nine-return' && (plan.from === null || plan.to === null))) {
+        if ((['milestone', 'reentry', 'cell', 'cold', 'sky-cycle'].includes(gridScenario) && plan.from === null) || (gridScenario === 'nine-return' && (plan.from === null || plan.to === null))) {
           const cell = state.cells.find(row => row.instance === (plan.from ?? plan.to));
           if (!cell) throw new Error('Floor entry cell missing');
           const path = `/shardfiles/${encodeURIComponent(cell.slug)}/shard.json`;
@@ -601,6 +603,12 @@ async function measureShard(driver, shard, deadline) {
         const builds = nodeBuildsByHook(await driver.evaluate('(window.__wildshard.world.game.nodeBuilds?.log ?? []).filter(row => row.at >= window.__frameFloorBuildsFrom)'), hookTimes);
         // G717 diagnostic (--chromium-phone): each build's program key, to tell a churned variant from a first build
         if (chromiumPhone) builds.keys = await driver.evaluate('(() => { const g = window.__wildshard.world.game, log = g.nodeBuilds?.log ?? [], keys = g.nodeBuildKeys ?? []; return log.map((row, i) => ({ at: row.at, object: row.object, how: row.how, key: keys[i] ?? null })).filter(row => row.at >= window.__frameFloorBuildsFrom); })()');
+        // a build whose key an earlier leg of this run built: a re-entry rebuilt it (the keep or the approach pre-build missed it)
+        if (chromiumPhone) {
+          const repeated = builds.keys.filter(row => row.key !== null && row.key !== '' && builtKeys.has(row.key));
+          builds.repeats = { count: repeated.length, keys: new Set(repeated.map(row => row.key)).size, objects: repeated.slice(0, 40).map(row => row.object) };
+          for (const row of builds.keys) if (row.key !== null && row.key !== '') builtKeys.set(row.key, (builtKeys.get(row.key) ?? 0) + 1);
+        }
         const driveRow = { pose: { name: `grid-${plan.name}-drive` }, window: 'whole-drive', ...wholeValue, longFrameHooks: longFrameHooks(whole.value.longFrames.at, hookTimes), nodeBuilds: builds,
           ...(wasmConstructorsDir === '' ? {} : { scriptMemoryPool: { before: scriptMemoryBefore, after: scriptMemoryAfter } }),
           over35Hooks: longFrameHooks(whole.value.slowFrames, hookTimes).map((row) => ({ hook: row.hook, frames: row.frames, maxMs: row.maxMs, totalMs: row.totalMs })),
@@ -676,7 +684,7 @@ async function measureShard(driver, shard, deadline) {
           rows.at(-1).nativeGcLog = {file, window, pidsBefore, pidsAfter};
         }
         if (gpuBisectOn) rows.at(-1).gpuBisect = await driver.evaluate(`(${gpuBisect.toString()})(60)`, 240000);
-        console.log(`${surface} grid ${plan.name}: travel ${motion.medianFps} fps / ${motion.p95Ms} ms; whole drive + builds ${whole.value.frames} frames, ${whole.value.medianFps} fps / p95 ${whole.value.p95Ms} / p99 ${whole.value.p99Ms} / max ${whole.value.maxMs} ms, ${whole.value.longFrames.over50Ms} frames > 50 ms (${driveRow.longFrameHooks.map((h) => `${h.hook} ${h.frames}×, max ${h.maxMs}`).join('; ')}); interior ${standing.medianFps} fps / ${standing.p95Ms} ms; node builds ${builds.total} (${builds.afterPlay} from afterPlay on); residents=${witness.after.live.live.residents.join(',')}`);
+        console.log(`${surface} grid ${plan.name}: travel ${motion.medianFps} fps / ${motion.p95Ms} ms; whole drive + builds ${whole.value.frames} frames, ${whole.value.medianFps} fps / p95 ${whole.value.p95Ms} / p99 ${whole.value.p99Ms} / max ${whole.value.maxMs} ms, ${whole.value.longFrames.over50Ms} frames > 50 ms (${driveRow.longFrameHooks.map((h) => `${h.hook} ${h.frames}×, max ${h.maxMs}`).join('; ')}); interior ${standing.medianFps} fps / ${standing.p95Ms} ms; node builds ${builds.total} (${builds.afterPlay} from afterPlay on${builds.repeats === undefined ? '' : `, ${builds.repeats.count} repeating an earlier leg's key`}); residents=${witness.after.live.live.residents.join(',')}`);
       }
       if (gridCellPose !== null) {
         // the entered cell's own pose (its local frame), held standing once its runtime is ready again
