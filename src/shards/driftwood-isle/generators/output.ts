@@ -37,13 +37,13 @@ import { PAGE_LIFE } from './pageLife';
 import { parse } from 'valibot';
 import { CoverCompositionSchema } from '@wildshard/format/streamedCover';
 import coverComposition from '../data/coverComposition.json' with { type: 'json' };
-import { parseWorldScene } from '@wildshard/format/clientChannels';
+import { worldSceneRecipe as parseWorldScene } from '@wildshard/sdk/worldScenes';
 import { driftwoodPierScenes } from './pierScenesBank';
 import { driftwoodFoliageScenes, driftwoodFoliageSceneOutput, foliageLogPlacements } from './foliageScenesBank';
 import { FIGURE_CATALOGUE } from './figureCatalogue';
 import { driftwoodQuestFigures } from './questFigures';
 import { driftwoodBridgeSway } from './bridgeSway';
-import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
+import { scriptV2Revisions } from '@wildshard/sdk/decisionScripts';
 import { driftwoodMoverOwners } from './moverOwners';
 import { driftwoodKitFigureCards } from './kitFigureCards';
 import { QUEST_SERVICES } from './questServiceEffects';
@@ -90,8 +90,7 @@ import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SHARD_FLAGS } from './interactable
 import { DRIFTWOOD_MODES } from './modes';
 import { captureDriftwoodMovers } from './movers';
 
-import { emitPlatformSections } from '@wildshard/sdk/platformSections';
-import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
+import { emitPlatformSections, type PlatformSectionName as PlatformDataSectionName } from '@wildshard/sdk/platformSections';
 import { DRIFTWOOD_SPECIES_PROGRAMS } from './speciesPrograms';
 import * as v from 'valibot';
 import {SECTIONS,FixedGeometryGroupsSchema} from './sections';
@@ -128,6 +127,7 @@ const counterRows = { ...DRIFTWOOD_FEAT_COUNTERS, feats: DRIFTWOOD_FEAT_COUNTERS
 const nativeFeats = parseAchievementCounterData(counterRows).feats.filter(row => row.kind === undefined);
 const nativeCounters = parseAchievementCounterData({ ...counterRows, feats: nativeFeats, flags: nativeFeats.map(feat => DRIFTWOOD_FEAT_COUNTERS.flags.find(row => row.id === feat.id) ?? { id: feat.id, method: 'count', value: { constant: 0 } }), write: 'each' });
 const sceneBytes = (value: unknown): Uint8Array => new TextEncoder().encode(encodeCanonicalJson(parseWorldScene(value)));
+const SCRIPT_V2_REVISIONS = scriptV2Revisions();
 const BRIDGE_SWAY_SCRIPT = { abi: 2 as const, lane: 'view' as const, pages: 1, ioBytes: 4096,
   compilerRevision: SCRIPT_V2_REVISIONS.compiler, admissionRevision: SCRIPT_V2_REVISIONS.admission };
 const placements = emitNamedBlobs([nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
