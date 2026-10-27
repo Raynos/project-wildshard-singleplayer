@@ -1,15 +1,15 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Read original native inputs and isolate real sealed-driver fixtures.
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep omitted-input catalogues under repository scratch.
-import { relative, resolve } from 'node:path';
+import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
+import { discoverGeneration } from '../scripts/generate.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { millSceneSource, millSceneValues } from '../src/shards/far-reach/generators/millScene';
+import { skyMillSceneSource } from '../src/shards/far-reach/generators/millSceneProgram';
 import { HD_URLS } from '../src/shards/far-reach/generators/fileInventory';
 
 const inputs = [HD_URLS['mill-tower'], HD_URLS['mill-foot']];
-const output = 'src/shards/far-reach/data/millScene.generated.json';
 const originalHash = '3a4d921739c9ca69a3a36885fc4020c3ee01d47aa6097df406859a626ef842a8';
 const read = (name: string): Uint8Array => new Uint8Array(readFileSync(`public${name}`));
 
@@ -34,20 +34,15 @@ test('mill scene row loans cannot mutate the next caller or retained publication
   expect(fresh.MILL_SCENE.recipe.imports).toHaveLength(7);
 });
 
-test('the real cold sealed mill reader omits metadata, refuses a missing native model and preserves every output byte', async () => {
-  const root = resolve('.'), { jobs } = discoverGeneration(root), job = jobs.find(row => row.id === 'sky-mill-scene');
-  if (job === undefined) throw new Error('Missing retained mill scene writer');
-  expect(job.inputRoots).not.toContain('src/shards/far-reach/data/millModel.json');
-  for (const name of inputs) expect(job.inputRoots).toContain(`public${name}`);
-  const first = inputs[0]; if (first === undefined) throw new Error('Missing original mill model');
-  const omitted = { ...job, inputRoots: job.inputRoots.filter(path => path !== `public${first}`) };
-  const expected = originalHash, cacheDir = mkdtempSync(resolve('tmp/sky-mill-scene-inputs-'));
-  const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
-  try {
-    writeFileSync(catalogPath, JSON.stringify({ schema: '../scripts/generation-jobs.schema.json', jobs: jobs.map(row => row.id === job.id ? omitted : row) }));
-    await expect(generateShardJob(root, omitted, { cacheDir, catalogPath, forceCompare: true })).rejects.toThrow('Generator exited 1');
-    const result = await generateShardJob(root, job, { cacheDir, forceCompare: true });
-    try { expect(result.hit).toBe(false); expect(result.hashes).toEqual({ [output]: expected }); }
-    finally { result.release(); }
-  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
+test('the mill scheduler handoff is retired while original native-source refusals remain strict', async () => {
+  expect(discoverGeneration(resolve('.')).jobs.some(row => row.id === 'sky-mill-scene')).toBe(false);
+  const native = new Map(inputs.map(url => [url, read(url)]));
+  for (const name of inputs) {
+    const omitted = new Map(native); omitted.delete(name);
+    await expect(skyMillSceneSource(omitted)).rejects.toThrow('input inventory differs');
+  }
+  const bytes = (await skyMillSceneSource(native)).get('mill-scene.json');
+  if (bytes === undefined) throw new Error('Missing original mill wire');
+  expect(bytes.byteLength).toBe(2_200);
+  expect(hashImmutableBytes(bytes)).toBe(originalHash);
 });

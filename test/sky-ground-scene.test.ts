@@ -5,8 +5,10 @@ import { worldPieces, type WorldPieceRow } from '../src/game/shardfile/bakedKind
 import type { Piece } from '../src/engine/world/registry';
 import { skyGroundValues } from '../src/shards/far-reach/generators/groundScene';
 import { skyPhysicsPlacements } from '../src/shards/far-reach/generators/physicsPlacements';
-import { SKY_SCENE_BLOBS, SKY_WORLD_SCENES } from '../src/shards/far-reach/generators/worldScenes';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
+import { originalSkyScenes } from './fixtures/sky-scene-source';
+
+const { blobs: SKY_SCENE_BLOBS, scenes: SKY_WORLD_SCENES } = await originalSkyScenes();
 
 const { SKY_GROUND, SKY_GROUND_COLLIDERS } = skyGroundValues();
 const PLACEMENTS = skyPhysicsPlacements();

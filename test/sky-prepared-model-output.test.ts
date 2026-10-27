@@ -22,10 +22,13 @@ import { sceneRigFiles } from '../src/game/shardfile/sceneRigFiles';
 import { skyProductRows } from '../src/shards/far-reach/generators/product';
 import { SKY_WORLD_TILE_ROWS } from '../src/shards/far-reach/generators/worldTileRows';
 import { skyWorldTileSource } from '../src/shards/far-reach/generators/worldTileBytes';
-import { output, prepareOutput } from '../src/shards/far-reach/generators/sourceOutput';
+import { prepareOutput } from '../src/shards/far-reach/generators/sourceOutput';
 import { emptyShardfile } from '../src/sdk/author';
 import { projectAssets } from '../src/sdk/project';
 import { SWARD_ATLAS_FILE, SWARD_ATLAS_SAMPLER } from '../src/shards/far-reach/generators/rows/swardAtlas';
+import { originalSkyOutput } from './fixtures/sky-scene-source';
+
+const output = await originalSkyOutput();
 
 const geometryName = 'world/geometry/prepared-models.glb', heroName = 'world/sources/heroes.json', bakeName = 'world/sources/bakes.json', skyName = 'world/sources/sky.json', bridgeName = 'world/geometry/bridge-rest.glb';
 const hash = 'bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580';
@@ -65,7 +68,7 @@ test('owned geometry preserves all original bytes and costs, changing only its s
       expect(owned.namedFiles.find(row => row.name === file.name)).toEqual(file);
       expect(owned.assets.get(file.hash)).toEqual(output.assets.get(file.hash));
     }
-    expect(owned.platform).toBe(output.platform); expect(owned.blobs).toBe(output.blobs);
+    expect(owned.platform).toEqual(output.platform); expect(owned.blobs).toBe(output.blobs);
     const oldSky = output.namedFiles.find(file => file.name === skyName), newSky = owned.namedFiles.find(file => file.name === skyName);
     if (oldSky === undefined || newSky === undefined) throw new Error('Missing native library descriptor');
     let expectedSky = text.decode(output.assets.get(oldSky.hash))

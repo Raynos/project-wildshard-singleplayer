@@ -9,13 +9,15 @@ import { BOOT_FILES, BOOT_SOURCES, LATE_READS, skyProductBoot } from '../src/sha
 import { BAKED_PIECES, BAKED_URLS, FAN_URL, SKY_CREATURE_RIGS } from '../src/shards/far-reach/generators/fileInventory';
 import { PREPARED_MODELS_URL } from '../src/shards/far-reach/generators/modelFrames';
 import { BRIDGE_REST_URL, MILL_REST_URL } from '../src/shards/far-reach/generators/restFiles';
-import { output } from '../src/shards/far-reach/generators/sourceOutput';
 import { GPU_FILES } from '../src/shards/far-reach/ktx2.generated';
 import { MANIFEST } from '../src/shards/far-reach/discovery.generated';
 import { prepareShardAssets } from '../src/game/shard/load';
 import { nameBlob } from '../src/sdk/blobs';
 import { originalSkyRigs } from './fixtures/sky-original-rigs';
 import { skyRigAssetSources } from '../src/shards/far-reach/generators/rigAssetSources';
+import { originalSkyOutput } from './fixtures/sky-scene-source';
+
+const output = await originalSkyOutput();
 
 const hash = 'bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580';
 const owned = `/shardfiles/far-reach/blobs/glb/${hash}.glb`;

@@ -9,7 +9,9 @@ import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { prepareSceneDrawRows, drawSceneRows } from '../src/game/shardfile/sceneDraws';
 import { SKY_MEADOW_BLOB, SKY_MEADOW_BLOBS, SKY_MEADOW_FILE, SKY_MEADOW_DATA_FILE } from '../src/shards/far-reach/generators/meadowScene';
-import { SKY_SCENE_BLOBS } from '../src/shards/far-reach/generators/worldScenes';
+import { originalSkyScenes } from './fixtures/sky-scene-source';
+
+const { blobs: SKY_SCENE_BLOBS } = await originalSkyScenes();
 
 const isMesh = (node: Object3D): node is Mesh => node instanceof Mesh;
 const scene = parseSceneBuffers(JSON.parse(new TextDecoder().decode(SKY_MEADOW_BLOB.bytes)));

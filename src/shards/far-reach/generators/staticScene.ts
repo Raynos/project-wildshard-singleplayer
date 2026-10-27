@@ -2,6 +2,7 @@ import type { PrivateScene, WorldSceneRecipe } from '@wildshard/format/clientCha
 import { fixedWorld, skyFixedWorldValues, type SkyFixedWorldValues } from './fixedWorld';
 import type { SkyPlacements } from './placements';
 import { WORLD_PLACEMENT_INPUTS, skyWorldPlacementValues } from './worldPlacementBytes';
+import { millSceneValues } from './millScene';
 
 type Placed = SkyPlacements['standalone'];
 /** Decorative model matrices and hierarchy are author data; live look materials remain owned ports. */
@@ -41,7 +42,7 @@ function recipe(placed: Placed, keels: SkyPlacements['keels'], standalone: boole
     ] };
 }
 /** Standalone and regional scenes share the same prepared model frames and original matrix rows. */
-export function skyStaticScenes(placements: SkyPlacements, values: SkyFixedWorldValues = skyFixedWorldValues()): { readonly half: number; readonly standalone: ReturnType<typeof recipe>; readonly cell: ReturnType<typeof recipe> } {
+export function skyStaticScenes(placements: SkyPlacements, values: SkyFixedWorldValues): { readonly half: number; readonly standalone: ReturnType<typeof recipe>; readonly cell: ReturnType<typeof recipe> } {
   return { half: placements.half, standalone: recipe(placements.standalone, placements.keels, true, values), cell: recipe(placements.cell, placements.keels, false, values) };
 }
 
@@ -49,5 +50,6 @@ export function skyStaticScenes(placements: SkyPlacements, values: SkyFixedWorld
 export async function skyStaticSceneBytes(read: (url: string) => Uint8Array): Promise<Uint8Array> {
   const inputs = new Map(WORLD_PLACEMENT_INPUTS.map(name => [name, read(name)]));
   const { placements } = await skyWorldPlacementValues(inputs);
-  return new TextEncoder().encode(`${JSON.stringify(skyStaticScenes(placements))}\n`);
+  const mill = await millSceneValues(read);
+  return new TextEncoder().encode(`${JSON.stringify(skyStaticScenes(placements, skyFixedWorldValues(mill.MILL_SCENE.recipe)))}\n`);
 }

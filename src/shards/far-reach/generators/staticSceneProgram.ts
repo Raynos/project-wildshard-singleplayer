@@ -1,9 +1,10 @@
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { skyStaticSceneBytes } from './staticScene';
 import { WORLD_PLACEMENT_INPUTS } from './worldPlacementBytes';
+import { MILL_SCENE_INPUTS } from './millSceneProgram';
 
 /** Exact original model bank for both decorative placement envelopes. */
-export const STATIC_SCENE_INPUTS: readonly string[] = [...WORLD_PLACEMENT_INPUTS];
+export const STATIC_SCENE_INPUTS: readonly string[] = [...WORLD_PLACEMENT_INPUTS, ...MILL_SCENE_INPUTS];
 /** The retained static hierarchy is cached as owned bytes, never published into source. */
 export const STATIC_SCENE_FILES: readonly string[] = ['static-scenes.json'];
 

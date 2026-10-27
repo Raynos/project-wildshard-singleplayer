@@ -1,7 +1,7 @@
 import { SKY_CLIENT_PLAN } from './clientPlan';
 import { skyPaintedPresentation, SKY_PAINTED_ATTRIBUTE_SOURCES } from './paintedLook';
 import { FAN_ID } from './rows/items';
-import { SKY_SCENE_BLOBS, SKY_WORLD_SCENES, skyWorldSceneValues, readMillSceneValues } from './worldScenes';
+import { skyWorldSceneValues, readMillSceneValues, type SkyWorldSceneValues } from './worldScenes';
 import { emitNamedBlobs, nameBlob } from '@wildshard/sdk/blobs';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import { SKY_PAGE_PROGRAM } from './rows/population';
@@ -34,35 +34,39 @@ import { readSkyStaticSceneEnvelope } from './staticSceneIntake';
 
 type SectionName = Parameters<Parameters<typeof emitPlatformSections>[0]['get']>[0];
 /** Build-only declarations; the compiled client features own all presentation. */
-const sources = emitNamedBlobs(SKY_SCENE_BLOBS);
 // Match the retained writer's JSON transport, including omitted optional fields.
 const physicsJson = JSON.stringify(skyPhysics());
 const baked: unknown = JSON.parse(physicsJson);
-export const output = { blobs:SKY_PAINTED_ATTRIBUTE_SOURCES,namedFiles: sources.files, assets: sources.assets,
+export interface SkySourceOutput {
+  readonly blobs: typeof SKY_PAINTED_ATTRIBUTE_SOURCES;
+  readonly namedFiles: ReturnType<typeof emitNamedBlobs>['files'];
+  readonly assets: ReturnType<typeof emitNamedBlobs>['assets'];
+  readonly platform: ReturnType<typeof emitPlatformSections>;
+}
+/** Build every output from explicit admitted scene values; no offline handoff is imported. */
+export function skyOutputValues(scenes: SkyWorldSceneValues): SkySourceOutput {
+  const sources = emitNamedBlobs(scenes.blobs);
+  return { blobs:SKY_PAINTED_ATTRIBUTE_SOURCES,namedFiles: sources.files, assets: sources.assets,
   platform: emitPlatformSections(new Map<SectionName, unknown>([
     ['ui/strings', STRINGS],
     ['client/plan', SKY_CLIENT_PLAN],
     ['look/painted', skyPaintedPresentation()],
     ['explore/catalogue', {"version": 1, "entries": [{"kind": "held", "item": FAN_ID}, {"kind": "scene", "part": "specimen-mill.root"}, {"kind": "scene", "part": "specimen-bridge.root"}, {"kind": "scene", "part": "specimen-vane.root"}, {"kind": "rigs", "library": "sky"}, {"kind": "npc", "npc": "far.keeper"}]}],
-    ['world/scenes', SKY_WORLD_SCENES],
+    ['world/scenes', scenes.scenes],
     ['actors/species-programs', { page: SKY_PAGE_PROGRAM.species.page.map(({ body: _body, brain: _brain, ...row }) => row), native: [], program: SKY_PAGE_PROGRAM.species.program }],
     ['sim/runtime-plan', { kind: 'held-melee', recipe: SKY_NATIVE_WORLD, baked }],
     ['sim/scripts', ROC_DECISION], ['actors/moves', ROC_MOVES], ['actors/strikes', ROC_STRIKES], ['world/targets', { targets: SKY_GUST_TARGETS, spots: ROC_WORLD_TARGETS.spots }],
   ])),
 } satisfies ProjectOutput;
+}
 
 /** Publish original prepared geometry, world pieces and island tiles through normal owned-asset admission. */
-export async function prepareOutput(ctx: ProjectGenerationContext): Promise<typeof output> {
+export async function prepareOutput(ctx: ProjectGenerationContext): Promise<SkySourceOutput> {
   const millScenes = await skyMillSceneProgram(ctx), staticScenes = await skyStaticSceneProgram(ctx);
   const millWire = millScenes.get('mill-scene.json'), staticWire = staticScenes.get('static-scenes.json');
   if (millWire === undefined || staticWire === undefined) throw new Error('Missing owned scene hierarchy');
   const sceneValues = skyWorldSceneValues(readMillSceneValues(millWire), readSkyStaticSceneEnvelope(staticWire));
-  const sceneSources = emitNamedBlobs(sceneValues.blobs);
-  const sceneSection = emitPlatformSections(new Map<SectionName, unknown>([['world/scenes', sceneValues.scenes]]));
-  const prepared = { ...output, namedFiles: sceneSources.files, assets: sceneSources.assets, platform: {
-    sections: output.platform.sections.map(row => sceneSection.sections.find(replacement => replacement.name === row.name) ?? row),
-    files: new Map([...output.platform.files, ...sceneSection.files]),
-  } };
+  const prepared = skyOutputValues(sceneValues);
   const rigs = await skyCreatureRigOutput(ctx);
   const rigSources = skyRigAssetSources(rigs.files, GPU_FILES);
   const name = 'world/geometry/prepared-models.glb';

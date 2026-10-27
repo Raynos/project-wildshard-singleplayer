@@ -2,10 +2,8 @@ import { parseWorldScene, parseWorldSceneBindings, type WorldSceneRecipe } from 
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import routes from '../data/routeScene.generated.json' with { type: 'json' };
-import originalStatic from '../data/staticScenes.generated.json' with { type: 'json' };
 import islets from '../data/isletScenes.generated.json' with { type: 'json' };
 import heroes from '../data/heroLibrary.generated.json' with { type: 'json' };
-import originalMill from '../data/millScene.generated.json' with { type: 'json' };
 import world from '../data/worldRows.generated.json' with { type: 'json' };
 import { SKY_SOURCE_LIBRARIES, SKY_SOURCE_BLOBS } from './sceneSources';
 import STRINGS from '../data/strings.json' with { type: 'json' };
@@ -42,7 +40,7 @@ export interface SkyWorldSceneValues {
 }
 
 /** Build the original scene world with an optional owned mill hierarchy. */
-export function skyWorldSceneValues(millScene: SkyMillSceneValues['MILL_SCENE'] = readMillSceneValues(new TextEncoder().encode(JSON.stringify(originalMill))), staticScenes: SkyStaticSceneEnvelope = originalStatic): SkyWorldSceneValues {
+export function skyWorldSceneValues(millScene: SkyMillSceneValues['MILL_SCENE'], staticScenes: SkyStaticSceneEnvelope): SkyWorldSceneValues {
   const fixed = staticScenes;
   const mill = { MILL_SCENE: millScene };
   const blobs = structuredClone([...SKY_SOURCE_BLOBS, ...SKY_ISLAND_BLOBS, ...SKY_MEADOW_BLOBS]);
@@ -170,6 +168,3 @@ export function skyWorldSceneValues(millScene: SkyMillSceneValues['MILL_SCENE'] 
   return { blobs, scenes };
 }
 
-const original = skyWorldSceneValues();
-export const SKY_SCENE_BLOBS: SkyWorldSceneValues['blobs'] = original.blobs;
-export const SKY_WORLD_SCENES: SkyWorldSceneValues['scenes'] = original.scenes;

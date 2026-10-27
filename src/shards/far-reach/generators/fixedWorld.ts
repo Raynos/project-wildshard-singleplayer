@@ -5,7 +5,6 @@ import { skyGroundValues, type SkyGroundValues } from './groundScene';
 import { parseWorldScene, type WorldSceneRecipe, type PrivateScene } from '@wildshard/format/clientChannels';
 import REST from '../data/restScenes.generated.json' with { type: 'json' };
 import ISLETS from '../data/isletScenes.generated.json' with { type: 'json' };
-import millScene from '../data/millScene.generated.json' with { type: 'json' };
 import { CROWN_SCENE } from './rows/crownScene.generated';
 import { SKY_PIECES } from './worldRows';
 import { NOTES, WINCH, SUNREST, MILL } from "./layout";
@@ -26,9 +25,9 @@ export interface SkyFixedWorldValues {
 }
 
 /** Retained defaults are fresh values, ready for source/cache reader adoption. */
-export function skyFixedWorldValues(): SkyFixedWorldValues {
+export function skyFixedWorldValues(mill: WorldSceneRecipe): SkyFixedWorldValues {
   return { groundColliders: skyGroundValues().SKY_GROUND_COLLIDERS,
-    mill: parseWorldScene(millScene.MILL_SCENE.recipe) };
+    mill: parseWorldScene(mill) };
 }
 
 /** Fresh original contact rows for source libraries that do not need visual scene construction. */
@@ -38,7 +37,7 @@ export function skyFixedWorldColliders(ground: SkyGroundValues['SKY_GROUND_COLLI
 }
 
 /** Compose fixed visual hierarchies offline; the client keeps the existing scene/registry owners. */
-export function fixedWorld(standalone: boolean, values: SkyFixedWorldValues = skyFixedWorldValues()): FixedWorldRows {
+export function fixedWorld(standalone: boolean, values: SkyFixedWorldValues): FixedWorldRows {
   const children: string[] = [];
   const scene: PrivateScene = { version: 1, root: 'fixed', nodes: [{ kind: 'group', id: 'fixed', children }], materials: [], textures: [] };
   const imports: WorldSceneRecipe['imports'] = [];

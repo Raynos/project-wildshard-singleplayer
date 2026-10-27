@@ -1,10 +1,10 @@
 import { expect, it } from 'vitest';
 import { BoxGeometry, Group, Mesh, MeshStandardMaterial, Texture } from 'three';
 import { bindWorldSceneParts, createWorldScene } from '../src/game/plugin/scene';
-import millScene from '../src/shards/far-reach/data/millScene.generated.json' with { type: 'json' };
+import { originalSkySceneInputs } from './fixtures/sky-scene-source';
 import routeScene from '../src/shards/far-reach/data/routeScene.generated.json' with { type: 'json' };
 
-const { MILL_SCENE } = millScene;
+const { mill: MILL_SCENE } = await originalSkySceneInputs();
 const { SKY_ROUTE_FRAMES } = routeScene;
 
 it('keeps mill parts borrowed under a native spinning hub', () => {

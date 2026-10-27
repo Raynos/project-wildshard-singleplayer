@@ -5,6 +5,8 @@ import { parseWorldScene } from '../src/format/clientChannels';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { millSceneSource } from '../src/shards/far-reach/generators/millScene';
 import { readMillSceneValues, skyWorldSceneValues, type SkyWorldSceneValues } from '../src/shards/far-reach/generators/worldScenes';
+import { originalSkySceneInputs, originalSkyScenes } from './fixtures/sky-scene-source';
+
 
 const encode = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
 const original = (): Promise<Uint8Array> => millSceneSource(url => readFileSync(`public${url}`));
@@ -33,12 +35,13 @@ test('owned mill intake preserves the complete original hierarchy and motion bin
 
 test('fresh scene construction retains the entire original world and every named file with injected mill rows', async () => {
   const bytes = await original(), mill = readMillSceneValues(bytes);
-  const injected = skyWorldSceneValues(mill);
-  checkWorld(injected); checkWorld(skyWorldSceneValues());
+  const { staticScenes } = await originalSkySceneInputs();
+  const injected = skyWorldSceneValues(mill, staticScenes);
+  checkWorld(injected); checkWorld(await originalSkyScenes());
   for (const blob of injected.blobs) blob.bytes.fill(0);
   injected.scenes.steps.length = 0;
-  checkWorld(skyWorldSceneValues(readMillSceneValues(bytes)));
-  checkWorld(skyWorldSceneValues());
+  checkWorld(skyWorldSceneValues(readMillSceneValues(bytes), staticScenes));
+  checkWorld(await originalSkyScenes());
   expect(hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson({ MILL_SCENE: mill }))))
     .toBe('92fd45fa8c27f9c1dc1e9cc59910bb8ac185b901a9a71199205deb79f9ea83c1');
 });
