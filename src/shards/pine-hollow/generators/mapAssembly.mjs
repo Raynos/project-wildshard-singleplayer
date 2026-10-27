@@ -12,6 +12,7 @@ import { SCENE_MODELS, SCENE_PLACEMENTS } from './sceneModelRows.ts';
 import { mapLilies } from './mapLilies.mjs';
 import { bakeBeaverPool } from './beaverPool.ts';
 import { pineCragGround } from './bake-pine-crags.mjs';
+import { pineFloorLayout } from './bake-pine-floor.mjs';
 import * as PINE_LAYOUT from './layout.ts';
 import { bakePineUndergrowth } from './undergrowth.ts';
 import { inBeaverPool } from './geography.ts';
@@ -45,7 +46,7 @@ export async function pineMapAssembly() {
   await world.weld(cabins.graphs.find(row => row.file === shells.file).graph);
 
   const timbers = read('data/timberWorld.generated.json'), underShapes = bakePineUndergrowth();
-  const floor = read('data/floorLayout.generated.json');
+  const floor = pineFloorLayout();
   for (const [kind, rows] of Object.entries(floor.layout)) {
     const shape = underShapes[kind]; if (shape === undefined) throw new Error(`Missing map floor shape ${kind}`);
     const geometry = new BufferGeometry().setAttribute('position', new Float32BufferAttribute(shape.position, 3)).setIndex(shape.index);

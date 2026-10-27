@@ -1,9 +1,8 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- validate the generated fixture at runtime without inferring its full JSON type
-import { readFileSync } from 'node:fs';
 import { Matrix4, Quaternion, Vector3 } from 'three';
 import { expect, test } from 'vitest';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { decodeFloorRecords } from '../src/shards/pine-hollow/generators/floorRows.mjs';
+import { pineFloorLayout } from '../src/shards/pine-hollow/generators/bake-pine-floor.mjs';
 import { output } from '../src/shards/pine-hollow/generators/output';
 import { parseFloorRows } from '../src/shards/pine-hollow/generators/sections';
 
@@ -21,7 +20,7 @@ test('the named floor preserves all 22,250 shipping placements and refuses malfo
   const bytes = file === undefined ? undefined : output.assets.get(file.hash);
   if (bytes === undefined) throw new Error('Missing named floor');
   const rows = parseFloorRows(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
-  const source = parseFloorRows(JSON.parse(readFileSync(new URL('../src/shards/pine-hollow/data/floorLayout.generated.json',import.meta.url),'utf8')));
+  const source = parseFloorRows(pineFloorLayout());
   // Recorded from the actual shipping loadUnderPlacements at 238bcf425,
   // before moving its decoder: hash every value, tint, normal and array order.
   const facts = Object.fromEntries(Object.entries(source.layout).map(([kind, items]) => [kind, items.map(({ x, y, z, nx, ny, nz, rot, scale, r, g, b }) => ({ x, y, z, nx, ny, nz, rot, scale, r, g, b }))]));
