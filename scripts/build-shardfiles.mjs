@@ -10,12 +10,11 @@ import { runWildshard } from './wildshard.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
 import { mapInputHashes, mapTilesHash, verifyMapPixels } from './map-hash.mjs';
 import { readBuildKey, reuseOrBuild, shardfileCacheRoot, shardfileKey, treeHashes } from './shardfile-cache.mjs';
-import { createDataMapPreparation } from './bake-data-maps.mjs';
 import { randomBytes } from 'node:crypto';
 import { InputHashMemo } from './bake-input-hashes.mjs';
 import { productInputKey, productToolchainKey, matchingProductInputKey, publishProductInputs } from './shardfile-inputs.mjs';
 import { quietCli } from './quiet-cli.mjs';
-import { productFolder, shardOutputs } from './shard-outputs.mjs';
+import { shardOutputs } from './shard-outputs.mjs';
 import { shardfileValidationRevision } from './shardfile-validation-revision.mjs';
 import { runShardBuild, runShardBuildPool } from './shard-build-pool.mjs';
 import { prepareProductBuildTools } from './product-build-tools.mjs';
@@ -38,8 +37,6 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
   if(onFailure!==undefined&&strict)throw new Error('Product failure collection is report-only; strict builds must fail');
   if (scope !== undefined && only !== undefined) throw new Error('Product phase scope and CLI only filter cannot be combined');
   const selected = scope ?? (strict ? undefined : only);
-  const prepareMaps=createDataMapPreparation(root);
-  if(onFailure===undefined)await prepareMaps(selected?.map(slug => productFolder(root, slug)));
   const outputRoot = resolve(root, 'out');
   // Discard the retired discovery artifact left by older builds.
   rmSync(resolve(outputRoot, 'catalog.json'), { force: true });
@@ -53,8 +50,6 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
   const runtimeChecks=new Map();
   /** @type {Map<string,string>} */
   const mapTileHashes=new Map();
-  /** @type {Map<string,Promise<void>>} */
-  const folderPreparation=new Map();
   const runtimeIssues = project => {
     let issues = runtimeChecks.get(project);
     if (issues === undefined) { issues = runtimeCopyIssues(root, project); runtimeChecks.set(project, issues); }
@@ -86,14 +81,6 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     const buildOne = args => build === runWildshard ? runShardBuild(args, signal) : build(args);
     const project = resolve(projects, folder);
     try {
-    if(onFailure!==undefined){
-      let preparation=folderPreparation.get(folder);
-      if(preparation===undefined) {
-        preparation=(async()=>{await prepareMaps([folder]);})();
-        folderPreparation.set(folder,preparation);
-      }
-      await preparation;
-    }
     const started = performance.now();
     const map = productMapInput(project, output), expected = map?.tilesHash ?? null;
     let actual=mapTileHashes.get(project);

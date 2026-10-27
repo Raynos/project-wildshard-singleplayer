@@ -4,7 +4,6 @@
 import { existsSync, globSync, readFileSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { checkShards } from './check-shards.mjs';
-import { discoverGeneration } from './generate.mjs';
 import { checkGeneratedSourceTree } from './generated-source.mjs';
 
 const ROOT = process.cwd();
@@ -52,20 +51,6 @@ const tooling = globSync(['scripts/**/*.{mjs,js,sh,py,json}', 'src/shards/*/gene
 for (const file of tooling) {
   if (file === allowFile || file === 'scripts/normalize/move.dry-run.json') continue; // allowances are checked against their named file, not as paths in this JSON
   const text = readFileSync(resolve(ROOT, file), 'utf8');
-  if (file === 'scripts/generation-jobs.json') {
-    // Registered output destinations may be absent before an opt-in comparison.
-    // Discovery still validates the complete descriptor, pins and producer. Every
-    // declared source, seed and command path remains an existing-path contract.
-    try {
-      for (const job of discoverGeneration(ROOT).jobs) {
-        const inputs = [job.entry, ...job.inputRoots, ...(job.seedOutputs ?? []),
-          ...job.command, ...(job.externalInputs ?? []).map(row => row.path),
-          ...(job.toolCommands ?? []).flat()];
-        for (const path of inputs) if (PATH.test(path)) check(file, text, path, Math.max(0, text.indexOf(JSON.stringify(path))));
-      }
-    } catch (error) { failures.add(`${file}: ${error instanceof Error ? error.message : String(error)}`); }
-    continue;
-  }
   const shell = /\.(sh|py)$/.test(file);
   // Python docstrings are documentation, just like JS block comments.
   const source = file.endsWith('.py') ? text.replaceAll(/^[ \t]*(?:"""[\s\S]*?"""|'''[\s\S]*?''')/gm, token => token.replaceAll(/[^\n]/g, ' ')) : text;

@@ -7,54 +7,9 @@ import { pathToFileURL } from 'node:url';
 import { MapRaster } from '../src/sdk/bake/mapRaster.ts';
 import { readMapGeometry, stylizeMap } from './map-painter.mjs';
 import { MAP_METRES, mapPixelHash, mapSettingsPath, mapStampPath, mapShards, mapTilesHash } from './map-hash.mjs';
-import { InputHashMemo } from './bake-input-hashes.mjs';
 
 const sharp = createRequire(new URL('../src/sdk/package.json', import.meta.url))('sharp');
 const json = file => JSON.parse(readFileSync(file, 'utf8'));
-
-/** One build-scoped map fence. Every output raster is still verified by the
- * product build; source/output snapshot verification is shared within a report.
- * @param {string} root */
-export function createDataMapPreparation(root) {
-  /** @type {import('./generate.mjs').ShardGenerationJob[]|undefined} */
-  let phaseJobs;
-  /** @type {InputHashMemo|undefined} */
-  let sharedHashes;
-  /** @type {boolean|undefined} */
-  let localVerified;
-  /** @param {readonly string[]|undefined} only */
-  return async only=>{
-  // Discovery stays inside the per-folder failure boundary in report mode.
-  const requested=[];
-  for (const { slug, dir } of mapShards(root)) {
-    if (only !== undefined && !only.includes(slug)) continue;
-    const settings = json(mapSettingsPath(dir));
-    if (settings.painter === undefined || settings.painter.program === true) continue;
-    for (const id of settings.painter.prerequisites ?? []) requested.push({slug,id,prerequisite:true});
-    requested.push({slug,id:settings.painter.job,prerequisite:false});
-  }
-  if(requested.length===0)return;
-  const { discoverGeneration, generateShardJob, verifiedPreparedGeneration } = await import('./generate.mjs');
-  const jobs=phaseJobs ??= discoverGeneration(root).jobs;
-  const selected=requested.map(({slug,id,prerequisite})=>{
-    const job=jobs.find(row=>row.id===id);
-    if(job===undefined)throw new Error(prerequisite?`${slug}: missing map prerequisite ${id}`:`${slug}: data map generation job is missing`);
-    return job;
-  });
-  localVerified ??= verifiedPreparedGeneration(root);
-  // A retained/non-admitted output may need restoration which the phase does
-  // not promise. Keep the ordinary generator path for any such declaration.
-  if(localVerified&&selected.every(job=>job.outputs.every(file=>(job.buildTimeOutputs??[]).includes(file)||Object.hasOwn(job.buildOutputs??{},file))))return;
-  localVerified=false;
-  const inputHashes=sharedHashes ??= new InputHashMemo(root,resolve(root,'.cache/generation-hashes.json'));
-  try {for(const job of selected)(await generateShardJob(root,job,{restore:true,inputHashes})).release();}
-  finally {inputHashes.flush();}
-  };
-}
-
-/** A standalone shardfile build gets the same fresh generation fence.
- * @param {string} root @param {readonly string[]} [only] */
-export async function prepareDataMaps(root,only) {await createDataMapPreparation(root)(only);}
 
 /** Rasterize declared map geometry into owned RGBA without publishing an image or stamp.
  * Readers retain input authority; both source-owned and validated file inputs use this same algorithm. */

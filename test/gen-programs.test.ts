@@ -19,7 +19,6 @@ function fixture(): {root:string;put:(file:string,text:string)=>void} {
   put('src/shards/beta/shard.config.ts', 'export default {};');
   put('src/shards/plots/shard.config.ts', 'export default {};');
   put('src/shards/plots/outputs.json', JSON.stringify({outputs:[{slug:'plot-one'},{slug:'plot-two'}]}));
-  put('scripts/generation-jobs.json', JSON.stringify({jobs:[{id:'beta-rows',shard:'beta'}]}));
   return {root,put};
 }
 
@@ -31,16 +30,10 @@ test('only a value-level named generate export selects the SDK program contract'
 
 test('scoped products resolve composed folders once without executing source', () => {
   const {root} = fixture();
-  expect(generationPlan(root,'alpha')).toEqual({products:['alpha'],folders:['alpha'],legacy:[],scoped:true});
-  expect(generationPlan(root,'plot-two,plot-one')).toEqual({products:['plot-two','plot-one'],folders:['plots'],legacy:['plots'],scoped:true});
-  expect(generationPlan(root).legacy).toEqual(['beta','plots']);
+  expect(generationPlan(root,'alpha')).toEqual({products:['alpha'],folders:['alpha'],scoped:true});
+  expect(generationPlan(root,'plot-two,plot-one')).toEqual({products:['plot-two','plot-one'],folders:['plots'],scoped:true});
+  expect(generationPlan(root).folders).toEqual(['alpha','beta','plots']);
   for (const requested of ['','alpha,alpha','../alpha','missing','plots']) expect(() => generationPlan(root,requested)).toThrow('unknown or duplicate');
-});
-
-test('a partial source conversion keeps its remaining catalogue producers', () => {
-  const {root,put} = fixture();
-  put('scripts/generation-jobs.json', JSON.stringify({jobs:[{id:'duplicate',shard:'alpha'}]}));
-  expect(generationPlan(root,'alpha').legacy).toEqual(['alpha']);
 });
 
 test('converted preparation and builder imports never load the legacy scheduler', () => {
@@ -49,10 +42,8 @@ test('converted preparation and builder imports never load the legacy scheduler'
   const url = (file:string):string => pathToFileURL(resolve(file)).href;
   const script = `import {registerHooks} from 'node:module';
 registerHooks({resolve(specifier,context,next){if(specifier.endsWith('/generate.mjs'))throw Error('legacy scheduler loaded');return next(specifier,context);}});
-const {generationPlan,prepareProgramInputs}=await import(${JSON.stringify(url('scripts/gen-programs.mjs'))});
-await prepareProgramInputs(${JSON.stringify(root)},generationPlan(${JSON.stringify(root)},'alpha'),1);
-const {createDataMapPreparation}=await import(${JSON.stringify(url('scripts/bake-data-maps.mjs'))});
-await createDataMapPreparation(${JSON.stringify(root)})(['alpha']);
+const {generationPlan}=await import(${JSON.stringify(url('scripts/gen-programs.mjs'))});
+generationPlan(${JSON.stringify(root)},'alpha');
 await import(${JSON.stringify(url('scripts/build-shardfiles.mjs'))});
 console.log('converted graph excludes scheduler');`;
   expect(execFileSync('node',['--input-type=module','--eval',script],{encoding:'utf8',maxBuffer:1024*1024})).toContain('converted graph excludes scheduler');

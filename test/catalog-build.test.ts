@@ -15,7 +15,6 @@ import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { parseOutputIndex } from '@wildshard/format/outputIndex';
 import { buildShardfiles } from '../scripts/build-shardfiles.mjs';
 import { mapPixelHash, mapTilesHash } from '../scripts/map-hash.mjs';
-import * as dataMaps from '../scripts/bake-data-maps.mjs';
 import { outputProductsPlugin } from '../vite/outputProducts';
 import metadata from '../src/shards/far-reach/manifest.json';
 
@@ -72,7 +71,7 @@ it('refuses missing tile coverage after both fresh builds and cache reuse', asyn
   await expect(buildShardfiles(root, options)).rejects.toThrow('alpha: tile bake refused: missing/0/0/0');
   expect(productCalls(calls)).toHaveLength(0);
 });
-it('prepares a multi-output folder once per report while checking every output raster',async()=>{
+it('checks every multi-output raster independently in report mode',async()=>{
   const root=await fixture(),calls:string[][]=[],failures:Record<string,string>={},project=resolve(root,'src/shards/beta');
   vi.stubEnv('WILDSHARD_SHARDFILE_CACHE',resolve(root,'tmp/cache'));
   put(project,'outputs.json',JSON.stringify({outputs:[{slug:'beta-first'},{slug:'beta-second'}]}));
@@ -82,16 +81,12 @@ it('prepares a multi-output folder once per report while checking every output r
     put(root,`public${image}`,png);const stamp={image,tilesHash:mapTilesHash(project),pixelHash:await mapPixelHash(resolve(root,`public${image}`))};
     put(project,path,JSON.stringify(stamp));stamps.push({path,stamp});
   }
-  const prepared:string[][]=[],create=dataMaps.createDataMapPreparation;
-  vi.spyOn(dataMaps,'createDataMapPreparation').mockImplementation(projectRoot=>{const prepare=create(projectRoot);return only=>{prepared.push([...(only??[])]);return prepare(only);};});
   const options={strict:false,reuse:true,build:builder(calls),onFailure:(slug:string,error:unknown)=>{failures[slug]=String(error);}};
   expect(await buildShardfiles(root,options)).toBe(3);expect(failures).toEqual({});
-  expect(prepared.filter(only=>only.includes('beta'))).toHaveLength(1);
   const second=stamps[1];if(second===undefined)throw new Error('Fixture needs two maps');
-  put(project,second.path,JSON.stringify({...second.stamp,pixelHash:'0'.repeat(64)}));prepared.length=0;
+  put(project,second.path,JSON.stringify({...second.stamp,pixelHash:'0'.repeat(64)}));
   expect(await buildShardfiles(root,options)).toBe(2);
   expect(failures['beta-second']).toContain('decoded pixels differ');expect(failures['beta-first']).toBeUndefined();
-  expect(prepared.filter(only=>only.includes('beta'))).toHaveLength(1);
 });
 it('a strict generation phase builds only its scope and never checks another project map', async () => {
   const root=await fixture(),calls:string[][]=[];
