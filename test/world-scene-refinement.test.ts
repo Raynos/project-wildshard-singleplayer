@@ -26,6 +26,9 @@ function fixture() {
     source.tiles.push({ lod: 0, x: part.x, z: part.z, geometricError: 0, bounds: { min: [-250 + part.x * 62.5, -1, -250 + part.z * 62.5], max: [-250 + (part.x + 1) * 62.5, 1, -250 + (part.z + 1) * 62.5] }, files: [hash], compressed: bytes.length, decoded: 72, gpu: 0, triangles: 1, draws: 1 });
   }
   provideRuntimeProduct({ source, assets, cached: false }, owner, { base: 'https://test.example/shardfiles/fine-fixture/', offline: false, firstParty: true,
+    cache: { product: () => Promise.resolve(null), asset: () => Promise.resolve(null),
+      verifiedAsset: hash => { const bytes = assets.get(hash); if (bytes !== undefined && hashImmutableBytes(bytes) !== hash) throw new Error('Corrupt fixture cache'); return Promise.resolve(bytes?.slice() ?? null); },
+      putAsset: () => Promise.resolve(), putProduct: () => Promise.resolve() },
     fetch: () => Promise.reject(new Error('Only admitted source bytes are permitted')), hash: bytes => Promise.resolve(hashImmutableBytes(bytes)) });
   const product = createShardProduct({ slug: 'fine-fixture', revision: 1, shardfile: source, sections: new Map(), files: new Map(), read: () => Promise.reject(new Error('Use declared content hash')) });
   const row = parseWorldScenes({ version: 1, libraries: [{ id: 'fine', kind: 'whole', load: 'refine', models: [{ id: 'fabric', part: 'fabric', files: [...assets.keys()] }] }], materials: [], steps: [] }).libraries[0];

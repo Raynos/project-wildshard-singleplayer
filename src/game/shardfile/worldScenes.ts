@@ -496,7 +496,8 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
         const library = refining.get(node.geometry.library);
         if (library !== undefined) {
           if (node.kind !== 'mesh') throw new Error('Fine refinement needs a plain frozen mesh');
-          const model = node.geometry.model; refine.set(key, (mesh, scope) => library.bind(model, mesh, scope));
+          const model = node.geometry.model, transform = library.sourceTransform(shape);
+          refine.set(key, (mesh, scope) => library.bind(model, mesh, scope, transform));
         }
         await copies.check();
       }

@@ -15,7 +15,7 @@ function raw(attribute: BufferAttribute | InterleavedBufferAttribute, vertex: nu
 }
 /** Validate the active original pieces before publishing a new one-draw union.
  * A shared vertex must retain every native lane, including signed zero. */
-export function joinWholePieces(pieces: readonly WholeGeometryPiece[], pose?: readonly number[]): BufferGeometry {
+export function joinWholePieces(pieces: readonly WholeGeometryPiece[], pose?: readonly number[], forceIdentityTransform = false): BufferGeometry {
   const first = pieces[0]; if (first === undefined) return new BufferGeometry();
   const vertices = new Map<number, { readonly piece: WholeGeometryPiece; readonly local: number }>(), triangles = new Set<number>();
   for (const piece of pieces) {
@@ -32,12 +32,13 @@ export function joinWholePieces(pieces: readonly WholeGeometryPiece[], pose?: re
       }
     }
   }
-  const copies: BufferGeometry[] = [];
+  const copies: BufferGeometry[] = [], identity = new Matrix4();
   try {
     // Apply the original draw's matrix and its declared alias in the same order
     // and Float32 boundaries as readWholeLibrary. There is still one mesh/draw.
     for (const piece of pieces) {
-      const copy = piece.geometry.clone().applyMatrix4(piece.matrix); copies.push(copy);
+      const copy = piece.geometry.clone(); copies.push(copy);
+      if (forceIdentityTransform || pose !== undefined || !piece.matrix.equals(identity)) copy.applyMatrix4(piece.matrix);
       if (pose !== undefined) copy.applyMatrix4(new Matrix4().fromArray(pose));
     }
     const joined = mergeGeometries(copies, false);
@@ -52,6 +53,8 @@ export class RefiningWholeLibrary {
   private readonly files = new Map<number, readonly string[]>();
   private readonly builds: SharedTileBuilds<readonly WholeGeometryPiece[]>;
   private serial = 0;
+  private readonly handed = new Set<string>();
+  private readonly transforms = new WeakMap<BufferGeometry, boolean>();
   constructor(private readonly owner: Scope, product: ShardProduct, private readonly row: Library, private readonly queue: ControlRefinement, private readonly cover: (tile: number) => Promise<void>) {
     const wanted = new Set(row.models.flatMap(model => model.files));
     const declared = new Map(product.shardfile.files.map(file => [file.hash, file]));
@@ -81,15 +84,21 @@ export class RefiningWholeLibrary {
       return pieces;
     });
   }
-  geometry(id: string): BufferGeometry | null { return this.row.models.some(model => model.id === id) ? new BufferGeometry() : null; }
-  bind(id: string, mesh: Mesh, lifetime: Scope): TileContent {
+  geometry(id: string): BufferGeometry | null {
+    const model = this.row.models.find(candidate => candidate.id === id); if (model === undefined) return null;
+    const geometry = new BufferGeometry(); this.transforms.set(geometry, this.handed.has(model.part)); this.handed.add(model.part);
+    return geometry;
+  }
+  /** Repeat aliases take the original full reader's transform branch, even for identity. */
+  sourceTransform(geometry: BufferGeometry): boolean { return this.transforms.get(geometry) ?? false; }
+  bind(id: string, mesh: Mesh, lifetime: Scope, forceIdentityTransform = false): TileContent {
     const model = this.row.models.find(candidate => candidate.id === id); if (model === undefined) throw new Error('Missing refining model');
     const files = new Set(model.files), tiles = new Set([...this.files].filter(([, hashes]) => hashes.some(hash => files.has(hash))).map(([key]) => key));
     const held = new Map<number, readonly WholeGeometryPiece[]>(), sphere = mesh.geometry.boundingSphere?.clone(), box = mesh.geometry.boundingBox?.clone();
     let closed = false, owned: BufferGeometry | undefined;
     const redraw = (): void => {
       if (closed || this.owner.disposed || this.owner.disposing) return;
-      const geometry = joinWholePieces([...held.values()].flat(), model.matrix);
+      const geometry = joinWholePieces([...held.values()].flat(), model.matrix, forceIdentityTransform);
       if (sphere !== undefined) geometry.boundingSphere = sphere.clone();
       if (box !== undefined) geometry.boundingBox = box.clone();
       ownSceneResource(geometry, lifetime);

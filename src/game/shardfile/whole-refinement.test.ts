@@ -61,3 +61,15 @@ test('bad triangle indices and unavailable source ordinals keep strict refusals'
   mesh.userData['wholePartition'] = { id: 'fabric', vertices: { runs: [6, 3] }, triangles: { runs: [0, 1] }, vertexCount: 6, indexCount: 6, index: 'u16' };
   expect(() => wholeGeometryPieces([mesh])).toThrow('vertex ordinal outside source');
 });
+
+
+test('a first identity source preserves raw signed zero while repeated aliases keep their original transform branch', () => {
+  const pieces = wholeGeometryPieces([tile(0)]); own(pieces);
+  const piece = pieces[0]; if (piece === undefined) throw new Error('Missing original piece');
+  const identity = { ...piece, matrix: new Matrix4() };
+  const fresh = joinWholePieces([identity]), repeat = joinWholePieces([identity], undefined, true), oracle = piece.geometry.clone().applyMatrix4(identity.matrix);
+  geometries.push(fresh, repeat, oracle);
+  expect(Object.is(fresh.getAttribute('position').getX(0), -0)).toBe(true);
+  expect(repeat.getAttribute('position').array).toEqual(oracle.getAttribute('position').array);
+  expect(repeat.getAttribute('normal').array).toEqual(oracle.getAttribute('normal').array);
+});
