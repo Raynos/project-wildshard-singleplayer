@@ -1,4 +1,3 @@
-import { instancedMaterial } from '@wildshard/engine/models/place';
 import { loadRigFile } from '@wildshard/engine/anim/rig';
 import type { Material } from '@wildshard/engine/physics/surface';
 import type { ColliderDesc, Piece, PieceCategory } from '@wildshard/engine/world/registry';
@@ -97,9 +96,7 @@ export function bakedKindsGroup<K extends BakedKindRow>(nodes: ReadonlyMap<strin
       const a = node.geometry.getAttribute(from);
       if (node.geometry.hasAttribute(from)) { node.geometry.setAttribute(to, a); node.geometry.deleteAttribute(from); }
     }
-    // js-heap H1: instanced kinds wear the material's twin, so a look material an ordinary kind also wears keeps one
-    // program per variant (`instancedMaterial`)
-    const mesh = new InstancedMesh(node.geometry, instancedMaterial(material), kind.count);
+    const mesh = new InstancedMesh(node.geometry, material, kind.count);
     mesh.instanceMatrix.array.set(node.instanceMatrix.array.subarray(0, kind.count * 16)); mesh.instanceMatrix.needsUpdate = true;
     // an exact-instance bake's linear colours (the GLB's _COLOR_0, loaded as the node's instance colours)
     if (node.instanceColor !== null) mesh.instanceColor = new InstancedBufferAttribute(node.instanceColor.array.slice(0, kind.count * 3), 3);

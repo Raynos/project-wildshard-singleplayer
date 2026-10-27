@@ -3,6 +3,7 @@ import type { Renderer } from './renderer';
 import type { AssetService } from '../app/assets';
 import type { Scope } from '../app/scope';
 import { admitObjectDraw } from './drawGuards';
+import { instancedMaterial } from './instancedTwin';
 
 type ShadowRenderer = Pick<Renderer, 'renderBufferDirect'> & { shadowMap: Pick<Renderer['shadowMap'], 'render'> };
 
@@ -78,7 +79,9 @@ export function installShadowMaterialOwnership(renderer: ShadowRenderer, assets:
       const kind = depthKind(object);
       if (kind !== null) object.customDepthMaterial = kindOf(kind);
     }
-    draw(camera, scene, geometry, material, object, group);
+    // js-heap H1: a main-pass instanced draw of a classic material wears its twin, so the material keeps one program per
+    // variant whatever plain objects also draw it (`instancedTwin.ts`)
+    draw(camera, scene, geometry, !drawing && object instanceof InstancedMesh ? instancedMaterial(material) : material, object, group);
   };
   renderer.shadowMap.render = (lights, scene, camera) => {
     const previous = drawing; drawing = true;

@@ -1,12 +1,13 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { instancedMaterial } from '../src/engine/models/place';
+import { instancedMaterial } from '../src/engine/render/instancedTwin';
 
 test('a classic material\'s instanced twin reads the material live, files its own program state and goes with it', () => {
   const material = new THREE.MeshStandardMaterial({ color: 0x336699, roughness: 0.4 });
   const twin = instancedMaterial(material);
   expect(twin).not.toBe(material);
   expect(instancedMaterial(material)).toBe(twin); // one twin a material
+  expect(instancedMaterial(twin)).toBe(twin); // a twin has no twin of its own
   expect(Object.getPrototypeOf(twin)).toBe(material);
   expect(twin).toBeInstanceOf(THREE.MeshStandardMaterial);
   // every field is the material's, live

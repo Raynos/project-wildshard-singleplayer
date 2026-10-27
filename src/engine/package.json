@@ -292,6 +292,7 @@
     "./render/renderer": "./render/renderer.ts",
     "./render/textureUploadEvents": "./render/textureUploadEvents.ts",
     "./render/shaderPatches": "./render/shaderPatches.ts",
+    "./render/instancedTwin": "./render/instancedTwin.ts",
     "./render/displayColour": "./render/displayColour.ts",
     "./render/textureBytes": "./render/textureBytes.ts",
     "./core/memoryAttribution": "./core/memoryAttribution.ts",

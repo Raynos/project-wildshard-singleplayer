@@ -29,7 +29,7 @@ import { setInstanceEnvelope } from '../render/instancedGeometry';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '../core/rng';
 import { currentOwner, enteredOwner, withOwner } from '../app/ownership';
-import { Scope } from '../app/scope';
+import type { Scope } from '../app/scope';
 import type { ColliderDesc, DrawnAs, ModelEntry, WorldRegistry } from '../world/registry';
 import { FrameCamera } from '../world/frameCamera';
 import { geometryBoundsSteps } from '../world/geometryBounds';
@@ -355,42 +355,9 @@ function meshOf(part: ModelPart, geometry: THREE.BufferGeometry = part.geometry)
   return m;
 }
 
-/**
- * js-heap H1: the material a part's instanced draws wear. three keeps one current program per material and re-selects it
- * (getParameters, ~100 fields, and its key) whenever that material's draws switch between instanced and plain objects:
- * the idle Template re-selected a look library's family:pbr material twice a frame, worn by instanced placements and by
- * merged cells. A classic part material's instanced draws now wear its twin: an object whose prototype is the material,
- * so every field, map, uniform and compile hook it reads is the material's own, live (a look write, a curve, an emissive
- * switch reach both), while three files the twin's program state apart (renderer properties are keyed by object). Each
- * program variant then compiles once, on the twin or the material, and neither flips. This is the one allowed second
- * program of a lent look (the no-recompile rule's exception): no shader, value or texture is duplicated. The twin's
- * version and needs-update follow the material's; it has its own events, and goes with the material's dispose. Node
- * materials (their graph is read from their own fields) keep the shared material.
- */
-const twins = new WeakMap<THREE.Material, THREE.Material>();
-const isMaterial = (value: unknown): value is THREE.Material => value instanceof THREE.Material;
-export function instancedMaterial(material: THREE.Material): THREE.Material {
-  if (Reflect.get(material, 'isNodeMaterial') === true) return material;
-  const known = twins.get(material);
-  if (known !== undefined) return known;
-  const made: unknown = Object.create(material);
-  if (!isMaterial(made)) throw new Error('place: an instanced twin is not a material');
-  const twin = made;
-  Reflect.defineProperty(twin, '_listeners', { value: {}, writable: true, configurable: true, enumerable: false });
-  Reflect.defineProperty(twin, 'version', { get: () => material.version, set: (value: number) => { Reflect.set(material, 'version', value); }, configurable: true });
-  Reflect.defineProperty(twin, 'needsUpdate', { get: () => false, set: (value: boolean) => { material.needsUpdate = value; }, configurable: true });
-  // the twin's own lifetime: it goes with the material, and forgets the material when it goes first (a resident's owner)
-  const lifetime = new Scope('place:instanced-twin');
-  lifetime.listenOnceEmitter(material, 'dispose', () => { lifetime.dispose(); twin.dispose(); });
-  lifetime.listenOnceEmitter(twin, 'dispose', () => { lifetime.dispose(); });
-  lifetime.onDispose(() => { if (twins.get(material) === twin) twins.delete(material); });
-  twins.set(material, twin);
-  return twin;
-}
-
 /** a part as a one-copy InstancedMesh at its own origin (the instanced program variant the world draws it with) */
 function instanceOf(part: ModelPart): THREE.InstancedMesh {
-  const im = new THREE.InstancedMesh(part.geometry, instancedMaterial(part.material), 1);
+  const im = new THREE.InstancedMesh(part.geometry, part.material, 1);
   im.castShadow = part.castShadow ?? false;
   im.receiveShadow = part.receiveShadow ?? false;
   if (part.customDepthMaterial) im.customDepthMaterial = part.customDepthMaterial;
@@ -706,7 +673,7 @@ function* drawInstancedSteps<P extends object>(def: ModelDef<P>, pls: readonly P
         const color = colors && mine.some((part) => part.tint !== false) ? new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3) : null;
         if (culls) { matrix.setUsage(THREE.DynamicDrawUsage); color?.setUsage(THREE.DynamicDrawUsage); }
         const meshes = mine.map((part) => {
-          const im = new THREE.InstancedMesh(part.geometry, instancedMaterial(part.material), cap);
+          const im = new THREE.InstancedMesh(part.geometry, part.material, cap);
           im.instanceMatrix = matrix;
           if (color && part.tint !== false) im.instanceColor = color;
           im.castShadow = part.castShadow ?? false; im.receiveShadow = part.receiveShadow ?? false;
@@ -786,7 +753,7 @@ function* drawHandedSteps<P extends object>(def: ModelDef<P>, pls: readonly Plac
       const levels = lvls.map((parts, l) => {
         const part = parts[k];
         if (part === undefined || mine.length === 0) return { mesh: null, from: from[l] ?? 0 };
-        const im = new THREE.InstancedMesh(part.geometry, instancedMaterial(part.material), mine.length);
+        const im = new THREE.InstancedMesh(part.geometry, part.material, mine.length);
         im.castShadow = part.castShadow ?? false; im.receiveShadow = part.receiveShadow ?? false;
         if (part.customDepthMaterial) im.customDepthMaterial = part.customDepthMaterial;
         if (part.renderOrder !== undefined) im.renderOrder = part.renderOrder;
@@ -1126,7 +1093,7 @@ function drawHosted<P extends object>(def: ModelDef<P>, pls: readonly Placement<
     const total = lists.reduce((c, l) => c + l.matrices.length / 16, 0);
     if (total === 0) return;
     const meshes = parts.map((part) => {
-      const im = new THREE.InstancedMesh(part.geometry, instancedMaterial(part.material), total);
+      const im = new THREE.InstancedMesh(part.geometry, part.material, total);
       im.castShadow = false; im.receiveShadow = part.receiveShadow ?? false;   // hosted: its host's near proxy carries its depth
       if (part.renderOrder !== undefined) im.renderOrder = part.renderOrder;
       // as built: every copy drawn (the weld's bands choose from its first look)

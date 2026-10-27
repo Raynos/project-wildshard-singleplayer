@@ -128,3 +128,25 @@ test('a multi-material skinned caster takes a kind only when its materials share
   expect(mixed.customDepthMaterial).toBeUndefined();
   page.dispose();
 });
+
+test('a main-pass instanced draw of a classic material wears its twin; plain, shadow and node draws keep theirs', () => {
+  const page = new Scope('renderer'), assets = new AssetService(), camera = new PerspectiveCamera(), scene = new Scene(), geometry = new BufferGeometry();
+  const submit = vi.fn<Renderer['renderBufferDirect']>();
+  let pass: () => void = () => undefined;
+  const renderer = { renderBufferDirect: submit, shadowMap: { render: vi.fn<Renderer['shadowMap']['render']>(() => { pass(); }) } };
+  installShadowMaterialOwnership(renderer, assets, page);
+  const shared = new MeshStandardMaterial(), node = new MeshStandardMaterial(); Reflect.set(node, 'isNodeMaterial', true);
+  const instanced = new InstancedMesh(geometry, shared, 2), plain = new Mesh(geometry, shared), graph = new InstancedMesh(geometry, node, 2);
+  const group = { start: 0, count: 0, materialIndex: 0 };
+  renderer.renderBufferDirect(camera, scene, geometry, shared, instanced, group);
+  renderer.renderBufferDirect(camera, scene, geometry, shared, plain, group);
+  renderer.renderBufferDirect(camera, scene, geometry, node, graph, group);
+  const drawn = submit.mock.calls.map(call => call[3]);
+  expect(drawn[0]).not.toBe(shared); expect(Object.getPrototypeOf(drawn[0])).toBe(shared);
+  expect(drawn[1]).toBe(shared); expect(drawn[2]).toBe(node);
+  const depth = new MeshDepthMaterial();
+  pass = () => { renderer.renderBufferDirect(camera, scene, geometry, depth, instanced, group); };
+  renderer.shadowMap.render([], scene, camera);
+  expect(submit.mock.calls.at(-1)?.[3]).toBe(depth); // the shadow pass draws the depth material it is given
+  page.dispose();
+});
