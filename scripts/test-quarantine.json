@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "entries": [
+    { "file": "test/nalati-place-blob-program.test.ts", "owner": "sp-x6", "openedAt": "2026-10-27T07:12:00Z", "expiresAt": "2026-10-28T07:12:00Z", "reason": "D14/SW13: retained cold product byte-count/time refusals" },
+    { "file": "test/nalati-map-program.test.ts", "owner": "sp-x6", "openedAt": "2026-10-27T07:12:00Z", "expiresAt": "2026-10-28T07:12:00Z", "reason": "D14: retained product setup/snapshot flake" },
+    { "file": "test/nalati-state-intake.test.ts", "owner": "sp-x6", "openedAt": "2026-10-27T07:12:00Z", "expiresAt": "2026-10-28T07:12:00Z", "reason": "D14: retained native product intake/setup flake" },
+    { "file": "test/population-raster.test.ts", "owner": "sp-x6", "openedAt": "2026-10-27T07:12:00Z", "expiresAt": "2026-10-28T07:12:00Z", "reason": "D14: retained producer/metadata platform sensitivity" },
+    { "file": "test/map-generation-inputs.test.ts", "owner": "sp-x6", "openedAt": "2026-10-27T07:12:00Z", "expiresAt": "2026-10-28T07:12:00Z", "reason": "D14: retained generated input snapshot/setup flake" },
+    { "file": "test/nalati-creature-views.test.ts", "owner": "sp-x6", "openedAt": "2026-10-27T07:12:00Z", "expiresAt": "2026-10-28T07:12:00Z", "reason": "D15: retained 5e-10 numeric assertion sensitivity" },
+    { "file": "test/heavy-lane.test.ts", "owner": "sp-x9", "openedAt": "2026-10-27T07:12:00Z", "expiresAt": "2026-10-28T07:12:00Z", "reason": "D15: retained scheduler wall-clock flake" },
+    { "file": "test/shard-headless.test.ts", "owner": "sp-x9", "openedAt": "2026-10-27T07:12:00Z", "expiresAt": "2026-10-28T07:12:00Z", "reason": "D15: retained native V8 SIGILL refusal" }
+  ]
+}

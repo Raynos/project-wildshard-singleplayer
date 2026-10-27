@@ -8,6 +8,7 @@ import { relative, resolve } from 'node:path';
 import { BaseSequencer, type TestSpecification } from 'vitest/node';
 import * as v from 'valibot';
 import { prepareTestBuildTools } from './test-build-tools';
+import { quarantineCohort, readQuarantines } from './test-quarantine';
 
 export const DURATIONS_FILE = 'test/durations.json';
 const FILE_OVERHEAD_S = 0.3;
@@ -45,6 +46,7 @@ export function packShards(paths: readonly string[], durations: ReadonlyMap<stri
 /** CF3: partition before packing/collection; no cohort keeps the complete local/nightly suite. */
 export function selectTestCohort(paths: readonly string[], products: Readonly<Record<string,readonly string[]>>, cohort: string | undefined): string[] {
   if (cohort === undefined) return [...paths];
+  if (cohort === 'quarantine') return [...paths];
   if (cohort !== 'product-free' && cohort !== 'products') throw new Error(`Unknown test cohort: ${cohort}`);
   return paths.filter(path => ((products[path]?.length ?? 0) > 0) === (cohort === 'products'));
 }
@@ -57,7 +59,8 @@ export class DurationSequencer extends BaseSequencer {
     // A missing/malformed registry must refuse, never move every test into the free cohort.
     const products=v.parse(v.record(v.string(),v.array(v.string())),JSON.parse(readFileSync(resolve(root,'scripts/test-products.json'),'utf8')));
     const key=(spec:TestSpecification):string=>relative(root,spec.moduleId).replaceAll('\\','/');
-    const selected=new Set(selectTestCohort(files.map(key),products,cohort));
+    const active=readQuarantines(root,cohort==='quarantine');
+    const selected=new Set(selectTestCohort(quarantineCohort(files.map(key),active,cohort),products,cohort));
     return files.filter(spec=>selected.has(key(spec)));
   }
   override async sort(candidates: TestSpecification[]): Promise<TestSpecification[]> {

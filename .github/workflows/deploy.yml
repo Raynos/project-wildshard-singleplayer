@@ -667,6 +667,63 @@ jobs:
           if-no-files-found: ignore
           retention-days: 2
 
+  # G758/CF2: original tests, same-run products, no retry or softened oracle.
+  # Expired entries also return to both blocking behaviour cohorts automatically.
+  behaviour-quarantine:
+    needs: products
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+          sparse-checkout-cone-mode: false
+      - uses: pnpm/action-setup@v4
+        with: {version: 10}
+      - uses: actions/setup-node@v4
+        with: {node-version: 24, cache: pnpm}
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: test-products
+      - name: Restore the exact same-run product and input proof
+        run: |
+          zstd -d --rm test-products.tar.zst
+          python3 scripts/ci-products.py unpack
+      - name: Name every owner and the 24-hour fix deadline
+        run: |
+          node -e 'for (const row of require("./scripts/test-quarantine.json").entries) console.log(`${row.file}: ${row.owner}; fix by ${row.expiresAt}; ${row.reason}`)' >> "$GITHUB_STEP_SUMMARY"
+      - name: Execute every quarantined test without a peer stop or retry
+        run: |
+          mkdir -p tmp/ci-quarantine
+          python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --shard=${{ matrix.shard }}/2 --passWithNoTests --reporter=default --reporter=json --outputFile=tmp/ci-quarantine/results.json
+        env:
+          VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
+          WS_TEST_COHORT: quarantine
+          WS_TEST_PRODUCTS_SHA: ${{ github.sha }}
+      - name: Retain the original results and ownership registry
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-quarantine-${{ matrix.shard }}
+          path: |
+            tmp/ci-quarantine/*.json
+            tmp/ci-failures/*.json
+            scripts/test-quarantine.json
+          if-no-files-found: error
+          retention-days: 2
+
   dispatch-boot-smoke:
     # All push checks must pass; release/PR runs never create skipped smoke runs.
     needs: [build-and-deploy, typecheck-lint, derived-docs, generated-inputs, products, behaviour, behaviour-products]

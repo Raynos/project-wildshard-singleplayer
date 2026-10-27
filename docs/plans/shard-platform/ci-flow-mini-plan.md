@@ -64,7 +64,7 @@ window; Codex sleeping on CI / origin / acks ~1.5 lane-h a day. Idle lanes (SW10
 | **CF2** (done when quarantined, G788; built last, G770) | **Flaky tests are made deterministic, never deleted, never retried (G690; Jake overrode delete-by-default).** A red the next run passes without a fix is a flake: sp-x7 (G676) fixes the defining clock, arithmetic, fixture ownership or setup in the same hour; all original assertions and deadlines remain. A runner failure remains explicit rather than receiving a retry. The unresolved title-capture contention and current evidence are recorded below. | ~2 (26 % of red minutes) | sp-x7 | XS | each flaky test runs in the non-blocking CI job with a named owner (G758, G788); the deterministic fixes go on the damage list. Was: no red window in a reading that the next run clears without a fix |
 | **CF3** (code `1f76530a1d` landed; the plan's one end reading closes it, G780) | **CI verdict in ≤ 13 min: product-free tests stop waiting for products.** The 16 behaviour shards wait for products (5.7 min) though most test files never read a product. Split them: files that read `WS_TEST_PRODUCTS_SHA` products stay after products; the rest run right after generated-inputs (or after checkout). Delete what the split makes dead. Two cycles per red window → ~12 min off each window and more verdicts per hour (fewer cancelled tips). Costs CI minutes only | ~1.5, and every lane gets verdicts ~6 min sooner | in flight (code `1f76530a1d` landed; one reading at the plan's end, G780) | M | median green run ≤ 13 min from push to last job over a reading |
 | **CF4** (code `eafc904ce9` landed; the plan's one end reading closes it, G780) | **The red run names its likely culprit.** `ci-fail-fast.py`'s cause printing (C4) adds the last green SHA and the commits in that range that touch the failing file or its imports (`git log <green>..<sha> -- <files>`), with their `Assisted-by` lane. No bot, no message: the owner reads it in the run, sp-x7 forwards it as today | ~0.5 (fix phase median 9 → ~4 min) | in flight (sp-x7; code `eafc904ce9` landed, G780) | XS | every red run in the plan's end reading lists ≤ 3 candidate commits with lanes |
-| **CF5** (built last, G770) | **Boot smoke stops failing on a runner deadline.** The `explorer` leg's "catalogue/thumbnail deadline" failed 10 SHAs in a row on CI runners while the game was fine (G415: no glitches + same look, not timing exactness): loosen it to a hang guard or delete that check. A red smoke blocks the release, not the lanes | ~0; hours of live (11 of 19.5 h held) | sp-x7 | XS | 0 smoke reds in a reading that the next SHA clears without a fix |
+| **CF5** (code `94ea180069` landed; end reading G780) | **Boot smoke stops failing on a runner deadline.** The `explorer` leg's "catalogue/thumbnail deadline" failed 10 SHAs in a row on CI runners while the game was fine (G415: no glitches + same look, not timing exactness): loosen it to a hang guard or delete that check. A red smoke blocks the release, not the lanes | ~0; hours of live (11 of 19.5 h held) | sp-x7 | XS | 0 smoke reds in a reading that the next SHA clears without a fix |
 
 Not worth a row: the push loop (gate 8 s, origin 21 s), the commit lock (0 timeouts), a local product build before
 landing (55 s–2 min per commit, CI's job, and G612 says no), more CI runners (queue to first job is 2.6 min; the
@@ -485,3 +485,34 @@ No capture, cap change or smoke retry is requested.
   verdicts)? **Recommended: yes** (CF3). **Jake: yes (G691).**
 - **D4** G620's 30-minute red cap is below two CI cycles (~34 min). **Recommended: measure red windows against 45
   minutes until CF3 lands, then back to 30** (SW3 already uses 45). **Jake: yes, 45 min until CF3 lands, then 30 (G692).**
+
+
+## CF2 owned test quarantine (2026-10-27, sp-x9)
+
+Source built in this commit; **in flight (ordinary CI/end reading, G780)**.
+The eight D14/D15 suites remain intact in a non-blocking two-part CI job with
+same-run verified products, normal test deadlines, complete JSON results and
+an ownership/deadline summary. No retry or assertion/byte/numeric change.
+`scripts/test-quarantine.json` assigns the six Nalati/input suites to sp-x6
+and heavy-lane/shard-headless to sp-x9, fix by **2026-10-28 07:12 UTC**.
+
+Only an active, validated, at-most-24-hour entry leaves the two blocking CI
+cohorts. Expiry automatically restores it to blocking; the reporting job keeps
+all listed tests even after expiry, avoiding lost coverage across staggered
+job start times. Ordinary local/nightly runs still execute the complete suite.
+Bad metadata, duplicate/missing paths and unknown cohorts refuse. No test is
+deleted. Touched types/lint pass; G769 adds controls without running tests.
+Whole ratchet remains prerequisite-refused by existing damage D37.
+
+Nine title quarantine remains `531c009fdd`, owned by sp-x1, original expiry
+unchanged. **D13's grid catalogue title quarantine remains open with sp-x6**;
+no unspecific browser/pixel stage is exempted by this suite registry. CF2 is
+not marked fully done while that gap or the plan-end reading is outstanding.
+
+Source reconciliation: CF5's original whole-run deadline was already replaced
+by the progress-only 180-second hang guard in **94ea180069**. Only a first
+successful thumbnail for a new identity extends it; repeated redraw/polling
+does not. Pixels/cards/fatals still refuse. CF3 **1f76530a1d** and CF4
+**eafc904ce9** remain in flight for the one end reading, not rebuilt here.
+BUILD-SPEED Phase 1.5 is already measured done (c8cf164dd6/fb781f41c1 and both
+named all-green deploy runs); this does not reopen that historical work.
