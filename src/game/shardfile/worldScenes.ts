@@ -90,11 +90,21 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
 async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, resident: Scope, reads: WorldSceneReads): Promise<SceneHandles> {
   const registry = () => ctx.game.runtime?.world?.registry ?? ctx.app.registry;
   const product = ctx.product, recipes = new Map<string, WorldSceneRecipe>(), packets = new Map<string, Uint8Array>(), libraryRows = new Map(section.libraries.map(row => [row.id, row]));
-  const specimenFiles=await prepareSpecimenCatalogue(product,section.specimens??[],resident);reads.validate();
+  const specimenInput = async (): Promise<ReadonlyMap<string, Uint8Array>> => {
+    const files = await prepareSpecimenCatalogue(product, section.specimens ?? [], resident); return files;
+  };
+  const sceneInput = async (): Promise<void> => {
+    if (section.libraries.some(row => row.kind === 'models' || row.kind === 'baked')) await prepareSceneSources(product);
+  };
+  // Independent verified declarations overlap, but both settle before a refusal
+  // can end this admission's input lease. Preserve specimen-first error order.
+  const [specimenResult, sourceResult] = await Promise.allSettled([specimenInput(), sceneInput()]);
+  if (specimenResult.status === 'rejected') throw specimenResult.reason;
+  if (sourceResult.status === 'rejected') throw sourceResult.reason;
+  const specimenFiles = specimenResult.value; reads.validate();
   const recipesProgress = loadingUnits('Scene recipes', section.steps.length);
   let recipesDone = 0;
   recipesProgress(0);
-  if (section.libraries.some(row => row.kind === 'models' || row.kind === 'baked')) await prepareSceneSources(product);
   const slots = new Set(section.materials.map(row => row.id));
   const requireFile = (name: string): void => { if (!product.hasFile(name)) throw new Error(`Missing world scene blob: ${name}`); };
   const reference = (ref: { readonly library: string; readonly model: string }, mapped = false): void => {
