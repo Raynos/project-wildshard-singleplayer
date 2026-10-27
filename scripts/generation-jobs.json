@@ -4962,7 +4962,13 @@
         "src/format/materialGraph.ts",
         "src/format/materials.ts",
         "src/format/paintedLook.ts",
-        "src/format/runtimeBinds.ts"
+        "src/format/runtimeBinds.ts",
+        "public/assets/models/driftwood-blender/voxel-ao.bin",
+        "public/assets/models/driftwood-hero/faces/wendell-head.glb",
+        "scripts/generated-source.mjs",
+        "scripts/json-output-guard.mjs",
+        "scripts/no-binary-json.mjs",
+        "src/shards/driftwood-isle"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/foliageScenes.generated.json",
@@ -5093,7 +5099,12 @@
         "scripts/bake-output.mjs",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "pnpm-workspace.yaml",
+        "public/assets/models/driftwood-blender/voxel-ao.bin",
+        "public/assets/models/driftwood-hero/faces/wendell-head.glb",
+        "scripts/generated-source.mjs",
+        "scripts/json-output-guard.mjs",
+        "scripts/no-binary-json.mjs"
       ],
       "catalogueDependencies": [
         "driftwood-fixed-models",

@@ -9,11 +9,14 @@ const root = new URL('../../../../', import.meta.url), shard = new URL('../', im
 const environment = installBakeEnvironment(fileURLToPath(root));
 const geometry = new Map();
 try {
-  const [{ createOwnedGeometry }, { nativeSpecimenCatalogue }] = await Promise.all([
-    import('@wildshard/engine/models/ownedGeometry'), import('./nativeSpecimens.ts'),
+  const [{ createOwnedGeometry }, { nativeSpecimenCatalogue }, { DRIFTWOOD_FIXED_INPUTS, driftwoodFixedBytes }] = await Promise.all([
+    import('@wildshard/engine/models/ownedGeometry'), import('./nativeSpecimens.ts'), import('./fixedProgram.ts'),
   ]);
   const read = name => JSON.parse(readFileSync(new URL(`data/${name}.json`, shard), 'utf8'));
-  const inventory = read('fixedGeometry'), files = read('fixedBlobs.generated');
+  // GR7: the fixed program's own files, built from its declared public inputs, never its copied blob table
+  const fixed = await driftwoodFixedBytes(new Map(DRIFTWOOD_FIXED_INPUTS.map(url => [url, new Uint8Array(readFileSync(new URL(`public${url}`, root)))])));
+  const fixedFile = name => { const bytes = fixed.get(name); if (bytes === undefined) throw new Error(`Missing owned fixed file: ${name}`); return bytes; };
+  const inventory = read('fixedGeometry'), files = JSON.parse(new TextDecoder().decode(fixedFile('data/fixedBlobs.generated.json')));
   const groups = inventory.groups.npc;
   const slots = ['hat', 'cape', 'tradeCounter', ...Object.values(groups.trader)];
   const library = [];
@@ -26,7 +29,7 @@ try {
     const attributes = Object.fromEntries(draw.channels);
     const intake = createOwnedGeometry(draw.source, attributes);
     // Named sources are shard-local; never consult an earlier built product.
-    await intake.load(new Uint8Array(readFileSync(new URL(source.source, shard))));
+    await intake.load(Uint8Array.from(fixedFile(source.source)));
     geometry.set(slot, intake.take());
     library.push({ id: slot, file: name, attributes });
   }

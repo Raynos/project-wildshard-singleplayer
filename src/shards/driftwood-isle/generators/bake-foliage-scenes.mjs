@@ -10,12 +10,16 @@ import { palm, hibiscusBush, palmColliders } from './foliageModels.ts';
 import { compactChannels } from './compactChannels.ts';
 import { decimateFlatBatch } from './phoneDecimate.ts';
 import { driftwoodReefBank } from './reefBank.ts';
+import { DRIFTWOOD_FIXED_INPUTS, driftwoodFixedBytes } from './fixedProgram.ts';
+import { driftwoodFixedLayouts } from './fixedLayouts.ts';
 
 import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
 import { installPortableMath } from '@wildshard/commons/bake/portableMath';
 /** L18.3e: how far (m) the phone's simplified batches may move a surface (board art/driftwood-isle/round-20-phone-decimation) */
 const PHONE_ERROR = { palms: 0.08, hibiscus: 0.1, reef: 0.1 };
 
+// GR7 (before the portable math below): the drift-log and wreck layouts from the fixed program's own files (its declared public inputs), not their copies
+const layouts = driftwoodFixedLayouts(await driftwoodFixedBytes(new Map(DRIFTWOOD_FIXED_INPUTS.map(url => [url, new Uint8Array(readFileSync(new URL(`../../../../public${url}`, import.meta.url)))]))));
 // Collider quaternions and placement matrices enter the exact map-world key.
 const restoreMath = installPortableMath();
 
@@ -24,7 +28,7 @@ const read = name => JSON.parse(readFileSync(new URL(`data/${name}.json`, projec
 const manifests = [read('dressingBlobs.generated')], reefBank = driftwoodReefBank();
 const source = name => { const banked = reefBank.blobs.get(name); if (banked !== undefined) return banked.bytes; const row = manifests.flatMap(m => m.blobs).find(candidate => candidate.name === name); if (row === undefined) throw new Error(`Missing native foliage: ${name}`); return new Uint8Array(readFileSync(new URL(row.source, project))); };
 const foliage = read('foliagePlacements.generated'), reef = reefBank.layout;
-const logs = read('duneLogsBake'), wreckLogs = read('wreckBake').catalogue.logs, inventory = read('fixedGeometry');
+const logs = layouts.logs, wreckLogs = layouts.wreck.catalogue.logs, inventory = read('fixedGeometry');
 const writer = byteWriter(process.argv.includes('--check'), 'foliage-scenes'), material = new MeshStandardMaterial();
 const blobs = [], libraries = [], placements = {}, facts = {}, models = [];
 const plain = rows => rows.map(row => ({ ...row, ...('points' in row ? { points: [...row.points] } : {}) }));
