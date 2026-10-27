@@ -23,6 +23,21 @@ if (existsSync(manifestJson)) {
 const loaded=await import(pathToFileURL(resolve(root,shardManifestPath(root, slug))).href);
 if(loaded.default.slug!==slug) throw new Error('Generator manifest identity differs');
 // Native authoring consumers query the same exact scalar values before any
-// product exists. Validate the complete declared intake before installing it.
+// product exists. The intake takes the constructors' own bytes, as test/setup.ts does
+// (no file of them exists before a build); validate the complete intake before installing it.
+const intake = loaded.default.scalarBlocks;
+if (intake !== undefined && !intake.prepared && slug === 'nalati-grasslands') {
+  const { nalatiGeographySources } = await import('../../src/shards/nalati-grasslands/generators/geographySource.ts');
+  const sources = nalatiGeographySources();
+  intake.prepare(new Map(intake.files.map(file => {
+    const bytes = sources.get(file);
+    if (bytes === undefined) throw new Error(`Missing owned Nalati scalar source: ${file}`);
+    return [file, bytes];
+  })));
+} else if (intake !== undefined && !intake.prepared && slug === 'pine-hollow') {
+  const { pineDensityBlob } = await import('../../src/shards/pine-hollow/generators/forestRows.ts');
+  const density = pineDensityBlob(JSON.parse(readFileSync(manifestJson, 'utf8')));
+  intake.prepare(new Map([[density.name, density.bytes]]));
+}
 prepareNativeScalarBlocks(loaded.default, root);
 installShards([loaded.default]);
