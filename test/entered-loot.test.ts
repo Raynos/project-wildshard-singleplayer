@@ -14,7 +14,7 @@ import {parseRows} from '../src/format/rows';
 import {parseLootEconomy} from '../src/format/lootEconomy';
 import {declaredLootEconomy} from '../src/game/shard/declaredRows';
 import {fixtureLootPresentation} from './fixtures/loot-page';
-import LOOT from '../src/shards/driftwood-isle/data/loot.generated.json' with {type:'json'};
+import { DRIFTWOOD_LOOT as LOOT } from '../src/shards/driftwood-isle/generators/loot';
 
 const INK = parseRows(inkRows);
 

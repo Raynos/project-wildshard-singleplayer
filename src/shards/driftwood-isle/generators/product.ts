@@ -1,6 +1,6 @@
 import { DRIFTWOOD_FEATS } from './questInventory';
 import { CAPTAIN_FIELDS } from './captainFields';
-import LOOT from '../data/loot.generated.json' with { type: 'json' };
+import { DRIFTWOOD_LOOT as LOOT } from './loot';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import questRows from '../data/questRows.generated.json' with { type: 'json' };

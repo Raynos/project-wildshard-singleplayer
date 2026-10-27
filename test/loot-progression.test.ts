@@ -8,7 +8,7 @@ import { Purse } from '../src/game/loot/Purse';
 import { Flags } from '../src/engine/world/interact/flags';
 import { Scope } from '../src/engine/app/scope';
 import { fixtureLootPresentation } from './fixtures/loot-page';
-import LOOT from '../src/shards/driftwood-isle/data/loot.generated.json' with { type: 'json' };
+import { DRIFTWOOD_LOOT as LOOT } from '../src/shards/driftwood-isle/generators/loot';
 import CONTENT from '../src/shards/driftwood-isle/data/keepsakes.json' with { type: 'json' };
 
 const source = () => parseRows({ strikes: [], weather: [], days: [], species: [], looks: [], compendiums: [], loot: [LOOT] }).loot;

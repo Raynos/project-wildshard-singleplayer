@@ -1,7 +1,7 @@
 import { MaterialsSchema } from '../src/format/materials';
 import { parse } from 'valibot';
 import { runtimeBoundWorldFiles, withoutRuntimeRows } from '../src/game/plugin/headless';
-import LOOT from '../src/shards/driftwood-isle/data/loot.generated.json' with { type: 'json' };
+import { DRIFTWOOD_LOOT as LOOT } from '../src/shards/driftwood-isle/generators/loot';
 import { parseRows } from '../src/format/rows';
 import { expect, test } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';

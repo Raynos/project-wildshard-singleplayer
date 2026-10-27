@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { CatalogueEconomySchema, type CatalogueEconomy } from '@wildshard/format/catalogueEconomy';
-import loot from '../data/loot.generated.json' with { type: 'json' };
+import { DRIFTWOOD_LOOT as loot } from './loot';
 
 /** Exact catalogue metadata projected before the product is published. */
 export function driftwoodCatalogueEconomy(): CatalogueEconomy {

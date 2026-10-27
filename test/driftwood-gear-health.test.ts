@@ -1,5 +1,5 @@
 import { declaredLootEconomy } from '../src/game/shard/declaredRows';
-import LOOT from '../src/shards/driftwood-isle/data/loot.generated.json' with { type: 'json' };
+import { DRIFTWOOD_LOOT as LOOT } from '../src/shards/driftwood-isle/generators/loot';
 import { parseRows } from '../src/format/rows';
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';

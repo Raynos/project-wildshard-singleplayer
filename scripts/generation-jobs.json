@@ -974,41 +974,6 @@
       "platform": "portable"
     },
     {
-      "id": "driftwood-loot",
-      "shard": "driftwood-isle",
-      "entry": "src/shards/driftwood-isle/generators/bake-loot.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/driftwood-isle/generators/bake-loot.mjs"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format",
-        "src/sdk",
-        "scripts/bake-output.mjs",
-        "src/shards/driftwood-isle/generators/bake-loot.mjs",
-        "src/shards/driftwood-isle/generators/loot.ts",
-        "src/shards/driftwood-isle/data/lootPresentation.json",
-        "src/shards/driftwood-isle/data/traderStall.json",
-        "src/shards/driftwood-isle/data/keepsakePickups.json",
-        "src/shards/driftwood-isle/generators/economy.ts",
-        "src/shards/driftwood-isle/generators/finds.ts",
-        "src/shards/driftwood-isle/generators/discovery.ts",
-        "src/shards/driftwood-isle/generators/interactables.ts",
-        "src/shards/driftwood-isle/data/keepsakes.json"
-      ],
-      "outputs": [
-        "src/shards/driftwood-isle/data/loot.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/driftwood-isle/data/loot.generated.json"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "driftwood-boot-inventory",
       "catalogueOutputsOnly": true,
       "shard": "driftwood-isle",

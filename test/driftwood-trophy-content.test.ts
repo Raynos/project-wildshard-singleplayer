@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { WeightedTable } from '../src/engine/ai/weighted';
 import { readLootTables, type LootContext } from '../src/game/loot/tables';
-import LOOT from '../src/shards/driftwood-isle/data/loot.generated.json' with { type: 'json' };
+import { DRIFTWOOD_LOOT as LOOT } from '../src/shards/driftwood-isle/generators/loot';
 
 const trophy = readLootTables(LOOT.economy.tables).find(row => row.domain === 'trophies');
 if (trophy === undefined) throw new Error('Missing authored trophies');

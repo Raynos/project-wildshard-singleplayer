@@ -21,7 +21,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { parseRows } from '../src/format/rows';
 import { Owned } from '../src/game/loot/Owned';
 import { collectionRows } from '../src/shards/driftwood-isle/generators/collections';
-import loot from '../src/shards/driftwood-isle/data/loot.generated.json';
+import { DRIFTWOOD_LOOT as loot } from '../src/shards/driftwood-isle/generators/loot';
 import { FakeGame, legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const rows = { quest: 'orchard.chapter', collection: 'orchard.collection', collections: 'keepsakes',

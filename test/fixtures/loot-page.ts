@@ -12,7 +12,7 @@ import type {ShardContext} from '../../src/game/plugin/context';
 import type {ShardRuntime} from '../../src/game/shard/runtime';
 import {createShardProduct} from '../../src/game/shardfile/shardProduct';
 import {emptyShardfile} from '../../src/sdk/author';
-import LOOT from '../../src/shards/driftwood-isle/data/loot.generated.json' with {type:'json'};
+import { DRIFTWOOD_LOOT as LOOT } from '../../src/shards/driftwood-isle/generators/loot';
 
 /** Real saved flags/health/ownership, under a page whose unused services refuse. */
 export function fixtureLootPresentation(o:{scope:Scope;economy:ReturnType<typeof declaredLootEconomy>;adventure:{flags:Flags};owned:Owned;health:{readonly attributes:{readonly maxHealth:number}};audio:{readonly voices:Pick<Audio['voices'],'play'>}}){

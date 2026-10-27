@@ -19,7 +19,7 @@ import { LootBagSchema, LootFindsSchema, LootProgressionSchema, LootPresentation
 import { LootEconomySchema, parseLootEconomy } from '../src/format/lootEconomy';
 import { driftwoodLootBag, driftwoodQuestContinuation } from '../src/shards/driftwood-isle/generators/lootBag';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import LOOT from '../src/shards/driftwood-isle/data/loot.generated.json' with { type: 'json' };
+import { DRIFTWOOD_LOOT as LOOT } from '../src/shards/driftwood-isle/generators/loot';
 
 function fixture(parent?: Scope, bind = true) {
   const scope = parent?.child('bag-entry') ?? new Scope('bag-entry'), bag = driftwoodLootBag();

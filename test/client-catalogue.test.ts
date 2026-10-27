@@ -14,7 +14,7 @@ import { HeldFinishes } from '../src/game/loadout/finishes';
 import { PINE as source } from './fixtures/pine-program';
 import { STARTER_EFFECTS } from '../src/game/loadout/effects';
 import starterRows from '../src/game/systems/effects/starterRows.json' with { type: 'json' };
-import loot from '../src/shards/driftwood-isle/data/loot.generated.json' with { type: 'json' };
+import { DRIFTWOOD_LOOT as loot } from '../src/shards/driftwood-isle/generators/loot';
 import { driftwoodCatalogueEconomy } from '../src/shards/driftwood-isle/generators/catalogueEconomy';
 import { parseRows } from '../src/format/rows';
 import { declaredLootEconomy } from '../src/game/shard/declaredRows';

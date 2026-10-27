@@ -4,7 +4,7 @@ import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
 import { parseLootEconomy, parseLootTables } from '../src/format/lootEconomy';
 import { getLootTable, readLootTables, registerLootTable, rollLoot, type LootContext } from '../src/game/loot/tables';
-import LOOT from '../src/shards/driftwood-isle/data/loot.generated.json' with { type: 'json' };
+import { DRIFTWOOD_LOOT as LOOT } from '../src/shards/driftwood-isle/generators/loot';
 
 test('emitted coin and trophy selectors preserve old order, ownership and RNG continuation', () => {
   const coins = [['crab', 1], ['monkey', 1], ['boar', 2], ['sailor', 5], ['bear', 10], ['captain', 25]] as const;
