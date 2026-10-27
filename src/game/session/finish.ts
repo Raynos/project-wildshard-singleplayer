@@ -143,7 +143,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   if (level === undefined) app.events.emit('level.loaded', { id: slug });
   // G554: the grid's whole known set into the disk cache, this cell and its neighbours first, in the background once play
   // starts (round 39: during the loading screen its ~4,000 cache checks queued ahead of the home region's own reads)
-  if (ctx.grid !== null) startGridPrefetch(gridPrefetchOrder(ctx.grid.assembly, player.position));
+  if (ctx.grid !== null) startGridPrefetch(gridPrefetchOrder(ctx.grid.assembly, player.position), gridPrefetchOrder(ctx.grid.assembly, player.position, 'phone'));
   // the programs the first frame did not draw, a few a frame in play (the Shaders step built only the drawn ones)
   const levelScope = game.levelScope;
   // A page that opens straight into the Explorer walks no world: the cards draw first, and the world's undrawn

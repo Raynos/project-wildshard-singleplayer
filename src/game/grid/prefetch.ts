@@ -27,7 +27,7 @@ import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
 import { builtIndexHashes } from '@wildshard/format/builtIndexes';
 import { readCheckedOutputIndex } from '../shardfile/outputIndexChecks';
 import type { GridAssembly } from './assembly';
-import { TIER, type Tier } from '@wildshard/engine/core/tier';
+import type { Tier } from '@wildshard/engine/core/tier';
 import { prefetchRing } from './titleOrder';
 
 /** Files in flight at once: the page's own reads keep most of the pipe. */
@@ -84,7 +84,7 @@ function saveData(): boolean {
 
 /** The grid's distinct slugs, nearest cell to `at` first (the home cell, then its neighbours, then the rest); the phone
  * tier keeps only the home cell and its ring (I9). */
-export function gridPrefetchOrder(assembly: Pick<GridAssembly, 'cells'>, at: Readonly<{ x: number; z: number }>, tier: Tier = TIER): string[] {
+export function gridPrefetchOrder(assembly: Pick<GridAssembly, 'cells'>, at: Readonly<{ x: number; z: number }>, tier: Tier = 'desktop'): string[] {
   const near = [...assembly.cells].sort((a, b) => Math.hypot(a.origin.x - at.x, a.origin.z - at.z) - Math.hypot(b.origin.x - at.x, b.origin.z - at.z));
   const home = near[0];
   return [...new Set((home === undefined ? near : prefetchRing(near, home.cell, tier)).map(cell => cell.slug))];
@@ -109,10 +109,14 @@ class GridPrefetch {
   private readonly queue: string[] = [];
   private readonly known = new Set<string>();
   private readonly hashes = new Set<string>();
+  /** I9: the phone tier's home cell and ring (every caller's ring so far); the run reads only these on the phone */
+  private readonly ring = new Set<string>();
+  private tier: Tier = 'desktop';
   private status: Omit<{ -readonly [K in keyof GridPrefetchStatus]: GridPrefetchStatus[K] }, 'inFlightBytes' | 'peakInFlightBytes' | 'limitInFlightBytes'> = { phase: 'running', reason: null,
     products: 0, productsRead: 0, knownFiles: 0, knownBytes: 0, presentFiles: 0, presentBytes: 0, storedFiles: 0, storedBytes: 0 };
   /** Queue these slugs ahead of the rest (already read ones are skipped); start the run if it is not running. */
-  prioritize(slugs: readonly string[]): void {
+  prioritize(slugs: readonly string[], ring: readonly string[]): void {
+    for (const id of ring) this.ring.add(id);
     const fresh = slugs.filter(id => !this.known.has(id) || this.queue.includes(id));
     for (const id of fresh) { const at = this.queue.indexOf(id); if (at !== -1) this.queue.splice(at, 1); this.known.add(id); }
     this.queue.unshift(...fresh); this.status.products = this.known.size;
@@ -125,10 +129,13 @@ class GridPrefetch {
   async run(): Promise<void> {
     try {
       if (saveData()) { this.stop('save-data'); return; }
+      // the tier loads here, off the title's static graph (the render tiers stay cold until a world needs them)
+      this.tier = (await import('@wildshard/engine/core/tier')).TIER;
       const quota = await PrefetchQuota.open({ persist: () => navigator.storage.persist(), estimate: () => navigator.storage.estimate() }, HEADROOM);
       if (quota === null) { this.stop('no storage estimate'); return; }
       for (let next = this.queue.shift(); next !== undefined && this.status.reason === null; next = this.queue.shift()) {
         if (!navigator.onLine) { this.stop('offline'); return; }
+        if (this.tier === 'phone' && !this.ring.has(next)) continue;
         try { await this.product(next, quota); }
         catch (error: unknown) { console.warn(`[grid prefetch] ${next} skipped`, error); } // one product's failure skips only it
         this.status.productsRead++;
@@ -158,7 +165,7 @@ class GridPrefetch {
     // A known build's complete index was checked above; this only schedules
     // verified disk copies. Unverified input needs checked Node ingestion.
     const index = indexes === null ? await readCheckedOutputIndex(input) : readOutputDownloadIndex(input);
-    const files = TIER === 'phone' && indexes !== null ? await phoneTierFiles(input, index.files, base, content) : index.files;
+    const files = this.tier === 'phone' && indexes !== null ? await phoneTierFiles(input, index.files, base, content) : index.files;
     const listed: Row[] = [...index.sections, ...index.schemas, ...files.map(file => ({ path: file.path, hash: file.hash, bytes: file.compressed }))];
     // a commons blob or a shared section is listed by several products: count and store it once
     const rows = listed.filter(row => { if (this.hashes.has(row.hash)) return false; this.hashes.add(row.hash); return true; });
@@ -203,11 +210,11 @@ class GridPrefetch {
 declare global { interface Window { __ws_gridPrefetch?: () => GridPrefetchStatus | null } }
 let current: GridPrefetch | null = null;
 /** Start (or re-prioritize) the page's one whole-set prefetch; it runs on its own and never throws into the caller. */
-export function startGridPrefetch(slugs: readonly string[]): void {
+export function startGridPrefetch(slugs: readonly string[], ring: readonly string[] = slugs): void {
   if (typeof caches === 'undefined' || !('storage' in navigator)) return;
   const running = current;
-  if (running !== null) { running.prioritize(slugs); return; }
-  const run = new GridPrefetch(); current = run; run.prioritize(slugs);
+  if (running !== null) { running.prioritize(slugs, ring); return; }
+  const run = new GridPrefetch(); current = run; run.prioritize(slugs, ring);
   window.__ws_gridPrefetch = gridPrefetchStatus; // captures and the bench read the counts
   void (async (): Promise<void> => {
     try { await run.run(); }
