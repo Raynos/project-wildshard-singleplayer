@@ -1,5 +1,4 @@
 import type * as THREE from 'three';
-import type { Rng } from '@wildshard/sdk/random';
 import type { ModelBuild, ModelContext, ModelDef } from '@wildshard/engine/models/model';
 import type { BoxSpec, ContactSurface as Material, ColliderDesc } from '@wildshard/sdk/bake/placement';
 import type { Board } from './campParams';
@@ -12,7 +11,7 @@ interface Plumes { readonly emitter: (p: THREE.Vector3, o?: { puffs?: number; ri
 
 /** what a painted model paints into: a place's kit (its one rng stream) */
 export interface Kit {
-  readonly rng: Rng;
+  readonly rng: PaintKit['rng'];
   add: (g: THREE.BufferGeometry, col: ColorLike | Painter, o?: PaintOpts) => void;
 }
 
@@ -48,7 +47,7 @@ export interface PaintSpec {
   readonly layers?: readonly NalatiTexName[];
 }
 
-// The legacy marker retains ModelDef's exact callback signature; author kits borrow only the public stream API.
+// Retain ModelDef's exact callback signature; the kit stream type comes from its actual PaintKit factory.
 type ModelRng = Parameters<ModelDef<object>['build']>[2];
 type Build<P> = (ctx: ModelContext, p: P, rng: ModelRng) => ModelBuild;
 interface PaintedBuild<P> { (ctx: ModelContext, p: P, rng: ModelRng): ModelBuild; readonly paint: Paint<P>; readonly spec: PaintSpec }
