@@ -78,10 +78,30 @@ test('progress records only appended canvases and still requires the whole displ
   } finally { document.body.replaceChildren(); }
 });
 
+test.each(['state', 'pixels'] as const)('a stuck %s read refuses within the unchanged progress budget', async mode => {
+  mkdirSync('tmp/sp-x9-explorer', { recursive: true });
+  const out = mkdtempSync('tmp/sp-x9-explorer/stopped-renderer-');
+  vi.useFakeTimers();
+  const evaluate = vi.fn<Page['evaluate']>();
+  if (mode === 'pixels') evaluate.mockResolvedValueOnce({ fatal: [], empty: false, ready: true, readyIds: ['first'] });
+  evaluate.mockImplementation(() => new Promise(() => { /* The renderer never returns a protocol result. */ }));
+  const { browser, close } = fixtureBrowser(evaluate);
+  try {
+    const refusal = expect(sweepExplorer(browser, 'https://test.example/', 'fixture', out))
+      .rejects.toThrow('stalled for 180 seconds without progress');
+    await vi.advanceTimersByTimeAsync(180001);
+    await refusal;
+    expect(evaluate).toHaveBeenCalledTimes(mode === 'state' ? 1 : 2);
+    expect(close).toHaveBeenCalledOnce();
+    const receipt: unknown = JSON.parse(readFileSync(`${out}/fixture-failure.json`, 'utf8'));
+    expect(receipt).toMatchObject({ hangMs: 180000, cards: [] });
+  } finally { vi.useRealTimers(); rmSync(out, { recursive: true, force: true }); }
+});
+
 test('the Explorer leg retains every primary, including Signal and Developer-only rows, once', () => {
   expect(explorerCases(catalogue)).toEqual(['driftwood-isle','nine-dragon-stack','sunscar-dunes','_template','open-plot-alien-plain']);
   const workflow = readFileSync('.github/workflows/boot-smoke.yml','utf8');
-  expect(workflow).toContain('part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer, phone-route, title-quarantine]');
+  expect(workflow).toContain('part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer, phone-route, title-quarantine, grid-quarantine]');
   expect(workflow).toContain("if: matrix.part == 'explorer'");
   expect(workflow).toContain('run: node scripts/parity/explorer-smoke.mjs');
   expect(workflow).toContain('needs: [build, boot-smoke]');

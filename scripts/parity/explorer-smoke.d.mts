@@ -7,5 +7,5 @@ export function explorerCards(): ExplorerCardSample[];
 export function explorerState(): {fatal:(string|null)[];empty:boolean;ready:boolean;readyIds:string[]};
 export function explorerCases(catalogue:readonly {slug:string;status:string;legacy:boolean;shardSelect?:boolean}[]):string[];
 export function explorerFailures(cards:readonly ExplorerCardSample[]):string[];
-/** Sweep every real card with a 180-second no-progress hang guard, retaining pixel and fatal checks. */
+/** Sweep every real card with a 180-second no-progress hang guard, including stuck page reads; retain pixel/fatal checks. */
 export function sweepExplorer(browser:Browser,base:string,slug:string,out:string):Promise<void>;

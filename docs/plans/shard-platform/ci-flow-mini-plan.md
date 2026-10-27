@@ -550,3 +550,25 @@ The latest smoke `40419839643` succeeded, but predates the sampled push
 failures. It cannot establish current CF5 acceptance or a fixed flake.
 No new smoke, browser, test, build or Simulator visit was run. CF3's
 green-time bar, all-red CF4 attribution and the plan-end readings stay open.
+
+
+## CF5 stopped-renderer boundary (2026-10-27, sp-x9)
+
+**In flight (reading at plan end, G780).** Original progress guard source
+`94ea180069` remains: only newly drawn model identities extend the unchanged
+180-second no-progress allowance. Repeated polls/redraws do not extend it;
+all cards, real pixels, black-card refusal, HTTP errors and fatals remain.
+This commit also bounds both state and pixel protocol reads by that same
+remaining allowance. A stopped renderer can no longer sit inside an
+unbounded `page.evaluate` until the CI job deadline. Failure reporting uses
+the last completed card observation and a bounded diagnostic screenshot,
+without starting a second unbounded page read after a hang refusal.
+
+Add source controls for never-returning state and pixel reads and retain
+the existing slow-progress/stall/fatal/black-card controls. Update the
+workflow inventory fixture for the already-landed grid reporting case;
+six required core legs and G788 reporting cases remain unchanged.
+Touched script/fixture types and typed lint pass. G769: no tests, browser,
+preview or smoke run before landing. Ordinary CI/end acceptance is pending;
+this is no claim that every runner stall or Explorer source fault is fixed.
+GM1's exact common/deploy wording landed in `b958e653be`.

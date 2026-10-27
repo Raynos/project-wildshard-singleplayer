@@ -58,6 +58,21 @@ export function explorerState() {
     ready:cards!==undefined && cards.length>0 && readyIds.length===cards.length,readyIds};
 }
 
+/** A stopped renderer must not bypass the existing no-progress hang guard.
+ * @template T
+ * @param {Promise<T>} work @param {number} remainingMs
+ * @returns {Promise<T>}
+ */
+async function withinProgressBudget(work,remainingMs){
+  /** @type {ReturnType<typeof setTimeout>|undefined} */ let timer;
+  try{
+    /** @type {Promise<never>} */ const stalled=new Promise((_resolve,reject)=>{
+      timer=setTimeout(()=>{reject(new Error('Explorer catalogue/thumbnail stalled for 180 seconds without progress'));},Math.max(0,remainingMs));
+    });
+    return await Promise.race([work,stalled]);
+  }finally{if(timer!==undefined)clearTimeout(timer);}
+}
+
 /** @param {import('playwright').Browser} browser @param {string} base @param {string} slug @param {string} out */
 export async function sweepExplorer(browser,base,slug,out){
   const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true,serviceWorkers:'block'});
@@ -72,15 +87,15 @@ export async function sweepExplorer(browser,base,slug,out){
   const started=Date.now(),hangMs=180000;
   let progressAt=started;
   /** @type {Map<string,number>} */ const firstReady=new Map();
+  /** @type {ReturnType<typeof explorerCards>} */ let cards=[];
   try{
     const url=new URL(base);
     for(const [key,value]of Object.entries({chunk:slug,explore:'model',tier:'phone',touch:'1',mute:'1',nolock:'1',sw:'0'}))url.searchParams.set(key,value);
     await page.goto(url.href,{waitUntil:'domcontentloaded',timeout:30000});
     let empty=false,drawn=false;
-    /** @type {ReturnType<typeof explorerCards>} */ let cards=[];
     while(Date.now()-progressAt<hangMs){
       if(faults.length>0)throw new Error(faults.join('\n'));
-      const state=await page.evaluate(explorerState),observedMs=Date.now()-started;
+      const state=await withinProgressBudget(page.evaluate(explorerState),hangMs-(Date.now()-progressAt)),observedMs=Date.now()-started;
       // CF5: a software GPU can take longer overall while still drawing new
       // cards. Only a newly drawn identity extends the no-progress hang guard;
       // polling and repeated redraws of the same cards never extend it.
@@ -90,7 +105,8 @@ export async function sweepExplorer(browser,base,slug,out){
       if(state.ready){
         // A model-ready event can invalidate a thumbnail between these page
         // tasks. Keep waiting for its replacement inside the same hang guard.
-        const snapshot=await page.evaluate(explorerCards);
+        const snapshot=await withinProgressBudget(page.evaluate(explorerCards),hangMs-(Date.now()-progressAt));
+        cards=snapshot;
         if(snapshot.length>0 && snapshot.every(card=>card.ready && card.pixels>0)){cards=snapshot;drawn=true;break;}
       }
       await new Promise(_resolve=>{setTimeout(_resolve,250);});
@@ -104,8 +120,10 @@ export async function sweepExplorer(browser,base,slug,out){
     if(failures.length>0)throw new Error(`${slug}: ${failures.join('; ')}`);
     console.info(`Explorer ${slug}: ${empty?'explicit empty catalogue':`${cards.length} real thumbnails`} PASS`);
   }catch(error){
-    await page.screenshot({path:join(out,`${slug}-failure.jpg`),type:'jpeg',quality:70}).catch(()=>undefined);
-    writeFileSync(join(out,`${slug}-failure.json`),`${JSON.stringify({slug,elapsedMs:Date.now()-started,hangMs,idleMs:Date.now()-progressAt,error:String(error),faults,cards:await page.evaluate(explorerCards).catch(()=>[]),firstReadyMs:Object.fromEntries(firstReady)},null,2)}\n`);
+    await page.screenshot({path:join(out,`${slug}-failure.jpg`),type:'jpeg',quality:70,timeout:5000}).catch(()=>undefined);
+    // Keep the last completed observation. A second unbounded renderer read
+    // after the hang refusal would hide the very stall this receipt records.
+    writeFileSync(join(out,`${slug}-failure.json`),`${JSON.stringify({slug,elapsedMs:Date.now()-started,hangMs,idleMs:Date.now()-progressAt,error:String(error),faults,cards,firstReadyMs:Object.fromEntries(firstReady)},null,2)}\n`);
     throw error;
   }finally{await context.close();}
 }
