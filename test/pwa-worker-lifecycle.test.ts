@@ -75,6 +75,53 @@ test('Developer-only code stays cold until first use and then works offline', as
   expect(f.fetch.mock.calls).toHaveLength(requests);
 });
 
+// Node Request cannot set destination in its init; real module fetch events
+// expose script. Model that browser-owned fact on this fixture request only.
+function scriptRequest(path: string): Request {
+  const request = new Request(new URL(path, base));
+  Object.defineProperty(request, 'destination', { value: 'script' });
+  return request;
+}
+
+test('first-use code finishes its cache publication before completing the response', async () => {
+  const f = fixture(undefined, [entry, dependency, css, lazy]);
+  await f.dispatch('install');
+  const cache = await f.open('ws-immutable'), put = cache.put.bind(cache);
+  let release: () => void = () => undefined, started: () => void = () => undefined;
+  const blocked = new Promise<void>(resolve => { release = resolve; });
+  const writing = new Promise<void>(resolve => { started = resolve; });
+  const write = vi.spyOn(cache, 'put').mockImplementation(async (request, response) => {
+    started(); await blocked; await put(request, response);
+  });
+  let settled = false;
+  const pending = (async () => {
+    try { await f.dispatch('fetch', { request: scriptRequest(later) }); }
+    finally { settled = true; }
+  })();
+  try {
+    await writing;
+    // Drain the response's task while the publication is explicitly blocked.
+    await new Promise<void>(resolve => { setTimeout(resolve, 0); });
+    expect(settled).toBe(false);
+    expect(await cache.match(new URL(later, base).href)).toBeUndefined();
+  } finally { release(); await pending; write.mockRestore(); }
+  expect(await (await cache.match(new URL(later, base).href))?.text()).toBe('exact bytes');
+  const requests = f.fetch.mock.calls.length;
+  f.navigator.onLine = false; f.fetch.mockRejectedValue(new Error('offline'));
+  await f.dispatch('fetch', { request: scriptRequest(later) });
+  expect(f.fetch.mock.calls).toHaveLength(requests);
+});
+
+test('a failed code cache write still returns one complete online response', async () => {
+  const f = fixture(), cache = await f.open('ws-immutable');
+  const write = vi.spyOn(cache, 'put').mockRejectedValue(new DOMException('Cache full', 'QuotaExceededError'));
+  try {
+    await f.dispatch('fetch', { request: scriptRequest(later) });
+    expect(f.fetch).toHaveBeenCalledTimes(1);
+    expect(write).toHaveBeenCalledTimes(1);
+  } finally { write.mockRestore(); }
+});
+
 test('installation remains strict for its complete entry graph and never reads lazy shard chunks', async () => {
   const f = fixture(), cache = await f.open('ws-immutable');
   await cache.put(new URL(dependency, base).href, new Response('unchanged'));

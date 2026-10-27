@@ -287,3 +287,17 @@ Offline follows the online first-use asset visit, not a claim that unvisited
 shards' art is preinstalled. J6 and D109 are done; no other payload row is
 re-read or closed. Raw `tmp/sp-x9-miss-fixes/j6.json`, `J6-reading.log` and
 phone captures. Browser closes normally; the shared-preview use releases.
+
+### J6 first-use offline publication (2026-10-27)
+
+CI e580 behaviour10 exposes a first-use worker race in the new J6 control:
+code is completely read but fetchWhole returns before cache.put settles.
+An immediate offline import can therefore miss the chunk just fetched.
+The original offline assertion stays; complete code now awaits its cache
+publication attempt before returning. Quota/storage errors remain nonfatal
+for the complete online response. Strict install/public warming, background
+preemption, retry clocks and full immutable inventory are unchanged.
+Add a deliberately blocked cache-write control and a storage-failure control.
+Touched types/typed lint and scoped ratchet pass; no new preview or warm-list
+change. Original live public online/offline reading remains qualified; this
+fix closes the stricter immediate first-use boundary as well.

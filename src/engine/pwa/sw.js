@@ -585,7 +585,11 @@ async function fetchWhole(req, cache) {
       if (!res.ok && !last) throw new Error(`HTTP ${res.status}`);
       if (!res.ok) return res;
       const whole = new Response(await res.blob(), { status: res.status, statusText: res.statusText, headers: res.headers });
-      cache.put(req, whole.clone()).catch(() => undefined);
+      // A first-use chunk can be requested offline as soon as its import
+      // completes. Finish this publication attempt before returning its bytes;
+      // a detached write raced that next request and could outlive the worker.
+      // Quota/storage failure still serves the complete online response.
+      await cache.put(req, whole.clone()).catch(() => undefined);
       return transportReceipt(whole);
     } catch (e) {
       if (last) throw e;
