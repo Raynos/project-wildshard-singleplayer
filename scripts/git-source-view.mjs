@@ -187,7 +187,7 @@ export function deriveGitDiscovery(view,path) {
   const catalogue=v.parse(v.object({jobs:v.array(v.object({id:v.string(),outputs:v.array(v.string()),buildTimeOutputs:v.optional(v.array(v.string()),[])}))}),JSON.parse(view.read('scripts/generation-jobs.json').toString('utf8')));
   const job=catalogue.jobs.find(row=>row.buildTimeOutputs.includes(path));
   if(job===undefined)return false;
-  for(const file of job.buildTimeOutputs)if(view.files.has(file)||!job.outputs.includes(file)||!file.startsWith('src/')||file.split('/').includes('..'))throw new Error(`Invalid native source output: ${file}`);
+  for(const file of job.buildTimeOutputs)if(view.files.has(file)||!job.outputs.includes(file)||!file.startsWith('src/')&&!file.startsWith('public/')||file.split('/').includes('..'))throw new Error(`Invalid native source output: ${file}`);
   const source=`
     import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
     import {resolve,dirname} from 'node:path';

@@ -176,16 +176,16 @@ test('native generated data requires its exact committed catalogue hash',()=>{
 
 test('native source providers need the mirror context and verify every returned digest',()=>{
   const f=fixture();try {
-    const file='src/derived.generated.ts';
-    f.put('.gitignore','tmp/\nnode_modules/\n*.generated.ts\n');
+    const file='src/derived.generated.ts',asset='public/assets/provider.bin';
+    f.put('.gitignore','tmp/\nnode_modules/\n*.generated.ts\npublic/\n');
     f.put('src/main.ts',"import {value} from './derived.generated';export const result=value;");
-    f.put('scripts/generation-jobs.json',JSON.stringify({jobs:[{id:'source',outputs:[file],buildTimeOutputs:[file]}]}));
+    f.put('scripts/generation-jobs.json',JSON.stringify({jobs:[{id:'source',outputs:[file,asset],buildTimeOutputs:[file,asset]}]}));
     // Explicit process dependencies: no real machine lease or generation cache
     // is acquired by this tiny native-protocol fixture.
     f.put('scripts/heavy-lane.py','import os,sys\nos.execvp(sys.argv[3],sys.argv[3:])\n');
     f.put('scripts/generate.mjs',`import{mkdirSync,writeFileSync}from'node:fs';import{resolve}from'node:path';import{createHash}from'node:crypto';
-export function discoverGeneration(){return {jobs:[{id:'source',buildTimeOutputs:['${file}']}]};}
-export async function generateShardJob(){const directory=resolve('tmp/provider');mkdirSync(directory+'/src',{recursive:true});const bytes='export const value=1;';writeFileSync(directory+'/${file}',bytes);return {directory,hashes:{'${file}':createHash('sha256').update(bytes).digest('hex')},release(){}};}`);
+export function discoverGeneration(){return {jobs:[{id:'source',buildTimeOutputs:['${file}','${asset}']}]};}
+export async function generateShardJob(){const directory=resolve('tmp/provider');mkdirSync(directory+'/src',{recursive:true});mkdirSync(directory+'/public/assets',{recursive:true});const bytes='export const value=1;';writeFileSync(directory+'/${file}',bytes);writeFileSync(directory+'/${asset}','owned-asset');return {directory,hashes:{'${file}':createHash('sha256').update(bytes).digest('hex'),'${asset}':createHash('sha256').update('owned-asset').digest('hex')},release(){}};}`);
     const tip=f.commit();
     const ordinary=f.run('fast-lint',tip);
     expect(ordinary.stdout).toContain('unverified inputs src/derived.generated');
@@ -193,6 +193,7 @@ export async function generateShardJob(){const directory=resolve('tmp/provider')
     expect(native.status,native.stdout+native.stderr).toBe(0);
     expect(native.stdout).toContain('Fast lint passed on 1 exact changed files');
     expect(native.stdout).not.toContain('DEFERRED TO CI');
+    expect(readFileSync(resolve(f.root,asset),'utf8')).toBe('owned-asset');
     f.put('scripts/generate.mjs',readFileSync(resolve(f.root,'scripts/generate.mjs'),'utf8').replace("createHash('sha256').update(bytes).digest('hex')",`'${'0'.repeat(64)}'`));
     const bad=f.run('fast-lint',f.commit(),['src/main.ts'],f.base,false,true);
     expect(bad.status).toBe(1);expect(bad.stderr).toContain('Native source output differs');
