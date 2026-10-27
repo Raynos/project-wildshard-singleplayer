@@ -2,7 +2,7 @@
  * The steppe's sky and storm on the page's weather host (sdk/looks/forestWeather). The painted sky (game/looks/keyedSky
  * `paintedSky`): the day clock, the day key and look (skyPresentation.ts, dayChannels.ts) under the weather and tint rows
  * (weatherChannels.ts) and the dome of world/weather-fx.json. The storm: the reactions of world/weather.json (bolts, GET LOW
- * and the wind it asks for, at 10 Hz: weatherDecision.ts) struck at the spruce crowns and sheltered by the yurts; the thunder
+ * and the wind it asks for, at 10 Hz: weatherDecisionSource.ts) struck at the spruce crowns and sheltered by the yurts; the thunder
  * and the crackle at their events; the rain and storm-wind beds; and the drawn storm (the deck, the curtains, the bolt, the
  * strike's smoke and fire, the telegraph's glow, the puddles, the rain round the eye), posed by the `nalati.fx` rows
  * (weatherFxChannels.ts) over the shapes and textures of world/weather-fx.json (weatherPresentation.ts).

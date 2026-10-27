@@ -2,7 +2,7 @@ import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration'
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import type { DecisionScriptRow } from '@wildshard/sdk/decisionScripts';
 import { parseClientChannels } from '@wildshard/sdk/rows';
-import { weatherDecision, STORM } from './weatherDecision';
+import { weatherDecision, STORM } from './weatherDecisionSource';
 import { weatherPresentation } from './weatherPresentation';
 import { skyRows, skyChannels } from './skyPresentation';
 import { weatherFxChannels } from './weatherFxChannels';
