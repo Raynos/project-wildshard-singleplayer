@@ -23,12 +23,10 @@ held duty fix (18736fc479): Pine 20.7, Nalati 19.4, DW 16.5, Sky 10.6 s; owners 
 world, sp-o3 shaders, sp-x1 DW, sp-x10 Sky; held view >= 30 fps. Jake picks: D175 / D178 / D179. Closed
 as a miss: S1 1.6 s (D176). Open: H4 (sp-x9), I2 (Pine 100 MB / 296 product req; sp-x2 / sp-o5 / sp-x9).
 Counter 157 / 209 = 75 %.
-**11:15 reply:** (1) G803 applied: 3 Opus = sp-o1, sp-o3, sp-o5; sp-o2 / sp-o4 stop at their boundary (sp-o4
-done 11:20). (2) Rows aren't closing because they're G780 'landed, reading at plan end': the list is in
-[finish-line](finish-line.md#landed-awaiting-the-plan-end-reading-g780-1120-cancun-10-27); readings that miss (G782
-cold, I2, H4, S1) are owned. (3) CI: sp-ci-deploy's table routes every red to its breaking lane (G754);
-ground-merge types fixed (dac57a84b0); HEAD previews blocked on Pine tile 0/4/7 bake (sp-x2, top priority). (4)
-sp-x9's pane title is stale; its row is Nalati cold crossing spans (from sp-o4).
+**12:15 reply:** SW12 (vitest $TMPDIR leak) is sp-x10's next row. Codex lanes keep running past 100 % weekly on
+credits (G590; Jake's "$50,000 of credits ... full steam ahead"), so ~17:30 doesn't stop them. G806 applied: push
+reds fall back to sp-ci-deploy, and lanes send no routine reports. Awaiting-reading list:
+[finish-line](finish-line.md#landed-awaiting-the-plan-end-reading-g780-1120-cancun-10-27).
 **Blocked on Jake:** road B pilot play; boards as they land; LD5-LD8 / A1 / A2 / M2 / RM13 (counted, G779).
 
 **Lanes (G803, Jake 11:15: 3 Opus until the account hits 100 %; Claude active 70 %):** sp-o1, sp-o3, sp-o5 + 6
