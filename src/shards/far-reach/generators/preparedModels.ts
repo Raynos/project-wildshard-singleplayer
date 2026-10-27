@@ -1,7 +1,4 @@
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import { HD_URLS, SKY_HD } from './fileInventory';
-import { hdGeometry } from './modelIntake';
-import { bakeKeeperFigure } from './keeperFigure';
+import { skyHeroLibrarySource, HERO_LIBRARY_INPUTS } from './heroLibrary';
 import { skyVanePartSource, VANE_INPUTS } from './vaneProgram';
 import { PREPARED_MODEL_INPUTS, preparedModelSource } from './preparedModelProgram';
 
@@ -17,12 +14,6 @@ export const bakeVaneRotor = (read: (url: string) => Uint8Array): Promise<Uint8A
 
 /** Prepared geometry and original atlas rows; the author explicitly names nonempty NPC parts. */
 export async function bakePreparedLibrary(read: (url: string) => Uint8Array): Promise<Uint8Array> {
-  const source = await readSourceModel(read(HD_URLS['keeper-hd']));
-  const keeper = hdGeometry(source.gltf.scene, material => source.texture(material) !== null);
-  if (keeper === null) throw new Error('Missing keeper author geometry');
-  const pivots = bakeKeeperFigure(keeper.geometry).map((geometry, index) => geometry.getAttribute('position').count === 0 ? null : `hero-keeper-pivot-${String(index)}`);
-  const rows = { pool: { url: '/assets/far-reach/baked/prepared-models.glb', parts: [...SKY_HD.map(name => `hero-${name}`), ...pivots.filter((part): part is string => part !== null)] },
-    models: SKY_HD.map(name => name === 'keeper-hd' ? { name, url: HD_URLS[name], geometry: `hero-${name}`, releaseImage: true, pivots }
-      : { name, url: HD_URLS[name], geometry: `hero-${name}`, releaseImage: true }) };
+  const rows = await skyHeroLibrarySource(new Map(HERO_LIBRARY_INPUTS.map(url => [url, read(url)])));
   return new TextEncoder().encode(`${JSON.stringify(rows)}\n`);
 }

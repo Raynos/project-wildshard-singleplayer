@@ -1,3 +1,4 @@
+import { skyHeroLibrarySource, HERO_LIBRARY_INPUTS } from './heroLibrary.ts';
 import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
 import { skyMapWorldSources } from './mapWorldSources.ts';
 import { PREPARED_MODEL_INPUTS, preparedModelSource } from './preparedModelProgram.ts';
@@ -29,7 +30,9 @@ export async function skyMapSources(native) {
   };
   const inputs = new Map(PREPARED_MODEL_INPUTS.map(url => [url,
     read(url)]));
+  const heroes = await skyHeroLibrarySource(new Map(HERO_LIBRARY_INPUTS.map(url => [url, read(url)])));
   const sources = skyMapWorldSources(bytes => encodeBuildBytes(bytes, 'deflate', 9, 'native'));
+  sources.set('data/heroLibrary.generated.json', new TextEncoder().encode(`${JSON.stringify(heroes)}\n`));
   for (const [name, bytes] of fixedLayoutFiles()) sources.set(name, bytes);
   sources.set('data/crownInstances.generated.json', new TextEncoder().encode(`${JSON.stringify(crownInstances())}\n`));
   sources.set('data/islets.generated.json', new TextEncoder().encode(`${JSON.stringify(risingIsletRows())}\n`));

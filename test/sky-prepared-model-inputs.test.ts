@@ -1,9 +1,11 @@
+import { skyHeroLibrarySource, skyHeroLibraryProgram, HERO_LIBRARY_INPUTS } from '../src/shards/far-reach/generators/heroLibrary';
+import { createProjectGeneration } from '../src/sdk/projectGeneration';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own only the isolated cold cache and matching omission catalogue.
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine real producer fixtures to repository scratch.
-import { relative, resolve } from 'node:path';
+import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
+import { discoverGeneration } from '../scripts/generate.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { skyVaneSource, skyVaneProgram, VANE_INPUTS } from '../src/shards/far-reach/generators/vaneProgram';
 
@@ -39,46 +41,26 @@ test('prepared geometry has no scheduled writer or public handoff reader while f
   expect(hashImmutableBytes(readFileSync(handoff))).toBe('bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580');
 });
 
-test('retained prepared-model readers declare the pure leaf and the real sealed producer refuses its omission', async () => {
-  const root = resolve('.'), { jobs } = discoverGeneration(root), source = 'src/shards/far-reach/generators/preparedModelBytes.ts';
-  for (const id of ['sky-hero-library']) {
-    const reader = jobs.find(row => row.id === id);
-    if (reader === undefined) throw new Error(`Missing retained reader ${id}`);
-    expect(reader.inputRoots).toContain(source);
-    for (const path of ['preparedModelProgram.ts', 'skyIsleFrames.ts', 'skyIsleProbe.ts', 'rows/skyIsles.ts', 'rows/layoutTypes.ts']) {
-      expect(reader.inputRoots).toContain(`src/shards/far-reach/generators/${path}`);
-    }
-    expect(reader.inputRoots).not.toContain('src/shards/far-reach/data/skyIsleFrames.json');
-    expect(reader.inputRoots).not.toContain('src/shards/far-reach/data/layout.generated.json');
-  }
-  const job = jobs.find(row => row.id === 'sky-hero-library');
-  if (job === undefined) throw new Error('Missing retained hero-library producer');
-  mkdirSync('tmp', { recursive: true }); const cacheDir = mkdtempSync(resolve('tmp/sky-prepared-inputs-'));
+test('hero library derives its complete original wire from native geometry with strict input/cache admission', async () => {
+  const inputs = new Map(HERO_LIBRARY_INPUTS.map(url => [url, new Uint8Array(readFileSync(`public${url}`))]));
+  const wire = new TextEncoder().encode(`${JSON.stringify(await skyHeroLibrarySource(inputs))}\n`);
+  expect(hashImmutableBytes(wire)).toBe('8636a32d64c0cffec7c174e8f3983ca6a5d585e3bea4bd00463084dd1d85ac12');
+  await expect(skyHeroLibrarySource(new Map())).rejects.toThrow('input inventory differs');
+  await expect(skyHeroLibrarySource(new Map([...inputs, ['extra', new Uint8Array([1])]]))).rejects.toThrow('input inventory differs');
+  await expect(skyHeroLibraryProgram({ cached: () => Promise.resolve(new Map()) })).rejects.toThrow('cache identity differs');
+  const malformed = { cached: () => Promise.resolve(new Map([['heroes.json', new Uint8Array([1])]])) };
+  await expect(skyHeroLibraryProgram(malformed)).rejects.toThrow();
+  const scratch = mkdtempSync(resolve('tmp/sky-hero-native-'));
   try {
-    const omitted = { ...job, inputRoots: job.inputRoots.filter(path => path !== source) };
-    const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
-    writeFileSync(resolve(root, catalogPath), JSON.stringify({ schema: 'generation-jobs/1', notice: 'DO NOT EDIT isolated fixture',
-      jobs: jobs.map(row => row.id === job.id ? omitted : row) }));
-    await expect(generateShardJob(root, omitted, { cacheDir, catalogPath, forceCompare: true })).rejects.toThrow('Generator exited 1');
-    const result = await generateShardJob(root, job, { cacheDir, forceCompare: true });
-    try {
-      expect(result.hit).toBe(false);
-      expect(result.hashes).toEqual({ 'src/shards/far-reach/data/heroLibrary.generated.json': '8636a32d64c0cffec7c174e8f3983ca6a5d585e3bea4bd00463084dd1d85ac12' });
-    } finally { result.release(); }
-  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
-});
-
-test.each([
-  ['sky-hero-library', 'src/shards/far-reach/data/heroLibrary.generated.json', '8636a32d64c0cffec7c174e8f3983ca6a5d585e3bea4bd00463084dd1d85ac12'],
-])('%s retains its complete original output with both generated fitting inputs absent', async (id, output, hash) => {
-  const root = resolve('.'), { jobs } = discoverGeneration(root), job = jobs.find(row => row.id === id);
-  if (job === undefined) throw new Error(`Missing retained reader ${id}`);
-  const cacheDir = mkdtempSync(resolve('tmp/sky-prepared-reader-'));
-  try {
-    const result = await generateShardJob(root, job, { cacheDir, forceCompare: true });
-    try { expect(result.hit).toBe(false); expect(result.hashes).toEqual({ [output]: hash }); }
-    finally { result.release(); }
-  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
+    const ctx = createProjectGeneration(resolve('src/shards/far-reach'), 'e'.repeat(64), new Map(), resolve(scratch, 'cache'),
+      [{ prefix: '/assets/', directory: resolve('public/assets') }]);
+    const cold = await skyHeroLibraryProgram(ctx);
+    expect(cold).toEqual(await skyHeroLibrarySource(inputs)); cold.pool.parts.length = 0;
+    expect(await skyHeroLibraryProgram(ctx)).toEqual(await skyHeroLibrarySource(inputs));
+    const missing = createProjectGeneration(resolve('src/shards/far-reach'), 'e'.repeat(64), new Map(), resolve(scratch, 'missing'));
+    await expect(skyHeroLibraryProgram(missing)).rejects.toThrow('exactly one declared root');
+  } finally { rmSync(scratch, { recursive: true, force: true }); }
+  expect(discoverGeneration('.').jobs.some(job => job.id === 'sky-hero-library')).toBe(false);
 });
 
 test('both vane writers retire after map adoption of the exact native source', () => {
@@ -96,21 +78,11 @@ test('both vane writers retire after map adoption of the exact native source', (
   expect(map.inputRoots).toContain('public/assets/far-reach/models/wind-vane/wind-vane.glb');
 });
 
-test('retained boot metadata declares authored layout and preserves all six original outputs', async () => {
-  const root = resolve('.'), { jobs } = discoverGeneration(root), source = 'src/shards/far-reach/generators/layout.ts';
-  const job = jobs.find(row => row.id === 'sky-boot-metadata');
-  if (job === undefined) throw new Error('Missing retained Sky boot producer');
-  expect(job.inputRoots).toContain(source);
-  const expected = Object.fromEntries(job.outputs.map(path => [path, hashImmutableBytes(readFileSync(path))]));
-  const cacheDir = mkdtempSync(resolve('tmp/sky-boot-layout-'));
-  try {
-    const omitted = { ...job, inputRoots: job.inputRoots.filter(path => path !== source) };
-    const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
-    writeFileSync(resolve(root, catalogPath), JSON.stringify({ schema: 'generation-jobs/1', notice: 'DO NOT EDIT isolated fixture',
-      jobs: jobs.map(row => row.id === job.id ? omitted : row) }));
-    await expect(generateShardJob(root, omitted, { cacheDir, catalogPath, forceCompare: true })).rejects.toThrow('Generator exited 1');
-    const result = await generateShardJob(root, job, { cacheDir, forceCompare: true });
-    try { expect(result.hit).toBe(false); expect(result.hashes).toEqual(expected); }
-    finally { result.release(); }
-  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
+test('boot metadata has no publisher or handoff readers after direct source discovery', () => {
+  const { jobs } = discoverGeneration('.');
+  expect(jobs.some(job => job.id === 'sky-boot-metadata')).toBe(false);
+  for (const name of ['assets', 'files', 'sources', 'lateReads', 'rigs', 'worldTextures']) {
+    const handoff = `src/shards/far-reach/boot/${name}.generated.json`;
+    for (const job of jobs) { expect(job.outputs).not.toContain(handoff); expect(job.inputRoots).not.toContain(handoff); }
+  }
 });

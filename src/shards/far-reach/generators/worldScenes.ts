@@ -2,9 +2,9 @@ import { worldSceneRecipe as parseWorldScene, worldSceneBindings as parseWorldSc
 import { nameBlob } from '@wildshard/sdk/blobs';
 import type { SkyRouteValues } from './routeScene';
 import { isletScenes } from './isletScene';
-import heroes from '../data/heroLibrary.generated.json' with { type: 'json' };
+import type { HeroLibraryRows } from './heroLibrary';
 import { skyWorldRows } from './worldRows';
-import { SKY_SOURCE_LIBRARIES, SKY_SOURCE_BLOBS } from './sceneSources';
+import { SKY_SOURCE_LIBRARIES, skySourceBlobs } from './sceneSources';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import * as LAYOUT from './layout';
 import { skyGroundValues } from './groundScene';
@@ -41,10 +41,10 @@ export interface SkyWorldSceneValues {
 }
 
 /** Build the original scene world with an optional owned mill hierarchy. */
-export function skyWorldSceneValues(millScene: SkyMillSceneValues['MILL_SCENE'], staticScenes: SkyStaticSceneEnvelope, routes: SkyRouteValues): SkyWorldSceneValues {
+export function skyWorldSceneValues(millScene: SkyMillSceneValues['MILL_SCENE'], staticScenes: SkyStaticSceneEnvelope, routes: SkyRouteValues, heroes: HeroLibraryRows): SkyWorldSceneValues {
   const fixed = staticScenes;
   const mill = { MILL_SCENE: millScene };
-  const blobs = structuredClone([...SKY_SOURCE_BLOBS, ...SKY_ISLAND_BLOBS, ...SKY_MEADOW_BLOBS]);
+  const blobs = structuredClone([...skySourceBlobs(heroes), ...SKY_ISLAND_BLOBS, ...SKY_MEADOW_BLOBS]);
   const steps: unknown[] = [], materials = new Map<string, unknown>();
   const geometry = (name: string): Reference => SKY_ISLE_TILES.models.some(row => row.id === name) ? { library: 'isle-tiles', model: name }
     : SKY_ISLAND_LIBRARY.models.some(row => row.id === name) ? { library: 'islands', model: name }

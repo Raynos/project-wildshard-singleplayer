@@ -1,3 +1,4 @@
+import { skyHeroLibrarySource, HERO_LIBRARY_INPUTS, type HeroLibraryRows } from '../../src/shards/far-reach/generators/heroLibrary';
 // oxlint-disable-next-line import/no-nodejs-modules -- Original scene fixtures read only tracked native models.
 import { readFileSync } from 'node:fs';
 import { millSceneValues } from '../../src/shards/far-reach/generators/millScene';
@@ -12,16 +13,17 @@ export async function originalSkySceneInputs(): Promise<{
   readonly mill: Awaited<ReturnType<typeof millSceneValues>>['MILL_SCENE'];
   readonly staticScenes: ReturnType<typeof readSkyStaticSceneEnvelope>;
   readonly routes: SkyRouteValues;
+  readonly heroes: HeroLibraryRows;
 }> {
   const read = (url: string): Uint8Array => new Uint8Array(readFileSync(`public${url}`));
   return { mill: (await millSceneValues(read)).MILL_SCENE,
-    staticScenes: readSkyStaticSceneEnvelope(await skyStaticSceneBytes(read)), routes: await skyRouteValues(read) };
+    staticScenes: readSkyStaticSceneEnvelope(await skyStaticSceneBytes(read)), routes: await skyRouteValues(read), heroes: await skyHeroLibrarySource(new Map(HERO_LIBRARY_INPUTS.map(url => [url, read(url)]))) };
 }
 
 /** Preserve the complete original world/file oracles without ignored metadata imports. */
 export async function originalSkyScenes(): Promise<SkyWorldSceneValues> {
   const rows = await originalSkySceneInputs();
-  return skyWorldSceneValues(rows.mill, rows.staticScenes, rows.routes);
+  return skyWorldSceneValues(rows.mill, rows.staticScenes, rows.routes, rows.heroes);
 }
 
 /** The offline output fixture uses exactly the same explicit-value constructor as publication. */

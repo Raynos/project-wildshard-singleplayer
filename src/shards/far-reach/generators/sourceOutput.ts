@@ -1,3 +1,4 @@
+import { skyHeroLibraryProgram } from './heroLibrary';
 import { SKY_CLIENT_PLAN } from './clientPlan';
 import { skyPaintedPresentation, SKY_PAINTED_ATTRIBUTE_SOURCES } from './paintedLook';
 import { FAN_ID } from './rows/items';
@@ -72,12 +73,13 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<SkyS
   const routeScenes = await skyRouteSceneProgram(ctx), routeWire = routeScenes.get('route-scenes.json');
   const millWire = millScenes.get('mill-scene.json'), staticWire = staticScenes.get('static-scenes.json');
   if (millWire === undefined || staticWire === undefined || routeWire === undefined) throw new Error('Missing owned scene hierarchy');
-  const sceneValues = skyWorldSceneValues(readMillSceneValues(millWire), readSkyStaticSceneEnvelope(staticWire), readSkyRouteValues(routeWire));
+  const heroes = await skyHeroLibraryProgram(ctx);
+  const sceneValues = skyWorldSceneValues(readMillSceneValues(millWire), readSkyStaticSceneEnvelope(staticWire), readSkyRouteValues(routeWire), heroes);
   const prepared = skyOutputValues(sceneValues);
   const rigs = await skyCreatureRigOutput(ctx);
   const rigSources = skyRigAssetSources(rigs.files, GPU_FILES);
   const name = 'world/geometry/prepared-models.glb';
-  const geometry = nameBlob(name, 'glb', await preparedModelProgram(ctx)), hero = skyHeroSource(name);
+  const geometry = nameBlob(name, 'glb', await preparedModelProgram(ctx)), hero = skyHeroSource(name, heroes);
   const pieces = await skyWorldPieceProgram(ctx);
   const world = BAKED_PIECES.map(piece => {
     const bytes = pieces.get(`baked/${piece}.glb`);

@@ -35,12 +35,12 @@ test('owned mill intake preserves the complete original hierarchy and motion bin
 
 test('fresh scene construction retains the entire original world and every named file with injected mill rows', async () => {
   const bytes = await original(), mill = readMillSceneValues(bytes);
-  const { staticScenes, routes } = await originalSkySceneInputs();
-  const injected = skyWorldSceneValues(mill, staticScenes, routes);
+  const { staticScenes, routes, heroes } = await originalSkySceneInputs();
+  const injected = skyWorldSceneValues(mill, staticScenes, routes, heroes);
   checkWorld(injected); checkWorld(await originalSkyScenes());
   for (const blob of injected.blobs) blob.bytes.fill(0);
   injected.scenes.steps.length = 0;
-  checkWorld(skyWorldSceneValues(readMillSceneValues(bytes), staticScenes, routes));
+  checkWorld(skyWorldSceneValues(readMillSceneValues(bytes), staticScenes, routes, heroes));
   checkWorld(await originalSkyScenes());
   expect(hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson({ MILL_SCENE: mill }))))
     .toBe('92fd45fa8c27f9c1dc1e9cc59910bb8ac185b901a9a71199205deb79f9ea83c1');

@@ -5,7 +5,7 @@ import type { SceneModelSource, SceneBakeSource } from '@wildshard/game/shardfil
 import * as files from './fileInventory';
 import { SKY_AO_FLOOR } from './modelFrames';
 import { BRIDGE_REST_URL, MILL_REST_URL, ISLET_POOL } from './restFiles';
-import heroes from '../data/heroLibrary.generated.json' with { type: 'json' };
+import type { HeroLibraryRows } from './heroLibrary';
 import { restPools } from './restScene';
 import { bridgeRestPool } from './bridgeRest';
 import { millRestRows } from './millModel';
@@ -33,16 +33,14 @@ const sky = { rows: { meshes: files.SKY_MESHES, preparedMeshes: files.SKY_MESHES
   scenes: [{ part: 'specimen-mill.root', step: 'specimen-mill', materialLibrary: 'sky', definition: GEAR_SCENE_ROWS[1] }, { part: 'specimen-bridge.root', step: 'specimen-bridge', materialLibrary: 'sky', definition: GEAR_SCENE_ROWS[2] }, { part: 'specimen-vane.root', step: 'specimen-vane', materialLibrary: 'sky', definition: GEAR_SCENE_ROWS[4] }],
   npcs: [{ npc: keeperSource.npc, definition: keeper, model: { kind: 'pivots', id: QUEST_NPC.npc.figure.model, material: keeperSource.figure.materialId }, library: 'heroes', materialLibrary: 'sky' }],
 } satisfies SceneModelSource;
-const hero = { rows: { meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: SKY_AO_FLOOR,
-  geometryPools: [heroes.pool], paintedModels: heroes.models } } satisfies SceneModelSource;
 const bakeRows = Object.fromEntries(Object.entries(world.bakes).map(([id, row]) => [id, { ...row, kinds: row.kinds.map(kind => ({ ...kind, ...('paint' in kind ? { look: 'isle-paint' } : {}) })) }]));
 const baked = { rows: bakeRows, urls: files.BAKED_URLS,
   placements: { rows: world.pieces, colliders: skyFixedWorldColliders() },
   materialLibrary: 'sky', attributes: { _shk: 'aShk', _farcloth: 'aFarCloth' } } satisfies SceneBakeSource;
 const json = (name: string, rows: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(rows)));
 /** Retain the complete native library while the caller supplies its owned geometry identity. */
-export function skyHeroSource(geometry: string): NamedBlob {
-  return json('world/sources/heroes.json', { ...hero, rows: { ...hero.rows, geometryPools: [{ ...heroes.pool, url: geometry }] } });
+export function skyHeroSource(geometry: string, heroes: HeroLibraryRows): NamedBlob {
+  return json('world/sources/heroes.json', { rows: { meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: SKY_AO_FLOOR, geometryPools: [{ ...heroes.pool, url: geometry }], paintedModels: heroes.models } });
 }
 /** Preserve the complete native library while replacing only its owned bridge, mill, fan and rest pool addresses. */
 export function skyModelSource(bridgeGeometry: string, millGeometry: string, fanGeometry: string, rigs?: SceneModelSource['rows']['rigs'], meshes?: Readonly<Record<'vane-post' | 'vane-rotor', string>>,
@@ -59,6 +57,8 @@ export function skyModelSource(bridgeGeometry: string, millGeometry: string, fan
 export function skyBakeSource(urls: SceneBakeSource['urls']): NamedBlob {
   return json('world/sources/bakes.json', { ...baked, urls });
 }
-export const SKY_SOURCE_BLOBS = [json('world/sources/sky.json', sky), skyHeroSource(heroes.pool.url), skyBakeSource(files.BAKED_URLS)];
+export function skySourceBlobs(heroes: HeroLibraryRows): NamedBlob[] {
+  return [json('world/sources/sky.json', sky), skyHeroSource(heroes.pool.url, heroes), skyBakeSource(files.BAKED_URLS)];
+}
 export const SKY_SOURCE_LIBRARIES = [{ id: 'sky', kind: 'models', file: 'world/sources/sky.json' },
   { id: 'heroes', kind: 'models', file: 'world/sources/heroes.json' }, { id: 'bakes', kind: 'baked', file: 'world/sources/bakes.json' }] as const;

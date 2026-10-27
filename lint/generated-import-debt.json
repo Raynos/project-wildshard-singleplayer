@@ -73,8 +73,6 @@
     "src/shards/far-reach-legacy/manifest.ts": 1,
     "src/shards/far-reach/generators/product.ts": 1,
     "src/shards/far-reach/generators/rows/skyPaintedLook.ts": 1,
-    "src/shards/far-reach/generators/sceneSources.ts": 1,
-    "src/shards/far-reach/generators/worldScenes.ts": 1,
     "src/shards/nalati-grasslands-legacy/boot/files.ts": 1,
     "src/shards/nalati-grasslands-legacy/manifest.ts": 1,
     "src/shards/nalati-grasslands/generators/bake-boot-metadata.mjs": 1,
