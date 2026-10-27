@@ -56,7 +56,7 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
             if(!view.matches(file)){mismatched.add(file);return;}
             if(!/\.[cm]?[jt]sx?$/u.test(file))return;
             for(const imported of ts.preProcessFile(view.read(file).toString('utf8'),true,true).importedFiles) {
-              const source=imported.fileName;
+              const source=imported.fileName.split(/[?#]/u)[0]??'';
               let target=source.startsWith('.')?relative(root,resolve(root,dirname(file),source)):null;
               const packageName=/^@wildshard\/([^/]+)(?:\/(.+))?$/u.exec(source);
               if(packageName!==null) {

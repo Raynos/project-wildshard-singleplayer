@@ -98,6 +98,19 @@ test('native lint detects exact cycles and defers a changed dependency',()=>{
   }finally{f.close();}
 });
 
+test('native closure resolves query and fragment imports to their tracked file',()=>{
+  const f=fixture();try {
+    f.put('src/main.ts',"import first from '../lint/ratchet.json?raw';import second from '../lint/ratchet.json#text';export const value=[first,second];");
+    const tip=f.commit(),index=f.git('write-tree');
+    const result=f.run('fast-lint',tip);
+    expect(result.status,result.stdout+result.stderr).toBe(0);
+    expect(result.stdout).toContain('Fast lint passed on 1 exact changed files');
+    expect(result.stdout).not.toContain('DEFERRED TO CI');
+    expect(f.git('write-tree')).toBe(index);
+    expect(readFileSync(resolve(f.root,'src/main.ts'),'utf8')).toContain('ratchet.json?raw');
+  }finally{f.close();}
+});
+
 test('committed good policy ignores a loose poison and still checks the source',()=>{
   const f=fixture();try {
     f.put('src/main.ts','export const value=2;');const tip=f.commit();
