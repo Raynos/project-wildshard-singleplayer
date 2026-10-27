@@ -1,3 +1,4 @@
+import tileFiles from './fixtures/sky-world-tile-files.json' with { type: 'json' };
 import restFiles from './fixtures/sky-rest-pool-files.json' with { type: 'json' };
 import { winchGlb, hover0Glb, hover1Glb, hover2Glb, stormGlb, bookStandGlb } from '../src/shards/far-reach/generators/restScene';
 import { isletGlb } from '../src/shards/far-reach/generators/isletScene';
@@ -150,6 +151,8 @@ test('owned geometry preserves all original bytes and costs, changing only its s
     const baseline = text.decode(beforeBytes);
     expect(text.decode(afterBytes)).toBe(baseline.replace('"/assets/far-reach/baked/prepared-models.glb"', JSON.stringify(geometryName)));
     expect(owned.assets.has(before.hash)).toBe(false);
+    const nativeTiles = skyWorldTileSource();
+    expect(SKY_WORLD_TILE_ROWS.files).toEqual(tileFiles);
     const fineFiles = new Set(SKY_WORLD_TILE_ROWS.props.tiles.filter(tile => tile.lod === 0).map(tile => tile.file));
     const coarseFiles = new Set(SKY_WORLD_TILE_ROWS.props.tiles.filter(tile => tile.lod === 1).map(tile => tile.file));
     expect(fineFiles.size).toBe(22); expect(coarseFiles.size).toBe(11);
@@ -158,7 +161,8 @@ test('owned geometry preserves all original bytes and costs, changing only its s
     for (const file of SKY_WORLD_TILE_ROWS.files) {
       const tile = owned.assets.get(file.hash);
       if (tile === undefined) throw new Error('Missing owned island tile');
-      const nativeTile = readFileSync(`src/shards/far-reach/assets/${file.hash}`);
+      const nativeTile = nativeTiles.get(`assets/${file.hash}`);
+      if (nativeTile === undefined) throw new Error('Missing original native island tile');
       expect(Buffer.compare(tile, nativeTile)).toBe(0);
       expect(hashImmutableBytes(nativeTile)).toBe(file.hash);
       const { name: _name, path: _path, ...cost } = nameBlob('original-tile.glb', 'glb', nativeTile).file;
@@ -194,7 +198,9 @@ test('owned geometry preserves all original bytes and costs, changing only its s
     for (const file of SKY_WORLD_TILE_ROWS.files) {
       const tile = hit.assets.get(file.hash);
       if (tile === undefined) throw new Error('Missing cache-hit island tile');
-      expect(Buffer.compare(tile, readFileSync(`src/shards/far-reach/assets/${file.hash}`))).toBe(0);
+      const nativeTile = nativeTiles.get(`assets/${file.hash}`);
+      if (nativeTile === undefined) throw new Error('Missing original cache-hit island tile');
+      expect(Buffer.compare(tile, nativeTile)).toBe(0);
     }
     for (const piece of BAKED_PIECES) {
       const originalPiece = readFileSync(`public/assets/far-reach/baked/${piece}.glb`);
