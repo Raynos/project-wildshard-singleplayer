@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Run the real commit wrapper against owned Git fixtures.
 import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Each test owns its tiny fixture under tmp.
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the actual checker and fixture paths.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Foreign Git-local overrides cannot reach fixtures.
@@ -41,12 +41,13 @@ test('tsc owns diagnostics while the cheap checker retains typed and ordinary li
     // --patch mode's staged source must not lint a foreign working version.
     writeFileSync(file, 'export const value: number = "foreign";\n');
     await expect(precommitInputs(root, executable)).resolves.toBeUndefined();
-    expect(JSON.parse(readFileSync(resolve(root, '.git/push-deferred-types.json'), 'utf8')))
-      .toEqual({ 'unit.ts': [execFileSync('git', ['rev-parse', ':unit.ts'], { cwd: root, env, encoding: 'utf8' }).trim()] });
+    expect(execFileSync('git', ['show', ':unit.ts'], { cwd: root, env, encoding: 'utf8' })).toBe('export const value: number = 2;\n');
+    expect(readFileSync(file, 'utf8')).toBe('export const value: number = "foreign";\n');
+    expect(existsSync(resolve(root, '.git/push-deferred-types.json'))).toBe(false);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
-test('slow typed and fast checks defer the exact staged blob to the push gate', async () => {
+test('slow typed lint leaves staged bytes intact for CI', async () => {
   const root = mkdtempSync(resolve('tmp/soft-hook-'));
   const env = Object.fromEntries(Object.entries(processEnv).filter(([key]) => !key.startsWith('GIT_')));
   const git = (...args: string[]): string => execFileSync('git', args, { cwd: root, env, encoding: 'utf8' }).trim();
@@ -58,13 +59,14 @@ test('slow typed and fast checks defer the exact staged blob to the push gate', 
     git('add', '--', 'unit.ts', '.oxlintrc.json');
     const checker = resolve(root, 'slow-check.sh');
     writeFileSync(checker, '#!/bin/sh\nexec sleep 10\n'); chmodSync(checker, 0o755);
+    const staged = readFileSync(resolve(root, '.git/index'));
     await expect(precommitInputs(root, checker)).resolves.toBeUndefined();
-    expect(JSON.parse(readFileSync(resolve(root, '.git/push-deferred-types.json'), 'utf8')))
-      .toEqual({ 'unit.ts': [git('rev-parse', ':unit.ts')] });
+    expect(readFileSync(resolve(root, '.git/index'))).toEqual(staged);
+    expect(existsSync(resolve(root, '.git/push-deferred-types.json'))).toBe(false);
   } finally { rmSync(root, { recursive: true, force: true }); }
 }, 15_000);
 
-test('a policy-only timeout records exact staged work without inventing typed files', async () => {
+test('policy-only commits leave the index intact without deferred checks', async () => {
   const root = mkdtempSync(resolve('tmp/policy-hook-'));
   const env = Object.fromEntries(Object.entries(processEnv).filter(([key]) => !key.startsWith('GIT_')));
   const git = (...args: string[]): string => execFileSync('git', args, { cwd: root, env, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 }).trim();
@@ -77,11 +79,9 @@ test('a policy-only timeout records exact staged work without inventing typed fi
     git('add', '.'); git('commit', '-qm', 'base');
     writeFileSync(resolve(root, 'lint/ratchet.json'), '{"closedComponents":{"example":["C9"]}}');
     git('add', '--', 'lint/ratchet.json');
-    const blob = git('rev-parse', ':lint/ratchet.json');
     const index = readFileSync(resolve(root, '.git/index'));
     await precommitInputs(root);
-    expect(JSON.parse(readFileSync(resolve(root, '.git/push-deferred-policy.json'), 'utf8')))
-      .toEqual({ 'lint/ratchet.json': [blob] });
+    expect(existsSync(resolve(root, '.git/push-deferred-policy.json'))).toBe(false);
     expect(readFileSync(resolve(root, '.git/index'))).toEqual(index);
   } finally { rmSync(root, { recursive: true, force: true }); }
 }, 15_000);
