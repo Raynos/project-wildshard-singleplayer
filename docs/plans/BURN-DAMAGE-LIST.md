@@ -76,6 +76,7 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D37 | Local `node lint/ratchet.mjs` (full or `--files-from`) aborts on the stale allowance `wildshard/no-build-time-import src/shards/far-reach/discovery.generated.ts` before counting, so lanes cannot self-check the ratchet (three GR8 ejects passed the local run) | — (tree) | sp-x7 (tooling) | open |
 
 | D38 | Sealed `nalati-geography` cannot resolve `@wildshard/sdk/random` from `geographySource.ts`; generation still masks tests | `c954d624a0` | sp-x6 | routed by sp-ci-deploy; full source closure requested |
+| D39 | Generation stage: `@wildshard/sdk/random` (and `sdk/quests`, D32) is not linked into the stage's node_modules, so clean builds of HEAD fail (`serve-build --head` at `4778e51ce1`: ERR_MODULE_NOT_FOUND, log tmp/serve/failed-20261027-014444-4401.log:35) | `4778e51ce1` or earlier | breaker (sp-ci-deploy finds) | open |
 
 ## Rows
 
