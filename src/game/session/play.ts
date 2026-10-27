@@ -105,6 +105,7 @@ import { PlayerHurt } from '@wildshard/engine/ui/playerHurt';
 import { onReview, queuedCount, quickNote } from '@wildshard/engine/ui/review';
 import { installBounds } from '@wildshard/engine/world/bounds';
 import { gridCells, gridHomeSim, pageMode } from '../plugin/context';
+import { whenControl } from '@wildshard/engine/boot/prefetch';
 import { installMemoryWarning, residentOverLimit } from '../grid/memoryWarning';
 import { ACCENTS } from '@wildshard/format/accent';
 import { installShardHoverSpeed } from '../grid/rules';
@@ -137,6 +138,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
   const fullMap = new FullMap(minimap); // the menu's MAP tab (Menu.ts mounts it); tap the minimap / M to open
   const keepAlive = new KeepAlive();
   let gridBackgroundReady = false;
+  let gridControlReady = false;
   await macrotask();
   // SF21a / the grid client: EXPERIMENTAL Wildshard's 3 × 3 around this home cell (deck, soft walls, neighbours' far proxies)
   const grid = await step('assembly', async p => {
@@ -560,8 +562,9 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
     // A1: markEntered precedes the reveal and home installation. Open outer
     // seams/road/far and near views only after the first controllable frame.
     // Latch once: pausing later must not retire already admitted outer views.
+    whenControl(game.levelScope, game.levelScope, () => { gridControlReady = true; });
     game.onLate(() => {
-      if (hud.entered && !hud.paused && !revealing() && !gridHomeSim.pending) gridBackgroundReady = true;
+      if (gridControlReady && hud.entered && !hud.paused && !revealing() && !gridHomeSim.pending) gridBackgroundReady = true;
     }, 'game.grid.background');
     const gridHud = installGridHud({ scope: game.levelScope, hudRoot: hud.root, camera: game.camera, cells: gridCells,
       title: (cell) => { const shard = findShard(cell.slug); return { name: shard?.name ?? cell.slug, subtitle: shard?.biome ?? '' }; },
