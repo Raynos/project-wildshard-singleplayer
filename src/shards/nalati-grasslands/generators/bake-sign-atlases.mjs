@@ -1,4 +1,6 @@
-// Run through browser-lane.sh: retain the exact canvas raster, without a runtime canvas or font dependency.
+// A standalone asset tool (GR6, D2: it needs a browser), outside the generation scheduler; its three outputs are committed
+// authored inputs. Run it by hand through browser-lane.sh when the sign text changes: it keeps the exact canvas raster,
+// with no runtime canvas or font dependency.
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { chromium, devices } from 'playwright';

@@ -8751,35 +8751,6 @@
       "platform": "portable"
     },
     {
-      "id": "nalati-sign-atlases",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-sign-atlases.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-sign-atlases.mjs"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "scripts/bake-output.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-sign-atlases.mjs",
-        "src/shards/nalati-grasslands/generators/signLettering.ts",
-        "src/shards/nalati-grasslands/data/campCatalogue.json",
-        "src/shards/nalati-grasslands/generators/roadSigns.ts",
-        "src/shards/nalati-grasslands/generators/layout.ts"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/data/signAtlases.json",
-        "src/shards/nalati-grasslands/data/sign-atlas-roads.bin",
-        "src/shards/nalati-grasslands/data/sign-atlas-specimen.bin"
-      ],
-      "platform": "darwin",
-      "browser": true
-    },
-    {
       "id": "sky-view-data",
       "shard": "far-reach",
       "entry": "src/shards/far-reach/generators/viewData.ts",
