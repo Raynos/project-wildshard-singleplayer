@@ -1309,8 +1309,10 @@ export async function expandBakedGeometrySliced(geometry: BufferGeometry, slice:
   return carryBounds(geometry, flat);
 }
 
-/** How long a packed body bake stays inflated after its last copy (ms): a spawn burst's copies share one inflate. */
-const DECODED_HOLD_MS = 2000;
+/** How long a packed body bake stays inflated after its last copy (ms): one entry's spawn bursts share one inflate. At
+ *  2 s a cold Nalati crossing's boss spawn (2.4 s after the herd's) inflated the 8.7 MB bake again in script (fflate,
+ *  ~100 ms of one play frame at phone 4× CPU); the held bytes are the burst's own, so the peak does not rise. */
+const DECODED_HOLD_MS = 10000;
 /** A packed body catalogue: load its compressed source once, then lend fresh owned parts per spawn. */
 export interface PackedCreatureBodies {
   preload: () => Promise<void>;
