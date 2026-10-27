@@ -14,7 +14,9 @@ export interface TerrainTileData {
 function check(data: TerrainTileData): void {
   const { resolution: r, x, z, size, heights, colours, splat } = data;
   if (!Number.isInteger(r) || r < 2 || r > 257 || ![x, z, size].every(Number.isFinite) || size <= 0 || x < -CHUNK_HALF || z < -CHUNK_HALF || x + size > CHUNK_HALF || z + size > CHUNK_HALF || heights.length !== r * r || (colours !== undefined && colours.length !== r * r * 3) || (splat !== undefined && splat.length !== r * r * 4)) throw new Error('Invalid terrain dimensions');
-  if (heights.some((h) => !Number.isFinite(h) || h < -CELL_BELOW || h > CELL_ABOVE) || colours?.some((c) => !Number.isFinite(c) || c < 0 || c > 1)) throw new Error('Invalid terrain samples');
+  // js-heap H9: plain loops (a per-sample callback boxed every float: ~3 MiB a boot)
+  for (let i = 0; i < heights.length; i++) { const h = heights[i] ?? Number.NaN; if (!(h >= -CELL_BELOW && h <= CELL_ABOVE)) throw new Error('Invalid terrain samples'); }
+  if (colours !== undefined) for (let i = 0; i < colours.length; i++) { const c = colours[i] ?? Number.NaN; if (!(c >= 0 && c <= 1)) throw new Error('Invalid terrain samples'); }
 }
 /** Recognise the terrain wire format before its full bounded decoder checks the payload. */
 export function isTerrainTileData(bytes: Uint8Array): boolean {
@@ -53,9 +55,14 @@ export function decodeTerrainTile(bytes: Uint8Array | undefined, sampling?: Terr
   const v = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), r = v.getUint16(6, true), flags = v.getUint32(8, true);
   const colour = (flags & 1) !== 0, splat = (flags & 2) !== 0;
   if (v.getUint16(4, true) !== 1 || r < 2 || r > 257 || flags > 3 || v.getUint32(24, true) !== 0 || v.getUint32(28, true) !== 0 || bytes.length !== HEADER + r * r * (4 + (colour ? 12 : 0) + (splat ? 4 : 0))) throw new Error('Invalid terrain version or length');
-  const heights = Float32Array.from({ length: r * r }, (_, i) => v.getFloat32(HEADER + i * 4, true));
+  const heights = new Float32Array(r * r);
+  for (let i = 0; i < heights.length; i++) heights[i] = v.getFloat32(HEADER + i * 4, true);
   const data: TerrainTileData = { resolution: r, x: v.getFloat32(12, true), z: v.getFloat32(16, true), size: v.getFloat32(20, true), heights };
-  if (colour) data.colours = Float32Array.from({ length: r * r * 3 }, (_, i) => v.getFloat32(HEADER + r * r * 4 + i * 4, true));
+  if (colour) {
+    const colours = new Float32Array(r * r * 3);
+    for (let i = 0; i < colours.length; i++) colours[i] = v.getFloat32(HEADER + r * r * 4 + i * 4, true);
+    data.colours = colours;
+  }
   if (splat) data.splat = Uint8Array.from(bytes.subarray(HEADER + r * r * (colour ? 16 : 4)));
   check(data); return sampling === undefined ? data : samplingGrid(data,sampling);
 }

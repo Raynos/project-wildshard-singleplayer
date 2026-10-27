@@ -6,14 +6,40 @@ declare const __SHARDFILE_VERDICTS__: unknown;
 export interface ValidationReceipt {
   revision: string; sourceHash: string; indexHash?: string; worst: ReturnType<typeof worstContentCost>;
 }
-/** Sorted JSON makes the build and browser hash exactly the same admitted declaration. */
+/** An array index key (canonical uint32 below 2^32 - 1): a plain object enumerates these first, in numeric order. */
+const indexKey = (key: string): boolean => /^(?:0|[1-9]\d{0,9})$/u.test(key) && Number(key) < 4294967295;
+const byCodeUnit = (a: string, b: string): number => a < b ? -1 : a > b ? 1 : 0;
+/** Sorted JSON makes the build and browser hash exactly the same admitted declaration. js-heap H9: written directly, in
+ *  the order JSON.stringify gives the key-sorted copy this used to build (index keys first, numerically, then the rest
+ *  by code unit; arrays in place, holes and non-JSON values as JSON.stringify writes them), without building that copy. */
 export function validationSourceBytes(source: unknown): Uint8Array {
-  const sort = (input: unknown): unknown => {
-    if (Array.isArray(input)) return input.map(sort);
-    if (typeof input === 'object' && input !== null) return Object.fromEntries(Object.entries(input).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0).map(([key, value]) => [key, sort(value)]));
-    return input;
+  const active = new Set<object>();
+  const write = (value: unknown): string | undefined => {
+    if (value === null) return 'null';
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') return JSON.stringify(value);
+    if (typeof value !== 'object') return undefined;
+    if (active.has(value)) throw new TypeError('Cannot serialize cyclic receipt source');
+    active.add(value);
+    let out: string;
+    if (Array.isArray(value)) {
+      out = '[';
+      for (let i = 0; i < value.length; i++) out += (i > 0 ? ',' : '') + (write(value[i]) ?? 'null');
+      out += ']';
+    } else {
+      const keys = Object.keys(value), index = keys.filter(indexKey).sort((a, b) => Number(a) - Number(b));
+      const rest = keys.filter(key => !indexKey(key)).sort(byCodeUnit);
+      out = '{'; let first = true;
+      for (const key of index.length === 0 ? rest : [...index, ...rest]) {
+        const text = write(Reflect.get(value, key));
+        if (text === undefined) continue;
+        out += `${first ? '' : ','}${JSON.stringify(key)}:${text}`; first = false;
+      }
+      out += '}';
+    }
+    active.delete(value);
+    return out;
   };
-  return new TextEncoder().encode(`${JSON.stringify(sort(source))}\n`);
+  return new TextEncoder().encode(`${write(source) ?? 'undefined'}\n`);
 }
 interface SourceSortFrame {
   readonly source: object;
