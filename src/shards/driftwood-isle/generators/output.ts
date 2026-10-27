@@ -26,9 +26,8 @@ import creatureLookRows from '../data/creatureLookRows.json' with { type: 'json'
 import { CREATURE_INSTALL } from './creatureLook';
 import { ATTACK_TURN } from '@wildshard/engine/ai/hunt';
 import { driftwoodJsonBlob as nameBlob } from './namedSchemas';
-import nativePhysics from '../data/physics.generated.json' with { type: 'json' };
 import { driftwoodNativeRows } from './nativeBake';
-import { driftwoodPhysicsSources } from './physics';
+import { driftwoodPhysics, driftwoodPhysicsSources } from './physics';
 import { WAKE_ENCOUNTER } from './wakeEncounter';
 import { NATIVE_QUEST_PROPS } from './nativeQuestProps';
 import { EXPLORER_CATALOGUE } from './explorerCatalogue';
@@ -108,6 +107,8 @@ import type { DriftwoodCreatureBodyBank } from './creatureBodyBank';
 import { driftwoodMap } from './mapProgram';
 import { driftwoodGroundDeclaration } from './groundDeclaration';
 import { driftwoodNavigation } from './navigation';
+
+const nativePhysics = driftwoodPhysics();
 
 const schemas:Readonly<Record<string,v.GenericSchema>>=SECTIONS;
 const placed = enemyPlacements();

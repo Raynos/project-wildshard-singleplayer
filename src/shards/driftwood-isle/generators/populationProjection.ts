@@ -7,7 +7,9 @@ import type { DriftwoodGuestRows } from './guestPrograms';
 import { driftwoodItems } from './items';
 import { islandFoliagePlacements } from './islandDressing';
 import type { DriftwoodIslandFacts } from './islandFacts';
-import physics from '../data/physics.generated.json' with { type: 'json' };
+import { driftwoodPhysics } from './physics';
+
+const physics = driftwoodPhysics();
 
 const foliage = islandFoliagePlacements();
 

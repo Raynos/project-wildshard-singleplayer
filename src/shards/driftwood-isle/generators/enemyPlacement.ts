@@ -1,5 +1,4 @@
 import { islandFoliagePlacements } from './islandDressing';
-import physics from '../data/physics.generated.json' with { type: 'json' };
 import { terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 import { driftwoodGroundSampler } from './groundSampling';
 import { Rng } from '@wildshard/engine/core/rng';
@@ -8,7 +7,9 @@ import { BodySlotsSchema } from '@wildshard/format/bodySlots';
 import { parse, type InferOutput } from 'valibot';
 import { sampleCreatureGroup, selectCreatureSites } from '@wildshard/game/plugin/brain';
 import { ENEMY_COUNTS } from './fauna';
-import { driftwoodPhysicsGroundBytes } from './physics';
+import { driftwoodPhysics, driftwoodPhysicsGroundBytes } from './physics';
+
+const physics = driftwoodPhysics();
 
 const foliage = islandFoliagePlacements();
 

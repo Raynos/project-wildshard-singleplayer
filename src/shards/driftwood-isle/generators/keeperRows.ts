@@ -4,13 +4,15 @@ import { WeightedTable } from '@wildshard/engine/ai/weighted';
 import { ENEMY_SPECIES_METADATA } from './enemySpecies';
 import { BOAR } from '@wildshard/game/systems/species/boar';
 import { BEAR } from '@wildshard/game/systems/species/bear';
-import physics from '../data/physics.generated.json' with { type: 'json' };
+import { driftwoodPhysics } from './physics';
 import { DRIFTWOOD_NATIVE_FAUNA } from './nativeFauna';
 import type { enemyPlacements } from './enemyPlacement';
 import type * as v from 'valibot';
 import type { PopulationKeeperRowsSchema } from '@wildshard/format/populationKeeper';
 import ecology from '../data/ecology.json' with { type: 'json' };
 import type { DriftwoodGuestRows } from './guestPrograms';
+
+const physics = driftwoodPhysics();
 
 type NativeKeeperRows = v.InferOutput<typeof PopulationKeeperRowsSchema>;
 

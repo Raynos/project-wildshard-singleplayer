@@ -6,8 +6,10 @@ import { autoFlag , type Cond as CondType } from '@wildshard/engine/world/intera
 import { DRIFTWOOD_INTERACT } from './interactables';
 import { DECLARED_SEA } from './sea';
 import { DRIFTWOOD_SPOTS as spots } from './spots';
-import physics from '../data/physics.generated.json' with { type: 'json' };
+import { driftwoodPhysics } from './physics';
 import policy from '../data/nativeQuest.json' with { type: 'json' };
+
+const physics = driftwoodPhysics();
 
 const at = (id: string) => {
   const found = spots.rows.find(row => row.id === id); if (found === undefined) throw new Error(`Missing prop placement: ${id}`); return found;

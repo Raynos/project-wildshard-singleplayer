@@ -17,8 +17,12 @@ export function driftwoodPhysicsGroundBytes(): Uint8Array<ArrayBuffer> {
   return new Uint8Array(heights.buffer, heights.byteOffset, heights.byteLength);
 }
 
+export type DriftwoodPhysics = Pick<typeof rows, 'solids' | 'actors' | 'herds' | 'habitat' | 'pieces' | 'captain'> & {
+  version: 1; profile: string; notice: string; ground: Omit<typeof rows.ground, 'carve'> & { heights: { file: string } };
+};
+
 /** G350-DW: authoring-only native metadata. Original buffers use named binary files; no world or runtime runs. */
-export function driftwoodPhysics(): Record<string, unknown> {
+export function driftwoodPhysics(): DriftwoodPhysics {
   const { carve: _carve, ...ground } = rows.ground;
   return { version: 1, profile: 'authored rows', notice: 'DO NOT EDIT: regenerate with generators/physics.ts (driftwood-physics).',
     ground: { ...ground, heights: { file: floorFile } }, solids: rows.solids, actors: rows.actors, herds: rows.herds, habitat: rows.habitat,
