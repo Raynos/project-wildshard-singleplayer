@@ -12,6 +12,7 @@ import {
   MeshLambertMaterial, NoColorSpace, type Object3D, Quaternion, RepeatWrapping, RGFormat, SRGBColorSpace, type Texture, UnsignedByteType, Vector3,
 } from 'three';
 import type { GridCell } from './assembly';
+import { putRoadGrain, roadGrainSteps, type RoadGrainSource } from './roadGrain';
 import { ownRoadMesh } from './roadResources';
 import { ROAD_SKY } from './frameModel';
 import { coverageMaterial, coverageTable, gpuOnlyTextureBytes, uniformPart, type CoverageColours, type SolidPart } from './roadSolid';
@@ -28,6 +29,8 @@ export interface RoadLookInput {
   readonly home: GridCell;
   readonly scene: Object3D;
   readonly scope: LookScope;
+  /** Optional scoped worker pixels; absent planes use the identical original paint steps. */
+  readonly grain?: RoadGrainSource;
   /** the road system's one solid material takes the kerbs, islands and streetlights (SF17b per-view budget) */
   readonly solid: (part: SolidPart) => void;
   /** the per-view cull for each textured mesh (`roadCull.ts`); a bare hook is the pre-G144 call (no admission with it) */
@@ -85,7 +88,7 @@ export class RoadOverlayLight {
 export interface RoadLookState { readonly segments: number; readonly junctions: number; readonly roundabouts: number; readonly signs: number; readonly lights: number; readonly draws: number }
 
 const LIFT = 0.02; // the overlay's height over the deck's road band (polygon offset does the rest)
-const ASPHALT = '#3a3c40', YELLOW = '#e0b23a', WHITE = '#e9ebe6', KERB = new Color(0x9a9c98), ISLAND = new Color(0x4f6a35), SIGN_GREEN = '#0d6b3c';
+const YELLOW = '#e0b23a', WHITE = '#e9ebe6', KERB = new Color(0x9a9c98), ISLAND = new Color(0x4f6a35), SIGN_GREEN = '#0d6b3c';
 
 /** A tiny triangle builder: positions, normals, uvs, colours, one index buffer. */
 class Mesher {
@@ -133,24 +136,10 @@ class Mesher {
   }
 }
 
-/** A deterministic hash in [0, 1) (the look must be identical every run: no Math.random). */
-function hash(n: number): number { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); }
 function canvas(w: number, h: number): { el: HTMLCanvasElement; g: CanvasRenderingContext2D } {
   const el = document.createElement('canvas'); el.width = w; el.height = h;
   const g = el.getContext('2d'); if (g === null) throw new Error('No 2D canvas for the road look');
   return { el, g };
-}
-/** Grain specks painted between paint opportunities: the junction canvas's ~58k specks ran ~43 ms in one Simulator task. */
-const GRAIN_SPECKS_PER_STEP = 2048;
-/** Fine asphalt grain over a filled rectangle; the same specks in the same order, with a pause every few thousand. */
-function* grainSteps(g: CanvasRenderingContext2D, w: number, h: number, seed: number): Generator<void> {
-  g.fillStyle = ASPHALT; g.fillRect(0, 0, w, h);
-  const count = Math.round(w * h / 18);
-  for (let k = 0; k < count; k++) {
-    if (k > 0 && k % GRAIN_SPECKS_PER_STEP === 0) yield;
-    const r = hash(seed + k * 3.1), x = hash(seed + k * 7.7) * w, y = hash(seed + k * 1.3) * h, l = r < 0.5 ? 30 + r * 30 : 70 + r * 40;
-    g.fillStyle = `rgba(${String(l)},${String(l + 2)},${String(l + 6)},0.55)`; g.fillRect(x, y, 1 + (r > 0.92 ? 1 : 0), 1);
-  }
 }
 function texture(el: HTMLCanvasElement, repeat: boolean): CanvasTexture {
   const t = new CanvasTexture(el); t.colorSpace = SRGBColorSpace; t.anisotropy = 8; t.minFilter = LinearMipmapLinearFilter;
@@ -160,9 +149,10 @@ function texture(el: HTMLCanvasElement, repeat: boolean): CanvasTexture {
 
 /** The road canvas: u [0, 0.5) the normal section, [0.5, 1) the turn-in section; v one 12 m period of dashes. */
 const ROAD_PERIOD = 12;
-function* roadTextureSteps(): Generator<void, CanvasTexture> {
+function* roadTextureSteps(grain?: RoadGrainSource): Generator<void, CanvasTexture> {
   const W = 1024, H = 512, { el, g } = canvas(W, H);
-  yield* grainSteps(g, W, H, 1);
+  const plane = grain?.('asphalt');
+  if (plane === undefined) yield* roadGrainSteps(g, W, H, 1); else putRoadGrain(g, 'asphalt', plane);
   const half = W / 2, px = (t: number, base: number): number => base + (t + ROAD_HALF) / (2 * ROAD_HALF) * half, pm = half / (2 * ROAD_HALF);
   for (const base of [0, half]) {
     const turnIn = base > 0;
@@ -182,9 +172,10 @@ function* roadTextureSteps(): Generator<void, CanvasTexture> {
 }
 
 /** The junction canvas: 62.5 m square; the roundabout's markings in the middle, plain asphalt in the corners. */
-function* junctionTextureSteps(): Generator<void, CanvasTexture> {
+function* junctionTextureSteps(grain?: RoadGrainSource): Generator<void, CanvasTexture> {
   const W = 1024, { el, g } = canvas(W, W), k = W / (2 * GAP_HALF);
-  yield* grainSteps(g, W, W, 2);
+  const plane = grain?.('junction');
+  if (plane === undefined) yield* roadGrainSteps(g, W, W, 2); else putRoadGrain(g, 'junction', plane);
   const P = (x: number, z: number): [number, number] => [(x + GAP_HALF) * k, (GAP_HALF - z) * k];
   const arc = (r: number, a0: number, a1: number, width: number, colour: string, dash?: readonly [number, number]): void => {
     g.strokeStyle = colour; g.lineWidth = width * k; g.setLineDash(dash === undefined ? [] : [dash[0] * k, dash[1] * k]);
@@ -466,11 +457,11 @@ interface TexturedSource {
 const overlayMaterial = (map: Texture): MeshLambertMaterial => new MeshLambertMaterial({ map, emissiveMap: map, emissive: 0x000000, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
 /** A texture painted in one stretch, as a paint step. */
 function* paintNow(paint: () => Texture): Generator<void, Texture> { yield; return paint(); }
-function texturedSources(layout: RoadLayout, home: GridCell): TexturedSource[] {
+function texturedSources(layout: RoadLayout, home: GridCell, grain?: RoadGrainSource): TexturedSource[] {
   const atlas = signAtlasLayout(layout.signs);
   return [
-    { id: 'road.asphalt', name: 'grid-asphalt', mesher: asphalt(layout, home), width: 1024, height: 512, paint: roadTextureSteps, overlay: true, texelBytes: 4, source: 'canvas', material: overlayMaterial },
-    { id: 'road.junctions', name: 'grid-junctions', mesher: junctionAsphalt(layout, home), width: 1024, height: 1024, paint: junctionTextureSteps, overlay: true, texelBytes: 4, source: 'canvas', material: overlayMaterial },
+    { id: 'road.asphalt', name: 'grid-asphalt', mesher: asphalt(layout, home), width: 1024, height: 512, paint: () => roadTextureSteps(grain), overlay: true, texelBytes: 4, source: 'canvas', material: overlayMaterial },
+    { id: 'road.junctions', name: 'grid-junctions', mesher: junctionAsphalt(layout, home), width: 1024, height: 1024, paint: () => junctionTextureSteps(grain), overlay: true, texelBytes: 4, source: 'canvas', material: overlayMaterial },
     { id: 'road.signs', name: 'grid-signs', mesher: signMesher(layout.signs, home, atlas), width: atlas.width, height: atlas.height, paint: () => paintNow(() => signAtlasTexture(atlas)), overlay: false, texelBytes: 2, source: 'data', material: (map) => coverageMaterial(map, signCoverage(), 'g227-grid-sign-cover') },
   ];
 }
@@ -482,7 +473,7 @@ export function* installRoadLookSteps(input: RoadLookInput): Generator<void, Roa
   const { layout, home, scene, scope, admission } = input, group = new Group(), hook = typeof input.cull === 'function' ? input.cull : undefined, cull = typeof input.cull === 'function' ? undefined : input.cull;
   if (admission !== undefined && hook !== undefined) throw new Error('Road admission needs a RoadCuller (its pitch plans the culled bytes)');
   group.name = 'grid-boulevard';
-  const sources = texturedSources(layout, home);
+  const sources = texturedSources(layout, home, input.grain);
   const { poles, heads } = streetlights(layout, home);
   for (const part of [kerbs(layout, home), poles, heads]) input.solid(part);
   scene.add(group);

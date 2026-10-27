@@ -17,6 +17,7 @@ import { Mesh, type Camera, type Object3D } from 'three';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { ownRoadMesh } from './roadResources';
 import type { RoadTileBacking } from './roadTileBacking';
+import type { RoadGrainSource } from './roadGrain';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import type { GridCell } from './assembly';
 import type { LookScope, RoadLayout } from './roadLayout';
@@ -33,6 +34,7 @@ export interface PlatformRoadInput {
   readonly strips: readonly SeamPiece[];
   /** Source-verified channels for exactly this selected ring, absent on native/outer construction. */
   readonly seamChannels?: SeamGeometryChannels;
+  readonly grain?: RoadGrainSource;
   readonly home: GridCell;
   readonly pitch: number;
   readonly layout: RoadLayout;
@@ -135,7 +137,8 @@ function* platformRoadSteps(input: PlatformRoadInput): Generator<void, PlatformR
   const seams = yield* seamSolidSteps(strips, home, undefined, pitch, input.seamChannels);
   const parts: SolidPart[] = [...seams.parts], solid = (part: SolidPart): void => { parts.push(part); };
   const overlayLight = new RoadOverlayLight();
-  const road = yield* installRoadLookSteps({ layout, home, scene, scope, solid, cull: culler, admission, overlayLight, retireGeometry });
+  const road = yield* installRoadLookSteps({ layout, home, scene, scope, solid, cull: culler, admission, overlayLight, retireGeometry,
+    ...(input.grain === undefined ? {} : { grain: input.grain }) });
   const voidLook = input.voidFloor === false ? null : installVoidLook({ rail: layout.rail, home, scene, scope, solid, admission });
   // this build's own boulevard group (a split road adds one per build)
   let boulevard: Object3D | undefined;
