@@ -1,6 +1,6 @@
 # Debug rows burn-down: mini plan (G669)
 
-**State:** `done` 2026-10-26 (G742 reconciliation, sp-x9). All DR1–DR19 already landed and are verified ancestors of `origin/main`; the former 0/19 count was stale. This reconciliation changes no runtime code or look. Their defining commits total **1,361 net lines and 102,100 bytes removed under `src/`** (Git parent-to-commit deltas, not bundle or memory measurements).
+**State:** `done` 2026-10-26 (G742 reconciliation, sp-x9). Reconciled in `72a1482c68`. All DR1–DR19 already landed and are verified ancestors of `origin/main`; the former 0/19 count was stale. This reconciliation changes no runtime code or look. Their defining commits total **1,361 net lines and 102,100 bytes removed under `src/`** (Git parent-to-commit deltas, not bundle or memory measurements).
 
 DR19's retained portrait Simulator recordings cover staging, no reload, undo and reachable Apply. A fresh six-suite UI check collected zero because Far Reach/Nine generated discovery was absent after a peer's refused generation. That prerequisite refusal is retained, not a new UI failure or a passing current witness. The owning lane is restoring discovery; no duplicate build or capture was started.
 
