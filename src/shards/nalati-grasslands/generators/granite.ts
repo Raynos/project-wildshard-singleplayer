@@ -6,7 +6,7 @@
 import type * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { mergeVerticesByPos } from './smoothGeometry';
-import { Noise2D } from '@wildshard/engine/core/noise';
+import { Noise2D } from '@wildshard/sdk/noise';
 import { bakedGeometry } from '@wildshard/engine/world/geometryBake';
 
 export function graniteBlock(w: number, h: number, d: number, seed: number, rough = 0.18, segs = 3): THREE.BufferGeometry {

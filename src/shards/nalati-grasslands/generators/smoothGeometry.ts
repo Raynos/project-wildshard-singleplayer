@@ -1,7 +1,9 @@
 import * as THREE from 'three';
-import type { Rng } from '@wildshard/engine/core/rng';
-import { Noise2D } from '@wildshard/engine/core/noise';
+import { Noise2D } from '@wildshard/sdk/noise';
 import { bakedGeometry } from '@wildshard/engine/world/geometryBake';
+
+// Cache continuations retain the exact stream accepted by the defining native bake.
+type Rng = NonNullable<Parameters<typeof bakedGeometry>[2]>;
 
 const UP = new THREE.Vector3(0, 1, 0), _q = new THREE.Quaternion();
 

@@ -22,7 +22,7 @@
  * public/assets/baked/nalati-grasslands/terrain.bin and navmesh.bin — carries it.
  */
 import { CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/core/config';
-import { Noise2D, smoothstep, clamp } from '@wildshard/engine/core/noise';
+import { Noise2D, smoothstep, clamp } from '@wildshard/sdk/noise';
 import * as layout from './layout';
 
 const { CAMP, PASTURE } = layout;

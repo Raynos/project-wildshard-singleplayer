@@ -1,5 +1,5 @@
 import { CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/core/config';
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng } from '@wildshard/sdk/random';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { SEED, WORLD_DROP, SHORE_LEVEL } from './landscapeRows';
 import WRECK_SITES from '../data/wreckSites.json' with { type: 'json' };

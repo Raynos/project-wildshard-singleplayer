@@ -4,8 +4,8 @@
  * verbatim from the engine's lowpolyKit, which keeps its own copy only while the frozen legacy folder imports it (SF73).
  */
 import * as THREE from 'three';
-import type { Rng } from '@wildshard/engine/core/rng';
-import { log, tris } from '@wildshard/engine/world/geometryKit';
+import type { Rng } from '@wildshard/sdk/random';
+import { bakeLog as log, bakeTriangles as tris } from '@wildshard/sdk/bake/primitives';
 import type { AddOpts, ColorLike, LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 
 const tmpColor = new THREE.Color();

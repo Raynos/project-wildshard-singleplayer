@@ -5,7 +5,7 @@
  * through the shard's geometry intake; the flap, head, fold and legs stay posed on the GPU from `aAnim`.
  */
 import * as THREE from 'three';
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng } from '@wildshard/sdk/random';
 import { GULL_RIG } from './gullGraphLook';
 import { GULL_PALETTE } from './gullsLook';
 

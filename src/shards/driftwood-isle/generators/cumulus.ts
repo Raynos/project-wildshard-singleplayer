@@ -1,4 +1,4 @@
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng } from '@wildshard/sdk/random';
 
 /**
  * Driftwood's toon cel cumulus layout (G685 / G750, Jake's pick A on art/clouds/round-1-three-styles), baked to

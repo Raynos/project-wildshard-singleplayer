@@ -1,4 +1,4 @@
-import { smoothstep as sstep } from '@wildshard/engine/core/noise';
+import { smoothstep as sstep } from '@wildshard/sdk/noise';
 import { loft, S, mix, srgb, setShag, setShapeFn, paintNoise, type Paint, type Station } from '@wildshard/engine/entities/species/loft';
 import type { BoneDef } from '@wildshard/engine/entities/species/registry';
 import * as THREE from 'three';

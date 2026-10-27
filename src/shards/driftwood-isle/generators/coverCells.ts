@@ -1,5 +1,5 @@
 import { Color } from 'three';
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng } from '@wildshard/sdk/random';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import * as authoredCoverLook from './coverRows';
 import { facetColour } from './facetedGround';

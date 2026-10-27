@@ -1,5 +1,5 @@
 /** The shipping painter uses these height/slope bands; the manifest exports no zone override. */
-import { smoothstep } from '@wildshard/engine/core/noise';
+import { smoothstep } from '@wildshard/sdk/noise';
 
 /** zone weights at (x, z) with ground height `h` and slope `slope` (1 − n.y): [valley, bowl, snow ring], summing to ~1 */
 export function zoneWeights(_x: number, _z: number, h: number, slope: number, out: [number, number, number]): [number, number, number] {

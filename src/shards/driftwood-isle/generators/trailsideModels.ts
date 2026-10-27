@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { trailFontFacts } from './trailFont';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng } from '@wildshard/sdk/random';
 import { modelContext, seedOf, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
