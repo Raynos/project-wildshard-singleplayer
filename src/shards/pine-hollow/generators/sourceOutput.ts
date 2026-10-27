@@ -318,6 +318,8 @@ async function eliteModules(ctx: ProjectGenerationContext) {
 
 /** Preserve the original named inventory and its ordering while compiling both existing slots. */
 export async function prepareOutput(ctx: ProjectGenerationContext): Promise<PineStaticOutput> {
+  // the return modules need the build's compiler: refuse before the whole static output is built, not after it
+  if (ctx.compileDecisionRows === undefined) throw new Error('Pine return modules need decision-row compilation');
   const sources = await readPineSources(ctx), { output, platformRows } = await outputRows(sources, ctx.readImagePixels);
   const shelter = await returnModule(ctx, 'shelter');
   const life = await returnModule(ctx, 'life'), birds = await phoneBirdsAtlasOutput(ctx), client = await pineClientBlobs(ctx), creatures = await pineCreatureBlobs(ctx), rigs = await pineRigBlobs(ctx), contracts = await contractModule(ctx), night = await nightModule(ctx), clock = await clockDirector(ctx), elites = await eliteModules(ctx), journal = emitNamedBlobs((await pineJournal(ctx)).blobs), king = await pineKingKit(ctx), kingFiles = emitNamedBlobs([king.blob, roamingCombatBlob(king.rows)]), flock = await pineBirds(ctx), people = await pineNpcSkins(ctx), coats = await pineCoatPages(ctx);
