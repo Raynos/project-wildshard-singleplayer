@@ -45,18 +45,18 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D6 | `test/tile-bakes.test.ts`: exact coordinate debt | `06d14d8288` | tiles lane (sp-x8) | open |
 | D7 | `test/night-market-kit-budget.test.ts`: RM8 target over | `06d14d8288` | sp-o2 | open |
 | D8 | `test/open-plot-collision.test.ts`: quarter-turns | `06d14d8288` | breaker (sp-x7 finds) | fixed (sp-o1, `8907eeef3e`: per-part evidence, intended RM10/RM11 art) |
-| D9 | CI `gate-deferred` job red | `06d14d8288` | sp-x7 | open |
+| D9 | CI `gate-deferred` job red | `06d14d8288` | sp-ci-deploy | obsolete handoff job removed defb0f9fd2; full ordinary CI remains |
 | D10 | CI `generated-inputs`: the generation stage misses generator modules (`far-reach/generators/knoll`, `nalati-grasslands/generators/geographySource.ts`) | `998fcef0ba` | generator lanes (sp-x1, sp-x6) | open; hides every later test |
 | D11 | Deploy stuck: live stays `59a595ab10` (newest-ci-green pin, no green push since) | `ac3e62895d` | sp-x7 (G771) | open |
 | D12 | Official quiet Simulator frame floor 11/15 | `3694a487bc` | sp-x8, sp-o4 | open |
 | D13 | Flaky (CF2 title/grid flakes): Nine public/Developer title PNGs quarantined until 2026-10-28 03:30 UTC; the grid catalogue title flake is not quarantined | `531c009fdd` | sp-x1 (title); sp-x6 (grid) | quarantined |
 | D14 | Flaky (SW13, GM4): `nalati-place-blob-program`, `nalati-map-program`, `nalati-state-intake`, `population-raster`, `map-generation-inputs` | — (G788) | sp-x6 (Nalati / GM4) | to quarantine |
 | D15 | Flaky (CF2 audit): `heavy-lane.test` timing, `nalati-creature-views` 5e-10 tolerance, V8 `SIGILL` in `shard-headless` | — (G788) | named in the quarantine job | to quarantine |
-| D16 | Off (MB1): push gate is a 45 s fail-open wall; batch split path gone, `push_batch.py` dormant | `7d70d351bb` | Jake's call (BD4) | off |
-| D17 | Off (MB2): fail-closed `unverified-inputs` refusal (G752); deferred-blob ledgers unread | `7d70d351bb` | Jake's call | off |
-| D18 | Off (MB3): `ci-subset` push step; `push-ci-subset.mjs`, `push-subset-jobs.mjs`, `push-subset-mirror.mjs`, `push-deferred-ci.mjs`, `push_handoff.py` dormant | `7d70d351bb` | Jake's call | off |
-| D19 | Off (MB4): red hold (G759); `push_red_hold.py` still loaded by `push-loop.py` | `7d70d351bb` | Jake's call | off |
-| D20 | Off (MB5): the quiet lock no longer pauses pushes or lanes | `7d70d351bb` | Jake's call | off |
+| D16 | Off (MB1): push gate is a 45 s fail-open wall; batch split path gone, `push_batch.py` dormant | `7d70d351bb` | Jake's call (BD4) | kept off; 45-second fail-open policy verified feb2658690 |
+| D17 | Off (MB2): fail-closed `unverified-inputs` refusal (G752); deferred-blob ledgers unread | `7d70d351bb` | Jake's call | kept off; unused deferred ledger readers removed defb0f9fd2 |
+| D18 | Off (MB3): `ci-subset` push step; `push-ci-subset.mjs`, `push-subset-jobs.mjs`, `push-subset-mirror.mjs`, `push-deferred-ci.mjs`, `push_handoff.py` dormant | `7d70d351bb` | Jake's call | kept off; subset/handoff files and policy tests removed defb0f9fd2 |
+| D19 | Off (MB4): red hold (G759); `push_red_hold.py` still loaded by `push-loop.py` | `7d70d351bb` | Jake's call | kept off; red hold and its tests deleted daf42ed943 |
+| D20 | Off (MB5): the quiet lock no longer pauses pushes or lanes | `7d70d351bb` | Jake's call | kept off; dormant push marker reader deleted feb2658690 |
 | D21 | Off (MB6): CF1 related walk in pre-commit (vitest + tsc); checker snapshots, proof receipts | `ea606a31d5` | Jake's call | off |
 | D22 | Off (MB7): G746 pre-land product builds, parity previews, soaks, Sim readings before landing | — (G769 rule) | Jake's call | off |
 | D23 | Readings deferred to one per plan at the end (G777, G780): ci-flow CF3/CF4; iphone-downloads I5, I12; loading S1, L16, G1, loading L9-L14 (own-content G763 units, current footer and actual first-start setup); js-heap H rows; night-market-remaster RM12; tiles T10 soak; SHARD-PLATFORM M2 | — (G780) | each plan's lane | waiting |
@@ -75,11 +75,17 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D36 | Generation catalogue: 'Missing or duplicate catalogue dependency: pine-layout' stops every HEAD preview (log tmp/serve/failed-20261027-014157-4401.log) | 4645a57294 | sp-o1 | fixed 117a93c517 |
 | D37 | Local `node lint/ratchet.mjs` (full or `--files-from`) aborts on the stale allowance `wildshard/no-build-time-import src/shards/far-reach/discovery.generated.ts` before counting, so lanes cannot self-check the ratchet (three GR8 ejects passed the local run) | — (tree) | sp-x7 (tooling) | open |
 
-| D38 | Sealed `nalati-geography` cannot resolve `@wildshard/sdk/random` from `geographySource.ts`; generation still masks tests | `c954d624a0` | sp-x6 | geography fixed 0c8f7e357f; boot-metadata consumer still misses SDK package exports; routed to sp-x6 |
-| D39 | Generation stage: `@wildshard/sdk/random` (and `sdk/quests`, D32) is not linked into the stage's node_modules, so clean builds of HEAD fail (`serve-build --head` at `4778e51ce1`: ERR_MODULE_NOT_FOUND, log tmp/serve/failed-20261027-014444-4401.log:35) | `4778e51ce1` or earlier | sp-x6 | same active closure break as D38; routed to sp-x6 |
-| D40 | Nalati generation stage: `geographySource.ts` imports `@wildshard/sdk/random`, undeclared in its job's inputs; HEAD previews fail (ERR_MODULE_NOT_FOUND, log tmp/serve/failed-20261027-014514-4401.log) | c954d624a0 | sp-x6 | same active closure break as D38; routed to sp-x6 |
-| D41 | Nalati generation stage: `generators/bake-boot-metadata.mjs` imports `@wildshard/sdk/bake/terrain.ts`, undeclared in its job's inputs; HEAD previews fail (ERR_MODULE_NOT_FOUND, log tmp/serve/failed-20261027-015120-4401.log) | after 0c8f7e357f (sealing) | breaker (sp-x7 finds) | open |
+| D38 | Sealed `nalati-geography` cannot resolve `@wildshard/sdk/random` from `geographySource.ts`; generation still masks tests | `c954d624a0` | sp-ci-deploy | fixed 0c8f7e357f + 0bee1d1707 + d6aacec1a5; real Nalati boot metadata generates |
+| D39 | Generation stage: `@wildshard/sdk/random` (and `sdk/quests`, D32) is not linked into the stage's node_modules, so clean builds of HEAD fail (`serve-build --head` at `4778e51ce1`: ERR_MODULE_NOT_FOUND, log tmp/serve/failed-20261027-014444-4401.log:35) | `4778e51ce1` or earlier | sp-ci-deploy | Nalati fixed d6aacec1a5; Pine SDK closure retained in D32 pending full generation |
+| D40 | Nalati generation stage: `geographySource.ts` imports `@wildshard/sdk/random`, undeclared in its job's inputs; HEAD previews fail (ERR_MODULE_NOT_FOUND, log tmp/serve/failed-20261027-014514-4401.log) | c954d624a0 | sp-ci-deploy | fixed 0c8f7e357f + 0bee1d1707 + d6aacec1a5 |
+| D41 | Nalati generation stage: `generators/bake-boot-metadata.mjs` imports `@wildshard/sdk/bake/terrain.ts`, undeclared in its job's inputs; HEAD previews fail (ERR_MODULE_NOT_FOUND, log tmp/serve/failed-20261027-015120-4401.log) | after 0c8f7e357f (sealing) | sp-ci-deploy | fixed d6aacec1a5; actual sealed boot metadata generates |
 | D42 | Pine generation stage: `src/shards/pine-hollow/generators/layout` is not in the stage tree, so `serve-build --rev 41edbfdd9b` fails (ERR_MODULE_NOT_FOUND, log tmp/serve/failed-20261027-015940-4400.log); `60be37a2f2` still builds | after `60be37a2f2`, by `41edbfdd9b` | breaker (sp-ci-deploy finds, G802) | open |
+
+| D43 | Working Driftwood writer stopped publishing piers/trailside before its catalogue retired them; generation failed output inventory | — (shared working tree) | sp-x10 | fixed 5d321977a7 |
+
+| D44 | Push-loop fixtures still asserted retired split, red hold, 180-second cap and fail-closed behavior | `7d70d351bb` | sp-ci-deploy | fixed daf42ed943 + defb0f9fd2 + feb2658690; 45 native cases pass |
+
+| D45 | Nalati grass native scatter constructor omitted geography program/source, seed and source metadata inputs from its sealed job | `6e84134e0c` (source migration; observed in shared tree) | sp-ci-deploy | source fix b4fb652955; real generation in flight |
 
 ## Rows
 
