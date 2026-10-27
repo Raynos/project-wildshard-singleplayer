@@ -677,7 +677,7 @@ test('shrinking residency cannot grow, underflow or revive a released claim', ()
   claim.release(); claim.shrink(1); expect(allocator.entries()).toHaveLength(0);
 });
 
-function tierTransportFixture(retain: 'none' | 'critical' | 'dependency' | 'reader' = 'none', legacy = false, cells = false) {
+function tierTransportFixture(retain: 'none' | 'critical' | 'dependency' | 'reader' = 'none', legacy = false, cells: boolean | 'water' = false) {
   const desktopBytes = new Uint8Array([9]), desktop = hashImmutableBytes(desktopBytes);
   const f = fixture(false, source => {
     if (legacy) source.runtime = { entry: 'runtime/index.ts' };
@@ -685,6 +685,9 @@ function tierTransportFixture(retain: 'none' | 'critical' | 'dependency' | 'read
     source.library.push(desktop); source.budgets.library.resident += 1000; source.budgets.library.compressed += 1;
     if (retain === 'critical') source.critical.push(desktop);
     if (retain === 'dependency') source.files[0]?.dependencies.push(desktop);
+    if (cells === 'water') return new Map<string, unknown>([['client/plan', { version: 1, features: [{ kind: 'world.water', rows: [{ id: 'sea',
+      surface: { look: 'sea', name: 'Sea', renderOrder: 0 }, draw: { grid: { phone: { file: 'models/token.bin' }, desktop: { file: 'models/desktop.bin' } },
+        attributes: {}, level: 0, dry: [], foam: [], lent: {}, toonSeaLevel: false } }] }] }]]);
     if (cells) return new Map<string, unknown>([
       ['client/plan', { version: 1, features: [{ kind: 'world.assembly', rows: {
         construction: { cells: { phone: 'models/token.bin', desktop: 'models/desktop.bin' }, seed: 1,
@@ -780,6 +783,12 @@ test.each(['phone', 'desktop'] as const)('world construction admits only its %s 
   expect(outputDescriptor(admitted.source)?.sections.get('client/plan')).toMatchObject({ features: [{ rows: {
     construction: { cells: { phone: 'models/token.bin', desktop: 'models/desktop.bin' } },
   } }] });
+});
+
+test.each(['phone', 'desktop'] as const)('a water row admits only its %s grid (iPhone downloads I8)', async tier => {
+  const f = tierTransportFixture('none', false, 'water'); trust(f.receipt);
+  const admitted = await admitProduct(f.index, { ...f.options, tier });
+  expect([...admitted.assets.keys()]).toEqual([tier === 'phone' ? f.ref : f.desktop]);
 });
 
 test.each(['critical', 'dependency', 'reader'] as const)('a %s keeps a shared off-tier cover-cell bank', async retain => {

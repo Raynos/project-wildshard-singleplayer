@@ -106,7 +106,24 @@ export function* tierLibrarySteps(source: TierSelectionSource, tier: 'phone' | '
   const client = sections.get('client/plan');
   if (client !== undefined) {
     const plan = parseClientPlan(client);
-    const features = plan.features.map(feature => {
+    // iPhone downloads I8: a water row draws its page tier's grid and a baked row its tier's tiles, lightmaps, wear and
+    // plan (clientWaterSurfaces, bakedTiles): every { phone, desktop } pair keeps only this tier's files
+    const strings = (input: unknown, into: (text: string) => void): void => {
+      if (typeof input === 'string') into(input);
+      else if (typeof input === 'object' && input !== null) for (const value of Object.values(input)) strings(value, into);
+    };
+    const tiered = (input: unknown): unknown => {
+      if (Array.isArray(input)) return input.map(tiered);
+      if (typeof input !== 'object' || input === null) return input;
+      if (Object.keys(input).length === 2 && 'phone' in input && 'desktop' in input) {
+        strings(tier === 'phone' ? input.desktop : input.phone, text => { const ref = names.get(text); if (ref !== undefined) inactive.add(ref); });
+        const selected = tiered(tier === 'phone' ? input.phone : input.desktop);
+        return { phone: selected, desktop: selected };
+      }
+      return Object.fromEntries(Object.entries(input).map(([key, value]) => [key, tiered(value)]));
+    };
+    const features: unknown[] = plan.features.map(feature => {
+      if (feature.kind === 'world.water' || feature.kind === 'world.baked') return { ...feature, rows: tiered(feature.rows) };
       if (feature.kind !== 'world.assembly' || feature.rows.construction?.cells === undefined) return feature;
       const construction = feature.rows.construction, cells = construction.cells;
       if (cells === undefined) return feature;
