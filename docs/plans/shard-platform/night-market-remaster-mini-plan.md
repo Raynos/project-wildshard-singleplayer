@@ -212,7 +212,8 @@ for the kit before the families switch on; `tiledPlot.mjs` `KIT_FAMILIES` lists 
 | RM8.4 plaza beds | done | r7's raised lawn beds flanking the lanes into the gate (8, two a plaza quarter); trees, planters and lanterns on them with the kit |
 | RM8.5 kit within 15k | done | With every family on, every L0 tile ≤ 14,174 triangles (was 18,826): figures 450 triangles, a vendor behind every other hero stall, a shopper before every fourth stall, no cart vendors, round bulbs every 3 m, no bed planters |
 | RM8.6 bytes and switch-on | done (sp-o1, this commit; G764) | Night Market's layout lists every kit family but figures (off until the G755 redo); every tile and window within its caps and pinned rows, no raise needed (L0 ≤ 13,170 triangles, mean 8,260; geometry 17.7 B/tri); the lantern bake grids its lights (bit-identical, world write 19-56 s → 3 s); map pin refreshed |
-| RM13.1–13.2 board and walk | open | 5 cameras × MOCKUP · BEFORE · NOW, a 30 s road-to-plaza walk |
+| RM13.1 board | done (sp-o1, this commit) | `art/grid/round-72-night-market-rm13/board.jpg`: 5 cameras × MOCKUP · BEFORE · NOW (b9699cb002, kit on); the plaza and the aerials read like the mockup, the road avenue is still sparser (density and light, not models) |
+| RM13.2 walk | open (sp-o1) | A 30 s road-to-plaza walk video of the kit-on build |
 
 ## 4. Decisions for Jake
 
