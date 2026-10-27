@@ -1,15 +1,10 @@
 import ARM_STYLE from '../data/armsStyle.json' with {type:'json'};
 import items from '../data/items.json' with { type: 'json' };
-import { ItemCatalogue } from '@wildshard/game/loadout/itemCatalogue';
-import { MeleeWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
-import * as schema from 'valibot';
+import { equipmentRows } from '@wildshard/sdk/rows';
 import * as THREE from 'three';
-import type { SwordRig, SwordMoveSet, Move } from '@wildshard/engine/combat/view/melee';
-import type { MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
-import { key } from '@wildshard/game/weapons/starterMoves';
+import { parseMeleeWeaponProfile, meleeKey as key, meleeColour as lin, type MeleeRig as SwordRig, type MeleeMoveSet as SwordMoveSet, type MeleeMove as Move, type MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
 import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
-import { lin } from '@wildshard/engine/math/color';
-import { forearm } from '@wildshard/engine/player/firstPersonArms';
+import { bakeForearm as forearm } from '@wildshard/sdk/bake/riderArms';
 import { tube, blob, xf, merge, withUV, sweep, helix, section, type ColorAt } from './meleeGeo';
 
 
@@ -36,11 +31,11 @@ import { tube, blob, xf, merge, withUV, sweep, helix, section, type ColorAt } fr
  * `passChain` (hits in the running chain, 0 = none) and `passChainLeft` (s until it lapses) feed the HUD's "2 HIT" chip.
  */
 
-const SABRE_WEAPON_PROFILE = schema.parse(MeleeWeaponProfileSchema, items.rows.find(row => row.id === 'weapon.sabre')?.profile);
+const SABRE_WEAPON_PROFILE = parseMeleeWeaponProfile(items.rows.find(row => row.id === 'weapon.sabre')?.profile);
 const mounted = SABRE_WEAPON_PROFILE.mounted, passes = SABRE_WEAPON_PROFILE.moves.passes;
 const [slash, backhand, finisher] = SABRE_WEAPON_PROFILE.moves.combo;
 if (mounted === undefined || passes === undefined || slash === undefined || backhand === undefined || finisher === undefined) throw new Error('Sabre requires mounted passes and three combo moves');
-function contact(row: schema.InferOutput<typeof MeleeWeaponProfileSchema>['moves']['heavy']): Pick<Move, 'windup' | 'slashEnd' | 'total' | 'damage' | 'stagger' | 'sweep' | 'reach'> {
+function contact(row: ReturnType<typeof parseMeleeWeaponProfile>['moves']['heavy']): Pick<Move, 'windup' | 'slashEnd' | 'total' | 'damage' | 'stagger' | 'sweep' | 'reach'> {
   if (row.stagger === undefined || row.sweep === undefined) throw new Error('Sabre moves require stagger and sweep');
   return { ...row, stagger: row.stagger, sweep: row.sweep };
 }
@@ -206,7 +201,7 @@ export const SABRE_MOVES: SwordMoveSet = { rest: SABRE_REST, charge: SABRE_CHARG
 // ───────────────────────────── the weapon ─────────────────────────────
 
 export const SABRE_PROFILE: MeleeProfile & { mounted: { reach: number; cooldown: number; sense: number; chainWindow: number; chainStep: number; chainMax: number; speedDivisor: number; behind: number }; blade: { length: number; curve: number } } = {
-  ...SWORD_WOOD, ...new ItemCatalogue(items).equipment('weapon.sabre'), parent: SWORD_WOOD.id, damage: DAMAGE, swingScale: SPEED,
+  ...SWORD_WOOD, ...equipmentRows(items, 'weapon.sabre'), parent: SWORD_WOOD.id, damage: DAMAGE, swingScale: SPEED,
   reach: SABRE_WEAPON_PROFILE.reach, cooldown: SABRE_WEAPON_PROFILE.cooldown, comboGap: SABRE_WEAPON_PROFILE.comboGap,
   chainLag: SABRE_WEAPON_PROFILE.chainLag, heavyCharge: SABRE_WEAPON_PROFILE.heavyCharge,
   lunge: SABRE_WEAPON_PROFILE.lunge, sweep: SABRE_WEAPON_PROFILE.sweep,

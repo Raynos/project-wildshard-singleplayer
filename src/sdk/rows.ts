@@ -12,6 +12,10 @@ import { parsePageLife as gameParsePageLife, type PageLifeRows as GamePageLifeRo
 import { PopulationEnvironmentSchema as GamePopulationEnvironmentSchema, type PopulationEnvironmentRows as GamePopulationEnvironment } from '@wildshard/format/populationEnvironment';
 import { FigureCatalogueSchema as GameFigureCatalogueSchema, type FigureCatalogueRow as GameFigureCatalogue } from '@wildshard/format/figures';
 import * as v from 'valibot';
+import { ItemCatalogue } from '@wildshard/game/loadout/itemCatalogue';
+
+/** Resolve admitted equipment presentation without lending a catalogue or weapon service. */
+export function equipmentRows(input: unknown, id: string): ReturnType<ItemCatalogue['equipment']> { return new ItemCatalogue(input).equipment(id); }
 
 /** Numeric row declarations and registered view/presentation recipes. */
 export type ShardRows = GameShardRows;
