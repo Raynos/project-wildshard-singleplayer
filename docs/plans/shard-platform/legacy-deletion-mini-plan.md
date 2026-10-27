@@ -51,3 +51,41 @@ Rows LD1–LD4 delete nothing and need no QA; LD5–LD8 wait for Jake's word (G6
 | **LD6** | Delete the folders, one commit per shard: Sky + Signal (already unreachable), then Driftwood + Pine, then Nalati + Nine; each drops its list entry, regenerates `slugs.generated.json`, prunes lint entries | M | gates green per commit |
 | **LD7** | Delete legacy-only engine/game code with each LD6 commit (~16 modules, exports, frozen exceptions) | M | nothing left whose only importer was legacy |
 | **LD8** | Retire the legacy tooling: `legacy-shards.json`/`.mjs`, lint/script exemptions, `LEGACY_SHARDS`, synthetic legacy tests | S | `git grep legacy-shards` finds nothing |
+
+
+## LD4 Node comparison (2026-10-27, sp-x9)
+
+**In flight:** the data-only comparison is built in this commit. Full runtime
+model/set coverage remains open below; LD4 is not declared parity-green.
+Run `node --experimental-transform-types --import ./scripts/bake-loader.mjs
+scripts/legacy-explorer-lists.ts <report.json>`. The checked-in inventory is
+`legacy-explorer-lists.json`. It contains every compared identifier, exact
+missing/added lists, input hashes and unresolved admissions for all six shards.
+LEGACY and SHARDFILE run in separate Node processes because model definitions
+own a process-global identity registry. No browser, geometry build or deletion
+is involved. World means the World Explorer's map/POI list; arena lists include
+the common Developer Practice card and each shard's registered course.
+
+All six arena lists match. World/POI lists match for Driftwood, Pine, Nalati
+and Sunscar. Nine adds eight POIs and Far Reach four; the exact names are in
+the inventory. Declared Model rosters match for Driftwood (14), Far Reach (8)
+and Sunscar (10). These are declared catalogues, not the additional models
+registered by world placement. Existing products are section/file-hash checked;
+the report does not assert they match the current working source.
+
+These are the remaining per-shard zero/Explorer rows for this comparison;
+they remain here because no live per-shard zero-plan files remain:
+
+| Gap | Shard | Remaining work | State |
+|---|---|---|---|
+| LD4-DW | Driftwood | Capture world-placed models and qualify conditional Set membership; declared rosters and nine literal Sets match. | open |
+| LD4-PH | Pine | Give the Node catalogue reader the admitted public code-parts binary; qualify the conditional mill-hamlet Set and placed models. Model admission currently refuses the relative public URL. | open |
+| LD4-NG | Nalati | Install the product's species binding before resolving horse cards in Node; qualify placed models and conditional Sets. Current admission refuses unknown horse. | open |
+| LD4-ND | Nine | Enumerate native assembly registrations: fp-arms and six literal Sets are absent from the declaration-only adapter. Account for eight added POIs. This is a coverage gap, not proof the runtime lost them. | open |
+| LD4-FR | Far Reach | Qualify world-placed models; account for four added POIs. Declared eight-model rosters and arena lists match. | open |
+| LD4-SD | Sunscar | Qualify world-placed models and conditional/computed Set registration. Declared ten-model rosters and arena lists match. | open |
+
+Touched script types and typed lint pass. The whole ratchet command currently
+refuses its missing generated Far Reach discovery input; no allowance changed.
+The source audit is built; unresolved coverage is retained rather than counted
+as empty. LD5-LD8 remain unauthorized and untouched.

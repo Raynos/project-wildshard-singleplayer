@@ -1,0 +1,726 @@
+{
+  "version": 1,
+  "source": "4486e497e56a26763328e7995885dbccc5944c91",
+  "shards": [
+    {
+      "shard": "driftwood-isle",
+      "legacy": {
+        "lists": {
+          "models": [
+            "driftwood-isle/captain-hat",
+            "driftwood-isle/castaway",
+            "driftwood-isle/coconut-monkey",
+            "driftwood-isle/drowned-captain",
+            "driftwood-isle/drowned-sailor",
+            "driftwood-isle/gull",
+            "driftwood-isle/iron-sword",
+            "driftwood-isle/reef-crab",
+            "driftwood-isle/sailcloth-cape",
+            "driftwood-isle/sea-glass-chime",
+            "driftwood-isle/trophy-plaques",
+            "driftwood-isle/wooden-sword",
+            "shared/bear",
+            "shared/boar"
+          ],
+          "sets": [
+            "driftwood-isle/lookout-summit",
+            "driftwood-isle/pier-landing",
+            "driftwood-isle/ring-shrine",
+            "driftwood-isle/rope-bridge-gully",
+            "driftwood-isle/sea-cave",
+            "driftwood-isle/vista-point",
+            "driftwood-isle/wendells-hut",
+            "driftwood-isle/wreck-cove",
+            "driftwood-isle/zipline-launch"
+          ],
+          "world": [
+            "bridge",
+            "hut",
+            "jetty",
+            "lookout",
+            "shrine",
+            "wreck"
+          ],
+          "arenas": [
+            "practice"
+          ]
+        },
+        "inputs": {
+          "src/shards/driftwood-isle-legacy/roster.ts": "df40474d2c948c8cbd7112734e8e186470b2411171a6a0e6f340ebe837e4df5d",
+          "src/shards/driftwood-isle-legacy/manifest.ts": "74d95df5758364e9cabe972762dce1a8ce88a71cc1fcc974c8dcee601323eec8",
+          "src/shards/driftwood-isle-legacy/world/places.ts": "8531294ab878c6f7f6755f752dbd54b993d4243b4101eb986f2e67dfe4610295"
+        },
+        "gaps": [
+          "models: roster captured; world-placement registrations require a separate native world-list adapter",
+          "sets: literal id/place declaration union; conditional membership and computed identifiers are not qualified"
+        ]
+      },
+      "shardfile": {
+        "lists": {
+          "models": [
+            "driftwood-isle/captain-hat",
+            "driftwood-isle/castaway",
+            "driftwood-isle/coconut-monkey",
+            "driftwood-isle/drowned-captain",
+            "driftwood-isle/drowned-sailor",
+            "driftwood-isle/gull",
+            "driftwood-isle/iron-sword",
+            "driftwood-isle/reef-crab",
+            "driftwood-isle/sailcloth-cape",
+            "driftwood-isle/sea-glass-chime",
+            "driftwood-isle/trophy-plaques",
+            "driftwood-isle/wooden-sword",
+            "shared/bear",
+            "shared/boar"
+          ],
+          "sets": [
+            "driftwood-isle/lookout-summit",
+            "driftwood-isle/pier-landing",
+            "driftwood-isle/ring-shrine",
+            "driftwood-isle/rope-bridge-gully",
+            "driftwood-isle/sea-cave",
+            "driftwood-isle/vista-point",
+            "driftwood-isle/wendells-hut",
+            "driftwood-isle/wreck-cove",
+            "driftwood-isle/zipline-launch"
+          ],
+          "world": [
+            "bridge",
+            "hut",
+            "jetty",
+            "lookout",
+            "shrine",
+            "wreck"
+          ],
+          "arenas": [
+            "practice"
+          ]
+        },
+        "inputs": {
+          "out/driftwood-isle/shard.json": "d61ed124b878355530fe3cdc50604eb0231d143c2893b46656c6e69c0cf5d900"
+        },
+        "gaps": [
+          "models/sets: late native and world.assembly registrations are not qualified by the declared catalogue",
+          "product: hash-verified existing output; no claim that it matches current source or visual/physics parity"
+        ]
+      },
+      "differences": {
+        "models": {
+          "qualified": false,
+          "missing": [],
+          "added": []
+        },
+        "sets": {
+          "qualified": false,
+          "missing": [],
+          "added": []
+        },
+        "world": {
+          "qualified": true,
+          "missing": [],
+          "added": []
+        },
+        "arenas": {
+          "qualified": true,
+          "missing": [],
+          "added": []
+        }
+      }
+    },
+    {
+      "shard": "pine-hollow",
+      "legacy": {
+        "lists": {
+          "models": [
+            "pine-hollow/antler-king",
+            "pine-hollow/crossbow",
+            "pine-hollow/crossbow-bolt",
+            "pine-hollow/elk",
+            "pine-hollow/great-grey-owl",
+            "pine-hollow/lever-action",
+            "pine-hollow/longbow-arrow",
+            "pine-hollow/miller-brandt",
+            "pine-hollow/pileated-woodpecker",
+            "pine-hollow/ranger-hale",
+            "pine-hollow/raven",
+            "pine-hollow/skinning-knife",
+            "pine-hollow/snowshoe-hare",
+            "pine-hollow/trader-mott",
+            "pine-hollow/wardens-longbow",
+            "shared/bear",
+            "shared/boar",
+            "shared/deer",
+            "shared/swim-hands"
+          ],
+          "sets": [
+            "pine-hollow/bridge",
+            "pine-hollow/cabin-1",
+            "pine-hollow/cabin-2",
+            "pine-hollow/cabin-3",
+            "pine-hollow/cave",
+            "pine-hollow/clearing",
+            "pine-hollow/crossroads",
+            "pine-hollow/dam",
+            "pine-hollow/den",
+            "pine-hollow/gate",
+            "pine-hollow/islet",
+            "pine-hollow/lodge",
+            "pine-hollow/lookout",
+            "pine-hollow/mill",
+            "pine-hollow/mill-hamlet",
+            "pine-hollow/pond",
+            "pine-hollow/waterfall",
+            "pine-hollow/west-road",
+            "pine-hollow/zipline"
+          ],
+          "world": [
+            "bridge",
+            "cabin-1",
+            "cabin-2",
+            "cabin-3",
+            "cave",
+            "clearing",
+            "crossroads",
+            "dam",
+            "den",
+            "gate",
+            "hamlet",
+            "islet",
+            "lodge",
+            "lookout",
+            "mill",
+            "pond",
+            "waterfall",
+            "zipline"
+          ],
+          "arenas": [
+            "practice"
+          ]
+        },
+        "inputs": {
+          "src/shards/pine-hollow-legacy/roster.ts": "a83363125e6c57f39a813bad8d976aded657801fc3ba359be82bc156078d9358",
+          "src/shards/pine-hollow-legacy/manifest.ts": "86bc588957ea072c2e4c2cf37c4200649ef68bac803c5f3ec00548538e3bf103",
+          "src/shards/pine-hollow-legacy/world/cabins.ts": "c0530880cac4ea2622602876b2a90a02936558541cbd7d3a8194a52908ffb9c5",
+          "src/shards/pine-hollow-legacy/world/places.ts": "ea853309c229e0c6411357a846bad1320d53d602bbfc194d6677503e4c1b0f15"
+        },
+        "gaps": [
+          "models: roster captured; world-placement registrations require a separate native world-list adapter",
+          "sets: literal id/place declaration union; conditional membership and computed identifiers are not qualified"
+        ]
+      },
+      "shardfile": {
+        "lists": {
+          "models": null,
+          "sets": [
+            "pine-hollow/bridge",
+            "pine-hollow/cabin-1",
+            "pine-hollow/cabin-2",
+            "pine-hollow/cabin-3",
+            "pine-hollow/cave",
+            "pine-hollow/clearing",
+            "pine-hollow/crossroads",
+            "pine-hollow/dam",
+            "pine-hollow/den",
+            "pine-hollow/gate",
+            "pine-hollow/islet",
+            "pine-hollow/lodge",
+            "pine-hollow/lookout",
+            "pine-hollow/mill",
+            "pine-hollow/pond",
+            "pine-hollow/waterfall",
+            "pine-hollow/west-road",
+            "pine-hollow/zipline"
+          ],
+          "world": [
+            "bridge",
+            "cabin-1",
+            "cabin-2",
+            "cabin-3",
+            "cave",
+            "clearing",
+            "crossroads",
+            "dam",
+            "den",
+            "gate",
+            "hamlet",
+            "islet",
+            "lodge",
+            "lookout",
+            "mill",
+            "pond",
+            "waterfall",
+            "zipline"
+          ],
+          "arenas": [
+            "practice"
+          ]
+        },
+        "inputs": {
+          "out/pine-hollow/shard.json": "cce4362eb470171e3c1c163fce26026e89891e1e66be5a4ff6c3f14b4946808a"
+        },
+        "gaps": [
+          "models: pine-hollow: Failed to parse URL from /assets/pine-hollow/baked/code-parts-bd582243b159.bin",
+          "models/sets: late native and world.assembly registrations are not qualified by the declared catalogue",
+          "product: hash-verified existing output; no claim that it matches current source or visual/physics parity"
+        ]
+      },
+      "differences": {
+        "models": {
+          "qualified": false
+        },
+        "sets": {
+          "qualified": false,
+          "missing": [
+            "pine-hollow/mill-hamlet"
+          ],
+          "added": []
+        },
+        "world": {
+          "qualified": true,
+          "missing": [],
+          "added": []
+        },
+        "arenas": {
+          "qualified": true,
+          "missing": [],
+          "added": []
+        }
+      }
+    },
+    {
+      "shard": "nalati-grasslands",
+      "legacy": {
+        "lists": {
+          "models": [
+            "nalati-grasslands/aqbars",
+            "nalati-grasslands/ar-15",
+            "nalati-grasslands/argymaq",
+            "nalati-grasslands/arrow",
+            "nalati-grasslands/balbal-warrior",
+            "nalati-grasslands/bow",
+            "nalati-grasslands/butterfly",
+            "nalati-grasslands/camp-people",
+            "nalati-grasslands/ghost-rider",
+            "nalati-grasslands/golden-bow",
+            "nalati-grasslands/golden-king",
+            "nalati-grasslands/horse",
+            "nalati-grasslands/javelin",
+            "nalati-grasslands/kokbori",
+            "nalati-grasslands/marmot",
+            "nalati-grasslands/naizagai",
+            "nalati-grasslands/qyran",
+            "nalati-grasslands/raptor",
+            "nalati-grasslands/reins",
+            "nalati-grasslands/sabre",
+            "nalati-grasslands/sheep",
+            "nalati-grasslands/sheepdog",
+            "nalati-grasslands/shepherd",
+            "nalati-grasslands/spear",
+            "nalati-grasslands/storm-titan",
+            "nalati-grasslands/wolf",
+            "shared/swim-hands"
+          ],
+          "sets": [
+            "nalati-grasslands/bridge",
+            "nalati-grasslands/crags",
+            "nalati-grasslands/eagle-rock-knoll",
+            "nalati-grasslands/glacier",
+            "nalati-grasslands/great-kurgan",
+            "nalati-grasslands/horse-plains",
+            "nalati-grasslands/kokpar-field",
+            "nalati-grasslands/kunes-river",
+            "nalati-grasslands/kurgan-field",
+            "nalati-grasslands/sheep-pasture",
+            "nalati-grasslands/sky-road",
+            "nalati-grasslands/snow-lotus-meadow",
+            "nalati-grasslands/spring-camp",
+            "nalati-grasslands/summer-camp",
+            "nalati-grasslands/the-crags",
+            "nalati-grasslands/watchtower-hill",
+            "nalati-grasslands/wind-cairn-rise"
+          ],
+          "world": [
+            "bridge",
+            "eagle-rock",
+            "glacier",
+            "great-kurgan",
+            "horse-plains",
+            "kokpar-field",
+            "kunes-river",
+            "kurgan-field",
+            "nomad-camp",
+            "sheep-pasture",
+            "sky-road",
+            "snow-leopard-cave",
+            "snow-lotus",
+            "summer-camp",
+            "the-crags",
+            "watchtower",
+            "wind-cairn"
+          ],
+          "arenas": [
+            "horse",
+            "practice"
+          ]
+        },
+        "inputs": {
+          "src/shards/nalati-grasslands-legacy/roster.ts": "e83805955eef7c27f56a7d91e3afbddfcaf84dd2044e336147a91d90dd340370",
+          "src/shards/nalati-grasslands-legacy/manifest.ts": "528d4dabf1b4fda5765c1a938e13ae8f14c81804d1a90934f86aea4e1a11d980",
+          "src/shards/nalati-grasslands-legacy/world/places.ts": "b956cc7793859c7989e3cb4ca5d768a0d50e2adfca4db0bd112790ab2e9f7b02"
+        },
+        "gaps": [
+          "models: roster captured; world-placement registrations require a separate native world-list adapter",
+          "sets: literal id/place declaration union; conditional membership and computed identifiers are not qualified"
+        ]
+      },
+      "shardfile": {
+        "lists": {
+          "models": null,
+          "sets": [
+            "nalati-grasslands/bridge",
+            "nalati-grasslands/crags",
+            "nalati-grasslands/eagle-rock-knoll",
+            "nalati-grasslands/glacier",
+            "nalati-grasslands/great-kurgan",
+            "nalati-grasslands/horse-plains",
+            "nalati-grasslands/kokpar-field",
+            "nalati-grasslands/kunes-river",
+            "nalati-grasslands/kurgan-field",
+            "nalati-grasslands/sheep-pasture",
+            "nalati-grasslands/sky-road",
+            "nalati-grasslands/snow-lotus-meadow",
+            "nalati-grasslands/spring-camp",
+            "nalati-grasslands/summer-camp",
+            "nalati-grasslands/the-crags",
+            "nalati-grasslands/watchtower-hill",
+            "nalati-grasslands/wind-cairn-rise"
+          ],
+          "world": [
+            "bridge",
+            "eagle-rock",
+            "glacier",
+            "great-kurgan",
+            "horse-plains",
+            "kokpar-field",
+            "kunes-river",
+            "kurgan-field",
+            "nomad-camp",
+            "sheep-pasture",
+            "sky-road",
+            "snow-leopard-cave",
+            "snow-lotus",
+            "summer-camp",
+            "the-crags",
+            "watchtower",
+            "wind-cairn"
+          ],
+          "arenas": [
+            "horse",
+            "practice"
+          ]
+        },
+        "inputs": {
+          "out/nalati-grasslands/shard.json": "0d0673b12f6908e59b8362ed28ffe018906e19195c83387e6bfecb0d7f48101d"
+        },
+        "gaps": [
+          "models: nalati-grasslands: unknown animal kind 'horse' (registered: none)",
+          "models/sets: late native and world.assembly registrations are not qualified by the declared catalogue",
+          "product: hash-verified existing output; no claim that it matches current source or visual/physics parity"
+        ]
+      },
+      "differences": {
+        "models": {
+          "qualified": false
+        },
+        "sets": {
+          "qualified": false,
+          "missing": [],
+          "added": []
+        },
+        "world": {
+          "qualified": true,
+          "missing": [],
+          "added": []
+        },
+        "arenas": {
+          "qualified": true,
+          "missing": [],
+          "added": []
+        }
+      }
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "legacy": {
+        "lists": {
+          "models": [
+            "nine-dragon-stack/fp-arms"
+          ],
+          "sets": [
+            "nine-dragon-stack/crossings",
+            "nine-dragon-stack/lantern-square",
+            "nine-dragon-stack/night-market",
+            "nine-dragon-stack/stair-street",
+            "nine-dragon-stack/well-galleries",
+            "nine-dragon-stack/well-rim"
+          ],
+          "world": [],
+          "arenas": [
+            "grapple",
+            "practice"
+          ]
+        },
+        "inputs": {
+          "src/shards/nine-dragon-stack-legacy/roster.ts": "1a12a88b9ae5841c503a899da200ef4223b71d35313e97a737b9e99cd8320c21",
+          "src/shards/nine-dragon-stack-legacy/manifest.ts": "a4ea3e6958d73bc0e7f3d18da0a3aa42cf393d69f55b36aa890ce7547a6c7d6a",
+          "src/shards/nine-dragon-stack-legacy/world/props3d.ts": "b972e0d87dbbd68dcdbe384e34afa76dfcdbb88fb65a8daef722bba3805717d5",
+          "src/shards/nine-dragon-stack-legacy/world/sets.ts": "7544ed8effc3dde759389164679c76f7a71764bbb7f05d82b7d70b6c19c12621",
+          "src/shards/nine-dragon-stack-legacy/world/square.ts": "a47b1c02fb10b1f90746c8865cad3849ba9c9ba0230a5bb48efc6952a6ef4584",
+          "src/shards/nine-dragon-stack-legacy/world/squareProps.ts": "f4349878c5329f832183532fb665f1cc7e5daf661722a97032c7924bfb5f78e1",
+          "src/shards/nine-dragon-stack-legacy/world/stalls.ts": "57699b2550740b6e0837582201d91b11b821d40fa0c4e270462470c877beac72"
+        },
+        "gaps": [
+          "models: roster captured; world-placement registrations require a separate native world-list adapter",
+          "sets: literal id/place declaration union; conditional membership and computed identifiers are not qualified"
+        ]
+      },
+      "shardfile": {
+        "lists": {
+          "models": [],
+          "sets": [],
+          "world": [
+            "lantern-square",
+            "night-market",
+            "portal-east",
+            "portal-north",
+            "portal-south",
+            "portal-west",
+            "stair-street",
+            "well-rim"
+          ],
+          "arenas": [
+            "grapple",
+            "practice"
+          ]
+        },
+        "inputs": {
+          "out/nine-dragon-stack/shard.json": "30ed2f2e92c59de63fab55acf6b1b5f93abdc26ef29f583aad8cc1f737088a11"
+        },
+        "gaps": [
+          "models/sets: late native and world.assembly registrations are not qualified by the declared catalogue",
+          "product: hash-verified existing output; no claim that it matches current source or visual/physics parity"
+        ]
+      },
+      "differences": {
+        "models": {
+          "qualified": false,
+          "missing": [
+            "nine-dragon-stack/fp-arms"
+          ],
+          "added": []
+        },
+        "sets": {
+          "qualified": false,
+          "missing": [
+            "nine-dragon-stack/crossings",
+            "nine-dragon-stack/lantern-square",
+            "nine-dragon-stack/night-market",
+            "nine-dragon-stack/stair-street",
+            "nine-dragon-stack/well-galleries",
+            "nine-dragon-stack/well-rim"
+          ],
+          "added": []
+        },
+        "world": {
+          "qualified": true,
+          "missing": [],
+          "added": [
+            "lantern-square",
+            "night-market",
+            "portal-east",
+            "portal-north",
+            "portal-south",
+            "portal-west",
+            "stair-street",
+            "well-rim"
+          ]
+        },
+        "arenas": {
+          "qualified": true,
+          "missing": [],
+          "added": []
+        }
+      }
+    },
+    {
+      "shard": "far-reach",
+      "legacy": {
+        "lists": {
+          "models": [
+            "far-reach/drift-ray",
+            "far-reach/keeper",
+            "far-reach/rope-bridge",
+            "far-reach/sky-goat",
+            "far-reach/storm-roc",
+            "far-reach/war-fan",
+            "far-reach/wind-vane",
+            "far-reach/windmill"
+          ],
+          "sets": [],
+          "world": [],
+          "arenas": [
+            "practice"
+          ]
+        },
+        "inputs": {
+          "src/shards/far-reach-legacy/roster.ts": "2bc7c2c26fa0183c94137e6b66cf88060b2bf0d37dfa529b0700313a6446b896",
+          "src/shards/far-reach-legacy/manifest.ts": "f6796f7d52a5d4af9d33e814ced5050ee51392806bbd2289aa92bb2929fff66f"
+        },
+        "gaps": [
+          "models: roster captured; world-placement registrations require a separate native world-list adapter",
+          "sets: literal id/place declaration union; conditional membership and computed identifiers are not qualified"
+        ]
+      },
+      "shardfile": {
+        "lists": {
+          "models": [
+            "far-reach/drift-ray",
+            "far-reach/keeper",
+            "far-reach/rope-bridge",
+            "far-reach/sky-goat",
+            "far-reach/storm-roc",
+            "far-reach/war-fan",
+            "far-reach/wind-vane",
+            "far-reach/windmill"
+          ],
+          "sets": [],
+          "world": [
+            "islet-east",
+            "islet-north",
+            "islet-south",
+            "islet-west"
+          ],
+          "arenas": [
+            "practice"
+          ]
+        },
+        "inputs": {
+          "out/far-reach/shard.json": "359f627d8900f1edfbbb64c206cafedccb7f4eb873298092ccec42f1afcd287e"
+        },
+        "gaps": [
+          "models/sets: late native and world.assembly registrations are not qualified by the declared catalogue",
+          "product: hash-verified existing output; no claim that it matches current source or visual/physics parity"
+        ]
+      },
+      "differences": {
+        "models": {
+          "qualified": false,
+          "missing": [],
+          "added": []
+        },
+        "sets": {
+          "qualified": false,
+          "missing": [],
+          "added": []
+        },
+        "world": {
+          "qualified": true,
+          "missing": [],
+          "added": [
+            "islet-east",
+            "islet-north",
+            "islet-south",
+            "islet-west"
+          ]
+        },
+        "arenas": {
+          "qualified": true,
+          "missing": [],
+          "added": []
+        }
+      }
+    },
+    {
+      "shard": "sunscar-dunes",
+      "legacy": {
+        "lists": {
+          "models": [
+            "sunscar-dunes/bullwhip",
+            "sunscar-dunes/caravan",
+            "sunscar-dunes/caravan-scout",
+            "sunscar-dunes/dry-well",
+            "sunscar-dunes/dune-matriarch",
+            "sunscar-dunes/dune-ray",
+            "sunscar-dunes/dune-strider",
+            "sunscar-dunes/sand-skitterer",
+            "sunscar-dunes/signal-tower",
+            "sunscar-dunes/waymark-brazier"
+          ],
+          "sets": [],
+          "world": [],
+          "arenas": [
+            "practice"
+          ]
+        },
+        "inputs": {
+          "src/shards/sunscar-dunes-legacy/roster.ts": "754664ec3d4119a6aa25e529720af4f888104f81e258671b56287271ee550d6a",
+          "src/shards/sunscar-dunes-legacy/manifest.ts": "2f760561233be2d22a8a2f21a998fd4a072d4cb9f49cdb3059f9a330ff175e74"
+        },
+        "gaps": [
+          "models: roster captured; world-placement registrations require a separate native world-list adapter",
+          "sets: literal id/place declaration union; conditional membership and computed identifiers are not qualified"
+        ]
+      },
+      "shardfile": {
+        "lists": {
+          "models": [
+            "sunscar-dunes/bullwhip",
+            "sunscar-dunes/caravan",
+            "sunscar-dunes/caravan-scout",
+            "sunscar-dunes/dry-well",
+            "sunscar-dunes/dune-matriarch",
+            "sunscar-dunes/dune-ray",
+            "sunscar-dunes/dune-strider",
+            "sunscar-dunes/sand-skitterer",
+            "sunscar-dunes/signal-tower",
+            "sunscar-dunes/waymark-brazier"
+          ],
+          "sets": [],
+          "world": [],
+          "arenas": [
+            "practice"
+          ]
+        },
+        "inputs": {
+          "out/sunscar-dunes/shard.json": "b4151883857808365157fb3f2aef662c109b673287ce37e8a62b50f912c1464d"
+        },
+        "gaps": [
+          "models/sets: late native and world.assembly registrations are not qualified by the declared catalogue",
+          "product: hash-verified existing output; no claim that it matches current source or visual/physics parity"
+        ]
+      },
+      "differences": {
+        "models": {
+          "qualified": false,
+          "missing": [],
+          "added": []
+        },
+        "sets": {
+          "qualified": false,
+          "missing": [],
+          "added": []
+        },
+        "world": {
+          "qualified": true,
+          "missing": [],
+          "added": []
+        },
+        "arenas": {
+          "qualified": true,
+          "missing": [],
+          "added": []
+        }
+      }
+    }
+  ]
+}
