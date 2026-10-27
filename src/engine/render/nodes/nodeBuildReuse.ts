@@ -369,11 +369,15 @@ export interface KeptBuild {
   readonly roles: 'none' | 'rebindable' | 'fixed';
 }
 
-/** what kind of shared node a kept build read (a diagnostic): its class, its name, and a uniform's value class */
+/** what kind of shared node a kept build read (a diagnostic): three's node type (it survives minification, a class name
+ *  does not), its name, and a uniform's value kind */
 function sharedKind(node: Node): string {
-  const name: unknown = Reflect.get(node, 'name'), value: unknown = node instanceof UniformNode ? Reflect.get(node, 'value') : undefined;
-  const valueKind = typeof value === 'object' && value !== null ? value.constructor.name : typeof value;
-  return `${node.constructor.name}${typeof name === 'string' && name !== '' ? `(${name})` : ''}${node instanceof UniformNode ? `<${valueKind}>` : ''}`;
+  const type: unknown = Reflect.get(node.constructor, 'type'), name: unknown = Reflect.get(node, 'name');
+  const value: unknown = node instanceof UniformNode ? Reflect.get(node, 'value') : undefined;
+  const flag = typeof value === 'object' && value !== null
+    ? ['isTexture', 'isColor', 'isVector2', 'isVector3', 'isVector4', 'isMatrix3', 'isMatrix4'].find(f => Reflect.get(value, f) === true) : undefined;
+  const valueKind = flag !== undefined ? flag.slice(2) : typeof value === 'object' && value !== null ? 'object' : typeof value;
+  return `${typeof type === 'string' ? type : 'Node'}${typeof name === 'string' && name !== '' ? `(${name})` : ''}${node instanceof UniformNode ? `<${valueKind}>` : ''}`;
 }
 
 /** `output` (built from `shape`'s compile, with `lazy` uniforms) as positions and weak scene references; null when a
