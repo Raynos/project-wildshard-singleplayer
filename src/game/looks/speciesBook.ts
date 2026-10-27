@@ -224,8 +224,18 @@ export function productHullBook(product: { readonly section: (name: 'look/hull-b
 /** One product catalogue: admitted behaviour controls, packed looks and the
  * original packed-body owner, shared through world and kit installation. */
 export function productSpeciesCatalogue(product:Parameters<typeof productHullBook>[0],data:Pick<SpeciesPresentationRows,'lookBook'>,lookRows:unknown):SpeciesCatalogue{
-  const book=productHullBook(product),rules=speciesBehaviour(data.lookBook),packed=book.packedLooks(lookRows),bodies=book.packed;
-  const rows=rules.rows,looks=packed.all.map(look=>rules.look(look));
+  const book=productHullBook(product);
+  return speciesCatalogue(book,speciesBehaviour(data.lookBook),book.packedLooks(lookRows));
+}
+/** `productSpeciesCatalogue` with a `pause` between its book, its behaviour rules and its packed looks: in one task they
+ *  were ~102 ms of a cold Nine Dragon crossing's world step at phone 4x. Same catalogue. */
+export async function productSpeciesCatalogueSliced(product:Parameters<typeof productHullBook>[0],data:Pick<SpeciesPresentationRows,'lookBook'>,lookRows:unknown,pause:()=>Promise<void>):Promise<SpeciesCatalogue>{
+  const book=productHullBook(product);await pause();
+  const rules=speciesBehaviour(data.lookBook);await pause();
+  return speciesCatalogue(book,rules,book.packedLooks(lookRows));
+}
+function speciesCatalogue(book:HullLookBook,rules:ReturnType<typeof speciesBehaviour>,packed:ReturnType<HullLookBook['packedLooks']>):SpeciesCatalogue{
+  const bodies=book.packed,rows=rules.rows,looks=packed.all.map(look=>rules.look(look));
   const projection = (kind: string): ActorProjectionV2 => { const value = rules.projections.get(kind); if (value === undefined) throw new Error('Missing actor projection'); return value; };
   return {rows,looks,packed,program:kind=>projection(kind).program(),prepareMemory:(kind,scope)=>projection(kind).prepareMemory(scope),preload:()=>bodies.preload(),
     install:target=>{target.species(rows);target.speciesLook(looks);}};
