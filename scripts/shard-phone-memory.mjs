@@ -497,6 +497,7 @@ async function main() {
       const m=row.metrics;
       console.info(`${shard}: boot ${(m.bootAllocatedBytes/1048576).toFixed(2)} MiB; settled post-GC ${(m.settledUsedBytes/1048576).toFixed(2)} MiB; idle ${(m.idleBytesPerSecond/1048576).toFixed(3)} MiB/s; major GC ${m.majorGCsPer30Seconds.toFixed(2)}/30s`);
     }
+    if(new Set(readings.map(row=>row.build)).size!==1)throw new Error('Heap targets must share one served build');
     const verdict=checkHeapRatchet(readings,baseline,flag==='--rebase');
     writeFileSync(out,`${JSON.stringify({label,base,readings,verdict},null,2)}\n`);
     for(const failure of verdict.failures)console.error(failure);

@@ -7,6 +7,13 @@ import { sampledHeapBytes, majorHeapGCs } from './jsHeap.mjs';
 
 /** @param {string} base @param {'_template'|'blender-template'} shard */
 export async function measureCleanHeap(base,shard) {
+  const versionSchema=v.object({build:v.pipe(v.string(),v.minLength(1))});
+  const version=async()=>{
+    const response=await fetch(new URL('/version.json',base),{signal:AbortSignal.timeout(5000),cache:'no-store'});
+    if(!response.ok)throw new Error('Heap reading source identity unavailable');
+    return v.parse(versionSchema,await response.json()).build;
+  };
+  const build=await version();
   const owned=await launchMemoryBrowser(['--mute-audio','--use-angle=metal','--ignore-gpu-blocklist']);
   try {
     const context=await owned.browser.newContext({...devices['iPhone 16 Pro'],serviceWorkers:'block'});
@@ -44,7 +51,8 @@ export async function measureCleanHeap(base,shard) {
     const clean=v.parse(v.object({pins:v.boolean(),developer:v.boolean(),href:v.string()}),await page.evaluate(`({pins:window.__wildshardHarness!==undefined,developer:JSON.parse(localStorage.getItem('wildshard.save.v2.device')??'{"keys":{}}').keys?.devMode?.data===true,href:location.href})`));
     if(clean.pins||clean.developer||new URL(clean.href).searchParams.get('chunk')!==shard)throw new Error('Heap clean-path admission failed');
     if(errors.length>0)throw new Error(errors.join('\n'));
-    return {shard,protocol:'chromium-clean-heap/1',idleSeconds:seconds,postGC:true,clean,
+    if(await version()!==build)throw new Error('Heap reading source changed during measurement');
+    return {shard,build,protocol:'chromium-clean-heap/1',idleSeconds:seconds,postGC:true,clean,
       metrics:{bootAllocatedBytes:sampledHeapBytes(boot.profile),settledUsedBytes:settled.usedSize,
         idleBytesPerSecond:sampledHeapBytes(idle.profile)/seconds,majorGCsPer30Seconds:majorHeapGCs(events,seconds)}};
   }finally{await owned.close();}

@@ -229,11 +229,11 @@ numbers; a row's lane re-measures before/after with G1.
 
 | Row | What | Saves (heap / alloc per s / GC) | Owner | Effort | Done when |
 |---|---|---|---|---|---|
-| G1 | **Guard first:** `scripts/shard-phone-memory.mjs --heap <shard>` on the clean path (Developer off, no pins, direct `/?chunk=`): boot allocated MiB, settled used after GC, idle MiB/s over 60 s, major GCs per 30 s; checked against `scripts/memory/js-heap-ratchet.json`, **exit 1 on > 10 % regression**, ratchet only lowers (`--rebase` refuses an increase) | n/a: makes every row below measurable and refuses regressions | done `77e46ccbbc`, baseline pending G769 | S | one command prints the four readings for `_template` and `blender-template` and fails on a seeded regression in its test; run at milestones and by each row's lane |
+| G1 | **Guard first:** `scripts/shard-phone-memory.mjs --heap <shard>` on the clean path (Developer off, no pins, direct `/?chunk=`): boot allocated MiB, settled used after GC, idle MiB/s over 60 s, major GCs per 30 s; checked against `scripts/memory/js-heap-ratchet.json`, **exit 1 on > 10 % regression**, ratchet only lowers (`--rebase` refuses an increase) | n/a: makes every row below measurable and refuses regressions | done `77e46ccbbc` + measured ratchet (this commit, G778) | S | one command prints the four readings for `_template` and `blender-template` and fails on a seeded regression in its test; run at milestones and by each row's lane |
 | H1 — done (this commit; 2026-10-27, sp-o4): the idle Template's only per-draw flip was three's ONE stock shadow depth material, drawn by plain, instanced and skinned casters in turn (3 program re-evaluations a frame: instancing / skinning params); instanced and skinned classic casters now get a depth material shared per kind (`shadowMaterialOwnership.ts`), same programs | Stop per-draw program re-evaluation: find the materials that flip `needsProgramChange` (instanced/plain or skinned/plain sharing a material, shared shadow depth material, per-frame light-state version) and give each variant its own material/depth material, or keep the light count stable | ~1.4 MiB/s idle, fewer major GCs, CPU per draw | Opus (render) | M | idle `getParameters` + `getProgramCacheKey` < 0.05 MiB/s; `renderer.info.programs` and the look unchanged |
 | H2 | Tile streamer stationary early-out: skip `planDesired` when the camera's ring tile and the budget are unchanged; reuse work rows; key catalogue lookups numerically | ~0.8 MiB/s | done `4b18cede14`, baseline pending G769 | S | `tileStreamer.ts` < 0.05 MiB/s at idle; walk test unchanged |
 | H3 | Checkpoint only when state changed: dirty flag or compare with the last written string; `SaveStore` keeps its parsed doc instead of re-reading `savedDoc` per write; script checkpoint JSON directly from bytes, avoiding boxed `number[]` | ~0.65 MiB/s, plus the save I/O | done `7fa1873d21`, baseline pending G769 | M | an idle checkpoint with unchanged state allocates < 50 KiB; saves round-trip tests green |
-| H4 | Script host per-tick copies: copy `shared`/`players`/frames only on an effect commit; no `Object.fromEntries` view per call | ~0.45 MiB/s | done source (2026-10-27, sp-x9; this commit), baseline pending G769 | M | `script/*` < 0.1 MiB/s at idle; script determinism tests green |
+| H4 | Script host per-tick copies: copy `shared`/`players`/frames only on an effect commit; no `Object.fromEntries` view per call | ~0.45 MiB/s | done `d1248ed4f2`, baseline pending G769 | M | `script/*` < 0.1 MiB/s at idle; script determinism tests green |
 | H5 | Input layout only on change: rebuild `touchLayout`/`refresh` sets when the context stack or an `enabled()` answer changes | ~0.24 MiB/s | Codex | S | `InputService.ts` < 0.02 MiB/s at idle; no HUD change (E332 not triggered) |
 | H6 | Release decoded product transport: drop `ClientAssets.wire` entries once their reader has decoded them (reread from the content cache on revisit, as tiles already do). **Done (sp-o2, this commit):** a probe of hash-keyed transport reads after boot (Chromium phone, `30d47df5b1`) saw none in 20 s of walking on the Template or Driftwood (each root is read only while the boot builds); so once the boot has played (`finish.ts`, after `loading.done`) the page product's `ClientAssets` keeps no transport (`releaseAll`), and any later read rechecks the immutable cache or the network, as released tiles already do | ~5 MiB retained ArrayBuffer | Codex | M | settled backing for `product:_template` ≤ 1 MiB; revisit and tile reread tests green |
 | H7 | Menu first-paint loop: stop `index.html`'s shell `tick` when the page is `title-first` (or after N s), and count bytes from new entries only. **Done (sp-o2, this commit):** the inline script already skipped a page that was title-first when it ran, but a URL with harness parameters becomes title-first only later, so the loop ran on under the menu (its clock still advancing at 6 s on `30d47df5b1`); the tick now ends when the page turns title-first, and a `PerformanceObserver` counts each module entry once instead of rescanning every entry every frame | ~0.5 MiB/s on the menu, a rAF per frame | Codex | S | Developer-off menu idle < 0.1 MiB/s |
@@ -330,3 +330,24 @@ Client presentation updates its existing frame map, with revision-fenced
 transactions and detached output copies. Engine/scoped fixture types and typed
 lint pass; retained checkpoint, privacy, stale-write and invalid-suffix controls
 are included. Determinism execution and heap-rate readings remain pending G769.
+
+
+## G1 measured ratchet (G777/G778, 2026-10-27)
+
+Both cold clean Chromium pages use source `a127a8a1597c5305b05b447662a0370b95aee4cc`,
+served build `a127a8a-mvqap3z7` (the report retains the exact served build).
+Developer off, pins absent, phone tier, 2× render and blocked service workers;
+one independent browser per Template, 60 seconds idle each. Build identity is
+checked before/after each reading and across the pair. The browser and owned
+preview close after the pair. This predates the H2/H3/H4 runtime cuts and is
+the initial baseline, not a claim that those rows meet their allocation targets.
+
+| Shard | Boot allocated MiB | Settled post-GC MiB | Idle MiB/s | Major GC /30s |
+|---|---:|---:|---:|---:|
+| `_template` | 129.525 | 24.971 | 5.958 | 13.492 |
+| `blender-template` | 125.927 | 23.835 | 3.666 | 7.996 |
+
+The exact byte readings seed `scripts/memory/js-heap-ratchet.json`. The existing
+CLI exits one for a seeded 11% regression against these real baselines; all
+four independent metric regressions and upward rebase attempts refuse.
+Touched types and lint pass. No Simulator/native-floor qualification is claimed.
