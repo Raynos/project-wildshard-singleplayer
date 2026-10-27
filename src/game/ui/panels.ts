@@ -1,4 +1,5 @@
 import type { Scope } from '@wildshard/engine/app/scope';
+import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { declarePanel as declare, type PanelChild as Child, type PanelNode as Node, type PanelStyle as Style, type PanelSvg as Svg, type PanelView as View } from '@wildshard/engine/ui/panel';
 import { mountUi, uiScope } from '@wildshard/engine/ui/ownership';
 import { listenPage } from '@wildshard/engine/input/dom';
@@ -87,7 +88,7 @@ export class DeclaredPanel {
   open(): void {
     if (this.opened || this.owner.disposed) return;
     if (this.mounted === null) this.mount();
-    this.opened = true; this.openedAt = performance.now(); this.render();
+    this.opened = true; this.openedAt = diagnosticNow(); this.render();
     if (this.policy.showClass !== undefined) this.view.flag('', this.policy.showClass, true);
     this.onOpen?.();
   }
