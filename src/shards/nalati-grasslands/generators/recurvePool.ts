@@ -9,7 +9,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { MeshoptSimplifier } from 'meshoptimizer';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { gloveFist, riderArm } from '@wildshard/engine/player/firstPersonArms';
+import { bakeGloveFist as gloveFist, bakeRiderArm as riderArm } from '@wildshard/sdk/bake/riderArms';
 import items from '../data/items.json' with { type: 'json' };
 import { BowWeaponProfileSchema, type HeldBowBaseSchema } from '@wildshard/format/weaponProfiles';
 import { BOW } from '@wildshard/game/weapons/starterBowProfile';

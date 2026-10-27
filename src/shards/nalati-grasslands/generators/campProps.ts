@@ -9,8 +9,10 @@ import { painted, type Kit, type Paint, boardSpots } from './painted';
 import type { SignpostParams, BarrelParams, CorralParams, HitchingRailParams, PalsParams, RugLineParams, RugParams, SpanParams } from './campParams';
 import { ribbonPole, eaglePerch, stove, campBench, rugRack, feltRug, cart, barrel, hitchingRail, waterTrough, saddleRack, corral, hayPile, feedTrough, rugLine, choppingBlock, milkCans, tetherLine, kurtBoard, ribbonPost, fallenLog, stump, ovoo, viewpointPole, skyGateway, campClutter, fence, graniteOutcrop, roundedBoulder, kokparGoal, kokparPost, stoneStep, signpostBaked as signpost } from './catalogue';
 import { type Box, prism, supportHull } from './solid';
-import type { Rng } from '@wildshard/engine/core/rng';
 import { graniteBlock } from './granite';
+
+/** Optional author streams have exactly the factory kit's native continuation type. */
+type Rng = Kit['rng'];
 
 
 /** Bake-time T-bar height; the admitted places already carry the eagle's placement. */
