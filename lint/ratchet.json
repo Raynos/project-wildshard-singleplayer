@@ -621,6 +621,8 @@
     "js/title/gzip": 110000,
     "js/grid-session/raw": 300000,
     "js/grid-session/gzip": 100000,
+    "js/session/raw": 4400000,
+    "js/session/gzip": 1360000,
     "custom-sections/_template/count": 0,
     "custom-sections/_template/bytes": 0,
     "custom-sections/blender-template/count": 0,
