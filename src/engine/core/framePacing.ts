@@ -14,6 +14,7 @@
 import type { Scope } from '../app/scope';
 import { resourceScope } from '../app/resources';
 import { diagnosticNow } from './clock';
+import { isDev } from './devMode';
 
 /** A page that drew a frame within this long is presenting: its builds pace themselves to its frames (ms). */
 const PRESENTING_MS = 250;
@@ -46,7 +47,20 @@ let heldSliceAt = Number.NEGATIVE_INFINITY;
 /** Frames drawn while held, for `heldFrameTurn`. */
 let heldFrames = 0;
 /** Whether the traveller waits for the build (a grid cell's loading screen shows); the grid sets it, off by default. */
-export function setBuildHeld(on: boolean): void { held = on; heldSliceAt = Number.NEGATIVE_INFINITY; }
+export function setBuildHeld(on: boolean): void {
+  if (on !== held) noteHeldInterval(on);
+  held = on; heldSliceAt = Number.NEGATIVE_INFINITY;
+}
+let heldSince = Number.NEGATIVE_INFINITY, heldIntervals = 0;
+/** Developer pages time each held interval (`wildshard.prepare:grid:held.<n>`, beside the preparation spans the crossing
+ *  readers collect), so a reading shows when the held budgets applied. Public mode reads no clock. */
+function noteHeldInterval(on: boolean): void {
+  if (!isDev()) return;
+  const now = diagnosticNow();
+  if (on) { heldSince = now; return; }
+  if (Number.isFinite(heldSince)) performance.measure(`wildshard.prepare:grid:held.${String(heldIntervals++)}`, { start: heldSince, end: now });
+  heldSince = Number.NEGATIVE_INFINITY;
+}
 /** The latest a held frame may start: HELD_FRAME_FLOOR_MS after the last drawn one started, less the due slack. */
 const heldDeadline = (): number => lastFrameAt + HELD_FRAME_FLOOR_MS - DUE_SLACK_MS;
 /** A build stretch's budget: `budgetMs`, or HELD_BUILD_MS while the traveller is held. */
