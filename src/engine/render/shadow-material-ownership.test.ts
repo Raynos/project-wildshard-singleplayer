@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { BufferGeometry, DataTexture, Group, InstancedMesh, Mesh, MeshBasicMaterial, MeshDepthMaterial, MeshStandardMaterial, PerspectiveCamera, Scene } from 'three';
+import { BufferGeometry, DataTexture, DoubleSide, Group, InstancedMesh, Mesh, MeshBasicMaterial, MeshDepthMaterial, MeshStandardMaterial, PerspectiveCamera, Scene, SkinnedMesh } from 'three';
 import { Scope } from '../app/scope';
 import { AssetService } from '../app/assets';
 import { ownSceneTree, sceneResourceOwner } from '../app/sceneOwnership';
@@ -109,4 +109,22 @@ test('instanced casters get a depth material per kind and depth facts; plain and
   expect(twin.customDepthMaterial).toBe(instanced.customDepthMaterial);
   expect(assets.has('renderer:shadow-kind:instanced|map+side0')).toBe(true);
   page.dispose(); filler.dispose();
+});
+
+test('a multi-material skinned caster takes a kind only when its materials share their depth facts', () => {
+  const page = new Scope('renderer'), assets = new AssetService(), camera = new PerspectiveCamera(), scene = new Scene();
+  const stock = new MeshDepthMaterial(), geometry = new BufferGeometry();
+  let pass: () => void = () => undefined;
+  const renderer = { renderBufferDirect: vi.fn<Renderer['renderBufferDirect']>(), shadowMap: { render: vi.fn<Renderer['shadowMap']['render']>(() => { pass(); }) } };
+  installShadowMaterialOwnership(renderer, assets, page);
+  const shadowDraw = (object: Mesh): void => {
+    pass = () => { renderer.renderBufferDirect(camera, scene, geometry, stock, object, { start: 0, count: 0, materialIndex: 0 }); };
+    renderer.shadowMap.render([], scene, camera);
+  };
+  const alike = new SkinnedMesh(geometry, [new MeshStandardMaterial(), new MeshStandardMaterial()]);
+  const mixed = new SkinnedMesh(geometry, [new MeshStandardMaterial(), new MeshStandardMaterial({ side: DoubleSide })]);
+  shadowDraw(alike); shadowDraw(mixed);
+  expect(alike.customDepthMaterial).toBeInstanceOf(MeshDepthMaterial);
+  expect(mixed.customDepthMaterial).toBeUndefined();
+  page.dispose();
 });

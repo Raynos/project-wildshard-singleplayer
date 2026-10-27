@@ -18,11 +18,23 @@ type ShadowRenderer = Pick<Renderer, 'renderBufferDirect'> & { shadowMap: Pick<R
  * kind is also keyed by those facts of the caster's material: the plan-end probe found every Template `family:pbr`
  * caster skipped, as its white filler map reached the stock material first. A caster whose depth three would give a
  * per-material variant (`WebGLShadowMap.getDepthMaterial`: a map or alpha map with an alpha test, displacement, shadow
- * clipping, alpha to coverage), a multi-material caster and a vertex-moving graph (the graph back-end's own depth
- * variant, `graphShadowDepth`) stay as they were.
+ * clipping, alpha to coverage) and a vertex-moving graph (the graph back-end's own depth variant, `graphShadowDepth`)
+ * stay as they were; a multi-material caster takes a kind only when every one of its materials has the same depth facts.
  */
 function depthKind(object: Object3D): string | null {
   const own: unknown = Reflect.get(object, 'material');
+  const materials: readonly unknown[] = Array.isArray(own) ? own : [own];
+  const facts = materials.map(depthFacts);
+  const first = facts[0];
+  if (first === undefined || first === null || facts.some(fact => fact !== first)) return null;
+  const base = object instanceof InstancedMesh ? `instanced${object.instanceColor === null ? '' : '+colour'}${object.morphTexture === null ? '' : '+morph'}`
+    : object instanceof SkinnedMesh ? 'skinned' : null;
+  return base === null ? null : `${base}|${first}`;
+}
+
+/** the depth facts three copies from a caster's material onto its depth material, or null where three gives that material
+ *  a depth variant of its own (or the graph back-end does) */
+function depthFacts(own: unknown): string | null {
   if (!(own instanceof Material)) return null;
   if (Reflect.get(own, 'isNodeMaterial') === true && own.userData['graphShadowDepth'] === true) return null;
   const field = (name: string): unknown => Reflect.get(own, name);
@@ -30,12 +42,9 @@ function depthKind(object: Object3D): string | null {
   const displacement = field('displacementScale');
   if ((has('displacementMap') && displacement !== 0) || ((has('map') || has('alphaMap')) && own.alphaTest > 0) || own.alphaToCoverage
     || (own.clipShadows && (own.clippingPlanes?.length ?? 0) > 0)) return null;
-  const base = object instanceof InstancedMesh ? `instanced${object.instanceColor === null ? '' : '+colour'}${object.morphTexture === null ? '' : '+morph'}`
-    : object instanceof SkinnedMesh ? 'skinned' : null;
-  if (base === null) return null;
   const facts = [has('map') ? 'map' : '', has('alphaMap') ? 'alpha' : '', own.alphaTest > 0 ? 'test' : '', has('displacementMap') ? 'displace' : '',
     field('wireframe') === true ? 'wire' : '', `side${String(own.shadowSide ?? own.side)}`];
-  return `${base}|${facts.filter(fact => fact !== '').join('+')}`;
+  return facts.filter(fact => fact !== '').join('+');
 }
 
 /** Install after upload observation: native shadow cache materials must be registered before their first upload.
