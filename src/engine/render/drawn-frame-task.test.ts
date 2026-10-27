@@ -3,8 +3,8 @@ import { Scope } from '../app/scope';
 import { installScopeEnvironment, scopeEnvironment } from '../app/scopeEnvironment';
 import { waitForDrawnFrame } from './precompile';
 
-const environment = scopeEnvironment();
-afterEach(() => { installScopeEnvironment(environment); vi.unstubAllGlobals(); vi.useRealTimers(); });
+const environment = scopeEnvironment(), messageChannel = globalThis.MessageChannel;
+afterEach(() => { installScopeEnvironment(environment); Reflect.set(globalThis, 'MessageChannel', messageChannel); vi.useRealTimers(); });
 
 function frames(): () => void {
   const queue = new Map<number, FrameRequestCallback>(); let id = 0, time = 0;
@@ -18,7 +18,7 @@ function messages(): { readonly queued: (() => void)[]; readonly closed: (() => 
     start(): void { /* Controlled delivery below. */ }
     close(): void { this.stopped = true; }
   }
-  vi.stubGlobal('MessageChannel', class {
+  Reflect.set(globalThis, 'MessageChannel', class {
     readonly port1 = new Port();
     readonly port2 = { close: (): void => { this.secondClosed = true; }, postMessage: (): void => { queued.push(() => { if (!this.port1.stopped) this.port1.dispatchEvent(new Event('message')); }); } };
     private secondClosed = false;
@@ -57,7 +57,7 @@ test.each(['owner', 'current'])('retiring %s before message delivery refuses bef
 });
 
 test('without message ports the completed draw retains its timer task', async () => {
-  vi.useFakeTimers(); vi.stubGlobal('MessageChannel', undefined);
+  vi.useFakeTimers(); Reflect.set(globalThis, 'MessageChannel', undefined);
   const frame = frames(), scope = new Scope('native-timer'); let drawn = 1, done = false;
   try {
     const pending = waitForDrawnFrame(scope, () => drawn, () => true).then(() => { done = true; return undefined; });
