@@ -30,7 +30,7 @@ import { timeClientPreparation } from './preparationTiming';
 import { lendLooks, setLentParam } from './lentLooks';
 import type { SceneHandles } from './sceneHandles';
 import type { ShardContext } from '../plugin/context';
-import { followResidentTiles, residentTiles, TILE_RING } from './tileDriver';
+import { followResidentTiles, residentTiles, tileRing } from './tileDriver';
 import { bucketByTile, followTile, ring, tileKey } from './tileContent';
 import { tileOf, type CellTile } from './tileOrder';
 import { withOwner } from '@wildshard/engine/app/ownership';
@@ -173,7 +173,7 @@ export async function placeForestPageModels(ctx: ShardContext, id: string): Prom
   const models = sharedModelContext(h.sky, h), trees = treeSetModel(ctx.product.section('world/trees'));
   const variants = trees.model.variants; if (variants === undefined) throw new Error('Forest model requires its variants');
   // tile streaming P3/P4: the trees and the floor cover keep to the tiles around the viewer (the trees' follower moves the ring)
-  const radius = TILE_RING, residency = { resident: (_x: number, _z: number): boolean => true };
+  const radius = tileRing(), residency = { resident: (_x: number, _z: number): boolean => true };
   if (forest !== null && forest.trees.length > 0) {
     if (forest.drawer !== 'model' || forest.factory.variants.length !== variants.length) {
       const own = forest.drawer === 'model'; forest.drawItself();

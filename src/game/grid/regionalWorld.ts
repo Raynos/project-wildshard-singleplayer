@@ -94,7 +94,7 @@ import { clientViews } from '../shardfile/clientViews';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { shardfileLook } from '../shardfile/look';
 import { findShard } from '../shard/registry';
-import { followRing, TILE_RING } from '../shardfile/tileDriver';
+import { followRing, tileRing } from '../shardfile/tileDriver';
 
 /** Page-root ports; every default is the standalone behaviour, the live session supplies the cell's own installs. */
 export interface RegionalWorldPorts {
@@ -169,7 +169,7 @@ async function regionalPresentation(admitted: AdmittedProduct, start: { readonly
   if (registration !== undefined && data.props !== null) await views.library(data.props, assets.retained, scope);
   const entry = { source: data, assets, root, views: views.tiles };
   const tiles = registration === undefined ? await standaloneClientTiles(entry, scope, {
-    instance, budget: allocator, radius: () => TILE_RING, start, viewer: () => position,
+    instance, budget: allocator, radius: tileRing, start, viewer: () => position,
     library: owner => data.props === null ? Promise.resolve(null) : views.library(data.props, assets.retained, owner),
     pause: () => buildYield(scope), frame: run => { frame = run; },
   }) : await registration.enter(instance, entry, scope, start);

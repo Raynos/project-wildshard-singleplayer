@@ -325,6 +325,7 @@
     "./ui/WindupWarn": "./ui/WindupWarn.ts",
     "./ui/authoredDebugRows": "./ui/authoredDebugRows.ts",
     "./ui/debugOptions": "./ui/debugOptions.ts",
+    "./ui/tileResidency": "./ui/tileResidency.ts",
     "./ui/errorScreen": "./ui/errorScreen.ts",
     "./ui/haptics": "./ui/haptics.ts",
     "./ui/hudAdapters": "./ui/hudAdapters.ts",

@@ -26,6 +26,7 @@ import { markReload } from '../boot/lastEnd';
 import { settingsReloadUrl } from './Settings';
 import type { DebugRowSpec } from '../level/context';
 import { isDev, onDev } from '../core/devMode';
+import { setTileResidency, tileResidency, TILE_RESIDENCY } from './tileResidency';
 
 const scope = uiScope('debugOptions', app.engineScope);
 
@@ -150,6 +151,12 @@ const clearDownloadsRow = action('clearDownloads', 'tools', engineString('s_59cb
 });
 
 
+/** Tile streaming T5 (G775): an entered world's tile ring, 3 x 3 / the shipped 5 x 5 / the whole cell; a reload. */
+const tileResidencyRow: DebugRow = { purpose: 'developer', id: 'tileResidency', group: 'perf', label: engineString('s_tile_residency'),
+  choices: () => [{ v: '5x5', text: engineString('s_tile_residency_5x5') }, { v: '3x3', text: engineString('s_tile_residency_3x3') }, { v: 'whole', text: engineString('s_tile_residency_whole') }],
+  get: () => tileResidency(), set: value => { const pick = TILE_RESIDENCY.find(choice => choice === value); if (pick !== undefined && isDev()) setTileResidency(pick); },
+  on: () => undefined, reload: true, when: always, note: engineString('s_tile_residency_note'), ask: 'E435', reviewBy: '2026-12-30' };
+
 export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Look ──
 
@@ -160,6 +167,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Creatures & NPCs ──
 
   // ── Performance ──
+  tileResidencyRow,
 
   // ── Loading & memory ──
   clearDownloadsRow,

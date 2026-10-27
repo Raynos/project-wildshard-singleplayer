@@ -94,7 +94,7 @@ import { leaseMapImage } from '../shardfile/mapImage';
 import { crossingSaveStatus, installBorderShimmer, type BorderShimmerState, type CrossingSaveStatus } from './borderShimmer';
 import { GAME_STRINGS } from '../strings';
 import { GridCellWaitingError, classifyRefusal, pageShardRefusals, refusalReason, type ShardRefusal } from './refusal';
-import { TILE_RING } from '../shardfile/tileDriver';
+import { tileRing } from '../shardfile/tileDriver';
 import { CellLoading, type CellLoadingInput } from './cellLoading';
 import { CellScreen, facingEdge } from './cellScreens';
 import { readGridSeamData, type GridSeamAddress } from './seamData';
@@ -634,7 +634,7 @@ export class GridSession {
     });
     this.rings = new TileStreamer(this.neighbours, this.allocator, catalogue,
       levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports), { farRadius: FAR_RING.reach, uploadsPerFrame: 1, uploadBytesPerFrame: 4_000_000 });
-    this.clientTiles = clientTileRegistration(tiles.instances, this.rings, () => TILE_RING, id => this.farMeshes.has(id));
+    this.clientTiles = clientTileRegistration(tiles.instances, this.rings, tileRing, id => this.farMeshes.has(id));
     this.admitNeighbour = host.renderer === undefined ? undefined : this.tileAdmission(host.renderer, roots);
     host.scope.onDispose(() => {
       this.clientTiles.dispose(); this.rings.dispose();

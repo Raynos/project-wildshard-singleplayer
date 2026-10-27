@@ -4,13 +4,14 @@
  * geometry, instance ranges, colliders); render tiles fill a ring of `radius` tiles around the player's tile, collider
  * tiles the 3 x 3 inside it (D2 B).
  *
- *   const driver = new TileDriver(scope, handles.tiled(), () => TILE_RING, () => buildYield(scope));
+ *   const driver = new TileDriver(scope, handles.tiled(), tileRing, () => buildYield(scope));
  *   await driver.require(order.tiles.filter(tile => order.rank(tile) === 0).map(tileKey));   // before controls
  *   ctx.system({ id, phase: 'update', run: () => { driver.step(local.x, local.z); } });       // the rest, nearest first
  *
  * One tile attaches at a time; a tile that fails stays out (it is reported once, never retried in a loop).
  * The entered ring is at most 5 x 5; the former whole-cell override is retired (G669/G747).
  */
+import { tileResidencyRadius } from '@wildshard/engine/ui/tileResidency';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { frameBudgetSpent } from '@wildshard/engine/core/framePacing';
 import { buildYield, WORK_SLICE_MS } from '@wildshard/engine/core/workSlice';
@@ -143,6 +144,9 @@ export const tileKeys = (tiles: readonly CellTile[]): number[] => tiles.map(tile
 
 /** The render ring's radius in tiles (G669 DR11: the 5 x 5 around the player's tile; its colliders the 3 x 3 inside). */
 export const TILE_RING = 2;
+/** Tile streaming T5 (G775): the render ring the Debug row picks (Developer; off, the shipped 5 x 5): 3 x 3 is 1, the whole
+ *  cell 8. Creatures keep sleeping beyond the 5 x 5 (`followRing`'s default). */
+export function tileRing(): number { return tileResidencyRadius(); }
 
 /**
  * T6: the render ring as a viewer-following test (a creature manager's residency, `AnimalManager.setResidency`): given the
@@ -180,7 +184,7 @@ export function residentTiles(resident: Scope, contents: readonly TileContent[],
   const pending = Promise.resolve().then(async () => {
     const live = (): void => { if (resident.disposed || resident.disposing) throw new Error('Tile resident is disposed'); };
     live();
-    const driver = drivers.get(resident) ?? new TileDriver(resident, contents, () => TILE_RING, () => buildYield(resident)), order = tileOrder(spawn, entryways);
+    const driver = drivers.get(resident) ?? new TileDriver(resident, contents, tileRing, () => buildYield(resident)), order = tileOrder(spawn, entryways);
     await driver.require(tileKeys(order.tiles.filter(tile => order.rank(tile) === 0))); live();
     await driver.coarse(spawn.x, spawn.z); live();
     drivers.set(resident, driver); preparation.complete = true;
