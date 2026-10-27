@@ -6,7 +6,10 @@ import { WorldSceneWeldSchema, type WorldSceneWeld } from '@wildshard/format/wor
 import { BuildingLifeRowsSchema , type BuildingLifeRows as BuildingLifeRowsType } from '@wildshard/format/buildings';
 import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
 import baked from '../data/cabinLivingScenes.generated.json' with { type: 'json' };
-import cabins from '../data/cabins.json' with { type: 'json' };
+import { pineCabins } from './bake-pine-cabins.mjs';
+
+const cabins = pineCabins().rows;
+
 
 const id = v.string(), geometry = v.object({ key: id, id, source: v.object({ library: id, model: id }) });
 export const CabinLivingProfileSchema: v.ObjectSchema<{ readonly tier: v.PicklistSchema<["phone", "desktop"], undefined>; readonly shadow: v.BooleanSchema<undefined>; readonly shared: v.BooleanSchema<undefined>; readonly file: v.StringSchema<undefined>; readonly graph: v.GenericSchema<unknown, WorldSceneWeld>; readonly life: v.GenericSchema<unknown, BuildingLifeRowsType>; readonly geometry: v.ArraySchema<v.ObjectSchema<{ readonly key: v.StringSchema<undefined>; readonly id: v.StringSchema<undefined>; readonly source: v.ObjectSchema<{ readonly library: v.StringSchema<undefined>; readonly model: v.StringSchema<undefined>; }, undefined>; }, undefined>, undefined>; }, undefined> = v.object({ tier: v.picklist(['phone', 'desktop']), shadow: v.boolean(), shared: v.boolean(), file: id,

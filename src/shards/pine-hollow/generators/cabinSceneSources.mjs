@@ -1,13 +1,12 @@
 /** Original cabin geometry and glTF hierarchy, decoded without a Node image host. */
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
-import {fileURLToPath} from 'node:url';
-import {inflateSync} from 'node:zlib';
 import {Mesh} from 'three';
 import {GeometryPack,packedRows} from '@wildshard/sdk/kit/geometryPack';
 import {readSourceModel} from '@wildshard/sdk/bake/skinned';
 import {pineCabinPropParts} from './cabinPropMaterials.mjs';
 import {pineCabinPropShapes} from './cabinPropShapes.ts';
+import {pineCabins} from './bake-pine-cabins.mjs';
 import {BakedPiece} from '@wildshard/sdk/bake';
 
 const root=new URL('../../../../',import.meta.url),project=new URL('../',import.meta.url);
@@ -57,7 +56,7 @@ async function model(url){
 /** All shape data comes from the published native pack or original glTF buffers. */
 export async function cabinSceneSources(tier){
  if(!['phone','desktop'].includes(tier))throw new Error('Cabin author tier differs');
- const rows=readJson(new URL('data/cabins.json',project)),packed=readFileSync(new URL('public/assets/pine-hollow/baked/cabins.bin',root)),bytes=Uint8Array.from(inflateSync(packed));
+ const {rows,bin:bytes}=pineCabins();
  if(createHash('sha256').update(bytes).digest('hex')!==rows.bin)throw new Error('Cabin native geometry pack hash differs');
  const geometryPack=new GeometryPack(bytes,packedRows(rows),'native cabin scene'),geometry=new Map();
  for(let i=0;i<rows.geometries.length;i++){
@@ -75,5 +74,5 @@ export async function cabinSceneSources(tier){
  }
  const firePit=await model('/assets/models/stone_fire_pit/stone_fire_pit.gltf');
  const lantern=await model(`/assets/models/Lantern_01/Lantern_01_lod${tier==='phone'?'.phone':''}.glb`);
- return{tier,rows,geometry,props,firePit,lantern,inputFiles:[fileURLToPath(new URL('data/cabins.json',project)),fileURLToPath(new URL('public/assets/pine-hollow/baked/cabins.bin',root))]};
+ return{tier,rows,geometry,props,firePit,lantern};
 }

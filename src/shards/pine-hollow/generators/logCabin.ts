@@ -1,9 +1,9 @@
 /**
  * The log kit (E315 M2; PINE-HOLLOW-REMASTER; G285: an offline bake). Build-time only: `src/shards/pine-hollow/generators/bake-pine-cabins.mjs`
- * runs `bakePineCabins` over Pine Hollow's baked terrain and writes every log building — the three cabins (the ranger's in
- * the Hollow, the east cabin, the ridge cabin) and the mill hamlet's five (the lodge, the trader's stall, the miller's
- * house, the watermill, the shed) — to `public/assets/pine-hollow/baked/cabins.bin` (zlib) + `data/cabins.json`; the page
- * assembles them (../world/cabinBake.ts) and never runs this. test/shards/pine-hollow/cabin-bake.test.ts is the stale gate.
+ * `pineCabins` runs `bakePineCabins` over Pine Hollow's baked terrain for every log building — the three cabins (the
+ * ranger's in the Hollow, the east cabin, the ridge cabin) and the mill hamlet's five (the lodge, the trader's stall, the
+ * miller's house, the watermill, the shed) — as one geometry binary and its rows, which the cabin scenes, cabin living and
+ * the ambience read.
  *
  * Built procedurally for the Poly Haven PBR sets: every wall log is a real cylinder (round silhouette, interleaved
  * notched-corner overhangs, chinking slab behind), the roof is planks over rafters + purlins + a ridge log, doors are
@@ -14,7 +14,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { PineSeedStream as Rng } from './seedStream';
-import { bake, BakedPiece, type BakedScene } from '@wildshard/sdk/bake';
+import { BakedPiece } from '@wildshard/sdk/bake';
 import * as LAYOUT from './layout';
 import { BOARDS, BOARD_LEN, PROP_BOXES, boxUV, logGeo, swapUV, type BakedBuilding, type BakedGeometry, type BakedLight, type BakedNode, type CabinRows,
   type Collider, type Floor, type KitMat as MatKey, type LightKind, type PropKind, type Room } from './cabinShapes';
@@ -1320,16 +1320,3 @@ export function pineCabinScene(heightAt: (x: number, z: number) => number, whole
   return scene;
 }
 
-/** Central scene bake of the complete native shape library, without fabricating static doors or particles. */
-export function pineCabinBake(heightAt: (x: number, z: number) => number, project?: string): BakedScene {
-  const scene = pineCabinScene(heightAt);
-  try { return bake(scene, { slug: 'pine-hollow', name: 'Pine Hollow' }, project === undefined ? {} : { project }); }
-  finally {
-    for (const piece of scene.children) for (const mesh of piece.children) {
-      if (!(mesh instanceof THREE.InstancedMesh)) continue;
-      const geometry: unknown = mesh.geometry, material: unknown = mesh.material;
-      if (geometry instanceof THREE.BufferGeometry) geometry.dispose();
-      if (material instanceof THREE.Material) material.dispose();
-    }
-  }
-}

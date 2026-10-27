@@ -4105,47 +4105,6 @@
       "seedOutputs": []
     },
     {
-      "id": "pine-cabins",
-      "shard": "pine-hollow",
-      "entry": "src/shards/pine-hollow/generators/bake-pine-cabins.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/pine-hollow/generators/bake-pine-cabins.mjs"
-      ],
-      "inputRoots": [
-        "src/sdk",
-        "src/format",
-        "src/commons",
-        "src/shards/pine-hollow/generators/logCabin.ts",
-        "src/shards/pine-hollow/generators/cabinShapes.ts",
-        "src/shards/pine-hollow/generators/seedStream.ts",
-        "src/shards/pine-hollow/generators/bake-pine-cabins.mjs",
-        "src/shards/pine-hollow/generators/layout.ts",
-        "public/assets/baked/pine-hollow/terrain.bin",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/shards/pine-hollow/data/logKit.json"
-      ],
-      "outputs": [
-        "public/assets/pine-hollow/baked/cabins.bin",
-        "src/shards/pine-hollow/data/cabins.json",
-        "public/assets/pine-hollow/baked/cabins.glb",
-        "src/shards/pine-hollow/data/cabinsGlb.generated.json"
-      ],
-      "platform": "portable",
-      "seedOutputs": [
-        "src/shards/pine-hollow/data/cabins.json"
-      ],
-      "buildOutputs": {
-        "public/assets/pine-hollow/baked/cabins.bin": "a9a08e6ceb639dda4eb6f0ed9a7828ef42e67c496b2c782cbd0ebf2e91b41d16",
-        "public/assets/pine-hollow/baked/cabins.glb": "c5e7fee54f043a6e998f32c4b34463b7673726e4c64abbeda111efd7bc7482f8",
-        "src/shards/pine-hollow/data/cabinsGlb.generated.json": "6c8d19f6010414c600092c4eb3eb29c9e6015268e8dd7d89104bbfada77711df"
-      }
-    },
-    {
       "id": "pine-crags",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-pine-crags.mjs",
@@ -4645,6 +4604,13 @@
         "src/shards/pine-hollow/generators/bake-timber-scenes.mjs"
       ],
       "inputRoots": [
+        "src/shards/pine-hollow/generators/logCabin.ts",
+        "src/shards/pine-hollow/generators/cabinShapes.ts",
+        "src/shards/pine-hollow/generators/seedStream.ts",
+        "src/shards/pine-hollow/generators/bake-pine-cabins.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
         "src/shards/pine-hollow/generators/bake-timber-scenes.mjs",
         "src/shards/pine-hollow/generators/timberScenes.ts",
         "src/shards/pine-hollow/generators/timberWholeViews.ts",
@@ -4661,7 +4627,6 @@
         "src/shards/pine-hollow/generators/questSites.ts",
         "src/shards/pine-hollow/generators/ambience.ts",
         "src/shards/pine-hollow/data/hollowLog.json",
-        "src/shards/pine-hollow/data/cabins.json",
         "src/shards/pine-hollow/generators/layout.ts",
         "public/assets/baked/pine-hollow/terrain.bin",
         "src/shards/pine-hollow/data/questRideModels.json",
@@ -4770,6 +4735,15 @@
         "src/shards/pine-hollow/generators/bake-cabin-scenes.mjs"
       ],
       "inputRoots": [
+        "src/shards/pine-hollow/generators/logCabin.ts",
+        "src/shards/pine-hollow/generators/cabinShapes.ts",
+        "src/shards/pine-hollow/generators/seedStream.ts",
+        "src/shards/pine-hollow/generators/bake-pine-cabins.mjs",
+        "src/shards/pine-hollow/generators/layout.ts",
+        "public/assets/baked/pine-hollow/terrain.bin",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
         "src/shards/pine-hollow/generators/bake-cabin-scenes.mjs",
         "src/shards/pine-hollow/generators/cabinScenes.ts",
         "src/shards/pine-hollow/generators/cabinSceneAssembly.ts",
@@ -4777,12 +4751,10 @@
         "src/shards/pine-hollow/generators/cabinWeld.ts",
         "src/shards/pine-hollow/generators/cabinPropMaterials.mjs",
         "src/shards/pine-hollow/generators/cabinPropShapes.ts",
-        "src/shards/pine-hollow/data/cabins.json",
         "src/shards/pine-hollow/data/buildingLook.json",
         "src/shards/pine-hollow/data/plumbing.json",
         "src/shards/pine-hollow/data/logKit.json",
         "src/shards/pine-hollow/data/timberWorld.generated.json",
-        "public/assets/pine-hollow/baked/cabins.bin",
         "scripts/bake-output.mjs",
         "src/sdk",
         "src/format",
@@ -8074,19 +8046,16 @@
         "src/sdk/package.json",
         "src/sdk/formatJsonSchema.ts",
         "src/shards/pine-hollow/generators/sections.ts",
-        "scripts/section-types.mjs",
-        "src/shards/pine-hollow/data/cabins.json"
+        "scripts/section-types.mjs"
       ],
       "outputs": [
         "src/shards/pine-hollow/generators/sectionSchemas.generated.ts",
-        "src/shards/pine-hollow/runtime/productSections.generated.d.ts",
-        "src/shards/pine-hollow/data/cabins.d.json.ts"
+        "src/shards/pine-hollow/runtime/productSections.generated.d.ts"
       ],
       "platform": "portable",
       "buildTimeOutputs": [
         "src/shards/pine-hollow/generators/sectionSchemas.generated.ts",
-        "src/shards/pine-hollow/runtime/productSections.generated.d.ts",
-        "src/shards/pine-hollow/data/cabins.d.json.ts"
+        "src/shards/pine-hollow/runtime/productSections.generated.d.ts"
       ]
     },
     {
@@ -9223,6 +9192,15 @@
         "src/shards/pine-hollow/generators/bake-cabin-living.mjs"
       ],
       "inputRoots": [
+        "src/shards/pine-hollow/generators/logCabin.ts",
+        "src/shards/pine-hollow/generators/cabinShapes.ts",
+        "src/shards/pine-hollow/generators/seedStream.ts",
+        "src/shards/pine-hollow/generators/bake-pine-cabins.mjs",
+        "src/shards/pine-hollow/generators/layout.ts",
+        "public/assets/baked/pine-hollow/terrain.bin",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
         "src/shards/pine-hollow/generators/bake-cabin-living.mjs",
         "src/shards/pine-hollow/generators/cabinScenes.ts",
         "src/shards/pine-hollow/generators/cabinSceneAssembly.ts",
@@ -9230,12 +9208,10 @@
         "src/shards/pine-hollow/generators/cabinWeld.ts",
         "src/shards/pine-hollow/generators/cabinPropMaterials.mjs",
         "src/shards/pine-hollow/generators/cabinPropShapes.ts",
-        "src/shards/pine-hollow/data/cabins.json",
         "src/shards/pine-hollow/data/buildingLook.json",
         "src/shards/pine-hollow/data/plumbing.json",
         "src/shards/pine-hollow/data/logKit.json",
         "src/shards/pine-hollow/data/timberWorld.generated.json",
-        "public/assets/pine-hollow/baked/cabins.bin",
         "scripts/bake-output.mjs",
         "src/sdk",
         "src/format",

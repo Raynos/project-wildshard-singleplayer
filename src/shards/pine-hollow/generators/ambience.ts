@@ -1,4 +1,7 @@
-import cabins from '../data/cabins.json' with { type: 'json' };
+import { pineCabins } from './bake-pine-cabins.mjs';
+
+const cabins = pineCabins().rows;
+
 
 /** Audio surfaces and fire emitters follow the original cabin-then-hamlet build order. */
 export function cabinAmbienceRows(): { floors: { x: number; z: number; rot: number; hw: number; hd: number; y: number }[]; firePits: { x: number; y: number; z: number }[] } {

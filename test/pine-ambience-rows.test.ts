@@ -2,9 +2,11 @@ import { expect, test } from 'vitest';
 import { cabinAmbienceRows } from '../src/shards/pine-hollow/generators/ambience';
 import * as v from 'valibot';
 import { CabinAmbienceSchema } from '../src/shards/pine-hollow/generators/sections';
-import { output } from '../src/shards/pine-hollow/generators/output';
-import cabins from '../src/shards/pine-hollow/data/cabins.json' with { type: 'json' };
+import { PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';
+import { pineCabins } from '../src/shards/pine-hollow/generators/bake-pine-cabins.mjs';
 import { floorAtRects } from '../src/engine/physics/box';
+
+const cabins = pineCabins().rows;
 
 test('Pine emits cabin audio floors and fires in the live assembly order', () => {
   const rows = v.parse(CabinAmbienceSchema, cabinAmbienceRows());

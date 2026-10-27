@@ -6,11 +6,13 @@ import { nameBlob } from '@wildshard/sdk/blobs';
 import { parseWorldSceneWeld, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
 import baked from '../data/cabinScenes.generated.json' with { type: 'json' };
-import cabins from '../data/cabins.json' with { type: 'json' };
+import { pineCabins } from './bake-pine-cabins.mjs';
 import logKit from '../data/logKit.json' with { type: 'json' };
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import { HEARTH_LOOKS } from './hearthLook';
 import { CABIN_LIVING_LIBRARIES, CABIN_LIVING_BLOBS, CABIN_SITES, cabinLivingResources } from './cabinLivingContribution';
+
+const cabins = pineCabins().rows;
 
 const text = v.string(), words = v.array(v.number()), contacts = v.array(v.unknown());
 const registration = v.variant('kind', [
