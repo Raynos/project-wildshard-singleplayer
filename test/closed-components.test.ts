@@ -48,7 +48,7 @@ test('erased JSON declarations stay zero while executable JSON-suffix files rema
   const put = (path: string, source: string): void => { mkdirSync(dirname(join(root, path)), { recursive: true }); writeFileSync(join(root, path), source); };
   const contract = 'import type { Rows } from "./types";\ndeclare const rows: Rows;\nexport default rows;\n';
   try {
-    for (const path of ['species/horse.d.json.ts', 'creatures/flock.d.json.ts', 'data/reins.d.json.ts'])
+    for (const path of ['species/example.d.json.ts', 'creatures/example.d.json.ts', 'data/example.d.json.ts'])
       put(`src/shards/nalati-grasslands/${path}`, contract);
     expect(closedComponentSources(root, policy)).toEqual([]);
     const executable = 'src/shards/nalati-grasslands/creatures/extra.d.json.ts';

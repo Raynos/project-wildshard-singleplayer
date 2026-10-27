@@ -27,7 +27,6 @@
     "../../../public/assets/baked/nalati-grasslands/terrain.bin",
     "../../sdk/random.ts",
     "species/horse.json",
-    "species/horse.d.json.ts",
     "data/speciesRows.json",
     "../../format/materialFamilies.ts",
     "../../format/materials.ts",

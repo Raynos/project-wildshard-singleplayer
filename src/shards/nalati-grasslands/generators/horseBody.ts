@@ -3,8 +3,13 @@ import type { Rng } from '@wildshard/engine/core/rng';
 import { loft, tube, skinPlain, S, boneIndex, mix, srgb, paletteColors, type Station, type Paint } from '@wildshard/engine/entities/species/loft';
 import type { AnimalSpecies, BoneDef, VariantDef } from '@wildshard/engine/entities/species/registry';
 import * as THREE from 'three';
+import { parse, strictObject, tuple, number } from 'valibot';
 import { lock, hash01, wrapPatch, type V3, type Skin, type Section } from './shape';
 import horseRows from '../species/horse.json' with { type: 'json' };
+
+const rgb = tuple([number(), number(), number()]);
+const horsePalette = parse(strictObject({ coat: rgb, belly: rgb, points: rgb, mane: rgb, muzzle: rgb,
+  sock: rgb, hoof: rgb, eye: rgb, earIn: rgb, dorsal: rgb }), horseRows.palette);
 
 /**
  * Build-time only (SHARD-PLATFORM M3, Nalati's species bodies bake): the wild steppe horse's painterly lofts, moved from
@@ -12,7 +17,7 @@ import horseRows from '../species/horse.json' with { type: 'json' };
  * writes them to `public/assets/nalati/baked/bodies.bin`; the page only reads the bake (`species/bodies.ts`).
  */
 function horsePaint(v: VariantDef): Paint {
-  const P = paletteColors(horseRows.palette, v.tint);
+  const P = paletteColors(horsePalette, v.tint);
   const blaze = Boolean(v.traits?.['blaze']);
   const socks = Number(v.traits?.['socks'] ?? 0);
   const dappled = Boolean(v.traits?.['dapple']);

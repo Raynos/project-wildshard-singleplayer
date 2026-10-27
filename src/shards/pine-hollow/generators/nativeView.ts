@@ -16,6 +16,7 @@ import { grazerRows } from './grazers';
 import thrall from '../data/thrallLook.json' with { type: 'json' };
 import { THRALL_CLIPS } from './thrallClips';
 import kingLook from '../data/antlerKingLook.json' with { type: 'json' };
+import { parse, picklist } from 'valibot';
 
 // GR8: called, not read from a scheduler job's output
 const bossCollision = pineKingCollision();
@@ -41,7 +42,7 @@ derived: { 'antler-king': { from: string; label: string; fields: { aggressive: b
   // the Antler King (E322 F-M1): the elk's fields as 'antler-king', the fight's own AI, no blood (bark), on his own upright
   // rig: the hull's joints and hit volumes and the shared limb host's rig, blend and clips (generators/kingRig.ts)
   derived: { 'antler-king': { from: 'elk', label: 'The Antler King', fields: { aggressive: true, blood: false, walkSpeed: 2.2, chargeSpeed: 13,
-    sounds: { call: 'elk_bugle', hurt: 'bear_hurt', callEvery: [600, 900] }, eyeGlow: [1.0, 0.55, 0.15], eyeGlowIntensity: 2.5 }, coat: kingLook.KING_COAT,
+    sounds: { call: 'elk_bugle', hurt: 'bear_hurt', callEvery: [600, 900] }, eyeGlow: [1.0, 0.55, 0.15], eyeGlowIntensity: 2.5 }, coat: { ...kingLook.KING_COAT, rarity: parse(picklist(['common', 'uncommon', 'rare', 'legendary']), kingLook.KING_COAT.rarity) },
     rig: { skeleton: 'antler-king.v1', sockets: ['body', 'head'], bones: KING_BONES, dims: kingLook.KING_OWN_RIG.dims, spec: KING_RIG, blend: rigBlend, clips: rigClips },
     think: 'external', damage: 'roamingBoss' } } };
 
