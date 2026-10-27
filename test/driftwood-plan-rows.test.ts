@@ -9,6 +9,9 @@ import { BakedPlanSchema } from '../src/format/bakedTiles';
 import { bakeIslandPlan, islandPlacements } from '../src/shards/driftwood-isle/generators/islandCover';
 import files from '../src/shards/driftwood-isle/data/islandPlanFiles.json' with { type: 'json' };
 import original from './fixtures/driftwood-plan-rows.json' with { type: 'json' };
+import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import { builtProduct } from './fixtures/builtProduct';
+import { DRIFTWOOD_PLAN_FILES } from '../src/shards/driftwood-isle/generators/productPageFiles';
 
 const meta = v.parse(v.object({ protos: v.array(v.object({ name: v.string(), kind: v.string() })),
   mustDraw: v.number(), colliders: BakedPlanSchema.entries.unclaimed }),
@@ -16,9 +19,10 @@ JSON.parse(readFileSync('public/assets/models/driftwood-blender/island.json', 'u
 const placements = islandPlacements(Uint8Array.from(readFileSync('public/assets/models/driftwood-blender/placements.bin')).buffer);
 const hash = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
 
-test.each(['phone', 'desktop'] as const)('%s retains every consumed plan field without packed unused bounds', tier => {
+test.each(['phone', 'desktop'] as const)('%s retains every consumed plan field without packed unused bounds', async tier => {
   const rows = bakeIslandPlan(placements, meta, tier === 'phone', DRIFTWOOD_ISLAND_FACTS), bytes = new TextEncoder().encode(JSON.stringify(rows));
-  const before = original[tier], file = files[tier], shipped = readFileSync(`public${file.url}`);
+  const product = await loadHeadlessProduct(builtProduct('driftwood-isle'));
+  const before = original[tier], file = files[tier], shipped = await product.file(DRIFTWOOD_PLAN_FILES[tier]);
   expect(hash(bytes)).toBe(before.hash);
   expect(new Uint8Array(shipped)).toEqual(bytes);
   expect(file.url).toBe(`/assets/driftwood-isle/baked/island-plan-${before.hash}.json`);

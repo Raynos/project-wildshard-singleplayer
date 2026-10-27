@@ -1,4 +1,6 @@
 {
+  "test/driftwood-plan-rows.test.ts": ["driftwood-isle"],
+  "test/quest-continuation-product.test.ts": ["driftwood-isle"],
   "test/pine-life-authoring.test.ts": ["pine-hollow"],
   "test/pine-trade-catalogue.test.ts": ["pine-hollow"],
   "test/driftwood-product-reads.test.ts": ["driftwood-isle"],
