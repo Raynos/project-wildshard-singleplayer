@@ -2,7 +2,6 @@
 import type { FieldModelsContext } from '../shard/manifest';
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, Group, Matrix4, MeshStandardMaterial, Object3D, Points, PointsMaterial, Quaternion, Vector3 } from 'three';
 import * as v from 'valibot';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { macrotask, slicer } from '@wildshard/engine/boot/plan';
 import { buildTier, TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
@@ -44,7 +43,6 @@ export interface ForestPage {
   readonly rows: ForestPageRows; readonly resources: SceneHandles; readonly cabins: LivingPage;
   readonly grass: Grass; readonly under: ForestGround; readonly particles: Particles;
   readonly streams: { group: Group; water: Object3D; spray: Object3D };
-  readonly props: { colliderDescs: () => ColliderDesc[] };
   readonly update: (dt: number, time: number) => void;
   readonly roofAt: (x: number, z: number) => boolean; readonly finish: () => Promise<void>;
   /** Light or bank one declared lantern: its glow point and its pooled lamp site. */
@@ -90,20 +88,20 @@ export async function prepareForestPage(ctx: ShardContext, input: unknown): Prom
     life.persist(ctx.app.saves, owner, { id: ctx.manifest.slug, shard: ctx.manifest.slug, group: row.save }); life.registerDoors(registry, player.position);
     for (const prompt of life.interactables) setSight(prompt, { slack: row.sightSlack }); return page;
   });
-  const contacts: ColliderDesc[] = [], props = { colliderDescs: () => [...contacts] };
   const lanterns = await forestLanterns(ctx, rows, cabins); game.scene.add(lanterns.points);
   const eye = new Vector3(), sun = [1, 1, 1], row = rows.buildings;
   let finished = false;
-  const page: ForestPage = { rows, resources, cabins, ...carpet, streams, props,
+  const page: ForestPage = { rows, resources, cabins, ...carpet, streams,
     finish: async () => { if (finished) throw new Error('Forest page already finished'); finished = true;
       await step('props', async () => {
         // tile streaming P5: a landmark placement goes by tile (its draws on the render ring, its colliders on the collider
-        // ring, a coarse stand-in beyond the ring: T11, the skyline); the props stay whole (their colliders are the page's `props`)
+        // ring, a coarse stand-in beyond the ring: T11, the skyline); the props (rocks, stumps, the log) go by tile too, their
+        // colliders on the collider ring (T8)
         for (const mark of rows.landmarks) if (mark.tier === undefined || mark.tier === TIER) {
           if ('place' in mark) resources.tile(mark.place, { coarse: true }); else resources.object(mark.object);
           await macrotask();
         }
-        for (const id of rows.props) contacts.push(...(await resources.place(id)).colliders);
+        for (const id of rows.props) resources.tile(id);
         // the page's tiled world (landmarks, and recipe meshes spanning tiles) follows the player by tile, as an assembled world's
         const owner = residentWorldScope(ctx), shard = ctx.product.shardfile;
         // G748: beyond the render ring the trees and props stop drawing; the page's own near view stands in for them
@@ -120,7 +118,7 @@ export async function prepareForestPage(ctx: ShardContext, input: unknown): Prom
       sky.viewCamera.getWorldPosition(eye); cabins.life.tick(dt, time, eye, sky.lamps); lanterns.present(time, eye, sky.lamps); sun[0] = sky.sunColor.r; sun[1] = sky.sunColor.g; sun[2] = sky.sunColor.b;
       setLentParam(row.hearth, row.sunParam, sun); setLentParam(row.hearth, row.lampsParam, sky.lamps); setLentParam(row.hearth, row.shadeParam, 1 - row.nightShade * sky.night); } };
   const book = pages.get(ctx.scope) ?? new Map<string, ForestPage>(); book.set(rows.id, page); pages.set(ctx.scope, book); ctx.scope.onDispose(() => { book.delete(rows.id); });
-  Object.assign(runtime.objects, { cabins, props, streams, ...carpet }); return page;
+  Object.assign(runtime.objects, { cabins, streams, ...carpet }); return page;
 }
 
 /** Native drawing context for a shard's counted model definitions. */
