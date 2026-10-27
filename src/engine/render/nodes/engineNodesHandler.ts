@@ -458,6 +458,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   private keptBytes = 0;
   /** reuses served from a kept build (a re-entered region's programs) */
   keptReuses = 0;
+  /** kept builds a compile of their key could not use, by reason (`+scene`, `+lights`, `+fog`, `+environment`, `+key`, or
+   *  `released` for a collected scene node); a diagnostic the frame floor reads (grid-crossing T2) */
+  readonly keptMisses: Record<string, number> = {};
   /** each graph material's shape, read before its first build touched its nodes */
   private readonly shapes = new WeakMap<THREE.Material, GraphShape>();
   /** programShare: graph shapes whose builds wrote other code under one shared key (they key by their own nodes) */
@@ -970,10 +973,13 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     if (source === undefined || entry === undefined) {
       this.reusable.delete(key);
       const kept = this.keptBuilds.get(key);
-      if (kept === undefined || !this.sameSceneBinding(kept.binding)) return null;
+      if (kept === undefined) return null;
+      const mismatch = this.sceneBindingMismatch(kept.binding);
+      if (mismatch !== null) { this.keptMisses[mismatch] = (this.keptMisses[mismatch] ?? 0) + 1; return null; }
       const restored = restoreBuild(kept.build, shape, object, material);
-      if (restored === 'released') { this.dropKept(key); return null; }
-      if (typeof restored !== 'string') this.keptReuses++;
+      if (restored === 'released') { this.keptMisses['released'] = (this.keptMisses['released'] ?? 0) + 1; this.dropKept(key); return null; }
+      if (typeof restored === 'string') this.keptMisses[restored] = (this.keptMisses[restored] ?? 0) + 1;
+      else this.keptReuses++;
       return restored;
     }
     if (source === material || !this.sameSceneBinding(entry.binding)) return null;

@@ -850,6 +850,12 @@ export class Game {
     const handler = installedGraphBackend(this.renderer);
     return handler === null ? null : { builds: handler.builds, buildMs: handler.buildMs, log: handler.buildLog };
   }
+  /** reuses a kept (disposed) build served and the kept builds a compile could not use, by reason
+   *  (`EngineNodesHandler.keptReuses` / `keptMisses`); a diagnostic the frame floor's leak cycle reads */
+  get nodeKeptBuilds(): { readonly reuses: number; readonly misses: Readonly<Record<string, number>> } | null {
+    const handler = installedGraphBackend(this.renderer);
+    return handler === null ? null : { reuses: handler.keptReuses, misses: { ...handler.keptMisses } };
+  }
   /** each `nodeBuilds.log` row's program parameters at the same index (`EngineNodesHandler.buildKeys`); a diagnostic */
   get nodeBuildKeys(): readonly string[] | null { return installedGraphBackend(this.renderer)?.buildKeys ?? null; }
   /** node program key asks and the whole keys they built (`EngineNodesHandler.keyAsks` / `keyBuilds`); a diagnostic */

@@ -608,6 +608,8 @@ async function measureShard(driver, shard, deadline) {
           const repeated = builds.keys.filter(row => row.key !== null && row.key !== '' && builtKeys.has(row.key));
           builds.repeats = { count: repeated.length, keys: new Set(repeated.map(row => row.key)).size, objects: repeated.slice(0, 40).map(row => row.object) };
           for (const row of builds.keys) if (row.key !== null && row.key !== '') builtKeys.set(row.key, (builtKeys.get(row.key) ?? 0) + 1);
+          // the run so far: reuses a kept (disposed) build served, and kept builds refused, by reason
+          builds.kept = await driver.evaluate('window.__wildshard.world.game.nodeKeptBuilds ?? null');
         }
         const driveRow = { pose: { name: `grid-${plan.name}-drive` }, window: 'whole-drive', ...wholeValue, longFrameHooks: longFrameHooks(whole.value.longFrames.at, hookTimes), nodeBuilds: builds,
           ...(wasmConstructorsDir === '' ? {} : { scriptMemoryPool: { before: scriptMemoryBefore, after: scriptMemoryAfter } }),
@@ -684,7 +686,7 @@ async function measureShard(driver, shard, deadline) {
           rows.at(-1).nativeGcLog = {file, window, pidsBefore, pidsAfter};
         }
         if (gpuBisectOn) rows.at(-1).gpuBisect = await driver.evaluate(`(${gpuBisect.toString()})(60)`, 240000);
-        console.log(`${surface} grid ${plan.name}: travel ${motion.medianFps} fps / ${motion.p95Ms} ms; whole drive + builds ${whole.value.frames} frames, ${whole.value.medianFps} fps / p95 ${whole.value.p95Ms} / p99 ${whole.value.p99Ms} / max ${whole.value.maxMs} ms, ${whole.value.longFrames.over50Ms} frames > 50 ms (${driveRow.longFrameHooks.map((h) => `${h.hook} ${h.frames}×, max ${h.maxMs}`).join('; ')}); interior ${standing.medianFps} fps / ${standing.p95Ms} ms; node builds ${builds.total} (${builds.afterPlay} from afterPlay on${builds.repeats === undefined ? '' : `, ${builds.repeats.count} repeating an earlier leg's key`}); residents=${witness.after.live.live.residents.join(',')}`);
+        console.log(`${surface} grid ${plan.name}: travel ${motion.medianFps} fps / ${motion.p95Ms} ms; whole drive + builds ${whole.value.frames} frames, ${whole.value.medianFps} fps / p95 ${whole.value.p95Ms} / p99 ${whole.value.p99Ms} / max ${whole.value.maxMs} ms, ${whole.value.longFrames.over50Ms} frames > 50 ms (${driveRow.longFrameHooks.map((h) => `${h.hook} ${h.frames}×, max ${h.maxMs}`).join('; ')}); interior ${standing.medianFps} fps / ${standing.p95Ms} ms; node builds ${builds.total} (${builds.afterPlay} from afterPlay on${builds.repeats === undefined ? '' : `, ${builds.repeats.count} repeating an earlier leg's key`}${builds.kept === undefined || builds.kept === null ? '' : `; kept so far ${builds.kept.reuses} reused, refused ${JSON.stringify(builds.kept.misses)}`}); residents=${witness.after.live.live.residents.join(',')}`);
       }
       if (gridCellPose !== null) {
         // the entered cell's own pose (its local frame), held standing once its runtime is ready again
