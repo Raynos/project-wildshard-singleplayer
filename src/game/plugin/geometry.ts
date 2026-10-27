@@ -1779,8 +1779,19 @@ const WholeOrdinals = wholeV.union([wholeV.custom<number[]>(isOrdinals, 'whole o
   wholeV.check(row => row.runs.length % 2 === 0 && row.runs.every((ordinal, i) => i % 2 === 0 || ordinal > 0)
     && row.runs.reduce((sum, ordinal, i) => sum + (i % 2 === 1 ? ordinal : 0), 0) <= WHOLE_ORDINALS_MAX, 'whole ordinal runs are bounded start/length pairs'),
   wholeV.transform(row => { const list: number[] = []; for (let i = 0; i < row.runs.length; i += 2) { const start = row.runs[i] ?? 0, length = row.runs[i + 1] ?? 0; for (let k = 0; k < length; k++) list.push(start + k); } return list; }))]);
-const WholePartition = wholeV.strictObject({ id: wholeV.string(), vertices: WholeOrdinals, triangles: WholeOrdinals, vertexCount: wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(1)), indexCount: wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(0)), index: wholeV.picklist(['none', 'u16', 'u32']) });
+const WholePartition = wholeV.strictObject({ id: wholeV.string(), vertices: WholeOrdinals, triangles: WholeOrdinals, vertexCount: wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(1)), indexCount: wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(0)), index: wholeV.picklist(['none', 'u16', 'u32']),
+  // I3: the partition's positions are unnormalized Int16 on this grid of its whole shape (sdk/bake/props `wholeGrid`)
+  grid: wholeV.exactOptional(wholeV.strictObject({ origin: wholeV.tuple([wholeV.number(), wholeV.number(), wholeV.number()]), step: wholeV.pipe(wholeV.number(), wholeV.minValue(1 / 4096), wholeV.maxValue(1)) })) });
 function isWholeMesh(node: Object3D): node is Mesh { return node instanceof Mesh; }
+/** I3: a gridded partition's Int16 positions back to float in its shape's own space (every partition of a shape shares
+ *  the grid, so a shared vertex reads back the same float in each) */
+function dequantizeWhole(geometry: BufferGeometry, grid: { readonly origin: readonly [number, number, number]; readonly step: number }): void {
+  const position = geometry.getAttribute('position');
+  if (!(position instanceof BufferAttribute) || !(position.array instanceof Int16Array) || position.normalized || position.itemSize !== 3) throw new Error('Whole grid needs Int16 positions');
+  const source = position.array, out = new Float32Array(source.length);
+  for (let i = 0; i < source.length; i++) out[i] = (source[i] ?? 0) * grid.step + (grid.origin[i % 3] ?? 0);
+  geometry.setAttribute('position', new BufferAttribute(out, 3));
+}
 function wholeStorage(row: wholeV.InferOutput<typeof WholeAttribute>, count: number): BufferAttribute {
   const n = row.itemSize * count;
   if (row.storage === 'Float16Array') return new Float16BufferAttribute(new Uint16Array(n), row.itemSize, row.normalized);
@@ -1802,11 +1813,12 @@ class WholeGeometryAssembler {
     const pose: unknown = node.userData['matrix64'] ?? (node instanceof InstancedMesh && node.count === 1 && Array.isArray(instances) && instances.length === 1 ? instances[0] : undefined);
     const row = wholeV.parse(WholePartition, metadata), channels = wholeV.parse(WholeNative, native), signature = JSON.stringify(channels);
     const values = wholeV.parse(wholeV.pipe(wholeV.array(wholeV.pipe(wholeV.number(), wholeV.finite())), wholeV.length(16)), pose), input = nativeWholeGeometry(node, ownership);
+    if (row.grid !== undefined) dequantizeWhole(input, row.grid);
     try {
       let group = this.groups.get(row.id);
       if (group === undefined) {
         const output = new BufferGeometry();
-        for (const [name, channel] of Object.entries(channels)) output.setAttribute(name, wholeStorage(channel, row.vertexCount));
+        for (const [name, channel] of Object.entries(channels)) output.setAttribute(name, wholeStorage(row.grid !== undefined && name === 'position' ? { ...channel, storage: 'Float32Array', normalized: false } : channel, row.vertexCount));
         if (row.index !== 'none') output.setIndex(new BufferAttribute(row.index === 'u16' ? new Uint16Array(row.indexCount) : new Uint32Array(row.indexCount), 1));
         group = { output, matrix: new Matrix4().fromArray(values), seen: new Uint8Array(row.vertexCount), triangles: new Uint8Array((row.index === 'none' ? row.vertexCount : row.indexCount) / 3), layout: signature };
         this.groups.set(row.id, group);

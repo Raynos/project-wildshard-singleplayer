@@ -114,6 +114,12 @@ export interface GlbPrimitive {
   customAttributes?: Readonly<Record<string, string>>;
   /** Optional node transform (a finite positive TRS; not with `instances`); absent preserves the old byte path. */
   transform?: Matrix4;
+  /** I3: with `nativeAttributes`, each non-float32 channel is written once (an integer custom channel in its own type,
+   *  a half-float one only as its raw bits) instead of also as float32; absent: the old (pinned) byte path. */
+  nativeOnce?: true;
+  /** I3: the exact source transform a native node records (`matrix64`) when its node `transform` also carries the grid
+   *  that dequantizes its positions; absent: `transform` itself. */
+  pose?: Matrix4;
   /** Keep original typed vertex channels as glTF application accessors with reconstruction metadata in node extras.
    * Half floats use uint16 bits (glTF has no float16); ordinary semantics remain portable float32. Also retains
    * double-precision source transforms in extras. Omitted: the existing byte path. */
@@ -217,7 +223,7 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     if (matrix.elements.some((n, i) => !Number.isFinite(n) || Math.abs(n - (composed.elements[i] ?? Infinity)) > 1e-5) || scale.x <= 0 || scale.y <= 0 || scale.z <= 0) throw new Error('Instance must be a finite positive TRS transform');
     return { position, rotation, scale };
   };
-  for (const { geometry, material, instances, exactInstances, instanceColours, castShadow = true, customAttributes = {}, name: nodeName = name, transform, compactIndex, nativeAttributes, extras, quantizedChannels, meshoptReady } of primitives) {
+  for (const { geometry, material, instances, exactInstances, instanceColours, castShadow = true, customAttributes = {}, name: nodeName = name, transform, compactIndex, nativeAttributes, nativeOnce, extras, pose, quantizedChannels, meshoptReady } of primitives) {
     if (material.map !== null || material.alphaMap !== null || (!(material instanceof MeshBasicMaterial) && (material.normalMap !== null || material.roughnessMap !== null || material.metalnessMap !== null))) throw new Error('GLB textures must be external KTX2 declarations');
     if (!geometry.hasAttribute('position')) throw new Error('Missing GLB positions');
     const p = geometry.getAttribute('position'); if ( p.count > 400_000) throw new Error('Unsupported GLB geometry');
@@ -244,10 +250,10 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
       if (!/^_[A-Z][A-Z0-9_]{0,63}$/.test(semantic) || !geometry.hasAttribute(channel)) throw new Error(`Invalid GLB custom attribute ${semantic}`);
       const a = geometry.getAttribute(channel), width = a.itemSize;
       if (!Number.isInteger(width) || width < 1 || width > 4 || a.count !== p.count) throw new Error(`Mismatched GLB custom attribute ${semantic}`);
-      // iPhone downloads I3: a native channel that is not float32 is read back only from its exact stored copy below (an
+      // iPhone downloads I3 (with `nativeOnce`, so pinned byte paths stay): a native channel that is not float32 is read back only from its exact stored copy below (an
       // integer channel is that copy, under its own semantic; a half-float one is its raw bits), so it is not also
       // written as float32 (a half channel's float32 copy held its raw bits, never read; Nine's tiles carried ~50 MB of them)
-      if (nativeAttributes === true && a instanceof BufferAttribute && !(a.array instanceof Float32Array)) continue;
+      if (nativeAttributes === true && nativeOnce === true && a instanceof BufferAttribute && !(a.array instanceof Float32Array)) continue;
       attributes[semantic] = accessor(a, width, width === 1 ? 'SCALAR' : `VEC${width}`);
     }
     const native: Record<string, Json> = {};
@@ -260,8 +266,9 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
         let stored = semantic;
         // a quantized normal / colour is already its own typed portable accessor: the table names it, with no raw copy;
         // so is an integer custom channel (glTF admits any component type for an application semantic), written once here
-        const portable = quantizedChannels === true && (channel === 'normal' || channel === 'color');
-        const integerCustom = semantic.startsWith('_') && !(a instanceof Float16BufferAttribute) && !(a.array instanceof Float32Array);
+        const portable = quantizedChannels === true && (channel === 'normal' || channel === 'color'
+          || (channel === 'position' && meshoptReady === true && a.array instanceof Int16Array && !a.normalized));
+        const integerCustom = nativeOnce === true && semantic.startsWith('_') && !(a instanceof Float16BufferAttribute) && !(a.array instanceof Float32Array);
         if (integerCustom) { attributes[semantic] = rawAccessor(a); native[channel] = { semantic, storage: a.array.constructor.name, normalized: a.normalized, itemSize: a.itemSize }; continue; }
         if (!portable && (!(a.array instanceof Float32Array) || (semantic === 'NORMAL' && a.itemSize !== 3))) {
           stored = `_WS_RAW_${semantic.replace(/^_/u, '')}`;
@@ -284,7 +291,7 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     meshes.push({ name: nodeName, primitives: [{ attributes, ...(compact && index === null ? {} : { indices: accessor(indices, 1, 'SCALAR', true, false, short) }), material: materialIndex }] });
     if (extras !== undefined && ['castShadow', 'nativeAttributes', 'matrix64', 'instances64'].some(key => Object.hasOwn(extras, key))) throw new Error('GLB application extras use a reserved key');
     const node: Record<string, Json> = { name: nodeName, mesh: meshes.length - 1, extras: { ...extras, castShadow, ...(nativeAttributes === true ? { nativeAttributes: native,
-      ...(transform === undefined ? {} : { matrix64: transform.elements }),
+      ...(transform === undefined ? {} : { matrix64: (pose ?? transform).elements }),
       ...(instances === undefined ? {} : { instances64: instances.map(matrix => matrix.elements) }) } : {}) } };
     if (instances === undefined && (exactInstances !== undefined || instanceColours !== undefined)) throw new Error('Instance options need instances');
     if (instances !== undefined) {

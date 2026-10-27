@@ -6,6 +6,7 @@ import * as v from 'valibot';
 import { parseGlb, parseKtx2 } from '../assets';
 import { hashImmutableBytes as contentHash } from '../immutable';
 import { staticGlb, type GlbPrimitive } from './glb';
+import { tileGrid, tileGridTransform, type TileGrid } from './worldGeometry';
 
 /** A reusable scatter shape and its world-local positive TRS matrices; generators run only at build time. */
 export interface PropScatter { model: Object3D; transforms: readonly Matrix4[] }
@@ -37,6 +38,10 @@ export interface PropWhole {
   partition?: true | 'runs';
   /** Declared visual edge allowance; default zero, hard capped at one metre. No vertex is clipped. */
   overhang?: number;
+  /** iPhone downloads I3: ship a native shape's normals / colours as Int8 / Uint8 and, partitioned, its positions on one
+   *  Int16 grid (`compactWholeChannels`, `wholeGrid`); its readers restore them within their storage step. Opt-in, so a
+   *  producer whose retained tile hashes are pinned keeps its exact bytes. */
+  compact?: true;
 }
 
 /** One exact subset of a whole geometry. Ordinals address the original vertices and triangles, not clipped fragments. */
@@ -47,6 +52,10 @@ interface PreparedWhole {
   owner: { x: number; z: number } | null; extras: GlbPrimitive['extras'];
   /** I3: the normals / colours are normalized Int8 / Uint8 on the wire (`compactWholeChannels`) */
   quantized: boolean;
+  /** I3: the shape opted into `compact` (its native channels are written once, `nativeOnce`) */
+  compact: boolean;
+  /** I3: a partition's positions are unnormalized Int16 on its whole shape's one grid (node = transform x grid) */
+  grid?: TileGrid;
 }
 
 function subsetAttribute(attribute: BufferAttribute, selected: readonly number[]): BufferAttribute {
@@ -127,6 +136,20 @@ export function partitionWholeGeometry(sourceGeometry: BufferGeometry, transform
  *  float colours in [0, 1] normalized Uint8 (within 1/510), each written once as its own typed accessor
  *  (`quantizedChannels`); the shape's exact-copy readers restore those stored values. False, changing nothing, when a
  *  channel cannot be stored that way. A vec4 normal is a shader channel and stays as it is. */
+/** I3: the shape's position grid in its own space (RM8.1's power-of-two grid: the finest step its extent fits in 16 bits),
+ *  or none when a position is not plain float32. */
+function wholeGrid(g: BufferGeometry): TileGrid | undefined {
+  const position = g.getAttribute('position');
+  if (!(position instanceof BufferAttribute) || !(position.array instanceof Float32Array) || position.itemSize !== 3) return undefined;
+  const box = new Box3().setFromBufferAttribute(position);
+  try { return tileGrid(box); } catch { return undefined; }
+}
+/** A partition's float positions as unnormalized Int16 on `grid` (within half its step). */
+function gridPositions(g: BufferGeometry, grid: TileGrid): void {
+  const position = g.getAttribute('position'), out = new Int16Array(position.count * 3);
+  for (let i = 0; i < position.count; i++) for (let c = 0; c < 3; c++) out[i * 3 + c] = Math.round((position.getComponent(i, c) - (grid.origin[c] ?? 0)) / grid.step);
+  g.setAttribute('position', new BufferAttribute(out, 3));
+}
 function compactWholeChannels(g: BufferGeometry): boolean {
   const normal = g.hasAttribute('normal') ? g.getAttribute('normal') : undefined, colour = g.hasAttribute('color') ? g.getAttribute('color') : undefined;
   const floatNormal = normal instanceof BufferAttribute && normal.itemSize === 3 && normal.array instanceof Float32Array;
@@ -232,20 +255,24 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
     const channels = retain ? Object.keys(mesh.geometry.attributes) : ['position', 'normal', 'color', ...Object.values(entry.customAttributes ?? {})];
     for (const key of channels) if (mesh.geometry.hasAttribute(key)) g.setAttribute(key, mesh.geometry.getAttribute(key));
     g.setIndex(mesh.geometry.getIndex());
-    const quantized = retain && compactWholeChannels(g);
+    const quantized = retain && entry.compact === true && compactWholeChannels(g);
     const automatic = Object.fromEntries(Object.keys(g.attributes)
       .filter(key => !['position', 'normal', 'color', 'uv', 'tangent'].includes(key) && !Object.values(entry.customAttributes ?? {}).includes(key)).map((key, i) => [`_WS_CHANNEL_${i}`, key]));
     const customAttributes = retain ? { ...automatic, ...entry.customAttributes } : entry.customAttributes;
     const base = { id: entry.id, at, castShadow: mesh.castShadow, geometry: g, material: new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: m.roughness }), transform: entry.transform, customAttributes,
-      nativeAttributes: entry.partition !== undefined ? true as const : entry.nativeAttributes, quantized };
+      nativeAttributes: entry.partition !== undefined ? true as const : entry.nativeAttributes, quantized, compact: entry.compact === true };
     if (entry.partition === undefined) return [{ ...base, owner: null, extras: undefined }];
     const ordinals = entry.partition === 'runs' ? wholePartitionRuns : (list: number[]): number[] => list;
     const preparedParts: PreparedWhole[] = [];
+    // I3: one grid for the whole shape in its own space, so a vertex two partitions share lands on the same grid point
+    const grid = quantized ? wholeGrid(g) : undefined;
     for (const part of partitionWholeGeometry(g, entry.transform, entry.overhang ?? 0)) {
-      const prepared: PreparedWhole = { ...base, id: `${entry.id}_p${part.x}_${part.z}_n${preparedParts.length}`, geometry: part.geometry,
+      if (grid !== undefined) gridPositions(part.geometry, grid);
+      const prepared: PreparedWhole = { ...base, id: `${entry.id}_p${part.x}_${part.z}_n${preparedParts.length}`, geometry: part.geometry, ...(grid === undefined ? {} : { grid }),
       owner: { x: part.x, z: part.z }, extras: { wholePartition: { id: entry.id, vertices: ordinals(part.vertices), triangles: ordinals(part.triangles),
         vertexCount: g.getAttribute('position').count, indexCount: g.getIndex()?.count ?? 0,
-        index: g.getIndex() === null ? 'none' : g.getIndex()?.array instanceof Uint16Array ? 'u16' : 'u32' } } };
+        index: g.getIndex() === null ? 'none' : g.getIndex()?.array instanceof Uint16Array ? 'u16' : 'u32',
+        ...(grid === undefined ? {} : { grid: { origin: [...grid.origin], step: grid.step } }) } } };
       preparedParts.push(prepared);
     }
     return preparedParts;
@@ -277,7 +304,8 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
         // Scatter keeps a model in one owning tile; its conservative bounds may extend into its neighbours.
         const local = geometry(vertices(batch.model)); primitives.push({ geometry: local, material: mergedMaterial(), instances: transforms });
       }
-      for (const w of lod === 0 ? whole : coarseWhole) if (w.owner === null ? w.at.x >= x0 && w.at.x < x0 + size && w.at.z >= z0 && w.at.z < z0 + size : w.owner.x === x && w.owner.z === z) primitives.push({ geometry: w.geometry, material: w.material, castShadow: w.castShadow, name: w.id, transform: w.transform, compactIndex: true, ...(w.customAttributes === undefined ? {} : { customAttributes: w.customAttributes }), ...(w.nativeAttributes === undefined ? {} : { nativeAttributes: w.nativeAttributes }), ...(w.quantized ? { quantizedChannels: true } : {}), ...(w.extras === undefined ? {} : { extras: w.extras }) });
+      for (const w of lod === 0 ? whole : coarseWhole) if (w.owner === null ? w.at.x >= x0 && w.at.x < x0 + size && w.at.z >= z0 && w.at.z < z0 + size : w.owner.x === x && w.owner.z === z) primitives.push({ geometry: w.geometry, material: w.material, castShadow: w.castShadow, name: w.id, transform: w.grid === undefined ? w.transform : w.transform.clone().multiply(tileGridTransform(w.grid)),
+        ...(w.grid === undefined ? {} : { pose: w.transform, meshoptReady: true as const }), compactIndex: true, ...(w.customAttributes === undefined ? {} : { customAttributes: w.customAttributes }), ...(w.nativeAttributes === undefined ? {} : { nativeAttributes: w.nativeAttributes }), ...(w.quantized ? { quantizedChannels: true } : {}), ...(w.compact ? { nativeOnce: true as const } : {}), ...(w.extras === undefined ? {} : { extras: w.extras }) });
       const hasPanel = lod === 0 && panelFiles.some((p) => p.bounds !== null && p.bounds.max.x >= x0 && p.bounds.min.x <= x0 + size && p.bounds.max.z >= z0 && p.bounds.min.z <= z0 + size);
       if (primitives.length === 0 && !hasPanel) continue;
       const batches: GlbPrimitive[][] = [];
