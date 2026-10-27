@@ -25,7 +25,7 @@ import { installedGraphBackend } from './graphBackend';
 import { boundEntryWarmup } from './entryWarmupBound';
 import { workSlice } from '../core/workSlice';
 import { SHADOW_LAYER } from '../core/shadowLayer';
-import { frameBudgetSpent, heldBudget, presenting } from '../core/framePacing';
+import { heldBudget, nativeBudgetSpent, presenting } from '../core/framePacing';
 import { waitFor } from '../boot/waits';
 
 /**
@@ -966,7 +966,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   const needsPreparation = (program: ProgramLike): boolean => !resolvedPrograms.has(program) || needsBlocks(program);
   // Holding at a wall can lend builders more shared frame time, but must not
   // enlarge this caller's explicit shader slice and join two slow native units.
-  const spent = (start: number): boolean => performance.now() - start >= sliceMs || frameBudgetSpent(sliceMs);
+  const spent = (start: number): boolean => performance.now() - start >= sliceMs || nativeBudgetSpent(sliceMs);
   const resolveProgram = async (program: ProgramLike, start: number): Promise<void> => {
     // Completion queries and first-use queries are separate native units. A slow ready() must not admit a second
     // expensive query, or its node-block preparation, into the same continuation. Cheap queries still batch.
@@ -999,7 +999,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     // on a stale local slice, and don't append first-use/link preparation after a compile has consumed the budget.
     // Another queued warm-up can spend the frame while this wait is pending.
     // Recheck on delivery instead of admitting every waiter behind one draw.
-    while (frameBudgetSpent(sliceMs)) { await pause(); checkCurrent(); tFrame = performance.now(); programsAtFrame = programCount(renderer); }
+    while (nativeBudgetSpent(sliceMs)) { await pause(); checkCurrent(); tFrame = performance.now(); programsAtFrame = programCount(renderer); }
     checkCurrent();
     const programsBefore = programCount(renderer);
     const prevRt = renderer.getRenderTarget(), prevTone = renderer.toneMapping;
@@ -1096,7 +1096,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   // 759 uniforms resolved in one 699 ms Simulator frame of afterPlay).
   let tSlice = performance.now(), resolvedInSlice = 0;
   for (const [i, p] of pending.entries()) {
-    if (frameBudgetSpent(sliceMs)) { await pause(); tSlice = performance.now(); resolvedInSlice = 0; }
+    if (nativeBudgetSpent(sliceMs)) { await pause(); tSlice = performance.now(); resolvedInSlice = 0; }
     checkCurrent();
     // A live slice settles one ready program. An incomplete link alone needs another poll.
     // (past LINK_WAIT_MS the resolve below links it synchronously). O14: each ask waits behind the GPU process's queued
@@ -1125,7 +1125,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   const batch = uploadBudget !== undefined ? newUploadBatch(uploadBudget) : undefined;
   let imageBytes = 0, slowestUpload = 0;
   for (const [i, tex] of uploadTextures.entries()) {
-    if (frameBudgetSpent(sliceMs)) { await pause(); tSlice = performance.now(); batch?.reset(); }
+    if (nativeBudgetSpent(sliceMs)) { await pause(); tSlice = performance.now(); batch?.reset(); }
     checkCurrent();
     const compressed = tex instanceof THREE.CompressedTexture;
     const bytes = compressed ? 0 : imageUploadBytes(tex);

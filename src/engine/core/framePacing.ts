@@ -33,6 +33,11 @@ let interval = 1000 / 60;
  *  long past the last drawn frame, and a due frame no longer ends it: the slower waiting frames cost no movement (ms). */
 export const HELD_BUILD_MS = 24;
 let held = false;
+/** G782: while held, the CPU build slices that share a frame (`frameBudgetSpent`) run several HELD_BUILD_MS stretches
+ *  between drawn frames, up to this long past the last one: held frames draw only the loading screen, and a crossing was
+ *  paced by one stretch per drawn frame (Pine's forest page: 2.7 of its 7 s drawing frames, 1.1 s idle). Native GPU units
+ *  (shader compile, link, uploads) keep HELD_BUILD_MS (`nativeBudgetSpent`) and parked draws their own budget (ms). */
+export const HELD_CPU_FRAME_MS = 72;
 /** Whether the traveller waits for the build (a grid cell's loading screen shows); the grid sets it, off by default. */
 export function setBuildHeld(on: boolean): void { held = on; }
 /** A build stretch's budget: `budgetMs`, or HELD_BUILD_MS while the traveller is held. */
@@ -69,7 +74,7 @@ export function frameDue(now: number = diagnosticNow()): boolean {
  * the ground's arrays, the terrain) each run their stretch back to back, so no frame was drawn for 100-130 ms.
  */
 export function frameBudgetSpent(budgetMs: number, now: number = diagnosticNow()): boolean {
-  if (held) return presenting(now) && now - lastDrawn >= heldBudget(budgetMs);
+  if (held) return presenting(now) && now - lastDrawn >= Math.max(budgetMs, HELD_CPU_FRAME_MS);
   // D110: a frame that overran its interval (drawn after the next was due: a phone at 4x CPU) is due the moment it lands,
   // so the due rule would end every slice before it starts and no sliced build would run again; after such a frame the
   // builds get their ordinary slice instead
@@ -77,6 +82,11 @@ export function frameBudgetSpent(budgetMs: number, now: number = diagnosticNow()
   return presenting(now) && (now - lastDrawn >= Math.min(budgetMs, interval / 4, BUILD_FRAME_MS / 2) || (!overran && frameDue(now)));
 }
 
+/** `frameBudgetSpent` for native GPU units (shader compile, link, texture uploads): held, they keep HELD_BUILD_MS past the
+ *  last drawn frame, so the longer held CPU budget never joins several slow native units in one frame (G782). */
+export function nativeBudgetSpent(budgetMs: number, now: number = diagnosticNow()): boolean {
+  return held ? presenting(now) && now - lastDrawn >= heldBudget(budgetMs) : frameBudgetSpent(budgetMs, now);
+}
 
 /** Resolve after a later drawn frame (rAF, then a scoped task), or its cap. Retirement also settles the wait;
  * the awaiting builder must reach its own cancellation fence rather than hang on a removed frame callback. */

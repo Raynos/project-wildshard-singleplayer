@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { Scope } from './scope';
 import { installScopeEnvironment, scopeEnvironment } from './scopeEnvironment';
-import { frameBudgetSpent, noteFrameDrawn, paceYield, setBuildHeld } from '../core/framePacing';
+import { frameBudgetSpent, nativeBudgetSpent, noteFrameDrawn, paceYield, setBuildHeld } from '../core/framePacing';
 
 const environment = scopeEnvironment();
 const messageChannel = globalThis.MessageChannel, animationFrame = globalThis.requestAnimationFrame;
@@ -24,11 +24,14 @@ test('busy draws retain the ordinary allowance until the actual frame deadline',
   noteFrameDrawn(1004, 1000, 60);
   expect(frameBudgetSpent(8, 1008)).toBe(false);
   expect(frameBudgetSpent(8, 1008.2)).toBe(true);
-  // A caller's tighter budget still wins, and a held traveller retains its 24 ms build allowance.
+  // A caller's tighter budget still wins; a held traveller's CPU slices share 72 ms past the frame (G782) and its native
+  // GPU units retain their 24 ms allowance.
   expect(frameBudgetSpent(1, 1005)).toBe(true);
   setBuildHeld(true);
-  expect(frameBudgetSpent(8, 1027)).toBe(false);
-  expect(frameBudgetSpent(8, 1028)).toBe(true);
+  expect(frameBudgetSpent(8, 1075)).toBe(false);
+  expect(frameBudgetSpent(8, 1076)).toBe(true);
+  expect(nativeBudgetSpent(8, 1027)).toBe(false);
+  expect(nativeBudgetSpent(8, 1028)).toBe(true);
 });
 
 test('a frame that overran its interval still admits the ordinary slice after it is drawn (D110)', () => {
