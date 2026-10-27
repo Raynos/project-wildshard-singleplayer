@@ -1,19 +1,15 @@
 #!/usr/bin/env node
 // SHARD-PLATFORM G285 (SF72, "bake the code-built worlds"): Pine Hollow's running water baked offline. The generator
-// (src/shards/pine-hollow/generators/streams.ts) runs here only, with the Pine level selected and its baked terrain grid
-// installed (src/shards/pine-hollow/generators/bake-pine-crags.mjs `installPineGround`: the page's heights and normals), and writes the water mesh,
-// its 4-byte words' bytes in four lanes and zlib-compressed, to public/assets/pine-hollow/baked/streams.bin and its rows
-// (the binary's hash and size, the counts, the fall's anchors) to src/shards/pine-hollow/data/streams.json, which the page
-// reads (src/shards/pine-hollow/runtime/world/streams.ts). test/shards/pine-hollow/streams-bake.test.ts is the stale gate.
-// Usage: node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs src/shards/pine-hollow/generators/bake-pine-streams.mjs
+// (src/shards/pine-hollow/generators/streams.ts) runs here only, over the Pine level's baked terrain grid (the page's
+// heights and normals): `bakeStreamRows` gives the water mesh's raw binary and its rows (the binary's hash and size, the
+// counts, the fall's anchors), which the world scene models (bake-world-scene-models.mjs) and the spray puffs
+// (sprayPuffs.ts) call. GR8 G23 retired the standalone outputs (streams.bin, streams.json, the streams Scene, its tiles and
+// named blobs): their only readers now call this.
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { deflateSync } from 'node:zlib';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
-import { wildlifeWordLanes as shuffleLanes } from './wildlifeWords.ts';
-import { bakePineStreams, pineStreamBake } from './streams.ts';
-import { namedBlobOutput } from '../../../../scripts/named-blob-output.mjs';
+import { bakePineStreams } from './streams.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
 
@@ -25,28 +21,3 @@ export function bakeStreamRows() {
 
 /** Original renderer lattice; no active level, terrain service or browser is installed. */
 export function pineStreamGround() { return readNativeTerrain(readFileSync(resolve(root, 'public/assets/baked/pine-hollow/terrain.bin'))); }
-
-if (import.meta.main) {
-  const { rows, bin } = bakeStreamRows();
-  const authored = pineStreamBake(pineStreamGround(), root);
-  const out = resolve(root, 'public/assets/pine-hollow/baked');
-  const blobs = namedBlobOutput(new URL('../', import.meta.url), 'pine-stream-blobs', 'assets/streams');
-  mkdirSync(out, { recursive: true });
-  const packed = deflateSync(shuffleLanes(bin), { level: 9 });
-  writeFileSync(resolve(out, 'streams.bin'), packed);
-  blobs.add('world/streams/geometry.bin', 'bin', packed, '/assets/pine-hollow/baked/streams.bin');
-  const tiled = resolve(out, 'streams'); mkdirSync(tiled, { recursive: true });
-  const names = new Map();
-  for (const tile of authored.shardfile.tiles) for (const [i, hash] of tile.files.entries())
-    if (!names.has(hash)) names.set(hash, `world/streams/tile-${tile.lod}-${tile.x}-${tile.z}-${i}.glb`);
-  for (const [hash, bytes] of authored.assets) {
-    const name = names.get(hash);
-    if (name === undefined) throw new Error('Stream blob has no authored tile');
-    writeFileSync(resolve(tiled, `${hash}.glb`), bytes);
-    blobs.add(name, 'glb', bytes, `/assets/pine-hollow/baked/streams/${hash}.glb`);
-  }
-  writeFileSync(resolve(root, 'src/shards/pine-hollow/data/streamsScene.generated.json'), `${JSON.stringify({ scene: authored.sceneHash, props: authored.props?.props, shardfile: authored.shardfile, rows })}\n`);
-  writeFileSync(resolve(root, 'src/shards/pine-hollow/data/streams.json'), `${JSON.stringify(rows)}\n`);
-  blobs.finish(new URL('../data/streamBlobs.generated.json', import.meta.url));
-  console.info(`pine-hollow streams: ${String(rows.vertices)} vertices, ${String(rows.indices / 3)} triangles, ${String(bin.length)} → ${String(packed.length)} zlib (baked/streams.bin, ${rows.bin.slice(0, 12)})`);
-}

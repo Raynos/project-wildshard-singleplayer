@@ -1,16 +1,14 @@
 /**
  * Pine Hollow's running water shaped (PINE-HOLLOW-REMASTER PH-L9; G285: an offline bake). Build-time only:
- * `src/shards/pine-hollow/generators/bake-pine-streams.mjs` runs `bakePineStreams` with the Pine level selected and its baked terrain installed (the
- * page's heights and normals) and writes the one water mesh — the creek ribbon from the beaver dam to the slab's south
- * edge, the waterfall's sheet down the Ridge's face, the plunge ring on the pond — to
- * `public/assets/pine-hollow/baked/streams.bin` (zlib) + `../data/streams.json` (with the fall's plunge and face-foot
- * anchors); the page draws it (../runtime/world/streams.ts) and never runs this. test/shards/pine-hollow/streams-bake.test.ts is
- * the stale gate.
+ * `src/shards/pine-hollow/generators/bake-pine-streams.mjs` `bakeStreamRows` runs `bakePineStreams` over the baked terrain (the
+ * page's heights and normals) for the one water mesh — the creek ribbon from the beaver dam to the slab's south edge, the
+ * waterfall's sheet down the Ridge's face, the plunge ring on the pond — and its rows (with the fall's plunge and face-foot
+ * anchors), which the world scene models and the spray puffs call.
  */
 import * as LAYOUT from './layout';
 import { creekSpan, creekSurfaceAt } from './geography';
 import * as THREE from 'three';
-import { bake, WholeShape, type BakedScene } from '@wildshard/sdk/bake';
+import { WholeShape } from '@wildshard/sdk/bake';
 import type { NativeTerrainSource } from '@wildshard/sdk/bake/terrain';
 import { streamGeometry } from './streamCodec';
 
@@ -204,18 +202,4 @@ export function pineStreamScene(ground: PineStreamGround): THREE.Scene {
   const geometry = pineStreamGeometry(ground), material = new THREE.MeshStandardMaterial({ roughness: 1 });
   scene.add(new WholeShape('pine-streams', new THREE.Mesh(geometry, material), { nativeAttributes: true, partition: true }));
   return scene;
-}
-
-/** Central Scene bake; the shared reader reconstructs the unchanged single original draw from all admitted subsets. */
-export function pineStreamBake(ground: PineStreamGround, project?: string): BakedScene {
-  const scene = pineStreamScene(ground);
-  try { return bake(scene, { slug: 'pine-hollow', name: 'Pine Hollow' }, project === undefined ? {} : { project }); }
-  finally {
-    scene.traverse(node => {
-      if (!(node instanceof THREE.Mesh)) return;
-      const geometry: unknown = node.geometry, material: unknown = node.material;
-      if (geometry instanceof THREE.BufferGeometry) geometry.dispose();
-      if (material instanceof THREE.Material) material.dispose();
-    });
-  }
 }

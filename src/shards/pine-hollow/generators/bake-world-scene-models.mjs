@@ -1,21 +1,18 @@
 #!/usr/bin/env node
 // Cheap deterministic world-scene sources: restore the retained native water, bake the existing spray quad offline and lay
 // the beaver pool's still and trickle meshes from its baked rows (baked here since GR8; the pool view reads them, G4).
-import { readFileSync } from 'node:fs';
-import { inflateSync } from 'node:zlib';
 import { BufferGeometry, Float32BufferAttribute, PlaneGeometry, MeshStandardMaterial } from 'three';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { streamGeometry } from './streamCodec.ts';
-import streamRows from '../data/streams.json' with { type: 'json' };
+import { bakeStreamRows } from './bake-pine-streams.mjs';
 import { bakeBeaverPool } from './beaverPool.ts';
 import { pineCragGround } from './bake-pine-crags.mjs';
 import { byteWriter } from '../../../../scripts/bake-output.mjs';
 import { fileURLToPath } from 'node:url';
 
 const project = new URL('../', import.meta.url);
-const lanes = inflateSync(readFileSync(new URL('../../../../public/assets/pine-hollow/baked/streams.bin', import.meta.url)));
-const original = new Uint8Array(lanes.length), words = lanes.length / 4;
-for (let i = 0; i < words; i++) for (let byte = 0; byte < 4; byte++) original[i * 4 + byte] = lanes[byte * words + i] ?? 0;
+// GR8 G23: the water's raw binary and rows are baked here over the page's ground (no scheduler job, no stored bin)
+const { rows: streamRows, bin: original } = bakeStreamRows();
 const water = streamGeometry(original, streamRows), quad = new PlaneGeometry(1, 1), placeholder = new MeshStandardMaterial();
 /** one pool mesh as generators/beaverPool.ts `pinePoolShapes` draws it: its blocks, indexed, with vertex normals */
 const pool = (row) => {
