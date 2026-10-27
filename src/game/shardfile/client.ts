@@ -425,7 +425,7 @@ export class ShardfileClient {
     };
     const read = (scope: 'shared' | 'player', id: number): number => {
       const field = source.state[scope].find((row) => row.id === id); if (field === undefined) throw new Error('Missing declared state field');
-      const value = this.sim?.lane?.world.view(health.id)[scope][field.name];
+      const value = this.sim?.lane?.world.viewField(health.id, scope, field.name);
       if (value !== undefined) return value;
       if (typeof field.default === 'string') throw new Error('UI requires numeric state'); return typeof field.default === 'boolean' ? Number(field.default) : field.default;
     };
@@ -475,7 +475,7 @@ export class ShardfileClient {
     // SF59: graph params read the frame owner's clock (the level backdrop's, G158) and the live public state
     // a field the sim does not hold (a runtime-bound host field) reads the runtime's port (G345)
     const graphSources: GraphSources = { hour: () => world.game.sky.dayNight?.hour ?? null, state: (scope, name) => {
-      const value = sim.lane?.world.view(health.id)[scope][name]; return typeof value === 'number' ? value : undefined;
+      const value = sim.lane?.world.viewField(health.id, scope, name); return typeof value === 'number' ? value : undefined;
     } };
     this.presentation?.graphs.bind(graphSources);
     this.post?.bind(graphSources); // the post stack's bound params read the same clock and state

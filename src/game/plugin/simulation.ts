@@ -509,7 +509,7 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
         const runtime = moverDriver.install(host, lane, { id: 'movers.declared', restoreFlags: new Set(host.flags.all),
           activation: { ground: () => host.hasPlayerMotor ? host.player.motor.result : undefined, shared: id => {
             const field = shard.state.shared.find(row => row.id === id);
-            const value = field === undefined ? undefined : stateWorld.view(host.player.id).shared[field.name];
+            const value = field === undefined ? undefined : stateWorld.viewField(host.player.id, 'shared', field.name);
             return typeof value === 'number' || typeof value === 'boolean' ? value : undefined;
           } }, ...(ports.restoring === undefined ? {} : { restoring: ports.restoring }) });
         movers = runtime;
@@ -521,7 +521,7 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
       const sync = () => syncTargetColliders(shard.targets, colliders, (scope, id) => {
         const field = shard.state[scope].find((row) => row.id === id);
         if (field === undefined) throw new Error('Missing target state field');
-        const value = targetLane.world.view(host.player.id)[scope][field.name];
+        const value = targetLane.world.viewField(host.player.id, scope, field.name);
         if (value === undefined) throw new Error('Unavailable target state field');
         return value;
       });

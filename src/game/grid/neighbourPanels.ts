@@ -40,7 +40,7 @@ export function targetMatched(row: TargetRow, fallback: number, region: Shardfil
     const id = row.colliders[0], port = id === undefined ? undefined : region.colliders.get(id);
     if (port !== undefined) return port.active() === row.activeWhenMatched;
     const field = source.state[row.scope].find((f) => f.id === row.fieldId), lane = region.lane;
-    if (field !== undefined && lane !== undefined) return (lane.world.view(region.host.player.id)[row.scope][field.name] ?? fallback) === row.equals;
+    if (field !== undefined && lane !== undefined) return (lane.world.viewField(region.host.player.id, row.scope, field.name) ?? fallback) === row.equals;
   }
   return fallback === row.equals;
 }

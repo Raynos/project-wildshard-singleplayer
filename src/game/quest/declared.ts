@@ -25,7 +25,7 @@ export function createQuestScriptPorts(lane: Pick<ScriptLane, 'world' | 'enqueue
   if (conditions.size !== bindings.conditions.length || scenes.size !== bindings.scenes.length || bindings.scenes.some((scene) => !Number.isSafeInteger(scene.type) || scene.type < 1 || !Number.isFinite(scene.value))) throw new Error('Invalid quest script bindings');
   const target = (actorId: string): number => { const handle = actors.get(actorId); if (handle === undefined || lane.world.actor(handle) !== actorId) throw new Error('Unknown quest actor binding'); return handle; };
   return {
-    condition: (id, actorId) => { target(actorId); const binding = conditions.get(id); if (binding === undefined) throw new Error('Unknown quest condition hook'); return lane.world.view(actorId)[binding.scope][binding.field] === binding.equals; },
+    condition: (id, actorId) => { target(actorId); const binding = conditions.get(id); if (binding === undefined) throw new Error('Unknown quest condition hook'); return lane.world.viewField(actorId, binding.scope, binding.field) === binding.equals; },
     scene: (id, actorId) => { const binding = scenes.get(id); if (binding === undefined) throw new Error('Unknown quest scene hook'); lane.enqueue({ type: binding.type, target: target(actorId), value: binding.value }); },
   };
 }

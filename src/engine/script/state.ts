@@ -52,6 +52,14 @@ export class DeclaredScriptWorld extends ScriptWorld {
   }
   /** A public/owner view; host-only fields are never projected to a player. Returned records are copies. */
   view(actorId: string): { shared: Readonly<Record<string, number>>; player: Readonly<Record<string, number>> } {
+    const cached = this.projection(actorId);
+    // Callers still own detached records; privacy projection is only rebuilt
+    // after a declared-state commit, never with Object.fromEntries per tick.
+    return { shared: { ...cached.shared }, player: { ...cached.player } };
+  }
+  /** `view(actorId)[scope][name]`, read from the cached projection without copying its records. */
+  viewField(actorId: string, scope: 'shared' | 'player', name: string): number | undefined { return this.projection(actorId)[scope][name]; }
+  private projection(actorId: string): { shared: Record<string, number>; player: Record<string, number> } {
     const values = this.players.get(actorId);
     if (!values) throw new Error('Unknown actor');
     let cached = this.views.get(actorId);
@@ -61,9 +69,7 @@ export class DeclaredScriptWorld extends ScriptWorld {
       for (let i = 0; i < this.declaration.player.length; i++) { const field = this.declaration.player[i]; if (field !== undefined && field.privacy !== 'host') player[field.name] = values[i] ?? field.default; }
       cached = { shared, player }; this.views.set(actorId, cached);
     }
-    // Callers still own detached records; privacy projection is only rebuilt
-    // after a declared-state commit, never with Object.fromEntries per tick.
-    return { shared: { ...cached.shared }, player: { ...cached.player } };
+    return cached;
   }
   /** Complete checkpoint ordered by stable actor id, independent of map insertion order. */
   checkpoint(): ScriptWorldState { return { entities: this.state(), shared: [...this.shared], players: [...this.players].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0).map(([actorId, values]) => ({ actorId, values: [...values] })) }; }

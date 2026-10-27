@@ -23,10 +23,10 @@ export function createShardfileClientScripts(source: ClientScriptContent, assets
     bindings: declaration.bindings.map((b) => ({ module: b.module, entity: b.entity, name: b.name, readCount: b.reads.length, parameters: b.parameters, pose: b.pose, maxOffset: b.maxOffset, minScale: b.minScale, maxScale: b.maxScale,
       emitters: b.emitters.map((e) => ({ id: e.id, perTick: e.perTick, live: e.live, lifetimeTicks: e.lifetimeTicks })) })) });
   return { lane, targets: declaration.bindings.map((b) => ({ entity: b.entity, target: structuredClone(b.target) })), dispose: () => lane.dispose(), step: (tick) => {
-    const state = declaration.bindings.some((b) => b.reads.length > 0) ? ports.state?.view(ports.actorId) : undefined, observations = new Map<number, ClientScriptObservation>();
+    const state = declaration.bindings.some((b) => b.reads.length > 0) ? ports.state : undefined, observations = new Map<number, ClientScriptObservation>();
     declaration.bindings.forEach((binding, index) => {
       const observed = ports.observe(binding.target), reads = fieldNames[index]; if (!reads) throw new Error('Missing client read contract');
-      const values = reads.map((read) => { const value = state?.[read.scope][read.name]; if (value === undefined) throw new Error('Private or missing client state field'); return value; });
+      const values = reads.map((read) => { const value = state?.viewField(ports.actorId, read.scope, read.name); if (value === undefined) throw new Error('Private or missing client state field'); return value; });
       observations.set(binding.entity, { position: [...observed.position], frozen: observed.frozen, values });
     });
     lane.step(tick, observations);
