@@ -29,6 +29,9 @@ export class FrameDrawRanges {
     }
     if (!Number.isFinite(distance)) { renderer.render(delta); return; }
     if (this.hidden.length > 0) throw new Error('Frame draw range is already drawing');
+    // G782: the root's matrices are current from here; its passes' renders skip the scene's own second walk (Nalati's held
+    // crossing spent ~245 ms of updateMatrixWorld in the renders after this one)
+    const auto = root.matrixWorldAutoUpdate;
     try {
       root.updateMatrixWorld(); camera.getWorldPosition(this.eye);
       root.traverseVisible(node => {
@@ -47,8 +50,10 @@ export class FrameDrawRanges {
         if (sphere.distanceToPoint(this.eye) <= distance) return;
         node.visible = false; this.hidden.push(node);
       });
+      root.matrixWorldAutoUpdate = false;
       renderer.render(delta);
     } finally {
+      root.matrixWorldAutoUpdate = auto;
       for (const node of this.hidden) node.visible = true;
       this.hidden.length = 0;
     }

@@ -49,10 +49,11 @@ test('unknown bounds, skinned/custom objects and meshes containing children keep
 test('failed draw restores flags before another preparation or ordinary draw', () => {
   const f = fixture(), far = f.mesh(500), failure = new Error('draw failed'), range = f.masks.bind(f.scope, 125); range.enabled = true;
   try {
-    expect(() => f.masks.draw(f.root, f.camera, { render: () => { expect(far.visible).toBe(false); throw failure; } }, .03)).toThrow(failure);
-    expect(far.visible).toBe(true);
+    // the masked render skips the root's second matrix walk (its matrices were just updated); the flag always comes back
+    expect(() => f.masks.draw(f.root, f.camera, { render: () => { expect(far.visible).toBe(false); expect(f.root.matrixWorldAutoUpdate).toBe(false); throw failure; } }, .03)).toThrow(failure);
+    expect(far.visible).toBe(true); expect(f.root.matrixWorldAutoUpdate).toBe(true);
     range.enabled = false;
-    f.masks.draw(f.root, f.camera, { render: () => { expect(far.visible).toBe(true); } }, .03);
+    f.masks.draw(f.root, f.camera, { render: () => { expect(far.visible).toBe(true); expect(f.root.matrixWorldAutoUpdate).toBe(true); } }, .03);
   } finally { f.dispose(); }
 });
 
