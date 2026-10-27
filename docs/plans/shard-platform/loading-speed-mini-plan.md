@@ -345,3 +345,24 @@ Historical grammar, state compatibility, hashes, complete current reads and
 durable publication checks stay. Exposed roots and differing inventories
 keep the original complete historical reader. Touched types/typed lint and
 scoped ratchet pass. H4 remains open for a containing shared-preview re-read.
+
+### H4 after historical reuse; road allocation cut (2026-10-27)
+
+Source4907548a84 re-read on shared4907548a84/build4907548-mvqpcspz:
+one cold seed plus one profiled warm grid entry, original controls/movement,
+errors0. Warm home7.2559s with1,038colliders, admission1.5714s,
+foundation0.5601s, scenes1.0773s, world assembly1.6986s. All named wall
+spans grow; no whole-home gain is claimed. The new post-landing duplicate
+read control passes, and section-load self CPU is no longer a top45 frame.
+H4 remains open against1.5s. Raw:tmp/sp-x9-h4-follow/after-lineage.
+
+Road construction during home has408.721ms inclusive sampled CPU (before:
+259.153ms). cullPlanSteps has238.320ms inclusive/116.801ms self; clipped
+attribute reads71.552ms and per-vertex LOD helper65.123ms self. These are
+nested and must not be summed. This follow-on removes per-triangle iterator
+pairs and per-vertex helper closures, and uses indexed attribute reads.
+The triangle/index/LOD order, edge predicates, sphere bounds, slice batches
+and collision inputs are unchanged. Existing complete road hash oracle stays
+031db7363e523059eae3c0b34803ce11cb29fc7b4500641427f2c4e2f9fb3d0f.
+Touched game types, typed lint and scoped ratchet pass. Row-only read follows
+on a containing shared preview; H4 stays open, no allocator gain claimed yet.

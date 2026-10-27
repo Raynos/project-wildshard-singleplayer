@@ -51,7 +51,11 @@ export function* clipToBinsSteps(geometry: BufferGeometry, pitch: number, tileSi
   const count = attrs[0]?.count ?? 0, position = geometry.getAttribute('position');
   const read = (n: number): Float64Array => {
     const v = new Float64Array(stride); let o = 0;
-    attrs.forEach((a, k) => { for (let c = 0; c < (sizes[k] ?? 0); c++) v[o + c] = a.array[n * (sizes[k] ?? 0) + c] ?? 0; o += sizes[k] ?? 0; });
+    for (let k = 0; k < attrs.length; k++) {
+      const a = attrs[k], size = sizes[k] ?? 0;
+      if (a !== undefined) for (let c = 0; c < size; c++) v[o + c] = a.array[n * size + c] ?? 0;
+      o += size;
+    }
     return v;
   };
   const at = names.indexOf('position'), px = at === -1 ? 0 : sizes.slice(0, at).reduce((a, b) => a + b, 0);
@@ -155,8 +159,9 @@ export function* cullPlanSteps(geometry: BufferGeometry, pitch: number, lod: rea
   for (const { list, x: tileX, z: tileZ } of ordered) {
     const start = out.length;
     let minX = Infinity, minY = Infinity, minZ = Infinity, maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
-    for (const [i, t] of list.entries()) {
+    for (let i = 0; i < list.length; i++) {
       if (i % 256 === 0) yield;
+      const t = list[i] ?? 0;
       for (let c = 0; c < 3; c++) {
         const n = index.getX(t * 3 + c), x = position.getX(n), y = position.getY(n), z = position.getZ(n); out.push(n);
         minX = Math.min(minX, x); minY = Math.min(minY, y); minZ = Math.min(minZ, z); maxX = Math.max(maxX, x); maxY = Math.max(maxY, y); maxZ = Math.max(maxZ, z);
@@ -175,8 +180,9 @@ export function* cullPlanSteps(geometry: BufferGeometry, pitch: number, lod: rea
     sphere.radius = Math.sqrt(farthest);
     for (const cluster of clusters) {
       const from = out.length;
-      for (const [i, t] of list.entries()) {
+      for (let i = 0; i < list.length; i++) {
         if (i % 256 === 0) yield;
+        const t = list[i] ?? 0;
         const a = cluster(index.getX(t * 3)), b = cluster(index.getX(t * 3 + 1)), c = cluster(index.getX(t * 3 + 2));
         if (a !== b && b !== c && a !== c) out.push(a, b, c);
       }
@@ -211,16 +217,20 @@ const LOD_SPAN = 4096;
  *  string form outside them. */
 function lodKey(x: number, y: number, z: number, layer: number, unlit: number, pitch: number, cell: number, tileSize?: number): number | string | null {
   const s = tileSize ?? pitch / BIN_DIVISOR, offset = tileSize === undefined ? 0.5 : 0;
-  const onLine = (v: number): boolean => {
-    const bin = Math.abs(v / s - Math.round(v / s)); if (Math.abs(bin - offset) * s < 1e-3) return true; // a bin edge
-    const local = Math.abs(v - Math.round(v / pitch) * pitch); return Math.abs(local - CELL_EDGE) < 1e-3; // a cell edge
-  };
-  if (onLine(x) || onLine(z)) return null;
+  if (onLodLine(x, s, offset, pitch) || onLodLine(z, s, offset, pitch)) return null;
   const ix = Math.floor(x / cell), iy = Math.floor(y / cell), iz = Math.floor(z / cell);
   if (Math.abs(ix) < LOD_SPAN && Math.abs(iy) < LOD_SPAN && Math.abs(iz) < LOD_SPAN && Number.isInteger(layer) && layer >= 0 && layer < 64 && (unlit === 0 || unlit === 1)) {
     return ((((ix + LOD_SPAN) * 2 * LOD_SPAN + iy + LOD_SPAN) * 2 * LOD_SPAN + iz + LOD_SPAN) * 64 + layer) * 2 + unlit;
   }
   return `${String(ix)},${String(iy)},${String(iz)},${String(layer)},${String(unlit)}`;
+}
+
+/** Exact edge predicate shared by each LOD vertex, without a closure per vertex. */
+function onLodLine(v: number, size: number, offset: number, pitch: number): boolean {
+  const bin = Math.abs(v / size - Math.round(v / size));
+  if (Math.abs(bin - offset) * size < 1e-3) return true;
+  const local = Math.abs(v - Math.round(v / pitch) * pitch);
+  return Math.abs(local - CELL_EDGE) < 1e-3;
 }
 
 /** How the road builders cull a mesh (`cullRoadMesh` at `pitch`, the view camera) and where each mesh's plan is kept. */
