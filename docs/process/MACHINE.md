@@ -38,7 +38,7 @@ now provide one full-test lease and three shared app-build leases (Jake, G620 su
   **Lanes don't run full suites** (SF74 W1): `full-test` and `check` (so `pnpm test`, `pnpm test:coverage`) refuse
   outside CI unless `WS_FULL_SUITE=1` (the coordinator); CI runs the full suite on every push, and the push gate runs
   only the tests related to the pushed change (GIT.md).
-  Run your focused tests: `pnpm exec vitest run test/<file>.test.ts` or `pnpm exec vitest related --run <src files>`.
+  Run your focused tests: `scripts/vitest.sh run test/<file>.test.ts` or `scripts/vitest.sh related --run <src files>`.
   Local `related` runs every selected suite whose declared products have current
   verified receipts. It names each skipped product suite and prints one exact
   `python3 scripts/heavy-lane.py build -- node scripts/build-shardfiles.mjs --reuse --shard=…`
@@ -445,9 +445,10 @@ login progress bar for hours: macOS empties both at boot, before login.
 - **Big scratch only under `./tmp/<task>`**, small, deleted with `rm -rf` on its exact path the moment its result is
   committed; commit the downsized board, never keep full-size preview dumps. Never `/tmp`, `$TMPDIR` or a session
   scratchpad (also under `/private/tmp`) for anything big.
-- **Vitest's module cache lives in `./tmp/vitest/<pid>`**, not `$TMPDIR` (`vitest.config.ts` → `scripts/vitest-tmp.ts`,
-  with the workers' compile cache): removed when the run exits, and a killed run's dir is swept after an hour by the
-  `boot-temp-warn.sh` recount. A run that skips `vitest.config.ts` (`--config <other>`) still writes to `$TMPDIR`.
+- **Run Vitest through `scripts/vitest.sh`**, including `--config <other>` runs. Its `scripts/vitest-tmp.ts` runner
+  scopes temp and compile-cache output under `./tmp/vitest/<pid>` before loading any config, then removes the run
+  directory on success or refusal. The root config's existing plugin still contains direct root-config runs;
+  bypassing both the runner and root config leaks into `$TMPDIR`. Killed runs retain the existing hourly recount cleanup.
 - **Node's compile cache lives in `~/Library/Caches/node-compile-cache`** (`NODE_COMPILE_CACHE`, set in the dotfiles'
   `.bash_profile`), not `$TMPDIR`: it had 110k files there.
 - **The generation cache (`~/.cache/wildshard/generate`) evicts itself** to the newest 3 entries per job and 20 GB

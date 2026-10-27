@@ -28,7 +28,7 @@
     "lint:ratchet": "node lint/ratchet.mjs",
     "check:chunks": "node scripts/check-chunks.mjs dist",
     "audit:assets": "pnpm gen --inputs-only && node scripts/audit-assets.mjs",
-    "test": "python3 scripts/heavy-lane.py check -- pnpm exec vitest run",
+    "test": "python3 scripts/heavy-lane.py check -- node scripts/vitest-tmp.ts run",
     "test:checks": "pnpm gen && node scripts/check-graph.mjs --source-only",
     "preview": "node scripts/preview-server.mjs",
     "assets": "node scripts/fetch-assets.mjs && node scripts/tex-tiers.mjs",

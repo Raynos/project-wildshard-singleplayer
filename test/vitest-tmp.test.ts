@@ -38,3 +38,52 @@ expect(tmpdir()).toBe(run);const child=mkdtempSync(join(tmpdir(),'worker-'));wri
     expect(readdirSync(system)).toEqual([]);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
+
+test.each(['forks', 'threads'] as const)('%s standalone configs are contained before config loading', pool => {
+  const root = mkdtempSync(resolve('tmp/vitest-standalone-'));
+  const system = resolve(root, 'system'), scoped = resolve(root, 'scoped');
+  const config = resolve(root, 'vitest.config.mjs'), report = resolve(root, 'worker.json');
+  mkdirSync(system); mkdirSync(scoped);
+  writeFileSync(resolve(system, 'foreign'), 'keep');
+  try {
+    // These configs intentionally do not import the root config or its temp plugin.
+    writeFileSync(config, `export default {root:${JSON.stringify(root)},test:{include:['sample.test.ts'],setupFiles:[],pool:${JSON.stringify(pool)},maxWorkers:1}};`);
+    writeFileSync(resolve(root, 'sample.test.ts'), `import {test,expect} from 'vitest';
+import {tmpdir} from 'node:os';import {mkdtempSync,writeFileSync} from 'node:fs';import {join} from 'node:path';
+test('original verdict',()=>{const run=process.env.WS_VITEST_TMP_DIR;
+const child=mkdtempSync(join(tmpdir(),'worker-'));writeFileSync(join(child,'payload'),'owned');
+writeFileSync(${JSON.stringify(report)},JSON.stringify({run,temp:tmpdir()}));
+expect(process.env.EXPECT_REFUSAL).toBe('0');});`);
+    const run = (refused: boolean) => spawnSync(process.execPath, [resolve('scripts/vitest-tmp.ts'), 'run', 'sample.test.ts', '--config', config], {
+      encoding: 'utf8', timeout: 20_000,
+      env: { ...process.env, TMPDIR: system, NODE_COMPILE_CACHE: resolve(root, 'compile'), VITEST_TMP_ROOT: scoped, EXPECT_REFUSAL: refused ? '1' : '0' },
+    });
+    for (const refused of [false, true]) {
+      const child = run(refused);
+      expect(child.status, child.stdout + child.stderr).toBe(refused ? 1 : 0);
+      const observed: unknown = JSON.parse(readFileSync(report, 'utf8'));
+      if (typeof observed !== 'object' || observed === null || !('run' in observed) || typeof observed.run !== 'string') throw new Error('Missing standalone run directory');
+      expect(observed.run.startsWith(`${scoped}/`)).toBe(true);
+      expect(observed).toEqual({ run: observed.run, temp: observed.run });
+      expect(existsSync(observed.run)).toBe(false);
+      expect(readdirSync(scoped)).toEqual([]);
+      expect(readdirSync(system)).toEqual(['foreign']);
+      expect(readFileSync(resolve(system, 'foreign'), 'utf8')).toBe('keep');
+    }
+    writeFileSync(config, "throw new Error('original config refusal');");
+    const early = run(false);
+    expect(early.status).toBe(1);
+    expect(early.stdout + early.stderr).toContain('original config refusal');
+    expect(readdirSync(scoped)).toEqual([]);
+    expect(readdirSync(system)).toEqual(['foreign']);
+    const unleased = spawnSync(process.execPath, [resolve('scripts/vitest-tmp.ts'), 'run', '--config', config], {
+      encoding: 'utf8', timeout: 20_000,
+      env: { ...process.env, TMPDIR: system, VITEST_TMP_ROOT: scoped, WS_HEAVY_ROOT: resolve(root, 'no-lease') },
+    });
+    expect(unleased.status).toBe(1);
+    expect(unleased.stdout + unleased.stderr).toContain('heavy-lane.py full-test');
+    expect(unleased.stdout + unleased.stderr).not.toContain('original config refusal');
+    expect(readdirSync(scoped)).toEqual([]);
+    expect(readdirSync(system)).toEqual(['foreign']);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+}, 30_000);
