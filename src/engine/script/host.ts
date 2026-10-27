@@ -135,13 +135,16 @@ function byteView(memory: WebAssembly.Memory): Uint8Array {
 function finiteAll(values: readonly number[]): boolean { for (let i = 0; i < values.length; i++) if (!Number.isFinite(values[i])) return false; return true; }
 const NO_NUMBERS: readonly number[] = Object.freeze([]), NO_EVENTS: readonly ScriptEvent[] = Object.freeze([]), NO_EFFECTS: readonly ScriptEffect[] = Object.freeze([]);
 function snapshot(state: ModuleState, reuse?: OwnedSnapshot): OwnedSnapshot {
-  const current = currentInstance(state), globals = reuse?.globals ?? new Map<string, number | bigint>();
-  for (const name of state.admission.globals) {
+  const current = currentInstance(state), globals = reuse?.globals ?? new Map<string, number | bigint>(), names = state.admission.globals;
+  for (let i = 0; i < names.length; i++) {
+    const name = names[i] ?? '';
     const global = current.instance.exports[name]; if (!(global instanceof WebAssembly.Global)) throw new Error('Missing state global');
     const value: unknown = global.value; if (typeof value !== 'number' && typeof value !== 'bigint') throw new Error('Non-numeric global'); globals.set(name, value);
   }
   const memory = reuse?.memory.length === current.memory.buffer.byteLength ? reuse.memory : new Uint8Array(current.memory.buffer.byteLength);
-  memory.set(byteView(current.memory)); return { memory, globals };
+  memory.set(byteView(current.memory));
+  // The retired snapshot is refilled in place: the caller makes it the module's good state and nothing else holds it.
+  return reuse !== undefined && reuse.memory === memory ? reuse : { memory, globals };
 }
 function clone(s: ScriptSnapshot): OwnedSnapshot { return { memory: s.memory.slice(), globals: new Map(s.globals) }; }
 /** Keep the JSON byte array detached without allocating a typed-array iterator

@@ -12,6 +12,7 @@ function valid(field: ScriptStateField, value: number): boolean {
   return Number.isFinite(value) && value >= field.min && value <= field.max && (field.type === 'f64' || Number.isInteger(value))
     && (field.type !== 'bool' || value === 0 || value === 1) && (field.type !== 'i32' || value >= -2147483648 && value <= 2147483647);
 }
+const NO_EFFECTS: readonly ScriptEffect[] = Object.freeze([]);
 /** Numeric effect world extended with declared shared and actor-scoped state, committed as one batch. */
 export class DeclaredScriptWorld extends ScriptWorld {
   readonly declaration: ScriptStateDeclaration;
@@ -77,12 +78,13 @@ export class DeclaredScriptWorld extends ScriptWorld {
   override get contentRevision(): number { return super.contentRevision + this.declaredContent; }
   override prepare(effects: readonly ScriptEffect[], self: number, spawnAllowance: number, eventAllowance: number): EffectTransaction {
     const before = this.declaredRevision, actorId = this.actor(self);
-    let shared = this.shared, players = this.players, ordinary: ScriptEffect[] | undefined;
+    let shared = this.shared, players = this.players, ordinary: ScriptEffect[] | undefined, split = false;
     for (let at = 0; at < effects.length; at++) {
       const effect = effects[at]; if (effect === undefined) continue;
-      if (effect.op !== SCRIPT_STATE_OP.shared && effect.op !== SCRIPT_STATE_OP.player) { ordinary?.push(effect); continue; }
-      // The first state effect splits off the ordinary ones seen so far; a call with none passes its list through.
-      ordinary ??= effects.slice(0, at).filter((e) => e.op !== SCRIPT_STATE_OP.shared && e.op !== SCRIPT_STATE_OP.player);
+      if (effect.op !== SCRIPT_STATE_OP.shared && effect.op !== SCRIPT_STATE_OP.player) { if (split) (ordinary ??= []).push(effect); continue; }
+      // The first state effect splits off the ordinary ones before it (all of them); a call with none passes its list
+      // through, and one with only state effects passes an empty list.
+      if (!split) { split = true; if (at > 0) ordinary = effects.slice(0, at); }
       if (!Number.isFinite(effect.a) || !Number.isFinite(effect.b) || !Number.isFinite(effect.c) || !Number.isFinite(effect.d) || effect.c !== 0 || effect.d !== 0) throw new Error('Invalid state effect');
       const isShared = effect.op === SCRIPT_STATE_OP.shared, fields = isShared ? this.declaration.shared : this.declaration.player;
       let index = -1; for (let i = 0; i < fields.length; i++) if (fields[i]?.id === effect.a) { index = i; break; }
@@ -100,7 +102,7 @@ export class DeclaredScriptWorld extends ScriptWorld {
         values[index] = effect.b;
       }
     }
-    const tx = super.prepare(ordinary ?? effects, self, spawnAllowance, eventAllowance);
+    const tx = super.prepare(split ? ordinary ?? NO_EFFECTS : effects, self, spawnAllowance, eventAllowance);
     return { spawns: tx.spawns, events: tx.events, commit: () => {
       if (this.declaredRevision !== before) throw new Error('Stale declared-state transaction');
       tx.commit();

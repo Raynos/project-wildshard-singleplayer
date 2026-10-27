@@ -74,15 +74,18 @@ class ClientWorld extends ScriptWorld {
   private live: v.InferOutput<typeof liveSchema> = [];
   private tick = -1;
   private particles = 0;
+  /** The bindings (and their entities) in their map order, for per-tick loops without an iterator. */
+  readonly order: readonly ClientScriptBinding[];
+  private readonly targets: readonly number[];
   constructor(bindings: readonly ClientScriptBinding[]) {
     super({ fields: {}, archetypes: [], events: [], maxEntities: Math.max(1, bindings.length) }, bindings.map((b) => ({ id: b.entity, name: b.name, position: [0, 0, 0], fields: {}, frozen: false, interactive: false })));
-    this.bindings = new Map(bindings.map((b) => [b.entity, b]));
+    this.bindings = new Map(bindings.map((b) => [b.entity, b])); this.order = [...this.bindings.values()]; this.targets = this.order.map((b) => b.entity);
     for (const b of bindings) this.frames.set(b.entity, { entity: b.entity, tick: -1, offset: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1], particles: [] });
   }
   beginTick(tick: number): void {
     this.tick = tick; this.particles = 0;
     if (this.live.length > 0) this.live = this.live.filter((p) => p.expires > tick);
-    for (const frame of this.frames.values()) { frame.tick = tick; if (frame.particles.length > 0) frame.particles = []; }
+    for (let i = 0; i < this.targets.length; i++) { const frame = this.frames.get(this.targets[i] ?? 0); if (frame !== undefined) { frame.tick = tick; if (frame.particles.length > 0) frame.particles = []; } }
     this.frameRevision++;
   }
   outputs(): readonly ClientScriptFrame[] { return [...this.frames.values()].sort((a, b) => a.entity - b.entity).map(copy); }
@@ -129,7 +132,8 @@ class ClientWorld extends ScriptWorld {
     }
     return { spawns: 0, events: NO_EVENTS, commit: () => {
       if (this.frameRevision !== before) throw new Error('Stale client transaction');
-      if (frame !== current) { this.spares.set(self, current); this.lent.delete(self); }
+      // -1 is no revision: marking the spare free never deletes a key (a Map delete per tick shrinks and regrows it).
+      if (frame !== current) { this.spares.set(self, current); this.lent.set(self, -1); }
       this.frames.set(self, frame); this.live = live; this.particles = particles; this.frameRevision++;
     } };
   }
@@ -179,13 +183,16 @@ export class ClientScriptLane {
     if (!Number.isSafeInteger(tick) || tick < 0) throw new Error('Invalid client script tick');
     if (tick % this.divisor !== 0) return [];
     // Every observation is admitted and copied before any host or visual tick.
-    for (const binding of this.world.bindings.values()) {
+    const order = this.world.order;
+    for (let at = 0; at < order.length; at++) {
+      const binding = order[at]; if (binding === undefined) continue;
       const slot = this.slots.get(binding.entity); if (slot === undefined) throw new Error('Missing client observation');
       observe(observations.get(binding.entity), binding.readCount, slot);
     }
     host.beginTick(tick); this.world.beginTick(tick);
     const calls: ScriptCall[] = [];
-    for (const binding of this.world.bindings.values()) {
+    for (let at = 0; at < order.length; at++) {
+      const binding = order[at]; if (binding === undefined) continue;
       const o = this.slots.get(binding.entity); if (o === undefined) throw new Error('Missing client observation');
       const input = o.input; input.length = 8 + o.values.length;
       input[0] = tick; input[1] = this.divisor / 60; input[2] = Number(o.frozen); input[3] = binding.entity;

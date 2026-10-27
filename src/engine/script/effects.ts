@@ -58,7 +58,6 @@ export class ScriptWorld {
   prepare(effects: readonly ScriptEffect[], self: number, spawnAllowance: number, eventAllowance: number): EffectTransaction {
     const before = this.entities, revision = this.revision;
     let next = before, nextId = this.next, spawns = 0, events: ScriptEvent[] | undefined;
-    const writing = (): Map<number, ScriptEntity> => { if (next === before) next = new Map(before); return next; };
     if (!before.has(self)) throw new Error('Unknown entity');
     for (let at = 0; at < effects.length; at++) {
       const effect = effects[at]; if (effect === undefined) continue;
@@ -68,14 +67,14 @@ export class ScriptWorld {
       if (op === SCRIPT_OP.field) {
         this.field(a, b); if (c !== 0 || d !== 0) throw new Error('Reserved effect values');
         // Rewriting a field's current value keeps the entity record (and the map) shared.
-        if (!Object.is(entity.fields[a], b)) writing().set(self, { ...entity, fields: { ...entity.fields, [a]: b } });
+        if (!Object.is(entity.fields[a], b)) (next === before ? (next = new Map(before)) : next).set(self, { ...entity, fields: { ...entity.fields, [a]: b } });
       } else if (op === SCRIPT_OP.position) {
         if (![a, b, c].every(coord) || d !== 0) throw new Error('Position outside bounds');
-        if (!Object.is(entity.position[0], a) || !Object.is(entity.position[1], b) || !Object.is(entity.position[2], c)) writing().set(self, { ...entity, position: [a, b, c] });
+        if (!Object.is(entity.position[0], a) || !Object.is(entity.position[1], b) || !Object.is(entity.position[2], c)) (next === before ? (next = new Map(before)) : next).set(self, { ...entity, position: [a, b, c] });
       } else if (op === SCRIPT_OP.spawn) {
         if (!id(a) || !this.rules.archetypes.includes(a) || ![b, c, d].every(coord)) throw new Error('Spawn outside declared range');
         if (++spawns > spawnAllowance || next.size >= this.rules.maxEntities || !id(nextId)) throw new Error('Spawn allowance');
-        writing().set(nextId, { id: nextId, name: `entity ${nextId}`, position: [b, c, d], fields: {}, frozen: false, interactive: true }); nextId++;
+        (next === before ? (next = new Map(before)) : next).set(nextId, { id: nextId, name: `entity ${nextId}`, position: [b, c, d], fields: {}, frozen: false, interactive: true }); nextId++;
       } else if (op === SCRIPT_OP.event) {
         if (!id(a) || !this.rules.events.includes(a) || !next.has(b) || d !== 0) throw new Error('Event outside declared range');
         events ??= [];
