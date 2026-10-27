@@ -1,14 +1,17 @@
 import { readFileSync } from 'node:fs';
-import { compileDecisionScripts } from '../../src/sdk/buildDecisionScripts';
+import { resolve } from 'node:path';
+import { nativeCompilers } from './nativeCompilers';
 import { contractCatalogue } from '../../src/shards/pine-hollow/generators/contractRows';
 import { CONTRACT_PROGRAM_SCRIPT, contractProgramRegistries } from '../../src/shards/pine-hollow/generators/contractProgram';
 import { parseContractCatalogue } from '../../src/format/contracts';
 
 // GR8 (B5): the product compiles the guest (output.ts contractModule) and ships its Wasm as a named return module, so
-// the authored rows carry no programme; unit fixtures compile the same sources the same way.
+// the authored rows carry no programme; unit fixtures compile the same sources the same way. Read from the checkout
+// root, as the tests run: a transformed fixture's import.meta.url is not its checkout path.
 const sources = new Map(['contracts', 'contractsRandom', 'contractsRules'].map(name =>
-  [`behaviour/${name}.as`, readFileSync(new URL(`../../src/shards/pine-hollow/behaviour/${name}.as`, import.meta.url), 'utf8')]));
-const built = await compileDecisionScripts([CONTRACT_PROGRAM_SCRIPT], contractProgramRegistries(), sources, { asLineCeiling: 256, singleSignal: true });
+  [`behaviour/${name}.as`, readFileSync(resolve(`src/shards/pine-hollow/behaviour/${name}.as`), 'utf8')]));
+// a DOM suite's Response is not the compiler's: the same compiler runs in Node's realm (nativeCompilers)
+const built = await nativeCompilers.compileDecisionRows([CONTRACT_PROGRAM_SCRIPT], contractProgramRegistries(), sources, { asLineCeiling: 256, singleSignal: true });
 const script = built.rows[0], blob = built.blobs[0];
 if (script === undefined || blob === undefined) throw new Error('Missing compiled contract programme');
 /** The compiled guest's row and Wasm bytes. */
