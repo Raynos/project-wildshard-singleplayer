@@ -25,7 +25,7 @@ import speciesPins from './fixtures/nalati-species-files.json' with { type: 'jso
 import headerPin from './fixtures/nalati-species-product-header.json' with { type: 'json' };
 import { predecessorRenderHeader } from './fixtures/nalati-render-header';
 import original from './fixtures/nalati-place-blob.json' with { type: 'json' };
-import { placeOffsetsI3, qualifyPlacesI3, sceneI3 } from './fixtures/nalati-places-i3';
+import { packedSpecimensI3, placeOffsetsI3, qualifyPlacesI3, sceneI3 } from './fixtures/nalati-places-i3';
 import cragOriginal from './fixtures/nalati-crag-blob.json' with { type: 'json' };
 import dressingOriginal from './fixtures/nalati-dressing-blob.json' with { type: 'json' };
 import sceneOriginal from './fixtures/nalati-dressing-scenes.json' with { type: 'json' };
@@ -58,13 +58,15 @@ const assemblyForField = (field: unknown) => nameBlob(assemblyOriginal.name, 'js
 })));
 
 /** Only the packed bank locator changes; every predecessor scene field remains strict. */
-function sceneWithSpecimenBank(before:NamedBlob,bank:NamedBlob):NamedBlob {
+function sceneWithSpecimenBank(before:NamedBlob,bank:NamedBlob,shippedSpecimens:Uint8Array):NamedBlob {
   const name=before.file.name,file=bank.file.name;
   if(name===undefined||file===undefined||before.file.kind!=='json')throw new Error('Missing named scene or bank');
   const rows=v.parse(v.looseObject({catalogues:v.array(v.looseObject({packed:v.exactOptional(PackedSpecimenSchema)}))}),JSON.parse(new TextDecoder().decode(before.bytes)));
   const packed=rows.catalogues[0]?.packed;
   if(packed===undefined||packed.bin!=='/assets/nalati/baked/specimens.bin')throw new Error('Missing original specimen bank locator');
   packed.bin={file,bytes:bank.bytes.byteLength};
+  // iPhone downloads I3: the parts' channel storage and the bank's decoded size are the shipped bake's (nalati-places-i3.ts)
+  const catalogue=rows.catalogues[0];if(catalogue!==undefined)catalogue.packed=packedSpecimensI3(packed,shippedSpecimens);
   return nameBlob(name,'json',new TextEncoder().encode(encodeCanonicalJson(rows)),before.file.jsonSchema===undefined?{}:{jsonSchema:before.file.jsonSchema});
 }
 
@@ -81,7 +83,7 @@ function sceneWithOwnedModels(before: NamedBlob): NamedBlob {
 const coldOutputFixture = await (async () => {
   const cache = mkdtempSync(resolve('tmp/nalati-place-blob-'));
   const requested: string[] = [], steps: string[] = [], constructions = new Map<string, number>();
-  let nativePlaces: Uint8Array | undefined, nativeRender: Uint8Array | undefined;
+  let nativeSpecimens: Uint8Array | undefined, nativePlaces: Uint8Array | undefined, nativeRender: Uint8Array | undefined;
   const context = () => {
     const ctx = createProjectGeneration(resolve('src/shards/nalati-grasslands'), 'a'.repeat(64), new Map(), cache,
       [{ prefix: '/src/shards/nalati-grasslands/', directory: resolve('src/shards/nalati-grasslands') },
@@ -89,7 +91,7 @@ const coldOutputFixture = await (async () => {
     return { ...ctx, cached: (step: Parameters<typeof ctx.cached>[0], make: Parameters<typeof ctx.cached>[1]) => {
       requested.push(...(step.inputs ?? [])); steps.push(step.id);
       return ctx.cached(step, inputs => { constructions.set(step.id, (constructions.get(step.id) ?? 0) + 1); return make(inputs); }).then(files => {
-        if (step.id === 'places') nativePlaces = files.get('places.json');
+        if (step.id === 'places') { nativePlaces = files.get('places.json'); nativeSpecimens = files.get('placeSpecimens.json'); }
         if (step.id === 'render-tiles') nativeRender = files.get('data/renderTiles.json');
         return files;
       });
@@ -101,16 +103,27 @@ const coldOutputFixture = await (async () => {
     const shared = context(), header = await buildNalati(shared);
     const output = await prepareOutput(shared);
     const beforeWarm = new Map(constructions), warm = await prepareOutput(context());
-    return { cache, requested, steps, constructions, context, crags, header, output, beforeWarm, warm, get nativePlaces() { return nativePlaces; }, get nativeRender() { return nativeRender; } };
+    return { cache, requested, steps, constructions, context, crags, header, output, beforeWarm, warm, get nativePlaces() { return nativePlaces; }, get nativeSpecimens() { return nativeSpecimens; }, get nativeRender() { return nativeRender; } };
   } catch (error) { rmSync(cache, { recursive: true, force: true }); throw error; }
 })();
 
 // Build the independent full-scene oracle once beside the genuinely cold product.
 // Timed cases keep the original hashes, metadata, full bytes and cache controls.
+/** iPhone downloads I3: the shipped camp specimen bank (byte normals and colours), qualified word by word against the exact
+ *  pinned bank (nalati-places-i3.ts), named as the output names it */
+function shippedSpecimenBank(): { bank: NamedBlob; document: Uint8Array } {
+  const { output, nativeSpecimens } = coldOutputFixture;
+  if (nativeSpecimens === undefined) throw new Error('Missing observed native specimen metadata');
+  const file = output.namedFiles.find(row => row.name === 'models/specimens/camp.bin'), bytes = file === undefined ? undefined : output.assets.get(file.hash);
+  if (bytes === undefined) throw new Error('Missing owned specimen bank bytes');
+  qualifyPlacesI3(bytes, nativeSpecimens, 'specimens');
+  const decoded = v.parse(v.object({ bytes: v.number() }), JSON.parse(new TextDecoder().decode(nativeSpecimens))).bytes;
+  return { bank: nameBlob('models/specimens/camp.bin', 'bin', bytes, { decoded }), document: nativeSpecimens };
+}
+
 const sceneParityFixture = (() => {
   const { output: hit, nativePlaces } = coldOutputFixture;
-  const beforeBank = nativePlaceFile('specimens.bin');
-  const expectedBank = nameBlob('models/specimens/camp.bin', 'bin', beforeBank, { decoded: nalatiSpecimens.packed.bytes });
+  const { bank: expectedBank, document: shippedSpecimens } = shippedSpecimenBank();
     if (nativePlaces === undefined) throw new Error('Missing observed native place metadata');
     const ownedPlaces: unknown = JSON.parse(new TextDecoder().decode(nativePlaces));
     const ownedRuntime = nalatiRuntimeRows({ places: ownedPlaces, paint: paintInput }).runtime;
@@ -119,7 +132,7 @@ const sceneParityFixture = (() => {
     const expectedScenes = new Map(sceneOriginal.map(pin=>{
       const frozen = frozenScenes.find(blob => blob.file.name === pin.name);
       if (frozen === undefined) throw new Error('Missing frozen complete scene pin');
-      const expected = pin.name.endsWith('.json') ? sceneWithOwnedModels(sceneWithSpecimenBank(sceneWithNativeOutcrops(frozen, ownedRuntime),expectedBank)) : frozen;
+      const expected = pin.name.endsWith('.json') ? sceneWithOwnedModels(sceneWithSpecimenBank(sceneWithNativeOutcrops(frozen, ownedRuntime),expectedBank,shippedSpecimens)) : frozen;
       return[pin.name,expected]as const;
     }));
     // iPhone downloads I3: the scenes address the shipped places bake (its starts and its byte normals, nalati-places-i3.ts)
@@ -224,8 +237,10 @@ test('the predecessor scene projection refuses changed cover bytes and provenanc
 test('the actual cold output hook preserves every predecessor file cost and binary byte', () => {
   const { requested, steps, constructions, output: hit } = coldOutputFixture;
   const before = nativePlaceFile('places.bin');
+  // I3: the exact bank still matches the pinned specimens; the shipped one is it with byte normals (shippedSpecimenBank)
   const beforeBank=nativePlaceFile('specimens.bin');
-  const expectedBank=nameBlob('models/specimens/camp.bin','bin',beforeBank,{decoded:nalatiSpecimens.packed.bytes});
+  expect(nameBlob('models/specimens/camp.bin','bin',beforeBank,{decoded:nalatiSpecimens.packed.bytes}).file.decoded).toBe(nalatiSpecimens.packed.bytes);
+  const { bank: expectedBank } = shippedSpecimenBank();
     for (const [name, pin] of [['crags', cragOriginal]] as const) {
       const cold = coldOutputFixture.crags;
       expect(cold.file).toEqual(pin);
@@ -264,9 +279,8 @@ test('the actual cold output hook preserves every predecessor file cost and bina
     expect(hit.namedFiles.filter(file=>file.name===expectedBank.file.name)).toEqual([expectedBank.file]);
     const bankBytes = hit.assets.get(expectedBank.file.hash);
     if (bankBytes === undefined) throw new Error('Missing owned specimen bank bytes');
-    expect(bankBytes.byteLength).toBe(beforeBank.byteLength);
+    expect(bankBytes.byteLength).toBe(expectedBank.file.compressed);
     expect(hashImmutableBytes(bankBytes)).toBe(expectedBank.file.hash);
-    expect(Buffer.compare(bankBytes, beforeBank)).toBe(0);
     const { frozenScenes, expectedScenes, projectedScenes } = sceneParityFixture;
     expect(frozenScenes.map(blob => ({ name: blob.file.name, bytes: blob.bytes.length, hash: blob.file.hash }))
       .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')))

@@ -25,7 +25,8 @@ test('fresh owned places retain native bytes and metadata with detached cache hi
     const context=()=>{
       const context=createProjectGeneration(resolve('src/shards/nalati-grasslands'),'a'.repeat(64),new Map(),cache,
         [{prefix:'/assets/baked/nalati-grasslands/',directory:resolve('public/assets/baked/nalati-grasslands')}]);
-      return{...context,cached:(step,make)=>context.cached(step,inputs=>{if(step.id==='places')constructions++;return make(inputs);})};
+      // the exact bake (the pins'), under its own step since cd955cd8d9 shipped the I3 one as 'places'
+      return{...context,cached:(step,make)=>context.cached(step,inputs=>{if(step.id==='places-exact')constructions++;return make(inputs);})};
     };
     const pins=JSON.parse(readFileSync('test/fixtures/nalati-place-wires.json','utf8'));
     const check=files=>{

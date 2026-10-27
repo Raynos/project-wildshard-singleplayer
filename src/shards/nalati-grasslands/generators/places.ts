@@ -1020,10 +1020,10 @@ const memberRow = (m: MemberData, headings?: readonly (readonly [number, number]
 });
 
 /** every painted model the places paint, for its Explorer specimens (its defaults, then each variant) */
-function specimenJobs(ground: Ground): ((blocks: Uint8Array[]) => SpecimenRow[])[] {
+function specimenJobs(ground: Ground, compact = false): ((blocks: Uint8Array[]) => SpecimenRow[])[] {
   const job = <P extends object>(def: ModelDef<P>) => (blocks: Uint8Array[]): SpecimenRow[] => [undefined, ...(def.variants ?? []).map((v) => v.id)].map((variant) => {
     const params = paramsOf(def, variant, undefined);
-    const parts = paintedSpecimen(def, params, ground).map(({ geometry, layer }, slot): PlaceMeshRow => ({ name: '', material: layer ?? 'poi', slot, geometry: writeGeometry(geometry, blocks, `${def.id} specimen`) }));
+    const parts = paintedSpecimen(def, params, ground).map(({ geometry, layer }, slot): PlaceMeshRow => ({ name: '', material: layer ?? 'poi', slot, geometry: writeGeometry(geometry, blocks, `${def.id} specimen`, compact) }));
     return { key: specimenKey(def.id, params), parts };
   });
   return [job(yurtPainted), job(kunesBridgePainted), job(ribbonPolePainted), job(eaglePerchPainted), job(stovePainted), job(campBenchPainted),
@@ -1060,9 +1060,9 @@ export function bakeNalatiPoiKeepouts(ground: Ground): readonly Pick<PlaceRow, '
 }
 
 /**
- * iPhone downloads I3 (in flight): `phase` 'i3' writes the world places' normals and in-range colours as bytes (the
- * actors, whose parts other files carve, stay exact); 'exact', the default until its predecessor oracle lands, is the
- * original bake.
+ * iPhone downloads I3: `phase` 'i3' (the output's) writes the world places' and the camp specimens' normals and in-range
+ * colours as bytes (the actors, whose parts other files carve, stay exact); 'exact' (the default) is the original bake,
+ * which the pins and their predecessor oracle (test/fixtures/nalati-places-i3.ts) hold.
  * The bake over the page's ground (its baked terrain sampler): the places in the page's order (the camp, the
  * bridge, the summer camp, Eagle Rock, the Wind Cairn), then the specimens (the bridge's fitted to its first placement, so after the places), then
  * the dressing's scatter shapes (their own binary, `dressing.bin`).
@@ -1099,7 +1099,7 @@ export function bakeNalatiPlaces(ground: Ground, specimenScope: SpecimenScope = 
   const places = { rows, bin: join(blocks) };
   const specimenBlocks: Uint8Array[] = [];
   // Native V8 trig differs on arm64/x64; even a final float32 UV can cross its rounding midpoint.
-  const specimens = specimenScope(() => specimenJobs(ground).flatMap((run) => run(specimenBlocks)));
+  const specimens = specimenScope(() => specimenJobs(ground, phase === 'i3').flatMap((run) => run(specimenBlocks)));
   // the dressing's scatter shapes (generators/dressingGeos.ts): ground-free, indexed, kept as built
   return { places, specimens: { rows: specimens, bin: join(specimenBlocks) }, dressing: bakeDressing() };
 }

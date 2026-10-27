@@ -10,20 +10,23 @@ import { nativePlaceFile } from './nalati-native-place-files';
  *  mesh's block starts. */
 type Attr = readonly [string, 'f32' | 'f16' | 'u16' | 'i8' | 'u8', number, boolean];
 interface Geometry { readonly attrs: readonly Attr[]; readonly count: number; readonly index: 'u16' | 'u32' | null; readonly indexCount: number; readonly box: boolean; readonly expand: boolean }
-interface Document { readonly bin: string; readonly bytes: number; readonly rows: readonly { readonly name: string; readonly meshes: readonly { readonly geometry: Geometry }[] }[] }
+interface Document { readonly bin: string; readonly bytes: number; readonly rows: readonly { readonly meshes?: readonly { readonly geometry: Geometry }[]; readonly parts?: readonly { readonly geometry: Geometry }[] }[] }
+/** the two banks the places program bakes with the I3 writer: places.bin (world places) and specimens.bin (camp specimens) */
+export type PlaceBank = 'places' | 'specimens';
+const FILES = { places: ['places.bin', 'places.json'], specimens: ['specimens.bin', 'placeSpecimens.json'] } as const;
 const WIDTH = { f32: 4, f16: 2, u16: 2, i8: 1, u8: 1 } as const;
 const block = (g: Geometry, attr: Attr): number => Math.ceil(g.count * attr[2] * WIDTH[attr[1]] / 4) * 4;
 const span = (g: Geometry): number => g.attrs.reduce((sum, attr) => sum + block(g, attr), 0) + (g.index === null ? 0 : g.indexCount * 4);
 const parse = (bytes: Uint8Array): Document => JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)) as Document;
-const meshes = (document: Document): Geometry[] => document.rows.flatMap(row => row.meshes.map(mesh => mesh.geometry));
-const exactDocument = parse(nativePlaceFile('places.json'));
+const meshes = (document: Document): Geometry[] => document.rows.flatMap(row => (row.meshes ?? row.parts ?? []).map(mesh => mesh.geometry));
+const exactDocuments = { places: parse(nativePlaceFile(FILES.places[1])), specimens: parse(nativePlaceFile(FILES.specimens[1])) };
 
 /** Each exact mesh block's start → the shipped bake's start of the same mesh. Refuses a bake whose rows differ in any
  *  way but the I3 attribute storage. */
-export function placeOffsetsI3(shippedDocument: Uint8Array): ReadonlyMap<number, number> {
-  const shipped = parse(shippedDocument), a = meshes(exactDocument), b = meshes(shipped), map = new Map<number, number>();
+export function placeOffsetsI3(shippedDocument: Uint8Array, bank: PlaceBank = 'places'): ReadonlyMap<number, number> {
+  const exactDocument = exactDocuments[bank], shipped = parse(shippedDocument), a = meshes(exactDocument), b = meshes(shipped), map = new Map<number, number>();
   const refuse = (what: string): never => { throw new Error(`Nalati I3 places differ from the exact bake: ${what}`); };
-  if (shipped.rows.length !== exactDocument.rows.length || a.length !== b.length) refuse('inventory');
+  if (shipped.rows.length !== exactDocument.rows.length || a.length !== b.length) refuse(`${bank} inventory`);
   let from = 0, to = 0;
   a.forEach((g, i) => {
     const h = b[i];
@@ -45,14 +48,14 @@ export function placeOffsetsI3(shippedDocument: Uint8Array): ReadonlyMap<number,
 
 /** The shipped places.bin against the exact one, word by word: every float block and index byte for byte, each Int8
  *  normal within half its step of the exact normal (clamped to [-1, 1]), each Uint8 colour within half its step. */
-export function qualifyPlacesI3(shippedBytes: Uint8Array, shippedDocument: Uint8Array): { worstNormal: number; worstColour: number } {
-  const offsets = placeOffsetsI3(shippedDocument), shipped = parse(shippedDocument);
+export function qualifyPlacesI3(shippedBytes: Uint8Array, shippedDocument: Uint8Array, bank: PlaceBank = 'places'): { worstNormal: number; worstColour: number } {
+  const exactDocument = exactDocuments[bank], offsets = placeOffsetsI3(shippedDocument, bank), shipped = parse(shippedDocument);
   const words = (deflated: Uint8Array): Uint8Array => {
     const lanes = new Uint8Array(inflateSync(deflated)), n = lanes.length / 4, out = new Uint8Array(lanes.length);
     for (let i = 0; i < n; i++) for (let b = 0; b < 4; b++) out[i * 4 + b] = lanes[b * n + i] ?? 0;
     return out;
   };
-  const exactBin = words(nativePlaceFile('places.bin')), shippedBin = words(shippedBytes);
+  const exactBin = words(nativePlaceFile(FILES[bank][0])), shippedBin = words(shippedBytes);
   if (exactBin.length !== exactDocument.bytes || shippedBin.length !== shipped.bytes) throw new Error('Nalati I3 places span differs');
   const a = meshes(exactDocument), b = meshes(shipped);
   let worstNormal = 0, worstColour = 0, from = 0;
@@ -106,4 +109,19 @@ export function sceneI3(scene: unknown, addresses: Uint8Array, shippedDocument: 
     return { ...row, row: { ...geometry, attrs: g.attrs.map(attr => [...attr]) } };
   };
   return { scene: walk(scene), addresses: out };
+}
+
+/** A dressing scene's packed specimen catalogue as the shipped specimens bake lays it out: each part keeps its mesh but
+ *  takes the shipped part's channel storage, and the bank its shipped decoded size. */
+export function packedSpecimensI3<P extends { readonly bytes: number; readonly rows: readonly { readonly parts: readonly { readonly geometry: unknown }[] }[] }>(packed: P, shippedDocument: Uint8Array): P {
+  placeOffsetsI3(shippedDocument, 'specimens');
+  const shipped = parse(shippedDocument), parts = meshes(shipped);
+  let at = 0;
+  const rows = packed.rows.map(row => ({ ...row, parts: row.parts.map(part => {
+    const g = parts[at++];
+    if (g === undefined || typeof part.geometry !== 'object' || part.geometry === null) throw new Error('Packed specimen part is not a shipped part');
+    return { ...part, geometry: { ...part.geometry, attrs: g.attrs.map(attr => [...attr]) } };
+  }) }));
+  if (at !== parts.length) throw new Error('Packed specimens differ from the shipped bank');
+  return { ...packed, bytes: shipped.bytes, rows };
 }
