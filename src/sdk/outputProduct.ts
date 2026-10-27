@@ -1,5 +1,6 @@
 import { ktx2DeviceCosts } from '@wildshard/format/ktx2Cost';
 import { controlFileHashes } from '@wildshard/format/admissionControl';
+import { entryFileSteps } from '@wildshard/format/tierSelection';
 import { HEADLESS_CONTEXT_SECTIONS } from './headlessSections';
 /** Author-only format-2 emission and on-disk inventory validation. */
 // oxlint-disable-next-line import/no-nodejs-modules -- The author CLI owns its explicit product output directory.
@@ -154,8 +155,20 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
   // late/spatial bytes along in its pack; every member keeps its unchanged path/hash, and all pack caps stay fixed.
   // Explicit device variants also stay apart: selecting a phone member cannot fetch a packed desktop alternative.
   const required = controlFileHashes(source), small = files.filter(file=>file.compressed<PACK_MEMBER_BYTES).sort((a,b)=>a.hash.localeCompare(b.hash));
+  // A typed alternative need not have an explicit file.tier. Use the same entry
+  // projection as admission so an inactive variant cannot poison a whole pack.
+  const selection = { index: { files }, sections: new Map(sections.map(row => {
+    const bytes = emitted.get(row.path); if (bytes === undefined) throw new Error('Missing pack selection section');
+    return [row.name, readJson(bytes)] as const;
+  })) };
+  const excluded = (tier: 'phone' | 'desktop'): ReadonlySet<string> => {
+    const steps = entryFileSteps(source, tier, selection);
+    for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
+  };
+  const phone = excluded('phone'), desktop = excluded('desktop');
+  const membership = (hash: string): number => (phone.has(hash) ? 0 : 1) + (desktop.has(hash) ? 0 : 2);
   const groups=[[...[...sections].sort((a,b)=>a.name.localeCompare(b.name)),...[...schemas].sort((a,b)=>a.path.localeCompare(b.path))],
-    ...[true,false].flatMap(initial=>[undefined,'phone','desktop'].map(tier=>small.filter(file=>required.has(file.hash)===initial&&file.tier===tier).map(file=>({path:file.path,hash:file.hash,bytes:file.compressed}))))];
+    ...[true,false].flatMap(initial=>[undefined,'phone','desktop'].flatMap(tier=>[0,1,2,3].map(mask=>small.filter(file=>required.has(file.hash)===initial&&file.tier===tier&&membership(file.hash)===mask).map(file=>({path:file.path,hash:file.hash,bytes:file.compressed})))) )];
   let pending:{path:string;hash:string;bytes:number}[]=[],pendingBytes=0;
   const flush=():void=>{
     if(pending.length===0)return;

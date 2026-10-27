@@ -124,3 +124,23 @@ it('does not publish grid evidence before entry admission succeeds',()=>{
  expect(()=>writeOutputProduct(invalid,new Map(),directory)).toThrow(/entryway|8 metres/u);
  expect(existsSync(resolve(directory,'validation.json'))).toBe(false);
 });
+
+it('separates implicit entry alternatives from demanded pack members without tier labels',()=>{
+ const shard=source(),directory=output(),bodies=[new Uint8Array(70000).fill(41),new Uint8Array(80000).fill(42),new Uint8Array(90000).fill(43)];
+ const assets=new Map(bodies.map(body=>[hashImmutableBytes(body),body])),hashes=[...assets.keys()];
+ shard.files=[...assets].map(([hash,body])=>({hash,kind:'binary' as const,compressed:body.length,decoded:body.length,gpu:0,triangles:0,draws:0,dependencies:[],critical:false}));
+ shard.library=hashes;shard.budgets.library={resident:240000,compressed:240000};
+ const namedFiles=shard.files.map((file,i)=>({...file,kind:'bin' as const,path:`blobs/bin/${file.hash}.bin`,name:`implicit-${i}.bin`,...(i<2?{variantOf:'same-payload'}:{})}));
+ shard.files.sort((a,b)=>a.hash.localeCompare(b.hash));
+ const index=writeOutputProduct(shard,assets,directory,{namedFiles});
+ const packs=(index.packs??[]).filter(pack=>pack.entries.some(entry=>assets.has(entry.hash)));
+ const inactive=hashes[0],selected=hashes[1],shared=hashes[2];
+ if(inactive===undefined||selected===undefined||shared===undefined)throw new Error('Missing implicit alternative');
+ expect(packs).toHaveLength(2);
+ expect(packs.find(pack=>pack.entries.some(entry=>entry.hash===inactive))?.entries.map(entry=>entry.hash)).toEqual([inactive]);
+ expect(new Set(packs.find(pack=>pack.entries.some(entry=>entry.hash===selected))?.entries.map(entry=>entry.hash))).toEqual(new Set([selected,shared]));
+ expect(index.files.every(file=>file.tier===undefined)).toBe(true);
+ const restored=validateOutputProduct(directory);
+ expect(restored.shard).toEqual(shard);
+ for(const [hash,wire] of assets)expect(restored.assets.get(hash)).toEqual(wire);
+});
