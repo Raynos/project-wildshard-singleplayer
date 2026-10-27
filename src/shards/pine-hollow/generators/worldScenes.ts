@@ -9,7 +9,8 @@ import { CRAG_LOOK, CAVE_LOOK } from './cragLook';
 import * as layout from './layout';
 import { MODEL_SCENES, MODEL_BLOBS, SCENE_MODELS, SCENE_PLACEMENTS } from './sceneModelRows';
 import { CABIN_JSON_BLOBS } from './cabinSceneContribution';
-import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
+import { nameBlob, nameMeshoptBlob, type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
+import { pineWorldSceneModels } from './bake-world-scene-models.mjs';
 import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 import spray from '../data/sprayPuffs.json' with { type: 'json' };
 import { SPRAY_LOOK } from './streamLook';
@@ -44,13 +45,14 @@ export const SCENE_BLOBS: NamedBlobType[] = [nameBlob('world/crag-cave.json', 'j
   ...CABIN_JSON_BLOBS, ...QUEST_RIDE_BLOBS,
   nameBlob('models/world-scenes.json', 'json', encode(SCENE_MODELS)),
   ...SCENE_PLACEMENTS.map(row => nameBlob(`scenes/placements/${row.id}.json`, 'json', encode(row)))];
-export const SCENE_MODEL_BLOBS: { name: string; kind: string; source: string; }[] = [
-  { name: 'models/stream-water.glb', kind: 'glb', source: 'assets/stream-scenes/water.glb' },
-  { name: 'models/stream-quad.glb', kind: 'glb', source: 'assets/stream-scenes/quad.glb' },
-  { name: 'models/pool-still.glb', kind: 'glb', source: 'assets/pool-scenes/still.glb' },
-  { name: 'models/pool-trickle.glb', kind: 'glb', source: 'assets/pool-scenes/trickle.glb' },
-  ...MODEL_BLOBS, ...QUEST_RIDE_MODEL_BLOBS,
-];
+export const SCENE_MODEL_BLOBS: { name: string; kind: string; source: string; }[] = [...MODEL_BLOBS, ...QUEST_RIDE_MODEL_BLOBS];
+// GR8 G27: the stream water and quad and the pool's still and trickle, built here (no scheduler job, no stored files):
+// raw for the map assembly, meshopt-named for the output as their `meshopt: true` sources were.
+const rawModels = [...pineWorldSceneModels()];
+/** The four raw world-scene models, named as the map assembly reads them. */
+export const SCENE_RAW_MODELS: NamedBlobType[] = rawModels.map(([name, bytes]) => nameBlob(name, 'glb', bytes));
+/** The same four, meshopt-named as the output publishes them. */
+export const SCENE_PACKED_MODELS: NamedBlobType[] = await Promise.all(rawModels.map(([name, bytes]) => nameMeshoptBlob(name, bytes)));
 /** Ordered stream assembly plus named raw-model placement sets, over shared material slots. */
 export const WORLD_SCENES: WorldScenesSection = {
   version: 1, catalogue: 'models/world-scenes.json', placements: MODEL_SCENES.placements, batches: MODEL_SCENES.batches, welds: MODEL_SCENES.welds,

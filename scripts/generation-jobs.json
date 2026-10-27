@@ -8319,49 +8319,6 @@
       ]
     },
     {
-      "id": "pine-world-scene-models",
-      "shard": "pine-hollow",
-      "entry": "src/shards/pine-hollow/generators/bake-world-scene-models.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/pine-hollow/generators/bake-world-scene-models.mjs"
-      ],
-      "inputRoots": [
-        "src/commons",
-        "src/shards/pine-hollow/generators/geography.ts",
-        "src/shards/pine-hollow/generators/layout.ts",
-        "src/shards/pine-hollow/generators/bake-pine-streams.mjs",
-        "src/shards/pine-hollow/generators/streams.ts",
-        "src/shards/pine-hollow/generators/wildlifeWords.ts",
-        "scripts/named-blob-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/shards/pine-hollow/generators/bake-world-scene-models.mjs",
-        "src/shards/pine-hollow/generators/streamCodec.ts",
-        "src/format",
-        "src/sdk",
-        "scripts/bake-output.mjs",
-        "src/shards/pine-hollow/generators",
-        "public/assets/baked/pine-hollow/terrain.bin"
-      ],
-      "outputs": [
-        "src/shards/pine-hollow/assets/stream-scenes/water.glb",
-        "src/shards/pine-hollow/assets/stream-scenes/quad.glb",
-        "src/shards/pine-hollow/assets/pool-scenes/still.glb",
-        "src/shards/pine-hollow/assets/pool-scenes/trickle.glb"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/pine-hollow/assets/stream-scenes/water.glb",
-        "src/shards/pine-hollow/assets/stream-scenes/quad.glb",
-        "src/shards/pine-hollow/assets/pool-scenes/still.glb",
-        "src/shards/pine-hollow/assets/pool-scenes/trickle.glb"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "pine-packed-sky-keys",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-keyed-sky.mjs",
@@ -10408,7 +10365,6 @@
         "pine-cabin-scenes",
         "pine-cabin-living",
         "pine-crag-scenes",
-        "pine-world-scene-models",
         "pine-prop-scenes",
         "pine-hero-scenes",
         "pine-tree-rest",
