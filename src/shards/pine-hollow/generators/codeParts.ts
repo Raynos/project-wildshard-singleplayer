@@ -19,7 +19,7 @@ import { readBakedGeometry } from '@wildshard/game/plugin/geometry';
 import { PickupCatalogueSchema, type PickupCatalogueRows } from '@wildshard/format/specimenCatalogue';
 import pickupRows from '@wildshard/game/data/pickupCatalogue' with { type: 'json' };
 import HOLLOW_LOG_SHAPE from '../data/hollowLog.json' with { type: 'json' }; // length, outer and bore radius (m), the rotted bed's depth
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import { buildPrimitiveParts, PartKit } from './primitiveParts';
 import { NPC_MILLER_BODY, NPC_RANGER_BODY, NPC_RANGER_GLASS, NPC_TRADER_BODY } from './peopleParts';

@@ -14,7 +14,7 @@
 import * as THREE from 'three';
 import { PINE_TIMBER_SEED as SEED, LOOKOUT_SEED, type LookoutRows } from './timberRows';
 import { boxUV } from './cabinShapes';
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 import { TimberBuilder, V } from './timberKit';
 import { TimberRecorder } from './timberBake';
 

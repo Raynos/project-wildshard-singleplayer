@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { parseMovers, type MoverData } from '@wildshard/format/movers';
 import { lowerMoverMotion } from '@wildshard/format/moverMotion';
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
 
 /** Resolve the old terrain/deck sampling offline; runtime receives one ordinary winch path. */

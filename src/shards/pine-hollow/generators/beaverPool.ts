@@ -11,7 +11,7 @@
  */
 import * as THREE from 'three';
 import type { CragGround } from './cragGround';
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 import { creekBedAt, creekSpan, inBeaverPool } from './geography';
 import type { PoolRows } from './poolRows';
 

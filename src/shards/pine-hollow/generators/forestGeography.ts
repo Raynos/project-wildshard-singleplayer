@@ -1,6 +1,6 @@
 import { smoothstep, lerp } from './floorNoise';
 import { ridgeFootZ, nearestOnPolyline } from './geography';
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 
 type SpeciesWeights = Partial<Record<string, number>>;
 

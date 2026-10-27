@@ -15,7 +15,7 @@
  * over crags.glb), turned, rolled and sunk more freely, boulders in their joints, the lookout's hero crag.
  */
 import type * as THREE from 'three';
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 import { ridgeFootZ, nearestOnPolyline } from './geography';
 import { PineSeedStream as Rng } from './seedStream';
 import type { CragGround } from './cragGround';

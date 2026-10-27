@@ -1,6 +1,6 @@
 import { PineSeedStream } from './seedStream';
 import { pineTrailDistance } from './cragGround';
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 import { ridgeFootZ } from './geography';
 
 interface HerdFact { kind: string; count: number; canopy: boolean; trailBand: [number, number]; anchor: { x: number; z: number; rMin: number; rMax: number }; variants?: string[] | undefined }

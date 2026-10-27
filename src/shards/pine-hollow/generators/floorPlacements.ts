@@ -3,7 +3,7 @@ import { PineSeedStream as Rng } from './seedStream';
 import { Noise2D, smoothstep, lerp } from './floorNoise';
 import { pineCragQueries } from './cragGround';
 import { ridgeFootZ, nearestOnPolyline } from './geography';
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 
 interface Tree { readonly x: number; readonly z: number; readonly r: number }
 export interface UnderPlacement { x: number; y: number; z: number; nx: number; ny: number; nz: number; rot: number; scale: number; r: number; g: number; b: number }

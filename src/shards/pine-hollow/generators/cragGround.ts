@@ -1,6 +1,6 @@
 /** Explicit original renderer queries and authored exclusion rows, without active levels or engine services. */
 import type { NativeTerrainSource } from '@wildshard/sdk/bake/terrain';
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 
 /** Queries the original crag recipe uses; heights and normals come from the retained renderer lattice. */
 export interface CragGround {

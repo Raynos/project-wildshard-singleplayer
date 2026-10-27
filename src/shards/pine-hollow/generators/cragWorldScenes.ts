@@ -1,6 +1,6 @@
 import { BufferAttribute, BufferGeometry, Matrix4, Mesh, type Object3D } from 'three';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 
 function triangleGeometry(value: unknown): value is BufferGeometry { return value instanceof BufferGeometry; }
 

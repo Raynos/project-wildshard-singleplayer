@@ -1,5 +1,5 @@
 /** Pine's author-only crag facts; the live native reader keeps ownership until its Scene consumer replaces it. */
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 
 /** Original view profiles; they do not choose a renderer or install a world. */
 export type CragTier = 'phone' | 'desktop';

@@ -1,6 +1,6 @@
 import type { EliteDef } from '@wildshard/game/Elite';
 import type { ItemId } from '@wildshard/game/Inventory';
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 import { GHOST_LAIR } from './eliteHomes';
 
 /**

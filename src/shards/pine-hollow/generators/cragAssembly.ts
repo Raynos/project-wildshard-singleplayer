@@ -4,7 +4,7 @@ import type { NativeTerrainSource } from '@wildshard/sdk/bake/terrain';
 import { pineCragScene } from './cragScene';
 import type { CragPlace, CragTier, CragId as CragIdType } from './cragRows';
 import type { SkinBake } from './crags';
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 
 interface CaveMeta { cuts: { lx: number; lz: number; hw: number; hd: number; below: number }[]; holes: { lx: number; lz: number; hw: number; hd: number; y0: number; y1: number }[] }
 interface Plan { lod0: number; lod1: number; near: number; far: number; r: number; x: number; y: number; z: number; cave: boolean }

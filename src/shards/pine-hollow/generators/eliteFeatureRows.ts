@@ -3,7 +3,7 @@ import { CHUNK_HALF } from '@wildshard/format/contentBounds';
 import identity from '../data/identity.json' with { type: 'json' };
 import { PINE_ELITE_DEFS, PINE_ELITE_ANIMALS, ORDINARY } from './eliteRoster';
 import { PINE_LANES, PINE_STRIKES } from './strikes';
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 
 const streams = { spawn: 'pine.elite.spawn.', fight: 'pine.elite.', pickup: 'pine.pickup.' };
 const fields = ['x', 'z', 'scripted', 'lookWeight', 'lookHeight', 'hidden', 'heading', 'speed', 'turn',
