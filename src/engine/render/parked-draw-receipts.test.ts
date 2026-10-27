@@ -25,7 +25,11 @@ function fixture(materials: readonly Material[]) {
       draws.push(drawn);
     },
     shadowMap: { autoUpdate: true, needsUpdate: false, type: PCFShadowMap },
-    getRenderTarget: () => current, setRenderTarget: value => { current = value; },
+    getRenderTarget: () => current, setRenderTarget: value => {
+      if (value === target) current = target;
+      else if (value === null) current = null;
+      else throw new Error('Unexpected preparation target');
+    },
     getActiveCubeFace: () => 0, getActiveMipmapLevel: () => 0,
     getScissor: value => value.copy(scissor), setScissor: () => undefined,
     getScissorTest: () => scissorTest, setScissorTest: value => { scissorTest = value; },
