@@ -13,6 +13,8 @@ import * as v from 'valibot';
 import { parseManifestMetadata } from '@wildshard/format/minimap';
 import manifest from '../src/shards/driftwood-isle/manifest.json';
 import { DRIFTWOOD_FAUNA_PLANS } from '../src/shards/driftwood-isle/generators/fauna';
+import { parseDiscoveryValues } from '../src/format/discoveryValues';
+import { discovery } from './fixtures/driftwood-boot-discovery';
 
 test('retains all five original spawn rows and their placement order', () => {
   const admitted = parseManifestMetadata(manifest).spawns;
@@ -28,9 +30,14 @@ test('discovery compilation needs no opaque spawn-evaluation subprocess', () => 
   const root = mkdtempSync(resolve('tmp/driftwood-manifest-inputs-'));
   try {
     const receipt = resolve(root, 'reads.json');
+    // Supply the real bounded source operations at the retired boot writer's
+    // handoff. The recorded child still compiles the complete authored source.
+    writeFileSync(resolve(root, 'discovery.json'), JSON.stringify(parseDiscoveryValues(discovery)));
     writeFileSync(resolve(root, 'entry.mjs'),
       `import {authoredManifestSource} from ${JSON.stringify(resolve('scripts/authored-manifest.mjs'))};` +
-      `authoredManifestSource(${JSON.stringify(process.cwd())},'driftwood-isle',{generation:true,metadataOnly:true});`);
+      `import {readFileSync} from 'node:fs';` +
+      `const discovery=JSON.parse(readFileSync('./discovery.json','utf8'));` +
+      `authoredManifestSource(${JSON.stringify(process.cwd())},'driftwood-isle',{generation:true,metadataOnly:true,discovery});`);
     const child = spawnSync(process.execPath, ['--import', resolve('test/fixtures/input-read-preload.mjs'), 'entry.mjs'], {
       cwd: root, env: { ...process.env, WS_GENERATION_READ_RECEIPT: receipt }, encoding: 'utf8',
     });
