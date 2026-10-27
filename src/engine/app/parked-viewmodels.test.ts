@@ -3,9 +3,12 @@ import { BoxGeometry, BufferAttribute, BufferGeometry, DirectionalLight, Group, 
 import { Scope } from './scope';
 import { bindConstructionEnvironment, withOwner } from './ownership';
 import { ViewmodelRoot } from '../render/viewmodel';
-import { LIVE_PARKED_BUDGET, warmParkedDraws, type ParkedDrawRenderer } from '../render/parkedDraws';
+import { warmParkedDraws, type ParkedDrawBudget, type ParkedDrawRenderer } from '../render/parkedDraws';
 import { prepareSceneRoots } from '../render/precompile';
 import { SHADOW_LAYER } from '../core/shadowLayer';
+
+/** The slicing rules at one native unit a slice (the WebKit live budget before G782 raised it to two, D152). */
+const ONE_UNIT: ParkedDrawBudget = { drawables: 8, newMaterials: 1, newBindings: 1, bufferBytes: 256 * 1024 };
 
 const isMesh = (object: Object3D): object is Mesh => object instanceof Mesh;
 
@@ -266,7 +269,7 @@ test('live preparation submits one drawable per pause and preserves every materi
   try {
     const seen = new Set<Material>();
     const drawn = await warmParkedDraws(f.renderer, f.scene, f.camera, f.target, f.stage, () => true,
-      () => { f.restored(); return Promise.resolve(); }, { revealChildren: true, budget: LIVE_PARKED_BUDGET });
+      () => { f.restored(); return Promise.resolve(); }, { revealChildren: true, budget: ONE_UNIT });
     for (const batch of f.draws) {
       const fresh = new Set(batch.flatMap(mesh => Array.isArray(mesh.material) ? mesh.material : [mesh.material]).filter(material => !seen.has(material)));
       expect(batch).toHaveLength(1); expect(fresh.size).toBeLessThanOrEqual(1);

@@ -2,7 +2,10 @@ import { expect, test } from 'vitest';
 import { BoxGeometry, InstancedMesh, Mesh, MeshBasicMaterial, PerspectiveCamera, Points, Scene, WebGLRenderTarget, type Object3D } from 'three';
 import { Scope } from './scope';
 import { registerOffscreenPreparation } from '../render/offscreenPreparation';
-import { LIVE_PARKED_BUDGET, warmOffscreenPasses, type OffscreenWarmRenderer } from '../render/parkedDraws';
+import { warmOffscreenPasses, type OffscreenWarmRenderer, type ParkedDrawBudget } from '../render/parkedDraws';
+
+/** The slicing rules at one native unit a slice (the WebKit live budget before G782 raised it to two, D152). */
+const ONE_UNIT: ParkedDrawBudget = { drawables: 8, newMaterials: 1, newBindings: 1, bufferBytes: 256 * 1024 };
 
 function scalarTarget(value: unknown): value is WebGLRenderTarget { return value instanceof WebGLRenderTarget && !Array.isArray(value.texture); }
 
@@ -43,7 +46,7 @@ test.each([false, true])('offscreen caster batches restore state before yielding
     return Promise.resolve();
   };
   try {
-    const warming = warmOffscreenPasses(renderer, scene, () => current, pause, undefined, undefined, LIVE_PARKED_BUDGET);
+    const warming = warmOffscreenPasses(renderer, scene, () => current, pause, undefined, undefined, ONE_UNIT);
     if (cancel) { await expect(warming).rejects.toThrow('owner left'); expect(frames).toEqual([['0']]); expect(pauses).toBe(1); }
     else { expect(await warming).toBe(3); expect(frames).toEqual([['0'], ['2'], ['3']]); expect(pauses).toBe(3); }
   } finally { owner.dispose(); geometry.dispose(); material.dispose(); override.dispose(); target.dispose(); prior.dispose(); }

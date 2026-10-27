@@ -277,9 +277,12 @@ export type ParkedDrawRenderer = Pick<Renderer, 'render' | 'getRenderTarget' | '
 
 /** 4 MiB of new buffers a slice: a few milliseconds of `bufferData` at most. */
 const DEFAULT_BUDGET: ParkedDrawBudget = { drawables: 8, newMaterials: 2, bufferBytes: 4 * 1024 * 1024 };
-/** One cold binding per live frame. Bounded copies reuse it; new buffer data stays below 256 KiB per slice.
- * A single oversized drawable still goes alone, as before. Every submitted slice waits for a completed game frame. */
-export const LIVE_PARKED_BUDGET: ParkedDrawBudget = { drawables: 8, newMaterials: 1, newBindings: 1, bufferBytes: 256 * 1024 };
+/** Two cold bindings per live frame. Bounded copies reuse them; new buffer data stays below 512 KiB per slice.
+ * A single oversized drawable still goes alone, as before. Every submitted slice waits for a completed game frame.
+ * G782 (D152): raised from 1 binding and 256 KiB on an iOS Simulator Pine road entry (HEAD d99dc72ced): crossing
+ * 16.85 -> 13.35 s, held 27.6 -> 28.9 fps (median 30.3 both), longest drive frame 230 -> 115 ms, frames over 50 ms
+ * 34 -> 19, no context loss; the iPhone check is the plan's device reading. */
+export const LIVE_PARKED_BUDGET: ParkedDrawBudget = { drawables: 8, newMaterials: 2, newBindings: 2, bufferBytes: 512 * 1024 };
 /** G580 T5: while the traveller waits at the wall (engine/core/framePacing buildHeld), a slice may draw four times as
  *  many drawables: each slice costs a drawn frame, and the held view's longer frames cost no movement. Its new buffers
  *  stay under 6 MiB (G743): a cold Driftwood crossing's held slices of 12.8 and 15.6 MB filled Chromium's transfer

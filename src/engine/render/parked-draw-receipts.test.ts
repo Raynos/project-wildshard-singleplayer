@@ -1,8 +1,11 @@
 import { expect, test } from 'vitest';
 import { Bone, BoxGeometry, Float32BufferAttribute, Group, InstancedMesh, Mesh, MeshBasicMaterial, PCFShadowMap, PerspectiveCamera, Scene, Skeleton,
   SkinnedMesh, Uint16BufferAttribute, Vector4, WebGLRenderTarget, type Camera, type Material, type Object3D } from 'three';
-import { LIVE_PARKED_BUDGET, warmParkedDraws, type ParkedDrawBudget, type ParkedDrawRenderer } from './parkedDraws';
+import { warmParkedDraws, type ParkedDrawBudget, type ParkedDrawRenderer } from './parkedDraws';
 import { drawNeutral } from './drawNeutral';
+
+/** The slicing rules at one native unit a slice (the WebKit live budget before G782 raised it to two, D152). */
+const ONE_UNIT: ParkedDrawBudget = { drawables: 8, newMaterials: 1, newBindings: 1, bufferBytes: 256 * 1024 };
 
 const ONE_A_SLICE: ParkedDrawBudget = { drawables: 1, newMaterials: 1 };
 
@@ -80,7 +83,7 @@ test('every drawn slice gets its own completed frame, under the live WebKit budg
   try {
     f.root.add(...Array.from({ length: 20 }, () => new InstancedMesh(geometry, material, 1)));
     // slices of 8, 8, 4 (copies share the binding's first use), a completed frame each
-    const { drawn, pauses } = await f.warm(LIVE_PARKED_BUDGET);
+    const { drawn, pauses } = await f.warm(ONE_UNIT);
     expect(drawn).toBe(20);
     expect(pauses).toBe(3);
     expect(f.draws.map(slice => slice.length)).toEqual([8, 8, 4]);
@@ -117,14 +120,14 @@ test('under the live WebKit budget, fresh geometry over a built pipeline is not 
   try {
     for (const material of shared) f.compile(material, 7);
     f.root.add(...shared.slice(0, 4).map((material, i) => new Mesh(geometries[i], material)));
-    expect(await f.warm(LIVE_PARKED_BUDGET)).toEqual({ drawn: 4, pauses: 1 });
+    expect(await f.warm(ONE_UNIT)).toEqual({ drawn: 4, pauses: 1 });
     f.root.clear(); f.root.add(...shared.slice(4).map((material, i) => new Mesh(geometries[i + 4], material)));
-    expect(await f.warm(LIVE_PARKED_BUDGET)).toEqual({ drawn: 4, pauses: 1 });
+    expect(await f.warm(ONE_UNIT)).toEqual({ drawn: 4, pauses: 1 });
     f.root.clear();
     const distinct = Array.from({ length: 3 }, () => new MeshBasicMaterial());
     distinct.forEach((material, i) => { f.compile(material, 30 + i); });
     f.root.add(...distinct.map(material => new Mesh(new BoxGeometry(), material)));
-    expect(await f.warm(LIVE_PARKED_BUDGET)).toEqual({ drawn: 3, pauses: 3 });
+    expect(await f.warm(ONE_UNIT)).toEqual({ drawn: 3, pauses: 3 });
     for (const material of distinct) material.dispose();
   } finally { f.dispose(); for (const geometry of geometries) geometry.dispose(); for (const material of shared) material.dispose(); }
 });
@@ -142,12 +145,12 @@ test('skins over a built pipeline pace as copies; a per-object callback keeps a 
   try {
     f.compile(material, 7);
     f.root.add(skinned(), skinned(), skinned());
-    expect(await f.warm(LIVE_PARKED_BUDGET)).toEqual({ drawn: 3, pauses: 1 });
+    expect(await f.warm(ONE_UNIT)).toEqual({ drawn: 3, pauses: 1 });
     f.root.clear();
     const hooked = [new Mesh(new BoxGeometry(), material), new Mesh(new BoxGeometry(), material)];
     for (const mesh of hooked) { geometries.push(mesh.geometry); mesh.onBeforeRender = () => undefined; }
     f.root.add(...hooked);
-    expect(await f.warm(LIVE_PARKED_BUDGET)).toEqual({ drawn: 2, pauses: 2 });
+    expect(await f.warm(ONE_UNIT)).toEqual({ drawn: 2, pauses: 2 });
   } finally { f.dispose(); for (const geometry of geometries) geometry.dispose(); material.dispose(); }
 });
 
@@ -158,14 +161,14 @@ test('callbacks declared draw-neutral pace as copies; a wrapped unmarked hook do
     f.compile(material, 7);
     const neutral = geometries.map(geometry => { const mesh = new Mesh(geometry, material); mesh.onBeforeRender = drawNeutral(() => undefined); return mesh; });
     f.root.add(...neutral);
-    expect(await f.warm(LIVE_PARKED_BUDGET)).toEqual({ drawn: 3, pauses: 1 });
+    expect(await f.warm(ONE_UNIT)).toEqual({ drawn: 3, pauses: 1 });
     f.root.clear();
     const partly = new Mesh(new BoxGeometry(), material), hooked = new Mesh(new BoxGeometry(), material);
     partly.onBeforeRender = drawNeutral(() => undefined); partly.onAfterRender = () => undefined; // one unmarked hook keeps its own first use
     hooked.onBeforeRender = () => undefined;
     geometries.push(partly.geometry, hooked.geometry);
     f.root.add(partly, hooked);
-    expect(await f.warm(LIVE_PARKED_BUDGET)).toEqual({ drawn: 2, pauses: 2 });
+    expect(await f.warm(ONE_UNIT)).toEqual({ drawn: 2, pauses: 2 });
   } finally { f.dispose(); for (const geometry of geometries) geometry.dispose(); material.dispose(); }
 });
 
@@ -176,6 +179,6 @@ test('a known program under different blending is a new pipeline; the same state
     for (const material of [opaque, copy, blended]) f.compile(material, 7);
     f.root.add(new Mesh(geometries[0], opaque), new Mesh(geometries[1], copy), new Mesh(geometries[2], blended));
     // the opaque pair shares one slice (same program and state); the blended material builds its own pipeline
-    expect(await f.warm(LIVE_PARKED_BUDGET)).toEqual({ drawn: 3, pauses: 2 });
+    expect(await f.warm(ONE_UNIT)).toEqual({ drawn: 3, pauses: 2 });
   } finally { f.dispose(); for (const geometry of geometries) geometry.dispose(); for (const material of [opaque, copy, blended]) material.dispose(); }
 });
