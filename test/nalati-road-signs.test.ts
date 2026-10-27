@@ -40,6 +40,7 @@ test('sites and boards detach while ground calls retain authored order', () => {
 test('the native paint producer preserves every original output without reading places metadata', () => {
   const source = `
     import fs from 'node:fs';
+    import assert from 'node:assert/strict';
     import { syncBuiltinESMExports } from 'node:module';
     const prior=fs.readFileSync;
     fs.readFileSync=(path,...options)=>{
@@ -48,11 +49,26 @@ test('the native paint producer preserves every original output without reading 
       return prior(path,...options);
     };
     syncBuiltinESMExports();
-    try { await import('./src/shards/nalati-grasslands/generators/bake-poi-paint.mjs'); }
+    try {
+      const { nalatiPoiPaintProgram, POI_PAINT_INPUTS } = await import('./src/shards/nalati-grasslands/generators/poiPaintProgram.ts');
+      const { originalPoiPaintFiles } = await import('./test/fixtures/nalati-poi-paint-original.ts');
+      const files = await nalatiPoiPaintProgram({ cached: async (step, make) => {
+        assert.equal(step.id, 'poi-paint'); assert.equal(step.native, true);
+        assert.deepEqual(step.inputs, POI_PAINT_INPUTS);
+        const inputs = new Map(step.inputs.map(file => [file, new Uint8Array(fs.readFileSync('public' + file))]));
+        return make(inputs);
+      } });
+      const original = originalPoiPaintFiles();
+      assert.deepEqual([...files.keys()].sort((a,b)=>a.localeCompare(b)), [...original.keys()].sort((a,b)=>a.localeCompare(b)));
+      for (const [name, before] of original) {
+        const actual = files.get(name); assert.ok(actual, name);
+        assert.equal(actual.length, before.length, name); assert.equal(Buffer.compare(actual, before), 0, name);
+      }
+    }
     finally { fs.readFileSync=prior;syncBuiltinESMExports(); }
   `;
   execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs',
-    '--input-type=module', '--eval', source, '--', '--check']);
+    '--input-type=module', '--eval', source]);
 });
 
 test('the sign source is one chunk without the place geometry or runtime graph', async () => {
