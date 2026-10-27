@@ -16,6 +16,7 @@ const cover = nalatiCover.rows;
 // Prepare the complete live source product before the unchanged timed
 // assertions; compiler/native setup failures still refuse collection.
 const nalatiEnvelope=await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
+    { prefix: '/src/shards/nalati-grasslands/', directory: 'src/shards/nalati-grasslands' },
     { prefix: '/assets/nalati/baked/', directory: 'public/assets/nalati/baked' },
     { prefix: '/assets/nalati/models/', directory: 'public/assets/nalati/models' },
     { prefix: '/assets/baked/nalati-grasslands/', directory: 'public/assets/baked/nalati-grasslands' },
