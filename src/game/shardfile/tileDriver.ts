@@ -42,7 +42,9 @@ export class TileDriver {
     private readonly pause: () => Promise<void>) {}
 
   /** The tiles attached now, by layer (the overlay and tests read them). */
-  resident(layer: Layer): ReadonlySet<number> { return new Set(this.attached[layer].keys()); }
+  resident(layer: Layer): ReadonlySet<number> {
+    return new Set([...this.attached[layer].keys()].filter(key => layer === 'colliders' || this.complete(key)));
+  }
 
   /** Attach `keys` in order, render and colliders, before the player has controls (the rank-0 tiles); rejects a live content failure. */
   async require(keys: Iterable<number>): Promise<void> {
@@ -106,9 +108,11 @@ export class TileDriver {
 
   /** Coarse coverage stays until every declared fine visual actually publishes. */
   private rendered(key: number): boolean {
+    return this.renderRing.has(key) && this.complete(key);
+  }
+  private complete(key: number): boolean {
     const tile = this.attached.render.get(key);
-    return this.renderRing.has(key) && tile !== undefined
-      && this.contents.every(content => !content.tiles().has(key) || tile.done.has(content));
+    return tile !== undefined && this.contents.every(content => !content.tiles().has(key) || tile.done.has(content));
   }
 
   private live(): void {

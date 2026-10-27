@@ -269,10 +269,10 @@ test('a coarse entry keeps colliders while fine visuals wait, then refines on th
   const coarse: TileContent = { id: 'coarse', tiles: () => new Set(), attach: () => Promise.resolve(), coarse: (_scope, rendered) => { covered = rendered; return Promise.resolve(); } };
   const driver = new TileDriver(owner, [fine, later, coarse], () => 1, () => Promise.resolve());
   try {
-    await driver.require([28]); await driver.coarse(0, -30); expect(calls).toEqual(['ordinary', 'collision']); expect(covered(28)).toBe(false);
+    await driver.require([28]); await driver.coarse(0, -30); expect(calls).toEqual(['ordinary', 'collision']); expect(covered(28)).toBe(false); expect(driver.resident('render').has(28)).toBe(false);
     await settle(driver, 0, -30, 30); expect(calls).toEqual(['ordinary', 'collision']);
     controlled = true; await settle(driver, 0, -30, 30);
-    expect(calls).toEqual(['ordinary', 'collision', 'fine']); expect(covered(28)).toBe(true);
+    expect(calls).toEqual(['ordinary', 'collision', 'fine']); expect(covered(28)).toBe(true); expect(driver.resident('render').has(28)).toBe(true);
     await settle(driver, -220, -220, 30); expect(calls).toEqual(['ordinary', 'collision', 'fine', 'fine-left']);
   } finally { owner.dispose(); }
 });

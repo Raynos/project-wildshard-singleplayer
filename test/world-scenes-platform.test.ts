@@ -818,7 +818,7 @@ test.each(['late','played','published','retired'] as const)('source maps shared 
   const [sources,{SkyRig},{reachControl}]=await Promise.all([import('../src/game/shardfile/worldSceneMaterials'),import('../src/engine/world/skyRig'),import('../src/engine/boot/prefetch')]);
   const sky:unknown=Object.create(SkyRig.prototype);if(!(sky instanceof SkyRig))throw new Error('Missing late material sky');
   const ctx=fixture(),level=ctx.scope.child('control'),material=new MeshStandardMaterial();
-  Object.assign(ctx.game,{levelScope:level,runtime:{world:{sky,game:ctx.game,registry:ctx.app.registry}}});
+  Object.assign(ctx.game,{levelScope:level,runtime:{world:{sky,game:ctx.game,registry:ctx.app.registry,player:{position:new Vector3()}}}});
   const graph={id:'specimen.shape',root:'specimen.root',nodes:[{id:'shape',parent:'specimen.root',kind:'mesh',geometry:{library:'shapes',model:'stone'},material:'paint',sphere:[0,0,0,2]}]};
   const late={...graph,id:'late.draw',root:'late.root',nodes:graph.nodes.map(node=>({...node,parent:'late.root'}))};
   const catalogue={product:'fixture-harbour',models:[{key:'shape',id:'fixture-harbour/shape',name:'Shape',file:'shape.json',category:'props',pipeline:'code',assembly:'scene',defaults:{},
@@ -844,7 +844,7 @@ test.each(['late','resident','played','placed','alternate-placement','immediate'
   const [surfaces,{SkyRig},{reachControl},{buildTier}]=await Promise.all([import('../src/game/shardfile/worldSceneSurface'),import('../src/engine/world/skyRig'),import('../src/engine/boot/prefetch'),import('../src/engine/core/tier')]);
   const sky:unknown=Object.create(SkyRig.prototype);if(!(sky instanceof SkyRig))throw new Error('Missing late surface sky');
   const ctx=fixture(),level=ctx.scope.child('control'),material=new MeshStandardMaterial();
-  Object.assign(ctx.game,{levelScope:level,runtime:{world:{sky,game:ctx.game,registry:ctx.app.registry}}});
+  Object.assign(ctx.game,{levelScope:level,runtime:{world:{sky,game:ctx.game,registry:ctx.app.registry,player:{position:new Vector3()}}}});
   const graph={id:'specimen.shape',root:'specimen.root',nodes:[{id:'shape',parent:'specimen.root',kind:'mesh',geometry:{library:'shapes',model:'stone'},material:'paint',sphere:[0,0,0,2]}]};
   const late={...graph,id:'late.draw',root:'late.root',nodes:graph.nodes.map(node=>({...node,parent:'late.root'}))};
   const catalogue={product:'fixture-harbour',models:[{key:'shape',id:'fixture-harbour/shape',name:'Shape',file:'shape.json',category:'props',pipeline:'code',assembly:'scene',defaults:{},
