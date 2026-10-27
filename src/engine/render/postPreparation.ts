@@ -8,6 +8,15 @@ export function postTriangle(): BufferGeometry {
     .setAttribute('uv', new BufferAttribute(new Float32Array([0, 0, 2, 0, 0, 2]), 2));
 }
 
+/** Three binds a shader material's uniforms object once, when it first compiles a program key, and keeps that binding when
+ *  the material returns to a key it compiled before. So a publication replaces the entries, never the object: a colour pass
+ *  that went A, B, A again (a region's display placed, removed with its world, placed again with the rebuilt one) drew A's
+ *  code with B's uniforms (a rebuilt Sky's warm look: its LUT off, film grain at full). */
+function replaceUniforms(target: EffectMaterial['uniforms'], source: EffectMaterial['uniforms']): void {
+  for (const name of Object.keys(target)) if (!Object.hasOwn(source, name)) Reflect.deleteProperty(target, name);
+  Object.assign(target, source);
+}
+
 /** Prepare a revised compound shader while the original material keeps drawing. Uniforms and content textures
  * remain borrowed. Publication keeps the original identity; the synchronous acquire must retain its linked program
  * before the temporary holder is disposed. A concurrent recompile/removal invalidates this candidate. */
@@ -44,15 +53,15 @@ export async function prepareEffectPass(pass: EffectPass, prepare: (material: Ef
     await prepare(next);
     if (!current() || pass.fullscreenMaterial !== original || original.version !== version) return false;
     const old = { vertexShader: original.vertexShader, fragmentShader: original.fragmentShader,
-      uniforms: original.uniforms, defines: original.defines, extensions: original.extensions };
+      defines: original.defines, extensions: original.extensions }, oldUniforms = { ...original.uniforms };
     try {
       original.vertexShader = next.vertexShader; original.fragmentShader = next.fragmentShader;
-      original.uniforms = next.uniforms; original.defines = next.defines; original.extensions = next.extensions;
+      replaceUniforms(original.uniforms, next.uniforms); original.defines = next.defines; original.extensions = next.extensions;
       original.needsUpdate = true;
       acquire(original);
       pass.needsSwap = after.needsSwap; pass.needsDepthTexture = after.needsDepthTexture;
       Reflect.set(pass, 'skipRendering', after.skip);
       return true;
-    } catch (error) { Object.assign(original, old); original.needsUpdate = true; restoreFlags(); throw error; }
+    } catch (error) { Object.assign(original, old); replaceUniforms(original.uniforms, oldUniforms); original.needsUpdate = true; restoreFlags(); throw error; }
   } finally { next.dispose(); }
 }

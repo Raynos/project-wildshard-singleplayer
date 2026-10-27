@@ -28,7 +28,7 @@ test('post revisions use the real fullscreen layout without a HAS_NORMAL variant
 
 test('publishes only linked revisions, borrowing textures and the live uniform clock', async () => {
   const { pass, original } = revised();
-  const oldShader = original.fragmentShader, clock = original.uniforms['time'];
+  const oldShader = original.fragmentShader, clock = original.uniforms['time'], bound = original.uniforms;
   const texture = new Texture(); original.uniforms['heldTexture'] = new Uniform(texture);
   const clone = vi.spyOn(texture, 'clone');
   let finish = (): void => undefined;
@@ -44,6 +44,8 @@ test('publishes only linked revisions, borrowing textures and the live uniform c
   expect(original.fragmentShader).not.toBe(oldShader); expect(acquire).toHaveBeenCalledOnce();
   expect(original.uniforms['time']).toBe(clock); expect(original.uniforms['time']?.value).toBe(42);
   expect(original.uniforms['heldTexture'].value).toBe(texture);
+  // three keeps the uniforms object it bound at the first compile of a key: publication replaces entries, not the object
+  expect(original.uniforms).toBe(bound); expect(Object.keys(bound).sort()).toEqual(Object.keys(staged?.uniforms ?? {}).sort());
   pass.dispose(); texture.dispose();
 });
 
@@ -63,12 +65,13 @@ test.each(['cancel', 'recompile', 'reject'] as const)('does not publish a stale 
 });
 
 test('a failed acquisition restores the live shader and releases its temporary holder', async () => {
-  const { pass, original } = revised(), shader = original.fragmentShader;
+  const { pass, original } = revised(), shader = original.fragmentShader, bound = original.uniforms, entries = { ...bound };
   let disposed = 0;
   await expect(prepareEffectPass(pass, async material => {
     material.addEventListener('dispose', () => { disposed++; }); await Promise.resolve();
   }, () => { throw new Error('acquire failed'); }, () => true)).rejects.toThrow('acquire failed');
   expect(pass.fullscreenMaterial).toBe(original); expect(original.fragmentShader).toBe(shader); expect(disposed).toBe(1);
+  expect(original.uniforms).toBe(bound); expect(bound).toEqual(entries);
   pass.dispose();
 });
 
