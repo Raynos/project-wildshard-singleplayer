@@ -1,7 +1,7 @@
 /** Build-only native terrain painter. The client consumes its lossless geometry. */
 import * as THREE from 'three';
 import { CHUNK_SIZE, CHUNK_HALF, CHUNK_DEPTH, TERRAIN_RES } from '@wildshard/engine/core/config';
-import { Noise2D } from '@wildshard/engine/core/noise';
+import { Noise2D } from '@wildshard/sdk/noise';
 import type { PainterField } from '@wildshard/engine/render/look';
 import { PAINTED_TERRAIN_ATTRIBUTES as ATTR } from '@wildshard/format/materialFamilies';
 import type { ShardManifest, ChunkTerrain } from '@wildshard/game/shard/manifest';

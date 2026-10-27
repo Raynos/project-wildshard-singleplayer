@@ -1,9 +1,7 @@
 import type * as THREE from 'three';
-import type { Rng } from '@wildshard/engine/core/rng';
+import type { Rng } from '@wildshard/sdk/random';
 import type { ModelBuild, ModelContext, ModelDef } from '@wildshard/engine/models/model';
-import type { BoxSpec } from '@wildshard/engine/physics/box';
-import type { Material } from '@wildshard/engine/physics/surface';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import type { BoxSpec, ContactSurface as Material, ColliderDesc } from '@wildshard/sdk/bake/placement';
 import type { Board } from './campParams';
 import { PaintKit, v3, type ColorLike, type FinishOpts, type Painter, type PaintOpts, type NalatiTexName } from './paint';
 
@@ -50,8 +48,10 @@ export interface PaintSpec {
   readonly layers?: readonly NalatiTexName[];
 }
 
-type Build<P> = (ctx: ModelContext, p: P, rng: Rng) => ModelBuild;
-interface PaintedBuild<P> { (ctx: ModelContext, p: P, rng: Rng): ModelBuild; readonly paint: Paint<P>; readonly spec: PaintSpec }
+// The legacy marker retains ModelDef's exact callback signature; author kits borrow only the public stream API.
+type ModelRng = Parameters<ModelDef<object>['build']>[2];
+type Build<P> = (ctx: ModelContext, p: P, rng: ModelRng) => ModelBuild;
+interface PaintedBuild<P> { (ctx: ModelContext, p: P, rng: ModelRng): ModelBuild; readonly paint: Paint<P>; readonly spec: PaintSpec }
 export const isPainted = <P>(b: Build<P>): b is PaintedBuild<P> => 'paint' in b;
 
 /** the first copy each fitted model painted (its specimen is painted there) */
