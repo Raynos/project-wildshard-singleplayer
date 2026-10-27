@@ -11,6 +11,8 @@ import { SOURCE_GENERATORS, selectSourceGenerators } from '../scripts/source-gen
 
 test('a staged path selects only the gen:source rows it feeds', () => {
   const ids = (path: string): string[] => selectSourceGenerators([path]).map(row => row.id);
+  expect(ids('scripts/source-generators.mjs')).toEqual(SOURCE_GENERATORS.map(row => row.id));
+  expect(ids('scripts/gen-source.mjs')).toEqual(SOURCE_GENERATORS.map(row => row.id));
   expect(ids('src/game/weapons/starterBow.json')).toEqual(['starter-weapons']);
   expect(ids('src/shards/pine-hollow/manifest.json')).toEqual(['shard-slugs', 'shard-list', 'manifest-closure', 'boot-tables']);
   expect(ids('public/assets/music/calm/music.json')).toEqual(['boot-audio', 'boot-tables', 'packs']);
@@ -113,5 +115,33 @@ test('the committed composition table needs only declarations and preserves outp
     write('src/shards/island/outputs.json', { outputs: [{ slug: 'island-west' }, { slug: 'island-west' }] });
     expect(() => shardSource(root)).toThrow('invalid or duplicate output slug');
     expect(selectSourceGenerators(['src/shards/island/outputs.json']).map(entry => entry.id)).toEqual(['shard-slugs', 'shard-list', 'manifest-closure']);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+
+test('the stage CLI returns the selected tracked output and never runs build-written rows', () => {
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp', 'gen-source-stage-'));
+  try {
+    mkdirSync(resolve(root, 'scripts')); mkdirSync(resolve(root, 'src/game/weapons'), { recursive: true });
+    for (const file of ['gen-source.mjs', 'source-generators.mjs', 'gen-starter-weapons.mjs'])
+      copyFileSync(resolve('scripts', file), resolve(root, 'scripts', file));
+    writeFileSync(resolve(root, 'src/game/weapons/starterBow.json'), '{"damage":17}');
+    const output = 'src/game/weapons/starter.generated.ts';
+    const run = (...args: string[]) => spawnSync(process.execPath, [resolve(root, 'scripts/gen-source.mjs'), ...args], { encoding: 'utf8', timeout: 10_000 });
+    const staged = run('--stage', '--changed=src/game/weapons/starterBow.json');
+    expect(staged.status, staged.stderr).toBe(0);
+    expect(staged.stdout.trim()).toBe(`gen:source stage ${JSON.stringify([output])}`);
+    expect(readFileSync(resolve(root, output), 'utf8')).toContain('STARTER_BOW = {"damage":17}');
+    const before = readFileSync(resolve(root, output), 'utf8');
+    expect(run('--stage', '--changed=src/engine/core/Game.ts').stdout.trim()).toBe('gen:source stage []');
+    expect(readFileSync(resolve(root, output), 'utf8')).toBe(before);
+    // A manifest change selects the build-written closure too, but stage may
+    // publish only committed rows. A direct selection proves the filter without
+    // any product, discovery or native binary in this isolated fixture.
+    expect(run('--stage', '--changed=src/game/boot/bytes.generated.ts').stdout.trim()).toBe('gen:source stage []');
+    const refused = run('--stage', '--check', '--changed=src/game/weapons/starterBow.json');
+    expect(refused.status).toBe(1); expect(refused.stderr).toContain('--stage takes');
+    expect(readFileSync(resolve(root, output), 'utf8')).toBe(before);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

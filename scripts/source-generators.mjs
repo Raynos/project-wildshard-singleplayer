@@ -129,5 +129,6 @@ export const SOURCE_GENERATORS = [
  *  changed output selects its own row (a hand edit is regenerated or refused).
  * @param {readonly string[]} paths @returns {SourceGenerator[]} */
 export function selectSourceGenerators(paths) {
+  if (paths.some(path => path === 'scripts/source-generators.mjs' || path === 'scripts/gen-source.mjs')) return [...SOURCE_GENERATORS];
   return SOURCE_GENERATORS.filter(row => paths.some(path => row.outputs.includes(path) || row.inputs.some(glob => matchesGlob(path, glob))));
 }
