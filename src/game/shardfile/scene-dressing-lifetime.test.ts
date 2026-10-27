@@ -21,7 +21,7 @@ function shapeBytes(): Uint8Array {
 }
 async function installed(): Promise<{ scope: Scope; registry: WorldRegistry; root: Group; refs: Map<string, WeakRef<Uint8Array>> }> {
   const scope = new Scope('dressing-lifetime'), registry = new WorldRegistry(), root = new Group(), refs = new Map<string, WeakRef<Uint8Array>>();
-  const product = legacyDouble<ShardContext['product']>({ slug: 'lifetime', shardfile: legacyDouble<ShardContext['product']['shardfile']>({ spawn: { x: 0, y: 0, z: 0, yaw: 0 }, entryways: [] }),
+  const product = legacyDouble<ShardContext['product']>({ slug: 'lifetime', shardfile: legacyDouble<ShardContext['product']['shardfile']>({ spawn: { x: 0, y: 0, z: 0, yaw: 0 }, entryways: [], tiles: [] }),
     hasFile: () => true, file: name => {
       const bytes = name === 'contacts.bin' ? zlibSync(new Uint8Array(new Float32Array([-1, 0, -1, 1, 0, -1, 0, 1, 1, 0, 0, 0]).buffer))
         : name === 'floor.bin' ? new Uint8Array(new Float32Array([2, 2, 2, 2]).buffer) : shapeBytes();
