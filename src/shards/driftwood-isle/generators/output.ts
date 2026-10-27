@@ -88,7 +88,8 @@ import { parseQuestPageInteractions } from '@wildshard/format/questInteractions'
 import { DRIFTWOOD_PLACES, GUIDE } from './discovery';
 import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SHARD_FLAGS } from './interactables';
 import { DRIFTWOOD_MODES } from './modes';
-import MOVERS from '../data/movers.generated.json' with { type: 'json' };
+import { captureDriftwoodMovers } from './movers';
+
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
 import { DRIFTWOOD_SPECIES_PROGRAMS } from './speciesPrograms';
@@ -210,7 +211,8 @@ export function driftwoodOutputRows(layouts: DriftwoodFixedLayouts, facts: Drift
 }
 
 /** Root-mapped platform data is admitted before the canonical output writer. */
-export const sections: { 'world/movers': { movers: ({ id: string; execution: string; entity: number; kind: string; at: { x: number; y: number; z: number; }; euler: { x: number; y: number; z: number; }; enabled: boolean; boxes: { x: number; y: number; z: number; hx: number; hy: number; hz: number; rot: { x: number; y: number; z: number; w: number; }; }[]; module: string; input: number[]; trigger: { kind: string; }; driver: { kind: string; damping: number; waves: number[][]; }; chain?: never; } | { id: string; execution: string; entity: number; kind: string; at: { x: number; y: number; z: number; }; euler: { x: number; y: number; z: number; }; enabled: boolean; boxes: never[]; chain: { segments: { x: number; y: number; z: number; rot: { x: number; y: number; z: number; w: number; }; hz: number; }[]; hx: number; hy: number; mass: number; }; module: string; input: number[]; trigger: { kind: string; }; driver: { kind: string; damping?: never; waves?: never; }; })[]; }; 'state/modes': { modes: typeof DRIFTWOOD_MODES; }; } = { 'world/movers': { movers: MOVERS }, 'state/modes': { modes: DRIFTWOOD_MODES } };
+const MOVERS = captureDriftwoodMovers();
+export const sections: { 'world/movers': { movers: ReturnType<typeof captureDriftwoodMovers> }; 'state/modes': { modes: typeof DRIFTWOOD_MODES } } = { 'world/movers': { movers: MOVERS }, 'state/modes': { modes: DRIFTWOOD_MODES } };
 
 
 /** Prototype geometry and the cove's and sea's page files (I8) belong to the owned-byte cache, never a generated asset

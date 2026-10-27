@@ -422,7 +422,6 @@
   "wildshard/no-generated-json-import": {
     "scripts/family-props-board/board.js": 1,
     "src/game/shardfile/calibrationScripts.ts": 1,
-    "src/shards/driftwood-isle/generators/output.ts": 1,
     "test/arena-field.test.ts": 1,
     "test/boss-encounter.test.ts": 1,
     "test/client-mover-owners.test.ts": 1,

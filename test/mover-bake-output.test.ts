@@ -27,6 +27,7 @@ test('keeps every original mover value while explicitly selecting native executi
   if (boat === undefined || bridge === undefined) throw new Error('Missing mover output');
   const captured = captureDriftwoodMovers(boat.module, bridge.module);
   expect(numeric(rows)).toEqual(numeric(captured));
+  expect(numeric(captureDriftwoodMovers())).toEqual(numeric(captured));
   expect(numeric(parseMovers(rows))).toEqual(numeric(parseMovers(captured)));
   const [skyBridge, lift] = [...new Set(skyRows.map(row => row.module))];
   if (skyBridge === undefined || lift === undefined) throw new Error('Missing Sky drivers');

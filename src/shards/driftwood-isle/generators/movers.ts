@@ -19,7 +19,7 @@ const { BOAT_MOOR } = authoredLayout;
  *  Debug row is saved, so it reads the manifest field, whose datum is already lowered. */
 const SEA = DECLARED_SEA.level, BOAT = BOAT_MOOR;
 /** Trusted build-only capture of the unchanged model's collision/rest layout on today's exact terrain, lowered. */
-export function captureDriftwoodMovers(boatModule: string, bridgeModule: string): MoverData {
+export function captureDriftwoodMovers(boatModule?: string, bridgeModule?: string): MoverData {
   const terrain = driftwoodGroundField();
   const ground = (x: number, z: number): number => terrain.heightAt(x, z) - WORLD_DROP;
   const boxes = boatColliders(BOAT_LAYOUT).map((box: ColliderDesc) => { if (box.kind !== 'box') throw new Error('Boat primitive changed'); return { x: box.x, y: box.y, z: box.z, hx: box.hx, hy: box.hy, hz: box.hz, rot: box.rot ?? { x: 0, y: Math.sin((box.yaw ?? 0) / 2), z: 0, w: Math.cos((box.yaw ?? 0) / 2) } }; });
@@ -31,6 +31,6 @@ export function captureDriftwoodMovers(boatModule: string, bridgeModule: string)
     new Mover(boat, { trigger: { kind: 'always' }, driver: { kind: 'waves', damping: seaDamp(SEA - ground(BOAT.x, BOAT.z)), waves: [[...a], [...b], [...c], [...d]] } }).toMoverData({ id: boat.name, execution: 'native', entity: 7001, kind: 'platform', at: { x: BOAT.x, y: SEA, z: BOAT.z }, euler: { x: 0, y: 0, z: 0 }, enabled: true, boxes }),
     new Mover(bridge, { trigger: { kind: 'always' }, driver: { kind: 'static' } }).toMoverData({ id: bridge.name, execution: 'native', entity: 7002, kind: 'chain', at: { x: 0, y: 0, z: 0 }, euler: { x: 0, y: 0, z: 0 }, enabled: true, boxes: [], chain: { segments: ropeBridgeSegments(BRIDGE, ground), hx: 0.85, hy: 0.05, mass: 14 } }),
   ];
-  if (rows[0]?.module !== boatModule || rows[1]?.module !== bridgeModule) throw new Error('Compiled fixed driver hash changed');
+  if ((boatModule !== undefined || bridgeModule !== undefined) && (rows[0]?.module !== boatModule || rows[1]?.module !== bridgeModule)) throw new Error('Compiled fixed driver hash changed');
   return rows;
 }

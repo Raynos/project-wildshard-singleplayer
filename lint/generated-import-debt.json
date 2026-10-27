@@ -51,7 +51,6 @@
     "src/shards/driftwood-isle-legacy/boot/lateReads.ts": 1,
     "src/shards/driftwood-isle-legacy/boot/sources.ts": 1,
     "src/shards/driftwood-isle-legacy/manifest.ts": 1,
-    "src/shards/driftwood-isle/generators/output.ts": 1,
     "src/shards/far-reach-legacy/boot/files.ts": 1,
     "src/shards/far-reach-legacy/manifest.ts": 1,
     "src/shards/far-reach/generators/rows/skyPaintedLook.ts": 1,
