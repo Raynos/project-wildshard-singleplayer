@@ -4,5 +4,15 @@
   "creatureBodies": {
     "head": "/assets/models/driftwood-hero/faces/sailor-head.glb",
     "captain": "/assets/models/driftwood-hero/captain/captain.glb"
-  }
+  },
+  "bootInventory": [
+    "/assets/baked/driftwood-isle/",
+    "/assets/models/driftwood-blender/",
+    "/assets/models/driftwood-hero/",
+    "/assets/horizon/",
+    "/assets/lut/",
+    "/assets/gpu/horizon/",
+    "/assets/gpu/models/driftwood-blender/",
+    "/assets/gpu/models/driftwood-hero/"
+  ]
 }

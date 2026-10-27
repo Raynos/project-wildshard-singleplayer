@@ -1,8 +1,10 @@
 import { expect, test } from 'vitest';
-import lateReadRows from '../src/shards/driftwood-isle/data/boot-lateReads.generated.json' with { type: 'json' };
+import original from './fixtures/driftwood-boot-original.json' with { type: 'json' };
 import { resolveBootFiles, bootLateReads } from '../src/engine/boot/filePolicy';
 import { DRIFTWOOD_BOOT_FILES } from '../src/shards/driftwood-isle/generators/bootRecipes';
 import { GPU_FILES } from '../src/shards/driftwood-isle/ktx2.generated';
+
+const lateReadRows = original.lateReads;
 
 test('only the eight migrated public prefetch groups retire; remaining boot content stays selected', () => {
   for (const tier of ['phone', 'desktop'] as const) for (const mode of ['img', 'ktx2'] as const) {

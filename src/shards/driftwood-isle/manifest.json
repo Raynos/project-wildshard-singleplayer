@@ -334,16 +334,13 @@
     },
     "boot": {
       "files": {
-        "module": "./data/boot-files.generated.json",
-        "export": "default"
+        "program": true
       },
       "sources": {
-        "module": "./data/boot-sources.generated.json",
-        "export": "default"
+        "program": true
       },
       "lateReads": {
-        "module": "./data/boot-lateReads.generated.json",
-        "export": "default"
+        "program": true
       }
     },
     "navigation": {
@@ -356,8 +353,7 @@
       "module": "./ktx2.generated"
     },
     "poses": {
-      "module": "./data/boot-poses.generated.json",
-      "export": "default"
+      "program": true
     },
     "entry": {
       "platform": "client-plan",

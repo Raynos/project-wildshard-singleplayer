@@ -1,15 +1,14 @@
 import { expect, test } from 'vitest';
-// oxlint-disable-next-line import/no-nodejs-modules -- Verify the actual cold producer prerequisite order.
-import { readFileSync } from 'node:fs';
-import * as v from 'valibot';
 import { driftwoodBootInventory } from '../src/shards/driftwood-isle/generators/bootInventory';
 import { DRIFTWOOD_BOOT_FILES, DRIFTWOOD_BOOT_SOURCES } from '../src/shards/driftwood-isle/generators/bootRecipes';
 import { GPU_FILES } from '../src/shards/driftwood-isle/ktx2.generated';
 import { bootFileList, bootLateReads, bootSourceFiles, resolveBootFiles, resolveBootSources } from '../src/engine/boot/filePolicy';
-import sources from '../src/shards/driftwood-isle/data/boot-sources.generated.json' with { type: 'json' };
-import files from '../src/shards/driftwood-isle/data/boot-files.generated.json' with { type: 'json' };
-import lateReads from '../src/shards/driftwood-isle/data/boot-lateReads.generated.json' with { type: 'json' };
 import ISLAND_PLAN_FILES from '../src/shards/driftwood-isle/data/islandPlanFiles.json' with { type: 'json' };
+import original from './fixtures/driftwood-boot-original.json' with { type: 'json' };
+import manifest from '../src/shards/driftwood-isle/manifest.json' with { type: 'json' };
+import { driftwoodBootProgram } from '../src/shards/driftwood-isle/generators/bootProgram';
+
+const { sources, files, lateReads } = original;
 
 test('offline boot rows preserve ordered sources and filtered late reads for all four choices', () => {
   expect({ sources, files, lateReads }).toEqual(driftwoodBootInventory());
@@ -54,18 +53,15 @@ test('published island plans are product files, never page late reads (iPhone do
   }
 });
 
-test('boot JSON is generated before every offline manifest consumer and copied into its input closure', () => {
-  const { jobs } = v.parse(v.object({ jobs: v.array(v.object({ id: v.string(), command: v.array(v.string()), inputRoots: v.array(v.string()) })) }),
-    JSON.parse(readFileSync(new URL('../scripts/generation-jobs.json', import.meta.url), 'utf8')));
-  const bootstrap = jobs.findIndex(job => job.id === 'driftwood-boot-inventory');
-  expect(bootstrap).toBeGreaterThanOrEqual(0);
-  const consumers = jobs.filter(job => job.command.includes('./scripts/generation-level.mjs') && job.command.includes('--generation-shard=driftwood-isle'));
-  expect(consumers.length).toBeGreaterThan(0);
-  for (const job of consumers) {
-    expect(jobs.indexOf(job)).toBeGreaterThan(bootstrap);
-    for (const name of ['files', 'sources', 'lateReads', 'poses']) {
-      const output = `src/shards/driftwood-isle/data/boot-${name}.generated.json`;
-      expect(job.inputRoots.some(root => output === root || output.startsWith(`${root}/`))).toBe(true);
-    }
-  }
+test('boot discovery uses fresh supplied inventory and has no source-file bindings', () => {
+  expect(manifest.bindings.boot).toEqual({ files: { program: true }, sources: { program: true }, lateReads: { program: true } });
+  expect(manifest.bindings.poses).toEqual({ program: true });
+  const urls = ['/assets/baked/driftwood-isle/tex/sample.webp'];
+  const ctx = { inputFiles: () => urls };
+  const first = driftwoodBootProgram(ctx);
+  expect(first['boot.files']).toEqual(driftwoodBootInventory({ [urls[0] ?? '']: true }).files);
+  urls.push('/assets/baked/driftwood-isle/tex/second.webp');
+  expect(driftwoodBootProgram(ctx)['boot.files']).not.toEqual(first['boot.files']);
+  expect(first.poses).toEqual(original.poses);
+  expect(() => driftwoodBootProgram({})).toThrow('public inventory capability');
 });

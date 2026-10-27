@@ -1,0 +1,186 @@
+{
+  "files": {
+    "modes": {
+      "phone": {
+        "img": [
+          "/assets/baked/driftwood-isle/tex/giant.phone.webp",
+          "/assets/physics/rapier.wasm"
+        ],
+        "ktx2": [
+          "/assets/gpu/baked/driftwood-isle/tex/giant-db470988.ktx2",
+          "/assets/physics/rapier.wasm"
+        ]
+      },
+      "desktop": {
+        "img": [
+          "/assets/baked/driftwood-isle/tex/giant.jpg",
+          "/assets/physics/rapier.wasm"
+        ],
+        "ktx2": [
+          "/assets/gpu/baked/driftwood-isle/tex/giant-db470988.ktx2",
+          "/assets/physics/rapier.wasm"
+        ]
+      }
+    }
+  },
+  "sources": {
+    "modes": {
+      "phone": {
+        "img": {
+          "sky": [],
+          "baked": [
+            "/assets/baked/driftwood-isle/tex/giant.phone.webp"
+          ],
+          "terrain": [],
+          "trees": [],
+          "physics": [
+            "/assets/physics/rapier.wasm"
+          ],
+          "cabins": [],
+          "props": [],
+          "art": [],
+          "music": [],
+          "sfx": []
+        },
+        "ktx2": {
+          "sky": [],
+          "baked": [
+            "/assets/gpu/baked/driftwood-isle/tex/giant-db470988.ktx2"
+          ],
+          "terrain": [],
+          "trees": [],
+          "physics": [
+            "/assets/physics/rapier.wasm"
+          ],
+          "cabins": [],
+          "props": [],
+          "art": [],
+          "music": [],
+          "sfx": []
+        }
+      },
+      "desktop": {
+        "img": {
+          "sky": [],
+          "baked": [
+            "/assets/baked/driftwood-isle/tex/giant.jpg"
+          ],
+          "terrain": [],
+          "trees": [],
+          "physics": [
+            "/assets/physics/rapier.wasm"
+          ],
+          "cabins": [],
+          "props": [],
+          "art": [],
+          "music": [],
+          "sfx": []
+        },
+        "ktx2": {
+          "sky": [],
+          "baked": [
+            "/assets/gpu/baked/driftwood-isle/tex/giant-db470988.ktx2"
+          ],
+          "terrain": [],
+          "trees": [],
+          "physics": [
+            "/assets/physics/rapier.wasm"
+          ],
+          "cabins": [],
+          "props": [],
+          "art": [],
+          "music": [],
+          "sfx": []
+        }
+      }
+    }
+  },
+  "lateReads": {
+    "modes": {
+      "phone": {
+        "img": [
+          "/assets/lut/driftwood-isle.bin",
+          "/assets/horizon/driftwood-isle-day.webp",
+          "/assets/horizon/driftwood-isle-night.webp",
+          "/assets/models/driftwood-hero/captain/captain.glb"
+        ],
+        "ktx2": [
+          "/assets/lut/driftwood-isle.bin",
+          "/assets/gpu/horizon/driftwood-isle-day-2ca8c3a2.ktx2",
+          "/assets/gpu/horizon/driftwood-isle-night-f949f086.ktx2",
+          "/assets/gpu/models/driftwood-hero/captain/captain-51fb1b40.glb"
+        ]
+      },
+      "desktop": {
+        "img": [
+          "/assets/lut/driftwood-isle.bin",
+          "/assets/horizon/driftwood-isle-day.webp",
+          "/assets/horizon/driftwood-isle-night.webp",
+          "/assets/models/driftwood-hero/captain/captain.glb"
+        ],
+        "ktx2": [
+          "/assets/lut/driftwood-isle.bin",
+          "/assets/gpu/horizon/driftwood-isle-day-2ca8c3a2.ktx2",
+          "/assets/gpu/horizon/driftwood-isle-night-f949f086.ktx2",
+          "/assets/gpu/models/driftwood-hero/captain/captain-51fb1b40.glb"
+        ]
+      }
+    }
+  },
+  "poses": {
+    "pier": {
+      "probe": {
+        "name": "pier",
+        "x": 0,
+        "z": -194,
+        "yaw": 3.141592653589793,
+        "pitch": 0
+      },
+      "eye": [
+        0,
+        0.8114096899330614,
+        -194
+      ],
+      "yaw": -180,
+      "pitch": 0,
+      "mockup": "",
+      "frame": "pier"
+    },
+    "beach": {
+      "probe": {
+        "name": "beach",
+        "x": -10,
+        "z": -150,
+        "yaw": 4.3,
+        "pitch": 0
+      },
+      "eye": [
+        -10,
+        2.366770057678222,
+        -150
+      ],
+      "yaw": -246.371851906254,
+      "pitch": 0,
+      "mockup": "",
+      "frame": "beach"
+    },
+    "wreck": {
+      "probe": {
+        "name": "wreck",
+        "x": 105,
+        "z": 0,
+        "yaw": -1.5707963267948966,
+        "pitch": 0
+      },
+      "eye": [
+        105,
+        4.473039005994801,
+        0
+      ],
+      "yaw": 90,
+      "pitch": 0,
+      "mockup": "",
+      "frame": "wreck"
+    }
+  }
+}

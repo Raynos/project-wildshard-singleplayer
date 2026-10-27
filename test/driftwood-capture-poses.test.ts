@@ -8,10 +8,10 @@ import { driftwoodCapturePoses } from '../src/shards/driftwood-isle/generators/c
 import { declaredGround } from '../src/game/shard/manifest';
 import { driftwoodGroundDeclaration } from '../src/shards/driftwood-isle/generators/groundDeclaration';
 import source from '../src/shards/driftwood-isle/manifest.json' with { type: 'json' };
-import poses from '../src/shards/driftwood-isle/data/boot-poses.generated.json' with { type: 'json' };
+import original from './fixtures/driftwood-boot-original.json' with { type: 'json' };
 import manifest from '../src/shards/driftwood-isle/discovery.generated';
 
-const groundRows = driftwoodGroundDeclaration();
+const groundRows = driftwoodGroundDeclaration(), poses = original.poses;
 
 test('offline capture poses preserve all original terrain-bound eyes and angles exactly', () => {
   const terrain = readNativeTerrain(driftwoodGroundBytes()), ground = terrainFieldFor(declaredGround(groundRows), 'driftwood-isle');
@@ -27,7 +27,7 @@ test('offline capture poses preserve all original terrain-bound eyes and angles 
 
 test('the authored manifest reads independent copies of generated poses without a runtime loader', async () => {
   expect(source.bindings).not.toHaveProperty('posesLoader');
-  expect(source.bindings.poses).toEqual({ module: './data/boot-poses.generated.json', export: 'default' });
+  expect(source.bindings.poses).toEqual({ program: true });
   if (manifest.dev === undefined) throw new Error('Missing capture pose data');
   const first = await manifest.dev.poses(), second = await manifest.dev.poses();
   expect(first).toEqual(poses);

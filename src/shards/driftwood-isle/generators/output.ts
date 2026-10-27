@@ -107,6 +107,7 @@ import type { DriftwoodCreatureBodyBank } from './creatureBodyBank';
 import { driftwoodMap } from './mapProgram';
 import { driftwoodGroundDeclaration } from './groundDeclaration';
 import { driftwoodNavigation } from './navigation';
+import { driftwoodBootProgram } from './bootProgram';
 
 const nativePhysics = driftwoodPhysics();
 
@@ -232,6 +233,6 @@ export async function prepareMap(ctx: Pick<ProjectGenerationContext, 'cached'>):
 }
 
 /** Bounded discovery data from defining source producers, admitted by the SDK. */
-export async function prepareDiscovery(ctx: ProjectGenerationContext): Promise<{ 'ground.rows': ReturnType<typeof driftwoodGroundDeclaration>; navigation: Awaited<ReturnType<typeof driftwoodNavigation>> }> {
-  return { 'ground.rows': driftwoodGroundDeclaration(), navigation: await driftwoodNavigation(ctx) };
+export async function prepareDiscovery(ctx: ProjectGenerationContext): Promise<{ 'ground.rows': ReturnType<typeof driftwoodGroundDeclaration>; navigation: Awaited<ReturnType<typeof driftwoodNavigation>> } & ReturnType<typeof driftwoodBootProgram>> {
+  return { 'ground.rows': driftwoodGroundDeclaration(), navigation: await driftwoodNavigation(ctx), ...driftwoodBootProgram(ctx) };
 }
