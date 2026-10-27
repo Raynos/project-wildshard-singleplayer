@@ -38,11 +38,12 @@ test('admitted zstd lanes use an owned transfer and restore every word without p
   vi.useFakeTimers();
   const clock = vi.spyOn(performance, 'now').mockReturnValue(0);
   const fetch = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Unexpected private URL'));
-  const requests: RequestRow[] = []; let truncate = false, terminated = 0;
+  const requests: RequestRow[] = []; let truncate = false, failWorker = false, terminated = 0;
   class DecodeWorker extends EventTarget {
     postMessage(input: RequestRow, options: StructuredSerializeOptions): void {
       const request = structuredClone(input, options); requests.push(request);
       queueMicrotask(() => {
+        if (failWorker) { this.dispatchEvent(new Event('error', { cancelable: true })); return; }
         const levels = request.levels.map(level => Uint8Array.from(zstdDecompressSync(level.data)));
         const first = levels[0]; if (truncate && first !== undefined) levels[0] = first.slice(0, -1);
         this.dispatchEvent(new MessageEvent('message', { data: { id: request.id, levels } }));
@@ -69,5 +70,11 @@ test('admitted zstd lanes use an owned transfer and restore every word without p
     await expect(decodeLaneBytes(packed.subarray(0, -1))).rejects.toThrow('Truncated');
     expect(requests).toHaveLength(before);
     await vi.advanceTimersByTimeAsync(30_001); expect(terminated).toBe(1);
+    failWorker = true;
+    const broken = expect(decodeLaneBytes(packed)).rejects.toThrow('worker failed');
+    await vi.advanceTimersByTimeAsync(0); await broken;
+    await expect(decodeLaneBytes(packed)).rejects.toThrow('worker unavailable');
+    expect(requests).toHaveLength(before + 1); expect(terminated).toBe(2);
+    expect(fetch).not.toHaveBeenCalled(); expect(packed).toEqual(original);
   } finally { vi.unstubAllGlobals(); clock.mockRestore(); fetch.mockRestore(); vi.useRealTimers(); }
 });
