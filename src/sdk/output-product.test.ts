@@ -13,6 +13,8 @@ import { writeOutputProduct, validateOutputProduct } from './outputProduct';
 import { encodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 
 const directories: string[] = [];
+// Keep a real tracked KTX2 header/mip; trailing padding exercises transport boundaries.
+function textureBody(size: number, padding: number): Uint8Array { const bytes=new Uint8Array(size).fill(padding);bytes.set(readFileSync('test/fixtures/shard-assets/pixel.ktx2'));return bytes; }
 function output(): string { mkdirSync('tmp',{recursive:true});const path=mkdtempSync(resolve('tmp','output-product-'));directories.push(path);return path; }
 const source = () => emptyShardfile({slug:'output-test',name:'Output',author:'Test',revision:1,seed:3});
 afterEach(()=>{for(const directory of directories.splice(0))rmSync(directory,{recursive:true,force:true});});
@@ -64,13 +66,13 @@ it('refuses canonical but schema-invalid section bytes with updated hash and siz
  writeFileSync(resolve(directory,'shard.json'),encodeCanonicalJson(index));expect(()=>validateOutputProduct(directory)).toThrow();
 });
 
-it('packs multi-MiB bodies within 4 MiB without pulling late bytes into required reads',()=>{
+it('packs medium bodies within 4 MiB without pulling late bytes into required reads',()=>{
  const shard=source(),directory=output();
- const bodies=Array.from({length:9},(_,i)=>new Uint8Array(i===8?4_194_305:i===1||i===7?1_200_000:716_800).fill(i+1));
+ const bodies=Array.from({length:9},(_,i)=>new Uint8Array(i===8?1_048_576:716_800).fill(i+1));
  const assets=new Map(bodies.map(body=>[hashImmutableBytes(body),body])),hashes=[...assets.keys()];
  const late=hashes.slice(6,8),unpacked=hashes[8];
  shard.files=[...assets].map(([hash,body])=>({hash,kind:'binary' as const,compressed:body.length,decoded:body.length,gpu:0,triangles:0,draws:0,dependencies:[],critical:false})).sort((a,b)=>a.hash.localeCompare(b.hash));
- shard.library=hashes;shard.late=late.map(hash=>({hash}));shard.budgets.library={resident:16_000_000,compressed:16_000_000};
+ shard.library=hashes;shard.late=late.map(hash=>({hash}));shard.budgets.library={resident:8_000_000,compressed:8_000_000};
  const index=writeOutputProduct(shard,assets,directory),seen=new Set<string>();
  const bodyPacks=(index.packs??[]).filter(pack=>pack.entries.some(entry=>assets.has(entry.hash)));
  expect(bodyPacks).toHaveLength(3);
@@ -92,12 +94,33 @@ it('packs multi-MiB bodies within 4 MiB without pulling late bytes into required
  for(const [hash,original]of assets){const body=restored.assets.get(hash);if(body===undefined)throw new Error('Missing restored body');expect(hashImmutableBytes(body)).toBe(hash);expect(body.length).toBe(original.length);}
 });
 
-it('keeps explicit phone, desktop and shared pack bodies separate in each admission phase',()=>{
- const shard=source(),directory=output(),bodies=Array.from({length:6},(_,i)=>new Uint8Array(1_100_000).fill(i+1));
+it('packs encoded textures at the exact cap without changing small-body envelopes',()=>{
+ const shard=source(),directory=output(),cap=4_194_304;
+ const bodies=[cap,cap/2,cap/2,cap+1].map((size,i)=>textureBody(size,71+i));
+ bodies.push(new Uint8Array(131_072).fill(75),new Uint8Array(131_072).fill(76),new Uint8Array(1_200_000).fill(77));
  const assets=new Map(bodies.map(body=>[hashImmutableBytes(body),body])),hashes=[...assets.keys()];
- shard.files=[...assets].map(([hash,body])=>({hash,kind:'binary' as const,compressed:body.length,decoded:body.length,gpu:0,triangles:0,draws:0,dependencies:[],critical:false}));
+ shard.files=[...assets].map(([hash,body],i)=>({hash,kind:i<4?'ktx2' as const:'binary' as const,compressed:body.length,decoded:i<4?0:body.length,gpu:i<4?4:0,triangles:0,draws:0,dependencies:[],critical:false}));
+ shard.library=hashes;shard.budgets.library={resident:16_000_000,compressed:16_000_000};
+ const namedFiles=shard.files.map((file,i)=>({...file,kind:i<4?'ktx2' as const:'bin' as const,path:`blobs/${i<4?'ktx2':'bin'}/${file.hash}.${i<4?'ktx2':'bin'}`,name:`boundary-${i}.${i<4?'ktx2':'bin'}`}));
+ shard.files.sort((a,b)=>a.hash.localeCompare(b.hash));
+ const index=writeOutputProduct(shard,assets,directory,{namedFiles});
+ const packs=(index.packs??[]).filter(pack=>pack.entries.some(entry=>assets.has(entry.hash)));
+ expect(packs.map(pack=>pack.bytes)).toEqual([262_144,cap,cap]);
+ expect(packs.map(pack=>pack.entries.map(entry=>entry.hash))).toEqual([hashes.slice(4,6),hashes.slice(0,1),hashes.slice(1,3)]);
+ for(const pack of packs){
+  const wire=readFileSync(resolve(directory,pack.path));expect(hashImmutableBytes(wire)).toBe(pack.hash);
+  for(const entry of pack.entries)expect(wire.subarray(entry.offset,entry.offset+entry.bytes)).toEqual(Buffer.from(assets.get(entry.hash)??[]));
+ }
+ const restored=validateOutputProduct(directory);expect(restored.shard).toEqual(shard);
+ for(const [hash,body] of assets)expect(restored.assets.get(hash)).toEqual(body);
+});
+
+it('keeps explicit phone, desktop and shared pack bodies separate in each admission phase',()=>{
+ const shard=source(),directory=output(),bodies=Array.from({length:6},(_,i)=>textureBody(1_100_000,i+1));
+ const assets=new Map(bodies.map(body=>[hashImmutableBytes(body),body])),hashes=[...assets.keys()];
+ shard.files=[...assets].map(([hash,body])=>({hash,kind:'ktx2' as const,compressed:body.length,decoded:0,gpu:4,triangles:0,draws:0,dependencies:[],critical:false}));
  shard.library=hashes;shard.late=hashes.slice(3).map(hash=>({hash}));shard.budgets.library={resident:6_600_000,compressed:6_600_000};
- const namedFiles=shard.files.map((file,i)=>({...file,kind:'bin' as const,path:`blobs/bin/${file.hash}.bin`,name:`medium-${i}.bin`,
+ const namedFiles=shard.files.map((file,i)=>({...file,kind:'ktx2' as const,path:`blobs/ktx2/${file.hash}.ktx2`,name:`medium-${i}.ktx2`,
   ...(i%3===0?{}:{tier:i%3===1?'phone' as const:'desktop' as const})}));
  shard.files.sort((a,b)=>a.hash.localeCompare(b.hash));
  const index=writeOutputProduct(shard,assets,directory,{namedFiles});
