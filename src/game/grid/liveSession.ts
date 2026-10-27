@@ -138,6 +138,10 @@ export interface LiveGridSessionPorts {
   readonly residency: HomeResidencyClaim;
   readonly assembly: GridAssembly; readonly home: GridCell; readonly physics: Physics; readonly scope: Scope;
   readonly walls: ReadinessWalls; readonly strips: readonly CollisionStrip[]; readonly allocator: ResidencyAllocator;
+  /** The initial highway claim; deferred strips carry their own exact supplemental claim. */
+  readonly initialStripBytes?: number;
+  /** Product metadata may prefetch early; constructing a region requires its complete seam set. */
+  readonly prepareStrips?: (cell: GridCell) => Promise<void>;
   readonly neighbourEdges: (cell: GridCell, origin: Readonly<{ x: number; z: number }>) => ReadinessEdge[];
   readonly rimEdges: (origin: Readonly<{ x: number; z: number }>) => ReadinessEdge[];
 }
@@ -250,19 +254,9 @@ export class LiveGridSession {
     const transferScope = scope.child('grid.transfer.home');
     this.roadWallet = new GridWallet(page.saves, { id: home.instance, shard: home.slug });
     this.road = new RoadRecovery(assembly);
-    for (const cell of assembly.cells) {
-      const entryways = ports.strips.flatMap((strip): RoadRecoveryCell['entryways'] => {
-        const duplicate = strip.duplicates.find((row) => row.instance === cell.instance), turn = strip.turnIn;
-        if (duplicate === undefined || turn === undefined) return [];
-        const axis = strip.id.startsWith('gap.x.') ? 'x' : 'z', positive = duplicate.mesh.origin[axis] > 0;
-        const width = turn.widths[positive ? 0 : 1];
-        if (width <= 0) return [];
-        return [{ edge: axis === 'x' ? positive ? 'east' : 'west' : positive ? 'north' : 'south', width }];
-      });
-      this.respawnCells.set(cell.instance, { instance: cell.instance, origin: cell.origin, entryways });
-    }
+    this.refreshPlatformEntries();
     const player = { get position() { return traveller.position; }, get yaw() { return traveller.yaw; }, health: page.health, owner: traveller, motor: traveller.motor };
-    const highwayBytes = ports.strips.reduce((sum, strip) => sum + strip.mesh.positions.byteLength + strip.mesh.indices.byteLength, 0)
+    const highwayBytes = (ports.initialStripBytes ?? ports.strips.reduce((sum, strip) => sum + strip.mesh.positions.byteLength + strip.mesh.indices.byteLength, 0))
       + assembly.cells.length * TRANSFER_WALL_BYTES;
     try { this.live = new LiveGridHost(assembly, {
       continuations: 'durable', // Every owned production region below reconstructs its basis and reloads its durable save.
@@ -384,6 +378,22 @@ export class LiveGridSession {
       this.leaveTiming.push({ instance: from, leaveMs: diagnosticNow() - leaveStart }); if (this.leaveTiming.length > 16) this.leaveTiming.shift();
       // G580 T1: the source stays resident and parked (re-entry is its re-activation); the cold-dwell rule retires it
     });
+  }
+
+  /** Refresh unentered recovery sockets after the page publishes deferred platform seams. */
+  refreshPlatformEntries(): void {
+    for (const cell of this.ports.assembly.cells) {
+      if (this.regions.has(cell.instance) || this.runtimeRegions.has(cell.instance)) continue;
+      const entryways = this.ports.strips.flatMap((strip): RoadRecoveryCell['entryways'] => {
+        const duplicate = strip.duplicates.find((row) => row.instance === cell.instance), turn = strip.turnIn;
+        if (duplicate === undefined || turn === undefined) return [];
+        const axis = strip.id.startsWith('gap.x.') ? 'x' : 'z', positive = duplicate.mesh.origin[axis] > 0;
+        const width = turn.widths[positive ? 0 : 1];
+        if (width <= 0) return [];
+        return [{ edge: axis === 'x' ? positive ? 'east' : 'west' : positive ? 'north' : 'south', width }];
+      });
+      this.respawnCells.set(cell.instance, { instance: cell.instance, origin: cell.origin, entryways });
+    }
   }
 
   private prepareCrossing(from: string | null, to: string | null): ReturnType<LiveGridHost['prepare']> {
@@ -602,6 +612,8 @@ export class LiveGridSession {
   private prepareAdmission(cell: GridCell, metadata: true): Promise<GridAdmissionMetadata>;
   private prepareAdmission(cell: GridCell, metadata: false): Promise<LiveGridAdmission>;
   private async prepareAdmission(cell: GridCell, metadata: boolean): Promise<GridAdmissionMetadata | LiveGridAdmission> {
+    if (!metadata) await this.ports.prepareStrips?.(cell);
+    if (this.ports.scope.disposed || this.ports.scope.disposing) throw new Error('Grid admission scope disposed');
     const productOwner = { allocator: this.ports.allocator, scope: this.ports.scope };
     const pending = metadata ? gridShardfileProduct(cell.slug, productOwner, 'metadata') : gridShardfileProduct(cell.slug, productOwner);
     if (pending === null) throw new GridCellWaitingError(`${cell.slug} is not a shardfile shard (it stays a far proxy until M3)`);

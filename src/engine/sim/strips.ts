@@ -37,8 +37,9 @@ export function generateCrossroads(input: { id: string; origin: { x: number; z: 
 }
 
 /** Generate every deck corridor and four-way junction, including the explicit empty-neighbour perimeter. */
-export function generatePlatform(cells: readonly PlatformCell[], empty: StripProfile, plans?: Map<string, readonly number[][]>): readonly GeneratedStrip[] {
-  const steps = platformSteps(cells, empty, plans);
+export function generatePlatform(cells: readonly PlatformCell[], empty: StripProfile, plans?: Map<string, readonly number[][]>,
+  within?: (x: number, z: number) => boolean): readonly GeneratedStrip[] {
+  const steps = platformSteps(cells, empty, plans, within);
   for (;;) { const next = steps.next(); if (next.done === true) return next.value; }
 }
 
@@ -47,8 +48,9 @@ export function generatePlatform(cells: readonly PlatformCell[], empty: StripPro
  * slice of strip generation has run `budgetMs`, so a page building its platform during a load keeps painting instead of
  * freezing for the whole generation. Native seam certification yields within a strip; output is published only when complete.
  */
-export async function generatePlatformSliced(cells: readonly PlatformCell[], empty: StripProfile, pause: () => Promise<void>, budgetMs = 12, plans?: Map<string, readonly number[][]>): Promise<readonly GeneratedStrip[]> {
-  const steps = platformSteps(cells, empty, plans);
+export async function generatePlatformSliced(cells: readonly PlatformCell[], empty: StripProfile, pause: () => Promise<void>, budgetMs = 12, plans?: Map<string, readonly number[][]>,
+  within?: (x: number, z: number) => boolean): Promise<readonly GeneratedStrip[]> {
+  const steps = platformSteps(cells, empty, plans, within);
   let since = diagnosticNow();
   for (;;) {
     const next = steps.next(); if (next.done === true) return next.value;
@@ -56,8 +58,10 @@ export async function generatePlatformSliced(cells: readonly PlatformCell[], emp
   }
 }
 
-/** Shared ordered construction: partial seam certification remains private until each strip is complete. */
-function* platformSteps(cells: readonly PlatformCell[], empty: StripProfile, plans?: Map<string, readonly number[][]>): Generator<void, readonly GeneratedStrip[]> {
+/** Shared ordered construction: `within` selects origins before certification, while every selected seam
+ * still reads its full original neighbours. Complementary selections retain exact individual meshes. */
+function* platformSteps(cells: readonly PlatformCell[], empty: StripProfile, plans?: Map<string, readonly number[][]>,
+  within?: (x: number, z: number) => boolean): Generator<void, readonly GeneratedStrip[]> {
   validateEdgeProfile(empty);
   if (cells.length === 0 || cells.length > GRID_CELL_COUNT || new Set(cells.map((c) => c.instance)).size !== cells.length
     || new Set(cells.map((c) => c.cell.join(','))).size !== cells.length
@@ -101,11 +105,13 @@ function* platformSteps(cells: readonly PlatformCell[], empty: StripProfile, pla
     return place(input.id, { ...shape.mesh, origin: { ...input.origin } }, input.adjacent, shape.features);
   }
   for (let x = minX - 1; x <= maxX; x++) for (let z = minZ; z <= maxZ; z++) {
+    if (within !== undefined && !within((x + 0.5) * CONTENT_CAPS.pitch, z * CONTENT_CAPS.pitch)) continue;
     const low = get(x, z), high = get(x + 1, z);
     result.push(yield* strip({ id: `gap.x.${x}.${z}`, axis: 'x', origin: { x: (x + 0.5) * CONTENT_CAPS.pitch, z: z * CONTENT_CAPS.pitch }, profiles: [low?.edges.east ?? empty, high?.edges.west ?? empty], adjacent: present([low, high]), observations: [low?.observations?.east ?? { entryWidth: 0 }, high?.observations?.west ?? { entryWidth: 0 }] }));
     yield;
   }
   for (let z = minZ - 1; z <= maxZ; z++) for (let x = minX; x <= maxX; x++) {
+    if (within !== undefined && !within(x * CONTENT_CAPS.pitch, (z + 0.5) * CONTENT_CAPS.pitch)) continue;
     const low = get(x, z), high = get(x, z + 1);
     result.push(yield* strip({ id: `gap.z.${x}.${z}`, axis: 'z', origin: { x: x * CONTENT_CAPS.pitch, z: (z + 0.5) * CONTENT_CAPS.pitch }, profiles: [low?.edges.north ?? empty, high?.edges.south ?? empty], adjacent: present([low, high]), observations: [low?.observations?.north ?? { entryWidth: 0 }, high?.observations?.south ?? { entryWidth: 0 }] }));
     yield;
@@ -119,6 +125,7 @@ function* platformSteps(cells: readonly PlatformCell[], empty: StripProfile, pla
     return { height, colour: [colour[0] ?? 0, colour[1] ?? 0, colour[2] ?? 0], ...(sea && height < -SHORE_DEPTH ? { shore: true } : {}) };
   };
   for (let x = minX - 1; x <= maxX; x++) for (let z = minZ - 1; z <= maxZ; z++) {
+    if (within !== undefined && !within((x + 0.5) * CONTENT_CAPS.pitch, (z + 0.5) * CONTENT_CAPS.pitch)) continue;
     const sw = get(x, z), se = get(x + 1, z), nw = get(x, z + 1), ne = get(x + 1, z + 1);
     result.push(yield* cross({ id: `cross.${x}.${z}`, origin: { x: (x + 0.5) * CONTENT_CAPS.pitch, z: (z + 0.5) * CONTENT_CAPS.pitch }, corners: [corner(sw, 'north', 'east'), corner(se, 'north', 'west'), corner(nw, 'south', 'east'), corner(ne, 'south', 'west')], adjacent: present([sw, se, nw, ne]) }));
     yield;

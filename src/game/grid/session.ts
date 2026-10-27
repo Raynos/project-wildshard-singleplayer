@@ -286,7 +286,11 @@ export class GridSession {
   private readonly declaredFar = new Map<string, number>();
   /** G107 / SF66: each shard's baked map, downscaled once and shared by all its copies. */
   private readonly mapImages: CellMinimaps;
-  private readonly strips: readonly CollisionStrip[];
+  private readonly strips: CollisionStrip[];
+  private readonly initialStripBytes: number;
+  private outerStripBuild: (() => Promise<readonly GeneratedStrip[]>) | undefined;
+  private publishOuterStrips: ((strips: readonly GeneratedStrip[]) => void) | undefined;
+  private outerStripsReady: Promise<void> | undefined;
   private readonly host: GridSessionHost;
   private last: { x: number; z: number } | null = null;
   private velocity = { x: 0, z: 0 };
@@ -364,25 +368,40 @@ export class GridSession {
     let batches = 0;
     progress?.set(1, 3, 'Terrain seams · 0 batches');
     const seamPlans = new Map(data.plans);
-    const strips = await platformStrips(assembly, edges, (platform, edge) => generatePlatformSliced(platform, edge, async () => {
-      progress?.detail(`Terrain seams · ${++batches} batches`); await construction.check();
-    }, 12, seamPlans));
-    progress?.set(2, 3, `Road geometry · ${strips.length} seams`);
     const instance = pageGridInstance();
     if (instance === null) throw new Error('A grid session needs a grid page');
-    const home = assembly.cell(instance), roadScope = host.scope.child('grid-road-construction');
-    const admission = new PlatformRenderResidency(allocator, roadScope), plans = new Map<Mesh, CullPlan>();
-    // The road system (~1.8 s of geometry at 4x CPU on the phone tier, after the seams) builds beside the next loading
-    // steps instead of before them; the session takes it when it lands and the entry reveal waits for it (`ringsReady`)
-    // loading-speed A1 (ring-first, render side): the home and its eight neighbours' strips and road pieces build before
-    // controls; the outer sixteen cells' build once play has started (`backgroundReady`), in the same scope and budget
+    const home = assembly.cell(instance);
     const reach = 1.5 * assembly.pitch + 1;
     const ring = (x: number, z: number): boolean => Math.abs(x - home.origin.x) <= reach && Math.abs(z - home.origin.z) <= reach;
+    let flatPlatform = false;
+    const strips = [...await platformStrips(assembly, edges, (platform, edge) => generatePlatformSliced(platform, edge, async () => {
+      progress?.detail(`Terrain seams · ${++batches} batches`); await construction.check();
+    }, 12, seamPlans, ring), () => {
+      if (host.scope.disposed || host.scope.disposing) throw new Error('Grid admission scope disposed');
+      flatPlatform = true;
+    })];
+    if (host.scope.disposed || host.scope.disposing) throw new Error('Grid session left during seam preparation');
+    const roadScope = host.scope.child('grid-road-construction');
+    progress?.set(2, 3, `Road geometry · ${strips.length} initial seams`);
+    const admission = new PlatformRenderResidency(allocator, roadScope), plans = new Map<Mesh, CullPlan>();
+    // Use the same source set for both halves if initial certification selected
+    // the existing flat fallback. Outer failures never substitute different edges.
+    const outerStrips = (): Promise<readonly GeneratedStrip[]> => {
+      const source = platformInputs(assembly, flatPlatform ? undefined : edges);
+      const background = workSlice(undefined, host.scope);
+      return generatePlatformSliced(source.cells, source.empty, async () => {
+        if (host.scope.disposed || host.scope.disposing) throw new Error('Grid session left during outer seam preparation');
+        await background.check();
+      }, 8, seamPlans, (x, z) => !ring(x, z));
+    };
     const roadInput = { strips, home, pitch: assembly.pitch, layout: roadLayout(assembly, slug => findShard(slug)?.name ?? slug), scene: host.scene,
       scope: roadScope, camera: () => host.frame?.camera, plans, admission };
     const pause = async (): Promise<void> => { await construction.check(); };
     const road = installPlatformRoadSliced({ ...roadInput, within: ring }, pause);
-    const outer = (): Promise<PlatformRoad> => installPlatformRoadSliced({ ...roadInput, within: (x, z) => !ring(x, z), voidFloor: false }, pause);
+    const outer = async (): Promise<PlatformRoad> => {
+      try { return await installPlatformRoadSliced({ ...roadInput, within: (x, z) => !ring(x, z), voidFloor: false }, pause); }
+      finally { strips.length = 0; } // Native collision views retain positions/indices, never render-only colours.
+    };
     road.catch(() => { roadScope.dispose(); });
     try {
       await construction.yield();
@@ -394,14 +413,14 @@ export class GridSession {
         await construction.check();
       }
       if (host.scope.disposed || host.scope.disposing) throw new Error('Grid session left during collider preparation');
-      const session = new GridSession(host, edges, allocator, strips, { road, outer, plans, collidersInstalled: true });
+      const session = new GridSession(host, edges, allocator, strips, { road, outer, outerStrips, publishStrips: added => { strips.push(...added); }, plans, collidersInstalled: true });
       progress?.set(3, 3, `${assembly.cells.length} cells · ${strips.length} seams`);
       await construction.yield();
       return session;
     } catch (error) { roadScope.dispose(); throw error; }
   }
 
-  constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[], preparedRoad?: { readonly road: PlatformRoad | Promise<PlatformRoad>; readonly outer?: () => Promise<PlatformRoad>; readonly plans: Map<Mesh, CullPlan>; readonly collidersInstalled?: true }) {
+  constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[], preparedRoad?: { readonly road: PlatformRoad | Promise<PlatformRoad>; readonly outer?: () => Promise<PlatformRoad>; readonly outerStrips?: () => Promise<readonly GeneratedStrip[]>; readonly publishStrips?: (strips: readonly GeneratedStrip[]) => void; readonly plans: Map<Mesh, CullPlan>; readonly collidersInstalled?: true }) {
     this.host = host;
     // before the page's first render: the lights a region's own pool shows through (regionalWorld `mirrorInto`)
     if (isScene(host.scene)) LightPool.for(host.scene).reserve(GRID_REGION_POINT_LIGHTS);
@@ -445,8 +464,9 @@ export class GridSession {
     const admission = new PlatformRenderResidency(this.allocator, host.scope);
     // the road system: `create`'s install as it lands (its frame hooks keep their latest values for it), else built now
     let platformRoad: PlatformRoad | null = null, horizon: number | undefined, weight: number | undefined;
+    const preparedPlans = preparedRoad?.plans;
     const take = (road: PlatformRoad): void => {
-      if (preparedRoad !== undefined) for (const [mesh, plan] of preparedRoad.plans) this.roadPlans.set(mesh, plan);
+      if (preparedPlans !== undefined) for (const [mesh, plan] of preparedPlans) this.roadPlans.set(mesh, plan);
       platformRoad = platformRoad === null ? road : combinePlatformRoads(platformRoad, road);
       this.road = platformRoad.road; this.seams = platformRoad.seams; this.roadRoots = platformRoad.roots; this.roadSettled = true;
       if (horizon !== undefined) road.horizon(horizon);
@@ -456,7 +476,7 @@ export class GridSession {
     const outer = preparedRoad?.outer;
     if (outer !== undefined) this.startOuterRoad = () => {
       const landOuter = async (): Promise<void> => {
-        try { const road = await outer(); if (!host.scope.disposed) take(road); }
+        try { await this.prepareOuterStrips(); const road = await outer(); if (!host.scope.disposed) take(road); }
         catch (error: unknown) {
           this.issues.set('road.outer', error instanceof Error ? error.message : String(error));
           console.warn('[grid] the outer road did not install:', error);
@@ -476,7 +496,10 @@ export class GridSession {
       this.roadLanding = landing();
     } else take(given ?? installPlatformRoad({ strips, home, pitch: this.assembly.pitch, layout,
       scene: host.scene, scope: host.scope, camera: () => host.frame?.camera, plans: this.roadPlans, admission }));
-    this.strips = collisionStrips(strips);
+    this.strips = [...collisionStrips(strips)];
+    this.initialStripBytes = this.strips.reduce((bytes, strip) => bytes + strip.mesh.positions.byteLength + strip.mesh.indices.byteLength, 0);
+    this.outerStripBuild = preparedRoad?.outerStrips;
+    this.publishOuterStrips = preparedRoad?.publishStrips;
     // G321: inside a cell whose shard draws its own sky, its backdrop owns the horizon: the road's void floor fades by it
     if (frame !== null) host.scope.onDispose(frame.horizon(owned => { horizon = owned; platformRoad?.horizon(owned); }));
     // G103: the asphalt forced 15 m into each cell keeps the road's light under that cell's own (the road's frame weight)
@@ -789,11 +812,42 @@ export class GridSession {
   }
   private shardName(instance: string): string { const slug = this.assembly.cell(instance).slug; return this.names.get(slug) ?? slug; }
 
+  /** Complete deferred native seams before a distant entry or road recovery. One page promise, no second scheduler. */
+  prepareOuterStrips(): Promise<void> {
+    if (this.outerStripsReady !== undefined) return this.outerStripsReady;
+    const build = this.outerStripBuild;
+    if (build === undefined) return Promise.resolve();
+    this.outerStripBuild = undefined;
+    const owner = this.host.scope.child('grid.outer-platform');
+    const active = (): void => { if (owner.disposed || owner.disposing || this.host.scope.disposed || this.host.scope.disposing) throw new Error('Outer platform owner left'); };
+    const prepare = async (): Promise<void> => {
+      try {
+        active(); const generated = await build(); active();
+        const bytes = generated.reduce((sum, strip) => sum + strip.mesh.positions.byteLength + strip.mesh.indices.byteLength, 0);
+        if (bytes > 0) {
+          const claim = this.allocator.reserve({ id: 'sim:platform:outer', category: 'sim', owner: 'platform', bytes, distance: 0, needed: true });
+          if (claim === null) throw new Error('Outer platform native residency deferred');
+          owner.onDispose(claim.release);
+        }
+        const slice = workSlice(undefined, owner);
+        for (const { mesh } of generated) {
+          active(); installStripCollider(this.host.physics, mesh, owner); await slice.check();
+        }
+        active();
+        this.strips.push(...collisionStrips(generated));
+        this.publishOuterStrips?.(generated); this.publishOuterStrips = undefined;
+        this.live?.refreshPlatformEntries();
+      } catch (error) { owner.dispose(); throw error; }
+    };
+    this.outerStripsReady = prepare(); return this.outerStripsReady;
+  }
+
   /** Step 2: the live crossing, once the page's player health and equipment exist (play.ts). */
   attach(page: LiveGridPage): LiveGridSession {
     if (this.live !== null) throw new Error('The grid session already has its live crossing');
     if (this.host.residency === undefined) throw new Error('Grid session requires the early page residency owner');
-    this.live = new LiveGridSession({ assembly: this.assembly, home: this.home, physics: this.host.physics, scope: this.host.scope, walls: this.walls, strips: this.strips, allocator: this.allocator,
+    this.live = new LiveGridSession({ assembly: this.assembly, home: this.home, physics: this.host.physics, scope: this.host.scope, walls: this.walls, strips: this.strips, initialStripBytes: this.initialStripBytes,
+      prepareStrips: cell => Math.max(Math.abs(cell.cell[0] - this.home.cell[0]), Math.abs(cell.cell[1] - this.home.cell[1])) <= 1 ? Promise.resolve() : this.prepareOuterStrips(), allocator: this.allocator,
       residency: this.host.residency.home(), tiles: this.clientTiles, lightingSettled: () => { this.prelinkViews(); },
       ...(this.admitNeighbour === undefined ? {} : { prepareDataTiles: async (cell: GridCell, scope: Scope, start: { readonly x: number; readonly z: number }) => {
         await this.admitNeighbour?.(cell);
@@ -933,11 +987,11 @@ export class GridSession {
 /** Generate the platform; a platform the generator refuses (an edge past the cliff envelope, an entry off road height)
  *  falls back to road-level edges. A disposed page stops between slices and builds nothing more. */
 async function platformStrips(assembly: GridAssembly, edges: readonly PlatformCell[] | undefined,
-  generate: (cells: readonly PlatformCell[], empty: StripProfile) => Promise<readonly GeneratedStrip[]>): Promise<readonly GeneratedStrip[]> {
+  generate: (cells: readonly PlatformCell[], empty: StripProfile) => Promise<readonly GeneratedStrip[]>, onFallback?: () => void): Promise<readonly GeneratedStrip[]> {
   const { cells, flat, empty } = platformInputs(assembly, edges);
   try { return await generate(cells, empty); } catch (error) {
     if (error instanceof Error && error.message === 'Grid admission scope disposed') throw error; // the page left mid-generation
-    console.warn('[grid] the platform keeps road-level edges:', error); return generate(flat, empty);
+    onFallback?.(); console.warn('[grid] the platform keeps road-level edges:', error); return generate(flat, empty);
   }
 }
 function platformStripsNow(assembly: GridAssembly, edges: readonly PlatformCell[] | undefined): readonly GeneratedStrip[] {
