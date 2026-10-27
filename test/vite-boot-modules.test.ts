@@ -8,6 +8,29 @@ import { createHash } from 'node:crypto';
 import { readModuleFiles } from '../src/engine/boot/download';
 import { bootModuleFiles, bootModuleGroups, clientFeatureImports, startupImports } from '../scripts/app-build/bootModules';
 import { buildWithBootModules, writtenFiles } from './fixtures/written-build';
+import { writtenBundle } from '../scripts/app-build/writtenBundle';
+
+test('grouped dynamic entries follow their manifest facade and complete implementation', () => {
+  mkdirSync('tmp/vite-boot-modules', { recursive: true });
+  const root = mkdtempSync(resolve('tmp/vite-boot-modules/facade-')), out = resolve(root, 'dist');
+  try {
+    mkdirSync(resolve(out, '.vite'), { recursive: true });
+    mkdirSync(resolve(out, 'assets'));
+    writeFileSync(resolve(out, 'assets/core.js'), 'export const selected = 42;');
+    writeFileSync(resolve(out, 'assets/core.js.map'), JSON.stringify({ sources: ['../../src/selected.ts'] }));
+    writeFileSync(resolve(out, 'assets/selected.js'), 'export {selected} from "./core.js";');
+    writeFileSync(resolve(out, '.vite/manifest.json'), JSON.stringify({
+      core: { file: 'assets/core.js' },
+      selected: { file: 'assets/selected.js', src: 'src/selected.ts', isDynamicEntry: true, imports: ['core'] },
+      alias: { file: 'assets/selected.js', src: 'src/alias.ts', isDynamicEntry: true, imports: ['core'] },
+    }));
+    const bundle = writtenBundle(out, root), selected = resolve(root, 'src/selected.ts');
+    const expected = [['/assets/core.js', 27], ['/assets/selected.js', 35]];
+    expect(bootModuleFiles(bundle, [selected])).toEqual(expected);
+    expect(bootModuleFiles(bundle, [resolve(root, 'src/alias.ts')])).toEqual(expected);
+    expect(() => bootModuleFiles({ ...bundle, 'assets/duplicate.js': bundle['assets/selected.js'] }, [selected])).toThrow('ambiguous');
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
 
 test('startup roots follow the executed entry function, excluding title, recovery and error entry branches', () => {
   expect(startupImports(`

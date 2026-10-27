@@ -81,6 +81,7 @@ interface EmittedFile {
   readonly imports?: readonly string[];
   readonly originalFileNames?: readonly string[];
   readonly modules?: Readonly<Record<string, unknown>>;
+  readonly facadeModuleIds?: readonly string[];
 }
 type Bundle = Readonly<Record<string, EmittedFile | undefined>>;
 export type ModuleFile = readonly [url: string, bytes: number];
@@ -97,7 +98,10 @@ export function bootModuleFiles(bundle: Bundle, roots: readonly string[]): reado
     for (const dependency of file.imports ?? []) visit(dependency);
   };
   for (const root of roots) {
-    const found = Object.entries(bundle).filter(([, file]) => file?.type === 'chunk' && Object.hasOwn(file.modules ?? {}, root));
+    // A grouped dynamic entry may have a tiny manifest facade and an implementation
+    // source map in another chunk. Follow the compiler's actual import target.
+    const facades = Object.entries(bundle).filter(([, file]) => file?.type === 'chunk' && file.facadeModuleIds?.includes(root) === true);
+    const found = facades.length > 0 ? facades : Object.entries(bundle).filter(([, file]) => file?.type === 'chunk' && Object.hasOwn(file.modules ?? {}, root));
     if (found.length !== 1) throw new Error(`Missing or ambiguous boot module root: ${root}`);
     for (const [name] of found) visit(name);
   }
