@@ -334,7 +334,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       for (const [libraryIndex, row] of section.libraries.entries()) {
         await timeClientPreparation(product.slug, `scene.library:${row.kind}:${row.id}`, async () => {
           if (row.kind === 'models') {
-            const models = sceneModelSource(product, row.id); await models.preload(() => buildYield(owner));
+            const models = sceneModelSource(product, row.id); await models.preload(() => constructionCheckpoint(owner) ?? Promise.resolve());
             libraries.set(row.id, { geometry: id => models.geometry(id), models });
           } else if (row.kind === 'baked') { await sceneBakeSource(product, row.id).load();
           } else if (row.kind === 'whole') {
@@ -378,7 +378,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
           } else {
             requireSceneOwner(owner);
             const models = worldScenePool(product, row);
-            await models.preload(() => buildYield(owner));
+            await models.preload(() => constructionCheckpoint(owner) ?? Promise.resolve());
             requireSceneOwner(owner);
             if (row.publish !== undefined) for (const part of row.files.flatMap(file => file.parts)) {
               const geometry = models.geometry(part); if (geometry === null) throw new Error(`Missing scene pool part: ${part}`);
