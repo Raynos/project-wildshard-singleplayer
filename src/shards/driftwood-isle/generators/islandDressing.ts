@@ -108,6 +108,35 @@ function palmKeep(points:readonly{x:number;z:number}[]):(x:number,z:number)=>boo
   return best===null||!inArea(best.x,best.z,1);
  };
 }
+/** One tier's foliage rows: the palms' and bushes' scatter specs and their placements. */
+export interface IslandFoliageTier {
+ readonly palms: { readonly specs: ReturnType<typeof scatterPalms>; readonly placements: ReturnType<typeof palmPlacements> };
+ readonly bushes: { readonly specs: ReturnType<typeof scatterBushes>; readonly placements: ReturnType<typeof bushPlacements> };
+}
+/** The island's foliage placement rows (GR7: the dressing job's foliagePlacements.generated.json): the seed, the beach gull
+ *  perches and each tier's palm and bush rows. */
+export interface IslandFoliagePlacements { readonly seed: number; readonly gullPerches: ReturnType<typeof beachGullPerches>; readonly tiers: { readonly phone: IslandFoliageTier; readonly desktop: IslandFoliageTier } }
+let foliagePlacements: IslandFoliagePlacements | undefined;
+const avoidSites=():{x:number;z:number;r:number}[]=>[{x:HUT.x,z:HUT.z,r:11},{x:LOOKOUT.x,z:LOOKOUT.z,r:12},{x:SHRINE.x,z:SHRINE.z,r:13},{x:WRECK.x,z:WRECK.z,r:14}];
+/** Built once per build process: both tiers' scatter on the bound native ground, as the dressing bakes it (its rows are
+ *  these); every reader treats it as read-only. */
+export function islandFoliagePlacements(): IslandFoliagePlacements { foliagePlacements ??= scatterIslandFoliage(); return foliagePlacements; }
+function scatterIslandFoliage(): IslandFoliagePlacements {
+ const terrain=manifest.ground.terrain;if(terrain===undefined)throw new Error('Native island ground is required');
+ const level={id:manifest.slug,ground:{terrain},spawn:manifest.spawn,sky:manifest.sky,atmosphere:manifest.atmosphere,grade:manifest.grade,
+  budgets:{},mechanisms:[],fight:{},boot:{files:[]},audio:{ambience:'none',score:'none'},loadout:{weapons:[],tools:[],start:[]},species:[],spawns:[],minimap:{},kitLook:'toon' as const};
+ const restoreLevel=bindLevelSelection(level),binding=new HeightfieldBinding(level);
+ binding.install(readNativeTerrain(driftwoodGroundBytes()));const restoreGround=bindHeightfield(binding),ground=binding.field,avoid=avoidSites();
+ try{
+  const tier=(name:'phone'|'desktop'):IslandFoliageTier=>{
+   _buildAs(name);
+   const palms=scatterPalms(ground.heightAt,manifest.seed,undefined,avoid),bushes=scatterBushes(ground.heightAt,manifest.seed,undefined,avoid);
+   return{palms:{specs:palms,placements:palmPlacements(ground.heightAt,palms)},bushes:{specs:bushes,placements:bushPlacements(ground.heightAt,bushes)}};
+  };
+  const phone=tier('phone'),desktop=tier('desktop');
+  return{seed:manifest.seed,gullPerches:beachGullPerches(ground.heightAt,manifest.seed),tiers:{phone,desktop}};
+ }finally{_buildAs(null);restoreGround();restoreLevel();}
+}
 /** Compile both tiers from their actual scatter, native shapes and original height binding. */
 export async function islandDressing(readAsset:(url:string)=>Uint8Array, bushesReady?: (tier:'phone'|'desktop', geometry:THREE.BufferGeometry, originals:readonly THREE.BufferGeometry[], clips:ClipRuns) => void, palmsReady?: (tier:'phone'|'desktop', geometry:THREE.BufferGeometry, originals:readonly THREE.BufferGeometry[], clips:ClipRuns) => void):Promise<{seed:number;gullPerches:ReturnType<typeof beachGullPerches>;tiers:{foliage:FoliagePlacements;tier:'phone'|'desktop';clips:{palms:ClipRuns;bushes:ClipRuns;logs:ClipRuns};cover:Awaited<ReturnType<typeof bakeFullIslandCover>>}[]}> {
  const terrain=manifest.ground.terrain;if(terrain===undefined)throw new Error('Native island ground is required');
@@ -115,7 +144,6 @@ export async function islandDressing(readAsset:(url:string)=>Uint8Array, bushesR
   budgets:{},mechanisms:[],fight:{},boot:{files:[]},audio:{ambience:'none',score:'none'},loadout:{weapons:[],tools:[],start:[]},species:[],spawns:[],minimap:{},kitLook:'toon' as const}; // Only the real authored ground frame is evaluated by this isolated producer.
  const restoreLevel=bindLevelSelection(level),binding=new HeightfieldBinding(level);
  binding.install(readNativeTerrain(driftwoodGroundBytes()));const restoreGround=bindHeightfield(binding),ground=binding.field;
- const avoid=[{x:HUT.x,z:HUT.z,r:11},{x:LOOKOUT.x,z:LOOKOUT.z,r:12},{x:SHRINE.x,z:SHRINE.z,r:13},{x:WRECK.x,z:WRECK.z,r:14}];
  // Ground-cover logs use the cover's own POI exclusions, not the palm/bush scatter margins.
  const {islandCoveSpec}=await import('./coveLayout');const cave=islandCoveSpec().cave;
  const logAvoid=[{x:HUT.x,z:HUT.z,r:9},{x:LOOKOUT.x,z:LOOKOUT.z,r:8},{x:SHRINE.x,z:SHRINE.z,r:9.5},{x:WRECK.x,z:WRECK.z,r:13},{x:cave.x,z:cave.z+cave.depth/2,r:8},{x:0,z:-151,r:3.2}];
@@ -124,9 +152,9 @@ export async function islandDressing(readAsset:(url:string)=>Uint8Array, bushesR
   const tiers=[];
   for(const tier of ['phone','desktop'] as const){
    _buildAs(tier);
-   const palms=scatterPalms(ground.heightAt,manifest.seed,undefined,avoid),bushes=scatterBushes(ground.heightAt,manifest.seed,undefined,avoid);
+   const rows=islandFoliagePlacements().tiers[tier],palms=rows.palms.specs,bushes=rows.bushes.specs;
    const palmRng=new Rng(seedOf(palm)),bushRng=new Rng(seedOf(hibiscusBush));
-   const palmRows=palmPlacements(ground.heightAt,palms),bushRows=bushPlacements(ground.heightAt,bushes);
+   const palmRows=rows.palms.placements,bushRows=rows.bushes.placements;
    const pg=palmRows.map(p=>palmGeometry({...palm.defaults,...p.params},palmRng).translate(p.x,p.y,p.z));
    const bg=bushRows.map(p=>leafClump({...hibiscusBush.defaults,...p.params},bushRng).translate(p.x,p.y,p.z));
    const mergedPalms=mergeGeometries(pg),mergedBushes=mergeGeometries(bg);
@@ -138,6 +166,7 @@ export async function islandDressing(readAsset:(url:string)=>Uint8Array, bushesR
     tiers.push({tier,clips,cover,foliage:{palms:{specs:palms,placements:palmRows},bushes:{specs:bushes,placements:bushRows}}});
    }finally{mergedPalms.dispose();mergedBushes.dispose();for(const geometry of [...pg,...bg])geometry.dispose();}
   }
-  return{seed:manifest.seed,gullPerches:beachGullPerches(ground.heightAt,manifest.seed),tiers};
+  const placed=islandFoliagePlacements();
+  return{seed:placed.seed,gullPerches:placed.gullPerches,tiers};
  }finally{logs.geometry.dispose();_buildAs(null);restoreGround();restoreLevel();}
 }

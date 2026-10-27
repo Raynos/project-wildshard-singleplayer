@@ -13,7 +13,7 @@ import { DRIFTWOOD_ASSET_NAMES } from '../../src/shards/driftwood-isle/generator
 import { ISLAND_KNOBS } from '../../src/shards/driftwood-isle/generators/tiers';
 import { ENTRY_DECKS } from '../../src/shards/driftwood-isle/generators/entryDecks';
 import npcScenes from '../../src/shards/driftwood-isle/data/npcScenes.generated.json' with {type:'json'};
-import foliage from '../../src/shards/driftwood-isle/data/foliagePlacements.generated.json' with { type: 'json' };
+import { islandFoliagePlacements } from '../../src/shards/driftwood-isle/generators/islandDressing';
 import islandFacts from '../../src/shards/driftwood-isle/data/islandFacts.generated.json' with { type: 'json' };
 import cumulusPuffs from '../../src/shards/driftwood-isle/data/cumulusPuffs.json' with { type: 'json' };
 import { driftwoodPierRows } from '../../src/shards/driftwood-isle/generators/fixedFacts';
@@ -22,6 +22,8 @@ import { OCEAN_SURFACE } from '../../src/shards/driftwood-isle/generators/oceanL
 import { OCEAN_FILES } from '../../src/shards/driftwood-isle/generators/oceanFiles';
 import { driftwoodOceanFoam } from '../../src/shards/driftwood-isle/generators/oceanFoam';
 import { DRIFTWOOD_LAYOUTS } from './driftwood-layout-source';
+
+const foliage = islandFoliagePlacements();
 
 const coveBake = DRIFTWOOD_ORIGINAL_LAYOUTS.cove;
 const shrineBake = DRIFTWOOD_ORIGINAL_LAYOUTS.shrine;

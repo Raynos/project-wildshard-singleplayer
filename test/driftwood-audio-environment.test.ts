@@ -15,10 +15,12 @@ import * as gameplay from '../src/game/plugin/audio';
 import type {ShardContext} from '../src/game/plugin/context';
 import {driftwoodGameplayAudioEnvironment} from '../src/shards/driftwood-isle/generators/gameplayAudioEnvironment';
 import source from '../src/shards/driftwood-isle/data/audioSource.json' with {type:'json'};
-import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generated.json' with {type:'json'};
+import { islandFoliagePlacements } from '../src/shards/driftwood-isle/generators/islandDressing';
 import island from '../src/shards/driftwood-isle/data/islandFacts.generated.json' with {type:'json'};
 import cove from '../src/shards/driftwood-isle/data/coveComposition.json' with {type:'json'};
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
+
+const foliage = islandFoliagePlacements();
 
 const wreck = DRIFTWOOD_ORIGINAL_LAYOUTS.wreck;
 

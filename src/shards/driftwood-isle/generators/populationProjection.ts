@@ -5,9 +5,11 @@ import { driftwoodGroundSampler } from './groundSampling';
 import { DRIFTWOOD_SPECIES_PROGRAMS } from './speciesPrograms';
 import { RETURN_PROGRAM } from './returnProgram';
 import { driftwoodItems } from './items';
-import foliage from '../data/foliagePlacements.generated.json' with { type: 'json' };
+import { islandFoliagePlacements } from './islandDressing';
 import island from '../data/islandFacts.generated.json' with { type: 'json' };
 import physics from '../data/physics.generated.json' with { type: 'json' };
+
+const foliage = islandFoliagePlacements();
 
 /** Compile presentation rows from the same placement, physical and species inputs. */
 export function populationProjectionRows(): v.InferOutput<typeof PopulationProjectionSchema> {

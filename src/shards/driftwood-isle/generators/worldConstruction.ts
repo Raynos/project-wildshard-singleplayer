@@ -1,6 +1,8 @@
 import { NATIVE_VIEW } from './nativeView';
 import type { WorldConstructionRows } from '@wildshard/format/worldAssembly';
-import foliage from '../data/foliagePlacements.generated.json' with { type: 'json' };
+import { islandFoliagePlacements } from './islandDressing';
+
+const foliage = islandFoliagePlacements();
 
 // The old custom-section wire canonically sorted record keys before entry.
 const wireValues = (rows: Readonly<Record<string, string>>): string[] => Object.keys(rows).sort().map(key => { const value=rows[key];if(value===undefined)throw new Error('Missing authored look');return value; });

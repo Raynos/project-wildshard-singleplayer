@@ -1,8 +1,10 @@
 import type { AudioData } from '@wildshard/sdk/audio';
-import foliage from '../data/foliagePlacements.generated.json' with {type:'json'};
+import { islandFoliagePlacements } from './islandDressing';
 import island from '../data/islandFacts.generated.json' with {type:'json'};
 import type { FixedWreckLayout } from './fixedLayouts';
 import cove from '../data/coveComposition.json' with {type:'json'};
+
+const foliage = islandFoliagePlacements();
 
 /** The exact completed world's spatial observations, detached before shipping.
  * Tier palms keep their original scatter order and the baked island suffix.

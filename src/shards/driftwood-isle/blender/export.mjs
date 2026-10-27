@@ -1,5 +1,4 @@
 import { readFileSync } from 'node:fs';
-import FOLIAGE from '../data/foliagePlacements.generated.json' with {type:'json'};
 
 // Driftwood Isle's half of scripts/blender/lib/export-scene.mjs (DRIFTWOOD-REMASTER X2, E52): the game's low-poly ground
 // colour, and the cove's layout specs + bake occluders. Moved here unchanged from export-scene.mjs (PH-0.3): the exported
@@ -33,6 +32,7 @@ export async function layout({ THREE, imp, def, addObject, tryBuild }) {
   const { originalPiers } = await imp('src/shards/driftwood-isle/generators/driftwoodPiers.ts');
   const { originalHut } = await imp('src/shards/driftwood-isle/generators/driftwoodHut.mjs');
   const { HUT } = island;
+  const FOLIAGE = (await imp('src/shards/driftwood-isle/generators/islandDressing.ts')).islandFoliagePlacements();
   if (FOLIAGE.seed !== def.seed) throw new Error('Foliage placements require their authored seed');
   const palms = FOLIAGE.tiers.desktop.palms.specs;
   const SHORE = (await imp('src/shards/driftwood-isle/generators/shoreBoulders.ts')).shoreBoulderFacts();

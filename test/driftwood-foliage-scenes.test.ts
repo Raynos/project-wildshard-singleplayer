@@ -9,15 +9,17 @@ import { BufferAttribute, type BufferGeometry } from 'three';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { placeCollider, poseOf } from '../src/engine/models/colliders';
 import { decodePalmWorld, decodeHibiscusWorld, decodeReefWorld } from '../src/shards/driftwood-isle/generators/foliageGeometry';
-import { palmColliders } from '../src/shards/driftwood-isle/generators/foliageModels';
+import { palm, palmColliders } from '../src/shards/driftwood-isle/generators/foliageModels';
 import { compactChannels } from '../src/shards/driftwood-isle/generators/compactChannels';
 import { decimateFlatBatch } from '../src/shards/driftwood-isle/generators/phoneDecimate';
 
 import { withPortableMath } from '../src/commons/bake/portableMath';
-import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generated.json' with { type: 'json' };
+import { islandFoliagePlacements } from '../src/shards/driftwood-isle/generators/islandDressing';
 import { driftwoodReefBank } from '../src/shards/driftwood-isle/generators/reefBank';
 import dressingBlobs from '../src/shards/driftwood-isle/data/dressingBlobs.generated.json' with { type: 'json' };
 import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_BANK_BLOBS, DRIFTWOOD_OUTPUT } from '../src/shards/driftwood-isle/generators/assets';
+
+const foliage = islandFoliagePlacements();
 
 const reefBank = driftwoodReefBank(), reef = reefBank.layout;
 /** the bake's phone errors (bake-foliage-scenes.mjs PHONE_ERROR) */
@@ -76,7 +78,7 @@ test('finished foliage scene GLBs preserve every (compact) native channel, full 
         sameGeometry(actual, compact);
         if (kind !== 'reef') expect(data.placements[tier][kind].drawnInto.boxes).toEqual([...expected.boxes]);
         if (kind === 'palms') {
-          const contacts = withPortableMath(() => foliage.tiers[tier].palms.placements.flatMap(pose => palmColliders(pose.params).map(shape => placeCollider(shape, poseOf(pose)))));
+          const contacts = withPortableMath(() => foliage.tiers[tier].palms.placements.flatMap(pose => palmColliders({ ...palm.defaults, ...pose.params }).map(shape => placeCollider(shape, poseOf(pose)))));
           expect(JSON.stringify(data.placements[tier].palms.colliders)).toBe(JSON.stringify(contacts));
         }
       } finally { actual.dispose(); compact.dispose(); expected.geometry.dispose(); }

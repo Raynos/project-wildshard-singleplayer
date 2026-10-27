@@ -7,7 +7,9 @@ import { BOAT_LAYOUT } from './boatLayout';
 import { ENTRY_DECKS } from './entryDecks';
 import { shoreBoulderFacts } from './shoreBoulders';
 import { driftwoodPierRows } from './fixedFacts';
-import foliage from '../data/foliagePlacements.generated.json' with { type: 'json' };
+import { islandFoliagePlacements } from './islandDressing';
+
+const foliage = islandFoliagePlacements();
 
 const shore = shoreBoulderFacts();
 

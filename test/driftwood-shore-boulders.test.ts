@@ -5,12 +5,14 @@ import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { bakeRockScenes } from '../src/shards/driftwood-isle/generators/rockScenes';
 import { compactChannels } from '../src/shards/driftwood-isle/generators/compactChannels';
 import { expect, it } from 'vitest';
-import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generated.json';
+import { islandFoliagePlacements } from '../src/shards/driftwood-isle/generators/islandDressing';
 import { STATIC_BOAT, WORLD_GULL_PERCHES, SHORE_BOULDERS } from '../src/shards/driftwood-isle/generators/staticWorld';
 import { SEED } from '../src/shards/driftwood-isle/generators/landscapeRows';
 import WRECK_SITES from '../src/shards/driftwood-isle/data/wreckSites.json' with { type: 'json' };
 import { scatterShore, shoreBoulderFacts } from '../src/shards/driftwood-isle/generators/shoreBoulders';
 import { driftwoodSceneBanks } from './fixtures/driftwoodSceneBanks';
+
+const foliage = islandFoliagePlacements();
 
 const shore = shoreBoulderFacts();
 

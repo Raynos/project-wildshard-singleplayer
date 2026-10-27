@@ -1,4 +1,4 @@
-import foliage from '../data/foliagePlacements.generated.json' with { type: 'json' };
+import { islandFoliagePlacements } from './islandDressing';
 import physics from '../data/physics.generated.json' with { type: 'json' };
 import { terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 import { driftwoodGroundSampler } from './groundSampling';
@@ -9,6 +9,8 @@ import { parse, type InferOutput } from 'valibot';
 import { sampleCreatureGroup, selectCreatureSites } from '@wildshard/game/plugin/brain';
 import { ENEMY_COUNTS } from './fauna';
 import { driftwoodPhysicsGroundBytes } from './physics';
+
+const foliage = islandFoliagePlacements();
 
 const volley: InferOutput<typeof BodySlotsSchema> = parse(BodySlotsSchema, volleyData);
 

@@ -9,7 +9,9 @@ import { decodeEntryDecks } from '../src/shards/driftwood-isle/generators/entryD
 import decks from '../src/shards/driftwood-isle/data/entryDecks.generated.json' with { type: 'json' };
 import { worldPlacements,uprightPoses } from '../src/shards/driftwood-isle/generators/worldPlacements';
 import { driftwoodSceneBanks } from './fixtures/driftwoodSceneBanks';
-import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generated.json' with { type: 'json' };
+import { islandFoliagePlacements } from '../src/shards/driftwood-isle/generators/islandDressing';
+
+const foliage = islandFoliagePlacements();
 
 const finite=v.pipe(v.number(),v.finite());
 const placement=v.strictObject({...WorldScenePlacementSchema.entries,poses:v.array(v.object({x:finite,y:finite,z:finite,

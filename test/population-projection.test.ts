@@ -18,8 +18,10 @@ import { mockCanvas } from '@wildshard/engine/test/weaponParity';
 import { readNativeTerrain } from '../src/sdk/bake/terrain';
 import { driftwoodGroundBytes } from '../src/shards/driftwood-isle/generators/groundRows';
 import { WORLD_DROP } from '../src/shards/driftwood-isle/generators/landscapeRows';
-import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generated.json';
+import { islandFoliagePlacements } from '../src/shards/driftwood-isle/generators/islandDressing';
 import island from '../src/shards/driftwood-isle/data/islandFacts.generated.json';
+
+const foliage = islandFoliagePlacements();
 
 test('a marsh population projects memory effects, loose lights and practice returns, then restores habitat ownership', async () => {
   mockCanvas();
