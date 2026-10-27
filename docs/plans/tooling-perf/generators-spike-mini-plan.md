@@ -30,7 +30,7 @@ actual done-when checks close, rather than counting unmarked source as proof.
 
 | Row | State | Work and qualification |
 |---|---|---|
-| GS2.1 Atomic discovery availability | in flight (sp-x1; source in this commit) | Fix the actual live-test prerequisite blocker: refreshDiscovery keeps its published provider when a current-product receipt/binding refuses. Both refresh and strict genShards write a complete unique temporary file before rename; unchanged outputs retain their inode. Missing providers initialize only from a valid current product, never a placeholder. Add three real filesystem/receipt controls, including an already-open reader retaining the old complete module. Typed lint, scoped fixture types and Node syntax checks pass; required ratchet attempted (foreign shard rises). One normal inputs restore and focused tests follow this source boundary. |
+| GS2.1 Atomic discovery availability | done (`126e3b78a2`; 2026-10-27, sp-x1) | refreshDiscovery keeps the complete prior provider on a failed current-product receipt; refresh and strict genShards replace via a complete temporary file and rename. Three focused real filesystem/receipt controls pass8.36s, including an open reader retaining the old inode and missing providers initializing only from valid products. One normal inputs restore EXIT0/10.65s; all10 provider modules physically present. Current-product/index/value refusal remains strict and no placeholder/fallback is emitted. Types, typed lint and Node syntax pass; required ratchet attempted (foreign shard rises). |
 
 ## Findings
 

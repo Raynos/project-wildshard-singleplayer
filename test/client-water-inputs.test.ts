@@ -25,7 +25,11 @@ function fixture(draw = false) {
   const file = vi.fn((name: string): Promise<Uint8Array> => name === 'first.glb' || name === 'grid.glb' ? first.promise : name === 'floor.bin' ? floor.promise : second.promise);
   const product = legacyDouble<ShardProduct>({ file, shardfile: emptyShardfile({ slug: 'water-fixture', name: 'Water', author: 'Fixture', revision: 1, seed: 1 }) });
   const system = vi.fn((_row: Parameters<ShardContext['system']>[0]): void => undefined), ctx = legacyDouble<ShardContext>({ scope, root, product, game: legacyDouble<ShardContext['game']>({}), system });
-  const looks = legacyDouble<Awaited<ReturnType<typeof runtime.runtimeLookMaterials>>>({ materials: new Map([['water-input-look', material]]), setParam: () => undefined, setTexture: () => undefined });
+  // Promise assimilation probes then; the book is an ordinary non-thenable.
+  // Keep strict missing-member failures for every actual material-book read.
+  const looks = new Proxy(legacyDouble<Awaited<ReturnType<typeof runtime.runtimeLookMaterials>>>({ materials: new Map([['water-input-look', material]]), setParam: () => undefined, setTexture: () => undefined }), {
+    get(target, key, receiver): unknown { return key === 'then' ? undefined : Reflect.get(target, key, receiver); },
+  });
   const ready = deferred<typeof looks>(), prepare = vi.spyOn(runtime, 'runtimeLookMaterials').mockReturnValue(ready.promise);
   const loads: ReturnType<typeof vi.fn<(bytes?: Uint8Array | BufferGeometry) => Promise<void>>>[] = [], shapes: PlaneGeometry[] = [];
   const create = vi.spyOn(owned, 'createOwnedGeometry').mockImplementation(() => {
