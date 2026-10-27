@@ -1,4 +1,4 @@
-import { zlibSync } from 'fflate';
+import { encodePortableBytes } from '@wildshard/sdk/bake/portableBytes';
 import { bakeGlyphField } from './glyphField';
 import { KAI_STACK, GLYPH_LAYOUT } from './signs';
 import { FONT_CHARS } from './words';
@@ -8,7 +8,7 @@ export function bakeGlyphPage(tier: keyof typeof GLYPH_LAYOUT): { size: number; 
   const layout = GLYPH_LAYOUT[tier], field = bakeGlyphField(Array.from(FONT_CHARS), layout, KAI_STACK);
   const packed: Uint8Array<ArrayBuffer>[] = [];
   for (let at = 0; at < field.data.length; at += 2_097_152) {
-    const bytes = zlibSync(field.data.subarray(at, at + 2_097_152), { level: 9 });
+    const bytes = encodePortableBytes(field.data.subarray(at, at + 2_097_152), 9);
     packed.push(bytes);
   }
   return { size: field.size, layout, rects: Object.fromEntries(field.rects), packed };

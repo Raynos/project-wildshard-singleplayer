@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { build } from 'vite';
 import { webkit, devices } from 'playwright';
-import { unzlibSync } from 'fflate';
+import { decodeBuildDeflate } from '@wildshard/sdk/bake/byteCodec';
 import { byteWriter, jsonBytes, outputHash, browserBakeBytes } from '../../../../scripts/bake-output.mjs';
 
 const root = resolve(import.meta.dirname, '../../../..');
@@ -44,7 +44,9 @@ try {
       }, { selected: tier, url: sink.url });
       chunks = row.packed.map(id => sink.take(id));
     } finally { await sink.dispose(); }
-    const data = Buffer.concat(chunks.map(part => unzlibSync(part)));
+    const expected = row.size * row.size * 2, blockSize = 2_097_152;
+    if (!Number.isSafeInteger(expected) || expected <= 0 || expected > 256_000_000 || chunks.length !== Math.ceil(expected / blockSize)) throw new Error('Invalid native glyph block inventory');
+    const data = Buffer.concat(chunks.map((part, index) => decodeBuildDeflate(part, Math.min(blockSize, expected - index * blockSize))));
     if (original !== undefined) {
       const before = await page.evaluate(selected => window.originalNineGlyphs(selected), tier);
       if (!Buffer.from(data).equals(Buffer.from(before.base64, 'base64')) ||
