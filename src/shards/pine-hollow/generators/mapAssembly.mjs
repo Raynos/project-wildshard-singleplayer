@@ -10,7 +10,8 @@ import { worldScenes } from './worldScenes.ts';
 import { sceneModelRows } from './sceneModelRows.ts';
 import { cabinSceneBake } from './bake-cabin-scenes.mjs';
 import { cabinLivingBake } from './bake-cabin-living.mjs';
-import { pineSourcesFrom } from './pineSources.ts';
+import { pineScriptSources } from './scriptSources.mjs';
+import { timberWorld } from './timberWorldRows.ts';
 import { mapLilies } from './mapLilies.mjs';
 import { bakeBeaverPool } from './beaverPool.ts';
 import { pineCragGround } from './bake-pine-crags.mjs';
@@ -25,10 +26,10 @@ import { pineForestRows } from './forestRows.ts';
 
 const base = resolve(import.meta.dirname, '..'), root = resolve(base, '../../..');
 const read = file => readMapJson(resolve(base, file));
-// D65: Pine's sources from disk (the program reads them through ctx.cached)
-const sources = pineSourcesFrom(path => readFileSync(resolve(root, path)));
 const palette = ['#847553', '#46603a', '#948a7c', '#504640'].map(value => new Color(value).toArray());
 export async function pineMapAssembly() {
+  // GR8 G37: Pine's sources as the program reads them (the timber world is the program's)
+  const sources = await pineScriptSources('pine-map-assembly');
   const { WORLD_SCENES, SCENE_BLOBS, SCENE_RAW_MODELS } = await worldScenes(sources), { SCENE_MODELS, SCENE_PLACEMENTS } = await sceneModelRows(sources);
   const assembly = new MapAssembly(), world = new MapWorld(assembly, base, WORLD_SCENES, SCENE_MODELS, [...SCENE_RAW_MODELS, ...SCENE_BLOBS]);
   const layout = PINE_LAYOUT, native = readNativeTerrain(readFileSync(resolve(root, 'public/assets/baked/pine-hollow/terrain.bin')));
@@ -54,7 +55,7 @@ export async function pineMapAssembly() {
   const shells = cabins.worlds.find(row => row.tier === 'desktop' && row.shadow === shadows);
   await world.weld(cabins.graphs.find(row => row.file === shells.file).graph);
 
-  const timbers = read('data/timberWorld.generated.json'), underShapes = bakePineUndergrowth();
+  const timbers = timberWorld(sources), underShapes = bakePineUndergrowth();
   const floor = pineFloorLayout(sources);
   for (const [kind, rows] of Object.entries(floor.layout)) {
     const shape = underShapes[kind]; if (shape === undefined) throw new Error(`Missing map floor shape ${kind}`);

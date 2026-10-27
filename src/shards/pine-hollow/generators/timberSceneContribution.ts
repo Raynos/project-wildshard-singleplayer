@@ -7,7 +7,7 @@ import { nameBlob, nameMeshoptBlob, type NamedBlob as NamedBlobType } from '@wil
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { pineQuestSites, pineTimberScenes } from './bake-timber-scenes.mjs';
 import { perSources, type PineSources } from './pineSources';
-import authored from '../data/timberWorld.generated.json' with { type: 'json' };
+import { timberWorld } from './timberWorldRows';
 import plumbing from '../data/plumbing.json' with { type: 'json' };
 import { TIMBER_MATERIALS } from './timberMaterials';
 import type { TimberSceneCopy } from './timberScenes';
@@ -25,6 +25,7 @@ export interface TimberScene {
 export const timberScene: (sources: PineSources) => Promise<TimberScene> = perSources(async (sources: PineSources): Promise<TimberScene> => {
   // GR8 G31: the timber scenes and quest sites are the producer's (bake-timber-scenes.mjs), not a stored timberScenes.generated.json
   const { copies, geometry, glbs } = await pineTimberScenes(sources), baked = { copies, geometry, sites: pineQuestSites(sources) };
+  const authored = timberWorld(sources);
 
   type Draw = Omit<TimberSceneCopy['draws'][number], 'sphere'> & { readonly sphere: readonly number[] };
   type Proxy = Omit<TimberSceneCopy['proxies'][number], 'sphere'> & { readonly sphere: readonly number[] };

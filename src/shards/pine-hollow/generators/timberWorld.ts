@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { pineUndergrowthScene } from './undergrowth';
 import { pineCabinScene } from './logCabin';
-import { bake, BakedPiece, type BakedScene } from '@wildshard/sdk/bake';
+import { bakeOwned, BakedPiece, type BakedScene } from '@wildshard/sdk/bake';
 import { pineLookoutScene, pineSiteTimberScene, timberDraws } from './timberScene';
 import { bakeSiteTimbers } from './siteTimbers';
 import { TimberRecorder } from './timberBake';
@@ -21,7 +21,7 @@ export function pineTimberPlacements(heightAt: (x: number, z: number) => number)
 }
 
 /** Compile one world Scene. Library shapes never become extra world draws or colliders. */
-export function pineTimberWorldBake(heightAt: (x: number, z: number) => number, project?: string, streams?: PineStreamGround, restShapes?: THREE.Object3D): BakedScene {
+export function pineTimberWorldBake(heightAt: (x: number, z: number) => number, streams?: PineStreamGround, restShapes?: THREE.Object3D): BakedScene {
   const scene = new THREE.Scene(); scene.name = 'pine-hollow.timber-world';
   scene.add(pineLookoutScene(heightAt), pineSiteTimberScene(heightAt));
   if (restShapes !== undefined) scene.add(restShapes);
@@ -42,7 +42,8 @@ export function pineTimberWorldBake(heightAt: (x: number, z: number) => number, 
   }));
   scene.add(library, pineUndergrowthScene());
   if (streams !== undefined) { scene.add(pineStreamScene(streams)); scene.add(pineCabinScene(heightAt, true)); }
-  try { return bake(scene, { slug: 'pine-hollow', name: 'Pine Hollow' }, project === undefined ? {} : { project }); }
+  // GR8 G37: compiled in the program (no scene publication; the caller hashes the description)
+  try { return bakeOwned(scene, { slug: 'pine-hollow', name: 'Pine Hollow' }); }
   finally {
     scene.traverse(node => {
       if (!(node instanceof THREE.Mesh)) return;

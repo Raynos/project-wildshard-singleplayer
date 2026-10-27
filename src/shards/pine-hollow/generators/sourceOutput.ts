@@ -7,7 +7,7 @@ import { forestStory } from './forestStory';
 import { questPage } from './pageComposition';
 import { pineSpots } from './spots';
 import { rangedPage } from './rangedPage';
-import { forestPage, LANDMARK_VIEW_BLOB } from './forestPage';
+import { forestPage } from './forestPage';
 import { roamingCombatBlob } from './roamingCombat';
 import { EXPLORER_CATALOGUE } from './explorerCatalogue';
 import { CHAPTER_DIRECTOR } from './chapterDirector';
@@ -72,8 +72,9 @@ import {isJsonData} from '@wildshard/format/json';
 import {SECTIONS,CabinAmbienceSchema,CabinSeedsSchema,parseFloorRows,PoolGroundSchema,PinePhysicsSchema} from './sections';
 import { nameBlob, emitNamedBlobs, type BlobSourceOptions, type NamedBlobKind } from '@wildshard/sdk/blobs';
 import { pineTreeRest } from './bake-tree-rest.mjs';
-import { readPineSources, type PineSources } from './pineSources';
-import { heroMaterialFiles } from './heroMaterialFiles.mjs';
+import type { PineSources } from './pineSources';
+import { readPineSources } from './programSources';
+import { heroMaterialFiles, materialTier, materialVariantOf } from './heroMaterialFiles.mjs';
 import type { ProjectOutput } from '@wildshard/sdk/projectOutput';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { formatJsonSchema, namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
@@ -87,7 +88,7 @@ import { pineNpcSkins } from './npcSkinInputs';
 import { WEAPON_FINISHES } from './weaponFinishes';
 import { pineLookMaterials } from './lookMaterials';
 import { pineProps } from './bake-pine-props.mjs';
-import { TIMBER_ROWS as timbers } from './product';
+import { timberWorld } from './timberWorldRows';
 import { pineFloorLayout } from './bake-pine-floor.mjs';
 import { PINE_OUTPUT, CROSSBOW_BLOB } from './outputInputs';
 import { phoneBirdsAtlasOutput } from './birdAtlas';
@@ -122,8 +123,6 @@ function sourceBlob<T extends { kind: string }>(row: T): Omit<T, 'kind'> & { kin
   return { ...row, kind };
 }
 
-v.parse(CabinSeedsSchema, timbers.cabinSeeds);
-v.parse(PoolGroundSchema, timbers.poolGround);
 const cabinAppearance = { CABIN_LIFE,CABIN_LIGHT,HEARTH_LOOKS };
 const counterRows = { ...PINE_FEAT_COUNTERS, feats: PINE_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
 const paintedRows=PINE_OUTPUT.custom['custom/paintedTextures'];
@@ -170,7 +169,10 @@ export interface PineStaticOutput { platform: ReturnType<typeof emitPlatformSect
  *  the platform rows go to `prepareOutput`, which adds the compiled return and spawn scripts. */
 async function outputRows(sources: PineSources, readImagePixels: ProjectGenerationContext['readImagePixels']): Promise<{ output: PineStaticOutput; platformRows: Map<PlatformDataSectionName, unknown> }> {
   const props = await pineProps(sources), { rows: keyedSky, blobs: skyKeys } = await pineKeyedSky(sources, readImagePixels);
-  const { FOREST_STORY_BLOB } = forestStory(sources), { PINE_QUEST_PAGE_BLOB } = questPage(sources), { RANGED_PAGE_BLOBS } = await rangedPage(sources), { FOREST_PAGE_BLOB } = forestPage(sources);
+  const world = timberWorld(sources), timbers = { propShapes: world.propShapes, cabinSeeds: world.cabins.seeds, poolGround: world.poolGround };
+  v.parse(CabinSeedsSchema, timbers.cabinSeeds);
+  v.parse(PoolGroundSchema, timbers.poolGround);
+  const { FOREST_STORY_BLOB } = forestStory(sources), { PINE_QUEST_PAGE_BLOB } = questPage(sources), { RANGED_PAGE_BLOBS } = await rangedPage(sources), { FOREST_PAGE_BLOB, LANDMARK_VIEW_BLOB } = forestPage(sources);
   const { WORLD_SCENES, SCENE_BLOBS, SCENE_PACKED_MODELS } = await worldScenes(sources);
   const clientJson: ReturnType<typeof emitNamedBlobs>=emitNamedBlobs([nameBlob(forestDensity.name, 'bin', forestDensity.bytes, { critical: true, decoded: forestDensity.decoded }), nameBlob('world/forest-weather.json', 'json', new TextEncoder().encode(encodeCanonicalJson(forestWeather))), FOREST_STORY_BLOB, PINE_QUEST_PAGE_BLOB, CROSSBOW_BLOB, ...SCENE_PACKED_MODELS, ...skyKeys.map(([name, bytes]) => nameBlob(name, 'bin', bytes)), nameBlob('data/physics.generated.json', 'json', pinePhysicsBytes(), { jsonSchema: namedJsonSchema(PinePhysicsSchema) }), nameBlob('quests/native-story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_NATIVE_QUEST)), { jsonSchema: namedJsonSchema(NativeQuestCompositionSchema) }), nameBlob('quests/native-spots.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseNativeQuestServiceSpots({ rows: spots.rows, people: spots.people, board: spots.board, pickup: spots.rifle, cable: spots.zip, signals: spots.lanterns }))), { jsonSchema: namedJsonSchema(NativeQuestServiceSpotsSchema) }), ...RANGED_PAGE_BLOBS, FOREST_PAGE_BLOB, LANDMARK_VIEW_BLOB,
 nameBlob('look/cover-appearance.json','json',new TextEncoder().encode(encodeCanonicalJson(parseCoverAppearance({...coverAppearance,textures:coverTextures})))),...SCENE_BLOBS,nameBlob('quests/persistence.json','json',new TextEncoder().encode(encodeCanonicalJson(persistence))),
@@ -322,13 +324,18 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Pine
   // GR8: the hero material payloads, compacted (heroMaterialFiles.mjs), named as product files the material aliases name;
   // opaque bytes (some carry ASTC KTX2 the product's GLB intake refuses), as uncharged as their retired public files were
   const heroMaterials = emitNamedBlobs(heroMaterialFiles(sources).map(([name, bytes, tier, variantOf]) => nameBlob(name, 'bin', bytes, { variantOf, ...(tier === undefined ? {} : { tier }) })));
+  // GR8 G37: the timber world's prop and cabin material payloads, named as the aliases name them, each for its device tier
+  const timberMaterials = emitNamedBlobs(Object.entries(timberWorld(sources).propMaterials).map(([url, name]) => {
+    const tier = materialTier(sources, url);
+    return nameBlob(name, 'bin', sources.bytes(name), { variantOf: materialVariantOf(url), ...(tier === undefined ? {} : { tier }) });
+  }));
   const peopleFile = emitNamedBlobs([nameBlob('people/catalogue.json', 'json', new TextEncoder().encode(encodeCanonicalJson(pineFigureCatalogue(people.rows))))]);
   const drawFile = emitNamedBlobs([nameBlob('look/wildlife-draw.json', 'json', new TextEncoder().encode(encodeCanonicalJson(wildlifeDraw(flock.ranges))))]);
   const lifeProgram = { script: life.script, bytes: '' };
   const programs = emitNamedBlobs([nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...pageLife(await pineAmbientPerches(ctx)), program: lifeProgram }))),
     nameBlob('actors/shelter.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ step: 'pine.rain-shelter', environment: 'pine.habitat', roster: 'pine.roster', weather: 'pine.air', herdLimit: 512, look: shelterLook, program: { script: shelter.script, bytes: '' } })))]);
-  const namedFiles = [...output.namedFiles, ...trees.files, ...heroMaterials.files, life.file, ...birds.files, ...client.files, ...creatures.files, ...rigs.files, ...programs.files, ...contracts.files.files, ...elites.files.files, ...journal.files, ...kingFiles.files, ...flock.files.files, ...drawFile.files, ...people.files.files, ...peopleFile.files, ...coats.files, night.blob.file, clock.file].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
-  const assets = new Map([...output.assets, ...trees.assets, ...heroMaterials.assets, ...birds.assets, ...client.assets, ...creatures.assets, ...rigs.assets, ...programs.assets, ...contracts.files.assets, ...elites.files.assets, ...journal.assets, ...kingFiles.assets, ...flock.files.assets, ...drawFile.assets, ...people.files.assets, ...peopleFile.assets, ...coats.assets, [night.blob.file.hash, night.blob.bytes], [clock.file.hash, clock.bytes]]);
+  const namedFiles = [...output.namedFiles, ...trees.files, ...heroMaterials.files, ...timberMaterials.files, life.file, ...birds.files, ...client.files, ...creatures.files, ...rigs.files, ...programs.files, ...contracts.files.files, ...elites.files.files, ...journal.files, ...kingFiles.files, ...flock.files.files, ...drawFile.files, ...people.files.files, ...peopleFile.files, ...coats.files, night.blob.file, clock.file].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
+  const assets = new Map([...output.assets, ...trees.assets, ...heroMaterials.assets, ...timberMaterials.assets, ...birds.assets, ...client.assets, ...creatures.assets, ...rigs.assets, ...programs.assets, ...contracts.files.assets, ...elites.files.assets, ...journal.assets, ...kingFiles.assets, ...flock.files.assets, ...drawFile.assets, ...people.files.assets, ...peopleFile.assets, ...coats.assets, [night.blob.file.hash, night.blob.bytes], [clock.file.hash, clock.bytes]]);
   assets.set(life.file.hash, life.bytes);
   const sortedAssets = [...assets].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
   const platform = emitPlatformSections(new Map<PlatformDataSectionName, unknown>([...platformRows, ['actors/return-scripts', [life.script, shelter.script, contracts.script]], ['actors/spawn-scripts', [night.row, ...elites.programs]]]));

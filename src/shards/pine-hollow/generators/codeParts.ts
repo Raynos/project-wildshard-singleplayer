@@ -20,7 +20,7 @@ import { PickupCatalogueSchema, type PickupCatalogueRows } from '@wildshard/form
 import pickupRows from '@wildshard/game/data/pickupCatalogue' with { type: 'json' };
 import HOLLOW_LOG_SHAPE from '../data/hollowLog.json' with { type: 'json' }; // length, outer and bore radius (m), the rotted bed's depth
 import * as LAYOUT from './layout';
-import authored from '../data/timberWorld.generated.json' with { type: 'json' };
+import type { TimberWorld } from './timberWorldRows';
 import { buildPrimitiveParts, PartKit } from './primitiveParts';
 import { NPC_MILLER_BODY, NPC_RANGER_BODY, NPC_RANGER_GLASS, NPC_TRADER_BODY } from './peopleParts';
 
@@ -122,8 +122,8 @@ function canoe(): THREE.BufferGeometry {
 }
 
 /** the zip-line cable: a sagging chord (≈ 1.2 % of its span) from its top anchor (the origin) to its bottom one, a thin tube */
-function zipCable(): THREE.BufferGeometry {
-  const { top, bottom } = authored.landmarks.zip;
+function zipCable(zip: TimberWorld['landmarks']['zip']): THREE.BufferGeometry {
+  const { top, bottom } = zip;
   const a = new THREE.Vector3(), b = new THREE.Vector3(...bottom).sub(new THREE.Vector3(...top));
   const sag = a.distanceTo(b) * 0.012;
   const pts: THREE.Vector3[] = [];
@@ -132,8 +132,8 @@ function zipCable(): THREE.BufferGeometry {
 }
 
 /** the terrain's drawn triangles over the cave's cut (the bake's roof row), heights from the lattice, (x, z) relative to the mouth */
-function caveRoof(heightAt: (x: number, z: number) => number): THREE.BufferGeometry {
-  const row = authored.cragAssembly.roof, res = row.resolution, d = row.size / (res - 1), half = row.size / 2, verts: number[] = [];
+function caveRoof(heightAt: (x: number, z: number) => number, row: TimberWorld['cragAssembly']['roof']): THREE.BufferGeometry {
+  const res = row.resolution, d = row.size / (res - 1), half = row.size / 2, verts: number[] = [];
   for (const ordinal of row.triangles) {
     const cell = Math.floor(ordinal / 2), x0 = (cell % res) * d - half, x1 = x0 + d, z0 = Math.floor(cell / res) * d - half, z1 = z0 + d;
     const corners = ordinal % 2 === 0 ? [[x0, z0], [x0, z1], [x1, z0]] : [[x0, z1], [x1, z1], [x1, z0]];
@@ -167,19 +167,19 @@ function ghostStagTines(): THREE.BufferGeometry {
 }
 
 /** every code-built part, by name, in pack order */
-export function pineCodeParts(heightAt: (x: number, z: number) => number,files:ReadonlyMap<string,Uint8Array>=new Map()): Record<string, THREE.BufferGeometry> {
+export function pineCodeParts(heightAt: (x: number, z: number) => number, timber: Pick<TimberWorld, 'landmarks' | 'cragAssembly'>, files:ReadonlyMap<string,Uint8Array>=new Map()): Record<string, THREE.BufferGeometry> {
   return {
     ...hollowLog(),
     'token-shelf': tokenShelf(files),
     'npc-ranger': buildPrimitiveParts(NPC_RANGER_BODY), 'npc-ranger-glass': buildPrimitiveParts(NPC_RANGER_GLASS),
     'npc-miller': buildPrimitiveParts(NPC_MILLER_BODY), 'npc-trader': buildPrimitiveParts(NPC_TRADER_BODY),
-    'zip-trolley': zipTrolley(), canoe: canoe(), 'zip-cable': zipCable(), 'cave-roof': caveRoof(heightAt), 'ghost-stag-tines': ghostStagTines(),
+    'zip-trolley': zipTrolley(), canoe: canoe(), 'zip-cable': zipCable(timber.landmarks.zip), 'cave-roof': caveRoof(heightAt, timber.cragAssembly.roof), 'ghost-stag-tines': ghostStagTines(),
   };
 }
 
 /** The pack: its bytes, its rows and each part's geometry index. */
-export function bakePineCodeParts(heightAt: (x: number, z: number) => number,files:ReadonlyMap<string,Uint8Array>=new Map()): { bin: Uint8Array; rows: PackedGeometryRows; parts: Record<string, number> } {
+export function bakePineCodeParts(heightAt: (x: number, z: number) => number, timber: Pick<TimberWorld, 'landmarks' | 'cragAssembly'>, files:ReadonlyMap<string,Uint8Array>=new Map()): { bin: Uint8Array; rows: PackedGeometryRows; parts: Record<string, number> } {
   const writer = new GeometryPackWriter('pine code parts'), parts: Record<string, number> = {};
-  for (const [name, geometry] of Object.entries(pineCodeParts(heightAt,files))) { parts[name] = writer.add(geometry); geometry.dispose(); }
+  for (const [name, geometry] of Object.entries(pineCodeParts(heightAt,timber,files))) { parts[name] = writer.add(geometry); geometry.dispose(); }
   return { bin: writer.bytes(), rows: writer.rows(), parts };
 }

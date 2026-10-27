@@ -7,7 +7,7 @@ import { CABIN_LIFE } from './cabinLook';
 import { CABIN_LIGHT } from './cabinAssembly';
 import { HEARTH_LOOKS } from './hearthLook';
 import { cabinAmbienceRows } from './ambience';
-import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
+import { timberWorld } from './timberWorldRows';
 import FOREST_LOOKS from '../data/forestLook.json' with { type: 'json' };
 import water from '../data/waterLook.json' with { type: 'json' };
 import { pineLookMaterials } from './lookMaterials';
@@ -16,14 +16,16 @@ import { perSources, type PineSources } from './pineSources';
 // GR8: called, not read from a scheduler job's output
 const looks = pineLookMaterials();
 
-export const LANDMARK_VIEW_BLOB: NamedBlobType = nameBlob('world/landmark-view.json', 'json', new TextEncoder().encode(JSON.stringify(timbers.landmarks)));
 /** The rows `forestPage` makes. */
 export interface ForestPage {
+  readonly LANDMARK_VIEW_BLOB: NamedBlobType;
   readonly FOREST_PAGE: ForestPageRowsType;
   readonly FOREST_PAGE_BLOB: NamedBlobType;
 }
 /** D65: the forest page rows (their cabin floors and fire pits over the program's sources), made once per sources. */
 export const forestPage: (sources: PineSources) => ForestPage = perSources((sources: PineSources): ForestPage => {
+  const timbers = timberWorld(sources);
+  const LANDMARK_VIEW_BLOB: NamedBlobType = nameBlob('world/landmark-view.json', 'json', new TextEncoder().encode(JSON.stringify(timbers.landmarks)));
   const FOREST_PAGE: ForestPageRowsType = v.parse(ForestPageSchema, {
     treeLooks: [{ look: FOREST_LOOKS.bark, band: 'trunk' }, { look: FOREST_LOOKS.needles, band: 'cards' }, { look: FOREST_LOOKS.twigs, band: 'twigs' }, { look: FOREST_LOOKS.far, band: 'far' }].map(row => ({ look: row.look, band: row.band, fade: 'fade', viewer: 'viewer' })),
     water: { object: 'pond', look: water.looks.pond, looks: Object.values(water.looks), ripples: 'ripples', skyline: 'skyline', centre: 'skyC', probe: 'waterSkyline' },
@@ -50,5 +52,5 @@ export const forestPage: (sources: PineSources) => ForestPage = perSources((sour
         .concat([{ object: `crags.${tier}`, tier }]))],
   });
   const FOREST_PAGE_BLOB: NamedBlobType = nameBlob('world/forest-page.json', 'json', new TextEncoder().encode(JSON.stringify(FOREST_PAGE)));
-  return { FOREST_PAGE, FOREST_PAGE_BLOB };
+  return { FOREST_PAGE, FOREST_PAGE_BLOB, LANDMARK_VIEW_BLOB };
 });

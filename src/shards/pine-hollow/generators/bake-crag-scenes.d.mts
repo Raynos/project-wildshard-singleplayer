@@ -1,5 +1,6 @@
 import type { BufferGeometry } from 'three';
 import type { PineSources } from './pineSources';
+import type { TimberWorld } from './timberWorldRows';
 
 interface CragDraw { id: string; library: string; model: string; material: string; castShadow: boolean; receiveShadow: boolean }
 /** One crag module's Explorer model row. */
@@ -10,7 +11,7 @@ export interface CragBatchRow { id: string; material: string; name: string; geom
 export interface CragCaveRows { meta: { version: number; holes: { lx: number; lz: number; hw: number; hd: number; y0: number; y1: number; }[]; cuts: { lx: number; lz: number; hw: number; hd: number; below: number; }[]; spots: { lx: number; lz: number; r: number; }[]; inside: number[][]; shaft: { top: number[]; foot: number[]; r0: number; r1: number; }; drips: number[][]; floor: number[][]; tris: { cave: number; far: number; col: number; }; }; shell: { kind: string; x: number; y: number; z: number; surface: string; vertices: number[]; indices: number[]; } }
 
 export function bakeCragSceneSources(sources: PineSources): Promise<Map<string, BufferGeometry>>;
-export function cragWorldRows(shapes: ReadonlyMap<string, BufferGeometry>): unknown;
+export function cragWorldRows(shapes: ReadonlyMap<string, BufferGeometry>, crags: TimberWorld['cragAssembly']): unknown;
 export function caveShellRows(shapes: ReadonlyMap<string, BufferGeometry>): unknown;
 /** The crag scenes' rows and each shape's GLB by product name, built once per sources. */
 export function pineCragScenes(sources: PineSources): Promise<{

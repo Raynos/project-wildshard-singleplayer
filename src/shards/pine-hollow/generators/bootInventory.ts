@@ -4,14 +4,15 @@ import type { ChunkFiles } from '@wildshard/engine/boot/bytes';
 import { GPU_FILES } from '../ktx2.generated';
 import type { PageBootRows, PageKtx2Rows } from '@wildshard/game/shard/pageBoot';
 import policy from '../data/pagePolicy.json' with { type: 'json' };
-import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import { PINE_BOOT_FILES, PINE_BOOT_SOURCES } from './bootFiles';
 
 /** Resolve both existing page modes offline, preserving ordered URLs and duplicates. */
 export function pineBootInventory(inventory: Readonly<Record<string, number | true>>, astc: Readonly<Record<string, string>>): {
   shard: BootModeRows<ChunkFiles>; grid: BootModeRows<ChunkFiles>; bakedUnreadPrefixes: readonly string[];
 } {
-  const inputs = { inventory, aliases: { props: authored.propMaterials } };
+  // GR8 G37: the prop and cabin material payloads are product files now (their aliases name them), so the boot pack keeps
+  // the original prop payloads, as it already did for the heroes
+  const inputs = { inventory, aliases: { props: {} } };
   const resolve = (table: typeof GPU_FILES): BootModeRows<ChunkFiles> => ({ modes: {
     phone: { img: resolveBootSources(PINE_BOOT_FILES, PINE_BOOT_SOURCES, 'phone', 'img', table, inputs),
       ktx2: resolveBootSources(PINE_BOOT_FILES, PINE_BOOT_SOURCES, 'phone', 'ktx2', table, inputs) },

@@ -2,13 +2,12 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import * as LAYOUT from './layout.ts';
+import { heroModelSource } from './heroMaterialFiles.mjs';
 
-const root=resolve(import.meta.dirname,'../../../..');
-async function hero(id,phone=false){
-  const raw=readFileSync(resolve(root,`public/assets/models/pine-hollow-hero/${id}/${id}${phone?'.phone':''}.glb`)),length=raw.readUInt32LE(12),doc=JSON.parse(raw.subarray(20,20+length).toString());
+// GR8 G37: the hero GLBs come from the program's sources
+async function hero(sources,id,phone=false){
+  const raw=Buffer.from(sources.bytes(heroModelSource(id,phone))),length=raw.readUInt32LE(12),doc=JSON.parse(raw.subarray(20,20+length).toString());
   for(const key of ['images','textures','samplers'])delete doc[key];
   for(const material of doc.materials??[]){for(const key of ['normalTexture','occlusionTexture','emissiveTexture'])delete material[key];if(material.pbrMetallicRoughness){delete material.pbrMetallicRoughness.baseColorTexture;delete material.pbrMetallicRoughness.metallicRoughnessTexture;}}
   const json=Buffer.from(JSON.stringify(doc)),text=Buffer.concat([json,Buffer.alloc((-json.length)&3,0x20)]),header=Buffer.from(raw.subarray(0,20)),rest=raw.subarray(20+length);header.writeUInt32LE(20+text.length+rest.length,8);header.writeUInt32LE(text.length,12);
@@ -26,8 +25,8 @@ function arch(g,m,floorY){const b=g.boundingBox,w=b.max.x-b.min.x,h=b.max.y-b.mi
   return {vertices:pos.count,triangles,excluded:[...mask].map(n=>n.toString(16)).join(''),dark:{w:w*.5,h:h*.72,x:0,y:h*.36,z:d*.05},boxes:[{x:-w*.36,y:h*.5,z:0,hx:w*.14,hy:h*.5,hz:d*.45},{x:w*.36,y:h*.5,z:0,hx:w*.14,hy:h*.5,hz:d*.45},{x:0,y:h*.86,z:0,hx:w*.5,hy:h*.14,hz:d*.45}],wall:{x:0,y:h*.4,z:-d*.1,hx:w*.24,hy:h*.4,hz:.3}};
 }
 /** No runtime world, controller or renderer service is installed by this producer. */
-export async function pineLandmarkFacts(sites,placements,lookout,landing,bridge){
-  const [stone,stonePhone,fine,finePhone,coarse]=await Promise.all([hero('waystone'),hero('waystone',true),hero('cave-arch'),hero('cave-arch',true),hero('cave-arch-lod1')]);same(stone,stonePhone);same(fine,finePhone);
+export async function pineLandmarkFacts(sources,sites,placements,lookout,landing,bridge){
+  const [stone,stonePhone,fine,finePhone,coarse]=await Promise.all([hero(sources,'waystone'),hero(sources,'waystone',true),hero(sources,'cave-arch'),hero(sources,'cave-arch',true),hero(sources,'cave-arch-lod1')]);same(stone,stonePhone);same(fine,finePhone);
   const a=fine.boundingBox.getCenter(new THREE.Vector3()),b=coarse.boundingBox.getCenter(new THREE.Vector3());coarse.translate(a.x-b.x,0,a.z-b.z);coarse.boundingBox.translate(new THREE.Vector3(a.x-b.x,0,a.z-b.z));
   const p=sites.arch,m=new THREE.Matrix4().compose(new THREE.Vector3(p.x,p.y,p.z),new THREE.Quaternion().setFromEuler(new THREE.Euler(p.pitch,p.yaw,p.roll,'YXZ')),new THREE.Vector3(p.scale,p.scale,p.scale));
   const world=(point,frame)=>new THREE.Vector3(...point).applyMatrix4(new THREE.Matrix4().fromArray(frame.matrix)).toArray();

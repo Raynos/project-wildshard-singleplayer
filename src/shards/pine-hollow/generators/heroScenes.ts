@@ -1,7 +1,7 @@
 /** Hero rest transforms, LOD pivots, hull samples and arch cuts belong to the bake. */
 import { BufferAttribute, BufferGeometry, Material, Mesh, PlaneGeometry, Vector3, type Object3D } from 'three';
 import type { SourceModel } from '@wildshard/sdk/bake/skinned';
-import authored from '../data/timberWorld.generated.json' with { type: 'json' };
+import type { TimberWorld } from './timberWorldRows';
 
 interface HeroMesh extends Object3D {
   readonly geometry: BufferGeometry;
@@ -60,8 +60,8 @@ export function disposeHeroSource(source: SourceModel): void {
 }
 
 /** The shipped exclusion mask becomes final index bytes, for both admitted LODs. */
-export function openedArch(geometry: BufferGeometry, level: 'fine' | 'coarse'): BufferGeometry {
-  const row = authored.landmarks.archShape[level], result = geometry.clone(), position = result.getAttribute('position'), index = result.getIndex();
+export function openedArch(geometry: BufferGeometry, level: 'fine' | 'coarse', arch: TimberWorld['landmarks']['archShape']): BufferGeometry {
+  const row = arch[level], result = geometry.clone(), position = result.getAttribute('position'), index = result.getIndex();
   const triangles = (index?.count ?? position.count) / 3, keep: number[] = [];
   if (position.count !== row.vertices || triangles !== row.triangles || triangles > 65_536
     || row.excluded.length !== Math.ceil(triangles / 4) || !/^[0-9a-f]+$/u.test(row.excluded)) throw new Error('Arch passage facts differ from source geometry');
@@ -72,7 +72,7 @@ export function openedArch(geometry: BufferGeometry, level: 'fine' | 'coarse'): 
 }
 
 /** Original coarse-bounds plane for the closed variant, baked with its translation. */
-export function closedArchPlane(): BufferGeometry {
-  const { w, h, x, y, z } = authored.landmarks.archShape.coarse.dark;
+export function closedArchPlane(arch: TimberWorld['landmarks']['archShape']): BufferGeometry {
+  const { w, h, x, y, z } = arch.coarse.dark;
   return new PlaneGeometry(w, h).translate(x, y, z);
 }

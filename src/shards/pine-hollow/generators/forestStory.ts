@@ -8,7 +8,7 @@ import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs
 import { yawWorld } from '@wildshard/engine/world/yawFrame';
 import loadout from '../data/loadout.json' with { type: 'json' };
 import policy from '../data/forestStory.json' with { type: 'json' };
-import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
+import { timberWorld } from './timberWorldRows';
 import { pineQuestSites } from './bake-timber-scenes.mjs';
 import { perSources, type PineSources } from './pineSources';
 import { pineQuestNpcs } from './questNpcs';
@@ -24,30 +24,6 @@ import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 const roster = pineQuestNpcs();
 
 const triple = (input: unknown): [number, number, number] => v.parse(v.tuple([v.number(), v.number(), v.number()]), input);
-const landmarks = timbers.landmarks, board = landmarks.contractBoardSite;
-const mill = timbers.cabins.buildings.find(row => row.id === policy.door.building);
-if (mill === undefined) throw new Error('Missing declared quest building');
-const placeNames = new Set(layout.PINE_HOLLOW_POIS.map(row => row.name.toUpperCase()));
-const zip = { top: triple(landmarks.zip.top), bottom: triple(landmarks.zip.bottom), launch: triple(landmarks.zip.launch), landing: triple(landmarks.zip.landing) };
-const tower = timbers.placements.lookout, ranger = roster.ranger;
-const jumps = Object.fromEntries(Object.entries(BEATS).map(([id, beat]) => {
-  const deck = yawWorld({ x: layout.LOOKOUT.x, z: layout.LOOKOUT.z, yaw: tower.yaw }, -1.2, -2.9);
-  const at = beat.at === 'ranger' ? { x: ranger.at.x + 3.5 * ranger.cos, z: ranger.at.z - 3.5 * ranger.sin }
-    : beat.at === 'deck' ? { x: deck[0], z: deck[1] } : beat.at === 'launch' ? { x: zip.launch[0], z: zip.launch[2] }
-      : beat.at === 'lodge' ? { x: board.x - Math.sin(board.yaw) * 3, z: board.z - Math.cos(board.yaw) * 3 } : { x: beat.x, z: beat.z };
-  const look = beat.at === 'ranger' ? ranger.at : beat.at === 'launch' ? { x: zip.bottom[0], z: zip.bottom[2] } : beat.at === 'lodge' ? board : beat.look;
-  return [id, { ...at, look, flags: beatFlags(id as Beat),
-    ...((beat.at === 'deck' || beat.at === 'launch') ? { height: { x: layout.LOOKOUT.x, z: layout.LOOKOUT.z, up: 11.05 } } : {}),
-    ...(beat.night ? { phase: sky.phases.night } : beat.day ? { phase: sky.phases.day } : {}) }];
-}));
-const finishes: Readonly<Record<string, { readonly name: string; readonly weapon: string; readonly blurb: string }>> = WEAPON_FINISHES;
-const contracts = contractCatalogue();
-const finishToasts = Object.fromEntries([...new Set([...contracts.rows.flatMap(row => row.reward.skin === undefined ? [] : [row.reward.skin]), ...contracts.milestones.map(row => row.skin)])].map(id => {
-  const row = finishes[id]; if (row === undefined) throw new Error('Missing board finish');
-  return [id, `${row.name} ${row.weapon} finish — ${row.blurb}`];
-}));
-const boardRows = { ...policy.board, at: board, finishes: finishToasts, ammunition: { loadout: loadout.persistence.state, kind: 'iron' } };
-parseContractBoardPage({ contracts, panel: PINE_PANELS.board, store: policy.store, ...boardRows });
 /** The forest story rows. */
 export interface ForestStory { talks: QuestPageTalksRowsType; content: string; board: { at: { x: number; z: number; yaw: number; }; finishes: Record<string, string>; ammunition: { loadout: string; kind: string; }; height: number; radius: number; notices: { claimed: string; filled: string; progress: string; }; label: string; filled: string; }; door: { id: string; flag: string; }; signals: { id: string; x: number; z: number; height: number; }[]; cable: { id: string; scene: string; trolley: string; prompt: [number, number, number]; radius: number; label: string; top: [number, number, number]; launch: [number, number, number]; landing: [number, number, number]; arrival: string; audio: string; shot: string; }; mover: { id: string; mesh: string; binding: { systemId: string; bindings: { id: string; target: string; group: string; visibility: string; order: string; }[]; }; rest: string; }; secret: { mid: [number, number, number]; mouths: [number, number, number][]; scene: string; projection: string; x: number; z: number; yaw: number; floorY: number; floor: { x: number; z: number; hw: number; hd: number; y: number; rot: number; }; }; 
 // the views' rows (game/quest/questPageViews): the journal-complete achievement; the dam sluice's flag lowers the pool
@@ -60,6 +36,31 @@ export interface ForestStoryRows { readonly FOREST_STORY: ForestStory; readonly 
 /** D65: the forest story over the program's sources (the hollow log's quest site), made once per sources. */
 export const forestStory: (sources: PineSources) => ForestStoryRows = perSources((sources: PineSources): ForestStoryRows => {
   const sites = pineQuestSites(sources);
+  const timbers = timberWorld(sources);
+  const landmarks = timbers.landmarks, board = landmarks.contractBoardSite;
+  const mill = timbers.cabins.buildings.find(row => row.id === policy.door.building);
+  if (mill === undefined) throw new Error('Missing declared quest building');
+  const placeNames = new Set(layout.PINE_HOLLOW_POIS.map(row => row.name.toUpperCase()));
+  const zip = { top: triple(landmarks.zip.top), bottom: triple(landmarks.zip.bottom), launch: triple(landmarks.zip.launch), landing: triple(landmarks.zip.landing) };
+  const tower = timbers.placements.lookout, ranger = roster.ranger;
+  const jumps = Object.fromEntries(Object.entries(BEATS).map(([id, beat]) => {
+    const deck = yawWorld({ x: layout.LOOKOUT.x, z: layout.LOOKOUT.z, yaw: tower.yaw }, -1.2, -2.9);
+    const at = beat.at === 'ranger' ? { x: ranger.at.x + 3.5 * ranger.cos, z: ranger.at.z - 3.5 * ranger.sin }
+      : beat.at === 'deck' ? { x: deck[0], z: deck[1] } : beat.at === 'launch' ? { x: zip.launch[0], z: zip.launch[2] }
+        : beat.at === 'lodge' ? { x: board.x - Math.sin(board.yaw) * 3, z: board.z - Math.cos(board.yaw) * 3 } : { x: beat.x, z: beat.z };
+    const look = beat.at === 'ranger' ? ranger.at : beat.at === 'launch' ? { x: zip.bottom[0], z: zip.bottom[2] } : beat.at === 'lodge' ? board : beat.look;
+    return [id, { ...at, look, flags: beatFlags(id as Beat),
+      ...((beat.at === 'deck' || beat.at === 'launch') ? { height: { x: layout.LOOKOUT.x, z: layout.LOOKOUT.z, up: 11.05 } } : {}),
+      ...(beat.night ? { phase: sky.phases.night } : beat.day ? { phase: sky.phases.day } : {}) }];
+  }));
+  const finishes: Readonly<Record<string, { readonly name: string; readonly weapon: string; readonly blurb: string }>> = WEAPON_FINISHES;
+  const contracts = contractCatalogue();
+  const finishToasts = Object.fromEntries([...new Set([...contracts.rows.flatMap(row => row.reward.skin === undefined ? [] : [row.reward.skin]), ...contracts.milestones.map(row => row.skin)])].map(id => {
+    const row = finishes[id]; if (row === undefined) throw new Error('Missing board finish');
+    return [id, `${row.name} ${row.weapon} finish — ${row.blurb}`];
+  }));
+  const boardRows = { ...policy.board, at: board, finishes: finishToasts, ammunition: { loadout: loadout.persistence.state, kind: 'iron' } };
+  parseContractBoardPage({ contracts, panel: PINE_PANELS.board, store: policy.store, ...boardRows });
   const FOREST_STORY: ForestStory = {
     ...policy, talks: v.parse(QuestPageTalksSchema, policy.talks), content: 'custom/questRuntime',
     board: boardRows,

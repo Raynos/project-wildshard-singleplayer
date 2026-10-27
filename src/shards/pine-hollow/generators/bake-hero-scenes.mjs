@@ -7,7 +7,8 @@ import {readSourceModel} from '@wildshard/sdk/bake/skinned';
 import {staticGlb} from '@wildshard/sdk/bake/glb';
 import {heroRestShape,alignHeroLod,heroHullPoints,disposeHeroSource,openedArch,closedArchPlane} from './heroScenes.ts';
 import {heroModelSource} from './heroMaterialFiles.mjs';
-import {TIMBER_SOURCE,perSources,sourceJson} from './pineSources.ts';
+import {perSources} from './pineSources.ts';
+import {timberWorld} from './timberWorldRows.ts';
 import rows from '../data/heroRows.json' with {type:'json'};
 
 async function read(sources,id,phone=false){
@@ -20,7 +21,7 @@ function same(a,b,id){
  const p=a.getIndex(),q=b.getIndex();if(p?.count!==q?.count)throw new Error(`Hero tier index count differs: ${id}`);for(let i=0;i<(p?.count??0);i++)if(p.getX(i)!==q.getX(i))throw new Error(`Hero tier index differs: ${id}`);
 }
 async function bakeHeroScenes(sources){
- const authored=sourceJson(sources,TIMBER_SOURCE),geometry=new Map(),facts=[],glbs=[],material=new MeshStandardMaterial();
+ const authored=timberWorld(sources),geometry=new Map(),facts=[],glbs=[],material=new MeshStandardMaterial();
  const put=(id,shape)=>{geometry.set(id,shape);return id;};
  try{
  for(const id of rows.sources){
@@ -34,8 +35,8 @@ async function bakeHeroScenes(sources){
   if(id==='cave-arch'){
    const box=row=>({kind:'box',x:row.x,y:row.y,z:row.z,hx:row.hx,hy:row.hy,hz:row.hz,surface:'rock'}),arch=authored.landmarks.archShape.coarse;
    shape.colliders=arch.boxes.map(box);
-   shape.open={near:put('cave-arch-open-near',openedArch(fine,'fine')),far:put('cave-arch-open-far',openedArch(coarse,'coarse'))};
-   shape.closed={plane:put('cave-arch-dark',closedArchPlane()),colliders:[...shape.colliders,box(arch.wall)],material:{kind:'standard',properties:{color:0x040404,roughness:1,metalness:0}}};
+   shape.open={near:put('cave-arch-open-near',openedArch(fine,'fine',authored.landmarks.archShape)),far:put('cave-arch-open-far',openedArch(coarse,'coarse',authored.landmarks.archShape))};
+   shape.closed={plane:put('cave-arch-dark',closedArchPlane(authored.landmarks.archShape)),colliders:[...shape.colliders,box(arch.wall)],material:{kind:'standard',properties:{color:0x040404,roughness:1,metalness:0}}};
   }
   facts.push(shape);
  }

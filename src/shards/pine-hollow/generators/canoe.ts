@@ -1,19 +1,18 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { parseMovers, type MoverData } from '@wildshard/format/movers';
 import { lowerMoverMotion } from '@wildshard/format/moverMotion';
 import * as LAYOUT from './layout';
-import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
-import bindings from '../data/terrainBindings.json' with { type: 'json' };
+import { TERRAIN_SOURCE, type PineSources } from './pineSources';
+import { timberWorld, type TimberWorld } from './timberWorldRows';
 
 /** Resolve the old terrain/deck sampling offline; runtime receives one ordinary winch path. */
-export function canoeMover(heightAt: (x: number, z: number) => number): MoverData[number] {
-  const site = timbers.landmarks.canoe[0]; if (site === undefined) throw new Error('Missing authored canoe site');
+export function canoeMover(heightAt: (x: number, z: number) => number, landmarks: Pick<TimberWorld['landmarks'], 'canoe' | 'timberFloors'>): MoverData[number] {
+  const site = landmarks.canoe[0]; if (site === undefined) throw new Error('Missing authored canoe site');
   const from: [number, number, number] = [site.x - 1.2, Math.max(heightAt(site.x - 1.2, site.z), LAYOUT.POND.level), site.z];
   const to: [number, number, number] = [LAYOUT.ISLET.x + LAYOUT.ISLET.r - 1.6, Math.max(heightAt(LAYOUT.ISLET.x + LAYOUT.ISLET.r - 1.6, LAYOUT.ISLET.z + 0.4), LAYOUT.POND.level), LAYOUT.ISLET.z + 0.4];
   const floor = (x: number, z: number): number => {
     let y = heightAt(x, z);
-    for (const rect of Object.values(timbers.landmarks.timberFloors).flat()) {
+    for (const rect of Object.values(landmarks.timberFloors).flat()) {
       const c = Math.cos(rect.rot), s = Math.sin(rect.rot), dx = x - rect.x, dz = z - rect.z;
       const lx = dx * c - dz * s, lz = dx * s + dz * c;
       if (Math.abs(lx) <= rect.hw && Math.abs(lz) <= rect.hd) y = Math.max(y, rect.y
@@ -36,17 +35,8 @@ export function canoeMover(heightAt: (x: number, z: number) => number): MoverDat
       arrival: { flag: 'secret:islet', hint: 'The islet. Nobody has stood here in a long time' } } }]);
   const row = rows[0]; if (row === undefined) throw new Error('Missing admitted canoe path'); return row;
 }
-/** The declared retained terrain's URL (its public path under `/assets/`). */
-const TERRAIN_URL = `/${bindings.terrain.replace(/^public\//u, '')}`;
-/** The declaration's movers, sampled from the retained terrain read through `ctx.cached` (GR8: the program calls
- *  this; no scheduler job writes a movers inventory). */
-export async function canoeMovers(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<MoverData> {
-  const files = await ctx.cached({ id: 'canoe-terrain', inputs: [TERRAIN_URL] }, inputs => {
-    const bytes = inputs.get(TERRAIN_URL);
-    if (bytes === undefined || bytes.byteLength === 0) throw new Error(`Missing declared Pine terrain ${TERRAIN_URL}`);
-    return new Map([['terrain.bin', bytes]]);
-  });
-  const terrain = files.get('terrain.bin');
-  if (terrain === undefined || files.size !== 1) throw new Error('Missing cached Pine terrain');
-  return [canoeMover(readNativeTerrain(terrain).heightAt)];
+/** The declaration's movers, sampled from the retained terrain and the timber world's decks in the program's sources (GR8:
+ *  the program calls this; no scheduler job writes a movers inventory). */
+export function canoeMovers(sources: PineSources): MoverData {
+  return [canoeMover(readNativeTerrain(sources.bytes(TERRAIN_SOURCE)).heightAt, timberWorld(sources).landmarks)];
 }

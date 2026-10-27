@@ -4,7 +4,7 @@ import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { cragNodeGeometry, cragFixedRows } from './cragWorldScenes.ts';
 import { CragSkin } from './cragCodec.ts';
-import authored from '../data/timberWorld.generated.json' with { type: 'json' };
+import { timberWorld } from './timberWorldRows.ts';
 import { pineCrags } from './bake-pine-crags.mjs';
 import * as layout from './layout.ts';
 import { cragSource, perSources, sourceJson } from './pineSources.ts';
@@ -31,10 +31,10 @@ export async function bakeCragSceneSources(sources) {
 }
 
 /** All declarations remain data; only the chosen profile's lazy batch allocates GPU buffers. */
-export function cragWorldRows(shapes) {
+export function cragWorldRows(shapes, crags) {
   const draw = id => ({ id, library: 'crags', model: id, material: 'crag', castShadow: true, receiveShadow: true });
-  const moduleModels = authored.cragAssembly.tiers.phone.kinds.map((kind, index) => {
-    const desktop = authored.cragAssembly.tiers.desktop.kinds[index];
+  const moduleModels = crags.tiers.phone.kinds.map((kind, index) => {
+    const desktop = crags.tiers.desktop.kinds[index];
     const choices = kind.model.variants.map(variant => {
       const id = variant.id, geometry = shapes.get(id), hull = kind.model.hulls?.[id];
       if (geometry === undefined) throw new Error(`Crag scene omitted source ${id}`);
@@ -48,11 +48,11 @@ export function cragWorldRows(shapes) {
   });
   const batches = [], placements = [];
   for (const tier of ['phone', 'desktop']) {
-    const fixed = cragFixedRows(tier), batch = `crags.${tier}`;
+    const fixed = cragFixedRows(tier, crags), batch = `crags.${tier}`;
     batches.push({ id: batch, material: 'crag', name: 'pine-crags', ...fixed,
       sortObjects: false, perObjectFrustumCulled: true, castShadow: true, receiveShadow: true,
       cull: { frustum: false, radiusBias: 0.5, step: 1 } });
-    for (const kind of authored.cragAssembly.tiers[tier].kinds) placements.push({ id: `${batch}.${kind.model.id.split('/').at(-1)}`, model: kind.model.id,
+    for (const kind of crags.tiers[tier].kinds) placements.push({ id: `${batch}.${kind.model.id.split('/').at(-1)}`, model: kind.model.id,
       batch, draw: 'batched', poses: kind.placements.map(pose => ({ x: pose.x, y: pose.y, z: pose.z, variant: pose.variant,
         yxz: { yaw: pose.yaw, scale: pose.scale, pitch: pose.pitch ?? 0, roll: pose.roll ?? 0 } })),
       cull: { frustum: false, radiusBias: 0.5, step: 1, bounds: 'sphere', far: kind.far },
@@ -84,7 +84,7 @@ async function bakeCragScenes(sources) {
       models.push({ id, file: name, attributes: {} });
     }
     const cave = { meta: sourceJson(sources, cragSource('cave.json')), shell: caveShellRows(shapes) };
-    return { rows: { models, ...cragWorldRows(shapes), cave }, glbs };
+    return { rows: { models, ...cragWorldRows(shapes, timberWorld(sources).cragAssembly), cave }, glbs };
   } finally { material.dispose(); for (const geometry of shapes.values()) geometry.dispose(); }
 }
 

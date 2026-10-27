@@ -1,5 +1,5 @@
 import { BufferAttribute, BufferGeometry, Matrix4, Mesh, type Object3D } from 'three';
-import authored from '../data/timberWorld.generated.json' with { type: 'json' };
+import type { TimberWorld } from './timberWorldRows';
 import * as LAYOUT from './layout';
 
 function triangleGeometry(value: unknown): value is BufferGeometry { return value instanceof BufferGeometry; }
@@ -37,8 +37,8 @@ interface FixedRows {
   capacity: { instances: number; vertices: number; indices: number };
 }
 /** Keep final atlas names and fixed-instance order separate from the native reservations. */
-export function cragFixedRows(tier: 'phone' | 'desktop'): FixedRows {
-  const assembly = authored.cragAssembly.tiers[tier];
+export function cragFixedRows(tier: 'phone' | 'desktop', crags: TimberWorld['cragAssembly']): FixedRows {
+  const assembly = crags.tiers[tier];
   const geometry = assembly.slots.map(slot => ({ library: 'crags', model: slot.skin >= 0
     ? `${tier}-skin-${String(slot.skin >> 1)}-${slot.skin % 2 === 1 ? 'far' : 'near'}` : slot.cave }));
   const frame = new Matrix4().makeRotationY(LAYOUT.BEAR_CAVE.rot).setPosition(LAYOUT.BEAR_CAVE.x, 0, LAYOUT.BEAR_CAVE.z);

@@ -8,7 +8,7 @@ import { parseWorldSceneModels , type WorldSceneModels as WorldSceneModelsType }
 import { parseWorldScenes , type ParsedWorldScenes as ParsedWorldScenesType } from '@wildshard/format/worldScenes';
 import { parseWorldScenePlacement , type WorldScenePlacementRow as WorldScenePlacementRowType } from '@wildshard/format/worldScenePlacement';
 import heroRows from '../data/heroRows.json' with { type: 'json' };
-import authored from '../data/timberWorld.generated.json' with { type: 'json' };
+import { timberWorld } from './timberWorldRows';
 
 import { cragScene } from './cragSceneContribution';
 
@@ -37,6 +37,7 @@ export const sceneModelRows: (sources: PineSources) => Promise<SceneModelRows> =
   const scatter = await pineProps(sources), props = await pinePropScenes(sources);
   // GR8: the hero shapes are the program's (bake-hero-scenes.mjs), their material payloads product files (heroMaterialFiles.mjs)
   const heroes = await pineHeroScenes(sources), materialAliases = heroMaterialAliases(sources);
+  const authored = timberWorld(sources);
   const materials: unknown[] = [CRAG_MATERIAL, ...TIMBER_SURFACES, ...CABIN_MATERIALS];
   const models: unknown[] = [...CRAG_MODEL_ROWS, ...TIMBER_MODEL_ROWS, ...CABIN_MODEL_ROWS];
   const placements: unknown[] = [...CRAG_PLACEMENT_ROWS, ...TIMBER_PLACEMENTS, ...CABIN_PLACEMENTS];

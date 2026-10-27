@@ -6,6 +6,8 @@ import { pineGroundTiles } from './groundTileInputs';
 import { canoeMovers } from './canoe';
 import { prepareOutput } from './sourceOutput';
 import { PINE_MODES } from './zipline';
+import { readPineSources } from './programSources';
+import { timberWorld } from './timberWorldRows';
 import { pineGeographyRows } from './geographyRows';
 import { pineBootProgram } from './bootProgram';
 
@@ -15,12 +17,15 @@ import { pineBootProgram } from './bootProgram';
 export async function generate(ctx: ProjectGenerationContext): Promise<GeneratedProject> {
   const ground = await pineGroundTiles(ctx);
   for (const bytes of ground.assets) ctx.asset(bytes);
-  const output = await prepareOutput(ctx), product = pineProduct(await pineJournal(ctx), ground.rows);
+  // GR8 G37: the timber world is baked in the program (readPineSources); its hash-named assets are the declaration's files
+  const sources = await readPineSources(ctx);
+  for (const key of sources.list('assets/')) ctx.asset(sources.bytes(key));
+  const output = await prepareOutput(ctx), product = pineProduct(await pineJournal(ctx), ground.rows, timberWorld(sources));
   // D71: the SDK charges each named critical file (the tree rest pool, the guests) to the sim budget as it admits the
   // output; the server holds the same bytes, so the declared server memory covers them too
   const critical = output.namedFiles.reduce((n, file) => file.critical ? n + file.decoded + file.gpu : n, 0);
   const shard = parseShardfile({ ...product, serverBudget: { ...product.serverBudget, memory: product.serverBudget.memory + critical },
-    movers: await canoeMovers(ctx), modes: PINE_MODES });
+    movers: canoeMovers(sources), modes: PINE_MODES });
   // G33b: the declared ground, forest-query and pond-clip rows the manifest binds as program discovery; G35: the
   // page-mode boot rows, GPU tables and capture poses
   const geography = pineGeographyRows();

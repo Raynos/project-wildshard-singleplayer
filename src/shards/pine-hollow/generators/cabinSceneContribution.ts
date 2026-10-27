@@ -8,7 +8,7 @@ import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement'
 import { cabinSceneBake } from './bake-cabin-scenes.mjs';
 import { pineCabins } from './bake-pine-cabins.mjs';
 import logKit from '../data/logKit.json' with { type: 'json' };
-import authored from '../data/timberWorld.generated.json' with { type: 'json' };
+import { timberWorld } from './timberWorldRows';
 import { HEARTH_LOOKS } from './hearthLook';
 import { cabinLiving, cabinSites } from './cabinLivingContribution';
 import { perSources, type PineSources } from './pineSources';
@@ -68,6 +68,7 @@ export interface CabinScene {
 export const cabinScene: (sources: PineSources) => Promise<CabinScene> = perSources(async (sources: PineSources): Promise<CabinScene> => {
   const bake = await cabinSceneBake(sources), metadata = v.parse(CabinSceneRowsSchema, bake.rows), living = await cabinLiving(sources);
   const cabins = pineCabins(sources).rows;
+  const authored = timberWorld(sources);
   const CABIN_PLACEMENTS: ReturnType<typeof parseWorldScenePlacement>[] = [];
   const CABIN_JSON_BLOBS: ReturnType<typeof nameBlob>[] = [...living.CABIN_LIVING_BLOBS, nameBlob('world/building-sites.json', 'json', new TextEncoder().encode(JSON.stringify(cabinSites(sources))))];
   const encode = (file: string, row: unknown) => nameBlob(file, 'json', new TextEncoder().encode(JSON.stringify(row)));

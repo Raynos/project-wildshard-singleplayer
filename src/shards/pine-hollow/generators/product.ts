@@ -12,7 +12,7 @@ import { PINE_STATE } from './state';
 import { PINE_EDGE_HEIGHTS } from './edges';
 import PINE_RUNTIME_COST from '../data/runtimeCost.json' with { type: 'json' };
 import { pineLookMaterials } from './lookMaterials';
-import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
+import type { TimberWorld } from './timberWorldRows';
 import { withPineGround, type PineGroundRows } from './groundTiles';
 import { pineQuestNpcs } from './questNpcs';
 import type { PineJournal } from './journal';
@@ -20,9 +20,6 @@ import { PINE_QUEST_HOST } from './questHost';
 import { returnGuest } from './returnPrograms';
 import { CONTRACT_PROGRAM_SCRIPT } from './contractProgram';
 
-/** The timber world rows the output reads too (its prop shapes, cabin seeds and pool ground). */
-export const TIMBER_ROWS: { propShapes: typeof timbers.propShapes; cabinSeeds: typeof timbers.cabins.seeds; poolGround: typeof timbers.poolGround } =
-  { propShapes: timbers.propShapes, cabinSeeds: timbers.cabins.seeds, poolGround: timbers.poolGround };
 
 // GR8: called, not read from a scheduler job's output
 const people = pineQuestNpcs();
@@ -48,13 +45,14 @@ const looks = pineLookMaterials();
 // The grid's terrain.bin reader paints no palette for Pine, so the colours stay its neutral grey.
 // tile streaming P1: the ground's 80 splat tiles, the timber on its 12 L0 tiles after it
 const base = emptyShardfile({ slug: 'pine-hollow', name: 'Pine Hollow', author: 'Wildshard', revision: 1, seed: identity.seed });
-const criticalFiles = timbers.shardfile.files.filter(file => timbers.shardfile.critical.includes(file.hash));
 // The original seven one-page guests plus the admitted shelter and contract guests (G20a), with live and rewind copies.
 const scriptMemory = 14 * 65536 + (returnGuest('shelter').row.pages + CONTRACT_PROGRAM_SCRIPT.pages) * 65536 * 2;
 const row = (heights: readonly number[]): { heights: number[]; colours: [number, number, number][]; roadHeight: 0 } =>
   ({ heights: [...heights], colours: heights.map((): [number, number, number] => [0.25, 0.25, 0.25]), roadHeight: 0 });
-/** Pine's declaration, admitted with the journal its program reads (GR8: `generate.ts`; no scheduler job writes it). */
-export function pineProduct(journal: PineJournal, ground: PineGroundRows): Shardfile {
+/** Pine's declaration, admitted with the journal and the timber world its program reads (GR8: `generate.ts`; no scheduler
+ *  job writes it). */
+export function pineProduct(journal: PineJournal, ground: PineGroundRows, timbers: Pick<TimberWorld, 'props' | 'shardfile'>): Shardfile {
+  const criticalFiles = timbers.shardfile.files.filter(file => timbers.shardfile.critical.includes(file.hash));
   const world = withPineGround(timbers.props, timbers.shardfile, ground);
   const libraryFiles = [...world.shardfile.files.filter(file => world.shardfile.library.includes(file.hash)), ...journal.files];
   return parseShardfile({

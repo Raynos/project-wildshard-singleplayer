@@ -10,7 +10,7 @@ import { CABIN_MATERIAL_IDS, cabinMaterialFolders } from './cabinPropMaterials.m
 /** GR8 (D65): the committed files Pine's in-memory producers read (the baked terrain, the tree set, the crag kit, the
  *  prop scans, the native code parts, the sky keys, the authored trunk rows and the timber world with its GLBs), by
  *  their input key: a public URL (`/assets/…`) or a project-relative path (`data/…`, `assets/…`). The program reads
- *  them through `ctx.cached` (`readPineSources`), so nothing in the config closure touches the file system; Node
+ *  them through `ctx.cached` (programSources.ts `readPineSources`), so nothing in the config closure touches the file system; Node
  *  scripts read them from disk (`pineSourcesFrom`). */
 export interface PineSources {
   /** One declared input's bytes (a fresh copy, as a file read gives); an undeclared key refuses. */
@@ -25,7 +25,7 @@ export interface PineSources {
 export const TERRAIN_SOURCE = `/${bindings.terrain.replace(/^public\//u, '')}`;
 /** The authored trunk rows (`shelterTrees`). */
 export const PHYSICS_SOURCE = 'data/physicsRows.json';
-/** The timber world's rows; its GLB files are `assets/<hash>`. */
+/** The timber world's rows (baked by the program, bake-timber-world.mjs); its hash-named assets are `assets/<hash>`. */
 export const TIMBER_SOURCE = 'data/timberWorld.generated.json';
 /** One of the crag kit's files by name (data/sourceInputs.json). */
 export function cragSource(file: string): string {
@@ -43,24 +43,12 @@ export function propScanSource(id: string): string {
 export const skyKeySource = (template: string, id: string): string => template.replaceAll('{id}', id);
 
 const FIXED: readonly string[] = [
-  TERRAIN_SOURCE, PHYSICS_SOURCE, TIMBER_SOURCE, ...HERO_TABLES, declared.trees.glb, declared.trees.sidecar, codeParts.url,
+  TERRAIN_SOURCE, PHYSICS_SOURCE, ...HERO_TABLES, declared.trees.glb, declared.trees.sidecar, codeParts.url,
   ...Object.values(inputs.crags), ...Object.values(inputs.propScans), ...inputs.cabinModels,
   ...Object.values(sky.keys).flatMap(key => [skyKeySource(sky.keyFiles.color, key.id), skyKeySource(sky.keyFiles.gain, key.id)]),
 ];
-/** The timber world's GLB inputs, named by the hashes its rows list. */
-export function timberGlbSources(sources: PineSources): string[] {
-  const rows = sourceJson(sources, TIMBER_SOURCE);
-  const files = typeof rows === 'object' && rows !== null && 'shardfile' in rows && typeof rows.shardfile === 'object' && rows.shardfile !== null
-    && 'files' in rows.shardfile && Array.isArray(rows.shardfile.files) ? rows.shardfile.files : undefined;
-  if (files === undefined) throw new Error('Pine timber world has no files');
-  return files.flatMap((row: unknown) => {
-    if (typeof row !== 'object' || row === null || !('kind' in row) || !('hash' in row) || typeof row.hash !== 'string') throw new Error('Invalid Pine timber file row');
-    return row.kind === 'glb' ? [`assets/${row.hash}`] : [];
-  });
-}
-
-/** The folders the prop and cabin material payloads and cabin prop scans are listed from. */
-const SCAN_FOLDERS: readonly string[] = ['rock_moss_set_01', 'tree_stump_01', 'dead_tree_trunk', ...CABIN_MATERIAL_IDS].flatMap(cabinMaterialFolders);
+/** The folders the timber world's material payloads and cabin prop scans are listed from. */
+const TIMBER_FOLDERS: readonly string[] = ['rock_moss_set_01', 'tree_stump_01', 'dead_tree_trunk', ...CABIN_MATERIAL_IDS].flatMap(cabinMaterialFolders);
 const LISTED = /\.(?:glb|gltf|bin)$/u;
 
 /** One input's bytes parsed as JSON. */
@@ -81,7 +69,8 @@ async function cachedSources(ctx: Pick<ProjectGenerationContext, 'cached'>, id: 
   }));
 }
 
-function fromMap(files: ReadonlyMap<string, Uint8Array>): PineSources {
+/** Sources over files already read (the program's files by key). */
+export function sourcesOf(files: ReadonlyMap<string, Uint8Array>): PineSources {
   return { has: key => files.has(key), list: folder => [...files.keys()].filter(key => key.startsWith(folder)).sort(), bytes: key => {
     const bytes = files.get(key);
     if (bytes === undefined) throw new Error(`Undeclared Pine source ${key}`);
@@ -89,10 +78,10 @@ function fromMap(files: ReadonlyMap<string, Uint8Array>): PineSources {
   } };
 }
 
-/** GR8 (D65): every Pine source, read through `ctx.cached`: the fixed inputs, then the timber GLBs their rows name, then
- *  the hero GLBs and the hero material payloads the declared folders hold, then the prop and cabin material payloads and
- *  cabin prop scans their folders hold (listed: `list`). */
-export async function readPineSources(ctx: Pick<ProjectGenerationContext, 'cached' | 'inputFiles'>): Promise<PineSources> {
+/** GR8 (D65, G37): every committed Pine source, read through `ctx.cached`: the fixed inputs, the hero GLBs and the hero
+ *  material payloads the declared folders hold, and the timber world's material payloads and cabin prop scans (listed).
+ *  programSources.ts adds the timber world the program bakes over them. */
+export async function readFileSources(ctx: Pick<ProjectGenerationContext, 'cached' | 'inputFiles'>): Promise<Map<string, Uint8Array>> {
   const inventory = ctx.inputFiles;
   if (inventory === undefined) throw new Error('Pine sources need the build inventory (ctx.inputFiles)');
   const listing = (folders: readonly string[]): string[] => {
@@ -101,16 +90,14 @@ export async function readPineSources(ctx: Pick<ProjectGenerationContext, 'cache
     return files;
   };
   const fixed = await cachedSources(ctx, 'pine-sources', FIXED);
-  const timbers = await cachedSources(ctx, 'pine-timber-sources', timberGlbSources(fromMap(fixed)));
-  const tables = fromMap(fixed), listed = new Set(listing(heroMaterialFolders(tables)));
+  const tables = sourcesOf(fixed), listed = new Set(listing(heroMaterialFolders(tables)));
   const heroes = [...new Set([...heroModelSources(), ...heroMaterialCandidates(tables).filter(url => listed.has(url))])];
-  const taken = new Set([...fixed.keys(), ...heroes]), scans = listing(SCAN_FOLDERS).filter(url => LISTED.test(url) && !taken.has(url));
-  return fromMap(new Map([...fixed, ...timbers, ...await cachedSources(ctx, 'pine-hero-sources', heroes), ...await cachedSources(ctx, 'pine-material-sources', scans)]));
+  const taken = new Set([...fixed.keys(), ...heroes]), materials = listing(TIMBER_FOLDERS).filter(url => LISTED.test(url) && !taken.has(url));
+  return new Map([...fixed, ...await cachedSources(ctx, 'pine-hero-sources', heroes), ...await cachedSources(ctx, 'pine-material-sources', materials)]);
 }
 
-/** Pine's sources for a Node script: `read` takes a repo-relative path (public URLs live under `public/`); `list`, when
- *  given, names a public folder's files (`/assets/.../name`). */
-export function pineSourcesFrom(read: (path: string) => Uint8Array, list?: (folder: string) => string[]): PineSources {
+/** Pine's sources for a Node script: `read` takes a repo-relative path (public URLs live under `public/`). */
+export function pineSourcesFrom(read: (path: string) => Uint8Array): PineSources {
   const files = new Map<string, Uint8Array>();
   const bytes = (key: string): Uint8Array => {
     let file = files.get(key);
@@ -123,10 +110,7 @@ export function pineSourcesFrom(read: (path: string) => Uint8Array, list?: (fold
   };
   return { bytes, has: key => {
     try { bytes(key); return true; } catch { return false; }
-  }, list: folder => {
-    if (list === undefined) throw new Error(`This script's Pine sources list no folder (${folder})`);
-    return list(folder).sort();
-  } };
+  }, list: folder => { throw new Error(`A Node script's Pine sources list no folder (${folder}); read them through readPineSources`); } };
 }
 
 /** One value per sources object, made on first use (each producer bakes once per program run). */

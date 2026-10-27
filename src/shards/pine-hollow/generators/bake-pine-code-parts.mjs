@@ -12,6 +12,8 @@ import { resolve } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { bakePineCodeParts, hollowLogColliders } from './codeParts.ts';
+import { pineScriptSources } from './scriptSources.mjs';
+import { timberWorld } from './timberWorldRows.ts';
 
 const root = resolve(import.meta.dirname, '../../../..'), check = process.argv.includes('--check');
 const ground = readNativeTerrain(readFileSync(resolve(root, 'public/assets/baked/pine-hollow/terrain.bin')));
@@ -21,7 +23,8 @@ const pickupFiles=new Map(pickups.geometries.flatMap(row=>{
   if(!/^\/assets\/baked\/common\/pickups\/[a-f0-9]{64}\.bin$/u.test(row.file))throw new Error('Invalid prepared pickup source');
   return [[row.file,new Uint8Array(readFileSync(resolve(root,`public${row.file}`)))]];
 }));
-const { bin, rows, parts } = bakePineCodeParts(ground.heightAt,pickupFiles);
+// GR8 G37: the zip line and cave roof rows are the program's timber world
+const { bin, rows, parts } = bakePineCodeParts(ground.heightAt,timberWorld(await pineScriptSources('pine-code-parts')),pickupFiles);
 const sha256 = createHash('sha256').update(bin).digest('hex');
 const url = `/assets/pine-hollow/baked/code-parts-${sha256.slice(0, 12)}.bin`;
 const packed = deflateSync(bin, { level: 9 });

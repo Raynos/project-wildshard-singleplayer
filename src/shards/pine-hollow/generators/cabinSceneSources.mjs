@@ -6,7 +6,7 @@ import {readSourceModel} from '@wildshard/sdk/bake/skinned';
 import {pineCabinPropParts} from './cabinPropMaterials.mjs';
 import {pineCabinPropShapes} from './cabinPropShapes.ts';
 import {pineCabins} from './bake-pine-cabins.mjs';
-import {sourceJson,TIMBER_SOURCE} from './pineSources.ts';
+import {timberWorld} from './timberWorldRows.ts';
 import {BakedPiece} from '@wildshard/sdk/bake';
 
 function pack(doc,bin){
@@ -64,7 +64,7 @@ export async function cabinSceneSources(tier,sources){
   geometry.set(i,shape);
  }
  const propsSource=await pineCabinPropParts(sources),piece=new BakedPiece('cabin-author-props',[],[]),propRows=pineCabinPropShapes(piece,propsSource),props={};
- const shipping=sourceJson(sources,TIMBER_SOURCE);
+ const shipping=timberWorld(sources);
  for(const [kind,row]of Object.entries(propRows)){
   const node=piece.children.find(child=>child.name===row.name),native=shipping.cabinProps[kind];
   if(!(node instanceof Mesh)||JSON.stringify(row)!==JSON.stringify(native))throw new Error(`Cabin original prop metadata differs: ${kind}`);
