@@ -20,6 +20,7 @@ export class DeclaredScriptWorld extends ScriptWorld {
   private declaredRevision = 0;
   private readonly views = new Map<string, { shared: Record<string, number>; player: Record<string, number> }>();
   private readonly actors: ReadonlyMap<number, string>;
+  private readonly defaults: readonly number[];
   constructor(rules: EffectRules, entities: readonly ScriptEntity[], declaration: ScriptStateDeclaration, actors: ReadonlyMap<number, string>) {
     super(rules, entities);
     if (declaration.shared.length + declaration.player.length > 24) throw new Error('Script state input capacity');
@@ -29,7 +30,7 @@ export class DeclaredScriptWorld extends ScriptWorld {
           || !Number.isFinite(f.min) || !Number.isFinite(f.max) || f.min > f.max || !valid(f, f.default))) throw new Error('Invalid state declaration');
     }
     this.declaration = { shared: declaration.shared.map((f) => Object.freeze({ ...f })).sort((a, b) => a.id - b.id), player: declaration.player.map((f) => Object.freeze({ ...f })).sort((a, b) => a.id - b.id) };
-    this.actors = new Map(actors); this.shared = this.declaration.shared.map((f) => f.default);
+    this.actors = new Map(actors); this.shared = this.declaration.shared.map((f) => f.default); this.defaults = Object.freeze(this.declaration.player.map((f) => f.default));
     for (const [entity, actorId] of actors) {
       if (!this.entity(entity) || actorId.length === 0 || actorId.length > 128) throw new Error('Invalid actor binding');
       if (!this.players.has(actorId)) this.players.set(actorId, this.declaration.player.map((f) => f.default));
@@ -38,10 +39,14 @@ export class DeclaredScriptWorld extends ScriptWorld {
   /** Host-derived actor provenance; scripts never provide or replace it. */
   override actor(handle: number): string | undefined { return this.actors.get(handle); }
   /** Trusted server input in declaration order, never another actor's private record. */
-  input(handle: number): readonly number[] {
-    const actor = this.actor(handle), values = actor === undefined ? this.declaration.player.map((f) => f.default) : this.players.get(actor);
+  input(handle: number): readonly number[] { const out: number[] = []; this.appendInput(handle, out); return out; }
+  /** `input(handle)` appended to a caller's row (the lane's ABI input), without an intermediate copy. */
+  appendInput(handle: number, out: number[]): void {
+    const actor = this.actor(handle), values = actor === undefined ? this.defaults : this.players.get(actor);
     if (!values) throw new Error('Missing actor state');
-    return [this.shared.length, values.length, ...this.shared, ...values];
+    out.push(this.shared.length, values.length);
+    for (let i = 0; i < this.shared.length; i++) out.push(this.shared[i] ?? 0);
+    for (let i = 0; i < values.length; i++) out.push(values[i] ?? 0);
   }
   /** A public/owner view; host-only fields are never projected to a player. Returned records are copies. */
   view(actorId: string): { shared: Readonly<Record<string, number>>; player: Readonly<Record<string, number>> } {
@@ -68,25 +73,31 @@ export class DeclaredScriptWorld extends ScriptWorld {
     super.restore(saved.entities); this.shared = [...saved.shared]; this.players = new Map(saved.players.map((p) => [p.actorId, [...p.values]])); this.declaredRevision++; this.views.clear();
   }
   override prepare(effects: readonly ScriptEffect[], self: number, spawnAllowance: number, eventAllowance: number): EffectTransaction {
-    const before = this.declaredRevision, actorId = this.actor(self), ordinary: ScriptEffect[] = [];
-    let shared = this.shared, players = this.players;
-    for (const effect of effects) {
-      if (effect.op !== SCRIPT_STATE_OP.shared && effect.op !== SCRIPT_STATE_OP.player) { ordinary.push(effect); continue; }
-      if (![effect.op, effect.a, effect.b, effect.c, effect.d].every(Number.isFinite) || effect.c !== 0 || effect.d !== 0) throw new Error('Invalid state effect');
+    const before = this.declaredRevision, actorId = this.actor(self);
+    let shared = this.shared, players = this.players, ordinary: ScriptEffect[] | undefined;
+    for (let at = 0; at < effects.length; at++) {
+      const effect = effects[at]; if (effect === undefined) continue;
+      if (effect.op !== SCRIPT_STATE_OP.shared && effect.op !== SCRIPT_STATE_OP.player) { ordinary?.push(effect); continue; }
+      // The first state effect splits off the ordinary ones seen so far; a call with none passes its list through.
+      ordinary ??= effects.slice(0, at).filter((e) => e.op !== SCRIPT_STATE_OP.shared && e.op !== SCRIPT_STATE_OP.player);
+      if (!Number.isFinite(effect.a) || !Number.isFinite(effect.b) || !Number.isFinite(effect.c) || !Number.isFinite(effect.d) || effect.c !== 0 || effect.d !== 0) throw new Error('Invalid state effect');
       const isShared = effect.op === SCRIPT_STATE_OP.shared, fields = isShared ? this.declaration.shared : this.declaration.player;
-      const index = fields.findIndex((f) => f.id === effect.a), field = fields[index];
+      let index = -1; for (let i = 0; i < fields.length; i++) if (fields[i]?.id === effect.a) { index = i; break; }
+      const field = fields[index];
       if (!field || !valid(field, effect.b)) throw new Error('Undeclared or invalid state field');
-      if (isShared) { if (shared === this.shared) shared = shared.slice(); shared[index] = effect.b; }
+      if (isShared) { if (!Object.is(shared[index], effect.b)) { if (shared === this.shared) shared = shared.slice(); shared[index] = effect.b; } }
       else {
         if (actorId === undefined) throw new Error('Player effect requires an actor');
-        if (players === this.players) players = new Map(players);
         let values = players.get(actorId);
         if (values === undefined) throw new Error('Missing actor state');
+        // Rewriting a field's current value leaves the published records (and the cached views) shared.
+        if (Object.is(values[index], effect.b)) continue;
+        if (players === this.players) players = new Map(players);
         if (values === this.players.get(actorId)) { values = [...values]; players.set(actorId, values); }
         values[index] = effect.b;
       }
     }
-    const tx = super.prepare(ordinary, self, spawnAllowance, eventAllowance);
+    const tx = super.prepare(ordinary ?? effects, self, spawnAllowance, eventAllowance);
     return { spawns: tx.spawns, events: tx.events, commit: () => {
       if (this.declaredRevision !== before) throw new Error('Stale declared-state transaction');
       tx.commit();

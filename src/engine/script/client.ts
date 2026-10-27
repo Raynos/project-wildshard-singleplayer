@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { ScriptHost, type ScriptHostState, type ScriptCall } from './host';
 import { SCRIPT_PARAMETER_QUERY } from '@wildshard/format/scriptAbi';
-import { ScriptWorld, type ScriptEffect, type EffectTransaction } from './effects';
+import { ScriptWorld, type ScriptEffect, type ScriptEvent, type EffectTransaction } from './effects';
 import type { ScriptModule } from './lane';
 
 /** Presentation-only operations. Authoritative field, position, spawn, event and shared/player writes are refused. */
@@ -34,17 +34,42 @@ const bindingSchema = v.strictObject({ module: v.pipe(v.string(), v.minLength(1)
   pose: v.boolean(), maxOffset: v.pipe(finite, v.minValue(0), v.maxValue(50)), minScale: v.pipe(finite, v.minValue(0.01), v.maxValue(1)), maxScale: v.pipe(finite, v.minValue(1), v.maxValue(16)),
   emitters: v.pipe(v.array(v.strictObject({ id: positive, perTick: v.pipe(positive, v.maxValue(256)), live: v.pipe(positive, v.maxValue(4096)), lifetimeTicks: v.pipe(positive, v.maxValue(3600)) })), v.maxLength(CLIENT_SCRIPT_LIMITS.emitters)),
 });
-const observationSchema = v.strictObject({ position: v.tuple([v.pipe(finite, v.minValue(-250), v.maxValue(250)), v.pipe(finite, v.minValue(-250), v.maxValue(250)), v.pipe(finite, v.minValue(-250), v.maxValue(250))]), frozen: v.boolean(), values: v.pipe(v.array(finite), v.maxLength(24)) });
 const frameSchema = v.strictObject({ entity: positive, tick: v.pipe(finite, v.integer(), v.minValue(-1), v.maxValue(Number.MAX_SAFE_INTEGER)), offset: vec3, rotation: vec3, scale: vec3,
   particles: v.pipe(v.array(v.strictObject({ emitter: positive, count: positive, lifetimeTicks: positive })), v.maxLength(128)) });
 const liveSchema = v.pipe(v.array(v.strictObject({ entity: positive, emitter: positive, count: positive, expires: natural })), v.maxLength(4096));
-function copy(frame: ClientScriptFrame): ClientScriptFrame {
-  return { ...frame, offset: [...frame.offset], rotation: [...frame.rotation], scale: [...frame.scale], particles: frame.particles.map((p) => ({ ...p })) };
+/** A frame the world owns; its pose arrays are written in place only while it is a target's private spare. */
+interface OwnedFrame { entity: number; tick: number; offset: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number]; particles: readonly ClientParticleRequest[] }
+function copy(frame: ClientScriptFrame): OwnedFrame {
+  return { entity: frame.entity, tick: frame.tick, offset: [...frame.offset], rotation: [...frame.rotation], scale: [...frame.scale], particles: frame.particles.map((p) => ({ ...p })) };
+}
+function refill(into: OwnedFrame, from: OwnedFrame): void {
+  into.tick = from.tick; into.particles = from.particles;
+  for (let i = 0; i < 3; i++) { into.offset[i] = from.offset[i] ?? 0; into.rotation[i] = from.rotation[i] ?? 0; into.scale[i] = from.scale[i] ?? 1; }
+}
+const NO_EVENTS: readonly ScriptEvent[] = Object.freeze([]);
+const coordinate = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n) && n >= -250 && n <= 250;
+/** The admission verdict of a strict { position: three finite coordinates within ±250, frozen: boolean, values: at most 24
+ * finite numbers } record with exactly readCount values, copied into the binding's reused slots (each getter read once). */
+function observe(value: unknown, readCount: number, into: { position: [number, number, number]; frozen: boolean; values: number[] }): void {
+  if (typeof value !== 'object' || value === null) throw new Error('Invalid read-only client observation');
+  for (const key in value) if (Object.hasOwn(value, key) && key !== 'position' && key !== 'frozen' && key !== 'values') throw new Error('Invalid read-only client observation');
+  const position: unknown = Reflect.get(value, 'position'), frozen: unknown = Reflect.get(value, 'frozen'), values: unknown = Reflect.get(value, 'values');
+  if (!Array.isArray(position) || position.length < 3 || typeof frozen !== 'boolean' || !Array.isArray(values) || values.length > 24) throw new Error('Invalid read-only client observation');
+  const x: unknown = position[0], y: unknown = position[1], z: unknown = position[2];
+  if (!coordinate(x) || !coordinate(y) || !coordinate(z)) throw new Error('Invalid read-only client observation');
+  into.position[0] = x; into.position[1] = y; into.position[2] = z; into.frozen = frozen;
+  into.values.length = values.length;
+  for (let i = 0; i < values.length; i++) { const n: unknown = values[i]; if (typeof n !== 'number' || !Number.isFinite(n)) throw new Error('Invalid read-only client observation'); into.values[i] = n; }
+  if (values.length !== readCount) throw new Error('Invalid read-only client observation');
 }
 
 class ClientWorld extends ScriptWorld {
   readonly bindings: ReadonlyMap<number, ClientScriptBinding>;
-  private frames = new Map<number, ClientScriptFrame>();
+  private frames = new Map<number, OwnedFrame>();
+  // Each target's retired frame is reused as its next private state; `lent` names the revision a prepared
+  // transaction borrowed it at, so a second prepare in that revision copies instead of sharing it.
+  private readonly spares = new Map<number, OwnedFrame>();
+  private readonly lent = new Map<number, number>();
   private frameRevision = 0;
   private live: v.InferOutput<typeof liveSchema> = [];
   private tick = -1;
@@ -61,18 +86,27 @@ class ClientWorld extends ScriptWorld {
     this.frameRevision++;
   }
   outputs(): readonly ClientScriptFrame[] { return [...this.frames.values()].sort((a, b) => a.entity - b.entity).map(copy); }
+  /** The published frame itself, for a same-frame reader that copies what it keeps; valid until the next tick. */
+  published(entity: number): Readonly<ClientScriptFrame> | undefined { return this.frames.get(entity); }
+  get currentTick(): number { return this.tick; }
   private pose(frame: ClientScriptFrame, binding: ClientScriptBinding): boolean {
-    for (const value of frame.offset) if (!(Math.abs(value) <= binding.maxOffset)) return false;
-    for (const value of frame.rotation) if (!(Math.abs(value) <= Math.PI)) return false;
-    for (const value of frame.scale) if (!(value >= binding.minScale && value <= binding.maxScale)) return false;
+    for (let i = 0; i < 3; i++) {
+      const offset = frame.offset[i] ?? Number.NaN, rotation = frame.rotation[i] ?? Number.NaN, scale = frame.scale[i] ?? Number.NaN;
+      if (!(Math.abs(offset) <= binding.maxOffset) || !(Math.abs(rotation) <= Math.PI) || !(scale >= binding.minScale && scale <= binding.maxScale)) return false;
+    }
     return true;
   }
   override prepare(effects: readonly ScriptEffect[], self: number, _spawns: number, _events: number): EffectTransaction {
     const binding = this.bindings.get(self), current = this.frames.get(self), before = this.frameRevision;
     if (binding === undefined || current === undefined) throw new Error('Unknown client script target');
-    const frame = effects.length === 0 ? current : copy(current); let particles = this.particles, live = this.live;
-    const seen = new Set<number>();
-    for (const effect of effects) {
+    let frame = current, particles = this.particles, live = this.live, seen = 0;
+    if (effects.length > 0) {
+      const spare = this.spares.get(self);
+      if (spare !== undefined && this.lent.get(self) !== before) { refill(spare, current); frame = spare; this.lent.set(self, before); }
+      else frame = copy(current);
+    }
+    for (let index = 0; index < effects.length; index++) {
+      const effect = effects[index]; if (effect === undefined) continue;
       const { op, a, b, c, d } = effect;
       if (!Number.isFinite(op) || !Number.isFinite(a) || !Number.isFinite(b) || !Number.isFinite(c) || !Number.isFinite(d)) throw new Error('Non-finite client effect');
       if (op === CLIENT_SCRIPT_OP.particle) {
@@ -85,16 +119,17 @@ class ClientWorld extends ScriptWorld {
         live.push({ entity: self, emitter: a, count: b, expires }); particles += b;
         frame.particles = [...frame.particles, { emitter: a, count: b, lifetimeTicks: emitter.lifetimeTicks }];
       } else {
-        if (!binding.pose || (op !== CLIENT_SCRIPT_OP.offset && op !== CLIENT_SCRIPT_OP.rotation && op !== CLIENT_SCRIPT_OP.scale) || d !== 0 || seen.has(op)) throw new Error('Client scripts cannot write authoritative state');
-        seen.add(op);
-        if (op === CLIENT_SCRIPT_OP.offset) frame.offset = [a, b, c];
-        else if (op === CLIENT_SCRIPT_OP.rotation) frame.rotation = [a, b, c];
-        else frame.scale = [a, b, c];
+        const bit = op === CLIENT_SCRIPT_OP.offset ? 1 : op === CLIENT_SCRIPT_OP.rotation ? 2 : op === CLIENT_SCRIPT_OP.scale ? 4 : 0;
+        if (!binding.pose || bit === 0 || d !== 0 || (seen & bit) !== 0) throw new Error('Client scripts cannot write authoritative state');
+        seen |= bit;
+        const into = bit === 1 ? frame.offset : bit === 2 ? frame.rotation : frame.scale;
+        into[0] = a; into[1] = b; into[2] = c;
         if (!this.pose(frame, binding)) throw new Error('Client pose outside declared range');
       }
     }
-    return { spawns: 0, events: [], commit: () => {
+    return { spawns: 0, events: NO_EVENTS, commit: () => {
       if (this.frameRevision !== before) throw new Error('Stale client transaction');
+      if (frame !== current) { this.spares.set(self, current); this.lent.delete(self); }
       this.frames.set(self, frame); this.live = live; this.particles = particles; this.frameRevision++;
     } };
   }
@@ -117,6 +152,8 @@ export class ClientScriptLane {
   private host: ScriptHost | undefined;
   private readonly world: ClientWorld;
   private readonly contract: string;
+  // One admitted observation copy and one ABI input row per binding, refilled each presentation tick.
+  private readonly slots = new Map<number, { position: [number, number, number]; frozen: boolean; values: number[]; input: number[] }>();
   readonly divisor: number;
   constructor(options: ClientScriptOptions) {
     if (!Number.isSafeInteger(options.divisor) || options.divisor < 1 || 60 % options.divisor !== 0 || options.bindings.length > CLIENT_SCRIPT_LIMITS.bindings) throw new Error('Invalid client script cadence or target cap');
@@ -127,9 +164,12 @@ export class ClientScriptLane {
     this.world = new ClientWorld(bindings);
     this.host = new ScriptHost({ world: this.world, limits: { fuelPerCall: 200000, fuelPerTick: 2000000, ...(options.memoryBytes === undefined ? {} : { memoryBytes: options.memoryBytes }) }, query: (kind, request, entity) => {
       const binding = this.world.bindings.get(entity);
-      if (kind !== SCRIPT_PARAMETER_QUERY || request.some((n) => n !== 0) || binding === undefined) throw new Error('Client query requires declared parameters');
-      return [...binding.parameters];
+      let zero = true; for (let i = 0; i < request.length; i++) if (request[i] !== 0) zero = false;
+      if (kind !== SCRIPT_PARAMETER_QUERY || !zero || binding === undefined) throw new Error('Client query requires declared parameters');
+      // The host only copies the answer into guest memory; the admitted binding's own parameters are never written.
+      return binding.parameters;
     } });
+    for (const b of bindings) this.slots.set(b.entity, { position: [0, 0, 0], frozen: false, values: [], input: [] });
     for (const module of modules) this.host.install(module.name, module.bytes, module.seedLo, module.seedHi);
     this.contract = JSON.stringify({ divisor: this.divisor, bindings, memoryBytes: this.host.limits.memoryBytes, modules: modules.map((m) => ({ name: m.name, seedLo: m.seedLo, seedHi: m.seedHi, bytes: Array.from(m.bytes) })) });
   }
@@ -138,18 +178,18 @@ export class ClientScriptLane {
     const host = this.host; if (host === undefined) throw new Error('Disposed client script lane');
     if (!Number.isSafeInteger(tick) || tick < 0) throw new Error('Invalid client script tick');
     if (tick % this.divisor !== 0) return [];
-    const checked: ClientScriptObservation[] = [];
+    // Every observation is admitted and copied before any host or visual tick.
     for (const binding of this.world.bindings.values()) {
-      const observation = v.parse(observationSchema, observations.get(binding.entity));
-      if (observation.values.length !== binding.readCount) throw new Error('Invalid read-only client observation');
-      checked.push(observation);
+      const slot = this.slots.get(binding.entity); if (slot === undefined) throw new Error('Missing client observation');
+      observe(observations.get(binding.entity), binding.readCount, slot);
     }
     host.beginTick(tick); this.world.beginTick(tick);
-    const calls: ScriptCall[] = []; let index = 0;
+    const calls: ScriptCall[] = [];
     for (const binding of this.world.bindings.values()) {
-      const o = checked[index++]; if (o === undefined) throw new Error('Missing client observation');
-      const input = [tick, this.divisor / 60, Number(o.frozen), binding.entity, o.position[0], o.position[1], o.position[2], binding.readCount];
-      input.length += o.values.length;
+      const o = this.slots.get(binding.entity); if (o === undefined) throw new Error('Missing client observation');
+      const input = o.input; input.length = 8 + o.values.length;
+      input[0] = tick; input[1] = this.divisor / 60; input[2] = Number(o.frozen); input[3] = binding.entity;
+      input[4] = o.position[0]; input[5] = o.position[1]; input[6] = o.position[2]; input[7] = binding.readCount;
       for (let field = 0; field < o.values.length; field++) input[8 + field] = o.values[field] ?? Number.NaN;
       calls.push(host.call(binding.module, binding.entity, input));
     }
@@ -157,6 +197,11 @@ export class ClientScriptLane {
   }
   /** Detached output copies are safe for renderer adapters; no command is applied to simulation entities. */
   frames(): readonly ClientScriptFrame[] { if (this.host === undefined) return []; return this.world.outputs(); }
+  /** One target's published frame without a copy, for a same-frame reader that copies what it keeps; never retain it past
+   * the next step. Undefined once disposed. */
+  frame(entity: number): Readonly<ClientScriptFrame> | undefined { return this.host === undefined ? undefined : this.world.published(entity); }
+  /** The tick every published frame carries; -1 before the first step and once disposed. */
+  get tick(): number { return this.host === undefined ? -1 : this.world.currentTick; }
   /** A failed presentation binding may resume explicitly; its authoritative entity was never quarantined. */
   resume(entity: number): void { const binding = this.world.bindings.get(entity); if (binding === undefined || this.host === undefined) throw new Error('Unknown/disposed client binding'); this.host.resume(binding.module, entity); }
   /** Complete same-engine visual replay, including author memory, failure history and outstanding particle lifetimes. */

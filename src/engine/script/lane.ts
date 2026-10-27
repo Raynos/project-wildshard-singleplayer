@@ -26,6 +26,7 @@ const checkpointSchema = v.strictObject({
   host: v.strictObject({ tick: v.pipe(finite, v.integer(), v.minValue(-1)), used: v.strictObject({ effects: natural, spawns: natural, events: natural, queries: natural, fuel: natural }),
     pending: v.array(v.strictObject({ type: natural, target: natural, value: finite })), modules: v.array(v.strictObject({ name: v.string(), memory: v.array(natural), globals: v.array(v.strictObject({ name: v.string(), type: v.picklist(['number', 'bigint']), value: v.string() })), failures: natural, disabled: v.boolean() })) }),
 });
+const NO_COMMANDS: ReadonlyMap<string, number> = new Map(), NO_EVENT_ROWS: readonly number[] = Object.freeze([]);
 /** Numeric-state scheduler dependencies; construction never installs a module or starts a host tick. */
 export type ScriptDriverOptions = Pick<ScriptLaneOptions, 'world' | 'modules' | 'bindings' | 'divisor' | 'query'>;
 /** Declared numeric state is validated in its own trusted role, separate from creature motion intentions. */
@@ -53,13 +54,17 @@ export class ScriptDriver {
   /** Only this role may publish its declared shared/player fields; actor provenance stays host-bound. */
   role(id: string): ScriptRole { return { id, moduleContract: true, world: this.world, query: this.query, events: 'deliver', snapshot: () => this.snapshot(), restore: text => { this.restore(text); } }; }
   /** Prepare numeric inputs for due bindings; the owning composition starts the one global fixed tick. */
-  schedule(id: string, role: string, commands: () => ReadonlyMap<string, number> = () => new Map()): ScriptSchedule {
+  schedule(id: string, role: string, commands: () => ReadonlyMap<string, number> = () => NO_COMMANDS): ScriptSchedule {
+    const byEntity = new Map<number, ScriptBinding[]>();
+    for (const binding of this.bindings) { const rows = byEntity.get(binding.entity); if (rows === undefined) byEntity.set(binding.entity, [binding]); else rows.push(binding); }
     return { id, role, bindings: this.bindings.map(binding => ({ module: binding.module, entity: binding.entity, divisor: this.divisor })),
       input: (scheduled, tick) => {
-        const binding = this.bindings.find(b => b.entity === scheduled.entity && b.module === scheduled.module);
+        let binding: ScriptBinding | undefined;
+        for (const row of byEntity.get(scheduled.entity) ?? []) if (row.module === scheduled.module) { binding = row; break; }
         if (binding === undefined) throw new Error('Missing numeric script binding');
         const actor = binding.actorId, command = actor === null ? 0 : commands().get(actor) ?? 0;
-        return [tick, this.divisor / 60, command, binding.entity, actor === null ? 0 : this.actors.indexOf(actor) + 1, binding.kind === 'server' ? 0 : 1, ...this.world.input(binding.entity)];
+        const input = [tick, this.divisor / 60, command, binding.entity, actor === null ? 0 : this.actors.indexOf(actor) + 1, binding.kind === 'server' ? 0 : 1];
+        this.world.appendInput(binding.entity, input); return input;
       }, committed: () => undefined };
   }
   /** Role state only; the composed host snapshots module memory, events and quotas exactly once. */
@@ -77,21 +82,21 @@ export class ScriptLane {
   readonly divisor: number;
   private readonly driver: ScriptDriver;
   private readonly schedule: ScriptSchedule;
-  private commands: ReadonlyMap<string, number> = new Map();
+  private commands: ReadonlyMap<string, number> = NO_COMMANDS;
   constructor(options: ScriptLaneOptions) {
     this.driver = new ScriptDriver(options); this.world = this.driver.world; this.divisor = this.driver.divisor;
     this.schedule = this.driver.schedule('numeric', 'numeric', () => this.commands); this.host = new ScriptHost(options);
     for (const module of options.modules) this.host.install(module.name, module.bytes, module.seedLo, module.seedHi);
   }
   /** Stable fixed-tick input: tick, dt, actor command, entity, actor token, role, state counts, state values. */
-  step(tick: number, commands: ReadonlyMap<string, number> = new Map()): readonly ScriptCall[] {
+  step(tick: number, commands: ReadonlyMap<string, number> = NO_COMMANDS): readonly ScriptCall[] {
     if (!Number.isSafeInteger(tick) || tick < 0) throw new Error('Invalid script lane tick');
     if (tick % this.divisor !== 0) return [];
     this.commands = commands;
     const pending = this.host.beginTick(tick), calls: ScriptCall[] = [];
     for (const binding of this.schedule.bindings) {
       const input = this.schedule.input(binding, tick); if (input === undefined) throw new Error('Missing numeric script input');
-      const events = pending.flatMap(event => event.target === binding.entity ? [event.type, event.target, event.value, 0, 0, 0] : []);
+      const events = pending.length === 0 ? NO_EVENT_ROWS : pending.flatMap(event => event.target === binding.entity ? [event.type, event.target, event.value, 0, 0, 0] : []);
       calls.push(this.host.call(binding.module, binding.entity, input, events));
     }
     return calls;
@@ -109,7 +114,7 @@ export class ScriptLane {
   }
 }
 /** Install fixed-step work and a same-engine continuation adapter, scoped to the real headless/client sim host. */
-export function installScriptLane(sim: Pick<SimHost, 'onStep' | 'state'>, id: string, lane: ScriptLanePort, commands: () => ReadonlyMap<string, number> = () => new Map()): () => void {
+export function installScriptLane(sim: Pick<SimHost, 'onStep' | 'state'>, id: string, lane: ScriptLanePort, commands: () => ReadonlyMap<string, number> = () => NO_COMMANDS): () => void {
   return sim.onStep(id, () => { lane.step(sim.state.tick, commands()); }, { snapshot: () => lane.snapshot(), restore: (value) => {
     if (typeof value !== 'string') throw new Error('Invalid script adapter snapshot'); lane.restore(value);
   } });

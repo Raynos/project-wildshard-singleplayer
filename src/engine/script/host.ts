@@ -114,11 +114,26 @@ export function prepareScriptMemoryLease(modules: readonly Uint8Array[], owner: 
 function bounds(ptr: number, bytes: number, memory: WebAssembly.Memory): void {
   if (!integer(ptr, 0, memory.buffer.byteLength) || ptr % 8 !== 0 || !integer(bytes, 0, memory.buffer.byteLength) || ptr + bytes > memory.buffer.byteLength) throw new Error('ABI buffer outside memory');
 }
-function invoke(running: Running, name: string, args: readonly number[] = []): number {
+function invoke(running: Running, name: string, args?: readonly number[]): number {
   const fn = running.instance.exports[name]; if (typeof fn !== 'function') throw new Error(`Missing callable ${name}`);
-  const value = (fn as (...values: number[]) => unknown)(...args); if (value === undefined) return 0; if (typeof value !== 'number' || !Number.isFinite(value)) throw new Error('Non-finite ABI result'); return value;
+  const call = fn as (...values: number[]) => unknown, value = args === undefined ? call() : call(...args); if (value === undefined) return 0; if (typeof value !== 'number' || !Number.isFinite(value)) throw new Error('Non-finite ABI result'); return value;
 }
 function currentInstance(state: ModuleState): Running { if (!state.running) throw new Error('Uninitialized script'); return state.running; }
+// One whole-memory view per live buffer (a grow replaces the buffer), so per-tick ABI reads, writes and
+// snapshot copies allocate no typed-array wrapper.
+const float64Views = new WeakMap<ArrayBuffer, Float64Array>(), byteViews = new WeakMap<ArrayBuffer, Uint8Array>();
+function float64(memory: WebAssembly.Memory): Float64Array {
+  const buffer = memory.buffer; let view = float64Views.get(buffer);
+  if (view === undefined) { view = new Float64Array(buffer); float64Views.set(buffer, view); }
+  return view;
+}
+function byteView(memory: WebAssembly.Memory): Uint8Array {
+  const buffer = memory.buffer; let view = byteViews.get(buffer);
+  if (view === undefined) { view = new Uint8Array(buffer); byteViews.set(buffer, view); }
+  return view;
+}
+function finiteAll(values: readonly number[]): boolean { for (let i = 0; i < values.length; i++) if (!Number.isFinite(values[i])) return false; return true; }
+const NO_NUMBERS: readonly number[] = Object.freeze([]), NO_EVENTS: readonly ScriptEvent[] = Object.freeze([]), NO_EFFECTS: readonly ScriptEffect[] = Object.freeze([]);
 function snapshot(state: ModuleState, reuse?: OwnedSnapshot): OwnedSnapshot {
   const current = currentInstance(state), globals = reuse?.globals ?? new Map<string, number | bigint>();
   for (const name of state.admission.globals) {
@@ -126,7 +141,7 @@ function snapshot(state: ModuleState, reuse?: OwnedSnapshot): OwnedSnapshot {
     const value: unknown = global.value; if (typeof value !== 'number' && typeof value !== 'bigint') throw new Error('Non-numeric global'); globals.set(name, value);
   }
   const memory = reuse?.memory.length === current.memory.buffer.byteLength ? reuse.memory : new Uint8Array(current.memory.buffer.byteLength);
-  memory.set(new Uint8Array(current.memory.buffer)); return { memory, globals };
+  memory.set(byteView(current.memory)); return { memory, globals };
 }
 function clone(s: ScriptSnapshot): OwnedSnapshot { return { memory: s.memory.slice(), globals: new Map(s.globals) }; }
 /** Keep the JSON byte array detached without allocating a typed-array iterator
@@ -177,11 +192,13 @@ export class ScriptHost {
         if (!state.busy || (!integer(kind, 1, 4) && kind !== SCRIPT_PARAMETER_QUERY)) throw new Error('Query outside a tick');
         this.charge(state, 256); if (++this.used.queries > this.limits.queries) throw new Error('Query allowance');
         bounds(request, 64, memory); bounds(response, 768, memory);
-        const input = Array.from(new Float64Array(memory.buffer, request, 8));
-        if (!input.every(Number.isFinite) || input.some((n) => Math.abs(n) > 10000)) throw new Error('Invalid query input');
+        const view = float64(memory), at = request / 8, input: number[] = [];
+        for (let i = 0; i < 8; i++) { const n = view[at + i] ?? Number.NaN; if (!Number.isFinite(n) || Math.abs(n) > 10000) throw new Error('Invalid query input'); input.push(n); }
         const answer = this.options.query(kind, input, state.entity);
-        if (answer.length > 96 || !answer.every(Number.isFinite)) throw new Error('Invalid query response');
-        new Float64Array(memory.buffer, response, 96).fill(0); new Float64Array(memory.buffer, response, answer.length).set(answer);
+        if (answer.length > 96 || !finiteAll(answer)) throw new Error('Invalid query response');
+        // The answer may have grown memory; write through the current buffer.
+        const out = float64(memory), base = response / 8; out.fill(0, base, base + 96);
+        for (let i = 0; i < answer.length; i++) out[base + i] = answer[i] ?? 0;
         return answer.length;
       },
     } });
@@ -212,15 +229,20 @@ export class ScriptHost {
   /** Reset shared allowances only for a strictly later fixed tick; return prior queued events in insertion order. */
   beginTick(tick: number, delivery?: ScriptEventDelivery): readonly ScriptEvent[] {
     if (this.active || !integer(tick, 0, Number.MAX_SAFE_INTEGER) || tick <= this.tick) throw new Error('Non-monotonic script tick');
-    if (delivery !== undefined && ([...delivery.targets, ...delivery.consume].some(id => !integer(id, 1, 0x7fffffff))
-      || [...delivery.targets].some(id => delivery.consume.has(id)))) throw new Error('Invalid scheduled event delivery');
+    if (delivery !== undefined) {
+      for (const id of delivery.targets) if (!integer(id, 1, 0x7fffffff) || delivery.consume.has(id)) throw new Error('Invalid scheduled event delivery');
+      for (const id of delivery.consume) if (!integer(id, 1, 0x7fffffff)) throw new Error('Invalid scheduled event delivery');
+    }
+    // The allowance record is reset in place: checkpoints and restores copy it, nothing else holds it.
+    const used = this.used; used.effects = 0; used.spawns = 0; used.queries = 0; used.fuel = 0;
+    if (this.pending.length === 0) { this.tick = tick; used.events = 0; return NO_EVENTS; }
     const events: ScriptEvent[] = [], retained: ScriptEvent[] = [];
     for (const event of this.pending) {
       if (delivery?.consume.has(event.target)) continue;
       (delivery === undefined || delivery.targets.has(event.target) ? events : retained).push({ ...event });
     }
     // Retained events occupy the same allowance as deliveries and newly emitted events.
-    this.tick = tick; this.used = { effects: 0, spawns: 0, events: retained.length, queries: 0, fuel: 0 }; this.pending = retained; return events;
+    this.tick = tick; used.events = retained.length; this.pending = retained; return events;
   }
   /** Queue a declared gameplay/scene event for the next script tick, under the same bounded event allowance. */
   enqueue(event: ScriptEvent): void {
@@ -314,7 +336,7 @@ export class ScriptHost {
   /** Resume only by an explicit host action; repeated offenders remain disabled. */
   resume(name: string, entity: number): void { const state = this.modules.get(name); if (!state || state.disabled || this.active) throw new Error('Disabled or active module'); this.world.freeze(entity, false); }
   /** Execute and validate a full batch, then publish numeric world state and script snapshot together. */
-  call(name: string, entity: number, input: readonly number[], events: readonly number[] = []): ScriptCall {
+  call(name: string, entity: number, input: readonly number[], events: readonly number[] = NO_NUMBERS): ScriptCall {
     const state = this.modules.get(name), available = this.world.callable(entity);
     if (!state || !available || state.disabled) return { ok: false, effects: [], events: [], fuel: 0, reason: 'Unavailable script/entity', disabled: state?.disabled ?? false };
     if (this.used.fuel >= this.limits.fuelPerTick) return { ok: false, effects: [], events: [], fuel: 0, reason: 'Script tick fuel allowance', disabled: false };
@@ -322,20 +344,29 @@ export class ScriptHost {
     state.remaining = this.limits.fuelPerCall; state.depth = 0; state.entity = entity; state.busy = true; this.active = true;
     const currentRunning = currentInstance(state);
     try {
-      if (input.length > 32 || input[0] !== this.tick || !input.every(Number.isFinite) || events.length % 6 !== 0 || events.length / 6 + this.used.events > this.limits.events || !events.every(Number.isFinite)) throw new Error('Invalid input/events');
+      if (input.length > 32 || input[0] !== this.tick || !finiteAll(input) || events.length % 6 !== 0 || events.length / 6 + this.used.events > this.limits.events || !finiteAll(events)) throw new Error('Invalid input/events');
       this.used.events += events.length / 6;
       const { input: ptr, inputBytes, output, outputRecords } = state.layout;
       bounds(ptr, inputBytes, currentRunning.memory); if (33 * 8 + events.length * 8 > inputBytes) throw new Error('Input/event capacity');
-      const slots = new Float64Array(currentRunning.memory.buffer, ptr, inputBytes / 8); slots.fill(0); slots.set(input); slots[3] = entity; slots[32] = events.length / 6; slots.set(events, 33);
-      new Float64Array(currentRunning.memory.buffer, output, outputRecords * 5).fill(0);
+      const slots = float64(currentRunning.memory), at = ptr / 8, out = output / 8;
+      slots.fill(0, at, at + inputBytes / 8);
+      for (let i = 0; i < input.length; i++) slots[at + i] = input[i] ?? 0;
+      slots[at + 3] = entity; slots[at + 32] = events.length / 6;
+      for (let i = 0; i < events.length; i++) slots[at + 33 + i] = events[i] ?? 0;
+      slots.fill(0, out, out + outputRecords * 5);
       invoke(currentRunning, 'on_tick'); const count = invoke(currentRunning, 'out_count');
       if (!integer(count, 0, outputRecords) || count + this.used.effects > this.limits.effects) throw new Error('Effect allowance');
-      const view = new Float64Array(currentRunning.memory.buffer, output, count * 5), effects: ScriptEffect[] = [];
-      for (let i = 0; i < count; i++) { const at = i * 5; effects.push({ op: view[at] ?? Number.NaN, a: view[at + 1] ?? Number.NaN, b: view[at + 2] ?? Number.NaN, c: view[at + 3] ?? Number.NaN, d: view[at + 4] ?? Number.NaN }); }
+      // on_tick may have grown memory: read the records through the current buffer.
+      const view = float64(currentRunning.memory); let effects = NO_EFFECTS;
+      if (count > 0) {
+        const records: ScriptEffect[] = [];
+        for (let i = 0; i < count; i++) { const record = out + i * 5; records.push({ op: view[record] ?? Number.NaN, a: view[record + 1] ?? Number.NaN, b: view[record + 2] ?? Number.NaN, c: view[record + 3] ?? Number.NaN, d: view[record + 4] ?? Number.NaN }); }
+        effects = records;
+      }
       const eventAllowance = Math.min(this.limits.events - this.used.events, this.limits.events - this.pending.length);
       const tx = this.world.prepare(effects, entity, this.limits.spawns - this.used.spawns, eventAllowance);
       const good = snapshot(state, state.spare); tx.commit(); state.spare = state.good; state.good = good;
-      this.used.effects += count; this.used.spawns += tx.spawns; this.used.events += tx.events.length; this.pending.push(...tx.events);
+      this.used.effects += count; this.used.spawns += tx.spawns; this.used.events += tx.events.length; if (tx.events.length > 0) this.pending.push(...tx.events);
       return { ok: true, effects, events: tx.events, fuel: this.limits.fuelPerCall - state.remaining, reason: undefined, disabled: false };
     } catch (error) {
       const fuel = this.limits.fuelPerCall - state.remaining;

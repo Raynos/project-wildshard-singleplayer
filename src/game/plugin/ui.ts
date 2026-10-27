@@ -168,8 +168,8 @@ export class QuestViews {
 }
 
 type Vec3 = readonly [number, number, number];
-/** The part of a client lane the adapter reads: detached frames, nothing else. */
-export interface ClientScriptFrames { readonly frames: () => readonly ClientScriptFrame[] }
+/** The part of a client lane the adapter reads: its published frames (read in the frame, never kept) and their tick. */
+export interface ClientScriptFrames { readonly frame: (entity: number) => Readonly<ClientScriptFrame> | undefined; readonly tick: number }
 /** One admitted emitter's numeric look (sp-x5's `platform.particles` recipe) and its declared live limit. */
 export interface ClientScriptEmitterLook { readonly id: number; readonly live: number; readonly colour: Vec3; readonly size: number; readonly velocity: Vec3; readonly gravity: number }
 /** One bound visual: the view object a pose composes onto (null: particles only) and where its particles start. */
@@ -215,6 +215,8 @@ function jitter(a: number, b: number, c: number): number {
 export class ClientScriptViews {
   private readonly lane: ClientScriptFrames;
   private readonly targets: ReadonlyMap<number, ClientScriptViewTarget>;
+  // Particle requests are emitted in entity order, as the lane's sorted frames were.
+  private readonly order: readonly number[];
   private readonly posed: readonly Posed[];
   private readonly pool: ParticlePool<'aColour' | 'aSize' | 'aAlpha'> | null;
   private readonly lifetimes: Float32Array;
@@ -229,7 +231,7 @@ export class ClientScriptViews {
 
   constructor(lane: ClientScriptFrames, targets: readonly ClientScriptViewTarget[], ports: { root: Object3D; scope: Scope }) {
     this.lane = lane;
-    this.targets = new Map(targets.map((t) => [t.entity, t]));
+    this.targets = new Map(targets.map((t) => [t.entity, t])); this.order = [...this.targets.keys()].sort((a, b) => a - b);
     if (this.targets.size !== targets.length) throw new Error('client script views: one view per bound entity');
     this.posed = targets.flatMap((target): Posed[] => target.object === null ? [] : [{ target, object: target.object, saved: false,
       base: { p: new Vector3(), q: new Quaternion(), s: new Vector3(1, 1, 1) }, offset: new Vector3(), rotation: new Vector3(), scale: new Vector3(1, 1, 1) }]);
@@ -260,10 +262,9 @@ export class ClientScriptViews {
   apply(dt: number): void {
     if (this.disposed) return;
     this.restore();
-    const frames = this.lane.frames(), ease = 1 - Math.exp(-Math.max(0, dt) * 14);
-    const byEntity = new Map(frames.map((f) => [f.entity, f]));
+    const lane = this.lane, ease = 1 - Math.exp(-Math.max(0, dt) * 14);
     for (const p of this.posed) {
-      const frame = byEntity.get(p.target.entity), o = p.object;
+      const frame = lane.frame(p.target.entity), o = p.object;
       if (frame !== undefined) {
         p.offset.lerp(this._v.fromArray(frame.offset), ease); p.rotation.lerp(this._v.fromArray(frame.rotation), ease); p.scale.lerp(this._v.fromArray(frame.scale), ease);
       }
@@ -272,8 +273,8 @@ export class ClientScriptViews {
       o.quaternion.multiply(this._q.setFromEuler(this._e.set(p.rotation.x, p.rotation.y, p.rotation.z, 'YXZ')));
       o.scale.multiply(p.scale);
     }
-    const tick = frames[0]?.tick ?? -1;
-    if (tick > this.seen) { this.seen = tick; for (const frame of frames) this.emit(frame); }
+    const tick = lane.tick;
+    if (tick > this.seen) { this.seen = tick; for (const entity of this.order) { const frame = lane.frame(entity); if (frame !== undefined) this.emit(frame); } }
     this.particles(dt);
   }
 

@@ -13,6 +13,7 @@ export interface EffectTransaction { commit: () => void; spawns: number; events:
 const coord = (n: number): boolean => Number.isFinite(n) && n >= -250 && n <= 250;
 const id = (n: number): boolean => Number.isSafeInteger(n) && n > 0 && n <= 0x7fffffff;
 function copy(e: ScriptEntity): ScriptEntity { return { ...e, position: [...e.position], fields: { ...e.fields } }; }
+const NO_EVENTS: readonly ScriptEvent[] = Object.freeze([]);
 /** Owns numeric state so batches either replace all affected entities or change none. */
 export class ScriptWorld {
   private entities = new Map<number, ScriptEntity>();
@@ -51,29 +52,32 @@ export class ScriptWorld {
   }
   /** Validate every effect and build a private next state; queued events cannot invoke another script here. */
   prepare(effects: readonly ScriptEffect[], self: number, spawnAllowance: number, eventAllowance: number): EffectTransaction {
-    const before = this.entities, revision = this.revision, events: ScriptEvent[] = [];
-    let next = before, nextId = this.next, spawns = 0;
+    const before = this.entities, revision = this.revision;
+    let next = before, nextId = this.next, spawns = 0, events: ScriptEvent[] | undefined;
     const writing = (): Map<number, ScriptEntity> => { if (next === before) next = new Map(before); return next; };
     if (!before.has(self)) throw new Error('Unknown entity');
-    for (const effect of effects) {
+    for (let at = 0; at < effects.length; at++) {
+      const effect = effects[at]; if (effect === undefined) continue;
       const { op, a, b, c, d } = effect;
-      if (![op, a, b, c, d].every(Number.isFinite)) throw new Error('Non-finite effect');
+      if (!Number.isFinite(op) || !Number.isFinite(a) || !Number.isFinite(b) || !Number.isFinite(c) || !Number.isFinite(d)) throw new Error('Non-finite effect');
       const entity = next.get(self); if (!entity) throw new Error('Unknown entity');
       if (op === SCRIPT_OP.field) {
         this.field(a, b); if (c !== 0 || d !== 0) throw new Error('Reserved effect values');
-        writing().set(self, { ...entity, fields: { ...entity.fields, [a]: b } });
+        // Rewriting a field's current value keeps the entity record (and the map) shared.
+        if (!Object.is(entity.fields[a], b)) writing().set(self, { ...entity, fields: { ...entity.fields, [a]: b } });
       } else if (op === SCRIPT_OP.position) {
         if (![a, b, c].every(coord) || d !== 0) throw new Error('Position outside bounds');
-        writing().set(self, { ...entity, position: [a, b, c] });
+        if (!Object.is(entity.position[0], a) || !Object.is(entity.position[1], b) || !Object.is(entity.position[2], c)) writing().set(self, { ...entity, position: [a, b, c] });
       } else if (op === SCRIPT_OP.spawn) {
         if (!id(a) || !this.rules.archetypes.includes(a) || ![b, c, d].every(coord)) throw new Error('Spawn outside declared range');
         if (++spawns > spawnAllowance || next.size >= this.rules.maxEntities || !id(nextId)) throw new Error('Spawn allowance');
         writing().set(nextId, { id: nextId, name: `entity ${nextId}`, position: [b, c, d], fields: {}, frozen: false, interactive: true }); nextId++;
       } else if (op === SCRIPT_OP.event) {
         if (!id(a) || !this.rules.events.includes(a) || !next.has(b) || d !== 0) throw new Error('Event outside declared range');
+        events ??= [];
         if (events.length >= eventAllowance) throw new Error('Event allowance'); events.push({ type: a, target: b, value: c });
       } else throw new Error('Unknown effect operation');
     }
-    return { spawns, events, commit: () => { if (this.revision !== revision) throw new Error('Stale effect transaction'); this.entities = next; this.next = nextId; this.revision++; } };
+    return { spawns, events: events ?? NO_EVENTS, commit: () => { if (this.revision !== revision) throw new Error('Stale effect transaction'); this.entities = next; this.next = nextId; this.revision++; } };
   }
 }
