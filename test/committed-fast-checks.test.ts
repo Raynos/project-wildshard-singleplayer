@@ -176,18 +176,19 @@ test('native generated data requires its exact committed catalogue hash',()=>{
 
 test('native source providers need the mirror context and verify every returned digest',()=>{
   const f=fixture();try {
-    const file='src/derived.generated.ts',asset='public/assets/provider.bin',retained='src/owned.json';
-    f.put('.gitignore','tmp/\nnode_modules/\n*.generated.ts\npublic/\n');
-    f.put('src/main.ts',"import {value} from './derived.generated';export const result=value;");
-    const catalogue={jobs:[{id:'source',outputs:[file,asset,retained],buildTimeOutputs:[file,asset,retained]}]};
+    const file='src/derived.generated.ts',asset='public/assets/provider.bin',retained='src/owned.json',pinned='src/pinned.generated.json';
+    const pin='7ab5c3764baa1cbd91989e42e3fdb3f2927c7282cc3263e9372d3a144aa869ff';
+    f.put('.gitignore','tmp/\nnode_modules/\n*.generated.ts\n*.generated.json\npublic/\n');
+    f.put('src/main.ts',"import {value} from './derived.generated';import pinned from './pinned.generated.json';export const result=[value,pinned];");
+    const catalogue={jobs:[{id:'source',outputs:[file,asset,retained],buildTimeOutputs:[file,asset,retained]},{id:'pinned',outputs:[pinned],buildOutputs:{[pinned]:pin}}]};
     f.put('scripts/generation-jobs.json',JSON.stringify(catalogue));
     f.put(retained,'{"id":1}');
     // Explicit process dependencies: no real machine lease or generation cache
     // is acquired by this tiny native-protocol fixture.
     f.put('scripts/heavy-lane.py','import os,sys\nos.execvp(sys.argv[3],sys.argv[3:])\n');
     f.put('scripts/generate.mjs',`import{mkdirSync,writeFileSync}from'node:fs';import{resolve}from'node:path';import{createHash}from'node:crypto';
-export function discoverGeneration(){return {jobs:[{id:'source',buildTimeOutputs:['${file}','${asset}','${retained}']}]};}
-export async function generateShardJob(){const directory=resolve('tmp/provider');mkdirSync(directory+'/src',{recursive:true});mkdirSync(directory+'/public/assets',{recursive:true});const bytes='export const value=1;';writeFileSync(directory+'/${file}',bytes);writeFileSync(directory+'/${asset}','owned-asset');writeFileSync(directory+'/${retained}','{"id":1}');return {directory,hashes:{'${file}':createHash('sha256').update(bytes).digest('hex'),'${asset}':createHash('sha256').update('owned-asset').digest('hex'),'${retained}':createHash('sha256').update('{"id":1}').digest('hex')},release(){}};}`);
+export function discoverGeneration(){return {jobs:[{id:'source',outputs:['${file}','${asset}','${retained}']},{id:'pinned',outputs:['${pinned}']}]};}
+export async function generateShardJob(root,job){const directory=resolve('tmp/provider');mkdirSync(directory+'/src',{recursive:true});mkdirSync(directory+'/public/assets',{recursive:true});if(job.id==='pinned'){const pinBytes='{"layout":1}';writeFileSync(directory+'/${pinned}',pinBytes);return {directory,hashes:{'${pinned}':createHash('sha256').update(pinBytes).digest('hex')},release(){}};}const bytes='export const value=1;';writeFileSync(directory+'/${file}',bytes);writeFileSync(directory+'/${asset}','owned-asset');writeFileSync(directory+'/${retained}','{"id":1}');return {directory,hashes:{'${file}':createHash('sha256').update(bytes).digest('hex'),'${asset}':createHash('sha256').update('owned-asset').digest('hex'),'${retained}':createHash('sha256').update('{"id":1}').digest('hex')},release(){}};}`);
     const tip=f.commit();
     const ordinary=f.run('fast-lint',tip);
     expect(ordinary.stdout).toContain('unverified inputs src/derived.generated');
@@ -196,6 +197,7 @@ export async function generateShardJob(){const directory=resolve('tmp/provider')
     expect(native.stdout).toContain('Fast lint passed on 1 exact changed files');
     expect(native.stdout).not.toContain('DEFERRED TO CI');
     expect(readFileSync(resolve(f.root,asset),'utf8')).toBe('owned-asset');
+    expect(readFileSync(resolve(f.root,pinned),'utf8')).toBe('{"layout":1}');
     const provider=readFileSync(resolve(f.root,'scripts/generate.mjs'),'utf8');
     f.put('scripts/generate.mjs',provider.replaceAll('{"id":1}','{"id":2}'));
     const moved=f.run('fast-lint',f.commit(),['src/main.ts'],f.base,false,true);
@@ -204,6 +206,10 @@ export async function generateShardJob(){const directory=resolve('tmp/provider')
     f.put('scripts/generate.mjs',provider.replace("createHash('sha256').update(bytes).digest('hex')",`'${'0'.repeat(64)}'`));
     const bad=f.run('fast-lint',f.commit(),['src/main.ts'],f.base,false,true);
     expect(bad.status).toBe(1);expect(bad.stderr).toContain('Native source output differs');
+    f.put('scripts/generate.mjs',provider.replace("const pinBytes='{\"layout\":1}'","const pinBytes='{\"layout\":2}'"));
+    f.put(pinned,'{"layout":0}');
+    const badPin=f.run('fast-lint',f.commit(),['src/main.ts'],f.base,false,true);
+    expect(badPin.status).toBe(1);expect(badPin.stderr).toContain('Native source output differs');
     f.put('scripts/generate.mjs',provider);
     f.put('scripts/generation-jobs.json',JSON.stringify({jobs:[{...catalogue.jobs[0],outputs:[file]}]}));
     const undeclared=f.run('fast-lint',f.commit(),['src/main.ts'],f.base,false,true);

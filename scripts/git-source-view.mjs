@@ -18,7 +18,7 @@ export function gitSourceView(root, revision) {
   const derived = new Map();
   /** @type {Map<string,string>} */
   const generatedProofs = new Map();
-  /** @type {Map<string,{id:string,outputs:string[],buildTimeOutputs:string[]}>} */
+  /** @type {Map<string,{id:string,outputs:string[],nativeOutputs:string[]}>} */
   const sourceProviders = new Map();
   const directories = new Set(['']);
   for(const record of tree.split('\0')) {
@@ -44,7 +44,8 @@ export function gitSourceView(root, revision) {
             generatedPins.set(file,hash);
           }
           if(job.buildTimeOutputs.length>0&&job.id==='')throw new Error('Source provider requires its declared identity');
-          for(const file of job.buildTimeOutputs)if(!sourceProviders.has(file))sourceProviders.set(file,job);
+          const nativeOutputs=[...new Set([...job.buildTimeOutputs,...Object.keys(job.buildOutputs)])];
+          if(job.id!=='')for(const file of nativeOutputs)if(!sourceProviders.has(file))sourceProviders.set(file,{id:job.id,outputs:job.outputs,nativeOutputs});
         }
       }
     }
@@ -193,8 +194,8 @@ export function deriveGitDiscovery(view,path) {
   if(view.admitGenerated(path))return true;
   const job=view.sourceProviders.get(path);
   if(job===undefined)return false;
-  for(const file of job.buildTimeOutputs)if(!job.outputs.includes(file)||!file.startsWith('src/')&&!file.startsWith('public/')||file.split('/').includes('..'))throw new Error(`Invalid native source output: ${file}`);
-  const tracked=job.buildTimeOutputs.filter(file=>view.files.has(file));
+  for(const file of job.nativeOutputs)if(!job.outputs.includes(file)||!file.startsWith('src/')&&!file.startsWith('public/')||file.split('/').includes('..'))throw new Error(`Invalid native source output: ${file}`);
+  const tracked=job.nativeOutputs.filter(file=>view.files.has(file));
   const source=`
     import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
     import {resolve,dirname} from 'node:path';
@@ -202,9 +203,11 @@ export function deriveGitDiscovery(view,path) {
     const job=discoverGeneration(process.cwd()).jobs.find(row=>row.id===process.argv[1]);
     if(job===undefined)throw new Error('Missing declared source provider');
     const tracked=new Set(JSON.parse(process.argv[2]));
+    const outputs=JSON.parse(process.argv[3]);
     const result=await generateShardJob(process.cwd(),job);
     try {
-      for(const file of job.buildTimeOutputs??[]){
+      for(const file of outputs){
+        if(!job.outputs.includes(file))throw new Error('Undeclared native source output');
         if(tracked.has(file))continue;
         const output=resolve(file);mkdirSync(dirname(output),{recursive:true});
         writeFileSync(output,readFileSync(resolve(result.directory,file)));
@@ -212,11 +215,11 @@ export function deriveGitDiscovery(view,path) {
       console.log(JSON.stringify(result.hashes));
     } finally {result.release();}
   `;
-  const output=execFileSync('python3',['scripts/heavy-lane.py','build','--',process.execPath,'--input-type=module','--eval',source,'--',job.id,JSON.stringify(tracked)],{cwd:view.root,encoding:'utf8',maxBuffer:8*1024*1024});
+  const output=execFileSync('python3',['scripts/heavy-lane.py','build','--',process.execPath,'--input-type=module','--eval',source,'--',job.id,JSON.stringify(tracked),JSON.stringify(job.nativeOutputs)],{cwd:view.root,encoding:'utf8',maxBuffer:8*1024*1024});
   const line=output.trim().split('\n').at(-1);
   if(line===undefined)throw new Error('Missing generated-output proof');
   const hashes=v.parse(v.record(v.string(),v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),JSON.parse(line));
-  for(const file of job.buildTimeOutputs){
+  for(const file of job.nativeOutputs){
     const hash=hashes[file];if(hash===undefined)throw new Error(`Missing native source proof: ${file}`);
     if(view.files.has(file)){
       if(createHash('sha256').update(view.read(file)).digest('hex')!==hash||!view.matches(file))throw new Error(`Generated output differs from committed source: ${file}`);
