@@ -365,13 +365,13 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertNotIn('foreign working guard', result['output'])
         self.assertEqual((self.root / path).read_text(), '')
 
-    def test_binary_json_budget_defers_but_preserves_observed_refusal(self):
+    def test_binary_json_budget_refuses_and_preserves_observed_refusal(self):
         self.put('scripts/no-binary-json.mjs', (TOOL_ROOT / 'no-binary-json.mjs').read_text())
         self.put('scripts/generated-source.mjs', (TOOL_ROOT / 'generated-source.mjs').read_text())
         self.put('lint/no-binary-json.json', json.dumps({'schema': 'no-binary-json/1', 'source': self.base, 'files': {}}))
         tip = self.commit('src/policy.ts')
         generated_path = '/'.join(('src', 'new.generated.ts'))
-        for output, accepted in [('still running', True), ('BINARY-JSON public/new.json: binary', False),
+        for output, accepted in [('still running', False), ('BINARY-JSON public/new.json: binary', False),
                                  (f'GENERATED-SOURCE {generated_path}: new output', False)]:
             with patch.dict(LIVE, run=lambda *_: (124, output)):
                 result = PUSH['check_binary_json'](self.root, self.base, tip, time.monotonic() + 45)
@@ -385,7 +385,7 @@ readFileSync('../public/assets/native/untracked.bin');
                                            float('inf'), capture_output=True, text=True)
         self.assertEqual(result.stdout.strip(), 'exact')
 
-    def test_gate_runs_fast_phases_without_source_preparation_or_typed_work(self):
+    def test_gate_routes_native_lint_through_committed_mirror(self):
         tip = self.commit('src/good.ts')
         calls, cleanups = [], []
         @contextmanager
@@ -396,11 +396,13 @@ readFileSync('../public/assets/native/untracked.bin');
             finally:
                 cleanups.append(revision)
         def runner(command, root, deadline, env):
-            calls.append(command[5])
+            calls.append(command[-2])
+            if command[-2] == 'fast-lint':
+                self.assertEqual(Path(command[1]), self.root / 'scripts/push-committed-check.mjs')
             self.assertEqual(root, self.root)
             self.assertGreater(deadline, time.monotonic())
             self.assertIn('WS_GIT_CHECK_DEADLINE', env)
-            return 0, 'DEFERRED TO CI fast-lint src/good.ts' if command[5] == 'fast-lint' else 'passed'
+            return 0, 'passed'
         with patch.dict(PUSH, fast_tools=prepared), patch.dict(LIVE, run=runner):
             result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
         self.assertTrue(result['ok'])
@@ -410,7 +412,7 @@ readFileSync('../public/assets/native/untracked.bin');
         steps = {row['step']: row for row in result['steps']}
         self.assertNotIn('source-prepare', steps)
         self.assertNotIn('source-cleanup', steps)
-        self.assertEqual(steps['fast-lint']['status'], 'deferred')
+        self.assertEqual(steps['fast-lint']['status'], 'passed')
         for phase in ['typed-lint', 'related-tests']:
             self.assertEqual(steps[phase]['status'], 'skipped')
             self.assertEqual(steps[phase]['reason'], 'ci-G675')
@@ -459,6 +461,51 @@ readFileSync('../public/assets/native/untracked.bin');
         steps = {row['step']: row for row in result['steps']}
         self.assertEqual(steps['related-tests']['reason'], 'generated-inputs')
         self.assertEqual(steps['typed-lint']['reason'], 'generated-inputs')
+
+    def test_push_batch_uses_the_G756_180_second_cap(self):
+        tip = self.commit('src/good.ts')
+        deadlines = []
+        def checker(root, base, candidate, deadline):
+            deadlines.append(deadline - time.monotonic())
+            return {'ok': True, 'phase': 'passed', 'files': [], 'output': '', 'types': 'checked'}
+        result = PUSH['tick'](self.root, checker=checker, uploader=lambda *_: 0)
+        self.assertEqual(result['status'], 'pushed')
+        self.assertEqual(result['tip'], tip)
+        self.assertEqual(len(deadlines), 1)
+        self.assertGreater(deadlines[0], 179)
+        self.assertLessEqual(deadlines[0], 180)
+
+    def test_unfinished_gate_never_uploads_the_candidate(self):
+        tip = self.commit('src/good.ts')
+        cases = [(phase, 'budget') for phase in
+                 ('binary-json', 'tool-inputs', 'storage', 'ratchet', 'guards', 'fast-lint')]
+        cases.append(('fast-lint', 'unverified-inputs'))
+        for phase, cause in cases:
+            with self.subTest(phase=phase, cause=cause):
+                uploads = []
+                @contextmanager
+                def prepared(*_):
+                    if phase == 'tool-inputs':
+                        raise TimeoutError('exact checker inputs exhausted')
+                    yield self.root / 'scripts'
+                def binary(*_):
+                    return {'ok': phase != 'binary-json', 'budget': phase == 'binary-json',
+                            'files': [], 'output': 'policy result'}
+                def runner(command, *_):
+                    if command[-2] != phase:
+                        return 0, 'passed'
+                    return (0, 'DEFERRED TO CI fast-lint src/good.ts') if cause == 'unverified-inputs' else (124, 'still running')
+                with patch.dict(PUSH, fast_tools=prepared, check_binary_json=binary), patch.dict(LIVE, run=runner):
+                    result = PUSH['tick'](self.root, checker=PUSH['check_committed'],
+                                          uploader=lambda *args: uploads.append(args), notify=lambda *_: True)
+                self.assertEqual(result['status'], 'red')
+                self.assertEqual(result['phase'], phase)
+                self.assertEqual(result['tip'], tip)
+                self.assertEqual(uploads, [])
+                self.assertIsNone(result['bad'])
+                steps = {row['step']: row for row in result['steps'] if row['step'] != 'attribution'}
+                self.assertEqual(steps[phase]['status'], 'failed')
+                self.assertEqual(steps[phase]['reason'], cause)
 
     def test_guard_budget_defers_only_without_observed_failures(self):
         tip = self.commit('src/good.ts')
@@ -642,7 +689,7 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertFalse(result['ok'])
         self.assertEqual(result['phase'], 'ratchet')
 
-    def test_each_budget_hands_off_to_ci_but_preserves_real_refusals(self):
+    def test_each_budget_refuses_and_preserves_real_refusals(self):
         self.git('rm', 'src/base.ts')
         tip = self.commit('src/good.ts')
         @contextmanager
@@ -650,27 +697,21 @@ readFileSync('../public/assets/native/untracked.bin');
             yield self.root / 'scripts'
         phases = ['storage', 'deleted-paths', 'ratchet', 'guards', 'fast-lint']
         for phase in phases:
-            for text, accepted in [('pre-push budget exhausted', True), ('Error: observed policy refusal', False)]:
+            for text, reason in [('pre-push budget exhausted', 'budget'), ('Error: observed policy refusal', 'observed-refusal')]:
                 calls = []
                 def runner(command, *_):
                     calls.append(command[5])
                     return (124, text) if command[5] == phase else (0, '')
                 with patch.dict(PUSH, fast_tools=prepared), patch.dict(LIVE, run=runner):
                     result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
-                self.assertEqual(result['ok'], accepted, (phase, text))
+                self.assertFalse(result['ok'], (phase, text))
                 self.assertEqual(calls, phases[:phases.index(phase)+1])
                 rows = {row['step']:row for row in result['steps']}
-                if accepted:
-                    self.assertEqual(result['types'], 'ci-budget')
-                    for pending in phases[phases.index(phase):]:
-                        self.assertEqual(rows[pending]['status'], 'deferred')
-                        self.assertIn('DEFERRED TO CI ' + pending, result['output'])
-                    for completed in phases[:phases.index(phase)]:
-                        self.assertEqual(rows[completed]['status'], 'passed')
-                else:
-                    self.assertEqual(result['phase'], phase)
-                    self.assertEqual(rows[phase]['status'], 'failed')
-                    self.assertEqual(rows[phase]['reason'], 'observed-refusal')
+                self.assertEqual(result['phase'], phase)
+                self.assertEqual(rows[phase]['status'], 'failed')
+                self.assertEqual(rows[phase]['reason'], reason)
+                for completed in phases[:phases.index(phase)]:
+                    self.assertEqual(rows[completed]['status'], 'passed')
 
     def test_missing_discovery_prevents_a_partial_cache_from_enabling_types(self):
         self.put('src/shards/fixture/world/build.ts', "import manifest from '../discovery.generated';\nexport const seed = manifest.seed;\n")

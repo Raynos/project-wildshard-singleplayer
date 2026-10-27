@@ -15,6 +15,7 @@ from contextlib import contextmanager
 
 LIVE = runpy.run_path(str(Path(__file__).with_name('live-prepush.py')))
 git = LIVE['git']
+PUSH_GATE_SECONDS = 180  # G756: one hard batch cap; no successful budget skips.
 
 
 def deferred_blobs(root, base, tip, name):
@@ -66,7 +67,8 @@ def check_binary_json(root, base, tip, deadline):
             (Path(owned) / 'generated-source.mjs').write_text(source_guard.stdout)
         rc, output = LIVE['run'](['node', str(checker), '--range', base, tip], root, deadline)
     if rc == 124 and not re.search(r'(?:BINARY-JSON |GENERATED-SOURCE )', output):
-        return {'ok': True, 'budget': True, 'files': [], 'output': output + '\nDEFERRED TO CI binary-json: local budget exhausted.\n'}
+        return {'ok': False, 'budget': True, 'phase': 'binary-json', 'files': [],
+                'output': output + '\nREFUSED binary-json: local budget exhausted.\n'}
     if rc != 0:
         paths = sorted(set(re.findall(r'^(?:BINARY-JSON|GENERATED-SOURCE) ([^\n:]+):', output, re.M)))
         return {'ok': False, 'phase': 'binary-json', 'files': paths, 'output': output}
@@ -97,20 +99,22 @@ def check_committed(root, base, tip, deadline):
     steps = LIVE['GateSteps'](names)
     steps.skip(('typed-lint', 'related-tests'), 'ci-G675')
     result = {'ok': False, 'phase': 'binary-json', 'files': [], 'output': '', 'types': 'ci', 'steps': steps.rows}
-    def defer_budget(phase):
+    def refuse_budget(phase):
         for entry in steps.rows:
-            if entry['step'] == phase or entry['status'] == 'skipped' and entry.get('reason') == 'not-reached':
-                entry.update(status='deferred', reason='budget-ci')
-                result['output'] += '\nDEFERRED TO CI ' + entry['step'] + ': local budget exhausted.'
-        result.update(ok=True, phase='ci-budget', types='ci-budget')
+            if entry['step'] == phase:
+                entry.update(status='failed', reason='budget')
+            elif entry['status'] == 'skipped' and entry.get('reason') == 'not-reached':
+                entry.update(reason='prior-refusal')
+        result.update(ok=False, phase=phase,
+                      output=result['output'] + '\nREFUSED ' + phase + ': local budget exhausted.')
         return result
 
     with steps.measure('binary-json') as row:
         binary = check_binary_json(root, base, tip, deadline)
         row['status'] = 'budget' if binary.get('budget') else 'passed' if binary['ok'] else 'failed'
     result['output'] = binary['output']
-    if binary.get('budget') and binary['ok']:
-        return defer_budget('binary-json')
+    if binary.get('budget'):
+        return refuse_budget('binary-json')
     if not binary['ok']:
         result.update(phase='binary-json', files=binary.get('files', []))
         return result
@@ -126,15 +130,21 @@ def check_committed(root, base, tip, deadline):
                 if phase == 'deleted-paths' and not removed:
                     steps.skip((phase,), 'no-deletions')
                     continue
-                command = ['node', str(folder / 'committed-fast-checks.mjs'), str(root), base, tip, phase,
+                checker = root / 'scripts/push-committed-check.mjs' if phase == 'fast-lint' else folder / 'committed-fast-checks.mjs'
+                command = ['node', str(checker), str(root), base, tip, phase,
                            json.dumps(removed if phase == 'deleted-paths' else files)]
                 rc, output = steps.run(phase, LIVE['run'], command, root, deadline, env)
                 result['output'] += '\n' + output
                 if not rc and 'DEFERRED TO CI' in output:
-                    steps.row(phase).update(status='deferred', reason='inputs-do-not-match-tip')
+                    steps.row(phase).update(status='failed', reason='unverified-inputs')
+                    # No source check executed for these inputs: never blame
+                    # a commit merely because the diagnostic names its file.
+                    result.update(phase=phase, files=[])
+                    steps.skip(names, 'prior-refusal')
+                    return result
                 observed = re.search(r'(?:\berror(?:\s|\[|\()|(?:Error|TypeError|SyntaxError|RangeError|ReferenceError):|BINARY-JSON |CLOSED |SHRINK-ONLY |Ratchet rose:|deleted path|was \d+, now \d+)', LIVE['ANSI'].sub('', output), re.I)
                 if rc == 124 and observed is None:
-                    return defer_budget(phase)
+                    return refuse_budget(phase)
                 if rc:
                     if rc == 124 and observed is not None:
                         steps.row(phase).update(status='failed', reason='observed-refusal')
@@ -144,7 +154,7 @@ def check_committed(root, base, tip, deadline):
         finally:
             tools.__exit__(None, None, None)
     except (TimeoutError, subprocess.TimeoutExpired):
-        return defer_budget('tool-inputs')
+        return refuse_budget('tool-inputs')
     except (OSError, subprocess.SubprocessError) as error:
         result.update(phase='tool-inputs', output=result['output'] + '\nExact checker inputs failed: ' + str(error))
         return result
@@ -225,8 +235,8 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
     if quiet_active(common / 'quiet'):
         return {'status': 'quiet', 'tip': git(root, 'rev-parse', 'main')}
     started = time.monotonic()
-    # Fast checks and attribution share the same 45-second ceiling.
-    deadline = started + LIVE['LIMIT'] - 2
+    # G756: checks and attribution share one 180-second batch allowance.
+    deadline = started + PUSH_GATE_SECONDS
     pending_notice = None
     attempts = []
 
