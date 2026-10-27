@@ -4,6 +4,14 @@ import { assertCompressedMipmapsUnchanged, finalizeCompressedMipmaps, immutableC
 
 type DrawTarget = Pick<Renderer, 'properties' | 'renderBufferDirect'>;
 const installed = new WeakMap<DrawTarget, WeakSet<THREE.Texture>>();
+/** each observed renderer's record of the native allocation a retired texture was drawn with */
+const allocations = new Set<WeakMap<THREE.Texture, unknown>>();
+
+/** The texture's storage is given back and allocated again on purpose (T6.2's lease, `leaseOutKtx2` / `leaseInKtx2`):
+ *  forget the allocation its retirement recorded, so its next first draw records the new one instead of refusing it. */
+export function forgetCompressedAllocation(texture: THREE.Texture): void {
+  for (const retired of allocations) retired.delete(texture);
+}
 
 /** Observe completed first draws without importing upload scheduling or boot services.
  * Explicit immutable inputs need both native versions. Loader inputs keep their final-preparation fence. */
@@ -21,6 +29,7 @@ function observeDraws(renderer: DrawTarget, final: WeakSet<THREE.Texture>): void
   const draw = renderer.renderBufferDirect.bind(renderer);
   const bound = new Set<THREE.Texture>();
   const retired = new WeakMap<THREE.Texture, unknown>();
+  allocations.add(retired);
   /** the draw each texture was last checked in: a draw asks for a bound texture's properties several times, and the
    *  retirement checks (its sampler fields, its allocation) need one look a draw (G639); outside a draw, every time */
   const checked = new WeakMap<THREE.Texture, number>();

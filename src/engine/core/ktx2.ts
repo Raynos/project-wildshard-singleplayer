@@ -29,6 +29,7 @@ import { labelAsset } from '../render/gpuLabels';
 import { ScopedWorkerPool } from './scopedWorkerPool';
 import { Ktx2Sources } from './ktx2Sources';
 import { uploadCompressedTexture } from '../render/compressedUpload';
+import { forgetCompressedAllocation } from '../render/compressedTextureRetirement';
 import { registerCompressedMipmaps, compressedMipmapsUploaded, restoreCompressedMipmaps } from '../render/compressedMipmaps';
 import { dispatchRebind } from '../app/scope';
 import { harnessPins } from '../app/identity';
@@ -338,6 +339,7 @@ export function leaseOutKtx2(texture: THREE.Texture): boolean {
   if (file?.tail === undefined || leased.has(texture) || !(texture instanceof THREE.CompressedTexture)) return false;
   leased.set(texture, null);
   dispatchRebind(texture);
+  forgetCompressedAllocation(texture);
   // until the lease ends it holds only its chain's last mip (a texture never drawn held all of them): a stray upload (a
   // warm-up's stand-in of a hidden rig) takes a few bytes, never an empty chain
   restoreCompressedMipmaps(texture);
@@ -362,6 +364,7 @@ export function leaseInKtx2(texture: THREE.Texture): Promise<void> {
     const fresh = await load(file.url, true), mips = fresh.mipmaps.slice(file.level);
     if (mips.length === 0 || fresh.format !== texture.format) throw new Error(`KTX2 lease of ${file.url}: the file no longer matches its texture`);
     restoreCompressedMipmaps(texture);
+    forgetCompressedAllocation(texture);
     ownSource(texture);
     texture.mipmaps = mips;
     texture.needsUpdate = true;

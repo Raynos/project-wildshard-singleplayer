@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { BufferGeometry, CompressedArrayTexture, CompressedTexture, Mesh, MeshBasicMaterial, PerspectiveCamera, RGBA_S3TC_DXT5_Format, Scene, WebGLRenderer } from 'three';
 import { gpuOnlyTexture } from './gpuOnly';
 import { uploadCompressedTexture } from '../render/compressedUpload';
-import { installCompressedTextureRetirement } from '../render/compressedTextureRetirement';
+import { forgetCompressedAllocation, installCompressedTextureRetirement } from '../render/compressedTextureRetirement';
 import { pageScope } from '../app/resources';
 
 function nativeDraw(texture: CompressedTexture) {
@@ -57,4 +57,22 @@ test.each([false, true])('declared compressed array=%s retires at a successful n
     const empty = texture.mipmaps; native.draw(); expect(texture.mipmaps).toBe(empty);
     expect(texture.image.width).toBe(4); expect(texture.image.height).toBe(4);
   } finally { raf.mockRestore(); timeout.mockRestore(); native.close(); texture.dispose(); control.dispose(); }
+});
+
+test('a leased texture takes a new allocation after retirement only once its old one is forgotten (T6.2)', () => {
+  const mips = [{ data: new Uint8Array(16), width: 4, height: 4 }], texture = new CompressedTexture(mips, 4, 4, RGBA_S3TC_DXT5_Format);
+  const native = nativeDraw(texture);
+  try {
+    installCompressedTextureRetirement(native.renderer);
+    texture.needsUpdate = true; gpuOnlyTexture(texture, 'leased compressed draw');
+    native.flags.uploaded = true; native.draw();
+    expect(texture.mipmaps).toHaveLength(0);
+    // the lease frees the storage and the refill allocates anew: an unexplained new allocation still refuses
+    const properties: unknown = native.renderer.properties.get(texture);
+    if (typeof properties !== 'object' || properties === null) throw new Error('Missing texture properties');
+    Reflect.set(properties, '__webglTexture', {});
+    expect(native.draw).toThrow('lost its allocation after mip retirement');
+    forgetCompressedAllocation(texture);
+    expect(native.draw).not.toThrow();
+  } finally { native.close(); texture.dispose(); }
 });
