@@ -210,6 +210,11 @@ function parentOf(tile: { instance: string; level: RingLevel; x: number; z: numb
   return tile.level === 'l1' ? key(tile.instance, 'far', 0, 0) : key(tile.instance, 'l1', Math.floor(tile.x / 2), Math.floor(tile.z / 2));
 }
 
+interface SettledMotion {
+  readonly radius: number;
+  readonly minX: number; readonly maxX: number; readonly minZ: number; readonly maxZ: number;
+}
+
 /** The render rings of one grid session. Call `step` once per fixed step with the camera; `dispose` at session end. */
 export class TileStreamer<D> {
   private readonly slots = new Map<string, Slot<D>>();
@@ -230,7 +235,7 @@ export class TileStreamer<D> {
   private readonly ports: RingPorts<D>;
   private readonly options: Required<RingOptions>;
   private demandRevision = 0;
-  private idlePlan: { x: number; z: number; vx: number; vz: number; cx: number; cz: number; catalogue: number; demand: number; wakeFrame: number } | null = null;
+  private idlePlan: { x: number; z: number; vx: number; vz: number; cx: number; cz: number; catalogue: number; demand: number; wakeFrame: number; motion: SettledMotion | null } | null = null;
   private frame = 0;
   private refused = 0;
   private evictions = 0;
@@ -374,8 +379,11 @@ export class TileStreamer<D> {
     // frame. Completion, pins, eviction and catalogue changes invalidate it;
     // queued uploads still consume their original per-frame budget.
     if (prior !== null && frame < prior.wakeFrame && revision === prior.catalogue && this.demandRevision === prior.demand
-      && camera.x === prior.x && camera.z === prior.z && camera.vx === prior.vx && camera.vz === prior.vz
-      && fullCentre.x === prior.cx && fullCentre.z === prior.cz) return;
+      && (camera.x === prior.x && camera.z === prior.z && camera.vx === prior.vx && camera.vz === prior.vz
+        && fullCentre.x === prior.cx && fullCentre.z === prior.cz
+        || prior.motion !== null && Math.hypot(camera.x - prior.x, camera.z - prior.z) < prior.motion.radius
+          && fullCentre.x >= prior.motion.minX && fullCentre.x < prior.motion.maxX
+          && fullCentre.z >= prior.motion.minZ && fullCentre.z < prior.motion.maxZ)) return;
     this.idlePlan = null;
     const demand = this.demandRevision;
     // Keep the desired map borrowed until every callback in this step has finished.
@@ -409,12 +417,56 @@ export class TileStreamer<D> {
           if (inFlight < this.options.maxInFlight) { settled = false; break; }
         }
         if (settled) this.idlePlan = { x: camera.x, z: camera.z, vx: camera.vx, vz: camera.vz,
-          cx: fullCentre.x, cz: fullCentre.z, catalogue: revision, demand, wakeFrame };
+          cx: fullCentre.x, cz: fullCentre.z, catalogue: revision, demand, wakeFrame,
+          motion: wakeFrame === Infinity ? this.settledMotion(camera, fullCentre, want) : null };
       }
     } finally {
       work.l0.length = 0; work.l1.length = 0; work.ranked.length = 0; work.fine.length = 0; work.want.clear();
       if (!this.disposed) this.desiredWork.push(work);
     }
+  }
+
+  /** A fully published explicit-ring plan can survive motion only while every
+   * geometric decision provably keeps its verdict. Rectangle distance is
+   * 1-Lipschitz; half the closest threshold/ranking gap is conservative.
+   * Count-clipped or distance-selected fine plans keep exact-pose polling.
+   * All leases here are needed: no distance participates in cache eviction.
+   * Any demand change refreshes exact distances before a tile can be unneeded. */
+  private settledMotion(camera: RingCamera, centre: { readonly x: number; readonly z: number },
+    want: ReadonlyMap<string, unknown>): SettledMotion | null {
+    if (this.slots.size !== want.size || this.farPlanned.omitted.length > 0) return null;
+    for (const slot of this.slots.values()) if (slot.state !== 'uploaded' || !want.has(slot.tile.key)) return null;
+    let radius = Infinity, minX = -Infinity, maxX = Infinity, minZ = -Infinity, maxZ = Infinity, coarse = 0, l1 = 0;
+    for (const cell of this.cells) {
+      const full = this.fullRings.get(cell.instance);
+      if (full === undefined || full.x === null || full.z === null) return null;
+      l1 += cell.columns.l1 * cell.rows.l1;
+      if (l1 > C.l1Count) return null;
+      if (this.bytes(cell.instance, 'far', 0, 0) === null && ++coarse > this.options.farCount) return null;
+      const lx = camera.x - cell.origin.x, lz = camera.z - cell.origin.z;
+      const d = rectDistance(lx, lz, 'far', 0, 0, cell);
+      radius = Math.min(radius, Math.abs(d - this.options.viewDistance), Math.abs(d - this.options.farRadius),
+        Math.abs(d - this.options.viewDistance - this.options.farPrefetch), Math.abs(d - L1_RADIUS));
+      for (let z = 0; z < cell.rows.l1; z++) for (let x = 0; x < cell.columns.l1; x++) {
+        radius = Math.min(radius, Math.abs(rectDistance(lx, lz, 'l1', x, z, cell) - L1_RADIUS));
+      }
+      // Preserve the ranked far-plan readout too, even when every charge fits.
+      for (const other of this.cells) if (other !== cell) {
+        const otherDistance = rectDistance(camera.x - other.origin.x, camera.z - other.origin.z, 'far', 0, 0, other);
+        radius = Math.min(radius, Math.abs(d - otherDistance) / 2);
+      }
+      const left = -cell.extent.width / 2 + full.x * C.l0.size;
+      const top = -cell.extent.depth / 2 + full.z * C.l0.size;
+      if (full.x > 0) minX = Math.max(minX, cell.origin.x + left - 4);
+      if (full.x < cell.columns.l0 - 1) maxX = Math.min(maxX, cell.origin.x + Math.min(cell.extent.width / 2, left + C.l0.size) + 4);
+      if (full.z > 0) minZ = Math.max(minZ, cell.origin.z + top - 4);
+      if (full.z < cell.rows.l0 - 1) maxZ = Math.min(maxZ, cell.origin.z + Math.min(cell.extent.depth / 2, top + C.l0.size) + 4);
+    }
+    for (const slot of this.slots.values()) if (slot.tile.level === 'l0') radius = Math.min(radius, Math.abs(this.distance(slot.tile, camera) - C.shadowRadius));
+    // Explicit rings suppress lookahead for every cell, so velocity cannot
+    // change membership. Exact full-centre hysteresis still fences movement.
+    if (!(radius > 0) || centre.x < minX || centre.x >= maxX || centre.z < minZ || centre.z >= maxZ) return null;
+    return { radius: radius / 2, minX, maxX, minZ, maxZ };
   }
 
   /** Dispose every view and release every lease. */

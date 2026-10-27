@@ -447,3 +447,24 @@ change. Queued uploads retain their existing per-frame drain budget.
 No tile selection, distance threshold, residency cap or mask rule changes.
 Touched engine/test types and typed lint pass; row-only shared-preview
 allocation qualification follows this landed source. H2 stays open.
+
+### H2 motion certificate (2026-10-27)
+
+The row-only reading on `cfef1c4658` after `05a8ac95ee` remains open:
+0.788/0.747MiB/s, versus0.802/0.777 before. No material gain is claimed.
+A separate nonqualifying probe finds the plan armed237/237 steps, but
+exact camera/centre changes invalidate it226 times. A second two-second
+probe records roughly6-micrometre solver drift with velocity0, no queued
+work and41 published residents (16 L1/25 L0).
+
+A fully published explicit-ring plan now computes a conservative spatial
+certificate from the actual rectangle/view/LOD/shadow thresholds, rank gaps
+and existing four-metre full-ring hysteresis. Motion strictly inside it
+cannot change any membership, shadow or mask verdict. It is not a position
+rounding or tolerance: crossing a possible boundary wakes the original
+algorithm. Count-clipped/distance-selected fine plans retain exact polling.
+All retained leases are needed; exact eviction distances refresh before
+any tile can become unneeded. Catalogue, pins, demand, completion and retry
+fences remain. Touched types/typed lint pass; H2 stays open for a containing
+shared-preview allocation reading. Original failed reading/probes remain
+in `tmp/sp-x9-miss-fixes`; no H1/S1 rendering hunk is included.

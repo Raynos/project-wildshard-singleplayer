@@ -336,3 +336,23 @@ test('a stationary fetch waits without replanning and its completion wakes publi
     expect(reads).toBeGreaterThan(waiting); expect(streamer.resident()).toEqual(['home:far']);
   } finally { streamer.dispose(); }
 });
+
+
+test('published explicit rings tolerate motion only inside their exact geometric certificate', () => {
+  const allocator = new ResidencyAllocator(); let reads = 0;
+  const catalogue = Object.assign((_id: string, level: RingLevel): number | null => { reads++; return level === 'far' ? null : 1; }, { revision: () => 0 });
+  const masks: number[][] = [];
+  const streamer = new TileStreamer([{ instance: 'home', origin: { x: 0, z: 0 } }], { now: () => 0, reserve: claim => allocator.reserve(claim) }, catalogue,
+    { fetch: (tile, done) => { done(tile.key); }, upload: () => ({ mask: value => { masks.push([...value]); }, shadow: () => undefined, dispose: () => undefined }) });
+  const still = { x: 0, z: 0, vx: 0, vz: 0 };
+  try {
+    streamer.setFullRing('home', 2);
+    for (let i = 0; i < 100; i++) streamer.step(still);
+    const before = reads, resident = streamer.resident(), maskCount = masks.length;
+    for (let i = 0; i < 100; i++) streamer.step({ ...still, x: i / 100000, z: i / 100000 });
+    expect(reads).toBe(before); expect(streamer.resident()).toEqual(resident); expect(masks).toHaveLength(maskCount);
+    // Four metres is the existing followed-ring hysteresis, not an epsilon.
+    streamer.step({ ...still, x: -4.01 }); expect(reads).toBeGreaterThan(before);
+    const moved = reads; streamer.setFullRing('home', 1); streamer.step(still); expect(reads).toBeGreaterThan(moved);
+  } finally { streamer.dispose(); }
+});
