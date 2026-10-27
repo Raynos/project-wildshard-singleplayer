@@ -9,7 +9,11 @@ import { bindLevelSelection } from '@wildshard/engine/level/selection';
 import { HeightfieldBinding, bindHeightfield, normalAt, waterLevel, inChunk } from '@wildshard/engine/world/Heightfield';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { HUT, LOOKOUT, SHRINE, WRECK } from './worldSites';
-import manifest from '../discovery.generated';
+import manifest from '../manifest.json' with { type: 'json' };
+import TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
+import { nativeTerrainQueries } from '@wildshard/sdk/bake/forest';
+import { TRAILS } from './landscapeRows';
+import { DECLARED_SEA, WORLD_DROP } from './sea';
 import { palm, hibiscusBush, type PalmParams, type HibiscusBushParams } from './foliageModels';
 import { palmGeometry } from './palm';
 import { leafClump } from './hibiscus';
@@ -130,11 +134,23 @@ function keepingTier<T>(build: () => T): T {
  const previous: Tier = buildTier();
  try { return build(); } finally { _buildAs(previous === TIER ? null : previous); }
 }
+/** A manifest colour (JSON types it as a plain array). */
+const rgb=(c:readonly number[]):[number,number,number]=>{const [r,g,b]=c;if(c.length!==3||r===undefined||g===undefined||b===undefined)throw new Error('Invalid manifest colour');return[r,g,b];};
+/** D76: the island's level over its declared ground, from the rows bake-interactables declares it with (its trails, the
+ *  sea's rest level, the world drop as the datum; game declaredGround's terrain law over them), never the runtime manifest,
+ *  so the product's author bundle stays one module. The native samples are installed over it (HeightfieldBinding). */
+function islandLevel() {
+ const unready=():never=>{throw new Error('Native island ground is not installed');};
+ const terrain={...nativeTerrainQueries(TERRAIN.seed,{trails:TRAILS,cabinSites:[]},()=>DECLARED_SEA.level),datum:-WORLD_DROP,heightAt:unready,normalAt:unready,splatAt:unready};
+ const {sky,atmosphere,grade}=manifest;
+ return{id:manifest.slug,ground:{terrain},spawn:manifest.spawn,
+  sky:{...sky,sunColor:rgb(sky.sunColor),fogSunColor:rgb(sky.fogSunColor),cloudSunColor:rgb(sky.cloudSunColor)},
+  atmosphere:{...atmosphere,volumetricSunColor:rgb(atmosphere.volumetricSunColor)},grade:{...grade,shadowTint:rgb(grade.shadowTint),highTint:rgb(grade.highTint),lift:rgb(grade.lift),gain:rgb(grade.gain)},
+  budgets:{},mechanisms:[],fight:{},boot:{files:[]},audio:{ambience:'none',score:'none'},loadout:{weapons:[],tools:[],start:[]},species:[],spawns:[],minimap:{},kitLook:'toon' as const};
+}
 function scatterIslandFoliage(): IslandFoliagePlacements { return keepingTier(scatterIslandFoliageRows); }
 function scatterIslandFoliageRows(): IslandFoliagePlacements {
- const terrain=manifest.ground.terrain;if(terrain===undefined)throw new Error('Native island ground is required');
- const level={id:manifest.slug,ground:{terrain},spawn:manifest.spawn,sky:manifest.sky,atmosphere:manifest.atmosphere,grade:manifest.grade,
-  budgets:{},mechanisms:[],fight:{},boot:{files:[]},audio:{ambience:'none',score:'none'},loadout:{weapons:[],tools:[],start:[]},species:[],spawns:[],minimap:{},kitLook:'toon' as const};
+ const level=islandLevel();
  const restoreLevel=bindLevelSelection(level),binding=new HeightfieldBinding(level);
  binding.install(readNativeTerrain(driftwoodGroundBytes()));const restoreGround=bindHeightfield(binding),ground=binding.field,avoid=avoidSites();
  try{
@@ -200,9 +216,7 @@ export function islandCoverBank(readAsset: (url: string) => Uint8Array, facts: D
 async function bakeIslandCoverBank(readAsset: (url: string) => Uint8Array, facts: DriftwoodIslandFacts): Promise<ReadonlyMap<string, Uint8Array>> {
  // the placements before any tier pass: their scatter puts back the build tier it found
  const placed=islandFoliagePlacements(),files=new Map<string,Uint8Array>();
- const terrain=manifest.ground.terrain;if(terrain===undefined)throw new Error('Native island ground is required');
- const level={id:manifest.slug,ground:{terrain},spawn:manifest.spawn,sky:manifest.sky,atmosphere:manifest.atmosphere,grade:manifest.grade,
-  budgets:{},mechanisms:[],fight:{},boot:{files:[]},audio:{ambience:'none',score:'none'},loadout:{weapons:[],tools:[],start:[]},species:[],spawns:[],minimap:{},kitLook:'toon' as const};
+ const level=islandLevel();
  const restoreLevel=bindLevelSelection(level),binding=new HeightfieldBinding(level),previous:Tier=buildTier();
  binding.install(readNativeTerrain(driftwoodGroundBytes()));const restoreGround=bindHeightfield(binding),ground=binding.field;
  try{

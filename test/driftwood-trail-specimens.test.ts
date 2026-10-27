@@ -7,9 +7,14 @@ import { modelContext, seedOf, type ModelDef, type ModelBuild, type ModelPart } 
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { fencePost, signpost, plankStep } from '../src/shards/driftwood-isle/generators/catalogue';
-import { fencePost as nativePost, signpost as nativeSign, plankStep as nativePlank } from '../src/shards/driftwood-isle/generators/trailsideModels';
+import { buildFencePost, buildPlankStep, buildSignpost, type PlankStepParams, type SignpostParams } from '../src/shards/driftwood-isle/generators/trailsideModels';
 import { TRAIL_SPECIMENS } from '../src/shards/driftwood-isle/generators/trailSpecimens';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
+
+// the trail's native models: each catalogue row with its own build (trailsideModels.ts)
+const nativePost: ModelDef<Record<string, never>> = { ...fencePost, build: buildFencePost };
+const nativeSign: ModelDef<SignpostParams> = { ...signpost, build: buildSignpost };
+const nativePlank: ModelDef<PlankStepParams> = { ...plankStep, build: buildPlankStep };
 
 it('transfers sole geometry ownership and leaves no template behind', async () => {
   const original = new BoxGeometry(), intake = modelGeometry('/owned-model.glb');
