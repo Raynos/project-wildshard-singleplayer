@@ -26,7 +26,8 @@ export async function pineNpcSkins(ctx: Pick<ProjectGenerationContext, 'cached'>
     if (bytes === undefined) throw new Error(`Missing cached Pine person ${kind} ${tier}`);
     const made = await bakeNpcSkin(bytes, { id: `pine.${kind}`, lantern: kind === 'ranger' });
     const name = `people/${kind}-skin${tier === 'phone' ? '.phone' : ''}.glb`;
-    blobs.push(nameBlob(name, 'glb', made.glb));
+    // D82: each tier's skin is that tier's download only (the other tier's catalogue row names its own)
+    blobs.push(nameBlob(name, 'glb', made.glb, { tier }));
     (rows[kind] ??= {})[tier] = { material: url, url: name, ...made.metadata };
     made.geometry.dispose();
   }

@@ -36,7 +36,8 @@ export async function pineCoatPages(ctx: Pick<ProjectGenerationContext, 'cached'
     for (const coat of painted) {
       const name = named.get(coat.key);
       if (name === undefined) throw new Error(`Pine coat ${coat.key} is not in the hull book`);
-      blobs.push(nameBlob(name, 'image', coat.png));
+      // D82: each tier's page is that tier's download only (the other tier never names it)
+      blobs.push(nameBlob(name, 'image', coat.png, { tier }));
     }
   }
   return emitNamedBlobs(blobs);
