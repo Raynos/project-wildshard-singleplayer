@@ -54,9 +54,18 @@ async function bytesOf(product: ShardProduct, source: BakedSource): Promise<Uint
 async function sceneOf(product: ShardProduct, source: BakedSource): Promise<THREE.Group> {
   return 'url' in source ? (await (await prepareRigLoader()).createRigLoader().loadAsync(source.url)).scene : (await (await prepareRigLoader()).createRigLoader().parseBytesAsync(await product.file(source.file), '')).scene;
 }
+/** A product image decoded off the main thread, as stored (the lightmaps' flipY = false, NoColorSpace raw texels): an
+ *  HTMLImageElement decoded and uploaded inside its first draw (G743: Driftwood's lm-ao + lm-bounce, 85 + 117 ms of one
+ *  afterPlay frame at phone 4x). Without createImageBitmap it loads as an image, as before. */
+async function productImage(product: ShardProduct, file: string): Promise<THREE.Texture> {
+  if (typeof createImageBitmap !== 'function') return new THREE.TextureLoader().loadAsync(product.url(file));
+  const bitmap = await createImageBitmap(new Blob([Uint8Array.from(await product.file(file))]), { imageOrientation: 'none', premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
+  const texture = new THREE.Texture(bitmap); texture.flipY = false; texture.needsUpdate = true;
+  return texture;
+}
 async function textureOf(product: ShardProduct, source: BakedSource): Promise<THREE.Texture> {
-  // a product's KTX2 file transcodes; any other image file decodes as one
-  if ('file' in source) return source.file.endsWith('.ktx2') ? ktx2File(product.url(source.file)) : new THREE.TextureLoader().loadAsync(product.url(source.file));
+  // a product's KTX2 file transcodes; any other image file decodes as a bitmap
+  if ('file' in source) return source.file.endsWith('.ktx2') ? ktx2File(product.url(source.file)) : productImage(product, source.file);
   return (await ktx2Texture(source.url)) ?? new THREE.TextureLoader().loadAsync(source.url);
 }
 /** A tier's plan: its exact bytes (and, for a public file, the content hash its name carries) before its rows. */
