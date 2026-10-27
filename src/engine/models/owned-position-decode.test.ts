@@ -18,8 +18,8 @@ function original(mesh: Mesh): BufferGeometry {
   return geometry;
 }
 
-test.each([1, 0.00037, 3.141592653589793].flatMap(scale => [false, true].map(interleaved => ({ scale, interleaved }))))(
-  'fused grid decode retains every original channel and bound ($scale, interleaved $interleaved)', ({ scale, interleaved }) => {
+test.each([1, 0.00037, 3.141592653589793].flatMap(scale => [false, true].flatMap(interleaved => [false, true].flatMap(tangent => [3, 4].map(normalWidth => ({ scale, interleaved, tangent, normalWidth }))))))(
+  'fused grid decode retains original channels/bounds ($scale, stride $interleaved, tangent $tangent, normal $normalWidth)', ({ scale, interleaved, tangent, normalWidth }) => {
     const geometry = new BufferGeometry(), material = new MeshBasicMaterial();
     const values = new Int16Array([-32768, -32767, -16384, -1, 0, 1, 16383, 16384, 32766, 32767, 12345, -23456]);
     if (interleaved) {
@@ -27,8 +27,17 @@ test.each([1, 0.00037, 3.141592653589793].flatMap(scale => [false, true].map(int
       for (let i = 0; i < 4; i++) { padded.set(values.subarray(i * 3, i * 3 + 3), i * 4); padded[i * 4 + 3] = 1234; }
       geometry.setAttribute('position', new InterleavedBufferAttribute(new InterleavedBuffer(padded, 4), 3, 0, true));
     } else geometry.setAttribute('position', new BufferAttribute(values, 3, true));
-    geometry.setAttribute('normal', new BufferAttribute(new Int8Array([127, 3, 0, 0, -127, 4, 3, 4, 126, -50, 60, 100]), 3, true));
-    geometry.setAttribute('tangent', new BufferAttribute(new Int16Array([32767, 0, 0, -32767, 0, 32767, 1, 32767, 1, 0, 32767, -32767, 20000, 21000, 22000, 32767]), 4, true));
+    const normals = Int8Array.from([[127, 3, 0], [0, -128, 4], [3, 4, 126], [-50, 60, 100]]
+      .flatMap((row, index) => normalWidth === 4 ? row.concat(index * 31 - 50) : row));
+    let normalSource: BufferAttribute | InterleavedBufferAttribute;
+    if (interleaved) {
+      const stride = normalWidth + 2, padded = new Int8Array(4 * stride);
+      for (let i = 0; i < 4; i++) { padded.set(normals.subarray(i * normalWidth, (i + 1) * normalWidth), i * stride + 1); padded[i * stride] = 99; padded[i * stride + stride - 1] = -88; }
+      normalSource = new InterleavedBufferAttribute(new InterleavedBuffer(padded, stride), normalWidth, 1, true);
+    } else normalSource = new BufferAttribute(normals, normalWidth, true);
+    geometry.setAttribute('normal', normalSource);
+    const originalNormals = new Int8Array(normalSource instanceof InterleavedBufferAttribute ? normalSource.data.array : normalSource.array);
+    if (tangent) geometry.setAttribute('tangent', new BufferAttribute(new Int16Array([32767, 0, 0, -32767, 0, 32767, 1, 32767, 1, 0, 32767, -32767, 20000, 21000, 22000, 32767]), 4, true));
     geometry.setAttribute('colour', new BufferAttribute(new Uint8Array([1, 2, 3, 255, 128, 127, 0, 254]), 2, true));
     geometry.setIndex([0, 1, 2, 1, 3, 2]); geometry.computeBoundingBox(); geometry.computeBoundingSphere();
     const mesh = new Mesh(geometry, material); mesh.scale.setScalar(scale); mesh.position.set(123.456789, -0.000037, -76.54321); mesh.updateMatrixWorld(true);
@@ -46,6 +55,8 @@ test.each([1, 0.00037, 3.141592653589793].flatMap(scale => [false, true].map(int
       }
       expect(actual.boundingBox).toEqual(expected.boundingBox); expect(actual.boundingSphere).toEqual(expected.boundingSphere);
       expect(geometry.getAttribute('position').normalized).toBe(true); expect(values[0]).toBe(-32768);
+      expect(geometry.getAttribute('normal')).toBe(normalSource);
+      expect(normalSource instanceof InterleavedBufferAttribute ? normalSource.data.array : normalSource.array).toEqual(originalNormals);
     } finally { actual?.dispose(); expected.dispose(); geometry.dispose(); material.dispose(); }
   });
 
@@ -128,4 +139,32 @@ test.each(['empty', 'overflow'])('keeps native bounds and diagnostics for %s pos
     expect(actual.boundingBox).toEqual(expected.boundingBox); expect(actual.boundingSphere).toEqual(expected.boundingSphere);
     expect(errors.mock.calls.map(call => String(call[0]))).toEqual(messages);
   } finally { errors.mockRestore(); expected?.dispose(); actual?.dispose(); closeMesh(mesh); }
+});
+
+
+test.each(['getX', 'setXYZ'] as const)('custom compact-normal %s retains Three byte semantics', method => {
+  const mesh = boundedMesh();
+  mesh.geometry.setAttribute('normal', new InterleavedBufferAttribute(new InterleavedBuffer(new Int8Array([
+    99, 127, 3, 0, -88, 99, 0, -128, 4, -88, 99, -50, 60, 100, -88,
+  ]), 5), 3, 1, true));
+  const native: unknown = Reflect.get(InterleavedBufferAttribute.prototype, method);
+  if (typeof native !== 'function') throw new Error('Missing original normal operation');
+  const custom = method === 'getX'
+    ? vi.spyOn(InterleavedBufferAttribute.prototype, 'getX').mockImplementation(function readNormal(this: InterleavedBufferAttribute, index: number) {
+      const value: unknown = Reflect.apply(native, this, [index]);
+      if (typeof value !== 'number') throw new Error('Normal getter must return a number');
+      return value + 0.125;
+    })
+    : vi.spyOn(InterleavedBufferAttribute.prototype, 'setXYZ').mockImplementation(function writeNormal(this: InterleavedBufferAttribute, index: number, x: number, y: number, z: number) {
+      Reflect.apply(native, this, [index, x + 0.125, y, z]);
+      return this;
+    });
+  let expected: BufferGeometry | undefined, actual: BufferGeometry | null = null;
+  try {
+    expected = original(mesh); actual = identitySpaceGeometry(mesh);
+    if (actual === null) throw new Error('Missing quantized result');
+    const a = actual.getAttribute('normal'), b = expected.getAttribute('normal');
+    expect(new Uint8Array(a.array.buffer, a.array.byteOffset, a.array.byteLength)).toEqual(new Uint8Array(b.array.buffer, b.array.byteOffset, b.array.byteLength));
+    expect(actual.getAttribute('position').array).toEqual(expected.getAttribute('position').array);
+  } finally { custom.mockRestore(); expected?.dispose(); actual?.dispose(); closeMesh(mesh); }
 });
