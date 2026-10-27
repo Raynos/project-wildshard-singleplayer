@@ -1,3 +1,4 @@
+import { originalGeographyBlob } from './fixtures/nalati-geography-original';
 import { originalRenderBlob } from './fixtures/nalati-original-render-blob';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own the isolated immutable input cache and compare shipping files.
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
@@ -30,11 +31,11 @@ test('ordered owned floors and all declared raw inputs preserve exact normal SDK
     const floors = [0, 1].map(index => nameBlob(`world/floors/${String(index)}.bin`, 'bin',
       readFileSync(`test/fixtures/nalati-floor-original-${String(index)}.bin`)));
     const originals = await Promise.all(declarations.map(async row => {
-      const blob = originalRenderBlob(row) ?? originalSpeciesBlob(row) ?? await readNamedBlob(project, row.name, row.source, row.kind, row.options);
+      const blob = originalRenderBlob(row) ?? originalSpeciesBlob(row) ?? originalGeographyBlob(row) ?? await readNamedBlob(project, row.name, row.source, row.kind, row.options);
       return blob;
     }));
     originals.splice(1, 0, ...floors);
-    const sources: Parameters<typeof nalatiOutputInputs>[1][number][] = declarations.map(row => originalRenderBlob(row) ?? originalSpeciesBlob(row) ?? row);
+    const sources: Parameters<typeof nalatiOutputInputs>[1][number][] = declarations.map(row => originalRenderBlob(row) ?? originalSpeciesBlob(row) ?? originalGeographyBlob(row) ?? row);
     sources.splice(1, 0, ...floors);
     for (const run of ['cold', 'hit']) {
       const blobs = await nalatiOutputInputs(context(), sources);

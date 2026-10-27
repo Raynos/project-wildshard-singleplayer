@@ -1,3 +1,4 @@
+import {scalarBlockBytes} from './fixtures/nalati-scalar-blocks';
 import {nalatiWetBlock,originalNalatiWet} from './fixtures/nalati-wet';
 import { expect,test,vi } from 'vitest';
 import { prepareNalatiPopulation } from './fixtures/nalati-headless';
@@ -17,7 +18,7 @@ import { sha256 } from '../src/game/plugin/moduleHash';
 
 const shipped=v.parse(PopulationFieldSchema,JSON.parse(readFileSync('test/fixtures/nalati-population-field-original.json','utf8')));
 const shippedWet=originalNalatiWet;
-const pondBlock={file:'data/geography-pond.bin',bytes:Uint8Array.from(readFileSync('src/shards/nalati-grasslands/data/geography-pond.bin'))};
+const pondBlock={file:'data/geography-pond.bin',bytes:scalarBlockBytes({file:'data/geography-pond.bin'})};
 const wetBlock=nalatiWetBlock;
 
 const raster = (values: readonly number[]): Uint8Array => zlibSync(new Uint8Array(Float32Array.from(values).buffer));

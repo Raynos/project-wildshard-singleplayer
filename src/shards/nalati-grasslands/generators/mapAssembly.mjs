@@ -13,6 +13,7 @@ import { decorativeRowsOnGround } from './decorative.ts';
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 import { nativeNalatiDressingPlacements } from './nativeDressingPlacements.mjs';
 import { nalatiPoiPaintFromInputs, POI_PAINT_INPUTS } from './poiPaintProgram.ts';
+import { nalatiGeographySources, nalatiGeographyRows } from './geographySource.ts';
 
 const base = resolve(import.meta.dirname, '..'), root = resolve(base, '../../..');
 const read = file => readMapJson(resolve(base, file));
@@ -49,20 +50,23 @@ function ownedModelReader() {
 }
 
 /** Read a prepared scalar file; the modern map never consumes inline content.
- * @param {unknown} source @param {string} [directory] */
-export function readNalatiMapScalar(source, directory = base) {
+ * @param {unknown} source @param {string | ReadonlyMap<string, Uint8Array>} directory */
+export function readNalatiMapScalar(source, directory) {
   if (source === null || typeof source !== 'object' || !('file' in source) || typeof source.file !== 'string')
     throw new Error('Nalati map requires named binary scalar files');
-  return readFileSync(resolve(directory, source.file));
+  if (typeof directory === 'string') return readFileSync(resolve(directory, source.file));
+  const bytes = directory.get(source.file);
+  if (bytes === undefined) throw new Error(`Missing owned geography channel ${source.file}`);
+  return bytes;
 }
 
 /** Native construction and the defining row preparation own map geometry/metadata.
  * The raw words never cross a compressed public or prepared-runtime handoff. */
-async function nativeMapPlaces(paint) {
+async function nativeMapPlaces(paint, geography) {
   const { nativeNalatiPlaces } = await import('./bake-nalati-painted.mjs');
   const { nalatiRuntimeRows } = await import('./runtimeRows.ts');
   const { nalatiSpecimenRows } = await import('./specimenRows.ts');
-  const made = await nativeNalatiPlaces();
+  const made = await nativeNalatiPlaces(geography);
   const places = { rows: made.places.rows, bytes: made.places.bin.byteLength };
   const prepared = nalatiRuntimeRows({ places, paint }).runtime;
   const specimens = nalatiSpecimenRows(read('data/campCatalogue.json'), read('data/campMaterials.json'),
@@ -71,12 +75,13 @@ async function nativeMapPlaces(paint) {
 }
 
 export async function nalatiMapAssembly() {
+  const geographyFiles = nalatiGeographySources();
   const paintFiles = await nalatiPoiPaintFromInputs(new Map(POI_PAINT_INPUTS.map(file => [file, new Uint8Array(readFileSync(resolve(root, `public${file}`)))])));
   const document = paintFiles.get('data/poiPaint.json');
   if (document === undefined) throw new Error('Missing owned map paint');
   const fixed = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(document));
-  const assembly = new MapAssembly(), { prepared, bytes, specimens } = await nativeMapPlaces(fixed);
-  const placements = await nativeNalatiDressingPlacements(file => readFileSync(resolve(root, file)));
+  const assembly = new MapAssembly(), { prepared, bytes, specimens } = await nativeMapPlaces(fixed, geographyFiles);
+  const placements = await nativeNalatiDressingPlacements(file => readFileSync(resolve(root, file)), geographyFiles);
   const asset = ownedModelReader();
   const native = parseBakedTerrain(Uint8Array.from(readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin'))).buffer);
   if (native === null) throw new Error('Map requires native Nalati terrain');
@@ -126,9 +131,9 @@ export async function nalatiMapAssembly() {
   for (const mesh of crags.meshes) assembly.add(mesh.key, mapGeometry(cragBytes, mesh.offset, mesh.row));
   // The engine's pure forest placer reads exactly the same native samples and
   // baked geography mask as the page. No shard manifest or runtime is imported.
-  const geography = read('boot/geography.generated.json'), layout = read('boot/layout.generated.json'), discovery = read('data/discovery.json');
+  const geography = nalatiGeographyRows(), layout = read('boot/layout.generated.json'), discovery = read('data/discovery.json');
   const channel = key => bakedSamplers({ ...native, res: geography.res, size: geography.size,
-    heights: new Float32Array(Uint8Array.from(inflateSync(readNalatiMapScalar(key === 'pond' ? geography.ground.mask.values.data : geography.channels[key].values.data))).buffer) }).heightAt;
+    heights: new Float32Array(Uint8Array.from(inflateSync(readNalatiMapScalar(key === 'pond' ? geography.ground.mask.values.data : geography.channels[key].values.data, geographyFiles))).buffer) }).heightAt;
   const trails = [layout.S_ROAD_PTS, layout.N_ROAD_PTS, layout.E_ROAD_PTS, layout.W_ROAD_PTS, layout.SKY_ROAD, layout.CAMP_SPUR,
     ...layout.BOWL_TRACKS, layout.EAGLE_TRAIL, layout.CAVE_TRAIL, layout.ARGYMAQ_TRAIL];
   const field = { ...buildTerrainMetadata(native.seed, { trails, cabinSites: [] }, () => geography.river.level), ...bakedSamplers(native), pondMask: channel('pond') };

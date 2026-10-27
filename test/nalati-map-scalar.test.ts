@@ -1,3 +1,4 @@
+import {nalatiGeographySources} from '../src/shards/nalati-grasslands/generators/geographySource';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare every original compressed scalar input.
 import { readFileSync, mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the complete original scalar input inventory.
@@ -10,14 +11,15 @@ import { readNalatiMapScalar } from '../src/shards/nalati-grasslands/generators/
 
 const scalar = v.object({ values: v.object({ data: v.unknown() }) });
 const geography = v.parse(v.object({ ground: v.object({ mask: scalar }), channels: v.record(v.string(), scalar) }),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/geography.generated.json', 'utf8')));
+  JSON.parse(readFileSync('test/fixtures/nalati-geography-original.json', 'utf8')));
 
 test('all six current scalar files retain their complete predecessor inventory', () => {
   const values: [string, unknown][] = [['pond', geography.ground.mask.values.data],
     ...Object.entries(geography.channels).sort(([a], [b]) => a.localeCompare(b)).map(([key, value]): [string, unknown] => [key, value.values.data])];
+  const files = nalatiGeographySources();
   const rows = values.map(([key, input]) => {
     const source = v.parse(v.object({ file: v.string() }), input);
-    const bytes = readNalatiMapScalar(source);
+    const bytes = readNalatiMapScalar(source, files);
     return { key, file: source.file, bytes: bytes.byteLength, sha256: createHash('sha256').update(bytes).digest('hex') };
   });
   expect(rows).toHaveLength(6);

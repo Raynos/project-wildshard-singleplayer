@@ -49,7 +49,7 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D10 | CI `generated-inputs`: the generation stage misses generator modules (`far-reach/generators/knoll`, `nalati-grasslands/generators/geographySource.ts`) | `998fcef0ba` | generator lanes (sp-x1, sp-x6) | open; hides every later test |
 | D11 | Deploy stuck: live stays `59a595ab10` (newest-ci-green pin, no green push since) | `ac3e62895d` | sp-x7 (G771) | open |
 | D12 | Official quiet Simulator frame floor 11/15 | `3694a487bc` | sp-x8, sp-o4 | open |
-| D13 | Flaky (CF2 title/grid flakes): Nine public/Developer title PNGs quarantined until 2026-10-28 03:30 UTC; the grid catalogue title flake is not quarantined | `531c009fdd` | sp-x1 (title); sp-x6 (grid) | quarantined |
+| D13 | Flaky (CF2 title PNG): Nine public/Developer title PNGs quarantined until 2026-10-28 03:30 UTC | `531c009fdd` | sp-x1 | quarantined |
 | D14 | Flaky (SW13, GM4): `nalati-place-blob-program`, `nalati-map-program`, `nalati-state-intake`, `population-raster`, `map-generation-inputs` | — (G788) | sp-x6 (Nalati / GM4) | quarantined `9872fc12a0`, fix deadline 2026-10-28 07:12 UTC |
 | D15 | Flaky (CF2 audit): `heavy-lane.test` timing, `nalati-creature-views` 5e-10 tolerance, V8 `SIGILL` in `shard-headless` | — (G788) | sp-x6 (creature views), sp-x9 (heavy-lane/headless) | quarantined `9872fc12a0`, fix deadline 2026-10-28 07:12 UTC |
 | D16 | Off (MB1): push gate is a 45 s fail-open wall; batch split path gone, `push_batch.py` dormant | `7d70d351bb` | Jake's call (BD4) | kept off; 45-second fail-open policy verified feb2658690 |
@@ -100,6 +100,7 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D52 | Driftwood map bake: `generators/mapAssembly.mjs` still calls `siteCatalogue()` and imports `WORLD_SCENES`; both take the scene banks since the cargo bank landed (`driftwoodSceneBanksFrom(read)` is its direct seam) | the cargo-bank commit (sp-o4, GR7) | sp-x10 (agreed: adapts mapAssembly after the bank lands) | open |
 | D53 | Full-tree ratchet now reaches counting but refuses existing shard-sandbox rises in Driftwood/Nalati/Nine generator readers (including oceanFiles/hibiscusFiles/palmFiles/bootFiles/casts/bootRecipes/coats/riggedHulls); exact S3 archive scope passes unchanged baseline. Raw list tmp/sp-x2/s3-road-owned/archive-ratchet-final.log; no guard/allowance edited. | observed `ec86872b48` (not culprit attribution) | breaker (sp-ci-deploy finds) | open |
 | D54 | `test/explorer-catalogue.test.ts` imports `output` from Far Reach's `generators/sourceOutput`, which no longer exports it, so the file fails types and typed lint; it also still imports Pine's retired `WILDLIFE_DRAW` (now `PINE_WILDLIFE_DRAW` in `test/fixtures/pine-program.ts`, GR8 G20h, sp-o1) | `22bcb2170b` | sp-x1 (GR5 Far Reach) | open; swap the Pine import when the Far Reach read is fixed |
+| D55 | CF2 grid far-cell preparation barrier refusal: receipt `40371580877` (fatal-free ready/unpaused/drawing snapshot, seven far cells fetching); held stage remains unattributed, no title-PNG claim | `2b11287c5fb143b960b15cf3e37fe17be1ead3c3` | sp-x6 | open; no grid quarantine or causal closure claimed |
 
 ## Rows
 

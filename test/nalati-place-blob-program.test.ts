@@ -214,7 +214,7 @@ test('the actual cold output hook preserves every predecessor file cost and bina
     for (const source of ['data/species.generated.json', 'boot/speciesRows.generated.json', 'behaviour/held-weapons.generated.wasm', 'behaviour/held-witness.generated.bin']) expect(requested).not.toContain(source);
     expect(steps).toContain('model-parts');
     expect(steps).toContain('dressing-placement');
-    expect(requested).toContain('data/geography-forest.bin');
+    expect(requested).not.toContain('data/geography-forest.bin');
     for (const file of modelNames) expect(requested).toContain(`/assets/nalati/models/${file}`);
     expect(hit.namedFiles.filter(file=>file.name===expectedBank.file.name)).toEqual([expectedBank.file]);
     const bankBytes = hit.assets.get(expectedBank.file.hash);
@@ -285,7 +285,7 @@ test('the actual cold output hook preserves every predecessor file cost and bina
     expect(requested).not.toContain('/assets/nalati/baked/places.bin');
     expect(requested).not.toContain('/assets/nalati/baked/specimens.bin');
     expect(requested).toContain('/assets/baked/nalati-grasslands/terrain.bin');
-    for (const field of ['pond', 'red', 'green', 'blue']) expect(requested).toContain(`data/geography-${field}.bin`);
+    for (const field of ['pond', 'red', 'green', 'blue']) expect(requested).not.toContain(`data/geography-${field}.bin`);
     const files = hit.namedFiles.filter(file => file.name === 'world/places.bin');
     expect(files).toEqual([original]); expect(hit.blobs.some(file => file.name === 'world/places.bin')).toBe(false);
     const bytes = hit.assets.get(original.hash);

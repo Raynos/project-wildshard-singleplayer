@@ -1,3 +1,4 @@
+import {scalarBlockBytes} from './fixtures/nalati-scalar-blocks';
 import { nalatiSpecimens } from './fixtures/nalati-specimens';
 import { nalatiBalbal } from './fixtures/nalati-balbal';
 import { nalatiRuntime } from './fixtures/nalati-runtime';
@@ -181,7 +182,7 @@ test('Nalati logical bakes admit the exact shipping compressed bytes and decoded
   const dressingCost=v.parse(stamp,JSON.parse(new TextDecoder().decode(dressing.document))).bytes;
   const sources=[nameBlob('world/dressing.bin','bin',dressing.binary,{decoded:dressingCost})];
   const placeInputs=new Map([['/assets/baked/nalati-grasslands/terrain.bin',readFileSync('public/assets/baked/nalati-grasslands/terrain.bin')],
-    ...['pond','red','green','blue'].map(name=>{const path=`data/geography-${name}.bin`;return[path,readFileSync(`src/shards/nalati-grasslands/${path}`)] as const;})]);
+    ...['pond','red','green','blue'].map(name=>{const path=`data/geography-${name}.bin`;return[path,scalarBlockBytes({file:path})] as const;})]);
   const ownedPlaces=await nalatiPlacesProgram({cached:(_step,generate)=>Promise.resolve(generate(placeInputs))});
   const placeBytes=ownedPlaces.get('places.bin');if(placeBytes===undefined)throw new Error('Missing native places');
   const placeDocument=ownedPlaces.get('places.json');if(placeDocument===undefined)throw new Error('Missing native places metadata');
