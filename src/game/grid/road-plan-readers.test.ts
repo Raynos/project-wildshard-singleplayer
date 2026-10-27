@@ -34,10 +34,10 @@ test.each(['array', 'reader'] as const)('road raw readers refresh after each ori
   const change = (source: BufferGeometry) => (turn: number): void => {
     if (turn !== 2) return;
     const position = source.getAttribute('position');
-    if (mode === 'reader') fallback(source, .125);
+    if (mode === 'reader') fallback(source, 63.25);
     else {
       if (!(position instanceof BufferAttribute)) throw new Error('Missing plain road positions');
-      const next = Float32Array.from(position.array); for (let i = 0; i < next.length; i += 3) next[i] = (next[i] ?? 0) + .125;
+      const next = Float32Array.from(position.array); for (let i = 0; i < next.length; i += 3) next[i] = (next[i] ?? 0) + 63.25;
       position.array = next;
     }
   };
