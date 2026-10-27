@@ -1,3 +1,4 @@
+import { DRIFTWOOD_ISLAND_FACTS } from './fixtures/driftwood-island-facts';
 import { DRIFTWOOD_LAYOUTS } from './fixtures/driftwood-layout-source';
 import {expect,it} from 'vitest';
 import {parseAudioData} from '@wildshard/format/audio';
@@ -8,7 +9,7 @@ import cove from '../src/shards/driftwood-isle/data/coveComposition.json' with {
 import {islandCoveSpec} from '../src/shards/driftwood-isle/generators/coveLayout';
 import {driftwoodGameplayAudioEnvironment} from '../src/shards/driftwood-isle/generators/gameplayAudioEnvironment';
 
-const islandRows=parseAudioData({...islandSource.audio,gameplay:{...islandSource.audio.gameplay,entryEnvironment:driftwoodGameplayAudioEnvironment(DRIFTWOOD_LAYOUTS.wreck),constants:{cove:{fall:cove.audioFall,cave:cove.audioCave,caveBounds:cove.audioBounds}}}});
+const islandRows=parseAudioData({...islandSource.audio,gameplay:{...islandSource.audio.gameplay,entryEnvironment:driftwoodGameplayAudioEnvironment(DRIFTWOOD_LAYOUTS.wreck, DRIFTWOOD_ISLAND_FACTS),constants:{cove:{fall:cove.audioFall,cave:cove.audioCave,caveBounds:cove.audioBounds}}}});
 
 it.each([
   ['pine-hollow',pineSource],['driftwood-isle',islandSource],

@@ -1,4 +1,5 @@
-import { readFileSync } from 'node:fs';
-import { driftwoodIslandFactsFrom } from '../../src/shards/driftwood-isle/generators/islandFacts';
+import original from './driftwood-island-original.json' with { type: 'json' };
+import { parseDriftwoodIslandFacts } from '../../src/shards/driftwood-isle/generators/islandFacts';
 
-export const DRIFTWOOD_ISLAND_FACTS = await driftwoodIslandFactsFrom(url => new Uint8Array(readFileSync(`public${url}`)));
+/** Complete original native observations, retained independently of later producer changes. */
+export const DRIFTWOOD_ISLAND_FACTS = parseDriftwoodIslandFacts(new TextEncoder().encode(JSON.stringify(original)));

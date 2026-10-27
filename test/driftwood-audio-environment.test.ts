@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { DRIFTWOOD_ISLAND_FACTS } from './fixtures/driftwood-island-facts';
 import { DRIFTWOOD_LAYOUTS, DRIFTWOOD_ORIGINAL_LAYOUTS } from './fixtures/driftwood-layout-source';
 import {expect,it,vi} from 'vitest';
 import {Group,PerspectiveCamera} from 'three';
@@ -16,16 +17,16 @@ import type {ShardContext} from '../src/game/plugin/context';
 import {driftwoodGameplayAudioEnvironment} from '../src/shards/driftwood-isle/generators/gameplayAudioEnvironment';
 import source from '../src/shards/driftwood-isle/data/audioSource.json' with {type:'json'};
 import { islandFoliagePlacements } from '../src/shards/driftwood-isle/generators/islandDressing';
-import island from '../src/shards/driftwood-isle/data/islandFacts.generated.json' with {type:'json'};
+
 import cove from '../src/shards/driftwood-isle/data/coveComposition.json' with {type:'json'};
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 
 const foliage = islandFoliagePlacements();
 
-const wreck = DRIFTWOOD_ORIGINAL_LAYOUTS.wreck;
+const wreck = DRIFTWOOD_ORIGINAL_LAYOUTS.wreck, island = DRIFTWOOD_ISLAND_FACTS;
 
 it('emits the completed world facts in their original tier order, with the four floor gaps',()=>{
- const rows=driftwoodGameplayAudioEnvironment(DRIFTWOOD_LAYOUTS.wreck);
+ const rows=driftwoodGameplayAudioEnvironment(DRIFTWOOD_LAYOUTS.wreck, DRIFTWOOD_ISLAND_FACTS);
  const data=parseAudioData({...source.audio,gameplay:{...source.audio.gameplay,entryEnvironment:rows}});
  expect(data.gameplay?.environment).toBeUndefined();expect(data.gameplay?.entryEnvironment).toEqual(rows);
  expect(rows.floors).toEqual({decks:[null,null,'boat',null,null,'bridge','wreck'],stone:['shrine']});
@@ -41,7 +42,7 @@ it('emits the completed world facts in their original tier order, with the four 
 });
 function fixture(tier:'phone'|'desktop',missing?:'bridge'|'buildings'){
  const construction=new Scope('audio-source'),scope=construction.child('audio-entered');bindResidentWorldScope(scope,construction);
- const rows=driftwoodGameplayAudioEnvironment(DRIFTWOOD_LAYOUTS.wreck),data=parseAudioData({...source.audio,gameplay:{...source.audio.gameplay,entryEnvironment:rows}});
+ const rows=driftwoodGameplayAudioEnvironment(DRIFTWOOD_LAYOUTS.wreck, DRIFTWOOD_ISLAND_FACTS),data=parseAudioData({...source.audio,gameplay:{...source.audio.gameplay,entryEnvironment:rows}});
  const shrine=new Group(),life=new LivingBuildings(new SceneHandles(),{wheel:0,door:{seconds:1,angle:1},fire:[0,1],lamp:[0,1],glass:[0,1],flicker:{depth:0,waves:[]},swing:{z:[],x:[0,0]}});
  const audio=new Audio(),music=new Music(audio),camera=new PerspectiveCamera(),objects={};
  const floors={boat:()=>3,bridge:()=>4,wreck:()=>6,shrine:()=>5};
