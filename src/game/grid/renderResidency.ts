@@ -1,5 +1,5 @@
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { ResidencyAllocator } from './allocator';
+import type { ResidencyAllocator, ResidencyLease } from './allocator';
 
 /**
  * The renderer's pure preflight result, in bytes. Count retained JS data (including CPU buffers/canvases) and all GPU
@@ -15,6 +15,8 @@ export interface PlatformRenderBytePlan {
 /** The look executes its existing builder only after this admission; register its resources on the supplied scope. */
 export interface PlatformRenderAdmission {
   allocate: <T>(plan: PlatformRenderBytePlan, build: (scope: Scope) => T) => T;
+  /** Shrink only after native buffers are disposed; growth requires ordinary admission. */
+  shrink?: (id: string, retainedBytes: number) => void;
 }
 
 /** Required platform geometry cannot silently allocate outside the shared playing envelope. */
@@ -32,9 +34,10 @@ export class PlatformRenderAdmissionError extends Error {
  * and on a partially failed build. This adapter changes no geometry, materials, culling or shaders.
  */
 export class PlatformRenderResidency implements PlatformRenderAdmission {
+  private readonly claims = new Map<string, { lease: ResidencyLease; bytes: number }>();
   constructor(private readonly allocator: ResidencyAllocator, private readonly scope: Scope) {}
 
-  private assertActive(): void { if (this.scope.disposed) throw new Error('Platform render session is disposed'); }
+  private assertActive(): void { if (this.scope.disposed || this.scope.disposing) throw new Error('Platform render session is disposed'); }
 
   allocate<T>(plan: PlatformRenderBytePlan, build: (scope: Scope) => T): T {
     this.assertActive();
@@ -50,13 +53,20 @@ export class PlatformRenderResidency implements PlatformRenderAdmission {
     // Eviction callbacks can close a session while reserve prepares another claim.
     try { this.assertActive(); } catch (error) { lease.release(); throw error; }
     const owner = this.scope.child(`platform.render.${plan.id}`);
-    owner.onDispose(() => { lease.release(); });
+    const claim = { lease, bytes: plan.jsBytes + plan.gpuBytes }; this.claims.set(plan.id, claim);
+    owner.onDispose(() => { if (this.claims.get(plan.id) === claim) this.claims.delete(plan.id); lease.release(); });
     try { return build(owner); }
     catch (error) {
       try { owner.dispose(); }
       catch (cleanup) { throw new AggregateError([error, cleanup], 'Platform render construction and cleanup failed', { cause: cleanup }); }
       throw error;
     }
+  }
+  /** Retired geometry can surrender its charge while shared materials remain owned. */
+  shrink(id: string, retainedBytes: number): void {
+    this.assertActive(); const claim = this.claims.get(id);
+    if (claim === undefined || !Number.isSafeInteger(retainedBytes) || retainedBytes < 0 || retainedBytes > claim.bytes) throw new Error('Invalid platform render shrink');
+    claim.lease.shrink(retainedBytes); claim.bytes = retainedBytes;
   }
 }
 

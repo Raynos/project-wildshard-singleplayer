@@ -26,7 +26,7 @@ import { markReload } from '../boot/lastEnd';
 import { settingsReloadUrl } from './Settings';
 import type { DebugRowSpec } from '../level/context';
 import { isDev, onDev } from '../core/devMode';
-import { setTileResidency, tileResidency, TILE_RESIDENCY } from './tileResidency';
+import { setTileResidency, tileResidency, TILE_RESIDENCY, setRoadResidency, roadResidency, ROAD_RESIDENCY } from './tileResidency';
 
 const scope = uiScope('debugOptions', app.engineScope);
 
@@ -157,6 +157,12 @@ const tileResidencyRow: DebugRow = { purpose: 'developer', id: 'tileResidency', 
   get: () => tileResidency(), set: value => { const pick = TILE_RESIDENCY.find(choice => choice === value); if (pick !== undefined && isDev()) setTileResidency(pick); },
   on: () => undefined, reload: true, when: always, note: engineString('s_tile_residency_note'), ask: 'E435', reviewBy: '2026-12-30' };
 
+/** S3's temporary resident/streamed road comparison; default stays resident. */
+const roadResidencyRow: DebugRow = { purpose: 'developer', id: 'roadResidency', group: 'perf', label: engineString('s_road_residency'),
+  choices: () => [{ v: 'resident', text: engineString('s_road_resident') }, { v: 'tiles', text: engineString('s_road_tiles') }],
+  get: () => roadResidency(), set: value => { const pick = ROAD_RESIDENCY.find(choice => choice === value); if (pick !== undefined && isDev()) setRoadResidency(pick); },
+  on: () => undefined, reload: true, when: always, note: engineString('s_road_residency_note'), ask: 'E435', reviewBy: '2026-10-28' };
+
 export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Look ──
 
@@ -168,6 +174,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
   // ── Performance ──
   tileResidencyRow,
+  roadResidencyRow,
 
   // ── Loading & memory ──
   clearDownloadsRow,

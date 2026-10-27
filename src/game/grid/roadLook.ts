@@ -12,6 +12,7 @@ import {
   MeshLambertMaterial, NoColorSpace, type Object3D, Quaternion, RepeatWrapping, RGFormat, SRGBColorSpace, type Texture, UnsignedByteType, Vector3,
 } from 'three';
 import type { GridCell } from './assembly';
+import { ownRoadMesh } from './roadResources';
 import { ROAD_SKY } from './frameModel';
 import { coverageMaterial, coverageTable, gpuOnlyTextureBytes, uniformPart, type CoverageColours, type SolidPart } from './roadSolid';
 import { bytePlan, cullIntoSteps, gpuOnlyRoad, meshBytesSteps, type CullSource, type RoadCuller } from './roadCull';
@@ -35,6 +36,8 @@ export interface RoadLookInput {
   readonly admission?: PlatformRenderAdmission;
   /** G103: the asphalt and junction overlays keep the road's light where a cell's own light owns the frame */
   readonly overlayLight?: RoadOverlayLight;
+  /** Bind a source's shrink-only charge after its backing is durable. */
+  readonly retireGeometry?: (mesh: Mesh, id: string, retainedBytes: number) => void;
 }
 
 /**
@@ -484,7 +487,7 @@ export function* installRoadLookSteps(input: RoadLookInput): Generator<void, Roa
       yield;
       const map = source.paint(), material = source.material(map);
       const mesh = new Mesh(source.mesher.geometry(), material);
-      owner.onDispose(() => { mesh.removeFromParent(); mesh.geometry.dispose(); map.dispose(); material.dispose(); });
+      ownRoadMesh(owner, mesh, [map]);
       mesh.name = source.name; if (source.overlay) { mesh.receiveShadow = true; input.overlayLight?.add(material, owner); }
       mesh.castShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix();
       if (cull !== undefined) yield* cullIntoSteps(cull, mesh); else hook?.(mesh);
@@ -495,8 +498,11 @@ export function* installRoadLookSteps(input: RoadLookInput): Generator<void, Roa
     if (admission === undefined) yield* build(scope);
     else {
       const bytes = yield* meshBytesSteps([mesherSource(source.mesher)], ROAD_FLOATS, cull === undefined ? undefined : { pitch: cull.pitch, ...(cull.tileSize === undefined ? {} : { tileSize: cull.tileSize }) }, true);
-      const plan = bytePlan(source.id, bytes, gpuOnlyTextureBytes(source.width, source.height, 1, source.source, source.texelBytes));
-      yield* allocateRenderSteps(admission, plan, build);
+      const textures = gpuOnlyTextureBytes(source.width, source.height, 1, source.source, source.texelBytes);
+      const plan = bytePlan(source.id, bytes, textures);
+      const mesh = yield* allocateRenderSteps(admission, plan, build);
+      if (mesh === undefined) throw new Error('Road construction cancelled');
+      input.retireGeometry?.(mesh, plan.id, textures.jsBytes + textures.gpuBytes);
     }
   }
   return { segments: layout.segments.length, junctions: layout.junctions.length, roundabouts: layout.junctions.filter((j) => j.roundabout).length, signs: layout.signs.length, lights: layout.lights.length, draws: sources.length };

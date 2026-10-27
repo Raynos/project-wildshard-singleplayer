@@ -224,12 +224,13 @@ function lodKey(x: number, y: number, z: number, layer: number, unlit: number, p
 }
 
 /** How the road builders cull a mesh (`cullRoadMesh` at `pitch`, the view camera) and where each mesh's plan is kept. */
-export interface RoadCuller { readonly pitch: number; readonly tileSize?: number; readonly camera?: () => Camera | undefined; readonly plans: Map<Mesh, CullPlan> }
+export interface RoadCuller { readonly pitch: number; readonly tileSize?: number; readonly prepare?: (mesh: Mesh, plan: CullPlan) => Generator<void, void>; readonly camera?: () => Camera | undefined; readonly plans: Map<Mesh, CullPlan> }
 
 /** Complete clipping and sorting before installing the live view hook and publishing its plan. */
 export function* cullIntoSteps(culler: RoadCuller, mesh: Mesh, lod: readonly CullLod[] = []): Generator<void> {
   yield* clipToBinsSteps(mesh.geometry, culler.pitch, culler.tileSize);
   const plan = yield* cullPlanSteps(mesh.geometry, culler.pitch, lod, culler.tileSize);
+  if (culler.prepare !== undefined) yield* culler.prepare(mesh, plan);
   publishRoadPlan(culler, mesh, plan);
 }
 

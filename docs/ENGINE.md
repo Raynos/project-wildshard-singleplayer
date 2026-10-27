@@ -13594,14 +13594,14 @@ needed to retain that lifecycle.
 
 ### Tile residency scheduler (S1, extraction)
 
-`@wildshard/engine/world/tileStreamer#TileStreamer` schedules render-only
-LOD tiles from instance origins, a byte catalogue and a borrowed
-`TileStreamBudget`. The game allocator supplies leases structurally; the
-engine imports no game module. `step`, `ready`, `waiting`, `resident`,
-`farPlan` and `dispose` retain the former render-ring contract. Parent
-holds and immediate masks prevent a child opening a hole in its parent.
-Prepared work is cancelled before its budget lease releases; late results
-are discarded by lease identity. Render adapters own construction scopes.
+`@wildshard/engine/world/tileStreamer#TileStreamer` schedules render LOD
+from origins, a byte catalogue and borrowed `TileStreamBudget` leases.
+The engine imports no game code. Parent holds/masks prevent holes;
+scoped adapters cancel before releasing leases and discard late results
+by lease identity. `step`, `ready`, `waiting`, `resident`, `farPlan` and
+`dispose` retain the render-ring contract.
+`ui/tileResidency#roadResidency` reads the Developer-only resident/tiles
+road comparison; `setRoadResidency` saves it. Default is resident; reload.
 
 `RingCatalogue.revision()` optionally publishes a monotonic content/cost
 revision. A fully uploaded, stationary plan with the same revision skips

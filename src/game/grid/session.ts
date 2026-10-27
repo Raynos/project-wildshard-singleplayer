@@ -1,3 +1,6 @@
+import { roadResidency } from '@wildshard/engine/ui/tileResidency';
+import type { RoadTileBacking } from './roadTileBacking';
+import { browserContentStore } from '../shardfile/contentStore';
 import { bootWaits, type BootWait } from '@wildshard/engine/boot/waits';
 /**
  * The grid session (SHARD-PLATFORM SF17b / SF18a / SF18b / SF21a, the grid client): what turns EXPERIMENTAL Wildshard's
@@ -307,7 +310,8 @@ export class GridSession {
   private roadLanding: Promise<void> = Promise.resolve();
   /** loading-speed A1: builds the outer ring's road once (null: none to build, or started) */
   private startOuterRoad: (() => void) | null = null;
-  private readonly roadPlans = new Map<Mesh, CullPlan>();
+  private readonly roadPlans: Map<Mesh, CullPlan>;
+  private roadTiles: RoadTileBacking | null = null;
   private readonly roadBudget: { readonly view: () => RoadViewCost | null; readonly resident: () => RoadResident };
   private readonly life: NeighbourLife;
   private readonly admitNeighbour: ((cell: GridCell) => Promise<void>) | undefined;
@@ -385,6 +389,8 @@ export class GridSession {
     const roadScope = host.scope.child('grid-road-construction');
     progress?.set(2, 3, `Road geometry · ${strips.length} initial seams`);
     const admission = new PlatformRenderResidency(allocator, roadScope), plans = new Map<Mesh, CullPlan>();
+    const tileBacking = roadResidency() === 'tiles' ? new (await import('./roadTileBacking')).RoadTileBacking(
+      roadScope.child('road-tiles'), browserContentStore(caches), { pitch: assembly.pitch, plans, camera: () => host.frame?.camera }) : undefined;
     // Use the same source set for both halves if initial certification selected
     // the existing flat fallback. Outer failures never substitute different edges.
     const outerStrips = (): Promise<readonly GeneratedStrip[]> => {
@@ -396,7 +402,7 @@ export class GridSession {
       }, 8, seamPlans, (x, z) => !ring(x, z));
     };
     const roadInput = { strips, home, pitch: assembly.pitch, layout: roadLayout(assembly, slug => findShard(slug)?.name ?? slug), scene: host.scene,
-      scope: roadScope, camera: () => host.frame?.camera, plans, admission };
+      scope: roadScope, camera: () => host.frame?.camera, plans, admission, ...(tileBacking === undefined ? {} : { tileBacking }) };
     const pause = async (): Promise<void> => { await construction.check(); };
     const road = installPlatformRoadSliced({ ...roadInput, allocationKey: 'road.inner', within: ring }, pause);
     const outer = async (): Promise<PlatformRoad> => {
@@ -423,6 +429,7 @@ export class GridSession {
 
   constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[], preparedRoad?: { readonly road: PlatformRoad | Promise<PlatformRoad>; readonly outer?: () => Promise<PlatformRoad>; readonly outerStrips?: () => Promise<readonly GeneratedStrip[]>; readonly publishStrips?: (strips: readonly GeneratedStrip[]) => void; readonly plans: Map<Mesh, CullPlan>; readonly collidersInstalled?: true }) {
     this.host = host;
+    this.roadPlans = preparedRoad?.plans ?? new Map<Mesh, CullPlan>();
     // before the page's first render: the lights a region's own pool shows through (regionalWorld `mirrorInto`)
     if (isScene(host.scene)) LightPool.for(host.scene).reserve(GRID_REGION_POINT_LIGHTS);
     this.mapImages = new CellMinimaps(host.scope, async slug => {
@@ -465,19 +472,21 @@ export class GridSession {
     const admission = new PlatformRenderResidency(this.allocator, host.scope);
     // the road system: `create`'s install as it lands (its frame hooks keep their latest values for it), else built now
     let platformRoad: PlatformRoad | null = null, horizon: number | undefined, weight: number | undefined;
-    const preparedPlans = preparedRoad?.plans;
-    const take = (road: PlatformRoad): void => {
-      if (preparedPlans !== undefined) for (const [mesh, plan] of preparedPlans) this.roadPlans.set(mesh, plan);
+    const take = (road: PlatformRoad, final = false): void => {
       platformRoad = platformRoad === null ? road : combinePlatformRoads(platformRoad, road);
       this.road = platformRoad.road; this.seams = platformRoad.seams; this.roadRoots = platformRoad.roots; this.roadSettled = true;
       if (horizon !== undefined) road.horizon(horizon);
       if (weight !== undefined) road.overlayLight(weight);
+      this.roadTiles = platformRoad.tileBacking ?? null;
+      if (this.roadTiles !== null && !this.roadTiles.started() && (final || preparedRoad?.outer === undefined)) {
+        this.roadTiles.start(home.origin, layout, this.allocator, home.instance);
+      }
     };
     // A1: the outer ring's road, started by `step` once play has begun and the inner ring has landed
     const outer = preparedRoad?.outer;
     if (outer !== undefined) this.startOuterRoad = () => {
       const landOuter = async (): Promise<void> => {
-        try { await this.prepareOuterStrips(); const road = await outer(); if (!host.scope.disposed) take(road); }
+        try { await this.prepareOuterStrips(); const road = await outer(); if (!host.scope.disposed) take(road, true); }
         catch (error: unknown) {
           this.issues.set('road.outer', error instanceof Error ? error.message : String(error));
           console.warn('[grid] the outer road did not install:', error);
@@ -693,6 +702,7 @@ export class GridSession {
     host.onFixed((dt) => { this.step(dt, host.frame === undefined); this.life.fixed(); });
     const homeResidency = { instance: residency.home().instance, bytes: residency.home().bytes };
     host.scope.onDispose(app.debug.scopedExpose('grid', { state: () => this.state(), roadView: () => this.roadBudget.view(), roadResident: () => this.roadBudget.resident(),
+      roadTileResidency: () => this.roadTiles?.state() ?? null,
       // G144 admission receipts read the same allocator, without reserving or changing any claim.
       residency: () => ({ cost: this.allocator.cost(), claims: this.allocator.entries(), home: homeResidency }),
       // Per-frame travel needs the same fresh live/crossing facts, without the
@@ -944,6 +954,7 @@ export class GridSession {
     this.refreshCellCover();
     const at = this.last ?? this.world(), speed = Math.hypot(this.velocity.x, this.velocity.z), clamp = speed > 60 ? 60 / speed : 1; // a respawn's jump is not a velocity
     this.rings.step({ x: at.x, z: at.z, vx: this.velocity.x * clamp, vz: this.velocity.z * clamp });
+    this.roadTiles?.step({ x: at.x, z: at.z, vx: this.velocity.x * clamp, vz: this.velocity.z * clamp });
     for (const cell of this.neighbours) if (this.placeholderBlocksTiles(cell.instance)) this.rings.retireRefinement(cell.instance);
     this.stepCellLoading();
     this.shimmer.step();

@@ -82,7 +82,8 @@ export class RoadTilePool {
   readonly root: Group = new Group();
   private current: Mesh<BufferGeometry, Material>;
   private readonly resident = new Map<string, { data: RoadTileGeometry; scope: Scope }>();
-  constructor(private readonly owner: Scope, private readonly material: Material, private readonly culler: RoadCuller, private readonly name: string) {
+  constructor(private readonly owner: Scope, private readonly material: Material, private readonly culler: RoadCuller, private readonly name: string, private readonly receiveShadow = true, private readonly renderOrder = 0) {
+    if (!Number.isFinite(renderOrder)) throw new Error('Invalid road render order');
     if (owner.disposed || owner.disposing) throw new Error('Road tile pool owner retired');
     this.current = this.makeMesh(new BufferGeometry()); this.root.name = name; this.root.add(this.current);
     owner.onDispose(() => {
@@ -114,7 +115,7 @@ export class RoadTilePool {
   }
   private makeMesh(geometry: BufferGeometry): Mesh<BufferGeometry, Material> {
     const mesh = new Mesh(geometry, this.material); mesh.name = this.name;
-    mesh.receiveShadow = true; mesh.castShadow = false; return mesh;
+    mesh.receiveShadow = this.receiveShadow; mesh.renderOrder = this.renderOrder; mesh.castShadow = false; return mesh;
   }
   private rebuild(): void {
     const next = finishRoadSteps(mergeRoadTileSteps([...this.resident.values()].map(entry => entry.data)));

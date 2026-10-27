@@ -15,3 +15,15 @@ export function tileResidency(): TileResidency {
 export function setTileResidency(value: TileResidency): void { saved.write(value); }
 /** T10: entered content uses a 3 x 3 or 5 x 5 ring; stale whole-cell picks fall back to 5 x 5. */
 export function tileResidencyRadius(value: TileResidency = tileResidency()): number { return value === '3x3' ? 1 : 2; }
+
+/** S3 road geometry comparison, default-off until the plan's physical reading. */
+export const ROAD_RESIDENCY = ['resident', 'tiles'] as const;
+export type RoadResidency = (typeof ROAD_RESIDENCY)[number];
+const roadSaved = jsonSlot('debug.roadResidency', 'device');
+/** Developer only; ordinary pages retain the admitted resident road renderer. */
+export function roadResidency(): RoadResidency {
+  const value = roadSaved.read();
+  return isDev() ? ROAD_RESIDENCY.find(choice => choice === value) ?? 'resident' : 'resident';
+}
+/** The existing Debug registry reloads after changing this device-local choice. */
+export function setRoadResidency(value: RoadResidency): void { roadSaved.write(value); }
