@@ -12,3 +12,9 @@ What it shows: the plaza (D1) now reads like its mockup (the Hunyuan3D 2.1 gate,
 above (B1, C1) the stalls, houses, trees and canals fill the blocks. From the road (A1, A2) the avenue is still far
 sparser than the mockup's double row of lit lanterns, trees and houses: the remaining gap is density and light along the
 entry avenue, not the models.
+
+| `walk-storyboard.jpg` | RM13.2: eight frames of the 30 s road-to-plaza walk (road entry, the avenue, the arch bridge, the gate) on 188460fea2 |
+
+The walk video itself (30 s, 540 px, H.264, 3.4 MB) stays out of Git (docs/process/STORAGE.md):
+`tmp/rm13-walk/night-market-walk-188460fea2.mp4`. Chromium as iPhone 16 Pro, phone tier, render scale 2; the player
+glides up the avenue (1 m off the bridge halves' seam) in real time, so tiles stream as they would; the HUD is hidden.
