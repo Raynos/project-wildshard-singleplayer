@@ -11,7 +11,6 @@ import { saveFixture } from '../debug-settings.mjs';
 import { captureBootFrame } from './black-frame.mjs';
 import { observeTitleCapture } from './title-trace.mjs';
 import { quarantinedTitle, titleQuarantine } from './title-quarantine.mjs';
-import { quarantinedGrid, gridQuarantine } from './grid-quarantine.mjs';
 import { gridBootWaitHistory } from './grid-boot-waits.mjs';
 import { gridFloorDocumentIdentity, runFloorGridRoute, gridFloorWitnessFailures } from '../frame-floor-grid.mjs';
 
@@ -285,9 +284,8 @@ export function spawnOverhead() {
 
 /** `developer`: a standalone case with Developer on, for a shard that is still Developer-only (Signal Dunes: SF57's composer
  * coverage broke its boot on main, 9fb0cca1d, and no public case could see it).
- * @param {import('playwright').Browser} browser @param {string} base @param {'standalone'|'grid'|'public-policy'} mode @param {string} out @param {string} [shard] @param {boolean} [developer] @param {boolean} [titleOnly] @param {boolean} [gridReporting] */
-export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle', developer = false, titleOnly = false, gridReporting = false) {
-  if (gridReporting && mode !== 'grid') throw new Error('Invalid quarantined grid case');
+ * @param {import('playwright').Browser} browser @param {string} base @param {'standalone'|'grid'|'public-policy'} mode @param {string} out @param {string} [shard] @param {boolean} [developer] @param {boolean} [titleOnly] */
+export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle', developer = false, titleOnly = false) {
   if (titleOnly && (shard !== 'nine-dragon-stack' || mode === 'grid')) throw new Error('Invalid quarantined title case');
   // CI's macOS runner renders the phone tier at ~0.3 fps, so a case needs more than a minute of wall clock.
   const started = Date.now();
@@ -419,15 +417,6 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
       return typeof live === 'object' && live !== null && 'current' in live && live.current === grid.home && 'gameplayReady' in live && live.gameplayReady === true;
     };
     if (mode === 'grid') {
-      if (!gridReporting && quarantinedGrid(mode)) {
-        // The reporting leg executes this entire original case from its original clock.
-        // The required leg still checks the title and actual grid document navigation.
-        const result = { mode, phases, frames, gridWaits: gridWaits.samples, quarantine: gridQuarantine,
-          elapsedMs: Date.now() - started, ...await page.evaluate(bootObservation), faults, reports };
-        if (faults.length > 0 || result.fatal.length > 0) throw new Error(JSON.stringify(result));
-        writeFileSync(join(out, `${receipt}.json`), `${JSON.stringify(result, null, 2)}\n`);
-        return result;
-      }
       await until(page, faults, () => gameplay(false), 'grid preparation', deadline, observeGridWait);
       phases.preparedMs = Date.now() - started;
       deadline = Date.now() + 90000;
@@ -475,15 +464,15 @@ async function main() {
   try {
     const browser = await pool.browser(0);
     const group = option('case-group') ?? 'all';
-    if (group !== 'all' && group !== 'public' && group !== 'developer' && group !== 'grid' && group !== 'title-quarantine' && group !== 'grid-quarantine') throw new Error('usage: --case-group=all|public|developer|grid|title-quarantine|grid-quarantine');
+    if (group !== 'all' && group !== 'public' && group !== 'developer' && group !== 'grid' && group !== 'title-quarantine') throw new Error('usage: --case-group=all|public|developer|grid|title-quarantine');
     const catalogue = await discoverCatalogue(browser, base);
-    const cases = group === 'title-quarantine' ? bootCases(catalogue).filter(row => row[1] === 'nine-dragon-stack') : bootCases(catalogue, group === 'grid-quarantine' ? 'grid' : group);
+    const cases = group === 'title-quarantine' ? bootCases(catalogue).filter(row => row[1] === 'nine-dragon-stack') : bootCases(catalogue, group);
     if (group === 'title-quarantine' && (cases.length !== 2 || !cases.some(row => row[0] === 'public-policy') || !cases.some(row => row[2]))) throw new Error('Missing original public/Developer quarantine cases');
     writeFileSync(join(out, 'cases.json'), `${JSON.stringify({ group, catalogue, cases }, null, 2)}\n`);
     for (const [mode, shard, developer] of cases) {
       const isolated = await bootCaseBrowser(pool, mode);
-      const result = await bootCase(isolated, base, mode, out, shard, developer, group === 'title-quarantine', group === 'grid-quarantine');
-      console.log(`${mode}: ${group === 'grid-quarantine' ? 'quarantined grid preparation and original routes' : group === 'title-quarantine' ? 'quarantined title PNG' : mode === 'public-policy' ? 'public-policy admission' : 'gameplay'} PASS in ${result.elapsedMs}ms, frame=${result.frame}, faults=${result.faults.length}`);
+      const result = await bootCase(isolated, base, mode, out, shard, developer, group === 'title-quarantine');
+      console.log(`${mode}: ${group === 'title-quarantine' ? 'quarantined title PNG' : mode === 'public-policy' ? 'public-policy admission' : 'gameplay'} PASS in ${result.elapsedMs}ms, frame=${result.frame}, faults=${result.faults.length}`);
     }
   } finally { try { await pool.close(); } finally { preview?.close(); } }
 }
