@@ -774,7 +774,6 @@
  "test/generation-clean-room.test.ts": 0.6,
  "test/generation-input-memo.test.ts": 0.025,
  "test/generation-inventory.test.ts": 0.1,
- "test/generation-node-cache.test.ts": 0.346,
  "test/input-read-trace.test.ts": 0.829,
  "test/generation-removals.test.ts": 1,
  "test/generation-scene-inputs.test.ts": 0,
