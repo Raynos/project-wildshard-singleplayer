@@ -294,7 +294,8 @@
     "./shard/pageBoot": "./shard/pageBoot.ts",
     "./population/actorProjectionV2": "./population/actorProjectionV2.ts",
     "./shardfile/clientTargets": "./shardfile/clientTargets.ts",
-    "./models/binarySource": "./models/binarySource.ts"
+    "./models/binarySource": "./models/binarySource.ts",
+    "./plugin/clientChannelView": "./plugin/clientChannelView.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*",

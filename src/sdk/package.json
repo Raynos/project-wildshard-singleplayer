@@ -144,7 +144,8 @@
     "./returnProjectionV2": "./returnProjectionV2.ts",
     "./as/groupBankV2": "./as/groupBankV2.ts",
     "./as/groupStepV2": "./as/groupStepV2.ts",
-    "./bake/portableBytes": "./bake/portableBytes.ts"
+    "./bake/portableBytes": "./bake/portableBytes.ts",
+    "./bake/mapRest": "./bake/mapRest.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -680,6 +681,10 @@
       "./bake/portableBytes": {
         "types": "./dist/types/sdk/bake/portableBytes.d.ts",
         "default": "./dist/bake/portableBytes.js"
+      },
+      "./bake/mapRest": {
+        "types": "./dist/types/sdk/bake/mapRest.d.ts",
+        "default": "./dist/bake/mapRest.js"
       }
     }
   }

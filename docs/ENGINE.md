@@ -6225,12 +6225,13 @@ Signal well prompts use these rows on their existing input owners.
 
 ### Static world scene recipes
 
-`format/clientChannels.parseWorldScene` admits bounded private scene rows
-with named baked-piece and model imports. `game/plugin/scene.createWorldScene`
-uses the caller's real geometry, model and baked ports, returning its Group,
-named parts and borrowed baked metadata in `baked`. Material collectors stay
-owned ports. `game/shardfile/bakedKinds.worldPieces.scene` registers named
-parts without reparenting them or applying placement transforms twice.
+`format/clientChannels.parseWorldScene` admits bounded recipes and named
+baked/model imports. `game/plugin/scene.createWorldScene` borrows geometry,
+model, baked and material ports, returning its Group, parts and `baked`
+metadata. `worldPieces.scene` registers parts without reparenting or double transforms.
+Build-only `sdk/bake/mapRest.mapSceneRest` projects declared mover rest
+poses through the native CPU channels. Missing movers or instance coverage
+refuse; it installs no renderer, physics, clock or file reader.
 
 ModelLibrary `paintedModels` pairs named rest geometry with an existing
 painted atlas and optional four-slot pivots. `painted(name)` clones geometry
