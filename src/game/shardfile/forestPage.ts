@@ -229,7 +229,16 @@ export async function placeForestPageModels(ctx: ShardContext, id: string): Prom
     const model = groundModel(kind, under);
     // P4: the cover keeps to the trees' ring (after its own cell and range tests)
     const kept = { test: (i: number): boolean => { const it = items[i]; return it === undefined || residency.resident(it.x, it.z); } };
-    await placeSliced(model, items.map((it) => ({ x: it.x, y: it.y, z: it.z, matrix: new Matrix4().fromArray(it.matrix), color: new Color(it.r, it.g, it.b) })),
+    await placeSliced(model, items.map((it) => ({ x: it.x, y: it.y, z: it.z, matrix: it.matrix === undefined ? groundPlacementMatrix(it) : new Matrix4().fromArray(it.matrix), color: new Color(it.r, it.g, it.b) })),
       { ctx: models, draw: 'instanced', registry, piece: { id: model.id }, cull: { ...cull, ...kept }, parent: under.group }, due);
   }
+}
+
+const UP = new Vector3(0, 1, 0), groundNormal = new Vector3(), groundPoint = new Vector3(), groundSize = new Vector3(), groundTilt = new Quaternion();
+/** A forest-floor placement's instance matrix from its facts (iPhone downloads I2: the layout ships no per-instance matrix):
+ *  a yaw of `rot` about up, then a tilt of up onto the ground normal, at the point, at a uniform `scale`. */
+export function groundPlacementMatrix(it: { readonly x: number; readonly y: number; readonly z: number; readonly nx: number; readonly ny: number; readonly nz: number; readonly rot: number; readonly scale: number }): Matrix4 {
+  groundTilt.setFromUnitVectors(UP, groundNormal.set(it.nx, it.ny, it.nz));
+  const turn = new Quaternion().setFromAxisAngle(UP, it.rot).premultiply(groundTilt);
+  return new Matrix4().compose(groundPoint.set(it.x, it.y, it.z), turn, groundSize.set(it.scale, it.scale, it.scale));
 }

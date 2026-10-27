@@ -7,7 +7,9 @@ import { isJsonData } from './json';
 const n = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
 const point = { x: n, y: n, z: n }, count = v.pipe(n, v.integer(), v.minValue(0));
 const floor = v.strictObject({ ...point, hw: n, hd: n, rot: n }), tier = v.picklist(['phone', 'desktop']);
-const place: v.GenericSchema<GroundPlacementInput, GroundPlacement> = v.strictObject({ ...point, nx: n, ny: n, nz: n, rot: n, scale: n, r: n, g: n, b: n, matrix: v.pipe(v.array(n), v.length(16)) });
+const place: v.GenericSchema<GroundPlacementInput, GroundPlacement> = v.strictObject({ ...point, nx: n, ny: n, nz: n, rot: n, scale: n, r: n, g: n, b: n,
+  /** the instance matrix; absent, the reader composes it from the facts (`groundPlacementMatrix`, iPhone downloads I2) */
+  matrix: v.exactOptional(v.pipe(v.array(n), v.length(16))) });
 /** Client-only forest cover and living settlements, with native resources by id. */
 export const ForestPageSchema: v.GenericSchema<ForestPageRowsInput, ForestPageRows> = v.pipe(v.unknown(), v.check(isJsonData, 'Forest page requires JSON rows'), v.strictObject({
   water: PageWaterBindingSchema, treeLooks: v.pipe(v.array(v.strictObject({ look: id, band: v.picklist(['trunk', 'cards', 'twigs', 'far']), fade: id, viewer: id })), v.maxLength(4)),
@@ -240,7 +242,7 @@ export type GroundPlacement = {
     r: number;
     g: number;
     b: number;
-    matrix: (number)[];
+    matrix?: (number)[];
 } & {
     x: number;
     y: number;
