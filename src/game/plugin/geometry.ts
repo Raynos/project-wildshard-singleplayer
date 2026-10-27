@@ -252,6 +252,34 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
     } catch (error: unknown) { console.error(`${fault} the painted model ${row.name} did not load:`, error); }
   }
 
+  // Overlap a bounded set of immutable model reads with the default parser's
+  // serial, shared-budget decode slot. Keep the caller's original pause order.
+  async function loadPaintedAhead(missing: readonly PaintedModelRow[], pause: () => Promise<void>): Promise<void> {
+    const pending = new Map<number, Promise<void>>();
+    let next = 0;
+    const fill = (): void => {
+      while (pending.size < 4 && next < missing.length) {
+        const row = missing[next];
+        if (row === undefined) throw new Error('Missing painted model row');
+        const loading = loadPainted(row); void loading.catch(() => undefined);
+        pending.set(next++, loading);
+      }
+    };
+    try {
+      fill();
+      for (let index = 0; index < missing.length; index++) {
+        const loading = pending.get(index);
+        if (loading === undefined) throw new Error('Missing painted model read');
+        await loading; pending.delete(index);
+        await pause(); fill();
+      }
+    } finally {
+      // A retired caller stops admitting rows, but releases its input lease only
+      // after every read/parse already started has settled.
+      await Promise.allSettled(pending.values());
+    }
+  }
+
   async function loadPool(pool: ModelGeometryPool): Promise<void> {
     try {
       const gltf = await readModel(pool.url), nodes: Mesh[] = [];
@@ -417,8 +445,7 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
         await Promise.all([...rows.meshes.filter(name => !ready.has(name)).map(load), ...rows.hd.filter(name => !hd.has(name)).map(loadHd),
           ...pools.filter(pool => pool.parts.some(name => !rest.has(name)) || (pool.atlases ?? []).some(row => !atlases.has(row.id))).map(loadPool)]);
         const missing = paintedRows.filter(row => !painted.has(row.name));
-        if (pause === undefined) await Promise.all(missing.map(loadPainted));
-        else for (const row of missing) { await loadPainted(row); await pause(); }
+        await (pause === undefined ? Promise.all(missing.map(loadPainted)) : loadPaintedAhead(missing, pause));
         } catch (error: unknown) { state.loading = null; throw error; }
       })();
       return rigs === null || rows.rigLoad === 'manual' ? state.loading : Promise.all([state.loading, rigs.bodies.preload()]).then(() => undefined);

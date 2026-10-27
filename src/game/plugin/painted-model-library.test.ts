@@ -32,3 +32,65 @@ it('shares an original atlas while cloning prepared geometry and explicit NPC sl
   for (const part of Object.values(first.pivots)) part.dispose();
   if (second.pivots !== undefined) for (const part of Object.values(second.pivots)) part.dispose();
 });
+
+function paintedIntake() {
+  const geometry = new PlaneGeometry(2, 3); geometry.computeBoundingBox(); geometry.computeBoundingSphere();
+  const pool = new Group(), primitiveMaterial = new MeshStandardMaterial(), primitive = new Mesh(geometry, primitiveMaterial);
+  primitive.name = 'hero'; primitive.userData['restGroups'] = [];
+  primitive.userData['restBox'] = [-1, -1.5, 0, 1, 1.5, 0]; primitive.userData['restSphere'] = [0, 0, 0, 2]; pool.add(primitive);
+  const texture = new Texture(), paintGeometry = new PlaneGeometry(), paintMaterial = new MeshStandardMaterial({ map: texture });
+  const paint = new Group().add(new Mesh(paintGeometry, paintMaterial));
+  const begun: string[] = [], pending = new Map<string, { ready: Promise<{ scene: Group }>; finish: () => void }>();
+  let fourReady: () => void = () => undefined;
+  const firstFour = new Promise<void>(resolve => { fourReady = resolve; });
+  const rows = Array.from({ length: 6 }, (_, index) => {
+    const name = `paint-${String(index)}`;
+    let finish: () => void = () => undefined;
+    const ready = new Promise<{ scene: Group }>(resolve => { finish = () => { resolve({ scene: paint }); }; });
+    pending.set(name, { ready, finish }); return { name, url: name, geometry: 'hero' };
+  });
+  const read = vi.fn((url: string) => {
+    if (url === 'pool') return Promise.resolve({ scene: pool });
+    const row = pending.get(url); if (row === undefined) throw new Error('Undeclared painted read');
+    begun.push(url); if (begun.length === 4) fourReady(); return row.ready;
+  });
+  const library = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 0.6,
+    geometryPools: [{ url: 'pool', parts: ['hero'] }], paintedModels: rows }, 'test', {}, read);
+  return { library, begun, firstFour, finish: (index: number) => { pending.get(`paint-${String(index)}`)?.finish(); },
+    finishAll: () => { for (const row of pending.values()) row.finish(); },
+    close: () => { geometry.dispose(); primitiveMaterial.dispose(); paintGeometry.dispose(); paintMaterial.dispose(); texture.dispose(); } };
+}
+
+it('overlaps four source reads while retaining every original row pause and atlas', async () => {
+  const f = paintedIntake(), pause = vi.fn(() => Promise.resolve()), loading = f.library.preload(pause);
+  try {
+    await f.firstFour;
+    expect(f.begun).toEqual(['paint-0', 'paint-1', 'paint-2', 'paint-3']);
+    f.finishAll(); await loading;
+    expect(f.begun).toEqual(['paint-0', 'paint-1', 'paint-2', 'paint-3', 'paint-4', 'paint-5']);
+    expect(pause).toHaveBeenCalledTimes(6);
+    const first = f.library.painted('paint-0'), last = f.library.painted('paint-5');
+    if (first === null || last === null) throw new Error('Missing complete painted intake');
+    expect(first.map).toBe(last.map); expect(first.geometry).not.toBe(last.geometry);
+    expect(first.geometry.getAttribute('position').array).toEqual(last.geometry.getAttribute('position').array);
+    first.geometry.dispose(); last.geometry.dispose();
+  } finally { f.finishAll(); await loading; f.close(); }
+});
+
+it('drains admitted reads before a caller pause refuses and starts no suffix', async () => {
+  const f = paintedIntake();
+  let atPause: () => void = () => undefined, settled = false;
+  const paused = new Promise<void>(resolve => { atPause = resolve; });
+  const outcome = (async () => {
+    try { await f.library.preload(() => { atPause(); throw new Error('caller retired'); }); return null; }
+    catch (error: unknown) { return error; }
+    finally { settled = true; }
+  })();
+  try {
+    await f.firstFour; f.finish(0); await paused;
+    for (let turn = 0; turn < 5; turn++) await Promise.resolve();
+    expect(settled).toBe(false); expect(f.begun).toHaveLength(4);
+    f.finishAll(); expect(String(await outcome)).toContain('caller retired');
+    expect(f.begun).toEqual(['paint-0', 'paint-1', 'paint-2', 'paint-3']);
+  } finally { f.finishAll(); await outcome; f.close(); }
+});
