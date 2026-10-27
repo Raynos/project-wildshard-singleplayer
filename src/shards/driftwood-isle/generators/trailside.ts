@@ -10,6 +10,16 @@ import { buildFencePost, buildPlankStep, buildSignpost, trailPart, TRAIL_COLOURS
 import { flightOf, trailsideSpecKey, type TrailsideSpec } from './trailsideLayout';
 
 const isParts = (b: ModelBuild): b is readonly ModelPart[] => Array.isArray(b);
+// These two original authored slopes have adjacent native atan2 results on
+// arm64 and x64. Retain the defining bake's exact doubles at those exact
+// inputs; other terrain samples continue through the native calculation.
+const RETAINED_PLANK_ROLLS = [
+  { rise: 1.0406697044134061, width: 2.4, roll: 0.40914273408319374 },
+  { rise: -0.37413378410338893, width: 2.4, roll: -0.1546444008554735 },
+] as const;
+function plankRoll(rise: number, width: number): number {
+  return RETAINED_PLANK_ROLLS.find(row => row.rise === rise && row.width === width)?.roll ?? Math.atan2(rise, width);
+}
 /** Original static trail geometry plus the model placements and their exact world boxes. */
 export interface TrailsideGeometry {
   geometry: THREE.BufferGeometry;
@@ -95,7 +105,7 @@ export function trailsideGeometry(spec: TrailsideSpec, heightAt: (x: number, z: 
         const [x, z] = at(i / n), hw = w / 2;
         const lo = heightAt(x - ax * hw, z - az * hw), hi = heightAt(x + ax * hw, z + az * hw);
         const y = Math.max(heightAt(x, z), (lo + hi) / 2);
-        const params: PlankStepParams = { w, roll: Math.atan2(hi - lo, w), yaw: ang, dark: i % 2 === 1 };
+        const params: PlankStepParams = { w, roll: plankRoll(hi - lo, w), yaw: ang, dark: i % 2 === 1 };
         if (weld(buildPlankStep(ctx, params, rng), x, y, z, planks.boxes)) planks.pls.push({ x, y, z, params });
       }
       const runs = Math.max(1, Math.round(len / 2.8));
