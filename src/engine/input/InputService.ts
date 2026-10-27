@@ -38,6 +38,18 @@ const WILDCARD_EXCLUDED = new Set(['Escape', 'ArrowLeft', 'ArrowRight', 'MetaLef
 export class InputService {
   recordCommand: ((command: ActionCommand) => void) | null = null;
   private commandDepth = 0;
+  private inputRevision = 0;
+  private contextRevision = 0;
+  private readonly enabledContexts = new Map<Context, boolean>();
+  private refreshStamp: { input: number; context: number; bindings: number } | undefined;
+  private layoutCache: { context: number; layout: TouchStack } | undefined;
+  private pollContexts(): number {
+    for (const entry of this.stack) {
+      const enabled = entry.def.enabled?.() !== false;
+      if (this.enabledContexts.get(entry) !== enabled) { this.enabledContexts.set(entry, enabled); this.contextRevision++; }
+    }
+    return this.contextRevision;
+  }
   private activeAim: AimCommand | undefined;
   captureAim: (() => AimCommand) | null = null;
   get commandAim(): AimCommand | undefined { return this.activeAim; }
@@ -55,17 +67,18 @@ export class InputService {
           this.recent.push({ action: command.action, at: command.at }); if (this.recent.length > 20) this.recent.shift();
           if (this.allowed(command.action)) for (const binding of this.callbacks) if (binding.action === command.action && binding.enabled()) binding.run();
           break;
-        case 'physical': if (command.on) this.physical.add(command.code); else this.physical.delete(command.code); this.refresh(); break;
+        case 'physical': this.inputRevision++; if (command.on) this.physical.add(command.code); else this.physical.delete(command.code); this.refresh(); break;
         case 'look': {
           const previous = this.axes.get('look') ?? { x: 0, y: 0 }; this.axes.set('look', { x: previous.x + command.x, y: previous.y + command.y });
           if (this.allowed('look')) for (const run of this.motion) run(command.x, command.y);
           break;
         }
         case 'queue': this.presses.set(command.action, command.at); break;
-        case 'held': if (command.on) this.manual.add(command.action); else this.manual.delete(command.action); this.refresh(); break;
+        case 'held': this.inputRevision++; if (command.on) this.manual.add(command.action); else this.manual.delete(command.action); this.refresh(); break;
         case 'release': this.release(command.action); break;
         case 'axis': this.axes.set(command.action, { x: command.x, y: command.y }); break;
         case 'clear':
+          this.inputRevision++;
           this.physical.clear(); this.manual.clear(); this.refresh(); this.presses.clear(); this.axes.clear(); for (const reset of this.resets) reset();
           break;
         default: throw new Error('Unsupported input command');
@@ -94,9 +107,10 @@ export class InputService {
     for (const entry of removed) this.pop(entry.def.id);
     this.stack.length = 0;
     for (const id of state.contexts) { const entry = this.definitions.get(id); if (entry !== undefined) { this.stack.push(entry); if (!this.pushed.has(id)) this.pushed.set(id, entry.scope.capture('disposers', () => { this.pop(id); })); } }
-    this.repaint();
+    this.inputRevision++; this.contextRevision++; this.repaint();
   }
   private release(action: Action): void {
+    this.inputRevision++;
     this.ups.add(action); for (const binding of this.releases) if (binding.action === action) binding.run(); this.down.delete(action);
   }
   private readonly definitions = new Map<string, Context>();
@@ -115,7 +129,7 @@ export class InputService {
   private readonly gestures = new Set<() => void>();
   private readonly resets = new Set<() => void>();
   private readonly axes = new Map<Action, { x: number; y: number }>();
-  readonly bindings: Bindings = new Bindings(() => { this.refresh(); });
+  readonly bindings: Bindings = new Bindings(() => { this.inputRevision++; this.refresh(); });
   readonly recent: { action: Action; at: number }[] = [];
   private keyCapture: ((code: string) => void) | undefined;
   private installed = false;
@@ -131,19 +145,19 @@ export class InputService {
   register(def: InputContextDef, scope: Scope): void {
     if (this.definitions.has(def.id)) throw new Error(`Duplicate input context: ${def.id}`);
     if (def.keysFrom !== undefined && !this.definitions.has(def.keysFrom)) throw new Error(`Unknown key source context: ${def.keysFrom}`);
-    const entry = { def, scope }; this.definitions.set(def.id, entry);
+    const entry = { def, scope }; this.definitions.set(def.id, entry); this.contextRevision++;
     const actions = Array.isArray(def.actions) ? def.actions as readonly Action[] : Object.keys(def.actions) as Action[];
     this.bindings.define(def.id, def.keys ?? {}, def.keysFrom === undefined ? undefined : { context: def.keysFrom, actions });
-    scope.onDispose(() => { this.pop(def.id); this.definitions.delete(def.id); this.bindings.remove(def.id); });
+    scope.onDispose(() => { this.pop(def.id); this.definitions.delete(def.id); this.enabledContexts.delete(entry); this.contextRevision++; this.bindings.remove(def.id); });
   }
   push(id: string, scope: Scope): void {
     const entry = this.definitions.get(id);
     if (entry === undefined) throw new Error(`Unknown input context: ${id}`);
     if (scope.disposed || this.stack.includes(entry)) return;
-    this.stack.push(entry); this.refresh(false); this.repaint();
+    this.stack.push(entry); this.contextRevision++; this.refresh(false); this.repaint();
     this.pushed.set(id, scope.capture('disposers', () => { this.pop(id); }));
   }
-  pop(id: string): void { const at = this.stack.findIndex((entry) => entry.def.id === id); if (at === -1) return; this.stack.splice(at, 1); this.refresh(false); this.pushed.get(id)?.(); this.pushed.delete(id); this.repaint(); }
+  pop(id: string): void { const at = this.stack.findIndex((entry) => entry.def.id === id); if (at === -1) return; this.stack.splice(at, 1); this.contextRevision++; this.refresh(false); this.pushed.get(id)?.(); this.pushed.delete(id); this.repaint(); }
   get top(): string { return this.stack.at(-1)?.def.id ?? ''; }
   allowed(action: Action): boolean {
     const entries = this.allowedFrames[this.allowedDepth] ?? [];
@@ -188,12 +202,14 @@ export class InputService {
     return false;
   }
   refresh(edges = true): void {
+    const context = this.pollContexts(), input = this.inputRevision, bindings = this.bindings.revision, prior = this.refreshStamp;
+    if (this.refreshDepth === 0 && prior?.context === context && prior.input === input && prior.bindings === bindings) return;
     const frame = this.refreshFrames[this.refreshDepth] ?? { wanted: new Set<Action>(), actions: [] };
     this.refreshFrames[this.refreshDepth++] = frame;
     const { wanted, actions } = frame; let count = 0;
     try {
       for (const action of this.manual) wanted.add(action);
-      for (const { def } of this.stack) if (def.enabled?.() !== false) for (const [action, codes] of Object.entries(this.bindings.keys(def.id))) {
+      for (const entry of this.stack) if (this.enabledContexts.get(entry) !== false) for (const [action, codes] of this.bindings.keyEntries(entry.def.id)) {
         if (codes !== undefined) for (const code of codes) if (this.physicalCode(code)) { wanted.add(action as Action); break; }
       }
       // Freeze the original down-then-wanted union before any transition callback.
@@ -202,6 +218,7 @@ export class InputService {
       for (let index = 0; index < count; index++) {
         const action = actions[index]; if (action !== undefined) this.transition(action, wanted.has(action), edges);
       }
+      this.refreshStamp = { context, input, bindings };
     } finally {
       if (wanted.size > 0) wanted.clear();
       for (let index = 0; index < count; index++) actions[index] = undefined;
@@ -290,6 +307,8 @@ export class InputService {
     this.stackPaint = paint; this.repaint(); scope.onDispose(() => { if (this.stackPaint === paint) this.stackPaint = undefined; });
   }
   touchLayout(): TouchStack {
+    const context = this.pollContexts();
+    if (this.layoutCache?.context === context) return this.layoutCache.layout;
     const labels: TouchStack['labels'] = {}, verbs: TouchStack['verbs'] = {}, actions = new Set<Action>();
     for (const { def } of this.stack) if (def.enabled?.() !== false) {
       if (def.blocks === 'below') { actions.clear(); for (const spot of Object.keys(labels) as DiscSpot[]) delete labels[spot]; delete verbs['verb.1']; delete verbs['verb.2']; }
@@ -301,7 +320,12 @@ export class InputService {
     const active = this.stack.filter(({ def }) => def.enabled?.() !== false);
     let mode = '', lockable = false;
     for (const { def } of active) { if (def.blocks === 'below') { mode = ''; lockable = false; } if (def.touch?.mode !== undefined) mode = def.touch.mode; if (def.touch?.lockable !== undefined) lockable = def.touch.lockable; }
-    return { labels, verbs, mode, lockable, actions: [...actions].filter((action) => this.allowed(action)), contexts: this.contexts };
+    const layout = Object.freeze({ labels: Object.freeze(labels), verbs: Object.freeze(verbs), mode, lockable,
+      actions: Object.freeze([...actions].filter((action) => this.allowed(action))), contexts: Object.freeze(this.contexts) });
+    // Predicate callbacks may reenter and change the context stack. Such a
+    // layout is returned as before, but never cached for the changed stack.
+    if (context === this.contextRevision) this.layoutCache = { context, layout };
+    return layout;
   }
   touchSink(paint: (labels: Partial<Record<DiscSpot, TouchRelabel>>) => void, scope: Scope): void {
     this.paint = paint; this.repaint(); scope.onDispose(() => { if (this.paint === paint) { paint({}); this.paint = undefined; } });

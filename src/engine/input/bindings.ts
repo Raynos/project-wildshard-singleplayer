@@ -15,6 +15,11 @@ export interface BindingTableDef { groups?: readonly BindingGroupDef[]; rows?: r
 /** Context-local overrides retain unmodified defaults and swap conflicts explicitly. */
 export class Bindings {
   private readonly defaults = new Map<string, Keys>();
+  private readonly resolvedEntries = new Map<string, readonly (readonly [string, readonly string[] | undefined])[]>();
+  private version = 0;
+  /** Binding revisions invalidate stationary input scans, including inherited keys. */
+  get revision(): number { return this.version; }
+  private invalidate(): void { this.resolvedEntries.clear(); this.version++; }
   private readonly parents = new Map<string, { context: string; actions: readonly Action[] }>();
   private overrides = controls.read();
   private readonly changed: () => void;
@@ -29,9 +34,9 @@ export class Bindings {
       }
       this.parents.set(context, parent);
     } else this.parents.delete(context);
-    this.defaults.set(context, keys);
+    this.defaults.set(context, keys); this.invalidate();
   }
-  remove(context: string): void { this.defaults.delete(context); this.parents.delete(context); }
+  remove(context: string): void { this.defaults.delete(context); this.parents.delete(context); this.invalidate(); }
   /** The registered contexts, in registration order. */
   contexts(): readonly string[] { return [...this.defaults.keys()]; }
   defaultKeys(context: string): Keys { return this.resolve(context, true); }
@@ -55,9 +60,19 @@ export class Bindings {
   assign(context: string, action: Action, codes: readonly string[]): void {
     if (!this.defaults.has(context)) throw new Error(`Unknown binding context ${context}`);
     const source = this.keySource(context, action);
-    this.overrides = { ...this.overrides, [source]: { ...this.overrides[source], [action]: [...codes] } }; controls.write(this.overrides); this.changed();
+    this.overrides = { ...this.overrides, [source]: { ...this.overrides[source], [action]: [...codes] } }; controls.write(this.overrides); this.invalidate(); this.changed();
   }
   keys(context: string): Keys { return this.resolve(context, false); }
+  /** Borrowed immutable scan rows; public keys() retains detached records. */
+  keyEntries(context: string): readonly (readonly [string, readonly string[] | undefined])[] {
+    let entries = this.resolvedEntries.get(context);
+    if (entries === undefined) {
+      entries = Object.freeze(Object.entries(this.resolve(context, false)).map(([action, codes]) => Object.freeze([action,
+        codes === undefined ? undefined : Object.freeze([...codes])] as const)));
+      this.resolvedEntries.set(context, entries);
+    }
+    return entries;
+  }
   private resolve(context: string, defaultsOnly: boolean): Keys {
     const parent = this.parents.get(context);
     const inherited = parent === undefined ? {} : Object.fromEntries(Object.entries(this.resolve(parent.context, defaultsOnly)).filter(([action]) => parent.actions.includes(action as Action)));
@@ -80,7 +95,7 @@ export class Bindings {
     const conflict = this.conflict(context, action, code); if (conflict !== undefined && !swap) return conflict;
     const previous = this.keys(context)[action] ?? [], edits = { ...this.overrides[context], [action]: [code] };
     if (conflict !== undefined) edits[conflict] = [...previous];
-    this.overrides = { ...this.overrides, [context]: edits }; controls.write(this.overrides); this.changed(); return undefined;
+    this.overrides = { ...this.overrides, [context]: edits }; controls.write(this.overrides); this.invalidate(); this.changed(); return undefined;
   }
-  reset(): void { this.overrides = {}; controls.reset(); this.changed(); }
+  reset(): void { this.overrides = {}; controls.reset(); this.invalidate(); this.changed(); }
 }

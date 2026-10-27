@@ -95,3 +95,22 @@ test('failed context predicates do not leave old owners in a later allowed scan'
     input.pop('base'); expect(input.allowed('use')).toBe(true);
   } finally { fail = false; scope.dispose(); }
 });
+
+test('stable layouts and bindings are reused until enabled answers or keys change', () => {
+  const { input, scope } = fixture(); let enabled = false;
+  input.register({ id: 'conditional', actions: ['use'], enabled: () => enabled,
+    keys: { use: ['KeyE'] }, touch: { mode: 'conditional', relabel: {} } }, scope);
+  input.push('conditional', scope);
+  try {
+    const layout = input.touchLayout(), keys = input.bindings.keyEntries('base');
+    input.refresh(); input.repaint();
+    expect(input.touchLayout()).toBe(layout); expect(input.bindings.keyEntries('base')).toBe(keys);
+    enabled = true; input.refresh();
+    expect(input.touchLayout()).not.toBe(layout); expect(input.touchLayout().mode).toBe('conditional');
+    expect(input.touchLayout().contexts).toContain('conditional');
+    input.bindings.assign('base', 'sprint', ['KeyR']);
+    expect(input.bindings.keyEntries('base')).not.toBe(keys);
+    input.executeCommand({ kind: 'physical', code: 'KeyR', on: true, at: 12 });
+    expect(input.held('sprint')).toBe(true);
+  } finally { scope.dispose(); }
+});
