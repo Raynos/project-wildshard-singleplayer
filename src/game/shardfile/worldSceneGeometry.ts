@@ -62,7 +62,20 @@ export async function readWorldSceneGeometry(owner: Scope, product: Pick<ShardPr
   const ready = memo.get(key);
   if (ready !== undefined) return lease(owner, assets, ready);
   const intake = createOwnedGeometry(url, row.attributes);
-  await intake.load(await product.file(row.file), row.segments === undefined ? undefined : await Promise.all(row.segments.map(file => product.file(file))));
+  // All segments are independently verified product files. Start them with the
+  // primary instead of waiting one extra transport turn for that first file.
+  // Drain started reads before a refusal can release the caller's input lease.
+  const loaded = await Promise.allSettled([row.file, ...row.segments ?? []].map(async file => {
+    const bytes = await product.file(file); return bytes;
+  }));
+  const words: Uint8Array[] = [];
+  for (const result of loaded) {
+    if (result.status === 'rejected') throw result.reason;
+    words.push(result.value);
+  }
+  requireLive(owner); // A redirected owner must not start a now-useless decode.
+  const first = words[0]; if (first === undefined) throw new Error('Missing world scene geometry bytes');
+  await intake.load(first, row.segments === undefined ? undefined : words.slice(1));
   const geometry = intake.take();
   let asset: string | undefined;
   let temporary = true;

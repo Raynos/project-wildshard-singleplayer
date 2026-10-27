@@ -39,6 +39,43 @@ function fixture(limit = 10000) {
 }
 const row = { file: 'fixed.glb' };
 
+test('segmented geometry starts every read with its primary and restores the original segment order', async () => {
+  const f = fixture(), scope = new Scope('segment-reads'), names = ['fixed.glb', 'part-a.glb', 'part-b.glb'];
+  const pending = new Map<string, (bytes: Uint8Array) => void>(), started: string[] = [];
+  const product = { ...f.product, file: (name: string): Promise<Uint8Array> => {
+    started.push(name); return new Promise(resolve => { pending.set(name, resolve); });
+  } };
+  const loading = readWorldSceneGeometry(scope, product, { ...row, segments: names.slice(1) }, f.assets);
+  expect(started).toEqual(names);
+  try {
+    for (const name of [...names].reverse()) {
+      const finish = pending.get(name); if (finish === undefined) throw new Error('Missing segment read'); finish(f.bytes);
+    }
+    const held = await loading, actual = held.copy(), oracle = createOwnedGeometry(product.url(row.file));
+    await oracle.load(f.bytes, [f.bytes, f.bytes]);
+    const expected = oracle.take();
+    try { for (const name of Object.keys(expected.attributes)) expect(actual.getAttribute(name).array).toEqual(expected.getAttribute(name).array); }
+    finally { actual.dispose(); expected.dispose(); held.done(); }
+  } finally { scope.dispose(); f.close(); }
+});
+
+test('a primary read refusal drains started segments without decoding or publishing a template', async () => {
+  const f = fixture(), scope = new Scope('segment-refusal');
+  let finish = (): void => undefined, settled = false;
+  const segment = new Promise<Uint8Array>(resolve => { finish = () => { resolve(f.bytes); }; });
+  const product = { ...f.product, file: (name: string): Promise<Uint8Array> => name === row.file ? Promise.reject(new Error('Primary refused')) : segment };
+  const loading = (async (): Promise<unknown> => {
+    try { await readWorldSceneGeometry(scope, product, { ...row, segments: ['part.glb'] }, f.assets); return null; }
+    catch (error) { return error; }
+    finally { settled = true; }
+  })();
+  try {
+    await Promise.resolve(); await Promise.resolve(); expect(settled).toBe(false);
+    finish(); expect(String(await loading)).toContain('Primary refused');
+    expect(f.assets.retained()).toEqual([]); expect(f.allocator.entries()).toEqual([]);
+  } finally { finish(); scope.dispose(); f.close(); }
+});
+
 test('runtime retirement evicts its idle template and re-entry decodes fresh equal geometry', async () => {
   const f = fixture(), first = new Scope('first-runtime'), second = new Scope('second-runtime');
   const a = f.allocator.reserve({ id: 'sim:first', owner: 'first', category: 'sim', bytes: 100, needed: true, distance: 0 });
