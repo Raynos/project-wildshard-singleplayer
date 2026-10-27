@@ -79,7 +79,7 @@ it('binds unrelated native polearm, blade and power rows without shard callbacks
   const identity={slug:'orchard-fixture',name:'Orchard',author:'Fixture',revision:1,seed:31};
   const orchardItems=parseItems(JSON.parse(JSON.stringify(items).replaceAll('weapon.spear','weapon.fruit-hook').replaceAll('weapon.sabre','weapon.pruner').replaceAll('nalati-grasslands','orchard-fixture')));
   const powerRows={program:rows.programs.power,powers:{...rows.powers,crescentDamage:9},item:'weapon.pruner',name:'Pruner',blue:[.5,1,.4],glow:[0,.1,0]};
-  const spear=(await nalatiSpearPool()).rows;
+  const spear=nalatiSpearPool().rows;
   const polearmRows={...spear,pool,profile:{...spear.profile,damage:7,reach:1.8},program:rows.programs.polearm,presentation:{...rows.polearm,parts:{leftArm:'sleeve',rightArm:'sleeve',body:'handle',metal:'tip',fist:'grip',projectile:'handle',projectileMetal:'tip',world:'world'}}};
   const bladeRows={...nalatiSabrePool().rows,pool,program:rows.programs.blade,power:powerRows,parts:{body:'handle',arms:'sleeve',metal:'tip'}};
   const files=new Map<string,unknown>([['tools/fruit-hook.json',polearmRows],['tools/pruner.json',bladeRows]]);

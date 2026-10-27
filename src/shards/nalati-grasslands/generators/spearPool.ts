@@ -4,6 +4,7 @@ import { staticGlb, type GlbPrimitive } from '@wildshard/sdk/bake/glb';
 import { bakeGloveFist, bakeRiderArm } from '@wildshard/sdk/bake/riderArms';
 import { installPortableMath } from '@wildshard/commons/bake/portableMath';
 import { merge } from './meleeGeo';
+import { buildSpear, buildJavelin, SPEAR_PROFILE, SPEAR_VIEW } from './spear';
 
 /** The spear's rest pool's product name: the held polearm reads it through `product.url` (GR6; it was a hashed public
  *  GLB). */
@@ -20,13 +21,13 @@ export interface SpearPoolRows {
 /**
  * GR6: Nalati's spear and javelin at build time (the retired nalati-spear-pool job's bytes): the spear, javelin, held
  * spear, fists and arms as one rest pool GLB, and the polearm page rows. Content-addressed geometry must use the same
- * transcendental bits on arm64 and x64, so the spear module is first evaluated with portable Math installed, as the
- * retired bake did (nothing else in the product build imports it).
+ * transcendental bits on arm64 and x64, so the builders run with portable Math installed, as the retired bake did. The
+ * spear module itself is imported statically (the author bundle is one module); its own constants evaluate to the same
+ * pool bytes under native Math.
  */
-export async function nalatiSpearPool(): Promise<{ glb: Uint8Array; rows: SpearPoolRows }> {
+export function nalatiSpearPool(): { glb: Uint8Array; rows: SpearPoolRows } {
   const restore = installPortableMath();
   try {
-    const { buildSpear, buildJavelin, SPEAR_PROFILE, SPEAR_VIEW } = await import('./spear');
     const spear = buildSpear(), javelin = buildJavelin(), { hands, leftHandY } = SPEAR_VIEW;
     const restInv = SPEAR_VIEW.poses.rest.q.clone().invert();
     const fist = (direction: readonly [number, number, number], mirror: boolean): ReturnType<typeof bakeGloveFist> => {

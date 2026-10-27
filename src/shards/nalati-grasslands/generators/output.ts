@@ -282,7 +282,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
   const paintFiles = await nalatiPoiPaintProgram(ctx), paintDocument = paintFiles.get('data/poiPaint.json');
   if (paintDocument === undefined) throw new Error('Missing owned POI paint metadata');
   const paintRows: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(paintDocument));
-  const cover = await nalatiCoverProgram(ctx), grass = await nalatiGrassProgram(ctx), spear = await nalatiSpearPool(), freshEmission = emitSpeciesOutput(speciesRows, heldRows, nalatiMountedFigure(paintRows), cover, grass, spear.rows);
+  const cover = await nalatiCoverProgram(ctx), grass = await nalatiGrassProgram(ctx), spear = nalatiSpearPool(), freshEmission = emitSpeciesOutput(speciesRows, heldRows, nalatiMountedFigure(paintRows), cover, grass, spear.rows);
   // GR6: the grass lattices and scenes are built here; their blocks ship as named product files
   const grassBlobs = grass.rows.sources.map(row => { const bytes = grass.files.get(row.name); if (bytes === undefined) throw new Error(`Missing grass block ${row.name}`); return nameBlob(row.name, 'bin', bytes, row.options); });
   // GR6: the five view modules compile from their authored sources (viewPrograms.ts) before the template names them

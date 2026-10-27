@@ -20,7 +20,7 @@ const { held: heldWeapons } = originalHeldMetadata();
 installPortableMath();
 const { buildSpear: authorSpear, buildJavelin: authorJavelin, SPEAR_VIEW, SPEAR_PROFILE } = await import('../src/shards/nalati-grasslands/generators/spear');
 
-const { glb: poolGlb, rows } = await nalatiSpearPool();
+const { glb: poolGlb, rows } = nalatiSpearPool();
 const polearm = new PolearmSet({file:loadout.polearm.file,item:'weapon.spear'});
 
 test('baked spear retains all geometry channels, poses, coefficients and independent copies', async () => {
