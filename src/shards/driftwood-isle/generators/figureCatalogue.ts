@@ -2,9 +2,11 @@ import * as v from 'valibot';
 import { FigureCatalogueSchema } from '@wildshard/format/figures';
 import castaway from '../data/castawayFigure.json' with { type: 'json' };
 import trader from '../data/traderFigure.json' with { type: 'json' };
-import scenes from '../data/npcScenes.generated.json' with { type: 'json' };
+import { npcRestScenes } from './npcScenes';
 import { CASTAWAY_POSE, TRADER_POSE } from './npcPose';
 import { TRADER_FACING } from './npcFocus';
+
+const scenes = npcRestScenes();
 
 const breathe = (rate: number, offset: number) => ({ bone: 'body', channel: 'scale', cases: [{ sum: [1, { of: [{ wave: 't', rate, offset }, 0.006] }] }] });
 /** Wendell turns on his figure pivot, breathes, waves on the quest's signal (the clip memory `gesture`) and his fire flickers. */

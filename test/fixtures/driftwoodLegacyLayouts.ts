@@ -12,7 +12,7 @@ import { FIXED_DRAW_ROWS } from '../../src/shards/driftwood-isle/generators/mode
 import { DRIFTWOOD_ASSET_NAMES } from '../../src/shards/driftwood-isle/generators/assets';
 import { ISLAND_KNOBS } from '../../src/shards/driftwood-isle/generators/tiers';
 import { ENTRY_DECKS } from '../../src/shards/driftwood-isle/generators/entryDecks';
-import npcScenes from '../../src/shards/driftwood-isle/data/npcScenes.generated.json' with {type:'json'};
+import { npcRestScenes } from '../../src/shards/driftwood-isle/generators/npcScenes';
 import { islandFoliagePlacements } from '../../src/shards/driftwood-isle/generators/islandDressing';
 import { DRIFTWOOD_ISLAND_FACTS as islandFacts } from './driftwood-island-facts';
 import cumulusPuffs from '../../src/shards/driftwood-isle/data/cumulusPuffs.json' with { type: 'json' };
@@ -30,7 +30,7 @@ const shrineBake = DRIFTWOOD_ORIGINAL_LAYOUTS.shrine;
 const hut = DRIFTWOOD_ORIGINAL_LAYOUTS.hut;
 const lookout = DRIFTWOOD_ORIGINAL_LAYOUTS.lookout;
 
-const piers = driftwoodPierRows();
+const piers = driftwoodPierRows(), npcScenes = npcRestScenes();
 
 
 const {audioBounds: _audioBounds, audioFall: _audioFall, audioCave: _audioCave, ...runtimeCoveComposition} = coveComposition;
