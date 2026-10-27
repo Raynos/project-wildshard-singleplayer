@@ -25,7 +25,6 @@ function put(root: string, path: string, bytes: string | Uint8Array): void {
 }
 async function fixture(): Promise<string> {
   mkdirSync('tmp', { recursive: true }); const root = mkdtempSync(resolve('tmp/catalog-build-')); owned.push(root);
-  put(root, 'scripts/generation-jobs.json', JSON.stringify({ schema: 'generation-jobs/1', notice: 'DO NOT EDIT: fixture', jobs: [] }));
   put(root, 'lint/tile-bake-debt.json', JSON.stringify({ version: 1, products: {} }));
   const placements = [];
   for (const [order, slug] of ['alpha', 'beta'].entries()) {

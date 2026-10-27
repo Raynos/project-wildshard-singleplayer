@@ -58,8 +58,7 @@ if(result.status!==0)throw Error(result.stderr);process.stdout.write(result.stdo
  put('src/shards/example/runtime/run.ts','export const row = 1;\n');put('src/shards/other/runtime/run.ts','export const row = 2;\n')
  put('src/shards/other-legacy/runtime/run.ts','export const row = 3;\n')
  put('src/shards/example/generators/bake-one.mjs','export const producer = 1;\n')
- put('scripts/generation-jobs.json',json.dumps({'jobs':[{'entry':'src/shards/example/generators/bake-one.mjs'}]}))
- git('add','lint/ratchet.json','src/shards','scripts/generation-jobs.json');tree=root/'closed';staged_source(root,tree,time.time()+5,specification={**spec,'closed':True})
+ git('add','lint/ratchet.json','src/shards');tree=root/'closed';staged_source(root,tree,time.time()+5,specification={**spec,'closed':True})
  assert (tree/'src/shards/example/runtime/run.ts').is_file();assert (tree/'src/shards/other/runtime/run.ts').is_file()
  assert not (tree/'src/shards/other-legacy/runtime/run.ts').exists()
  assert (tree/'src/shards/example/generators/bake-one.mjs').is_file()
@@ -91,8 +90,8 @@ if(result.status!==0)throw Error(result.stderr);process.stdout.write(result.stdo
  put('src/unit.ts','// import "./missing";\nexport const text = \'import "./missing";\';\n');git('add','src/unit.ts')
  staged_source(root,root/'comments',time.time()+5,specification=spec);checks+=1
  # Only exact generation declarations may defer generated inputs to CI.
- put('scripts/generation-jobs.json',json.dumps({'jobs':[{'entry':'src/shards/example/generators/bake-one.mjs','outputs':['src/fixture.generated.ts']}]}))
- git('add','scripts/generation-jobs.json')
+ put('scripts/source-generation-outputs.json',json.dumps({'producers':{'scripts/fixture.mjs':['src/fixture.generated.ts']}}))
+ git('add','scripts/source-generation-outputs.json')
  put('src/unit.ts','import "./fixture.generated";\n');git('add','src/unit.ts')
  staged_source(root,root/'declared-generated',time.time()+5,specification=spec);checks+=1
  missing('import "./undeclared.generated";','src/undeclared.generated')

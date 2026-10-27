@@ -19,10 +19,6 @@ function fixture() {
   put('src/shards/b/shard.config.ts','export const source=2;');
   put('src/shards/a-legacy/shard.config.ts','export const source=3;');
   put('lint/legacy-shards.json',JSON.stringify({shards:{'a-legacy':{primary:'a'}}}));
-  put('scripts/generation-jobs.json',JSON.stringify({jobs:[
-    {id:'a',shard:'a',inputRoots:['public/a'],outputs:['src/a.generated.json']},
-    {id:'b',shard:'b',inputRoots:['src/a.generated.json'],outputs:['src/b.generated.json']},
-  ]}));
   put('scripts/test-products.json',JSON.stringify({'test/a.test.ts':['a'],'test/shared.test.ts':['a','b'],'test/b.test.ts':['b']}));
   put('test/a.test.ts','export const test=1;');put('test/b.test.ts','export const test=2;');put('test/shared.test.ts','export const test=3;');
   put('test/generated.test.ts',"import data from '../src/a.generated.json';export const test=data;");
@@ -31,15 +27,6 @@ function fixture() {
   const select=(changed:string[])=>selectGateChecks(root,stagedFiles(root),changed);
   return {root,put,git,seal,select,close:()=>rmSync(root,{recursive:true,force:true})};
 }
-
-test('producer input directories propagate through declared outputs to product consumers',()=>{
-  const f=fixture();try {
-    const result=f.select(['public/a/mesh.glb']);
-    expect(result.generators).toEqual(['a','b']);expect(result.touchedProducts).toEqual(['a','b']);
-    expect(result.tests).toEqual(['test/a.test.ts','test/b.test.ts','test/generated.test.ts','test/shared.test.ts']);
-    expect(result.related.files).toContain('test/generated.test.ts');
-  }finally{f.close();}
-});
 
 test('selected-test prerequisites do not recursively widen the touched product cohort',()=>{
   const f=fixture();try {
@@ -67,15 +54,13 @@ test('a folder with multiple declared outputs selects their real slugs',()=>{
   }finally{f.close();}
 });
 
-test('a changed producer catalogue checks every recipe and refuses ambiguous ids',()=>{
+test('a changed source-output registry checks every real product',()=>{
   const f=fixture();try {
-    const result=f.select(['scripts/generation-jobs.json']);
-    expect(result.wide).toBe(true);expect(result.generators).toEqual(['a','b']);
+    const result=f.select(['scripts/source-generation-outputs.json']);
+    expect(result.wide).toBe(true);expect(result.generators).toEqual([]);
     expect(result.touchedProducts).toEqual(['a','b']);
-    f.put('scripts/generation-jobs.json',JSON.stringify({jobs:[
-      {id:'same',shard:'a',inputRoots:[],outputs:[]},{id:'same',shard:'b',inputRoots:[],outputs:[]},
-    ]}));f.seal();
-    expect(()=>f.select([])).toThrow('Duplicate candidate generator id');
+    f.put('src/shards/a/outputs.json',JSON.stringify({outputs:[{slug:'b'}]}));f.seal();
+    expect(()=>f.select([])).toThrow('Duplicate candidate product slug');
   }finally{f.close();}
 });
 
@@ -88,13 +73,11 @@ test('selection ignores peer registry poison and preserves its loose bytes and i
   }finally{f.close();}
 });
 
-test('missing registry, unknown product or producer folder refuses rather than losing a check',()=>{
+test('missing registry or unknown product refuses rather than losing a check',()=>{
   const f=fixture();try {
     f.git('rm','--cached','scripts/test-products.json');expect(()=>f.select([])).toThrow('requires candidate scripts/test-products.json');
     f.seal();f.put('scripts/test-products.json',JSON.stringify({'test/a.test.ts':['missing']}));f.seal();
     expect(()=>f.select(['test/a.test.ts'])).toThrow('Unknown candidate test product');
-    f.put('scripts/generation-jobs.json',JSON.stringify({jobs:[{id:'bad',shard:'missing',inputRoots:['input'],outputs:['out']}]}));f.seal();
-    expect(()=>f.select(['input'])).toThrow('Unknown candidate product folder');
   }finally{f.close();}
 });
 

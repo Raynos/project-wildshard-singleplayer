@@ -10,8 +10,7 @@ afterEach(()=>{for(const root of owned.splice(0))rmSync(root,{recursive:true,for
 function fixture(){
   mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/guard-generation-'));owned.push(root);
   const put=(file:string,value:string):void=>{mkdirSync(dirname(resolve(root,file)),{recursive:true});writeFileSync(resolve(root,file),value);};
-  put('scripts/generation-jobs.json',JSON.stringify({jobs:[{outputs:['src/producer.generated.json']}]}));
-  put('scripts/source-generation-outputs.json',JSON.stringify({producers:{'scripts/gen-shards.mjs':['src/discovery.generated.ts']}}));
+  put('scripts/source-generation-outputs.json',JSON.stringify({producers:{'scripts/gen-shards.mjs':['src/discovery.generated.ts','src/producer.generated.json']}}));
   return {root,put};
 }
 test('identifies only absent registered inputs and runs normally once restored',()=>{
@@ -25,7 +24,7 @@ test('ordinary missing imports and unavailable declarations never earn a deferra
   const {root,put}=fixture();
   put('test/guard.test.ts',"import code from '../src/missing';import fake from '../src/unregistered.generated';");
   expect(missingInventoryGeneration(root,'test/guard.test.ts')).toEqual([]);
-  rmSync(resolve(root,'scripts/generation-jobs.json'));
+  rmSync(resolve(root,'scripts/source-generation-outputs.json'));
   put('test/guard.test.ts',"import manifest from '../src/discovery.generated';");
   expect(missingInventoryGeneration(root,'test/guard.test.ts')).toEqual([]);
 });

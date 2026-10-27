@@ -44,7 +44,7 @@ export default {
 test('native-output handoff keeps ordinary source errors blocking',()=>{
   const f=fixture();try{
     f.put('.gitignore','tmp/\nnode_modules/\n*.generated.ts\n');
-    f.put('scripts/generation-jobs.json',JSON.stringify({jobs:[{id:'owned',outputs:['src/value.generated.ts'],buildOutputs:{},buildTimeOutputs:['src/value.generated.ts']}]}));
+    f.put('scripts/source-generation-outputs.json',JSON.stringify({producers:{'scripts/gen-shards.mjs':['src/value.generated.ts']}}));
     f.put('src/main.ts',"import './value.generated';export const value=1;");
     const good=f.commit();f.put('src/value.generated.ts','eval("poison");');
     const handed=f.run('fast-lint',good,undefined,undefined,false,true,true);
@@ -189,72 +189,48 @@ test('native generated inputs match canonical committed producer bytes',()=>{
   }finally{f.close();}
 });
 
-test('pin-only data without a current provider requires its exact catalogue hash',()=>{
+test('loose data without a current provider cannot supply committed inputs',()=>{
   const f=fixture();try {
-    const bytes='{"layout":1}',file='src/layout.generated.json';
-    const hash='7ab5c3764baa1cbd91989e42e3fdb3f2927c7282cc3263e9372d3a144aa869ff';
+    const file='src/layout.generated.json';
     f.put('.gitignore','tmp/\nnode_modules/\n*.generated.json\n');
-    f.put('scripts/generation-jobs.json',JSON.stringify({jobs:[{outputs:[file],buildOutputs:{[file]:hash}}]}));
     f.put('src/main.ts',"import layout from './layout.generated.json';export const value=layout;");
     const tip=f.commit();
-    const absent=f.run('fast-lint',tip);expect(absent.stdout).toContain('unverified inputs src/layout.generated.json');
-    f.put(file,bytes);
-    const good=f.run('fast-lint',tip);
-    expect(good.status,good.stdout+good.stderr).toBe(0);expect(good.stdout).toContain('Fast lint passed on 1 exact changed files');
-    f.put(file,'{"layout":2}');
-    const changed=f.run('fast-lint',tip);
-    expect(changed.stdout).toContain('unverified inputs src/layout.generated.json');
-    expect(changed.stdout).not.toContain('Fast lint passed');
+    for(const bytes of [undefined,'{"layout":1}','{"layout":2}']) {
+      if(bytes!==undefined)f.put(file,bytes);
+      const result=f.run('fast-lint',tip);
+      expect(result.stdout).toContain('unverified inputs src/layout.generated.json');
+      expect(result.stdout).not.toContain('Fast lint passed');
+    }
   }finally{f.close();}
 });
 
-test('native source providers need the mirror context and verify every returned digest',()=>{
+test('literal discovery providers require native context and exact tracked correspondence',()=>{
   const f=fixture();try {
-    const file='src/derived.generated.ts',asset='public/assets/provider.bin',retained='src/owned.json',pinned='src/pinned.generated.json';
-    const pin='7ab5c3764baa1cbd91989e42e3fdb3f2927c7282cc3263e9372d3a144aa869ff';
-    f.put('.gitignore','tmp/\nnode_modules/\n*.generated.ts\n*.generated.json\npublic/\n');
-    f.put('src/main.ts',"import {value} from './derived.generated';import pinned from './pinned.generated.json';export const result=[value,pinned];");
-    const catalogue={jobs:[{id:'source',outputs:[file,asset,retained],buildTimeOutputs:[file,asset,retained]},{id:'pinned',outputs:[pinned],buildOutputs:{[pinned]:pin}}]};
-    f.put('scripts/generation-jobs.json',JSON.stringify(catalogue));
-    f.put(retained,'{"id":1}');
-    // Explicit process dependencies: no real machine lease or generation cache
-    // is acquired by this tiny native-protocol fixture.
-    f.put('scripts/heavy-lane.py','import os,sys\nos.execvp(sys.argv[3],sys.argv[3:])\n');
-    f.put('scripts/generate.mjs',`import{mkdirSync,writeFileSync}from'node:fs';import{resolve}from'node:path';import{createHash}from'node:crypto';
-export function discoverGeneration(){return {jobs:[{id:'source',outputs:['${file}','${asset}','${retained}']},{id:'pinned',outputs:['${pinned}']}]};}
-export async function generateShardJob(root,job){const directory=resolve('tmp/provider');mkdirSync(directory+'/src',{recursive:true});mkdirSync(directory+'/public/assets',{recursive:true});if(job.id==='pinned'){const pinBytes='{"layout":1}';writeFileSync(directory+'/${pinned}',pinBytes);return {directory,hashes:{'${pinned}':createHash('sha256').update(pinBytes).digest('hex')},release(){}};}const bytes='export const value=1;';writeFileSync(directory+'/${file}',bytes);writeFileSync(directory+'/${asset}','owned-asset');writeFileSync(directory+'/${retained}','{"id":1}');return {directory,hashes:{'${file}':createHash('sha256').update(bytes).digest('hex'),'${asset}':createHash('sha256').update('owned-asset').digest('hex'),'${retained}':createHash('sha256').update('{"id":1}').digest('hex')},release(){}};}`);
-    const tip=f.commit();
-    const ordinary=f.run('fast-lint',tip);
-    expect(ordinary.stdout).toContain('unverified inputs src/derived.generated');
+    const file='src/derived.generated.ts',retained='src/owned.json';
+    f.put('.gitignore','tmp/\nnode_modules/\n*.generated.ts\n');
+    f.put('src/main.ts',"import {value} from './derived.generated';export const result=value;");
+    const registry=(outputs:string[]):void=>f.put('scripts/source-generation-outputs.json',JSON.stringify({producers:{'scripts/gen-shards.mjs':outputs}}));
+    registry([file,retained]);f.put(retained,'{"id":1}');
+    f.put('scripts/shard-platform-format.mjs','// Fixture has no format imports.');
+    const provider=`import{mkdirSync,writeFileSync}from'node:fs';export function genShards(){mkdirSync('src',{recursive:true});writeFileSync('${file}','export const value=1;');writeFileSync('${retained}','{"id":1}');}`;
+    f.put('scripts/gen-shards.mjs',provider);const tip=f.commit();
+    expect(f.run('fast-lint',tip).stdout).toContain('unverified inputs src/derived.generated');
     const native=f.run('fast-lint',tip,['src/main.ts'],f.base,false,true);
     expect(native.status,native.stdout+native.stderr).toBe(0);
     expect(native.stdout).toContain('Fast lint passed on 1 exact changed files');
     expect(native.stdout).not.toContain('DEFERRED TO CI');
-    expect(readFileSync(resolve(f.root,asset),'utf8')).toBe('owned-asset');
-    expect(readFileSync(resolve(f.root,pinned),'utf8')).toBe('{"layout":1}');
-    const provider=readFileSync(resolve(f.root,'scripts/generate.mjs'),'utf8');
-    f.put('scripts/generate.mjs',provider.replaceAll('{"id":1}','{"id":2}'));
+    expect(readFileSync(resolve(f.root,file),'utf8')).toBe('export const value=1;');
+    expect(readFileSync(resolve(f.root,retained),'utf8')).toBe('{"id":1}');
+    f.put('scripts/gen-shards.mjs',provider.replace('{"id":1}','{"id":2}'));
     const moved=f.run('fast-lint',f.commit(),['src/main.ts'],f.base,false,true);
     expect(moved.status).toBe(1);expect(moved.stderr).toContain('Generated output differs from committed source');
-    expect(readFileSync(resolve(f.root,retained),'utf8')).toBe('{"id":1}');
-    f.put('scripts/generate.mjs',provider.replace("createHash('sha256').update(bytes).digest('hex')",`'${'0'.repeat(64)}'`));
-    const bad=f.run('fast-lint',f.commit(),['src/main.ts'],f.base,false,true);
-    expect(bad.status).toBe(1);expect(bad.stderr).toContain('Native source output differs');
-    f.put('scripts/generate.mjs',provider.replace("const pinBytes='{\"layout\":1}'","const pinBytes='{\"layout\":2}'"));
-    // Even a loose file matching the old catalogue hint cannot replace the
-    // result of the newly committed provider recipe.
-    f.put(pinned,'{"layout":1}');
-    const badPin=f.run('fast-lint',f.commit(),['src/main.ts'],f.base,false,true);
-    expect(badPin.status,badPin.stdout+badPin.stderr).toBe(0);
-    expect(readFileSync(resolve(f.root,pinned),'utf8')).toBe('{"layout":2}');
-    f.put('scripts/generate.mjs',provider.replace("createHash('sha256').update(pinBytes).digest('hex')",`'${'0'.repeat(64)}'`));
-    const badPinnedProof=f.run('fast-lint',f.commit(),['src/main.ts'],f.base,false,true);
-    expect(badPinnedProof.status).toBe(1);expect(badPinnedProof.stderr).toContain('Native source output differs');
-    f.put('scripts/generate.mjs',provider);
-    f.put('scripts/generation-jobs.json',JSON.stringify({jobs:[{...catalogue.jobs[0],outputs:[file]}]}));
-    const undeclared=f.run('fast-lint',f.commit(),['src/main.ts'],f.base,false,true);
-    expect(undeclared.status).toBe(1);expect(undeclared.stderr).toContain('Invalid native source output');
-    f.put('scripts/generation-jobs.json',JSON.stringify({jobs:[{id:'source',outputs:[file,'src/../escape'],buildTimeOutputs:[file,'src/../escape']}]}));
+    // This native root represents a disposable mirror; mismatched bytes never
+    // gain admission even though the rejected writer emitted them there.
+    expect(readFileSync(resolve(f.root,retained),'utf8')).toBe('{"id":2}');
+    f.put('scripts/gen-shards.mjs',provider);registry([file,'src/missing.generated.ts']);
+    const incomplete=f.run('fast-lint',f.commit(),['src/main.ts'],f.base,false,true);
+    expect(incomplete.status).toBe(1);expect(incomplete.stderr).toContain('ENOENT');
+    registry([file,'src/../escape']);
     const escaped=f.run('fast-lint',f.commit(),['src/main.ts'],f.base,false,true);
     expect(escaped.status).toBe(1);expect(escaped.stderr).toContain('Invalid native source output');
   }finally{f.close();}

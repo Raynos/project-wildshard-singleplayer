@@ -119,12 +119,11 @@ test('composed output markers are discovered without executing source or accepti
 
 test('a scoped request prepares the remaining producer inputs of global discovery prerequisites', () => {
   const f = fixture();
-  f.put('scripts/generation-jobs.json', JSON.stringify({ jobs: [{ id: 'alpha-input', shard: 'alpha' }, { id: 'beta-input', shard: 'beta' }] }));
   const selected = generationPlan(f.root, 'beta');
-  expect(selected.legacy).toEqual(['beta']);
+  expect(selected.folders).toEqual(['beta']);
   const inputs = programInputPlan(f.root, selected);
   expect(inputs.products).toEqual(['beta', 'alpha']);
-  expect(inputs.legacy).toEqual(['alpha', 'beta']);
+  expect(inputs.folders).toEqual(['alpha', 'beta']);
 });
 
 test('a corrupt newly built receipt refuses before any table is published', async () => {

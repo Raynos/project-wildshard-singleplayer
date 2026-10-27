@@ -25,7 +25,6 @@ function fixture(): string {
   const put = (path: string, value: unknown): void => {
     const file = resolve(root, path); mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, JSON.stringify(value));
   };
-  put('scripts/generation-jobs.json', { schema: 'generation-jobs/1', notice: 'DO NOT EDIT: fixture', jobs: [] });
   put('lint/ratchet.json', { allow: {}, budgets: {} });
   put('lint/tile-bake-debt.json', { version: 1, products: {} });
   put('src/format/memoryGates.json', { explorerMB: 1200, loadingMB: 1800 });
@@ -96,11 +95,3 @@ it('keeps ordinary and strict builds hard on failure', async () => {
   await expect(buildShardfiles(root, { strict: true, onFailure })).rejects.toThrow('report-only');
 });
 
-it('collects generation discovery failures within each report product boundary',async()=>{
-  const root=fixture(),failures:string[]=[];
-  writeFileSync(resolve(root,'scripts/generation-jobs.json'),'{}');
-  const build=():Promise<void>=>Promise.resolve();
-  expect(await buildShardfiles(root,{strict:false,build,onFailure:slug=>{failures.push(slug);}})).toBe(0);
-  expect(failures.sort()).toEqual([...MILESTONE_SHARDS].sort());
-  await expect(buildShardfiles(root,{strict:false,build})).rejects.toThrow();
-});

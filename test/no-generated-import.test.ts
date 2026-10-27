@@ -66,7 +66,7 @@ test('declared outputs and public conditional exports resolve without a type pro
 
 test('actual lint covers value, type, export, dynamic and require imports with exact shrinking debt',()=>fixture((root,put)=>{
   const helper=fileURLToPath(new URL('../lint/no-generated-import.mjs',import.meta.url));
-  put('scripts/generation-jobs.json',JSON.stringify({jobs:[{outputs:['src/game/rows.json','src/game/raw.bin']}]}));
+  put('scripts/source-generation-outputs.json',JSON.stringify({producers:{'scripts/rows.mjs':['src/game/rows.json','src/game/raw.bin']}}));
   put('policy.json',JSON.stringify({sources:[],files:{'src/game/old.ts':1}}));
   put('rule.mjs',`import {noGeneratedImportRule} from ${JSON.stringify(helper)};export default {meta:{name:'wildshard'},rules:{'no-generated-import':noGeneratedImportRule(${JSON.stringify(root)},${JSON.stringify(resolve(root,'policy.json'))})}};`);
   const run=(file:string,source:string,count=false)=>{

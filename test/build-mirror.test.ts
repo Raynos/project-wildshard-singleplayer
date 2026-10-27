@@ -199,11 +199,13 @@ it('spreads every admitted check name across five slots', () => {
   } finally { for (const mirror of held) mirror.release(); }
 });
 
+const sourceRegistry = (...outputs: string[][]): string => JSON.stringify({ producers: Object.fromEntries(outputs.map((files, index) => [`fixture-${index}`, files])) });
+
 it('keeps whole generated jobs, invalidates partial jobs and prunes retired outputs', () => {
   const { repo, commit, env } = fixture();
-  const catalog = (outputs: string[]): string => JSON.stringify({ jobs: [{ buildTimeOutputs: outputs }] });
+  const catalog = sourceRegistry;
   const paths = ['dist/rows.json', 'assets/creature', 'assets/retained'];
-  const first = commit({ 'scripts/generation-jobs.json': catalog(paths), 'assets/retained': 'authored' });
+  const first = commit({ 'scripts/source-generation-outputs.json': catalog(paths), 'assets/retained': 'authored' });
   const one = openMirror(first, { repo, env });
   mkdirSync(join(one.dir, 'assets'), { recursive: true });
   mkdirSync(join(one.dir, 'dist'), { recursive: true });
@@ -221,7 +223,7 @@ it('keeps whole generated jobs, invalidates partial jobs and prunes retired outp
   writeFileSync(join(partial.dir, 'dist/rows.json'), 'metadata');
   writeFileSync(join(partial.dir, 'assets/creature'), 'blob');
   partial.release();
-  const second = commit({ 'scripts/generation-jobs.json': catalog(['assets/retained']) });
+  const second = commit({ 'scripts/source-generation-outputs.json': catalog(['assets/retained']) });
   const retired = openMirror(second, { repo, env });
   expect(existsSync(join(retired.dir, 'dist/rows.json'))).toBe(false);
   expect(existsSync(join(retired.dir, 'assets/creature'))).toBe(false);
@@ -229,7 +231,7 @@ it('keeps whole generated jobs, invalidates partial jobs and prunes retired outp
   retired.release();
   // Git removes a formerly tracked blob when it becomes a generated output.
   // Its remaining ignored metadata must not survive as a seemingly ready job.
-  const third = commit({ 'scripts/generation-jobs.json': catalog(['dist/rows.json', 'assets/retained']), 'assets/retained': null });
+  const third = commit({ 'scripts/source-generation-outputs.json': catalog(['dist/rows.json', 'assets/retained']), 'assets/retained': null });
   writeFileSync(join(retired.dir, 'dist/rows.json'), 'stale metadata');
   const migrated = openMirror(third, { repo, env });
   expect(existsSync(join(migrated.dir, 'dist/rows.json'))).toBe(false);
@@ -240,9 +242,7 @@ it('keeps whole generated jobs, invalidates partial jobs and prunes retired outp
 it('clears generated jobs when a released source overlay could have produced them', () => {
   const { repo, commit, env } = fixture();
   const outputs = ['dist/ecology.generated.json', 'dist/companion.json', 'assets/retained'];
-  const sha = commit({ 'scripts/generation-jobs.json': JSON.stringify({ jobs: [
-    { buildTimeOutputs: outputs }, { buildTimeOutputs: ['dist/unrelated.json'] }, { buildTimeOutputs: ['dist/new.json'] },
-  ] }), 'src/generator.ts': 'HEAD source', 'assets/retained': 'authored' });
+  const sha = commit({ 'scripts/source-generation-outputs.json': sourceRegistry(outputs, ['dist/unrelated.json'], ['dist/new.json']), 'src/generator.ts': 'HEAD source', 'assets/retained': 'authored' });
   const one = openMirror(sha, { repo, env });
   mkdirSync(join(one.dir, 'dist'), { recursive: true });
   writeFileSync(join(one.dir, outputs[0] ?? ''), 'HEAD ecology');
@@ -269,7 +269,7 @@ it('clears generated jobs when a released source overlay could have produced the
 it('refreshes timestamp-only tracked rewrites before sync and release without clearing ready outputs', () => {
   const { repo, commit, env } = fixture();
   const source = 'src/source.ts', output = 'dist/rows.json';
-  const sha = commit({ 'scripts/generation-jobs.json': JSON.stringify({ jobs: [{ buildTimeOutputs: [output] }] }), [source]: 'HEAD' });
+  const sha = commit({ 'scripts/source-generation-outputs.json': sourceRegistry([output]), [source]: 'HEAD' });
   const one = openMirror(sha, { repo, env });
   mkdirSync(join(one.dir, 'dist'), { recursive: true });
   writeFileSync(join(one.dir, output), 'HEAD rows');
@@ -288,10 +288,7 @@ it('refreshes timestamp-only tracked rewrites before sync and release without cl
 
 it('clears metadata only for the producer whose tracked output changed', () => {
   const { repo, commit, env } = fixture();
-  const sha = commit({ 'scripts/generation-jobs.json': JSON.stringify({ jobs: [
-    { buildTimeOutputs: ['assets/tracked', 'dist/metadata.json'] },
-    { buildTimeOutputs: ['dist/unrelated.json'] },
-  ] }), 'assets/tracked': 'HEAD asset' });
+  const sha = commit({ 'scripts/source-generation-outputs.json': sourceRegistry(['assets/tracked', 'dist/metadata.json'], ['dist/unrelated.json']), 'assets/tracked': 'HEAD asset' });
   const one = openMirror(sha, { repo, env });
   mkdirSync(join(one.dir, 'dist'), { recursive: true });
   writeFileSync(join(one.dir, 'dist/metadata.json'), 'HEAD metadata');
@@ -310,10 +307,7 @@ it('clears metadata only for the producer whose tracked output changed', () => {
 
 it('clears a whole generated job after an output-only overlay, retaining untouched jobs', () => {
   const { repo, commit, env } = fixture();
-  const sha = commit({ 'scripts/generation-jobs.json': JSON.stringify({ jobs: [
-    { buildTimeOutputs: ['dist/ecology.generated.json', 'dist/companion.json'] },
-    { buildTimeOutputs: ['dist/unrelated.json'] },
-  ] }), 'src/source.ts': 'HEAD' });
+  const sha = commit({ 'scripts/source-generation-outputs.json': sourceRegistry(['dist/ecology.generated.json', 'dist/companion.json'], ['dist/unrelated.json']), 'src/source.ts': 'HEAD' });
   const one = openMirror(sha, { repo, env });
   mkdirSync(join(one.dir, 'dist'), { recursive: true });
   for (const file of ['ecology.generated.json', 'companion.json', 'unrelated.json']) writeFileSync(join(one.dir, 'dist', file), 'HEAD output');
@@ -334,9 +328,7 @@ it('clears a whole generated job after an output-only overlay, retaining untouch
 
 it('detects source overlays left behind before the next sync resets tracked files', () => {
   const { repo, commit, env } = fixture();
-  const sha = commit({ 'scripts/generation-jobs.json': JSON.stringify({ jobs: [
-    { buildTimeOutputs: ['dist/rows.json'] }, { buildTimeOutputs: ['dist/unrelated.json'] },
-  ] }), 'src/source.ts': 'HEAD' });
+  const sha = commit({ 'scripts/source-generation-outputs.json': sourceRegistry(['dist/rows.json'], ['dist/unrelated.json']), 'src/source.ts': 'HEAD' });
   const one = openMirror(sha, { repo, env });
   mkdirSync(join(one.dir, 'dist'), { recursive: true });
   writeFileSync(join(one.dir, 'dist/rows.json'), 'HEAD rows');
@@ -374,7 +366,7 @@ it('also invalidates source-generation tables while preserving tracked outputs',
 
 it('rejects an abandoned output-only overlay against the saved slot baseline', () => {
   const { repo, commit, env } = fixture();
-  const sha = commit({ 'scripts/generation-jobs.json': JSON.stringify({ jobs: [{ buildTimeOutputs: ['dist/rows.json'] }] }), 'src/source.ts': 'HEAD' });
+  const sha = commit({ 'scripts/source-generation-outputs.json': sourceRegistry(['dist/rows.json']), 'src/source.ts': 'HEAD' });
   const one = openMirror(sha, { repo, env });
   mkdirSync(join(one.dir, 'dist'), { recursive: true });
   writeFileSync(join(one.dir, 'dist/rows.json'), 'HEAD rows');
@@ -387,7 +379,7 @@ it('rejects an abandoned output-only overlay against the saved slot baseline', (
 
 it('discards complete legacy generated groups without a slot baseline', () => {
   const { repo, commit, env } = fixture();
-  const sha = commit({ 'scripts/generation-jobs.json': JSON.stringify({ jobs: [{ buildTimeOutputs: ['dist/rows.json'] }] }), 'src/source.ts': 'HEAD' });
+  const sha = commit({ 'scripts/source-generation-outputs.json': sourceRegistry(['dist/rows.json']), 'src/source.ts': 'HEAD' });
   const one = openMirror(sha, { repo, env });
   mkdirSync(join(one.dir, 'dist'), { recursive: true });
   writeFileSync(join(one.dir, 'dist/rows.json'), 'unproven legacy rows');
@@ -402,10 +394,7 @@ it('discards complete legacy generated groups without a slot baseline', () => {
 it('invalidates a producer whose output disappears while its snapshot is being hashed', () => {
   const { repo, commit, env } = fixture();
   const first = 'dist/rows.generated.json', second = 'dist/companion.generated.json', connected = 'dist/connected.generated.json', unrelated = 'dist/unrelated.json';
-  const sha = commit({ 'scripts/generation-jobs.json': JSON.stringify({ jobs: [
-    { buildTimeOutputs: [first, connected] },
-    { buildTimeOutputs: [first, second, 'assets/retained'] }, { buildTimeOutputs: [unrelated] },
-  ] }), 'assets/retained': 'authored' });
+  const sha = commit({ 'scripts/source-generation-outputs.json': sourceRegistry([first, connected], [first, second, 'assets/retained'], [unrelated]), 'assets/retained': 'authored' });
   const one = openMirror(sha, { repo, env });
   mkdirSync(join(one.dir, 'dist'), { recursive: true });
   for (const file of [first, second, connected, unrelated]) writeFileSync(join(one.dir, file), 'verified output');
