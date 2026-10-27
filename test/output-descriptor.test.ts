@@ -360,6 +360,20 @@ test('packed sections and files come from one read of each pack (iPhone download
   expect(reads.filter(path => path.startsWith('sections/') || path.startsWith('blobs/bin/'))).toEqual([]);
 });
 
+test('a private build-verified admission does not reread its matching historical sections', async () => {
+  const old = fixture(), store = cacheStore(), initial = options(old.wires, store.cache);
+  const restore = installIndexReceipt(old.index);
+  try {
+    await admitProduct(old.index, initial);
+    const asset = vi.spyOn(store.cache, 'asset');
+    const present = vi.fn(() => Promise.resolve(true));
+    await admitProduct(old.index, { ...initial, cache: { ...store.cache, verifiedPresent: present } });
+    expect(asset).toHaveBeenCalledTimes(old.index.sections.length);
+    expect(present).toHaveBeenCalled(); // Durable publication is still checked.
+    asset.mockRestore();
+  } finally { restore(); }
+});
+
 test('an evicted section of an older visit refetches online and replaces the offline record', async () => {
   const old = fixture(), current = fixture(false, 4), store = cacheStore();
   const oldOptions = options(old.wires, store.cache);

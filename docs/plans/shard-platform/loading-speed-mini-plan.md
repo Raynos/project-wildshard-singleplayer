@@ -325,3 +325,23 @@ Retain original failed bars and avoid inferring savings from sampling zeros.
 Only H4 is regraded; S1 stays with sp-o4. Raw home rows/CPU profiles:
 `tmp/sp-x9-miss-fixes/h4-after/grid/{cold,warm}/`, mapped warm stacks
 `h4-after-validation-stacks.json`. No caps or validators are removed.
+
+### H4 covered historical inventory (2026-10-27)
+
+One warm home profile on shared67c0ccf600/build67c0ccf-mvqor9tm is
+5.8396s (1,038colliders), still above1.5s. Product admission is1.3579s,
+world assembly1.3455s and world scenes0.9304s; these elapsed spans overlap
+and are not summed. Foundation is0.4235s. Source-mapped samples include
+123.027ms plain-JSON walks and100.704ms section-load self CPU. Reader
+getClientRects costs102.841ms and is excluded from production attribution.
+World/parked/compile owners retain their named hunks; initial home has no
+entered-stage preparation receipt. Raw:tmp/sp-x9-h4-follow/baseline.
+
+This source cut reuses historical section/schema values only when every
+historical path/hash/size is covered by the exact current verified inventory
+and the current build-verified root is still private to this admission.
+It avoids a second cache transfer/JSON parse for identical visited sections.
+Historical grammar, state compatibility, hashes, complete current reads and
+durable publication checks stay. Exposed roots and differing inventories
+keep the original complete historical reader. Touched types/typed lint and
+scoped ratchet pass. H4 remains open for a containing shared-preview re-read.

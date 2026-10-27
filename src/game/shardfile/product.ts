@@ -4,7 +4,7 @@ import { waitFor } from '@wildshard/engine/boot/waits';
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { builtValidationReceipt, readValidationReceipt, validationRevision, validationSourceBytes, type ValidationReceipt } from "@wildshard/format/validationReceipt";
-import { assertStateCompatibility, parseStateLineage } from '@wildshard/format/stateLineage';
+import { assertStateCompatibility, parseOutputLineageIndex, parseStateLineage } from '@wildshard/format/stateLineage';
 import type { MemoryAdmission } from '@wildshard/format/memoryAdmission';
 import { SHARDFILE_VERSION, shardfileRevision } from '@wildshard/format/version';
 import { isOutputIndex } from '@wildshard/format/outputAddress';
@@ -264,6 +264,23 @@ async function cacheRows<T>(rows: readonly T[], batch: boolean, work: (row: T) =
     for (const result of settled) if (result.status === 'rejected') throw result.reason;
   }
 }
+/** A current admission already proved these exact section/schema bytes. Reuse
+ * only a completely covered historical inventory; a changed or evicted old
+ * inventory still takes the original complete historical reader below. This
+ * proof is invocation-local, never a cache of caller-owned parsed inputs. */
+function currentOutputLineage(input: unknown, source: Shardfile): unknown {
+  const descriptor = outputDescriptor(source);
+  if (descriptor === undefined) return undefined;
+  const historical = parseOutputLineageIndex(input);
+  const current = new Map([...descriptor.index.sections, ...descriptor.index.schemas].map(row => [row.path, row]));
+  for (const row of [...historical.sections, ...historical.schemas]) {
+    const verified = current.get(row.path);
+    if (verified === undefined || verified.hash !== row.hash || verified.bytes !== row.bytes) return undefined;
+  }
+  const state = descriptor.sections.get('state/state');
+  return { identity: historical.identity, state: typeof state === 'object' && state !== null && 'state' in state ? state.state : undefined };
+}
+
 async function admitProductWork(input: unknown, options: ProductOptions): Promise<AdmittedProduct> {
   const base = new URL('.', options.base).href;
   const descriptorPath = options.descriptorPath ?? new URL(base).pathname;
@@ -307,7 +324,8 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
     let previous: unknown;
     // Only its identity and state are compared: an older build's sections can fail this build's schemas (G531 retired
     // `entries.public`), and refusing them would leave a returning player's shard unloadable.
-    try { previous = await resolveDescriptor(visited.source, { ...options, offline: true }, true); }
+    try { previous = (fresh ? currentOutputLineage(visited.source, source) : undefined)
+        ?? await resolveDescriptor(visited.source, { ...options, offline: true }, true); }
     catch (error) {
       // An old index can outlive its immutable sections. It is no longer an admitted offline copy;
       // the online descriptor above must complete admission and replace it, just like a first visit.
