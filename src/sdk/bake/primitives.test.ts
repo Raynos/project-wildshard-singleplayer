@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
-import type { BufferGeometry } from 'three';
+import { Vector3, type BufferGeometry } from 'three';
 import { Rng as NativeRng } from '@wildshard/engine/core/rng';
-import { rock, tris } from '@wildshard/engine/world/geometryKit';
+import { rock, tris, log, beam, plank, rope, sagLine } from '@wildshard/engine/world/geometryKit';
 import { Rng } from '../random';
-import { bakeRock, bakeTriangles } from './primitives';
+import { bakeRock, bakeTriangles, bakeLog, bakeBeam, bakePlank, bakeRope, bakeSagLine } from './primitives';
 
 function exact(actual: BufferGeometry, original: BufferGeometry): void {
   expect(Object.keys(actual.attributes)).toEqual(Object.keys(original.attributes));
@@ -32,4 +32,37 @@ test('author triangle soups retain native Float32 coercion and signed zero', () 
   const expected = tris(values), actual = bakeTriangles(values);
   try { exact(actual, expected); }
   finally { actual.dispose(); expected.dispose(); }
+});
+
+
+test('author timbers and cables preserve native segment/channel order', () => {
+  for (const [a, b] of [
+    [new Vector3(1, -2, 3), new Vector3(-4, 5, 6)],
+    [new Vector3(), new Vector3(0, -3, 0)],
+    [new Vector3(-0, 0, 0), new Vector3(-0, 0, 0)],
+  ]) {
+    if (a === undefined || b === undefined) throw new Error('Incomplete segment');
+    const path = sagLine(a, b, 0.7, 6), made = bakeSagLine(a, b, 0.7, 6);
+    expect(made).toEqual(path);
+    const pairs = [
+      [bakeLog(a, b, 0.3, 0.1, 7, 0.4), log(a, b, 0.3, 0.1, 7, 0.4)],
+      [bakeBeam(a, b, 0.2, 0.7, -0.4), beam(a, b, 0.2, 0.7, -0.4)],
+      [bakeBeam(a, b, 0.2, 0.7), beam(a, b, 0.2, 0.7)],
+      [bakeRope(made, 0.03, 5), rope(path, 0.03, 5)],
+    ];
+    for (const [actual, original] of pairs) {
+      if (actual === undefined || original === undefined) throw new Error('Incomplete geometry');
+      try { exact(actual, original); }
+      finally { actual.dispose(); original.dispose(); }
+    }
+  }
+});
+
+test('author planks retain native shared-corner wobble and stream continuation', () => {
+  for (const seed of [0, -1, 0x3ec4]) for (const wob of [0, 0.01, 0.12]) {
+    const source = new NativeRng(seed), author = new Rng(seed);
+    const original = plank(1.2, 0.3, 0.07, source, wob), actual = bakePlank(1.2, 0.3, 0.07, author, wob);
+    try { exact(actual, original); expect(author.snapshot()).toEqual(source.snapshot()); }
+    finally { actual.dispose(); original.dispose(); }
+  }
 });

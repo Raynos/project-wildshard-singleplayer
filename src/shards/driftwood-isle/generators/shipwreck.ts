@@ -31,12 +31,10 @@
 import type { WreckSpec, WreckAnchor, HoldBounds } from './wreckContract';
 import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
-import type { Rng } from '@wildshard/engine/core/rng';
-import type { BoxSpec as Collider, FloorRect } from '@wildshard/engine/physics/box';
-import { log, beam, plank, rope, sagLine, tris } from '@wildshard/engine/world/geometryKit';
+import { boxDesc, type ColliderDesc, type BoxSpec as Collider, type FloorRect } from '@wildshard/sdk/bake/placement';
+import { bakeLog as log, bakeBeam as beam, bakePlank as plank, bakeRope as rope, bakeSagLine as sagLine, bakeTriangles as tris } from '@wildshard/sdk/bake/primitives';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 import { bakeLight, type BakedLight } from './lowpolyPlants';
-import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import { addBarrel, addCoil, addCrate } from './cargo';
 
 /** a world-height plane over the hull-aligned horizontal local (lx, lz): y = a + bx·lx + bz·lz */
@@ -96,7 +94,7 @@ export interface CargoCopy { readonly kind: 'barrel' | 'lying' | 'crate' | 'brok
 /** what the world's surroundings get to add into the wreck's kit (src/shards/driftwood-isle/world/Wreck.ts) */
 export interface WreckAround {
   readonly kit: LowPolyKit;
-  readonly rng: Rng;
+  readonly rng: LowPolyKit['rng'];
   /** the sea's level the wreck was built for */
   readonly sea: number;
   /** the wreck's legacy boxes: the world's go in between the hold's and the hull's (their old order) */

@@ -3390,8 +3390,8 @@ the assembled declaration still passes `parseShardfile` and its cross-field rule
 Build-only `@wildshard/sdk/noise` owns native seeded simplex, `fbm`, `ridged`,
 `smoothstep`, `clamp` and `lerp`, without terrain/services.
 `@wildshard/sdk/bake/annulus` preserves native ring vertex/UV/index order.
-`@wildshard/sdk/bake/primitives` defines `bakeRock` and `bakeTriangles` with
-native vertex/RNG order. `@wildshard/sdk/bake/placement` owns `ColliderDesc`,
+`@wildshard/sdk/bake/primitives` owns `bakeRock`, `bakeTriangles`, `bakeLog`,
+`bakeBeam`, `bakePlank`, `bakeRope`, `bakeSagLine`: native channel/RNG order. `@wildshard/sdk/bake/placement` owns `ColliderDesc`,
 `BoxSpec`, `FloorRect`, `Draw`, contact tags and ordered-JSON `specimenKey`.
 `boxDesc(spec, surface?)` keeps the half-height clamp, signed yaw and optional
 contact tag; `siteFloor(rot,lz,hw,hd,y,slope?)` keeps native local-z rotation
