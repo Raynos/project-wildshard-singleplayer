@@ -57,8 +57,14 @@ interface ViewPorts { terrain: string | NonNullable<Shardfile['terrain']> | null
   lattice?: TerrainTileData;
   /** The terrain's shadow flags (`terrain.shadow`): a tile casts only when `cast` (and the shadow disc says so), receives only when `receive` (absent: both). */
   terrainShadow?: NonNullable<Shardfile['terrain']>['shadow'] | undefined;
-  /** The tiles' draw order among the opaque surfaces (`terrain.order`, three's renderOrder; absent: 0). */
+  /** The tiles' draw order among the opaque surfaces (`terrain.order`, three's renderOrder; absent: TERRAIN_ORDER). */
   terrainOrder?: number | undefined }
+
+/** G784: absent `terrain.order`, the ground draws before the opaque surfaces laid on it (a road, a yard, a path), so a
+ *  surface at the ground's depth always wins its tie. At renderOrder 0 three broke those ties by material id: a world's
+ *  road showed on a cold entry, but a warm return rebuilt the tiles with newer materials and the ground won (Nalati's
+ *  green road). Sunscar already asked for this (`order: -1`) to stay ahead of the horizon's rings. */
+const TERRAIN_ORDER = -1;
 
 /**
  * Outline what a props root draws: with named surfaces each mesh by its own material (a graph that declares
@@ -84,7 +90,7 @@ export function clientTileViews(ports: ViewPorts): ClientTileViews {
       if (material === null) throw new Error('shardfile views: a terrain tile in a shard without terrain');
       const mesh = installTerrainTile(input, { root, scope, material, shadow: cast && shadow, ...(ports.lattice === undefined ? {} : { lattice: ports.lattice }) });
       if (!receive) mesh.receiveShadow = false;
-      if (ports.terrainOrder !== undefined) mesh.renderOrder = ports.terrainOrder;
+      mesh.renderOrder = ports.terrainOrder ?? TERRAIN_ORDER;
       const hulls = ports.outline?.(mesh, material, scope) ?? [];
       // a coarse tile's mask moves its draw range; its hull (a shallow geometry copy) follows
       const mask = (excluded: ReadonlySet<number>): void => { maskTerrainTile(mesh, excluded); for (const hull of hulls) hull.geometry.setDrawRange(mesh.geometry.drawRange.start, mesh.geometry.drawRange.count); };

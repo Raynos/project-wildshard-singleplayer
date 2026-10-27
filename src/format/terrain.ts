@@ -19,7 +19,8 @@ const sampling = v.strictObject({ law: v.literal('bilinear'), file: ref,
   datum: v.pipe(v.number(), v.finite(), v.minValue(-CELL_BELOW), v.maxValue(CELL_ABOVE)) });
 /**
  * The tiles' draw order among the opaque surfaces (three's renderOrder): a lower order draws first, so it decides which
- * surface wins where two lie at the same depth (a ground drawn before a far horizon ring). Absent: 0.
+ * surface wins where two lie at the same depth (a ground drawn before a far horizon ring). Absent: -1, the ground first
+ * (game/shardfile/clientViews.ts `TERRAIN_ORDER`).
  */
 const order = v.pipe(v.number(), v.integer(), v.minValue(-100), v.maxValue(100));
 /** The terrain's render files address the ordinary tile grid; the collider file is a separate critical sim root. */
