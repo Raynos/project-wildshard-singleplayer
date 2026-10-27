@@ -9,6 +9,8 @@
     "tsBuildInfoFile": ".tsc-layers/shards.tsbuildinfo"
   },
   "references": [{ "path": "./tsconfig.engine.json" }, { "path": "./tsconfig.game.json" }, { "path": "./tsconfig.sdk.json" }, { "path": "./tsconfig.commons.json" }],
+  // T1: the last static shard caller remains typed until its owner migrates it.
+  "files": ["src/shards/driftwood-isle/data/movers.generated.json"],
   "include": ["src/shards", "src/shards/**/*.json", "public/assets/nalati/baked/recurve-pool.json", "src/engine/**/*.d.ts", "src/game/**/*.merge.d.ts", "scripts/map-geometry.d.mts"],
-  "exclude": ["src/shards/**/*.test.ts"]
+  "exclude": ["src/shards/**/*.test.ts", "src/shards/**/*.generated.json"]
 }
