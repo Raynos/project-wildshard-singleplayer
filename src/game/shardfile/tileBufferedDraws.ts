@@ -18,12 +18,14 @@ export function tileBufferedDraws(id: string, root: Group, rows: SceneBuffers): 
       if (band === undefined) continue;
       const sphere = geometries.get(band.geometry)?.sphere;
       if (!band.frustum || sphere === undefined) return [];
-      const local = new Sphere(new Vector3(sphere[0] + band.at[0], sphere[1] + band.at[1], sphere[2] + band.at[2]), sphere[3]);
+      const local = new Sphere(new Vector3(sphere[0] + band.at[0] + row.at[0], sphere[1] + band.at[1] + row.at[1], sphere[2] + band.at[2] + row.at[2]), sphere[3]);
       bounds.union(local);
     }
     if (bounds.isEmpty()) return [];
-    // matrixWorld is still cell-local here, before the scene joins its regional root.
-    bounds.applyMatrix4(node.matrixWorld);
+    // The group matrix is cell-local, before the scene joins its regional root.
+    // Plain meshes already include band.at in their node matrix; LOD roots do not.
+    // Resolve both authored translations explicitly, then apply the group once.
+    bounds.applyMatrix4(root.matrixWorld);
     const tiles = new Set(tilesTouching(bounds.center.x, bounds.center.z, bounds.radius));
     node.removeFromParent();
     return [{ node, tiles, attached: new Set<number>() }];

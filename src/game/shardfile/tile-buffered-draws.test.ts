@@ -8,7 +8,7 @@ import { tileOf } from './tileOrder';
 
 it('retains authored order, shared edge ownership and transformed LOD bounds', async () => {
   const root = new Group(), near = new Group(), far = new Group(), unbounded = new Group();
-  near.position.x = -125; far.position.x = 125; root.position.z = 62.5; root.scale.setScalar(2);
+  near.position.x = -125; far.position.x = 75; root.position.z = 62.5; root.scale.setScalar(2);
   root.add(near, far, unbounded); root.updateMatrixWorld(true);
   const rows = parseSceneBuffers({ version: 1, buffers: [{ id: 'p', file: 'position.bin', storage: 'f32', byteLength: 12 }], attributes: [{ id: 'p', buffer: 'p', size: 3 }], geometries: [
     { id: 'near', attributes: { position: 'p' }, sphere: [0, 0, 0, 4] },
@@ -16,14 +16,14 @@ it('retains authored order, shared edge ownership and transformed LOD bounds', a
     { id: 'unbounded', attributes: { position: 'p' } },
   ], draws: [
     { id: 'a', at: [-125, 0, 0], levels: [{ from: 0, draw: { kind: 'mesh', geometry: 'near' } }, { from: 20 }] },
-    { id: 'b', at: [125, 0, 0], draw: { kind: 'mesh', geometry: 'far' } },
+    { id: 'b', at: [125, 0, 0], draw: { kind: 'mesh', geometry: 'far', at: [-50, 0, 0] } },
     { id: 'c', draw: { kind: 'mesh', geometry: 'unbounded' } },
   ] });
   const content = tileBufferedDraws('field', root, rows);
   if (content === null) throw new Error('Missing bounded content');
   expect(root.children).toEqual([unbounded]);
   const a = new Scope('a'), b = new Scope('b'), c = new Scope('c');
-  await content.attach(tileKey(tileOf(249, 60)), c);
+  await content.attach(tileKey(tileOf(149, 60)), c);
   await content.attach(tileKey(tileOf(-249, 60)), a);
   await content.attach(tileKey(tileOf(-249, 65)), b);
   expect(root.children).toEqual([near, far, unbounded]);
