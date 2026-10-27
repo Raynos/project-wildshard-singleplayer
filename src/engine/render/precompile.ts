@@ -956,7 +956,15 @@ function drawnFrame(scope: Scope, drawn: () => number, current: () => boolean): 
     const poll = (): void => { scope.raf(() => {
       if (done) return;
       if (!current()) { finish(); return; }
-      if (drawn() > before) scope.timeout(0, finish); else poll();
+      if (drawn() <= before) { poll(); return; }
+      // Keep a task after the completed frame, without a nested timer's
+      // clamp spending the next native slice before it starts. Every call
+      // still requires its own later game draw, including capped/skipped rAFs.
+      if (typeof globalThis.MessageChannel !== 'function') { scope.timeout(0, finish); return; }
+      const channel = new MessageChannel(), turn = scope.child('drawn-frame-turn');
+      turn.onDispose(() => { channel.port1.close(); channel.port2.close(); });
+      turn.listen(channel.port1, 'message', () => { turn.dispose(); scope.run(finish); }, { once: true });
+      channel.port1.start(); channel.port2.postMessage(0);
     }); };
     poll();
   });
