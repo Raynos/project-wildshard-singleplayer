@@ -103,24 +103,30 @@ export class IslandLibrary<Groups> {
       this.inventory ??= await product.json<Groups>(this.rows.groups); live();
       await this.draws().load(bytes, owner); live(); return;
     }
-    const previous = this.figureAdmission;
-    // A card borrows the live construction admission. A construction always
-    // re-admits on its own concrete owner, even after a cold geometry intake.
-    if (owner === undefined && bytes === undefined && previous?.construction === true && !previous.owner.disposed && !previous.owner.disposing) {
-      await previous.pending;
-    } else {
-      const pending = (async () => {
-        if (previous !== undefined) { try { await previous.pending; } catch { /* A retired card cannot poison construction. */ } }
-        live(); await this.figures.admit(product, sourceOwner, false); live();
-      })();
-      const admission = { owner: sourceOwner, construction: owner !== undefined || bytes !== undefined, pending };
-      this.figureAdmission = admission;
-      sourceOwner.onDispose(() => { if (this.figureAdmission === admission) this.figureAdmission = undefined; });
-      try { await pending; } catch (error) { if (this.figureAdmission === admission) this.figureAdmission = undefined; throw error; }
-    }
-    live();
-    this.inventoryRead ??= (async () => { try { return await product.json<Groups>(this.rows.groups); } catch (error: unknown) { this.inventoryRead = undefined; throw error; } })();
-    const inventory = await this.inventoryRead; live(); this.inventory = inventory;
+    // The immutable groups document has no figure/geometry owner dependency.
+    // Read it during figure admission, but publish it only at the original
+    // cursor. A figure refusal still wins and drains this started read.
+    const inventoryRead = this.inventoryRead ??= (async () => { try { return await product.json<Groups>(this.rows.groups); } catch (error: unknown) { this.inventoryRead = undefined; throw error; } })();
+    void inventoryRead.catch(() => undefined);
+    try {
+      const previous = this.figureAdmission;
+      // A card borrows the live construction admission. A construction always
+      // re-admits on its own concrete owner, even after a cold geometry intake.
+      if (owner === undefined && bytes === undefined && previous?.construction === true && !previous.owner.disposed && !previous.owner.disposing) {
+        await previous.pending;
+      } else {
+        const pending = (async () => {
+          if (previous !== undefined) { try { await previous.pending; } catch { /* A retired card cannot poison construction. */ } }
+          live(); await this.figures.admit(product, sourceOwner, false); live();
+        })();
+        const admission = { owner: sourceOwner, construction: owner !== undefined || bytes !== undefined, pending };
+        this.figureAdmission = admission;
+        sourceOwner.onDispose(() => { if (this.figureAdmission === admission) this.figureAdmission = undefined; });
+        try { await pending; } catch (error) { if (this.figureAdmission === admission) this.figureAdmission = undefined; throw error; }
+      }
+      live();
+    } catch (error) { await Promise.allSettled([inventoryRead]); throw error; }
+    const inventory = await inventoryRead; live(); this.inventory = inventory;
     // Deduplicate templates only. Figure admission above never shares a retired
     // source owner and never parks packed resources on the page scope.
     this.intake ??= (async () => { try { await this.draws().load(bytes, owner); } catch (error: unknown) { this.intake = undefined; throw error; } })();

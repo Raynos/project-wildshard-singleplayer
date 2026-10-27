@@ -141,3 +141,44 @@ test('legacy catalogue admission still decodes its original packed geometry by d
     expect(await owner.run(()=>ProductFigureCatalogue.fromProduct(f.product,'figures.json'))).toBe(catalogue);
   }finally{owner.dispose();file.mockRestore();fetch.mockRestore();geometry.dispose();}
 });
+
+test('groups transport overlaps held figure admission without publishing inventory or geometry early', async () => {
+  const f = fixture(), owner = new Scope('overlapped-book'), library = new IslandLibrary<{ native: boolean }>(root, f.product);
+  const read = f.reads.getMockImplementation();
+  if (read === undefined) throw new Error('Missing original fixture reader');
+  let release: (bytes: Uint8Array) => void = () => { throw new Error('Missing figure gate'); };
+  const gate = new Promise<Uint8Array>(resolve => { release = resolve; });
+  f.reads.mockImplementation(name => name === 'figures.json' ? gate : read(name));
+  const pending = owner.run(() => library.load());
+  try {
+    await vi.waitFor(() => { expect(f.reads.mock.calls.map(([name]) => name)).toContain('groups.json'); });
+    expect(library.ready).toBe(false);
+    expect(() => library.groups()).toThrow('not loaded');
+    expect(f.reads.mock.calls.map(([name]) => name)).not.toContain('mesh.glb');
+    release(new TextEncoder().encode('{"figures":{}}'));
+    await pending;
+    expect(library.groups()).toEqual({ native: true }); expect(library.ready).toBe(true);
+    expect(f.reads.mock.calls.filter(([name]) => name === 'groups.json')).toHaveLength(1);
+  } finally { release(new TextEncoder().encode('{"figures":{}}')); await pending.catch(() => undefined); owner.dispose(); }
+});
+
+test('figure refusal drains started groups transport without publishing inventory or decoding templates', async () => {
+  const f = fixture(), owner = new Scope('refused-book'), library = new IslandLibrary(root, f.product);
+  const failure = new Error('Original figure refusal'), read = f.reads.getMockImplementation();
+  if (read === undefined) throw new Error('Missing original fixture reader');
+  let release: (bytes: Uint8Array) => void = () => { throw new Error('Missing inventory gate'); };
+  const gate = new Promise<Uint8Array>(resolve => { release = resolve; });
+  f.reads.mockImplementation(name => name === 'groups.json' ? gate : name === 'figures.json' ? Promise.reject(failure) : read(name));
+  const pending = owner.run(() => library.load());
+  let settled = false;
+  void pending.then(() => { settled = true; return settled; }, () => { settled = true; return settled; });
+  try {
+    await vi.waitFor(() => { expect(f.reads.mock.calls.map(([name]) => name)).toContain('groups.json'); });
+    await new Promise(resolve => { setTimeout(resolve, 0); });
+    expect(settled).toBe(false);
+    release(new TextEncoder().encode('{"native":true}'));
+    await expect(pending).rejects.toBe(failure);
+    expect(library.ready).toBe(false); expect(() => library.groups()).toThrow('not loaded');
+    expect(f.reads.mock.calls.map(([name]) => name)).not.toContain('mesh.glb');
+  } finally { release(new TextEncoder().encode('{"native":true}')); await pending.catch(() => undefined); owner.dispose(); }
+});
