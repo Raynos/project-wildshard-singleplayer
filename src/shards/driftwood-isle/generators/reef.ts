@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import type { Rng } from '@wildshard/engine/core/rng';
 import type { ReefParams } from './reefSpecimenRows';
 
 const CORAL = [
@@ -12,7 +11,9 @@ const STAR = [new THREE.Color('#f07a3e'), new THREE.Color('#e35b6a'), new THREE.
 export type ReefKind = 'coral' | 'weed' | 'star';
 
 /** one copy of a kind, own space: position, colour, sway (weight, phase) — the old Seabed.build loop's body */
-export function reefGeometry(kind: ReefKind, p: ReefParams, rng: Rng): THREE.BufferGeometry {
+/** the draws the reef builders take (the SDK's and the engine's Mulberry32 draw alike) */
+export interface ReefRng { readonly next: () => number; readonly range: (min: number, max: number) => number }
+export function reefGeometry(kind: ReefKind, p: ReefParams, rng: ReefRng): THREE.BufferGeometry {
   const pos: number[] = [], col: number[] = [], sway: number[] = [];
   const c = new THREE.Color();
   const phase = rng.range(0, Math.PI * 2);

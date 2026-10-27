@@ -2,8 +2,8 @@
  * The lagoon reef's scatter, baked (SHARD-PLATFORM W2 C2; it was runtime/looks/reefBed.ts's `scatterReefBed` and
  * world/Seabed.ts's lagoon ground, moved verbatim): where the water is shallow enough, noise-clustered reefs of one kind,
  * beds of another and a scatter of a third, from the shard's numbers (LAGOON_REEF below), and a school of fish over the
- * densest reef with each fish's tint and swim seeds. The driftwood-reef job writes the layout (data/reefLayout.generated.json)
- * on the bound native ground and welds the reef from the same layout; the runtime only reads it.
+ * densest reef with each fish's tint and swim seeds. The reef bank (reefBank.ts) scatters the layout over the native ground
+ * and welds the reef from the same layout at build time; the runtime only reads it.
  */
 import { CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/core/config';
 import { Noise2D } from '@wildshard/engine/core/noise';
@@ -86,18 +86,25 @@ interface ReefGround {
   readonly clear: (x: number, z: number) => boolean;
 }
 
-/** the lagoon's ground: the sea's level, the terrain, and off the four entry sandbars (the jetties) */
-const LAGOON: ReefGround = {
+/** the lagoon's ground over `field`: the sea's level, the terrain, and off the four entry sandbars (the jetties) */
+const lagoonGround = (field: LagoonField): ReefGround => ({
   level: OCEAN.level,
-  heightAt,
-  normalY: (x, z, reach) => normalAt(x, z, reach)[1],
+  heightAt: field.heightAt,
+  normalY: (x, z, reach) => field.normalAt(x, z, reach)[1],
   clear: (x, z) => {
     if (!inChunk(x, z, LAGOON_REEF.margin)) return false;
     if (Math.abs(x) < ROAD_WIDTH / 2 + 5 && Math.abs(z) > CHUNK_HALF - 75) return false; // the S / N jetties' sandbars
     if (Math.abs(z) < ROAD_WIDTH / 2 + 5 && Math.abs(x) > CHUNK_HALF - 120) return false; // the W / E ones (the E jetty runs on into the cove)
     return true;
   },
-};
+});
+/** the page's bound heightfield, read live (the legacy Seabed's ground; `normalAt` is rebound per frame) */
+const BOUND_FIELD: LagoonField = { heightAt: (x, z) => heightAt(x, z), normalAt: (x, z, reach) => normalAt(x, z, reach) };
+/** The terrain the lagoon scatter reads: the level's heights (datum applied) and its unshifted normals. */
+export interface LagoonField {
+  readonly heightAt: (x: number, z: number) => number;
+  readonly normalAt: (x: number, z: number, reach?: number) => readonly [number, number, number];
+}
 
 /** The reef's rule: copies where the water is `depth` deep on gentle slopes, `avoid` kept clear; the school over the densest reef. */
 function scatterReefBed(row: ReefScatterRow, ground: ReefGround, seed: number, count: number, avoid: readonly { x: number; z: number; r: number }[] = []): ReefLayout {
@@ -154,8 +161,8 @@ function scatterReefBed(row: ReefScatterRow, ground: ReefGround, seed: number, c
 
 /** Lagoon rule (LAGOON_REEF): corals in noise-clustered reefs, seaweed in beds, a starfish here and there; `avoid`
  *  clears the wreck. */
-export function scatterLagoon(seed: number, count: number, avoid: readonly { x: number; z: number; r: number }[]): ReefLayout {
-  return scatterReefBed(LAGOON_REEF, LAGOON, seed, count, avoid);
+export function scatterLagoon(seed: number, count: number, avoid: readonly { x: number; z: number; r: number }[], field: LagoonField = BOUND_FIELD): ReefLayout {
+  return scatterReefBed(LAGOON_REEF, lagoonGround(field), seed, count, avoid);
 }
 
 /** The layout as the committed JSON (one copy per line). */

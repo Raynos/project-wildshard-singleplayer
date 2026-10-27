@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { createShardProduct } from '../../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../../src/sdk/author';
-import { DRIFTWOOD_OUTPUT } from '../../src/shards/driftwood-isle/generators/assets';
+import { DRIFTWOOD_BANK_BLOBS, DRIFTWOOD_OUTPUT } from '../../src/shards/driftwood-isle/generators/assets';
 import { DRIFTWOOD_CLIENT_SECTIONS as LEGACY_SECTIONS } from './driftwoodLegacyLayouts';
 import { DRIFTWOOD_CLIENT_SECTIONS } from '../../src/shards/driftwood-isle/generators/clientSections';
 import { FIGURE_CATALOGUE } from '../../src/shards/driftwood-isle/generators/figureCatalogue';
@@ -17,6 +17,8 @@ export async function driftwoodFixedProduct(legacy = false): Promise<ReturnType<
     const bytes = new Uint8Array(await readFile(resolve('src/shards/driftwood-isle', row.source)));
     return {name: row.name, source: row.source, bytes, hash: createHash('sha256').update(bytes).digest('hex')};
   }));
+  // the banks' blobs (GR7) carry their bytes; their source label is their name
+  for (const row of DRIFTWOOD_BANK_BLOBS) blobs.push({ name: row.name, source: row.name, bytes: Uint8Array.from(row.bytes), hash: createHash('sha256').update(row.bytes).digest('hex') });
   const bytes = new TextEncoder().encode(encodeCanonicalJson(inventory.groups));
   blobs.push({ name: 'models/fixed-geometry.json', source: 'data/fixedGeometry.json', bytes, hash: createHash('sha256').update(bytes).digest('hex') });
   const figures = new TextEncoder().encode(encodeCanonicalJson(FIGURE_CATALOGUE));

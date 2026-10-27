@@ -4,11 +4,19 @@ import { PALM_FILES } from './palmFiles';
 import { HIBISCUS_FILES } from './hibiscusFiles';
 import { REEF_FILES } from './reefFiles';
 import { FIXED_MODEL_FILES, FIXED_MODEL_NAMES } from './modelFiles';
-import reef from '../data/reefBlobs.generated.json' with { type: 'json' };
+import { hashImmutableBytes } from '@wildshard/sdk/immutable';
+import { driftwoodReefBank } from './reefBank';
 import ground from '../data/groundBlobs.generated.json' with { type: 'json' };
 import dressing from '../data/dressingBlobs.generated.json' with { type: 'json' };
 import zipline from '../data/ziplineBlobs.generated.json' with { type: 'json' };
 
+// GR7: the reef's rows come from its bank, keyed by content as the job's `assets/<hash>` sources were, so equal payloads
+// across manifests still share one name; the bank's canonical blobs are emitted by prepareOutput (DRIFTWOOD_BANK_BLOBS).
+const reefBank = driftwoodReefBank(), bankBytes = new Map<string, { readonly kind: 'glb' | 'bin'; readonly bytes: Uint8Array }>();
+const reef = { blobs: [...reefBank.blobs].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0).map(([name, row]) => {
+  const source = `assets/${hashImmutableBytes(row.bytes)}`; bankBytes.set(source, row);
+  return { name, kind: row.kind, source };
+}), byUrl: Object.fromEntries(Object.entries(reefBank.byUrl).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) };
 const manifests = [reef, ground, dressing, zipline];
 const blobs = manifests.flatMap(row => row.blobs);
 const canonical = new Map<string, (typeof blobs)[number]>();
@@ -54,8 +62,13 @@ const activeByUrl = Object.fromEntries(Object.entries(byUrl).filter(([, name]) =
 /** Build-only mapping for the runtime's checked logical-name mirrors. */
 export const DRIFTWOOD_ASSET_NAMES: Record<string, string> = activeByUrl;
 /** Build-only source declarations and an explicit, retiring URL-to-name bridge. */
+const shipped = [...canonical.values()].filter(row => !retiredFoliage.has(row.name) && row.name !== 'world/island/protos.glb');
+/** The shipped blobs whose bytes a bank built in memory (no source file): prepareOutput names GLBs as meshopt sources. */
+export const DRIFTWOOD_BANK_BLOBS: readonly { readonly name: string; readonly kind: 'glb' | 'bin'; readonly bytes: Uint8Array }[] = shipped.flatMap(row => {
+  const banked = bankBytes.get(row.source); return banked === undefined ? [] : [{ name: row.name, kind: banked.kind, bytes: banked.bytes }];
+});
 export const DRIFTWOOD_OUTPUT: { blobs: { name: string; kind: string; source: string; }[]; } = {
-  blobs: [...canonical.values()].filter(row => !retiredFoliage.has(row.name) && row.name !== 'world/island/protos.glb').map(row => {
+  blobs: shipped.filter(row => !bankBytes.has(row.source)).map(row => {
     if (row.kind !== 'glb') return row;
     const result = { ...row };
     return Object.assign(result, { options: { meshopt: true } });

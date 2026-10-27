@@ -1,7 +1,7 @@
 import { REEF_SPECIMENS } from './reefSpecimenRows';
 import { REEF_FILES } from './reefFiles';
 import type { WorldSceneModels } from '@wildshard/format/worldSceneModels';
-import assets from '../data/reefBlobs.generated.json' with { type: 'json' };
+import { driftwoodReefBank } from './reefBank';
 
 /** Fixed authored shapes use Z2's existing owned-geometry and model-choice data. */
 export function reefCatalogue(): WorldSceneModels['models'] {
@@ -20,7 +20,7 @@ export function reefCatalogue(): WorldSceneModels['models'] {
 /** Use admitted asset names; keep the baked sway attribute and every authored choice. */
 export const REEF_SCENE_LIBRARY: { id: string; kind: "owned"; models: { id: string; file: string; attributes: { _sway: string; }; }[]; } = { id: 'reef-specimens', kind: 'owned' as const,
   models: (['coral', 'weed', 'star'] as const).flatMap(kind => Object.entries(REEF_FILES[kind]).map(([id, url]) => {
-    const names: Readonly<Record<string, string>> = assets.byUrl, file = names[url];
+    const names = driftwoodReefBank().byUrl, file = names[url];
     if (file === undefined) throw new Error(`Missing reef specimen: ${kind}/${id}`);
     return { id: `${kind}-${id}`, file, attributes: { _sway: 'aSway' } };
   })) };

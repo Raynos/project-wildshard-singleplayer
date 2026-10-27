@@ -3,11 +3,11 @@ import { GROUND_FILES } from '../src/shards/driftwood-isle/generators/groundFile
 import { PALM_FILES } from '../src/shards/driftwood-isle/generators/palmFiles';
 import { HIBISCUS_FILES } from '../src/shards/driftwood-isle/generators/hibiscusFiles';
 import { REEF_FILES } from '../src/shards/driftwood-isle/generators/reefFiles';
-import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_OUTPUT } from '../src/shards/driftwood-isle/generators/assets';
+import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_BANK_BLOBS, DRIFTWOOD_OUTPUT } from '../src/shards/driftwood-isle/generators/assets';
 import zipline from '../src/shards/driftwood-isle/data/zipline.generated.json' with { type: 'json' };
 
 test('all draw labels preserve the authored tier, variant and deduplicated blob identity', () => {
-  const names = new Set(DRIFTWOOD_OUTPUT.blobs.map(row => row.name));
+  const names = new Set([...DRIFTWOOD_OUTPUT.blobs, ...DRIFTWOOD_BANK_BLOBS].map(row => row.name));
   const retired = new Set<string>([PALM_FILES.phone.world, PALM_FILES.desktop.world,
     HIBISCUS_FILES.phone.world, HIBISCUS_FILES.desktop.world, REEF_FILES.world]);
   const seen = new Set<string>();

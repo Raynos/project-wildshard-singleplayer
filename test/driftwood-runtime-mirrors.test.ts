@@ -6,7 +6,7 @@ import { DRIFTWOOD_CLIENT_SECTIONS } from '../src/shards/driftwood-isle/generato
 import { WORLD_STAGES } from './fixtures/driftwood-world-stages';
 import { driftwoodWorldEntry } from '../src/shards/driftwood-isle/generators/worldEntry';
 import { FIXED_MODEL_FILES, FIXED_MODEL_NAMES } from '../src/shards/driftwood-isle/generators/modelFiles';
-import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_OUTPUT, DRIFTWOOD_FIXED_SOURCES as NAMED_MODELS } from '../src/shards/driftwood-isle/generators/assets';
+import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_BANK_BLOBS, DRIFTWOOD_OUTPUT, DRIFTWOOD_FIXED_SOURCES as NAMED_MODELS } from '../src/shards/driftwood-isle/generators/assets';
 import { prepareToonLook } from '../src/game/looks/toonLook';
 import { TOON_LOOK } from '../src/shards/driftwood-isle/generators/toonPresentation';
 import { authoredRockGeometry } from '../src/shards/driftwood-isle/generators/rocks';
@@ -62,7 +62,7 @@ test('admitted shadow tiers retain both original view choices', () => {
 
 test('all named fixed draws retain the assembler identities and admitted blobs', () => {
   const source: Readonly<Record<string, string>> = FIXED_MODEL_FILES;
-  const names = new Set([...DRIFTWOOD_OUTPUT.blobs.map(row => row.name), ...Object.values(FIXED_MODEL_NAMES)]);
+  const names = new Set([...DRIFTWOOD_OUTPUT.blobs.map(row => row.name), ...DRIFTWOOD_BANK_BLOBS.map(row => row.name), ...Object.values(FIXED_MODEL_NAMES)]);
   expect(Object.keys(NAMED_MODELS)).toEqual(Object.keys(FIXED_MODEL_FILES));
   for (const [key, name] of Object.entries(NAMED_MODELS)) {
     const url = source[key];

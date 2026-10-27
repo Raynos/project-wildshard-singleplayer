@@ -6,6 +6,7 @@ import { driftwoodFixedLayouts, type DriftwoodFixedLayouts } from './fixedLayout
 import { driftwoodRockBank, type DriftwoodRockBank } from './rockBank';
 import { driftwoodIslandPlan } from './productPageFiles';
 import { BLENDER_MODELS } from './blenderArea';
+import { DRIFTWOOD_BANK_BLOBS } from './assets';
 
 /**
  * GR7: the scene producers' rows and bytes, built once per build from owned inputs instead of read back from
@@ -52,9 +53,11 @@ export async function driftwoodSceneBanksFrom(read: (url: string) => Uint8Array,
   return driftwoodSceneBanks({ fixed: fixed ?? await driftwoodFixedBytes(new Map(DRIFTWOOD_FIXED_INPUTS.map(url => [url, read(url)]))),
     files: new Map(DRIFTWOOD_SCENE_BANK_INPUTS.map(url => [url, read(url)])) });
 }
-/** The banks' product files, named as their sources were: cargo's GLBs as `meshopt: true` sources (assets.ts), the desktop
- *  rocks plain (they were SCENE_MODEL_BLOBS sources). */
+/** The banks' product files, named as their sources were: cargo's and the reef's GLBs as `meshopt: true` sources
+ *  (assets.ts), the desktop rocks plain (they were SCENE_MODEL_BLOBS sources). */
 export async function driftwoodSceneBankOutput(banks: DriftwoodSceneBanks): Promise<EmittedBlobs> {
   return emitNamedBlobs([...await Promise.all([...banks.cargo.glbs].map(([name, bytes]) => nameMeshoptBlob(name, bytes))),
-    ...[...banks.rocks.glbs].map(([name, bytes]) => nameBlob(name, 'glb', bytes))]);
+    ...[...banks.rocks.glbs].map(([name, bytes]) => nameBlob(name, 'glb', bytes)),
+    // the synchronous banks' shipped blobs (the reef's), named as assets.ts names its sources: GLBs meshopt, the rest plain
+    ...await Promise.all(DRIFTWOOD_BANK_BLOBS.map(row => row.kind === 'glb' ? nameMeshoptBlob(row.name, row.bytes) : Promise.resolve(nameBlob(row.name, row.kind, row.bytes))))]);
 }
