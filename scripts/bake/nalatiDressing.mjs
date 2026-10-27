@@ -5,7 +5,7 @@ import { installBakeEnvironment } from './environment.mjs';
 import { prepareNativeTerrain } from './nativeWorld.mjs';
 
 /** Build fresh placement data; an original continuous forest law may be supplied by a native geometry author. */
-export async function prepareNalatiDressing(forestMask) {
+export async function prepareNalatiDressing(forestMask, scalarBlocks) {
   const root = resolve(import.meta.dirname, '../..');
   const environment = installBakeEnvironment(root);
 
@@ -14,6 +14,10 @@ export async function prepareNalatiDressing(forestMask) {
     const { MANIFEST: NALATI_GRASSLANDS } = await import('../../src/shards/nalati-grasslands/discovery.generated.ts');
     if (forestMask !== undefined && NALATI_GRASSLANDS.forest === undefined) throw new Error('Missing Nalati forest definition');
     const definition = forestMask === undefined ? NALATI_GRASSLANDS : { ...NALATI_GRASSLANDS, forest: { ...NALATI_GRASSLANDS.forest, mask: forestMask } };
+    if (scalarBlocks !== undefined) {
+      if (definition.scalarBlocks === undefined) throw new Error('Missing predecessor scalar intake');
+      definition.scalarBlocks.prepare(scalarBlocks);
+    }
     await prepareNativeTerrain(definition, { root, bytes: readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin')) });
     const { default: NALATI_GRASS_LAYOUT } = await import('../../src/shards/nalati-grasslands/data/grassFieldLayout.json', { with: { type: 'json' } });
     const { RIVER } = await import('../../src/shards/nalati-grasslands/generators/terrainRecipe.ts');

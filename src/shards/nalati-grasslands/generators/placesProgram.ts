@@ -1,3 +1,4 @@
+import { nalatiGeographyProgram } from './geographyProgram';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
@@ -8,18 +9,18 @@ import { prepareNalatiDressingInputs } from './dressingInputs';
 import { bakeNalatiDressingSource } from './dressingSource';
 
 const terrain = '/assets/baked/nalati-grasslands/terrain.bin';
-const scalarInputs = ['pond', 'red', 'green', 'blue'].map(name => `data/geography-${name}.bin`);
 const partNames = ['actor:balbal:0:2977', 'actor:balbal:1:2977', 'actor:goat'];
 const names = ['places.bin', 'places.json', 'specimens.bin', 'placeSpecimens.json', 'placeParts.json', ...partNames.map(name => `${name}.bin`)];
 
 /** Cache fresh native construction as owned byte files; never publishes a source/public handoff.
  * The native cache key includes the bundled dressing recipe, original specimen arithmetic and codec. */
 export async function nalatiPlacesProgram(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<ReadonlyMap<string, Uint8Array>> {
-  const files = await ctx.cached({ id: 'places', native: true, inputs: [terrain, ...scalarInputs] }, async inputs => {
+  const scalarBlocks = await nalatiGeographyProgram(ctx);
+  const files = await ctx.cached({ id: 'places', native: true, inputs: [terrain] }, async inputs => {
     const bytes = inputs.get(terrain);
     if (bytes === undefined) throw new Error('Missing original Nalati placement terrain');
     // The retained native author used the non-drawing desktop tier, not a page's quality setting.
-    const source = prepareNalatiDressingInputs({ terrain: bytes, scalarBlocks: inputs, forest: 'continuous', phone: false });
+    const source = prepareNalatiDressingInputs({ terrain: bytes, scalarBlocks, forest: 'continuous', phone: false });
     const dressing = await bakeNalatiDressingSource(source);
     const made = bakeNalatiPlacesOnTerrain(Uint8Array.from(bytes).buffer, withPortableMath, dressing);
     const compress = (value: Uint8Array): Uint8Array => encodeBuildBytes(value, 'deflate', 9, 'native');

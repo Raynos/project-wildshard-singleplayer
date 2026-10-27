@@ -14,10 +14,12 @@ const inputs = `
   import { prepareNalatiDressingInputs } from './src/shards/nalati-grasslands/generators/dressingInputs.ts';
   import { bakeNalatiDressingSource } from './src/shards/nalati-grasslands/generators/dressingSource.ts';
   import { hashImmutableBytes } from '@wildshard/sdk/immutable';
+  import {originalGeographyFiles as originalBlocks} from './test/fixtures/nalati-geography-original.ts';
+  const geography=originalBlocks();
   const terrain=readFileSync('public/assets/baked/nalati-grasslands/terrain.bin');
   const blocks=new Map(['pond','red','green','blue','forest'].map(name=>{
     const file='data/geography-'+name+'.bin';
-    return[file,readFileSync('src/shards/nalati-grasslands/'+file)];
+    const bytes=geography.get(file);if(bytes===undefined)throw new Error('Missing original geography '+file);return[file,bytes];
   }));
   const hash=value=>hashImmutableBytes(new TextEncoder().encode(JSON.stringify(value)));
 `;
@@ -25,6 +27,7 @@ const inputs = `
 test('owned native inputs preserve complete sampled and continuous dressing before any page selection', () => {
   const source = `${inputs}
     import { prepareNalatiDressing } from './scripts/bake/nalatiDressing.mjs';
+    import {originalGeographyFiles} from './test/fixtures/nalati-geography-original.ts';
     import { inSpruceClearing,loneSpruceMask,edgeBermAt } from './src/shards/nalati-grasslands/generators/terrainRecipe.ts';
     import { edgeSpruceMask } from './src/shards/nalati-grasslands/generators/edgeRecipe.ts';
     import { TIER_CONFIG } from '@wildshard/engine/core/tier';
@@ -47,7 +50,7 @@ test('owned native inputs preserve complete sampled and continuous dressing befo
     assert.deepEqual([...blocks.values()].map(hashImmutableBytes),beforeBlocks);
     const continuous=(x,z)=>inSpruceClearing(x,z)?0:Math.max(loneSpruceMask(x,z),edgeSpruceMask(x,z,edgeBermAt(x,z)));
     for(const [index,mask] of [undefined,continuous].entries()){
-      const predecessor=await prepareNalatiDressing(mask);
+      const predecessor=await prepareNalatiDressing(mask,originalGeographyFiles());
       assert.equal(hash(results[index]),hash(predecessor));
     }
   `;

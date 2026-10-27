@@ -89,7 +89,8 @@ test('native dressing preparation does not read the old generated place rows', (
     syncBuiltinESMExports();
     try{
       const { prepareNalatiDressing }=await import('./scripts/bake/nalatiDressing.mjs');
-      const made=await prepareNalatiDressing();
+      const {originalGeographyFiles}=await import('./test/fixtures/nalati-geography-original.ts');
+      const made=await prepareNalatiDressing(undefined,originalGeographyFiles());
       assert.equal(made.plan.stumps.length,10);assert.ok(made.avoid>0);
     }finally{fs.readFileSync=prior;syncBuiltinESMExports();}
   `;
@@ -103,7 +104,8 @@ test('the independent runtime scatter predecessor keeps every source-owned outpu
     import {nativeNalatiDressingPlacements} from './src/shards/nalati-grasslands/generators/nativeDressingPlacements.mjs';
     const files=await nativeNalatiDressingPlacements(file=>readFileSync(file));
     const {prepareNalatiDressing}=await import('./scripts/bake/nalatiDressing.mjs');
-    const before=await prepareNalatiDressing(), rows=Object.entries({...before.plan,clutter:before.clutter});
+    const {originalGeographyFiles}=await import('./test/fixtures/nalati-geography-original.ts');
+    const before=await prepareNalatiDressing(undefined,originalGeographyFiles()), rows=Object.entries({...before.plan,clutter:before.clutter});
     assert.equal(rows.length,18);assert.equal(files.size,18);
     for(const [name,value]of rows){
       const expected=Buffer.from(JSON.stringify(value)+'\\n'),actual=files.get('dressing-'+name+'.json');
@@ -121,10 +123,11 @@ test('the retired dressing CLI refuses publication rather than rebuilding handof
 test('continuous forest decisions retain the original static stump lost by the bilinear mask', () => {
   const source = `
     import { prepareNalatiDressing } from './scripts/bake/nalatiDressing.mjs';
+    import {originalGeographyFiles} from './test/fixtures/nalati-geography-original.ts';
     import { inSpruceClearing, loneSpruceMask, edgeBermAt } from './src/shards/nalati-grasslands/generators/terrainRecipe.ts';
     import { edgeSpruceMask } from './src/shards/nalati-grasslands/generators/edgeRecipe.ts';
-    const runtime = await prepareNalatiDressing();
-    const original = await prepareNalatiDressing((x,z) => inSpruceClearing(x,z) ? 0 : Math.max(loneSpruceMask(x,z),edgeSpruceMask(x,z,edgeBermAt(x,z))));
+    const runtime = await prepareNalatiDressing(undefined,originalGeographyFiles());
+    const original = await prepareNalatiDressing((x,z) => inSpruceClearing(x,z) ? 0 : Math.max(loneSpruceMask(x,z),edgeSpruceMask(x,z,edgeBermAt(x,z))),originalGeographyFiles());
     console.log(JSON.stringify({ runtime: runtime.plan.stumps.length, original: original.plan.stumps.length }));
   `;
   const output = execFileSync(process.execPath, [...native, '--input-type=module', '--eval', source, '--', shard], { encoding: 'utf8' });

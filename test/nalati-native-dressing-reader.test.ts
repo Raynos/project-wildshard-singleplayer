@@ -26,11 +26,11 @@ test('native Node authors preserve every original sampled placement with no gene
       const {nativeNalatiDressingPlacements}=await import('./src/shards/nalati-grasslands/generators/nativeDressingPlacements.mjs');
       assert.equal(selectedLevel(),null);
       const files=await nativeNalatiDressingPlacements(file=>fs.readFileSync(file));assert.equal(selectedLevel(),null);assert.equal(files.size,18);
-      assert.equal(reads.size,6);for(const [file,count]of reads)assert.equal(count,1,file);
+      assert.equal(reads.size,1);for(const [file,count]of reads)assert.equal(count,1,file);
       const again=await nativeNalatiDressingPlacements(file=>fs.readFileSync(file));assert.equal(selectedLevel(),null);
       for(const [name,bytes]of files){assert.equal(Buffer.compare(bytes,again.get(name)),0,name);assert.notEqual(bytes.buffer,again.get(name).buffer);}
       const {prepareNalatiDressing}=await import('./scripts/bake/nalatiDressing.mjs');
-      const before=await prepareNalatiDressing();
+      const before=await prepareNalatiDressing(undefined,originalGeographyFiles());
       for(const [group,rows]of Object.entries({...before.plan,clutter:before.clutter})){
         const name='dressing-'+group+'.json',expected=Buffer.from(JSON.stringify(rows)+'\\n'),actual=files.get(name);
         assert.ok(actual,name);assert.equal(actual.length,expected.length,name);assert.equal(Buffer.compare(actual,expected),0,name);

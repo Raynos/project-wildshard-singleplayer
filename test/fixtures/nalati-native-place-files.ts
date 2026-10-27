@@ -6,8 +6,6 @@ import pins from './nalati-place-wires.json' with { type: 'json' };
 
 const inputs = new Map<string, Uint8Array>([
   ['/assets/baked/nalati-grasslands/terrain.bin', readFileSync('public/assets/baked/nalati-grasslands/terrain.bin')],
-  ...['pond', 'red', 'green', 'blue'].map((name): [string, Uint8Array] => [
-    `data/geography-${name}.bin`, readFileSync(`src/shards/nalati-grasslands/data/geography-${name}.bin`)]),
 ]);
 const files = await nalatiPlacesProgram({ cached: (_step, make) => Promise.resolve(make(inputs)) });
 for (const name of ['places', 'specimens']) {

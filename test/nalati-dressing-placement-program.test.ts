@@ -1,3 +1,4 @@
+import {originalGeographyFiles} from './fixtures/nalati-geography-original';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the real native producer without page installation or a shared cache.
 import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bundle the exact defining author entry.
@@ -17,6 +18,7 @@ test('fresh and persistent placement rows retain all eighteen complete native pr
     import {selectedLevel} from '@wildshard/engine/level/selection';
     import {nalatiDressingPlacementProgram} from './src/shards/nalati-grasslands/generators/dressingPlacementProgram.ts';
     import {prepareNalatiDressing} from './scripts/bake/nalatiDressing.mjs';
+    import {originalGeographyFiles} from './test/fixtures/nalati-geography-original.ts';
     import {nalatiDressingPlacementBlobs,nalatiDressingBlob} from './src/shards/nalati-grasslands/generators/dressingSchemas.ts';
     import {packDressingTable} from './src/shards/nalati-grasslands/generators/dressingTable.ts';
     import {nameBlob} from './src/sdk/blobs.ts';
@@ -27,8 +29,9 @@ test('fresh and persistent placement rows retain all eighteen complete native pr
       const real=createProjectGeneration(resolve('src/shards/nalati-grasslands'),program.repeat(64),new Map(),cache,
         [{prefix:'/assets/baked/nalati-grasslands/',directory:resolve('public/assets/baked/nalati-grasslands')}]);
       return{cached:(step,make)=>{
-        assert.equal(step.native,true);
-        assert.deepEqual(step.inputs,['/assets/baked/nalati-grasslands/terrain.bin',...['pond','red','green','blue','forest'].map(name=>'data/geography-'+name+'.bin')]);
+        if(step.id==='geography'){assert.equal(step.inputs,undefined);return real.cached(step,make);}
+        assert.equal(step.id,'dressing-placement');assert.equal(step.native,true);
+        assert.deepEqual(step.inputs,['/assets/baked/nalati-grasslands/terrain.bin']);
         return real.cached(step,inputs=>{constructions++;return make(inputs);});
       }};
     };
@@ -45,7 +48,7 @@ test('fresh and persistent placement rows retain all eighteen complete native pr
       const hit=await nalatiDressingPlacementProgram(context('a'));assert.equal(selectedLevel(),null);assert.equal(constructions,1);
       for(const [name,bytes]of hit)assert.notEqual(bytes.buffer,cold.get(name).buffer);
       const rebuilt=await nalatiDressingPlacementProgram(context('b'));assert.equal(selectedLevel(),null);assert.equal(constructions,2);
-      const predecessor=await prepareNalatiDressing();
+      const predecessor=await prepareNalatiDressing(undefined,originalGeographyFiles());
       originals=Object.entries({...predecessor.plan,clutter:predecessor.clutter}).map(([group,rows])=>{
         const bytes=new TextEncoder().encode(JSON.stringify(rows)+'\\n');
         return{file:'dressing-'+group+'.json',bytes,hash:hashImmutableBytes(bytes)};
@@ -66,11 +69,11 @@ test('fresh and persistent placement rows retain all eighteen complete native pr
 });
 
 test('missing native terrain and incomplete, extra or empty placement inventories refuse', async () => {
-  await expect(nalatiDressingPlacementProgram({ cached: (_step, make) => Promise.resolve(make(new Map())) })).rejects.toThrow('Missing original Nalati dressing terrain');
+  await expect(nalatiDressingPlacementProgram({ cached: (step, make) => step.id==='geography'?Promise.resolve(originalGeographyFiles()):Promise.resolve(make(new Map())) })).rejects.toThrow('Missing original Nalati dressing terrain');
   const names = ['boulder', 'slab', 'stone', 'juniper', 'rose', 'willow', 'lupin', 'daisy', 'reed', 'logs', 'stumps', 'ovoos', 'poles', 'fences', 'gates', 'drifts', 'colliders', 'clutter'];
   for (const files of [new Map<string, Uint8Array>(), new Map(names.map(name => [`dressing-${name}.json`, new Uint8Array()])),
     new Map([...names, 'extra'].map(name => [`dressing-${name}.json`, new Uint8Array([1])]))]) {
-    await expect(nalatiDressingPlacementProgram({ cached: () => Promise.resolve(files) })).rejects.toThrow('placement inventory differs');
+    await expect(nalatiDressingPlacementProgram({ cached: step => Promise.resolve(step.id==='geography'?originalGeographyFiles():files) })).rejects.toThrow('placement inventory differs');
   }
 });
 

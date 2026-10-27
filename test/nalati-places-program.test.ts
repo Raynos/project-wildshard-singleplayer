@@ -1,3 +1,4 @@
+import {originalGeographyFiles} from './fixtures/nalati-geography-original';
 // oxlint-disable-next-line import/no-nodejs-modules -- Run original native arithmetic in an isolated process.
 import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the defining source bundle for the config guard.
@@ -24,7 +25,7 @@ test('fresh owned places retain native bytes and metadata with detached cache hi
     const context=()=>{
       const context=createProjectGeneration(resolve('src/shards/nalati-grasslands'),'a'.repeat(64),new Map(),cache,
         [{prefix:'/assets/baked/nalati-grasslands/',directory:resolve('public/assets/baked/nalati-grasslands')}]);
-      return{...context,cached:(step,make)=>context.cached(step,inputs=>{constructions++;return make(inputs);})};
+      return{...context,cached:(step,make)=>context.cached(step,inputs=>{if(step.id==='places')constructions++;return make(inputs);})};
     };
     const pins=JSON.parse(readFileSync('test/fixtures/nalati-place-wires.json','utf8'));
     const check=files=>{
@@ -64,11 +65,11 @@ test('fresh owned places retain native bytes and metadata with detached cache hi
 });
 
 test('missing terrain and incomplete or extra cached outputs refuse', async () => {
-  await expect(nalatiPlacesProgram({ cached: (_step, make) => Promise.resolve(make(new Map())) })).rejects.toThrow('Missing original Nalati placement terrain');
-  await expect(nalatiPlacesProgram({ cached: () => Promise.resolve(new Map()) })).rejects.toThrow('Owned Nalati placement inventory differs');
+  await expect(nalatiPlacesProgram({ cached: (step, make) => step.id==='geography'?Promise.resolve(originalGeographyFiles()):Promise.resolve(make(new Map())) })).rejects.toThrow('Missing original Nalati placement terrain');
+  await expect(nalatiPlacesProgram({ cached: step => Promise.resolve(step.id==='geography'?originalGeographyFiles():new Map()) })).rejects.toThrow('Owned Nalati placement inventory differs');
   const names = ['places.bin', 'places.json', 'specimens.bin', 'placeSpecimens.json', 'placeParts.json', 'actor:balbal:0:2977.bin', 'actor:balbal:1:2977.bin', 'actor:goat.bin'];
   for (const files of [new Map(names.map(name => [name, new Uint8Array()])), new Map([...names, 'extra'].map(name => [name, new Uint8Array([1])]))]) {
-    await expect(nalatiPlacesProgram({ cached: () => Promise.resolve(files) })).rejects.toThrow('Owned Nalati placement inventory differs');
+    await expect(nalatiPlacesProgram({ cached: step => Promise.resolve(step.id==='geography'?originalGeographyFiles():files) })).rejects.toThrow('Owned Nalati placement inventory differs');
   }
 });
 
