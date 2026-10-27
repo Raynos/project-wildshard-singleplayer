@@ -17,6 +17,7 @@
  * everything (G727).
  */
 import { PrefetchQuota, PrefetchBytes } from '@wildshard/engine/boot/prefetchQuota';
+import { saves } from '@wildshard/engine/saves/runtime';
 import type { OutputDownloadIndex } from '@wildshard/format/outputDownload';
 import { findTitleManifest } from '../shard/titleList';
 import type { ProductCache, ProductOptions } from '../shardfile/product';
@@ -116,7 +117,9 @@ class GridPrefetch {
       if (saveData()) { this.stop('save-data'); return; }
       // the tier loads here, off the title's static graph (the render tiers stay cold until a world needs them)
       this.tier = (await import('@wildshard/engine/core/tier')).TIER;
-      const quota = await PrefetchQuota.open({ persist: () => navigator.storage.persist(), estimate: () => navigator.storage.estimate() }, HEADROOM);
+      // I10 / D133: the page's one persistence request (the save store's, once a page, its answer kept for the Debug storage
+      // line); a direct navigator.storage.persist() here was the entry's second request
+      const quota = await PrefetchQuota.open({ persist: () => saves.persist(), estimate: () => navigator.storage.estimate() }, HEADROOM);
       if (quota === null) { this.stop('no storage estimate'); return; }
       for (let next = this.queue.shift(); next !== undefined && this.status.reason === null; next = this.queue.shift()) {
         if (!navigator.onLine) { this.stop('offline'); return; }
