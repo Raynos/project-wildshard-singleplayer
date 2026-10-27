@@ -13,20 +13,24 @@ other lane works counted plan rows; a lane with none takes the top unclaimed row
 
 ## Lane plans (G709, Jake 2026-10-24 ~21:55): one plan per lane, end to end; nothing mid-plan but a blocking red
 
-| Lane | Plan, in order |
+| Lane | Path after the cleanup (G768-G802), in order |
 |---|---|
-| sp-x1 | G744 ship approved hero (round-6-nalati-terrain -> public/assets/title + L16 first paint) -> G722 done 191aee7b15 -> hero retake done 0dd7ce4722 (board for Jake) -> G717 quiet misses (Nalati whole 287 ms, Pine whole, DW spawn) -> GR3 -> GR5 Far Reach |
-| sp-x6 | CS0 done e463dc80af → G719 done → G717 look misses done 60f2ba740c → RM1/RM2/RM3 done aab5aca4737 → GR4 Sunscar done (23 → 0; exact743e preview/boot pass) → GR6 Nalati in flight (54 at claim) → GR8 Pine |
-| sp-x8 | G743 grid crossings < 5 s (DW 8.1, Nine 8.7, Nalati 11.6; Pine 2.6 passes): world + afterPlay stages -> T4 tail (I6y/I6z) -> T5 |
-| sp-x2 | core memory C4 (Template native 268/246 vs 198.5 MiB) -> tile T4 to the milestone -> T10 delete the whole-shard path (G747) -> T6/T8 Codex slices; JS payload J6-J10 after extras (G730/G741) |
-| sp-x9 | G742 done 72a1482c68; B6 done af11c09e30; ratchet SW8a 1e3f0fe5b2 -> SW11 commit lock/CF1 tail (p90 <= 30 s) -> G745 phone-route smoke leg (from sp-x7, 893f149908 report-only) -> oxlint R3-R5 -> QW7 |
-| sp-x10 | G776 Codex lane: generators GR7 Driftwood (41 jobs; G783 producer by producer) |
-| sp-ci-deploy | G802 (replaced sp-x7, pane wT:pE, GPT-6.1-Sol high): main CI green + hourly deploy only; fixes reds or routes to the breaking lane; logs breaks in BURN-DAMAGE-LIST.md |
-| sp-o1 | NM models done (RM8.1 850a6efb5f, kit on 63eb6dd5e8, G755 figures 6a9c8cb1ae + board b9699cb002, RM13 574425f29e / fd23363093) -> generators GR8 Pine (61 jobs) |
-| sp-o2 | JS heap H6-H10 done -> tile T5.3 grid-page overlay -> generators GR9 small shards |
-| sp-o3 | G750 toon clouds done 1d4a4f738f; L18.3 rocks e2cac37ae6 / foliage 7d327e5a88 (protos -> sp-x1 GR0) -> G717 B cheaper lit programs Pine + DW (Debug A/B + board) |
-| sp-o4 | O4/O4.4, H1, S1, T2, keep, H4.3, A1.2 done -> generators GR10 runtime imports of step outputs |
-| sp-o5 | G630 done (006d87b0fa Sunscar glow; 7e4f33be44 + d56e767bf3 Nine near view); T3 06d63e5b21; T6.2 parked low value -> G748 coarse L1 stand-ins for occupied tiles per shard (near/far boards first) |
+| sp-x1 | GR5 Far Reach to 0 -> GR12 (folded gen-speed G rows, oxlint R4, TS T1/T6) with sp-x2 |
+| sp-x6 | D38-D40 Nalati geography red -> GR6 Nalati to 0 (incl. folded B5) |
+| sp-x10 | GR7 Driftwood to 0 (incl. folded B5, blender/export.mjs reads) |
+| sp-x2 | tile T10 (T8 landed on every shard) -> loading L9/L14 leftovers -> GR12 with sp-x1 |
+| sp-x8 | crossings grid-crossing T2 -> T3 -> T4 to G782 (< 5 s warm, < 8 s cold), loading A1 seams -> tile T7 |
+| sp-x9 | js-heap G1 (exit-1, G778) -> H5 -> H11 -> LD4 (G795) -> js-payload J6 + J10.2b -> tooling last: GM1, CF2-CF5, SW3, build-speed CI row |
+| sp-o1 | GR8 Pine to 0 (incl. folded B5) -> iPhone I3 remainder |
+| sp-o2 | GR9 small shards (pickupCatalogue) -> Night Market RM5 -> RM14 |
+| sp-o3 | GS1 -> GS2 -> GS3 (GS4/GS5 last, G770) |
+| sp-o4 | iPhone I7 -> I12 (build-time) -> loading-speed H4 remainder |
+| sp-o5 | tile T11 (G775) -> tile P3 Pine trees per tile -> its remaining tile P/N/F rows |
+| sp-ci-deploy | main CI green + hourly deploy only (G771/G802); MB1-MB7 switch-offs; BURN-DAMAGE-LIST.md |
+
+G780: landed code = 'in flight (reading at plan end)'; one reading per plan at the end (Chromium counts, G777), then
+the official Simulator readings for RM12, T10, M2, I12 and Jake's iPhone check. Parked (G774): pilot R1-R3, RP2-RP4.
+Jake-only, counted (G779): LD5-LD8, A1, A2, M2, RM13, the T10 iPhone check.
 
 ## 10-24 open rows (Jake's picks G679-G682, a2c1e9647b; SW10: one claimable row per live lane)
 
