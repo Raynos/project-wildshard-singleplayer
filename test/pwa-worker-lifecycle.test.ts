@@ -24,7 +24,7 @@ class StoredCache {
   keys(): Promise<Request[]> { return Promise.resolve([...this.bodies.keys()].map(url => new Request(url))); }
   delete(input: Request | string): Promise<boolean> { return Promise.resolve(this.bodies.delete(this.key(input))); }
 }
-function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>) {
+function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>, warm: readonly string[] = [entry, dependency, css, lazy, later]) {
   const listeners = new Map<string, ((event: WorkerEvent) => void)[]>(), books = new Map<string, StoredCache>();
   const installErrors: unknown[] = [];
   const replies: unknown[] = [];
@@ -50,6 +50,7 @@ function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>) 
   const worker = readFileSync('src/engine/pwa/sw.js', 'utf8').replace("import { workerScope } from '../app/workerScope.js';\n", '')
     .replaceAll('__BUILD_ID__', 'unit-build').replaceAll('__ASSET_ID__', 'unit-assets')
     .replace("'__BUNDLE__'", JSON.stringify(JSON.stringify([entry, dependency, css, lazy, later])))
+    .replace("'__WARM__'", JSON.stringify(JSON.stringify(warm)))
     .replace("'__INSTALL__'", JSON.stringify(JSON.stringify([entry, dependency, css])))
     .replace("'__FONTS__'", JSON.stringify('[]'));
   runInNewContext(`${owner}\n${worker}`, { self, caches, fetch, URL, Request, Response, Headers, AbortController, setTimeout, clearTimeout, Date, console, crypto });
@@ -61,6 +62,18 @@ function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>) 
   return { fetch, open, dispatch, navigator, installErrors, replies };
 }
 afterEach(() => { vi.useRealTimers(); });
+
+test('Developer-only code stays cold until first use and then works offline', async () => {
+  const f = fixture(undefined, [entry, dependency, css, lazy]);
+  await f.dispatch('install');
+  await f.dispatch('message', { data: { type: 'WARM_CODE' } });
+  expect(f.fetch.mock.calls.some(([url]) => new URL(typeof url === 'string' ? url : url.url).pathname === later)).toBe(false);
+  await f.dispatch('fetch', { request: new Request(new URL(later, base)) });
+  const requests = f.fetch.mock.calls.length;
+  f.navigator.onLine = false; f.fetch.mockRejectedValue(new Error('offline'));
+  await f.dispatch('fetch', { request: new Request(new URL(later, base)) });
+  expect(f.fetch.mock.calls).toHaveLength(requests);
+});
 
 test('installation remains strict for its complete entry graph and never reads lazy shard chunks', async () => {
   const f = fixture(), cache = await f.open('ws-immutable');

@@ -64,6 +64,9 @@ const BUILD = '__BUILD_ID__';
 const ASSETS = '__ASSET_ID__';
 /** @type {string[]} */
 const BUNDLE = JSON.parse('__BUNDLE__');
+/** Public title/select/grid/shardfile static closures only. Developer/legacy/
+ * Explore/Sentry-only chunks remain in BUNDLE and cache on their first use. */
+const WARM = JSON.parse('__WARM__');
 /** @type {string[]} */
 const INSTALL = JSON.parse('__INSTALL__');
 /** @type {string[]} */
@@ -359,7 +362,7 @@ async function warmBundle() {
   if (warming !== null) { await warming; return; }
   const run = async () => {
     const cache = await caches.open(IMMUTABLE_CACHE);
-    for (const path of BUNDLE.filter(p => !IMAGE_RE.test(p))) {
+    for (const path of WARM.filter(p => !IMAGE_RE.test(p))) {
       if (await cache.match(abs(path), MATCH_OPTS)) continue;
       let complete = false;
       while (!complete) {

@@ -4,7 +4,19 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { join, resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { preview } from 'vite';
-import { pwaPlugin, workerInstallFiles, workerScripts } from '../vite/pwa-plugin';
+import { pwaPlugin, workerInstallFiles, workerScripts, workerWarmFiles } from '../vite/pwa-plugin';
+
+test('public warming uses declared closures, leaving Developer-only code on use', () => {
+  const bank = { common: [['/assets/common-aaaaaaaa.js', 1]], client: [['/assets/client-bbbbbbbb.js', 2]], grid: [],
+    selection: { public: [['/assets/world-cccccccc.js', 3]], hidden: [['/assets/dev-dddddddd.js', 4]],
+      legacy: [['/assets/legacy-eeeeeeee.js', 5]] },
+    optional: { files: [['/assets/host-ffffffff.js', 6], ['/assets/explore-gggggggg.js', 7]],
+      groups: { 'home:/shardfiles/public/': [0], 'home:/shardfiles/hidden/': [1] } } };
+  const files = workerWarmFiles(bank, ['public'], ['/assets/title-hhhhhhhh.js']);
+  expect(files).toEqual(['/assets/client-bbbbbbbb.js', '/assets/common-aaaaaaaa.js', '/assets/host-ffffffff.js', '/assets/title-hhhhhhhh.js', '/assets/world-cccccccc.js']);
+  expect(() => workerWarmFiles(bank, ['missing'], [])).toThrow();
+  expect(() => workerWarmFiles({ ...bank, optional: { ...bank.optional, groups: { 'home:/shardfiles/public/': [99] } } }, ['public'], [])).toThrow('Invalid worker warm module index');
+});
 
 test('worker bootstrap names exact core bytes and changes for same-length edits', () => {
   const first = workerScripts('self.version = "first";'), next = workerScripts('self.version = "other";');

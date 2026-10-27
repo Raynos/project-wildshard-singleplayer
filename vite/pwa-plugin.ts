@@ -11,7 +11,8 @@
  *   __ASSET_ID__  a hash of the public/assets (+ basis, fonts) files' CONTENT alone (E160: it was list + sizes), so the
  *                 static cache survives a JS-only deploy, and any byte change to the art names a new one (activate
  *                 then keeps, by content hash, every entry that is still current — src/engine/pwa/sw.js).
- *   __BUNDLE__    every emitted content URL: the cache identity/prune list, warmed after the page is usable.
+ *   __BUNDLE__    every emitted content URL: the cache identity/prune list; cached on first use.
+ *   __WARM__      only public entry closures, warmed after the page is usable.
  *   __INSTALL__   the complete static entry graph and CSS, strictly cached at install. Lazy code stays off that path.
  *   __FONTS__     the self-hosted `/fonts/*.woff2`: precached at install, so an offline launch has its type even though
  *                 the first visit's CSS asked for them before the worker controlled the page (project/archive/2026-09-23-preload-offline.md).
@@ -29,6 +30,51 @@ import { hashTree } from './assetHashes';
 import { PRODUCT_CACHE_NAME } from '../src/engine/pwa/cacheNames';
 import { join } from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { bootModuleFiles } from './bootModules';
+import { readModuleFiles } from '../src/engine/boot/download';
+import { manifestFolders, shardProducts, outputManifest } from '../scripts/shard-outputs.mjs';
+
+/** The title's own visibility rule, applied to authored build-time data. Frozen
+ * TS manifests are reference-only; they never seed speculative downloads. */
+function publicProducts(root: string): string[] {
+  return shardProducts(root, manifestFolders(root)).flatMap(product => {
+    const file = join(root, 'src/shards', product.folder, 'manifest.json');
+    if (!existsSync(file)) return [];
+    const value: unknown = product.output === null ? JSON.parse(readFileSync(file, 'utf8')) : outputManifest(root, product.folder, product.output);
+    const row = metadata(value);
+    return product.slug.startsWith('_') || row.status === 'hidden' || row.legacy === true || row.shardSelect === false ? [] : [product.slug];
+  });
+}
+interface WarmMetadata extends Record<string, unknown> {
+  status?: unknown; legacy?: unknown; shardSelect?: unknown;
+  selection?: unknown; optional?: unknown; groups?: unknown; files?: unknown;
+  common?: unknown; client?: unknown; grid?: unknown;
+}
+function metadata(value: unknown): WarmMetadata {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) throw new Error('Invalid worker warm metadata');
+  return value as WarmMetadata;
+}
+
+/** Use the same build-owned static closures as the public loading bar. Never
+ * traverse arbitrary dynamic imports: those include Explore, legacy and tools.
+ * Full BUNDLE remains the prune/cache-on-use inventory, independently of WARM. */
+export function workerWarmFiles(input: unknown, products: readonly string[], title: readonly string[]): string[] {
+  const bank = metadata(input), selected = metadata(bank.selection), optional = metadata(bank.optional);
+  const groups = metadata(optional.groups), files = readModuleFiles(optional.files);
+  const result = new Set(title);
+  const add = (rows: unknown): void => { for (const [url] of readModuleFiles(rows)) result.add(url); };
+  add(bank.common); add(bank.client); add(bank.grid);
+  for (const slug of products) {
+    add(selected[slug]);
+    const group = groups[`home:/shardfiles/${slug}/`];
+    if (!Array.isArray(group)) throw new Error(`Missing public worker warm group: ${slug}`);
+    for (const index of group) {
+      if (typeof index !== 'number' || !Number.isSafeInteger(index) || index < 0 || files[index] === undefined) throw new Error('Invalid worker warm module index');
+      const file = files[index]; if (file !== undefined) result.add(file[0]);
+    }
+  }
+  return [...result].sort((a, b) => a.localeCompare(b));
+}
 
 /** `<name>:<bytes>` over a sorted file list, hashed — deterministic, and it moves only when bytes do. */
 function contentStamp(rows: string[]): string {
@@ -93,8 +139,8 @@ export function pwaPlugin(buildId: string): Plugin {
   let root = process.cwd();
   const swSource = () => `${readFileSync(join(root, 'src/engine/app/workerScope.js'), 'utf8').replaceAll(/^export /gm, '')}\n${readFileSync(join(root, 'src/engine/pwa/sw.js'), 'utf8').replace("import { workerScope } from '../app/workerScope.js';\n", '')}`;
   const fonts = (): string[] => { const dir = join(root, 'public', 'fonts'); return existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith('.woff2')).sort().map((f) => `/fonts/${f}`) : []; };
-  const stamp = (src: string, build: string, assets: string, bundle: string[], install: string[]) =>
-    src.replaceAll('__BUILD_ID__', build).replaceAll('__ASSET_ID__', assets).replace("'__BUNDLE__'", JSON.stringify(JSON.stringify(bundle))).replace("'__INSTALL__'", JSON.stringify(JSON.stringify(install))).replace("'__FONTS__'", JSON.stringify(JSON.stringify(fonts()))).replace('__PRODUCT_CACHE__', PRODUCT_CACHE_NAME);
+  const stamp = (src: string, build: string, assets: string, bundle: string[], install: string[], warm: string[]) =>
+    src.replaceAll('__BUILD_ID__', build).replaceAll('__ASSET_ID__', assets).replace("'__BUNDLE__'", JSON.stringify(JSON.stringify(bundle))).replace("'__INSTALL__'", JSON.stringify(JSON.stringify(install))).replace("'__WARM__'", JSON.stringify(JSON.stringify(warm))).replace("'__FONTS__'", JSON.stringify(JSON.stringify(fonts()))).replace('__PRODUCT_CACHE__', PRODUCT_CACHE_NAME);
   return {
     name: 'wildshard-pwa',
     configResolved(c) {
@@ -111,7 +157,15 @@ export function pwaPlugin(buildId: string): Plugin {
         .map(([name, item]) => `${name}:${item.type === 'chunk' ? Buffer.byteLength(item.code) : Buffer.byteLength(item.source)}`);
       const build = `${buildId}-${contentStamp([...emitted, ...assetRows])}`;
       const hashed = Object.keys(bundle).filter((name) => /^assets\/[^/]+-[\w-]{8}\.\w+$/.test(name)).map((name) => `/${name}`).sort();
-      const core = stamp(src, build, assets, hashed, workerInstallFiles(bundle)), scripts = workerScripts(core);
+      const html = bundle['index.html'];
+      if (html?.type !== 'asset' || typeof html.source !== 'string') throw new Error('Missing worker warm document');
+      const bank = /<script type="application\/json" id="boot-module-files">([^<]+)<\/script>/u.exec(html.source)?.[1];
+      if (bank === undefined) throw new Error('Missing worker warm module bank');
+      const input: unknown = JSON.parse(bank);
+      const title = bootModuleFiles(bundle, ['src/engine/ui/StartTitle.ts', 'src/game/mainMenu.ts', 'src/shardSelection.ts'].map(file => join(root, file))).map(row => row[0]);
+      const warm = workerWarmFiles(input, publicProducts(root), [...workerInstallFiles(bundle), ...title]);
+      if (warm.some(file => !hashed.includes(file))) throw new Error('Worker warm file is absent from the emitted bundle');
+      const core = stamp(src, build, assets, hashed, workerInstallFiles(bundle), warm), scripts = workerScripts(core);
       this.emitFile({ type: 'asset', fileName: scripts.fileName, source: core });
       this.emitFile({ type: 'asset', fileName: 'sw.js', source: scripts.bootstrap });
       this.info(`sw.js emitted (ws-shell-${build}, ws-static-${assets}, ws-immutable: ${hashed.length} files)`);
@@ -146,7 +200,7 @@ export function pwaPlugin(buildId: string): Plugin {
           return;
         }
         res.setHeader('Content-Type', 'text/javascript');
-        res.end(stamp(swSource(), `dev-${buildId}`, 'dev', [], []));
+        res.end(stamp(swSource(), `dev-${buildId}`, 'dev', [], [], []));
       });
     },
   };
