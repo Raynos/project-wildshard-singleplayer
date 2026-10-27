@@ -4,7 +4,7 @@ import { prepareFrameMotors, type FrameMember } from '@wildshard/engine/physics/
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import { TraversalReadiness, readinessModel, type ReadinessBundle, type ReadinessLink, type ReadinessTicket } from '@wildshard/engine/sim/readiness';
 import type { ReadinessWalls } from '@wildshard/engine/physics/readinessWalls';
-import { CHUNK_HALF, ENTRY_WIDTH } from '@wildshard/engine/core/config';
+import { CHUNK_HALF, CONTENT_CAPS, ENTRY_WIDTH } from '@wildshard/engine/core/config';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { GhostWorlds, type GhostRegion } from './ghosts';
 import { WORK_SLICE_MS, workSlice } from '@wildshard/engine/core/workSlice';
@@ -82,6 +82,10 @@ export interface LiveGridPorts {
   mount?: () => FrameMember | undefined;
   /** Durable-only factories retain no packed snapshots; admission refuses a factory without a durable read capability. */
   continuations?: 'memory' | 'durable';
+  /** Keep only the last departed isolated world on the road. Its original
+   * full claim stays unneeded/evictable; no new world may overlap it. */
+  lastCell?: { readonly windowMs: number; readonly playingBytes: number;
+    readonly schedule: (expire: () => void, delayMs: number) => () => void };
   /** G580 T2: told once before a resident's retirement or unload disposes its world, so its compiled programs can be kept
    *  for the next world; never refuses a retirement. Absent keeps nothing. */
   keepPrograms?: (instance: string) => void;
@@ -89,6 +93,8 @@ export interface LiveGridPorts {
 /** Crossing telemetry is a production port: the harness verifies real fixed-boundary commits, never a page/debug probe. */
 export interface LiveGridState {
   current: string | null; worldFeet: GridPoint; crossings: number;
+  /** Last complete world remains fully charged and pressure-evictable on the road. */
+  retainedCell?: { readonly instance: string; readonly remainingMs: number; readonly playingBytes: number; readonly capBytes: number } | null;
   transitions: readonly { from: string | null; to: string | null }[];
   residents: readonly string[]; pending: readonly string[]; issues: Readonly<Record<string, string>>;
   gameplayReady: boolean;
@@ -104,7 +110,7 @@ export interface LiveGridState {
 export interface Retirement { instance: string; checkpointMs: number; disposeMs: number; steps?: number; workMs?: number; slowestStepMs?: number; slowestStep?: string; failed?: boolean }
 interface RetiringRegion { readonly instance: string; readonly resident: Resident; readonly steps: Generator<DisposeStep, void>;
   readonly checkpointMs: number; readonly start: number; count: number; workMs: number; slowestMs: number; slowest: string; done: boolean }
-interface Resident { region: LiveGridRegion; lease: ResidencyLease; reloadsCheckpoint: boolean; reservations: number; evicting: boolean; disposalFailed?: boolean }
+interface Resident { region: LiveGridRegion; lease: ResidencyLease; reloadsCheckpoint: boolean; reservations: number; evicting: boolean; retainable: boolean; evictionBound?: boolean; disposalFailed?: boolean }
 
 // Contact corrections at a closed readiness wall are not a U-turn. Accumulate real horizontal travel
 // before selecting another approach, so sub-centimetre capsule recoil cannot evict the world just prepared.
@@ -181,6 +187,7 @@ export class LiveGridHost {
   private readonly highway: LiveGridHighway;
   private sequence: Promise<void> = Promise.resolve();
   private active: string | null;
+  private lastCell: { readonly instance: string; readonly until: number; cancel: () => void } | null = null;
   private unbind: (() => void) | undefined;
   private disposed = false;
   /** Each checkpoint of an instance takes a generation; a staged one still waiting is superseded by any later one. */
@@ -191,6 +198,8 @@ export class LiveGridHost {
 
   constructor(assembly: GridAssembly, ports: LiveGridPorts) {
     this.assembly = assembly; this.ports = ports;
+    if (ports.lastCell !== undefined && (!Number.isFinite(ports.lastCell.windowMs) || ports.lastCell.windowMs <= 0 || ports.lastCell.windowMs > 60_000
+      || !Number.isSafeInteger(ports.lastCell.playingBytes) || ports.lastCell.playingBytes <= 0)) throw new RangeError('Invalid last-cell retention policy');
     this.active = null; this.initialHomePending = true;
     if (ports.continuations !== 'durable') {
       const cacheId = `sim-continuations:live:${ports.home.instance}`;
@@ -379,14 +388,14 @@ export class LiveGridHost {
         if (this.ports.pause !== undefined) await this.ports.pause();
         this.assertAlive();
         if (packed !== undefined) this.saved.store(instance, packed);
-        this.residents.set(instance, { region, lease, reloadsCheckpoint: admitted.reloadsCheckpoint === true || this.ports.read !== undefined, reservations: 0, evicting: false });
+        this.residents.set(instance, { region, lease, reloadsCheckpoint: admitted.reloadsCheckpoint === true || this.ports.read !== undefined, reservations: 0, evicting: false, retainable: admitted.isolatedPreparation === true });
         this.readiness.complete(ticket, 'colliders'); this.readiness.complete(ticket, 'sim');
         lease.update({ needed: false, distance: this.distance(cell) });
       } catch (error) {
         try { region?.dispose(); }
         catch (cleanup) {
           if (region !== undefined) this.residents.set(instance, { region, lease, reloadsCheckpoint: admitted.reloadsCheckpoint === true,
-            reservations: 0, evicting: false, disposalFailed: true });
+            reservations: 0, evicting: false, retainable: false, disposalFailed: true });
           admission = undefined; // The retained world still owns its product and its full claim.
           throw new AggregateError([error, cleanup], 'Live region creation and disposal failed', { cause: cleanup });
         }
@@ -401,15 +410,69 @@ export class LiveGridHost {
       throw error;
     } finally { this.constructing.delete(instance); this.requests.delete(instance); timing?.finish(); }
   }
+  private forgetLastCell(instance?: string): void {
+    const last = this.lastCell;
+    if (last === null || instance !== undefined && last.instance !== instance) return;
+    this.lastCell = null; last.cancel();
+  }
+  private retainedFits(instance: string): boolean {
+    const policy = this.ports.lastCell;
+    return policy !== undefined && this.ports.allocator.ownerCost(instance).playing <= Math.min(CONTENT_CAPS.playing, policy.playingBytes);
+  }
+  /** Call only after entered leave hooks finish. Keep the same ready world,
+   * without a second claim, snapshot, physics host or shader preparation. */
+  retainDeparted(instance: string): boolean {
+    const policy = this.ports.lastCell, resident = this.residents.get(instance);
+    if (this.disposed || this.active !== null || policy === undefined || resident?.retainable !== true
+      || resident.evicting || resident.disposalFailed === true || !this.retainedFits(instance)) return false;
+    if (this.lastCell?.instance === instance) return true;
+    // Install the existing program keeper before this world can be an allocator
+    // eviction candidate: eviction callbacks may not reserve their own claims.
+    this.ports.keepPrograms?.(instance);
+    if (!this.retainedFits(instance)) return false;
+    if (resident.evictionBound !== true) {
+      const bind = resident.lease.evictWith;
+      if (bind === undefined) return false;
+      try {
+        bind(() => {
+          if (this.residents.get(instance) !== resident) return null;
+          const prepared = this.prepareUnload(instance);
+          return prepared === null ? null : { abort: prepared.abort, commit: () => {
+            prepared.commit();
+            // A failed disposer keeps its full claim; never let allocator
+            // eviction remove it merely because the callback returned.
+            if (this.residents.get(instance) === resident) throw new Error('Retained world disposal failed');
+          } };
+        });
+        resident.evictionBound = true;
+      } catch { return false; }
+    }
+    this.forgetLastCell();
+    const last = { instance, until: diagnosticNow() + policy.windowMs, cancel: (): void => undefined };
+    this.lastCell = last;
+    try {
+      last.cancel = policy.schedule(() => {
+        if (this.lastCell !== last) return;
+        this.forgetLastCell();
+        this.retire(instance);
+      }, policy.windowMs);
+    } catch { this.forgetLastCell(); return false; }
+    if (this.lastCell !== last) last.cancel();
+    resident.lease.update({ needed: false, distance: this.distance(this.assembly.cell(instance)) });
+    return this.lastCell === last;
+  }
   private distance(cell: GridCell, p = this.worldFeet()): number { return Math.hypot(Math.max(0, Math.abs(p.x - cell.origin.x) - CHUNK_HALF), Math.max(0, Math.abs(p.z - cell.origin.z) - CHUNK_HALF)); }
-  /** Gameplay worlds belong only to the active cell or a reserved actual entry.
-   * Neighbour imagery is held by distance-owned tiles, not a kept whole source. */
+  /** Only the active/reserved world and one bounded departed world can remain.
+   * A different actual entry retires the departure before any new allocation. */
   private retireInactiveRegions(destination?: string): boolean {
+    const last = this.lastCell;
+    if (last !== null && (diagnosticNow() >= last.until || !this.retainedFits(last.instance)
+      || this.active !== null || destination !== undefined && destination !== last.instance)) this.forgetLastCell();
     let released = true;
     for (const [instance, resident] of this.residents) {
       const needed = instance === this.active || instance === destination || this.requests.has(instance) || resident.reservations > 0;
       resident.lease.update({ distance: this.distance(this.assembly.cell(instance)), needed: needed || resident.disposalFailed === true });
-      if (needed) continue;
+      if (needed || this.lastCell?.instance === instance) continue;
       if (resident.disposalFailed === true || resident.evicting || this.coldUnloadRefused.has(instance)) { released = false; continue; }
       if (!this.retire(instance)) { this.coldUnloadRefused.add(instance); released = false; }
     }
@@ -582,6 +645,7 @@ export class LiveGridHost {
         this.readiness.invalidate(instance); this.issues.set(`cleanup:${instance}`, error instanceof Error ? error.message : String(error)); return;
       }
       this.residents.delete(instance); this.readiness.invalidate(instance);
+      this.forgetLastCell(instance);
       if (resident.reloadsCheckpoint) this.saved.drop(instance);
       resident.lease.release();
     } };
@@ -601,6 +665,7 @@ export class LiveGridHost {
     try { if (!this.checkpoint(instance)) return false; } catch { return false; }
     const checkpointMs = diagnosticNow() - checkpointStart;
     this.ports.keepPrograms?.(instance);
+    this.forgetLastCell(instance);
     resident.evicting = true; this.residents.delete(instance); this.readiness.invalidate(instance);
     this.ghosts.retired(instance, resident.region.ghostRoots ?? [resident.region]);
     const record: RetiringRegion = { instance, resident, steps: retire(), checkpointMs, start: diagnosticNow(), count: 0, workMs: 0, slowestMs: 0, slowest: '', done: false };
@@ -645,6 +710,11 @@ export class LiveGridHost {
   async prepare(from: string | null, to: string | null): Promise<PreparedGridCrossing> {
     if (this.disposed || this.active !== from || from === to) throw new Error('Stale live frame preparation');
     if (from !== null && to !== null) throw new Error('Owned runtime crossing must commit onto the neutral road first');
+    // Protect a ready return before yielding: expiry/pressure cannot free it
+    // between its selection and the final prepared-frame reservation.
+    const returning = to === null ? undefined : this.residents.get(to), releaseReturn = returning?.lease.hold();
+    if (returning !== undefined) returning.reservations++;
+    try {
     const generation = ++this.frameGeneration;
     for (const cancelPrevious of this.frames) cancelPrevious();
     const current = (): void => {
@@ -674,26 +744,35 @@ export class LiveGridHost {
     catch (error) { if (resident !== undefined) resident.reservations--; releaseHold?.(); throw error; }
     let closed = false;
     const frames = this.frames;
-    function finish(): void { closed = true; frames.delete(cancel); if (resident !== undefined) resident.reservations--; releaseHold?.(); }
-    function cancel(): void { if (closed) return; motors.cancel(); finish(); }
+    let cancel: () => void = () => undefined;
+    const finish = (): void => { closed = true; frames.delete(cancel); if (resident !== undefined) resident.reservations--; releaseHold?.(); };
+    cancel = (): void => { if (closed) return; motors.cancel(); finish(); };
     this.frames.add(cancel);
     return { cancel, commit: () => {
       if (closed || this.disposed || this.active !== from || !this.ready(to)) throw new Error('Stale live frame commit');
       motors.commit(); this.unbind?.(); this.unbind = undefined;
       this.ports.player.motor = rider.motor; this.active = to;
+      if (to !== null) this.forgetLastCell();
       this.previousFeet = this.worldFeet(); // A committed spawn/frame placement is not the traveller's heading.
       const host = this.region(to)?.host; if (host !== undefined) this.unbind = host.bindExternalPlayer(this.ports.player);
       this.ports.bindFrame({ instance: to, physics: this.physics(to), motor: rider.motor, origin, ...(host === undefined ? {} : { host }) });
       this.residents.get(to ?? '')?.lease.update({ needed: true }); this.residents.get(from ?? '')?.lease.update({ needed: to === null });
       this.crossings++; this.transitions.push({ from, to }); if (this.transitions.length > 256) this.transitions.shift(); finish();
     } };
+    } finally { if (returning !== undefined) returning.reservations--; releaseReturn?.(); }
+  }
+  private retainedState(): Exclude<LiveGridState['retainedCell'], undefined> {
+    const last = this.lastCell, policy = this.ports.lastCell;
+    return last === null || policy === undefined ? null : { instance: last.instance, remainingMs: Math.max(0, last.until - diagnosticNow()),
+      playingBytes: this.ports.allocator.ownerCost(last.instance).playing, capBytes: Math.min(CONTENT_CAPS.playing, policy.playingBytes) };
   }
   /** Read-only crossing evidence and failures for the real grid physics harness. */
-  state(): LiveGridState { return { current: this.active, worldFeet: this.worldFeet(), crossings: this.crossings, transitions: this.transitions.map((row) => ({ ...row })), residents: [...this.residents.keys()].sort(), pending: [...new Set([...this.requests.keys(), ...this.productRequests.keys()])].sort(), issues: Object.fromEntries(this.issues), gameplayReady: this.active === null || this.ports.gameplayReady(this.active), retirements: this.retirements.map(row => ({ ...row })), retiring: [...this.retiring.keys()], ghosts: { count: this.ghosts.count(), regions: this.ghosts.regions() }, continuations: this.ports.continuations === 'durable' ? { entries: 0, storedChars: 0, capacityChars: 0, claimedBytes: 0 } : { ...this.saved.state(), claimedBytes: this.disposed ? 0 : GRID_CONTINUATION_CACHE_BYTES } }; }
+  state(): LiveGridState { return { current: this.active, worldFeet: this.worldFeet(), crossings: this.crossings, transitions: this.transitions.map((row) => ({ ...row })), residents: [...this.residents.keys()].sort(), pending: [...new Set([...this.requests.keys(), ...this.productRequests.keys()])].sort(), issues: Object.fromEntries(this.issues), gameplayReady: this.active === null || this.ports.gameplayReady(this.active), ...(this.ports.lastCell === undefined ? {} : { retainedCell: this.retainedState() }), retirements: this.retirements.map(row => ({ ...row })), retiring: [...this.retiring.keys()], ghosts: { count: this.ghosts.count(), regions: this.ghosts.regions() }, continuations: this.ports.continuations === 'durable' ? { entries: 0, storedChars: 0, capacityChars: 0, claimedBytes: 0 } : { ...this.saved.state(), claimedBytes: this.disposed ? 0 : GRID_CONTINUATION_CACHE_BYTES } }; }
   /** Return the traveller to its page world before retiring regions. Failed disposals keep their full claims
    * and can be retried; the neutral highway disposer never owns the page physics or latest traveller motor. */
   dispose(): void {
     this.disposed = true;
+    this.forgetLastCell();
     this.stopApproachTransport();
     this.tileApproach?.controller.abort(); this.tileApproach = null;
     this.tileMetadata.clear();

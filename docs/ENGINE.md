@@ -5329,27 +5329,27 @@ it. `releasePreparedTransport` retains declared-reference/offline/corrupt-cache
 refusals; ordinary release classification stays. Supplied maps without release
 authority stay intact.
 
-The grid's settled tile-preparation promise carries source, decoded views and
-one verified reader, never the complete input Map. Each late same-slug cell
-borrows inputs through `gridShardfileProduct` before its scripts and panels
-install. Material closures project declared JSON files only, so deferred graph
-compiles keep their synchronous contract without retaining mesh/texture/Wasm
-inputs. That JSON subset and commons remain resident and charged.
-`gridShardfileProduct(slug, owner, 'metadata')` returns a `GridProductMetadata`
-lease over the cached source and retained JSON, without acquiring or refilling
-binary preparation inputs. `ProductInputs.releaseUnused()` retires cold unused
-mirrors through the same declared-reference/offline authority, but never clears
-a live borrow. This keeps speculative metadata from rereading every input only
-to release it before world construction. `preparationAdmission` keeps the original
-regional metadata claim page-owned; every actual world creation (including re-entry)
-acquires verified inputs before synchronous consumers. Metadata preparation never creates,
-replaces or cancels a regional durability owner: same-cell prefetch can overlap
-a world construction, and only that world registers and retires its save ports. A cancelled in-flight build
-keeps its inputs until it settles, disposes any unpublished world, then releases
-the borrow. Active regional worlds retain inputs through their original
-retirement boundary. Decoder releases cannot shrink the product charge while
-another preparation still holds a mirror; rehydrated wires use a separately
-admitted temporary claim until their last release.
+Settled tile preparation holds source, decoded views and one verified reader,
+not input Maps. Late cells borrow through `gridShardfileProduct` before
+scripts/panels; material closures retain only declared JSON/commons, charged.
+Its 'metadata' mode lends source/JSON without binary refill.
+`ProductInputs.releaseUnused()` frees only cold unborrowed mirrors under the
+same declared-reference/offline authority. Metadata never owns durability;
+only construction borrows verified inputs and binds save ports. Cancelled
+builds drain and dispose unpublished worlds before release. Worlds retain
+inputs to retirement; shared mirrors block product shrinking, and rehydrated
+wires stay separately charged until their last release.
+
+`LiveGridHost.retainDeparted(instance)` runs after leave hooks. `lastCell`
+keeps one complete isolated world on the road for30s, fully charged and
+unneeded/evictable. `ownerCost(owner)` includes shared page/base costs;
+retention requires its playing envelope <=1.2GB even in report-only mode.
+Expiry, headroom loss, pressure or another entry retires it before new
+construction. A return rebinds original scene/resources without GPU warm-up;
+prepared returns stay held through commit/cancel. A sole live lease holder
+can install one two-phase `evictWith(prepare)` authority. Failed checkpoint
+or disposal keeps the charge and blocks construction. Neighbour tile
+lifetimes stay separate; no second whole world is allocated.
 
 `runtimeOnlyProductFiles(source)` excludes inventory-only references
 (`files`, `critical`, `library`) and retains every host-declared hash and

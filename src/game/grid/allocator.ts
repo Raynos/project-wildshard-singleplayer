@@ -51,6 +51,9 @@ export interface ResidencyLease {
   update: (patch: { distance?: number; needed?: boolean; coveredBy?: string | null }) => void;
   /** protect the claim from eviction while a dependant (a fine child, an in-flight request) uses it; returns the unhold */
   hold: () => () => void;
+  /** A sole holder may install fallible two-phase eviction after construction.
+   * Implementations without this capability cannot retain a departed world. */
+  evictWith?: (prepare: () => ResidencyEviction | null) => void;
   release: () => void;
 }
 /** A frozen row of the allocator's table, for traces and readouts. */
@@ -177,6 +180,10 @@ export class ResidencyAllocator {
   cost(): { playing: number; loading: number; accounted: number; input: ContentCostInput } {
     const input = this.input(); return { ...contentCost(input), input };
   }
+
+  /** One owner's full playing envelope, including the calibrated shared page.
+   * Retention uses this strict ruler even when ordinary admission only reports. */
+  ownerCost(owner: string): ReturnType<typeof shardCost> { return shardCost(this.ownerTotal(owner), this.input()); }
 
   /** G723: read-only eligibility for speculative preparation beside a kept world.
    * Existing claims and page costs stay charged; the incoming sim adds its whole
@@ -443,6 +450,10 @@ export class ResidencyAllocator {
         if (!live()) return () => undefined;
         entry.holds++; this.refreshEviction(entry); let held = true;
         return () => { if (held) { held = false; entry.holds--; this.refreshEviction(entry); } };
+      },
+      evictWith: (prepare: () => ResidencyEviction | null): void => {
+        if (!live() || this.evicting || entry.refs !== 1 || entry.prepare !== undefined) throw new Error('Eviction authority requires one live exclusive holder');
+        entry.prepare = prepare; this.refreshEviction(entry);
       },
       release: (): void => {
         if (released) return; released = true;

@@ -27,7 +27,7 @@ import { createProgramKeeper, retainRendererPrograms, RETAINED_PROGRAM_BYTES, RE
 import { installBootProgramChoice } from './bootPrograms';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { WORK_SLICE_MS, workSlice } from '@wildshard/engine/core/workSlice';
-import { CHUNK_HALF, ENTRY_ASPHALT } from '@wildshard/engine/core/config';
+import { CHUNK_HALF, CONTENT_CAPS, ENTRY_ASPHALT } from '@wildshard/engine/core/config';
 import type { DisposeStep, Scope } from '@wildshard/engine/app/scope';
 import type { Events } from '@wildshard/engine/events/events';
 import type { Physics } from '@wildshard/engine/physics/Physics';
@@ -263,6 +263,11 @@ export class LiveGridSession {
       + assembly.cells.length * TRANSFER_WALL_BYTES;
     try { this.live = new LiveGridHost(assembly, {
       continuations: 'durable', // Every owned production region below reconstructs its basis and reloads its durable save.
+      lastCell: { windowMs: 30_000, playingBytes: CONTENT_CAPS.playing, schedule: (expire, ms) => {
+        const timer = scope.child('grid.last-cell-expiry');
+        timer.timeout(ms, () => { timer.dispose(); scope.run(expire); });
+        return () => { timer.dispose(); };
+      } },
       keepPrograms: instance => { this.keepPrograms(instance); },
       home: { mode: 'owned', instance: home.instance, bytes: ports.residency.bytes, residency: ports.residency },
       player, allocator: ports.allocator,
@@ -379,8 +384,9 @@ export class LiveGridSession {
       if (to !== null || from === null) return;
       const leaveStart = diagnosticNow();
       gridCells.leave(); // entered callbacks must finish before their retained native world retires
+      this.live.retainDeparted(from);
       this.leaveTiming.push({ instance: from, leaveMs: diagnosticNow() - leaveStart }); if (this.leaveTiming.length > 16) this.leaveTiming.shift();
-      // T7: after these entered hooks leave, the next live tick retires the source world in steps.
+      // Keep at most this complete world until a bounded return, expiry or pressure.
       // Its independently owned neighbour tiles remain with the page's distance streamer.
     });
   }
