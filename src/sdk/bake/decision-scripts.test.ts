@@ -1,5 +1,6 @@
 import { expect, expectTypeOf, it } from 'vitest';
 import { actorDecisionRows, decisionScriptRules, parseDecisionScripts, scriptV1Identifier, type DecisionScriptReferences } from '@wildshard/format/decisionScripts';
+import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
 import { validateOutputSection, type OutputPlatformSectionName } from '@wildshard/format/outputIndex';
 import type { PlatformSectionName } from '@wildshard/format/sections';
 import { formatJsonSchemas } from '@wildshard/sdk/formatJsonSchema';
@@ -41,7 +42,10 @@ it('refuses unsupported versions, paths, ops, duplicate bindings and ceilings', 
     { state: Array.from({ length: 17 }, (_, i) => ({ ...slot, name: `value${i}` })) },
   ]) expect(() => parseDecisionScripts([{ ...raw, ...change }])).toThrow();
   expect(() => parseDecisionScripts([raw, raw])).toThrow();
-  expect(() => parseDecisionScripts(Array.from({ length: 9 }, (_, i) => ({ ...raw, id: `test.script${i}`, module: `blobs/wasm/${String(i).repeat(64)}.wasm` })))).toThrow();
+  // the cap edge (D71: one SCRIPT_LIMITS.instances cap, nine modules): the cap admits, one more refuses
+  const scripts = (count: number): unknown[] => Array.from({ length: count }, (_, i) => ({ ...raw, id: `test.script${i}`, module: `blobs/wasm/${String(i).repeat(64)}.wasm` }));
+  expect(() => parseDecisionScripts(scripts(SCRIPT_LIMITS.instances))).not.toThrow();
+  expect(() => parseDecisionScripts(scripts(SCRIPT_LIMITS.instances + 1))).toThrow();
 });
 
 it('enforces side capabilities and durable/local typed state ranges', () => {
