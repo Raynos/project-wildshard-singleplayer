@@ -1,6 +1,7 @@
 import { type BufferAttribute, BufferGeometry, InterleavedBufferAttribute, Matrix4, type Mesh } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Scope } from '@wildshard/engine/app/scope';
+import { ownSceneResource } from '@wildshard/engine/app/sceneOwnership';
 import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 import type { WholeGeometryPiece } from '../plugin/geometry';
 import type { ShardProduct } from './shardProduct';
@@ -91,6 +92,7 @@ export class RefiningWholeLibrary {
       const geometry = joinWholePieces([...held.values()].flat(), model.matrix);
       if (sphere !== undefined) geometry.boundingSphere = sphere.clone();
       if (box !== undefined) geometry.boundingBox = box.clone();
+      ownSceneResource(geometry, lifetime);
       const previous = owned; mesh.geometry = geometry; owned = geometry; previous?.dispose();
     };
     lifetime.onDispose(() => { closed = true; held.clear(); owned?.dispose(); owned = undefined; });

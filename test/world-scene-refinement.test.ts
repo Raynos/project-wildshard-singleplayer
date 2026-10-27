@@ -15,14 +15,15 @@ function fixture() {
   const owner = new Scope('fine-resident'), source = emptyShardfile({ slug: 'fine-fixture', name: 'Fine', author: 'Fixture', revision: 1, seed: 1 });
   const original = new BufferGeometry().setAttribute('position', new BufferAttribute(Float32Array.of(-230, 0, -230, -229, 0, -230, -230, 0, -229, 30, 0, -230, 31, 0, -230, 30, 0, -229), 3));
   original.setAttribute('normal', new BufferAttribute(Float32Array.of(0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0), 3));
+  const bakeMaterial = new MeshBasicMaterial();
   const partitions = partitionWholeGeometry(original), assets = new Map<string, Uint8Array>();
   for (const part of partitions) {
-    const bytes = staticGlb([{ name: 'fabric', geometry: part.geometry, matrix: new Matrix4(), nativeAttributes: true, extras: {
+    const bytes = staticGlb([{ name: 'fabric', geometry: part.geometry, material: bakeMaterial, transform: new Matrix4(), nativeAttributes: true, compactIndex: true, extras: {
       wholePartition: { id: 'fabric', vertices: part.vertices, triangles: part.triangles, vertexCount: 6, indexCount: 0, index: 'none' },
     } }]), hash = hashImmutableBytes(bytes);
     assets.set(hash, bytes);
     source.files.push({ hash, kind: 'glb', compressed: bytes.length, decoded: part.geometry.getAttribute('position').array.byteLength, gpu: 0, triangles: 1, draws: 1, dependencies: [], critical: false });
-    source.tiles.push({ lod: 0, x: part.x, z: part.z, files: [hash], compressed: bytes.length, decoded: 72, gpu: 0, triangles: 1, draws: 1 });
+    source.tiles.push({ lod: 0, x: part.x, z: part.z, geometricError: 0, bounds: { min: [-250 + part.x * 62.5, -1, -250 + part.z * 62.5], max: [-250 + (part.x + 1) * 62.5, 1, -250 + (part.z + 1) * 62.5] }, files: [hash], compressed: bytes.length, decoded: 72, gpu: 0, triangles: 1, draws: 1 });
   }
   provideRuntimeProduct({ source, assets, cached: false }, owner, { base: 'https://test.example/shardfiles/fine-fixture/', offline: false, firstParty: true,
     fetch: () => Promise.reject(new Error('Only admitted source bytes are permitted')), hash: bytes => Promise.resolve(hashImmutableBytes(bytes)) });
@@ -32,7 +33,7 @@ function fixture() {
   const queue = new ControlRefinement(owner, undefined, () => ({ x: -230, z: -230 }), () => Promise.resolve()), cover = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
   const library = new RefiningWholeLibrary(owner, product, row, queue, cover), material = new MeshBasicMaterial(), initial = new BufferGeometry(), mesh = new Mesh(initial, material);
   const content = library.bind('fabric', mesh, owner), read = vi.spyOn(runtimeProduct(source).assets, 'read');
-  return { owner, original, partitions, assets, source, mesh, content, read, cover, close: () => { owner.dispose(); original.dispose(); for (const part of partitions) part.geometry.dispose(); initial.dispose(); material.dispose(); vi.restoreAllMocks(); } };
+  return { owner, original, partitions, assets, source, mesh, content, read, cover, close: () => { owner.dispose(); original.dispose(); for (const part of partitions) part.geometry.dispose(); initial.dispose(); material.dispose(); bakeMaterial.dispose(); vi.restoreAllMocks(); } };
 }
 
 test('original tile pieces append to one stable draw and leave with their actual ring holds', async () => {
