@@ -5,6 +5,7 @@ import codeParts from '../data/codeParts.json' with { type: 'json' };
 import sky from '../data/sky.json' with { type: 'json' };
 import inputs from '../data/sourceInputs.json' with { type: 'json' };
 import { HERO_TABLES, heroMaterialCandidates, heroMaterialFolders, heroModelSources } from './heroMaterialFiles.mjs';
+import { CABIN_MATERIAL_IDS, cabinMaterialFolders } from './cabinPropMaterials.mjs';
 
 /** GR8 (D65): the committed files Pine's in-memory producers read (the baked terrain, the tree set, the crag kit, the
  *  prop scans, the native code parts, the sky keys, the authored trunk rows and the timber world with its GLBs), by
@@ -16,6 +17,8 @@ export interface PineSources {
   readonly bytes: (key: string) => Uint8Array;
   /** Whether an input exists (the hero material payloads are read where they exist). */
   readonly has: (key: string) => boolean;
+  /** The inputs below a listed folder (`/assets/.../`), as the build inventory names them. */
+  readonly list: (folder: string) => string[];
 }
 
 /** The retained terrain's URL (its public path under `/assets/`). */
@@ -56,6 +59,10 @@ export function timberGlbSources(sources: PineSources): string[] {
   });
 }
 
+/** The folders the prop and cabin material payloads and cabin prop scans are listed from. */
+const SCAN_FOLDERS: readonly string[] = ['rock_moss_set_01', 'tree_stump_01', 'dead_tree_trunk', ...CABIN_MATERIAL_IDS].flatMap(cabinMaterialFolders);
+const LISTED = /\.(?:glb|gltf|bin)$/u;
+
 /** One input's bytes parsed as JSON. */
 export function sourceJson(sources: PineSources, key: string): unknown {
   return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(sources.bytes(key)));
@@ -75,7 +82,7 @@ async function cachedSources(ctx: Pick<ProjectGenerationContext, 'cached'>, id: 
 }
 
 function fromMap(files: ReadonlyMap<string, Uint8Array>): PineSources {
-  return { has: key => files.has(key), bytes: key => {
+  return { has: key => files.has(key), list: folder => [...files.keys()].filter(key => key.startsWith(folder)).sort(), bytes: key => {
     const bytes = files.get(key);
     if (bytes === undefined) throw new Error(`Undeclared Pine source ${key}`);
     return bytes.slice();
@@ -83,18 +90,27 @@ function fromMap(files: ReadonlyMap<string, Uint8Array>): PineSources {
 }
 
 /** GR8 (D65): every Pine source, read through `ctx.cached`: the fixed inputs, then the timber GLBs their rows name, then
- *  the hero GLBs and the hero material payloads the declared folders hold. */
+ *  the hero GLBs and the hero material payloads the declared folders hold, then the prop and cabin material payloads and
+ *  cabin prop scans their folders hold (listed: `list`). */
 export async function readPineSources(ctx: Pick<ProjectGenerationContext, 'cached' | 'inputFiles'>): Promise<PineSources> {
-  if (ctx.inputFiles === undefined) throw new Error('Pine sources need the build inventory (ctx.inputFiles)');
+  const inventory = ctx.inputFiles;
+  if (inventory === undefined) throw new Error('Pine sources need the build inventory (ctx.inputFiles)');
+  const listing = (folders: readonly string[]): string[] => {
+    const files: string[] = [];
+    for (let at = 0; at < folders.length; at += 8) files.push(...inventory(folders.slice(at, at + 8)));
+    return files;
+  };
   const fixed = await cachedSources(ctx, 'pine-sources', FIXED);
   const timbers = await cachedSources(ctx, 'pine-timber-sources', timberGlbSources(fromMap(fixed)));
-  const tables = fromMap(fixed), listed = new Set(ctx.inputFiles(heroMaterialFolders(tables)));
+  const tables = fromMap(fixed), listed = new Set(listing(heroMaterialFolders(tables)));
   const heroes = [...new Set([...heroModelSources(), ...heroMaterialCandidates(tables).filter(url => listed.has(url))])];
-  return fromMap(new Map([...fixed, ...timbers, ...await cachedSources(ctx, 'pine-hero-sources', heroes)]));
+  const taken = new Set([...fixed.keys(), ...heroes]), scans = listing(SCAN_FOLDERS).filter(url => LISTED.test(url) && !taken.has(url));
+  return fromMap(new Map([...fixed, ...timbers, ...await cachedSources(ctx, 'pine-hero-sources', heroes), ...await cachedSources(ctx, 'pine-material-sources', scans)]));
 }
 
-/** Pine's sources for a Node script: `read` takes a repo-relative path (public URLs live under `public/`). */
-export function pineSourcesFrom(read: (path: string) => Uint8Array): PineSources {
+/** Pine's sources for a Node script: `read` takes a repo-relative path (public URLs live under `public/`); `list`, when
+ *  given, names a public folder's files (`/assets/.../name`). */
+export function pineSourcesFrom(read: (path: string) => Uint8Array, list?: (folder: string) => string[]): PineSources {
   const files = new Map<string, Uint8Array>();
   const bytes = (key: string): Uint8Array => {
     let file = files.get(key);
@@ -107,6 +123,9 @@ export function pineSourcesFrom(read: (path: string) => Uint8Array): PineSources
   };
   return { bytes, has: key => {
     try { bytes(key); return true; } catch { return false; }
+  }, list: folder => {
+    if (list === undefined) throw new Error(`This script's Pine sources list no folder (${folder})`);
+    return list(folder).sort();
   } };
 }
 

@@ -67,7 +67,7 @@ export async function cabinSceneSources(tier){
   if(shape.hasAttribute('moss')){shape.setAttribute('aMoss',shape.getAttribute('moss'));shape.deleteAttribute('moss');}
   geometry.set(i,shape);
  }
- const propsSource=await pineCabinPropParts(),piece=new BakedPiece('cabin-author-props',[],[]),propRows=pineCabinPropShapes(piece,propsSource),props={};
+ const propsSource=await pineCabinPropParts(sources),piece=new BakedPiece('cabin-author-props',[],[]),propRows=pineCabinPropShapes(piece,propsSource),props={};
  const shipping=readJson(new URL('data/timberWorld.generated.json',project));
  for(const [kind,row]of Object.entries(propRows)){
   const node=piece.children.find(child=>child.name===row.name),native=shipping.cabinProps[kind];

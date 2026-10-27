@@ -8,6 +8,7 @@ import { expect, test, vi } from 'vitest';
 import { Mesh, Texture, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { pineCabinMaterialFiles } from '../src/shards/pine-hollow/generators/cabinPropMaterials.mjs';
+import { PINE_SOURCES } from './fixtures/pine-sources';
 
 function materialMesh(node: Object3D): node is Mesh {
   return node instanceof Mesh;
@@ -20,7 +21,7 @@ function bytes(files: ReturnType<typeof pineCabinMaterialFiles>, path: string): 
 }
 
 test('the registered writer publishes all sixteen exact native recipes', () => {
-  const files = pineCabinMaterialFiles();
+  const files = pineCabinMaterialFiles(PINE_SOURCES);
   expect(Object.keys(files.aliases)).toHaveLength(16);
   expect(Object.values(files.outputs).reduce((size, row) => size + row.length, 0)).toBe(27048);
   for (const target of Object.values(files.aliases)) {
@@ -36,7 +37,7 @@ test('the registered writer publishes all sixteen exact native recipes', () => {
 });
 
 test('every original material/image/sampler/accessor field and geometry byte stays exact', () => {
-  const files = pineCabinMaterialFiles();
+  const files = pineCabinMaterialFiles(PINE_SOURCES);
   const documents = Object.entries(files.aliases).map(([source, target]) => {
     const wire = bytes(files, target), view = new DataView(wire.buffer, wire.byteOffset, wire.byteLength);
     expect([view.getUint32(0, true), view.getUint32(4, true), view.getUint32(8, true)])
@@ -58,13 +59,13 @@ test('every original material/image/sampler/accessor field and geometry byte sta
 test('the producer never invokes a buffer encoder', () => {
   const encoding = vi.spyOn(Buffer.prototype, 'toString');
   try {
-    pineCabinMaterialFiles();
+    pineCabinMaterialFiles(PINE_SOURCES);
     expect(encoding.mock.calls.filter(call => call[0] === 'base64')).toHaveLength(0);
   } finally { encoding.mockRestore(); }
 });
 
 test('the real GLTF decoder reads all native geometry without an external buffer request', async () => {
-  const files = pineCabinMaterialFiles();
+  const files = pineCabinMaterialFiles(PINE_SOURCES);
   for (const wire of Object.values(files.outputs)) {
     // Image identities are checked byte-for-byte above. Borrow inert textures
     // here to exercise the actual binary/attribute parser without a DOM decoder.

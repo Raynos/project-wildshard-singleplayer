@@ -29,7 +29,7 @@ import { bakeCragRows, pineCragGround, pineCragKit } from './bake-pine-crags.mjs
 
 const root = resolve(import.meta.dirname, '../../../..');
 /** D65: the bakes this script calls read Pine's sources from disk (the program reads them through `ctx.cached`). */
-const sources = pineSourcesFrom(path => readFileSync(resolve(root, path)));
+const sources = pineSourcesFrom(path => readFileSync(resolve(root, path)), folder => readdirSync(resolve(root, `public${folder}`), { withFileTypes: true }).filter(entry => entry.isFile()).map(entry => `${folder}${entry.name}`));
 
 /** the bake: the rows and the raw binary, the Pine level selected (its seed is the engine SEED, as on the page) */
 export function bakeLookoutRows() {
@@ -107,11 +107,11 @@ async function writeTimberWorld() {
   const [kit,cave]=await Promise.all([pineCragKit(sources),pineCragKit(sources,['cave.glb'])]);
   const caveMeta=JSON.parse(readFileSync(resolve(root,'public/assets/models/pine-hollow-crags/cave.json'),'utf8'));
   const cragAssembly=pineCragAssembly(kit,cave,caveMeta,{phone:{bin:crags.bins.phone,tiles:crags.rows.skin.phone.tiles},desktop:{bin:crags.bins.desktop,tiles:crags.rows.skin.desktop.tiles}},crags.rows.places,ground);
-  const scanMaterials = pinePropMaterialFiles(), cabinMaterials = pineCabinMaterialFiles();
+  const scanMaterials = pinePropMaterialFiles(), cabinMaterials = pineCabinMaterialFiles(sources);
   const materialFiles = { aliases: { ...scanMaterials.aliases, ...cabinMaterials.aliases }, outputs: { ...scanMaterials.outputs, ...cabinMaterials.outputs }, costs: [...scanMaterials.costs, ...cabinMaterials.costs] };
   for (const [path, bytes] of Object.entries(materialFiles.outputs)) { mkdirSync(resolve(root, path, '..'), { recursive: true }); writeFileSync(resolve(root, path), bytes); }
   const shapes = pinePropShapes({ rocks: await pinePropScan(sources, 'rock_moss_set_01'), stumps: await pinePropScan(sources, 'tree_stump_01'), logs: await pinePropScan(sources, 'dead_tree_trunk') });
-  const cabinProps = pineCabinPropShapes(shapes.piece, await pineCabinPropParts());
+  const cabinProps = pineCabinPropShapes(shapes.piece, await pineCabinPropParts(sources));
   const pool = bakeBeaverPool(pineCragGround(sources).heightAt); pinePoolShapes(shapes.piece, pool);
   const baked = pineTimberWorldBake(ground.heightAt, root, ground, shapes.piece);
   const piece = baked.pieces.find(row => row.name === 'pine-timber-explorer'), cabins = baked.pieces.find(row => row.name === 'pine.cabins'), under = baked.pieces.find(row => row.name === 'pine.undergrowth'), propsPiece = baked.pieces.find(row => row.name === 'pine.props');
