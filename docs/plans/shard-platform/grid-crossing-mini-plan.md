@@ -32,7 +32,7 @@ the road midpoint, after the source has retired. The player stands at the cell w
 | Row | What | Saves | Effort |
 |---|---|---|---|
 | **T1 — superseded by tile T7 (`d27bab4e35`, `17a5b1a5c0`, `7a06597f33`)** (warm neighbour and warm-up on by default; `2888459ba9` + `594723dace` warm one bounded neighbour) | **Warm neighbour** (architecture): two shard worlds at once. Build the approached cell fully (warm-up included) while the player is still in the source, and keep the last cell loaded on leave (retire by the existing cold-dwell rule, `retireColdRegions`, not on leave). A crossing becomes the 5–12 ms re-activate. Lifts the one-world rule (`live.ts:301-302`, `:577`); starts the existing build-ahead (`hybrid.ts:413`, `liveSession.ts:749`) earlier. Memory is judged per shard (G556); the page total's only limit is not crashing | 10–30 s; the only route to seamless | ~1 week |
-| **T1.R — in flight (reading at plan end; sp-x6, this commit)** | Coordinator-approved last-cell retention after the warm profile: preserve one complete isolated world on the road for30s, strictly under its1.2GB full per-shard envelope. Keep original full residency and pressure eviction; expiry or another destination retires before the next construction. Ready return rebinds original scene/materials/geometry without input reconstruction, compile, upload or parked draws. Scoped expiry/return reservations and failed-disposal charging retain original durability. X8 T7 transport hunks and O1 program ownership are disjoint and preserved. Types/lint/scoped ratchet only before land; lifecycle controls and ONE original Nalati warm/memory reading follow. | Target repeated42graphs,100uploads/40539KiB,218draws from653 diagnostic; no gain claimed before reading. | bounded slice |
+| **T1.R — done (`b7d6c8b728`; requested Nalati warm/budget reading below)** | One complete last isolated world remains on the road for30s with its full original charge, strict1.2GB per-shard headroom, scoped expiry and pressure eviction. A different destination retires it before allocating. Prepared returns hold the original world through commit/cancel; failed disposal keeps the full charge. X8 T7 input work and O1 program ownership remain intact. Types/lint/scoped ratchet and64 post-land lifecycle/T7/program cases pass. | ONE exactb7d Nalati return33.3ms, errors0; same root/163geometries/186materials/material-program keys, only38.5ms activation, no repeated construction/GPU-preparation spans. Budget ruler max716351998B <1200000000B; native whole-page readings are distinct, not per-shard/iPhone qualification. Cold23.3689s still misses8s, so parent G782 remains open. | bounded slice |
 | **T2 — in flight (2026-10-27, sp-o4): keep `eff7b0da12`, warm neighbour `dce1dd8ca2`; G782 safe keep of node builds `8a832edf7b` (code + positions, bounded LRU); sky-cycle floor `7e8b320c92` + kept-miss counters `5951f7c014`; approach builds stay bound across the entry's new sky PMREM when they read no environment `d10303ddee`; a PMREM swap rebinds a lit program `244b830de7`; kept builds read the PMREM by role `12f0b06fbd`, released kinds by node type `7153a723e8`. Sky-cycle on `4ec5a15eaf` (Chromium phone, before `12f0b06fbd`): re-entries repeat nearly every key (Sky 72/72, 71/71; DW 57/64), keep served 0 (refused 66 released, 41 environment), 0 frames > 50 ms after the first visits; held uniforms `b44acd038e`. Plan-end sky-cycle on `db62fede6c` (Chromium phone, DW -> Sky -> DW x3, PASS, `tmp/o4cpu/rm-end2/ff/db62fede6-42578-1793102216281.json`): only the first Sky entry has long frames (8, max 133 ms), every later leg max ≤ 33.5 ms; re-entries still repeat nearly every key (Sky 71/71, 70/70; DW 56/63); the keep serves 17 by the third return and refuses no environment, the rest 'released' build-made samplers and references (TextureNode<Texture> 74, ReferenceNode 19, UniformNode<Vector2> 2), weak by design; open: next cut a kept build that holds those and dies with their texture's dispose)** G780 reading `5f1eadb19e`: G782 open; exact three cold/warm runs and causes below. | **Keep and pre-build shaders**: keep compiled programs for shared and recently visited materials across retirement; compile the destination's set on the road with parallel shader compile; more than one program per frame while held (`precompile.ts:691`, `Game.ts:839-920`) | 3–8 s | 2–3 days |
 | **T2.1 — in flight (reading at plan end); source `e3d0cd2b7e`, sp-x8** | Slice registered offscreen caster submissions with the parked budget instead of drawing an entire pass in one frame. Preserve all original unique caster keys, shadow/target formats, restoration and final readiness; every batch pauses after flags are restored. Live WebKit stays at one caster/frame. No change to sp-o3 hidden-LOD selection or shader frontend reuse. Engine/test types, named typed lint and scoped ratchet pass; full ratchet exposes independent shared baseline debt. New cancellation/restoration controls remain unexecuted under G769. | unmeasured | bounded slice |
 | **T2.2 — in flight (reading at plan end); source `2d45387032`, sp-x8** | Prepare missing ordinary static geometry spheres with the existing exact incremental scanner before parked native draws. Yield at the existing 6 ms live CPU budget; owner cancellation stops before another scan or draw. Dynamic/skinned/morph/custom/GPU-only geometry retains its native path, and changed attributes abandon partial scans. No pipeline selection, material, buffer, transform, memory-cap or drawn-frame-fence change. Types/lint/scoped ratchet pass; exact-result/cancellation controls are unexecuted under G769. | unmeasured | bounded slice |
@@ -597,3 +597,55 @@ construction/shader/parked prerequisites are routed to X1/O3/O1 respectively.
 
 
 G782.S9 reading (2026-10-27, sp-x1): source cut `61885a0631837639625a80c8267d634385e864b8`, one original phone4x/DPR2 cold entry, actual road departure and warm return on pinned `61885a0631837639625a80c8267d634385e864b8`. One original phone4x cold/warm pair on61885a0631 (contains source61885a0631): 15.852/15.966s request→commit versus8/5s; entry p95/max50.0/116.7ms/49.9/149.9ms. Assembly construction1.040/0.468s, scene2.804/2.807s, owned library2.233/1.830s, baked0.919/1.824s, compile3.229/3.093s, parked3.359/2.834s. timing/cadence miss remains open. Both entries ready/current Driftwood, errors0; browser/preview release0. One non-quiet observation with intervening shared changes, no isolated gain claimed. Original readiness/skip/context controls: `[{"visit": "cold", "complete": true, "ready": true, "skipped": 0, "contextLost": false}, {"visit": "warm", "complete": true, "ready": true, "skipped": 0, "contextLost": false}]`. Retained memory includes the independently charged revisit backing: cold owned loading304802230B/playing297036442B, page commons-accounted59759628B, page modeled resident613.27MB/playing1007.59MB; warm owned loading304802230B/playing297036442B, page commons-accounted59759628B, page modeled resident759.03MB/playing1154.62MB. All-page modeled counters include other owners and are not physical process memory or per-shard caps; CDP/browser/GPU totals remain informational. Previous60708 pair16.751/10.752s predates intervening shared source, so this is not a matched causal comparison. Original timing/cadence/content/cancellation thresholds unchanged. Full scalar summary tmp/sp-x1-dw-baked-poses/summary.json; focused original-word/private-copy guards2cases pass8.16s. Full native-table11534copy matrix/colour word hash is unchanged (d1d8b541822df3b889fddeb1195ee8e724cd70481900f2e7dfc17b3d60e22f67). Temporary transforms34602→48, with output matrices/colours still private. No culling, collider, decoder or scheduling change.
+
+## Last-cell retention: requested Nalati reading — b7d6c8b728
+
+One original cold/departure/warm pair on exact
+b7d6c8b728e9bfd9abf1c2932bf818a394b89709. Reused the maintained G782
+road protocol, muted iPhone16Pro/phone4x/DPR2, profiler/GL observer off.
+Read geometry/material/program identities only after each timed drive.
+The shared pinned preview built normally; no live-tree product or source
+override. Driver exits0, both entries complete/errors0, skipped0/context
+intact. This is Chromium, not an iPhone Safari/native-memory acceptance.
+
+| Observation | Cold | Warm |
+|---|---:|---:|
+| Request to committed entry |23.3689s FAIL8s|**0.0333s PASS5s**|
+| New region/scene/preparation hooks |ordinary construction|none; only activate38.5ms|
+| Scene root / geometry / material identity |one root,163geometries,186materials|all exact same UUIDs|
+| Retained material native program ids/cache keys |captured after entry|all exact same|
+| New own GPU preparation spans in entry window |ordinary cold pipeline|none|
+| Owned entered claims |215856396B|215856396B|
+| Owned loading peak |222042888B|220333304B|
+| Whole-drive p95 / max |50.0/183.4ms|33.4/66.8ms|
+
+After cold leave the original sim claim remains197073318B, refs1/holds0,
+needed=false. The road snapshot has27.700s left and its full per-shard
+playing ruler710847179B. Warm drive starts with26.725s left and716351998B
+against1200000000B (483648002B headroom). Return cancels that expiry,
+reactivates the existing scope and constructs no second region. The
+64 focused native lifecycle/T7/program controls pass16.77s, including
+actual allocator-pressure eviction, expiry, different-entry ordering,
+prepared-return cancellation and failed-disposal charge preservation.
+The program keeper is initialized before pressure callbacks can need it.
+
+The complete page program inventory changes230->244, with6 old ids absent;
+therefore only the retained world material bindings are claimed unchanged,
+not every background program on the page. Activation38.5ms and commit33.3ms
+are different existing clocks, not additive phases. Cold runtime and frame
+floor misses remain with G782's existing owners; O2 separately observes a
+~0.03s retained return on containingea36b7776c and owns the cold dressing
+await chain. No cold speed gain is attributed to retention.
+
+Budget accounting and native process readings remain separate. Matched
+Chromium renderer/GPU private-footprint snapshots (whole page, no forced GC):
+cold before-entry900075520/670401536B; entered1500960768/1150240768B;
+after-look1454953472/1176111104B. Warm before-entry1506956288/1153894400B;
+entered1015486464/1144162304B; after-look984306688/1141016576B. These are
+uncapped whole-page observations, not native per-shard subtraction claims.
+The **strict per-shard admission ruler** and charged allocation checks pass;
+this does not qualify a physical-device WebContent+GPU cap or stability soak.
+No memory cap, global page admission, readiness draw or shader fence changed.
+
+Results were analysed in tmp/sp-x6-last-cell, then folded here rather than
+adding a receipt document. Browser closed; owned4407 borrower/server released.
