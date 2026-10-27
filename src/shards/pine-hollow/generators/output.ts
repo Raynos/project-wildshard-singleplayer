@@ -83,6 +83,7 @@ import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
 import floorRows from '../data/floorLayout.generated.json' with { type: 'json' };
 import { PINE_OUTPUT, CROSSBOW_BLOB } from './outputInputs';
 import { phoneBirdsAtlasOutput } from './birdAtlas';
+import { pineClientBlobs } from './clientInputs';
 import { grazerRows } from './grazers';
 import { NATIVE_VIEW, SPECIES_LOOKS } from './nativeView';
 import { pineDensityBlob } from './forestRows';
@@ -182,9 +183,9 @@ async function returnModule(ctx: ProjectGenerationContext, name: 'shelter' | 'li
 /** Preserve the original named inventory and its ordering while compiling both existing slots. */
 export async function prepareOutput(ctx: ProjectGenerationContext): Promise<typeof output> {
   const shelter = await returnModule(ctx, 'shelter', shelterProgram);
-  const life = await returnModule(ctx, 'life', LIFE_PROGRAM), birds = await phoneBirdsAtlasOutput(ctx);
-  const namedFiles = [...output.namedFiles, life.file, ...birds.files].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
-  const assets = new Map([...output.assets, ...birds.assets]);
+  const life = await returnModule(ctx, 'life', LIFE_PROGRAM), birds = await phoneBirdsAtlasOutput(ctx), client = await pineClientBlobs(ctx);
+  const namedFiles = [...output.namedFiles, life.file, ...birds.files, ...client.files].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
+  const assets = new Map([...output.assets, ...birds.assets, ...client.assets]);
   assets.set(life.file.hash, life.bytes);
   const sortedAssets = [...assets].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
   return { ...output, namedFiles: [...namedFiles, shelter.file], assets: new Map([...sortedAssets, [shelter.file.hash, shelter.bytes]]) };

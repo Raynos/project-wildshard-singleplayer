@@ -15,7 +15,7 @@ import { crossbowPool } from './crossbowPool';
 import { CROSSBOW_ROWS } from './crossbowRows';
 import { nameMeshoptBlob } from '@wildshard/sdk/blobs';
 import { HANDS_POOL } from './handsPoolProduct';
-import client from '../data/clientBlobs.generated.json' with {type:'json'};
+import { CLIENT_BY_URL } from './clientInputs';
 import night from '../behaviour/night.generated.json' with {type:'json'};
 import director from '../behaviour/director.json' with {type:'json'};
 import king from '../data/kingBlobs.generated.json' with {type:'json'};
@@ -33,7 +33,7 @@ const CROSSBOW = crossbowPool(), CROSSBOW_NAME = 'models/held/crossbow-pool.glb'
 /** The pool's GLB, published beside the client blobs. */
 export const CROSSBOW_BLOB: Awaited<ReturnType<typeof nameMeshoptBlob>> = await nameMeshoptBlob(CROSSBOW_NAME, CROSSBOW.glb);
 const crossbow = { ...CROSSBOW.rows, rows: CROSSBOW_ROWS };
-const names:Readonly<Record<string,string>>={...client.byUrl,...king.byUrl,...birds.byUrl,...streams.byUrl};
+const names:Readonly<Record<string,string>>={...CLIENT_BY_URL,...king.byUrl,...birds.byUrl,...streams.byUrl};
 function named(url:string):string{const name=names[url];if(name===undefined)throw new Error(`Pine output has no named blob: ${url}`);return name;}
 const values: { 'custom/heldPlayback': typeof playback; 'custom/heldInputs': typeof inputs; 'custom/heldSights': typeof sights; 'custom/leverPlayback': typeof leverPlayback; 'custom/leverDetails': typeof leverDetails; 'custom/heldToolPlayback': typeof toolPlayback; 'custom/paintedTextures': { textures: Record<string, { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; }>; urls: typeof painted.urls; chalk: typeof painted.chalk; }; 'custom/trophyMounts': { url: string; notice: string; sha256: string; rows: typeof trophies.rows; slots: typeof trophies.slots; }; 'custom/crossbowPool': typeof crossbow; 'custom/handsPool': { pool: typeof hands.pool; hands: typeof hands.hands; heldBow: typeof PINE_HELD_BOW; presentation: { hands: typeof HANDS_MATERIAL; coat: typeof COAT_MATERIAL; }; }; 'custom/kingKit': typeof kingKit; }={
  'custom/heldPlayback':playback,'custom/heldInputs':inputs,'custom/heldSights':sights,'custom/leverPlayback':leverPlayback,
@@ -57,14 +57,9 @@ function checkPrograms(value:unknown):void{
  else for(const child of Object.values(value))checkPrograms(child);
 }
 for(const value of [playback,inputs,sights,leverPlayback,toolPlayback])checkPrograms(value);
-function withGeometryCosts(row:(typeof client.blobs)[number]): (typeof client.blobs)[number] | { options: { decoded: number; gpu: number; triangles: number; draws: number; }; name: string; kind: string; source: string; }{
- if(row.name!=='models/trophies/mounts.bin')return row;
- return {...row,options:{decoded:trophies.rows.bytes,gpu:trophies.rows.bytes,
-  triangles:trophies.rows.geometries.reduce((sum,geometry)=>sum+geometry.count/3,0),draws:trophies.rows.geometries.length}};
-}
 /** Authored input rows, never imported by a client runtime. */
-export const PINE_OUTPUT: { blobs: ((typeof journal.blobs)[number] | ReturnType<typeof withGeometryCosts> | (typeof king.blobs)[number] | (typeof creatures.blobs)[number] | (typeof rigs.blobs)[number] | (typeof birds.blobs)[number] | (typeof streams.blobs)[number] | { name: string; kind: "wasm"; source: string; options: { critical: boolean; script: { abi: 1; pages: number; }; }; } | { name: string; kind: "wasm"; source: string; options: { script: { abi: 0; }; }; })[]; custom: typeof values; }={
- blobs:[...journal.blobs,...client.blobs.map(withGeometryCosts),...king.blobs,...creatures.blobs,...rigs.blobs,...birds.blobs,...streams.blobs,
+export const PINE_OUTPUT: { blobs: ((typeof journal.blobs)[number] | (typeof king.blobs)[number] | (typeof creatures.blobs)[number] | (typeof rigs.blobs)[number] | (typeof birds.blobs)[number] | (typeof streams.blobs)[number] | { name: string; kind: "wasm"; source: string; options: { critical: boolean; script: { abi: 1; pages: number; }; }; } | { name: string; kind: "wasm"; source: string; options: { script: { abi: 0; }; }; })[]; custom: typeof values; }={
+ blobs:[...journal.blobs,...king.blobs,...creatures.blobs,...rigs.blobs,...birds.blobs,...streams.blobs,
  ...elites.fights.map(fight => ({name:`behaviour/elites/${fight.def.id}.wasm`,kind:'wasm' as const,source:`assets/${fight.program.script.module.slice('blobs/wasm/'.length, -'.wasm'.length)}`,options:{critical:true,script:{abi:1 as const,pages:1}}})),
  {name:'behaviour/night.wasm',kind:'wasm' as const,source:`assets/${night.script.module.slice('blobs/wasm/'.length, -'.wasm'.length)}`,options:{critical:true,script:{abi:1 as const,pages:1}}},
  {name:'behaviour/director.wasm',kind:'wasm' as const,source:`assets/${director.module}`,options:{script:{abi:0 as const}}}],
