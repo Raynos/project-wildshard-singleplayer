@@ -3388,15 +3388,13 @@ SDK `shardfile.parseShardfileField(field, input)` returns the defining schema's 
 the assembled declaration still passes `parseShardfile` and its cross-field rules.
 
 Build-only `@wildshard/sdk/noise` owns native seeded simplex, `fbm`, `ridged`,
-`smoothstep`, `clamp` and `lerp`, without terrain/services.
-`@wildshard/sdk/bake/annulus` preserves native ring vertex/UV/index order.
-`@wildshard/sdk/bake/primitives` owns `bakeRock`, `bakeTriangles`, `bakeLog`,
-`bakeBeam`, `bakePlank`, `bakeRope`, `bakeSagLine`: native channel/RNG order. `@wildshard/sdk/bake/placement` owns `ColliderDesc`,
-`BoxSpec`, `FloorRect`, `Draw`, contact tags and ordered-JSON `specimenKey`.
-`boxDesc(spec, surface?)` keeps the half-height clamp, signed yaw and optional
-contact tag; `siteFloor(rot,lz,hw,hd,y,slope?)` keeps native local-z rotation
-and ramp arithmetic. `yawWorld(frame,lx,lz)` preserves local offset order.
-No live registry; byte/type parity fences these contracts.
+`smoothstep`, `clamp` and `lerp`. `bake/annulus` preserves ring channel order.
+`bake/primitives` owns boulders, timbers, planks, ropes, sag lines and triangles.
+`bake/placement` defines `ColliderDesc`, `BoxSpec`, `FloorRect`, `Draw`, contact
+tags, `specimenKey`, `boxDesc` and `siteFloor`: native channel/RNG/type/rotation
+order, clamps and contact semantics; no live registry. `bake/creaturePlacement`
+owns `sampleCreatureGroup` / `selectCreatureSites`; streams/ground stay
+borrowed, with native bounds, rejection/yaw order and stable tie/spacing rules.
 
 `src/engine/models/ownedGeometry.ts` defines `createOwnedGeometry(url, channels?)`:
 an explicit owned-template intake for a single identity-space offline GLB.
