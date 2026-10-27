@@ -15,7 +15,7 @@ G756 caps: pre-commit <= 60 s wall, push gate <= 180 s per batch; 'clean tree' =
 |---|---|---|
 | G752 | Pre-commit fails CLOSED: the 'CF1 DEFERRED TO CI' paths in scripts/precommit-related.mjs become refusals; commits touching shared SDK/engine/bake/build code also run tsc -b plus the products they touch | sp-x9 (with SW11, same script) |
 | G753 | Push-loop gate runs the touched CI subset (related tests, types, touched shard products) on the clean committed tree, no budget skips (push-loop.py DEFERRED paths go); while main is red only fix commits push (G689) | sp-x2 (after SW12) |
-| CF2 grid | Flaky grid far-cell preparation stall (ci-flow-mini-plan.md §CF2 grid preparation): deterministic, never deleted or retried (G690) | sp-x6 18:24 |
+| CF2 grid | Flaky grid far-cell preparation stall (ci-flow-mini-plan.md §CF2 grid preparation): deterministic, never deleted or retried (G690) | sp-x6 18:24; attribution packet |
 | CF2 title | Flaky Nine title PNG capture on CI (§CF2 title capture: GPU busy compiling): deterministic, never deleted or retried | sp-x1 |
 | CF3 | CI verdict <= 13 min (median ~18): product-free tests stop waiting for products | |
 | CF5 | Boot smoke stops failing on a runner deadline (Explorer catalogue/thumbnail deadline) without hiding a real stall | |

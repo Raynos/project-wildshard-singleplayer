@@ -131,6 +131,29 @@ sp-x7 after the elapsed clock. No speculative cache/render patch, deadline chang
 or source attribution is claimed; the passive phase/wait evidence must name the
 held boundary if a subsequent ordinary run fails.
 
+### CF2 grid: parser attribution (2026-10-26, sp-x6; G751)
+
+CF-open was already in flight with sp-x8, so sp-x6 takes this next top row.
+The retained failing `2b112` receipt and the one `12750ad` local reproduction
+still do not identify the held await. No retry or new browser capture is
+requested. The original elapsed repair clock remains elapsed.
+
+The native GLTF parser serializes all model decodes, including far proxies.
+Its active decode and pre-decode pacing wait were absent from the existing
+pending-work registry, so a blocked parser could leave many cells labelled
+`fetching` without naming that shared owner. Those two existing promises now
+report through the existing wait registry. Queued callers add no duplicate
+records, preserving the bounded oldest-wait snapshot's view of active work.
+Controlled parser callbacks verify serial order, pending-owner identity and
+cleanup on success and rejection. The smoke also retains at most 64 bounded
+scalar samples from its existing grid polls, including wait labels/ages and
+load-versus-prepare transitions, on success and refusal. This consumes the
+frozen sp-x1 packet; it adds no polling or browser/network operation.
+No queue, renderer, resource lifetime,
+route assertion, timeout or readiness rule changes. **CF2 remains open**:
+this supplies missing attribution for the next ordinary run, not a causal
+fix or a claim that the old receipt stalled in the parser.
+
 ## CF2 title capture: unresolved evidence (2026-10-26 16:15 UTC)
 
 The supported fast PNG path and original ten-second shared capture allowance remain. Disabling script

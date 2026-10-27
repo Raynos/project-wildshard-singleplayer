@@ -10,6 +10,7 @@ import { serve } from './serve.mjs';
 import { saveFixture } from '../debug-settings.mjs';
 import { captureBootFrame } from './black-frame.mjs';
 import { observeTitleCapture } from './title-trace.mjs';
+import { gridBootWaitHistory } from './grid-boot-waits.mjs';
 import { gridFloorDocumentIdentity, runFloorGridRoute, gridFloorWitnessFailures } from '../frame-floor-grid.mjs';
 
 /** A locked experimental card is not a public gameplay entry. Its direct chunk
@@ -59,11 +60,12 @@ export function titleCaptureReady(observation, catalogueOnly = false) {
   return state.pending.length === 0;
 }
 
-/** @param {import('playwright').Page} page @param {string[]} faults @param {(observation:ReturnType<typeof bootObservation>) => Promise<boolean>} condition @param {string} label @param {number} deadline */
-async function until(page, faults, condition, label, deadline) {
+/** @param {import('playwright').Page} page @param {string[]} faults @param {(observation:ReturnType<typeof bootObservation>) => Promise<boolean>} condition @param {string} label @param {number} deadline @param {(label:string, observation:Awaited<ReturnType<typeof bootObservation>>)=>void} [observe] */
+async function until(page, faults, condition, label, deadline, observe) {
   while (Date.now() < deadline) {
     if (faults.length > 0) throw new Error(faults.join('\n'));
     const observed = await page.evaluate(bootObservation);
+    observe?.(label, observed);
     if (observed.fatal.length > 0) throw new Error(`Fatal boot: ${observed.fatal.join('\n')}`);
     if (await condition(observed)) return;
     await new Promise(resolve => { setTimeout(resolve, 100); });
@@ -316,6 +318,8 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
   /** @type {import('./black-frame.mjs').BootFrameSample[]} */ const frames = [];
   /** @type {string[]} */ const faults = [];
   /** @type {unknown[]} */ const reports = [];
+  const gridWaits = gridBootWaitHistory();
+  const observeGridWait = (/** @type {string} */ label, /** @type {Awaited<ReturnType<typeof bootObservation>>} */ observation) => gridWaits.observe(label, Date.now() - started, observation);
   let lifecycleReports = 0;
   page.on('request', request => {
     const report = bootErrorReport(request.url(), request.method(), request.postData());
@@ -403,11 +407,11 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
       return typeof live === 'object' && live !== null && 'current' in live && live.current === grid.home && 'gameplayReady' in live && live.gameplayReady === true;
     };
     if (mode === 'grid') {
-      await until(page, faults, () => gameplay(false), 'grid preparation', deadline);
+      await until(page, faults, () => gameplay(false), 'grid preparation', deadline, observeGridWait);
       phases.preparedMs = Date.now() - started;
       deadline = Date.now() + 90000;
     }
-    await until(page, faults, () => gameplay(true), `${mode} gameplay`, deadline);
+    await until(page, faults, () => gameplay(true), `${mode} gameplay`, deadline, mode === 'grid' ? observeGridWait : undefined);
     phases.gameplayMs = Date.now() - started;
     const initial = await page.evaluate(bootObservation);
     gameplayFrames.initial = initial.frame;
@@ -423,7 +427,7 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
     const roadDeadline = Date.now() + 90000;
     const templateRoad = mode === 'grid' ? await bootTemplateRoad(page, faults, frames, roadDeadline) : null;
     const road = mode === 'grid' ? await bootSignalRoad(page, faults, frames, roadDeadline) : null;
-    const result = { mode, phases, frames, gameplayFrames, templateRoad, road, telemetryPosts, lifecycleReports, gridNavigationObserved, elapsedMs: Date.now() - started, ...await page.evaluate(bootObservation), faults, reports };
+    const result = { mode, phases, frames, gameplayFrames, gridWaits: gridWaits.samples, templateRoad, road, telemetryPosts, lifecycleReports, gridNavigationObserved, elapsedMs: Date.now() - started, ...await page.evaluate(bootObservation), faults, reports };
     if (faults.length > 0 || result.fatal.length > 0) throw new Error(JSON.stringify(result));
     writeFileSync(join(out, `${receipt}.json`), `${JSON.stringify(result, null, 2)}\n`);
     return result;
@@ -432,7 +436,7 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
     const observation = await page.evaluate(bootObservation).catch(() => null);
     gameplayFrames.final = observation?.frame ?? null;
     phases.failedMs = Date.now() - started;
-    writeFileSync(join(out, `${receipt}.json`), `${JSON.stringify({ mode, phases, frames, gameplayFrames, elapsedMs: Date.now() - started, faults, reports, lifecycleReports, gridNavigationObserved, error: String(error), observation }, null, 2)}\n`);
+    writeFileSync(join(out, `${receipt}.json`), `${JSON.stringify({ mode, phases, frames, gameplayFrames, gridWaits: gridWaits.samples, elapsedMs: Date.now() - started, faults, reports, lifecycleReports, gridNavigationObserved, error: String(error), observation }, null, 2)}\n`);
     throw error;
   } finally { await context.close(); }
 }

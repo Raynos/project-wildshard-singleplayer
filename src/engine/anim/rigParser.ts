@@ -3,6 +3,7 @@ import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { installGltfKtx2 } from '../core/ktx2';
 import { pageScope } from '../app/resources';
+import { waitFor } from '../boot/waits';
 import { workSlice, type WorkSlice } from '../core/workSlice';
 
 // FileLoader starts every network read immediately. Only the parser's temporary
@@ -32,8 +33,11 @@ class BoundedRigLoader extends GLTFLoader implements RigLoader {
     const parsed = decodeTail.then(async () => {
       // Cached CPU-only models otherwise chain every parse in microtasks. Let
       // uploads/frames and temporary-buffer retirement run between spent slices.
-      if (typeof window !== 'undefined') await (decodeSlice ??= workSlice(undefined, pageScope)).check();
-      return new Promise<GLTF>((resolve, reject) => { super.parse(read(), path, resolve, reject); });
+      if (typeof window !== 'undefined') await waitFor('GLTF decode pacing', Promise.resolve((decodeSlice ??= workSlice(undefined, pageScope)).check()), 'work');
+      // Observe only active work: queued callers must not crowd this owner out
+      // of the grid's bounded oldest-wait snapshot. Keep the original serial tail.
+      return waitFor(`GLTF decode ${path || '(owned bytes)'}`,
+        new Promise<GLTF>((resolve, reject) => { super.parse(read(), path, resolve, reject); }), 'work');
     });
     // A failed file must release the slot as well as a successful one. Keep no
     // decoded scene in the tail after handing it to its existing resource owner.
