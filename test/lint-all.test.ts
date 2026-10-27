@@ -33,6 +33,7 @@ if (args.join(' ') === '--debug files') {
   const goThreads = Number(process.env.GOMAXPROCS);
   if (!Number.isSafeInteger(goThreads) || goThreads < 1 || goThreads > threads) process.exit(9);
   if (process.env.LINT_ALL_EXPECT_GO && process.env.GOMAXPROCS !== process.env.LINT_ALL_EXPECT_GO) process.exit(9);
+  if (!process.env.LINT_ALL_EXPECT_GO && goThreads !== Math.min(process.platform === 'darwin' ? 4 : 8, threads)) process.exit(9);
   for (const name of ['GOGC', 'GOMEMLIMIT']) {
     const expected = process.env['LINT_ALL_EXPECT_' + name];
     if (expected && process.env[name] !== expected) process.exit(9);

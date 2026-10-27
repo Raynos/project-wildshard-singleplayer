@@ -39,7 +39,10 @@ const threads = Math.min(8, availableParallelism());
 // Preserve an explicit caller setting, including a smaller existing allowance.
 const lintEnv = {
   ...process.env,
-  GOMAXPROCS: process.env.GOMAXPROCS ?? String(threads),
+  // The Mac profile shows substantial allocation/reclaim contention. Keep its
+  // Go worker width at the original four-way
+  // compiler baseline while Oxlint's independent native pool remains eight.
+  GOMAXPROCS: process.env.GOMAXPROCS ?? String(process.platform === 'darwin' ? Math.min(4, threads) : threads),
   // The Darwin profile is dominated by reclaim/recommit churn. Keep more
   // short-lived checker storage between collections within a bounded Go budget.
   // This is below the 8 GB whole-check acceptance ceiling, not a new gate.

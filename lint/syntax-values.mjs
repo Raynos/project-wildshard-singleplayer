@@ -110,6 +110,17 @@ function syntaxUnit(file, program) {
  * checker, emit, source-tree glob or generated catalogue is loaded here. */
 export function createSyntaxGraph(root, file, program) {
   const units = new Map(), primary = syntaxUnit(file, program);
+  // Repeated lexical references to one import share its successful lookup in
+  // this synchronous analysis only. A new analysis rechecks package exports
+  // and path priority; missing probes are never memoized, even within a pass.
+  const resolvedTargets = new Map();
+  const targetFor = (from, source) => {
+    const key = `${from}\0${source}`;
+    if (resolvedTargets.has(key)) return resolvedTargets.get(key);
+    const target = moduleFile(root, from, source);
+    if (target !== null) resolvedTargets.set(key, target);
+    return target;
+  };
   units.set(file, primary);
   function load(target) {
     if (target === null) return null;
@@ -141,7 +152,7 @@ export function createSyntaxGraph(root, file, program) {
     if (!value) return [];
     let refs;
     if (value.source) {
-      const other = load(moduleFile(root, unit.file, value.source));
+      const other = load(targetFor(unit.file, value.source));
       refs = other === null ? [] : value.imported === '*' ? [make(other, other.program, { namespace: true })] : exported(other, value.imported, seen);
     } else if (value.local) return binding(unit, unit.scope.names.get(value.local), seen);
     else refs = (value.refs ?? []).flatMap(ref => values(ref, seen));
@@ -154,7 +165,7 @@ export function createSyntaxGraph(root, file, program) {
     const next = new Set(seen).add(marker), own = unit.exports.get(name);
     if (own) return binding(unit, own, next).map(ref => decorate(ref, { exportName: ref.exportName ?? name }));
     return unit.stars.flatMap(source => {
-      const other = load(moduleFile(root, unit.file, source));
+      const other = load(targetFor(unit.file, source));
       return other === null ? [] : exported(other, name, next);
     });
   }
@@ -267,7 +278,7 @@ export function createSyntaxGraph(root, file, program) {
         const marker = `${unit.file}#${entry.source}#${entry.imported}`;
         if (visited.has(marker)) return [];
         visited.add(marker);
-        const other = load(moduleFile(root, unit.file, entry.source));
+        const other = load(targetFor(unit.file, entry.source));
         if (other === null || entry.imported === '*') return [];
         const own = other.exports.get(entry.imported);
         if (own) return raw(other, own, visited);

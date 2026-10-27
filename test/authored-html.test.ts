@@ -151,6 +151,22 @@ test('reused dependency scopes still read transitive changes and new edges',()=>
  }finally{f.close();}
 });
 
+test('analysis-local import lookups recheck package targets and absent files',()=>{
+ const f=fixture(`import {markup} from '@wildshard/game/values';declare const node:HTMLElement;node.innerHTML=markup;node.outerHTML=markup;`);
+ try{
+  const program=parseSync(f.file,readFileSync(f.file,'utf8')).program;
+  f.put('src/game/package.json',JSON.stringify({exports:{'./values':'./first.ts'}}));
+  expect(authoredHtmlSites(f.root,f.file,program)).toHaveLength(2);
+  f.put('src/game/first.ts','export const markup="<b>safe</b>";');
+  expect(authoredHtmlSites(f.root,f.file,program)).toEqual([]);
+  f.put('src/game/second.ts','export const markup:string=globalThis.name;');
+  f.put('src/game/package.json',JSON.stringify({exports:{'./values':'./second.ts'}}));
+  expect(authoredHtmlSites(f.root,f.file,program)).toHaveLength(2);
+  f.put('src/game/second.ts','export const markup="<b>safe again</b>";');
+  expect(authoredHtmlSites(f.root,f.file,program)).toEqual([]);
+ }finally{f.close();}
+});
+
 test('typed static record values remain safe through nested string helpers',()=>{
  const f=fixture(`import {engineString} from './strings';declare const node:HTMLElement;
 const esc=(value:string):string=>value.replaceAll('&','&amp;').replaceAll('<','&lt;');
