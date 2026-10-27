@@ -27,11 +27,39 @@ class AgentTimeTests(unittest.TestCase):
     def test_ci_cancelled_runs_do_not_close_or_open_red_windows(self):
         def row(seconds, conclusion, event='push'):
             return dict(updatedAt=dt.datetime.fromtimestamp(seconds, dt.timezone.utc).isoformat(),
+                        createdAt=dt.datetime.fromtimestamp(seconds, dt.timezone.utc).isoformat(),
                         conclusion=conclusion,event=event,status='completed')
         rows = [row(80,'failure'),row(110,'cancelled'),row(120,'success','schedule'),
                 row(130,'failure'),row(140,'success'),row(170,'failure')]
         self.assertEqual(API['ci_windows'](rows,100,200), [40,30])
         self.assertEqual(API['ci_windows']([row(80,'success'),row(150,'cancelled')],100,200), [])
+
+    def test_ci_windows_follow_push_creation_and_later_repair_not_verdict_order(self):
+        def row(created, completed, conclusion):
+            return dict(createdAt=dt.datetime.fromtimestamp(created, dt.timezone.utc).isoformat(),
+                        updatedAt=dt.datetime.fromtimestamp(completed, dt.timezone.utc).isoformat(),
+                        conclusion=conclusion, event='push', status='completed')
+        # The first green predates the broken push; the slow red finishes after its repair.
+        rows = [row(20, 100, 'success'), row(40, 140, 'failure'),
+                row(60, 120, 'failure'), row(80, 110, 'success')]
+        self.assertEqual(API['ci_windows'](rows, 0, 200), [70])
+        self.assertEqual(API['ci_windows'](list(reversed(rows)), 50, 200), [60])
+        self.assertEqual(API['ci_windows'](rows[:2], 0, 200), [160])
+
+    def test_ci_overlapping_repairs_keep_each_window_but_count_red_time_once(self):
+        def row(created, completed, conclusion, event='push', status='completed'):
+            return dict(createdAt=dt.datetime.fromtimestamp(created, dt.timezone.utc).isoformat(),
+                        updatedAt=dt.datetime.fromtimestamp(completed, dt.timezone.utc).isoformat(),
+                        conclusion=conclusion, event=event, status=status)
+        rows = [row(10, 30, 'failure'), row(20, 80, 'success'),
+                row(40, 60, 'failure'), row(50, 70, 'success', 'workflow_dispatch'),
+                row(55, 75, 'cancelled'), row(65, 90, '', status='in_progress'),
+                row(70, 100, 'success'), row(110, 130, 'failure'),
+                row(120, 300, 'success')]
+        self.assertEqual(API['ci_windows'](rows, 0, 200), [70, 60, 90])
+        self.assertEqual(API['ci_red_seconds'](rows, 0, 200), 180)
+        self.assertEqual(API['ci_red_seconds'](rows, 60, 200), 130)
+        self.assertEqual(API['ci_windows'](rows, 140, 200), [60])
 
     def test_publication_latency_uses_main_ancestry_not_nearest_timestamp(self):
         commits = [dict(sha='old',at=10),dict(sha='new',at=20),dict(sha='ejected',at=30)]

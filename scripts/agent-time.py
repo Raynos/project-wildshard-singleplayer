@@ -264,24 +264,39 @@ def push_rows(path, since):
     return result
 
 
-def ci_windows(runs, since, now):
-    """Completed push verdicts only; cancelled/pending runs are not green."""
-    verdicts = sorted((parse_time(row['updatedAt']).timestamp(), row['conclusion'])
+def ci_red_intervals(runs, since, now):
+    """Failed push creation to the next later green push's completion."""
+    verdicts = sorted((parse_time(row['createdAt']).timestamp(),
+                       parse_time(row['updatedAt']).timestamp(), row['conclusion'])
                       for row in runs if row.get('event') == 'push' and row.get('status') == 'completed'
                       and row.get('conclusion') in ('success', 'failure', 'timed_out', 'action_required', 'startup_failure'))
     windows, opened = [], None
-    for at, conclusion in verdicts:
-        if at > now:
+    for created, completed, conclusion in verdicts:
+        if created > now or completed > now:
             continue
         if conclusion == 'success':
-            if opened is not None and at > since:
-                windows.append(at - max(since, opened))
+            if opened is not None and completed > since:
+                windows.append((max(since, opened), completed))
             opened = None
         elif opened is None:
-            opened = at
-    if opened is not None:
-        windows.append(max(0, now - max(since, opened)))
+            opened = created
+    if opened is not None and now > max(since, opened):
+        windows.append((max(since, opened), now))
     return windows
+
+
+def ci_windows(runs, since, now):
+    """Keep individual windows, including repairs that overlap in flight."""
+    return [end - start for start, end in ci_red_intervals(runs, since, now)]
+
+
+def ci_red_seconds(runs, since, now):
+    """The total red time counts overlapping windows only once."""
+    total, covered_until = 0, since
+    for start, end in ci_red_intervals(runs, since, now):
+        total += max(0, end - max(start, covered_until))
+        covered_until = max(covered_until, end)
+    return total
 
 
 def command(args, cwd=None, timeout=15):
@@ -355,7 +370,8 @@ def print_reading(repo, since, observations):
     runs, ci_error = json_command(['gh','run','list','--workflow','deploy','--limit','1000','--created','>='+created,
                                   '--json','conclusion,createdAt,updatedAt,status,event'], repo)
     ci = 'unavailable: ' + ci_error if ci_error else '%d red windows, %.2f h red, %d over 30 min; longest %.1f min' % (
-        len(windows := ci_windows(runs, since, now)), sum(windows)/3600, sum(value > 1800 for value in windows), max(windows, default=0)/60)
+        len(windows := ci_windows(runs, since, now)), ci_red_seconds(runs, since, now)/3600,
+        sum(value > 1800 for value in windows), max(windows, default=0)/60)
     ci += '; cancelled %d, pending/running %d' % (sum(row.get('conclusion') == 'cancelled' for row in runs if parse_time(row['createdAt']).timestamp() >= since),
              sum(row.get('status') != 'completed' for row in runs if parse_time(row['createdAt']).timestamp() >= since)) if runs is not None else ''
     log, _ = command(['git','log','--since=@%d'%since,'--format=%s'], repo)
