@@ -114,7 +114,7 @@ function notePackageExport(specifier) {
   const scope=inputScope();
   if(scope?.traceOnly!==true||scope.observing)return;
   const parts=specifier.split('/'),prefix=parts.at(0),local=parts.at(1);
-  if(prefix?.startsWith('@')!==true||local===undefined||local==='')return;
+  if(!prefix?.startsWith('@')||local===undefined||local==='')return;
   const name=`${prefix}/${local}`,key=parts.length===2?'.':`./${parts.slice(2).join('/')}`;
   try {
     const manifest=raw.real(resolve(scope.root,'node_modules',name,'package.json'));
