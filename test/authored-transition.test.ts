@@ -44,23 +44,34 @@ test('authored bindings admit only canonical JSON or generated modules', () => {
 });
 
 test('fixed boot and art bindings stay independent of page mode and lazy graph loading', () => {
-  const data = parseManifestMetadata(metadata({ bindings: { ...bindings, entry,
-    boot: { files: { module: './boot/files.generated.json', export: 'default' },
-      sources: { module: './boot/sources.generated.json', export: 'default' },
-      explore: { module: './boot/explore.generated.json', export: 'default' } },
-    sword: { platform: 'graph', file: 'weapons/jian-row.json' }, forestQueries: { platform: 'fixed', density: 0 } } }));
-  const source = authoredManifestSource(root, fixture.slug, { metadataOnly: true, composed: data });
-  expect(source).toContain('"./boot/files.generated.json"');
-  expect(source).toContain('"./boot/sources.generated.json"');
-  expect(source).toContain('"./boot/explore.generated.json"');
-  expect(source).toContain('HeldView.fromProduct("_template", "weapons/jian-row.json")).sword()');
-  expect(source).toContain('declaredForestQueries({"platform":"fixed","density":0})');
-  expect(source).not.toContain('pageModeBoot');
-  const queries = declaredForestQueries({ platform: 'fixed', density: 0 });
-  expect(queries.density(10, -10)).toBe(0);
-  expect(Object.keys(queries)).toEqual(['density']);
-  for (const bad of [{ platform: 'fixed', density: -1 }, { platform: 'fixed', density: 2 },
-    { platform: 'fixed', density: 0, scale: 2 }]) expect(() => declaredForestQueries(bad)).toThrow();
+  const scratch = mkdtempSync(resolve(root, 'tmp/manifest-fixed-boot-'));
+  const folder = resolve(scratch, 'src/shards/_template');
+  mkdirSync(resolve(folder, 'boot'), { recursive: true });
+  mkdirSync(resolve(folder, 'explore'), { recursive: true });
+  const art = '/src/shards/_template/explore/fixed-binding.svg';
+  writeFileSync(resolve(folder, 'boot/explore.generated.json'), JSON.stringify({ art: [art] }));
+  writeFileSync(resolve(folder, 'explore/fixed-binding.svg'), '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>');
+  try {
+    const data = parseManifestMetadata(metadata({ bindings: { ...bindings, entry,
+      boot: { files: { module: './boot/files.generated.json', export: 'default' },
+        sources: { module: './boot/sources.generated.json', export: 'default' },
+        explore: { module: './boot/explore.generated.json', export: 'default' } },
+      sword: { platform: 'graph', file: 'weapons/jian-row.json' }, forestQueries: { platform: 'fixed', density: 0 } } }));
+    const source = authoredManifestSource(scratch, fixture.slug, { metadataOnly: true, composed: data });
+    expect(source).toContain('"./boot/files.generated.json"');
+    expect(source).toContain('"./boot/sources.generated.json"');
+    expect(source).toContain('"./boot/explore.generated.json"');
+    expect(source).toContain('from "./explore/fixed-binding.svg"');
+    expect(source).toContain(JSON.stringify(art));
+    expect(source).toContain('HeldView.fromProduct("_template", "weapons/jian-row.json")).sword()');
+    expect(source).toContain('declaredForestQueries({"platform":"fixed","density":0})');
+    expect(source).not.toContain('pageModeBoot');
+    const queries = declaredForestQueries({ platform: 'fixed', density: 0 });
+    expect(queries.density(10, -10)).toBe(0);
+    expect(Object.keys(queries)).toEqual(['density']);
+    for (const bad of [{ platform: 'fixed', density: -1 }, { platform: 'fixed', density: 2 },
+      { platform: 'fixed', density: 0, scale: 2 }]) expect(() => declaredForestQueries(bad)).toThrow();
+  } finally { rmSync(scratch, { recursive: true }); }
 });
 
 test('declared forest rows join the manifest intake instead of decoding during discovery', () => {
