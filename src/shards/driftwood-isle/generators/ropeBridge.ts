@@ -1,9 +1,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { SEED } from '@wildshard/engine/core/config';
-import { Rng } from '@wildshard/engine/core/rng';
-import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
-import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { Rng } from '@wildshard/sdk/random';
+import { boxDesc, type ColliderDesc, type BoxSpec as Collider } from '@wildshard/sdk/bake/placement';
 import type { RopeDeckRest, RopeDeckSpan as RopeBridgeSpec } from '@wildshard/format/ropeDeckSite';
 import type { RopeDeckPoses as DeckPoses } from '@wildshard/engine/physics/ropeChain';
 

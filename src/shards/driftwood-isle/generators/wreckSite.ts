@@ -1,16 +1,16 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { SEED } from '@wildshard/engine/core/config';
-import { Rng } from '@wildshard/engine/core/rng';
-import { log, plank, rock, rope, withoutHidden } from '@wildshard/engine/world/geometryKit';
+import { Rng } from '@wildshard/sdk/random';
+import { withoutHidden } from '@wildshard/engine/world/geometryKit';
+import { bakeLog as log, bakePlank as plank, bakeRock as rock, bakeRope as rope } from '@wildshard/sdk/bake/primitives';
 import { ShipwreckBuilder, WRECK_COLOURS as C, type CargoCopy, type WreckAround } from './shipwreck';
 import { addBarrel, addCoil, addCrate } from './cargo';
 import { authoredRockGeometry as rockGeometry } from './rocks';
 import { REEF_ROCK } from './rockProfiles';
 import { addDriftLog, DRIFT } from './driftLogs';
 import type { WreckSpec, WreckAnchor, HoldBounds } from './wreckContract';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import type { BoxSpec, FloorRect } from '@wildshard/engine/physics/box';
+import type { BoxSpec, FloorRect, ColliderDesc } from '@wildshard/sdk/bake/placement';
 import { wreckCatalogue } from './wreckCatalogue';
 
 /** Authored draw and native layout of the canonical Wreck Cove site. */

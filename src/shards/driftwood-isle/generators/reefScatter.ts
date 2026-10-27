@@ -6,8 +6,8 @@
  * and welds the reef from the same layout at build time; the runtime only reads it.
  */
 import { CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/core/config';
-import { Noise2D } from '@wildshard/engine/core/noise';
-import { Rng } from '@wildshard/engine/core/rng';
+import { Noise2D } from '@wildshard/sdk/noise';
+import { Rng } from '@wildshard/sdk/random';
 import { normalAt, inChunk } from '@wildshard/engine/world/Heightfield';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { OCEAN } from './worldSites';
