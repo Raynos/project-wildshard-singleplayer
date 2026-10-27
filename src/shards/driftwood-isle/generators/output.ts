@@ -107,6 +107,7 @@ import { DRIFTWOOD_CLIENT_SECTIONS, driftwoodOceanWaterRow } from './clientSecti
 import type { DriftwoodCreatureBodyBank } from './creatureBodyBank';
 import { driftwoodMap } from './mapProgram';
 import { driftwoodGroundDeclaration } from './groundDeclaration';
+import { driftwoodNavigation } from './navigation';
 
 const schemas:Readonly<Record<string,v.GenericSchema>>=SECTIONS;
 const placed = enemyPlacements();
@@ -229,6 +230,6 @@ export async function prepareMap(ctx: Pick<ProjectGenerationContext, 'cached'>):
 }
 
 /** Bounded discovery data from defining source producers, admitted by the SDK. */
-export function prepareDiscovery(): { 'ground.rows': ReturnType<typeof driftwoodGroundDeclaration> } {
-  return { 'ground.rows': driftwoodGroundDeclaration() };
+export async function prepareDiscovery(ctx: ProjectGenerationContext): Promise<{ 'ground.rows': ReturnType<typeof driftwoodGroundDeclaration>; navigation: Awaited<ReturnType<typeof driftwoodNavigation>> }> {
+  return { 'ground.rows': driftwoodGroundDeclaration(), navigation: await driftwoodNavigation(ctx) };
 }

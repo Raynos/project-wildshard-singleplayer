@@ -13,7 +13,7 @@ import { DRIFTWOOD_EDGE_HEIGHTS } from './edges';
 import DRIFTWOOD_RUNTIME_COST from '../data/runtimeCost.json' with { type: 'json' };
 import { DECLARED_SEA, WORLD_DROP } from './sea';
 import { ENTRY_LANDINGS } from './entryLandings';
-import navigation from '../data/navigation.generated.json' with { type: 'json' };
+import type { driftwoodNavigationRows } from './navigation';
 import type { DriftwoodFixedProduct } from './fixedProduct';
 import { driftwoodLookMaterials } from './lookMaterials';
 import { driftwoodSkyChannels } from './skyChannels';
@@ -41,7 +41,7 @@ const row = (authored: readonly number[]): { heights: number[]; colours: [number
   return { heights, colours: heights.map((): [number, number, number] => [0.5, 0.5, 0.5]), roadHeight: 0 };
 };
 /** Compose the unchanged admitted declaration from caller-owned fixed-world values. */
-export function driftwoodProductRows(fixed: DriftwoodFixedProduct, audio: AudioData, bridgePages: DriftwoodGuestRows['bridge']['pages']): ReturnType<typeof parseShardfile> {
+export function driftwoodProductRows(fixed: DriftwoodFixedProduct, audio: AudioData, bridgePages: DriftwoodGuestRows['bridge']['pages'], navigation: ReturnType<typeof driftwoodNavigationRows>): ReturnType<typeof parseShardfile> {
 const questRows = driftwoodQuestRows();
 const simulationFiles = [...navigation.files, ...fixed.files.filter(file => fixed.critical.includes(file.hash))];
 // G7: the Drowned Captain's painted coat, an admitted look texture his graph samples by hash (generators/bake-captain-coat.mjs)

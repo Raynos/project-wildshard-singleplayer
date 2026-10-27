@@ -348,8 +348,7 @@
       }
     },
     "navigation": {
-      "module": "./data/navigation.generated.json",
-      "export": "default"
+      "program": true
     },
     "sword": {
       "rows": "./data/heldArms.json"
