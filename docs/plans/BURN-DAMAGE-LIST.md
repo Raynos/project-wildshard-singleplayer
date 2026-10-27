@@ -44,7 +44,7 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D5 | `test/world-targets.test.ts`: move/contain error not thrown | `06d14d8288` | breaker (sp-x7 finds) | open |
 | D6 | `test/tile-bakes.test.ts`: exact coordinate debt | `06d14d8288` | tiles lane (sp-x8) | open |
 | D7 | `test/night-market-kit-budget.test.ts`: RM8 target over | `06d14d8288` | sp-o2 | open |
-| D8 | `test/open-plot-collision.test.ts`: quarter-turns | `06d14d8288` | breaker (sp-x7 finds) | open |
+| D8 | `test/open-plot-collision.test.ts`: quarter-turns | `06d14d8288` | breaker (sp-x7 finds) | fixed (sp-o1, `8907eeef3e`: per-part evidence, intended RM10/RM11 art) |
 | D9 | CI `gate-deferred` job red | `06d14d8288` | sp-x7 | open |
 | D10 | CI `generated-inputs`: the generation stage misses generator modules (`far-reach/generators/knoll`, `nalati-grasslands/generators/geographySource.ts`) | `998fcef0ba` | generator lanes (sp-x1, sp-x6) | open; hides every later test |
 | D11 | Deploy stuck: live stays `59a595ab10` (newest-ci-green pin, no green push since) | `ac3e62895d` | sp-x7 (G771) | open |
@@ -73,6 +73,7 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D33 | Pre-G769 legacy GR5 related walk returned rc1/zero suites without a reported cause; no executed assertion result, and no repeat under G769 | — (local, before `83d1cd4c39`) | sp-x1 | open; classify after the plan |
 | D35 | docs/ENGINE.md exceeds the 1 MB blob cap (1,000,366 B); additional API prose cannot land there. H11 notes stay in source/the counted heap plan. | `4b18cede14` | sp-x9 | open |
 | D36 | Generation catalogue: 'Missing or duplicate catalogue dependency: pine-layout' stops every HEAD preview (log tmp/serve/failed-20261027-014157-4401.log) | 4645a57294 | breaker (sp-x7 finds) | open |
+| D37 | Local `node lint/ratchet.mjs` (full or `--files-from`) aborts on the stale allowance `wildshard/no-build-time-import src/shards/far-reach/discovery.generated.ts` before counting, so lanes cannot self-check the ratchet (three GR8 ejects passed the local run) | — (tree) | sp-x7 (tooling) | open |
 
 ## Rows
 
