@@ -187,7 +187,6 @@
     "src/shards/driftwood-isle/data/pierScenes.generated.json",
     "src/shards/driftwood-isle/data/swordPool.generated.json",
     "src/shards/driftwood-isle/generators/sectionSchemas.generated.ts",
-    "src/shards/driftwood-isle/look/map.baked.json",
     "src/shards/driftwood-isle/runtime/productSections.generated.d.ts",
     "src/shards/far-reach-legacy/assets/1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd",
     "src/shards/far-reach-legacy/assets/9453386c27dba27025de07a77332893489dc0042345dac6cd8e6bf7cfce1703d",

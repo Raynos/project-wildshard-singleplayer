@@ -4,6 +4,7 @@ import type { BakedProps } from './props';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { MapRaster } from './mapRaster';
 import { paintMapGeometry } from './mapScenes';
+import { isleStyleSchema, stylizeIsle } from './isleMap';
 
 const hexColour = v.pipe(v.string(), v.regex(/^#[a-fA-F0-9]{6}$/u));
 const palette = v.pipe(v.array(v.object({ match: hexColour, fill: hexColour, edge: v.exactOptional(hexColour) })), v.minLength(1), v.maxLength(256));
@@ -18,7 +19,7 @@ const voidStyleSchema = v.pipe(v.object({ kind: v.literal('void'),
   stoneBands: v.pipe(v.array(v.number()), v.maxLength(64)), grass: hexColour, rim: hexColour,
   sourceGain: v.optional(v.number(), 1), shade: v.optional(v.number(), .5) }),
 v.check(style => style.stone.length === style.stoneBands.length + 1, 'Void map bands need one more stone colour'));
-const sceneStyleSchema = v.union([styleSchema, voidStyleSchema]);
+const sceneStyleSchema = v.union([styleSchema, voidStyleSchema, isleStyleSchema]);
 type Triple = readonly [number, number, number];
 const byte = (value: number): number => Math.max(0, Math.min(255, Math.round(value)));
 function item<T>(values: ArrayLike<T>, index: number): T { const value = values[index]; if (value === undefined) throw new Error('Incomplete map geometry'); return value; }
@@ -117,7 +118,7 @@ export interface SceneMapBytes {
   json: (file: string) => unknown;
   bytes: (file: string) => Uint8Array;
 }
-/** Paint declared L0 terrain, GLBs and private scenes with the existing ground or void palette.
+/** Paint declared L0 terrain, GLBs and private scenes with the existing ground, void or island palette.
  * Returns the original 1000-square RGBA lattice from caller-owned inputs, without image/stamp publication.
  * GR9: `output` paints one declared output of a multi-output folder from its own `glbs`, in its own row's `style` (else the
  * folder's) leaving out its `exclude` node prefixes, as the script painter (`scripts/bake-data-maps.mjs`) did. */
@@ -128,5 +129,5 @@ export async function rasterSceneMap(settings: unknown, data: SceneMapBytes, opt
   const style = typeof own === 'object' && own !== null && 'style' in own ? v.parse(sceneStyleSchema, own.style) : admitted.style;
   const raster = new MapRaster(1000, { clipBelow: admitted.clipBelow ?? -Infinity, clipAbove: admitted.clipAbove ?? Infinity });
   await paintMapGeometry(raster, settings, data, { ...(options.output === undefined ? {} : { output: options.output }), ...(options.glbs === undefined ? {} : { glbs: options.glbs }) });
-  return { pixels: style.kind === 'void' ? stylizeVoid(raster, style) : stylize(raster, style), triangles: raster.triangles };
+  return { pixels: style.kind === 'void' ? stylizeVoid(raster, style) : style.kind === 'isle' ? stylizeIsle(raster, style) : stylize(raster, style), triangles: raster.triangles };
 }

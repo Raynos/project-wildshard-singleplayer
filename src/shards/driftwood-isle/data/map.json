@@ -5,7 +5,10 @@
     "../../sdk/bake/mapScenes.ts",
     "../../../scripts/map-painter.mjs",
     "../../sdk/bake/mapRaster.ts",
-    "../../../scripts/bake-data-maps.mjs"
+    "../../../scripts/bake-data-maps.mjs",
+    "generators/mapProgram.ts",
+    "../../sdk/bake/groundMap.ts",
+    "../../sdk/bake/isleMap.ts"
   ],
   "why": "Driftwood's map in its toon palette (G252, Jake's pick B): flat blues for the sea, the shallows and the shore, sand, four grass bands by height, rock on steep ground, palm crowns as dots, sand paths cream with the old map's PATH brown edge, piers and decks as planks",
   "style": {
@@ -40,10 +43,7 @@
   },
   "painter": {
     "version": 1,
-    "job": "driftwood-data-map",
-    "prerequisites": [
-      "driftwood-map-assembly"
-    ],
+    "program": true,
     "scenes": {
       "packs": [
         {

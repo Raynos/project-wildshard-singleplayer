@@ -106,6 +106,7 @@ import { emitDefinedSections } from '@wildshard/sdk/sections';
 import { DRIFTWOOD_OUTPUT } from '../generators/assets';
 import { DRIFTWOOD_CLIENT_SECTIONS, driftwoodOceanWaterRow } from './clientSections';
 import type { DriftwoodCreatureBodyBank } from './creatureBodyBank';
+import { driftwoodMap } from './mapProgram';
 
 const schemas:Readonly<Record<string,v.GenericSchema>>=SECTIONS;
 const placed = enemyPlacements();
@@ -205,4 +206,9 @@ export async function prepareOutput(ctx: Pick<ProjectGenerationContext, 'cached'
   return { ...rows, platform: emitPlatformSections(platformRows(worldScenes(banks), banks.layouts, banks.facts, banks.creatures)),
     namedFiles: [...rows.namedFiles, ...catalogue.files, ...protos.files, ...pages.files, ...phoneRocks.files, ...fixed.files, ...scenes.files, ...bankFiles.files, ...foliageFiles.files],
     assets: new Map([...rows.assets, ...catalogue.assets, ...protos.assets, ...pages.assets, ...phoneRocks.assets, ...fixed.assets, ...scenes.assets, ...bankFiles.assets, ...foliageFiles.assets]) };
+}
+
+/** GR7: the map lattice (the source-owned map: the SDK publishes it as `ui/images/map` and the public alias). */
+export async function prepareMap(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<{ pixels: Uint8Array; name: string }> {
+  return { pixels: await driftwoodMap(ctx), name: 'ui/images/map' };
 }
