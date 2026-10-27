@@ -9,6 +9,7 @@
 import { admitScript } from '@wildshard/format/scriptAdmission';
 import { scriptV1Layout } from '@wildshard/format/scriptAbiV1';
 import { calibrationQueries } from '../physics/calibration';
+import { diagnosticNow } from '../core/clock';
 
 /** One shipped decision module and the IO dimensions of a script that binds it (handed in by the page, as data). */
 export interface CalibrationScript { readonly product: string; readonly script: string; readonly module: string; readonly bytes: Uint8Array; readonly states: number; readonly params: number;
@@ -33,10 +34,10 @@ export interface WasmCalibration {
 function nsPerOp(run: (n: number) => unknown, ops = 1): number {
   for (let i = 0; i < 8; i++) run(64);
   let n = 64;
-  for (;;) { const t = performance.now(); run(n); if (performance.now() - t >= 5 || n >= 1 << 26) break; n *= 2; }
-  let count = 0; const start = performance.now();
-  while (performance.now() - start < 50) { run(n); count += n; }
-  return (performance.now() - start) * 1e6 / (count * ops);
+  for (;;) { const t = diagnosticNow(); run(n); if (diagnosticNow() - t >= 5 || n >= 1 << 26) break; n *= 2; }
+  let count = 0; const start = diagnosticNow();
+  while (diagnosticNow() - start < 50) { run(n); count += n; }
+  return (diagnosticNow() - start) * 1e6 / (count * ops);
 }
 
 const leb = (value: number): number[] => { const out: number[] = []; let n = value; do { const low = n & 0x7f; n >>>= 7; out.push(n === 0 ? low : low | 0x80); } while (n !== 0); return out; };
