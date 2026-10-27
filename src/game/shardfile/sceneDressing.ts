@@ -59,7 +59,7 @@ export function readSceneFloors(input:unknown,files:ReadonlyMap<string,Uint8Arra
 export function readSceneNumericTable(bytes: Uint8Array): Record<string, number>[] {
   return [...sceneNumericRows(bytes)];
 }
-function* sceneNumericRows(bytes: Uint8Array): IterableIterator<Record<string, number>> {
+function sceneNumericHeader(bytes: Uint8Array): {view:DataView;count:number;width:number;offset:number;keys:string[]} {
   const invalid = new Error('Invalid scene numeric table');
   if (bytes.byteLength < 16) throw invalid;
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -68,16 +68,48 @@ function* sceneNumericRows(bytes: Uint8Array): IterableIterator<Record<string, n
   if(count>100000||width<1||width>32||header>2048||header<1||bytes.length!==16+header+count*width*8)throw invalid;
   const keys=new TextDecoder('utf-8',{fatal:true}).decode(bytes.subarray(16,16+header)).split('\0');
   if(keys.length!==width||new Set(keys).size!==width||keys.some(key=>!/^[a-zA-Z][a-zA-Z0-9]{0,30}$/u.test(key)))throw invalid;
+  return {view,count,width,offset:16+header,keys};
+}
+function* sceneNumericRows(bytes: Uint8Array): IterableIterator<Record<string, number>> {
+  const {view,count,width,offset,keys}=sceneNumericHeader(bytes);
   for(let row=0;row<count;row++){
     const pose:Record<string,number>={};
     for(let column=0;column<width;column++){
-      const key=keys[column],value=view.getFloat64(16+header+(row*width+column)*8,true);
-      if(key===undefined||!Number.isFinite(value))throw invalid;pose[key]=value;
+      const key=keys[column],value=view.getFloat64(offset+(row*width+column)*8,true);
+      if(key===undefined||!Number.isFinite(value))throw new Error('Invalid scene numeric table');pose[key]=value;
     }
     yield pose;
   }
 }
 
+/** Decode dense scatter rows directly into their final canonical pose. Header indices and the bounded numeric scratch
+ *  are shared by rows; every column is still checked before pose validation, including rows excluded by selection. */
+export function* readSceneScatterTable(bytes:Uint8Array):IterableIterator<ScatterPose>{
+  const {view,count,width,offset,keys}=sceneNumericHeader(bytes),values=new Float64Array(width);
+  const columns=['x','y','z','yaw','sx','sy','sz','far','r','g','b','tiltX','tiltZ','solid'].map(key=>keys.indexOf(key));
+  const field=(at:number,key:string):number=>{
+    const column=columns[at],value=column===undefined||column<0?undefined:values[column];
+    if(value===undefined)throw new Error(`Missing scene scatter pose ${key}`);
+    return value;
+  };
+  const optional=(at:number):number|undefined=>{const column=columns[at];return column===undefined||column<0?undefined:values[column];};
+  const known=columns.reduce((total,column)=>total+Number(column>=0),0);
+  for(let row=0;row<count;row++){
+    for(let column=0;column<width;column++){
+      const value=view.getFloat64(offset+(row*width+column)*8,true);
+      if(!Number.isFinite(value))throw new Error('Invalid scene numeric table');
+      values[column]=value;
+    }
+    const pose:ScatterPose={x:field(0,'x'),y:field(1,'y'),z:field(2,'z'),yaw:field(3,'yaw'),
+      sx:field(4,'sx'),sy:field(5,'sy'),sz:field(6,'sz'),far:field(7,'far'),r:field(8,'r'),g:field(9,'g'),b:field(10,'b')};
+    const tiltX=optional(11),tiltZ=optional(12),solid=optional(13);
+    if(tiltX!==undefined)pose.tiltX=tiltX;
+    if(tiltZ!==undefined)pose.tiltZ=tiltZ;
+    if(solid!==undefined){if(solid!==1)throw new Error('Invalid scene scatter pose solid');pose.solid=true;}
+    if(known!==width)throw new Error('Unknown scene scatter pose key');
+    yield pose;
+  }
+}
 // Only the final draw poses survive a decode slice; raw records and validation
 // scratch never accumulate into a second full numeric table.
 /** G782: Developer phase totals inside a dressing step (`wildshard.prepare:<slug>:<step>.<phase>`, the awaited time of each
@@ -87,10 +119,16 @@ function dressingPhases<P extends string>(slug:string,step:string,names:readonly
   return {run:(phase,work)=>batch===undefined?work():batch.run(phase,work),sync:(phase,work)=>batch===undefined?work():batch.sync(phase,work),finish:()=>{batch?.finish();}};
 }
 async function sceneScatterPoses(ctx:ShardContext,row:SceneDressingRows['layers'][number],pause:()=>Promise<void>):Promise<ScatterPose[]>{
-  let source:Iterable<unknown>;
-  if(row.binary)source=sceneNumericRows(await ctx.product.file(row.file));
-  else{const data=await ctx.product.json<unknown>(row.file);if(!Array.isArray(data))throw new Error('Scene scatter rows must be an array');source=data;}
   const poses:ScatterPose[]=[],selection=row.select;let at=0;
+  if(row.binary){
+    for(const pose of readSceneScatterTable(await ctx.product.file(row.file))){
+      if(selection===undefined||(at%selection.modulo===selection.remainder)===selection.equal)poses.push(pose);
+      if(++at%256===0)await pause();
+    }
+    return poses;
+  }
+  const data=await ctx.product.json<unknown>(row.file);if(!Array.isArray(data))throw new Error('Scene scatter rows must be an array');
+  const source:Iterable<unknown>=data;
   for(const input of source){
     const {solid,...pose}=readSceneScatterPose(input);
     if(selection===undefined||(at%selection.modulo===selection.remainder)===selection.equal)poses.push(solid===undefined?pose:{...pose,solid:true});

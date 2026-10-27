@@ -3,7 +3,8 @@ import { BoxGeometry, Group } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { captureScatterSource } from '../src/engine/render/scatterInstances';
-import { SceneDressing, readSceneNumericTable } from '../src/game/shardfile/sceneDressing';
+import { SceneDressing, readSceneNumericTable, readSceneScatterTable } from '../src/game/shardfile/sceneDressing';
+import { readSceneScatterPose } from '../src/format/sceneDressing';
 import type { ShardContext } from '../src/game/plugin/context';
 import { join, writeGeometry } from '../src/shards/nalati-grasslands/generators/geometryWriter';
 
@@ -67,4 +68,31 @@ test('sliced binary scatter retains selection and rejects a late excluded invali
       expect(file).toHaveBeenCalledExactlyOnceWith('poses.bin');expect(shapeFile).toHaveBeenCalledExactlyOnceWith('shape.bin');expect(json).not.toHaveBeenCalled();
     } finally { scope.dispose(); }
   }
+});
+
+
+test('direct scatter decode preserves canonical fields, float64 values and strict refusals', () => {
+  const pose = { solid: 1, tiltZ: -0, b: .25, g: .5, r: 1, far: 90, sz: 1, sy: 1, sx: 1, yaw: 1 / 3, z: -2, y: 3, x: -0, tiltX: Number.MIN_VALUE };
+  const bytes = table([pose, { ...pose, x: 17.125 }]), original = bytes.slice();
+  const expected = readSceneNumericTable(bytes).map(row => {
+    const { solid, ...rest } = readSceneScatterPose(row);
+    return solid === undefined ? rest : Object.assign(rest, { solid: true });
+  });
+  const actual = [...readSceneScatterTable(bytes)];
+  expect(actual).toEqual(expected);
+  expect(actual.map(Object.keys)).toEqual(expected.map(Object.keys));
+  expect(Object.is(actual[0]?.x, -0)).toBe(true);
+  expect(Object.is(actual[0]?.tiltZ, -0)).toBe(true);
+  expect(bytes).toEqual(original);
+  for (const row of [{ ...pose, solid: 2 }, { ...pose, extra: 1 }, { ...pose, x: Infinity }, { ...pose, tiltX: Number.NaN }]) {
+    expect(() => [...readSceneScatterTable(table([row]))]).toThrow();
+  }
+  const { x: omitted, ...missing } = pose;
+  expect(omitted).toBe(-0);
+  expect(() => [...readSceneScatterTable(table([missing]))]).toThrow('Missing scene scatter pose x');
+  expect(() => [...readSceneScatterTable(table([{ ...missing, extra: Infinity }]))]).toThrow('Invalid scene numeric table');
+  // The old decoder never applies pose validation to a valid, empty numeric table.
+  const empty = table([{ extra: 1 }]).slice(0, 21);
+  new DataView(empty.buffer).setUint32(4, 0, true);
+  expect([...readSceneScatterTable(empty)]).toEqual([]);
 });
