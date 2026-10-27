@@ -283,6 +283,111 @@ export function rebindBuild(output: BuildOutput, twins: ReadonlyMap<Node, Node>)
   };
 }
 
+/**
+ * A disposed material's reusable build, kept without its nodes (G782 crossings: a re-entered region rebuilt programs its
+ * last visit had built, because a reuse entry lives and dies with its material, so that a key never kept a retired
+ * region's nodes alive; the live P0 Driftwood -> Sky Reach -> Driftwood). A pairing needs the first compile's nodes only
+ * as positions, so a kept build names each compile-made node by its index in the graph shape and each lazily made
+ * reference uniform by its holder's index; a node the build shared from the scene (lights, shadows, the camera) is held
+ * weakly, so a retired region's lights go and a build that read them dies with them. It keeps code and positions only:
+ * no texture, value, buffer or material of the region it came from.
+ */
+type KeptRef = { readonly compile: number } | { readonly lazy: number } | { readonly shared: WeakRef<Node> };
+export interface KeptBuild {
+  readonly vertexShader: string;
+  readonly fragmentShader: string;
+  /** each distinct uniform of the build, by name, type and node reference */
+  readonly uniforms: readonly { readonly name: string; readonly type: string; readonly ref: KeptRef }[];
+  readonly vertex: readonly number[];
+  readonly fragment: readonly number[];
+  readonly groups: Readonly<Record<string, readonly number[]>>;
+  readonly updateNodes: readonly KeptRef[];
+  /** each lazy reference uniform: its holder's index and the class its build made */
+  readonly lazy: readonly { readonly holder: number; readonly kind: unknown }[];
+  /** an estimate of what the kept build holds (its code as UTF-16, plus its tables) */
+  readonly bytes: number;
+}
+
+/** `output` (built from `shape`'s compile, with `lazy` uniforms) as positions and weak scene references; null when a
+ *  lazy uniform's holder is not one of the compile's nodes */
+export function keepBuild(output: BuildOutput, shape: GraphShape, lazy: readonly LazyUniform[]): KeptBuild | null {
+  const index = new Map<Node, number>();
+  shape.nodes.forEach((node, i) => { index.set(node, i); });
+  const lazyIndex = new Map<Node, number>(), lazyRows: { holder: number; kind: unknown }[] = [];
+  for (const { holder, node } of lazy) {
+    const at = index.get(holder);
+    if (at === undefined) return null;
+    lazyIndex.set(node, lazyRows.length); lazyRows.push({ holder: at, kind: node.constructor });
+  }
+  const ref = (node: Node): KeptRef => {
+    const l = lazyIndex.get(node);
+    if (l !== undefined) return { lazy: l };
+    const c = index.get(node);
+    return c !== undefined ? { compile: c } : { shared: new WeakRef(node) };
+  };
+  const ids = new Map<Uniform, number>(), uniforms: { name: string; type: string; ref: KeptRef }[] = [];
+  const id = (entry: Uniform): number => {
+    let at = ids.get(entry);
+    if (at === undefined) { at = uniforms.length; ids.set(entry, at); uniforms.push({ name: entry.name, type: entry.type, ref: ref(entry.node) }); }
+    return at;
+  };
+  const groups: Record<string, number[]> = {};
+  for (const [name, group] of Object.entries(output.uniformGroups)) groups[name] = group.uniforms.map(member => id(member.nodeUniform));
+  const vertex = output.uniforms.vertex.map(id), fragment = output.uniforms.fragment.map(id);
+  return { vertexShader: output.vertexShader, fragmentShader: output.fragmentShader, uniforms, vertex, fragment, groups,
+    updateNodes: output.updateNodes.map(ref), lazy: lazyRows,
+    bytes: 2 * (output.vertexShader.length + output.fragmentShader.length) + 64 * (uniforms.length + output.updateNodes.length) };
+}
+
+/**
+ * `kept` bound to the compile whose shape is `shape` (the second material's nodes, by position) and to `object` and
+ * `material` for its lazy reference uniforms: the build as `rebindBuild` would have made it from the live first build.
+ * 'released' when a scene node it read has been collected (the kept build is dead); a reason when it cannot be bound.
+ */
+export function restoreBuild(kept: KeptBuild, shape: GraphShape, object: THREE.Object3D, material: THREE.Material): BuildOutput | string {
+  const frame = new NodeFrame(); frame.object = object; frame.material = material;
+  const lazyNodes: Node[] = [];
+  for (const { holder, kind } of kept.lazy) {
+    const twin = shape.nodes[holder];
+    if (!(twin instanceof ReferenceNode)) return 'a reference uniform cannot be made alike';
+    if (twin.node === null) {
+      twin.updateReference(frame);
+      const update: unknown = Reflect.get(twin, 'updateValue');
+      if (typeof update !== 'function') return 'a reference uniform cannot be made alike';
+      Reflect.apply(update, twin, []);
+    }
+    if (twin.node === null || twin.node.constructor !== kind) return 'a reference uniform cannot be made alike';
+    lazyNodes.push(twin.node);
+  }
+  let released = false;
+  const resolve = (ref: KeptRef): Node | undefined => {
+    if ('compile' in ref) return shape.nodes[ref.compile];
+    if ('lazy' in ref) return lazyNodes[ref.lazy];
+    const node = ref.shared.deref();
+    if (node === undefined) released = true;
+    return node;
+  };
+  const uniforms: Uniform[] = [];
+  for (const row of kept.uniforms) {
+    const node = resolve(row.ref);
+    if (released) return 'released';
+    if (!(node instanceof UniformNode)) return 'a paired uniform is not a uniform node';
+    uniforms.push(new NodeUniform(row.name, row.type, node));
+  }
+  const updateNodes: Node[] = [];
+  for (const ref of kept.updateNodes) {
+    const node = resolve(ref);
+    if (released) return 'released';
+    if (node === undefined) return 'a paired update node is missing';
+    updateNodes.push(node);
+  }
+  const pick = (at: number): Uniform => { const u = uniforms[at]; if (u === undefined) throw new Error('Missing kept uniform'); return u; };
+  const uniformGroups: Record<string, { uniforms: { nodeUniform: Uniform }[] }> = {};
+  for (const [name, members] of Object.entries(kept.groups)) uniformGroups[name] = { uniforms: members.map(at => ({ nodeUniform: pick(at) })) };
+  return { vertexShader: kept.vertexShader, fragmentShader: kept.fragmentShader,
+    uniforms: { vertex: kept.vertex.map(pick), fragment: kept.fragment.map(pick) }, uniformGroups, updateNodes };
+}
+
 /** G717.O3.1 (diagnostic): run a build, recording every node it makes in the order it makes them */
 export function recordBuild(fn: () => void): Node[] {
   const outer = buildRecord, nodes: Node[] = [];

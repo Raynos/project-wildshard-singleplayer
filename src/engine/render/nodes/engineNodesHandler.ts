@@ -80,7 +80,7 @@ import { GraphCodeKeys } from './graphCodeKeys';
 import { NodeProgramVariants } from './nodeProgramVariants';
 import { classicModelUniform } from './nodeObjectUniforms';
 import { registerShadowDepthResolver } from '../shadowDepthVariants';
-import { bindLazy, buildCensus, captureBuild, graphShape, lazyReads, pairShapes, rebindBuild, recordBuild, reuseKey, unboundReads, type BuildCensus, type BuildOutput, type GraphShape, type LazyUniform } from './nodeBuildReuse';
+import { bindLazy, buildCensus, captureBuild, graphShape, keepBuild, lazyReads, pairShapes, rebindBuild, recordBuild, restoreBuild, reuseKey, unboundReads, type BuildCensus, type BuildOutput, type GraphShape, type KeptBuild, type LazyUniform } from './nodeBuildReuse';
 import { graphNodeOwner } from './graphOwners';
 import { harnessPins } from '../../app/identity';
 
@@ -261,6 +261,8 @@ interface SceneInputs { readonly fog: object | null; readonly environment: objec
 function sameSceneInput(held: WeakRef<object> | null, live: object | null): boolean {
   return held === null ? live === null : held.deref() === live;
 }
+/** kept disposed builds (G782): at most this many, and at most this many estimated bytes, oldest dropped first */
+const KEPT_BUILDS = 96, KEPT_BYTES = 12 * 1024 * 1024;
 interface SceneBinding {
   readonly scene: WeakRef<object>; readonly rawKey: unknown; readonly lights: string;
   readonly inputs: { readonly fog: WeakRef<object> | null; readonly environment: WeakRef<object> | null } | null;
@@ -448,6 +450,14 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   /** each such material's full build, held by the material itself: a key never keeps a retired region's material or its
    *  nodes alive (live P0: Driftwood -> Sky Reach -> Driftwood), and a disposed material's build goes with it */
   private readonly reusableBuilds = new WeakMap<THREE.Material, { readonly binding: SceneBinding | null; readonly output: BuildOutput; readonly shape: GraphShape; readonly lazy: readonly LazyUniform[] }>();
+  /** each such material's reuse key */
+  private readonly reusableKeys = new WeakMap<THREE.Material, string>();
+  /** per reuse key, a disposed source's build kept as code and positions (`keepBuild`: no nodes, textures or values of
+   *  its region), oldest first; bounded by KEPT_BUILDS entries and KEPT_BYTES */
+  private readonly keptBuilds = new Map<string, { readonly build: KeptBuild; readonly binding: Omit<SceneBinding, 'parameters'> | null }>();
+  private keptBytes = 0;
+  /** reuses served from a kept build (a re-entered region's programs) */
+  keptReuses = 0;
   /** each graph material's shape, read before its first build touched its nodes */
   private readonly shapes = new WeakMap<THREE.Material, GraphShape>();
   /** programShare: graph shapes whose builds wrote other code under one shared key (they key by their own nodes) */
@@ -882,7 +892,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       const real = key === null ? null : captureBuild(Reflect.get(material, '_latestBuilder'));
       if (key !== null && real !== null && shape !== null && owner !== undefined) {
         const { lazy, rest: unbound } = lazyReads(unboundReads(real, material, owner), owner);
-        if (unbound.length === 0) { this.reusable.set(key, new WeakRef(material)); this.reusableBuilds.set(material, { output: real, shape, lazy, binding: this.sceneBinding(parameters) }); how += ' + kept'; }
+        if (unbound.length === 0) { this.reusable.set(key, new WeakRef(material)); this.reusableKeys.set(material, key); this.reusableBuilds.set(material, { output: real, shape, lazy, binding: this.sceneBinding(parameters) }); how += ' + kept'; }
       }
     }
     this.disposeFirst(material);
@@ -957,7 +967,15 @@ export class EngineNodesHandler extends WebGLNodesHandler {
    *  without one, the reason when they cannot be bound (`nodeBuildReuse.ts`) */
   private reusedBuild(key: string, material: THREE.Material, object: THREE.Object3D, shape: GraphShape): BuildOutput | string | null {
     const source = this.reusable.get(key)?.deref(), entry = source === undefined ? undefined : this.reusableBuilds.get(source);
-    if (source === undefined || entry === undefined) { this.reusable.delete(key); return null; }
+    if (source === undefined || entry === undefined) {
+      this.reusable.delete(key);
+      const kept = this.keptBuilds.get(key);
+      if (kept === undefined || !this.sameSceneBinding(kept.binding)) return null;
+      const restored = restoreBuild(kept.build, shape, object, material);
+      if (restored === 'released') { this.dropKept(key); return null; }
+      if (typeof restored !== 'string') this.keptReuses++;
+      return restored;
+    }
     if (source === material || !this.sameSceneBinding(entry.binding)) return null;
     const twins = pairShapes(entry.shape, shape);
     if (!bindLazy(entry.lazy, twins, object, material)) return 'a reference uniform cannot be made alike';
@@ -1006,11 +1024,11 @@ export class EngineNodesHandler extends WebGLNodesHandler {
         environment: facts.inputs.environment === null ? null : new WeakRef(facts.inputs.environment) }, parameters };
   }
 
-  private sameSceneBinding(binding: SceneBinding | null): boolean {
+  private sameSceneBinding(binding: Omit<SceneBinding, 'parameters'> | null): boolean {
     return this.sceneBindingMismatch(binding) === null;
   }
 
-  private sceneBindingMismatch(binding: SceneBinding | null): string | null {
+  private sceneBindingMismatch(binding: Omit<SceneBinding, 'parameters'> | null): string | null {
     if (binding === null) return null;
     const facts = this.currentBindingFacts();
     if (facts === null) return 'frame';
@@ -1269,6 +1287,27 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     if (at > 0) { list.splice(at, 1); list.unshift(callback); }
   }
 
+  /** a disposed material that was its key's reuse source leaves its build behind as code and positions (`keepBuild`) */
+  private keepDisposed(material: THREE.Material): void {
+    const entry = this.reusableBuilds.get(material), key = this.reusableKeys.get(material);
+    if (entry === undefined || key === undefined || this.reusable.get(key)?.deref() !== material) return;
+    const build = keepBuild(entry.output, entry.shape, entry.lazy);
+    if (build === null) return;
+    const binding = entry.binding === null ? null : { scene: entry.binding.scene, rawKey: entry.binding.rawKey, lights: entry.binding.lights, inputs: entry.binding.inputs };
+    this.dropKept(key);
+    this.keptBuilds.set(key, { build, binding }); this.keptBytes += build.bytes;
+    for (const [oldest] of this.keptBuilds) {
+      if (this.keptBuilds.size <= KEPT_BUILDS && this.keptBytes <= KEPT_BYTES) break;
+      this.dropKept(oldest);
+    }
+  }
+
+  private dropKept(key: string): void {
+    const kept = this.keptBuilds.get(key);
+    if (kept === undefined) return;
+    this.keptBytes -= kept.build.bytes; this.keptBuilds.delete(key);
+  }
+
   private disposeMaterial(material: THREE.Material): void {
     if (material instanceof NodeMaterial && Reflect.get(material, 'isShaderMaterial') !== true) {
       Reflect.defineProperty(material, 'isShaderMaterial', { value: true, configurable: true });
@@ -1278,6 +1317,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const builder: unknown = Reflect.get(material, '_latestBuilder');
     if (typeof builder === 'object' && builder !== null) releaseMaterialReferences(Reflect.get(builder, 'updateNodes'), material);
     this.sceneBindings.delete(material);
+    this.keepDisposed(material);
     this.pendingBuilds.delete(material); this.objectVariants.forget(material); this.drawEntries.delete(material); this.reusableBuilds.delete(material);
     Reflect.deleteProperty(material, '_latestBuilder');
     const self = internals(this), programs = self.programCache.get(material), blocks = this.blocks;
