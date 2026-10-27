@@ -3,7 +3,7 @@
 **State:** `in progress` 2026-10-24 — G654/G656 decided; GR0–GR2 complete (sp-x1), including Template/Pastel's
 zero-catalogue, source-only product build acceptance on `ea96805666`;
 GR3 is in flight (sp-x1); GR4–GR12 and GS1–GS5 remain open. Separate from the [gen speed plan](gen-mini-plan.md)
-(caching and timing), the [TypeScript plan](typescript-mini-plan.md) and [no binaries in JSON](no-binaries-in-json-mini-plan.md).
+(caching and timing), the [TypeScript plan](../../../project/archive/2026-10-27-typescript-speed.md) and [no binaries in JSON](no-binaries-in-json-mini-plan.md).
 
 Jake, 2026-10-23: *"It sounds completely fucked that the generators are reading the generated output of other generators.
 Like, can't I just import the TypeScript and like call functions? … I feel like each generator should be a standalone
@@ -129,7 +129,7 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
 | GR9 | Small shards (ink-cel, blender-template, open-plots) and the 5 shared `scripts/bake-*` (pickups, textures, terrain, schemas) as game functions | M | catalogue empty |
 | GR10 | Runtime: the 7 runtime / plugin imports of outputs read shardfile sections | M | no runtime file imports a step output |
 | GR11 | App tables to virtual modules (D4): starter tables, slugs, discovery, boot tables, budgets | M | no `*.generated.*` anywhere under `src/` |
-| GR12 | Delete `generation-jobs.json`, `generate.mjs`, the `generation-*` helpers, the `*.d.json.ts` shims and the generated `.gitignore` lines; burn-down lists empty | M | the files are gone and both bans have no exceptions |
+| GR12 | Delete `generation-jobs.json`, `generate.mjs`, the `generation-*` helpers, the `*.d.json.ts` shims and the generated `.gitignore` lines; burn-down lists empty; includes folded TypeScript T1 generated-input retirement and its dependent Mac checker comparison (G786–G797) | M | the files are gone and both bans have no exceptions |
 
 ### GR8 current ≤ 1 h slices (G711)
 

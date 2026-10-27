@@ -63,16 +63,16 @@ other lane works counted plan rows; a lane with none takes the top unclaimed row
 | GR6 | Nalati source-only product program: replace 54 producer-file jobs with direct calls/cached bytes, largest first; preserve original native outputs, strict admission and boot milestone | tooling-perf/generators-spike-mini-plan.md:GR6 | in flight (2026-10-25, sp-x6): map assembly 54 → 53 first |
 | GR-PATHS | Make check-paths green: remove stale deleted-file references and fix real fixture/layout misses; no widened allow lists; Vitest glob-cache CI repair stays with sp-x2 | generators redesign; sp-x1 181-failure census | done (2026-10-24, sp-x8): `0228d34c52` + `ac7db8225b` + `b7f3e18243`; 181 → 0, no new allowances |
 
-| TS-T2 | TypeScript: check src once through layers tsc -b; preserve test, script and composition-root coverage; coordinate Typecheck command with sp-x7 | tooling-perf/typescript-mini-plan.md:T2 | done (2026-10-24, sp-x8): `96fe07d0eb` + `5025374ca2`; full cold local check 24.968 s; full green CI 40146594652 Typecheck 50 s |
-| TS-T3 | Move unit/integration tests into their owning layer projects; retain root regression/E2E/scenarios; preserve test counts and CF1/CI selection after each small layer batch | tooling-perf/typescript-mini-plan.md:T3 (G645) | done (2026-10-25, sp-x8): 462 source suites, all 1,460 tracked suites discovered; root regressions/scenarios retained |
-| TS-T4 | Explicit exported Valibot schema types: format declaration-size / TS2589 first, then isolated declarations by layer | tooling-perf/typescript-mini-plan.md:T4 (G644) | in flight (2026-10-25, sp-x8): prior 24-module handoff retained; continuation starts at 5,150,849 B / 294 modules, target below 2 MB then layer isolation |
+| TS-T2 | TypeScript: check src once through layers tsc -b; preserve test, script and composition-root coverage; coordinate Typecheck command with sp-x7 | project/archive/2026-10-27-typescript-speed.md:T2 | done (2026-10-24, sp-x8): `96fe07d0eb` + `5025374ca2`; full cold local check 24.968 s; full green CI 40146594652 Typecheck 50 s |
+| TS-T3 | Move unit/integration tests into their owning layer projects; retain root regression/E2E/scenarios; preserve test counts and CF1/CI selection after each small layer batch | project/archive/2026-10-27-typescript-speed.md:T3 (G645) | done (2026-10-25, sp-x8): 462 source suites, all 1,460 tracked suites discovered; root regressions/scenarios retained |
+| TS-T4 | Format + engine explicit schemas/isolated declarations only (G786–G797); other tails dropped | project/archive/2026-10-27-typescript-speed.md:T4 | done `a04bfcb2f2` + `804e3e3496`: 1,611,975 format B / 296 modules (< 2 MB), 2,179,123 engine B / 722 modules; touched tsc-b green. T1/T6 fold into GR12, T5 closed |
 
 | T1-POST | Lifecycle only: dispose/reuse composer depth and Backdrop LUTs on retirement/re-entry; GPU-ledger regression, identical pixels; siteCatalogue geometry stays with sp-x9 | T1 retained794 diagnostic; coordinator 2026-10-24 | done (2026-10-24; LUT `67b5ab6f2d`, depth `acda59debf`; 28 focused + 198 ready-related cases, layers/root/lint green; joint T1 GPU measurement remains with sp-x9) |
 
 **G683 Codex order (Jake, 13:20):** finish extras in this order, taking the top open Codex row of the first plan that has one:
 (1) tile streaming (shard-platform/tile-streaming-mini-plan.md), (2) loading (loading-mini-plan.md), (3) core memory
 (core-memory-mini-plan.md), no-binaries, oxlint leftovers; then (4) generators redesign GR1-GR12 / GS1-GS5
-(tooling-perf/generators-spike-mini-plan.md); then (5) TypeScript plan T1-T6 (tooling-perf/typescript-mini-plan.md).
+(tooling-perf/generators-spike-mini-plan.md); then (5) TypeScript plan T1-T6 (project/archive/2026-10-27-typescript-speed.md).
 Claim here with `<lane> <HH:MM> <plan row>` before starting.
 
 ## RED-LIVE and loading (Jake's phone, live 64d85dac0, 2026-10-21 07:46)

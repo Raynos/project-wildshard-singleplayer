@@ -1,8 +1,8 @@
 # TypeScript speed: mini plan (TOOLING-PERF, G634/G643/G644/G645)
 
-**State:** `open` 2026-10-23 — **to the builder (G647)**; D1–D3 build on the recommended option until Jake picks. Benchmark by a plan-agent subagent. Its own plan, separate
-from [TOOLING-PERF](../TOOLING-PERF.md) and the [oxlint plan](oxlint-mini-plan.md) (Jake, 2026-10-23: *"three different mini
-plans. Don't merge them"*). Five-minute rows went to the builder as [archived TypeScript quick wins](../../../project/archive/2026-10-26-typescript-quick-wins.md) (G646).
+**State:** done (2026-10-27, sp-x8), archived under G786–G797. T4 is format + engine only; both emit isolated declarations (`a04bfcb2f2`, `804e3e3496`). Current tracked-source output is **1,611,975 B / 296 format modules** and **2,179,123 B / 722 engine modules**; every corresponding declaration exists, and touched `tsc -b` passes without TS2589. The format target below 2 MB is met. Counts exclude stale outputs and colocated tests.
+
+T2/T3 and the quick wins remain landed. T1 folds into GR12; its dependent Mac checker experiment follows that work. Jake closes T5; unfinished annotation work outside format/engine is dropped, including frozen-legacy annotations (no legacy source deletion is authorized). No new browser speedup is claimed. Historical slice notes below retain their original observations and are superseded by this closure, not new open work.
 
 Goal (Jake): a full TypeScript check of the whole repo before push, warm in seconds (*"a warm full-type check taking seconds is fantastic"*).
 
@@ -63,12 +63,12 @@ Goal (Jake): a full TypeScript check of the whole repo before push, warm in seco
 
 | Row | What | Expected | Size | Done when |
 |---|---|---|---|---|
-| T1 | Generated JSON out of the program (G655): no generated file is imported (GR0 ban + the generator redesign G654); authored JSON stays typed | −4 GB, −15–30 s | M | root program ≤ 6 GB, green |
+| T1 | folded into GR12 (G786–G797): generated JSON leaves the program through the generator redesign; authored JSON remains typed | retained acceptance: root program ≤ 6 GB | M | owned by GR12, no separate TS row |
 | T2 | done (2026-10-24, sp-x8): `96fe07d0eb` declaration compatibility + `5025374ca2` seven source projects, declaration-consuming tests/API/scripts, exact old-root coverage and app TS6307 contracts; all six tool/site checks retained | Old combined root cold 11.115 s; final cold tests 4.608 s; full forced-source + cold-test + six-project sequence 24.968 s locally | S–M | Local complete check and compiler refusal regressions pass. Full green CI 40146594652 (`da94ec4da3`) completed Typecheck in 50 s (< 1 min). Cold typed lint keeps default source redirects without another tsc source pass; missing-declaration and unsafe-assignment regressions remain strict |
 | T3 | done (2026-10-25, sp-x8). **Tests next to their source (G645):** 462 source suites have one test-project owner and zero production membership; 994 root tooling, regression and scenario suites retain their separate declaration-consuming project | warm per-layer checks; tests stop being one 2.8 GB lump | M–L | all 1,460 tracked suites discovered; layer builds, ownership/Node/lint refusals, CF1 and CI cohort coverage pass |
-| T4 | **in flight (2026-10-24, sp-x8; G708 handoff):** explicit types on exported valibot schemas, format first, then `isolatedDeclarations` per layer (G644; engine 786 sites) | fixes TS2589, format `.d.ts` 14 MB → < 2 MB, cheaper `-b` edits | L | no TS2589; `isolatedDeclarations` on in engine, then the others |
-| T5 | Pre-push full check: `tsc -b` with a persistent tsbuildinfo (fixed slot, or the cache copied into the push tree; paths are relative) | 1–5 s no change, ~15 s shard edit after T1–T3 | M | the gate runs the full check within 45 s; over-budget (engine API edit) falls back to CI (D2) |
-| T6 | Mac only, after T1: `--checkers 8` | 62 → 25 s, +3.4 GB | S | measured after T1 |
+| T4 | done (G786–G797 narrowed scope): format `a04bfcb2f2` + engine `804e3e3496` isolated declarations | format 1,611,975 B (< 2 MB), 296 tracked source modules; engine 2,179,123 B, 722 modules | L | touched tsc-b passes; no TS2589 in these checks; other layer tails dropped |
+| T5 | dropped (G786–G797: Jake closes T5); no full-check push gate is introduced | existing 45 s soft gate and CI remain | — | closed by scope decision |
+| T6 | folded into GR12 with prerequisite T1; retain the Mac-only eight-checker comparison after generated inputs retire | historical 62 → 25 s, +3.4 GB; no new measurement | — | owned with GR12, no independent TS task |
 
 ### T3 remaining slices (G704/G711)
 
@@ -152,7 +152,7 @@ normal layer emission is the declaration-size authority. Continuation starts at 
 | T4-F2l | Population, audio, placement and light contracts; preserve schema entries, clip arity and authored defaults | 60 min | done (2026-10-25, sp-x8) |
 | T4-F2m | Wire, brain, water, terrain and material contracts; preserve schema composition, transforms and authored defaults | 60 min | done (2026-10-25, sp-x8) |
 | T4-F2n | Scene buffers, population, journals and material rows; preserve variants, defaults and typed record laws | 60 min | done (2026-10-25, sp-x8) |
-| T4-I1 | Format isolated declarations, then engine and remaining layers, one bounded diagnostic family per slice | 60 min per family | in flight (2026-10-25, sp-x8) |
+| T4-I1 | Format and engine isolated declarations only (G786–G797); remaining layer expansion dropped | 60 min per family | done `a04bfcb2f2` + `804e3e3496` |
 | T4-I1a | Continuation, rig, catalogue and authored-page schemas; retain nested metadata and default laws | 60 min | done (2026-10-25, sp-x8) |
 | T4-I1b | Native riding, state, skin and scene schemas; retain transform metadata, tuples and default laws | 60 min | done (2026-10-25, sp-x8) |
 | T4-I1c | Ground, traversal, script and world-reference schemas; retain literals, records and default laws | 60 min | done (2026-10-25, sp-x8) |
@@ -227,10 +227,10 @@ normal layer emission is the declaration-size authority. Continuation starts at 
 | T4-I6w | Nalati catalogue, riding, weather and creature declarations; retain generic concrete model parameters, mutable rows and optional matrix output | 60 min | done (2026-10-26, sp-x8) |
 | T4-I6x | Nalati geometry, population and pose declarations; retain mutable native rows, readonly spruce identities and original resource contracts | 60 min | done (2026-10-26, sp-x8) |
 | T4-I6xg | Nalati ground declaration annotation: producer import repair `750ef84be5` is on origin; retain its exact lattice/painter and annotate the remaining source value separately | 60 min | done (2026-10-26, sp-x8) |
-| T4-I6y | Nalati product, terrain and painted model declarations; retain mutable output resources and original source intake contracts | 60 min | in flight (2026-10-26, paused for G743; sp-x8) |
-| T4-I6z | Titan clock and host declarations; preserve numeric landing-slot values through the existing flat-map callback and retain mutable fight contracts | 60 min | done (2026-10-26, sp-x8) |
-| T4-I6z1 | Nalati exported rig binding; replace unsupported exported destructuring with the same typed property alias, preserving object identity and all public contracts | 60 min | in flight (2026-10-26, source landed; RM4 qualification paused for G743, sp-x8) |
-| T4-I6legacy | Frozen legacy declaration annotations: read-only census finds 391/935 modules with 1,018 isolated diagnostics; exact bytes stay unchanged until G606/LD is lifted, modern slices continue | 60 min | waits-Jake (2026-10-26; G606, sp-x8) |
+| T4-I6y | Nalati product, terrain and painted model declarations; retain mutable output resources and original source intake contracts | 60 min | dropped (G786–G797: outside format/engine); landed annotations remain |
+| T4-I6z | Titan clock and host declarations; preserve numeric landing-slot values through the existing flat-map callback and retain mutable fight contracts | 60 min | done `933acc67dd` (2026-10-26, sp-x8) |
+| T4-I6z1 | Nalati exported rig binding; replace unsupported exported destructuring with the same typed property alias, preserving object identity and all public contracts | 60 min | dropped (G786–G797: outside format/engine); source `b41aa273f7` retained |
+| T4-I6legacy | Frozen legacy declaration annotations: read-only census finds 391/935 modules with 1,018 isolated diagnostics; exact bytes stay unchanged until G606/LD is lifted, modern slices continue | 60 min | dropped (G786–G797: annotation tail only); frozen bytes/G606 unchanged |
 
 T4 first format slices are on origin: schema expressions and emitted runtime JavaScript are unchanged.
 Independent named data types replace exported validator implementation types; original/candidate input and output
