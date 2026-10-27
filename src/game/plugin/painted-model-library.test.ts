@@ -33,7 +33,7 @@ it('shares an original atlas while cloning prepared geometry and explicit NPC sl
   if (second.pivots !== undefined) for (const part of Object.values(second.pivots)) part.dispose();
 });
 
-function paintedIntake(holdPool = false) {
+function paintedIntake(holdPool = false, atlasReader = false) {
   const geometry = new PlaneGeometry(2, 3); geometry.computeBoundingBox(); geometry.computeBoundingSphere();
   const pool = new Group(), primitiveMaterial = new MeshStandardMaterial(), primitive = new Mesh(geometry, primitiveMaterial);
   primitive.name = 'hero'; primitive.userData['restGroups'] = [];
@@ -58,14 +58,15 @@ function paintedIntake(holdPool = false) {
     begun.push(url); if (begun.length === 4) fourReady(); return row.ready;
   });
   const library = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 0.6,
-    geometryPools: [{ url: 'pool', parts: ['hero'] }], paintedModels: rows }, 'test', {}, read);
+    geometryPools: [{ url: 'pool', parts: ['hero'] }], paintedModels: rows }, 'test', {}, read,
+  atlasReader ? async url => { await read(url); return texture; } : undefined);
   return { library, begun, firstFour, finishPool, finish: (index: number) => { pending.get(`paint-${String(index)}`)?.finish(); },
     finishAll: () => { for (const row of pending.values()) row.finish(); },
     close: () => { geometry.dispose(); primitiveMaterial.dispose(); paintGeometry.dispose(); paintMaterial.dispose(); texture.dispose(); } };
 }
 
-it('reads only four atlases alongside geometry and publishes nothing before geometry is ready', async () => {
-  const f = paintedIntake(true), pause = vi.fn(() => Promise.resolve()), loading = f.library.preload(pause);
+it.each([false, true])('gates four overlapping painted reads on geometry (atlas reader: %s)', async atlasReader => {
+  const f = paintedIntake(true, atlasReader), pause = vi.fn(() => Promise.resolve()), loading = f.library.preload(pause);
   try {
     await f.firstFour;
     expect(f.begun).toEqual(['paint-0', 'paint-1', 'paint-2', 'paint-3']);
@@ -79,6 +80,16 @@ it('reads only four atlases alongside geometry and publishes nothing before geom
     if (model === null) throw new Error('Missing geometry-gated painted model');
     expect(model.geometry.getAttribute('position').count).toBe(4);
     model.geometry.dispose();
+  } finally { f.finishPool(); f.finishAll(); await loading; f.close(); }
+});
+
+it('keeps unpaced atlas reads after geometry preparation', async () => {
+  const f = paintedIntake(true, true), loading = f.library.preload();
+  try {
+    await Promise.resolve();
+    expect(f.begun).toEqual([]);
+    f.finishPool(); await f.firstFour; f.finishAll(); await loading;
+    expect(f.begun).toHaveLength(6);
   } finally { f.finishPool(); f.finishAll(); await loading; f.close(); }
 });
 
