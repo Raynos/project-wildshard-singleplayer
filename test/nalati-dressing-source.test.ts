@@ -65,7 +65,7 @@ test('source dressing retains every native static and runtime plan value', () =>
       }finally{environment.dispose();}
     }
   `;
-  execFileSync(process.execPath, [...native, '--import', './scripts/generation-level.mjs', '--input-type=module', '--eval', source, '--', '--generation-shard=nalati-grasslands']);
+  execFileSync(process.execPath, [...native, '--import', './test/fixtures/authoring-shard.mjs', '--input-type=module', '--eval', source, '--', '--generation-shard=nalati-grasslands']);
 });
 
 test('source dressing needs no selected world or installed terrain', () => {

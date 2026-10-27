@@ -8,7 +8,7 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import * as v from 'valibot';
 import before from './fixtures/nalati-place-wires.json' with { type: 'json' };
 
-const native = ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--import', './scripts/generation-level.mjs'];
+const native = ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--import', './test/fixtures/authoring-shard.mjs'];
 const shard = '--generation-shard=nalati-grasslands';
 
 test('fresh native POI keep-outs preserve all original rows without selecting a world or retaining geometry', () => {
