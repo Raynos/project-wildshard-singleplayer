@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify public inputs and the original physics declaration.
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the public pack inputs before product publication.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
@@ -16,6 +16,9 @@ import { nameBlob } from '../src/sdk/blobs';
 import { originalSkyRigs } from './fixtures/sky-original-rigs';
 import { skyRigAssetSources } from '../src/shards/far-reach/generators/rigAssetSources';
 import { originalSkyOutput } from './fixtures/sky-scene-source';
+import { skyPhysics } from '../src/shards/far-reach/generators/physics';
+import { hashImmutableBytes } from '../src/sdk/immutable';
+import { discoverGeneration } from '../scripts/generate.mjs';
 
 const output = await originalSkyOutput();
 
@@ -39,7 +42,10 @@ test('moving the output entry preserves the complete original physics declaratio
   const bytes = output.platform.files.get('sections/sim/runtime-plan.json');
   if (bytes === undefined) throw new Error('Missing physics declaration');
   const value: unknown = JSON.parse(new TextDecoder().decode(bytes));
-  const baked: unknown = JSON.parse(readFileSync('src/shards/far-reach/data/physics.generated.json', 'utf8'));
+  const baked = skyPhysics(), originalWire = new TextEncoder().encode(`${JSON.stringify(baked)}\n`);
+  expect(originalWire.byteLength).toBe(277_965);
+  expect(hashImmutableBytes(originalWire)).toBe('228e72f839fc8f892c34866cbb89bb3e51b0e7a15c9f46c7dfa83ea9bf36fa02');
+  expect(discoverGeneration('.').jobs.some(row => row.id === 'sky-physics')).toBe(false);
   expect(value).toMatchObject({ baked });
 });
 

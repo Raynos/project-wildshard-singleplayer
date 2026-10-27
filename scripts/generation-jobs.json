@@ -6390,52 +6390,6 @@
       "platform": "portable"
     },
     {
-      "id": "sky-physics",
-      "shard": "far-reach",
-      "entry": "src/shards/far-reach/generators/physics.ts",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/far-reach/generators/physics.ts",
-        "skyPhysics",
-        "src/shards/far-reach/data/physics.generated.json"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format/json.ts",
-        "src/format/package.json",
-        "src/format/portalLink.ts",
-        "src/format/socketLift.ts",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/entries.ts",
-        "src/sdk/package.json",
-        "src/sdk/physics.ts",
-        "src/sdk/sceneTransform.ts",
-        "src/shards/far-reach/generators/rows/isletDesign.ts",
-        "src/shards/far-reach/generators/layout.ts",
-        "src/shards/far-reach/data/layout.generated.json",
-        "src/shards/far-reach/data/physicsRows.json",
-        "src/shards/far-reach/generators/rows/spawns.ts",
-        "src/shards/far-reach/data/strings.json",
-        "src/shards/far-reach/generators/bridgeColliders.ts",
-        "src/shards/far-reach/generators/physics.ts",
-        "src/shards/far-reach/generators/physicsPlacements.ts",
-        "src/shards/far-reach/generators/risingIslets.ts",
-        "src/shards/far-reach/generators/palette.ts"
-      ],
-      "outputs": [
-        "src/shards/far-reach/data/physics.generated.json"
-      ],
-      "platform": "portable",
-      "buildOutputs": {
-        "src/shards/far-reach/data/physics.generated.json": "228e72f839fc8f892c34866cbb89bb3e51b0e7a15c9f46c7dfa83ea9bf36fa02"
-      },
-      "seedOutputs": []
-    },
-    {
       "id": "sky-textures",
       "shard": null,
       "entry": "scripts/bake-textures.mjs",

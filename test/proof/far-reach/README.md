@@ -1,17 +1,19 @@
 # Sky Reach: authored physics (G350-FR, was DS1.5 Node-canonical)
 
-`generators/physics.ts` composes the physics product `data/physics.generated.json` from authoring inputs only (G320): the
+`generators/physics.ts` constructs the physics values directly from authoring inputs (G320): the
 island, lip, prop and bridge recipes, the species scale ranges with the creature manager's seed stream (level seed 6417,
 flyers then goats), and `data/physicsRows.json` for what no recipe computes yet (the knoll hulls, islet rails and posts,
 docks, keeper stand, crown ruin, winch house, roost nest, practice arena, each species simulation spec and the registry
 order of every piece). It runs under the authoring loader; no world, model, registry or runtime code runs. The retired
 DS1.5 bake built the world in Node; its last output matched this product in every field, byte for byte.
 
-Regenerate and compare with:
-
-```sh
-node scripts/generate.mjs --job=sky-physics --compare
-```
+GR5 F16 retires the redundant `sky-physics` scheduler publication. `skyPhysics()`
+supplies production output; `skyPhysicsActors()` supplies the same original actor
+stream to fixtures. The source oracle in `test/sky-prepared-model-boot.test.ts`
+pins the complete 277,965-byte predecessor hash and compares every field with the
+published runtime-plan section. The ignored predecessor remains held, with no
+active reader. Under G769 the retirement lands on touched types/lint; the
+historical measurements below are retained, not newly executed proofs.
 
 The official 21,134-tick gameplay journey, gale-wall restore/worker suffix and durable ledger pass with the original canonical hashes, both earned facts and 35 coins. All cached checkpoint payload hashes stay byte-identical; their input-only refresh remains the pusher's. `compatibility.json` is from that real run. Twenty focused native contracts, strict and touched typed lint pass.
 

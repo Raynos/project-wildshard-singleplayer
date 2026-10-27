@@ -23,8 +23,22 @@ function species(kind: string): (typeof rows.species)[Kind] {
   return rows.species[kind];
 }
 
-/** G350-FR: Sky's physics product from authoring inputs only: the island, lip, prop and bridge recipes, the species scale
- * ranges with the manager's seed stream, and the authored rows no recipe computes (native pieces, species, piece order). */
+/** Original native actor wire; its defining brain parser admits each spec. */
+export interface SkyPhysicsActor { readonly id: string; readonly spec: unknown; readonly seed: number; readonly scale: number }
+
+/** Retain actor order and every original random-stream draw for source-only consumers. */
+export function skyPhysicsActors(): readonly SkyPhysicsActor[] {
+  // The flyers spawn in play (ray, roost rays, wisps, then the Roc); the goats on the first fixed step after them.
+  const roster = [...SKY_SPAWNS.actors.filter(row => row.kind !== 'skyGoat'), ...SKY_SPAWNS.bosses, ...SKY_SPAWNS.actors.filter(row => row.kind === 'skyGoat')];
+  const next = stream(rows.seed + 31);
+  return roster.map(row => {
+    const made = species(row.kind), [low = 1, high = 1] = made.scale, scale = low + (high - low) * next();
+    next(); const seed = next(); next(); next(); next();
+    return { id: row.id, spec: made.spec, seed, scale };
+  });
+}
+
+/** G350-FR: original authored contact order and actor stream, constructed without a source handoff. */
 export function skyPhysics(): Record<string, unknown> {
   const pieces = new Map<string, unknown>([...skyPhysicsPlacements(), ...skyBridgePhysicsPlacements(), ...rows.pieces].map(piece => [piece.id, piece]));
   const ordered = rows.order.map(id => {
@@ -33,13 +47,5 @@ export function skyPhysics(): Record<string, unknown> {
     return piece;
   });
   if (ordered.length !== pieces.size) throw new Error('Sky physics: a piece row is missing from the authored order');
-  // The flyers spawn in play (ray, roost rays, wisps, then the Roc); the goats on the first fixed step after them.
-  const roster = [...SKY_SPAWNS.actors.filter(row => row.kind !== 'skyGoat'), ...SKY_SPAWNS.bosses, ...SKY_SPAWNS.actors.filter(row => row.kind === 'skyGoat')];
-  const next = stream(rows.seed + 31);
-  const actors = roster.map(row => {
-    const made = species(row.kind), [low = 1, high = 1] = made.scale, scale = low + (high - low) * next();
-    next(); const seed = next(); next(); next(); next();
-    return { id: row.id, spec: made.spec, seed, scale };
-  });
-  return { version: 1, profile: 'authored rows', notice: 'DO NOT EDIT: regenerate with generators/physics.ts (sky-physics).', actors, pieces: ordered };
+  return { version: 1, profile: 'authored rows', notice: 'DO NOT EDIT: regenerate with generators/physics.ts (sky-physics).', actors: skyPhysicsActors(), pieces: ordered };
 }
