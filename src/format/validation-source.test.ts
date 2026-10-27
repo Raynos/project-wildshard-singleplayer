@@ -12,6 +12,21 @@ test.each([
   expect(pause).toHaveBeenCalled();
 });
 
+test('paced receipt bytes match the direct writer over seeded random sources', async () => {
+  let seed = 7;
+  const next = (): number => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  const keys = ['a', 'B', '0', '7', '10', '01', 'z', '__proto__', 'é', '4294967295'];
+  const make = (depth: number): unknown => {
+    const pick = next();
+    if (depth > 3 || pick < 0.3) return [null, 1.5, -0, Number.NaN, 'x"\n', true, undefined][Math.floor(next() * 7)];
+    if (pick < 0.6) return Array.from({ length: Math.floor(next() * 5) }, () => make(depth + 1));
+    const row: Record<string, unknown> = {};
+    for (let i = Math.floor(next() * 6); i > 0; i--) Object.defineProperty(row, keys[Math.floor(next() * keys.length)] ?? 'k', { value: make(depth + 1), enumerable: true, writable: true, configurable: true });
+    return row;
+  };
+  for (let i = 0; i < 200; i++) { const source = make(0); expect(await validationSourceBytesPaced(source, () => Promise.resolve(), () => 0)).toEqual(validationSourceBytes(source)); }
+});
+
 test('large array receipt sorting yields before the full source is visited', async () => {
   let read = 0;
   const rows = Array.from({ length: 2000 }, (_, i) => ({ z: i, get a(): number { read++; return i; } }));

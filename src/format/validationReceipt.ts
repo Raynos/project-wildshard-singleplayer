@@ -41,50 +41,57 @@ export function validationSourceBytes(source: unknown): Uint8Array {
   };
   return new TextEncoder().encode(`${write(source) ?? 'undefined'}\n`);
 }
-interface SourceSortFrame {
-  readonly source: object;
-  readonly target: Record<string, unknown> | unknown[];
-  readonly entries?: readonly (readonly [string, unknown])[];
-  readonly values?: readonly unknown[];
-  at: number;
+/** An object's keys in the order JSON.stringify writes its key-sorted copy: index keys numerically, then the rest by code
+ *  unit. One fresh key array; it is split only when an index key is present. */
+function orderedKeys(value: object): string[] {
+  const keys = Object.keys(value);
+  let indexed = false; for (const key of keys) if (indexKey(key)) { indexed = true; break; }
+  if (!indexed) return keys.sort(byCodeUnit);
+  return [...keys.filter(indexKey).sort((a, b) => Number(a) - Number(b)), ...keys.filter(key => !indexKey(key)).sort(byCodeUnit)];
 }
+/** A value JSON.stringify writes (objects included); anything else is omitted from an object and null in an array. */
+function written(value: unknown): boolean {
+  return value === null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint' || typeof value === 'object';
+}
+interface SourceWriteFrame { readonly source: object; readonly items: readonly unknown[] | undefined; readonly keys: readonly string[]; at: number; first: boolean }
 
-/** Exact receipt bytes with the caller's paint policy and wall clock between sorting slices.
- * Native JSON encoding and a single object's key enumeration remain atomic. */
+/** Exact receipt bytes (validationSourceBytes') with the caller's paint policy and wall clock between slices of at most
+ *  128 visited values. js-heap H9: written directly, without the sorted copy and its per-key entry pairs. A single
+ *  object's key enumeration and the final encoding remain atomic. */
 export async function validationSourceBytesPaced(source: unknown, pause: () => Promise<void>, readClock: () => number): Promise<Uint8Array> {
-  const stack: SourceSortFrame[] = [];
-  const active = new Set<object>();
-  const sorted = (value: unknown): unknown => {
-    if (typeof value !== 'object' || value === null) return value;
+  const stack: SourceWriteFrame[] = [], active = new Set<object>(), none: readonly string[] = [];
+  let out = '';
+  // A leaf's text, or a container's bracket with its frame pushed.
+  const open = (value: unknown): void => {
+    if (typeof value !== 'object' || value === null) { out += JSON.stringify(value) ?? 'null'; return; }
     if (active.has(value)) throw new TypeError('Cannot serialize cyclic receipt source');
     active.add(value);
-    const target: Record<string, unknown> | unknown[] = Array.isArray(value) ? [] : {};
-    if (Array.isArray(value) && Array.isArray(target)) { target.length = value.length; stack.push({ source: value, target, values: value, at: 0 }); }
-    else stack.push({ source: value, target, entries: Object.entries(value).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0), at: 0 });
-    return target;
+    if (Array.isArray(value)) { const items: readonly unknown[] = value; out += '['; stack.push({ source: value, items, keys: none, at: 0, first: true }); }
+    else { out += '{'; stack.push({ source: value, items: undefined, keys: orderedKeys(value), at: 0, first: true }); }
   };
-  const result = sorted(source);
+  if (written(source)) open(source); else out = 'undefined';
   let start = readClock(), visited = 0;
   while (stack.length > 0) {
     const frame = stack[stack.length - 1];
     if (frame === undefined) break;
-    const at = frame.at++;
-    const entry = frame.values === undefined ? frame.entries?.[at]
-      : at < frame.values.length ? [String(at), frame.values[at]] as const : undefined;
-    if (entry === undefined) {
-      stack.pop();
-      active.delete(frame.source);
+    const at = frame.at++, items = frame.items;
+    if (at >= (items === undefined ? frame.keys.length : items.length)) {
+      stack.pop(); active.delete(frame.source); out += items === undefined ? '}' : ']';
       continue;
     }
-    const [key, value] = entry, child = sorted(value);
-    if (Array.isArray(frame.target)) frame.target[Number(key)] = child;
-    else if (key === '__proto__') Object.defineProperty(frame.target, key, { value: child, writable: true, enumerable: true, configurable: true });
-    else frame.target[key] = child;
+    if (items !== undefined) {
+      const value = items[at];
+      out += frame.first ? '' : ','; frame.first = false;
+      if (written(value)) open(value); else out += 'null';
+    } else {
+      const key = frame.keys[at] ?? '', value: unknown = Reflect.get(frame.source, key);
+      if (written(value)) { out += `${frame.first ? '' : ','}${JSON.stringify(key)}:`; frame.first = false; open(value); }
+    }
     if (++visited % 128 === 0 && readClock() - start >= 4) { await pause(); start = readClock(); }
   }
-  // Do not join final native serialization to the last sorting slice.
+  // Do not join the final encoding to the last writing slice.
   await pause();
-  return new TextEncoder().encode(`${JSON.stringify(result)}\n`);
+  return new TextEncoder().encode(`${out}\n`);
 }
 /** The build hashes the engine/game validator sources; unbundled clients always validate in full. */
 export function validationRevision(): string | null { return typeof __SHARDFILE_VALIDATOR__ === 'string' ? __SHARDFILE_VALIDATOR__ : null; }
