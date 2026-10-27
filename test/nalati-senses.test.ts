@@ -8,7 +8,7 @@ import { NativeWildEnvironment } from '../src/game/population/nativeManager';
 import { PageWildEnvironment } from '../src/game/population/pageGroups';
 
 import brains from '../src/shards/nalati-grasslands/data/brains.json' with { type: 'json' };
-import strikes from '../src/shards/nalati-grasslands/data/strikeProfiles.generated.json' with { type: 'json' };
+import strikes from './fixtures/nalati-strikeProfiles-original.json' with { type: 'json' };
 import { zlibSync } from 'fflate';
 
 type Senses = Pick<NativeWildEnvironment, 'grassHeightAt' | 'grassStandingAt' | 'playerCrouched' | 'lastShotT' | 'light' | 'storm' | 'wind'>;

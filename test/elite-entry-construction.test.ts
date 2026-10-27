@@ -30,7 +30,7 @@ import type { HUD } from '../src/engine/ui/HUD';
 import type { Audio } from '../src/engine/audio/Audio';
 import type { Music } from '../src/engine/audio/Music';
 import { strike } from '../src/sdk/species';
-import strikes from '../src/shards/nalati-grasslands/data/strikeProfiles.generated.json' with { type: 'json' };
+import strikes from './fixtures/nalati-strikeProfiles-original.json' with { type: 'json' };
 import { BorrowedElite, prepareEliteEntry, DeclaredEliteEntry, type EliteEntryLifecycle } from '../src/engine/ai/view/eliteEntry';
 import { NativeEliteController } from '../src/engine/ai/view/eliteController';
 import { parseEliteEntryPageRows, ELITE_BODY_COLUMNS, ELITE_CONDITION_COLUMNS } from '../src/format/eliteEntryRows';

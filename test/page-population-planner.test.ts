@@ -9,7 +9,7 @@ import { Scope } from '../src/engine/app/scope';
 import { zlibSync } from 'fflate';
 import {bakedSamplers} from '../src/format/bakedTerrainSampling';
 import brains from '../src/shards/nalati-grasslands/data/brains.json' with { type: 'json' };
-import strikes from '../src/shards/nalati-grasslands/data/strikeProfiles.generated.json' with { type: 'json' };
+import strikes from './fixtures/nalati-strikeProfiles-original.json' with { type: 'json' };
 
 import { Rng } from '../src/engine/core/rng';
 import type { Animal } from '../src/engine/entities/AnimalView';

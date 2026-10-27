@@ -18,7 +18,7 @@ import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import nightInput from '../src/shards/nalati-grasslands/data/night.generated.json' with {type:'json'};
 import {withWeatherWitness} from './fixtures/weatherInlineWitness';
-import strikes from '../src/shards/nalati-grasslands/data/strikeProfiles.generated.json' with { type: 'json' };
+import strikes from './fixtures/nalati-strikeProfiles-original.json' with { type: 'json' };
 
 const night=withWeatherWitness(nightInput);
 

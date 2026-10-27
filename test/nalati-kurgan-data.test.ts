@@ -1,10 +1,12 @@
+import { nalatiStrikeRows, nalatiGoldenKingRows, nalatiKurganLayout, nalatiGoldenKingPose } from '../src/shards/nalati-grasslands/generators/kurganRows';
+import pose from './fixtures/nalati-goldenKingPose-original.json' with { type: 'json' };
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { ArenaFightPageSchema } from '../src/game/boss/arenaRoom';
 import { ArenaBossProfileSchema } from '../src/format/bossProfiles';
-import layout from '../src/shards/nalati-grasslands/data/kurganLayout.generated.json' with { type: 'json' };
-import king from '../src/shards/nalati-grasslands/data/goldenKing.generated.json' with { type: 'json' };
-import strikes from '../src/shards/nalati-grasslands/data/strikeProfiles.generated.json' with { type: 'json' };
+import layout from './fixtures/nalati-kurganLayout-original.json' with { type: 'json' };
+import king from './fixtures/nalati-goldenKing-original.json' with { type: 'json' };
+import strikes from './fixtures/nalati-strikeProfiles-original.json' with { type: 'json' };
 
 const page = v.parse(v.object({ page: ArenaFightPageSchema }), king).page;
 
@@ -14,6 +16,8 @@ function positive(value: number, maximum: number): void {
 }
 
 test('Kurgan phases descend through bounded health thresholds and share the encounter frame', () => {
+  expect(nalatiStrikeRows()).toEqual(strikes); expect(nalatiGoldenKingRows()).toEqual(king);
+  expect(nalatiKurganLayout()).toEqual(layout); expect(nalatiGoldenKingPose()).toEqual(pose);
   const fight = king.profile.fight, thresholds = king.encounter.phases.map(phase => phase.at);
   expect(thresholds.length).toBeGreaterThan(1); expect(thresholds.length).toBeLessThanOrEqual(8);
   expect(thresholds[0]).toBe(1);

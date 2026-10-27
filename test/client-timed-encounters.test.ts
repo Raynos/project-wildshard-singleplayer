@@ -37,7 +37,7 @@ function fixture(retireOnRead = false) {
   lendLooks(scope, {materials: new Map(looks.map(id => [id, new MeshBasicMaterial()])), setParam: () => undefined, setTexture: () => undefined,
     bindMeshMap: () => { throw new Error('No mapped watch looks'); }, instance: () => ({material: new MeshBasicMaterial(), setParam: () => undefined})});
   const raw = v.parse(v.record(v.string(), v.unknown()), JSON.parse(readFileSync('src/shards/nalati-grasslands/data/night.generated.json', 'utf8')));
-  const strikes = v.parse(v.record(v.string(), v.unknown()), JSON.parse(readFileSync('src/shards/nalati-grasslands/data/strikeProfiles.generated.json', 'utf8')));
+  const strikes = v.parse(v.record(v.string(), v.unknown()), JSON.parse(readFileSync('test/fixtures/nalati-strikeProfiles-original.json', 'utf8')));
   const admitted = v.parse(TimedEncountersSchema, {...raw,
     presentation: 'quarry', contact: {strike: strikes['arrow'], tags: ['creature.quarry'], origin: 'actor'}});
   const script = parseDecisionScripts([admitted.program.script])[0];

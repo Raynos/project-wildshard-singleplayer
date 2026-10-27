@@ -24,10 +24,10 @@ const inputSchema = v.object({
   admission: v.looseObject({ script: v.record(v.string(), v.unknown()), bytes: v.string(), compiled: v.optional(v.unknown()), v2: v.optional(v.unknown()) }),
   strike: v.unknown(), kingPose: v.object({ programs: v.unknown(), group: v.string() }),
 });
-const strikes = v.parse(v.object({ balbal: v.unknown() }), readJson('src/shards/nalati-grasslands/data/strikeProfiles.generated.json'));
+const strikes = v.parse(v.object({ balbal: v.unknown() }), readJson('test/fixtures/nalati-strikeProfiles-original.json'));
 const metadata: unknown = { body: readJson('src/shards/nalati-grasslands/data/bodies.json'),
   admission: readJson('src/shards/nalati-grasslands/behaviour/admission.generated.json'),
-  strike: strikes.balbal, kingPose: readJson('src/shards/nalati-grasslands/data/goldenKingPose.generated.json') };
+  strike: strikes.balbal, kingPose: readJson('test/fixtures/nalati-goldenKingPose-original.json') };
 if (!v.is(inputSchema, metadata)) throw new Error('Invalid original species source metadata');
 const input: NalatiSpeciesSourceInputs = metadata;
 

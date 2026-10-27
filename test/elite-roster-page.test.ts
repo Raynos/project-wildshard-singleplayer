@@ -24,7 +24,7 @@ import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
 import { parseExternalElite } from '../src/format/eliteFeature';
 import { strike } from '../src/sdk/species';
-import strikes from '../src/shards/nalati-grasslands/data/strikeProfiles.generated.json' with { type: 'json' };
+import strikes from './fixtures/nalati-strikeProfiles-original.json' with { type: 'json' };
 
 test('a marsh roster binds its own herd, drop and identities without author callbacks', () => {
   const source = ecology.externalElites.find(row => row.mode === 'herd');

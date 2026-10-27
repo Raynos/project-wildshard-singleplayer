@@ -25,7 +25,7 @@ import { bossArena } from './fake/bossArena';
 import { SHAPES } from './fixtures/nalatiShapes';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import {titanPrograms as titan} from './fixtures/titanInlineWitness';
-import king from '../src/shards/nalati-grasslands/data/goldenKing.generated.json' with { type: 'json' };
+import king from './fixtures/nalati-goldenKing-original.json' with { type: 'json' };
 
 test('second-shard arena owns its translated floor, gate, cover and sand', () => {
  const source = structuredClone(view);

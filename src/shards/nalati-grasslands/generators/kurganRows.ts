@@ -6,6 +6,24 @@ import { KING_ENCOUNTER, KING_REWARD, KING_TUNING, KING_PORTAL } from './goldenK
 import { GOLDEN_KING_POSE } from './goldenKingPose';
 import strikeRows from '../data/strikeProfiles.json' with { type: 'json' };
 
+/** Preserve the former JSON handoff's signed-zero and absent-field semantics in owned metadata. */
+function publicationRows<T>(source: T): T {
+  const copy = structuredClone(source);
+  const visit = (value: unknown): void => {
+    if (typeof value !== 'object' || value === null) return;
+    for (const key of Object.keys(value)) {
+      const item: unknown = Reflect.get(value, key);
+      if (item === undefined) {
+        if (Array.isArray(value)) Reflect.set(value, key, null);
+        else Reflect.deleteProperty(value, key);
+      } else if (typeof item === 'number' && Object.is(item, -0)) Reflect.set(value, key, 0);
+      else visit(item);
+    }
+  };
+  visit(copy);
+  return copy;
+}
+
 const createStrikes = () => ({
   wolf: strike(strikeRows.wolf), balbal: strike(strikeRows.balbal), arrow: strike(strikeRows.arrow),
   swipe: strike(strikeRows.swipe), pounce: strike(strikeRows.pounce), bite: strike(strikeRows.bite),
@@ -16,7 +34,7 @@ const createStrikes = () => ({
 });
 
 /** Preserve every authored contact row and the original cuts-array order through strict SDK admission. */
-export function nalatiStrikeRows(): ReturnType<typeof createStrikes> { return createStrikes(); }
+export function nalatiStrikeRows(): ReturnType<typeof createStrikes> { return publicationRows(createStrikes()); }
 
 const createKing = () => {
   const strikes = nalatiStrikeRows();
@@ -36,8 +54,8 @@ const createKing = () => {
 };
 
 /** Fresh complete Golden King encounter policy, with original coordinates, tuning and strict profile admission. */
-export function nalatiGoldenKingRows(): ReturnType<typeof createKing> { return structuredClone(createKing()); }
+export function nalatiGoldenKingRows(): ReturnType<typeof createKing> { return publicationRows(createKing()); }
 /** Fresh fixed chamber coordinates and collider descriptors; no collision world is installed. */
-export function nalatiKurganLayout(): typeof layout { return structuredClone({ ...layout }); }
+export function nalatiKurganLayout(): typeof layout { return publicationRows({ ...layout }); }
 /** Fresh numeric pose DAGs from the defining authored recipe; no animation service is installed. */
-export function nalatiGoldenKingPose(): typeof GOLDEN_KING_POSE { return structuredClone(GOLDEN_KING_POSE); }
+export function nalatiGoldenKingPose(): typeof GOLDEN_KING_POSE { return publicationRows(GOLDEN_KING_POSE); }

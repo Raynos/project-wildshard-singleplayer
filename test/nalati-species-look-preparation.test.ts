@@ -17,7 +17,7 @@ const rows = v.parse(v.object({ rows: v.array(v.looseObject({ kind: v.string(), 
 const crackRow = rows.rows.find(row => row.kind === 'balbal')?.attachments?.[0]?.geometry;
 if (crackRow === undefined) throw new Error('Missing original crack geometry');
 const kingPose = v.parse(v.object({ programs: v.unknown(), group: v.string() }),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/goldenKingPose.generated.json', 'utf8')));
+  JSON.parse(readFileSync('test/fixtures/nalati-goldenKingPose-original.json', 'utf8')));
 
 test('source look preparation preserves the complete original metadata and JSON assignment order', () => {
   const made = prepareNalatiSpeciesLooks(compactBody, kingPose, crackRow);

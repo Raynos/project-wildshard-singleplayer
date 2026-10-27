@@ -10,7 +10,7 @@ import bossPresentation from '../src/shards/pine-hollow/data/bossPresentation.js
 import { bossEncounterPresentation } from '@wildshard/format/bossEncounter';
 import { mockCanvas } from '@wildshard/engine/test/weaponParity';
 import titan from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
-import king from '../src/shards/nalati-grasslands/data/goldenKing.generated.json' with { type: 'json' };
+import king from './fixtures/nalati-goldenKing-original.json' with { type: 'json' };
 
 const ANTLER_KING_PRESENTATION = bossEncounterPresentation(bossPresentation, bossRows);
 
