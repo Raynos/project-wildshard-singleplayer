@@ -17,9 +17,7 @@ const cover = nalatiCover.rows;
 // assertions; compiler/native setup failures still refuse collection.
 const nalatiEnvelope=await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
     { prefix: '/src/shards/nalati-grasslands/', directory: 'src/shards/nalati-grasslands' },
-    { prefix: '/assets/nalati/baked/', directory: 'public/assets/nalati/baked' },
-    { prefix: '/assets/nalati/models/', directory: 'public/assets/nalati/models' },
-    { prefix: '/assets/baked/nalati-grasslands/', directory: 'public/assets/baked/nalati-grasslands' },
+    { prefix: '/assets/', directory: 'public/assets' },
   ] });
 
 test('prepared ambient rows keep both tier populations and finite flight at 10 Hz', () => {
