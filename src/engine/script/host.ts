@@ -28,13 +28,18 @@ export interface ScriptEventDelivery { targets: ReadonlySet<number>; consume: Re
 /** Results expose validated requests only after the atomic world-state transaction succeeds. */
 export interface ScriptCall { ok: boolean; effects: readonly ScriptEffect[]; events: readonly ScriptEvent[]; fuel: number; reason: string | undefined; disabled: boolean }
 /** Host dependencies are explicitly installed; no import creates an instance or changes a service. */
-export interface ScriptHostOptions { world: ScriptWorld; query: ScriptQuery; limits?: Partial<ScriptLimits>; development?: boolean; toast?: (text: string) => void; onDisabled?: (disabled: ScriptDisabled) => void }
+export interface ScriptHostOptions {
+  world: ScriptWorld; query: ScriptQuery; limits?: Partial<ScriptLimits>; development?: boolean; toast?: (text: string) => void; onDisabled?: (disabled: ScriptDisabled) => void;
+  /** A call's effect records (and their list) are refilled by the module's next call: for a caller that reads them
+   * only before calling that module again (a presentation lane); anything kept must be copied. */
+  transientEffects?: boolean;
+}
 /** A module crossed its failure limit and stays switched off (G168): told once per module, never on a restored checkpoint. */
 export interface ScriptDisabled { module: string; entity: string; reason: string; failures: number }
 interface Layout { input: number; inputBytes: number; output: number; outputRecords: number }
 interface Running { memory: WebAssembly.Memory; instance: WebAssembly.Instance }
 interface OwnedSnapshot { memory: Uint8Array; globals: Map<string, number | bigint> }
-interface ModuleState { bytes: Uint8Array; admission: ScriptAdmission; maximumPages: number; running: Running | undefined; layout: Layout; good: OwnedSnapshot; spare?: OwnedSnapshot; failures: number; disabled: boolean; remaining: number; depth: number; entity: number; busy: boolean }
+interface ModuleState { bytes: Uint8Array; admission: ScriptAdmission; maximumPages: number; running: Running | undefined; layout: Layout; good: OwnedSnapshot; spare?: OwnedSnapshot; records?: ScriptEffect[]; failures: number; disabled: boolean; remaining: number; depth: number; entity: number; busy: boolean }
 function integer(n: number, min: number, max: number): boolean { return Number.isSafeInteger(n) && n >= min && n <= max; }
 interface PreparedMemory { initial: number; maximum: number; memory: WebAssembly.Memory }
 const preparedMemories = new Map<Scope, PreparedMemory[]>();
@@ -397,9 +402,13 @@ export class ScriptHost {
       // on_tick may have grown memory: read the records through the current buffer.
       const view = float64(currentRunning.memory); let effects = NO_EFFECTS;
       if (count > 0) {
-        const records: ScriptEffect[] = [];
-        for (let i = 0; i < count; i++) { const record = out + i * 5; records.push({ op: view[record] ?? Number.NaN, a: view[record + 1] ?? Number.NaN, b: view[record + 2] ?? Number.NaN, c: view[record + 3] ?? Number.NaN, d: view[record + 4] ?? Number.NaN }); }
-        effects = records;
+        const records: ScriptEffect[] = this.options.transientEffects === true ? (state.records ??= []) : [];
+        for (let i = 0; i < count; i++) {
+          const record = out + i * 5, op = view[record] ?? Number.NaN, a = view[record + 1] ?? Number.NaN, b = view[record + 2] ?? Number.NaN, c = view[record + 3] ?? Number.NaN, d = view[record + 4] ?? Number.NaN;
+          const kept = records[i];
+          if (kept === undefined) records[i] = { op, a, b, c, d }; else { kept.op = op; kept.a = a; kept.b = b; kept.c = c; kept.d = d; }
+        }
+        records.length = count; effects = records;
       }
       const eventAllowance = Math.min(this.limits.events - this.used.events, this.limits.events - this.pending.length);
       const tx = this.world.prepare(effects, entity, this.limits.spawns - this.used.spawns, eventAllowance);
