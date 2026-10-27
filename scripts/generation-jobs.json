@@ -6058,48 +6058,6 @@
       ]
     },
     {
-      "id": "pine-elite-behaviours",
-      "shard": "pine-hollow",
-      "entry": "src/shards/pine-hollow/generators/bake-elite-behaviours.mjs",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/pine-hollow/generators/bake-elite-behaviours.mjs"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format",
-        "src/sdk",
-        "src/shards/pine-hollow/behaviour/elites",
-        "src/shards/pine-hollow/generators/eliteFeatureRows.ts",
-        "src/shards/pine-hollow/generators/eliteRoster.ts",
-        "src/shards/pine-hollow/generators/strikes.ts",
-        "src/shards/pine-hollow/generators/bake-elite-behaviours.mjs",
-        "src/shards/pine-hollow/generators/eliteHomes.ts",
-        "src/shards/pine-hollow/generators/layout.ts",
-        "src/shards/pine-hollow/data/identity.json",
-        "src/sdk/decisionScriptBindings.ts",
-        "src/format/scriptAbiV1.ts",
-        "src/format/decisionScripts.ts"
-      ],
-      "outputs": [
-        "src/shards/pine-hollow/behaviour/elites.generated.json",
-        "src/shards/pine-hollow/assets/07e4f0acd5b87eb0bdde6999a0ee9c0a76010ef0bddd24b35243c99223f991bd",
-        "src/shards/pine-hollow/assets/53d3007c63bd197a18e90abed561168aa62d821384fb141a09320584011da724",
-        "src/shards/pine-hollow/assets/ce7e87bc87794cd73bf3e05f22b1e23ec0bef76ad57ebb741cdbd59114f19168",
-        "src/shards/pine-hollow/assets/f90210be0b9d5387d062a6249409071e18fa170d1893ec86abdf8d1ff2ca7234"
-      ],
-      "platform": "portable",
-      "buildOutputs": {
-        "src/shards/pine-hollow/behaviour/elites.generated.json": "5240e8d4a3a5e41d927462fc3b19975986b26fab30e34e80ae8fed2b4d36bf8b",
-        "src/shards/pine-hollow/assets/07e4f0acd5b87eb0bdde6999a0ee9c0a76010ef0bddd24b35243c99223f991bd": "07e4f0acd5b87eb0bdde6999a0ee9c0a76010ef0bddd24b35243c99223f991bd",
-        "src/shards/pine-hollow/assets/53d3007c63bd197a18e90abed561168aa62d821384fb141a09320584011da724": "53d3007c63bd197a18e90abed561168aa62d821384fb141a09320584011da724",
-        "src/shards/pine-hollow/assets/ce7e87bc87794cd73bf3e05f22b1e23ec0bef76ad57ebb741cdbd59114f19168": "ce7e87bc87794cd73bf3e05f22b1e23ec0bef76ad57ebb741cdbd59114f19168",
-        "src/shards/pine-hollow/assets/f90210be0b9d5387d062a6249409071e18fa170d1893ec86abdf8d1ff2ca7234": "f90210be0b9d5387d062a6249409071e18fa170d1893ec86abdf8d1ff2ca7234"
-      }
-    },
-    {
       "id": "nalati-recurve-pool",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-recurve-pool.mjs",

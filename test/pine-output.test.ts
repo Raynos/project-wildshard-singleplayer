@@ -2,7 +2,7 @@
 import {createHash} from 'node:crypto';
 import {parseSpawnScript, SpawnScriptsSchema} from '../src/format/spawnScripts';
 import {parseEliteFeature} from '../src/format/eliteFeature';
-import elites from '../src/shards/pine-hollow/behaviour/elites.generated.json' with {type:'json'};
+import { PINE_ELITES as elites } from './fixtures/pine-elites';
 import {outputPlatformPayloads} from '../src/sdk/outputProduct';
 import {HeldEquipmentSchema} from '../src/format/heldEquipment';
 import {expect,test} from 'vitest';

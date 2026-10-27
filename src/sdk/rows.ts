@@ -2,6 +2,9 @@ import { RowsSchema as GameRowsSchema, parseRows as gameParseRows, type ShardRow
 import { isJsonData as gameIsJsonData } from '@wildshard/format/json';
 import { parseItems as gameParseItems, type ShardItems as GameShardItems } from '@wildshard/format/items';
 import { parseClientChannels as gameParseClientChannels, type ClientChannelProgram as GameClientChannelProgram } from '@wildshard/format/clientChannels';
+import { parseEliteFeature as gameParseEliteFeature, type EliteFeatureRows as GameEliteFeatureRows } from '@wildshard/format/eliteFeature';
+import { spawnScriptRegistries as gameSpawnScriptRegistries } from '@wildshard/format/spawnScripts';
+import type { DecisionRegistries as GameDecisionRegistries } from '@wildshard/format/decisionBindings';
 
 /** Numeric row declarations and registered view/presentation recipes. */
 export type ShardRows = GameShardRows;
@@ -19,3 +22,11 @@ export function parseItems(input: unknown): ShardItems { return gameParseItems(i
 export type ClientChannelProgram = GameClientChannelProgram;
 /** Validate client channel programs before they are serialized. */
 export function parseClientChannels(input: unknown): ClientChannelProgram[] { return gameParseClientChannels(input); }
+/** One admitted elite encounter feature (its fights and their spawn programs). */
+export type EliteFeature = GameEliteFeatureRows;
+/** Validate an elite feature before it is serialized or its fights compiled. */
+export function parseEliteFeature(input: unknown): EliteFeature { return gameParseEliteFeature(input); }
+/** The registry ids a spawn program's generated ABI header uses (GR8: a shard program compiles its guests with them). */
+export function spawnRegistries(program: Parameters<typeof gameSpawnScriptRegistries>[0]): DecisionRegistries { return gameSpawnScriptRegistries(program); }
+/** A decision script's registry ids by kind. */
+export type DecisionRegistries = GameDecisionRegistries;

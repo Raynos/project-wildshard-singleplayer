@@ -14,7 +14,7 @@ import { DayCycle } from '../src/engine/world/dayCycle';
 import { keyedSkyDaySpec } from '../src/game/looks/keyedSkyClock';
 import PINE_SKY from '../src/shards/pine-hollow/data/sky.json' with { type: 'json' };
 import { PINE_SPECIES_PROGRAMS } from '../src/shards/pine-hollow/generators/speciesPrograms';
-import data from '../src/shards/pine-hollow/behaviour/elites.generated.json' with { type: 'json' };
+import { PINE_ELITES as data, PINE_ELITE_MODULES } from './fixtures/pine-elites';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { Rng } from '../src/engine/core/rng';
 
@@ -34,7 +34,9 @@ async function fixture() {
   const admitted = structuredClone(data);
   for (const fight of admitted.fights) {
     const hash = fight.program.script.module.slice('blobs/wasm/'.length, -'.wasm'.length);
-    fight.program.bytes = readFileSync(`src/shards/pine-hollow/assets/${hash}`).toString('base64');
+    const bytes = PINE_ELITE_MODULES.get(hash);
+    if (bytes === undefined) throw new Error(`Missing compiled elite ${hash}`);
+    fight.program.bytes = Buffer.from(bytes).toString('base64');
   }
   const feature = installNativeEliteFeature(host, day, admitted); feature.initialize();
   return { host, feature };

@@ -21,7 +21,8 @@ import coverAppearance from '../data/coverAppearance.json' with { type: 'json' }
 import { parseQuestServiceActions, QuestServiceActionsSchema } from '@wildshard/format/questSteps';
 import keyedSky from '../data/keyedSky.generated.json' with { type: 'json' };
 import skyKeyBlobs from '../data/skyKeyBlobs.generated.json' with { type: 'json' };
-import elites from '../behaviour/elites.generated.json' with {type:'json'};
+import { ELITE_FEATURE_ROWS } from './eliteFeatureRows';
+import { parseEliteFeature, spawnRegistries } from '@wildshard/sdk/rows';
 import strings from '../data/strings.json' with { type: 'json' };
 import clientPlan from '../data/clientPlan.json' with { type: 'json' };
 import { WORLD_SCENES, SCENE_BLOBS, SCENE_MODEL_BLOBS } from './worldScenes';
@@ -110,16 +111,13 @@ v.parse(CabinSeedsSchema, timbers.cabins.seeds);
 v.parse(PoolGroundSchema, timbers.poolGround);
 const cabinAppearance = { CABIN_LIFE,CABIN_LIGHT,HEARTH_LOOKS };
 const counterRows = { ...PINE_FEAT_COUNTERS, feats: PINE_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
-function eliteCatalogueFight(fight: typeof elites.fights[number]) { return { ...fight, program: { ...fight.program, bytes: '' } }; }
-const eliteFights = elites.fights.map(eliteCatalogueFight);
-const elitePrograms = eliteFights.map(fight => fight.program);
 const paintedRows=PINE_OUTPUT.custom['custom/paintedTextures'];
 const coverTextureIds=new Set([...coverAppearance.kinds.map(row=>row.texture),'endGrain','glow']);
 const coverTextures=Object.fromEntries(Object.entries(paintedRows.textures).filter(([key])=>coverTextureIds.has(key)));
 const collectionTextures=Object.fromEntries(Object.entries(paintedRows.textures).filter(([key])=>!coverTextureIds.has(key)));
 const forestDensity = pineDensityBlob(manifest);
 const clientJson: ReturnType<typeof emitNamedBlobs>=emitNamedBlobs([nameBlob(forestDensity.name, 'bin', forestDensity.bytes, { critical: true, decoded: forestDensity.decoded }), nameBlob('world/forest-weather.json', 'json', new TextEncoder().encode(encodeCanonicalJson(forestWeather))), FOREST_STORY_BLOB, PINE_QUEST_PAGE_BLOB, CROSSBOW_BLOB, nameBlob('data/physics.generated.json', 'json', pinePhysicsBytes(), { jsonSchema: namedJsonSchema(PinePhysicsSchema) }), nameBlob('quests/native-story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_NATIVE_QUEST)), { jsonSchema: namedJsonSchema(NativeQuestCompositionSchema) }), nameBlob('quests/native-spots.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseNativeQuestServiceSpots({ rows: spots.rows, people: spots.people, board: spots.board, pickup: spots.rifle, cable: spots.zip, signals: spots.lanterns }))), { jsonSchema: namedJsonSchema(NativeQuestServiceSpotsSchema) }), ...RANGED_PAGE_BLOBS, FOREST_PAGE_BLOB, LANDMARK_VIEW_BLOB, ROAMING_COMBAT_BLOB,
-nameBlob('look/cover-appearance.json','json',new TextEncoder().encode(encodeCanonicalJson(parseCoverAppearance({...coverAppearance,textures:coverTextures})))),nameBlob('actors/elites.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...elites, fights: eliteFights }))),...SCENE_BLOBS,nameBlob('quests/persistence.json','json',new TextEncoder().encode(encodeCanonicalJson(persistence))),
+nameBlob('look/cover-appearance.json','json',new TextEncoder().encode(encodeCanonicalJson(parseCoverAppearance({...coverAppearance,textures:coverTextures})))),...SCENE_BLOBS,nameBlob('quests/persistence.json','json',new TextEncoder().encode(encodeCanonicalJson(persistence))),
   nameBlob('look/wildlife-draw.json', 'json', new TextEncoder().encode(encodeCanonicalJson(WILDLIFE_DRAW))),
   nameBlob('sim/headless-assembly.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...headlessAssembly, constants: { terrain: PINE_TERRAIN, entries: headlessEntries, environment: POPULATION_ENVIRONMENT } }))),
   nameBlob('quests/chapter-director.json', 'json', new TextEncoder().encode(encodeCanonicalJson(CHAPTER_DIRECTOR))),
@@ -242,18 +240,53 @@ async function clockDirector(ctx: ProjectGenerationContext) {
   return blob;
 }
 
+/** GR8: the four elite fights' guests, compiled as the retired bake-elite-behaviours.mjs did (one fight at a time, each
+ *  with its program's spawn registries); actors/elites.json and actors/spawn-scripts carry the compiled rows, no bytes. */
+async function eliteModules(ctx: ProjectGenerationContext) {
+  const compiler = ctx.compileDecisionRows;
+  if (compiler === undefined) throw new Error('Pine elites need decision-row compilation');
+  const sources = ['common', 'ironhide', 'ghost', 'blackpaw', 'imperial'].map(name => `behaviour/elites/${name}.as`);
+  const ids = ELITE_FEATURE_ROWS.fights.map(fight => fight.def.id);
+  const files = await ctx.cached({ id: 'elite-programs', inputs: sources }, async inputs => {
+    const authored = new Map([...inputs].map(([file, bytes]) => [file, new TextDecoder('utf-8', { fatal: true }).decode(bytes)]));
+    const out = new Map<string, Uint8Array>();
+    for (const fight of ELITE_FEATURE_ROWS.fights) {
+      const rows = parseEliteFeature({ ...ELITE_FEATURE_ROWS, fights: [fight] }).fights[0];
+      if (rows === undefined) throw new Error(`Missing Pine elite ${fight.def.id}`);
+      const built = await compiler([rows.program.script], spawnRegistries(rows.program), authored, { asLineCeiling: 2130 });
+      const row = built.rows[0], blob = built.blobs[0];
+      if (row === undefined || blob === undefined || built.rows.length !== 1 || built.blobs.length !== 1 || blob.file.path !== row.module) throw new Error(`Missing compiled Pine elite ${fight.def.id}`);
+      out.set(`${fight.def.id}.wasm`, blob.bytes).set(`${fight.def.id}.json`, new TextEncoder().encode(encodeCanonicalJson(row)));
+    }
+    return out;
+  });
+  if (files.size !== ids.length * 2) throw new Error('Pine elite program inventory differs');
+  const blobs = [], fights = [];
+  for (const fight of ELITE_FEATURE_ROWS.fights) {
+    const bytes = files.get(`${fight.def.id}.wasm`), row = files.get(`${fight.def.id}.json`);
+    if (bytes === undefined || row === undefined) throw new Error(`Missing Pine elite ${fight.def.id} bytes`);
+    const script: unknown = JSON.parse(new TextDecoder().decode(row));
+    const blob = nameBlob(`behaviour/elites/${fight.def.id}.wasm`, 'wasm', bytes, { critical: true, script: { abi: 1, pages: 1 } });
+    if (typeof script !== 'object' || script === null || !('module' in script) || script.module !== blob.file.path) throw new Error(`Pine elite ${fight.def.id} module differs from its row`);
+    blobs.push(blob); fights.push({ ...fight, program: { ...fight.program, script, bytes: '' } });
+  }
+  const feature = parseEliteFeature({ ...ELITE_FEATURE_ROWS, fights });
+  blobs.push(nameBlob('actors/elites.json', 'json', new TextEncoder().encode(encodeCanonicalJson(feature))));
+  return { files: emitNamedBlobs(blobs), programs: feature.fights.map(fight => fight.program) };
+}
+
 /** Preserve the original named inventory and its ordering while compiling both existing slots. */
 export async function prepareOutput(ctx: ProjectGenerationContext): Promise<typeof output> {
   const shelter = await returnModule(ctx, 'shelter');
-  const life = await returnModule(ctx, 'life'), birds = await phoneBirdsAtlasOutput(ctx), client = await pineClientBlobs(ctx), creatures = await pineCreatureBlobs(ctx), rigs = await pineRigBlobs(ctx), contracts = await contractModule(ctx), night = await nightModule(ctx), clock = await clockDirector(ctx);
+  const life = await returnModule(ctx, 'life'), birds = await phoneBirdsAtlasOutput(ctx), client = await pineClientBlobs(ctx), creatures = await pineCreatureBlobs(ctx), rigs = await pineRigBlobs(ctx), contracts = await contractModule(ctx), night = await nightModule(ctx), clock = await clockDirector(ctx), elites = await eliteModules(ctx);
   const lifeProgram = { script: life.script, bytes: '' };
   const programs = emitNamedBlobs([nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...PAGE_LIFE, program: lifeProgram }))),
     nameBlob('actors/shelter.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ step: 'pine.rain-shelter', environment: 'pine.habitat', roster: 'pine.roster', weather: 'pine.air', herdLimit: 512, look: shelterLook, program: { script: shelter.script, bytes: '' } })))]);
-  const namedFiles = [...output.namedFiles, life.file, ...birds.files, ...client.files, ...creatures.files, ...rigs.files, ...contracts.files.files, ...programs.files, night.blob.file, clock.file].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
-  const assets = new Map([...output.assets, ...birds.assets, ...client.assets, ...creatures.assets, ...rigs.assets, ...contracts.files.assets, ...programs.assets, [night.blob.file.hash, night.blob.bytes], [clock.file.hash, clock.bytes]]);
+  const namedFiles = [...output.namedFiles, life.file, ...birds.files, ...client.files, ...creatures.files, ...rigs.files, ...contracts.files.files, ...programs.files, ...elites.files.files, night.blob.file, clock.file].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
+  const assets = new Map([...output.assets, ...birds.assets, ...client.assets, ...creatures.assets, ...rigs.assets, ...contracts.files.assets, ...programs.assets, ...elites.files.assets, [night.blob.file.hash, night.blob.bytes], [clock.file.hash, clock.bytes]]);
   assets.set(life.file.hash, life.bytes);
   const sortedAssets = [...assets].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
-  const platform = emitPlatformSections(new Map<PlatformDataSectionName, unknown>([...PLATFORM_ROWS, ['actors/return-scripts', [life.script, shelter.script, contracts.script]], ['actors/spawn-scripts', [night.row, ...elitePrograms]]]));
+  const platform = emitPlatformSections(new Map<PlatformDataSectionName, unknown>([...PLATFORM_ROWS, ['actors/return-scripts', [life.script, shelter.script, contracts.script]], ['actors/spawn-scripts', [night.row, ...elites.programs]]]));
   const customRows = emitCustom(new Map([['custom/questRuntime', { ...PINE_QUEST_PAYLOAD, lead: { ...PINE_QUEST_PAYLOAD.lead, program: lifeProgram } }]]));
   return { ...output, platform, custom: customRows, namedFiles: [...namedFiles, shelter.file], assets: new Map([...sortedAssets, [shelter.file.hash, shelter.bytes]]) };
 }

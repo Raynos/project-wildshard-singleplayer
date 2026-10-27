@@ -1,4 +1,3 @@
-import elites from '../behaviour/elites.generated.json' with {type:'json'};
 import { PINE_HELD_BOW } from './longbow';
 import { HANDS_MATERIAL, COAT_MATERIAL } from './handsLook';
 import {parseClientChannels,parsePrivateScene} from '@wildshard/format/clientChannels';
@@ -54,8 +53,7 @@ function checkPrograms(value:unknown):void{
 }
 for(const value of [playback,inputs,sights,leverPlayback,toolPlayback])checkPrograms(value);
 /** Authored input rows, never imported by a client runtime. */
-export const PINE_OUTPUT: { blobs: ((typeof journal.blobs)[number] | (typeof king.blobs)[number] | (typeof birds.blobs)[number] | (typeof streams.blobs)[number] | { name: string; kind: "wasm"; source: string; options: { critical: boolean; script: { abi: 1; pages: number; }; }; } | { name: string; kind: "wasm"; source: string; options: { script: { abi: 0; }; }; })[]; custom: typeof values; }={
- blobs:[...journal.blobs,...king.blobs,...birds.blobs,...streams.blobs,
- ...elites.fights.map(fight => ({name:`behaviour/elites/${fight.def.id}.wasm`,kind:'wasm' as const,source:`assets/${fight.program.script.module.slice('blobs/wasm/'.length, -'.wasm'.length)}`,options:{critical:true,script:{abi:1 as const,pages:1}}}))],
+export const PINE_OUTPUT: { blobs: ((typeof journal.blobs)[number] | (typeof king.blobs)[number] | (typeof birds.blobs)[number] | (typeof streams.blobs)[number])[]; custom: typeof values; }={
+ blobs:[...journal.blobs,...king.blobs,...birds.blobs,...streams.blobs],
  custom:values,
 };
