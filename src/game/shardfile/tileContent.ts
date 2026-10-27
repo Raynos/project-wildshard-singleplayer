@@ -90,9 +90,9 @@ export function compactResident(ranges: TileRanges, resident: ReadonlySet<number
   return written;
 }
 
-/** The tiles within `radius` tiles (Chebyshev) of `centre`, clipped to the cell; radius 8 or more is the whole cell. */
+/** Entered content stays within the approved 5 x 5 ring; no whole-cell override (G669/G747). */
 export function ring(centre: CellTile, radius: number): Set<number> {
-  if (!Number.isInteger(radius) || radius < 0) throw new RangeError('A ring radius is a whole number of tiles');
+  if (!Number.isInteger(radius) || radius < 0 || radius > 2) throw new RangeError('An entered ring radius is 0, 1 or 2 tiles');
   const keys = new Set<number>();
   for (let j = Math.max(0, centre.j - radius); j <= Math.min(TILES_PER_SIDE - 1, centre.j + radius); j++)
     for (let i = Math.max(0, centre.i - radius); i <= Math.min(TILES_PER_SIDE - 1, centre.i + radius); i++) keys.add(tileKey({ i, j }));

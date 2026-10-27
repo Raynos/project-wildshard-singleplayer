@@ -32,9 +32,10 @@ test('the rank-0 tiles attach before controls, then the 5 x 5 fills nearest firs
     await settle(driver, 10, -30, 80);
     expect(driver.resident('render').size).toBe(25); expect(driver.resident('render').has(4)).toBe(false);
     expect(made.attached.has('r4')).toBe(false); expect(made.attached.has('c4')).toBe(false);
-    // T5's whole cell: every tile
-    radius.value = 8; await settle(driver, 10, -30, 140);
-    expect(driver.resident('render').size).toBe(64);
+    // T10 retires the old whole-cell override; the current residents stay owned.
+    radius.value = 8;
+    expect(() => driver.step(10, -30)).toThrow('0, 1 or 2');
+    expect(driver.resident('render').size).toBe(25);
   } finally { scope.dispose(); }
   expect(made.attached.size).toBe(0);
 });

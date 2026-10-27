@@ -41,7 +41,7 @@ test('T3: instances sort by tile; the resident tiles compact to the front, one d
 test('T3: the ring clips to the cell; the followed tile waits out its hysteresis', () => {
   expect(ring({ i: 0, j: 0 }, 1).size).toBe(4);
   expect(ring({ i: 4, j: 4 }, 2).size).toBe(25);
-  expect(ring({ i: 4, j: 4 }, 8).size).toBe(64);
+  expect(() => ring({ i: 4, j: 4 }, 8)).toThrow('0, 1 or 2');
   const start = followTile(null, 1, 1);
   expect(start).toEqual({ i: 4, j: 4 });
   // 1 m over the edge into the next tile: stays; 5 m in: moves

@@ -8,8 +8,8 @@
  *   await driver.require(order.tiles.filter(tile => order.rank(tile) === 0).map(tileKey));   // before controls
  *   ctx.system({ id, phase: 'update', run: () => { driver.step(local.x, local.z); } });       // the rest, nearest first
  *
- * One tile attaches at a time; a tile that fails stays out (it is reported once, never retried in a loop). A radius of
- * 8 or more is the whole cell: every tile attached.
+ * One tile attaches at a time; a tile that fails stays out (it is reported once, never retried in a loop).
+ * The entered ring is at most 5 x 5; the former whole-cell override is retired (G669/G747).
  */
 import type { Scope } from '@wildshard/engine/app/scope';
 import { frameBudgetSpent } from '@wildshard/engine/core/framePacing';
