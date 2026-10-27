@@ -9,7 +9,7 @@
 //
 //   scripts/browser-lane.sh node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs \
 //     src/shards/pine-hollow/generators/bake-pine-painted.mjs [--check]
-import { createHash } from 'node:crypto';
+import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { build } from 'vite';
@@ -110,7 +110,7 @@ const painted = await page(), files = { ...painted.textures, ...(await coat()) }
 if (!check) mkdirSync(OUT, { recursive: true });
 const textures = {}, keep = new Set();
 for (const [key, { bytes, ext }] of Object.entries(files).sort(([a], [b]) => a.localeCompare(b))) {
-  const name = NAME[key] ?? key, file = `${name}-${createHash('sha256').update(bytes).digest('hex')}.${ext}`;
+  const name = NAME[key] ?? key, file = `${name}-${hashImmutableBytes(bytes)}.${ext}`;
   publish(resolve(OUT, file), bytes); keep.add(file);
   textures[name] = { url: `/assets/pine-hollow/painted/${file}`, ...LOOK[key] };
   console.log(`bake-pine-painted: ${file} ${String(bytes.length)} B`);
