@@ -26,7 +26,8 @@ import { assertHeavyLease } from './scripts/heavy-lane-lease.mjs';
 // emitted as /version.json so the running app can tell when the server has a newer build
 // (iOS home-screen PWAs have no address bar, so the title screen offers the reload).
 function buildId(): string {
-  let sha = (process.env.VERCEL_GIT_COMMIT_SHA ?? '').slice(0, 7);
+  const { VERCEL_GIT_COMMIT_SHA: commitSha } = process.env;
+  let sha = (commitSha ?? '').slice(0, 7);
   try { sha ||= execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch { /* not a git checkout */ }
   return `${sha || 'b'}-${Date.now().toString(36)}`;
 }
@@ -85,8 +86,7 @@ const nativePlugin = (): Plugin => ({
   closeBundle() { for (const f of ['trailer-15.mp4', 'trailer-30.mp4']) rmSync(join('dist-native', f), { force: true }); },
 });
 
-function buildValidationReceipts(revision: string): unknown[] {
-  const directory = 'out';
+export function buildValidationReceipts(revision: string, directory = 'out'): unknown[] {
   if (!existsSync(directory)) return [];
   const receipts: unknown[] = [];
   for (const entry of readdirSync(directory,{withFileTypes:true}).sort((a,b)=>a.name.localeCompare(b.name))) {
@@ -96,7 +96,8 @@ function buildValidationReceipts(revision: string): unknown[] {
     const bytes=readFileSync(sourcePath),index:unknown=JSON.parse(bytes.toString('utf8')),receipt:unknown=JSON.parse(readFileSync(receiptPath,'utf8'));
     if(typeof index!=='object'||index===null||!('format' in index)||index.format!=='wildshard.shardfile'||!('formatVersion' in index)||index.formatVersion!==2||!('build' in index)||typeof index.build!=='object'||index.build===null||!('sourceHash' in index.build)||typeof index.build.sourceHash!=='string')throw new Error(`Invalid validated output index: ${entry.name}`);
     if(typeof receipt!=='object'||receipt===null||!('revision' in receipt)||receipt.revision!==revision||!('indexHash' in receipt)||receipt.indexHash!==createHash('sha256').update(bytes).digest('hex')||!('sourceHash' in receipt)||receipt.sourceHash!==index.build.sourceHash)throw new Error(`Stale output validation receipt: ${entry.name}`);
-    receipts.push(receipt);
+    receipts.push({ revision: receipt.revision, sourceHash: receipt.sourceHash, indexHash: receipt.indexHash,
+      ...('worst' in receipt ? { worst: receipt.worst } : {}) });
   }
   return receipts;
 }
