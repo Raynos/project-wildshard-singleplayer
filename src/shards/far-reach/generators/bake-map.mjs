@@ -7,6 +7,7 @@ import { BRIDGE_REST_INPUTS, skyBridgeRestSource } from './bridgeRestProgram.ts'
 import { MILL_REST_INPUTS, skyMillRestSource } from './millRestProgram.ts';
 import { STATIC_SCENE_INPUTS, skyStaticSceneSource } from './staticSceneProgram.ts';
 import { skyRouteSceneSource } from './routeSceneProgram.ts';
+import { skyVaneSource, VANE_INPUTS } from './vaneProgram.ts';
 
 // The registered sealed runner starts at its workspace root. Native model
 // reads remain confined to the source program's explicit declared URL list.
@@ -36,4 +37,10 @@ const millInputs = new Map(MILL_REST_INPUTS.map(url => [url,
 const mill = await skyMillRestSource(millInputs), millGeometry = mill.get('mill-rest.glb');
 if (millGeometry === undefined) throw new Error('Missing owned map mill input');
 sources.set('../../../public/assets/far-reach/baked/mill-rest.glb', millGeometry);
+const vaneInputs = new Map(VANE_INPUTS.map(url => [url,
+  new Uint8Array(readFileSync(new URL(`../../../../public${url}`, import.meta.url)))]));
+for (const [file, bytes] of await skyVaneSource(vaneInputs)) {
+  const part = file === 'vane-post.glb' ? 'post' : 'rotor';
+  sources.set(`../../../public/assets/far-reach/models/wind-vane/${part}.glb`, bytes);
+}
 await paintDataMap(process.cwd(), 'far-reach', { sources });

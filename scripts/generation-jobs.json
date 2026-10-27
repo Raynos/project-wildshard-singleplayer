@@ -9673,8 +9673,6 @@
         "src/shards/far-reach/data/layout.generated.json",
         "src/shards/far-reach/generators",
         "src/shards/far-reach/data/islets.generated.json",
-        "public/assets/far-reach/models/wind-vane/post.glb",
-        "public/assets/far-reach/models/wind-vane/rotor.glb",
         "src/shards/far-reach/data/crownInstances.generated.json",
         "src/shards/far-reach/data/restScenes.generated.json",
         "src/shards/far-reach/data/restPools.generated.json",
@@ -9928,7 +9926,10 @@
         "src/shards/far-reach/generators/bridgeSine.ts",
         "src/shards/far-reach/generators/bridges.ts",
         "src/shards/far-reach/generators/modelFrames.ts",
-        "src/shards/far-reach/generators/routeSceneProgram.ts"
+        "src/shards/far-reach/generators/routeSceneProgram.ts",
+        "public/assets/far-reach/models/wind-vane/wind-vane.glb",
+        "src/shards/far-reach/generators/vaneProgram.ts",
+        "src/shards/far-reach/generators/vane.ts"
       ],
       "outputs": [
         "public/assets/far-reach/map/top.webp",

@@ -62,7 +62,7 @@ test('owned geometry preserves all original bytes and costs, changing only its s
       compressed: 10_134_100, decoded: 10_134_072, gpu: 10_096_780, triangles: 203_025, draws: 48, critical: false, dependencies: [] });
     const bytes = owned.assets.get(hash); if (bytes === undefined) throw new Error('Missing owned GLB bytes');
     expect(Buffer.compare(bytes, original)).toBe(0);
-    expect(owned.namedFiles).toHaveLength(output.namedFiles.length + 19);
+    expect(owned.namedFiles).toHaveLength(output.namedFiles.length + 21);
     for (const file of output.namedFiles) {
       if (file.name === heroName || file.name === bakeName || file.name === skyName) continue;
       expect(owned.namedFiles.find(row => row.name === file.name)).toEqual(file);
@@ -74,9 +74,24 @@ test('owned geometry preserves all original bytes and costs, changing only its s
     let expectedSky = text.decode(output.assets.get(oldSky.hash))
       .replace(JSON.stringify(BRIDGE_REST_URL), JSON.stringify(bridgeName))
       .replace(JSON.stringify(MILL_REST_URL), JSON.stringify(millName))
-      .replace(JSON.stringify(FAN_URL), JSON.stringify(fanName));
+      .replace(JSON.stringify(FAN_URL), JSON.stringify(fanName))
+      .replace(JSON.stringify('/assets/far-reach/models/wind-vane/post.glb'), JSON.stringify('world/geometry/vane-post.glb'))
+      .replace(JSON.stringify('/assets/far-reach/models/wind-vane/rotor.glb'), JSON.stringify('world/geometry/vane-rotor.glb'));
     for (const creature of SKY_CREATURES) expectedSky = expectedSky.replace(JSON.stringify(SKY_CREATURE_RIGS[creature]), JSON.stringify(`world/rigs/${creature}.glb`));
     expect(text.decode(owned.assets.get(newSky.hash))).toBe(expectedSky);
+    for (const [part, size, expectedHash] of [
+      ['post', 43_928, 'a5b779f379598b3e6afbf7640a0c5c30c802a2f4f51b53bb0934c29260b46a74'],
+      ['rotor', 54_316, '13ad79dd37f10805d3450bbc59a450f27a3262065e85358c8e27f8d3e82b9ad5'],
+    ] as const) {
+      const name = `world/geometry/vane-${part}.glb`;
+      const file = owned.namedFiles.find(row => row.name === name);
+      if (file === undefined) throw new Error('Missing owned vane file');
+      const vaneBytes = owned.assets.get(file.hash);
+      if (vaneBytes === undefined) throw new Error('Missing owned vane payload');
+      expect(vaneBytes.byteLength).toBe(size);
+      expect(hashImmutableBytes(vaneBytes)).toBe(expectedHash);
+      expect(file).toEqual(nameBlob(name, 'glb', vaneBytes).file);
+    }
     for (const [name, originalRig] of originalSkyRigs()) {
       const declared = nameBlob(`world/rigs/${name}`, 'glb', originalRig);
       expect(owned.namedFiles.find(file => file.name === declared.file.name)).toEqual(declared.file);
@@ -139,7 +154,7 @@ test('owned geometry preserves all original bytes and costs, changing only its s
     bytes.fill(0);
     const hit = await prepareOutput(context()), hitBytes = hit.assets.get(hash);
     if (hitBytes === undefined) throw new Error('Missing cache-hit GLB');
-    expect(Buffer.compare(hitBytes, original)).toBe(0); expect(builds).toBe(9);
+    expect(Buffer.compare(hitBytes, original)).toBe(0); expect(builds).toBe(10);
     for (const file of SKY_WORLD_TILE_ROWS.files) {
       const tile = hit.assets.get(file.hash);
       if (tile === undefined) throw new Error('Missing cache-hit island tile');
