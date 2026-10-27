@@ -1367,3 +1367,20 @@ landing; no allowance edits. No tests, generation, product build, preview,
 soak, memory claim or Simulator reading. **Source complete, qualification
 in flight:** G777 official Simulator reading stays last. Existing T7/S3.7
 D110 and T4/T5 misses are not erased or turned into a T10 acceptance PASS.
+
+### T8 Pine timber exact-source repair (2026-10-27, sp-x2)
+
+Immediate G754 red: CI40529017541 P1 traces the original26 timber-GLB
+aggregate change02d3a547->16a5ef92 to88fd3ebe2b, not output ordering.
+That packet's meshopt transport is lossless, but its separate
+WholeShape compact:true opt-in quantizes positions/normals/colours.
+Calling the resulting native source route lossless was incorrect.
+
+Remove only that Pine source opt-in. Preserve Float32 native channels,
+original partition ordinals, indices and matrix64 data. Keep ordinal-run
+metadata and the existing lossless meshopt tile transport; no shader,
+material, collider, tile cap or frozen LEGACY change. The original26
+byte oracle02d3a54716563d0691ba9cd50a76ca441821d8157d4faf8ef795eca121ca66c3
+stays unchanged. Do not repin or introduce a tolerance. Touched source
+types/lint/ratchet pass; land source before the exact failed-only oracle
+recovery under G769. Any remaining difference stays red and is audited.

@@ -1023,3 +1023,33 @@ source/fixture paths pass types, typed lint and scoped ratchet0.
 The next original3 is owned by x2, must contain47fd/f944, and remains
 pending;8f is the last measured receipt, not a qualification of these
 newer source cuts. No owned preview/browser/Simulator remains here.
+
+### I2.16 One combined8f cohort (2026-10-27, sp-x2)
+
+One shared frozen pin8f2c7f92eee92fc7a82e19ba5cfc1451dc23d755,
+version8f2c7f9-mvqvfumb. Contains medium bodies9a7dc471fb, installer
+9b3e0e4e34, texture-cost facts7bf455e8f1, cabin publicationb5ef2ff17c,
+material rootsda877588a2 and late-root fixes0c0d1ec0ca/8ee00fecf1.
+Predates fde346c539 native demand packs, f9443f0bb8 device partition and
+47fd45dc34 exact-demand coalescing. Original3 protocol unchanged from
+I2.12, fresh muted iPhone16Pro/render2/CPU1, page+worker requests and
+encoded forwarded chunks through the first actual control frame.
+All three identities reach control with zero page errors.
+
+| Shard | Before-control bytes | Requests | Control | JS requests | Data requests |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Pine |199573386 |429 |16.914s |69 |360 |
+| Nalati |115398069 |284 |5.519s |65 |219 |
+| Nine |174535372 |205 |11.300s |62 |143 |
+
+Nine meets the request half only;0/3 meet both original12MB/250 bars.
+JS bytes2637342/2572552/2357315 include actual code packs. Bytes rose
+while requests fell: no unqualified improvement or isolated speed
+claim. X9's read-only pack census identifies desktop members present in
+phone-fetched packs (Pine51/28952310B, Nalati1/124737B, Nine4/1698787B)
+and owns device-isolated packing plus exact-demand coalescing. Those
+fixes are not retroactively credited to8f. No duplicate8f read.
+Raw tmp/sp-x2/i2-joint-next/reading retains rows and original indices.
+All owned browsers/proxies and parent4404 closed/released. Next single
+containing cohort will include47fd and the Pine timber exactness repair
+once the blocking P1 source is coherent; no browser/build hold for peers.
