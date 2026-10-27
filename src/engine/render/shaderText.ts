@@ -3,7 +3,9 @@
  * one regex replace per light and clipping count (13 + 2) after resolving its `#include`s afresh, and each replace that
  * finds its token copies the whole shader: the Template's boot made ~25 MiB of short-lived shader strings that way.
  *
- *   finishShaderText(shader)   resolve its includes (each chunk's resolution cached) and fill every count in one pass
+ *   finishShaderText(shader)   resolve its includes (each chunk's resolution cached) and fill every count in one pass;
+ *                              a program text it finished before (three asks once per material, not per program) comes
+ *                              back as the same strings, with nothing copied
  *
  * The result is exactly what three's own passes make, so its passes then find nothing to replace and copy nothing; its
  * loop unrolling still runs after, as before. It runs last in a material's `onBeforeCompile` (shaderPatches' runner,
@@ -26,9 +28,12 @@ const COUNT = /NUM_SPOT_LIGHT_SHADOWS_WITH_MAPS|NUM_SPOT_LIGHT_SHADOWS|NUM_SPOT_
 const chunks = new Map<string, { raw: string; resolved: string }>();
 const chunkText: Readonly<Record<string, string | undefined>> = THREE.ShaderChunk;
 
+/** the chunks (name, raw text) a resolution read, recorded while one program is finished */
+let reads: Map<string, string> | undefined;
 function resolved(name: string): string | undefined {
   const raw = chunkText[name];
   if (raw === undefined) return undefined;
+  reads?.set(name, raw);
   const known = chunks.get(name);
   if (known !== undefined && known.raw === raw) return known.resolved;
   const text = resolveIncludes(raw);
@@ -56,8 +61,35 @@ export function fillCounts(source: string, shader: ShaderText): string {
   return source.replaceAll(COUNT, (name: string) => String(values[name]));
 }
 
+interface Finished { readonly vertex: string; readonly fragment: string; readonly chunks: ReadonlyMap<string, string> }
+/** finished program texts by their raw vertex, raw fragment and count values; a look that changes a chunk retires the
+ *  entries that read it, and the cache is dropped whole past its bound (a scene has a few dozen programs) */
+const finished = new Map<string, Map<string, Map<string, Finished>>>();
+let entries = 0;
+const FINISHED_BOUND = 512;
+function countKey(shader: ShaderText): string {
+  return [shader.numSunLights, shader.numDirLights, shader.numSpotLights, shader.numSpotLightMaps, shader.numRectAreaLights,
+    shader.numPointLights, shader.numHemiLights, shader.numSunLightShadows, shader.numDirLightShadows, shader.numSpotLightShadowsWithMaps,
+    shader.numSpotLightShadows, shader.numPointLightShadows, shader.numClippingPlanes, shader.numClipIntersection].join(',');
+}
+
 /** Resolve a program's includes and fill its counts, as three would, before three builds it. */
 export function finishShaderText(shader: ShaderText): void {
-  shader.vertexShader = fillCounts(resolveIncludes(shader.vertexShader), shader);
-  shader.fragmentShader = fillCounts(resolveIncludes(shader.fragmentShader), shader);
+  const counts = countKey(shader), byFragment = finished.get(shader.vertexShader)?.get(shader.fragmentShader), known = byFragment?.get(counts);
+  if (known !== undefined && [...known.chunks].every(([name, raw]) => chunkText[name] === raw)) {
+    shader.vertexShader = known.vertex; shader.fragmentShader = known.fragment; return;
+  }
+  const vertexRaw = shader.vertexShader, fragmentRaw = shader.fragmentShader, read = new Map<string, string>();
+  reads = read;
+  try {
+    shader.vertexShader = fillCounts(resolveIncludes(vertexRaw), shader);
+    shader.fragmentShader = fillCounts(resolveIncludes(fragmentRaw), shader);
+  } finally { reads = undefined; }
+  if (entries >= FINISHED_BOUND) { finished.clear(); entries = 0; }
+  let fragments = finished.get(vertexRaw);
+  if (fragments === undefined) { fragments = new Map(); finished.set(vertexRaw, fragments); }
+  let byCounts = fragments.get(fragmentRaw);
+  if (byCounts === undefined) { byCounts = new Map(); fragments.set(fragmentRaw, byCounts); }
+  if (!byCounts.has(counts)) entries++;
+  byCounts.set(counts, { vertex: shader.vertexShader, fragment: shader.fragmentShader, chunks: read });
 }

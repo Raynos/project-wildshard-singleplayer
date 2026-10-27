@@ -56,3 +56,22 @@ test('a replaced chunk is resolved afresh, and an unknown include is left for th
     expect(first.fragmentShader).not.toBe(second.fragmentShader);
   } finally { THREE.ShaderChunk.fog_fragment = saved; }
 });
+
+test('a program text finished before comes back as the same strings until a chunk it read changes', () => {
+  const counts = sets[1]; if (counts === undefined) throw new Error('Missing count set');
+  const raw = { vertexShader: '#include <common>\nvoid main() { NUM_DIR_LIGHTS; }', fragmentShader: '#include <packing>\nvoid main() { NUM_POINT_LIGHTS; }' };
+  const first = { ...counts, ...raw }, second = { ...counts, ...raw };
+  finishShaderText(first); finishShaderText(second);
+  expect(second.vertexShader).toBe(first.vertexShader); expect(second.fragmentShader).toBe(first.fragmentShader);
+  expect(second.vertexShader).toBe(threeCounts(threeIncludes(raw.vertexShader), { ...counts, ...raw }));
+  // other counts are another program
+  const other = { ...counts, numDirLights: 5, ...raw }; finishShaderText(other);
+  expect(other.vertexShader).toBe(threeCounts(threeIncludes(raw.vertexShader), { ...counts, ...raw, numDirLights: 5 }));
+  // a look that replaces a chunk the program read gets the new text
+  const store: Record<string, string> = THREE.ShaderChunk, original = store['packing'] ?? '';
+  try {
+    store['packing'] = `${original}\n// replaced`;
+    const third = { ...counts, ...raw }; finishShaderText(third);
+    expect(third.fragmentShader).toContain('// replaced');
+  } finally { store['packing'] = original; }
+});
