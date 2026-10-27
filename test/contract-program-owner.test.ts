@@ -3,10 +3,10 @@ import { Scope } from '../src/engine/app/scope';
 import { realGc } from '@wildshard/engine/test/realGc';
 import { parseDecisionScripts } from '../src/format/decisionScripts';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import { CONTRACTS } from './fixtures/pine-contracts';
+import { contractCatalogue } from '../src/shards/pine-hollow/generators/contractRows';
 import { contractKill, draw, loadBoard, ownContractCatalogue, saveBoard } from '../src/game/quest/contracts';
 
-const original = CONTRACTS;
+const original = contractCatalogue();
 const declaration = original.program;
 if (declaration === undefined) throw new Error('Missing original contract programme');
 function originalScript() {

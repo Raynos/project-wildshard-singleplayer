@@ -2,10 +2,7 @@ import { beforeAll, expect, test } from 'vitest';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
-import { claim, contractKill, draw, loadBoard, ownContractCatalogue, recordKill, saveBoard } from '../src/game/quest/contracts';
-import { ReturnProgram } from '../src/game/population/returnProgram';
-import { parseDecisionScripts } from '../src/format/decisionScripts';
-import { Scope } from '../src/engine/app/scope';
+import { claim, contractKill, draw, loadBoard, recordKill, saveBoard } from '../src/game/quest/contracts';
 import { ContractBoard, CONTRACT_ACTION } from '../src/game/quest/contractBoard';
 import { parseContractCatalogue, type ContractCatalogue } from '../src/format/contracts';
 
@@ -24,13 +21,7 @@ let admitted: ContractCatalogue | undefined;
 beforeAll(async () => {
   const loaded = await loadHeadlessProduct(builtProduct('pine-hollow'));
   const bytes = await loaded.file('quests/contracts.json');
-  const parsed = parseContractCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
-  // GR8 (B5): the file carries the guest's row with no bytes; the board borrows the named Wasm's loan.
-  const row = parseDecisionScripts([parsed.program?.script])[0];
-  if (row === undefined || parsed.program?.bytes !== '') throw new Error('The contract file names its guest without bytes');
-  const owner = new Scope('contracts');
-  ReturnProgram.lendModules(owner, new Map([[row.module.slice('blobs/wasm/'.length, -'.wasm'.length), await loaded.file('behaviour/pine.contracts.wasm')]]), [row]);
-  admitted = ownContractCatalogue(parsed, owner);
+  admitted = parseContractCatalogue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
 }, 30_000);
 function catalogue(): ContractCatalogue {
   if (admitted === undefined) throw new Error('The admitted catalogue is required');
