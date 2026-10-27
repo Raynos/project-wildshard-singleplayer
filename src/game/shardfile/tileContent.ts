@@ -345,6 +345,14 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
         if (prior?.root !== entry.root || prior.views !== entry.views) streamer.retireRefinement(instance);
         instances.set(instance, { ...entry, source: { ...entry.source, tiles: entry.source.tiles.filter(tile => keys.has(`${tile.lod}/${tile.x}/${tile.z}`)) } });
         entered.set(instance, release); scope.onDispose(release);
+        // H3: pin the spawn view before broad coverage. Otherwise every L1
+        // quadrant and uncovered distant L0 competes ahead of these first reads.
+        // Parent-first streaming supplies this ring's coarse parents as needed.
+        const spawnOrder = tileOrder(start);
+        const spawn = streamer.require(instance, spawnOrder.tiles.filter(tile => spawnOrder.rank(tile) === 0).map(tile => tile.j * 8 + tile.i));
+        requirements.push(spawn);
+        await spawn.ready;
+        if (ownerLeft()) throw new Error('Entered tile owner left');
         // Entered scenes hide the neighbour root: keep every coarse quadrant there until this region leaves.
         const coarse = streamer.require(instance, Array.from({ length: 16 }, (_, key) => key), 'l1');
         requirements.push(coarse);
@@ -354,7 +362,7 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
         const order = tileOrder(start, entry.source.entryways);
         const initial = streamer.require(instance, order.tiles.filter(tile => order.rank(tile) === 0).map(tile => tile.j * 8 + tile.i)); requirements.push(initial);
         await Promise.all(requirements.map(requirement => requirement.ready));
-        initial.release(); entry.assets.releaseTiles();
+        spawn.release(); initial.release(); entry.assets.releaseTiles();
         if (ownerLeft()) throw new Error('Entered tile owner left');
         return {
           get fine() { return new Set(streamer.resident().filter(key => key.startsWith(`${instance}:l0/`)).map(key => key.slice(instance.length + 1).replace('l0/', '0/'))); },
