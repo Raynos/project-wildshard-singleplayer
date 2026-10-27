@@ -20,8 +20,10 @@ export function skyIsleProps(): BakedProps {
     return { id: `isle_${isle.id.replace('.', '-')}`, partition: 'runs' as const, mesh: new Mesh(geometry, new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 })), transform: new Matrix4().makeTranslation(isle.x, isle.y, isle.z) };
   });
   // G748 / U2: the L1 tiles beyond the render ring draw the isles simplified in their own toon look (whole shapes are
-  // never in the default coarse source, so the occupied parents had no L1 at all)
-  const coarse = coarseCopy(whole, 0.1, 2);
+  // never in the default coarse source, so the occupied parents had no L1 at all). D76: 1.5 % with meshopt's sloppy
+  // pass past the target (locked borders stall near 1,800 triangles): 809 triangles, 130 KB for the 11 L1 squares
+  // (was 6,166 / 902 KB), so the phone wire fits its 33.8 MB cap.
+  const coarse = coarseCopy(whole, 0.015, 2, { sloppy: true });
   const baked = bakeProps({ static: new Group(), whole, family: 'toon', coarse: coarse.group });
   for (const { mesh } of whole) { mesh.geometry.dispose(); mesh.material.dispose(); }
   coarse.dispose();
