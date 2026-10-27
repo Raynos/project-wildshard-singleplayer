@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, Float16BufferAttribute, type TypedArray, Material, Mesh, type Object3D } from 'three';
+import { BufferAttribute, BufferGeometry, Float16BufferAttribute, type TypedArray, Material, Mesh, Vector3, type Object3D } from 'three';
 import { nativeWholeGeometry } from './nativeGeometry';
 
 function isGeometryMesh(node: Object3D): node is Mesh {
@@ -21,10 +21,22 @@ function gridQuantized(mesh: Mesh): boolean {
 /** Float positions back in the model's own space: the grid scale and translation baked in, the node left out (every
  *  intake reader draws a baked model in identity space). Normals and colours keep their compact normalized storage. */
 function dequantizeIntoSpace(geometry: BufferGeometry, mesh: Mesh): void {
-  const position = geometry.getAttribute('position'), out = new Float32Array(position.count * 3);
-  for (let i = 0; i < position.count; i++) { out[i * 3] = position.getX(i); out[i * 3 + 1] = position.getY(i); out[i * 3 + 2] = position.getZ(i); }
-  geometry.setAttribute('position', new BufferAttribute(out, 3));
-  geometry.applyMatrix4(mesh.matrixWorld);
+  const position = geometry.getAttribute('position'), out = new Float32Array(position.count * 3), point = new Vector3();
+  // Preserve the old normalized -> Float32 -> matrix -> Float32 rounding,
+  // without writing and rereading a temporary position for every vertex.
+  for (let i = 0; i < position.count; i++) {
+    point.set(Math.fround(position.getX(i)), Math.fround(position.getY(i)), Math.fround(position.getZ(i))).applyMatrix4(mesh.matrixWorld);
+    out[i * 3] = point.x; out[i * 3 + 1] = point.y; out[i * 3 + 2] = point.z;
+  }
+  const restored = new BufferAttribute(out, 3), box = geometry.boundingBox, sphere = geometry.boundingSphere;
+  // Three still owns all other channel transforms. Bounds must see the final
+  // positions, once, after that pass; their original objects remain borrowed.
+  geometry.setAttribute('position', new BufferAttribute(new Float32Array(0), 3)); geometry.boundingBox = null; geometry.boundingSphere = null;
+  try { geometry.applyMatrix4(mesh.matrixWorld); }
+  finally { geometry.setAttribute('position', restored); geometry.boundingBox = box; geometry.boundingSphere = sphere; }
+  restored.needsUpdate = true;
+  if (box !== null) geometry.computeBoundingBox();
+  if (sphere !== null) geometry.computeBoundingSphere();
 }
 /** A grid-quantized mesh (`gridQuantized`) as a plain identity-space copy: positions baked into the model's own space and
  *  every other channel (normalized Int8 normals and Uint8 colours, and the interleaved views its writer shares) copied
