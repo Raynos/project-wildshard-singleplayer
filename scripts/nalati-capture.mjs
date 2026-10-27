@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 // E435 / G227: real authored world inventory, never a second procedural placement builder.
-// node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/nalati-grasslands/generators/nalati-capture.mjs --out=<summary.json>
+// node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/nalati-capture.mjs --out=<summary.json>
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as THREE from 'three';
-import { installBakeEnvironment } from '../../../../scripts/bake/environment.mjs';
+import { installBakeEnvironment } from './bake/environment.mjs';
 
-const root = resolve(fileURLToPath(new URL('../../../..', import.meta.url)));
+const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const output = process.argv.slice(2).find(arg => arg.startsWith('--out='))?.slice('--out='.length);
 if (!output) throw new Error('Nalati capture requires --out=<summary.json>');
 const environment = installBakeEnvironment(root), owned = [];
@@ -33,7 +33,7 @@ const meshSummary = mesh => ({ sourceMesh: mesh.sourceMesh, name: mesh.name, typ
 
 try {
   const [{ captureNalatiAuthoredWorld }, { nalatiGroundSource }, { awaitSpecimenAssets }, { Terrain }] = await Promise.all([
-    import('./nalatiCaptureInventory.ts'), import('./nalatiGroundSource.ts'),
+    import('../src/shards/nalati-grasslands/generators/nalatiCaptureInventory.ts'), import('../src/shards/nalati-grasslands/generators/nalatiGroundSource.ts'),
     import('@wildshard/game/models/specimenCatalogue'), import('@wildshard/engine/world/Terrain'),
   ]);
   const nativeTerrain = readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin'));

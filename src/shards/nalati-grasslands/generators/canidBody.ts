@@ -5,10 +5,17 @@ import type { AnimalSpecies, BoneDef, VariantDef } from '@wildshard/engine/entit
 import * as THREE from 'three';
 import { tuft, hash01, type V3, type Skin } from './shape';
 import palette from '../data/wolfPalette.json' with { type: 'json' };
-import * as schema from 'valibot';
 
-const rgb = schema.tuple([schema.number(), schema.number(), schema.number()]);
-const WOLF = schema.parse(schema.object({ back: rgb, side: rgb, cream: rgb, leg: rgb, dark: rgb, nose: rgb, earIn: rgb, eye: rgb, mouth: rgb, scar: rgb }), palette);
+/** Admit the three numeric channels and detach the retained palette tuples. */
+function rgb(input: unknown): [number, number, number] {
+  if (!Array.isArray(input)) throw new TypeError('Canid colour must be a numeric triple');
+  const r: unknown = input[0], g: unknown = input[1], b: unknown = input[2];
+  if (typeof r !== 'number' || typeof g !== 'number' || typeof b !== 'number'
+    || Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) throw new TypeError('Canid colour must be a numeric triple');
+  return [r, g, b];
+}
+const WOLF = { back: rgb(palette.back), side: rgb(palette.side), cream: rgb(palette.cream), leg: rgb(palette.leg),
+  dark: rgb(palette.dark), nose: rgb(palette.nose), earIn: rgb(palette.earIn), eye: rgb(palette.eye), mouth: rgb(palette.mouth), scar: rgb(palette.scar) };
 
 /**
  * Build-time only (SHARD-PLATFORM M3, Nalati's species bodies bake): the canid's lofts (the steppe wolf, the camp's collie,

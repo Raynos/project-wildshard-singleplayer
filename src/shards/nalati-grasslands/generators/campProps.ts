@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { ModelDef } from '@wildshard/engine/models/model';
-import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import type { BoxSpec as Collider, ColliderDesc } from '@wildshard/sdk/bake/placement';
 import { M, v3, type ColorLike, type Painter, type PaintOpts } from './paint';
 import { pole, lathe, blob } from './smoothGeometry';
 import paintedTextures from '../data/paintedTextures.json' with { type: 'json' };
@@ -10,7 +10,6 @@ import type { SignpostParams, BarrelParams, CorralParams, HitchingRailParams, Pa
 import { ribbonPole, eaglePerch, stove, campBench, rugRack, feltRug, cart, barrel, hitchingRail, waterTrough, saddleRack, corral, hayPile, feedTrough, rugLine, choppingBlock, milkCans, tetherLine, kurtBoard, ribbonPost, fallenLog, stump, ovoo, viewpointPole, skyGateway, campClutter, fence, graniteOutcrop, roundedBoulder, kokparGoal, kokparPost, stoneStep, signpostBaked as signpost } from './catalogue';
 import { type Box, prism, supportHull } from './solid';
 import type { Rng } from '@wildshard/engine/core/rng';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { graniteBlock } from './granite';
 
 
