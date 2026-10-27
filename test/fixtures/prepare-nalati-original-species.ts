@@ -5,6 +5,7 @@ import { resolve, dirname } from 'node:path';
 import * as v from 'valibot';
 import { CreatureGuestSchema } from '../../src/format/speciesBookRows';
 import { compileReturnProjectionV2 } from '../../src/sdk/returnProjectionV2';
+import { compileDecisionScripts } from '../../src/sdk/buildDecisionScripts';
 import { hashImmutableBytes } from '../../src/sdk/immutable';
 import { nalatiSpeciesProgram } from '../../src/shards/nalati-grasslands/generators/speciesProgram';
 import pins from './nalati-species-files.json' with { type: 'json' };
@@ -19,7 +20,7 @@ const inputSchema = v.object({
   admission: v.looseObject({ script: v.record(v.string(), v.unknown()), bytes: v.string(), compiled: v.optional(v.unknown()), v2: v.optional(v.unknown()) }),
   strike: v.unknown(), kingPose: v.object({ programs: v.unknown(), group: v.string() }),
 });
-const files = await nalatiSpeciesProgram({ compileReturnProjection: compileReturnProjectionV2, cached: (step, make) => {
+const files = await nalatiSpeciesProgram({ compileDecisionRows: compileDecisionScripts, compileReturnProjection: compileReturnProjectionV2, cached: (step, make) => {
   const inputs = new Map(step.inputs?.map(name => [name, Uint8Array.from(readFileSync(name.startsWith('/') ? `public${name}` : `src/shards/nalati-grasslands/${name}`))]));
   return Promise.resolve(make(inputs));
 } }, input => {
