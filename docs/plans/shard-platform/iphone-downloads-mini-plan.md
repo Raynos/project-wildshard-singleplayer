@@ -617,3 +617,40 @@ I2 late source handoff: d181227f53 is the wire/native reader;
 code-only with the existing content/JS producer split intact. Source stays
 in flight (reading at plan end); the b3 shared cohort above predates these
 late declarations and must not be credited as their transfer saving.
+
+### I2 JS cohort reading (2026-10-27, sp-x9)
+
+Source `a9708d8778` reuses the preload bank's literal feature/grid roots
+and exact product-selected home requirements. Code merges only with the
+same home-route, title-root, initial-entry and session requirements;
+unselected optional code and shard owners remain lazy. No Vite plugin,
+new preload, native-output change or ceiling increase.
+
+Actual containing shared pin `21c9656927`, build `21c9656-mvqsnita` (exact
+version in the raw reader): full unchanged checkChunks0 errors, all boot
+banks complete; title256551raw/90351gzip B against350000/110000,
+session3880122raw/1193984gzip against4400000/1360000. Common bank349->118
+files; total emitted JS680->349 versus the older shared67c0cc census.
+Ten focused cases pass, including real two-entry initial isolation,
+complete facade/alias inventory and separate-home/Explorer controls.
+Touched types, typed lint and scoped ratchet pass.
+
+Original x2 protocol, fresh muted iPhone16Pro/2x/CPU1 Chromium entries,
+page+worker requests started before the same first-control fence; actual
+forwarded encoded bytes before that fence. No response modification,
+forced GC, retry or deadline change. All three reach control/errors0:
+
+| Home | JS requests,95a ->21c | Total requests,95a ->21c |21c bytes before control |21c tap-to-control |
+| --- | ---: | ---: | ---: | ---: |
+| Pine |508 ->209 |1036 ->737 |180737209 |17.039s |
+| Nalati |527 ->215 |816 ->504 |103024928 |12.685s |
+| Nine |472 ->194 |752 ->470 |164601700 |10.768s |
+
+JS requests fall about59%; JS encoded bytes also fall to2502284/2440264/
+2221282 B. These are different containing source pins, not an isolated
+timing experiment. The original **250 total requests /12MB bar still
+fails all three**: data requests are528/289/276, owned by the continuing
+x2/o5 admission/content cuts. I2 remains in flight; no whole-row done or
+physical-phone acceptance claim. Raw: tmp/sp-x9-control-cohort/reading
+and tmp/sp-x9-control-chunks/cohort-compare.json. All own browsers/proxies
+closed; shared preview4406 released/stopped after the read.
