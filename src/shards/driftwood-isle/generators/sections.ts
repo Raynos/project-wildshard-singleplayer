@@ -46,3 +46,8 @@ const bridgeSpan = v.strictObject({ a: v.tuple([number, number]), b: v.tuple([nu
 export const FILE_SCHEMAS: { 'data/bridgeRows.json': v.StrictObjectSchema<{ readonly world: v.StrictObjectSchema<{ readonly a: v.TupleSchema<[v.NumberSchema<undefined>, v.NumberSchema<undefined>], undefined>; readonly b: v.TupleSchema<[v.NumberSchema<undefined>, v.NumberSchema<undefined>], undefined>; readonly sag: v.NumberSchema<undefined>; }, undefined>; readonly specimen: v.StrictObjectSchema<{ readonly a: v.TupleSchema<[v.NumberSchema<undefined>, v.NumberSchema<undefined>], undefined>; readonly b: v.TupleSchema<[v.NumberSchema<undefined>, v.NumberSchema<undefined>], undefined>; readonly sag: v.NumberSchema<undefined>; }, undefined>; }, undefined>; } = { 'data/bridgeRows.json': v.strictObject({ world: bridgeSpan, specimen: bridgeSpan }) };
 
 
+
+/** Admit authored bridge endpoints through their defining grammar without an erased JSON shim. */
+export function readBridgeSpans(input: unknown): v.InferOutput<typeof FILE_SCHEMAS['data/bridgeRows.json']> {
+  return v.parse(FILE_SCHEMAS['data/bridgeRows.json'], input);
+}

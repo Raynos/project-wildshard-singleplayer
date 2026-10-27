@@ -3,13 +3,18 @@ import type { Rng } from '@wildshard/engine/core/rng';
 import { loft, tube, skinPlain, S, boneIndex, mix, srgb, paletteColors, type Station, type Paint } from '@wildshard/engine/entities/species/loft';
 import type { AnimalSpecies, BoneDef, VariantDef } from '@wildshard/engine/entities/species/registry';
 import * as THREE from 'three';
-import { parse, strictObject, tuple, number } from 'valibot';
 import { lock, hash01, wrapPatch, type V3, type Skin, type Section } from './shape';
 import horseRows from '../species/horse.json' with { type: 'json' };
 
-const rgb = tuple([number(), number(), number()]);
-const horsePalette = parse(strictObject({ coat: rgb, belly: rgb, points: rgb, mane: rgb, muzzle: rgb,
-  sock: rgb, hoof: rgb, eye: rgb, earIn: rgb, dorsal: rgb }), horseRows.palette);
+function rgb(values: readonly number[]): [number, number, number] {
+  const [r, g, b] = values;
+  if (values.length !== 3 || r === undefined || g === undefined || b === undefined
+    || !Number.isFinite(r) || !Number.isFinite(g) || !Number.isFinite(b)) throw new Error('Horse palette requires finite RGB triplets');
+  return [r, g, b];
+}
+const horsePalette = { coat: rgb(horseRows.palette.coat), belly: rgb(horseRows.palette.belly), points: rgb(horseRows.palette.points),
+  mane: rgb(horseRows.palette.mane), muzzle: rgb(horseRows.palette.muzzle), sock: rgb(horseRows.palette.sock),
+  hoof: rgb(horseRows.palette.hoof), eye: rgb(horseRows.palette.eye), earIn: rgb(horseRows.palette.earIn), dorsal: rgb(horseRows.palette.dorsal) };
 
 /**
  * Build-time only (SHARD-PLATFORM M3, Nalati's species bodies bake): the wild steppe horse's painterly lofts, moved from
