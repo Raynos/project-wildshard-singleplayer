@@ -9,7 +9,7 @@ import type { Audio } from '../src/engine/audio/Audio';
 import { AudioVoicePatches } from '../src/game/audio/voicePatches';
 import { parseAudioData } from '../src/format/audio';
 import rows from '../src/shards/nalati-grasslands/data/voicePatches.json' with { type:'json' };
-import audio from '../src/shards/nalati-grasslands/data/audio.generated.json' with { type:'json' };
+import audio from './fixtures/nalati-audio-original.json' with { type:'json' };
 import { VoicePatchesSchema } from '../src/format/voicePatches';
 import { parse } from 'valibot';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

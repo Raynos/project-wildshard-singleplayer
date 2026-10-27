@@ -10,7 +10,7 @@ import { app } from '@wildshard/engine/app/runtime';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { CueOpts } from '@wildshard/engine/audio/Cues';
 import { Thrown } from '@wildshard/sdk/runtime/weapons/Thrown';
-import audioDeclaration from '../src/shards/nalati-grasslands/data/audio.generated.json' with {type:'json'};
+import audioDeclaration from './fixtures/nalati-audio-original.json' with {type:'json'};
 import {parseAudioData} from '@wildshard/format/audio';
 import { ND_AUDIO } from '../src/shards/nine-dragon-stack/generators/audio';
 // The original steppe ambience's mixes, pans, diagnostics, calls and zones, frozen from the legacy copy

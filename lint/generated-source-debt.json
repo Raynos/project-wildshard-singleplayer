@@ -548,7 +548,6 @@
     "src/shards/nalati-grasslands/boot/specimens.generated.d.json.ts",
     "src/shards/nalati-grasslands/boot/specimens.generated.json",
     "src/shards/nalati-grasslands/bootMetadata.generated.json",
-    "src/shards/nalati-grasslands/data/audio.generated.json",
     "src/shards/nalati-grasslands/data/bodies.json",
     "src/shards/nalati-grasslands/data/ecology.generated.d.json.ts",
     "src/shards/nalati-grasslands/data/ecology.generated.json",

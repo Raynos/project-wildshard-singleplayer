@@ -5,7 +5,7 @@ import {NALATI_AUDIO as original} from './fixtures/originalNalatiAudio';
 import source from '../src/shards/nalati-grasslands/data/audioSource.json' with {type:'json'};
 import patches from '../src/shards/nalati-grasslands/data/voicePatches.json' with {type:'json'};
 import scene from '../src/shards/nalati-grasslands/data/audioScene.json' with {type:'json'};
-import emitted from '../src/shards/nalati-grasslands/data/audio.generated.json' with {type:'json'};
+import emitted from './fixtures/nalati-audio-original.json' with {type:'json'};
 
 const actual=parseAudioData({patches,scene,...source});
 test('Nalati audio data emits exactly the original section bytes',()=>{

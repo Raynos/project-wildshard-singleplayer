@@ -23,7 +23,7 @@ import {emptyShardfile} from '../src/sdk/author';
 
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 
-const audio=v.parse(v.object({audio:AudioDataSchema}),JSON.parse(readFileSync('src/shards/nalati-grasslands/data/audio.generated.json','utf8')));
+const audio=v.parse(v.object({audio:AudioDataSchema}),JSON.parse(readFileSync('test/fixtures/nalati-audio-original.json','utf8')));
 const originals = [
  ['river','d2bdc7a50c3f3119ed15ca03154a6ed6039ea4fd1f0bc32e479d4844e30ef0e6','1ef935050117896e0590bc51775ee5bac2366399a2dc2def7d55f41e02319812'],
  ['valley','2c2b942ba2fbd3b001945de545c706a5312f12bb6f1bfc25109e6706e8e99af2','2d589f3b5f47dd604d6c3ee6f29cbf28f1627b996af0ddd13faea969c0c02bf5'],

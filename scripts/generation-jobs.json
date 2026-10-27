@@ -194,7 +194,13 @@
         "src/format/crowds.ts",
         "src/format/populationEnvironment.ts",
         "src/format/water.ts",
-        "src/format/wildlifePopulation.ts"
+        "src/format/wildlifePopulation.ts",
+        "src/format/audio.ts",
+        "src/format/audioBank.ts",
+        "src/format/audioProfiles.ts",
+        "src/format/audioRouting.ts",
+        "src/format/audioScene.ts",
+        "src/format/voicePatches.ts"
       ],
       "outputs": [
         "public/assets/nalati/baked/bodies.bin",
@@ -643,43 +649,6 @@
       ],
       "buildTimeOutputs": [
         "src/shards/driftwood-isle/data/crabClips.generated.json"
-      ],
-      "platform": "portable"
-    },
-    {
-      "id": "nalati-grasslands-audio-section",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-audio.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-audio.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/nalati-grasslands/generators/bake-audio.mjs",
-        "src/shards/nalati-grasslands/data/audioSource.json",
-        "src/sdk/audio.ts",
-        "src/sdk/immutable.ts",
-        "scripts/bake-output.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/format",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/sdk/package.json",
-        "src/shards/nalati-grasslands/data/voicePatches.json",
-        "src/shards/nalati-grasslands/data/audioScene.json",
-        "src/shards/nalati-grasslands/data/audio-river.bin",
-        "src/shards/nalati-grasslands/data/audio-valley.bin",
-        "src/shards/nalati-grasslands/data/audio-bowl.bin",
-        "src/shards/nalati-grasslands/data/audio-snow.bin"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/data/audio.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/audio.generated.json"
       ],
       "platform": "portable"
     },
@@ -4832,7 +4801,6 @@
         "src/shards/nalati-grasslands/generators/actorProjection.ts",
         "src/shards/nalati-grasslands/generators/ambientGeometry.ts",
         "src/shards/nalati-grasslands/generators/bake-admission.mjs",
-        "src/shards/nalati-grasslands/generators/bake-audio.mjs",
         "src/shards/nalati-grasslands/generators/bake-boot-metadata.mjs",
         "src/shards/nalati-grasslands/generators/coverBake.mjs",
         "src/shards/nalati-grasslands/generators/bake-crag-rock.mjs",

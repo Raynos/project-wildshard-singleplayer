@@ -14,7 +14,7 @@ import herdChannels from '../data/herdChannels.generated.json' with { type: 'jso
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import type { BakedQueryTerrain } from '@wildshard/sdk/bake/terrain';
-import audio from '../data/audio.generated.json' with {type:'json'};
+import { nalatiAudioRows } from './audioRows';
 import { NALATI_EDGES } from './edges';
 import NALATI_RUNTIME_COST from '../data/runtimeCost.json' with { type: 'json' };
 import questContent from '../data/questContent.json' with { type: 'json' };
@@ -44,8 +44,8 @@ import titanWhirlsView from '../behaviour/titanWhirlsView.generated.json' with {
 const row = (side: keyof typeof NALATI_EDGES): { heights: number[]; colours: [number, number, number][]; roadHeight: 0 } => ({
   heights: [...NALATI_EDGES[side].heights], colours: NALATI_EDGES[side].colours.map(([r, g, b]): [number, number, number] => [r, g, b]), roadHeight: 0,
 });
-const {scene,...audioRows}=audio.audio;
-export const AUDIO_SCENE: typeof audio.audio.scene =scene;
+const {scene,...audioRows}=nalatiAudioRows().audio;
+export const AUDIO_SCENE: ReturnType<typeof nalatiAudioRows>['audio']['scene'] =scene;
 const base = emptyShardfile({ slug: 'nalati-grasslands', name: 'Nalati Grasslands', author: 'Wildshard', revision: 1, seed: 0x4a1a });
 // G384: the creatures' navigation is the platform's WSNM row over the original bytes (generators/navigation.ts), and the
 // ground's native lattice is query-only terrain (generators/terrain.ts at build time: no render tiles; the bound runtime keeps rendering

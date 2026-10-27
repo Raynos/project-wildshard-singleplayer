@@ -9,7 +9,7 @@ import * as settings from '@wildshard/engine/ui/Settings';
 import {parseAudioData} from '@wildshard/format/audio';
 import {requireAudioProfile} from '@wildshard/engine/audio/audioProfiles';
 import {createCueRouter} from '@wildshard/engine/audio/cueRouting';
-import audioDeclaration from '../src/shards/nalati-grasslands/data/audio.generated.json' with {type:'json'};
+import audioDeclaration from './fixtures/nalati-audio-original.json' with {type:'json'};
 import {ND_AUDIO} from '../src/shards/nine-dragon-stack/generators/audio';
 import NINE_FROZEN from './fixtures/legacy-oracles/nine-audio.json' with {type:'json'};
 import NALATI_FROZEN from './fixtures/legacy-oracles/nalati-audio.json' with {type:'json'};

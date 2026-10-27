@@ -2,7 +2,7 @@ import {expect,it} from 'vitest';
 import {Synth} from '../src/engine/audio/synth';
 import {parseAudioData} from '@wildshard/format/audio';
 import {requireAudioProfile} from '@wildshard/engine/audio/audioProfiles';
-import audio from '../src/shards/nalati-grasslands/data/audio.generated.json' with {type:'json'};
+import audio from './fixtures/nalati-audio-original.json' with {type:'json'};
 import replay from './fixtures/nalati-native-phrases.json' with {type:'json'};
 
 /** Native tone/burst and bus recorder: burst consumes its native noise-offset draw. */
