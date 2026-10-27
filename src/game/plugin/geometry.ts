@@ -227,7 +227,7 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
   if (paintedRows.length > 128 || new Set(paintedRows.map(row => row.name)).size !== paintedRows.length
     || paintedRows.some(row => !parts.includes(row.geometry) || row.pivots !== undefined && (row.pivots.length !== 4 || row.pivots.some(part => part !== null && !parts.includes(part))))) throw new Error('Painted models require declared rest primitives and four pivot slots');
 
-  async function loadPainted(row: PaintedModelRow): Promise<void> {
+  async function loadPainted(row: PaintedModelRow, geometryReady: Promise<void>): Promise<void> {
     try {
       const maps: Texture[] = [];
       if (readAtlas !== undefined) { const atlas = await readAtlas(row.url); if (atlas !== null) maps.push(atlas); }
@@ -236,6 +236,8 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
         const material = Array.isArray(node.material) ? node.material[0] : node.material;
         if (material instanceof MeshStandardMaterial && material.map !== null && node.geometry.hasAttribute('uv') && node.geometry.index !== null) maps.push(material.map);
       }); }
+      // Atlas transport can overlap rest geometry, but publication cannot.
+      await geometryReady;
       const map = maps[0], geometry = rest.get(row.geometry);
       if (map === undefined || geometry === undefined) throw new Error('Prepared painted resources unavailable');
       const part = (index: number): BufferGeometry => {
@@ -250,19 +252,23 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
       const image: unknown = map.image;
       if (row.releaseImage === true && typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap) releaseOnUpload(map.source, () => { image.close(); });
       cacheModelEntry(painted, row.name, made, state);
-    } catch (error: unknown) { console.error(`${fault} the painted model ${row.name} did not load:`, error); }
+    } catch (error: unknown) {
+      // Keep the geometry failure ahead of a later atlas fault.
+      await geometryReady;
+      console.error(`${fault} the painted model ${row.name} did not load:`, error);
+    }
   }
 
   // Overlap a bounded set of immutable model reads with the default parser's
   // serial, shared-budget decode slot. Keep the caller's original pause order.
-  async function loadPaintedAhead(missing: readonly PaintedModelRow[], pause: () => Promise<void>): Promise<void> {
+  async function loadPaintedAhead(missing: readonly PaintedModelRow[], pause: () => Promise<void>, geometryReady: Promise<void>): Promise<void> {
     const pending = new Map<number, Promise<void>>();
     let next = 0;
     const fill = (): void => {
       while (pending.size < 4 && next < missing.length) {
         const row = missing[next];
         if (row === undefined) throw new Error('Missing painted model row');
-        const loading = loadPainted(row); void loading.catch(() => undefined);
+        const loading = loadPainted(row, geometryReady); void loading.catch(() => undefined);
         pending.set(next++, loading);
       }
     };
@@ -443,10 +449,17 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
     preload: (pause) => {
       state.loading ??= (async () => {
         try {
-        await Promise.all([...rows.meshes.filter(name => !ready.has(name)).map(load), ...rows.hd.filter(name => !hd.has(name)).map(loadHd),
-          ...pools.filter(pool => pool.parts.some(name => !rest.has(name)) || (pool.atlases ?? []).some(row => !atlases.has(row.id))).map(loadPool)]);
+        const geometryReady = Promise.all([...rows.meshes.filter(name => !ready.has(name)).map(load), ...rows.hd.filter(name => !hd.has(name)).map(loadHd),
+          ...pools.filter(pool => pool.parts.some(name => !rest.has(name)) || (pool.atlases ?? []).some(row => !atlases.has(row.id))).map(loadPool)]).then(() => undefined);
         const missing = paintedRows.filter(row => !painted.has(row.name));
-        await (pause === undefined ? Promise.all(missing.map(loadPainted)) : loadPaintedAhead(missing, pause));
+        // Start at most the existing four atlas reads during geometry intake.
+        // Publish state.loading before an atlas reader can re-enter preload.
+        // Every model publication and caller pause still waits for geometry.
+        const painting = pause === undefined ? geometryReady.then(() => Promise.all(missing.map(row => loadPainted(row, geometryReady))))
+          : Promise.resolve().then(() => loadPaintedAhead(missing, pause, geometryReady));
+        const [geometryResult, paintedResult] = await Promise.allSettled([geometryReady, painting]);
+        if (geometryResult.status === 'rejected') throw geometryResult.reason;
+        if (paintedResult.status === 'rejected') throw paintedResult.reason;
         } catch (error: unknown) { state.loading = null; throw error; }
       })();
       return rigs === null || rows.rigLoad === 'manual' ? state.loading : Promise.all([state.loading, rigs.bodies.preload()]).then(() => undefined);

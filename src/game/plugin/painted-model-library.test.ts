@@ -33,13 +33,16 @@ it('shares an original atlas while cloning prepared geometry and explicit NPC sl
   if (second.pivots !== undefined) for (const part of Object.values(second.pivots)) part.dispose();
 });
 
-function paintedIntake() {
+function paintedIntake(holdPool = false) {
   const geometry = new PlaneGeometry(2, 3); geometry.computeBoundingBox(); geometry.computeBoundingSphere();
   const pool = new Group(), primitiveMaterial = new MeshStandardMaterial(), primitive = new Mesh(geometry, primitiveMaterial);
   primitive.name = 'hero'; primitive.userData['restGroups'] = [];
   primitive.userData['restBox'] = [-1, -1.5, 0, 1, 1.5, 0]; primitive.userData['restSphere'] = [0, 0, 0, 2]; pool.add(primitive);
   const texture = new Texture(), paintGeometry = new PlaneGeometry(), paintMaterial = new MeshStandardMaterial({ map: texture });
   const paint = new Group().add(new Mesh(paintGeometry, paintMaterial));
+  let finishPool: () => void = () => undefined;
+  const poolReady = new Promise<{ scene: Group }>(resolve => { finishPool = () => { resolve({ scene: pool }); }; });
+  if (!holdPool) finishPool();
   const begun: string[] = [], pending = new Map<string, { ready: Promise<{ scene: Group }>; finish: () => void }>();
   let fourReady: () => void = () => undefined;
   const firstFour = new Promise<void>(resolve => { fourReady = resolve; });
@@ -50,16 +53,34 @@ function paintedIntake() {
     pending.set(name, { ready, finish }); return { name, url: name, geometry: 'hero' };
   });
   const read = vi.fn((url: string) => {
-    if (url === 'pool') return Promise.resolve({ scene: pool });
+    if (url === 'pool') return poolReady;
     const row = pending.get(url); if (row === undefined) throw new Error('Undeclared painted read');
     begun.push(url); if (begun.length === 4) fourReady(); return row.ready;
   });
   const library = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 0.6,
     geometryPools: [{ url: 'pool', parts: ['hero'] }], paintedModels: rows }, 'test', {}, read);
-  return { library, begun, firstFour, finish: (index: number) => { pending.get(`paint-${String(index)}`)?.finish(); },
+  return { library, begun, firstFour, finishPool, finish: (index: number) => { pending.get(`paint-${String(index)}`)?.finish(); },
     finishAll: () => { for (const row of pending.values()) row.finish(); },
     close: () => { geometry.dispose(); primitiveMaterial.dispose(); paintGeometry.dispose(); paintMaterial.dispose(); texture.dispose(); } };
 }
+
+it('reads only four atlases alongside geometry and publishes nothing before geometry is ready', async () => {
+  const f = paintedIntake(true), pause = vi.fn(() => Promise.resolve()), loading = f.library.preload(pause);
+  try {
+    await f.firstFour;
+    expect(f.begun).toEqual(['paint-0', 'paint-1', 'paint-2', 'paint-3']);
+    f.finishAll();
+    for (let turn = 0; turn < 5; turn++) await Promise.resolve();
+    expect(f.library.painted('paint-0')).toBeNull();
+    expect(pause).not.toHaveBeenCalled(); expect(f.begun).toHaveLength(4);
+    f.finishPool(); await loading;
+    expect(pause).toHaveBeenCalledTimes(6);
+    const model = f.library.painted('paint-0');
+    if (model === null) throw new Error('Missing geometry-gated painted model');
+    expect(model.geometry.getAttribute('position').count).toBe(4);
+    model.geometry.dispose();
+  } finally { f.finishPool(); f.finishAll(); await loading; f.close(); }
+});
 
 it('overlaps four source reads while retaining every original row pause and atlas', async () => {
   const f = paintedIntake(), pause = vi.fn(() => Promise.resolve()), loading = f.library.preload(pause);
