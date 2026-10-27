@@ -4,7 +4,7 @@ import { nameBlob } from '@wildshard/sdk/blobs';
 import routes from '../data/routeScene.generated.json' with { type: 'json' };
 import islets from '../data/isletScenes.generated.json' with { type: 'json' };
 import heroes from '../data/heroLibrary.generated.json' with { type: 'json' };
-import world from '../data/worldRows.generated.json' with { type: 'json' };
+import { skyWorldRows } from './worldRows';
 import { SKY_SOURCE_LIBRARIES, SKY_SOURCE_BLOBS } from './sceneSources';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
@@ -30,6 +30,7 @@ export function readMillSceneValues(bytes: Uint8Array): SkyMillSceneValues['MILL
 }
 
 const ground = skyGroundValues();
+const world = skyWorldRows();
 
 interface Reference { readonly library: string; readonly model: string }
 const json = (name: string, value: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(value)));

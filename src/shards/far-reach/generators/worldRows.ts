@@ -51,10 +51,10 @@ function lookKey(kind: SkyWorldPieceRows['kinds'][number], key: 'shack' | 'dress
   return value;
 }
 
-export function skyWorldRows(): { readonly bakes: Readonly<Record<string, unknown>>; readonly pieces: typeof SKY_PIECES } {
+export function skyWorldRows(): { readonly bakes: Readonly<Record<string, SkyWorldPieceRows>>; readonly pieces: typeof SKY_PIECES } {
   const dressingLooks: Readonly<Record<string, string>> = { clump: 'dressing-clump', lip: 'dressing-clump', flower: 'dressing-flower', stone: 'dressing-stone' };
   const bakes = Object.fromEntries(Object.entries(WORLD_BAKES).map(([id, row]) => [id, { ...row, kinds: row.kinds.map(kind => 'look' in kind ? kind
     : 'shack' in kind ? { ...kind, look: `shack-${lookKey(kind, 'shack')}` }
     : 'dressing' in kind ? { ...kind, look: dressingLooks[lookKey(kind, 'dressing')] ?? '' } : kind) }]));
-  return { bakes, pieces: SKY_PIECES };
+  return structuredClone({ bakes, pieces: SKY_PIECES });
 }

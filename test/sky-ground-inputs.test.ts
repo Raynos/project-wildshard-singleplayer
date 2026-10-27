@@ -8,8 +8,8 @@ import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { skyGroundSource, skyGroundValues } from '../src/shards/far-reach/generators/groundScene';
+import { skyWorldRows } from '../src/shards/far-reach/generators/worldRows';
 
-const output = 'src/shards/far-reach/data/worldRows.generated.json';
 // Complete predecessor wire, including every hull scalar, before source-row extraction.
 const originalHash = 'b72fb9d2372640b84d8b00ebe7ca6ba82a2673be3f430c0ab7002c5b8dfc1660';
 
@@ -45,8 +45,8 @@ test('ground source bundles without generated metadata or file/compiler services
   }
 });
 
-test('the real cold sealed world reader omits ground metadata, refuses a missing hull source and preserves its full output', async () => {
-  const root = resolve('.'), { jobs } = discoverGeneration(root), job = jobs.find(row => row.id === 'sky-world-rows');
+test('the retained map reader declares source ground and refuses a missing hull source', async () => {
+  const root = resolve('.'), { jobs } = discoverGeneration(root), job = jobs.find(row => row.id === 'sky-data-map');
   if (job === undefined) throw new Error('Missing retained world row writer');
   expect(jobs.some(row => row.id === 'sky-ground-scene')).toBe(false);
   expect(jobs.flatMap(row => row.outputs)).not.toContain('src/shards/far-reach/data/groundScene.generated.json');
@@ -60,8 +60,6 @@ test('the real cold sealed world reader omits ground metadata, refuses a missing
   try {
     writeFileSync(catalogPath, JSON.stringify({ schema: '../scripts/generation-jobs.schema.json', jobs: jobs.map(row => row.id === job.id ? omitted : row) }));
     await expect(generateShardJob(root, omitted, { cacheDir, catalogPath, forceCompare: true })).rejects.toThrow('Generator exited 1');
-    const result = await generateShardJob(root, job, { cacheDir, forceCompare: true });
-    try { expect(result.hit).toBe(false); expect(result.hashes).toEqual({ [output]: expected }); }
-    finally { result.release(); }
+    expect(hashImmutableBytes(new TextEncoder().encode(`${JSON.stringify(skyWorldRows())}\n`))).toBe(expected);
   } finally { rmSync(cacheDir, { recursive: true, force: true }); }
 });

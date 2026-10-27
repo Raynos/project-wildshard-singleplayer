@@ -7,6 +7,7 @@ import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { MILL_REST_INPUTS, skyMillRestProgram } from '../src/shards/far-reach/generators/millRestProgram';
 import { hashImmutableBytes } from '../src/sdk/immutable';
+import { skyWorldRows } from '../src/shards/far-reach/generators/worldRows';
 
 // Frozen predecessor outputs remain available to legacy; retiring the scheduler never repins them.
 const held = {
@@ -71,11 +72,15 @@ const readers = {
     "src/shards/far-reach/boot/lateReads.generated.json": "c55fe856a439ccc93acc1446f4e3bf3fb1889b7b741f8b17158d6e44a6994f43",
     "src/shards/far-reach/boot/rigs.generated.json": "663b8ebba9e6f970243825bde7ef24f6c82bd9abaf261008692cbed59ba968bc",
     "src/shards/far-reach/boot/worldTextures.generated.json": "1e7894081c884d9e5e175a55f6eb955fb82658f9f9b3b9f852b595ae76ef45a1"
-  },
-  "sky-world-rows": {
-    "src/shards/far-reach/data/worldRows.generated.json": "3a05afd8da12568f27c2ecaaa33d7212ba6817d006ed4f7a3fc1fa418ceb9b9d"
   }
 };
+
+test('the retired world-row consumer retains its complete original source wire', () => {
+  expect(discoverGeneration(resolve('.')).jobs.some(row => row.id === 'sky-world-rows')).toBe(false);
+  const bytes = new TextEncoder().encode(`${JSON.stringify(skyWorldRows())}\n`);
+  expect(bytes.byteLength).toBe(65_347);
+  expect(hashImmutableBytes(bytes)).toBe('3a05afd8da12568f27c2ecaaa33d7212ba6817d006ed4f7a3fc1fa418ceb9b9d');
+});
 
 test('world geometry has no scheduled writer or declared handoff readers and every frozen file stays exact', () => {
   const { jobs } = discoverGeneration(resolve('.'));

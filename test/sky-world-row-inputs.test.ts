@@ -1,9 +1,7 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Compare original admitted rows and isolate the real sealed drivers.
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Keep every sealed-driver temporary under the repository.
-import { relative, resolve } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- Resolve the source catalogue without a generated handoff.
+import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
+import { discoverGeneration } from '../scripts/generate.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { skyWorldRows } from '../src/shards/far-reach/generators/worldRows';
 import { SKY_PIECES } from '../src/shards/far-reach/generators/scene';
@@ -16,23 +14,17 @@ test('the owned world reader preserves every original baked paint, piece and col
   expect(hashImmutableBytes(bytes)).toBe('3a05afd8da12568f27c2ecaaa33d7212ba6817d006ed4f7a3fc1fa418ceb9b9d');
 });
 
-test.each(['sky-world-rows'])('the cold sealed %s reader retains complete original output without ten metadata inputs', async id => {
-  const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === id);
-  if (job === undefined) throw new Error(`Missing retained world reader ${id}`);
+test('world publication is retired and its retained map reader declares source-owned rows', () => {
+  const { jobs } = discoverGeneration(resolve('.')), job = jobs.find(row => row.id === 'sky-data-map');
+  expect(jobs.some(row => row.id === 'sky-world-rows')).toBe(false);
+  if (job === undefined) throw new Error('Missing retained map reader');
   for (const path of removed) expect(job.inputRoots, path).not.toContain(path);
   expect(job.inputRoots).toContain('src/shards/far-reach/generators/worldPieceBytes.ts');
   const ground = 'src/shards/far-reach/generators/groundScene.ts';
   expect(job.inputRoots).toContain(ground);
   expect(job.inputRoots).not.toContain('src/shards/far-reach/data/groundScene.generated.json');
-  const expected = { 'src/shards/far-reach/data/worldRows.generated.json': '3a05afd8da12568f27c2ecaaa33d7212ba6817d006ed4f7a3fc1fa418ceb9b9d' };
-  const cacheDir = mkdtempSync(resolve('tmp/sky-world-row-inputs-'));
-  try {
-    const omitted = { ...job, inputRoots: job.inputRoots.filter(path => path !== ground) };
-    const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
-    writeFileSync(catalogPath, JSON.stringify({ schema: '../scripts/generation-jobs.schema.json', jobs: discoverGeneration(root).jobs.map(row => row.id === id ? omitted : row) }));
-    await expect(generateShardJob(root, omitted, { cacheDir, catalogPath, forceCompare: true })).rejects.toThrow('Generator exited 1');
-    const result = await generateShardJob(root, job, { cacheDir, forceCompare: true });
-    try { expect(result.hit).toBe(false); expect(result.hashes).toEqual(expected); }
-    finally { result.release(); }
-  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
+  const rows = skyWorldRows(), first = Object.values(rows.bakes)[0];
+  if (first === undefined) throw new Error('Missing original baked rows');
+  Reflect.set(first.kinds, 'length', 0); Reflect.set(rows.pieces, 'length', 0);
+  expect(hashImmutableBytes(new TextEncoder().encode(`${JSON.stringify(skyWorldRows())}\n`))).toBe('3a05afd8da12568f27c2ecaaa33d7212ba6817d006ed4f7a3fc1fa418ceb9b9d');
 });

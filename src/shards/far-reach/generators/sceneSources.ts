@@ -9,9 +9,8 @@ import heroes from '../data/heroLibrary.generated.json' with { type: 'json' };
 import rest from '../data/restPools.generated.json' with { type: 'json' };
 import { bridgeRestPool } from './bridgeRest';
 import { millRestRows } from './millModel';
-import world from '../data/worldRows.generated.json' with { type: 'json' };
+import { skyWorldRows } from './worldRows';
 import { skyFixedWorldColliders } from './fixedWorld';
-import type { WorldPieceRow } from '@wildshard/game/shardfile/bakedKinds';
 import { SKY_RIG_LIBRARY, SKY_MODEL_SPECIMENS } from './rigLibrary';
 import { GEAR_SCENE_ROWS } from './rows/gearModels';
 import { FAN_HELD_RECIPE } from './rows/heldWeapon';
@@ -20,6 +19,7 @@ const { resources: _resources, attachments: _attachments, ...fanRecipe } = FAN_H
 const { specimen: _fan, ...fan } = GEAR_SCENE_ROWS[0];
 const { specimen: keeperSource, ...keeper } = GEAR_SCENE_ROWS[3];
 const bridgePool = bridgeRestPool(), mill = millRestRows();
+const world = skyWorldRows();
 
 /** The original library definitions, shared by native view and declared scenes. */
 const sky = { rows: { meshes: files.SKY_MESHES, preparedMeshes: files.SKY_MESHES, meshUrls: files.MODEL_URLS,
@@ -37,7 +37,7 @@ const hero = { rows: { meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}
   geometryPools: [heroes.pool], paintedModels: heroes.models } } satisfies SceneModelSource;
 const bakeRows = Object.fromEntries(Object.entries(world.bakes).map(([id, row]) => [id, { ...row, kinds: row.kinds.map(kind => ({ ...kind, ...('paint' in kind ? { look: 'isle-paint' } : {}) })) }]));
 const baked = { rows: bakeRows, urls: files.BAKED_URLS,
-  placements: { rows: world.pieces as readonly WorldPieceRow[], colliders: skyFixedWorldColliders() },
+  placements: { rows: world.pieces, colliders: skyFixedWorldColliders() },
   materialLibrary: 'sky', attributes: { _shk: 'aShk', _farcloth: 'aFarCloth' } } satisfies SceneBakeSource;
 const json = (name: string, rows: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(rows)));
 /** Retain the complete native library while the caller supplies its owned geometry identity. */

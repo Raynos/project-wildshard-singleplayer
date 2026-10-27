@@ -22,7 +22,7 @@
     "owned-static-scenes.json",
     "data/routeScene.generated.json",
     "data/isletScenes.generated.json",
-    "data/worldRows.generated.json",
+    "owned-world-rows.json",
     "data/mapRest.generated.json",
     "data/mapRest.json",
     "data/heroLibrary.generated.json",
@@ -285,7 +285,7 @@
       "bakes": [
         {
           "rows": {
-            "file": "data/worldRows.generated.json",
+            "file": "owned-world-rows.json",
             "path": [
               "bakes"
             ]
