@@ -7,10 +7,11 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { assembleWholeGeometryViews } from '../src/game/plugin/geometry';
-import { driftwoodScene } from '../src/shards/driftwood-isle/generators/scene';
+import { EXACT_SHAPES, driftwoodScene } from '../src/shards/driftwood-isle/generators/scene';
 
 const ordinals = v.union([v.array(v.number()), v.strictObject({ runs: v.array(v.number()) })]);
-const partition = v.object({ vertices: ordinals, triangles: ordinals });
+const partition = v.object({ id: v.string(), vertices: ordinals, triangles: ordinals,
+  grid: v.optional(v.object({ origin: v.tuple([v.number(), v.number(), v.number()]), step: v.number() })) });
 const isMesh = (node: Object3D): node is Mesh => node instanceof Mesh;
 const bytes = (attribute: BufferAttribute): Buffer => Buffer.from(attribute.array.buffer, attribute.array.byteOffset, attribute.array.byteLength);
 
@@ -32,11 +33,19 @@ test('the compact Driftwood tile bake reconstructs every original world draw (no
       const loaded = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(Uint8Array.from(wire).buffer, '');
       loaded.scene.traverse(node => { if (isMesh(node)) meshes.push(node); });
     }
+    // iPhone downloads I3 (c457a244d6): a compact world shape ships its positions as Int16 on one grid per shape, which every
+    // partition of it declares; a shape drawn through an object-space look (EXACT_SHAPES) declares none and stays bit exact
+    const grids = new Map<string, number>();
     for (const mesh of meshes) {
       const row = v.parse(partition, mesh.userData['wholePartition']);
       expect(Array.isArray(row.vertices)).toBe(false);
       expect(Array.isArray(row.triangles)).toBe(false);
+      if (row.grid === undefined) { expect(grids.has(row.id), `${row.id} grid on every partition`).toBe(false); continue; }
+      expect(EXACT_SHAPES.test(row.id), `${row.id} is an exact shape`).toBe(false);
+      expect(grids.get(row.id) ?? row.grid.step, `${row.id} one grid`).toBe(row.grid.step);
+      grids.set(row.id, row.grid.step);
     }
+    expect(grids.size).toBeGreaterThan(0);
     const assembled = assembleWholeGeometryViews(meshes);
     try {
       expect([...assembled.keys()].sort()).toEqual([...fixed.world.keys()].sort());
@@ -49,12 +58,14 @@ test('the compact Driftwood tile bake reconstructs every original world draw (no
           const channel = actual.geometry.getAttribute(name);
           if (!(attribute instanceof BufferAttribute) || !(channel instanceof BufferAttribute)) throw new Error('Expected exact plain channels');
           // iPhone downloads I3: float vec3 normals and float colours ship as normalized Int8 / Uint8 (compactWholeChannels,
-          // G415 similar); every other channel and the index stay bit for bit
+          // G415 similar), a glowing shape's colours stay float (compactWholeNormals); every other channel and the index stay bit for bit
           const compact = attribute.array instanceof Float32Array && channel.normalized && ((name === 'normal' && attribute.itemSize === 3 && channel.array instanceof Int8Array)
             || (name === 'color' && channel.array instanceof Uint8Array));
-          if (compact) {
+          // a gridded shape's positions read back as float32 within half its declared step (readWholeGeometry dequantizes)
+          const step = name === 'position' && attribute.array instanceof Float32Array && channel.array instanceof Float32Array ? grids.get(id) : undefined;
+          if (compact || step !== undefined) {
             expect(channel.itemSize).toBe(attribute.itemSize);
-            const tolerance = name === 'normal' ? 0.5 / 127 + 1e-6 : 0.5 / 255 + 1e-6;
+            const tolerance = step !== undefined ? step / 2 + 1e-6 : name === 'normal' ? 0.5 / 127 + 1e-6 : 0.5 / 255 + 1e-6;
             let worst = 0;
             for (let i = 0; i < attribute.count; i++) for (let c = 0; c < attribute.itemSize; c++) worst = Math.max(worst, Math.abs(channel.getComponent(i, c) - attribute.getComponent(i, c)));
             expect(worst, `${id}.${name} within its storage step`).toBeLessThanOrEqual(tolerance);
