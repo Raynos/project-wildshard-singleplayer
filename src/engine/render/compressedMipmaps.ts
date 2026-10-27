@@ -46,6 +46,12 @@ export function compressedMipmapsUploaded(texture: Texture): void {
   retained.add(texture);
 }
 
+/** A leased texture taking fresh mips from its file (`leaseInKtx2`): no longer retired, retired again by its next first draw. */
+export function restoreCompressedMipmaps(texture: Texture): void {
+  retired.delete(texture);
+  releasable.add(texture);
+}
+
 /** Only a successful first draw retires a finalized loader's mip chain. */
 export function finalizeCompressedMipmaps(texture: Texture): void {
   retained.delete(texture);

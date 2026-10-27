@@ -16,6 +16,7 @@ import { app } from '../app/runtime';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 import { pageScope, resourceScope } from '../app/resources';
 import { workSlice } from '../core/workSlice';
+import { ktx2Leased, leaseInKtx2, leaseOutKtx2 } from '../core/ktx2';
 
 // every species file registers itself on import: drop `src/engine/entities/species/<kind>.ts` in and it exists
 import.meta.glob(['./species/*.ts', '!./species/registry.ts', '!./species/loft.ts', '!./species/look.ts'], { eager: true });
@@ -250,6 +251,16 @@ export const SHELL_LAYERS = 8;
 function hashSeed(s: string): number { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 
 const col3 = (c: [number, number, number]): THREE.Color => new THREE.Color(c[0], c[1], c[2]);
+const isTexture = (value: unknown): value is THREE.Texture => value instanceof THREE.Texture;
+/** T6.2: how a texture's GPU storage goes back and returns (`ktx2.ts`'s lease of file-backed KTX2 textures) */
+export interface TextureLease {
+  out: (texture: THREE.Texture) => boolean;
+  leased: (texture: THREE.Texture) => boolean;
+  back: (texture: THREE.Texture) => Promise<void>;
+}
+const KTX2_LEASE: TextureLease = { out: leaseOutKtx2, leased: ktx2Leased, back: leaseInKtx2 };
+/** T6.2: per texture, the awake models drawing with it, of every factory (a grid's regions share one hull cache) */
+const drawing = new WeakMap<THREE.Texture, Set<AnimalModel>>();
 
 export class AnimalFactory {
   private models = new Map<string, AnimalModel>();
@@ -257,12 +268,22 @@ export class AnimalFactory {
   private strandTex?: THREE.Texture;
   /** painterly rigs still on the procedural stand-in while their hull loads, per model key */
   private pendingRigs = new Map<string, { mesh: THREE.SkinnedMesh; fur: AnimalMaterial }[]>();
+  /** T6.2 lease: rigs made from each model, the models drawing (`drawing`) and asleep, and each model's textures */
+  private readers = new Map<AnimalModel, number>();
+  private awake = new Set<AnimalModel>();
+  private sleeping = new Set<AnimalModel>();
+  private textures = new WeakMap<AnimalModel, readonly THREE.Texture[]>();
+  /** the texture lease the factory's models use (a contract test passes its own) */
+  lease: TextureLease = KTX2_LEASE;
 
   /** the hull for `key` has loaded: swap the cached model and every rig already made from it onto the skinned hull */
   private upgradeHull(key: string): void {
     const m = this.models.get(key), rigs = this.pendingRigs.get(key);
     this.pendingRigs.delete(key);
     if (!m) return;
+    const drew = this.awake.has(m);
+    if (drew) this.unwake(m);
+    this.textures.delete(m);
     const hull = app.species.look(m.kind)?.skin?.(m.variantDef, m.bones, []);
     if (!hull) return;
     const old = m.geometry;
@@ -283,6 +304,7 @@ export class AnimalFactory {
       r.mesh.bind(r.mesh.skeleton);
     }
     old.dispose();
+    if (drew) this.wake(m);
   }
 
   readonly style: AnimalStyle;
@@ -557,8 +579,79 @@ export class AnimalFactory {
     return fur;
   }
 
+  /** The textures `model` draws with (its materials' maps and its hull's atlas): what a lease can give back. */
+  private texturesOf(model: AnimalModel): readonly THREE.Texture[] {
+    let list = this.textures.get(model);
+    if (list !== undefined) return list;
+    const found = new Set<THREE.Texture>();
+    const own: unknown = model.map;
+    if (isTexture(own)) found.add(own);
+    for (const material of [model.fur, model.hard, model.eye, ...model.shells]) for (const slot of ['map', 'normalMap', 'emissiveMap'] as const) {
+      const texture: unknown = Reflect.get(material, slot);
+      if (isTexture(texture)) found.add(texture);
+    }
+    list = [...found]; this.textures.set(model, list);
+    return list;
+  }
+
+  /** How many rigs `instantiate` made from `model`: AnimalManager leases a model only when it owns every one. */
+  rigsOf(model: AnimalModel): number { return this.readers.get(model) ?? 0; }
+
+  /**
+   * Tile streaming T6.2, the last-reader lease: every animal of `model` sleeps (AnimalManager, outside the resident ring),
+   * so the GPU storage of each file-backed texture it draws with goes back (`leaseOutKtx2`), unless an awake model of any
+   * factory also draws with it. The rigs keep their materials, state and identity, hidden; `leaseIn` takes it back.
+   */
+  leaseOut(model: AnimalModel): void {
+    if (this.sleeping.has(model)) return;
+    this.sleeping.add(model);
+    this.unwake(model);
+    for (const texture of this.texturesOf(model)) if (drawing.get(texture) === undefined) this.lease.out(texture);
+  }
+
+  /** `model` draws again: each of its textures counts it among its awake models. */
+  private wake(model: AnimalModel): void {
+    if (this.awake.has(model)) return;
+    this.awake.add(model);
+    for (const texture of this.texturesOf(model)) {
+      const models = drawing.get(texture);
+      if (models === undefined) drawing.set(texture, new Set([model])); else models.add(model);
+    }
+  }
+  private unwake(model: AnimalModel): void {
+    if (!this.awake.delete(model)) return;
+    for (const texture of this.texturesOf(model)) {
+      const models = drawing.get(texture);
+      models?.delete(model);
+      if (models?.size === 0) drawing.delete(texture);
+    }
+  }
+
+  /** Whether `model` can draw now: false while a texture it reads is still leased out, and asking starts taking each one
+   *  back from its file (the same texture objects, so nothing rebinds); a failed read is asked again on the next call. */
+  leaseIn(model: AnimalModel): boolean {
+    this.sleeping.delete(model);
+    this.wake(model);
+    let ready = true;
+    for (const texture of this.texturesOf(model)) {
+      if (!this.lease.leased(texture)) continue;
+      ready = false;
+      this.lease.back(texture).catch(() => undefined);
+    }
+    return ready;
+  }
+
+  /** The level closes: every texture this factory gave back is taken back, so the next reader of the same cached hull (a
+   *  specimen, a later visit) finds it whole, and its models stop counting as awake. */
+  returnLeases(): void {
+    for (const model of this.sleeping) this.leaseIn(model);
+    for (const model of this.awake) this.unwake(model);
+  }
+
   /** Build a SkinnedMesh + skeleton for one animal. `tint` (0..1) slightly varies the fur colour per individual. */
   instantiate(model: AnimalModel, tint = 0.5): AnimalRig {
+    this.readers.set(model, this.rigsOf(model) + 1);
+    this.leaseIn(model);
     const bones: Record<string, THREE.Bone> = {};
     const list: THREE.Bone[] = [];
     for (const d of model.bones) {
