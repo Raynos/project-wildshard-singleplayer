@@ -3,7 +3,8 @@ import { BufferAttribute, Matrix4, Mesh, MeshStandardMaterial, Quaternion, Spher
 import { WebIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS, EXTMeshGPUInstancing, type InstancedMesh } from '@gltf-transform/extensions';
 import { MeshoptDecoder } from 'meshoptimizer';
-import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
+import { createOwnedGeometry, identitySpaceGeometry } from '@wildshard/engine/models/ownedGeometry';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { staticGlb } from './glb';
 import { brotliBytes, compactPhoneGlb } from './compactGlb';
 import { compressGlb } from './glbCompression';
@@ -101,3 +102,29 @@ it('an instanced node keeps its identity transform: the grid folds into every in
   for (let i = 0; i < a.length; i++) for (let c = 0; c < 3; c++) worst = Math.max(worst, Math.abs((a[i]?.[c] ?? 0) - (b[i]?.[c] ?? 0)));
   expect(worst).toBeLessThan(2e-3);
 });
+
+it('a rest pool reads a compacted model back as its identity-space Float32 mesh', async () => {
+  const input = sphereGlb(), packed = await compactPhoneGlb(input), loader = new GLTFLoader();
+  await MeshoptDecoder.ready; loader.setMeshoptDecoder(MeshoptDecoder);
+  const parse = async (bytes: Uint8Array): Promise<Mesh> => {
+    const gltf = await loader.parseAsync(bytes.slice().buffer, ''); gltf.scene.updateMatrixWorld(true);
+    let found: Mesh | undefined; gltf.scene.traverse(node => { if (node instanceof Mesh) found = node; });
+    if (found === undefined) throw new Error('Missing mesh'); return found;
+  };
+  const original = await parse(input), compact = await parse(packed);
+  expect(identitySpaceGeometry(original)).toBeNull();
+  const decoded = identitySpaceGeometry(compact); if (decoded === null) throw new Error('Missing decoded geometry');
+  try {
+    for (const name of ['position', 'normal', 'color']) {
+      const attribute = decoded.getAttribute(name);
+      expect(attribute.array, name).toBeInstanceOf(Float32Array); expect(attribute.normalized, name).toBe(false);
+    }
+    const pa = original.geometry.getAttribute('position'), pb = decoded.getAttribute('position'), na = original.geometry.getAttribute('normal'), nb = decoded.getAttribute('normal');
+    let worst = 0, normal = 0;
+    for (let i = 0; i < pa.count; i++) for (let c = 0; c < 3; c++) {
+      worst = Math.max(worst, Math.abs(pa.getComponent(i, c) - pb.getComponent(i, c))); normal = Math.max(normal, Math.abs(na.getComponent(i, c) - nb.getComponent(i, c)));
+    }
+    expect(worst).toBeLessThan(1e-3); expect(normal).toBeLessThan(0.02);
+  } finally { decoded.dispose(); }
+});
+

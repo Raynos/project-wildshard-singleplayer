@@ -2,6 +2,7 @@ import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
+import { compactPhoneGlb } from '@wildshard/sdk/bake/compactGlb';
 import { parseGlb } from '@wildshard/sdk/assets';
 import { bakeCasts, bakeFixedKits, readFixedSlots } from './casts';
 import { bakeLods } from './lods';
@@ -41,10 +42,16 @@ export interface NineSourceCasts {
 
 /** A cache hit re-admits and publishes every live cast; public paths are authored inputs only. */
 export async function nineCastsProgram(ctx: Pick<ProjectGenerationContext, 'cached' | 'asset'>): Promise<NineSourceCasts> {
-  // the casts ship as meshopt float files: the world scenes' rest pools read them as identity-space Float32 meshes
-  const files = await ctx.cached({ id: 'casts', inputs: INPUTS }, inputs => nineCastFiles(url => {
-    const bytes = inputs.get(url); if (bytes === undefined) throw new Error(`Missing authored Nine cast ${url}`); return bytes;
-  }));
+  const files = await ctx.cached({ id: 'casts', inputs: INPUTS }, async inputs => {
+    const made = await nineCastFiles(url => {
+      const bytes = inputs.get(url); if (bytes === undefined) throw new Error(`Missing authored Nine cast ${url}`); return bytes;
+    });
+    // iPhone downloads I3c: each shipped cast with 16-bit grid positions, 8-bit normals / colours (+ meshopt) when that is
+    // smaller under brotli (compactPhoneGlb); the world scenes' rest pools and owned intake read it back as identity-space
+    // Float32 (identitySpaceGeometry / createOwnedGeometry)
+    for (const [name, bytes] of made) if (name.startsWith('packed/')) made.set(name, await compactPhoneGlb(bytes));
+    return made;
+  });
   const read = (name: string): Uint8Array => { const bytes = files.get(name); if (bytes === undefined) throw new Error(`Missing owned Nine cast ${name}`); return bytes; };
   const hook = parseCastHook(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(read('hook.json'))));
   const names = new Set([...CAST_NAMES, 'guard']);

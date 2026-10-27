@@ -8,6 +8,7 @@ import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
 import { BAKED_BYTES as codecBakedBytes, appendGeometry as codecAppendGeometry, bakedGeometryBytes as codecBakedGeometryBytes, pad4 as codecPad4, readBakedGeometry as codecReadBakedGeometry, type BakedGeometryRow as CodecBakedGeometryRow, type BakedType as CodecBakedType } from './bakedGeometry';
 import { workSlice, type WorkSlice } from '@wildshard/engine/core/workSlice';
 import { defineSceneModels, type BakedModelMetadata } from '@wildshard/engine/models/model';
+import { identitySpaceGeometry } from '@wildshard/engine/models/ownedGeometry';
 import * as wholeV from 'valibot';
 import type { Scope as ResourceScope } from '@wildshard/engine/app/scope';
 import { resourceScope } from '@wildshard/engine/app/resources';
@@ -291,8 +292,11 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
       if (nodes.length !== pool.parts.length || new Set(nodes.map(node => node.name)).size !== nodes.length) throw new Error('Rest pool part roster differs');
       for (const name of pool.parts) {
         const node = nodes.find(candidate => candidate.name === name);
-        if (node?.type !== 'Mesh' || !node.matrixWorld.equals(new Matrix4())) throw new Error('Rest pool requires named identity-space ordinary meshes');
-        const geometry = node.geometry, position = geometry.getAttribute('position');
+        // I3: a grid-quantized cast (compactPhoneGlb: grid node, normalized channels) reads back as its identity-space Float32 mesh
+        const decoded = node?.type === 'Mesh' && !node.matrixWorld.equals(new Matrix4()) ? identitySpaceGeometry(node) : null;
+        if (node?.type !== 'Mesh' || (decoded === null && !node.matrixWorld.equals(new Matrix4()))) throw new Error('Rest pool requires named identity-space ordinary meshes');
+        if (decoded !== null) node.geometry.dispose();
+        const geometry = decoded ?? node.geometry, position = geometry.getAttribute('position');
         if (!(position instanceof BufferAttribute) || position.count === 0 || position.count > 400_000 || Object.keys(geometry.morphAttributes).length > 0) throw new Error('Rest pool requires bounded rigid positions');
         const channels = (pool.channels ?? []).filter(row => row.parts === undefined || row.parts.includes(name));
         for (const [channel, attribute] of Object.entries(geometry.attributes)) {
