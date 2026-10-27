@@ -153,7 +153,7 @@ export async function clientMaterials(shard: Shardfile, input: ReadonlyMap<strin
     const forget = scope.capture('disposers', retire);
     try {
     for (const ref of refs) {
-      const bytes = assets.get(ref); if (bytes === undefined) throw new Error('Missing admitted material texture');
+      const bytes = assets.get(ref); if (bytes === undefined) throw new Error(`Missing admitted material texture ${ref} (${shard.identity.slug})`);
       const texture = await new Promise<Texture>((resolve, reject) => { loader.parse(Uint8Array.from(bytes).buffer, resolve, reject); });
       if (scope.disposed) { texture.dispose(); throw new Error('Material scope unloaded during transcode'); }
       // a splat layer is copied into its array, never uploaded itself (clientSplatTerrain)
