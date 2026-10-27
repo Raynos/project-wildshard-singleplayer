@@ -7,8 +7,8 @@ import { macrotask } from '@wildshard/engine/boot/plan';
 import { workSlice } from '@wildshard/engine/core/workSlice';
 import { forestGroundLayoutSteps, type ForestPageRows, type GroundPlacement } from '@wildshard/format/forestPage';
 import { plumbingKnob } from '../shard/declaredPlumbing';
-import { readWholeGeometry } from '../plugin/geometry';
-import { productCoverAppearance, type CoverAppearance, type CoverMaterial } from './coverAppearance';
+import type { CoverAppearance, CoverMaterial } from './coverAppearance';
+import { readForestGroundInputs } from './forestGroundInputs';
 import type { ShardContext } from '../plugin/context';
 
 export interface ForestGroundDraw { readonly geometry: BufferGeometry; readonly material: CoverMaterial; readonly castShadow: boolean }
@@ -20,15 +20,21 @@ export class ForestGround {
   private constructor(readonly view: Forest, private readonly sky: SkyRig, private readonly appearance: CoverAppearance,
     kinds: Record<string, ForestGroundDraw>, layout: Record<string, GroundPlacement[]>, private readonly grid: { size: number; pad: number; far: number }) { this.kinds = kinds; this.layout = layout; }
   static async prepare(ctx: ShardContext, rows: ForestPageRows['ground'], view: Forest, sky: SkyRig): Promise<ForestGround> {
-    const source = ctx.product.shardfile, appearance = await productCoverAppearance(ctx.product, rows.appearance);
+    const source = ctx.product.shardfile;
+    const [appearanceInput, layoutInput, geometryInput] = await readForestGroundInputs(ctx, rows);
+    if (appearanceInput.status === 'rejected') throw appearanceInput.reason;
+    const appearance = appearanceInput.value;
     const far = plumbingKnob(source.plumbing, buildTier(), rows.far, 'number', TIER_CONFIG), shadow = plumbingKnob(source.plumbing, buildTier(), rows.shadow, 'boolean', TIER_CONFIG);
     // admitted in steps under the work slice (a drawn frame when a grid cell prepares it in play)
-    const steps = forestGroundLayoutSteps(await ctx.product.json(rows.layout)), slice = workSlice();
+    if (layoutInput.status === 'rejected') throw layoutInput.reason;
+    const steps = forestGroundLayoutSteps(layoutInput.value), slice = workSlice();
     let admitted = steps.next();
     while (admitted.done !== true) { if (slice.due()) await slice.yield(); admitted = steps.next(); }
     const placements = admitted.value, layout = placements.layout;
     if (!rows.kinds.every((row, i) => layout[row.id]?.length === placements.counts[i])) throw new Error('Forest ground kind counts differ');
-    const geometry = await readWholeGeometry(ctx.scope, source, rows.sources);
+    if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('Forest ground owner is retired');
+    if (geometryInput.status === 'rejected') throw geometryInput.reason;
+    const geometry = geometryInput.value;
     appearance.set('fade', [far, Math.min(25, far * .3)]); await appearance.prepare(ctx.product); await macrotask();
     const kinds: Record<string, ForestGroundDraw> = {};
     for (const row of rows.kinds) {
