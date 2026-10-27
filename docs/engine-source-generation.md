@@ -133,3 +133,12 @@ inputs. No repository layout, shard name or ambient parent path grants access.
 `@wildshard/sdk/decisionScripts` admits decision and return-projection metadata
 with `parseDecisionScripts` and `parseReturnProjectionV2`. These pure admission
 functions carry no compiler or filesystem dependency into author programs.
+
+## Named tile surfaces
+
+`PropsBakeSource.materialName` in `@wildshard/sdk/bake/props` names merged
+GLB surfaces for the existing `props.materials` adapter. A whole shape can
+override it through `PropWhole.materialName`. Names select admitted
+materials without changing channels or transforms; omitted names keep
+predecessor bytes. Supply matching `props.materials` bindings for every
+named surface, including coarse content.

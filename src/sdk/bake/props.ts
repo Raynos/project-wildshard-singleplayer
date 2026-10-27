@@ -15,6 +15,8 @@ export interface PropsBakeSource {
   static: Object3D; scatter?: readonly PropScatter[];
   panels?: readonly { id: string; model: Object3D; visible?: boolean }[]; colliders?: ShardProps['colliders']; models?: readonly { id: string; model: Object3D }[];
   coarse?: Object3D; far?: Object3D; family?: string; colourTexture?: Uint8Array;
+  /** GLB material name for merged surfaces; bind it through props.materials. Omitted keeps native unnamed bytes. */
+  materialName?: string;
   /** G748 / tile streaming T8: whole shapes simplified for the L1 tiles, each kept whole with its own channels in the L1 tile
    *  holding its origin (never partitioned; a shard whose look lives in custom channels keeps it far away too). */
   coarseWhole?: readonly PropWhole[];
@@ -29,6 +31,8 @@ export interface PropsBakeSource {
  */
 export interface PropWhole {
   id: string; mesh: Mesh; transform: Matrix4;
+  /** GLB surface name for this unchanged whole shape; overrides PropsBakeSource.materialName. */
+  materialName?: string;
   /** Application semantic → source channel, retained whole beside positions, normals and colours. */
   customAttributes?: GlbPrimitive['customAttributes'];
   /** Preserve typed channels and source transform doubles in GLB node extras (see staticGlb). */
@@ -212,7 +216,10 @@ function geometry(triangles: readonly Vertex[][], bounds?: readonly [number, num
   }
   return new BufferGeometry().setAttribute('position', new Float32BufferAttribute(positions, 3)).setAttribute('normal', new Float32BufferAttribute(normals, 3)).setAttribute('color', new Float32BufferAttribute(colours, 3)).setAttribute('uv', new Float32BufferAttribute(uvs, 2));
 }
-const mergedMaterial = () => new MeshStandardMaterial({ color: 0xffffff, vertexColors: true });
+const mergedMaterial = (name?: string): MeshStandardMaterial => {
+  const material = new MeshStandardMaterial({ color: 0xffffff, vertexColors: true });
+  material.name = name ?? ''; return material;
+};
 /** Merge props into the canonical 8×8 / 4×4 grid, instance L0 scatter, and refuse every over-budget output. */
 export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['tiles'][number][] = []): BakedProps {
   const tileWarnings = new Map<string, readonly string[]>();
@@ -259,7 +266,9 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
     const automatic = Object.fromEntries(Object.keys(g.attributes)
       .filter(key => !['position', 'normal', 'color', 'uv', 'tangent'].includes(key) && !Object.values(entry.customAttributes ?? {}).includes(key)).map((key, i) => [`_WS_CHANNEL_${i}`, key]));
     const customAttributes = retain ? { ...automatic, ...entry.customAttributes } : entry.customAttributes;
-    const base = { id: entry.id, at, castShadow: mesh.castShadow, geometry: g, material: new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: m.roughness }), transform: entry.transform, customAttributes,
+    const material = new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: m.roughness });
+    material.name = entry.materialName ?? source.materialName ?? '';
+    const base = { id: entry.id, at, castShadow: mesh.castShadow, geometry: g, material, transform: entry.transform, customAttributes,
       nativeAttributes: entry.partition !== undefined ? true as const : entry.nativeAttributes, quantized, compact: entry.compact === true };
     if (entry.partition === undefined) return [{ ...base, owner: null, extras: undefined }];
     const ordinals = entry.partition === 'runs' ? wholePartitionRuns : (list: number[]): number[] => list;
@@ -292,17 +301,17 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
   }
   // Hidden panels remain controllable library objects; an unconditional proxy must never make them visible.
   const scattered = (source.scatter ?? []).flatMap((s) => s.transforms.flatMap((m) => vertices(s.model, m))), panelTriangles = (source.panels ?? []).filter((p) => p.visible !== false).flatMap((p) => vertices(p.model)), coarse = source.coarse === undefined ? [...base, ...scattered, ...panelTriangles] : vertices(source.coarse);
-  const panelFiles = (source.panels ?? []).map((entry) => { const g = geometry(vertices(entry.model)), file = save([{ geometry: g, material: mergedMaterial() }], entry.id); g.computeBoundingBox(); library.push(file.hash); section.panels.push({ id: entry.id, file: file.hash, visible: entry.visible ?? true }); return { file, bounds: g.boundingBox }; });
+  const panelFiles = (source.panels ?? []).map((entry) => { const g = geometry(vertices(entry.model)), file = save([{ geometry: g, material: mergedMaterial(source.materialName) }], entry.id); g.computeBoundingBox(); library.push(file.hash); section.panels.push({ id: entry.id, file: file.hash, visible: entry.visible ?? true }); return { file, bounds: g.boundingBox }; });
   for (const lod of [0, 1] as const) {
     const size = lod === 0 ? 62.5 : 125, count = 500 / size;
     for (let z = 0; z < count; z++) for (let x = 0; x < count; x++) {
       const x0 = -250 + x * size, z0 = -250 + z * size, bounds: [number, number, number, number] = [x0, x0 + size, z0, z0 + size], primitives: GlbPrimitive[] = [], g = geometry(lod === 0 ? [...base, ...spill] : coarse, bounds);
-      if (g.getAttribute('position').count > 0) primitives.push({ geometry: g, material: mergedMaterial(), castShadow: lod === 0 });
+      if (g.getAttribute('position').count > 0) primitives.push({ geometry: g, material: mergedMaterial(source.materialName), castShadow: lod === 0 });
       if (lod === 0) for (const batch of source.scatter ?? []) {
         const transforms = (eligible.get(batch) ?? []).filter((m) => { const p = new Vector3().setFromMatrixPosition(m); return p.x >= x0 && p.x < x0 + size && p.z >= z0 && p.z < z0 + size; });
         if (transforms.length === 0) continue;
         // Scatter keeps a model in one owning tile; its conservative bounds may extend into its neighbours.
-        const local = geometry(vertices(batch.model)); primitives.push({ geometry: local, material: mergedMaterial(), instances: transforms });
+        const local = geometry(vertices(batch.model)); primitives.push({ geometry: local, material: mergedMaterial(source.materialName), instances: transforms });
       }
       for (const w of lod === 0 ? whole : coarseWhole) if (w.owner === null ? w.at.x >= x0 && w.at.x < x0 + size && w.at.z >= z0 && w.at.z < z0 + size : w.owner.x === x && w.owner.z === z) primitives.push({ geometry: w.geometry, material: w.material, castShadow: w.castShadow, name: w.id, transform: w.grid === undefined ? w.transform : w.transform.clone().multiply(tileGridTransform(w.grid)),
         ...(w.grid === undefined ? {} : { pose: w.transform, meshoptReady: true as const }), compactIndex: true, ...(w.customAttributes === undefined ? {} : { customAttributes: w.customAttributes }), ...(w.nativeAttributes === undefined ? {} : { nativeAttributes: w.nativeAttributes }), ...(w.quantized ? { quantizedChannels: true } : {}), ...(w.compact ? { nativeOnce: true as const } : {}), ...(w.extras === undefined ? {} : { extras: w.extras }) });
@@ -358,12 +367,12 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
     const farGeometry = geometry(farTriangles);
     if (farGeometry.getAttribute('position').count === 0) throw new Error('Props far proxy must have geometry');
     farGeometry.computeBoundingBox(); const farBox = farGeometry.boundingBox; if (farBox === null) throw new Error('Missing far bounds');
-    const farFile = save([{ geometry: farGeometry, material: mergedMaterial(), castShadow: false }], 'props.far'), proxy = { bounds: { min: farBox.min.toArray(), max: farBox.max.toArray() }, files: [farFile.hash], compressed: farFile.compressed + (texture?.compressed ?? 0), decoded: farFile.decoded, gpu: farFile.gpu + (texture?.gpu ?? 0), triangles: farFile.triangles, draws: farFile.draws };
+    const farFile = save([{ geometry: farGeometry, material: mergedMaterial(source.materialName), castShadow: false }], 'props.far'), proxy = { bounds: { min: farBox.min.toArray(), max: farBox.max.toArray() }, files: [farFile.hash], compressed: farFile.compressed + (texture?.compressed ?? 0), decoded: farFile.decoded, gpu: farFile.gpu + (texture?.gpu ?? 0), triangles: farFile.triangles, draws: farFile.draws };
     if (proxy.decoded + proxy.gpu > CONTENT_CAPS.far.resident || proxy.compressed > CONTENT_CAPS.far.compressed || proxy.triangles > CONTENT_CAPS.far.triangles || proxy.draws > CONTENT_CAPS.far.draws) throw new Error('Props far proxy exceeds content caps');
     section.far = farFile.hash; far = proxy;
   }
   for (const [kind, entries] of [['models', source.models ?? []]] as const) for (const entry of entries) {
-    const file = save([{ geometry: geometry(vertices(entry.model)), material: mergedMaterial() }], entry.id); library.push(file.hash); section[kind].push({ id: entry.id, file: file.hash });
+    const file = save([{ geometry: geometry(vertices(entry.model)), material: mergedMaterial(source.materialName) }], entry.id); library.push(file.hash); section[kind].push({ id: entry.id, file: file.hash });
   }
   const libraryFiles = files.filter((f) => library.includes(f.hash) || (texture !== null && library.length > 0 && f.hash === texture.hash));
   if (libraryFiles.reduce((n, f) => n + f.decoded + f.gpu, 0) > CONTENT_CAPS.library.resident || libraryFiles.reduce((n, f) => n + f.compressed, 0) > CONTENT_CAPS.library.compressed) throw new Error('Props library exceeds content caps');
