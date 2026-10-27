@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { pushSubsetJobs, runPushSubset, pushSubsetVerdict, selectPushSteps, type PushSubsetPorts } from '../scripts/push-subset-jobs.mjs';
+import { pushSubsetJobs, runPushSubset, pushSubsetVerdict, selectPushSteps, nativeOutputReplayJob, type PushSubsetPorts } from '../scripts/push-subset-jobs.mjs';
 import type { GateSelection } from '../scripts/gate-selection.mjs';
 import type { CommitJob } from '../scripts/precommit-jobs.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Retain the owned detached-child marker and remove its tiny fixture.
@@ -115,6 +115,25 @@ test('CI replays only named unfinished steps and their real producer prerequisit
   expect(selectPushSteps(jobs, ['typed-lint']).map(job => job.name)).toEqual(['generated-inputs', 'types', 'typed-lint']);
   expect(() => selectPushSteps(jobs, ['unknown'])).toThrow('Invalid');
   expect(() => selectPushSteps(jobs, ['types', 'types'])).toThrow('Duplicate');
+});
+
+test('native-output handoff preserves the exact native guard after real generation', async () => {
+  const producer = { name: 'generated-inputs', command: ['real-producer'], after: [] };
+  const native = { name: 'fast-lint', command: ['node', 'committed-fast-checks.mjs', 'unchanged-guard'], after: [] };
+  const replay = nativeOutputReplayJob([producer, native]);
+  expect(replay.command).toBe(native.command);
+  expect(replay.after).toEqual(['generated-inputs']);
+  expect(() => nativeOutputReplayJob([native])).toThrow('real producer');
+  expect(() => nativeOutputReplayJob([producer])).toThrow('native intake');
+  const jobs = selectPushSteps([producer, native, replay], ['native-outputs']);
+  expect(jobs.map(job => job.name)).toEqual(['generated-inputs', 'native-outputs']);
+  const run = vi.fn<PushSubsetPorts['run']>((_root, batch) => Promise.resolve(batch.map(job => ({
+    name: job.name, code: 7, timedOut: false, output: 'original producer refusal',
+  }))));
+  const results = await runPushSubset('/exact', jobs, performance.now() + 5000, {}, { run });
+  expect(run).toHaveBeenCalledOnce();
+  expect(results.find(result => result.name === 'native-outputs')).toMatchObject({ blocked: ['generated-inputs'], code: 1 });
+  expect(pushSubsetVerdict(results).failed).toEqual(['generated-inputs', 'native-outputs']);
 });
 
 test('deadline cleanup drains detached build descendants before returning the mirror', async () => {

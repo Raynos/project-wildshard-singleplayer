@@ -162,3 +162,12 @@ export function selectPushSteps(jobs, names) {
   for (const name of names) include(name);
   return jobs.filter(job => selected.has(job.name));
 }
+
+/** @param {readonly import('./push-subset-jobs.mjs').PushSubsetJob[]} jobs
+ * @returns {import('./push-subset-jobs.mjs').PushSubsetJob} */
+export function nativeOutputReplayJob(jobs) {
+  const native = jobs.find(job => job.name === 'fast-lint');
+  if (native === undefined || !jobs.some(job => job.name === 'generated-inputs'))
+    throw new Error('Native output handoff requires the real producer and native intake');
+  return { ...native, name: 'native-outputs', after: [...new Set([...native.after, 'generated-inputs'])] };
+}

@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import * as v from 'valibot';
 import { stagedFiles } from './precommit-projects.mjs';
 import { selectGateChecks } from './gate-selection.mjs';
-import { pushSubsetJobs, runPushSubset, pushSubsetVerdict, selectPushSteps } from './push-subset-jobs.mjs';
+import { pushSubsetJobs, runPushSubset, pushSubsetVerdict, selectPushSteps, nativeOutputReplayJob } from './push-subset-jobs.mjs';
 
 if (import.meta.main) {
   const [base, encoded] = process.argv.slice(2);
@@ -30,7 +30,9 @@ if (import.meta.main) {
   // same complete subset selection, not a waiver of the unavailable local step.
   const complete = steps.some(step => step === 'ci-subset' || step === 'tool-inputs');
   const names = [...new Set(steps.filter(step => step !== 'ci-subset' && step !== 'tool-inputs').concat(complete ? subset.map(job => job.name) : []))];
-  const jobs = selectPushSteps([...policy, ...subset], names);
+  const candidates = [...policy, ...subset];
+  if (steps.includes('native-outputs')) candidates.push(nativeOutputReplayJob(candidates));
+  const jobs = selectPushSteps(candidates, names);
   const deadline = performance.now() + 38 * 60_000;
   const results = await runPushSubset(root, jobs, deadline);
   for (const result of results) process.stdout.write(`${result.name}: exit${result.code}\n${result.output}\n`);
