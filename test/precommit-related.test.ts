@@ -199,7 +199,7 @@ test('real commits refuse reds above twenty related suites and twenty staged tes
 },30_000);
 
 test('one invocation deadline includes earlier lock/guard time and never renews an exhausted budget', () => {
-  expect(relatedDeadline('1000',44_000,500)).toBe(17_500);
+  expect(relatedDeadline('1000',4_000,500)).toBe(2_500);
   expect(relatedDeadline('1000',61_001,500)).toBe(500);
   expect(relatedDeadline('invalid',1000,500)).toBe(500);
 });
