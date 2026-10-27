@@ -18,7 +18,7 @@ other lane works counted plan rows; a lane with none takes the top unclaimed row
 | sp-x1 | GR5 Far Reach to 0 -> GR12 (folded gen-speed G rows, oxlint R4, TS T1/T6) with sp-x2 |
 | sp-x6 | D38-D40 Nalati geography red -> GR6 Nalati to 0 (incl. folded B5) |
 | sp-x10 | GR7 Driftwood to 0 (incl. folded B5, blender/export.mjs reads) |
-| sp-x2 | tile S1/S2 source landed; S3 road residency in flight (T10 source45086a7db8, final reading at plan end) -> loading L9/L14 final reading -> GR12 with sp-x1 |
+| sp-x2 | GR12 deletions + folded G8; S3 source58badebecd, T10 source45086a7db8, S1/S2 source30dcc15182/c2a06d82e6 and loading L9/L14 await plan-end readings |
 | sp-x8 | crossings grid-crossing T2 -> T3 -> T4 to G782 (< 5 s warm, < 8 s cold), loading A1 seams -> tile T7 |
 | sp-x9 | js-heap G1 (exit-1, G778) -> H5 -> H11 -> LD4 (G795) -> js-payload J6 + J10.2b -> tooling last: GM1, CF2-CF5, SW3, build-speed CI row |
 | sp-o1 | GR8 Pine to 0 (incl. folded B5) -> iPhone I3 remainder |

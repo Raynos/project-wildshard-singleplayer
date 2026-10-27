@@ -4944,7 +4944,6 @@
         "scripts/generate.mjs",
         "scripts/generated-source.mjs",
         "scripts/generation-cache.mjs",
-        "scripts/generation-capture.mjs",
         "scripts/generation-dependencies.mjs",
         "scripts/generation-determinism.mjs",
         "scripts/generation-inputs.mjs",
