@@ -67,7 +67,8 @@ if (process.argv.includes('--original-scenes')) {
     import('../src/shards/driftwood-isle/generators/driftwoodHut.mjs'), import('../src/shards/driftwood-isle/generators/driftwoodShrine.mjs'),
     import('../src/shards/driftwood-isle/generators/driftwoodWreck.mjs'), import('../src/shards/driftwood-isle/generators/driftwoodTrailside.mjs'),
   ]);
-  const hut = originalHut(), tower = originalLookout(), shrine = originalShrine(), wreck = originalWreck();
+  const aoBytes = new Uint8Array(readFileSync(new URL('../public/assets/models/driftwood-blender/voxel-ao.bin', import.meta.url)));
+  const hut = originalHut(aoBytes), tower = originalLookout(aoBytes), shrine = originalShrine(aoBytes), wreck = originalWreck(aoBytes);
   for (const { id, geometries } of [{ id: 'hut', geometries: [hut.kit, hut.flames] }, { id: 'lookout', geometries: [tower.geometry] },
     { id: 'shrine', geometries: [shrine.world.geometry.kit, shrine.world.geometry.water, shrine.world.geometry.glyphs] },
     { id: 'wreck', geometries: [wreck.world.geometry.rocks, wreck.world.geometry.kit, wreck.world.geometry.glow] }, { id: 'trailside', geometries: [originalTrailside().geometry] }]) {

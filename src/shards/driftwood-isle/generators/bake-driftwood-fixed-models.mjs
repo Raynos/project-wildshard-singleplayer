@@ -38,7 +38,8 @@ if (heads.length !== 1) throw new Error('Wendell head source must contain one me
 const headMesh = heads.at(0);
 if (headMesh === undefined) throw new Error('Missing authored Wendell head');
 const head = castawayHead(headMesh.geometry.clone().applyMatrix4(headMesh.matrixWorld));
-const { baked, fixed } = driftwoodScene(`${import.meta.dirname}/../../../..`, head);
+const aoBytes = new Uint8Array(readFileSync(new URL('../../../../public/assets/models/driftwood-blender/voxel-ao.bin', import.meta.url)));
+const { baked, fixed } = driftwoodScene(`${import.meta.dirname}/../../../..`, head, aoBytes);
 for (const [name, geometry] of fixed.geometries) emit(name, geometry);
 for (const [name, value] of Object.entries(fixed.rows)) write(new URL(`../data/${name}.json`, import.meta.url), `${JSON.stringify(value, null, 2)}\n`);
 if (baked.props === null) throw new Error('Driftwood scene must contain its static world');

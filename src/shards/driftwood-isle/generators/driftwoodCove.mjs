@@ -1,6 +1,5 @@
 // The same retained terrain binding as the native level: original WSTR samples plus its authored datum.
 // Explicit function call only; import selects no world, service or level.
-import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
 import { addVoxelAOBake } from '@wildshard/engine/world/voxelAO';
 import { driftwoodGroundSampler } from './groundSampling.ts';
@@ -9,9 +8,10 @@ import { coveNative } from './coveNative.ts';
 import { cascadeGeometry } from './cascade.ts';
 import { coveFloors, islandCoveSpec } from './coveLayout.ts';
 
-export function originalCove() {
+/** @param {Uint8Array} aoBytes caller-owned committed native AO table */
+export function originalCove(aoBytes) {
   const ground = driftwoodGroundSampler();
-  const ao = Uint8Array.from(readFileSync(new URL('../../../../public/assets/models/driftwood-blender/voxel-ao.bin', import.meta.url)));
+  const ao = Uint8Array.from(aoBytes);
   const release = addVoxelAOBake(ao.buffer);
   try {
     const spec = islandCoveSpec(), built = coveGeometry(spec, ground);

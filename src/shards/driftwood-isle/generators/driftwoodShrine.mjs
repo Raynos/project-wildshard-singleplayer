@@ -1,12 +1,12 @@
-import { readFileSync } from 'node:fs';
 import { addVoxelAOBake } from '@wildshard/engine/world/voxelAO';
 import { ShrineBuilder } from './shrine.ts';
 import { driftwoodGroundSampler } from './groundSampling.ts';
 import SHRINE_SITES from '../data/shrineSites.json' with { type: 'json' };
 
 /** Original ordered shrine builds and native layouts for the two admitted sites. */
-export function originalShrine() {
-  const bytes=Uint8Array.from(readFileSync(new URL('../../../../public/assets/models/driftwood-blender/voxel-ao.bin',import.meta.url)));
+/** @param {Uint8Array} aoBytes caller-owned committed native AO table */
+export function originalShrine(aoBytes) {
+  const bytes=Uint8Array.from(aoBytes);
   const release=addVoxelAOBake(bytes.buffer);
   try {
     const worldGround=driftwoodGroundSampler();

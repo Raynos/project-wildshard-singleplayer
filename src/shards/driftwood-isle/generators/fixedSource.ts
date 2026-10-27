@@ -31,7 +31,7 @@ import { entryDeckGeometries } from './entryDeckGeometry';
 import { CASTAWAY_SMOKE } from './smokeLook';
 
 /** The original ordered fixed builders, shared by their retained byte oracle and the scene producer. */
-export function driftwoodFixedSource(): {
+export function driftwoodFixedSource(aoBytes: Uint8Array): {
   geometries: Map<string, BufferGeometry>; world: Map<string, Matrix4>; rows: Record<string, unknown>;
 } {
   const geometries = new Map<string, BufferGeometry>(), world = new Map<string, Matrix4>(), rows: Record<string, unknown> = {};
@@ -47,32 +47,32 @@ export function driftwoodFixedSource(): {
   const cover = coverGeometry();
   for (const [name, geometry] of Object.entries(cover.geometry)) geometries.set(`cover-${name}`, geometry);
   rows['coverLook'] = cover.look;
-  const cove = originalCove();
+  const cove = originalCove(aoBytes);
   for (const [name, geometry] of Object.entries(cove.geometry)) {
     const id = `cove-${name}`; geometries.set(id, geometry); world.set(id, new Matrix4());
   }
   rows['coveBake'] = cove.metadata;
   const trail = originalTrailside(); geometries.set('trailside', trail.geometry); world.set('trailside', new Matrix4()); rows['trailsideBake'] = trail.metadata;
-  const hut = originalHut(), h = hut.layout.origin;
+  const hut = originalHut(aoBytes), h = hut.layout.origin;
   geometries.set('hut-kit', hut.kit); geometries.set('hut-flames', hut.flames);
   for (const id of ['hut-kit', 'hut-flames']) world.set(id, new Matrix4().makeTranslation(h.x, h.y, h.z));
   rows['hutBake'] = hut.layout;
-  const tower = originalLookout(), t = tower.layout.origin;
+  const tower = originalLookout(aoBytes), t = tower.layout.origin;
   geometries.set('lookout', tower.geometry); world.set('lookout', new Matrix4().makeTranslation(t.x, t.y, t.z)); rows['lookoutBake'] = tower.layout;
-  const wreck = originalWreck();
+  const wreck = originalWreck(aoBytes);
   for (const [part, geometry] of Object.entries(wreck.world.geometry)) {
     const id = `wreck-${part}`; geometries.set(id, geometry); world.set(id, new Matrix4());
   }
   geometries.set('shipwreck-kit', wreck.specimen.geometry); geometries.set('shipwreck-glow', wreck.specimen.glow);
   rows['wreckBake'] = wreck.world.rows;
-  const shrine=originalShrine(),o=shrine.world.rows.origin;
+  const shrine=originalShrine(aoBytes),o=shrine.world.rows.origin;
   for(const [part,geometry] of Object.entries(shrine.world.geometry)){
     const id=`shrine-${part}`;geometries.set(id,geometry);world.set(id,new Matrix4().makeTranslation(o.x,o.y,o.z));
   }
   for(const [part,geometry] of Object.entries(shrine.specimen.geometry))geometries.set(`shrine-specimen-${part}`,geometry);
   rows['shrineBake']={world:shrine.world.rows,specimen:shrine.specimen.rows};
   rows['bridgeBake']=originalBridgeFacts();
-  const logs = originalDuneLogs();
+  const logs = originalDuneLogs(aoBytes);
   clipIslandDressing(logs.geometry, retainedIslandRuns(logs.geometry, (x, z) => !inArea(x, z)));
   geometries.set('cover-driftwood', logs.geometry);
   rows['duneLogsBake'] = logs.catalogue;

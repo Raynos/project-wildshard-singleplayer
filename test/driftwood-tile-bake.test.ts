@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The real scene bake writes its inspectable intermediate into an isolated test project.
-import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare every byte natively without Vitest recursively visiting millions of typed-array elements.
 import { Buffer } from 'node:buffer';
 import { BufferAttribute, BufferGeometry, Material, Mesh, type Object3D } from 'three';
@@ -17,7 +17,7 @@ test('the compact Driftwood tile bake reconstructs every original world draw bit
   mkdirSync('tmp', { recursive: true });
   const project = mkdtempSync('tmp/driftwood-tile-bake-'), meshes: Mesh[] = [];
   const head = new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]), 3));
-  const { fixed, baked } = driftwoodScene(project, head);
+  const { fixed, baked } = driftwoodScene(project, head, new Uint8Array(readFileSync('public/assets/models/driftwood-blender/voxel-ao.bin')));
   const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
   try {
     const parents = baked.shardfile.tiles.filter(tile => tile.lod === 1);

@@ -3,7 +3,7 @@ import type { Placement } from '@wildshard/engine/models/model';
 import type { DriftLogParams } from '../runtime/models/cargo';
 
 /** Original dune geometry and drawn-into registration, compiled from the native ground. */
-export declare function originalDuneLogs(): {
+export declare function originalDuneLogs(aoBytes: Uint8Array): {
   geometry: BufferGeometry;
   catalogue: { placements: Placement<DriftLogParams>[]; boxes: number[] };
 };

@@ -7,4 +7,4 @@ interface ShrineBake {
     anchors:ShrineBuilder['anchors'];baseY:number;waterY:number;terrace:number};
 }
 /** The original world and Explorer geometry with their independent native layouts. */
-export function originalShrine():{world:ShrineBake;specimen:ShrineBake};
+export function originalShrine(aoBytes: Uint8Array):{world:ShrineBake;specimen:ShrineBake};

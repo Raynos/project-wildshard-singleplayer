@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import SHORE from '../data/shoreBoulders.generated.json' with {type:'json'};
 import FOLIAGE from '../data/foliagePlacements.generated.json' with {type:'json'};
 
@@ -47,7 +48,8 @@ export async function layout({ THREE, imp, def, addObject, tryBuild }) {
   pier.group.position.set(site.world.x, site.world.deckY, site.world.z);
   for (const part of ['deck', 'cloth']) { const geometry = madePiers.geometry.get(`pier-world-0-${part}`); if (geometry) pier.group.add(new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ vertexColors: true }))); }
   addObject(pier.group);
-  tryBuild('hut', () => { const row = originalHut(), group = new THREE.Group(), material = new THREE.MeshBasicMaterial({ vertexColors: true }); group.position.copy(row.layout.origin); group.add(new THREE.Mesh(row.kit, material), new THREE.Mesh(row.flames, material)); return group; });
+  const aoBytes = new Uint8Array(readFileSync(new URL('../../../../public/assets/models/driftwood-blender/voxel-ao.bin', import.meta.url)));
+  tryBuild('hut', () => { const row = originalHut(aoBytes), group = new THREE.Group(), material = new THREE.MeshBasicMaterial({ vertexColors: true }); group.position.copy(row.layout.origin); group.add(new THREE.Mesh(row.kit, material), new THREE.Mesh(row.flames, material)); return group; });
   tryBuild('trailside', () => new THREE.Mesh(originalTrailside().geometry, new THREE.MeshBasicMaterial({ vertexColors: true })));
 
   return {

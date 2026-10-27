@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { readFileSync } from 'node:fs';
 import { addVoxelAOBake } from '@wildshard/engine/world/voxelAO';
 import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
 import { driftwoodGroundSampler } from './groundSampling.ts';
@@ -11,7 +10,8 @@ import { driftLogBox } from './driftLogs.ts';
 import { duneLogs } from './duneLogs.ts';
 
 /** Compile the native dune ring and its drawn-into catalogue from the authored terrain. */
-export function originalDuneLogs() {
+/** @param {Uint8Array} aoBytes caller-owned committed native AO table */
+export function originalDuneLogs(aoBytes) {
   const ground = driftwoodGroundSampler(), cave = islandCoveSpec().cave;
   const avoid = [
     { x: PLATEAU.x + 2, z: PLATEAU.z - 2, r: 9 }, { x: HEADLAND.x - 4, z: HEADLAND.z - 2, r: 8 },
@@ -19,7 +19,7 @@ export function originalDuneLogs() {
     { x: cave.x, z: cave.z + cave.depth / 2, r: 8 }, { x: 0, z: -151, r: 3.2 },
   ];
   const trailDistance = buildTerrainMetadata(SEED, { trails: TRAILS, cabinSites: [] }, () => 0).trailDistance;
-  const ao = Uint8Array.from(readFileSync(new URL('../../../../public/assets/models/driftwood-blender/voxel-ao.bin', import.meta.url)));
+  const ao = Uint8Array.from(aoBytes);
   const release = addVoxelAOBake(ao.buffer);
   try {
     const { geometry, logs } = duneLogs(ground, trailDistance, avoid, 0, SEED);
