@@ -121,6 +121,7 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D69 | Pre-existing taming handoff pin mismatch: local 85,858 B SHA 93d2101b641c092d213b0485dc9b831e0b809b56a5531d36fb9ddee66dd1a28a differs from registered 44aa3290d263ba0b05ca743b2cc5ce89164c03074e6c8c642033436fffc4d7fe. Complete local bytes retained independently; no repin or byte-equivalence claim. | observed `4c12de2422` before taming retirement; first bad unknown | sp-x6 (GR6 plan-end reading) | open |
 
 | D70 | Full working-tree ratchet aborts before counts because `bake-titan-fire-view.mjs` is absent while its generator-import allowance remains. HEAD still contains both the file and allowance; scoped crossing/tile checks pass. Exact `tmp/sp-x8-g717/t7-mouths-ratchet.log`. | live uncommitted retirement; no first-bad main SHA established | GR6 live retirement owner (sp-x6) | open; preserve foreign source/policy edits, no allowance growth |
+| D71 | Pine product build (past the D65 config boundary) refuses 'script memory budget understated or above host cap' (`src/format/assetAdmission.ts:195`): 9 sim script instances over `SCRIPT_LIMITS.instances` 8 (D59 raised the decision cap to nine in `decisionScripts.ts` only), and critical resident 11,097,390 B + script memory 1,179,648 B is over `budgets.sim.resident` 12,145,966 B and `serverBudget.memory` 3,097,184 B; `node scripts/build-shardfiles.mjs --shard=pine-hollow` exits 1 | `ba9b0b3a2e` (G20a ninth module) | sp-o1 (GR8, with D59) | open |
 
 ## Rows
 
