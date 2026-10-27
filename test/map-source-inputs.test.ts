@@ -1,9 +1,10 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare authored inputs across owned installation layouts.
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep fixture trees under repository scratch.
 import { dirname, resolve } from 'node:path';
+import ts from '@typescript/typescript6';
 import { expect, test } from 'vitest';
-import { mapInputHashes, mapTilesHash, mapInputRoots, mapSettings, mapShards } from '../scripts/map-hash.mjs';
+import { mapInputHashes, mapTilesHash, mapInputRoots, mapSettings } from '../scripts/map-hash.mjs';
 
 test('map keys ignore installed launchers while retaining source and lockfile bytes', () => {
   mkdirSync('tmp', { recursive: true });
@@ -28,13 +29,33 @@ test('map keys ignore installed launchers while retaining source and lockfile by
 });
 
 
-test('retained painters and the source-owned map track their defining raster roots', () => {
-  const tracked: string[] = [];
-  for (const { slug, dir } of mapShards(resolve('.'))) {
-    if (!mapSettings(dir).inputs.includes('../../../scripts/map-painter.mjs')) continue;
-    expect(mapInputRoots(dir)).toContain(resolve('src/sdk/bake/mapRaster.ts')); tracked.push(slug);
+/** Follow declared module inputs without running producers or reading their retired handoffs. */
+function programInputs(entry: string): Set<string> {
+  const files = new Set<string>();
+  const options: ts.CompilerOptions = { moduleResolution: ts.ModuleResolutionKind.Bundler, allowJs: true };
+  for (const dependency of ts.preProcessFile(readFileSync(entry, 'utf8')).importedFiles) {
+    const found = ts.resolveModuleName(dependency.fileName, entry, options, ts.sys).resolvedModule;
+    if (found === undefined) throw new Error(`Unresolved map program input ${dependency.fileName} from ${entry}`);
+    files.add(resolve(found.resolvedFileName));
   }
-  expect(tracked).toEqual(['blender-template', 'driftwood-isle', 'far-reach', 'ink-cel-valley', 'nalati-grasslands', 'open-plots']);
+  return files;
+}
+
+test('source-owned maps declare their program and its defining raster inputs', () => {
+  // Open Plots paints each output inside its product; other maps have a named map program.
+  for (const slug of ['blender-template', 'driftwood-isle', 'far-reach', 'ink-cel-valley', 'nalati-grasslands',
+    'nine-dragon-stack', 'open-plots', 'pine-hollow', 'sunscar-dunes']) {
+    const dir = resolve('src/shards', slug), roots = mapInputRoots(dir);
+    const program = resolve(dir, 'generators', slug === 'open-plots' ? 'product.ts' : 'mapProgram.ts');
+    expect(mapSettings(dir).inputs.length).toBeGreaterThan(0);
+    expect(roots.some(root => program === root || program.startsWith(`${root}/`))).toBe(true);
+    const inputs = programInputs(program);
+    expect(inputs, `${slug} raster entry`).toContain(resolve('src/sdk/bake/groundMap.ts'));
+  }
+  const rasterInputs = programInputs(resolve('src/sdk/bake/groundMap.ts'));
+  for (const source of ['mapScenes', 'mapRaster']) {
+    expect(rasterInputs).toContain(resolve(`src/sdk/bake/${source}.ts`));
+  }
   const nineRoots = mapInputRoots(resolve('src/shards/nine-dragon-stack'));
   for (const source of ['mapAssembly', 'mapScenes', 'mapRaster', 'groundMap']) {
     expect(nineRoots).toContain(resolve(`src/sdk/bake/${source}.ts`));
@@ -43,10 +64,6 @@ test('retained painters and the source-owned map track their defining raster roo
   expect(nineRoots).toContain(resolve('src/commons/bake/portableMath.ts'));
   expect(nineRoots).toContain(resolve('src/shards/nine-dragon-stack/data/map.json'));
   expect(nineRoots).not.toContain(resolve('scripts/map-painter.mjs'));
-  for (const slug of ['sunscar-dunes', 'far-reach', 'nalati-grasslands', 'nine-dragon-stack', 'driftwood-isle']) {
-    const roots = mapInputRoots(resolve('src/shards', slug));
-    expect(roots).toContain(resolve('src/sdk/bake/mapScenes.ts'));
-  }
 });
 
 test.each(['look', 'data'])('%s map declarations invalidate on raster and scene edits', (layout) => {

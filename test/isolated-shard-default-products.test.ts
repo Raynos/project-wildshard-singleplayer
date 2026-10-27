@@ -10,7 +10,8 @@ for(const name of ['driftwood-isle','ink-cel-valley','nalati-grasslands','pine-h
  const emitted=ts.transpileDeclaration(source,{fileName,reportDiagnostics:true,
   compilerOptions:{strict:true,exactOptionalPropertyTypes:true,isolatedDeclarations:true}});
  expect(emitted.diagnostics).toEqual([]);
- expect(emitted.outputText).toContain('ReturnType<typeof parseShardfile>');
+ expect(emitted.outputText).toContain(name === 'pine-hollow' ? ': Shardfile;' : 'ReturnType<typeof parseShardfile>');
+ expect(emitted.outputText).toContain("from '@wildshard/sdk/shardfile'");
  expect(emitted.outputText.length).toBeLessThan(100_000);
 });
 
