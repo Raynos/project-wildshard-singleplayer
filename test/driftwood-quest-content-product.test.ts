@@ -5,7 +5,7 @@ import { parseQuestStory } from '../src/format/questStory';
 import { readProjectAssets } from '../src/sdk/project';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { DRIFTWOOD_QUESTS, DRIFTWOOD_MARKERS } from '../src/shards/driftwood-isle/generators/quests';
-import source from '../src/shards/driftwood-isle/shard.config';
+import { DRIFTWOOD as source } from './fixtures/driftwood-program';
 import { QUEST_NPCS } from '../src/shards/driftwood-isle/generators/questNpcs';
 import { DRIFTWOOD_FEATS } from '../src/shards/driftwood-isle/generators/questInventory';
 
