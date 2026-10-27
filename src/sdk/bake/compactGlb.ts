@@ -4,6 +4,7 @@ import { WebIO, type Accessor, type Document } from '@gltf-transform/core';
 import { ALL_EXTENSIONS, KHRMeshQuantization, type InstancedMesh } from '@gltf-transform/extensions';
 import { MeshoptDecoder } from 'meshoptimizer';
 import { compressGlb } from './glbCompression';
+import { hashImmutableBytes } from '../immutable';
 import { nameBlob, nameMeshoptBlob, type BlobOptions, type NamedBlob } from '../blobs';
 import { entryFootprints, obstructsEntry } from '@wildshard/format/entryGeometry';
 import type { ShardEntryways } from '@wildshard/format/entryways';
@@ -19,6 +20,9 @@ const quantized = (accessor: Accessor, array: Int16Array<ArrayBuffer> | Int8Arra
   accessor.setArray(array).setNormalized(true);
 };
 
+/** compactPhoneGlb's picks this process has made (null: the input was kept) */
+const compacted = new Map<string, Uint8Array | null>();
+
 /**
  * iPhone downloads I3: a phone-tier baked model with 16-bit positions, 8-bit normals and 8-bit colours
  * (KHR_mesh_quantization), with or without meshopt (EXT_meshopt_compression): whichever of the input, the quantized
@@ -30,6 +34,17 @@ const quantized = (accessor: Accessor, array: Int16Array<ArrayBuffer> | Int8Arra
  * (channels already quantized stay as they are); every other file, and every channel but POSITION / NORMAL / COLOR_0, passes through unchanged.
  */
 export async function compactPhoneGlb(input: Uint8Array, options: { readonly contain?: true } = {}): Promise<Uint8Array> {
+  // the pick is a pure function of the bytes: a producer that prepares its output again (a test's second prepareOutput, a
+  // rebuild in one process) reuses it instead of re-running the meshopt and brotli trials; a hit hands back its own copy
+  const key = `${options.contain === true ? 'contain' : 'grid'}:${hashImmutableBytes(input)}`, known = compacted.get(key);
+  if (known === null) return input;
+  if (known !== undefined) return Uint8Array.from(known);
+  const result = await compactOnce(input, options);
+  compacted.set(key, result === input ? null : Uint8Array.from(result));
+  return result;
+}
+
+async function compactOnce(input: Uint8Array, options: { readonly contain?: true }): Promise<Uint8Array> {
   await MeshoptDecoder.ready;
   const io = new WebIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
   const doc = await io.readBinary(Uint8Array.from(input)), root = doc.getRoot();
