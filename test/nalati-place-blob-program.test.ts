@@ -23,6 +23,7 @@ import { originalSpeciesBank, originalSpeciesMetadata } from './fixtures/nalati-
 import { originalSpeciesOutput } from './fixtures/nalati-original-species';
 import speciesPins from './fixtures/nalati-species-files.json' with { type: 'json' };
 import headerPin from './fixtures/nalati-species-product-header.json' with { type: 'json' };
+import { predecessorRenderHeader } from './fixtures/nalati-render-header';
 import original from './fixtures/nalati-place-blob.json' with { type: 'json' };
 import cragOriginal from './fixtures/nalati-crag-blob.json' with { type: 'json' };
 import dressingOriginal from './fixtures/nalati-dressing-blob.json' with { type: 'json' };
@@ -77,7 +78,7 @@ function sceneWithOwnedModels(before: NamedBlob): NamedBlob {
 const coldOutputFixture = await (async () => {
   const cache = mkdtempSync(resolve('tmp/nalati-place-blob-'));
   const requested: string[] = [], steps: string[] = [], constructions = new Map<string, number>();
-  let nativePlaces: Uint8Array | undefined;
+  let nativePlaces: Uint8Array | undefined, nativeRender: Uint8Array | undefined;
   const context = () => {
     const ctx = createProjectGeneration(resolve('src/shards/nalati-grasslands'), 'a'.repeat(64), new Map(), cache,
       [{ prefix: '/src/shards/nalati-grasslands/', directory: resolve('src/shards/nalati-grasslands') },
@@ -86,6 +87,7 @@ const coldOutputFixture = await (async () => {
       requested.push(...(step.inputs ?? [])); steps.push(step.id);
       return ctx.cached(step, inputs => { constructions.set(step.id, (constructions.get(step.id) ?? 0) + 1); return make(inputs); }).then(files => {
         if (step.id === 'places') nativePlaces = files.get('places.json');
+        if (step.id === 'render-tiles') nativeRender = files.get('data/renderTiles.json');
         return files;
       });
     } };
@@ -96,7 +98,7 @@ const coldOutputFixture = await (async () => {
     const shared = context(), header = await buildNalati(shared);
     const output = await prepareOutput(shared);
     const beforeWarm = new Map(constructions), warm = await prepareOutput(context());
-    return { cache, requested, steps, constructions, context, crags, header, output, beforeWarm, warm, get nativePlaces() { return nativePlaces; } };
+    return { cache, requested, steps, constructions, context, crags, header, output, beforeWarm, warm, get nativePlaces() { return nativePlaces; }, get nativeRender() { return nativeRender; } };
   } catch (error) { rmSync(cache, { recursive: true, force: true }); throw error; }
 })();
 
@@ -169,6 +171,19 @@ test('the actual output cache hit preserves all complete files without reconstru
     }
 });
 
+test('the complete header oracle rejects changed L1 rows and retains unrelated fields', () => {
+  const render = coldOutputFixture.nativeRender;
+  if (render === undefined) throw new Error('Missing observed native render metadata');
+  const corrupt = render.slice(); corrupt[0] = (corrupt[0] ?? 0) ^ 1;
+  expect(() => predecessorRenderHeader(coldOutputFixture.header, corrupt)).toThrow('complete source pin');
+  const changed = { ...coldOutputFixture.header, tiles: coldOutputFixture.header.tiles.map(tile =>
+    tile.lod === 1 ? { ...tile, compressed: tile.compressed + 1 } : tile) };
+  expect(() => predecessorRenderHeader(changed, render)).toThrow('current tiles');
+  const moved = { ...coldOutputFixture.header, spawn: { ...coldOutputFixture.header.spawn, x: coldOutputFixture.header.spawn.x + 1 } };
+  const projected = new TextEncoder().encode(JSON.stringify(predecessorRenderHeader(moved, render)));
+  expect(hashImmutableBytes(projected)).not.toBe(headerPin.sha256);
+});
+
 test('the actual cold output hook preserves every predecessor file cost and binary byte', () => {
   const { requested, steps, constructions, output: hit } = coldOutputFixture;
   const before = nativePlaceFile('places.bin');
@@ -180,7 +195,9 @@ test('the actual cold output hook preserves every predecessor file cost and bina
       expect(Buffer.compare(cold.bytes, readFileSync(`public/assets/nalati/baked/${name}.bin`))).toBe(0);
       cold.bytes.fill(0);
     }
-    const headerBytes = new TextEncoder().encode(JSON.stringify(coldOutputFixture.header));
+    const render = coldOutputFixture.nativeRender;
+    if (render === undefined) throw new Error('Missing observed native render metadata');
+    const headerBytes = new TextEncoder().encode(JSON.stringify(predecessorRenderHeader(coldOutputFixture.header, render)));
     expect(headerBytes.length).toBe(headerPin.bytes);
     expect(hashImmutableBytes(headerBytes)).toBe(headerPin.sha256);
     expect(constructions.get('species')).toBe(1);
