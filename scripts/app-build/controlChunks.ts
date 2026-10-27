@@ -46,6 +46,9 @@ export function controlChunkSelector(root: string, startup = startupModuleRoots(
  * shard owners keep Rolldown's automatic lazy boundaries. */
 export function controlChunkGroups(root: string): Rolldown.CodeSplittingGroup[] {
   return [
+    // HTML proxies and compiler helpers are entry dependencies too. Their actual
+    // entry sets keep calibration's initial Three graph off the public shell.
+    { name: 'entry-boundary', tags: ['$initial'], entriesAware: true, includeDependenciesRecursively: false, maxSize: 192_000 },
     { name: controlChunkSelector(root, undefined, 'title'), entriesAware: true, includeDependenciesRecursively: false, maxSize: 192_000 },
     { name: controlChunkSelector(root), includeDependenciesRecursively: false, maxSize: 192_000 },
   ];
