@@ -301,20 +301,20 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               const equipment = new Promise<void>(resolve => { equipmentReady = resolve; });
               const content = new Promise<void>(resolve => { contentReady = resolve; });
               forgetContent = owner.capture('disposers', () => { equipmentReady(); contentReady(); });
-              enteredWarm = request.page.world.game.warmEnteredFrame(owner, view.root, async (_prepare, _frame, preparePage) => {
+              enteredWarm = request.page.world.game.warmEnteredFrame(owner, view.root, async prepareRoots => {
                 await foundation.prepareWorldMaterials?.();
-                if (owner.disposed) throw new Error('Regional runtime left before its page warm-up');
-                // Only existing page views run early, under the completed sky.
-                // Late entered materials and all shadow/post passes stay final.
-                const page = preparePage(); void page.catch(() => undefined);
+                if (owner.disposed) throw new Error('Regional runtime left before its world warm-up');
+                // The completed world can link while kit/play add their own late models.
+                // Exterior variants, late materials and shadow/post passes stay final.
+                const worldPrograms = prepareRoots([view.root], false); void worldPrograms.catch(() => undefined);
                 try {
                   await equipment;
                   if (owner.disposed) throw new Error('Regional runtime left before its equipment warm-up');
                   await content;
                   if (owner.disposed) throw new Error('Regional runtime left before its final warm-up');
-                  await page;
+                  await worldPrograms;
                   await (foundation.beforeWarm !== undefined ? foundation.beforeWarm() : foundation.prepareWorldMaterials?.());
-                } finally { await Promise.allSettled([page]); }
+                } finally { await Promise.allSettled([worldPrograms]); }
               });
               // Observe an early failure now; afterPlay still awaits the original rejection before readiness.
               void enteredWarm.catch(() => undefined);

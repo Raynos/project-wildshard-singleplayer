@@ -1221,11 +1221,10 @@ including sky/post callers outside an entered-frame warm-up. Disposing its owner
 `Game.bindFrameDrawRange(owner, distance)`: an `enabled` live-draw mask.
 Visibility restores in finally; sky/custom/unknown draws and warm-up stay.
 
-`Game.warmEnteredFrame(owner, futureRoot?, before?)` captures the region scene. Callers pass its view root and sibling
-lights; only parked-root visibility is ignored.
-`before(prepare, prepareFrame)` warms roots during construction and page programs after kit completes, without drawing.
-`prepare(roots, false)` omits equipment road variants. Final inventory still gates readiness.
-Both share page lights, regional PMREM, draw barriers, owner fences and the original bound.
+`Game.warmEnteredFrame(owner, futureRoot?, before?)` shares one bound and owner.
+`before(prepare, prepareFrame)` can overlap completed roots with kit/play under future lights/PMREM.
+`prepare(roots, false)` omits road variants. Final complete inventory still gates readiness.
+Root prefixes drain on refusal; they never publish readiness or move roots.
 The owner's staged camera equipment also receives sliced first draws before entry. The staging group, its direct
 equipment roots and the destination lighting root are temporarily revealed; authored detail visibility stays intact.
 Only selected equipment draws. Each 1×1-scissored draw restores visibility, layers, culling, shadows, environment

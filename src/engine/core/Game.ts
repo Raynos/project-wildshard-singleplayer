@@ -880,9 +880,9 @@ export class Game {
    * Early roots and whole-page programs share this bound. Final complete inventory still gates readiness.
    * nothing here can wait silently forever (`boundEntryWarmup`); a stall rejects naming its stage. */
   async warmEnteredFrame(owner: Scope, futureRoot?: THREE.Object3D,
-    before?: (prepare: (roots: readonly THREE.Object3D[], exteriorPrograms?: boolean) => Promise<void>, prepareFrame: () => Promise<void>, preparePage: () => Promise<void>) => Promise<void> | void): Promise<void> {
+    before?: (prepare: (roots: readonly THREE.Object3D[], exteriorPrograms?: boolean) => Promise<void>, prepareFrame: () => Promise<void>) => Promise<void> | void): Promise<void> {
     const composer = this._composer;
-    if (composer === null) { await before?.(() => Promise.resolve(), () => Promise.resolve(), () => Promise.resolve()); return; }
+    if (composer === null) { await before?.(() => Promise.resolve(), () => Promise.resolve()); return; }
     const trace: EntryPreparation = { root: (futureRoot ?? this.scene).uuid, owner: owner.name,
       completed: false, phase: before === undefined ? 'post-preparation' : 'before-warm', progress: null, stages: [] };
     this._entryPreparation = trace;
@@ -906,12 +906,6 @@ export class Game {
             (done, total, detail) => { trace.progress = { done, total, detail }; });
           trace.stages.push({ phase: 'early-frame-programs', elapsedMs: diagnosticNow() - started, units: 1, endAt: diagnosticNow() });
           enter('before-warm');
-        }, async () => {
-          const started = diagnosticNow();
-          enter('early-page-programs');
-          await this.warmEnteredPageRoots(owner, composer, futureRoot, current);
-          trace.stages.push({ phase: 'early-page-programs', elapsedMs: diagnosticNow() - started, units: 1, endAt: diagnosticNow() });
-          enter('before-warm');
         });
         if (!current()) throw new Error('Shader warm-up owner left');
         enter('post-preparation');
@@ -925,17 +919,6 @@ export class Game {
       enter('shaders-and-composer');
       await this.warmEnteredStages(owner, composer, trace, current, futureRoot, enter);
     });
-  }
-
-  /** Only already-existing page views overlap later kit/play construction.
-   * The complete entered/shadow/post inventory remains the final gate. */
-  private async warmEnteredPageRoots(owner: Scope, composer: EffectComposer,
-    future: THREE.Object3D | undefined, current: () => boolean): Promise<void> {
-    if (future === undefined || this.frameCount === 0) return;
-    const { entryPageRoots } = await import('../render/precompile');
-    const roots = entryPageRoots(this.rootScene, future);
-    if (!current()) throw new Error('Shader warm-up owner left');
-    if (roots.length > 0) await this.warmEnteredRoots(owner, composer, roots, future, current, false);
   }
 
   /** Early roots use the enclosing entry's bound; they cannot renew its deadline or publish readiness. */

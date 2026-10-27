@@ -128,23 +128,6 @@ export function entryFrameExclusions(scene: THREE.Scene, future?: THREE.Object3D
     && !contains(root, future) && !contains(future, root)));
 }
 
-/** Page-only prefix roots: omit the destination and other parked residents
- * without walking their material inventories. Ancestor groups are split only
- * along excluded paths; all returned roots remain borrowed and unmoved. */
-export function entryPageRoots(scene: THREE.Scene, future: THREE.Object3D): readonly THREE.Object3D[] {
-  if (future === scene) return [];
-  const excluded = new Set([...entryFrameExclusions(scene, future) ?? [], future]);
-  const ancestors = new Set<THREE.Object3D>();
-  for (const root of excluded) for (let at = root.parent; at !== null && at !== scene; at = at.parent) ancestors.add(at);
-  const roots: THREE.Object3D[] = [], pending = [...scene.children].reverse();
-  while (pending.length > 0) {
-    const node = pending.pop(); if (node === undefined || excluded.has(node)) continue;
-    if (!ancestors.has(node)) { roots.push(node); continue; }
-    for (let i = node.children.length - 1; i >= 0; i--) { const child = node.children[i]; if (child !== undefined) pending.push(child); }
-  }
-  return roots;
-}
-
 function exclusiveMaterials(scene: THREE.Scene, excluded: ReadonlySet<THREE.Object3D> | undefined): Set<THREE.Material> | undefined {
   if (excluded === undefined || excluded.size === 0) return undefined;
   const included = new Set<THREE.Material>(), materials = new Set<THREE.Material>();
