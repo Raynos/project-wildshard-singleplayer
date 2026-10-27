@@ -1,7 +1,4 @@
-import { CoverCompositionSchema } from '@wildshard/format/streamedCover';
-import { CreatureInstallSchema, PackedCreatureLooksSchema } from '@wildshard/format/speciesLooks';
 import { MixedPopulationSchema } from '@wildshard/format/mixedPopulation';
-import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
 import { NativeQuestCompositionSchema } from '@wildshard/format/nativeQuestComposition';
 import { HEADLESS_ASSEMBLY_JSON_SCHEMA, ReturnProgramSchema, PageReturnRowsSchema, QuestTraderSchema, PosedLibrarySchema } from '@wildshard/format/namedJsonContracts';
 import * as v from 'valibot';
@@ -9,7 +6,6 @@ import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { namedFormatJsonSchema, namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { NumericPoseSchema } from '@wildshard/format/clientChannels';
 import { BuildingLifeRowsSchema, BuildingLifeLookSchema } from '@wildshard/format/buildings';
-import { ChapterWakeSchema } from '@wildshard/format/chapterDirector';
 import { DirectorSchema } from '@wildshard/format/director';
 import { DirectorStagesSchema } from '@wildshard/format/directorStages';
 import { EnemyPlacementsSchema, FixedGeometryGroupsSchema } from './sections';
@@ -47,6 +43,11 @@ const FixedLayoutsSchema: v.GenericSchema<unknown, DriftwoodFixedLayouts> = v.st
 export function parseDriftwoodFixedLayouts(input: unknown): DriftwoodFixedLayouts { return v.parse(FixedLayoutsSchema, input); }
 
 const sharedContracts: Readonly<Record<string, string>> = {
+  'quests/page-composition.json': 'questPageComposition.QuestPageComposition',
+  'world/cover-composition.json': 'streamedCover.CoverComposition',
+  'look/creature-looks.json': 'speciesLooks.PackedCreatureLooks',
+  'actors/creature-install.json': 'speciesLooks.CreatureInstall',
+  'quests/wake-boss.json': 'chapterDirector.ChapterWake',
   'actors/projection.json': 'populationProjection.PopulationProjection',
   'actors/page-life.json': 'pageLife.PageLife',
   'people/catalogue.json': 'figures.FigureCatalogue',
@@ -62,15 +63,10 @@ const sharedContracts: Readonly<Record<string, string>> = {
 };
 
 const schemas: Readonly<Record<string, v.GenericSchema>> = {
-  'quests/page-composition.json': QuestPageCompositionSchema,
-  'world/cover-composition.json': CoverCompositionSchema,
   'sim/returns.json': PageReturnRowsSchema,
   'world/building-life.json': v.strictObject({ look: BuildingLifeLookSchema, life: BuildingLifeRowsSchema, initialDusk: number }),
   'models/fixed-geometry.json': FixedGeometryGroupsSchema,
-  'quests/wake-boss.json': ChapterWakeSchema,
   'directors/main.json': v.strictObject({ declaration: DirectorSchema, module: v.strictObject({ module: text, bytes: text, file: v.exactOptional(v.pipe(v.string(), v.minLength(1), v.maxLength(240))) }), stages: DirectorStagesSchema, bindings: v.null(), seed: number }),
-  'look/creature-looks.json': PackedCreatureLooksSchema,
-  'actors/creature-install.json': CreatureInstallSchema,
   'look/gull-draw.json': PosedLibrarySchema,
   'look/fish-draw.json': PosedLibrarySchema,
   'poses/monkey.json': v.strictObject({ clips: v.tuple([NumericPoseSchema, NumericPoseSchema]), program: ReturnProgramSchema, perch: MixedPopulationSchema.entries.perch }),

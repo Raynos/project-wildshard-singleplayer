@@ -7,13 +7,14 @@ import { ReturnProjectionV2Schema } from '@wildshard/format/returnProjectionV2';
 import { ScalarChannelSchema,ScalarLatticeSchema,ScalarTripletSchema } from '@wildshard/format/scalarChannel';
 import { RuntimeBoundsSchema } from '@wildshard/format/clientPlan';
 import { WorldUpdatesSchema } from '@wildshard/format/worldUpdates';
-import { StreamedCoverSchema } from '@wildshard/format/streamedCover';
+import { StreamedCoverSchema, CoverCompositionSchema } from '@wildshard/format/streamedCover';
 import { MountedSpecimenSeatSchema } from '@wildshard/format/mountedSpecimenRows';
 import { SpeciesActorsFileSchema } from '@wildshard/format/speciesBookRows';
 import { ArenaScriptFightFileSchema,ArenaScriptGeometrySchema } from '@wildshard/format/arenaScriptRows';
 import { TimedEncountersSchema,CloudSpecimenSchema } from '@wildshard/format/encounterRows';
 import { RoamingCombatSchema } from '@wildshard/format/roamingCombat';
 import { PopulationProjectionSchema } from '@wildshard/format/populationProjection';
+import { CreatureInstallSchema, PackedCreatureLooksSchema } from '@wildshard/format/speciesLooks';
 import { SceneDressingSchema } from '@wildshard/format/sceneDressing';
 import { CueDirectorWireSchema } from '@wildshard/format/cueDirector';
 import { ExchangeSchema } from '@wildshard/format/exchange';
@@ -28,7 +29,7 @@ import { FigureCatalogueSchema, FigureGroupSchema } from '@wildshard/format/figu
 import { QuestStorySchema } from '@wildshard/format/questStory';
 import { WeatherProgramSchema } from '@wildshard/format/weatherProgram';
 import { NativePopulationRowsSchema } from '@wildshard/format/populationRoster';
-import { ChapterDirectorSchema } from '@wildshard/format/chapterDirector';
+import { ChapterDirectorSchema, ChapterWakeSchema } from '@wildshard/format/chapterDirector';
 import { EliteFeatureSchema } from '@wildshard/format/eliteFeature';
 import { CoverAppearanceSchema } from '@wildshard/format/coverAppearance';
 import { PageLifeSchema } from '@wildshard/format/pageLife';
@@ -89,7 +90,7 @@ import { TargetsSchema } from '@wildshard/format/targets';
 import { QuestDataSchema } from '@wildshard/format/quests';
 import { QuestGraphSchema } from '@wildshard/format/questGraph';
 import { InteractionRowsSchema, QuestPageInteractionsSchema } from '@wildshard/format/questInteractions';
-import { QuestPageSchema } from '@wildshard/format/questPageComposition';
+import { QuestPageSchema, QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
 import { QuestContinuationSchema } from '@wildshard/format/questContinuation';
 import { QuestWorldSchema } from '@wildshard/format/questWorld';
 import { QuestFiguresSchema, KitFigureCardsSchema } from '@wildshard/format/questFigures';
@@ -171,6 +172,11 @@ const finiteNumbers = new Set<object>([
 
 // Only the exact retained defining roots grant action bridges. A caller's new check or transform never joins.
 const wireRoots: Readonly<Record<string, GenericSchema>> = {
+  'streamedCover.CoverComposition': CoverCompositionSchema,
+  'speciesLooks.CreatureInstall': CreatureInstallSchema,
+  'speciesLooks.PackedCreatureLooks': PackedCreatureLooksSchema,
+  'questPageComposition.QuestPageComposition': QuestPageCompositionSchema,
+  'chapterDirector.ChapterWake': ChapterWakeSchema,
   'bowVariantRows.BowVariant': BowVariantSchema,
   'scalarChannel.ScalarChannel': ScalarChannelSchema,
   'terrain.ForestRows': ForestRowsSchema,
