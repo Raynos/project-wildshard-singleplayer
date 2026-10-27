@@ -2,7 +2,7 @@ import { mountUi } from '../ui/ownership';
 import { mountHoverBoost } from '../ui/hoverBoost';
 import { app } from '../app/runtime';
 import { listenDom } from '../input/dom';
-import type { Action, TouchVerbSpec } from '../input/InputService';
+import type { Action, TouchStack, TouchVerbSpec } from '../input/InputService';
 import { engineString } from '../strings';
 /**
  * TouchControls — on-screen first-person controls for coarse-pointer devices (phones, tablets).
@@ -104,6 +104,8 @@ const HOLD_MS = 250;          // … and is still down after this starts the hea
 const LUNGE_TURN_RATE = 6;    // /s — exponential ease of the lunge camera turn (≈ 60 % of the bearing over a 0.15 s lunge)
 const LUNGE_TURN_MAX = 150 * Math.PI / 180; // rad/s cap on it
 const LOCK_LINGER = 0.8;       // s — E319: LOCK stays up this long after the last lockable target leaves its reach
+const ACTION_DISCS = [['.ws-touch-attack', 'attack'], ['.aim', 'aim'], ['.jump', 'jump'], ['.dodge', 'dodge'], ['.ws-touch-hover', 'hover']] as const;
+const RELABEL_SPOTS = ['r0', 'lock', 'jump'] as const;
 
 /** a disc a shard's traversal verb may re-dress (ShardManifest TouchRelabel): its button, label, icon and own label / icon */
 interface HintDisc { btn: HTMLElement; label: HTMLElement; svg: Element; ownIcon: readonly Node[]; hint: TouchRelabel | null }
@@ -190,13 +192,19 @@ export class TouchControls {
       if (mode === 'melee') this.hintAttackMelee = hint; else this.hintAttackRanged = hint;
     }
     // Build hint targets before the sink's first synchronous layout paint.
+    // The input service hands back one frozen layout until its contexts change, so the action discs' visibility (a pure
+    // function of the layout) is set once per layout; labels (lock state) and verbs (show predicates) still paint each frame.
+    let shown: TouchStack | undefined;
     app.input.touchStackSink((layout) => {
       this.touchMode = layout.mode; this.touchLockable = layout.lockable;
-      const live = new Set(layout.actions);
-      for (const [selector, action] of [['.ws-touch-attack', 'attack'], ['.aim', 'aim'], ['.jump', 'jump'], ['.dodge', 'dodge'], ['.ws-touch-hover', 'hover']] as const) {
-        el(root, selector).style.visibility = live.has(action) || (action === 'jump' && live.has('dive')) || (action === 'dodge' && live.has('surface')) ? '' : 'hidden';
+      if (layout !== shown) {
+        shown = layout;
+        const live = new Set(layout.actions);
+        for (const [selector, action] of ACTION_DISCS) {
+          el(root, selector).style.visibility = live.has(action) || (action === 'jump' && live.has('dive')) || (action === 'dodge' && live.has('surface')) ? '' : 'hidden';
+        }
       }
-      for (const spot of ['r0', 'lock', 'jump'] as const) this.relabel(spot, layout.labels[spot] ?? null);
+      for (const spot of RELABEL_SPOTS) this.relabel(spot, layout.labels[spot] ?? null);
       this.paintVerbs(root, layout.verbs);
     }, this.scope);
 

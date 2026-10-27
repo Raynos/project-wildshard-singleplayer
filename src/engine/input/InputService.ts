@@ -44,7 +44,8 @@ export class InputService {
   private refreshStamp: { input: number; context: number; bindings: number } | undefined;
   private layoutCache: { context: number; layout: TouchStack } | undefined;
   private pollContexts(): number {
-    for (const entry of this.stack) {
+    for (let index = 0; index < this.stack.length; index++) {
+      const entry = this.stack[index]; if (entry === undefined) continue;
       const enabled = entry.def.enabled?.() !== false;
       if (this.enabledContexts.get(entry) !== enabled) { this.enabledContexts.set(entry, enabled); this.contextRevision++; }
     }
@@ -55,8 +56,9 @@ export class InputService {
   get commandAim(): AimCommand | undefined { return this.activeAim; }
   /** Replay invokes precisely the same semantic action path as a device or UI gesture. */
   executeCommand(command: ActionCommand): void {
-    if (!Number.isFinite(command.at) || command.at < 0 || ((command.kind === 'axis' || command.kind === 'look') && ![command.x, command.y].every(Number.isFinite))) throw new RangeError('Invalid input command');
-    const previousAim = this.activeAim, aim = command.aim ?? previousAim ?? this.captureAim?.();
+    if (!Number.isFinite(command.at) || command.at < 0 || ((command.kind === 'axis' || command.kind === 'look') && !(Number.isFinite(command.x) && Number.isFinite(command.y)))) throw new RangeError('Invalid input command');
+    // An axis write runs no callback, so only a recorder can observe its aim: the per-frame stick never samples one.
+    const previousAim = this.activeAim, aim = command.aim ?? previousAim ?? (command.kind === 'axis' && this.recordCommand === null ? undefined : this.captureAim?.());
     this.activeAim = aim;
     if (this.commandDepth === 0) this.recordCommand?.({ ...command, ...(aim === undefined ? {} : { aim: { origin: { ...aim.origin }, direction: { ...aim.direction } } }) });
     this.commandDepth++;
@@ -157,7 +159,7 @@ export class InputService {
     this.stack.push(entry); this.contextRevision++; this.refresh(false); this.repaint();
     this.pushed.set(id, scope.capture('disposers', () => { this.pop(id); }));
   }
-  pop(id: string): void { const at = this.stack.findIndex((entry) => entry.def.id === id); if (at === -1) return; this.stack.splice(at, 1); this.contextRevision++; this.refresh(false); this.pushed.get(id)?.(); this.pushed.delete(id); this.repaint(); }
+  pop(id: string): void { let at = -1; for (let index = 0; index < this.stack.length; index++) if (this.stack[index]?.def.id === id) { at = index; break; } if (at === -1) return; this.stack.splice(at, 1); this.contextRevision++; this.refresh(false); this.pushed.get(id)?.(); this.pushed.delete(id); this.repaint(); }
   get top(): string { return this.stack.at(-1)?.def.id ?? ''; }
   allowed(action: Action): boolean {
     const entries = this.allowedFrames[this.allowedDepth] ?? [];
