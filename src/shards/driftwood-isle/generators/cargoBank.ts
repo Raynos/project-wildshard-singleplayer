@@ -3,6 +3,7 @@ import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { cargoModels } from './cargoCatalogue';
+import type { FixedWreckLayout } from './fixedLayouts';
 
 /** The wreck's cargo as world-scene models: each choice sized by its scaled original mesh, and a scaled copy of the mesh
  *  for every choice that is not the original size (GR7: the `driftwood-cargo-scenes` job's rows and blobs). */
@@ -44,8 +45,8 @@ async function cargoTemplate(bytes: Uint8Array): Promise<BufferGeometry> {
 }
 
 /** Build the cargo bank from the owned fixed files. Equal scaled payloads keep one logical name, as the job's writer did. */
-export async function driftwoodCargoBank(fixed: ReadonlyMap<string, Uint8Array>): Promise<DriftwoodCargoBank> {
-  const sources = fixedSources(fixed), models = cargoModels(), templates = new Map<string, BufferGeometry>(), material = new MeshStandardMaterial();
+export async function driftwoodCargoBank(fixed: ReadonlyMap<string, Uint8Array>, wreck: FixedWreckLayout): Promise<DriftwoodCargoBank> {
+  const sources = fixedSources(fixed), models = cargoModels(wreck), templates = new Map<string, BufferGeometry>(), material = new MeshStandardMaterial();
   const library: DriftwoodCargoBank['library'] = { id: 'cargo', kind: 'owned', models: [] };
   const glbs = new Map<string, Uint8Array>(), names = new Map<string, string>();
   try {

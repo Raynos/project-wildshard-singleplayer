@@ -1,8 +1,9 @@
 import type { WorldSceneModels } from '@wildshard/format/worldSceneModels';
-import wreck from '../data/wreckBake.json' with { type: 'json' };
+import type { FixedWreckLayout } from './fixedLayouts';
 
 /** Every original card and live wreck copy retains its exact parameter choice. */
-export const CARGO_CARDS: ({ key: string; id: string; name: string; defaults: { lying: boolean; size?: never; broken?: never; r?: never; }; variants: ({ id: string; label: string; params: { lying?: never; }; } | { id: string; label: string; params: { lying: boolean; }; })[]; params: { lying: boolean; }[]; } | { key: string; id: string; name: string; defaults: { size: number; broken: boolean; lying?: never; r?: never; }; variants: ({ id: string; label: string; params: { size?: never; broken?: never; }; } | { id: string; label: string; params: { size: number; broken?: never; }; } | { id: string; label: string; params: { size: number; broken: boolean; }; })[]; params: { size: number; broken: boolean; }[]; } | { key: string; id: string; name: string; defaults: { r: number; lying?: never; size?: never; broken?: never; }; variants: never[]; params: { r: number; }[]; })[] = [
+function cargoCards(wreck: FixedWreckLayout): ({ key: string; id: string; name: string; defaults: { lying: boolean; size?: never; broken?: never; r?: never; }; variants: ({ id: string; label: string; params: { lying?: never; }; } | { id: string; label: string; params: { lying: boolean; }; })[]; params: { lying: boolean; }[]; } | { key: string; id: string; name: string; defaults: { size: number; broken: boolean; lying?: never; r?: never; }; variants: ({ id: string; label: string; params: { size?: never; broken?: never; }; } | { id: string; label: string; params: { size: number; broken?: never; }; } | { id: string; label: string; params: { size: number; broken: boolean; }; })[]; params: { size: number; broken: boolean; }[]; } | { key: string; id: string; name: string; defaults: { r: number; lying?: never; size?: never; broken?: never; }; variants: never[]; params: { r: number; }[]; })[] {
+  return [
   { key: 'barrel', id: 'barrel', name: 'Barrel', defaults: { lying: false }, variants: [
     { id: 'standing', label: 'Standing', params: {} }, { id: 'lying', label: 'Lying', params: { lying: true } }],
     params: wreck.catalogue.barrels.placements.map(row => ({ lying: row.variant === 'lying' })) },
@@ -13,10 +14,11 @@ export const CARGO_CARDS: ({ key: string; id: string; name: string; defaults: { 
   { key: 'ropeCoil', id: 'rope-coil', name: 'Rope coil', defaults: { r: 0.3 }, variants: [],
     params: wreck.catalogue.coils.placements.map(row => row.params) },
 ];
+}
 
 /** The existing Z2 model host consumes only choices and named geometry. */
-export function cargoModels(): WorldSceneModels['models'] {
-  return CARGO_CARDS.map(row => {
+export function cargoModels(wreck: FixedWreckLayout): WorldSceneModels['models'] {
+  return cargoCards(wreck).map(row => {
     const seen = new Set<string>();
     const choices = [row.defaults, ...row.variants.map(variant => ({ ...row.defaults, ...variant.params })), ...row.params]
       .filter(params => { const key = JSON.stringify(Object.entries(params).sort(([a], [b]) => a.localeCompare(b))); if (seen.has(key)) return false; seen.add(key); return true; })

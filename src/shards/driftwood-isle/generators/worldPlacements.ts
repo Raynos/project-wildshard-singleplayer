@@ -1,5 +1,3 @@
-import wreck from '../data/wreckBake.json' with { type: 'json' };
-import cove from '../data/coveBake.json' with { type: 'json' };
 import composition from '../data/coveComposition.json' with { type: 'json' };
 import type { DriftwoodSceneBanks } from './sceneBanks';
 import { driftwoodTrailRows } from './fixedFacts';
@@ -53,8 +51,8 @@ function entryDecks(): WorldScenePlacementRow {
     }) });
 }
 
-export function worldPlacements(banks: Pick<DriftwoodSceneBanks, 'rocks'>): readonly WorldScenePlacementRow[] {
-  const rocks = banks.rocks;
+export function worldPlacements(banks: Pick<DriftwoodSceneBanks, 'rocks' | 'layouts'>): readonly WorldScenePlacementRow[] {
+  const rocks = banks.rocks, { wreck, cove } = banks.layouts;
   return [
     entryDecks(),
     baked('rocks.small.copies', 'smallRock', 'rocks.small', { id: 'cove-small-rocks' }, rocks.world.small),

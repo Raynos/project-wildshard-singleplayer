@@ -40,7 +40,8 @@ export async function driftwoodSceneBanks(inputs: DriftwoodSceneBankInputs): Pro
   const plan = (tier: 'phone' | 'desktop'): ReturnType<typeof driftwoodIslandPlan> => driftwoodIslandPlan(file(table), file(metadata), tier);
   const smallRocks = plan('phone').smallRocks;
   if (JSON.stringify(smallRocks) !== JSON.stringify(plan('desktop').smallRocks)) throw new Error('Small-rock tier placements differ');
-  return { layouts: inputs.layouts ?? driftwoodFixedLayouts(inputs.fixed), cargo: await driftwoodCargoBank(inputs.fixed), rocks: driftwoodRockBank(smallRocks) };
+  const layouts = inputs.layouts ?? driftwoodFixedLayouts(inputs.fixed);
+  return { layouts, cargo: await driftwoodCargoBank(inputs.fixed, layouts.wreck), rocks: driftwoodRockBank(smallRocks) };
 }
 /** The product build's banks: the fixed files and the public inputs come through the owned-byte cache. */
 export async function driftwoodSceneBanksCached(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<DriftwoodSceneBanks> {
