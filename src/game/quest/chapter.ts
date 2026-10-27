@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
 import { BatchedMesh, Vector3, type Object3D, type Mesh } from 'three';
 import { withOwner } from '@wildshard/engine/app/ownership';
+import { WORK_SLICE_MS, workSlice } from '@wildshard/engine/core/workSlice';
 import type { Interactables } from '@wildshard/engine/world/interact/Interactables';
 import { bindInteractPlacements, createQuestPlacements, type InteractTable } from '@wildshard/engine/world/interact/types';
 import { validateTable } from '@wildshard/engine/world/interact/validate';
@@ -437,7 +438,11 @@ export async function installQuestInteractables(ctx: ShardContext, id: string,
   if (ctx.scope.disposed) throw new Error('Quest left while admitting interactables');
   const before = new Set(world.game.scene.children);
   const kit = withOwner(ctx.scope, () => new Interactables({ scene: world.game.scene, sky: world.sky,
-    player: world.player, flags, place, floorAt, prompts: runtime.interactables }).build(table));
+    player: world.player, flags, place, floorAt, prompts: runtime.interactables }));
+  // the rows' shapes are made a slice at a time: all at once they were ~60 ms of Driftwood's play task at phone CPU
+  const slice = workSlice(WORK_SLICE_MS, ctx.scope);
+  for (const row of table.rows) { withOwner(ctx.scope, () => kit.addRows([row])); await slice.check(); }
+  withOwner(ctx.scope, () => kit.finish());
   for (const node of world.game.scene.children) if (!before.has(node) && node instanceof BatchedMesh) ownQuestTree(node, ctx.scope);
   ctx.scope.onDispose(() => { kit.dispose({ batches: false }); });
   const audio = runtime.play?.audio; if (audio === undefined) throw new Error('Quest interactions require entered audio');

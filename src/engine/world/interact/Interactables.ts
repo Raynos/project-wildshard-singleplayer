@@ -168,13 +168,23 @@ export class Interactables {
 
   build(table: InteractTable, placements?: unknown): this {
     const placedTable = placements === undefined ? table : bindInteractPlacements(table, placements);
-    // pass 1: geometries (cached by shape) + the parts list per row
-    for (const def of placedTable.rows) {
+    return this.addRows(placedTable.rows).finish();
+  }
+
+  /** `build`'s first pass over some of a placed table's rows, in table order: each row's live state and the geometries
+   *  of its parts (made once per shape). A caller that must not make every shape in one task adds the rows a few at a
+   *  time, then calls `finish` once; the result is `build`'s. */
+  addRows(rows: readonly InteractDef[]): this {
+    for (const def of rows) {
       const lv = new Live(def,this.host.flags);
       this.lives.push(lv); this.byId.set(def.id, lv);
       this.parts(lv);
     }
-    // pass 2: the two batches sized to fit, then instances
+    return this;
+  }
+
+  /** `build`'s second pass over every added row: the two batches sized to fit, then instances, colliders and models. */
+  finish(): this {
     const size = (b: BatchId) => this.pending.filter((p) => p.batch === b).reduce((a, p) => a + p.geo.getAttribute('position').count, 0);
     const litMat = lowPolyLookMaterial(this.host.sky);
     const glowMat = new THREE.MeshBasicMaterial({ vertexColors: true, fog: true, toneMapped: true });
