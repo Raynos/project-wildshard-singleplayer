@@ -59,6 +59,7 @@ import { colourRampFog, engineFog } from './engineFog';
 import { tentShadowFilter } from './tentShadowFilter';
 import { planeBiasShadowFilter } from './planeBiasShadowFilter';
 import { EngineDirectionalLightNode } from './cascadeLightNode';
+import { EnginePointLightNode } from './pointLightNode';
 import { isCascadeGhost } from '../../world/cascadeLights';
 import { compileLightSource, compileSceneSource } from '../compileLights';
 import { Scope } from '../../app/scope';
@@ -716,7 +717,11 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       // (cascadeLightNode.ts). The handler owns its node library, so nothing else sees the swap.
       const library: unknown = Reflect.get(proxy, 'library');
       const lightNodes: unknown = typeof library === 'object' && library !== null ? Reflect.get(library, 'lightNodes') : null;
-      if (lightNodes instanceof WeakMap) lightNodes.set(THREE.DirectionalLight, EngineDirectionalLightNode);
+      if (lightNodes instanceof WeakMap) {
+        lightNodes.set(THREE.DirectionalLight, EngineDirectionalLightNode);
+        // and every PointLight through the engine's, its direct term one shared layout function (pointLightNode.ts)
+        lightNodes.set(THREE.PointLight, EnginePointLightNode);
+      }
       Reflect.set(proxy, 'getCacheKey', () => {
         const { toneMapping, colorSpace } = outputTransform(renderer);
         return `${String(toneMapping)}:${colorSpace}`;
