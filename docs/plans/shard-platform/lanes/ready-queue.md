@@ -15,16 +15,17 @@ other lane works counted plan rows; a lane with none takes the top unclaimed row
 
 | Lane | Plan, in order |
 |---|---|
-| sp-x1 | G744 ship approved hero (round-6-nalati-terrain -> public/assets/title + L16 first paint) -> G722 done 191aee7b15 -> hero retake done 0dd7ce4722 (board for Jake) -> G717 quiet misses (Nalati whole 287 ms, Pine whole, DW spawn) -> GR3 -> GR5 Far Reach -> GR7 Driftwood |
+| sp-x1 | G744 ship approved hero (round-6-nalati-terrain -> public/assets/title + L16 first paint) -> G722 done 191aee7b15 -> hero retake done 0dd7ce4722 (board for Jake) -> G717 quiet misses (Nalati whole 287 ms, Pine whole, DW spawn) -> GR3 -> GR5 Far Reach |
 | sp-x6 | CS0 done e463dc80af → G719 done → G717 look misses done 60f2ba740c → RM1/RM2/RM3 done aab5aca4737 → GR4 Sunscar done (23 → 0; exact743e preview/boot pass) → GR6 Nalati in flight (54 at claim) → GR8 Pine |
-| sp-x8 | G743 crossings <5 s warm / <8 s cold (G782); parked batches `1a9e7dc761`, final sweep `65f396768e`. H3 order done `469841245c`; P2 source recorded. A1 non-render done `3c35e29ff7`, render side with sp-o4 after H4. TS format/engine source plan closed `08b6e8455d` (T1→GR12, T5 closed). One requested Chromium capture blocked before launch by sealed Pine SDK import closure, routed x7; no Sim. |
+| sp-x8 | G743 grid crossings < 5 s (DW 8.1, Nine 8.7, Nalati 11.6; Pine 2.6 passes): world + afterPlay stages -> T4 tail (I6y/I6z) -> T5 |
 | sp-x2 | core memory C4 (Template native 268/246 vs 198.5 MiB) -> tile T4 to the milestone -> T10 delete the whole-shard path (G747) -> T6/T8 Codex slices; JS payload J6-J10 after extras (G730/G741) |
 | sp-x9 | G742 done 72a1482c68; B6 done af11c09e30; ratchet SW8a 1e3f0fe5b2 -> SW11 commit lock/CF1 tail (p90 <= 30 s) -> G745 phone-route smoke leg (from sp-x7, 893f149908 report-only) -> oxlint R3-R5 -> QW7 |
-| sp-x7 | releases + red repair only (G676/G485); no feature rows while main is red (lane audit 10-26) |
+| sp-x10 | G776 Codex lane: generators GR7 Driftwood (41 jobs; G783 producer by producer) |
+| sp-ci-deploy | G802 (replaced sp-x7, pane wT:pE, GPT-6.1-Sol high): main CI green + hourly deploy only; fixes reds or routes to the breaking lane; logs breaks in BURN-DAMAGE-LIST.md |
 | sp-o1 | NM models done (RM8.1 850a6efb5f, kit on 63eb6dd5e8, G755 figures 6a9c8cb1ae + board b9699cb002, RM13 574425f29e / fd23363093) -> generators GR8 Pine (61 jobs) |
-| sp-o2 | NM look RM5/RM6 done (cea69bc2c6) -> loading L15 complete first frame before the loader leaves (while blocked) -> RM5.2 -> RM10 -> RM11 -> RM12 (after sp-o1 kit + sp-x2 RM8.1) |
+| sp-o2 | JS heap H6-H10 done -> tile T5.3 grid-page overlay -> generators GR9 small shards |
 | sp-o3 | G750 toon clouds done 1d4a4f738f; L18.3 rocks e2cac37ae6 / foliage 7d327e5a88 (protos -> sp-x1 GR0) -> G717 B cheaper lit programs Pine + DW (Debug A/B + board) |
-| sp-o4 | G749 shipped (perf(post): ship the lighter render targets); G717 A pinned (2 s cap fails cold until B) -> G743 render side: fewer first-time programs per shard (no look change) |
+| sp-o4 | O4/O4.4, H1, S1, T2, keep, H4.3, A1.2 done -> generators GR10 runtime imports of step outputs |
 | sp-o5 | G630 done (006d87b0fa Sunscar glow; 7e4f33be44 + d56e767bf3 Nine near view); T3 06d63e5b21; T6.2 parked low value -> G748 coarse L1 stand-ins for occupied tiles per shard (near/far boards first) |
 
 ## 10-24 open rows (Jake's picks G679-G682, a2c1e9647b; SW10: one claimable row per live lane)
@@ -63,16 +64,16 @@ other lane works counted plan rows; a lane with none takes the top unclaimed row
 | GR6 | Nalati source-only product program: replace 54 producer-file jobs with direct calls/cached bytes, largest first; preserve original native outputs, strict admission and boot milestone | tooling-perf/generators-spike-mini-plan.md:GR6 | in flight (2026-10-25, sp-x6): map assembly 54 → 53 first |
 | GR-PATHS | Make check-paths green: remove stale deleted-file references and fix real fixture/layout misses; no widened allow lists; Vitest glob-cache CI repair stays with sp-x2 | generators redesign; sp-x1 181-failure census | done (2026-10-24, sp-x8): `0228d34c52` + `ac7db8225b` + `b7f3e18243`; 181 → 0, no new allowances |
 
-| TS-T2 | TypeScript: check src once through layers tsc -b; preserve test, script and composition-root coverage; coordinate Typecheck command with sp-x7 | project/archive/2026-10-27-typescript-speed.md:T2 | done (2026-10-24, sp-x8): `96fe07d0eb` + `5025374ca2`; full cold local check 24.968 s; full green CI 40146594652 Typecheck 50 s |
-| TS-T3 | Move unit/integration tests into their owning layer projects; retain root regression/E2E/scenarios; preserve test counts and CF1/CI selection after each small layer batch | project/archive/2026-10-27-typescript-speed.md:T3 (G645) | done (2026-10-25, sp-x8): 462 source suites, all 1,460 tracked suites discovered; root regressions/scenarios retained |
-| TS-T4 | Format + engine explicit schemas/isolated declarations only (G786–G797); other tails dropped | project/archive/2026-10-27-typescript-speed.md:T4 | done `a04bfcb2f2` + `804e3e3496`: 1,611,975 format B / 296 modules (< 2 MB), 2,179,123 engine B / 722 modules; touched tsc-b green. T1/T6 fold into GR12, T5 closed |
+| TS-T2 | TypeScript: check src once through layers tsc -b; preserve test, script and composition-root coverage; coordinate Typecheck command with sp-x7 | tooling-perf/typescript-mini-plan.md:T2 | done (2026-10-24, sp-x8): `96fe07d0eb` + `5025374ca2`; full cold local check 24.968 s; full green CI 40146594652 Typecheck 50 s |
+| TS-T3 | Move unit/integration tests into their owning layer projects; retain root regression/E2E/scenarios; preserve test counts and CF1/CI selection after each small layer batch | tooling-perf/typescript-mini-plan.md:T3 (G645) | done (2026-10-25, sp-x8): 462 source suites, all 1,460 tracked suites discovered; root regressions/scenarios retained |
+| TS-T4 | Explicit exported Valibot schema types: format declaration-size / TS2589 first, then isolated declarations by layer | tooling-perf/typescript-mini-plan.md:T4 (G644) | in flight (2026-10-25, sp-x8): prior 24-module handoff retained; continuation starts at 5,150,849 B / 294 modules, target below 2 MB then layer isolation |
 
 | T1-POST | Lifecycle only: dispose/reuse composer depth and Backdrop LUTs on retirement/re-entry; GPU-ledger regression, identical pixels; siteCatalogue geometry stays with sp-x9 | T1 retained794 diagnostic; coordinator 2026-10-24 | done (2026-10-24; LUT `67b5ab6f2d`, depth `acda59debf`; 28 focused + 198 ready-related cases, layers/root/lint green; joint T1 GPU measurement remains with sp-x9) |
 
 **G683 Codex order (Jake, 13:20):** finish extras in this order, taking the top open Codex row of the first plan that has one:
 (1) tile streaming (shard-platform/tile-streaming-mini-plan.md), (2) loading (loading-mini-plan.md), (3) core memory
 (core-memory-mini-plan.md), no-binaries, oxlint leftovers; then (4) generators redesign GR1-GR12 / GS1-GS5
-(tooling-perf/generators-spike-mini-plan.md); then (5) TypeScript plan T1-T6 (project/archive/2026-10-27-typescript-speed.md).
+(tooling-perf/generators-spike-mini-plan.md); then (5) TypeScript plan T1-T6 (tooling-perf/typescript-mini-plan.md).
 Claim here with `<lane> <HH:MM> <plan row>` before starting.
 
 ## RED-LIVE and loading (Jake's phone, live 64d85dac0, 2026-10-21 07:46)

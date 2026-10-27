@@ -16,6 +16,8 @@ AGENTS.md and docs/process/ hold the rest.
 - **G769:** only counted mini-plan rows; a row waiting on a Jake pick is built on the recommended option; red main
   and broken tests are damage-listed and fixed after the plan unless they stop lanes building; mark rows done same hour.
 - **Generators:** serialise on the heavy-lane build lock, not over herdr.
+- **Vite stays lean (G799):** no new Vite plugin or virtual module; build-time data is a plain committed file
+  from a plain script (G798).
 - **Gate (G768):** push gate 45 s, fails open to CI, no red hold; pre-commit 5 s; nobody cancels push CI (GM1).
 - **Messages (G708):** herdr only for a red that blocks you; no LANDED / verified / ACTIVE / FINAL / cohort pings
   (progress goes in the commit message). Never wildshard-v or the question tool.

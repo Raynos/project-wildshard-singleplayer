@@ -3,7 +3,8 @@
 **Order (G639):** (1) live reds → (2) NALATI 0 → (3) grid / frame floor → extras.
 
 **(1) LIVE 59a595ab10. G769 MEGA BUILD (Jake): every mini plan done by tomorrow; land on types + lint only; G768 gate
-(45 s fail-open, 5 s pre-commit, no red hold, sp-x7). **Damage list:** only in
+(45 s fail-open, 5 s pre-commit, no red hold). G802: sp-x7 torn down; sp-ci-deploy (pane wT:pE,
+GPT-6.1-Sol high) keeps CI green + deploys. G801: 5-min lane sweep cron in wildshard-new. **Damage list:** only in
 [BURN-DAMAGE-LIST](../BURN-DAMAGE-LIST.md); never listed here.
 
 **(2) NALATI 0 done (27dd969127).** HOST-AUDIT (G679) parked until every mini plan finishes. Legacy waits (G606).
