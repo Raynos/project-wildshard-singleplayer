@@ -8590,6 +8590,7 @@
         "src/sdk/assets.ts",
         "src/sdk/bake/glb.ts",
         "src/sdk/bake/props.ts",
+        "src/sdk/bake/coarseCopy.ts",
         "src/sdk/bake/tileGrid.ts",
         "src/sdk/entries.ts",
         "src/sdk/immutable.ts",
