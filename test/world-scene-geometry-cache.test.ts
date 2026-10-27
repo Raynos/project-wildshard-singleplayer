@@ -107,6 +107,28 @@ test('a retired model window drains its four reads without starting a suffix', a
   } finally { f.release(); await f.intake.return(); f.owner.dispose(); f.close(); }
 });
 
+test('a warm model window reads no bytes and closing preserves only its taken lease', async () => {
+  const f = fixture(), owner = new Scope('warm-model-window');
+  const rows = Array.from({ length: 6 }, (_, index) => ({ file: `cached-${String(index)}.glb` }));
+  for (const source of rows) (await readWorldSceneGeometry(owner, f.product, source, f.assets)).done();
+  expect(f.product.file).toHaveBeenCalledTimes(6);
+  const intake = readWorldSceneGeometries(owner, f.product, rows, f.assets);
+  try {
+    const first = await intake.next();
+    if (first.done) throw new Error('Missing cached model');
+    await intake.return();
+    expect(f.product.file).toHaveBeenCalledTimes(6);
+    expect(f.assets.retained().map(entry => entry.refs)).toEqual([1, 0, 0, 0, 0, 0]);
+    const a = first.value.copy(), b = first.value.copy();
+    try {
+      expect(a.getAttribute('position').array).not.toBe(b.getAttribute('position').array);
+      expect(a.getAttribute('position').array).toEqual(b.getAttribute('position').array);
+      a.getAttribute('position').setX(0, 100);
+      expect(b.getAttribute('position').getX(0)).toBe(0);
+    } finally { a.dispose(); b.dispose(); first.value.done(); }
+  } finally { await intake.return(); owner.dispose(); f.close(); }
+});
+
 test('segmented geometry starts every read with its primary and restores the original segment order', async () => {
   const f = fixture(), scope = new Scope('segment-reads'), names = ['fixed.glb', 'part-a.glb', 'part-b.glb'];
   const pending = new Map<string, (bytes: Uint8Array) => void>(), started: string[] = [];
