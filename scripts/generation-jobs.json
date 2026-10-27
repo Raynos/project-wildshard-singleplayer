@@ -65,49 +65,6 @@
       }
     },
     {
-      "id": "nalati-kurgan",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-kurgan.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-kurgan.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/nalati-grasslands/generators/bake-kurgan.mjs",
-        "src/shards/nalati-grasslands/generators/kurganLayout.ts",
-        "src/shards/nalati-grasslands/generators/goldenKingArena.ts",
-        "src/shards/nalati-grasslands/generators/goldenKingPose.ts",
-        "src/shards/nalati-grasslands/data/speciesRows.json",
-        "src/sdk/clientChannels.ts",
-        "src/shards/nalati-grasslands/generators/goldenKingFight.ts",
-        "src/shards/nalati-grasslands/data/strikeProfiles.json",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/species.ts",
-        "src/sdk/phasedBoss.ts",
-        "src/format",
-        "scripts/bake-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/sdk/package.json"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/data/kurganLayout.generated.json",
-        "src/shards/nalati-grasslands/data/goldenKing.generated.json",
-        "src/shards/nalati-grasslands/data/goldenKingPose.generated.json",
-        "src/shards/nalati-grasslands/data/strikeProfiles.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/kurganLayout.generated.json",
-        "src/shards/nalati-grasslands/data/goldenKing.generated.json",
-        "src/shards/nalati-grasslands/data/goldenKingPose.generated.json",
-        "src/shards/nalati-grasslands/data/strikeProfiles.generated.json"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "nalati-admission",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-admission.mjs",
@@ -279,7 +236,6 @@
       "inputRoots": [
         "src/shards/nalati-grasslands/generators/bake-storm-titan.mjs",
         "src/shards/nalati-grasslands/generators/stormTitanFight.ts",
-        "src/shards/nalati-grasslands/data/strikeProfiles.generated.json",
         "src/shards/nalati-grasslands/generators/layout.ts",
         "src/shards/nalati-grasslands/generators/stormTitanGeometry.ts",
         "src/shards/nalati-grasslands/behaviour",

@@ -36,7 +36,6 @@
     "../../format/paintedLook.ts",
     "../../format/runtimeBinds.ts",
     "../../../scripts/bake-output.mjs",
-    "data/kurganLayout.generated.json",
     "../../sdk/bake/annulus.ts",
     "../../sdk/bake/forest.ts",
     "../../sdk/bake/meadow.ts",
@@ -109,7 +108,8 @@
     "../../../public/assets/nalati/models/boulder-2.glb",
     "../../../public/assets/nalati/models/boulder-3.glb",
     "data/geographySources.json",
-    "../../sdk/bake/portableBytes.ts"
+    "../../sdk/bake/portableBytes.ts",
+    "data/strikeProfiles.json"
   ],
   "style": {
     "kind": "ground",
