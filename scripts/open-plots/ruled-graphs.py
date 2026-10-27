@@ -3,7 +3,7 @@
 drawn analytically from metres, no texture). python3 scripts/open-plots/ruled-graphs.py
   src/shards/open-plots/data/paving.graph.json  the paving: flagstones, joints, per-stone shade, wear (world metres)
   src/shards/open-plots/data/landmark.graph.json the landmark: its texture, gold trim glowing, its foot uplit
-  src/shards/open-plots/data/kit.graph.json     the kit: plain / roof tile / timber / plaster / awning stripe / stone by
+  src/shards/open-plots/data/kit.graph.json     the kit: plain / roof tile / timber / plaster / awning stripe / stone / banner by
                                                 the face's trim band (data/trim.json)"""
 import json, os
 ROOT = os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'shards', 'open-plots', 'data')
@@ -111,9 +111,15 @@ def kit():
     n("c6", "select", "fis", "flagstone", "lit")
     n("colour", "select", "b4", "awning", "c6")
     n("rough", "param", param="roughness")
+    # 6 banner (RM10.4): the cloth draws plain and sways in the evening breeze, every banner together (one gust), every
+    # vertex of it the same small offset across both world axes; the other bands stay put. The vertex stage reads the raw u
+    # (band 6 is the only band at or past 6 x 32 m), so no band arithmetic runs twice and the kit stays at 160 nodes
+    SWAY = TRIM["trims"]["banner"]["sway"]
+    n("t", "time"); n("ws", "sin", "t"); n("b6", "gt", "ur", B["banner"] * BAND - 0.5)
+    n("wsel", "select", "b6", "ws", 0); n("offset", "mul", "wsel", [SWAY, 0, SWAY])
     P = {"cream": {"type": "colour", "value": [0.93, 0.86, 0.72]}, "roughness": {"type": "float", "value": 0.9, "min": 0, "max": 1}}
     g = {"version": 1, "kind": "material", "model": "standard", "doubleSided": False, "params": P, "nodes": N,
-         "stages": {"surface": {"colour": "colour", "roughness": "rough", "metalness": 0}}}
+         "stages": {"vertex.offset": {"offset": "offset"}, "surface": {"colour": "colour", "roughness": "rough", "metalness": 0}}}
     return g
 
 def landmark():

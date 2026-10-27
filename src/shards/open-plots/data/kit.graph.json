@@ -1045,9 +1045,47 @@
   "rough": {
    "op": "param",
    "param": "roughness"
+  },
+  "t": {
+   "op": "time"
+  },
+  "ws": {
+   "op": "sin",
+   "in": [
+    "t"
+   ]
+  },
+  "b6": {
+   "op": "gt",
+   "in": [
+    "ur",
+    191.5
+   ]
+  },
+  "wsel": {
+   "op": "select",
+   "in": [
+    "b6",
+    "ws",
+    0
+   ]
+  },
+  "offset": {
+   "op": "mul",
+   "in": [
+    "wsel",
+    [
+     0.06,
+     0,
+     0.06
+    ]
+   ]
   }
  },
  "stages": {
+  "vertex.offset": {
+   "offset": "offset"
+  },
   "surface": {
    "colour": "colour",
    "roughness": "rough",
