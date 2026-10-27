@@ -412,15 +412,18 @@ function stalls(w, p) {
  *  facing the aisle (the hero stall and the red-roofed row stall, by place), a pool before every other one, and food carts
  *  staggered down the aisle; each model emits its own lanterns. */
 function modelStalls(w, p) {
+  let heroes = 0;
   for (const side of [-1, 1]) for (let i = 0; i < 10; i++) {
     const z = -24.75 + i * 5.5, x = side * 17.5;
-    const kind = pick(x, z, 2), yaw = -side * Math.PI / 2;
+    // a hero stall every third place down each row, the two rows offset (pick() gave every S-tile stall the row kind;
+    // RM8.5: every other one put an S tile over 15k triangles)
+    const kind = (i + side + 1) % 3 === 0 ? 0 : 1, yaw = -side * Math.PI / 2;
     w.placeModel('stalls', kind, x, z, { yaw });
     w.solid([x - 1.5, 0, z - 2.1], [x + 1.5, 1.1, z + 2.1]);
     // RM4.8 (opt-in): a vendor behind every other hero stall's counter, facing out with it; a shopper before every fourth
-    // stall (RM8.5: an S tile with every family on stays under 15k triangles)
+    // stall (RM8.5: an S tile with every family on stays under 15k triangles); G755: counted over the hero stalls
     if (w.hasModel('figures')) {
-      if (kind === 0 && i % 2 === 0) w.placeModel('figures', 0, x - side * 0.2, z, { yaw });
+      if (kind === 0 && heroes++ % 2 === 0) w.placeModel('figures', 0, x - side * 0.2, z, { yaw });
       if (i % 4 === 1) w.placeModel('figures', pick(x, z, 2, 3) + 1, x - side * 2.6, z + 0.6, { yaw: yaw + Math.PI });
     }
     if (i % 2 === 0) pool(w, x - side * 3.4, z + 2.75, 5, p.pool);
