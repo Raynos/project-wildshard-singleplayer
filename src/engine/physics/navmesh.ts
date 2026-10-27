@@ -20,6 +20,7 @@ import {
 } from 'navcat';
 import { decodeNavigation, type NavigationLayerData } from '@wildshard/format/navigationBytes';
 import { terrainDatum } from '../world/terrainHeight';
+import type { WorkSlice } from '../core/workSlice';
 
 
 /** One agent class's mesh. */
@@ -32,11 +33,18 @@ const SNAP: Vec3 = [2, 3, 2];
 /** A path search visits at most this many polys (~0.3 ms); past it the path runs to the poly nearest the goal so far. */
 export const MAX_SEARCH_NODES = 1024;
 
-function readLayer(layer: NavigationLayerData): NavLayer {
+function layerMesh(layer: NavigationLayerData): NavMesh {
   const mesh = createNavMesh();
   mesh.origin = layer.origin; mesh.tileWidth = mesh.tileHeight = layer.tileSize;
-  for (const tile of layer.tiles) addTile(mesh, buildTile({ ...tile, cellSize: layer.cellSize, cellHeight: layer.cellHeight,
+  return mesh;
+}
+function addLayerTile(mesh: NavMesh, layer: NavigationLayerData, tile: NavigationLayerData['tiles'][number]): void {
+  addTile(mesh, buildTile({ ...tile, cellSize: layer.cellSize, cellHeight: layer.cellHeight,
     walkableHeight: layer.height, walkableRadius: layer.radius, walkableClimb: layer.climb }));
+}
+function readLayer(layer: NavigationLayerData): NavLayer {
+  const mesh = layerMesh(layer);
+  for (const tile of layer.tiles) addLayerTile(mesh, layer, tile);
   return { radius: layer.radius, height: layer.height, climb: layer.climb, mesh };
 }
 
@@ -157,6 +165,20 @@ export class Navmesh {
   }
 
   private count(t0: number): void { const ms = performance.now() - t0; this.stats.queries++; this.stats.ms += ms; this.costSink(ms); }
+}
+
+/**
+ * `parseNavmesh` over layers a caller already decoded (and checked), its tiles built under `slice`: a region's navigation
+ * built every tile in one task (~90 ms of Nalati's and Nine Dragon's crossing at phone 4× CPU). Same tiles, same order.
+ */
+export async function buildNavmesh(layers: readonly NavigationLayerData[], bytes: number, slice: WorkSlice): Promise<Navmesh> {
+  const built: NavLayer[] = [];
+  for (const layer of layers) {
+    const mesh = layerMesh(layer);
+    for (const tile of layer.tiles) { addLayerTile(mesh, layer, tile); await slice.check(); }
+    built.push({ radius: layer.radius, height: layer.height, climb: layer.climb, mesh });
+  }
+  return new Navmesh(built, bytes);
 }
 
 /** Parse a navmesh.bin (scripts/bake-navmesh.mjs's format); null when it isn't one of this version. */

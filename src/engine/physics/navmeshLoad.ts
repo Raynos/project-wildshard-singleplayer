@@ -5,7 +5,8 @@ import { app } from '../app/runtime';
  * the format, the parse and the queries): the active level's navmesh, and its fetch in the `physics` step. Every navmesh
  * this loads reports its query cost to the perf meter (frameCost.nav).
  */
-import { parseNavmesh, type Navmesh } from './navmesh';
+import { buildNavmesh, parseNavmesh, type Navmesh } from './navmesh';
+import { workSlice } from '../core/workSlice';
 import { navmeshUrl } from './navmeshUrl';
 import { frameCost } from '../core/frameCost';
 
@@ -63,9 +64,8 @@ export async function loadNavmesh(levelId: string, bakedId: string = levelId, co
     const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', Uint8Array.from(bytes)));
     const hash = [...digest].map(byte => byte.toString(16).padStart(2, '0')).join('');
     if (hash !== row.file) throw new Error('Required navigation hash differs');
-    readNavigation(row, bytes);
-    const navmesh = parseNavmesh(Uint8Array.from(bytes).buffer);
-    if (navmesh === null) throw new Error('Required navigation could not construct its query mesh');
+    // the checked layers are built as they are (one decode), a slice of tiles at a time
+    const navmesh = await buildNavmesh(readNavigation(row, bytes), bytes.byteLength, workSlice());
     navmesh.costSink = ms => frameCost.nav(ms); setActiveNavmesh(levelId, navmesh); return navmesh;
   }
   if (app.navmeshId === levelId) return app.navmesh;
