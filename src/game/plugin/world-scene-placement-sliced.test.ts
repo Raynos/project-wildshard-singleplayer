@@ -122,7 +122,7 @@ test.each(['render', 'colliders'] as const)('a cached placement does not publish
 });
 
 
-test.each(['late', 'fine-first', 'retired'] as const)('coarse placement keeps fine source maps behind its %s fence', async mode => {
+test.each(['late', 'fine-first', 'retired', 'mid-read-retire', 'base-only'] as const)('coarse placement keeps fine source maps behind its %s fence', async mode => {
   const owner = new Scope('coarse-source-maps'), registry = new WorldRegistry(), sky: unknown = Object.create(SkyRig.prototype);
   if (!(sky instanceof SkyRig)) throw new Error('Missing real sky prototype');
   const game = {}, context = { scope: owner, app: { registry }, game } as ShardContext;
@@ -133,18 +133,24 @@ test.each(['late', 'fine-first', 'retired'] as const)('coarse placement keeps fi
     return [{ geometry, material }];
   };
   const model = defineModel<Record<string, unknown>>({ id: 'fixture/landmark', name: 'Landmark', category: 'nature', pipeline: 'code', file: 'fixture.json', defaults: {},
-    build: build('near'), lods: [{ from: 40, build: build('far') }], colliders: () => [] });
+    build: build('near'), ...(mode === 'base-only' ? {} : { lods: [{ from: 40, build: build('far') }] }), colliders: () => [] });
   const sources = parseWorldScenes({ version: 1, libraries: [], steps: [], materials: [
     { id: 'near', kind: 'source', load: 'placement', url: '/near.glb' }, { id: 'far', kind: 'source', load: 'placement', url: '/far.glb' },
-  ] }).materials.filter(row => row.kind === 'source');
+  ] }).materials.filter(row => row.kind === 'source').filter(row => mode !== 'base-only' || row.id === 'near');
   const row = parseWorldScenePlacement({ id: 'landmark', model: 'fixture', draw: 'instanced', poses: [{ x: 3, y: 0, z: 4, yxz: { yaw: 0, scale: 1 } }] });
   let warm: (() => Promise<void>) | undefined;
-  const load = vi.spyOn(sourceMaterials, 'worldSceneSourceMaterial').mockImplementation(source => Promise.resolve(source.id === 'near' ? near : far));
+  let arrived: (() => void) | undefined;
+  const held = mode === 'mid-read-retire' ? new Promise<void>(resolve => { arrived = resolve; }) : Promise.resolve();
+  const load = vi.spyOn(sourceMaterials, 'worldSceneSourceMaterial').mockImplementation(async source => {
+    if (source.id === 'near') await held;
+    return source.id === 'near' ? near : far;
+  });
   const later = vi.fn((at: { readonly x: number; readonly z: number }, run: () => Promise<void>) => { expect(at).toMatchObject({ x: 3, z: 4 }); warm = run; });
-  const handle = new WorldScenePlacement(context, row, { model: () => model }, owner, materials, sources, undefined, { slots: new Set(['far']), origin: { x: 0, z: 0 }, later });
+  const handle = new WorldScenePlacement(context, row, { model: () => model }, owner, materials, sources, undefined, { slots: new Set([mode === 'base-only' ? 'near' : 'far']), origin: { x: 0, z: 0 }, later });
   try {
     if (mode === 'fine-first') await handle.attach(36, owner.child('fine'), new Group());
     await handle.coarse(owner.child('coarse'), () => false);
+    if (mode === 'base-only') { expect(materials.get('near')).toBe(near); expect(load).toHaveBeenCalledOnce(); expect(later).not.toHaveBeenCalled(); return; }
     expect(materials.get('far')).toBe(far);
     if (mode === 'fine-first') { expect(materials.get('near')).toBe(near); expect(later).not.toHaveBeenCalled(); return; }
     expect(load.mock.calls.map(args => args[0].id)).toEqual(['far']);
@@ -153,6 +159,11 @@ test.each(['late', 'fine-first', 'retired'] as const)('coarse placement keeps fi
     if (mode === 'retired') {
       owner.dispose(); await expect(warm()).rejects.toThrow('Scene placement owner is disposed');
       expect(load).toHaveBeenCalledOnce(); expect(materials.has('near')).toBe(false);
+    } else if (mode === 'mid-read-retire') {
+      const pending = warm(), refused = expect(pending).rejects.toThrow('Scene placement owner is disposed');
+      expect(load).toHaveBeenCalledTimes(2); owner.dispose();
+      if (arrived === undefined) throw new Error('Missing started near-source read');
+      arrived(); await refused; expect(materials.has('near')).toBe(false);
     } else {
       await warm(); expect(materials.get('near')).toBe(near); expect(load.mock.calls.map(args => args[0].id)).toEqual(['far', 'near']);
       await handle.attach(36, owner.child('fine'), new Group()); expect(load).toHaveBeenCalledTimes(2);
