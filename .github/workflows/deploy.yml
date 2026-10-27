@@ -686,7 +686,8 @@ jobs:
   # Expired entries also return to both blocking behaviour cohorts automatically.
   behaviour-quarantine:
     needs: products
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    # Push reports run separately so optional work cannot hold its aggregate.
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     continue-on-error: true

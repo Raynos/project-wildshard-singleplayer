@@ -10,7 +10,7 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   `VERCEL_BUILD_TOKEN` is the team-scoped Actions secret used for `vercel pull`,
   `vercel build` and `vercel deploy`; the old project-scoped token cannot run the
   CLI account lookup; `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` name the project. No credentials belong in Git.
-- **Push / PR CI runs the whole vitest suite once**, in 16 product-free `behaviour` shards and four
+- **Push / PR CI runs the whole vitest suite once**, in 16 product-free `behaviour` shards and eight
   `behaviour-products` shards (**without coverage**, Jake G287/G691); `typecheck-lint` runs typecheck and lint;
   `build-and-deploy` runs the node checks and the
   vite build + chunk check in parallel (`scripts/ci-checks.mjs`), then the CSS check and the native build. **Coverage runs nightly and at
@@ -35,6 +35,11 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   mismatched artifacts fail instead of rebuilding. Both matrices keep `fail-fast: false` and each shard's own
   first-failure bail; neither command wrapper stops for a peer failure. Exact-SHA smoke dispatch requires both
   cohorts, every producer, types/lint, docs and the web build to pass.
+  Active flaky-suite reports run in two non-blocking parts outside the main-push aggregate, triggered by its
+  completed workflow. The reporter attests the exact main push and both successful producers before downloading
+  that run's artifact; the unchanged unpacker verifies its SHA, run, checksum, full inventory and checkout. PR
+  reporting stays in the push/PR workflow. Original tests, owner deadlines and automatic expiry back to the
+  blocking cohorts stay unchanged. Older in-flight pushes keep their embedded reporter.
   Products and every typecheck/lint shard also finish independently after another job fails, so their own
   admission and source errors remain visible in the same run. Each command still stops on its own error;
   typecheck/lint matrix cancellation is disabled.

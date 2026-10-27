@@ -1,0 +1,110 @@
+# The existing two optional reporting parts must not hold a main-push verdict.
+name: test-quarantine
+on:
+  workflow_run:
+    workflows: [deploy]
+    types: [completed]
+    branches: [main]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: test-quarantine-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+jobs:
+  behaviour-quarantine:
+    if: >-
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
+    env:
+      SOURCE_RUN: ${{ github.event.workflow_run.id }}
+      SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          filter: blob:none
+          persist-credentials: false
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+          sparse-checkout-cone-mode: false
+      - name: Select the exact source's reporting owner
+        id: owner
+        run: |
+          if git cat-file -e HEAD:scripts/quarantine-source.mjs 2>/dev/null; then
+            echo 'external=true' >> "$GITHUB_OUTPUT"
+          else
+            # An already-running older push retains its original embedded reports.
+            node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
+          const embedded = workflow.split('\n  behaviour-quarantine:\n')[1]?.split(/\n {2}[a-z][\w-]*:\n/u)[0];
+          if (!embedded?.includes("github.event_name == 'push'")) throw new Error('Source has no push quarantine reporter');
+          NODE
+            echo 'external=false' >> "$GITHUB_OUTPUT"
+          fi
+      - uses: pnpm/action-setup@v4
+        if: steps.owner.outputs.external == 'true'
+        with: {version: 10}
+      - uses: actions/setup-node@v4
+        if: steps.owner.outputs.external == 'true'
+        with: {node-version: 24, cache: pnpm}
+      - run: pnpm install --frozen-lockfile
+        if: steps.owner.outputs.external == 'true'
+      - name: Verify the triggering run and its complete product producers
+        if: steps.owner.outputs.external == 'true'
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_RUN" > source-run.json
+          gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_RUN/jobs" > source-jobs.json
+          node scripts/quarantine-source.mjs
+      - uses: actions/download-artifact@v4
+        if: steps.owner.outputs.external == 'true'
+        with:
+          name: test-products
+          github-token: ${{ github.token }}
+          run-id: ${{ steps.source.outputs.run }}
+      - name: Restore the verified producing run's product and input proof
+        if: steps.owner.outputs.external == 'true'
+        run: |
+          zstd -d --rm test-products.tar.zst
+          # The unchanged unpacker requires the attested producer's SHA/run,
+          # checksum, complete inventory and exact source checkout.
+          GITHUB_SHA="$SOURCE_SHA" GITHUB_RUN_ID="$SOURCE_RUN" python3 scripts/ci-products.py unpack
+      - name: Name every owner and the 24-hour fix deadline
+        if: steps.owner.outputs.external == 'true'
+        run: |
+          node -e 'for (const row of require("./scripts/test-quarantine.json").entries) console.log(row.file + ": " + row.owner + "; fix by " + row.expiresAt + "; " + row.reason)' >> "$GITHUB_STEP_SUMMARY"
+      - name: Execute every quarantined test without a peer stop or retry
+        if: steps.owner.outputs.external == 'true'
+        run: |
+          mkdir -p tmp/ci-quarantine
+          python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py check -- pnpm exec vitest run --shard=${{ matrix.shard }}/2 --passWithNoTests --reporter=default --reporter=json --outputFile=tmp/ci-quarantine/results.json
+        env:
+          VERCEL_GIT_COMMIT_SHA: ${{ steps.source.outputs.sha }}
+          WS_TEST_COHORT: quarantine
+          WS_TEST_PRODUCTS_SHA: ${{ steps.source.outputs.sha }}
+      - name: Retain the original results and ownership registry
+        if: always() && steps.owner.outputs.external == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-quarantine-${{ matrix.shard }}
+          path: |
+            tmp/ci-quarantine/*.json
+            tmp/ci-failures/*.json
+            scripts/test-quarantine.json
+          if-no-files-found: error
+          retention-days: 2
