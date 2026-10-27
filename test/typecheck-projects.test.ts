@@ -56,8 +56,8 @@ test('every source file has a layer owner, while the root covers all tests and a
     const implementations = new Set(production.fileNames.filter(file => !file.endsWith('.d.ts')));
     expect(tests.fileNames.filter(file => implementations.has(file))).toEqual([]);
     if (layer === 'engine' || layer === 'game' || layer === 'sdk') {
-      const testConfig = v.parse(v.object({ include: v.array(v.string()) }), JSON.parse(readFileSync(`src/${layer}/tsconfig.test.json`, 'utf8')));
-      const productionConfig = v.parse(v.object({ exclude: v.array(v.string()) }), JSON.parse(readFileSync(`tsconfig.${layer}.json`, 'utf8')));
+      const testConfig = v.parse(v.object({ include: v.array(v.string()) }), tests.raw);
+      const productionConfig = v.parse(v.object({ exclude: v.array(v.string()) }), production.raw);
       expect(testConfig.include).toContain('test/**/*.ts');
       expect(productionConfig.exclude).toContain(`src/${layer}/test`);
     }
@@ -70,6 +70,25 @@ test('every source file has a layer owner, while the root covers all tests and a
   expect(appTests.fileNames.length).toBeGreaterThan(0);
   const appSource = new Set(appProduction.fileNames);
   expect(appTests.fileNames.filter(file => !file.endsWith('.d.ts') && appSource.has(file))).toEqual([]);
+});
+
+test('layer config fields use compiler JSONC grammar and still refuse invalid configs', () => {
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp/typecheck-jsonc-')), file = resolve(root, 'tsconfig.json');
+  try {
+    mkdirSync(resolve(root, 'src'), { recursive: true });
+    writeFileSync(resolve(root, 'src/value.ts'), 'export const value = 1;');
+    writeFileSync(file, `{
+      // Layer configs support comments and trailing commas, just like tsc.
+      "include": ["src",], "exclude": ["src/private",],
+    }`);
+    const parsed = project(file);
+    expect(v.parse(v.object({ include: v.array(v.string()), exclude: v.array(v.string()) }), parsed.raw))
+      .toEqual({ include: ['src'], exclude: ['src/private'] });
+    expect(parsed.fileNames).toContain(resolve(root, 'src/value.ts'));
+    writeFileSync(file, '{"include":[}');
+    expect(() => project(file)).toThrow();
+  } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
 test('private game fixtures stay Node-only and root consumers read their declarations', () => {
