@@ -2438,60 +2438,6 @@
       ]
     },
     {
-      "id": "nalati-riding",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-riding.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-riding.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/nalati-grasslands/data/reins.json",
-        "src/shards/nalati-grasslands/generators/bake-riding.mjs",
-        "src/shards/nalati-grasslands/behaviour",
-        "src/shards/nalati-grasslands/data/ridingRules.json",
-        "src/sdk",
-        "src/format",
-        "src/sdk/bake/source-loader.mjs",
-        "scripts/bake-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/shards/nalati-grasslands/behaviour/mounts.as",
-        "src/shards/nalati-grasslands/data/ecology.generated.json",
-        "src/shards/nalati-grasslands/creatures/marmotForager.json",
-        "src/sdk/decisionScriptBindings.ts",
-        "src/format/scriptAbiV1.ts",
-        "src/format/decisionScripts.ts",
-        "src/engine/package.json",
-        "pnpm-workspace.yaml",
-        "src/engine/core/config.ts",
-        "src/engine/core/noise.ts",
-        "src/engine/core/rng.ts",
-        "src/engine/world/terrainField.ts",
-        "src/shards/nalati-grasslands/data/layout.generated.json",
-        "src/shards/nalati-grasslands/data/poiLayout.generated.json",
-        "src/shards/nalati-grasslands/generators/clearings.ts",
-        "src/shards/nalati-grasslands/generators/edgeRecipe.ts",
-        "src/shards/nalati-grasslands/generators/layout.ts",
-        "src/shards/nalati-grasslands/generators/poiLayout.ts",
-        "src/shards/nalati-grasslands/generators/terrainRecipe.ts",
-        "src/shards/nalati-grasslands/generators/terrainSeed.ts"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/behaviour/riding.generated.json",
-        "src/shards/nalati-grasslands/behaviour/riding.generated.wasm",
-        "src/shards/nalati-grasslands/behaviour/riding-witness.generated.bin"
-      ],
-      "platform": "portable",
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/behaviour/riding.generated.json",
-        "src/shards/nalati-grasslands/behaviour/riding.generated.wasm",
-        "src/shards/nalati-grasslands/behaviour/riding-witness.generated.bin"
-      ]
-    },
-    {
       "id": "pine-map-assembly",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/mapAssembly.mjs",

@@ -1,4 +1,5 @@
 import { originalHeldMetadata } from './nalati-held-original';
+import { NALATI_RIDING_PROGRAMS, NALATI_RIDING_WASM, NALATI_RIDING_WITNESS_BYTES } from './nalati-riding';
 import { NALATI_KOKPAR, NALATI_KOKPAR_WASM } from './nalati-kokpar';
 import { originalSpeciesFile } from './nalati-original-species';
 import {afterEach} from 'vitest';
@@ -31,11 +32,11 @@ const projection=programs.wind.v2;
 const held=v.parse(v.object({program:v.strictObject({...ReturnProgramSchema.entries,v2:ReturnProjectionV2Schema})}),
   originalHeldMetadata().held);
 const mounts=v.parse(v.object({approach:v.strictObject({...ReturnProgramSchema.entries,v2:ReturnProjectionV2Schema})}),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/behaviour/riding.generated.json','utf8')));
+  structuredClone(NALATI_RIDING_PROGRAMS));
 export const heldWitnessBytes=originalSpeciesFile('held-witness.bin');
 export const heldModuleBytes=originalSpeciesFile('held-weapons.wasm');
-export const ridingWitnessBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/riding-witness.generated.bin'));
-export const ridingModuleBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/riding.generated.wasm'));
+export const ridingWitnessBytes=Uint8Array.from(NALATI_RIDING_WITNESS_BYTES);
+export const ridingModuleBytes=Uint8Array.from(NALATI_RIDING_WASM);
 export const titanModuleBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/titan.generated.wasm'));
 const heldScript=parseDecisionScripts([held.program.script])[0];
 if(heldScript===undefined)throw new Error('Missing actual held script');

@@ -6,7 +6,7 @@ import { TamingSession as TamingBinding } from '../src/game/riding/taming';
 import { Scope } from '../src/engine/app/scope';
 import type { TamingServices, TamingHorse, TamingHerd } from '../src/game/riding/bindingTypes';
 import rows from '../src/shards/nalati-grasslands/data/headlessAssembly.json' with { type: 'json' };
-import programs from '../src/shards/nalati-grasslands/behaviour/riding.generated.json' with { type: 'json' };
+import { NALATI_RIDING_PROGRAMS as programs } from './fixtures/nalati-riding';
 
 let scope:Scope;
 beforeEach(()=>{scope=new Scope('taming-rules');lendNalatiRiding(scope);});

@@ -18,7 +18,7 @@ import { Rng as FixtureRandom } from '@wildshard/engine/core/rng';
 import { nativeGroupBrain as fixtureBrain } from '@wildshard/format/groupBrains';
 import fixtureBrains from '../src/shards/nalati-grasslands/data/brains.json' with { type: 'json' };
 import { installMountedPlayer } from '@wildshard/game/riding/native';
-import programs from '../src/shards/nalati-grasslands/behaviour/riding.generated.json' with { type: 'json' };
+import { NALATI_RIDING_PROGRAMS as programs } from './fixtures/nalati-riding';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 // Full canonical predecessor histories: 90 native ticks plus dismount,
@@ -185,7 +185,7 @@ test('orchard wildlife frame continues real foragers and tramples through numeri
   const { NativeWildlifeFrame, NativeWildEnvironment } = await import('@wildshard/game/population/nativeManager');
   const { GrassField } = await import('@wildshard/game/systems/looks/grassField');
   const { TrampleField } = await import('@wildshard/game/systems/looks/trample');
-  const { default: foragerRow } = await import('../src/shards/nalati-grasslands/creatures/marmotForager.json');
+  const { default: foragerRow } = await import('../src/shards/nalati-grasslands/data/marmotForager.json');
   const { overrideTerrain } = await import('@wildshard/engine/test/terrain');
   const v = await import('valibot');
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
@@ -265,7 +265,7 @@ test('orchard fixture installs the complete native population through data rows'
   const { BOAR } = await import('@wildshard/game/systems/species/boar');
   const { default: brains } = await import('../src/shards/nalati-grasslands/data/brains.json');
   const { default: pasture } = await import('../src/shards/nalati-grasslands/behaviour/pasture.generated.json');
-  const { default: foragerRow } = await import('../src/shards/nalati-grasslands/creatures/marmotForager.json');
+  const { default: foragerRow } = await import('../src/shards/nalati-grasslands/data/marmotForager.json');
   const v = await import('valibot');
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const sample = SIM_LEVEL.entities[0]; if (sample === undefined) throw new Error('Missing native orchard actor');

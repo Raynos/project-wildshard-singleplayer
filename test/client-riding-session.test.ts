@@ -1,7 +1,8 @@
 import { expect, test } from 'vitest';
+import { NALATI_RIDING_PROGRAMS } from './fixtures/nalati-riding';
 import { parse } from 'valibot';
 import { ClientRidingSessionSchema, cleanMountName } from '../src/format/riding';
-import { NALATI_RIDING_SESSION } from '../src/shards/nalati-grasslands/generators/clientRiding';
+import { nalatiRidingSession } from '../src/shards/nalati-grasslands/generators/clientRiding';
 import { HeldClaims } from '../src/game/loadout/claims';
 import { installClientRiding } from '../src/game/riding/client';
 import { entryOwner } from '../src/game/shardfile/entryOwners';
@@ -13,7 +14,7 @@ import { lendNalatiRiding } from './fixtures/nalati-return-modules';
 import { Scope } from '../src/engine/app/scope';
 
 test('client session rejects callback ports and admits an unrelated ride profile', () => {
-  const rows = structuredClone(NALATI_RIDING_SESSION);
+  const rows = structuredClone(nalatiRidingSession(NALATI_RIDING_PROGRAMS));
   rows.preset.mountableLabel = 'Orchard deer'; rows.profile.speeds.gallop = 9;
   rows.naming.maximum = 8; rows.naming.notice = 'Your companion is '; rows.naming.bondedFeat = 'befriend';
   rows.rest = { x: 23, z: -41, face: { x: 0, z: 1 } }; rows.taming.rail = { x: 25, z: -40 };
@@ -44,7 +45,7 @@ test('the session cannot bind an unbuilt or disposed equipment authority', () =>
 
 
 test('declared frame publication borrows the same installed session and waits for native entry', async () => {
-  const scope = new Scope('orchard.frame'), rows = structuredClone(NALATI_RIDING_SESSION); delete rows.figure;
+  const scope = new Scope('orchard.frame'), rows = structuredClone(nalatiRidingSession(NALATI_RIDING_PROGRAMS)); delete rows.figure;
   let reads = 0;
   const shardfile = emptyShardfile({ slug: 'orchard', name: 'Orchard', author: 'Test', revision: 1, seed: 8 });
   const product = createShardProduct({ slug: 'orchard', revision: 1, shardfile, sections: new Map(),
@@ -64,7 +65,7 @@ test('declared frame publication borrows the same installed session and waits fo
 });
 
 test('frame publication refuses an admission-time reader replacement without publishing', async () => {
-  const scope = new Scope('orchard.frame'), rows = structuredClone(NALATI_RIDING_SESSION); delete rows.figure;
+  const scope = new Scope('orchard.frame'), rows = structuredClone(nalatiRidingSession(NALATI_RIDING_PROGRAMS)); delete rows.figure;
   let finish: (value: Uint8Array) => void = () => { throw new Error('Read has not started'); };
   const shardfile = emptyShardfile({ slug: 'orchard', name: 'Orchard', author: 'Test', revision: 1, seed: 8 });
   const product = createShardProduct({ slug: 'orchard', revision: 1, shardfile, sections: new Map(),

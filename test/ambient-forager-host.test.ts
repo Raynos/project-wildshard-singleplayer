@@ -4,7 +4,7 @@ import { overrideTerrain } from '@wildshard/engine/test/terrain';
 import { ForagerPopulation } from '../src/engine/ai/ambientForager';
 import { ForagerPopulationSchema, parseAmbientLife } from '../src/format/ambientLife';
 import { PINE_LIFE } from '../src/shards/pine-hollow/generators/ambientLife';
-import marmots from '../src/shards/nalati-grasslands/creatures/marmotForager.json' with { type: 'json' };
+import marmots from '../src/shards/nalati-grasslands/data/marmotForager.json' with { type: 'json' };
 
 beforeEach(() => overrideTerrain({ heightAt: () => 0, waterLevel: () => -100,
   normalAt: () => [0, 1, 0], cabinMask: () => 0, pondMask: () => 0, streamAt: () => null }));

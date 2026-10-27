@@ -5,7 +5,7 @@ import { ForagerPopulation } from '../src/engine/ai/ambientForager';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { ForagerPopulationSchema } from '../src/format/ambientLife';
 import { ForagerDraw } from '../src/game/ambient/foragerDraw';
-import policy from '../src/shards/nalati-grasslands/creatures/marmotForager.json' with {type:'json'};
+import policy from '../src/shards/nalati-grasslands/data/marmotForager.json' with {type:'json'};
 
 const rows={name:'orchard-sentries',books:{phone:'models/sentry-phone.json',desktop:'models/sentry-desktop.json'},model:'sentry',rim:.2,bands:.6,tilt:-.7,sink:-.9};
 function population(){return new ForagerPopulation(v.parse(ForagerPopulationSchema,{...policy,id:'orchard-sentry',count:2,place:{kind:'colonies',size:[2,2],radius:[0,0],home:0,timer:[1,1]}}),31).colonies([{x:2,z:3}]);}

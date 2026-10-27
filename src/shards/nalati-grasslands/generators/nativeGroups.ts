@@ -3,7 +3,7 @@ import packBinding from '../data/packGuest.json' with {type:'json'};
 import herdBinding from '../data/herdGuest.json' with {type:'json'};
 import pasture from '../behaviour/pasture.generated.json' with { type: 'json' };
 import { nalatiPhysics } from './physics';
-import riding from '../behaviour/riding.generated.json' with { type: 'json' };
+import { nalatiRidingPopulation } from './ridingRows.mjs';
 import poi from '../data/poiLayout.generated.json' with { type: 'json' };
 import { nalatiPopulationFieldSource } from './geographySource';
 import { nalatiDayClockRow } from './dayClock';
@@ -37,6 +37,8 @@ export const nalatiNativeGroupRows: ReturnType<typeof parseNativeGroupRows> = pa
   ],
 });
 const nativeField = parsePopulationField(nalatiPopulationFieldSource());
+// GR6: the population rows, not the compiled riding program, are what the native groups read
+const riding = { population: nalatiRidingPopulation(ecology) };
 const nativeKnockdown=parsePopulationKnockdownSource(riding);
 const groupAssembly = { ...assembly,constants: { ...assembly.constants,nativeKnockdown,groupRows: nalatiNativeGroupRows,groupAdmission: admission,nativeField,pageGroups: parsePageGroupRows({ packGuest:{program:pasture,binding:{...packBinding,parameters:{boundsHalf:nativeField.world.size/2}}},guest:{program:pasture,binding:herdBinding},pack: { ...brains.pack,members: ['group.member'],home: [0,0] },herd: { ...brains.herd,members: ['group.member'] },contacts: { pack: contacts.wolf,herd: contacts.stallion },effects:{notices:[{signal:'howl',text:'A wolf howls — the pack has your scent',every:60},{signal:'stampede',text:'Stampede!',every:20},{signal:'pack-driven-off',text:'The stallion drives the wolves off',every:30},{signal:'stallion-beaten',text:'The stallion gives ground',every:30}],knockdown:{...nativeKnockdown,text:'Knocked down!',every:4}},world: nativeField.world,wind: { x: -.8,z: .6,strength: .5 },prey: 'sheep',damage: admission }),nativeDayClock: nalatiDayClockRow() } };
 

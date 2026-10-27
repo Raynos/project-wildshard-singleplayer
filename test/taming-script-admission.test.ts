@@ -5,10 +5,12 @@ import {ReturnProgram} from '../src/game/population/returnProgram';
 import {scriptAdmissionRows,decisionModuleContracts} from '../src/format/scriptContract';
 import {hashImmutableBytes} from '../src/sdk/immutable';
 import {NALATI_SCRIPT_SECTIONS} from './fixtures/nalati-script-inventory';
-import programs from '../src/shards/nalati-grasslands/behaviour/riding.generated.json' with {type:'json'};
+import { NALATI_RIDING_PROGRAMS as programs, NALATI_RIDING_WASM, NALATI_RIDING_WITNESS_BYTES } from './fixtures/nalati-riding';
 import * as v from 'valibot';
-import {readNamedBlob} from '../src/sdk/blobs';
-import {NALATI_RIDING_SESSION} from '../src/shards/nalati-grasslands/generators/clientRiding';
+import {nameBlob} from '../src/sdk/blobs';
+import {SCRIPT_V2_REVISIONS} from '../src/format/scriptAdmissionV2';
+import {ridingModuleOptions,NALATI_RIDING_MODULE,NALATI_RIDING_WITNESS} from '../src/shards/nalati-grasslands/generators/ridingProgram';
+import {nalatiRidingSession} from '../src/shards/nalati-grasslands/generators/clientRiding';
 
 test('mounted ABI2 replaces one executable in the complete return/spawn inventory and retains its ABI1 witness',async()=>{
   const candidate=programs.approach.v2,bytes=ridingModuleBytes;
@@ -18,7 +20,7 @@ test('mounted ABI2 replaces one executable in the complete return/spawn inventor
   expect(hashImmutableBytes(ridingWitnessBytes)).toBe('84bd39abf54a633b3946e0e1dea7c1816565609c034799f5310db55a7b65d4ca');
   const {witnessBytes,...compiled}=programs.compiled;
   expect(witnessBytes).toBe(ridingWitnessBytes.length);
-  expect(compiled).toEqual({source:'behaviour/riding.generated.wasm',bytes:47229,hash:'09463dfbd52f3bf943c9f1203ad1bab3febca73ad0da10a8e242aaf418fb0b09'});
+  expect(compiled).toEqual({source:'behaviour/nalati.mounts.wasm',bytes:47229,hash:'09463dfbd52f3bf943c9f1203ad1bab3febca73ad0da10a8e242aaf418fb0b09'});
   const {compiled:_compiled,...wire}=programs,inline={...programs.approach,bytes:Buffer.from(ridingWitnessBytes).toString('base64'),v2:{...candidate,bytes:btoa(String.fromCodePoint(...bytes))}};
   expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(inline)))).toBe('bcb91aa391cffd0cc224d14e3a54dcd06a888f724d867eaec2e69f8e39b9ac91');
   const original={...wire,approach:inline,breaking:inline,riding:inline};
@@ -26,20 +28,17 @@ test('mounted ABI2 replaces one executable in the complete return/spawn inventor
   // The initial WT output still contained only these two fallbacks retired by 12a6349f00.
   const stale={...original,population:{...original.population,driver:{...original.population.driver,dogDecision:'dog',stragglerDistance:12}}};
   expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify(stale)))).toBe('4fb8a8739c7e3cf463a59ca27313924f7a381637cff54b43dd1a13db0138e96a');
-  expect(Object.hasOwn(NALATI_RIDING_SESSION.programs,'compiled')).toBe(false);
+  expect(Object.hasOwn(nalatiRidingSession(programs).programs,'compiled')).toBe(false);
   const rows=scriptAdmissionRows(NALATI_SCRIPT_SECTIONS),active=new Set(rows.filter(row=>row.side==='sim').map(row=>row.module));
   expect(active.size).toBe(8);expect(active.has(programs.approach.script.module)).toBe(false);
   const file=`blobs/wasm/${candidate.artifact.hash}.wasm`;expect(active.has(file)).toBe(true);expect(rows.filter(row=>row.module===file)).toHaveLength(1);
   expect(decisionModuleContracts(rows,rows.map(row=>({kind:'wasm',path:row.module,hash:row.module.slice(11,-5)}))).get(candidate.artifact.hash)).toMatchObject({abi:2,lane:'project',pages:1,ioBytes:candidate.artifact.ioBytes});
   const scope=new Scope('mounted.program');lendNalatiRiding(scope);try{expect(ReturnProgram.page(programs.approach,scope)).toBe(ReturnProgram.page(programs.breaking,scope));expect(ReturnProgram.page(programs.riding,scope)).toBe(ReturnProgram.page(programs.approach,scope));}finally{scope.dispose();}
   const {output}=await import('./fixtures/nalati-output-original');
-  const declaration=v.parse(v.object({name:v.string(),kind:v.literal('wasm'),source:v.string(),options:v.object({dependencies:v.array(v.string()),critical:v.boolean(),
-    script:v.object({abi:v.literal(2),lane:v.literal('project'),pages:v.number(),ioBytes:v.number(),compilerRevision:v.literal(1),admissionRevision:v.literal(1)})})}),
-    output.blobs.find(blob=>blob.name==='behaviour/nalati.mounts.wasm'));
-  const actual=await readNamedBlob('src/shards/nalati-grasslands',declaration.name,declaration.source,declaration.kind,declaration.options);
+  // GR6: the build program publishes the module and its witness (ridingProgram.ts); no template row names a generated file
+  const actual=nameBlob(NALATI_RIDING_MODULE,'wasm',NALATI_RIDING_WASM,ridingModuleOptions(programs,SCRIPT_V2_REVISIONS));
   expect(actual.bytes).toEqual(bytes);expect(actual.file.path).toBe(file);
-  const witness=v.parse(v.object({name:v.string(),kind:v.literal('bin'),source:v.string()}),output.blobs.find(blob=>blob.name==='behaviour/riding-witness.bin'));
-  const raw=await readNamedBlob('src/shards/nalati-grasslands',witness.name,witness.source,witness.kind);
+  const raw=nameBlob(NALATI_RIDING_WITNESS,'bin',NALATI_RIDING_WITNESS_BYTES,{critical:true});
   expect(raw.bytes).toEqual(ridingWitnessBytes);expect(actual.file.dependencies).toEqual([raw.file.hash]);
   for(const name of ['ride/rules.json','sim/headless-boot.json']){
     const entry=output.namedFiles.find(row=>row.name===name),payload=entry===undefined?undefined:output.assets.get(entry.hash);

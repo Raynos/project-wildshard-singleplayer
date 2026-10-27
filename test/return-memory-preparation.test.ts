@@ -1,6 +1,5 @@
 import { originalHeldMetadata } from './fixtures/nalati-held-original';
-// oxlint-disable-next-line import/no-nodejs-modules -- Read other admitted programme rows; held metadata uses the pinned original fixture.
-import { readFileSync } from 'node:fs';
+import { NALATI_RIDING_PROGRAMS } from './fixtures/nalati-riding';
 import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { Scope } from '../src/engine/app/scope';
@@ -12,7 +11,7 @@ import { admission, lendNalatiTitan } from './fixtures/nalati-return-modules';
 import { titanRawPrograms, titanPrograms, titanModuleBytes } from './fixtures/titanInlineWitness';
 
 const held = v.parse(v.object({program: ReturnProgramSchema}), originalHeldMetadata().held).program;
-const riding = v.parse(v.object({approach: ReturnProgramSchema}), JSON.parse(readFileSync('src/shards/nalati-grasslands/behaviour/riding.generated.json', 'utf8'))).approach;
+const riding = v.parse(v.object({approach: ReturnProgramSchema}), structuredClone(NALATI_RIDING_PROGRAMS)).approach;
 
 test('the seven real return consumers reserve seven isolated memories and initialize only at their original construction', () => {
   const entered = new Scope('prepared.entered'), level = new Scope('prepared.level');

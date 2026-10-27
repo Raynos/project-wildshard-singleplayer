@@ -130,6 +130,7 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 
 | D76 | Frozen CI `40478384994` generation/source-provider build refuses Far phone wire 34546324 B over committed33800000 B ceiling (746324 B excess); local no-ceiling readings used unauthorized WT budget deletions and do not prove main | observed `c717122803` (first bad not attributed) | sp-x1 (Far source/tier inventory; pinged) | open; I12/G792 cap retained, no waiver |
 | D77 | budget-ceilings.mjs resets ratchet.budgets to an empty object, wiping I12 wire ceilings whenever budget refresh runs; also rewrites ceiling-sources.json | interaction with `cc5e393e89` wire rows (exact first bad pending) | sp-o4 (coordinator assigned) | open script repair; coordinator restored all28 wire rows in WT, no ceiling deletion authorized |
+| D78 | `test/nalati-species-product-inputs` (3 cases) no longer matches its pinned product header (same {bytes} length, different sha256; the pin dates from afbe4bc603); the riding rows are not the cause (the old riding JSON gives the same hash) | unknown (after afbe4bc603: candidates 17851dd472, 4f94bba90f, f9b729690e) | sp-x6 / sp-o2 (GR6) | open |
 
 ## Rows
 

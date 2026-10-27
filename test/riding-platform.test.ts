@@ -28,7 +28,7 @@ import type { DiscOpts } from '@wildshard/engine/ui/hudSlots';
 import { RidingControlsSchema, type RideHudState, type MountProfile } from '@wildshard/format/riding';
 import { parse } from 'valibot';
 import { createPageRiding, respawnPageMounted, RidingActions, type PageTamingOwner, type PageRidingRows, type PageRidingOwners } from '@wildshard/game/riding/client';
-import fixturePrograms from '../src/shards/nalati-grasslands/behaviour/riding.generated.json' with { type: 'json' };
+import { NALATI_RIDING_PROGRAMS as fixturePrograms } from './fixtures/nalati-riding';
 import { Mount } from '@wildshard/game/riding/mount';
 import { RideHUD } from '@wildshard/game/riding/hud';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
