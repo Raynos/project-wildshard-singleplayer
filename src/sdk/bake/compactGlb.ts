@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The build measures each file's wire bytes with the deploy's brotli.
 import { brotliCompressSync, constants } from 'node:zlib';
-import { WebIO, type Accessor } from '@gltf-transform/core';
-import { ALL_EXTENSIONS, KHRMeshQuantization } from '@gltf-transform/extensions';
+import { WebIO, type Accessor, type Document } from '@gltf-transform/core';
+import { ALL_EXTENSIONS, KHRMeshQuantization, type InstancedMesh } from '@gltf-transform/extensions';
 import { MeshoptDecoder } from 'meshoptimizer';
 import { compressGlb } from './glbCompression';
 
@@ -18,8 +18,10 @@ const quantized = (accessor: Accessor, array: Int16Array<ArrayBuffer> | Int8Arra
  * iPhone downloads I3: a phone-tier baked model with 16-bit positions, 8-bit normals and 8-bit colours
  * (KHR_mesh_quantization), with or without meshopt (EXT_meshopt_compression): whichever of the input, the quantized
  * file and the packed one has the fewest brotli bytes ships. The positions sit on the mesh's own grid: a uniform scale and a translation on its node dequantize
- * them (`createOwnedGeometry` bakes that node transform back into float positions). Only a file with exactly one mesh on
- * one identity-space node, float positions and no skin, morph target, animation, instancing or meshopt is compacted
+ * them (`createOwnedGeometry` bakes that node transform back into float positions). An instanced node
+ * (EXT_mesh_gpu_instancing) keeps its identity transform: the grid folds into every instance's translation and scale
+ * instead (the instance applies after the vertex). A meshopt input is decoded first and competes as it was. Only a file
+ * with exactly one mesh on one identity-space node, float positions and no skin, morph target or animation is compacted
  * (channels already quantized stay as they are); every other file, and every channel but POSITION / NORMAL / COLOR_0, passes through unchanged.
  */
 export async function compactPhoneGlb(input: Uint8Array): Promise<Uint8Array> {
@@ -29,7 +31,7 @@ export async function compactPhoneGlb(input: Uint8Array): Promise<Uint8Array> {
   const used = new Set(root.listExtensionsUsed().map(extension => extension.extensionName));
   const nodes = root.listNodes().filter(node => node.getMesh() !== null), node = nodes[0], mesh = node?.getMesh();
   if (nodes.length !== 1 || node === undefined || mesh === null || mesh === undefined || root.listMeshes().length !== 1
-    || root.listSkins().length > 0 || root.listAnimations().length > 0 || used.has('EXT_meshopt_compression') || used.has('EXT_mesh_gpu_instancing')
+    || root.listSkins().length > 0 || root.listAnimations().length > 0
     || node.getMatrix().some((value, i) => value !== (i % 5 === 0 ? 1 : 0)) || node.getParentNode() !== null) return input;
   const primitives = mesh.listPrimitives();
   if (primitives.length === 0 || primitives.some(primitive => primitive.listTargets().length > 0)) return input;
@@ -46,6 +48,8 @@ export async function compactPhoneGlb(input: Uint8Array): Promise<Uint8Array> {
   const mid = (axis: number): number => ((min[axis] ?? 0) + (max[axis] ?? 0)) / 2;
   const centre: [number, number, number] = [mid(0), mid(1), mid(2)];
   const half = Math.max(...[0, 1, 2].map(axis => ((max[axis] ?? 0) - (min[axis] ?? 0)) / 2), 1e-6);
+  const instances = node.getExtension<InstancedMesh>('EXT_mesh_gpu_instancing');
+  if (instances !== null && !foldGrid(doc, instances, centre, half)) return input;
   const done = new Set<Accessor>();
   for (const primitive of primitives) {
     const position = primitive.getAttribute('POSITION'), normal = primitive.getAttribute('NORMAL'), colour = primitive.getAttribute('COLOR_0');
@@ -71,7 +75,7 @@ export async function compactPhoneGlb(input: Uint8Array): Promise<Uint8Array> {
       }
     }
   }
-  node.setTranslation(centre).setScale([half, half, half]);
+  if (instances === null) node.setTranslation(centre).setScale([half, half, half]);
   // a native-attribute file (its intake restores each channel's declared storage) declares the new storage too
   const extras = node.getExtras(), native: unknown = extras['nativeAttributes'];
   if (typeof native === 'object' && native !== null) {
@@ -84,8 +88,41 @@ export async function compactPhoneGlb(input: Uint8Array): Promise<Uint8Array> {
     node.setExtras({ ...extras, nativeAttributes: rows });
   }
   if (!used.has('KHR_mesh_quantization')) doc.createExtension(KHRMeshQuantization).setRequired(true);
+  // a meshopt input was decoded on read: the quantized file is written plain, and packed again below
+  for (const extension of root.listExtensionsUsed()) if (extension.extensionName === 'EXT_meshopt_compression') extension.dispose();
   // the quantized file with and without meshopt: a triangle soup often packs better under brotli alone
   const plain = await io.writeBinary(doc), packed = compressGlb(plain);
   const sizes = [input, plain, packed].map(bytes => ({ bytes, size: brotliBytes(bytes) }));
   return sizes.reduce((best, row) => row.size < best.size ? row : best).bytes;
+}
+
+/** Fold a grid (`centre`, uniform `half`) into each instance: T' = T + R(S * centre), S' = S * half, so that
+ *  T' R S' q = T R S (half q + centre). Refuses (false) instance rows that are not plain float TRS. */
+function foldGrid(doc: Document, instances: InstancedMesh, centre: readonly [number, number, number], half: number): boolean {
+  const t = instances.getAttribute('TRANSLATION'), r = instances.getAttribute('ROTATION'), s = instances.getAttribute('SCALE');
+  const rows = [t, r, s].filter((row): row is Accessor => row !== null);
+  const count = rows[0]?.getCount() ?? 0;
+  if (count === 0 || rows.some(row => row.getComponentType() !== 5126 || row.getCount() !== count)) return false;
+  const translation = new Float32Array(count * 3), scale = new Float32Array(count * 3), at: number[] = [], q: number[] = [], k: number[] = [];
+  for (let i = 0; i < count; i++) {
+    if (t === null) at.splice(0, 3, 0, 0, 0); else t.getElement(i, at);
+    if (r === null) q.splice(0, 4, 0, 0, 0, 1); else r.getElement(i, q);
+    if (s === null) k.splice(0, 3, 1, 1, 1); else s.getElement(i, k);
+    const [x, y, z, w] = [q[0] ?? 0, q[1] ?? 0, q[2] ?? 0, q[3] ?? 1];
+    const v = [0, 1, 2].map(axis => (k[axis] ?? 1) * (centre[axis] ?? 0));
+    const [vx, vy, vz] = [v[0] ?? 0, v[1] ?? 0, v[2] ?? 0];
+    // v + 2 q.xyz x (q.xyz x v + w v)
+    const cx = y * vz - z * vy + w * vx, cy = z * vx - x * vz + w * vy, cz = x * vy - y * vx + w * vz;
+    const rotated = [vx + 2 * (y * cz - z * cy), vy + 2 * (z * cx - x * cz), vz + 2 * (x * cy - y * cx)];
+    for (let axis = 0; axis < 3; axis++) {
+      translation[i * 3 + axis] = (at[axis] ?? 0) + (rotated[axis] ?? 0);
+      scale[i * 3 + axis] = (k[axis] ?? 1) * half;
+    }
+  }
+  const buffer = doc.getRoot().listBuffers()[0] ?? null;
+  for (const [name, array, previous] of [['TRANSLATION', translation, t], ['SCALE', scale, s]] as const) {
+    instances.setAttribute(name, doc.createAccessor().setType('VEC3').setArray(array).setBuffer(buffer));
+    if (previous !== null && previous.listParents().length <= 1) previous.dispose();
+  }
+  return true;
 }
