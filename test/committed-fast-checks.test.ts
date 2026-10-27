@@ -100,7 +100,8 @@ test('native lint detects exact cycles and defers a changed dependency',()=>{
 
 test('native closure resolves query and fragment imports to their tracked file',()=>{
   const f=fixture();try {
-    f.put('src/main.ts',"import first from '../lint/ratchet.json?raw';import second from '../lint/ratchet.json#text';export const value=[first,second];");
+    f.put('src/worker.ts','export const value=1;');
+    f.put('src/main.ts',"import first from '../lint/ratchet.json?raw';import second from '../lint/ratchet.json#text';import worker from './worker?worker&inline';export const value=[first,second,worker];");
     const tip=f.commit(),index=f.git('write-tree');
     const result=f.run('fast-lint',tip);
     expect(result.status,result.stdout+result.stderr).toBe(0);
@@ -108,6 +109,14 @@ test('native closure resolves query and fragment imports to their tracked file',
     expect(result.stdout).not.toContain('DEFERRED TO CI');
     expect(f.git('write-tree')).toBe(index);
     expect(readFileSync(resolve(f.root,'src/main.ts'),'utf8')).toContain('ratchet.json?raw');
+    f.put('src/worker.ts','export const value=2;');
+    const dirty=f.run('fast-lint',tip);
+    expect(dirty.stdout).toContain('unverified inputs src/worker.ts');
+    expect(dirty.stdout).not.toContain('Fast lint passed');
+    f.put('src/main.ts',"import worker from './missing?worker&inline';export const value=worker;");
+    const missing=f.run('fast-lint',f.commit());
+    expect(missing.stdout).toContain('unverified inputs src/missing');
+    expect(missing.stdout).not.toContain('Fast lint passed');
   }finally{f.close();}
 });
 
