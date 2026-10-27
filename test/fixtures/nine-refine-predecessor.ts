@@ -6,7 +6,7 @@ import { encodeCanonicalJson, hashImmutableBytes } from '../../src/sdk/immutable
 /** D179 B's predecessor layer (as T8's and I3's): Nine's city fabric moved from the resident 'native' whole library into
  *  'native-refine' (load 'refine'). Two output files change and nothing else: world/fabric.json's layout mesh nodes name
  *  the new library, and the world/scenes section declares it. The predecessor of each is the same rows with the fabric back
- *  in 'native' (its models first, the layout aliases having been declared first) and no refine library. Refuses anything
+ *  in 'native' (the layout models first, in layout id order, as the aliases were declared) and no refine library. Refuses anything
  *  else that differs. */
 const text = (bytes: Uint8Array): string => new TextDecoder('utf-8', { fatal: true }).decode(bytes);
 const REFINE = /"library":\s*"native-refine"/gu;
@@ -26,7 +26,14 @@ export function scenesPredecessor(bytes: Uint8Array): Uint8Array {
   const libraries = section.libraries as WholeLibrary[], refine = libraries.find(row => row.id === 'native-refine'), native = libraries.find(row => row.id === 'native');
   if (refine === undefined) return bytes;
   if (native === undefined || refine.load !== 'refine' || refine.models.some(row => !row.id.startsWith('layout-'))) throw new Error('Nine refine library differs from D179 B');
-  const next = libraries.filter(row => row !== refine).map(row => row === native ? { ...native, models: [...refine.models, ...native.models] } : row);
+  // the layout models were declared first, in their layout ids' order: a set's model stayed in 'native', so the two merge
+  // back by that order ahead of the rest
+  const order = (row: { readonly id: string }): number => Number(/^layout-(\d+)$/u.exec(row.id)?.[1] ?? Number.NaN);
+  const kept = native.models.filter(row => row.id.startsWith('layout-')), rest = native.models.filter(row => !row.id.startsWith('layout-'));
+  const layouts = [...refine.models, ...kept];
+  if (layouts.some(row => Number.isNaN(order(row)))) throw new Error('Nine layout model without a layout id');
+  layouts.sort((a, b) => order(a) - order(b));
+  const next = libraries.filter(row => row !== refine).map(row => row === native ? { ...native, models: [...layouts, ...rest] } : row);
   return new TextEncoder().encode(encodeCanonicalJson({ ...section, libraries: next }));
 }
 

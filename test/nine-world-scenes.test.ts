@@ -27,6 +27,11 @@ test('every Nine catalogue draw names a declared whole-library model on its own 
   expect(refine?.models.length).toBeGreaterThan(0);
   expect(refine?.models.every(row => row.id.startsWith('layout-'))).toBe(true);
   for (const model of catalogue.models) for (const choice of model.choices) for (const draw of [...choice.draws, ...choice.lods.flatMap(level => level.draws)]) expect(draw.library).not.toBe('native-refine');
+  // the reader refines a model only from L0 tile rows (refiningWholeLibrary): every file of it is a fine tile's, never a
+  // layout-set piece's (layout-9's set geometry stays in 'native')
+  const fine = new Set(world.shardfile.tiles.filter(tile => tile.lod === 0).flatMap(tile => tile.files));
+  for (const model of refine?.models ?? []) for (const hash of model.files) expect(fine.has(hash), `${model.id} ${hash}`).toBe(true);
+  expect(libraries.get('native')?.models.some(row => row.id === 'layout-9')).toBe(true);
   // a draw reads a whole-library model on its baked tiles, a cast in its pool file (the lion's, the crowd's, the hook's
   // levels) or an owned file (the hook's full cast)
   const pools = new Map(NINE_WORLD_SCENES.libraries.flatMap(row => row.kind === 'pool' ? [[row.id, row] as const] : []));

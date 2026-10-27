@@ -21,7 +21,7 @@ export async function readNineProductInputs(ctx: ProjectGenerationContext): Prom
   const native = await nineNativeSignAtlas(ctx, nativeAtlasInputs), glyphs = await nineNativeGlyphs(ctx, nativeGlyphInputs);
   const profile = await nineHeldProfile(ctx), ownedWorld = await nineWorldProgram(ctx, native.atlas), casts = await nineCastsProgram(ctx), signs = await nineSignsProgram(ctx, native, glyphs);
   const declarations = await nineDeclarationsProgram(ctx, ownedWorld), courseProgram = await ninePracticeProgram(ctx);
-  return { casts, signs, courseProgram, navigation: await nineNavigation(ctx), world: ownedWorld.metadata, ownedWorld, scenes: nineWorldScenes(ownedWorld.layout, casts.material, signs, declarations.world), held: { profile, files: createHeldGraphFiles(profile) } };
+  return { casts, signs, courseProgram, navigation: await nineNavigation(ctx), world: ownedWorld.metadata, ownedWorld, scenes: nineWorldScenes(ownedWorld.layout, casts.material, signs, declarations.world, new Set(ownedWorld.metadata.shardfile.tiles.filter(tile => tile.lod === 0).flatMap(tile => tile.files))), held: { profile, files: createHeldGraphFiles(profile) } };
 }
 
 /** Build the declaration from this invocation's admitted source results. */
