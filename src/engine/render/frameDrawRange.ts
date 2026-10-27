@@ -9,21 +9,24 @@ interface RangeLease { readonly range: FrameDrawRange; readonly owner: Scope }
  * Existing native bounds conservatively retain nearby static draws, skies,
  * dynamic/custom objects and any object without a trustworthy bound. */
 export class FrameDrawRanges {
-  private readonly ranges = new Set<RangeLease>();
+  private readonly ranges: RangeLease[] = [];
   private readonly hidden: Object3D[] = [];
   private readonly eye = new Vector3();
   private readonly sphere = new Sphere();
   bind(owner: Scope, distance: number): FrameDrawRange {
     if (owner.disposed || owner.disposing || !Number.isFinite(distance) || distance <= 0) throw new Error('Frame draw range requires a live owner and positive distance');
-    const range: FrameDrawRange = { enabled: false, distance }, lease = { range, owner }; this.ranges.add(lease);
-    owner.onDispose(() => { this.ranges.delete(lease); });
+    const range: FrameDrawRange = { enabled: false, distance }, lease = { range, owner }; this.ranges.push(lease);
+    owner.onDispose(() => { const index = this.ranges.indexOf(lease); if (index !== -1) this.ranges.splice(index, 1); });
     return range;
   }
   /** Only the ordinary synchronous live draw is masked. Always restore before
    * a yielded builder, offscreen warm-up or another view can inspect the scene. */
   draw(root: Object3D, camera: Camera, renderer: { render: (delta: number) => void }, delta: number): void {
     let distance = Infinity;
-    for (const { range, owner } of this.ranges) if (range.enabled && !owner.disposed && !owner.disposing) distance = Math.min(distance, range.distance);
+    for (let i = 0; i < this.ranges.length; i++) {
+      const lease = this.ranges[i];
+      if (lease !== undefined && lease.range.enabled && !lease.owner.disposed && !lease.owner.disposing) distance = Math.min(distance, lease.range.distance);
+    }
     if (!Number.isFinite(distance)) { renderer.render(delta); return; }
     if (this.hidden.length > 0) throw new Error('Frame draw range is already drawing');
     try {
