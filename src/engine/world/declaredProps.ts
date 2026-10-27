@@ -178,7 +178,7 @@ export async function installDeclaredProps(props: DeclaredProps, ports: {
         source?.dispose(); held.push(m); bases.set(m, base); return m;
       };
       o.material = Array.isArray(o.material) ? original.map(convert) : convert(original[0]);
-      o.castShadow = o.userData['castShadow'] !== false; o.receiveShadow = true;
+      o.castShadow = o.userData['castShadow'] !== false; o.receiveShadow = o.userData['receiveShadow'] !== false;
     });
     if (disposed) { releaseAll(); throw new Error('Props level unloaded while parsing'); }
     return gltf.scene;

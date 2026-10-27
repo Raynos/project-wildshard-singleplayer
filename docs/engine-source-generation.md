@@ -148,3 +148,8 @@ from admitted L0 tile GLBs without adding those files to the resident
 library. L1 proxies and non-GLB files refuse. Resident whole libraries
 still require resident library membership. The normal product, owner,
 transport, cache and cancellation checks apply to both paths.
+
+`PropWhole.receiveShadow` carries an explicit shadow-receiver flag through
+the GLB and the generic props installer. Omitted flags keep the existing
+true default and unchanged bytes. A whole scene mesh that received no
+shadows can move onto tiles with `receiveShadow: false`.

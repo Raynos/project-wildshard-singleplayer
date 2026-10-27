@@ -33,7 +33,7 @@ it('streamed ground pins its complete anchor scene and cold world declaration', 
   expect(hashImmutableBytes(ground.bytes)).toBe(ground.file.hash);
   const world = new TextEncoder().encode(encodeCanonicalJson(SKY_WORLD_SCENES));
   expect(world.byteLength).toBe(313_596);
-  expect(hashImmutableBytes(world)).toBe('fbaad205460b7338145a8c31192f8fe2a1ef2f80c9d1c6a04bc419914aca62e9');
+  expect(hashImmutableBytes(world)).toBe('a06b5b7bf63e69be057dc097a6a0b350fad904c506423a7a730c704657ba7795');
 });
 
 it('registers the authored walkable ground while borrowing loaded island geometry', async () => {

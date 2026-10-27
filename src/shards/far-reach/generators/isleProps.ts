@@ -19,7 +19,7 @@ export function skyIsleProps(): BakedProps {
   const whole = [...ISLES, ...RISING_ISLETS.map((entry) => entry.gate)].map((isle) => {
     const geometry = pack.geometry(rows.isles.indexOf(isle.id)); geometry.computeVertexNormals();
     const materialName = ISLES.some(row => row.id === isle.id) ? ISLE_KEEL_CUT[isle.id] === undefined ? 'isle-paint-cut' : 'isle-paint-cut-mill' : 'isle-paint';
-    return { materialName, id: `isle_${isle.id.replace('.', '-')}`, partition: 'runs' as const, mesh: new Mesh(geometry, new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 })), transform: new Matrix4().makeTranslation(isle.x, isle.y, isle.z) };
+    return { materialName, receiveShadow: false, id: `isle_${isle.id.replace('.', '-')}`, partition: 'runs' as const, mesh: new Mesh(geometry, new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 })), transform: new Matrix4().makeTranslation(isle.x, isle.y, isle.z) };
   });
   // G748 / U2: the L1 tiles beyond the render ring draw the isles simplified in their own toon look (whole shapes are
   // never in the default coarse source, so the occupied parents had no L1 at all). D76: 1.5 % with meshopt's sloppy

@@ -7,12 +7,12 @@ import { skyWorldTileSource } from '../src/shards/far-reach/generators/worldTile
 import { skyProductRows } from '../src/shards/far-reach/generators/product';
 
 // T8 moves the same island channels from whole residency to named fine tile draws.
-const declarationHash = '282a7d2bb522bcf61b2279ba4d52a3e4b161e009aeed6e66007e88e223bcc408';
+const declarationHash = '3c180b42457202e53ff6d49476534a879a1d655b70081b21bed5cac8ba9a8008';
 
 test('the complete named tile metadata retains its publication contract', () => {
   const bytes = withPortableMath(skyWorldTileSource).get('data/props.json');
   if (bytes === undefined) throw new Error('Missing named island tile metadata');
-  expect(hashImmutableBytes(bytes)).toBe('15cca111b5583251f8a967828065f83ece474d23ac0fa2932ad2be86aa825d0a');
+  expect(hashImmutableBytes(bytes)).toBe('56347c7c23df434bb6cbcc79dca5fccc873dd445b2ddc00420af51ceb4314662');
 });
 
 test('the declaration pins complete streamed ownership and actual admission costs', () => {

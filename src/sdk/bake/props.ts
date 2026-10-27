@@ -39,6 +39,8 @@ export interface PropsBakeSource {
  */
 export interface PropWhole {
   id: string; mesh: Mesh; transform: Matrix4;
+  /** Preserve an explicit receive-shadow flag; omitted keeps the tile reader's existing true default. */
+  receiveShadow?: boolean;
   /** GLB surface name for this unchanged whole shape; overrides PropsBakeSource.materialName. */
   materialName?: string;
   /** Application semantic → source channel, retained whole beside positions, normals and colours. */
@@ -293,7 +295,8 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
     material.name = entry.materialName ?? source.materialName ?? '';
     const base = { id: entry.id, at, castShadow: mesh.castShadow, geometry: g, material, transform: entry.transform, customAttributes,
       nativeAttributes: entry.partition !== undefined ? true as const : entry.nativeAttributes, quantized, compact: entry.compact === true };
-    if (entry.partition === undefined) return [{ ...base, owner: null, extras: undefined }];
+    const shadowExtras = entry.receiveShadow === undefined ? {} : { receiveShadow: entry.receiveShadow };
+    if (entry.partition === undefined) return [{ ...base, owner: null, extras: entry.receiveShadow === undefined ? undefined : shadowExtras }];
     const ordinals = entry.partition === 'runs' ? wholePartitionRuns : (list: number[]): number[] => list;
     const preparedParts: PreparedWhole[] = [];
     // I3: one grid for the whole shape in its own space, so a vertex two partitions share lands on the same grid point
@@ -301,7 +304,7 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
     for (const part of partitionWholeGeometry(g, entry.transform, entry.overhang ?? 0)) {
       if (grid !== undefined) gridPositions(part.geometry, grid);
       const prepared: PreparedWhole = { ...base, id: `${entry.id}_p${part.x}_${part.z}_n${preparedParts.length}`, geometry: part.geometry, ...(grid === undefined ? {} : { grid }),
-      owner: { x: part.x, z: part.z }, extras: { wholePartition: { id: entry.id, vertices: ordinals(part.vertices), triangles: ordinals(part.triangles),
+      owner: { x: part.x, z: part.z }, extras: { ...shadowExtras, wholePartition: { id: entry.id, vertices: ordinals(part.vertices), triangles: ordinals(part.triangles),
         vertexCount: g.getAttribute('position').count, indexCount: g.getIndex()?.count ?? 0,
         index: g.getIndex() === null ? 'none' : g.getIndex()?.array instanceof Uint16Array ? 'u16' : 'u32',
         ...(grid === undefined ? {} : { grid: { origin: [...grid.origin], step: grid.step } }) } } };

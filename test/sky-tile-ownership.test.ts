@@ -17,6 +17,15 @@ test('named tile draws retain every predecessor binary channel, transform and pa
     const length = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(12, true);
     const doc: unknown = JSON.parse(new TextDecoder().decode(bytes.subarray(20, 20 + length)));
     if (typeof doc !== 'object' || doc === null) throw new Error('Expected native GLB');
+    const nodes: unknown = Reflect.get(doc, 'nodes');
+    if (!Array.isArray(nodes)) throw new Error('Missing tile nodes');
+    for (const node of nodes) {
+      if (typeof node !== 'object' || node === null) throw new Error('Missing tile node');
+      const extras: unknown = Reflect.get(node, 'extras');
+      if (typeof extras !== 'object' || extras === null) throw new Error('Missing tile flags');
+      if (row.lod === 0) expect(Reflect.get(extras, 'receiveShadow')).toBe(false);
+      Reflect.deleteProperty(extras, 'receiveShadow');
+    }
     Reflect.deleteProperty(doc, 'materials');
     return { lod: row.lod, x: row.x, z: row.z, bin: hashImmutableBytes(bytes.subarray(28 + length)),
       shape: hashImmutableBytes(new TextEncoder().encode(JSON.stringify(doc))) };

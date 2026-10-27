@@ -12,11 +12,11 @@ const encode = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.str
 const original = (): Promise<Uint8Array> => millSceneSource(url => readFileSync(`public${url}`));
 const checkWorld = (value: SkyWorldSceneValues): void => {
   const wire = new TextEncoder().encode(encodeCanonicalJson(value.scenes));
-  expect(wire.byteLength).toBe(329_351);
-  expect(hashImmutableBytes(wire)).toBe('27f1bf00f36fecbf34936dff22d2e9791498006a92aa2404236883111f417884');
+  expect(wire.byteLength).toBe(313_596);
+  expect(hashImmutableBytes(wire)).toBe('a06b5b7bf63e69be057dc097a6a0b350fad904c506423a7a730c704657ba7795');
   expect(value.blobs).toHaveLength(25);
   const records = value.blobs.map(blob => ({ file: blob.file, hash: hashImmutableBytes(blob.bytes) }));
-  expect(hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(records)))).toBe('e58dbe6a4db6c870a7dfb86d91d5d7fde714c6060bc03b7bd09dd662817fdf56');
+  expect(hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(records)))).toBe('56e8829acb557d34f61a2e38abd89edc1718228db5f9ab5752a9aed89f27fab6');
 };
 
 test('owned mill intake preserves the complete original hierarchy and motion bindings with isolated rows', async () => {
