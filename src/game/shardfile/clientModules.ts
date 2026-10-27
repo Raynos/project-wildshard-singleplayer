@@ -18,7 +18,7 @@ export function declareProductClientModules(product: ShardProduct): void {
  * Prepare reads while asset admission runs; installation remains at the original sites. */
 export function prepareClientModuleGroups(source: Pick<Shardfile, 'rows' | 'items'>, sections: ReadonlyMap<string, unknown>): void {
   const plan = sections.get('client/plan'), groups = plan === undefined ? [] : clientPlanModuleGroups(parseClientPlan(plan));
-  if (sections.has('explore/catalogue')) groups.push('explorer.catalogue');
+  // An Explorer catalogue is metadata, not a spawn-view request. Its code loads at the original Explorer entry.
   if (source.rows.looks.some(look => look.recipe === SKIN_LOOK_RECIPE) || source.items.rows.some(row => row.view.asset !== undefined)) groups.push('models.gltf');
   preloadModuleGroups(groups);
 }

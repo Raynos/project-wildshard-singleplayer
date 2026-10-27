@@ -87,7 +87,7 @@ test('home code facts match measured selected rows and refuse changed section by
       return {name,path,hash:createHash('sha256').update(text).digest('hex'),bytes:Buffer.byteLength(text)};
     });
     writeFileSync(resolve(product, 'shard.json'), JSON.stringify({...index,sections}));
-    expect(homeClientModuleGroups(root,'total-test')).toEqual(['world.scenes','explorer.catalogue','models.gltf']);
+    expect(homeClientModuleGroups(root,'total-test')).toEqual(['world.scenes','models.gltf']);
     writeFileSync(resolve(product,'client-plan.json'),'{}');
     expect(() => homeClientModuleGroups(root,'total-test')).toThrow('Boot code section differs');
   } finally { rmSync(root, { recursive: true, force: true }); }

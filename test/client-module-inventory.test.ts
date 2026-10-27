@@ -124,9 +124,12 @@ test('verified plan metadata prepares only its selected feature and actual loado
   const source = emptyShardfile({slug:'module-fixture',name:'Modules',author:'Fixture',revision:1,seed:7});
   const sections = new Map<string,unknown>([['client/plan',{version:1,features:[{kind:'world.scenes'}]}],['explore/catalogue',{version:1,entries:[]}]]);
   prepareClientModuleGroups(source,sections);
-  expect([...document.querySelectorAll<HTMLLinkElement>('link[rel="modulepreload"]')].map(link => new URL(link.href).pathname)).toEqual(['/assets/scenes.js','/assets/explorer.js']);
+  expect([...document.querySelectorAll<HTMLLinkElement>('link[rel="modulepreload"]')].map(link => new URL(link.href).pathname)).toEqual(['/assets/scenes.js']);
   source.rows.looks.push({id:'look.test',species:'species.test',recipe:'platform.skin',material:null,parameters:{skin:'a'.repeat(64)},animation:{recipe:'platform.clips',parameters:{}}});
   prepareClientModuleGroups(source,sections);
-  expect([...document.querySelectorAll<HTMLLinkElement>('link[rel="modulepreload"]')].map(link => new URL(link.href).pathname)).toEqual(['/assets/scenes.js','/assets/explorer.js','/assets/parser.js']);
+  expect([...document.querySelectorAll<HTMLLinkElement>('link[rel="modulepreload"]')].map(link => new URL(link.href).pathname)).toEqual(['/assets/scenes.js','/assets/parser.js']);
   expect(document.querySelector('link[href$="meadow.js"]')).toBeNull();
+  expect(document.querySelector('link[href$="explorer.js"]')).toBeNull();
+  preloadModuleGroups(['explorer.catalogue']);
+  expect(document.querySelector('link[href$="explorer.js"]')).not.toBeNull();
 });

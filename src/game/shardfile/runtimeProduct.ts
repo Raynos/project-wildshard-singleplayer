@@ -81,6 +81,7 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
     return sent === null || sent.fetched === null ? null : { bytes: sent.fetched, cached: sent.cached, stored: sent.stored };
   } : undefined;
   return { base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: browserContentHash, hashOwned: hashOwnedBytes,
+    backgroundFetch: url => fetch(url, { priority: 'low' }),
     fetch: url => waitFor(`Read ${new URL(url, base).pathname}`, (async () => {
       if (indexed !== undefined && new URL(url, base).pathname.endsWith('/shard.json')) {
         const held = await cachedTransport(caches, url, limits.sourceBytes, browserContentHash, hash => indexed.has(hash));
@@ -222,6 +223,10 @@ const manifestAdmissions = new WeakMap<ShardManifest, { readonly admitted: Admit
 /** An installed data-client manifest already owns an admission; its context reuses it. */
 export function provideManifestAdmission(manifest: ShardManifest, admitted: AdmittedProduct, options: ProductOptions): void {
   manifestAdmissions.set(manifest, { admitted, options });
+}
+/** I2: only the active page's after-control hook may complete its deferred offline copy. */
+export async function completeManifestCache(manifest: ShardManifest, scope: Scope): Promise<void> {
+  await manifestAdmissions.get(manifest)?.admitted.completeCache?.(scope);
 }
 
 /** Actual hydrated source for page lifecycle selection, without another descriptor or metadata mirror. */

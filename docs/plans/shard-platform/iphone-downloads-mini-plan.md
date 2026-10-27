@@ -263,3 +263,25 @@ per-slice reading. In flight: do not count I2 as passed from this source.
 After the admission slice, reread Pine (largest completed transfer), Nalati
 and Nine (the two180s incomplete visits) with the original page+worker
 HTTP observer, fresh origins, named sessions and exact control fence.
+
+### I2.2 Admission follows actual demand (2026-10-27, sp-x2)
+
+I2.1 source is a8465f58ca. This follow-on keeps the complete product
+declaration, memory admission and exact validation receipt. Only trusted
+receipted phone products admit critical/global/manifest bytes up front;
+scoped tile readers verify later bytes on demand. Untrusted, unreceipted
+and desktop admission retain full selected transport validation. Explorer
+catalogue presence no longer preloads Explorer code in the runtime or
+boot-code producer; actual Explorer entry still loads it.
+
+After control, remaining immutable files warm one at a time at low network
+priority, nearest tiles first. Retiring the level stops new reads. A partial
+load never publishes the fully visited offline index: every selected file,
+common and section must be durably verified before publication. The queue
+does not refill the released page transport map.
+
+Four touched fixtures and named typed lint pass. The game compiler sees
+foreign live cubeUVSample Node/null diagnostics; routed to sp-ci-deploy,
+no rendering edit or type waiver. Selected source ratchet passes. New
+fixture cases are typed, not run under G769. I2 remains in flight pending
+the Pine/Nalati/Nine reread; no transfer saving is inferred from source.

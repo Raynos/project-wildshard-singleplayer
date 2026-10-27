@@ -46,7 +46,7 @@ export function homeClientModuleGroups(root: string, directory: string): readonl
     return JSON.parse(bytes.toString('utf8'));
   };
   const plan = section('client/plan'), groups = plan === undefined ? [] : clientPlanModuleGroups(parseClientPlan(plan));
-  if (index.sections.some(row => row.name === 'explore/catalogue')) groups.push('explorer.catalogue');
+  // Match runtime I2 selection: catalogue presence alone must not preload Explorer before world control.
   const looks = section('look/materials'), items = section('combat/items');
   const lookRows = looks === undefined ? [] : v.parse(v.object({rows:v.object({looks:v.array(v.object({recipe:v.string()}))})}), looks).rows.looks;
   const itemRows = items === undefined ? [] : v.parse(v.object({items:v.object({rows:v.array(v.object({view:v.object({asset:v.exactOptional(v.unknown())})}))})}), items).items.rows;

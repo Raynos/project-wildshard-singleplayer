@@ -16,18 +16,19 @@ import { prepareBootImports } from '../src/bootDownloads';
 import { sourceManifest } from '../src/game/plugin/context';
 import { installShards, shards } from '../src/game/shard/list';
 import { game, setActiveChunk } from '../src/game/shard/registry';
+import { Scope } from '../src/engine/app/scope';
 
 const encodeCanonicalJson = (value: unknown): Uint8Array => new TextEncoder().encode(canonicalJson(value));
 const base = 'https://example.test/shardfiles/loader-fixture/';
 const hash = (bytes: Uint8Array): Promise<string> => Promise.resolve(hashImmutableBytes(bytes));
-function fixture(blob = false, spawnX = 0, revision = 1, slug = 'loader-fixture'): { source: Shardfile; index: OutputIndex; wires: Map<string, Uint8Array> } {
+function fixture(blob = false, spawnX = 0, revision = 1, slug = 'loader-fixture', late = false): { source: Shardfile; index: OutputIndex; wires: Map<string, Uint8Array> } {
   const source = emptyShardfile({ slug, name: 'Loader', author: 'Test', revision, seed: 1 });
   source.spawn.x = spawnX;
   const wires = new Map<string, Uint8Array>();
   if (blob) {
     const bytes = new Uint8Array([1, 2, 3]), ref = hashImmutableBytes(bytes);
     source.files.push({ hash: ref, kind: 'binary', compressed: 3, decoded: 3, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false });
-    source.library.push(ref); source.budgets.library = { resident: 3, compressed: 3 };
+    if (!late) { source.library.push(ref); source.budgets.library = { resident: 3, compressed: 3 }; }
     wires.set(`blobs/bin/${ref}.bin`, bytes);
   }
   const sections = [...outputSectionPayloads(source)].map(([name, payload]) => {
@@ -77,6 +78,37 @@ function sectionReader(wires: ReadonlyMap<string, Uint8Array>): (path: string) =
     return Promise.resolve(new Uint8Array(bytes));
   };
 }
+
+test('receipted phone admission defers unused bytes and publishes offline only after their verified storage', async () => {
+  const row = fixture(true, 0, 1, 'loader-fixture', true), restore = installIndexReceipt(row.index), store = cacheStore();
+  const scope = new Scope('offline-completion'), requests: string[] = [], opts = options(row.wires, store.cache), fetcher = opts.fetch;
+  opts.tier = 'phone'; opts.fetch = url => { requests.push(url); return fetcher(url); };
+  try {
+    const admitted = await admitProduct(row.index, opts), finish = admitted.completeCache;
+    if (finish === undefined) throw new Error('Missing deferred offline completion');
+    expect(admitted.assets.size).toBe(0); expect(store.product()).toBeNull();
+    expect(requests.some(url => url.includes('/blobs/'))).toBe(false);
+    await finish(scope);
+    expect(store.product()?.source).toStrictEqual(row.index);
+    expect(admitted.assets.size).toBe(0); // warming never refills the page's released transport map
+    expect(requests.filter(url => url.includes('/blobs/'))).toHaveLength(1);
+  } finally { scope.dispose(); restore(); }
+});
+
+test('poisoned late cache or a retired owner cannot publish a complete offline product', async () => {
+  for (const retired of [false, true]) {
+    const row = fixture(true, 0, 1, 'loader-fixture', true), restore = installIndexReceipt(row.index), store = cacheStore();
+    const scope = new Scope('offline-refusal'), opts = options(row.wires, store.cache); opts.tier = 'phone';
+    try {
+      const admitted = await admitProduct(row.index, opts), finish = admitted.completeCache;
+      if (finish === undefined) throw new Error('Missing deferred offline completion');
+      if (retired) scope.dispose();
+      else { const file = row.source.files[0]; if (file === undefined) throw new Error('Missing fixture file'); store.bytes.set(file.hash, new Uint8Array([9, 9, 9])); }
+      await expect(finish(scope)).rejects.toThrow(retired ? 'owner retired' : 'hash or size');
+      expect(store.product()).toBeNull(); expect(admitted.assets.size).toBe(0);
+    } finally { scope.dispose(); restore(); }
+  }
+});
 
 test('receipt lookup refuses authored accessors without invoking them', async () => {
   const f = fixture(); let reads = 0;

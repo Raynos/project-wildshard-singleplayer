@@ -3,6 +3,9 @@ import { declareDownloadFile, noteDownloadRead, recordCachedDownload, recordPack
 import { waitFor } from '@wildshard/engine/boot/waits';
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import type { Shardfile } from '@wildshard/format/shardSchema';
+import type { Scope } from '@wildshard/engine/app/scope';
+import { controlFiles, deferredFiles } from './controlFiles';
+import { productCacheCompletion } from './productCacheCompletion';
 import { builtValidationReceipt, readValidationReceipt, validationRevision, validationSourceBytes, type ValidationReceipt } from "@wildshard/format/validationReceipt";
 import { assertStateCompatibility, parseOutputLineageIndex, parseStateLineage } from '@wildshard/format/stateLineage';
 import type { MemoryAdmission } from '@wildshard/format/memoryAdmission';
@@ -71,6 +74,8 @@ export interface ProductOptions {
   /** Trusted URL-cache read returning owned checked bytes; replaces raw URL hints for asset reads when present. */
   verifiedResponse?: (url: string, hash: string, maximum: number) => Promise<Uint8Array | null>;
   fetch: (url: string) => Promise<Response>;
+  /** Same verified network capability at low priority, used only by after-control warming. */
+  backgroundFetch?: (url: string) => Promise<Response>;
   /** Optional off-page asset read (the content-cache worker): the URL cache when trusted, else the network, verified
    *  against `hash` and stored, its body transferred to the page. Null where no worker can; the page then reads it. */
   transport?: (url: string, hash: string, bytes: number) => Promise<{ bytes: Uint8Array; cached: boolean; stored: boolean } | null>;
@@ -116,6 +121,8 @@ export interface AdmittedProduct {
   releaseTransport?: (refs: Iterable<string>, reread?: 'cache-or-fetch') => Promise<readonly string[]>;
   /** Grid preparations explicitly rehydrate before synchronous consumers; release only after their last input lease. */
   releasePreparedTransport?: (refs: Iterable<string>, reread?: 'cache-or-fetch') => Promise<readonly string[]>;
+  /** Complete verified offline storage after control, without retaining the distant files on the page. */
+  completeCache?: (scope: Scope) => Promise<void>;
 }
 
 // Construct outside admission's decoding context: the owner must not retain the temporary hash/transport maps.
@@ -339,9 +346,14 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   // Only an exact build validation receipt can replace byte-by-byte validation
   // of unselected alternatives. Keep the complete descriptor for verified late
   // reads and a later device tier; unknown, critical and shared references stay.
-  const files = options.firstParty && receipt !== null && options.tier !== undefined
+  const selected = options.firstParty && receipt !== null && options.tier !== undefined
     && (source.runtime === null || 'kind' in source.runtime)
     ? await tierProductFilesPaced(source, options.tier, options.pause) : source.files;
+  // Untrusted/unreceipted products retain complete byte validation. The exact
+  // first-party phone receipt permits lazy tile reads through ClientAssets.
+  const files = options.firstParty && receipt !== null && options.tier === 'phone'
+    ? controlFiles(await playLibrarySourcePaced(source, options.pause), selected) : selected;
+  const remaining = files === selected ? [] : deferredFiles(source, selected, new Set(files.map(file => file.hash)));
   const refs = [...files.map((file) => ({ ref: file.hash, cap: file.compressed })), ...source.requires.commons.map((hash) => ({ ref: `commons:${hash}`, cap: source.requires.commonsWire[hash] ?? 0 }))];
   // Reserve the complete product first, then overlap at most sixteen immutable transports. Validation and
   // publication retain authored order; all started reads settle before a failure returns or writes cache.
@@ -476,7 +488,7 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
         if (!verifiedCached.has(hash) || await cache.putAsset(base, hash, bytes) === false || !await present(hash, bytes.length)) complete = false;
       });
       await cacheRows(sectionFiles, options.cacheBatch === true, async section => { if (!await present(section.hash, section.bytes)) complete = false; });
-      if (complete && descriptor !== undefined) {
+      if (complete && remaining.length === 0 && descriptor !== undefined) {
         try {
           await cache.putProduct(base, { source: descriptor.index, firstParty: options.firstParty,
             ...(revisionKey === null ? {} : { validation: { revision: revisionKey, sourceHash, indexHash: descriptor.indexHash, worst } }) });
@@ -493,7 +505,10 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   }
   progress('complete', `Product admitted · ${reference}`);
   await options.pause?.();
-  return { source, assets, cached: cached !== null && cached !== undefined, ...(options.firstParty ? { releaseTransport: transportRelease(source, assets, options), releasePreparedTransport: transportRelease(source, assets, options, true) } : {}), ...(options.firstParty ? {} : { instance: await externalShardInstance(base, source.identity.slug, options.hash) }) };
+  const deferredDescriptor = outputDescriptor(source);
+  const completeCache = deferredDescriptor === undefined ? undefined : productCacheCompletion(source, options, selected, remaining, { source: deferredDescriptor.index, firstParty: options.firstParty,
+    ...(revisionKey === null ? {} : { validation: { revision: revisionKey, sourceHash, indexHash: deferredDescriptor.indexHash, worst } }) });
+  return { source, assets, cached: cached !== null && cached !== undefined, ...(options.firstParty ? { releaseTransport: transportRelease(source, assets, options), releasePreparedTransport: transportRelease(source, assets, options, true), ...completeCache === undefined ? {} : { completeCache } } : {}), ...(options.firstParty ? {} : { instance: await externalShardInstance(base, source.identity.slug, options.hash) }) };
 }
 /** Browser Cache Storage retains exact hash bytes separately from the last completely admitted visited product. */
 export function browserProductCache(storage: Pick<CacheStorage, 'open'> & Partial<Pick<CacheStorage, 'delete'>>): ProductCache {

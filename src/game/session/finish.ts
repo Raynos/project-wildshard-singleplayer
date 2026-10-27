@@ -18,7 +18,7 @@ import { textureBytes } from '@wildshard/engine/render/textureBytes';
 import { setPoseProvider } from '@wildshard/engine/ui/ReloadPrompt';
 import { registerBeforeReload } from '@wildshard/engine/boot/lastEnd';
 import { gridPrefetchOrder, startGridPrefetch } from '../grid/prefetch';
-import { admittedRuntimeProduct } from '../shardfile/runtimeProduct';
+import { admittedRuntimeProduct, completeManifestCache } from '../shardfile/runtimeProduct';
 import { enterSkyClock } from './clockSettings';
 import { settleEntryPrograms } from './settlePrograms';
 import { harnessPins } from '@wildshard/engine/app/identity';
@@ -218,9 +218,14 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   installProbe(handle, { bootSteps, leakPhysics, health: () => playerHealth.attributes.health, quest: () => ({ adventure: boot.runtime.hooks.adventureFlags?.() ?? [], quest: boot.runtime.hooks.questFlags?.() ?? [] }) });
   ctx.startExplore?.();
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/engine/native/boot.ts, via src/native.ts) waits for this
+  const completeOfflineCopy = async (): Promise<void> => {
+    try { await completeManifestCache(manifest, levelScope); }
+    catch (error: unknown) { if (!levelScope.disposed && !levelScope.disposing) console.info('[cache] deferred offline copy', error); }
+  };
   afterControl(game.levelScope, run => { game.onLate(run, 'game.boot.background'); },
     () => hud.entered && !hud.paused && !app.clock.paused && game.frameGate(), () => {
       document.dispatchEvent(new Event('ws:control-ready'));
+      void completeOfflineCopy();
       if (deferredAudio || hasLateAudio(files)) void decodeAfterBoot();
       if (ctx.grid !== null) startGridPrefetch(gridPrefetchOrder(ctx.grid.assembly, player.position), gridPrefetchOrder(ctx.grid.assembly, player.position, 'phone'));
       asShell(() => { startShardPrefetch(manifest); });
