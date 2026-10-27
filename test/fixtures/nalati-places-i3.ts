@@ -1,5 +1,5 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Restore the lane-shuffled deflate words natively.
-import { inflateSync } from 'node:zlib';
+// oxlint-disable-next-line import/no-nodejs-modules -- Independently restore original and current lossless lane codecs.
+import { inflateSync, zstdDecompressSync } from 'node:zlib';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare words natively.
 import { Buffer } from 'node:buffer';
 import { nativePlaceFile } from './nalati-native-place-files';
@@ -51,7 +51,8 @@ export function placeOffsetsI3(shippedDocument: Uint8Array, bank: PlaceBank = 'p
 export function qualifyPlacesI3(shippedBytes: Uint8Array, shippedDocument: Uint8Array, bank: PlaceBank = 'places'): { worstNormal: number; worstColour: number } {
   const exactDocument = exactDocuments[bank], offsets = placeOffsetsI3(shippedDocument, bank), shipped = parse(shippedDocument);
   const words = (deflated: Uint8Array): Uint8Array => {
-    const lanes = new Uint8Array(inflateSync(deflated)), n = lanes.length / 4, out = new Uint8Array(lanes.length);
+    const zstd = deflated[0] === 0x28 && deflated[1] === 0xb5 && deflated[2] === 0x2f && deflated[3] === 0xfd;
+    const lanes = new Uint8Array(zstd ? zstdDecompressSync(deflated) : inflateSync(deflated)), n = lanes.length / 4, out = new Uint8Array(lanes.length);
     for (let i = 0; i < n; i++) for (let b = 0; b < 4; b++) out[i * 4 + b] = lanes[b * n + i] ?? 0;
     return out;
   };

@@ -25,7 +25,10 @@ export async function nalatiPlacesProgram(ctx: Pick<ProjectGenerationContext, 'c
     const dressing = await bakeNalatiDressingSource(source);
     const made = bakeNalatiPlacesOnTerrain(Uint8Array.from(bytes).buffer, withPortableMath, dressing, phase);
     const compress = (value: Uint8Array): Uint8Array => encodeBuildBytes(value, 'deflate', 9, 'native');
-    const places = encodeNalatiPart(made.places, compress), specimens = encodeNalatiPart(made.specimens, compress);
+    // Only the admitted product's place lane opts into the bounded worker codec.
+    // Historical exact pins and the specimen bank retain their original zlib bytes.
+    const places = encodeNalatiPart(made.places, phase === 'i3' ? value => encodeBuildBytes(value, 'zstd', 19) : compress);
+    const specimens = encodeNalatiPart(made.specimens, compress);
     const parts = nalatiNativePlaceParts(made.places.rows, made.places.bin, partNames);
     const geometry = Object.fromEntries([...parts].map(([name, part]) => [name, part.geometry]));
     return new Map([['places.bin', places.binary], ['places.json', places.document], ['specimens.bin', specimens.binary], ['placeSpecimens.json', specimens.document],

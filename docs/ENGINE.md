@@ -851,32 +851,15 @@ Piece-to-piece macrotasks share the same budget as sliced loops, capped at a qua
 `noteFrameDrawn(at)` callers keep their original smoothed cadence. This changes scheduling only: no
 frame-cap, geometry, simulation, render-scale or quality change.
 
-`fetchDeflatedBytes(url)` in `@wildshard/engine/core/deflate` feeds zlib-compressed
-HTTP bodies to the native decoder in at most 16 KiB blocks, checking the shared
-construction slice between blocks. The geometry bake readers use it without
-changing decoded bytes; lane-shuffled readers also reconstruct bounded word
-blocks before yielding. `unshuffleLanes(lanes, output?, wordStart?, wordEnd?)`
-can fill a validated word range in a distinct complete output buffer; omitted
-arguments restore all words. This changes scheduling, not geometry or compression.
-The fetch is page-lived, preserving an in-flight cached read when its original
-construction owner retires.
-`decodeLaneBytes(bytes)` accepts an already-admitted logical product file and uses
-the identical native inflate slices and byte-lane restoration without fetching a URL.
-`SceneDressing` baked-file rows use an admitted file, address table and bounded
-geometry row with an optional sphere. Both Nalati cloth tiers share one file.
-Lane restoration shares that page lifetime. `fetchLaneBytes(url)` restores
-four-byte lanes in bounded batches under the shared frame budget; the SDK's lazy
-`fetchLaneBake(url)` facade shares it with the existing geometry reader. Species,
-place and dressing bakes use the same paced reader as crags and other shards.
-`AnimalFactory.prepareModels(rows)` prepares each declared kind/variant with its
-original key seed and cache, under the calling construction scope. A null or
-omitted variant prepares all declared variants without rolling placement RNG.
-It checks the shared frame budget before each model and refuses further work after retirement.
-Driftwood awaits it before enemy placement; Pine uses it for its existing boss
-variant preparation. It creates no actors and consumes no placement RNG.
-The existing probe-skipped KTX2 safety conversion also uses that frame budget:
-`widenRgbEtc2Async(texture)` widens RGB ETC2 to opaque RGBA ETC2/EAC in batches,
-publishing only complete mips. The synchronous bake helper uses identical steps.
+`fetchDeflatedBytes(url)` in `@wildshard/engine/core/deflate` feeds zlib HTTP
+bodies to the native decoder in ≤16KiB blocks, checking the construction slice.
+Page-lived fetches survive the original owner's retirement. Lane readers restore
+bounded word blocks between yields. `unshuffleLanes(lanes, output?, wordStart?,
+wordEnd?)` fills a validated range in a distinct complete output; omitted arguments
+restore all words. `decodeLaneBytes(bytes)` snapshots admitted bytes and restores
+the same words: original zlib uses native inflate; one dictionary-free Zstd frame
+with declared output/window ≤64MiB borrows the existing serialized texture worker,
+with exact output length checked. URL-only readers retain zlib. No geometry changes.
 
 `geometryBoundsSteps(geometry, "box" | "sphere" | "both")` in `@wildshard/engine/world/geometryBounds`
 scans ordinary CPU positions in 8,192-vertex steps using three.js arithmetic. Sliced model builders

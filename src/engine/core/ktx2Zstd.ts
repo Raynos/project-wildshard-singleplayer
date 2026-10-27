@@ -69,6 +69,18 @@ function decodeLevels(levels: { data: Uint8Array; size: number }[]): Promise<Uin
   });
 }
 
+/** One admitted byte block borrows the same serialized worker as texture levels.
+ * Own the transferred input; the caller's verified body remains attached. */
+export async function decodeZstdBlock(bytes: Uint8Array, expectedBytes: number): Promise<Uint8Array> {
+  if (!Number.isSafeInteger(expectedBytes) || expectedBytes < 0 || expectedBytes > 64 * 1024 * 1024
+    || bytes.length > 64 * 1024 * 1024) throw new Error('Zstd byte block exceeds limit');
+  if (failed) throw new Error('Zstd decode worker unavailable');
+  const decoded = await decodeLevels([{ data: bytes.slice(), size: expectedBytes }]);
+  const result = decoded[0];
+  if (decoded.length !== 1 || result === undefined || result.byteLength !== expectedBytes) throw new Error('Zstd output byte count differs');
+  return result;
+}
+
 /** A level's place in the file (KTX2 level index: byteOffset, byteLength, uncompressedByteLength, each a u64). */
 interface Level { offset: number; length: number; size: number }
 /** The levels of a raw-texel zstd KTX2 (vkFormat set, scheme 2, no global data), or null for any other file. */

@@ -1,5 +1,6 @@
 import { pageScope } from '../app/resources';
 import { WORK_SLICE_MS, workSlice } from './workSlice';
+import { zstdLaneSize } from './zstdFrame';
 
 /** Fetch zlib-compressed bytes without feeding a whole network chunk to the native
  * decoder in one continuation. The existing work slice gives live frames their
@@ -68,9 +69,16 @@ export function unshuffleLanes(lanes: Uint8Array, out: Uint8Array<ArrayBuffer> =
 export async function fetchLaneBytes(url: string): Promise<Uint8Array> {
   return restoreLaneBytes(await fetchDeflatedBytes(url));
 }
-/** Decode already-admitted compressed file bytes with the same paced native inflate and lane restoration as a URL bake. */
+/** Decode admitted lane bytes. Size-declared Zstd uses the existing worker;
+ * original zlib files retain native paced inflate. Both restore identical words. */
 export async function decodeLaneBytes(bytes: Uint8Array): Promise<Uint8Array> {
-  const body = new Response(bytes.slice()).body;
+  const owned = bytes.slice();
+  const size = zstdLaneSize(owned);
+  if (size !== null) {
+    const { decodeZstdBlock } = await import('./ktx2Zstd');
+    return restoreLaneBytes(await decodeZstdBlock(owned, size));
+  }
+  const body = new Response(owned).body;
   if (body === null) throw new Error('Lane bake requires a byte stream');
   return restoreLaneBytes(await inflateStream(body));
 }
