@@ -18,7 +18,7 @@
  */
 import { PrefetchQuota, PrefetchBytes } from '@wildshard/engine/boot/prefetchQuota';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
-import { readOutputDownloadIndex } from '@wildshard/format/outputDownload';
+import { readOutputDownloadIndex, type OutputDownloadIndex } from '@wildshard/format/outputDownload';
 import { findTitleManifest } from '../shard/titleList';
 import type { ProductCache, ProductOptions } from '../shardfile/product';
 import { browserContentStore, contentHash } from '../shardfile/contentStore';
@@ -172,11 +172,51 @@ class GridPrefetch {
     // a commons blob or a shared section is listed by several products: count and store it once
     const rows = listed.filter(row => { if (this.hashes.has(row.hash)) return false; this.hashes.add(row.hash); return true; });
     this.status.knownFiles += rows.length; this.status.knownBytes += rows.reduce((sum, row) => sum + row.bytes, 0);
+    // I5: members of a pack come from one read of the pack; only the rest are read one by one
+    const packOf = new Map<string, NonNullable<typeof index.packs>[number]>();
+    for (const pack of index.packs ?? []) for (const entry of pack.entries) if (!packOf.has(entry.hash)) packOf.set(entry.hash, pack);
+    const byPack = new Map<string, Row[]>(), loose: Row[] = [];
+    for (const row of rows) {
+      const pack = packOf.get(row.hash);
+      if (pack === undefined) { loose.push(row); continue; }
+      const list = byPack.get(pack.hash) ?? []; list.push(row); byPack.set(pack.hash, list);
+    }
+    for (const pack of index.packs ?? []) {
+      const members = byPack.get(pack.hash);
+      if (members !== undefined && this.status.reason === null) await this.pack(pack, members, base, { holds, keepAsset }, quota, contentHash);
+    }
+    rows.splice(0, rows.length, ...loose);
     let next = 0;
     const lane = async (): Promise<void> => {
       for (let row = rows[next++]; row !== undefined && this.status.reason === null; row = rows[next++]) await this.file(row, base, { holds, keepAsset, ...(fetchKeep === undefined ? {} : { fetchKeep }) }, quota, contentHash, hashOwnedBytes);
     };
     await Promise.all(Array.from({ length: CONCURRENCY }, lane));
+  }
+  /** I5: a pack's members not yet on disk, from one verified read of the pack, each kept under its own hash. */
+  private async pack(pack: NonNullable<OutputDownloadIndex['packs']>[number], members: readonly Row[], base: string,
+    cache: Pick<PrefetchCache, 'holds' | 'keepAsset'>, quota: PrefetchQuota, hash: (bytes: Uint8Array) => Promise<string>): Promise<void> {
+    const missing: Row[] = [];
+    for (const row of members) {
+      if (await cache.holds(row.hash, row.bytes)) { this.status.presentFiles++; this.status.presentBytes += row.bytes; }
+      else missing.push(row);
+    }
+    if (missing.length === 0) return;
+    const reservation = await quota.reserve(missing.reduce((total, row) => total + row.bytes, 0));
+    if (reservation === null) { this.stop('storage quota', 'quota'); return; }
+    let stored = 0, release: (() => void) | undefined;
+    try {
+      release = await this.memory.reserve(pack.bytes);
+      if (this.status.reason !== null) return;
+      const bytes = await readGridPrefetch(new URL(pack.path, base).href, pack.bytes);
+      if (bytes.length !== pack.bytes || await hash(bytes) !== pack.hash) throw new Error('Prefetched pack differs from its index');
+      const at = new Map(pack.entries.map(entry => [entry.hash, entry] as const));
+      for (const row of missing) {
+        const entry = at.get(row.hash);
+        if (entry === undefined || entry.bytes !== row.bytes) throw new Error('Prefetched pack member differs from its index');
+        if (!await cache.keepAsset(row.hash, bytes.slice(entry.offset, entry.offset + entry.bytes))) { this.stop('content cache full', 'quota'); return; }
+        stored += row.bytes; this.status.storedFiles++; this.status.storedBytes += row.bytes;
+      }
+    } finally { release?.(); reservation.finish(stored); }
   }
   /** Each file's digest runs in the page's hash worker (the bytes go there and back); the page digests only when no
    *  worker can. Hashing every prefetched file on the page was 617 ms of Pine's grid entry at 4x CPU (G639). */
