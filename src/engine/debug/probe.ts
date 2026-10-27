@@ -220,18 +220,22 @@ class Sha256 {
   private readonly block = new Uint8Array(64);
   private readonly view = new DataView(this.block.buffer);
   private readonly w = new Uint32Array(64);
-  private readonly encoder = new TextEncoder();
   private fill = 0;
   private length = 0;
+  private byte(value: number): void {
+    this.block[this.fill++] = value; this.length++;
+    if (this.fill === 64) { this.compress(); this.fill = 0; }
+  }
+  /** UTF-8 straight into the block (TextEncoder's bytes, a lone surrogate as U+FFFD), with no encoded copy of the text. */
   update(text: string): this {
-    const bytes = this.encoder.encode(text);
-    for (let at = 0; at < bytes.length;) {
-      const take = Math.min(64 - this.fill, bytes.length - at);
-      this.block.set(bytes.subarray(at, at + take), this.fill);
-      this.fill += take; at += take;
-      if (this.fill === 64) { this.compress(); this.fill = 0; }
+    for (let i = 0; i < text.length; i++) {
+      let code = text.codePointAt(i) ?? 0;
+      if (code > 0xffff) i++; else if (code >= 0xd800 && code <= 0xdfff) code = 0xfffd;
+      if (code < 0x80) this.byte(code);
+      else if (code < 0x800) { this.byte(0xc0 | (code >> 6)); this.byte(0x80 | (code & 63)); }
+      else if (code < 0x10000) { this.byte(0xe0 | (code >> 12)); this.byte(0x80 | ((code >> 6) & 63)); this.byte(0x80 | (code & 63)); }
+      else { this.byte(0xf0 | (code >> 18)); this.byte(0x80 | ((code >> 12) & 63)); this.byte(0x80 | ((code >> 6) & 63)); this.byte(0x80 | (code & 63)); }
     }
-    this.length += bytes.length;
     return this;
   }
   digest(): string {
@@ -253,7 +257,8 @@ class Sha256 {
       const u = ((rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22)) + ((a & b) ^ (a & c) ^ (b & c))) >>> 0;
       j = g; g = f; f = e; e = (d + t) >>> 0; d = c; c = b; b = a; a = (t + u) >>> 0;
     }
-    [a, b, c, d, e, f, g, j].forEach((v, i) => { state[i] = ((state[i] ?? 0) + v) >>> 0; });
+    state[0] = ((state[0] ?? 0) + a) >>> 0; state[1] = ((state[1] ?? 0) + b) >>> 0; state[2] = ((state[2] ?? 0) + c) >>> 0; state[3] = ((state[3] ?? 0) + d) >>> 0;
+    state[4] = ((state[4] ?? 0) + e) >>> 0; state[5] = ((state[5] ?? 0) + f) >>> 0; state[6] = ((state[6] ?? 0) + g) >>> 0; state[7] = ((state[7] ?? 0) + j) >>> 0;
   }
 }
 export function programHash(input: string): string { return new Sha256().update(input).digest(); }
