@@ -270,3 +270,19 @@ sp-ci-deploy for attribution; zero runtime errors does not qualify those pixels.
 Browser and own4411 borrower closed. O2 owns held CPU budget/pacing next;
 O1 parked pipeline-family slicing. The Game main-render mask has no unlanded
 hunk and neither owner touches its synchronous restoration boundary.
+
+### G782 parked-draws cut (sp-o1, 2026-10-27)
+
+wildshard-new gave sp-o1 the parked-draws long pole (`src/engine/render/parkedDraws.ts`). One cold/warm pair per reading, sp-x8's `pair.mjs` protocol (iPhone 16 Pro phone, CPU 4×, DPR 2, muted, profiler and GL observer off), each on a shared preview pinned to the cut; request → commit, parked-draws elapsed.
+
+| Cut | Pin | Nalati parked cold / warm | Nalati crossing cold / warm | Pine parked cold / warm | Pine crossing cold / warm |
+|---|---|---|---|---|---|
+| before (`325740f3a5`, three pairs) | `325740f3a5` | 7.23–7.52 / 7.23 s | 27.685–32.390 / 19.569–21.301 s | 14 s (sp-x8) | — |
+| `490e215711` slices share a frame under 6 ms CPU; exact warmed-pipeline receipt skips re-draws | `de0f91141e` | 7.38 / 7.23 s | 29.584 / 20.398 s | stalled past 30 s (sp-x8, `126cf532b0`) | — |
+| `0cea9b55cc` red-fix: one slice per completed frame again (the receipt stays) | `b79fe6a53c` (sp-x8) | — | — | 19.519 / 15.505 s | 40.832 / 30.451 s |
+| `1440fb14df` a built native pipeline is not a new material | `1440fb14df` | 8.33 / 7.55 s | 25.231 / 19.098 s | 18.35 / 15.92 s | 38.600 / 31.984 s |
+| `e580168ca6` a fresh binding over a built pipeline is not a first use | `e580168ca6` | 5.11 / 4.80 s | 24.220 / 17.216 s | 10.32 / 10.42 s | 28.831 / 28.268 s |
+
+Every visit from `1440fb14df` on is complete with 0 errors; none meets the bar. Cause, from CDP counter breakpoints on `1440fb14df`: 241 parked slices a Nalati visit, 240 of one drawable. The iPhone 16 Pro profile's Safari user agent takes the WebKit branch (`LIVE_PARKED_BUDGET`, `newBindings: 1`, as the phone does), and each crossing rebuilds its world, so every drawable is a fresh exact geometry × material binding (and the exact receipt never matches a warm visit). The main thread sat idle: the warm entry profile charges ~1.5 s of CPU to the parked warm, the rest is one completed frame per slice. `e580168ca6` lets a binding all of whose materials have a built (or, earlier in the warm, planned) native pipeline (the renderer's program id × program shape × vertex layout × draw state × lighting / target) pace as a copy, still bounded by 256 KiB of new buffers, 8 drawables and one slice per completed frame; a new program still opens a slice. Pacing only, never a skip.
+
+What remains, counters on `e580168ca6` (Nalati, both visits): 160 slices, 135 of one drawable; 74 of those are a drawable with over 256 KiB of new buffers (the WebKit live upload cap: one a frame, ~2.4 s); the others are skins (36 in Nalati), drawables with per-object callbacks or custom depth (outside the pacing) and the cold visit's new pipelines. Next parked levers: skinned meshes into the pipeline pacing (their bone texture is the only per-object upload); the 256 KiB live upload cap is the WebKit fence and moves only on a device reading.
