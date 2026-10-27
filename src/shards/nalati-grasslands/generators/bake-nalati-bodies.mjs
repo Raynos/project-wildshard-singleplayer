@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// A standalone asset tool (GR6, D2-style: the lofts are byte-exact only on macOS, so the Linux product build cannot
+// rebuild them): run it by hand when a body changes. public/assets/nalati/baked/bodies.bin and data/bodies.json are
+// committed authored inputs; `--check` reports a stale pair.
 // SHARD-PLATFORM M3 (Nalati's 80/20, the species bodies bake): the horse-family and canid lofts built offline. The generator
 // (src/shards/nalati-grasslands/generators/bodies.ts) runs here only and writes every body's attribute and index bytes, its
 // 4-byte words' bytes in four lanes and zlib-compressed, to public/assets/nalati/baked/bodies.bin and its rows (the binary's

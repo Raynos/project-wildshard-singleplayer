@@ -70,6 +70,13 @@
       "bytes": 1514632,
       "kind": "runtime",
       "purpose": "Nalati recurve bow rest pool, the committed output of the standalone bake-recurve-pool.mjs tool (GR6), named by recurve-pool.json"
+    },
+    {
+      "path": "public/assets/nalati/baked/bodies.bin",
+      "oid": "eda0458be9a9c7540983cc0c77458f7766e32689",
+      "bytes": 2585539,
+      "kind": "runtime",
+      "purpose": "Nalati species bodies (horse family and canids), lane-shuffled zlib; the committed output of the standalone macOS bake-nalati-bodies.mjs tool (GR6), read by the species program"
     }
   ]
 }
