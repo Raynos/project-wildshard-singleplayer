@@ -13,6 +13,12 @@ import original from './fixtures/nalati-map-files.json' with { type: 'json' };
 // is checked against the predecessor, rather than a copied authored projection.
 const files = await nalatiMapFiles(path => new Uint8Array(readFileSync(resolve(path))));
 const bank = new Map(NALATI_MAP_INPUTS.map(name => [name, new Uint8Array(readFileSync(name.startsWith('/') ? `public${name}` : `src/shards/nalati-grasslands/${name}`))]));
+const pixels = await nalatiMap({ cached: (step, make) => Promise.resolve(make(new Map((step.inputs ?? []).map(name => {
+  const bytes = bank.get(name);
+  if (bytes === undefined) throw new Error(`Missing declared Nalati map fixture input ${name}`);
+  return [name, bytes];
+})))) });
+const image = await generatedProjectMap({ pixels }, 'f'.repeat(64));
 
 test('Nalati owns the complete original scene and packed geometry bytes', () => {
   for (const [index, name] of ['map/assembly.json', 'map/geometry.bin'].entries()) {
@@ -24,9 +30,8 @@ test('Nalati owns the complete original scene and packed geometry bytes', () => 
 });
 
 // GR6: the map is a source program (the sidecar's prepareMap); the image it publishes keeps the original bytes
-test('the map program paints the full original native map image', async () => {
-  const pixels = await nalatiMap({ cached: (step, make) => Promise.resolve(make(new Map((step.inputs ?? []).map(name => [name, bank.get(name) ?? new Uint8Array()])))) });
-  const image = await generatedProjectMap({ pixels }, 'f'.repeat(64)), before = original[2];
+test('the map program paints the full original native map image', () => {
+  const before = original[2];
   if (before === undefined) throw new Error('Missing original Nalati image oracle');
   expect(image.map.bytes.byteLength).toBe(before.bytes);
   expect(hashImmutableBytes(image.map.bytes)).toBe(before.hash);

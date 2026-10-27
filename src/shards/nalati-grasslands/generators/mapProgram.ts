@@ -21,6 +21,9 @@ const SHARD = 'src/shards/nalati-grasslands/';
 /** The map's RGBA lattice from an exact input bank: the map assembly and the native terrain draws, painted with the
  *  original ground palette (the retired nalati-data-map job's pixels). */
 export async function nalatiMapPixels(inputs: ReadonlyMap<string, Uint8Array>): Promise<Uint8Array> {
+  for (const name of NALATI_MAP_INPUTS) {
+    if (!inputs.has(name)) throw new Error(`Undeclared Nalati map input ${name}`);
+  }
   // the pure producers name repository paths; the bank holds build-input names
   const repo = (path: string): Uint8Array => {
     const name = path.startsWith('public/') ? path.slice('public'.length) : path.startsWith(SHARD) ? path.slice(SHARD.length) : path;
