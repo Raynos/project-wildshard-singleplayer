@@ -2,27 +2,33 @@
 // AO and sun-bounce lightmaps, in the `ground` look. world.glb keeps the same ground as collision, edge and far-proxy
 // ground only (`undrawn` in shard.config.ts). The build program returns this output (`generate`, shard.config.ts); the CLI
 // reads the declared blobs and this module opens no file.
-import { parse, type InferOutput } from 'valibot';
-import { BakedTilesSchema } from '@wildshard/format/bakedTiles';
-import { parseClientPlan } from '@wildshard/format/clientPlan';
-import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import type { ProjectOutput } from '@wildshard/sdk/projectOutput';
 
+type SectionName = Parameters<typeof emitPlatformSections>[0] extends ReadonlyMap<infer Name, unknown> ? Name : never;
 const lightmap = (param: string, file: string) => ({ param, source: { phone: { file }, desktop: { file } }, channel: 0, anisotropy: 4 } as const);
 
 /** The game's sun is fixed at 40 degrees up (look.day, dayOverride 0.4); the bake's sun is that sun. Three adds a bounce
  *  map as irradiance, a Cycles indirect bake is irradiance over pi: the gain carries both that and the bake's 2x. */
-export const GROUND_TILES: InferOutput<typeof BakedTilesSchema> = parse(BakedTilesSchema, {
+/** Plain rows: `emitPlatformSections` checks them through the client plan's defining parser (GR9: producers stay on the
+ *  authoring surface). */
+interface GroundTiles {
+  readonly id: string; readonly glb: { readonly file: string }; readonly tiles: { readonly phone: string; readonly desktop: string };
+  readonly look: string; readonly drop: number; readonly meshPrefix: string; readonly sky: boolean; readonly toonDay: boolean;
+  readonly lightmaps: readonly { readonly param: string; readonly source: { readonly phone: { readonly file: string }; readonly desktop: { readonly file: string } };
+    readonly channel: number; readonly anisotropy: number }[];
+  readonly sun: { readonly param: string; readonly referenceY: number; readonly gain: number }; readonly instances: null;
+}
+export const GROUND_TILES: GroundTiles = {
   id: 'ground', glb: { file: 'world/ground.glb' }, tiles: { phone: 'ground_', desktop: 'ground_' }, look: 'ground', drop: 0,
   meshPrefix: 'baked-', sky: true, toonDay: false, lightmaps: [lightmap('ao', 'world/lm-ao.png'), lightmap('bounceMap', 'world/lm-bounce.png')],
   sun: { param: 'bounce', referenceY: 0.649, gain: 2 / Math.PI }, instances: null,
-});
+};
 
 export const output: { blobs: ({ name: string; kind: "glb"; source: string; } | { name: string; kind: "image"; source: string; })[]; platform: ReturnType<typeof emitPlatformSections>; } = {
   blobs: [{ name: 'world/ground.glb', kind: 'glb', source: 'assets/ground.glb' }, { name: 'world/lm-ao.png', kind: 'image', source: 'assets/lm-ao.png' },
     { name: 'world/lm-bounce.png', kind: 'image', source: 'assets/lm-bounce.png' }],
-  platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([
-    ['client/plan', parseClientPlan({ version: 1, features: [{ kind: 'world.baked', rows: [GROUND_TILES] }] })],
+  platform: emitPlatformSections(new Map<SectionName, unknown>([
+    ['client/plan', { version: 1, features: [{ kind: 'world.baked', rows: [GROUND_TILES] }] }],
   ])),
 } satisfies ProjectOutput;
