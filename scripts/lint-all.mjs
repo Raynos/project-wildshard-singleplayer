@@ -34,7 +34,17 @@ console.info(`lint-all: typed shard ${part}/${parts}, ${selected.length} files`)
 const threads = Math.min(8, availableParallelism());
 // --threads controls Oxlint's native pool; its Go helper has a separate runtime.
 // Preserve an explicit caller setting, including a smaller existing allowance.
-const lintEnv = { ...process.env, GOMAXPROCS: process.env.GOMAXPROCS ?? String(threads) };
+const lintEnv = {
+  ...process.env,
+  GOMAXPROCS: process.env.GOMAXPROCS ?? String(threads),
+  // The Darwin profile is dominated by reclaim/recommit churn. Keep more
+  // short-lived checker storage between collections within a bounded Go budget.
+  // This is below the 8 GB whole-check acceptance ceiling, not a new gate.
+  ...(process.platform === 'darwin' ? {
+    GOGC: process.env.GOGC ?? '200',
+    GOMEMLIMIT: process.env.GOMEMLIMIT ?? '5GiB',
+  } : {}),
+};
 const result = spawnSync('pnpm', ['exec', 'oxlint', '--type-aware', '--threads', String(threads), ...selected], { cwd: root, stdio: 'inherit', env: lintEnv });
 if (result.error !== undefined) console.error(result.error.message);
 process.exitCode = result.status ?? 1;

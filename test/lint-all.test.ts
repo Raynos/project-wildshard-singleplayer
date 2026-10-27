@@ -29,13 +29,21 @@ if (args.join(' ') === 'exec oxlint --debug files') {
   const goThreads = Number(process.env.GOMAXPROCS);
   if (!Number.isSafeInteger(goThreads) || goThreads < 1 || goThreads > threads) process.exit(9);
   if (process.env.LINT_ALL_EXPECT_GO && process.env.GOMAXPROCS !== process.env.LINT_ALL_EXPECT_GO) process.exit(9);
+  for (const name of ['GOGC', 'GOMEMLIMIT']) {
+    const expected = process.env['LINT_ALL_EXPECT_' + name];
+    if (expected && process.env[name] !== expected) process.exit(9);
+  }
+  if (process.platform === 'darwin' && !process.env.LINT_ALL_EXPECT_GOGC && process.env.GOGC !== '200') process.exit(9);
+  if (process.platform === 'darwin' && !process.env.LINT_ALL_EXPECT_GOMEMLIMIT && process.env.GOMEMLIMIT !== '5GiB') process.exit(9);
   fs.appendFileSync(process.env.LINT_ALL_CALLS, args.slice(5).join('\n') + '\n--batch--\n');
   if (process.env.LINT_ALL_FAIL === 'yes' && args.some(file => file.endsWith('source 256.ts'))) process.exit(7);
 }
 `, { mode: 0o755 });
-  const run = (failure: boolean, args: readonly string[] = [], goThreads?: string): ReturnType<typeof spawnSync> => spawnSync(execPath, [resolve('scripts/lint-all.mjs'), ...args], {
-    encoding: 'utf8', env: { ...Object.fromEntries(Object.entries(env).filter(([key]) => key !== 'GOMAXPROCS')), PATH: `${binary}:${env['PATH'] ?? ''}`,
-      ...(goThreads === undefined ? {} : { GOMAXPROCS: goThreads, LINT_ALL_EXPECT_GO: goThreads }),
+  const run = (failure: boolean, args: readonly string[] = [], settings: { workers?: string; gc?: string; memory?: string } = {}): ReturnType<typeof spawnSync> => spawnSync(execPath, [resolve('scripts/lint-all.mjs'), ...args], {
+    encoding: 'utf8', env: { ...Object.fromEntries(Object.entries(env).filter(([key]) => !['GOMAXPROCS', 'GOGC', 'GOMEMLIMIT'].includes(key))), PATH: `${binary}:${env['PATH'] ?? ''}`,
+      ...(settings.workers === undefined ? {} : { GOMAXPROCS: settings.workers, LINT_ALL_EXPECT_GO: settings.workers }),
+      ...(settings.gc === undefined ? {} : { GOGC: settings.gc, LINT_ALL_EXPECT_GOGC: settings.gc }),
+      ...(settings.memory === undefined ? {} : { GOMEMLIMIT: settings.memory, LINT_ALL_EXPECT_GOMEMLIMIT: settings.memory }),
       LINT_ALL_SELECTION: selection, LINT_ALL_CALLS: calls, LINT_ALL_FAIL: failure ? 'yes' : 'no' },
   });
   try {
@@ -67,7 +75,7 @@ if (args.join(' ') === 'exec oxlint --debug files') {
     writeFileSync(calls,'');
     expect(run(false,['--shard=1/1']).status).toBe(0);
     expect(readFileSync(calls,'utf8').match(/--batch--/gu)).toHaveLength(1);
-    expect(run(false, [], '1').status).toBe(0);
+    expect(run(false, [], { workers: '1', gc: '100', memory: '3GiB' }).status).toBe(0);
     for (const invalid of ['--shard=0/4', '--shard=5/4', '--shard=1/0', '--shard=bad']) {
       expect(run(false, [invalid]).status).toBe(2);
     }
