@@ -18,12 +18,6 @@ git = LIVE['git']
 PUSH_GATE_SECONDS = 45  # G768: unfinished and unverifiable work goes to CI.
 
 
-
-
-
-
-
-
 def check_binary_json(root, base, tip, deadline):
     """Exact Git blobs before source preparation; no working assets or generated cache."""
     script = subprocess.run(['git', 'show', tip + ':scripts/no-binary-json.mjs'], cwd=root,
@@ -75,8 +69,6 @@ def fast_tools(root, revision, deadline):
             source = subprocess.check_output(['git', 'show', revision + ':scripts/' + name], cwd=root, timeout=min(10, left))
             (folder / name).write_bytes(source)
         yield folder
-
-
 
 
 def check_committed(root, base, tip, deadline):
@@ -205,14 +197,6 @@ def refusal_signature(output):
     return re.sub(r'\d+(?:\.\d+)?(?:ms|s)\b', '<time>', plain)
 
 
-QUIET = runpy.run_path(str(Path(__file__).with_name('sim-quiet.py')))
-
-
-def quiet_active(path, now=None):
-    """G670: only the live official Simulator reader can defer pushes."""
-    return QUIET['quiet_marker_active'](path, now)
-
-
 def tick(root, checker=check_committed, uploader=None, notify=ping):
     common = Path(git(root, 'rev-parse', '--path-format=absolute', '--git-common-dir'))
     started = time.monotonic()
@@ -306,8 +290,7 @@ def main():
     folder = root / 'tmp/push-loop'
     folder.mkdir(parents=True, exist_ok=True)
     common = Path(git(root, 'rev-parse', '--path-format=absolute', '--git-common-dir'))
-    # The quiet owner takes this lock only while publishing its marker, after an active tick drains.
-    # Once published, later ticks defer without holding a push lock through the sample.
+    # Serialize upload ticks; Simulator markers do not pause publication.
     with (common / 'push-loop.lock').open('a') as lock:
         try:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)

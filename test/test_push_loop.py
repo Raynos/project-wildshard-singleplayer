@@ -84,7 +84,7 @@ class PushLoop(unittest.TestCase):
         self.assertEqual(json.loads(resumed.stdout)['status'], 'idle')
         self.assertEqual(self.git('rev-parse', 'origin/main'), self.base)
 
-    def test_quiet_sample_defers_checks_and_upload_then_resumes(self):
+    def test_quiet_sample_never_defers_checks_or_upload(self):
         tip = self.commit('src/good.ts')
         self.put('.git/quiet', json.dumps({'schema':1,'kind':'simulator-reading','script':'scripts/sim-grid-entry.mjs','owner':'fixture-sample','pid':os.getpid()}))
         checks, uploads = [], []
@@ -94,33 +94,16 @@ class PushLoop(unittest.TestCase):
         def upload(*args):
             uploads.append(args)
             return 0
-        with patch.dict(PUSH['QUIET']['quiet_marker_active'].__globals__, {'official_simulator': lambda pid, repo: pid == os.getpid()}):
-            result = PUSH['tick'](self.root, checker=checker, uploader=upload)
-        self.assertEqual(result, {'status': 'quiet', 'tip': tip})
-        self.assertEqual(checks, [])
-        self.assertEqual(uploads, [])
-        (self.root / '.git/quiet').unlink()
-        self.assertEqual(PUSH['tick'](self.root, checker=checker, uploader=upload)['status'], 'pushed')
-        self.assertEqual(len(checks), 1)
-        self.assertEqual(len(uploads), 1)
-
-    def test_quiet_ends_at_ten_minutes_or_owner_death(self):
-        path = self.root / '.git/quiet'
-        self.put('.git/quiet', json.dumps({'schema':1,'kind':'simulator-reading','script':'scripts/sim-grid-entry.mjs','owner':'fixture-sample','pid':os.getpid()}))
-        started = path.stat().st_mtime
-        with patch.dict(PUSH['QUIET']['quiet_marker_active'].__globals__, {'official_simulator': lambda pid, repo: pid == os.getpid()}):
-            self.assertTrue(PUSH['quiet_active'](path, started + 599.9))
-            self.assertFalse(PUSH['quiet_active'](path, started + 600))
-        with subprocess.Popen([sys.executable, '-c', 'pass']) as owner:
-            owner.wait(timeout=3)
-        self.put('.git/quiet', json.dumps({'schema':1,'kind':'simulator-reading','script':'scripts/sim-grid-entry.mjs','owner':'fixture-sample','pid':owner.pid}))
-        self.assertFalse(PUSH['quiet_active'](path))
-        tip = self.commit('src/after-dead-owner.ts')
-        result = PUSH['tick'](self.root, checker=lambda *_: {'ok': True, 'output': ''}, uploader=lambda *_: 0)
+        result = PUSH['tick'](self.root, checker=checker, uploader=upload)
         self.assertEqual(result['status'], 'pushed')
         self.assertEqual(result['tip'], tip)
-        # Never remove or rewrite a marker owned by another process.
-        self.assertEqual(json.loads(path.read_text())['pid'], owner.pid)
+        self.assertEqual(len(checks), 1)
+        self.assertEqual(len(uploads), 1)
+        (self.root / '.git/quiet').unlink()
+        self.assertEqual(PUSH['tick'](self.root, checker=checker, uploader=upload)['status'], 'pushed')
+        self.assertEqual(len(checks), 2)
+        self.assertEqual(len(uploads), 2)
+
 
     def test_stale_legacy_quiet_no_longer_stops_pushes(self):
         self.commit('src/after-stale-owner.ts')
@@ -216,7 +199,7 @@ class PushLoop(unittest.TestCase):
         def malformed_importers(command, *_):
             return (0, '[]') if '--live' in command else (0, 'not JSON')
         result = LIVE['check'](self.root, self.base, tip, time.monotonic() + 45, malformed_importers)
-        self.assertFalse(result['ok'])
+        self.assertFalse(result['ok'], result)
         self.assertEqual(result['phase'], 'importers')
         self.assertIn('Invalid importer selector output', result['output'])
 
@@ -342,11 +325,11 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertEqual(result['phase'], 'binary-json')
         self.assertEqual(result['files'], [path])
         self.assertEqual((self.root / path).read_text(), '{}')
-        # A later deletion must not hide the offending outgoing commit.
+        # G768 checks net committed bytes; a removed transient blob does not block.
         (self.root / path).unlink()
         self.git('add', '-u', '--', path)
         clean = self.commit('src/clean.ts')
-        self.assertFalse(PUSH['check_binary_json'](self.root, baseline, clean, time.monotonic() + 45)['ok'])
+        self.assertTrue(PUSH['check_binary_json'](self.root, baseline, clean, time.monotonic() + 45)['ok'])
 
     def test_generated_source_guard_uses_committed_helper_and_debt_before_preparation(self):
         source_directory = 'src'
@@ -389,7 +372,7 @@ readFileSync('../public/assets/native/untracked.bin');
                                            float('inf'), capture_output=True, text=True)
         self.assertEqual(result.stdout.strip(), 'exact')
 
-    def test_gate_routes_native_lint_through_committed_mirror(self):
+    def test_gate_uses_committed_fast_checks_without_subset(self):
         tip = self.commit('src/good.ts')
         calls, cleanups = [], []
         @contextmanager
@@ -402,7 +385,7 @@ readFileSync('../public/assets/native/untracked.bin');
         def runner(command, root, deadline, env):
             calls.append(command[-2])
             if command[-2] == 'fast-lint':
-                self.assertEqual(Path(command[1]), self.root / 'scripts/push-committed-check.mjs')
+                self.assertEqual(Path(command[1]), self.root / 'scripts/committed-fast-checks.mjs')
             self.assertEqual(root, self.root)
             self.assertGreater(deadline, time.monotonic())
             self.assertIn('WS_GIT_CHECK_DEADLINE', env)
@@ -410,22 +393,16 @@ readFileSync('../public/assets/native/untracked.bin');
         with patch.dict(PUSH, fast_tools=prepared), patch.dict(LIVE, run=runner):
             result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
         self.assertTrue(result['ok'])
-        self.assertEqual(result['types'], 'checked')
+        self.assertEqual(result['types'], 'ci')
         self.assertEqual(calls, ['storage', 'ratchet', 'guards', 'fast-lint'])
         self.assertEqual(cleanups, [tip])
         steps = {row['step']: row for row in result['steps']}
         self.assertNotIn('source-prepare', steps)
         self.assertNotIn('source-cleanup', steps)
         self.assertEqual(steps['fast-lint']['status'], 'passed')
-        self.assertEqual(steps['ci-subset']['status'], 'passed')
+        self.assertNotIn('ci-subset', steps)
         self.assertNotIn('ci-G675', str(steps))
         self.assertEqual(steps['deleted-paths']['reason'], 'no-deletions')
-
-
-
-
-
-
 
 
     def test_step_timings_cover_policy_recent_related_and_typed_work_once(self):
@@ -472,7 +449,7 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertEqual(steps['related-tests']['reason'], 'generated-inputs')
         self.assertEqual(steps['typed-lint']['reason'], 'generated-inputs')
 
-    def test_push_batch_uses_the_G756_180_second_cap(self):
+    def test_push_batch_uses_the_G768_45_second_cap(self):
         tip = self.commit('src/good.ts')
         deadlines = []
         def checker(root, base, candidate, deadline):
@@ -482,13 +459,11 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertEqual(result['status'], 'pushed')
         self.assertEqual(result['tip'], tip)
         self.assertEqual(len(deadlines), 1)
-        self.assertGreater(deadlines[0], 179)
-        self.assertLessEqual(deadlines[0], 180)
+        self.assertGreater(deadlines[0], 44)
+        self.assertLessEqual(deadlines[0], 45)
 
 
-
-
-    def test_unfinished_gate_never_uploads_the_candidate(self):
+    def test_unfinished_gate_and_unverified_inputs_go_to_ci(self):
         tip = self.commit('src/good.ts')
         cases = [(phase, 'budget') for phase in
                  ('binary-json', 'tool-inputs', 'storage', 'ratchet', 'guards', 'fast-lint')]
@@ -510,20 +485,14 @@ readFileSync('../public/assets/native/untracked.bin');
                     return (0, 'DEFERRED TO CI fast-lint src/good.ts') if cause == 'unverified-inputs' else (124, 'still running')
                 with patch.dict(PUSH, fast_tools=prepared, check_binary_json=binary), patch.dict(LIVE, run=runner):
                     result = PUSH['tick'](self.root, checker=PUSH['check_committed'],
-                                          uploader=lambda *args: uploads.append(args), notify=lambda *_: True)
+                                          uploader=lambda *args: uploads.append(args) or 0, notify=lambda *_: True)
                 self.assertEqual(result['tip'], tip)
-                if cause == 'budget':
-                    self.assertEqual(result['status'], 'upload-red')
-                    self.assertEqual(len(uploads), 1)
-                    self.assertIn('Gate-deferred: ' + phase, result['gateDeferred'])
-                else:
-                    self.assertEqual(result['status'], 'red')
-                    self.assertEqual(result['phase'], phase)
-                    self.assertEqual(uploads, [])
+                self.assertEqual(result['status'], 'pushed')
+                self.assertEqual(len(uploads), 1)
                 self.assertIsNone(result['bad'])
                 steps = {row['step']: row for row in result['steps'] if row['step'] != 'attribution'}
-                self.assertEqual(steps[phase]['status'], 'failed')
-                self.assertEqual(steps[phase]['reason'], cause)
+                self.assertEqual(steps[phase]['status'], 'failed' if cause == 'budget' else 'skipped')
+                self.assertEqual(steps[phase]['reason'], 'budget' if cause == 'budget' else 'CI')
 
     def test_guard_budget_defers_only_without_observed_failures(self):
         tip = self.commit('src/good.ts')
@@ -566,7 +535,7 @@ readFileSync('../public/assets/native/untracked.bin');
             self.assertEqual(result['files'], ['src/unchanged.ts'])
             self.assertEqual(calls, [['node', str(self.root / 'scripts/lint-fast.mjs')]])
 
-    def test_checker_input_errors_are_never_accepted_as_ci_deferrals(self):
+    def test_checker_input_errors_defer_to_full_ci(self):
         tip = self.commit('src/good.ts')
         @contextmanager
         def invalid(*_):
@@ -574,7 +543,7 @@ readFileSync('../public/assets/native/untracked.bin');
             yield
         with patch.dict(PUSH, fast_tools=invalid):
             result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
-        self.assertFalse(result['ok'])
+        self.assertTrue(result['ok'])
         self.assertEqual(result['phase'], 'tool-inputs')
         self.assertIn('Missing committed checker blob', result['output'])
 
@@ -633,7 +602,7 @@ readFileSync('../public/assets/native/untracked.bin');
         checker = lambda *_: {'ok': False, 'phase': 'working-tree', 'files': [], 'output': 'live edit'}
         notify = lambda *args: notices.append(args) or True
         for _ in range(4):
-            self.assertEqual(PUSH['tick'](self.root, checker=checker, notify=notify)['status'], 'red')
+            self.assertEqual(PUSH['tick'](self.root, checker=checker, uploader=lambda *_: 0, notify=notify)['status'], 'pushed')
         self.assertEqual(len(notices), 1)
 
     def test_snapshot_names_do_not_reset_the_same_refusal(self):
@@ -663,24 +632,20 @@ readFileSync('../public/assets/native/untracked.bin');
         with patch.dict(PUSH, fast_tools=prepared), patch.dict(LIVE, run=lambda *args: calls.append(args[0]) or (0, '')):
             result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
         self.assertTrue(result['ok'])
-        self.assertEqual(result['types'], 'checked')
+        self.assertEqual(result['types'], 'ci')
         self.assertEqual([command[5] for command in calls], ['storage', 'ratchet', 'guards', 'fast-lint'])
         self.assertFalse(any('oxlint' in command or 'vitest' in command for command in calls))
 
     def test_policy_guards_refuse_before_ratchet_or_upload(self):
         tip = self.commit('lint/ratchet.json')
-        blob = self.git('rev-parse', tip + ':lint/ratchet.json')
-        self.put('.git/push-deferred-policy.json', json.dumps({'lint/ratchet.json': [blob]}))
         self.put('lint/ratchet.json', 'foreign WIP')
-        self.assertEqual(PUSH['deferred_policy'](self.root, self.base, tip), ['lint/ratchet.json'])
-        self.assertEqual(PUSH['deferred_types'](self.root, self.base, tip), [])
         @contextmanager
         def prepared(*_):
             yield self.root / 'scripts'
         calls = []
         def runner(command, *_):
             calls.append(command[5])
-            return (1, 'CLOSED C9 has custom lines') if command[5] == 'guards' else (0, '')
+            return (1, 'lint/ratchet.json:1:1 error: CLOSED C9 has custom lines') if command[5] == 'guards' else (0, '')
         with patch.dict(PUSH, fast_tools=prepared), patch.dict(LIVE, run=runner):
             result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
         self.assertFalse(result['ok'])
@@ -688,8 +653,6 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertEqual(calls, ['storage', 'ratchet', 'guards'])
         self.assertEqual(next(row for row in result['steps'] if row['step']=='ratchet')['status'], 'passed')
         self.assertEqual(next(row for row in result['steps'] if row['step']=='fast-lint')['reason'], 'prior-refusal')
-        self.put('.git/push-deferred-policy.json', json.dumps({'lint/ratchet.json': ['wrong blob']}))
-        self.assertEqual(PUSH['deferred_policy'](self.root, self.base, tip), [])
 
     def test_ratchet_deferral_preserves_a_refusal_at_the_budget(self):
         def runner(command, *_):
@@ -699,7 +662,7 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertFalse(result['ok'])
         self.assertEqual(result['phase'], 'ratchet')
 
-    def test_each_budget_refuses_and_preserves_real_refusals(self):
+    def test_each_budget_defers_but_real_refusals_stay_red(self):
         self.git('rm', 'src/base.ts')
         tip = self.commit('src/good.ts')
         @contextmanager
@@ -707,19 +670,20 @@ readFileSync('../public/assets/native/untracked.bin');
             yield self.root / 'scripts'
         phases = ['storage', 'deleted-paths', 'ratchet', 'guards', 'fast-lint']
         for phase in phases:
-            for text, reason in [('pre-push budget exhausted', 'budget'), ('Error: observed policy refusal', 'observed-refusal')]:
+            for code, text in [(124, 'pre-push budget exhausted'), (1, 'src/good.ts:1:1 error: observed policy refusal')]:
                 calls = []
                 def runner(command, *_):
                     calls.append(command[5])
-                    return (124, text) if command[5] == phase else (0, '')
+                    return (code, text) if command[5] == phase else (0, '')
                 with patch.dict(PUSH, fast_tools=prepared), patch.dict(LIVE, run=runner):
                     result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
-                self.assertFalse(result['ok'], (phase, text))
+                self.assertEqual(result['ok'], code == 124, (phase, text))
                 self.assertEqual(calls, phases[:phases.index(phase)+1])
                 rows = {row['step']:row for row in result['steps']}
                 self.assertEqual(result['phase'], phase)
                 self.assertEqual(rows[phase]['status'], 'failed')
-                self.assertEqual(rows[phase]['reason'], reason)
+                if code == 124:
+                    self.assertEqual(rows[phase]['reason'], 'budget')
                 for completed in phases[:phases.index(phase)]:
                     self.assertEqual(rows[completed]['status'], 'passed')
 
@@ -856,7 +820,6 @@ readFileSync('../public/assets/native/untracked.bin');
             result=LIVE['check'](self.root,self.base,tip,time.monotonic()+45,runner=runner,recent_tests=['test/recent.test.ts'])
             self.assertFalse(result['ok']);self.assertEqual(result['phase'],'recent-selection' if drift else 'recent-tests')
             self.assertEqual(sum(any('gate-related-tests.mjs' in value for value in command) for command in calls),1)
-
 
 
 class RuntimeCopies(unittest.TestCase):
