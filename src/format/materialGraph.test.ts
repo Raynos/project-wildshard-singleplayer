@@ -42,3 +42,21 @@ test('depth, active cycles and finite-number fences remain independent', () => {
   expect(graphAdmissionErrors([shared, shared])).toEqual([]);
   for (const invalid of [Number.NaN, Infinity, -Infinity, -0]) expect(graphAdmissionErrors([invalid])).toEqual(['graph: finite JSON numbers required']);
 });
+
+
+test.each(['repeat', 'é🌿', 'quote"\\\n', '\uD800'])('repeated string bytes count each occurrence exactly (%s)', word => {
+  const shared = { op: word, in: [word, word] };
+  const value = { nodes: Array.from({ length: 80 }, () => shared), pad: '' };
+  const bytes = (): number => new TextEncoder().encode(JSON.stringify(value)).length;
+  value.pad = 'x'.repeat(GRAPH_ADMISSION_LIMITS.bytes - bytes());
+  expect(bytes()).toBe(GRAPH_ADMISSION_LIMITS.bytes);
+  expect(graphAdmissionErrors(value, 80)).toEqual([]);
+  expect(graphAdmissionErrors(value, 79)).toEqual(['budget: 80 nodes (at most 79); all nested nodes counted']);
+  value.pad += 'x';
+  expect(bytes()).toBe(GRAPH_ADMISSION_LIMITS.bytes + 1);
+  expect(graphAdmissionErrors(value, 80)).toEqual(['graph: JSON byte size exceeds admission cap']);
+  // Every call observes the current input; successful admissions cannot conceal later shape changes.
+  value.pad = '';
+  Object.defineProperty(shared, 'hidden', { value: word });
+  expect(graphAdmissionErrors(value, 80)).toEqual(['graph: JSON accessors and hidden properties refused']);
+});

@@ -268,8 +268,16 @@ export function graphAdmissionErrors(input: unknown, nodeLimit: number = DEFAULT
   let bytes = 0, nodes = 0;
   // printable ASCII with no quote or backslash serializes as itself in quotes: its byte count without encoding a copy
   // (G639: the encode per string was most of each first-lookup graph validation, ~30 ms a Nalati entry frame)
-  const stringBytes = (value: string): number => value.length > GRAPH_ADMISSION_LIMITS.bytes ? GRAPH_ADMISSION_LIMITS.bytes + 1
-    : plainJsonString(value) ? value.length + 2 : encoder.encode(JSON.stringify(value)).length;
+  // Node keys, ops and references repeat within a graph. Cache only their immutable encoded lengths for this call;
+  // every occurrence still spends its complete byte count, and no result or source survives into another admission.
+  const stringSizes = new Map<string, number>();
+  const stringBytes = (value: string): number => {
+    const known = stringSizes.get(value);
+    if (known !== undefined) return known;
+    const size = value.length > GRAPH_ADMISSION_LIMITS.bytes ? GRAPH_ADMISSION_LIMITS.bytes + 1
+      : plainJsonString(value) ? value.length + 2 : encoder.encode(JSON.stringify(value)).length;
+    stringSizes.set(value, size); return size;
+  };
   while (pending.length > 0) {
     const entry = pending.pop(); if (entry === undefined) break;
     if ('leave' in entry) { active.delete(entry.leave); continue; }
