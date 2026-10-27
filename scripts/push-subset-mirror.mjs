@@ -1,5 +1,6 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
+import { promisify } from 'node:util';
 import { openMirror } from './build-mirror.mjs';
 
 /** @type {import('./push-subset-mirror.mjs').PushSubsetMirrorPorts} */
@@ -8,6 +9,23 @@ const NATIVE_PORTS = {
   gitDirectory: root => execFileSync('git', ['rev-parse', '--absolute-git-dir'], { cwd: root, encoding: 'utf8' }).trim(),
   run: (command, args, options) => spawnSync(command, args, options),
 };
+
+const writeStdout = promisify(process.stdout.write.bind(process.stdout));
+const writeStderr = promisify(process.stderr.write.bind(process.stderr));
+/** @type {import('./push-subset-mirror.mjs').SubsetWriterPorts} */
+const NATIVE_WRITERS = {
+  stdout: async text => { await writeStdout(text); },
+  stderr: async text => { await writeStderr(text); },
+};
+
+/** @param {{stdout:string,stderr:string}} result
+ * @param {import('./push-subset-mirror.mjs').SubsetWriterPorts} [ports] */
+export async function writeCommittedSubset(result, ports = NATIVE_WRITERS) {
+  // stdout is the machine record. The parent intentionally merges descriptors;
+  // starting stderr before this callback can split JSON inside a quoted field.
+  await ports.stdout(result.stdout);
+  await ports.stderr(result.stderr);
+}
 
 /** Hold one existing slot through input production and every selected reader.
  * @param {string} root @param {string} tip @param {string[]} files @param {number} deadline
@@ -33,5 +51,5 @@ if (import.meta.main) {
   /** @type {unknown} */ const files = JSON.parse(encoded);
   if (!Array.isArray(files) || !files.every(file => typeof file === 'string')) throw new Error('Invalid changed paths');
   const result = runCommittedSubset(root, tip, files, Number(process.env.WS_GIT_CHECK_DEADLINE));
-  process.stdout.write(result.stdout); process.stderr.write(result.stderr); process.exitCode = result.status;
+  await writeCommittedSubset(result); process.exitCode = result.status;
 }
