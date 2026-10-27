@@ -17,13 +17,13 @@ const LOADER = 'scripts/bake-loader.mjs';
  * admit the full compiler envelope and run every original oracle themselves. */
 export async function nativeProgramFixture(spec: {
   readonly id: string; readonly script: string; readonly inputs: readonly string[];
-  readonly root?: string; readonly cacheDir?: string;
+  readonly root?: string; readonly cacheDir?: string; readonly transformTypes?: boolean;
 }): Promise<string> {
   const root = resolve(spec.root ?? '.'), memo = memos.get(root) ?? new InputHashMemo(root);
   memos.set(root, memo);
   const inventory = (): string[] => [...new Set([spec.script, LOADER, ...spec.inputs.flatMap(path => memo.paths(path, true))])].sort();
   const paths = inventory(), inputs = bakeInputHashes(root, paths, memo);
-  const command = [process.execPath, '--import', `./${LOADER}`, '--', spec.script];
+  const command = [process.execPath, ...(spec.transformTypes === true ? ['--experimental-transform-types'] : []), '--import', `./${LOADER}`, '--', spec.script];
   const output = 'fixture.json';
   const result = await runNativeRecorder(root, {
     id: `fixture-${spec.id}`, inputs, command, outputs: [output], platform: 'native',

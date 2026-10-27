@@ -30,6 +30,16 @@ test('separate and concurrent loans execute one actual compiler, without caching
   expect(JSON.parse(first)).toEqual({ value: 'one', files: ['value.txt'] });
 });
 
+test('the original transform-types host option stays in the construction key', async () => {
+  const { spec, calls } = fixture();
+  const plain = await nativeProgramFixture(spec);
+  const transformed = await nativeProgramFixture({ ...spec, transformTypes: true });
+  expect(transformed).toBe(plain);
+  expect(calls()).toBe(2);
+  expect(await nativeProgramFixture({ ...spec, transformTypes: true })).toBe(transformed);
+  expect(calls()).toBe(2);
+});
+
 test('changed source bytes, new inventory and changed compiler invalidate construction', async () => {
   const { root, spec, calls } = fixture();
   const first = await nativeProgramFixture(spec);
