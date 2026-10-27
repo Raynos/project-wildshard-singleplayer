@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { DRIFTWOOD_LAYOUTS } from './fixtures/driftwood-layout-source';
 import {expect,it,vi} from 'vitest';
 import {Group,PerspectiveCamera} from 'three';
 import {Scope} from '../src/engine/app/scope';
@@ -21,7 +22,7 @@ import cove from '../src/shards/driftwood-isle/data/coveComposition.json' with {
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 
 it('emits the completed world facts in their original tier order, with the four floor gaps',()=>{
- const rows=driftwoodGameplayAudioEnvironment();
+ const rows=driftwoodGameplayAudioEnvironment(DRIFTWOOD_LAYOUTS.wreck);
  const data=parseAudioData({...source.audio,gameplay:{...source.audio.gameplay,entryEnvironment:rows}});
  expect(data.gameplay?.environment).toBeUndefined();expect(data.gameplay?.entryEnvironment).toEqual(rows);
  expect(rows.floors).toEqual({decks:[null,null,'boat',null,null,'bridge','wreck'],stone:['shrine']});
@@ -37,7 +38,7 @@ it('emits the completed world facts in their original tier order, with the four 
 });
 function fixture(tier:'phone'|'desktop',missing?:'bridge'|'buildings'){
  const construction=new Scope('audio-source'),scope=construction.child('audio-entered');bindResidentWorldScope(scope,construction);
- const rows=driftwoodGameplayAudioEnvironment(),data=parseAudioData({...source.audio,gameplay:{...source.audio.gameplay,entryEnvironment:rows}});
+ const rows=driftwoodGameplayAudioEnvironment(DRIFTWOOD_LAYOUTS.wreck),data=parseAudioData({...source.audio,gameplay:{...source.audio.gameplay,entryEnvironment:rows}});
  const shrine=new Group(),life=new LivingBuildings(new SceneHandles(),{wheel:0,door:{seconds:1,angle:1},fire:[0,1],lamp:[0,1],glass:[0,1],flicker:{depth:0,waves:[]},swing:{z:[],x:[0,0]}});
  const audio=new Audio(),music=new Music(audio),camera=new PerspectiveCamera(),objects={};
  const floors={boat:()=>3,bridge:()=>4,wreck:()=>6,shrine:()=>5};

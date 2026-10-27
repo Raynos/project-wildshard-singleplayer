@@ -397,7 +397,6 @@
     "src/shards/driftwood-isle/boot/sea.generated.json",
     "src/shards/driftwood-isle/boot/specimenParams.generated.d.ts",
     "src/shards/driftwood-isle/boot/specimens.generated.json",
-    "src/shards/driftwood-isle/data/audio.generated.json",
     "src/shards/driftwood-isle/data/boot-files.generated.json",
     "src/shards/driftwood-isle/data/boot-lateReads.generated.json",
     "src/shards/driftwood-isle/data/boot-poses.generated.json",

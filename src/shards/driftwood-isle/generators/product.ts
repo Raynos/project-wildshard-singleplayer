@@ -8,7 +8,7 @@ import { DRIFTWOOD_LEDGER } from './ledger';
 import DRIFTWOOD_SWORDS from '../data/items.generated.json' with { type: 'json' };
 import { DRIFTWOOD_SPAWNS } from './spawns';
 import { NPC_FOCUS_PROGRAMS } from './npcFocusPrograms';
-import AUDIO from '../data/audio.generated.json' with { type: 'json' };
+import type { AudioData } from '@wildshard/sdk/audio';
 import { DRIFTWOOD_EDGE_HEIGHTS } from './edges';
 import DRIFTWOOD_RUNTIME_COST from '../data/runtimeCost.json' with { type: 'json' };
 import { DECLARED_SEA, WORLD_DROP } from './sea';
@@ -41,7 +41,7 @@ const row = (authored: readonly number[]): { heights: number[]; colours: [number
   return { heights, colours: heights.map((): [number, number, number] => [0.5, 0.5, 0.5]), roadHeight: 0 };
 };
 /** Compose the unchanged admitted declaration from caller-owned fixed-world values. */
-export function driftwoodProductRows(fixed: DriftwoodFixedProduct): ReturnType<typeof parseShardfile> {
+export function driftwoodProductRows(fixed: DriftwoodFixedProduct, audio: AudioData): ReturnType<typeof parseShardfile> {
 const simulationFiles = [...navigation.files, ...fixed.files.filter(file => fixed.critical.includes(file.hash))];
 // G7: the Drowned Captain's painted coat, an admitted look texture his graph samples by hash (generators/bake-captain-coat.mjs)
 const coat = captainCoat.file;
@@ -67,7 +67,7 @@ return parseShardfile({
   clientChannels: [...parseClientChannels(driftwoodSkyChannels()), ...NPC_FOCUS_PROGRAMS],
   quests: { ...questRows.quests, achievements: DRIFTWOOD_FEATS }, questHost: questRows.host, questNpcs: questRows.npcs, ledger: DRIFTWOOD_LEDGER, items: DRIFTWOOD_SWORDS,
   edge: { north: row(DRIFTWOOD_EDGE_HEIGHTS.north), east: row(DRIFTWOOD_EDGE_HEIGHTS.east), south: row(DRIFTWOOD_EDGE_HEIGHTS.south), west: row(DRIFTWOOD_EDGE_HEIGHTS.west) },
-  audio: AUDIO.audio,
+  audio,
   // G164 (SHARDFILE.md socketOverWater): every entry meets the road over the lowered sea. The sea row clips the four 8 × 15 m
   // sockets dry (dryEntries) and the four declared landings (top y = 0, the full 8 m across each socket's shard-side edge;
   // G170: the inner ends of the asphalt road decks) prove the walk off the socket. The trusted runtime consumes both rows itself (world/sea.ts, world/build.ts).
