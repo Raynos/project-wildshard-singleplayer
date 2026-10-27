@@ -45,6 +45,7 @@
     "./bake/props": "./bake/props.ts",
     "./bake/tileGrid": "./bake/tileGrid.ts",
     "./bake/glb": "./bake/glb.ts",
+    "./bake/coarseCopy": "./bake/coarseCopy.ts",
     "./bake/glbCompression": "./bake/glbCompression.ts",
     "./bake/nearPlaceholder": "./bake/nearPlaceholder.ts",
     "./bake/placeholders": "./bake/placeholders.ts",

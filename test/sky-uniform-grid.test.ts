@@ -17,7 +17,7 @@ test('Sky ships every L0 square without changing any island payload or geometry-
   expect(tiles.filter(row => row.lod === 0)).toHaveLength(64);
   expect(tiles.filter(row => row.files.length > 0)).toEqual(occupied);
   expect(tiles.filter(row => row.lod === 0 && row.files.length === 0)).toHaveLength(42);
-  expect(tiles.filter(row => row.lod === 1)).toHaveLength(5);
+  expect(tiles.filter(row => row.lod === 1)).toHaveLength(16);
   expect(shipping.props).toEqual(baked.props);
   expect(shipping.files).toEqual(baked.files.slice().sort((a, b) => a.hash.localeCompare(b.hash)));
   for (const tile of tiles.filter(row => row.files.length === 0)) {
@@ -25,6 +25,7 @@ test('Sky ships every L0 square without changing any island payload or geometry-
   }
   const census = tileBakeCensus(tiles, shipping.files);
   expect(Object.keys(census.debt).filter(key => key.startsWith('missing/0/'))).toEqual([]);
-  expect(census.l1).toBe(5);
-  expect(Object.keys(census.debt).filter(key => key.startsWith('missing/1/'))).toHaveLength(11);
+  expect(census.l1).toBe(16);
+  // G748 / U2: every occupied parent draws the isles' coarse copy
+  expect(Object.keys(census.debt).filter(key => key.startsWith('missing/1/'))).toHaveLength(0);
 });

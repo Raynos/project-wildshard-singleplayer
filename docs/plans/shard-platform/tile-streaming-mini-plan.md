@@ -301,6 +301,8 @@ Each engineering slice below is at most one hour; milestone measurements stay se
 | G748.2 Per-shard check | done (sp-o5, `dc2e445ae6`) | Opt-in per shard (`world.assembly` row `farStandIn`): Driftwood gains its far palms; Pine and Nalati draw their far content whole today (no change); Nine draws its city whole and the stand-in only darkened it (left out). Sky, Sunscar, template and plots run no world assembly. |
 | G748.3 Boards | done (sp-o5, this commit) | `art/tiles/round-1-l1-standins/board.jpg`: Driftwood today vs stand-in, aerial and from the pier, iPhone portrait; for wildshard-v to take to Jake. |
 | G748.4 Ship | done (sp-o5, this commit; Jake G761) | Driftwood draws its stand-in in the public build (the Developer gate is gone). Nothing else is superseded: past the ring it drew only its landmarks' coarse copies (T11), which stay. Other shards opt in (`farStandIn`) as their boards are approved. |
+| G748.5 Sky coarse L1 | done (sp-o5, this commit; G769 recommended look) | Sky's 11 occupied L1 parents draw its isles simplified in their own toon look (`coarseCopy`: meshopt 10 %, 2 m error, borders locked) as the props bake's coarse source; 16 / 16 L1 squares, every tile under the provisional 200 KB cap (largest 191 KB). |
+| G748.6 Driftwood, Nine, Nalati coarse L1 | open (sp-o5) | The same coarse copy for their occupied parents (Driftwood 9, Nine 16, Nalati 16), each through its own tile producer. |
 | T8.4 Exact indexed transport sizing | dropped (2026-10-25, sp-x2): gzip grows431,654B | Read-only/in-memory only, all8 over-cap B tiles /27 whole parts. 239,539 native vertex records yield238,486 unique records; all attributes are mapped native channels (0 unused bytes). Raw8,306,872→8,762,272B; gzip-9 2,371,499→2,803,153B. Expanded triangle attribute words match bitwise, existing indexed parts/indices stay exact, but current whole projection cannot consume the reindexed nonindexed parts without an ordinal-expansion change. Reject before decoder/producer work; no geometry file, schema, cap, exact6/4 pin or Jake B change. |
 
 **T4 caller audit:** the non-native `clientWorldAssembly.ts` awaits `residentTiles`
@@ -536,7 +538,7 @@ baked L1, and Pine/Nalati draw their terrain tiles with their own code. Rows add
 | Row | What | Done when |
 |---|---|---|
 | U1 | Every shard bakes all 64 L0 squares (empty sea / sky squares as near-empty tiles) | **done** `7093891d97`: exact `3c488ee9ab` preview, all 24 products have 64 L0 / full 5 × 5; strict receipts and section hashes |
-| U2 | Every shard bakes all 16 L1 squares (Driftwood and Sky first) | **open (Opus/look work):** safe Codex slice done `9b179032ff`: L0-only exact-reader fences and 7 DW / 5 Sky proven-empty parents. Remaining 9 DW / 11 Sky occupied parents need real coarse proxies: Opus or Jake look pick, not a Codex row. All 16 L1 per shard remains the bar |
+| U2 | Every shard bakes all 16 L1 squares (Driftwood and Sky first) | **open (Opus/look work; Sky 16/16 done, G748.5):** safe Codex slice done `9b179032ff`: L0-only exact-reader fences and 7 DW / 5 Sky proven-empty parents. Remaining 9 DW / 11 Sky occupied parents need real coarse proxies: Opus or Jake look pick, not a Codex row. All 16 L1 per shard remains the bar |
 | U3 | Pine and Nalati terrain tiles go through the one shared streamer (T2), not shard code | no shard-owned tile drawing left |
 
 U1 source slices (sp-x2, 2026-10-24): `6fc5b91533` completes the two full-world
