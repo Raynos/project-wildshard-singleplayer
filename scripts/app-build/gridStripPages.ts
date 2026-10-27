@@ -6,7 +6,7 @@ import { isDeepStrictEqual } from 'node:util';
 import { BufferAttribute, BufferGeometry } from 'three';
 import { GeometryPackWriter } from '../../src/sdk/kit/geometryPack';
 import type { GeneratedStrip } from '../../src/engine/sim/strips';
-import { decodeCompiledGridStrips, parseCompiledGridHeader, type CompiledGridAddress, type CompiledGridHeader, type CompiledGridPage, type CompiledGridSelector } from '../../src/game/grid/compiledStrips';
+import { GRID_STRIP_FEATURE_KINDS, decodeCompiledGridStrips, parseCompiledGridHeader, type CompiledGridAddress, type CompiledGridHeader, type CompiledGridPage, type CompiledGridSelector } from '../../src/game/grid/compiledStrips';
 import { servedBytes } from '../phone-wire.mjs';
 
 export interface CompiledGridArtifact { readonly address: CompiledGridAddress; readonly bytes: Uint8Array }
@@ -27,6 +27,7 @@ function artifact(bytes: Uint8Array, extension: 'json' | 'bin', kind: 'book' | '
 export function encodeGridStripPage(source: string, home: string, slug: string, strips: readonly GeneratedStrip[]): CompiledGridCandidate {
   const writer = new GeometryPackWriter('Grid strips'), indices = new Map<string, number>(), shapes: CompiledGridHeader['shapes'][number][] = [];
   const rows: CompiledGridHeader['strips'][number][] = [];
+  const featureWords: number[] = [], surfaces: string[] = [], surfaceCodes = new Map<string, number>();
   for (const strip of strips) {
     const { mesh, features, turnIn } = strip;
     const digest = createHash('sha256');
@@ -38,7 +39,17 @@ export function encodeGridStripPage(source: string, home: string, slug: string, 
       const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(mesh.positions, 3)).setAttribute('color', new BufferAttribute(mesh.colours, 3))
         .setIndex(new BufferAttribute(mesh.indices, 1));
       try { shape = writer.add(geometry); } finally { geometry.dispose(); }
-      indices.set(key, shape); shapes.push({ features, ...(turnIn === undefined ? {} : { turnIn }) });
+      const offset = featureWords.length / 9;
+      for (const feature of features) {
+        let surface = -1;
+        if (feature.sourceSurface !== undefined) {
+          const previous = surfaceCodes.get(feature.sourceSurface);
+          if (previous !== undefined) surface = previous;
+          else { surface = surfaces.length; surfaces.push(feature.sourceSurface); surfaceCodes.set(feature.sourceSurface, surface); }
+        }
+        featureWords.push(GRID_STRIP_FEATURE_KINDS.indexOf(feature.kind), feature.firstIndex, feature.indexCount, feature.side, feature.from, feature.to, feature.bottom, feature.top, surface);
+      }
+      indices.set(key, shape); shapes.push({ features: { offset, count: features.length }, ...(turnIn === undefined ? {} : { turnIn }) });
     }
     const duplicates: CompiledGridHeader['strips'][number]['duplicates'][number][] = [];
     for (const duplicate of strip.duplicates) {
@@ -50,10 +61,14 @@ export function encodeGridStripPage(source: string, home: string, slug: string, 
     }
     rows.push({ id: strip.id, shape, origin: { ...mesh.origin }, duplicates });
   }
-  const header = artifact(json({ version: 1, source, home, rows: writer.rows(), shapes, strips: rows } satisfies CompiledGridHeader), 'json', 'page');
+  const geometry = writer.bytes(), featureStart = Math.ceil(geometry.length / 8) * 8;
+  const packed = new Uint8Array(featureStart + featureWords.length * 8); packed.set(geometry);
+  const view = new DataView(packed.buffer);
+  for (const [index, value] of featureWords.entries()) view.setFloat64(featureStart + index * 8, value, true);
+  const header = artifact(json({ version: 1, source, home, rows: writer.rows(), surfaces, shapes, strips: rows } satisfies CompiledGridHeader), 'json', 'page');
   // Exercise the same valibot grammar the runtime admits, including signed zero.
   parseCompiledGridHeader(JSON.parse(new TextDecoder().decode(header.bytes)));
-  const body = artifact(writer.bytes(), 'bin', 'mesh');
+  const body = artifact(packed, 'bin', 'mesh');
   // Certify the bytes that will ship against this build's actual native output.
   const decoded = decodeCompiledGridStrips(JSON.parse(new TextDecoder().decode(header.bytes)), body.bytes, source, home);
   for (const [index, original] of strips.entries()) {

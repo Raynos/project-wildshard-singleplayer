@@ -5,7 +5,7 @@ import { Scope } from '../src/engine/app/scope';
 import { CONTENT_CAPS } from '../src/format/contentBounds';
 import { generatePlatform, type GeneratedStrip, type PlatformCell, type StripProfile } from '../src/engine/sim/strips';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { decodeCompiledGridStrips, platformGeometrySource, readCompiledGridStrips, type CompiledGridAddress } from '../src/game/grid/compiledStrips';
+import { decodeCompiledGridStrips, parseCompiledGridHeader, platformGeometrySource, readCompiledGridStrips, type CompiledGridAddress } from '../src/game/grid/compiledStrips';
 import { encodeGridStripPage, writeGridStripPages } from '../scripts/app-build/gridStripPages';
 import { gridSeamAsset, readGridSeams, writeGridSeams } from '../scripts/app-build/gridSeams.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- This artifact fixture owns and removes only its bounded tmp directory.
@@ -48,8 +48,10 @@ test.each([256, 257])('shipped typed triangles match native construction word fo
   expect(() => decodeCompiledGridStrips(header, page.body.bytes.slice(1), source, 'probe')).toThrow();
   expect(() => decodeCompiledGridStrips(header, page.body.bytes, 'f'.repeat(64), 'probe')).toThrow('source');
   expect(() => decodeCompiledGridStrips(header, page.body.bytes, source, 'other')).toThrow('source');
-  const bad = page.body.bytes.slice(); new DataView(bad.buffer).setUint32(bad.length - 4, 0xffffffff, true);
+  const admitted = parseCompiledGridHeader(header), bad = page.body.bytes.slice(); new DataView(bad.buffer).setUint32(admitted.rows.bytes - 4, 0xffffffff, true);
   expect(() => decodeCompiledGridStrips(header, bad, source, 'probe')).toThrow('geometry');
+  const malformed = page.body.bytes.slice(); new DataView(malformed.buffer).setFloat64(Math.ceil(admitted.rows.bytes / 8) * 8 + 32, Number.NaN, true);
+  expect(() => decodeCompiledGridStrips(header, malformed, source, 'probe')).toThrow('feature');
 });
 
 test('baked source identity ignores property order but distinguishes changed values and signed zero', async () => {

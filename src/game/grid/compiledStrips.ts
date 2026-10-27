@@ -16,7 +16,8 @@ export interface CompiledGridSelector { readonly directory: CompiledGridAddress;
 export interface CompiledGridPage { readonly source: string; readonly home: string; readonly header: CompiledGridAddress; readonly body: CompiledGridAddress }
 export interface CompiledGridHeader {
   readonly version: 1; readonly source: string; readonly home: string; readonly rows: PackedGeometryRows;
-  readonly shapes: readonly { readonly features: readonly SeamFeature[]; readonly turnIn?: SeamTurnIn }[];
+  readonly surfaces: readonly string[];
+  readonly shapes: readonly { readonly features: { readonly offset: number; readonly count: number }; readonly turnIn?: SeamTurnIn }[];
   readonly strips: readonly { readonly id: string; readonly shape: number; readonly origin: { readonly x: number; readonly z: number };
     readonly duplicates: readonly { readonly instance: string; readonly origin: { readonly x: number; readonly z: number } }[] }[];
 }
@@ -29,11 +30,11 @@ const point = v.strictObject({ x: finite, z: finite });
 const address = (extension: 'json' | 'bin') => v.strictObject({ url: v.pipe(v.string(), v.regex(new RegExp(`^/assets/grid-strip-${extension === 'json' ? '(?:book|page)' : 'mesh'}-[a-f0-9]{8}\\.${extension}$`, 'u'))),
   bytes: v.pipe(natural, v.minValue(1)), sha256: hash });
 const directorySchema = v.strictObject({ version: v.literal(1), pages: v.pipe(v.array(v.strictObject({ source: hash, home: text, header: address('json'), body: address('bin') })), v.maxLength(512)) });
-const kinds = ['deck', 'neutral-buffer', 'gradient', 'overlap', 'retaining-wall', 'cliff', 'talus', 'parapet', 'dike', 'culvert', 'guard-rail', 'road-wall', 'turn-in', 'revetment'] as const satisfies readonly SeamFeatureKind[];
-const feature = v.strictObject({ kind: v.picklist(kinds), firstIndex: natural, indexCount: natural, side: v.union([v.literal(-1), v.literal(0), v.literal(1)]),
-  from: finite, to: finite, bottom: finite, top: finite, sourceSurface: v.exactOptional(v.string()) });
+/** Stable binary feature codes; numeric records retain their exact Float64 words. */
+export const GRID_STRIP_FEATURE_KINDS: readonly SeamFeatureKind[] = ['deck', 'neutral-buffer', 'gradient', 'overlap', 'retaining-wall', 'cliff', 'talus', 'parapet', 'dike', 'culvert', 'guard-rail', 'road-wall', 'turn-in', 'revetment'];
 const headerSchema = v.strictObject({ version: v.literal(1), source: hash, home: text, rows: PackedGeometryRowsSchema,
-  shapes: v.pipe(v.array(v.strictObject({ features: v.pipe(v.array(feature), v.maxLength(100_000)), turnIn: v.exactOptional(v.strictObject({ at: v.literal(0), widths: v.tuple([finite, finite]) })) })), v.minLength(1), v.maxLength(128)),
+  surfaces: v.pipe(v.array(text), v.maxLength(2048)),
+  shapes: v.pipe(v.array(v.strictObject({ features: v.strictObject({ offset: natural, count: v.pipe(natural, v.maxValue(100_000)) }), turnIn: v.exactOptional(v.strictObject({ at: v.literal(0), widths: v.tuple([finite, finite]) })) })), v.minLength(1), v.maxLength(128)),
   strips: v.pipe(v.array(v.strictObject({ id: text, shape: natural, origin: point, duplicates: v.pipe(v.array(v.strictObject({ instance: text, origin: point })), v.maxLength(4)) })), v.minLength(1), v.maxLength(256)) });
 
 /** Exact source identity, independent of object property order and preserving -0. */
@@ -64,7 +65,12 @@ export function parseCompiledGridHeader(input: unknown): CompiledGridHeader { re
 function* stripSteps(input: unknown, bytes: Uint8Array, source: string, home: string): Generator<void, readonly GeneratedStrip[]> {
   const header = parseCompiledGridHeader(input);
   if (header.source !== source || header.home !== home || header.rows.geometries.length !== header.shapes.length) throw new Error('Grid strip source differs from this page');
-  const pack = new GeometryPackData(bytes, header.rows, 'Grid strips'), shapes: Omit<StripMesh, 'origin'>[] = [];
+  const featureStart = Math.ceil(header.rows.bytes / 8) * 8;
+  if (featureStart > bytes.length || (bytes.length - featureStart) % 72 !== 0 || new Set(header.surfaces).size !== header.surfaces.length) throw new Error('Grid strip feature layout differs');
+  const pack = new GeometryPackData(bytes.subarray(0, header.rows.bytes), header.rows, 'Grid strips');
+  const featureWords = new DataView(bytes.buffer, bytes.byteOffset + featureStart, bytes.length - featureStart);
+  const shapes: { readonly mesh: Omit<StripMesh, 'origin'>; readonly features: readonly SeamFeature[] }[] = [];
+  let featureOffset = 0;
   for (const [index, row] of header.rows.geometries.entries()) {
     if (row.own !== 'u32' || row.count !== row.unique || row.attrs.length !== 2 || row.attrs[0]?.[0] !== 'position' || row.attrs[0][1] !== 3
       || row.attrs[1]?.[0] !== 'color' || row.attrs[1][1] !== 3 || (row.groups?.length ?? 0) !== 0 || row.indexCount % 3 !== 0) throw new Error('Grid strip channels differ');
@@ -72,18 +78,30 @@ function* stripSteps(input: unknown, bytes: Uint8Array, source: string, home: st
     if (positions === undefined || colours === undefined || positions.length !== colours.length || !(indices instanceof Uint32Array)
       || !positions.every(Number.isFinite) || !colours.every(Number.isFinite) || indices.some(vertex => vertex >= row.unique)) throw new Error('Invalid grid strip geometry');
     const shape = header.shapes[index];
-    if (shape === undefined || shape.features.some(part => part.firstIndex % 3 !== 0 || part.indexCount % 3 !== 0 || part.firstIndex + part.indexCount > indices.length)) throw new Error('Grid strip feature range differs');
-    shapes.push({ positions, colours, indices }); yield;
+    if (shape === undefined || shape.features.offset !== featureOffset || (featureOffset + shape.features.count) * 72 > featureWords.byteLength) throw new Error('Grid strip feature range differs');
+    const features: SeamFeature[] = [];
+    for (let i = 0; i < shape.features.count; i++, featureOffset++) {
+      const at = featureOffset * 72, word = (column: number): number => featureWords.getFloat64(at + column * 8, true);
+      const code = word(0), firstIndex = word(1), indexCount = word(2), side = word(3), from = word(4), to = word(5), bottom = word(6), top = word(7), surface = word(8);
+      const kind = GRID_STRIP_FEATURE_KINDS[code], sourceSurface = header.surfaces[surface];
+      if (!Number.isSafeInteger(code) || kind === undefined || !Number.isSafeInteger(firstIndex) || firstIndex < 0 || firstIndex % 3 !== 0
+        || !Number.isSafeInteger(indexCount) || indexCount < 0 || indexCount % 3 !== 0 || firstIndex + indexCount > indices.length
+        || side !== -1 && side !== 0 && side !== 1 || ![from, to, bottom, top].every(Number.isFinite)
+        || !Number.isSafeInteger(surface) || surface < -1 || surface !== -1 && sourceSurface === undefined) throw new Error('Grid strip feature range differs');
+      features.push({ kind, firstIndex, indexCount, side, from, to, bottom, top, ...(sourceSurface === undefined ? {} : { sourceSurface }) });
+    }
+    shapes.push({ mesh: { positions, colours, indices }, features }); yield;
   }
+  if (featureOffset * 72 !== featureWords.byteLength) throw new Error('Grid strip feature body differs');
   if (new Set(header.strips.map(strip => strip.id)).size !== header.strips.length) throw new Error('Duplicate grid strip');
   const result: GeneratedStrip[] = [];
   for (const strip of header.strips) {
     const shape = shapes[strip.shape], metadata = header.shapes[strip.shape];
     if (shape === undefined || metadata === undefined || new Set(strip.duplicates.map(row => row.instance)).size !== strip.duplicates.length) throw new Error('Invalid grid strip placement');
-    const mesh = { ...shape, origin: strip.origin };
+    const mesh = { ...shape.mesh, origin: strip.origin };
     const duplicates: GeneratedStrip['duplicates'][number][] = [];
-    for (const row of strip.duplicates) duplicates.push({ instance: row.instance, mesh: { ...shape, origin: row.origin } });
-    result.push({ id: strip.id, mesh, features: metadata.features, ...(metadata.turnIn === undefined ? {} : { turnIn: metadata.turnIn }), duplicates });
+    for (const row of strip.duplicates) duplicates.push({ instance: row.instance, mesh: { ...shape.mesh, origin: row.origin } });
+    result.push({ id: strip.id, mesh, features: shape.features, ...(metadata.turnIn === undefined ? {} : { turnIn: metadata.turnIn }), duplicates });
   }
   return result;
 }
@@ -120,7 +138,7 @@ export async function readCompiledGridStrips(selector: CompiledGridSelector | un
     if (new Set(book.pages.map(page => `${page.source}/${page.home}`)).size !== book.pages.length) throw new Error('Duplicate grid strip page');
     const page = book.pages.find(row => row.source === source && row.home === home); if (page === undefined) return null;
     reservations.push(reserve('decode', page.header.bytes * 2 + page.body.bytes * 2));
-    const sourceLease = reserve('source', page.body.bytes + page.header.bytes * 4);
+    const sourceLease = reserve('source', page.body.bytes * 2 + page.header.bytes * 4);
     let released = false;
     releaseSource = (): void => { if (!released) { released = true; sourceLease.release(); } };
     forgetSource = owner.scope.capture('disposers', releaseSource);
