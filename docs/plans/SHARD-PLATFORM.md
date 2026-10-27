@@ -56,7 +56,7 @@ plan? … what is in scope … and what do we all have to complete to be done?"*
 | [green-main](shard-platform/green-main-mini-plan.md) | G751–G754, G756 | **active** 10-27: only GM1 (no hand-cancelled CI runs) is left, built last (G787, G770); GM2–GM3 superseded by G768, GM4–GM6 by CF2–CF4, GM7 dropped |
 | [debug-rows](../../project/archive/2026-10-27-debug-rows.md) | G669 | **open**: 27 rows → 14 SHIP, 11 DELETE, 2 in the Developer section (G672, G673); DR1–DR19 incl. the Settings page apply button; Memory saver on (G674) |
 | [open-plots](shard-platform/open-plots-mini-plan.md) redesign + [night-market-pilot](shard-platform/night-market-pilot-mini-plan.md) + [remaster-open-plots](shard-platform/remaster-open-plots-mini-plan.md) (mockups only until the pilot is approved, G660) | G546, G607, G608, G616, G617, G621, G623, G629, G632 | **parked** 10-27 (G774): pilot NM0–NM11 done; pilot R1–R3 and remaster RP2–RP4 wait for Jake's Night Market play and a new plan for the other 18 plots. Was **open**: Night Market pilot (code-built 62.5 m tiles, Hunyuan3D 2.1 / TRELLIS.2 landmark, five billboards) target = round 47 take B (G633); bespoke tiles per idea; billboards with hero image + name + invitation |
-| [night-market-remaster](shard-platform/night-market-remaster-mini-plan.md) | E503, G726 | **active** 10-24 (Codex RM1–RM3 now, Opus from Tue 13:00): streaming (far proxy at eye height) is tile-streaming T4.3; the art gap gets 10 domes (5 mockup cameras × stand / look), RM0–RM14, Opus from Tue 13:00; D1–D4 for Jake |
+| [night-market-remaster](../../project/archive/2026-10-27-night-market-remaster.md) | E503, G726 | **active** 10-24 (Codex RM1–RM3 now, Opus from Tue 13:00): streaming (far proxy at eye height) is tile-streaming T4.3; the art gap gets 10 domes (5 mockup cameras × stand / look), RM0–RM14, Opus from Tue 13:00; D1–D4 for Jake |
 | [build-speed](shard-platform/build-speed-mini-plan.md), CI speed | G547, G548, G584, G609, G620 | build done; **CI open**: ≤ 10 min, green main (fix forward 30 min, then revert); stays counted, built last (G789, G770) |
 | [fail-fast](../../project/archive/2026-10-27-fail-fast.md) | G610, G612, G620 | **done** (F1–F9) |
 | WASM-HOST zero blockers ([WASM-HOST](WASM-HOST.md)) | G595, G600, G604 | **done**: H4, H5, view-target adapter, dismount / ignite / impulse |
@@ -66,7 +66,7 @@ plan? … what is in scope … and what do we all have to complete to be done?"*
 | [js-heap](shard-platform/js-heap-mini-plan.md) (Template heap allocation, clean menu → Template path) | E501 | **draft, for Jake**: clean path = direct `/?chunk=_template`, Developer off, no harness pins; idle 5.6 MiB/s, 17 major GCs / 30 s; G1 guard + H1–H11 |
 | [legacy-deletion](shard-platform/legacy-deletion-mini-plan.md) | G604, G606 | LD1–LD3 done; LD4 a Node list compare, built now (G795); LD5–LD8 only on Jake's word after his QA, counted (G779) |
 | [custom-code-freeze](shard-platform/custom-code-freeze-mini-plan.md) | E496 | **active** 10-24: freeze F1–F5 (lock all shards, schema + lint refusals), delete-now D1–D6 (~5k lines), legacy LD5–LD8 built here, then A1–A2 |
-| [js-payload](shard-platform/js-payload-mini-plan.md) (draft, for Jake) | E500 | **draft** 10-24: J1–J10, biggest first: grid seam plans out of JS, title diet, shard entry diet, shard isolation; D1–D4 for Jake |
+| [js-payload](../../project/archive/2026-10-27-js-payload.md) (draft, for Jake) | E500 | **draft** 10-24: J1–J10, biggest first: grid seam plans out of JS, title diet, shard entry diet, shard isolation; D1–D4 for Jake |
 | [iphone-downloads](shard-platform/iphone-downloads-mini-plan.md) (draft, for Jake) | E504 | **draft** 10-24: cold DW shardfile entry 1,021 req / 52.6 MB wire, all before control; I1–I12 (tier filter = L18, spawn-first, quantised geometry, UASTC RDO, packs, immutable blob headers, budgets guard); D1–D4 for Jake |
 
 **Out of scope here (their own plans, after this one):** [TOOLING-PERF](TOOLING-PERF.md) (parked draft, G659), [HOST-AUDIT](HOST-AUDIT.md) (starts after every shard is at
@@ -527,7 +527,7 @@ line to Jake at each milestone.
 Everything in [`shard-platform/`](shard-platform/), beside this file:
 
 - [STATE.md](shard-platform/STATE.md): the live status, calls for Jake and the fleet (coordinator only, ≤ 3 KB).
-- [decisions.md](shard-platform/decisions.md): every decision G1–G804+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
+- [decisions.md](shard-platform/decisions.md): every decision G1–G805+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
 - [rows.md](shard-platform/rows.md): §4 in full, Part A and Part B, with done-whens and evidence.
 - [contracts.md](shard-platform/contracts.md): §3 in full (determinism, caps, the grid, versioning, a shard project).
 - [history.md](shard-platform/history.md): the long State line, the council-time baseline (old §2), the pre-G291 measure and the 2026-10-04 Handoff.
