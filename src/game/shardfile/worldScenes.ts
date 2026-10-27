@@ -445,7 +445,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       const sources = worldSceneStepSources(product, step, geometry, new Map(Object.entries(step.materials).map(([port, slot]) => [port, materials.get(slot)])));
       const made = createWorldScene(recipe, sources.ports);
       owner.onDispose(() => { made.dispose(); });
-      drawSceneRows(product, step.draws ?? [], made.root, owner, materials);
+      drawSceneRows(product, step.draws ?? [], made.root, owner, materials, ctx.app.assets);
       if (instance.position !== undefined) made.root.position.set(...instance.position);
       if (instance.rotation !== undefined) made.root.rotation.set(...instance.rotation);
       for (const row of step.bounds) {

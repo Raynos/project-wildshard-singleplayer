@@ -4,12 +4,12 @@ import { SceneDrawsSchema } from '@wildshard/format/sceneDraws';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardProduct } from './shardProduct';
 import { sceneModelSource } from './sceneSources';
-import { admitSceneBuffers, createSceneBuffers } from './sceneBuffers';
+import { admitSceneBuffers, createSceneBuffers, type SceneBufferReuse } from './sceneBuffers';
 import { parseSceneBuffers, type SceneBuffers } from '@wildshard/format/sceneBuffers';
 import { TIER } from '@wildshard/engine/core/tier';
 
 const books = new WeakMap<Scope, WeakMap<ShardProduct, Map<string, BufferGeometry>>>();
-const buffers = new WeakMap<ShardProduct, Map<string, { row: SceneBuffers; files: ReadonlyMap<string, Uint8Array> }>>();
+const buffers = new WeakMap<ShardProduct, Map<string, { row: SceneBuffers; files: ReadonlyMap<string, Uint8Array>; content: string }>>();
 
 /** Admit named draw bytes before any material or geometry allocation. Missing files refuse, with no runtime fallback. */
 export async function prepareSceneDrawRows(product: ShardProduct, input: unknown): Promise<void> {
@@ -24,13 +24,15 @@ export async function prepareSceneDrawRows(product: ShardProduct, input: unknown
       if (!product.hasFile(buffer.file)) throw new Error(`Missing scene buffer binary file: ${buffer.file}`);
       files.set(buffer.file, await product.file(buffer.file));
     }
-    prepared.set(row.file, { row: admitSceneBuffers(source, files), files });
+    const content = JSON.stringify([product.url(row.file), [...files.keys()].map(file => product.url(file))]);
+    prepared.set(row.file, { row: admitSceneBuffers(source, files), files, content });
   }
 }
 
 /** Client-only draw construction shared by specimen and resident emitters.
- * The lifetime and already-compiled material book belong to the caller. */
-export function drawSceneRows(product: ShardProduct, input: unknown, parent: Object3D, scope: Scope, materials: ReadonlyMap<string, Material>): void {
+ * The lifetime and already-compiled material book belong to the caller. An asset owner shares fixed buffer builds
+ * under every admitted descriptor/binary address; draw objects and material bindings remain private. */
+export function drawSceneRows(product: ShardProduct, input: unknown, parent: Object3D, scope: Scope, materials: ReadonlyMap<string, Material>, assets?: SceneBufferReuse['assets']): void {
   const rows = v.parse(SceneDrawsSchema, input);
   let products = books.get(scope); if (products === undefined) { products = new WeakMap(); books.set(scope, products); }
   let geometries = products.get(product); if (geometries === undefined) { geometries = new Map(); products.set(product, geometries); }
@@ -41,7 +43,8 @@ export function drawSceneRows(product: ShardProduct, input: unknown, parent: Obj
       if (row.tier !== undefined && row.tier !== TIER) continue;
       const source = buffers.get(product)?.get(row.file);
       if (source === undefined) throw new Error('Scene draw buffers were not admitted');
-      const group = createSceneBuffers(source.row, material, scope, product.shardfile.plumbing, undefined, source.files);
+      const reuse = assets === undefined ? undefined : { content: source.content, assets };
+      const group = createSceneBuffers(source.row, material, scope, product.shardfile.plumbing, reuse, source.files);
       group.scale.setScalar(row.scale); group.position.y = row.y; parent.add(group);
       if (row.order !== undefined) for (const mesh of group.children) mesh.renderOrder = row.order;
     } else {

@@ -1,6 +1,7 @@
 import { BufferAttribute, BufferGeometry, Group, InstancedBufferAttribute, InstancedBufferGeometry, InstancedInterleavedBuffer, InterleavedBuffer, InterleavedBufferAttribute, LOD, Mesh, Object3D, Points, Sphere, Vector3, type Material } from 'three';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { Scope } from '@wildshard/engine/app/scope';
+import { withOwner } from '@wildshard/engine/app/ownership';
 import type { App } from '@wildshard/engine/app/app';
 import { forgetWhenDisposed } from '@wildshard/engine/app/cachedAssets';
 import { parseSceneBuffers, type SceneBuffers } from '@wildshard/format/sceneBuffers';
@@ -136,7 +137,7 @@ export function createSceneBuffers(input: unknown, material: Material, scope: Sc
         try {
           geometries = buildGeometries(row, counts, geometry => {
             const asset = `scene:${geometry.uuid}`;
-            reuse.assets.register(asset, geometry, { retain: true, cache: true, reusable: true });
+            withOwner(owner, () => reuse.assets.register(asset, geometry, { retain: true, cache: true, reusable: true }));
             registered.push(asset);
             const release = reuse.assets.acquireResource(geometry);
             if (release === null) throw new Error('New scene geometry has no owner');
