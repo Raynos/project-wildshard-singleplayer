@@ -5,7 +5,7 @@ import { parseRoamingEncounter, NativeBossBindingSchema, WakeEncounterSchema } f
 import * as v from 'valibot';
 import { formatJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import roaming from '../src/shards/pine-hollow/data/bossEncounter.json' with { type: 'json' };
-import profile from '../src/shards/pine-hollow/data/kingFight.generated.json' with { type: 'json' };
+import { ANTLER_KING_BOSS_PROFILE as profile } from '../src/shards/pine-hollow/generators/kingFight';
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture lends the shipped physics runtime, not generated shard products.
 import { readFileSync } from 'node:fs';
 import { loadRapier } from '@wildshard/engine/physics/rapier';

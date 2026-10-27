@@ -166,7 +166,8 @@ test('an unrelated salt-marsh script spawns and retires its own species and site
 
 test('AS placement preserves the retired sampler coordinates, identity order and every placement draw', async () => {
   const { sampleCreatureGroup } = await import('../src/game/plugin/brain');
-  const { default: old } = await import('../src/shards/pine-hollow/data/nightPopulation.generated.json');
+  const { pineNightSpec } = await import('../src/shards/pine-hollow/generators/nightSpec');
+  const old = { spec: pineNightSpec(3) };
   const { default: tuning } = await import('../src/shards/pine-hollow/data/populationWaves.json');
   let total = 0;
   for (let seed = 0; seed < 120; seed++) {

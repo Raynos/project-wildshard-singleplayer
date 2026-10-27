@@ -1,11 +1,12 @@
 
 import { Rng } from '@wildshard/sdk/random';
 import { parseSpawnScript , type SpawnScriptRows as SpawnScriptRowsType } from '@wildshard/format/spawnScripts';
-import population from '../data/nightPopulation.generated.json' with { type: 'json' };
+import { pineNightSpec } from './nightSpec';
 import tuning from '../data/populationWaves.json' with { type: 'json' };
 import rule from '../data/populationNight.json' with { type: 'json' };
 
-const { spec } = population;
+// GR8: the night spec is called, not read from a scheduler job's output
+const spec = pineNightSpec(3);
 const slots = [...Array.from({length:4},(_,i)=>({id:`roam.${i}`,handle:i+1})),...spec.race.map((_,i)=>({id:`race.${i}`,handle:i+5}))];
 const fields = ['x','z','scripted','lookWeight','night','limit','force'].map(source=>({id:source,source}));
 const moves = [
