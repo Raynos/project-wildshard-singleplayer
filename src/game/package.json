@@ -198,6 +198,7 @@
     "./quest/interactionRows": "./quest/interactionRows.ts",
     "./shard/titleList": "./shard/titleList.ts",
     "./shard/list": "./shard/list.ts",
+    "./plugin/bakedGeometry": "./plugin/bakedGeometry.ts",
     "./plugin/geometry": "./plugin/geometry.ts",
     "./plugin/quests": "./plugin/quests.ts",
     "./plugin/weaponFamily": "./plugin/weaponFamily.ts",
