@@ -36,11 +36,15 @@ if (existsSync(resolvePath(out, 'reading.json'))) throw new Error('Reading exist
 mkdirSync(out, {recursive: true});
 const version = await (await fetch(new URL('/version.json', base))).json();
 if (!String(version.build).startsWith(`${pin.slice(0, 7)}-`)) throw new Error('Preview differs from the supplied source pin');
-const shards = ['driftwood-isle', 'nalati-grasslands', 'pine-hollow', 'nine-dragon-stack', 'far-reach', 'sunscar-dunes', '_template', 'open-plot-night-market'];
+const allShards = ['driftwood-isle', 'nalati-grasslands', 'pine-hollow', 'nine-dragon-stack', 'far-reach', 'sunscar-dunes', '_template', 'open-plot-night-market'];
+const shards=arg('shards')?.split(',')??allShards;
+if(new Set(shards).size!==shards.length||shards.some(shard=>!allShards.includes(shard)))throw new Error('Unknown or duplicate requested shard');
+const spawnOnly=process.argv.includes('--spawn-only');
 /** @type {{protocol:string,pin:string,version:unknown,complete:boolean,rows:object[],grid:object[],errors:string[],limits:object}} */
 const result = {protocol:'tile-plan-chromium/1',pin,version,complete:false,rows:[],grid:[],errors:[],limits:{
   tools:Object.fromEntries(['tile-plan-reading.mjs','tile-plan-page.mjs','tile-retirement-proof.mjs','frame-floor-grid.mjs'].map(path=>
     [path,createHash('sha256').update(readFileSync(new URL(path,import.meta.url))).digest('hex')])),
+  shards,spawnOnly,sourceRepairOf:arg('source-repair-of')??null,
   device:'iPhone 16 Pro',tier:'phone',cpu:4,renderScale:2,spawnSettleFrames:120,frameSampleMs:8000,
   whole:'Declared unique fine-file dependency closure, not a restored whole-cell renderer or measured native RAM.',
   memory:'GL capacities, scene backing/ledger capacities, allocator claims and process footprints remain separate.',
@@ -114,7 +118,9 @@ async function ready(page){
   const error=await page.locator('#wserr .msg').textContent({timeout:100}).catch(()=>null);if(error)throw new Error(error);
   await page.evaluate(FLOOR_GRID_ENTER);
   await page.waitForFunction(()=>window.__wildshard.world?.hud.entered&&!window.__wildshard.world.hud.paused&&window.__wildshard.world.game.frameGate());
+  const controlsAt=Date.now();
   await page.evaluate(`new Promise((resolve,reject)=>{const game=window.__wildshard.world.game,start=game.frameCount,until=performance.now()+30000;const tick=()=>{if(game.frameCount-start>=120)resolve(true);else if(performance.now()>until)reject(Error('Spawn frames did not advance'));else requestAnimationFrame(tick);};requestAnimationFrame(tick);})`);
+  return controlsAt;
 }
 /** @param {import('playwright').Page} page @param {string} label */
 async function sample(page,label){
@@ -131,19 +137,26 @@ try{
     const visit=await open(ring,'resident'),label=`${shard}-${ring}`;
     try{
       const source=await declaration(shard);
-      await visit.page.goto(base,{waitUntil:'load'});
-      await visit.page.locator('.ws-main-select').click();
-      const name=shard==='open-plot-night-market'?'Night Market':loadingShardName(shard);
-      await visit.page.locator('.ws-menu-card b').first().waitFor();
-      const titles=await visit.page.locator('.ws-menu-card b').allTextContents();
-      const matches=titles.flatMap((title,index)=>title.toLowerCase().includes(name.toLowerCase())?[index]:[]);
-      const selected=matches[0];if(matches.length!==1||selected===undefined)throw new Error(`Missing or ambiguous card ${name}`);
-      await visit.page.locator(`.ws-menu-dots i[data-i="${selected}"]`).click();
-      await visit.page.locator(`.ws-menu-card.selected[data-i="${selected}"]`).waitFor();
-      const compiled=visit.page.locator('.ws-menu-shardfile');
-      if(!await compiled.isVisible()||!await compiled.isEnabled())throw new Error(`Missing compiled entry ${name}`);
-      await compiled.click();
-      await ready(visit.page);const reading=await sample(visit.page,label),state=reading.state;
+      let tapAt=Date.now(),entry='observed SHARDFILE button';
+      if(shard==='open-plot-night-market'){
+        // This declared compiled-only manifest is intentionally absent from SHARD SELECT.
+        entry='declared compiled-only chunk route (hidden selector card)';
+        await visit.page.goto(new URL('/?chunk=open-plot-night-market&mute=1&nolock=1&sw=0',base).href,{waitUntil:'load'});
+      }else{
+        await visit.page.goto(base,{waitUntil:'load'});
+        await visit.page.locator('.ws-main-select').click();
+        const name=loadingShardName(shard);
+        await visit.page.locator('.ws-menu-card b').first().waitFor();
+        const titles=await visit.page.locator('.ws-menu-card b').allTextContents();
+        const matches=titles.flatMap((title,index)=>title.toLowerCase().includes(name.toLowerCase())?[index]:[]);
+        const selected=matches[0];if(matches.length!==1||selected===undefined)throw new Error(`Missing or ambiguous card ${name}`);
+        await visit.page.locator(`.ws-menu-dots i[data-i="${selected}"]`).click();
+        await visit.page.locator(`.ws-menu-card.selected[data-i="${selected}"]`).waitFor();
+        const compiled=visit.page.locator('.ws-menu-shardfile');
+        if(!await compiled.isVisible()||!await compiled.isEnabled())throw new Error(`Missing compiled entry ${name}`);
+        tapAt=Date.now();await compiled.click();
+      }
+      const controlsAt=await ready(visit.page);const reading=await sample(visit.page,label),state=reading.state;
       if(!state||state.lost||state.tier!=='phone'||state.scale!==2||state.clock!=='live'||!state.controls)throw new Error('Invalid phone/controls/context profile');
       const expected=shard==='_template'?'template':shard;
       if(state.level.replace(/^_/u,'')!==expected.replace(/^_/u,''))throw new Error(`Wrong world identity ${state.level}`);
@@ -158,12 +171,12 @@ try{
       if(effectiveRing!==null&&effectiveRing!==ring)failures.push('Effective ring Debug choice differs');
       if(actual.length>(ring==='3x3'?9:25))failures.push('Render tile ring exceeds selected limit');
       if(reading.overlay.rects.length===0||reading.overlay.labels.length===0)failures.push('No actual T5 border/MB paint');
-      result.rows.push({shard,ring,effectiveRing,entry:'observed SHARDFILE button',...reading,declared:{resident,wholeFine:source.wholeFine,rowResident:rows.reduce((n,t)=>n+t.decoded+t.gpu,0)},failures});
+      result.rows.push({shard,ring,effectiveRing,observedTapToControlsMs:controlsAt-tapAt,entry,...reading,declared:{resident,wholeFine:source.wholeFine,rowResident:rows.reduce((n,t)=>n+t.decoded+t.gpu,0)},failures});
     }catch(error){result.rows.push({shard,ring,failures:[String(error),...visit.errors]});result.errors.push(`${label}: ${String(error)}`);}
     finally{await visit.context.close();write();}
   }
   // The same road source/setting, one resident reference then one streamed cohort.
-  for(const road of /** @type {const} */(['resident','tiles'])){
+  for(const road of spawnOnly?[]:/** @type {const} */(['resident','tiles'])){
     const visit=await open('5x5',road);
     try{
       await visit.page.goto(floorGridBenchmarkUrl(base),{waitUntil:'load'});await visit.page.locator('.ws-main-grid').click();

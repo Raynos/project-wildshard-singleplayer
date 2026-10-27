@@ -233,18 +233,18 @@ browsers and the owned preview are closed; no Sim was used.
 
 | Row | What | Code | Lane | Size | Done when (measured) | Deps |
 |---|---|---|---|---|---|---|
-| T0 | Census: each shard's entered world split into tile-local and shard-global MB (DW, Nalati, Pine, Nine, Sky) | glbytes census + allocator claims | Codex | 0.5 d | done (2026-10-24, sp-x8): pre-implementation cost model above; CPU backing DW/N/P/Nine/Sky 41.74/40.84/78.57/44.41/20.22 MiB; bounded outside-5x5 0.01–2.69/1.93–6.77/0.87–7.19/0–0/0–0.62 MiB; unknowns retained; retirement proof T1/T3 | — |
+| T0 | Census: each shard's entered world split into tile-local and shard-global MB (DW, Nalati, Pine, Nine, Sky) | glbytes census + allocator claims | Codex | 0.5 d | done (2026-10-24, sp-x8): pre-implementation cost model above; CPU backing DW/N/P/Nine/Sky 41.74/40.84/78.57/44.41/20.22 MiB; bounded outside-5x5 0.01–2.69/1.93–6.77/0.87–7.19/0–0/0–0.62 MiB; unknowns retained; retirement proof T1/T3  Plan-end Chromium current-share ranges (5f1/bc0): observed GPU25.48–212.49 MiB, scene CPU2.19–54.73 MiB; unknown GPU0–41.25 MiB retained. Per-shard values below; Nalati/Nine unavailable, no causal savings or native-budget PASS. | — |
 | T1 | Leak-free disposal: finish O18 (sp-o3); ghost counter per tile and region scope | `grid/live.ts`, new `grid/ghosts.ts` | Codex | 1 d (+ sp-o3) | **done (2026-10-24, sp-x9; G710 settled sample):** 196 observed tile lifetimes / five returns; settled R4→R5 +10.62 MB, ghosts 0/0; old warm-up-baseline grade remains FAIL as detailed below | sp-o3 |
 | T2 — done (2026-10-27, sp-o4; G790 as written): the host is `engine/world/tileStreamer` (moved there by `30dcc15182`, named so rather than tileResidency), rings.ts its first user and deleted there, clientWorld.ts folded into `game/shardfile/tileContent` by `c2a06d82e6` (-277 net lines); rectangles of any size, full N x N ring (`setFullRing`) + coarse L1 / far ring, parent-first, no holes, hysteresis cache, per-frame uploads / bytes / ms, scope + lease per tile (`scopedTilePorts`), road and junction kinds; host bar 6 / 6 (docs/HOST-BAR.md, Audits); the original 1 km trace holds (`test/tile-streamer.test.ts`) and a 5 x 5 full ring on that drive keeps <= 25 fine tiles a cell with 0 holes (this commit) | Engine tile residency host (`engine/world/tileResidency`): rect tiles of any size, N×N full ring + coarse ring, parent-first, no holes, hysteresis, per-frame bytes and ms budget, scope + lease per tile. `rings.ts` and `clientWorld.ts` become users (net deletion); road and junction tile types | `game/grid/rings.ts`, `shardfile/clientWorld.ts`, `residency.ts` | Codex | 2 d | host-bar six tests; Node 1 km drive: resident ≤ 25 + ring, 0 hole frames; same trace as today at 150 m | — |
 | T3 | Per-tile content: placements bucketed by pose (no rebake) into per-model instance ranges; welds / merged / baked sets by triangle centroid; registry colliders per tile scope | `worldScenes.ts`, `worldScenePlacement.ts`, `bakedTiles.ts`, `sdk/bake/worldGlb.ts` | Codex + Opus | 3 d; **in flight, reading at plan end** (2026-10-27): graphical half landed: placements one draw per model with per-tile ranges `c7fea585c9` + `05f36994af` + collider fix `f0b26c3831` (sp-o1), welds by tile `160b8c4bb4` and baked sets + collider scope `5df7f9f615` (sp-o5), on T3.I `06d63e5b21`; non-graphical placement buckets sp-x1. **Row-end proof** (iPhone 16 Pro, phone tier, 60 frames once draws held 3 s; before = deployed pin `653f0abe85`, after = `5f1eadb19e`): DW draws spawn 253-372 → 257-338, beach 266-363 → 270-367, wreck 78-129 → 78-129 (minimum +1.6 / +1.5 / 0 %, inside ±10 %), triangles within the same spread; 5 × 5 spawn, beach and wreck frames match (no weld or baked tile missing; only clouds and the new minimap tile overlay differ). Walk baseline on `f0b26c3831`: DW 8 legs 0 stuck twice (bridge end 12.243 / 12.298 against 12.289; the first run on `5f1eadb19e` stuck the bridge once, drawn-hull tile colliders, fixed in `f0b26c3831`). Pine legs not run: Pine fails to load on HEAD ('Missing admitted raw return module loan', routed to sp-ci-deploy) | DW draw count ±10 % of today at the same pose; no visual diff in the 5 × 5 | T2 |
-| T4 | The entered world streams (H3 generalised, joined with sp-o1): shard-global state + rank-0 tiles before controls, the rest via T2; SHARD SELECT and grid | `grid/liveSession.ts` `enterInitialHome`, `shardfile/client.ts` | Codex (sp-x2, G708) | ≤1 h slices below | **done (latest path qualifications):** grid30f cold/warm9.899/12.478s,45/41ms worst; compiled730f cold/warm7.108/7.424s,81/96ms worst, PASS100ms. Pins differ and one cohort each supplies no causal gain claim; no standalone M1 exists for a percentage claim. | T2, T3 |
-| T5 — reopened by G775 (Jake: build as written: overlay + 3x3/5x5/whole Debug row); in flight (reading at plan end, G780). **T5.1** code landed (sp-o5, this commit): Developer ▸ Debug ▸ Performance ▸ Tile residency (5 x 5 shipped / 3 x 3 / whole cell, a reload; `tileRing()`); **T5.2** done (sp-o5, this commit): with Developer on, a SHARD SELECT world's minimap shows every tile border, the resident render ring (green) and collider 3 x 3 (amber), and each tile's declared MB (`tileOverlay.ts`, `Minimap.setDebugExtras`); **T5.3** done (sp-o5, this commit): the same borders and resident ring on a grid page's entered cell (`GridSession.tileOverlayState`), and each resident tile's declared MB from the entered cell's admitted product (sp-o2, this commit) | Debug row "Tile residency: 3 × 3 / 5 × 5 / whole shard" (A/B/C, E451) and a Developer overlay (tile borders, resident colour, MB per tile) | Settings Debug, minimap | Opus | 0.5 d | Jake can feel it on Driftwood (first playable slice: T2 + T3 (DW only) + T4 + T5) | T4 |
+| T4 | The entered world streams (H3 generalised, joined with sp-o1): shard-global state + rank-0 tiles before controls, the rest via T2; SHARD SELECT and grid | `grid/liveSession.ts` `enterInitialHome`, `shardfile/client.ts` | Codex (sp-x2, G708) | ≤1 h slices below | **done (latest path qualifications):** grid30f cold/warm9.899/12.478s,45/41ms worst; compiled730f cold/warm7.108/7.424s,81/96ms worst, PASS100ms. Pins differ and one cohort each supplies no causal gain claim; no standalone M1 exists for a percentage claim.  Plan-end control observations on repairedbc0: Pine18.941/18.511s; compiled-only Night Market6.464/6.088s (3x3/5x5). These are fresh-context first-observed control walls, not warm crossings. Nalati/Nine readiness unqualified; no new T4 milestone PASS. | T2, T3 |
+| T5 — reopened by G775 (Jake: build as written: overlay + 3x3/5x5/whole Debug row); in flight (reading at plan end, G780). **T5.1** code landed (sp-o5, this commit): Developer ▸ Debug ▸ Performance ▸ Tile residency (5 x 5 shipped / 3 x 3 / whole cell, a reload; `tileRing()`); **T5.2** source landed, runtime reopened (sp-o5, this commit): with Developer on, a SHARD SELECT world's minimap shows every tile border, the resident render ring (green) and collider 3 x 3 (amber), and each tile's declared MB (`tileOverlay.ts`, `Minimap.setDebugExtras`); **T5.3** source landed (sp-o5, this commit): the same borders and resident ring on a grid page's entered cell (`GridSession.tileOverlayState`), and each resident tile's declared MB from the entered cell's admitted product (sp-o2, this commit) | Debug row "Tile residency: 3 × 3 / 5 × 5 / whole shard" (A/B/C, E451) and a Developer overlay (tile borders, resident colour, MB per tile) | Settings Debug, minimap | Opus | 0.5 d | Jake can feel it on Driftwood (first playable slice: T2 + T3 (DW only) + T4 + T5)  Plan-end: DW clipped paint18/24 rectangles +2 labels, Pine18/24 +1; Sky/Signal/Template/Night Market0/0 despite resident fine tiles. Generic data-world telemetry source fixedf1222a6cfd; both reading pins predate it, so this remains in flight. | T4 |
 | T6 | Creatures, NPCs and figures by tile: presentation in resident tiles; brains global, dormant outside 5 × 5; patrols that cross tiles hand over | population, quest figures | Codex | 1.5 d | DW boar / captain fights unchanged; memory drops by its T0 share | T3 |
-| T7 — in flight (G782 reading completed; misses open; source `d27bab4e35`, `17a5b1a5c0`, `7a06597f33`, `e38c4ef905`; retained controls `4dbf4b1160`); G780 `5f1eadb19e` reading completed, G782 still open (three cold/warm runs below) | Crossings by tiles: neighbour region = small state; tiles by distance; the source evicts behind the player; delete whole-world `warmAhead` and the 4-world cap | `grid/live.ts`, `liveSession.ts`, `hybrid.ts` | Opus + Codex | 2.5 d | DW↔Sky ×5 on Chromium phone tier: peak ≤ 1.2 GB per shard, back to baseline ±20 MB, every crossing under 5 s warm and under 8 s cold (G782; was < 5 s), worst frame ≤ 100 ms | T1, T4, T6 |
+| T7 — in flight (G782 reading completed; misses open; source `d27bab4e35`, `17a5b1a5c0`, `7a06597f33`, `e38c4ef905`; retained controls `4dbf4b1160`); G780 `5f1eadb19e` reading completed, G782 still open (three cold/warm runs below) | Crossings by tiles: neighbour region = small state; tiles by distance; the source evicts behind the player; delete whole-world `warmAhead` and the 4-world cap | `grid/live.ts`, `liveSession.ts`, `hybrid.ts` | Opus + Codex | 2.5 d | DW↔Sky ×5 on Chromium phone tier: peak ≤ 1.2 GB per shard, back to baseline ±20 MB, every crossing under 5 s warm and under 8 s cold (G782; was < 5 s), worst frame ≤ 100 ms  Called plan-end5f1 cohort: both road modes refused initial home seed streaming at120s before any crossing/census. Zero measured legs; cold8s/warm5s,100ms and memory-return gates remain unqualified. Routed sp-x8; no retry. | T1, T4, T6 |
 | T7.1 — superseded by T7.7–T7.10 ( source `379647e12b` + `e5f73af853`) | Approach declared tiled destinations through the existing render scheduler, pinning only their entry ring. No regional constructor or entered-root replacement on a guess. Abort the pin on redirect, distant departure, owner retirement or completed entry. While pinned, the whole-near fallback permits fine refinement; masks still cover partial parents. Releasing the final pin restores its old refinement policy, and registration disposal releases all pins. Actual demand retains all runtime/save/collider/readiness gates. T7.7–T7.10 remove every speculative whole-world constructor, paired-world budget port and the four-product selection cap; neighbour preparation owns tiles only. | `grid/live.ts`, `liveSession.ts`, `session.ts`, `shardfile/tileContent.ts` | sp-x8 | bounded slice | types + typed lint + scoped ratchet clean; full ratchet stops on D37; D47 fixed `15f149539c`; cause-fixed preview `8422baac07` passes generation then refuses new Nine coarse L1 debt (`82ac81812d`, sp-o5), zero browser samples; runtime/G782 qualification still blocked | T2, T4, T6 |
-| T8 | Every shard on tiles, all seven as written (G790: Nalati, Pine, Nine, Sky, Sunscar, open plots, template); complete grid plus bounded tile costs and fine-file ownership | shard generators / shared SDK tile producer | sp-x2 / sp-x10 / sp-o3 / sp-o5 | ≤1h slices | **in flight (2026-10-27):** the old four-tile split is not done merely because metadata now has64L0. Current audit below: Pine wire cut in this commit; Nine dense L0 work sp-o3; Sky whole fine-library ownership sp-x10; open-plot cost/draw work sp-x2. Nalati/Sunscar/Template retained64/16 grids have no cap debt, not fresh runtime qualification. Preserve Driftwood B and its exact6/4 exception; D87 lossless coarse repair b80fee8ea6 is separate. No previews/readings until plan end (G780). | T3 |
+| T8 | Every shard on tiles, all seven as written (G790: Nalati, Pine, Nine, Sky, Sunscar, open plots, template); complete grid plus bounded tile costs and fine-file ownership | shard generators / shared SDK tile producer | sp-x2 / sp-x10 / sp-o3 / sp-o5 | ≤1h slices | **in flight (2026-10-27):** the old four-tile split is not done merely because metadata now has64L0. Current audit below: Pine wire cut in this commit; Nine dense L0 work sp-o3; Sky whole fine-library ownership sp-x10; open-plot cost/draw work sp-x2. Nalati/Sunscar/Template retained64/16 grids have no cap debt, not fresh runtime qualification. Preserve Driftwood B and its exact6/4 exception; D87 lossless coarse repair b80fee8ea6 is separate. No previews/readings until plan end (G780).  Plan-end measured6/8 families at both ring choices: DW6/15, Pine6/15, Sky8/14, Signal9/25, Template9/25, Night Market9/25 observed render keys (edge-clipped actual scopes, not proof of every expected key). Nalati/Nine unavailable. Declared resident closures and whole-fine comparisons below; no all-seven runtime PASS. | T3 |
 | T9 | G638 picked A: 62.5 m gap, pitch 562.5; asphalt unchanged at 15 m, side strips 23.75 m, seams/junction/routes follow the lattice | strips, roadLook, roadLayout, config | Codex (sp-x6) | 2 d | **done** (2026-10-24): runtime `ae2dca27dc`; native 15/30 m/s peer routes each 4 crossings / 0 stuck; labelled phone road/junction witnesses; current-origin `57d1344dc1` EWNS held walks all complete / 0 stuck / gates open. [Compact receipts](../../../progress/shard-platform/tile-streaming/t9-lattice.md); T1 retirement and T10 broader milestone stay separate | T2 |
-| T10 — in flight (reading at plan end; G780), source `45086a7db8` | Delete the whole-shard loading path after all-seven T8: no missing-L1 permanent fine coverage and no Whole cell Debug choice | tileContent.ts, tileResidency.ts, debugOptions.ts, strings.ts | sp-x2 | eight files | Coarse parents cover the world; bounded3×3/5×5 fine rings, overlay and coarse/far landmarks remain. Engine/game types, scoped registration-fixture types and touched typed lint pass. Frozen LEGACY untouched. The one final Simulator/soak reading remains at the plan end (G780), not a pre-land gate or new PASS claim. | T8 |
+| T10 — in flight (reading at plan end; G780), source `45086a7db8` | Delete the whole-shard loading path after all-seven T8: no missing-L1 permanent fine coverage and no Whole cell Debug choice | tileContent.ts, tileResidency.ts, debugOptions.ts, strings.ts | sp-x2 | eight files | Coarse parents cover the world; bounded3×3/5×5 fine rings, overlay and coarse/far landmarks remain. Engine/game types, scoped registration-fixture types and touched typed lint pass. Frozen LEGACY untouched. The one final Simulator/soak reading remains at the plan end (G780), not a pre-land gate or new PASS claim.  Plan-end: observed ring sizes stay at most9/25; deletion source remains landed. Missing Nalati/Nine and T7/S3.7 observations prevent final qualification. No Simulator or soak clearance; G606 paths untouched. | T8 |
 | T11 (stays open, G775; G761 had closed it because Pine and Nalati draw far content whole) | **in flight (reading at plan end, G780):** code `325c4e38db` + `8bfa934fe4` (sp-o5): Pine's crag cliff, boulder and scree places tile with a coarse copy drawn beyond the ring up to its edge; the crag skin and the waterfall and streams draw whole, so they never leave. The Pine spawn 5 × 5 reading waits on a HEAD preview (D41). Far landmarks survive the ring: authored landmarks beyond the N×N ring (Pine crag spires, waterfall) draw a coarse stand-in from their LOD / impostor in the coarse ring, evicted only at its edge (found by sp-o1 at 5 × 5, 10-23) | tile residency, landmark LODs | Opus sp-o1 | 0.5–1 d | Pine spawn view at 5 × 5 shows the spires and waterfall | T2 |
 
 ### RM8.1 quantized authored tiles (2026-10-26, sp-x2)
@@ -822,7 +822,7 @@ A neighbour shard is only scene-graph level of detail (far proxy → L1 → L0 t
 | S3.4 Scoped road residency consumer | source landed `b5e24085ae`, activation next | One indexed material draw joins only resident compact tiles, preserves every per-bin LOD and drops old plan/native buffers on replacement. Scope cleanup removes just its owned generation; no whole-road arrays retained by the pool. Existing TileStreamer/scopedTilePorts handle bounded reads/publication/cancellation, actual road/junction types and shared platform-owner budget, including explicit replacement working bytes; no invented parents or zero-cost claims. Source namespaces prevent independently prepared road pieces borrowing an allocator identity; existing initial/outer builds now use distinct allocation namespaces. Game production/test types, six-path typed lint and exact scoped ratchet pass with unchanged scratch baseline. Required whole-tree ratchet remains foreign debt (D53); three source-only pool cases, no executed tests/readings. Runtime archive capture/activation still open; no saving/seam claim. |
 | S3.5 Archive capture and runtime handoff | in flight (reading at plan end), source landed `58badebecd` | Capture each detached road material on the62.5m lattice before first GPU upload; bounded compaction flushes one durable write before construction advances. Seal after both road halves, reveal the admitted ring, dispose whole-road buffers, then shrink their old claims to shared texture bytes. Per-tile scopes own eviction/reload; pools retain source shadow/order and one indexed draw/material. Run once per drawn view with clamped travel velocity. Developer Debug Road residency compares resident/current with tiles; default remains resident pending final reading, optional implementation loads lazily. Module-scoped native cleanup callbacks avoid retaining whole construction environments. Engine/game production+test types, twelve-path typed lint and exact scoped ratchet pass (same allowance counts, live baseline untouched); full-tree debt D53 remains. Two source-only shrink/refusal cases added; no tests/builds/readings underG769, no measured saving/closure claim. |
 | S3.6 Coarse road parents and bounded handoff | in flight (reading at plan end), source landed `c2f248e33e` | Group62.5m patches into125m parents from the existing first road LOD, preserving four independent quadrant runs. Archive v2 keeps their identity/spheres/scalar bytes; one pooled material draw supports per-bin LOD and immediate parent mask flags without geometry reallocation. Reuse native parent holds/count/byte policies. Pin at most40 fine and32 coarse initial requests, then retire the old geometry only after those ready promises settle; release requirements on handoff/retirement. Default Resident keeps the old centred clipping; only the streamed Debug variant uses62.5m clipping/backing. Game production/test types and twelve-path typed lint pass. Three source-only parent/mask/negative-coordinate cases added; positive sphere fixtures now use valid finite radii without changing any assertion/guard. Required full/scoped ratchet attempted with exact HEAD policy, but D37 pre-count fails on a concurrently retired Pine lookout path outside this scope; unavailable check skipped, live policy untouched. No tests/builds/readings or saving/seam claim underG769. |
-| S3.7 Plan-end reading | open; source complete, reading blocked before browser | Retain historical c2f/291c refusals. Defining D87 repair `b80fee8ea6` packs the same Driftwood coarse geometry losslessly; its pinned preview passes generation/tile admission then refuses Nalati config Node/compiler imports (4.88s). Defining weather module resolution repair `0a00371960` clears that config closure; the existing same-pin sp-x8 preview then refuses Nalati `_os.platform is not a function` (3.88s, D89). Our borrower request did not start a second build or browser. No unchanged retry, resource hold, browser/Simulator samples, road saving/seam/frame verdict or T10 acceptance. Keep default Resident and all caps; sp-x6 owns the routed build capability boundary. |
+| S3.7 Plan-end reading | in flight; called Chromium cohort blocked at initial staging | Actual5f1 shared4402 cohort ran both Resident and Tiles road modes once. Both refused seedTileRetirementHome at unchanged120s before baseline census or measured travel. Platform claims, process delta, seams, cold/warm crossing walls and return-to-baseline are unavailable, not zero. T7 owner sp-x8 received exact raw failure; no rerun/Simulator/GC/default change. Historical D87/D89/D96 preview refusals stay retained below. |
 
 ## Far-view quality (Jake, 2026-10-23: *"When we try the low detail stuff, it just looked like shit … when we made it render everything, then all of a sudden it looked good"*)
 
@@ -1067,3 +1067,112 @@ and its zero-overlay evidence remains retained.
 DW/Sky pin `5f1eadb19e`, Pine/Nalati repair pin `bc0c7cf54f`, phone4x, iPhone16Pro/DPR2/muted: DW: cold 16.482/15.518/17.170s; warm 13.534/13.384/16.067s; Sky: cold 24.668/24.946/26.716s; warm 20.366/22.767/22.297s; Pine: cold 35.665/36.115/35.845s; warm refused×3 (no commit); Nalati: cold refused×3 (no commit); warm refused×3 (no commit).
 
 T7 source remains built; G782 acceptance stays open. The complete paired table, frame intervals and top three preparation/long-frame windows are in [grid-crossing](grid-crossing-mini-plan.md#g780--g782-plan-end-reading--5f1eadb19e-2026-10-27-sp-x8). Pine/Nalati use the separately recorded bc0c7cf54f repair pin; the old D97 and Nalati fetch refusals remain historical, with no failed cold entry called priming. No timeout, resident guard or visibility/source fence change; no Simulator or isolated-gain credit. Independent x2 Resident/Tiles retirement seeds on5f1 both refuse at120s before legs/census (tmp/sp-x2/tile-plan-reading/reading-5f1/reading.json); eviction proof stays unqualified, not0ms/0MB.
+
+
+### Called plan-end Chromium result (2026-10-27, sp-x2)
+
+**In flight, not plan PASS.** The original full cohort finished on
+`5f1eadb19e95c38e376efaecd1e86ad4b8e48553` (shared4402). It attempted
+all16 spawn rows, measured8, and retained8 unavailable rows. After the
+coordinator supplied defining Pine D97 repair pin
+`bc0c7cf54f8529d6923584e4f57d0fa79dca66c2` (shared4403), only the
+unavailable Pine/Nalati rows continued. Pine measured both; Nalati again
+refused readiness at120s. Nine was explicitly skipped on bc0 because it
+predates its defining2d0cabc1c6 fix. Night Market's original selector attempts
+never entered it: its declared compiled-only title is hidden from SHARD
+SELECT. Correcting the reader to its existing chunk entry route supplied
+its first actual two spawn measurements on the same bc0 borrow.
+
+All visits retain iPhone16Pro, phone tier,4xCPU,2x render, muted Chromium,
+120 drawn settle frames and an8s rAF sample. Fresh contexts use the chosen
+3x3/5x5 Debug setting; the global effective-setting probe is absent on these
+pins, so observed key counts support bounded ownership, not a complete
+expected-set/no-holes proof. Native-driver and data-world collider scope
+counts below are observed names: data-world0 is unavailable collider
+telemetry, not evidence of no physics. The original reader's absent-global-
+row mismatch remains a reader diagnostic in raw failures, not an app fault.
+
+T4 first-observed controls on bc0: Pine18.941/18.511s and Night
+Market6.464/6.088s (3x3/5x5). Pine misses15s cold; these fresh-context
+observations do not qualify warm crossing5s. Original5f1 did not retain
+this wall; it cannot be reconstructed from the later census. No unchanged
+successful DW/Sky/Signal/Template row was repeated.
+
+T0/T8 cost and capacity observations (MiB); R/C are observed render/collider
+scope counts. **Declared closure** counts each admitted fine dependency
+once; **whole-fine** is the declared all-L0 dependency closure, not a
+restored whole renderer or a native memory saving. GL allocation capacity,
+scene CPU backing and renderer+GPU private footprints remain separate.
+
+| Pin | Shard | Ring | R/C | Declared closure / whole-fine | GL capacity | Scene CPU backing | Renderer+GPU footprint | Worst / p95 ms | T5 rects / labels |
+|---|---|---|---|---|---|---|---|---|---|
+| 5f1 | driftwood-isle | 3x3 | 6/6 | 0.89/18.12 | 146.12 | 43.78 | 1508.86 | 66.7/50.1 | 18/2 |
+| 5f1 | driftwood-isle | 5x5 | 15/6 | 2.72/18.12 | 146.12 | 43.78 | 1480.60 | 50.1/50.0 | 24/2 |
+| 5f1 | far-reach | 3x3 | 8/0 | 1.36/2.76 | 121.94 | 19.49 | 1228.32 | 50.1/50.1 | 0/0 |
+| 5f1 | far-reach | 5x5 | 14/0 | 1.75/2.76 | 122.10 | 19.67 | 1171.25 | 66.7/50.1 | 0/0 |
+| 5f1 | sunscar-dunes | 3x3 | 9/0 | 1.29/9.16 | 95.94 | 7.00 | 1123.68 | 16.8/16.7 | 0/0 |
+| 5f1 | sunscar-dunes | 5x5 | 25/0 | 3.58/9.16 | 96.72 | 7.48 | 1148.93 | 16.8/16.8 | 0/0 |
+| 5f1 | _template | 3x3 | 9/0 | 1.85/12.51 | 25.48 | 2.19 | 847.44 | 33.4/16.8 | 0/0 |
+| 5f1 | _template | 5x5 | 25/0 | 5.05/12.51 | 26.53 | 3.11 | 846.52 | 33.3/16.8 | 0/0 |
+| bc0 | pine-hollow | 3x3 | 6/6 | 70.28/81.30 | 212.06 | 53.52 | 1747.96 | 66.8/66.7 | 18/1 |
+| bc0 | pine-hollow | 5x5 | 15/6 | 71.72/81.30 | 212.49 | 54.73 | 1621.72 | 99.9/66.7 | 24/1 |
+| bc0 | open-plot-night-market | 3x3 | 9/0 | 17.59/58.95 | 30.19 | 5.37 | 855.71 | 33.4/16.8 | 0/0 |
+| bc0 | open-plot-night-market | 5x5 | 25/0 | 32.11/58.95 | 35.95 | 11.93 | 884.35 | 33.4/16.8 | 0/0 |
+
+T0 observed GL share (MiB), same-source spawn classification; single-node
+buffers are candidates, not removable bytes. Ocean/seabed buffers can be
+candidates because no explicit global-owner set was supplied. Unknowns
+remain explicit. RAM ledger is a capacity ledger, not physical process RAM.
+
+| Pin / shard / ring | Engine | Known global | Single-node candidate | Shared | Unknown | RAM ledger |
+|---|---|---|---|---|---|---|
+| 5f1/driftwood-isle/3x3 | 60.22 | 21.33 | 40.83 | 15.03 | 8.70 | 205.69 |
+| 5f1/driftwood-isle/5x5 | 60.22 | 21.33 | 40.83 | 15.03 | 8.70 | 183.18 |
+| 5f1/far-reach/3x3 | 31.61 | 0.00 | 11.80 | 43.34 | 35.19 | 102.90 |
+| 5f1/far-reach/5x5 | 31.61 | 0.00 | 11.96 | 43.34 | 35.19 | 83.19 |
+| 5f1/sunscar-dunes/3x3 | 22.56 | 0.00 | 5.94 | 48.57 | 18.87 | 81.47 |
+| 5f1/sunscar-dunes/5x5 | 22.56 | 0.00 | 6.72 | 48.57 | 18.87 | 84.99 |
+| 5f1/_template/3x3 | 22.10 | 0.00 | 2.47 | 0.91 | 0.00 | 13.09 |
+| 5f1/_template/5x5 | 22.10 | 0.00 | 3.52 | 0.91 | 0.01 | 14.43 |
+| bc0/pine-hollow/3x3 | 31.71 | 0.00 | 27.81 | 111.31 | 41.24 | 368.91 |
+| bc0/pine-hollow/5x5 | 31.71 | 0.00 | 28.10 | 111.43 | 41.25 | 259.74 |
+| bc0/open-plot-night-market/3x3 | 22.09 | 0.00 | 4.52 | 2.95 | 0.63 | 28.68 |
+| bc0/open-plot-night-market/5x5 | 22.09 | 0.00 | 10.01 | 2.95 | 0.90 | 35.45 |
+
+DW/Pine renderer+GPU footprints exceed1.2GiB, but these page/process totals
+include platform state and reused GPU process capacity; they do not isolate
+per-shard physical content. No per-shard1.2GB memory PASS is claimed.
+DW/Sky p95 about50ms and Pine66.7ms also do not demonstrate a30fps floor.
+The8s frame windows exclude the subsequent expensive census/dump; the saved
+HUD maxima include that instrumentation (Pine5x5 screenshot max1500ms).
+No soak, native-GC release, five-return retirement or Simulator verdict.
+
+T5 clipped viewport paint is positive only in DW/Pine. Data-world zero paint
+is a real missing readout binding, repaired generically in`f1222a6cfd` with
+scope-owned telemetry and explicit unavailable collider ownership. Both
+pins predate that repair; no post-fix browser was run. T6 brains/patrol
+handoff and T11 all-landmark parity are not proven by these spawn counts.
+
+T7/S3.7: both original Resident/Tiles road contexts refused initial home
+seed streaming at the unchanged120s fence. They never reached before/after
+census or a measured held-input crossing. Claims, road memory delta,
+seam/pixel handoff, cold8s/warm5s and baseline-return±20MB remain unavailable.
+The exact retained failure was routed to sp-x8; no route/road retry or
+zero-cost claim. Resident remains the default; source caps are unchanged.
+
+Original selector pageerrors are D100, mapped to host-blocked service
+worker registration resolving undefined. sp-ci-deploy fixed source83574a090e.
+A body-free Runtime observer attached only after2026-10-27T11:28:47.711Z
+and retained subsequent stacks; that interval is instrumented and supplies
+no isolated timing claim. It sent no Network/body/GC or app mutations.
+Nalati refusals are retained alongside owner-routed D106; readiness timeout
+alone does not prove that encoding cause. No duplicate damage row.
+
+Raw original:`tmp/sp-x2/tile-plan-reading/reading-5f1/reading.json`;
+repair:`tmp/sp-x2/tile-plan-reading/repair-bc0/reading.json`;
+first Night Market:`tmp/sp-x2/tile-plan-reading/night-market-bc0/reading.json`.
+Original loaded runner/page bytes and their receipt hashes match the saved
+`.used` copies. Offline Markdown reports retain raw failures and absent
+values. All owned browser/context/Inspector processes exited naturally;
+both distinct preview borrows released, peers' parent servers preserved.
+No new build, forced GC, official quiet or Simulator was started.
