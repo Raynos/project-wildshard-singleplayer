@@ -58,6 +58,9 @@ publishes layout, crown or palette JSON handoffs.
 
 ## Budgets
 
+`runtimeCost.json` is the single authored record of the dated measurements;
+source discovery carries budgets and capture poses without generated JSON.
+
 The template's inputs (phone 30 fps / 9.6 ms, desktop 60 fps / 4.8 ms); `ceilings` are the recorded ones in
 `budgetCeilings.ts`.
 

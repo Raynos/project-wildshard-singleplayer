@@ -2639,54 +2639,6 @@
       "platform": "portable"
     },
     {
-      "id": "sky-view-data",
-      "shard": "far-reach",
-      "entry": "src/shards/far-reach/generators/viewData.ts",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/far-reach/generators/viewData.ts",
-        "skyViewData",
-        "src/shards/far-reach",
-        "--files"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/shards/far-reach/generators/viewData.ts",
-        "src/shards/far-reach/generators/rows/budgets.ts",
-        "src/shards/far-reach/generators/rows/devPoses.ts",
-        "src/shards/far-reach/generators/rows/meadowLook.ts",
-        "src/shards/far-reach/generators/rows/windLook.ts",
-        "src/shards/far-reach/generators/rows/rayWakeLook.ts",
-        "src/shards/far-reach/data/budgetCeilings.json",
-        "src/engine/fx/effectField.ts",
-        "src/shards/far-reach/generators/layout.ts",
-        "src/shards/far-reach/data/strings.json",
-        "src/shards/far-reach/generators/rows/layoutTypes.ts"
-      ],
-      "outputs": [
-        "src/shards/far-reach/data/budgets.generated.json",
-        "src/shards/far-reach/data/runtimeCost.generated.json",
-        "src/shards/far-reach/data/devPoses.generated.json",
-        "src/shards/far-reach/data/meadow.generated.json",
-        "src/shards/far-reach/data/wind.generated.json",
-        "src/shards/far-reach/data/rayWake.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/far-reach/data/budgets.generated.json",
-        "src/shards/far-reach/data/runtimeCost.generated.json",
-        "src/shards/far-reach/data/devPoses.generated.json",
-        "src/shards/far-reach/data/meadow.generated.json",
-        "src/shards/far-reach/data/wind.generated.json",
-        "src/shards/far-reach/data/rayWake.generated.json"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "pine-hero-scenes",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-hero-scenes.mjs",

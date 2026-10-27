@@ -237,23 +237,21 @@
   "bindings": {
     "accent": "pink",
     "budgets": {
-      "module": "./data/budgets.generated.json",
-      "export": "default"
+      "program": true
     },
     "navigation": {
       "module": "./data/navigation.generated.json",
       "export": "default"
     },
     "runtimeCost": {
-      "module": "./data/runtimeCost.generated.json",
+      "module": "./runtimeCost.json",
       "export": "default"
     },
     "mapPalette": {
       "program": true
     },
     "poses": {
-      "module": "./data/devPoses.generated.json",
-      "export": "default"
+      "program": true
     },
     "audioCues": {
       "module": "./data/cues.json",

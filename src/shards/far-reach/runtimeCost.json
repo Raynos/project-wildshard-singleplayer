@@ -1,0 +1,17 @@
+{
+  "webContentMB": 641.55256,
+  "glMB": 180.34796,
+  "engineBaseMB": 299,
+  "residentBaseMB": 660.691638,
+  "rev": "b49135480be3997209baa933345d8b135c101951",
+  "device": "iOS Simulator Safari G257 max worst-pose minus pre-entry road, three cold runs",
+  "evidence": "progress/memory/g258-accounting/summary.json",
+  "imagesFirst": {
+    "webContentMB": 270.994576,
+    "glMB": 267.71368,
+    "engineBaseMB": 299,
+    "rev": "5357804745121cdda8f9492b62d3266244f4ac1b",
+    "device": "iOS Simulator iPhone 17 Pro Safari + desktop labelled GL census",
+    "evidence": "progress/memory/sf22a-runtime-homes-535780474/summary.json"
+  }
+}

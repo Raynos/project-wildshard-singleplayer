@@ -1,5 +1,5 @@
 import { RAY_WAKE } from './rows/rayWakeLook';
-import wind from '../data/wind.generated.json' with { type: 'json' };
+import { skyWindView } from './viewData';
 import { FAN_ROW } from './rows/equipment';
 import { clientPlanSection as parseClientPlan } from '@wildshard/sdk/platformSections';
 import { parsePersistedQuestPage } from '@wildshard/sdk/quests';
@@ -11,6 +11,7 @@ import STRINGS from '../data/strings.json' with { type: 'json' };
 import { SKY_RUNTIME_BOOT } from './rows/runtimeBoot';
 
 const { capture, ...quest } = parsePersistedQuestPage(skyQuestPage());
+const wind = skyWindView();
 /** Build-only lowering removes the old borrowed methods and owner paths. */
 const calls = { finish: { finish: true }, raise: { mover: 'far.winch.bridge', command: 3 } } as const;
 export const SKY_CLIENT_PLAN = parseClientPlan({ version: 1, features: [

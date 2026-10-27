@@ -1,5 +1,7 @@
 import { BufferAttribute, Group, InstancedBufferGeometry, InstancedInterleavedBuffer, InterleavedBufferAttribute, LOD, type Material, Mesh, Object3D, Sphere, Vector3 } from 'three';
-import MEADOW from '../../src/shards/far-reach/data/meadow.generated.json' with { type: 'json' };
+import { skyMeadowView } from '../../src/shards/far-reach/generators/viewData';
+
+const MEADOW = skyMeadowView();
 
 /**
  * The near meadow (loop 4): the baked blades (generators/meadowBlades.ts, world/baked.ts `skyMeadowBlades`) as one level
