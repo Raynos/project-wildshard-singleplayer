@@ -3,7 +3,7 @@ import { readFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { afterAll, expect, test } from 'vitest';
 import { pineGeneration } from './fixtures/pine-generation';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { prepareOutput } from '../src/shards/pine-hollow/generators/output';
+import { prepareOutput } from '../src/shards/pine-hollow/generators/sourceOutput';
 import original from './fixtures/pine-life-program.json' with { type: 'json' };
 
 const hash = '260eee8839d76af399fadc27a383c92ef8f75a0bbab154bce727d973d24e3594';

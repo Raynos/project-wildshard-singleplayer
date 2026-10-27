@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["pine-hollow/generators/outputInputs", "pine-hollow/generators/output"])test(`${name} emits isolated author declarations`,()=>{
+for(const name of ["pine-hollow/generators/outputInputs", "pine-hollow/generators/sourceOutput"])test(`${name} emits isolated author declarations`,()=>{
  const fileName=`src/shards/${name}.ts`;
  const emitted=ts.transpileDeclaration(readFileSync(fileName,'utf8'),{fileName,reportDiagnostics:true,
   compilerOptions:{strict:true,exactOptionalPropertyTypes:true,isolatedDeclarations:true}});
@@ -16,7 +16,7 @@ for(const name of ["pine-hollow/generators/outputInputs", "pine-hollow/generator
 
 test("Pine output declarations preserve named assets, mutable buffers and readonly file arrays",()=>{
  const consumer=resolve('src/shards/t4-pine-output-consumer.ts');
- let source="import {PINE_OUTPUT} from './pine-hollow/generators/outputInputs';\nimport {output,sections} from './pine-hollow/generators/output';\nexport const pool:string=PINE_OUTPUT.custom['custom/handsPool'].pool.url;\nPINE_OUTPUT.custom['custom/handsPool'].pool.url='another-named-pool';\nconst bow=PINE_OUTPUT.custom['custom/handsPool'].heldBow;\nbow.bow.arrow.maxStuck=10;\nconst blob=PINE_OUTPUT.blobs[0];\nif(blob!==undefined)PINE_OUTPUT.blobs.push(blob);\nconst produced=output.blobs[0];\nif(produced!==undefined)output.blobs.push(produced);\nconst first=output.namedFiles[0];\nif(first!==undefined){const hash:string=first.hash;void hash;first.hash='another-hash';}\nexport const modes=sections['state/modes'].modes;\n";
+ let source="import {PINE_OUTPUT} from './pine-hollow/generators/outputInputs';\nimport {output} from './pine-hollow/generators/sourceOutput';\nimport {PINE_MODES} from './pine-hollow/generators/zipline';\nexport const pool:string=PINE_OUTPUT.custom['custom/handsPool'].pool.url;\nPINE_OUTPUT.custom['custom/handsPool'].pool.url='another-named-pool';\nconst bow=PINE_OUTPUT.custom['custom/handsPool'].heldBow;\nbow.bow.arrow.maxStuck=10;\nconst blob=PINE_OUTPUT.blobs[0];\nif(blob!==undefined)PINE_OUTPUT.blobs.push(blob);\nconst produced=output.blobs[0];\nif(produced!==undefined)output.blobs.push(produced);\nconst first=output.namedFiles[0];\nif(first!==undefined){const hash:string=first.hash;void hash;first.hash='another-hash';}\nexport const modes=PINE_MODES;\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   noPropertyAccessFromIndexSignature:true,target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,
   moduleResolution:ts.ModuleResolutionKind.Bundler,types:['node'],allowArbitraryExtensions:true,skipLibCheck:true,noEmit:true};
@@ -29,7 +29,7 @@ test("Pine output declarations preserve named assets, mutable buffers and readon
   return program.getSemanticDiagnostics(file);
  };
  expect(diagnostics()).toEqual([]);
- source="import {PINE_OUTPUT} from './pine-hollow/generators/outputInputs';\nimport {output,sections} from './pine-hollow/generators/output';\nexport const pool:string=PINE_OUTPUT.custom['custom/handsPool'].pool.url;\nPINE_OUTPUT.custom['custom/handsPool'].pool.url='another-named-pool';\nconst bow=PINE_OUTPUT.custom['custom/handsPool'].heldBow;\nbow.bow.arrow.maxStuck=10;\nconst blob=PINE_OUTPUT.blobs[0];\nif(blob!==undefined)PINE_OUTPUT.blobs.push(blob);\nconst produced=output.blobs[0];\nif(produced!==undefined)output.blobs.push(produced);\nconst first=output.namedFiles[0];\nif(first!==undefined){const hash:string=first.hash;void hash;first.hash='another-hash';}\nexport const modes=sections['state/modes'].modes;\nPINE_OUTPUT.custom['custom/handsPool'].pool.url=2;\nbow.bow.arrow.maxStuck='many';\noutput.namedFiles.push;\nif(first!==undefined)first.hash=2;\nPINE_OUTPUT.custom['custom/handsPool'].missing;\nsections['state/modes'].missing;\n";
+ source="import {PINE_OUTPUT} from './pine-hollow/generators/outputInputs';\nimport {output} from './pine-hollow/generators/sourceOutput';\nimport {PINE_MODES} from './pine-hollow/generators/zipline';\nexport const pool:string=PINE_OUTPUT.custom['custom/handsPool'].pool.url;\nPINE_OUTPUT.custom['custom/handsPool'].pool.url='another-named-pool';\nconst bow=PINE_OUTPUT.custom['custom/handsPool'].heldBow;\nbow.bow.arrow.maxStuck=10;\nconst blob=PINE_OUTPUT.blobs[0];\nif(blob!==undefined)PINE_OUTPUT.blobs.push(blob);\nconst produced=output.blobs[0];\nif(produced!==undefined)output.blobs.push(produced);\nconst first=output.namedFiles[0];\nif(first!==undefined){const hash:string=first.hash;void hash;first.hash='another-hash';}\nexport const modes=PINE_MODES;\nPINE_OUTPUT.custom['custom/handsPool'].pool.url=2;\nbow.bow.arrow.maxStuck='many';\noutput.namedFiles.push;\nif(first!==undefined)first.hash=2;\nPINE_OUTPUT.custom['custom/handsPool'].missing;\nPINE_MODES.missing;\n";
  const refused=diagnostics().map(diagnostic=>diagnostic.code);
  expect(refused.filter(code=>code===2322)).toHaveLength(3);
  expect(refused.filter(code=>code===2339)).toHaveLength(3);

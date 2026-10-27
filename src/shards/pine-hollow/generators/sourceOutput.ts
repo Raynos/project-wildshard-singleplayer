@@ -54,7 +54,6 @@ import { parseWeatherProgram } from '@wildshard/format/weatherProgram';
 import { KING_DECISION, KING_MOVES } from './kingDecision';
 import { KNIFE_LOOK } from './knifeLook';
 import toolPlayback from '../data/heldToolPlayback.json' with { type: 'json' };
-import { PINE_MODES } from './zipline';
 import { contractCatalogue } from './contractRows';
 import { ContractCatalogueSchema } from '@wildshard/format/contracts';
 import { PanelDefinitionSchema } from '@wildshard/format/panelTemplate';
@@ -68,7 +67,8 @@ import { PINE_QUEST_SERVICES, PINE_MILL_DOOR } from './questConsequences';
 import {emitDefinedSections} from '@wildshard/sdk/sections';
 import {isJsonData} from '@wildshard/format/json';
 import {SECTIONS,WIRE_SCHEMAS,CabinAmbienceSchema,CabinSeedsSchema,parseFloorRows,PoolGroundSchema,PinePhysicsSchema} from './sectionSchemas.generated';
-import { nameBlob, emitNamedBlobs, type BlobSourceOptions } from '@wildshard/sdk/blobs';
+import { nameBlob, emitNamedBlobs, type BlobSourceOptions, type NamedBlobKind } from '@wildshard/sdk/blobs';
+import type { ProjectOutput } from '@wildshard/sdk/projectOutput';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { parseAchievementCounterData, AchievementCounterDataSchema } from '@wildshard/format/achievementCounters';
@@ -105,6 +105,14 @@ const grazers = grazerRows();
 /** Preserve logical names and tier selection while packing named geometry losslessly. */
 function meshoptSource<T extends { kind: string; options?: BlobSourceOptions }>(row: T) {
   return row.kind === 'glb' ? { ...row, options: { ...row.options, meshopt: true } } : row;
+}
+/** The kinds a product names its source blobs by. */
+const BLOB_KINDS: readonly NamedBlobKind[] = ['audio', 'bin', 'glb', 'image', 'json', 'ktx2', 'tile', 'wasm'];
+/** A source blob with its kind checked (scene rows read from JSON carry it as a string). */
+function sourceBlob<T extends { kind: string }>(row: T): Omit<T, 'kind'> & { kind: NamedBlobKind } {
+  const kind = BLOB_KINDS.find(item => item === row.kind);
+  if (kind === undefined) throw new Error(`Unknown Pine source blob kind ${row.kind}`);
+  return { ...row, kind };
 }
 
 v.parse(CabinSeedsSchema, timbers.cabins.seeds);
@@ -158,10 +166,8 @@ const heldEquipment = { ...heldTuning,
 const PLATFORM_ROWS = new Map<PlatformDataSectionName, unknown>([['explore/catalogue', EXPLORER_CATALOGUE],['world/trees', TREE_SET],['look/rigged-hulls', PINE_HULL_BOOK], ['look/hull-book', SPECIES_LOOKS], ['look/keyed-sky', keyedSky], ['client/plan', { ...clientPlan, features: [...clientPlan.features, { kind: 'audio.cues', id: 'roaming', stage: 'world', clock: 'owner', rows: NATIVE_VIEW.KING_CUES }, { kind: 'world.sets', rows: PLACE_SETS.map(({ id, place, name, x, z, r }) => ({ id, place, name, x, z, r, file: 'declared forest page', pois: [] })) }] }], ['ui/strings', strings], ['world/scenes', WORLD_SCENES], ['held/finishes', HELD_FINISHES], ['held/gear', HELD_GEAR], ['held/loadout', heldLoadout], ['held/equipment', heldEquipment], ['actors/species-programs', PINE_SPECIES_PROGRAMS], ['sim/scripts', KING_DECISION], ['actors/moves', KING_MOVES]]);
 
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
-export const output: { platform: ReturnType<typeof emitPlatformSections>; custom: ReturnType<typeof emitDefinedSections>; namedFiles: ReturnType<typeof emitNamedBlobs>["files"]; assets: ReturnType<typeof emitNamedBlobs>["assets"]; blobs: (ReturnType<typeof pinePhysicsSources>[number] | { name: string; kind: "json"; source: string; options: { jsonSchema: ReturnType<typeof namedJsonSchema>; }; } | (typeof SCENE_MODEL_BLOBS)[number])[]; } = { ...PINE_OUTPUT, platform: emitPlatformSections(PLATFORM_ROWS), custom, namedFiles: clientJson.files, assets: clientJson.assets, blobs: [...pinePhysicsSources(), ...SCENE_MODEL_BLOBS].map(meshoptSource) };
+export const output: { platform: ReturnType<typeof emitPlatformSections>; custom: ReturnType<typeof emitDefinedSections>; namedFiles: ReturnType<typeof emitNamedBlobs>["files"]; assets: ReturnType<typeof emitNamedBlobs>["assets"]; blobs: NonNullable<ProjectOutput['blobs']>; } = { ...PINE_OUTPUT, platform: emitPlatformSections(PLATFORM_ROWS), custom, namedFiles: clientJson.files, assets: clientJson.assets, blobs: [...pinePhysicsSources(), ...SCENE_MODEL_BLOBS].map(meshoptSource).map(sourceBlob) };
 
-/** Build-only mode rows; page and native owners consume the admitted section. */
-export const sections: { 'state/modes': { modes: typeof PINE_MODES; }; } = { 'state/modes': { modes: PINE_MODES } };
 
 /** Compile a declared return guest through injected capabilities, without source-tree byte handoffs (GR8: the retired
  *  bake-life.mjs / bake-shelter.mjs rows live in returnPrograms.ts; the compiled row names the module). */

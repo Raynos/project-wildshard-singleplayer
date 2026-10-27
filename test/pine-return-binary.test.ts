@@ -13,7 +13,7 @@ import { ReturnProgramSchema } from '../src/format/namedJsonContracts';
 import { ReturnModulesSchema } from '../src/format/scriptContract';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { prepareOutput } from '../src/shards/pine-hollow/generators/output';
+import { prepareOutput } from '../src/shards/pine-hollow/generators/sourceOutput';
 import { pineGeneration } from './fixtures/pine-generation';
 import { PINE_LIFE_ORIGINAL } from './fixtures/pine-life';
 import { PINE_SHELTER_ORIGINAL } from './fixtures/pine-shelter';

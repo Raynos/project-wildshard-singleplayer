@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { CabinAppearanceSchema as CabinRowsSchema } from './sections';
-import { output } from './output';
+import { output } from './sourceOutput';
 import { CABIN_LIFE } from './cabinLook';
 import { CABIN_LIGHT } from './cabinAssembly';
 import { HEARTH_LOOKS } from './hearthLook';
