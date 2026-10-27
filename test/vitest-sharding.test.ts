@@ -7,7 +7,7 @@ import {readdirSync,readFileSync} from 'node:fs';
 test('duration partitions retain every file once, including unmeasured files', () => {
   const paths = Array.from({ length: 137 }, (_, i) => `test/fixture-${i}.test.ts`);
   const durations = new Map(paths.slice(0, 120).map((path, i) => [path, i % 9]));
-  for (const count of [1, 10, 16]) {
+  for (const count of [1, 10, 16, 32]) {
     const parts = packShards(paths, durations, count);
     expect(parts).toHaveLength(count);
     expect(parts.flat().sort()).toEqual([...paths].sort());
@@ -39,7 +39,7 @@ test('both CI cohorts cover every discovered test once and keep exact-run produc
  const paths=['src','test','admin/test','drafts/test'].flatMap(root=>readdirSync(root,{recursive:true,encoding:'utf8'})
   .filter(file=>file.endsWith('.test.ts')&&!file.replaceAll('\\','/').split('/').includes('node_modules')).map(file=>`${root}/${file.replaceAll('\\','/')}`));
  const selected:string[]=[];
- for(const [id,cohort,producer,total] of [['behaviour','product-free','generated-inputs',16],['behaviour-products','products','products',8]] as const){
+ for(const [id,cohort,producer,total] of [['behaviour','product-free','generated-inputs',32],['behaviour-products','products','products',8]] as const){
   const job=workflow.split(`\n  ${id}:\n`)[1]?.split(/\n {2}[a-z][\w-]*:\n/u)[0];
   if(job===undefined)throw new Error(`Missing ${id} job`);
   expect(job).toContain(`needs: ${producer}`);
