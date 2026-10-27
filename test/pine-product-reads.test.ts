@@ -5,7 +5,7 @@ import { outputPlatformPayloads } from '../src/sdk/outputProduct';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { readProjectAssets } from '../src/sdk/project';
-import { SECTIONS } from '../src/shards/pine-hollow/generators/sectionSchemas.generated';
+import { SECTIONS } from '../src/shards/pine-hollow/generators/sections';
 
 // The Pine client's product reads (sp-o270): every custom section and named blob runtime/ asks the built output for is
 // emitted, with the shapes the readers convert (skin pickups, wildlife voices, mount packs).

@@ -23,7 +23,7 @@ const starter = (id, script, input, output, source) => ({
 /** The plain schema producer computes all tables without publishing an intermediate module.
  * @param {string} root @param {string} slug @returns {Readonly<Record<string,string>>} */
 function schemaTables(root,slug) {
-  const value=JSON.parse(execFileSync(process.execPath,['--import','./scripts/shard-platform-format.mjs','scripts/bake-section-schemas.mjs',slug,'--print'],{cwd:root,encoding:'utf8',maxBuffer:4_000_000}));
+  const value=JSON.parse(execFileSync(process.execPath,['--import','./scripts/shard-platform-format.mjs','scripts/bake-section-schemas.mjs',slug,'--plain','--print'],{cwd:root,encoding:'utf8',maxBuffer:4_000_000}));
   if(typeof value!=='object'||value===null||Array.isArray(value))throw new Error('Section schema producer must return tables');
   /** @type {Record<string,string>} */
   const tables={};
@@ -45,7 +45,7 @@ function sectionSchemas(slug,outputs,jsonInputs=[]) {
 
 /** @type {readonly SourceGenerator[]} */
 export const SOURCE_GENERATORS = [
-  sectionSchemas('pine-hollow',['src/shards/pine-hollow/generators/sectionSchemas.generated.ts','src/shards/pine-hollow/runtime/productSections.generated.d.ts']),
+  sectionSchemas('pine-hollow',['src/shards/pine-hollow/generators/sectionSchemas.ts','src/shards/pine-hollow/runtime/productSections.d.ts']),
   starter('starter-arm-clips', 'scripts/gen-starter-arm-clips.mjs', 'src/game/systems/viewmodel/armAliases.json', 'src/game/systems/viewmodel/clips.generated.ts', 'starterArmClipsTableSource'),
   starter('starter-weapons', 'scripts/gen-starter-weapons.mjs', 'src/game/weapons/starterBow.json', 'src/game/weapons/starter.generated.ts', 'starterWeaponsTableSource'),
   starter('starter-bag', 'scripts/gen-starter-bag.mjs', 'src/game/bag/starterItems.json', 'src/game/bag/starter.generated.ts', 'starterBagTableSource'),

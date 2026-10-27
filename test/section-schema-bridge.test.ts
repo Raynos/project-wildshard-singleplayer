@@ -10,7 +10,7 @@ import {join} from 'node:path';
 import {sectionSchemaTables,writeSectionSchemaBridge} from '../scripts/bake-section-schemas.mjs';
 import {sectionType} from '../scripts/section-types.mjs';
 import {SECTIONS as runtime} from '../src/shards/pine-hollow/generators/sections';
-import {SECTIONS as generated,WIRE_SCHEMAS} from '../src/shards/pine-hollow/generators/sectionSchemas.generated';
+import {WIRE_SCHEMAS} from '../src/shards/pine-hollow/generators/sectionSchemas';
 
 function fixture():{root:string;source:string} {
   mkdirSync(join(cwd(),'tmp'),{recursive:true});
@@ -81,7 +81,7 @@ it('refuses runtime dependencies and unknown custom predicates instead of droppi
 });
 
 it('keeps held semantic refusals on the public platform schema',()=>{
-  expect(Object.keys(generated)).toEqual(Object.keys(runtime));
+  expect(Object.keys(WIRE_SCHEMAS)).toEqual(Object.keys(runtime));
   expect(Object.keys(WIRE_SCHEMAS)).toEqual(Object.keys(runtime));
   expect(Object.hasOwn(runtime,'custom/heldPlayback')).toBe(false);
   const program={id:'schema-case',reads:[],nodes:[{op:'constant',value:1}],channels:[{property:'x',value:0}]};

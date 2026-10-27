@@ -887,6 +887,3 @@ src/shards/pine-hollow/data/physics.generated.d.json.ts
 /public/assets/ink-cel-valley/map/top.webp
 /public/assets/blender-template/map/top.webp
 
-# G798: committed Pine section tables from the plain schema producer.
-!/src/shards/pine-hollow/generators/sectionSchemas.generated.ts
-!/src/shards/pine-hollow/runtime/productSections.generated.d.ts

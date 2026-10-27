@@ -27,10 +27,23 @@ function structural(value) {
   return Object.fromEntries(Object.entries(value).filter(([key])=>key!=='x-wildshard-checks'&&key!=='x-wildshard-string-length')
     .map(([key,child])=>[key,structural(child)]));
 }
+/** Emit ordinary JSON values as lint-clean TypeScript without changing their values.
+ * @param {unknown} value @returns {string} */
+function schemaLiteral(value) {
+  if(typeof value==='string'){
+    if(!value.includes(String.fromCodePoint(92)))return JSON.stringify(value);
+    if(value.includes('`')||value.includes('${')||value.endsWith(String.fromCodePoint(92)))return `String.fromCodePoint(${Array.from(value,letter=>letter.codePointAt(0)).join(',')})`;
+    return `String.raw\`${value}\``;
+  }
+  if(Array.isArray(value))return `[${value.map(schemaLiteral).join(',')}]`;
+  if(typeof value==='object'&&value!==null)return `{${Object.entries(value).filter(([,child])=>child!==undefined).map(([key,child])=>`${key.includes(String.fromCodePoint(92))?`[${schemaLiteral(key)}]`:JSON.stringify(key)}:${schemaLiteral(child)}`).join(',')}}`;
+  if(value===null||typeof value==='boolean'||typeof value==='number')return JSON.stringify(value);
+  throw new Error('Unsupported schema table literal');
+}
 /** Copy only schema-registry source with closed public schema imports. Runtime
  * entry modules and services cannot enter this build bridge.
- * @param {string} root @param {string} slug */
-export async function sectionSchemaTables(root,slug) {
+ * @param {string} root @param {string} slug @param {{plain?:boolean}} [options] */
+export async function sectionSchemaTables(root,slug,options={}) {
   if(!/^[a-z0-9_-]+$/u.test(slug))throw new Error('Invalid section schema shard');
   const sourcePath=resolve(root,'src/shards',slug,'generators/sections.ts');
   const source=readFileSync(sourcePath,'utf8'),tree=parseSync(sourcePath,source).program;
@@ -53,8 +66,8 @@ export async function sectionSchemaTables(root,slug) {
   };
   visit(tree);
   const hash=createHash('sha256').update(source).digest('hex');
-  const destination=resolve(root,'src/shards',slug,'generators/sectionSchemas.generated.ts');
-  const header=`// DO NOT EDIT: scripts/bake-section-schemas.mjs; generators/sections.ts sha256:${hash}\n`;
+  const destination=resolve(root,'src/shards',slug,options.plain?'generators/sectionSchemas.ts':'generators/sectionSchemas.generated.ts');
+  const header=`// ${options.plain?'Section schema tables:':'DO NOT EDIT:'} scripts/bake-section-schemas.mjs; generators/sections.ts sha256:${hash}\n`;
   // The closed registry is the defining source. Compute every table before
   // publication; --check never writes an intermediate validator to disk.
   const namespace=await import(`${pathToFileURL(sourcePath).href}?source=${hash}`);
@@ -66,13 +79,17 @@ export async function sectionSchemaTables(root,slug) {
     if(!/^custom\/[a-zA-Z][a-zA-Z0-9_-]{0,63}$/u.test(name)||!syncSchema(schema))throw new Error(`Invalid custom section schema: ${name}`);
     schemas[name]=structural(formatJsonSchema(schema,'draft-07'));
   }
-  const generated=`${header}${source}\nimport type {DefinedSection} from '@wildshard/sdk/sections';\nexport const WIRE_SCHEMAS: Readonly<Record<string,DefinedSection['jsonSchema']>> = ${JSON.stringify(schemas)};\n`;
+  const generated=`${header}${options.plain?'':`${source}\n`}import type {DefinedSection} from '@wildshard/sdk/sections';\n${options.plain?'\n':''}export const WIRE_SCHEMAS: Readonly<Record<string,DefinedSection['jsonSchema']>> = ${options.plain?schemaLiteral(schemas):JSON.stringify(schemas)};\n`;
   /** @type {Record<string,string>} */
   const tables={[relative(root,destination)]:generated};
-  const typesPath=resolve(root,'src/shards',slug,'runtime/productSections.generated.d.ts');
+  const typesPath=resolve(root,'src/shards',slug,options.plain?'runtime/productSections.d.ts':'runtime/productSections.generated.d.ts');
+  const typeOptions={records:options.plain===true};
   const declarations=Object.entries(namespace).filter(([name,schema])=>name.endsWith('Schema')&&syncSchema(schema))
-    .map(([name,schema])=>`export type ${name.slice(0,-6)} = ${sectionType(structural(formatJsonSchema(schema,'draft-07')))};`);
-  tables[relative(root,typesPath)]=`${header}export interface CustomSections {\n${Object.entries(schemas).map(([name,schema])=>`  ${JSON.stringify(name)}: ${sectionType(schema)};`).join('\n')}\n}\n${declarations.join('\n')}\n`;
+    .map(([name,schema])=>{
+      const type=sectionType(structural(formatJsonSchema(schema,'draft-07')),typeOptions),id=name.slice(0,-6);
+      return options.plain&&type.startsWith('{ ')&&type.endsWith(' }')?`export interface ${id} ${type}`:`export type ${id} = ${type};`;
+    });
+  tables[relative(root,typesPath)]=`${header}export interface CustomSections {\n${Object.entries(schemas).map(([name,schema])=>`  ${JSON.stringify(name)}: ${sectionType(schema,typeOptions)};`).join('\n')}\n}\n${declarations.join('\n')}\n`;
   // Imported immutable JSON uses the same build validator and tuple types as
   // named products. No cast, validator, or dependency on generators ships.
   const files=namespace.FILE_SCHEMAS;
@@ -81,15 +98,15 @@ export async function sectionSchemaTables(root,slug) {
     if(!/^(?:data|boot)\/[a-zA-Z0-9_-]+(?:\.generated)?\.json$/u.test(name)||!syncSchema(schema))throw new Error(`Invalid typed JSON source: ${name}`);
     const path=resolve(root,'src/shards',slug,name);
     parseValue(schema,JSON.parse(readFileSync(path,'utf8')));
-    const type=sectionType(structural(formatJsonSchema(schema,'draft-07')));
+    const type=sectionType(structural(formatJsonSchema(schema,'draft-07')),typeOptions);
     tables[relative(root,path.replace(/\.json$/u,'.d.json.ts'))]=`${header}declare const value: ${type};\n// oxlint-disable-next-line import/no-default-export -- JSON imports require the default value declaration.\nexport default value;\n`;
   }
   return {tables,report:{path:destination,sourceHash:hash,schemas:Object.keys(schemas).length,bytes:Buffer.byteLength(generated)}};
 }
 /** Plain committed-table publication; a check compares the complete candidate without any write.
- * @param {string} root @param {string} slug @param {{check?:boolean}} [options] */
+ * @param {string} root @param {string} slug @param {{check?:boolean;plain?:boolean}} [options] */
 export async function writeSectionSchemaBridge(root,slug,options={}) {
-  const {tables,report}=await sectionSchemaTables(root,slug);
+  const {tables,report}=await sectionSchemaTables(root,slug,options);
   const changed=Object.entries(tables).filter(([path,text])=>!existsSync(resolve(root,path))||readFileSync(resolve(root,path),'utf8')!==text);
   if(options.check&&changed.length>0)throw new Error(`Stale section schema tables: ${changed.map(([path])=>path).join(', ')}`);
   for(const [path,text]of changed){const file=resolve(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,text);}
@@ -97,7 +114,8 @@ export async function writeSectionSchemaBridge(root,slug,options={}) {
 }
 if(import.meta.url===pathToFileURL(process.argv[1]??'').href) {
   const slug=process.argv.at(2),args=process.argv.slice(3);
-  if(slug===undefined||args.some(arg=>!['--check','--print'].includes(arg))||args.length!==new Set(args).size||args.includes('--check')&&args.includes('--print'))throw new Error('Expected shard slug and optional --check or --print');
+  if(slug===undefined||args.some(arg=>!['--check','--print','--plain'].includes(arg))||args.length!==new Set(args).size||args.includes('--check')&&args.includes('--print'))throw new Error('Expected shard slug, optional --plain and --check or --print');
   const root=resolve(import.meta.dirname,'..');
-  console.log(JSON.stringify(args.includes('--print')?(await sectionSchemaTables(root,slug)).tables:await writeSectionSchemaBridge(root,slug,{check:args.includes('--check')})));
+  const plain=args.includes('--plain');
+  console.log(JSON.stringify(args.includes('--print')?(await sectionSchemaTables(root,slug,{plain})).tables:await writeSectionSchemaBridge(root,slug,{plain,check:args.includes('--check')})));
 }

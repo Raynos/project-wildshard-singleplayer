@@ -11,7 +11,7 @@ import * as v from 'valibot';
 import {readFileSync} from 'node:fs';
 import {readProjectAssets} from '../src/sdk/project';
 import {validateDefinedSection} from '../src/sdk/sections';
-import {SECTIONS} from '../src/shards/pine-hollow/generators/sectionSchemas.generated';
+import {SECTIONS} from '../src/shards/pine-hollow/generators/sections';
 import {ClaimedPickupSchema} from '../src/format/lootEconomy';
 
 test('Pine emits every client section with checked schemas and named immutable assets',async()=>{
