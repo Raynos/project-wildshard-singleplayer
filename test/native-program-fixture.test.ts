@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Own isolated source and cache fixtures; never alter real producer files.
-import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine every synthetic compiler and cache beneath tmp.
 import { resolve } from 'node:path';
 import { afterEach, expect, test } from 'vitest';
@@ -53,5 +53,5 @@ test('same-length damaged cached bytes rebuild rather than inherit an old outcom
   writeFileSync(file, before.replace('one', 'BAD')); utimesSync(file, stamp.atime, stamp.mtime);
   expect(await nativeProgramFixture(spec)).toBe(before); expect(calls()).toBe(2);
   const readers = resolve(root, 'cache/fixture-program', `${entry}.readers`);
-  expect(readdirSync(readers)).toEqual([]);
+  expect(existsSync(readers) ? readdirSync(readers) : []).toEqual([]);
 });
