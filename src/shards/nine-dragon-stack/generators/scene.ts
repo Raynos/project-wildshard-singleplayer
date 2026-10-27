@@ -2,7 +2,9 @@ import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 import { BufferAttribute, BufferGeometry, DataUtils, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Scene, Vector3 } from 'three';
 import { drawSpill, withSpill, type NineSpillAtlas } from './spillBake';
 import { bakeOwned, BakedPiece, WholeShape, type BakedScene } from '@wildshard/sdk/bake';
-import { partitionWholeGeometry, wholePartitionRuns, type PropWhole } from '@wildshard/sdk/bake/props';
+import { compactWholeChannels, gridPositions, objectSpaceLooks, partitionWholeGeometry, wholeGrid, wholePartitionRuns, type PropWhole } from '@wildshard/sdk/bake/props';
+import lookGraphs from '../data/lookGraphs.json' with { type: 'json' };
+import { NINE_MATERIAL_LOOKS, NINE_WHOLE_DRESSING } from './wholeDressing';
 import { coarseGeometry } from '@wildshard/sdk/bake/coarseCopy';
 import { nineLayoutSource } from './layout';
 import { bootSpecimen, specimenRecipes } from './specimens';
@@ -143,14 +145,27 @@ function buildNineScene(atlas: NineSpillAtlas): { baked: BakedScene; layout: Ret
   }
   const keys: { boot: string[]; explorer: string[] } = { boot: [], explorer: [] };
   let library = 0; const boxes: Record<string, boolean> = {};
+  // I3: a shape the dressing draws through a look that reads object-space position keeps its exact float positions
+  const objectSpace = objectSpaceLooks(lookGraphs), looks = new Map(NINE_MATERIAL_LOOKS);
+  const exact = new Set(NINE_WHOLE_DRESSING.filter(row => objectSpace.has(looks.get(row.material) ?? '')).map(row => row.model));
   const part = (name: string, entries: readonly (readonly [string, BufferGeometry])[]): void => {
-    for (const [key, geometry] of entries) for (const subset of partitionWholeGeometry(geometry)) {
-      const mesh = new InstancedMesh(subset.geometry, material, 1), id = `${name}_${library++}`;
-      const metadata = { id: key, vertices: wholePartitionRuns(subset.vertices), triangles: wholePartitionRuns(subset.triangles),
-        vertexCount: geometry.getAttribute('position').count, indexCount: geometry.getIndex()?.count ?? 0,
-        index: geometry.getIndex() === null ? 'none' : geometry.getIndex()?.array instanceof Uint16Array ? 'u16' : 'u32' };
-      scene.add(new BakedPiece(id, [[id, mesh]], [], { attributes: nineChannels(subset.geometry), nativeAttributes: true, compactIndex: true,
-        nodeExtras: () => ({ wholePartition: metadata }) }));
+    for (const [key, geometry] of entries) {
+      // I3: every other shape ships Int16 positions on one grid in its own space (shared by all its partitions, so a shared
+      // vertex reads back the same float) with Int8 normals and Uint8 colours; readWholeGeometry dequantizes them
+      const probe = new BufferGeometry();
+      for (const [channel, attribute] of Object.entries(geometry.attributes)) probe.setAttribute(channel, attribute);
+      const grid = exact.has(key) || !compactWholeChannels(probe) ? undefined : wholeGrid(geometry);
+      probe.dispose();
+      for (const subset of partitionWholeGeometry(geometry)) {
+        if (grid !== undefined) { compactWholeChannels(subset.geometry); gridPositions(subset.geometry, grid); }
+        const mesh = new InstancedMesh(subset.geometry, material, 1), id = `${name}_${library++}`;
+        const metadata = { id: key, vertices: wholePartitionRuns(subset.vertices), triangles: wholePartitionRuns(subset.triangles),
+          vertexCount: geometry.getAttribute('position').count, indexCount: geometry.getIndex()?.count ?? 0,
+          index: geometry.getIndex() === null ? 'none' : geometry.getIndex()?.array instanceof Uint16Array ? 'u16' : 'u32',
+          ...(grid === undefined ? {} : { grid: { origin: [...grid.origin], step: grid.step } }) };
+        scene.add(new BakedPiece(id, [[id, mesh]], [], { attributes: nineChannels(subset.geometry), nativeAttributes: true, compactIndex: true,
+          nodeExtras: () => ({ wholePartition: metadata }), ...(grid === undefined ? {} : { grid: () => grid }) }));
+      }
     }
   };
   part('layout_sets', [...local].map(index => {

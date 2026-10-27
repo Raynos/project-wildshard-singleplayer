@@ -1,5 +1,6 @@
 import { Color, BoxGeometry, BufferAttribute, BufferGeometry, DoubleSide, InstancedMesh, Matrix4, Material, NormalBlending, LessEqualDepth, Mesh, MeshBasicMaterial, MeshStandardMaterial, type Object3D } from 'three';
 import { staticGlb, type GlbPrimitive } from './glb';
+import { tileGridTransform, type TileGrid } from './worldGeometry';
 
 /**
  * Build-time only (SHARD-PLATFORM SF72): a code-built world piece baked as instanced kinds. Each non-empty kind is one GLB
@@ -35,6 +36,9 @@ export interface KindBakeOptions {
   extra?: (material: MeshStandardMaterial) => KindExtra;
   /** Custom vertex channels to keep, glTF semantic → geometry channel (`{ _SHK: 'shk' }`); a kind without the channel skips it. */
   attributes?: Readonly<Record<string, string>>;
+  /** I3: a one-instance kind whose positions are already unnormalized Int16 on this grid (`gridPositions`): its node
+   *  carries the instance times the grid's dequantizing transform and records the instance as its exact pose. */
+  grid?: (kind: string, mesh: InstancedMesh) => TileGrid | undefined;
 }
 
 /** Colliders as the JSON rows keep them (a `-0` yaw is `0`). */
@@ -79,8 +83,12 @@ export function bakeKinds<C extends KindCollider>(name: string, meshes: readonly
       .map((key, index) => [`_WS_CHANNEL_${index}`, key])) : undefined;
     const customAttributes = automatic === undefined ? explicit : { ...automatic, ...explicit };
     const extras = instanced ? options.nodeExtras?.(kind, mesh) : undefined;
-    primitives.push({ geometry: mesh.geometry, material, ...(instances === undefined ? { transform: mesh.matrixWorld } : { instances }), castShadow: false,
-      ...(!instanced || options.exactInstances === undefined ? {} : { exactInstances: options.exactInstances }),
+    const grid = instanced ? options.grid?.(kind, mesh) : undefined;
+    if (grid !== undefined && (instances?.length !== 1 || instances[0] === undefined || instanceColours !== undefined)) throw new Error(`${name}.${kind}: a gridded kind has exactly one instance`);
+    const placement = grid === undefined || instances?.[0] === undefined ? (instances === undefined ? { transform: mesh.matrixWorld } : { instances })
+      : { transform: instances[0].clone().multiply(tileGridTransform(grid)), pose: instances[0], meshoptReady: true as const, quantizedChannels: true as const, nativeOnce: true as const };
+    primitives.push({ geometry: mesh.geometry, material, ...placement, castShadow: false,
+      ...(!instanced || grid !== undefined || options.exactInstances === undefined ? {} : { exactInstances: options.exactInstances }),
       ...(instanceColours === undefined ? {} : { instanceColours }),
       ...(nativeAttributes === undefined ? {} : { nativeAttributes }),
       ...(compactIndex === undefined ? {} : { compactIndex }),

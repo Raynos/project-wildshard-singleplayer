@@ -1,3 +1,4 @@
+import { NINE_MATERIAL_LOOKS, NINE_WHOLE_DRESSING } from './wholeDressing';
 import { addWindowNodes, windowStep } from './facadeWindowRecipe';
 import { MOVER_REST, MOVER_STAGES } from './moversView';
 import type { NineSourceSigns } from './signsProgram';
@@ -174,9 +175,8 @@ const SHAPE_BLOBS = shapes.map(([id, geometry]) => nameBlob(`world/geometry/${id
 // (E281) the painted sky draws after the world's opaques (the viewmodels' depth clearer sits at 999): with its depth test at
 // the far plane it then shades only where the sky shows, so the skyline's layers cost nothing under the city
 dressing.push(dress('sky', 'sky', 'sky', 900, 'sky', false), dress('screen', 'scroll', 'scroll', 0, 'screens', true, { position: [1, plan.Y0 + 29.85, -64], rotation: [Math.PI / 2, 0, 0] }));
-if (tiles.has('canopy:core')) dressing.push(dress('crown-core', 'canopy:core', 'canopy-core', 0, 'canopy'), dress('crown-cards', 'canopy:cards', 'canopy-cards', 1, 'canopy'), dress('crown-depth', 'canopy:cards', 'canopy-depth', 2, 'canopy'));
-if (tiles.has('mist:sheets')) dressing.push(dress('sheets', 'mist:sheets', 'mist-sheet', 2, 'sheets'));
-dressing.push(dress('steam', 'mist:steam', 'steam', 3, 'steam', false));
+// the whole-library shapes (the canopy crown, the mist; wholeDressing.ts), each when the bake made its tile
+for (const row of NINE_WHOLE_DRESSING) if (row.when === null || tiles.has(row.when)) dressing.push(dress(row.id, row.model, row.material, row.order, row.name, row.culled));
 for (const { model } of dressing) if (!shapes.some(([id]) => id === model)) alias(model, model);
 // the hung signs: the sign atlas's lightboxes, lights and beacons on the 'nine-neon' look and the neon calligraphy's boards
 // and tubes (their copies are drawn into these, SIGN_PLACEMENTS)
@@ -395,9 +395,7 @@ const FIXED_RECIPE = parseWorldScene({ imports: [], scene: { version: 1, root: '
 const FIXED_STEPS = (['open', 'capped'] as const).map(caps => ({ id: `fixed-${caps}`, cube: caps === 'open' ? 'cell' : 'standalone', scene: 'world/scenes/fixed.json',
   geometry: { entries: { library: castLibrary(`entries-${caps}`), model: `entries-${caps}` }, signs: { library: castLibrary('facade-signs'), model: 'facade-signs' } }, materials: { kit: 'kit' } }));
 const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, uniforms: [NINE_SHARED], welds: [CAST_WELD, { id: 'fabric', file: 'world/fabric.json' }], placements: [...SET_PLACEMENTS, ...MOVER_PLACEMENTS, ...LAYOUT_PLACEMENTS.map(row => ({ id: row.id, file: layoutPlacementFile(row.id) }))], libraries: [...SIGN_POOL_LIBRARIES, ...CAST_LIBRARIES, ...portalLook.scenes.libraries, library('native'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
-  materials: [...castMaterials(hookMaterial), ...portalLook.scenes.materials, look('kit', 'nine-architecture'), look('kit-cut', 'nine-architecture-cut'), look('facade', 'nine-facade'), look('small', 'nine-facade-small'), look('windows', 'nine-windows'), look('lantern', 'nine-lantern'),
-    look('canopy-core', 'nine-canopy-inner'), look('canopy-cards', 'nine-canopy-cards'), look('canopy-depth', 'nine-canopy-depth'), look('mist-sheet', 'nine-mist-sheet'), look('steam', 'nine-steam'), look('sky', 'nine-sky'), look('scroll', 'nine-scroll'), look('streaks', 'nine-streaks'), look('halo', 'nine-halo'),
-    look('neon', 'nine-neon'), look('neon-board', 'nine-neon-board'), look('neon-tube', 'nine-neon-tube')],
+  materials: [...castMaterials(hookMaterial), ...portalLook.scenes.materials, ...NINE_MATERIAL_LOOKS.map(([id, name]) => look(id, name))],
   steps: [{ id: 'dressing', scene: 'world/scenes/dressing.json', geometry: { ...Object.fromEntries(dressing.map(({ model }) => [model, { library: libraryOf.get(model) ?? signLibrary.get(model) ?? 'shapes', model }])), ...windowStep([0, 1], layout).geometry },
     instanceAttributes: windowStep([0, 1], layout).instanceAttributes,
     materials: Object.fromEntries(recipe.scene.materials.map(row => [row.id, row.id])), publish: { ...windowStep([0, 1], layout).publish, ...Object.fromEntries(['crown-core', 'crown-cards', 'signs', 'neon-boards'].filter(id => dressing.some(row => row.id === id)).map(id => [id, { kind: 'object', part: id }])) } }, ...cardSteps, ...FIXED_STEPS, ...portalLook.scenes.steps] });
