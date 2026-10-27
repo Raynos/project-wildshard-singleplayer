@@ -1,8 +1,9 @@
 import { ClientChannels } from '@wildshard/sdk/clientChannels';
-import entries from '../data/islets.generated.json' with { type: 'json' };
+import { risingIsletRows } from './risingIslets';
 import { skyIsletRigRows } from './isletRigRows';
 
 const rig = skyIsletRigRows();
+const entries = risingIsletRows();
 const pitch = 0.46;
 type Triple = [number, number, number];
 const capacities = entries.entries.map((entry, index) => {

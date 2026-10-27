@@ -3,7 +3,6 @@
   "inputs": [
     "shard.config.ts",
     "generators",
-    "data/islets.generated.json",
     "data/plumbing.json",
     "manifest.json",
     "data/rocSlate.json",

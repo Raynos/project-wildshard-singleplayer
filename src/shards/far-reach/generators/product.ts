@@ -13,11 +13,12 @@ import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { SKY_LIFT_PROMPTS } from './rows/liftPrompts';
 import { SKY_MOVER_VIEWS } from './rows/moverViews';
 import MOVERS from '../data/movers.generated.json' with { type: 'json' };
-import isletRows from '../data/islets.generated.json' with { type: 'json' };
-import { RISING_ISLETS, ENTRYWAYS } from './rows/islets.generated';
+import { risingIsletRows, risingIsletEntryways } from './risingIslets';
 import lookGraphs from '../data/lookGraphs.json' with { type: 'json' };
 import { ISLE_MAPS } from './rows/isleLook';
 import { SKY_WORLD_TILE_ROWS as isleProps } from './worldTileRows';
+
+const isletRows = risingIsletRows(), RISING_ISLETS = isletRows.entries, ENTRYWAYS = risingIsletEntryways();
 
 // Legacy trusted runtime retains today's geometry/spawn; SF29 binds only its audio.
 // SF49-g (G99 / G183) and SF8c's socketLift: every entry meets the road over the cloud sea's void (no ground below y = 0

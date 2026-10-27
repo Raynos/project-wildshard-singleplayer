@@ -13,6 +13,7 @@ import { isletMotionRows } from './isletMotion.ts';
 import { mapSceneRest } from '@wildshard/sdk/bake/mapRest';
 import { fixedLayoutFiles } from './fixedLayouts.ts';
 import { crownInstances } from './crownInstances.ts';
+import { risingIsletRows } from './risingIslets.ts';
 
 /** The exact authored model bank; repeated roles share their original bytes. */
 export const SKY_MAP_INPUTS = [...new Set([...PREPARED_MODEL_INPUTS, ...BRIDGE_REST_INPUTS, ...MILL_REST_INPUTS, ...VANE_INPUTS])];
@@ -31,6 +32,7 @@ export async function skyMapSources(native) {
   const sources = skyMapWorldSources(bytes => encodeBuildBytes(bytes, 'deflate', 9, 'native'));
   for (const [name, bytes] of fixedLayoutFiles()) sources.set(name, bytes);
   sources.set('data/crownInstances.generated.json', new TextEncoder().encode(`${JSON.stringify(crownInstances())}\n`));
+  sources.set('data/islets.generated.json', new TextEncoder().encode(`${JSON.stringify(risingIsletRows())}\n`));
   const staticInputs = new Map(STATIC_SCENE_INPUTS.map(url => {
     const bytes = inputs.get(url);
     if (bytes === undefined) throw new Error(`Missing owned map static model ${url}`);

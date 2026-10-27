@@ -2530,87 +2530,6 @@
       "platform": "portable"
     },
     {
-      "id": "sky-rising-islets",
-      "shard": "far-reach",
-      "entry": "src/shards/far-reach/generators/risingIslets.ts",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/far-reach/generators/risingIslets.ts",
-        "risingIsletRows",
-        "src/shards/far-reach/data/islets.generated.json"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format/json.ts",
-        "src/format/package.json",
-        "src/format/portalLink.ts",
-        "src/format/socketLift.ts",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/entries.ts",
-        "src/sdk/package.json",
-        "src/sdk/sceneTransform.ts",
-        "src/shards/far-reach/generators/rows/isletDesign.ts",
-        "src/shards/far-reach/generators/layout.ts",
-        "src/shards/far-reach/data/strings.json",
-        "src/shards/far-reach/generators/risingIslets.ts",
-        "src/shards/far-reach/generators/palette.ts",
-        "src/shards/far-reach/generators/rows/layoutTypes.ts"
-      ],
-      "outputs": [
-        "src/shards/far-reach/data/islets.generated.json"
-      ],
-      "platform": "portable",
-      "buildOutputs": {},
-      "buildTimeOutputs": [
-        "src/shards/far-reach/data/islets.generated.json"
-      ]
-    },
-    {
-      "id": "sky-islet-source",
-      "shard": "far-reach",
-      "entry": "src/shards/far-reach/generators/risingIslets.ts",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/far-reach/generators/risingIslets.ts",
-        "risingIsletSource",
-        "src/shards/far-reach/generators/rows/islets.generated.ts",
-        "--bytes"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format/json.ts",
-        "src/format/package.json",
-        "src/format/portalLink.ts",
-        "src/format/socketLift.ts",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/entries.ts",
-        "src/sdk/package.json",
-        "src/sdk/sceneTransform.ts",
-        "src/shards/far-reach/generators/rows/isletDesign.ts",
-        "src/shards/far-reach/generators/layout.ts",
-        "src/shards/far-reach/data/strings.json",
-        "src/shards/far-reach/generators/risingIslets.ts",
-        "src/shards/far-reach/generators/palette.ts",
-        "src/shards/far-reach/generators/rows/layoutTypes.ts"
-      ],
-      "outputs": [
-        "src/shards/far-reach/generators/rows/islets.generated.ts"
-      ],
-      "platform": "portable",
-      "buildOutputs": {},
-      "buildTimeOutputs": [
-        "src/shards/far-reach/generators/rows/islets.generated.ts"
-      ]
-    },
-    {
       "id": "driftwood-returns",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-returns.mjs",
@@ -4372,7 +4291,6 @@
       ],
       "inputRoots": [
         "src/shards/far-reach/shard.config.ts",
-        "src/shards/far-reach/data/islets.generated.json",
         "src/shards/far-reach/data/plumbing.json",
         "src/shards/far-reach/manifest.json",
         "src/shards/far-reach/data/rocSlate.json",
