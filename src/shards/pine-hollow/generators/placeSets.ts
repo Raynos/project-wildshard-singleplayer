@@ -1,5 +1,5 @@
 /** Named-place membership is authored once; runtime only selects placed copies. */
-import layout from '../data/layout.generated.json' with { type: 'json' };
+import * as layout from './layout';
 
 export const PINE_HOLLOW_QUEST_PLACES: { id: string; name: string; x: number; z: number; r: number; }[] = [{ id: 'west-road', name: 'The west road', x: 30, z: -2, r: 16 }];
 const declared = [

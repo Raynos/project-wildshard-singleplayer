@@ -15,7 +15,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { PineSeedStream as Rng } from './seedStream';
 import { bake, BakedPiece, type BakedScene } from '@wildshard/sdk/bake';
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 import { BOARDS, BOARD_LEN, PROP_BOXES, boxUV, logGeo, swapUV, type BakedBuilding, type BakedGeometry, type BakedLight, type BakedNode, type CabinRows,
   type Collider, type Floor, type KitMat as MatKey, type LightKind, type PropKind, type Room } from './cabinShapes';
 

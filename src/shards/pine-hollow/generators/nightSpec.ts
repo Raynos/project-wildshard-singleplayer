@@ -1,4 +1,4 @@
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 
 /** The page's authored old-growth and three millrace placements; tier alone selects the roamer limit. */
 export function pineNightSpec(max: 3 | 4): {max:3|4;region:{x:number;z:number;ax:number;az:number};exclude:{x:number;z:number;blend:number};face:{x:number;z:number};mill:{x:number;z:number};water:number;roamKinds:string[];race:{kind:string;x:number;z:number}[]} {

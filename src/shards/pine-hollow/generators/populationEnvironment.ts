@@ -1,7 +1,7 @@
 
 import { PopulationEnvironmentSchema , type PopulationEnvironmentRows as PopulationEnvironmentRowsType } from '@wildshard/format/populationEnvironment';
 import { parse } from 'valibot';
-import layout from '../data/layout.generated.json' with { type: 'json' };
+import * as layout from './layout';
 import ground from '../data/ground.generated.json' with { type: 'json' };
 import { pinePhysics } from './physics';
 

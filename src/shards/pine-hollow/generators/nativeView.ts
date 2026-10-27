@@ -7,7 +7,7 @@ import bossRows from '../data/bossEncounter.json' with { type: 'json' };
 import bossPresentation from '../data/bossPresentation.json' with { type: 'json' };
 import { parseRoamingEncounter , type RoamingEncounterRow as RoamingEncounterRowType } from '@wildshard/format/bossEncounter';
 import { KING_FX_LOOKS } from './kingFxLook';
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 import { CRAG_LOOK, CAVE_LOOK } from './cragLook';
 import { SPRAY_LOOK } from './streamLook';
 import SPRAY_PUFFS from '../data/sprayPuffs.json' with { type: 'json' };

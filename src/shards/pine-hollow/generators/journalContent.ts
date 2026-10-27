@@ -1,4 +1,4 @@
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 import { JOURNAL_ANIMALS, JOURNAL_PLACE_NOTES } from './journalPages';
 import { PINE_HOLLOW_TROPHIES, RANGER_WALL } from './trophyWall';
 

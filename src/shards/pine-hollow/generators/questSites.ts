@@ -1,6 +1,6 @@
 /** Quest placements are fixed build facts, shared by the page's scene and pickup owners. */
 import hollow from '../data/hollowLog.json' with { type: 'json' };
-import layout from '../data/layout.generated.json' with { type: 'json' };
+import * as layout from './layout';
 import { cabinAmbienceRows } from './ambience';
 
 interface QuestSites {

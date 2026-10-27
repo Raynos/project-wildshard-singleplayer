@@ -14,7 +14,7 @@ import * as THREE from 'three';
 import { PineSeedStream as Rng } from './seedStream';
 import type { CragGround } from './cragGround';
 import { inEntryLanes, type EntryLaneSource, type PropPose, type PropRows } from './propRows';
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 
 const CHUNK_HALF = 250, PINE_SEED = 1337, ROCK_SOLID_ABOVE = 0.35;
 const TRAILS = [LAYOUT.S_ROAD, LAYOUT.N_ROAD, LAYOUT.W_ROAD, LAYOUT.E_ROAD, ...Object.values(LAYOUT.SPURS)];

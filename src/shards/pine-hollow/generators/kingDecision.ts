@@ -1,4 +1,4 @@
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 /** The encounter's admitted numeric observations and one-shot mechanic requests. */
 export const KING_FIELDS: { id: number; name: string; type: "f64"; privacy: "public"; default: number; min: number; max: number; }[] = [
  ['mode',0],['mode-t',0],['strike-cd',2],['burst-cd',4],['summon-cd',0],['chain',0],['phase',0],['fighting',0],['request',0],['rings',0],['adds',0],['lane',0],['pose',0],['home-x',LAYOUT.KINGS_CLEARING.x],['home-z',LAYOUT.KINGS_CLEARING.z],

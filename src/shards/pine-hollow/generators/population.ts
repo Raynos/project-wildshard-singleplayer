@@ -4,7 +4,7 @@ import blend from '../data/kingBlend.json' with { type: 'json' };
 import { pineKingClips } from './kingClips';
 import { parseNativePopulationRows , type NativePopulationRows as NativePopulationRowsType } from '@wildshard/format/populationRoster';
 import { PINE_FAUNA } from '../data/fauna.generated';
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 import { PINE_ELITE_DEFS, PINE_ELITE_ANIMALS, ORDINARY } from './eliteRoster';
 
 // GR8: called, not read from a scheduler job's output

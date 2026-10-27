@@ -1,5 +1,5 @@
 import { PINE_QUESTS } from './quests';
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 import { QUEST_NPCS } from './questTalkPolicy';
 import { RANGER_DIALOGUE, MILLER_DIALOGUE, TRADER_DIALOGUE } from './wardensHollow';
 

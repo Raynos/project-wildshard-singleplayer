@@ -1,5 +1,5 @@
 /** C1 author-only landmark sites; the page retains native models, interaction and collider registration. */
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 import { ZIP_YAW } from './timberPlacement';
 import { PineSeedStream } from './seedStream';
 

@@ -1,4 +1,4 @@
-import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
+import * as LAYOUT from './layout';
 
 type XZ = [number, number];
 
