@@ -799,11 +799,7 @@
     "src/shards/sunscar-dunes/generators/landscape.ts": 1,
     "src/shards/sunscar-dunes/generators/rows/headlessOwners.ts": 1
   },
-  "wildshard/no-build-time-import": {
-    "src/shards/driftwood-isle/discovery.generated.ts": 3,
-    "src/shards/pine-hollow/discovery.generated.ts": 3,
-    "src/shards/sunscar-dunes/discovery.generated.ts": 9
-  },
+  "wildshard/no-build-time-import": {},
   "wildshard/no-hook-chain": {
     "src/engine/render/memorySaver.ts": 1
   },
