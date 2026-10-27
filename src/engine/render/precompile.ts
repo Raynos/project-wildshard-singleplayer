@@ -1152,7 +1152,10 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     const made = programCount(renderer) - programsBefore;
     const targetKnown = preparedTargets.has(job.rt) || job.rt !== null && targetBefore !== undefined
       && targetFences.get(job.rt) === targetBefore && targetBefore === allocatedTarget(renderer, job.rt);
-    let cachedOnly = made === 0 && job.materialSide === undefined && job.prepare === undefined && targetKnown;
+    // A forced face which selects only already-resolved physical programs is
+    // CPU bookkeeping too. Fresh/unresolved face programs still fail the
+    // acquired-program proof below and keep the original native fences.
+    let cachedOnly = made === 0 && job.prepare === undefined && targetKnown;
     let knownPrograms = 0;
     const acquired = isolateImageUploads ? snapshotPrograms(renderer) : undefined;
     if (acquired !== undefined) for (const program of acquired) if (issuedPrograms.has(program)) {
@@ -1175,7 +1178,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     const capped = isolateImageUploads && programCount(renderer) - programsAtFrame >= programsPerFrame();
     // A held frame may share its existing native-time budget with cheap jobs
     // that only revisit fully resolved programs. Do not rebase a slice that
-    // issued any new/unknown native work, side variant or first-use metadata.
+    // issued any new/unknown native work, unresolved side or first-use metadata.
     // The global native budget and program cap still end this same frame.
     const jobMs = performance.now() - jobStart;
     if (cachedOnly && !nativeInSlice && isolateImageUploads && buildHeld() && presenting() && jobMs < sliceMs) {
@@ -1190,7 +1193,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       : spent(tFrame);
     // A fully resolved cached-only root issued no native work to fence. Keep
     // its cheap completion in the held slice; fresh programs/targets, custom
-    // preparation, side variants and texture uploads retain their own fences.
+    // preparation, unresolved faces and texture uploads retain their own fences.
     const cachedCompletion = cachedOnly && !nativeInSlice && isolateImageUploads && buildHeld() && presenting();
     if (sliceDone || capped || i === jobs.length - 1 && !cachedCompletion) {
       if (isolateImageUploads && !spent(tFrame)) await settleInSlice();
