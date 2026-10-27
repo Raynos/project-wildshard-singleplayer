@@ -1,6 +1,7 @@
 import { BufferAttribute, BufferGeometry, MeshStandardMaterial } from 'three';
 import { emitNamedBlobs, nameBlob, type EmittedBlobs } from '@wildshard/sdk/blobs';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
+import { compactPhoneGlb } from '@wildshard/sdk/bake/compactGlb';
 import { compactChannels } from './compactChannels';
 import { decimateFlatBatch } from './phoneDecimate';
 
@@ -46,13 +47,14 @@ function readRock(glb: Uint8Array): BufferGeometry {
 }
 
 /** The phone's rocks within PHONE_ROCK_ERROR (smooth normals and colours kept), simplified from the desktop rocks at
- *  product build from the rock bank's desktop GLBs (by product name): owned bytes, never generated assets under src (GR0). */
-export function driftwoodPhoneRockOutput(desktop: ReadonlyMap<string, Uint8Array>): EmittedBlobs {
+ *  product build from the rock bank's desktop GLBs (by product name): owned bytes, never generated assets under src (GR0).
+ *  iPhone downloads I3: each ships with 16-bit grid positions and meshopt when that is smaller (`compactPhoneGlb`). */
+export async function driftwoodPhoneRockOutput(desktop: ReadonlyMap<string, Uint8Array>): Promise<EmittedBlobs> {
   const material = new MeshStandardMaterial({ vertexColors: true, flatShading: false, roughness: 0.82 });
-  const files = new Map(ids.map(id => {
+  const files = new Map(await Promise.all(ids.map(async (id): Promise<[string, Uint8Array]> => {
     const glb = desktop.get(sourceOf(id)); if (glb === undefined) throw new Error(`Missing desktop rock ${id}`);
-    return [`${id}-phone.glb`, staticGlb([{ geometry: compactChannels(decimateFlatBatch(readRock(glb), PHONE_ROCK_ERROR, 'smooth')), material, compactIndex: true, quantizedChannels: true }])];
-  }));
+    return [`${id}-phone.glb`, await compactPhoneGlb(staticGlb([{ geometry: compactChannels(decimateFlatBatch(readRock(glb), PHONE_ROCK_ERROR, 'smooth')), material, compactIndex: true, quantizedChannels: true }]))];
+  })));
   material.dispose();
   return emitNamedBlobs(ids.map(id => {
     const bytes = files.get(`${id}-phone.glb`); if (bytes === undefined) throw new Error(`Missing phone rock ${id}`);

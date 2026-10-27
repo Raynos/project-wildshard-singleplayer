@@ -16,11 +16,11 @@ const quantized = (accessor: Accessor, array: Int16Array<ArrayBuffer> | Int8Arra
 
 /**
  * iPhone downloads I3: a phone-tier baked model with 16-bit positions, 8-bit normals and 8-bit colours
- * (KHR_mesh_quantization), meshopt-compressed (EXT_meshopt_compression), kept only when its brotli bytes are smaller
- * than the input's. The positions sit on the mesh's own grid: a uniform scale and a translation on its node dequantize
+ * (KHR_mesh_quantization), with or without meshopt (EXT_meshopt_compression): whichever of the input, the quantized
+ * file and the packed one has the fewest brotli bytes ships. The positions sit on the mesh's own grid: a uniform scale and a translation on its node dequantize
  * them (`createOwnedGeometry` bakes that node transform back into float positions). Only a file with exactly one mesh on
- * one identity-space node and no skin, morph target, animation, instancing or existing quantization or meshopt is
- * compacted; every other file, and every channel but POSITION / NORMAL / COLOR_0, passes through unchanged.
+ * one identity-space node, float positions and no skin, morph target, animation, instancing or meshopt is compacted
+ * (channels already quantized stay as they are); every other file, and every channel but POSITION / NORMAL / COLOR_0, passes through unchanged.
  */
 export async function compactPhoneGlb(input: Uint8Array): Promise<Uint8Array> {
   await MeshoptDecoder.ready;
@@ -29,8 +29,7 @@ export async function compactPhoneGlb(input: Uint8Array): Promise<Uint8Array> {
   const used = new Set(root.listExtensionsUsed().map(extension => extension.extensionName));
   const nodes = root.listNodes().filter(node => node.getMesh() !== null), node = nodes[0], mesh = node?.getMesh();
   if (nodes.length !== 1 || node === undefined || mesh === null || mesh === undefined || root.listMeshes().length !== 1
-    || root.listSkins().length > 0 || root.listAnimations().length > 0 || used.has('KHR_mesh_quantization')
-    || used.has('EXT_meshopt_compression') || used.has('EXT_mesh_gpu_instancing')
+    || root.listSkins().length > 0 || root.listAnimations().length > 0 || used.has('EXT_meshopt_compression') || used.has('EXT_mesh_gpu_instancing')
     || node.getMatrix().some((value, i) => value !== (i % 5 === 0 ? 1 : 0)) || node.getParentNode() !== null) return input;
   const primitives = mesh.listPrimitives();
   if (primitives.length === 0 || primitives.some(primitive => primitive.listTargets().length > 0)) return input;
@@ -73,7 +72,9 @@ export async function compactPhoneGlb(input: Uint8Array): Promise<Uint8Array> {
     }
   }
   node.setTranslation(centre).setScale([half, half, half]);
-  doc.createExtension(KHRMeshQuantization).setRequired(true);
-  const packed = compressGlb(await io.writeBinary(doc));
-  return brotliBytes(packed) < brotliBytes(input) ? packed : input;
+  if (!used.has('KHR_mesh_quantization')) doc.createExtension(KHRMeshQuantization).setRequired(true);
+  // the quantized file with and without meshopt: a triangle soup often packs better under brotli alone
+  const plain = await io.writeBinary(doc), packed = compressGlb(plain);
+  const sizes = [input, plain, packed].map(bytes => ({ bytes, size: brotliBytes(bytes) }));
+  return sizes.reduce((best, row) => row.size < best.size ? row : best).bytes;
 }
