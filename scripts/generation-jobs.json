@@ -9365,7 +9365,9 @@
         "public/assets/gpu",
         "public/assets/horizon",
         "public/assets/lut",
-        "src/shards/pine-hollow/data/pagePolicy.json"
+        "src/shards/pine-hollow/data/pagePolicy.json",
+        "src/sdk/package.json",
+        "src/sdk/quests.ts"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/bootMetadata.generated.json",
