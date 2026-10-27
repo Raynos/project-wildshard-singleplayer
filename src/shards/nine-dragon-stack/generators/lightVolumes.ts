@@ -18,6 +18,8 @@ const signRows = parseSignView(rawSignRows);
 
 interface EmitterLike { at: Vector3; color: Color; w: number; h: number; power: number; spill: number }
 interface WindowLike { m: Matrix4; win: Vector4; light: Color }
+/** This factory supplies initial state explicitly; the generic author input also permits an omitted default. */
+type InitialLightRow = AuthoredLightEmitter & { initially: boolean };
 const isLamp = (e: EmitterLike): boolean => e.w < 0.5 && e.h < 0.5;
 const number = v.pipe(v.number(), v.finite(), v.minValue(0));
 /** Author-side validation; the page receives only baked voxel data. */
@@ -32,10 +34,10 @@ export const LightPoolProfilesSchema: v.StrictObjectSchema<{ readonly maximum: v
 type LightPoolProfiles = v.InferOutput<typeof LightPoolProfilesSchema>;
 /** The existing emitter layout projects numeric pool rows; the shared host materialises both volume and uniform views. */
 export function lightPoolRows(opt: { readonly lanterns: readonly EmitterLike[]; readonly ctxEmitters: readonly EmitterLike[];
-  readonly signs: readonly EmitterLike[]; readonly windows: readonly WindowLike[] }, POOL: LightPoolProfiles): AuthoredLightEmitter[] {
+  readonly signs: readonly EmitterLike[]; readonly windows: readonly WindowLike[] }, POOL: LightPoolProfiles): InitialLightRow[] {
   const shops = opt.ctxEmitters.filter((e) => !isLamp(e));
   const lamps = opt.ctxEmitters.filter(isLamp).map((e) => e.at);
-  const rows: AuthoredLightEmitter[] = [];
+  const rows: InitialLightRow[] = [];
   const push = (at: Vector3, color: Color, gain: number, radius: number, cut: number): void => {
     rows.push({ id: `light.${String(rows.length)}`, at: [at.x, at.y, at.z], colour: [color.r, color.g, color.b], gain, radius, cut, initially: true });
   };
