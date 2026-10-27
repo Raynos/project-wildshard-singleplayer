@@ -45,6 +45,7 @@ import { makeSystem, setLoopState, systemFault, type GameSystem } from './faults
 import { frameCost } from './frameCost';
 import { diagnosticNow } from './clock';
 import { buildHeld, heldDrawDeferred, noteFrameDrawn } from './framePacing';
+import { isDev } from './devMode';
 import { boundEntryWarmup } from '../render/entryWarmupBound';
 import { dropOutputDepth, installMemorySaver, shadowLights } from '../render/memorySaver';
 import { dropShadowColour } from '../world/shadowVariants';
@@ -134,6 +135,12 @@ function skipWhileTransparent(effect: Effect, paused: () => boolean): void {
   const update = effect.update.bind(effect);
   effect.update = (renderer, inputBuffer, deltaTime) => { if (effect.blendMode.opacity.value > 0 && !paused()) update(renderer, inputBuffer, deltaTime); };
 }
+
+/** D188 (Developer): where a crossing reveals the player (render space) and how far round it the entry prepares first. */
+interface EntryArrival { readonly at: THREE.Vector3; readonly radius: number }
+/** D188: the arrival's radius, the held view's draw range (D175, G813): what the player sees from the entry is drawn
+ *  before the reveal; beyond it, content waits for the after-reveal warm-up. */
+const ARRIVAL_RADIUS = 125;
 
 /** one engine colour chain, built (Game.buildComposer): its effects, in order, and by name */
 interface BuiltChain { clean: boolean; order: Effect[]; fx: Omit<EngineEffects, 'order'> }
@@ -886,10 +893,16 @@ export class Game {
    * `before` (the caller's last preparation, e.g. a region's sky build) runs first, inside the same time bound:
    * it may prepare already-built roots while other content constructs, then await that content before returning.
    * Early roots and whole-page programs share this bound. Final complete inventory still gates readiness.
-   * nothing here can wait silently forever (`boundEntryWarmup`); a stall rejects naming its stage. */
+   * nothing here can wait silently forever (`boundEntryWarmup`); a stall rejects naming its stage.
+   * D188 (Developer, Jake's pick open): `arrivalAt` (where the crossing reveals the player, render space) prepares only
+   * the destination content within ARRIVAL_RADIUS of it before the reveal; the rest sits out live draws (a frame gate)
+   * until `warmArrivalRest` has linked and first-drawn it after the reveal, nearest first. */
   async warmEnteredFrame(owner: Scope, futureRoot?: THREE.Object3D,
-    before?: (prepare: (roots: readonly THREE.Object3D[], exteriorPrograms?: boolean) => Promise<void>, prepareFrame: () => Promise<void>) => Promise<void> | void): Promise<void> {
+    before?: (prepare: (roots: readonly THREE.Object3D[], exteriorPrograms?: boolean) => Promise<void>, prepareFrame: () => Promise<void>) => Promise<void> | void,
+    arrivalAt?: THREE.Vector3): Promise<void> {
     const composer = this._composer;
+    const arrival = arrivalAt !== undefined && futureRoot !== undefined && futureRoot !== this.rootScene && this.frameCount > 0 && isDev()
+      ? { at: arrivalAt.clone(), radius: ARRIVAL_RADIUS } : undefined;
     if (composer === null) { await before?.(() => Promise.resolve(), () => Promise.resolve()); return; }
     const trace: EntryPreparation = { root: (futureRoot ?? this.scene).uuid, owner: owner.name,
       completed: false, phase: before === undefined ? 'post-preparation' : 'before-warm', progress: null, stages: [] };
@@ -909,7 +922,7 @@ export class Game {
         }, async () => {
           const started = diagnosticNow();
           enter('early-frame-programs');
-          await this.prepareEnteredPrograms(owner, composer, current, futureRoot,
+          await this.prepareEnteredPrograms(owner, composer, current, futureRoot, arrival,
             (phase, elapsedMs, units) => { trace.stages.push({ phase: `early-frame:${phase}`, elapsedMs, units, endAt: diagnosticNow() }); },
             (done, total, detail) => { trace.progress = { done, total, detail }; });
           trace.stages.push({ phase: 'early-frame-programs', elapsedMs: diagnosticNow() - started, units: 1, endAt: diagnosticNow() });
@@ -925,7 +938,7 @@ export class Game {
         if (this.postPreparation === pending) break;
       }
       enter('shaders-and-composer');
-      await this.warmEnteredStages(owner, composer, trace, current, futureRoot, enter);
+      await this.warmEnteredStages(owner, composer, trace, current, futureRoot, enter, arrival);
     });
   }
 
@@ -966,14 +979,40 @@ export class Game {
     }
   }
 
+  /**
+   * D188 (Developer): after an arrival's reveal, what it left (`rest`, gated out of live draws) is linked and first-drawn
+   * nearest the player first: the whole remaining program inventory under the live slice budget, then the rest's 1×1
+   * draws a live budget a completed frame, each slice released to the live draw as it lands. The owner leaving (or a
+   * failure) releases the gate: the content then draws as before, building on first sight.
+   */
+  private async warmArrivalRest(owner: Scope, composer: EffectComposer, root: THREE.Object3D, rest: readonly THREE.Object3D[],
+    at: THREE.Vector3, environment: THREE.Texture | null): Promise<void> {
+    const gate = this.frameDrawRanges.gate(owner, rest), started = diagnosticNow();
+    const live = (): boolean => !owner.disposed && !owner.disposing && this._composer === composer;
+    try {
+      const { precompileLevel, waitForDrawnFrame, LIVE_PRECOMPILE_SLICE_MS } = await import('../render/precompile');
+      const { warmParkedDraws, LIVE_PARKED_BUDGET } = await import('../render/parkedDraws');
+      const pause = (): Promise<void> => waitForDrawnFrame(owner, () => this.frameCount, live);
+      while (live() && !root.visible) await pause();
+      if (!live()) return;
+      await precompileLevel(this, undefined, { sliceMs: LIVE_PRECOMPILE_SLICE_MS, current: live, owner, nearest: true });
+      const wanted = new Set(rest);
+      await warmParkedDraws(this.renderer, this.rootScene, this.camera, composer.inputBuffer, root, live, pause,
+        { budget: LIVE_PARKED_BUDGET, environment, include: object => wanted.has(object), nearest: at, onDrawn: objects => { gate.release(objects); } });
+      if (isDev()) performance.measure('wildshard.arrival-rest', { start: started, end: diagnosticNow() });
+    } catch (error: unknown) {
+      if (live()) console.warn('[arrival] the after-reveal warm-up stopped; the rest draws as it is seen', error);
+    } finally { gate.release(rest); }
+  }
+
   /** The same complete program inventory may run before content finishes. It never draws or publishes readiness;
    * final preparation repeats discovery so late play content and changed variants remain mandatory. */
   private async prepareEnteredPrograms(owner: Scope, composer: EffectComposer, current: () => boolean,
-    futureRoot: THREE.Object3D | undefined, onStage: (phase: string, elapsedMs: number, units: number) => void,
+    futureRoot: THREE.Object3D | undefined, arrival: EntryArrival | undefined, onStage: (phase: string, elapsedMs: number, units: number) => void,
     progress: (done: number, total: number, detail: string) => void): Promise<void> {
     const futureLighting = futureRoot ?? this.scene, futureEnvironment = this.scene.environment;
     const isolateImageUploads = navigator.userAgent.includes('AppleWebKit') && !/Chrome|Chromium|Edg/.test(navigator.userAgent);
-    const { precompileLevel, waitForDrawnFrame, LIVE_UPLOAD_BUDGET, LIVE_PRECOMPILE_SLICE_MS } = await import('../render/precompile');
+    const { precompileLevel, waitForDrawnFrame, arrivalSet, LIVE_UPLOAD_BUDGET, LIVE_PRECOMPILE_SLICE_MS } = await import('../render/precompile');
     const live = (): boolean => current() && this._composer === composer;
     const pause = this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, live) : undefined;
     const uploadBudget = isolateImageUploads ? LIVE_UPLOAD_BUDGET : undefined;
@@ -981,12 +1020,13 @@ export class Game {
     // Camera equipment leaves with its owner, so its road variants are never needed.
     const leaving = this.viewmodel.staged(owner);
     await precompileLevel(this, progress, { chunkCasters: false, current: live, owner, futureLighting, isolateImageUploads, onStage, drawnOnly: this.frameCount === 0,
+      ...(arrival === undefined || futureRoot === undefined ? {} : { arrival: arrivalSet(futureRoot, arrival.at, arrival.radius) }),
       ...(leaving === undefined ? {} : { leaving: [leaving] }), ...(sliceMs === undefined ? {} : { sliceMs }),
       ...(futureEnvironment === null ? {} : { futureEnvironment }), ...(pause === undefined ? {} : { pause }), ...(uploadBudget === undefined ? {} : { uploadBudget }) });
   }
 
   private async warmEnteredStages(owner: Scope, composer: EffectComposer, trace: EntryPreparation,
-    current: () => boolean, futureRoot: THREE.Object3D | undefined, enter: (phase: string) => void): Promise<void> {
+    current: () => boolean, futureRoot: THREE.Object3D | undefined, enter: (phase: string) => void, arrival?: EntryArrival): Promise<void> {
     const futureScene = this.scene;
     const futureEnvironment = futureScene.environment;
     const progress = (done: number, total: number, detail: string): void => { trace.progress = { done, total, detail }; };
@@ -1010,7 +1050,7 @@ export class Game {
     const nodesBefore = nodeStats();
     const bootDrawn = this.frameCount === 0;
     await warmComposerFrame(composer, this.renderer,
-      () => this.prepareEnteredPrograms(owner, composer, current, futureRoot, onStage, progress), current);
+      () => this.prepareEnteredPrograms(owner, composer, current, futureRoot, arrival, onStage, progress), current);
     onStage('shaders-and-composer', diagnosticNow() - shaderStart, 1);
     const nodesAfter = nodeStats();
     if (nodesAfter !== null) onStage('node-builds', nodesAfter.buildMs - (nodesBefore?.buildMs ?? 0), nodesAfter.builds - (nodesBefore?.builds ?? 0));
@@ -1040,10 +1080,19 @@ export class Game {
       const start = diagnosticNow();
       // Every submission waits for a completed game frame; a CPU construction
       // budget cannot measure pending native pipeline work.
+      // D188: an arrival first-draws only its set now; the rest is gated out of live draws and warmed after the reveal
+      const keep = arrival === undefined ? undefined : (await import('../render/precompile')).arrivalSet(futureRoot, arrival.at, arrival.radius);
       const drawn = await warmParkedDraws(this.renderer, this.rootScene, this.camera, composer.inputBuffer, futureRoot, current,
         drawnPause, { ...drawBudget, ...widen, onProgress: (done, total) => { progress(done, total, `${done} / ${total} scene draws warmed`); },
-          onPlan: (original, selected) => { onStage('parked-slices-original', 0, original); onStage('parked-slices-selected', 0, selected); }, environment: futureEnvironment });
+          onPlan: (original, selected) => { onStage('parked-slices-original', 0, original); onStage('parked-slices-selected', 0, selected); }, environment: futureEnvironment,
+          ...(keep === undefined ? {} : { include: keep }) });
       onStage('parked-draws', diagnosticNow() - start, drawn);
+      if (keep !== undefined && arrival !== undefined) {
+        const rest: THREE.Object3D[] = [];
+        futureRoot.traverseVisible(object => { if (object !== futureRoot && Reflect.get(object, 'material') !== undefined && !keep(object)) rest.push(object); });
+        onStage('arrival-deferred', 0, rest.length);
+        if (rest.length > 0) void this.warmArrivalRest(owner, composer, futureRoot, rest, arrival.at, futureEnvironment);
+      }
     }
     // op-hitch37: a registered offscreen pass (Nalati's look bake) built its casters' pipelines on its first real
     // update, after entry; draw each once into a 1×1 stand-in of its target first.

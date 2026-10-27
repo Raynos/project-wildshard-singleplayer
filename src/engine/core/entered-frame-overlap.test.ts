@@ -199,7 +199,7 @@ test('page preparation uses final program inputs without drawing and fences a ch
     viewmodel: {staged: (scope: Scope): Group => {expect(scope).toBe(owner); return models;}}};
   const stage = (): void => undefined, progress = (): void => undefined;
   try {
-    await Reflect.apply(method, game, [owner, composer, () => !owner.disposed, root, stage, progress]);
+    await Reflect.apply(method, game, [owner, composer, () => !owner.disposed, root, undefined, stage, progress]);
     expect(draws).toBe(0); expect(calls).toHaveLength(1); expect(calls[0]?.slice(0, 2)).toEqual([game, progress]);
     const options = calls[0]?.[2];
     if (typeof options !== 'object' || options === null) throw new Error('Missing program options');

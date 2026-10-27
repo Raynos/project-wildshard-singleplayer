@@ -35,7 +35,7 @@ async function fixture(isolated: boolean, held = true, frameCount = 1) {
     ${paced}
     ${source.slice(call, end)}
   }).call(game)`), { game, owner, current: () => !owner.disposed, waitForDrawnFrame, buildYield, buildHeld: () => held, HELD_PARKED_BUDGET, LIVE_PARKED_BUDGET,
-    isolateImageUploads: isolated, composer: { inputBuffer: {} }, futureRoot: {},
+    isolateImageUploads: isolated, composer: { inputBuffer: {} }, futureRoot: {}, keep: undefined,
     futureEnvironment: null, progress: () => undefined,
     warmParkedDraws: (...args: unknown[]) => { captured = args[6]; options = args[7]; return Promise.resolve(0); } });
   await run;

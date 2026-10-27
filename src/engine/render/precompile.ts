@@ -1395,6 +1395,37 @@ function drawnFrom(camera: THREE.Camera): (object: THREE.Object3D) => boolean {
   };
 }
 
+/**
+ * D188 (G808, Developer): what an arrival needs drawn before its reveal. Content outside `root` (the page: roads, other
+ * cells, the sky) keeps its whole inventory. Inside `root` (the parked destination, hidden while it waits), a node under
+ * a hidden subtree is left out; a drawable whose bounds reach within `radius` of `at` (horizontal, every direction: the
+ * player can turn on the reveal) is in; so is one whose bounds can't be trusted (unbounded, unculled, skinned, morphed,
+ * drawn through callbacks), which draws wherever it is.
+ */
+export function arrivalSet(root: THREE.Object3D, at: THREE.Vector3, radius: number): (object: THREE.Object3D) => boolean {
+  const centre = new THREE.Vector3();
+  return (object) => {
+    let inside = false;
+    for (let node: THREE.Object3D | null = object; node !== null; node = node.parent) {
+      if (node === root) { inside = true; break; }
+    }
+    if (!inside) return true;
+    for (let node: THREE.Object3D | null = object; node !== null && node !== root; node = node.parent) if (!node.visible) return false;
+    if (object instanceof THREE.InstancedMesh && object.count === 0) return false;
+    if (!object.frustumCulled || object instanceof THREE.SkinnedMesh || object.onBeforeRender !== THREE.Object3D.prototype.onBeforeRender
+      || object.onAfterRender !== THREE.Object3D.prototype.onAfterRender) return true;
+    const geometry: unknown = Reflect.get(object, 'geometry');
+    if (!(geometry instanceof THREE.BufferGeometry)) return true;
+    for (const key in geometry.morphAttributes) if (Object.hasOwn(geometry.morphAttributes, key)) return true;
+    if (object instanceof THREE.InstancedMesh) { if (object.boundingSphere === null) object.computeBoundingSphere(); }
+    else if (geometry.boundingSphere === null) geometry.computeBoundingSphere();
+    const sphere: unknown = object instanceof THREE.InstancedMesh ? object.boundingSphere : geometry.boundingSphere;
+    if (!(sphere instanceof THREE.Sphere) || !Number.isFinite(sphere.radius)) return true;
+    centre.copy(sphere.center).applyMatrix4(object.matrixWorld);
+    return Math.hypot(centre.x - at.x, centre.z - at.z) - sphere.radius * object.matrixWorld.getMaxScaleOnAxis() <= radius;
+  };
+}
+
 /** The level supplies compile policy; the mechanism owns all shader jobs. */
 export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | 'scene' | 'rootScene' | 'composer' | 'level'>, onProgress?: (done: number, total: number, detail: string) => void,
   options: { /** Entered frames reuse their existing caster geometry. */ chunkCasters?: boolean; /** Fence yielded work to its entered owner. */ current?: () => boolean;
@@ -1412,6 +1443,9 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
      *  scene's undrawn materials, material families and the exterior (road) lighting variants, none of which draws until
      *  a look swaps or the player leaves the cell. Shadow, offscreen, post and background jobs stay whole: any of them
      *  can draw in the first seconds (a turn moves casters into a cascade, a menu blurs). */ drawnOnly?: boolean;
+    /** D188 (Developer): scene programs only for what `arrivalSet` keeps; like `drawnOnly`, material families and the
+     *  exterior variants wait for the caller's after-reveal warm-up. Shadow, offscreen, post and background stay whole. */
+    arrival?: (object: THREE.Object3D) => boolean;
     /** Scene and exterior programs ordered by the camera's distance to what draws them, nearest first (the after-control
      *  warm-up: what the player reaches soonest links soonest). */ nearest?: boolean } = {}): Promise<number> {
 
@@ -1462,10 +1496,10 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const per = single ? 1 : 6;
     const excludedRoots = entryFrameExclusions(scene, options.futureLighting);
     const kinded = (kind: string, list: CompileJob[]): CompileJob[] => { for (const job of list) job.kind = kind; return list; };
-    const from = options.nearest === true ? game.camera.getWorldPosition(new THREE.Vector3()) : undefined, drawnOnly = options.drawnOnly === true;
+    const from = options.nearest === true ? game.camera.getWorldPosition(new THREE.Vector3()) : undefined, drawnOnly = options.drawnOnly === true || options.arrival !== undefined;
     const { jobs, materials } = policy?.scene === false ? { jobs: [], materials: 0 }
       : live || drawnOnly
-        ? await pacedSceneJobs(scene, rt, per, [scene], excludedRoots, options.current ?? (() => true), pageScope, drawnOnly ? drawnFrom(game.camera) : undefined, from)
+        ? await pacedSceneJobs(scene, rt, per, [scene], excludedRoots, options.current ?? (() => true), pageScope, options.arrival ?? (drawnOnly ? drawnFrom(game.camera) : undefined), from)
         : sceneJobs(scene, rt, per, [scene], excludedRoots);
     // Diagnostic split: the entered root's own materials, else the rest of the page compiled under its lights.
     const entered = new Set<THREE.Material>();

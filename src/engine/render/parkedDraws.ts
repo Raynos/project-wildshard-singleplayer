@@ -66,13 +66,27 @@ function pipelineKey(object: Drawable, camera: THREE.Camera): string {
 }
 
 /** `reveal` gains the hidden ancestors of every hidden drawable the warm adds (drawSlice shows them for its draw only). */
-function parkedDrawables(root: THREE.Object3D, camera: THREE.Camera, reveal: Set<THREE.Object3D>): Drawable[] {
+/** D188: order drawables by their bounds' horizontal distance from `at` (an origin's without trusted bounds), nearest first. */
+function sortNearest(drawables: Drawable[], at: THREE.Vector3): void {
+  const centre = new THREE.Vector3(), distance = new Map<Drawable, number>();
+  for (const object of drawables) {
+    const geometry: unknown = Reflect.get(object, 'geometry');
+    const sphere: unknown = object instanceof THREE.InstancedMesh ? object.boundingSphere : geometry instanceof THREE.BufferGeometry ? geometry.boundingSphere : null;
+    if (sphere instanceof THREE.Sphere) centre.copy(sphere.center).applyMatrix4(object.matrixWorld); else centre.setFromMatrixPosition(object.matrixWorld);
+    const radius = sphere instanceof THREE.Sphere ? sphere.radius * object.matrixWorld.getMaxScaleOnAxis() : 0;
+    distance.set(object, Math.max(0, Math.hypot(centre.x - at.x, centre.z - at.z) - radius));
+  }
+  drawables.sort((a, b) => (distance.get(a) ?? 0) - (distance.get(b) ?? 0));
+}
+
+function parkedDrawables(root: THREE.Object3D, camera: THREE.Camera, reveal: Set<THREE.Object3D>, include?: (object: THREE.Object3D) => boolean): Drawable[] {
   const out: Drawable[] = [], hidden: { readonly object: Drawable; readonly chain: readonly THREE.Object3D[] }[] = [];
   const visit = (object: THREE.Object3D, chain: readonly THREE.Object3D[]): void => {
     const shown = object === root || object.visible || reveal.has(object), path = shown ? chain : [...chain, object];
     // the view's drawables, and the shadow-only casters (SHADOW_LAYER) the shadow pass draws
     if (isDrawable(object) && (object.layers.test(camera.layers) || object.castShadow && object.layers.isEnabled(SHADOW_LAYER))) {
-      if (path.length === 0) out.push(object); else hidden.push({ object, chain: path });
+      if (path.length > 0) hidden.push({ object, chain: path });
+      else if (include === undefined || include(object)) out.push(object);
     }
     for (const child of object.children) visit(child, path);
   };
@@ -607,10 +621,18 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
     /** Original and selected slice counts, before any submission; no timing or readiness gate. */
     onPlan?: (original: number, selected: number) => void;
     /** Adaptive slices per completed frame (held, off WebKit); absent, every planned slice gets its own frame. */
-    widen?: ParkedDrawWiden } = {}): Promise<number> {
+    widen?: ParkedDrawWiden;
+    /** D188 (Developer): only these shown drawables (an arrival's set, or the rest it left); hidden alternates keep their
+     *  one-per-pipeline warm-up either way. */
+    include?: (object: THREE.Object3D) => boolean;
+    /** D188: shown drawables nearest this point first (an after-reveal warm-up meets what the player reaches soonest). */
+    nearest?: THREE.Vector3;
+    /** D188: each slice's drawables once drawn, or found already warm (an arrival's gate lets them show). */
+    onDrawn?: (objects: readonly THREE.Object3D[]) => void } = {}): Promise<number> {
   const reveal = new Set(options.revealChildren === true ? root.children : []);
   if (options.lightingRoot !== undefined) reveal.add(options.lightingRoot);
-  const drawables = parkedDrawables(root, camera, reveal);
+  const drawables = parkedDrawables(root, camera, reveal, options.include);
+  if (options.nearest !== undefined) sortNearest(drawables, options.nearest);
   const warmed = warmedFor(renderer), context = warmContextKey(renderer, scene, camera, root, reveal, options.environment, target);
   const formats = targetFormats(target);
   // G782: a material counts against a slice's new-material budget only when its native pipeline is new to this renderer
@@ -663,10 +685,11 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
       }
       const slice = whole.filter(object => !alreadyWarmed(warmed, renderer, object, camera, context));
       done += whole.length - slice.length;
-      if (slice.length === 0) { options.onProgress?.(done, total); continue; }
+      if (slice.length === 0) { options.onDrawn?.(whole); options.onProgress?.(done, total); continue; }
       try { drawSlice(renderer, scene, camera, view, target, root, slice, options.environment, standIns, reveal, benched); }
       catch (error) { console.error(`[parked draws] the pre-draw stopped after ${String(drawn)} drawables; the entry frame draws the rest`, error); return drawn; }
       for (const object of slice) recordWarmed(warmed, renderer, object, camera, context, formats);
+      options.onDrawn?.(whole);
       drawn += slice.length; done += slice.length;
       options.onProgress?.(done, total);
       await pause();

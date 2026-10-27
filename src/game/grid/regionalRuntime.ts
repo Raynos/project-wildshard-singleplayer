@@ -4,7 +4,7 @@ import { freezeParkedMatrices } from '@wildshard/engine/render/precompile';
 import { timeClientPreparation } from '../shardfile/preparationTiming';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { clientHomeBytes } from '../shardfile/clientResidency';
-import { Object3D } from 'three';
+import { Object3D, Vector3 } from 'three';
 import { ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
 import type { DisposeStep, Scope } from '@wildshard/engine/app/scope';
 import type { Game } from '@wildshard/engine/core/Game';
@@ -211,6 +211,12 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
         scope, ground: foundation.ground,
         prepare: (node, root) => request.page.world.game.warmSceneRoots([node], () => !scope.disposed && node.parent !== null, root) });
       request.page.world.game.bindHiddenFrameRoot(scope, view.root);
+      // D188 (Developer): where the crossing reveals the player, in render space (the cell's root carries its origin)
+      const arrivalAt = (): Vector3 | undefined => {
+        const entry = request.entryPoint; if (entry === undefined) return undefined;
+        view.root.updateWorldMatrix(true, false);
+        return view.root.localToWorld(new Vector3(entry.x, 0, entry.z));
+      };
       const foundationWorld = foundation.world(view);
       // SF63: the herd's far cull reads the camera from the region's frame, where its animals stand (FrameCamera)
       const viewFromRoot = new FrameCamera(view.root);
@@ -310,7 +316,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
                 // Final look preparation follows late content. Speculative root
                 // compilation competed with this content without reducing entry.
                 await (foundation.beforeWarm !== undefined ? foundation.beforeWarm() : foundation.prepareWorldMaterials?.());
-              });
+              }, arrivalAt());
               // Observe an early failure now; afterPlay still awaits the original rejection before readiness.
               void enteredWarm.catch(() => undefined);
             },
@@ -396,7 +402,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               contentReady(); forgetContent();
               await (enteredWarm ?? request.page.world.game.warmEnteredFrame(owner, view.root, async () => {
                 await foundation.beforeWarm?.();
-              }));
+              }, arrivalAt()));
               restored = true;
             },
           };

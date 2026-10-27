@@ -153,3 +153,16 @@ test('a frame holds only while a live owner has its range enabled (D178 pauses p
     range.enabled = true; child.dispose(); expect(f.masks.holding()).toBe(false);
   } finally { f.dispose(); }
 });
+
+test('a frame gate keeps its objects out of the live draw only, until released or its owner leaves (D188)', () => {
+  const f = fixture(), child = f.scope.child('arrival'), near = f.mesh(0), far = f.mesh(400), other = f.mesh(600);
+  try {
+    const gate = f.masks.gate(child, [far, other]);
+    f.masks.draw(f.root, f.camera, { render: () => { expect([near.visible, far.visible, other.visible]).toEqual([true, false, false]); } }, .03);
+    expect([far.visible, other.visible]).toEqual([true, true]);
+    gate.release([far]); expect(gate.size()).toBe(1);
+    f.masks.draw(f.root, f.camera, { render: () => { expect([far.visible, other.visible]).toEqual([true, false]); } }, .03);
+    child.dispose();
+    f.masks.draw(f.root, f.camera, { render: () => { expect(other.visible).toBe(true); } }, .03);
+  } finally { f.dispose(); }
+});
