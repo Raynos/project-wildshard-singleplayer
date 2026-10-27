@@ -20,6 +20,7 @@ import type { ClientTileViews } from './clientViews';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { TILES_PER_SIDE, TILE_SIZE, tileOf, tileOrder, type CellTile } from './tileOrder';
+import { noteEnteredTiles } from './enteredTileReadout';
 
 /**
  * One installed world element by tile (the port the tile streamer drives, T4): the tiles it holds content in, and `attach`,
@@ -498,6 +499,13 @@ export async function standaloneClientTiles(entry: ClientRingInstance, parent: S
       if (streamer.stats().refused > 0) throw new Error('Home tile residency admission deferred');
     }
     const world = await loading;
+    const fineRows = entry.source.tiles.filter(tile => tile.lod === 0);
+    const bytes = new Map(fineRows.map(tile => [tileKey({ i: tile.x, j: tile.z }), tile.decoded + tile.gpu]));
+    // The data renderer has no collider-ring port. Never fabricate amber ownership from a render requirement.
+    noteEnteredTiles(scope, () => {
+      const fine = world.fine;
+      return { render: new Set(fineRows.filter(tile => fine.has(`0/${tile.x}/${tile.z}`)).map(tile => tileKey({ i: tile.x, j: tile.z }))), colliders: null, bytes };
+    });
     ports.frame(() => { if (!scope.disposed && !scope.disposing) { const at = ports.viewer(); streamer.step({ x: at.x, z: at.z, vx: 0, vz: 0 }); } });
     return { props, refresh: world.refresh, get fine() { return world.fine; } };
   } catch (error) {

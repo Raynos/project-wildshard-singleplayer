@@ -1044,3 +1044,19 @@ sp-ci-deploy, and a separate reader predicate miss: levelDebugRows excludes
 global tile-residency rows. The final reusable reader labels that absent
 counter unavailable. Original run scripts/tool hashes and all raw failures
 remain retained; no sample is replaced or promoted to a PASS.
+
+
+### T5 data-world readout repair (2026-10-27, sp-x2)
+
+The called plan-end Chromium cohort on `5f1eadb19e` observed fine
+residency in Sky, Signal and Template but no T5 minimap rectangles or MB
+labels. Only the native TileDriver had published the overlay readout.
+The generic entered-tile binding now reads actual data-streamer fine keys
+and the admitted tile costs. Its owner releases the readout on disposal;
+a departed owner cannot clear a newer world's reader. Data-world collider
+ownership is unavailable, represented by null rather than invented amber
+tiles. Existing minimap colours, layout, Debug choices and tile scheduling
+are unchanged. This is in flight (reading at plan end), not a new parity
+or performance PASS. Touched game/test types and typed lint pass; selected
+source ratchet is checked before landing. The original preview is immutable
+and its zero-overlay evidence remains retained.

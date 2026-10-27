@@ -1,6 +1,6 @@
 import type { MapExtraLabel, MapExtraRect, MapExtras } from '@wildshard/engine/ui/Minimap';
 import { isDev } from '@wildshard/engine/core/devMode';
-import { enteredTiles } from './tileDriver';
+import { enteredTiles } from './enteredTileReadout';
 
 const SIZE = 62.5, HALF = 250, LINE = 0.8;
 const RENDER = 'rgba(80, 200, 120, 0.22)', COLLIDER = 'rgba(255, 190, 70, 0.22)', BORDER = 'rgba(255, 255, 255, 0.55)', LABEL = '#ffffff';
@@ -22,13 +22,13 @@ export function gridTileOverlay(state: () => { readonly origin: { readonly x: nu
   return tileOverlayExtras({ render, colliders: new Set(), bytes }, origin);
 }
 
-function tileOverlayExtras(tiles: { readonly render: ReadonlySet<number>; readonly colliders: ReadonlySet<number>; readonly bytes: ReadonlyMap<number, number> },
+function tileOverlayExtras(tiles: { readonly render: ReadonlySet<number>; readonly colliders: ReadonlySet<number> | null; readonly bytes: ReadonlyMap<number, number> },
   origin: { readonly x: number; readonly z: number }): MapExtras {
   const rects: MapExtraRect[] = [], labels: MapExtraLabel[] = [];
   for (let key = 0; key < 64; key++) {
     const x = origin.x - HALF + (key % 8 + 0.5) * SIZE, z = origin.z - HALF + (Math.floor(key / 8) + 0.5) * SIZE;
     if (tiles.render.has(key)) rects.push({ x, z, hx: SIZE / 2, hz: SIZE / 2, color: RENDER });
-    if (tiles.colliders.has(key)) rects.push({ x, z, hx: SIZE / 2, hz: SIZE / 2, color: COLLIDER });
+    if (tiles.colliders?.has(key) === true) rects.push({ x, z, hx: SIZE / 2, hz: SIZE / 2, color: COLLIDER });
     const bytes = tiles.bytes.get(key) ?? 0;
     if (bytes > 0) labels.push({ x, z, text: `${(bytes / 1048576).toFixed(1)} MB`, color: LABEL });
   }

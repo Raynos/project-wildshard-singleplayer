@@ -17,6 +17,7 @@ import { frameBudgetSpent } from '@wildshard/engine/core/framePacing';
 import { buildYield, WORK_SLICE_MS } from '@wildshard/engine/core/workSlice';
 import { followTile, ring, tileKey, type TileContent } from './tileContent';
 import { tileOf, tileOrder, type CellTile, type TileEntryway } from './tileOrder';
+import { noteEnteredTiles } from './enteredTileReadout';
 
 type Layer = 'render' | 'colliders';
 type TileFailure = { readonly error: unknown } | null;
@@ -167,16 +168,10 @@ export function followRing(radius: number = TILE_RING): (viewer: { readonly x: n
 const drivers = new WeakMap<Scope, TileDriver>();
 const started = new WeakMap<Scope, { readonly pending: Promise<void>; readonly state: { complete: boolean } }>();
 /** T5 (G775): the latest entered resident's driver and its L0 tiles' declared resident bytes, for the Developer overlay */
-let latest: { readonly resident: Scope; readonly driver: TileDriver } | null = null;
 const tileBytes = new WeakMap<Scope, ReadonlyMap<number, number>>();
 /** A resident's L0 tile rows (key j * 8 + i), their declared decoded + GPU bytes: what the overlay labels each tile with. */
 export function noteTileBytes(resident: Scope, rows: readonly { readonly lod: number; readonly x: number; readonly z: number; readonly decoded: number; readonly gpu: number }[]): void {
   tileBytes.set(resident, new Map(rows.filter(row => row.lod === 0).map(row => [row.z * 8 + row.x, row.decoded + row.gpu] as const)));
-}
-/** The entered world's tiles now (null: none, or its resident ended): the render and collider rings and the declared bytes. */
-export function enteredTiles(): { readonly render: ReadonlySet<number>; readonly colliders: ReadonlySet<number>; readonly bytes: ReadonlyMap<number, number> } | null {
-  if (latest === null || latest.resident.disposed) return null;
-  return { render: latest.driver.resident('render'), colliders: latest.driver.resident('colliders'), bytes: tileBytes.get(latest.resident) ?? new Map() };
 }
 /**
  * T4: a resident world's tiled content attached before its player has controls: the spawn's and the entries' tiles
@@ -198,7 +193,9 @@ export function residentTiles(resident: Scope, contents: readonly TileContent[],
     const driver = drivers.get(resident) ?? new TileDriver(resident, contents, tileRing, () => buildYield(resident)), order = tileOrder(spawn, entryways);
     await driver.require(tileKeys(order.tiles.filter(tile => order.rank(tile) === 0))); live();
     await driver.coarse(spawn.x, spawn.z); live();
-    drivers.set(resident, driver); latest = { resident, driver }; preparation.complete = true;
+    drivers.set(resident, driver);
+    noteEnteredTiles(resident, () => ({ render: driver.resident('render'), colliders: driver.resident('colliders'), bytes: tileBytes.get(resident) ?? new Map() }));
+    preparation.complete = true;
     return undefined;
   });
   started.set(resident, { pending, state: preparation });
