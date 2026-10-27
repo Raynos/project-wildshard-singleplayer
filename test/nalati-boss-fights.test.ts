@@ -1,5 +1,3 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Read the same generated raw view module as the product.
-import {readFileSync} from 'node:fs';
 import { installArenaRoomEntry } from '../src/game/shardfile/clientEntryBinds';
 import { entryOwner, publishEntryOwner } from '../src/game/shardfile/entryOwners';
 import { installClientCosmeticFinishes, clientCosmeticFinishes } from '../src/game/shardfile/clientCosmeticFinishes';
@@ -57,14 +55,14 @@ import { installViewProgram } from '../src/game/shardfile/clientViewProgram';
 import { emptyShardfile } from '../src/sdk/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { nalatiTitanView } from '../src/shards/nalati-grasslands/generators/titanView';
-import titanViewModule from '../src/shards/nalati-grasslands/behaviour/titanView.generated.json' with { type: 'json' };
+import { nalatiViewBytes } from './fixtures/nalati-view-modules';
 
 const night=withWeatherWitness(nightInput);
 
 /** R6: a fight driven without its entered bind adopts the real view module at its frame slot (tells, pose ease, aim) */
 function adoptTitanView(fight: ArenaScriptFight, scope: Scope): void {
-  // the generated module's bytes, as the product carries them (happy-dom's Response cannot feed a runtime compile)
-  const rows = nalatiTitanView(), module = Uint8Array.from(readFileSync(`src/shards/nalati-grasslands/${titanViewModule.source}`));
+  // the module's bytes, as the product compiles them (happy-dom's Response cannot feed a runtime compile)
+  const rows = nalatiTitanView(), module = nalatiViewBytes('titan-view');
   const product = createShardProduct({ slug: 'titan-view-fixture', revision: 1, sections: new Map(), files: new Map(),
     shardfile: emptyShardfile({ slug: 'titan-view-fixture', name: 'Titan view fixture', author: 'Test', revision: 1, seed: 1 }),
     read: () => Promise.reject(new Error('The Titan view needs no file read')) });

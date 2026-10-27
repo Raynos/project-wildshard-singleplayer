@@ -1,5 +1,3 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Read the same generated raw view module as the product.
-import {readFileSync} from 'node:fs';
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import {expect,test,vi} from 'vitest';
 import {parse} from 'valibot';
@@ -21,7 +19,7 @@ import {titanWhirlGate} from '../src/shards/nalati-grasslands/generators/stormTi
 import {whirlsViewRows} from '../src/shards/nalati-grasslands/generators/titanWhirlsView';
 import {overrideTerrain} from '@wildshard/engine/test/terrain';
 import {titanPrograms as programmes} from './fixtures/titanInlineWitness';
-import moduleRows from '../src/shards/nalati-grasslands/behaviour/titanWhirlsView.generated.json' with {type:'json'};
+import { nalatiViewBytes } from './fixtures/nalati-view-modules';
 
 function context(parent:Scope,name:string):ReturnType<typeof shardContext>{
   const scope=parent.child(name),product=createShardProduct({slug:'quarry',revision:1,sections:new Map(),files:new Map(),
@@ -47,7 +45,7 @@ test.each(['install first','lend first'])('row-only quarry resources drive actua
   const native=new Scope('quarry.native'),q=quarry(native),ctx=context(native,'first'),systems=vi.spyOn(ctx,'system');
   const restore=overrideTerrain({heightAt:()=>3,normalAt:()=>[0,1,0]});
   const feature={kind:'view.program' as const,id:'quarry.whirls',module:'views/quarry.wasm',rows:whirlsViewRows(q.rows)};
-  const bytes=Uint8Array.from(readFileSync(`src/shards/nalati-grasslands/${moduleRows.source}`));
+  const bytes=nalatiViewBytes('titan-whirls-view');
   try{
     if(order==='install first'){installViewProgram(ctx,feature,bytes);q.view.bindView(ctx.scope);}
     else{q.view.bindView(ctx.scope);installViewProgram(ctx,feature,bytes);}
@@ -100,7 +98,7 @@ test('duplicate view aliases and object ids refuse before module/resource alloca
 test('native retirement during the original ground slot refuses the later view dispatch',()=>{
   const native=new Scope('quarry.mid-slot'),q=quarry(native),ctx=context(native,'entry');
   const feature={kind:'view.program' as const,id:'quarry.whirls',module:'views/quarry.wasm',rows:whirlsViewRows(q.rows)};
-  const bytes=Uint8Array.from(readFileSync(`src/shards/nalati-grasslands/${moduleRows.source}`));
+  const bytes=nalatiViewBytes('titan-whirls-view');
   q.view.bindView(ctx.scope);installViewProgram(ctx,feature,bytes);q.view.arm(2);q.debris.count=0;
   native.onDispose(()=>undefined);const leaving=native.disposeSteps();
   const restore=overrideTerrain({heightAt:()=>{leaving.next();return 3;},normalAt:()=>[0,1,0]});

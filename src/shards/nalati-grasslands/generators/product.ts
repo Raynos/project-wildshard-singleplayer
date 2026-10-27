@@ -1,3 +1,4 @@
+import { NALATI_VIEW_PAGES } from './viewPrograms';
 import { parseClientChannels } from '@wildshard/sdk/rows';
 import NALATI_FEATS from '../data/feats.json' with {type:'json'};
 import ridingPrograms from '../behaviour/riding.generated.json' with { type: 'json' };
@@ -30,11 +31,6 @@ import kokpar from '../data/kokpar.generated.json' with { type: 'json' };
 import titanProgram from '../behaviour/titan.generated.json' with { type: 'json' };
 import kingPose from '../data/goldenKingPose.generated.json' with { type: 'json' };
 import admission from '../behaviour/admission.generated.json' with { type: 'json' };
-import creatureViews from '../behaviour/creatureViews.generated.json' with { type: 'json' };
-import eliteViews from '../behaviour/eliteViews.generated.json' with { type: 'json' };
-import titanView from '../behaviour/titanView.generated.json' with { type: 'json' };
-import titanFireView from '../behaviour/titanFireView.generated.json' with { type: 'json' };
-import titanWhirlsView from '../behaviour/titanWhirlsView.generated.json' with { type: 'json' };
 
 // The declared client plan owns the world and play phases; original runtime binds retain their data authority.
 // SF48-g edges (G93 / G99 / G103 / G131): the four 8 m midpoint entryways (`emptyShardfile`'s, the engine's ENTRY_WIDTH) stand
@@ -103,7 +99,7 @@ export function nalatiProductRows(species: NalatiSpeciesProgramCosts, held: Nala
     + titanProgram.compiled.pasture.bytes+pastureProjection.artifact.pages*65536*2
     + admission.compiled.bytes+admissionProjection.artifact.pages*65536*2;
   // the creature, elite and Titan view modules (behaviour/creatureViews.as, eliteViews.as, titanView.as, titanFireView.as, titanWhirlsView.as): their live and last-good pages on the client
-  const viewMemory = (creatureViews.pages + eliteViews.pages + titanView.pages + titanFireView.pages + titanWhirlsView.pages) * 65536 * 2;
+  const viewMemory = NALATI_VIEW_PAGES * 65536 * 2;
   return parseShardfile({ ...base,
     navigation: navigation.navigation, terrain: queryTerrain.terrain, files: [...files, ...renderTiles.files].sort((a, b) => a.hash.localeCompare(b.hash)), critical: [...navigation.critical, ...queryTerrain.critical],
     tiles: renderTiles.tiles, props: renderTiles.props,

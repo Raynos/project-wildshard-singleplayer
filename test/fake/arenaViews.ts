@@ -1,16 +1,12 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Read the same generated raw view module as the product.
-import {readFileSync} from 'node:fs';
 import { PerspectiveCamera, Vector3, type InstancedMesh, type Object3D } from 'three';
 import type { Scope } from '../../src/engine/app/scope';
 import { viewProgram, type ViewProgram } from '../../src/engine/script/viewProgram';
 import { ARENA_BURNT_PER_FRAME, ARENA_VIEW } from '../../src/format/arenaView';
 import { fireViewRows } from '../../src/shards/nalati-grasslands/generators/titanFireView';
 import { whirlsViewRows } from '../../src/shards/nalati-grasslands/generators/titanWhirlsView';
-import fireModule from '../../src/shards/nalati-grasslands/behaviour/titanFireView.generated.json' with { type: 'json' };
-import whirlsModule from '../../src/shards/nalati-grasslands/behaviour/titanWhirlsView.generated.json' with { type: 'json' };
+import { nalatiViewBytes } from '../fixtures/nalati-view-modules';
 
 /** A generated view module's bytes, as the product carries them (a happy-dom Response cannot feed a runtime compile). */
-const bytesOf = (module: { readonly source: string }): Uint8Array => Uint8Array.from(readFileSync(`src/shards/nalati-grasslands/${module.source}`));
 const player = { position: new Vector3(), velocity: new Vector3(), yaw: 0 };
 
 /** The arena fire view module (R6) over any cell field and fire look: the arrays and values the test drives, and its program. */
@@ -24,7 +20,7 @@ export function arenaFireView(scope: Scope, field: Parameters<typeof fireViewRow
   const values: Record<string, number> = { on: 1, clear: 0, windX: 0, windZ: 0, windSpeed: 0, smokeCap: draws.smoke.instanceMatrix.count, smokeRate: 0, scorchCap: draws.scorch.instanceMatrix.count };
   const arrays = new Map<string, ArrayLike<number>>([[fire.arrays.modes, modes], [fire.arrays.lifetimes, lifetimes], [fire.arrays.ground, ground], [fire.arrays.burnt, burnt]]);
   const meshes = new Map<string, InstancedMesh>([[fire.draws.flames, draws.flames], [fire.draws.smoke, draws.smoke], [fire.draws.scorch, draws.scorch]]);
-  const program = viewProgram(bytesOf(fireModule), fireViewRows(field, view), { scope, player, camera: new PerspectiveCamera(),
+  const program = viewProgram(nalatiViewBytes('titan-fire-view'), fireViewRows(field, view), { scope, player, camera: new PerspectiveCamera(),
     values: id => id === fire.values ? name => values[name] ?? Number.NaN : null, floor: () => null, slots: () => null, look: () => undefined,
     object: () => { throw new Error('The fire lends no objects'); },
     array: id => { const array = arrays.get(id); if (array === undefined) throw new Error(`No array ${id}`); return () => array; },
@@ -38,7 +34,7 @@ export function arenaWhirlsView(scope: Scope, rows: Parameters<typeof whirlsView
   drawn: readonly { readonly k: number; readonly shown: number; readonly x: number; readonly y: number; readonly z: number }[]): ViewProgram {
   const whirls = rows.view, fields = new Map<string, () => number>();
   for (const [i, row] of drawn.entries()){const slot=whirls.slots[i];if(slot===undefined)throw new Error('Missing whirl view slot');for (const key of ['k', 'shown', 'x', 'y', 'z'] as const) fields.set(slot.fields[key], () => row[key]);}
-  const program = viewProgram(bytesOf(whirlsModule), whirlsViewRows(rows), { scope, player, camera: new PerspectiveCamera(),
+  const program = viewProgram(nalatiViewBytes('titan-whirls-view'), whirlsViewRows(rows), { scope, player, camera: new PerspectiveCamera(),
     values: id => id === whirls.source ? name => fields.get(name)?.() ?? Number.NaN : null, floor: () => null, slots: () => null, look: () => undefined,
     object: id => { const funnel = funnels.find((_, i) => whirls.slots[i]?.object === id); if (funnel === undefined) throw new Error(`No funnel ${id}`); return funnel; },
     draw: id => { if (id !== whirls.draw) throw new Error(`No draw ${id}`); return debris; } });
