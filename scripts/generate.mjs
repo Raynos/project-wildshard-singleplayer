@@ -12,7 +12,6 @@ import { generationOutputHashes } from './generation-cache.mjs';
 import { generationReadReceipt, generationWorkspaceIdentity, runObservedGeneration } from './generation-inputs.mjs';
 import { generationDependencies } from './generation-dependencies.mjs';
 import { generationNodeEnvironment } from './generation-node-cache.mjs';
-import { externalGenerationInputs, generationTools } from './generation-sources.mjs';
 import { linkNodeModules } from './link-node-modules.mjs';
 import { outputPolicy } from './generation-inventory.mjs';
 import { generationSnapshotIdentity, publishGenerationSnapshot, verifiedGenerationSnapshot } from './generation-snapshot.mjs';
@@ -21,9 +20,9 @@ import { runDeterminismAudit, verifyStagedGeneration } from './generation-determ
 
 const path = v.pipe(v.string(),v.check(value=>value.length>0 && !isAbsolute(value) && !value.includes('\\') && value.split('/').every(part=>part!=='' && part!=='.' && part!=='..')));
 const jobIdSchema = v.pipe(v.string(),v.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u));
-const Descriptor = v.strictObject({id:jobIdSchema,catalogueDependencies:v.optional(v.array(jobIdSchema)),catalogueOutputsOnly:v.optional(v.boolean()),shard:v.nullable(v.pipe(v.string(),v.regex(/^[a-z0-9_]+(?:-[a-z0-9]+)*$/u))),entry:path,command:v.array(v.string()),inputRoots:v.array(path),outputs:v.array(path),platform:v.picklist(['portable','native','darwin']),buildTimeOutputs:v.optional(v.array(path),[]),buildOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),comparisonOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),seedOutputs:v.optional(v.array(path),[]),recordedInputs:v.optional(v.boolean(),false),externalInputs:v.optional(v.array(v.strictObject({path, url:v.string(),sha256:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))})),[]),toolCommands:v.optional(v.array(v.pipe(v.array(v.string()),v.minLength(1))),[])});
+const Descriptor = v.strictObject({id:jobIdSchema,catalogueDependencies:v.optional(v.array(jobIdSchema)),catalogueOutputsOnly:v.optional(v.boolean()),shard:v.nullable(v.pipe(v.string(),v.regex(/^[a-z0-9_]+(?:-[a-z0-9]+)*$/u))),entry:path,command:v.array(v.string()),inputRoots:v.array(path),outputs:v.array(path),platform:v.picklist(['portable','native','darwin']),buildTimeOutputs:v.optional(v.array(path),[]),buildOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),comparisonOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),seedOutputs:v.optional(v.array(path),[]),recordedInputs:v.optional(v.boolean(),false)});
 const Catalog = v.strictObject({schema:v.literal('generation-jobs/1'),notice:v.pipe(v.string(),v.includes('DO NOT EDIT')),jobs:v.array(Descriptor)});
-const infrastructure=['src/format','scripts/json-output-guard.mjs','scripts/no-binary-json.mjs','scripts/generated-source.mjs','lint/no-binary-json.json','scripts/generate.mjs','scripts/generation-scheduling.mjs','scripts/generation-stage.mjs','scripts/generation-determinism.mjs','scripts/generation-cache.mjs','scripts/generation-inputs.mjs','scripts/generation-dependencies.mjs','scripts/generation-recorder.mjs','scripts/generation-node-cache.mjs','scripts/shardfile-inputs.mjs','scripts/shardfile-cache.mjs','scripts/compiler-code.mjs','scripts/function-source.mjs','scripts/generation-snapshot.mjs','scripts/bake-input-hashes.mjs','scripts/link-node-modules.mjs','scripts/generation-sources.mjs','scripts/generation-inventory.mjs','scripts/source-generation-outputs.json','package.json','pnpm-lock.yaml','pnpm-workspace.yaml'];
+const infrastructure=['src/format','scripts/json-output-guard.mjs','scripts/no-binary-json.mjs','scripts/generated-source.mjs','lint/no-binary-json.json','scripts/generate.mjs','scripts/generation-scheduling.mjs','scripts/generation-stage.mjs','scripts/generation-determinism.mjs','scripts/generation-cache.mjs','scripts/generation-inputs.mjs','scripts/generation-dependencies.mjs','scripts/generation-recorder.mjs','scripts/generation-node-cache.mjs','scripts/shardfile-inputs.mjs','scripts/shardfile-cache.mjs','scripts/compiler-code.mjs','scripts/function-source.mjs','scripts/generation-snapshot.mjs','scripts/bake-input-hashes.mjs','scripts/link-node-modules.mjs','scripts/generation-inventory.mjs','scripts/source-generation-outputs.json','package.json','pnpm-lock.yaml','pnpm-workspace.yaml'];
 // These are loader/check/hash/write helpers, not output producers. New bake entry points default to undeclared.
 const sharedHelpers=new Set(['bake-check.mjs','bake-loader.mjs','bake-input-hashes.mjs','bake-output.mjs']);
 // `pnpm gen` writes these tables before the generation step; producers read them (scripts/gen.mjs).
@@ -113,7 +112,6 @@ export function discoverGeneration(root,catalogPath='scripts/generation-jobs.jso
     if(ids.has(job.id)) throw new Error(`Duplicate generation id ${job.id}`);ids.add(job.id);
     validateProducer(job);
     if(job.recordedInputs && (job.outputs.some(file=>!isRecordedBake(file)))) throw new Error(`Recorded-input comparison is not registered: ${job.id}`);
-    if(new Set(job.externalInputs.map(row=>row.path)).size!==job.externalInputs.length || job.externalInputs.some(row=>job.outputs.includes(row.path))) throw new Error(`Invalid external inputs ${job.id}`);
     if(job.seedOutputs.some(file=>!job.outputs.includes(file))) throw new Error(`Undeclared output seed ${job.id}`);
     if(!existsSync(resolve(root,job.entry)) || job.outputs.length===0 || job.inputRoots.length===0) throw new Error(`Incomplete generation job ${job.id}`);
     for(const file of job.outputs) {if(outputs.has(file)) throw new Error(`Duplicate generated output ${file}`);outputs.add(file);}
@@ -195,7 +193,7 @@ function retainedGenerationFiles(root,jobs) {
  * the source tree and retained-file admission from the exact exported tree.
  * @param {string} root @param {ReturnType<typeof discoverGeneration>['jobs']} jobs @param {Set<string>} retained */
 function phaseSnapshotIdentity(root,jobs,retained) {
-  return generationSnapshotIdentity({node:process.version,platform:process.platform,arch:process.arch,workspaceLinks:generationWorkspaceIdentity(root),installedPackages:generationDependencies(root).identity,jobs,retained:[...retained].sort(),catalogue:bakeInputHashes(root,['scripts/generation-jobs.json']),jsonPolicy:existsSync(resolve(root,'lint/no-binary-json.json'))?bakeInputHashes(root,['lint/no-binary-json.json']):{},controller:bakeInputHashes(import.meta.dirname,['generate.mjs','generation-scheduling.mjs','generation-stage.mjs','generation-determinism.mjs','json-output-guard.mjs','no-binary-json.mjs','generated-source.mjs','generation-cache.mjs','bake-input-hashes.mjs','generation-inputs.mjs','generation-dependencies.mjs','generation-snapshot.mjs','generation-sources.mjs','generation-inventory.mjs','link-node-modules.mjs']),tools:generationTools(jobs.flatMap(job=>job.toolCommands))});
+  return generationSnapshotIdentity({node:process.version,platform:process.platform,arch:process.arch,workspaceLinks:generationWorkspaceIdentity(root),installedPackages:generationDependencies(root).identity,jobs,retained:[...retained].sort(),catalogue:bakeInputHashes(root,['scripts/generation-jobs.json']),jsonPolicy:existsSync(resolve(root,'lint/no-binary-json.json'))?bakeInputHashes(root,['lint/no-binary-json.json']):{},controller:bakeInputHashes(import.meta.dirname,['generate.mjs','generation-scheduling.mjs','generation-stage.mjs','generation-determinism.mjs','json-output-guard.mjs','no-binary-json.mjs','generated-source.mjs','generation-cache.mjs','bake-input-hashes.mjs','generation-inputs.mjs','generation-dependencies.mjs','generation-snapshot.mjs','generation-inventory.mjs','link-node-modules.mjs'])});
 }
 
 /** Recheck a completed local phase at the next build fence. This is a fresh
@@ -225,9 +223,7 @@ export async function generateShardJob(root,descriptor,options={}) {
   const command=job.command;
   const projected=catalogueProjection(root,job,catalog);
   const policy=jsonOutputPolicy(root,job.outputs);
-  const controller=bakeInputHashes(import.meta.dirname,['generate.mjs','generation-scheduling.mjs','generation-stage.mjs','generation-determinism.mjs','json-output-guard.mjs','no-binary-json.mjs','generated-source.mjs','generation-inputs.mjs','generation-dependencies.mjs','generation-cache.mjs','generation-recorder.mjs','generation-node-cache.mjs','shardfile-inputs.mjs','shardfile-cache.mjs','compiler-code.mjs','function-source.mjs','generation-sources.mjs','link-node-modules.mjs']);
-  const external=await externalGenerationInputs(job.externalInputs,options.cacheDir);
-  const tools=generationTools(job.toolCommands);
+  const controller=bakeInputHashes(import.meta.dirname,['generate.mjs','generation-scheduling.mjs','generation-stage.mjs','generation-determinism.mjs','json-output-guard.mjs','no-binary-json.mjs','generated-source.mjs','generation-inputs.mjs','generation-dependencies.mjs','generation-cache.mjs','generation-recorder.mjs','generation-node-cache.mjs','shardfile-inputs.mjs','shardfile-cache.mjs','compiler-code.mjs','function-source.mjs','link-node-modules.mjs']);
   const roots=[...job.inputRoots,...infrastructure.filter(file=>existsSync(resolve(root,file))),catalog];
   const guard = jsonOutputGuard(root);
   const ownOutputs=new Set(job.outputs),explicitInputs=new Set(job.inputRoots);
@@ -256,7 +252,7 @@ export async function generateShardJob(root,descriptor,options={}) {
   const stageHashes=Object.fromEntries([...Object.entries(inputs),...[...upstreamFiles].map(([file,row])=>[file,row.hash])].sort(([a],[b])=>a<b?-1:a>b?1:0));
   /** @type {number|null} */
   let coldSeconds=null;
-  const cacheJob={id:job.id,inputs,command:['node',...command],outputs:job.outputs,platform:job.platform,tools:{...controller,...tools,jsonPolicy:policy??'absent',descriptor:JSON.stringify(job),...(options.preparation===undefined?{}:{upstream:JSON.stringify(Object.fromEntries([...upstreamFiles].sort(([a],[b])=>a.localeCompare(b)).map(([file,row])=>[file,row.hash])))}),...(projected===undefined?{}:{catalogue:projected})}};
+  const cacheJob={id:job.id,inputs,command:['node',...command],outputs:job.outputs,platform:job.platform,tools:{...controller,jsonPolicy:policy??'absent',descriptor:JSON.stringify(job),...(options.preparation===undefined?{}:{upstream:JSON.stringify(Object.fromEntries([...upstreamFiles].sort(([a],[b])=>a.localeCompare(b)).map(([file,row])=>[file,row.hash])))}),...(projected===undefined?{}:{catalogue:projected})}};
   /** @param {string} directory */
   const generate=async directory=>{
       const coldStarted=performance.now();
@@ -271,7 +267,6 @@ export async function generateShardJob(root,descriptor,options={}) {
         for(const file of job.outputs) if(!job.seedOutputs.includes(file)) rmSync(resolve(tree,file),{force:true});
         const seeded=job.seedOutputs.filter(file=>existsSync(resolve(tree,file)));
         for(const file of seeded) utimesSync(resolve(tree,file),1,1);
-        for(const source of external) {const to=resolve(tree,source.path);mkdirSync(dirname(to),{recursive:true});copyFileSync(source.file,to);}
         linkNodeModules(realpathSync(root),tree);
         const run=async()=>{
         await nodeProducer(tree,command);
@@ -291,7 +286,7 @@ export async function generateShardJob(root,descriptor,options={}) {
   const result=options.determinism ? await runDeterminismAudit(root,cacheJob,generate,inputHashes)
     : await runObservedGeneration(root,cacheJob,{
       inputHashes,...(options.cacheDir===undefined?{}:{cacheDir:options.cacheDir}),...(options.forceCompare===undefined?{}:{forceCompare:options.forceCompare}),generate,
-    },job.entry,catalog,[...Object.keys(stageHashes),catalog,...(policy===undefined?[]:[BINARY_JSON_POLICY]),...external.map(source=>source.path)]);
+    },job.entry,catalog,[...Object.keys(stageHashes),catalog,...(policy===undefined?[]:[BINARY_JSON_POLICY])]);
   if(options.determinism)return {...result,retention:generationRetention(result.directory,job.outputs,null)};
   if(projected!==catalogueProjection(root,job,catalog))throw new Error(`Catalogue changed during generation: ${job.id}`);
   try {

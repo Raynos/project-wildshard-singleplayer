@@ -4209,7 +4209,6 @@
         "scripts/generation-node-cache.mjs",
         "scripts/generation-scheduling.mjs",
         "scripts/generation-snapshot.mjs",
-        "scripts/generation-sources.mjs",
         "scripts/generation-stage.mjs",
         "scripts/json-output-guard.mjs",
         "scripts/link-node-modules.mjs",
