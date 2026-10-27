@@ -214,7 +214,7 @@ Option 1 of each is "Skip for now".
 
 | D107 | JS heap plan-end misses: Template/Blender idle5.086/3.134MiB/s, boot114.175/107.635MiB; H1/H2/H4/H5/H8/H9/H10 bars missed; H3/H6/H11 diagnostic boundaries unqualified | observed5f1eadb19e; first bad source not attributed | sp-o4 (H1-H5), sp-o2 (H6-H10), sp-x9 (H11/reader) | open: exact tmp/sp-x9-plan-end/heap-attribution.json + guard-summary.json; unchanged G1 ratchet and four seeded exit1 controls pass, no rebase |
 | D108 | Loading plan-end misses: DW home5.257–5.804s, assembly1.396–1.640s, shaders1.833–2.269s; warm1.5/0.6/0.8s bars missed; warm pre-control scratch total includes previous cold visit and is rejected | observed5f1eadb19e; first bad source not attributed | sp-x9 (H3/A1/H4/reader), sp-o4 (S1) | open: tmp/sp-x9-plan-end/loading-qualified-runs.json and loading-cpu.json; six entries/controls/movement pass, no deadline change |
-| D109 | J6 public warm set includes calibration-only /assets/calibration-5QVhtOx_.js,4749 decoded B:523 JS vs522 public closure | observedbc0c7cf54f; isEntry install-root cause, first bad not established | sp-x9 (J6) | open: tmp/sp-x9-plan-end/j6-census.log and j6.log; actual public offline DW play passes/errors0, calibration excluded from public census |
+| D109 | J6 public warm set includes calibration-only /assets/calibration-5QVhtOx_.js,4749 decoded B:523 JS vs522 public closure | observedbc0c7cf54f; isEntry install-root cause, first bad not established | sp-x9 (J6) | source repair in current J6 packet: select only the public HTML facade before install/warm traversal; types/typed lint pass, shared-preview row-only qualification pending. Original tmp/sp-x9-plan-end/j6-census.log and j6.log retained |
 
 ### G780 / G782 actual end reading (2026-10-27)
 

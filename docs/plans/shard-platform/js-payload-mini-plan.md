@@ -262,3 +262,14 @@ replay overwrote the detailed browser JSON; `j6-browser-log-summary.json`
 explicitly reconstructs only emitted facts, not lost cache-list details.
 The exact stamped/static census remains in `j6.json`. Browser closed and
 shared-preview borrower released. Calibration leak is on BURN-DAMAGE-LIST.
+
+### J6 calibration-root repair (2026-10-27)
+
+The generic worker install closure now requires the selected HTML document
+facade and follows only that entry's static dependencies. Other HTML tools
+remain in the full cache-on-first-use bundle, outside install and WARM.
+No calibration name is special-cased. Missing or ambiguous selected entries
+refuse rather than silently widening. A two-entry/cyclic-shared-dependency
+control preserves the public closure and excludes tool-only leaves. Touched
+types and typed lint pass; D109 remains open until row-only shared-preview
+worker/offline qualification on a containing build.

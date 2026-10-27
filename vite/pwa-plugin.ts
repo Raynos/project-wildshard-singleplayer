@@ -108,11 +108,11 @@ export function workerScripts(core: string): { fileName: string; bootstrap: stri
   return { fileName, bootstrap: `importScripts(${JSON.stringify(`/${fileName}`)});\n` };
 }
 
-/** Install the complete static entry graph, not every lazy shard chunk.
+/** Install only the selected document entry graph, not other HTML entries or lazy shard chunks.
  * CSS remains critical even when the bundler extracts it from the import graph. */
 export function workerInstallFiles(bundle: Readonly<Record<string, {
-  readonly type: string; readonly isEntry?: boolean; readonly imports?: readonly string[];
-} | undefined>>): string[] {
+  readonly type: string; readonly isEntry?: boolean; readonly facadeModuleId?: string | null; readonly imports?: readonly string[];
+} | undefined>>, document: string): string[] {
   const files = new Set<string>();
   const visit = (name: string): void => {
     if (files.has(name)) return;
@@ -121,9 +121,10 @@ export function workerInstallFiles(bundle: Readonly<Record<string, {
     files.add(name);
     for (const dependency of item.imports ?? []) visit(dependency);
   };
-  for (const [name, item] of Object.entries(bundle)) {
-    if ((item?.type === 'chunk' && item.isEntry === true) || name.endsWith('.css')) visit(name);
-  }
+  const entries = Object.entries(bundle).filter(([, item]) => item?.type === 'chunk' && item.isEntry === true && item.facadeModuleId === document);
+  if (entries.length !== 1) throw new Error('Missing or ambiguous worker document entry');
+  for (const [name] of entries) visit(name);
+  for (const name of Object.keys(bundle)) if (name.endsWith('.css')) visit(name);
   return [...files].sort().map(name => `/${name}`);
 }
 
@@ -171,9 +172,10 @@ export function pwaPlugin(buildId: string): Plugin {
       if (bank === undefined) throw new Error('Missing worker warm module bank');
       const input: unknown = JSON.parse(bank);
       const title = bootModuleFiles(bundle, ['src/engine/ui/StartTitle.ts', 'src/game/mainMenu.ts', 'src/shardSelection.ts'].map(file => join(root, file))).map(row => row[0]);
-      const warm = workerWarmFiles(input, publicProducts(root), [...workerInstallFiles(bundle), ...title]);
+      const install = workerInstallFiles(bundle, join(root, 'index.html'));
+      const warm = workerWarmFiles(input, publicProducts(root), [...install, ...title]);
       if (warm.some(file => !hashed.includes(file))) throw new Error('Worker warm file is absent from the emitted bundle');
-      const core = stamp(src, build, assets, hashed, workerInstallFiles(bundle), warm), scripts = workerScripts(core);
+      const core = stamp(src, build, assets, hashed, install, warm), scripts = workerScripts(core);
       this.emitFile({ type: 'asset', fileName: scripts.fileName, source: core });
       this.emitFile({ type: 'asset', fileName: 'sw.js', source: scripts.bootstrap });
       this.info(`sw.js emitted (ws-shell-${build}, ws-static-${assets}, ws-immutable: ${hashed.length} files)`);

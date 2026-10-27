@@ -39,17 +39,20 @@ test('worker bootstrap names exact core bytes and changes for same-length edits'
   expect(workerScripts('self.version = "first";')).toEqual(first);
 });
 
-test('install includes every static entry dependency and CSS, leaving lazy code for the usable page', () => {
+test('install follows only the public document, leaving tool entries and lazy code on use', () => {
   const bundle = {
-    'assets/entry.js': { type: 'chunk', isEntry: true, imports: ['assets/shared.js'] },
+    'assets/entry.js': { type: 'chunk', isEntry: true, facadeModuleId: '/fixture/index.html', imports: ['assets/shared.js'] },
     'assets/shared.js': { type: 'chunk', imports: ['assets/leaf.js'] },
     'assets/leaf.js': { type: 'chunk', imports: ['assets/shared.js'] },
     'assets/lazy.js': { type: 'chunk', imports: ['assets/shared.js'] },
+    'assets/tool.js': { type: 'chunk', isEntry: true, facadeModuleId: '/fixture/tools/index.html', imports: ['assets/shared.js', 'assets/tool-only.js'] },
+    'assets/tool-only.js': { type: 'chunk' },
     'assets/style.css': { type: 'asset' },
     'assets/card.jpg': { type: 'asset' },
   };
-  expect(workerInstallFiles(bundle)).toEqual(['/assets/entry.js', '/assets/leaf.js', '/assets/shared.js', '/assets/style.css']);
-  expect(() => workerInstallFiles({ ...bundle, 'assets/entry.js': { type: 'chunk', isEntry: true, imports: ['missing.js'] } })).toThrow('Missing worker install dependency');
+  expect(workerInstallFiles(bundle, '/fixture/index.html')).toEqual(['/assets/entry.js', '/assets/leaf.js', '/assets/shared.js', '/assets/style.css']);
+  expect(() => workerInstallFiles(bundle, '/fixture/absent.html')).toThrow('Missing or ambiguous worker document entry');
+  expect(() => workerInstallFiles({ ...bundle, 'assets/entry.js': { type: 'chunk', isEntry: true, facadeModuleId: '/fixture/index.html', imports: ['missing.js'] } }, '/fixture/index.html')).toThrow('Missing worker install dependency');
 });
 
 test('worker updates revalidate unchanged bytes and fetch a changed script in full', async () => {
