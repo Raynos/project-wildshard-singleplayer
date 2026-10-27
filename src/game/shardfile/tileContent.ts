@@ -30,6 +30,8 @@ import { holdStaticMatrices } from '@wildshard/engine/render/staticMatrices';
 export interface TileContent {
   readonly id: string;
   readonly tiles: () => ReadonlySet<number>;
+  /** Fine visuals may wait for control; collider ownership never waits on this predicate. */
+  readonly ready?: () => boolean;
   readonly attach: (tile: number, scope: Scope) => Promise<void>;
   /** the tile's colliders alone, when the element can register them apart from its draws (the collider ring, D2 B) */
   readonly attachColliders?: (tile: number, scope: Scope) => Promise<void>;

@@ -259,3 +259,20 @@ test('radius and hysteresis changes invalidate membership without delaying scope
     expect(driver.resident('colliders').size).toBe(9);
   } finally { scope.dispose(); }
 });
+
+test('a coarse entry keeps colliders while fine visuals wait, then refines on the same ring', async () => {
+  const owner = new Scope('coarse-first'), calls: string[] = []; let controlled = false, covered = (_tile: number): boolean => false;
+  const fine: TileContent = { id: 'fine', tiles: () => new Set([28]), ready: () => controlled,
+    attach: (_tile, scope) => { calls.push('fine'); scope.onDispose(() => { calls.push('fine-left'); }); return Promise.resolve(); },
+    attachColliders: () => { calls.push('collision'); return Promise.resolve(); } };
+  const later: TileContent = { id: 'ordinary', tiles: () => new Set([28]), attach: () => { calls.push('ordinary'); return Promise.resolve(); } };
+  const coarse: TileContent = { id: 'coarse', tiles: () => new Set(), attach: () => Promise.resolve(), coarse: (_scope, rendered) => { covered = rendered; return Promise.resolve(); } };
+  const driver = new TileDriver(owner, [fine, later, coarse], () => 1, () => Promise.resolve());
+  try {
+    await driver.require([28]); await driver.coarse(0, -30); expect(calls).toEqual(['ordinary', 'collision']); expect(covered(28)).toBe(false);
+    await settle(driver, 0, -30, 30); expect(calls).toEqual(['ordinary', 'collision']);
+    controlled = true; await settle(driver, 0, -30, 30);
+    expect(calls).toEqual(['ordinary', 'collision', 'fine']); expect(covered(28)).toBe(true);
+    await settle(driver, -220, -220, 30); expect(calls).toEqual(['ordinary', 'collision', 'fine', 'fine-left']);
+  } finally { owner.dispose(); }
+});

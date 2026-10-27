@@ -22,7 +22,7 @@ import { residentTileEntry } from './tileEntry';
 
 type Layer = 'render' | 'colliders';
 type TileFailure = { readonly error: unknown } | null;
-interface Attachment { readonly scope: Scope; count: number; pending: Promise<TileFailure> | null }
+interface Attachment { readonly scope: Scope; done: Set<TileContent>; pending: Promise<TileFailure> | null }
 interface TileRingPlan {
   readonly i: number; readonly j: number; readonly radius: number;
   readonly wanted: Record<Layer, ReadonlySet<number>>;
@@ -63,7 +63,7 @@ export class TileDriver {
       this.live();
       const content = this.contents[this.coarseCount];
       if (content === undefined) throw new Error('Missing tile content');
-      await content.coarse?.(scope, tile => this.renderRing.has(tile));
+      await content.coarse?.(scope, tile => this.rendered(tile));
       this.live();
     }
   }
@@ -82,7 +82,7 @@ export class TileDriver {
     for (const layer of ['colliders', 'render'] as const) {
       const next = plan.nearest[layer].find(key => {
         const tile = this.attached[layer].get(key);
-        return (tile === undefined || tile.count < this.contents.length) && !this.failed.has(`${layer}:${String(key)}`);
+        return (tile === undefined || this.contents.some(content => !tile.done.has(content) && (layer === 'colliders' || content.ready?.() !== false))) && !this.failed.has(`${layer}:${String(key)}`);
       });
       if (next === undefined) continue;
       this.busy = true;
@@ -104,6 +104,13 @@ export class TileDriver {
     return plan;
   }
 
+  /** Coarse coverage stays until every declared fine visual actually publishes. */
+  private rendered(key: number): boolean {
+    const tile = this.attached.render.get(key);
+    return this.renderRing.has(key) && tile !== undefined
+      && this.contents.every(content => !content.tiles().has(key) || tile.done.has(content));
+  }
+
   private live(): void {
     if (this.scope.disposed || this.scope.disposing) throw new Error('Tile resident is disposed');
   }
@@ -112,11 +119,11 @@ export class TileDriver {
   private async attach(key: number, layer: Layer, required = false): Promise<void> {
     let tile = this.attached[layer].get(key);
     if (tile === undefined) {
-      tile = { scope: this.scope.child(`tile:${layer}:${String(key)}`), count: 0, pending: null };
+      tile = { scope: this.scope.child(`tile:${layer}:${String(key)}`), done: new Set(), pending: null };
       this.attached[layer].set(key, tile);
     }
     const current = tile;
-    if (current.pending === null && current.count >= this.contents.length) return;
+    if (current.pending === null && current.done.size >= this.contents.length) return;
     let pending = current.pending;
     if (pending === null) {
       let settle = (_result: TileFailure): void => { throw new Error('Missing tile preparation resolver'); };
@@ -131,16 +138,17 @@ export class TileDriver {
 
   private async prepare(key: number, layer: Layer, tile: Attachment, required: boolean): Promise<TileFailure> {
     try {
-      for (; tile.count < this.contents.length; tile.count++) {
-        const content = this.contents[tile.count];
-        if (content === undefined) throw new Error('Missing tile content');
-        if (!content.tiles().has(key)) continue;
+      for (const content of this.contents) {
+        if (tile.done.has(content)) continue;
+        if (!content.tiles().has(key)) { tile.done.add(content); continue; }
+        if (layer === 'render' && content.ready?.() === false) continue;
         // Cached stages may resolve in microtasks; share the live frame's
         // budget before admitting another stage, including background tiles.
         if (frameBudgetSpent(WORK_SLICE_MS)) await this.pause();
         if (tile.scope.disposed || tile.scope.disposing) return null;
         await (layer === 'render' ? content.attach(key, tile.scope) : content.attachColliders?.(key, tile.scope));
-        if (tile.scope.disposed) return null;
+        if (tile.scope.disposed || tile.scope.disposing) return null;
+        tile.done.add(content);
       }
       return null;
     } catch (error: unknown) {

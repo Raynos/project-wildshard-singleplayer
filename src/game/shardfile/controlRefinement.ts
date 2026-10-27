@@ -26,6 +26,8 @@ export class ControlRefinement {
     if (level === undefined) this.active = true;
     else whenControl(level, owner, () => { owner.raf(() => { owner.raf(() => { this.active = true; this.kick(); }); }); });
   }
+  /** Whether the first controlled paint has completed. */
+  get ready(): boolean { return this.active && !this.owner.disposed && !this.owner.disposing; }
   add(id: string, at: Point, run: () => Promise<void>): Promise<boolean> {
     if (this.owner.disposed || this.owner.disposing) return Promise.resolve(false);
     if (this.failure !== undefined) return Promise.reject(this.failure);
