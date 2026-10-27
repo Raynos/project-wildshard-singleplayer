@@ -16,10 +16,10 @@ function namedSceneBuffers(input:unknown):SceneBuffers {
   return row;
 }
 /** Decode every bounded source before scene allocation. Raw byte words retain signed zero and original storage. */
-function decode(row: SceneBuffers, files?: ReadonlyMap<string, Uint8Array>): ReadonlyMap<string, Storage> {
+function decode(row: SceneBuffers, files?: ReadonlyMap<string, Uint8Array>, validationOnly = false): ReadonlyMap<string, Storage> {
   const result = new Map<string, Storage>();
   for (const buffer of row.buffers) {
-    let bytes: Uint8Array<ArrayBuffer>;
+    let bytes: Uint8Array;
     if (buffer.bytes !== undefined) {
       bytes = new Uint8Array(0);
     } else {
@@ -30,12 +30,17 @@ function decode(row: SceneBuffers, files?: ReadonlyMap<string, Uint8Array>): Rea
         throw new Error('Scene buffer binary length differs');
       const width = buffer.storage === 'f32' ? 4 : buffer.storage === 'u16' ? 2 : 1;
       if (offset % width !== 0) throw new Error('Misaligned scene buffer binary offset');
-      // Geometry owns its words; never lend a mutable view of the verified product cache.
-      bytes = new Uint8Array(source.subarray(offset, offset + length));
+      const selected = source.subarray(offset, offset + length);
+      // A synchronous validation scan need not copy aligned ordinary backing.
+      // Shared/unaligned sources retain their snapshot copy; construction always
+      // detaches its own words and rechecks them before any geometry is made.
+      bytes = validationOnly && source.buffer instanceof ArrayBuffer && selected.byteOffset % width === 0
+        ? selected : new Uint8Array(selected);
     }
     const width = buffer.storage === 'f32' ? 4 : buffer.storage === 'u16' ? 2 : 1;
     if (bytes.byteLength % width !== 0) throw new Error('Misaligned scene buffer storage');
-    const storage = buffer.storage === 'f32' ? new Float32Array(bytes.buffer) : buffer.storage === 'u16' ? new Uint16Array(bytes.buffer) : bytes;
+    const storage = buffer.storage === 'f32' ? new Float32Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 4)
+      : buffer.storage === 'u16' ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes;
     if (storage instanceof Float32Array && !storage.every(Number.isFinite)) throw new Error('Nonfinite scene buffer');
     if (buffer.stride !== undefined && storage.length % buffer.stride !== 0) throw new Error('Misaligned scene interleave');
     result.set(buffer.id, storage);
@@ -49,7 +54,7 @@ function decode(row: SceneBuffers, files?: ReadonlyMap<string, Uint8Array>): Rea
 /** Client-only typed field admission, performed before allocating materials or geometry.
  * Named sources require exact whole files or explicit bounded, aligned byte ranges. */
 export function admitSceneBuffers(input: unknown, files?: ReadonlyMap<string, Uint8Array>): SceneBuffers {
-  const row = namedSceneBuffers(input); decode(row, files); return row;
+  const row = namedSceneBuffers(input); decode(row, files, true); return row;
 }
 /** An admitted content URL and its authoritative resource owner, never an entered root or material. */
 export interface SceneBufferReuse {

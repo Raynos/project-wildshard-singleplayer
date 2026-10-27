@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
-import { BufferAttribute, Group, MeshBasicMaterial, Points, type Object3D } from 'three';
+import { BufferAttribute, BufferGeometry, Group, MeshBasicMaterial, Points, type Object3D } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { parseSceneBuffers } from '../src/format/sceneBuffers';
 import { admitSceneBuffers, createSceneBuffers } from '../src/game/shardfile/sceneBuffers';
@@ -104,3 +104,26 @@ test('packed binary ranges detach a subview and retain exact whole-file validati
     expect(() => admitSceneBuffers({ ...row, buffers: [{ id: 'p', storage: 'f32', file: 'channels/position.bin', byteLength: 0, byteOffset: 32 }] }, files)).not.toThrow();
   } finally { scope.dispose(); material.dispose(); }
 });
+
+test.each([{ offset: 0, shared: false }, { offset: 1, shared: false }, { offset: 0, shared: true }])(
+  'validation preserves construction rechecks and detached storage ($offset/$shared)', ({ offset, shared }) => {
+    const backing = shared ? new SharedArrayBuffer(12 + offset) : new ArrayBuffer(12 + offset);
+    const source = new Uint8Array(backing, offset, 12), words = new Float32Array([0, -0, 1]);
+    source.set(new Uint8Array(words.buffer));
+    const files = new Map([['channels/position.bin', source]]), admitted = admitSceneBuffers(fixture(12), files);
+    const scope = new Scope('validated-buffer'), material = new MeshBasicMaterial();
+    try {
+      source.set(new Uint8Array(new Float32Array([Number.NaN, 0, 1]).buffer));
+      expect(() => createSceneBuffers(admitted, material, scope, undefined, undefined, files)).toThrow('Nonfinite');
+      source.set(new Uint8Array(words.buffer));
+      const points = createSceneBuffers(admitted, material, scope, undefined, undefined, files).children[0];
+      if (!isPoints(points)) throw new Error('Missing validated points');
+      const geometry: unknown = points.geometry;
+      if (!(geometry instanceof BufferGeometry)) throw new Error('Missing validated geometry');
+      const position: unknown = geometry.getAttribute('position');
+      if (!(position instanceof BufferAttribute)) throw new Error('Missing validated position');
+      expect(Array.from(position.array)).toEqual([0, -0, 1]);
+      expect(position.array.buffer).not.toBe(source.buffer);
+    } finally { scope.dispose(); material.dispose(); }
+  },
+);

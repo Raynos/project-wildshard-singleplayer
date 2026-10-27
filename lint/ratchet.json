@@ -823,7 +823,6 @@
     "src/engine/boot/bootTrace.ts": 1,
     "src/engine/boot/shardPrefetch.ts": 2,
     "src/engine/boot/stuck.ts": 1,
-    "src/engine/core/Game.ts": 10,
     "src/engine/core/GpuRecovery.ts": 5,
     "src/engine/core/lifeTrace.ts": 1,
     "src/engine/core/webglStartup.ts": 2,
