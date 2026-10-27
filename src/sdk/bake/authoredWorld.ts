@@ -85,7 +85,8 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
   try {
     const bindings = catalogue.snapshot();
     for (const texture of bindings.textures.values()) pack.asset(texture, 'ktx2');
-    const coarse = await Promise.all(world.static.map(row => simplifyWorldPrimitive(row, 0.5, 0.25)));
+    // RM8.2: detail rows draw only at L0; the coarse rows stand in for them at L1, as they are
+    const detail = new Set(world.detail), coarse = await Promise.all(world.static.filter(row => !detail.has(row)).map(row => simplifyWorldPrimitive(row, 0.5, 0.25)));
     const emit = (rows: readonly WorldPrimitive[], bounds?: readonly [number, number, number, number], transform?: readonly number[], castShadow = true): { bytes: Uint8Array; dependencies: string[]; box: Box3 } => {
       const groups = new Map<string, BufferGeometry[]>(), box = new Box3(), transient: BufferGeometry[] = [];
       try {
@@ -111,12 +112,12 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array): Prom
       } finally { transient.forEach(part => part.dispose()); }
     };
     for (const lod of [0, 1] as const) {
-      const size = lod === 0 ? 62.5 : 125, count = 500 / size, rows = lod === 0 ? world.static : coarse.map(row => row.primitive);
+      const size = lod === 0 ? 62.5 : 125, count = 500 / size, rows = lod === 0 ? world.static : [...coarse.map(row => row.primitive), ...world.coarse];
       for (let z = 0; z < count; z++) for (let x = 0; x < count; x++) {
         const cell = [-250 + x * size, -250 + (x + 1) * size, -250 + z * size, -250 + (z + 1) * size] as const, output = emit(rows, cell, undefined, lod === 0);
         if (output.bytes.length === 0) continue;
         // a tile spans its whole cell; its content sets only its height (an `undrawn` ground leaves cells partly empty)
-        pack.tile({ lod, x, z, bytes: output.bytes, dependencies: output.dependencies, bounds: { min: [cell[0], output.box.min.y, cell[2]], max: [cell[1], output.box.max.y, cell[3]] }, geometricError: lod === 0 ? 0 : Math.max(...coarse.map(row => row.errorMetres)) });
+        pack.tile({ lod, x, z, bytes: output.bytes, dependencies: output.dependencies, bounds: { min: [cell[0], output.box.min.y, cell[2]], max: [cell[1], output.box.max.y, cell[3]] }, geometricError: lod === 0 ? 0 : Math.max(0, ...coarse.map(row => row.errorMetres)) });
       }
     }
     const panels = world.panels.map(panel => {

@@ -31,7 +31,7 @@ for(const bad of [{at:[Infinity,0,0],colour:[1,1,1]},{at:Array(3),colour:[1,1,1]
 assert.throws(()=>bakeLanternVertices(source,Array(1),profile),/emitter/);
 const layout=JSON.parse(readFileSync('src/shards/open-plots/data/layouts/night-market.json','utf8'));
 const palette=Object.fromEntries(Object.entries(layout.palette).map(([key,s])=>[key,[1,3,5].map(at=>{const c=parseInt(s.slice(at,at+2),16)/255;return c<=.04045?c/12.92:((c+.055)/1.055)**2.4})]));
-const parts=Object.fromEntries(['Kit','Glow','Pool','Water','far','solid'].map(role=>[role,new Soup()])),before=[];
+const parts=Object.fromEntries(['Kit','Glow','Pool','Water','far','solid','detailKit','detailGlow','coarse'].map(role=>[role,new Soup()])),before=[];
 const kit=await prepareModelKit(palette,new Map([['lanterns',new Uint8Array(readFileSync('public/assets/open-plots/kit/lanterns.glb'))]]));
 buildLayout(parseLayout(layout.rows),parts,palette,(r,c)=>(r*7+c*3)%2,{...kit,lanternEmitter:(at,colour)=>before.push({at,colour})});
 for(const light of before)assert.ok(light.at.every(Number.isFinite)&&light.colour.every(c=>c>=0&&c<=1));

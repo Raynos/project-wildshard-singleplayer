@@ -33,8 +33,10 @@ export interface WorldPrimitive {
 export interface WorldPanel { id: string; colliderId: string; node: string; transform: number[]; primitives: WorldPrimitive[] }
 /** Fully normalized, memory-only build input; no GLB node is silently omitted or converted to a heightfield.
  *  `undrawn`: the collision primitives under the source's `undrawn` prefix (a baked-tiles row draws them); `far`: the
- *  primitives under its `far` prefix (only the far proxy draws them; they never collide). */
-export interface NormalizedWorld { static: WorldPrimitive[]; collision: WorldPrimitive[]; undrawn: WorldPrimitive[]; far: WorldPrimitive[]; panels: WorldPanel[]; materials: WorldMaterial[]; images: WorldImage[] }
+ *  primitives under its `far` prefix (only the far proxy draws them; they never collide). RM8.2 `detail`: the static
+ *  primitives under its `detail` prefix (also in `static`, drawn only at L0); `coarse`: those under its `coarse` prefix
+ *  (only the L1 tiles draw them; they never collide). */
+export interface NormalizedWorld { static: WorldPrimitive[]; collision: WorldPrimitive[]; undrawn: WorldPrimitive[]; far: WorldPrimitive[]; detail: WorldPrimitive[]; coarse: WorldPrimitive[]; panels: WorldPanel[]; materials: WorldMaterial[]; images: WorldImage[] }
 
 function samples(accessor: Accessor, width: number, count: number): Float32Array {
   if (accessor.getElementSize() !== width || accessor.getCount() !== count) throw new Error('World GLB mismatched attribute shape');
@@ -134,7 +136,8 @@ export async function normalizeWorldGlb(bytes: Uint8Array, input: unknown, mater
   const collisionPrefix = source.colliders === 'mesh' ? null : source.colliders.slice(6), collisionRoots = nodes.flatMap((node, index) => collisionPrefix !== null && node.getName().startsWith(collisionPrefix) ? [index] : []);
   if (collisionPrefix !== null && collisionRoots.length === 0) throw new Error(`World GLB collision prefix ${collisionPrefix} matches no nodes`);
   if (collisionRoots.some((id) => ancestry(id).some((parent) => panelRoots.includes(parent))) || panelRoots.some((id) => ancestry(id).some((parent) => collisionRoots.includes(parent)))) throw new Error('World GLB collision-only and interactive hierarchies overlap');
-  const normalized: NormalizedWorld = { static: [], collision: [], undrawn: [], far: [], panels, materials, images }, undrawnPrefix = source.undrawn, farPrefix = source.far;
+  const normalized: NormalizedWorld = { static: [], collision: [], undrawn: [], far: [], detail: [], coarse: [], panels, materials, images }, undrawnPrefix = source.undrawn, farPrefix = source.far;
+  const detailPrefix = source.detail, coarsePrefix = source.coarse, under = (chain: number[], prefix: string | undefined) => prefix !== undefined && chain.some((ancestor) => nodes[ancestor]?.getName().startsWith(prefix));
   let vertices = 0, indices = 0;
   nodes.forEach((node, id) => {
     const mesh = node.getMesh(); if (mesh === null) return;
@@ -154,12 +157,15 @@ export async function normalizeWorldGlb(bytes: Uint8Array, input: unknown, mater
       if (panel !== undefined) panel.primitives.push(output);
       else if (collisionOnly) normalized.collision.push(output);
       else if (farPrefix !== undefined && chain.some((ancestor) => nodes[ancestor]?.getName().startsWith(farPrefix))) normalized.far.push(output);
+      else if (under(chain, coarsePrefix)) normalized.coarse.push(output);
       else if (undrawnPrefix !== undefined && chain.some((ancestor) => nodes[ancestor]?.getName().startsWith(undrawnPrefix))) { normalized.undrawn.push(output); normalized.collision.push(output); }
-      else { normalized.static.push(output); if (collisionPrefix === null) normalized.collision.push(output); }
+      else { normalized.static.push(output); if (under(chain, detailPrefix)) normalized.detail.push(output); if (collisionPrefix === null) normalized.collision.push(output); }
     }
   });
   if (undrawnPrefix !== undefined && normalized.undrawn.length === 0) throw new Error(`World GLB undrawn prefix ${undrawnPrefix} matches no meshes`);
   if (farPrefix !== undefined && normalized.far.length === 0) throw new Error(`World GLB far prefix ${farPrefix} matches no meshes`);
+  if (detailPrefix !== undefined && normalized.detail.length === 0) throw new Error(`World GLB detail prefix ${detailPrefix} matches no meshes`);
+  if (coarsePrefix !== undefined && normalized.coarse.length === 0) throw new Error(`World GLB coarse prefix ${coarsePrefix} matches no meshes`);
   if (normalized.static.length === 0 || normalized.collision.length === 0 || panels.some((panel) => panel.primitives.length === 0)) throw new Error('World GLB needs static render geometry, selected collision geometry and nonempty interactive panels');
   for (const name of Object.keys(source.objects)) if (![...normalized.static, ...normalized.collision].some((primitive) => primitive.objectId === source.objects[name])) throw new Error(`World GLB selected object ${name} has no geometry`);
   images.sort((a, b) => a.hash < b.hash ? -1 : a.hash > b.hash ? 1 : 0);

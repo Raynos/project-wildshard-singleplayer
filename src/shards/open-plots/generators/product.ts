@@ -40,7 +40,7 @@ function project(row: { readonly slug: string; readonly idea: string; readonly n
     spawn: (typeof source)["spawn"];
     look: typeof tiledLook;
     // NM5: its own near view from its coarse tiles, so the road sees the tiles instead of the far proxy
-    world: { glb: string; colliders: string; far: string; farMode: string; near: string; materials: { Paving: string; Kit: string; Water: string; Glow: string; Pool: string; Landmark: string; Poster: string; Floor?: never; Kerb?: never; Plinth?: never; Rim?: never; Frame?: never; Billboard?: never; Sign?: never; Hologram?: never; }; };
+    world: { glb: string; colliders: string; far: string; detail: string; coarse: string; farMode: string; near: string; materials: { Paving: string; Kit: string; Water: string; Glow: string; Pool: string; Landmark: string; Poster: string; Floor?: never; Kerb?: never; Plinth?: never; Rim?: never; Frame?: never; Billboard?: never; Sign?: never; Hologram?: never; }; };
 }) | (Omit<ReturnType<typeof emptyShardfile>, "identity" | "accent" | "spawn" | "look" | "world"> & {
     identity: { slug: string; name: string; author: string; revision: number; seed: number; };
     accent: string;
@@ -53,7 +53,8 @@ function project(row: { readonly slug: string; readonly idea: string; readonly n
   // G641: a row with a layout is a tiled plot; its far proxy is its far-only stand-ins alone (NM0's farMode 'replace')
   if (row.layout !== undefined) return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look: tiledLook,
     // NM5: its own near view from its coarse tiles, so the road sees the tiles instead of the far proxy
-    world: { glb: `assets/${row.idea}/world.glb`, colliders: 'nodes:collide_', far: 'far_', farMode: 'replace', near: 'coarse',
+    // RM8.2: its kit models draw only at L0 (`detail_`); their boxes stand in at L1 (`coarse_`)
+    world: { glb: `assets/${row.idea}/world.glb`, colliders: 'nodes:collide_', far: 'far_', detail: 'detail_', coarse: 'coarse_', farMode: 'replace', near: 'coarse',
       materials: { Paving: 'paving', Kit: 'kit', Water: 'water', Glow: 'glow', Pool: 'pool', Landmark: 'landmark', Poster: 'billboard' } },
   };
   return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look,

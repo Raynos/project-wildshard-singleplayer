@@ -111,7 +111,7 @@ async function tiledPlot(root, repo, layoutName) {
   const palette = Object.fromEntries(Object.entries(layout.palette).map(([key, hex]) => [key, linear(hex)]));
   // NM5: the posters' faces carry their picture's mean colour (the Poster material draws the picture alone), for the near view
   palette.picture = await meanColour(resolve(repo, layout.posters.image));
-  const grid = parseLayout(layout.rows), parts = { Paving: new Soup(), Kit: new Soup(), Water: new Soup(), Glow: new Soup(), Pool: new Soup(), Poster: new Soup(), far: new Soup(), solid: new Soup() };
+  const grid = parseLayout(layout.rows), parts = { Paving: new Soup(), Kit: new Soup(), Water: new Soup(), Glow: new Soup(), Pool: new Soup(), Poster: new Soup(), far: new Soup(), solid: new Soup(), detailKit: new Soup(), detailGlow: new Soup(), coarse: new Soup() };
   // the plot's ground: the outer ring, then each tile's paving inside it (the lanes a shade lighter, the canals open)
   for (const [x0, z0, x1, z1] of [[-250, RING, 250, 250], [-250, -250, 250, -RING], [-250, -RING, -RING, RING], [RING, -RING, 250, RING]]) {
     parts.Paving.quad('Paving', [x0, 0, z0], [x0, 0, z1], [x1, 0, z1], [x1, 0, z0], palette.paving);
@@ -136,8 +136,7 @@ async function tiledPlot(root, repo, layoutName) {
   // the tiles; H and G pick their variant from the tile's place
   // RM4: the kit's Blender models (scripts/blender/open-plots/kit.py), retinted by this layout's palette
   // RM4: the layout's kit families (data/layouts/<layout>.json `kit`, each public/assets/open-plots/kit/<family>.glb);
-  // none for Night Market yet: as merged world geometry the models overran its pinned tile bytes (99959f0ced), so they
-  // switch on once RM8.1's quantized tiles pay for them
+  // Night Market's switched on with RM8.6 once RM8.1's quantized tiles and RM8.2's L0-only detail paid for them
   const files = new Map((layout.kit ?? []).map(family => [family, new Uint8Array(readFileSync(resolve(repo, 'public/assets/open-plots/kit', `${family}.glb`)))]));
   const lanterns = [], kit = files.size === 0 ? {} : await prepareModelKit(palette, files);
   buildLayout(grid, parts, palette, (r, c) => (r * 7 + c * 3) % 2,
@@ -175,8 +174,10 @@ async function tiledPlot(root, repo, layoutName) {
   // RM6.3: each lantern warms the kit within a few metres (Nine's compact falloff into the vertex colours: the posts,
   // eaves, stall fronts and walls round it), so a lantern visibly lights what it hangs on
   // RM6 owns visible light tuning; radius/cut give the existing 4.5 m post-pool reach.
-  const surface = parts.Kit.part('Kit');
-  surface.colours = bakeLanternVertices(surface, lanterns, { gain: LANTERN_BAKE.gain, radius: LANTERN_BAKE.radius, cut: LANTERN_BAKE.cut });
+  for (const [soup, name] of [[parts.Kit, 'Kit'], [parts.detailKit, 'detailKit'], [parts.coarse, 'coarse']]) {
+    const surface = soup.part(name);
+    surface.colours = bakeLanternVertices(surface, lanterns, { gain: LANTERN_BAKE.gain, radius: LANTERN_BAKE.radius, cut: LANTERN_BAKE.cut });
+  }
   console.info(`open-plots: ${layoutName} lantern bake: ${lanterns.length} emitters, gain ${LANTERN_BAKE.gain}`);
   return { parts, landmark, farLandmark, nearImage, poster: resolve(repo, layout.posters.image) };
 }
@@ -220,6 +221,10 @@ export async function writeTiledWorld(root, repo, idea) {
   node('draw_pool', parts.Pool.part('Pool'), materials.Pool, { normals: false });
   node('draw_poster', parts.Poster.part('Poster'), materials.Poster, { uv: true });
   node('draw_landmark', landmark, materials.Landmark, { uv: true });
+  // RM8.2: the kit's models, full detail only (L0), and the big ones' boxes standing in for them in the coarse (L1) tiles
+  node('detail_kit', parts.detailKit.part('detailKit'), materials.Kit);
+  node('detail_glow', parts.detailGlow.part('detailGlow'), materials.Glow);
+  node('coarse_kit', parts.coarse.part('coarse'), materials.Kit);
   // the far proxy's own nodes (far only): the tiles' stand-ins and boards, the landmark's far model
   node('far_tiles', parts.far.part('far'), materials.Kit, { normals: false });
   node('far_landmark', { ...farLandmark, normals: [], uvs: [] }, materials.Kit, { normals: false });

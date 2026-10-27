@@ -84,6 +84,9 @@ export function checkLayout(grid) {
   }
 }
 
+/** RM8.2: the kit families whose models leave a box in the coarse (L1) tiles; the small ones (lanterns, strings,
+ *  props, canal coping, figures) are left out there */
+const COARSE_FAMILIES = new Set(['houses', 'stalls', 'trees', 'bridges']);
 /** A tile's writer: every point is tile-local, turned `turns` quarter turns clockwise and moved to the tile's centre. */
 function writer(parts, centre, turns, kit) {
   const turn = ([x, y, z]) => {
@@ -136,7 +139,23 @@ function writer(parts, centre, turns, kit) {
   // RM4: a kit model (kitGlb.mjs) at tile-local (x, z), through this writer's turn and lantern bake; a builder uses its
   // family's models only when the kit placed has that family (the layout's kit)
   if (kit?.placeModel !== undefined) {
-    w.placeModel = (family, variant, x, z, options) => kit.placeModel(w, family, variant, x, z, options);
+    w.placeModel = (family, variant, x, z, options) => {
+      // RM8.2: a model draws only in the full-detail (L0) tiles (the `detail` parts); a big one leaves its box at L1 (the
+      // `coarse` part), its top the colour of its up-facing faces, its sides of the rest
+      const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity], top = [0, 0, 0, 0], side = [0, 0, 0, 0];
+      const detail = { ...w, triChannels: (part, points, colours, normals, uvs) => {
+        w.triChannels(part === 'Glow' ? 'detailGlow' : 'detailKit', points, colours, normals, uvs);
+        for (const p of points) for (let i = 0; i < 3; i++) { lo[i] = Math.min(lo[i] ?? Infinity, p[i]); hi[i] = Math.max(hi[i] ?? -Infinity, p[i]); }
+        if (part === 'Glow') return;
+        const n = cross(sub(points[1], points[0]), sub(points[2], points[0])), area = Math.hypot(...n), sum = n[1] > 0.7 * area ? top : side;
+        for (const c of colours) for (let i = 0; i < 3; i++) sum[i] += c[i] * area / 3;
+        sum[3] += area;
+      } };
+      kit.placeModel(detail, family, variant, x, z, options);
+      if (!COARSE_FAMILIES.has(family) || !(lo[0] < hi[0])) return;
+      const mean = (sum, other) => (sum[3] > 0 ? sum : other).slice(0, 3).map(v => v / Math.max(1e-9, (sum[3] > 0 ? sum : other)[3]));
+      box('coarse', lo, hi, mean(side, top), mean(top, side));
+    };
     w.hasModel = (family) => kit.has(family);
   }
   return w;
@@ -488,8 +507,10 @@ function halfBridge(w, p, side) {
 function forecourt(w, p) {
   w.box('Kit', [-26, 0, -26], [-22, 1, 20], p.hedge, p.lawn); w.box('Kit', [-26, 0, -26], [20, 1, -22], p.hedge, p.lawn);
   w.solid([-26, 0, -26], [-22, 1, 20]); w.solid([-26, 0, -26], [20, 1, -22]);
-  for (let i = 0; i < 6; i++) { tree(w, -24, -18 + i * 7, 4.2, p, i); }
-  for (let i = 1; i < 6; i++) tree(w, -18 + i * 7, -24, 4.2, p, i + 3);
+  // RM8.6: with the kit's trees every other one, 14 m apart (their models pay the entry tile's poster: 4 MB resident)
+  const every = w.hasModel('trees') ? 2 : 1;
+  for (let i = 0; i < 6; i += every) { tree(w, -24, -18 + i * 7, 4.2, p, i); }
+  for (let i = 1; i < 6; i += every) tree(w, -18 + i * 7, -24, 4.2, p, i + 3);
   for (let i = 0; i < 6; i++) { const a = Math.PI + (i + 0.5) / 6 * Math.PI / 2, r = 26; lantern(w, HALF + r * Math.cos(a), HALF + r * Math.sin(a), p, 2.6); }
   w.floor('Kit', -22, -22, 27, 27, 0.03, p.forecourt);
   // NM9: a little market of kiosks on the forecourt's open paving, clear of the entry corner
@@ -603,9 +624,22 @@ export function bakeLanternVertices(part, lights, { gain, radius, cut }) {
   for (const light of lights) if (light === undefined || !triple(light.at) || !rgb(light.colour)) throw new Error('open-plots light: invalid emitter');
   const colours = part.colours.slice();
   if (gain === 0) return colours;
+  // RM8.6: lights bucketed in reach-sized cells; a vertex sums only those in its 27 neighbouring cells, in their
+  // original order, so every word matches the all-lights sum (the kit's ~1.5M vertices x 5,000 lanterns took 17-50 s)
+  const reach = Math.sqrt(reach2), cellOf = v => Math.floor(v / reach), cells = new Map();
+  lights.forEach((light, index) => {
+    const key = `${cellOf(light.at[0])},${cellOf(light.at[1])},${cellOf(light.at[2])}`, list = cells.get(key);
+    if (list === undefined) cells.set(key, [index]); else list.push(index);
+  });
   for (let at = 0; at < part.positions.length; at += 3) {
     let r = 0, g = 0, b = 0;
-    for (const light of lights) {
+    const cx = cellOf(part.positions[at]), cy = cellOf(part.positions[at + 1]), cz = cellOf(part.positions[at + 2]), near = [];
+    for (let x = cx - 1; x <= cx + 1; x++) for (let y = cy - 1; y <= cy + 1; y++) for (let z = cz - 1; z <= cz + 1; z++) {
+      const list = cells.get(`${x},${y},${z}`); if (list !== undefined) near.push(...list);
+    }
+    near.sort((first, second) => first - second);
+    for (const index of near) {
+      const light = lights[index];
       const dx = part.positions[at] - light.at[0], dy = part.positions[at + 1] - light.at[1], dz = part.positions[at + 2] - light.at[2];
       const d2 = dx * dx + dy * dy + dz * dz;
       if (d2 >= reach2) continue;

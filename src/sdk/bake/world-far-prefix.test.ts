@@ -32,3 +32,19 @@ test('NM0: farMode replace builds the far proxy from the far-only nodes alone; a
   expect(farSources(normalized, new Set(), 'replace').map(row => row.node)).toEqual(['far_glow']);
   expect(() => parseWorldSource({ glb: 'world.glb', colliders: 'nodes:collide_', farMode: 'replace', materials: { Ground: 'ground' } })).toThrow('farMode replace needs a far prefix');
 });
+
+// RM8.2: `detail` nodes draw only at L0 (and collide as static nodes do); `coarse` nodes draw only at L1, never collide
+test('detail- and coarse-prefixed nodes split the tile levels', async () => {
+  const doc = new Document(), buffer = doc.createBuffer(), scene = doc.createScene('world'), ground = doc.createMaterial('Ground');
+  for (const [name, y] of [['ground', 0], ['detail_lamp', 1], ['coarse_lamp', 1], ['collide_ground', 0]] as const) {
+    const positions = doc.createAccessor().setType('VEC3').setArray(new Float32Array([0, y, 0, 0, y, 1, 1, y, 0])).setBuffer(buffer);
+    scene.addChild(doc.createNode(name).setMesh(doc.createMesh(name).addPrimitive(doc.createPrimitive().setMaterial(ground).setAttribute('POSITION', positions))));
+  }
+  const bytes = await new NodeIO().writeBinary(doc), split = { glb: 'world.glb', colliders: 'mesh', detail: 'detail_', coarse: 'coarse_', materials: { Ground: 'ground' } };
+  const normalized = await normalizeWorldGlb(bytes, split, ['ground']);
+  expect(normalized.static.map(row => row.node)).toEqual(['ground', 'detail_lamp', 'collide_ground']);
+  expect(normalized.detail.map(row => row.node)).toEqual(['detail_lamp']);
+  expect(normalized.coarse.map(row => row.node)).toEqual(['coarse_lamp']);
+  expect(normalized.collision.map(row => row.node)).not.toContain('coarse_lamp');
+  await expect(normalizeWorldGlb(bytes, { ...split, coarse: 'none_' }, ['ground'])).rejects.toThrow('coarse prefix none_ matches no meshes');
+});

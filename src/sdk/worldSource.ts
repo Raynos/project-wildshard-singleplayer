@@ -35,6 +35,12 @@ export const WorldSourceSchema: v.GenericSchema<BoundedWorldSourceInput, Bounded
   /** G608: nodes under this name prefix fill only the far proxy (a light's stand-in at a distance, as a hologram's):
    *  never a tile, a collider or an edge sample */
   far: v.optional(name),
+  /** RM8.2: nodes under this name prefix draw only in the full-detail (L0) tiles: dense detail the coarse tiles leave to
+   *  their own stand-ins; it collides as any static node does */
+  detail: v.optional(name),
+  /** RM8.2: nodes under this name prefix draw only in the coarse (L1) tiles, as they are (the detail's stand-ins):
+   *  never an L0 tile, a collider, an edge sample or the far proxy */
+  coarse: v.optional(name),
   /** NM0 (Night Market pilot): `add` (default) builds the far proxy from every static, undrawn and far-only node; `replace`
    *  from the far-only nodes alone (a world of many small pieces whose own simplification cannot reach the far budget) */
   farMode: v.optional(v.picklist(['add', 'replace']), 'add'),
@@ -68,6 +74,8 @@ interface BoundedWorldSourceFields {
     }[];
     undrawn?: string | undefined;
     far?: string | undefined;
+    detail?: string | undefined;
+    coarse?: string | undefined;
     farMode: "add" | "replace";
     near?: "coarse" | undefined;
 }
