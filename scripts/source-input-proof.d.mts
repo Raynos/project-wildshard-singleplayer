@@ -7,3 +7,5 @@ export function publishSourceSnapshot(file:string,identity:string,memo:InputHash
 export function sourceSnapshotIdentity(value:unknown):string;
 
 export function beginProgramInputProof(root:string,products:readonly string[]):()=>void;
+/** Exact root-matched mirror inventory or normal checkout HEAD; crossed/invalid evidence refuses. */
+export function committedSourceFiles(root:string,env?:Readonly<Record<string,string|undefined>>):string[];

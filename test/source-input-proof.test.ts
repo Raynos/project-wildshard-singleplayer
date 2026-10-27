@@ -1,13 +1,27 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Preserve original owned source/output mutation fixtures.
-import {mkdirSync,mkdtempSync,readFileSync,rmSync,statSync,utimesSync,writeFileSync} from 'node:fs';
+import {mkdirSync,mkdtempSync,readFileSync,realpathSync,rmSync,statSync,utimesSync,writeFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only the owned fixture paths.
 import {resolve} from 'node:path';
 import {afterEach,expect,it} from 'vitest';
 import {InputHashMemo,bakeInputHashes} from '../scripts/bake-input-hashes.mjs';
-import {sourceSnapshotIdentity,publishSourceSnapshot,verifiedSourceSnapshot} from '../scripts/source-input-proof.mjs';
+import {sourceSnapshotIdentity,publishSourceSnapshot,verifiedSourceSnapshot,committedSourceFiles} from '../scripts/source-input-proof.mjs';
 
 const owned:string[]=[];
 afterEach(()=>{for(const root of owned.splice(0))rmSync(root,{recursive:true,force:true});});
+
+it('uses a root-matched mirror inventory without Git and refuses crossed, partial or invalid capabilities',()=>{
+  const {root}=fixture(),base=realpathSync(root),inventory=resolve(root,'mirror-files.json');
+  const env={WS_GENERATION_TREE_ROOT:base,WS_GENERATION_TREE_FILES:inventory};
+  const files:[string,string]=['source/input.txt','source/output.txt'];
+  writeFileSync(inventory,JSON.stringify({root:base,files}));
+  expect(committedSourceFiles(root,env)).toEqual(files);
+  expect(()=>committedSourceFiles(root,{...env,WS_GENERATION_TREE_ROOT:resolve(root,'foreign')})).toThrow('Crossed');
+  expect(()=>committedSourceFiles(root,{WS_GENERATION_TREE_ROOT:base})).toThrow('Crossed');
+  for(const row of [{root:resolve(root,'foreign'),files},{root:base,files:[...files,files[0]]},{root:base,files:['../escape']},{root:base,files,extra:true}]){
+    writeFileSync(inventory,JSON.stringify(row));
+    expect(()=>committedSourceFiles(root,env)).toThrow();
+  }
+});
 
 function fixture() {
   mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/generation-snapshot-'));owned.push(root);

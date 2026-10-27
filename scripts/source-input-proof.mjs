@@ -1,7 +1,7 @@
 // A verified local generation phase can survive cache eviction. Every use
 // rechecks its current source bytes, source inventories and admitted outputs.
 import {createHash,randomBytes} from 'node:crypto';
-import {existsSync,mkdirSync,readFileSync,renameSync,rmSync,writeFileSync} from 'node:fs';
+import {existsSync,mkdirSync,readFileSync,realpathSync,renameSync,rmSync,writeFileSync} from 'node:fs';
 import {dirname,isAbsolute,resolve} from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {InputHashMemo} from './bake-input-hashes.mjs';
@@ -46,15 +46,32 @@ export function publishSourceSnapshot(file,identity,memo,outputs) {
  * @param {unknown} value */
 export function sourceSnapshotIdentity(value) {return digest(value);}
 
+/** Read the exact exported mirror inventory, or HEAD in an ordinary checkout.
+ * A supplied mirror capability never falls back to another Git tree.
+ * @param {string} root @param {Readonly<Record<string,string|undefined>>} [env] @returns {string[]} */
+export function committedSourceFiles(root,env=process.env) {
+  const base=realpathSync(root), inventory=env.WS_GENERATION_TREE_FILES, expected=env.WS_GENERATION_TREE_ROOT;
+  if(inventory!==undefined||expected!==undefined){
+    if(inventory===undefined||expected!==base)throw new Error('Crossed source-program inventory root');
+    const row=v.parse(v.strictObject({root:v.string(),files:v.array(path)}),JSON.parse(readFileSync(inventory,'utf8')));
+    if(row.root!==base||new Set(row.files).size!==row.files.length)throw new Error('Invalid source-program inventory');
+    return row.files;
+  }
+  const top=execFileSync('git',['rev-parse','--show-toplevel'],{cwd:base,encoding:'utf8'}).trim();
+  if(realpathSync(top)!==base)throw new Error('Source-program checkout root differs');
+  return execFileSync('git',['ls-tree','-r','--name-only','-z','HEAD'],{cwd:base,encoding:'utf8',maxBuffer:16*1024*1024}).split('\0').filter(file=>file!=='');
+}
+
 /** Freeze the committed source program inputs before any outputs are published.
  * Existing exact-run artifact transport retains the independently sealed receipt.
  * @param {string} root @param {readonly string[]} products @returns {()=>void} */
 export function beginProgramInputProof(root,products) {
   const registry=JSON.parse(readFileSync(resolve(root,'scripts/source-generation-outputs.json'),'utf8'));
   /** @type {Set<string>} */
-  const outputs=new Set(Object.values(registry.producers).flat());
+  const outputs=new Set([...Object.values(registry.producers).flat(),'budgets/ceiling-sources.json']);
   const source=file=>!outputs.has(file)&&!file.includes('.generated.')&&!file.includes('/.wildshard/')&&!file.includes('/node_modules/');
-  const tracked=()=>execFileSync('git',['ls-files','-z','--','src','scripts','lint','vite','budgets','package.json','pnpm-lock.yaml','pnpm-workspace.yaml'],{cwd:root,encoding:'utf8',maxBuffer:16*1024*1024}).split('\0').filter(file=>file!==''&&source(file)).sort();
+  const roots=new Set(['src','scripts','lint','vite','budgets','package.json','pnpm-lock.yaml','pnpm-workspace.yaml']);
+  const tracked=()=>committedSourceFiles(root).filter(file=>roots.has(file.split('/')[0]??'')&&source(file)).sort();
   const inputs=tracked(),memo=new InputHashMemo(root);
   memo.enableSnapshot(file=>outputs.has(file)||!source(file));
   for(const file of inputs)memo.hash(file);
