@@ -366,3 +366,26 @@ and collision inputs are unchanged. Existing complete road hash oracle stays
 031db7363e523059eae3c0b34803ce11cb29fc7b4500641427f2c4e2f9fb3d0f.
 Touched game types, typed lint and scoped ratchet pass. Row-only read follows
 on a containing shared preview; H4 stays open, no allocator gain claimed yet.
+
+### H4 road row-only result (2026-10-27)
+
+`1ff6fd569f` is read on shared1ff6fd569f/build1ff6fd5-mvqpjc3x,
+one cold seed plus one warm home profile, same muted phone/4x protocol.
+Warm home5.1683s (prior7.2559s), same1,038colliders, controls/movement
+pass, errors0. Original complete road golden and allocation counts pass
+2cases after landing; the duplicate historical read control also passes.
+Road inclusive sampled CPU271.582ms versus408.721ms on the preceding
+pin; cullPlanSteps153.946ms versus238.320ms. Other costs also fall, so
+these shared-pin numbers do not isolate a causal whole-home gain.
+
+H4 remains open against1.5s. Remaining top spans are product admission
+1.0962s, world assembly1.1633s, scenes0.8494s, native foundation0.3857s;
+wrappers overlap. X2 owns active I2 controlFiles/completeCache transport,
+x1 owns the new worldAssembly repeated-admission cut and scene admission.
+The warm-home miss/protocol was routed to those actual owners/coordinator;
+no duplicate transport, world, compile or parked-draw edit is made here.
+The first empty-world native step stays before control; deferring its cost
+would not establish a construction reduction. Touched source types, typed
+lint and scoped ratchet remain green. Both source commits are on origin.
+Raw:tmp/sp-x9-h4-follow/after-road and cpu-after-road.json. Browser closed,
+owned preview use released; follow-up H4 reads consume coherent owned cuts.
