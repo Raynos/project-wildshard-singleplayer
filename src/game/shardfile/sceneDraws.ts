@@ -20,10 +20,24 @@ export async function prepareSceneDrawRows(product: ShardProduct, input: unknown
     if (row.kind !== 'buffered' || prepared.has(row.file) || (row.tier !== undefined && row.tier !== TIER)) continue;
     if (!product.hasFile(row.file)) throw new Error(`Missing scene draw buffer file: ${row.file}`);
     const source = parseSceneBuffers(await product.json<unknown>(row.file)), files = new Map<string, Uint8Array>();
+    const names = new Set<string>();
     for (const buffer of source.buffers) {
-      if (buffer.file === undefined || files.has(buffer.file)) continue;
+      if (buffer.file === undefined || names.has(buffer.file)) continue;
       if (!product.hasFile(buffer.file)) throw new Error(`Missing scene buffer binary file: ${buffer.file}`);
-      files.set(buffer.file, await product.file(buffer.file));
+      names.add(buffer.file);
+    }
+    const ordered = [...names];
+    // Independent verified reads overlap, but drain every started read before a
+    // refusal can release the caller's input lease. Publish only a complete row.
+    for (let i = 0; i < ordered.length; i += 4) {
+      const batch = ordered.slice(i, i + 4);
+      const loaded = await Promise.allSettled(batch.map(async name => { const bytes = await product.file(name); return bytes; }));
+      for (const [index, result] of loaded.entries()) {
+        if (result.status === 'rejected') throw result.reason;
+        const name = batch[index];
+        if (name === undefined) throw new Error('Missing scene buffer read identity');
+        files.set(name, result.value);
+      }
     }
     const content = JSON.stringify([product.url(row.file), [...files.keys()].map(file => product.url(file))]);
     prepared.set(row.file, { row: admitSceneBuffers(source, files), files, content });

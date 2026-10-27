@@ -19,6 +19,48 @@ const fixture = (byteLength = 24) => ({ version: 1,
   geometries: [{ id: 'g', attributes: { position: 'p' } }],
   draws: [{ id: 'a', draw: { kind: 'points', geometry: 'g' } }, { id: 'b', draw: { kind: 'points', geometry: 'g' } }] });
 
+test.each([false, true])('buffer admission overlaps bounded reads and drains a refused batch (%s)', async fail => {
+  const names = Array.from({ length: 6 }, (_, i) => `channels/p${i}.bin`);
+  const source = { ...fixture(12), buffers: names.map((file, i) => ({ id: i === 0 ? 'p' : `p${i}`, storage: 'f32', file, byteLength: 12 })) };
+  const bytes = new Uint8Array(new Float32Array([0, -0, 1]).buffer);
+  const pending = new Map<string, { resolve: (bytes: Uint8Array) => void; reject: (error: Error) => void }>();
+  const started: string[] = [];
+  const product = createShardProduct({ slug: 'buffer-reads', revision: 1,
+    shardfile: emptyShardfile({ slug: 'buffer-reads', name: 'Reads', author: 'Fixture', revision: 1, seed: 1 }), sections: new Map(),
+    files: new Map(['scene.json', ...names].map(name => [name, { hash: name, url: name }])),
+    read: name => {
+      if (name === 'scene.json') return Promise.resolve(new TextEncoder().encode(JSON.stringify(source)));
+      started.push(name);
+      return new Promise<Uint8Array>((resolve, reject) => { pending.set(name, { resolve, reject }); });
+    } });
+  let settled = false;
+  const admission = (async (): Promise<unknown> => {
+    try { await prepareSceneDrawRows(product, [{ kind: 'buffered', file: 'scene.json', material: 'paint' }]); return null; }
+    catch (error) { return error; }
+    finally { settled = true; }
+  })();
+  await vi.waitFor(() => { expect(started).toEqual(names.slice(0, 4)); });
+  for (const name of names.slice(0, 3)) {
+    const read = pending.get(name); if (read === undefined) throw new Error('Missing pending read');
+    if (fail && name === names[0]) read.reject(new Error('Refused verified words')); else read.resolve(bytes);
+  }
+  await Promise.resolve(); await Promise.resolve();
+  expect(settled).toBe(false); expect(started).toHaveLength(4);
+  const last = pending.get(names[3] ?? ''); if (last === undefined) throw new Error('Missing last batch read');
+  last.resolve(bytes);
+  if (fail) {
+    const error = await admission;
+    expect(error).toBeInstanceOf(Error); expect(String(error)).toContain('Refused verified words');
+    expect(started).toHaveLength(4);
+  } else {
+    await vi.waitFor(() => { expect(started).toEqual(names); });
+    for (const name of names.slice(4)) {
+      const read = pending.get(name); if (read === undefined) throw new Error('Missing final read'); read.resolve(bytes);
+    }
+    expect(await admission).toBeNull();
+  }
+});
+
 test('binary scene channels detach subviews, preserve words and share geometry', () => {
   const words = new Float32Array([99, 0, -0, 1, -1, 2 ** -149, 3, 99]);
   const bytes = new Uint8Array(words.buffer, 4, 24), files = new Map([['channels/position.bin', bytes]]);
