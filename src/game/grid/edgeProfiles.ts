@@ -1,4 +1,4 @@
-import { bakedEdgeProfiles, validateEdgeProfile, type EdgeColour, type EdgeProfiles } from '@wildshard/engine/sim/edgeProfiles';
+import { bakedEdgeProfiles, immutableEdgeProfile, type EdgeColour, type EdgeProfiles } from '@wildshard/engine/sim/edgeProfiles';
 import type { PlatformCell } from '@wildshard/engine/sim/strips';
 import type { GridCell } from './assembly';
 
@@ -16,8 +16,7 @@ export function loadGridEdgeProfiles(cells: readonly GridCell[], read: (cell: Gr
     if (pending === undefined) {
       pending = (async () => {
         const source = await read(cell), profiles = source.kind === 'baked' ? bakedEdgeProfiles(source.bytes, source.palette) : source.profiles;
-        for (const profile of Object.values(profiles)) validateEdgeProfile(profile);
-        const frozen = (side: keyof EdgeProfiles) => Object.freeze({ roadHeight: 0, heights: Object.freeze([...profiles[side].heights]), colours: Object.freeze(profiles[side].colours.map((rgb) => Object.freeze([...rgb]))) });
+        const frozen = (side: keyof EdgeProfiles) => immutableEdgeProfile(profiles[side]);
         const observation = (side: keyof GridEdgeObservations) => {
           const row = source.observations[side];
           return Object.freeze({ ...row, ...(row.outflows === undefined ? {} : { outflows: Object.freeze(row.outflows.map((flow) => Object.freeze({ ...flow }))) }) });

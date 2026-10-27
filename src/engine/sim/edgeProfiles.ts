@@ -7,6 +7,8 @@ export type EdgeProfiles = Readonly<Record<'north' | 'east' | 'south' | 'west', 
 /** Linear RGB, supplied by the admitted terrain palette rather than a renderer dependency. */
 export type EdgeColour = readonly [number, number, number];
 const sides = ['north', 'east', 'south', 'west'] as const;
+// Only private copies made below carry this proof; frozen caller objects do not.
+const admittedProfiles = new WeakSet<StripProfile>();
 function resolution(count: number): EdgeResolution {
   if (count !== 256 && count !== 257) throw new RangeError('Edge profiles require a native 256 or 257 sample row');
   return count;
@@ -18,9 +20,21 @@ function colour(rgb: readonly number[]): EdgeColour {
 }
 /** Validate complete native rows before allocating a platform mesh. */
 export function validateEdgeProfile(profile: StripProfile): void {
+  if (admittedProfiles.has(profile)) return;
   resolution(profile.heights.length);
   if (profile.colours.length !== profile.heights.length || profile.roadHeight !== 0 || profile.heights.some((h) => !Number.isFinite(h) || Math.abs(h) > 250)) throw new RangeError('Invalid edge profile');
   profile.colours.forEach((rgb) => { colour(rgb); });
+}
+/** Copy and admit a complete row, then freeze its numeric leaves. Later seam checks
+ * reuse this exact snapshot's proof; mutable and caller-frozen rows are always checked. */
+export function immutableEdgeProfile(profile: StripProfile): StripProfile {
+  const snapshot = { roadHeight: profile.roadHeight, heights: Array.from(profile.heights),
+    colours: Array.from(profile.colours, rgb => Array.from(rgb)) };
+  validateEdgeProfile(snapshot);
+  for (const rgb of snapshot.colours) Object.freeze(rgb);
+  Object.freeze(snapshot.heights); Object.freeze(snapshot.colours); Object.freeze(snapshot);
+  admittedProfiles.add(snapshot);
+  return snapshot;
 }
 /** Copy every boundary vertex from a row-major native lattice, preserving its height and linear colour. */
 export function nativeEdgeProfiles(grid: { resolution: number; heights: ArrayLike<number>; colourAt: (index: number) => EdgeColour }): EdgeProfiles {
