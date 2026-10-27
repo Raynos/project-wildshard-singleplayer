@@ -80,7 +80,7 @@ import { GraphCodeKeys } from './graphCodeKeys';
 import { NodeProgramVariants } from './nodeProgramVariants';
 import { classicModelUniform } from './nodeObjectUniforms';
 import { registerShadowDepthResolver } from '../shadowDepthVariants';
-import { bindLazy, buildCensus, buildReads, captureBuild, graphShape, keepBuild, lazyReads, pairShapes, rebindBuild, recordBuild, restoreBuild, reuseKey, unboundReads, type BuildCensus, type BuildOutput, type GraphShape, type KeptBuild, type LazyUniform } from './nodeBuildReuse';
+import { bindLazy, buildCensus, buildReads, captureBuild, holdsAny, graphShape, keepBuild, lazyReads, pairShapes, rebindBuild, recordBuild, restoreBuild, reuseKey, unboundReads, type BuildCensus, type BuildOutput, type GraphShape, type KeptBuild, type LazyUniform } from './nodeBuildReuse';
 import { graphNodeOwner } from './graphOwners';
 import { harnessPins } from '../../app/identity';
 
@@ -201,6 +201,22 @@ function fogOf(builder: NodeBuilder): THREE.Fog | THREE.FogExp2 | null {
 }
 function isDrawObject(value: unknown): value is THREE.Object3D { return value instanceof THREE.Object3D; }
 function isNode(value: object): value is Node<'vec4'> { return Reflect.get(value, 'isNode') === true; }
+/** `value`, a sample the build took of a PMREM node's atlas `sampler` (its class, reading `before`), copied to sample
+ *  `next` (the new PMREM node's atlas, reading `after`) as `TextureNode.sample` makes one; null for any other value */
+function atlasSample(value: unknown, sampler: unknown, next: unknown, after: THREE.Texture): object | null {
+  if (!(value instanceof TextureNode) || !(sampler instanceof TextureNode) || !(next instanceof TextureNode)
+    || value.constructor !== sampler.constructor || value.getBase() !== sampler.getBase()) return null;
+  // only its value reaches the program (its code is the build's): none of the old sample's lookup graph, which holds the
+  // old PMREM node, comes along
+  const copy = value.clone();
+  copy.uvNode = null; copy.levelNode = null; copy.biasNode = null; copy.compareNode = null; copy.depthNode = null;
+  copy.gradNode = null; Reflect.set(copy, 'offsetNode', null);
+  copy.value = after; // its own texture before it follows the new atlas, so it holds nothing of the old
+  copy.referenceNode = next.getBase();
+  return copy.value === after ? copy : null;
+}
+/** any value that is a node */
+function isNodeLike(value: unknown): value is object { return typeof value === 'object' && value !== null && Reflect.get(value, 'isNode') === true; }
 
 /** Three's module-cached material readers must not keep their last retired target. */
 function releaseMaterialReferences(nodes: unknown, material: THREE.Material): void {
@@ -461,8 +477,11 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   /** reuses served from a kept build (a re-entered region's programs) */
   keptReuses = 0;
   /** kept builds a compile of their key could not use, by reason (`+scene`, `+lights`, `+fog`, `+environment`, `+key`, or
-   *  `released` for a collected scene node); a diagnostic the frame floor reads (grid-crossing T2) */
+   *  `released:<kind>` for a collected scene node, named by its kind); a diagnostic the frame floor reads (grid-crossing T2) */
   readonly keptMisses: Record<string, number> = {};
+  /** scene-binding refreshes served by moving a program's environment uniforms to the new environment, with no build
+   *  (`rebindEnvironment`); a diagnostic */
+  environmentRebinds = 0;
   /** each graph material's shape, read before its first build touched its nodes */
   private readonly shapes = new WeakMap<THREE.Material, GraphShape>();
   /** programShare: graph shapes whose builds wrote other code under one shared key (they key by their own nodes) */
@@ -979,7 +998,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       const mismatch = this.sceneBindingMismatch(kept.binding);
       if (mismatch !== null) { this.keptMisses[mismatch] = (this.keptMisses[mismatch] ?? 0) + 1; return null; }
       const restored = restoreBuild(kept.build, shape, object, material);
-      if (restored === 'released') { this.keptMisses['released'] = (this.keptMisses['released'] ?? 0) + 1; this.dropKept(key); return null; }
+      if (typeof restored === 'string' && restored.startsWith('released')) { this.keptMisses[restored] = (this.keptMisses[restored] ?? 0) + 1; this.dropKept(key); return null; }
       if (typeof restored === 'string') this.keptMisses[restored] = (this.keptMisses[restored] ?? 0) + 1;
       else this.keptReuses++;
       return restored;
@@ -1072,6 +1091,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     if (mismatch === null) return;
     const object: unknown = this.frame.object;
     if (!isDrawObject(object)) return;
+    if (mismatch === 'environment' && this.rebindEnvironment(material, program, binding)) return;
     const parameters = { ...binding.parameters };
     this.build(material, object, parameters);
     const logged = this.buildLog.at(-1);
@@ -1094,6 +1114,69 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     bindings?.set(program, build.binding);
     this.drawEntries.delete(material);
     Reflect.deleteProperty(material, '_latestBuilder');
+  }
+
+  /**
+   * A binding refused only for its environment (G782 crossings: a region's sky makes a new PMREM each entry, so every lit
+   * program bound on the road or at the last visit refreshed in full, a node build each, at the first entered draw). A
+   * build reads a classic PMREM environment through its upright node (`ClassicPMREMNode`, one per texture), and of that
+   * node only its atlas sampler and the atlas' texel width, height and top mip: the code is the environment's cube-UV
+   * layout, not its texture. When both environments are classic PMREMs of one size, the program's uniforms move to the
+   * new environment's node in place of a build. Anything else that holds the old environment (a uniform group, an update
+   * node, another uniform) keeps the full refresh. False when it could not rebind.
+   */
+  private rebindEnvironment(material: THREE.Material, program: unknown, binding: SceneBinding): boolean {
+    const before = binding.inputs?.environment?.deref(), after = this.currentBindingFacts()?.inputs?.environment;
+    if (!isTexture(before) || !isTexture(after) || before.mapping !== THREE.CubeUVReflectionMapping || after.mapping !== THREE.CubeUVReflectionMapping) return false;
+    const height = (texture: THREE.Texture): unknown => { const image: unknown = texture.image; return typeof image === 'object' && image !== null ? Reflect.get(image, 'height') : undefined; };
+    const size = height(before);
+    if (typeof size !== 'number' || size !== height(after)) return false;
+    const old = this.environments.get(before), known = internals(this).programCache.get(material), previous = known?.get(program);
+    if (old === undefined || known === undefined || previous === undefined) return false;
+    let next = this.environments.get(after);
+    if (next === undefined) { next = nodeObject(new ClassicPMREMNode(after)); this.environments.set(after, next); }
+    const update: unknown = Reflect.get(next, 'updateBefore');
+    if (typeof update !== 'function') return false;
+    Reflect.apply(update, next, [this.frame]);
+    // the old node's uniforms by id (a proxied node and its target share it), each to the new node's own
+    const twins = new Map<unknown, unknown>();
+    for (const field of ['_texture', '_width', '_height', '_maxMip']) {
+      const from: unknown = Reflect.get(old, field), to: unknown = Reflect.get(next, field);
+      if (!isNodeLike(from) || !isNodeLike(to) || from.constructor !== to.constructor) return false;
+      twins.set(Reflect.get(from, 'id'), to);
+    }
+    const inputs = [before, old], uniforms: Record<string, unknown> = {}, sampler: unknown = Reflect.get(old, '_texture');
+    // each moved node by id, for the update nodes that hold it too (a sample keeps its texture's matrix current)
+    const replaced = new Map<unknown, unknown>(twins);
+    let moved = 0;
+    for (const [name, value] of Object.entries(previous.uniforms)) {
+      const twin = isNodeLike(value) ? twins.get(Reflect.get(value, 'id')) : undefined;
+      if (twin !== undefined) { uniforms[name] = twin; moved++; continue; }
+      // a sample of the atlas the build took (TextureNode.sample clones the sampler): its own copy, of the new atlas
+      const sample = value === sampler ? null : atlasSample(value, sampler, Reflect.get(next, '_texture'), after);
+      if (sample !== null) {
+        if (holdsAny([sample], inputs)) return false;
+        uniforms[name] = sample; replaced.set(Reflect.get(value as object, 'id'), sample); moved++; continue;
+      }
+      if (holdsAny([value], inputs)) return false;
+      uniforms[name] = value;
+    }
+    const grouped = previous.uniformsGroups.flatMap((group): unknown[] => {
+      const members: unknown = typeof group === 'object' && group !== null ? Reflect.get(group, 'uniforms') : undefined;
+      return Array.isArray(members) ? members.map((member: unknown): unknown => typeof member === 'object' && member !== null ? Reflect.get(member, 'node') : member) : [group];
+    });
+    if (!Array.isArray(previous.updateNodes)) return false;
+    const updateNodes = previous.updateNodes.map((node: unknown): unknown => (isNodeLike(node) ? replaced.get(Reflect.get(node, 'id')) : undefined) ?? node);
+    if (moved === 0 || holdsAny(grouped, inputs) || holdsAny(updateNodes, inputs)) return false;
+    const inputsNow = binding.inputs;
+    if (inputsNow === null) return false;
+    let uniformsList: unknown[] | undefined;
+    known.set(program, { uniformsGroups: previous.uniformsGroups, uniforms,
+      get uniformsList(): unknown[] { uniformsList ??= uniformsListOf(program, uniforms); return uniformsList; }, updateNodes });
+    this.sceneBindings.get(material)?.set(program, { ...binding, inputs: { ...inputsNow, environment: new WeakRef(after) } });
+    this.drawEntries.delete(material);
+    this.environmentRebinds++;
+    return true;
   }
 
   /**

@@ -169,6 +169,11 @@ export function buildReads(builder: unknown, inputs: readonly object[]): boolean
       roots.push(typeof uniform === 'object' && uniform !== null ? Reflect.get(uniform, 'node') : member);
     }
   }
+  return holdsAny(roots, inputs);
+}
+
+/** Whether any of `values` (nodes, arrays, plain objects) holds one of `inputs`, at any depth of their node fields */
+export function holdsAny(values: readonly unknown[], inputs: readonly object[]): boolean {
   const held = new Set(inputs), seen = new Set<object>();
   const reads = (value: unknown): boolean => {
     if (typeof value !== 'object' || value === null) return false;
@@ -179,7 +184,7 @@ export function buildReads(builder: unknown, inputs: readonly object[]): boolean
     const fields: readonly unknown[] = Array.isArray(value) ? value : Object.getOwnPropertyNames(value).map((name): unknown => Reflect.get(value, name));
     return fields.some(reads);
   };
-  return roots.some(reads);
+  return values.some(reads);
 }
 
 /** a node's fields that never reach its code: identity, cache bookkeeping */
@@ -338,7 +343,7 @@ export function rebindBuild(output: BuildOutput, twins: ReadonlyMap<Node, Node>)
  * weakly, so a retired region's lights go and a build that read them dies with them. It keeps code and positions only:
  * no texture, value, buffer or material of the region it came from.
  */
-type KeptRef = { readonly compile: number } | { readonly lazy: number } | { readonly shared: WeakRef<Node> };
+type KeptRef = { readonly compile: number } | { readonly lazy: number } | { readonly shared: WeakRef<Node>; readonly kind: string };
 export interface KeptBuild {
   readonly vertexShader: string;
   readonly fragmentShader: string;
@@ -352,6 +357,13 @@ export interface KeptBuild {
   readonly lazy: readonly { readonly holder: number; readonly kind: unknown }[];
   /** an estimate of what the kept build holds (its code as UTF-16, plus its tables) */
   readonly bytes: number;
+}
+
+/** what kind of shared node a kept build read (a diagnostic): its class, its name, and a uniform's value class */
+function sharedKind(node: Node): string {
+  const name: unknown = Reflect.get(node, 'name'), value: unknown = node instanceof UniformNode ? Reflect.get(node, 'value') : undefined;
+  const valueKind = typeof value === 'object' && value !== null ? value.constructor.name : typeof value;
+  return `${node.constructor.name}${typeof name === 'string' && name !== '' ? `(${name})` : ''}${node instanceof UniformNode ? `<${valueKind}>` : ''}`;
 }
 
 /** `output` (built from `shape`'s compile, with `lazy` uniforms) as positions and weak scene references; null when a
@@ -369,7 +381,7 @@ export function keepBuild(output: BuildOutput, shape: GraphShape, lazy: readonly
     const l = lazyIndex.get(node);
     if (l !== undefined) return { lazy: l };
     const c = index.get(node);
-    return c !== undefined ? { compile: c } : { shared: new WeakRef(node) };
+    return c !== undefined ? { compile: c } : { shared: new WeakRef(node), kind: sharedKind(node) };
   };
   const ids = new Map<Uniform, number>(), uniforms: { name: string; type: string; ref: KeptRef }[] = [];
   const id = (entry: Uniform): number => {
@@ -388,7 +400,8 @@ export function keepBuild(output: BuildOutput, shape: GraphShape, lazy: readonly
 /**
  * `kept` bound to the compile whose shape is `shape` (the second material's nodes, by position) and to `object` and
  * `material` for its lazy reference uniforms: the build as `rebindBuild` would have made it from the live first build.
- * 'released' when a scene node it read has been collected (the kept build is dead); a reason when it cannot be bound.
+ * 'released:<kind>' when a scene node it read has been collected (the kept build is dead; `sharedKind` names the node);
+ * a reason when it cannot be bound.
  */
 export function restoreBuild(kept: KeptBuild, shape: GraphShape, object: THREE.Object3D, material: THREE.Material): BuildOutput | string {
   const frame = new NodeFrame(); frame.object = object; frame.material = material;
@@ -405,25 +418,25 @@ export function restoreBuild(kept: KeptBuild, shape: GraphShape, object: THREE.O
     if (twin.node === null || twin.node.constructor !== kind) return 'a reference uniform cannot be made alike';
     lazyNodes.push(twin.node);
   }
-  let released = false;
+  let released: string | null = null;
   const resolve = (ref: KeptRef): Node | undefined => {
     if ('compile' in ref) return shape.nodes[ref.compile];
     if ('lazy' in ref) return lazyNodes[ref.lazy];
     const node = ref.shared.deref();
-    if (node === undefined) released = true;
+    if (node === undefined) released ??= `released:${ref.kind}`;
     return node;
   };
   const uniforms: Uniform[] = [];
   for (const row of kept.uniforms) {
     const node = resolve(row.ref);
-    if (released) return 'released';
+    if (released !== null) return released;
     if (!(node instanceof UniformNode)) return 'a paired uniform is not a uniform node';
     uniforms.push(new NodeUniform(row.name, row.type, node));
   }
   const updateNodes: Node[] = [];
   for (const ref of kept.updateNodes) {
     const node = resolve(ref);
-    if (released) return 'released';
+    if (released !== null) return released;
     if (node === undefined) return 'a paired update node is missing';
     updateNodes.push(node);
   }

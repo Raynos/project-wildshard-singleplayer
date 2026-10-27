@@ -14,7 +14,7 @@ test('a kept build holds positions, not the first compile\'s nodes, and binds th
   const kept = keepBuild(output, shape(first), []);
   if (kept === null) throw new Error('Missing kept build');
   // nothing of the first compile survives in the kept build: its compile nodes are indices
-  expect(JSON.stringify(kept.uniforms.map(row => row.ref))).toBe(JSON.stringify([{ compile: 1 }, { shared: {} }])); // the group's uniform first, then the camera
+  expect(JSON.stringify(kept.uniforms.map(row => row.ref))).toBe(JSON.stringify([{ compile: 1 }, { shared: {}, kind: 'UniformNode<number>' }])); // the group's uniform first, then the camera
   expect(kept.updateNodes).toEqual([{ compile: 0 }]);
   const second = [uniform(3), uniform(4)];
   const restored = restoreBuild(kept, shape(second), new THREE.Mesh(), new THREE.MeshBasicMaterial());
