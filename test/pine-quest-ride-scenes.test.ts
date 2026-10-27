@@ -13,9 +13,12 @@ import { GeometryPack, packedRows } from '../src/sdk/kit/geometryPack';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { createWorldScene } from '../src/game/plugin/scene';
 import { parseWorldScene } from '../src/format/clientChannels';
-import { QUEST_RIDE_BLOBS, QUEST_RIDE_RAW_MODELS, QUEST_RIDE_LIBRARY, QUEST_RIDE_MATERIAL, QUEST_RIDE_STEP } from '../src/shards/pine-hollow/generators/questRideScenes';
+import { QUEST_RIDE_BLOBS, QUEST_RIDE_LIBRARY, QUEST_RIDE_MATERIAL, QUEST_RIDE_STEP, questRideModels } from '../src/shards/pine-hollow/generators/questRideScenes';
 import packed from '../src/shards/pine-hollow/data/codeParts.json';
 import { FIGURE_CATALOGUE } from '../src/shards/pine-hollow/generators/figureCatalogue';
+import { PINE_SOURCES } from './fixtures/pine-sources';
+
+const { raw: QUEST_RIDE_RAW_MODELS } = await questRideModels(PINE_SOURCES);
 
 const bytes = (array: ArrayBufferView): Uint8Array => new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
 function sameGeometry(actual: BufferGeometry, expected: BufferGeometry): void {

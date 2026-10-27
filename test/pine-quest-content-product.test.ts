@@ -1,4 +1,4 @@
-import { FOREST_STORY } from '../src/shards/pine-hollow/generators/forestStory';
+import { forestStory } from '../src/shards/pine-hollow/generators/forestStory';
 import nativeStory from '../src/shards/pine-hollow/data/nativeStory.json' with { type: 'json' };
 import boss from '../src/shards/pine-hollow/data/bossEncounter.json' with { type: 'json' };
 import sky from '../src/shards/pine-hollow/data/sky.json' with { type: 'json' };
@@ -13,6 +13,9 @@ import { parsePineSpots, parsePineQuestRows } from '../src/shards/pine-hollow/ge
 import { PINE_QUEST_RUNTIME } from '../src/shards/pine-hollow/generators/questRuntime';
 import { parseNativeQuestComposition } from '../src/format/nativeQuestComposition';
 import { NATIVE_CHAPTER_DIRECTOR } from '../src/shards/pine-hollow/generators/chapterDirector';
+import { PINE_SOURCES } from './fixtures/pine-sources';
+
+const { FOREST_STORY } = forestStory(PINE_SOURCES);
 
 // GR8: called, not read from a scheduler job's output
 const spots = pineSpotRows();

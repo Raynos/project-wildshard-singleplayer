@@ -1,8 +1,11 @@
 import { expect, it } from 'vitest';
 import * as v from 'valibot';
 import { QuestPageSchema } from '../src/format/questPageComposition';
-import { PINE_QUEST_PAGE, PINE_QUEST_PAGE_BLOB } from '../src/shards/pine-hollow/generators/pageComposition';
-import { FOREST_STORY } from '../src/shards/pine-hollow/generators/forestStory';
+import { questPage } from '../src/shards/pine-hollow/generators/pageComposition';
+import { forestStory } from '../src/shards/pine-hollow/generators/forestStory';
+import { PINE_SOURCES } from './fixtures/pine-sources';
+
+const { PINE_QUEST_PAGE, PINE_QUEST_PAGE_BLOB } = questPage(PINE_SOURCES), { FOREST_STORY } = forestStory(PINE_SOURCES);
 
 // G565: Pine's forest story as rows of the shared quest page, its second real user after Driftwood
 it("admits Pine's forest story as quest page rows with every facet", () => {

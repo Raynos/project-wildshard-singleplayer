@@ -5,11 +5,12 @@ import { CabinAmbienceSchema } from '../src/shards/pine-hollow/generators/sectio
 import { PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';
 import { pineCabins } from '../src/shards/pine-hollow/generators/bake-pine-cabins.mjs';
 import { floorAtRects } from '../src/engine/physics/box';
+import { PINE_SOURCES } from './fixtures/pine-sources';
 
-const cabins = pineCabins().rows;
+const cabins = pineCabins(PINE_SOURCES).rows;
 
 test('Pine emits cabin audio floors and fires in the live assembly order', () => {
-  const rows = v.parse(CabinAmbienceSchema, cabinAmbienceRows());
+  const rows = v.parse(CabinAmbienceSchema, cabinAmbienceRows(PINE_SOURCES));
   const file = output.namedFiles.find(row => row.name === 'world/ambience.json');
   const bytes = file === undefined ? undefined : output.assets.get(file.hash);
   if (bytes === undefined) throw new Error('Missing emitted cabin ambience');

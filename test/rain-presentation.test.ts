@@ -1,7 +1,10 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { RainPresentationSchema } from '../src/format/rainPresentation';
-import { RAIN } from '../src/shards/pine-hollow/generators/rangedPage';
+import { rangedPage } from '../src/shards/pine-hollow/generators/rangedPage';
+import { PINE_SOURCES } from './fixtures/pine-sources';
+
+const { RAIN } = await rangedPage(PINE_SOURCES);
 
 /** An unrelated orchard's drizzle: no hood, one barn roof in its own frame, a small bake and its own graphs. */
 const pack = { bytes: 1024, geometries: [{ attrs: [['position', 3], ['aWater', 4]], count: 30, unique: 30, own: 'u16', indexCount: 60 }, { attrs: [['values', 1]], count: 4096, unique: 64, own: null, indexCount: 4096 }] };

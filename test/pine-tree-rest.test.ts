@@ -8,8 +8,7 @@ import { bakeTreeRest } from '../src/shards/pine-hollow/generators/treeRest';
 import { loadTreeSetGeometry } from '../src/engine/world/forest/treeSet';
 import { readSourceModel } from '../src/sdk/bake/skinned';
 import { createModelLibrary } from '../src/game/plugin/geometry';
-import { PINE_TREE_SET } from '../src/shards/pine-hollow/generators/treeSet';
-import { pineTreeRestRows } from '../src/shards/pine-hollow/generators/bake-tree-rest.mjs';
+import { PINE_TREE_SET, pineTreeRestRows } from '../src/shards/pine-hollow/generators/treeSet';
 
 const rows = pineTreeRestRows();
 

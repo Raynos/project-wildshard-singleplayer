@@ -6,9 +6,10 @@ import authored from '../src/shards/pine-hollow/data/timberWorld.generated.json'
 import { pineCrags } from '../src/shards/pine-hollow/generators/bake-pine-crags.mjs';
 import { BAKED_COVE } from './fixtures/driftwood-baked-cove';
 import { ISLAND_LOOK } from '../src/shards/driftwood-isle/generators/islandRows';
+import { PINE_SOURCES } from './fixtures/pine-sources';
 
 // GR8 G33: the crag rows are the producer's, not a stored data/crags.json
-const crags = (await pineCrags()).rows;
+const crags = (await pineCrags(PINE_SOURCES)).rows;
 
 test('all cove families retain clone, shadow, specimen and far-copy policy', () => {
   const families = BAKED_COVE.instances?.families ?? [];

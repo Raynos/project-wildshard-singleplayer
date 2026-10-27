@@ -5,15 +5,18 @@ import { parseWorldScenes } from '../src/format/worldScenes';
 import { pineProps } from '../src/shards/pine-hollow/generators/bake-pine-props.mjs';
 import { pinePropScenes } from '../src/shards/pine-hollow/generators/bake-prop-scenes.mjs';
 import { PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';
-import { MODEL_SCENES, SCENE_MODELS, SCENE_PLACEMENTS } from '../src/shards/pine-hollow/generators/sceneModelRows';
+import { sceneModelRows } from '../src/shards/pine-hollow/generators/sceneModelRows';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
+import { PINE_SOURCES } from './fixtures/pine-sources';
+
+const { MODEL_SCENES, SCENE_MODELS, SCENE_PLACEMENTS } = await sceneModelRows(PINE_SOURCES);
 
 // GR8 (97e4918e1f): the props rows are the producer's, not a committed data/props.json
-const rows = await pineProps();
+const rows = await pineProps(PINE_SOURCES);
 // GR8 G28: the prop scenes are the producer's (bake-prop-scenes.mjs), not a stored propScenes.generated.json
 const baked=parse(object({groups:array(object({id:string(),matrices:array(pipe(number(),finite()))}))}),
-  { groups: (await pinePropScenes()).rows.groups });
+  { groups: (await pinePropScenes(PINE_SOURCES)).rows.groups });
 
 test('admitted scene rows retain every scatter copy and native Float32 upload', () => {
   const file = output.namedFiles.find(row => row.name === 'models/world-scenes.json');

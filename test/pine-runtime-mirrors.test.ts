@@ -1,4 +1,4 @@
-import { CRAG_CAVE_ROWS } from '../src/shards/pine-hollow/generators/cragSceneContribution';
+import { cragScene } from '../src/shards/pine-hollow/generators/cragSceneContribution';
 import logKit from '../src/shards/pine-hollow/data/logKit.json' with { type: 'json' };
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare the diagnostic metadata with the shipping terrain bytes.
 import { readFileSync } from 'node:fs';
@@ -27,6 +27,9 @@ import { pageModeValue, pageModeCap } from '../src/game/shard/pagePolicy';
 import policy from '../src/shards/pine-hollow/data/pagePolicy.json' with { type: 'json' };
 import gpuTables from '../src/shards/pine-hollow/data/gpuTables.generated.json' with { type: 'json' };
 import { currentPageMode, setPageMode } from '../src/game/grid/pageMode';
+import { PINE_SOURCES } from './fixtures/pine-sources';
+
+const { CRAG_CAVE_ROWS } = await cragScene(PINE_SOURCES);
 
 test('world view rows come from the admitted section', () => {
   const section = output.custom.sections.find(row => row.name === 'custom/nativeView');

@@ -1,9 +1,12 @@
 import { expect, test } from 'vitest';
 import { PINE_PREPARED_OUTPUT as pine } from './fixtures/pine-program';
 import { output as driftwood } from '../src/shards/driftwood-isle/generators/output';
-import { FOREST_STORY } from '../src/shards/pine-hollow/generators/forestStory';
+import { forestStory } from '../src/shards/pine-hollow/generators/forestStory';
 import { PINE_PANELS } from '../src/shards/pine-hollow/generators/panels';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { PINE_SOURCES } from './fixtures/pine-sources';
+
+const { FOREST_STORY } = forestStory(PINE_SOURCES);
 
 const encode = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
 for (const [name, output] of [['pine', pine], ['driftwood', driftwood]] as const) {

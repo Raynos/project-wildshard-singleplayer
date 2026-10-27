@@ -18,13 +18,16 @@ import { PINE as pine } from './fixtures/pine-program';
 import { DRIFTWOOD as driftwood } from './fixtures/driftwood-program';
 import { PINE_FEATS, PINE_BAG_ITEMS } from '../src/shards/pine-hollow/generators/questInventory';
 import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from '../src/shards/driftwood-isle/generators/questInventory';
-import { TIMBER_MODEL_ROWS, TIMBER_PLACEMENTS } from '../src/shards/pine-hollow/generators/timberSceneContribution';
+import { timberScene } from '../src/shards/pine-hollow/generators/timberSceneContribution';
 import { pineQuestSites, pineTimberScenes } from '../src/shards/pine-hollow/generators/bake-timber-scenes.mjs';
 import parts from '../src/shards/pine-hollow/data/codeParts.json' with { type: 'json' };
 import old from './fixtures/legacy-oracles/pine-hollow-log.json' with { type: 'json' };
+import { PINE_SOURCES } from './fixtures/pine-sources';
+
+const { TIMBER_MODEL_ROWS, TIMBER_PLACEMENTS } = await timberScene(PINE_SOURCES);
 
 // GR8 G31: the timber GLBs and quest sites are the producer's (bake-timber-scenes.mjs), not a stored timberScenes.generated.json
-const timberGlbs = new Map((await pineTimberScenes()).glbs), sites = pineQuestSites();
+const timberGlbs = new Map((await pineTimberScenes(PINE_SOURCES)).glbs), sites = pineQuestSites(PINE_SOURCES);
 const geometryHashes = Object.fromEntries([...timberGlbs].map(([name, bytes]) => [`assets/timber-scenes/${name.slice('models/timbers/'.length)}`, hashImmutableBytes(bytes)]));
 
 const isGeometry = (value: unknown): value is BufferGeometry => value instanceof BufferGeometry;

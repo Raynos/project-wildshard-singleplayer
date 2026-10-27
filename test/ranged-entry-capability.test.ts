@@ -16,7 +16,10 @@ import { admitClientPlan, installClientPhase } from '../src/game/shardfile/clien
 import { parseClientPlan } from '../src/format/clientPlan';
 import { emptyShardfile } from '../src/sdk/author';
 import { MANIFEST } from '../src/shards/_template/discovery.generated';
-import { RANGED_PAGE } from '../src/shards/pine-hollow/generators/rangedPage';
+import { rangedPage } from '../src/shards/pine-hollow/generators/rangedPage';
+import { PINE_SOURCES } from './fixtures/pine-sources';
+
+const { RANGED_PAGE } = await rangedPage(PINE_SOURCES);
 
 function fixture(finish = true, file = true) {
   const scope = new Scope('ranged-entry'), app = new App();

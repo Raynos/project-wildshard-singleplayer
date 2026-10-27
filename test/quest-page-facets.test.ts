@@ -5,7 +5,10 @@ import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import * as v from 'valibot';
 import { QuestPageCollectionsSchema, QuestPageDoorSchema, QuestPageMapSchema, QuestPageMoverSchema } from '../src/format/questPageFacets';
 import { pageCollectionCalls, installPageMap } from '../src/game/quest/pageFacets';
-import { FOREST_STORY } from '../src/shards/pine-hollow/generators/forestStory';
+import { forestStory } from '../src/shards/pine-hollow/generators/forestStory';
+import { PINE_SOURCES } from './fixtures/pine-sources';
+
+const { FOREST_STORY } = forestStory(PINE_SOURCES);
 
 // G565: Pine's forest story rows, as the quest page's optional facets (its second real user after Driftwood's page)
 const pine = FOREST_STORY;

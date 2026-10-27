@@ -3,11 +3,14 @@ import * as v from 'valibot';
 import { ForestPageSchema, ForestGroundLayoutSchema, forestGroundLayoutSteps } from '../src/format/forestPage';
 import { RangedPageSchema, ForestWeatherObservationSchema } from '../src/format/rangedPage';
 import { ForestRoofMask } from '../src/game/looks/forestRoofMask';
-import { FOREST_STORY } from '../src/shards/pine-hollow/generators/forestStory';
+import { forestStory } from '../src/shards/pine-hollow/generators/forestStory';
 import { CABIN_LIVING_BLOBS } from '../src/shards/pine-hollow/generators/cabinLivingContribution';
 import { BuildingLifeRowsSchema } from '../src/format/buildings';
-import { FOREST_PAGE } from '../src/shards/pine-hollow/generators/forestPage';
-import { RANGED_PAGE, WEATHER_OBSERVATIONS } from '../src/shards/pine-hollow/generators/rangedPage';
+import { forestPage } from '../src/shards/pine-hollow/generators/forestPage';
+import { rangedPage, WEATHER_OBSERVATIONS } from '../src/shards/pine-hollow/generators/rangedPage';
+import { PINE_SOURCES } from './fixtures/pine-sources';
+
+const { FOREST_STORY } = forestStory(PINE_SOURCES), { FOREST_PAGE } = forestPage(PINE_SOURCES), { RANGED_PAGE } = await rangedPage(PINE_SOURCES);
 
 test('an orchard shelter uses its own rotated decks and cave frame', () => {
   const mask = new ForestRoofMask({ floors: [{ x: 20, y: 3, z: -10, hw: 4, hd: 1, rot: Math.PI / 2 }],

@@ -5,7 +5,10 @@ import { modelContext } from '../src/engine/models/model';
 import { Scope } from '../src/engine/app/scope';
 import { defineWorldSceneCatalogue, bindWorldSceneModelSources } from '../src/game/models/worldSceneCatalogue';
 import authored from '../src/shards/pine-hollow/data/timberWorld.generated.json' with { type: 'json' };
-import { SCENE_MODELS } from '../src/shards/pine-hollow/generators/sceneModelRows';
+import { sceneModelRows } from '../src/shards/pine-hollow/generators/sceneModelRows';
+import { PINE_SOURCES } from './fixtures/pine-sources';
+
+const { SCENE_MODELS } = await sceneModelRows(PINE_SOURCES);
 
 test('scene catalogue retains the original prop bounds, material identity, hulls and capsule', () => {
   const ctx = modelContext(null), owner = new Scope('pine-prop-shapes'), material = new MeshStandardMaterial();

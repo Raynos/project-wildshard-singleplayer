@@ -11,6 +11,7 @@ import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { placedGeometryCollider } from './fixtures/placedGeometryCollider';
 import { bakeCragSceneSources, caveShellRows, pineCragScenes } from '../src/shards/pine-hollow/generators/bake-crag-scenes.mjs';
 import * as layout from '../src/shards/pine-hollow/generators/layout';
+import { PINE_SOURCES } from './fixtures/pine-sources';
 
 const root = new URL('../', import.meta.url);
 const bytes = (array: ArrayBufferView): Uint8Array => new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
@@ -28,7 +29,7 @@ function sameGeometry(actual: BufferGeometry, expected: BufferGeometry): void {
 }
 
 test('all generated kit and both skin tiers round-trip without channel or index changes', async () => {
-  const sources = await bakeCragSceneSources(), glbs = new Map((await pineCragScenes()).glbs);
+  const sources = await bakeCragSceneSources(PINE_SOURCES), glbs = new Map((await pineCragScenes(PINE_SOURCES)).glbs);
   try {
     expect(sources.size).toBeGreaterThan(100);
     for (const [id, geometry] of sources) {
