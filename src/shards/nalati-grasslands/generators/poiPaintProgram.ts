@@ -21,11 +21,23 @@ function signBoards(input: unknown): readonly Board[] {
   });
 }
 
+/** Explicit input inventory shared by the product cache and offline map author. */
+export const POI_PAINT_INPUTS: readonly string[] = [terrain, ...POI_PAINT_MODELS.map(name => `${modelPrefix}${name}`)];
+
 /** Source-owned paint publication: native cache identity includes the terrain and
  * every original rock model. Bundled authored boards/contacts key the recipe. */
 export async function nalatiPoiPaintProgram(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<ReadonlyMap<string, Uint8Array>> {
-  const files = await ctx.cached({ id: 'poi-paint', native: true,
-    inputs: [terrain, ...POI_PAINT_MODELS.map(name => `${modelPrefix}${name}`)] }, async inputs => {
+  const files = await ctx.cached({ id: 'poi-paint', native: true, inputs: POI_PAINT_INPUTS }, nalatiPoiPaintFromInputs);
+  const expected = ['boot/poiPaint.json', 'data/poiPaint.json',
+    ...Array.from({ length: 14 }, (_, index) => `data/poi-shape-${String(index)}.bin`)];
+  if (files.size !== expected.length || expected.some(name => (files.get(name)?.length ?? 0) === 0)) {
+    throw new Error('Owned POI paint inventory differs');
+  }
+  return files;
+}
+
+/** Pure author input composition, without cache or publication capabilities. */
+export async function nalatiPoiPaintFromInputs(inputs: ReadonlyMap<string, Uint8Array>): Promise<ReadonlyMap<string, Uint8Array>> {
     const native = inputs.get(terrain);
     if (native === undefined) throw new Error('Missing native POI terrain');
     const boards = signBoards(catalogue.find(row => row.key === 'signpostBaked'));
@@ -36,11 +48,4 @@ export async function nalatiPoiPaintProgram(ctx: Pick<ProjectGenerationContext, 
       models.set(file, await bakeModelPaint(bytes, name));
     }
     return nalatiPoiPaintSources(native, boards, models, contacts);
-  });
-  const expected = ['boot/poiPaint.json', 'data/poiPaint.json',
-    ...Array.from({ length: 14 }, (_, index) => `data/poi-shape-${String(index)}.bin`)];
-  if (files.size !== expected.length || expected.some(name => (files.get(name)?.length ?? 0) === 0)) {
-    throw new Error('Owned POI paint inventory differs');
-  }
-  return files;
 }

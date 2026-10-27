@@ -12,12 +12,12 @@ import { bakeDressing } from './dressingGeometryRows.ts';
 import { decorativeRowsOnGround } from './decorative.ts';
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 import { nativeNalatiDressingPlacements } from './nativeDressingPlacements.mjs';
+import { nalatiPoiPaintFromInputs, POI_PAINT_INPUTS } from './poiPaintProgram.ts';
 
 const base = resolve(import.meta.dirname, '..'), root = resolve(base, '../../..');
 const read = file => readMapJson(resolve(base, file));
 const pose = p => new Matrix4().compose(new Vector3(p.x, p.y, p.z), new Quaternion().setFromEuler(new Euler(p.pitch ?? p.tiltX ?? 0, p.rot ?? p.yaw ?? 0, p.roll ?? p.tiltZ ?? 0, 'YXZ')),
   new Vector3(p.sx ?? p.scale ?? p.s ?? 1, p.sy ?? p.scale ?? p.s ?? 1, p.sz ?? p.scale ?? p.s ?? 1));
-const painted = row => mapGeometry(new Uint8Array(readFileSync(resolve(base,row.file))),0,row.geometry);
 
 /** Paint only requested authored models once per assembly; no public painted-model input. */
 function ownedModelReader() {
@@ -58,27 +58,30 @@ export function readNalatiMapScalar(source, directory = base) {
 
 /** Native construction and the defining row preparation own map geometry/metadata.
  * The raw words never cross a compressed public or prepared-runtime handoff. */
-async function nativeMapPlaces() {
+async function nativeMapPlaces(paint) {
   const { nativeNalatiPlaces } = await import('./bake-nalati-painted.mjs');
   const { nalatiRuntimeRows } = await import('./runtimeRows.ts');
   const { nalatiSpecimenRows } = await import('./specimenRows.ts');
   const made = await nativeNalatiPlaces();
   const places = { rows: made.places.rows, bytes: made.places.bin.byteLength };
-  const prepared = nalatiRuntimeRows({ places, paint: read('data/poiPaint.json') }).runtime;
+  const prepared = nalatiRuntimeRows({ places, paint }).runtime;
   const specimens = nalatiSpecimenRows(read('data/campCatalogue.json'), read('data/campMaterials.json'),
     { rows: made.specimens.rows, bytes: made.specimens.bin.byteLength });
   return { prepared, bytes: made.places.bin, specimens };
 }
 
 export async function nalatiMapAssembly() {
-  const assembly = new MapAssembly(), { prepared, bytes, specimens } = await nativeMapPlaces();
+  const paintFiles = await nalatiPoiPaintFromInputs(new Map(POI_PAINT_INPUTS.map(file => [file, new Uint8Array(readFileSync(resolve(root, `public${file}`)))])));
+  const document = paintFiles.get('data/poiPaint.json');
+  if (document === undefined) throw new Error('Missing owned map paint');
+  const fixed = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(document));
+  const assembly = new MapAssembly(), { prepared, bytes, specimens } = await nativeMapPlaces(fixed);
   const placements = await nativeNalatiDressingPlacements(file => readFileSync(resolve(root, file)));
   const asset = ownedModelReader();
-  const fixed = read('boot/poiPaint.json');
   const native = parseBakedTerrain(Uint8Array.from(readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin'))).buffer);
   if (native === null) throw new Error('Map requires native Nalati terrain');
   const ground = bakedSamplers(native).heightAt, cloth = [];
-  const actor = key => { const row = fixed.rows.find(candidate => candidate.key === key); if (row === undefined) throw new Error(`Missing map paint ${key}`); return painted(row); };
+  const actor = key => { const row = fixed.rows.find(candidate => candidate.key === key); if (row === undefined) throw new Error(`Missing map paint ${key}`); const lane = paintFiles.get(row.file); if (lane === undefined) throw new Error(`Missing owned map paint ${row.file}`); return mapGeometry(lane, 0, row.geometry); };
   const names = [...prepared.view.sequence.map(step => step.name), 'outcrops', 'dressing-statics', 'dressing-clutter'];
   for (const name of names) {
     const row = prepared.places.rows.find(candidate => candidate.name === name);

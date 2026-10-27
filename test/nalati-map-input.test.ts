@@ -38,7 +38,9 @@ test('the map freshness recipe names native source inputs instead of retired han
  expect(settings.inputs).not.toContain('data/placeRuntime.generated.json');
  expect(settings.inputs).not.toContain('../../../public/assets/nalati/baked/places.bin');
  expect(settings.inputs).toContain('../../sdk/bake/annulus.ts');
- expect(settings.inputs).toContain('data/poiPaint.json');
+ expect(settings.inputs).not.toContain('data/poiPaint.json');
+ expect(settings.inputs).toContain('data/poiContacts.json');
+ expect(settings.inputs).toContain('../../../public/assets/nalati/models/boulder-1.phone.glb');
  expect(settings.inputs).toContain('data/campMaterials.json');
  expect(settings.inputs).not.toContain('data/specimens.generated.json');
  expect(settings.inputs).toContain('../../../pnpm-lock.yaml');
