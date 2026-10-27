@@ -833,7 +833,7 @@ test.each(['late','played','published','retired'] as const)('source maps shared 
   }finally{ctx.scope.dispose();material.dispose();vi.restoreAllMocks();}
 });
 
-test.each(['late','played','placed','alternate-placement','immediate','mapped','retired'] as const)('late surface scans preserve %s material consumers',async mode=>{
+test.each(['late','resident','played','placed','alternate-placement','immediate','mapped','retired'] as const)('late surface scans preserve %s material consumers',async mode=>{
   const [surfaces,{SkyRig},{reachControl},{buildTier}]=await Promise.all([import('../src/game/shardfile/worldSceneSurface'),import('../src/engine/world/skyRig'),import('../src/engine/boot/prefetch'),import('../src/engine/core/tier')]);
   const sky:unknown=Object.create(SkyRig.prototype);if(!(sky instanceof SkyRig))throw new Error('Missing late surface sky');
   const ctx=fixture(),level=ctx.scope.child('control'),material=new MeshStandardMaterial();
@@ -851,7 +851,7 @@ test.each(['late','played','placed','alternate-placement','immediate','mapped','
   const load=vi.spyOn(surfaces,'worldSceneSurfaceMaterial').mockResolvedValue(material);
   const prepare=vi.spyOn(surfaces,'prepareWorldSceneSurfaces').mockResolvedValue(undefined);
   try{
-    const base=section(),input={...base,catalogue:'models/catalogue.json',materials:[{id:'paint',kind:'surface',scan:'fixture-scan',properties:{}},
+    const base=section(),input={...base,catalogue:'models/catalogue.json',materials:[{id:'paint',kind:'surface',scan:'fixture-scan',properties:{},...(mode==='resident'?{}:{load:'placement'})},
       ...(mode==='mapped'?[{id:'copied',kind:'mapped',material:{kind:'standard',properties:{},source:{material:'paint',maps:['map']}}}]:[])],
       steps:mode==='immediate'?base.steps:[],placements:mode==='placed'||mode==='alternate-placement'?[{id:'placed.shape',model:'shape',draw:'single',poses:[{x:0,y:0,z:0,yxz:{yaw:0,scale:1}}]}]:[],
       welds:[{id:'late.draw',file:mode==='alternate-placement'?{phone:buildTier()==='phone'?'scenes/late.json':'scenes/alternate.json',desktop:buildTier()==='desktop'?'scenes/late.json':'scenes/alternate.json'}:'scenes/late.json',...(mode==='played'?{}:{late:{at:[100,100]}})}]};

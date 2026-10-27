@@ -1,7 +1,7 @@
 
 import codeParts from '../data/codeParts.json' with { type: 'json' };
 /** Final timber draws, shadow proxies and native placement facts; no page-side weld. */
-import { parseWorldScenePlacement , type WorldScenePlacementRow as WorldScenePlacementRowType } from '@wildshard/format/worldScenePlacement';
+import { worldScenePlacement as parseWorldScenePlacement } from '@wildshard/sdk/worldScenes';
 import { Matrix4, Object3D } from 'three';
 import { nameBlob, nameMeshoptBlob, type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
@@ -12,6 +12,8 @@ import plumbing from '../data/plumbing.json' with { type: 'json' };
 import { TIMBER_MATERIALS } from './timberMaterials';
 import type { TimberSceneCopy } from './timberScenes';
 
+type WorldScenePlacementRowType = ReturnType<typeof parseWorldScenePlacement>;
+
 /** The rows `timberScene` makes. */
 export interface TimberScene {
   readonly TIMBER_MODEL_ROWS: unknown[];
@@ -19,7 +21,7 @@ export interface TimberScene {
   readonly TIMBER_RAW_MODELS: NamedBlobType[];
   readonly TIMBER_PACKED_MODELS: NamedBlobType[];
   readonly TIMBER_LIBRARY: { id: string; kind: "owned"; models: { file: string; id: string; attributes: NonNullable<unknown>; }[]; };
-  readonly TIMBER_SURFACES: ({ id: string; kind: "surface"; scan?: string; maxTexture?: { phone: number; desktop: number; }; cellTexture?: { atMost: number; max: number; }; properties: { color?: (number) | ([number, number, number]); normalScale?: [number, number]; roughness?: number; metalness?: number; transparent?: boolean; opacity?: number; envMapIntensity?: number; emissive?: (number) | ([number, number, number]); emissiveIntensity?: number; side?: 0 | 1 | 2; depthWrite?: boolean; vertexColors?: boolean; }; map?: { appearance: string; texture: string; }; look?: string; lookTextures: Record<string, "map" | "normalMap" | "roughnessMap" | "aoMap">; } | { id: string; kind: string; variant: string; properties: NonNullable<unknown>; })[];
+  readonly TIMBER_SURFACES: ({ id: string; kind: "surface"; load?: "resident" | "placement"; scan?: string; maxTexture?: { phone: number; desktop: number; }; cellTexture?: { atMost: number; max: number; }; properties: { color?: (number) | ([number, number, number]); normalScale?: [number, number]; roughness?: number; metalness?: number; transparent?: boolean; opacity?: number; envMapIntensity?: number; emissive?: (number) | ([number, number, number]); emissiveIntensity?: number; side?: 0 | 1 | 2; depthWrite?: boolean; vertexColors?: boolean; }; map?: { appearance: string; texture: string; }; look?: string; lookTextures: Record<string, "map" | "normalMap" | "roughnessMap" | "aoMap">; } | { id: string; kind: string; variant: string; properties: NonNullable<unknown>; })[];
 }
 /** D65: the timber scene rows over the program's sources (the timber scenes and quest sites), made once per sources. */
 export const timberScene: (sources: PineSources) => Promise<TimberScene> = perSources(async (sources: PineSources): Promise<TimberScene> => {
@@ -91,7 +93,7 @@ export const timberScene: (sources: PineSources) => Promise<TimberScene> = perSo
     return { ...row, file };
   };
   const TIMBER_LIBRARY: { id: string; kind: "owned"; models: { file: string; id: string; attributes: NonNullable<unknown>; }[]; } = { id: 'timbers', kind: 'owned' as const, models: baked.geometry.map(model) };
-  const TIMBER_SURFACES: ({ id: string; kind: "surface"; scan?: string; maxTexture?: { phone: number; desktop: number; }; cellTexture?: { atMost: number; max: number; }; properties: { color?: (number) | ([number, number, number]); normalScale?: [number, number]; roughness?: number; metalness?: number; transparent?: boolean; opacity?: number; envMapIntensity?: number; emissive?: (number) | ([number, number, number]); emissiveIntensity?: number; side?: 0 | 1 | 2; depthWrite?: boolean; vertexColors?: boolean; }; map?: { appearance: string; texture: string; }; look?: string; lookTextures: Record<string, "map" | "normalMap" | "roughnessMap" | "aoMap">; } | { id: string; kind: string; variant: string; properties: NonNullable<unknown>; })[] = [...TIMBER_MATERIALS, { id: 'tokens', kind: 'lowpoly', variant: 'default', properties: {} }];
+  const TIMBER_SURFACES: ({ id: string; kind: "surface"; load?: "resident" | "placement"; scan?: string; maxTexture?: { phone: number; desktop: number; }; cellTexture?: { atMost: number; max: number; }; properties: { color?: (number) | ([number, number, number]); normalScale?: [number, number]; roughness?: number; metalness?: number; transparent?: boolean; opacity?: number; envMapIntensity?: number; emissive?: (number) | ([number, number, number]); emissiveIntensity?: number; side?: 0 | 1 | 2; depthWrite?: boolean; vertexColors?: boolean; }; map?: { appearance: string; texture: string; }; look?: string; lookTextures: Record<string, "map" | "normalMap" | "roughnessMap" | "aoMap">; } | { id: string; kind: string; variant: string; properties: NonNullable<unknown>; })[] = [...TIMBER_MATERIALS, { id: 'tokens', kind: 'lowpoly', variant: 'default', properties: {} }];
 
   const logDraws = [
     { id: 'outer', part: 'outer', material: 'bark', castShadow: true, receiveShadow: true },

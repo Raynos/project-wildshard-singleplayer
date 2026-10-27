@@ -10700,10 +10700,9 @@ drain before a refusal; a retired resident stops before visual allocation.
 The default remains one placement read at a time. Developer preparation
 spans distinguish placement admission, library intake, surfaces and slots.
 
-The section declares named model libraries (`owned`: exact identity-space GLBs
-with application-channel aliases; `pool`: prepared model pools), material slots
-(existing look ids, low-poly family variants, or plain standard/basic
-materials), and ordered recipe steps.
+Scene libraries use owned GLBs or model pools, with material slots and
+recipe steps. SDK `worldScenes` validates surface/placement author rows.
+Surface `load` defaults resident; placement cannot override played uses.
 Recipes are verified named JSON blobs containing `WorldSceneRecipe` rows.
 Every library, material, recipe port and publication is admitted before visual
 allocation. A cube variant selects standalone or cell data. Repeated steps have

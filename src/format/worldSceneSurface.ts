@@ -7,8 +7,8 @@ const pair = v.tuple([number, number]);
 const distance = v.pipe(number, v.minValue(1), v.maxValue(16384));
 const cap = v.strictObject({ phone: distance, desktop: distance });
 /** Client-only original standard/PBR surfaces, optionally mapped through an admitted graph. */
-export const WorldSceneSurfaceSchema: v.StrictObjectSchema<{ readonly id: v.GenericSchema<WorldSceneSurfaceInput['id'], WorldSceneSurface['id']>; readonly kind: v.GenericSchema<WorldSceneSurfaceInput['kind'], WorldSceneSurface['kind']>; readonly scan: v.ExactOptionalSchema<v.GenericSchema<Exclude<WorldSceneSurfaceInput['scan'], undefined>, Exclude<WorldSceneSurface['scan'], undefined>>, undefined>; readonly maxTexture: v.ExactOptionalSchema<v.GenericSchema<Exclude<WorldSceneSurfaceInput['maxTexture'], undefined>, Exclude<WorldSceneSurface['maxTexture'], undefined>>, undefined>; readonly cellTexture: v.ExactOptionalSchema<v.GenericSchema<Exclude<WorldSceneSurfaceInput['cellTexture'], undefined>, Exclude<WorldSceneSurface['cellTexture'], undefined>>, undefined>; readonly properties: v.GenericSchema<WorldSceneSurfaceInput['properties'], WorldSceneSurface['properties']>; readonly map: v.ExactOptionalSchema<v.GenericSchema<Exclude<WorldSceneSurfaceInput['map'], undefined>, Exclude<WorldSceneSurface['map'], undefined>>, undefined>; readonly look: v.ExactOptionalSchema<v.GenericSchema<Exclude<WorldSceneSurfaceInput['look'], undefined>, Exclude<WorldSceneSurface['look'], undefined>>, undefined>; readonly lookTextures: v.OptionalSchema<v.GenericSchema<Exclude<WorldSceneSurfaceInput['lookTextures'], undefined>, Exclude<WorldSceneSurface['lookTextures'], undefined>>, Record<never, never>>; }, undefined> = v.strictObject({ id, kind: v.literal('surface'),
-  scan: v.exactOptional(id), maxTexture: v.exactOptional(cap), cellTexture: v.exactOptional(v.strictObject({ atMost: distance, max: distance })),
+export const WorldSceneSurfaceSchema: v.StrictObjectSchema<{ readonly id: v.GenericSchema<WorldSceneSurfaceInput['id'], WorldSceneSurface['id']>; readonly kind: v.GenericSchema<WorldSceneSurfaceInput['kind'], WorldSceneSurface['kind']>; readonly load: v.ExactOptionalSchema<v.GenericSchema<Exclude<WorldSceneSurfaceInput['load'], undefined>, Exclude<WorldSceneSurface['load'], undefined>>, undefined>; readonly scan: v.ExactOptionalSchema<v.GenericSchema<Exclude<WorldSceneSurfaceInput['scan'], undefined>, Exclude<WorldSceneSurface['scan'], undefined>>, undefined>; readonly maxTexture: v.ExactOptionalSchema<v.GenericSchema<Exclude<WorldSceneSurfaceInput['maxTexture'], undefined>, Exclude<WorldSceneSurface['maxTexture'], undefined>>, undefined>; readonly cellTexture: v.ExactOptionalSchema<v.GenericSchema<Exclude<WorldSceneSurfaceInput['cellTexture'], undefined>, Exclude<WorldSceneSurface['cellTexture'], undefined>>, undefined>; readonly properties: v.GenericSchema<WorldSceneSurfaceInput['properties'], WorldSceneSurface['properties']>; readonly map: v.ExactOptionalSchema<v.GenericSchema<Exclude<WorldSceneSurfaceInput['map'], undefined>, Exclude<WorldSceneSurface['map'], undefined>>, undefined>; readonly look: v.ExactOptionalSchema<v.GenericSchema<Exclude<WorldSceneSurfaceInput['look'], undefined>, Exclude<WorldSceneSurface['look'], undefined>>, undefined>; readonly lookTextures: v.OptionalSchema<v.GenericSchema<Exclude<WorldSceneSurfaceInput['lookTextures'], undefined>, Exclude<WorldSceneSurface['lookTextures'], undefined>>, Record<never, never>>; }, undefined> = v.strictObject({ id, kind: v.literal('surface'),
+  load: v.exactOptional(v.picklist(['resident', 'placement'])), scan: v.exactOptional(id), maxTexture: v.exactOptional(cap), cellTexture: v.exactOptional(v.strictObject({ atMost: distance, max: distance })),
   properties: v.strictObject({ color: v.exactOptional(v.union([number, triple])), normalScale: v.exactOptional(pair),
     roughness: v.exactOptional(number), metalness: v.exactOptional(number), transparent: v.exactOptional(v.boolean()),
     opacity: v.exactOptional(number), envMapIntensity: v.exactOptional(number), emissive: v.exactOptional(v.union([number, triple])),
@@ -22,6 +22,7 @@ export const WorldSceneSurfaceSchema: v.StrictObjectSchema<{ readonly id: v.Gene
 interface WorldSceneSurfaceInputFields {
     id: string;
     kind: 'surface';
+    load?: 'resident' | 'placement';
     scan?: string;
     maxTexture?: {
         phone: number;
@@ -67,6 +68,7 @@ export type WorldSceneSurfaceInput = { [Key in keyof WorldSceneSurfaceInputField
 interface WorldSceneSurfaceFields {
     id: string;
     kind: 'surface';
+    load?: 'resident' | 'placement';
     scan?: string;
     maxTexture?: {
         phone: number;

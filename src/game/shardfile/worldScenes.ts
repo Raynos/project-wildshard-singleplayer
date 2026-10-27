@@ -399,7 +399,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       [...modelScenes].flatMap(([file, graph]) => placedGraphs.has(file) ? [graph] : [])).materials);
     const deferred = (row: (typeof section.materials)[number]): boolean => !earlySlots.has(row.id)
       && (row.kind === 'source' && row.load === 'placement' && row.publishObject === undefined
-        || row.kind === 'surface' && lateSlots.has(row.id) && !placedSlots.has(row.id));
+        || row.kind === 'surface' && row.load === 'placement' && lateSlots.has(row.id) && !placedSlots.has(row.id));
     const surfaces = section.materials.filter((row): row is Extract<typeof row, { kind: 'surface' }> => row.kind === 'surface' && !deferred(row));
     if (surfaces.length > 0) {
       const sky = ctx.game.runtime?.world?.sky; if (sky === undefined) throw new Error('Scene surface needs world sky');
