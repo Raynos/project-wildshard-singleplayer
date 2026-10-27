@@ -13,6 +13,7 @@ import weatherChannels from '../data/weatherChannels.generated.json' with {type:
 import herdChannels from '../data/herdChannels.generated.json' with { type: 'json' };
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
+import type { BakedQueryTerrain } from '@wildshard/sdk/bake/terrain';
 import audio from '../data/audio.generated.json' with {type:'json'};
 import { NALATI_EDGES } from './edges';
 import NALATI_RUNTIME_COST from '../data/runtimeCost.json' with { type: 'json' };
@@ -23,7 +24,6 @@ import NALATI_STATE from '../data/state.json' with { type: 'json' };
 import items from '../data/items.json' with { type: 'json' };
 import NALATI_RUNTIME_SPAWNS from '../data/spawns.json' with { type: 'json' };
 import navigation from '../data/navigation.generated.json' with { type: 'json' };
-import queryTerrain from '../data/terrain.generated.json' with { type: 'json' };
 import lookGraphs from '../data/lookGraphs.json' with { type: 'json' };
 import presentationGraphs from '../data/painterlyGraphs.json' with { type: 'json' };
 import kokpar from '../data/kokpar.generated.json' with { type: 'json' };
@@ -48,12 +48,10 @@ const {scene,...audioRows}=audio.audio;
 export const AUDIO_SCENE: typeof audio.audio.scene =scene;
 const base = emptyShardfile({ slug: 'nalati-grasslands', name: 'Nalati Grasslands', author: 'Wildshard', revision: 1, seed: 0x4a1a });
 // G384: the creatures' navigation is the platform's WSNM row over the original bytes (generators/navigation.ts), and the
-// ground's native lattice is query-only terrain (generators/terrain.ts: no render tiles; the bound runtime keeps rendering
+// ground's native lattice is query-only terrain (generators/terrain.ts at build time: no render tiles; the bound runtime keeps rendering
 // and collision), both charged to the server's memory and the sim budget at their actual decoded cost.
-const files = [...navigation.files, ...queryTerrain.files].sort((a, b) => a.hash.localeCompare(b.hash));
 // M2 (G518): the ground's source-owned L0 render tiles, bound by the runtime: the painted
 // ground draws them in its own material behind the Debug row groundTiles; the files stay out of the sim budgets below
-const resident = files.reduce((sum, file) => sum + file.decoded, 0);
 /** Explicit species costs supplied by an admitted source construction. */
 export interface NalatiSpeciesProgramCosts {
   readonly program: { readonly script: { readonly module: string; readonly pages: number }; readonly bytes: string };
@@ -81,7 +79,10 @@ function renderRows(value: unknown): { files: readonly unknown[]; tiles: readonl
 }
 
 /** Compose the complete header with caller-owned costs; retain original module deduplication and page charges. */
-export function nalatiProductRows(species: NalatiSpeciesProgramCosts, held: NalatiHeldProgramCosts, render: unknown): ReturnType<typeof parseShardfile> {
+export function nalatiProductRows(species: NalatiSpeciesProgramCosts, held: NalatiHeldProgramCosts, render: unknown,
+  queryTerrain: Omit<BakedQueryTerrain, 'assets'>): ReturnType<typeof parseShardfile> {
+  const files = [...navigation.files, ...queryTerrain.files].sort((a, b) => a.hash.localeCompare(b.hash));
+  const resident = files.reduce((sum, file) => sum + file.decoded, 0);
   const renderTiles = parseShardfile({ ...base, ...renderRows(render) });
   if (!Number.isSafeInteger(species.witnessBytes) || species.witnessBytes < 0
     || !Number.isSafeInteger(species.program.script.pages) || species.program.script.pages < 1) throw new Error('Invalid species program costs');
