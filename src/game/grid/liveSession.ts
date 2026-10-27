@@ -278,7 +278,7 @@ export class LiveGridSession {
         // root Physics or the latest traveller motor; page teardown runs after the live registry returns that motor.
         return { physics: ports.physics, walls: ports.walls, dispose: () => { highwayScope.dispose(); } };
       } },
-      admit: (cell) => this.admit(cell),
+      admit: (cell, required) => this.admit(cell, required),
       prepareTransport: (cell, signal) => prepareApproachProductInputs(cell.slug, { allocator: ports.allocator, scope }, signal),
       ...(ports.prepareNeighbourTiles === undefined ? {} : { prepareNeighbour: ports.prepareNeighbourTiles }),
       prioritize: (cell) => prioritizeGridProduct(cell.slug, { allocator: ports.allocator, scope }),
@@ -616,17 +616,17 @@ export class LiveGridSession {
   }
 
   /** Shardfile cells admit a bodyless regional host with their strip duplicates; every other cell waits for M3. */
-  private admit(cell: GridCell): Promise<LiveGridAdmission> {
-    return preparationAdmission(() => this.prepareAdmission(cell, true), () => this.prepareAdmission(cell, false));
+  private admit(cell: GridCell, required = false): Promise<LiveGridAdmission> {
+    return preparationAdmission(() => this.prepareAdmission(cell, true, required), () => this.prepareAdmission(cell, false));
   }
 
-  private prepareAdmission(cell: GridCell, metadata: true): Promise<GridAdmissionMetadata>;
+  private prepareAdmission(cell: GridCell, metadata: true, required?: boolean): Promise<GridAdmissionMetadata>;
   private prepareAdmission(cell: GridCell, metadata: false): Promise<LiveGridAdmission>;
-  private async prepareAdmission(cell: GridCell, metadata: boolean): Promise<GridAdmissionMetadata | LiveGridAdmission> {
+  private async prepareAdmission(cell: GridCell, metadata: boolean, required = true): Promise<GridAdmissionMetadata | LiveGridAdmission> {
     if (!metadata) await this.ports.prepareStrips?.(cell);
     if (this.ports.scope.disposed || this.ports.scope.disposing) throw new Error('Grid admission scope disposed');
     const productOwner = { allocator: this.ports.allocator, scope: this.ports.scope };
-    const pending = metadata ? gridShardfileProduct(cell.slug, productOwner, 'metadata') : gridShardfileProduct(cell.slug, productOwner);
+    const pending = metadata ? gridShardfileProduct(cell.slug, productOwner, required ? 'metadata' : 'optional-metadata') : gridShardfileProduct(cell.slug, productOwner);
     if (pending === null) throw new GridCellWaitingError(`${cell.slug} is not a shardfile shard (it stays a far proxy until M3)`);
     const product = await pending;
     const retained = metadata ? { ...product, release: () => undefined } : product;

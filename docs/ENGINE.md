@@ -5337,10 +5337,11 @@ Required joins promote pending reserves or retry a typed decline once.
 Optional map bytes, decode and retained pixels all use non-evicting claims.
 Reference, hash, offline and supplied-map release guards stay unchanged.
 
-Settled tile preparation holds source, decoded views and one verified reader,
-not input Maps. Late cells borrow through `gridShardfileProduct` before
-scripts/panels; material closures retain only declared JSON/commons, charged.
-Its 'metadata' mode lends source/JSON without binary refill.
+Settled tiles keep source, decoded views and one verified reader, not Maps.
+Late scripts/panels borrow inputs; materials keep charged JSON/commons.
+`LiveGridPorts.admit(cell, required)` uses optional metadata for prefetch,
+normal admission for entry. Deferrals await cost changes; real failures
+stay closed. `metadata` lends source/JSON without binary refill.
 `ProductInputs.releaseUnused()` frees only cold unborrowed mirrors under the
 same declared-reference/offline authority. Metadata never owns durability;
 only construction borrows verified inputs and binds save ports. Cancelled

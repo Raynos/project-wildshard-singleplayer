@@ -6,12 +6,13 @@ import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import { GridAssembly } from './assembly';
 import { LiveGridHost } from './live';
 import { PageResidency } from './pageResidency';
+import { ApproachInputsDeferredError } from './productInputs';
 
 const level: SimLevel = { version: 1, id: 'platform', seed: 1, ground: { size: 500, height: 0 },
   player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: 30 }, entities: [], quests: [],
   weapon: { id: 'none', shape: { kind: 'point', radius: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
 
-async function fixture(options: { cap?: number; isolated?: boolean } = {}) {
+async function fixture(options: { cap?: number; isolated?: boolean; beforeAdmit?: (instance: string, required: boolean) => Promise<void> } = {}) {
   const rapier = await loadRapier(Uint8Array.from(fixtureBytes(new URL('../../../node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm', import.meta.url))));
   const assembly = new GridAssembly({ developer: false, devserver: false }), home = assembly.cell('driftwood-isle');
   const next = assembly.cells.find(cell => cell.instance !== home.instance);
@@ -31,7 +32,7 @@ async function fixture(options: { cap?: number; isolated?: boolean } = {}) {
     highway: { bytes: 1000, create: () => ({ physics: page.physics, dispose: () => undefined }) },
     readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: .25, maxStallSeconds: 3 },
       bundle: () => ({ criticalWireBytes: 1000, hybridWireBytes: 1000, decodeSeconds: 0, runtimeParseSeconds: 0 }) },
-    admit: cell => Promise.resolve({ bytes: 50_000_000, exclusiveRuntime: true, isolatedPreparation: options.isolated !== false,
+    admit: async (cell, required) => { await options.beforeAdmit?.(cell.instance, required === true); return { bytes: 50_000_000, exclusiveRuntime: true, isolatedPreparation: options.isolated !== false,
       reloadsCheckpoint: true, prepareRuntime: () => Promise.resolve(), create: () => {
         created.push(cell.instance); objects.set(cell.instance, {});
         allocated.push({ instance: cell.instance, owners: [...residency.allocator.claims()].map(row => row.owner) });
@@ -40,7 +41,7 @@ async function fixture(options: { cap?: number; isolated?: boolean } = {}) {
           if (!control.dispose) throw new Error('Retirement refused');
           disposed.push(cell.instance); host.dispose();
         } });
-      } }),
+      } }; },
   });
   const enter = async (instance: string): Promise<void> => { const frame = await live.prepare(null, instance); frame.commit(); };
   const leave = async (): Promise<boolean> => {
@@ -162,5 +163,58 @@ test('pressure cannot uncharge a retained world whose disposal failed', async ()
     expect(f.residency.allocator.has('pressure')).toBe(false);
     await expect(f.enter(f.next.instance)).rejects.toThrow('Exclusive runtime awaits successful disposal');
     expect(f.created).toEqual([f.home.instance]);
+  } finally { f.close(); }
+});
+
+
+test('passive metadata deferral is revision bounded and cannot close a required entry', async () => {
+  let attempts = 0;
+  const f = await fixture({ beforeAdmit: (_instance, required) => {
+    if (required) return Promise.resolve();
+    attempts++; return Promise.reject(new ApproachInputsDeferredError());
+  } });
+  try {
+    await f.enter(f.home.instance); expect(await f.leave()).toBe(true);
+    await expect(f.live.prefetch([f.next.instance])).rejects.toBeInstanceOf(ApproachInputsDeferredError);
+    expect(f.live.state().issues).toEqual({}); expect(f.live.refusal(f.next.instance)).toBeUndefined();
+    await f.live.prefetch([f.next.instance]); expect(attempts).toBe(1);
+    const change = f.residency.allocator.reserveIfFits({ id: 'revision', owner: 'revision', category: 'library', bytes: 1, needed: false, distance: 0 });
+    if (change === null) throw new Error('Missing budget revision');
+    try {
+      await expect(f.live.prefetch([f.next.instance])).rejects.toBeInstanceOf(ApproachInputsDeferredError);
+      expect(attempts).toBe(2); expect(f.live.state().retainedCell?.instance).toBe(f.home.instance);
+      await f.enter(f.next.instance);
+      expect(f.created).toEqual([f.home.instance, f.next.instance]); expect(f.live.ready(f.next.instance)).toBe(true);
+      expect(f.live.state().issues).toEqual({});
+    } finally { change.release(); }
+  } finally { f.close(); }
+});
+
+test('required entry joined to pending passive metadata retries only typed deferral', async () => {
+  let started = (): void => undefined, decline = (_error: Error): void => undefined;
+  const began = new Promise<void>(resolve => { started = resolve; });
+  const pending = new Promise<void>((_resolve, reject) => { decline = reject; });
+  const calls: boolean[] = [];
+  const f = await fixture({ beforeAdmit: (_instance, required) => {
+    calls.push(required); if (required) return Promise.resolve(); started(); return pending;
+  } });
+  try {
+    const optional = f.live.prefetch([f.home.instance]); await began;
+    const refused = expect(optional).rejects.toBeInstanceOf(ApproachInputsDeferredError);
+    const entry = f.enter(f.home.instance); decline(new ApproachInputsDeferredError());
+    await refused; await entry;
+    expect(calls).toEqual([false, true]); expect(f.created).toEqual([f.home.instance]);
+    expect(f.live.ready(f.home.instance)).toBe(true); expect(f.live.state().issues).toEqual({});
+  } finally { f.close(); }
+});
+
+test('passive metadata corruption keeps its original refusal and is never promoted', async () => {
+  const failure = new Error('Metadata hash mismatch'); let calls = 0;
+  const f = await fixture({ beforeAdmit: () => { calls++; return Promise.reject(failure); } });
+  try {
+    await expect(f.live.prefetch([f.home.instance])).rejects.toBe(failure);
+    expect(f.live.refusal(f.home.instance)).toBe(failure);
+    await expect(f.enter(f.home.instance)).rejects.toThrow('Metadata hash mismatch');
+    expect(calls).toBe(1); expect(f.created).toEqual([]);
   } finally { f.close(); }
 });

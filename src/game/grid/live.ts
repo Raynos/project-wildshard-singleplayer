@@ -14,6 +14,7 @@ import type { ResidencyAllocator, ResidencyLease, ResidencyEviction } from './al
 import type { PreparedGridCrossing } from './crossing';
 import { GridContinuationCache, GRID_CONTINUATION_CACHE_BYTES } from './continuations';
 import type { HomeResidencyClaim } from './pageResidency';
+import { ApproachInputsDeferredError } from './productInputs';
 import { clientPreparationBatch } from '../shardfile/preparationTiming';
 import { tileOf, type CellTile } from '../shardfile/tileOrder';
 
@@ -56,7 +57,8 @@ export interface LiveGridFrame { instance: string | null; physics: Physics; moto
 export interface LiveGridPorts {
   home: LiveGridOwnedHome; player: SimExternalPlayer & FrameMember; allocator: ResidencyAllocator;
   highway: { bytes: number; create: () => LiveGridHighway };
-  admit: (cell: GridCell) => Promise<LiveGridAdmission>;
+  /** Passive metadata may defer on headroom; required entry retains ordinary admission. */
+  admit: (cell: GridCell, required?: boolean) => Promise<LiveGridAdmission>;
   /** Actual world construction or a verified render approach outranks product-only prefetch until its finite preparation drains. */
   prioritize?: (cell: GridCell) => () => void;
   /** Render-only approach: the signal owns the pin, including after preparation completes. */
@@ -145,11 +147,11 @@ function boulevardApproachDistance(cell: GridCell, feet: GridPoint, previous: Gr
   return undefined;
 }
 
-/** A background admission (prefetch, road approach) that fails is recorded as the cell's issue and, until an explicit
- *  retry, not attempted again: say so once, or a failed build (op-hitch33: a throwing warm-up) leaves only a route timeout. */
+/** Real background failures stay closed until retry. Expected optional headroom
+ * deferrals remain retryable after cost changes and never report a load failure. */
 async function background(instance: string, admission: Promise<unknown>, alive: () => boolean): Promise<void> {
   try { await admission; }
-  catch (error) { if (alive()) console.error(`[grid] ${instance}: admission failed; it stays closed until a retry`, error); }
+  catch (error) { if (alive() && !(error instanceof ApproachInputsDeferredError)) console.error(`[grid] ${instance}: admission failed; it stays closed until a retry`, error); }
 }
 
 /** One page traveller with frozen owned regions. Borrowed homes keep the existing standalone composition;
@@ -168,7 +170,8 @@ export class LiveGridHost {
   private readonly products = new Map<string, LiveGridAdmission>();
   /** Verified render capability only; runtime import completion still gates products/readiness. */
   private readonly tileMetadata = new Set<string>();
-  private readonly productRequests = new Map<string, Promise<LiveGridAdmission>>();
+  private readonly productRequests = new Map<string, { work: Promise<LiveGridAdmission>; required: boolean }>();
+  private readonly deferredProducts = new Map<string, number>();
   private readonly issues = new Map<string, string>();
   private readonly refusals = new Map<string, unknown>();
   /** One failed cold unload per excursion; quota failures retain their full claim until retry or re-approach. */
@@ -255,35 +258,44 @@ export class LiveGridHost {
     return resident !== undefined && !resident.evicting && !resident.disposalFailed && this.readiness.isReady(instance);
   }
   /** Submit whole-shard requests in stable order. Failed attempts remain closed until an explicit retry. */
-  prefetch(instances: readonly string[]): Promise<void> { return Promise.all([...new Set(instances)].sort().map((id) => this.residents.has(id) || (!this.disposed && this.constructing.has(id)) ? Promise.resolve() : this.prefetchProduct(id))).then(() => undefined); }
-  private prefetchProduct(instance: string): Promise<LiveGridAdmission> {
+  prefetch(instances: readonly string[]): Promise<void> { return Promise.all([...new Set(instances)].sort().map((id) => this.residents.has(id) || (!this.disposed && this.constructing.has(id)) || this.deferredProducts.get(id) === this.ports.allocator.revision ? Promise.resolve() : this.prefetchProduct(id))).then(() => undefined); }
+  private async requireProduct(instance: string, pending: Promise<LiveGridAdmission>): Promise<LiveGridAdmission> {
+    try { return await pending; }
+    catch (error) {
+      if (!(error instanceof ApproachInputsDeferredError)) throw error;
+      return this.prefetchProduct(instance, true);
+    }
+  }
+  private prefetchProduct(instance: string, required = false): Promise<LiveGridAdmission> {
     this.assertAlive(); const cell = this.assembly.cell(instance);
     const product = this.products.get(instance); if (product !== undefined) return Promise.resolve(product);
-    const pending = this.productRequests.get(instance); if (pending !== undefined) return pending;
+    const pending = this.productRequests.get(instance);
+    if (pending !== undefined) return !required || pending.required ? pending.work : this.requireProduct(instance, pending.work);
     const issue = this.issues.get(instance); if (issue !== undefined) return Promise.reject(new Error(issue));
     const timing = clientPreparationBatch(cell.slug, `grid.product:${instance}`, ['admission', 'runtime']);
     const request = (async (): Promise<LiveGridAdmission> => {
       let admission: LiveGridAdmission | undefined;
       try {
         await Promise.resolve(); this.assertAlive();
-        const admitted = timing === undefined ? await this.ports.admit(cell) : await timing.run('admission', () => this.ports.admit(cell));
+        const admitted = timing === undefined ? await this.ports.admit(cell, required) : await timing.run('admission', () => this.ports.admit(cell, required));
         admission = admitted; this.assertAlive();
         if (admission.tilePreparation === true) this.tileMetadata.add(instance);
         const bundle = this.ports.readiness.bundle(cell);
         if ((bundle.hybridWireBytes > 0 || admission.exclusiveRuntime === true) && admission.prepareRuntime === undefined) throw new Error('Hybrid runtime admission is missing');
         await (timing === undefined ? admission.prepareRuntime?.() : timing.run('runtime', async () => { await admitted.prepareRuntime?.(); }));
         this.assertAlive();
-        this.products.set(instance, admission); return admission;
+        this.deferredProducts.delete(instance); this.products.set(instance, admission); return admission;
       } catch (error) {
         this.tileMetadata.delete(instance);
         if (this.tileApproach?.instance === instance) { this.tileApproach.controller.abort(); this.tileApproach = null; }
-        this.issues.set(instance, error instanceof Error ? error.message : String(error)); this.refusals.set(instance, error);
+        if (!required && error instanceof ApproachInputsDeferredError) this.deferredProducts.set(instance, this.ports.allocator.revision);
+        else { this.issues.set(instance, error instanceof Error ? error.message : String(error)); this.refusals.set(instance, error); }
         try { admission?.cancel?.(); }
         catch (cleanup) { throw new AggregateError([error, cleanup], 'Live product admission and cancellation failed', { cause: cleanup }); }
         throw error;
       } finally { this.productRequests.delete(instance); timing?.finish(); }
     })();
-    this.productRequests.set(instance, request); return request;
+    this.productRequests.set(instance, { work: request, required }); return request;
   }
   private tileApproach: { instance: string; tile: CellTile; controller: AbortController } | null = null;
   private transportApproach: { instance: string; controller: AbortController; work: Promise<void> } | null = null;
@@ -353,7 +365,7 @@ export class LiveGridHost {
       await (timing === undefined ? previous : timing.run('queue', () => previous));
       await this.retiredTransport;
       this.assertAlive();
-      const admitted = timing === undefined ? await this.prefetchProduct(instance) : await timing.run('metadata', () => this.prefetchProduct(instance));
+      const admitted = timing === undefined ? await this.prefetchProduct(instance, true) : await timing.run('metadata', () => this.prefetchProduct(instance, true));
       admission = admitted;
       this.assertAlive();
       // A failed disposal stays fully charged and blocks construction even if the pair's budget would fit.
@@ -481,7 +493,7 @@ export class LiveGridHost {
   /** Retry after a durability/budget change, instead of fetching the same failed request every tick. */
   retry(instance: string): void {
     if (this.requests.has(instance) || this.productRequests.has(instance)) throw new Error('Live admission is still pending');
-    this.coldUnloadRefused.delete(instance);
+    this.coldUnloadRefused.delete(instance); this.deferredProducts.delete(instance);
     // A quota-refused unload kept a complete native region: retry must not invalidate its valid readiness ticket.
     if (this.residents.has(instance)) return;
     this.issues.delete(instance); this.refusals.delete(instance); this.readiness.invalidate(instance);
@@ -804,7 +816,7 @@ export class LiveGridHost {
       try { this.highway.dispose(); this.highwayDisposed = true; this.highwayLease.release(); }
       catch (error) { failures.push(error); }
     }
-    this.saved.clear(); this.cacheLease?.release();
+    this.deferredProducts.clear(); this.saved.clear(); this.cacheLease?.release();
     if (failures.length > 0) throw new AggregateError(failures, 'Live grid disposal failed');
   }
 }
