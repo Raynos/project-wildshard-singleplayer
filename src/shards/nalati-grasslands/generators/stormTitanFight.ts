@@ -1,8 +1,9 @@
-import {ARENA_VIEW,arenaFunnel} from '@wildshard/format/arenaView';
-import type {ArenaWhirlsRows} from '@wildshard/format/encounterRows';
+import { ARENA_VIEW, arenaFunnel, type ArenaWhirlsRows } from '@wildshard/sdk/arenaView';
 import { strike } from '@wildshard/sdk/species';
-import strikeRows from '../data/strikeProfiles.generated.json' with { type: 'json' };
+import { nalatiStrikeRows } from './kurganRows';
 import { CAIRN } from './layout';
+
+const strikeRows = nalatiStrikeRows();
 /**
  * Jel Ata, the Storm Titan's fight rows (plan row B14; design docs/design/nalati/elites-and-bosses.md "The Storm Titan
  * fight, step by step"), read by combat/stormTitan.ts: the encounter card, the reward's card, the feed / toast lines, the

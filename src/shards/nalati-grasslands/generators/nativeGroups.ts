@@ -11,8 +11,10 @@ import assembly from '../data/headlessAssembly.json' with { type: 'json' };
 import boot from '../data/headlessBoot.json' with { type: 'json' };
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import brains from '../data/brains.json' with { type: 'json' };
-import contacts from '../data/strikeProfiles.generated.json' with { type: 'json' };
+import { nalatiStrikeRows } from './kurganRows';
 import admissionInput from '../behaviour/admission.generated.json' with { type: 'json' };
+
+const contacts = nalatiStrikeRows();
 
 const physics = nalatiPhysics();
 const {compiled:_admissionCompiled,...admission}=admissionInput;

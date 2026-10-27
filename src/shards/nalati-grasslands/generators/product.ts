@@ -29,8 +29,10 @@ import lookGraphs from '../data/lookGraphs.json' with { type: 'json' };
 import presentationGraphs from '../data/painterlyGraphs.json' with { type: 'json' };
 import kokpar from '../data/kokpar.generated.json' with { type: 'json' };
 import titanProgram from '../behaviour/titan.generated.json' with { type: 'json' };
-import kingPose from '../data/goldenKingPose.generated.json' with { type: 'json' };
+import { nalatiGoldenKingPose } from './kurganRows';
 import admission from '../behaviour/admission.generated.json' with { type: 'json' };
+
+const kingPose = nalatiGoldenKingPose();
 
 // The declared client plan owns the world and play phases; original runtime binds retain their data authority.
 // SF48-g edges (G93 / G99 / G103 / G131): the four 8 m midpoint entryways (`emptyShardfile`'s, the engine's ENTRY_WIDTH) stand

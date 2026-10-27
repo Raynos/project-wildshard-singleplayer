@@ -153,7 +153,9 @@
     "./finds": "./finds.ts",
     "./nativePopulationRows": "./nativePopulationRows.ts",
     "./weapons/firearmRows": "./weapons/firearmRows.ts",
-    "./bossProfiles": "./bossProfiles.ts"
+    "./bossProfiles": "./bossProfiles.ts",
+    "./arenaView": "./arenaView.ts",
+    "./eliteEntryRows": "./eliteEntryRows.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -713,6 +715,14 @@
       "./bossProfiles": {
         "types": "./dist/types/sdk/bossProfiles.d.ts",
         "default": "./dist/bossProfiles.js"
+      },
+      "./arenaView": {
+        "types": "./dist/types/sdk/arenaView.d.ts",
+        "default": "./dist/arenaView.js"
+      },
+      "./eliteEntryRows": {
+        "types": "./dist/types/sdk/eliteEntryRows.d.ts",
+        "default": "./dist/eliteEntryRows.js"
       }
     }
   }

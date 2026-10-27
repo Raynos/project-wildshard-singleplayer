@@ -1,9 +1,10 @@
+import { nalatiStrikeRows, nalatiGoldenKingPose } from './kurganRows';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { decodeBuildDeflate } from '@wildshard/sdk/bake/byteCodec';
 import type { prepareNalatiSpecies, NalatiSpeciesSourceInputs } from './speciesPreparation';
 
 const body = '/assets/nalati/baked/bodies.bin';
-const metadata = ['data/bodies.json', 'behaviour/admission.generated.json', 'data/strikeProfiles.generated.json', 'data/goldenKingPose.generated.json'];
+const metadata = ['data/bodies.json', 'behaviour/admission.generated.json'];
 // Preserve the complete authored AS inventory: the existing compiler charges all source lines.
 const authored = [
   'behaviour/admission.as',
@@ -59,10 +60,9 @@ export async function nalatiSpeciesProgram(ctx: Pick<ProjectGenerationContext, '
     };
     const text = new TextDecoder('utf-8', { fatal: true });
     const json = (name: string): unknown => JSON.parse(text.decode(required(name))) as unknown;
-    const strike = json('data/strikeProfiles.generated.json');
-    if (typeof strike !== 'object' || strike === null || !('balbal' in strike)) throw new Error('Missing species strike metadata');
+    const strike = nalatiStrikeRows();
     const input = admitInput({ body: json('data/bodies.json'), admission: json('behaviour/admission.generated.json'),
-      strike: strike.balbal, kingPose: json('data/goldenKingPose.generated.json') });
+      strike: strike.balbal, kingPose: nalatiGoldenKingPose() });
     const lanes = decodeBuildDeflate(required(body), input.body.bytes);
     if (lanes.length % 4 !== 0) throw new Error('Creature body source is not whole words');
     const words = lanes.length / 4, raw = new Uint8Array(lanes.length);

@@ -39,7 +39,7 @@ import crowdProjection from '../data/crowdProjection.json' with {type:'json'};
 import crowdNativeProjection from '../data/crowdNativeProjection.json' with {type:'json'};
 import crowdView from '../data/crowdView.json' with { type: 'json' };
 import { buildEliteEntryPageRows } from './eliteEntryRows';
-import strikes from '../data/strikeProfiles.generated.json' with { type: 'json' };
+import { nalatiStrikeRows, nalatiGoldenKingRows } from './kurganRows';
 import { strike } from '@wildshard/sdk/species';
 import { nalatiFindsCatalogue } from './finds';
 import { coverSpecimenBlobs, nalatiCoverProgram } from './coverSpecimens';
@@ -61,7 +61,6 @@ import { nalatiDressingPlacementBlobs } from './dressingSchemas';
 import { nalatiDressingPlacementProgram } from './dressingPlacementProgram';
 import night from '../data/night.generated.json' with {type:'json'};
 import ridingPrograms from '../behaviour/riding.generated.json' with { type: 'json' };
-import kingData from '../data/goldenKing.generated.json' with { type: 'json' };
 import arenaRoom from '../data/bossArenaRoom.json' with { type: 'json' };
 import arenaView from '../data/kurganView.json' with { type: 'json' };
 import arenaFire from '../data/arenaFire.json' with { type: 'json' };
@@ -128,6 +127,8 @@ import campMaterials from '../data/campMaterials.json' with { type: 'json' };
 import captureRows from '../data/staticCapture.json' with { type: 'json' };
 import { nalatiGrassBake, type NalatiGrass } from './grassBake.mjs';
 import geographyRows from '../data/geographySources.json' with {type:'json'};
+
+const strikes = nalatiStrikeRows(), kingData = nalatiGoldenKingRows();
 
 const {compiled:ridingCompiled,...ridingWire}=ridingPrograms;
 const sheepBody = bakeSheepBody();

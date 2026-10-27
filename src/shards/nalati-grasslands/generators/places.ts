@@ -1,5 +1,5 @@
 import { nalatiRoadSignSites, nalatiRoadSignposts } from './roadSigns';
-import dungeonLayout from '../data/kurganLayout.generated.json' with { type: 'json' };
+import { nalatiKurganLayout } from './kurganRows';
 import { annulus } from '@wildshard/sdk/bake/annulus';
 import { finGeometry, ribGeometry, towerGeometry, type CragKind } from './cragGeometry';
 import peopleFallbackFrames from '../data/peopleFrames.json' with { type: 'json' };
@@ -31,6 +31,8 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { Rng } from '@wildshard/engine/core/rng';
 import { inPoiClearing,zoneAt,glacierMask,brookMask,riverMask,rimZAt,RIVER,outcropAt,edgeBermAt,TERRAIN } from './terrainRecipe';
 import { Noise2D, smoothstep } from '@wildshard/sdk/noise';
+
+const dungeonLayout = nalatiKurganLayout();
 
 
 /**

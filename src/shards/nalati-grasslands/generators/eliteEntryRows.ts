@@ -1,11 +1,12 @@
-import { parseEliteEntryRows, ELITE_BODY_COLUMNS, ELITE_CONDITION_COLUMNS, type EliteEntryRows, parseEliteEntryPageRows, type EliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
-import { parseEliteOutputActions, type EliteOutputAction } from '@wildshard/format/eliteFeature';
+import { parseEliteEntryRows, ELITE_BODY_COLUMNS, ELITE_CONDITION_COLUMNS, type EliteEntryRows, parseEliteEntryPageRows, type EliteEntryPageRows, parseEliteOutputActions, type EliteOutputAction } from '@wildshard/sdk/eliteEntryRows';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import roster from '../data/eliteRoster.json' with { type: 'json' };
 import charge from '../data/eliteCharge.generated.json' with { type: 'json' };
-import strikes from '../data/strikeProfiles.generated.json' with { type: 'json' };
+import { nalatiStrikeRows } from './kurganRows';
 import { strike } from '@wildshard/sdk/species';
+
+const strikes = nalatiStrikeRows();
 
 type Action = { [K in EliteOutputAction['kind']]: Omit<Extract<EliteOutputAction, { kind: K }>, 'id'> }[EliteOutputAction['kind']];
 /** Fixed construction, condition and effect selections are content. Native

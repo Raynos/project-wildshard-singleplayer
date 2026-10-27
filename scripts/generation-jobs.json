@@ -297,7 +297,16 @@
         "src/format/scriptAbiV1.ts",
         "src/format/decisionScripts.ts",
         "src/shards/nalati-grasslands/data/herdGroup.json",
-        "src/shards/nalati-grasslands/generators/packGroup.ts"
+        "src/shards/nalati-grasslands/generators/packGroup.ts",
+        "src/engine/package.json",
+        "src/game/package.json",
+        "src/shards/nalati-grasslands/data/speciesRows.json",
+        "src/shards/nalati-grasslands/data/strikeProfiles.json",
+        "src/shards/nalati-grasslands/generators/goldenKingArena.ts",
+        "src/shards/nalati-grasslands/generators/goldenKingFight.ts",
+        "src/shards/nalati-grasslands/generators/goldenKingPose.ts",
+        "src/shards/nalati-grasslands/generators/kurganLayout.ts",
+        "src/shards/nalati-grasslands/generators/kurganRows.ts"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/data/stormTitanFight.generated.json",
