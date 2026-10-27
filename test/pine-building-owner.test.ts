@@ -5,6 +5,7 @@ import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { CABIN_LIFE } from '../src/shards/pine-hollow/generators/cabinLook';
 import { CabinSceneRecorder } from '../src/shards/pine-hollow/generators/cabinScenes';
 import { cabinSceneSources } from '../src/shards/pine-hollow/generators/cabinSceneSources.mjs';
+import { PINE_SOURCES } from './fixtures/pine-sources';
 import { installPortableMath } from '../src/commons/bake/portableMath';
 import { hydrateWorldSceneWeld } from '../src/game/shardfile/worldSceneWeld';
 import { Scope } from '../src/engine/app/scope';
@@ -17,7 +18,7 @@ test('shipped living graphs hydrate their hierarchy and retain working doors', a
   const restore = installPortableMath();
   try {
     for (const tier of ['phone', 'desktop'] as const) for (const shadow of [false, true]) for (const shared of [false, true]) {
-      const source = await cabinSceneSources(tier), recorder = new CabinSceneRecorder(), captured = recorder.living(source, shadow, shared);
+      const source = await cabinSceneSources(tier, PINE_SOURCES), recorder = new CabinSceneRecorder(), captured = recorder.living(source, shadow, shared);
       const owner = new Scope('living-product'), frozen = new Group();
       const handles = new SceneHandles({ setupMaterial: () => undefined }), materials = new Map<string, Material>();
       handles.publish('cabins.root', frozen);
