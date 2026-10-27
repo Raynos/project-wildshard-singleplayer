@@ -2,7 +2,7 @@
 
 Pause ▸ Settings ▸ Debug ▸ Memory check ▸ Run opens `/crossroads-rig/` in the same tab. One tap runs three checks,
 disposes each renderer, posts each result and a summary, then offers Return to game. This static page is emitted by
-`vite/crossroadsRig.ts` in every production web build. It has no configuration controls or URL switches. The separate
+`scripts/app-build/crossroadsRig.ts` in every production web build. It has no configuration controls or URL switches. The separate
 SF22a developer tool retains its configurable entry.
 
 `crossroadsConfig()` in `src/format/contentBounds.ts` supplies the fixed caps-v1 configuration to both the page and the API validator:
