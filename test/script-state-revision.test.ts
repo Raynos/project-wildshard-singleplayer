@@ -19,7 +19,7 @@ export function on_tick(): void {
   if (load<f64>(16384 + 16) === 1) ticks += 1;
   ${witness ? 'ticks += 1; store<i32>(30000, ticks);' : ''}
 }`;
-let atRest = new Uint8Array(), counting = new Uint8Array();
+let atRest: Uint8Array = new Uint8Array(), counting: Uint8Array = new Uint8Array();
 beforeAll(async () => {
   [atRest, counting] = await Promise.all([compileScript(module(false), { maximumPages: 1 }), compileScript(module(true), { maximumPages: 1 })]);
 });
