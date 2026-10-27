@@ -64,17 +64,51 @@ export function* solidGeometrySteps(parts: readonly SolidPart[]): Generator<void
   return geometry;
 }
 
+const splitMap = Map;
+const splitMapGet: unknown = Reflect.get(Map.prototype, 'get'), splitMapSet: unknown = Reflect.get(Map.prototype, 'set');
+const splitMapIterator: unknown = Reflect.get(Map.prototype, Symbol.iterator), splitIndexGet: unknown = Reflect.get(BufferAttribute.prototype, 'getX');
+interface SplitVertices { map: Map<number, number>; dense?: Uint32Array; valid: number; source: number[]; indices: number[] }
+
 /** The parts of a geometry's triangles, one per key, each with its own vertices (shared vertices are copied per key). */
 export function splitByKey(geometry: BufferGeometry, keyOf: (triangle: number) => number, keys: number): { positions: Float32Array; normals: Float32Array; colours: Float32Array; uvs: Float32Array; indices: Uint32Array; source: Uint32Array }[] {
   const index = geometry.getIndex(), attr = (name: string): BufferAttribute | undefined => { const a = geometry.hasAttribute(name) ? geometry.getAttribute(name) : undefined; return a instanceof BufferAttribute ? a : undefined; };
   if (index === null) throw new Error('splitByKey needs an indexed geometry');
   const pos = attr('position'), nor = attr('normal'), col = attr('color'), uv = attr('uv');
-  const out = Array.from({ length: keys }, () => ({ map: new Map<number, number>(), source: [] as number[], indices: [] as number[] }));
+  const out: SplitVertices[] = Array.from({ length: keys }, () => ({ map: new Map<number, number>(), valid: 0, source: [], indices: [] }));
+  const vertices: unknown = pos === undefined ? undefined : Object.getOwnPropertyDescriptor(pos, 'count')?.value;
+  const elements: unknown = Object.getOwnPropertyDescriptor(index, 'count')?.value;
+  const capacity = typeof vertices === 'number' && Number.isSafeInteger(vertices) && vertices > 0 ? vertices : 0;
+  // Switch only after enough actual vertices were used. Sparse channels keep
+  // their small map; all dense tables together stay inside a 16 MB transient.
+  const dense = capacity > 0 && typeof elements === 'number' && capacity <= elements && capacity * out.length * 4 <= 16_000_000
+    && Object.getPrototypeOf(index) === BufferAttribute.prototype && !Object.hasOwn(index, 'getX')
+    && Object.getOwnPropertyDescriptor(BufferAttribute.prototype, 'getX')?.value === splitIndexGet
+    && Map === splitMap && Object.getOwnPropertyDescriptor(Map.prototype, 'get')?.value === splitMapGet
+    && Object.getOwnPropertyDescriptor(Map.prototype, 'set')?.value === splitMapSet
+    && Object.getOwnPropertyDescriptor(Map.prototype, Symbol.iterator)?.value === splitMapIterator;
+  const threshold = Math.max(64, Math.ceil(capacity / 8));
   for (let t = 0; t < index.count / 3; t++) {
     const part = out[keyOf(t)]; if (part === undefined) continue;
     for (let c = 0; c < 3; c++) {
-      const n = index.getX(t * 3 + c); let local = part.map.get(n);
-      if (local === undefined) { local = part.source.length; part.map.set(n, local); part.source.push(n); }
+      const n = index.getX(t * 3 + c), ordinary = dense && Number.isInteger(n) && n >= 0 && n < capacity;
+      let local: number | undefined;
+      if (ordinary && part.dense !== undefined) { const stored = part.dense[n] ?? 0; local = stored === 0 ? undefined : stored - 1; }
+      else local = part.map.get(n);
+      if (local === undefined) {
+        local = part.source.length; part.source.push(n);
+        if (ordinary && part.dense !== undefined) part.dense[n] = local + 1;
+        else {
+          part.map.set(n, local);
+          if (ordinary && ++part.valid >= threshold) {
+            const lookup = new Uint32Array(capacity), sparse = new Map<number, number>();
+            for (const [vertex, ordinal] of part.map) {
+              if (Number.isInteger(vertex) && vertex >= 0 && vertex < capacity) lookup[vertex] = ordinal + 1;
+              else sparse.set(vertex, ordinal);
+            }
+            part.dense = lookup; part.map = sparse;
+          }
+        }
+      }
       part.indices.push(local);
     }
   }
