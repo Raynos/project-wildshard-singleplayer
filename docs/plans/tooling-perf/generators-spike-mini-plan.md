@@ -118,6 +118,96 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
   is generated, and `.gitignore`'s `src/**/*.generated.*` becomes this ban.
 - `ktx2.generated.ts` (committed) is renamed to `ktx2.ts` as authored data, or moves into the product.
 
+## G780 plan-end reading (2026-10-27, sp-x1)
+
+**Reading complete; GR5–GR8 and GR12 remain open for the numbered gaps below.**
+No local product build, generator, preview, browser or benchmark was started.
+The source census is pinned to `6aa959866e41e760d67f604e040bc01703c28c1e`;
+it parses committed Git bytes through the actual GR0/G8 and base64 rule
+visitors with pinned package mappings. Binary JSON counts use the defining
+`binaryJsonCounts` on committed `2d0cabc1c639f335cb585269fe6ad1c7c4b73b35`.
+Raw allowance totals are ceilings, not counts of current violations or
+permission to declare a floor. Frozen LEGACY bytes were not deleted.
+
+| Row | Jobs left | Generated-source debt: listed / tracked / absent | Broad generated-import sites: listed / actual | Actual generated-JSON imports | Modern codec sites | Committed modern JSON: files / encoded chars / data URIs | Verdict |
+|---|---:|---:|---:|---:|---:|---:|---|
+| GR5 Far Reach | 0 | 88 / 51 / 37 | 1 / 1 | 0 | 0 | 41 / 0 / 0 | **open:**37 stale source entries; verify retained floor and final cold result |
+| GR6 Nalati | 0 | 16 / 3 / 13 | 21 / 4 | 0 | 2 | 100 / 0 / 0 | **open:**13 stale source entries,17 stale import credits,2 codec sites, D95 provider |
+| GR7 Driftwood | 0 | 105 / 5 / 100 | 19 / 1 | 1 | 0 | 75 / 0 / 0 | **open:**100 stale source entries,18 stale import credits,1 static mover JSON import |
+| GR8 Pine | 0 | 99 / 21 / 78 | 12 / 0 | 0 | 0 | 87 / 0 / 0 | **open:**78 stale source entries,12 stale import credits; final cold result |
+| GR12 deletion | 0 | 308 / 80 / 228 (four shards) | 53 / 6 (four shards) | 1 (four shards) | 2 (four shards) | 303 / 0 / 0 (four shards) | **open:**deletion at0 is done; folded G8/R4/T1/T6 acceptance is not zero |
+
+The80 tracked source-debt entries are retained inputs, **not an automatically
+approved floor**: Far Reach32 assets/19 JSON; Nalati bodies.json plus the two
+plain edges/panorama tables; Driftwood3 assets/islandPlanFiles/movers; Pine20
+assets/ASTC header. The37/13/100/78 absent entries must shrink without
+raising any allowance. The six live broad-rule sites are Sky panorama;
+Nalati world-inventory/output/postChain/product (plain registered edges and
+panorama sources); and Driftwood movers. G798 table ownership explains a
+retained source, but does not erase the measured site. Nalati's two codec
+sites are dressingScene.ts's inline contact encoder and product.ts's module
+byte accounting. Neither is an encoded string in the303 modern JSON files.
+
+Global committed burn-down files at the source pin still list1,533
+source-output paths,174 broad-import credits/128 files,29 codec credits/20
+files, and48 binary-JSON entries/6,099,948 encoded chars/80 data URIs across
+all historical, fixture, platform and shard roots. These are **not empty**;
+this reading does not relabel the whole retained inventory as an approved
+floor. The modern four-shard binary-JSON portion is0 characters/0 data URIs.
+The existing global debt audit owns the remaining floor classification and
+shrink; G606 frozen LEGACY inventory stays held.
+
+**GR12 deletion reading — done,0:** no tracked or physical generate.mjs or
+generation-jobs.json; no tracked generation-* helper or d.json.ts shim and
+no loose d.json.ts under src. Five-root grep (scripts/test/lint/src/.github)
+finds0 current catalogue readers. The only2 remaining catalogue strings are
+explicit `git show <frozen revision>` receipts in legacy-explorer-lists.ts.
+HEAD test/build-mirror.test.ts has0 catalogue references (`4a1e3ecb0b`).
+Sky's obsolete boot suite and both six-import allowance rows are absent
+(`8cc9699c0e`). D90/D91 remain fixed by `a38820bbb1`.
+
+**Folded G8/R4/T1/T6 — open,3 generated JSON compiler inputs:** the read-only
+compiler-input census (no checker execution) lists slugs.generated.json,
+Driftwood movers.generated.json and Pine astc6.generated.json. Root:3 files /
+24,288 B; game:1 /936 B; shards:2 /12,590 B. Authored JSON remains typed.
+The old six Sky boot JSON imports are gone. Zero generated inputs and the
+Mac four/eight-checker timing/RSS comparison are not established. The
+cold emitted-JSON <=30 MB target is unmeasured; source JSON bytes do not
+measure emitted product volume. No new
+heap/timing win or <=6 GB /<=15 s /<=8 GB pass is claimed. The existing D95
+Nalati capture import is a real discovery-provider prerequisite; no stub or
+ambient type replaces its constructor. Nine's separate zlib half is fixed
+in `acc161da7e`.
+
+**CI timing reading — open for a final cold full build.** The latest completed
+24-product rebuild available is [CI40456979743, products122034592751](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40456979743/job/122034592751)
+on `06d14d82888824c209eccc47aee1944deda6c05e`:24 products built; product job
+passes. Command start05:52:13.8475974Z to24-project summary05:58:28.9008917Z
+on10-27 is375.053 s. Basis preparation is58.403 s before workers. Compare
+[10-25 CI40242127846, products121317539278](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40242127846/job/121317539278)
+on `b8721bd4c0d78d66c0d6e8e443c14d33a32aef1c`:24 products built; command
+22:59:34.1789244Z to23:05:08.1736711Z is333.995 s. Latest is41.058 s /
+12.3% slower. Individual product wall times (concurrent, not additive):
+
+| Product | 10-25 baseline seconds | Last full CI seconds | Change seconds |
+|---|---:|---:|---:|
+| Far Reach | 77.7 | 72.1 | -5.6 |
+| Nalati | 78.5 | 184.8 | +106.3 |
+| Driftwood | 73.7 | 61.9 | -11.8 |
+| Pine | 55.9 | 49.0 | -6.9 |
+
+Both runs restore product and Node caches and use `--reuse`, while their
+logs show all24 products actually rebuilt. This is a fresh-runner product
+rebuild comparison, **not an empty-cache cold benchmark**. The06d14 source
+also predates the final GR12 cut. Later completed CI40492502665 at1361eb295e
+builds only the six discovery prerequisites (Far111.5 s, Nalati276.3 s,
+Driftwood274.1 s, Pine176.3 s, Nine269.1 s, Sunscar107.7 s), then refuses
+Pine current-product admission (D99); it is not a24-product pass. D99 source
+is fixed0ebd0d40b3; a subsequent in-progress run is not a finished result.
+No speedup, final cold pass, runtime visual acceptance or retrospective
+causality is inferred. The rows above stay open with these exact gaps;
+no local build was started to fill them.
+
 ## Rows (per shard: biggest win first, Nine as pilot)
 
 | Row | What | Size | Done when |
@@ -127,14 +217,14 @@ in `public/assets/<slug>/` as real `.glb` / `.png` / `.ktx2` / `.bin`. App-wide 
 | GR2 | done (2026-10-24, sp-x1): `326950c025` + `78681f7cf5`; app tables then the existing per-product build pool, heavy-lane, scoped `--shard=`; preparation-only CI preserved | S | fresh Node refuses any scheduler import for a fully converted folder; 29 focused + 410 ready-related cases pass; exact `78681` generation builds all 24 products |
 | GR3 | **done `460196a1d7`** (final Nine scheduler job retired; the app-table bar is GR11/GS); was in flight (2026-10-24, sp-x1): **Nine** (28 jobs at claim; 0 remain; shard producer retirement `460196a1d7`): direct row, physics and schema calls replace imports; `castHook` / `lightSpill` become cached `.glb` / `.bin`; dead `paintArray` retires (G416, closes B4); atlases per D2; its tests call functions | L | 0 Nine rows in the catalogue, 0 `*.generated.*` under its folder, product validates, boot smoke green |
 | GR4 | **done (2026-10-25, sp-x6): Sunscar** (23 → 0). All jobs and modern shard-source handoffs retired with original byte/product parity. Exact `743e56f784` full preview and official 12-case boot smoke pass; five byte-exact frozen legacy world assets (380,964 B) stay held for LD. | M | same bar |
-| GR5 | **in flight (reading at plan end; sp-x1 + sp-o2): Far Reach** (47 at claim; 0 catalogue jobs remain, final retirement `7811aea37d`; explicit mover-header intake `6f063b6584` removes the final static generated-JSON imports). Every producer is source-owned; original legacy bytes stay held. Map returns its native RGBA through the existing project API. D76 coarse-wire repair `61ea0216c8` is owner-qualified at33774760 B under33800000, without a cap raise; this is not the GR5 end reading. | L | same bar |
-| GR6 (+ folded B5 Nalati, G796) | **in flight (reading at plan end; sp-x6 + assigned peers): Nalati** (54 at claim; 1 scheduler jobs remain: nalati-elite-charge). Admission retired `a705d5e7d5` after native producer `291c84c140`, readers `3e938884aa` and parameter repair `ea21bc87f3`; original 44,816 B and named module/witness records remain exact. Folded B5 boundaries retain their individual rows below. | L | same bar |
-| GR7 (+ folded B5 Driftwood, G796; + GR10 Blender exporter source reads) | **in flight (reading at plan end; 2026-10-27, sp-x10 + sp-o4 + sp-x1): Driftwood** (41 at claim; **0 remain**). All 41 jobs retired, including section schemas `d33efc29fc`, map assembly `86602f4a60`, interactables `094a4bf87c`, navigation `a6dab64bc7`, physics `2031842440` and boot `36aa27fce3`. Producers supply native rows/bytes before readers; all recorded original byte, file/cost and ordered metadata comparisons remain exact. Folded B5: all 75 tracked modern Driftwood JSON files have zero binary characters/data URIs; modern source codec debt is zero. The ignored historical model catalogue stays untouched (coordinator). Blender export reads shoreBoulderFacts / islandFoliagePlacements directly. No pre-landing product builds or previews (G769). | L | one plan-end reading (G780) |
-| GR8 (+ folded B5 Pine, G796) | **in flight (2026-10-27, sp-o1 + sp-o3): Pine** (62 at claim; 0 remain: sp-o1 retired pine-data-map and sp-o4 pine-map-assembly 2026-10-27; HDRI keys and painted per D2). An owned program entry first, then the 37 jobs no other job reads, smallest reader set first; `pine-layout` (17 downstream jobs, 83 readers) last. Slices below. | XL | same bar |
+| GR5 | **open (G780 reading 2026-10-27; sp-x1 + sp-o2): Far Reach** (47 at claim; 0 catalogue jobs remain, final retirement `7811aea37d`; explicit mover-header intake `6f063b6584` removes the final static generated-JSON imports). Every producer is source-owned; original legacy bytes stay held. Map returns its native RGBA through the existing project API. D76 coarse-wire repair `61ea0216c8` is owner-qualified at33774760 B under33800000, without a cap raise; G780 reading:0 generated-JSON imports/0 codec sites/0 encoded JSON characters; source-debt list88 entries includes37 absent paths, so the list is not at its verified floor. Last CI product72.1 s versus77.7 s on10-25 predates the final cut; final cold acceptance remains open (reading below). | L | same bar |
+| GR6 (+ folded B5 Nalati, G796) | **open (G780 reading 2026-10-27; sp-x6 + assigned peers): Nalati** (54 at claim; 0 scheduler jobs remain, final catalogue zero `dd873bc775`). Admission retired `a705d5e7d5` after native producer `291c84c140`, readers `3e938884aa` and parameter repair `ea21bc87f3`; original 44,816 B and named module/witness records remain exact. G780 reading:0 generated-JSON imports and0 encoded JSON characters in100 tracked JSON files, but2 modern codec sites and13 absent source-debt paths remain. Last CI product184.8 s versus78.5 s on10-25; no final cold acceptance. D95 Nalati capture provider remains open; Nine half is fixedacc161da7e. Folded B5 boundaries retain their individual rows below. | L | same bar |
+| GR7 (+ folded B5 Driftwood, G796; + GR10 Blender exporter source reads) | **open (G780 reading 2026-10-27; sp-x10 + sp-o4 + sp-x1): Driftwood** (41 at claim; **0 remain**). All 41 jobs retired, including section schemas `d33efc29fc`, map assembly `86602f4a60`, interactables `094a4bf87c`, navigation `a6dab64bc7`, physics `2031842440` and boot `36aa27fce3`. Producers supply native rows/bytes before readers; all recorded original byte, file/cost and ordered metadata comparisons remain exact. Folded B5: all 75 tracked modern Driftwood JSON files have zero binary characters/data URIs; modern source codec debt is zero. The ignored historical model catalogue stays untouched (coordinator). Blender export reads shoreBoulderFacts / islandFoliagePlacements directly. G780 reading:0 codec sites/0 encoded JSON characters, but1 generated-JSON import in output.ts (movers) and100 absent source-debt paths remain. Last CI product61.9 s versus73.7 s on10-25; final cold acceptance remains open. No local product build or preview for this reading. | L | one plan-end reading (G780) |
+| GR8 (+ folded B5 Pine, G796) | **open (G780 reading 2026-10-27; sp-o1 + sp-o3): Pine** (62 at claim; 0 remain: sp-o1 retired pine-data-map and sp-o4 pine-map-assembly 2026-10-27; HDRI keys and painted per D2). An owned program entry first, then the 37 jobs no other job reads, smallest reader set first; `pine-layout` (17 downstream jobs, 83 readers) last. G780 reading:0 generated-JSON imports/0 codec sites/0 encoded JSON characters in87 tracked JSON files, but78 absent source-debt paths and12 obsolete broad-import credits remain. Last CI product49.0 s versus55.9 s on10-25 predates final retirement; no final cold acceptance. Slices below. | XL | same bar |
 | GR9 (+ from GR10 (a), sp-o2: `src/entry.ts`'s import of `game/data/pickupCatalogue.json` stops being a step output: the pickups bake becomes a game function or a plain committed file, so no runtime file imports a step output) | Small shards (ink-cel, blender-template, open-plots) and the 5 shared `scripts/bake-*` (pickups, textures, terrain, schemas) as game functions **Done (2026-10-27, sp-o2; its maps and worlds read at plan end, G780):** 8 jobs at claim, 0 left; ink-cel's map in flight, reading at plan end (`0413818317`: `generate` paints it with `rasterSceneMap` from its own terrain and props, `data/map.json` `program`, job and launcher gone); blender-template's map in flight, reading at plan end (`dc0216684d`, ignore fix `77245d09f3`: `generators/generate.ts` returns its declaration, moved to `generators/project.ts` with its quest row now `data/hall.json`, its ground output (`generators/ground.ts`, was the `output.ts` sidecar) and the map lattice painted from `assets/world.glb`); `shared-pickups` in flight, reading at plan end (this commit, with GR10 (a)): `scripts/bake-pickups.mjs` is a plain script whose committed outputs `src/entry.ts` imports, no catalogue row (G798); `sky-textures` in flight, reading at plan end (this commit: `scripts/bake-textures.mjs` a plain script, its five committed sky textures no catalogue row); open-plots-world gone (this commit; its 42 outputs were 93 MB of uncommitted GLB): slice 1 the SDK `rasterSceneMap` paints one output from its own `glbs` / `style` / `exclude`; slice 2 (`833e8d184b`, folded back in `d6ca33cfc8`) the plot bake as a pure per-idea function; slice 3 (this commit, call (b)): the bake moved to the fs-free `generators/plotBake.mjs` (`bake-plots.mjs`'s 7 generator-import allowance moved there as 4, `tiledPlot.mjs` 5 to 3, net -5), its inputs read through `ctx.cached` and its image codecs and world reader passed in from the build context (new `writeImagePixels` / `normalizeWorldGlb` capabilities, so no Sharp enters the config bundle); the SDK loader runs a selected output's `programs[slug]` (shard.config.ts, beside the pinned `outputs`) for its world bytes and map, `productMapInput` admits a program map per output, and the job, its ignores, 28 debt rows, the map pins and their producer tests are gone (`open-plot-night-market` builds and publishes its map locally); `sky-map-rest` (GR5, sp-x1) and the Pine / Driftwood section schemas (GR8 / GR7) stay with those lanes | M | catalogue empty |
 | GR10 — folded (2026-10-27, sp-o4; coordinator) | Runtime: the 7 runtime / plugin imports of outputs read shardfile sections. Census at `4778e51ce1` (the lint's own context, `lint/no-generated-import.mjs`, over every non-generator, non-test `src/` file): (a) `src/entry.ts` imports `game/data/pickupCatalogue.json`, the `shared-pickups` job's output -> GR9; (b) 12 app-table imports (`slugs` / `starter` / `art` / `clips` / `shards.generated`) -> GS3; (c) 8 frozen `-legacy` boot / manifest imports of `ktx2.generated` -> LD6 (Jake's word, G606); (d) `driftwood-isle/blender/export.mjs` reads `shoreBoulders` / `foliagePlacements` outputs, build-time Blender code -> GR7. Each receiving row carries this done-when | M | no runtime file imports a step output (carried by GR9, GS3, LD6, GR7) |
 | GR11 — dropped (G798/G799; GS1–GS5 keeps committed files) | App tables to virtual modules (D4): starter tables, slugs, discovery, boot tables, budgets | M | no `*.generated.*` anywhere under `src/` |
-| GR12 — in flight (reading at plan end; sp-x1, final source deletion landed) (+ folded gen G1 / G6 / G8, oxlint R4, TS T1 / T6, G796) | Delete `generation-jobs.json`, `generate.mjs`, the `generation-*` helpers, the `*.d.json.ts` shims and the generated `.gitignore` lines; burn-down lists empty; includes folded TypeScript T1 generated-input retirement and its dependent Mac checker comparison (G786–G797) | M | the files are gone and both bans have no exceptions, and every GR12 row in § Folded rows meets its own done-when |
+| GR12 — open (G780 reading 2026-10-27; sp-x1, source deletion verified at0) (+ folded gen G1 / G6 / G8, oxlint R4, TS T1 / T6, G796) | Delete `generation-jobs.json`, `generate.mjs`, the `generation-*` helpers, the `*.d.json.ts` shims and the generated `.gitignore` lines; source/controller/helper/shim deletion is done at0 (`7c8c69210d`), but the four modern source-debt lists retain228 absent paths and the compiler still imports3 distinct generated JSON files; includes folded TypeScript T1 generated-input retirement and its dependent Mac checker comparison (G786–G797) | M | deletion files gone (0); remaining acceptance:1 modern generated-JSON import,3 compiler JSON dependencies, burn-down floor cleanup, cold full-product comparison and folded T6 timing/RSS |
 
 ### GR8 current ≤ 1 h slices (G711)
 
