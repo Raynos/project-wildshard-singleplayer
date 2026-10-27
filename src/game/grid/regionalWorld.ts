@@ -79,6 +79,7 @@ import { prepareShardAssets } from '../shard/load';
 import { toLevelSpec } from '../shard/spec';
 import { prepareRegionalInputs } from './regionalInputs';
 import { regionalBuildCheckpoint } from './regionalBuildCheckpoint';
+import { timeClientPreparation } from '../shardfile/preparationTiming';
 import type { ShardWorld } from '../shard/world';
 import type { RegionalRuntimeFoundation, RegionalRuntimePage, RegionalRuntimeRequest, RegionalRuntimeTextures } from './regionalRuntime';
 import { frameLookOf, lookChainKind, regionChain, regionGrade, replacedKnobs, wholeChainKnobs, type FrameLookPort } from './frameLook';
@@ -139,18 +140,30 @@ export async function regionalTerrain(level: LevelSpec, scope: Scope, binding: L
   return new Terrain().build(level.ground, resolved?.terrainPainter, scope, binding);
 }
 
-/** Compile the actual data page's materials, scene sources and drawn terrain under its regional owner.
- * Static resources survive re-entry; their curves and viewer residency advance only while entered. */
-async function regionalPresentation(admitted: AdmittedProduct, start: { readonly x: number; readonly z: number }, root: Object3D, renderer: Parameters<typeof clientMaterials>[2], scope: Scope, hour: () => number | null, allocator: ResidencyAllocator, instance: string, sky: ShardWorld['sky'], registration?: ClientTileRegistration): Promise<{ tick: (dt: number) => void; follow: (x: number, z: number) => void } | null> {
+type RegionalPresentationInputs = {
+  readonly collider: Uint8Array | undefined;
+  readonly presentation: Awaited<ReturnType<typeof clientMaterials>>;
+} | null;
+
+/** Verified input and private scope-owned materials need no native frame or
+ * heightfield. Their bindings still publish at the original cursor below. */
+async function prepareRegionalPresentation(admitted: AdmittedProduct, renderer: Parameters<typeof clientMaterials>[2], scope: Scope): Promise<RegionalPresentationInputs> {
   const full = admitted.source;
   if (!hasDeclaredClientPage(full)) return null;
-  const data = full, terrain = data.terrain;
-  // the region's product reader (`provideRuntimeProduct`): the admitted files, and the collider read through it when the
-  // admission left it to the required-ground loader
-  const assets = runtimeProduct(full).assets, collider = terrain === null ? undefined : await assets.read(terrain.collider);
-  if (scope.disposed) throw new Error('Regional world left while reading its presentation collider');
-  // a runtime-bound host field keeps its declared default for the look's curves until the runtime answers (bindState)
-  const presentation = await clientMaterials({ ...data, state: full.state }, assets.retained, renderer, scope, { trustedGraphs: true });
+  const assets = runtimeProduct(full).assets, terrain = full.terrain;
+  const collider = terrain === null ? undefined : await assets.read(terrain.collider);
+  if (scope.disposed || scope.disposing) throw new Error('Regional world left while reading its presentation collider');
+  const presentation = await clientMaterials({ ...full, state: full.state }, assets.retained, renderer, scope, { trustedGraphs: true });
+  if (scope.disposed || scope.disposing) throw new Error('Regional world left while preparing its presentation materials');
+  return { collider, presentation };
+}
+
+/** Bind prepared data at its original ordered cursor. Curves and tiles advance
+ * only while entered; the material reader never publishes a regional frame. */
+async function regionalPresentation(admitted: AdmittedProduct, start: { readonly x: number; readonly z: number }, root: Object3D, renderer: Parameters<typeof clientMaterials>[2], scope: Scope, hour: () => number | null, allocator: ResidencyAllocator, instance: string, sky: ShardWorld['sky'], input: RegionalPresentationInputs, registration?: ClientTileRegistration): Promise<{ tick: (dt: number) => void; follow: (x: number, z: number) => void } | null> {
+  if (input === null) return null;
+  const full = admitted.source, data = full, terrain = data.terrain, assets = runtimeProduct(full).assets;
+  const { collider, presentation } = input;
   if (terrain !== null) {
     const material = presentation.materials.get(terrain.family);
     if (material === undefined) throw new Error('Regional terrain requires its admitted family material');
@@ -257,6 +270,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
     // light count stays put as the region shows and hides (LightPool, GRID_REGION_POINT_LIGHTS)
     LightPool.for(scene).mirrorInto(LightPool.for(game.rootScene), resident);
     let bound = 0;
+    let presentationReady: Promise<[PromiseSettledResult<RegionalPresentationInputs>]> | undefined;
     ownSceneTree(scene, resident, app.assets);
     try {
       await prepareShardAssets(request.manifest, registerGpuFiles);
@@ -265,6 +279,11 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       // it), handed over first: the level's declared navigation and a required manifest ground are that product's own files
       // (the session's readers read them), never downloaded again
       provideRuntimeProduct(request.admitted, resident);
+      // Start independent data/material inputs beside nav/look/native setup.
+      // Capture rejection now, consume at its former cursor, and drain before
+      // teardown on every earlier refusal without changing failure precedence.
+      presentationReady = Promise.allSettled([timeClientPreparation(identity, 'native.presentation-inputs',
+        () => prepareRegionalPresentation(request.admitted, game.renderer, resident))] as const);
       const navigation = ports.navmesh;
       const terrainBinding: { current?: LevelFrameBinding['terrain'] } = {};
       const field = (): LevelFrameBinding['terrain']['field'] => {
@@ -313,7 +332,11 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       const terrain = ports.terrain === undefined ? await regionalTerrain(level, resident, frame.terrain, levelLook) : await ports.terrain(level, resident, frame.terrain);
       await checkpoint();
       if (left()) throw new Error('Regional world left while building its terrain');
-      const presented = await regionalPresentation(request.admitted, request.entryPoint ?? request.manifest.spawn, scene, game.renderer, resident, () => game.sky.dayNight?.hour ?? null, request.allocator, cell.instance, sky, ports.tiles);
+      const pendingPresentation = presentationReady;
+      const [presentationInput] = await timeClientPreparation(identity, 'native.presentation-wait', () => pendingPresentation);
+      if (presentationInput.status === 'rejected') throw presentationInput.reason;
+      if (left() || resident.disposing) throw new Error('Regional world left before binding its presentation');
+      const presented = await regionalPresentation(request.admitted, request.entryPoint ?? request.manifest.spawn, scene, game.renderer, resident, () => game.sky.dayNight?.hour ?? null, request.allocator, cell.instance, sky, presentationInput.value, ports.tiles);
       if (left()) throw new Error('Regional world left while drawing its presentation ground');
       // a painter that bound its own ground (its compiled collider) moves the collision built above onto it
       if (terrain.groundBound) frame.run(app, () => { resampleTerrain(host.physics); });
@@ -522,6 +545,9 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       });
       return foundation;
     } catch (error) {
+      // No async material allocation may arrive after the owner's teardown.
+      // Earlier ground/native failures keep their original precedence.
+      await presentationReady;
       resident.dispose();
       throw error;
     } finally { leaveTextures(); }
