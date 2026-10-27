@@ -39,7 +39,7 @@ export function runtimeCopyIssues(root, project) {
  * @returns {{image?:string,tilesHash:string,pixelHash?:string}|undefined} */
 export function productMapInput(project, output) {
   const settings = mapSettingsPath(project);
-  if (output === undefined && existsSync(settings)) {
+  if (existsSync(settings)) {
     const parsed = v.parse(v.object({ painter: v.optional(v.object({ program: v.optional(v.boolean(), false) })) }), JSON.parse(readFileSync(settings, 'utf8')));
     if (parsed.painter?.program === true) return { tilesHash: mapTilesHash(project) };
   }

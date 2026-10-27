@@ -1,4 +1,4 @@
-import { NodeIO, type Accessor, type Material, type Primitive, type Texture, type TextureInfo } from '@gltf-transform/core';
+import { WebIO, type Accessor, type Material, type Primitive, type Texture, type TextureInfo } from '@gltf-transform/core';
 import { Matrix3, Matrix4, Vector3 } from 'three';
 import { CELL_ABOVE, CELL_BELOW, CHUNK_HALF } from '@wildshard/format/contentBounds';
 import { parseWorldSource } from '../worldSource';
@@ -92,8 +92,8 @@ function geometry(primitive: Primitive, matrix: Matrix4, world: Matrix4, node: s
 /** Normalize one embedded static world GLB without files, renderer allocation, baking or platform collision. */
 export async function normalizeWorldGlb(bytes: Uint8Array, input: unknown, materialIds: readonly string[]): Promise<NormalizedWorld> {
   const source = parseWorldSource(input), intake = preflightWorldGlb(bytes);
-  // NodeIO's binary view requires aligned input; the caller retains its bytes unchanged.
-  const document = await new NodeIO().readBinary(Uint8Array.from(bytes)), root = document.getRoot(), nodes = root.listNodes();
+  // The binary view requires aligned input; the caller retains its bytes unchanged.
+  const document = await new WebIO().readBinary(Uint8Array.from(bytes)), root = document.getRoot(), nodes = root.listNodes();
   if (nodes.length !== intake.matrices.length) throw new Error('World GLB node inventory changed during decode');
   const byName = new Map<string, number>();
   nodes.forEach((node, index) => { const name = node.getName(); if (name !== '') { if (byName.has(name)) throw new Error(`World GLB duplicate node name ${name}`); byName.set(name, index); } });

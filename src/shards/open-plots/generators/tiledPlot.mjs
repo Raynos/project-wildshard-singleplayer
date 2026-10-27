@@ -8,12 +8,9 @@
 // texture) and `Poster` (the poster picture, lit). The far proxy is the far-only nodes alone (the source's `farMode:
 // 'replace'`): each tile's stand-in, the landmark's far model in its texture's colours and the boards. Collision is
 // `collide_plot`: the floor, the kit's boxes, the kerb, the boards' posts and the landmark's far model.
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { Document, NodeIO } from '@gltf-transform/core';
+import { Document, WebIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { MeshoptDecoder } from 'meshoptimizer';
-import { readImagePixels, writeImagePixels } from '@wildshard/sdk/bake/image';
 import { bakeLanternVertices, buildLayout, parseLayout, paving, placePlotModels, pool, Soup } from './kit.mjs';
 import { prepareModelKit } from './kitGlb.mjs';
 
@@ -26,10 +23,10 @@ const RING = 246.25;
 const KERB = { from: 247, to: 248.6, height: 0.5, gap: 7.5 };
 
 /** A generated model's triangles in metres (its node transforms applied), with normals, uvs and its colour texture. */
-async function readModel(file) {
+async function readModel(bytes) {
   await MeshoptDecoder.ready;
-  const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
-  const doc = await io.read(file), corners = [];
+  const io = new WebIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
+  const doc = await io.readBinary(bytes), corners = [];
   let image = null;
   for (const node of doc.getRoot().listNodes()) {
     const mesh = node.getMesh(); if (mesh === null) continue;
@@ -68,8 +65,8 @@ function sampler(image) {
 }
 
 /** A picture's mean colour (linear RGB). */
-async function meanColour(file) {
-  const image = await readImagePixels(readFileSync(file)), sum = [0, 0, 0], n = image.width * image.height;
+async function meanColour(tools, bytes) {
+  const image = await tools.readImagePixels(bytes), sum = [0, 0, 0], n = image.width * image.height;
   for (let i = 0; i < n; i++) for (let k = 0; k < 3; k++) sum[k] += toLinear((image.pixels[i * 4 + k] ?? 0) / 255);
   return sum.map(c => c / n);
 }
@@ -105,12 +102,16 @@ function poster(parts, palette, { centre, n, width, bottom, posts, offset = 0 },
 /** RM6.3: the lanterns' light baked into the kit's vertex colours (gain, falloff radius m, reach in radii) */
 const LANTERN_BAKE = { gain: 0.8, radius: 1.5, cut: 3 };
 
-/** Build a tiled idea's world: { parts, image textures } ready for the writer. */
-async function tiledPlot(root, repo, layoutName) {
-  const layout = JSON.parse(readFileSync(resolve(root, 'data/layouts', `${layoutName}.json`), 'utf8'));
+/** A JSON input's value, from its bytes. */
+const json = (bytes) => JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+
+/** Build a tiled idea's world: { parts, image textures } ready for the writer. GR9: every input arrives through
+ *  `read(path)` (a repo-relative path: the build program's declared, cached inputs), so this module opens no file. */
+async function tiledPlot(read, tools, layoutName) {
+  const layout = json(read(`src/shards/open-plots/data/layouts/${layoutName}.json`));
   const palette = Object.fromEntries(Object.entries(layout.palette).map(([key, hex]) => [key, linear(hex)]));
   // NM5: the posters' faces carry their picture's mean colour (the Poster material draws the picture alone), for the near view
-  palette.picture = await meanColour(resolve(repo, layout.posters.image));
+  palette.picture = await meanColour(tools, read(layout.posters.image));
   const grid = parseLayout(layout.rows), parts = { Paving: new Soup(), Kit: new Soup(), Water: new Soup(), Glow: new Soup(), Pool: new Soup(), Poster: new Soup(), far: new Soup(), solid: new Soup(), detailKit: new Soup(), detailGlow: new Soup(), coarse: new Soup() };
   // the plot's ground: the outer ring, then each tile's paving inside it (the lanes a shade lighter, the canals open)
   for (const [x0, z0, x1, z1] of [[-250, RING, 250, 250], [-250, -250, 250, -RING], [-250, -RING, -RING, RING], [RING, -RING, 250, RING]]) {
@@ -137,8 +138,8 @@ async function tiledPlot(root, repo, layoutName) {
   // RM4: the kit's Blender models (scripts/blender/open-plots/kit.py), retinted by this layout's palette
   // RM4: the layout's kit families (data/layouts/<layout>.json `kit`, each public/assets/open-plots/kit/<family>.glb);
   // Night Market's switched on with RM8.6 once RM8.1's quantized tiles and RM8.2's L0-only detail paid for them
-  const files = new Map((layout.kit ?? []).map(family => [family, new Uint8Array(readFileSync(resolve(repo, 'public/assets/open-plots/kit', `${family}.glb`)))]));
-  const lanterns = [], kit = files.size === 0 ? {} : await prepareModelKit(palette, files);
+  const files = new Map((layout.kit ?? []).map(family => [family, read(`public/assets/open-plots/kit/${family}.glb`)]));
+  const lanterns = [], kit = files.size === 0 ? {} : await prepareModelKit(palette, files, tools.normalizeWorldGlb);
   buildLayout(grid, parts, palette, (r, c) => (r * 7 + c * 3) % 2,
     { ...kit, lanternEmitter: (at, colour) => lanterns.push({ at, colour }) });
   // RM9.2: the gate's paper lanterns hung under its bays' lintels (the layout's landmark.lanterns, with the kit's strings)
@@ -156,10 +157,10 @@ async function tiledPlot(root, repo, layoutName) {
   pool(plotWriter, 0, 0, 30, palette.gatePool, 0.09);
   for (let i = 0; i < 6; i++) { const a = (i + 0.5) / 6 * Math.PI * 2; pool(plotWriter, 16 * Math.sin(a), 16 * Math.cos(a), 10, palette.gatePool, 0.1); }
   // the landmark: its near model as drawn, its far model in its texture's colours (far only, and the collider)
-  const near = await readModel(resolve(repo, layout.landmark.near)), far = await readModel(resolve(repo, layout.landmark.far));
+  const near = await readModel(read(layout.landmark.near)), far = await readModel(read(layout.landmark.far));
   const placed = stand(near.corners, layout.landmark.height, layout.landmark.turn, near.corners);
   const farPlaced = stand(far.corners, layout.landmark.height, layout.landmark.turn, far.corners);
-  const nearImage = await readImagePixels(near.image), farImage = await readImagePixels(far.image), colourOf = sampler(farImage), nearColourOf = sampler(nearImage);
+  const nearImage = await tools.readImagePixels(near.image), farImage = await tools.readImagePixels(far.image), colourOf = sampler(farImage), nearColourOf = sampler(nearImage);
   // NM5: its vertex colours are its texture's (the Landmark material draws the texture alone), for the near view and the map
   const landmark = { positions: [], normals: [], colours: [], uvs: [] };
   for (const c of placed) { landmark.positions.push(...c.p); landmark.normals.push(...c.n); landmark.colours.push(...nearColourOf(c.uv)); landmark.uvs.push(...c.uv); }
@@ -179,23 +180,22 @@ async function tiledPlot(root, repo, layoutName) {
     surface.colours = bakeLanternVertices(surface, lanterns, { gain: LANTERN_BAKE.gain, radius: LANTERN_BAKE.radius, cut: LANTERN_BAKE.cut });
   }
   console.info(`open-plots: ${layoutName} lantern bake: ${lanterns.length} emitters, gain ${LANTERN_BAKE.gain}`);
-  return { parts, landmark, farLandmark, nearImage, poster: resolve(repo, layout.posters.image) };
+  return { parts, landmark, farLandmark, nearImage, poster: read(layout.posters.image), ring: layout.palette.ring };
 }
 
-/** Write a tiled idea's `assets/<idea>/world.glb`. */
-/** GR9: a tiled idea's world GLB bytes (no file written; `writeTiledWorld` writes them). */
-export async function tiledWorldBytes(root, repo, idea) {
-  const { parts, landmark, farLandmark, nearImage, poster: posterFile } = await tiledPlot(root, repo, idea.layout);
+/** GR9: a tiled idea's world GLB bytes, from inputs read through `read(path)`; nothing is written. */
+export async function tiledWorldBytes(read, tools, idea) {
+  const { parts, landmark, farLandmark, nearImage, poster: posterBytes, ring } = await tiledPlot(read, tools, idea.layout);
   const doc = new Document(), buffer = doc.createBuffer(), scene = doc.createScene('plot');
-  const texture = async (name, pixels) => doc.createTexture(name).setImage(await writeImagePixels(pixels)).setMimeType('image/png');
+  const texture = async (name, pixels) => doc.createTexture(name).setImage(await tools.writeImagePixels(pixels)).setMimeType('image/png');
   const materials = {
-    Paving: doc.createMaterial('Paving').setBaseColorFactor([...linear(JSON.parse(readFileSync(resolve(root, 'data/layouts', `${idea.layout}.json`), 'utf8')).palette.ring), 1]).setRoughnessFactor(1).setMetallicFactor(0),
+    Paving: doc.createMaterial('Paving').setBaseColorFactor([...linear(ring), 1]).setRoughnessFactor(1).setMetallicFactor(0),
     Kit: doc.createMaterial('Kit').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.9).setMetallicFactor(0),
     Glow: doc.createMaterial('Glow').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0),
     Pool: doc.createMaterial('Pool').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0),
     Water: doc.createMaterial('Water').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.12).setMetallicFactor(0.2),
     Landmark: doc.createMaterial('Landmark').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.8).setMetallicFactor(0).setBaseColorTexture(await texture('landmark', nearImage)),
-    Poster: doc.createMaterial('Poster').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0).setBaseColorTexture(await texture('poster', await readImagePixels(readFileSync(posterFile)))),
+    Poster: doc.createMaterial('Poster').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0).setBaseColorTexture(await texture('poster', await tools.readImagePixels(posterBytes))),
   };
   for (const material of [materials.Landmark, materials.Poster]) material.getBaseColorTextureInfo()?.setWrapS(33071).setWrapT(33071).setMinFilter(9987).setMagFilter(9729);
   const accessor = (values, type) => doc.createAccessor().setType(type).setArray(new Float32Array(values)).setBuffer(buffer);
@@ -230,14 +230,8 @@ export async function tiledWorldBytes(root, repo, idea) {
   node('far_tiles', parts.far.part('far'), materials.Kit, { normals: false });
   node('far_landmark', { ...farLandmark, normals: [], uvs: [] }, materials.Kit, { normals: false });
   node('collide_plot', { ...parts.solid.part('Solid'), colours: parts.solid.part('Solid').positions.map(() => 1) }, materials.Kit, { normals: false });
-  const bytes = await new NodeIO().writeBinary(doc);
+  const bytes = await new WebIO().writeBinary(doc);
   const count = (soup, name) => soup.part(name).positions.length / 9;
   console.info(`open-plots: ${idea.slug} world.glb ${bytes.length} bytes, tiled ${idea.layout}: kit ${count(parts.Kit, 'Kit')} glow ${count(parts.Glow, 'Glow')} pool ${count(parts.Pool, 'Pool')} landmark ${landmark.positions.length / 9} far ${count(parts.far, 'far') + farLandmark.positions.length / 9} triangles`);
   return bytes;
-}
-/** Write a tiled idea's world GLB to its `assets/<idea>/world.glb` (the catalogue job's output). */
-export async function writeTiledWorld(root, repo, idea) {
-  const bytes = await tiledWorldBytes(root, repo, idea), out = resolve(root, 'assets', idea.idea);
-  mkdirSync(out, { recursive: true });
-  writeFileSync(resolve(out, 'world.glb'), bytes);
 }

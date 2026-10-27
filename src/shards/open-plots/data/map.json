@@ -157,17 +157,16 @@
   },
   "inputs": [
     "shard.config.ts",
-    "data/source.ts",
     "outputs.json",
-    "assets",
-    "../../../scripts/map-painter.mjs",
+    "generators",
+    "data",
+    "../../../public/assets/open-plots",
     "../../sdk/bake/mapRaster.ts",
-    "../../../scripts/bake-data-maps.mjs",
-    "generators/bake-plots.mjs"
+    "../../sdk/bake/mapScenes.ts",
+    "../../sdk/bake/groundMap.ts"
   ],
   "painter": {
     "version": 1,
-    "job": "open-plots-world",
-    "authored": false
+    "program": true
   }
 }

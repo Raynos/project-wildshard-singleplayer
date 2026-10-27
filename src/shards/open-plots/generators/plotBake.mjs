@@ -1,4 +1,4 @@
-// The open-plots generator (SHARD-PLATFORM SF88g, G538/G539/G541/G545): one plot world GLB per idea row of
+// The open-plots plot bake (SHARD-PLATFORM SF88g, G538/G539/G541/G545): one plot world GLB per idea row of
 // outputs.json (SF88g: each its own product), built from data alone. A 500 m plot on a flat floor with a kerb broken by four entries, the showroom in
 // the middle: a low round plinth (radius 10 m) with a glowing rim, the idea's hologram standing on it (drawn by the one
 // shared `hologram` graph, which turns it), the idea's billboard behind it (north, +Z) and the 'OPEN PLOT · COMING SOON'
@@ -8,19 +8,15 @@
 // colour channel i is half the barycentric of corner i, lifted by 0.5 when the edge opposite corner i is not a feature
 // edge (a crease over FEATURE_DEGREES or an open border). The graph draws a faint line where any channel's barycentric
 // reaches 0 (the wireframe) and a bright one where an unlifted channel does (the feature edges).
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { Document, NodeIO } from '@gltf-transform/core';
+import declared from '../outputs.json' with { type: 'json' };
+import PLOT from '../data/plot.json' with { type: 'json' };
+import { Document, WebIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { MeshoptDecoder, MeshoptSimplifier } from 'meshoptimizer';
-import { readImagePixels, writeImagePixels } from '@wildshard/sdk/bake/image';
-import { paintDataMap } from '../../../../scripts/bake-data-maps.mjs';
 import { ACCENTS } from '@wildshard/format/accent';
 import { Soup } from './kit.mjs';
 import { tiledWorldBytes } from './tiledPlot.mjs';
 
-const ROOT = resolve(import.meta.dirname, '..');
-const REPO = resolve(ROOT, '../../..');
 const FEATURE_DEGREES = 28;
 const PLINTH = { radius: 10, height: 0.6, rim: 0.7, segments: 64 };
 const BILLBOARD = { z: 26, width: 24, height: 13.5, bottom: 5, depth: 0.5 };
@@ -28,12 +24,12 @@ const SIGN = { x: 15, z: -10, width: 7.5, height: 2.5, bottom: 1.2, yaw: 0.4 };
 const KERB = { inner: 238, outer: 240, height: 0.5, gap: 15 };
 const FLOOR_STEP = 25;
 /** G608: the hologram's scale and the floor's accent tint (data/plot.json). */
-const PLOT = JSON.parse(readFileSync(resolve(ROOT, 'data/plot.json'), 'utf8'));
+
 /** The far hologram's glow colour (the hologram graph's #46e6ff, lifted). */
 const GLOW = [0.35, 1, 1];
 
 /** The idea rows (outputs.json), one product each. */
-export const ideas = JSON.parse(readFileSync(resolve(ROOT, 'outputs.json'), 'utf8')).outputs;
+export const ideas = declared.outputs;
 
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
@@ -76,10 +72,10 @@ function orient(triangles, points, id, edges) {
 }
 
 /** The hologram's triangles (metres, base centre at the origin) with smooth normals and the edge-coded colours. */
-async function hologram(file) {
+async function hologram(bytes) {
   await MeshoptDecoder.ready;
-  const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
-  const doc = await io.read(file), points = [], triangles = [];
+  const io = new WebIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
+  const doc = await io.readBinary(bytes), points = [], triangles = [];
   for (const node of doc.getRoot().listNodes()) {
     const mesh = node.getMesh(); if (mesh === null) continue;
     const world = node.getWorldMatrix();
@@ -135,8 +131,8 @@ async function farHologram(holo) {
   return { positions, index: Array.from(simplified[0]) };
 }
 
-async function plot(idea) {
-  const assets = resolve(REPO, 'public/assets/open-plots', idea.idea), soup = new Soup();
+async function plot(idea, read) {
+  const assets = `public/assets/open-plots/${idea.idea}`, soup = new Soup();
   // the floor: a grid of 25 m quads, the four avenues and the plaza lighter than the field
   const shade = (x, z) => Math.hypot(x, z) < 36 ? [0.86, 0.9, 0.96] : Math.abs(x) < 6 || Math.abs(z) < 6 ? [0.74, 0.8, 0.88] : [0.58, 0.64, 0.74];
   for (let x = -250; x < 250; x += FLOOR_STEP) for (let z = -250; z < 250; z += FLOOR_STEP) {
@@ -172,16 +168,16 @@ async function plot(idea) {
   signBox(-w - 0.2, sLow - 0.2, 0.02, w + 0.2, sHigh + 0.2, 0.25);
   signBox(-w + 0.6, 0, 0.05, -w + 1, sLow - 0.2, 0.22); signBox(w - 1, 0, 0.05, w - 0.6, sLow - 0.2, 0.22);
   // the hologram on the plinth, its front turned to the south entry (it turns anyway)
-  const holo = await hologram(resolve(assets, 'hologram.glb')), holoPart = soup.part('Hologram'), k = PLOT.hologramScale;
+  const holo = await hologram(read(`${assets}/hologram.glb`)), holoPart = soup.part('Hologram'), k = PLOT.hologramScale;
   for (const triangle of holo) for (const v of triangle) {
     holoPart.positions.push(-v.p[0] * k, v.p[1] * k + top + 0.02, -v.p[2] * k); holoPart.normals.push(-v.n[0], v.n[1], -v.n[2]); holoPart.colours.push(...v.c); holoPart.uvs.push(0, 0);
   }
   return { soup, assets, kerbs, far: await farHologram(holo) };
 }
 
-async function showroomWorld(idea, { soup, assets, kerbs, far }) {
+async function showroomWorld(idea, read, tools, { soup, assets, kerbs, far }) {
   const doc = new Document(), buffer = doc.createBuffer(), scene = doc.createScene('plot');
-  const png = async (file) => writeImagePixels(await readImagePixels(readFileSync(file)));
+  const png = async (file) => tools.writeImagePixels(await tools.readImagePixels(read(file)));
   const texture = async (name, file) => doc.createTexture(name).setImage(await png(file)).setMimeType('image/png');
   const materials = {
     // G608: the survey floor's blue mixed toward the idea's accent
@@ -190,8 +186,8 @@ async function showroomWorld(idea, { soup, assets, kerbs, far }) {
     Plinth: doc.createMaterial('Plinth').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.8).setMetallicFactor(0),
     Rim: doc.createMaterial('Rim').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0),
     Frame: doc.createMaterial('Frame').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.7).setMetallicFactor(0),
-    Billboard: doc.createMaterial('Billboard').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0).setBaseColorTexture(await texture('billboard', resolve(assets, 'billboard.webp'))),
-    Sign: doc.createMaterial('Sign').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0).setBaseColorTexture(await texture('sign', resolve(assets, 'sign.webp'))),
+    Billboard: doc.createMaterial('Billboard').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0).setBaseColorTexture(await texture('billboard', `${assets}/billboard.webp`)),
+    Sign: doc.createMaterial('Sign').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0).setBaseColorTexture(await texture('sign', `${assets}/sign.webp`)),
     Hologram: doc.createMaterial('Hologram').setBaseColorFactor([0.1, 0.45, 0.55, 1]).setMetallicFactor(0),
     // G608: the far stand-ins' glow (the far proxy only)
     Glow: doc.createMaterial('Glow').setBaseColorFactor([...GLOW, 1]).setRoughnessFactor(1).setMetallicFactor(0),
@@ -233,33 +229,15 @@ async function showroomWorld(idea, { soup, assets, kerbs, far }) {
   const s = SIGN, w = s.width / 2, c = [[-w, 0, 0], [w, 0, 0], [w, s.bottom + s.height + 0.2, 0], [-w, s.bottom + s.height + 0.2, 0], [-w, 0, 0.3], [w, 0, 0.3], [w, s.bottom + s.height + 0.2, 0.3], [-w, s.bottom + s.height + 0.2, 0.3]].map(p => yawPoint(p, s.yaw, [s.x, 0, s.z]));
   for (const [i, j, k, l] of [[4, 5, 6, 7], [1, 0, 3, 2], [0, 4, 7, 3], [5, 1, 2, 6], [3, 7, 6, 2], [0, 1, 5, 4]]) solid.quad('Solid', c[i], c[j], c[k], c[l]);
   node('collide_plot', solid.part('Solid'), materials.Kerb, false);
-  const io = new NodeIO(), bytes = await io.writeBinary(doc);
+  const io = new WebIO(), bytes = await io.writeBinary(doc);
   console.info(`open-plots: ${idea.slug} world.glb ${bytes.length} bytes, hologram ${soup.part('Hologram').positions.length / 9} triangles`);
   return bytes;
 }
 
 /** GR9: one idea row's world GLB bytes, built from data alone (a tiled plot through tiledPlot.mjs, else the hologram
- *  showroom); the build program and the command line share it, and nothing is written here. */
-export async function ideaWorld(idea) {
-  return idea.layout === undefined ? showroomWorld(idea, await plot(idea)) : tiledWorldBytes(ROOT, REPO, idea);
-}
-
-// GR9: importing this module (the build program's `ideaWorld`) runs nothing; run directly, it is the catalogue job's command
-// line: write every idea's world, then paint each output's map from its own world.
-if (import.meta.main) {
-  const writeWorld = async (idea) => {
-    const bytes = await ideaWorld(idea), out = resolve(ROOT, 'assets', idea.idea);
-    mkdirSync(out, { recursive: true });
-    writeFileSync(resolve(out, 'world.glb'), bytes);
-  };
-
-  // One world per idea row, then each output's data map from its own world (every world first: the map hash reads them all).
-  // G641: an idea row with a layout is a tiled plot (kit.mjs, tiledPlot.mjs); the rest keep the hologram showroom
-  // The same producer supports bounded setup and per-output map proofs. Ordinary
-  // generation still builds every world before painting every map, in order.
-  const args = process.argv.slice(2), worldsOnly = args.length === 1 && args[0] === '--worlds-only';
-  const mapOnly = args.length === 1 && args[0].startsWith('--map-only=') ? args[0].slice('--map-only='.length) : undefined;
-  if (args.length > 0 && !worldsOnly && (mapOnly === undefined || !ideas.some(idea => idea.slug === mapOnly))) throw new Error('Unknown plot generation selection');
-  if (mapOnly === undefined) for (const idea of ideas) await writeWorld(idea);
-  if (!worldsOnly) for (const idea of ideas.filter(row => mapOnly === undefined || row.slug === mapOnly)) await paintDataMap(REPO, 'open-plots', { output: idea.slug, glbs: [`assets/${idea.idea}/world.glb`] });
+ *  showroom). Every input arrives through `read(path)` (a repo-relative path: the build program's declared, cached inputs),
+ *  so this module opens no file and writes nothing; image decode / encode and the SDK's world reader arrive as `tools`
+ *  (the build context's capabilities), so no native image codec enters the config bundle. */
+export async function ideaWorld(idea, read, tools) {
+  return idea.layout === undefined ? showroomWorld(idea, read, tools, await plot(idea, read)) : tiledWorldBytes(read, tools, idea);
 }

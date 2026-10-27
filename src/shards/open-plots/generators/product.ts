@@ -8,9 +8,13 @@ import poster from '../data/poster.graph.json' with { type: 'json' };
 import paving from '../data/paving.graph.json' with { type: 'json' };
 import kit from '../data/kit.graph.json' with { type: 'json' };
 import landmark from '../data/landmark.graph.json' with { type: 'json' };
+import mapSettings from '../data/map.json' with { type: 'json' };
+import type { OutputProgramResult, ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import { rasterSceneMap } from '@wildshard/sdk/bake/groundMap';
+import { ideaWorld, type PlotIdea } from './plotBake.mjs';
 
 /** The open-plots source shard (SF88g, G538/G539/G541/G542/G545): data rows (`outputs.json`, one product per idea) and one
- *  build-time generator (`generators/bake-plots.mjs`, which writes each idea's `assets/<idea>/world.glb`); this module
+ *  plot bake (`generators/plotBake.mjs`, each idea's world GLB bytes from its declared inputs, GR9); this module
  *  assembles each idea's product at build time (shard.config.ts is its documented entry); no runtime code. The world bake turns a plot into tiles, collision (its `collide_` nodes only), edges and a far proxy.
  *  `data/source.json` holds the plot's authorship, spawn and look (G541, G545: the measure-grid survey floor, plain PBR
  *  kerb and frames, lit-from-within billboard and sign, cyan rim); each hologram draws in the shared graph. */
@@ -72,3 +76,54 @@ export const outputs: Record<string, ReturnType<typeof project>> = Object.fromEn
 
 /** The first idea's output: the project's default build. */
 export const product: ReturnType<typeof project> = project(first);
+
+/** A repo-relative bake input as the build's declared input name: public files under `/assets/`, this folder's own files
+ *  relative to it (`scripts/wildshard.mjs`'s input roots). */
+const PLOT_ASSETS = '/assets/open-plots/';
+function inputName(path: string): string {
+  if (path.startsWith('public/assets/open-plots/')) return PLOT_ASSETS + path.slice('public/assets/open-plots/'.length);
+  if (path.startsWith('src/shards/open-plots/')) return path.slice('src/shards/open-plots/'.length);
+  throw new Error(`open-plots: undeclared bake input ${path}`);
+}
+const decoded = (bytes: Uint8Array | undefined): unknown => {
+  if (bytes === undefined) throw new Error('open-plots: missing layout input');
+  const value: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)); return value;
+};
+/** Every file one idea's plot bake reads (repo-relative): a showroom's hologram, billboard and sign; a tiled plot's layout,
+ *  its kit families, its landmark near / far models and its poster picture. */
+async function bakeInputs(ctx: Pick<ProjectGenerationContext, 'cached'>, row: PlotIdea): Promise<string[]> {
+  if (row.layout === undefined) return ['hologram.glb', 'billboard.webp', 'sign.webp'].map(file => `public/assets/open-plots/${row.idea}/${file}`);
+  const file = `src/shards/open-plots/data/layouts/${row.layout}.json`;
+  const read = await ctx.cached({ id: `layout-${row.idea}`, inputs: [inputName(file)] }, inputs => inputs);
+  const layout = decoded(read.get(inputName(file)));
+  if (typeof layout !== 'object' || layout === null || !('landmark' in layout) || !('posters' in layout)) throw new Error('open-plots: invalid layout inputs');
+  const { landmark: mark, posters } = layout;
+  const families: unknown = 'kit' in layout ? layout.kit : [];
+  if (typeof mark !== 'object' || mark === null || !('near' in mark) || !('far' in mark) || typeof mark.near !== 'string' || typeof mark.far !== 'string'
+    || typeof posters !== 'object' || posters === null || !('image' in posters) || typeof posters.image !== 'string'
+    || !Array.isArray(families) || !families.every((family): family is string => typeof family === 'string')) throw new Error('open-plots: invalid layout inputs');
+  return [file, ...families.map(family => `public/assets/open-plots/kit/${family}.glb`), mark.near, mark.far, posters.image];
+}
+/** GR9 (G783): one idea's build program: its world GLB baked in the build from declared, cached inputs and its map lattice
+ *  painted from that world (its own `data/map.json` output row), in place of the retired `open-plots-world` job. */
+async function plotProgram(ctx: ProjectGenerationContext, row: PlotIdea): Promise<OutputProgramResult> {
+  const paths = await bakeInputs(ctx, row), glb = `assets/${row.idea}/world.glb`;
+  const files = await ctx.cached({ id: `world-${row.idea}`, native: true, inputs: paths.map(inputName) }, async inputs => {
+    const read = (path: string): Uint8Array => {
+      const bytes = inputs.get(inputName(path)); if (bytes === undefined) throw new Error(`open-plots: undeclared bake input ${path}`); return bytes;
+    };
+    const { readImagePixels, writeImagePixels, normalizeWorldGlb } = ctx;
+    if (writeImagePixels === undefined || normalizeWorldGlb === undefined) throw new Error('open-plots: the build adapter lacks the plot bake tools');
+    const world = await ideaWorld(row, read, { readImagePixels, writeImagePixels, normalizeWorldGlb });
+    const need = (name: string): Uint8Array => { if (name !== glb) throw new Error(`open-plots: map reads only its world (${name})`); return world; };
+    const map = await rasterSceneMap(mapSettings, { input: need, bytes: need, json: name => { throw new Error(`open-plots: map reads no rows (${name})`); } }, { output: row.slug, glbs: [glb] });
+    return new Map([['world.glb', world], ['map.rgba', map.pixels]]);
+  });
+  const world = files.get('world.glb'), pixels = files.get('map.rgba');
+  if (world === undefined || pixels?.byteLength !== 1000 * 1000 * 4) throw new Error('open-plots: world or map cache inventory differs');
+  return { world, map: { pixels } };
+}
+
+/** GR9: each output's build program, keyed by its product slug (beside `outputs`, which stay the declarations). */
+export const programs: Record<string, (ctx: ProjectGenerationContext) => Promise<OutputProgramResult>> = Object.fromEntries(
+  declared.outputs.map((row): [string, (ctx: ProjectGenerationContext) => Promise<OutputProgramResult>] => [row.slug, ctx => plotProgram(ctx, row)]));

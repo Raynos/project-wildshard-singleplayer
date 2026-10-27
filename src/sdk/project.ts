@@ -2,7 +2,7 @@ import { executeBundle } from './executeBundle';
 import { mergeProjectSections } from './projectSections';
 import { writeNewProject } from './newProject';
 import { assertConfigBoundary } from './configBoundary';
-import { createProjectGeneration, isProjectGenerator, type ProjectGenerationInputRoot } from './projectGeneration';
+import { createProjectGeneration, isProjectGenerator, type ProjectGenerationContext, type ProjectGenerationInputRoot } from './projectGeneration';
 // oxlint-disable-next-line import/no-nodejs-modules -- The author CLI verifies and writes local build products.
 import { cpSync, existsSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve source assets inside the author project.
@@ -65,6 +65,16 @@ async function authorModule(project: string, file: string): Promise<{ exports: R
   return { exports: Object.fromEntries(Object.entries(loaded)), hash: contentHash(new TextEncoder().encode(chunk.code)) };
 }
 
+/** GR9: a declared output's build program (`programs` in shard.config.ts, keyed by slug), if the folder has one for it. */
+function outputProgram(loaded: Record<string, unknown>, output: string): ((ctx: ProjectGenerationContext) => unknown) | undefined {
+  const programs = loaded['programs'];
+  if (programs === undefined) return undefined;
+  if (typeof programs !== 'object' || programs === null) throw new Error('config programs must map output slugs to build functions');
+  const program: unknown = Object.hasOwn(programs, output) ? Reflect.get(programs, output) : undefined;
+  if (program !== undefined && !isProjectGenerator(program)) throw new Error(`config program for ${output} must be a build function`);
+  return program;
+}
+
 /** SF88g: one declared output of a source folder that emits several products (`outputs` in shard.config.ts, keyed by slug). */
 function outputDeclaration(loaded: Record<string, unknown>, output: string): unknown {
   const outputs = loaded['outputs'];
@@ -87,6 +97,18 @@ async function projectModule(project: string, decisionLegacyLines?: number, sele
   }))), baked, undefined, inputRoots);
   let generatedOutput: unknown, map: Awaited<ReturnType<typeof generatedProjectMap>> | undefined;
   let discovery: DiscoveryValues | undefined;
+  // GR9: a selected output's build program supplies its world GLB bytes and its map lattice
+  let programWorld: Uint8Array | undefined;
+  const outputBuild = selected === undefined ? undefined : outputProgram(loaded, selected);
+  if (outputBuild !== undefined) {
+    const result: unknown = await outputBuild(generation);
+    if (typeof result !== 'object' || result === null || Object.keys(result).some(key => key !== 'world' && key !== 'map')) throw new Error('Output program returns only world and map');
+    if ('world' in result) {
+      if (!(result.world instanceof Uint8Array)) throw new Error('Output program world must be GLB bytes');
+      programWorld = result.world;
+    }
+    if ('map' in result) map = await generatedProjectMap(result.map, mapSourceHash ?? program.hash);
+  }
   if (isProjectGenerator(declaration)) {
     declaration = await declaration(generation);
     if (typeof declaration === 'object' && declaration !== null && 'shard' in declaration) {
@@ -109,7 +131,7 @@ async function projectModule(project: string, decisionLegacyLines?: number, sele
   }
   if (typeof declaration === 'object' && declaration !== null && 'world' in declaration) {
     const world = parseWorldSource(declaration.world);
-    const product = await bakeAuthoredWorld(declaration, readBoundedFile(sourcePath(world.glb), 256_000_000));
+    const product = await bakeAuthoredWorld(declaration, programWorld ?? readBoundedFile(sourcePath(world.glb), 256_000_000));
     shard = product.shard;
     for (const [hash, bytes] of product.assets) baked.set(hash, bytes);
   } else shard = parseShardfile(declaration);

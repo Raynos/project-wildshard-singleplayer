@@ -917,9 +917,7 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 # G508: ink-cel-valley data map outputs.
 
 # SF88g: open-plots generated worlds, one data map per output, and per-output discovery modules.
-/src/shards/open-plots/assets/
 /public/assets/open-plot-*/map/top.webp
-/src/shards/open-plots/look/map.*.baked.json
 /src/shards/*/discovery.*.generated.ts
 
 # G508: blender-template data map outputs.

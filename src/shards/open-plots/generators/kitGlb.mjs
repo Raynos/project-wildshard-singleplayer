@@ -3,7 +3,6 @@
 // model metres (front +z) with flat normals, metre UVs and a baked occlusion shade (COLOR_0). Placing a model colours
 // each corner palette[slot] x shade (a slot the palette lacks takes the family's default colour), so every idea retints
 // the same kit. The bytes arrive from the plot producer: nothing here reads a file, and no decoded buffer outlives the build.
-import { normalizeWorldGlb } from '@wildshard/sdk/bake/world';
 
 const ROLES = new Set(['Kit', 'Glow']);
 /** sRGB hex to linear RGB */
@@ -21,7 +20,7 @@ function glbExtras(bytes) {
 }
 
 /** Decode one family: its variants' rows (role, slot, corner arrays), emitters, default slot colours and stretch band. */
-async function decodeFamily(family, bytes) {
+async function decodeFamily(family, bytes, normalizeWorldGlb) {
   if (!(bytes instanceof Uint8Array) || bytes.length === 0) throw new Error(`open-plots kit ${family}: missing GLB bytes`);
   const extras = glbExtras(bytes);
   const count = extras.variants, emitters = extras.emitters, slots = extras.slots, stretch = extras.stretch, nominal = extras.nominal;
@@ -59,11 +58,13 @@ async function decodeFamily(family, bytes) {
 
 /** Decode the kit's families once per build (`files`: family name to GLB bytes). `placeModel` writes a model's
  * triangles through a tile writer at tile-local (x, z) and `y` up, turned `yaw` radians (its front from +z toward +x), its stretch
- * band lengthened to `height` (a lantern post), the whole scaled by `scale` (a tree's size); its emitters feed the writer's lantern bake. */
-export async function prepareModelKit(palette, files) {
+ * band lengthened to `height` (a lantern post), the whole scaled by `scale` (a tree's size); its emitters feed the writer's lantern bake.
+ * `normalizeWorldGlb` is the SDK's world reader, passed in (the build context's capability) so no native codec enters
+ * the config bundle (GR9). */
+export async function prepareModelKit(palette, files, normalizeWorldGlb) {
   if (!(files instanceof Map) || files.size === 0) throw new Error('open-plots kit: no model families');
   const families = new Map();
-  for (const [family, bytes] of files) families.set(family, await decodeFamily(family, bytes));
+  for (const [family, bytes] of files) families.set(family, await decodeFamily(family, bytes, normalizeWorldGlb));
   const colours = new Map();
   const colourOf = (family, model, slot) => {
     const key = `${family}/${slot}`;

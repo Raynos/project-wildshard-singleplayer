@@ -1,12 +1,13 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- This artifact test reads the generated GLBs from disk.
-import { readFile } from 'node:fs/promises';
-// oxlint-disable-next-line import/no-nodejs-modules -- Resolve each declared output's generated artifact path.
-import { resolve } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- The bake's inputs are the checkout's own files.
+import { readFileSync } from 'node:fs';
 import { NodeIO } from '@gltf-transform/core';
 import { expect, test } from 'vitest';
 import declared from '../outputs.json' with { type: 'json' };
 import plot from '../data/plot.json' with { type: 'json' };
 import { outputs } from './product';
+import { readImagePixels, writeImagePixels } from '@wildshard/sdk/bake/image';
+import { normalizeWorldGlb } from '@wildshard/sdk/bake/world';
+import { ideaWorld } from './plotBake.mjs';
 
 test('every plot product has no beam graph or beam-height rows', () => {
   expect(plot).not.toHaveProperty('beam');
@@ -18,10 +19,10 @@ test('every plot product has no beam graph or beam-height rows', () => {
   }
 });
 
-test('all regenerated plot worlds omit corner beacons and near/far beam geometry', async () => {
-  const io = new NodeIO();
+test('all baked plot worlds omit corner beacons and near/far beam geometry', async () => {
+  const io = new NodeIO(), read = (path: string): Uint8Array => new Uint8Array(readFileSync(path));
   for (const row of declared.outputs) {
-    const bytes = new Uint8Array(await readFile(resolve('src/shards/open-plots/assets', row.idea, 'world.glb')));
+    const bytes = await ideaWorld(row, read, { readImagePixels, writeImagePixels, normalizeWorldGlb });
     const doc = await io.readBinary(bytes), nodes = doc.getRoot().listNodes(), names = nodes.map(node => node.getName());
     // G641: a tiled plot (a row with a layout) stands its landmark and its tiles in the far proxy instead of a hologram
     for (const name of 'layout' in row ? ['far_landmark', 'far_tiles'] : ['far_hologram']) expect(names, row.slug).toContain(name);
@@ -48,4 +49,4 @@ test('all regenerated plot worlds omit corner beacons and near/far beam geometry
     // a tiled plot (a row with a layout, NM9) builds its house courts out to its corner tiles' corners; it has no beacons
     if (!('layout' in row)) expect(cornerVerticesAboveFloor, row.slug).toBe(0);
   }
-});
+}, 300_000);

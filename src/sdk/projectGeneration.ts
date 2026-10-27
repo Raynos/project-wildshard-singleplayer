@@ -17,7 +17,8 @@ import { compileScriptV2 } from './bake/compileScriptV2';
 import { compileReturnProjectionV2 } from './returnProjectionV2';
 import { compileDeclaredDecisionScripts, compileDecisionScripts } from './buildDecisionScripts';
 import { proveStaticPortalEntries } from './projectEntryProof';
-import { readImagePixels } from './bake/image';
+import { readImagePixels, writeImagePixels } from './bake/image';
+import { normalizeWorldGlb } from './bake/world';
 import { createBasisEncoder } from './bake/basisEncoder';
 import { projectInputFiles } from './projectInputFiles';
 import type { Shardfile } from './shardfile';
@@ -38,6 +39,13 @@ export interface ProjectGenerationStep {
 }
 /** Explicit filesystem capability for authored public assets; never inferred from a shard name or parent path. */
 export interface ProjectGenerationInputRoot { readonly prefix: string; readonly directory: string }
+/** GR9: a multi-output folder's build program for one output (`programs[slug]` beside `outputs` in shard.config.ts), run
+ *  when that output builds: its world GLB bytes stand in for reading the declaration's `world.glb`, and its map lattice is
+ *  published as the output's map. Neither is written into source. */
+export interface OutputProgramResult {
+  readonly world?: Uint8Array;
+  readonly map?: { readonly pixels: Uint8Array; readonly name?: string };
+}
 /** A build may return output metadata alongside the declaration it describes. Neither is written into source. */
 export interface GeneratedProject {
   readonly shard: Shardfile;
@@ -52,6 +60,11 @@ export interface ProjectGenerationContext {
   proveStaticPortalEntries: typeof proveStaticPortalEntries;
   /** Decode bounded still image bytes into owned RGBA at build time; no Sharp dependency enters the author bundle. */
   readImagePixels: typeof readImagePixels;
+  /** Encode a bounded RGBA raster as a deterministic lossless PNG at build time (GR9); older adapters may omit it. */
+  writeImagePixels?: typeof writeImagePixels;
+  /** The authored-world GLB reader (`bake/world.ts`), so an author bundle decodes model kits without Sharp (GR9); older
+   *  adapters may omit it. */
+  normalizeWorldGlb?: typeof normalizeWorldGlb;
   /** Trusted original UASTC build recipe; older adapters may omit this capability. */
   basisEncoder?: typeof createBasisEncoder;
   /** Fresh bounded names below declared URL roots; older adapters may omit this build-only capability. */
@@ -90,7 +103,7 @@ export function createProjectGeneration(project: string, programHash: string, as
     return { prefix: source.prefix, directory: realpathSync(source.directory) };
   });
   return {
-    compileScript, compileScriptV2, compileDecisionScripts: compileDeclaredDecisionScripts, compileDecisionRows: compileDecisionScripts, compileReturnProjection: compileReturnProjectionV2, proveStaticPortalEntries, readImagePixels,
+    compileScript, compileScriptV2, compileDecisionScripts: compileDeclaredDecisionScripts, compileDecisionRows: compileDecisionScripts, compileReturnProjection: compileReturnProjectionV2, proveStaticPortalEntries, readImagePixels, writeImagePixels, normalizeWorldGlb,
     basisEncoder: createBasisEncoder,
     inputFiles: prefixes => projectInputFiles(roots, prefixes),
     asset(bytes) {

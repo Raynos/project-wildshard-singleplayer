@@ -7,10 +7,10 @@ idea. There is no runtime code: the shard is data rows and one build-time genera
   the overrides its manifest makes to `manifest.json`). The platform reads it through `scripts/shard-outputs.mjs`: discovery
   writes `discovery.<slug>.generated.ts`, `scripts/build-shardfiles.mjs` builds each output to `out/<slug>` with
   `wildshard build … --output=<slug>`, and `shard.config.ts` exports the declaration of every output (`outputs`).
-- `generators/bake-plots.mjs` (generation job `open-plots-world`, cheap build-time outputs) writes each idea's
-  `assets/<idea>/world.glb` (git-ignored): a 500 m plot floor with a kerb broken by four entries, a low round plinth
+- `generators/plotBake.mjs` (GR9: no generation job; each output's build program in `shard.config.ts` `programs` bakes it
+  from declared, cached inputs) makes each idea's world GLB in memory: a 500 m plot floor with a kerb broken by four entries, a low round plinth
   (radius 10 m) with a cyan rim, the idea's hologram standing on it, the billboard behind it, the 'OPEN PLOT · COMING
-  SOON' sign; then each output's data map. The world bake turns a plot into tiles, collision (only the `collide_` nodes,
+  SOON' sign; the same program paints the output's map from that world (`data/map.json`). The world bake turns a plot into tiles, collision (only the `collide_` nodes,
   never the hologram), edges and a far proxy.
 - `data/plot.json` (G608): the hologram's scale (6: 72 m, Jake's G615 pick A on art/grid/round-37-open-plot-scale), the
   floor's accent tint. The hologram is additive, so the generator also writes a welded `far_hologram` stand-in
