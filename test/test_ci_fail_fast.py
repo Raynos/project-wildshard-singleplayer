@@ -122,7 +122,7 @@ class FailFastTests(unittest.TestCase):
 
     def test_behaviour_matrix_keeps_independent_jobs_and_per_shard_bail(self):
         source=Path('.github/workflows/deploy.yml').read_text()
-        for job, count in [('behaviour',16),('behaviour-products',8)]:
+        for job, count in [('behaviour',32),('behaviour-products',8)]:
             behaviour=source.split(f'\n  {job}:\n',1)[1].split('\n  dispatch-boot-smoke:\n',1)[0].split('\n  behaviour-products:\n',1)[0]
             self.assertIn('fail-fast: false',behaviour)
             self.assertNotIn('fail-fast: true',behaviour)
