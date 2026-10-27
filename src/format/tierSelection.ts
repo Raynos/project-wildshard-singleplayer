@@ -1,3 +1,4 @@
+import type { LateFile } from './admissionLate';
 import { parseWorldScenes, worldScenesForTier } from './worldScenes';
 import { parseRiggedHullBook } from './riggedHulls';
 import { PosedLibrarySchema } from './namedJsonContracts';
@@ -10,6 +11,8 @@ export interface TierSelectionSource {
   readonly identity: { readonly slug: string };
   readonly files: readonly { readonly hash: string; readonly kind: string; readonly decoded: number; readonly dependencies: readonly string[] }[];
   readonly library: readonly string[]; readonly critical: readonly string[];
+  /** Scheduling metadata never creates a synchronous consumer or a tier pin. */
+  readonly late?: readonly LateFile[];
   readonly manifest?: { readonly horizonStrips?: { readonly day: string; readonly night: string; readonly phone?: { readonly day: string; readonly night: string } } };
 }
 
@@ -42,7 +45,7 @@ export function* entryFileSteps(source: TierSelectionSource, tier: 'phone' | 'de
   }
   const eligible = new Set<string>(), used = new Set(source.critical);
   yield* stringsSteps([source.manifest], text => { const hash = names.get(text); if (hash !== undefined) eligible.add(hash); });
-  const { files: _files, library: _library, critical: _critical, manifest: _manifest, ...fields } = source;
+  const { files: _files, library: _library, critical: _critical, manifest: _manifest, late: _late, ...fields } = source;
   const sections = [...descriptor.sections].map(([name, row]) => name === 'ui/level' && typeof row === 'object' && row !== null
     ? Object.fromEntries(Object.entries(row).filter(([key]) => key !== 'manifest')) : row);
   yield* stringsSteps([fields, ...sections], text => { const hash = names.get(text); if (hash !== undefined) used.add(hash); });
@@ -171,7 +174,7 @@ export function* tierLibrarySteps(source: TierSelectionSource, tier: 'phone' | '
     alternative(selected.geometry, other.geometry); if (selected.atlas !== undefined && other.atlas !== undefined) alternative(selected.atlas, other.atlas);
   }
   if (inactive.size === 0) return inactive;
-  const { files: _files, library: _library, critical: _critical, manifest: _manifest, ...fields } = source;
+  const { files: _files, library: _library, critical: _critical, manifest: _manifest, late: _late, ...fields } = source;
   yield* stringsSteps([{ ...fields, manifest }, ...sections.values()], text => { const hash = names.get(text); if (hash !== undefined) used.add(hash); });
   const pinned = new Set([...source.critical, ...source.files.flatMap(file => file.dependencies)]);
   for (const file of source.files) for (const ref of file.dependencies) used.add(ref);

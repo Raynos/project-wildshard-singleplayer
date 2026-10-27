@@ -711,6 +711,8 @@ no duplicate baseline and no physical-phone acceptance claim.
 
 ### I2.9 Standalone spawn has no distant-exit pins (2026-10-27, sp-x2)
 
+Source: `f466081bbe` (landed).
+
 In flight (reading at plan end): residentTiles previously required the
 spawn3x3 plus every declared exit tile when no crossing was bound. It
 now uses only the actual bound arrival ring, or the authored spawn3x3
@@ -727,3 +729,29 @@ collider tiles and excludes the far exit. Existing actual-crossing and
 failure controls remain. Tests/builds/reading are not run before landing
 under G769; no measured savings or completed I2 acceptance claimed.
 Last actual heavy-three control numbers remain the21c table above.
+
+### I2.10 Late hints are scheduling, not consumers (2026-10-27, sp-x2)
+
+Red-fix for1655f7fd74: the conservative tier-selection field walk
+interpreted the new late hashes as real synchronous consumers, undoing
+manifest-only image omission. The same151 FarReach file records and
+sections are byte-for-byte identical in retained green preview4404 and
+current product. Four newly hinted Explorer images total161334B;
+34105274B was149799B above the33955475B original ceiling. No new asset
+bytes or pack cost caused this refusal. The metadata interaction was my
+source regression, not a FarReach generator or ceiling defect.
+
+Both entryFileSteps and tierLibrarySteps now omit only late scheduling
+metadata from the conservative use walk. Actual critical, dependency
+and other host references still pin their files. Read-only native
+selector control on the same existing product, no rebuild: before fix
+with hints34105274B/148files versus without hints33943940B/144files;
+after fix both33943940B/144files,11535B under the unchanged ceiling.
+Hints remain published and all151 file records/sections stay unchanged.
+
+Format/test types, touched typed lint and scoped ratchet pass. New
+source controls retain critical/dependency/host pins and the original
+horizon tier selection. They are typed, not executed before landing
+(G769); the actual existing-product selector comparison above executed.
+No preview/product duplicate, cap change or acceptance saving claim.
+I2 still awaits the joint heavy-three read on its original12MB/250 bars.
