@@ -6,7 +6,7 @@ import { TileStreamer, type RingPorts, type RingTile, type RingLevel, type RingO
 // Captured from the pre-extraction scheduler on the same 1 km path. Render
 // ownership, masks and allocator charges are part of the oracle, not only counts.
 const BASELINE = '5e0c88fa09c768a0812311096c475615bfc92e2cea3f31977c5d3cf2cd30a582';
-function drive() {
+function drive(fullRing: number | null = null) {
   const cells = [{ instance: 'west', origin: { x: 0, z: 0 } }, { instance: 'east', origin: { x: 555, z: 0 } }];
   const allocator = new ResidencyAllocator(), live = new Map<string, Set<number>>();
   const pending: { tile: RingTile; done: (value: string) => void }[] = [], events: string[] = [], trace: unknown[] = [];
@@ -21,7 +21,8 @@ function drive() {
   };
   const bytes = (_instance: string, level: RingLevel): number => level === 'far' ? 8000 : level === 'l1' ? 2000 : 1000;
   const streamer = new TileStreamer(cells, { reserve: claim => allocator.reserve(claim), now: () => 0 }, bytes, ports);
-  let holes = 0, overlaps = 0, readyFrames = 0;
+  if (fullRing !== null) for (const cell of cells) streamer.setFullRing(cell.instance, fullRing);
+  let holes = 0, overlaps = 0, readyFrames = 0, fineMost = 0;
   for (let frame = 0; frame <= 120; frame++) {
     if (frame % 3 === 0) for (const row of pending.splice(0)) row.done(row.tile.key);
     // Initial settle, then exactly 1000 metres in 10 m increments.
@@ -37,6 +38,7 @@ function drive() {
         if (count === 0) holes++; if (count > 1) overlaps++;
       }
     }
+    for (const cell of cells) fineMost = Math.max(fineMost, streamer.resident().filter(key => key.startsWith(`${cell.instance}:l0/`)).length);
     trace.push({ resident: streamer.resident(), stats: streamer.stats(),
       masks: [...live].sort(([a], [b]) => a.localeCompare(b)).map(([key, values]) => [key, [...values].sort((a, b) => a - b)]),
       claims: allocator.entries(), events: events.splice(0) });
@@ -45,7 +47,7 @@ function drive() {
   // Fetches finishing after retirement can only discard, never publish a view.
   for (const row of pending.splice(0)) row.done(row.tile.key);
   expect(live.size).toBe(0); expect(allocator.entries()).toHaveLength(0);
-  return { digest: hashImmutableBytes(new TextEncoder().encode(JSON.stringify(trace))), holes, overlaps, readyFrames };
+  return { digest: hashImmutableBytes(new TextEncoder().encode(JSON.stringify(trace))), holes, overlaps, readyFrames, fineMost };
 }
 
 test('the engine keeps the original 1 km trace with no ready-frame holes or overlaps', () => {
@@ -53,6 +55,13 @@ test('the engine keeps the original 1 km trace with no ready-frame holes or over
   expect(result.holes).toBe(0); expect(result.overlaps).toBe(0);
   expect(result.readyFrames).toBeGreaterThan(100);
   expect(result.digest).toBe(BASELINE);
+});
+
+test('a 5 x 5 full ring keeps at most 25 fine tiles a cell over the same 1 km drive, with no holes (tiles T2)', () => {
+  const result = drive(2);
+  expect(result.holes).toBe(0); expect(result.overlaps).toBe(0);
+  expect(result.readyFrames).toBeGreaterThan(100);
+  expect(result.fineMost).toBeGreaterThan(0); expect(result.fineMost).toBeLessThanOrEqual(25);
 });
 
 test('invalid cell data refuses before any borrowed render or budget service runs', () => {

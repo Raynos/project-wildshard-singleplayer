@@ -66,6 +66,7 @@ the plugin pieces only it used become dead code and are deleted (SHARD-PLATFORM-
 - The Sky and Signal deep dives (2026-10-17): every platform module only those two shards use, scored on the six tests.
 - `progress/shard-platform/builder-calls-audit-2026-10-17/host-rescore.md` (G496): 31 feature hosts since the 10:37
   pass re-scored; 17 self-scores held, 14 were too high; loadout `held.ts` and the held equipment catalogue score 2 / 6.
+- Tile residency host (tile streaming T2, 2026-10-27, sp-o4): `engine/world/tileStreamer` scores **6 / 6**. (1) Two real users: the grid session's render rings (`game/grid/session.ts`) and the shardfile tile adapter (`game/shardfile/tileContent.ts`) that every tiled shard's product goes through. (2) No shard nouns: cells by instance id, tile kinds level / road / junction, engine words only. (3) Data-driven: cells are rectangles (`RingCell` origin + extent), costs come from the catalogue's byte rows, rings from options (full N x N ring, view distance, per-frame uploads / bytes / ms). (4) Server-safe: Node-safe and deterministic (its 1 km trace and the 5 x 5 drive run in Node). (5) Deletion test: kept if any one shard vanished. (6) Data-only API: rows and ids in; the budget and render ports are the one engine-to-game binding, never a per-shard hook.
 
 ## Dated exceptions
 

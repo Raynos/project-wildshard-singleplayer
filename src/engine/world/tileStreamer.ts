@@ -1,11 +1,11 @@
 /**
  * Render streaming rings for declared level, road and junction rectangles (SF18b/S1). From the camera's world position and velocity, every
  * fixed step picks the tiles the view wants: L0 (62.5 m) to 150 m plus a lookahead of speed × readiness time along the
- * heading, L1 (125 m) to 400 m, and one far proxy per shard in a bounded ring (`CONTENT_CAPS.farCount` charges of
+ * heading, L1 (125 m) to 400 m, and one far proxy per cell in a bounded ring (`CONTENT_CAPS.farCount` charges of
  * `CONTENT_CAPS.far.resident` bytes each, spent on the proxies' own bytes, nearest first).
  *
  * - **Parent-first**: a tile is requested only once its parent is uploaded (far proxy → L1 → L0), and the request holds
- *   the parent's residency lease, so a parent is never evicted under a child. A shard without a far proxy has its 16 L1
+ *   the parent's residency lease, so a parent is never evicted under a child. A cell without a far proxy has its 16 L1
  *   tiles as its coarse level: all of them are wanted while the cell is in the far ring, whatever the distance.
  * - **No holes**: a parent hides a region (an L1 quadrant, a far proxy's 4 × 4 L1 regions) only while the child drawing
  *   that region is uploaded; every upload and every eviction re-masks the parent in the same call, so each patch of a
@@ -39,7 +39,7 @@ export interface TileStreamBudget {
 }
 
 export type TileKind = 'level' | 'road' | 'junction';
-/** A placed rectangle centred on `origin` (world metres). Omitted extent retains the 500 m shard lattice.
+/** A placed rectangle centred on `origin` (world metres). Omitted extent retains the 500 m cell lattice.
  * Instance ids are unique across all kinds; catalogue/view adapters may dispatch by the explicit kind. */
 export interface RingCell {
   readonly instance: string; readonly origin: { readonly x: number; readonly z: number }; readonly type?: TileKind;
@@ -55,7 +55,7 @@ export interface TileRectangle { readonly minX: number; readonly minZ: number; r
 export type RingLevel = 'far' | 'l1' | 'l0';
 /** One streamable tile; x/z start at the rectangle's −x/−z corner (0 for far). */
 export interface RingTile { readonly key: string; readonly instance: string; readonly type: TileKind; readonly level: RingLevel; readonly x: number; readonly z: number }
-/** What a cell's tiles cost resident (decoded + GPU bytes); null = the shard has no such tile (its parent keeps drawing). */
+/** What a cell's tiles cost resident (decoded + GPU bytes); null = the cell has no such tile (its parent keeps drawing). */
 export interface RingCatalogue {
   (instance: string, level: RingLevel, x: number, z: number, type?: TileKind): number | null;
   /** Optional monotonic content revision. Without it every step keeps the
@@ -598,7 +598,7 @@ export class TileStreamer<D> {
   /** The far ring's byte budget: `farCount` charges of `CONTENT_CAPS.far.resident`. */
   private farBudget(): number { return this.options.farCount * C.far.resident; }
 
-  /** Whether the catalogue has the parent tile at all (a shard without a far proxy starts at L1). */
+  /** Whether the catalogue has the parent tile at all (a cell without a far proxy starts at L1). */
   private exists(child: RingTile): boolean {
     return child.level === 'l1' ? this.bytes(child.instance, 'far', 0, 0) !== null : this.bytes(child.instance, 'l1', Math.floor(child.x / 2), Math.floor(child.z / 2)) !== null;
   }
