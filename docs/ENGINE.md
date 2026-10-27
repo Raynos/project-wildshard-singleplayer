@@ -1282,8 +1282,9 @@ A two-sided material can still issue two variants; one native query can still ov
 preparation uses the existing 6 ms slice on both browser families. Initial boot retains its
 ordinary grouping and 12 ms bound; readiness still awaits the complete inventory before exposure.
 
-For a running WebKit game, `Game.warmEnteredFrame` supplies `waitForDrawnFrame` as the
-`pause` callback. It waits for a fresh completed game draw and a paint opportunity; a capped/skipped browser rAF
+Live WebKit uses `LIVE_PARKED_BUDGET` (1 drawable, 1 new material, 4 MiB).
+Every slice awaits a completed draw, even held; skipped rAFs cannot release it.
+Boot/desktop keep prior budgets; one native draw can still stall.
 `Game.entryPreparation` exposes the destination root UUID, scope owner, completed,
 phase, optional progress `{ done, total, detail }`, and compile/link/upload, composer
 and parked/offscreen draw times and units, including painted waits. Match the root

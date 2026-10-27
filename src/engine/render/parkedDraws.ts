@@ -216,6 +216,8 @@ export type ParkedDrawRenderer = Pick<Renderer, 'render' | 'getRenderTarget' | '
 
 /** 4 MiB of new buffers a slice: a few milliseconds of `bufferData` at most. */
 const DEFAULT_BUDGET: ParkedDrawBudget = { drawables: 8, newMaterials: 2, bufferBytes: 4 * 1024 * 1024 };
+/** Live WebKit first-use work: one drawable per completed game frame, even while held. */
+export const LIVE_PARKED_BUDGET: ParkedDrawBudget = { drawables: 1, newMaterials: 1, bufferBytes: 4 * 1024 * 1024 };
 /** G580 T5: while the traveller waits at the wall (engine/core/framePacing buildHeld), a slice may draw four times as
  *  much: each slice costs a drawn frame, and the held view's longer frames cost no movement. */
 export const HELD_PARKED_BUDGET: ParkedDrawBudget = { drawables: 32, newMaterials: 8, bufferBytes: 16 * 1024 * 1024 };

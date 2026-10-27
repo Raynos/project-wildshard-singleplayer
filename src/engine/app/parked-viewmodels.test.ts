@@ -1,9 +1,9 @@
 import { expect, test, vi } from 'vitest';
-import { BoxGeometry, DirectionalLight, Group, Mesh, MeshBasicMaterial, PCFShadowMap, PerspectiveCamera, PointLight, Scene, Vector4, WebGLRenderer, WebGLRenderTarget, type Camera, type Object3D } from 'three';
+import { BoxGeometry, DirectionalLight, Group, Mesh, MeshBasicMaterial, PCFShadowMap, PerspectiveCamera, PointLight, Scene, Vector4, WebGLRenderer, WebGLRenderTarget, type Camera, type Material, type Object3D } from 'three';
 import { Scope } from './scope';
 import { bindConstructionEnvironment, withOwner } from './ownership';
 import { ViewmodelRoot } from '../render/viewmodel';
-import { warmParkedDraws, type ParkedDrawRenderer } from '../render/parkedDraws';
+import { LIVE_PARKED_BUDGET, warmParkedDraws, type ParkedDrawRenderer } from '../render/parkedDraws';
 import { prepareSceneRoots } from '../render/precompile';
 import { SHADOW_LAYER } from '../core/shadowLayer';
 
@@ -206,4 +206,20 @@ test('first-draw census observes visibility and shadow casters changed between s
         peer.visible = true; return Promise.resolve(); }, { revealChildren: true, budget: { drawables: 1, newMaterials: 1 } })).toBe(2);
     expect(calls).toBe(2); expect(error).not.toHaveBeenCalled(); expect(f.draws.flat()).toEqual(f.parts); f.restored();
   } finally { error.mockRestore(); target.dispose(); f.dispose(); }
+});
+
+
+test('live preparation submits one drawable per pause and preserves every material', async () => {
+  const f = fixture();
+  try {
+    const seen = new Set<Material>();
+    const drawn = await warmParkedDraws(f.renderer, f.scene, f.camera, f.target, f.stage, () => true,
+      () => { f.restored(); return Promise.resolve(); }, { revealChildren: true, budget: LIVE_PARKED_BUDGET });
+    for (const batch of f.draws) {
+      const fresh = new Set(batch.flatMap(mesh => Array.isArray(mesh.material) ? mesh.material : [mesh.material]).filter(material => !seen.has(material)));
+      expect(batch).toHaveLength(1); expect(fresh.size).toBeLessThanOrEqual(1);
+      for (const material of fresh) seen.add(material);
+    }
+    expect(drawn).toBe(2); expect(f.draws.flat()).toEqual(f.parts); f.restored();
+  } finally { f.dispose(); }
 });
