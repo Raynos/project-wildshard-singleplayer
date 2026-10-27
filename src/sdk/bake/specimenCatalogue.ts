@@ -1,8 +1,14 @@
 import { parse } from 'valibot';
-import { SpecimenBookSchema, type SpecimenBookRows, type SpecimenModelMetadataRows } from '@wildshard/format/specimenCatalogue';
+import { PickupCatalogueSchema, SpecimenBookSchema, type PickupCatalogueRows, type SpecimenBookRows, type SpecimenModelMetadataRows } from '@wildshard/format/specimenCatalogue';
+import pickupRows from '@wildshard/game/data/pickupCatalogue' with { type: 'json' };
 import { namedJsonSchema } from '../formatJsonSchema';
 import { encodeCanonicalJson } from '../immutable';
 import { nameBlob, type NamedBlob, type BlobOptions } from '../blobs';
+
+/** Admit fresh shared pickup metadata for an offline recipe, without installing runtime models or loading geometry. */
+export function sharedPickupCatalogue(): PickupCatalogueRows {
+  return parse(PickupCatalogueSchema, pickupRows);
+}
 
 /** A build-time catalogue: admitted rows and metadata, without runtime registration or model construction. */
 export interface AuthoredSpecimenCatalogue {

@@ -14,19 +14,17 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
 import { plank } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
-import * as v from 'valibot';
-import { readBakedGeometry } from '@wildshard/game/plugin/geometry';
-import { PickupCatalogueSchema, type PickupCatalogueRows } from '@wildshard/format/specimenCatalogue';
-import pickupRows from '@wildshard/game/data/pickupCatalogue' with { type: 'json' };
+import { readBakedGeometry } from '@wildshard/sdk/kit/bakedGeometry';
+import { sharedPickupCatalogue } from '@wildshard/sdk/bake/specimenCatalogue';
 import HOLLOW_LOG_SHAPE from '../data/hollowLog.json' with { type: 'json' }; // length, outer and bore radius (m), the rotted bed's depth
 import * as LAYOUT from './layout';
 import type { TimberWorld } from './timberWorldRows';
 import { buildPrimitiveParts, PartKit } from './primitiveParts';
 import { NPC_MILLER_BODY, NPC_RANGER_BODY, NPC_RANGER_GLASS, NPC_TRADER_BODY } from './peopleParts';
 
-const tokens = v.parse(PickupCatalogueSchema, pickupRows).geometries.filter(row => row.key === 'token');
+const tokens = sharedPickupCatalogue().geometries.filter(row => row.key === 'token');
 /** The shelf consumes only prepared raw token geometry; legacy inline rows belong to the legacy pickup reader. */
-export function readShelfToken(row: PickupCatalogueRows['geometries'][number],files:ReadonlyMap<string,Uint8Array>): THREE.BufferGeometry {
+export function readShelfToken(row: ReturnType<typeof sharedPickupCatalogue>['geometries'][number],files:ReadonlyMap<string,Uint8Array>): THREE.BufferGeometry {
   if (!('file' in row)) throw new Error('Pine shelf requires prepared token bytes');
   const bytes=files.get(row.file);
   if(bytes===undefined)throw new Error('Missing prepared shelf bytes');
