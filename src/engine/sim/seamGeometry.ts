@@ -137,7 +137,10 @@ export function* seamGeometrySteps(input: { readonly id: string; readonly axis: 
     const left = retained[previous], right = retained[col];
     if (left === undefined || right === undefined) throw new Error('Missing seam column');
     let l = 0, r = 0;
-    const triangle = (a: number, b: number, c: number): void => { group.indices.push(...(input.axis === 'x' ? [a, b, c] : [a, c, b])); };
+    const triangle = (a: number, b: number, c: number): void => {
+      if (input.axis === 'x') group.indices.push(a, b, c);
+      else group.indices.push(a, c, b);
+    };
     while (l < left.length - 1 || r < right.length - 1) {
       const a = (left[l] ?? 0) * count + previous, b = (right[r] ?? 0) * count + col;
       const nextLeft = left[l + 1] ?? Infinity, nextRight = right[r + 1] ?? Infinity;
