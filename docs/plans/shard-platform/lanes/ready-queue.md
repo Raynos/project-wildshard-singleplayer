@@ -5,25 +5,11 @@ claims it with a one-line pathspec commit to this file (`<lane> <HH:MM>`), sends
 A brief sent by wildshard-new always wins over this queue. The coordinator keeps at least five open rows per type.
 Every row is decided work (Jake's G-rows); the refs are the brief.
 
-## TOP: green main (G751, Jake 2026-10-26): any Codex lane takes the next row at its task boundary, no interrupts
+## G768 (Jake, 2026-10-27): no gate project
 
-Claim by putting `<lane> <HH:MM>` in the code commit that starts the row. sp-x7 takes no feature rows, ever (G751).
-G756 caps: pre-commit <= 60 s wall, push gate <= 180 s per batch; 'clean tree' = the one existing build mirror
-(incremental), never new checkouts; one push queue. What a step does AT its cap is a Jake question (green-main plan): don't build it yet.
-
-| Row | What | Taken |
-|---|---|---|
-| GM0 | Push-gate blocker: the uncommitted fail-closed edits refuse on peers' dirty inputs; read inputs from committed objects / the one mirror, land, push the backlog | sp-x9 + sp-x2 (sp-x7 at 03:50Z) |
-| GM1 | No hand cancels of push CI (G678): every red run finishes and lists every red; DEPLOY.md line | sp-x7 |
-| GM2 | G753 + G756: push gate = CI subset on the one mirror, <= 180 s, holds while red; at the cap split the batch, then defer only that step tagged 'Gate-deferred: <step>' (G757); while red only 'Red-fix:' commits push (G759) | sp-x2 |
-| GM3 | G752 + G756: pre-commit fails closed in <= 60 s, wide commits check wide; same cap rule (G757) | sp-x9 |
-| GM4 | Slow/flaky tests stop opening windows (CF2 + SW13): flakes quarantined to a non-blocking job with an owner and a 24 h fix, never deleted (G758) | sp-x6 (Nalati), sp-x1 (CF2 title) |
-| GM5 | First CI verdict sooner: generated-inputs names the failing generator; products off the critical path (CF3) | sp-x1 after CF2 title |
-| GM6 | G754: auto-bisect CI job after a red (failing files at each commit last-green..sha), breaker fixes, sp-x7 names + backs up | sp-x2 after GM2 |
-| GM7 | Readings count every red (cancelled run with a failed job = red; breaks landed while red; commit p90 vs 60 s) | sp-x9 after GM3 |
-| CF2 grid | Flaky grid far-cell preparation stall (GM4 quarantine rule applies) | sp-x6 |
-| CF2 title | Flaky Nine title PNG capture on CI (GM4 quarantine rule applies) | sp-x1 |
-| G745 | Phone-route smoke leg (report-only 893f149908) -> gating | sp-x9 after GM7 |
+sp-x7 alone: push gate = 45 s wall clock that fails open (unfinished = CI), no red hold, no quiet pause; pre-commit capped
+at 5 s; done by turning things off, no new gate code. G752/G753/G756 caps/G757/G759 and GM2/GM3 are superseded. Every
+other lane works counted plan rows; a lane with none takes the top unclaimed row of its type below and says so in one line.
 
 ## Lane plans (G709, Jake 2026-10-24 ~21:55): one plan per lane, end to end; nothing mid-plan but a blocking red
 
@@ -35,7 +21,7 @@ G756 caps: pre-commit <= 60 s wall, push gate <= 180 s per batch; 'clean tree' =
 | sp-x2 | core memory C4 (Template native 268/246 vs 198.5 MiB) -> tile T4 to the milestone -> T10 delete the whole-shard path (G747) -> T6/T8 Codex slices; JS payload J6-J10 after extras (G730/G741) |
 | sp-x9 | G742 done 72a1482c68; B6 done af11c09e30; ratchet SW8a 1e3f0fe5b2 -> SW11 commit lock/CF1 tail (p90 <= 30 s) -> G745 phone-route smoke leg (from sp-x7, 893f149908 report-only) -> oxlint R3-R5 -> QW7 |
 | sp-x7 | releases + red repair only (G676/G485); no feature rows while main is red (lane audit 10-26) |
-| sp-o1 | NM models RM4.1-4.8, RM7.1-7.3, RM8.4-8.5, RM9.1-9.2 done -> RM8.1 quantized tile geometry (all authored shards) -> RM8.6 switch-on -> RM13 board + walk video |
+| sp-o1 | NM models done (RM8.1 850a6efb5f, kit on 63eb6dd5e8, G755 figures 6a9c8cb1ae + board b9699cb002, RM13 574425f29e / fd23363093) -> generators GR8 Pine (61 jobs) |
 | sp-o2 | NM look RM5/RM6 done (cea69bc2c6) -> loading L15 complete first frame before the loader leaves (while blocked) -> RM5.2 -> RM10 -> RM11 -> RM12 (after sp-o1 kit + sp-x2 RM8.1) |
 | sp-o3 | G750 toon clouds done 1d4a4f738f; L18.3 rocks e2cac37ae6 / foliage 7d327e5a88 (protos -> sp-x1 GR0) -> G717 B cheaper lit programs Pine + DW (Debug A/B + board) |
 | sp-o4 | G749 shipped (perf(post): ship the lighter render targets); G717 A pinned (2 s cap fails cold until B) -> G743 render side: fewer first-time programs per shard (no look change) |

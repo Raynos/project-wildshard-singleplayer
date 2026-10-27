@@ -17,8 +17,7 @@ AGENTS.md and docs/process/ hold the rest.
   every shard locally first. Every test input is tracked (`git ls-files`), never an untracked file.
 - **Previews (Opus):** reuse a running shared preview that contains your commit; one per 2-3 commits.
 - **Generators:** serialise on the heavy-lane build lock, not over herdr.
-- **Green main (GM1, G757-G759):** nobody cancels push CI; while main is red only `Red-fix:` commits push; a flaky
-  test is quarantined (owner, 24 h fix), never deleted; a gate at its cap splits the batch, defers only that step.
+- **Gate (G768):** push gate 45 s, fails open to CI, no red hold; pre-commit 5 s; nobody cancels push CI (GM1).
 - **Messages (G708):** herdr only for a red that blocks you; no LANDED / verified / ACTIVE / FINAL / cohort pings
   (progress goes in the commit message). Never wildshard-v or the question tool.
 - **Commits (GIT.md):** scripts/commit.sh, literal paths, --patch for shared files; never stash/reset/restore
