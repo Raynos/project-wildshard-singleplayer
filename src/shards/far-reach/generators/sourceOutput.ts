@@ -21,6 +21,7 @@ import { skyWorldTileProgram } from './worldTileProgram';
 import { SKY_WORLD_TILE_ROWS } from './worldTileRows';
 import { skyBridgeRestProgram } from './bridgeRestProgram';
 import { skyMillRestProgram } from './millRestProgram';
+import { skyRestPoolProgram } from './restPoolProgram';
 import { skyFanPoolProgram } from './fanPoolProgram';
 import { skySwardAtlasProgram } from './swardAtlasProgram';
 import { SWARD_ATLAS_FILE } from './rows/swardAtlas';
@@ -89,6 +90,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<SkyS
   if (millBytes === undefined) throw new Error('Missing owned mill geometry');
   const millName = 'world/geometry/mill-rest.glb', mill = nameBlob(millName, 'glb', millBytes);
   const fanName = 'world/geometry/fan.glb', fan = nameBlob(fanName, 'glb', await skyFanPoolProgram(ctx));
+  const restPools = await skyRestPoolProgram(ctx), rest = restPools.map(pool => nameBlob(pool.name, 'glb', pool.bytes));
   const vaneFiles = await skyVaneProgram(ctx);
   const vanes = VANE_FILES.map(file => {
     const bytes = vaneFiles.get(file);
@@ -98,13 +100,13 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<SkyS
   const assets = new Map([...prepared.assets, ...rigs.assets]), replacements = [hero, bakes,
     skyModelSource(bridgeName, millName, fanName, skyRigLibrary(rigSources.urls), {
       'vane-post': 'world/geometry/vane-post.glb', 'vane-rotor': 'world/geometry/vane-rotor.glb',
-    })];
+    }, restPools)];
   for (const replacement of replacements) {
     const previous = prepared.namedFiles.find(file => file.name === replacement.file.name);
     if (previous === undefined) throw new Error('Missing original scene source output');
     assets.delete(previous.hash); assets.set(replacement.file.hash, replacement.bytes);
   }
-  for (const blob of [geometry, ...world, bridge, mill, fan, ...vanes]) assets.set(blob.file.hash, blob.bytes);
+  for (const blob of [geometry, ...world, bridge, mill, fan, ...vanes, ...rest]) assets.set(blob.file.hash, blob.bytes);
   assets.set(SWARD_ATLAS_FILE.hash, await skySwardAtlasProgram(ctx));
   const tiles = await skyWorldTileProgram(ctx);
   if (tiles.size !== SKY_WORLD_TILE_ROWS.files.length + 1) throw new Error('Sky world tile publication inventory differs');
@@ -114,5 +116,5 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<SkyS
     assets.set(file.hash, bytes);
   }
   return { ...prepared, namedFiles: [...prepared.namedFiles.map(file => replacements.find(row => row.file.name === file.name)?.file ?? file),
-    geometry.file, ...world.map(blob => blob.file), bridge.file, mill.file, fan.file, ...rigs.files, ...vanes.map(blob => blob.file)], assets };
+    geometry.file, ...world.map(blob => blob.file), bridge.file, mill.file, fan.file, ...rigs.files, ...vanes.map(blob => blob.file), ...rest.map(blob => blob.file)], assets };
 }

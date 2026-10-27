@@ -52,8 +52,12 @@ export function restScenes(): { readonly winch: ClientSceneBake['scene']; readon
   const ids = [...SPANS.filter(span => span.kind === 'hover'), UPDRAFT].map(span => span.id);
   return { winch: winchRest().scene, hover: hoverRestRows().map((made, index) => { const id = ids[index]; if (id === undefined) throw new Error('Undeclared hover span'); return { id, scene: made.scene }; }), storm: stormRest().scene, books:{notes:bookStandRows(false),keeper:bookStandRows(true)} };
 }
+/** The six rest pools' bakes in REST_URLS order (winch, three hovers, storm, book halo). */
+function restPoolBakes(): ClientSceneBake[] { return [winchRest(), ...hoverRestRows(), stormRest(), bookHaloRest()]; }
+/** GR5: the rest pools' GLB bytes, in REST_URLS order; the product owns them (restPoolProgram.ts). */
+export function restPoolGlbs(): readonly Uint8Array[] { return restPoolBakes().map(made => made.glb); }
 export function restPools(): readonly { readonly url: string; readonly parts: readonly string[] }[] {
-  const scenes = [winchRest(), ...hoverRestRows(), stormRest(), bookHaloRest()];
+  const scenes = restPoolBakes();
   return scenes.map((made, index) => {
     const url = REST_URLS[index]; if (url === undefined) throw new Error('Undeclared hover pool');
     return { url, parts: made.scene.nodes.flatMap(node => node.kind === 'mesh' ? [node.geometry] : []) };

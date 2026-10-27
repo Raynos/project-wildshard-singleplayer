@@ -44,14 +44,16 @@ const json = (name: string, rows: unknown) => nameBlob(name, 'json', new TextEnc
 export function skyHeroSource(geometry: string): NamedBlob {
   return json('world/sources/heroes.json', { ...hero, rows: { ...hero.rows, geometryPools: [{ ...heroes.pool, url: geometry }] } });
 }
-/** Preserve the complete native library while replacing only its owned bridge, mill and fan pool addresses. */
-export function skyModelSource(bridgeGeometry: string, millGeometry: string, fanGeometry: string, rigs?: SceneModelSource['rows']['rigs'], meshes?: Readonly<Record<'vane-post' | 'vane-rotor', string>>): NamedBlob {
+/** Preserve the complete native library while replacing only its owned bridge, mill, fan and rest pool addresses. */
+export function skyModelSource(bridgeGeometry: string, millGeometry: string, fanGeometry: string, rigs?: SceneModelSource['rows']['rigs'], meshes?: Readonly<Record<'vane-post' | 'vane-rotor', string>>,
+  rest: readonly { readonly url: string; readonly name: string }[] = []): NamedBlob {
+  const owned = new Map(rest.map(pool => [pool.url, pool.name]));
   return json('world/sources/sky.json', { ...sky, rows: { ...sky.rows,
     ...(rigs === undefined ? {} : { rigs }),
     ...(meshes === undefined ? {} : { meshUrls: { ...sky.rows.meshUrls, ...meshes } }),
     geometryPools: sky.rows.geometryPools.map(pool => pool.url === BRIDGE_REST_URL ? { ...pool, url: bridgeGeometry }
       : pool.url === MILL_REST_URL ? { ...pool, url: millGeometry }
-      : pool.url === files.FAN_URL ? { ...pool, url: fanGeometry } : pool) } });
+      : pool.url === files.FAN_URL ? { ...pool, url: fanGeometry } : { ...pool, url: owned.get(pool.url) ?? pool.url }) } });
 }
 /** Retain every bake row and binding while the caller supplies its admitted geometry names. */
 export function skyBakeSource(urls: SceneBakeSource['urls']): NamedBlob {
