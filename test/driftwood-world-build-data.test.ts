@@ -1,3 +1,4 @@
+import { DRIFTWOOD_GUEST_ROWS } from './fixtures/driftwood-guest-programs';
 import { expect, test } from 'vitest';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import * as v from 'valibot';
@@ -12,7 +13,7 @@ import { worldPlacements,uprightPoses } from '../src/shards/driftwood-isle/gener
 import { driftwoodSceneBanks } from './fixtures/driftwoodSceneBanks';
 import { islandFoliagePlacements } from '../src/shards/driftwood-isle/generators/islandDressing';
 
-const foliage = islandFoliagePlacements(), decks = driftwoodEntryDeckRows(), output = driftwoodOutputRows(DRIFTWOOD_LAYOUTS, DRIFTWOOD_ISLAND_FACTS);
+const foliage = islandFoliagePlacements(), decks = driftwoodEntryDeckRows(), output = driftwoodOutputRows(DRIFTWOOD_LAYOUTS, DRIFTWOOD_ISLAND_FACTS, DRIFTWOOD_GUEST_ROWS);
 
 const finite=v.pipe(v.number(),v.finite());
 const placement=v.strictObject({...WorldScenePlacementSchema.entries,poses:v.array(v.object({x:finite,y:finite,z:finite,

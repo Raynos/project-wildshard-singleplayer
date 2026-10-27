@@ -1,3 +1,4 @@
+import { RETURN_PROGRAM } from './fixtures/driftwood-guest-programs';
 // @vitest-environment happy-dom
 import { expect, onTestFinished, test, vi } from 'vitest';
 import { lendDriftwoodReturns } from './fixtures/driftwood-return-modules';
@@ -27,7 +28,7 @@ test('a marsh population projects memory effects, loose lights and practice retu
   mockCanvas();
   const terrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 }), f = manager();
   const scope = lendDriftwoodReturns(new Scope('marsh.projection')), material = new MeshStandardMaterial(); vi.spyOn(look, 'lowPolyLookMaterial').mockReturnValue(material);
-  const source = populationProjectionRows(island), variant = speciesDef('boar').variants[0]?.id;
+  const source = populationProjectionRows(island, RETURN_PROGRAM), variant = speciesDef('boar').variants[0]?.id;
   if (variant === undefined) throw new Error('Missing fixture variant');
   const row = { kind: 'boar', variant, x: 3, z: 4, yaw: 0, herd: 0, practice: true } as const;
   const page = { stream: new Rng(91).snapshot(), centres: [{ x: 3, z: 4 }], kinds: ['boar'], herds: 1,
@@ -62,7 +63,7 @@ test('a marsh population projects memory effects, loose lights and practice retu
 
 
 test('both tiers bake every leaning crown and base with the installed native terrain law', () => {
-  const projection = populationProjectionRows(island), heightAt = readNativeTerrain(driftwoodGroundBytes()).heightAt;
+  const projection = populationProjectionRows(island, RETURN_PROGRAM), heightAt = readNativeTerrain(driftwoodGroundBytes()).heightAt;
   for (const tier of ['phone', 'desktop'] as const) {
     const palms = [...foliage.tiers[tier].palms.specs, ...island.extraPalms], sites = projection.page[tier].perches;
     expect(sites).toHaveLength(palms.length);
@@ -76,7 +77,7 @@ test('both tiers bake every leaning crown and base with the installed native ter
 
 
 test('the admitted return guest retains hidden-corpse gates and samples at ten Hz', () => {
-  const rows = populationProjectionRows(island).practice, rule = { delay: .3, away: 5, fade: 'hidden' } as const;
+  const rows = populationProjectionRows(island, RETURN_PROGRAM).practice, rule = { delay: .3, away: 5, fade: 'hidden' } as const;
   const scope = lendDriftwoodReturns(new Scope('return.guest')); onTestFinished(() => { scope.dispose(); });
   const guest = ReturnProgram.page(rows.program, scope), sample = vi.spyOn(guest, 'project');
   const law = new ProjectedState({ ...rows.law, parameters: { delay: rule.delay, away: rule.away }, signals: { step: rows.law.signal } }, guest);

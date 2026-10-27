@@ -10,13 +10,13 @@ import type { enemyPlacements } from './enemyPlacement';
 import type * as v from 'valibot';
 import type { PopulationKeeperRowsSchema } from '@wildshard/format/populationKeeper';
 import ecology from '../data/ecology.json' with { type: 'json' };
-import { RETURN_PROGRAM } from './returnProgram';
+import type { DriftwoodGuestRows } from './guestPrograms';
 
 type NativeKeeperRows = v.InferOutput<typeof PopulationKeeperRowsSchema>;
 
 /** Compile immutable roster joins and initial rolls; live floors and later spawns remain keeper-owned.
  * Each enemy checkpoint is the creature stream immediately before its original materialization. */
-export function keeperRows(placement: ReturnType<typeof enemyPlacements>): Omit<NativeKeeperRows, 'fauna'> & { fauna: typeof DRIFTWOOD_NATIVE_FAUNA } {
+export function keeperRows(placement: ReturnType<typeof enemyPlacements>, program: DriftwoodGuestRows['returnProgram']): Omit<NativeKeeperRows, 'fauna'> & { fauna: typeof DRIFTWOOD_NATIVE_FAUNA } {
   const fauna = DRIFTWOOD_NATIVE_FAUNA, source = physics.actors.filter(row => row.kind === 'boar' || row.kind === 'bear');
   if (placement.seed !== fauna.seed || source.length !== fauna.rows.length || source.some((actor, i) => {
     const row = fauna.rows[i]; return row === undefined || row.id !== actor.id || row.herd !== actor.herd || row.seed !== actor.seed;
@@ -47,5 +47,5 @@ export function keeperRows(placement: ReturnType<typeof enemyPlacements>): Omit<
   placement.native.centres.forEach((at, i) => { herds.push({ kind: physics.herds[fauna.centres.length + i]?.kind ?? 'crab', x: at.x, z: at.z }); });
   if (herds.length !== physics.herds.length || bodies.length !== 34 || bodies.filter(row => row.practice).length !== 1) throw new Error('Divergent keeper boot roster');
   return { bodyPhase: { animateWithin: 140, clearWithin: 6 }, environment: { id: 'island.habitat', seed: fauna.seed, chunkHalf: 250, normalEpsilon: .6, sampling: 'column-triangles',
-    water: DECLARED_SEA.level, sea: true, trails: null, cabins: [], pond: null, trees: [], stream: null }, seed: fauna.seed, volley: placement.volley, ecology: { ...ecology, program: RETURN_PROGRAM, water: DECLARED_SEA.level, fixed: ['sailor'], interval: 1, limit: 256 }, fauna, variants, herds, bodies };
+    water: DECLARED_SEA.level, sea: true, trails: null, cabins: [], pond: null, trees: [], stream: null }, seed: fauna.seed, volley: placement.volley, ecology: { ...ecology, program, water: DECLARED_SEA.level, fixed: ['sailor'], interval: 1, limit: 256 }, fauna, variants, herds, bodies };
 }

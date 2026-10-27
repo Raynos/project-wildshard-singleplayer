@@ -14,7 +14,7 @@ export function orchardPopulation(): MixedPopulationInput {
   const sample = SIM_LEVEL.entities[0], native = DRIFTWOOD_SPECIES_PROGRAMS.native[0], guard = DRIFTWOOD_SPECIES_PROGRAMS.program.species.find(row => row.kind === 'crab');
   if (sample === undefined || native === undefined || guard === undefined) throw new Error('Missing fixture species');
   const kind = 'orchard-hog', guardian = 'orchard-guard', spec = { ...sample.spec, kind }, guardSpec = { ...sample.spec, kind: guardian }, stream = new Rng(40).snapshot();
-  const placement = enemyPlacements(), sourceKeeper = keeperRows(placement);
+  const placement = enemyPlacements(), sourceKeeper = keeperRows(placement, RETURN_PROGRAM);
   const pose = { custom: true, joints: [
     { name: 'body', parent: -1, position: [0, 1, 0], order: 'YXZ', scale: [1, 1, 1] },
     { name: 'head', parent: 0, position: [0, 1, 0], order: 'YXZ', scale: [1, 1, 1] },

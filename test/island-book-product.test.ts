@@ -1,3 +1,4 @@
+import { DRIFTWOOD_GUEST_ROWS } from './fixtures/driftwood-guest-programs';
 import { parseExplorerCatalogue } from '../src/format/explorerCatalogue';
 import { EXPLORER_CATALOGUE as driftwoodExplorer } from '../src/shards/driftwood-isle/generators/explorerCatalogue';
 import { EXPLORER_CATALOGUE as pineExplorer } from '../src/shards/pine-hollow/generators/explorerCatalogue';
@@ -20,7 +21,7 @@ import source from './fixtures/driftwood-product-source';
 import manifest from '../src/shards/driftwood-isle/manifest.json' with {type:'json'};
 import headless from '../src/shards/driftwood-isle/data/headlessAssembly.json' with {type:'json'};
 
-const output = driftwoodOutputRows(DRIFTWOOD_LAYOUTS, DRIFTWOOD_ISLAND_FACTS);
+const output = driftwoodOutputRows(DRIFTWOOD_LAYOUTS, DRIFTWOOD_ISLAND_FACTS, DRIFTWOOD_GUEST_ROWS);
 
 function section(name:string):unknown{
   const bytes=output.platform.files.get(`sections/${name}.json`);if(bytes===undefined)throw new Error(`Missing section ${name}`);

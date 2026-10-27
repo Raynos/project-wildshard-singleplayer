@@ -1,3 +1,4 @@
+import { RETURN_PROGRAM } from './fixtures/driftwood-guest-programs';
 // oxlint-disable-next-line import/no-nodejs-modules -- admit generated keeper metadata without inferring the complete bake
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
@@ -13,7 +14,7 @@ const physics=v.parse(v.object({actors:v.array(v.object({id:v.string(),kind:v.st
   JSON.parse(readFileSync('src/shards/driftwood-isle/data/physics.generated.json','utf8')));
 
 test('keeper compilation retains the captured native recipes, placement order and stream checkpoints', () => {
-  const placement = enemyPlacements(), rows = v.parse(PopulationKeeperRowsSchema, keeperRows(placement));
+  const placement = enemyPlacements(), rows = v.parse(PopulationKeeperRowsSchema, keeperRows(placement, RETURN_PROGRAM));
   expect(rows.bodies.map(({ id, kind, variant, seed, scale }) => ({ id, kind, variant, seed, scale })))
     .toEqual(physics.actors.map(({ id, kind, variant, seed, scale }) => ({ id, kind, variant, seed, scale })));
   expect(rows.bodies.filter(row => row.practice).map(row => row.id)).toEqual([physics.habitat.practice]);

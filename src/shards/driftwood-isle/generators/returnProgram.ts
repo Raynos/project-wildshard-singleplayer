@@ -1,8 +1,4 @@
-import input from '../behaviour/returns.generated.json' with { type: 'json' };
-
-const {compiled,...program}=input;
-/** Generated v1 recipe is data; the registered producer owns compilation. */
-export const RETURN_PROGRAM: { script: { id: string; abi: string; side: string; module: string; source: string; binding: { shard: boolean; }; pages: number; onFail: string; on: string[]; tick: null; reads: string[]; commands: string[]; actors: NonNullable<unknown>; moves: NonNullable<unknown>; strikes: NonNullable<unknown>; cues: NonNullable<unknown>; fields: { candidates: string; away: string; draw: string; due: string; fixed: string; maximum: string; minimum: string; night: string; nocturnal: string; now: string; playerX: string; playerZ: string; water: string; x: string; z: string; ground: string; awayDistance: string; distance: string; occupied: string; y: string; dead: string; alive: string; deadDt: string; delay: string; hidden: string; }; flags: NonNullable<unknown>; zones: NonNullable<unknown>; spots: NonNullable<unknown>; targets: NonNullable<unknown>; spawns: NonNullable<unknown>; signals: { eligible: string; place: string; schedule: string; perchScore: string; perchHeight: string; practice: string; }; facts: NonNullable<unknown>; rewards: NonNullable<unknown>; channels: { due: string; eligible: string; retry: string; x: string; z: string; index: string; score: string; perchH: string; dead: string; action: string; }; impulses: NonNullable<unknown>; weather: NonNullable<unknown>; timers: never[]; stateVersion: number; state: never[]; params: NonNullable<unknown>; sourceHash: string; }; bytes: string; } = program;
-/** Keep the original binary in the critical product closure and memory admission. */
-export const RETURN_WASM: { name: string; kind: "wasm"; source: string; options: { critical: boolean; script: { abi: 1; pages: number; }; }; } = {name:'behaviour/driftwood.returns.wasm',kind:'wasm' as const,source:compiled.source,
-  options:{critical:true,script:{abi:1 as const,pages:program.script.pages}}};
+/** Stable admission contract; the native guest bank owns the compiled bytes. */
+export const RETURN_WASM_OPTIONS: { critical: boolean; script: { abi: 1; pages: number } } = {
+  critical: true, script: { abi: 1, pages: 1 },
+};

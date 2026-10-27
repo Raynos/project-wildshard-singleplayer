@@ -1394,39 +1394,6 @@
       "platform": "portable"
     },
     {
-      "id": "driftwood-returns",
-      "shard": "driftwood-isle",
-      "entry": "src/shards/driftwood-isle/generators/bake-returns.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/driftwood-isle/generators/bake-returns.mjs"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format",
-        "src/sdk",
-        "src/shards/driftwood-isle/behaviour/captain.as",
-        "src/shards/driftwood-isle/behaviour/director.as",
-        "src/shards/driftwood-isle/behaviour/returns.as",
-        "src/shards/driftwood-isle/generators/bake-returns.mjs",
-        "src/sdk/decisionScriptBindings.ts",
-        "src/format/scriptAbiV1.ts",
-        "src/format/decisionScripts.ts"
-      ],
-      "outputs": [
-        "src/shards/driftwood-isle/behaviour/returns.generated.json",
-        "src/shards/driftwood-isle/behaviour/returns.generated.wasm"
-      ],
-      "platform": "portable",
-      "buildTimeOutputs": [
-        "src/shards/driftwood-isle/behaviour/returns.generated.json",
-        "src/shards/driftwood-isle/behaviour/returns.generated.wasm"
-      ]
-    },
-    {
       "id": "pine-section-schemas",
       "shard": null,
       "entry": "scripts/bake-section-schemas.mjs",

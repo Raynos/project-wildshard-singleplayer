@@ -3,7 +3,7 @@ import { PopulationProjectionSchema } from '@wildshard/format/populationProjecti
 import { enemyPlacements } from './enemyPlacement';
 import { driftwoodGroundSampler } from './groundSampling';
 import { DRIFTWOOD_SPECIES_PROGRAMS } from './speciesPrograms';
-import { RETURN_PROGRAM } from './returnProgram';
+import type { DriftwoodGuestRows } from './guestPrograms';
 import { driftwoodItems } from './items';
 import { islandFoliagePlacements } from './islandDressing';
 import type { DriftwoodIslandFacts } from './islandFacts';
@@ -12,7 +12,7 @@ import physics from '../data/physics.generated.json' with { type: 'json' };
 const foliage = islandFoliagePlacements();
 
 /** Compile presentation rows from the same placement, physical and species inputs. */
-export function populationProjectionRows(island: DriftwoodIslandFacts): v.InferOutput<typeof PopulationProjectionSchema> {
+export function populationProjectionRows(island: DriftwoodIslandFacts, program: DriftwoodGuestRows['returnProgram']): v.InferOutput<typeof PopulationProjectionSchema> {
   const items = driftwoodItems();
   const launch = items.launches?.['coconut'];
   if (launch === undefined) throw new Error('Missing authored coconut launch');
@@ -29,7 +29,7 @@ export function populationProjectionRows(island: DriftwoodIslandFacts): v.InferO
     page: { phone: { ...placement.page.phone, perches: perches([...foliage.tiers.phone.palms.specs, ...island.extraPalms]) }, desktop: { ...placement.page.desktop, perches: perches([...foliage.tiers.desktop.palms.specs, ...island.extraPalms]) } },
     counts: { crabs: { kind: 'crab', groups: false, practice: false }, monkeys: { kind: 'monkey', groups: false, practice: false }, sailors: { kind: 'sailor', groups: false, practice: false },
       troops: { kind: 'monkey', groups: true, practice: false }, crabGroups: { kind: 'crab', groups: true, practice: true } },
-    practice: { program: RETURN_PROGRAM, law: { signal: 'practice', initial: { dead: 0 }, parameters: { delay: 45, away: 30 }, retain: { dead: 'dead' } } }, hold: { kind: 'sailor', ...physics.habitat.hold },
+    practice: { program, law: { signal: 'practice', initial: { dead: 0 }, parameters: { delay: 45, away: 30 }, retain: { dead: 'dead' } } }, hold: { kind: 'sailor', ...physics.habitat.hold },
     volley: placement.volley, launch, strike: { id: strike.id, damage: strike.damage, tags: ['creature.monkey', 'feel.blow', 'cover.checked'] },
     contact: { sound: 'coconut_hit', landSound: 'coconut_land', landAge: 3, splash: .3 }, husk: { colour: '#5a3d22', detail: 0 },
     splash: { capacity: 240, gravity: 9.81, colour: [.75, .95, 1], size: .05, opacity: .9, count: 60, radius: .5, height: [.2, 1.4], speed: [.6, 2.2], up: [1.2, 2.5], life: [.5, .6] },
