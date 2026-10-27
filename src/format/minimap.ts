@@ -200,6 +200,9 @@ const binding: v.StrictObjectSchema<{ readonly module: v.GenericSchema<ManifestB
 // A source program supplies these values in its admitted product receipt.
 // This is a data marker, never permission to import an executable generator.
 const programBinding = v.strictObject({ program: v.literal(true) });
+/** A spawns binding may name a generator export (`./generators/<name>`): scripts/manifest-spawns.mjs runs it in a
+ *  bounded generator-only loader at discovery time and inlines the admitted rows; nothing imports it at runtime. */
+const generatorBinding = v.strictObject({ module: v.pipe(localModule, v.regex(/^\.\/generators\/[a-zA-Z0-9_-]+$/u)), export: bindingName });
 const dataBinding = v.union([binding, programBinding]);
 const moduleBinding = v.strictObject({module: bindingModule});
 /** G4: rows a shard generates for the game to build from (`declaredGround`, `declaredForestQueries`, `declaredStreamClip`) */
@@ -218,7 +221,7 @@ const bindings = v.strictObject({
   boot: v.exactOptional(v.union([pageBoot, v.strictObject({files: dataBinding, sources: dataBinding, lateReads: v.exactOptional(dataBinding), bakedUnread: v.exactOptional(binding), audio: v.exactOptional(binding), explore: v.exactOptional(v.union([programBinding, v.strictObject({ module: v.pipe(bindingModule, v.regex(/\.json$/u)), export: v.literal('default') })]))})])),
   forestQueries: v.exactOptional(v.union([binding, declared, FixedForestQueriesSchema])),
   pondClip: v.exactOptional(v.union([binding, declared])), sword: v.exactOptional(v.union([binding, v.strictObject({ rows: bindingModule }), v.strictObject({ platform: v.literal('graph'), file: text })])), audioPreload: v.exactOptional(binding),
-  posesLoader: v.exactOptional(binding), spawns: v.exactOptional(binding),
+  posesLoader: v.exactOptional(binding), spawns: v.exactOptional(v.union([binding, generatorBinding])),
   entry: v.exactOptional(v.strictObject({ platform: v.literal('client-plan'), retainHomeRuntime: v.boolean(), stagesOwner: v.picklist(['declared', 'runtime']),
     styles: v.exactOptional(v.pipe(v.array(v.pipe(localModule, v.regex(/\.css$/u))), v.maxLength(8),
       v.check(rows => new Set(rows).size === rows.length, 'Unique entry styles'))) })),
