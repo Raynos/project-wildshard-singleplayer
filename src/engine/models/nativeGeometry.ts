@@ -32,12 +32,21 @@ function plain(attribute: unknown): unknown {
 /** Restore original typed GLB channels, including half-float bits and vec4 shader normals.
  * Borrowed input is copied. An exclusively owned decoded mesh may transfer its
  * plain attributes/index; half-float restoration still creates its typed wrapper. */
-export function nativeWholeGeometry(node: Mesh, ownership: 'borrow' | 'take' = 'borrow'): BufferGeometry {
+export function nativeWholeGeometry(node: Mesh, ownership: 'borrow' | 'take' = 'borrow', preserveInterleaving = false): BufferGeometry {
   const metadata: unknown = node.userData['nativeAttributes'], input: unknown = node.geometry;
   if (!(input instanceof BufferGeometry)) throw new Error('Whole shape needs geometry');
   const result = new BufferGeometry();
   for (const [name, row] of Object.entries(v.parse(NativeAttributesSchema, metadata))) {
-    const channel = semantics[row.semantic] ?? row.semantic.toLowerCase(), attribute: unknown = plain(input.getAttribute(channel));
+    const channel = semantics[row.semantic] ?? row.semantic.toLowerCase();
+    const stored: unknown = input.getAttribute(channel);
+    // An exclusive decoder can lend its stride directly to a final assembler.
+    // Public borrowed copies and half-float wrappers keep the plain path.
+    if (ownership === 'take' && preserveInterleaving && row.storage !== 'Float16Array' && stored instanceof InterleavedBufferAttribute) {
+      if (stored.itemSize !== row.itemSize || stored.normalized !== row.normalized) throw new Error(`Whole shape missing typed channel ${channel}`);
+      if (stored.data.array.constructor.name !== row.storage) throw new Error('Whole channel storage mismatch');
+      result.setAttribute(name, stored); continue;
+    }
+    const attribute: unknown = plain(stored);
     if (!(attribute instanceof BufferAttribute) || attribute.itemSize !== row.itemSize || attribute.normalized !== row.normalized) throw new Error(`Whole shape missing typed channel ${channel}`);
     if (row.storage === 'Float16Array') {
       if (!(attribute.array instanceof Uint16Array)) throw new Error('Whole half-float channel needs uint16 bits');

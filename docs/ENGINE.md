@@ -5155,12 +5155,11 @@ Partitioned whole shapes are batched into bounded GLBs; no parser bound
 is raised. Their native metadata also supports a vec4 shader normal as
 an application accessor, while portable glTF NORMAL remains vec3.
 
-`@wildshard/engine/models/nativeGeometry` defines `nativeWholeGeometry`.
-Its default borrows and copies the source. `'take'` as the second argument
-adopts ordinary attributes and indices from an exclusive decoded
-mesh; restoring a half-float wrapper still copies its bits once.
+`nativeWholeGeometry` in `engine/models/nativeGeometry` copies borrowed input.
+Exclusive `'take'` adopts attributes/index; third argument `true` also lends
+interleaved channels until final assembly. Half-float wrappers still copy.
 `@wildshard/game/plugin/geometry` defines `assembleWholeGeometryViews` and
-`readWholeGeometry(scope, source, refs?)`.
+`readWholeGeometry(scope, source, refs?)`; the assembler also accepts `'take'`.
 The reader uses the admitted product, decodes one bounded file at a time,
 frees transient GLB geometries/materials immediately, and scopes each
 reconstructed source geometry. Final completeness validation and exact sphere scans use

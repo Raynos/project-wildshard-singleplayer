@@ -17,7 +17,7 @@ import { prepareRigLoader, loadRigFile, type ClipName, type SocketName } from "@
 import { cacheUntilDisposed, retainCachedResources } from "@wildshard/engine/app/cachedAssets";
 import { releaseOnUpload } from "@wildshard/engine/render/memorySaver";
 import { ktx2File, prepareCompressedTexture } from "@wildshard/engine/core/ktx2";
-import { RepeatWrapping, Matrix4, Bone, FileLoader, SkinnedMesh, Texture, type AnimationClip, type Wrapping, type MinificationTextureFilter, type MagnificationTextureFilter, Box3, Sphere, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Vector3, BufferAttribute, type Object3D, CanvasTexture, LinearMipmapLinearFilter, SRGBColorSpace, Float16BufferAttribute, BoxGeometry, CylinderGeometry, ConeGeometry, SphereGeometry, TorusGeometry, IcosahedronGeometry, CapsuleGeometry, Shape, ExtrudeGeometry, Color, type MeshStandardMaterialParameters, type Material, InstancedMesh } from "three";
+import { RepeatWrapping, Matrix4, Bone, FileLoader, SkinnedMesh, Texture, type AnimationClip, type Wrapping, type MinificationTextureFilter, type MagnificationTextureFilter, Box3, Sphere, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Vector3, BufferAttribute, InterleavedBufferAttribute, type Object3D, CanvasTexture, LinearMipmapLinearFilter, SRGBColorSpace, Float16BufferAttribute, BoxGeometry, CylinderGeometry, ConeGeometry, SphereGeometry, TorusGeometry, IcosahedronGeometry, CapsuleGeometry, Shape, ExtrudeGeometry, Color, type MeshStandardMaterialParameters, type Material, InstancedMesh } from "three";
 import { applySurfaceLooks, type SurfaceInputs } from "../systems/looks/surfaceLooks";
 import type { SurfaceLook } from "@wildshard/format/surfaceLooks";
 import { Rng } from "@wildshard/engine/core/rng";
@@ -1759,9 +1759,11 @@ function isWholeMesh(node: Object3D): node is Mesh { return node instanceof Mesh
  *  the grid, so a shared vertex reads back the same float in each) */
 function dequantizeWhole(geometry: BufferGeometry, grid: { readonly origin: readonly [number, number, number]; readonly step: number }): void {
   const position = geometry.getAttribute('position');
-  if (!(position instanceof BufferAttribute) || !(position.array instanceof Int16Array) || position.normalized || position.itemSize !== 3) throw new Error('Whole grid needs Int16 positions');
-  const source = position.array, out = new Float32Array(source.length);
-  for (let i = 0; i < source.length; i++) out[i] = (source[i] ?? 0) * grid.step + (grid.origin[i % 3] ?? 0);
+  const source = position instanceof InterleavedBufferAttribute ? position.data.array : position.array;
+  if (!(source instanceof Int16Array) || position.normalized || position.itemSize !== 3) throw new Error('Whole grid needs Int16 positions');
+  const stride = position instanceof InterleavedBufferAttribute ? position.data.stride : 3, offset = position instanceof InterleavedBufferAttribute ? position.offset : 0;
+  const out = new Float32Array(position.count * 3);
+  for (let i = 0; i < position.count; i++) for (let c = 0; c < 3; c++) out[i * 3 + c] = (source[i * stride + offset + c] ?? 0) * grid.step + (grid.origin[c] ?? 0);
   geometry.setAttribute('position', new BufferAttribute(out, 3));
 }
 function wholeStorage(row: wholeV.InferOutput<typeof WholeAttribute>, count: number): BufferAttribute {
@@ -1784,7 +1786,7 @@ class WholeGeometryAssembler {
     const metadata: unknown = node.userData['wholePartition'], native: unknown = node.userData['nativeAttributes'], instances: unknown = node.userData['instances64'];
     const pose: unknown = node.userData['matrix64'] ?? (node instanceof InstancedMesh && node.count === 1 && Array.isArray(instances) && instances.length === 1 ? instances[0] : undefined);
     const row = wholeV.parse(WholePartition, metadata), channels = wholeV.parse(WholeNative, native), signature = JSON.stringify(channels);
-    const values = wholeV.parse(wholeV.pipe(wholeV.array(wholeV.pipe(wholeV.number(), wholeV.finite())), wholeV.length(16)), pose), input = nativeWholeGeometry(node, ownership);
+    const values = wholeV.parse(wholeV.pipe(wholeV.array(wholeV.pipe(wholeV.number(), wholeV.finite())), wholeV.length(16)), pose), input = nativeWholeGeometry(node, ownership, true);
     if (row.grid !== undefined) dequantizeWhole(input, row.grid);
     try {
       let group = this.groups.get(row.id);
@@ -1801,8 +1803,10 @@ class WholeGeometryAssembler {
       // on the road (sp-o112). The bytes written, the shared-vertex check and every refusal are unchanged.
       const copies = row.vertices.length === 0 ? [] : Object.entries(group.output.attributes).map(([name, destination]) => {
         const source = input.getAttribute(name);
-        if (!(source instanceof BufferAttribute) || !(destination instanceof BufferAttribute)) throw new Error('Whole channel layout differs');
-        return { from: source.array, fromSize: source.itemSize, count: source.count, to: destination.array, toSize: destination.itemSize };
+        if (!(source instanceof BufferAttribute || source instanceof InterleavedBufferAttribute) || !(destination instanceof BufferAttribute)) throw new Error('Whole channel layout differs');
+        return { from: source instanceof InterleavedBufferAttribute ? source.data.array : source.array, fromSize: source.itemSize,
+          stride: source instanceof InterleavedBufferAttribute ? source.data.stride : source.itemSize, offset: source instanceof InterleavedBufferAttribute ? source.offset : 0,
+          count: source.count, to: destination.array, toSize: destination.itemSize };
       });
       const seen = group.seen, vertices = row.vertices;
       // Which listed vertices an earlier node (or an earlier entry of this list) already wrote, then one channel at a
@@ -1813,10 +1817,10 @@ class WholeGeometryAssembler {
         if (!(vertex < seen.length)) throw new Error('Whole vertex ordinal outside source');
         shared[local] = seen[vertex] ?? 0; seen[vertex] = 1;
       }
-      for (const { from, fromSize, count, to, toSize } of copies) {
+      for (const { from, fromSize, stride, offset, count, to, toSize } of copies) {
         if (vertices.length > count) throw new Error('Whole channel layout differs');
         // Ordinals arrive as start/length runs: a run of new vertices in the same element type is one block copy.
-        const block = fromSize === toSize && from.constructor === to.constructor;
+        const block = fromSize === toSize && stride === fromSize && offset === 0 && from.constructor === to.constructor;
         for (let local = 0; local < vertices.length; local++) {
           const start = vertices[local] ?? 0;
           if (block && shared[local] === 0) {
@@ -1828,7 +1832,7 @@ class WholeGeometryAssembler {
               local = end - 1; continue;
             }
           }
-          const read = local * fromSize, write = start * toSize;
+          const read = offset + local * stride, write = start * toSize;
           if (write + fromSize > to.length) throw new RangeError('Whole channel write outside source');
           if (shared[local] === 1) for (let i = 0; i < fromSize; i++) if (!Object.is(from[read + i], to[write + i])) throw new Error('Whole shared vertex differs');
           for (let i = 0; i < fromSize; i++) to[write + i] = from[read + i] ?? 0;
@@ -1870,9 +1874,9 @@ class WholeGeometryAssembler {
   dispose(): void { for (const group of this.groups.values()) group.output.dispose(); }
 }
 /** Reconstruct source draws from parsed subsets; duplicate/missing triangles and conflicting shared bytes refuse. */
-export function assembleWholeGeometryViews(nodes: readonly Mesh[]): Map<string, WholeGeometryView> {
+export function assembleWholeGeometryViews(nodes: readonly Mesh[], ownership: 'borrow' | 'take' = 'borrow'): Map<string, WholeGeometryView> {
   const assembler = new WholeGeometryAssembler();
-  try { for (const node of nodes) assembler.add(node); return assembler.finish(); }
+  try { for (const node of nodes) assembler.add(node, ownership); return assembler.finish(); }
   catch (error) { assembler.dispose(); throw error; }
 }
 /**
