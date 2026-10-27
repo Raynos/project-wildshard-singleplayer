@@ -1,4 +1,5 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
+import * as workSlices from '../src/engine/core/workSlice';
 import { BufferAttribute, BufferGeometry, Group, InstancedMesh, Mesh, MeshStandardMaterial, Object3D, PerspectiveCamera, PointLight, Texture } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { cullPlaced } from '../src/engine/models/place';
@@ -267,4 +268,49 @@ test('one-shot world assembly snapshots borrowed staging and keeps only its live
     expect(Array.from(live.geometry.getAttribute('position').array)).toEqual(Array.from(f.geometry.getAttribute('position').array));
     expect(f.sources.materials.get('wood')).toBe(f.material);
   } finally { f.owner.dispose(); f.geometry.dispose(); f.material.dispose(); }
+});
+
+
+test('resident frozen construction yields without resolving or changing native graph order', async () => {
+  const f = fixture();
+  let release = (): void => undefined;
+  const first = new Promise<void>(resolve => { release = resolve; });
+  let pauses = 0;
+  const clock = vi.spyOn(workSlices, 'workSlice').mockReturnValue({ due: () => true,
+    yield: () => { pauses++; return pauses === 1 ? first : Promise.resolve(); }, check: () => undefined });
+  try {
+    const row = parseWorldSceneWeld(f.row), assembly = new WorldSceneWeldAssembly(row, f.handles, f.sources, f.owner, new WorldRegistry());
+    let completed = false;
+    const pending = assembly.assemble().then(root => { completed = true; return root; });
+    expect(f.handles.has('walls')).toBe(true);
+    expect(f.handles.has('berth-wall')).toBe(false); expect(completed).toBe(false);
+    release();
+    expect(await pending).toBe(f.quay);
+    const walls = f.handles.object('walls'), view = f.handles.object('berth-wall'), crates = f.handles.object('crates');
+    if (!(walls instanceof WeldBatch) || !(view instanceof WeldView) || !(crates instanceof InstancedMesh)) throw new Error('Missing restored draw classes');
+    expect(view.geometry.getAttribute('position').array.buffer).toBe(walls.geometry.getAttribute('position').array.buffer);
+    expect(crates.geometry).toBe(walls.geometry);
+    expect(Object.is(crates.instanceMatrix.array[13], -0)).toBe(true);
+    expect(f.quay.children).toEqual([f.berth, walls, crates]);
+    expect(pauses).toBe(row.nodes.length + row.culls.length);
+    expect(assembly.assemble()).toBe(assembly.assemble());
+  } finally { release(); clock.mockRestore(); f.owner.dispose(); f.geometry.dispose(); f.material.dispose(); }
+});
+
+test('retirement at a frozen construction slice removes partial handles and owned copies', async () => {
+  const f = fixture();
+  let release = (): void => undefined;
+  const first = new Promise<void>(resolve => { release = resolve; });
+  const clock = vi.spyOn(workSlices, 'workSlice').mockReturnValue({ due: () => true, yield: () => first, check: () => undefined });
+  try {
+    const assembly = new WorldSceneWeldAssembly(parseWorldSceneWeld(f.row), f.handles, f.sources, f.owner, new WorldRegistry());
+    const pending = assembly.assemble(), refused = expect(pending).rejects.toThrow('owner is disposed or retiring');
+    const walls = f.handles.object('walls'); if (!(walls instanceof WeldBatch)) throw new Error('Missing partial frozen draw');
+    const dispose = vi.spyOn(walls.geometry, 'dispose');
+    f.owner.dispose(); release(); await refused;
+    expect(dispose).toHaveBeenCalledTimes(1);
+    expect(f.handles.has('walls')).toBe(false); expect(f.handles.has('berth-wall')).toBe(false); expect(f.handles.has('crates')).toBe(false);
+    expect(f.quay.children).toEqual([f.berth]);
+    expect(f.handles.object('berth')).toBe(f.berth);
+  } finally { release(); clock.mockRestore(); f.owner.dispose(); f.geometry.dispose(); f.material.dispose(); }
 });

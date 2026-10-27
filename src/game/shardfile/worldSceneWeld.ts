@@ -4,6 +4,7 @@ import { WeldCull } from '@wildshard/engine/models/cull';
 import { installWeldCulling } from '@wildshard/engine/models/place';
 import { placeSet } from '@wildshard/engine/models/sets';
 import { withOwner } from '@wildshard/engine/app/ownership';
+import { workSlice } from '@wildshard/engine/core/workSlice';
 import { ownSceneResource } from '@wildshard/engine/app/sceneOwnership';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
@@ -94,8 +95,20 @@ function viewGeometry(batch: WeldBatch, row: Extract<WorldSceneWeldNode, { kind:
  * The caller lends named roots and materials; this scope owns only the restored graph and buffers. */
 export function hydrateWorldSceneWeld(input: unknown, handles: SceneHandles, sources: FrozenSceneSources, owner: Scope,
   registry: WorldRegistry | null = null): Object3D {
+  const steps = hydrateWorldSceneWeldSteps(input, handles, sources, owner, registry);
+  try {
+    for (;;) {
+      const step = steps.next();
+      if (step.done) { if (step.value === undefined) throw new Error('Frozen scene construction did not finish'); return step.value; }
+    }
+  } finally { steps.return(undefined); }
+}
+
+/** The same ordered native construction, with cancellation closing its partial publications. */
+function* hydrateWorldSceneWeldSteps(input: unknown, handles: SceneHandles, sources: FrozenSceneSources, owner: Scope,
+  registry: WorldRegistry | null): Generator<void, Object3D | undefined> {
   const row = parseWorldSceneWeld(input);
-  if (owner.disposed) throw new Error('Frozen scene owner is disposed');
+  requireFrozenOwner(owner);
   const root = handles.object(row.root), known = new Set<string>([row.root]);
   const declarations = new Map(row.nodes.map(node => [node.id, node]));
   const materialIds = new Set(row.materials.map(material => material.id)), geometryBounds = new Map<string, string>();
@@ -137,13 +150,17 @@ export function hydrateWorldSceneWeld(input: unknown, handles: SceneHandles, sou
     }
   }
   const lifetime = owner.child(`frozen/${row.id}`), geometries = new Map<string, BufferGeometry>();
+  let completed = false;
   try {
     for (const entry of row.materials) {
+      requireFrozenOwner(owner);
       const made = weldSceneMaterial(entry, material, () => handles.sky);
       handles.publish(entry.id, made); ownSceneResource(made, lifetime);
       lifetime.onDispose(() => { handles.release(entry.id, made); });
+      yield;
     }
     for (const node of row.nodes) {
+      requireFrozenOwner(owner);
       let object: Object3D;
       if (node.kind === 'group') object = new Group();
       else if (node.kind === 'anchor') object = new Object3D();
@@ -184,8 +201,10 @@ export function hydrateWorldSceneWeld(input: unknown, handles: SceneHandles, sou
       if (node.castFrom !== undefined) object.userData['castFrom'] = distance(node.castFrom, sources);
       handles.publish(node.id, object); handles.object(node.parent).add(object);
       lifetime.onDispose(() => { object.removeFromParent(); handles.release(node.id, object); });
+      yield;
     }
     for (const cull of row.culls) {
+      requireFrozenOwner(owner);
       const objects: Object3D[] = [], reach: number[] = [], cast: number[] = [], at: number[] = [];
       cull.roots.forEach((id, origin) => { handles.object(id).traverse(object => {
         for (const [field, caster] of [['until', 0], ['castFrom', 1]] as const) {
@@ -197,9 +216,30 @@ export function hydrateWorldSceneWeld(input: unknown, handles: SceneHandles, sou
       for (const set of cull.hosted) value.host({ meshes: set.meshes.map(id => { const mesh = handles.object(id); if (!(mesh instanceof InstancedMesh)) throw new Error('Frozen scene hosted mesh differs'); return mesh; }),
         lists: set.lists.map(run => ({ unit: run.unit, matrices: floats(run.matrixWords) })) });
       installWeldCulling(registry, lifetime, value);
+      yield;
     }
-    return row.result === undefined ? root : handles.object(row.result);
-  } catch (error) { lifetime.dispose(); throw error; }
+    requireFrozenOwner(owner);
+    const result = row.result === undefined ? root : handles.object(row.result);
+    completed = true; return result;
+  } finally { if (!completed) lifetime.dispose(); }
+}
+
+function requireFrozenOwner(owner: Scope): void {
+  if (owner.disposed || owner.disposing) throw new Error('Frozen scene owner is disposed or retiring');
+}
+
+/** Keep the synchronous specimen API; only the awaited resident path takes painted CPU slices. */
+async function hydrateWorldSceneWeldSliced(input: unknown, handles: SceneHandles, sources: FrozenSceneSources, owner: Scope,
+  registry: WorldRegistry): Promise<Object3D> {
+  const steps = hydrateWorldSceneWeldSteps(input, handles, sources, owner, registry), slice = workSlice(undefined, owner);
+  try {
+    for (;;) {
+      requireFrozenOwner(owner);
+      const step = steps.next();
+      if (step.done) { if (step.value === undefined) throw new Error('Frozen scene construction did not finish'); return step.value; }
+      if (slice.due()) await slice.yield();
+    }
+  } finally { steps.return(undefined); }
 }
 
 /** Deferred resident assembly; the single SceneHandles registry retains the final graph. */
@@ -222,7 +262,7 @@ export class WorldSceneWeldAssembly {
   }
   private async build(): Promise<Object3D> {
     let root: Object3D;
-    try { root = hydrateWorldSceneWeld(this.row, this.handles, this.sources, this.owner, this.registry); }
+    try { root = await hydrateWorldSceneWeldSliced(this.row, this.handles, this.sources, this.owner, this.registry); }
     finally { this.staging.clear(); }
     for (const id of this.row.placements) await this.handles.place(id);
     if (this.owner.disposed) throw new Error('Frozen scene owner is disposed');
