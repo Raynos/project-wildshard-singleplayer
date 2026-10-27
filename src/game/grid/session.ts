@@ -106,6 +106,7 @@ import { tileRing } from '../shardfile/tileDriver';
 import { CellLoading, type CellLoadingInput } from './cellLoading';
 import { CellScreen, facingEdge } from './cellScreens';
 import { readGridSeamData, type GridSeamAddress } from './seamData';
+import { readCompiledGridStrips } from './compiledStrips';
 import { declareDownloadFile } from '@wildshard/engine/boot/download';
 import { admittedRuntimeProduct } from '../shardfile/runtimeProduct';
 
@@ -398,13 +399,18 @@ export class GridSession {
     const home = assembly.cell(instance);
     const reach = 1.5 * assembly.pitch + 1;
     const ring = (x: number, z: number): boolean => Math.abs(x - home.origin.x) <= reach && Math.abs(z - home.origin.z) <= reach;
+    const original = platformInputs(assembly, edges);
+    const compiled = await readCompiledGridStrips(address.geometry, original, instance, { scope: host.scope, allocator },
+      (url, signal) => fetch(url, { signal }), async () => {
+        progress?.detail(`Terrain seams · ${++batches} verified shapes`); await construction.check();
+      });
     let flatPlatform = false;
-    const strips = [...await platformStrips(assembly, edges, (platform, edge) => generatePlatformSliced(platform, edge, async () => {
+    const strips = [...(compiled ?? await platformStrips(assembly, edges, (platform, edge) => generatePlatformSliced(platform, edge, async () => {
       progress?.detail(`Terrain seams · ${++batches} batches`); await construction.check();
     }, 12, seamPlans, ring), () => {
       if (host.scope.disposed || host.scope.disposing) throw new Error('Grid admission scope disposed');
       flatPlatform = true;
-    })];
+    }))];
     if (host.scope.disposed || host.scope.disposing) throw new Error('Grid session left during seam preparation');
     const roadScope = host.scope.child('grid-road-construction');
     progress?.set(2, 3, `Road geometry · ${strips.length} initial seams`);

@@ -1,6 +1,8 @@
 import type { GridEdgeSource } from './edgeProfiles';
+import type { CompiledGridSelector } from './compiledStrips';
+import { readGridAssetBytes } from './gridAssetBytes';
 
-export interface GridSeamAddress { readonly url: string; readonly bytes: number; readonly sha256: string }
+export interface GridSeamAddress { readonly url: string; readonly bytes: number; readonly sha256: string; readonly geometry?: CompiledGridSelector }
 interface GridSeamData {
   readonly plans: readonly (readonly [string, readonly number[][]])[];
   readonly edges: readonly (readonly [string, Extract<GridEdgeSource, { kind: 'declared' }>])[];
@@ -35,25 +37,7 @@ function data(value: unknown): value is GridSeamData {
 /** No module cache owns the parsed rows. The session consumes them during construction;
  * existing edge and seam certifiers still check every physical profile/lattice. */
 export async function readGridSeamData(address: GridSeamAddress, read: (url: string) => Promise<Response>): Promise<GridSeamData> {
-  if (!/^\/assets\/grid-seams-[a-f0-9]{8}\.json$/u.test(address.url) || !/^[a-f0-9]{64}$/u.test(address.sha256)
-    || !address.url.includes(address.sha256.slice(0, 8)) || !Number.isSafeInteger(address.bytes)
-    || address.bytes <= 0 || address.bytes > 16 * 1024 * 1024) throw new Error('Invalid grid seam address');
-  const response = await read(address.url);
-  if (!response.ok) throw new Error(`Grid seam data ${response.status}`);
-  if (response.body === null) throw new Error('Grid seam data body is missing');
-  const wire = new Uint8Array(address.bytes), reader = response.body.getReader();
-  let size = 0;
-  try {
-    for (;;) {
-      const part = await reader.read(); if (part.done) break;
-      if (part.value.length > wire.length - size) throw new Error('Grid seam data size differs from the build');
-      wire.set(part.value, size); size += part.value.length;
-    }
-    if (size !== wire.length) throw new Error('Grid seam data size differs from the build');
-  } catch (error) { await reader.cancel().catch(() => undefined); throw error; }
-  finally { reader.releaseLock(); }
-  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', wire.buffer));
-  if (Array.from(digest, byte => byte.toString(16).padStart(2, '0')).join('') !== address.sha256) throw new Error('Grid seam data differs from the build');
+  const wire = await readGridAssetBytes(address, read, 'seams');
   const parsed: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(wire));
   if (!data(parsed)) throw new Error('Invalid grid seam data');
   return parsed;

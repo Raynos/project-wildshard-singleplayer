@@ -29,7 +29,8 @@ class StoredCache {
   keys(): Promise<Request[]> { return Promise.resolve([...this.bodies.keys()].map(url => new Request(url))); }
   delete(input: Request | string): Promise<boolean> { return Promise.resolve(this.bodies.delete(this.key(input))); }
 }
-function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>, warm: readonly string[] = [entry, dependency, css, lazy, later], packs?: unknown) {
+function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>, warm: readonly string[] = [entry, dependency, css, lazy, later], packs?: unknown,
+  bundle: readonly string[] = [entry, dependency, css, lazy, later]) {
   const listeners = new Map<string, ((event: WorkerEvent) => void)[]>(), books = new Map<string, StoredCache>();
   const installErrors: unknown[] = [];
   const replies: unknown[] = [];
@@ -55,7 +56,7 @@ function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>, 
   const packSource = readFileSync('src/engine/pwa/codePack.js', 'utf8').replaceAll(/^export /gmu, '');
   const worker = readFileSync('src/engine/pwa/sw.js', 'utf8').replace("import { workerScope } from '../app/workerScope.js';\n", '').replace("import { codePackEntries, readCodePackTransport } from './codePack.js';\n", '')
     .replaceAll('__BUILD_ID__', 'unit-build').replaceAll('__ASSET_ID__', 'unit-assets')
-    .replace("'__BUNDLE__'", JSON.stringify(JSON.stringify([entry, dependency, css, lazy, later])))
+    .replace("'__BUNDLE__'", JSON.stringify(JSON.stringify(bundle)))
     .replace("'__WARM__'", JSON.stringify(JSON.stringify(warm)))
     .replace("'__INSTALL__'", JSON.stringify(JSON.stringify([entry, dependency, css])))
     .replace("'__CODE_PACKS__'", JSON.stringify(JSON.stringify(packs ?? { files: [], entries: {} })))
@@ -69,6 +70,28 @@ function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>, 
   return { fetch, open, dispatch, navigator, installErrors, replies };
 }
 afterEach(() => { vi.useRealTimers(); });
+
+test('emitted grid data stays cold at install and survives activation for offline first use', async () => {
+  const assets = ['/assets/grid-strip-book-12345678.json', '/assets/grid-strip-page-23456789.json', '/assets/grid-strip-mesh-34567890.bin'];
+  const bodies = new Map(assets.map((url, index) => [new URL(url, base).href, Uint8Array.of(0, index, 255, 128)]));
+  const f = fixture(url => Promise.resolve(url.endsWith('/asset-manifest.json') ? Response.json({})
+    : new Response(bodies.get(url)?.buffer ?? (url.endsWith('/index.html') ? `<script src="${entry}"></script>` : 'exact bytes'))),
+  undefined, undefined, [entry, dependency, css, lazy, later, ...assets]);
+  await f.dispatch('install');
+  expect(f.fetch.mock.calls.some(([url]) => bodies.has(typeof url === 'string' ? url : url.url))).toBe(false);
+  const cache = await f.open('ws-immutable');
+  for (const [url, bytes] of bodies) {
+    await f.dispatch('fetch', { request: new Request(url) });
+    expect(new Uint8Array(await (await cache.match(url))?.arrayBuffer() ?? [])).toEqual(bytes);
+  }
+  await f.dispatch('activate');
+  f.navigator.onLine = false; f.fetch.mockRejectedValue(new Error('offline')); f.fetch.mockClear();
+  for (const [url, bytes] of bodies) {
+    await f.dispatch('fetch', { request: new Request(url) });
+    expect(new Uint8Array(await (await cache.match(url))?.arrayBuffer() ?? [])).toEqual(bytes);
+  }
+  expect(f.fetch).not.toHaveBeenCalled();
+});
 
 test('one selected code pack publishes exact original URLs and supports offline first use', async () => {
   mkdirSync('tmp/code-pack-worker', { recursive: true });

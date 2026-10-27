@@ -134,13 +134,13 @@ two-phase unloads through the session's one allocator. `@wildshard/engine/sim/st
 highway, strip and crossroads meshes with local duplicates; where an edge observes a sea at exactly 0 over seabed (the
 shore rule, G149) the strip holds 0 to the cell edge and builds a +0.6 m rip-rap revetment there (feature `revetment`,
 part of the collider), and a shard clips its sea at `SHORE_REVETMENT_INNER_FACE` from `@wildshard/engine/sim/shore`.
-`sim/strips.generatePlatformSliced`/`generatePlatform` share certified geometry.
-`within(x, z)` prefilters origins with full neighbour profiles; complementary
-filters preserve mesh bytes. Slices await paint at budget, including subdivision
-and vertex removal; partial strips stay private.
+`sim/strips.generatePlatformSliced`/`generatePlatform`: shared certified meshes;
+`within` filters origins with full neighbours. Budgeted slices stay private.
 `sim/seamGeometry` and `sim/seamLattice` expose the ordered steps/tolerances.
-`sim/edgeProfiles.immutableEdgeProfile` copies, validates and deep-freezes rows.
-Only its own snapshots reuse proof; mutable/caller-frozen rows revalidate.
+`sim/edgeProfiles.immutableEdgeProfile` copies/validates/freezes rows; only its
+snapshots reuse proof. Other rows revalidate.
+`grid/compiledStrips` reads source-hashed, I12-bounded initial rings.
+Missing entries generate; corrupt declared files refuse.
 `@wildshard/engine/physics/frame` prepares rider/mount
 motor transfers. See [GRID-SIMULATION.md](GRID-SIMULATION.md) for readiness, snapshot and client integration ports.
 `grid/session.GridSession` offers `startInitialHomeMetadata` and `waitInitialHomeMetadata`: prefetch, then entry fence.

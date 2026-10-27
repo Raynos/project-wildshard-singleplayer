@@ -14,8 +14,12 @@ import { readGridProductEdges } from '../src/game/grid/products.ts';
 import { findShard } from '../src/game/shard/registry.ts';
 import { platformInputs } from '../src/game/grid/platformInputs.ts';
 import { generatePlatform } from '../src/engine/sim/strips.ts';
+import { platformGeometrySource } from '../src/game/grid/compiledStrips.ts';
+import { encodeGridStripPage, writeGridStripPages } from './app-build/gridStripPages.ts';
+import { phoneWireReport } from './phone-wire.mjs';
+import { existsSync } from 'node:fs';
 
-const root = process.cwd(), base = 'https://build.invalid/';
+const root = process.cwd(), outputRoot = resolve(process.argv[2] ?? root), base = 'https://build.invalid/';
 /** @param {string} path */
 const fetchFile = async path => {
   const url = new URL(path, base), product = url.pathname.startsWith('/shardfiles/');
@@ -26,6 +30,8 @@ const fetchFile = async path => {
   catch (error) { if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT') return new Response(null, { status: 404 }); throw error; }
 };
 const plans = new Map(), seen = new Set(), products = new Map(), sources = new Map();
+/** @type {import('./app-build/gridStripPages.ts').CompiledGridCandidate[]} */
+const compiled = [];
 for (const developer of [false, true]) for (const devserver of [false, true]) for (const nineDragon of [false, true]) {
   const assembly = new GridAssembly({ developer, devserver, nineDragon });
   const key = JSON.stringify(assembly.cells);
@@ -59,11 +65,23 @@ for (const developer of [false, true]) for (const devserver of [false, true]) fo
     }
   });
   const input = platformInputs(assembly, edges);
-  try { generatePlatform(input.cells, input.empty, plans); }
-  catch (error) { console.error(`[grid bake] road-level fallback: ${String(error)}`); generatePlatform(input.flat, input.empty, plans); }
+  let cells = input.cells, strips;
+  try { strips = generatePlatform(cells, input.empty, plans); }
+  catch (error) { console.error(`[grid bake] road-level fallback: ${String(error)}`); cells = input.flat; strips = generatePlatform(cells, input.empty, plans); }
+  const source = await platformGeometrySource(cells, input.empty), reach = 1.5 * assembly.pitch + 1;
+  for (const home of assembly.cells) {
+    const initial = strips.filter(strip => Math.abs(strip.mesh.origin.x - home.origin.x) <= reach && Math.abs(strip.mesh.origin.z - home.origin.z) <= reach);
+    compiled.push(encodeGridStripPage(source, home.instance, home.slug, initial));
+  }
 }
 // Edge reads complete concurrently. Their completion order must not change the
 // content URL (and every importing chunk) when all certified values are equal.
 /** @template T @param {ReadonlyMap<string,T>} rows */
 const ordered = rows => [...rows].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
-process.stdout.write(JSON.stringify({ plans: ordered(plans), edges: ordered(sources) }));
+const output = JSON.stringify({ plans: ordered(plans), edges: ordered(sources) });
+const names = [...new Set(compiled.map(row => row.slug))].filter(slug => existsSync(resolve(root, 'out', slug, 'shard.json')));
+const wire = await phoneWireReport(root, names);
+if (wire.errors.length > 0) throw new Error(wire.errors.join('\n'));
+const pages = writeGridStripPages(outputRoot, createHash('sha256').update(output).digest('hex'), compiled, wire.rows);
+for (const row of pages.rows) console.error(`[grid strip wire] ${row.home} source=${row.source.slice(0, 8)} added=${row.added} product=${String(row.product)} ceiling=${String(row.ceiling)} ${row.included ? 'compiled' : 'native'}`);
+process.stdout.write(output);
