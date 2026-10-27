@@ -31,6 +31,14 @@ test.each([
   expect(() => parseDiscoveryValues(input)).toThrow();
 });
 
+test('page-mode boot and KTX2 discovery keep both shard and grid rows', () => {
+  const gpu = { phone: { '/sky.png': '/sky.ktx2' }, desktop: {} };
+  const input = { 'boot.pageModes': { shard: modes, grid: modes, bakedUnreadPrefixes: ['cabins'] }, 'ktx2.pageModes': { shard: gpu, grid: gpu } };
+  expect(parseDiscoveryValues(input)).toEqual(input);
+  expect(() => parseDiscoveryValues({ 'boot.pageModes': { shard: modes, grid: modes, bakedUnreadPrefixes: [] } })).toThrow();
+  expect(() => parseDiscoveryValues({ 'ktx2.pageModes': { shard: gpu } })).toThrow();
+});
+
 test('refuses accessors without running authored code', () => {
   let reads = 0;
   const input = Object.defineProperty({}, 'poses', { enumerable: true, get: () => { reads++; return {}; } });

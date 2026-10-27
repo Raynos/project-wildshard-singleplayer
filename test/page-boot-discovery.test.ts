@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Locate the fixture's own source root.
 import { resolve } from 'node:path';
 import { parseManifestMetadata } from '../src/format/minimap';
+import { parseDiscoveryValues } from '../src/format/discoveryValues';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
 
 const root = resolve(import.meta.dirname, '..');
@@ -20,6 +21,20 @@ test('page boot discovery keeps GPU rows inside the lazy KTX2 call', () => {
   expect(source).not.toMatch(/^import .*gpuTables/gmu);
   expect(source).not.toContain('./runtime/boot/files');
   expect(source).not.toContain('./runtime/boot/gpuTable');
+});
+
+test('page boot program bindings take both page modes from the discovery values', () => {
+  const sources = { modes: { phone: { img: { sky: ['/sky.webp'] }, ktx2: {} }, desktop: { img: {}, ktx2: {} } } };
+  const gpu = { phone: { '/sky.png': '/sky.ktx2' }, desktop: {} };
+  const discovery = parseDiscoveryValues({ 'boot.pageModes': { shard: sources, grid: sources, bakedUnreadPrefixes: ['cabins'] },
+    'ktx2.pageModes': { shard: gpu, grid: gpu } });
+  const composed = { ...manifest, bindings: { ...manifest.bindings, boot: { platform: 'page-mode', rows: { program: true } },
+    ktx2: { platform: 'page-mode', rows: { program: true } } } };
+  expect(parseManifestMetadata(composed)).toEqual(composed);
+  const source = authoredManifestSource(root, 'pine-hollow', { metadataOnly: true, composed, discovery });
+  expect(source).toContain(`bootBindings: pageModeBoot(${JSON.stringify(discovery['boot.pageModes'])})`);
+  expect(source).toContain(`ktx2: async () => pageModeKtx2(${JSON.stringify(discovery['ktx2.pageModes'])})`);
+  expect(() => authoredManifestSource(root, 'pine-hollow', { metadataOnly: true, composed })).toThrow('program discovery value boot.pageModes');
 });
 
 test('page boot bindings refuse recipes, executable sources and ignored options', () => {

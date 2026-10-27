@@ -204,9 +204,9 @@ const dataBinding = v.union([binding, programBinding]);
 const moduleBinding = v.strictObject({module: bindingModule});
 /** G4: rows a shard generates for the game to build from (`declaredGround`, `declaredForestQueries`, `declaredStreamClip`) */
 const declared = v.strictObject({ platform: v.literal('declared'), rows: binding });
-const pageBoot = v.strictObject({ platform: v.literal('page-mode'), rows: v.strictObject({
+const pageBoot = v.strictObject({ platform: v.literal('page-mode'), rows: v.union([v.strictObject({
   module: v.pipe(binding.entries.module, v.regex(/\.json$/u)), export: v.literal('default'),
-}) });
+}), programBinding]) });
 /** A constant density field; no executable forest recipe or species policy. */
 export const FixedForestQueriesSchema: v.GenericSchema<FixedForestQueriesRowsInput, FixedForestQueriesRows> = v.strictObject({ platform: v.literal('fixed'), density: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1)) });
 const bindings = v.strictObject({
@@ -365,7 +365,7 @@ export interface ManifestMetadataFields {
             rows: {
                 module: v.InferOutput<(typeof binding)['entries']['module']>;
                 export: 'default';
-            };
+            } | { program: true };
         }) | ({
             files: (ManifestBindingRows) | ({
                 program: true;
@@ -433,7 +433,7 @@ export interface ManifestMetadataFields {
             rows: {
                 module: v.InferOutput<(typeof binding)['entries']['module']>;
                 export: 'default';
-            };
+            } | { program: true };
         }) | ({
             module: string;
         }) | (ManifestBindingRows);

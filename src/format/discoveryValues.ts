@@ -48,6 +48,10 @@ const fields = {
   'boot.files': v.exactOptional(files), 'boot.sources': v.exactOptional(sources),
   'boot.lateReads': v.exactOptional(v.union([strings, modes(strings)])),
   'boot.explore': v.exactOptional(v.strictObject({ art: strings })),
+  // A page-mode shard's boot and KTX2 rows for both page modes (src/game/shard/pageBoot.ts checks the exact source keys).
+  'boot.pageModes': v.exactOptional(v.strictObject({ shard: modes(v.record(text, strings)), grid: modes(v.record(text, strings)),
+    bakedUnreadPrefixes: v.pipe(strings, v.minLength(1)) })),
+  'ktx2.pageModes': v.exactOptional(v.strictObject({ shard: gpuFiles, grid: gpuFiles })),
 };
 const schema: v.GenericSchema<DiscoveryValuesInput, DiscoveryValues> = v.strictObject(fields);
 
@@ -61,6 +65,10 @@ export function parseDiscoveryValues(input: unknown): DiscoveryValues {
   return structuredClone(checked);
 }
 
+/** One page mode's boot sources by tier and texture mode. */
+interface PageModeSources { modes: { phone: { img: Record<string, string[]>; ktx2: Record<string, string[]> }; desktop: { img: Record<string, string[]>; ktx2: Record<string, string[]> } } }
+/** One page mode's GPU file tables by tier. */
+interface PageModeGpu { phone: Record<string, string>; desktop: Record<string, string> }
 /** Exact admitted data, independent of validator implementation metadata. */
 interface DiscoveryValuesInputFields {
     ktx2?: { phone: Record<string, string>; desktop: Record<string, string> };
@@ -216,6 +224,8 @@ interface DiscoveryValuesInputFields {
     'boot.explore'?: {
         art: string[];
     };
+    'boot.pageModes'?: { shard: PageModeSources; grid: PageModeSources; bakedUnreadPrefixes: string[] };
+    'ktx2.pageModes'?: { shard: PageModeGpu; grid: PageModeGpu };
 }
 export type DiscoveryValuesInput = { [Key in keyof DiscoveryValuesInputFields]: DiscoveryValuesInputFields[Key] };
 interface DiscoveryValuesFields {
@@ -372,5 +382,7 @@ interface DiscoveryValuesFields {
     'boot.explore'?: {
         art: string[];
     };
+    'boot.pageModes'?: { shard: PageModeSources; grid: PageModeSources; bakedUnreadPrefixes: string[] };
+    'ktx2.pageModes'?: { shard: PageModeGpu; grid: PageModeGpu };
 }
 export type DiscoveryValues = { [Key in keyof DiscoveryValuesFields]: DiscoveryValuesFields[Key] };
