@@ -55,6 +55,7 @@ import { retargetableTexture } from '../nodes/engineNodesHandler';
 import { EngineDirectionalLightNode } from '../nodes/cascadeLightNode';
 import { MatrixColumnNode } from '../nodes/matrixColumn';
 import { skinDirection } from '../nodes/skinDirection';
+import { fnv1a32 } from '../../core/rng';
 import { GraphNodeOwner } from '../nodes/nodeBuildReuse';
 import { ownGraphNodes } from '../nodes/graphOwners';
 import { optionalGraphAttribute } from '../nodes/graphAttributes';
@@ -485,6 +486,23 @@ class GraphLitMaterial extends GraphNormalMaterial {
  */
 const HOOK_INPUT_OPS: ReadonlySet<string> = new Set([...SUN_OPS, 'irradiance', 'radiance', 'environmentIrradiance', 'environmentIrradianceAt', 'litColour']);
 const SCENE_INPUT_OPS: ReadonlySet<string> = new Set(['fogColour', 'fogZenithColour', 'skyLightDirection', 'skyLightColour']);
+
+/**
+ * The ops a lighting stage's sun term may lower inside a shared layout function (S1, D150): math over its own inputs
+ * only, no sample, uniform, varying, camera, builder or loop state (those reach it as arguments, built in the program).
+ */
+const SUN_LAYOUT_OPS: ReadonlySet<string> = new Set(['const', 'add', 'sub', 'mul', 'div', 'mod', 'min', 'max', 'pow', 'step', 'clamp',
+  'smoothstep', 'abs', 'floor', 'fract', 'sin', 'cos', 'exp', 'negate', 'normalize', 'oneMinus', 'saturate', 'mix', 'dot', 'cross',
+  'length', 'lt', 'lte', 'gt', 'gte', 'eq', 'and', 'or', 'not', 'select', 'swizzle', 'combine', 'sunDirection', 'sunColour', 'sunShadow']);
+type SunInputs = Readonly<Record<string, Node>>;
+/**
+ * Each sun term's shared layout function, by its light-dependent sub-graph and argument types (S1, D150). Built inline,
+ * the sun sub-graph was lowered again for every directional light (each cascade) of every build of every material: the
+ * largest family of a Driftwood build's setup nodes after the environment lookup. three generates a layout function's
+ * code once per renderer, so a build now pays one call a light, and every material with the same sun term (each toon
+ * material: the family's preset) shares it. Its body lowers with the first compile's closure: pure math over arguments.
+ */
+const sunLayouts = new Map<string, (inputs: SunInputs) => Node>();
 /** Even an unfogged unlit graph may explicitly read its scene; loop bodies retain that dependency. */
 function readsSceneInputs(nodes: Readonly<Record<string, GraphNode>>): boolean {
   return Object.values(nodes).some(node => HOOK_INPUT_OPS.has(node.op) || SCENE_INPUT_OPS.has(node.op)
@@ -771,6 +789,8 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
   }
   // the lighting stage's inputs, live only while its sub-graph builds; a node reading a sun input memoizes per light
   let sunIn: { readonly direction: Node<'vec3'>; readonly colour: Node<'vec3'>; readonly shadow: Node<'float'> } | null = null;
+  // a sun layout function's arguments, by the node each stands for, live only while its body lowers
+  let sunArguments: ReadonlyMap<string, Val> | null = null;
   let irradianceIn: Node<'vec3'> | null = null;
   let environmentIn: { readonly radiance: Node<'vec3'>; readonly irradiance: Node<'vec3'> } | null = null;
   let litIn: Node<'vec3'> | null = null;
@@ -781,6 +801,8 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
 
   function ref(r: GraphRef, scope: Scope): Val {
     if (typeof r !== 'string') return literal(r);
+    const argument = sunArguments?.get(r);
+    if (argument !== undefined) return argument;
     for (let s: Scope | null = scope; s !== null; s = s.parent) {
       const n = s.nodes[r];
       if (n === undefined) continue;
@@ -1155,9 +1177,61 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
     const fresh = (): void => { if (scope.lightMemo !== undefined) scope.lightMemo.clear(); else lightMemo = new Map(); };
     const specularRef = lit.sunSpecular;
     const ambientRef = lit.ambient, gradeRef = lit.grade;
+    /** the sun term's light-dependent nodes (lowered in its layout function) and the values they read from the rest of
+     *  the graph (its arguments); null when any of them is not plain math (SUN_LAYOUT_OPS), so it lowers inline */
+    const sunPlan = ((): { readonly body: readonly string[]; readonly frontier: readonly string[]; readonly specular: boolean } | null => {
+      const deps = scope === root ? perLight : scope.lightDeps;
+      if (deps === undefined || typeof lit.sun !== 'string' || !deps.has(lit.sun)) return null;
+      const body: string[] = [], frontier: string[] = [], seen = new Set<string>();
+      let pure = true;
+      const visit = (r: GraphRef | undefined): void => {
+        if (typeof r !== 'string' || seen.has(r)) return;
+        seen.add(r);
+        const n = scope.nodes[r];
+        if (n === undefined) { pure = false; return; }
+        if (!deps.has(r)) { frontier.push(r); return; }
+        if (!SUN_LAYOUT_OPS.has(n.op) || n.body !== undefined) { pure = false; return; }
+        body.push(r);
+        for (const x of n.in ?? []) visit(x);
+      };
+      visit(lit.sun);
+      const specular = typeof specularRef === 'string' && deps.has(specularRef);
+      if (specular) visit(specularRef);
+      return pure ? { body, frontier, specular } : null;
+    })();
+    /** the sun term as its shared layout function, its arguments' types those of this graph's values */
+    const sunLayout = (plan: NonNullable<typeof sunPlan>, frontier: readonly Val[]): ((inputs: SunInputs) => Node) => {
+      const types = frontier.map(v => v.t);
+      const key = JSON.stringify([plan.body.map(r => [r, scope.nodes[r]]), lit.sun, plan.specular ? specularRef : null, plan.frontier, types]);
+      const known = sunLayouts.get(key);
+      if (known !== undefined) return known;
+      const fn = Fn<SunInputs, Node>((inputs: SunInputs): Node => {
+        const argument = (name: string): Node => { const value = inputs[name]; if (value === undefined) throw new Error(`material graph: the sun term lacks ${name}`); return value; };
+        sunIn = { direction: new ConvertNode<'vec3'>(argument('direction'), 'vec3'), colour: new ConvertNode<'vec3'>(argument('colour'), 'vec3'), shadow: new ConvertNode<'float'>(argument('shadow'), 'float') };
+        sunArguments = new Map(plan.frontier.map((r, i) => [r, { t: types[i] ?? 'float', n: argument(`f${String(i)}`) }]));
+        fresh();
+        try {
+          return vec4(asVec3(lit.sun), plan.specular && specularRef !== undefined ? asFloat(ref(specularRef, scope)) : float(0));
+        } finally { sunIn = null; sunArguments = null; fresh(); }
+      }).setLayout({ name: `wsGraphSun${fnv1a32(key).toString(16)}`, type: 'vec4', inputs: [
+        { name: 'direction', type: 'vec3' }, { name: 'colour', type: 'vec3' }, { name: 'shadow', type: 'float' },
+        ...types.map((type, i) => ({ name: `f${String(i)}`, type })),
+      ] });
+      const call = (inputs: SunInputs): Node => fn(inputs);
+      sunLayouts.set(key, call);
+      return call;
+    };
     return {
       specular: specularRef !== undefined,
       sun(direction, colour, shadow) {
+        if (sunPlan !== null) {
+          // the values the sun term reads from the rest of the graph, built in the program as ever; the term itself one call
+          const frontier = sunPlan.frontier.map(r => ref(r, scope));
+          const inputs: Record<string, Node> = { direction, colour, shadow };
+          frontier.forEach((v, i) => { inputs[`f${String(i)}`] = v.n; });
+          const terms = new ConvertNode<'vec4'>(sunLayout(sunPlan, frontier)(inputs), 'vec4');
+          return { radiance: terms.xyz, specular: specularRef === undefined ? null : sunPlan.specular ? terms.w : asFloat(ref(specularRef, scope)) };
+        }
         sunIn = { direction, colour, shadow }; fresh();
         try {
           return { radiance: asVec3(lit.sun), specular: specularRef === undefined ? null : asFloat(ref(specularRef, scope)) };
