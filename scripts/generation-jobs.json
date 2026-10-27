@@ -12713,6 +12713,7 @@
         "src/engine/render/releasedArrays.ts",
         "src/engine/render/renderer.ts",
         "src/engine/render/shaderPatches.ts",
+        "src/engine/render/shaderText.ts",
         "src/engine/render/shadowMaterialOwnership.ts",
         "src/engine/render/skinnedSpheres.ts",
         "src/engine/render/textureUploadEvents.ts",
