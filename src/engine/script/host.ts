@@ -30,16 +30,16 @@ export interface ScriptCall { ok: boolean; effects: readonly ScriptEffect[]; eve
 /** Host dependencies are explicitly installed; no import creates an instance or changes a service. */
 export interface ScriptHostOptions {
   world: ScriptWorld; query: ScriptQuery; limits?: Partial<ScriptLimits>; development?: boolean; toast?: (text: string) => void; onDisabled?: (disabled: ScriptDisabled) => void;
-  /** A call's effect records (and their list) are refilled by the module's next call: for a caller that reads them
-   * only before calling that module again (a presentation lane); anything kept must be copied. */
-  transientEffects?: boolean;
+  /** A call's effect records (and their list) and its query inputs are refilled by the module's next call or query: for a
+   * caller and a query port that read them only inside that call (a presentation lane); anything kept must be copied. */
+  transientCallData?: boolean;
 }
 /** A module crossed its failure limit and stays switched off (G168): told once per module, never on a restored checkpoint. */
 export interface ScriptDisabled { module: string; entity: string; reason: string; failures: number }
 interface Layout { input: number; inputBytes: number; output: number; outputRecords: number }
 interface Running { memory: WebAssembly.Memory; instance: WebAssembly.Instance }
 interface OwnedSnapshot { memory: Uint8Array; globals: Map<string, number | bigint> }
-interface ModuleState { bytes: Uint8Array; admission: ScriptAdmission; maximumPages: number; running: Running | undefined; layout: Layout; good: OwnedSnapshot; spare?: OwnedSnapshot; records?: ScriptEffect[]; failures: number; disabled: boolean; remaining: number; depth: number; entity: number; busy: boolean }
+interface ModuleState { bytes: Uint8Array; admission: ScriptAdmission; maximumPages: number; running: Running | undefined; layout: Layout; good: OwnedSnapshot; spare?: OwnedSnapshot; records?: ScriptEffect[]; query?: number[]; failures: number; disabled: boolean; remaining: number; depth: number; entity: number; busy: boolean }
 function integer(n: number, min: number, max: number): boolean { return Number.isSafeInteger(n) && n >= min && n <= max; }
 interface PreparedMemory { initial: number; maximum: number; memory: WebAssembly.Memory }
 const preparedMemories = new Map<Scope, PreparedMemory[]>();
@@ -201,8 +201,8 @@ export class ScriptHost {
         if (!state.busy || (!integer(kind, 1, 4) && kind !== SCRIPT_PARAMETER_QUERY)) throw new Error('Query outside a tick');
         this.charge(state, 256); if (++this.used.queries > this.limits.queries) throw new Error('Query allowance');
         bounds(request, 64, memory); bounds(response, 768, memory);
-        const view = float64(memory), at = request / 8, input: number[] = [];
-        for (let i = 0; i < 8; i++) { const n = view[at + i] ?? Number.NaN; if (!Number.isFinite(n) || Math.abs(n) > 10000) throw new Error('Invalid query input'); input.push(n); }
+        const view = float64(memory), at = request / 8, input: number[] = this.options.transientCallData === true ? (state.query ??= []) : [];
+        for (let i = 0; i < 8; i++) { const n = view[at + i] ?? Number.NaN; if (!Number.isFinite(n) || Math.abs(n) > 10000) throw new Error('Invalid query input'); input[i] = n; }
         const answer = this.options.query(kind, input, state.entity);
         if (answer.length > 96 || !finiteAll(answer)) throw new Error('Invalid query response');
         // The answer may have grown memory; write through the current buffer.
@@ -402,7 +402,7 @@ export class ScriptHost {
       // on_tick may have grown memory: read the records through the current buffer.
       const view = float64(currentRunning.memory); let effects = NO_EFFECTS;
       if (count > 0) {
-        const records: ScriptEffect[] = this.options.transientEffects === true ? (state.records ??= []) : [];
+        const records: ScriptEffect[] = this.options.transientCallData === true ? (state.records ??= []) : [];
         for (let i = 0; i < count; i++) {
           const record = out + i * 5, op = view[record] ?? Number.NaN, a = view[record + 1] ?? Number.NaN, b = view[record + 2] ?? Number.NaN, c = view[record + 3] ?? Number.NaN, d = view[record + 4] ?? Number.NaN;
           const kept = records[i];

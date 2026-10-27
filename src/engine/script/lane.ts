@@ -57,7 +57,7 @@ export class ScriptDriver {
   role(id: string): ScriptRole { return { id, moduleContract: true, world: this.world, query: this.query, events: 'deliver', snapshot: () => this.snapshot(), restore: text => { this.restore(text); } }; }
   /** Prepare numeric inputs for due bindings; the owning composition starts the one global fixed tick. */
   schedule(id: string, role: string, commands: () => ReadonlyMap<string, number> = () => NO_COMMANDS): ScriptSchedule {
-    const byEntity = new Map<number, ScriptBinding[]>();
+    const byEntity = new Map<number, ScriptBinding[]>(), inputRows = new Map<ScriptBinding, number[]>();
     for (const binding of this.bindings) { const rows = byEntity.get(binding.entity); if (rows === undefined) byEntity.set(binding.entity, [binding]); else rows.push(binding); }
     return { id, role, bindings: this.bindings.map(binding => ({ module: binding.module, entity: binding.entity, divisor: this.divisor })),
       input: (scheduled, tick) => {
@@ -65,7 +65,9 @@ export class ScriptDriver {
         for (const row of byEntity.get(scheduled.entity) ?? []) if (row.module === scheduled.module) { binding = row; break; }
         if (binding === undefined) throw new Error('Missing numeric script binding');
         const actor = binding.actorId, command = actor === null ? 0 : commands().get(actor) ?? 0;
-        const input = [tick, this.divisor / 60, command, binding.entity, actor === null ? 0 : this.actors.indexOf(actor) + 1, binding.kind === 'server' ? 0 : 1];
+        // One row per binding, refilled each tick: its readers (the lane's call, the composition's copy) use it at once.
+        let input = inputRows.get(binding); if (input === undefined) { input = []; inputRows.set(binding, input); }
+        input.length = 0; input.push(tick, this.divisor / 60, command, binding.entity, actor === null ? 0 : this.actors.indexOf(actor) + 1, binding.kind === 'server' ? 0 : 1);
         this.world.appendInput(binding.entity, input); return input;
       }, committed: () => undefined };
   }

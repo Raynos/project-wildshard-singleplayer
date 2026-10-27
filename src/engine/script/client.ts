@@ -166,8 +166,8 @@ export class ClientScriptLane {
     if (new Set(bindings.map((b) => b.entity)).size !== bindings.length || new Set(modules.map((m) => m.name)).size !== modules.length || bindings.some((b) => !modules.some((m) => m.name === b.module) || new Set(b.emitters.map((e) => e.id)).size !== b.emitters.length)
       || modules.some((m) => !bindings.some((b) => b.module === m.name))) throw new Error('Invalid client module/target binding');
     this.world = new ClientWorld(bindings);
-    // The lane reads each call's effects only inside that call (its world copies the values), so they are transient.
-    this.host = new ScriptHost({ world: this.world, transientEffects: true, limits: { fuelPerCall: 200000, fuelPerTick: 2000000, ...(options.memoryBytes === undefined ? {} : { memoryBytes: options.memoryBytes }) }, query: (kind, request, entity) => {
+    // The lane reads each call's effects and query input only inside that call (its world copies the values): transient.
+    this.host = new ScriptHost({ world: this.world, transientCallData: true, limits: { fuelPerCall: 200000, fuelPerTick: 2000000, ...(options.memoryBytes === undefined ? {} : { memoryBytes: options.memoryBytes }) }, query: (kind, request, entity) => {
       const binding = this.world.bindings.get(entity);
       let zero = true; for (let i = 0; i < request.length; i++) if (request[i] !== 0) zero = false;
       if (kind !== SCRIPT_PARAMETER_QUERY || !zero || binding === undefined) throw new Error('Client query requires declared parameters');
