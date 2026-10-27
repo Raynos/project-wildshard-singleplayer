@@ -1,27 +1,14 @@
 import { defineConfig, type Plugin } from 'vite';
 import { assetTableAddresses, readAssetTables } from './scripts/app-build/assetTables.mjs';
 import { readGridSeams } from './scripts/app-build/gridSeams.mjs';
-import { execSync } from 'node:child_process';
 import { rmSync, readdirSync, existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { shardfileValidationRevision } from './scripts/shardfile-validation-revision.mjs';
 import { join } from 'node:path';
-import type { ServerResponse } from 'node:http';
-import { hashTree } from './scripts/app-build/assetHashes';
 import { rapierAlias } from './vite/rapier';
-import { assetIndex } from './scripts/app-build/gen';
 import { assertHeavyLease } from './scripts/heavy-lane-lease.mjs';
 import { BUILD_ID_EXPRESSION } from './scripts/app-build/buildIdentity.mjs';
 
-// Build stamp: short git sha + build time. Written into each document by build-app,
-// never into content-hashed runtime modules, and emitted as /version.json so the app can tell when the server has a newer build
-// (iOS home-screen PWAs have no address bar, so the title screen offers the reload).
-function buildId(): string {
-  const { VERCEL_GIT_COMMIT_SHA: commitSha } = process.env;
-  let sha = (commitSha ?? '').slice(0, 7);
-  try { sha ||= execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch { /* not a git checkout */ }
-  return `${sha || 'b'}-${Date.now().toString(36)}`;
-}
 /** The world map atlas's define, as scripts/app-build/worldMapAtlas.ts baked it before the bundle. */
 function worldMapDefine(): unknown {
   let rows: string;
@@ -29,28 +16,6 @@ function worldMapDefine(): unknown {
   catch { throw new Error('Missing out/.app/world-map.json: build the app through scripts/build-app.mjs, which bakes the world map first'); }
   return (JSON.parse(rows) as { define: unknown }).define;
 }
-const BUILD_ID = buildId();
-const versionJson = () => JSON.stringify({ build: BUILD_ID, time: new Date().toISOString() });
-
-const assetManifest = (): string => JSON.stringify(hashTree('assets'));
-
-const versionPlugin = (): Plugin => ({
-  name: 'wildshard-version',
-  generateBundle() {
-    this.emitFile({ type: 'asset', fileName: 'version.json', source: versionJson() });
-    this.emitFile({ type: 'asset', fileName: 'asset-index.json', source: assetIndex() });
-    this.emitFile({ type: 'asset', fileName: 'asset-manifest.json', source: assetManifest() });
-  },
-  configureServer(server) {
-    const json = (body: () => string) => (_req: unknown, res: ServerResponse) => {
-      res.setHeader('Content-Type', 'application/json'); res.setHeader('Cache-Control', 'no-store'); res.end(body());
-    };
-    server.middlewares.use('/version.json', json(versionJson));
-    server.middlewares.use('/asset-index.json', json(assetIndex));
-    server.middlewares.use('/asset-manifest.json', json(assetManifest));
-  },
-});
-
 // `vite build --mode native` (docs/plans/NATIVE-APPS.md): the web bundle the iOS / Android shells embed, in
 // dist-native/ (capacitor.config.ts `webDir`). Same game; the page swaps the web-only boot for src/native.ts:
 // no service worker (WKWebView has none on capacitor://, and the bundle is already on disk), no update pill
@@ -120,6 +85,6 @@ export default defineConfig(({ mode, command }) => {
     assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
     resolve: { alias: rapierAlias }, // Rapier's wasm-importing module → plain bindings (vite/rapier.ts)
     define: { __GRID_SEAM_ASSET__: JSON.stringify(readGridSeams(process.cwd()).address), __BOOT_TABLE_ASSETS__: JSON.stringify(assetTableAddresses(readAssetTables(process.cwd()))), __GRID_MAP_ATLAS__: JSON.stringify(worldMapDefine()), __SHARDFILE_VALIDATOR__: JSON.stringify(validationRevision), __SHARDFILE_VERDICTS__: JSON.stringify(buildValidationReceipts(validationRevision)), __DEVSERVER__: mode === 'devserver', __BUILD_ID__: BUILD_ID_EXPRESSION, __SAVE_NAMESPACES__: JSON.stringify(readdirSync('src/shards').filter((slug) => existsSync(join('src/shards', slug, 'manifest.ts')))) },
-    plugins: native ? [versionPlugin(), nativePlugin()] : [versionPlugin()],
+    plugins: native ? [nativePlugin()] : [],
   };
 });

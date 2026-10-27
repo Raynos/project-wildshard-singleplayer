@@ -55,6 +55,8 @@ const build = spawnSync(process.execPath, [vite, 'build', ...args], { stdio: 'in
 if (build.error !== undefined) throw build.error;
 if (build.status !== 0) { process.exitCode = build.status ?? 1; process.exit(); }
 
+// version.json (the build id the documents are stamped with), asset-index.json and asset-manifest.json
+step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', "(await import('./scripts/app-build/versionFiles.ts')).writeVersionFiles(process.argv[1]);", outDir]);
 // the seams', boot tables' and world map's exact bytes as their hashed assets, beside the bundle that names them
 writeGridSeams(outDir, process.cwd());
 writeAssetTables(outDir, process.cwd());
