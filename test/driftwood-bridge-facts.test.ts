@@ -10,8 +10,7 @@ import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { bridgeDeck, bridgeUnitGeometries } from '../src/shards/driftwood-isle/generators/ropeBridge';
 
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
-import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
-import fixedBlobs from '../src/shards/driftwood-isle/data/fixedBlobs.generated.json' with { type: 'json' };
+import { driftwoodFixedModel } from './fixtures/driftwood-fixed-bank';
 
 const ROPE_BRIDGE = new RopeDeckSite(driftwoodRopeDeckSite(), ISLAND);
 const span:RopeBridgeSpec={a:[0,0],b:[12,0],sag:0.9};
@@ -67,9 +66,7 @@ it('draws the baked deck skinned to its segments, and refuses to draw before it 
 
 it('retains original native bridge units in named GLBs', async () => {
   for (const [name, expected] of Object.entries(bridgeUnitGeometries())) {
-    const row = fixedBlobs.blobs.find(blob => blob.name === `models/fixed/${name}.glb`);
-    if (row === undefined) throw new Error('Missing native bridge unit blob');
-    const intake = createOwnedGeometry(row.name); await intake.load(fixtureBytes(new URL(`../src/shards/driftwood-isle/${row.source}`, import.meta.url)));
+    const intake = createOwnedGeometry(`models/fixed/${name}.glb`); await intake.load(await driftwoodFixedModel(name));
     const actual = intake.take();
     try {
       expect(Object.keys(actual.attributes).sort()).toEqual(Object.keys(expected.attributes).sort());

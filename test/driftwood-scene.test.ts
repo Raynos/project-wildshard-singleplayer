@@ -1,5 +1,3 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Exercise the generated product with its real local assets.
-import { readFileSync } from 'node:fs';
 import { BufferGeometry, Material, Mesh, type Object3D } from 'three';
 import { expect, it } from 'vitest';
 import { assembleWholeGeometryViews } from '../src/game/plugin/geometry';
@@ -8,18 +6,20 @@ import { validateShardfileAssets } from '../src/format/assetAdmission';
 import { contentHash, readProjectAssets } from '../src/sdk/project';
 import { outputScriptAdmissionRows } from '../src/sdk/outputProduct';
 import { FIXED_MODEL_FILES } from '../src/shards/driftwood-isle/generators/modelFiles';
-import product from '../src/shards/driftwood-isle/data/fixedTiles.generated.json' with { type: 'json' };
-import source from '../src/shards/driftwood-isle/shard.config';
+import product from './fixtures/driftwood-fixed-original.json' with { type: 'json' };
+import { driftwoodFixedBank } from './fixtures/driftwood-fixed-bank';
+import { DRIFTWOOD as source } from './fixtures/driftwood-program';
 
 const isMesh = (node: Object3D): node is Mesh => node instanceof Mesh;
 
 it('assembles the original fixed model identities from the declared tiles and library', async () => {
   const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
   const meshes: Mesh[] = [];
-  const hashes = [...product.tiles.flatMap(row => row.files), ...product.library];
+  const hashes = [...product.tiles.flatMap(row => row.files), ...product.library], owned = await driftwoodFixedBank();
   try {
     for (const hash of hashes) {
-      const bytes = readFileSync(`src/shards/driftwood-isle/assets/${hash}`);
+      const bytes = owned.get(`assets/${hash}`) ?? owned.get(`owned/coarse/${hash}.glb`);
+      if (bytes === undefined) throw new Error(`Missing owned world bytes: ${hash}`);
       const gltf = await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer, '');
       gltf.scene.traverse(node => { if (isMesh(node)) meshes.push(node); });
     }

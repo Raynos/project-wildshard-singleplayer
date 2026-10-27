@@ -12,7 +12,8 @@ import { createHash } from 'node:crypto';
 import { gzipSync, gunzipSync } from 'node:zlib';
 import * as v from 'valibot';
 import { readWitnessManifest, witnessPayloadHashes } from '../../../scripts/witness-checkpoints.mjs';
-import source from '../../../src/shards/driftwood-isle/shard.config';
+import source from '../../fixtures/driftwood-product-source';
+import { driftwoodFixedAssets } from '../../fixtures/driftwood-fixed-bank';
 import bossRows from '../../../src/shards/driftwood-isle/data/bossEncounter.json' with { type: 'json' };
 import { readNativeQuestSpots } from '../../fixtures/native-hosts/quest/nativeComposition';
 import nativeQuestSpots from '../../../src/shards/driftwood-isle/data/spots.generated.json' with { type: 'json' };
@@ -44,7 +45,8 @@ export function witnessProductDirectory(): string {
 let DIR = new URL('checkpoints/', import.meta.url), MANIFEST = new URL('manifest.json', DIR);
 /** Select a generator-owned output directory; native recorders and replay readers share this explicit port. */
 export function setCheckpointDirectory(directory: URL): void { DIR = directory; MANIFEST = new URL('manifest.json', DIR); }
-const assets = new Map(source.files.map(file => [file.hash, new Uint8Array(readFileSync(new URL(`src/shards/driftwood-isle/assets/${file.hash}`, ROOT)))]));
+const fixedAssets = await driftwoodFixedAssets();
+const assets = new Map(source.files.map(file => [file.hash, fixedAssets.get(file.hash) ?? new Uint8Array(readFileSync(new URL(`src/shards/driftwood-isle/assets/${file.hash}`, ROOT)))]));
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0));
 const Frame = v.pipe(v.array(TickCommandSchema), v.maxLength(1024));
 const Tape = v.pipe(v.array(Frame), v.maxLength(60_000));

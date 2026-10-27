@@ -21,10 +21,13 @@ const { WILDSHARD_IDENTITY } = await import('../../../src/game/identity.ts'); in
 await import('../../fixtures/driftwood-headless.ts');
 await import('./worker.ts');
 const witness = await import('./witness.ts');
-const { default: source } = await import('../../../src/shards/driftwood-isle/shard.config.ts');
+const { default: source } = await import('../../fixtures/driftwood-product-source.ts');
+const { driftwoodFixedAssets } = await import('../../fixtures/driftwood-fixed-bank.ts');
+const { DRIFTWOOD_FIXED_INPUTS } = await import('../../../src/shards/driftwood-isle/generators/fixedProgram.ts');
+const fixedAssets = await driftwoodFixedAssets();
 const productIndex = new URL('out/driftwood-isle/shard.json', ROOT);
 const pinnedProductIndex = new URL('shard.json', pathToFileURL(`${witness.witnessProductDirectory()}/`));
-function inputFiles() { return new Set([...loaded, productIndex.href, ...source.files.map(file => new URL(`src/shards/driftwood-isle/assets/${file.hash}`, ROOT).href), ...['src/shards/driftwood-isle/data/headlessAssembly.json', 'test/proof/driftwood-isle/run.mjs', 'test/fixtures/headless/worker.ts', 'scripts/sim-node-loader.mjs', 'pnpm-lock.yaml', 'public/assets/physics/rapier.wasm'].map(path => new URL(path, ROOT).href)]); }
+function inputFiles() { return new Set([...loaded, productIndex.href, ...DRIFTWOOD_FIXED_INPUTS.map(url => new URL(`public${url}`, ROOT).href), ...source.files.filter(file => !fixedAssets.has(file.hash)).map(file => new URL(`src/shards/driftwood-isle/assets/${file.hash}`, ROOT).href), ...['src/shards/driftwood-isle/data/headlessAssembly.json', 'test/proof/driftwood-isle/run.mjs', 'test/fixtures/headless/worker.ts', 'scripts/sim-node-loader.mjs', 'pnpm-lock.yaml', 'public/assets/physics/rapier.wasm'].map(path => new URL(path, ROOT).href)]); }
 function inputs() {
   const files = inputFiles();
   const hash = createHash('sha256');

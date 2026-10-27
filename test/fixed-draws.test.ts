@@ -1,8 +1,7 @@
 import { FixedDrawRowsSchema } from '../src/format/fixedDraws';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
-// oxlint-disable-next-line import/no-nodejs-modules -- The cold card reads the shipped baked gull through its product.
-import { readFileSync } from 'node:fs';
+import { driftwoodFixedModel } from './fixtures/driftwood-fixed-bank';
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry } from 'three';
 import { zlibSync } from 'fflate';
@@ -35,7 +34,7 @@ test('an undeclared, missing or repeated slot refuses; no source reads the produ
 });
 
 test('a cold card owns exactly its slots, read through the product, and releases them with its scope', async () => {
-  const gull = Uint8Array.from(readFileSync('public/assets/driftwood-isle/baked/fixed-models/gull.glb'));
+  const gull = await driftwoodFixedModel('gull');
   const read = { slug: 'fixture', file: (name: string) => name === 'models/fixed/gull.glb' ? Promise.resolve(gull) : Promise.reject(new Error(`unread ${name}`)) };
   const card = new Scope('card');
   const draws = await coldFixedDraws(read, rows, card, ['gull']);
@@ -49,7 +48,7 @@ test('a cold card owns exactly its slots, read through the product, and releases
 });
 
 // sp-x8 QX: lifetime regressions for the cold entry
-const bytes = (name: string): Uint8Array => Uint8Array.from(readFileSync(`public/assets/driftwood-isle/baked/fixed-models/${name}.glb`));
+const bytes = driftwoodFixedModel;
 function deferred() { let settle: (value: Uint8Array) => void = () => undefined;
   const promise = new Promise<Uint8Array>(resolve => { settle = resolve; }); return { promise, resolve: (value: Uint8Array) => { settle(value); } }; }
 // the real template intake, signalling each slot's decode completion to the test (the dependency passed in, E422)
@@ -65,15 +64,15 @@ function signalled() {
 test('closing during a read releases a slot that finished early and refuses; a closed card hands out nothing', async () => {
   const late = deferred(), disposed = vi.spyOn(BufferGeometry.prototype, 'dispose');
   try {
-    const card = new Scope('card'), read = { slug: 'fixture', file: (name: string) => name.endsWith('gull.glb') ? Promise.resolve(bytes('gull')) : late.promise };
+    const card = new Scope('card'), read = { slug: 'fixture', file: (name: string) => name.endsWith('gull.glb') ? bytes('gull') : late.promise };
     const signal = signalled(), gullDecoded = signal.decoded('gull'), pending = coldFixedDraws(read, rows, card, ['gull', 'reefFish'], signal.template);
     await gullDecoded;
     const before = disposed.mock.calls.length;
-    card.dispose(); late.resolve(bytes('reef-fish'));
+    card.dispose(); late.resolve(await bytes('reef-fish'));
     await expect(pending).rejects.toThrow('owner left');
     expect(disposed.mock.calls.length - before).toBe(1);
   } finally { disposed.mockRestore(); }
-  const card = new Scope('card'), draws = await coldFixedDraws({ slug: 'fixture', file: () => Promise.resolve(bytes('gull')) }, rows, card, ['gull']);
+  const card = new Scope('card'), draws = await coldFixedDraws({ slug: 'fixture', file: () => bytes('gull') }, rows, card, ['gull']);
   card.dispose();
   expect(draws.ready).toBe(false); expect(() => draws.handle('gull')).toThrow('owner left'); await expect(draws.load()).rejects.toThrow('owner left');
 });
@@ -83,14 +82,14 @@ test('an ancestor retiring (disposing, the card still live) during a read refuse
   const pending = coldFixedDraws({ slug: 'fixture', file: () => late.promise }, rows, card, ['gull']);
   const steps = parent.disposeSteps(); steps.next();
   expect(card.disposed).toBe(false); expect(card.disposing).toBe(true);
-  late.resolve(bytes('gull'));
+  late.resolve(await bytes('gull'));
   await expect(pending).rejects.toThrow('owner left');
   for (let step = steps.next(); step.done !== true; step = steps.next()) { /* finish the retirement */ }
 });
 test('a partial read failure releases every slot that loaded and reports the failure', async () => {
   const disposed = vi.spyOn(BufferGeometry.prototype, 'dispose');
   try {
-    const card = new Scope('card'), read = { slug: 'fixture', file: (name: string) => name.endsWith('gull.glb') ? Promise.resolve(bytes('gull')) : Promise.reject(new Error('reef fish unreadable')) };
+    const card = new Scope('card'), read = { slug: 'fixture', file: (name: string) => name.endsWith('gull.glb') ? bytes('gull') : Promise.reject(new Error('reef fish unreadable')) };
     const before = disposed.mock.calls.length;
     await expect(coldFixedDraws(read, rows, card, ['gull', 'reefFish'])).rejects.toThrow('reef fish unreadable');
     expect(disposed.mock.calls.length - before).toBe(1);
