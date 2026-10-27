@@ -492,68 +492,54 @@
   "bindings": {
     "accent": "ember",
     "budgets": {
-      "module": "./boot/declaration.generated",
-      "export": "BUDGETS"
+      "program": true
     },
     "runtimeCost": {
       "module": "./data/runtimeCost.json",
       "export": "default"
     },
     "navigation": {
-      "module": "./boot/declaration.generated",
-      "export": "NAVIGATION"
+      "program": true
     },
     "poses": {
-      "module": "./boot/declaration.generated",
-      "export": "POSES"
+      "program": true
     },
     "groundRows": {
-      "module": "./boot/declaration.generated",
-      "export": "GROUND_ROWS"
+      "program": true
     },
     "groundColourSamples": {
-      "module": "./boot/declaration.generated",
-      "export": "GROUND_COLOUR"
+      "program": true
     },
     "surfaceSamples": {
-      "module": "./boot/declaration.generated",
-      "export": "SURFACE"
+      "program": true
     },
     "forestMaskSamples": {
-      "module": "./boot/declaration.generated",
-      "export": "FOREST_MASK"
+      "program": true
     },
     "mapGroundSamples": {
-      "module": "./boot/declaration.generated",
-      "export": "MAP_GROUND"
+      "program": true
     },
     "mapPalette": {
-      "module": "./boot/declaration.generated",
-      "export": "MAP_PALETTE"
+      "program": true
     },
     "navmesh": {
-      "module": "./boot/declaration.generated",
-      "export": "NAVMESH"
+      "program": true
     },
     "ktx2": {
       "module": "./ktx2.generated"
     },
     "boot": {
       "files": {
-        "module": "./boot/declaration.generated",
-        "export": "BOOT_FILES"
+        "program": true
       },
       "sources": {
-        "module": "./boot/declaration.generated",
-        "export": "BOOT_SOURCES"
+        "program": true
       },
       "lateReads": {
-        "module": "./boot/declaration.generated",
-        "export": "BOOT_LATE_READS"
+        "program": true
       },
       "explore": {
-        "module": "./boot/explore.generated.json",
-        "export": "default"
+        "program": true
       }
     },
     "entry": {

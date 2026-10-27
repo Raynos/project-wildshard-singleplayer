@@ -8,7 +8,7 @@ import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { GROUND } from './fixtures/nalati-terrain';
 import { readNalatiGeography } from './fixtures/nalati-geography';
-import { TERRAIN_ROWS } from '../src/shards/nalati-grasslands/boot/declaration.generated';
+import { nalatiGeographyRows } from '../src/shards/nalati-grasslands/generators/geographySource';
 import nalati from '../src/shards/nalati-grasslands/discovery.generated';
 
 const geography=readNalatiGeography();
@@ -57,7 +57,7 @@ test('complete bake policy admission preserves legacy identity and refuses ambig
 test('actual declared bake row preserves the original native predicate at clamped and equality boundaries',() => {
   const row = nalati.navmesh?.ground,terrain = GROUND.terrain;
   if (row === undefined) throw new Error('Missing declared exclusion');
-  expect(row.wet).toBe(TERRAIN_ROWS.navmesh.ground.wet);
+  expect(row.wet).toEqual(nalatiGeographyRows().channels.wet);
   expect(row.wet).toEqual(geography.channels.wet);
   const exclude = navmeshGroundExclusion(nalati.navmesh,terrain,nalati.scalarBlocks);
   if (exclude === undefined) throw new Error('Missing exclusion');

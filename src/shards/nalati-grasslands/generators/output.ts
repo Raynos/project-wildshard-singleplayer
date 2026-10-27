@@ -123,7 +123,8 @@ import worldAssembly from '../data/worldAssembly.json' with { type: 'json' };
 import { FixedDrawRowsSchema } from '@wildshard/format/fixedDraws';
 import { postChainRows } from './postChain';
 import { PANO_RIDGE_V } from './panoramaData';
-import paintedTextures from '../data/paintedTextures.generated.json' with { type: 'json' };
+import { NALATI_PAINTED } from './paintedRows';
+import { nalatiBootProgram } from './bootProgram';
 import campCatalogue from '../data/campCatalogue.json' with { type: 'json' };
 import campMaterials from '../data/campMaterials.json' with { type: 'json' };
 import captureRows from '../data/staticCapture.json' with { type: 'json' };
@@ -150,7 +151,7 @@ const cloudSpecimen = { name: 'storm-titan', pose: { rise: 1, bend: 0, kneel: 0,
 const { cues: nightCues, ...nightRows } = night;
 // G613: the whole look as one row (game/looks/postGraphLook over its painted world, the manifest's render): the grade's
 // post graph, then the painted world's fog, air, ground, grass and the panorama / key light / capture world rows
-const lookRows = postChainRows(), painted = paintedTextures;
+const lookRows = postChainRows(), painted = NALATI_PAINTED;
 const postLook = (grassRows: NalatiGrass['rows']) => ({ ...lookRows.postGraph, painted: { fog: { ...painted.fog, ...lookRows.paintedFog, lut: lookRows.fogLut }, air: painted.air,
   ground: 'ground' in painted ? painted.ground : null, tiles: campMaterials, capture: captureRows, grass: { rows: grassRows, cards: painted.cards },
   world: { rows: 'world' in painted ? painted.world : null, panorama: 'panorama' in painted ? painted.panorama : null, key: 'key' in painted ? painted.key : null,
@@ -403,6 +404,11 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
     return nameBlob(row.name, row.kind, bytes);
   })], runtime.floors.map(floor => nameBlob(floor.name, 'bin', floor.bytes)), [propBlob], carvings, held, renderPairs, ownedGeography, views, [kokpar.blob], ridingModules, nalatiTitanBlobs(titan)));
   return { ...template, platform, blobs: [], namedFiles: [...sources.map(source => source.file), ...modelBlobs.map(source => source.file), ...namedFiles, ...taming.files, places.file, crags.file, dressingBlob.file, specimenBank.file, speciesBank.file, ...people.map(blob => blob.file), ...terrainDraws.map(blob => blob.file), ...grassBlobs.map(blob => blob.file)], assets: new Map([...template.assets, ...freshEmission.assets, ...[...ownedBooks.values()].map(blob => [blob.file.hash, blob.bytes] as const), ...sources.map(source => [source.file.hash, source.bytes] as const), ...modelBlobs.map(source => [source.file.hash, source.bytes] as const), ...ownedMetadata.assets, ...placements.assets, ...scenes.assets, [carriedBlob.file.hash, carriedBlob.bytes], [places.file.hash, places.bytes], [crags.file.hash, crags.bytes], [dressingBlob.file.hash, dressingBlob.bytes], [specimenBank.file.hash, specimenBank.bytes], [speciesBank.file.hash, speciesBank.bytes], ...people.map(blob => [blob.file.hash, blob.bytes] as const), ...terrainDraws.map(blob => [blob.file.hash, blob.bytes] as const), ...grassBlobs.map(blob => [blob.file.hash, blob.bytes] as const)]) };
+}
+
+/** GR6: Nalati's boot declaration as discovery (bootProgram.ts; the retired nalati-boot-metadata job's rows). */
+export function prepareDiscovery(ctx: ProjectGenerationContext): ReturnType<typeof nalatiBootProgram> {
+  return nalatiBootProgram(ctx);
 }
 
 /** GR6: the map lattice (the source-owned map: the SDK publishes it as `ui/images/map` and the public alias). */

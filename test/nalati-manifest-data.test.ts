@@ -4,10 +4,8 @@ import { expect,test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the exact build-only manifest declaration fixture.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the registered build-only input catalogue.
-import { mkdirSync,mkdtempSync,readFileSync,rmSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { manifestDeclaration } from '../scripts/manifest-declaration.mjs';
-import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
-import { discoverGeneration,generateShardJob } from '../scripts/generate.mjs';
 import { NALATI_MANIFEST_ROWS as original } from './fixtures/originalNalatiManifestRows';
 import rows from '../src/shards/nalati-grasslands/data/manifestRows.json' with { type:'json' };
 import { skyRows } from '../src/shards/nalati-grasslands/generators/skyPresentation';
@@ -31,33 +29,13 @@ test('clock and painted sky keep the original numeric input and RGB tuples',()=>
   expect(actual.lift).toStrictEqual(original.grade.lift);expect(actual.gain).toStrictEqual(original.grade.gain);
 });
 
-test('both existing manifest consumers track the literal producer input',()=>{
+test('the remaining manifest consumer tracks the literal producer input',()=>{
   const catalogue:unknown=JSON.parse(readFileSync('scripts/generation-jobs.json','utf8'));
   if(catalogue===null||typeof catalogue!=='object'||!('jobs' in catalogue)||!Array.isArray(catalogue.jobs))throw new Error('Missing generation catalogue');
   const jobs=catalogue.jobs.filter((row:unknown)=>row!==null&&typeof row==='object'&&'inputRoots' in row&&Array.isArray(row.inputRoots)&&row.inputRoots.includes('src/shards/nalati-grasslands/data/manifestRows.json'));
-  expect(jobs).toHaveLength(2);
+  // GR6: nalati-boot-metadata retired (bootProgram.ts); the weather channels job still reads the rows
+  expect(jobs).toHaveLength(1);
 });
-
-test('cold boot metadata publishes canonical discovery for terrain and commit snapshots',async()=>{
-  const root=resolve('.'),job=discoverGeneration(root).jobs.find(row=>row.id==='nalati-boot-metadata');
-  if(job===undefined)throw new Error('Missing Nalati boot producer');
-  const file='src/shards/nalati-grasslands/discovery.generated.ts';
-  expect(job.outputs).toContain(file);expect(job.buildTimeOutputs).toContain(file);
-  expect(job.inputRoots).toEqual(expect.arrayContaining([
-    'scripts/authored-manifest.mjs','src/shards/nalati-grasslands/manifest.json',
-    'src/shards/nalati-grasslands/generators/geographySource.ts',
-  ]));
-  expect(job.inputRoots).not.toContain('src/shards/nalati-grasslands/data/navigation.generated.json');
-  mkdirSync('tmp',{recursive:true});const cache=mkdtempSync(resolve('tmp/nalati-discovery-proof-'));
-  try {
-    const result=await generateShardJob(root,job,{cacheDir:cache});
-    try {
-      expect(result.hit).toBe(false);
-      expect(readFileSync(resolve(result.directory,file),'utf8')).toBe(authoredManifestSource(root,'nalati-grasslands'));
-    } finally {result.release();}
-  } finally {rmSync(cache,{recursive:true,force:true});}
-});
-
 
 test('authored declared entry keeps its exact platform and refuses unknown fields',()=>{
   const data=parseManifestMetadata(metadata),entry=data.bindings.entry;

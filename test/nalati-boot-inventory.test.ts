@@ -2,20 +2,14 @@ import { expect, test } from 'vitest';
 import { bootFileList, bootLateReads, bootSourceFiles } from '@wildshard/engine/boot/filePolicy';
 import { publicBytes } from '@wildshard/engine/boot/tables';
 import originalBoot from './fixtures/nalati-boot-original.json' with { type: 'json' };
-import metadata from '../src/shards/nalati-grasslands/bootMetadata.generated.json' with { type: 'json' };
-import { DECLARATION } from '../src/shards/nalati-grasslands/boot/declaration.generated';
 import { nalatiBootInventory } from '../src/shards/nalati-grasslands/generators/bootInventory';
 import { bootSources, lateReads, nalatiBootAssets } from '../src/shards/nalati-grasslands/generators/bootFiles';
 
 test('pre-admission Nalati rows retain ordered boot and late reads for every tier and texture mode', () => {
-  const boot = DECLARATION.boot;
-  const inventory = {
-    sources: boot.sources, files: boot.files, lateReads: boot.lateReads,
-    steps: boot.steps, assetFiles: metadata.assetFiles,
-  };
-  expect(inventory).toEqual(nalatiBootInventory(metadata.assetFiles, publicBytes()));
+  // GR6: the boot rows are the program's discovery (bootProgram.ts); the inventory they come from keeps every selection
+  const boot = nalatiBootInventory(nalatiBootAssets(), publicBytes());
   for (const tier of ['phone', 'desktop'] as const) for (const tex of ['img', 'ktx2'] as const) {
-    const expected = bootSources(tier, metadata.assetFiles, tex);
+    const expected = bootSources(tier, nalatiBootAssets(), tex);
     expect(bootSourceFiles(boot.sources, tier, tex)).toEqual(expected);
     expect(bootLateReads(boot.lateReads, tier, tex)).toEqual(lateReads(tier, tex));
     expect(bootFileList({ sources: boot.sources, tier, tex }, tier)).toEqual(Object.values(expected).flat());
@@ -32,7 +26,7 @@ test('offline presence preserves coat order, phone fallback and late-read timing
     '/assets/nalati/models/eagle.phone.rigged.glb': true,
     '/assets/nalati/models/people/cook.gen.phone.glb': true,
   } satisfies Readonly<Record<string, number | true>>;
-  const rows = nalatiBootInventory(metadata.assetFiles, inventory);
+  const rows = nalatiBootInventory(nalatiBootAssets(), inventory);
   expect(bootSourceFiles(rows.sources, 'phone', 'img').props).toEqual([
     '/assets/nalati/models/eagle.phone.rigged.glb',
     '/assets/nalati/models/coats/a.coat.webp',
@@ -51,7 +45,7 @@ test('camp atlas sources stay in the late-read phase in their original order; pr
     '/assets/nalati/models/people/elder.gen.phone.glb': true,
     '/assets/nalati/models/people/cook.gen.phone.glb': true,
   } satisfies Readonly<Record<string, number | true>>;
-  const rows = nalatiBootInventory(metadata.assetFiles, inventory);
+  const rows = nalatiBootInventory(nalatiBootAssets(), inventory);
   expect(bootLateReads(rows.lateReads, 'phone', 'img')).toEqual([
     '/assets/nalati/models/people/elder.gen.phone.glb',
     '/assets/nalati/models/people/cook.gen.phone.glb',

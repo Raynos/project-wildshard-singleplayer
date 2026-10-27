@@ -52,6 +52,10 @@ const fields = {
   mapPalette: v.exactOptional(v.pipe(v.unknown(), v.check(input => v.is(palette, input), 'Invalid discovery palette'))),
   poses: v.exactOptional(v.pipe(v.unknown(), v.transform(parseCapturePoses))),
   audioCues: v.exactOptional(v.record(text, text)),
+  // GR6: the legacy declared ground bindings (Nalati's), computed by a program as its boot declaration module exported
+  // them; the game's manifest readers still own their validation and defaults.
+  groundRows: v.exactOptional(v.unknown()), groundColourSamples: v.exactOptional(v.unknown()), surfaceSamples: v.exactOptional(v.unknown()),
+  forestMaskSamples: v.exactOptional(v.unknown()), mapGroundSamples: v.exactOptional(v.unknown()), navmesh: v.exactOptional(v.unknown()),
   ktx2: v.exactOptional(gpuFiles),
   'boot.files': v.exactOptional(files), 'boot.sources': v.exactOptional(sources),
   'boot.lateReads': v.exactOptional(v.union([strings, modes(strings)])),
@@ -160,6 +164,12 @@ interface DiscoveryValuesInputFields {
     mapPalette?: unknown;
     poses?: unknown;
     audioCues?: Record<string, string>;
+    groundRows?: unknown;
+    groundColourSamples?: unknown;
+    surfaceSamples?: unknown;
+    forestMaskSamples?: unknown;
+    mapGroundSamples?: unknown;
+    navmesh?: unknown;
     'boot.files'?: string[] | {
         modes: {
             phone: {
@@ -319,6 +329,12 @@ interface DiscoveryValuesFields {
     mapPalette?: unknown;
     poses?: CapturePoseRows;
     audioCues?: Record<string, string>;
+    groundRows?: unknown;
+    groundColourSamples?: unknown;
+    surfaceSamples?: unknown;
+    forestMaskSamples?: unknown;
+    mapGroundSamples?: unknown;
+    navmesh?: unknown;
     'boot.files'?: string[] | {
         modes: {
             phone: {

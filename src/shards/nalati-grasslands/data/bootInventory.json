@@ -1,0 +1,9 @@
+{
+  "notice": "GR6: the public trees Nalati's boot recipes read presence from (generators/bootProgram.ts lists them through ctx.inputFiles), as the retired nalati-boot-metadata bake did.",
+  "roots": [
+    "/assets/nalati/",
+    "/assets/baked/nalati-grasslands/",
+    "/assets/baked/common/",
+    "/assets/gpu/nalati/"
+  ]
+}

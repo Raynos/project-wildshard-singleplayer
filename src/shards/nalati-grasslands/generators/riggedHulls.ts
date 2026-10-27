@@ -1,12 +1,12 @@
 import type { RiggedHullBook, RiggedHullUrls } from '@wildshard/format/riggedHulls';
 import coatPages from './bake-nalati-coats.json' with { type: 'json' };
 import rows from '../data/creatureRigs.json' with { type: 'json' };
-import metadata from '../bootMetadata.generated.json' with { type: 'json' };
+import { nalatiBootAssets } from './bootFiles';
 
 export const CREATURE_HULLS: typeof rows.hulls = rows.hulls;
 /** The retained coat baker and resource book share one authored cache name. */
 export function nalatiCoatUrl(hull: string, kind: string, variant: string): string {
-  return `${metadata.assetFiles.coats}${hull}.${kind}.${variant}.coat.webp`;
+  return `${nalatiBootAssets().coats}${hull}.${kind}.${variant}.coat.webp`;
 }
 
 /** Keep the painterly atlas/AO, sheet wings and exact authored coat cache keys. */

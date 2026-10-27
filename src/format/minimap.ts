@@ -215,9 +215,10 @@ const pageBoot = v.strictObject({ platform: v.literal('page-mode'), rows: v.unio
 export const FixedForestQueriesSchema: v.GenericSchema<FixedForestQueriesRowsInput, FixedForestQueriesRows> = v.strictObject({ platform: v.literal('fixed'), density: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1)) });
 const bindings = v.strictObject({
   accent: text, budgets: dataBinding, runtimeCost: v.exactOptional(binding), navigation: v.exactOptional(dataBinding),
-  // Finite sample declarations hydrate through defineShard in its original decode order.
-  groundRows: v.exactOptional(binding), groundColourSamples: v.exactOptional(binding), surfaceSamples: v.exactOptional(binding),
-  forestMaskSamples: v.exactOptional(binding), mapGroundSamples: v.exactOptional(binding), navmesh: v.exactOptional(binding),
+  // Finite sample declarations hydrate through defineShard in its original decode order (GR6: a source program may supply
+  // them as discovery values, as Nalati's boot program does).
+  groundRows: v.exactOptional(dataBinding), groundColourSamples: v.exactOptional(dataBinding), surfaceSamples: v.exactOptional(dataBinding),
+  forestMaskSamples: v.exactOptional(dataBinding), mapGroundSamples: v.exactOptional(dataBinding), navmesh: v.exactOptional(dataBinding),
   mapPalette: v.exactOptional(dataBinding), poses: v.exactOptional(dataBinding), audioCues: v.exactOptional(dataBinding),
   boot: v.exactOptional(v.union([pageBoot, v.strictObject({files: dataBinding, sources: dataBinding, lateReads: v.exactOptional(dataBinding), bakedUnread: v.exactOptional(binding), audio: v.exactOptional(binding), explore: v.exactOptional(v.union([programBinding, v.strictObject({ module: v.pipe(bindingModule, v.regex(/\.json$/u)), export: v.literal('default') })]))})])),
   forestQueries: v.exactOptional(v.union([binding, declared, FixedForestQueriesSchema])),
@@ -349,12 +350,24 @@ export interface ManifestMetadataFields {
         navigation?: (ManifestBindingRows) | ({
             program: true;
         });
-        groundRows?: ManifestBindingRows;
-        groundColourSamples?: ManifestBindingRows;
-        surfaceSamples?: ManifestBindingRows;
-        forestMaskSamples?: ManifestBindingRows;
-        mapGroundSamples?: ManifestBindingRows;
-        navmesh?: ManifestBindingRows;
+        groundRows?: (ManifestBindingRows) | ({
+            program: true;
+        });
+        groundColourSamples?: (ManifestBindingRows) | ({
+            program: true;
+        });
+        surfaceSamples?: (ManifestBindingRows) | ({
+            program: true;
+        });
+        forestMaskSamples?: (ManifestBindingRows) | ({
+            program: true;
+        });
+        mapGroundSamples?: (ManifestBindingRows) | ({
+            program: true;
+        });
+        navmesh?: (ManifestBindingRows) | ({
+            program: true;
+        });
         mapPalette?: (ManifestBindingRows) | ({
             program: true;
         });
