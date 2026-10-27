@@ -144,7 +144,8 @@ test('saved estimate audits refuse mixed source pins before issuing a verdict', 
 });
 
 test('saved Template-pair estimates audit either floor without admitting other cohorts', () => {
-  const pair = rows().slice(2).map(row => Object.assign(row, {version: JSON.stringify({build: '1111111-fixture'})}));
+  const pair = rows().slice(2).map(row => Object.assign(row, {version: JSON.stringify({build: '1111111-fixture'}),
+    samples: row.samples.map(sample => ({...sample, rendererBytes: 208182520 - 10 * MiB}))}));
   const summary = {rev: '1'.repeat(40), coreMemory: 'templates', results: pair};
   const audit = (target: string, input: unknown = summary) => spawnSync('node', [
     'scripts/shard-phone-memory.mjs', 'audit-estimate', target, '208182520',
