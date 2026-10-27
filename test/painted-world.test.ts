@@ -1,6 +1,4 @@
 import {GRASS_FILES} from './fixtures/nalatiGrass';
-// oxlint-disable-next-line import/no-nodejs-modules -- admit generated grass rows without inferring their complete JSON type
-import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import { afterEach, expect, test } from 'vitest';
 import * as v from 'valibot';
@@ -10,9 +8,10 @@ import paintedTextures from '../src/shards/nalati-grasslands/data/paintedTexture
 import { nalatiSpecimens as specimenData } from './fixtures/nalati-specimens';
 import { GrassPresentationSchema } from '../src/format/fieldPresentation';
 import capture from '../src/shards/nalati-grasslands/data/staticCapture.json' with { type: 'json' };
+import { nalatiGrassJson } from './fixtures/nalati-grass-bake';
 
 const grassRows=v.parse(GrassPresentationSchema,
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/grass.generated.json','utf8')));
+  nalatiGrassJson());
 
 // A made-up moor (the painted world's fixture level): its own fog ramp, LUT and drifting cloud shadows over painted ground
 // and grass rows (the boot rows of the first level, which the moor borrows for its ground and blades).

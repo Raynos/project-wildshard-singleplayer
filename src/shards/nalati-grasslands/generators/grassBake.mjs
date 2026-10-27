@@ -1,19 +1,18 @@
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { resolve } from 'node:path';
-import { zlibSync } from 'fflate';
+// GR6: Nalati's grass at build time (the retired nalati-grass job's construction): the height, mask, field and ground
+// lattices and both tiers' blade, flower and card scenes as owned bytes, and the rows that name them. Pure: the caller
+// supplies the native lattice and the dressing placements (the cover the grass keeps out of).
 import { DataUtils } from 'three';
-import { smoothstep } from '@wildshard/engine/core/noise';
+import { smoothstep } from '@wildshard/sdk/noise';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
-import { GrassField } from '@wildshard/game/systems/looks/grassField';
+import { bakeMeadowField } from '@wildshard/sdk/bake/meadow';
+import { encodePortableBytes } from '@wildshard/sdk/bake/portableBytes';
+import view from '../data/grassView.json' with { type: 'json' };
 import NALATI_GRASS_LAYOUT from '../data/grassFieldLayout.json' with { type: 'json' };
 import { TERRAIN, SEED, RIVER, groundColor } from './terrainRecipe.ts';
 import { grassRows } from './grassRows.ts';
-import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
-import { nativeNalatiDressingPlacements } from './nativeDressingPlacements.mjs';
 
-const view = JSON.parse(readFileSync(new URL('../data/grassView.json',import.meta.url),'utf8'));
-const placements = await nativeNalatiDressingPlacements(file => readFileSync(resolve(import.meta.dirname, '../../../..', file)));
+/** @param {Uint8Array} terrain the native lattice @param {ReadonlyMap<string, Uint8Array>} placements the dressing placements */
+export function nalatiGrassBake(terrain, placements) {
 const cover = new Map();
 for (const [name,scale] of [['boulder',.9],['slab',1.1],['juniper',.85],['rose',.5],['willow',.4]]) {
   const bytes = placements.get(`dressing-${name}.json`);
@@ -21,8 +20,8 @@ for (const [name,scale] of [['boulder',.9],['slab',1.1],['juniper',.85],['rose',
   for (const row of JSON.parse(new TextDecoder().decode(bytes))) { const key = `${Math.floor(row.x/4)},${Math.floor(row.z/4)}`, bucket = cover.get(key) ?? []; bucket.push([row.x,row.z,Math.max(row.sx,row.sz)*scale]);cover.set(key,bucket); }
 }
 function covered(x,z) { let best=0;for(let a=Math.floor(x/4)-1;a<=Math.floor(x/4)+1;a++)for(let b=Math.floor(z/4)-1;b<=Math.floor(z/4)+1;b++)for(const [cx,cz,r] of cover.get(`${a},${b}`)??[]) { const d=Math.hypot(x-cx,z-cz);if(d<r)best=Math.max(best,Math.min(1,(r-d)/(r*.25))); }return best; }
-const native = readNativeTerrain(readFileSync(fileURLToPath(new URL('../../../../public/assets/baked/nalati-grasslands/terrain.bin', import.meta.url))));
-const field = new GrassField({ seed: SEED, half: 250, ...native, trailDistance: TERRAIN.trailDistance,
+const native = readNativeTerrain(terrain);
+const field = bakeMeadowField({ seed: SEED, half: 250, ...native, trailDistance: TERRAIN.trailDistance,
   cabinMask: TERRAIN.cabinMask, pondMask: TERRAIN.pondMask, waterLevel: TERRAIN.waterLevel,
   paint: (x,z,y,slope,out) => { groundColor(x,z,y,slope,TERRAIN,out); return true; },
   layout: { ...NALATI_GRASS_LAYOUT, riverZ: RIVER.z, riverHalf: RIVER.half } });
@@ -42,10 +41,10 @@ for (let j = 0; j < 126; j++) for (let i = 0; i < 126; i++) {
   for (let c = 0; c < 3; c++) gd[k+c] = Math.round(Math.min(1,field.sample(x,z,c+4))*255);
   gd[k+3] = 255;
 }
-const writer = byteWriter(process.argv.includes('--check'), 'nalati-grass'),sources=[];
+const files = new Map(),sources=[];
 const encode = (array,id) => {
   const source=`data/grass-${id}.bin`,name=`look/grass/${id}.bin`;
-  writer.put(resolve(import.meta.dirname,'..',source),zlibSync(new Uint8Array(array.buffer,array.byteOffset,array.byteLength)));
+  files.set(name,encodePortableBytes(new Uint8Array(array.buffer,array.byteOffset,array.byteLength).slice(),6));
   sources.push({name,kind:'bin',source,options:{decoded:array.byteLength}});return {file:name};
 };
 const encodeRows = phone => {
@@ -59,5 +58,5 @@ const encodeRows = phone => {
   return { ...rows, scenes, channels:{file} };
 };
 const rows={view,height:encode(height,'height'),mask:encode(mask,'mask'),field:encode(fd,'field'),ground:encode(gd,'ground'),phone:encodeRows(true),desktop:encodeRows(false)};
-writer.put(resolve(import.meta.dirname, '..', 'data', 'grass.generated.json'), jsonBytes({...rows,sources}, 0));
-writer.finish();
+return { rows: {...rows,sources}, files };
+}

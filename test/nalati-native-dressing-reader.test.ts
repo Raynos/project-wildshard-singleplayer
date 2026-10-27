@@ -1,11 +1,11 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Observe real native file intake without allowing a generated-row fallback.
 import { execFileSync } from 'node:child_process';
-// oxlint-disable-next-line import/no-nodejs-modules -- Own an isolated sealed producer cache and compare every original output.
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Keep the sealed cache beneath repository tmp.
-import { resolve } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- Observe the keep-outs' native file intake.
+import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
+import { nativeNalatiDressingPlacements } from '../src/shards/nalati-grasslands/generators/nativeDressingPlacements.mjs';
+import { nalatiGrass } from './fixtures/nalati-grass-bake';
+import grassPins from './fixtures/nalati-grass-pins.json' with { type: 'json' };
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
 test('native Node authors preserve every original sampled placement with no generated-row reads or page selection', () => {
@@ -40,37 +40,17 @@ test('native Node authors preserve every original sampled placement with no gene
   execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--import', './scripts/generation-level.mjs', '--input-type=module', '--eval', source, '--', '--generation-shard=nalati-grasslands']);
 });
 
-test('the grass writer preserves all original files while generated dressing reads are forbidden', () => {
-  const source = `
-    import assert from 'node:assert/strict';
-    import fs from 'node:fs';
-    import {syncBuiltinESMExports} from 'node:module';
-    const prior=fs.readFileSync;
-    fs.readFileSync=(path,...options)=>{
-      assert.ok(!/data\\/dressing-[a-z]+\\.generated\\.json/.test(String(path)),'Unexpected generated grass keep-out input');
-      return prior(path,...options);
-    };
-    syncBuiltinESMExports();process.argv.push('--check');
-    try{await import('./src/shards/nalati-grasslands/generators/bake-grass.mjs');}
-    finally{fs.readFileSync=prior;syncBuiltinESMExports();}
-  `;
-  execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '--eval', source]);
+// GR6: the build constructs the grass; every original block and its rows keep their bytes (pinned before retirement)
+test('the build-time grass keeps every original block and its rows', () => {
+  for (const pin of grassPins) {
+    const bytes = pin.name === 'rows' ? new TextEncoder().encode(`${JSON.stringify(nalatiGrass.rows)}\n`) : nalatiGrass.files.get(pin.name);
+    if (bytes === undefined) throw new Error(`Missing grass block ${pin.name}`);
+    expect({ bytes: bytes.length, hash: hashImmutableBytes(bytes) }, pin.name).toEqual({ bytes: pin.bytes, hash: pin.hash });
+  }
 });
 
-test('sealed grass production preserves every original output over only declared native inputs', async () => {
-  const root=resolve('.'),job=discoverGeneration(root).jobs.find(row=>row.id==='nalati-grass');
-  if(job===undefined)throw new Error('Missing native grass producer');
-  const originals=new Map(job.outputs.map(file=>[file,readFileSync(file)]));
-  const cacheDir=mkdtempSync(resolve('tmp/nalati-native-dressing-'));
-  try{
-    const result=await generateShardJob(root,job,{cacheDir,forceCompare:true});
-    try{
-      expect(Object.keys(result.hashes).sort()).toEqual([...job.outputs].sort());
-      for(const [file,before]of originals){
-        const bytes=readFileSync(resolve(result.directory,file));
-        expect(result.hashes[file],file).toBe(hashImmutableBytes(before));
-        expect(bytes.length,file).toBe(before.length);expect(Buffer.compare(bytes,before),file).toBe(0);
-      }
-    }finally{result.release();}
-  }finally{rmSync(cacheDir,{recursive:true,force:true});}
+test('the grass keep-outs read only the native lattice, never generated dressing rows', async () => {
+  const reads: string[] = [];
+  await nativeNalatiDressingPlacements(file => { reads.push(file); return new Uint8Array(readFileSync(file)); });
+  expect(reads).toEqual(['public/assets/baked/nalati-grasslands/terrain.bin']);
 });

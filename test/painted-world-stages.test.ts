@@ -1,6 +1,4 @@
 import {GRASS_FILES} from './fixtures/nalatiGrass';
-// oxlint-disable-next-line import/no-nodejs-modules -- admit generated grass rows without inferring their complete JSON type
-import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { Scope } from '../src/engine/app/scope';
@@ -19,9 +17,10 @@ import paintedTextures from '../src/shards/nalati-grasslands/data/paintedTexture
 import { nalatiSpecimens as specimenData } from './fixtures/nalati-specimens';
 import { GrassPresentationSchema } from '../src/format/fieldPresentation';
 import capture from '../src/shards/nalati-grasslands/data/staticCapture.json' with { type: 'json' };
+import { nalatiGrassJson } from './fixtures/nalati-grass-bake';
 
 const grassRows=v.parse(GrassPresentationSchema,
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/grass.generated.json','utf8')));
+  nalatiGrassJson());
 
 // An orchard world (the stages' fixture level): its own fixed-draw library and a painted world borrowing the first
 // level's ground and blade rows.

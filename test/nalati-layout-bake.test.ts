@@ -30,6 +30,7 @@ import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { installDeclaredBakedTerrain } from '../src/engine/world/bakedTerrainField';
 import { GROUND,forestMask } from './fixtures/nalati-terrain';
 import { readScalarLattice } from '../src/engine/world/scalarChannel';
+import { nalatiGrassJson } from './fixtures/nalati-grass-bake';
 
 const scalarBlocks=readNalatiScalarBlocks();
 const finite=v.pipe(v.number(),v.finite());
@@ -40,7 +41,7 @@ const originalTier=GrassPresentationSchema.entries.phone;
 const grassTierSchema=v.object({...originalTier.entries,cards:v.object({...originalTier.entries.cards.entries,
   across:v.pipe(finite,v.integer(),v.minValue(1))})});
 const grass=v.parse(v.object({...GrassPresentationSchema.entries,phone:grassTierSchema,desktop:grassTierSchema}),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/grass.generated.json','utf8')));
+  nalatiGrassJson());
 
 const bound = GROUND.terrain,wetMask = readScalarLattice(geography.channels.wet,scalarBlocks);
 

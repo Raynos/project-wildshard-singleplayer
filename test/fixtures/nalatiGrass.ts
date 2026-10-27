@@ -1,16 +1,14 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Read the product's actual compressed grass blocks.
-import {readFileSync} from 'node:fs';
 import * as v from 'valibot';
 import {GrassPresentationSchema,type GrassPayload,type GrassPresentationRows} from '../../src/format/fieldPresentation';
 import {zlibSync} from 'fflate';
 import {grassRows,grassChannelBytes} from '../../src/shards/nalati-grasslands/generators/grassRows';
+import {nalatiGrass,nalatiGrassJson} from './nalati-grass-bake';
 
-const sources=v.parse(v.object({sources:v.array(v.object({name:v.string(),source:v.string()}))}),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/grass.generated.json','utf8'))).sources;
+const sources=v.parse(v.object({sources:v.array(v.object({name:v.string(),source:v.string()}))}),nalatiGrassJson()).sources;
 /** The same raw named blocks read by the product, with no substitute geometry or texture. */
 export const GRASS_FILES=new Map<string,Uint8Array>([
   ...sources.map((row):readonly [string,Uint8Array]=>{
-    const bytes=new Uint8Array(readFileSync(`src/shards/nalati-grasslands/${row.source}`));
+    const bytes=nalatiGrass.files.get(row.name);if(bytes===undefined)throw new Error(`Missing grass block ${row.name}`);
     return [row.name,bytes];
   }),
   ...grassChannelBytes().map((blob):readonly [string,Uint8Array]=>{
@@ -36,7 +34,7 @@ export function originalGrassRows(phone:boolean):ReturnType<typeof grassRows>{
 }
 /** The original ten-block profile, reconstructed without retaining duplicate binary fixtures. */
 export function originalGrassProfile():{rows:GrassPresentationRows;files:Map<string,Uint8Array>}{
-  const rows=v.parse(GrassPresentationSchema,JSON.parse(readFileSync('src/shards/nalati-grasslands/data/grass.generated.json','utf8')));
+  const rows=v.parse(GrassPresentationSchema,nalatiGrassJson());
   const files=new Map<string,Uint8Array>(GRASS_FILES);
   for(const tier of ['phone','desktop']as const){
     delete rows[tier].channels;
