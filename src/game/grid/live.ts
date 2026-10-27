@@ -57,7 +57,7 @@ export interface LiveGridPorts {
   home: LiveGridOwnedHome; player: SimExternalPlayer & FrameMember; allocator: ResidencyAllocator;
   highway: { bytes: number; create: () => LiveGridHighway };
   admit: (cell: GridCell) => Promise<LiveGridAdmission>;
-  /** Actual world construction outranks product-only prefetch until its queued preparation drains. */
+  /** Actual world construction or a verified render approach outranks product-only prefetch until its finite preparation drains. */
   prioritize?: (cell: GridCell) => () => void;
   /** Render-only approach: the signal owns the pin, including after preparation completes. */
   prepareNeighbour?: (cell: GridCell, start: { readonly x: number; readonly z: number }, signal: AbortSignal) => Promise<void>;
@@ -306,7 +306,12 @@ export class LiveGridHost {
     this.tileApproach = { instance: cell.instance, tile, controller };
     const prepare = this.ports.prepareNeighbour;
     if (prepare === undefined) return;
-    void background(cell.instance, prepare(cell, start, controller.signal), () => !this.disposed && !controller.signal.aborted);
+    const pending = (async (): Promise<void> => {
+      const releasePriority = this.ports.prioritize?.(cell);
+      try { await prepare(cell, start, controller.signal); }
+      finally { releasePriority?.(); }
+    })();
+    void background(cell.instance, pending, () => !this.disposed && !controller.signal.aborted);
   }
   private ensure(instance: string, guess = false): Promise<void> {
     if (this.disposed) return Promise.reject(new Error('Live grid is disposed'));

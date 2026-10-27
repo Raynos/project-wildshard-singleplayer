@@ -24,6 +24,7 @@ function travel(live: LiveGridHost, at: { x: number; z: number }, dx: number, dz
 
 async function fixture(options: { paired?: boolean; loading?: number; isolation?: boolean; allNeighbours?: boolean; horizonSeconds?: number;
   tilePreparation?: boolean; tileApproaches?: string[];
+  tileReady?: () => Promise<void>; priorities?: string[];
   tilePins?: { instance: string; start: { readonly x: number; readonly z: number }; signal: AbortSignal }[];
   runtimeReady?: (instance: string) => Promise<void> } = {}) {
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
@@ -43,9 +44,12 @@ async function fixture(options: { paired?: boolean; loading?: number; isolation?
     home: { mode: 'owned', instance: home.instance, bytes: 1000, residency: residency.admitHome(home.instance, 1000) },
     player, allocator: residency.allocator, continuations: 'durable', save: () => true,
     bindFrame: frame => { events.push(`frame:${frame.instance ?? 'road'}`); }, gameplayReady: () => true,
+    ...(options.priorities === undefined ? {} : { prioritize: (cell: { instance: string }) => {
+      options.priorities?.push(`hold:${cell.instance}`); return () => { options.priorities?.push(`release:${cell.instance}`); };
+    } }),
     ...(options.paired === true ? { preparationBudget: budget } : {}),
     ...(options.tileApproaches === undefined && options.tilePins === undefined ? {} : { prepareNeighbour: (cell: { instance: string }, start: { readonly x: number; readonly z: number }, signal: AbortSignal) => {
-      options.tileApproaches?.push(cell.instance); options.tilePins?.push({ instance: cell.instance, start, signal }); return Promise.resolve();
+      options.tileApproaches?.push(cell.instance); options.tilePins?.push({ instance: cell.instance, start, signal }); return options.tileReady?.() ?? Promise.resolve();
     } }),
     highway: { bytes: 1000, create: () => ({ physics: page.physics, dispose: () => undefined }) },
     prefetchable: cell => options.allNeighbours === true || [home.instance, east.instance, north.instance].includes(cell.instance),
@@ -792,4 +796,39 @@ test('G743: an actual crossing demand cannot be cancelled by a later speculative
     expect(f.live.ready(f.east.instance)).toBe(true);
     expect(f.live.state().issues).toEqual({});
   } finally { f.control.finish?.(); f.close(); }
+});
+
+
+test('a verified render approach holds destination read priority only through finite preparation', async () => {
+  let finish = (): void => undefined;
+  const ready = new Promise<void>(resolve => { finish = resolve; });
+  const priorities: string[] = [], tiles: string[] = [];
+  const f = await fixture({ paired: true, tilePreparation: true, tileApproaches: tiles, priorities, tileReady: () => ready });
+  try {
+    await f.enterHome(); await f.live.prefetch([f.east.instance]); priorities.length = 0;
+    f.player.position.x = CHUNK_HALF - 30;
+    travel(f.live, f.player.position, 1, 0); await f.settle();
+    expect(tiles).toEqual([f.east.instance]); expect(priorities).toEqual([`hold:${f.east.instance}`]);
+    expect(f.created()).toEqual([f.home.instance]); expect(f.live.ready(f.east.instance)).toBe(false);
+    finish(); await f.settle();
+    expect(priorities).toEqual([`hold:${f.east.instance}`, `release:${f.east.instance}`]);
+    expect(f.created()).toEqual([f.home.instance]); expect(f.live.current()).toBe(f.home.instance);
+  } finally { finish(); f.close(); }
+});
+
+test('an abandoned render approach releases read priority after its pending work drains', async () => {
+  let refuse = (_error: Error): void => undefined;
+  const ready = new Promise<void>((_resolve, reject) => { refuse = reject; });
+  const priorities: string[] = [], tiles: string[] = [];
+  const f = await fixture({ paired: true, tilePreparation: true, tileApproaches: tiles, priorities, tileReady: () => ready });
+  try {
+    await f.enterHome(); await f.live.prefetch([f.east.instance]); priorities.length = 0;
+    f.player.position.x = CHUNK_HALF - 30;
+    travel(f.live, f.player.position, 1, 0); await f.settle();
+    expect(priorities).toEqual([`hold:${f.east.instance}`]);
+    f.live.dispose(); expect(priorities).toEqual([`hold:${f.east.instance}`]);
+    refuse(new Error('Aborted tile preparation')); await f.settle();
+    expect(priorities).toEqual([`hold:${f.east.instance}`, `release:${f.east.instance}`]);
+    expect(f.created()).toEqual([f.home.instance]); expect(f.live.ready(f.east.instance)).toBe(false);
+  } finally { refuse(new Error('Fixture cleanup')); f.close(); }
 });
