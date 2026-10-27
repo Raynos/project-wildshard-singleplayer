@@ -78,7 +78,7 @@ if (sw !== null) {
   replayDownloads();
 }
 
-let pageReady = false, sameBuild: ServiceWorker | null = null;
+let pageReady = false, controlsReady = false, sameBuild: ServiceWorker | null = null;
 function warmCode(): void {
   if (!pageReady || !swAllowed()) return;
   if (sameBuild !== null) {
@@ -88,11 +88,12 @@ function warmCode(): void {
       candidate.postMessage({ type: 'SKIP_WAITING' });
     }
   }
-  // Only after the title/boot is usable; the worker yields to every real read.
-  sw?.controller?.postMessage({ type: 'WARM_CODE' });
+  // A healthy title can adopt updates, but speculative code waits for actual world control (I2).
+  if (controlsReady) sw?.controller?.postMessage({ type: 'WARM_CODE' });
 }
 if (sw !== null) {
   pageScope.listen(document, 'ws:ready', () => { pageReady = true; warmCode(); });
+  pageScope.listen(document, 'ws:control-ready', () => { controlsReady = true; warmCode(); });
   pageScope.listen(sw, 'controllerchange', warmCode);
 }
 

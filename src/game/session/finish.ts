@@ -8,6 +8,7 @@ import { hasLateAudio, startAudioPreload, startLateAudio, type AudioBanks } from
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { loadingStage } from '@wildshard/engine/boot/waits';
 import { startShardPrefetch } from '@wildshard/engine/boot/shardPrefetch';
+import { afterControl } from '@wildshard/engine/boot/prefetch';
 import { installGpuRecovery } from '@wildshard/engine/core/GpuRecovery';
 import { TIER } from '@wildshard/engine/core/tier';
 import { installProbe } from '@wildshard/engine/debug/probe';
@@ -148,9 +149,6 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   if (level === undefined) app.events.emit('level.loaded', { id: slug });
   // js-heap H6: the boot has built everything its admitted product's transport fed (clientAssets.ts `releaseAll`)
   admittedRuntimeProduct(slug)?.assets.releaseAll();
-  // G554: the grid's whole known set into the disk cache, this cell and its neighbours first, in the background once play
-  // starts (round 39: during the loading screen its ~4,000 cache checks queued ahead of the home region's own reads)
-  if (ctx.grid !== null) startGridPrefetch(gridPrefetchOrder(ctx.grid.assembly, player.position), gridPrefetchOrder(ctx.grid.assembly, player.position, 'phone'));
   // the programs the first frame did not draw, a few a frame in play (the Shaders step built only the drawn ones)
   const levelScope = game.levelScope;
   // A page that opens straight into the Explorer walks no world: the cards draw first, and the world's undrawn
@@ -192,7 +190,6 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
       console.info(`[audio] deferred level decode: ${error instanceof Error ? error.message : String(error)} — the synth plays`);
     }
   };
-  if (deferredAudio || hasLateAudio(files)) game.levelScope.raf(() => { game.levelScope.timeout(0, () => { void decodeAfterBoot(); }); });
   // E183: while the title idles, draw the world's first frame once under the title art. The
   // first frame after the title paid every first-time cost at once — Pine Hollow's four elites built, the cover filled,
   // textures that arrived after the boot uploaded: EXPLORE WORLD's first tap stalled ~1.3 s at 4× CPU (and ENTER WORLD's
@@ -221,8 +218,13 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   installProbe(handle, { bootSteps, leakPhysics, health: () => playerHealth.attributes.health, quest: () => ({ adventure: boot.runtime.hooks.adventureFlags?.() ?? [], quest: boot.runtime.hooks.questFlags?.() ?? [] }) });
   ctx.startExplore?.();
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/engine/native/boot.ts, via src/native.ts) waits for this
-  // E158: the other shards' boot files into the worker's cache, in the background — once a page (the shell's, not a shard's)
-  asShell(() => { startShardPrefetch(manifest); });
+  afterControl(game.levelScope, run => { game.onLate(run, 'game.boot.background'); },
+    () => hud.entered && !hud.paused && !app.clock.paused && game.frameGate(), () => {
+      document.dispatchEvent(new Event('ws:control-ready'));
+      if (deferredAudio || hasLateAudio(files)) void decodeAfterBoot();
+      if (ctx.grid !== null) startGridPrefetch(gridPrefetchOrder(ctx.grid.assembly, player.position), gridPrefetchOrder(ctx.grid.assembly, player.position, 'phone'));
+      asShell(() => { startShardPrefetch(manifest); });
+    });
 
 
   const levelWorld: BuiltWorld = { scene: game.rootScene, dispose: () => {

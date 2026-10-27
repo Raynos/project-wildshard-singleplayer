@@ -194,3 +194,31 @@ I9 (Codex) beside I3, I4 (Opus); I2 follows H3 / T4.
 | D2 | **Phone texture codec.** (a) UASTC as today; (b) **UASTC with RDO + zstd** (near-identical, ~40 % smaller); (c) ETC1S for albedo (5× smaller, visibly softer) | **(b)**, with (c) only for far / impostor textures |
 | D3 | **Cellular.** iOS cannot tell the game it is on cellular. Background-download the whole Infinite Wildshard (~224 MB today), or only the home and its ring and leave the rest to "Download everything"? | **Home + ring only**; "Download everything" shows its size and fetches the rest when you choose |
 | D4 | **Music.** Stream music from a media element (starts at once, little memory, a short gap on a very bad network), or keep downloading and decoding whole tracks before play? | **Stream music**; SFX stay preloaded |
+
+
+### I2.1 Control boundary before speculative reads (2026-10-27, sp-x2)
+
+I2 is now the tile/loading owner packet. The unchanged recorded baseline
+is0/24 within12MB/250requests. The deleted raw cohort cannot supply per-file
+causal accounting; its table and8263b66600 remain the baseline. Source audit
+finds two shared speculative paths before the selected world is playable:
+a4s title timer starts the home/ring product downloader, and ws:ready at
+the title starts lazy-code warming. Slow entries therefore include other
+products and code that the spawn view does not need. Product admission also
+reads every selected-tier file before tile demand; that is the next slice.
+
+Remove the title timer's download. After the host's first entered/unpaused
+control-ready frame, a scoped paint/task boundary starts the existing
+nearest-first grid queue, held-back audio and worker/shard warming. A pause
+rearms the same observer; retired scopes cannot run queued work. Worker
+update adoption still uses title ws:ready, independently of code warming.
+The original loader, cache/hash checks, spawn content and control fence
+remain. No before-control bytes are hidden or subtracted in the reader.
+
+Engine/game/engine-test types, touched typed lint and selected source
+ratchet pass. Two control/retirement source cases and the original worker
+adoption case are typed, not executed under G769. No product build or
+per-slice reading. In flight: do not count I2 as passed from this source.
+After the admission slice, reread Pine (largest completed transfer), Nalati
+and Nine (the two180s incomplete visits) with the original page+worker
+HTTP observer, fresh origins, named sessions and exact control fence.

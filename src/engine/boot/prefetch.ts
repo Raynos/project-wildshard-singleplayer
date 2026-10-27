@@ -17,6 +17,22 @@
  */
 import type { BootSpec } from '../level/spec';
 import type { ChunkFiles } from './bytes';
+import type { Scope } from '../app/scope';
+
+/** I2: the host's first controllable frame precedes speculative I/O. Recheck after the paint/task boundary;
+ * a pause rearms the same observer, and retirement cancels the queued scope work. */
+export function afterControl(scope: Scope, onFrame: (run: () => void) => void, ready: () => boolean, run: () => void): void {
+  let started = false;
+  onFrame(() => {
+    if (started || scope.disposed || scope.disposing || !ready()) return;
+    started = true;
+    scope.raf(() => { scope.timeout(0, () => {
+      if (scope.disposed || scope.disposing) return;
+      if (!ready()) { started = false; return; }
+      run();
+    }); });
+  });
+}
 
 const CONCURRENCY = 6;
 /**

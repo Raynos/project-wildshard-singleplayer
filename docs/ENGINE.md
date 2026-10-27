@@ -541,6 +541,7 @@ the update-phase event reports the final mode for that frame, so intermediate ch
 
 `window.__wildshard` is the typed probe built from these services. The engine dispatches `ws:ready` once on reaching
 `title` (the native shell waits for it).
+`boot/prefetch.afterControl` delays scoped I/O past first control/paint; `ws:control-ready` warms code. `ws:ready` still adopts updates.
 
 ## 5a. LevelSpec and LevelContext: all the engine sees of a level
 
