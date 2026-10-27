@@ -155,6 +155,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
     eye: () => ({ x: game.camera.position.x - player.position.x, z: game.camera.position.z - player.position.z }),
     prepareTile: (tile) => game.warmSceneRoots([tile.group], () => !tile.scope.disposed),
     prepareView: (root, current) => game.warmSceneRoots([root], () => !game.levelScope.disposed && current()),
+    prepareViews: (roots, current) => game.warmSceneRoots(roots, () => !game.levelScope.disposed && current()),
     prepareSkyLayers: () => game.warmSkyLayers(),
     ...(ctx.session.residency === undefined ? {} : { residency: ctx.session.residency }),
     onFixed: (fn) => { game.onFixed('post', fn, 'game.grid.session'); },
