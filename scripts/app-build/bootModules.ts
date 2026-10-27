@@ -3,7 +3,7 @@ import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
 import { readModuleFiles } from '../../src/engine/boot/download';
-import { homeClientModuleGroups } from './bootProducts';
+import { homeClientModuleGroups, bootProductTotals } from './bootProducts';
 import { bootTierProductTotals } from './bootProductTiers';
 import { homeExtraFiles } from './bootExtras';
 import { createHash } from 'node:crypto';
@@ -157,13 +157,9 @@ export function startupModuleRoots(root: string): readonly string[] {
   return ids;
 }
 
-export function writeBootModules(outDir: string, root: string, inlineLimit = 4096): void {
-  const bundle = writtenBundle(outDir, root);
-  const entry = resolve(root, 'src/entry.ts'), ids = startupModuleRoots(root);
-  const htmlFile = join(outDir, 'index.html'), html = existsSync(htmlFile) ? readFileSync(htmlFile, 'utf8') : '';
-  if (!html.includes('<head>')) throw new Error('Missing boot module document');
-  const client = resolveImport('./game/shardfile/client', entry);
-  if (client === null) throw new Error('Missing compiled client module');
+/** Existing grid import requirements, shared by chunking and its bank. */
+export function gridModuleRoots(root: string): readonly string[] {
+  const entry = resolve(root, 'src/entry.ts');
   const grid = resolveImport('./game/grid/session', entry);
   if (grid === null) throw new Error('Missing grid session module');
   const gridRoots = [grid.id];
@@ -175,6 +171,13 @@ export function writeBootModules(outDir: string, root: string, inlineLimit = 409
       gridRoots.push(dependency.id);
     }
   }
+  return gridRoots;
+}
+
+/** The same literal feature roots feed code batching and the emitted preload bank. */
+function optionalModuleRoots(root: string): Record<string, string[]> {
+  const client = resolveImport('./game/shardfile/client', resolve(root, 'src/entry.ts'));
+  if (client === null) throw new Error('Missing compiled client module');
   const planFile = resolve(root, 'src/game/shardfile/clientPlan.ts'), featureRoots: Record<string, string[]> = {};
   const features = existsSync(planFile) ? clientFeatureImports(readFileSync(planFile, 'utf8')) : {};
   for (const [kind, imports] of Object.entries(features)) {
@@ -220,15 +223,41 @@ export function writeBootModules(outDir: string, root: string, inlineLimit = 409
     if (dependency === null) throw new Error('Missing selected Explorer module');
     featureRoots['explorer.catalogue'].push(dependency.id);
   }
+  return featureRoots;
+}
+
+function selectedHomeRoots(root: string, directory: string, features: Readonly<Record<string, readonly string[]>>): string[] {
+  return homeClientModuleGroups(root, directory).flatMap(kind => {
+    const roots = features[kind];
+    if (roots === undefined) throw new Error(`Missing selected home code group: ${kind}`);
+    return roots;
+  });
+}
+
+/** Actual product-selected feature roots, without copying their data into JavaScript. */
+export function homeModuleRoots(root: string): readonly (readonly string[])[] {
+  const features = optionalModuleRoots(root);
+  return Object.keys(bootProductTotals(root)).sort().map(prefix => {
+    const directory = prefix.split('/')[2];
+    if (directory === undefined) throw new Error('Missing boot home directory');
+    return selectedHomeRoots(root, directory, features);
+  });
+}
+
+export function writeBootModules(outDir: string, root: string, inlineLimit = 4096): void {
+  const bundle = writtenBundle(outDir, root);
+  const entry = resolve(root, 'src/entry.ts'), ids = startupModuleRoots(root);
+  const htmlFile = join(outDir, 'index.html'), html = existsSync(htmlFile) ? readFileSync(htmlFile, 'utf8') : '';
+  if (!html.includes('<head>')) throw new Error('Missing boot module document');
+  const client = resolveImport('./game/shardfile/client', entry);
+  if (client === null) throw new Error('Missing compiled client module');
+  const gridRoots = gridModuleRoots(root);
+  const featureRoots = optionalModuleRoots(root);
   const products = bootTierProductTotals(root), extras: Record<string, readonly [string, number, number, string]> = {};
   for (const prefix of Object.keys(products)) {
     const directory = prefix.split('/')[2];
     if (directory === undefined) throw new Error('Missing boot home directory');
-    featureRoots[`home:${prefix}`] = homeClientModuleGroups(root, directory).flatMap(kind => {
-      const roots = featureRoots[kind];
-      if (roots === undefined) throw new Error(`Missing selected home code group: ${kind}`);
-      return roots;
-    });
+    featureRoots[`home:${prefix}`] = selectedHomeRoots(root, directory, featureRoots);
     const files = homeExtraFiles(root, directory, bundle, inlineLimit);
     if (files === null) continue;
     const source = JSON.stringify(files), hash = createHash('sha256').update(source).digest('hex');

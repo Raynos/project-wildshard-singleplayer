@@ -1,6 +1,6 @@
 import type { Rolldown } from 'vite';
 import { resolve } from 'node:path';
-import { startupModuleRoots } from './bootModules';
+import { startupModuleRoots, homeModuleRoots, gridModuleRoots } from './bootModules';
 
 interface ModuleGraph {
   readonly getModuleInfo: (id: string) => { readonly importedIds: readonly string[] } | null;
@@ -18,39 +18,55 @@ function staticClosure(graph: ModuleGraph, roots: readonly string[]): Set<string
   return found;
 }
 
-/** Batch only code already required by startSelected. Title code stays entry-aware;
- * session membership stays separate so neither guarded closure gains bytes.
- * The returned selector belongs to one build, never a process-global graph cache. */
-export function controlChunkSelector(root: string, startup = startupModuleRoots(root), boundary: 'control' | 'title' = 'control'): (id: string, graph: ModuleGraph) => string | null {
-  let common: Set<string> | undefined, title: Set<string> | undefined, session: Set<string> | undefined;
+function membership(graph: ModuleGraph, rows: readonly (readonly string[])[]): Map<string, bigint> {
+  const masks = new Map<string, bigint>();
+  for (let index = 0; index < rows.length; index++) {
+    const bit = 1n << BigInt(index);
+    for (const id of staticClosure(graph, rows[index] ?? [])) masks.set(id, (masks.get(id) ?? 0n) | bit);
+  }
+  return masks;
+}
+
+/** Merge only equal requirements across actual title roots and home entries.
+ * A home never fetches another home's optional feature. The session budget and
+ * initial HTML boundaries remain separate. All graph state belongs to one build. */
+export function controlChunkSelector(root: string, startup = startupModuleRoots(root), boundary: 'control' | 'title' | 'initial' = 'control', homes: readonly (readonly string[])[] = []): (id: string, graph: ModuleGraph) => string | null {
+  let controls: Map<string, bigint> | undefined, title: Map<string, bigint> | undefined, initial: Map<string, bigint> | undefined, session: Set<string> | undefined;
   return (id, graph) => {
-    if (common === undefined) {
-      common = staticClosure(graph, startup);
+    if (controls === undefined) {
+      controls = membership(graph, homes.length === 0 ? [startup] : homes);
       const titleRoots = ['src/entry.ts', 'src/engine/ui/StartTitle.ts', 'src/game/mainMenu.ts',
         'src/game/grid/pageEntry.ts', 'src/game/travel/travel.ts'].map(file => resolve(root, file));
       for (const file of titleRoots) if (graph.getModuleInfo(file) === null) throw new Error(`Missing title chunk boundary: ${file}`);
-      title = staticClosure(graph, titleRoots);
+      title = membership(graph, titleRoots.map(file => [file]));
+      initial = membership(graph, [[resolve(root, 'index.html')], [resolve(root, 'calibration/index.html')]]);
       session = staticClosure(graph, [resolve(root, 'src/game/session/session.ts')]);
     }
-    // Pin the protected modules too: leaving them automatic allows an automatic
-    // shared chunk to bridge the manual groups back into the title.
-    if (boundary === 'title') return title?.has(id) === true ? 'title-boundary' : null;
-    if (!common.has(id) || title?.has(id) === true || !/\.[cm]?[jt]sx?$/u.test(id)
-      || id.includes('/src/shards/') || id.includes('/out/')) return null;
-    return session?.has(id) === true ? 'control-session' : 'control-startup';
+    if (id.includes('/src/shards/')) return null;
+    const needed = controls.get(id) ?? 0n, titleMask = title?.get(id) ?? 0n;
+    if (needed === 0n && titleMask === 0n) return null;
+    const roles = `${(initial?.get(id) ?? 0n).toString(36)}-${titleMask.toString(36)}-${needed.toString(36)}-${session?.has(id) === true ? 'session' : 'startup'}`;
+    if (boundary === 'initial') return `entry-${roles}`;
+    if (boundary === 'title') return titleMask > 0n ? `title-${roles}` : null;
+    if (titleMask > 0n || !/\.(?:[cm]?[jt]sx?|json)$/u.test(id) || id.includes('/out/')) return null;
+    return `control-${roles}`;
   };
 }
 
-/** Explicit dependency capture plus execution-order wrappers avoid the circular
- * binding failures of the former broad vendor/engine groups. Optional code and
- * shard owners keep Rolldown's automatic lazy boundaries. */
+/** Explicit equal-requirement cohorts plus execution-order wrappers avoid broad
+ * vendor/engine groups. Unselected optional code and shard owners retain their
+ * automatic lazy boundaries; initial-only helpers remain entry-aware. */
 export function controlChunkGroups(root: string): Rolldown.CodeSplittingGroup[] {
+  const startup = startupModuleRoots(root), grid = gridModuleRoots(root);
+  const base = [...startup, ...['src/main.ts', 'src/game/shardfile/client.ts', 'src/game/session/session.ts'].map(file => resolve(root, file))];
+  const homes = homeModuleRoots(root).flatMap(optional => [[...base, ...optional], [...base, ...optional, ...grid]]);
   return [
     // HTML proxies and compiler helpers are entry dependencies too. Their actual
     // entry sets keep calibration's initial Three graph off the public shell.
-    { name: 'entry-boundary', tags: ['$initial'], entriesAware: true, includeDependenciesRecursively: false, maxSize: 192_000 },
-    { name: controlChunkSelector(root, undefined, 'title'), entriesAware: true, includeDependenciesRecursively: false, maxSize: 192_000 },
-    { name: controlChunkSelector(root), includeDependenciesRecursively: false, maxSize: 192_000 },
+    { name: controlChunkSelector(root, startup, 'initial', homes), tags: ['$initial'], includeDependenciesRecursively: false, maxSize: 384_000 },
+    { name: 'entry-optional', tags: ['$initial'], test: id => !id.includes('/src/shards/'), entriesAware: true, includeDependenciesRecursively: false, maxSize: 192_000 },
+    { name: controlChunkSelector(root, startup, 'title', homes), includeDependenciesRecursively: false, maxSize: 192_000 },
+    { name: controlChunkSelector(root, startup, 'control', homes), includeDependenciesRecursively: false, maxSize: 384_000 },
   ];
 }
 

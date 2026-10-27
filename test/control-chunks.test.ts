@@ -20,14 +20,14 @@ test('control batches retain title, session, lazy and shard boundaries through c
   const select = controlChunkSelector(root, ['/fixture/src/entry.ts', '/fixture/src/core.ts']);
   expect(select('/fixture/src/shared.ts', graph)).toBeNull();
   expect(select('/fixture/src/entry.ts', graph)).toBeNull();
-  expect(select('/fixture/src/sessionOnly.ts', graph)).toBe('control-session');
-  expect(select('/fixture/src/services.ts', graph)).toBe('control-startup');
+  expect(select('/fixture/src/sessionOnly.ts', graph)).toMatch(/^control-.*-session$/u);
+  expect(select('/fixture/src/services.ts', graph)).toMatch(/^control-.*-startup$/u);
   expect(select('/fixture/src/lazyExplorer.ts', graph)).toBeNull();
   expect(select('/fixture/src/calibration.ts', graph)).toBeNull();
   expect(select('/fixture/src/shards/one/manifest.ts', graph)).toBeNull();
   expect(select('/fixture/src/styles.css', graph)).toBeNull();
   const title = controlChunkSelector(root, [], 'title');
-  expect(title('/fixture/src/shared.ts', graph)).toBe('title-boundary');
+  expect(title('/fixture/src/shared.ts', graph)).not.toBeNull();
   expect(title('/fixture/src/services.ts', graph)).toBeNull();
 });
 
@@ -35,10 +35,10 @@ test('a subsequent build uses its own graph, including changed optional requirem
   const graph = { getModuleInfo: () => ({ importedIds: [] }) };
   const first = controlChunkSelector('/fixture', ['/fixture/src/first.ts']);
   const second = controlChunkSelector('/fixture', ['/fixture/src/second.ts']);
-  expect(first('/fixture/src/first.ts', graph)).toBe('control-startup');
+  expect(first('/fixture/src/first.ts', graph)).toMatch(/^control-.*-startup$/u);
   expect(first('/fixture/src/second.ts', graph)).toBeNull();
   expect(second('/fixture/src/first.ts', graph)).toBeNull();
-  expect(second('/fixture/src/second.ts', graph)).toBe('control-startup');
+  expect(second('/fixture/src/second.ts', graph)).toMatch(/^control-.*-startup$/u);
 });
 
 test('entry-aware chunk labels preserve the strict named module bank contract', () => {
@@ -49,16 +49,29 @@ test('entry-aware chunk labels preserve the strict named module bank contract', 
   expect(() => readModuleFiles([['/assets/title~session.js', 42]])).toThrow('Invalid boot module file');
 });
 
+test('home batches combine equal requirements without admitting another home or Explorer', () => {
+  const graph = { getModuleInfo: (id: string) => ({ importedIds: id === '/fixture/pine.ts' ? ['/fixture/pine-helper.ts'] : [] }) };
+  const select = controlChunkSelector('/fixture', [], 'control', [
+    ['/fixture/common.ts', '/fixture/pine.ts'], ['/fixture/common.ts', '/fixture/nalati.ts'],
+  ]);
+  expect(select('/fixture/pine.ts', graph)).toBe(select('/fixture/pine-helper.ts', graph));
+  expect(select('/fixture/pine.ts', graph)).not.toBe(select('/fixture/nalati.ts', graph));
+  expect(select('/fixture/common.ts', graph)).not.toBe(select('/fixture/pine.ts', graph));
+  expect(select('/fixture/explorer.ts', graph)).toBeNull();
+});
+
 test('calibration initial code stays outside the actual public HTML static closure', async () => {
   mkdirSync('tmp/control-chunks', { recursive: true });
   const root = mkdtempSync(resolve('tmp/control-chunks/entries-'));
   try {
-    for (const folder of ['src/engine/ui', 'src/engine/app', 'src/game/grid', 'src/game/travel', 'calibration']) mkdirSync(resolve(root, folder), { recursive: true });
+    for (const folder of ['src/engine/ui', 'src/engine/app', 'src/game/grid', 'src/game/travel', 'src/game/shardfile', 'calibration']) mkdirSync(resolve(root, folder), { recursive: true });
     writeFileSync(resolve(root, 'index.html'), '<script type="module" src="/src/entry.ts"></script>');
     writeFileSync(resolve(root, 'calibration/index.html'), '<script type="module" src="/calibration/entry.ts"></script>');
     writeFileSync(resolve(root, 'calibration/entry.ts'), 'import {runtime} from "../src/engine/app/runtime"; globalThis.calibration = runtime;');
     writeFileSync(resolve(root, 'src/engine/app/runtime.ts'), 'globalThis.runtimeStarted = performance.now(); export const runtime = globalThis.runtimeStarted;');
     writeFileSync(resolve(root, 'src/core.ts'), 'import {runtime} from "./engine/app/runtime"; export const control = runtime;');
+    writeFileSync(resolve(root, 'src/game/grid/session.ts'), 'export const grid = true;');
+    writeFileSync(resolve(root, 'src/game/shardfile/client.ts'), 'export const client = true;');
     const title = ['engine/ui/StartTitle', 'game/mainMenu', 'game/grid/pageEntry', 'game/travel/travel'];
     for (const file of title) writeFileSync(resolve(root, `src/${file}.ts`), 'export const label = "title";');
     writeFileSync(resolve(root, 'src/entry.ts'), `async function startSelected(){return import('./core');}
