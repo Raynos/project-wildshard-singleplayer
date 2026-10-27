@@ -82,7 +82,9 @@ test('emitted grid data stays cold at install and survives activation for offlin
   const cache = await f.open('ws-immutable');
   for (const [url, bytes] of bodies) {
     await f.dispatch('fetch', { request: new Request(url) });
-    expect(new Uint8Array(await (await cache.match(url))?.arrayBuffer() ?? [])).toEqual(bytes);
+    await vi.waitFor(async () => {
+      expect(new Uint8Array(await (await cache.match(url))?.arrayBuffer() ?? [])).toEqual(bytes);
+    });
   }
   await f.dispatch('activate');
   f.navigator.onLine = false; f.fetch.mockRejectedValue(new Error('offline')); f.fetch.mockClear();

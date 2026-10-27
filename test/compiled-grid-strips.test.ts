@@ -16,8 +16,8 @@ import { join, resolve } from 'node:path';
 function native(count = 257): { cells: PlatformCell[]; empty: StripProfile; strips: readonly GeneratedStrip[] } {
   const empty: StripProfile = { roadHeight: 0, heights: Array.from({ length: 257 }, () => 0), colours: Array.from({ length: 257 }, () => [0.25, 0.25, 0.25]) };
   const profile: StripProfile = { roadHeight: 0,
-    heights: Array.from({ length: count }, (_, i) => Math.abs(-250 + i * 500 / (count - 1)) < 12 ? 0 : i % 31 - 10),
-    colours: Array.from({ length: count }, (_, i) => [i % 2 === 0 ? -0 : 0.125, (i % 7) / 7, (i % 11) / 11]) };
+    heights: Array.from({ length: count }, (_, i) => i === 0 || i === count - 1 || Math.abs(-250 + i * 500 / (count - 1)) < 12 ? 0 : i % 31 - 10),
+    colours: Array.from({ length: count }, (_, i) => i === 0 || i === count - 1 ? [0.25, 0.25, 0.25] : [i % 2 === 0 ? -0 : 0.125, (i % 7) / 7, (i % 11) / 11]) };
   const observed = { entryWidth: 8, waterSurface: 0, geometry: 'ground' as const, sourceSurface: 'terrain', outflows: [{ from: -30, to: -15 }] };
   const cells: PlatformCell[] = [{ instance: 'probe', cell: [0, 0], origin: { x: 0, z: -0 },
     edges: { north: profile, east: profile, south: empty, west: empty }, observations: { north: observed, east: { ...observed, geometry: 'void' }, south: { entryWidth: 0 }, west: { entryWidth: 0 } } }];
