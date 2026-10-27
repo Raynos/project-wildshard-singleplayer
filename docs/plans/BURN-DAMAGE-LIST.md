@@ -78,6 +78,7 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D38 | Sealed `nalati-geography` cannot resolve `@wildshard/sdk/random` from `geographySource.ts`; generation still masks tests | `c954d624a0` | sp-x6 | geography fixed 0c8f7e357f; boot-metadata consumer still misses SDK package exports; routed to sp-x6 |
 | D39 | Generation stage: `@wildshard/sdk/random` (and `sdk/quests`, D32) is not linked into the stage's node_modules, so clean builds of HEAD fail (`serve-build --head` at `4778e51ce1`: ERR_MODULE_NOT_FOUND, log tmp/serve/failed-20261027-014444-4401.log:35) | `4778e51ce1` or earlier | sp-x6 | same active closure break as D38; routed to sp-x6 |
 | D40 | Nalati generation stage: `geographySource.ts` imports `@wildshard/sdk/random`, undeclared in its job's inputs; HEAD previews fail (ERR_MODULE_NOT_FOUND, log tmp/serve/failed-20261027-014514-4401.log) | c954d624a0 | sp-x6 | same active closure break as D38; routed to sp-x6 |
+| D41 | Nalati generation stage: `generators/bake-boot-metadata.mjs` imports `@wildshard/sdk/bake/terrain.ts`, undeclared in its job's inputs; HEAD previews fail (ERR_MODULE_NOT_FOUND, log tmp/serve/failed-20261027-015120-4401.log) | after 0c8f7e357f (sealing) | breaker (sp-x7 finds) | open |
 
 ## Rows
 
