@@ -20,6 +20,11 @@ export class FrameDrawRanges {
     owner.onDispose(() => { const index = this.ranges.indexOf(lease); if (index !== -1) this.ranges.splice(index, 1); });
     return range;
   }
+  /** Whether a live owner's range is enabled: the frame draws a held view (D178 pauses the post chain for it). */
+  holding(): boolean {
+    for (const lease of this.ranges) if (lease.range.enabled && !lease.owner.disposed && !lease.owner.disposing) return true;
+    return false;
+  }
   /** A parked root may leave ordinary frame matrix walks while hidden. Explicit
    * construction/preparation updates outside this draw remain unchanged. */
   trackHiddenRoot(owner: Scope, root: Object3D): void {

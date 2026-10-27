@@ -143,3 +143,13 @@ test('retiring owners and roots on another scene retain ordinary matrix updates'
     expect(update).toHaveBeenCalled();
   } finally { for (const _step of retirement) { /* Finish if an assertion failed. */ } update.mockRestore(); f.dispose(); }
 });
+
+test('a frame holds only while a live owner has its range enabled (D178 pauses post for it)', () => {
+  const f = fixture(), child = f.scope.child('held'), range = f.masks.bind(child, 125);
+  try {
+    expect(f.masks.holding()).toBe(false);
+    range.enabled = true; expect(f.masks.holding()).toBe(true);
+    range.enabled = false; expect(f.masks.holding()).toBe(false);
+    range.enabled = true; child.dispose(); expect(f.masks.holding()).toBe(false);
+  } finally { f.dispose(); }
+});

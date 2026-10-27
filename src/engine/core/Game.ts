@@ -127,10 +127,12 @@ function skipRaysOffscreen(rays: GodRaysEffect, camera: THREE.Camera, disc: THRE
  * (`update`: the bloom's luminance and mip chain, the rays' light pass and blur, the volumetric march) wait until it shows
  * again, when its next update runs before the frame composites it. A look that grades in its own passes (Nalati's post
  * graph) keeps the engine chain at opacity 0: its census drew 12 renders a frame, 10 of them full-screen post passes.
+ * D178 (G813): while `paused` (a held crossing view) its offscreen passes wait too, and it composites what it last drew:
+ * the opacity, and so every program key, stays as it was.
  */
-function skipWhileTransparent(effect: Effect): void {
+function skipWhileTransparent(effect: Effect, paused: () => boolean): void {
   const update = effect.update.bind(effect);
-  effect.update = (renderer, inputBuffer, deltaTime) => { if (effect.blendMode.opacity.value > 0) update(renderer, inputBuffer, deltaTime); };
+  effect.update = (renderer, inputBuffer, deltaTime) => { if (effect.blendMode.opacity.value > 0 && !paused()) update(renderer, inputBuffer, deltaTime); };
 }
 
 /** one engine colour chain, built (Game.buildComposer): its effects, in order, and by name */
@@ -147,6 +149,8 @@ export interface EntryPreparation {
 
 export class Game {
   private readonly frameDrawRanges: FrameDrawRanges = new FrameDrawRanges();
+  /** D178: whether this frame draws a held view (an enabled frame draw range): the post chain's offscreen work pauses. */
+  private postHeld = false;
   /** Limit distant ordinary draws only during live presentation; the owning
    * caller enables its range while waiting and disables it before playing. */
   bindFrameDrawRange(owner: Scope, distance: number): FrameDrawRange { return this.frameDrawRanges.bind(owner, distance); }
@@ -603,7 +607,8 @@ export class Game {
       const tuning = ENGINE_CHAIN_TUNING[clean ? 'clean' : 'cinematic'];
       const bloom = new BloomEffect({ intensity: G.bloomIntensity, luminanceThreshold: G.bloomThreshold, luminanceSmoothing: tuning.bloomSmoothing, mipmapBlur: true, radius: 0.6, levels: TIER_CONFIG.bloomLevels });
       quarterBloom(bloom); // G749: luminance at a quarter of the frame, its mip chain one level smaller (lighterTargets.ts)
-      skipWhileTransparent(bloom); skipWhileTransparent(godRays); skipWhileTransparent(vol);
+      const held = (): boolean => this.postHeld;
+      skipWhileTransparent(bloom, held); skipWhileTransparent(godRays, held); skipWhileTransparent(vol, held);
       const vignette = new VignetteEffect({ offset: 0.32, darkness: tuning.vignette });
       const tone = new ToneMappingEffect({ mode: ToneMappingMode.AGX });
       const grade = new HueSaturationEffect({ saturation: G.saturation });
@@ -1206,7 +1211,14 @@ export class Game {
         try { this.lookStrategy?.frame?.(realDt, t); }
         finally { if (this.app.cpu.enabled && this.lookStrategy?.frame !== undefined) this.app.cpu.record(this.app.cpu.ticket(this.levelScope), diagnosticNow() - lookStart); }
         cullPlaced(this.camera); // placed models' per-copy culling and LODs for this view (src/engine/models/place.ts; nothing when none cull)
-        this.frameDrawRanges.draw(this.rootScene, this.camera, composer, realDt);
+        // D178 (G813): a held crossing view pauses the post chain: the AO pass sits this draw out, and the bloom, rays and
+        // volumetric effects composite their last frame (skipWhileTransparent); the scene and colour passes, and so every
+        // material's and the colour pass's program keys, are unchanged
+        this.postHeld = this.frameDrawRanges.holding();
+        const ao = this.postHeld ? this.post?.ao ?? null : null, aoOn = ao?.enabled ?? false;
+        if (ao !== null) ao.enabled = false;
+        try { this.frameDrawRanges.draw(this.rootScene, this.camera, composer, realDt); }
+        finally { if (ao !== null) ao.enabled = aoOn; }
         noteDrawnEnvironment(this.rootScene.environment); // what the frame lit with, for view-root warm-ups (drawnEnvironment.ts)
         if (this.compositionChanged && this.compositionObservers.size > 0) {
           const bytes = this.composerAllocationResources().reduce((sum, row) => sum + row.bytes, 0);
