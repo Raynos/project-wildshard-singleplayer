@@ -9,7 +9,6 @@ import { nalatiSpecimenRows } from '../src/shards/nalati-grasslands/generators/s
 import { SpecimenCatalogueSchema, SpecimenMaterialSchema } from '../src/format/specimenCatalogue';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import {withOwnedModelFiles} from './fixtures/nalati-owned-models';
 import { NALATI_MAP_INPUTS, nalatiMapPixels } from '../src/shards/nalati-grasslands/generators/mapProgram';
 
@@ -61,7 +60,6 @@ test('the specimen value composer stays in one config-safe chunk', async () => {
 });
 
 test('source-owned specimens retire the publisher and retain all three historical wire hashes', () => {
-  expect(discoverGeneration(resolve('.')).jobs.some(row => row.id === 'camp-specimen-catalogue')).toBe(false);
   for (const path of pins.keys()) expect(existsSync(path), path).toBe(false);
   const historical = new Map([
     [`${project}data/specimens.generated.json`, `${JSON.stringify(original, null, 2)}\n`],

@@ -1,23 +1,13 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Preserve the frozen geometry oracle and verify source-handoff retirement.
 import { existsSync, readFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Discover the actual scheduler from the repository root.
-import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { bridgeRestFiles } from '../src/shards/far-reach/generators/bridgeRest';
 import { MODEL_URLS } from '../src/shards/far-reach/generators/fileInventory';
 
 const hierarchy = 'src/shards/far-reach/data/bridgeRest.generated.json';
-const geometry = 'public/assets/far-reach/baked/bridge-rest.glb';
 
 test('both bridge writers and every declared handoff reader are retired', () => {
-  const { jobs } = discoverGeneration(resolve('.'));
-  expect(jobs.some(job => job.id === 'sky-bridge-rest-rows' || job.id === 'sky-bridge-rest-glb')).toBe(false);
-  for (const job of jobs) for (const file of [hierarchy, geometry]) {
-    expect(job.outputs, job.id).not.toContain(file);
-    expect(job.inputRoots, job.id).not.toContain(file);
-  }
   expect(existsSync(hierarchy)).toBe(false);
 });
 

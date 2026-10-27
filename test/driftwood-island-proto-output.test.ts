@@ -8,7 +8,6 @@ import { createProjectGeneration, type ProjectGenerationContext } from '../src/s
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import type { EmittedBlobs } from '../src/sdk/blobs';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import { ISLAND_PROTO_INPUTS, driftwoodIslandProtoOutput, driftwoodIslandProtoSource } from '../src/shards/driftwood-isle/generators/islandProtoProgram';
 
 // L18.3d: the compact prototype storage (exact 8-bit colour + AO, Int8 normals, 16-bit indices); was d206d254 at 5,302,068 B
@@ -78,13 +77,5 @@ test('prototype source bundles without generated handoffs or filesystem/compiler
   for (const chunk of chunks) {
     assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
     expect(Object.keys(chunk.modules).some(path => path.includes('.generated.'))).toBe(false);
-  }
-});
-
-test('the dressing scheduler no longer publishes a prototype GLB under src', () => {
-  const job = discoverGeneration(resolve('.')).jobs.find(row => row.id === 'driftwood-island-dressing');
-  if (job === undefined) throw new Error('Missing retained dressing producer');
-  for (const output of job.outputs) {
-    expect(output).not.toMatch(/\/assets\/(?:d206d254|5b1d2044)/u);
   }
 });

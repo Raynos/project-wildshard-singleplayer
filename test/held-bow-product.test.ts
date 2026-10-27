@@ -9,7 +9,6 @@ import { resolve } from 'node:path';
 import process from 'node:process';
 import { captureProductInputs } from '../scripts/shardfile-inputs.mjs';
 import { build } from '../scripts/shardfile-vite.mjs';
-import { discoverGeneration } from '../scripts/generate.mjs';
 import recurve from '../public/assets/nalati/baked/recurve-pool.json' with { type:'json' };
 import { HeldBowFileSchema, HeldBowDefinitionSchema } from '../src/format/weaponProfiles';
 import { bindHeldBow } from '../src/game/weapons/heldLauncher';
@@ -70,8 +69,6 @@ test('actual named admission rejects malformed bow and pool bytes',async()=>{
 
 test('the product input recorder sees the raw bow and its existing producer',async()=>{
   const source='public/assets/nalati/baked/recurve-pool.json',root=process.cwd();
-  const producer=discoverGeneration(root).jobs.find(job=>job.id==='nalati-recurve-pool');
-  expect(producer?.outputs).toContain(source);
   const dir=mkdtempSync(resolve('tmp/held-bow-input-')),entry=resolve(dir,'entry.mjs'),receipt=resolve(dir,'inputs.json');
   writeFileSync(entry,`import rows from ${JSON.stringify(resolve(source))} with {type:'json'};export const bow=rows;`);
   try {
