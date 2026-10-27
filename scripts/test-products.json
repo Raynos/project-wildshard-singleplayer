@@ -1,4 +1,5 @@
 {
+  "test/ink-native-proof.test.ts": ["ink-cel-valley"],
   "test/driftwood-trail-layout.test.ts": ["driftwood-isle"],
   "test/driftwood-output.test.ts": ["driftwood-isle"],
   "test/driftwood-mover-entry.test.ts": ["driftwood-isle"],
