@@ -56,20 +56,20 @@ Rows LD1–LD4 delete nothing and need no QA; LD5–LD8 wait for Jake's word (G6
 ## LD4 Node comparison (2026-10-27, sp-x9)
 
 **In flight:** the data-only comparison is built in this commit. Full runtime
-model/set coverage remains open below; LD4 is not declared parity-green.
+model/set/world registration coverage remains open below; LD4 is not declared parity-green.
 Run `node --experimental-transform-types --import ./scripts/bake-loader.mjs
 scripts/legacy-explorer-lists.ts <report.json>`. The checked-in inventory is
 `legacy-explorer-lists.json`. It contains every compared identifier, exact
 missing/added lists, input hashes and unresolved admissions for all six shards.
 LEGACY and SHARDFILE run in separate Node processes because model definitions
 own a process-global identity registry. No browser, geometry build or deletion
-is involved. World means the World Explorer's map/POI list; arena lists include
+is involved. World here means manifest POIs; late map registrations remain unqualified. Arena lists include
 the common Developer Practice card and each shard's registered course.
 
-All six arena lists match. World/POI lists match for Driftwood, Pine, Nalati
+All six declared arena lists match. Declared manifest POIs match for Driftwood, Pine, Nalati
 and Sunscar. Nine adds eight POIs and Far Reach four; the exact names are in
-the inventory. Declared Model rosters match for Driftwood (14), Far Reach (8)
-and Sunscar (10). These are declared catalogues, not the additional models
+the inventory. Declared Model rosters now match for Driftwood (14), Pine (19), Nalati (27),
+Far Reach (8) and Sunscar (10). These are declared catalogues, not the additional models
 registered by world placement. Existing products are section/file-hash checked;
 the report does not assert they match the current working source.
 
@@ -79,8 +79,8 @@ they remain here because no live per-shard zero-plan files remain:
 | Gap | Shard | Remaining work | State |
 |---|---|---|---|
 | LD4-DW | Driftwood | Capture world-placed models and qualify conditional Set membership; declared rosters and nine literal Sets match. | open |
-| LD4-PH | Pine | Give the Node catalogue reader the admitted public code-parts binary; qualify the conditional mill-hamlet Set and placed models. Model admission currently refuses the relative public URL. | open |
-| LD4-NG | Nalati | Install the product's species binding before resolving horse cards in Node; qualify placed models and conditional Sets. Current admission refuses unknown horse. | open |
+| LD4-PH | Pine | Qualify runtime-placed models, late map registrations and the conditional mill-hamlet Set. The phone Node catalogue now admits all 19 declared models exactly (recorded-cache capture below). | open |
+| LD4-NG | Nalati | Qualify runtime-placed models, late map registrations and conditional Sets. Product-only species admission now resolves the complete 27-model declared catalogue exactly (recorded-cache capture below). | open |
 | LD4-ND | Nine | Enumerate native assembly registrations: fp-arms and six literal Sets are absent from the declaration-only adapter. Account for eight added POIs. This is a coverage gap, not proof the runtime lost them. | open |
 | LD4-FR | Far Reach | Qualify world-placed models; account for four added POIs. Declared eight-model rosters and arena lists match. | open |
 | LD4-SD | Sunscar | Qualify world-placed models and conditional/computed Set registration. Declared ten-model rosters and arena lists match. | open |
@@ -115,3 +115,38 @@ model/conditional-set coverage remains explicit in all six gap rows.
 Touched types and typed lint pass. Full ratchet is invoked; after discovery
 returned it reports existing foreign source-count increases/reductions, not
 an own audit-source increase. No policy/allowance or peer source is changed.
+
+
+### LD4 exact recorded-cache phone capture
+
+The follow-up above was prerequisite-refused, not passing. The same six exact
+recorded index hashes were subsequently found in the existing immutable product
+cache. `--recorded-cache <report.json>` reads those entries under the existing
+reader leases, verifies their section bytes and consumed named payloads, and
+releases every lease. No product is built, restored, copied or served. These
+historical product identities do not claim current-source freshness.
+
+The **executed phone-tier** capture in this commit resolves all six catalogues.
+Five declared Model lists match (78 identities); Nine's declaration-only list
+lacks the original `nine-dragon-stack/fp-arms`. All six declared arena lists
+match. Every exact Set/POI difference and every input digest is retained in the
+inventory. Models/Sets/World are explicitly **unqualified for late/native world
+registrations**, not silently counted as parity-green; all six LD4 gap rows
+remain open for that coverage. No legacy deletion is authorized here.
+
+The existing non-drawing bake environment supplies Three's Node URL/progress
+boundary, while actual bytes stay constrained: committed source/public objects,
+hash/size-checked named product payloads with their real `/shardfiles/<slug>/`
+base, or a complete generated-cache receipt whose **full output hash is named
+by the committed generation catalogue**. Generated bytes never come from loose
+public files. Every receipt output is checked; source freshness is not inferred
+from a historical generated hit. The species resolver uses the actual product
+catalogue and scoped service. CPU source decoding can occur; no world/specimen
+rendering or visual/physics parity is claimed.
+
+Model preparation errors invalidate a captured list. Node's exact experimental
+transform-types warning is retained separately as infrastructure, never confused
+with a model refusal. The inventory pins the executed collector's SHA256 as well
+as the public revision and all selected data. Touched types and typed lint pass.
+Full lint:ratchet is invoked; unrelated current source-count differences remain
+with their owners. This audit adds no source allowance or policy exception.
