@@ -1,3 +1,4 @@
+import type { Ktx2DeviceCosts } from './ktx2Cost';
 import { AdmissionLateSchema, type AdmissionLate } from './admissionLate';
 /** Versioned, renderer-free disk contract shared by the writer and network reader. */
 import { isOutputIndex, outputBlobPath } from './outputAddress';
@@ -32,6 +33,7 @@ export const OutputIndexSchema: v.GenericSchema<OutputIndexRowsInput, OutputInde
   admission: v.strictObject({ budgets: ShardfileFieldSchemas.budgets, serverBudget: ShardfileFieldSchemas.serverBudget, authorCaps: ShardfileFieldSchemas.authorCaps, critical: ShardfileFieldSchemas.critical, library: ShardfileFieldSchemas.library, late: v.exactOptional(AdmissionLateSchema) }),
   sections: v.pipe(v.array(section), v.maxLength(256)), schemas: v.pipe(v.array(v.strictObject(measuredFile)), v.maxLength(128)),
   files: v.pipe(v.array(fileSchema), v.maxLength(8192)), runtime: v.nullable(runtime),
+  ktx2Costs: v.exactOptional(v.pipe(v.record(ShardHashSchema,v.strictObject({rgba:ShardNaturalSchema,astc:ShardNaturalSchema,bc7:ShardNaturalSchema})),v.check(rows=>Object.keys(rows).length<=8192,'bounded texture cost table'))),
   /** iPhone downloads I5: content-hashed concatenations of the small sections, schemas and files, so a reader can fetch
    *  one pack instead of hundreds of files; every member keeps its own listed path, hash and size */
   packs: v.exactOptional(v.pipe(v.array(v.strictObject({ ...measuredFile, entries: v.pipe(v.array(v.strictObject({
@@ -55,6 +57,13 @@ export function parseOutputDescriptorIndex(input: unknown): OutputIndex | null {
 }
 function parseOutputIndexRows(input: unknown): OutputIndex {
   const index = v.parse(OutputIndexSchema, input), paths = new Set(['shard.json', 'validation.json']), names = new Set<string>();
+  if (index.ktx2Costs !== undefined) {
+    const textures = new Map(index.files.filter(row=>row.kind==='ktx2' && row.commons!==true).map(row=>[row.hash,row]));
+    for (const [hash,cost] of Object.entries(index.ktx2Costs)) {
+      const file = textures.get(hash);
+      if (file===undefined || cost.rgba>file.gpu || cost.astc>cost.rgba*4 || cost.bc7>cost.rgba*4) throw new Error('Invalid KTX2 device cost table');
+    }
+  }
   if (index.sections.reduce((total, entry) => total + entry.bytes, 0) > limits.sourceBytes) throw new Error('Output sections exceed the source byte cap');
   for (const entry of [...index.sections, ...index.schemas, ...index.files, ...index.runtime?.files ?? []]) {
     if (entry.path.split('/').some(part => part === '.' || part === '..') || paths.has(entry.path)) throw new Error('Duplicate or escaping output path');
@@ -142,6 +151,7 @@ interface OutputIndexRowsInputFields {
         validator: string;
     };
     requires: ShardRequiresInput;
+    ktx2Costs?: Record<string, Ktx2DeviceCosts>;
     admission: {
         budgets: unknown;
         serverBudget: unknown;
@@ -261,6 +271,7 @@ interface OutputIndexRowsFields {
         validator: string;
     };
     requires: ShardRequires;
+    ktx2Costs?: Record<string, Ktx2DeviceCosts>;
     admission: {
         budgets: unknown;
         serverBudget: unknown;

@@ -679,6 +679,14 @@ adapter validates and owns this metadata, admits the blobs first, then merges
 the hints into `source.late` after their library roots exist. `nameBlob` and its
 file metadata stay unchanged. Low-level writers may set `source.late` directly
 once those roots are declared. Both routes emit the same `admission.late`.
+
+A format-2 index may carry `ktx2Costs`, keyed by a local KTX2 hash with
+`{rgba, astc, bc7}` GPU footprints. The writer derives them from exact bodies
+using the ordinary parser and validates them again against those bodies. Only
+a build-receipted original file object may use them for residency without a
+cost-only body fetch. Capability selection preserves the existing device charge,
+including padded tiny mips; old indexes and unverified/replaced rows still parse
+the body. Rendering still reads and verifies its texture through the same owner.
 The ordinary manifest packer also declares Explorer-only gallery/comparison
 images late. A byte-identical card, map, sky or horizon image stays early even
 when authored under another URL. Explicit positioned hints win; automatic hints

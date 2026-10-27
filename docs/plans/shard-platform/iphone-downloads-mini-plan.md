@@ -838,6 +838,8 @@ content remains sp-o5's split; x9 owns the remaining JS transport.
 
 ### I2.13 Material construction roots (2026-10-27, sp-x2)
 
+Source: `da877588a2` (pushed).
+
 Immediate guarded-red repair before that next cut. O4's actual Night
 Market refusal names606e99663b2e... Landmark colour1101130B; companion
 028ee2f47969... is492790B. Both are declared phone KTX2 tile dependencies
@@ -857,3 +859,35 @@ Format/game/SDK and scoped fixture types, typed lint and ratchet pass.
 Source regression covers a tile-only prop slot plus graph dependencies;
 not executed before landing under G769. O4/CI consume this source once
 at their next containing reading; no new build or competing capture.
+
+### I2.14 Device texture costs without cost-only I/O (2026-10-27, sp-x2)
+
+In flight (reading at plan end): take the largest verified generic item
+from I2.12: twelve Pine product/public KTX2 pairs,10998478B on each side,
+whose complete bodies hash identically. Library device costing reads
+KTX2 bodies even when original build-verified file costs already exist;
+public/material consumers can then request those same bytes again.
+This packet removes that cost-only demand where the index has proof,
+not a guarantee that a body another host actually needs disappears.
+
+The SDK emits optional index.ktx2Costs[hash]={rgba,astc,bc7}, derived
+from each exact local KTX2 body through the existing parser. Disk
+validation recomputes and refuses mismatches; structural intake refuses
+unknown/non-KTX2/commons identities and impossible bounds. Values are
+covered by the pinned index hash and existing build receipt, not by an
+author claim. The runtime accepts them only for an identical original
+build-proven file object. It selects the same capability-specific GPU
+charge without a body transfer for costing. Tiny padded blocks may be
+larger than RGBA and remain fully charged. No conservative-bound bump,
+cap relaxation, texture/decoder/lifetime change or new body cache.
+Old indexes, missing device facts, copied rows and unreceipted products
+retain the original verified body path. Actual material/tile consumers
+still demand and verify their own bytes. Commons remain unchanged.
+
+Touched format/game/SDK and SDK-test/scoped scenario types, typed lint
+and source ratchet pass. Regression sources cover writer recomputation/
+forgery refusal, exact capability charge without I/O, old-index fallback
+and padded tiny blocks; typed but not executed before landing G769.
+No new product/preview/browser run for this source slice. Next joint
+cohort should include x9's coming title pack and o5's content hints;
+435 remains the actual recorded baseline, not a claimed saving here.

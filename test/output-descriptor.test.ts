@@ -1,3 +1,6 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Device-cost source fixture uses one tracked bounded KTX2 file.
+import { readFileSync } from 'node:fs';
+import { parseKtx2, ktx2DeviceCosts, ktx2DeviceGpu } from '../src/format/ktx2Cost';
 import { runtimeOnlyProductFiles } from '../src/game/shardfile/productCost';
 import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
@@ -24,16 +27,17 @@ import { leaseClientLibrary } from '../src/game/shardfile/clientLibrary';
 const encodeCanonicalJson = (value: unknown): Uint8Array => new TextEncoder().encode(canonicalJson(value));
 const base = 'https://example.test/shardfiles/loader-fixture/';
 const hash = (bytes: Uint8Array): Promise<string> => Promise.resolve(hashImmutableBytes(bytes));
-function fixture(blob = false, spawnX = 0, revision = 1, slug = 'loader-fixture', late = false, declaredLate = false): { source: Shardfile; index: OutputIndex; wires: Map<string, Uint8Array> } {
+function fixture(blob = false, spawnX = 0, revision = 1, slug = 'loader-fixture', late = false, declaredLate = false, texture?: Uint8Array): { source: Shardfile; index: OutputIndex; wires: Map<string, Uint8Array> } {
   const source = emptyShardfile({ slug, name: 'Loader', author: 'Test', revision, seed: 1 });
   source.spawn.x = spawnX;
   const wires = new Map<string, Uint8Array>();
   if (blob) {
-    const bytes = new Uint8Array([1, 2, 3]), ref = hashImmutableBytes(bytes);
-    source.files.push({ hash: ref, kind: 'binary', compressed: 3, decoded: 3, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false });
-    if (!late) { source.library.push(ref); source.budgets.library = { resident: 3, compressed: 3 }; }
+    const bytes = texture ?? new Uint8Array([1, 2, 3]), ref = hashImmutableBytes(bytes);
+    const cost = texture === undefined ? {decoded:3,gpu:0,triangles:0,draws:0} : parseKtx2(bytes);
+    source.files.push({ hash: ref, kind: texture === undefined ? 'binary' : 'ktx2', compressed: bytes.length, ...cost, dependencies: [], critical: false });
+    if (!late) { source.library.push(ref); source.budgets.library = { resident: cost.decoded+cost.gpu, compressed: bytes.length }; }
     if (declaredLate) source.late = [{hash:ref,at:[25,0]}];
-    wires.set(`blobs/bin/${ref}.bin`, bytes);
+    wires.set(texture === undefined ? `blobs/bin/${ref}.bin` : `blobs/ktx2/${ref}.ktx2`, bytes);
   }
   const sections = [...outputSectionPayloads(source)].map(([name, payload]) => {
     const mapping = OUTPUT_SECTIONS.find(row => row.name === name);
@@ -45,7 +49,8 @@ function fixture(blob = false, spawnX = 0, revision = 1, slug = 'loader-fixture'
   const index = parseOutputIndex({ format: 'wildshard.shardfile', formatVersion: 2, sdk: '0.2', version: source.version,
     identity: source.identity, build: { sourceHash: hashImmutableBytes(encodeCanonicalJson(source)), validator: 'test' }, requires: source.requires,
     admission: { budgets: source.budgets, serverBudget: source.serverBudget, authorCaps: source.authorCaps, critical: source.critical, library: source.library, ...(source.late === undefined ? {} : {late:source.late}) },
-    sections, schemas: [], files: source.files.map(file => ({ ...file, kind: 'bin', ...(declaredLate ? {name:'late.bin'} : {}), path: `blobs/bin/${file.hash}.bin` })), runtime: null });
+    ...(texture === undefined ? {} : {ktx2Costs:{[hashImmutableBytes(texture)]:ktx2DeviceCosts(texture)}}),
+    sections, schemas: [], files: source.files.map(file => ({ ...file, kind: texture === undefined ? 'bin' : 'ktx2', ...(declaredLate ? {name:'late.bin'} : {}), path: texture === undefined ? `blobs/bin/${file.hash}.bin` : `blobs/ktx2/${file.hash}.ktx2` })), runtime: null });
   wires.set('shard.json', encodeCanonicalJson(index));
   return { source, index, wires };
 }
@@ -763,4 +768,37 @@ test('late scheduling hints do not create synchronous transport ownership', () =
   expect(runtimeOnlyProductFiles(row.source)).toEqual([file.hash]);
   row.source.look.grade.lut = file.hash;
   expect(runtimeOnlyProductFiles(row.source)).toEqual([]);
+});
+
+
+test('receipted KTX2 device costs preserve the exact claim without fetching a body for costing', async () => {
+  const bytes = Uint8Array.from(readFileSync('test/fixtures/shard-assets/pixel.ktx2'));
+  for (const support of [{astc:false,bc7:false},{astc:true,bc7:false},{astc:false,bc7:true}]) {
+    const row = fixture(true,0,1,'loader-fixture',false,false,bytes), restore = installIndexReceipt(row.index), scope = new Scope('device-costs'), allocator = new ResidencyAllocator();
+    try {
+      const source = await readProductDescriptor(options(row.wires)), read = vi.fn(() => Promise.reject(new Error('Cost-only KTX2 transfer')));
+      await leaseClientLibrary({...source},new Map(),{validatedSource:source,scope,allocator,owner:'home',textures:support,read});
+      expect(read).not.toHaveBeenCalled();
+      expect(allocator.cost().input.libraries).toBe(parseKtx2(bytes,support).gpu);
+      expect(ktx2DeviceGpu(ktx2DeviceCosts(bytes),support)).toBe(parseKtx2(bytes,support).gpu);
+    } finally {scope.dispose();restore();}
+  }
+});
+
+test('old receipted KTX2 products still parse the body when device metadata is absent', async () => {
+  const bytes = Uint8Array.from(readFileSync('test/fixtures/shard-assets/pixel.ktx2')), row = fixture(true,0,1,'loader-fixture',false,false,bytes);
+  delete row.index.ktx2Costs;row.wires.set('shard.json',encodeCanonicalJson(row.index));
+  const restore = installIndexReceipt(row.index), scope = new Scope('old-device-costs'), allocator = new ResidencyAllocator();
+  try {
+    const source = await readProductDescriptor(options(row.wires)), read = vi.fn(() => Promise.resolve(bytes));
+    await leaseClientLibrary(source,new Map(),{validatedSource:source,scope,allocator,owner:'home',read});
+    expect(read).toHaveBeenCalledTimes(1);expect(allocator.cost().input.libraries).toBe(parseKtx2(bytes).gpu);
+  } finally {scope.dispose();restore();}
+});
+
+
+test('device footprints preserve padded tiny mips even above RGBA size', () => {
+  expect(ktx2DeviceGpu({rgba:4,astc:16,bc7:16},{astc:true,bc7:false})).toBe(16);
+  expect(ktx2DeviceGpu({rgba:4,astc:4,bc7:16},{astc:true,bc7:true})).toBe(16);
+  expect(ktx2DeviceGpu({rgba:4,astc:16,bc7:16})).toBe(4);
 });

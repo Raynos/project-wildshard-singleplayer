@@ -31,3 +31,15 @@ export function parseKtx2(bytes: Uint8Array, support?: TextureTranscodeSupport):
   return { decoded: 0, gpu, triangles: 0, draws: 0 };
 }
 
+
+
+/** Build-verified device footprints for one exact KTX2 body; values retain the ordinary parser's padding/format rules. */
+export interface Ktx2DeviceCosts { readonly rgba: number; readonly astc: number; readonly bc7: number }
+export function ktx2DeviceCosts(bytes: Uint8Array): Ktx2DeviceCosts {
+  return {rgba:parseKtx2(bytes).gpu,astc:parseKtx2(bytes,{astc:true,bc7:false}).gpu,bc7:parseKtx2(bytes,{astc:false,bc7:true}).gpu};
+}
+/** Same capability choice as parseKtx2; unsupported formats retain their parser's full fallback cost. */
+export function ktx2DeviceGpu(costs: Ktx2DeviceCosts, support?: TextureTranscodeSupport): number {
+  // Padded tiny blocks can exceed RGBA; the fallback is not a minimum.
+  return support?.astc===true && costs.astc!==costs.rgba ? costs.astc : support?.bc7===true ? costs.bc7 : costs.rgba;
+}

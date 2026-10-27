@@ -1,3 +1,4 @@
+import { ktx2DeviceCosts } from '@wildshard/format/ktx2Cost';
 import { afterEach, expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Observe exact immutable keys for the owned build fixture only.
 import { channel } from 'node:diagnostics_channel';
@@ -315,4 +316,17 @@ test('small late bodies never ride a required control body pack', () => {
   expect(index.files.find(file => file.hash === early.file.hash)?.compressed).toBe(3);
   expect(index.files.find(file => file.hash === late.file.hash)?.compressed).toBe(3);
   expect(merged.shard.library).toEqual(expect.arrayContaining([early.file.hash,late.file.hash]));
+});
+
+
+test('the writer computes KTX2 device costs from exact bytes and rejects forged footprints', () => {
+  const bytes = Uint8Array.from(readFileSync('test/fixtures/shard-assets/pixel.ktx2')), blob = nameBlob('surface.ktx2','ktx2',bytes);
+  const merged = mergeProjectBlobs(source(),new Map(),[blob]), path = directory();
+  const index = writeOutputProduct(merged.shard,merged.assets,path,{namedFiles:merged.namedFiles});
+  expect(index.ktx2Costs?.[blob.file.hash]).toEqual(ktx2DeviceCosts(bytes));
+  expect(validateOutputProduct(path).index.ktx2Costs).toEqual(index.ktx2Costs);
+  if (index.ktx2Costs === undefined) throw new Error('Missing device metadata');
+  index.ktx2Costs[blob.file.hash] = {rgba:0,astc:0,bc7:0};
+  writeFileSync(resolve(path,'shard.json'),encodeCanonicalJson(index));
+  expect(() => validateOutputProduct(path)).toThrow('KTX2 device costs differ');
 });
