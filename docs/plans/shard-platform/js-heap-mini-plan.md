@@ -12,7 +12,7 @@ the other shards etc."*
 
 Subject: **runtime heap allocation** (bytes, objects, strings, typed arrays, garbage churn, GC) while the Template
 boots and idles. What code ships and loads per entry (bundles, lazy loading) is the sibling
-[js-payload](js-payload-mini-plan.md) plan; rows below that are really "load less code" defer to it. Retained-holder
+[js-payload](../../../project/archive/2026-10-27-js-payload.md) plan; rows below that are really "load less code" defer to it. Retained-holder
 census and WebKit floors: [core-memory](../../../project/archive/2026-10-27-core-memory.md) §7 and §8 (G682, G713).
 
 ## 1. The clean path: menu → Template, nothing else
@@ -220,7 +220,7 @@ page never creates. With Developer off the grid prefetch does not run (`GRID_GAT
    (census §8: 169 stores, readers "still unproven").
 8. **Code is the biggest retained JS bucket.** 14.2 MiB bytecode/metadata + 9.0 MiB source strings for 246
    modules (menu: 1.9 + 2.0). A grey-box Template evaluates water, grass, riding, hoverboard, animal sims, painterly
-   and `three.webgpu` modules. That is the [js-payload](js-payload-mini-plan.md) plan's subject; this plan only
+   and `three.webgpu` modules. That is the [js-payload](../../../project/archive/2026-10-27-js-payload.md) plan's subject; this plan only
    measures it.
 9. **The harness probe** (§1, 35.8 MiB of boot allocation whenever pins are set).
 
@@ -243,7 +243,7 @@ numbers; a row's lane re-measures before/after with G1.
 | H9 — open (2026-10-27 plan-end reading below) | Boot product-decode garbage: hash the canonical source bytes without rebuilding a sorted tree (`product.ts:415-418`), plain loops for terrain sample checks (`terrainTileBytes.ts:17`), no whole-tile JSON key in `budget.ts:105`, checked readers instead of valibot on hot decode paths **Landed source (sp-o2; measured below):** the receipt's sorted source is written directly in the order the sorted copy serialized (`format/validationReceipt.ts`, byte-identical to the old copy over authored JSON and edge keys: `test/validation-source-bytes.test.ts`); terrain sample checks and decodes are plain loops (no per-sample callback). Then (this commit) valibot on the hot decode path: a source-mapped boot profile (Chromium phone, `30d47df5b1`) put 8.3 MiB under valibot, 2.1 MiB of it the content-cache worker's per-message reply and command checks; those are now written out with each strict schema's exact verdict (`contentCacheProtocol.ts`, `test/content-cache-checks.test.ts` over ~800 shapes), the schemas naming any failure. Skin sample copies (1.5 MiB) stay: their detached tables are a tested contract. Left: the worst-cost cache key (`budget.ts`: a cheaper key either misses on `deviceMemoryCost`'s derived source or risks a wrong admission cost) | ~20 MiB boot alloc, fewer boot scavenges | Codex | M | clean boot allocation ≤ 100 MiB with H8; admission tests green |
 | H10 — done (2026-10-27 re-read, HEAD `54e6a0551d`: Template 2.378 MiB, Blender Template 2.654 MiB; was 15.440 / 20.265) | Boot shader text: fewer distinct programs at boot (precompile only drawn variants) and no per-program re-resolution of identical chunks. **`dfd66e2a39` (sp-o2):** three asks `onBeforeCompile` once per material, not per program, so materials sharing a program each re-resolved and re-filled the same text (12 of the 15.4 MiB were `finishShaderText`'s own passes); it now keeps each finished vertex / fragment text by raw source and counts and hands back the same strings (retired when a look replaces a chunk it read; bounded at 512). **Landed source (measured below): `e97b71b688` (sp-o2; generator input fix `75d9fa27aa`):** a patched material's text leaves its outermost `onBeforeCompile` runner with its includes resolved (each chunk once) and every light / clipping count filled in one pass (`render/shaderText.ts`), so three's 13 + 2 copying passes find nothing; byte-identical to three 0.186's passes over every ShaderLib shader (`test/shader-text.test.ts`). Before (clean Template, Chromium phone, `30d47df5b1`): 24.7 MiB (replaceLightNums 15.8, clipping 3.2, unroll 2.8, includes 2.3); 34 programs at boot, 17 bound in the first 3 s of play | ~15 MiB boot alloc | Opus (render) | M | three `resolveIncludes`/`replace` ≤ 10 MiB at boot; look unchanged |
 | H11 — open (2026-10-27 plan-end reading below) | Developer-on grid prefetch: validate products in the content-cache worker, not the page (`format/json.ts:25` + valibot) | 30 MiB menu boot alloc, 26 major GCs (Developer only) | open (source `ab8ca3f3e2`; plan-end numbers below) | M | Developer-on menu boot ≤ 15 MiB allocated; overlaps core-memory C1 |
-| — | Code and source strings of 246 modules (14.2 + 9.0 MiB) | defer | — | — | [js-payload](js-payload-mini-plan.md) rows (lazy-load what `_template` never runs); G1 reads the result |
+| — | Code and source strings of 246 modules (14.2 + 9.0 MiB) | defer | — | — | [js-payload](../../../project/archive/2026-10-27-js-payload.md) rows (lazy-load what `_template` never runs); G1 reads the result |
 
 Target after H1–H5 (D2): Template idle churn ≤ 0.5 MiB/s and ≤ 2 major GCs per minute on the clean path.
 

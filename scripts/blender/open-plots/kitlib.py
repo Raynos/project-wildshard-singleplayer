@@ -1,4 +1,4 @@
-"""kitlib.py: the open-plots kit's shared Blender helpers (RM4, night-market-remaster-mini-plan.md).
+"""kitlib.py: the open-plots kit's shared Blender helpers (RM4, 2026-10-27-night-market-remaster.md).
 
 A kit piece is built from bmesh primitives whose faces carry a material named `<Role>.<slot>`: Role is `Kit` (lit) or
 `Glow` (emissive), slot a palette key (`wood`, `stone`, `gold`...). Each piece's ambient occlusion is ray-traced (BVH) into

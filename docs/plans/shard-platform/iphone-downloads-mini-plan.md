@@ -10,7 +10,7 @@ live `0b1ca136e`); the historical pre-build audit follows. The current plan-end 
 Jake, 2026-10-24 ~22:50 Cancun (E504): *"Build a mini plan to optimize downloading for iPhone."*
 
 Owned elsewhere and only referenced here: L18, H3, U1–U4, L10 ([loading-speed](loading-speed-mini-plan.md),
-[loading](loading-mini-plan.md)), J1–J10 ([js-payload](js-payload-mini-plan.md), G727–G730), T3/T4/T8
+[loading](loading-mini-plan.md)), J1–J10 ([js-payload](../../../project/archive/2026-10-27-js-payload.md), G727–G730), T3/T4/T8
 ([tile-streaming](tile-streaming-mini-plan.md)), the G412 allowances ([download-diet](download-diet.md)).
 
 ## How it was measured

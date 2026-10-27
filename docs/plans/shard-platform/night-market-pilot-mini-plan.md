@@ -4,7 +4,7 @@
 Market, wildshard-v writes a new plan with him for the other 18 plots, which replaces R1–R3 (and remaster-open-plots
 RP2–RP4). The plan stays open until then.
 
-> **Remaster (E503, draft for Jake):** [night-market-remaster](night-market-remaster-mini-plan.md): the Nine dome method (10 domes, rows RM0–RM14) after Jake's 10-24 "trash fire" playtest.
+> **Remaster (E503, draft for Jake):** [night-market-remaster](../../../project/archive/2026-10-27-night-market-remaster.md): the Nine dome method (10 domes, rows RM0–RM14) after Jake's 10-24 "trash fire" playtest.
 
 Jake, 2026-10-23: *"we need to make a mini plan of how to build it"*. Read at HEAD 3af2694878. Mockups:
 `art/grid/round-45-night-market-billboards/` (m1 100 m over the neighbour, m2 road entry, m3 top-down 630 m, m4 plaza);

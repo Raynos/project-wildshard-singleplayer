@@ -1,4 +1,4 @@
-"""kit.py <out-dir>: the open-plots kit models (RM4, docs/plans/shard-platform/night-market-remaster-mini-plan.md).
+"""kit.py <out-dir>: the open-plots kit models (RM4, project/archive/2026-10-27-night-market-remaster.md).
 
 Each family is one GLB of three variants (kitlib.py has the format). Targets: art/grid/round-63-night-market-domes/
 (A2 and D2: stone post lanterns, round paper lanterns, red banners). Run: bash scripts/blender/build.sh open-plots/kit.

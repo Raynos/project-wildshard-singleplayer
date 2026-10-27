@@ -1,6 +1,6 @@
 # Night Market kit models · RM4.9 family boards (2026-10-26, sp-o1)
 
-One labelled iPhone-portrait board per kit family (night-market-remaster-mini-plan.md RM4): the mockup crop it was built
+One labelled iPhone-portrait board per kit family (2026-10-27-night-market-remaster.md RM4): the mockup crop it was built
 from over four angles of its three variants (FRONT · THREE-QUARTER · BACK · ABOVE). The models are Blender scripts
 (`scripts/blender/open-plots/kit.py`, target `open-plots/kit`), rendered here in their default slot colours at dusk; in
 the game the layout's palette retints them and the kit material draws their trims (stone courses, roof tiles, timber,
