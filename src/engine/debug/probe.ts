@@ -201,39 +201,73 @@ function authoredQuestFlags(world: ProbeWorld): string[] {
   return Array.isArray(flags) ? flags.filter((flag): flag is string => typeof flag === 'string').sort() : [];
 }
 
-/** Synchronous SHA-256: boot is captured in the ready task, without an async digest barrier. */
-export function programHash(input: string): string {
+/** SHA-256's round constants and initial state (fractions of the first 64 primes' cube and square roots) */
+const SHA_K = new Uint32Array(64), SHA_H = new Uint32Array(8);
+{
   const primes: number[] = [];
   for (let p = 2; primes.length < 64; p++) if (!primes.some((d) => d <= Math.sqrt(p) && p % d === 0)) primes.push(p);
   const fraction = (n: number): number => ((n - Math.floor(n)) * 4294967296) >>> 0;
-  const k = primes.map((p) => fraction(Math.cbrt(p)));
-  const h = primes.slice(0, 8).map((p) => fraction(Math.sqrt(p)));
-  const raw = new TextEncoder().encode(input), length = Math.ceil((raw.length + 9) / 64) * 64;
-  const bytes = new Uint8Array(length); bytes.set(raw); bytes[raw.length] = 128;
-  const view = new DataView(bytes.buffer); view.setUint32(length - 8, Math.floor(raw.length / 536870912)); view.setUint32(length - 4, raw.length * 8);
-  const r = (v: number, n: number): number => (v >>> n) | (v << (32 - n));
-  for (let offset = 0; offset < length; offset += 64) {
-    const w = new Uint32Array(64);
-    for (let i = 0; i < 16; i++) w[i] = view.getUint32(offset + i * 4);
-    for (let i = 16; i < 64; i++) { const a = w[i - 15] ?? 0, b = w[i - 2] ?? 0; w[i] = ((w[i - 16] ?? 0) + (r(a, 7) ^ r(a, 18) ^ (a >>> 3)) + (w[i - 7] ?? 0) + (r(b, 17) ^ r(b, 19) ^ (b >>> 10))) >>> 0; }
-    let [a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0, j = 0] = h;
+  primes.forEach((p, i) => { SHA_K[i] = fraction(Math.cbrt(p)); if (i < 8) SHA_H[i] = fraction(Math.sqrt(p)); });
+}
+const rotr = (v: number, n: number): number => (v >>> n) | (v << (32 - n));
+/**
+ * Synchronous SHA-256, streamed: boot is captured in the ready task, without an async digest barrier. js-heap H8: one
+ * 64-byte block and one 64-word schedule are reused for the whole input (a harness boot hashed every linked shader through
+ * a fresh word array per block and three whole copies of the text: 35.8 MiB per boot); the digest is unchanged.
+ */
+class Sha256 {
+  private readonly state = SHA_H.slice();
+  private readonly block = new Uint8Array(64);
+  private readonly view = new DataView(this.block.buffer);
+  private readonly w = new Uint32Array(64);
+  private readonly encoder = new TextEncoder();
+  private fill = 0;
+  private length = 0;
+  update(text: string): this {
+    const bytes = this.encoder.encode(text);
+    for (let at = 0; at < bytes.length;) {
+      const take = Math.min(64 - this.fill, bytes.length - at);
+      this.block.set(bytes.subarray(at, at + take), this.fill);
+      this.fill += take; at += take;
+      if (this.fill === 64) { this.compress(); this.fill = 0; }
+    }
+    this.length += bytes.length;
+    return this;
+  }
+  digest(): string {
+    const length = this.length;
+    this.block[this.fill++] = 128;
+    if (this.fill > 56) { this.block.fill(0, this.fill); this.compress(); this.fill = 0; }
+    this.block.fill(0, this.fill);
+    this.view.setUint32(56, Math.floor(length / 536870912)); this.view.setUint32(60, length * 8);
+    this.compress();
+    return [...this.state].map((v) => v.toString(16).padStart(8, '0')).join('');
+  }
+  private compress(): void {
+    const { w, view, state } = this;
+    for (let i = 0; i < 16; i++) w[i] = view.getUint32(i * 4);
+    for (let i = 16; i < 64; i++) { const a = w[i - 15] ?? 0, b = w[i - 2] ?? 0; w[i] = ((w[i - 16] ?? 0) + (rotr(a, 7) ^ rotr(a, 18) ^ (a >>> 3)) + (w[i - 7] ?? 0) + (rotr(b, 17) ^ rotr(b, 19) ^ (b >>> 10))) >>> 0; }
+    let a = state[0] ?? 0, b = state[1] ?? 0, c = state[2] ?? 0, d = state[3] ?? 0, e = state[4] ?? 0, f = state[5] ?? 0, g = state[6] ?? 0, j = state[7] ?? 0;
     for (let i = 0; i < 64; i++) {
-      const t = (j + (r(e, 6) ^ r(e, 11) ^ r(e, 25)) + ((e & f) ^ (~e & g)) + (k[i] ?? 0) + (w[i] ?? 0)) >>> 0;
-      const u = ((r(a, 2) ^ r(a, 13) ^ r(a, 22)) + ((a & b) ^ (a & c) ^ (b & c))) >>> 0;
+      const t = (j + (rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25)) + ((e & f) ^ (~e & g)) + (SHA_K[i] ?? 0) + (w[i] ?? 0)) >>> 0;
+      const u = ((rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22)) + ((a & b) ^ (a & c) ^ (b & c))) >>> 0;
       j = g; g = f; f = e; e = (d + t) >>> 0; d = c; c = b; b = a; a = (t + u) >>> 0;
     }
-    [a, b, c, d, e, f, g, j].forEach((v, i) => { h[i] = ((h[i] ?? 0) + v) >>> 0; });
+    [a, b, c, d, e, f, g, j].forEach((v, i) => { state[i] = ((state[i] ?? 0) + v) >>> 0; });
   }
-  return h.map((v) => v.toString(16).padStart(8, '0')).join('');
 }
-/** Cache keys contain JavaScript callback source, which changes under bundling; linked GLSL is the stable input. */
+export function programHash(input: string): string { return new Sha256().update(input).digest(); }
+/** Cache keys contain JavaScript callback source, which changes under bundling; linked GLSL is the stable input. The
+ *  sorted sources are hashed as their newline join, one at a time (no joined copy). */
 export function compiledProgramHash<Shader>(programs: readonly { vertexShader: Shader; fragmentShader: Shader }[], read: (shader: Shader) => string | null): string {
   const sources = programs.map((program) => {
     const vertex = read(program.vertexShader), fragment = read(program.fragmentShader);
     if (vertex === null || fragment === null) throw new Error('Compiled program source unavailable');
     return JSON.stringify([vertex, fragment]);
   }).sort();
-  return programHash(sources.join('\n'));
+  const sha = new Sha256();
+  sources.forEach((source, i) => { if (i > 0) sha.update('\n'); sha.update(source); });
+  return sha.digest();
 }
 
 function fingerprint(world: ProbeWorld, deps: ProbeDeps, saves: Saves): Fingerprint {
