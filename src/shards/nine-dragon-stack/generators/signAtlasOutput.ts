@@ -1,7 +1,6 @@
 import * as v from 'valibot';
 import { SignAtlasSchema, parseSignView } from './sections';
-// oxlint-disable-next-line import/no-nodejs-modules -- Author-only lossless KTX2 encoding, matching the SDK texture baker.
-import { zstdCompressSync } from 'node:zlib';
+import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
 import { unzlibSync } from 'fflate';
 import { NeonText } from './neonGeometry';
 import rawSignRows from '../data/signView.json' with { type: 'json' };
@@ -46,7 +45,7 @@ function textureBlob(tier: string, name: 'mono' | 'colour', row: { packed: strin
 function glyphTexture(tier: string, field: { size: number; packed: readonly string[] }, read: ReadSignBytes): NamedBlob {
   const pixels = new Uint8Array(field.size * field.size * 2);
   field.packed.forEach((part, i) => pixels.set(unzlibSync(read(part)), i * 2_097_152));
-  const packed = zstdCompressSync(pixels), offset = 168, data = new Uint8Array(offset + packed.length), view = new DataView(data.buffer);
+  const packed = encodeBuildBytes(pixels, 'zstd', 3), offset = 168, data = new Uint8Array(offset + packed.length), view = new DataView(data.buffer);
   data.set([171, 75, 84, 88, 32, 50, 48, 187, 13, 10, 26, 10]);
   [16, 1, field.size, field.size, 0, 0, 1, 1, 2, 104, 60].forEach((n, i) => view.setUint32(12 + i * 4, n, true));
   view.setBigUint64(80, BigInt(offset), true); view.setBigUint64(88, BigInt(packed.length), true); view.setBigUint64(96, BigInt(pixels.length), true);
