@@ -83,6 +83,7 @@ test('a real emitted image and admitted source produce only the selected home ba
     expect(homeClientModuleGroups(root, 'home')).toContain('models.gltf');
     const outDir = await buildWithBootModules(root, { assetsInlineLimit: 0 }), bundle = writtenBundle(outDir, root);
     const rows = homeExtraFiles(root, 'home', bundle, 0), assets = Object.entries(bundle).filter(([, file]) => file.type === 'asset');
+    if (rows === null) throw new Error('Missing declared home files');
     const image = assets.find(([, file]) => file.originalFileNames?.includes('src/card.svg'));
     if (image?.[1].source === undefined) throw new Error('Missing emitted image');
     const preview = assets.find(([, file]) => file.originalFileNames?.includes('src/preview.svg'));
@@ -97,6 +98,21 @@ test('a real emitted image and admitted source produce only the selected home ba
     expect(html).toContain(`/${metadataName}`);
     expect(html).not.toContain('/assets/model.glb');
     expect(html).toContain(createHash('sha256').update(metadata).digest('hex'));
+    const cataloguePath = resolve(root, 'src/game/data/pickupCatalogue.json');
+    const originalCatalogue = readFileSync(cataloguePath, 'utf8');
+    const originalRows: unknown = JSON.parse(originalCatalogue);
+    if (typeof originalRows !== 'object' || originalRows === null) throw new Error('Missing pickup fixture');
+    const bankBytes = readFileSync(resolve(root, 'public/assets/pickup.bin'));
+    writeFileSync(resolve(root, 'public/assets/pickup-bank.bin'), bankBytes);
+    try {
+      writeFileSync(cataloguePath, JSON.stringify({ ...originalRows, banks: [{ file: '/assets/pickup-bank.bin', bytes: bankBytes.length,
+        members: [{ file: '/assets/pickup.bin', offset: 0, bytes: bankBytes.length, sha256: createHash('sha256').update(bankBytes).digest('hex') }] }] }));
+      const banked = homeExtraFiles(root, 'home', bundle, 0);
+      expect(banked).toEqual(rows.map(([file, bytes]) => [file === '/assets/pickup.bin' ? '/assets/pickup-bank.bin' : file, bytes])
+        .sort(([left], [right]) => String(left).localeCompare(String(right))));
+      expect(banked?.filter(([file]) => file === '/assets/pickup-bank.bin')).toHaveLength(1);
+      expect(banked).not.toContainEqual(['/assets/pickup.bin', 17]);
+    } finally { writeFileSync(cataloguePath, originalCatalogue); }
     const withoutRig = { ...index, files: index.files.filter(file => file.hash !== rigHash) };
     expect(productDownloadTotal(index, 100)[1] - productDownloadTotal(withoutRig, 100)[1]).toBe(rig.length);
     writeFileSync(resolve(root, 'out/home/shard.json'), JSON.stringify(withoutRig));
