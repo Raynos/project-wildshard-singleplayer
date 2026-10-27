@@ -44,7 +44,10 @@ test('moving the output entry preserves the complete original physics declaratio
   const baked = skyPhysics(), originalWire = new TextEncoder().encode(`${JSON.stringify(baked)}\n`);
   expect(originalWire.byteLength).toBe(277_965);
   expect(hashImmutableBytes(originalWire)).toBe('228e72f839fc8f892c34866cbb89bb3e51b0e7a15c9f46c7dfa83ea9bf36fa02');
-  expect(value).toMatchObject({ baked });
+  // The predecessor was a JSON handoff: native quaternion -0 stays native,
+  // while its original wire represents that component as +0. Compare wires.
+  const originalBaked: unknown = JSON.parse(new TextDecoder().decode(originalWire));
+  expect(value).toMatchObject({ baked: originalBaked });
 });
 
 test('public boot omits all owned geometry files across both tiers and texture policies', () => {

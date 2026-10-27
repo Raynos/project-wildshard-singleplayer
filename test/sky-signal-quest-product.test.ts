@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Declare the source program's real, bounded model input root.
 import { resolve } from 'node:path';
+import { decisionLegacyLines } from '../scripts/decision-legacy-lines.mjs';
 import { readProjectAssets } from '../src/sdk/project';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { parsePersistedQuestPage } from '../src/sdk/quests';
@@ -53,8 +54,11 @@ const originals = {
 
 for (const slug of ['far-reach', 'sunscar-dunes'] as const) {
   test(`${slug} compiles identical quest, NPC and director continuations`, async () => {
+    const lines = decisionLegacyLines(resolve('.'), slug);
+    if (lines === undefined) throw new Error(`Missing original decision budget for ${slug}`);
     const loaded = await readProjectAssets(`src/shards/${slug}`, undefined,
-      { folder: slug, imageRoots: [{ prefix: '/assets/', directory: resolve('public/assets') }] });
+      { folder: slug, imageRoots: [{ prefix: '/assets/', directory: resolve('public/assets') }] },
+      { decisionLegacyLines: lines });
     for (const section of ['quests', 'questHost', 'questNpcs', 'directors'] as const) {
       const value = section === 'questHost' ? questPolicy(loaded.shard.questHost) : loaded.shard[section];
       const serialized = section === 'questHost' ? encodeCanonicalJson(value) : JSON.stringify(value);

@@ -82,8 +82,11 @@ test('the static reader derives all original scene bytes from exactly eight expl
   const source = skyStaticScenes(placements, skyFixedWorldValues(mill.recipe));
   const admitted = readSkyStaticSceneEnvelope(bytes);
   for (const mode of ['standalone', 'cell'] as const) {
-    const original = source[mode].fixed.colliders;
-    expect(admitted[mode].fixed.colliders).toEqual(original.map(({ id, colliders }) => ({ id, colliders })));
+    // Intake reads the exact hashed JSON wire, not the pre-serialization
+    // quaternion objects (whose signed zero is deliberately left unchanged).
+    const originalWire = JSON.stringify(source[mode].fixed.colliders.map(({ id, colliders }) => ({ id, colliders })));
+    const originalContacts: unknown = JSON.parse(originalWire);
+    expect(admitted[mode].fixed.colliders).toEqual(originalContacts);
   }
   expect(skyStaticScenes({ ...placements, half: 123 }, skyFixedWorldValues(mill.recipe)).half).toBe(123);
 });
