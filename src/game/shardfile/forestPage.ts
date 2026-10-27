@@ -12,7 +12,7 @@ import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import { defineModel, sharedModelContext, type ModelDef, type Placement } from '@wildshard/engine/models/model';
 import { placeSliced } from '@wildshard/engine/models/place';
-import { treeSetModel, type TreeSetParams } from '../models/treeSet';
+import { productTreePool, treeSetModel, type TreeSetParams } from '../models/treeSet';
 import { farStandIn } from './farStandIn';
 import { ForestPageSchema, LivingPageInputSchema, LivingPageSitesSchema, type ForestPageRows } from '@wildshard/format/forestPage';
 import { ForestGround } from '../looks/forestGround';
@@ -170,7 +170,7 @@ function groundModel(kind: ForestPageRows['ground']['kinds'][number], under: For
  *  whose factory is not the declared set (a build without its files) draws itself and collides as its own capsules. */
 export async function placeForestPageModels(ctx: ShardContext, id: string): Promise<void> {
   const page = forestPage(ctx.scope, id), due = slicer(page.rows.sliceMs).due, h = forestFieldModels(ctx, id), { forest, registry } = h, under = page.under;
-  const models = sharedModelContext(h.sky, h), trees = treeSetModel(ctx.product.section('world/trees'));
+  const models = sharedModelContext(h.sky, h), trees = treeSetModel(productTreePool(ctx.product, ctx.product.section('world/trees')));
   const variants = trees.model.variants; if (variants === undefined) throw new Error('Forest model requires its variants');
   // tile streaming P3/P4: the trees and the floor cover keep to the tiles around the viewer (the trees' follower moves the ring)
   const radius = tileRing(), residency = { resident: (_x: number, _z: number): boolean => true };

@@ -4292,39 +4292,6 @@
       "platform": "portable"
     },
     {
-      "id": "nalati-spruce",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-spruce.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-spruce.mjs"
-      ],
-      "inputRoots": [
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/format",
-        "src/shards/nalati-grasslands/generators/spruceGeometry.ts",
-        "src/shards/nalati-grasslands/generators/bake-spruce.mjs",
-        "scripts/bake-loader.mjs",
-        "scripts/bake-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
-      ],
-      "outputs": [
-        "public/assets/nalati/baked/spruce-cc0350ba0ebca44c42e7fdad9afecd116e0ede9e676e0e1206d77fb7b37edcd0.glb",
-        "src/shards/nalati-grasslands/data/spruceRest.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "public/assets/nalati/baked/spruce-cc0350ba0ebca44c42e7fdad9afecd116e0ede9e676e0e1206d77fb7b37edcd0.glb",
-        "src/shards/nalati-grasslands/data/spruceRest.generated.json"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "sky-view-data",
       "shard": "far-reach",
       "entry": "src/shards/far-reach/generators/viewData.ts",
@@ -5208,7 +5175,6 @@
         "public/assets/nalati/models/saddle.glb",
         "public/assets/nalati/models/snow-lotus.glb",
         "public/assets/nalati/models/watchtower.glb",
-        "public/assets/nalati/baked/spruce-cc0350ba0ebca44c42e7fdad9afecd116e0ede9e676e0e1206d77fb7b37edcd0.glb",
         "scripts/bake-data-maps.mjs",
         "scripts/bake-input-hashes.mjs",
         "scripts/bake-loader.mjs",
@@ -5397,7 +5363,6 @@
         "src/shards/nalati-grasslands/data/modelMetrics.json",
         "src/shards/nalati-grasslands/data/armsStyle.json",
         "src/shards/nalati-grasslands/data/discovery.json",
-        "src/shards/nalati-grasslands/data/spruceRest.generated.json",
         "src/shards/nalati-grasslands/generators",
         "src/shards/nalati-grasslands/generators/actorProjection.ts",
         "src/shards/nalati-grasslands/generators/ambientGeometry.ts",
@@ -5430,7 +5395,6 @@
         "src/shards/nalati-grasslands/generators/sabrePool.ts",
         "src/shards/nalati-grasslands/generators/bake-sign-atlases.mjs",
         "src/shards/nalati-grasslands/generators/bake-spear.mjs",
-        "src/shards/nalati-grasslands/generators/bake-spruce.mjs",
         "src/shards/nalati-grasslands/generators/bake-storm-titan.mjs",
         "src/shards/nalati-grasslands/generators/bake-taming-poses.mjs",
         "src/shards/nalati-grasslands/generators/bake-titan-fire-view.mjs",
@@ -6085,7 +6049,8 @@
         "scripts/manifest-spawns.mjs",
         "src/shards/nalati-grasslands/boot/declaration.generated.ts",
         "scripts/bake/nativeWorld.mjs",
-        "src/shards/nalati-grasslands/generators/cragRockProgram.ts"
+        "src/shards/nalati-grasslands/generators/cragRockProgram.ts",
+        "src/shards/nalati-grasslands/generators/sprucePool.ts"
       ],
       "outputs": [
         "public/assets/nalati-grasslands/map/top.webp",

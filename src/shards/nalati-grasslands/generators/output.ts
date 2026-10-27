@@ -100,6 +100,7 @@ import { peopleRows as peopleFrames } from './peopleRows.mjs';
 import { nalatiPeopleBlobs } from './peopleBake';
 import { nalatiTerrainSceneProgram } from './terrainSceneProgram';
 import { nalatiCragRockProgram } from './cragRockProgram';
+import { nalatiSprucePool, SPRUCE_POOL_NAME } from './sprucePool';
 import { ChapterViewSchema } from '@wildshard/format/questPageComposition';
 import namePanel from '../data/namePanel.json' with {type:'json'};
 import { parsePanelDefinition } from '@wildshard/format/panelTemplate';
@@ -328,6 +329,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
   const cragRows = await nalatiCragRockProgram(ctx), crags = await nalatiBakeBlob(ctx, 'crags', dressingCragDecoded(cragRows)), people = await nalatiPeopleBlobs(ctx);
   // GR6: the slab and the water mesh ship; the painted ground draws from its tiles, so its whole mesh feeds only the map
   const terrainDraws = (await nalatiTerrainSceneProgram(ctx)).filter(blob => blob.file.name !== 'world/terrain/ground.glb');
+  terrainDraws.push(nameBlob(SPRUCE_POOL_NAME, 'glb', nalatiSprucePool()));
   const dressingFiles = await nalatiDressingProgram(ctx), dressingBytes = dressingFiles.get('dressing.bin');
   if (dressingBytes === undefined) throw new Error('Missing owned native dressing binary');
   const dressingBlob = nameBlob('world/dressing.bin', 'bin', dressingBytes, { decoded: costs.dressing.bytes });

@@ -13,6 +13,7 @@ import { nativeNalatiDressingPlacements } from './nativeDressingPlacements.mjs';
 import { nalatiPoiPaintFromInputs, POI_PAINT_INPUTS } from './poiPaintProgram.ts';
 import { nalatiGeographySources, nalatiGeographyRows } from './geographySource.ts';
 import { nalatiCragRock } from './cragRockProgram.ts';
+import { nalatiSprucePool, SPRUCE_REST } from './sprucePool.ts';
 
 // GR6: a pure producer. The caller supplies every input as bytes by its repository path (`source(path)`); no file, script,
 // format or engine service is read here.
@@ -166,10 +167,10 @@ export async function nalatiMapAssembly(source) {
     ...layout.BOWL_TRACKS, layout.EAGLE_TRAIL, layout.CAVE_TRAIL, layout.ARGYMAQ_TRAIL];
   const { grid: _grid, ...samplers } = terrain;
   const field = { ...nativeTerrainQueries(native.seed, { trails, cabinSites: [] }, () => geography.river.level), ...samplers, pondMask: channel('pond') };
-  const spruce = read('data/spruceRest.generated.json');
+  const spruce = SPRUCE_REST;
   const trees = bakeForestPlacements({ ...field, seed: native.seed, treeCount: 1400, forest: { ...discovery.forest, mask: channel('forest') } },
     spruce.variants.map(row => ({ trunkRadius: row.trunk, height: row.height }))).trees;
-  const shapes = await mapPool(source(`public${spruce.geometry}`));
+  const shapes = await mapPool(nalatiSprucePool());
   for (const i of spruce.variants.keys()) {
     const matrices = trees.filter(tree => tree.variant === i).map(tree => pose({ ...tree, yaw: tree.rot }));
     for (const [part, key] of [['trunk', 'trunk'], ['hi', 'cardsHi'], ['twigs', 'twigs']]) {
