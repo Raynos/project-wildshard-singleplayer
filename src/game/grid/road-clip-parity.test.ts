@@ -24,3 +24,37 @@ test('road clipping preserves edge vertices, interpolated UVs and exact LOD byte
   const hash = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
   expect({ hash, counts }).toEqual({ hash: '031db7363e523059eae3c0b34803ce11cb29fc7b4500641427f2c4e2f9fb3d0f', counts: { clipped: 489, source: 2892, vertices: 243 } });
 });
+
+
+test('road tiles share world-grid edges and the exact allocation arithmetic', () => {
+  const geometry = new BufferGeometry();
+  const points = [-125, 0, -125, 125, 0, -125, 125, 0, 125, -125, 0, 125];
+  geometry.setAttribute('position', new BufferAttribute(Float32Array.from(points), 3));
+  geometry.setAttribute('uv', new BufferAttribute(Float32Array.from([-125, -125, 125, -125, 125, 125, -125, 125]), 2));
+  geometry.setIndex([0, 1, 2, 0, 2, 3]);
+  const source = { vertices: 4, position: (k: number): number => points[k] ?? 0, indices: [0, 1, 2, 0, 2, 3] };
+  const counts = finishRoadSteps(cullCountsSteps([source], 562.5, ROAD_LOD, 62.5));
+  finishRoadSteps(clipToBinsSteps(geometry, 562.5, 62.5));
+  const plan = finishRoadSteps(cullPlanSteps(geometry, 562.5, ROAD_LOD, 62.5));
+  expect(plan.bins).toHaveLength(16);
+  expect(geometry.getAttribute('position').count).toBe(counts.clipped);
+  expect(plan.source.length).toBe(counts.source);
+  const position = geometry.getAttribute('position'), uv = geometry.getAttribute('uv');
+  for (const bin of plan.bins) {
+    const tile = bin.tile;
+    if (tile === undefined) throw new Error('Road tile has no lattice identity');
+    expect(tile.x).toBeGreaterThanOrEqual(-2); expect(tile.x).toBeLessThan(2);
+    expect(tile.z).toBeGreaterThanOrEqual(-2); expect(tile.z).toBeLessThan(2);
+    for (let k = bin.start; k < bin.start + bin.count; k++) {
+      const vertex = plan.source[k];
+      if (vertex === undefined) throw new Error('Road tile index is missing');
+      const x = position.getX(vertex), z = position.getZ(vertex);
+      expect(x).toBeGreaterThanOrEqual(tile.x * 62.5 - 1e-4);
+      expect(x).toBeLessThanOrEqual((tile.x + 1) * 62.5 + 1e-4);
+      expect(z).toBeGreaterThanOrEqual(tile.z * 62.5 - 1e-4);
+      expect(z).toBeLessThanOrEqual((tile.z + 1) * 62.5 + 1e-4);
+      expect(uv.getX(vertex)).toBeCloseTo(x); expect(uv.getY(vertex)).toBeCloseTo(z);
+    }
+  }
+  geometry.dispose();
+});

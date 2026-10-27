@@ -3,7 +3,7 @@
  * any view, shadow draws included, while the collider keeps full resolution.
  *
  * Every road material is ONE mesh for the whole platform, so a view costs one draw per material whatever it sees. Its index
- * buffer is sorted into spatial bins (squares of half a pitch, centred on the junctions and the segment middles), each with
+ * buffer is sorted into spatial bins (squares of the declared lattice; legacy callers use half a pitch), each with
  * a bounding sphere over its own triangles. Before the mesh draws, the bins inside the camera's frustum are copied into the
  * front of a dynamic index buffer and the draw range shrinks to them: one ordinary indexed draw of only what the view can
  * see. No multi-draw and no BatchedMesh (E271 / E272): it is a plain `drawElements` with an index range uploaded with
@@ -23,7 +23,7 @@ export function finishRoadSteps<T>(steps: Generator<void, T>): T {
 }
 
 /** One bin: its sphere (in the mesh's local frame) and its run of the sorted source index. */
-interface CullBin { readonly sphere: Sphere; readonly start: number; readonly count: number; readonly levels: readonly { readonly start: number; readonly count: number }[] }
+interface CullBin { readonly sphere: Sphere; readonly start: number; readonly count: number; readonly levels: readonly { readonly start: number; readonly count: number }[]; readonly tile?: { readonly x: number; readonly z: number } }
 /** A culled mesh's bins and its full, bin-sorted index (kept on the CPU to rebuild the drawn range from); past each LOD
  *  tier's distance a bin draws that tier's coarse run. */
 export interface CullPlan { readonly source: Uint32Array; readonly bins: readonly CullBin[]; readonly lod: readonly number[] }
@@ -33,12 +33,18 @@ export interface CullLod { readonly distance: number; readonly cell: number }
 export const ROAD_LOD: readonly CullLod[] = [{ distance: 150, cell: 4 }, { distance: 450, cell: 12 }];
 
 const BIN_DIVISOR = 2;
+/** Fixed road tiles use world-grid edges; omitted size preserves the old centred-bin arithmetic. */
+function binGrid(pitch: number, tileSize?: number): { size: number; offset: number } {
+  const size = tileSize ?? pitch / BIN_DIVISOR;
+  if (!Number.isFinite(size) || size <= 0) throw new RangeError('Invalid road tile size');
+  return { size, offset: tileSize === undefined ? 0.5 : 0 };
+}
 /** A cell edge's distance from its cell centre (the seam's outer row meets the shard's own ground there). */
 const CELL_EDGE = CHUNK_HALF;
 
 
 /** The same attribute interpolation and index order, yielding between bounded triangle/copy batches. */
-export function* clipToBinsSteps(geometry: BufferGeometry, pitch: number): Generator<void> {
+export function* clipToBinsSteps(geometry: BufferGeometry, pitch: number, tileSize?: number): Generator<void> {
   const index = geometry.getIndex(), names = Object.keys(geometry.attributes);
   if (index === null || index.count === 0) return;
   const attrs = names.map((name) => geometry.getAttribute(name)), sizes = attrs.map((a) => a.itemSize), stride = sizes.reduce((a, b) => a + b, 0);
@@ -49,7 +55,7 @@ export function* clipToBinsSteps(geometry: BufferGeometry, pitch: number): Gener
     return v;
   };
   const at = names.indexOf('position'), px = at === -1 ? 0 : sizes.slice(0, at).reduce((a, b) => a + b, 0);
-  const { extra, out } = yield* clipCore(index.count / 3, (i) => index.getX(i), count, stride, px, read, (n, axis) => position.array[n * position.itemSize + axis] ?? 0, pitch);
+  const { extra, out } = yield* clipCore(index.count / 3, (i) => index.getX(i), count, stride, px, read, (n, axis) => position.array[n * position.itemSize + axis] ?? 0, pitch, tileSize);
   if (extra.length === 0) return;
   const total = count + extra.length / stride;
   let o = 0;
@@ -68,8 +74,8 @@ export function* clipToBinsSteps(geometry: BufferGeometry, pitch: number): Gener
  * x then z, a new vertex interpolating all `stride` values linearly (position at `px`). A plan that reads only positions
  * gets exactly the builder's positions, new vertices and triangles: every value interpolates on its own.
  */
-function* clipCore(triangles: number, indexAt: (i: number) => number, count: number, stride: number, px: number, read: (n: number) => Float64Array, coordinate: (n: number, axis: number) => number, pitch: number): Generator<void, { extra: number[]; out: number[] }> {
-  const s = pitch / BIN_DIVISOR, extra: number[] = [], out: number[] = [];
+function* clipCore(triangles: number, indexAt: (i: number) => number, count: number, stride: number, px: number, read: (n: number) => Float64Array, coordinate: (n: number, axis: number) => number, pitch: number, tileSize?: number): Generator<void, { extra: number[]; out: number[] }> {
+  const { size: s, offset } = binGrid(pitch, tileSize), extra: number[] = [], out: number[] = [];
   const add = (v: Float64Array): number => { for (const x of v) extra.push(x); return count + extra.length / stride - 1; };
   interface V { n: number; v: Float64Array }
   /** Split a convex polygon by the line axis = c into its below and above parts (new vertices interpolated). */
@@ -92,8 +98,8 @@ function* clipCore(triangles: number, indexAt: (i: number) => number, count: num
     const a = indexAt(t * 3), b = indexAt(t * 3 + 1), third = indexAt(t * 3 + 2);
     // Most triangles already fit one bin. Keep their indices without allocating
     // polygons or copying attributes; only an interior cut needs interpolation.
-    if (!crossesBin(coordinate(a, 0), coordinate(b, 0), coordinate(third, 0), s)
-      && !crossesBin(coordinate(a, 2), coordinate(b, 2), coordinate(third, 2), s)) {
+    if (!crossesBin(coordinate(a, 0), coordinate(b, 0), coordinate(third, 0), s, offset)
+      && !crossesBin(coordinate(a, 2), coordinate(b, 2), coordinate(third, 2), s, offset)) {
       out.push(a, b, third); continue;
     }
     const tri: V[] = [a, b, third].map((n) => ({ n, v: read(n) }));
@@ -102,8 +108,8 @@ function* clipCore(triangles: number, indexAt: (i: number) => number, count: num
       const next: V[][] = [];
       for (let poly of polys) {
         const values = poly.map((p) => p.v[px + axis] ?? 0), lo = Math.min(...values), hi = Math.max(...values);
-        for (let k = Math.ceil(lo / s - 0.5); (k + 0.5) * s < hi; k++) {
-          const c = (k + 0.5) * s; if (c <= lo) continue;
+        for (let k = Math.ceil(lo / s - offset); (k + offset) * s < hi; k++) {
+          const c = (k + offset) * s; if (c <= lo) continue;
           const [below, above] = split(poly, axis, c);
           if (below.length >= 3) next.push(below);
           poly = above;
@@ -119,33 +125,34 @@ function* clipCore(triangles: number, indexAt: (i: number) => number, count: num
 
 
 /** Match clipCore's strict interior-line test, including vertices on bin edges. */
-function crossesBin(a: number, b: number, c: number, size: number): boolean {
+function crossesBin(a: number, b: number, c: number, size: number, offset: number): boolean {
   const lo = Math.min(a, b, c), hi = Math.max(a, b, c);
-  const k = Math.ceil(lo / size - 0.5), edge = (k + 0.5) * size;
-  return (edge > lo ? edge : (k + 1.5) * size) < hi;
+  const k = Math.ceil(lo / size - offset), edge = (k + offset) * size;
+  return (edge > lo ? edge : (k + 1 + offset) * size) < hi;
 }
 
 /** Sort the identical bin/LOD runs with pauses inside triangle batches; no partial plan is published. */
-export function* cullPlanSteps(geometry: BufferGeometry, pitch: number, lod: readonly CullLod[] = []): Generator<void, CullPlan> {
+export function* cullPlanSteps(geometry: BufferGeometry, pitch: number, lod: readonly CullLod[] = [], tileSize?: number): Generator<void, CullPlan> {
   const index = geometry.getIndex(), position = geometry.getAttribute('position');
   if (index === null) throw new Error('A culled road mesh needs an index');
   // each triangle's bin (`cullBin` of its centroid) as two numbers; a bin's string key, made once, orders the bins
-  const triangles = index.count / 3, size = pitch / BIN_DIVISOR, byBin = new Map<number, Map<number, { readonly key: string; readonly list: number[] }>>();
+  const { size, offset } = binGrid(pitch, tileSize);
+  const triangles = index.count / 3, byBin = new Map<number, Map<number, { readonly key: string; readonly x: number; readonly z: number; readonly list: number[] }>>();
   for (let t = 0; t < triangles; t++) {
     if (t % 256 === 0) yield;
     let x = 0, z = 0;
     for (let c = 0; c < 3; c++) { const n = index.getX(t * 3 + c); x += position.getX(n); z += position.getZ(n); }
-    const bx = Math.round(x / 3 / size), bz = Math.round(z / 3 / size);
+    const bx = Math.floor(x / 3 / size + offset), bz = Math.floor(z / 3 / size + offset);
     let row = byBin.get(bx); if (row === undefined) { row = new Map(); byBin.set(bx, row); }
     const bin = row.get(bz);
-    if (bin === undefined) row.set(bz, { key: `${String(bx)},${String(bz)}`, list: [t] }); else bin.list.push(t);
+    if (bin === undefined) row.set(bz, { key: `${String(bx)},${String(bz)}`, x: bx, z: bz, list: [t] }); else bin.list.push(t);
   }
   const out: number[] = [], bins: CullBin[] = [];
-  const clusters = lod.map((tier) => clusterer(geometry, pitch, tier.cell));
-  const ordered: { readonly key: string; readonly list: number[] }[] = [];
+  const clusters = lod.map((tier) => clusterer(geometry, pitch, tier.cell, tileSize));
+  const ordered: { readonly key: string; readonly x: number; readonly z: number; readonly list: number[] }[] = [];
   for (const row of byBin.values()) for (const bin of row.values()) ordered.push(bin);
   ordered.sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
-  for (const { list } of ordered) {
+  for (const { list, x: tileX, z: tileZ } of ordered) {
     const start = out.length;
     let minX = Infinity, minY = Infinity, minZ = Infinity, maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
     for (const [i, t] of list.entries()) {
@@ -175,7 +182,7 @@ export function* cullPlanSteps(geometry: BufferGeometry, pitch: number, lod: rea
       }
       levels.push({ start: from, count: out.length - from });
     }
-    bins.push({ sphere, start, count, levels });
+    bins.push({ sphere, start, count, levels, ...(tileSize === undefined ? {} : { tile: { x: tileX, z: tileZ } }) });
   }
   return { source: Uint32Array.from(out), bins, lod: lod.map((tier) => tier.distance) };
 }
@@ -185,12 +192,12 @@ export function* cullPlanSteps(geometry: BufferGeometry, pitch: number, lod: rea
  * same material (grain layer + unlit flag). Vertices on a bin edge or a cell edge (where the seam meets the shard's own
  * ground) stay themselves, so a coarse bin meets its fine neighbour and the shard's terrain without a crack.
  */
-function clusterer(geometry: BufferGeometry, pitch: number, cell: number): (n: number) => number {
+function clusterer(geometry: BufferGeometry, pitch: number, cell: number, tileSize?: number): (n: number) => number {
   const position = geometry.getAttribute('position'), grain = geometry.hasAttribute('grainUv') ? geometry.getAttribute('grainUv') : undefined;
   const first = new Map<number | string, number>(), memo = new Int32Array(position.count).fill(-1);
   return (n: number): number => {
     const known = memo[n] ?? -1; if (known >= 0) return known;
-    const key = lodKey(position.getX(n), position.getY(n), position.getZ(n), grain?.getZ(n) ?? 0, grain?.getW(n) ?? 0, pitch, cell);
+    const key = lodKey(position.getX(n), position.getY(n), position.getZ(n), grain?.getZ(n) ?? 0, grain?.getW(n) ?? 0, pitch, cell, tileSize);
     let rep = n;
     if (key !== null) { const seen = first.get(key); if (seen === undefined) first.set(key, n); else rep = seen; }
     memo[n] = rep; return rep;
@@ -202,10 +209,10 @@ const LOD_SPAN = 4096;
 /** A vertex's LOD lattice box and material; null on a bin edge or a cell edge (it stays itself). One box and material is
  *  one key: a number in the usual ranges (string keys built per vertex were ~280 ms of a phone-tier road install), the
  *  string form outside them. */
-function lodKey(x: number, y: number, z: number, layer: number, unlit: number, pitch: number, cell: number): number | string | null {
-  const s = pitch / BIN_DIVISOR;
+function lodKey(x: number, y: number, z: number, layer: number, unlit: number, pitch: number, cell: number, tileSize?: number): number | string | null {
+  const s = tileSize ?? pitch / BIN_DIVISOR, offset = tileSize === undefined ? 0.5 : 0;
   const onLine = (v: number): boolean => {
-    const bin = Math.abs(v / s - Math.round(v / s)); if (Math.abs(bin - 0.5) * s < 1e-3) return true; // a bin edge
+    const bin = Math.abs(v / s - Math.round(v / s)); if (Math.abs(bin - offset) * s < 1e-3) return true; // a bin edge
     const local = Math.abs(v - Math.round(v / pitch) * pitch); return Math.abs(local - CELL_EDGE) < 1e-3; // a cell edge
   };
   if (onLine(x) || onLine(z)) return null;
@@ -217,12 +224,12 @@ function lodKey(x: number, y: number, z: number, layer: number, unlit: number, p
 }
 
 /** How the road builders cull a mesh (`cullRoadMesh` at `pitch`, the view camera) and where each mesh's plan is kept. */
-export interface RoadCuller { readonly pitch: number; readonly camera?: () => Camera | undefined; readonly plans: Map<Mesh, CullPlan> }
+export interface RoadCuller { readonly pitch: number; readonly tileSize?: number; readonly camera?: () => Camera | undefined; readonly plans: Map<Mesh, CullPlan> }
 
 /** Complete clipping and sorting before installing the live view hook and publishing its plan. */
 export function* cullIntoSteps(culler: RoadCuller, mesh: Mesh, lod: readonly CullLod[] = []): Generator<void> {
-  yield* clipToBinsSteps(mesh.geometry, culler.pitch);
-  const plan = yield* cullPlanSteps(mesh.geometry, culler.pitch, lod);
+  yield* clipToBinsSteps(mesh.geometry, culler.pitch, culler.tileSize);
+  const plan = yield* cullPlanSteps(mesh.geometry, culler.pitch, lod, culler.tileSize);
   attachRoadCull(mesh, plan, culler.camera);
   culler.plans.set(mesh, plan);
 }
@@ -238,18 +245,18 @@ export interface CullCounts { readonly vertices: number; readonly clipped: numbe
 
 
 /** Exact pre-allocation counts, with the same clipping arithmetic yielded in bounded batches. */
-export function* cullCountsSteps(sources: readonly CullSource[], pitch: number, lod: readonly CullLod[] = []): Generator<void, CullCounts> {
+export function* cullCountsSteps(sources: readonly CullSource[], pitch: number, lod: readonly CullLod[] = [], tileSize?: number): Generator<void, CullCounts> {
   let vertices = 0, clipped = 0, source = 0;
   for (const run of sources) {
     const read = (n: number): Float64Array => Float64Array.of(run.position(n * 3), run.position(n * 3 + 1), run.position(n * 3 + 2));
-    const { extra, out } = yield* clipCore(run.indices.length / 3, (i) => run.indices[i] ?? 0, run.vertices, 3, 0, read, (n, axis) => run.position(n * 3 + axis), pitch);
+    const { extra, out } = yield* clipCore(run.indices.length / 3, (i) => run.indices[i] ?? 0, run.vertices, 3, 0, read, (n, axis) => run.position(n * 3 + axis), pitch, tileSize);
     vertices += run.vertices; clipped += run.vertices + extra.length / 3; source += out.length;
     const at = (n: number, c: number): number => (n < run.vertices ? run.position(n * 3 + c) : Math.fround(extra[(n - run.vertices) * 3 + c] ?? 0));
     for (const tier of lod) {
       const memo = new Int32Array(run.vertices + extra.length / 3).fill(-1), first = new Map<number | string, number>();
       const representative = (n: number): number => {
         const known = memo[n] ?? -1; if (known >= 0) return known;
-        const key = lodKey(at(n, 0), at(n, 1), at(n, 2), run.layer ?? 0, run.unlit ?? 0, pitch, tier.cell);
+        const key = lodKey(at(n, 0), at(n, 1), at(n, 2), run.layer ?? 0, run.unlit ?? 0, pitch, tier.cell, tileSize);
         let rep = n;
         if (key !== null) { const seen = first.get(key); if (seen === undefined) first.set(key, n); else rep = seen; }
         memo[n] = rep; return rep;
@@ -268,14 +275,14 @@ export function* cullCountsSteps(sources: readonly CullSource[], pitch: number, 
 export interface RenderBytes { readonly jsBytes: number; readonly gpuBytes: number }
 
 /** Yielded byte planning remains exact and completes before an allocation can be admitted. */
-export function* meshBytesSteps(sources: readonly CullSource[], floats: number, cull?: { readonly pitch: number; readonly lod?: readonly CullLod[] }, gpuOnly = false): Generator<void, RenderBytes> {
+export function* meshBytesSteps(sources: readonly CullSource[], floats: number, cull?: { readonly pitch: number; readonly tileSize?: number; readonly lod?: readonly CullLod[] }, gpuOnly = false): Generator<void, RenderBytes> {
   if (cull === undefined) {
     let vertices = 0, indices = 0;
     for (const run of sources) { vertices += run.vertices; indices += run.indices.length; }
     const vertexBytes = vertices * floats * 4, indexBytes = indices * 4;
     return { jsBytes: (gpuOnly ? 0 : vertexBytes) + indexBytes, gpuBytes: vertexBytes + indexBytes };
   }
-  const counts = yield* cullCountsSteps(sources, cull.pitch, cull.lod);
+  const counts = yield* cullCountsSteps(sources, cull.pitch, cull.lod, cull.tileSize);
   const vertexBytes = counts.clipped * floats * 4, indexBytes = counts.source * 4;
   return { jsBytes: (gpuOnly ? 0 : vertexBytes) + 2 * indexBytes, gpuBytes: vertexBytes + indexBytes };
 }

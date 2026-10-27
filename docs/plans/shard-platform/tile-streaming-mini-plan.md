@@ -639,9 +639,9 @@ Traced at HEAD f81d5aade9 (full write-up below). **Correction:** Pine has **no t
 
 | Row | What | Lane | Size |
 |---|---|---|---|
-| S1 | `engine/world/tileStreamer.ts` from RenderRings, with road/junction tile types; host-bar tests; same trace as today at 150 m, no hole frames | Codex | 2 d |
-| S2 | One tile-content module; SHARD SELECT, grid region and neighbours all on S1; delete clientWorld, residency, the dead branch, rings.ts (≥ 200 lines gone, worst frame ≤ 100 ms) | Codex | 1 d |
-| S3 | Road tiles on the 62.5 m lattice (after T9) | Codex | 0.5 d |
+| S1 | **in flight (reading at plan end, G780):** source `30dcc15182`; host-bar and full-ring drive extended by `49aee2a303` (sp-o4 reports6/6 and1km/0holes). `engine/world/tileStreamer.ts` from RenderRings, with road/junction tile types; host-bar tests; same trace as today at 150 m, no hole frames | Codex | 2 d |
+| S2 | **in flight (reading at plan end, G780):** shared adapter source `c2a06d82e6`; clientRings/clientWorld/residency retired and all three page/grid entry points use tileContent. Retained net-deletion/frame acceptance remains to be reconciled at final reading. One tile-content module; SHARD SELECT, grid region and neighbours all on S1; delete clientWorld, residency, the dead branch, rings.ts (≥ 200 lines gone, worst frame ≤ 100 ms) | Codex | 1 d |
+| S3 | **in flight (sp-x2):** S3.1 lattice clipping/byte planning lands below; scoped ring eviction and measured road MB/seams remain open. Road tiles on the 62.5 m lattice (after T9) | Codex | 0.5 d |
 | S4 | Delete `runtimeWorld.ts` with sunscar-dunes-legacy (on legacy deletion) | — | — |
 | P1 | Pine: bake 64 L0 + 16 L1 ground tiles from its heightfield + splat; boreal look as a material row on `clientSplatTerrain`; canopy a per-tile channel; collider shard-wide | Opus | 1.5 d |
 | P2 | One ground path: no whole `Terrain` build for a tiled shard in bootstrap or regionalWorld | Opus | 1 d |
@@ -755,9 +755,9 @@ form.
 
 | Row | What | Files | Lane | Size | Done when |
 |---|---|---|---|---|---|
-| S1 | `engine/world/tileStreamer.ts`, built from `RenderRings`: wanted sets by distance (N × N full ring, coarse ring, far, near); keys `{instance, level, x, z, type: shard\|road\|junction}`; parent-first masks; hysteresis; a lease per tile through an injected budget port (the engine can't import `grid/allocator`); per-frame count + bytes + ms budgets; a Scope per tile; `ready()` / `waiting()` | new engine module; `rings.ts` → deleted (tests move) | Codex | 2 d | host-bar six tests; Node 1 km drive gives the same trace as today's rings at 150 m; 0 hole frames |
-| S2 | One tile-content adapter (clientRings + clientWorld's reads merged). SHARD SELECT (`client.ts:250`), the grid region (`regionalWorld.ts:164`) and grid neighbours (`session.ts:546`) all register instances on the one streamer; an entered cell is just the instance with the full ring | `clientRings.ts` → `tileContent.ts`; delete `clientWorld.ts`, `residency.ts` and the dead `rings` branch | Codex | 1 d | net deletion ≥ 200 lines; DW SHARD SELECT + grid: same tiles at the same pose; worst frame ≤ 100 ms |
-| S3 | Road and junction tiles as streamer types on the 62.5 m lattice (after T9 A, G638 D1) | `roadCull`, `roadLook`, `roadLayout` | Codex | 0.5 d | road resident only in the ring; road MB down; seams certified |
+| S1 | **in flight (reading at plan end, G780):** source `30dcc15182`; host-bar and full-ring drive extended by `49aee2a303` (sp-o4 reports6/6 and1km/0holes). `engine/world/tileStreamer.ts`, built from `RenderRings`: wanted sets by distance (N × N full ring, coarse ring, far, near); keys `{instance, level, x, z, type: shard\|road\|junction}`; parent-first masks; hysteresis; a lease per tile through an injected budget port (the engine can't import `grid/allocator`); per-frame count + bytes + ms budgets; a Scope per tile; `ready()` / `waiting()` | new engine module; `rings.ts` → deleted (tests move) | Codex | 2 d | host-bar six tests; Node 1 km drive gives the same trace as today's rings at 150 m; 0 hole frames |
+| S2 | **in flight (reading at plan end, G780):** shared adapter source `c2a06d82e6`; clientRings/clientWorld/residency retired and all three page/grid entry points use tileContent. Retained net-deletion/frame acceptance remains to be reconciled at final reading. One tile-content adapter (clientRings + clientWorld's reads merged). SHARD SELECT (`client.ts:250`), the grid region (`regionalWorld.ts:164`) and grid neighbours (`session.ts:546`) all register instances on the one streamer; an entered cell is just the instance with the full ring | `clientRings.ts` → `tileContent.ts`; delete `clientWorld.ts`, `residency.ts` and the dead `rings` branch | Codex | 1 d | net deletion ≥ 200 lines; DW SHARD SELECT + grid: same tiles at the same pose; worst frame ≤ 100 ms |
+| S3 | **in flight (sp-x2):** S3.1 lattice clipping/byte planning lands below; scoped ring eviction and measured road MB/seams remain open. Road and junction tiles as streamer types on the 62.5 m lattice (after T9 A, G638 D1) | `roadCull`, `roadLook`, `roadLayout` | Codex | 0.5 d | road resident only in the ring; road MB down; seams certified |
 | S4 | Delete `runtimeWorld.ts` and `bindRuntimeProductTerrain` with sunscar-dunes-legacy | legacy-deletion plan | Codex | 0.2 d | 0 callers |
 
 ### (b) Pine onto it (after the DW slice)
@@ -801,6 +801,12 @@ A neighbour shard is only scene-graph level of detail (far proxy → L1 → L0 t
   - B: keep it as the Debug "whole shard" option until T10.
 
 </details>
+
+## S1–S3 source slices (sp-x2, 2026-10-27)
+
+| Slice | State | Change and validation |
+|---|---|---|
+| S3.1 Shared road lattice | source landed (this code commit); reading at plan end | Platform road/deck/curtain clipping, bin identity, LOD edge protection and exact byte preflight use the same world-aligned62.5m grid. Retain single indexed draws/material, every interpolated attribute, turn-in geometry and full collision strips. Centred half-pitch arithmetic remains for explicitly unconverted callers and the original golden fixture. Added source-only lattice/UV/count assertions; tests not executed underG769. Game production/test types and four-path typed lint pass. Required ratchet attempted; D37 missing discovery refuses before counting, unavailable check skipped per coordinator. This is geometry preparation only: no ring eviction, resident saving or full S3 acceptance claimed. |
 
 ## Far-view quality (Jake, 2026-10-23: *"When we try the low detail stuff, it just looked like shit … when we made it render everything, then all of a sudden it looked good"*)
 

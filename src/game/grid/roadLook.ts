@@ -494,7 +494,7 @@ export function* installRoadLookSteps(input: RoadLookInput): Generator<void, Roa
     };
     if (admission === undefined) yield* build(scope);
     else {
-      const bytes = yield* meshBytesSteps([mesherSource(source.mesher)], ROAD_FLOATS, cull === undefined ? undefined : { pitch: cull.pitch }, true);
+      const bytes = yield* meshBytesSteps([mesherSource(source.mesher)], ROAD_FLOATS, cull === undefined ? undefined : { pitch: cull.pitch, ...(cull.tileSize === undefined ? {} : { tileSize: cull.tileSize }) }, true);
       const plan = bytePlan(source.id, bytes, gpuOnlyTextureBytes(source.width, source.height, 1, source.source, source.texelBytes));
       yield* allocateRenderSteps(admission, plan, build);
     }

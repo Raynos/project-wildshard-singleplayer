@@ -14,6 +14,7 @@
  * copy (they are counted in `road.curtain`).
  */
 import { Mesh, type Camera, type Object3D } from 'three';
+import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import type { GridCell } from './assembly';
 import type { LookScope, RoadLayout } from './roadLayout';
@@ -102,7 +103,8 @@ function* platformRoadSteps(input: PlatformRoadInput): Generator<void, PlatformR
   const { home, pitch, scene, scope, admission, within } = input;
   const strips = within === undefined ? input.strips : input.strips.filter(strip => within(strip.mesh.origin.x, strip.mesh.origin.z));
   const layout = within === undefined ? input.layout : layoutWithin(input.layout, within);
-  const culler: RoadCuller = { pitch, plans: input.plans, ...(input.camera === undefined ? {} : { camera: input.camera }) };
+  const tileSize = CONTENT_CAPS.l0.size;
+  const culler: RoadCuller = { pitch, tileSize, plans: input.plans, ...(input.camera === undefined ? {} : { camera: input.camera }) };
   // the seams' materials keyed by the generator's feature ranges: the same triangles the world collides with
   const seams = seamSolidSource(strips, home, undefined, pitch);
   const parts: SolidPart[] = [...seams.parts], solid = (part: SolidPart): void => { parts.push(part); };
@@ -114,7 +116,7 @@ function* platformRoadSteps(input: PlatformRoadInput): Generator<void, PlatformR
   for (const child of scene.children) if (child.name === 'grid-boulevard') boulevard = child;
   const meshes: Mesh[] = [];
   yield;
-  const deckBytes = yield* meshBytesSteps(parts.map(solidSource), SOLID_FLOATS, { pitch, lod: ROAD_LOD }, true);
+  const deckBytes = yield* meshBytesSteps(parts.map(solidSource), SOLID_FLOATS, { pitch, tileSize, lod: ROAD_LOD }, true);
   const deckAdmission = bytePlan('road.deck', deckBytes, gpuOnlyTextureBytes(GRAIN_SIZE, GRAIN_SIZE, GRAIN_LAYERS.length, 'data'));
   yield* allocateRenderSteps(admission, deckAdmission, function* buildDeck(owner) {
     yield;
@@ -125,7 +127,7 @@ function* platformRoadSteps(input: PlatformRoadInput): Generator<void, PlatformR
     yield* cullIntoSteps(culler, deck, ROAD_LOD); scene.add(deck); meshes.push(deck);
     gpuOnlyRoad(deck, [grain]); // G144: admitted, its JS copies go on upload (the plan counts them gone)
   });
-  const curtainBytes = yield* meshBytesSteps([curtainSource(seams.curtain)], CURTAIN_FLOATS, { pitch }, true);
+  const curtainBytes = yield* meshBytesSteps([curtainSource(seams.curtain)], CURTAIN_FLOATS, { pitch, tileSize }, true);
   yield* allocateRenderSteps(admission, bytePlan('road.curtain', curtainBytes), function* buildCurtain(owner) {
     yield;
     const material = curtainMaterial(home), curtain = new Mesh(curtainGeometry(seams.curtain), material);
