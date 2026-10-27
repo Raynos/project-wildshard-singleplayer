@@ -4,6 +4,8 @@ import type { PropRows } from './propRows';
 export function pineTrunkCircles(): { x: number; z: number; r: number }[];
 /** The props bake's rows (src/shards/pine-hollow/generators/bake-pine-props.mjs). */
 export function bakePropRows(): Promise<PropRows>;
+/** The props bake's rows, built once per process. */
+export function pineProps(): Promise<PropRows>;
 
 /** Original scan parts and native world frames, without decoding images. */
 export function pinePropScan(id: string): Promise<PineScanPart[]>;

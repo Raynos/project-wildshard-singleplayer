@@ -7,11 +7,11 @@ import {Mesh,MeshStandardMaterial} from 'three';
 import {staticGlb} from '@wildshard/sdk/bake/glb';
 import {bakePropSceneRows} from './propSceneRows.ts';
 import {pinePropShapes} from './propShapes.ts';
-import {pinePropScan} from './bake-pine-props.mjs';
+import {pinePropScan,pineProps} from './bake-pine-props.mjs';
 import {byteWriter} from '../../../../scripts/bake-output.mjs';
 
 const project=new URL('../',import.meta.url),read=path=>JSON.parse(readFileSync(new URL(path,project),'utf8'));
-const source=read('data/timberWorld.generated.json'),placements=read('data/props.json');
+const source=read('data/timberWorld.generated.json'),placements=await pineProps();
 const rows=bakePropSceneRows(placements,source.propShapes);
 const writer=byteWriter(process.argv.includes('--check'),'pine-prop-scenes');
 const [rocks,stumps,logs]=await Promise.all([pinePropScan('rock_moss_set_01'),pinePropScan('tree_stump_01'),pinePropScan('dead_tree_trunk')]);

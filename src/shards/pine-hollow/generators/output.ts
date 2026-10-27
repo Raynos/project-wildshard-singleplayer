@@ -78,7 +78,7 @@ import { HEARTH_LOOKS } from './hearthLook';
 import { FIGURE_CATALOGUE } from './figureCatalogue';
 import { WEAPON_FINISHES } from './weaponFinishes';
 import { pineLookMaterials } from './lookMaterials';
-import props from '../data/props.json' with { type: 'json' };
+import { pineProps } from './bake-pine-props.mjs';
 import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
 import { pineFloorLayout } from './bake-pine-floor.mjs';
 import { PINE_OUTPUT, CROSSBOW_BLOB } from './outputInputs';
@@ -92,6 +92,7 @@ import manifest from '../manifest.json' with { type: 'json' };
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 
 // GR8: called, not read from a scheduler job's output
+const props = await pineProps();
 const spots = pineSpots();
 
 // GR8: called, not read from a scheduler job's output

@@ -1,13 +1,11 @@
 #!/usr/bin/env node
 // SHARD-PLATFORM G285 (SF72, "bake the code-built worlds"): Pine Hollow's forest props scattered offline. The generator
 // (src/shards/pine-hollow/generators/props.ts) uses explicit retained renderer height and normal queries, without
-// installing a level, over the scans' footprints (the boulder
-// set's six rocks and the fallen log, read from their LOD GLBs as the page's loaders read them) and the forest's trunks
-// (src/shards/pine-hollow/data/physicsRows.json `shelterTrees`, the authored forest trunks). It writes every copy's pose to
-// src/shards/pine-hollow/data/props.json, which the page places the scans at (src/shards/pine-hollow/world/props.ts).
-// test/shards/pine-hollow/props-bake.test.ts is the stale gate (it re-runs the generator).
-// Usage: node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs src/shards/pine-hollow/generators/bake-pine-props.mjs
-import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
+// installing a level, over the scans' footprints (the boulder set's six rocks and the fallen log, read from their LOD
+// GLBs as the page's loaders read them) and the forest's trunks (src/shards/pine-hollow/data/physicsRows.json
+// `shelterTrees`, the authored forest trunks). GR8 G26: `pineProps` gives every copy's pose to the scene model rows, the
+// output's world/props.json and the prop scenes, instead of the retired pine-props job's data/props.json.
+import { readFileSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -54,12 +52,6 @@ export async function bakePropRows() {
   return bakePineProps(propKit(rocks.map(part => part.geometry), log.geometry), pineTrunkCircles(), pineCragGround(), entries);
 }
 
-if (import.meta.main) {
-  const rows = await bakePropRows();
-  writeFileSync(resolve(root, 'src/shards/pine-hollow/data/props.json'), `${JSON.stringify(rows)}\n`);
-  console.info(`pine-hollow props: ${String(rows.rocks.length)} rocks, ${String(rows.stumps.length)} stumps, ${String(rows.logs.length)} logs (data/props.json)`);
-}
-
 /** Retain every original material/image byte and drop the redundant source mesh payload. */
 export function pinePropMaterialFiles() {
   const literal = (path) => { const text = readFileSync(resolve(root, path), 'utf8'); return JSON.parse(text.slice(text.indexOf(' = {') + 3, text.lastIndexOf('}') + 1)); };
@@ -75,4 +67,11 @@ export function pinePropMaterialFiles() {
     }
   }
   return { aliases, outputs, costs };
+}
+
+let props;
+/** The props bake's rows, built once per process (about 15 ms). */
+export function pineProps() {
+  props ??= bakePropRows();
+  return props;
 }

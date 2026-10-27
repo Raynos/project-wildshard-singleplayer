@@ -10,14 +10,15 @@ import { parseWorldScenePlacement , type WorldScenePlacementRow as WorldScenePla
 import heroes from '../data/heroScenes.generated.json' with { type: 'json' };
 import heroRows from '../data/heroRows.json' with { type: 'json' };
 import props from '../data/propScenes.generated.json' with { type: 'json' };
-import scatter from '../data/props.json' with { type: 'json' };
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 
 import { CRAG_MODEL_ROWS, CRAG_PLACEMENT_ROWS, CRAG_BATCH_ROWS, CRAG_LIBRARY, CRAG_MATERIAL, CRAG_MODEL_BLOBS } from './cragSceneContribution';
 
 import { TIMBER_MODEL_ROWS, TIMBER_PLACEMENTS, TIMBER_LIBRARY, TIMBER_BLOBS, TIMBER_SURFACES } from './timberSceneContribution';
 import { CABIN_MODEL_ROWS, CABIN_PLACEMENTS, CABIN_LIBRARIES, CABIN_BLOBS, CABIN_MATERIALS, CABIN_WELDS } from './cabinSceneContribution';
+import { pineProps } from './bake-pine-props.mjs';
 
+const scatter = await pineProps();
 const materials: unknown[] = [CRAG_MATERIAL, ...TIMBER_SURFACES, ...CABIN_MATERIALS];
 const models: unknown[] = [...CRAG_MODEL_ROWS, ...TIMBER_MODEL_ROWS, ...CABIN_MODEL_ROWS];
 const placements: unknown[] = [...CRAG_PLACEMENT_ROWS, ...TIMBER_PLACEMENTS, ...CABIN_PLACEMENTS];
