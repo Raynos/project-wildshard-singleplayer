@@ -1,5 +1,6 @@
 
 import type { GridSession as DeclarationGridSession } from '../grid/session';
+import { initialHomeMetadataRequired } from '../grid/homeMetadata';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Music } from '@wildshard/engine/audio/Music';
@@ -171,6 +172,9 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
       } }; },
       onLate: (fn) => { game.onLate(fn, 'game.grid.frame'); } } }, p);
   });
+  // This home is already the real control dependency, not a neighbour or a
+  // recovery-road guess. Metadata can overlap UI; construction stays in finish.
+  if (grid !== null && initialHomeMetadataRequired(session)) grid.startInitialHomeMetadata();
   if (grid === null) installShardHoverSpeed(player, game.levelScope, manifest.hoverSpeedClass);
   await step('menu', async (p) => { // the cards' art in memory before the title builds its deck (showIntro below)
     // + the practice room's dummies when this boot lands in it (a travel in arena mode): full on its first frame (E291). Any

@@ -6,12 +6,23 @@ import { postStackCost } from '@wildshard/format/postStack';
 import * as product from '../src/game/shardfile/product';
 import * as runtime from '../src/game/shardfile/runtimeProduct';
 import { gridShardfileProduct } from '../src/game/grid/products';
+import { prepareHomeMetadata } from '../src/game/grid/homeMetadata';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { prepareApproachProductInputs } from '../src/game/grid/approachProductInputs';
 import { ApproachInputsDeferredError } from '../src/game/grid/productInputs';
 
 const scopes: Scope[] = [];
 afterEach(() => { for (const scope of scopes.splice(0)) scope.dispose(); });
+
+test('initial metadata prefetch lends the same admitted source and claim to real entry', async () => {
+  const f = fixture();
+  await prepareHomeMetadata(f.owner.scope, () => gridShardfileProduct('driftwood-isle', f.owner, 'metadata'));
+  const real = await gridShardfileProduct('driftwood-isle', f.owner, 'metadata');
+  if (real === null) throw new Error('Missing real entry metadata');
+  expect(f.admit).toHaveBeenCalledOnce(); expect(f.read).not.toHaveBeenCalled(); expect(f.hash).not.toHaveBeenCalled();
+  real.release(); expect(f.owner.allocator.has('product:grid:driftwood-isle')).toBe(true);
+  f.owner.scope.dispose(); expect(f.owner.allocator.has('product:grid:driftwood-isle')).toBe(false);
+});
 
 function fixture(offline = false, playing?: number) {
   const source = emptyShardfile({ slug: 'driftwood-isle', name: 'Metadata lease', author: 'Test', revision: 1, seed: 1 });

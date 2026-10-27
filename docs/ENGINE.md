@@ -141,6 +141,7 @@ and vertex removal; partial strips stay private.
 Only its own snapshots reuse proof; mutable/caller-frozen rows revalidate.
 `@wildshard/engine/physics/frame` prepares rider/mount
 motor transfers. See [GRID-SIMULATION.md](GRID-SIMULATION.md) for readiness, snapshot and client integration ports.
+`grid/session.GridSession` offers `startInitialHomeMetadata` and `waitInitialHomeMetadata`: prefetch, then entry fence.
 
 `@wildshard/engine/sim/snapshot.decodeSimSnapshotBytes` validates the same exact continuation
 as `decodeSimSnapshot`, returning detached `Uint8Array` physics instead of a boxed byte array.

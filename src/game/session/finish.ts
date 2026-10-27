@@ -1,5 +1,6 @@
 import type { BuiltWorld } from './context';
 import { gridCells } from '../plugin/context';
+import { initialHomeMetadataRequired } from '../grid/homeMetadata';
 import type { playStage } from './play';
 import { asShell } from '@wildshard/engine/app/ownership';
 import { app } from '@wildshard/engine/app/runtime';
@@ -36,7 +37,10 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   const enterGrid = async (): Promise<void> => {
     if (ctx.session.ownedGridHome === true) {
       if (ctx.gridLive === null) throw new Error('Owned grid home requires its admitted live session');
-      if (ctx.session.recovery?.saved?.location.kind === 'cell' || ctx.session.recovery === undefined) await ctx.gridLive.enterInitialHome();
+      if (initialHomeMetadataRequired(ctx.session)) {
+        await ctx.grid?.waitInitialHomeMetadata();
+        await ctx.gridLive.enterInitialHome();
+      }
     }
     if (ctx.session.recovery !== undefined) {
       if (ctx.gridLive === null) throw new Error('Recovery requires the admitted live grid');

@@ -53,6 +53,7 @@ import { GridAssembly, type GridCell } from './assembly';
 import { neighbourEdges } from './readinessEdges';
 import { DEVSERVER, gridMode } from './menu';
 import { gridCells, pageGridInstance } from '../plugin/context';
+import { prepareHomeMetadata } from './homeMetadata';
 import type { ResidencyAllocator } from './allocator';
 import type { PageResidency } from './pageResidency';
 import { PlatformRenderResidency } from './renderResidency';
@@ -297,6 +298,7 @@ export class GridSession {
   private publishOuterStrips: ((strips: readonly GeneratedStrip[]) => void) | undefined;
   private outerStripsReady: Promise<void> | undefined;
   private readonly host: GridSessionHost;
+  private initialHomeMetadata: Promise<void> | null = null;
   private last: { x: number; z: number } | null = null;
   private velocity = { x: 0, z: 0 };
   private readonly frame: GridFrame | null;
@@ -342,6 +344,15 @@ export class GridSession {
   private cellLoadingPolled = 0;
   /** when each cell's current wait began, so its screen counts only the hooks of this load */
   private readonly loadingSince = new Map<string, number>();
+
+  /** Overlap only this page's actual initial-home metadata with remaining page setup. */
+  startInitialHomeMetadata(): void {
+    if (this.initialHomeMetadata !== null) return;
+    this.initialHomeMetadata = prepareHomeMetadata(this.host.scope, () =>
+      gridShardfileProduct(this.home.slug, { allocator: this.allocator, scope: this.host.scope }, 'metadata'));
+  }
+  /** Preserve the original Home failure barrier; construction is never started here. */
+  waitInitialHomeMetadata(): Promise<void> { return this.initialHomeMetadata ?? Promise.resolve(); }
 
   /** Load every cell's edge rows (`loadGridEdgeProfiles` over the shards' own data, baked by the build: a grid entry read
    *  20 products' index and edge section through the serial content cache, 3.5 s on Jake's phone), then build the session. */
