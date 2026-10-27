@@ -1,15 +1,12 @@
 import { expect, test } from 'vitest';
-import { readProjectAssets } from '../src/sdk/project';
+import { driftwoodEmittedProduct } from './fixtures/driftwood-emitted-product';
 import { parseClientPlan } from '../src/format/clientPlan';
 import { driftwoodMoverOwners } from '../src/shards/driftwood-isle/generators/moverOwners';
 import { STATIC_BOAT } from '../src/shards/driftwood-isle/generators/staticWorld';
 import { CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';
 
 test('the actual emitted mover row retains exact boat floats and original construction owners', async () => {
-  const loaded = await readProjectAssets('src/shards/driftwood-isle', undefined, { folder: 'driftwood-isle', imageRoots: [{ prefix: '/assets/', directory: 'public/assets' }] }), platform = loaded.output.platform;
-  const bytes = platform?.files.get('sections/client/plan.json');
-  if (bytes === undefined) throw new Error('Missing admitted client plan');
-  const input: unknown = JSON.parse(new TextDecoder().decode(bytes)), plan = parseClientPlan(input);
+  const product = await driftwoodEmittedProduct(), plan = parseClientPlan(product.section('client/plan'));
   const movers = plan.features.find(row => row.kind === 'world.movers');
   expect(movers).toEqual({ kind: 'world.movers', ...driftwoodMoverOwners() });
   if (movers?.kind !== 'world.movers') throw new Error('Missing mover owner row');
@@ -24,10 +21,7 @@ test('the actual emitted mover row retains exact boat floats and original constr
 
 
 test('the admitted ambient row borrows the original draw after world bindings without a second file', async () => {
-  const loaded = await readProjectAssets('src/shards/driftwood-isle', undefined, { folder: 'driftwood-isle', imageRoots: [{ prefix: '/assets/', directory: 'public/assets' }] });
-  const bytes = loaded.output.platform?.files.get('sections/client/plan.json');
-  if (bytes === undefined) throw new Error('Missing admitted client plan');
-  const input: unknown = JSON.parse(new TextDecoder().decode(bytes)), plan = parseClientPlan(input);
+  const product = await driftwoodEmittedProduct(), plan = parseClientPlan(product.section('client/plan'));
   const row = { kind: 'world.ambient-life', file: 'actors/page-life.json', flocks: [{ id: 'gulls', owner: 'driftwood.gulls' }] };
   expect(plan.features.find(value => value.kind === 'world.ambient-life')).toEqual(row);
   expect(CLIENT_FEATURES['world.ambient-life'].phase).toBe('world-bindings');

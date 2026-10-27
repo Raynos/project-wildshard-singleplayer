@@ -1,4 +1,6 @@
 {
+  "test/driftwood-mover-entry.test.ts": ["driftwood-isle"],
+  "test/driftwood-scene.test.ts": ["driftwood-isle"],
   "test/driftwood-plan-rows.test.ts": ["driftwood-isle"],
   "test/quest-continuation-product.test.ts": ["driftwood-isle"],
   "test/quest-page-composition.test.ts": ["driftwood-isle"],
