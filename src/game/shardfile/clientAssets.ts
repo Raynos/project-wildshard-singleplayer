@@ -1,7 +1,7 @@
 import { pacedResolve } from '@wildshard/engine/core/workSlice';
 import { isDev } from '@wildshard/engine/core/devMode';
 import { memoryAttribution } from '@wildshard/engine/core/memoryAttribution';
-import { declareDownloadFile, recordCachedDownload } from '@wildshard/engine/boot/download';
+import { declareDownloadFile, recordCachedDownload, recordPackedDownload } from '@wildshard/engine/boot/download';
 import { boundedResponse, type ProductOptions } from './product';
 import { outputBlobUrl, outputDescriptor } from './outputDescriptor';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -10,6 +10,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 export class ClientAssets {
   private readonly wire: Map<string, Uint8Array>;
   private readonly pending = new Map<string, Promise<Uint8Array>>();
+  private readonly packs = new Map<string, Promise<Uint8Array>>();
   private readonly source: Shardfile;
   private readonly options: ProductOptions;
   constructor(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, options: ProductOptions) {
@@ -55,16 +56,18 @@ export class ClientAssets {
       if (verified.length !== cap) throw new Error('Resident tile hash or size mismatch');
       return this.observe(ref, verified);
     }
-    let bytes = this.options.cache?.verifiedAsset === undefined ? await this.options.cache?.asset(base, hash) : null, downloaded = false;
+    let bytes = this.options.cache?.verifiedAsset === undefined ? await this.options.cache?.asset(base, hash) : null, downloaded = false, packed = false;
     if ((bytes === null || bytes === undefined) && url !== undefined && this.options.verifiedResponse === undefined) {
       bytes = await this.options.cachedResponse?.(outputBlobUrl(this.source, ref, base), hash, cap);
     }
     if (bytes === null || bytes === undefined) {
       if (this.options.offline) throw new Error('Missing cached resident tile');
-      bytes = await boundedResponse(await this.options.fetch(outputBlobUrl(this.source, ref, base)), cap);
+      const member = await this.readPacked(ref, cap); packed = member !== undefined;
+      bytes = member ?? await boundedResponse(await this.options.fetch(outputBlobUrl(this.source, ref, base)), cap);
       downloaded = true;
     }
     if (bytes.length !== cap || await this.hashOf(bytes) !== hash) throw new Error('Resident tile hash or size mismatch');
+    if (packed) recordPackedDownload(outputBlobUrl(this.source, ref, base));
     if (downloaded) {
       // The verified network response is the build input. Disk persistence must
       // not hold the home load behind a background writer or a cache refusal.
@@ -76,6 +79,28 @@ export class ClientAssets {
     }
     else recordCachedDownload(hash, bytes.length);
     return this.observe(ref, bytes);
+  }
+  /** Share only an in-flight named pack across concurrent demand reads. No settled
+   * pack backing survives the borrowers; each decoder receives its owned member. */
+  private async readPacked(ref: string, cap: number): Promise<Uint8Array | undefined> {
+    const descriptor = outputDescriptor(this.source);
+    const pack = descriptor?.index.packs?.find(row => row.entries.some(entry => entry.hash === ref));
+    const member = pack?.entries.find(entry => entry.hash === ref);
+    if (pack === undefined || member === undefined) return undefined;
+    if (member.bytes !== cap) throw new Error('Resident packed member size mismatch');
+    let pending = this.packs.get(pack.hash);
+    if (pending === undefined) {
+      pending = (async () => {
+        const wire = await boundedResponse(await this.options.fetch(new URL(pack.path, this.options.base).href), pack.bytes);
+        if (wire.length !== pack.bytes || await this.hashOf(wire) !== pack.hash) throw new Error('Resident pack hash or size mismatch');
+        return wire;
+      })();
+      this.packs.set(pack.hash, pending);
+    }
+    try {
+      const bytes = (await pending).slice(member.offset, member.offset + member.bytes);
+      return bytes;
+    } finally { if (this.packs.get(pack.hash) === pending) this.packs.delete(pack.hash); }
   }
   /** SHA-256 of `bytes` off the page (an owned copy through `hashOwned`), else on the page. */
   private async hashOf(bytes: Uint8Array): Promise<string> {

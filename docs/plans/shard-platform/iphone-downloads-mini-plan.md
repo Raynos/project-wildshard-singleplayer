@@ -966,3 +966,28 @@ Raw failed-only log: tmp/sp-x2/i2-late-refusal/failed-only-fixed.log.
 I2 next single cohort is pinned8f2c7f92ee, containing installer9b3e0e4e34,
 medium bodies9a7dc471fb, cost facts7bf455e8f1, cabinb5ef2ff17c and
 material rootsda877588a2. One shared build; no second435 measurement.
+
+### I2 native demand pack reads (2026-10-27, sp-x9)
+
+In flight (reading at plan end). Medium packs9a7dc471fb cover ordinary
+admission, but ClientAssets still fetched every native on-demand body
+individually. Concurrent cache-missing local members now borrow one
+verified pack read; each member gets its own exact-length copy and
+retains its original SHA/size check. Cache hits still win, offline misses
+still refuse, and a failed pack is released for a later corrected read.
+The map owns only pending pack promises; settled success/failure drops
+all pack backing (H6), without retaining a hidden transport cache.
+No runtimeProduct, control roots, late policy, cap or Range change.
+
+Touched types/typed lint/scoped ratchet pass. Controls cover concurrent
+members, independent copies, no settled backing, offline partial cache,
+pack corruption/retry and independently checked member hashes.
+The frozen8f joint3 read predates this follow-on and remains its own
+receipt; a containing row reading follows, never an unchanged retry.
+
+Build8f2c7f9-mvqvfumb bank audit: installer42 original modules,
+68491wireB/216775decodedB; Pine143/2205916/7195776,
+Nalati151/2153717/6889390, Nine135/1956110/6310648.
+Every module is byte-exact and every existing bank member is present;
+the installer equals the manifest's entire initial static JS closure.
+Boot-bank/codec focus9PASS; medium output-product7PASS.

@@ -401,6 +401,58 @@ test('packed sections and files come from one read of each pack (iPhone download
   expect(reads.filter(path => path.startsWith('sections/') || path.startsWith('blobs/bin/'))).toEqual([]);
 });
 
+async function demandPackFixture(corruptMember = false) {
+  const {wires,index}=fixture(true),first=index.files[0];
+  if(first===undefined)throw new Error('Missing first demand member');
+  const secondBytes=new Uint8Array([4,5,6]),secondHash=hashImmutableBytes(secondBytes);
+  const second={...first,hash:secondHash,path:`blobs/bin/${secondHash}.bin`};
+  index.files.push(second);wires.set(second.path,secondBytes);
+  const wire=new Uint8Array([corruptMember?9:1,2,3,4,5,6]),packHash=hashImmutableBytes(wire),path=`blobs/pack/${packHash}.pack`;
+  const packed=parseOutputIndex({...index,packs:[{path,hash:packHash,bytes:6,entries:[
+    {hash:first.hash,offset:0,bytes:3},{hash:secondHash,offset:3,bytes:3}]}]});
+  wires.set(path,wire);wires.set('shard.json',encodeCanonicalJson(packed));
+  const source=await readProductDescriptor(options(wires));
+  return {source,wires,first,second,path,wire};
+}
+
+test('concurrent native demand reads share one pack, return owned members and retain no settled backing',async()=>{
+  const f=await demandPackFixture(),plain=options(f.wires),reads:string[]=[];
+  const assets=new ClientAssets(f.source,new Map(),{...plain,fetch:url=>{reads.push(url.slice(base.length));return plain.fetch(url);}});
+  const [first,second]=await Promise.all([assets.read(f.first.hash),assets.read(f.second.hash)]);
+  expect(reads).toEqual([f.path]);expect(first).toEqual(new Uint8Array([1,2,3]));expect(second).toEqual(new Uint8Array([4,5,6]));
+  expect(first.buffer).not.toBe(second.buffer);first[0]=99;
+  expect(assets.retained.size).toBe(0);
+  expect(await assets.read(f.first.hash)).toEqual(new Uint8Array([1,2,3]));
+  expect(reads).toEqual([f.path,f.path]); // no cache: a settled pack is not a hidden H6 owner
+});
+
+test('native demand packs refuse corruption for every borrower and release the failed read for repair',async()=>{
+  const f=await demandPackFixture(),plain=options(f.wires);let corrupt=true,reads=0;
+  const assets=new ClientAssets(f.source,new Map(),{...plain,fetch:url=>{
+    reads++;if(corrupt){const damaged=f.wire.slice();damaged[0]=99;return Promise.resolve(new Response(damaged));}
+    return plain.fetch(url);
+  }});
+  const results=await Promise.allSettled([assets.read(f.first.hash),assets.read(f.second.hash)]);
+  expect(results.map(result=>result.status)).toEqual(['rejected','rejected']);expect(reads).toBe(1);
+  for(const result of results)if(result.status==='rejected')expect(String(result.reason)).toContain('Resident pack hash or size mismatch');
+  corrupt=false;expect(await assets.read(f.second.hash)).toEqual(new Uint8Array([4,5,6]));expect(reads).toBe(2);
+});
+
+test('native offline demand never fetches a pack or hides a missing member behind another cached member',async()=>{
+  const f=await demandPackFixture(),fetch=vi.fn(()=>Promise.reject(new Error('No offline network')));
+  const assets=new ClientAssets(f.source,new Map(),{...options(f.wires),offline:true,fetch,cache:{
+    ...cacheStore().cache,verifiedAsset:ref=>Promise.resolve(ref===f.first.hash?new Uint8Array([1,2,3]):null),
+  }});
+  expect(await assets.read(f.first.hash)).toEqual(new Uint8Array([1,2,3]));
+  await expect(assets.read(f.second.hash)).rejects.toThrow('Missing cached resident tile');expect(fetch).not.toHaveBeenCalled();
+});
+
+test('a valid native pack hash never substitutes for its demanded member hash',async()=>{
+  const f=await demandPackFixture(true),assets=new ClientAssets(f.source,new Map(),options(f.wires));
+  await expect(assets.read(f.first.hash)).rejects.toThrow('Resident tile hash or size mismatch');
+  expect(await assets.read(f.second.hash)).toEqual(new Uint8Array([4,5,6]));
+});
+
 test('a private build-verified admission does not reread its matching historical sections', async () => {
   const old = fixture(), store = cacheStore(), initial = options(old.wires, store.cache);
   const restore = installIndexReceipt(old.index);
