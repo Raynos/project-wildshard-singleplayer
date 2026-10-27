@@ -27,6 +27,11 @@ async function coldFixture() {
 const fixture = await coldFixture();
 afterAll(fixture.dispose);
 
+/** e6f5e01410: the signs program publishes each tier-named sign file with its tier; bytes and costs are unchanged. */
+const withTier = <T extends { readonly name?: string }>(row: T): T => {
+  const tier = /^signs\/(?:atlas|glyphs)-(phone|desktop)[-.]/u.exec(row.name ?? '')?.[1];
+  return tier === undefined ? row : { ...row, tier };
+};
 test('all 28 original sign files retain every byte and the same admitted file costs', () => {
   expect(before.files).toHaveLength(28); expect(fixture.cold.files.size).toBe(before.files.length);
   for (const row of before.files) {
@@ -37,7 +42,7 @@ test('all 28 original sign files retain every byte and the same admitted file co
   const value: unknown = JSON.parse(new TextDecoder().decode(metadata));
   expect(value).toHaveProperty('rows.phone'); expect(value).toHaveProperty('rows.desktop');
   expect(fixture.cold.blobs).toHaveLength(27);
-  expect(fixture.cold.blobs.map(row => row.file)).toStrictEqual(before.admitted);
+  expect(fixture.cold.blobs.map(row => row.file)).toStrictEqual(before.admitted.map(withTier));
 });
 
 test('a hit never rebuilds, owns every byte and republishes identical named metadata', async () => {

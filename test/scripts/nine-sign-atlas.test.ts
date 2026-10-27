@@ -26,6 +26,11 @@ const read = (file: string): Uint8Array => {
   if (bytes === undefined) throw new Error(`Missing native sign fixture ${file}`); return bytes;
 };
 const blobs = await nineSignBlobs();
+/** e6f5e01410: the signs program publishes each tier-named sign file with its tier; bytes and costs are unchanged. */
+const withTier = <T extends { readonly name?: string }>(row: T): T => {
+  const tier = /^signs\/(?:atlas|glyphs)-(phone|desktop)[-.]/u.exec(row.name ?? '')?.[1];
+  return tier === undefined ? row : { ...row, tier };
+};
 const slice = (bytes: Uint8Array, row: { byteOffset: number; byteLength: number }): Uint8Array => bytes.slice(row.byteOffset, row.byteOffset + row.byteLength);
 
 test('native metadata refuses missing tiers, invalid ranges and non-finite light rows', () => {
@@ -35,7 +40,7 @@ test('native metadata refuses missing tiers, invalid ranges and non-finite light
 });
 
 test('portable sign assembly retains every original named byte and cost', () => {
-  expect(blobs.map(row => row.file)).toStrictEqual(binaryReference.files);
+  expect(blobs.map(row => row.file)).toStrictEqual(binaryReference.files.map(withTier));
   expect(signAtlasBlobs(read, { atlas, glyphs }).map(row => row.file)).toStrictEqual(binaryReference.files);
 });
 
