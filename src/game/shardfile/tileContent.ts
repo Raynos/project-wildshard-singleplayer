@@ -349,11 +349,12 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
   // H3/G794 changes order only: finish the arrival tile before the rest of
   // its clipped ring, using the same terrain/prop bytes and collision owners.
   const pinSpawn = async (instance: string, start: { readonly x: number; readonly z: number },
-    requirements: TileRequirement[], left: () => boolean, message: string): Promise<{ keys: ReadonlySet<number>; release: () => void }> => {
+    requirements: TileRequirement[], left: () => boolean, message: string,
+    critical?: readonly number[]): Promise<{ keys: ReadonlySet<number>; release: () => void }> => {
     const order = tileOrder(start), origin = tileOf(start.x, start.z), first = origin.j * TILES_PER_SIDE + origin.i;
     const keys = order.tiles.filter(tile => order.rank(tile) === 0).map(tile => tile.j * TILES_PER_SIDE + tile.i);
     const held: TileRequirement[] = [];
-    for (const batch of [[first], keys.filter(key => key !== first)]) {
+    for (const batch of [[first], critical ?? keys.filter(key => key !== first)]) {
       if (batch.length === 0) continue;
       const required = streamer.require(instance, batch); requirements.push(required); held.push(required);
       await required.ready;
@@ -430,13 +431,13 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
         // H3: pin the spawn view before broad coarse coverage. Otherwise all
         // L1 quadrants compete ahead of these first reads.
         // Parent-first streaming supplies this ring's coarse parents as needed.
-        const spawn = await pinSpawn(instance, start, requirements, ownerLeft, 'Entered tile owner left');
-        // Entryways remain critical: the same declared rank-zero set must be
-        // ready before entry, independently of a distant coarse fallback.
+        // Once the arrival tile is ready, admit the rest of the ring and all
+        // entryways together. Their reads share the scheduler's existing
+        // slots instead of leaving spare slots idle behind ring publication.
+        // The complete declared rank-zero set still gates entry.
         const order = tileOrder(start, entry.source.entryways);
-        const initial = streamer.require(instance, order.tiles.filter(tile => order.rank(tile) === 0).map(tile => tile.j * 8 + tile.i)); requirements.push(initial);
-        await initial.ready;
-        if (ownerLeft()) throw new Error('Entered tile owner left');
+        const critical = order.tiles.filter(tile => order.rank(tile) === 0).map(tile => tile.j * TILES_PER_SIDE + tile.i);
+        const spawn = await pinSpawn(instance, start, requirements, ownerLeft, 'Entered tile owner left', critical);
         // Broad render demand must not compete ahead of the spawn ring and
         // mandatory entryways during initial preparation. In play it is exact.
         streamer.setFullRing(instance, radius());
@@ -455,7 +456,7 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
           }
         })();
         else await complete();
-        spawn.release(); initial.release(); entry.assets.releaseTiles();
+        spawn.release(); entry.assets.releaseTiles();
         if (ownerLeft()) throw new Error('Entered tile owner left');
         return {
           get fine() { return new Set(streamer.resident().filter(key => key.startsWith(`${instance}:l0/`)).map(key => key.slice(instance.length + 1).replace('l0/', '0/'))); },
