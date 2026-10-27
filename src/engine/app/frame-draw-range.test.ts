@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { BoxGeometry, Group, InstancedMesh, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, SkinnedMesh, Sphere, Vector3 } from 'three';
 import { Scope } from './scope';
 import { FrameDrawRanges } from '../render/frameDrawRange';
@@ -72,4 +72,74 @@ test('sliced retirement stops masking before its disposal handlers finish', () =
   const steps = owner.disposeSteps(); steps.next(); expect(owner.disposing).toBe(true);
   try { f.masks.draw(f.root, f.camera, { render: () => { expect(far.visible).toBe(true); } }, .03); }
   finally { for (const _step of steps) { /* drain */ } f.dispose(); }
+});
+
+test.each([false, true])('hidden owned roots skip only ordinary matrix walks (range %s)', ranged => {
+  const f = fixture(), parked = new Group(), child = f.mesh(3);
+  parked.position.x = 20; parked.visible = false; parked.add(child); f.root.add(parked);
+  f.root.updateMatrixWorld(true);
+  const update = vi.spyOn(child, 'updateMatrixWorld');
+  const inherited: unknown = Reflect.get(parked, 'updateMatrixWorld');
+  f.masks.trackHiddenRoot(f.scope, parked);
+  if (ranged) f.masks.bind(f.scope, 125).enabled = true;
+  const renderer = { render: (): void => {
+    expect(Reflect.get(parked, 'updateMatrixWorld')).toBe(inherited);
+    // Match the ordinary renderer's scene update, if the wrapper did not do it.
+    if (f.root.matrixWorldAutoUpdate) f.root.updateMatrixWorld();
+  } };
+  try {
+    child.position.x = 9;
+    f.masks.draw(f.root, f.camera, renderer, .03);
+    expect(update).not.toHaveBeenCalled(); expect(child.matrixWorld.elements[12]).toBe(23);
+    expect(Object.hasOwn(parked, 'updateMatrixWorld')).toBe(false);
+    parked.updateMatrixWorld(true); // Explicit preparation still updates hidden content.
+    expect(child.matrixWorld.elements[12]).toBe(29); update.mockClear();
+    child.position.x = 13; parked.visible = true;
+    f.masks.draw(f.root, f.camera, renderer, .03);
+    expect(update).toHaveBeenCalled(); expect(child.matrixWorld.elements[12]).toBe(33);
+  } finally { update.mockRestore(); f.dispose(); }
+});
+
+test('renderer callbacks see the original method and may replace it without being overwritten', () => {
+  const f = fixture(), parked = new Group(); parked.visible = false; f.root.add(parked);
+  const method: unknown = Reflect.get(parked, 'updateMatrixWorld');
+  if (typeof method !== 'function') throw new Error('Missing matrix method');
+  const original = vi.fn((force?: boolean): void => { Reflect.apply(method, parked, [force]); });
+  const replacement = vi.fn((): void => undefined); parked.updateMatrixWorld = original;
+  const descriptor = Object.getOwnPropertyDescriptor(parked, 'updateMatrixWorld');
+  f.masks.trackHiddenRoot(f.scope, parked);
+  try {
+    f.masks.draw(f.root, f.camera, { render: () => {
+      expect(Object.getOwnPropertyDescriptor(parked, 'updateMatrixWorld')).toEqual(descriptor);
+      parked.updateMatrixWorld = replacement;
+    } }, .03);
+    expect(original).not.toHaveBeenCalled(); expect(Reflect.get(parked, 'updateMatrixWorld')).toBe(replacement);
+  } finally { f.dispose(); }
+});
+
+test('a failed matrix walk restores hidden methods before propagating the failure', () => {
+  const f = fixture(), parked = new Group(), bad = new Group(), failure = new Error('matrix failed');
+  parked.visible = false; f.root.add(parked, bad); f.masks.trackHiddenRoot(f.scope, parked);
+  const original: unknown = Reflect.get(parked, 'updateMatrixWorld'), render = vi.fn((): void => undefined);
+  bad.updateMatrixWorld = (): never => { throw failure; };
+  try {
+    expect(() => f.masks.draw(f.root, f.camera, { render }, .03)).toThrow(failure);
+    expect(Reflect.get(parked, 'updateMatrixWorld')).toBe(original); expect(Object.hasOwn(parked, 'updateMatrixWorld')).toBe(false);
+    expect(f.root.matrixWorldAutoUpdate).toBe(true); expect(render).not.toHaveBeenCalled();
+  } finally { f.dispose(); }
+});
+
+test('retiring owners and roots on another scene retain ordinary matrix updates', () => {
+  const f = fixture(), owner = f.scope.child('hidden-owner'), parked = new Group(), otherScene = new Scene();
+  parked.visible = false; f.root.add(parked); f.masks.trackHiddenRoot(owner, parked);
+  const update = vi.spyOn(parked, 'updateMatrixWorld');
+  owner.onDispose(() => undefined); const retirement = owner.disposeSteps(); retirement.next();
+  try {
+    f.masks.draw(f.root, f.camera, { render: () => { if (f.root.matrixWorldAutoUpdate) f.root.updateMatrixWorld(); } }, .03);
+    expect(update).toHaveBeenCalled();
+    for (const _step of retirement) { /* Complete retirement before another registration. */ }
+    f.masks.trackHiddenRoot(f.scope, parked); otherScene.add(parked); update.mockClear();
+    f.masks.draw(f.root, f.camera, { render: () => { otherScene.updateMatrixWorld(); } }, .03);
+    expect(update).toHaveBeenCalled();
+  } finally { for (const _step of retirement) { /* Finish if an assertion failed. */ } update.mockRestore(); f.dispose(); }
 });

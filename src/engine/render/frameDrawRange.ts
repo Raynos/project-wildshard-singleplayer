@@ -10,6 +10,7 @@ interface RangeLease { readonly range: FrameDrawRange; readonly owner: Scope }
  * dynamic/custom objects and any object without a trustworthy bound. */
 export class FrameDrawRanges {
   private readonly ranges: RangeLease[] = [];
+  private readonly matrixRoots = new Map<Object3D, Scope>();
   private readonly hidden: Object3D[] = [];
   private readonly eye = new Vector3();
   private readonly sphere = new Sphere();
@@ -19,6 +20,13 @@ export class FrameDrawRanges {
     owner.onDispose(() => { const index = this.ranges.indexOf(lease); if (index !== -1) this.ranges.splice(index, 1); });
     return range;
   }
+  /** A parked root may leave ordinary frame matrix walks while hidden. Explicit
+   * construction/preparation updates outside this draw remain unchanged. */
+  trackHiddenRoot(owner: Scope, root: Object3D): void {
+    if (owner.disposed || owner.disposing || this.matrixRoots.has(root)) throw new Error('Hidden frame root requires one live owner');
+    this.matrixRoots.set(root, owner);
+    owner.onDispose(() => { this.matrixRoots.delete(root); });
+  }
   /** Only the ordinary synchronous live draw is masked. Always restore before
    * a yielded builder, offscreen warm-up or another view can inspect the scene. */
   draw(root: Object3D, camera: Camera, renderer: { render: (delta: number) => void }, delta: number): void {
@@ -27,32 +35,57 @@ export class FrameDrawRanges {
       const lease = this.ranges[i];
       if (lease !== undefined && lease.range.enabled && !lease.owner.disposed && !lease.owner.disposing) distance = Math.min(distance, lease.range.distance);
     }
-    if (!Number.isFinite(distance)) { renderer.render(delta); return; }
+    const parked: { readonly root: Object3D; readonly descriptor: PropertyDescriptor | undefined }[] = [];
+    for (const [candidate, owner] of this.matrixRoots) {
+      if (candidate.visible || owner.disposed || owner.disposing || candidate === root) continue;
+      let parent = candidate.parent;
+      while (parent !== null && parent !== root) parent = parent.parent;
+      if (parent !== root) continue;
+      const descriptor = Object.getOwnPropertyDescriptor(candidate, 'updateMatrixWorld');
+      if (descriptor === undefined && !Object.isExtensible(candidate)) continue;
+      if (descriptor !== undefined && (descriptor.configurable !== true || !('value' in descriptor))) continue;
+      parked.push({ root: candidate, descriptor });
+    }
+    if (!Number.isFinite(distance) && (parked.length === 0 || !root.matrixWorldAutoUpdate)) { renderer.render(delta); return; }
     if (this.hidden.length > 0) throw new Error('Frame draw range is already drawing');
+    const restore = (): void => {
+      for (const item of parked) {
+        if (item.descriptor === undefined) Reflect.deleteProperty(item.root, 'updateMatrixWorld');
+        else Object.defineProperty(item.root, 'updateMatrixWorld', item.descriptor);
+      }
+      parked.length = 0;
+    };
     // G782: the root's matrices are current from here; its passes' renders skip the scene's own second walk (Nalati's held
     // crossing spent ~245 ms of updateMatrixWorld in the renders after this one)
     const auto = root.matrixWorldAutoUpdate;
     try {
-      root.updateMatrixWorld(); camera.getWorldPosition(this.eye);
-      root.traverseVisible(node => {
-        // Keep sky/backdrop draws and moving/custom pipelines unchanged. A
-        // mesh with children cannot be hidden by its own geometry's bound.
-        if (!(node instanceof Mesh) || node instanceof SkinnedMesh || !node.frustumCulled || node.children.length > 0
-          || node.onBeforeRender !== Object3D.prototype.onBeforeRender || node.onAfterRender !== Object3D.prototype.onAfterRender
-          || node.onBeforeShadow !== Object3D.prototype.onBeforeShadow || node.onAfterShadow !== Object3D.prototype.onAfterShadow) return;
-        const geometry: unknown = node.geometry;
-        if (!(geometry instanceof BufferGeometry)) return;
-        for (const key in geometry.morphAttributes) if (Object.hasOwn(geometry.morphAttributes, key)) return;
-        const bound: unknown = node instanceof InstancedMesh ? node.boundingSphere : geometry.boundingSphere;
-        if (!(bound instanceof Sphere)) return;
-        const sphere = this.sphere.copy(bound).applyMatrix4(node.matrixWorld);
-        if (!Number.isFinite(sphere.radius) || sphere.radius < 0 || !Number.isFinite(sphere.center.lengthSq())) return;
-        if (sphere.distanceToPoint(this.eye) <= distance) return;
-        node.visible = false; this.hidden.push(node);
-      });
+      // Hidden content has no draw in this frame. Suppress only the parent's
+      // ordinary walk, then restore before renderer callbacks or preparation.
+      for (const item of parked) Object.defineProperty(item.root, 'updateMatrixWorld', { value: (): void => undefined, configurable: true, writable: true });
+      root.updateMatrixWorld(); restore();
+      if (Number.isFinite(distance)) {
+        camera.getWorldPosition(this.eye);
+        root.traverseVisible(node => {
+          // Keep sky/backdrop draws and moving/custom pipelines unchanged. A
+          // mesh with children cannot be hidden by its own geometry's bound.
+          if (!(node instanceof Mesh) || node instanceof SkinnedMesh || !node.frustumCulled || node.children.length > 0
+            || node.onBeforeRender !== Object3D.prototype.onBeforeRender || node.onAfterRender !== Object3D.prototype.onAfterRender
+            || node.onBeforeShadow !== Object3D.prototype.onBeforeShadow || node.onAfterShadow !== Object3D.prototype.onAfterShadow) return;
+          const geometry: unknown = node.geometry;
+          if (!(geometry instanceof BufferGeometry)) return;
+          for (const key in geometry.morphAttributes) if (Object.hasOwn(geometry.morphAttributes, key)) return;
+          const bound: unknown = node instanceof InstancedMesh ? node.boundingSphere : geometry.boundingSphere;
+          if (!(bound instanceof Sphere)) return;
+          const sphere = this.sphere.copy(bound).applyMatrix4(node.matrixWorld);
+          if (!Number.isFinite(sphere.radius) || sphere.radius < 0 || !Number.isFinite(sphere.center.lengthSq())) return;
+          if (sphere.distanceToPoint(this.eye) <= distance) return;
+          node.visible = false; this.hidden.push(node);
+        });
+      }
       root.matrixWorldAutoUpdate = false;
       renderer.render(delta);
     } finally {
+      restore();
       root.matrixWorldAutoUpdate = auto;
       for (const node of this.hidden) node.visible = true;
       this.hidden.length = 0;

@@ -1,9 +1,11 @@
 # The engine API: `@wildshard/engine`, `@wildshard/game`, `@wildshard/sdk`
 
-`@wildshard/game/systems/audio/weaponVoices` owns the existing sample-first weapon
-recipes and `WeaponSynth` mixer port; trusted runtimes consume them through
-`@wildshard/sdk/runtime/audio/weaponVoices`. The three recipe modules retain their
-original oscillator parameters, cue taps and audio random-draw ordering.
+`Game.bindHiddenFrameRoot(owner, root)` skips hidden roots in frame matrix walks only;
+manual preparation and visible roots keep normal updates.
+
+`@wildshard/game/systems/audio/weaponVoices` owns sample-first recipes and `WeaponSynth`,
+used through `@wildshard/sdk/runtime/audio/weaponVoices`. The three modules retain
+oscillator parameters, cue taps and audio random-draw order.
 `@wildshard/game/systems/audio/silentScore.installSilentScore` scopes a score-only
 gain mute and restores the previous value at disposal; its SDK defining facade is
 `@wildshard/sdk/runtime/audio/silentScore`. Both systems install only when called.

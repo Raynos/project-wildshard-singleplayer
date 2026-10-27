@@ -210,6 +210,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
         physics: host.physics, slot: app, assets: app.assets, allocator: request.allocator, claim: request.claim,
         scope, ground: foundation.ground,
         prepare: (node, root) => request.page.world.game.warmSceneRoots([node], () => !scope.disposed && node.parent !== null, root) });
+      request.page.world.game.bindHiddenFrameRoot(scope, view.root);
       const foundationWorld = foundation.world(view);
       // SF63: the herd's far cull reads the camera from the region's frame, where its animals stand (FrameCamera)
       const viewFromRoot = new FrameCamera(view.root);

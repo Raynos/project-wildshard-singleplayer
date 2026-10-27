@@ -150,6 +150,9 @@ export class Game {
   /** Limit distant ordinary draws only during live presentation; the owning
    * caller enables its range while waiting and disables it before playing. */
   bindFrameDrawRange(owner: Scope, distance: number): FrameDrawRange { return this.frameDrawRanges.bind(owner, distance); }
+  /** Hidden owned roots skip only ordinary frame matrix walks. Explicit CPU,
+   * offscreen and visible-frame updates retain their original methods. */
+  bindHiddenFrameRoot(owner: Scope, root: THREE.Object3D): void { this.frameDrawRanges.trackHiddenRoot(owner, root); }
   readonly app: typeof app = app;
   renderer: Renderer;
   /** The page's one rendered scene: the render pass, AO, shadows, the sky and the leak census read this root. */
