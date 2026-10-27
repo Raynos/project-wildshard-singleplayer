@@ -511,10 +511,7 @@
       "tile/1/2/2/draws": 6
     },
     "pastel-plain": {},
-    "pine-hollow": {
-      "tile/0/1/3/compressed": 447440,
-      "tile/0/4/7/compressed": 690720
-    },
+    "pine-hollow": {},
     "sunscar-dunes": {}
   }
 }

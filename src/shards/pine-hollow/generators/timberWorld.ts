@@ -43,7 +43,7 @@ export function pineTimberWorldBake(heightAt: (x: number, z: number) => number, 
   scene.add(library, pineUndergrowthScene());
   if (streams !== undefined) { scene.add(pineStreamScene(streams)); scene.add(pineCabinScene(heightAt, true)); }
   // GR8 G37: compiled in the program (no scene publication; the caller hashes the description)
-  try { return bakeOwned(scene, { slug: 'pine-hollow', name: 'Pine Hollow' }); }
+  try { return bakeOwned(scene, { slug: 'pine-hollow', name: 'Pine Hollow' }, { props: { tileCompression: 'meshopt' } }); }
   finally {
     scene.traverse(node => {
       if (!(node instanceof THREE.Mesh)) return;

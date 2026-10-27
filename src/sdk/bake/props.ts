@@ -6,6 +6,7 @@ import * as v from 'valibot';
 import { parseGlb, parseKtx2 } from '../assets';
 import { hashImmutableBytes as contentHash } from '../immutable';
 import { staticGlb, type GlbPrimitive } from './glb';
+import { compressGlb } from './glbCompression';
 import { tileGrid, tileGridTransform, type TileGrid } from './worldGeometry';
 
 /** A reusable scatter shape and its world-local positive TRS matrices; generators run only at build time. */
@@ -17,6 +18,13 @@ export interface PropsBakeSource {
   coarse?: Object3D; far?: Object3D; family?: string; colourTexture?: Uint8Array;
   /** GLB material name for merged surfaces; bind it through props.materials. Omitted keeps native unnamed bytes. */
   materialName?: string;
+  /** Lossless meshopt tile transport, selected only when it reduces bytes.
+   * Library/panel/far bytes stay unchanged; omitted keeps pinned native bytes. */
+  tileCompression?: 'meshopt';
+  /** Optional named-tile transport, after geometry emission and before hash/cost derivation.
+   * Receives owned bytes; only tile files invoke it, never libraries, panels or far proxies.
+   * The compiler copies the returned bytes so retained encoder buffers cannot mutate output. */
+  encodeTileBlob?: (name: string, bytes: Uint8Array) => Uint8Array;
   /** G748 / tile streaming T8: whole shapes simplified for the L1 tiles, each kept whole with its own channels in the L1 tile
    *  holding its origin (never partitioned; a shard whose look lives in custom channels keeps it far away too). */
   coarseWhole?: readonly PropWhole[];
@@ -231,8 +239,10 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
     if (!assets.has(hash)) { assets.set(hash, bytes); files.push(row); } return row;
   };
   const texture = source.colourTexture === undefined ? null : store(source.colourTexture, 'ktx2');
-  const save = (primitives: readonly GlbPrimitive[], name: string) => {
-    const row = store(staticGlb(primitives, name), 'glb');
+  const save = (primitives: readonly GlbPrimitive[], name: string, tile = false) => {
+    const original = staticGlb(primitives, name);
+    const packed = tile && source.tileCompression === 'meshopt' ? compressGlb(original) : original;
+    const row = store(packed.length < original.length ? packed : original, 'glb');
     if (texture !== null) { row.dependencies = [texture.hash]; const prior = files.find((f) => f.hash === row.hash); if (prior !== undefined) prior.dependencies = row.dependencies; section.textures.push({ model: row.hash, colour: texture.hash }); }
     return row;
   };
@@ -329,7 +339,7 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
         }
         if (batch.length > 0) batches.push(batch);
       } else batches.push(primitives);
-      const tileFiles = batches.map((batch, i) => save(batch, batches.length === 1 ? `props.${lod}.${x}.${z}` : `props.${lod}.${x}.${z}.${i}`));
+      const tileFiles = batches.map((batch, i) => save(batch, batches.length === 1 ? `props.${lod}.${x}.${z}` : `props.${lod}.${x}.${z}.${i}`, true));
       const file = tileFiles[0]; if (file === undefined) throw new Error('Props tile contains no file');
       const cost = tileFiles.reduce((sum, part) => ({ decoded: sum.decoded + part.decoded, gpu: sum.gpu + part.gpu, triangles: sum.triangles + part.triangles, draws: sum.draws + part.draws }), { decoded: 0, gpu: 0, triangles: 0, draws: 0 });
       if (texture !== null) { cost.gpu += texture.gpu; cost.decoded += texture.decoded; }

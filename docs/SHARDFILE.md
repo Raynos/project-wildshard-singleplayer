@@ -2276,6 +2276,20 @@ admission and library allocator claims use the selected footprint. The
 25 MB library target and complete 1.0/1.8 GB memory limits do not change.
 
 
+### Optional lossless prop-tile transport
+
+`bakeProps` accepts `tileCompression: 'meshopt'`; `bakeOwned` forwards it
+through `inputs.props`. Only L0/L1 tile GLBs are encoded, and the original
+file wins when encoding would grow it. File hashes and all tile/file costs
+are derived from the selected bytes. Panels, library models and far proxies
+keep their existing byte path. Omission retains pinned native tile bytes.
+The codec preserves every buffer-view byte, triangle, node and material;
+this option performs no quantization, welding or geometry simplification.
+Offline reconstruction can validate the producer's original/run-form topology
+and compact channel declarations through `@wildshard/sdk/bake/wholePartition`.
+Its optional position grid is the whole shape's shared grid; consumers restore
+that grid before welding, and keep completeness and duplicate-vertex checks.
+
 ### Exact ordinary meshes in a baked piece
 
 `BakedPiece` (`@wildshard/sdk/bake`) accepts named `Mesh` children as well

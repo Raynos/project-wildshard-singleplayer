@@ -1,19 +1,7 @@
 /** Reassemble Pine's already-published timber source channels before the final offline weld. */
-import { BufferAttribute, BufferGeometry, type Mesh } from 'three';
-import * as v from 'valibot';
+import { BufferAttribute, BufferGeometry, InterleavedBufferAttribute, type Mesh } from 'three';
+import { parseWholePartition, parseWholeSourceChannels } from '@wildshard/sdk/bake/wholePartition';
 
-const ordinal = v.pipe(v.number(), v.integer(), v.minValue(0));
-const ordinals = v.union([v.array(ordinal), v.pipe(v.strictObject({ runs: v.array(ordinal) }),
-  v.check(row => row.runs.length % 2 === 0 && row.runs.every((n, i) => i % 2 === 0 || n > 0)
-    && row.runs.reduce((sum, n, i) => sum + (i % 2 === 1 ? n : 0), 0) <= 1 << 24),
-  v.transform(row => { const result: number[] = []; for (let i = 0; i < row.runs.length; i += 2) {
-    const start = row.runs[i] ?? 0, count = row.runs[i + 1] ?? 0;
-    for (let k = 0; k < count; k++) result.push(start + k);
-  } return result; }))]);
-const partition = v.strictObject({ id: v.string(), vertices: ordinals, triangles: ordinals,
-  vertexCount: v.pipe(ordinal, v.minValue(1)), indexCount: ordinal, index: v.picklist(['none', 'u16', 'u32']) });
-const channels = v.record(v.string(), v.strictObject({ semantic: v.string(), storage: v.literal('Float32Array'),
-  normalized: v.literal(false), itemSize: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(4)) }));
 const semantics: Readonly<Record<string, string>> = { POSITION: 'position', NORMAL: 'normal', COLOR_0: 'color', TEXCOORD_0: 'uv', TANGENT: 'tangent' };
 const identities = ['fire-lookout-', 'zipline-landing-', 'creek-footbridge-'];
 
@@ -26,7 +14,7 @@ export function timberWholeViews(nodes: readonly Mesh[]): Map<string, { readonly
       if (typeof raw !== 'object' || raw === null || !('id' in raw) || typeof raw.id !== 'string') continue;
       const identity = raw.id;
       if (!identities.some(prefix => identity.startsWith(prefix))) continue;
-      const row = v.parse(partition, raw), attrs = v.parse(channels, node.userData['nativeAttributes']);
+      const row = parseWholePartition(raw), attrs = parseWholeSourceChannels(node.userData['nativeAttributes']);
       const layout = JSON.stringify(attrs), pose = JSON.stringify(node.userData['matrix64'] ?? node.userData['instances64']);
       let group = groups.get(row.id);
       if (group === undefined) {
@@ -43,10 +31,13 @@ export function timberWholeViews(nodes: readonly Mesh[]): Map<string, { readonly
         for (const [key, attr] of Object.entries(attrs)) {
           const source: unknown = node.geometry.getAttribute(semantics[attr.semantic] ?? attr.semantic.toLowerCase());
           const output: unknown = group.geometry.getAttribute(key);
-          if (!(source instanceof BufferAttribute) || !(source.array instanceof Float32Array) || source.normalized || source.itemSize !== attr.itemSize || local >= source.count || !(output instanceof BufferAttribute)) throw new Error('Timber source channel differs');
+          if (!(source instanceof BufferAttribute || source instanceof InterleavedBufferAttribute) || source.array.constructor.name !== attr.storage || source.normalized !== attr.normalized
+            || source.itemSize !== attr.itemSize || local >= source.count || !(output instanceof BufferAttribute)) throw new Error('Timber source channel differs');
+          if (key === 'position' && (attr.storage === 'Int16Array') !== (row.grid !== undefined)) throw new Error('Timber source grid differs');
           for (let k = 0; k < attr.itemSize; k++) {
-            const value = source.array[local * attr.itemSize + k], at = vertex * attr.itemSize + k;
-            if (value === undefined || !Number.isFinite(value) || (group.seen[vertex] === 1 && !Object.is(value, output.array[at]))) throw new Error('Timber shared vertex differs');
+            const stored = source.getComponent(local, k), at = vertex * attr.itemSize + k;
+            const value = Math.fround(key === 'position' && row.grid !== undefined ? stored * row.grid.step + (row.grid.origin[k] ?? 0) : stored);
+            if (!Number.isFinite(value) || (group.seen[vertex] === 1 && !Object.is(value, output.array[at]))) throw new Error('Timber shared vertex differs');
             output.array[at] = value;
           }
         }
