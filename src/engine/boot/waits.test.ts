@@ -41,3 +41,16 @@ it('selects the displayed step over older foreign music, then its nested work, w
   expect(loadingStepWaits(registry.snapshot(), 'world', 'world', Symbol('next-attempt'))).toEqual([]);
   finish(); await Promise.all(running);
 });
+
+it('keeps overlapping attempts separate even when their stage names match', async () => {
+  const registry = new WaitRegistry(), oldOwner = Symbol('old'), owner = Symbol('current');
+  let finish = (): void => { throw new Error('Uninitialized resolver'); };
+  const work = new Promise<void>(resolve => { finish = resolve; });
+  const running = [registry.waitFor('Old geometry', work, 'file', 'world', oldOwner),
+    registry.waitFor('Current geometry', work, 'file', 'world', owner),
+    registry.waitFor('Old nested read', work, 'file', 'renderer', oldOwner),
+    registry.waitFor('Current nested read', work, 'file', 'renderer', owner)];
+  expect(loadingStepWaits(registry.snapshot(), 'world', 'renderer', owner).map(row => row.label)).toEqual(['Current geometry']);
+  expect(loadingStepWaits(registry.snapshot(), 'loadout', 'renderer', owner).map(row => row.label)).toEqual(['Current nested read']);
+  finish(); await Promise.all(running);
+});
