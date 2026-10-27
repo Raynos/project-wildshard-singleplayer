@@ -29,8 +29,8 @@ import { validateDefinedSection, validateDefinedJson, type EmittedSections } fro
 import { parseDiscoveryValues, type DiscoveryValues } from '@wildshard/format/discoveryValues';
 
 const encoder = new TextEncoder();
-/** I5: files below this size are packed; a pack holds at most this many bytes. */
-const PACK_MEMBER_BYTES = 1_048_576, PACK_BYTES = 4_194_304;
+/** I5: a file may use the full pack envelope; every pack stays within this cap. */
+const PACK_BYTES = 4_194_304;
 function jsonBytes(value: unknown): Uint8Array { return encoder.encode(encodeCanonicalJson(value)); }
 function readJson(bytes: Uint8Array): unknown {
   const text = new TextDecoder('utf-8', {fatal:true}).decode(bytes), value: unknown = JSON.parse(text);
@@ -175,7 +175,7 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
     note(readJson(bytes));
   }
   note(source.props?.tiles); note(source.tiles);
-  const small = files.filter(file=>file.compressed<PACK_MEMBER_BYTES).sort((a,b)=>(order.get(a.hash) ?? Infinity)-(order.get(b.hash) ?? Infinity)
+  const packable = files.filter(file=>file.compressed<=PACK_BYTES).sort((a,b)=>(order.get(a.hash) ?? Infinity)-(order.get(b.hash) ?? Infinity)
     || (a.name ?? a.hash).localeCompare(b.name ?? b.hash) || a.hash.localeCompare(b.hash));
   // A typed alternative need not have an explicit file.tier. Use the same entry
   // projection as admission so an inactive variant cannot poison a whole pack.
@@ -194,7 +194,7 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
   const phone = excluded('phone'), desktop = excluded('desktop');
   const membership = (hash: string): number => (phone.has(hash) ? 0 : 1) + (desktop.has(hash) ? 0 : 2);
   const groups=[[...[...sections].sort((a,b)=>a.name.localeCompare(b.name)),...[...schemas].sort((a,b)=>a.path.localeCompare(b.path))],
-    ...[true,false].flatMap(initial=>[undefined,'phone','desktop'].flatMap(tier=>[0,1,2,3].map(mask=>small.filter(file=>required.has(file.hash)===initial&&file.tier===tier&&membership(file.hash)===mask).map(file=>({path:file.path,hash:file.hash,bytes:file.compressed})))) )];
+    ...[true,false].flatMap(initial=>[undefined,'phone','desktop'].flatMap(tier=>[0,1,2,3].map(mask=>packable.filter(file=>required.has(file.hash)===initial&&file.tier===tier&&membership(file.hash)===mask).map(file=>({path:file.path,hash:file.hash,bytes:file.compressed})))) )];
   let pending:{path:string;hash:string;bytes:number}[]=[],pendingBytes=0;
   const flush=():void=>{
     if(pending.length===0)return;

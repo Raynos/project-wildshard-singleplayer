@@ -64,13 +64,13 @@ it('refuses canonical but schema-invalid section bytes with updated hash and siz
  writeFileSync(resolve(directory,'shard.json'),encodeCanonicalJson(index));expect(()=>validateOutputProduct(directory)).toThrow();
 });
 
-it('packs medium bodies within 4 MiB without pulling late bytes into required reads',()=>{
+it('packs multi-MiB bodies within 4 MiB without pulling late bytes into required reads',()=>{
  const shard=source(),directory=output();
- const bodies=Array.from({length:9},(_,i)=>new Uint8Array(i===8?1_048_576:716_800).fill(i+1));
+ const bodies=Array.from({length:9},(_,i)=>new Uint8Array(i===8?4_194_305:i===1||i===7?1_200_000:716_800).fill(i+1));
  const assets=new Map(bodies.map(body=>[hashImmutableBytes(body),body])),hashes=[...assets.keys()];
  const late=hashes.slice(6,8),unpacked=hashes[8];
  shard.files=[...assets].map(([hash,body])=>({hash,kind:'binary' as const,compressed:body.length,decoded:body.length,gpu:0,triangles:0,draws:0,dependencies:[],critical:false})).sort((a,b)=>a.hash.localeCompare(b.hash));
- shard.library=hashes;shard.late=late.map(hash=>({hash}));shard.budgets.library={resident:8_000_000,compressed:8_000_000};
+ shard.library=hashes;shard.late=late.map(hash=>({hash}));shard.budgets.library={resident:16_000_000,compressed:16_000_000};
  const index=writeOutputProduct(shard,assets,directory),seen=new Set<string>();
  const bodyPacks=(index.packs??[]).filter(pack=>pack.entries.some(entry=>assets.has(entry.hash)));
  expect(bodyPacks).toHaveLength(3);
@@ -93,10 +93,10 @@ it('packs medium bodies within 4 MiB without pulling late bytes into required re
 });
 
 it('keeps explicit phone, desktop and shared pack bodies separate in each admission phase',()=>{
- const shard=source(),directory=output(),bodies=Array.from({length:6},(_,i)=>new Uint8Array(131_072).fill(i+1));
+ const shard=source(),directory=output(),bodies=Array.from({length:6},(_,i)=>new Uint8Array(1_100_000).fill(i+1));
  const assets=new Map(bodies.map(body=>[hashImmutableBytes(body),body])),hashes=[...assets.keys()];
  shard.files=[...assets].map(([hash,body])=>({hash,kind:'binary' as const,compressed:body.length,decoded:body.length,gpu:0,triangles:0,draws:0,dependencies:[],critical:false}));
- shard.library=hashes;shard.late=hashes.slice(3).map(hash=>({hash}));shard.budgets.library={resident:786_432,compressed:786_432};
+ shard.library=hashes;shard.late=hashes.slice(3).map(hash=>({hash}));shard.budgets.library={resident:6_600_000,compressed:6_600_000};
  const namedFiles=shard.files.map((file,i)=>({...file,kind:'bin' as const,path:`blobs/bin/${file.hash}.bin`,name:`medium-${i}.bin`,
   ...(i%3===0?{}:{tier:i%3===1?'phone' as const:'desktop' as const})}));
  shard.files.sort((a,b)=>a.hash.localeCompare(b.hash));
