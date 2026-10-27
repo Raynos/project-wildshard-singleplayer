@@ -171,11 +171,13 @@ test('a replaced mooring look across native admission refuses completion',async(
   const {ctx,scope,source}=fixture([platform]),group=new Group(),material=new MeshBasicMaterial(),replacement=new Scope('replacement-look');
   const moor={look:'fixture-moor',water:0,cleats:[-2,2] as const};source.look.materials[moor.look]=moorLook();publishEntryOwner(scope,'object','boat',group);
   const lend=(owner:Scope):void=>{lendLooks(owner,{materials:new Map([[moor.look,material]]),setParam:()=>undefined,setTexture:()=>undefined,bindMeshMap:()=>material});};
-  lend(scope);const result=await fixtureRuntime(scope);let resume:((runtime:movers.MoverRuntime)=>void)|undefined;
-  const install=vi.spyOn(movers,'installDeclaredMovers').mockReturnValue(new Promise(resolve=>{resume=resolve;}));
+  lend(scope);const result=await fixtureRuntime(scope);let resume:((runtime:movers.MoverRuntime)=>void)|undefined,begin:(()=>void)|undefined;
+  // D74: the look's graph file is read before the looks are captured, so the replacement waits for native admission itself.
+  const begun=new Promise<void>(resolve=>{begin=resolve;});
+  const install=vi.spyOn(movers,'installDeclaredMovers').mockImplementation(()=>{begin?.();return new Promise(resolve=>{resume=resolve;});});
   try{
     const running=installClientMoverOwners(ctx,{system:'movers',bindings:[{id:platform.id,kind:'object',owner:'boat',moor}]});
-    lend(replacement);if(resume===undefined)throw new Error('Missing installer resolver');resume(result);
+    await begun;lend(replacement);if(resume===undefined)throw new Error('Missing installer resolver');resume(result);
     await expect(running).rejects.toThrow('look owner changed');
   }finally{install.mockRestore();replacement.dispose();scope.dispose();material.dispose();}
 });
