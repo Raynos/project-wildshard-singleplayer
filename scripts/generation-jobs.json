@@ -6404,11 +6404,12 @@
     {
       "id": "sky-data-map",
       "shard": "far-reach",
-      "entry": "scripts/bake-sky-map.mjs",
+      "entry": "src/shards/far-reach/generators/bake-map.mjs",
       "command": [
         "--import",
         "./scripts/sim-node-loader.mjs",
-        "scripts/bake-sky-map.mjs"
+        "scripts/bake-sky-map.mjs",
+        "src/shards/far-reach/generators/bake-map.mjs"
       ],
       "inputRoots": [
         "src/shards/far-reach/shard.config.ts",
