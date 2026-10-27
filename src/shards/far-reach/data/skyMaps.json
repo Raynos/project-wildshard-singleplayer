@@ -1,0 +1,219 @@
+{
+  "maps": {
+    "rock": {
+      "hash": "29509eb73032d3779209857635a2800c58e30d97cf39aa647cd82edce53aa9b5",
+      "kind": "ktx2",
+      "compressed": 1332266,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "dependencies": [],
+      "critical": false
+    },
+    "meadow": {
+      "hash": "b230b51585a820cad1c588292ad3b7b96e8ce087526b6adbcb2f6eb566dd96e0",
+      "kind": "ktx2",
+      "compressed": 1378150,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "dependencies": [],
+      "critical": false
+    },
+    "clouds": {
+      "hash": "8643f909ff6e1a8bd9bc0939ffa587bf1302d58fe6a46d49163873f133b6d5b0",
+      "kind": "ktx2",
+      "compressed": 324471,
+      "decoded": 0,
+      "gpu": 3727820,
+      "triangles": 0,
+      "draws": 0,
+      "dependencies": [],
+      "critical": false
+    },
+    "cloudsea": {
+      "hash": "e87efc25c5f2fb46ff968d8558edc2def23b5b14bc8e9eb81005f7e27f0bb0b3",
+      "kind": "ktx2",
+      "compressed": 1272214,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "dependencies": [],
+      "critical": false
+    },
+    "maelstrom": {
+      "hash": "36bcd27f5ed57c6ec5843e78ebcb57645e1050c32315c25a89329cd30de6dd14",
+      "kind": "ktx2",
+      "compressed": 1313885,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "dependencies": [],
+      "critical": false
+    },
+    "stormeye": {
+      "hash": "47844d7d65db8ad2d473359243eb9bff595a18254f0507d91a503e255b3d0e44",
+      "kind": "ktx2",
+      "compressed": 1138809,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "dependencies": [],
+      "critical": false
+    },
+    "millStone": {
+      "hash": "a6a27d40f424f2adca503a5acc321df62b65f666e6b7a266b4f7330b58c95268",
+      "kind": "ktx2",
+      "compressed": 1249509,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "dependencies": [],
+      "critical": false
+    },
+    "millCanvas": {
+      "hash": "902bd6a90128d62477fb16fc567dceb43194bffadd4544ee09cb94217b42a054",
+      "kind": "ktx2",
+      "compressed": 322007,
+      "decoded": 0,
+      "gpu": 1398100,
+      "triangles": 0,
+      "draws": 0,
+      "dependencies": [],
+      "critical": false
+    },
+    "millIvy": {
+      "hash": "4d7f378584c91c5e64a2c15a496fff6407e12db1c194fe30bf4261346eb03d3b",
+      "kind": "ktx2",
+      "compressed": 480502,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "dependencies": [],
+      "critical": false
+    }
+  },
+  "files": [
+    {
+      "hash": "29509eb73032d3779209857635a2800c58e30d97cf39aa647cd82edce53aa9b5",
+      "kind": "ktx2",
+      "compressed": 1332266,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "dependencies": [],
+      "critical": false
+    },
+    {
+      "hash": "b230b51585a820cad1c588292ad3b7b96e8ce087526b6adbcb2f6eb566dd96e0",
+      "kind": "ktx2",
+      "compressed": 1378150,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "dependencies": [],
+      "critical": false
+    },
+    {
+      "hash": "8643f909ff6e1a8bd9bc0939ffa587bf1302d58fe6a46d49163873f133b6d5b0",
+      "kind": "ktx2",
+      "compressed": 324471,
+      "decoded": 0,
+      "gpu": 3727820,
+      "triangles": 0,
+      "draws": 0,
+      "dependencies": [],
+      "critical": false
+    },
+    {
+      "hash": "e87efc25c5f2fb46ff968d8558edc2def23b5b14bc8e9eb81005f7e27f0bb0b3",
+      "kind": "ktx2",
+      "compressed": 1272214,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "dependencies": [],
+      "critical": false
+    },
+    {
+      "hash": "36bcd27f5ed57c6ec5843e78ebcb57645e1050c32315c25a89329cd30de6dd14",
+      "kind": "ktx2",
+      "compressed": 1313885,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "dependencies": [],
+      "critical": false
+    },
+    {
+      "hash": "47844d7d65db8ad2d473359243eb9bff595a18254f0507d91a503e255b3d0e44",
+      "kind": "ktx2",
+      "compressed": 1138809,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "dependencies": [],
+      "critical": false
+    },
+    {
+      "hash": "a6a27d40f424f2adca503a5acc321df62b65f666e6b7a266b4f7330b58c95268",
+      "kind": "ktx2",
+      "compressed": 1249509,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "dependencies": [],
+      "critical": false
+    },
+    {
+      "hash": "902bd6a90128d62477fb16fc567dceb43194bffadd4544ee09cb94217b42a054",
+      "kind": "ktx2",
+      "compressed": 322007,
+      "decoded": 0,
+      "gpu": 1398100,
+      "triangles": 0,
+      "draws": 0,
+      "dependencies": [],
+      "critical": false
+    },
+    {
+      "hash": "4d7f378584c91c5e64a2c15a496fff6407e12db1c194fe30bf4261346eb03d3b",
+      "kind": "ktx2",
+      "compressed": 480502,
+      "decoded": 0,
+      "gpu": 5592404,
+      "triangles": 0,
+      "draws": 0,
+      "dependencies": [],
+      "critical": false
+    }
+  ],
+  "library": [
+    "29509eb73032d3779209857635a2800c58e30d97cf39aa647cd82edce53aa9b5",
+    "b230b51585a820cad1c588292ad3b7b96e8ce087526b6adbcb2f6eb566dd96e0",
+    "8643f909ff6e1a8bd9bc0939ffa587bf1302d58fe6a46d49163873f133b6d5b0",
+    "e87efc25c5f2fb46ff968d8558edc2def23b5b14bc8e9eb81005f7e27f0bb0b3",
+    "36bcd27f5ed57c6ec5843e78ebcb57645e1050c32315c25a89329cd30de6dd14",
+    "47844d7d65db8ad2d473359243eb9bff595a18254f0507d91a503e255b3d0e44",
+    "a6a27d40f424f2adca503a5acc321df62b65f666e6b7a266b4f7330b58c95268",
+    "902bd6a90128d62477fb16fc567dceb43194bffadd4544ee09cb94217b42a054",
+    "4d7f378584c91c5e64a2c15a496fff6407e12db1c194fe30bf4261346eb03d3b"
+  ],
+  "budget": {
+    "compressed": 8811813,
+    "resident": 44272748
+  }
+}

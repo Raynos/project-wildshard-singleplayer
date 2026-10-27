@@ -229,7 +229,6 @@ src/shards/far-reach/data/crownInstances.generated.json
 /public/assets/far-reach/baked/rest-hover-1.glb
 /public/assets/far-reach/baked/rest-hover-2.glb
 
-/src/shards/far-reach/data/skyMaps.json
 
 # Sky static bridge author products
 /src/shards/far-reach/data/bridgeRest.generated.json
