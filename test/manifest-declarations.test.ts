@@ -18,10 +18,11 @@ it('keeps the four native camera poses and unbounded Nine attacker allocation', 
 it('bakes every Nalati camera eye against the shipped terrain samples', async () => {
   const terrain = readNativeTerrain(fixtureBytes(new URL('../public/assets/baked/nalati-grasslands/terrain.bin', import.meta.url)));
   const poses = await nalati.dev?.poses();
-  expect(Object.keys(poses ?? {})).toEqual(discovery.captureProbes.map(probe => probe.name));
+  // Program discovery is canonical JSON: record keys are unordered and yaw zero has no negative sign.
+  expect(Object.keys(poses ?? {}).sort()).toEqual(discovery.captureProbes.map(probe => probe.name).sort());
   for (const probe of discovery.captureProbes) expect(poses?.[probe.name]).toEqual({
     probe, eye: [probe.x, terrain.heightAt(probe.x, probe.z) + 1.68, probe.z],
-    yaw: -probe.yaw * 180 / Math.PI, pitch: probe.pitch * 180 / Math.PI, mockup: '', frame: probe.name,
+    yaw: 0 - probe.yaw * 180 / Math.PI, pitch: probe.pitch * 180 / Math.PI, mockup: '', frame: probe.name,
   });
   const ground = nalati.ground;
   try {
