@@ -313,7 +313,9 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       const source = { file: typeof model.file === 'string' ? model.file : model.file[TIER], attributes: model.attributes };
       return model.segments === undefined ? source : Object.assign(source, { segments: model.segments });
     }) : []);
-  const geometryIntake = readWorldSceneGeometries(owner, product, ownedModels, ctx.app.assets, { revisit: true });
+  // Metadata-only scenes need no render service. Borrow the real asset owner
+  // only at the first required owned-model cursor, as the original reader did.
+  let geometryIntake: ReturnType<typeof readWorldSceneGeometries> | undefined;
   try {
     await timeClientPreparation(product.slug, 'scene.library-intake', async () => {
       const libraryProgress = loadingUnits('Model libraries', section.libraries.length);
@@ -338,6 +340,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
             // The four-model window crosses library boundaries and refills
             // before this cursor's budget pause. Adoption stays in row order.
             for (const [modelIndex, model] of neededModels.entries()) {
+              geometryIntake ??= readWorldSceneGeometries(owner, product, ownedModels, ctx.app.assets, { revisit: true });
               const result = await geometryIntake.next();
               if (result.done) throw new Error(`Missing scene model read: ${model.id}`);
               const geometry = result.value;
@@ -609,6 +612,6 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     // Every live/deferred consumer now owns a copy; retire decoder templates.
     libraries.clear(); packets.clear(); for (const done of finish) done();
     return handles;
-  } catch (error) { await geometryIntake.return(); owner.dispose(); throw error; }
-  finally { await geometryIntake.return(); }
+  } catch (error) { await geometryIntake?.return(); owner.dispose(); throw error; }
+  finally { await geometryIntake?.return(); }
 }
