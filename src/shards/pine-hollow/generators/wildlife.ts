@@ -1,14 +1,11 @@
 /**
- * Pine Hollow's procedural wildlife shapes (G285: an offline bake). Build-time only: `src/shards/pine-hollow/generators/bake-pine-wildlife.mjs` runs
- * `bakePineWildlife` and writes the raven's, the great grey owl's, the pileated woodpecker's and the snowshoe hare's
- * geometry (ellipsoids, cones and feather sheets at their real size, forward = +z, up = +y, smooth-shaded, per-vertex
- * roughness and feather / fur mottling) to `public/assets/pine-hollow/baked/wildlife.bin` (its 4-byte words in four lanes,
- * zlib) and its rows to `../data/wildlife.json`; the page reads them behind the loading screen (../models/wildlife.ts
- * `preloadPineWildlife`) and never runs this. test/shards/pine-hollow/wildlife-bake.test.ts is the stale gate.
+ * Pine Hollow's procedural wildlife shapes (G285): the raven's, the great grey owl's, the pileated woodpecker's and the
+ * snowshoe hare's geometry (ellipsoids, cones and feather sheets at their real size, forward = +z, up = +y, smooth-shaded,
+ * per-vertex roughness and feather / fur mottling). Build-time only: the bird bake (birds.ts) reads the hare through
+ * `wildlifeGeometry`. GR8: the old standalone wildlife bake and its baked/wildlife.bin had no reader and are gone.
  */
 import * as THREE from 'three';
-import { bake, BakedPiece, type BakedScene } from '@wildshard/sdk/bake';
-import { HARE_NECK, KIND, P, WILD_BAKE_KINDS, type V3, type WildKind, type WildRows } from './wildlifeKinds';
+import { HARE_NECK, KIND, P, type V3, type WildKind } from './wildlifeKinds';
 
 type Paint = (p: V3, n: V3) => THREE.Color;
 
@@ -238,50 +235,7 @@ function hare(b: Builder): void {
 
 const MODELS: Readonly<Record<WildKind, (b: Builder) => void>> = { [KIND.raven]: raven, [KIND.owl]: owl, [KIND.woodpecker]: woodpecker, [KIND.hare]: hare };
 
-/** The bake: each kind built on its own (local indices), its blocks one after another in `WILD_BAKE_KINDS` order. */
-export function bakePineWildlife(): { rows: Omit<WildRows, 'bin' | 'bytes'>; bin: Uint8Array } {
-  const parts: { kind: WildKind; vertices: number; indices: number; bin: Uint8Array }[] = [];
-  for (const kind of WILD_BAKE_KINDS) { const b = new Builder(); MODELS[kind](b); const { vertices, indices, bin } = b.words(); parts.push({ kind, vertices, indices, bin }); }
-  const bin = new Uint8Array(parts.reduce((n, p) => n + p.bin.length, 0));
-  let at = 0;
-  for (const p of parts) { bin.set(p.bin, at); at += p.bin.length; }
-  return { rows: { kinds: parts.map(({ kind, vertices, indices }) => ({ kind, vertices, indices })) }, bin };
-}
-
 /** Original rest channels for a single authored wildlife kind. */
 export function wildlifeGeometry(kind: WildKind): THREE.BufferGeometry {
   const builder = new Builder(); MODELS[kind](builder); return builder.geometry();
-}
-
-/** Four named local-space models in one author scene; native controllers still own their live poses. */
-export function pineWildlifeScene(): THREE.Scene {
-  const scene = new THREE.Scene(); scene.name = 'pine-hollow.wildlife';
-  const material = new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 1, side: THREE.DoubleSide });
-  const kinds = WILD_BAKE_KINDS.map(kind => {
-    const builder = new Builder(); MODELS[kind](builder);
-    const mesh = new THREE.InstancedMesh(builder.geometry(), material, 1);
-    mesh.setMatrixAt(0, new THREE.Matrix4());
-    return [`wildlife-${String(kind)}`, mesh] as const;
-  });
-  scene.add(new BakedPiece('pine.wildlife', kinds, [], {
-    attributes: { _PIVOT: 'aPivot', _INFO: 'aInfo', _TEX: 'aTex' },
-  }));
-  return scene;
-}
-
-/** Bake the wildlife library through the scene pipeline without inventing static wildlife placements. */
-export function pineWildlifeBake(project?: string): BakedScene {
-  const scene = pineWildlifeScene();
-  try {
-    return bake(scene, { slug: 'pine-hollow', name: 'Pine Hollow' }, project === undefined ? {} : { project });
-  } finally {
-    scene.traverse(node => {
-      if (!(node instanceof THREE.Mesh)) return;
-      const geometry: unknown = node.geometry, materials: unknown = node.material;
-      if (geometry instanceof THREE.BufferGeometry) geometry.dispose();
-      for (const material of Array.isArray(materials) ? materials : [materials]) {
-        if (material instanceof THREE.Material) material.dispose();
-      }
-    });
-  }
 }

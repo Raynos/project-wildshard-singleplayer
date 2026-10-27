@@ -2335,8 +2335,6 @@
     "src/shards/pine-hollow/data/timberScenes.generated.json",
     "src/shards/pine-hollow/data/timberWorld.generated.json",
     "src/shards/pine-hollow/data/treeRest.generated.json",
-    "src/shards/pine-hollow/data/wildlife.json",
-    "src/shards/pine-hollow/data/wildlifeGlb.generated.json",
     "src/shards/pine-hollow/generators/sectionSchemas.generated.ts",
     "src/shards/pine-hollow/look/map.baked.json",
     "src/shards/pine-hollow/runtime/productSections.generated.d.ts",
