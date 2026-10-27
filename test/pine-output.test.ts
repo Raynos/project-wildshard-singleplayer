@@ -7,8 +7,7 @@ import {outputPlatformPayloads} from '../src/sdk/outputProduct';
 import {HeldEquipmentSchema} from '../src/format/heldEquipment';
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
-// oxlint-disable-next-line import/no-nodejs-modules -- Inspect the official emitted author output, not a runtime filesystem path.
-import {readFileSync} from 'node:fs';
+import director from '../src/shards/pine-hollow/data/director.json' with {type:'json'};
 import {readPineProject} from './fixtures/pine-project';
 import {validateDefinedSection} from '../src/sdk/sections';
 import {SECTIONS} from '../src/shards/pine-hollow/generators/sections';
@@ -56,9 +55,13 @@ test('Pine emits every client section with checked schemas and named immutable a
  for(const stem of ['night','director']){
   const module=stem==='night'
    ?parseSpawnScript(night).script.module.slice('blobs/wasm/'.length,-'.wasm'.length)
-   :v.parse(v.object({module:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))}),JSON.parse(readFileSync('src/shards/pine-hollow/behaviour/director.json','utf8'))).module;
+   :v.parse(v.object({module:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))}),director).module;
   const file=loaded.output.namedFiles?.find(row=>row.name===`behaviour/${stem}.wasm`);
   expect(file?.hash).toBe(module);
+  expect(file?.path).toBe(`blobs/wasm/${module}.wasm`);
+  const bytes=loaded.assets.get(module);
+  if(bytes===undefined)throw new Error(`Missing ${stem} module bytes`);
+  expect(createHash('sha256').update(bytes).digest('hex')).toBe(module);
  }
  expect(()=>v.parse(ClaimedPickupSchema,{bad:{}})).toThrow();
  expect(()=>v.parse(HeldEquipmentSchema.entries.launcher,{pool:{url:'missing',parts:[]},hierarchy:{}})).toThrow();
