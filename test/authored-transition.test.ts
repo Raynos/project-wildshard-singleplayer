@@ -48,6 +48,8 @@ test('fixed boot and art bindings stay independent of page mode and lazy graph l
   const folder = resolve(scratch, 'src/shards/_template');
   mkdirSync(resolve(folder, 'boot'), { recursive: true });
   mkdirSync(resolve(folder, 'explore'), { recursive: true });
+  mkdirSync(resolve(folder, 'data'), { recursive: true });
+  writeFileSync(resolve(folder, 'data/budgets.json'), readFileSync(resolve(root, 'src/shards/_template/data/budgets.json')));
   const art = '/src/shards/_template/explore/fixed-binding.svg';
   writeFileSync(resolve(folder, 'boot/explore.generated.json'), JSON.stringify({ art: [art] }));
   writeFileSync(resolve(folder, 'explore/fixed-binding.svg'), '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>');
@@ -87,6 +89,8 @@ test('the default JSON art binding contributes extra source image imports and re
   const scratch = mkdtempSync(resolve(root, 'tmp/manifest-extra-art-'));
   const folder = resolve(scratch, 'src/shards/_template/boot');
   mkdirSync(folder, { recursive: true });
+  mkdirSync(resolve(folder, '../data'), { recursive: true });
+  writeFileSync(resolve(folder, '../data/budgets.json'), readFileSync(resolve(root, 'src/shards/_template/data/budgets.json')));
   const file = resolve(folder, 'explore.generated.json');
   const extra = '/src/shards/_template/explore/additional.webp';
   const data = parseManifestMetadata({ ...fixture, bindings: { ...bindings,

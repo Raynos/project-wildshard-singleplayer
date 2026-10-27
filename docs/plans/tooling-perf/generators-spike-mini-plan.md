@@ -25,8 +25,8 @@ generators work and the source code of shard files work and the data and the gen
 G804/G805 assigns this plan to sp-x1 alone; sp-x2 handed off without any GS
 source edits. Active-parent progress counts GR0–GR9, GR12 and GS1–GS5
 (16 rows; GR10 is folded, GR11 dropped): 15/16 complete = 94% by the current
-verified marks. GR12 final acceptance and GS5 remain open until their
-actual done-when checks close, rather than counting unmarked source as proof.
+verified marks. Only GR12 final acceptance remains open; the source and CI
+table checks have qualified their actual done-when.
 
 | Row | State | Work and qualification |
 |---|---|---|
