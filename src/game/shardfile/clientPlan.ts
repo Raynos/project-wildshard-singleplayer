@@ -14,7 +14,7 @@ import { windUniforms } from '@wildshard/engine/world/TreeFactory';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { clientNativeBook } from './clientNativeBook';
 import type { PlatformSectionName } from '@wildshard/format/sections';
-import { buildYield } from '@wildshard/engine/core/workSlice';
+import { constructionCheckpoint } from './constructionCheckpoint';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { parseClientPlan, type ClientFeatureKind, type ClientFeatureRow } from '@wildshard/format/clientPlan';
 import { clientOwnershipRules } from '@wildshard/format/clientOwnership';
@@ -497,19 +497,26 @@ export async function installClientPhase(ctx: ShardContext, plan: AdmittedClient
       ...(phase === 'play' && feature.play !== undefined ? [{ row, ...feature.play }] : []),
       ...(phase === 'prepare-play' && feature.preparePlay !== undefined && (feature.preparePlay.when?.(row) ?? true) ? [{ row, ...feature.preparePlay }] : [])];
   }).sort((a, b) => a.rank - b.rank || phaseKey(a.row).localeCompare(phaseKey(b.row)));
+  const live = (): void => {
+    if (ctx.scope.disposed || ctx.scope.disposing || resident.disposed || resident.disposing) throw new Error('Client feature owner is disposed');
+  };
   // The platform's look phase precedes every entered world step, including
   // trusted runtimes whose data client intentionally skips presentation. A
   // metadata-only phase leaves look construction to its original native owner.
   if (phase === 'world' && lifetime !== 'resident' && rows.some(({ row }) => CLIENT_FEATURES[row.kind].needsWorldLooks !== false)) {
-    if (ctx.scope.disposed || ctx.scope.disposing || resident.disposed || resident.disposing) throw new Error('Client feature owner is disposed');
+    live();
     const missing = Object.keys(ctx.product.shardfile.look.materials).filter(id => !hasLentLook(id));
     if (missing.length > 0) await timeClientPreparation(ctx.product.slug, 'world.looks', async () => {
       lendLooks(ctx.scope, await runtimeLookMaterials(ctx, ctx.product.shardfile, true, missing));
     });
   }
   for (const { row, install } of rows) {
-    if (ctx.scope.disposed || ctx.scope.disposing || resident.disposed || resident.disposing) throw new Error('Client feature owner is disposed');
+    live();
     await timeClientPreparation(ctx.product.slug, `${phase}.${row.kind}`, () => install(ctx, row, resident));
-    await buildYield(ctx.scope);
+    // A completed install may already have yielded through reads/decodes.
+    // Keep the shared frame budget, not a mandatory turn per tiny feature.
+    const pause = constructionCheckpoint(ctx.scope);
+    if (pause !== undefined) await pause;
+    live();
   }
 }

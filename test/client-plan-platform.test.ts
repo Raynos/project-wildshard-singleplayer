@@ -16,6 +16,7 @@ import type { CosmeticState } from '../src/game/cosmetics/locker';
 import { clientSceneHandles } from '../src/game/shardfile/clientSceneHandles';
 import { expect, test, vi } from 'vitest';
 import * as workSlices from '../src/engine/core/workSlice';
+import * as framePacing from '../src/engine/core/framePacing';
 import fixture from './fixtures/client-plan.json' with { type: 'json' };
 import { Scope } from '../src/engine/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
@@ -562,4 +563,76 @@ test('runtime phases reuse one immutable checked plan per admitted product', () 
     try { missing.sections.delete('client/plan'); expect(() => admittedProductClientPlan(missing.ctx.product)).toThrow(); }
     finally { missing.ctx.scope.dispose(); }
   } finally { first.ctx.scope.dispose(); replacement.ctx.scope.dispose(); }
+});
+
+// Completed features share the same live frame budget as their construction
+// loops. Node/loading still exercises the original chapter-yield oracle above.
+function phaseCompletionFixture() {
+  const f = context(), order: string[] = [];
+  const resident = new Scope('phase-completion-resident');
+  const plan = parseClientPlan({ version: 1, features: [
+    { kind: 'world.runtime-hooks', overhead: [] }, { kind: 'world.updates', rows: [] },
+  ] });
+  const updates = vi.spyOn(clientPhases.CLIENT_FEATURES['world.updates'], 'install').mockImplementation(() => { order.push('updates'); });
+  const hooks = vi.spyOn(clientPhases.CLIENT_FEATURES['world.runtime-hooks'], 'install').mockImplementation(() => { order.push('hooks'); });
+  const presenting = vi.spyOn(framePacing, 'presenting').mockReturnValue(true);
+  const held = vi.spyOn(framePacing, 'buildHeld').mockReturnValue(true);
+  const spent = vi.spyOn(framePacing, 'frameBudgetSpent').mockReturnValue(false);
+  const pause = vi.spyOn(workSlices, 'buildYield').mockImplementation(() => { order.push('yield'); return Promise.resolve(); });
+  return { ...f, resident, plan, order, updates, hooks, spent, pause, close: () => {
+    f.ctx.scope.dispose(); resident.dispose(); updates.mockRestore(); hooks.mockRestore();
+    presenting.mockRestore(); held.mockRestore(); spent.mockRestore(); pause.mockRestore();
+  } };
+}
+
+test('completed cheap live features keep platform order without a fresh turn per feature', async () => {
+  const f = phaseCompletionFixture();
+  try {
+    await installClientPhase(f.ctx, f.plan, 'world-bindings', f.resident);
+    expect(f.order).toEqual(['updates', 'hooks']);
+    expect(f.updates).toHaveBeenCalledOnce(); expect(f.hooks).toHaveBeenCalledOnce();
+    expect(f.spent).toHaveBeenCalledTimes(2); expect(f.pause).not.toHaveBeenCalled();
+  } finally { f.close(); }
+});
+
+test('a spent feature drains its original pause and rechecks resident retirement before continuing', async () => {
+  const f = phaseCompletionFixture();
+  let finish = (): void => undefined, began = (): void => undefined;
+  const started = new Promise<void>(resolve => { began = resolve; });
+  f.spent.mockReturnValue(true);
+  f.pause.mockImplementation(() => { f.order.push('yield'); began(); return new Promise<void>(resolve => { finish = resolve; }); });
+  try {
+    const pending = installClientPhase(f.ctx, f.plan, 'world-bindings', f.resident);
+    const refused = expect(pending).rejects.toThrow('Client feature owner is disposed');
+    await started; expect(f.order).toEqual(['updates', 'yield']);
+    f.resident.dispose(); finish(); await refused;
+    expect(f.hooks).not.toHaveBeenCalled(); expect(f.pause).toHaveBeenCalledOnce();
+  } finally { finish(); f.close(); }
+});
+
+test.each(['scope', 'resident'] as const)('the final cheap feature refuses a retired %s before phase completion', async which => {
+  const f = phaseCompletionFixture();
+  f.hooks.mockImplementation(() => { f.order.push('hooks'); (which === 'scope' ? f.ctx.scope : f.resident).dispose(); });
+  try {
+    await expect(installClientPhase(f.ctx, f.plan, 'world-bindings', f.resident)).rejects.toThrow(which === 'scope' ? 'scope has closed' : 'Client feature owner is disposed');
+    expect(f.order).toEqual(['updates', 'hooks']); expect(f.pause).not.toHaveBeenCalled();
+  } finally { f.close(); }
+});
+
+test('a refused installer preserves its error without checkpointing or running later features', async () => {
+  const f = phaseCompletionFixture(), error = new Error('original feature refusal');
+  f.updates.mockImplementation(() => { throw error; });
+  try {
+    await expect(installClientPhase(f.ctx, f.plan, 'world-bindings', f.resident)).rejects.toBe(error);
+    expect(f.hooks).not.toHaveBeenCalled(); expect(f.pause).not.toHaveBeenCalled();
+  } finally { f.close(); }
+});
+
+test('a cheap shared-budget observation cannot retire the resident and continue the phase', async () => {
+  const f = phaseCompletionFixture();
+  f.spent.mockImplementation(() => { f.resident.dispose(); return false; });
+  try {
+    await expect(installClientPhase(f.ctx, f.plan, 'world-bindings', f.resident)).rejects.toThrow('Client feature owner is disposed');
+    expect(f.order).toEqual(['updates']); expect(f.hooks).not.toHaveBeenCalled(); expect(f.pause).not.toHaveBeenCalled();
+  } finally { f.close(); }
 });
