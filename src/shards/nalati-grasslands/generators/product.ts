@@ -1,4 +1,4 @@
-import { parseClientChannels } from '@wildshard/format/clientChannels';
+import { parseClientChannels } from '@wildshard/sdk/rows';
 import NALATI_FEATS from '../data/feats.json' with {type:'json'};
 import ridingPrograms from '../behaviour/riding.generated.json' with { type: 'json' };
 import { compactChannels } from './channelRows';
@@ -23,7 +23,7 @@ import { parseLedgerRules } from '@wildshard/sdk/ledger';
 import NALATI_STATE from '../data/state.json' with { type: 'json' };
 import items from '../data/items.json' with { type: 'json' };
 import NALATI_RUNTIME_SPAWNS from '../data/spawns.json' with { type: 'json' };
-import navigation from '../data/navigation.generated.json' with { type: 'json' };
+import type { nalatiNavigationProgram } from './navigation';
 import lookGraphs from '../data/lookGraphs.json' with { type: 'json' };
 import presentationGraphs from '../data/painterlyGraphs.json' with { type: 'json' };
 import kokpar from '../data/kokpar.generated.json' with { type: 'json' };
@@ -80,7 +80,7 @@ function renderRows(value: unknown): { files: readonly unknown[]; tiles: readonl
 
 /** Compose the complete header with caller-owned costs; retain original module deduplication and page charges. */
 export function nalatiProductRows(species: NalatiSpeciesProgramCosts, held: NalatiHeldProgramCosts, render: unknown,
-  queryTerrain: Omit<BakedQueryTerrain, 'assets'>): ReturnType<typeof parseShardfile> {
+  queryTerrain: Omit<BakedQueryTerrain, 'assets'>, navigation: Awaited<ReturnType<typeof nalatiNavigationProgram>>): ReturnType<typeof parseShardfile> {
   const files = [...navigation.files, ...queryTerrain.files].sort((a, b) => a.hash.localeCompare(b.hash));
   const resident = files.reduce((sum, file) => sum + file.decoded, 0);
   const renderTiles = parseShardfile({ ...base, ...renderRows(render) });

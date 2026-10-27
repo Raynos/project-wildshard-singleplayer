@@ -2,7 +2,7 @@ import render from './fixtures/nalati-render-rows.json' with { type: 'json' };
 import { originalSpeciesJson } from './fixtures/nalati-original-species';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { nalatiProductRows } from '../src/shards/nalati-grasslands/generators/product';
+import { originalNalatiProductRows as nalatiProductRows } from './fixtures/nalati-product-inputs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import pin from './fixtures/nalati-species-product-header.json' with { type: 'json' };
 
