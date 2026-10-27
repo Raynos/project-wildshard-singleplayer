@@ -1,5 +1,6 @@
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
+import type { DecisionScriptRow } from '@wildshard/sdk/decisionScripts';
 import { parseClientChannels } from '@wildshard/sdk/rows';
 import { weatherDecision, STORM } from './weatherDecision';
 import { weatherPresentation } from './weatherPresentation';
@@ -39,11 +40,7 @@ export function nalatiWeatherChannels(lattice: Uint8Array): {
 }
 
 /** Construct weather rows and executable from injected tracked inputs, without scheduler outputs. */
-export async function nalatiWeatherProgram(ctx: ProjectGenerationContext): Promise<{
-  channels: ReturnType<typeof nalatiWeatherChannels>;
-  rows: Omit<Awaited<ReturnType<typeof weatherDecision>>, 'binary'> & typeof STORM & { compiled: { source: string; bytes: number } };
-  binary: Uint8Array;
-}> {
+export async function nalatiWeatherProgram(ctx: ProjectGenerationContext): Promise<NalatiWeather> {
   const lattice = '/assets/baked/nalati-grasslands/terrain.bin';
   const files = await ctx.cached({ id: 'weather-lattice', inputs: [lattice] }, inputs => {
     const bytes = inputs.get(lattice);
@@ -57,4 +54,11 @@ export async function nalatiWeatherProgram(ctx: ProjectGenerationContext): Promi
 }
 
 /** The explicit metadata supplied to header and output composition. */
-export type NalatiWeather = Awaited<ReturnType<typeof nalatiWeatherProgram>>;
+export interface NalatiWeather {
+  readonly channels: {
+    weather: { presentation: object; sky: object; clientChannels: ReturnType<typeof parseClientChannels> };
+    herd: { presentation: object; sky: object; clientChannels: ReturnType<typeof parseClientChannels> };
+  };
+  readonly rows: { script: DecisionScriptRow; bytes: string; compiled: { source: string; bytes: number } };
+  readonly binary: Uint8Array;
+}

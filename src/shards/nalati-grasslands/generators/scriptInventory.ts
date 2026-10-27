@@ -1,6 +1,6 @@
+import type { NalatiWeather } from './weatherProgram';
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
 import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
-import weatherDecision from '../behaviour/weather.generated.json' with { type: 'json' };
 import type { NalatiKokpar } from './kokparRows';
 import admission from '../behaviour/admission.generated.json' with { type: 'json' };
 import type { NalatiRidingPrograms } from './ridingRows.mjs';
@@ -19,7 +19,7 @@ function projection(id: string, program: NalatiScriptProjection): Record<string,
 }
 /** Complete sim admission, shared by emitted sections and the module-cap proof.
  * Inline ABI1 witnesses are data; only selected executable rows appear here. */
-export function nalatiScriptSections(held: NalatiScriptProjection, kokpar: Pick<NalatiKokpar, 'program'>, ridingPrograms: Pick<NalatiRidingPrograms, 'approach'>, titanProgram: Pick<NalatiTitanPrograms, 'attack' | 'wind'>): ReadonlyMap<PlatformDataSectionName, unknown> {
+export function nalatiScriptSections(held: NalatiScriptProjection, kokpar: Pick<NalatiKokpar, 'program'>, ridingPrograms: Pick<NalatiRidingPrograms, 'approach'>, titanProgram: Pick<NalatiTitanPrograms, 'attack' | 'wind'>, weatherDecision: NalatiWeather['rows']): ReadonlyMap<PlatformDataSectionName, unknown> {
   const programs = [weatherDecision.script, kokpar.program.script];
   const legacy = programs.filter((row, index, all) => all.findIndex(entry => entry.module === row.module) === index);
   const sections: ReadonlyMap<PlatformDataSectionName, unknown> = new Map([

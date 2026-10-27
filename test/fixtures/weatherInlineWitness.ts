@@ -7,8 +7,8 @@ import {DecisionScriptsSchema} from '../../src/format/decisionScripts';
 import {sha256} from '../../src/game/plugin/moduleHash';
 
 const raw=v.parse(v.object({...WeatherReactionsSchema.entries,script:DecisionScriptsSchema.pipe[2].item}),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/behaviour/weather.generated.json','utf8')));
-export const weatherModuleBytes=Uint8Array.from(readFileSync('src/shards/nalati-grasslands/behaviour/weather.generated.wasm'));
+  JSON.parse(readFileSync(new URL('./nalati-weather-original.json',import.meta.url),'utf8')));
+export const weatherModuleBytes=Uint8Array.from(readFileSync(new URL('./nalati-weather-original.wasm',import.meta.url)));
 if(raw.script.module!==`blobs/wasm/${sha256(weatherModuleBytes)}.wasm`)throw new Error('Weather witness hash mismatch');
 export const weatherRaw=raw;
 export const weatherWitness={...raw,bytes:Buffer.from(weatherModuleBytes).toString('base64')};

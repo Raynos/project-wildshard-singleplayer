@@ -1,3 +1,4 @@
+import type { NalatiWeather } from './weatherProgram';
 import { NALATI_VIEW_PAGES } from './viewPrograms';
 import { parseClientChannels } from '@wildshard/sdk/rows';
 import NALATI_FEATS from '../data/feats.json' with {type:'json'};
@@ -5,12 +6,9 @@ import type { NalatiRidingPrograms } from './ridingRows.mjs';
 import { compactChannels } from './channelRows';
 import { SPECIES_POSES } from './speciesPoses';
 import skyDome from '../data/skyDome.json' with { type: 'json' };
-import weatherDecision from '../behaviour/weather.generated.json' with { type: 'json' };
 import charge from '../data/eliteCharge.generated.json' with { type: 'json' };
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import { peoplePrograms } from './peopleMotion';
-import weatherChannels from '../data/weatherChannels.generated.json' with {type:'json'};
-import herdChannels from '../data/herdChannels.generated.json' with { type: 'json' };
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import type { BakedQueryTerrain } from '@wildshard/sdk/bake/terrain';
@@ -77,7 +75,8 @@ function renderRows(value: unknown): { files: readonly unknown[]; tiles: readonl
 
 /** Compose the complete header with caller-owned costs; retain original module deduplication and page charges. */
 export function nalatiProductRows(species: NalatiSpeciesProgramCosts, held: NalatiHeldProgramCosts, render: unknown,
-  queryTerrain: Omit<BakedQueryTerrain, 'assets'>, navigation: Awaited<ReturnType<typeof nalatiNavigationProgram>>, kokpar: Pick<NalatiKokpar, 'program' | 'course' | 'compiled'>, ridingPrograms: Pick<NalatiRidingPrograms, 'approach' | 'breaking' | 'riding' | 'compiled'>, titanProgram: NalatiTitanPrograms): ReturnType<typeof parseShardfile> {
+  queryTerrain: Omit<BakedQueryTerrain, 'assets'>, navigation: Awaited<ReturnType<typeof nalatiNavigationProgram>>, kokpar: Pick<NalatiKokpar, 'program' | 'course' | 'compiled'>, ridingPrograms: Pick<NalatiRidingPrograms, 'approach' | 'breaking' | 'riding' | 'compiled'>, titanProgram: NalatiTitanPrograms, weather: Pick<NalatiWeather, 'rows' | 'channels'>): ReturnType<typeof parseShardfile> {
+  const weatherDecision = weather.rows, weatherChannels = weather.channels.weather, herdChannels = weather.channels.herd;
   const pasture = titanProgram.wind;
   const files = [...navigation.files, ...queryTerrain.files].sort((a, b) => a.hash.localeCompare(b.hash));
   const resident = files.reduce((sum, file) => sum + file.decoded, 0);

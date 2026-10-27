@@ -1,3 +1,4 @@
+import { nalatiWeatherProgram } from './weatherProgram';
 import { nalatiNavigationProgram } from './navigation';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { nalatiProductRows } from './product';
@@ -20,5 +21,5 @@ export async function build(ctx: ProjectGenerationContext): Promise<ReturnType<t
   return nalatiProductRows(species.rows, {
     program: species.rows.program, stealthProgram: species.rows.program,
     compiledBytes: species.rows.compiled.bytes, projectionPages: species.rows.program.v2.artifact.pages,
-  }, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(metadata)) as unknown, await nalatiQueryTerrainProgram(ctx), await nalatiNavigationProgram(ctx), (await nalatiKokparProgram(ctx)).rows, (await nalatiRidingProgram(ctx)).programs, (await nalatiTitanProgram(ctx)).programs);
+  }, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(metadata)) as unknown, await nalatiQueryTerrainProgram(ctx), await nalatiNavigationProgram(ctx), (await nalatiKokparProgram(ctx)).rows, (await nalatiRidingProgram(ctx)).programs, (await nalatiTitanProgram(ctx)).programs, await nalatiWeatherProgram(ctx));
 }
