@@ -128,6 +128,8 @@ export interface GridSessionHost {
   readonly physics: Physics;
   readonly scope: Scope;
   readonly feet: () => { readonly x: number; readonly y: number; readonly z: number };
+  /** Home/far coverage can load before controls; neighbour products and near views start after this boundary. */
+  readonly backgroundReady?: () => boolean;
   /** Register once per fixed step (the page's one fixed step; never a second loop). */
   readonly onFixed: (fn: (dt: number) => void) => void;
   /** SF19a's one frame: the camera, composer and grade effects, and the page's late phase (absent: never built) */
@@ -814,7 +816,7 @@ export class GridSession {
     const speed = Math.hypot(this.velocity.x, this.velocity.z);
     // Match L1's 400 m reach plus the rings' four-second travel lookahead. Distant
     // cells keep their baked proxy without admitting their full product at boot.
-    for (const cell of this.neighbours) {
+    if (this.host.backgroundReady?.() !== false) for (const cell of this.neighbours) {
       const distance = Math.hypot(Math.max(0, Math.abs(at.x - cell.origin.x) - CHUNK_HALF), Math.max(0, Math.abs(at.z - cell.origin.z) - CHUNK_HALF));
       if (this.assembly.approaching(distance, 400 + Math.min(speed, 60) * 4)) void this.admitNeighbour?.(cell).catch(() => undefined);
     }
@@ -839,7 +841,7 @@ export class GridSession {
     this.shimmer.step();
     const active = this.live === null ? this.home.instance : this.live.live.current();
     const eye = this.host.eye?.();
-    this.near.update(eye === undefined || !Number.isFinite(eye.x) || !Number.isFinite(eye.z) ? at : { x: at.x + eye.x, z: at.z + eye.z }, active);
+    if (this.host.backgroundReady?.() !== false) this.near.update(eye === undefined || !Number.isFinite(eye.x) || !Number.isFinite(eye.z) ? at : { x: at.x + eye.x, z: at.z + eye.z }, active);
   }
 
   /** every visible neighbour is drawn now (the entry reveal's readiness, G98) */

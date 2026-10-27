@@ -138,6 +138,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
     const { GridSession } = await waitFor('Read grid session module', import('../grid/session'), 'file');
     if (game.levelScope.disposed) throw new Error('Grid owner retired while loading its session');
     return GridSession.create({ scene: game.rootScene, physics: world.physics, scope: game.levelScope, feet: () => player.position, renderer: game.renderer,
+    backgroundReady: () => hud.entered,
     // G371: the near tier plans from the drawn eye (a free / hero camera gets the cells it is over)
     eye: () => ({ x: game.camera.position.x - player.position.x, z: game.camera.position.z - player.position.z }),
     prepareTile: (tile) => game.warmSceneRoots([tile.group], () => !tile.scope.disposed),
