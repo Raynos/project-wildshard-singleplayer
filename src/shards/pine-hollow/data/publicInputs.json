@@ -20,5 +20,9 @@
     "desktop": "/assets/pine-hollow/life/birds.glb",
     "phone": "/assets/pine-hollow/life/birds.phone.glb",
     "sidecar": "/assets/pine-hollow/life/birds.json"
+  },
+  "weapons": {
+    "rifle": "/assets/pine-hollow/weapons/lever-rifle.glb",
+    "knife": "/assets/pine-hollow/weapons/skinning-knife.glb"
   }
 }

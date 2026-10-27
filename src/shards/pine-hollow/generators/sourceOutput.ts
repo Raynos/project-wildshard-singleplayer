@@ -90,6 +90,7 @@ import { grazerRows } from './grazers';
 import { NATIVE_VIEW, SPECIES_LOOKS } from './nativeView';
 import { pineDensityBlob } from './forestRows';
 import manifest from '../manifest.json' with { type: 'json' };
+import publicInputs from '../data/publicInputs.json' with { type: 'json' };
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 
 // GR8: called, not read from a scheduler job's output
@@ -168,9 +169,9 @@ const held = PINE_OUTPUT.custom;
 const coatRow = (key:string) => { const row=held['custom/paintedTextures'].textures[key]; if(row===undefined)throw new Error(`Missing coat texture ${key}`);return row; };
 const heldEquipment = { ...heldTuning,
  playback: held['custom/heldPlayback'], inputs: held['custom/heldInputs'], sights: held['custom/heldSights'], action: held['custom/leverPlayback'],
- firearm: { ...held['custom/leverDetails'], asset: { url:'/assets/pine-hollow/weapons/lever-rifle.glb', parts:['steel','forend','stock','lever','hammer','bolt'] } },
+ firearm: { ...held['custom/leverDetails'], asset: { url:publicInputs.weapons.rifle, parts:['steel','forend','stock','lever','hammer','bolt'] } },
  launcher: held['custom/crossbowPool'], hands: held['custom/handsPool'],
- tool: { ...held['custom/heldToolPlayback'], ...HELD_TOOL_LIFETIME, look:KNIFE_LOOK, url:'/assets/pine-hollow/weapons/skinning-knife.glb' },
+ tool: { ...held['custom/heldToolPlayback'], ...HELD_TOOL_LIFETIME, look:KNIFE_LOOK, url:publicInputs.weapons.knife },
  coatTextures: { map:coatRow('coatMap'), normalMap:coatRow('coatNormal'), armMap:coatRow('coatArm') },
 };
 
