@@ -41,14 +41,14 @@ test('non-texture parts retain boot order and image-before-glTF adjacency', () =
   expect(bootPackParts(paths, () => 3_000_000)).toEqual([paths.slice(0, 3), paths.slice(3)]);
 });
 
-test('emitted texture cohorts combine independently through the real demand reader', async () => {
+test('emitted model cohorts in one directory combine independently through the real demand reader', async () => {
   const scope = new Scope('cohort-pack-transport');
   const bodies = new Map<string, Uint8Array<ArrayBuffer>>();
   const digest = async (body: Uint8Array<ArrayBuffer>): Promise<string> =>
     [...new Uint8Array(await crypto.subtle.digest('SHA-256', body))].map(value => value.toString(16).padStart(2, '0')).join('').slice(0, 8);
   const family = (name: string, seed: number): Promise<string[]> => Promise.all(['color', 'normal', 'arm'].map(async (slot, index) => {
     const body = new Uint8Array(20 + index).fill(seed + index);
-    const path = `/assets/gpu/${name}/${slot}-${await digest(body)}.ktx2`;
+    const path = `/assets/gpu/shared/${name}.kind.${slot}.phone-${await digest(body)}.ktx2`;
     bodies.set(path, body); return path;
   }));
   const first = await family('first', 1), second = await family('second', 4);
