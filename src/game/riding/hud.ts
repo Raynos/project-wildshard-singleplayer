@@ -1,3 +1,4 @@
+import { diagnosticNow } from '@wildshard/engine/core/clock';
 import type { TouchVerbSpec } from '@wildshard/engine/input/InputService';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import { hudSlots, type DiscOpts } from '@wildshard/engine/ui/hudSlots';
@@ -171,7 +172,7 @@ export class RideHUD {
       if (gait !== this.last.gait) { this.last.gait = gait; this.gait.textContent = gait; t.gait.textContent = rhythm ?? m.gait; } // the phone row is 170 px: the gait alone (D-saddle.jpg)
       // B1: the GALLOP disc (the STEED panel's horse on a desktop) pulses on the stride's beat; a tap in time flashes it cyan
       if (m.beat !== this.last.beat) { this.last.beat = m.beat; t.gallop.classList.toggle('ws-ride-beat', m.beat); this.steed.classList.toggle('beat', m.beat); }
-      const now = performance.now();
+      const now = diagnosticNow();
       if (m.spurFlash !== this.last.spur) { this.last.spur = m.spurFlash; this.spurUntil = now + 220; t.gallop.classList.add('ws-ride-spur'); this.steed.classList.add('spur'); }
       else if (this.spurUntil > 0 && now > this.spurUntil) { this.spurUntil = 0; t.gallop.classList.remove('ws-ride-spur'); this.steed.classList.remove('spur'); }
       const name = m.mountables.find(actor => actor.id === m.horse)?.name ?? 'Steed';
