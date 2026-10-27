@@ -1,11 +1,10 @@
-import { parse } from 'valibot';
 import { createModelLibrary } from '@wildshard/game/plugin/geometry';
 import * as THREE from 'three';
-import type { BowStyle } from '@wildshard/game/weapons/starterBowProfile';
 import { heldBowArrow, heldBowDisplay, bindHeldBow } from '@wildshard/game/weapons/heldLauncher';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { heldFirearmDisplay } from '@wildshard/game/plugin/heldFirearm';
-import { HeldBowFileSchema, parseHeldFirearmRows } from '@wildshard/format/weaponProfiles';
+import { parseHeldBowFile } from '@wildshard/sdk/weapons/bowProfile';
+import { parseHeldFirearmRows } from '@wildshard/sdk/weapons/firearmRows';
 import { buildSabre } from './sabre';
 import { buildJavelin, buildSpear } from './spear';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
@@ -31,7 +30,7 @@ function loadHeldBow(url: string): Promise<ReturnType<typeof bindHeldBow>> {
   const load = (async () => {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Held bow: ${url} did not load`);
-    const json: unknown = await response.json(), { pool, ...definition } = parse(HeldBowFileSchema, json);
+    const json: unknown = await response.json(), { pool, ...definition } = parseHeldBowFile(json);
     const library = createModelLibrary({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, aoFloor: 1, hdLooks: {}, geometryPools: [pool] }, `[held bow ${url}]`);
     await library.preload();
     return bindHeldBow(definition, library);
@@ -51,7 +50,7 @@ const rifleModel = parseHeldFirearmRows(rifleRows);
 /** a card's parts: every draw casts and takes shadows on the turntable */
 const lit = (geometry: THREE.BufferGeometry, material: THREE.Material): ModelPart => ({ geometry, material, castShadow: true, receiveShadow: true });
 
-export interface BowParams { readonly style: BowStyle }
+export interface BowParams { readonly style: 'recurve' | 'golden' | 'sky-wolf' }
 
 /**
  * The composite recurve (horn-and-sinew, painterly): the braced bow and the left glove on it — the bow's one mesh as the
