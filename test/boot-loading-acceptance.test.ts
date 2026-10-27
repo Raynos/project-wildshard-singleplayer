@@ -37,6 +37,15 @@ it('reads the network figure independently of a larger offline-cache total', () 
   expect(receipt.failures).toEqual([]);
 });
 
+it('reads the visible network field after content totals without crediting content or cache bytes', () => {
+  const report = (download: string) => accuracyReport({ readyAt: 1000, updates: [0, 900],
+    final: { clock: '00:01.0', networkBytes: '10000000', download, rows: [{ label: 'Admission', duration: '1 s' }] } }, 10000000);
+  expect(report('12.3 MB of 12.3 MB content · 4 / 4 files · 10.0 MB network · 91.0 MB offline cache').failures).toEqual([]);
+  expect(report('10.0 MB of 10.0 MB content · 4 / 4 files · 8.0 MB network · 10.0 MB offline cache').failures).toContain('Visible MB count differs by more than 5%');
+  expect(report('10.0 MB of 10.0 MB content · 10.0 MB offline cache').failures).toContain('Visible MB count differs by more than 5%');
+  expect(report('10.0 MB network impostor · 10.0 MB offline cache').failures).toContain('Visible MB count differs by more than 5%');
+});
+
 
 it('rejects a silent start or tail even without two recorded detail changes', () => {
   const receipt = accuracyReport({ firstAt: 100, readyAt: 3000, updates: [200],
