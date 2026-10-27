@@ -14,6 +14,9 @@ export interface PropsBakeSource {
   static: Object3D; scatter?: readonly PropScatter[];
   panels?: readonly { id: string; model: Object3D; visible?: boolean }[]; colliders?: ShardProps['colliders']; models?: readonly { id: string; model: Object3D }[];
   coarse?: Object3D; far?: Object3D; family?: string; colourTexture?: Uint8Array;
+  /** G748 / tile streaming T8: whole shapes simplified for the L1 tiles, each kept whole with its own channels in the L1 tile
+   *  holding its origin (never partitioned; a shard whose look lives in custom channels keeps it far away too). */
+  coarseWhole?: readonly PropWhole[];
   /** Shapes baked whole (`PropWhole`), each one named node in the L0 tile that holds its origin. */
   whole?: readonly PropWhole[];
 }
@@ -188,7 +191,7 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
   const overhang = Math.max(0, ...(source.whole ?? []).map(entry => entry.overhang ?? 0));
   if (!Number.isFinite(overhang) || overhang > 1 || (source.whole ?? []).some(entry => !Number.isFinite(entry.overhang ?? 0) || (entry.overhang ?? 0) < 0)) throw new Error('Invalid whole overhang');
   if (overhang > 0) section.overhang = overhang;
-  const whole = (source.whole ?? []).flatMap((entry): PreparedWhole[] => {
+  const prepareWhole = (entries: readonly PropWhole[]): PreparedWhole[] => entries.flatMap((entry): PreparedWhole[] => {
     const { mesh } = entry, at = new Vector3().setFromMatrixPosition(entry.transform), m = mesh.material;
     if (!(at.x >= -250 && at.x < 250 && at.z >= -250 && at.z < 250)) throw new Error(`Whole prop ${entry.id} origin outside the cell`);
     if (!(m instanceof MeshStandardMaterial) || m.transparent || m.metalness !== 0 || m.map !== null || m.color.getHex() !== 0xffffff) throw new Error(`Whole prop ${entry.id} needs one opaque untextured nonmetal white surface`);
@@ -228,6 +231,10 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
     }
     return preparedParts;
   });
+  const whole = prepareWhole(source.whole ?? []), coarseWhole = prepareWhole((source.coarseWhole ?? []).map(entry => {
+    if (entry.partition !== undefined) throw new Error(`Coarse whole prop ${entry.id} is never partitioned`);
+    return entry;
+  }));
   const base = vertices(source.static), spill: Vertex[][] = [], eligible = new Map<PropScatter, Matrix4[]>();
   for (const batch of source.scatter ?? []) {
     const keep: Matrix4[] = [];
@@ -251,7 +258,7 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
         // Scatter keeps a model in one owning tile; its conservative bounds may extend into its neighbours.
         const local = geometry(vertices(batch.model)); primitives.push({ geometry: local, material: mergedMaterial(), instances: transforms });
       }
-      for (const w of lod === 0 ? whole : []) if (w.owner === null ? w.at.x >= x0 && w.at.x < x0 + size && w.at.z >= z0 && w.at.z < z0 + size : w.owner.x === x && w.owner.z === z) primitives.push({ geometry: w.geometry, material: w.material, castShadow: w.castShadow, name: w.id, transform: w.transform, compactIndex: true, ...(w.customAttributes === undefined ? {} : { customAttributes: w.customAttributes }), ...(w.nativeAttributes === undefined ? {} : { nativeAttributes: w.nativeAttributes }), ...(w.extras === undefined ? {} : { extras: w.extras }) });
+      for (const w of lod === 0 ? whole : coarseWhole) if (w.owner === null ? w.at.x >= x0 && w.at.x < x0 + size && w.at.z >= z0 && w.at.z < z0 + size : w.owner.x === x && w.owner.z === z) primitives.push({ geometry: w.geometry, material: w.material, castShadow: w.castShadow, name: w.id, transform: w.transform, compactIndex: true, ...(w.customAttributes === undefined ? {} : { customAttributes: w.customAttributes }), ...(w.nativeAttributes === undefined ? {} : { nativeAttributes: w.nativeAttributes }), ...(w.extras === undefined ? {} : { extras: w.extras }) });
       const hasPanel = lod === 0 && panelFiles.some((p) => p.bounds !== null && p.bounds.max.x >= x0 && p.bounds.min.x <= x0 + size && p.bounds.max.z >= z0 && p.bounds.min.z <= z0 + size);
       if (primitives.length === 0 && !hasPanel) continue;
       const batches: GlbPrimitive[][] = [];
