@@ -42,17 +42,6 @@ const libraries = new Map<string, Library>(), bakes = new Map<string, Bake>();
 const modelRows = new Map<string, SceneModelSource>(), bakeRows = new Map<string, SceneBakeSource>();
 const pending = new WeakMap<ShardProduct, Promise<void>>();
 const key = (slug: string, id: string): string => JSON.stringify([slug, id]);
-/** each bake's look ids worn by an instanced kind, once per bake's rows */
-const instancedLookIds = new WeakMap<object, ReadonlySet<string>>();
-function instancedLooks(rows: Readonly<Record<string, { readonly kinds: readonly Kind[] }>>): ReadonlySet<string> {
-  let looks = instancedLookIds.get(rows);
-  if (looks === undefined) {
-    const found = new Set<string>();
-    for (const piece of Object.values(rows)) for (const kind of piece.kinds) if (kind.mesh !== true && kind.look !== undefined) found.add(kind.look);
-    looks = found; instancedLookIds.set(rows, looks);
-  }
-  return looks;
-}
 function inputs(slug: string, rows: SceneModelSource['inputs']): SurfaceInputs {
   return { ...(rows?.dusk === undefined ? {} : { dusk: sceneScalar(slug, rows.dusk) }),
     ...(rows?.lights === undefined ? {} : { lights: sceneVectors(slug, rows.lights, 4) }) };
@@ -111,8 +100,6 @@ export function prepareSceneSources(product: ShardProduct): Promise<void> {
           ...(source.resources === undefined ? {} : { resources: source.resources, readBytes: fetchDeflatedBytes }),
           ...(source.placements === undefined ? {} : { placements: source.placements }),
           material: kind => kind.look === undefined ? undefined : need(libraries, product.slug, source.materialLibrary ?? '').material(kind.look),
-          // a look an instanced kind wears draws its ordinary kinds as one instance: one program per look material
-          asInstance: kind => kind.mesh === true && kind.look !== undefined && instancedLooks(source.rows).has(kind.look),
           decorate: (material, kind) => { if (kind.surface !== undefined) applySurfaceLooks(material, kind.surface, surfaces); },
         }));
       }

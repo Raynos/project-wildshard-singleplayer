@@ -1,3 +1,4 @@
+import { instancedMaterial } from '@wildshard/engine/models/place';
 import { loadRigFile } from '@wildshard/engine/anim/rig';
 import type { Material } from '@wildshard/engine/physics/surface';
 import type { ColliderDesc, Piece, PieceCategory } from '@wildshard/engine/world/registry';
@@ -74,10 +75,6 @@ export interface BakedKindsDraw<K extends BakedKindRow> {
   decorate?: (material: MeshStandardMaterial, kind: K) => void;
   /** Custom vertex channels to restore, loaded attribute name → geometry channel (`{ _shk: 'shk' }`). */
   attributes?: Readonly<Record<string, string>>;
-  /** An ordinary kind drawn as one instance of itself (its exact pose kept as the object's transform, an identity
-   *  instance): for a kind whose material an instanced kind also wears, so that material never switches its program
-   *  between instanced and plain draws (js-heap H1: three re-selects a program, getParameters and its key, each time). */
-  asInstance?: (kind: K) => boolean;
 }
 
 /** A piece's group from its loaded nodes: each kind one `InstancedMesh` in its own material; a kind not loaded is skipped. */
@@ -100,7 +97,9 @@ export function bakedKindsGroup<K extends BakedKindRow>(nodes: ReadonlyMap<strin
       const a = node.geometry.getAttribute(from);
       if (node.geometry.hasAttribute(from)) { node.geometry.setAttribute(to, a); node.geometry.deleteAttribute(from); }
     }
-    const mesh = new InstancedMesh(node.geometry, material, kind.count);
+    // js-heap H1: instanced kinds wear the material's twin, so a look material an ordinary kind also wears keeps one
+    // program per variant (`instancedMaterial`)
+    const mesh = new InstancedMesh(node.geometry, instancedMaterial(material), kind.count);
     mesh.instanceMatrix.array.set(node.instanceMatrix.array.subarray(0, kind.count * 16)); mesh.instanceMatrix.needsUpdate = true;
     // an exact-instance bake's linear colours (the GLB's _COLOR_0, loaded as the node's instance colours)
     if (node.instanceColor !== null) mesh.instanceColor = new InstancedBufferAttribute(node.instanceColor.array.slice(0, kind.count * 3), 3);
@@ -145,11 +144,8 @@ export function bakedMeshKindsGroup<K extends BakedMeshKindRow>(nodes: ReadonlyM
       standard.color.setRGB(colorR, colorG, colorB); standard.emissive.setRGB(emissiveR, emissiveG, emissiveB);
       draw.decorate?.(standard, kind); material = standard;
     }
-    const one = draw.asInstance?.(kind) === true;
-    const mesh = one ? new InstancedMesh(node.geometry, material, 1) : new Mesh(node.geometry, material);
+    const mesh = new Mesh(node.geometry, material);
     mesh.matrix.fromArray(pose); mesh.matrix.decompose(mesh.position, mesh.quaternion, mesh.scale); mesh.matrixAutoUpdate = false;
-    // one identity instance (InstancedMesh starts with identity matrices): the same transform, the instanced program
-    if (mesh instanceof InstancedMesh) mesh.computeBoundingSphere();
     mesh.castShadow = false; mesh.receiveShadow = false; root.add(mesh);
   }
   return root;
