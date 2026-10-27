@@ -1011,3 +1011,15 @@ Native demand four-case recovery also passes afterd060092f68 declares
 both fixture roots; strict orphan admission was retained, not waived.
 Touched types/typed lint/scoped ratchet pass; containing request read
 must qualify this cut separately from8f, never claim an unchanged retry.
+
+I2 source qualification follow-through: explicit-tier isolationf9443f0bb8
+has all8 output-product cases covered (7 retained greens plus the1
+failed-only recovery after988e24d6f7/37b1ed1845 fixes defining fixture
+names/order). Native demandfde346c539 + d060092f68 +47fd45dc34 has
+4/4 executed controls PASS7.16s: share a pack only when every member
+is currently demanded, otherwise retain the original member URL.
+No unrequested distant bodies enter the control fence. All four final
+source/fixture paths pass types, typed lint and scoped ratchet0.
+The next original3 is owned by x2, must contain47fd/f944, and remains
+pending;8f is the last measured receipt, not a qualification of these
+newer source cuts. No owned preview/browser/Simulator remains here.
