@@ -954,3 +954,15 @@ packs, the excluded1MiB boundary, duplicate prevention and complete
 byte/hash reconstruction. Touched types, typed lint and scoped ratchet
 pass. Join installer-pack9b3e0e4e34, KTX2-cost7bf455e8f1 and cabin-late
 b5ef2ff17c in x2's next single original3 request reading; no new baseline.
+
+I2.15 failed-only recovery closed on0c0d1ec0ca +8ee00fecf1: original
+negative case PASS9.18s,1case/1file;16other cases unselected, not waived.
+Original missing-root/malformed/duplicate assertions and all added alias
+and reachable-critical/nonlibrary controls executed. Types/lint/ratchet
+also pass; both source commits are on origin. This closes that B15
+source refusal only, not a claim that the whole CI partition passed.
+Raw failed-only log: tmp/sp-x2/i2-late-refusal/failed-only-fixed.log.
+
+I2 next single cohort is pinned8f2c7f92ee, containing installer9b3e0e4e34,
+medium bodies9a7dc471fb, cost facts7bf455e8f1, cabinb5ef2ff17c and
+material rootsda877588a2. One shared build; no second435 measurement.
