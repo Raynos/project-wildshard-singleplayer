@@ -17,21 +17,19 @@ once per plan at the end (G780); official Simulator readings last (G777).
 **For wildshard-v (G711):** generation catalogue **empty** (dd873bc775, ~10:30Z; was 41 / 41 / 61 / 38 jobs);
 `generation-jobs.json` deleted. Every product builds under its phone ceiling. Met today: RM5 / RM10, H10, J6, H2,
 T11, T3, D122, D121, D110, D24, H1, I11, D152 (Simulator-proven fence raise), D154 NaN blocks. **G782 crossings:
-warm solved** by last-cell retention (~0.03-1 s, < 1.2 GB). **Sky passes both bars** (7.58 s cold / 35.5 ms
-warm, f782e7ebab). Cold over 8 s: DW 16.5 (sp-x8 + sp-x10), Nalati 19.4 (sp-o5), Pine 18.3 (sp-o4 afterPlay
-budget); held view >= 30 fps. Jake picks: D175 / D178 / D179 / D181 + Sky retention A / B. Closed as misses: S1
-(D176), I1 (26 MB target moved to I3; I3 now measured on real brotli wire). js-heap 100 % archived; I7 / I10 / I12
-done (iphone 10 / 12). Open: H4 (sp-x9), I2 (Pine 140 MB raw / 404 req; sp-o3 + sp-x2). Counter 171.5 / 209 = 82 %.
-CI: every known red routed to its breaker or taken by sp-ci-deploy as G754 backup; live still 59a595ab10.
-**13:50 reply:** (1) 22db8bf645 / 79a05a38e9 are Opus commits (sp-o3's I3 Pine phone geometry, inside iphone-downloads),
-not sp-x6's; sp-x6 is pointed back at ci-flow (CF2-CF5, GM1) once Q2 closes. (2) sp-x10: SW12 first if it isn't landed,
-then DW cold with sp-x8. (3) sp-o4 is formally on tile-streaming (T3 / T8 / T10 plan-end readings) with sp-o5 as owner:
-two Opus lanes on that plan. Awaiting-reading list: [finish-line](finish-line.md#landed-awaiting-the-plan-end-reading-g780-1120-cancun-10-27).
+warm solved** by last-cell retention (~0.03-1 s, < 1.2 GB); Sky rebuild look fixed (f808697807). **Sky passes both
+bars** (7.58 s cold / 35.5 ms warm). Cold over 8 s: DW 11.8 (sp-x8 + sp-x10), Nalati ~15 (sp-o5 hooks), Pine 18.3
+(no Pine-side lever left; needs Jake's D178 / D181). Official quiet Sim frame floor 10 / 15 (T10, sp-o4 cutting:
+spawn p95 81 ms, one 224 ms template-return frame, Pine / Nalati drive 36-43 ms). Jake picks: D175 / D178 / D179 /
+D181 / D183. Plans: generators 94 %, loading 94 %, tile-streaming 83 %, shared-waits 85 %, grid-crossing 70 %,
+iphone-downloads 58 % (I2 left; DW phone 14.9 MB, Nalati 71.8 -> 67.5 MB), legacy 50 % (Jake), ci-flow 40 % (CF3 13
+min). js-heap 100 % archived. Counter 177 / 209 = 85 %. CI: every known source red has a qualified fix; the last
+blocker is the GS5 post-publication check (sp-x1); live still 59a595ab10.
 **Blocked on Jake:** road B pilot play; boards as they land; LD5-LD8 / A1 / A2 / M2 / RM13 (counted, G779).
 
-**Lanes (G804 / G805; G803 3 Opus; Claude 76 %, Codex 89 % on credits):** sp-o3 iphone-downloads (+ sp-x2), sp-o5
-tile-streaming + crossing T7, sp-o4 tile-streaming readings (js-heap done), sp-x8 grid-crossing (+ sp-x10), sp-x9 loading,
-sp-x6 ci-flow + GM1, sp-x1 generators, sp-ci-deploy CI reds only. sp-o1 / sp-o2 released.
+**Lanes (G804 / G805; G803 3 Opus; Claude 80 %, Codex 96 % on credits):** sp-o3 iphone-downloads (+ sp-x2), sp-o5
+tile-streaming + T7 Nalati, sp-o4 T10 frame floor, sp-x8 + sp-x10 grid-crossing DW, sp-x9 loading, sp-x6 ci-flow + GM1,
+sp-x1 generators, sp-ci-deploy CI reds only. sp-o1 / sp-o2 released.
 
 **Rules:** G704 (<= ~20 files/move commit). G803. No reverts (G674). No new Debug rows (G669). G670.
 Never herdr wildshard-v.
