@@ -66,7 +66,7 @@ writer.put(resolve(root, 'src/shards/nalati-grasslands/boot/declaration.generate
   minimap: { image: '/assets/nalati-grasslands/map/top.webp' },
   boot: { ...fixed.boot, files: inventory.files, sources: inventory.sources, steps: inventory.steps, lateReads: inventory.lateReads, explore: { art: [...Object.values(fixed.explore.art), ...extraArt, ...fixed.explore.compare.flatMap(({ live, image }) => [live, image])] } },
 }, ['load', 'ground', 'seed', 'spawn', 'slug'])}
-const geography = ${JSON.stringify(geography)};
+const geography: import('../data/geographyTypes').GeographyRows = ${JSON.stringify(geography)};
 export const TERRAIN_ROWS = {
   seed: geography.seed,spawn: geography.spawn,
   groundRows: geography.ground,groundColourSamples: geography.pigment,surfaceSamples: geography.surface,
