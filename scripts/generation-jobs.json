@@ -4216,6 +4216,7 @@
         "src/shards/pine-hollow/generators/beaverPool.ts",
         "src/shards/pine-hollow/generators/cragCodec.ts",
         "src/shards/pine-hollow/generators/cragGround.ts",
+        "src/shards/pine-hollow/generators/layout.ts",
         "src/shards/pine-hollow/generators/cragRows.ts",
         "src/shards/pine-hollow/generators/cragScene.ts",
         "src/shards/pine-hollow/generators/crags.ts",
