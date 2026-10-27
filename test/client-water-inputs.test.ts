@@ -1,0 +1,104 @@
+import { afterEach, expect, test, vi } from 'vitest';
+import { Group, MeshBasicMaterial, PlaneGeometry, type BufferGeometry } from 'three';
+import { Scope } from '../src/engine/app/scope';
+import { legacyDouble } from '../src/engine/test/FakeGame';
+import * as owned from '../src/engine/models/ownedGeometry';
+import * as runtime from '../src/game/shardfile/runtimeProduct';
+import { clientWaterSurfaces, installClientWaterSurfaces } from '../src/game/shardfile/clientWaterSurfaces';
+import type { ShardContext } from '../src/game/plugin/context';
+import type { ShardProduct } from '../src/game/shardfile/shardProduct';
+import { parseClientPlan } from '../src/format/clientPlan';
+import { emptyShardfile } from '../src/sdk/author';
+
+function deferred<T>() {
+  let resolve = (_value: T): void => { throw new Error('Missing deferred resolver'); };
+  let reject = (_error: unknown): void => { throw new Error('Missing deferred rejecter'); };
+  const promise = new Promise<T>((_resolve, _reject) => { resolve = _resolve; reject = _reject; });
+  return { promise, resolve, reject };
+}
+afterEach(() => { vi.restoreAllMocks(); });
+
+function fixture(draw = false) {
+  const scope = new Scope('water-inputs'), root = new Group(), material = new MeshBasicMaterial();
+  scope.own(material);
+  const first = deferred<Uint8Array>(), second = deferred<Uint8Array>(), floor = deferred<Uint8Array>();
+  const file = vi.fn((name: string): Promise<Uint8Array> => name === 'first.glb' || name === 'grid.glb' ? first.promise : name === 'floor.bin' ? floor.promise : second.promise);
+  const product = legacyDouble<ShardProduct>({ file, shardfile: emptyShardfile({ slug: 'water-fixture', name: 'Water', author: 'Fixture', revision: 1, seed: 1 }) });
+  const system = vi.fn((_row: Parameters<ShardContext['system']>[0]): void => undefined), ctx = legacyDouble<ShardContext>({ scope, root, product, game: legacyDouble<ShardContext['game']>({}), system });
+  const looks = legacyDouble<Awaited<ReturnType<typeof runtime.runtimeLookMaterials>>>({ materials: new Map([['water-input-look', material]]), setParam: () => undefined, setTexture: () => undefined });
+  const ready = deferred<typeof looks>(), prepare = vi.spyOn(runtime, 'runtimeLookMaterials').mockReturnValue(ready.promise);
+  const loads: ReturnType<typeof vi.fn<(bytes?: Uint8Array | BufferGeometry) => Promise<void>>>[] = [], shapes: PlaneGeometry[] = [];
+  const create = vi.spyOn(owned, 'createOwnedGeometry').mockImplementation(() => {
+    const shape = new PlaneGeometry(2, 2), load = vi.fn((_bytes?: Uint8Array | BufferGeometry): Promise<void> => Promise.resolve());
+    shapes.push(shape); loads.push(load);
+    return legacyDouble<owned.OwnedGeometry>({ load, take: () => shape });
+  });
+  const surface = { look: 'water-input-look', name: 'fixture-water', renderOrder: 3 };
+  const row = parseClientPlan({ version: 1, features: [{ kind: 'world.water', rows: draw ? [{ id: 'first', surface, draw: {
+    grid: { phone: { file: 'grid.glb' }, desktop: { file: 'grid.glb' } }, floor: { file: 'floor.bin' }, attributes: {}, level: 0,
+    dry: [], foam: [], lent: {}, toonSeaLevel: false,
+  } }] : [{ id: 'first', surface, geometry: 'first.glb' }, { id: 'second', surface, geometry: 'second.glb' }] }] }).features[0];
+  if (row?.kind !== 'world.water') throw new Error('Missing water fixture');
+  return { scope, root, material, file, product, ctx, system, looks, ready, prepare, create, loads, shapes, row, first, second, floor,
+    finish() { scope.dispose(); for (const shape of shapes) shape.dispose(); } };
+}
+
+test('only the first input overlaps looks; original row order, geometry, material and publication remain', async () => {
+  const f = fixture(), first = new Uint8Array([1]), second = new Uint8Array([2]);
+  try {
+    const pending = installClientWaterSurfaces(f.ctx, f.row);
+    expect(f.file.mock.calls).toEqual([['first.glb']]);
+    expect(f.prepare).toHaveBeenCalledOnce(); expect(f.create).not.toHaveBeenCalled();
+    expect(f.root.children).toHaveLength(0); expect(f.system).not.toHaveBeenCalled();
+    f.first.resolve(first); f.second.resolve(second); f.ready.resolve(f.looks); await pending;
+    expect(f.file.mock.calls).toEqual([['first.glb'], ['second.glb']]);
+    expect(f.loads[0]).toHaveBeenCalledExactlyOnceWith(first); expect(f.loads[1]).toHaveBeenCalledExactlyOnceWith(second);
+    const surfaces = clientWaterSurfaces(f.ctx);
+    expect([...surfaces.keys()]).toEqual(['first', 'second']);
+    for (const [i, surface] of [...surfaces.values()].entries()) {
+      expect(surface.mesh.geometry).toBe(f.shapes[i]); expect(surface.mesh.material).toBe(f.material);
+      expect(surface.mesh.renderOrder).toBe(3); expect(surface.mesh.name).toBe('fixture-water');
+    }
+    expect(f.root.children).toEqual([...surfaces.values()].map(surface => surface.group));
+    expect(f.system).toHaveBeenCalledOnce();
+  } finally { f.finish(); }
+});
+
+test('look refusal wins and drains both grid and floor even when the grid rejects first', async () => {
+  const f = fixture(true), lookFailure = new Error('look refused'), inputFailure = new Error('grid refused');
+  try {
+    let settled = false;
+    const outcome = (async () => { try { await installClientWaterSurfaces(f.ctx, f.row); return undefined; } catch (error) { return error; } finally { settled = true; } })();
+    expect(f.file.mock.calls).toEqual([['grid.glb'], ['floor.bin']]);
+    f.first.reject(inputFailure); f.ready.reject(lookFailure);
+    await new Promise<void>(resolve => { setImmediate(resolve); });
+    expect(settled).toBe(false); expect(f.create).not.toHaveBeenCalled();
+    f.floor.resolve(new Uint8Array(4));
+    expect(await outcome).toBe(lookFailure);
+    expect(f.root.children).toHaveLength(0); expect(f.system).not.toHaveBeenCalled();
+  } finally { f.finish(); }
+});
+
+test('original input refusal surfaces after successful looks without drawing a later row', async () => {
+  const f = fixture(), failure = new Error('input refused');
+  try {
+    const pending = installClientWaterSurfaces(f.ctx, f.row), refused = expect(pending).rejects.toBe(failure);
+    f.first.reject(failure); f.ready.resolve(f.looks); await refused;
+    expect(f.file.mock.calls).toEqual([['first.glb']]);
+    expect(f.root.children).toHaveLength(0); expect(f.loads[0]).not.toHaveBeenCalled();
+    expect(f.system).not.toHaveBeenCalled();
+  } finally { f.finish(); }
+});
+
+test.each(['retire', 'reader', 'declaration'] as const)('%s during input overlap refuses before decode or publication', async mode => {
+  const f = fixture();
+  try {
+    const pending = installClientWaterSurfaces(f.ctx, f.row), refused = expect(pending).rejects.toThrow(mode === 'declaration' ? 'input declaration changed' : 'owner left or changed');
+    if (mode === 'retire') f.scope.dispose();
+    else if (mode === 'reader') Reflect.set(f.product, 'file', () => Promise.resolve(new Uint8Array([9])));
+    else { const first = f.row.rows[0]; if (first === undefined) throw new Error('Missing first row'); Reflect.set(first, 'geometry', 'changed.glb'); }
+    f.first.resolve(new Uint8Array([1])); f.ready.resolve(f.looks); await refused;
+    expect(f.loads.every(load => load.mock.calls.length === 0)).toBe(true);
+    expect(f.root.children).toHaveLength(0); expect(f.system).not.toHaveBeenCalled();
+  } finally { f.finish(); }
+});

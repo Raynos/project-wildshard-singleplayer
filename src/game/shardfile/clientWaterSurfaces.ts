@@ -19,17 +19,33 @@ async function bytesOf(product:ShardProduct,source:BakedSource):Promise<Uint8Arr
   if(!response.ok)throw new Error(`Water file load failed (${String(response.status)})`);
   return new Uint8Array(await response.arrayBuffer());
 }
+interface WaterInputs { readonly key:string; readonly bytes:Uint8Array; readonly floorBytes:Uint8Array|null }
+const inputKey=(water:WaterRow):string=>JSON.stringify('geometry' in water?['geometry',water.geometry]:['draw',water.draw.grid[buildTier()],water.draw.floor??null]);
+/** Bytes only: the first row may read during look preparation, but never creates
+ * geometry, a material or a published surface before its original cursor. */
+async function readInputs(product:ShardProduct,water:WaterRow):Promise<WaterInputs>{
+  const key=inputKey(water);
+  if('geometry' in water)return {key,bytes:await product.file(water.geometry),floorBytes:null};
+  const draw=water.draw;
+  const pending=[bytesOf(product,draw.grid[buildTier()]),draw.floor===undefined?Promise.resolve(null):bytesOf(product,draw.floor)] as const;
+  try{const [bytes,floorBytes]=await Promise.all(pending);return {key,bytes,floorBytes};}
+  catch(error){await Promise.allSettled(pending);throw error;}
+}
 /** A row's surface: its product geometry as drawn, or (O7) its own draw: the tier's grid, level, baked floor, dry
  *  rectangles and toon-lent params, foam stamped round its boxes, CPU copies dropped once uploaded. */
-async function drawRow(ctx:ShardContext,water:WaterRow):Promise<WaterSurface>{
+async function drawRow(ctx:ShardContext,water:WaterRow,check:()=>void,prepared?:Promise<WaterInputs>):Promise<WaterSurface>{
   const surface=new WaterSurface(water.surface,waterSurfaceLook(lentLooksOf(water.surface.look),water.surface.look));
   if('geometry' in water){
-    const intake=createOwnedGeometry(water.geometry);await intake.load(await ctx.product.file(water.geometry));
+    const intake=createOwnedGeometry(water.geometry),inputs=await (prepared??readInputs(ctx.product,water));check();
+    if(inputs.key!==inputKey(water))throw new Error('Water input declaration changed');
+    await intake.load(inputs.bytes);check();
     const shape=intake.take();ctx.scope.own(shape);return surface.draw(shape);
   }
   const draw=water.draw,grid=draw.grid[buildTier()],intake=createOwnedGeometry('url' in grid?grid.url:grid.file,draw.attributes);
-  const [bytes,floorBytes]=await Promise.all([bytesOf(ctx.product,grid),draw.floor===undefined?Promise.resolve(null):bytesOf(ctx.product,draw.floor)]);
-  await intake.load(bytes);const shape=intake.take();ctx.scope.own(shape);
+  const inputs=await (prepared??readInputs(ctx.product,water));check();
+  if(inputs.key!==inputKey(water))throw new Error('Water input declaration changed');
+  const {bytes,floorBytes}=inputs;
+  await intake.load(bytes);check();const shape=intake.take();ctx.scope.own(shape);
   // half-float heights, copied out of the file's buffer so they are aligned
   const floor=floorBytes===null?undefined:new Uint16Array(floorBytes.slice().buffer);
   const toon=Object.keys(draw.lent).length>0||draw.toonSeaLevel?toonLookState(ctx.product).dayLight:null;
@@ -44,22 +60,28 @@ const owners=new WeakMap<Scope,WeakMap<ShardProduct,ReadonlyMap<string,WaterSurf
 /** Z1 binds the existing water-surface host to declared product geometry and graph looks. */
 export async function installClientWaterSurfaces(ctx:ShardContext,row:ClientFeatureRow):Promise<void>{
   if(row.kind!=='world.water')throw new Error('Invalid water feature');
-  let products=owners.get(ctx.scope);if(products===undefined){products=new WeakMap();owners.set(ctx.scope,products);}
-  if(products.has(ctx.product))throw new Error('Water surfaces are already installed');
-  const missing=[...new Set(row.rows.map(water=>water.surface.look))].filter(id=>!hasLentLook(id));
-  if(missing.length>0)lendLooks(ctx.scope,await runtimeLookMaterials({scope:ctx.scope,game:ctx.game},ctx.product.shardfile,true,missing));
-  // O7: a drawn row writes its graph's params, so its looks compile as graphs in this feature's own lend: an earlier lend
-  // may hold them as family fallbacks (compiled with the graph row off), which take no params
-  const drawn=[...new Set(row.rows.flatMap(water=>'draw' in water?[water.surface.look]:[]))];
-  if(drawn.length>0)lendLooks(ctx.scope,await runtimeLookMaterials({scope:ctx.scope,game:ctx.game},ctx.product.shardfile,true,drawn));
-  const surfaces=new Map<string,WaterSurface>();
-  for(const water of row.rows){
-    const surface=await drawRow(ctx,water);
-    surfaces.set(water.id,surface);ctx.root.add(surface.group);ctx.scope.onDispose(()=>{surface.group.removeFromParent();});
-  }
-  products.set(ctx.product,surfaces);const installed=products;
-  ctx.scope.onDispose(()=>{installed.delete(ctx.product);});
-  ctx.system({id:'client.water.surfaces',phase:'update',after:['main.world'],before:['engine.creatures.update'],run:dt=>{for(const surface of surfaces.values())surface.update(dt);}});
+  const scope=ctx.scope,product=ctx.product,read=product.file,root=ctx.root,game=ctx.game;
+  const check=():void=>{if(scope.disposed||scope.disposing||ctx.scope!==scope||ctx.product!==product||product.file!==read||ctx.root!==root||ctx.game!==game)throw new Error('Water construction owner left or changed');};
+  check();
+  let products=owners.get(scope);if(products===undefined){products=new WeakMap();owners.set(scope,products);}
+  if(products.has(product))throw new Error('Water surfaces are already installed');
+  const first=row.rows[0],prepared=first===undefined?undefined:readInputs(product,first);
+  void prepared?.catch(()=>undefined);
+  try{
+    const missing=[...new Set(row.rows.map(water=>water.surface.look))].filter(id=>!hasLentLook(id));
+    if(missing.length>0){const looks=await runtimeLookMaterials({scope,game},product.shardfile,true,missing);check();lendLooks(scope,looks);}
+    // O7: drawn rows need graph params even if an earlier lend holds family fallbacks.
+    const drawn=[...new Set(row.rows.flatMap(water=>'draw' in water?[water.surface.look]:[]))];
+    if(drawn.length>0){const looks=await runtimeLookMaterials({scope,game},product.shardfile,true,drawn);check();lendLooks(scope,looks);}
+    const surfaces=new Map<string,WaterSurface>();
+    for(const water of row.rows){
+      check();const surface=await drawRow(ctx,water,check,water===first?prepared:undefined);check();
+      surfaces.set(water.id,surface);root.add(surface.group);scope.onDispose(()=>{surface.group.removeFromParent();});
+    }
+    products.set(product,surfaces);const installed=products;
+    scope.onDispose(()=>{installed.delete(product);});
+    ctx.system({id:'client.water.surfaces',phase:'update',after:['main.world'],before:['engine.creatures.update'],run:dt=>{for(const surface of surfaces.values())surface.update(dt);}});
+  }catch(error){if(prepared!==undefined)await Promise.allSettled([prepared]);throw error;}
 }
 /** Typed native bindings borrow the admitted water bodies. */
 export function clientWaterSurfaces(ctx:ShardContext):ReadonlyMap<string,WaterSurface>{
