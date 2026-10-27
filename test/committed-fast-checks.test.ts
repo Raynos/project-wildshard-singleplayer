@@ -317,7 +317,8 @@ test('a later exact approval repairs a net candidate but cannot approve a larger
     f.put('scripts/check-closed-components.mjs','export function closedComponentSources(){return [];}');
     f.put('scripts/check-platform-ratchets.mjs','export const PLATFORM_LISTS=[];export function comparePlatformList(){return [];}');
     f.put('scripts/ratchet-approval.mjs',readFileSync(resolve('scripts/ratchet-approval.mjs'),'utf8'));
-    const base=f.commit(),rule='wildshard/generator-imports',file='src/main.ts';
+    const rule='wildshard/generator-imports',file='src/main.ts';
+    f.put('lint/ratchet.json',JSON.stringify({[rule]:{[file]:0}}));const base=f.commit();
     f.put('lint/ratchet.json',JSON.stringify({[rule]:{[file]:11}}));const unapproved=f.commit();
     expect(f.run('guards',unapproved,[],base).status).toBe(1);
     f.git('commit','--allow-empty','-qm',`docs(policy): correct approval\n\nRatchet-Approved: wildshard-new ${rule} ${file} +11`);
@@ -325,5 +326,26 @@ test('a later exact approval repairs a net candidate but cannot approve a larger
     expect(result.status,result.stderr).toBe(0);
     f.put('lint/ratchet.json',JSON.stringify({[rule]:{[file]:22}}));const larger=f.commit();
     const refused=f.run('guards',larger,[],base);expect(refused.status).toBe(1);expect(refused.stderr).toContain('+22');
+  }finally{f.close();}
+});
+
+test('committed guards seed a new rule atomically and ignore dirty future config for its predecessor',()=>{
+  const f=fixture();try {
+    f.put('scripts/check-closed-components.mjs','export function closedComponentSources(){return [];}');
+    f.put('scripts/check-platform-ratchets.mjs','export const PLATFORM_LISTS=[];export function comparePlatformList(){return [];}');
+    f.put('scripts/ratchet-approval.mjs',readFileSync(resolve('scripts/ratchet-approval.mjs'),'utf8'));
+    const base=f.commit(),rule='wildshard/no-generated-json-import',file='scripts/old.ts';
+    f.put(file,"import rows from './rows.generated.json';export default rows;");
+    const predecessor=f.commit();
+    const config={jsPlugins:['./lint/plugin.mjs'],rules:{[rule]:['error',{count:true}]}};
+    f.put('.oxlintrc.ratchet.json',JSON.stringify(config));f.put('lint/ratchet.json',JSON.stringify({[rule]:{[file]:1}}));
+    const old=f.run('guards',predecessor,[],base);expect(old.status,old.stderr).toBe(0);
+    const oldCounts=f.run('ratchet-counts',predecessor,['src/main.ts','scripts/old.ts'],base);
+    expect(oldCounts.status,oldCounts.stderr).toBe(0);
+    const measured:unknown=JSON.parse(oldCounts.stdout);expect(measured).not.toHaveProperty(rule);
+    const seeded=f.commit(),initial=f.run('guards',seeded,[],base);expect(initial.status,initial.stderr).toBe(0);
+    f.put('lint/ratchet.json',JSON.stringify({[rule]:{[file]:2}}));
+    const raised=f.commit(),refused=f.run('guards',raised,[],seeded);
+    expect(refused.status).toBe(1);expect(refused.stderr).toContain(`${rule} ${file} +1`);
   }finally{f.close();}
 });
