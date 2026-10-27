@@ -128,6 +128,9 @@ def landmark():
     N, n = graph()
     P = {"trim": {"type": "float", "value": 1.6, "min": 0, "max": 16},
          "ambient": {"type": "colour", "value": [0.5, 0.36, 0.34]},
+         # D111: the key's lavender sky fill (its ambient sky x intensity 1.4) on the faces that look up, the warm fill
+         # above on those that look down, so the navy roof reads blue from the plaza and the aerials
+         "skyFill": {"type": "colour", "value": [0.92, 0.87, 1.2]},
          "sunGain": {"type": "float", "value": 0.8, "min": 0, "max": 8},
          # the plot's fixed dusk sun (look.day azimuth 71, low; its key's sun colour x intensity 1.5)
          "sunDirection": {"type": "vec3", "value": [-0.913, 0.259, 0.314]},
@@ -136,9 +139,10 @@ def landmark():
          "uplightHeight": {"type": "float", "value": 9, "min": 0.1, "max": 100}}
     for k in P: n(k, "param", param=k)
     n("map", "meshMap", name="colourOrVertex"); n("rgb", "swizzle", "map", mask="xyz")
-    # the sun on the face and a warm dusk fill (the plot's fixed dusk: its key's ambient)
+    # the sun on the face and the dusk fill (the plot's fixed dusk: its key's ambient), sky above and warm below
     n("nw", "normalWorld");  n("ndl0", "dot", "nw", "sunDirection"); n("ndl", "saturate", "ndl0")
-    n("sun0", "mul", "sunColour", "ndl"); n("sun", "mul", "sun0", "sunGain"); n("light", "add", "ambient", "sun")
+    n("ny", "swizzle", "nw", mask="y"); n("hy0", "mul", "ny", 0.5); n("hy", "add", "hy0", 0.5); n("fill", "mix", "ambient", "skyFill", "hy")
+    n("sun0", "mul", "sunColour", "ndl"); n("sun", "mul", "sun0", "sunGain"); n("light", "add", "fill", "sun")
     n("lit", "mul", "rgb", "light")
     # gold: red and green high, blue low (the red pillars have no green, the navy roof is blue)
     n("r", "swizzle", "rgb", mask="x"); n("g", "swizzle", "rgb", mask="y"); n("b", "swizzle", "rgb", mask="z")

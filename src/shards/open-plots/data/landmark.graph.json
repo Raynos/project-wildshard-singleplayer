@@ -18,6 +18,14 @@
     0.34
    ]
   },
+  "skyFill": {
+   "type": "colour",
+   "value": [
+    0.92,
+    0.87,
+    1.2
+   ]
+  },
   "sunGain": {
    "type": "float",
    "value": 0.8,
@@ -63,6 +71,10 @@
   "ambient": {
    "op": "param",
    "param": "ambient"
+  },
+  "skyFill": {
+   "op": "param",
+   "param": "skyFill"
   },
   "sunGain": {
    "op": "param",
@@ -111,6 +123,35 @@
     "ndl0"
    ]
   },
+  "ny": {
+   "op": "swizzle",
+   "in": [
+    "nw"
+   ],
+   "mask": "y"
+  },
+  "hy0": {
+   "op": "mul",
+   "in": [
+    "ny",
+    0.5
+   ]
+  },
+  "hy": {
+   "op": "add",
+   "in": [
+    "hy0",
+    0.5
+   ]
+  },
+  "fill": {
+   "op": "mix",
+   "in": [
+    "ambient",
+    "skyFill",
+    "hy"
+   ]
+  },
   "sun0": {
    "op": "mul",
    "in": [
@@ -128,7 +169,7 @@
   "light": {
    "op": "add",
    "in": [
-    "ambient",
+    "fill",
     "sun"
    ]
   },
