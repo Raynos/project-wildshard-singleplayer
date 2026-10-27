@@ -173,23 +173,24 @@ function frustum(w, part, x, z, sides, r0, r1, y0, y1, colour, spin = 0) {
     t(a0, a1, b1); if (r1 > 0) { t(a0, b1, b0); t([x, y1, z], b0, b1); }
   }
 }
-/** A hip roof over [x0, x1] x [z0, z1] from eave height h, rising `rise`, its ridge along the longer side; closed below. */
-function hipRoof(w, x0, x1, z0, z1, h, rise, colour, under) {
+/** A hip roof over [x0, x1] x [z0, z1] from eave height h, rising `rise`, its ridge along the longer side, in `part`;
+ *  closed below in `under` (null: open, for a far stand-in only ever seen from above). */
+function hipRoof(w, x0, x1, z0, z1, h, rise, colour, under, part = 'Kit') {
   const width = x1 - x0, depth = z1 - z0, top = h + rise;
   if (width >= depth) {
     const zc = (z0 + z1) / 2, r0 = x0 + depth / 2, r1 = x1 - depth / 2;
-    w.quad('Kit', [x0, h, z0], [r0, top, zc], [r1, top, zc], [x1, h, z0], colour);
-    w.quad('Kit', [x1, h, z1], [r1, top, zc], [r0, top, zc], [x0, h, z1], colour);
-    w.tri('Kit', [x0, h, z1], [r0, top, zc], [x0, h, z0], colour);
-    w.tri('Kit', [x1, h, z0], [r1, top, zc], [x1, h, z1], colour);
+    w.quad(part, [x0, h, z0], [r0, top, zc], [r1, top, zc], [x1, h, z0], colour);
+    w.quad(part, [x1, h, z1], [r1, top, zc], [r0, top, zc], [x0, h, z1], colour);
+    w.tri(part, [x0, h, z1], [r0, top, zc], [x0, h, z0], colour);
+    w.tri(part, [x1, h, z0], [r1, top, zc], [x1, h, z1], colour);
   } else {
     const xc = (x0 + x1) / 2, r0 = z0 + width / 2, r1 = z1 - width / 2;
-    w.quad('Kit', [x0, h, z1], [xc, top, r1], [xc, top, r0], [x0, h, z0], colour);
-    w.quad('Kit', [x1, h, z0], [xc, top, r0], [xc, top, r1], [x1, h, z1], colour);
-    w.tri('Kit', [x0, h, z0], [xc, top, r0], [x1, h, z0], colour);
-    w.tri('Kit', [x1, h, z1], [xc, top, r1], [x0, h, z1], colour);
+    w.quad(part, [x0, h, z1], [xc, top, r1], [xc, top, r0], [x0, h, z0], colour);
+    w.quad(part, [x1, h, z0], [xc, top, r0], [xc, top, r1], [x1, h, z1], colour);
+    w.tri(part, [x0, h, z0], [xc, top, r0], [x1, h, z0], colour);
+    w.tri(part, [x1, h, z1], [xc, top, r1], [x0, h, z1], colour);
   }
-  w.quad('Kit', [x0, h, z0], [x1, h, z0], [x1, h, z1], [x0, h, z1], under);
+  if (under !== null) w.quad(part, [x0, h, z0], [x1, h, z0], [x1, h, z1], [x0, h, z1], under);
 }
 /** NM7: a pool of warm light on the ground (the additive Pool material: its colour fades to black at the rim, so it adds
  *  light and nothing else), an octagon fan just above the paving */
@@ -336,11 +337,14 @@ function modelHouses(w) {
     w.solid([side * 20 - 3, 0, -18], [side * 20 + 3, 5, -6]);
   }
 }
+/** A garden's four lawns (x0, x1, z0, z1) between its cross paths; lawn 3 - variant holds the pond. */
+const GARDEN_LAWNS = [[-26, -3, 3, 26], [3, 26, 3, 26], [-26, -3, -26, -3], [3, 26, -26, -3]];
+/** Where a garden lawn's three trees stand (fractions of the lawn) and their sizes (8 + i m). */
+const gardenSpots = index => index % 2 === 0 ? [[0.3, 0.3], [0.72, 0.4], [0.45, 0.75]] : [[0.3, 0.68], [0.7, 0.7], [0.55, 0.28]];
 /** G garden: four lawns between cross paths, trees, a pond in the south-east lawn, lanterns along the paths. */
 function garden(w, p, variant) {
   kerbRing(w, p, { n: 3, e: 3, s: 3, w: 3 });
-  const lawns = [[-26, -3, 3, 26], [3, 26, 3, 26], [-26, -3, -26, -3], [3, 26, -26, -3]];
-  for (const [index, [x0, x1, z0, z1]] of lawns.entries()) {
+  for (const [index, [x0, x1, z0, z1]] of GARDEN_LAWNS.entries()) {
     w.floor('Kit', x0, z0, x1, z1, 0.06, p.lawn);
     w.box('Kit', [x0 - 0.3, 0, z0 - 0.3], [x1 + 0.3, 0.3, z0], p.hedge); w.box('Kit', [x0 - 0.3, 0, z1], [x1 + 0.3, 0.3, z1 + 0.3], p.hedge);
     if (index === 3 - variant) {
@@ -355,8 +359,7 @@ function garden(w, p, variant) {
     }
     // NM10: fireflies over the lawn
     firefly(w, x0 + (x1 - x0) * 0.6, 1.2, z0 + (z1 - z0) * 0.55); firefly(w, x0 + (x1 - x0) * 0.25, 1.8, z0 + (z1 - z0) * 0.2);
-    const spots = index % 2 === 0 ? [[0.3, 0.3], [0.72, 0.4], [0.45, 0.75]] : [[0.3, 0.68], [0.7, 0.7], [0.55, 0.28]];
-    for (const [i, [u, v]] of spots.entries()) {
+    for (const [i, [u, v]] of gardenSpots(index).entries()) {
       const x = x0 + (x1 - x0) * u, z = z0 + (z1 - z0) * v, size = 8 + i; // NM14: fuller crowns, as the mockup's gardens
       tree(w, x, z, size, p, i * 0.7 + index);
       // NM9: a lantern hung under each crown and its pool
@@ -583,15 +586,58 @@ function plaza(w, p) {
   for (const [x, y, z] of [[-14, 22, -8], [6, 31, 12], [16, 40, -18], [-6, 27, 20], [22, 18, 4]]) skyLantern(w, x, y, z);
 }
 
-/** The far stand-in per tile (<= 40 triangles): its ground and the blocks that read from far away. */
-function farTile(w, p, type) {
+/** RM11: a far tree crown about (x, y, z), `r` wide: a five-sided double cone (10 triangles). */
+function farCrown(w, x, y, z, r, colour) {
+  frustum(w, 'far', x, z, 5, r, 0, y, y + r * 0.9, colour); frustum(w, 'far', x, z, 5, r, 0, y, y - r * 0.5, colour);
+}
+/** RM11: the far stand-in per tile (30 to 110 triangles, ~4k for the 64; the far proxy's 8k holds them and the gate): its
+ *  ground and what reads from 100 to 260 m up, where the kit's models stand: the courts' hip-roofed houses round a lawn,
+ *  the stall rows' red gables, round tree crowns, the gardens' paths and pond, the forecourt's hedges and kiosks, the
+ *  plaza's beds, the canals' water. The far proxy is one Kit draw, so nothing glows. */
+function farTile(w, p, type, variant) {
   const ground = { H: p.court, G: p.lawn, S: p.paving, C: p.paving, L: p.paving, N: p.forecourt, P: p.plaza }[type] ?? p.paving;
   w.floor('far', -HALF, -HALF, HALF, HALF, 0, ground);
-  if (type === 'H') { w.box('far', [-22, 0, 9], [22, 8, 24], p.roof); w.box('far', [-24, 0, -22], [24, 7, 6], p.roof); }
-  if (type === 'G') { w.box('far', [-20, 0, 6], [20, 7, 20], p.foliage); w.box('far', [-20, 0, -20], [0, 7, -6], p.foliage); }
-  if (type === 'S') { w.box('far', [-27, 0, -27], [-15, 5.6, 27], p.stall); w.box('far', [15, 0, -27], [27, 5.6, 27], p.stall); }
+  const cottage = (x0, x1, z0, z1) => { w.sides('far', [x0, 0, z0], [x1, 5, z1], p.wall); hipRoof(w, x0 - 0.8, x1 + 0.8, z0 - 0.8, z1 + 0.8, 5, 3.4, p.roof, null, 'far'); };
+  if (type === 'H') {
+    for (const x of [-20, -10, 0, 10, 20]) cottage(x - 3.6, x + 3.6, 16.8, 23.2);
+    for (const side of [-1, 1]) cottage(side * 20 - 3, side * 20 + 3, -18, -6);
+    w.floor('far', -9, -16, 9, 2, 0.05, p.lawn); farCrown(w, 0, 5, -6, 3.2, p.foliage);
+  }
+  if (type === 'S') for (const side of [-1, 1]) for (let i = 0; i < 5; i++) {
+    const z = -22 + i * 11, x0 = side < 0 ? -21.5 : 14.5, x1 = x0 + 7, xm = x0 + 3.5, h = 3, ridge = 4.6;
+    w.quad('far', [x0, h, z + 5.2], [xm, ridge, z + 5.2], [xm, ridge, z - 5.2], [x0, h, z - 5.2], p.stall);
+    w.quad('far', [x1, h, z - 5.2], [xm, ridge, z - 5.2], [xm, ridge, z + 5.2], [x1, h, z + 5.2], p.stall);
+    w.tri('far', [x0, h, z - 5.2], [xm, ridge, z - 5.2], [x1, h, z - 5.2], p.stallDark);
+    w.tri('far', [x1, h, z + 5.2], [xm, ridge, z + 5.2], [x0, h, z + 5.2], p.stallDark);
+  }
+  if (type === 'G') {
+    w.floor('far', -3, -HALF, 3, HALF, 0.02, p.paving); w.floor('far', -HALF, -3, HALF, 3, 0.03, p.paving);
+    for (const [index, [x0, x1, z0, z1]] of GARDEN_LAWNS.entries()) {
+      if (index === 3 - variant) {
+        const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
+        for (let i = 0; i < 8; i++) {
+          const a0 = i / 8 * Math.PI * 2, a1 = (i + 1) / 8 * Math.PI * 2;
+          w.tri('far', [cx, 0.06, cz], [cx + 8 * Math.sin(a0), 0.06, cz + 8 * Math.cos(a0)], [cx + 8 * Math.sin(a1), 0.06, cz + 8 * Math.cos(a1)], p.water);
+        }
+        continue;
+      }
+      for (const [i, [u, v]] of gardenSpots(index).entries()) farCrown(w, x0 + (x1 - x0) * u, (8 + i) * 0.62, z0 + (z1 - z0) * v, (8 + i) * 0.42, p.foliage);
+    }
+  }
   if (type === 'C' || type === 'L') for (const [x0, z0, x1, z1] of waterOf(type)) w.floor('far', x0, z0, x1, z1, 0.05, p.water);
-  if (type === 'N') { w.box('far', [-26, 0, -26], [-22, 4, 20], p.foliage); w.box('far', [-26, 0, -26], [20, 4, -22], p.foliage); }
+  if (type === 'N') {
+    w.box('far', [-26, 0, -26], [-22, 1, 20], p.hedge, p.lawn); w.box('far', [-26, 0, -26], [20, 1, -22], p.hedge, p.lawn);
+    for (let i = 0; i < 6; i += 2) { farCrown(w, -24, 3.2, -18 + i * 7, 2.6, p.foliage); farCrown(w, -18 + (i + 1) * 7, 3.2, -24, 2.6, p.foliage); }
+    for (const [x, z] of [[-12, -12], [-2, -12], [8, -12], [-12, -2], [-12, 8], [-2, -2]]) frustum(w, 'far', x, z, 4, 3.6, 0, 3, 4.6, p.stall, Math.PI / 4);
+  }
+  if (type === 'P') {
+    w.box('far', [-27, 0, 19], [-19, 0.8, 27], p.stone, p.lawn); farCrown(w, -23, 4.6, 23, 2.8, p.foliage);
+    for (const [x0, z0, x1, z1] of [[HALF - 16, -HALF + 16, HALF - 9, -HALF + 34], [HALF - 34, -HALF + 9, HALF - 16, -HALF + 16]]) {
+      w.box('far', [x0, 0, z0], [x1, 0.45, z1], p.stone, p.lawn);
+      const along = z1 - z0 > x1 - x0, mx = (x0 + x1) / 2, mz = (z0 + z1) / 2;
+      for (const t of [-0.25, 0.25]) { const [x, z] = along ? [mx, mz + t * (z1 - z0)] : [mx + t * (x1 - x0), mz]; farCrown(w, x, 4.6, z, 2.8, p.foliage); }
+    }
+  }
 }
 
 /** Every tile's border paving is the plot's (the generator's ground); a builder fills only its inner square. */
@@ -608,7 +654,7 @@ export function buildLayout(grid, parts, p, seed, kit) {
     const { type, turns } = grid[r][c], centre = [-250 + TILE * (c + 0.5), 250 - TILE * (r + 0.5)];
     const w = writer(parts, centre, turns, kit);
     BUILDERS[type](w, p, type === 'C' || type === 'L' ? type : seed(r, c));
-    farTile(w, p, type);
+    farTile(w, p, type, type === 'C' || type === 'L' ? 0 : seed(r, c));
     // NM7: string lights over the lanes between tiles (each tile strings its north and east seams when they are inside the
     // plot), on posts at the lane crossings' corners
     const plot = writer(parts, centre, 0, kit); // the seams run in plot axes, whatever the tile's turn
