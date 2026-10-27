@@ -33,13 +33,20 @@ let interval = 1000 / 60;
  *  long past the last drawn frame, and a due frame no longer ends it: the slower waiting frames cost no movement (ms). */
 export const HELD_BUILD_MS = 24;
 let held = false;
-/** G782: while held, the CPU build slices that share a frame (`frameBudgetSpent`) run several HELD_BUILD_MS stretches
- *  between drawn frames, up to this long past the last one: held frames draw only the loading screen, and a crossing was
- *  paced by one stretch per drawn frame (Pine's forest page: 2.7 of its 7 s drawing frames, 1.1 s idle). Native GPU units
- *  (shader compile, link, uploads) keep HELD_BUILD_MS (`nativeBudgetSpent`) and parked draws their own budget (ms). */
-export const HELD_CPU_FRAME_MS = 72;
+/** G782: the held view stays live 3D at 30 fps or better (Jake's bar: 60-120 desktop, 30-60 phone, at all moments), so a
+ *  held frame starts at most this long after the last one did (ms). Until then, while held, the CPU build slices that share
+ *  a frame (`frameBudgetSpent`) keep running, and the loop skips the vsyncs between (`heldDrawDeferred`): desktop gives
+ *  them every other vsync, the phone's 30 fps cadence is unchanged. Native GPU units (shader compile, link, uploads) keep
+ *  HELD_BUILD_MS (`nativeBudgetSpent`) and parked draws their own budget. */
+export const HELD_FRAME_FLOOR_MS: number = 1000 / 30;
+/** A held CPU slice gets at least this long after a drawn frame, however slow the frame was (ms). */
+const HELD_SLICE_MIN_MS = 4;
+/** When a held CPU slice last asked for the shared budget (`frameBudgetSpent`), for `heldDrawDeferred`. */
+let heldSliceAt = Number.NEGATIVE_INFINITY;
 /** Whether the traveller waits for the build (a grid cell's loading screen shows); the grid sets it, off by default. */
-export function setBuildHeld(on: boolean): void { held = on; }
+export function setBuildHeld(on: boolean): void { held = on; heldSliceAt = Number.NEGATIVE_INFINITY; }
+/** The latest a held frame may start: HELD_FRAME_FLOOR_MS after the last drawn one started, less the due slack. */
+const heldDeadline = (): number => lastFrameAt + HELD_FRAME_FLOOR_MS - DUE_SLACK_MS;
 /** A build stretch's budget: `budgetMs`, or HELD_BUILD_MS while the traveller is held. */
 export function heldBudget(budgetMs: number): number { return held ? Math.max(budgetMs, HELD_BUILD_MS) : budgetMs; }
 /** Whether the traveller is held at a grid cell's wall (`setBuildHeld`). */
@@ -74,12 +81,20 @@ export function frameDue(now: number = diagnosticNow()): boolean {
  * the ground's arrays, the terrain) each run their stretch back to back, so no frame was drawn for 100-130 ms.
  */
 export function frameBudgetSpent(budgetMs: number, now: number = diagnosticNow()): boolean {
-  if (held) return presenting(now) && now - lastDrawn >= Math.max(budgetMs, HELD_CPU_FRAME_MS);
+  if (held) { heldSliceAt = now; return presenting(now) && now >= Math.max(heldDeadline(), lastDrawn + HELD_SLICE_MIN_MS); }
   // D110: a frame that overran its interval (drawn after the next was due: a phone at 4x CPU) is due the moment it lands,
   // so the due rule would end every slice before it starts and no sliced build would run again; after such a frame the
   // builds get their ordinary slice instead
   const overran = lastDrawn - lastFrameAt >= interval - DUE_SLACK_MS;
   return presenting(now) && (now - lastDrawn >= Math.min(budgetMs, interval / 4, BUILD_FRAME_MS / 2) || (!overran && frameDue(now)));
+}
+
+/** G782: whether the engine loop may skip this vsync: the traveller is held, a CPU build slice has run since the last
+ *  drawn frame and the held frame floor (HELD_FRAME_FLOOR_MS) is not yet due. Held frames still cost a whole update and a
+ *  draw of the nearby world (Pine's forest page: 3.1 of its 7.8 s), so a frame at every desktop vsync left the slices only
+ *  the gaps between; never past the floor. */
+export function heldDrawDeferred(now: number = diagnosticNow()): boolean {
+  return held && heldSliceAt > lastDrawn && now < heldDeadline();
 }
 
 /** `frameBudgetSpent` for native GPU units (shader compile, link, texture uploads): held, they keep HELD_BUILD_MS past the

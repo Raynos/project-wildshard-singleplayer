@@ -24,12 +24,12 @@ test('busy draws retain the ordinary allowance until the actual frame deadline',
   noteFrameDrawn(1004, 1000, 60);
   expect(frameBudgetSpent(8, 1008)).toBe(false);
   expect(frameBudgetSpent(8, 1008.2)).toBe(true);
-  // A caller's tighter budget still wins; a held traveller's CPU slices share 72 ms past the frame (G782) and its native
-  // GPU units retain their 24 ms allowance.
+  // A caller's tighter budget still wins; a held traveller's CPU slices run to the 30 fps held floor from the frame's start
+  // (G782: 1000 + 33.3 less 2 ms slack) and its native GPU units retain their 24 ms allowance.
   expect(frameBudgetSpent(1, 1005)).toBe(true);
   setBuildHeld(true);
-  expect(frameBudgetSpent(8, 1075)).toBe(false);
-  expect(frameBudgetSpent(8, 1076)).toBe(true);
+  expect(frameBudgetSpent(8, 1031)).toBe(false);
+  expect(frameBudgetSpent(8, 1031.4)).toBe(true);
   expect(nativeBudgetSpent(8, 1027)).toBe(false);
   expect(nativeBudgetSpent(8, 1028)).toBe(true);
 });

@@ -44,7 +44,7 @@ import { noteDrawnEnvironment } from '../render/drawnEnvironment';
 import { makeSystem, setLoopState, systemFault, type GameSystem } from './faults';
 import { frameCost } from './frameCost';
 import { diagnosticNow } from './clock';
-import { buildHeld, noteFrameDrawn } from './framePacing';
+import { buildHeld, heldDrawDeferred, noteFrameDrawn } from './framePacing';
 import { boundEntryWarmup } from '../render/entryWarmupBound';
 import { dropOutputDepth, installMemorySaver, shadowLights } from '../render/memorySaver';
 import { dropShadowColour } from '../world/shadowVariants';
@@ -1126,6 +1126,9 @@ export class Game {
       if (this.dead) return; // a core system died (faults.ts): the fatal modal is up, nothing more to draw
       schedule(loop);
       lastRun = diagnosticNow();
+      // G782: held at a cell's wall with build slices running, skip vsyncs up to the 30 fps held floor (framePacing.ts);
+      // like a capped vsync, a skipped one does nothing, so the drawn frame's dt is the whole interval
+      if (!forceFrame && heldDrawDeferred()) return;
       const cap = frameCapFps();
       if (cap > 0 && !forceFrame) {
         const anchor = frameCapAnchor(lastDrawn, now ?? lastRun, cap);
