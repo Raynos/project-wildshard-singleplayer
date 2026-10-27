@@ -1,4 +1,5 @@
 import { app } from '@wildshard/engine/app/runtime';
+import { diagnosticNow } from '@wildshard/engine/core/clock';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { UiHandle } from '@wildshard/engine/ui/layers';
 import { parsePanelDefinition, type PanelAction, type PanelDefinition } from '@wildshard/format/panelTemplate';
@@ -41,8 +42,9 @@ export class DataPanel extends DeclaredPanel {
           if (key !== undefined) { event.preventDefault(); run(key.action); }
         }, live);
         if (data.inputGuard !== undefined) {
-          const opened = performance.now(), guard = data.inputGuard;
-          view.on(guard.ref, 'beforeinput', event => { if (performance.now() - opened < guard.milliseconds) event.preventDefault(); }, live);
+          // This transient DOM guard must expire even while simulation is paused.
+          const opened = diagnosticNow(), guard = data.inputGuard;
+          view.on(guard.ref, 'beforeinput', event => { if (diagnosticNow() - opened < guard.milliseconds) event.preventDefault(); }, live);
         }
         if (data.layer !== undefined) {
           const layer = app.ui.push('modal', { root: view.root, order: data.layer.order, back: close }, live);
