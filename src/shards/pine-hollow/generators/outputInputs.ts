@@ -16,13 +16,13 @@ import { HANDS_POOL } from './handsPoolProduct';
 import { CLIENT_BY_URL } from './clientInputs';
 
 // GR8: built by the program, not read from a scheduler job's output
-const hands = HANDS_POOL.rows;
+const hands: typeof HANDS_POOL.rows = HANDS_POOL.rows;
 
 // GR8: the held crossbow pool is built here and named as a `meshopt: true` source is (no scheduler job, no stored file)
 const CROSSBOW = crossbowPool(), CROSSBOW_NAME = 'models/held/crossbow-pool.glb';
 /** The pool's GLB, published beside the client blobs. */
 export const CROSSBOW_BLOB: Awaited<ReturnType<typeof nameMeshoptBlob>> = await nameMeshoptBlob(CROSSBOW_NAME, CROSSBOW.glb);
-const crossbow = { ...CROSSBOW.rows, rows: CROSSBOW_ROWS };
+const crossbow: Omit<ReturnType<typeof crossbowPool>['rows'], 'rows'> & { rows: typeof CROSSBOW_ROWS } = { ...CROSSBOW.rows, rows: CROSSBOW_ROWS };
 const names:Readonly<Record<string,string>>={...CLIENT_BY_URL};
 function named(url:string):string{const name=names[url];if(name===undefined)throw new Error(`Pine output has no named blob: ${url}`);return name;}
 const values: { 'custom/heldPlayback': typeof playback; 'custom/heldInputs': typeof inputs; 'custom/heldSights': typeof sights; 'custom/leverPlayback': typeof leverPlayback; 'custom/leverDetails': typeof leverDetails; 'custom/heldToolPlayback': typeof toolPlayback; 'custom/paintedTextures': { textures: Record<string, { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; }>; urls: typeof painted.urls; chalk: typeof painted.chalk; }; 'custom/trophyMounts': { url: string; notice: string; sha256: string; rows: typeof trophies.rows; slots: typeof trophies.slots; }; 'custom/crossbowPool': typeof crossbow; 'custom/handsPool': { pool: typeof hands.pool; hands: typeof hands.hands; heldBow: typeof PINE_HELD_BOW; presentation: { hands: typeof HANDS_MATERIAL; coat: typeof COAT_MATERIAL; }; }; }={
