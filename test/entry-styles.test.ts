@@ -6,6 +6,7 @@ import { expect, test } from 'vitest';
 import * as ts from '@typescript/typescript6';
 import { parseManifestMetadata } from '../src/format/minimap';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
+import { discovery } from './fixtures/pine-discovery';
 import metadata from '../src/shards/pine-hollow/manifest.json' with {type:'json'};
 
 function fixture(styles:unknown){return {...metadata,bindings:{...metadata.bindings,entry:{...metadata.bindings.entry,styles}}};}
@@ -18,16 +19,16 @@ function loader(source:string,loadModule:(path:string)=>Promise<object>):unknown
 
 test('entry styles are finite own-folder CSS assets and must exist at generation',()=>{
   const good=fixture(['./quest/pinehollow.css']);expect(parseManifestMetadata(good).bindings.entry?.styles).toEqual(['./quest/pinehollow.css']);
-  const emitted=authoredManifestSource(process.cwd(),'pine-hollow',{composed:good});expect(emitted).toContain('import("./quest/pinehollow.css")');
+  const emitted=authoredManifestSource(process.cwd(),'pine-hollow',{discovery,composed:good});expect(emitted).toContain('import("./quest/pinehollow.css")');
   for(const styles of [['../outside.css'],['./runtime/hybrid.ts'],['https://example.invalid/style.css'],['./quest/pinehollow.css','./quest/pinehollow.css']]){
     expect(()=>parseManifestMetadata(fixture(styles))).toThrow();
-    expect(()=>authoredManifestSource(process.cwd(),'pine-hollow',{composed:fixture(styles)})).toThrow();
+    expect(()=>authoredManifestSource(process.cwd(),'pine-hollow',{discovery,composed:fixture(styles)})).toThrow();
   }
-  expect(()=>authoredManifestSource(process.cwd(),'pine-hollow',{composed:fixture(['./quest/missing.css'])})).toThrow('unknown binding module');
+  expect(()=>authoredManifestSource(process.cwd(),'pine-hollow',{discovery,composed:fixture(['./quest/missing.css'])})).toThrow('unknown binding module');
 });
 
 test('styles finish before the compiled entry, and a failed style never enters it',async()=>{
-  const source=authoredManifestSource(process.cwd(),'pine-hollow',{composed:fixture(['./quest/pinehollow.css'])}),events:string[]=[];
+  const source=authoredManifestSource(process.cwd(),'pine-hollow',{discovery,composed:fixture(['./quest/pinehollow.css'])}),events:string[]=[];
   const load=loader(source,async path=>{
     if(path.endsWith('.css')){events.push('style.start');await Promise.resolve();events.push('style.done');return {};}
     events.push('runtime');return {declaredClientPlanEntry:()=>({ready:true})};
@@ -44,5 +45,5 @@ test('entry styles cannot reopen an authored source-runtime entry',()=>{
   const compiled=fixture(['./quest/pinehollow.css']);
   const input={...compiled,runtimeEntry:'runtime/hybrid.ts',bindings:{...compiled.bindings,entry:{legacy:'./runtime/hybrid',retainHomeRuntime:true,stagesOwner:'runtime',styles:['./quest/pinehollow.css']}}};
   expect(()=>parseManifestMetadata(input)).toThrow();
-  expect(()=>authoredManifestSource(process.cwd(),'pine-hollow',{composed:input,metadataOnly:true})).toThrow();
+  expect(()=>authoredManifestSource(process.cwd(),'pine-hollow',{discovery,composed:input,metadataOnly:true})).toThrow();
 });
