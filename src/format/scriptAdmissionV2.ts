@@ -71,11 +71,27 @@ export interface ScriptAdmissionV2 {
   initialPages: number; maximumPages: number; globals: readonly string[];
   fuel: number; lane: V2Lane; io: number; ioBytes: number; entries: ReadonlyMap<string,number>;
 }
+/** G782: a page admits one module once per exact bytes and options. Nalati's crossing admitted its titan return module
+ *  three or four times (220 ms of admission on a phone-4x cold crossing). Same bytes, same verdict; a refusal is never
+ *  kept, and every hit compares the whole byte array. */
+const RECENT_ADMISSIONS = 16, recentAdmissions: { readonly key: string; readonly bytes: Uint8Array; readonly admission: ScriptAdmissionV2 }[] = [];
 /** No instantiation, getters or initialization occurs during admission. The
  * runtime must still validate host-owned output regions before publishing. */
 export function admitScriptV2(bytes: Uint8Array,options: { readonly ioBytes?: number; readonly lane?: V2Lane; readonly compilerRevision?: number; readonly admissionRevision?: number } = {}): ScriptAdmissionV2 {
   if ((options.compilerRevision !== undefined && options.compilerRevision !== SCRIPT_V2_REVISIONS.compiler)
     || (options.admissionRevision !== undefined && options.admissionRevision !== SCRIPT_V2_REVISIONS.admission)) throw new Error('Unsupported v2 compiler/admission revision');
+  const key = `${String(options.lane)}:${String(options.ioBytes)}`, known = recentAdmissions.find(row => row.key === key && sameBytes(row.bytes,bytes));
+  if (known !== undefined) return { ...known.admission };
+  const admission = inspectAdmission(bytes,options);
+  recentAdmissions.unshift({ key,bytes: bytes.slice(),admission }); recentAdmissions.length = Math.min(recentAdmissions.length,RECENT_ADMISSIONS);
+  return { ...admission };
+}
+function sameBytes(a: Uint8Array,b: Uint8Array): boolean {
+  if (a.byteLength !== b.byteLength) return false;
+  for (let i = 0; i < a.byteLength; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+function inspectAdmission(bytes: Uint8Array,options: { readonly ioBytes?: number; readonly lane?: V2Lane }): ScriptAdmissionV2 {
   const fuel = inspectV2Fuel(bytes,options), image = fuel.image;
   const floats = new Map(image.globals.flatMap((global,index): [number,number][] => global.type === f32 || global.type === f64 ? [[index,global.type]] : []));
   for (let i = 0; i < image.bodies.length; i++) {
