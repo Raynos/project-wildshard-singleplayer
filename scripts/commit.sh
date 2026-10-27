@@ -187,6 +187,19 @@ try:
         entries = git("ls-files", "-z", env=candidate_env)
         for flag in ["--no-assume-unchanged", "--no-skip-worktree", "--no-fsmonitor-valid"]:
             git("update-index", flag, "-z", "--stdin", input=entries, env=candidate_env)
+        # GS4 (G798): a named input of a committed gen:source table regenerates that table, which joins the commit,
+        # so an input never lands without its output. It runs before the hook, outside the five-second cap.
+        regenerated = []
+        if os.path.isfile("scripts/gen-source.mjs"):
+            stage = subprocess.run(["node", "--import", "./scripts/bake-loader.mjs", "scripts/gen-source.mjs", "--stage",
+                *["--changed=" + name for name in paths]], env=base_env, capture_output=True, text=True)
+            lines = [row for row in stage.stdout.splitlines() if row.startswith("gen:source stage ")]
+            if stage.returncode or not lines:
+                refuse("gen:source could not regenerate the tables these paths feed:\n" + stage.stderr[-2000:])
+            regenerated = [name for name in json.loads(lines[-1][len("gen:source stage "):]) if name not in paths]
+            paths += regenerated
+            if regenerated:
+                print("commit.sh: gen:source tables join the commit: " + ", ".join(regenerated), flush=True)
         staged = git("ls-files", "--stage", "-z", "--", *paths).hex()
         # Freeze working bytes before staging; Git must stage precisely that view.
         def working(name):
@@ -199,6 +212,8 @@ try:
         working_inputs = {name: working(name) for name in paths}
         if patch:
             git("apply", "--cached", "--", patch, env=candidate_env)
+            if regenerated:
+                git("add", "-A", "--", *regenerated, env=candidate_env)
         else:
             git("add", "-A", "--", *paths, env=candidate_env)
         changed = git("diff", "--cached", "--name-only", "--no-renames", "-z", parent, env=candidate_env).split(b"\0")
