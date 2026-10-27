@@ -5,19 +5,19 @@ function record(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 function staticMeshes(value: unknown): readonly Record<string, unknown>[] | null {
-  if (!record(value) || !Array.isArray(value.meshes) || !Array.isArray(value.nodes)
-    || Array.isArray(value.animations) && value.animations.length > 0
-    || Array.isArray(value.skins) && value.skins.length > 0) return null;
-  const nodes: readonly unknown[] = value.nodes, meshes: readonly unknown[] = value.meshes;
-  if (nodes.some(node => !record(node) || node.skin !== undefined
-    || record(node.extensions) && node.extensions.EXT_mesh_gpu_instancing !== undefined)) return null;
+  if (!record(value) || !Array.isArray(value['meshes']) || !Array.isArray(value['nodes'])
+    || Array.isArray(value['animations']) && value['animations'].length > 0
+    || Array.isArray(value['skins']) && value['skins'].length > 0) return null;
+  const nodes: readonly unknown[] = value['nodes'], meshes: readonly unknown[] = value['meshes'];
+  if (nodes.some(node => !record(node) || node['skin'] !== undefined
+    || record(node['extensions']) && node['extensions']['EXT_mesh_gpu_instancing'] !== undefined)) return null;
   const result: Record<string, unknown>[] = [];
   for (const mesh of meshes) {
-    if (!record(mesh) || !Array.isArray(mesh.primitives)) return null;
-    const primitives: readonly unknown[] = mesh.primitives;
-    if (primitives.some(primitive => !record(primitive) || primitive.targets !== undefined
-      || primitive.mode !== undefined && primitive.mode !== 4 && primitive.mode !== 5 && primitive.mode !== 6
-      || record(primitive.extensions) && primitive.extensions.KHR_draco_mesh_compression !== undefined)) return null;
+    if (!record(mesh) || !Array.isArray(mesh['primitives'])) return null;
+    const primitives: readonly unknown[] = mesh['primitives'];
+    if (primitives.some(primitive => !record(primitive) || primitive['targets'] !== undefined
+      || primitive['mode'] !== undefined && primitive['mode'] !== 4 && primitive['mode'] !== 5 && primitive['mode'] !== 6
+      || record(primitive['extensions']) && primitive['extensions']['KHR_draco_mesh_compression'] !== undefined)) return null;
     result.push(mesh);
   }
   return result;
@@ -34,17 +34,17 @@ export function rigAtlasReader(loader: GLTFLoader): (root: Object3D) => Texture 
     beforeRoot: () => { const json: unknown = parser.json; meshes = staticMeshes(json); return null; },
     loadMesh: index => {
       const mesh = meshes?.[index];
-      if (mesh === undefined || !Array.isArray(mesh.primitives)) return null;
-      const primitives: readonly unknown[] = mesh.primitives, root = new Group(), pending: Promise<void>[] = [];
+      if (mesh === undefined || !Array.isArray(mesh['primitives'])) return null;
+      const primitives: readonly unknown[] = mesh['primitives'], root = new Group(), pending: Promise<void>[] = [];
       for (const primitive of primitives) {
         const slot = new Group(); root.add(slot);
-        if (!record(primitive) || !record(primitive.attributes)
-          || typeof primitive.attributes.TEXCOORD_0 !== 'number' || typeof primitive.indices !== 'number'
-          || typeof primitive.material !== 'number') continue;
+        if (!record(primitive) || !record(primitive['attributes'])
+          || typeof primitive['attributes']['TEXCOORD_0'] !== 'number' || typeof primitive['indices'] !== 'number'
+          || typeof primitive['material'] !== 'number') continue;
         // A scalar tag survives Three's node clones without sharing a material
         // object through userData. Original primitive order is fixed before IO.
         const key = slot.uuid; slot.userData['preparedAtlas'] = key;
-        pending.push(Promise.resolve(parser.getDependency('material', primitive.material)).then((material: unknown) => {
+        pending.push(Promise.resolve(parser.getDependency('material', primitive['material'])).then((material: unknown) => {
           if (material instanceof MeshStandardMaterial && material.map !== null) maps.set(key, material.map);
           return undefined;
         }));
