@@ -9,9 +9,11 @@ import { resolve } from 'node:path';
 import { writeChunkReport } from './app-build/chunkReport.mjs';
 import { checkNoTopLevelAwait } from './app-build/noTopLevelAwait.mjs';
 import { copyOutputProducts } from './app-build/outputProducts.mjs';
+import { stampBuildDocuments } from './app-build/buildIdentity.mjs';
 
 const args = process.argv.slice(2);
-/** a `--name value` or `--name=value` argument's value */
+/** a `--name value` or `--name=value` argument's value
+ * @param {string} name */
 const option = (name) => {
   const at = args.indexOf(`--${name}`);
   if (at !== -1) return args[at + 1];
@@ -20,7 +22,8 @@ const option = (name) => {
 // the folder the config builds into: native mode's own (vite.config.ts), else dist, unless the caller names one
 const mode = option('mode') ?? 'production', outDir = resolve(option('outDir') ?? (mode === 'native' ? 'dist-native' : 'dist'));
 
-/** a node step that must pass (the build stops with its exit code) */
+/** a node step that must pass (the build stops with its exit code)
+ * @param {string[]} nodeArgs */
 const step = (nodeArgs) => {
   const run = spawnSync(process.execPath, nodeArgs, { stdio: 'inherit' });
   if (run.error !== undefined) throw run.error;
@@ -45,6 +48,10 @@ if (build.status !== 0) { process.exitCode = build.status ?? 1; process.exit(); 
 // no emitted app JavaScript may suspend its module's evaluation (was vite/noTopLevelAwait.ts); inline workers are iife,
 // where the bundler refuses top-level await itself
 checkNoTopLevelAwait(outDir, resolve('public'));
+
+// HTML owns the deploy identity; hashed runtime code stays reusable across builds.
+// Native and calibration documents need it too. The worker must see these final bytes.
+stampBuildDocuments(outDir);
 
 // which modules land in which chunk, and the title and grid session budgets over the bytes as written (was
 // vite/chunkReport.ts); the web build only, which writes the manifest and hidden source maps it reads
