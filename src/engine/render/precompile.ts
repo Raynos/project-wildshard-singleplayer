@@ -1205,7 +1205,12 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     // preparation, unresolved faces and texture uploads retain their own fences.
     const cachedCompletion = cachedOnly && !nativeInSlice && isolateImageUploads && buildHeld() && presenting();
     if (sliceDone || capped || i === jobs.length - 1 && !cachedCompletion) {
+      const beforeSettlement = issueFrame;
       if (isolateImageUploads && !spent(tFrame)) await settleInSlice();
+      // A nested link wait already painted the spent issue frame. Recheck its
+      // old cap before waiting again; final completion still keeps its fence.
+      if (issueFrame !== beforeSettlement && i < jobs.length - 1 && !spent(tFrame)
+        && settledInFrame < programsPerFrame() && programCount(renderer) - programsAtFrame < programsPerFrame()) continue;
       await pause(); tFrame = performance.now(); programsAtFrame = programCount(renderer); nativeInSlice = false; settledInFrame = 0;
       for (const target of preparedTargets) if (target !== null) {
         const framebuffer = allocatedTarget(renderer, target);
