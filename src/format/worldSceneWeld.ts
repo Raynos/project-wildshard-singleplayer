@@ -11,8 +11,8 @@ const layerMask = v.pipe(v.number(), v.integer(), v.minValue(-0x80000000), v.max
 const list = <T extends v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>>(schema: T, max: number) => v.pipe(v.array(schema), v.maxLength(max));
 const isWord = (value: unknown): boolean => typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 0xffffffff;
 /** `list(word, max)` checked in one loop, the same rule (T10: a weld's matrix words through per-element pipes were most of a
- *  ~16 ms parse in a drawn frame of a Pine crossing on the Simulator); the admitted array is the input's, not a copy */
-const words = (max: number) => v.custom<number[]>(value => Array.isArray(value) && value.length <= max && value.every(isWord), 'Invalid word list');
+ *  ~16 ms parse in a drawn frame of a Pine crossing on the Simulator); still a plain array schema for the JSON Schema bake */
+const words = (max: number) => v.pipe(v.array(v.number()), v.maxLength(max), v.check(values => values.every(isWord), 'Invalid word list'));
 const bits = (length: number) => v.pipe(v.array(word), v.length(length));
 const finiteWords = (values: readonly number[], wide: boolean): boolean => {
   const buffer = Uint32Array.from(values).buffer;
