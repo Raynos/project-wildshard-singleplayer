@@ -127,10 +127,11 @@ def landmark():
     foot warmed by its light pools. Unlit, so the static world transport binds its colour map (meshMap colourOrVertex)."""
     N, n = graph()
     P = {"trim": {"type": "float", "value": 1.6, "min": 0, "max": 16},
-         "ambient": {"type": "colour", "value": [0.5, 0.36, 0.34]},
-         # D111: the key's lavender sky fill (its ambient sky x intensity 1.4) on the faces that look up, the warm fill
-         # above on those that look down, so the navy roof reads blue from the plaza and the aerials
-         "skyFill": {"type": "colour", "value": [0.92, 0.87, 1.2]},
+         "ambient": {"type": "colour", "value": [0.75, 0.54, 0.51]},
+         # D111: the key's lavender ambient sky (x 4.2: the gate's texture is dark; calibrated on the D1 / D2 aerials
+         # against their targets) on the faces that look up, the warm fill above on those that look down, so the navy
+         # roof reads royal blue and the pillars red from the plaza and the aerials
+         "skyFill": {"type": "colour", "value": [2.77, 2.6, 3.61]},
          "sunGain": {"type": "float", "value": 0.8, "min": 0, "max": 8},
          # the plot's fixed dusk sun (look.day azimuth 71, low; its key's sun colour x intensity 1.5)
          "sunDirection": {"type": "vec3", "value": [-0.913, 0.259, 0.314]},
