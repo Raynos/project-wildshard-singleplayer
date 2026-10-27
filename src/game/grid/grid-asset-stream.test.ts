@@ -76,3 +76,24 @@ test('custom direct methods retain the copying fallback and cannot lend mutable 
   expect(customReads).toBe(0); expect(wire).toEqual(bytes); expect(stream.locked).toBe(false);
   bytes.fill(0); expect(wire[63]).toBe(64);
 });
+test('a reader method replaced during a native pull cannot replace the bound read', async () => {
+  const bytes = Uint8Array.from({ length: 64 }, (_, i) => i + 1), locator = await address(bytes);
+  let active: ReadableStreamBYOBReader | undefined, offset = 0, customReads = 0;
+  const stream = new ReadableStream({ type: 'bytes', pull(controller) {
+    if (active === undefined) throw new Error('Missing native reader');
+    Object.defineProperty(active, 'read', { configurable: true, value: () => { customReads++; return Promise.resolve({ done: false, value: bytes }); } });
+    const request = controller.byobRequest;
+    if (request === null || request.view === null) throw new Error('Missing direct request');
+    if (offset === bytes.length) { controller.close(); request.respond(0); return; }
+    const target = new Uint8Array(request.view.buffer, request.view.byteOffset, request.view.byteLength), count = Math.min(8, target.length, bytes.length - offset);
+    target.set(bytes.subarray(offset, offset + count)); offset += count; request.respond(count);
+  } });
+  const acquire = stream.getReader.bind(stream);
+  Object.defineProperty(stream, 'getReader', { value: (options?: ReadableStreamGetReaderOptions) => {
+    if (options?.mode !== 'byob') throw new Error('Native stream should retain direct reads');
+    active = acquire({ mode: 'byob' }); return active;
+  } });
+  const wire = await readGridAssetBytes(locator, () => Promise.resolve(new Response(stream)), 'strips');
+  expect(customReads).toBe(0); expect(wire).toEqual(bytes); expect(stream.locked).toBe(false);
+  bytes.fill(0); expect(wire[63]).toBe(64);
+});
