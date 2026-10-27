@@ -1,5 +1,5 @@
 /**
- * G532: the entry road deck as a specimen catalogue row (boot/modelCatalogue.generated.json, bake-specimens.mjs): one file-backed
+ * G532: the entry road deck as a specimen catalogue row (worldScenes' specimens; the scene banks emit its files): one file-backed
  * draw per baked deck (entryDeckGeometry.ts) on the kit's still material, selected by its `deck`: the world's four entries
  * share `world`, the Explorer shows `deep` and `shallow`. The specimen catalogue job and the world scenes section import it.
  */

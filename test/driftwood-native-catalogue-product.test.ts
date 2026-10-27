@@ -1,15 +1,14 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- validate the generated catalogue without inferring its complete JSON type
-import { readFileSync } from 'node:fs';
 import { object, parse } from 'valibot';
 import { expect, test } from 'vitest';
 import { readProjectAssets } from '../src/sdk/project';
 import { parseWorldSceneModels, WorldSceneModelsSchema, worldSceneModelResources } from '../src/format/worldSceneModels';
 import { parseWorldScenes } from '../src/format/worldScenes';
 import native from '../src/shards/driftwood-isle/data/nativeSpecimens.generated.json' with { type: 'json' };
+import { driftwoodModelCatalogue } from './fixtures/driftwoodModelCatalogue';
 
 test('native cards bind the same catalogue and owned sources at boot and product admission', async () => {
   const boot=parse(object({siteCatalogue:WorldSceneModelsSchema}),
-    JSON.parse(readFileSync('src/shards/driftwood-isle/boot/modelCatalogue.generated.json','utf8')));
+    await driftwoodModelCatalogue());
   const loaded = await readProjectAssets('src/shards/driftwood-isle', undefined, { folder: 'driftwood-isle', imageRoots: [{ prefix: '/assets/', directory: 'public/assets' }] });
   const catalogueFile = loaded.output.namedFiles?.find(file => file.name === 'models/world-scenes.json');
   const catalogueBytes = catalogueFile === undefined ? undefined : loaded.assets.get(catalogueFile.hash);

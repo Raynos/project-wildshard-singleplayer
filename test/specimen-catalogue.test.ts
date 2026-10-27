@@ -17,7 +17,7 @@ import { PackedSpecimenSchema } from '@wildshard/format/specimenCatalogue';
 import packedRows from './fixtures/nalati-packed-specimens-original.json' with { type: 'json' };
 import campMaterialRows from '../src/shards/nalati-grasslands/data/campMaterials.json' with { type: 'json' };
 import type { CatalogueParams } from '../src/shards/nalati-grasslands/generators/campParams';
-import type { CatalogueParams as TrailParams } from '../src/shards/driftwood-isle/boot/specimenParams.generated';
+import type { CatalogueParams as TrailParams } from '../src/shards/driftwood-isle/generators/trailParams';
 import { nalatiSpecimens as campData } from './fixtures/nalati-specimens';
 import trailRows from '../src/shards/driftwood-isle/data/trailCatalogue.json' with { type: 'json' };
 

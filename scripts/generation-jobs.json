@@ -3244,62 +3244,6 @@
       "platform": "native"
     },
     {
-      "id": "trail-specimen-catalogue",
-      "catalogueDependencies": [
-        "driftwood-native-specimens"
-      ],
-      "shard": "driftwood-isle",
-      "entry": "src/shards/driftwood-isle/generators/bake-specimens.mjs",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/driftwood-isle/generators/bake-specimens.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/driftwood-isle/generators/bake-specimens.mjs",
-        "scripts/bake-output.mjs",
-        "src/shards/driftwood-isle/data/trailCatalogue.json",
-        "src/shards/driftwood-isle/data/siteCatalogue.json",
-        "src/shards/driftwood-isle/data/wreckSites.json",
-        "src/shards/driftwood-isle/generators/trailParams.ts",
-        "src/shards/driftwood-isle/generators/siteCatalogue.ts",
-        "public/assets/models/driftwood-blender/placements.bin",
-        "public/assets/models/driftwood-blender/island.json",
-        "src/shards/driftwood-isle/data/foliageScenes.generated.json",
-        "src/shards/driftwood-isle/data/pierScenes.generated.json",
-        "src/shards/driftwood-isle/generators/reefCatalogue.ts",
-        "src/shards/driftwood-isle/generators/reefSpecimenRows.ts",
-        "src/shards/driftwood-isle/generators/reefFiles.ts",
-        "src/sdk/bake/source-loader.mjs",
-        "src/shards/driftwood-isle",
-        "scripts/generated-source.mjs",
-        "scripts/json-output-guard.mjs",
-        "scripts/no-binary-json.mjs",
-        "public/assets/models/driftwood-hero/faces/wendell-head.glb",
-        "public/assets/models/driftwood-blender/voxel-ao.bin",
-        "src/shards/driftwood-isle/generators/entryDeckGeometry.ts",
-        "src/shards/driftwood-isle/generators/entryDeckSpecimen.ts",
-        "src/shards/driftwood-isle/data/entryDeckBoxes.json",
-        "src/format",
-        "src/shards/driftwood-isle/data/nativeSpecimens.generated.json"
-      ],
-      "outputs": [
-        "src/shards/driftwood-isle/boot/modelCatalogue.generated.json",
-        "src/shards/driftwood-isle/boot/specimenParams.generated.d.ts",
-        "src/shards/driftwood-isle/data/entry-deck-deep.generated.bin",
-        "src/shards/driftwood-isle/data/entry-deck-shallow.generated.bin",
-        "src/shards/driftwood-isle/data/entry-deck-world.generated.bin"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/driftwood-isle/boot/modelCatalogue.generated.json",
-        "src/shards/driftwood-isle/boot/specimenParams.generated.d.ts",
-        "src/shards/driftwood-isle/data/entry-deck-deep.generated.bin",
-        "src/shards/driftwood-isle/data/entry-deck-shallow.generated.bin",
-        "src/shards/driftwood-isle/data/entry-deck-world.generated.bin"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "driftwood-look-materials",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/lookMaterials.ts",

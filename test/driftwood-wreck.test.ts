@@ -1,6 +1,4 @@
 import { DRIFTWOOD_ORIGINAL_LAYOUTS } from './fixtures/driftwood-layout-source';
-// oxlint-disable-next-line import/no-nodejs-modules -- validate the generated catalogue at runtime rather than infer its complete JSON type
-import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { beforeAll, expect, it } from 'vitest';
@@ -9,10 +7,11 @@ import { ShipwreckBuilder } from '../src/shards/driftwood-isle/generators/shipwr
 import { parseWorldSceneModels, WorldSceneModelsSchema } from '../src/format/worldSceneModels';
 import { floorAtRects } from '../src/engine/physics/box';
 import WRECK_SITES from '../src/shards/driftwood-isle/data/wreckSites.json' with { type: 'json' };
+import { driftwoodModelCatalogue } from './fixtures/driftwoodModelCatalogue';
 
 const bake = DRIFTWOOD_ORIGINAL_LAYOUTS.wreck;
 
-const catalogue = v.parse(v.object({siteCatalogue:WorldSceneModelsSchema}),JSON.parse(readFileSync('src/shards/driftwood-isle/boot/modelCatalogue.generated.json','utf8'))).siteCatalogue;
+const catalogue = v.parse(v.object({siteCatalogue:WorldSceneModelsSchema}),await driftwoodModelCatalogue()).siteCatalogue;
 
 beforeAll(admitDriftwoodFixtureRows);
 

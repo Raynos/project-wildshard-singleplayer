@@ -115,6 +115,7 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D65 | Pine product build refuses 'shard.config.ts must use injected build capabilities for file access (node:fs, node:module)': GR8 G23-G33's in-memory producers (bake-pine-streams / -floor / -cabins / -props / -crags, bake-prop-scenes, bake-crag-scenes, bake-timber-scenes, bake-tree-rest, bake-keyed-sky) read files with node:fs from modules the config imports statically (sprayPuffs, sceneModelRows, worldScenes, the scene contributions, treeSet, forestStory, rangedPage, sourceOutput); masked by earlier config reds until 915042034e. Fix: the rows move into generate(ctx) through ctx.cached | `97e058d299` (G23) | sp-o3 | open; fixing now |
 
 | D66 | Existing separate Nine public/Developer title PNG flakes (`40346975383`, `40355584392`), previously mislabeled D13 | `531c009fdd` | sp-x1 | existing title-only quarantine until 2026-10-28 03:30 UTC; gameplay remains blocking |
+| D67 | `scripts/family-props-board/board.js` imports `src/shards/driftwood-isle/boot/modelCatalogue.generated.json`, which the retired specimen-catalogue job wrote; the board needs the site catalogue from `siteCatalogue(banks)` (sceneBanks.ts) when its harness is repaired (its browser runner is already removed) | the specimen-catalogue retirement (sp-o4, GR7) | the family-props board row (generators GR7 ← B3) | open |
 
 ## Rows
 

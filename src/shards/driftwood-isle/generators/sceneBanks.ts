@@ -9,6 +9,7 @@ import { BLENDER_MODELS } from './blenderArea';
 import { DRIFTWOOD_BANK_BLOBS } from './assets';
 import { trailSpecimenBank } from './trailsideModels';
 import { islandCoverBank } from './islandDressing';
+import { entryDeckFiles } from './entryDeckSpecimen';
 import { driftwoodIslandFacts, driftwoodIslandFactsFrom, type DriftwoodIslandFacts } from './islandFacts';
 
 /**
@@ -71,6 +72,8 @@ export async function driftwoodSceneBankOutput(banks: DriftwoodSceneBanks): Prom
     ...[...trailSpecimenBank().glbs].map(([name, bytes]) => nameBlob(name, 'glb', bytes)),
     // the cover's transports and cells, plain as their sources were
     ...[...banks.cover].map(([name, bytes]) => nameBlob(name, 'bin', bytes)),
+    // the entry road decks' raw specimen geometry (the specimen catalogue job wrote it under data/)
+    ...entryDeckFiles().map(file => nameBlob(file.name, 'bin', file.bytes, { decoded: file.bytes.length, gpu: file.bytes.length })),
     // the synchronous banks' shipped blobs (the reef's), named as assets.ts names its sources: GLBs meshopt, the rest plain
     ...await Promise.all(DRIFTWOOD_BANK_BLOBS.map(row => row.kind === 'glb' ? nameMeshoptBlob(row.name, row.bytes) : Promise.resolve(nameBlob(row.name, row.kind, row.bytes))))]);
 }

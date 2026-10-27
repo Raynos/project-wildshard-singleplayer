@@ -15,7 +15,7 @@ import { worldPlacements, TRAIL_PLACEMENTS } from './worldPlacements';
 import trailSpecimens from '../data/trailCatalogue.json' with { type: 'json' };
 import { SpecimenCatalogueSchema, type SpecimenCatalogueRows, type SpecimenLocationRows } from '@wildshard/format/specimenCatalogue';
 import { trailSpecimenBank } from './trailsideModels';
-import { entryDeckSpecimen,entryDeckFiles } from './entryDeckSpecimen';
+import { entryDeckSpecimen } from './entryDeckSpecimen';
 import * as v from 'valibot';
 
 const trail = driftwoodTrailRows();
@@ -84,5 +84,5 @@ export function worldScenes(banks: DriftwoodSceneBanks): WorldScenesSection {
 }
 
 /** The original world index widths, normalized offline rather than expanded by the standalone GLB export. */
-export const SCENE_MODEL_BLOBS: { name: string; source: string; kind: string; }[] = [...entryDeckFiles().map(({name,source,bytes})=>({name,source,kind:'bin',options:{decoded:bytes.length,gpu:bytes.length}})),...foliage.blobs,
+export const SCENE_MODEL_BLOBS: { name: string; source: string; kind: string; }[] = [...foliage.blobs,
 ];
