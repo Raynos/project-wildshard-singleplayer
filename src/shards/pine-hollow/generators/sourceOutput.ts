@@ -82,6 +82,7 @@ import { parseAchievementCounterData, AchievementCounterDataSchema } from '@wild
 import { PINE_FEAT_COUNTERS } from './questInventory';
 import { CABIN_LIFE } from './cabinLook';
 import { CABIN_LIGHT } from './cabinAssembly';
+import { cabinScene } from './cabinSceneContribution';
 import { HEARTH_LOOKS } from './hearthLook';
 import { pineFigureCatalogue } from './figureCatalogue';
 import { pineNpcSkins } from './npcSkinInputs';
@@ -163,7 +164,7 @@ const heldEquipment = { ...heldTuning,
 };
 
 /** Pine's output before the program's producers add theirs (`prepareOutput`). */
-export interface PineStaticOutput { platform: ReturnType<typeof emitPlatformSections>; custom: ReturnType<typeof emitDefinedSections>; namedFiles: ReturnType<typeof emitNamedBlobs>["files"]; assets: ReturnType<typeof emitNamedBlobs>["assets"]; blobs: NonNullable<ProjectOutput['blobs']>; }
+export interface PineStaticOutput { platform: ReturnType<typeof emitPlatformSections>; custom: ReturnType<typeof emitDefinedSections>; namedFiles: ReturnType<typeof emitNamedBlobs>["files"]; assets: ReturnType<typeof emitNamedBlobs>["assets"]; blobs: NonNullable<ProjectOutput['blobs']>; late?: NonNullable<ProjectOutput['late']>; }
 
 /** D65: the output rows over the program's sources (the scene, page and story rows, the props, the floor, the keyed sky);
  *  the platform rows go to `prepareOutput`, which adds the compiled return and spawn scripts. */
@@ -344,5 +345,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Pine
   const sortedAssets = [...assets].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
   const platform = emitPlatformSections(new Map<PlatformDataSectionName, unknown>([...platformRows, ['actors/return-scripts', [life.script, shelter.script, contracts.script]], ['actors/spawn-scripts', [night.row, ...elites.programs]]]));
   const customRows = emitCustom(sources, new Map<string, unknown>([['custom/questRuntime', { ...PINE_QUEST_PAYLOAD, lead: { ...PINE_QUEST_PAYLOAD.lead, program: lifeProgram } }], ['custom/kingKit', king.rows]]));
-  return { ...output, platform, custom: customRows, namedFiles: [...namedFiles, shelter.file], assets: new Map([...sortedAssets, [shelter.file.hash, shelter.bytes]]) };
+  // I2: the cabin weld builds after control (cabinSceneContribution.ts), so its node shapes leave the library fetched before it
+  const late = (await cabinScene(sources)).CABIN_LATE;
+  return { ...output, platform, custom: customRows, namedFiles: [...namedFiles, shelter.file], assets: new Map([...sortedAssets, [shelter.file.hash, shelter.bytes]]), late };
 }

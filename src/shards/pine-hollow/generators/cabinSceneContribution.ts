@@ -12,6 +12,7 @@ import { timberWorld } from './timberWorldRows';
 import { HEARTH_LOOKS } from './hearthLook';
 import { cabinLiving, cabinSites } from './cabinLivingContribution';
 import { perSources, type PineSources } from './pineSources';
+import { HAMLET } from './layout';
 
 const text = v.string(), words = v.array(v.number()), contacts = v.array(v.unknown());
 const registration = v.variant('kind', [
@@ -56,7 +57,9 @@ function sourceGraph(metadata: CabinSceneRows, file: string): WorldSceneWeld {
 export interface CabinScene {
   readonly CABIN_PLACEMENTS: ReturnType<typeof parseWorldScenePlacement>[];
   readonly CABIN_JSON_BLOBS: ReturnType<typeof nameBlob>[];
-  readonly CABIN_WELDS: { id: string; file: { knob: string; false: { phone: string; desktop: string; }; true: { phone: string; desktop: string; }; }; }[];
+  readonly CABIN_WELDS: { id: string; file: { knob: string; false: { phone: string; desktop: string; }; true: { phone: string; desktop: string; }; }; late: { at: [number, number] }; }[];
+  /** I2: the late weld's node shapes (not the living resources other draws borrow), fetched after control at the hamlet */
+  readonly CABIN_LATE: { hash: string; at: [number, number] }[];
   readonly CABIN_LIBRARIES: { id: string; kind: "owned"; models: { id: string; file: string; attributes: Record<string, string>; }[]; }[];
   readonly CABIN_RAW_MODELS: NamedBlob[];
   readonly CABIN_PACKED_MODELS: NamedBlob[];
@@ -110,8 +113,10 @@ export const cabinScene: (sources: PineSources) => Promise<CabinScene> = perSour
     const row = metadata.worlds.find(entry => entry.tier === tier && entry.shadow === shadow);
     if (row === undefined) throw new Error('Missing cabin world topology'); return row.file;
   };
-  const CABIN_WELDS: { id: string; file: { knob: string; false: { phone: string; desktop: string; }; true: { phone: string; desktop: string; }; }; }[] = [{ id: 'cabins.shells', file: { knob: 'pine.cabinDetailShadows',
-    false: { phone: worldFile('phone', false), desktop: worldFile('desktop', false) }, true: { phone: worldFile('phone', true), desktop: worldFile('desktop', true) } } }];
+  // I2: the cabins build after the player has control. None of them shows from the spawn (a probe hid the whole weld at
+  // four headings on the phone: only wind motion changed), so they never pop in where the player starts
+  const CABIN_WELDS: { id: string; file: { knob: string; false: { phone: string; desktop: string; }; true: { phone: string; desktop: string; }; }; late: { at: [number, number] }; }[] = [{ id: 'cabins.shells', file: { knob: 'pine.cabinDetailShadows',
+    false: { phone: worldFile('phone', false), desktop: worldFile('desktop', false) }, true: { phone: worldFile('phone', true), desktop: worldFile('desktop', true) } }, late: { at: [HAMLET.x, HAMLET.z] } }];
   const CABIN_LIBRARIES: { id: string; kind: "owned"; models: { id: string; file: string; attributes: Record<string, string>; }[]; }[] = [...living.CABIN_LIVING_LIBRARIES, ...[...new Set(metadata.geometry.map(row => row.library))].map(id => ({ id, kind: 'owned' as const,
     models: metadata.geometry.filter(row => row.library === id).map(({ library: _library, ...row }) => row) }))];
   // GR8: the stored shapes' GLBs, built in memory: raw for the map assembly, meshopt-named for the output (as their
@@ -123,6 +128,9 @@ export const cabinScene: (sources: PineSources) => Promise<CabinScene> = perSour
   }), ...living.CABIN_LIVING_SHAPES];
   const CABIN_RAW_MODELS: NamedBlob[] = shapes.map(([name, bytes]) => nameBlob(name, 'glb', bytes));
   const CABIN_PACKED_MODELS: NamedBlob[] = await Promise.all(shapes.map(([name, bytes]) => nameMeshoptBlob(name, bytes)));
+  const livingShapes = new Set(living.CABIN_LIVING_SHAPES.map(([name]) => name));
+  const CABIN_LATE = [...new Set(CABIN_PACKED_MODELS.filter(blob => blob.file.name !== undefined && !livingShapes.has(blob.file.name)).map(blob => blob.file.hash))]
+    .map(hash => ({ hash, at: [HAMLET.x, HAMLET.z] as [number, number] }));
   const CABIN_MATERIALS: unknown[] = metadata.sourceMaterials.map(row => ({ id: slot(row.id), kind: 'source', load: 'placement', url: row.url,
     aliases: authored.propMaterials, part: row.part, ...(row.id.includes('.pit.') ? { publishObject: 'cabins.source.pit' } : row.id.includes('.lantern.') ? { publishObject: 'cabins.source.lantern' } : {}), ...(row.id.includes('.prop.') ? { anisotropy: 8, anisotropyMaps: ['map', 'normalMap', 'roughnessMap', 'aoMap'] } : {}) }));
   for (const id of ['flame', 'ember', 'smoke'] as const) CABIN_MATERIALS.push({ id: `cabin.${id}`, kind: 'look', look: HEARTH_LOOKS[id] });
@@ -154,5 +162,5 @@ export const cabinScene: (sources: PineSources) => Promise<CabinScene> = perSour
           false: { phone: specimenFile(family.key, choice.id, 'phone', false), desktop: specimenFile(family.key, choice.id, 'desktop', false) },
           true: { phone: specimenFile(family.key, choice.id, 'phone', true), desktop: specimenFile(family.key, choice.id, 'desktop', true) } } })) });
   }
-  return { CABIN_PLACEMENTS, CABIN_JSON_BLOBS, CABIN_WELDS, CABIN_LIBRARIES, CABIN_RAW_MODELS, CABIN_PACKED_MODELS, CABIN_MATERIALS, CABIN_MODEL_ROWS };
+  return { CABIN_PLACEMENTS, CABIN_JSON_BLOBS, CABIN_WELDS, CABIN_LATE, CABIN_LIBRARIES, CABIN_RAW_MODELS, CABIN_PACKED_MODELS, CABIN_MATERIALS, CABIN_MODEL_ROWS };
 });

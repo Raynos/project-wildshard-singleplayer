@@ -38,6 +38,8 @@ export interface LivingPage {
   readonly resources: SceneHandles; readonly life: LivingBuildings; readonly group: Group;
   readonly buildings: v.InferOutput<typeof LivingPageSitesSchema>['buildings'];
   readonly roofs: v.InferOutput<typeof LivingPageSitesSchema>['roofs']; readonly roots: readonly Object3D[];
+  /** I2: settles once a late shell weld (built after control) has registered the buildings' doors; null when they are */
+  readonly lateDoors: Promise<void> | null;
 }
 export interface ForestPage {
   readonly rows: ForestPageRows; readonly resources: SceneHandles; readonly cabins: LivingPage;
@@ -83,7 +85,7 @@ export async function prepareForestPage(ctx: ShardContext, input: unknown): Prom
     if (shared) for (let i = 0; i < row.light.count; i++) { const light = row.light; topology.life.shared.push(resources.lend(LightPool.for(game.scene).acquire(light.color, light.intensity, light.distance, light.decay))); }
     hydrateWorldSceneWeld(topology.graph, resources, { geometry, materials, plumbing: ctx.product.shardfile.plumbing }, owner); life.add(topology.life);
     const sites = v.parse(LivingPageSitesSchema, await ctx.product.json(row.sites));
-    const page: LivingPage = { resources, life, group, ...sites, roots: sites.buildings.filter(entry => entry.standalone).map(entry => resources.object(entry.root)) };
+    const roots = sites.buildings.filter(entry => entry.standalone).map(entry => resources.object(entry.root));
     game.scene.add(group); runtime.interactables.push(...life.interactables);
     // I2: the shells may be a late weld (built after control, out of the spawn view): their assembly, the buildings' saves
     // and doors follow it then
@@ -92,7 +94,9 @@ export async function prepareForestPage(ctx: ShardContext, input: unknown): Prom
       life.persist(ctx.app.saves, owner, { id: ctx.manifest.slug, shard: ctx.manifest.slug, group: row.save }); life.registerDoors(registry, player.position);
       for (const prompt of life.interactables) setSight(prompt, { slack: row.sightSlack });
     };
-    if (resources.has(row.shells)) await shells(); else void (async () => { await resources.published(row.shells); await shells(); })();
+    const lateDoors = resources.has(row.shells) ? null : resources.published(row.shells).then(shells);
+    if (lateDoors === null) await shells();
+    const page: LivingPage = { resources, life, group, ...sites, roots, lateDoors };
     return page;
   });
   const lanterns = await forestLanterns(ctx, rows, cabins); game.scene.add(lanterns.points);
