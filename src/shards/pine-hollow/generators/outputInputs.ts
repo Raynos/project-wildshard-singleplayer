@@ -42,7 +42,7 @@ const values: { 'custom/heldPlayback': typeof playback; 'custom/heldInputs': typ
  'custom/paintedTextures':{...painted,textures:Object.fromEntries(Object.entries(painted.textures).map(([key,row])=>[key,{...row,url:named(row.url)}])),urls:painted.urls.map(named)},
  'custom/trophyMounts':{...trophies,url:named(trophies.url)},
  'custom/crossbowPool':{...crossbow,pool:{...crossbow.pool,url:CROSSBOW_NAME}},
- 'custom/handsPool':{pool:{...hands.pool,url:named(hands.pool.url)},hands:hands.hands,heldBow:PINE_HELD_BOW,
+ 'custom/handsPool':{pool:hands.pool,hands:hands.hands,heldBow:PINE_HELD_BOW,
    presentation:{hands:HANDS_MATERIAL,coat:COAT_MATERIAL}},
  'custom/kingKit':{...kingKit,pool:{...kingKit.pool,url:named(kingKit.pool.url)}},
 };

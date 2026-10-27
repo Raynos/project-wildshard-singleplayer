@@ -1,9 +1,10 @@
 // Retain original producer payloads; expose only the client's required immutable inputs.
+import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {namedBlobOutput} from '../../../../scripts/named-blob-output.mjs';
 import {leverDetailPool} from './crossbowPool.ts';
-import {HANDS_POOL} from './handsPoolProduct.ts';
+import {HANDS_POOL,HANDS_POOL_NAME} from './handsPoolProduct.ts';
 
 const project=new URL('../',import.meta.url),root=new URL('../../../../',import.meta.url);
 const json=path=>JSON.parse(readFileSync(new URL(path,project),'utf8'));
@@ -16,7 +17,7 @@ add('models/trophies/mounts.bin','bin',trophies.url);
 const details=json('data/leverDetails.json');
 // GR8: the rifle's detail pool is built here (no scheduler job, no stored GLB), under its declared URL alias
 blobs.add('models/held/lever-details.glb','glb',leverDetailPool(),details.pool.url);
-// GR8: the hands pool is built here too (no scheduler job, no stored GLB), under its SHA-256 URL alias
-blobs.add('models/held/hands.glb','glb',HANDS_POOL.glb,HANDS_POOL.rows.pool.url);
+// GR8: the hands pool is built here too (no scheduler job, no stored GLB), under its retired SHA-256 URL as the alias
+blobs.add(HANDS_POOL_NAME,'glb',HANDS_POOL.glb,`/assets/pine-hollow/baked/${createHash('sha256').update(HANDS_POOL.glb).digest('hex')}.glb`);
 blobs.finish(new URL('data/clientBlobs.generated.json',project));
 console.info(`Pine client inputs: immutable sources under ${fileURLToPath(project)}`);
