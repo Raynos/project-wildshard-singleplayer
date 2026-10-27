@@ -130,7 +130,7 @@ function* specimenCosts(source: Shardfile, assets: ReadonlyMap<string, Uint8Arra
       }
     }
   };
-  const { files: _files, library: _library, critical: _critical, ...fields } = source;
+  const { files: _files, library: _library, critical: _critical, late: _late, ...fields } = source;
   visit(fields);
   yield;
   for (const [name, row] of descriptor.sections) {
@@ -219,7 +219,7 @@ function* playLibrarySourceSteps(source: Shardfile): Generator<void, Shardfile> 
   const into = (text: string): void => { const hash = names.get(text); if (hash !== undefined) other.add(hash); };
   const plan: unknown = descriptor.sections.get('client/plan'), features: unknown = typeof plan === 'object' && plan !== null ? Reflect.get(plan, 'features') : undefined;
   const islands = Array.isArray(features) && features.some((row: unknown) => typeof row === 'object' && row !== null && Reflect.get(row, 'kind') === 'world.assembly' && Reflect.get(row, 'library') !== undefined);
-  const { files: _files, library: _library, critical: _critical, props, ...rest } = source;
+  const { files: _files, library: _library, critical: _critical, late: _late, props, ...rest } = source;
   const fields = islands || props === null ? { ...rest, props } : { ...rest, props: { ...props, wholeLibrary: [] } };
   const { libraries: _libraries, ...world } = scenes, sections: unknown[] = [world];
   for (const [name, section] of descriptor.sections) {
@@ -267,7 +267,7 @@ function* urlImageLibrarySourceSteps(source: Shardfile, assets: ReadonlyMap<stri
       return { ...entry, plate };
     }), ...(row.chalk === undefined ? {} : { chalk: { ...row.chalk, atlas: '' } }) };
   });
-  const { files: _files, library: _library, critical: _critical, manifest: _manifest, rows, ...fields } = source;
+  const { files: _files, library: _library, critical: _critical, manifest: _manifest, late: _late, rows, ...fields } = source;
   // These two typed sections are already represented by source.manifest/source.rows.
   const sections: unknown[] = [];
   for (const [name, section] of descriptor.sections) if (name !== 'ui/level' && name !== 'ui/compendium') sections.push(section);
@@ -342,7 +342,8 @@ function* runtimeOnlyProductFilesSteps(source: Shardfile, unread: ReadonlySet<st
   let visited = 0;
   const files = new Map(source.files.map(file => [file.hash, file])), keep = new Set<string>();
   const descriptor = outputDescriptor(source), paths = new Map(descriptor?.index.files.map(file => [file.path, file.hash]));
-  const pending: unknown[] = [{ ...source, files: [], critical: [], library: [] },
+  const { late: _late, ...consumed } = source; // scheduling metadata is not a synchronous transport read
+  const pending: unknown[] = [{ ...consumed, files: [], critical: [], library: [] },
     ...[...descriptor?.sections ?? []].flatMap(([name, value]) => isPlatformDataSection(name) && !unread.has(name) ? [value] : [])];
   // O14: only strings can name a file: numbers, booleans and nulls (most of a product's rows) are never queued
   const queue = (item: unknown): void => { if (typeof item === 'string' || typeof item === 'object' && item !== null) pending.push(item); };

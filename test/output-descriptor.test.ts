@@ -1,3 +1,4 @@
+import { runtimeOnlyProductFiles } from '../src/game/shardfile/productCost';
 import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { encodeCanonicalJson as canonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
@@ -753,4 +754,13 @@ test('an unreceipted late hint never skips byte validation or admits an undeclar
   const admitted = await admitProduct(row.index, opts);
   expect(admitted.assets.size).toBe(1); expect(reads.filter(url => url.includes('/blobs/'))).toHaveLength(1);
   expect(() => parseOutputIndex({...row.index,admission:{...row.index.admission,late:[{hash:'f'.repeat(64)}]}})).toThrow('declared library root');
+});
+
+
+test('late scheduling hints do not create synchronous transport ownership', () => {
+  const row = fixture(true,0,1,'loader-fixture',false,true), file = row.source.files[0];
+  if (file === undefined) throw new Error('Missing scheduled fixture file');
+  expect(runtimeOnlyProductFiles(row.source)).toEqual([file.hash]);
+  row.source.look.grade.lut = file.hash;
+  expect(runtimeOnlyProductFiles(row.source)).toEqual([]);
 });

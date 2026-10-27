@@ -732,6 +732,8 @@ Last actual heavy-three control numbers remain the21c table above.
 
 ### I2.10 Late hints are scheduling, not consumers (2026-10-27, sp-x2)
 
+Defining red-fix: `9738809b3f` (pushed; waiting lanes informed).
+
 Red-fix for1655f7fd74: the conservative tier-selection field walk
 interpreted the new late hashes as real synchronous consumers, undoing
 manifest-only image omission. The same151 FarReach file records and
@@ -755,3 +757,20 @@ horizon tier selection. They are typed, not executed before landing
 (G769); the actual existing-product selector comparison above executed.
 No preview/product duplicate, cap change or acceptance saving claim.
 I2 still awaits the joint heavy-three read on its original12MB/250 bars.
+
+### I2.11 Late hints do not pin synchronous residency (2026-10-27, sp-x2)
+
+In flight (reading at plan end): apply the same scheduling/consumer
+separation as9738809b3f to the adjacent runtime-only, specimen,
+Explorer-whole and URL-image residency scans. Their existing typed
+consumer and dependency walks remain; only source.late is omitted from
+use discovery. Inventory membership, full raw declarations and the
+metadata's own JSON heap charge remain. This prevents the new hints
+from creating a fictitious synchronous reader in otherwise unchanged
+host projections. No content, admission gate or memory cap changes.
+
+Game and scoped output-descriptor fixture types, touched typed lint
+and scoped ratchet pass. Source control checks late-only bytes remain
+runtime-read-only while a real LUT consumer pins them. Not executed
+before landing under G769; no build, browser, memory or wire saving
+claim. I2 retains the original heavy-three failure until a joint read.
