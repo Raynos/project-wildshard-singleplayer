@@ -55,7 +55,7 @@ the end (G558). Numbers go in commit messages (G506), no receipts.
 | **H3 — open (plan-end timing miss below); source in flight (2026-10-27, sp-x9; source `52e5052165`, reading at plan end G780)** | Spawn-critical home first (D2, G794), order only: existing terrain/collision foundation, arrival tile, clipped ring, then unchanged entryways before broad render demand. No new bytes or per-file measuring phase; preserve the pier/spawn contents in their declared tiles | `shardfile/tileContent.ts`; existing `grid/liveSession.ts` foundation | 1–2 / 4–8 | Codex | 1.5 d | warm Home region ≤ 1.5 s, cold ≤ 8 s; no pop-in in the reveal / spawn view | H2, D2 |
 | **H3.1 — in flight (reading at plan end); source `469841245c`** | Request and finish the spawn tile/ring before broad coarse coverage, preserving parent-first reads, full coverage readiness and retirement. Touched game/test types + named typed lint pass under G769; no tests, build or reading requested. Far-fallback handover is implemented in H3.2; timing/no-pop-in qualification deferred under G769. | `shardfile/tileContent.ts` | — | Codex | bounded slice | source ordering only; H3 full acceptance remains open | H2 |
 | **H3.2 — in flight (reading at plan end); source `efce5d5324`** | Require the spawn ring and declared entryways before entry; continue distant coarse/coverage pins on the existing scheduler while retaining the admitted, child-masked far root. Hide that root only when complete replacement is ready. Missing far fallback and standalone callers retain full coverage readiness. Retirement cancels every pin; no extra scheduler. | `tileContent.ts`, `cellCover.ts`, `grid/session.ts` | — | Codex | bounded slice | touched game/test types + named typed lint pass; already-landed support at `efce5d5324`; no further H3 budget work; no runtime qualification under G769 | H3.1 |
-| **H4 — open (plan-end timing miss below); source in flight (2026-10-27, sp-x9; source `a7176fd513`, reading at plan end G780)** | Home region CPU after C1/H2: profile the warm step (Chromium 4x + Sim) and cut the top three (2,102 colliders, validators, parses) | `engine/models/colliders.ts`, `engine/physics/pieces.ts`, `shardfile/product.ts` / `productCost.ts` | 0.5–1 / 0.5–1 | Codex | 1 d | warm Home region budget met with H3 | C1, H2 |
+| **H4 — open (2026-10-27, sp-x9; source `cef103c325`, combined warm6.9473s vs1.5s)** | Home region CPU after C1/H2: profile the warm step (Chromium 4x + Sim) and cut the top three (2,102 colliders, validators, parses) | `engine/models/colliders.ts`, `engine/physics/pieces.ts`, `shardfile/product.ts` / `productCost.ts` | 0.5–1 / 0.5–1 | Codex | 1 d | warm Home region budget met with H3 | C1, H2 |
 | **H4.1 — in flight (reading at plan end); source `f47b40c9bf`** | Install the exact platform strip collision set in cooperative loading slices before publishing GridSession; synchronous callers retain the prior path. Scope retirement fences every slice, no collision shape/count/order change. Remaining H4: parser/validator CPU cuts and budget measurements. | `grid/session.ts` | — | Codex | bounded slice | touched game/test types + named lint pass; G769 defers runtime qualification | C1, H2 |
 | **H4.2 — in flight (reading at plan end); source `65f396768e`** | Use the final regional preparation hook once: it already settles sky, patches every completed material and installs composition. Avoid the redundant full-scene material sweep immediately before it; retain the world-only hook when no final hook exists. Original rendezvous/retirement/refusal controls remain, plus a typed fallback fixture. | `grid/regionalRuntime.ts` | — | Codex | bounded slice | touched game/test types + named typed lint pass; tests/timing deferred under G769 | H4.1 |
 | **H4.3 — in flight (reading at plan end, G780), sp-o4: `d09f772361` + `41edbfdd9b`** | The warm step's top three on Chromium 4x (`60be37a2f2`, 4.11 s): (1) the road system 1.07 s, ring-first in A1.2 `d09f772361`; (2) the world-scenes section parsed four times an entry (~186 ms valibot): `parseWorldScenes` keeps each admitted section object's parse (this commit; its readers are read-only); the product preflight's three calls take different objects, left; (3) the strip trimesh colliders, 155 ms, stay whole and sliced (H4.1 `f47b40c9bf`): deferring the outer ones saves ~0.1 s and needs a physics walk, which waits for a buildable main | H4's warm 1.5 s budget still needs H3 (spawn-critical home first) |
@@ -411,3 +411,25 @@ Touched game and fixture types, typed lint and scoped ratchet pass. Initial
 wide types hit foreign untracked cubeUVSample mid-edit; owner correction
 then makes game tsc-b pass. H4 remains open until one containing shared read
 also includes x2 admission573a3bebd7 and x1 assemblyae65879548.
+
+### H4 combined foundation read (2026-10-27)
+
+One cold seed plus one warm phone/4x grid entry on shared
+`cef103c325` / `cef103c-mvqqh8k0`, containing admission573a3bebd7,
+assemblyae65879548 and foundationcef103c325. Both statuspassed/errors0,
+normal reveal/controls/movement and1,038colliders retained. Six scoped
+navigation/look-preparation ownership, drainage and retirement controls pass
+8.88s after source landing.
+
+Home6.5185s cold/6.9473s warm. Native foundation0.4998/0.5415s;
+previous qualified warm was0.3857s. Warm admission1.3510s,
+world assembly1.5442s and scenes1.1144s also grow. These spans overlap;
+this is a shared pin without quiet, and no isolated or whole-home gain is
+claimed. H4 stays open against1.5s, with the original bar unchanged.
+Detail gap1,326.2ms cold/578.5ms warm is retained, not hidden.
+
+Raw:tmp/sp-x9-foundation/combined-read/grid/{cold,warm}/grid.json plus
+warm CPU profile; protocol remains the existing warm-home reader. The reader
+initially queued behind four valid browser leases, then completed naturally.
+No reader/browser remains; owned shared preview:4409 was released with
+serve-build.sh stop after the coordinator's slot request. No repeat queued.
