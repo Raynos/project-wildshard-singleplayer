@@ -1,7 +1,7 @@
 import {nineCastBlobs} from './fixtures/nine-cast-blobs';
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
-import { Box3, BufferAttribute as NativeBufferAttribute, BufferGeometry as NativeBufferGeometry, Group, Mesh, MeshStandardMaterial, Object3D, Texture as NativeTexture, Vector3 } from 'three';
+import { Box3, BufferAttribute as NativeBufferAttribute, BufferGeometry as NativeBufferGeometry, Group, Mesh, MeshStandardMaterial, Object3D, Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { AssetService } from '../src/engine/app/assets';
 import { WorldRegistry } from '../src/engine/world/registry';
@@ -14,6 +14,8 @@ import { emptyShardfile } from '../src/sdk/author';
 import * as runtimeProducts from '../src/game/shardfile/runtimeProduct';
 import { recordSceneProfile } from '../src/game/shardfile/sceneProfile';
 import { isDev, setDev } from '../src/engine/core/devMode';
+import * as pacing from '../src/engine/core/framePacing';
+import * as work from '../src/engine/core/workSlice';
 /** A product whose file names are their own URLs: these rows' sources and aliases are /-rooted public URLs (d9cf71547f). */
 const identityProduct = { url: (name: string): string => name };
 
@@ -834,7 +836,7 @@ test.each(['late','played','published','retired'] as const)('source maps shared 
 test.each(['late','played','placed','alternate-placement','immediate','mapped','retired'] as const)('late surface scans preserve %s material consumers',async mode=>{
   const [surfaces,{SkyRig},{reachControl},{buildTier}]=await Promise.all([import('../src/game/shardfile/worldSceneSurface'),import('../src/engine/world/skyRig'),import('../src/engine/boot/prefetch'),import('../src/engine/core/tier')]);
   const sky:unknown=Object.create(SkyRig.prototype);if(!(sky instanceof SkyRig))throw new Error('Missing late surface sky');
-  const ctx=fixture(),level=ctx.scope.child('control'),texture=new NativeTexture(),material=new MeshStandardMaterial({map:texture});
+  const ctx=fixture(),level=ctx.scope.child('control'),material=new MeshStandardMaterial();
   Object.assign(ctx.game,{levelScope:level,runtime:{world:{sky,game:ctx.game,registry:ctx.app.registry}}});
   const graph={id:'specimen.shape',root:'specimen.root',nodes:[{id:'shape',parent:'specimen.root',kind:'mesh',geometry:{library:'shapes',model:'stone'},material:'paint',sphere:[0,0,0,2]}]};
   const late={...graph,id:'late.draw',root:'late.root',nodes:graph.nodes.map(node=>({...node,parent:'late.root'}))};
@@ -849,10 +851,15 @@ test.each(['late','played','placed','alternate-placement','immediate','mapped','
   const load=vi.spyOn(surfaces,'worldSceneSurfaceMaterial').mockResolvedValue(material);
   const prepare=vi.spyOn(surfaces,'prepareWorldSceneSurfaces').mockResolvedValue(undefined);
   try{
-    const base=section(),rows=parseWorldScenes({...base,catalogue:'models/catalogue.json',materials:[{id:'paint',kind:'surface',scan:'fixture-scan',properties:{}},
+    const base=section(),input={...base,catalogue:'models/catalogue.json',materials:[{id:'paint',kind:'surface',scan:'fixture-scan',properties:{}},
       ...(mode==='mapped'?[{id:'copied',kind:'mapped',material:{kind:'standard',properties:{},source:{material:'paint',maps:['map']}}}]:[])],
       steps:mode==='immediate'?base.steps:[],placements:mode==='placed'||mode==='alternate-placement'?[{id:'placed.shape',model:'shape',draw:'single',poses:[{x:0,y:0,z:0,yxz:{yaw:0,scale:1}}]}]:[],
-      welds:[{id:'late.draw',file:mode==='alternate-placement'?{phone:buildTier()==='phone'?'scenes/late.json':'scenes/alternate.json',desktop:buildTier()==='desktop'?'scenes/late.json':'scenes/alternate.json'}:'scenes/late.json',...(mode==='played'?{}:{late:{at:[100,100]}})}]});
+      welds:[{id:'late.draw',file:mode==='alternate-placement'?{phone:buildTier()==='phone'?'scenes/late.json':'scenes/alternate.json',desktop:buildTier()==='desktop'?'scenes/late.json':'scenes/alternate.json'}:'scenes/late.json',...(mode==='played'?{}:{late:{at:[100,100]}})}]};
+    if(mode==='mapped'){
+      expect(()=>parseWorldScenes(input)).toThrow('Mapped scene materials map an earlier resident source');
+      expect(load).not.toHaveBeenCalled();expect(prepare).not.toHaveBeenCalled();return;
+    }
+    const rows=parseWorldScenes(input);
     const handles=await installWorldScenes(ctx,rows),early=mode!=='late'&&mode!=='retired'&&mode!=='alternate-placement';
     expect(load).toHaveBeenCalledTimes(early?1:0);
     expect(prepare).toHaveBeenCalledTimes(early?1:0);
@@ -860,5 +867,55 @@ test.each(['late','played','placed','alternate-placement','immediate','mapped','
     if(mode==='retired'){ctx.scope.dispose();reachControl(level);expect(load).not.toHaveBeenCalled();return;}
     const published=handles.published('late.draw');reachControl(level);await published;
     expect(load).toHaveBeenCalledOnce();expect(handles.has('late.draw')).toBe(true);
-  }finally{ctx.scope.dispose();material.dispose();texture.dispose();vi.restoreAllMocks();}
+  }finally{ctx.scope.dispose();material.dispose();vi.restoreAllMocks();}
+});
+
+
+test.each([false, true])('a completed owned read uses its current budget (live=%s)', async live => {
+  const context = fixture(), read = context.product.file.bind(context.product), nativeSlice = work.workSlice;
+  const yielded: (Scope | undefined)[] = []; let at = 0;
+  vi.spyOn(performance, 'now').mockImplementation(() => at);
+  vi.spyOn(pacing, 'presenting').mockReturnValue(live);
+  vi.spyOn(pacing, 'buildHeld').mockReturnValue(true);
+  vi.spyOn(pacing, 'frameBudgetSpent').mockReturnValue(false);
+  vi.spyOn(work, 'workSlice').mockImplementation((budget, owner) => {
+    const slice = nativeSlice(budget, owner);
+    return { ...slice, yield: () => { yielded.push(owner); return slice.yield(); } };
+  });
+  vi.spyOn(context.product, 'file').mockImplementation(async name => {
+    const bytes = await read(name);
+    if (name === 'models/stone.glb') at = 100; // Waiting crossed the old local slice.
+    return bytes;
+  });
+  try {
+    const handles = await installWorldScenes(context, section());
+    const stone = handles.object('markers.east.stone');
+    expect(stone).toBeInstanceOf(Mesh);
+    if (!(stone instanceof Mesh)) throw new Error('Missing admitted stone');
+    const geometry: unknown = stone.geometry;
+    if (!(geometry instanceof NativeBufferGeometry)) throw new Error('Missing admitted stone geometry');
+    const position: unknown = geometry.getAttribute('position');
+    if (!(position instanceof NativeBufferAttribute)) throw new Error('Missing admitted stone position');
+    expect([...position.array]).toEqual([0, 0, 0, 1, 0, 0, 0, 1, 0]);
+    expect(yielded).toHaveLength(live ? 0 : 1);
+    expect(context.app.assets.retained().every(entry => entry.refs === 0)).toBe(true);
+  } finally { context.scope.dispose(); vi.restoreAllMocks(); }
+});
+
+test('a spent owned-model completion preserves refusal and drains its leases', async () => {
+  const context = fixture(), read = context.product.file.bind(context.product), failure = new Error('original model completion refusal');
+  let loaded = false;
+  vi.spyOn(pacing, 'presenting').mockReturnValue(true);
+  vi.spyOn(pacing, 'buildHeld').mockReturnValue(true);
+  vi.spyOn(pacing, 'frameBudgetSpent').mockImplementation(() => loaded);
+  vi.spyOn(context.product, 'file').mockImplementation(async name => {
+    const bytes = await read(name); if (name === 'models/stone.glb') loaded = true; return bytes;
+  });
+  const pause = vi.spyOn(work, 'buildYield').mockRejectedValue(failure);
+  try {
+    await expect(installWorldScenes(context, section())).rejects.toBe(failure);
+    expect(pause).toHaveBeenCalledOnce();
+    expect(context.app.assets.retained().length).toBeGreaterThan(0);
+    expect(context.app.assets.retained().every(entry => entry.refs === 0)).toBe(true);
+  } finally { context.scope.dispose(); vi.restoreAllMocks(); }
 });
