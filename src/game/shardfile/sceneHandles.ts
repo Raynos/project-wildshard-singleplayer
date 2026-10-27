@@ -19,6 +19,7 @@ export class SceneHandles {
   private readonly values = new Map<string, Handle>();
   private readonly materialLists = new Map<string, readonly MeshStandardMaterial[]>();
   private readonly tileContents: TileContent[] = [];
+  private readonly waiting = new Map<string, (() => void)[]>();
   constructor(private readonly lighting?: Pick<SkyRig, 'setupMaterial'>) {}
   get sky(): Pick<SkyRig, 'setupMaterial'> {
     if (this.lighting === undefined) throw new Error('Scene handles need world sky');
@@ -39,6 +40,13 @@ export class SceneHandles {
     if (this.has(id)) throw new Error(`Duplicate world scene handle: ${id}`);
     if (!nativeHandle(value)) throw new Error(`Unsupported world scene handle: ${id}`);
     this.values.set(id, value);
+    const waiting = this.waiting.get(id); this.waiting.delete(id);
+    for (const resolve of waiting ?? []) resolve();
+  }
+  /** I2: resolves once `id` is published (at once when it already is): a late weld publishes after control. */
+  published(id: string): Promise<void> {
+    if (this.has(id)) return Promise.resolve();
+    return new Promise(resolve => { const waiting = this.waiting.get(id) ?? []; waiting.push(resolve); this.waiting.set(id, waiting); });
   }
   publishColliders(id: string, value: readonly ColliderDesc[]): void { this.publish(id, value); }
   /** Native migration publication is idempotent by resource identity only. */

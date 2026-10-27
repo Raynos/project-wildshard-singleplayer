@@ -31,6 +31,7 @@ import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { buildYield, workSlice } from '@wildshard/engine/core/workSlice';
 import type { Scope } from '@wildshard/engine/app/scope';
+import { whenControl } from '@wildshard/engine/boot/prefetch';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { parseWorldSceneModels, worldSceneModelResources, worldSceneModelGraphs } from '@wildshard/format/worldSceneModels';
 import { parseWorldScenes, worldScenesForTier, type WorldScenesSection } from '@wildshard/format/worldScenes';
@@ -174,7 +175,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
   for (const row of section.libraries) if (row.kind === 'pool' && row.publish !== undefined) for (const part of row.files.flatMap(file => file.parts)) {
     const id = `${row.publish}.${part}`; if (published.has(id)) throw new Error(`Duplicate world scene publication: ${id}`); published.add(id);
   }
-  const welds: WorldSceneWeld[] = [], deferredPlacements = new Set<string>();
+  const welds: WorldSceneWeld[] = [], deferredPlacements = new Set<string>(), lateWelds = new Map<string, readonly [number, number]>();
   assertSceneProfile(product.shardfile, (section.welds ?? []).map(row => worldSceneWeldFile(row, product.shardfile.plumbing)));
   for (const declared of section.welds ?? []) {
     const selected = worldSceneWeldFile(declared, product.shardfile.plumbing);
@@ -187,6 +188,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       if (file === selected) row = candidate;
     }
     if (row === undefined) throw new Error('Missing selected frozen scene');
+    if (declared.late !== undefined) lateWelds.set(row.id, declared.late.at);
     for (const resource of row.resources) {
       if (resource.kind === 'geometry') reference(resource.source);
       if (published.has(resource.id)) throw new Error('Duplicate frozen scene resource'); published.add(resource.id);
@@ -292,8 +294,9 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
   }
   const residentReferences = new Set([...modelGeometry, ...activeSteps.flatMap(step => Object.values(step.geometry)),
     ...[...batches.values()].flatMap(row => row.geometry),
+    // I2: a late weld's own drawn geometry is read after control; its published resources (other draws borrow them) stay
     ...welds.flatMap(row => row.resources.flatMap(resource => resource.kind === 'geometry' ? [resource.source] : [])
-      .concat(row.nodes.flatMap(node => 'geometry' in node ? [node.geometry] : [])))].map(ref => JSON.stringify([ref.library, ref.model])));
+      .concat(lateWelds.has(row.id) ? [] : row.nodes.flatMap(node => 'geometry' in node ? [node.geometry] : [])))].map(ref => JSON.stringify([ref.library, ref.model])));
   await reads.close();
   reads.validate();
   const owner = resident.child('world-scenes'), libraries = new Map<string, Library>(), materials = new Map<string, Material>(), finish: (() => void)[] = [];
@@ -421,23 +424,52 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     // each library copy (a whole library clones and places its model per call) and each tiled part is a slice's worth:
     // in one task they were ~117 ms of a 133 ms Nine Dragon world-step frame at phone 4x (~55 ms of clones)
     const copies = workSlice(undefined, owner);
-    for (const row of welds) {
+    const publishResources = (row: WorldSceneWeld, geometryOf: (library: string, model: string) => BufferGeometry | null | undefined): void => {
       for (const resource of row.resources) {
         const shape = resource.kind === 'seeds' ? new BufferGeometry().setAttribute('seed', new BufferAttribute(new Float32Array(Uint32Array.from(resource.words).buffer), 4))
-          : libraries.get(resource.source.library)?.geometry(resource.source.model);
+          : geometryOf(resource.source.library, resource.source.model);
         if (shape === undefined || shape === null) throw new Error('Missing frozen scene resource');
         handles.publish(resource.id, shape); owner.onDispose(() => { shape.dispose(); handles.release(resource.id, shape); });
       }
+    };
+    const publishAssembly = async (row: WorldSceneWeld, geometryOf: (library: string, model: string) => BufferGeometry | null | undefined): Promise<void> => {
       const geometry = new Map<string, BufferGeometry>();
       for (const node of row.nodes) if ('geometry' in node) {
         const key = JSON.stringify([node.geometry.library, node.geometry.model]);
         if (geometry.has(key)) continue;
-        const shape = libraries.get(node.geometry.library)?.geometry(node.geometry.model);
+        const shape = geometryOf(node.geometry.library, node.geometry.model);
         if (shape === undefined || shape === null) throw new Error('Missing frozen scene geometry');
         // Decoder-only staging is adopted by the assembly, never uploaded.
         geometry.set(key, shape); await copies.check();
       }
       handles.publish(row.id, new WorldSceneWeldAssembly(row, handles, { geometry, materials, plumbing: product.shardfile.plumbing }, owner, registry(), ctx.root));
+    };
+    const residentGeometry = (library: string, model: string): BufferGeometry | null | undefined => libraries.get(library)?.geometry(model);
+    for (const row of welds) { publishResources(row, residentGeometry); if (!lateWelds.has(row.id)) await publishAssembly(row, residentGeometry); }
+    if (lateWelds.size > 0) {
+      // I2: a weld its producer keeps out of the spawn view is built after the player has control, nearest first: its
+      // drawn models are read then (not before control) and its assembly publishes as the resident welds' did.
+      const from = residentTileEntry(resident) ?? product.shardfile.spawn, owned = new Map(section.libraries.flatMap(row => row.kind === 'owned' ? [[row.id, row] as const] : []));
+      const away = (row: WorldSceneWeld): number => { const at = lateWelds.get(row.id) ?? [0, 0]; return Math.hypot(at[0] - from.x, at[1] - from.z); };
+      const late = welds.filter(row => lateWelds.has(row.id)).sort((a, b) => away(a) - away(b));
+      const buildLate = async (): Promise<void> => {
+        for (const row of late) {
+          const shapes = new Map<string, WorldSceneGeometry>();
+          for (const ref of row.nodes.flatMap(node => 'geometry' in node ? [node.geometry] : [])) {
+            const key = JSON.stringify([ref.library, ref.model]); if (shapes.has(key)) continue;
+            const model = owned.get(ref.library)?.models.find(candidate => candidate.id === ref.model);
+            if (model === undefined) throw new Error('A late weld reads only owned library models');
+            const file = typeof model.file === 'string' ? model.file : model.file[TIER];
+            shapes.set(key, await readWorldSceneGeometry(owner, reader, { file, attributes: model.attributes, ...(model.segments === undefined ? {} : { segments: model.segments }) }, ctx.app.assets));
+            await buildYield(owner);
+          }
+          await publishAssembly(row, (library, model) => shapes.get(JSON.stringify([library, model]))?.copy() ?? null);
+          for (const shape of shapes.values()) shape.done();
+        }
+      };
+      // the level whose host signals control (session/finish.ts); with no world host there is no spawn view to protect
+      const level = ctx.game.runtime?.world?.game.levelScope;
+      if (level === undefined) void buildLate(); else whenControl(level, owner, () => { void buildLate(); });
     }
     if (batches.size > 0 && sky === undefined) throw new Error('Scene batches need a world sky');
     for (const row of batches.values()) {

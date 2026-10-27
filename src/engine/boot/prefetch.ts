@@ -34,6 +34,26 @@ export function afterControl(scope: Scope, onFrame: (run: () => void) => void, r
   });
 }
 
+const controlled = new WeakSet<Scope>(), awaitingControl = new WeakMap<Scope, Set<() => void>>();
+/** I2: a level's host reached its first controllable frame (session/finish.ts, beside its `ws:control-ready` event);
+ *  everything `whenControl` queued for that level runs now. */
+export function reachControl(level: Scope): void {
+  if (controlled.has(level)) return;
+  controlled.add(level);
+  const queued = awaitingControl.get(level); awaitingControl.delete(level);
+  for (const run of queued ?? []) run();
+}
+/** I2: run once `level` has reached control, at once when it already has (a cell assembled in play); `owner`'s
+ *  retirement cancels it. */
+export function whenControl(level: Scope, owner: Scope, run: () => void): void {
+  if (controlled.has(level)) { run(); return; }
+  let queued = awaitingControl.get(level);
+  if (queued === undefined) { queued = new Set(); awaitingControl.set(level, queued); }
+  const once = (): void => { if (!owner.disposed && !owner.disposing) run(); };
+  queued.add(once);
+  owner.onDispose(() => { awaitingControl.get(level)?.delete(once); });
+}
+
 const CONCURRENCY = 6;
 /**
  * The art + audio queue (prefetchAfter): ~150 files, most of them 3–30 KB one-shots, after the pack has the pipe to itself.

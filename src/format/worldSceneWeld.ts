@@ -70,8 +70,11 @@ export const WorldSceneWeldSchema: v.GenericSchema<WorldSceneWeldInput, WorldSce
 
 
 const file = v.union([id, v.strictObject({ phone: id, desktop: id })]);
-/** Geometry topology can follow an independent Debug quality override. */
-export const WorldSceneWeldSourceSchema: v.GenericSchema<WorldSceneWeldSourceRowsInput, WorldSceneWeldSourceRows> = v.strictObject({ id, file: v.union([file, v.strictObject({ knob, false: file, true: file })]) });
+/** Geometry topology can follow an independent Debug quality override. `late` (I2): the weld is built after the player
+ *  has control, nearest first by its cell-local `at`, never before it; its producer guarantees nothing of it shows in the
+ *  spawn view, so it never pops in where the player starts. */
+export const WorldSceneWeldSourceSchema: v.GenericSchema<WorldSceneWeldSourceRowsInput, WorldSceneWeldSourceRows> = v.strictObject({ id, file: v.union([file, v.strictObject({ knob, false: file, true: file })]),
+  late: v.exactOptional(v.strictObject({ at: v.tuple([finite, finite]) })) });
 const parsedWelds = new WeakMap<object, WorldSceneWeld>();
 function freezeWeldRows(value: unknown): void {
   if (typeof value !== 'object' || value === null) return;
@@ -657,6 +660,9 @@ export type WorldSceneWeld = { [Key in keyof WorldSceneWeldFields]: WorldSceneWe
 export type WorldSceneWeldSourceRowsInput = WorldSceneWeldSourceRows;
 interface WorldSceneWeldSourceRowsFields {
     id: string;
+    late?: {
+        at: [number, number];
+    };
     file: ((string) | ({
         phone: string;
         desktop: string;

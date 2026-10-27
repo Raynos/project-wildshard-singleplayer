@@ -84,9 +84,16 @@ export async function prepareForestPage(ctx: ShardContext, input: unknown): Prom
     hydrateWorldSceneWeld(topology.graph, resources, { geometry, materials, plumbing: ctx.product.shardfile.plumbing }, owner); life.add(topology.life);
     const sites = v.parse(LivingPageSitesSchema, await ctx.product.json(row.sites));
     const page: LivingPage = { resources, life, group, ...sites, roots: sites.buildings.filter(entry => entry.standalone).map(entry => resources.object(entry.root)) };
-    game.scene.add(group); runtime.interactables.push(...life.interactables); await resources.assemble(row.shells);
-    life.persist(ctx.app.saves, owner, { id: ctx.manifest.slug, shard: ctx.manifest.slug, group: row.save }); life.registerDoors(registry, player.position);
-    for (const prompt of life.interactables) setSight(prompt, { slack: row.sightSlack }); return page;
+    game.scene.add(group); runtime.interactables.push(...life.interactables);
+    // I2: the shells may be a late weld (built after control, out of the spawn view): their assembly, the buildings' saves
+    // and doors follow it then
+    const shells = async (): Promise<void> => {
+      await resources.assemble(row.shells);
+      life.persist(ctx.app.saves, owner, { id: ctx.manifest.slug, shard: ctx.manifest.slug, group: row.save }); life.registerDoors(registry, player.position);
+      for (const prompt of life.interactables) setSight(prompt, { slack: row.sightSlack });
+    };
+    if (resources.has(row.shells)) await shells(); else void (async () => { await resources.published(row.shells); await shells(); })();
+    return page;
   });
   const lanterns = await forestLanterns(ctx, rows, cabins); game.scene.add(lanterns.points);
   const eye = new Vector3(), sun = [1, 1, 1], row = rows.buildings;

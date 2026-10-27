@@ -8,7 +8,7 @@ import { hasLateAudio, startAudioPreload, startLateAudio, type AudioBanks } from
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { loadingStage } from '@wildshard/engine/boot/waits';
 import { startShardPrefetch } from '@wildshard/engine/boot/shardPrefetch';
-import { afterControl } from '@wildshard/engine/boot/prefetch';
+import { afterControl, reachControl } from '@wildshard/engine/boot/prefetch';
 import { installGpuRecovery } from '@wildshard/engine/core/GpuRecovery';
 import { TIER } from '@wildshard/engine/core/tier';
 import { installProbe } from '@wildshard/engine/debug/probe';
@@ -225,6 +225,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   afterControl(game.levelScope, run => { game.onLate(run, 'game.boot.background'); },
     () => hud.entered && !hud.paused && !app.clock.paused && game.frameGate(), () => {
       document.dispatchEvent(new Event('ws:control-ready'));
+      reachControl(game.levelScope);
       void completeOfflineCopy();
       if (deferredAudio || hasLateAudio(files)) void decodeAfterBoot();
       if (ctx.grid !== null) startGridPrefetch(gridPrefetchOrder(ctx.grid.assembly, player.position), gridPrefetchOrder(ctx.grid.assembly, player.position, 'phone'));
