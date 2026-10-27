@@ -12,7 +12,7 @@ import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { SKY_LIFT_PROMPTS } from './rows/liftPrompts';
 import { SKY_MOVER_VIEWS } from './rows/moverViews';
-import MOVERS from '../data/movers.generated.json' with { type: 'json' };
+import type { MoverData } from '@wildshard/sdk/movers';
 import { risingIsletRows, risingIsletEntryways } from './risingIslets';
 import lookGraphs from '../data/lookGraphs.json' with { type: 'json' };
 import { ISLE_MAPS } from './rows/isleLook';
@@ -35,7 +35,7 @@ const COARSE_FILES = new Set(isleProps.tiles.filter(tile => tile.lod === 1).flat
 const ISLE_LIBRARY = isleProps.files.filter(file => !COARSE_FILES.has(file.hash));
 const ISLE_TILE_COST = { compressed: ISLE_LIBRARY.reduce((sum, file) => sum + file.compressed, 0), resident: ISLE_LIBRARY.reduce((sum, file) => sum + file.decoded + file.gpu, 0) };
 /** Build-time declaration rows from admitted original navigation; no source handoff is read. */
-export function skyProductRows(navigation: SkyNavigationRows): ReturnType<typeof parseShardfile> {
+export function skyProductRows(navigation: SkyNavigationRows, movers: MoverData): ReturnType<typeof parseShardfile> {
   return structuredClone(parseShardfile({ ...base, ...SKY_SECTIONS, plumbing, state: { ...SKY_SECTIONS.state, version: 2 }, migrations: slotMigrations, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, accent: 'pink', runtime: null,
   // the material graphs the runtime draws its own meshes in (authored SF59 graph JSON, data/lookGraphs.json), and the
   // samplers: the islands' and boulders' library maps tile, the sward atlas keeps its own
@@ -43,7 +43,7 @@ export function skyProductRows(navigation: SkyNavigationRows): ReturnType<typeof
   clientChannels: [...SKY_MOVER_VIEWS, ...SKY_LIFT_PROMPTS, ...SKY_DRESSING_PROGRAMS],
   entryways: [...ENTRYWAYS],
   // The authored clips declare every bridge, islet and gate; both hosts install this admitted order once.
-  movers: MOVERS,
+  movers,
   // the twelve static islands baked as the shardfile's L0 tiles (generators/isleProps.ts, each island a whole node), library
   // files the ground scene reads its islands from (islandScenes.ts SKY_ISLE_TILES), so the grid streams the same bytes
   library: [...base.library, ...skyMaps.library, STORM_NOISE.hash, SWARD_ATLAS_FILE.hash, ...ISLE_LIBRARY.map(file => file.hash)], tiles: isleProps.tiles, files: [...skyMaps.files, { ...STORM_NOISE, dependencies: [] }, { ...SWARD_ATLAS_FILE, dependencies: [] }, ...navigation.files, ...isleProps.files], critical: [...navigation.critical],

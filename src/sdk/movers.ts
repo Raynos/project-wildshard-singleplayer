@@ -6,6 +6,9 @@ import * as v from 'valibot';
 /** Typed numeric mover declarations: local collider primitives and admitted fixed-step scripts. */
 export type MoverData = ReturnType<typeof parseMovers>;
 
+/** Admit detached numeric mover headers through the defining platform grammar, without installing an owner. */
+export function parseMoverRows(input: unknown): MoverData { return parseMovers(input); }
+
 /** Motion options on a real three.js object, with explicit gameplay activation. */
 export interface MoverOptions {
   clip?: AnimationClip;

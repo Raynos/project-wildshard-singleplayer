@@ -1,3 +1,4 @@
+import { originalSkyMovers } from './fixtures/sky-movers';
 import { originalSkyNavigation } from './fixtures/sky-navigation';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own the isolated cache and retain the original complete GLB oracle.
 import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
@@ -193,7 +194,7 @@ test('normal output admission and the actual native pool resolver consume the ow
     const geometry = prepared.blobs.find(row => row.file.name === geometryName);
     if (geometry === undefined) throw new Error('Normal admission lost prepared geometry');
     expect(hashImmutableBytes(geometry.bytes)).toBe(hash);
-    const product = createShardProduct({ slug: 'far-reach', revision: 1, shardfile: skyProductRows(originalSkyNavigation()), sections: new Map(),
+    const product = createShardProduct({ slug: 'far-reach', revision: 1, shardfile: skyProductRows(originalSkyNavigation(), originalSkyMovers()), sections: new Map(),
       files: new Map(prepared.blobs.flatMap(row => row.file.name === undefined ? []
         : [[row.file.name, { hash: row.file.hash, url: `/shardfiles/far-reach/${row.file.path}` }]])),
       read: key => {
@@ -263,7 +264,7 @@ test('the original atlas admits from owned output in an empty project with uncha
     expect(readdirSync(empty)).toEqual([]);
     expect([...admitted.keys()]).toEqual([SWARD_ATLAS_FILE.hash]);
     expect(hashImmutableBytes(admitted.get(SWARD_ATLAS_FILE.hash) ?? new Uint8Array())).toBe(SWARD_ATLAS_FILE.hash);
-    const declaration = skyProductRows(originalSkyNavigation());
+    const declaration = skyProductRows(originalSkyNavigation(), originalSkyMovers());
     expect(declaration.files.find(file => file.hash === SWARD_ATLAS_FILE.hash)).toEqual(SWARD_ATLAS_FILE);
     const samplers = declaration.look.samplers;
     if (samplers === undefined) throw new Error('Missing original sampler declarations');

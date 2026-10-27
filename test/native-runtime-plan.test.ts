@@ -1,3 +1,4 @@
+import { originalSkyMovers } from './fixtures/sky-movers';
 import { originalSkyNavigation } from './fixtures/sky-navigation';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read critical terrain blobs from the exact admitted product inventory.
 import { readFile } from 'node:fs/promises';
@@ -83,7 +84,7 @@ it('data pages allocate the original native roster, looks and stable actor ident
 });
 
 it('both data pages require their complete real feature, quest and encounter owners', () => {
-  for (const [legacy, client, recipe] of [[skyProductRows(originalSkyNavigation()), SKY_CLIENT_PLAN, SKY_NATIVE_WORLD], [signalProductRows(), SIGNAL_CLIENT_PLAN, SIGNAL_NATIVE_WORLD]] as const) {
+  for (const [legacy, client, recipe] of [[skyProductRows(originalSkyNavigation(), originalSkyMovers()), SKY_CLIENT_PLAN, SKY_NATIVE_WORLD], [signalProductRows(), SIGNAL_CLIENT_PLAN, SIGNAL_NATIVE_WORLD]] as const) {
     const source = { ...legacy, runtime: null };
     const sections = new Map<string, unknown>([['client/plan', client], ['world/scenes', {}], ['world/targets', {}], ['actors/species-programs', {}],
       ['look/painted', {}], ['sim/scripts', []], ['sim/runtime-plan', { kind: 'held-melee', recipe, baked: { pieces: [] } }]]);
@@ -106,7 +107,7 @@ it('both data pages require their complete real feature, quest and encounter own
 });
 
 it('both data homes retain the reviewed client floor and ordinary sim allocation', () => {
-  for (const source of [skyProductRows(originalSkyNavigation()), signalProductRows()]) {
+  for (const source of [skyProductRows(originalSkyNavigation(), originalSkyMovers()), signalProductRows()]) {
     expect(source.runtime).toBeNull();
     const floor = source.budgets.client;
     if (floor === undefined) throw new Error('Missing retained client measurement');

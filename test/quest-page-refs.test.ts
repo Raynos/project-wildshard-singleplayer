@@ -1,3 +1,4 @@
+import { originalSkyMovers } from './fixtures/sky-movers';
 import { originalSkyNavigation } from './fixtures/sky-navigation';
 import { QUEST_HOST as SIGNAL_HOST } from '../src/shards/sunscar-dunes/generators/questHost';
 import { QUEST_HOST as SKY_HOST } from '../src/shards/far-reach/generators/questHost';
@@ -22,7 +23,7 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import type { ShardContext } from '../src/game/plugin/context';
 
 const signal = signalProductRows();
-const sky = skyProductRows(originalSkyNavigation());
+const sky = skyProductRows(originalSkyNavigation(), originalSkyMovers());
 
 const page = { version: 1, quest: 'sunscar.signal', prompts: [
   { id: 'read', action: 'read', label: 'Read', at: { point: 'place.read-at' }, radius: 2.4 },

@@ -11,10 +11,12 @@ import { ScriptComposition } from '@wildshard/engine/script/composition';
 import { createMoverHost, MoverScriptDriver } from '@wildshard/game/plugin/mover';
 import { parseMovers } from '@wildshard/format/movers';
 import { MOVER_FIELD_RANGES, moverScriptEntities } from '@wildshard/game/shardfile/movers';
-import sky from '../src/shards/far-reach/data/movers.generated.json' with { type: 'json' };
+import { originalSkyMovers } from './fixtures/sky-movers';
 import island from '../src/shards/driftwood-isle/data/movers.generated.json' with { type: 'json' };
+import { PINE_SOURCES } from './fixtures/pine-sources';
+import { timberWorld } from '../src/shards/pine-hollow/generators/timberWorldRows';
 
-const rows = parseMovers([...sky, ...island]);
+const sky = originalSkyMovers(), rows = parseMovers([...sky, ...island]);
 function motion(row: typeof rows[number]): ConstructorParameters<typeof MoverMechanic>[0] {
   if (row.driver === undefined || row.trigger === undefined) throw new Error('Missing motion');
   return { driver: row.driver, trigger: row.trigger, at: row.at, euler: row.euler, ...(row.track === undefined ? {} : { track: row.track }), ...(row.carry === undefined ? {} : { carry: row.carry }) };
@@ -70,7 +72,7 @@ test('native mover roles keep the exact existing entity and contract save envelo
 });
 
 test('the existing ride path preserves the old smoothstep and surface clock in both directions', () => {
-  const row = canoeMover(() => 2), owner = new MoverMechanic(motion(row)), positions = row.track?.position;
+  const row = canoeMover(() => 2, timberWorld(PINE_SOURCES).landmarks), owner = new MoverMechanic(motion(row)), positions = row.track?.position;
   const first = positions?.[0], second = positions?.[1]; if (first === undefined || second === undefined) throw new Error('Missing path');
   let state: ScriptEntity = { id: 1, name: 'track', position: [...first], fields: {}, frozen: false, interactive: true };
   for (const direction of [1, -1]) {

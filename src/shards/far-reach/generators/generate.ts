@@ -8,6 +8,7 @@ import { skyMapPalette } from './fixedLayouts';
 import { skyViewDiscovery } from './viewData';
 import { skyNavigationProgram, type SkyNavigationRows } from './navigation';
 import { skyMapProgram } from './mapProgram';
+import { skyMoverProgram } from './moverHeader';
 
 /** Publish declaration, native output and discovery from one source invocation. */
 export async function generate(ctx: ProjectGenerationContext): Promise<{
@@ -19,5 +20,5 @@ export async function generate(ctx: ProjectGenerationContext): Promise<{
   const navigation = await skyNavigationProgram(ctx), output = await prepareOutput(ctx);
   const geometry = output.namedFiles.find(file => file.name === 'world/geometry/prepared-models.glb');
   if (geometry === undefined) throw new Error('Missing owned prepared geometry for boot');
-  return { shard: skyProductRows(navigation.rows), output, map: await skyMapProgram(ctx), discovery: { ...skyProductBoot(skyRigAssetSources(output.namedFiles, GPU_FILES)), ...skyViewDiscovery(), mapPalette: skyMapPalette(), navigation: navigation.rows } };
+  return { shard: skyProductRows(navigation.rows, await skyMoverProgram(ctx)), output, map: await skyMapProgram(ctx), discovery: { ...skyProductBoot(skyRigAssetSources(output.namedFiles, GPU_FILES)), ...skyViewDiscovery(), mapPalette: skyMapPalette(), navigation: navigation.rows } };
 }

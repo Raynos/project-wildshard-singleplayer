@@ -180,7 +180,7 @@ beginTick once for the entire tick. Parameter opcode 410 reads immutable declare
 host's trusted calling entity; `moverQueries` delegates physics opcodes 1–4 to the existing query adapter.
 The 32-number input limit, query count/fuel and bounded memory buffers stay unchanged. Full Wasm state and
 entity fields belong to that shared host; pending mover interactions have a separate continuation adapter.
-`@wildshard/sdk/movers` validates source data. Trusted legacy view recipes only project published poses.
+`@wildshard/sdk/movers.parseMoverRows` admits numeric headers. Trusted legacy views only project published poses.
 
 `@wildshard/game/plugin/director` validates typed shard events and observations. Its bounded
 `DirectorLane` runs raw bytes under unchanged AS limits; memory, globals, quotas and queued input restore.
