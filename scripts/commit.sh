@@ -207,10 +207,21 @@ try:
             if not isinstance(texts, dict) or any(not isinstance(name, str) or not isinstance(text, str)
                     for name, text in texts.items()):
                 refuse("gen:source must return owned source text")
-            updates = []
-            for name, text in texts.items():
+            for name in texts:
                 if not name or name.startswith("/") or "\\" in name or ":" in name or any(part in ("", ".", "..") for part in name.split("/")):
                     refuse("invalid generated source path: " + name)
+            if texts:
+                # Preserve git add's ignored-new-file refusal without writing
+                # canonical output over a peer's loose copy just to stage it.
+                ignored = subprocess.run(["git", "check-ignore", "-z", "--stdin"], env=candidate_env,
+                    input=b"".join(os.fsencode(name) + b"\0" for name in texts), capture_output=True)
+                if ignored.returncode not in (0, 1):
+                    refuse("cannot check generated source ignores: " + os.fsdecode(ignored.stderr))
+                if ignored.stdout:
+                    refuse("generated sources are ignored: " + ", ".join(os.fsdecode(name)
+                        for name in ignored.stdout.split(b"\0") if name))
+            updates = []
+            for name, text in texts.items():
                 oid = git("hash-object", "-w", "--stdin", input=text.encode(), env=candidate_env).strip()
                 updates.append(b"100644 " + oid + b"\t" + os.fsencode(name) + b"\0")
             if updates:

@@ -51,5 +51,17 @@ export const SOURCE_GENERATORS=[{id:'fixture',outputs:['src/table.ts'],inputs:['
     expect(refused.status).not.toBe(0); expect(refused.stderr).toContain('Invalid fixture source value');
     expect(git('rev-parse', 'HEAD')).toBe(before); expect(readFileSync(resolve(root, '.git/index'))).toEqual(index);
     expect(readFileSync(resolve(root, 'src/table.ts'), 'utf8')).toBe('foreign loose output\n');
+    // Canonical in-memory staging must retain ordinary Git's ignore refusal
+    // when a new committed-table row forgot its matching ignore correction.
+    put('scripts/source-generators.mjs', readFileSync(resolve(root, 'scripts/source-generators.mjs'), 'utf8').replaceAll('src/table.ts', 'src/ignored.ts'));
+    put('.gitignore', 'node_modules/\ntmp/\nsrc/ignored.ts\n');
+    git('add', 'scripts/source-generators.mjs', '.gitignore');
+    git('commit', '-qm', 'fixture ignored producer', '--', 'scripts/source-generators.mjs', '.gitignore');
+    const ignoredHead = git('rev-parse', 'HEAD'), ignoredIndex = readFileSync(resolve(root, '.git/index'));
+    put('tmp/ignored.patch', '--- a/src/input.json\n+++ b/src/input.json\n@@ -1 +1 @@\n-{"value":2}\n+{"value":3}\n');
+    const ignored = run(resolve(root, 'tmp/ignored.patch'));
+    expect(ignored.status).not.toBe(0); expect(ignored.stderr).toContain('generated sources are ignored: src/ignored.ts');
+    expect(git('rev-parse', 'HEAD')).toBe(ignoredHead); expect(readFileSync(resolve(root, '.git/index'))).toEqual(ignoredIndex);
+    expect(() => readFileSync(resolve(root, 'src/ignored.ts'))).toThrow();
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
