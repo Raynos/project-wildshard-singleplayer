@@ -191,7 +191,11 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
       // G768 checks the net published candidate. A later exact approval can
       // repair a local receipt without rewriting any commit or reusing a
       // partial increment to approve a larger final allowance.
-      failures.push(...ratchetApprovalFailures(json(gitSourceView(root,base),'lint/ratchet.json'),policy,
+      const priorPolicy=json(gitSourceView(root,base),'lint/ratchet.json');
+      // A newly introduced rule's initial per-file rows seed the ratchet.
+      // Older candidates never inherit a rule from the working-tree checker.
+      const comparedPolicy=Object.fromEntries(Object.entries(policy).filter(([rule])=>!rule.startsWith('wildshard/')||Object.keys(priorPolicy[rule]??{}).length>0));
+      failures.push(...ratchetApprovalFailures(priorPolicy,comparedPolicy,
         `Exact outgoing policy approvals\n\n${approvals.join('\n')}`));
     } else throw new Error('Unknown committed fast-check phase');
     if(failures.length>0)throw new Error(failures.join('\n'));
