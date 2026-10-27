@@ -94,8 +94,10 @@ export async function driftwoodMapAssembly(source) {
     if (bytes === undefined) throw new Error(`Missing owned map scene-bank model: ${file.name}`);
     return { file, bytes };
   });
-  // GR7: the foliage batches and placements from their bank, as the product ships them
-  const foliage = { ...driftwoodFoliageScenes(), ...foliageLogPlacements(banks.layouts) }, foliageBlobs = [...await foliageSceneFiles()].map(([name, bytes]) => ({ file: { name, kind: 'glb' }, bytes }));
+  // GR7: the foliage batches and placements from their bank, as the product ships them; the map paints the desktop
+  // placements, so only their tier's batch files (the reef's is the phone's, which desktop shares)
+  const foliage = { ...driftwoodFoliageScenes(), ...foliageLogPlacements(banks.layouts) }, desktop = new Set(foliage.libraries.flatMap(row => row.models.map(model => model.file.desktop)));
+  const foliageBlobs = [...await foliageSceneFiles(desktop)].map(([name, bytes]) => ({ file: { name, kind: 'glb' }, bytes }));
   const blobs = [...fixedBlobs, ...sceneBlobs, ...bankBlobs, ...foliageBlobs, ...DRIFTWOOD_OUTPUT.blobs], recipes = [named('scenes/rocks.json', banks.rocks.scene), named('scenes/zipline.json', piers.zipScene),
     named('scenes/moorings.json', simple('lines', 'still')), ...['palms', 'hibiscus', 'reef', 'logs'].map(kind => named(`scenes/${kind}.json`, simple('plant'))),
     ...['cascade', 'cove', 'wreck', 'trail'].map(kind => named(`scenes/${kind}.json`, read(`data/${kind === 'trail' ? 'trail' : kind}Scene.json`)))];

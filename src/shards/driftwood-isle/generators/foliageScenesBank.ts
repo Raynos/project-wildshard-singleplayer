@@ -156,11 +156,11 @@ const isPhoneFile = (name: string): boolean => name.endsWith('-phone.glb');
 /** The batch GLBs by product name, before the phone's grid positions: exact positions, compact normals and colours
  *  (compactChannels.ts, L18.3c); the phone's batch with fewer triangles (phoneDecimate.ts, within PHONE_ERROR metres,
  *  L18.3e); desktop exact. */
-export function foliageSceneGlbs(): Map<string, Uint8Array> {
+export function foliageSceneGlbs(only?: ReadonlySet<string>): Map<string, Uint8Array> {
   islandFoliagePlacements(); islandFoliageBatches();
   const material = new MeshStandardMaterial();
   try {
-    return withPortableMath(() => new Map(foliageBatches().map(batch => {
+    return withPortableMath(() => new Map(foliageBatches().filter(batch => only === undefined || only.has(batch.file)).map(batch => {
       const decoded = decodeBatch(batch);
       const drawn = batch.tier === 'phone' ? decimateFlatBatch(decoded.geometry, PHONE_ERROR[batch.kind]) : decoded.geometry.clone();
       try {
@@ -169,11 +169,15 @@ export function foliageSceneGlbs(): Map<string, Uint8Array> {
     })));
   } finally { material.dispose(); }
 }
-/** The finished batch GLBs: the phone's with 16-bit grid positions when smaller (compactPhoneGlb, iPhone downloads I3). */
-export async function foliageSceneFiles(): Promise<Map<string, Uint8Array>> {
-  const files = foliageSceneGlbs();
+/** The finished batch GLBs: the phone's with 16-bit grid positions when smaller (compactPhoneGlb, iPhone downloads I3).
+ *  `only` (a reader of some batches: the map paints the desktop placements' files) builds just those batch files, each
+ *  exactly as the full set has it: a phone file's compaction scores three brotli encodes, ~12 s of the map's 20 s for the
+ *  two phone batches it never reads. */
+export async function foliageSceneFiles(only?: ReadonlySet<string>): Promise<Map<string, Uint8Array>> {
+  const files = foliageSceneGlbs(only);
   for (const [name, glb] of files) if (isPhoneFile(name)) files.set(name, await compactPhoneGlb(glb));
-  if (JSON.stringify([...files.keys()]) !== JSON.stringify(FOLIAGE_SCENE_FILES)) throw new Error('Foliage scene file inventory differs');
+  const expected = only === undefined ? FOLIAGE_SCENE_FILES : FOLIAGE_SCENE_FILES.filter(name => only.has(name));
+  if (JSON.stringify([...files.keys()]) !== JSON.stringify(expected)) throw new Error('Foliage scene file inventory differs');
   return files;
 }
 /** The product's batch files, `meshopt: true` as the job's sources were; the phone compaction measures with brotli, so the
