@@ -11,15 +11,10 @@
  * (gitignored: it is regenerated from node_modules by every build, like the boot packs).
  */
 import { copyFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
-import type { IncomingMessage, ServerResponse } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { resolve as resolvePath } from 'node:path';
-import { brotliCompress, constants as zlib } from 'node:zlib';
-import type { Plugin } from 'vite';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-const TARGET_DIR = `${ROOT}public/assets/physics`;
-const TARGET = `${TARGET_DIR}/rapier.wasm`;
 
 /** Aliases for vite.config.ts and vitest.config.ts: the package's wasm-importing module → the plain bindings. */
 export const rapierAlias = [
@@ -27,33 +22,6 @@ export const rapierAlias = [
   // the package declares only `module`; node-side resolution (vitest) wants a file
   { find: /^@dimforge\/rapier3d-simd$/, replacement: `${ROOT}node_modules/@dimforge/rapier3d-simd/rapier.js` },
 ];
-
-/**
- * `vite preview` sends the 3.29 MB binary as is, while Vercel's CDN brotli-compresses `application/wasm` (its
- * documented allowlist) to ~836 KB. The bench measures the preview, so the preview answers the way production does.
- */
-export function rapierPreviewPlugin(): Plugin {
-  return {
-    name: 'wildshard:rapier-preview',
-    async configurePreviewServer(server) {
-      // Prepare the CDN-equivalent bytes before preview starts accepting requests. Compressing in the
-      // first handler blocks all boot requests for 16+ seconds and falsely attributes it to WASM fetch.
-      const br = await new Promise<Buffer>((resolve, reject) => {
-        brotliCompress(readFileSync(TARGET), { params: { [zlib.BROTLI_PARAM_QUALITY]: 11 } }, (error, bytes) => {
-          if (error) reject(error); else resolve(bytes);
-        });
-      });
-      server.middlewares.use((req: IncomingMessage, res: ServerResponse, next: () => void) => {
-        const accepts = req.headers['accept-encoding'] ?? '';
-        if (req.method !== 'GET' || !req.url?.startsWith('/assets/physics/rapier.wasm') || !accepts.includes('br')) { next(); return; }
-        res.setHeader('Content-Type', 'application/wasm');
-        res.setHeader('Content-Encoding', 'br');
-        res.setHeader('Content-Length', String(br.length));
-        res.end(br);
-      });
-    },
-  };
-}
 
 /** Publish the installed binary for this source checkout before native product validation or boot tables. */
 export function copyRapierWasm(root: string = ROOT): void {

@@ -7,7 +7,7 @@ pnpm build
 
 port=4184
 log=$(mktemp)
-pnpm exec vite preview --host 127.0.0.1 --port "$port" --strictPort >"$log" 2>&1 &
+node scripts/preview-server.mjs --host 127.0.0.1 --port "$port" >"$log" 2>&1 &
 server_pid=$!
 cleanup() { kill "$server_pid" 2>/dev/null || true; wait "$server_pid" 2>/dev/null || true; rm -f "$log"; }
 trap cleanup EXIT

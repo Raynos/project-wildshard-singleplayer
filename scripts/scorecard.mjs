@@ -1045,11 +1045,10 @@ function exportTree(ref) {
 }
 
 async function startPreview(distDir, port) {
-  // vite itself, not `npx vite`: killing an npx wrapper leaves the server holding the port. --outDir picks the build.
+  // this checkout's plain preview server (D24), with the export's own vercel.json; node itself, so a kill frees the port
   const root = resolvePath(distDir, '..');
-  const vite = join(root, 'node_modules/vite/bin/vite.js');
   let listening = false, exited = null;
-  const p = spawn(process.execPath, [vite, 'preview', '--port', String(port), '--strictPort', '--outDir', distDir], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
+  const p = spawn(process.execPath, [join(ROOT, 'scripts/preview-server.mjs'), '--root', root, '--port', String(port), '--outDir', distDir], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
   // oxlint-disable-next-line no-control-regex -- stripping vite's ANSI colours (it bolds the port number)
   p.stdout.on('data', (d) => { if (String(d).replaceAll(/\u001B\[[\d;]*m/g, '').includes(`:${port}/`)) listening = true; });
   p.stderr.on('data', (d) => { process.stderr.write(`[preview] ${d}`); });

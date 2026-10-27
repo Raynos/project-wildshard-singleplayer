@@ -154,7 +154,7 @@ else if (!has('no-build')) { console.error('> pnpm build'); execSync('pnpm build
 else if (!existsSync(resolvePath(SERVE, 'dist/index.html'))) { console.error('dist/ missing; drop --no-build'); process.exit(2); }
 let listening = URL_BASE !== '', exited = null;
 // vite itself, not `npx vite`: killing an npx wrapper leaves the server holding the port
-const preview = URL_BASE ? null : spawn(process.execPath, [resolvePath(ROOT, 'node_modules/vite/bin/vite.js'), 'preview', '--port', String(PORT), '--strictPort'], { cwd: SERVE, stdio: ['ignore', 'pipe', 'pipe'] });
+const preview = URL_BASE ? null : spawn(process.execPath, [resolvePath(ROOT, 'scripts/preview-server.mjs'), '--root', SERVE, '--port', String(PORT)], { cwd: SERVE, stdio: ['ignore', 'pipe', 'pipe'] });
 // oxlint-disable-next-line no-control-regex -- stripping vite's ANSI colours (it bolds the port number)
 preview?.stdout.on('data', (d) => { if (String(d).replaceAll(/\u001B\[[\d;]*m/g, '').includes(`:${PORT}/`)) listening = true; });
 preview?.stderr.on('data', (d) => { process.stderr.write(`[preview] ${d}`); });

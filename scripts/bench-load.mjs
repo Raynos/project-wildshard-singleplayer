@@ -92,7 +92,7 @@ if (!URL_BASE) {
   // the ready check below only passes once OUR preview has printed its own URL (a stranger's version.json is not it).
   const port = PORT;
   let exited = null, listening = false;
-  preview = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] });
+  preview = spawn(process.execPath, ['scripts/preview-server.mjs', '--port', String(PORT)], { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] });
   preview.stderr.on('data', (d) => { process.stderr.write(`[preview] ${d}`); });
   // oxlint-disable-next-line no-control-regex -- stripping vite's ANSI colours (it bolds the port number)
   preview.stdout.on('data', (d) => { if (String(d).replaceAll(/\u001B\[[\d;]*m/g, '').includes(`:${port}/`)) listening = true; });

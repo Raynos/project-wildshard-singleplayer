@@ -3,7 +3,7 @@
 # sucks. No one should be using Vite dev … a combination of vite build and vite start"). No `vite` dev servers.
 #
 #   scripts/serve-build.sh [--head | --rev <rev>] [--shard <slug>[,<slug>]] [--full] [--port <n>] [--hours <h>] [--name <label>] [--devserver]
-#        vite build → a private out dir → `vite preview` on a free port (4400–4999), detached. Prints the URL.
+#        app build → a private out dir → scripts/preview-server.mjs on a free port (4400–4999), detached. Prints the URL.
 #        --head   reserve preview room, then build HEAD in the shared mirror slot pool
 #        --rev    the same for any commit (a before / after pair, e.g. scripts/nine-sim-memory.mjs --rev=f9ca6490)
 #        --shard  filter a working-tree build; pinned HEAD/rev previews build all products for sharing (G620).
@@ -297,7 +297,7 @@ GEN_ARGS="--proof"; SHARDFILE_ARGS="--reuse"
          cp "$BASE/$stamp/build.log" "$BASE/failed-$stamp.log" 2>/dev/null && echo "serve-build: full log kept at $BASE/failed-$stamp.log" >&2
          exit 1; }
 grep -h '^serve-build step\|^wildshard build: .* in \|^heavy-lane: acquired' "$BASE/$stamp/build.log" | sed 's/^/serve-build: /' >&2
-# public/ by symlink (vite preview follows them): an entry the build didn't write is linked whole; a folder both have
+# public/ by symlink (the preview server follows them): an entry the build didn't write is linked whole; a folder both have
 # (assets/: the build's JS chunks + public's models) is merged one level down, recursively; a file the build wrote wins
 link_tree() {
   local src="$1" dst="$2" e n
@@ -317,25 +317,19 @@ link_tree() {
 }
 link_tree "$SRC/public" "$OUT"
 
-PREVIEW_CFG="$BASE/$stamp/vite.preview.mjs"
-# Older pinned trees predate the renderer-free preview module. The host's preview
-# plugins serve their already-built bytes without importing their build generators.
-PREVIEW_MODULE="$SRC/vite/preview.ts"
-[ -f "$PREVIEW_MODULE" ] || PREVIEW_MODULE="$REPO/vite/preview.ts"
-cat > "$PREVIEW_CFG" <<JS
-import { previewConfig } from '$PREVIEW_MODULE';
-export default { ...previewConfig(), root: '$SRC' };
-JS
+# The host's plain preview server (D24: was `vite preview` with vite/preview.ts) serves any tree's already-built bytes
+# with that tree's vercel.json headers, so older pinned trees need nothing of their own.
+PREVIEW_SERVER="$REPO/scripts/preview-server.mjs"
 cd "$SRC" || exit 1
 # A tool runner retires its process group when the calling command exits. nohup ignores HUP, but stays in that
 # group: the preview died and the lane reaper correctly deleted its registered export. Give it its own session.
 start_preview() {
-pid="$(node --input-type=module - "$PREVIEW_CFG" "$OUT" "$PORT" "$BASE/$stamp/preview.log" <<'PREVIEW_NODE'
+pid="$(node --input-type=module - "$PREVIEW_SERVER" "$SRC" "$OUT" "$PORT" "$BASE/$stamp/preview.log" <<'PREVIEW_NODE'
 import { spawn } from 'node:child_process';
 import { openSync, closeSync } from 'node:fs';
-const [config, outDir, port, log] = process.argv.slice(2);
+const [server, root, outDir, port, log] = process.argv.slice(2);
 const fd = openSync(log, 'a');
-const child = spawn('pnpm', ['exec', 'vite', 'preview', '--config', config, '--outDir', outDir, '--port', port, '--strictPort', '--host', '127.0.0.1'],
+const child = spawn('node', [server, '--root', root, '--outDir', outDir, '--port', port, '--host', '127.0.0.1'],
   { detached: true, stdio: ['ignore', fd, fd] });
 child.once('error', error => { closeSync(fd); console.error(error); process.exitCode = 1; });
 child.once('spawn', () => { closeSync(fd); console.log(child.pid); child.unref(); });

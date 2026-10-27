@@ -3,9 +3,8 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 // oxlint-disable-next-line import/no-nodejs-modules -- Paths for the owned static HTTP fixture.
 import { join, resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { preview } from 'vite';
 import { workerInstallFiles, workerScripts, workerWarmFiles, publicWorkerProduct } from '../scripts/app-build/serviceWorker';
-import { previewHeadersPlugin } from '../vite/preview';
+import { previewServer } from './fixtures/preview-server';
 
 test('visible experimental cards never seed executable public warming', () => {
   expect(publicWorkerProduct('public', { status: 'live' })).toBe(true);
@@ -66,11 +65,9 @@ test('worker updates revalidate unchanged bytes and fetch a changed script in fu
   const scripts = workerScripts(original);
   mkdirSync(join(root, 'dist/sw-core'));
   writeFileSync(join(root, 'dist', scripts.fileName), original);
-  const server = await preview({ root, configFile: false, logLevel: 'silent',
-    plugins: [previewHeadersPlugin()], preview: { host: '127.0.0.1', port: 0 }, build: { outDir: 'dist' } });
+  const server = await previewServer(root);
   try {
-    const base = server.resolvedUrls?.local[0];
-    if (base === undefined) throw new Error('Preview did not bind its fixture');
+    const { base } = server;
     const url = new URL('sw.js', base), first = await fetch(url);
     const core = await fetch(new URL(scripts.fileName, base));
     expect(core.headers.get('cache-control')).toBe('public, max-age=31536000, immutable');
@@ -101,6 +98,6 @@ test('worker updates revalidate unchanged bytes and fetch a changed script in fu
     const rechecked = await fetch(url, { headers: { 'if-none-match': nextTag } });
     expect(rechecked.status).toBe(304); expect((await rechecked.arrayBuffer()).byteLength).toBe(0);
   } finally {
-    await server.close(); rmSync(root, { recursive: true, force: true });
+    server.close(); rmSync(root, { recursive: true, force: true });
   }
 }, 20_000);

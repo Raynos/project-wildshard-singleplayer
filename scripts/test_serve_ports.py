@@ -92,8 +92,6 @@ class PreviewTests(unittest.TestCase):
         self.addCleanup(self.stop_previews)
         (self.root / 'scripts').mkdir()
         (self.root / 'public').mkdir()
-        (self.root / 'vite').mkdir()
-        (self.root / 'vite/preview.ts').touch()
         source = Path(os.environ.get('X15_TEST_SCRIPT', ROOT / 'scripts/serve-build.sh'))
         shutil.copyfile(source, self.root / 'scripts/serve-build.sh')
         shutil.copyfile(HELPER, self.root / 'scripts/serve-port-lease.py')
@@ -124,6 +122,20 @@ if sys.argv[1] in ('scripts/gen.mjs','scripts/build-shardfiles.mjs'):
     if os.environ.get('SERVE_SHARED_SHA') and sys.argv[1]=='scripts/build-shardfiles.mjs':
         assert not any(arg.startswith('--shard') for arg in sys.argv), sys.argv
     sys.exit(0)
+if sys.argv[1]=='scripts/build-app.mjs':
+    os.execvp('pnpm',['pnpm','exec','vite','build',*sys.argv[2:]]) # the app build script wraps the fixture's build
+if sys.argv[1].endswith('/preview-server.mjs'):
+    import http.server,pathlib
+    args=sys.argv[2:]
+    port=int(args[args.index('--port')+1])
+    out=args[args.index('--outDir')+1]
+    root=pathlib.Path(os.environ['FIXTURE_ROOT'])
+    with (root/'preview-pids').open('a') as f: f.write(str(os.getpid())+'\\n')
+    os.chdir(out)
+    try: server=http.server.HTTPServer(('127.0.0.1',port),http.server.SimpleHTTPRequestHandler)
+    except OSError:
+        print('preview-server: listen EADDRINUSE',flush=True); sys.exit(1)
+    server.serve_forever()
 if sys.argv[1].endswith('/build-mirror.mjs'):
     import pathlib,re
     if sys.argv[2]=='authorize':
@@ -153,14 +165,7 @@ if args[:3] == ['exec','vite','build']:
     (root/'building').touch()
     while (root/'hold-build').exists(): time.sleep(0.02)
 else:
-    port=int(args[args.index('--port')+1])
-    out=args[args.index('--outDir')+1]
-    with (root/'preview-pids').open('a') as f: f.write(str(os.getpid())+'\\n')
-    os.chdir(out)
-    try: server=http.server.HTTPServer(('127.0.0.1',port),http.server.SimpleHTTPRequestHandler)
-    except OSError:
-        print('EADDRINUSE: Port already in use',flush=True); sys.exit(1)
-    server.serve_forever()
+    sys.exit('unexpected pnpm call: '+str(args))
 ''')
         self.env = {**os.environ, 'PATH': f'{self.bin}:{os.environ["PATH"]}',
             'FIXTURE_ROOT': str(self.root), 'SERVE_REG_DIR': str(self.root / 'registry'),
