@@ -14,13 +14,38 @@ import { execFileSync } from 'node:child_process';
  *   readonly generate?: (root: string) => Promise<Readonly<Record<string, string>>>;
  *   readonly run?: (root: string, check: boolean) => void; readonly note?: string }} SourceGenerator */
 
+/** @param {string} id @param {string} script @param {string} input @param {string} output @param {string} source @returns {SourceGenerator} */
 const starter = (id, script, input, output, source) => ({
   id, outputs: [output], inputs: [input, script], committed: true,
   generate: async root => ({ [output]: (await import(pathToFileURL(`${root}/${script}`).href))[source]() }),
 });
 
+/** The plain schema producer computes all tables without publishing an intermediate module.
+ * @param {string} root @param {string} slug @returns {Readonly<Record<string,string>>} */
+function schemaTables(root,slug) {
+  const value=JSON.parse(execFileSync(process.execPath,['--import','./scripts/shard-platform-format.mjs','scripts/bake-section-schemas.mjs',slug,'--print'],{cwd:root,encoding:'utf8',maxBuffer:4_000_000}));
+  if(typeof value!=='object'||value===null||Array.isArray(value))throw new Error('Section schema producer must return tables');
+  /** @type {Record<string,string>} */
+  const tables={};
+  for(const [path,text]of Object.entries(value)){
+    if(typeof text!=='string')throw new Error('Section schema table must be text');
+    tables[path]=text;
+  }
+  return tables;
+}
+
+/** @param {string} slug @param {readonly string[]} outputs @param {readonly string[]} [jsonInputs] @returns {SourceGenerator} */
+function sectionSchemas(slug,outputs,jsonInputs=[]) {
+  return {id:`${slug}-section-schemas`,outputs,committed:true,
+    inputs:[`src/shards/${slug}/generators/sections.ts`,...jsonInputs,
+      'scripts/source-generators.mjs','scripts/bake-section-schemas.mjs','scripts/section-types.mjs','scripts/shard-platform-format.mjs',
+      'src/sdk/formatJsonSchema.ts','src/sdk/package.json','src/format/**','package.json','pnpm-lock.yaml'],
+    generate:root=>Promise.resolve(schemaTables(root,slug))};
+}
+
 /** @type {readonly SourceGenerator[]} */
 export const SOURCE_GENERATORS = [
+  sectionSchemas('pine-hollow',['src/shards/pine-hollow/generators/sectionSchemas.generated.ts','src/shards/pine-hollow/runtime/productSections.generated.d.ts']),
   starter('starter-arm-clips', 'scripts/gen-starter-arm-clips.mjs', 'src/game/systems/viewmodel/armAliases.json', 'src/game/systems/viewmodel/clips.generated.ts', 'starterArmClipsTableSource'),
   starter('starter-weapons', 'scripts/gen-starter-weapons.mjs', 'src/game/weapons/starterBow.json', 'src/game/weapons/starter.generated.ts', 'starterWeaponsTableSource'),
   starter('starter-bag', 'scripts/gen-starter-bag.mjs', 'src/game/bag/starterItems.json', 'src/game/bag/starter.generated.ts', 'starterBagTableSource'),
@@ -83,7 +108,8 @@ export const SOURCE_GENERATORS = [
 ];
 
 /** The rows any of `paths` (repo-relative) touches: a changed input selects every row whose outputs it can change, and a
- *  changed output selects its own row (a hand edit is regenerated or refused). */
+ *  changed output selects its own row (a hand edit is regenerated or refused).
+ * @param {readonly string[]} paths @returns {SourceGenerator[]} */
 export function selectSourceGenerators(paths) {
   return SOURCE_GENERATORS.filter(row => paths.some(path => row.outputs.includes(path) || row.inputs.some(glob => matchesGlob(path, glob))));
 }

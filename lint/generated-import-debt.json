@@ -30,7 +30,9 @@
     "src/shards/open-plots/discovery.open-plot-thin-ice.generated.ts",
     "src/shards/pastel-plain/discovery.generated.ts",
     "src/shards/pine-hollow/discovery.generated.ts",
+    "src/shards/pine-hollow/generators/sectionSchemas.generated.ts",
     "src/shards/pine-hollow/ktx2.generated.ts",
+    "src/shards/pine-hollow/runtime/productSections.generated.d.ts",
     "src/shards/sunscar-dunes/discovery.generated.ts"
   ],
   "files": {

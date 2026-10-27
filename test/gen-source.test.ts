@@ -11,12 +11,13 @@ test('a staged path selects only the gen:source rows it feeds', () => {
   expect(ids('public/assets/music/calm/music.json')).toEqual(['boot-audio', 'boot-tables', 'packs']);
   expect(ids('src/engine/core/Game.ts')).toEqual([]);
   expect(ids('src/game/bag/starter.generated.ts')).toEqual(['starter-bag']);
+  expect(ids('src/shards/pine-hollow/generators/sections.ts')).toEqual(['pine-hollow-section-schemas']);
 });
 
 test('every registry output is listed once and committed rows own tracked inputs only', () => {
   const outputs = SOURCE_GENERATORS.flatMap(row => row.outputs);
   expect(new Set(outputs).size).toBe(outputs.length);
-  expect(outputs).toHaveLength(15);
+  expect(outputs).toHaveLength(17);
   for (const row of SOURCE_GENERATORS.filter(entry => entry.committed)) expect(row.inputs.some(glob => glob === 'public/assets/**'), row.id).toBe(false);
 });
 

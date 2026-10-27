@@ -50,6 +50,10 @@
       "src/shards/open-plots/discovery.open-plot-starfall-observatory.generated.ts",
       "src/shards/open-plots/discovery.open-plot-thin-ice.generated.ts",
       "src/shards/nalati-grasslands/discovery.generated.ts"
+    ],
+    "scripts/bake-section-schemas.mjs": [
+      "src/shards/pine-hollow/generators/sectionSchemas.generated.ts",
+      "src/shards/pine-hollow/runtime/productSections.generated.d.ts"
     ]
   }
 }

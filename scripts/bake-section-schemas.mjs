@@ -1,8 +1,8 @@
 // Build-only registries produce validators, wire schemas and standalone types.
 // Runtime readers import only the generated declarations; schemas never ship.
 import {createHash} from 'node:crypto';
-import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
-import {dirname,resolve} from 'node:path';
+import {existsSync,mkdirSync,readFileSync,writeFileSync} from 'node:fs';
+import {dirname,relative,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {parseSync} from 'vite';
 import {parse as parseValue} from 'valibot';
@@ -16,6 +16,8 @@ function syncSchema(input) {
     &&'expects' in input&&typeof input.expects==='string'&&'async' in input&&input.async===false
     &&'~run' in input&&typeof input['~run']==='function';
 }
+/** @overload @param {import('../src/sdk/formatJsonSchema').FormatJsonSchema} value @returns {import('../src/sdk/formatJsonSchema').FormatJsonSchema} */
+/** @overload @param {unknown} value @returns {unknown} */
 /** Remove only documented structural annotations. Defining checks still run in
  * the copied producer validator. Unknown checks/transforms refuse.
  * @param {unknown} value @returns {unknown} */
@@ -28,16 +30,19 @@ function structural(value) {
 /** Copy only schema-registry source with closed public schema imports. Runtime
  * entry modules and services cannot enter this build bridge.
  * @param {string} root @param {string} slug */
-export async function writeSectionSchemaBridge(root,slug) {
+export async function sectionSchemaTables(root,slug) {
   if(!/^[a-z0-9_-]+$/u.test(slug))throw new Error('Invalid section schema shard');
   const sourcePath=resolve(root,'src/shards',slug,'generators/sections.ts');
   const source=readFileSync(sourcePath,'utf8'),tree=parseSync(sourcePath,source).program;
   const published=JSON.parse(readFileSync(resolve(root,'src/format/package.json'),'utf8')).exports;
+  /** @param {unknown} node */
   const visit=node=>{
     if(node===null||typeof node!=='object')return;
+    if(!('type' in node))return;
     if(node.type==='ImportExpression'||node.type==='TSImportEqualsDeclaration')throw new Error('Schema registry cannot dynamically import code');
-    if((node.type==='ExportNamedDeclaration'||node.type==='ExportAllDeclaration')&&node.source!==null&&node.source!==undefined)throw new Error('Schema registry cannot re-export dependencies');
+    if((node.type==='ExportNamedDeclaration'||node.type==='ExportAllDeclaration')&&'source' in node&&node.source!==null&&node.source!==undefined)throw new Error('Schema registry cannot re-export dependencies');
     if(node.type==='ImportDeclaration') {
+      if(!('source' in node)||typeof node.source!=='object'||node.source===null||!('value' in node.source))throw new Error('Invalid schema import');
       const spec=node.source.value;
       if(typeof spec!=='string'||spec!=='valibot'&&!(spec.startsWith('@wildshard/format/')&&Object.hasOwn(published,`./${spec.slice('@wildshard/format/'.length)}`)))throw new Error('Schema registry imports only valibot and public format schemas');
     }
@@ -50,25 +55,24 @@ export async function writeSectionSchemaBridge(root,slug) {
   const hash=createHash('sha256').update(source).digest('hex');
   const destination=resolve(root,'src/shards',slug,'generators/sectionSchemas.generated.ts');
   const header=`// DO NOT EDIT: scripts/bake-section-schemas.mjs; generators/sections.ts sha256:${hash}\n`;
-  mkdirSync(dirname(destination),{recursive:true});
-  writeFileSync(destination,header+source);
-  // Evaluate the copied validator, not a runtime/ import. The generation backend
-  // publishes nothing until all schemas convert and every output is verified.
-  const namespace=await import(`${pathToFileURL(destination).href}?source=${hash}`);
+  // The closed registry is the defining source. Compute every table before
+  // publication; --check never writes an intermediate validator to disk.
+  const namespace=await import(`${pathToFileURL(sourcePath).href}?source=${hash}`);
   const registry=namespace.SECTIONS;
   if(typeof registry!=='object'||registry===null||Array.isArray(registry))throw new Error('Schema registry requires SECTIONS');
+  /** @type {Record<string,import('../src/sdk/formatJsonSchema').FormatJsonSchema>} */
   const schemas={};
   for(const [name,schema] of Object.entries(registry)) {
     if(!/^custom\/[a-zA-Z][a-zA-Z0-9_-]{0,63}$/u.test(name)||!syncSchema(schema))throw new Error(`Invalid custom section schema: ${name}`);
     schemas[name]=structural(formatJsonSchema(schema,'draft-07'));
   }
   const generated=`${header}${source}\nimport type {DefinedSection} from '@wildshard/sdk/sections';\nexport const WIRE_SCHEMAS: Readonly<Record<string,DefinedSection['jsonSchema']>> = ${JSON.stringify(schemas)};\n`;
-  writeFileSync(destination,generated);
+  /** @type {Record<string,string>} */
+  const tables={[relative(root,destination)]:generated};
   const typesPath=resolve(root,'src/shards',slug,'runtime/productSections.generated.d.ts');
   const declarations=Object.entries(namespace).filter(([name,schema])=>name.endsWith('Schema')&&syncSchema(schema))
     .map(([name,schema])=>`export type ${name.slice(0,-6)} = ${sectionType(structural(formatJsonSchema(schema,'draft-07')))};`);
-  mkdirSync(dirname(typesPath),{recursive:true});
-  writeFileSync(typesPath,`${header}export interface CustomSections {\n${Object.entries(schemas).map(([name,schema])=>`  ${JSON.stringify(name)}: ${sectionType(schema)};`).join('\n')}\n}\n${declarations.join('\n')}\n`);
+  tables[relative(root,typesPath)]=`${header}export interface CustomSections {\n${Object.entries(schemas).map(([name,schema])=>`  ${JSON.stringify(name)}: ${sectionType(schema)};`).join('\n')}\n}\n${declarations.join('\n')}\n`;
   // Imported immutable JSON uses the same build validator and tuple types as
   // named products. No cast, validator, or dependency on generators ships.
   const files=namespace.FILE_SCHEMAS;
@@ -78,11 +82,22 @@ export async function writeSectionSchemaBridge(root,slug) {
     const path=resolve(root,'src/shards',slug,name);
     parseValue(schema,JSON.parse(readFileSync(path,'utf8')));
     const type=sectionType(structural(formatJsonSchema(schema,'draft-07')));
-    writeFileSync(path.replace(/\.json$/u,'.d.json.ts'),`${header}declare const value: ${type};\n// oxlint-disable-next-line import/no-default-export -- JSON imports require the default value declaration.\nexport default value;\n`);
+    tables[relative(root,path.replace(/\.json$/u,'.d.json.ts'))]=`${header}declare const value: ${type};\n// oxlint-disable-next-line import/no-default-export -- JSON imports require the default value declaration.\nexport default value;\n`;
   }
-  return {path:destination,sourceHash:hash,schemas:Object.keys(schemas).length,bytes:Buffer.byteLength(generated)};
+  return {tables,report:{path:destination,sourceHash:hash,schemas:Object.keys(schemas).length,bytes:Buffer.byteLength(generated)}};
+}
+/** Plain committed-table publication; a check compares the complete candidate without any write.
+ * @param {string} root @param {string} slug @param {{check?:boolean}} [options] */
+export async function writeSectionSchemaBridge(root,slug,options={}) {
+  const {tables,report}=await sectionSchemaTables(root,slug);
+  const changed=Object.entries(tables).filter(([path,text])=>!existsSync(resolve(root,path))||readFileSync(resolve(root,path),'utf8')!==text);
+  if(options.check&&changed.length>0)throw new Error(`Stale section schema tables: ${changed.map(([path])=>path).join(', ')}`);
+  for(const [path,text]of changed){const file=resolve(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,text);}
+  return report;
 }
 if(import.meta.url===pathToFileURL(process.argv[1]??'').href) {
-  const slug=process.argv.at(2);if(slug===undefined)throw new Error('Expected one shard slug');
-  console.log(JSON.stringify(await writeSectionSchemaBridge(resolve(import.meta.dirname,'..'),slug)));
+  const slug=process.argv.at(2),args=process.argv.slice(3);
+  if(slug===undefined||args.some(arg=>!['--check','--print'].includes(arg))||args.length!==new Set(args).size||args.includes('--check')&&args.includes('--print'))throw new Error('Expected shard slug and optional --check or --print');
+  const root=resolve(import.meta.dirname,'..');
+  console.log(JSON.stringify(args.includes('--print')?(await sectionSchemaTables(root,slug)).tables:await writeSectionSchemaBridge(root,slug,{check:args.includes('--check')})));
 }

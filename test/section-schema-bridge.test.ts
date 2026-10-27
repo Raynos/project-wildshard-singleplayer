@@ -7,7 +7,7 @@ import * as v from 'valibot';
 import {mkdirSync,mkdtempSync,readFileSync,writeFileSync,rmSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine the fixture below the repository's ignored tmp/.
 import {join} from 'node:path';
-import {writeSectionSchemaBridge} from '../scripts/bake-section-schemas.mjs';
+import {sectionSchemaTables,writeSectionSchemaBridge} from '../scripts/bake-section-schemas.mjs';
 import {sectionType} from '../scripts/section-types.mjs';
 import {SECTIONS as runtime} from '../src/shards/pine-hollow/generators/sections';
 import {SECTIONS as generated,WIRE_SCHEMAS} from '../src/shards/pine-hollow/generators/sectionSchemas.generated';
@@ -32,7 +32,11 @@ it('derives deterministic validator and disk schema bytes from the same registry
     expect(declarations).toContain('"custom/probe": { "n": number; };');
     expect(declarations).not.toContain('valibot');
     expect(readFileSync((await writeSectionSchemaBridge(root,'sample')).path,'utf8')).toBe(bytes);
+    expect((await sectionSchemaTables(root,'sample')).tables['src/shards/sample/generators/sectionSchemas.generated.ts']).toBe(bytes);
+    await writeSectionSchemaBridge(root,'sample',{check:true});
     writeFileSync(source,registry.replace('minValue(1)','minValue(2)'));
+    await expect(writeSectionSchemaBridge(root,'sample',{check:true})).rejects.toThrow('Stale section schema tables');
+    expect(readFileSync(first.path,'utf8')).toBe(bytes);
     const second=await writeSectionSchemaBridge(root,'sample');
     expect(second.sourceHash).not.toBe(first.sourceHash);
     expect(readFileSync(second.path,'utf8')).toContain('"minimum":2');
