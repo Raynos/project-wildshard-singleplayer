@@ -8725,51 +8725,6 @@
       ]
     },
     {
-      "id": "nalati-water",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/waterStrips.ts",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "scripts/bake/nalatiWater.mjs",
-        "src/shards/nalati-grasslands/generators/waterStrips.ts"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "scripts/bake-loader.mjs",
-        "scripts/bake-output.mjs",
-        "scripts/bake/environment.mjs",
-        "scripts/bake/nativeWorld.mjs",
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/commons",
-        "src/shards/nalati-grasslands",
-        "public/assets/baked/nalati-grasslands/terrain.bin",
-        "scripts/bake/nalatiWater.mjs",
-        "src/format/colourFunction.ts",
-        "src/format/json.ts",
-        "src/format/materialFamilies.ts",
-        "src/format/materialGraph.ts",
-        "src/format/materials.ts",
-        "src/format/paintedLook.ts",
-        "src/format/runtimeBinds.ts",
-        "src/shards/nalati-grasslands/species/horse.json",
-        "src/shards/nalati-grasslands/species/horse.d.json.ts",
-        "src/shards/nalati-grasslands/data/speciesRows.json"
-      ],
-      "outputs": [
-        "src/shards/nalati-grasslands/data/water.generated.json"
-      ],
-      "platform": "native",
-      "buildTimeOutputs": [
-        "src/shards/nalati-grasslands/data/water.generated.json"
-      ]
-    },
-    {
       "id": "nalati-spear-pool",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-spear.mjs",
@@ -9666,7 +9621,7 @@
         "src/shards/nalati-grasslands/boot/layout.generated.json",
         "src/shards/nalati-grasslands/boot/clearings.generated.json",
         "src/shards/nalati-grasslands/boot/poiLayout.generated.json",
-        "src/shards/nalati-grasslands/data/water.generated.json",
+        "src/shards/nalati-grasslands/generators/waterStrips.ts",
         "public/assets/baked/nalati-grasslands/terrain.bin",
         "scripts/bake-loader.mjs",
         "src/game",

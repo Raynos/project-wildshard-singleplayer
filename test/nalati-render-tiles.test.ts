@@ -3,7 +3,9 @@ import { createProjectGeneration } from '../src/sdk/projectGeneration';
 // oxlint-disable-next-line import/no-nodejs-modules -- The actual source publication owns its isolated cache.
 import { resolve } from 'node:path';
 import { BufferGeometry, Float32BufferAttribute } from 'three';
-import waterRows from '../src/shards/nalati-grasslands/data/water.generated.json' with { type: 'json' };
+import { bakeWaterStrips } from '../src/shards/nalati-grasslands/generators/waterStrips';
+import { MELT_STREAM } from '../src/shards/nalati-grasslands/generators/layout';
+import { bakedSamplers, parseBakedTerrain } from '../src/engine/world/BakedTerrain';
 import { waterSceneBlob, terrainSceneBlobs } from '../src/shards/nalati-grasslands/generators/terrainScene';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
@@ -12,7 +14,7 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { bakeNalatiWorldRows } from '../src/shards/nalati-grasslands/generators/nalatiWorldRows';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { readNativeTerrain } from '../src/sdk/bake/terrain';
-import { TERRAIN } from '../src/shards/nalati-grasslands/generators/terrainRecipe';
+import { RIVER, TERRAIN } from '../src/shards/nalati-grasslands/generators/terrainRecipe';
 import { buildPainterlyGeometry, buildPainterlySlab } from '../src/shards/nalati-grasslands/generators/terrainPainter';
 import { TERRAIN_PAINT_SOURCE } from '../src/shards/nalati-grasslands/generators/nalatiGroundSource';
 import { hashImmutableBytes } from '../src/sdk/immutable';
@@ -92,6 +94,9 @@ test('restores both native terrain draws with exact typed channels and index sto
 
 
 test('moves the water draw out of private JSON without changing its GPU channels', async () => {
+  const grid = parseBakedTerrain(Uint8Array.from(readFileSync('public/assets/baked/nalati-grasslands/terrain.bin')).buffer);
+  if (grid === null) throw new Error('Missing native Nalati terrain');
+  const waterRows = bakeWaterStrips({ heightAt: bakedSamplers(grid).heightAt, river: RIVER, brook: MELT_STREAM, chunkHalf: grid.size / 2 });
   const original = new BufferGeometry().setAttribute('position', new Float32BufferAttribute(waterRows.position, 3))
     .setAttribute('aWater', new Float32BufferAttribute(waterRows.water, 4)).setIndex(waterRows.index);
   const intake = createOwnedGeometry('world/water.glb');

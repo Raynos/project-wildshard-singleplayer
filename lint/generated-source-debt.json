@@ -873,7 +873,6 @@
     "src/shards/nalati-grasslands/data/strikeProfiles.generated.json",
     "src/shards/nalati-grasslands/data/tamingPoses.generated.json",
     "src/shards/nalati-grasslands/data/terrain.generated.json",
-    "src/shards/nalati-grasslands/data/water.generated.json",
     "src/shards/nalati-grasslands/data/weatherChannels.generated.json",
     "src/shards/nalati-grasslands/generators/edges.ts",
     "src/shards/nalati-grasslands/generators/panoramaData.ts",

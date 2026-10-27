@@ -1,5 +1,5 @@
 /**
- * Nalati's water, baked (generators/bake-nalati-water.mjs): the braided Kunes (a strip over its gravel corridor) and the
+ * Nalati's water, baked with its terrain draws (generators/bake-terrain-scene.mjs, over the native lattice): the braided Kunes (a strip over its gravel corridor) and the
  * meltwater brook in Snow Lotus Valley (a ribbon draped down its bed; the waterfall is cut, layout v2), one mesh on the
  * water-surface host (`surface`, worn as the 'nalati-water' graph of data/lookGraphs.json). Each vertex carries `aWater` =
  * (depth over the bed m, flow 0..1 along the stream, across −1..1, brook 0 | 1): the graph paints by depth (turquoise over
@@ -14,7 +14,7 @@ export interface WaterStripLaws {
 export interface WaterStrips { readonly surface: Readonly<Record<string, unknown>>; readonly position: number[]; readonly water: number[]; readonly index: number[] }
 
 /** the drawn surface's row (`@wildshard/format/water#WaterSurfaceSchema`) */
-const SURFACE = { look: 'nalati-water', name: 'nalati-water', renderOrder: 1, bind: { clock: 'time' } };
+export const WATER_SURFACE = { look: 'nalati-water', name: 'nalati-water', renderOrder: 1, bind: { clock: 'time' } };
 const round = (v: number): number => Math.round(v * 1e4) / 1e4;
 
 export function bakeWaterStrips({ heightAt, river, brook, chunkHalf }: WaterStripLaws): WaterStrips {
@@ -84,5 +84,5 @@ export function bakeWaterStrips({ heightAt, river, brook, chunkHalf }: WaterStri
     const a = first + i * 3 + j, b = a + 3;
     index.push(a, b, a + 1, a + 1, b, b + 1);
   }
-  return { surface: SURFACE, position, water, index };
+  return { surface: WATER_SURFACE, position, water, index };
 }
