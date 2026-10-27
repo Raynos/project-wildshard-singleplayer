@@ -21,6 +21,9 @@ import { originalSkyRigs } from './fixtures/sky-original-rigs';
 import { skyProductBoot } from '../src/shards/far-reach/generators/bootInventory';
 import { skyRigAssetSources } from '../src/shards/far-reach/generators/rigAssetSources';
 import { GPU_FILES } from '../src/shards/far-reach/ktx2.generated';
+import { skyMapPalette } from '../src/shards/far-reach/generators/fixedLayouts';
+import { skyViewDiscovery } from '../src/shards/far-reach/generators/viewData';
+import { SKY_NAVIGATION_INPUT, skyNavigationRows } from '../src/shards/far-reach/generators/navigation';
 
 test('the actual SDK-built product binds receipt-verified discovery to the admitted complete geometry', () => {
   const root = resolve('.'), folder = readBuiltShardfile(root, 'far-reach');
@@ -30,7 +33,12 @@ test('the actual SDK-built product binds receipt-verified discovery to the admit
   const hash = 'bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580';
   expect(file.hash).toBe(hash);
   expect(`/shardfiles/far-reach/${file.path}`).toBe(`/shardfiles/far-reach/blobs/glb/${hash}.glb`);
-  expect(readProgramDiscovery(root, 'far-reach')).toEqual(skyProductBoot(skyRigAssetSources(index.files, GPU_FILES)));
+  // GR5 moved palette, finite view values and the original navigation stream
+  // into this same receipt. Compare the whole binding, including boot rows.
+  const discovery = readProgramDiscovery(root, 'far-reach');
+  expect(Object.keys(discovery).sort()).toEqual(['boot.files', 'boot.lateReads', 'boot.sources', 'budgets', 'ktx2', 'mapPalette', 'navigation', 'poses']);
+  expect(discovery).toEqual({ ...skyProductBoot(skyRigAssetSources(index.files, GPU_FILES)), ...skyViewDiscovery(),
+    mapPalette: skyMapPalette(), navigation: skyNavigationRows(readFileSync(resolve('src/shards/far-reach', SKY_NAVIGATION_INPUT))) });
   for (const [name, originalRig] of originalSkyRigs()) {
     const expected = nameBlob(`world/rigs/${name}`, 'glb', originalRig);
     expect(index.files.find(row => row.name === expected.file.name)).toEqual(expected.file);
