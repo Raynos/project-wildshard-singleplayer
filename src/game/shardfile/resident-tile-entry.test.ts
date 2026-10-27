@@ -3,6 +3,7 @@ import { Scope } from '@wildshard/engine/app/scope';
 import { SceneHandles } from './sceneHandles';
 import { TileDriver, followResidentTiles, residentTiles } from './tileDriver';
 import type { TileContent } from './tileContent';
+import { bindResidentTileEntry } from './tileEntry';
 
 function content(id: string): TileContent & { render: Map<number, Scope>; colliders: Map<number, Scope> } {
   const render = new Map<number, Scope>(), colliders = new Map<number, Scope>();
@@ -13,6 +14,45 @@ function content(id: string): TileContent & { render: Map<number, Scope>; collid
     attach: (key, owner) => attach(render, key, owner), attachColliders: (key, owner) => attach(colliders, key, owner) };
 }
 const spawn = { x: 0, z: 0 };
+
+test('a bound crossing requires its actual entry ring, leaving unrelated spawn and exits to streaming', async () => {
+  const owner = new Scope('actual-entry'), source = content('world'), point = { x: 240, z: 0 };
+  const exits = [{ at: [-250, 0, -250], width: 10 }] as const;
+  const sources: TileContent[] = [source];
+  bindResidentTileEntry(owner, point);
+  try {
+    await residentTiles(owner, sources, spawn, exits);
+    expect([...source.render.keys()]).toEqual([30, 31, 38, 39, 46, 47]);
+    expect([...source.colliders.keys()]).toEqual([...source.render.keys()]);
+    expect(source.render.has(36)).toBe(false); expect(source.render.has(0)).toBe(false);
+    // Later content still fills the same required entry under the old owners.
+    const roots = new Map(source.render), later = content('later'); sources.push(later);
+    await residentTiles(owner, sources, spawn, exits);
+    expect(source.render).toEqual(roots);
+    expect([...later.render.keys()]).toEqual([...roots.keys()]);
+    expect([...later.colliders.keys()]).toEqual([...roots.keys()]);
+  } finally { owner.dispose(); }
+});
+
+test('unbound construction retains authored spawn and entryway admission', async () => {
+  const owner = new Scope('authored-entry'), source = content('world');
+  try {
+    await residentTiles(owner, [source], spawn, [{ at: [-250, 0, -250], width: 10 }]);
+    expect(source.render.has(36)).toBe(true); expect(source.render.has(0)).toBe(true);
+    expect(source.colliders.has(36)).toBe(true); expect(source.colliders.has(0)).toBe(true);
+  } finally { owner.dispose(); }
+});
+
+test('bound entry failures still refuse before controls while an unrelated tile is not touched', async () => {
+  const owner = new Scope('entry-refusal'), failure = new Error('required entry failed'), seen: number[] = [];
+  bindResidentTileEntry(owner, { x: 240, z: 0 });
+  const source: TileContent = { id: 'entry', tiles: () => new Set([0, 30]), attach: key => {
+    seen.push(key); return Promise.reject(key === 30 ? failure : new Error('unrelated tile'));
+  } };
+  try { await expect(residentTiles(owner, [source], spawn, [{ at: [-250, 0, -250], width: 10 }])).rejects.toBe(failure); }
+  finally { owner.dispose(); }
+  expect(seen).toEqual([30]);
+});
 
 test('a later scene stage attaches its rank-0 content without rebuilding earlier content', async () => {
   const owner = new Scope('staged-scenes'), scenes = new SceneHandles(), initial = content('initial'), later = content('later');

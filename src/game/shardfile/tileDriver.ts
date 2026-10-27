@@ -18,6 +18,7 @@ import { buildYield, WORK_SLICE_MS } from '@wildshard/engine/core/workSlice';
 import { followTile, ring, tileKey, type TileContent } from './tileContent';
 import { tileOf, tileOrder, type CellTile, type TileEntryway } from './tileOrder';
 import { noteEnteredTiles } from './enteredTileReadout';
+import { residentTileEntry } from './tileEntry';
 
 type Layer = 'render' | 'colliders';
 type TileFailure = { readonly error: unknown } | null;
@@ -189,7 +190,8 @@ export function noteTileBytes(resident: Scope, rows: readonly { readonly lod: nu
   tileBytes.set(resident, new Map(rows.filter(row => row.lod === 0).map(row => [row.z * 8 + row.x, row.decoded + row.gpu] as const)));
 }
 /**
- * T4: a resident world's tiled content attached before its player has controls: the spawn's and the entries' tiles
+ * T4: a resident world's tiled content attached before its player has controls: the actual crossing's entry ring,
+ * or the authored spawn and entries for a standalone construction without a bound arrival point
  * (rank 0, `tileOrder`), the coarse stand-ins (T11), and a driver kept on the resident for its entries to follow the player
  * with (`followResidentTiles`). Concurrent entries await the same preparation; a failed preparation stays refused for
  * that resident. Each later entry restores required tiles and attaches newly registered content without rebuilding
@@ -205,9 +207,10 @@ export function residentTiles(resident: Scope, contents: readonly TileContent[],
   const pending = Promise.resolve().then(async () => {
     const live = (): void => { if (resident.disposed || resident.disposing) throw new Error('Tile resident is disposed'); };
     live();
-    const driver = drivers.get(resident) ?? new TileDriver(resident, contents, tileRing, () => buildYield(resident)), order = tileOrder(spawn, entryways);
+    const entry = residentTileEntry(resident), at = entry ?? spawn;
+    const driver = drivers.get(resident) ?? new TileDriver(resident, contents, tileRing, () => buildYield(resident)), order = tileOrder(at, entry === undefined ? entryways : []);
     await driver.require(tileKeys(order.tiles.filter(tile => order.rank(tile) === 0))); live();
-    await driver.coarse(spawn.x, spawn.z); live();
+    await driver.coarse(at.x, at.z); live();
     drivers.set(resident, driver);
     noteEnteredTiles(resident, () => ({ render: driver.resident('render'), colliders: driver.resident('colliders'), bytes: tileBytes.get(resident) ?? new Map() }));
     preparation.complete = true;
