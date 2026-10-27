@@ -220,12 +220,25 @@ export async function prepareClientTile(source: Shardfile, assets: ClientAssets,
   if (ground !== undefined) scope.onDispose(assets.lease([ground.file]));
   if (row !== undefined) scope.onDispose(assets.lease([row.file, ...row.additionalFiles ?? []]));
   const read = async (file: string): Promise<Uint8Array> => { active(); const bytes = await assets.read(file); active(); return bytes; };
-  const terrain = ground === undefined ? null : await views.terrain(await read(ground.file), scope, shadow);
+  const names = [...new Set([...(ground === undefined ? [] : [ground.file]), ...(row === undefined ? [] : [row.file, ...row.additionalFiles ?? []])])];
+  const ready = new Map<string, Uint8Array>();
+  for (let offset = 0; offset < names.length; offset += 4) {
+    const batch = names.slice(offset, offset + 4), loaded = await Promise.allSettled(batch.map(read));
+    for (const [index, result] of loaded.entries()) {
+      if (result.status === 'rejected') throw result.reason;
+      const name = batch[index]; if (name === undefined) throw new Error('Missing tile read identity'); ready.set(name, result.value);
+    }
+  }
+  const bytesOf = (file: string): Uint8Array => {
+    const bytes = ready.get(file); if (bytes === undefined) throw new Error('Missing prepared tile bytes'); return bytes;
+  };
+  active();
+  const terrain = ground === undefined ? null : await views.terrain(bytesOf(ground.file), scope, shadow);
   active();
   let model: ResidentTile | null = null;
   if (props !== null && row !== undefined) {
-    const bytes = await read(row.file), additional = new Map<string, Uint8Array>();
-    for (const file of row.additionalFiles ?? []) additional.set(file, await read(file));
+    const bytes = bytesOf(row.file), additional = new Map<string, Uint8Array>();
+    for (const file of row.additionalFiles ?? []) additional.set(file, bytesOf(file));
     model = await views.props(props, key, bytes, scope, additional);
     active();
   }
