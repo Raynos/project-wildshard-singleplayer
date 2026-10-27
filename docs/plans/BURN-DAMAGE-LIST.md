@@ -4,6 +4,9 @@
 during the mega build; lanes only add items to the list. Decisions stay in
 [shard-platform/decisions.md](shard-platform/decisions.md) (G768, G769, G771, G780, G788, G798, G799).
 
+**This file is the damage list's only home, never STATE.md (Jake). This file is never compacted; every break stays
+until it's fixed and marked.**
+
 Jake, 2026-10-27 ~01:00 Cancun (G769): *"Finish all the mini plans by tomorrow, whatever the fuck it takes. Mega
 build. Go fast as fuck. And then deal with the damage later."*
 
@@ -23,7 +26,9 @@ build. Go fast as fuck. And then deal with the damage later."*
 - Owner = the lane that broke it (G754). If nobody knows, write "breaker (sp-x7 finds)".
 - **Not listed:** a break that stops lanes building (types fail on main, the app won't build or won't boot). That
   is fixed at once by whoever broke it (G674, G769 (4)).
-- sp-x7 adds what it sees in CI (G771); wildshard-new trims items that are fixed.
+- sp-x7 adds what it sees in CI (G771). A fixed item is marked `fixed <SHA>`, never deleted; nothing leaves the
+  table until the plan archives.
+- Never put damage items in STATE.md: it is compacted to 3 KB and items get lost.
 
 ## The damage list
 
@@ -44,7 +49,7 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D10 | CI `generated-inputs`: the generation stage misses generator modules (`far-reach/generators/knoll`, `nalati-grasslands/generators/geographySource.ts`) | `998fcef0ba` | generator lanes (sp-x1, sp-x6) | open; hides every later test |
 | D11 | Deploy stuck: live stays `59a595ab10` (newest-ci-green pin, no green push since) | `ac3e62895d` | sp-x7 (G771) | open |
 | D12 | Official quiet Simulator frame floor 11/15 | `3694a487bc` | sp-x8, sp-o4 | open |
-| D13 | Flaky: Nine public/Developer title PNGs, quarantined until 2026-10-28 03:30 UTC (CF2) | `531c009fdd` | sp-x1 | quarantined |
+| D13 | Flaky (CF2 title/grid flakes): Nine public/Developer title PNGs quarantined until 2026-10-28 03:30 UTC; the grid catalogue title flake is not quarantined | `531c009fdd` | sp-x1 | quarantined |
 | D14 | Flaky (SW13, GM4): `nalati-place-blob-program`, `nalati-map-program`, `nalati-state-intake`, `population-raster`, `map-generation-inputs` | — (G788) | named in the quarantine job (G758) | to quarantine |
 | D15 | Flaky (CF2 audit): `heavy-lane.test` timing, `nalati-creature-views` 5e-10 tolerance, V8 `SIGILL` in `shard-headless` | — (G788) | named in the quarantine job | to quarantine |
 | D16 | Off (MB1): push gate is a 45 s fail-open wall; batch split path gone, `push_batch.py` dormant | `7d70d351bb` | Jake's call (BD4) | off |
