@@ -135,6 +135,34 @@ function crossesBin(a: number, b: number, c: number, size: number, offset: numbe
   return (edge > lo ? edge : (k + 1 + offset) * size) < hi;
 }
 
+const rawRoadReaders: ReadonlyMap<string, unknown> = new Map(['getX', 'getY', 'getZ', 'getW'].map(name => [name, Reflect.get(BufferAttribute.prototype, name)]));
+const roadMathNames = ['floor', 'round', 'abs'] as const;
+const roadMathFunctions = roadMathNames.map(name => Math[name]);
+/** Raw reads require plain non-normalized storage and exactly the original accessors; never invoke an authored getter. */
+function roadWords(attribute: unknown, size: number, readers: readonly string[]): Float32Array | Uint16Array | Uint32Array | undefined {
+  if (!(attribute instanceof BufferAttribute) || Object.getPrototypeOf(attribute) !== BufferAttribute.prototype
+    || Object.getOwnPropertyDescriptor(attribute, 'itemSize')?.value !== size
+    || Object.getOwnPropertyDescriptor(attribute, 'normalized')?.value !== false) return undefined;
+  const words: unknown = Object.getOwnPropertyDescriptor(attribute, 'array')?.value;
+  if (!(words instanceof Float32Array || words instanceof Uint16Array || words instanceof Uint32Array)
+    || !ArrayBuffer.isView(words)) return undefined;
+  for (const name of readers) {
+    const descriptor = Object.getOwnPropertyDescriptor(attribute, name) ?? Object.getOwnPropertyDescriptor(BufferAttribute.prototype, name);
+    const expected = rawRoadReaders.get(name);
+    if (typeof expected !== 'function' || descriptor === undefined || !('value' in descriptor) || descriptor.value !== expected) return undefined;
+  }
+  return words;
+}
+interface RoadReads { readonly indices: Uint16Array | Uint32Array; readonly positions: Float32Array; readonly grain?: Float32Array }
+function roadReads(index: BufferAttribute, position: unknown, grain?: unknown): RoadReads | undefined {
+  if (roadMathNames.some((name, i) => Object.getOwnPropertyDescriptor(Math, name)?.value !== roadMathFunctions[i])) return undefined;
+  const indices = roadWords(index, 1, ['getX']), positions = roadWords(position, 3, ['getX', 'getY', 'getZ']);
+  const colours = grain === undefined ? undefined : roadWords(grain, 4, ['getZ', 'getW']);
+  if (!(indices instanceof Uint16Array || indices instanceof Uint32Array) || !(positions instanceof Float32Array)
+    || (grain !== undefined && !(colours instanceof Float32Array))) return undefined;
+  return colours instanceof Float32Array ? { indices, positions, grain: colours } : { indices, positions };
+}
+
 /** Sort the identical bin/LOD runs with pauses inside triangle batches; no partial plan is published. */
 export function* cullPlanSteps(geometry: BufferGeometry, pitch: number, lod: readonly CullLod[] = [], tileSize?: number): Generator<void, CullPlan> {
   const index = geometry.getIndex(), position = geometry.getAttribute('position');
@@ -142,17 +170,23 @@ export function* cullPlanSteps(geometry: BufferGeometry, pitch: number, lod: rea
   // each triangle's bin (`cullBin` of its centroid) as two numbers; a bin's string key, made once, orders the bins
   const { size, offset } = binGrid(pitch, tileSize);
   const triangles = index.count / 3, byBin = new Map<number, Map<number, { readonly key: string; readonly x: number; readonly z: number; readonly list: number[] }>>();
+  let reads: RoadReads | undefined;
   for (let t = 0; t < triangles; t++) {
-    if (t % 256 === 0) yield;
+    if (t % 256 === 0) { reads = undefined; yield; reads = roadReads(index, position); }
     let x = 0, z = 0;
-    for (let c = 0; c < 3; c++) { const n = index.getX(t * 3 + c); x += position.getX(n); z += position.getZ(n); }
+    if (reads === undefined) {
+      for (let c = 0; c < 3; c++) { const n = index.getX(t * 3 + c); x += position.getX(n); z += position.getZ(n); }
+    } else {
+      for (let c = 0; c < 3; c++) { const n = reads.indices[t * 3 + c] ?? index.getX(t * 3 + c); x += reads.positions[n * 3] ?? Number.NaN; z += reads.positions[n * 3 + 2] ?? Number.NaN; }
+    }
     const bx = Math.floor(x / 3 / size + offset), bz = Math.floor(z / 3 / size + offset);
     let row = byBin.get(bx); if (row === undefined) { row = new Map(); byBin.set(bx, row); }
     const bin = row.get(bz);
     if (bin === undefined) row.set(bz, { key: `${String(bx)},${String(bz)}`, x: bx, z: bz, list: [t] }); else bin.list.push(t);
   }
+  reads = undefined;
   const out: number[] = [], bins: CullBin[] = [];
-  const clusters = lod.map((tier) => clusterer(geometry, pitch, tier.cell, tileSize));
+  const clusters = lod.map((tier) => clusterer(geometry, index, pitch, tier.cell, tileSize));
   const ordered: { readonly key: string; readonly x: number; readonly z: number; readonly list: number[] }[] = [];
   for (const row of byBin.values()) for (const bin of row.values()) ordered.push(bin);
   ordered.sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
@@ -189,11 +223,12 @@ export function* cullPlanSteps(geometry: BufferGeometry, pitch: number, lod: rea
     for (const cluster of clusters) {
       const from = out.length;
       for (let i = 0; i < list.length; i++) {
-        if (i % 256 === 0) yield;
+        if (i % 256 === 0) { reads = undefined; cluster.clear(); yield; reads = cluster.refresh(); }
         const t = list[i] ?? 0;
-        const a = cluster(index.getX(t * 3)), b = cluster(index.getX(t * 3 + 1)), c = cluster(index.getX(t * 3 + 2));
+        const a = cluster.vertex(reads?.indices[t * 3] ?? index.getX(t * 3)), b = cluster.vertex(reads?.indices[t * 3 + 1] ?? index.getX(t * 3 + 1)), c = cluster.vertex(reads?.indices[t * 3 + 2] ?? index.getX(t * 3 + 2));
         if (a !== b && b !== c && a !== c) out.push(a, b, c);
       }
+      reads = undefined; cluster.clear();
       levels.push({ start: from, count: out.length - from });
     }
     bins.push({ sphere, start, count, levels, ...(tileSize === undefined ? {} : { tile: { x: tileX, z: tileZ } }) });
@@ -206,16 +241,21 @@ export function* cullPlanSteps(geometry: BufferGeometry, pitch: number, lod: rea
  * same material (grain layer + unlit flag). Vertices on a bin edge or a cell edge (where the seam meets the shard's own
  * ground) stay themselves, so a coarse bin meets its fine neighbour and the shard's terrain without a crack.
  */
-function clusterer(geometry: BufferGeometry, pitch: number, cell: number, tileSize?: number): (n: number) => number {
+function clusterer(geometry: BufferGeometry, index: BufferAttribute, pitch: number, cell: number, tileSize?: number): { readonly vertex: (n: number) => number; readonly refresh: () => RoadReads | undefined; readonly clear: () => void } {
   const position = geometry.getAttribute('position'), grain = geometry.hasAttribute('grainUv') ? geometry.getAttribute('grainUv') : undefined;
   const first = new Map<number | string, number>(), memo = new Int32Array(position.count).fill(-1);
-  return (n: number): number => {
+  let reads: RoadReads | undefined;
+  const vertex = (n: number): number => {
     const known = memo[n] ?? -1; if (known >= 0) return known;
-    const key = lodKey(position.getX(n), position.getY(n), position.getZ(n), grain?.getZ(n) ?? 0, grain?.getW(n) ?? 0, pitch, cell, tileSize);
+    const key = reads === undefined ? lodKey(position.getX(n), position.getY(n), position.getZ(n), grain?.getZ(n) ?? 0, grain?.getW(n) ?? 0, pitch, cell, tileSize)
+      : lodKey(reads.positions[n * 3] ?? Number.NaN, reads.positions[n * 3 + 1] ?? Number.NaN, reads.positions[n * 3 + 2] ?? Number.NaN,
+        reads.grain?.[n * 4 + 2] ?? 0, reads.grain?.[n * 4 + 3] ?? 0, pitch, cell, tileSize);
     let rep = n;
     if (key !== null) { const seen = first.get(key); if (seen === undefined) first.set(key, n); else rep = seen; }
     memo[n] = rep; return rep;
   };
+  // The generator can resume after a caller changes its attributes. Re-certify each existing 256-triangle slice.
+  return { vertex, refresh: () => { reads = roadReads(index, position, grain); return reads; }, clear: () => { reads = undefined; } };
 }
 
 /** Lattice boxes within this many of the origin on every axis key as one number (a 46-bit integer: exact). */
