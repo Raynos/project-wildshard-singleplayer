@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, InterleavedBuffer, InterleavedBufferAttribute, Mesh, MeshBasicMaterial } from 'three';
 import { identitySpaceGeometry } from './ownedGeometry';
 
@@ -54,4 +54,60 @@ test('ordinary float geometry keeps the original non-grid refusal', () => {
   geometry.setAttribute('position', new BufferAttribute(new Float32Array([0, 0, 0]), 3));
   try { expect(identitySpaceGeometry(new Mesh(geometry, material))).toBeNull(); }
   finally { geometry.dispose(); material.dispose(); }
+});
+
+function boundedMesh(): Mesh {
+  const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(new Int16Array([
+    -32768, 0, 32767, 1000, -2000, 3000, 32767, -32768, 0,
+  ]), 3, true));
+  const mesh = new Mesh(geometry, new MeshBasicMaterial());
+  mesh.scale.setScalar(0.00037); mesh.position.set(1.23456789, -0.12345678, 98.7654321); mesh.updateMatrixWorld(true);
+  return mesh;
+}
+function closeMesh(mesh: Mesh): void {
+  mesh.geometry.dispose();
+  for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) material.dispose();
+}
+
+test.each([[false, false], [false, true], [true, false], [true, true]])('retains original optional bounds (box %s, sphere %s)', (box, sphere) => {
+  const mesh = boundedMesh();
+  if (box) mesh.geometry.computeBoundingBox();
+  if (sphere) mesh.geometry.computeBoundingSphere();
+  const expected = original(mesh), actual = identitySpaceGeometry(mesh);
+  try {
+    if (actual === null) throw new Error('Missing quantized result');
+    expect(actual.boundingBox).toEqual(expected.boundingBox); expect(actual.boundingSphere).toEqual(expected.boundingSphere);
+    expect(actual.getAttribute('position').array).toEqual(expected.getAttribute('position').array);
+  } finally { expected.dispose(); actual?.dispose(); closeMesh(mesh); }
+});
+
+test.each([false, true])('morph positions keep the original bounds pass (relative %s)', relative => {
+  const mesh = boundedMesh();
+  mesh.geometry.morphAttributes.position = [new BufferAttribute(new Float32Array([2, -3, 4, -5, 6, -7, 8, -9, 10]), 3)];
+  mesh.geometry.morphTargetsRelative = relative;
+  mesh.geometry.computeBoundingBox(); mesh.geometry.computeBoundingSphere();
+  const expected = original(mesh), actual = identitySpaceGeometry(mesh);
+  try {
+    if (actual === null) throw new Error('Missing quantized result');
+    expect(actual.boundingBox).toEqual(expected.boundingBox); expect(actual.boundingSphere).toEqual(expected.boundingSphere);
+    expect(actual.morphAttributes).toEqual(expected.morphAttributes);
+  } finally { expected.dispose(); actual?.dispose(); closeMesh(mesh); }
+});
+
+test('custom position accessors retain their normalized read and bounds semantics', () => {
+  const mesh = boundedMesh(), getX: unknown = Reflect.get(BufferAttribute.prototype, 'getX');
+  if (typeof getX !== 'function') throw new Error('Missing original position getter');
+  mesh.geometry.computeBoundingBox(); mesh.geometry.computeBoundingSphere();
+  const read = vi.spyOn(BufferAttribute.prototype, 'getX').mockImplementation(function readPosition(this: BufferAttribute, index: number) {
+    const value: unknown = Reflect.apply(getX, this, [index]);
+    if (typeof value !== 'number') throw new Error('Position getter must return a number');
+    return value + 0.00001;
+  });
+  let expected: BufferGeometry | undefined, actual: BufferGeometry | null = null;
+  try {
+    expected = original(mesh); actual = identitySpaceGeometry(mesh);
+    if (actual === null) throw new Error('Missing quantized result');
+    expect(actual.getAttribute('position').array).toEqual(expected.getAttribute('position').array);
+    expect(actual.boundingBox).toEqual(expected.boundingBox); expect(actual.boundingSphere).toEqual(expected.boundingSphere);
+  } finally { read.mockRestore(); expected?.dispose(); actual?.dispose(); closeMesh(mesh); }
 });

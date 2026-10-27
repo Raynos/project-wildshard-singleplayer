@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, Float16BufferAttribute, type TypedArray, Material, Mesh, Vector3, type Object3D } from 'three';
+import { Box3, BufferAttribute, BufferGeometry, Float16BufferAttribute, InterleavedBufferAttribute, type TypedArray, Material, Mesh, Vector3, type Object3D } from 'three';
 import { nativeWholeGeometry } from './nativeGeometry';
 
 function isGeometryMesh(node: Object3D): node is Mesh {
@@ -20,23 +20,68 @@ function gridQuantized(mesh: Mesh): boolean {
 }
 /** Float positions back in the model's own space: the grid scale and translation baked in, the node left out (every
  *  intake reader draws a baked model in identity space). Normals and colours keep their compact normalized storage. */
+function getters(prototype: object): readonly unknown[] { return ['getX', 'getY', 'getZ'].map((name): unknown => Reflect.get(prototype, name)); }
+const positionGetters = getters(BufferAttribute.prototype), interleavedGetters = getters(InterleavedBufferAttribute.prototype);
+const computeBox: unknown = Reflect.get(BufferGeometry.prototype, 'computeBoundingBox'), computeSphere: unknown = Reflect.get(BufferGeometry.prototype, 'computeBoundingSphere');
 function dequantizeIntoSpace(geometry: BufferGeometry, mesh: Mesh): void {
   const position = geometry.getAttribute('position'), out = new Float32Array(position.count * 3), point = new Vector3();
+  const box = geometry.boundingBox, sphere = geometry.boundingSphere;
+  const nativeGetters = position instanceof InterleavedBufferAttribute ? interleavedGetters : positionGetters;
+  const plainReads = position.getX === nativeGetters[0] && position.getY === nativeGetters[1] && position.getZ === nativeGetters[2];
+  const source = position instanceof InterleavedBufferAttribute ? position.data.array : position.array;
+  const stride = position instanceof InterleavedBufferAttribute ? position.data.stride : position.itemSize;
+  const offset = position instanceof InterleavedBufferAttribute ? position.offset : 0;
+  const positionStorage = position instanceof InterleavedBufferAttribute ? position.data : position;
+  const numericReads = plainReads && source instanceof Int16Array && Object.getPrototypeOf(source) === Int16Array.prototype
+    && !Object.hasOwn(source, 'constructor') && Object.getOwnPropertyDescriptor(Int16Array.prototype, 'constructor')?.value === Int16Array
+    && Object.getOwnPropertyDescriptor(positionStorage, 'array')?.value === source
+    && Object.getOwnPropertyDescriptor(positionStorage, position instanceof InterleavedBufferAttribute ? 'stride' : 'itemSize')?.value === stride
+    && Object.getOwnPropertyDescriptor(position, 'normalized')?.value === true
+    && (!(position instanceof InterleavedBufferAttribute) || Object.getOwnPropertyDescriptor(position, 'offset')?.value === offset);
+  // The restored plain Float32 positions have no morph contribution in the
+  // ordinary static case. Keep custom getter/bounds and morph semantics below.
+  const scanBounds = (box !== null || sphere !== null) && geometry.morphAttributes.position === undefined
+    && geometry.computeBoundingBox === computeBox && geometry.computeBoundingSphere === computeSphere
+    && BufferAttribute.prototype.getX === positionGetters[0] && BufferAttribute.prototype.getY === positionGetters[1] && BufferAttribute.prototype.getZ === positionGetters[2];
+  let minX = Infinity, minY = Infinity, minZ = Infinity, maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
   // Preserve the old normalized -> Float32 -> matrix -> Float32 rounding,
   // without writing and rereading a temporary position for every vertex.
   for (let i = 0; i < position.count; i++) {
-    point.set(Math.fround(position.getX(i)), Math.fround(position.getY(i)), Math.fround(position.getZ(i))).applyMatrix4(mesh.matrixWorld);
+    const at = offset + i * stride, x = numericReads ? source[at] : undefined;
+    const y = numericReads ? source[at + 1] : undefined, z = numericReads ? source[at + 2] : undefined;
+    if (x === undefined || y === undefined || z === undefined) point.set(Math.fround(position.getX(i)), Math.fround(position.getY(i)), Math.fround(position.getZ(i)));
+    else point.set(Math.fround(Math.max(x / 32767, -1)), Math.fround(Math.max(y / 32767, -1)), Math.fround(Math.max(z / 32767, -1)));
+    point.applyMatrix4(mesh.matrixWorld);
     out[i * 3] = point.x; out[i * 3 + 1] = point.y; out[i * 3 + 2] = point.z;
+    if (scanBounds) {
+      const px = Math.fround(point.x), py = Math.fround(point.y), pz = Math.fround(point.z);
+      minX = Math.min(minX, px); minY = Math.min(minY, py); minZ = Math.min(minZ, pz);
+      maxX = Math.max(maxX, px); maxY = Math.max(maxY, py); maxZ = Math.max(maxZ, pz);
+    }
   }
-  const restored = new BufferAttribute(out, 3), box = geometry.boundingBox, sphere = geometry.boundingSphere;
+  const restored = new BufferAttribute(out, 3);
   // Three still owns all other channel transforms. Bounds must see the final
   // positions, once, after that pass; their original objects remain borrowed.
   geometry.setAttribute('position', new BufferAttribute(new Float32Array(0), 3)); geometry.boundingBox = null; geometry.boundingSphere = null;
   try { geometry.applyMatrix4(mesh.matrixWorld); }
   finally { geometry.setAttribute('position', restored); geometry.boundingBox = box; geometry.boundingSphere = sphere; }
   restored.needsUpdate = true;
-  if (box !== null) geometry.computeBoundingBox();
-  if (sphere !== null) geometry.computeBoundingSphere();
+  if (scanBounds && [minX, minY, minZ, maxX, maxY, maxZ].every(Number.isFinite)) {
+    const bounds = box ?? new Box3();
+    bounds.min.set(minX, minY, minZ); bounds.max.set(maxX, maxY, maxZ);
+    if (sphere !== null) {
+      bounds.getCenter(sphere.center);
+      let radiusSq = 0;
+      for (let i = 0; i < out.length; i += 3) {
+        const dx = (out[i] ?? Number.NaN) - sphere.center.x, dy = (out[i + 1] ?? Number.NaN) - sphere.center.y, dz = (out[i + 2] ?? Number.NaN) - sphere.center.z;
+        radiusSq = Math.max(radiusSq, dx * dx + dy * dy + dz * dz);
+      }
+      sphere.radius = Math.sqrt(radiusSq);
+    }
+  } else {
+    if (box !== null) geometry.computeBoundingBox();
+    if (sphere !== null) geometry.computeBoundingSphere();
+  }
 }
 /** A grid-quantized mesh (`gridQuantized`) as a plain identity-space copy: positions baked into the model's own space and
  *  every other channel (normalized Int8 normals and Uint8 colours, and the interleaved views its writer shares) copied
