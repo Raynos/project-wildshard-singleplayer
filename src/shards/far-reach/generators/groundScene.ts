@@ -1,10 +1,13 @@
-import type { PrivateScene, WorldSceneRecipe } from '@wildshard/format/clientChannels';
+import type { worldSceneRecipe } from '@wildshard/sdk/worldScenes';
 import { ISLES, KNOLLS } from "./layout";
 import { ISLE_DRAWS } from './rows/isleLook';
 import { ISLE_KEEL_CUT } from './rows/skyIsles';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import { knollHull } from './knoll';
 import { RISING_ISLETS } from './risingIslets';
+
+type WorldSceneRecipe = ReturnType<typeof worldSceneRecipe>;
+type PrivateScene = WorldSceneRecipe['scene'];
 
 /** Source-owned ground rows; callers receive fresh scene, registry and hull arrays. */
 export interface SkyGroundValues {
