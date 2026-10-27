@@ -749,7 +749,7 @@
       "export": "default"
     },
     "spawns": {
-      "module": "./data/fauna.generated",
+      "module": "./generators/fauna",
       "export": "PINE_FAUNA"
     },
     "ground": {

@@ -2397,7 +2397,6 @@
     "src/shards/pine-hollow/data/cragScenes.generated.json",
     "src/shards/pine-hollow/data/crags.json",
     "src/shards/pine-hollow/data/explorerMetadata.generated.json",
-    "src/shards/pine-hollow/data/fauna.generated.ts",
     "src/shards/pine-hollow/data/geography.generated.json",
     "src/shards/pine-hollow/data/gpuTables.generated.d.json.ts",
     "src/shards/pine-hollow/data/gpuTables.generated.json",

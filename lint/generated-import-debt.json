@@ -195,7 +195,6 @@
     "src/shards/pine-hollow/generators/heroScenes.ts": 1,
     "src/shards/pine-hollow/generators/output.ts": 6,
     "src/shards/pine-hollow/generators/outputInputs.ts": 5,
-    "src/shards/pine-hollow/generators/population.ts": 1,
     "src/shards/pine-hollow/generators/populationEnvironment.ts": 1,
     "src/shards/pine-hollow/generators/product.ts": 3,
     "src/shards/pine-hollow/generators/rangedPage.ts": 1,

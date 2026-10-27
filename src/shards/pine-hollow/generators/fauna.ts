@@ -129,9 +129,9 @@ function pineHerdFacts(): HerdFact[] { return [
   { kind: 'bear', count: 1, anchor: { x: LAYOUT.DEN.x - 8, z: LAYOUT.DEN.z - 14, rMin: 0, rMax: 10 }, canopy: false, trailBand: [18, 220], variants: ['brown', 'brown-old'] },
 ]; }
 
-/** Emit typed literal plans; native herd placement still owns every live actor. */
-export function pineFaunaFiles(): Map<string, Uint8Array> {
-  const rows = pineHerdFacts();
-  const declaration = 'export const PINE_FAUNA: { kind: string; count: number; canopy: boolean; trailBand: [number, number]; anchor: { x: number; z: number; rMin: number; rMax: number }; variants?: string[] | undefined }[] = ';
-  return new Map([['data/fauna.generated.ts', new TextEncoder().encode(`${declaration}${JSON.stringify(rows)};\n`)]]);
-}
+/** The authored herd plans (GR8: the manifest's spawns binding and the population roster read this export; no
+ *  scheduler job writes a fauna module). Native herd placement still owns every live actor. */
+const plans = pineHerdFacts();
+// the spawns binding admits an absent `variants`, not an undefined one (the retired module was JSON-written)
+for (const plan of plans) if (plan.variants === undefined) delete plan.variants;
+export const PINE_FAUNA: HerdFact[] = plans;
