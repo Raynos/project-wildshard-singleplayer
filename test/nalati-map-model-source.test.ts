@@ -26,7 +26,16 @@ test('native map models preserve both full geometry pins without public painted 
         const bytes=files.get(name),pin=pins[index];assert.ok(bytes);assert.ok(pin);
         assert.equal(bytes.length,pin.bytes);assert.equal(hashImmutableBytes(bytes),pin.hash);
       }
-      assert.equal(reads.size,12);
+      const originalModels=['eagle.glb','cauldron.glb','firewood.glb','chest.glb',
+        'kumis-churn.glb','saddle.glb','watchtower.glb','horse-saddled.glb',
+        'balbal.glb','snow-lotus.glb','horse-wild.far.glb','kokpar-rider.glb'];
+      // 7d6f8358c2 constructs the original POI paint from its six authored
+      // boulders instead of reading the retired generated paint document.
+      const poiModels=['boulder-1.phone.glb','boulder-2.phone.glb','boulder-3.phone.glb',
+        'boulder-1.glb','boulder-2.glb','boulder-3.glb'];
+      const physical=names=>names.map(name=>process.cwd()+'/public/assets/nalati/models/'+name).sort();
+      assert.deepEqual([...reads.keys()].sort(),physical([...originalModels,...poiModels]));
+      assert.deepEqual([...reads.keys()].filter(file=>physical(originalModels).includes(file)).sort(),physical(originalModels));
       for(const [file,count]of reads)assert.equal(count,1,file);
     }finally{fs.readFileSync=prior;syncBuiltinESMExports();}
   `;
