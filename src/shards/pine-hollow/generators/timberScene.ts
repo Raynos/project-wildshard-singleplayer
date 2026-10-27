@@ -62,7 +62,5 @@ function finish(scene: THREE.Scene, project?: string): BakedScene {
     });
   }
 }
-/** Central Scene bake of the placed lookout, retaining ordinals for exact original-draw assembly. */
-export function pineLookoutBake(heightAt: (x: number, z: number) => number, project?: string): BakedScene { return finish(pineLookoutScene(heightAt), project); }
 /** Central Scene bake of the landing and footbridge, with original renderer-fitted geometry and placements. */
 export function pineSiteTimberBake(heightAt: (x: number, z: number) => number, project?: string): BakedScene { return finish(pineSiteTimberScene(heightAt), project); }

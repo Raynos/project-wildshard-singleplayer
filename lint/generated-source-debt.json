@@ -2440,8 +2440,6 @@
     "src/shards/pine-hollow/data/keyedSky.generated.json",
     "src/shards/pine-hollow/data/kingBlobs.generated.json",
     "src/shards/pine-hollow/data/kingKit.generated.json",
-    "src/shards/pine-hollow/data/lookout.json",
-    "src/shards/pine-hollow/data/lookoutScene.generated.json",
     "src/shards/pine-hollow/data/mapAssembly.generated.bin",
     "src/shards/pine-hollow/data/mapAssembly.generated.json",
     "src/shards/pine-hollow/data/movers.generated.json",
