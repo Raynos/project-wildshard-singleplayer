@@ -5,6 +5,10 @@ import type { AdmittedProduct, ProductOptions } from '../shardfile/product';
 /** Synchronous preparation inputs are borrowed only until `release`; later borrowers rehydrate verified bytes. */
 export interface ProductInputLease { readonly assets: ReadonlyMap<string, Uint8Array>; release: () => Promise<void> }
 type Claim = Pick<ResidencyLease, 'shrink' | 'release'>;
+/** An optional read-ahead cannot borrow headroom without evicting a resident. */
+export class ApproachInputsDeferredError extends Error {
+  constructor() { super('Product input residency admission deferred'); this.name = 'ApproachInputsDeferredError'; }
+}
 
 /** One admitted grid product's transient inputs, shared by overlapping preparations, never by finished promises. */
 export class ProductInputs {
@@ -15,7 +19,7 @@ export class ProductInputs {
   private readonly claims: { refs: Set<string>; bytes: number; lease: Claim }[] = [];
   private users = 0;
   private pending = Promise.resolve();
-  constructor(private readonly admitted: AdmittedProduct, options: ProductOptions, private readonly reserve: (bytes: number) => Claim, private readonly keep: ReadonlySet<string> = new Set(), transportRefs?: readonly string[]) {
+  constructor(private readonly admitted: AdmittedProduct, options: ProductOptions, private readonly reserve: (bytes: number, speculative: boolean) => Claim, private readonly keep: ReadonlySet<string> = new Set(), transportRefs?: readonly string[]) {
     this.assets = new Map(admitted.assets); this.refs = [...this.assets.keys()];
     this.transportRefs = transportRefs === undefined ? this.refs : [...new Set(transportRefs)];
     this.reader = new ClientAssets(admitted.source, admitted.assets, options);
@@ -60,7 +64,7 @@ export class ProductInputs {
         if (missing.length === 0) return;
         const source = this.admitted.source;
         const bytes = missing.reduce((sum, ref) => sum + (source.files.find(file => file.hash === ref)?.compressed ?? source.requires.commonsWire[ref.replace(/^commons:/u, '')] ?? 0), 0);
-        const lease = this.reserve(bytes), loaded = new Map<string, Uint8Array>();
+        const lease = this.reserve(bytes, signal !== undefined), loaded = new Map<string, Uint8Array>();
         try {
           const width = signal === undefined ? 1 : 4;
           for (let i = 0; i < missing.length; i += width) {

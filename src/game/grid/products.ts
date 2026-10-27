@@ -8,7 +8,7 @@ import { admitProduct, boundedResponse, checkBuiltIndex, readIndexBytes, type Ad
 import { browserShardfileOptions } from '../shardfile/runtimeProduct';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { ProductLeases } from './productLeases';
-import { ProductInputs, type ProductInputLease } from './productInputs';
+import { ApproachInputsDeferredError, ProductInputs, type ProductInputLease } from './productInputs';
 import type { ClientAssets } from '../shardfile/clientAssets';
 import { GridPostCosts } from './postPairs';
 import { postStackCost } from '@wildshard/format/postStack';
@@ -249,13 +249,15 @@ export function gridPostCosts(allocator: ResidencyAllocator): GridPostCosts {
   return costs;
 }
 /** The slug's admitted data or trusted hybrid declaration; runtime entry still requires a separate regional factory. */
-export function gridShardfileProduct(slug: string, owner: GridProductOwner): Promise<GridProduct> | null;
+export function gridShardfileProduct(slug: string, owner: GridProductOwner, mode?: { readonly signal: AbortSignal }): Promise<GridProduct> | null;
 export function gridShardfileProduct(slug: string, owner: GridProductOwner, mode: 'metadata'): Promise<GridProductMetadata> | null;
-export function gridShardfileProduct(slug: string, owner: GridProductOwner, mode?: 'metadata'): Promise<GridProduct | GridProductMetadata> | null {
+export function gridShardfileProduct(slug: string, owner: GridProductOwner, mode?: 'metadata' | { readonly signal: AbortSignal }): Promise<GridProduct | GridProductMetadata> | null {
   const manifest = findShard(slug), descriptor = manifest?.shardfile ?? manifest?.gridShardfile;
   if (descriptor === undefined) return null;
   if (owner.scope.disposed) return Promise.reject(new Error('Grid product page disposed'));
   let cache = products.get(owner.allocator);
+  // The approach borrows an existing product; first admission remains a real owner.
+  if (typeof mode === 'object' && (mode.signal.aborted || cache?.has(slug) !== true)) return null;
   if (cache === undefined) {
     cache = new ProductLeases(owner.allocator, 'grid'); products.set(owner.allocator, cache);
     const owned = cache;
@@ -289,10 +291,11 @@ export function gridShardfileProduct(slug: string, owner: GridProductOwner, mode
     // Lazy graph-file compilation still has a synchronous JSON contract. Its
     // bounded JSON subset remains charged; meshes, textures and Wasm rehydrate.
     const keep = new Set(admitted.source.files.filter(file => file.kind === 'json').map(file => file.hash));
-    const inputs = new ProductInputs(admitted, options, bytes => {
+    const inputs = new ProductInputs(admitted, options, (bytes, speculative) => {
       if (owner.scope.disposed) throw new Error('Grid product page disposed');
-      const claim = owner.allocator.reserve({ id: `product-input:grid:${slug}:${++generation}`, category: 'product', owner: 'grid', bytes, distance: 0, needed: true });
-      if (claim === null) throw new Error('Product input residency admission deferred');
+      const request = { id: `product-input:grid:${slug}:${++generation}`, category: 'product' as const, owner: 'grid', bytes, distance: 0, needed: true };
+      const claim = speculative ? owner.allocator.reserveIfFits(request) : owner.allocator.reserve(request);
+      if (claim === null) { if (speculative) throw new ApproachInputsDeferredError(); throw new Error('Product input residency admission deferred'); }
       return claim;
     }, keep, selectedInputs);
     preparation.inputs = inputs;
@@ -305,7 +308,7 @@ export function gridShardfileProduct(slug: string, owner: GridProductOwner, mode
         if (owner.scope.disposed) throw new Error('Grid product page disposed during metadata');
         return { admitted, options, release: lease.release };
       }
-      const input = await inputs.acquire();
+      const input = await (typeof mode === 'object' ? inputs.acquireTransport(mode.signal) : inputs.acquire());
       if (owner.scope.disposed) { await input.release(); throw new Error('Grid product page disposed during preparation'); }
       let live = true;
       const close = async (): Promise<void> => {

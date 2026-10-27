@@ -5327,14 +5327,14 @@ Undeclared refs refuse before
 any deletion; host-referenced unbound/shared files remain. Caller-provided Maps
 without this callback are never mutated.
 
-`ProductInputs.acquire()` borrows a synchronous Map until its last idempotent
-async release. Refills verify size/hash and reserve bytes before reading;
-failures publish nothing. `acquireTransport(signal)` restores only the original
-admitted tier, four reads at once; abort drains the started batch, not its suffix.
-`GridProduct.prepareInputs(signal)` exposes that loan. Constructor overlaps share
-it. `releasePreparedTransport` retains declared-reference/offline/corrupt-cache
-refusals; ordinary release classification stays. Supplied maps without release
-authority stay intact.
+`ProductInputs.acquire()` borrows a Map until its last idempotent async release.
+Refills verify size/hash, reserve bytes first and publish nothing on failure.
+`acquireTransport(signal)` restores the admitted tier with at most four reads;
+abort drains the started batch. `gridShardfileProduct`'s `{signal}` mode joins
+only existing admission, without an ordinary input borrow first. Its
+`ResidencyAllocator.reserveIfFits` defers before eviction; actual entry keeps
+ordinary `reserve`. Constructor overlaps share the loan. Declared-reference,
+offline, corrupt-cache and supplied-map release authority stays unchanged.
 
 Settled tile preparation holds source, decoded views and one verified reader,
 not input Maps. Late cells borrow through `gridShardfileProduct` before

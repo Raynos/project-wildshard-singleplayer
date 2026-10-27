@@ -110,6 +110,8 @@ export class ResidencyAllocator {
 
   /** Admit a claim, or share one already held under the same id; null when it cannot fit even after eviction. */
   reserve(claim: ResidencyClaim): ResidencyLease | null { return this.reserveClaim(claim, 0); }
+  /** Speculative IO may use existing headroom, never evict another owner's ready world. */
+  reserveIfFits(claim: ResidencyClaim): ResidencyLease | null { return this.reserveClaim(claim, 0, false); }
 
   /** Split an evidenced renderer component out of the fixed engine baseline. Only the calibrated credit is removed;
    * larger current allocations increase the envelope, and the component remains a visible page-owned claim.
@@ -129,7 +131,7 @@ export class ResidencyAllocator {
     return this.lease(existing);
   }
 
-  private reserveClaim(claim: ResidencyClaim, baseCredit: number): ResidencyLease | null {
+  private reserveClaim(claim: ResidencyClaim, baseCredit: number, allowEviction = true): ResidencyLease | null {
     if (claim.id.length === 0 || claim.owner.length === 0 || !Number.isSafeInteger(claim.bytes) || claim.bytes < 0 || !Number.isFinite(claim.distance) || claim.distance < 0) throw new RangeError('Invalid residency claim');
     if (claim.prepareEvict !== undefined && claim.evictSync !== undefined) throw new Error('A residency claim evicts in one phase or two, not both');
     if (this.evicting) throw new Error('Residency claims cannot be made from an evict callback');
@@ -143,6 +145,7 @@ export class ResidencyAllocator {
     }
     const extra = { ...claim, baseCredit };
     if (!this.fits(extra)) {
+      if (!allowEviction) return null;
       this.evicting = true;
       try {
         if (!this.evictFor(extra)) {

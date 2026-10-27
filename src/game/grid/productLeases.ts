@@ -12,6 +12,8 @@ export class ProductLeases<T> {
   private closed = false;
   constructor(private readonly allocator: ResidencyAllocator, private readonly owner: string) {}
   private disposed(): boolean { return this.closed; }
+  /** An approach can join an existing admission, never start another product load. */
+  has(key: string): boolean { return !this.closed && this.entries.has(key); }
   /** Reserve the source/wire claim before the loader reads immutable assets; concurrent copies share one admission. */
   async acquire(key: string, load: (reserve: (source: Shardfile) => void, releaseBytes: (bytes: number) => void) => Promise<T>): Promise<ProductLease<T>> {
     if (this.disposed()) throw new Error('Product cache disposed');
