@@ -19,7 +19,7 @@ with tempfile.TemporaryDirectory(dir=repo/'tmp', prefix='gen-docs-test-') as fol
         return "appendFileSync('calls.txt'," + json.dumps(name+'\n') + ");"
     module('quiet-cli', 'export function quietCli() {}')
     module('generation-scheduling', 'export function generationConcurrency(){return 1}')
-    module('generation-tail-cache', 'export async function generationTailCached(root,step,run){return run()}')
+    module('source-table-cache', 'export async function sourceTablesCached(root,step,run){return run()}')
     module('generated-source', 'export function checkGeneratedSourceTree(){return []}')
     module('heavy-lane-lease', 'export function assertHeavyLease(){}')
     program_tables = 'export function programInputPlan(root,plan){return plan}export async function emitProgramTables(root,plan,{inputsOnly,writeTables,build}){await writeTables();if(!inputsOnly)await build(root,plan)}'

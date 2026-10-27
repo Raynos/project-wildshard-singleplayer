@@ -4,7 +4,7 @@ import { genShards, refreshDiscovery } from './gen-shards.mjs';
 import { genBudgetDerivations } from './gen-budget-derivations.mjs';
 import { generationPlan, buildPrograms, emitProgramTables, programInputPlan } from './gen-programs.mjs';
 import { assertHeavyLease } from './heavy-lane-lease.mjs';
-import { generationTailCached } from './generation-tail-cache.mjs';
+import { sourceTablesCached } from './source-table-cache.mjs';
 import { genStarterArmClips } from './gen-starter-arm-clips.mjs';
 import { genStarterWeapons } from './gen-starter-weapons.mjs';
 import { genStarterBag } from './gen-starter-bag.mjs';
@@ -61,9 +61,9 @@ await emitProgramTables(root, plan, {
     return count;
   },
   writeTables: async () => {
-    await step('shards', () => generationTailCached(root, 'shards-before', () => genShards(undefined, false, false, vocabularyShard)));
+    await step('shards', () => sourceTablesCached(root, 'shards-before', () => genShards(undefined, false, false, vocabularyShard)));
     const { generateBootTables } = await import('./app-build/gen.ts');
-    await step('boot-tables', () => generationTailCached(`${import.meta.dirname}/..`, 'boot', async () => {
+    await step('boot-tables', () => sourceTablesCached(`${import.meta.dirname}/..`, 'boot', async () => {
       if (buildInputs && process.env.WS_PRECOMMIT_BOOT_CACHE) {
         const { generateBootTablesCached } = await import('./gen-boot-cache.mjs');
         generateBootTablesCached(`${import.meta.dirname}/..`, process.env.WS_PRECOMMIT_BOOT_CACHE, generateBootTables);
@@ -73,7 +73,7 @@ await emitProgramTables(root, plan, {
       for (const selected of plan.scoped ? plan.products : [undefined]) await genBudgetDerivations(undefined, process.argv.includes('--check-budgets'), selected);
     });
     // Boot tables add static imports; derive the closure from the completed graph.
-    await step('shards', () => generationTailCached(root, 'shards-after', () => genShards(undefined, false, false, vocabularyShard)));
+    await step('shards', () => sourceTablesCached(root, 'shards-after', () => genShards(undefined, false, false, vocabularyShard)));
   },
 });
 publishProgramProof();

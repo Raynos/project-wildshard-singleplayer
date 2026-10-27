@@ -1,5 +1,5 @@
-// Local reuse of completed table producers, after prepareGeneration verified
-// this invocation's phase. This receipt never grants generation/product proof.
+// Local reuse of completed source tables after the invocation input proof.
+// This receipt never grants source-program or product proof.
 import { createHash } from 'node:crypto';
 import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -24,10 +24,10 @@ function owns(step, file) {
 
 /** Memoize only complete local outputs with identical inputs, inventories and
  * bytes. Missing/changed evidence runs the defining producer; never restores.
- * The caller must finish prepareGeneration before using this helper.
+ * The caller must finish the source input proof before using this helper.
  * @param {string} inputRoot @param {TailStep} step @param {()=>unknown} run
  * @returns {Promise<boolean>} True only for verified local reuse. */
-export async function generationTailCached(inputRoot, step, run) {
+export async function sourceTablesCached(inputRoot, step, run) {
   const root = realpathSync(resolve(inputRoot));
   // Product metadata is outside the source-table cache's input inventory.
   // Always run the defining receipt reader; a table hit cannot vouch for it.
@@ -38,7 +38,7 @@ export async function generationTailCached(inputRoot, step, run) {
   const required = step === 'boot' ? bootFiles : shardFiles;
   const snapshot = () => {
     // The phase is bound again here, while its independent verification remains
-    // prepareGeneration's responsibility. Missing phase means no optimization.
+    // the source input proof's responsibility. Missing phase means no optimization.
     const phase = readFileSync(resolve(root, '.cache/generation-phase.json'), 'utf8');
     /** @type {Record<string,string>} */
     const inputs = {};
