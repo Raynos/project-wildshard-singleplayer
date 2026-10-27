@@ -102,7 +102,7 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
     const checker = resolve(binaryTree, 'no-binary-json.mjs');
     writeFileSync(checker, git(['show', ':scripts/no-binary-json.mjs']));
     if (initial.includes('\tscripts/generated-source.mjs\0')) writeFileSync(resolve(binaryTree, 'generated-source.mjs'), git(['show', ':scripts/generated-source.mjs']));
-    early.push({ name: 'binary JSON', command: [process.execPath, checker, '--staged'] });
+    // G769: global generated-file inventory runs in CI, never during landing.
   }
   const running = runCommitJobs(root, early, deadline);
   // G769: related suites may invoke product generation. CI owns that work;
