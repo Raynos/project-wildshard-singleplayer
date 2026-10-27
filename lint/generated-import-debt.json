@@ -226,7 +226,7 @@
     "src/shards/pine-hollow/generators/nightSpawn.ts": 1,
     "src/shards/pine-hollow/generators/nightSpec.ts": 1,
     "src/shards/pine-hollow/generators/output.ts": 12,
-    "src/shards/pine-hollow/generators/outputInputs.ts": 15,
+    "src/shards/pine-hollow/generators/outputInputs.ts": 13,
     "src/shards/pine-hollow/generators/pageLife.ts": 1,
     "src/shards/pine-hollow/generators/placeSets.ts": 1,
     "src/shards/pine-hollow/generators/population.ts": 2,

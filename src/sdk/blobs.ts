@@ -27,17 +27,25 @@ export function nameBlob(name: string, kind: NamedBlobKind, input: Uint8Array, o
 
 const MAX_BYTES = 25_000_000;
 
+/** Name a GLB the way a `meshopt: true` blob source is named: losslessly meshopt-packed when that gzips (level 9) no
+ *  larger, otherwise as given. For a program that builds its GLB in memory (GR8) rather than reading a source file. */
+export async function nameMeshoptBlob(name: string, input: Uint8Array, options: BlobOptions = {}): Promise<NamedBlob> {
+  // oxlint-disable-next-line import/no-nodejs-modules -- Compare actual download encoding, as source intake does.
+  const compression = await import('node:zlib');
+  const packed = compressGlb(input);
+  const selected = compression.gzipSync(packed, { level: 9 }).length <= compression.gzipSync(input, { level: 9 }).length ? packed : input;
+  return nameBlob(name, 'glb', selected, options);
+}
+
 /** Read only project-contained files. Textual .gltf sources compile with bounded local/embedded resources into GLB;
  * an escape (including through a symlink), remote URI or unsupported extension refuses before publication. */
 export async function readNamedBlob(project: string, name: string, source: string, kind: NamedBlobKind, options: BlobSourceOptions = {}): Promise<NamedBlob> {
-  const [fileSystem, pathTools, { readBoundedFile }, compression] = await Promise.all([
+  const [fileSystem, pathTools, { readBoundedFile }] = await Promise.all([
     // oxlint-disable-next-line import/no-nodejs-modules -- Only explicit CLI file intake loads filesystem access.
     import('node:fs'),
     // oxlint-disable-next-line import/no-nodejs-modules -- Keep config-only nameBlob imports free of file services.
     import('node:path'),
     import('./sourceReader'),
-    // oxlint-disable-next-line import/no-nodejs-modules -- Compare actual download encoding only during CLI intake.
-    import('node:zlib'),
   ]);
   const root = fileSystem.realpathSync(project);
   const contained = (base: string, path: string): string => {
@@ -50,12 +58,8 @@ export async function readNamedBlob(project: string, name: string, source: strin
   const file = contained(root, source), bytes = readBoundedFile(file, MAX_BYTES);
   if (options.meshopt !== undefined && typeof options.meshopt !== 'boolean') throw new Error('Invalid meshopt compression option');
   if (options.meshopt === true && kind !== 'glb') throw new Error('Meshopt compression requires a GLB blob');
-  const admit = (value: Uint8Array): NamedBlob => {
-    if (options.meshopt !== true) return nameBlob(name, kind, value, options);
-    const packed = compressGlb(value);
-    const selected = compression.gzipSync(packed, { level: 9 }).length <= compression.gzipSync(value, { level: 9 }).length ? packed : value;
-    return nameBlob(name, kind, selected, options);
-  };
+  const admit = (value: Uint8Array): Promise<NamedBlob> | NamedBlob =>
+    options.meshopt === true ? nameMeshoptBlob(name, value, options) : nameBlob(name, kind, value, options);
   if (source.toLowerCase().endsWith('.gltf')) {
     if (kind !== 'glb') throw new Error('Text glTF must compile to a GLB blob');
     return admit(await compileGltfSource(bytes, uri => readBoundedFile(contained(pathTools.dirname(file), uri), MAX_BYTES)));

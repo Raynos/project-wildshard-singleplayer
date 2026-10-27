@@ -8882,43 +8882,6 @@
       }
     },
     {
-      "id": "pine-hollow-held-crossbow-pool",
-      "shard": "pine-hollow",
-      "entry": "src/shards/pine-hollow/generators/bake-crossbow-pool.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/pine-hollow/generators/bake-crossbow-pool.mjs"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/sdk",
-        "src/format",
-        "src/shards/pine-hollow/generators/bake-crossbow-pool.mjs",
-        "src/shards/pine-hollow/generators/crossbowPool.ts",
-        "src/shards/pine-hollow/generators/crossbowRows.ts",
-        "src/shards/pine-hollow/generators/handsLook.ts",
-        "src/shards/pine-hollow/data/crossbowDisplay.json",
-        "scripts/named-blob-output.mjs",
-        "scripts/bake-output.mjs"
-      ],
-      "outputs": [
-        "public/assets/pine-hollow/baked/f2082acfcfb9c9bdce0a6af1745f44de33d38c89ed6fd261f5d6dc346ec46159.glb",
-        "src/shards/pine-hollow/data/crossbowPool.generated.json",
-        "src/shards/pine-hollow/assets/f2082acfcfb9c9bdce0a6af1745f44de33d38c89ed6fd261f5d6dc346ec46159",
-        "src/shards/pine-hollow/data/heldBlobs.generated.json"
-      ],
-      "platform": "portable",
-      "buildTimeOutputs": [
-        "public/assets/pine-hollow/baked/f2082acfcfb9c9bdce0a6af1745f44de33d38c89ed6fd261f5d6dc346ec46159.glb",
-        "src/shards/pine-hollow/data/crossbowPool.generated.json",
-        "src/shards/pine-hollow/assets/f2082acfcfb9c9bdce0a6af1745f44de33d38c89ed6fd261f5d6dc346ec46159",
-        "src/shards/pine-hollow/data/heldBlobs.generated.json"
-      ]
-    },
-    {
       "id": "pine-hollow-hands-pool",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-hands-pool.mjs",
