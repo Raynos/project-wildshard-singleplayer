@@ -94,8 +94,14 @@ export class WorldScenePlacement {
     if (this.pending !== undefined) throw new Error('Scene placement is built whole');
     if (this.ranged()) {
       // one draw for the whole placement; the tile draws its range of it (the collider ring builds the tile's colliders)
-      const ranged = await this.rangedDraw(container);
+      const ranged = await this.rangedDraw();
       if (scope.disposed || scope.disposing) return ranged.placed;
+      // the one draw joins the placement's container on the render ring's first tile (the collider ring may build it first)
+      const object = ranged.placed.object, parent = object.parent;
+      if (container !== null && parent !== container) {
+        if (container.parent === null && parent !== null) parent.add(container);
+        container.add(object);
+      }
       await Promise.all(ranged.contents.map(content => content.tiles().has(tile) ? content.attach(tile, scope) : Promise.resolve()));
       return ranged.placed;
     }
@@ -133,7 +139,7 @@ export class WorldScenePlacement {
       const copies = this.bucketed().get(tile);
       if (copies === undefined) throw new Error('Scene placement tile has no copies');
       if (!this.ranged()) return this.build(copies, scope, tile);
-      const { placed } = await this.rangedDraw(null), box = new Box3(), boxes = new Float32Array(copies.length * 6);
+      const { placed } = await this.rangedDraw(), box = new Box3(), boxes = new Float32Array(copies.length * 6);
       copies.forEach((index, k) => { placed.copyBox(index, box); boxes.set([box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z], k * 6); });
       return this.build(copies, scope, tile, { object: placed.object, boxes });
     });
@@ -151,16 +157,11 @@ export class WorldScenePlacement {
   }
   /** T3: the ranged placement's one draw (built whole, once, with no colliders: the collider ring has them) and the tile
    *  contents its meshes draw by; nothing draws until a tile attaches. */
-  private rangedDraw(container: Group | null): Promise<{ readonly placed: Placed; readonly contents: readonly TileContent[] }> {
+  private rangedDraw(): Promise<{ readonly placed: Placed; readonly contents: readonly TileContent[] }> {
     this.ranges ??= (async () => {
       const placed = await this.build(null, this.owner, undefined, 'whole');
-      const parent = placed.object.parent;
-      if (container !== null) {
-        if (container.parent === null && parent !== null) parent.add(container);
-        container.add(placed.object);
-      }
       // each mesh by tile in cell-local space: its transform relative to the cell's world group (copies are posed cell-local)
-      const cell = container?.parent ?? parent;
+      const cell = placed.object.parent;
       cell?.updateMatrixWorld(true); placed.object.updateMatrixWorld(true);
       const toCell = new Matrix4().copy(cell?.matrixWorld ?? new Matrix4()).invert(), contents: TileContent[] = [];
       const meshes: Mesh[] = [];
