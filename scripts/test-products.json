@@ -259,5 +259,8 @@
   ],
   "test/nine-memory-floor.test.ts": [
     "nine-dragon-stack"
+  ],
+  "test/pine-quest-content-product.test.ts": [
+    "pine-hollow"
   ]
 }

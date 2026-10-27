@@ -4,10 +4,9 @@ import boss from '../src/shards/pine-hollow/data/bossEncounter.json' with { type
 import sky from '../src/shards/pine-hollow/data/sky.json' with { type: 'json' };
 import { pineSpots as pineSpotRows } from '../src/shards/pine-hollow/generators/spots';
 import { pineSpots } from '../src/shards/pine-hollow/generators/questPrompts';
-// oxlint-disable-next-line import/no-nodejs-modules -- the build's input roots are repository folders
-import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { readProjectAssets } from '../src/sdk/project';
+import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import { builtProduct } from './fixtures/builtProduct';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { parseQuestData } from '../src/sdk/quests';
 import { pineQuestNpcs } from '../src/shards/pine-hollow/generators/questNpcs';
@@ -16,7 +15,6 @@ import { PINE_QUEST_RUNTIME } from '../src/shards/pine-hollow/generators/questRu
 import { parseNativeQuestComposition } from '../src/format/nativeQuestComposition';
 import { NATIVE_CHAPTER_DIRECTOR } from '../src/shards/pine-hollow/generators/chapterDirector';
 import { PINE_SOURCES } from './fixtures/pine-sources';
-import { decisionLegacyLines } from '../scripts/decision-legacy-lines.mjs';
 
 const { FOREST_STORY } = forestStory(PINE_SOURCES);
 
@@ -38,32 +36,25 @@ const originals = {
 const hash = (value: unknown): string => hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(value)));
 
 test('the retained producer preserves the entire quest and NPC declarations in the admitted product', async () => {
-  // the build's declared input roots and decision line budget (scripts/wildshard.mjs): Pine's ground tiles list the baked
-  // terrain under /assets/, and its decision scripts compile under the shard's line ceiling
-  const legacyLines = decisionLegacyLines(resolve('.'), 'pine-hollow');
-  const loaded = await readProjectAssets('src/shards/pine-hollow', undefined, { folder: 'pine-hollow', imageRoots: [
-    { prefix: '/src/shards/pine-hollow/', directory: resolve('src/shards/pine-hollow') }, { prefix: '/assets/', directory: resolve('public/assets') }] },
-  legacyLines === undefined ? {} : { decisionLegacyLines: legacyLines });
+  // the verified built product (the product cohort, scripts/test-products.json), never a whole Pine build inside the
+  // assertion: it ran 26-30 s locally and past its 30 s deadline on Linux CI
+  const product = await loadHeadlessProduct(builtProduct('pine-hollow')), shard = product.shardfile;
   const quests = parseQuestData(pinePeople.quests);
-  const { achievements: _achievements, ...gameplay } = loaded.shard.quests;
+  const { achievements: _achievements, ...gameplay } = shard.quests;
   // Quest-owned interaction flags must not change the existing AS handles or
   // the King's saved decision contract.
   expect(gameplay.flags).toEqual(quests.flags);
   expect(hash(gameplay)).toBe(originals.quests);
   expect(hash(quests)).toBe(originals.quests);
-  const section = loaded.output.custom?.sections.find(row => row.name === 'custom/questRuntime');
-  const bytes = section === undefined ? undefined : loaded.output.custom?.files.get(section.path);
-  if (bytes === undefined) throw new Error('The product must publish its fixed quest rows');
-  const rows = parsePineQuestRows(JSON.parse(new TextDecoder().decode(bytes)));
+  if (!product.has('custom/questRuntime')) throw new Error('The product must publish its fixed quest rows');
+  const rows = parsePineQuestRows(await product.section<unknown>('custom/questRuntime'));
   expect(rows).not.toHaveProperty('graph'); expect(rows).not.toHaveProperty('interactions');
-  expect(loaded.shard.questHost?.graph).toEqual(PINE_QUEST_RUNTIME.graph);
-  expect(loaded.shard.questHost?.interactions).toEqual(PINE_QUEST_RUNTIME.interactions);
+  expect(shard.questHost?.graph).toEqual(PINE_QUEST_RUNTIME.graph);
+  expect(shard.questHost?.interactions).toEqual(PINE_QUEST_RUNTIME.interactions);
   expect(hash(rows.content)).toBe(originals.content);
   expect(rows.table.rows).toHaveLength(44);
-  const nativeFile = loaded.output.namedFiles?.find(row => row.name === 'quests/native-story.json');
-  const nativeBytes = nativeFile === undefined ? undefined : loaded.assets.get(nativeFile.hash);
-  if (nativeBytes === undefined) throw new Error('Missing admitted native story');
-  const nativePolicy = parseNativeQuestComposition(JSON.parse(new TextDecoder().decode(nativeBytes)));
+  if (!product.hasFile('quests/native-story.json')) throw new Error('Missing admitted native story');
+  const nativePolicy = parseNativeQuestComposition(await product.json<unknown>('quests/native-story.json'));
   expect(nativePolicy).toMatchObject({ transitions: { ids: [...Array.from({ length: 30 }, (_unused, i) => `resin-${i + 1}`), 'dam-sluice'],
     rowLimit: 31, flagLimit: 16, touch: 'direct', pickup: 'walk-in' } });
   // QB declares the existing trader and ammunition owners as typed facets.
@@ -92,12 +83,12 @@ test('the retained producer preserves the entire quest and NPC declarations in t
   expect(() => parsePineQuestRows({ ...rows, table: { ...rows.table, rows: [{ ...rows.table.rows[0], at: { poi: 'world', x: Number.NaN, y: 0, z: 0, yaw: 0 } }] } })).toThrow();
   const { ranger: RANGER, miller: MILLER, trader: TRADER } = rows.readings.speakers;
   for (const [id, npc] of Object.entries({ ranger: RANGER, miller: MILLER, trader: TRADER })) {
-    const declared = loaded.shard.questNpcs?.find(row => row.npc.id === id);
+    const declared = shard.questNpcs?.find(row => row.npc.id === id);
     if (declared === undefined) throw new Error(`Missing admitted NPC: ${id}`);
     expect(hash(declared.npc)).toBe(hash(npc));
   }
   expect([hash(RANGER), hash(MILLER), hash(TRADER)]).toEqual([originals.ranger, originals.miller, originals.trader]);
-  expect(loaded.shard.questNpcs?.map(row => row.npc.id)).toEqual(['ranger', 'miller', 'trader']);
+  expect(shard.questNpcs?.map(row => row.npc.id)).toEqual(['ranger', 'miller', 'trader']);
   expect(quests.quests[0]?.steps.map(row => row.id)).toEqual(['pond', 'ridge', 'zip', 'den', 'stag', 'king', 'dawn']);
 }, 30_000);
 
