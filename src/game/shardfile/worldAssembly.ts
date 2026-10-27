@@ -152,8 +152,17 @@ export class WorldAssembly {
         || world.sky !== sky || world.physics !== physics || game.scene !== scene || runtime.viewer !== viewer
         || product.file !== read || product.json !== json || ports.draws !== originalDraws || library !== undefined && library.product !== product) throw new Error('World construction owner left or changed');
       if (native !== undefined && (borrowedDressing !== undefined && SceneDressing.current(native) !== borrowedDressing || waters !== undefined && clientWaterSurfaces(native) !== waters)) throw new Error('World construction borrowed owners changed');
-      const current = stages.flatMap(stage => stage.kind === 'water-surface' ? [waters?.get(stage.surface)?.group] : stage.kind === 'dressing-piece' ? [borrowedDressing?.pieces.get(stage.part)?.object] : []);
-      if (current.some((object, index) => object !== borrowed[index])) throw new Error('World construction borrowed objects changed');
+      let borrowedAt = 0, borrowedChanged = false;
+      // Keep every ordered owner lookup, without allocating a flattened stage
+      // array at each construction checkpoint (usually most stages borrow none).
+      for (const stage of stages) {
+        if (stage.kind === 'water-surface') {
+          borrowedChanged = (waters?.get(stage.surface)?.group !== borrowed[borrowedAt++]) || borrowedChanged;
+        } else if (stage.kind === 'dressing-piece') {
+          borrowedChanged = (borrowedDressing?.pieces.get(stage.part)?.object !== borrowed[borrowedAt++]) || borrowedChanged;
+        }
+      }
+      if (borrowedChanged) throw new Error('World construction borrowed objects changed');
       if (publication !== undefined && entryOwner(scope, 'object', publication.id) !== publication.root) throw new Error('World construction root changed');
     };
     live();

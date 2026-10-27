@@ -173,3 +173,17 @@ test('room read replacement and sliced native retirement refuse before the origi
     }finally{f.build.mockRestore();f.borrowed.mockRestore();f.parent.dispose();}
   }
 });
+
+test('a changed borrowed piece refuses before its later stage publishes', async () => {
+  const f = fixture();
+  const piece = legacyDouble<NonNullable<ReturnType<SceneDressing['pieces']['get']>>>({ object: new Group() });
+  const pieces = new Map([['garden', piece]]), dressing = legacyDouble<SceneDressing>({ pieces });
+  const current = vi.spyOn(SceneDressing, 'current').mockReturnValue(dressing);
+  f.onCopy(() => { pieces.set('garden', legacyDouble<typeof piece>({ object: new Group() })); });
+  const input = { stages: [stages.stages[0], { kind: 'dressing-piece', id: 'borrowed.garden', part: 'garden' }] };
+  try {
+    await expect(WorldAssembly.construct(input, f.ports)).rejects.toThrow('World construction borrowed objects changed');
+    expect(f.events).toEqual(['handle:draw:0', 'copy:draw:0']);
+    expect(() => entryOwner(f.scope, 'object', 'borrowed.garden')).toThrow();
+  } finally { current.mockRestore(); f.parent.dispose(); }
+});
