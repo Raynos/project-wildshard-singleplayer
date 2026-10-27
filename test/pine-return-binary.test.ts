@@ -14,14 +14,13 @@ import { ReturnModulesSchema } from '../src/format/scriptContract';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { prepareOutput } from '../src/shards/pine-hollow/generators/output';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { pineGeneration } from './fixtures/pine-generation';
 import { PINE_LIFE_ORIGINAL } from './fixtures/pine-life';
 import { PINE_SHELTER_ORIGINAL } from './fixtures/pine-shelter';
 
 const cache = mkdtempSync('tmp/pine-return-');
 afterAll(() => rmSync(cache, { recursive: true, force: true }));
-const context = createProjectGeneration('src/shards/pine-hollow',
-  hashImmutableBytes(new TextEncoder().encode('pine-shelter-original-v1')), new Map(), cache);
+const context = pineGeneration('pine-shelter-original-v1', cache);
 const output = await prepareOutput(context);
 
 const life = PINE_LIFE_ORIGINAL, shelter = PINE_SHELTER_ORIGINAL;

@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Independent native oracle and isolated cache for this producer proof.
 import { readFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { afterAll, expect, test } from 'vitest';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { pineGeneration } from './fixtures/pine-generation';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { prepareOutput } from '../src/shards/pine-hollow/generators/output';
 import original from './fixtures/pine-life-program.json' with { type: 'json' };
@@ -10,8 +10,7 @@ const hash = '260eee8839d76af399fadc27a383c92ef8f75a0bbab154bce727d973d24e3594';
 const oracle = new Uint8Array(readFileSync('test/fixtures/pine-life-program.wasm'));
 const cache = mkdtempSync('tmp/pine-life-author-');
 afterAll(() => rmSync(cache, { recursive: true, force: true }));
-const context = createProjectGeneration('src/shards/pine-hollow',
-  hashImmutableBytes(new TextEncoder().encode('pine-life-author-v1')), new Map(), cache);
+const context = pineGeneration('pine-life-author-v1', cache);
 
 test('Pine life metadata and its original executable remain exact without inline authoring bytes', async () => {
   const output = await prepareOutput(context);
