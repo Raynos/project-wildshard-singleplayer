@@ -3,9 +3,6 @@ import type { DriftwoodSceneBanks } from './sceneBanks';
 import { reefCatalogue } from './reefCatalogue';
 import foliage from '../data/foliageScenes.generated.json' with { type: 'json' };
 import authored from '../data/siteCatalogue.json' with { type: 'json' };
-import hut from '../data/hutBake.json' with { type: 'json' };
-import lookout from '../data/lookoutBake.json' with { type: 'json' };
-import shrine from '../data/shrineBake.json' with { type: 'json' };
 import wreck from '../data/wreckSites.json' with { type: 'json' };
 import native from '../data/nativeSpecimens.generated.json' with { type: 'json' };
 
@@ -20,6 +17,7 @@ interface Layout {
 
 /** Shared author facts for product admission and pre-admission Explorer metadata. */
 export function siteCatalogue(banks: DriftwoodSceneBanks): unknown {
+  const { hut, lookout, shrine } = banks.layouts;
   const layouts: Readonly<Record<string, Readonly<Record<string, Layout>>>> = { hut: { world: hut }, lookout: { world: lookout }, shrine };
   const wreckLayouts: Readonly<Record<string, unknown>> = wreck;
   const rows = structuredClone(authored);

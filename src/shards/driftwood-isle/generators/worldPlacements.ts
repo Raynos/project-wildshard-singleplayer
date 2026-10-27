@@ -20,7 +20,7 @@ function upright(id: string, model: string, part: string, piece: string, copies:
   return parseWorldScenePlacement({ id, model, draw: 'merged', drawnInto: { part, boxes: copies.boxes }, ...(bare ? { colliders: [] } : {}),
     poses: copies.placements.map(({ x, y, z, variant, params }) => ({ x, y, z, ...(variant === undefined ? {} : { variant }), ...(params === undefined ? {} : { params }), yxz: { yaw: 0, scale: 1 } })), piece: { id: piece } });
 }
-/** Baked rock copies (bake-rock-scenes): each its own matrix, box and native hulls. */
+/** Baked rock copies (the rock bank, rockBank.ts): each its own matrix, box and native hulls. */
 function baked(id: string, model: string, part: string, piece: { id: string; solidFloor?: boolean }, rows: readonly Baked[]): WorldScenePlacementRow {
   return parseWorldScenePlacement({ id, model, draw: 'merged', drawnInto: { part, boxes: rows.flatMap(row => row.box) },
     poses: rows.map(row => ({ x: row.matrix[12] ?? 0, y: row.matrix[13] ?? 0, z: row.matrix[14] ?? 0, params: row.params, matrix: row.matrix })),

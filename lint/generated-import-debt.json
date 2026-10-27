@@ -79,7 +79,7 @@
     "src/shards/driftwood-isle/generators/questWorld.ts": 5,
     "src/shards/driftwood-isle/generators/reefCatalogue.ts": 1,
     "src/shards/driftwood-isle/generators/returnProgram.ts": 1,
-    "src/shards/driftwood-isle/generators/siteCatalogue.ts": 6,
+    "src/shards/driftwood-isle/generators/siteCatalogue.ts": 3,
     "src/shards/driftwood-isle/generators/staticWorld.ts": 1,
     "src/shards/driftwood-isle/generators/worldAssembly.ts": 1,
     "src/shards/driftwood-isle/generators/worldConstruction.ts": 1,
