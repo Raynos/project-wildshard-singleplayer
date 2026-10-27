@@ -154,10 +154,33 @@ test.each([false, true])('only a completed exact page publishes arrays and a sco
   expect(allocator.entries().map(row => row.id)).toEqual(withLook ? ['product:grid:seams:probe:look-source', 'product:grid:seams:probe:source'] : ['product:grid:seams:probe:source']);
   if (withLook) {
     if (actual.look === undefined) throw new Error('Missing charged channels');
+    const expected = decodeCompiledGridLook(JSON.parse(new TextDecoder().decode(f.page.header.bytes)), f.page.body.bytes, f.source, 'probe').look;
+    if (expected === undefined) throw new Error('Missing original channels');
+    for (const channel of ['normals', 'uvs', 'colours'] as const) {
+      const a = actual.look[channel], b = expected[channel];
+      if (a === undefined || b === undefined) throw new Error('Missing exact look channel');
+      expect(wire(a)).toEqual(wire(b));
+    }
     expect(allocator.entries().find(row => row.id.endsWith(':look-source'))?.bytes)
       .toBe(actual.look.normals.byteLength + actual.look.uvs.byteLength + (actual.look.colours?.byteLength ?? 0) + 1);
   }
   scope.dispose(); expect(allocator.entries()).toEqual([]);
+});
+
+test('retiring during native look inflation cancels publication and every source charge', async () => {
+  const f = await fixture('initial', false, true), scope = new Scope('retiring native look');
+  const allocator = new class extends ResidencyAllocator {
+    override reserve(claim: Parameters<ResidencyAllocator['reserve']>[0]): ReturnType<ResidencyAllocator['reserve']> {
+      const lease = super.reserve(claim);
+      if (claim.id.endsWith(':look-decode')) queueMicrotask(() => { scope.dispose(); });
+      return lease;
+    }
+  }();
+  await expect(readCompiledGridStrips(f.selector, f.original, 'probe', { scope, allocator }, url => {
+    const bytes = f.files.get(url); if (bytes === undefined) throw new Error('Unexpected native look request');
+    return Promise.resolve(new Response(Uint8Array.from(bytes).buffer));
+  }, () => Promise.resolve())).rejects.toThrow('scope disposed');
+  expect(allocator.entries()).toEqual([]);
 });
 
 test('optional misses start no body reads; corrupt declared data refuses and releases claims', async () => {

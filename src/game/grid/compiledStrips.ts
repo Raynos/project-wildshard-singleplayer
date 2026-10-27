@@ -80,7 +80,7 @@ function finiteWords(values: Float32Array): boolean {
 }
 
 interface DecodedGridStrips { readonly strips: readonly GeneratedStrip[]; readonly look?: SeamGeometryChannels }
-function* stripSteps(input: unknown, bytes: Uint8Array, source: string, home: string): Generator<void, DecodedGridStrips> {
+function* stripSteps(input: unknown, bytes: Uint8Array, source: string, home: string, nativeLook?: Uint8Array): Generator<void, DecodedGridStrips> {
   const header = parseCompiledGridHeader(input);
   if (header.source !== source || header.home !== home || header.rows.geometries.length !== header.shapes.length) throw new Error('Grid strip source differs from this page');
   const featureStart = Math.ceil(header.rows.bytes / 8) * 8;
@@ -127,8 +127,8 @@ function* stripSteps(input: unknown, bytes: Uint8Array, source: string, home: st
   const vertices = result.reduce((sum, strip) => sum + strip.mesh.positions.length / 3, 0);
   const decodedBytes = vertices * (look.colours === true ? 32 : 20);
   if (look.offset % 4 !== 0 || look.vertices !== vertices || decodedBytes > 16 * 1024 * 1024) throw new Error('Grid strip look layout differs');
-  let channels = bytes.subarray(look.offset);
-  if (look.codec === 'deflate') {
+  let channels = nativeLook ?? bytes.subarray(look.offset);
+  if (look.codec === 'deflate' && nativeLook === undefined) {
     try { channels = unzlibSync(channels, { out: new Uint8Array(decodedBytes + 1) }); }
     catch (error) { throw new Error('Invalid grid strip look channels', { cause: error }); }
   }
@@ -168,6 +168,30 @@ function reserveGridSource(owner: GridStripOwner, key: string, home: string, id:
   if (claim === null) throw new Error('Grid strip metadata residency deferred');
   return claim;
 }
+
+async function inflateGridLook(bytes: Uint8Array, expected: number, scope: Scope): Promise<Uint8Array> {
+  const body = new Response(bytes.slice()).body;
+  if (body === null) throw new Error('Missing grid strip look stream');
+  const reader = body.pipeThrough(new DecompressionStream('deflate')).getReader();
+  const output = new Uint8Array(expected + 1); let size = 0;
+  const cancel = (): void => { void reader.cancel('Grid admission scope disposed').catch(() => undefined); };
+  const forget = scope.capture('disposers', cancel);
+  try {
+    for (;;) {
+      liveGridOwner(scope);
+      const next = await reader.read(); liveGridOwner(scope);
+      if (next.done) break;
+      if (next.value.length > expected - size) throw new Error('Grid strip look layout differs');
+      output.set(next.value, size); size += next.value.length;
+    }
+    if (size !== expected) throw new Error('Grid strip look layout differs');
+    return output.subarray(0, size);
+  } finally {
+    forget();
+    try { await reader.cancel().catch(() => undefined); } finally { reader.releaseLock(); }
+  }
+}
+
 async function readDeclaredGridPage(page: CompiledGridPage, home: string, owner: GridStripOwner, read: GridStripFetch, pause: () => Promise<void>): Promise<DecodedGridStrips> {
   liveGridOwner(owner.scope);
   const abort = new AbortController(), forget = owner.scope.capture('disposers', () => { abort.abort(); });
@@ -188,13 +212,16 @@ async function readDeclaredGridPage(page: CompiledGridPage, home: string, owner:
     forgetSource = owner.scope.capture('disposers', releaseSource);
     const [header, body] = await Promise.all([fetchAsset(page.header), fetchAsset(page.body)]); liveGridOwner(owner.scope);
     const metadata = parseCompiledGridHeader(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(header)));
+    let nativeLook: Uint8Array | undefined;
     if (metadata.look?.codec === 'deflate') {
       const decodedBytes = metadata.look.vertices * (metadata.look.colours === true ? 32 : 20) + 1;
       if (decodedBytes > 16 * 1024 * 1024 + 1) throw new Error('Grid strip look layout differs');
       sourceLeases.push(reserve('look-source', decodedBytes));
       reservations.push(reserve('look-decode', decodedBytes));
+      if (typeof DecompressionStream !== 'undefined') nativeLook = await inflateGridLook(body.subarray(metadata.look.offset), decodedBytes - 1, owner.scope);
     }
-    const steps = stripSteps(metadata, body, page.source, page.home);
+    liveGridOwner(owner.scope);
+    const steps = stripSteps(metadata, body, page.source, page.home, nativeLook);
     try {
       for (;;) {
         liveGridOwner(owner.scope); const step = steps.next();
