@@ -3839,7 +3839,6 @@
         "scripts/generation-dependencies.mjs",
         "scripts/generation-determinism.mjs",
         "scripts/generation-inputs.mjs",
-        "scripts/generation-inventory.mjs",
         "scripts/generation-node-cache.mjs",
         "scripts/generation-scheduling.mjs",
         "scripts/generation-snapshot.mjs",
