@@ -292,6 +292,17 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
     if (bytes === undefined) throw new Error(`Missing owned render pair ${row.name}`);
     return nameBlob(row.name, row.kind, bytes);
   });
+  // the 16 L1 tile rows are runtime-bound (the painted ground draws the pair files), so they are desktop files: a phone,
+  // which never draws them, does not download them
+  const renderMetadata = renderFiles.get('data/renderTiles.json');
+  if (renderMetadata === undefined) throw new Error('Missing owned render tile metadata');
+  const renderRows = v.parse(v.object({ tiles: v.array(v.object({ lod: v.number(), x: v.number(), z: v.number(), files: v.array(v.string()) })) }),
+    JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(renderMetadata)));
+  const coarseTiles = renderRows.tiles.filter(tile => tile.lod === 1).flatMap(tile => tile.files.map((hash, i) => {
+    const bytes = renderFiles.get(`assets/${hash}`);
+    if (bytes === undefined) throw new Error(`Missing owned L1 render tile ${hash}`);
+    return nameBlob(`world/tiles/l1-${String(tile.x)}-${String(tile.z)}-${String(i)}.glb`, 'glb', bytes, { tier: 'desktop' });
+  }));
   const geographyFiles = await nalatiGeographyProgram(ctx);
   const ownedGeography = geographySources.map(row => {
     const bytes = geographyFiles.get(row.source);
@@ -406,7 +417,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
     const bytes = paintFiles.get(row.source);
     if (bytes === undefined) throw new Error(`Missing owned paint shape ${row.source}`);
     return nameBlob(row.name, row.kind, bytes);
-  })], runtime.floors.map(floor => nameBlob(floor.name, 'bin', floor.bytes)), [propBlob], carvings, held, renderPairs, ownedGeography, views, [kokpar.blob], ridingModules, nalatiTitanBlobs(titan), nalatiAdmissionBlobs(admissionBank), [nalatiChargeBlob(charge)]));
+  })], runtime.floors.map(floor => nameBlob(floor.name, 'bin', floor.bytes)), [propBlob], carvings, held, renderPairs, coarseTiles, ownedGeography, views, [kokpar.blob], ridingModules, nalatiTitanBlobs(titan), nalatiAdmissionBlobs(admissionBank), [nalatiChargeBlob(charge)]));
   return { ...template, platform, blobs: [], namedFiles: [...sources.map(source => source.file), ...modelBlobs.map(source => source.file), ...namedFiles, ...taming.files, places.file, crags.file, dressingBlob.file, specimenBank.file, speciesBank.file, ...people.map(blob => blob.file), ...terrainDraws.map(blob => blob.file), ...grassBlobs.map(blob => blob.file)], assets: new Map([...template.assets, ...freshEmission.assets, ...[...ownedBooks.values()].map(blob => [blob.file.hash, blob.bytes] as const), ...sources.map(source => [source.file.hash, source.bytes] as const), ...modelBlobs.map(source => [source.file.hash, source.bytes] as const), ...ownedMetadata.assets, ...placements.assets, ...scenes.assets, [carriedBlob.file.hash, carriedBlob.bytes], [places.file.hash, places.bytes], [crags.file.hash, crags.bytes], [dressingBlob.file.hash, dressingBlob.bytes], [specimenBank.file.hash, specimenBank.bytes], [speciesBank.file.hash, speciesBank.bytes], ...people.map(blob => [blob.file.hash, blob.bytes] as const), ...terrainDraws.map(blob => [blob.file.hash, blob.bytes] as const), ...grassBlobs.map(blob => [blob.file.hash, blob.bytes] as const)]) };
 }
 
