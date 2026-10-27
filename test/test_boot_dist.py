@@ -1,6 +1,7 @@
 import importlib.util
 import io
 import json
+import subprocess
 from pathlib import Path
 import tarfile
 import tempfile
@@ -92,16 +93,39 @@ class Transfer(unittest.TestCase):
             boot.restore(self.output / 'worlds', self.root / 'wrong', self.manifest, self.sha, '123', 'phone-route')
 
     def test_truncated_transfer_refuses_without_retry_or_write(self):
-        archive = self.output / 'boot-public/boot-dist.tar'
+        archive = self.output / 'boot-public/boot-dist.tar.zst'
         archive.write_bytes(archive.read_bytes()[:128])
         with self.assertRaisesRegex(ValueError, 'checksum'):
             self.restore()
         self.assertFalse((self.root / 'restored').exists())
 
     def test_missing_transfer_refuses_without_retry(self):
-        (self.output / 'boot-public/boot-dist.tar').unlink()
+        (self.output / 'boot-public/boot-dist.tar.zst').unlink()
         with self.assertRaises(FileNotFoundError):
             self.restore()
+
+    def test_matching_transport_checksum_cannot_authorize_invalid_compression(self):
+        directory = self.output / 'boot-public'
+        archive = directory / 'boot-dist.tar.zst'
+        archive.write_bytes(b'not zstd')
+        proof_path = directory / 'boot-dist-proof.json'
+        proof = json.loads(proof_path.read_text())
+        proof['transport'].update(bytes=archive.stat().st_size, hash=boot.digest(archive))
+        proof_path.write_text(json.dumps(proof))
+        self.manifest['legs']['boot-public']['transport'] = proof['transport']
+        with self.assertRaisesRegex(ValueError, 'compression'):
+            self.restore()
+        self.assertFalse((self.root / 'restored').exists())
+
+    def test_decompression_stops_at_the_attested_archive_extent_before_writes(self):
+        proof_path = self.output / 'boot-public/boot-dist-proof.json'
+        proof = json.loads(proof_path.read_text())
+        proof['archiveBytes'] = 1
+        proof_path.write_text(json.dumps(proof))
+        self.manifest['legs']['boot-public']['archiveBytes'] = 1
+        with self.assertRaisesRegex(ValueError, 'extent'):
+            self.restore()
+        self.assertFalse((self.root / 'restored').exists())
 
     def test_wrong_sha_run_or_leg_refuses(self):
         for kwargs in ({'sha': 'b' * 40}, {'run': '456'}):
@@ -126,12 +150,14 @@ class Transfer(unittest.TestCase):
         proof_path = directory / 'boot-dist-proof.json'
         proof = json.loads(proof_path.read_text())
         proof['archiveHash'], proof['archiveBytes'] = boot.digest(archive), archive.stat().st_size
+        proof['transport'] = boot.compress_archive(archive)
+        archive.unlink()
         proof_path.write_text(json.dumps(proof))
-        self.manifest['legs']['boot-public'].update({k: proof[k] for k in ('archiveHash', 'archiveBytes')})
+        self.manifest['legs']['boot-public'].update({k: proof[k] for k in ('archiveHash', 'archiveBytes', 'transport')})
 
     def test_symlink_traversal_extra_and_duplicate_members_refuse_before_write(self):
         directory = self.output / 'boot-public'
-        original = (directory / 'boot-dist.tar').read_bytes()
+        original = subprocess.check_output(['zstd', '-q', '-dc', str(directory / 'boot-dist.tar.zst')])
         for name, kind in (('../escape', tarfile.REGTYPE), ('assets/link', tarfile.SYMTYPE),
                            ('extra', tarfile.REGTYPE), ('index.html', tarfile.REGTYPE)):
             (directory / 'boot-dist.tar').write_bytes(original)

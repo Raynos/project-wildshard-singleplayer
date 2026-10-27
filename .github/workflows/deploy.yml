@@ -199,7 +199,7 @@ jobs:
         with:
           name: boot-dist-boot-public
           path: boot-dist-parts/boot-public/
-          compression-level: 6
+          compression-level: 0
           retention-days: 3
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
@@ -207,7 +207,7 @@ jobs:
         with:
           name: boot-dist-boot-developer
           path: boot-dist-parts/boot-developer/
-          compression-level: 6
+          compression-level: 0
           retention-days: 3
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
@@ -215,7 +215,7 @@ jobs:
         with:
           name: boot-dist-worlds
           path: boot-dist-parts/worlds/
-          compression-level: 6
+          compression-level: 0
           retention-days: 3
           if-no-files-found: error
 
@@ -224,7 +224,7 @@ jobs:
         with:
           name: boot-dist-phone-route
           path: boot-dist-parts/phone-route/
-          compression-level: 6
+          compression-level: 0
           retention-days: 3
           if-no-files-found: error
 

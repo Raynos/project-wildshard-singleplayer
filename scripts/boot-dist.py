@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Partition exact push dist bytes; verify identity before restoring one smoke leg."""
 import argparse
+from contextlib import contextmanager
 import hashlib
 import json
 import re
 from pathlib import Path, PurePosixPath
+import subprocess
 import tarfile
+import tempfile
 import time
 
 PARTS = ('boot-public', 'boot-developer', 'boot-grid', 'hover-chromium', 'hover-webkit', 'explorer', 'phone-route')
@@ -22,6 +25,51 @@ def stream_digest(stream):
     for block in iter(lambda: stream.read(1024 * 1024), b''):
         result.update(block)
     return result.hexdigest()
+
+
+def compress_archive(archive):
+    """Fast transport only; the original tar and every member stay hash-bound."""
+    compressed = archive.with_suffix('.tar.zst')
+    subprocess.run(['zstd', '-q', '--long=27', '-3', '-T2', '-f',
+                    str(archive), '-o', str(compressed)], check=True)
+    return {'encoding': 'zstd', 'bytes': compressed.stat().st_size,
+            'hash': digest(compressed)}
+
+
+@contextmanager
+def verified_archive(directory, proof):
+    compressed = directory / 'boot-dist.tar.zst'
+    transport = proof['transport']
+    if (transport['encoding'] != 'zstd' or compressed.stat().st_size != transport['bytes']
+            or digest(compressed) != transport['hash']):
+        raise ValueError('Dist transport checksum differs')
+    limit = proof['archiveBytes']
+    if type(limit) is not int or limit <= 0:
+        raise ValueError('Invalid dist archive extent')
+    # Decode only the attested extent and verify it before tar parses or writes
+    # any served file. The temporary tar belongs to this one restore invocation.
+    with tempfile.TemporaryFile(dir=directory) as archive:
+        decoder = subprocess.Popen(['zstd', '-q', '-dc', '--long=27', str(compressed)],
+                                   stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        size, result = 0, hashlib.sha256()
+        try:
+            while block := decoder.stdout.read(min(1024 * 1024, limit - size + 1)):
+                size += len(block)
+                if size > limit:
+                    raise ValueError('Dist archive extent exceeds proof')
+                archive.write(block)
+                result.update(block)
+            if decoder.wait() != 0:
+                raise ValueError('Dist archive compression differs')
+        finally:
+            decoder.stdout.close()
+            if decoder.poll() is None:
+                decoder.kill()
+            decoder.wait()
+        if size != limit or result.hexdigest() != proof['archiveHash']:
+            raise ValueError('Dist archive checksum differs')
+        archive.seek(0)
+        yield archive
 
 
 def safe(name):
@@ -96,11 +144,13 @@ def pack(dist, output, plan, sha, run):
                 tar.add(dist / row['path'], arcname=row['path'], recursive=False)
         proof = {'sha': sha, 'run': run, 'parts': parts, 'shards': sorted(plan[part]), 'version': version,
                  'archiveHash': digest(archive), 'archiveBytes': archive.stat().st_size, 'files': selected}
+        proof['transport'] = compress_archive(archive)
+        archive.unlink()
         (directory / 'boot-dist-proof.json').write_text(json.dumps(proof, separators=(',', ':')) + '\n')
         for name in parts:
-            inventory['legs'][name] = {key: proof[key] for key in ('archiveHash', 'archiveBytes', 'shards')}
+            inventory['legs'][name] = {key: proof[key] for key in ('archiveHash', 'archiveBytes', 'shards', 'transport')}
             inventory['legs'][name]['artifact'] = artifact
-            print(f'boot-dist {name}: {len(selected)} files, {sum(row["bytes"] for row in selected)} served bytes, {archive.stat().st_size} tar bytes')
+            print(f'boot-dist {name}: {len(selected)} files, {sum(row["bytes"] for row in selected)} served bytes, {proof["archiveBytes"]} tar bytes, {proof["transport"]["bytes"]} transport bytes')
     (output / 'boot-dist-manifest.json').write_text(json.dumps(inventory, separators=(',', ':')) + '\n')
     print(f'boot-dist pack seconds: {time.monotonic() - started:.3f}')
 
@@ -113,11 +163,8 @@ def restore(directory, target, manifest, sha, run, part):
     if manifest['sha'] != sha or manifest['run'] != run or proof['sha'] != sha or proof['run'] != run or part not in proof['parts']:
         raise ValueError('Dist SHA/run/leg differs')
     leg = manifest['legs'][part]
-    if any(proof[key] != leg[key] for key in ('archiveHash', 'archiveBytes', 'shards')) or proof['version'] != manifest['version']:
+    if any(proof[key] != leg[key] for key in ('archiveHash', 'archiveBytes', 'shards', 'transport')) or proof['version'] != manifest['version']:
         raise ValueError('Dist source inventory differs')
-    archive = directory / 'boot-dist.tar'
-    if archive.stat().st_size != proof['archiveBytes'] or digest(archive) != proof['archiveHash']:
-        raise ValueError('Dist archive checksum differs')
     expected = {safe(row['path']): row for row in proof['files']}
     if len(expected) != len(proof['files']):
         raise ValueError('Duplicate dist inventory')
@@ -125,7 +172,7 @@ def restore(directory, target, manifest, sha, run, part):
         raise ValueError('Dist target must be absent')
     # Validate every member before writing any file. No symlink, extra, duplicate,
     # traversal or altered byte can enter the served tree.
-    with tarfile.open(archive) as tar:
+    with verified_archive(directory, proof) as archive, tarfile.open(fileobj=archive) as tar:
         members = tar.getmembers()
         if len(members) != len(expected) or {safe(row.name) for row in members} != set(expected):
             raise ValueError('Dist archive inventory differs')
@@ -147,7 +194,7 @@ def restore(directory, target, manifest, sha, run, part):
                 shutil.copyfileobj(stream, output)
     if json.loads((target / 'version.json').read_text()) != manifest['version']:
         raise ValueError('Restored version differs')
-    print(f'boot-dist restore {part}: {archive.stat().st_size} bytes, {time.monotonic() - started:.3f} seconds')
+    print(f'boot-dist restore {part}: {proof["archiveBytes"]} bytes, {time.monotonic() - started:.3f} seconds')
 
 
 if __name__ == '__main__':
