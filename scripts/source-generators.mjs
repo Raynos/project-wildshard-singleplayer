@@ -20,17 +20,12 @@ const starter = (id, script, input, output, source) => ({
   generate: async root => ({ [output]: (await import(pathToFileURL(`${root}/${script}`).href))[source]() }),
 });
 
-/** The plain schema producer computes all tables without publishing an intermediate module.
- * @param {string} root @param {string} slug @returns {Readonly<Record<string,string>>} */
-function schemaTables(root,slug) {
-  const value=JSON.parse(execFileSync(process.execPath,['--import','./scripts/shard-platform-format.mjs','scripts/bake-section-schemas.mjs',slug,'--print'],{cwd:root,encoding:'utf8',maxBuffer:4_000_000}));
-  if(typeof value!=='object'||value===null||Array.isArray(value))throw new Error('Section schema producer must return tables');
-  /** @type {Record<string,string>} */
-  const tables={};
-  for(const [path,text]of Object.entries(value)){
-    if(typeof text!=='string')throw new Error('Section schema table must be text');
-    tables[path]=text;
-  }
+/** Compute in the caller's source view: committed checks pin imports and reads
+ * to Git, so a child process must not escape into loose working-tree schemas.
+ * @param {string} root @param {string} slug @returns {Promise<Readonly<Record<string,string>>>} */
+async function schemaTables(root,slug) {
+  const {sectionSchemaTables}=await import(pathToFileURL(`${root}/scripts/bake-section-schemas.mjs`).href);
+  const {tables}=await sectionSchemaTables(root,slug);
   return tables;
 }
 
@@ -40,7 +35,7 @@ function sectionSchemas(slug,outputs,jsonInputs=[]) {
     inputs:[`src/shards/${slug}/generators/sections.ts`,...jsonInputs,
       'scripts/source-generators.mjs','scripts/bake-section-schemas.mjs','scripts/section-types.mjs','scripts/shard-platform-format.mjs',
       'src/sdk/formatJsonSchema.ts','src/sdk/package.json','src/format/**','package.json','pnpm-lock.yaml'],
-    generate:root=>Promise.resolve(schemaTables(root,slug))};
+    generate:root=>schemaTables(root,slug)};
 }
 
 /** @type {readonly SourceGenerator[]} */

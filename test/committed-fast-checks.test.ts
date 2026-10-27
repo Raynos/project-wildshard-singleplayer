@@ -40,6 +40,50 @@ export default {
   return {root,git,put,commit,base,run,close:()=>rmSync(root,{recursive:true,force:true})};
 }
 
+test('source table guards pin producers, schema data and output to the checked commit', () => {
+  const f = fixture();
+  try {
+    f.put('scripts/check-closed-components.mjs', 'export function closedComponentSources(){return [];}');
+    f.put('scripts/check-platform-ratchets.mjs', 'export const PLATFORM_LISTS=[];export function comparePlatformList(){return [];}');
+    f.put('scripts/ratchet-approval.mjs', 'export function ratchetApprovalFailures(){return [];}');
+    for (const file of ['gen-source.mjs', 'source-generators.mjs'])
+      f.put(`scripts/${file}`, readFileSync(resolve('scripts', file), 'utf8'));
+    const producer = `import {readFileSync} from 'node:fs';import {resolve} from 'node:path';
+export function sectionSchemaTables(root,slug){return {tables:{
+ ['src/shards/'+slug+'/generators/sectionSchemas.ts']:readFileSync(resolve(root,'src/format/schema.txt'),'utf8'),
+ ['src/shards/'+slug+'/runtime/productSections.d.ts']:'export interface CustomSections {}\\n'
+}};}`;
+    f.put('scripts/bake-section-schemas.mjs', producer);
+    f.put('src/format/schema.txt', 'export const schema="original";\n');
+    const output = 'src/shards/pine-hollow/generators/sectionSchemas.ts';
+    f.put(output, 'export const schema="original";\n');
+    f.put('src/shards/pine-hollow/runtime/productSections.d.ts', 'export interface CustomSections {}\n');
+    const base = f.commit();
+    f.put('src/format/schema.txt', 'export const schema="new";\n');
+    const stale = f.commit();
+    // A child reading these loose repairs would incorrectly accept stale output.
+    f.put('src/format/schema.txt', 'export const schema="original";\n');
+    f.put('scripts/bake-section-schemas.mjs', producer.replace('src/format/schema.txt', output));
+    const index = readFileSync(resolve(f.root, '.git/index'));
+    const refused = f.run('guards', stale, ['src/format/schema.txt'], base);
+    expect(refused.status, refused.stdout + refused.stderr).toBe(1);
+    expect(refused.stderr).toContain(`gen:source: stale ${output}`);
+    expect(readFileSync(resolve(f.root, '.git/index'))).toEqual(index);
+    expect(readFileSync(resolve(f.root, 'src/format/schema.txt'), 'utf8')).toContain('original');
+    f.put('scripts/bake-section-schemas.mjs', producer);
+    f.put('src/format/schema.txt', 'export const schema="new";\n');
+    f.put(output, 'export const schema="new";\n');
+    const current = f.commit();
+    f.put(output, 'loose output poison');
+    f.put('scripts/bake-section-schemas.mjs', 'throw new Error("loose producer poison");');
+    const accepted = f.run('guards', current, ['src/format/schema.txt'], stale);
+    expect(accepted.status, accepted.stdout + accepted.stderr).toBe(0);
+    expect(accepted.stdout).toContain('guards: exact committed inputs passed');
+    expect(readFileSync(resolve(f.root, output), 'utf8')).toBe('loose output poison');
+    expect(readFileSync(resolve(f.root, 'scripts/bake-section-schemas.mjs'), 'utf8')).toContain('loose producer poison');
+  } finally { f.close(); }
+});
+
 test('native-output handoff keeps ordinary source errors blocking',()=>{
   const f=fixture();try{
     f.put('.gitignore','tmp/\nnode_modules/\n*.generated.ts\n');
