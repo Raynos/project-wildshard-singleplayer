@@ -37,7 +37,7 @@ export function shardEngineImport(filename, source) {
 
 /** DS0.3 author folders use three, the authoring SDK, commons, and their own shard files only. */
 export function generatorImportViolation(filename, source) {
-  const path=filename.replaceAll('\\','/'), match=/(?:^|\/)src\/shards\/([^/]+)\/(.+)$/u.exec(path);
+  const path=resolve(filename).replaceAll('\\','/'), match=/(?:^|\/)src\/shards\/([^/]+)\/(.+)$/u.exec(path);
   if(match===null || !(/^(?:generators|data|quests)\//u.test(match[2]) || match[2]==='shard.config.ts')) return null;
   if(typeof source!=='string')return null;
   // Test runners and Node fixture tools never become producer imports.
