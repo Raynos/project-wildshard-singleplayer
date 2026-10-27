@@ -1,3 +1,4 @@
+import { nalatiNavigationSource, NALATI_NAVIGATION_INPUT, NALATI_NAVIGATION_URL } from './navigation.ts';
 import { nalatiGeographyRows } from './geographySource.ts';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { postChainRows } from './postChain.ts';
@@ -55,6 +56,8 @@ writer.put(resolve(root, 'src/shards/nalati-grasslands/bootMetadata.generated.js
 const { captureProbes, extraArt, ...fixed } = discovery;
 const terrain = readNativeTerrain(readFileSync(resolve(root, 'public/assets/baked/nalati-grasslands/terrain.bin')));
 const geography = nalatiGeographyRows();
+const { assets: _navigationAssets, ...navigationRows } = nalatiNavigationSource(readFileSync(resolve(root, 'src/shards/nalati-grasslands', NALATI_NAVIGATION_INPUT)));
+const navigation = { navigation: navigationRows.navigation, url: NALATI_NAVIGATION_URL, files: navigationRows.files, critical: navigationRows.critical };
 const poses = Object.fromEntries(captureProbes.map(probe => [probe.name, {
   probe, eye: [probe.x, terrain.heightAt(probe.x, probe.z) + 1.68, probe.z],
   yaw: -probe.yaw * 180 / Math.PI, pitch: probe.pitch * 180 / Math.PI, mockup: '', frame: probe.name,
@@ -77,6 +80,7 @@ export const TERRAIN_ROWS = {
 } satisfies Pick<import('@wildshard/game/shard/manifest').ShardManifestRows,
   'seed'|'spawn'|'groundRows'|'groundColourSamples'|'surfaceSamples'|'forestMaskSamples'|'mapGroundSamples'|'minimap'|'navmesh'>;
 
+export const NAVIGATION: { navigation: NonNullable<import('@wildshard/sdk/shardfile').Shardfile['navigation']>; files: import('@wildshard/sdk/shardfile').Shardfile['files']; critical: string[]; url: string } = ${JSON.stringify(navigation)};
 export const BUDGETS = ROWS.budgets;
 export const BOOT_FILES = ROWS.boot.files, BOOT_SOURCES = ROWS.boot.sources, BOOT_LATE_READS = ROWS.boot.lateReads;
 export const BOOT_EXPLORE = ROWS.boot.explore;

@@ -500,8 +500,8 @@
       "export": "default"
     },
     "navigation": {
-      "module": "./data/navigation.generated.json",
-      "export": "default"
+      "module": "./boot/declaration.generated",
+      "export": "NAVIGATION"
     },
     "poses": {
       "module": "./boot/declaration.generated",

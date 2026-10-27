@@ -174,7 +174,15 @@
         "src/shards/nalati-grasslands/generators/terrainSeed.ts",
         "src/shards/nalati-grasslands/generators/wetRecipe.ts",
         "src/sdk/package.json",
-        "src/format/package.json"
+        "src/format/package.json",
+        "src/format/json.ts",
+        "src/format/navigation.ts",
+        "src/format/navigationBytes.ts",
+        "src/format/scalarChannel.ts",
+        "src/sdk/bake/navigationAsset.ts",
+        "src/shards/nalati-grasslands/data/navigationSource.json",
+        "src/shards/nalati-grasslands/generators/navigation.ts",
+        "src/shards/nalati-grasslands/assets/navigation-223ce1ab45d736c5fb526308cb86bc6d61bdeb482ac886a7d47306fd5a8c41b5"
       ],
       "outputs": [
         "src/shards/nalati-grasslands/bootMetadata.generated.json",
