@@ -92,7 +92,7 @@ test('CI enforces the complete closed-component guard after products and before 
   const workflow = readFileSync(new URL('../.github/workflows/deploy.yml', import.meta.url), 'utf8');
   const products = workflow.slice(workflow.indexOf('\n  products:\n'), workflow.indexOf('\n  behaviour:\n'));
   const build = products.indexOf('node scripts/build-shardfiles.mjs --reuse');
-  const guard = products.indexOf('run: node scripts/check-closed-components.mjs\n');
+  const guard = products.indexOf('run: python3 scripts/ci-fail-fast.py -- node scripts/check-closed-components.mjs\n');
   const publish = products.indexOf('python3 scripts/ci-products.py pack\n');
   expect(build).toBeGreaterThanOrEqual(0);
   expect(guard).toBeGreaterThan(build);
