@@ -62,6 +62,8 @@ export function paintedGroundPainter(slug: string, input: unknown, tiles: unknow
       famTBakeContact: bake.tBakeContact, famTContactXf: bake.uContactXf });
     const shapes = new Map<string, BufferGeometry>();
     for (const id of rows.shapes) {
+      // N1: a tiled ground never decodes its one whole mesh (the tiles draw in its place); the recipe gets an empty stand-in
+      if (rows.tiles === true && id === rows.mesh) { shapes.set(id, new BufferGeometry()); continue; }
       const file = `world/terrain/${id}.glb`, owned = createOwnedGeometry(file);
       await owned.load(await product.file(file));
       const geometry = owned.take(); geometry.computeBoundingSphere(); shapes.set(id, geometry);
@@ -72,6 +74,7 @@ export function paintedGroundPainter(slug: string, input: unknown, tiles: unknow
     if (!isGroundMesh(ground) || !rows.shapes.every(id => isGroundMesh(scene.parts.get(id)))) throw new Error('Missing named ground mesh');
     terrain.material = material; terrain.mesh = ground;
     const groundTiles = rows.tiles === true ? (product.shardfile.props?.tiles ?? []).filter(row => row.lod === 0) : [];
+    if (rows.tiles === true && groundTiles.length === 0) throw new Error('A tiled painted ground needs its L0 tiles (its whole mesh is never loaded)');
     if (groundTiles.length > 0) {
       // tile streaming N1a: the tiles draw as one merged mesh (the terrain's mesh, its flags kept) and only the player's
       // 5 x 5 of them stays loaded, followed from the merged mesh's own draws; N1b: the 16 L1 squares (named pair GLBs,
