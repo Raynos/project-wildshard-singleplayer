@@ -85,7 +85,6 @@
     "src/shards/driftwood-isle/generators/ropeDeckSite.ts": 1,
     "src/shards/driftwood-isle/generators/siteCatalogue.ts": 8,
     "src/shards/driftwood-isle/generators/staticWorld.ts": 3,
-    "src/shards/driftwood-isle/generators/trailsideModels.ts": 1,
     "src/shards/driftwood-isle/generators/worldAssembly.ts": 1,
     "src/shards/driftwood-isle/generators/worldConstruction.ts": 1,
     "src/shards/driftwood-isle/generators/worldEntry.ts": 1,

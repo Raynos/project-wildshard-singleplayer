@@ -1,6 +1,6 @@
 import { fencePost as fencePostDefinition, signpost as signpostDefinition, plankStep as plankStepDefinition } from './catalogue';
 import * as THREE from 'three';
-import TRAIL_FONT from '../data/trailFont.generated.json' with { type: 'json' };
+import { trailFontFacts } from './trailFont';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Rng } from '@wildshard/engine/core/rng';
 import { defineModel, type ModelContext, type ModelPart, type ModelDef as ModelDefType } from '@wildshard/engine/models/model';
@@ -69,7 +69,7 @@ export interface SignpostParams {
 }
 
 /** Build-time font runs; unsupported characters remain blank cells. */
-const FONT: Readonly<Record<string, readonly { start: number; end: number; row: number }[]>> = TRAIL_FONT;
+const FONT: Readonly<Record<string, readonly { start: number; end: number; row: number }[]>> = trailFontFacts();
 /** one font cell, metres: letters 0.18 m tall on a 0.3 m board (readable from ~10 m on a phone) */
 const CELL = 0.026;
 const textWidth = (text: string): number => Math.max(0, text.length * 6 - 1) * CELL;

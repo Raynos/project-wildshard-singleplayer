@@ -1813,33 +1813,6 @@
       "platform": "portable"
     },
     {
-      "id": "driftwood-trail-font",
-      "shard": "driftwood-isle",
-      "entry": "src/shards/driftwood-isle/generators/trailFont.ts",
-      "command": [
-        "--experimental-transform-types",
-        "src/sdk/bake/json.mjs",
-        "src/shards/driftwood-isle/generators/trailFont.ts",
-        "trailFontFacts",
-        "src/shards/driftwood-isle/data/trailFont.generated.json"
-      ],
-      "inputRoots": [
-        "src/shards/driftwood-isle/generators/trailFont.ts",
-        "src/sdk/bake/json.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
-      ],
-      "outputs": [
-        "src/shards/driftwood-isle/data/trailFont.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/driftwood-isle/data/trailFont.generated.json"
-      ],
-      "seedOutputs": [],
-      "platform": "native"
-    },
-    {
       "id": "driftwood-npc-scenes",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/npcScenes.ts",
