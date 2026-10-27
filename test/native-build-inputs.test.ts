@@ -6,7 +6,8 @@ import { expect, test } from 'vitest';
 import { nativeBuildNeeded } from '../scripts/native-build-inputs.mjs';
 
 test('native entry, HTML transform and toolchain changes retain the native bundle check', () => {
-  for (const path of ['index.html', 'vite.config.ts', 'vite/rapier.ts', 'src/native.ts',
+  for (const path of ['index.html', 'native.html', 'native-unavailable.html', 'scripts/native-page.mjs', 'scripts/build-app.mjs',
+    'scripts/app-build/versionFiles.ts', 'vite.config.ts', 'vite/rapier.ts', 'src/native.ts',
     'src/engine/native/ota.ts', 'src/pageServices.ts', 'src/main.ts', 'src/identity.ts',
     'capacitor.config.ts', 'package.json', 'pnpm-lock.yaml', 'tsconfig.engine.json',
     '.github/workflows/deploy.yml', 'scripts/native-build-inputs.mjs']) {

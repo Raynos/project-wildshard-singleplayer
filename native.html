@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- no viewport-fit=cover (E58): an iOS home-screen app drawn under the status bar had WebKit shrink the viewport ~62 px after
+         load and leave a black strip at the bottom; below the status bar the page runs to the bottom edge (src/engine/core/viewport.ts) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Project Wildshard — Chunk Playtest</title>
+    <meta name="apple-mobile-web-app-title" content="Wildshard" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#34424f" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <!-- iPhone 16/17 Pro: iOS paints this before a standalone document exists.
+         Rendered from this same shell by scripts/generate-title-launch.mjs. -->
+    <link rel="apple-touch-startup-image" href="/assets/title/launch-1206x2622-880e3aa07fa7.png" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <script>
+      // Plain launch: the shard selector is the first screen, with no world or loading panel underneath it.
+      const homeParams = new URLSearchParams(location.search);
+      if (homeParams.size === 0 || (homeParams.size === 1 && homeParams.has('v'))) document.documentElement.classList.add('title-first');
+      if (document.documentElement.classList.contains('title-first')) {
+        const hero = document.createElement('link');
+        hero.rel = 'preload'; hero.as = 'image'; hero.fetchPriority = 'high';
+        hero.href = '/assets/title/main-crossroads-' + (matchMedia('(orientation: portrait)').matches ? 'square' : 'landscape') + '.jpg';
+        document.head.appendChild(hero);
+      }
+    </script>
+    <!-- fonts: self-hosted woff2 subsets (public/fonts, cache-first in the service worker), the @font-face rules
+         Google's css2 API served for Rajdhani 400-700 + JetBrains Mono 400/500 minus Devanagari. No third-party
+         origin on the critical path; the two faces the loading panel paints first are preloaded. -->
+    <link rel="preload" href="/fonts/rajdhani-700-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <style>
+      html, body { margin: 0; width: 100%; height: 100%; background: #0b1622; }
+      html.title-first #game, html.title-first .ws-load { display: none; }
+      .ws-launch { display: none; }
+      html.title-first .ws-launch { position: fixed; inset: 0; z-index: 90; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; background: #0b1622; color: #eaf8ff; font-family: Rajdhani, system-ui, sans-serif; }
+      .ws-launch-hero { position: absolute; inset: 0; background: url('/assets/title/main-crossroads-landscape.jpg') center / cover no-repeat; }
+      .ws-launch-brand { position: relative; margin: calc(24px + env(safe-area-inset-top, 0px)) 24px 0; font-size: 44px; font-weight: 700; line-height: 1; letter-spacing: .16em; text-shadow: 0 0 18px #8fe3ff73; }
+      .ws-launch-progress { position: relative; height: 44px; margin: auto 24px calc(44px + env(safe-area-inset-bottom, 0px)); border-bottom: 2px solid #8fe3ff66; }
+      .ws-launch-boat { position: absolute; bottom: 2px; width: 40px; height: 40px; color: #8fe3ff; animation: ws-launch-sail 2.4s ease-in-out infinite alternate; }
+      @keyframes ws-launch-sail { from { transform: translateX(0); } to { transform: translateX(calc(100vw - 88px)); } }
+      @media (orientation: portrait) { .ws-launch-hero { top: 50%; bottom: auto; width: 100%; aspect-ratio: 1; transform: translateY(-50%); background-image: url('/assets/title/main-crossroads-square.jpg'); } }
+      @media (prefers-reduced-motion: reduce) { .ws-launch-boat { animation: none; left: calc(50% - 20px); } }
+      @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/jetbrains-mono-cyrillic-ext.woff2) format('woff2');unicode-range:U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F}
+      @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/jetbrains-mono-cyrillic.woff2) format('woff2');unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116}
+      @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/jetbrains-mono-greek.woff2) format('woff2');unicode-range:U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF}
+      @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/jetbrains-mono-vietnamese.woff2) format('woff2');unicode-range:U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB}
+      @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/jetbrains-mono-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+      @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/jetbrains-mono-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+      @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:500;font-display:swap;src:url(/fonts/jetbrains-mono-cyrillic-ext.woff2) format('woff2');unicode-range:U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F}
+      @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:500;font-display:swap;src:url(/fonts/jetbrains-mono-cyrillic.woff2) format('woff2');unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116}
+      @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:500;font-display:swap;src:url(/fonts/jetbrains-mono-greek.woff2) format('woff2');unicode-range:U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF}
+      @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:500;font-display:swap;src:url(/fonts/jetbrains-mono-vietnamese.woff2) format('woff2');unicode-range:U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB}
+      @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:500;font-display:swap;src:url(/fonts/jetbrains-mono-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+      @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:500;font-display:swap;src:url(/fonts/jetbrains-mono-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+      @font-face{font-family:'Rajdhani';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/rajdhani-400-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+      @font-face{font-family:'Rajdhani';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/rajdhani-400-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+      @font-face{font-family:'Rajdhani';font-style:normal;font-weight:500;font-display:swap;src:url(/fonts/rajdhani-500-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+      @font-face{font-family:'Rajdhani';font-style:normal;font-weight:500;font-display:swap;src:url(/fonts/rajdhani-500-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+      @font-face{font-family:'Rajdhani';font-style:normal;font-weight:600;font-display:swap;src:url(/fonts/rajdhani-600-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+      @font-face{font-family:'Rajdhani';font-style:normal;font-weight:600;font-display:swap;src:url(/fonts/rajdhani-600-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+      @font-face{font-family:'Rajdhani';font-style:normal;font-weight:700;font-display:swap;src:url(/fonts/rajdhani-700-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+      @font-face{font-family:'Rajdhani';font-style:normal;font-weight:700;font-display:swap;src:url(/fonts/rajdhani-700-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+    </style>
+    <!-- UI styles: base first (tokens + shared primitives), then one sheet per screen with its own class prefix (scripts/check-css.mjs) -->
+    <link rel="stylesheet" href="/src/engine/ui/styles/base.css" />
+    <link rel="stylesheet" href="/src/engine/ui/loading.css" />
+    <link rel="stylesheet" href="/src/engine/ui/styles/game.css" />
+    <link rel="stylesheet" href="/src/engine/ui/styles/menu.css" />
+    <link rel="stylesheet" href="/src/engine/ui/styles/gmenu.css" />
+    <link rel="stylesheet" href="/src/engine/ui/styles/touch.css" />
+    <link rel="stylesheet" href="/src/engine/ui/styles/update.css" />
+    <link rel="stylesheet" href="/src/engine/ui/styles/feedback.css" />
+    <link rel="stylesheet" href="/src/engine/ui/styles/minimap.css" />
+    <link rel="stylesheet" href="/src/engine/ui/styles/rotate.css" />
+    <link rel="stylesheet" href="/src/engine/ui/styles/resume.css" />
+  </head>
+  <body>
+    <script>
+      // iOS Safari: no rubber-band scroll of the fixed page, no pinch zoom — the game owns every gesture.
+      document.addEventListener('touchmove', (e) => { if (!e.target.closest('[data-scroll]')) e.preventDefault(); }, { passive: false });
+      document.addEventListener('gesturestart', (e) => e.preventDefault());
+      // home-screen PWA vs Safari tab: the page runs under the status bar only in standalone mode (CSS --ws-top handles the offset)
+      if (navigator.standalone || matchMedia('(display-mode: standalone)').matches) document.documentElement.classList.add('standalone');
+      // The loader uses a small, already-approved portrait of the selected shard from its first paint.
+      // Whitelist the filename: ?chunk is a shard selector, never an arbitrary asset path.
+      const loadShard = homeParams.get('chunk') || 'driftwood-isle';
+      if (['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-stack'].includes(loadShard)) {
+        document.documentElement.style.setProperty('--ws-load-portrait', 'url("/assets/title/' + loadShard + '-portrait.jpg")');
+      }
+      // developer mode (E140, src/engine/core/devMode.ts reads the same key): the loading screen's details, the frame meter, the
+      // build id show only under <html data-dev> — set here, before the first paint of the loading panel. No URL switch (E162)
+      try { if (JSON.parse(localStorage.getItem('wildshard.save.v2.device') || '{}').keys?.devMode?.data === true) document.documentElement.setAttribute('data-dev', ''); } catch { /* storage blocked: player mode */ }
+    </script>
+    <!-- Plain launches paint this approved title art without waiting for a bundle.
+         StartTitle removes it only after the real title has mounted. -->
+    <div class="ws-launch" data-title-shell>
+      <div class="ws-launch-hero" aria-hidden="true"></div>
+      <div class="ws-launch-brand">WILDSHARD</div>
+      <div class="ws-launch-progress" role="progressbar" aria-label="Loading title">
+        <svg class="ws-launch-boat" viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M24 4v29M20 9 6 29h14V9Zm8 4v16h13L28 13ZM5 35h38l-7 8H13l-8-8Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+    <canvas id="game"></canvas>
+    <div id="hud"></div>
+    <!-- the loading panel from the first HTML bytes (src/engine/boot/shell.ts — test/shell.test.ts keeps the two identical); src/engine/ui/Loading.ts adopts it -->
+    <div class="ws-load" data-shell><div class="ws-load-head">
+<div class="ws-wordmark">Project <b>Wildshard</b></div>
+<div class="ws-load-tagline">A world that does not exist yet, arriving one chunk at a time.</div>
+</div>
+<div class="ws-load-body">
+<div class="ws-glass ws-load-panel">
+<div class="ws-load-title"><span class="ws-load-kicker">Loading chunk ·</span><b data-el="slug"></b><span class="ws-load-clock" data-el="clock">00:00.0</span></div>
+<div class="ws-load-simple"><div class="ws-load-bar"><div class="ws-load-fill" data-el="bar"></div></div><div class="ws-load-line" data-el="line">Loading</div></div>
+<div class="ws-load-meta ws-load-meta-1">
+<div><span>tier</span><span data-el="tier"></span></div>
+</div>
+<div class="ws-load-track">
+<div class="ws-load-track-row"><span class="ws-load-track-name">download</span><span class="ws-load-track-fact" data-el="dlFact">—</span><span class="ws-load-track-pct" data-el="dlPct">0</span></div>
+<div class="ws-load-bar"><div class="ws-load-fill" data-el="dlBar"></div></div>
+<div class="ws-load-track-row ws-load-grid" data-el="pfRow" hidden><span class="ws-load-track-name">grid</span><span class="ws-load-track-fact" data-el="pfFact">—</span><span class="ws-load-track-pct" data-el="pfPct">0</span></div>
+</div>
+<div class="ws-load-track">
+<div class="ws-load-track-row"><span class="ws-load-track-name">setup</span><span class="ws-load-track-fact" data-el="suFact">—</span><span class="ws-load-track-pct" data-el="suPct">0</span></div>
+<div class="ws-load-bar"><div class="ws-load-fill" data-el="suBar"></div></div>
+</div>
+<div class="ws-load-log" data-el="rows"></div>
+<div class="ws-load-diagnostics" data-el="diagnostics">Memory: checking · CPU: checking</div>
+</div>
+</div>
+<div class="ws-load-foot"><span data-el="foot"></span></div></div>
+    <script data-loading-first-paint>
+      // This clock and the existing fields work before any application module has downloaded.
+      // Loading adopts the same DOM and time origin; title arrival is read here, never consumed.
+      (() => {
+        if (document.documentElement.classList.contains('title-first')) return;
+        const root = document.querySelector('.ws-load[data-shell]');
+        if (!root) return;
+        const initialSetup = root.querySelector('[data-el="suPct"]')?.textContent;
+        const started = performance.now();
+        root.dataset.startedAt = String(started);
+        if (/^(?:100|\d{1,2})$/.test(initialSetup ?? '')) root.dataset.initialSetup = initialSetup;
+        root.dataset.step = 'admission.modules';
+        const field = (key, text) => { const el = root.querySelector('[data-el="' + key + '"]'); if (el && el.textContent !== text) el.textContent = text; };
+        const slug = new URLSearchParams(location.search).get('chunk') || 'driftwood-isle';
+        let name = slug.replace(/[_-]+/g, ' ').trim() || 'Selected shard';
+        let tier = /iPhone|iPad|Android|Mobile/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'phone' : 'desktop';
+        try {
+          const session = JSON.parse(sessionStorage.getItem('wildshard.save.v2.session') || '{}').keys?.titleArrival?.data;
+          const backup = JSON.parse(localStorage.getItem('wildshard.save.v2.device') || '{}').keys?.['titleArrival.once']?.data;
+          for (const raw of [session, backup]) {
+            const arrival = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            if (!arrival || typeof arrival !== 'object') continue;
+            if (arrival.slug === slug && typeof arrival.name === 'string' && arrival.name.length <= 256 && Date.now() - arrival.at >= 0 && Date.now() - arrival.at <= 60000) { name = arrival.name; break; }
+          }
+          const picked = JSON.parse(localStorage.getItem('wildshard.save.v2.global') || '{}').keys?.settings?.data?.tier;
+          if (picked === 'phone' || picked === 'desktop') tier = picked;
+        } catch { /* denied storage: device tier and destination slug remain available */ }
+        field('slug', name);
+        field('tier', tier + ' · selecting quality');
+        field('line', 'Loading application modules');
+        field('suFact', 'Loading application modules');
+        // H7 (js-heap): each module entry counted once as it arrives, not every entry rescanned every frame
+        let bytes = 0;
+        const add = (entries) => {
+          for (const item of entries) if (item.initiatorType === 'script' || item.initiatorType === 'link') bytes += item.encodedBodySize || item.transferSize || 0;
+        };
+        let observer = null;
+        try { observer = new PerformanceObserver((list) => add(list.getEntries())); observer.observe({ type: 'resource', buffered: true }); }
+        catch { add(performance.getEntriesByType('resource')); }
+        const resources = () => {
+          root.dataset.moduleBytes = String(bytes);
+          field('dlFact', bytes > 0 ? (bytes / 1048576).toFixed(2) + ' MB modules read · total pending' : 'Waiting for application modules');
+        };
+        // the loop ends when Loading adopts the panel, or when the page turns out to be the title (a URL with harness
+        // parameters is not title-first while this script runs, so the loop otherwise ran on under the menu forever)
+        const tick = () => {
+          if (!root.isConnected || !root.hasAttribute('data-shell') || document.documentElement.classList.contains('title-first')) { observer?.disconnect(); return; }
+          const seconds = (performance.now() - started) / 1000;
+          field('clock', String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + (seconds % 60).toFixed(1).padStart(4, '0'));
+          resources();
+          requestAnimationFrame(tick);
+        };
+        tick();
+      })();
+    </script>
+    <!-- app-switch resume screen (E61, src/engine/ui/Resume.ts; test/resume.test.ts keeps the two identical): a GPU-recovery reload
+         (?glreload, src/engine/core/GpuRecovery.ts) shows this tiny screen from the first paint, over the last frame's still, and
+         never the first-boot loader above -->
+    <div class="ws-resume" aria-hidden="true"><div class="ws-resume-shot"></div><div class="ws-resume-hero"></div><div class="ws-resume-word">Project <b>Wildshard</b></div><div class="ws-resume-card"><div class="ws-resume-line">Resuming</div><div class="ws-resume-bar"><i></i></div><div class="ws-resume-level"></div><button type="button" class="ws-resume-btn">Reload</button></div></div>
+    <script>
+      try {
+        if (new URLSearchParams(location.search).has('glreload')) {
+          const r = document.querySelector('.ws-resume'), shot = JSON.parse(sessionStorage.getItem('wildshard.save.v2.session') || '{}').keys?.['resume.shot']?.data;
+          if (shot) r.firstElementChild.style.backgroundImage = 'url("' + shot + '")';
+          // the shard's name + title art (E99), before any bundle runs
+          const brand = JSON.parse(sessionStorage.getItem('wildshard.save.v2.session') || '{}').keys?.['resume.brand']?.data || {};
+          if (brand.name) r.querySelector('.ws-resume-level').textContent = brand.name;
+          if (brand.hero) r.querySelector('.ws-resume-hero').style.backgroundImage = 'url("' + brand.hero + '")';
+          r.querySelector('.ws-resume-bar').classList.add('busy');
+          r.classList.add('show');
+          document.querySelector('.ws-load').style.display = 'none';
+        }
+      } catch { /* the first-boot loader shows instead */ }
+    </script>
+    <!-- rotate gate (E38): portrait only on phones — a touch device held landscape sees only this (rotate.css, src/engine/ui/RotateGate.ts) -->
+    <div class="ws-rotate" role="alertdialog" aria-modal="true" aria-label="Rotate to portrait"><div class="ws-rotate-panel">
+<div class="ws-rotate-glyph"><svg viewBox="0 0 92 92" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" aria-hidden="true">
+<path d="M12.5 40 A34 34 0 0 1 40 12.5" opacity="0.55" /><path d="M35 7.5 L40 12.5 L35 17.5" opacity="0.55" />
+<g class="ws-rotate-phone"><rect x="33" y="22" width="26" height="48" rx="4" /><path d="M42 26.5 H50" /><path d="M41 65.5 H51" opacity="0.6" /></g>
+</svg></div>
+<div class="ws-rotate-text">
+<div class="ws-rotate-kicker">Portrait only</div>
+<div class="ws-rotate-title">Rotate to <b>portrait</b></div>
+<div class="ws-rotate-sub">Wildshard is played upright · turn your phone to continue</div>
+</div>
+</div></div>
+    <script type="module" src="/src/identity.ts"></script>
+    <script type="module" src="/src/engine/ui/RotateGate.ts"></script>
+    <script type="module" src="/src/native.ts"></script>
+  </body>
+</html>

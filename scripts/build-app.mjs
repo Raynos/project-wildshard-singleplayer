@@ -4,7 +4,7 @@
 //
 //   node scripts/build-app.mjs [vite build arguments…]       e.g. --mode native, --config <file>, --outDir <dir>
 import { spawnSync } from 'node:child_process';
-import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { bakeAssetTables, writeAssetTables } from './app-build/assetTables.mjs';
 import { writeChunkReport } from './app-build/chunkReport.mjs';
@@ -55,6 +55,13 @@ const build = spawnSync(process.execPath, [vite, 'build', ...args], { stdio: 'in
 if (build.error !== undefined) throw build.error;
 if (build.status !== 0) { process.exitCode = build.status ?? 1; process.exit(); }
 
+// the native page as dist-native's index.html, the WebView error page beside it, and no trailers (was vite.config.ts's
+// native plugin; capacitor.config.ts names the error page)
+if (mode === 'native') {
+  renameSync(resolve(outDir, 'native.html'), resolve(outDir, 'index.html'));
+  copyFileSync('native-unavailable.html', resolve(outDir, 'native-unavailable.html'));
+  for (const trailer of ['trailer-15.mp4', 'trailer-30.mp4']) rmSync(resolve(outDir, trailer), { force: true });
+}
 // version.json (the build id the documents are stamped with), asset-index.json and asset-manifest.json
 step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', "(await import('./scripts/app-build/versionFiles.ts')).writeVersionFiles(process.argv[1]);", outDir]);
 // the seams', boot tables' and world map's exact bytes as their hashed assets, beside the bundle that names them

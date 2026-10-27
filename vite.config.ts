@@ -1,7 +1,7 @@
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig } from 'vite';
 import { assetTableAddresses, readAssetTables } from './scripts/app-build/assetTables.mjs';
 import { readGridSeams } from './scripts/app-build/gridSeams.mjs';
-import { rmSync, readdirSync, existsSync, readFileSync } from 'node:fs';
+import { readdirSync, existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { shardfileValidationRevision } from './scripts/shardfile-validation-revision.mjs';
 import { join } from 'node:path';
@@ -16,38 +16,6 @@ function worldMapDefine(): unknown {
   catch { throw new Error('Missing out/.app/world-map.json: build the app through scripts/build-app.mjs, which bakes the world map first'); }
   return (JSON.parse(rows) as { define: unknown }).define;
 }
-// `vite build --mode native` (docs/plans/NATIVE-APPS.md): the web bundle the iOS / Android shells embed, in
-// dist-native/ (capacitor.config.ts `webDir`). Same game; the page swaps the web-only boot for src/native.ts:
-// no service worker (WKWebView has none on capacitor://, and the bundle is already on disk), no update pill
-// (native updates are the signed OTA channel), no Google Fonts (bundled — the app must boot offline), no trailers.
-const WEB_ONLY_HTML = [
-  /\s*<link rel="manifest"[^>]*>/,
-  /\s*<script type="module" src="\/src\/engine\/boot\/sw\.ts"><\/script>/,
-  /\s*<script type="module" src="\/src\/engine\/ui\/Update\.ts"><\/script>/,
-];
-// Capacitor's `server.errorPath`: shown when the WebView cannot load the game at all (an outdated Android System
-// WebView is the usual cause). No script, no fonts, no network.
-const NATIVE_UNAVAILABLE = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Wildshard</title>
-<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#11161b;color:#e8e2d4;font:16px/1.5 -apple-system,system-ui,sans-serif;text-align:center;padding:24px;box-sizing:border-box}h1{font-size:22px;margin:0 0 8px}p{max-width:34em;margin:0 auto;color:#b9b3a6}</style></head>
-<body><div><h1>Wildshard can't start on this device</h1><p>The game needs WebGL 2 and an up-to-date system WebView. On Android, update <b>Android System WebView</b> and <b>Chrome</b> from Google Play, then reopen Wildshard. On iPhone, update to iOS 17 or later.</p></div></body></html>
-`;
-const nativePlugin = (): Plugin => ({
-  name: 'wildshard-native',
-  transformIndexHtml: { order: 'pre', handler(html) { // pre: on the source page, before Vite bundles its scripts
-    let out = html;
-    for (const re of WEB_ONLY_HTML) {
-      if (!re.test(out)) throw new Error(`[native] index.html no longer matches ${String(re)} — update WEB_ONLY_HTML in vite.config.ts`);
-      out = out.replace(re, '');
-    }
-    // any Google Fonts link (the native entry bundles the faces itself; optional, the web page may self-host them)
-    out = out.replaceAll(/\s*<link[^>]*fonts\.(?:googleapis|gstatic)\.com[^>]*>/g, '');
-    const main = '<script type="module" src="/src/entry.ts"></script>'; // the web entry (it imports src/main.ts)
-    if (!out.includes(main)) throw new Error('[native] index.html has no src/entry.ts script to swap for src/native.ts');
-    return out.replace(main, '<script type="module" src="/src/native.ts"></script>');
-  } },
-  generateBundle() { this.emitFile({ type: 'asset', fileName: 'native-unavailable.html', source: NATIVE_UNAVAILABLE }); },
-  closeBundle() { for (const f of ['trailer-15.mp4', 'trailer-30.mp4']) rmSync(join('dist-native', f), { force: true }); },
-});
 
 export function buildValidationReceipts(revision: string, directory = 'out'): unknown[] {
   if (!existsSync(directory)) return [];
@@ -74,7 +42,9 @@ export default defineConfig(({ mode, command }) => {
     // js-payload D2 (Jake): on-phone stacks show Rolldown's mangled names; hidden source maps resolve them on desktop
     // native: no source maps at all — they would ship inside the app and in every OTA bundle
     build: native
-      ? { target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: false, outDir: 'dist-native' }
+      // native.html: the web page with the web-only boot swapped for src/native.ts (scripts/native-page.mjs); build-app names it
+      // index.html in dist-native/ (capacitor.config.ts `webDir`)
+      ? { target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: false, outDir: 'dist-native', rolldownOptions: { input: { index: join(process.cwd(), 'native.html') } } }
       // one stylesheet: src/entry.ts splits three.js from the game's graph, and code-split CSS would add a request
       : {
         target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: 'hidden' as const, cssCodeSplit: false, manifest: true,
@@ -85,6 +55,5 @@ export default defineConfig(({ mode, command }) => {
     assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
     resolve: { alias: rapierAlias }, // Rapier's wasm-importing module → plain bindings (vite/rapier.ts)
     define: { __GRID_SEAM_ASSET__: JSON.stringify(readGridSeams(process.cwd()).address), __BOOT_TABLE_ASSETS__: JSON.stringify(assetTableAddresses(readAssetTables(process.cwd()))), __GRID_MAP_ATLAS__: JSON.stringify(worldMapDefine()), __SHARDFILE_VALIDATOR__: JSON.stringify(validationRevision), __SHARDFILE_VERDICTS__: JSON.stringify(buildValidationReceipts(validationRevision)), __DEVSERVER__: mode === 'devserver', __BUILD_ID__: BUILD_ID_EXPRESSION, __SAVE_NAMESPACES__: JSON.stringify(readdirSync('src/shards').filter((slug) => existsSync(join('src/shards', slug, 'manifest.ts')))) },
-    plugins: native ? [nativePlugin()] : [],
   };
 });

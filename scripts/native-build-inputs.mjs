@@ -5,8 +5,8 @@ import { pathToFileURL } from 'node:url';
  * native bundle for its entry, native-only graph, HTML transform or toolchain.
  * @param {readonly string[]} paths */
 export function nativeBuildNeeded(paths) {
-  return paths.some(path => /^(?:index\.html|vite\.config\.ts|capacitor\.config\.ts|package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|\.npmrc|tsconfig[^/]*\.json|\.github\/workflows\/deploy\.yml)$/u.test(path)
-    || /^(?:vite\/|src\/native|src\/engine\/native\/|scripts\/native)/u.test(path)
+  return paths.some(path => /^(?:index\.html|native\.html|native-unavailable\.html|vite\.config\.ts|capacitor\.config\.ts|package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|\.npmrc|tsconfig[^/]*\.json|\.github\/workflows\/deploy\.yml)$/u.test(path)
+    || /^(?:vite\/|src\/native|src\/engine\/native\/|scripts\/native|scripts\/build-app\.mjs|scripts\/app-build\/)/u.test(path)
     || ['src/identity.ts', 'src/main.ts', 'src/pageServices.ts'].includes(path));
 }
 
