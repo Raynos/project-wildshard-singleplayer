@@ -1,11 +1,11 @@
 import type { PrivateScene, WorldSceneRecipe } from '@wildshard/format/clientChannels';
-import { fixedWorld } from './fixedWorld';
+import { fixedWorld, skyFixedWorldValues, type SkyFixedWorldValues } from './fixedWorld';
 import type { SkyPlacements } from './placements';
 import { WORLD_PLACEMENT_INPUTS, skyWorldPlacementValues } from './worldPlacementBytes';
 
 type Placed = SkyPlacements['standalone'];
 /** Decorative model matrices and hierarchy are author data; live look materials remain owned ports. */
-function recipe(placed: Placed, keels: SkyPlacements['keels'], standalone: boolean): { readonly recipe: WorldSceneRecipe; readonly models: readonly string[]; readonly bindings: readonly { readonly piece: string; readonly part: string; readonly baked?: string }[]; readonly fixed: ReturnType<typeof fixedWorld> } {
+function recipe(placed: Placed, keels: SkyPlacements['keels'], standalone: boolean, values: SkyFixedWorldValues): { readonly recipe: WorldSceneRecipe; readonly models: readonly string[]; readonly bindings: readonly { readonly piece: string; readonly part: string; readonly baked?: string }[]; readonly fixed: ReturnType<typeof fixedWorld> } {
   const nodes: PrivateScene['nodes'] = [
     { kind: 'group', id: 'decorations', children: ['sky-isles', 'trees', 'dressing', 'falls'] },
     { kind: 'group', id: 'sky-isles', name: 'far.sky-isles', children: ['isles', 'keels'] },
@@ -32,7 +32,7 @@ function recipe(placed: Placed, keels: SkyPlacements['keels'], standalone: boole
       group.children.push(id); materials.push({ kind: 'port', id: material, source: material });
     }
   }
-  const fixed = fixedWorld(standalone);
+  const fixed = fixedWorld(standalone, values);
   for (const model of fixed.models) models.add(model);
   return { fixed, recipe: { scene: { version: 1, root: 'decorations', nodes, materials, textures: [] },
     imports: [{ id: 'dressing-source', kind: 'baked', piece: 'dressing' }] }, models: [...models], bindings: [
@@ -41,8 +41,8 @@ function recipe(placed: Placed, keels: SkyPlacements['keels'], standalone: boole
     ] };
 }
 /** Standalone and regional scenes share the same prepared model frames and original matrix rows. */
-export function skyStaticScenes(placements: SkyPlacements): { readonly half: number; readonly standalone: ReturnType<typeof recipe>; readonly cell: ReturnType<typeof recipe> } {
-  return { half: placements.half, standalone: recipe(placements.standalone, placements.keels, true), cell: recipe(placements.cell, placements.keels, false) };
+export function skyStaticScenes(placements: SkyPlacements, values: SkyFixedWorldValues = skyFixedWorldValues()): { readonly half: number; readonly standalone: ReturnType<typeof recipe>; readonly cell: ReturnType<typeof recipe> } {
+  return { half: placements.half, standalone: recipe(placements.standalone, placements.keels, true, values), cell: recipe(placements.cell, placements.keels, false, values) };
 }
 
 /** Retained driver intake: declared native models replace the generated placement dependency. */
