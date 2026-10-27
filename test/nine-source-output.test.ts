@@ -68,9 +68,9 @@ test('cold source output retains every admitted file byte and contract', async (
   const actualKeys = new Set([...prepared.assets.keys(), ...prepared.blobs.map(row => row.file.hash)]);
   expect([...actualKeys].sort()).toEqual([...new Set([...originalAssets, ...worldFiles.map(row => row.hash)])].sort());
   // The complete oracle includes binary portal and presentation channels.
-  // All other prepared files retain their original bytes. The 397
+  // All other prepared files retain their pinned bytes. The 409
   // world files move from the project reader into owned output and are
-  // independently pinned byte-for-byte by nine-world-program's 399 rows.
+  // independently pinned byte-for-byte by nine-world-program's 411 rows.
   for (const row of worldFiles) {
     const owned = prepared.assets.get(row.hash); if (owned === undefined) throw new Error(`Missing owned world ${row.hash}`);
     expect(owned.byteLength).toBe(row.bytes); expect(hashImmutableBytes(owned)).toBe(row.hash);
