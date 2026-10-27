@@ -52,6 +52,10 @@ test.each([256, 257])('shipped typed triangles match native construction word fo
   expect(() => decodeCompiledGridStrips(header, bad, source, 'probe')).toThrow('geometry');
   const malformed = page.body.bytes.slice(); new DataView(malformed.buffer).setFloat64(Math.ceil(admitted.rows.bytes / 8) * 8 + 32, Number.NaN, true);
   expect(() => decodeCompiledGridStrips(header, malformed, source, 'probe')).toThrow('feature');
+  for (const bits of [0x7f800000, 0xff800000, 0x7fc00000, 0x7f800001]) {
+    const nonfinite = page.body.bytes.slice(); new DataView(nonfinite.buffer).setUint32(0, bits, true);
+    expect(() => decodeCompiledGridStrips(header, nonfinite, source, 'probe')).toThrow('geometry');
+  }
 });
 
 test('baked source identity ignores property order but distinguishes changed values and signed zero', async () => {

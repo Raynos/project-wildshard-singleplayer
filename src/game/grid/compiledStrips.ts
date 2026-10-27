@@ -62,6 +62,14 @@ export async function platformGeometrySource(cells: readonly PlatformCell[], emp
 /** The runtime admits the small header before decoding the existing typed pack. */
 export function parseCompiledGridHeader(input: unknown): CompiledGridHeader { return v.parse(headerSchema, input); }
 
+// The codec returns real Float32 arrays. IEEE-754's all-one exponent is
+// exactly NaN or infinity; scan the same words without a callback per scalar.
+function finiteWords(values: Float32Array): boolean {
+  const words = new Uint32Array(values.buffer, values.byteOffset, values.length);
+  for (let index = 0; index < words.length; index++) if (((words[index] ?? 0) & 0x7f800000) === 0x7f800000) return false;
+  return true;
+}
+
 function* stripSteps(input: unknown, bytes: Uint8Array, source: string, home: string): Generator<void, readonly GeneratedStrip[]> {
   const header = parseCompiledGridHeader(input);
   if (header.source !== source || header.home !== home || header.rows.geometries.length !== header.shapes.length) throw new Error('Grid strip source differs from this page');
@@ -76,7 +84,7 @@ function* stripSteps(input: unknown, bytes: Uint8Array, source: string, home: st
       || row.attrs[1]?.[0] !== 'color' || row.attrs[1][1] !== 3 || (row.groups?.length ?? 0) !== 0 || row.indexCount % 3 !== 0) throw new Error('Grid strip channels differ');
     const data = pack.read(index), positions = data.attributes[0]?.array, colours = data.attributes[1]?.array, indices = data.index;
     if (positions === undefined || colours === undefined || positions.length !== colours.length || !(indices instanceof Uint32Array)
-      || !positions.every(Number.isFinite) || !colours.every(Number.isFinite) || indices.some(vertex => vertex >= row.unique)) throw new Error('Invalid grid strip geometry');
+      || !finiteWords(positions) || !finiteWords(colours) || indices.some(vertex => vertex >= row.unique)) throw new Error('Invalid grid strip geometry');
     const shape = header.shapes[index];
     if (shape === undefined || shape.features.offset !== featureOffset || (featureOffset + shape.features.count) * 72 > featureWords.byteLength) throw new Error('Grid strip feature range differs');
     const features: SeamFeature[] = [];
@@ -86,7 +94,7 @@ function* stripSteps(input: unknown, bytes: Uint8Array, source: string, home: st
       const kind = GRID_STRIP_FEATURE_KINDS[code], sourceSurface = header.surfaces[surface];
       if (!Number.isSafeInteger(code) || kind === undefined || !Number.isSafeInteger(firstIndex) || firstIndex < 0 || firstIndex % 3 !== 0
         || !Number.isSafeInteger(indexCount) || indexCount < 0 || indexCount % 3 !== 0 || firstIndex + indexCount > indices.length
-        || side !== -1 && side !== 0 && side !== 1 || ![from, to, bottom, top].every(Number.isFinite)
+        || side !== -1 && side !== 0 && side !== 1 || !Number.isFinite(from) || !Number.isFinite(to) || !Number.isFinite(bottom) || !Number.isFinite(top)
         || !Number.isSafeInteger(surface) || surface < -1 || surface !== -1 && sourceSurface === undefined) throw new Error('Grid strip feature range differs');
       features.push({ kind, firstIndex, indexCount, side, from, to, bottom, top, ...(sourceSurface === undefined ? {} : { sourceSurface }) });
     }
