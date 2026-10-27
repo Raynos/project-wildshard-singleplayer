@@ -1,5 +1,9 @@
 # Night Market open-plot pilot: mini plan (G616, G617, G621, G623, G626, G629)
 
+**State:** `parked` 2026-10-27 — NM0–NM11 are done. R1–R3 are parked by G774, not built: after Jake plays Night
+Market, wildshard-v writes a new plan with him for the other 18 plots, which replaces R1–R3 (and remaster-open-plots
+RP2–RP4). The plan stays open until then.
+
 > **Remaster (E503, draft for Jake):** [night-market-remaster](night-market-remaster-mini-plan.md): the Nine dome method (10 domes, rows RM0–RM14) after Jake's 10-24 "trash fire" playtest.
 
 Jake, 2026-10-23: *"we need to make a mini plan of how to build it"*. Read at HEAD 3af2694878. Mockups:
@@ -187,9 +191,9 @@ so `'add'` is deleted at rollout.
 | NM10 — done `686d604bae` | **Wow pass: life.** Lantern flicker, a few floating sky lanterns, food-stall smoke and fireflies (one particle system each, phone-tier caps), banners swaying | Opus | 1–2 h | visible in a 5 s capture at the road entry; frame floor unchanged |
 | NM11 — done `def60a9ec9` | **Board for Jake:** the same 4 cameras (road entry, 40 m over the road, 100 m over the neighbour, plaza) as MOCKUP round 46 · BEFORE (today) · AFTER, labelled, one board; the new look ships (G669: no Debug variant), the old one is reverted only on Jake's word | Opus | 0.5 h | board sent to wildshard-v |
 | — | **Jake checks in-game** on the grid and in SHARD SELECT (Developer on) | Jake | — | His word |
-| R1 | Five new ideas (G653, approved): Jungle Ziggurat, Patchwork Fairground, Saltwind Lighthouse, Mushroom Hollow, Fossil Badlands; outputs.json rows + grid cells replace the five repeats | builder | 0.5 h | All 19 cells unique |
-| R2 | Rollout (mockups collected in [remaster-open-plots-mini-plan.md](remaster-open-plots-mini-plan.md), G660; only after Jake is happy with the pilot): per idea, a style and palette row, a layout, and a landmark (D1); 18 ideas over 2–3 Opus lanes (~2–3 h each) | Opus ×3 | ~2 days | All 19 cells unique; one hero + entry board per idea |
-| R3 | Delete the hologram path (the list in §1) and SDK `farMode: 'add'` | Opus | 1 h | `net` lines negative; push gate green |
+| R1 — parked (G774) | Five new ideas (G653, approved): Jungle Ziggurat, Patchwork Fairground, Saltwind Lighthouse, Mushroom Hollow, Fossil Badlands; outputs.json rows + grid cells replace the five repeats | builder | 0.5 h | All 19 cells unique |
+| R2 — parked (G774) | Rollout (mockups collected in [remaster-open-plots-mini-plan.md](remaster-open-plots-mini-plan.md), G660; only after Jake is happy with the pilot): per idea, a style and palette row, a layout, and a landmark (D1); 18 ideas over 2–3 Opus lanes (~2–3 h each) | Opus ×3 | ~2 days | All 19 cells unique; one hero + entry board per idea |
+| R3 — parked (G774) | Delete the hologram path (the list in §1) and SDK `farMode: 'add'` | Opus | 1 h | `net` lines negative; push gate green |
 
 Order: NM0 ∥ NM1 ∥ NM2, then NM3 → NM4 → NM5 → NM6 → Jake → R1 → R2 → R3. The other ideas keep their holograms until Jake's
 pilot word (D4).

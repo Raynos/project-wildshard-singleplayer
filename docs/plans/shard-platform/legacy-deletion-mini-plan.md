@@ -1,5 +1,8 @@
 # Legacy folders: what depends on them, and the deletion rows (G604)
 
+**2026-10-27:** LD4 is a Node list compare, built now; it deletes nothing (G795). LD5–LD8 (and custom-code-freeze
+A1–A2) still wait for Jake's word after his QA and stay in the plan % (G779); nobody touches them before that.
+
 **2026-10-24 (E496):** [custom-code-freeze](custom-code-freeze-mini-plan.md) lists the concrete loader and module lists for LD5–LD8, but **they are not approved**: Jake, ~15:00, *"there's no go ahead to delete the 6 legacy shards and the legacy button … I haven't done the QA yet."* G606 stands.
 
 Jake, 2026-10-22: *"Explore world … is that still built on top of the legacy shards, or is that built on top of the shard
@@ -43,7 +46,7 @@ Rows LD1–LD4 delete nothing and need no QA; LD5–LD8 wait for Jake's word (G6
 | **LD1** | Each shard declares its own AS budget (`shard.config.ts` or `legacy-line-basis.json`; Driftwood 1716, Pine 2130, Nalati 2837 already hard-code theirs in their bake scripts) | S | all six build in a mirror with the legacy list emptied; budgets unchanged |
 | **LD2** | Pickups generator without the legacy tables | XS | pickup test green; the job has no `-legacy` input |
 | **LD3** | Ruler baselines read by shard name, not through the legacy list | S | an empty legacy list gives the same numbers and zero verdicts |
-| **LD4** | Explorer parity, once per shard at a milestone (one browser lane): Explore in LEGACY vs SHARDFILE, model / set / world / arena lists compared | M | each diff empty, or every gap is a row in that shard's zero plan |
+| **LD4** (G795: Node list compare, now) | Explorer parity in Node, built now, no browser lane (G795; was once per shard at a milestone in a browser): the LEGACY and SHARDFILE model / set / world / arena lists compared; deletes nothing | S | each diff empty, or every gap is a row in that shard's zero plan |
 | **LD5** | Remove the LEGACY button: Debug row, dual buttons, legacy entry mode and loading path, `shard/legacy.ts`, `entries.legacy` | S | SHARD SELECT shows one ENTER WORLD everywhere |
 | **LD6** | Delete the folders, one commit per shard: Sky + Signal (already unreachable), then Driftwood + Pine, then Nalati + Nine; each drops its list entry, regenerates `slugs.generated.json`, prunes lint entries | M | gates green per commit |
 | **LD7** | Delete legacy-only engine/game code with each LD6 commit (~16 modules, exports, frozen exceptions) | M | nothing left whose only importer was legacy |

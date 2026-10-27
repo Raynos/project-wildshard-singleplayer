@@ -1,6 +1,7 @@
 # Custom code freeze and loader deletion (E496)
 
-**State:** `active` 2026-10-24 — Jake asked to build it. **Legacy rows LD5–LD8 are NOT approved** (Jake ~15:00: *"there's no go ahead to delete the 6 legacy shards and the legacy button … I haven't done the QA yet"*; G606 stands); they wait for his QA and word. The legacy section below lists what becomes deletable then. Audit by the plan agent's subagent, read only, at HEAD
+**State:** `active` 2026-10-27 — A1 (needs LD8) and A2 (needs A1) wait for Jake's legacy word and stay in the plan %
+(G779); the plan archives after his checks. Was: `active` 2026-10-24 — Jake asked to build it. **Legacy rows LD5–LD8 are NOT approved** (Jake ~15:00: *"there's no go ahead to delete the 6 legacy shards and the legacy button … I haven't done the QA yet"*; G606 stands); they wait for his QA and word. The legacy section below lists what becomes deletable then. Audit by the plan agent's subagent, read only, at HEAD
 a80ea662b5 (~14:40 Cancun): static import graph and export scan over `src/`, `scripts/`, `lint/`, `test/` (git-tracked
 plus generated discovery files), no builds. Builds on [legacy-deletion](legacy-deletion-mini-plan.md) (LD5–LD8 are
 listed here but wait for Jake's QA and word, G606) and G693 (the ruler deletion is its own row there; this plan keeps and widens the zero lock

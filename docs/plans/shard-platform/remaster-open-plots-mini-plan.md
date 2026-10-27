@@ -1,6 +1,8 @@
 # Remaster all the open plots: mini plan (G660)
 
-**State:** `waiting` 2026-10-23 — **mockups only. Nothing here is built until Jake is happy with the
+**State:** `parked` 2026-10-27 — **RP2–RP4 are parked by G774**: nothing is built until Jake has played Night Market;
+then wildshard-v writes a new plan for the other 18 plots with him, which replaces RP2–RP4 (and pilot R1–R3). Was:
+`waiting` 2026-10-23 — **mockups only. Nothing here is built until Jake is happy with the
 [Night Market pilot](night-market-pilot-mini-plan.md)** (G633 D4); until then the other plots keep their holograms. This
 plan collects one mockup per idea so the rollout (pilot plan R2) starts from approved designs.
 
@@ -48,6 +50,6 @@ The 19 grid cells use the 19 ideas once each (G629, G653).
 |---|---|---|
 | RP1 | Jake reviews the 19 mockups; any he wants changed get a new round | **done** 2026-10-24 (G712: "Mockups look good") |
 | RP1a | G712 follow-up: *"too many have the same orange/red glow as Night Market"*. Round 62 re-palettes all 18 other plots (same layout, landmark, billboards and cameras; its own sky, light and colours each), board `art/grid/round-62-open-plot-palettes/00-board.jpg` | **done** 2026-10-24, `art/grid/round-62-open-plot-palettes/<nn>-<slug>.jpg` supersede rounds 51 and 52 for palette; only Night Market keeps the red-and-gold lantern dusk  **Approved (G714).** |
-| RP2 | Per idea: kit, layout, landmark (Hunyuan3D 2.1 / TRELLIS.2, better wins), billboards, palette and map look, as the pilot did | the plot matches its mockup in a 4-angle capture |
-| RP3 | The five new ideas get `outputs.json` rows and replace the five repeated cells | all 19 cells unique |
-| RP4 | Delete the hologram path (hologram, plinth, sign inputs) once every plot is remastered | no hologram code or assets left |
+| RP2 — parked (G774) | Per idea: kit, layout, landmark (Hunyuan3D 2.1 / TRELLIS.2, better wins), billboards, palette and map look, as the pilot did | the plot matches its mockup in a 4-angle capture |
+| RP3 — parked (G774) | The five new ideas get `outputs.json` rows and replace the five repeated cells | all 19 cells unique |
+| RP4 — parked (G774) | Delete the hologram path (hologram, plinth, sign inputs) once every plot is remastered | no hologram code or assets left |
