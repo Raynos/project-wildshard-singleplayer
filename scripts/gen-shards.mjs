@@ -1,4 +1,5 @@
 // E357 F9: folder discovery is the sole authored shard list.
+import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, resolve, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -233,16 +234,40 @@ export function genShards(root = resolve(import.meta.dirname, '..'), check = fal
     if (check) throw new Error(`gen-shards: stale ${relative(root, path)} (run pnpm gen)`);
     rmSync(path);
   }
-  const outputs = { ...shardTables(root), ...slugTables(root) };
-  for (const [name, source] of Object.entries(outputs)) {
-    const out = resolve(root, name);
-    const exists = existsSync(out), same = exists && readFileSync(out, 'utf8') === source;
-    // A staged-tree export lacks these untracked tables. Only that caller initializes missing outputs;
-    // committed vocabulary above and any existing runtime table still have strict --check semantics.
-    const initialize = initializeMissing && !exists;
-    if (check && !same && !initialize) throw new Error(`gen-shards: stale ${name} (run pnpm gen)`);
-    if ((!check || initialize) && !same) { mkdirSync(dirname(out), { recursive: true }); writeFileSync(out, source); }
-  }
+  const write = (outputs) => {
+    for (const [name, source] of Object.entries(outputs)) {
+      const out = resolve(root, name);
+      const exists = existsSync(out), same = exists && readFileSync(out, 'utf8') === source;
+      // A staged-tree export lacks these untracked tables. Only that caller initializes missing outputs;
+      // committed vocabulary above and any existing runtime table still have strict --check semantics.
+      const initialize = initializeMissing && !exists;
+      if (check && !same && !initialize) throw new Error(`gen-shards: stale ${name} (run pnpm gen)`);
+      if ((!check || initialize) && !same) { mkdirSync(dirname(out), { recursive: true }); writeFileSync(out, source); }
+    }
+  };
+  write({ ...shardTables(root), ...slugTables(root) });
+  // the title tables read the shard list just written
+  write(titleTables(root));
+}
+
+/**
+ * D25 (G799: no virtual module, no Vite plugin): the title's catalogue and the selected discovery loaders, as two
+ * build-written modules beside the shard list (src/titleCatalogue.generated.js, src/shardSelection.generated.js; their
+ * types are the committed .d.ts files next to them). They are not committed: their rows come from every product's
+ * discovery module (open-plot outputs composed per output, legacy rows, derived entries), which this script writes from
+ * the built products, so a committed copy would follow local product state rather than the commit.
+ */
+export function titleTables(root) {
+  const output = execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', 'scripts/title-catalogue.mjs'],
+    { cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
+  const read = (prefix) => {
+    const row = output.split('\n').reverse().find(line => line.startsWith(prefix));
+    if (row === undefined) throw new Error(`gen-shards: the title catalogue printed no ${prefix.trim()}`);
+    const value = JSON.parse(row.slice(prefix.length));
+    if (typeof value !== 'string') throw new Error(`gen-shards: invalid ${prefix.trim()}`);
+    return value;
+  };
+  return { 'src/titleCatalogue.generated.js': read('TITLE-CATALOGUE '), 'src/shardSelection.generated.js': read('TITLE-SELECTION ') };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {

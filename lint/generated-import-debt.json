@@ -34,7 +34,7 @@
     "src/shards/sunscar-dunes/discovery.generated.ts"
   ],
   "files": {
-    "src/entry.ts": 1,
+    "src/entry.ts": 2,
     "src/game/Progress.ts": 1,
     "src/game/saves.ts": 1,
     "src/game/session/session.ts": 1,
@@ -47,6 +47,7 @@
     "src/game/travel/travel.ts": 1,
     "src/game/weapons/starterBowProfile.ts": 1,
     "src/shardList.ts": 1,
+    "src/shardSelection.ts": 1,
     "src/shards/driftwood-isle-legacy/boot/lateReads.ts": 1,
     "src/shards/driftwood-isle-legacy/boot/sources.ts": 1,
     "src/shards/driftwood-isle-legacy/manifest.ts": 1,

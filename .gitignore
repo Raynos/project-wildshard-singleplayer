@@ -54,6 +54,9 @@ src/**/*.generated.*
 !src/game/shard/slugs.generated.ts
 !src/game/shard/slugs.generated.json
 !src/game/boot/audio.generated.ts
+# D25: the build-written title tables' committed declarations (the .js modules stay build-written)
+!src/titleCatalogue.generated.d.ts
+!src/shardSelection.generated.d.ts
 !src/game/shard/portShares.generated.ts
 
 # local caches and raw capture frames (never committed)

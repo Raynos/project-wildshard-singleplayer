@@ -1,4 +1,4 @@
-import { SHARD_LOADERS, LEGACY_CONTENT_IDENTITIES } from 'virtual:wildshard-selection';
+import { SHARD_LOADERS, LEGACY_CONTENT_IDENTITIES } from './shardSelection.generated';
 import { TIER } from '@wildshard/engine/core/tier';
 import { declareModuleFiles } from '@wildshard/engine/boot/download';
 import { installShards } from '@wildshard/game/shard/list';
