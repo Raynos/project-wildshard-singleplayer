@@ -469,6 +469,9 @@ export class LiveGridHost {
       if (approach !== undefined && this.ports.prepareNeighbour !== undefined && this.tileMetadata.has(approach.instance)
         && !this.residents.has(approach.instance) && !this.issues.has(approach.instance)
         && (this.active === null || moving === approach)
+        // A held owner survives a stationary/teleported sample without moving
+        // its entry tile. Only a real named approach may retarget that pin.
+        && (heldApproach === undefined || moving === approach || predicted === approach)
         && this.assembly.approaching(this.distance(approach, feet), readinessModel(this.ports.readiness.bundle(approach), this.ports.readiness.link).distance)) {
         this.prepareNeighbour(approach, feet);
       }
