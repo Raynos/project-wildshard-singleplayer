@@ -13,7 +13,7 @@ should be running in pre-push if they were fast."*
 [TypeScript speed](tooling-perf/typescript-mini-plan.md) + [quick wins](tooling-perf/typescript-quick-wins-mini-plan.md) and
 [oxlint speed](tooling-perf/oxlint-mini-plan.md) (open, the builder builds them); [no binaries in JSON](tooling-perf/no-binaries-in-json-mini-plan.md)
 (open, G649); [generators spike / redesign](tooling-perf/generators-spike-mini-plan.md) (draft, G648/G650); `pnpm gen` speed
-(benchmark running → `tooling-perf/gen-mini-plan.md`); [fail fast](shard-platform/fail-fast-mini-plan.md) and G627/G628/G636
+(benchmark running → `tooling-perf/gen-mini-plan.md`); [fail fast](../../project/archive/2026-10-27-fail-fast.md) and G627/G628/G636
 (building under SHARD-PLATFORM).
 
 ## What we know (2026-10-23)

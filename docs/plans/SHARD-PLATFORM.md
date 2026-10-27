@@ -43,23 +43,23 @@ plan? … what is in scope … and what do we all have to complete to be done?"*
 
 | Mini plan / spike | Decisions | State |
 |---|---|---|
-| [dw-pine-zero](shard-platform/dw-pine-zero-mini-plan.md), [quest-host](shard-platform/quest-host-mini-plan.md) | G564–G573, G589 | **done**: Pine and Driftwood at 0 |
-| [nine-nalati-zero](shard-platform/nine-nalati-zero-mini-plan.md) + the Nine / Nalati / C1C5C6 picks pages | G592, G597–G603, G614 | **Nine done** (0, grid-ready); Nalati continues in nalati-zero |
-| [c1-c5-c6-zero](shard-platform/c1-c5-c6-zero-mini-plan.md) (+ C2, G613) | G591, G593, G601, G613 | C1, C2, C5 closed and locked; **C6 8 lines left** (with the balbal cut) |
-| [nalati-zero](shard-platform/nalati-zero-mini-plan.md) | G613, G621 | **open**: rows R1–R15 (C6, C4, C9); est. Sat 10-24 ~12:00 |
+| [dw-pine-zero](../../project/archive/2026-10-27-dw-pine-zero.md), [quest-host](../../project/archive/2026-10-27-quest-host.md) | G564–G573, G589 | **done**: Pine and Driftwood at 0 |
+| [nine-nalati-zero](../../project/archive/2026-10-27-nine-nalati-zero.md) + the Nine / Nalati / C1C5C6 picks pages | G592, G597–G603, G614 | **Nine done** (0, grid-ready); Nalati continues in nalati-zero |
+| [c1-c5-c6-zero](../../project/archive/2026-10-27-c1-c5-c6-zero.md) (+ C2, G613) | G591, G593, G601, G613 | C1, C2, C5 closed and locked; **C6 8 lines left** (with the balbal cut) |
+| [nalati-zero](../../project/archive/2026-10-27-nalati-zero.md) | G613, G621 | **open**: rows R1–R15 (C6, C4, C9); est. Sat 10-24 ~12:00 |
 | [grid-ready](shard-platform/grid-ready-mini-plan.md) | G557–G561, G598 | **9 of 10**; Nalati after its zero |
 | [grid-crossing](shard-platform/grid-crossing-mini-plan.md) | G579–G581 | **open**: T1 warm neighbour on; T2–T6 to < 5 s shard to shard |
 | [loading-speed](shard-platform/loading-speed-mini-plan.md) (folds in [loading](shard-platform/loading-mini-plan.md), G618) | G543, G554, G618, G619, G622 | **open**: tap → controls < 5 s warm, < 15 s cold; M1 baseline next |
 | [shared-waits](shard-platform/shared-waits-mini-plan.md) | G666 | **open**: SW1–SW6; reading refreshed ~10:45 and ~16:45 Cancun; D1–D3 ruled by G670; D4 by G674: fix forward, no reverts |
 | [ci-flow](shard-platform/ci-flow-mini-plan.md) | E495 | **proposed** 10-24: CF1 related tests in commit.sh, CF2 delete flakes, CF3 13-min CI, CF4 culprit in the red run, CF5 boot-smoke deadline; D1–D4 for Jake |
 | [green-main](shard-platform/green-main-mini-plan.md) | G751–G754, G756 | **active** 10-26: red 59 % of 72 h, 63 % of it overlapping breaks; GM1–GM7 (no manual cancels, 180 s push gate on the mirror + red hold, 60 s fail-closed commit); Q1–Q3 for Jake |
-| [debug-rows](shard-platform/debug-rows-mini-plan.md) | G669 | **open**: 27 rows → 14 SHIP, 11 DELETE, 2 in the Developer section (G672, G673); DR1–DR19 incl. the Settings page apply button; Memory saver on (G674) |
+| [debug-rows](../../project/archive/2026-10-27-debug-rows.md) | G669 | **open**: 27 rows → 14 SHIP, 11 DELETE, 2 in the Developer section (G672, G673); DR1–DR19 incl. the Settings page apply button; Memory saver on (G674) |
 | [open-plots](shard-platform/open-plots-mini-plan.md) redesign + [night-market-pilot](shard-platform/night-market-pilot-mini-plan.md) + [remaster-open-plots](shard-platform/remaster-open-plots-mini-plan.md) (mockups only until the pilot is approved, G660) | G546, G607, G608, G616, G617, G621, G623, G629, G632 | **open**: Night Market pilot (code-built 62.5 m tiles, Hunyuan3D 2.1 / TRELLIS.2 landmark, five billboards) target = round 47 take B (G633); bespoke tiles per idea; billboards with hero image + name + invitation |
 | [night-market-remaster](shard-platform/night-market-remaster-mini-plan.md) | E503, G726 | **active** 10-24 (Codex RM1–RM3 now, Opus from Tue 13:00): streaming (far proxy at eye height) is tile-streaming T4.3; the art gap gets 10 domes (5 mockup cameras × stand / look), RM0–RM14, Opus from Tue 13:00; D1–D4 for Jake |
 | [build-speed](shard-platform/build-speed-mini-plan.md), CI speed | G547, G548, G584, G609, G620 | build done; **CI open**: ≤ 10 min, green main (fix forward 30 min, then revert) |
-| [fail-fast](shard-platform/fail-fast-mini-plan.md) | G610, G612, G620 | **done** (F1–F9) |
+| [fail-fast](../../project/archive/2026-10-27-fail-fast.md) | G610, G612, G620 | **done** (F1–F9) |
 | WASM-HOST zero blockers ([WASM-HOST](WASM-HOST.md)) | G595, G600, G604 | **done**: H4, H5, view-target adapter, dismount / ignite / impulse |
-| [memory-strip](shard-platform/memory-strip-mini-plan.md) + leak fix (O18) | G628 | **open**: leak fix first (crossing-crash P0), then strip rows M1–M7 |
+| [memory-strip](../../project/archive/2026-10-27-memory-strip.md) + leak fix (O18) | G628 | **open**: leak fix first (crossing-crash P0), then strip rows M1–M7 |
 | [tile-streaming](shard-platform/tile-streaming-mini-plan.md) (62.5 m tiles, memory + loading) | G626, G638 | **draft, being grilled**: 62.5 m gap now, 5×5/3×3 Debug A/B/C, Driftwood first; D5 open |
 | [core-memory](shard-platform/core-memory-mini-plan.md) (core game floor, Templates 1 + 2 in SHARD SELECT) | G640 | **draft**: measurement first |
 | [js-heap](shard-platform/js-heap-mini-plan.md) (Template heap allocation, clean menu → Template path) | E501 | **draft, for Jake**: clean path = direct `/?chunk=_template`, Developer off, no harness pins; idle 5.6 MiB/s, 17 major GCs / 30 s; G1 guard + H1–H11 |

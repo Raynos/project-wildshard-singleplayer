@@ -11,7 +11,7 @@ Refreshed twice a day by the plan agent (G666); new rows go to the coordinator t
 Jake, 2026-10-23 ~08:10 Cancun: *"we keep having the shared waits problem. We keep having to improve and fix it …
 Lock contention, waiting, queuing, shared resources. Like, we almost need to look at it, like, twice a day."*
 
-Related, never copied here: [fail-fast](fail-fast-mini-plan.md) (G610/G612: 5-minute caps, pooled slots, no pre-land
+Related, never copied here: [fail-fast](../../../project/archive/2026-10-27-fail-fast.md) (G610/G612: 5-minute caps, pooled slots, no pre-land
 checks), G620 (red main 30-minute cap, shared previews, third build lease), G662 (dirty tree burn-down),
 [BUILD-SPEED](../BUILD-SPEED.md) (Wave 1 landed; 3.4/3.5 quiet-vs-not not asked), [TOOLING-PERF](../TOOLING-PERF.md)
 (G671 quick wins un-parked: H1 H3 H4 C4 C5 C6 P1 P3 K4 L4 V1 V3 S3; P4 and M1–M3 still parked).

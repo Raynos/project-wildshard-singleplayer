@@ -13,13 +13,17 @@ G756 caps: pre-commit <= 60 s wall, push gate <= 180 s per batch; 'clean tree' =
 
 | Row | What | Taken |
 |---|---|---|
-| G752 | Pre-commit fails CLOSED: the 'CF1 DEFERRED TO CI' paths in scripts/precommit-related.mjs become refusals; commits touching shared SDK/engine/bake/build code also run tsc -b plus the products they touch | sp-x9 (with SW11, same script) |
-| G753 | Push-loop gate runs the touched CI subset (related tests, types, touched shard products) on the clean committed tree, no budget skips (push-loop.py DEFERRED paths go); while main is red only fix commits push (G689) | sp-x2 (after SW12) |
-| CF2 grid | Flaky grid far-cell preparation stall (ci-flow-mini-plan.md §CF2 grid preparation): deterministic, never deleted or retried (G690) | sp-x6 18:24; attribution packet |
-| CF2 title | Flaky Nine title PNG capture on CI (§CF2 title capture: GPU busy compiling): deterministic, never deleted or retried | sp-x1 |
-| CF3 | CI verdict <= 13 min (median ~18): product-free tests stop waiting for products | |
-| CF5 | Boot smoke stops failing on a runner deadline (Explorer catalogue/thumbnail deadline) without hiding a real stall | |
-| G745 | Phone-route smoke leg (report-only 893f149908) -> gating; sp-x9 after SW11 | sp-x9 |
+| GM0 | Push-gate blocker: the uncommitted fail-closed edits refuse on peers' dirty inputs; read inputs from committed objects / the one mirror, land, push the backlog | sp-x9 + sp-x2 (sp-x7 at 03:50Z) |
+| GM1 | No hand cancels of push CI (G678): every red run finishes and lists every red; DEPLOY.md line | sp-x7 |
+| GM2 | G753 + G756: push gate = CI subset on the one mirror, <= 180 s, holds while red; at the cap split the batch, then defer only that step tagged 'Gate-deferred: <step>' (G757); while red only 'Red-fix:' commits push (G759) | sp-x2 |
+| GM3 | G752 + G756: pre-commit fails closed in <= 60 s, wide commits check wide; same cap rule (G757) | sp-x9 |
+| GM4 | Slow/flaky tests stop opening windows (CF2 + SW13): flakes quarantined to a non-blocking job with an owner and a 24 h fix, never deleted (G758) | sp-x6 (Nalati), sp-x1 (CF2 title) |
+| GM5 | First CI verdict sooner: generated-inputs names the failing generator; products off the critical path (CF3) | sp-x1 after CF2 title |
+| GM6 | G754: auto-bisect CI job after a red (failing files at each commit last-green..sha), breaker fixes, sp-x7 names + backs up | sp-x2 after GM2 |
+| GM7 | Readings count every red (cancelled run with a failed job = red; breaks landed while red; commit p90 vs 60 s) | sp-x9 after GM3 |
+| CF2 grid | Flaky grid far-cell preparation stall (GM4 quarantine rule applies) | sp-x6 |
+| CF2 title | Flaky Nine title PNG capture on CI (GM4 quarantine rule applies) | sp-x1 |
+| G745 | Phone-route smoke leg (report-only 893f149908) -> gating | sp-x9 after GM7 |
 
 ## Lane plans (G709, Jake 2026-10-24 ~21:55): one plan per lane, end to end; nothing mid-plan but a blocking red
 
@@ -96,7 +100,7 @@ Claim here with `<lane> <HH:MM> <plan row>` before starting.
 | R3 | G555: delete every low-detail loading overlay and its code, incl. the grid cell-entry hex card ('SKY REACH · step 3 / 4 · colliders · 75 %'); every load incl. cell entry and re-entry shows the full step-by-step screen; no Debug row | G555 | done 2628c3a7c5 + 90b7a542de (sp-o5): hex card deleted, cell entry opens the full Loading screen on a 'cell' path; platform -398 |
 | R4 | G556: the 1.2 / 1.8 GB limits are per shard; grid/budgetOverlay.ts and memoryWarning.ts score each shard against its own limit and show the page total as information only (no red, no % of 1.2 GB); the ruler's M2 memory criterion is per shard; keep per-shard findings visible (Sky Reach 200% of its budget, Nine +377.9 MB estimate) | G556 | done 59d09655c3 (sp-o5; platform +29); allocator admission per shard follows (sp-o5) |
 
-## G565 quest host (top priority; rows in quest-host-mini-plan.md)
+## G565 quest host (top priority; rows in ../../../../project/archive/2026-10-27-quest-host.md)
 
 QA sp-o3 (+ sp-o2 on a facet split: mover, collections, map zones) · QB sp-x9 · QC sp-o5 · QD sp-x1 · QE done 937be4e247 (sp-o4: place sets -6, -1 section; figures/bridge/keepsakes stay listed, no second user) · QX sp-x8 (integrator). G3 entry-row move (hut/lookout/jetties/pier/boat) back to sp-o4; sp-o5 keeps QC2 + DW barrels after G566. G1c-G2e below are superseded by these rows.
 
