@@ -75,3 +75,29 @@ test('HTML observation retains exact compiler facts without altering them or hid
     }
   } finally { await observed?.close(); server.closeAllConnections(); await new Promise<void>(resolve => { server.close(() => { resolve(); }); }); }
 });
+
+
+test('encoded chunk observation includes an unfinished response without changing its body', async () => {
+  let finish: (() => void) | undefined;
+  let signalStarted = (): void => { throw new Error('Start signal not installed'); },
+    signalChunk = (): void => { throw new Error('Chunk signal not installed'); };
+  const started = new Promise<void>(resolve => { signalStarted = resolve; }), chunk = new Promise<void>(resolve => { signalChunk = resolve; });
+  const chunks: { bytes: number; at: number }[] = [], requests: { url: string; startedAt: number }[] = [];
+  const server = createServer((_request, response) => {
+    response.writeHead(200, { 'content-type': 'application/octet-stream' }); response.write('first');
+    finish = () => { response.end('last'); }; signalStarted();
+  });
+  let observed: Awaited<ReturnType<typeof observeTransport>> | undefined;
+  try {
+    await new Promise<void>(resolve => { server.listen(0, '127.0.0.1', resolve); });
+    const address = server.address(); if (address === null || typeof address === 'string') throw new Error('Missing fixture address');
+    observed = await observeTransport(`http://127.0.0.1:${address.port}/`, { transfer: request => {
+      requests.push(request); return (bytes, at) => { chunks.push({ bytes, at }); signalChunk(); };
+    } });
+    const body = fetch(observed.base).then(response => response.text()); await started; await chunk;
+    expect(requests).toHaveLength(1); expect(chunks.reduce((sum, row) => sum + row.bytes, 0)).toBe(5);
+    expect(observed.receipts).toHaveLength(0); expect(chunks.every(row => row.at >= (requests[0]?.startedAt ?? Infinity))).toBe(true);
+    finish?.(); expect(await body).toBe('firstlast');
+    expect(chunks.reduce((sum, row) => sum + row.bytes, 0)).toBe(9);
+  } finally { finish?.(); await observed?.close(); server.closeAllConnections(); await new Promise<void>(resolve => { server.close(() => { resolve(); }); }); }
+});

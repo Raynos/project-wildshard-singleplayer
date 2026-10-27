@@ -49,6 +49,7 @@ export async function observeTransport(upstream, fixture = {}) {
     }
     const target = new URL(request.url ?? '/', typeof upstream === 'function' ? upstream() : upstream);
     const startedAt = Date.now();
+    const transfer = fixture.transfer?.({ url: target.href, startedAt });
     if (target.protocol !== 'http:' && target.protocol !== 'https:') { response.writeHead(502); response.end(); return; }
     const inject = fixture.recorder !== undefined && (target.pathname === '/' || target.pathname === '/index.html');
     const requestHeaders = { ...request.headers, host: target.host };
@@ -65,7 +66,7 @@ export async function observeTransport(upstream, fixture = {}) {
       let body = 0;
       const digest = fixture.bodyHashes ? createHash('sha256') : null;
       const decoded = decodedBodyCounter(incoming.headers['content-encoding']);
-      incoming.on('data', chunk => { body += chunk.length; digest?.update(chunk); decoded.write(chunk); if (inject) chunks.push(chunk); else response.write(chunk); });
+      incoming.on('data', chunk => { body += chunk.length; digest?.update(chunk); decoded.write(chunk); if (inject) chunks.push(chunk); else { response.write(chunk); transfer?.(chunk.length, Date.now()); } });
       incoming.on('end', () => {
         if (inject) {
           const original = Buffer.concat(chunks).toString('utf8');
@@ -76,7 +77,7 @@ export async function observeTransport(upstream, fixture = {}) {
           delete headers['transfer-encoding'];
           headers['content-length'] = String(body);
           headers['cache-control'] = 'no-store';
-          response.writeHead(incoming.statusCode ?? 502, headers); response.write(patched);
+          response.writeHead(incoming.statusCode ?? 502, headers); response.write(patched); transfer?.(body, Date.now());
         }
         response.end();
         const endedAt = Date.now();
