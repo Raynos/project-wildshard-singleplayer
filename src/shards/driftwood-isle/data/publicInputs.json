@@ -1,0 +1,4 @@
+{
+  "notice": "GR7: public URL roots the Driftwood scene banks name their blobs' aliases under (reefBank.ts, ziplineBank.ts, facetedGroundBank.ts); data, so the banks hold no asset path literal.",
+  "baked": "/assets/driftwood-isle/baked/"
+}

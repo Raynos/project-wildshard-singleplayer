@@ -4,6 +4,7 @@ import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import spots from '../data/spotsRows.json' with { type: 'json' };
 import { buildZiplineGeometry } from './lookout';
 import { ZiplineCable } from './ziplineCable';
+import publicInputs from '../data/publicInputs.json' with { type: 'json' };
 
 interface End { readonly x: number; readonly y: number; readonly z: number }
 /** the zipline's rows as the runtime and the draw labels read them: each GLB's hash-named URL, then both layouts */
@@ -19,6 +20,8 @@ export interface DriftwoodZiplineBank {
   readonly byUrl: Readonly<Record<string, string>>;
 }
 
+/** the job's hash-named public copies' folder (their URLs are the blobs' aliases) */
+const BAKED = publicInputs.baked;
 let bank: DriftwoodZiplineBank | undefined;
 /** Built once per build process from the authored spot rows; every reader treats it as read-only. */
 export function driftwoodZiplineBank(): DriftwoodZiplineBank { bank ??= buildZiplineBank(); return bank; }
@@ -36,7 +39,7 @@ function buildZiplineBank(): DriftwoodZiplineBank {
     for (const [name, geometry] of Object.entries({ world: world.rig, trolley: world.trolley, specimen: specimen.rig, parked: specimen.trolley })) {
       const customAttributes = Object.fromEntries(Object.keys(geometry.attributes).filter(key => !['position', 'normal', 'color', 'uv'].includes(key)).map(key => [`_${key.toUpperCase()}`, key]));
       const bytes = staticGlb([{ geometry, material, customAttributes }], `zipline-${name}`);
-      const url = `/assets/driftwood-isle/baked/zipline-${hashImmutableBytes(bytes)}.glb`, file = `models/zipline/${name}.glb`;
+      const url = `${BAKED}zipline-${hashImmutableBytes(bytes)}.glb`, file = `models/zipline/${name}.glb`;
       blobs.set(file, bytes); byUrl[url] = file; files[name] = url;
       geometry.dispose();
     }

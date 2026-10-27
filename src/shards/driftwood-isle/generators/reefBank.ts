@@ -11,6 +11,7 @@ import { LAGOON_REEF, scatterLagoon, type LagoonField, type ReefLayout } from '.
 import { reefGeometry } from './reef';
 import { driftwoodGroundBytes } from './groundRows';
 import { foliageTransport } from './hibiscusTransport';
+import publicInputs from '../data/publicInputs.json' with { type: 'json' };
 
 /** One reef blob: its product name's kind and bytes. */
 export interface ReefBlob { readonly kind: 'glb' | 'bin'; readonly bytes: Uint8Array }
@@ -24,6 +25,8 @@ export interface DriftwoodReefBank {
   readonly byUrl: Readonly<Record<string, string>>;
 }
 
+/** the job's hash-named public copies' folder (their URLs are the blobs' aliases) */
+const BAKED = publicInputs.baked;
 let bank: DriftwoodReefBank | undefined;
 /** Built once per build process from the native ground (no file is read); every reader treats it as read-only. */
 export function driftwoodReefBank(): DriftwoodReefBank { bank ??= buildReefBank(); return bank; }
@@ -36,7 +39,7 @@ function buildReefBank(): DriftwoodReefBank {
   const emit = (bytes: Uint8Array, kind: ReefBlob['kind'], name: string): void => {
     const hash = hashImmutableBytes(bytes), owner = names.get(hash) ?? name;
     if (!names.has(hash)) { names.set(hash, name); blobs.set(name, { kind, bytes }); }
-    byUrl[`/assets/driftwood-isle/baked/reef-${hash}.${kind}`] = owner;
+    byUrl[`${BAKED}reef-${hash}.${kind}`] = owner;
   };
   // The lagoon's layout (world/Seabed.ts reads it): 360 copies, the wreck kept clear, welded in scatter order from one stream.
   const layout = scatterLagoon(SEED, 360, [{ x: WRECK.x, z: WRECK.z, r: 18 }], field), rng = new Rng(LAGOON_REEF.buildSeed);
