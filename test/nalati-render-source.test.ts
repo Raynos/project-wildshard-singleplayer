@@ -32,11 +32,13 @@ test('independent construction owns its bytes after an earlier result is mutated
   const before = metadata.slice(); metadata.fill(0);
   try {
     const rebuilt = await nalatiRenderTileSources(native);
-    expect(rebuilt.files).not.toBe(made.files);
+    // Vitest toBe computes deep diagnostics for distinct byte containers.
+    // Compare identity only; complete hashes below already prove contents.
+    expect(rebuilt.files === made.files).toBe(false);
     for (const pin of originals) {
       const bytes = rebuilt.files.get(pin.path);
       if (bytes === undefined) throw new Error('Missing rebuilt render source');
-      expect(bytes).not.toBe(made.files.get(pin.path));
+      expect(bytes === made.files.get(pin.path)).toBe(false);
       expect(bytes.byteLength, pin.path).toBe(pin.bytes);
       expect(hashImmutableBytes(bytes), pin.path).toBe(pin.sha256);
     }
