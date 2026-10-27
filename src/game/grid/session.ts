@@ -205,10 +205,11 @@ export interface GridSessionState {
 }
 
 /** The shardfile neighbours' L1 / L0 tiles (sources load late: until then the catalogue has no tile and the far proxy draws). */
-function neighbourTiles(scope: Scope, prepare: (tile: PreparedRingTile) => Promise<void>, retired: (tile: RingTile, roots: readonly object[]) => void): { instances: Map<string, ClientRingInstance>; ports: RingPorts<PreparedRingTile> } {
+function neighbourTiles(scope: Scope, prepare: (tile: PreparedRingTile) => Promise<void>, retired: (tile: RingTile, roots: readonly object[]) => void,
+  frame: ((step: () => void) => void) | undefined): { instances: Map<string, ClientRingInstance>; ports: RingPorts<PreparedRingTile> } {
   const instances = new Map<string, ClientRingInstance>(), decoder = new TileDecoder();
   scope.onDispose(() => { decoder.dispose(); });
-  return { instances, ports: clientRingPorts(instances, { scope, decoder, prepare, retired }) };
+  return { instances, ports: clientRingPorts(instances, { scope, decoder, prepare, retired, ...(frame === undefined ? {} : { frame }) }) };
 }
 
 /** The far proxy and its row, fetched from the shard's baked folder (`public/assets/baked/<slug>/far.*`). */
@@ -705,7 +706,8 @@ export class GridSession {
     };
     host.frame?.onLate((dt) => { this.viewStep(); this.life.late(dt); this.panels.late(); bands(); frame?.frame(); });
     const tiles = neighbourTiles(host.scope, async (tile) => { await host.prepareTile?.(tile); },
-      (tile, retiredRoots) => { this.tileGhosts.retired(tile.key, retiredRoots); }), tileCost = clientRingCatalogue(tiles.instances);
+      (tile, retiredRoots) => { this.tileGhosts.retired(tile.key, retiredRoots); }, host.frame === undefined ? undefined : step => { host.frame?.onLate(() => { step(); }); }),
+      tileCost = clientRingCatalogue(tiles.instances);
     // G342 round 3: a cell whose near view draws and carries its own world owns it whole (its dense
     // ground over the cell), so the rings stop refining it to its own L1 / L0 tiles, which would mask the near view near
     // the road (round 3's first A = B); a terrain-only near view (the template, its world in its tiles) keeps them; a cell

@@ -21,6 +21,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { TILES_PER_SIDE, TILE_SIZE, tileOf, tileOrder, type CellTile } from './tileOrder';
 import { noteEnteredTiles } from './enteredTileReadout';
+import { holdStaticMatrices } from '@wildshard/engine/render/staticMatrices';
 
 /**
  * One installed world element by tile (the port the tile streamer drives, T4): the tiles it holds content in, and `attach`,
@@ -291,7 +292,17 @@ export function clientRingPorts(instances: ReadonlyMap<string, ClientRingInstanc
   /** Prepare the detached, fully built tile before publication; rejection retires only this tile's scope. */
   prepare?: (tile: PreparedRingTile) => Promise<void>;
   /** Observe retirement only; collectors must retain these borrowed roots weakly. */
-  retired?: (tile: RingTile, roots: readonly object[]) => void }): RingPorts<PreparedRingTile> {
+  retired?: (tile: RingTile, roots: readonly object[]) => void;
+  /** T10: the host's per-frame step. With it, a published tile's group leaves the per-frame matrix walk (its terrain and
+   *  props never move; a node that does is caught by the hold's check and walked again). Without it, nothing is held. */
+  frame?: (step: () => void) => void }): RingPorts<PreparedRingTile> {
+  const checks = new Set<() => void>();
+  let stepping = false;
+  const checked = (frame: (step: () => void) => void, scope: Scope) => (check: () => void): void => {
+    // one frame step for the ports, registered with the first published tile (a failed entry registers none)
+    if (!stepping) { stepping = true; frame(() => { for (const held of checks) held(); }); }
+    checks.add(check); scope.onDispose(() => { checks.delete(check); });
+  };
   const prepare = async (tile: RingTile, instance: ClientRingInstance, scope: Scope, group: Group): Promise<PreparedRingTile> => {
     const key = lodKey(tile); if (key === null) throw new Error('shardfile rings: far proxies are the far view\'s (SF23)');
     const { source, assets, views } = instance;
@@ -315,6 +326,8 @@ export function clientRingPorts(instances: ReadonlyMap<string, ClientRingInstanc
     return prepared;
   }, (_tile, prepared) => {
     prepared.root.add(prepared.group);
+    // T10: Pine's Simulator drive walked ~240 static tile nodes a frame (three.updateMatrixWorld, the top steady self cost)
+    if (ports.frame !== undefined) holdStaticMatrices(prepared.group, prepared.scope, checked(ports.frame, prepared.scope));
     return {
       mask: excluded => { for (const tile of prepared.tiles) tile.mask(excluded); },
       shadow: enabled => { for (const tile of prepared.tiles) tile.shadow(enabled); },
@@ -484,7 +497,7 @@ export async function standaloneClientTiles(entry: ClientRingInstance, parent: S
   scope.onDispose(() => { decoder.dispose(); });
   try {
     const streamer = new TileStreamer([{ instance: ports.instance, origin: { x: 0, z: 0 } }], ports.budget,
-      clientRingCatalogue(instances), clientRingPorts(instances, { scope, decoder }), { uploadsPerFrame: 1, uploadBytesPerFrame: 4_000_000 });
+      clientRingCatalogue(instances), clientRingPorts(instances, { scope, decoder, frame: ports.frame }), { uploadsPerFrame: 1, uploadBytesPerFrame: 4_000_000 });
     // Separate cleanups still run if construction or an earlier disposal reports an error.
     scope.onDispose(() => { streamer.dispose(); });
     const registration = clientTileRegistration(instances, streamer, ports.radius);
