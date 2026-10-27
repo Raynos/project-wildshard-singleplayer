@@ -14,9 +14,7 @@ import { CROSSBOW_ROWS } from './crossbowRows';
 import { nameMeshoptBlob } from '@wildshard/sdk/blobs';
 import { HANDS_POOL } from './handsPoolProduct';
 import { CLIENT_BY_URL } from './clientInputs';
-import king from '../data/kingBlobs.generated.json' with {type:'json'};
 import birds from '../data/birdBlobs.generated.json' with {type:'json'};
-import kingKit from '../data/kingKit.generated.json' with {type:'json'};
 
 // GR8: built by the program, not read from a scheduler job's output
 const hands = HANDS_POOL.rows;
@@ -26,9 +24,9 @@ const CROSSBOW = crossbowPool(), CROSSBOW_NAME = 'models/held/crossbow-pool.glb'
 /** The pool's GLB, published beside the client blobs. */
 export const CROSSBOW_BLOB: Awaited<ReturnType<typeof nameMeshoptBlob>> = await nameMeshoptBlob(CROSSBOW_NAME, CROSSBOW.glb);
 const crossbow = { ...CROSSBOW.rows, rows: CROSSBOW_ROWS };
-const names:Readonly<Record<string,string>>={...CLIENT_BY_URL,...king.byUrl,...birds.byUrl};
+const names:Readonly<Record<string,string>>={...CLIENT_BY_URL,...birds.byUrl};
 function named(url:string):string{const name=names[url];if(name===undefined)throw new Error(`Pine output has no named blob: ${url}`);return name;}
-const values: { 'custom/heldPlayback': typeof playback; 'custom/heldInputs': typeof inputs; 'custom/heldSights': typeof sights; 'custom/leverPlayback': typeof leverPlayback; 'custom/leverDetails': typeof leverDetails; 'custom/heldToolPlayback': typeof toolPlayback; 'custom/paintedTextures': { textures: Record<string, { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; }>; urls: typeof painted.urls; chalk: typeof painted.chalk; }; 'custom/trophyMounts': { url: string; notice: string; sha256: string; rows: typeof trophies.rows; slots: typeof trophies.slots; }; 'custom/crossbowPool': typeof crossbow; 'custom/handsPool': { pool: typeof hands.pool; hands: typeof hands.hands; heldBow: typeof PINE_HELD_BOW; presentation: { hands: typeof HANDS_MATERIAL; coat: typeof COAT_MATERIAL; }; }; 'custom/kingKit': typeof kingKit; }={
+const values: { 'custom/heldPlayback': typeof playback; 'custom/heldInputs': typeof inputs; 'custom/heldSights': typeof sights; 'custom/leverPlayback': typeof leverPlayback; 'custom/leverDetails': typeof leverDetails; 'custom/heldToolPlayback': typeof toolPlayback; 'custom/paintedTextures': { textures: Record<string, { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; } | { url: string; srgb: boolean; repeat: boolean; }>; urls: typeof painted.urls; chalk: typeof painted.chalk; }; 'custom/trophyMounts': { url: string; notice: string; sha256: string; rows: typeof trophies.rows; slots: typeof trophies.slots; }; 'custom/crossbowPool': typeof crossbow; 'custom/handsPool': { pool: typeof hands.pool; hands: typeof hands.hands; heldBow: typeof PINE_HELD_BOW; presentation: { hands: typeof HANDS_MATERIAL; coat: typeof COAT_MATERIAL; }; }; }={
  'custom/heldPlayback':playback,'custom/heldInputs':inputs,'custom/heldSights':sights,'custom/leverPlayback':leverPlayback,
  'custom/leverDetails':{...leverDetails,pool:{...leverDetails.pool,url:named(leverDetails.pool.url)}},
  'custom/heldToolPlayback':toolPlayback,
@@ -37,7 +35,6 @@ const values: { 'custom/heldPlayback': typeof playback; 'custom/heldInputs': typ
  'custom/crossbowPool':{...crossbow,pool:{...crossbow.pool,url:CROSSBOW_NAME}},
  'custom/handsPool':{pool:hands.pool,hands:hands.hands,heldBow:PINE_HELD_BOW,
    presentation:{hands:HANDS_MATERIAL,coat:COAT_MATERIAL}},
- 'custom/kingKit':{...kingKit,pool:{...kingKit.pool,url:named(kingKit.pool.url)}},
 };
 
 // Semantic host laws are kept in their defining public parsers. The serialized
@@ -51,7 +48,7 @@ function checkPrograms(value:unknown):void{
 }
 for(const value of [playback,inputs,sights,leverPlayback,toolPlayback])checkPrograms(value);
 /** Authored input rows, never imported by a client runtime. */
-export const PINE_OUTPUT: { blobs: ((typeof king.blobs)[number] | (typeof birds.blobs)[number])[]; custom: typeof values; }={
- blobs:[...king.blobs,...birds.blobs],
+export const PINE_OUTPUT: { blobs: (typeof birds.blobs)[number][]; custom: typeof values; }={
+ blobs:[...birds.blobs],
  custom:values,
 };

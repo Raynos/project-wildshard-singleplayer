@@ -8,7 +8,11 @@ import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { manager } from '@wildshard/engine/test/manager';
 import { overrideTerrain } from '@wildshard/engine/test/terrain';
 import { pineKingCollision } from '../src/shards/pine-hollow/generators/kingCollision';
-import { ROAMING_COMBAT, ROAMING_COMBAT_BLOB } from '../src/shards/pine-hollow/generators/roamingCombat';
+import { roamingCombat, roamingCombatBlob } from '../src/shards/pine-hollow/generators/roamingCombat';
+import { PINE_KING_KIT } from './fixtures/pine-program';
+
+// GR8: the program bakes the King kit the roaming rows read
+const ROAMING_COMBAT = roamingCombat(PINE_KING_KIT.rows), ROAMING_COMBAT_BLOB = roamingCombatBlob(PINE_KING_KIT.rows);
 
 // GR8: called, not read from a scheduler job's output
 const collision = pineKingCollision();

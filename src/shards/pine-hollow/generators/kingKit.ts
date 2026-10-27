@@ -66,8 +66,10 @@ function rackSpots(geometry: THREE.BufferGeometry, bones: readonly { readonly na
   return [at(left), at(right), at(mid)];
 }
 
+/** The rows the page reads the kit by: its pool (named in the product) and the lantern spots. */
+export interface KingKitRows { pool: { url: string; parts: string[] }; lanterns: V3[] }
 /** The kit as one rest-geometry pool GLB, and the rows the page reads it by (the lantern spots). */
-export async function bakeKingKit(readRig: (tier: 'phone' | 'desktop') => Uint8Array): Promise<{ glb: Uint8Array; rows: { pool: { url: string; parts: string[] }; lanterns: V3[] } }> {
+export async function bakeKingKit(readRig: (tier: 'phone' | 'desktop') => Uint8Array): Promise<{ glb: Uint8Array; rows: KingKitRows }> {
   const D = KIT_ROWS;
   const parts: [string, THREE.BufferGeometry][] = [
     ['king-lantern-frame', mergePrimitives(D.frame)], ['king-lantern-glass', buildPrimitive(D.glass)],

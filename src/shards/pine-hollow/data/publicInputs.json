@@ -11,5 +11,9 @@
       "kind": "glb",
       "url": "/assets/pine-hollow/creatures/thrall-extras.phone.glb"
     }
-  ]
+  ],
+  "king": {
+    "desktop": "/assets/pine-hollow/creatures/antler-king-rig.rigged.glb",
+    "phone": "/assets/pine-hollow/creatures/antler-king-rig.phone.rigged.glb"
+  }
 }

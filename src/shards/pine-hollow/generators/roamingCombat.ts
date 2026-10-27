@@ -6,12 +6,15 @@ import { RoamingCombatSchema , type RoamingCombatRows as RoamingCombatRowsType }
 import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
-import { ROAMING_PROJECTION } from './roamingProjection';
+import { roamingProjection } from './roamingProjection';
+import type { KingKitRows } from './kingKit';
 import session from '../data/combatSession.json' with { type: 'json' };
 import presentation from '../data/bossPresentation.json' with { type: 'json' };
 
-export const ROAMING_COMBAT: RoamingCombatRowsType = v.parse(RoamingCombatSchema, {
-  session: { ...session, id: 'pine.combat', god: false }, projection: ROAMING_PROJECTION, presentation,
+/** The roaming combat rows over the King's baked kit (GR8: the program bakes the kit). */
+export function roamingCombat(kit: KingKitRows): RoamingCombatRowsType {
+  return v.parse(RoamingCombatSchema, {
+  session: { ...session, id: 'pine.combat', god: false }, projection: roamingProjection(kit), presentation,
   loadout: 'pine.loadout', elites: 'actors/elites.json', persistence: 'quests/persistence.json', score: 'score.pine',
   elitePresentation: Object.fromEntries(Object.values(PINE_ELITE_DEFS).map(def => [def.id, {
     prompt: `Take the ${def.drop.skinName} ${def.drop.weapon} skin`, toast: `${def.drop.skinName} ${def.drop.weapon} skin — ${def.drop.blurb}`,
@@ -23,5 +26,9 @@ export const ROAMING_COMBAT: RoamingCombatRowsType = v.parse(RoamingCombatSchema
   tells: { count: 3, colour: [2.2, .7, .28], range: 45, near: 1.5, ahead: 4, width: 2.2, scale: .8, alpha: .55, pulse: .2, frequency: 18 },
   system: { id: 'elites', before: ['main.world', 'engine.creatures.update', 'main.frame'] },
   observers: { elites: '__pineElites', boss: '__antlerKing' },
-});
-export const ROAMING_COMBAT_BLOB: NamedBlobType = nameBlob('combat/roaming.json', 'json', new TextEncoder().encode(encodeCanonicalJson(ROAMING_COMBAT)), { jsonSchema: namedJsonSchema(RoamingCombatSchema) });
+  });
+}
+/** The roaming combat file over the King's baked kit. */
+export function roamingCombatBlob(kit: KingKitRows): NamedBlobType {
+  return nameBlob('combat/roaming.json', 'json', new TextEncoder().encode(encodeCanonicalJson(roamingCombat(kit))), { jsonSchema: namedJsonSchema(RoamingCombatSchema) });
+}

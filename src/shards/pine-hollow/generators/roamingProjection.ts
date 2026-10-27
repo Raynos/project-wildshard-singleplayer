@@ -5,17 +5,19 @@ import * as v from 'valibot';
 import { RoamingBossProjectionSchema , type RoamingBossProjectionRows as RoamingBossProjectionRowsType } from '@wildshard/format/roamingBossProjection';
 import { NATIVE_VIEW } from './nativeView';
 import { pineKingCollision } from './kingCollision';
-import { PINE_OUTPUT } from './outputInputs';
+import type { KingKitRows } from './kingKit';
 import look from '../data/antlerKingLook.json' with { type: 'json' };
 
 // GR8: called, not read from a scheduler job's output
 const bossCollision = pineKingCollision();
 
-const D = look.KING_DRESS, O = D.open, source = PINE_OUTPUT.custom['custom/kingKit'];
+const D = look.KING_DRESS, O = D.open;
 const material = (id: string, gain: number) => ({ id, colour: new Color(D.glowMat.color).toArray(), emissive: D.amber,
   gain, roughness: D.glowMat.roughness, metalness: D.glowMat.metalness, lit: false, fog: D.glowMat.fog });
 const hazardMeshes = [{ geometry: 'king-lantern-frame', material: 'frame' }, { geometry: 'king-lantern-glass', material: 'glass' }];
-export const ROAMING_PROJECTION: RoamingBossProjectionRowsType = v.parse(RoamingBossProjectionSchema, {
+/** The King's projection rows over his baked kit (GR8: the program bakes the kit; `roamingCombat` reads this). */
+export function roamingProjection(source: KingKitRows): RoamingBossProjectionRowsType {
+  return v.parse(RoamingBossProjectionSchema, {
   id: 'pine.king.projection', session: 'pine.combat', spawn: 'pine.antler-king', spawnStream: 'pine.spawn.thrall', variant: 'warden',
   socketRig: { id: 'pine.king.rig', pool: source.pool, collision: { joints: bossCollision.joints, volumes: bossCollision.volumes },
     materials: [{ id: 'frame', colour: new Color(D.frameMat.color).toArray(), emissive: [0, 0, 0], gain: 1,
@@ -45,3 +47,4 @@ export const ROAMING_PROJECTION: RoamingBossProjectionRowsType = v.parse(Roaming
   room: { density: [25, 50], fog: [.35, .55], hemi: .8, environment: .75, dome: .85, lights: .85, domeUniforms: ['uGainA', 'uGainB'] },
   puffs: { count: 3, enter: [2.5, .6, .6, .6], leave: [.5, 2.5, .6, .7], lift: 1 },
 });
+}
