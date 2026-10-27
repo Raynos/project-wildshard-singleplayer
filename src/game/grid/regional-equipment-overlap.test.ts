@@ -16,7 +16,7 @@ function deferred() {
 async function flush(): Promise<void> {for (let i = 0; i < 5; i++) await Promise.resolve();}
 async function settle(promise: Promise<void>): Promise<unknown> {try {await promise; return null;} catch (error) {return error;}}
 
-function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promise<void>; worldWarm?: () => Promise<void>; enabled?: boolean; worldOnly?: boolean} = {}) {
+function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promise<void>; enabled?: boolean; worldOnly?: boolean} = {}) {
   const source = readFileSync(new URL('regionalRuntime.ts', import.meta.url), 'utf8');
   const declarationsStart = source.indexOf('          let enteredWarm:');
   const declarationsEnd = source.indexOf('          return { ...installation, context,', declarationsStart);
@@ -42,7 +42,7 @@ function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promi
       await before(async (roots, exteriorPrograms = true) => {
         expect(roots).toHaveLength(1); const object = roots[0]; if (object === undefined) throw new Error('Missing prepared root');
         expect(object).toBe(root); expect(exteriorPrograms).toBe(false); calls.push('world');
-        worldReady.resolve(); await options.worldWarm?.();
+        worldReady.resolve();
         await options.prepare?.(object);
       }, async () => {calls.push('frame'); await options.prepare?.(models);});
       calls.push('final'); finalStarted.resolve(); await options.prepare?.(models);
@@ -64,16 +64,16 @@ function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promi
     content: () => {invoke('content');}, result: () => task('result'), rawResult: () => invoke('result')};
 }
 
-test('world prefix overlaps play and the complete inventory still waits for all content', async () => {
+test('the complete inventory waits for all content without speculative compilation', async () => {
   const f = fixture();
   await f.start(); const result = f.result(), observed = settle(result);
   try {
-    await flush(); expect(f.calls).toEqual(['look', 'world']);
+    await flush(); expect(f.calls).toEqual([]);
     f.kit(); await flush();
-    expect(f.calls).toEqual(['look', 'world']);
+    expect(f.calls).toEqual([]);
     expect(f.root.visible).toBe(false); expect(f.models.visible).toBe(false);
     f.content(); await result;
-    expect(f.calls).toEqual(['look', 'world', 'before-final', 'final']);
+    expect(f.calls).toEqual(['before-final', 'final']);
   } finally {f.kit(); f.content(); f.owner.dispose(); await observed;}
 });
 
@@ -82,8 +82,8 @@ test('the final inventory still waits for equipment when play finishes first', a
   const f = fixture({prepare: object => object.name === 'staged-equipment' ? equipment.promise : Promise.resolve()});
   await f.start(); const result = f.result(), observed = settle(result);
   try {
-    f.content(); await flush(); expect(f.calls).toEqual(['look', 'world']);
-    f.kit(); await f.finalStarted; expect(f.calls).toEqual(['look', 'world', 'before-final', 'final']);
+    f.content(); await flush(); expect(f.calls).toEqual([]);
+    f.kit(); await f.finalStarted; expect(f.calls).toEqual(['before-final', 'final']);
     equipment.resolve(); await result;
     expect(f.calls.at(-1)).toBe('final');
   } finally {equipment.resolve(); f.kit(); f.content(); f.owner.dispose(); await observed;}
@@ -95,7 +95,7 @@ test('retirement while waiting for the kit wakes the rendezvous without preparin
   try {
     await flush(); f.owner.dispose();
     expect(String(await observed)).toMatch(/left before.*warm-up/u);
-    expect(f.calls).toEqual(['look', 'world']);
+    expect(f.calls).toEqual([]);
   } finally {f.kit(); f.content(); f.owner.dispose(); await observed;}
 });
 
@@ -104,20 +104,20 @@ test('retirement during play releases the content wait without preparing a retir
   const f = fixture();
   await f.start(); const result = f.result(), observed = settle(result);
   try {
-    f.kit(); await flush(); expect(f.calls).toEqual(['look', 'world']);
+    f.kit(); await flush(); expect(f.calls).toEqual([]);
     f.owner.dispose();
     expect(String(await observed)).toMatch(/left before.*warm-up/u);
-    expect(f.calls).toEqual(['look', 'world']);
+    expect(f.calls).toEqual([]);
   } finally {f.kit(); f.content(); f.owner.dispose(); await observed;}
 });
 
-test('final preparation refusal propagates after content without early compilation', async () => {
+test('final preparation refusal propagates after content', async () => {
   const f = fixture({prepare: object => object.name === 'staged-equipment' ? Promise.reject(new Error('equipment refused')) : Promise.resolve()});
   await f.start(); const result = f.result(), observed = settle(result);
   try {
     f.kit(); f.content();
     expect(String(await observed)).toContain('equipment refused');
-    expect(f.calls).toEqual(['look', 'world', 'before-final', 'final']);
+    expect(f.calls).toEqual(['before-final', 'final']);
   } finally {f.kit(); f.content(); f.owner.dispose(); await observed;}
 });
 
@@ -126,7 +126,7 @@ test('no staged models preserves the final warm and ordinary entries start no sp
   await f.start(); const result = f.result(), observed = settle(result);
   try {
     f.kit(); f.content(); await result;
-    expect(f.calls).toEqual(['look', 'world', 'before-final', 'final']);
+    expect(f.calls).toEqual(['before-final', 'final']);
     await ordinary.start(); expect(ordinary.rawResult()).toBeNull(); expect(ordinary.calls).toEqual([]);
   } finally {f.kit(); f.content(); f.owner.dispose(); ordinary.owner.dispose(); await observed;}
 });
@@ -137,37 +137,7 @@ test('a foundation without a final hook retains its world-material preparation',
   await f.start(); const result = f.result(), observed = settle(result);
   try {
     f.kit(); f.content(); await result;
-    expect(f.calls).toEqual(['look', 'world', 'look', 'final']);
+    expect(f.calls).toEqual(['look', 'final']);
   } finally {f.kit(); f.content(); f.owner.dispose(); await observed;}
 });
 
-test('the early world work overlaps content but is drained before final preparation', async () => {
-  const page = deferred(), f = fixture({worldWarm: () => page.promise});
-  await f.start(); const result = f.result(), observed = settle(result);
-  try {
-    f.kit(); f.content(); await flush();
-    expect(f.calls).toEqual(['look', 'world']);
-    page.resolve(); await result;
-    expect(f.calls).toEqual(['look', 'world', 'before-final', 'final']);
-  } finally {page.resolve(); f.kit(); f.content(); f.owner.dispose(); await observed;}
-});
-
-test('a world refusal preserves its identity and never publishes the complete inventory', async () => {
-  const failure = new Error('World program refused'), f = fixture({worldWarm: () => Promise.reject(failure)});
-  await f.start(); const observed = settle(f.result());
-  try {
-    f.kit(); f.content(); expect(await observed).toBe(failure);
-    expect(f.calls).toEqual(['look', 'world']);
-  } finally {f.kit(); f.content(); f.owner.dispose(); await observed;}
-});
-
-test('retirement drains an in-flight world prefix without replacing the owner refusal', async () => {
-  const page = deferred(), f = fixture({worldWarm: () => page.promise});
-  await f.start(); const observed = settle(f.result()); let finished = false;
-  void observed.then(() => {finished = true; return undefined;});
-  try {
-    await flush(); f.owner.dispose(); await flush(); expect(finished).toBe(false);
-    page.resolve(); expect(String(await observed)).toMatch(/left before.*warm-up/u);
-    expect(f.calls).toEqual(['look', 'world']);
-  } finally {page.resolve(); f.kit(); f.content(); f.owner.dispose(); await observed;}
-});

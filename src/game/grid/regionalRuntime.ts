@@ -301,20 +301,14 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               const equipment = new Promise<void>(resolve => { equipmentReady = resolve; });
               const content = new Promise<void>(resolve => { contentReady = resolve; });
               forgetContent = owner.capture('disposers', () => { equipmentReady(); contentReady(); });
-              enteredWarm = request.page.world.game.warmEnteredFrame(owner, view.root, async prepareRoots => {
-                await foundation.prepareWorldMaterials?.();
-                if (owner.disposed) throw new Error('Regional runtime left before its world warm-up');
-                // The completed world can link while kit/play add their own late models.
-                // Exterior variants, late materials and shadow/post passes stay final.
-                const worldPrograms = prepareRoots([view.root], false); void worldPrograms.catch(() => undefined);
-                try {
-                  await equipment;
-                  if (owner.disposed) throw new Error('Regional runtime left before its equipment warm-up');
-                  await content;
-                  if (owner.disposed) throw new Error('Regional runtime left before its final warm-up');
-                  await worldPrograms;
-                  await (foundation.beforeWarm !== undefined ? foundation.beforeWarm() : foundation.prepareWorldMaterials?.());
-                } finally { await Promise.allSettled([worldPrograms]); }
+              enteredWarm = request.page.world.game.warmEnteredFrame(owner, view.root, async () => {
+                await equipment;
+                if (owner.disposed) throw new Error('Regional runtime left before its equipment warm-up');
+                await content;
+                if (owner.disposed) throw new Error('Regional runtime left before its final warm-up');
+                // Final look preparation follows late content. Speculative root
+                // compilation competed with this content without reducing entry.
+                await (foundation.beforeWarm !== undefined ? foundation.beforeWarm() : foundation.prepareWorldMaterials?.());
               });
               // Observe an early failure now; afterPlay still awaits the original rejection before readiness.
               void enteredWarm.catch(() => undefined);

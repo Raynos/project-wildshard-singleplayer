@@ -1053,7 +1053,14 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   const total = () => jobs.length + Math.max(created.length, 1) + textures.length;
   const mode = parallel ? 'parallel' : 'serial';
   let tFrame = performance.now(), programsAtFrame = programCount(renderer);
-  let nativeInSlice = false, cachedCpuJobs = 0, cachedCpuMs = 0;
+  let nativeInSlice = false, cachedCpuJobs = 0, cachedCpuMs = 0, settledInFrame = 0;
+  const settleInSlice = async (): Promise<void> => {
+    if (queued[settled] === undefined || settledInFrame >= programsPerFrame()) return;
+    nativeInSlice = true;
+    const previous = settled;
+    await settleOne(tFrame);
+    settledInFrame += settled - previous;
+  };
   const preparedTargets = new Set<THREE.WebGLRenderTarget | null>([null]);
   let targetFences = fencedTargets.get(renderer);
   if (targetFences === undefined) { targetFences = new WeakMap(); fencedTargets.set(renderer, targetFences); }
@@ -1065,8 +1072,17 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     // on a stale local slice, and don't append first-use/link preparation after a compile has consumed the budget.
     // Another queued warm-up can spend the frame while this wait is pending.
     // Recheck on delivery instead of admitting every waiter behind one draw.
-    while (nativeBudgetSpent(sliceMs)) { await pause(); checkCurrent(); tFrame = performance.now(); programsAtFrame = programCount(renderer); nativeInSlice = false; }
+    while (nativeBudgetSpent(sliceMs)) { await pause(); checkCurrent(); tFrame = performance.now(); programsAtFrame = programCount(renderer); nativeInSlice = false; settledInFrame = 0; }
     checkCurrent();
+    // Resolve earlier ready links in this frame's spare issue time. Waiting
+    // until a compile spends the slice left every first-use query for a
+    // separate tail. Slow queries still finish their frame before issuing.
+    if (isolateImageUploads && queued[settled] !== undefined) {
+      await settleInSlice(); checkCurrent();
+      if (spent(tFrame) || settledInFrame >= programsPerFrame()) {
+        await pause(); checkCurrent(); tFrame = performance.now(); programsAtFrame = programCount(renderer); nativeInSlice = false; settledInFrame = 0;
+      }
+    }
     const jobStart = performance.now(); issuedPrograms.clear();
     if (job.rt !== null && !watchedTargets.has(job.rt)) {
       const target = job.rt; watchedTargets.add(target);
@@ -1155,8 +1171,8 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     // preparation, side variants and texture uploads retain their own fences.
     const cachedCompletion = cachedOnly && !nativeInSlice && isolateImageUploads && buildHeld() && presenting();
     if (sliceDone || capped || i === jobs.length - 1 && !cachedCompletion) {
-      if (isolateImageUploads && !spent(tFrame)) await settleOne(tFrame);
-      await pause(); tFrame = performance.now(); programsAtFrame = programCount(renderer); nativeInSlice = false;
+      if (isolateImageUploads && !spent(tFrame)) await settleInSlice();
+      await pause(); tFrame = performance.now(); programsAtFrame = programCount(renderer); nativeInSlice = false; settledInFrame = 0;
       for (const target of preparedTargets) if (target !== null) {
         const framebuffer = allocatedTarget(renderer, target);
         if (framebuffer !== undefined) targetFences.set(target, framebuffer);
