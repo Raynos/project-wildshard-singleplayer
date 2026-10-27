@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest';
+import { BoxGeometry, Group } from 'three';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
 import { createSimHost, type SimLevel } from '@wildshard/engine/sim';
@@ -7,6 +8,7 @@ import { GridAssembly } from './assembly';
 import { LiveGridHost } from './live';
 import { PageResidency } from './pageResidency';
 import { ApproachInputsDeferredError } from './productInputs';
+import { NearPlaceholders } from './nearPlaceholderView';
 
 const level: SimLevel = { version: 1, id: 'platform', seed: 1, ground: { size: 500, height: 0 },
   player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: 30 }, entities: [], quests: [],
@@ -49,7 +51,7 @@ async function fixture(options: { cap?: number; isolated?: boolean; beforeAdmit?
     const frame = await live.prepare(from, null); frame.commit(); return live.retainDeparted(from);
   };
   const settle = async (): Promise<void> => { live.beforeFixed(); await live.prefetch([]); };
-  return { live, home, next, residency, created, disposed, objects, allocated, expiries, control, enter, leave, settle,
+  return { live, home, next, assemblyPitch: assembly.pitch, residency, created, disposed, objects, allocated, expiries, control, enter, leave, settle,
     close: () => { control.dispose = true; live.dispose(); player.motor.dispose(); page.dispose(); residency.dispose(); } };
 }
 
@@ -217,4 +219,28 @@ test('passive metadata corruption keeps its original refusal and is never promot
     await expect(f.enter(f.home.instance)).rejects.toThrow('Metadata hash mismatch');
     expect(calls).toBe(1); expect(f.created).toEqual([]);
   } finally { f.close(); }
+});
+
+
+test('an optional near view cannot evict the real retained world needed for return', async () => {
+  const f = await fixture(); let near: NearPlaceholders | undefined;
+  try {
+    await f.enter(f.home.instance); const world = f.objects.get(f.home.instance);
+    expect(await f.leave()).toBe(true);
+    const baseline = f.residency.allocator.ownerCost(f.next.instance).playing;
+    const bytes = Math.floor((CONTENT_CAPS.playing - baseline) / CONTENT_CAPS.residentFactor) - 1000;
+    const root = new Group(), geometry = new BoxGeometry(), coverage: boolean[] = []; let discarded = false;
+    geometry.addEventListener('dispose', () => { discarded = true; });
+    near = new NearPlaceholders({ allocator: f.residency.allocator, cells: [f.next], pitch: f.assemblyPitch,
+      root: () => root, mask: () => new Set<number>(), cover: (_instance, covered) => { coverage.push(covered); },
+      load: () => Promise.resolve({ prepared: { geometry, look: { family: 'toon', haze: { colour: [1, 1, 1] } } }, bytes }) });
+    near.update(f.next.origin, null); await Promise.resolve(); await Promise.resolve();
+    expect(coverage).toEqual([]);
+    expect(discarded).toBe(true); expect(root.children).toEqual([]);
+    expect(f.live.state().retainedCell?.instance).toBe(f.home.instance);
+    expect(f.disposed).toEqual([]);
+    expect(f.residency.allocator.entries().find(row => row.id === `sim:${f.home.instance}`)?.bytes).toBe(50_000_000);
+    await f.enter(f.home.instance);
+    expect(f.created).toEqual([f.home.instance]); expect(f.objects.get(f.home.instance)).toBe(world);
+  } finally { near?.dispose(); f.close(); }
 });
