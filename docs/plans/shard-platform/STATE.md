@@ -23,12 +23,14 @@ budget); held view >= 30 fps. Jake picks: D175 / D178 / D179 / D181 + Sky retent
 (D176), I1 (26 MB target moved to I3; I3 now measured on real brotli wire). js-heap 100 % archived; I7 / I10 / I12
 done (iphone 10 / 12). Open: H4 (sp-x9), I2 (Pine 140 MB raw / 404 req; sp-o3 + sp-x2). Counter 171.5 / 209 = 82 %.
 CI: every known red routed to its breaker or taken by sp-ci-deploy as G754 backup; live still 59a595ab10.
-**12:15 reply:** SW12 done (sp-x10). Codex runs past 100 % on credits (G590). G806 applied. Awaiting-reading list:
-[finish-line](finish-line.md#landed-awaiting-the-plan-end-reading-g780-1120-cancun-10-27).
+**13:50 reply:** (1) 22db8bf645 / 79a05a38e9 are Opus commits (sp-o3's I3 Pine phone geometry, inside iphone-downloads),
+not sp-x6's; sp-x6 is pointed back at ci-flow (CF2-CF5, GM1) once Q2 closes. (2) sp-x10: SW12 first if it isn't landed,
+then DW cold with sp-x8. (3) sp-o4 is formally on tile-streaming (T3 / T8 / T10 plan-end readings) with sp-o5 as owner:
+two Opus lanes on that plan. Awaiting-reading list: [finish-line](finish-line.md#landed-awaiting-the-plan-end-reading-g780-1120-cancun-10-27).
 **Blocked on Jake:** road B pilot play; boards as they land; LD5-LD8 / A1 / A2 / M2 / RM13 (counted, G779).
 
 **Lanes (G804 / G805; G803 3 Opus; Claude 76 %, Codex 89 % on credits):** sp-o3 iphone-downloads (+ sp-x2), sp-o5
-tile-streaming + crossing T7, sp-o4 grid-crossing Pine (js-heap done), sp-x8 grid-crossing (+ sp-x10), sp-x9 loading,
+tile-streaming + crossing T7, sp-o4 tile-streaming readings (js-heap done), sp-x8 grid-crossing (+ sp-x10), sp-x9 loading,
 sp-x6 ci-flow + GM1, sp-x1 generators, sp-ci-deploy CI reds only. sp-o1 / sp-o2 released.
 
 **Rules:** G704 (<= ~20 files/move commit). G803. No reverts (G674). No new Debug rows (G669). G670.
