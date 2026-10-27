@@ -8,7 +8,6 @@
 // ignored files.
 import { matchesGlob } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { execFileSync } from 'node:child_process';
 
 /** @typedef {{ readonly id: string; readonly outputs: readonly string[]; readonly inputs: readonly string[]; readonly committed: boolean;
  *   readonly generate?: (root: string) => Promise<Readonly<Record<string, string>>>;
@@ -101,10 +100,10 @@ export const SOURCE_GENERATORS = [
   {
     id: 'packs',
     outputs: ['src/game/boot/packs.generated.ts'],
-    inputs: ['public/assets/**', 'src/game/boot/bytes.generated.ts', 'scripts/bake-packs.mjs'],
-    committed: false,
-    note: 'content-addressed pack blobs under public/assets/packs come with it, packed from the built public/assets',
-    run: (root, check) => { execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', 'scripts/bake-packs.mjs', ...(check ? ['--check'] : [])], { cwd: root, stdio: 'inherit' }); },
+    inputs: ['scripts/boot-publication.generated.json', 'scripts/boot-publication.mjs'],
+    committed: true,
+    note: 'plain source formatting of the complete published part inventory; no pack/blob/native work during source generation',
+    generate: async root => ({ 'src/game/boot/packs.generated.ts': (await import(pathToFileURL(`${root}/scripts/boot-publication.mjs`).href)).bootPublicationTableSources(root)['src/game/boot/packs.generated.ts'] }),
   },
   {
     id: 'ktx2',

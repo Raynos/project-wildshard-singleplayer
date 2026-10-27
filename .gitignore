@@ -158,7 +158,6 @@ public/assets/driftwood-isle/map/top.webp
 /public/assets/blender-template/map/top.webp
 
 # Maintained ignored source tables; committed tables need no exception.
-/src/game/boot/packs.generated.ts
 /src/shards/_template/discovery.generated.ts
 /src/shards/blender-template/discovery.generated.ts
 /src/shards/driftwood-isle/discovery.generated.ts
