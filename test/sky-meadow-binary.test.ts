@@ -36,7 +36,12 @@ test('packed meadow preserves the independent original byte and scene inventory'
   expect(SKY_MEADOW_BLOB.file.gpu).toBe(1736788);
   expect(SKY_MEADOW_BLOB.file.dependencies).toEqual([packed.file.hash]);
   expect(SKY_MEADOW_BLOBS).toHaveLength(2);
-  expect(SKY_MEADOW_BLOBS.every(blob => SKY_SCENE_BLOBS.includes(blob))).toBe(true);
+  for (const blob of SKY_MEADOW_BLOBS) {
+    const owned = SKY_SCENE_BLOBS.find(row => row.file.name === blob.file.name);
+    if (owned === undefined) throw new Error('Missing original meadow world file');
+    expect(owned.file).toEqual(blob.file);
+    expect(hashImmutableBytes(owned.bytes)).toBe(blob.file.hash);
+  }
   expect(SKY_MEADOW_BLOB.bytes.byteLength).toBe(138635);
 });
 
