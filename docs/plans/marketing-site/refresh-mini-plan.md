@@ -1,6 +1,6 @@
 # Mini plan: refresh the marketing site (E506)
 
-**State:** `draft` 2026-10-27 (E506), a plan only, nothing built. Part of [MARKETING-SITE](../MARKETING-SITE.md).
+**State:** `in progress` 2026-10-27 (E506): Jake's grill settled RD1–RD16; wave 1 is being built. Part of [MARKETING-SITE](../MARKETING-SITE.md).
 Jake's picks (§5) go to him later as A / B / C boards.
 
 Jake (E506, 2026-10-27): *"We haven't updated it in ages. We definitely want to put that new world map, the concept,
@@ -8,9 +8,38 @@ the vision of the new world map on the marketing plan. Give me all the suggestio
 website. … we've made a lot of progress in the last couple of weeks since we built the marketing website, especially
 the shard platform plan."*
 
+**Length rule** (Jake, 2026-10-27: *"we did a lot of work on the marketing website to make it not too long and not too
+full of bullshit and fluff … we don't want to just blow it and triple the size of the page … we need to be super
+focused on everything that's there"*): **swap, don't add.** Each page stays at its MS25 / MS29–MS31 length or shorter
+(home 11.5 phone screens, /play 12.1, /build 10.1, /mmo 10.4, measured as round 8 did). A row that adds height removes
+the same height in the same commit; fixes are rewrites in place. `/map/` is the one new page, a picture behind one link.
+Under this rule MR2 is a rewrite of the existing status line, MR5's diagram is desktop-only (MS26's sticky column), MR9
+keeps the journey's row count, and MR18 folds into the road and the FAQ instead of a new block.
+
 **Where it stands:** https://wildshard.io last deployed 2026-10-11 (`version.json`: build `441bb32b`; the last `site/`
 commit is 351a20e05c). About 10,400 commits have landed since 2026-10-10. Every word is in `site/COPY.md`; a push that
 changes `site/` redeploys it (`site-deploy.yml`).
+
+## Grill decisions (Jake, 2026-10-27)
+
+| # | Decision |
+|---|---|
+| RD1 | **Length: same or shorter.** The length rule above is the cap; nothing grows. |
+| RD2 | **The map replaces the Frontier Atlas painting** in "What is Wildshard" (Heart crop + "Explore the map" to `/map/`). P3 settled. |
+| RD3 | **Map names as drawn.** The site shows the map with every name it has, homages included; the caption says every name is invented. P2 settled (A). |
+| RD4 | **Hero: the title's 5 × 5 aerial**, a clean retake with no labels. P1 settled (B). |
+| RD5 | **Cartridge story: one line on home, the full story on /mmo** in place of its stale "truth today" text. |
+| RD6 | **The Night Market is not built.** Jake: *"Night market is not built bro it's placeholder open plot slop."* The site never shows or names the in-game Night Market as content; no gate, figure or plot-dressing captures. Coming worlds: RD9. |
+| RD7 | **Journey keeps its row count**: early rows merge so the new milestones fit today's height. |
+| RD8 | **The grid shows, tagged "In testing"**: real captures, the road says public is a state, not a date. |
+| RD9 | **Coming worlds keeps its six paintings** (labelled concept art). MR8 and MR21 are dropped; P6 settled (A). |
+| RD10 | **Trailer: keep the alpha trailer**; cut a "one world" trailer from real footage once MR7's travel clip exists. P5 settled. |
+| RD11 | **`/map/` is the pinch-zoom tiled map with the legend and "Most played" list as text** under it (MR4 as written). |
+| RD12 | **Discord stays "coming"**; MR22 drops the Discord part. |
+| RD13 | **Memory: 1.2 GB per shard** on the site; SHARDS.md's 1,000 MB is fixed to match. |
+| RD14 | **Numbers come from the game's files** at site build time (MR11, MR12), plain scripts, no new tooling. |
+| RD15 | **/build: rewrite steps 3–4 in place** (MR13), same six steps, same length. |
+| RD16 | **Build wave 1 now** (Jake, 2026-10-27): MR9, MR10, MR11, MR12, MR15, MR18 (folded), MR2 (rewrite), MR3, MR4, MR6, MR1. |
 
 ## 1. What's stale
 
@@ -20,14 +49,14 @@ What the site says today, what's true now, and the proof in the repo.
 |---|---|---|---|
 | Home · journey intro | "Three weeks, one engine, seven shards" | Six weeks (16 Sep → 27 Oct) | git log |
 | Home · journey 7 | "The grid goes public: walk from one shard into the next" | The grid is real but **only with Settings ▸ Developer on**; the public title doesn't offer it yet | `src/game/grid/menu.ts` `GRID_GATES_PASSED = false` |
-| Home · journey | Stops on 9 Oct | Missing: every shard rebuilt as data (23 Oct), the 5 × 5 grid with open plots (20 Oct), the Night Market (23 Oct), the road between shards with no loading panel (24 Oct), the new title (26 Oct) | 27dd969127, 8076aec207, 1a5ffecb7c, d8598ec213, 1873e9ca2c |
+| Home · journey | Stops on 9 Oct | Missing: every shard rebuilt as data (23 Oct), the 5 × 5 grid with open plots (20 Oct), the road between shards with no loading panel (24 Oct), the new title (26 Oct) | 27dd969127, 8076aec207, 1a5ffecb7c, d8598ec213, 1873e9ca2c |
 | /mmo · status, grid | "a 3 × 3 grid you can walk across", "three open plots" | A **5 × 5**: seven shards in the middle ring, 18 open plots round them (14 plot ideas) | `src/game/grid/singleplayer.json` (`grid.cells`, 25) |
 | /mmo · grid, seam | "centres sit 555 m apart", "a 20 m strip, the 15 m highway, a 20 m strip" | 562.5 m apart: a 62.5 m gap round each 500 m cell, 15 m of road in it | ae2dca27dc (G638 A) |
 | /mmo · layers "truth today" | "The six older shards still carry their own TypeScript … 80/20, then 90/10" | **Every shard is at zero custom code**: data, baked assets and sandboxed scripts; the old copies stay only until Jake's phone check | 27dd969127 (M3 100 %), SHARD-PLATFORM State |
 | /mmo · road 2 and 3 | "on iPhone, frame pacing still misses"; "none at 80/20 yet" | Format: done. Grid: 5 × 5 in testing, crossing and loading speed still being cut | STATE.md, grid-crossing and loading-speed mini plans (open) |
 | /mmo · budgets note | "an iPhone … inside 1.0 GB" | Three numbers in the repo: SHARDS.md 1,000 MB playing; AGENTS.md 1.2 GB per shard (G534, G556); the site 1.0 GB | AGENTS.md, docs/SHARDS.md |
 | /mmo · shardfile note | "Version 0.1: 6,018 schema paths" | Hand-copied on 10-10; the schema has grown since | `src/format/shardSchema.ts` history |
-| Home · coming worlds | Lantern Night Market is "an idea, not built" | The Night Market is now built in the game as the first open plot (Developer only) | `src/shards/open-plots/`, night-market mini plans |
+| Home · coming worlds | Lantern Night Market is "an idea, not built" | Still true for the site: the in-game Night Market is placeholder open-plot dressing, not a built shard (Jake, RD6) | Jake, 2026-10-27 |
 | Home · What | The "Frontier Atlas" GPT painting stands for the world | The code-drawn world map is the newer and truer picture of the vision | `art/world-map/round-4-plots/` |
 | /build · status | "the SDK and its checks build the shards of our own alpha" | Still true, and stronger: **all** seven now go through it with no exceptions | 27dd969127 |
 | /build · claim grid | "seven shards and the centre placed, seventeen cells still empty" | 18 open plots, each already showing an idea as a hologram | `singleplayer.json`, `src/shards/open-plots/README.md` |
@@ -89,15 +118,15 @@ Effort: S = an hour or two, M = half a day, L = a day or more. "Pick" means it w
 | MR5 | **Shards become places on one grid**: "Seven shards. Seven looks. One engine." becomes "Seven shards, one grid": a small 5 × 5 diagram above the cards, each card lit on the grid | The shards aren't separate games any more; they sit side by side | Diagram drawn at build time from `singleplayer.json` (can't drift), real card stills | M | **P4** |
 | MR6 | **The platform story, in plain words**: *"The game is the console. A shard is a cartridge."* A shard ships only data, baked art and small sandboxed scripts; the game runs any shard the same way. Proof line: *"Every shard you can play today was rebuilt this way: about 99,000 lines of one-off code down to zero."* | The biggest thing done since the site launched (SHARD-PLATFORM M3, 23 Oct); also why a stranger's shard is safe on your phone | text + the existing shard.json excerpt (regenerated) | M | no |
 | MR7 | **Seamless travel clip** (was MS27): ride the road out of Driftwood into the next shard, no loading screen | The MMO's best proof: one world, not a menu of levels | Real HEAD capture, iPhone 16 Pro, overlays off; tag *"In testing · not in the public build yet"* | M | no |
-| MR8 | **Open plots, waiting for authors**: the 18 empty cells already show an idea as a turning hologram with a "coming soon" sign; the Night Market is the first one dressed as a real place | Shows exactly where a new author's shard would go | Real captures (Night Market gate, a hologram plot); tag *"In development"* | M | **P6** |
-| MR9 | **Journey to today**: "six weeks"; fix row 7 to *"The grid, in testing"*; add *Every shard on one format* (23 Oct), *A 5 × 5 world with open plots* (20 Oct), *The Night Market* (23 Oct), *The road between shards* (24 Oct); "Next" unchanged | Shows the pace honestly | Real captures for each row | S | no |
+| MR8 | **Open plots, waiting for authors**: the 18 empty cells already show an idea as a turning hologram with a "coming soon" sign (never the Night Market dressing: placeholder, RD6) | Shows exactly where a new author's shard would go | Real captures (a hologram plot); tag *"In development"* | M | **P6** |
+| MR9 | **Journey to today**: "six weeks"; fix row 7 to *"The grid, in testing"*; add *Every shard on one format* (23 Oct), *A 5 × 5 world with open plots* (20 Oct), *The road between shards* (24 Oct); "Next" unchanged | Shows the pace honestly | Real captures for each row | S | no |
 | MR10 | **The honest road, redone** (home "Next" and /mmo road): the package ✓ · every shard on the format ✓ · the 5 × 5 grid: in testing · faster travel and loading: in progress · open plots: in progress · multiplayer: not started · uploads and creator keys: not started · the first player-built grid: not started. A dated *"as of"* line | The road is where trust is won; today's version undersells the done parts and is stale on the rest | text | S | no |
 | MR11 | **/mmo grid numbers**: 5 × 5, 562.5 m apart, a 62.5 m gap with a 15 m road, open plots; redraw the grid and seam pictures from `singleplayer.json` at build time | Fixes four wrong numbers and stops the drift for good | Diagram (SVG) | M | no |
 | MR12 | **/mmo facts read at build time**: the schema count, the layers "truth today" (zero custom code), one memory number from one source (SHARDS.md or Jake's 1.2 GB, his call when he reads the copy) | Hand-copied numbers rot within days on this project | text | S | no |
 | MR13 | **/build: how authoring works now**: one SDK path for every shard (build → report card → validate), build-time generators that fill the cell, looks written as data (material graphs), the ground streamed in tiles near you, one shard folder that makes many shards (the open-plots kit makes 14) | The six steps are right; the inside of steps 3–4 changed completely | text + a real report-card print from `wildshard build` | M | no |
 | MR14 | **/build: one template, any look**: the Template beside Pastel Plain and Ink & Cel, the same level in three looks | Shows looks are data an author swaps | Real captures (Developer fixtures) | S | no; **would cut**: the fixtures are test shards, not content |
 | MR15 | **/play "Live today, coming next"**: add *"The world: all seven shards on one 5 × 5 grid, joined by a road. In testing."*; move "Infinite Wildshard" from "coming" to "in testing"; recheck every travel speed against the code | The player page should say what a player can almost do now | text | S | no |
-| MR16 | **Trailer**: keep the alpha trailer; when MR7's clip exists, cut a 20–30 s *"one world"* trailer (the title's aerial → the road → into the next shard → the Night Market gate) | Today's trailer predates the grid | Real HEAD footage only (CINEMATICS.md: motion is the bar) | M | **P5** |
+| MR16 | **Trailer**: keep the alpha trailer; when MR7's clip exists, cut a 20–30 s *"one world"* trailer (the title's aerial → the road → into the next shard) | Today's trailer predates the grid | Real HEAD footage only (CINEMATICS.md: motion is the bar) | M | **P5** |
 | MR17 | **Fresh media for the cards and loops**: retake the seven card stills and loops from HEAD (Driftwood's new toon clouds 1d4a4f738f, the lighter post look, Pine and Nalati's streamed ground) | The cards are 10-10 captures; the game looks better now | Real HEAD captures, overlays off (every `art/` capture in this round has labels or the HUD burned in) | M | no |
 | MR18 | **"What's not here yet"**, one short block (home FAQ + /mmo): no multiplayer, no uploads, no creator keys, no sign-in or accounts (progress saves on your device), no Discord yet, no store apps yet; the grid and open plots are in testing | Honesty is the site's rule; the new grid and plot pictures make it easy to over-read | text | S | no |
 | MR19 | **Share cards and search**: a new `og.jpg` (the 5 × 5 aerial or the map's Heart, with the wordmark), one card per page (/play, /build, /mmo, /map), `/map/` in the sitemap, descriptions that say *one world*, structured data for a free browser game | Links shared on X / iMessage will carry the map; today every page shares the same Sky Reach card | Real capture or the concept map (labelled) | S | no |
