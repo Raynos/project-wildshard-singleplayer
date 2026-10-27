@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { bakedEdgeProfiles, nativeEdgeProfiles, type EdgeColour } from './edgeProfiles';
+import { bakedEdgeProfiles, type EdgeColour, type EdgeProfiles } from './edgeProfiles';
 
 const palette: readonly [EdgeColour, EdgeColour, EdgeColour, EdgeColour] = [[0.13, 0.27, 0.51], [0.31, 0.47, 0.59], [0.61, 0.73, 0.89], [0.97, 0.83, 0.19]];
 function bake(count: number, offset: number): Uint8Array<ArrayBuffer> {
@@ -12,14 +12,27 @@ function bake(count: number, offset: number): Uint8Array<ArrayBuffer> {
   return bytes;
 }
 /** Retain the former full-lattice Float32 decode and the original splat arithmetic. */
-function original(bytes: Uint8Array): ReturnType<typeof nativeEdgeProfiles> {
+function original(bytes: Uint8Array): EdgeProfiles {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), count = view.getUint32(8, true), n = count * count;
   const heights = Float32Array.from({ length: n }, (_, i) => view.getFloat32(24 + i * 4, true));
-  return nativeEdgeProfiles({ resolution: count, heights, colourAt: index => {
+  const colourAt = (index: number): EdgeColour => {
     const weights = Array.from({ length: 4 }, (_, i) => view.getUint8(24 + n * 4 + index * 4 + i)), sum = weights.reduce((a, b) => a + b, 0);
     const channel = (c: number): number => palette.reduce((total, rgb, i) => total + (rgb[c] ?? 0) * (weights[i] ?? 0) / sum, 0);
     return [channel(0), channel(1), channel(2)];
-  } });
+  };
+  // The oracle retains its own boundary walk, independent of copyEdges.
+  const edge = (side: 'north' | 'east' | 'south' | 'west') => {
+    const row: number[] = [], colours: EdgeColour[] = [];
+    for (let i = 0; i < count; i++) {
+      const x = side === 'east' ? count - 1 : side === 'west' ? 0 : i;
+      const z = side === 'north' ? count - 1 : side === 'south' ? 0 : i;
+      const index = z * count + x, height = heights[index];
+      if (height === undefined) throw new Error('Missing oracle boundary');
+      row.push(height); colours.push(colourAt(index));
+    }
+    return { heights: row, colours, roadHeight: 0 };
+  };
+  return { north: edge('north'), east: edge('east'), south: edge('south'), west: edge('west') };
 }
 test.each([[256, 0], [256, 1], [257, 0], [257, 1]])('complete edge words match full lattice decoding (%i, offset %i)', (count, offset) => {
   const bytes = bake(count, offset), before = bytes.slice(), expected = original(bytes), actual = bakedEdgeProfiles(bytes, palette);
