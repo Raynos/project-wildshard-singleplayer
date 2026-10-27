@@ -61,7 +61,7 @@ test('fresh owned places retain native bytes and metadata with detached cache hi
       for(const [name,bytes] of hit)assert.equal(hashImmutableBytes(bytes),hashes.get(name));
     }finally{rmSync(cache,{recursive:true,force:true});}
   `;
-  execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--import', './test/fixtures/authoring-shard.mjs', '--input-type=module', '--eval', source, '--', '--generation-shard=nalati-grasslands']);
+  execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '--eval', source, '--', '--generation-shard=nalati-grasslands']);
 });
 
 test('missing terrain and incomplete or extra cached outputs refuse', async () => {

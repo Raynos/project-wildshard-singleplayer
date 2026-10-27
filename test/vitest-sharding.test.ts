@@ -78,7 +78,11 @@ test('native source suites start with verified inputs and never wait for a produ
     'nalati-native-dressing-reader', 'nalati-place-construction', 'nalati-places-program'].map(name => `test/${name}.test.ts`);
   expect(selectTestCohort(native, registry, 'product-free')).toEqual(native);
   expect(selectTestCohort(native, registry, 'products')).toEqual([]);
-  for (const path of native) expect(readFileSync(path, 'utf8')).not.toMatch(/fixtures\/builtProduct|readBuiltShardfile/u);
+  for (const path of native) {
+    const source = readFileSync(path, 'utf8');
+    expect(source).not.toMatch(/fixtures\/builtProduct|readBuiltShardfile/u);
+    expect(source).not.toContain('authoring-shard.mjs');
+  }
 });
 
 test('the product phase borrows this preparation cache before strict current admission', () => {

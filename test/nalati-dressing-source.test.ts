@@ -13,6 +13,7 @@ test('source dressing retains every native static and runtime plan value', () =>
     import assert from 'node:assert/strict';
     import { readFileSync } from 'node:fs';
     import { prepareNativeTerrain } from './scripts/bake/nativeWorld.mjs';
+    import {originalGeographyFiles} from './test/fixtures/nalati-geography-original.ts';
     import { installBakeEnvironment } from './scripts/bake/environment.mjs';
     import { MANIFEST } from './src/shards/nalati-grasslands/discovery.generated.ts';
     import { dressingRecipe,dressingPoiColliders } from './src/shards/nalati-grasslands/generators/dressingPlan.ts';
@@ -37,6 +38,8 @@ test('source dressing retains every native static and runtime plan value', () =>
       const environment=installBakeEnvironment(process.cwd());
       try{
         const definition=mask===undefined?MANIFEST:{...MANIFEST,forest:{...MANIFEST.forest,mask}};
+        if (definition.scalarBlocks === undefined) throw new Error('Missing original scalar intake');
+        definition.scalarBlocks.prepare(originalGeographyFiles());
         await prepareNativeTerrain(definition,{root:process.cwd(),bytes:readFileSync('public/assets/baked/nalati-grasslands/terrain.bin')});
         const meadow=bakeMeadowField({seed:definition.seed,half:250,heightAt:terrainHeight,
           normalAt:field.normalAt,splatAt:field.splatAt,trailDistance:field.trailDistance,
@@ -65,7 +68,7 @@ test('source dressing retains every native static and runtime plan value', () =>
       }finally{environment.dispose();}
     }
   `;
-  execFileSync(process.execPath, [...native, '--import', './test/fixtures/authoring-shard.mjs', '--input-type=module', '--eval', source, '--', '--generation-shard=nalati-grasslands']);
+  execFileSync(process.execPath, [...native, '--input-type=module', '--eval', source, '--', '--generation-shard=nalati-grasslands']);
 });
 
 test('source dressing needs no selected world or installed terrain', () => {

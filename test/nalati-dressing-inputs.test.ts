@@ -54,7 +54,7 @@ test('owned native inputs preserve complete sampled and continuous dressing befo
       assert.equal(hash(results[index]),hash(predecessor));
     }
   `;
-  execFileSync(process.execPath, [...native, '--import', './test/fixtures/authoring-shard.mjs', '--input-type=module', '--eval', source,
+  execFileSync(process.execPath, [...native, '--input-type=module', '--eval', source,
     '--', '--generation-shard=nalati-grasslands']);
 });
 

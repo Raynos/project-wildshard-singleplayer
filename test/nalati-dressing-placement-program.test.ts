@@ -65,7 +65,7 @@ test('fresh and persistent placement rows retain all eighteen complete native pr
       for(const [i,row]of actual.entries())assert.equal(Buffer.compare(row.bytes,expected[i].bytes),0,row.file.name);
     }finally{rmSync(cache,{recursive:true,force:true});}
   `;
-  execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--import', './test/fixtures/authoring-shard.mjs', '--input-type=module', '--eval', source, '--', '--generation-shard=nalati-grasslands']);
+  execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '--eval', source, '--', '--generation-shard=nalati-grasslands']);
 });
 
 test('missing native terrain and incomplete, extra or empty placement inventories refuse', async () => {

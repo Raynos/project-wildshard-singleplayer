@@ -38,7 +38,7 @@ test('native Node authors preserve every original sampled placement with no gene
       }
     }finally{fs.readFileSync=originalRead;syncBuiltinESMExports();}
   `;
-  execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--import', './test/fixtures/authoring-shard.mjs', '--input-type=module', '--eval', source, '--', '--generation-shard=nalati-grasslands']);
+  execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '--eval', source, '--', '--generation-shard=nalati-grasslands']);
 });
 
 // GR6: the build constructs the grass; every original block and its rows keep their bytes (pinned before retirement)

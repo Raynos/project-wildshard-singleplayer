@@ -8,7 +8,7 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import * as v from 'valibot';
 import before from './fixtures/nalati-place-wires.json' with { type: 'json' };
 
-const native = ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--import', './test/fixtures/authoring-shard.mjs'];
+const native = ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs'];
 const shard = '--generation-shard=nalati-grasslands';
 
 test('fresh native POI keep-outs preserve all original rows without selecting a world or retaining geometry', () => {
@@ -82,7 +82,9 @@ test('native dressing preparation does not read the old generated place rows', (
     import { syncBuiltinESMExports } from 'node:module';
     const prior=fs.readFileSync;
     fs.readFileSync=(path,...options)=>{
-      if(String(path).replaceAll('\\\\','/').endsWith('/nalati-grasslands/data/places.json'))
+      const file=String(path).replaceAll('\\\\','/');
+      if(file.includes('/out/') || file.includes('/wildshard/shardfiles/')) throw new Error('Unexpected built-product input');
+      if(file.endsWith('/nalati-grasslands/data/places.json'))
         throw new Error('Unexpected generated POI preparation input');
       return prior(path,...options);
     };
