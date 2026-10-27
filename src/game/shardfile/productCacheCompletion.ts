@@ -20,7 +20,7 @@ export function productCacheCompletion(source: Shardfile, options: ProductOption
       const lower = { ...options, fetch: options.backgroundFetch ?? options.fetch };
       // A foreground worker transport must not turn this low-priority queue
       // into competing foreground fetches. Verified cache hits still apply.
-      delete lower.verifiedResponse; delete lower.transport;
+      delete lower.verifiedResponse; delete lower.transport; delete lower.fetchRange;
       const reader = new ClientAssets(source, new Map(), lower), base = new URL('.', options.base).href;
       const present = async (hash: string, size: number): Promise<boolean> => {
         if (cache.verifiedPresent !== undefined) return cache.verifiedPresent(hash, size);

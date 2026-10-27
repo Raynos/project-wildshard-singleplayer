@@ -90,23 +90,45 @@ export class ClientAssets {
     const member = pack?.entries.find(entry => entry.hash === ref);
     if (pack === undefined || member === undefined) return undefined;
     if (member.bytes !== cap) throw new Error('Resident packed member size mismatch');
-    let pending = this.packs.get(pack.hash);
+    // Cache awaits above admit the caller's current read-ahead wave before this
+    // snapshot. Only contiguous demanded members may share a partial envelope.
+    const index = pack.entries.indexOf(member);
+    let first = index, last = index;
+    while (first > 0 && this.pending.has(pack.entries[first - 1]?.hash ?? '')) first--;
+    while (last + 1 < pack.entries.length && this.pending.has(pack.entries[last + 1]?.hash ?? '')) last++;
+    const whole = first === 0 && last === pack.entries.length - 1;
+    const left = pack.entries[first], right = pack.entries[last];
+    if (left === undefined || right === undefined) throw new Error('Resident packed member missing');
+    if (!whole && (first === last || this.options.fetchRange === undefined)) return undefined;
+    const start = left.offset, end = right.offset + right.bytes - 1, size = end - start + 1;
+    const key = `${pack.hash}:${start}-${end}`;
+    let pending = this.packs.get(key);
     if (pending === undefined) {
-      // A native tile request must not pull distant, unrequested members into
-      // the control fence merely because they share a transport envelope.
-      if (!pack.entries.every(entry => this.pending.has(entry.hash))) return undefined;
       pending = (async () => {
-        const wire = await boundedResponse(await this.options.fetch(new URL(pack.path, this.options.base).href), pack.bytes);
-        if (wire.length !== pack.bytes || await this.hashOf(wire) !== pack.hash) throw new Error('Resident pack hash or size mismatch');
+        const url = new URL(pack.path, this.options.base).href;
+        let response: Response;
+        if (whole) response = await this.options.fetch(url);
+        else {
+          const read = this.options.fetchRange;
+          if (read === undefined) throw new Error('Resident pack range capability missing');
+          response = await read(url, start, end);
+          if (response.status !== 206 || response.headers.get('content-range') !== `bytes ${start}-${end}/${pack.bytes}`) {
+            await response.body?.cancel();
+            throw new Error('Resident pack range response differs');
+          }
+        }
+        const wire = await boundedResponse(response, size);
+        if (wire.length !== size || whole && await this.hashOf(wire) !== pack.hash) throw new Error('Resident pack hash or size mismatch');
         return wire;
       })();
-      this.packs.set(pack.hash, pending);
+      this.packs.set(key, pending);
     }
     try {
-      const bytes = (await pending).slice(member.offset, member.offset + member.bytes);
-      return bytes;
-    } finally { if (this.packs.get(pack.hash) === pending) this.packs.delete(pack.hash); }
+      const offset = member.offset - start;
+      return (await pending).slice(offset, offset + member.bytes);
+    } finally { if (this.packs.get(key) === pending) this.packs.delete(key); }
   }
+
   /** SHA-256 of `bytes` off the page (an owned copy through `hashOwned`), else on the page. */
   private async hashOf(bytes: Uint8Array): Promise<string> {
     const hashOwned = this.options.hashOwned;

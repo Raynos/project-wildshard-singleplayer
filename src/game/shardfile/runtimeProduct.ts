@@ -92,6 +92,7 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
       }
       return fetch(url);
     })(), 'file'),
+    ...(firstParty ? { fetchRange: (url: string, start: number, end: number) => waitFor(`Fetch pack range ${start}-${end}`, fetch(url, { headers: { Range: `bytes=${start}-${end}` } }), 'file') } : {}),
     ...(indexed === undefined ? {} : { cachedResponse: async (url: string, hash: string, maximum: number) =>
       (await cachedTransport(caches, url, maximum, browserContentHash, actual => actual === hash))?.bytes ?? null,
     verifiedResponse: async (url: string, hash: string, maximum: number) =>

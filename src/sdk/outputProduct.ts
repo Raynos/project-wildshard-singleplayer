@@ -154,7 +154,29 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
   // Descriptor, required-body and deferred-body reads are distinct phases. A required member must never bring
   // late/spatial bytes along in its pack; every member keeps its unchanged path/hash, and all pack caps stay fixed.
   // Explicit device variants also stay apart: selecting a phone member cannot fetch a packed desktop alternative.
-  const small = files.filter(file=>file.compressed<PACK_MEMBER_BYTES).sort((a,b)=>a.hash.localeCompare(b.hash));
+  // Keep the author tables' consumer order inside each existing phase/tier
+  // group. Runtime read-ahead can then request adjacent members without gaps.
+  const consumerNames = new Map<string, string>();
+  for (const file of files) for (const name of [file.hash, file.path, ...file.name === undefined ? [] : [file.name]]) consumerNames.set(name, file.hash);
+  const order = new Map<string, number>();
+  const note = (references: unknown): void => {
+    const pending: unknown[] = [references];
+    while (pending.length > 0) {
+      const value = pending.pop();
+      if (typeof value === 'string') { const hash = consumerNames.get(value); if (hash !== undefined && !order.has(hash)) order.set(hash, order.size); }
+      else if (value !== null && typeof value === 'object') {
+        const children: readonly unknown[] = Array.isArray(value) ? value : Object.values(value);
+        for (let i = children.length - 1; i >= 0; i--) pending.push(children[i]);
+      }
+    }
+  };
+  for (const row of options.platform?.sections ?? []) {
+    const bytes = emitted.get(row.path); if (bytes === undefined) throw new Error('Missing pack consumer section');
+    note(readJson(bytes));
+  }
+  note(source.props?.tiles); note(source.tiles);
+  const small = files.filter(file=>file.compressed<PACK_MEMBER_BYTES).sort((a,b)=>(order.get(a.hash) ?? Infinity)-(order.get(b.hash) ?? Infinity)
+    || (a.name ?? a.hash).localeCompare(b.name ?? b.hash) || a.hash.localeCompare(b.hash));
   // A typed alternative need not have an explicit file.tier. Use the same entry
   // projection as admission so an inactive variant cannot poison a whole pack.
   const selection = { index: { files }, sections: new Map(sections.map(row => {

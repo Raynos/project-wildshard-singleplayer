@@ -162,3 +162,18 @@ it.each(['cold','critical','dependency','played'] as const)('packs %s whole-libr
  expect(packs.flatMap(pack=>pack.entries.map(entry=>entry.hash)).sort()).toEqual([...hashes].sort());
  expect(validateOutputProduct(directory).shard).toEqual(shard);
 });
+
+it('keeps named consumer order inside the unchanged phase and tier packs',()=>{
+ const shard=source(),directory=output(),bodies=[new Uint8Array(70000).fill(61),new Uint8Array(80000).fill(62),new Uint8Array(90000).fill(63)];
+ const assets=new Map(bodies.map(body=>[hashImmutableBytes(body),body])),hashes=[...assets.keys()].sort().reverse();
+ shard.files=[...assets].map(([hash,body])=>({hash,kind:'binary' as const,compressed:body.length,decoded:body.length,gpu:0,triangles:0,draws:0,dependencies:[],critical:false})).sort((a,b)=>a.hash.localeCompare(b.hash));
+ shard.library=hashes;shard.budgets.library={resident:240000,compressed:240000};
+ const namedFiles=shard.files.map(file=>({...file,kind:'bin' as const,path:`blobs/bin/${file.hash}.bin`,name:`body-${hashes.indexOf(file.hash)}.bin`}));
+ const platform=emitPlatformSections(new Map([['world/scenes',{version:1,libraries:[{id:'shapes',kind:'owned',models:hashes.map((_,i)=>({id:`shape-${i}`,file:`body-${i}.bin`,attributes:{}}))}],materials:[],steps:[]}]]));
+ const index=writeOutputProduct(shard,assets,directory,{namedFiles,platform}),pack=index.packs?.find(row=>row.entries.some(entry=>assets.has(entry.hash)));
+ expect(pack?.entries.map(entry=>entry.hash)).toEqual(hashes);
+ const wire=pack===undefined?undefined:readFileSync(resolve(directory,pack.path));if(wire===undefined||pack===undefined)throw new Error('Missing consumer pack');
+ expect(pack.bytes).toBeLessThanOrEqual(4194304);
+ for(const entry of pack.entries)expect(wire.subarray(entry.offset,entry.offset+entry.bytes)).toEqual(Buffer.from(assets.get(entry.hash)??[]));
+ expect(validateOutputProduct(directory).shard).toEqual(shard);
+});

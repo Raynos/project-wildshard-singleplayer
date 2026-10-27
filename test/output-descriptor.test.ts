@@ -875,3 +875,44 @@ test('late KTX2 cost projection uses exact receipt facts without admitting its b
     }
   } finally {restore();}
 });
+
+async function rangeDemandFixture() {
+  const f=await demandPackFixture(),index=parseOutputIndex(JSON.parse(new TextDecoder().decode(f.wires.get('shard.json'))));
+  const wire=new Uint8Array([1,2,3,4,5,6,7,8,9]),thirdBytes=wire.slice(6),thirdHash=hashImmutableBytes(thirdBytes);
+  const third={...f.second,hash:thirdHash,path:`blobs/bin/${thirdHash}.bin`},packHash=hashImmutableBytes(wire),path=`blobs/pack/${packHash}.pack`;
+  const packed=parseOutputIndex({...index,files:[...index.files,third],admission:{...index.admission,library:[...f.source.library,thirdHash],
+    budgets:{...f.source.budgets,library:{resident:9,compressed:9}}},packs:[{path,hash:packHash,bytes:9,entries:[
+      {hash:f.first.hash,offset:0,bytes:3},{hash:f.second.hash,offset:3,bytes:3},{hash:thirdHash,offset:6,bytes:3}]}]});
+  f.wires.set(third.path,thirdBytes);f.wires.set(path,wire);f.wires.set('shard.json',encodeCanonicalJson(packed));
+  return {...f,third,wire,path,source:await readProductDescriptor(options(f.wires))};
+}
+
+test('adjacent partial native demands share only their exact pack range, then release it',async()=>{
+  const f=await rangeDemandFixture(),plain=options(f.wires),ranges:number[][]=[],reads:string[]=[];
+  const assets=new ClientAssets(f.source,new Map(),{...plain,fetch:url=>{reads.push(url.slice(base.length));return plain.fetch(url);},fetchRange:(url,start,end)=>{
+    expect(url).toBe(base+f.path);ranges.push([start,end]);return Promise.resolve(new Response(f.wire.slice(start,end+1),{status:206,headers:{'content-range':`bytes ${start}-${end}/9`}}));
+  }});
+  const values=await Promise.all([assets.read(f.first.hash),assets.read(f.second.hash)]);
+  expect(values).toEqual([new Uint8Array([1,2,3]),new Uint8Array([4,5,6])]);expect(ranges).toEqual([[0,5]]);expect(reads).toEqual([]);
+  expect(values[0]?.buffer).not.toBe(values[1]?.buffer);expect(assets.retained.size).toBe(0);
+  expect(await assets.read(f.first.hash)).toEqual(new Uint8Array([1,2,3]));expect(reads).toEqual([f.first.path]);expect(ranges).toEqual([[0,5]]);
+});
+
+test('a gap never pulls an unrequested member into a range',async()=>{
+  const f=await rangeDemandFixture(),plain=options(f.wires),ranges=vi.fn(()=>Promise.reject(new Error('Unexpected range'))),reads:string[]=[];
+  const assets=new ClientAssets(f.source,new Map(),{...plain,fetch:url=>{reads.push(url.slice(base.length));return plain.fetch(url);},fetchRange:ranges});
+  expect(await Promise.all([assets.read(f.first.hash),assets.read(f.third.hash)])).toEqual([new Uint8Array([1,2,3]),new Uint8Array([7,8,9])]);
+  expect(reads.sort()).toEqual([f.first.path,f.third.path].sort());expect(ranges).not.toHaveBeenCalled();
+});
+
+test('partial pack responses retain exact range, size and independent member guards',async()=>{
+  const f=await rangeDemandFixture();
+  for(const mode of ['header','short','member'] as const){
+    const assets=new ClientAssets(f.source,new Map(),{...options(f.wires),fetchRange:()=>{
+      const wire=f.wire.slice(0,mode==='short'?5:6);if(mode==='member')wire[0]=99;
+      return Promise.resolve(new Response(wire,{status:206,headers:{'content-range':mode==='header'?'bytes 1-6/9':'bytes 0-5/9'}}));
+    }});
+    const values=await Promise.allSettled([assets.read(f.first.hash),assets.read(f.second.hash)]);
+    expect(values[0]?.status).toBe('rejected');expect(values[1]?.status).toBe(mode==='member'?'fulfilled':'rejected');expect(assets.retained.size).toBe(0);
+  }
+});

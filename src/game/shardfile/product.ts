@@ -74,6 +74,8 @@ export interface ProductOptions {
   /** Trusted URL-cache read returning owned checked bytes; replaces raw URL hints for asset reads when present. */
   verifiedResponse?: (url: string, hash: string, maximum: number) => Promise<Uint8Array | null>;
   fetch: (url: string) => Promise<Response>;
+  /** Optional exact HTTP byte ranges for adjacent concurrently demanded pack members. */
+  fetchRange?: (url: string, start: number, end: number) => Promise<Response>;
   /** Same verified network capability at low priority, used only by after-control warming. */
   backgroundFetch?: (url: string) => Promise<Response>;
   /** Optional off-page asset read (the content-cache worker): the URL cache when trusted, else the network, verified
