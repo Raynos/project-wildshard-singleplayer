@@ -18,7 +18,8 @@ AGENTS.md and docs/process/ hold the rest.
 - **Generators:** serialise on the heavy-lane build lock, not over herdr.
 - **Vite stays lean (G799):** no new Vite plugin or virtual module; build-time data is a plain committed file
   from a plain script (G798).
-- **Gate (G768):** push gate 45 s, fails open to CI, no red hold; pre-commit 5 s; nobody cancels push CI (GM1).
+- **Gate (G768):** push gate 45 s, fails open to CI, no red hold; pre-commit 5 s.
+- **GM1:** a running push run always finishes and lists every red; never cancel push CI or boot smoke by hand.
 - **Messages (G708):** herdr only for a red that blocks you; no LANDED / verified / ACTIVE / FINAL / cohort pings
   (progress goes in the commit message). Never wildshard-v or the question tool.
 - **Commits (GIT.md):** scripts/commit.sh, literal paths, --patch for shared files; never stash/reset/restore
