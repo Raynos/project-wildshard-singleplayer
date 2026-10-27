@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare complete original tile assets and own isolated cache fixtures.
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine cache fixtures to repository scratch and bind the real source bundle.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare complete native buffers without per-element assertion expansion.
@@ -10,6 +10,7 @@ import { build } from 'vite';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
 import { skyIsleProps } from '../src/shards/far-reach/generators/isleProps';
+import { hashImmutableBytes } from '../src/sdk/immutable';
 import { skyWorldTileFiles, skyWorldTileSource } from '../src/shards/far-reach/generators/worldTileBytes';
 import { skyWorldTileProgram } from '../src/shards/far-reach/generators/worldTileProgram';
 
@@ -17,7 +18,11 @@ const metadata = readFileSync('src/shards/far-reach/data/props.json');
 const original = v.parse(v.object({ files: v.array(v.object({ hash: v.string() })) }), JSON.parse(metadata.toString()));
 const check = (files: ReadonlyMap<string, Uint8Array>): void => {
   expect([...files.keys()].sort()).toEqual(['data/props.json', ...original.files.map(file => `assets/${file.hash}`)].sort());
-  for (const [name, bytes] of files) expect(Buffer.compare(bytes, readFileSync(`src/shards/far-reach/${name}`)), name).toBe(0);
+  // the committed island tiles stay byte for byte; the coarse L1 tiles (G748.5) are build outputs named by their hash
+  for (const [name, bytes] of files) {
+    if (existsSync(`src/shards/far-reach/${name}`)) expect(Buffer.compare(bytes, readFileSync(`src/shards/far-reach/${name}`)), name).toBe(0);
+    else expect(`assets/${hashImmutableBytes(bytes)}`, name).toBe(name);
+  }
 };
 
 test('all original island tile bytes, file order, lattice rows and costs survive cold source and cache hits', async () => {
