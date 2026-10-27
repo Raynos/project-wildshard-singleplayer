@@ -23,7 +23,7 @@ import { poseOf, placeCollider, readColliderRows } from '@wildshard/engine/model
 import { cachedWorldSceneGeometry, readWorldSceneGeometry, type WorldSceneGeometry } from './worldSceneGeometry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { withOwner } from '@wildshard/engine/app/ownership';
-import { buildYield } from '@wildshard/engine/core/workSlice';
+import { buildYield, workSlice } from '@wildshard/engine/core/workSlice';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { parseWorldSceneModels, worldSceneModelResources, worldSceneModelGraphs } from '@wildshard/format/worldSceneModels';
@@ -377,6 +377,9 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       }
     });
     const sky = ctx.game.runtime?.world?.sky, game = ctx.game.runtime?.world?.game;
+    // each library copy (a whole library clones and places its model per call) and each tiled part is a slice's worth:
+    // in one task they were ~117 ms of a 133 ms Nine Dragon world-step frame at phone 4x (~55 ms of clones)
+    const copies = workSlice(undefined, owner);
     for (const row of welds) {
       for (const resource of row.resources) {
         const shape = resource.kind === 'seeds' ? new BufferGeometry().setAttribute('seed', new BufferAttribute(new Float32Array(Uint32Array.from(resource.words).buffer), 4))
@@ -391,7 +394,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
         const shape = libraries.get(node.geometry.library)?.geometry(node.geometry.model);
         if (shape === undefined || shape === null) throw new Error('Missing frozen scene geometry');
         // Decoder-only staging is adopted by the assembly, never uploaded.
-        geometry.set(key, shape);
+        geometry.set(key, shape); await copies.check();
       }
       handles.publish(row.id, new WorldSceneWeldAssembly(row, handles, { geometry, materials, plumbing: product.shardfile.plumbing }, owner, registry()));
     }
@@ -415,7 +418,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
         if (geometries.has(key)) continue;
         const geometry = libraries.get(draw.library)?.geometry(draw.model);
         if (geometry === undefined || geometry === null) throw new Error('Missing model catalogue source');
-        geometries.set(key, geometry); owner.onDispose(() => { geometry.dispose(); });
+        geometries.set(key, geometry); owner.onDispose(() => { geometry.dispose(); }); await copies.check();
       }
       bindWorldSceneModelSources(sharedModelContext(sky), product.shardfile.identity.slug, { catalogue, geometries, materials, plumbing: product.shardfile.plumbing, scenes: modelScenes }, owner);
       // G3: a placement names a site model, or one of the section's code-built specimens (the specimen catalogue host)
@@ -437,7 +440,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       const geometry = new Map<string, BufferGeometry>();
       for (const [port, ref] of Object.entries(step.geometry)) {
         const source = libraries.get(ref.library)?.geometry(ref.model); if (source === undefined || source === null) throw new Error(`Missing scene geometry: ${port}`);
-        geometry.set(port, source); owner.onDispose(() => { source.dispose(); });
+        geometry.set(port, source); owner.onDispose(() => { source.dispose(); }); await copies.check();
       }
       const sources = worldSceneStepSources(product, step, geometry, new Map(Object.entries(step.materials).map(([port, slot]) => [port, materials.get(slot)])));
       const made = createWorldScene(recipe, sources.ports);
@@ -463,7 +466,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       handles.publish(`${prefix}.root`, made.root);
       // T3: by tile, a merged part spanning tiles draws only the resident tiles' triangles (still one draw)
       made.root.updateMatrixWorld(true);
-      for (const [name, part] of made.parts) if (mesh3(part)) { const content = tiledMesh(`${prefix}.${name}`, part, part.matrixWorld); if (content !== null) handles.addTiled(content); }
+      for (const [name, part] of made.parts) if (mesh3(part)) { const content = tiledMesh(`${prefix}.${name}`, part, part.matrixWorld); if (content !== null) handles.addTiled(content); await copies.check(); }
       for (const [id, values] of sources.collections) handles.publishMaterials(`${prefix}.${id}`, values);
       const registered = new Map<string, { root: Object3D; colliders: ColliderDesc[] }>();
       const position = instance.position ?? [0, 0, 0], rotation = instance.rotation ?? [0, 0, 0];
