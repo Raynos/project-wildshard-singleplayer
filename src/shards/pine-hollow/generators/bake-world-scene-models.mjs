@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 // Cheap deterministic world-scene sources: restore the retained native water, bake the existing spray quad offline and lay
-// the beaver pool's still and trickle meshes from its baked rows (data/beaverPool.json; the pool view reads them, G4).
+// the beaver pool's still and trickle meshes from its baked rows (baked here since GR8; the pool view reads them, G4).
 import { readFileSync } from 'node:fs';
 import { inflateSync } from 'node:zlib';
 import { BufferGeometry, Float32BufferAttribute, PlaneGeometry, MeshStandardMaterial } from 'three';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { streamGeometry } from './streamCodec.ts';
 import streamRows from '../data/streams.json' with { type: 'json' };
-import poolRows from '../data/beaverPool.json' with { type: 'json' };
+import { bakeBeaverPool } from './beaverPool.ts';
+import { pineCragGround } from './bake-pine-crags.mjs';
 import { byteWriter } from '../../../../scripts/bake-output.mjs';
 import { fileURLToPath } from 'node:url';
 
@@ -22,6 +23,8 @@ const pool = (row) => {
     .setAttribute('uv', new Float32BufferAttribute(row.uv, 2)).setAttribute('aWater', new Float32BufferAttribute(row.aWater, 4));
   geometry.setIndex(row.index); geometry.computeVertexNormals(); return geometry;
 };
+// GR8: the pool is baked here over the page's ground (no scheduler job, no stored rows)
+const poolRows = bakeBeaverPool(pineCragGround().heightAt);
 const still = pool(poolRows.still), trickle = pool(poolRows.trickle);
 const writer = byteWriter(process.argv.includes('--check'), 'pine-scene-models');
 try {

@@ -770,7 +770,6 @@
     "src/shards/pastel-plain/generators/world.ts": 1,
     "src/shards/pine-hollow/generators/bake-elite-behaviours.mjs": 4,
     "src/shards/pine-hollow/generators/bake-hdri-keys.mjs": 4,
-    "src/shards/pine-hollow/generators/bake-pine-beaver-pool.mjs": 2,
     "src/shards/pine-hollow/generators/bake-pine-cabins.mjs": 4,
     "src/shards/pine-hollow/generators/bake-pine-clock-director.mjs": 3,
     "src/shards/pine-hollow/generators/bake-pine-coat-pages.mjs": 5,

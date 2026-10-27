@@ -10,6 +10,8 @@ import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
 import { WORLD_SCENES, SCENE_BLOBS, SCENE_MODEL_BLOBS } from './worldScenes.ts';
 import { SCENE_MODELS, SCENE_PLACEMENTS } from './sceneModelRows.ts';
 import { mapLilies } from './mapLilies.mjs';
+import { bakeBeaverPool } from './beaverPool.ts';
+import { pineCragGround } from './bake-pine-crags.mjs';
 import { bakePineUndergrowth } from './undergrowth.ts';
 import { inBeaverPool } from './geography.ts';
 
@@ -48,7 +50,7 @@ export async function pineMapAssembly() {
     const geometry = new BufferGeometry().setAttribute('position', new Float32BufferAttribute(shape.position, 3)).setIndex(shape.index);
     assembly.add(`floor:${kind}`, geometry, rows.map(row => new Matrix4().fromArray(row.matrix)));
   }
-  const pool = read('data/beaverPool.json').still;
+  const pool = bakeBeaverPool(pineCragGround().heightAt).still;
   const poolGeometry = new BufferGeometry().setAttribute('position', new Float32BufferAttribute(pool.position, 3)).setIndex(pool.index), positions = poolGeometry.getAttribute('position');
   for (let i = 0; i < positions.count; i++) { const h = timbers.poolGround[i], d = layout.BEAVER_POOL.full - h; positions.setY(i, d < 0 && d > -.45 ? h + .05 : layout.BEAVER_POOL.full); }
   assembly.add('beaver-pool', poolGeometry);

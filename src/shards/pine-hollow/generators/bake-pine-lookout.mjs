@@ -7,8 +7,7 @@
 // src/shards/pine-hollow/data/lookout.json, which the page finishes the timber from (src/shards/pine-hollow/runtime/models/fireLookout.ts).
 // test/shards/pine-hollow/lookout-bake.test.ts is the stale gate (it re-runs the generator).
 // Usage: node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs src/shards/pine-hollow/generators/bake-pine-lookout.mjs
-import { bakePoolRows } from './bake-pine-beaver-pool.mjs';
-import { pinePoolShapes } from './beaverPool.ts';
+import { bakeBeaverPool, pinePoolShapes } from './beaverPool.ts';
 import { pinePropShapes } from './propShapes.ts';
 import { pineCabinPropShapes } from './cabinPropShapes.ts';
 import { pineCabinMaterialFiles, pineCabinPropParts } from './cabinPropMaterials.mjs';
@@ -28,7 +27,7 @@ import { parseGlb } from '@wildshard/sdk/assets';
 import { pineTimberWorldBake, pineTimberPlacements } from './timberWorld.ts';
 import { bakeSiteTimberRows } from './bake-pine-site-timbers.mjs';
 import { pineCragAssembly } from './cragAssembly.ts';
-import { bakeCragRows, pineCragKit } from './bake-pine-crags.mjs';
+import { bakeCragRows, pineCragGround, pineCragKit } from './bake-pine-crags.mjs';
 
 const root = resolve(import.meta.dirname, '../../../..');
 
@@ -96,7 +95,7 @@ async function writeTimberWorld() {
   for (const [path, bytes] of Object.entries(materialFiles.outputs)) { mkdirSync(resolve(root, path, '..'), { recursive: true }); writeFileSync(resolve(root, path), bytes); }
   const shapes = pinePropShapes({ rocks: await pinePropScan('rock_moss_set_01'), stumps: await pinePropScan('tree_stump_01'), logs: await pinePropScan('dead_tree_trunk') });
   const cabinProps = pineCabinPropShapes(shapes.piece, await pineCabinPropParts());
-  const pool = bakePoolRows(); pinePoolShapes(shapes.piece, pool);
+  const pool = bakeBeaverPool(pineCragGround().heightAt); pinePoolShapes(shapes.piece, pool);
   const baked = pineTimberWorldBake(ground.heightAt, root, ground, shapes.piece);
   const piece = baked.pieces.find(row => row.name === 'pine-timber-explorer'), cabins = baked.pieces.find(row => row.name === 'pine.cabins'), under = baked.pieces.find(row => row.name === 'pine.undergrowth'), propsPiece = baked.pieces.find(row => row.name === 'pine.props');
   if (piece === undefined || cabins === undefined || under === undefined || propsPiece === undefined || baked.props === null) throw new Error('Pine timber Scene omitted its declared sources');
