@@ -432,6 +432,8 @@ jobs:
           key: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-${{ steps.inputs.outputs.tree }}
           restore-keys: preparation-v3-${{ runner.os }}-${{ runner.arch }}-node24-
       - run: python3 scripts/ci-fail-fast.py -- node scripts/gen.mjs --inputs-only
+      - name: Verify committed source tables after generation
+        run: node scripts/committed-source-tables.mjs --check
       - run: node scripts/no-binary-json.mjs --all
       - name: Pack exact-run generated inputs
         run: |

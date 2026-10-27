@@ -6,7 +6,7 @@ import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync
 import { spawnSync } from 'node:child_process';
 import { expect, test } from 'vitest';
 import { manifestClosure, shardSource } from '../scripts/gen-shards.mjs';
-import { artTableSource } from '../scripts/app-build/gen';
+import { artTableSource, audioTableSource } from '../scripts/app-build/gen';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
 import { genSource, sourceTableTexts } from '../scripts/gen-source.mjs';
 import { SOURCE_GENERATORS, selectSourceGenerators } from '../scripts/source-generators.mjs';
@@ -15,6 +15,8 @@ test('a staged path selects only the gen:source rows it feeds', () => {
   const ids = (path: string): string[] => selectSourceGenerators([path]).map(row => row.id);
   expect(ids('scripts/source-generators.mjs')).toEqual(SOURCE_GENERATORS.map(row => row.id));
   expect(ids('scripts/gen-source.mjs')).toEqual(SOURCE_GENERATORS.map(row => row.id));
+  expect(ids('scripts/committed-source-tables.mjs')).toEqual(SOURCE_GENERATORS.map(row => row.id));
+  expect(ids('scripts/git-source-view.mjs')).toEqual(SOURCE_GENERATORS.map(row => row.id));
   expect(ids('src/game/weapons/starterBow.json')).toEqual(['starter-weapons']);
   expect(ids('src/shards/pine-hollow/manifest.json')).toEqual(['shard-slugs', 'shard-list', 'manifest-closure', 'manifest-art']);
   expect(ids('public/assets/music/calm/music.json')).toEqual(['boot-audio']);
@@ -82,6 +84,23 @@ test('a registry row with no producer refuses before checking or writing its out
     const child = spawnSync(process.execPath, [resolve(root, 'scripts/gen-source.mjs'), '--check'], { encoding: 'utf8', timeout: 10_000 });
     expect(child.status).toBe(1); expect(child.stderr).toContain('missing needs exactly one producer');
     expect(readFileSync(resolve(root, 'src/table.ts'), 'utf8')).toBe('retained output');
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('audio source uses its declared root and refuses malformed catalogues', () => {
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp', 'gen-source-audio-'));
+  try {
+    const directory = resolve(root, 'public/assets/music/source-fixture');
+    mkdirSync(directory, { recursive: true });
+    const file = resolve(directory, 'music.json');
+    writeFileSync(file, JSON.stringify({ clips: ['fixture.m4a'], provenance: 'private notes', synth_keeps: ['input'] }));
+    const source = audioTableSource(root);
+    expect(source).toContain('"source-fixture": {'); expect(source).toContain('"fixture.m4a"');
+    expect(source).not.toContain('private notes'); expect(source).not.toContain('synth_keeps');
+    expect(source).toContain('SFX_MANIFESTS: Readonly<Record<string, unknown>> = {};');
+    writeFileSync(file, '{'); expect(() => audioTableSource(root)).toThrow(SyntaxError);
+    writeFileSync(file, '[]'); expect(() => audioTableSource(root)).toThrow('audio manifest must be an object');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 

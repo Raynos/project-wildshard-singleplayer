@@ -56,18 +56,17 @@ export function assetVersionRows(): Record<string, string> {
 // public/assets/sfx/<set>/), compiled into the bundle minus their provenance notes (project/archive/2026-09-23-preload-offline.md). The boot
 // declares and downloads every file they list at the loading bar and decodes the selected style + set there, so nothing
 // fetches a manifest at runtime and the hashed bundle always carries the loop points of the files it ships with.
-export function audioTableSource(): string {
+export function audioTableSource(root: string = process.cwd()): string {
   const read = (sub: string, name: string): Record<string, unknown> => {
     const out: Record<string, unknown> = {};
-    const dir = join('public/assets', sub);
+    const dir = join(root, 'public/assets', sub);
     if (!existsSync(dir)) return out;
     for (const d of readdirSync(dir).sort()) {
       const p = join(dir, d, name);
       if (!existsSync(p)) continue;
-      try {
-        const j = JSON.parse(readFileSync(p, 'utf8')) as Record<string, unknown>;
-        out[d] = Object.fromEntries(Object.entries(j).filter(([k]) => k !== 'provenance' && k !== 'synth_keeps'));
-      } catch (e) { console.warn(`[audio] ${p} is not JSON — that ${sub} entry ships without samples`, e); }
+      const input: unknown = JSON.parse(readFileSync(p, 'utf8'));
+      if (typeof input !== 'object' || input === null || Array.isArray(input)) throw new Error(`${p}: audio manifest must be an object`);
+      out[d] = Object.fromEntries(Object.entries(input).filter(([key]) => key !== 'provenance' && key !== 'synth_keeps'));
     }
     return out;
   };

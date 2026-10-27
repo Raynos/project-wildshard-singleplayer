@@ -21,6 +21,9 @@ const changed = args.filter(arg => arg.startsWith('--changed=')).map(arg => arg.
 const texts = await sourceTableTexts(root, { committed: true, ...(changed.length > 0 ? { changed } : {}) });
 if (check) {
   for (const [path, source] of Object.entries(texts)) {
+    // A preceding generator may already have repaired the working output.
+    // Its success cannot hide a stale checked-in table from this source gate.
+    if (view.read(path).toString('utf8') !== source) throw new Error(`Committed source table is stale: ${path}`);
     /** @type {string|undefined} */
     let actual;
     try { actual = nativeRead(resolve(root, path), 'utf8'); } catch (error) {

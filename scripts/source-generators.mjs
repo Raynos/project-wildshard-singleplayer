@@ -75,8 +75,7 @@ export const SOURCE_GENERATORS = [
     outputs: ['src/game/boot/audio.generated.ts'],
     inputs: ['public/assets/music/*/music.json', 'public/assets/sfx/*/sfx.json', 'scripts/app-build/gen.ts'],
     committed: true,
-    // the writer reads public/assets from the working directory (the repo root)
-    generate: async root => ({ 'src/game/boot/audio.generated.ts': (await import(pathToFileURL(`${root}/scripts/app-build/gen.ts`).href)).audioTableSource() }),
+    generate: async root => ({ 'src/game/boot/audio.generated.ts': (await import(pathToFileURL(`${root}/scripts/app-build/gen.ts`).href)).audioTableSource(root) }),
   },
   {
     id: 'manifest-art',
@@ -135,6 +134,6 @@ export const SOURCE_GENERATORS = [
  *  changed output selects its own row (a hand edit is regenerated or refused).
  * @param {readonly string[]} paths @returns {SourceGenerator[]} */
 export function selectSourceGenerators(paths) {
-  if (paths.some(path => path === 'scripts/source-generators.mjs' || path === 'scripts/gen-source.mjs')) return [...SOURCE_GENERATORS];
+  if (paths.some(path => ['scripts/source-generators.mjs', 'scripts/gen-source.mjs', 'scripts/committed-source-tables.mjs', 'scripts/git-source-view.mjs'].includes(path))) return [...SOURCE_GENERATORS];
   return SOURCE_GENERATORS.filter(row => paths.some(path => row.outputs.includes(path) || row.inputs.some(glob => matchesGlob(path, glob))));
 }
