@@ -106,6 +106,10 @@ GM2 extends the existing push loop and its existing mirror, and GM5 and GM6 are 
 
 ## Questions for Jake
 
+All answered 2026-10-26 ~22:40: Q1 split then tagged CI handoff (G757), Q2 quarantine with owner (G758), Q3 push-then-test with the red hold (G759); build overnight (G760).
+
+<details><summary>The questions as asked</summary>
+
 - **Q1 When a push-gate step hits 180 s, what happens?** Options: (1) Skip for now. (2) Refuse the batch and name the
   slow step: nothing pushes until someone makes it faster. One slow commit then blocks every lane behind it on a
   shared `main`. (3) **Hand only that step to CI, tagged.** The rest of the batch's checks must pass. The push log
@@ -126,3 +130,5 @@ GM2 extends the existing push loop and its existing mirror, and GM5 and GM6 are 
   candidate. Main stays green by construction, but on one shared tree a red candidate blocks every lane exactly as
   red main does today, and a CI job has to move main. **Recommended: (2).** GM2 already stops the overlap a queue
   would hide.
+
+</details>
