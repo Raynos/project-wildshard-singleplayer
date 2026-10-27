@@ -1,12 +1,15 @@
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { SEED as TERRAIN_SEED } from './terrainSeed';
-import { Noise2D, smoothstep, clamp, lerp } from '@wildshard/engine/core/noise';
+import { Noise2D, smoothstep, clamp, lerp } from '@wildshard/sdk/noise';
 import { buildTerrain } from '@wildshard/engine/world/terrainField';
 import * as layoutRows from './layout';
 import { edgeRise, riverZAt, riverHalfAt } from './edgeRecipe';
 import * as clearings from './clearings';
 import * as places from './poiLayout';
 import type { ChunkTerrain, RGB, Vec2 } from '@wildshard/game/shard/manifest';
+
+/** The landscape consumes numeric samplers; both native terrain and author fields supply them. */
+type TerrainNoise = Pick<Noise2D, 'get' | 'fbm' | 'ridged'>;
 
 const { RIVER_LEVEL, BOWL, RIM_N, SKY_ROAD, SKY_ROAD_RIM, EAGLE_ROCK, KOKPAR, KURGANS, SUMMER_YURTS,
   WATCHTOWER, CAIRN, SNOW_LINE, CRAGS, WEST_CRAGS, GLACIER, MELT_STREAM,
@@ -130,7 +133,7 @@ export function zoneAt(x: number, z: number): [number, number, number] {
 
 /** ridged multifractal (Musgrave: each octave is weighted by the one before, so the fine detail gathers on the crests
  *  and the hollows stay smooth) — 0 in the couloirs … ~1 on the arêtes */
-function ridgedMF(n: Noise2D, x: number, z: number, octaves: number): number {
+function ridgedMF(n: TerrainNoise, x: number, z: number, octaves: number): number {
   let sum = 0, f = 1, amp = 1, w = 1, norm = 0;
   for (let o = 0; o < octaves; o++) {
     let s = 1 - Math.abs(n.get(x * f, z * f));
@@ -143,7 +146,7 @@ function ridgedMF(n: Noise2D, x: number, z: number, octaves: number): number {
 
 /** 0..1: ribs radiating from a summit at (cx, cz) — arêtes (1) running down the faces with couloirs (0) between them,
  *  ~20 m apart half way down, bending a little as they fall */
-function ribs(x: number, z: number, cx: number, cz: number, n: Noise2D): number {
+function ribs(x: number, z: number, cx: number, cz: number, n: TerrainNoise): number {
   const dx = x - cx, dz = z - cz, r = Math.hypot(dx, dz) + 1e-3;
   // the heading round the summit, warped so the ribs wander and bunch (no sunburst)
   const th = Math.atan2(dz, dx) + n.get(x * 0.013 + 4.1, z * 0.013) * 0.55 + r * 0.004;
@@ -159,7 +162,7 @@ function ribs(x: number, z: number, cx: number, cz: number, n: Noise2D): number 
  * each massif's summit, a domain-warped ridged multifractal between them — and, high up, broken into tilted strata
  * (steep risers, ledges where the snow lies). The foot keeps a smooth scree apron (the bowl side stays walkable).
  */
-function crags(x: number, z: number, d: number, n: Noise2D, n2: Noise2D): number {
+function crags(x: number, z: number, d: number, n: TerrainNoise, n2: TerrainNoise): number {
   const peaks = smoothstep(-0.35, 0.75, n.fbm(x * 0.0085 + 1.7, z * 0.0085 - 2.3, 3));
   const east = smoothstep(135, 10, Math.hypot(x - CRAGS.x, z - CRAGS.z) + n.get(x * 0.02 + 5, z * 0.02) * 16);
   const west = smoothstep(125, 10, Math.hypot(x - WEST_CRAGS.x, z - WEST_CRAGS.z) + n.get(x * 0.02 + 9, z * 0.02) * 14);
@@ -188,7 +191,7 @@ function crags(x: number, z: number, d: number, n: Noise2D, n2: Noise2D): number
 }
 
 /** the high country south of the north rim: the bowl, its rims, the snow ring's mountains (no valley cut, no POI pads) */
-function upland(x: number, z: number, n: Noise2D, n2: Noise2D): number {
+function upland(x: number, z: number, n: TerrainNoise, n2: TerrainNoise): number {
   const q = bowlQ(x, z);
   // the bowl floor: long golden swells, a little lower in the middle
   const rolling = n.fbm(x * 0.0065 + 3.1, z * 0.0065, 3) * 3.4 + n2.fbm(x * 0.019, z * 0.019, 2);
@@ -216,7 +219,7 @@ function gateValley(h: number, along: number, across: number): number {
   return lerp(h, h * smoothstep(8, 140, along) ** 1.15, w);
 }
 
-function landscape(x: number, z: number, n: Noise2D, n2: Noise2D): number {
+function landscape(x: number, z: number, n: TerrainNoise, n2: TerrainNoise): number {
   const zc = RIVER.z(x), half = RIVER.half(x);
   const across = z - zc;
   const foot = zc - half - 5, rimZ = rimZAt(x);

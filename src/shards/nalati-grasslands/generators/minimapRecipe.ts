@@ -6,8 +6,8 @@
  * map-01 places (NALATI_MAP.pois) are the full map's pins (named once explored, "?" before); no pines or cabins.
  */
 import { SEED } from '@wildshard/engine/core/config';
-import { smoothstep } from '@wildshard/engine/core/noise';
-import { Rng } from '@wildshard/engine/core/rng';
+import { smoothstep } from '@wildshard/sdk/noise';
+import { Rng } from '@wildshard/sdk/random';
 import type { MinimapPalette, MapOverlay } from '@wildshard/engine/ui/Minimap';
 import type { MapPoi } from '@wildshard/format/minimap';
 import * as layoutRows from './layout';
