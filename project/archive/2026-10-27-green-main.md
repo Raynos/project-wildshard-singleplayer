@@ -1,6 +1,6 @@
 # Green main: why CI stays red and how to stop it (G751)
 
-**State:** `done` 2026-10-27 (G809, sp-ci-deploy). The sole remaining row GM1 closes on the [first green main push 40582611712](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40582611712) at `0012c73e11b2a4940c87af5075eec52c69492251`. Its no-manual-cancellation policy remains; GM2–GM6 retain their superseded status and GM7 remains dropped under G787.
+**State:** `done` 2026-10-27 (G809, sp-ci-deploy). The sole remaining row GM1 closes on the [first green main push 40582611712](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40582611712) at `0012c73e11b2a4940c87af5075eec52c69492251`. Its no-manual-cancellation policy remains; GM2–GM6 retain their superseded status and GM7 remains dropped under G787. Archived 2026-10-27 on Jake's instruction. Dated implementation notes below retain their historical status; G809 is the final closure rule.
 
 Jake, 2026-10-26 ~18:10 Cancun: *"how do we get main to be green, why is it so broken, and why is it so perma-broken?
 … Also what is up with pushing cancelling the runs before? A push should not cancel. A push should just not do
@@ -161,8 +161,32 @@ intent-to-add entries advance to the committed bytes while genuine foreign
 stages stay untouched. Ten Python controls and all four wrapper suites,
 fixture types and typed lint pass; live cap producers are not activated yet.
 
-Remaining: activate exact candidate checks in the live entry and close the
-original SW11 long-cohort cost refusal, then measure the cross-lane tail.
+That activation work was superseded by G768; G809 closes the applicable
+CI rows on the first green main push, without another reading window.
+
+
+## Historical producer work before supersession
+
+Named-cap protocol `8a0f4572c0` was qualified before G768: all eight canonical
+cases in five suites pass in 59.593 s wall, 1.457 s held, zero wait. Its
+prior 53.570 s attempt passed the tests but correctly refused changed peer
+inputs; that refusal remains in the distribution.
+
+The producer exit diagnostic now retains its catalogue ID, entry and
+exit/signal. A real exit-7 regression failed before and passes after the change.
+The first source-only related walk passes 614 cases in 82 suites. The recorded source checks passed full project types and typed lint.
+
+A normal-input check exposed an intrinsic recipe dependency: during its 23-second
+phase, a peer commit added unrelated gate files, invalidating a fingerprint of
+all tracked paths. Only retention of declared outputs belongs in that field.
+The correction has 139 passing phase/input controls, including an unrelated
+tracked-file addition that now passes and a newly tracked declared output that
+still refuses. Source/inventory/catalogue/policy/tool/byte checks stay intact.
+
+These GM5 notes describe the earlier producer packet, not an open row.
+The unlanded extra `related-first` job was removed in `c7085f45d9`;
+CF3 retained the independent complete product-free cohort. G787/G809
+supersede the old implementation and reading prerequisites.
 
 ## Questions for Jake
 
@@ -231,6 +255,7 @@ The no-manual-cancellation policy is committed in `8c1cf94c59` and
 pushes retain their running verdict. A bounded thirty-push inventory
 through `40474486804` includes fourteen cancelled runs, but contains no
 actor-level cancellation evidence. Pending-run coalescing is not a human
-cancellation. The required 24-hour zero-manual-cancels reading therefore
-remains open; GM1 is **in flight**, not marked done from policy alone.
+cancellation. This historical inventory did not establish the former 24-hour bar.
+G809 subsequently closed GM1 on `0012c73e11` / `40582611712`; no
+further reading window remains open.
 GM3 remains superseded by G768 and GM7 dropped by G787.
