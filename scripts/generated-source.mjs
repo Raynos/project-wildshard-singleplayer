@@ -99,6 +99,48 @@ function readBlob(root, tree, file) {
   if (row.mode !== '100644' && row.mode !== '100755') throw new Error(`GENERATED-SOURCE ${file}: non-regular policy input`);
   return git(root, ['cat-file', 'blob', row.oid]).toString();
 }
+/** @type {Map<string,string[]>} */
+const publishedPolicies = new Map();
+/** A rollback can restore an exact allowance present on published main in the
+ * last day. Unpublished ancestors and older removed allowances grant nothing.
+ * @param {string} root @param {string} previous @param {string} file
+ * @param {string} schema @param {string} path
+ * @param {number|true|{base64Chars:number,dataUris:number}} expected */
+export function publishedPolicyRestoration(root, previous, file, schema, path, expected) {
+  let published;
+  try { published = git(root, ['merge-base', previous, 'refs/remotes/origin/main']).toString().trim(); }
+  catch { return false; }
+  const key = `${root}\0${published}\0${file}`;
+  let snapshots = publishedPolicies.get(key);
+  if (snapshots === undefined) {
+    snapshots = [];
+    try {
+      const rows = git(root, ['log', '--first-parent', '--since=24 hours ago', '--format=%H %P', published, '--', file]).toString().trim();
+      // A value removed today may have been introduced long ago; its removal's
+      // first parent still proves that value existed inside the same window.
+      const revisions = new Set(rows.split('\n').filter(Boolean).flatMap(row => row.split(' ').slice(0, 2)));
+      for (const revision of revisions) {
+        try { snapshots.push(git(root, ['show', `${revision}:${file}`]).toString()); }
+        catch { /* A missing historical policy grants no allowance. */ }
+      }
+    } catch { /* Without readable published history, ordinary strict comparison applies. */ }
+    publishedPolicies.set(key, snapshots);
+  }
+  return snapshots.some(text => {
+    try {
+      const value = JSON.parse(text);
+      if (value?.schema !== schema || typeof value.source !== 'string' || !/^[a-f0-9]{40}$/u.test(value.source)) return false;
+      const files = value.files;
+      if (expected === true) return generatedSourcePolicy(value).files.includes(path);
+      if (files === null || typeof files !== 'object' || Array.isArray(files) || !Object.hasOwn(files, path)) return false;
+      const prior = files[path];
+      return typeof expected === 'number' ? prior === expected
+        : prior !== null && typeof prior === 'object' && !Array.isArray(prior)
+          && Object.keys(prior).sort().join(',') === 'base64Chars,dataUris'
+          && prior.base64Chars === expected.base64Chars && prior.dataUris === expected.dataUris;
+    } catch { return false; }
+  });
+}
 /** Exact staged/committed declarations and source bytes; dirty files cannot hide or invent a failure.
  * @param {string} root @param {string} revision @param {string} previous @param {readonly string[]} changed */
 export function checkGeneratedSourceRevision(root, revision, previous, changed) {
@@ -108,7 +150,10 @@ export function checkGeneratedSourceRevision(root, revision, previous, changed) 
   const read = (/** @type {string} */ file) => readBlob(root, tree, file);
   const after = generatedSourcePolicy(JSON.parse(read(GENERATED_SOURCE_POLICY) ?? 'null'));
   const prior = readBlob(root, parent, GENERATED_SOURCE_POLICY);
-  const errors = prior === undefined ? [] : generatedSourceIncreases(generatedSourcePolicy(JSON.parse(prior)), after);
+  const before = prior === undefined ? undefined : generatedSourcePolicy(JSON.parse(prior));
+  const restored = after.files.filter(file => !before?.files.includes(file)
+    && publishedPolicyRestoration(root, previous, GENERATED_SOURCE_POLICY, after.schema, file, true));
+  const errors = before === undefined ? [] : generatedSourceIncreases({ ...before, files: [...before.files, ...restored] }, after);
   const outputs = new Set([...declaredOutputs(read)].filter(file => tree.has(file) && changed.includes(file)));
   for (const file of changed) if (tree.has(file) && inSource(file) && marked(file)) outputs.add(file);
   for (const file of changed) if (inSource(file) && tree.has(file) && /\.[cm]?[jt]sx?$/u.test(file)

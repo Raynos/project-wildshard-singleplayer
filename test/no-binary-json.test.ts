@@ -66,6 +66,12 @@ function fixture(run: (root: string, git: (...args: string[]) => string, put: (n
   }
 }
 
+function datedCommit(root: string, message: string, daysAgo: number): void {
+  const date = new Date(Date.now() - daysAgo * 86_400_000).toISOString();
+  const env = Object.fromEntries(Object.entries(processEnv).filter(([key]) => !key.startsWith('GIT_')));
+  execFileSync('git', ['commit', '-qm', message], { cwd: root, env: { ...env, GIT_AUTHOR_DATE: date, GIT_COMMITTER_DATE: date } });
+}
+
 test('staged checks read exact index assets and reject self-approved caps', () => fixture((root, git, put) => {
   put(path, JSON.stringify({ text: payload })); git('add', path);
   put(path, '{}');
@@ -75,6 +81,43 @@ test('staged checks read exact index assets and reject self-approved caps', () =
   expect(checkBinaryRevision(root, ':', 'HEAD', [path, 'lint/no-binary-json.json'])).toEqual([
     expect.stringContaining('allowance grew'),
   ]);
+}));
+
+test('a published rollback restores four exact debt rows while new values still refuse', () => fixture((root, git, put) => {
+  const output = 'src/shards/fixture/data/contracts.generated.json', producer = 'src/shards/fixture/generators/bake-contracts.mjs', reader = 'src/shards/fixture/generators/contracts.ts';
+  const policies = ['lint/base64-debt.json', 'lint/generated-import-debt.json', 'lint/generated-source-debt.json', 'lint/no-binary-json.json'];
+  const debt = (schema: string, files: Record<string, number> | string[]): string => JSON.stringify({ schema, source, files });
+  const original = [debt('no-base64/1', { [producer]: 1 }), debt('no-generated-import/1', { [reader]: 2 }),
+    debt('generated-source/1', [output]), JSON.stringify(policy({ [output]: { base64Chars: 15704, dataUris: 0 } }))];
+  const write = (values: readonly string[]): void => { for (const [index, file] of policies.entries()) { const value = values[index]; if (value === undefined) throw new Error('Missing policy fixture'); put(file, value); } git('add', ...policies); };
+  write(original); datedCommit(root, 'published original producer', 2);
+  write([debt('no-base64/1', {}), debt('no-generated-import/1', {}), debt('generated-source/1', []), JSON.stringify(policy())]);
+  git('commit', '-qm', 'published producer retirement'); git('update-ref', 'refs/remotes/origin/main', 'HEAD');
+  write(original);
+  expect(checkBinaryRevision(root, ':', 'HEAD', policies)).toEqual([]);
+  put('lint/base64-debt.json', debt('no-base64/1', { [producer]: 2 })); git('add', ...policies);
+  expect(checkBinaryRevision(root, ':', 'HEAD', policies).join('\n')).toContain('source debt allowance grew');
+  write(original); put('lint/no-binary-json.json', JSON.stringify(policy({ [output]: { base64Chars: 15705, dataUris: 0 } }))); git('add', ...policies);
+  expect(checkBinaryRevision(root, ':', 'HEAD', policies).join('\n')).toContain('missing Binary-JSON-Approved');
+}));
+
+test('unpublished policy history cannot authorize a rollback', () => fixture((root, git, put) => {
+  const file = 'lint/base64-debt.json', producer = 'scripts/bake-local.mjs';
+  const debt = (count: number): string => JSON.stringify({ schema: 'no-base64/1', source, files: count === 0 ? {} : { [producer]: count } });
+  put(file, debt(0)); git('add', file); git('commit', '-qm', 'published empty debt'); git('update-ref', 'refs/remotes/origin/main', 'HEAD');
+  put(file, debt(1)); git('add', file); git('commit', '-qm', 'unpublished local allowance');
+  put(file, debt(0)); git('add', file); git('commit', '-qm', 'local removal');
+  put(file, debt(1)); git('add', file);
+  expect(checkBinaryRevision(root, ':', 'HEAD', [file]).join('\n')).toContain('source debt allowance grew');
+}));
+
+test('an allowance removed from published main more than a day ago cannot return', () => fixture((root, git, put) => {
+  const file = 'lint/base64-debt.json', producer = 'scripts/bake-old.mjs';
+  const debt = (count: number): string => JSON.stringify({ schema: 'no-base64/1', source, files: count === 0 ? {} : { [producer]: count } });
+  put(file, debt(1)); git('add', file); datedCommit(root, 'old published allowance', 3);
+  put(file, debt(0)); git('add', file); datedCommit(root, 'old published removal', 2);
+  git('update-ref', 'refs/remotes/origin/main', 'HEAD'); put(file, debt(1)); git('add', file);
+  expect(checkBinaryRevision(root, ':', 'HEAD', [file]).join('\n')).toContain('source debt allowance grew');
 }));
 
 test('immutable commit checks cannot be fooled by a clean index or later deletion', () => fixture((root, git, put) => {
