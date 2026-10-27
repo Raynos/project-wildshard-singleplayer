@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import sharp from 'sharp';
@@ -49,7 +49,11 @@ export async function bakeWorldMapAtlas(products: readonly string[], read: (slug
 export async function writeWorldMapAtlas(root: string): Promise<void> {
   const row = v.object({ slug: v.string() }), catalogue = v.parse(v.object({ grid: v.object({ cells: v.array(row), developer: v.array(row), devserver: v.array(row) }) }),
     JSON.parse(readFileSync(resolve(root, 'src/game/grid/singleplayer.json'), 'utf8'))).grid;
-  const atlas = await bakeWorldMapAtlas([...catalogue.cells, ...catalogue.developer, ...catalogue.devserver].map(cell => cell.slug), slug => productMapBytes(root, slug));
+  const slugs = [...catalogue.cells, ...catalogue.developer, ...catalogue.devserver].map(cell => cell.slug);
+  // A filtered product build (build-shardfiles --shard) leaves only its own products, and the products copy
+  // (outputProducts.mjs) publishes just those: the others draw the plot tile. A cold atlas, none built, still refuses.
+  const built = new Set(slugs.filter(slug => existsSync(resolve(root, 'out', slug, 'shard.json'))));
+  const atlas = await bakeWorldMapAtlas(slugs, slug => built.size === 0 || built.has(slug) ? productMapBytes(root, slug) : null);
   const fileName = `assets/world-map-${hash(atlas.bytes).slice(0, 16)}.webp`;
   mkdirSync(dirname(join(root, WORLD_MAP_ATLAS)), { recursive: true });
   writeFileSync(join(root, WORLD_MAP_ATLAS), atlas.bytes);
