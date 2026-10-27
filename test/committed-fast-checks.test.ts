@@ -77,7 +77,10 @@ test('native closure admits tracked declaration modules without a generation han
 test('lint refuses exact bad text and openly defers dirty or staged inputs',()=>{
   const f=fixture();try {
     f.put('src/main.ts','export const value=eval("1");');const bad=f.commit();
+    const badIndex=readFileSync(resolve(f.root,'.git/index'));
     const exact=f.run('fast-lint',bad);expect(exact.status,exact.stderr).toBe(1);expect(exact.stderr).toContain('no-eval');
+    expect(readFileSync(resolve(f.root,'.git/index'))).toEqual(badIndex);
+    expect(readFileSync(resolve(f.root,'src/main.ts'),'utf8')).toBe('export const value=eval("1");');
     f.put('src/main.ts','export const value=2;');f.git('add','src/main.ts');
     const before=readFileSync(resolve(f.root,'src/main.ts'),'utf8'),index=f.git('write-tree');
     const result=f.run('fast-lint',bad);

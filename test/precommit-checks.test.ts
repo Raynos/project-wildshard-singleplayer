@@ -123,7 +123,7 @@ test('a wall cap defers every cheap check but preserves observed refusals', () =
   }
 });
 
-test('staged fast lint refuses bad index bytes behind clean working text', async () => {
+test('precommit leaves divergent index bytes and working text untouched for CI', async () => {
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync(resolve('tmp/staged-fast-refusal-'));
   const gitEnv = Object.fromEntries(Object.entries(env).filter(([key]) => !key.startsWith('GIT_')));
@@ -138,7 +138,7 @@ test('staged fast lint refuses bad index bytes behind clean working text', async
     writeFileSync(source, 'export const value = eval("1");\n'); git('add', '--', 'src/owner.ts');
     writeFileSync(source, clean);
     const index = readFileSync(resolve(root, '.git/index'));
-    await expect(precommitInputs(root, resolve('node_modules/.bin/oxlint'))).rejects.toThrow('fast lint: refused');
+    await expect(precommitInputs(root, resolve('node_modules/.bin/oxlint'))).resolves.toBeUndefined();
     expect(readFileSync(source, 'utf8')).toBe(clean);
     expect(readFileSync(resolve(root, '.git/index'))).toEqual(index);
   } finally { rmSync(root, { recursive: true, force: true }); }
