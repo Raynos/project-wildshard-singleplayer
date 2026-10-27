@@ -109,6 +109,7 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 
 | D60 | Required ratchet aborts before counts on stale generator-imports allowance for deleted src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs; exact tmp/sp-x1-crown-retire/ratchet.log | 8a0cba55cd | sp-x10 | open, routed; Far Reach touched rules measure0 |
 | D61 | HEAD previews fail: a Nalati generation stage opens `src/shards/nalati-grasslands/data/geography-forest.bin`, which the retired `nalati-geography` job no longer writes (`ENOENT`, log `tmp/serve/failed-20261027-030932-4400.log`); blocks every HEAD preview, so the G32 Pine tree check waits | `30a9e429c9` | sp-x6 (GR6) | open |
+| D62 | Pine product build refuses 'config must bundle as one module': `generators/kingKit.ts` imports `@wildshard/game/plugin/geometry`, whose dynamic `import('../shardfile/runtimeProduct')` becomes a second config chunk (`runtimeProduct-*.js`, 199 modules) even with code splitting off; `node scripts/build-shardfiles.mjs --shard=pine-hollow` exits 1 | `98e0b24f9b` | sp-o1 | open |
 
 ## Rows
 
