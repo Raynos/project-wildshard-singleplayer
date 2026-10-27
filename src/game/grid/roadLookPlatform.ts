@@ -25,7 +25,7 @@ import { installRoadLookSteps, RoadOverlayLight, type RoadLookState } from './ro
 import { installVoidLook } from './voidLook';
 import { CURTAIN_FLOATS, curtainGeometry, curtainMaterial, curtainSource, gravel, riprap, seamSolidSteps, stone, strata, type SeamLookState, type SeamPiece } from './seamLook';
 import { bytePlan, cullIntoSteps, finishRoadSteps, gpuOnlyRoad, meshBytesSteps, ROAD_LOD, type CullPlan, type RoadCuller } from './roadCull';
-import { GRAIN_LAYERS, GRAIN_SIZE, gpuOnlyTextureBytes, grainArray, SOLID_FLOATS, solidGeometry, solidMaterial, solidSource, type SolidPart } from './roadSolid';
+import { GRAIN_LAYERS, GRAIN_SIZE, gpuOnlyTextureBytes, grainArray, SOLID_FLOATS, solidGeometrySteps, solidMaterial, solidSource, type SolidPart } from './roadSolid';
 
 /** What the road system reads and where it draws. */
 export interface PlatformRoadInput {
@@ -141,7 +141,9 @@ function* platformRoadSteps(input: PlatformRoadInput): Generator<void, PlatformR
   const deckAdmission = bytePlan('road.deck', deckBytes, grainBytes);
   const builtDeck = yield* allocateRenderSteps(admission, deckAdmission, function* buildDeck(owner) {
     yield;
-    const grain = grainArray({ gravel, stone, strata, riprap }), material = solidMaterial(grain), deck = new Mesh(solidGeometry(parts), material);
+    const grain = grainArray({ gravel, stone, strata, riprap }), material = solidMaterial(grain);
+    yield;
+    const deck = new Mesh(yield* solidGeometrySteps(parts), material);
     ownRoadMesh(owner, deck, [grain]);
     deck.name = 'grid-deck'; deck.receiveShadow = true;
     deck.castShadow = false; deck.matrixAutoUpdate = false; deck.updateMatrix();

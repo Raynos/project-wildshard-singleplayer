@@ -38,9 +38,12 @@ export function tintedPart(part: SolidPart, colour: Color): SolidPart {
   return { ...part, colours };
 }
 
-/** Merge parts into one geometry (`position`, `normal`, `color`, `grainUv` = u, v, layer, unlit). Pure (no GPU). */
-export function solidGeometry(parts: readonly SolidPart[]): BufferGeometry {
-  let vertices = 0, indices = 0;
+/** Vertices copied between pauses: the platform deck's whole merge ran ~18 ms in one Simulator task. */
+const SOLID_VERTICES_PER_STEP = 8192;
+/** Merge parts into one geometry (`position`, `normal`, `color`, `grainUv` = u, v, layer, unlit), pausing after every few
+ *  thousand copied vertices. Pure (no GPU). */
+export function* solidGeometrySteps(parts: readonly SolidPart[]): Generator<void, BufferGeometry> {
+  let vertices = 0, indices = 0, copied = 0;
   for (const p of parts) { vertices += p.positions.length / 3; indices += p.indices.length; }
   const position = new Float32Array(vertices * 3), normal = new Float32Array(vertices * 3), colour = new Float32Array(vertices * 3), grain = new Float32Array(vertices * 4), index = new Uint32Array(indices);
   let v = 0, i = 0;
@@ -53,6 +56,7 @@ export function solidGeometry(parts: readonly SolidPart[]): BufferGeometry {
     }
     for (let k = 0; k < p.indices.length; k++) index[i + k] = (p.indices[k] ?? 0) + v;
     v += n; i += p.indices.length;
+    copied += n; if (copied >= SOLID_VERTICES_PER_STEP) { copied = 0; yield; }
   }
   const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(position, 3)).setAttribute('normal', new BufferAttribute(normal, 3))
     .setAttribute('color', new BufferAttribute(colour, 3)).setAttribute('grainUv', new BufferAttribute(grain, 4)).setIndex(new BufferAttribute(index, 1));
@@ -183,7 +187,7 @@ export function gpuOnlyTextureBytes(width: number, height: number, layers = 1, s
   return { jsBytes: source === 'canvas' ? 4 : 0, gpuBytes: mipTexels(width, height) * texelBytes * layers };
 }
 
-/** A solid part as `solidGeometry` will store it (Float32 positions, its one grain layer and unlit flag), for the cull count. */
+/** A solid part as `solidGeometrySteps` will store it (Float32 positions, its one grain layer and unlit flag), for the cull count. */
 export function solidSource(part: SolidPart): { vertices: number; position: (k: number) => number; indices: ArrayLike<number>; layer: number; unlit: number } {
   return { vertices: part.positions.length / 3, position: (k) => Math.fround(part.positions[k] ?? 0), indices: part.indices, layer: Math.fround(part.grain[0] ?? 0), unlit: Math.fround(part.grain[1] ?? 0) };
 }

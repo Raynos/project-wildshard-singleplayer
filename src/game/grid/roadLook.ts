@@ -140,11 +140,14 @@ function canvas(w: number, h: number): { el: HTMLCanvasElement; g: CanvasRenderi
   const g = el.getContext('2d'); if (g === null) throw new Error('No 2D canvas for the road look');
   return { el, g };
 }
-/** Fine asphalt grain over a filled rectangle. */
-function grain(g: CanvasRenderingContext2D, w: number, h: number, seed: number): void {
+/** Grain specks painted between paint opportunities: the junction canvas's ~58k specks ran ~43 ms in one Simulator task. */
+const GRAIN_SPECKS_PER_STEP = 2048;
+/** Fine asphalt grain over a filled rectangle; the same specks in the same order, with a pause every few thousand. */
+function* grainSteps(g: CanvasRenderingContext2D, w: number, h: number, seed: number): Generator<void> {
   g.fillStyle = ASPHALT; g.fillRect(0, 0, w, h);
   const count = Math.round(w * h / 18);
   for (let k = 0; k < count; k++) {
+    if (k > 0 && k % GRAIN_SPECKS_PER_STEP === 0) yield;
     const r = hash(seed + k * 3.1), x = hash(seed + k * 7.7) * w, y = hash(seed + k * 1.3) * h, l = r < 0.5 ? 30 + r * 30 : 70 + r * 40;
     g.fillStyle = `rgba(${String(l)},${String(l + 2)},${String(l + 6)},0.55)`; g.fillRect(x, y, 1 + (r > 0.92 ? 1 : 0), 1);
   }
@@ -157,9 +160,9 @@ function texture(el: HTMLCanvasElement, repeat: boolean): CanvasTexture {
 
 /** The road canvas: u [0, 0.5) the normal section, [0.5, 1) the turn-in section; v one 12 m period of dashes. */
 const ROAD_PERIOD = 12;
-function roadTexture(): CanvasTexture {
+function* roadTextureSteps(): Generator<void, CanvasTexture> {
   const W = 1024, H = 512, { el, g } = canvas(W, H);
-  grain(g, W, H, 1);
+  yield* grainSteps(g, W, H, 1);
   const half = W / 2, px = (t: number, base: number): number => base + (t + ROAD_HALF) / (2 * ROAD_HALF) * half, pm = half / (2 * ROAD_HALF);
   for (const base of [0, half]) {
     const turnIn = base > 0;
@@ -179,9 +182,9 @@ function roadTexture(): CanvasTexture {
 }
 
 /** The junction canvas: 62.5 m square; the roundabout's markings in the middle, plain asphalt in the corners. */
-function junctionTexture(): CanvasTexture {
+function* junctionTextureSteps(): Generator<void, CanvasTexture> {
   const W = 1024, { el, g } = canvas(W, W), k = W / (2 * GAP_HALF);
-  grain(g, W, W, 2);
+  yield* grainSteps(g, W, W, 2);
   const P = (x: number, z: number): [number, number] => [(x + GAP_HALF) * k, (GAP_HALF - z) * k];
   const arc = (r: number, a0: number, a1: number, width: number, colour: string, dash?: readonly [number, number]): void => {
     g.strokeStyle = colour; g.lineWidth = width * k; g.setLineDash(dash === undefined ? [] : [dash[0] * k, dash[1] * k]);
@@ -453,7 +456,7 @@ const ROAD_FLOATS = 8;
 function mesherSource(m: Mesher): CullSource { return { vertices: m.p.length / 3, position: (k) => Math.fround(m.p[k] ?? 0), indices: m.i }; }
 /** One textured road mesh before it is built: its triangles, its canvas's size and how to paint it. */
 interface TexturedSource {
-  readonly id: string; readonly name: string; readonly mesher: Mesher; readonly width: number; readonly height: number; readonly paint: () => Texture;
+  readonly id: string; readonly name: string; readonly mesher: Mesher; readonly width: number; readonly height: number; readonly paint: () => Generator<void, Texture>;
   readonly overlay: boolean;
   /** GPU bytes per texel (4: an RGBA8 canvas; 2: the sign atlas's RG8 array) and what holds the texels until upload */
   readonly texelBytes: number; readonly source: 'canvas' | 'data';
@@ -461,12 +464,14 @@ interface TexturedSource {
 }
 // the map is the emissive map too, black until RoadOverlayLight lights it inside a cell (one program either way)
 const overlayMaterial = (map: Texture): MeshLambertMaterial => new MeshLambertMaterial({ map, emissiveMap: map, emissive: 0x000000, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+/** A texture painted in one stretch, as a paint step. */
+function* paintNow(paint: () => Texture): Generator<void, Texture> { yield; return paint(); }
 function texturedSources(layout: RoadLayout, home: GridCell): TexturedSource[] {
   const atlas = signAtlasLayout(layout.signs);
   return [
-    { id: 'road.asphalt', name: 'grid-asphalt', mesher: asphalt(layout, home), width: 1024, height: 512, paint: roadTexture, overlay: true, texelBytes: 4, source: 'canvas', material: overlayMaterial },
-    { id: 'road.junctions', name: 'grid-junctions', mesher: junctionAsphalt(layout, home), width: 1024, height: 1024, paint: junctionTexture, overlay: true, texelBytes: 4, source: 'canvas', material: overlayMaterial },
-    { id: 'road.signs', name: 'grid-signs', mesher: signMesher(layout.signs, home, atlas), width: atlas.width, height: atlas.height, paint: () => signAtlasTexture(atlas), overlay: false, texelBytes: 2, source: 'data', material: (map) => coverageMaterial(map, signCoverage(), 'g227-grid-sign-cover') },
+    { id: 'road.asphalt', name: 'grid-asphalt', mesher: asphalt(layout, home), width: 1024, height: 512, paint: roadTextureSteps, overlay: true, texelBytes: 4, source: 'canvas', material: overlayMaterial },
+    { id: 'road.junctions', name: 'grid-junctions', mesher: junctionAsphalt(layout, home), width: 1024, height: 1024, paint: junctionTextureSteps, overlay: true, texelBytes: 4, source: 'canvas', material: overlayMaterial },
+    { id: 'road.signs', name: 'grid-signs', mesher: signMesher(layout.signs, home, atlas), width: atlas.width, height: atlas.height, paint: () => paintNow(() => signAtlasTexture(atlas)), overlay: false, texelBytes: 2, source: 'data', material: (map) => coverageMaterial(map, signCoverage(), 'g227-grid-sign-cover') },
   ];
 }
 
@@ -485,7 +490,7 @@ export function* installRoadLookSteps(input: RoadLookInput): Generator<void, Roa
   for (const source of sources) {
     const build = function* build(owner: LookScope): Generator<void, Mesh> {
       yield;
-      const map = source.paint(), material = source.material(map);
+      const map = yield* source.paint(), material = source.material(map);
       const mesh = new Mesh(source.mesher.geometry(), material);
       ownRoadMesh(owner, mesh, [map]);
       mesh.name = source.name; if (source.overlay) { mesh.receiveShadow = true; input.overlayLight?.add(material, owner); }
