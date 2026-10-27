@@ -289,8 +289,6 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
     gate_seconds = round(time.monotonic() - started, 2)
     upload_started = time.monotonic()
     rc = uploader(candidate, env)
-    if rc == 0:
-        batch_file.unlink(missing_ok=True)
     return finish({'status': 'pushed' if rc == 0 else 'upload-red', 'tip': candidate, 'bad': bad,
                    'types': result.get('types', 'unavailable'),
                    'gateSeconds': gate_seconds, 'uploadSeconds': round(time.monotonic()-upload_started, 4),
