@@ -45,6 +45,7 @@ function copy(frame: ClientScriptFrame): ClientScriptFrame {
 class ClientWorld extends ScriptWorld {
   readonly bindings: ReadonlyMap<number, ClientScriptBinding>;
   private frames = new Map<number, ClientScriptFrame>();
+  private frameRevision = 0;
   private live: v.InferOutput<typeof liveSchema> = [];
   private tick = -1;
   private particles = 0;
@@ -54,8 +55,10 @@ class ClientWorld extends ScriptWorld {
     for (const b of bindings) this.frames.set(b.entity, { entity: b.entity, tick: -1, offset: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1], particles: [] });
   }
   beginTick(tick: number): void {
-    this.tick = tick; this.particles = 0; this.live = this.live.filter((p) => p.expires > tick);
-    this.frames = new Map([...this.frames].map(([id, frame]) => [id, { ...frame, tick, particles: [] }]));
+    this.tick = tick; this.particles = 0;
+    if (this.live.length > 0) this.live = this.live.filter((p) => p.expires > tick);
+    for (const frame of this.frames.values()) { frame.tick = tick; if (frame.particles.length > 0) frame.particles = []; }
+    this.frameRevision++;
   }
   outputs(): readonly ClientScriptFrame[] { return [...this.frames.values()].sort((a, b) => a.entity - b.entity).map(copy); }
   private pose(frame: ClientScriptFrame, binding: ClientScriptBinding): boolean {
@@ -65,10 +68,10 @@ class ClientWorld extends ScriptWorld {
     return true;
   }
   override prepare(effects: readonly ScriptEffect[], self: number, _spawns: number, _events: number): EffectTransaction {
-    const binding = this.bindings.get(self), current = this.frames.get(self), before = this.frames;
+    const binding = this.bindings.get(self), current = this.frames.get(self), before = this.frameRevision;
     if (binding === undefined || current === undefined) throw new Error('Unknown client script target');
-    const frame = copy(current); let particles = this.particles;
-    const live = [...this.live], seen = new Set<number>();
+    const frame = effects.length === 0 ? current : copy(current); let particles = this.particles, live = this.live;
+    const seen = new Set<number>();
     for (const effect of effects) {
       const { op, a, b, c, d } = effect;
       if (!Number.isFinite(op) || !Number.isFinite(a) || !Number.isFinite(b) || !Number.isFinite(c) || !Number.isFinite(d)) throw new Error('Non-finite client effect');
@@ -78,6 +81,7 @@ class ClientWorld extends ScriptWorld {
         const emitted = frame.particles.filter((p) => p.emitter === a).reduce((n, p) => n + p.count, 0), alive = live.filter((p) => p.entity === self && p.emitter === a).reduce((n, p) => n + p.count, 0);
         if (emitted + b > emitter.perTick || alive + b > emitter.live || particles + b > CLIENT_SCRIPT_LIMITS.particlesPerTick || live.reduce((n, p) => n + p.count, 0) + b > CLIENT_SCRIPT_LIMITS.particlesLive) throw new Error('Client particle allowance');
         const expires = this.tick + emitter.lifetimeTicks; if (!Number.isSafeInteger(expires)) throw new Error('Client particle lifetime overflow');
+        if (live === this.live) live = live.slice();
         live.push({ entity: self, emitter: a, count: b, expires }); particles += b;
         frame.particles = [...frame.particles, { emitter: a, count: b, lifetimeTicks: emitter.lifetimeTicks }];
       } else {
@@ -90,8 +94,8 @@ class ClientWorld extends ScriptWorld {
       }
     }
     return { spawns: 0, events: [], commit: () => {
-      if (this.frames !== before) throw new Error('Stale client transaction');
-      this.frames = new Map(before); this.frames.set(self, frame); this.live = live; this.particles = particles;
+      if (this.frameRevision !== before) throw new Error('Stale client transaction');
+      this.frames.set(self, frame); this.live = live; this.particles = particles; this.frameRevision++;
     } };
   }
   snapshot(): object { return { tick: this.tick, particles: this.particles, frames: this.outputs(), live: this.live.map((p) => ({ ...p })), entities: this.state() }; }
@@ -104,7 +108,7 @@ class ClientWorld extends ScriptWorld {
       const emitter = this.bindings.get(p.entity)?.emitters.find((e) => e.id === p.emitter);
       return emitter === undefined || p.expires <= saved.tick || p.expires > saved.tick + emitter.lifetimeTicks || saved.live.filter((q) => q.entity === p.entity && q.emitter === p.emitter).reduce((n, q) => n + q.count, 0) > emitter.live;
     }) || saved.entities.some((e) => this.bindings.get(e.id)?.name !== e.name || e.position.some((n) => n !== 0) || Object.keys(e.fields).length > 0)) throw new Error('Invalid client continuation');
-    this.restore(saved.entities); this.frames = new Map(saved.frames.map((f) => [f.entity, copy(f)])); this.tick = saved.tick; this.particles = saved.particles; this.live = saved.live;
+    this.restore(saved.entities); this.frames = new Map(saved.frames.map((f) => [f.entity, copy(f)])); this.tick = saved.tick; this.particles = saved.particles; this.live = saved.live; this.frameRevision++;
   }
 }
 

@@ -33,7 +33,8 @@ export interface ScriptHostOptions { world: ScriptWorld; query: ScriptQuery; lim
 export interface ScriptDisabled { module: string; entity: string; reason: string; failures: number }
 interface Layout { input: number; inputBytes: number; output: number; outputRecords: number }
 interface Running { memory: WebAssembly.Memory; instance: WebAssembly.Instance }
-interface ModuleState { bytes: Uint8Array; admission: ScriptAdmission; maximumPages: number; running: Running | undefined; layout: Layout; good: ScriptSnapshot; failures: number; disabled: boolean; remaining: number; depth: number; entity: number; busy: boolean }
+interface OwnedSnapshot { memory: Uint8Array; globals: Map<string, number | bigint> }
+interface ModuleState { bytes: Uint8Array; admission: ScriptAdmission; maximumPages: number; running: Running | undefined; layout: Layout; good: OwnedSnapshot; spare?: OwnedSnapshot; failures: number; disabled: boolean; remaining: number; depth: number; entity: number; busy: boolean }
 function integer(n: number, min: number, max: number): boolean { return Number.isSafeInteger(n) && n >= min && n <= max; }
 interface PreparedMemory { initial: number; maximum: number; memory: WebAssembly.Memory }
 const preparedMemories = new Map<Scope, PreparedMemory[]>();
@@ -118,13 +119,16 @@ function invoke(running: Running, name: string, args: readonly number[] = []): n
   const value = (fn as (...values: number[]) => unknown)(...args); if (value === undefined) return 0; if (typeof value !== 'number' || !Number.isFinite(value)) throw new Error('Non-finite ABI result'); return value;
 }
 function currentInstance(state: ModuleState): Running { if (!state.running) throw new Error('Uninitialized script'); return state.running; }
-function snapshot(state: ModuleState): ScriptSnapshot {
-  const current = currentInstance(state);
-  const globals = new Map<string, number | bigint>();
-  for (const name of state.admission.globals) { const global = current.instance.exports[name]; if (!(global instanceof WebAssembly.Global)) throw new Error('Missing state global'); const value: unknown = global.value; if (typeof value !== 'number' && typeof value !== 'bigint') throw new Error('Non-numeric global'); globals.set(name, value); }
-  return { memory: new Uint8Array(current.memory.buffer).slice(), globals };
+function snapshot(state: ModuleState, reuse?: OwnedSnapshot): OwnedSnapshot {
+  const current = currentInstance(state), globals = reuse?.globals ?? new Map<string, number | bigint>();
+  for (const name of state.admission.globals) {
+    const global = current.instance.exports[name]; if (!(global instanceof WebAssembly.Global)) throw new Error('Missing state global');
+    const value: unknown = global.value; if (typeof value !== 'number' && typeof value !== 'bigint') throw new Error('Non-numeric global'); globals.set(name, value);
+  }
+  const memory = reuse?.memory.length === current.memory.buffer.byteLength ? reuse.memory : new Uint8Array(current.memory.buffer.byteLength);
+  memory.set(new Uint8Array(current.memory.buffer)); return { memory, globals };
 }
-function clone(s: ScriptSnapshot): ScriptSnapshot { return { memory: s.memory.slice(), globals: new Map(s.globals) }; }
+function clone(s: ScriptSnapshot): OwnedSnapshot { return { memory: s.memory.slice(), globals: new Map(s.globals) }; }
 /** Keep the JSON byte array detached without allocating a typed-array iterator
  * result per byte or repeatedly growing the output backing store. */
 function checkpointMemory(source: Uint8Array): number[] {
@@ -252,7 +256,7 @@ export class ScriptHost {
     if (this.active || !integer(saved.tick, -1, Number.MAX_SAFE_INTEGER) || saved.modules.length !== this.modules.size
       || new Set(saved.modules.map((m) => m.name)).size !== saved.modules.length || Object.values(saved.used).some((n) => !integer(n, 0, Number.MAX_SAFE_INTEGER))
       || saved.pending.length > this.limits.events || saved.pending.some((e) => !integer(e.type, 1, 0x7fffffff) || !integer(e.target, 1, 0x7fffffff) || !Number.isFinite(e.value))) throw new Error('Invalid host checkpoint');
-    const staged: { state: ModuleState; good: ScriptSnapshot; running: Running; writes: { memory: Uint8Array; globals: readonly { global: WebAssembly.Global; value: number | bigint }[] } | undefined; failures: number; disabled: boolean }[] = [];
+    const staged: { state: ModuleState; good: OwnedSnapshot; running: Running; writes: { memory: Uint8Array; globals: readonly { global: WebAssembly.Global; value: number | bigint }[] } | undefined; failures: number; disabled: boolean }[] = [];
     for (const entry of saved.modules) {
       const state = this.modules.get(entry.name);
       if (!state || !integer(entry.failures, 0, Number.MAX_SAFE_INTEGER) || entry.disabled !== (entry.failures >= this.limits.failures)
@@ -311,8 +315,8 @@ export class ScriptHost {
   resume(name: string, entity: number): void { const state = this.modules.get(name); if (!state || state.disabled || this.active) throw new Error('Disabled or active module'); this.world.freeze(entity, false); }
   /** Execute and validate a full batch, then publish numeric world state and script snapshot together. */
   call(name: string, entity: number, input: readonly number[], events: readonly number[] = []): ScriptCall {
-    const state = this.modules.get(name), current = this.world.entity(entity);
-    if (!state || !current || state.disabled || current.frozen) return { ok: false, effects: [], events: [], fuel: 0, reason: 'Unavailable script/entity', disabled: state?.disabled ?? false };
+    const state = this.modules.get(name), available = this.world.callable(entity);
+    if (!state || !available || state.disabled) return { ok: false, effects: [], events: [], fuel: 0, reason: 'Unavailable script/entity', disabled: state?.disabled ?? false };
     if (this.used.fuel >= this.limits.fuelPerTick) return { ok: false, effects: [], events: [], fuel: 0, reason: 'Script tick fuel allowance', disabled: false };
     if (this.active || this.tick < 0) throw new Error('Reentrant call or missing fixed tick');
     state.remaining = this.limits.fuelPerCall; state.depth = 0; state.entity = entity; state.busy = true; this.active = true;
@@ -330,7 +334,7 @@ export class ScriptHost {
       for (let i = 0; i < count; i++) { const at = i * 5; effects.push({ op: view[at] ?? Number.NaN, a: view[at + 1] ?? Number.NaN, b: view[at + 2] ?? Number.NaN, c: view[at + 3] ?? Number.NaN, d: view[at + 4] ?? Number.NaN }); }
       const eventAllowance = Math.min(this.limits.events - this.used.events, this.limits.events - this.pending.length);
       const tx = this.world.prepare(effects, entity, this.limits.spawns - this.used.spawns, eventAllowance);
-      const good = snapshot(state); tx.commit(); state.good = good;
+      const good = snapshot(state, state.spare); tx.commit(); state.spare = state.good; state.good = good;
       this.used.effects += count; this.used.spawns += tx.spawns; this.used.events += tx.events.length; this.pending.push(...tx.events);
       return { ok: true, effects, events: tx.events, fuel: this.limits.fuelPerCall - state.remaining, reason: undefined, disabled: false };
     } catch (error) {
@@ -339,9 +343,9 @@ export class ScriptHost {
       state.remaining = this.limits.fuelPerCall; state.depth = 0; state.running = this.instantiate(state, state.good);
       this.world.freeze(entity, true);
       const reason = error instanceof Error ? error.message : 'Script trap';
-      if (this.options.development) this.options.toast?.(scriptFailure(current.name, name, reason, state.disabled));
+      if (this.options.development) this.options.toast?.(scriptFailure(this.world.entity(entity)?.name ?? String(entity), name, reason, state.disabled));
       // a disabled module never reaches this call, so this is its one crossing
-      if (state.disabled) this.options.onDisabled?.({ module: name, entity: current.name, reason, failures: state.failures });
+      if (state.disabled) this.options.onDisabled?.({ module: name, entity: this.world.entity(entity)?.name ?? String(entity), reason, failures: state.failures });
       return { ok: false, effects: [], events: [], fuel, reason, disabled: state.disabled };
     } finally { state.busy = false; this.active = false; }
   }

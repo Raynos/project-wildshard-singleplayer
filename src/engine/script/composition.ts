@@ -45,6 +45,7 @@ class RoleWorld extends ScriptWorld {
   refresh(): void { this.ownership = this.owners(); }
   role(entity: number): ScriptRole | undefined { return this.ownership.get(entity); }
   override entity(entity: number): ScriptEntity | undefined { return this.role(entity)?.world.entity(entity); }
+  override callable(entity: number): boolean { return this.role(entity)?.world.callable(entity) ?? false; }
   /** Ownership comes only from the entity's declared role, never another role's actor aliases. */
   override actor(entity: number): string | undefined { return this.role(entity)?.world.actor(entity); }
   override state(): readonly ScriptEntity[] { return this.roles.flatMap(role => role.world.state()).sort((a, b) => a.id - b.id); }
@@ -56,10 +57,13 @@ class RoleWorld extends ScriptWorld {
     for (const effect of effects) if (effect.op === SCRIPT_OP.event && owners.has(effect.b) && owners.get(effect.b) !== role) throw new Error('Cross-role script event');
     const tx = role.world.prepare(effects, self, spawns, events);
     // ScriptWorld allocates consecutive handles after its greatest retained entity handle.
-    const next = Math.max(0, ...role.world.state().map(entity => entity.id)) + 1;
-    const spawned = new Set(Array.from({ length: tx.spawns }, (_unused, i) => next + i));
-    if (owners.size + tx.spawns > this.maximum || [...spawned].some(id => owners.has(id))) throw new Error('Aggregate script spawn identity/allowance');
-    for (const effect of effects) if (effect.op === SCRIPT_OP.event && owners.get(effect.b) !== role && !spawned.has(effect.b)) throw new Error('Cross-role script event');
+    let spawned: Set<number> | undefined;
+    if (tx.spawns > 0) {
+      const next = Math.max(0, ...role.world.state().map(entity => entity.id)) + 1;
+      spawned = new Set(Array.from({ length: tx.spawns }, (_unused, i) => next + i));
+      if (owners.size + tx.spawns > this.maximum || [...spawned].some(id => owners.has(id))) throw new Error('Aggregate script spawn identity/allowance');
+    }
+    for (const effect of effects) if (effect.op === SCRIPT_OP.event && owners.get(effect.b) !== role && spawned?.has(effect.b) !== true) throw new Error('Cross-role script event');
     return { spawns: tx.spawns, events: tx.events, commit: () => { tx.commit(); if (tx.spawns > 0) this.refresh(); } };
   }
 }

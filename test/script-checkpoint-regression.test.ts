@@ -77,3 +77,14 @@ test('saved replay and invalid suffix restores retain exact continuation', () =>
   host.beginTick(8); expect(host.call('z-first', 1, [8]).ok).toBe(true);
   expect(host.checkpoint()).toEqual(next);
 });
+
+
+test('reused private rollback buffers never alias retained public checkpoints', () => {
+  const host = fixture(), retained = host.checkpoint(), wire = JSON.stringify(retained);
+  for (let tick = 8; tick < 16; tick++) {
+    host.beginTick(tick); expect(host.call('z-first', 1, [tick]).ok).toBe(true);
+    expect(JSON.stringify(retained)).toBe(wire);
+  }
+  host.restoreState(retained);
+  expect(host.checkpointText()).toBe(wire);
+});

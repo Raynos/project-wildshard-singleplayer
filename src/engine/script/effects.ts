@@ -17,6 +17,7 @@ function copy(e: ScriptEntity): ScriptEntity { return { ...e, position: [...e.po
 export class ScriptWorld {
   private entities = new Map<number, ScriptEntity>();
   private next = 1;
+  private revision = 0;
   private readonly rules: EffectRules;
   constructor(rules: EffectRules, entities: readonly ScriptEntity[]) {
     if (!Number.isSafeInteger(rules.maxEntities) || rules.maxEntities < 1 || rules.maxEntities > 10000 || entities.length > rules.maxEntities) throw new Error('Entity cap');
@@ -31,6 +32,8 @@ export class ScriptWorld {
   }
   /** Read-only copy, including the frozen/noninteractive quarantine state. */
   entity(handle: number): ScriptEntity | undefined { const e = this.entities.get(handle); return e ? copy(e) : undefined; }
+  /** Allocation-free host admission; public entity() still returns a detached copy. */
+  callable(handle: number): boolean { const entity = this.entities.get(handle); return entity !== undefined && !entity.frozen; }
   /** Host-bound actor provenance for an entity; ordinary numeric/mover worlds grant no item owner. */
   actor(_handle: number): string | undefined { return undefined; }
   /** Snapshot of host-owned entity state, ordered by numeric handle. */
@@ -38,38 +41,39 @@ export class ScriptWorld {
   /** Restore validated host-owned state without publishing a partially checked entity list. */
   restore(entities: readonly ScriptEntity[]): void {
     const checked = new ScriptWorld(this.rules, entities);
-    this.entities = checked.entities; this.next = checked.next;
+    this.entities = checked.entities; this.next = checked.next; this.revision++;
   }
   /** Quarantine or explicitly resume an entity after a failed script call. */
-  freeze(handle: number, frozen: boolean): void { const e = this.entities.get(handle); if (e) this.entities.set(handle, { ...e, frozen, interactive: !frozen }); }
+  freeze(handle: number, frozen: boolean): void { const e = this.entities.get(handle); if (e) { this.entities.set(handle, { ...e, frozen, interactive: !frozen }); this.revision++; } }
   private field(key: number, value: number): void {
     const range = this.rules.fields[key];
     if (!Number.isSafeInteger(key) || !range || !Number.isFinite(value) || value < range[0] || value > range[1]) throw new Error('Field id/value outside declared range');
   }
   /** Validate every effect and build a private next state; queued events cannot invoke another script here. */
   prepare(effects: readonly ScriptEffect[], self: number, spawnAllowance: number, eventAllowance: number): EffectTransaction {
-    const before = this.entities, next = new Map(before), events: ScriptEvent[] = [];
-    let nextId = this.next, spawns = 0;
-    if (!next.has(self)) throw new Error('Unknown entity');
+    const before = this.entities, revision = this.revision, events: ScriptEvent[] = [];
+    let next = before, nextId = this.next, spawns = 0;
+    const writing = (): Map<number, ScriptEntity> => { if (next === before) next = new Map(before); return next; };
+    if (!before.has(self)) throw new Error('Unknown entity');
     for (const effect of effects) {
       const { op, a, b, c, d } = effect;
       if (![op, a, b, c, d].every(Number.isFinite)) throw new Error('Non-finite effect');
       const entity = next.get(self); if (!entity) throw new Error('Unknown entity');
       if (op === SCRIPT_OP.field) {
         this.field(a, b); if (c !== 0 || d !== 0) throw new Error('Reserved effect values');
-        next.set(self, { ...entity, fields: { ...entity.fields, [a]: b } });
+        writing().set(self, { ...entity, fields: { ...entity.fields, [a]: b } });
       } else if (op === SCRIPT_OP.position) {
         if (![a, b, c].every(coord) || d !== 0) throw new Error('Position outside bounds');
-        next.set(self, { ...entity, position: [a, b, c] });
+        writing().set(self, { ...entity, position: [a, b, c] });
       } else if (op === SCRIPT_OP.spawn) {
         if (!id(a) || !this.rules.archetypes.includes(a) || ![b, c, d].every(coord)) throw new Error('Spawn outside declared range');
         if (++spawns > spawnAllowance || next.size >= this.rules.maxEntities || !id(nextId)) throw new Error('Spawn allowance');
-        next.set(nextId, { id: nextId, name: `entity ${nextId}`, position: [b, c, d], fields: {}, frozen: false, interactive: true }); nextId++;
+        writing().set(nextId, { id: nextId, name: `entity ${nextId}`, position: [b, c, d], fields: {}, frozen: false, interactive: true }); nextId++;
       } else if (op === SCRIPT_OP.event) {
         if (!id(a) || !this.rules.events.includes(a) || !next.has(b) || d !== 0) throw new Error('Event outside declared range');
         if (events.length >= eventAllowance) throw new Error('Event allowance'); events.push({ type: a, target: b, value: c });
       } else throw new Error('Unknown effect operation');
     }
-    return { spawns, events, commit: () => { if (this.entities !== before) throw new Error('Stale effect transaction'); this.entities = next; this.next = nextId; } };
+    return { spawns, events, commit: () => { if (this.revision !== revision) throw new Error('Stale effect transaction'); this.entities = next; this.next = nextId; this.revision++; } };
   }
 }

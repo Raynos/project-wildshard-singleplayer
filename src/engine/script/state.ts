@@ -17,6 +17,8 @@ export class DeclaredScriptWorld extends ScriptWorld {
   readonly declaration: ScriptStateDeclaration;
   private shared: number[];
   private players = new Map<string, number[]>();
+  private declaredRevision = 0;
+  private readonly views = new Map<string, { shared: Record<string, number>; player: Record<string, number> }>();
   private readonly actors: ReadonlyMap<number, string>;
   constructor(rules: EffectRules, entities: readonly ScriptEntity[], declaration: ScriptStateDeclaration, actors: ReadonlyMap<number, string>) {
     super(rules, entities);
@@ -45,8 +47,16 @@ export class DeclaredScriptWorld extends ScriptWorld {
   view(actorId: string): { shared: Readonly<Record<string, number>>; player: Readonly<Record<string, number>> } {
     const values = this.players.get(actorId);
     if (!values) throw new Error('Unknown actor');
-    const fields = (list: readonly ScriptStateField[], data: readonly number[], shared: boolean): Record<string, number> => Object.fromEntries(list.flatMap((f, i) => (shared ? f.privacy !== 'public' : f.privacy === 'host') ? [] : [[f.name, data[i] ?? f.default]]));
-    return { shared: fields(this.declaration.shared, this.shared, true), player: fields(this.declaration.player, values, false) };
+    let cached = this.views.get(actorId);
+    if (cached === undefined) {
+      const shared: Record<string, number> = {}, player: Record<string, number> = {};
+      for (let i = 0; i < this.declaration.shared.length; i++) { const field = this.declaration.shared[i]; if (field?.privacy === 'public') shared[field.name] = this.shared[i] ?? field.default; }
+      for (let i = 0; i < this.declaration.player.length; i++) { const field = this.declaration.player[i]; if (field !== undefined && field.privacy !== 'host') player[field.name] = values[i] ?? field.default; }
+      cached = { shared, player }; this.views.set(actorId, cached);
+    }
+    // Callers still own detached records; privacy projection is only rebuilt
+    // after a declared-state commit, never with Object.fromEntries per tick.
+    return { shared: { ...cached.shared }, player: { ...cached.player } };
   }
   /** Complete checkpoint ordered by stable actor id, independent of map insertion order. */
   checkpoint(): ScriptWorldState { return { entities: this.state(), shared: [...this.shared], players: [...this.players].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0).map(([actorId, values]) => ({ actorId, values: [...values] })) }; }
@@ -55,26 +65,33 @@ export class DeclaredScriptWorld extends ScriptWorld {
     const check = (fields: readonly ScriptStateField[], values: readonly number[]): boolean => fields.length === values.length && fields.every((f, i) => valid(f, values[i] ?? Number.NaN));
     if (!check(this.declaration.shared, saved.shared) || saved.players.length !== this.players.size || new Set(saved.players.map((p) => p.actorId)).size !== saved.players.length
       || saved.players.some((p) => !this.players.has(p.actorId) || !check(this.declaration.player, p.values)) || [...this.actors.keys()].some((handle) => !saved.entities.some((e) => e.id === handle))) throw new Error('Invalid declared-state snapshot');
-    super.restore(saved.entities); this.shared = [...saved.shared]; this.players = new Map(saved.players.map((p) => [p.actorId, [...p.values]]));
+    super.restore(saved.entities); this.shared = [...saved.shared]; this.players = new Map(saved.players.map((p) => [p.actorId, [...p.values]])); this.declaredRevision++; this.views.clear();
   }
   override prepare(effects: readonly ScriptEffect[], self: number, spawnAllowance: number, eventAllowance: number): EffectTransaction {
-    const before = this.shared, shared = [...before], players = new Map(this.players), actorId = this.actor(self), ordinary: ScriptEffect[] = [];
+    const before = this.declaredRevision, actorId = this.actor(self), ordinary: ScriptEffect[] = [];
+    let shared = this.shared, players = this.players;
     for (const effect of effects) {
       if (effect.op !== SCRIPT_STATE_OP.shared && effect.op !== SCRIPT_STATE_OP.player) { ordinary.push(effect); continue; }
       if (![effect.op, effect.a, effect.b, effect.c, effect.d].every(Number.isFinite) || effect.c !== 0 || effect.d !== 0) throw new Error('Invalid state effect');
       const isShared = effect.op === SCRIPT_STATE_OP.shared, fields = isShared ? this.declaration.shared : this.declaration.player;
       const index = fields.findIndex((f) => f.id === effect.a), field = fields[index];
       if (!field || !valid(field, effect.b)) throw new Error('Undeclared or invalid state field');
-      if (isShared) shared[index] = effect.b;
+      if (isShared) { if (shared === this.shared) shared = shared.slice(); shared[index] = effect.b; }
       else {
         if (actorId === undefined) throw new Error('Player effect requires an actor');
-        const values = [...(players.get(actorId) ?? [])]; values[index] = effect.b; players.set(actorId, values);
+        if (players === this.players) players = new Map(players);
+        let values = players.get(actorId);
+        if (values === undefined) throw new Error('Missing actor state');
+        if (values === this.players.get(actorId)) { values = [...values]; players.set(actorId, values); }
+        values[index] = effect.b;
       }
     }
     const tx = super.prepare(ordinary, self, spawnAllowance, eventAllowance);
     return { spawns: tx.spawns, events: tx.events, commit: () => {
-      if (this.shared !== before) throw new Error('Stale declared-state transaction');
-      tx.commit(); this.shared = shared; this.players = players;
+      if (this.declaredRevision !== before) throw new Error('Stale declared-state transaction');
+      tx.commit();
+      if (this.shared !== shared || this.players !== players) this.views.clear();
+      this.shared = shared; this.players = players; this.declaredRevision++;
     } };
   }
 }
