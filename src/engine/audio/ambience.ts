@@ -292,7 +292,7 @@ export class AmbienceMix {
   // ─────────────── timers (not per frame) ───────────────
   private scheduleOneShot(row: AudioOneShotSchedule): void {
     const [base, spread, night] = row.every;
-    const random=row.random==='global'?()=>Math.random():this.ports.random;
+    const random=row.random==='global'?audioRandom:this.ports.random;
     const timer=this.scope.timeout((base + random() * spread * (1 + this.night * night)) * 1000, () => {
       ambientTick(row.tick, () => {
         this.values.set('night', this.night); this.values.set('underwater', this.underwater ? 1 : 0);
