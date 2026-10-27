@@ -278,7 +278,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               // The resident can outlive a failed runtime child. Never restore that child's frame during its teardown.
               // Static world services belong to the resident, not its shorter-lived runtime child. Keep both in
               // the destination frame; page-owned callbacks still suspend it. The child below owns cancellation.
-              const leave = bindConstructionEnvironment(owner, () => {
+              const leave = bindConstructionEnvironment(scope, () => {
                 const frameScope = owner.child('runtime.construction');
                 try {
                   prepareFrame(frameScope); app.bindPlayerServices(pageScope, frameScope); view.prepare(frameScope);
