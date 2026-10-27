@@ -483,3 +483,19 @@ G754-DW-native-catalogue-timeout: CLOSED — CI40546398664@4bb61c4273 driftwood-
 G754-DW-posed-intake: CLOSED — pinned0cad825297 Driftwood cold entry fails world at27384ms with Missing identity-space posed draw (geometry.ts2001); afterWorld/kit/early warm never start. First-bad candidate bb7c08897d (fixedModels phone quantization/dequantization node transforms), owner sp-o3, routed; earlier a626 pair completed12.167s/0.033s. Preserve identity-space/posed semantics and original guard; exact cause/runtime qualification pending, no duplicate visit. Fixedf4dfdf5ef2: exact prior posed gull/reef-fish bytes restored, guard untouched. Maintained original pair on exact f4dfdf5ef28a3e217c45cfcca33a8e8c844d0612 completes both cold/warm with errors[] (phone4x/DPR2/muted), receipt tmp/sp-x8-dw-cold/confirm-world-fixed/receipt.json; independently verified, no duplicate browser or performance-bar claim.
 
 G754-parked-clock-ratchet: CLOSED — push ratchet ejected73f0922927 for parkedDraws.ts no-raw-random-time0->1; owner sp-o4 fixed forward in8a5946a256 using existing core/clock diagnosticNow. No allowance or guard change; offending suffix retained for the next ordinary push, original refusal in tmp/push-loop/current.log.
+
+G754-Nalati-view-fixture: OPEN — CI40551507295@9a3 nalati-view-binary creatureViews refuses Missing named view source. First bad833458bf72 replaced descriptors with owned named view blobs; released sp-o2 source now owned by sp-o5, routed. Preserve all five original Wasm size/hash/admission pins; log tmp/sp-ci-deploy-9a3/b8.log.
+
+G754-Pine-style-discovery: OPEN — CI40551507295@9a3 entry-styles lacks program discovery poses. First badf2f25523af, owner sp-o5 after sp-o1 release, routed for actual bounded discovery intake with CSS ordering/failure/no-runtime-entry assertions retained; log tmp/sp-ci-deploy-9a3/b2.log.
+
+G754-Pine-director-fixture: OPEN — CI40551507295@9a3 pine-output reads retired behaviour/director.json at59; stale untracked working file masks Linux ENOENT. Defining writer retirement1b5c94aff7; caller owner sp-o5 after9a3 intake repair, routed for real compiled identity; log tmp/sp-ci-deploy-9a3/b15.log.
+
+G754-map-void-fixture: OPEN — CI40551507295@9a3 map-void-source unnamed Group fails unique loader-safe part names. First bad389d2b0275 fixture introduction, owner sp-x1, routed; preserve complete raster bytes and GLB name guard; log tmp/sp-ci-deploy-9a3/b10.log.
+
+G754-Sky-navigation-wire: OPEN — CI40551507295@9a3 sky-navigation-source wire1138B versus1139B while original8486B input hash passes. First bad unproved, source83aac8fb56/677c53d5f0 owned by sp-x1, routed for exact byte/order attribution; log tmp/sp-ci-deploy-9a3/b12.log.
+
+G754-tile-surface-fixture: OPEN — CI40551507295@9a3 props-material-names expects two merged assets but receives five; whole binary/material checks pass. Fixture introduced8e100aab26, defining change unproved; owner sp-x10, routed with all channel/source-material assertions retained; log tmp/sp-ci-deploy-9a3/b3.log.
+
+G754-Sky-uniform-wire: OPEN — CI40551507295@9a3 sky-uniform-grid retained props metadata differs from current producer (first L0 58508B/b6c63ce1 to58476B/e5966870). First bad unproved, candidate8bf41b2b33/3f011d28a7 naming/receiver migration; owner sp-x10, routed for explicit transport attribution with exact geometry/binary identities retained; log tmp/sp-ci-deploy-9a3/b6.log.
+
+G754-Nalati-legacy-order: OPEN — CI40551507295@9a3 nalati-script-sections-source same-length SHA ba656eb4 to4678a12d and kokpar metadata dd0e1fb5 toe2181f61; original10468B executable hash passes. First-bad candidate498618d0c7 reconstructs predecessor after script normalization; owner sp-x6, routed for original full-pin restoration, no blind re-pin; logs tmp/sp-ci-deploy-9a3/b16.log and b11.log.
