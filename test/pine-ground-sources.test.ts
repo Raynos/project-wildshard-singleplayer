@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { expect, test } from 'vitest';
 import { BufferGeometry, Material, Mesh, type Object3D } from 'three';
 import { prepareRigLoader } from '../src/engine/anim/rig';
