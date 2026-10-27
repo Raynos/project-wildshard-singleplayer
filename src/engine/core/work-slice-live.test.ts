@@ -3,6 +3,7 @@ import { Scope } from '../app/scope';
 import { installScopeEnvironment, scopeEnvironment } from '../app/scopeEnvironment';
 import { noteFrameDrawn, setBuildHeld } from './framePacing';
 import { buildYield, workSlice } from './workSlice';
+import { slicer } from '../boot/plan';
 
 const environment = scopeEnvironment(), channel = globalThis.MessageChannel, raf = globalThis.requestAnimationFrame;
 let now = 1000;
@@ -22,6 +23,7 @@ function messages(): { readonly queue: (() => void)[]; readonly closed: (() => b
   const queue: (() => void)[] = [], closed: (() => boolean)[] = [];
   class Port extends EventTarget {
     stopped = false;
+    onmessage: (() => void) | null = null;
     start(): void { /* Explicit test delivery. */ }
     close(): void { this.stopped = true; }
   }
@@ -29,7 +31,7 @@ function messages(): { readonly queue: (() => void)[]; readonly closed: (() => b
     readonly port1 = new Port();
     private secondClosed = false;
     readonly port2 = { close: (): void => { this.secondClosed = true; }, postMessage: (): void => {
-      queue.push(() => { if (!this.port1.stopped) this.port1.dispatchEvent(new Event('message')); });
+      queue.push(() => { if (!this.port1.stopped) { this.port1.dispatchEvent(new Event('message')); this.port1.onmessage?.(); } });
     } };
     constructor() { closed.push(() => this.port1.stopped && this.secondClosed); }
   });
@@ -108,4 +110,18 @@ test.each(['slice', 'build'])("%s cannot resume during its ancestor's sliced ret
     await expect(next).rejects.toThrow('scope has closed');
     expect(turns.closed.every(read => read())).toBe(true); expect(turns.queue).toHaveLength(0);
   } finally { for (const _step of retirement) { /* Complete the original retirement. */ } }
+});
+
+test.each([false, true])('step slicers share the current live CPU budget after reads (held %s)', held => {
+  const turns = messages(), slice = slicer(30);
+  now = 1100; noteFrameDrawn(now, now, 30); setBuildHeld(held); now++;
+  expect(slice.due()).toBeNull(); expect(turns.queue).toHaveLength(0);
+});
+
+test('loading step slicers retain their declared local budget and close both task ports', async () => {
+  const turns = messages(), slice = slicer(30);
+  now += 9; expect(slice.due()).toBeNull();
+  now += 22; const pending = slice.due(); expect(pending).not.toBeNull(); expect(turns.queue).toHaveLength(1);
+  turns.queue.shift()?.(); await pending;
+  expect(turns.closed.every(read => read())).toBe(true); expect(slice.due()).toBeNull();
 });

@@ -99,7 +99,7 @@ export interface PlanOptions {
 /** One MessageChannel hop: a fresh task with no 4 ms timer clamp. */
 const messageHop = (): Promise<void> => new Promise((resolve) => {
   const c = new MessageChannel();
-  c.port1.onmessage = () => { c.port1.close(); resolve(); };
+  c.port1.onmessage = () => { c.port1.close(); c.port2.close(); resolve(); };
   c.port2.postMessage(0);
 });
 
@@ -119,8 +119,10 @@ export function slicer(budgetMs = 30, progress?: StepProgress): Slice {
   // in play (a grid cell built on the road while the engine loop draws, op-hitch26) a stretch is a work slice, not a loading
   // task: the loading screen's ~100 ms rule becomes the frame floor's. Every builder also shares
   // the work spent since the last draw, so a fresh builder cannot refill an already spent frame.
-  const budget = (): number => (presenting() ? Math.min(budgetMs, WORK_SLICE_MS) : budgetMs);
-  const due = (): boolean => { const now = performance.now(); return now - t0 >= budget() || frameBudgetSpent(budgetMs, now); };
+  // Awaited reads and painted frames do not spend a fresh live CPU slice.
+  // Loading still bounds the task by its original local elapsed clock.
+  const due = (): boolean => { const now = performance.now(); return presenting(now)
+    ? frameBudgetSpent(Math.min(budgetMs, WORK_SLICE_MS), now) : now - t0 >= budgetMs; };
   const next = async (): Promise<void> => { await macrotask(); t0 = performance.now(); };
   const slice = async (done?: number, total?: number, detail?: string): Promise<void> => {
     if (done !== undefined && total !== undefined) progress?.set(done, total, detail);
