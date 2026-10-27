@@ -19,10 +19,13 @@ export function onCellField(target: object, key: string, changed: () => void): (
     const initial: unknown = prior === undefined ? Reflect.get(target, key) : prior.value;
     const made: Slot = { value: initial, initial, listeners: new Set(), fast: undefined, prior, get: () => undefined };
     made.get = () => made.value;
-    Object.defineProperty(target, key, { configurable: true, enumerable: prior?.enumerable ?? true, get: made.get,
+    // An absent key stays out of key walks while it holds nothing: a skinned geometry's watched morphAttributes.position
+    // read as a phantom morph (undefined) to Object.keys / for…in readers (the S3.7 census, three's BufferGeometry.copy).
+    Object.defineProperty(target, key, { configurable: true, enumerable: prior?.enumerable ?? initial !== undefined, get: made.get,
       set(value: unknown): void {
         if (made.value === value) return;
         made.value = value;
+        if (prior === undefined) Object.defineProperty(target, key, { enumerable: value !== undefined });
         if (made.fast !== undefined) made.fast();
         else { const delivery = [...made.listeners]; for (const notify of delivery) if (made.listeners.has(notify)) notify(); }
       } });
@@ -35,7 +38,7 @@ export function onCellField(target: object, key: string, changed: () => void): (
     if (held.listeners.size > 0) return;
     if (Object.getOwnPropertyDescriptor(target, key)?.get === held.get) {
       if (held.prior === undefined && held.value === held.initial) Reflect.deleteProperty(target, key);
-      else Object.defineProperty(target, key, { ...held.prior, configurable: true, writable: true, value: held.value });
+      else Object.defineProperty(target, key, { ...held.prior, configurable: true, writable: true, value: held.value, enumerable: held.prior?.enumerable ?? held.value !== undefined });
     }
     delete table.values[key]; table.size--;
     if (table.size === 0) Reflect.deleteProperty(owner, FIELDS);

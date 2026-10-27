@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { onCellMethods } from './cellChanges';
+import { onCellField, onCellMethods } from './cellChanges';
 
 test('overlapping method subscriptions restore the exact own and inherited methods', () => {
   class Target {
@@ -126,4 +126,18 @@ test('method installation publishes no callback before defining the wrapper', ()
   expect(native).toBe(1); expect(notifications).toBe(0);
   target.run(); expect(native).toBe(2); expect(notifications).toBe(1);
   stop(); expect(notifications).toBe(1);
+});
+
+test('a watched absent field stays out of key walks until it holds a value', () => {
+  // S3.7: a skinned geometry's watched morphAttributes.position read as a phantom (undefined) morph to Object.entries
+  const morphs: Record<string, unknown> = {}, changes: unknown[] = [];
+  const stop = onCellField(morphs, 'position', () => { changes.push(morphs.position); });
+  expect(Object.keys(morphs)).toEqual([]); expect(morphs.position).toBeUndefined();
+  morphs.position = [1]; expect(Object.keys(morphs)).toEqual(['position']);
+  morphs.position = undefined; expect(Object.keys(morphs)).toEqual([]);
+  morphs.position = [2]; stop();
+  expect(Object.getOwnPropertyDescriptor(morphs, 'position')).toEqual({ value: [2], writable: true, enumerable: true, configurable: true });
+  expect(changes).toEqual([[1], undefined, [2]]);
+  const empty: Record<string, unknown> = {}, stopEmpty = onCellField(empty, 'position', () => undefined); stopEmpty();
+  expect(Object.getOwnPropertyDescriptor(empty, 'position')).toBeUndefined();
 });
