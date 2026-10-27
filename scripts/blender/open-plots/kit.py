@@ -15,11 +15,12 @@ SLOTS = {'iron': '#2b2b33', 'gold': '#d8a23e', 'paper': '#ff5b32', 'stone': '#8a
          'stall': '#c0222b', 'lantern': '#ffb347', 'wood': '#5b3a24', 'cloth': '#c8242c', 'stallRoof': '#b0262a',
          'fruit': '#e8892a', 'greens': '#5e9e3e', 'crate': '#8a5a34', 'board': '#14203f', 'awning': '#ff7a2e',
          'roof': '#1c2858', 'wall': '#e9d6b0', 'window': '#ffc96a', 'door': '#4a2a1a', 'bridge': '#d9d5cc',
-         'bridgeTop': '#c9c4ba', 'soil': '#3a2a20', 'foliage': '#3f8a36', 'flowerRed': '#e0334a', 'flowerGold': '#f2b632',
+         'bridgeTop': '#c9c4ba', 'soil': '#3a2a20', 'banner': '#c0222b', 'foliage': '#3f8a36', 'flowerRed': '#e0334a', 'flowerGold': '#f2b632',
          'flowerWhite': '#f2ede4', 'sack': '#b89a6a', 'trunk': '#5a4030'}
 # Each lit slot's ruled trim (data/trim.json, sp-o2's RM5.3 kit material); every other slot and all Glow faces are plain.
 TRIMS = {'stone': 'stone', 'bridge': 'stone', 'bridgeTop': 'stone', 'roof': 'roofTile', 'stallRoof': 'roofTile', 'wood': 'timber', 'timber': 'timber',
-         'wall': 'plaster', 'plaster': 'plaster', 'cloth': 'awningStripe'}
+         'wall': 'plaster', 'plaster': 'plaster', 'cloth': 'awningStripe',
+         'banner': 'banner'}  # RM10.4: the banners' cloth, which the kit graph sways (sp-o2, bc5c229957)
 # A lantern's post height in the generator moves its head; vertices between these heights stretch, those above shift.
 LANTERN = {'nominal': 2.6, 'stretch': [0.5, 2.0]}
 
@@ -76,7 +77,7 @@ def banner_post():
     p.box((-0.09, -0.09, 0.25), (0.09, 0.09, 2.56), 'Kit.iron')
     p.box((-0.06, -0.03, 2.36), (0.64, 0.03, 2.43), 'Kit.iron', bottom=True)
     # corners outside the gold strips: a vertex buried in another part bakes black (the shade is per corner)
-    p.box((0.12, -0.012, 1.04), (0.58, 0.012, 2.24), 'Kit.stall')
+    p.box((0.12, -0.012, 1.04), (0.58, 0.012, 2.24), 'Kit.banner')
     p.box((0.1, -0.022, 2.24), (0.6, 0.022, 2.34), 'Kit.gold', bottom=True)
     p.box((0.1, -0.022, 0.96), (0.6, 0.022, 1.04), 'Kit.gold', bottom=True)
     p.box((0.29, -0.016, 1.5), (0.41, 0.016, 1.8), 'Kit.gold')  # the banner's emblem, both faces
@@ -336,7 +337,7 @@ def lane_post():
     p.box((-0.1, -0.1, 0.3), (0.1, 0.1, 6.5), 'Kit.iron')
     p.prism(0, 0, 0.16, 0.0, 6.5, 6.8, 4, 'Kit.gold', spin=0.785398, cap_bottom=True)
     p.box((-0.5, -0.03, 5.35), (0.5, 0.03, 5.45), 'Kit.iron', bottom=True)
-    p.box((-0.46, -0.012, 2.8), (0.46, 0.012, 5.3), 'Kit.stall')
+    p.box((-0.46, -0.012, 2.8), (0.46, 0.012, 5.3), 'Kit.banner')
     p.box((-0.48, -0.022, 5.3), (0.48, 0.022, 5.44), 'Kit.gold', bottom=True)
     p.box((-0.48, -0.022, 2.72), (0.48, 0.022, 2.82), 'Kit.gold', bottom=True)
     return p
