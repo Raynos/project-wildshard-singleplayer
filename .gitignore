@@ -984,3 +984,5 @@ src/shards/pine-hollow/data/physics.generated.d.json.ts
 # Source-program maps publish only the compatibility public alias from their admitted product.
 /public/assets/_template/map/top.webp
 /public/assets/pastel-plain/map/top.webp
+/public/assets/ink-cel-valley/map/top.webp
+/public/assets/blender-template/map/top.webp
