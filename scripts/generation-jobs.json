@@ -1728,46 +1728,6 @@
       "platform": "native"
     },
     {
-      "id": "driftwood-look-materials",
-      "shard": "driftwood-isle",
-      "entry": "src/shards/driftwood-isle/generators/lookMaterials.ts",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/driftwood-isle/generators/lookMaterials.ts",
-        "driftwoodLookMaterials",
-        "src/shards/driftwood-isle/data/lookMaterials.generated.json"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/package.json",
-        "src/format/materialGraph.ts",
-        "src/shards/driftwood-isle/data/lookGraphs.json",
-        "src/shards/driftwood-isle/generators/oceanLook.ts",
-        "src/shards/driftwood-isle/data/poolLook.json",
-        "src/shards/driftwood-isle/generators/reefLook.ts",
-        "src/shards/driftwood-isle/generators/waterfallLook.ts",
-        "src/shards/driftwood-isle/generators/lookMaterials.ts",
-        "src/shards/driftwood-isle/generators/oceanGraphs.ts",
-        "src/shards/driftwood-isle/generators/poolGraphs.ts",
-        "src/shards/driftwood-isle/generators/reefGraphs.ts",
-        "src/shards/driftwood-isle/generators/waterfallGraphs.ts"
-      ],
-      "outputs": [
-        "src/shards/driftwood-isle/data/lookMaterials.generated.json"
-      ],
-      "platform": "portable",
-      "buildTimeOutputs": [
-        "src/shards/driftwood-isle/data/lookMaterials.generated.json"
-      ]
-    },
-    {
       "id": "pine-section-schemas",
       "shard": null,
       "entry": "scripts/bake-section-schemas.mjs",
