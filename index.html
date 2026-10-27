@@ -164,17 +164,22 @@
         field('tier', tier + ' · selecting quality');
         field('line', 'Loading application modules');
         field('suFact', 'Loading application modules');
+        // H7 (js-heap): each module entry counted once as it arrives, not every entry rescanned every frame
         let bytes = 0;
-        const seen = new Set();
+        const add = (entries) => {
+          for (const item of entries) if (item.initiatorType === 'script' || item.initiatorType === 'link') bytes += item.encodedBodySize || item.transferSize || 0;
+        };
+        let observer = null;
+        try { observer = new PerformanceObserver((list) => add(list.getEntries())); observer.observe({ type: 'resource', buffered: true }); }
+        catch { add(performance.getEntriesByType('resource')); }
         const resources = () => {
-          for (const item of performance.getEntriesByType('resource')) {
-            if ((item.initiatorType === 'script' || item.initiatorType === 'link') && !seen.has(item.name + ':' + item.startTime)) { seen.add(item.name + ':' + item.startTime); bytes += item.encodedBodySize || item.transferSize || 0; }
-          }
           root.dataset.moduleBytes = String(bytes);
           field('dlFact', bytes > 0 ? (bytes / 1048576).toFixed(2) + ' MB modules read · total pending' : 'Waiting for application modules');
         };
+        // the loop ends when Loading adopts the panel, or when the page turns out to be the title (a URL with harness
+        // parameters is not title-first while this script runs, so the loop otherwise ran on under the menu forever)
         const tick = () => {
-          if (!root.isConnected || !root.hasAttribute('data-shell')) return;
+          if (!root.isConnected || !root.hasAttribute('data-shell') || document.documentElement.classList.contains('title-first')) { observer?.disconnect(); return; }
           const seconds = (performance.now() - started) / 1000;
           field('clock', String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + (seconds % 60).toFixed(1).padStart(4, '0'));
           resources();
