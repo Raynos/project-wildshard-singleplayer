@@ -26,12 +26,16 @@ if (args.join(' ') === 'exec oxlint --debug files') {
   if (args[2] !== '--type-aware') process.exit(9);
   const threads = Number(args[4]);
   if (args[3] !== '--threads' || !Number.isSafeInteger(threads) || threads < 1 || threads > 8) process.exit(9);
+  const goThreads = Number(process.env.GOMAXPROCS);
+  if (!Number.isSafeInteger(goThreads) || goThreads < 1 || goThreads > threads) process.exit(9);
+  if (process.env.LINT_ALL_EXPECT_GO && process.env.GOMAXPROCS !== process.env.LINT_ALL_EXPECT_GO) process.exit(9);
   fs.appendFileSync(process.env.LINT_ALL_CALLS, args.slice(5).join('\n') + '\n--batch--\n');
   if (process.env.LINT_ALL_FAIL === 'yes' && args.some(file => file.endsWith('source 256.ts'))) process.exit(7);
 }
 `, { mode: 0o755 });
-  const run = (failure: boolean, args: readonly string[] = []): ReturnType<typeof spawnSync> => spawnSync(execPath, [resolve('scripts/lint-all.mjs'), ...args], {
-    encoding: 'utf8', env: { ...env, PATH: `${binary}:${env['PATH'] ?? ''}`,
+  const run = (failure: boolean, args: readonly string[] = [], goThreads?: string): ReturnType<typeof spawnSync> => spawnSync(execPath, [resolve('scripts/lint-all.mjs'), ...args], {
+    encoding: 'utf8', env: { ...Object.fromEntries(Object.entries(env).filter(([key]) => key !== 'GOMAXPROCS')), PATH: `${binary}:${env['PATH'] ?? ''}`,
+      ...(goThreads === undefined ? {} : { GOMAXPROCS: goThreads, LINT_ALL_EXPECT_GO: goThreads }),
       LINT_ALL_SELECTION: selection, LINT_ALL_CALLS: calls, LINT_ALL_FAIL: failure ? 'yes' : 'no' },
   });
   try {
@@ -63,6 +67,7 @@ if (args.join(' ') === 'exec oxlint --debug files') {
     writeFileSync(calls,'');
     expect(run(false,['--shard=1/1']).status).toBe(0);
     expect(readFileSync(calls,'utf8').match(/--batch--/gu)).toHaveLength(1);
+    expect(run(false, [], '1').status).toBe(0);
     for (const invalid of ['--shard=0/4', '--shard=5/4', '--shard=1/0', '--shard=bad']) {
       expect(run(false, [invalid]).status).toBe(2);
     }

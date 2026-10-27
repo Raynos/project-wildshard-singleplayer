@@ -32,6 +32,9 @@ console.info(`lint-all: typed shard ${part}/${parts}, ${selected.length} files`)
 // Avoid multiplying checker/GC workers across every logical core on the Mac.
 // Smaller CI machines retain their available width; selection/rules are exact.
 const threads = Math.min(8, availableParallelism());
-const result = spawnSync('pnpm', ['exec', 'oxlint', '--type-aware', '--threads', String(threads), ...selected], { cwd: root, stdio: 'inherit' });
+// --threads controls Oxlint's native pool; its Go helper has a separate runtime.
+// Preserve an explicit caller setting, including a smaller existing allowance.
+const lintEnv = { ...process.env, GOMAXPROCS: process.env.GOMAXPROCS ?? String(threads) };
+const result = spawnSync('pnpm', ['exec', 'oxlint', '--type-aware', '--threads', String(threads), ...selected], { cwd: root, stdio: 'inherit', env: lintEnv });
 if (result.error !== undefined) console.error(result.error.message);
 process.exitCode = result.status ?? 1;
