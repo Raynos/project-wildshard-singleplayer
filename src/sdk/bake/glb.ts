@@ -234,7 +234,8 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
       // retain the original vec4 as an application accessor below, never misdeclare the portable semantic.
       if (nativeAttributes === true && key === 'normal' && a.itemSize === 4 && a.count === p.count) continue;
       if (a.itemSize !== width || a.count !== p.count || (key === 'color' && width !== 3 && width !== 4)) throw new Error('Mismatched GLB attributes');
-      if (quantizedChannels === true && (key === 'normal' || key === 'color')) {
+      // (a colour outside [0, 1] stays float32 beside quantized normals: compactWholeNormals)
+      if (quantizedChannels === true && (key === 'normal' || (key === 'color' && !(a.array instanceof Float32Array)))) {
         if (!(a instanceof BufferAttribute) || (key === 'normal' && !(a.array instanceof Int8Array))) throw new Error('Quantized GLB normals must be normalized Int8');
         attributes[semantic] = packedAccessor(a, meshoptReady === true); continue;
       }

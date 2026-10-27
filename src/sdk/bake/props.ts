@@ -177,6 +177,14 @@ export function compactWholeChannels(g: BufferGeometry): boolean {
   if (floatColour) g.setAttribute('color', new BufferAttribute(Uint8Array.from(colour.array, value => Math.round(value * 255)), colour.itemSize, true));
   return true;
 }
+/** I3: only the normals as normalized Int8 (within ~0.5 degree), for a shape whose colours leave [0, 1] (a glow): they stay
+ *  float32 (staticGlb's `quantizedChannels` writes a float colour as it is). False, unchanged, without a float vec3 normal. */
+export function compactWholeNormals(g: BufferGeometry): boolean {
+  const normal = g.hasAttribute('normal') ? g.getAttribute('normal') : undefined;
+  if (!(normal instanceof BufferAttribute) || normal.itemSize !== 3 || !(normal.array instanceof Float32Array)) return false;
+  g.setAttribute('normal', new BufferAttribute(Int8Array.from(normal.array, value => Math.max(-127, Math.min(127, Math.round(value * 127)))), 3, true));
+  return true;
+}
 /** The look graphs (id -> `{ nodes: { [id]: { op } } }`) that read a vertex's object-space position (`positionLocal` /
  *  `positionGeometry`): a shape drawn through one keeps its exact float positions, never a grid. */
 export function objectSpaceLooks(graphs: Readonly<Record<string, unknown>>): Set<string> {

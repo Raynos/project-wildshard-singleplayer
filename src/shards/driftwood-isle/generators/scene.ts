@@ -1,7 +1,7 @@
 import { InstancedMesh, Mesh, MeshStandardMaterial, Scene, type BufferGeometry } from 'three';
 import { bakeOwned, publishScene, BakedPiece, WholeShape, type BakedScene } from '@wildshard/sdk/bake';
 import { completeEmptyL1Tiles } from '@wildshard/sdk/bake/tileGrid';
-import { compactWholeChannels, gridPositions, wholeGrid } from '@wildshard/sdk/bake/props';
+import { compactWholeChannels, compactWholeNormals, gridPositions, wholeGrid } from '@wildshard/sdk/bake/props';
 import { meshoptTileBytes } from '@wildshard/sdk/bake/tileEncoder';
 import { driftwoodFixedSource } from './fixedSource';
 import { bridgeUnitGeometries } from './ropeBridge';
@@ -39,7 +39,8 @@ export function driftwoodOwnedScene(head: BufferGeometry, aoBytes: Uint8Array): 
       // I3: a template ships Int16 positions on one grid in its own space with Int8 normals and Uint8 colours (a copy: the
       // fixed models read the float source); readWholeGeometry dequantizes them, within half a grid step
       const copy = EXACT_SHAPES.test(id) ? undefined : geometry.clone();
-      const grid = copy === undefined || !compactWholeChannels(copy) ? undefined : wholeGrid(geometry), shipped = grid === undefined || copy === undefined ? geometry : copy;
+      // (a glowing kit's colours leave [0, 1]: its normals compact alone and its colours stay float)
+      const grid = copy === undefined || !(compactWholeChannels(copy) || compactWholeNormals(copy)) ? undefined : wholeGrid(geometry), shipped = grid === undefined || copy === undefined ? geometry : copy;
       if (grid === undefined) copy?.dispose(); else { gridPositions(shipped, grid); copies.push(shipped); }
       const key = `template-${library++}`, mesh = new InstancedMesh(shipped, material, 1);
       const vertexCount = geometry.getAttribute('position').count, indexCount = geometry.getIndex()?.count ?? 0;
