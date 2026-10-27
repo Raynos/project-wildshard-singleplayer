@@ -34,12 +34,13 @@ test('a bound crossing requires its actual entry ring, leaving unrelated spawn a
   } finally { owner.dispose(); }
 });
 
-test('unbound construction retains authored spawn and entryway admission', async () => {
+test('unbound construction requires the spawn ring, leaving distant exits to play', async () => {
   const owner = new Scope('authored-entry'), source = content('world');
   try {
     await residentTiles(owner, [source], spawn, [{ at: [-250, 0, -250], width: 10 }]);
-    expect(source.render.has(36)).toBe(true); expect(source.render.has(0)).toBe(true);
-    expect(source.colliders.has(36)).toBe(true); expect(source.colliders.has(0)).toBe(true);
+    expect([...source.render.keys()]).toEqual([27,28,29,35,36,37,43,44,45]);
+    expect([...source.colliders.keys()]).toEqual([...source.render.keys()]);
+    expect(source.render.has(0)).toBe(false); expect(source.colliders.has(0)).toBe(false);
   } finally { owner.dispose(); }
 });
 

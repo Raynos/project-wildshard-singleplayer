@@ -687,6 +687,8 @@ hints and this pack grouping before I2 can qualify.
 
 ### I2.8 Explorer-only manifest art (2026-10-27, sp-x2)
 
+Source: `1655f7fd74` (pushed).
+
 In flight (reading at plan end): the generic manifest packer emits late
 hints for gallery and comparison image hashes only. Image bytes shared
 with any card, map, sky or horizon remain early regardless of authored
@@ -706,3 +708,22 @@ Explorer art: it is not an expected or measured saving. I2 remains0/3
 on the last heavy-three read, original12MB/250-total bars unchanged.
 Joint read awaits the actual heavy content hints and x9 JS-pack source;
 no duplicate baseline and no physical-phone acceptance claim.
+
+### I2.9 Standalone spawn has no distant-exit pins (2026-10-27, sp-x2)
+
+In flight (reading at plan end): residentTiles previously required the
+spawn3x3 plus every declared exit tile when no crossing was bound. It
+now uses only the actual bound arrival ring, or the authored spawn3x3
+for a standalone entry. The existing driver fills the bounded3x3/5x5
+rings nearest first during play; coarse/far landmarks, collider safety,
+entry failure refusal, re-entry and ownership remain on the same ports.
+No need to construct an unrelated distant exit before a spawn control
+frame. The old entryways parameter remains for caller compatibility;
+its distant pins are unused. No frozen LEGACY path or tile cap change.
+
+Game/game-fixture types, touched typed lint and scoped ratchet pass.
+The standalone source control now requires exactly9 spawn render and
+collider tiles and excludes the far exit. Existing actual-crossing and
+failure controls remain. Tests/builds/reading are not run before landing
+under G769; no measured savings or completed I2 acceptance claimed.
+Last actual heavy-three control numbers remain the21c table above.
