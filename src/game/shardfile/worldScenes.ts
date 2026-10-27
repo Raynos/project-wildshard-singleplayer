@@ -208,6 +208,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
   }
   const placements: WorldScenePlacementRow[] = [], declaredModels = new Map((catalogue?.models ?? []).map(model => [model.key, model]));
   const specimenKeys = new Set((section.specimens ?? []).map(model => model.key));
+  const admissionSlice = workSlice(undefined, resident);
   await timeClientPreparation(product.slug, 'scene.placement-admission', async () => {
     const declarations = section.placements ?? [];
     for (const declared of declarations) {
@@ -229,7 +230,8 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
         if (published.has(id)) throw new Error(`Duplicate world scene publication: ${id}`);
         published.add(id);
       }
-      await buildYield(resident);
+      requireSceneOwner(resident);
+      if (admissionSlice.due()) await admissionSlice.yield();
     }
   });
   for (const step of section.steps) {
@@ -268,7 +270,8 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       const id = [step.id, instance.id, key].filter(Boolean).join('.');
       if (published.has(id)) throw new Error(`Duplicate world scene publication: ${id}`); published.add(id);
     }
-    await buildYield(resident);
+    requireSceneOwner(resident);
+    if (admissionSlice.due()) await admissionSlice.yield();
     recipesProgress(++recipesDone, step.id);
   }
   for (const row of placements) if (row.drawnInto !== undefined && (!published.has(row.drawnInto.part) && !deferredPlacements.has(row.id) || row.drawnInto.boxes.length !== row.poses.length * 6)) throw new Error('Scene placement needs a published part and one box per copy');

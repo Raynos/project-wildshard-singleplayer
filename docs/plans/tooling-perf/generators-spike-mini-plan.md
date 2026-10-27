@@ -257,6 +257,51 @@ measured full-CI rebuild regression remains D105:375.053 s versus
 predate the final cut. Source closure does not claim runtime visual
 acceptance, emitted-JSON volume, a speedup, or Mac timing/RSS success.
 
+## GR12.45 Mac acceptance attempt (2026-10-27, sp-x1)
+
+Exactly one comparison and one forced full-product rebuild ran sequentially
+under `python3 scripts/heavy-lane.py build`; both acquired immediately.
+No test suite, browser or Simulator was started. Source before comparison:
+`144022ae2311353b3213037cb456657d882fbac7`; after:
+`e160758b140eeb4b10feea071778a01a574bf5ea`. The tracked tree was dirty
+before/after and peer commits moved HEAD. Every compiler-input census
+still contains0 generated JSON files/0 B; authored inputs remain typed.
+
+| Mac step | Wall seconds | Maximum RSS bytes | Exit / verdict |
+|---|---:|---:|---|
+| Root,4 checkers, nonincremental | 4.996 | 3003482112 | 1;55 TypeScript diagnostics |
+| Root,8 checkers, nonincremental | 4.495 | 3650748416 | 1;same55 diagnostics |
+| Full unpartitioned typed lint,7110 files | 34.330 | 5960204288 | 1;185 diagnostics;15s target missed |
+
+The historical62→25s T6 measurement is retained as historical context,
+not a comparable success claim. Eight checkers add647266304 B to the
+reported maximum here. Both root RSS values are under6GB and lint RSS
+under8GB, but failed checkers/lint and moving source disqualify acceptance.
+Representative existing refusals are chapter-wake-page's retired default
+contract, texture-scope-lifetime's changed argument count and world-scenes
+fixture Scope-vs-product arguments. This packet changes none of those
+oracles. Logs/report: `tmp/sp-x1-gr12-acceptance/checkers.json` and its
+three per-step logs; observations remain recorded even though exit1.
+
+Full product command: `/usr/bin/time -l node scripts/build-shardfiles.mjs`
+(no `--reuse`), separately under the heavy build wrapper. Source starts
+`e160758b140eeb4b10feea071778a01a574bf5ea`, ends
+`5a20acd84500e1e40fdc8aa97124151041a9ded7`, dirty throughout. All23 current
+products report **built**, exit0,105.08s command wall /105.196s including
+lease wrapper; maximum RSS2970894336 B. Basis preparation176ms precedes
+workers. Far14.6s, Nalati19.9s, Driftwood34.0s, Pine36.9s; concurrent
+per-product values are not additive. Full log and source/exit snapshot:
+`tmp/sp-x1-gr12-acceptance/full-product-rebuild.log`, `acceptance.json`.
+
+Compare the10-25 baseline333.995s/24 products from CI40242127846 above:
+105.08s is the new Mac observation, **not a qualified speedup**. This
+forces fresh products, retaining normal persistent program-step/compiler
+caches; it is not an empty-cache cold run. Machine, source, product count
+and cache state differ, and local map freshness warnings remain visible.
+D105 retains the earlier same-CI regression375.053vs333.995s. GR12.45 stays
+open for clean-source cold/runtime/emitted-volume acceptance; no unchanged
+rerun, source freeze, cache deletion or gate/policy change was requested.
+
 ## Rows (per shard: biggest win first, Nine as pilot)
 
 | Row | What | Size | Done when |
@@ -973,9 +1018,9 @@ is done only when its folded rows are done too.
 | GR12.42 Storm texture source-placement red-fix | GR5/GR12 G0 repair (sp-x1) | CI40498325078 exposes the live texture first committed80ae98806a under a hash-named src asset without an allowed floor. Move its exact9463 KTX2 bytes to public/assets/far-reach/weather/storm-noise.ktx2. A bounded cached input verifies complete hash9e04e0e3 and size before lending those same bytes into output.assets. Library/material hashes,9463 compressed B/16384 GPU B and linear repeat sampler are unchanged; frozen LEGACY alias is held. | done (source `8c0c52cac3`) | Touched source/fixture types and typed lint pass; full-byte move/hash audit passes. Required ratchet attempted. No product build/test, texture rebake, allowance or cap increase. |
 | GR12.43 Program-owned map and declaration oracles | GR12 leftovers (sp-x1) | Map inputs now start at each of nine declared map programs (Open Plots owns its map in product.ts), resolve their explicit SDK raster import and its scene/raster module inputs, and require the program to remain inside the declared hash roots. Preserve Nine’s exact source roots and all source/lock/raster/scene invalidation controls. Pine isolated declarations accept its explicit defining Shardfile return annotation; all complete positive and five negative type-contract assertions remain. | done (source `be0cd81c74`) | Named fixture types and typed lint pass; required ratchet attempted. No product build or test run under G769. |
 | GR12.44 Nalati capture provider ownership | GR12 D95 prerequisite (sp-x1) | The reusable capture collector borrows the actual authored manifest as a typed argument; the existing CLI loads the official current provider using shardManifestPath and passes the same MANIFEST to the unchanged native host. Remove the ignored-discovery import from shard compiler inputs without fabricating metadata, replacing the real constructor or broadening a guard. | done (source `30f6a1ea47`) | Touched shard types and named typed lint pass; ratchet attempted. The CLI retains its explicit current-discovery prerequisite; no native capture/test/build under G769. |
-| GR12.45 Final cold and checker acceptance | G780 plan-end cohort (sp-x1 reading; sp-x9 R4/T6) | Source burn-down is closed above. Retain one actual post-cut cold full-product reading, emitted JSON volume at most30 MB, source-dependency invalidation acceptance, runtime plan-end reading and the Mac four/eight-checker timing/RSS comparison. D105 records the last available full-CI regression (375.053 vs333.995 s); no final pass inferred from cached pre-cut CI. | open | Actual final cohort, not another source migration or local per-slice build. |
+| GR12.45 Final cold and checker acceptance | G780 plan-end cohort (sp-x1 reading; sp-x9 R4/T6) | One Mac comparison and one forced full-product rebuild executed under heavy-lane; exact numbers and refusals below. Source burn-down stays closed. Four/eight root checks both fail55 diagnostics; typed lint fails185 diagnostics and34.330s exceeds15s. The23-product Mac rebuild exits0/105.08s with persistent step/compiler caches; baseline24-product CI333.995s is not the same source, machine or cache state. | reading executed; acceptance open | No repeat, cache purge, timing waiver or qualified speedup. Final runtime, emitted-volume and clean-source cold qualification remain open. |
 | GR12.46 Retired decision-policy file writer | GR12 CI red repair (sp-x1) | Remove the surviving root policy emitter and both generation calls after the official CLI already supplies the pinned denominator. Native near-placeholder passes that same explicit budget. Preserve SDK external-author policy intake and every strict numeric/schema/escape refusal; independent external-policy fixture and all six original budget ceilings stay. Remove exactly two obsolete source-output credits and exact retired loose outputs. | source fixed `ba261ff1f2` | Named scripts/fixture types and typed lint plus Node/Python syntax pass; ratchet attempted. No product build/test, guard change or allowance restore under G769. |
-| GR12.47 Sky fixture intake CI repair | GR12 source-entry leftovers (sp-x1) | Preserve all12 island LOD identities, matrices, ordered fine-file checks and coarse exclusion using the original tile coordinates. Grid terrain uses the existing explicit skyProductRows constructor with original admitted navigation/movers. The native witness uses one real admitted output and its hash/size-verified content-addressed reader, including unnamed and commons files; no source-config cast, old src hash lookup, fallback, checkpoint/hash repin or assertion removal. | in flight (source in this commit) | Touched fixture types and typed lint pass; required ratchet attempted. Repairs CI40502722490 at a242; no tests/product/native witness execution under G769. |
+| GR12.47 Sky fixture intake CI repair | GR12 source-entry leftovers (sp-x1) | Preserve all12 island LOD identities, matrices, ordered fine-file checks and coarse exclusion using the original tile coordinates. Grid terrain uses the existing explicit skyProductRows constructor with original admitted navigation/movers. The native witness uses one real admitted output and its hash/size-verified content-addressed reader, including unnamed and commons files; no source-config cast, old src hash lookup, fallback, checkpoint/hash repin or assertion removal. | source fixed `964aaf745c` | Touched fixture types and typed lint pass; required ratchet attempted. Repairs CI40502722490 at a242; no tests/product/native witness execution under G769. |
 | GR12.Far1 Unused publication adapters | GR12 deletion (sp-x1) | After Far Reach reaches zero jobs, delete its unreachable boot-metadata publisher and remove unused navigationProduct / vane-post / vane-rotor / hero-library CLI adapters. All defining byte constructors, native inputs and predecessor files remain; prepared-model byte adapter still has an actual independent fixture caller and stays. No live job, source, command or test references the removed entry/bindings. | in flight (reading at plan end; `78b3498509`) | Remove48 net lines. Touched shard types, typed lint and raw ratchet zero; required ratchet attempted, foreign stale Pine lookout allowance refuses pre-count. No tests/builds/previews. |
 | GR12.Far2 / G8 native mover header | GR12 folded G8 / TS T1 (sp-x1, Far boundary) | The existing plain-script 70074B tracked mover header crosses an exact input cache and defining SDK mover parser instead of a static JSON import. Declaration takes explicit detached rows; all module, trigger, collider and numeric values are unchanged. Far fixtures read the same tracked source; the independent predecessor transport retains its original field-order hash, separate from normalized admission. No writer, header byte, native driver, guest budget or physics rule changes. | in flight (reading at plan end; `6f063b6584`) | Far production has zero static generated-JSON imports; three import-debt entries shrink. SDK/scoped source and fixture types, typed lint and raw ratchet pass; required scoped ratchet refuses a stale foreign Driftwood director allowance before counts. No tests/builds/previews. |
 | GR12.S1 Pine schema tables / GS2–GS3 | shared producer retirement (sp-x1) | `4e346d015a` (D84 correction `37ed0f457d`). Retire pine-section-schemas into a committed source-generator row. The defining plain schema script computes the full validator, wire table and standalone declaration from its closed public-schema registry before publishing; --check and --print write nothing, with no temporary validator or scheduler wrapper. Preserve both complete predecessor tables byte-for-byte:171041B/fd84c6f9 and70816B/53365bdb. D84 correction uses ordinary sectionSchemas.ts and productSections.d.ts without app-source exemptions or generated-source ledger additions. Only wire metadata is emitted; validators stay in their defining sections.ts. JSON wire values are exact and all24 exported types mutually assignable. Plain patterns use String.raw, object aliases/interfaces and index dictionaries/Record retain their types. Existing GS4 carries changed plain tables. | in flight (reading at plan end; `4e346d015a`, D84 correction `37ed0f457d`) | Plain producer --plain --check and gen:source --check pass; scripts/scoped fixture types and named typed lint pass. Required ratchet attempted, missing foreign Pine discovery allowance refuses before counting. No tests/products/previews. |
