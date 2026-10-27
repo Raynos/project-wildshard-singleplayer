@@ -213,9 +213,11 @@ test('prepared whole intake overlaps earlier work but publishes only after figur
 test('abandoned preparation drains its read and releases geometry without publishing templates', async () => {
   const f = fixture(), owner = new Scope('abandoned-island'), source = owner.child('source'), library = new IslandLibrary(root, f.product);
   const geometry = new BufferGeometry(), disposed = vi.spyOn(geometry, 'dispose');
+  let preparingOwner: Scope | undefined;
   let release: () => void = () => { throw new Error('Missing whole gate'); };
   const gate = new Promise<void>(resolve => { release = resolve; });
   const whole = vi.spyOn(wholeGeometry, 'readWholeGeometry').mockImplementation(async scope => {
+    preparingOwner = scope;
     await gate;
     const unregister = scope.capture('geometries', () => { geometry.dispose(); });
     return new Map([['mesh', { geometry, matrix: new Matrix4(), release: unregister }]]);
@@ -225,6 +227,7 @@ test('abandoned preparation drains its read and releases geometry without publis
   try {
     await vi.waitFor(() => { expect(whole).toHaveBeenCalledTimes(1); });
     let settled = false; const discarded = drain().then(() => { settled = true; return settled; });
+    expect(preparingOwner?.disposed).toBe(true);
     await Promise.resolve(); expect(settled).toBe(false);
     release(); await discarded;
     expect(disposed).toHaveBeenCalledTimes(1); expect(library.ready).toBe(false);

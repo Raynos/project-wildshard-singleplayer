@@ -110,8 +110,11 @@ export class IslandLibrary<Groups> {
     const preparation = { owner, sourceOwner, pending };
     this.geometryRead = preparation;
     return async () => {
+      // Earlier looks/scenes may refuse before load consumes this loan. Stop
+      // further bounded decode work now, then drain its already-started read.
+      if (this.geometryRead === preparation) { this.geometryRead = undefined; temporary.dispose(); }
       try { await Promise.allSettled([pending]); }
-      finally { if (this.geometryRead === preparation) this.geometryRead = undefined; forget(); temporary.dispose(); }
+      finally { forget(); temporary.dispose(); }
     };
   }
   /** Load every slot: from `owner`'s whole-geometry assembly (the world build), a caller's named blobs (`bytes`), or,
