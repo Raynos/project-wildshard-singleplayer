@@ -44,15 +44,38 @@ const isDrawable = (object: THREE.Object3D): object is Drawable => {
 };
 
 /** The drawables an entry frame would draw under `root` (the root itself is the parked, hidden node). */
-function parkedDrawables(root: THREE.Object3D, camera: THREE.Camera, reveal: ReadonlySet<THREE.Object3D>): Drawable[] {
-  const out: Drawable[] = [];
-  const visit = (object: THREE.Object3D): void => {
-    if (object !== root && !object.visible && !reveal.has(object)) return;
+/** A geometry with three's default attribute map (an `instanceof` alone keeps `any` generics). */
+const isBufferGeometry = (value: unknown): value is THREE.BufferGeometry => value instanceof THREE.BufferGeometry;
+/** What a drawable's first draw builds in the driver: its programs' inputs (materials), vertex layout and draw kind. */
+function pipelineKey(object: Drawable, camera: THREE.Camera): string {
+  const geometry: unknown = (object as THREE.Object3D & { geometry?: unknown }).geometry;
+  const layout = isBufferGeometry(geometry) ? Object.keys(geometry.attributes).sort().map(name => {
+    const a = geometry.getAttribute(name); return `${name}:${String(a.itemSize)}:${a.normalized ? 1 : 0}`;
+  }).join(',') + (geometry.index === null ? '' : `|i${geometry.index.array.constructor.name}`) : '';
+  const kind = object instanceof THREE.InstancedMesh ? 'instanced' : object instanceof THREE.SkinnedMesh ? 'skinned' : object.type;
+  return `${drawableMaterials(object).map(material => material.uuid).join(',')}|${layout}|${kind}|${object.castShadow}|${object.layers.test(camera.layers)}`;
+}
+
+/** `reveal` gains the hidden ancestors of every hidden drawable the warm adds (drawSlice shows them for its draw only). */
+function parkedDrawables(root: THREE.Object3D, camera: THREE.Camera, reveal: Set<THREE.Object3D>): Drawable[] {
+  const out: Drawable[] = [], hidden: { readonly object: Drawable; readonly chain: readonly THREE.Object3D[] }[] = [];
+  const visit = (object: THREE.Object3D, chain: readonly THREE.Object3D[]): void => {
+    const shown = object === root || object.visible || reveal.has(object), path = shown ? chain : [...chain, object];
     // the view's drawables, and the shadow-only casters (SHADOW_LAYER) the shadow pass draws
-    if (isDrawable(object) && (object.layers.test(camera.layers) || object.castShadow && object.layers.isEnabled(SHADOW_LAYER))) out.push(object);
-    for (const child of object.children) visit(child);
+    if (isDrawable(object) && (object.layers.test(camera.layers) || object.castShadow && object.layers.isEnabled(SHADOW_LAYER))) {
+      if (path.length === 0) out.push(object); else hidden.push({ object, chain: path });
+    }
+    for (const child of object.children) visit(child, path);
   };
-  visit(root);
+  visit(root, []);
+  // G743 / G782: a drawable hidden while the destination is parked (a far placement's other LOD level, an alternate
+  // shown later) first drew at the reveal, building its pipeline in that frame (Pine 19 programs, Nalati 9). One of
+  // each pipeline no shown drawable covers is warmed too, shown for its slice's draw only.
+  const covered = new Set(out.map(object => pipelineKey(object, camera)));
+  for (const { object, chain } of hidden) {
+    const key = pipelineKey(object, camera); if (covered.has(key)) continue;
+    covered.add(key); out.push(object); for (const ancestor of chain) reveal.add(ancestor);
+  }
   // Plain static meshes share uploaded geometry and driver binding/pipeline state. Replaying every tree or
   // fence transform pays another painted slice without warming anything new. Object-owned buffers (instances,
   // skinning, morphs), draw callbacks and different material/shadow states keep their own first draw.
@@ -75,8 +98,6 @@ function parkedDrawables(root: THREE.Object3D, camera: THREE.Camera, reveal: Rea
  * at most this many bytes of vertex/index/instance buffers no earlier slice uploaded; a larger single drawable goes alone. */
 export interface ParkedDrawBudget { readonly drawables: number; readonly newMaterials: number; readonly bufferBytes?: number }
 
-/** A geometry with three's default attribute map (an `instanceof` alone keeps `any` generics). */
-const isBufferGeometry = (value: unknown): value is THREE.BufferGeometry => value instanceof THREE.BufferGeometry;
 
 /** The typed arrays a drawable's first draw uploads with `bufferData`: its geometry's attributes (an interleaved buffer
  * once), its index and an instanced mesh's per-instance matrices and colours. */

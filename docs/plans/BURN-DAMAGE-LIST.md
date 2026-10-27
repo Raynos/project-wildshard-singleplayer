@@ -65,6 +65,9 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D26 | Uncommitted gate edits left in the shared tree (MB8: owner drops them): `.github/workflows/deploy.yml`, `scripts/gate-related-tests.mjs` (+ `.d.mts`), `test/gate-related-tests.test.ts`, `test/boot-smoke-dispatch.test.ts`, `test/precommit-stop-types.test.ts` (staged), untracked `scripts/ci-related-first.mjs` (+ `.d.mts`, test) | — (tree) | their owners | open |
 | D27 | Seven leftover `.push-config-*.json` files at the repo root (untracked) | — (tree) | sp-x7 | open |
 | D28 | Nalati generation stage: `generators/geographySource.ts` (new) is not in its job's inputRoots, so HEAD previews fail with ERR_MODULE_NOT_FOUND (log tmp/serve/failed-20261027-013000-4402.log) | c954d624a0 | breaker (sp-x7 finds) | open |
+| D29 | Far Reach product build: far-reach/generators/product.ts:33 parseShardfile throws 'shardfile semantic rules' (no rule named), so `serve-build --head` and `--rev 2896dc0d85` fail (log tmp/serve/failed-20261027-011921-4400.log); a127a8a built | between `112cbc3787` and `84f531f9dc` (refactor(sky) handoff commits) | Far Reach generator lane (sp-x1, GR5) | open |
+| D30 | HEAD preview build: `Missing or duplicate catalogue dependency: nalati-poi-paint` (log tmp/serve/failed-20261027-012330-4400.log) | `aec0cd6ff9` (refactor(nalati): own POI paint construction) or later | Nalati generator lane | open |
+| D31 | Shared tree: uncommitted `scripts/generation-jobs.json` edit leaves job `pine-grazers` incomplete, so `pnpm gen` / working-tree previews stop ('Incomplete generation job pine-grazers') and generated discovery files (e.g. far-reach/discovery.generated.ts) go missing for focused tests | — (working tree) | owner of the pine-grazers edit (sp-x7 finds) | open |
 
 ## Rows
 
