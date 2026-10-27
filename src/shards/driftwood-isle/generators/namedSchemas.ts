@@ -24,8 +24,38 @@ import { QuestStorySchema } from '@wildshard/format/questStory';
 import { AchievementCounterDataSchema } from '@wildshard/format/achievementCounters';
 import { EnemyPlacementsSchema, FixedGeometryGroupsSchema } from './sections';
 import { PopulationKeeperRowsSchema as KeeperRowsSchema } from '@wildshard/format/populationKeeper';
+import type { DriftwoodFixedLayouts } from './fixedLayouts';
 
 const text = v.string(), number = v.number();
+const layoutNumber = v.pipe(v.number(), v.finite());
+const layoutBox = v.strictObject({ x: layoutNumber, z: layoutNumber, hw: layoutNumber, hd: layoutNumber, rot: layoutNumber, yTop: layoutNumber, yBottom: layoutNumber });
+const layoutAnchor = v.strictObject({ x: layoutNumber, y: layoutNumber, z: layoutNumber, yaw: layoutNumber });
+const layoutSpot = v.looseObject({ x: layoutNumber, y: layoutNumber, z: layoutNumber, yaw: v.exactOptional(layoutNumber),
+  variant: v.exactOptional(v.string()), params: v.exactOptional(v.unknown()) });
+const layoutCopies = v.looseObject({ placements: v.array(layoutSpot), boxes: v.array(layoutNumber) });
+const rockLayoutParams = v.strictObject({ r: layoutNumber, squash: layoutNumber, moss: layoutNumber });
+const logLayoutParams = v.strictObject({ len: layoutNumber, r0: layoutNumber, r1: layoutNumber, tone: layoutNumber });
+const rockLayoutCopies = v.looseObject({ placements: v.array(v.looseObject({ ...layoutSpot.entries, params: rockLayoutParams })), boxes: v.array(layoutNumber) });
+const logLayoutCopies = v.looseObject({ placements: v.array(v.looseObject({ ...layoutSpot.entries, params: logLayoutParams })), boxes: v.array(layoutNumber) });
+const siteLayout = v.looseObject({ site: v.unknown(), origin: v.strictObject({ x: layoutNumber, y: layoutNumber, z: layoutNumber }),
+  colliders: v.array(layoutBox), descs: v.array(v.unknown()), anchors: v.record(v.string(), layoutAnchor), floors: v.array(v.unknown()) });
+const shrineLayout = v.looseObject({ ...siteLayout.entries, baseY: layoutNumber, terrace: layoutNumber });
+const FixedLayoutsSchema: v.GenericSchema<unknown, DriftwoodFixedLayouts> = v.strictObject({
+  hut: siteLayout, lookout: siteLayout, shrine: v.strictObject({ world: shrineLayout, specimen: shrineLayout }),
+  wreck: v.looseObject({ spec: v.strictObject({ x: layoutNumber, z: layoutNumber, heading: layoutNumber, roll: v.exactOptional(layoutNumber), pitch: v.exactOptional(layoutNumber), floorY: v.exactOptional(layoutNumber) }),
+    floorY: layoutNumber, colliders: v.array(layoutBox), descs: v.array(v.unknown()), anchors: v.record(v.string(), layoutAnchor),
+    holdBounds: v.strictObject({ x: layoutNumber, z: layoutNumber, r: layoutNumber, yMin: layoutNumber, yMax: layoutNumber }), floors: v.array(v.unknown()), shipBox: v.array(layoutNumber),
+    catalogue: v.strictObject({ barrels: layoutCopies,
+      crates: v.looseObject({ placements: v.array(v.looseObject({ ...layoutSpot.entries, params: v.strictObject({ size: layoutNumber, broken: v.boolean() }) })), boxes: v.array(layoutNumber) }),
+      coils: v.looseObject({ placements: v.array(v.looseObject({ ...layoutSpot.entries, params: v.strictObject({ r: layoutNumber }) })), boxes: v.array(layoutNumber) }),
+      logs: logLayoutCopies, rocks: rockLayoutCopies }) }),
+  cove: v.looseObject({ spec: v.unknown(), floors: v.array(v.unknown()), native: v.looseObject({ colliders: v.array(layoutBox), anchors: v.record(v.string(), layoutAnchor), descs: v.array(v.unknown()), cuts: v.array(v.unknown()) }), catalogue: rockLayoutCopies }),
+  logs: logLayoutCopies,
+});
+
+/** Typed source-bank metadata intake; original fields survive before each complete consumer's normal admission. */
+export function parseDriftwoodFixedLayouts(input: unknown): DriftwoodFixedLayouts { return v.parse(FixedLayoutsSchema, input); }
+
 const schemas: Readonly<Record<string, v.GenericSchema>> = {
   'quests/page-composition.json': QuestPageCompositionSchema,
   'actors/projection.json': PopulationProjectionSchema,
