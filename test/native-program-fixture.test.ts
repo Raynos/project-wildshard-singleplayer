@@ -68,3 +68,17 @@ test('a shared cache never lends a construction from another working directory',
   expect(b).toEqual({ cwd: second.root, value: 'one', files: ['value.txt'] });
   expect(first.calls()).toBe(1); expect(second.calls()).toBe(1);
 });
+
+test('the mandatory loader is an input even when the caller names only its data', async () => {
+  const { root, spec, calls } = fixture(), dataOnly = { ...spec, inputs: ['source'] };
+  const before = await nativeProgramFixture(dataOnly);
+  writeFileSync(resolve(root, 'scripts/bake-loader.mjs'), '// loader revision\n');
+  expect(await nativeProgramFixture(dataOnly)).toBe(before); expect(calls()).toBe(2);
+});
+
+test('a compiler changing its input inventory cannot publish a ready entry', async () => {
+  const { root, spec } = fixture(), script = resolve(root, 'compiler.mjs');
+  writeFileSync(script, readFileSync(script, 'utf8').replace('process.stdout.write', "fs.writeFileSync('source/late.txt','late');process.stdout.write"));
+  await expect(nativeProgramFixture(spec)).rejects.toThrow('Native compiler input inventory changed');
+  expect(readdirSync(resolve(root, 'cache/fixture-program')).filter(name => /^[a-f0-9]{64}$/u.test(name))).toEqual([]);
+});

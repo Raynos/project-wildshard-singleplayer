@@ -9,6 +9,7 @@ import { runNativeRecorder } from '../../scripts/native-recorder-cache.mjs';
 
 const memos = new Map<string, InputHashMemo>();
 const MAX_BYTES = 1 << 26;
+const LOADER = 'scripts/bake-loader.mjs';
 
 /** Share completed construction, never a test result. The existing native cache
  * binds exact input bytes, tool/host identity and every output hash, coalesces
@@ -20,9 +21,9 @@ export async function nativeProgramFixture(spec: {
 }): Promise<string> {
   const root = resolve(spec.root ?? '.'), memo = memos.get(root) ?? new InputHashMemo(root);
   memos.set(root, memo);
-  const inventory = (): string[] => [...new Set([spec.script, ...spec.inputs.flatMap(path => memo.paths(path, true))])].sort();
+  const inventory = (): string[] => [...new Set([spec.script, LOADER, ...spec.inputs.flatMap(path => memo.paths(path, true))])].sort();
   const paths = inventory(), inputs = bakeInputHashes(root, paths, memo);
-  const command = [process.execPath, '--import', './scripts/bake-loader.mjs', '--', spec.script];
+  const command = [process.execPath, '--import', `./${LOADER}`, '--', spec.script];
   const output = 'fixture.json';
   const result = await runNativeRecorder(root, {
     id: `fixture-${spec.id}`, inputs, command, outputs: [output], platform: 'native',
