@@ -47,6 +47,50 @@ test('T7: distance-selected metadata has no four-world admission cap', async () 
   } finally { f.close(); }
 });
 
+test('T7: leaving a cell retires its whole world while retaining durable metadata', async () => {
+  const f = await fixture();
+  try {
+    await f.enterHome();
+    const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    await f.settle();
+    expect(f.live.current()).toBeNull(); expect(f.live.state().residents).toEqual([]);
+    expect(f.events).toContain(`retire:${f.home.instance}`);
+    expect(f.claims().some(row => row.owner === f.home.instance)).toBe(false);
+    expect(f.live.state().continuations.entries).toBe(0);
+    const reenter = await f.live.prepare(null, f.home.instance); reenter.commit();
+    expect(f.live.ready(f.home.instance)).toBe(true);
+  } finally { f.close(); }
+});
+
+test('T7: a superseded actual entry retires before a different destination allocates', async () => {
+  const f = await fixture();
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    f.control.holdIncoming = true;
+    const first = f.live.prepare(null, f.east.instance), refused = expect(first).rejects.toThrow('Stale live frame preparation');
+    await f.settle();
+    const second = f.live.prepare(null, f.north.instance);
+    if (f.control.finish === undefined) throw new Error('Missing actual entry completion');
+    f.control.finish(); await refused;
+    const prepared = await second; prepared.commit();
+    expect(f.live.current()).toBe(f.north.instance);
+    expect(f.allocated.find(row => row.instance === f.north.instance)?.owners).not.toContain(f.east.instance);
+    expect(f.live.state().residents).toEqual([f.north.instance]);
+  } finally { f.control.finish?.(); f.close(); }
+});
+
+test('T7: failed source disposal stays charged and blocks another world', async () => {
+  const f = await fixture();
+  try {
+    await f.enterHome(); const leave = await f.live.prepare(f.home.instance, null); leave.commit();
+    f.control.dispose = false; await f.settle();
+    expect(f.live.state().retirements?.some(row => row.instance === f.home.instance && row.failed)).toBe(true);
+    expect(f.claims().some(row => row.owner === f.home.instance)).toBe(true);
+    await expect(f.live.prepare(null, f.east.instance)).rejects.toThrow('Exclusive runtime awaits successful disposal');
+    expect(f.created()).toEqual([f.home.instance]);
+  } finally { f.close(); }
+});
+
 async function fixture(options: { paired?: boolean; loading?: number; isolation?: boolean; allNeighbours?: boolean; horizonSeconds?: number;
   tilePreparation?: boolean; tileApproaches?: string[];
   tileReady?: () => Promise<void>; priorities?: string[];

@@ -103,11 +103,8 @@ export interface LiveGridState {
 export interface Retirement { instance: string; checkpointMs: number; disposeMs: number; steps?: number; workMs?: number; slowestStepMs?: number; slowestStep?: string; failed?: boolean }
 interface RetiringRegion { readonly instance: string; readonly resident: Resident; readonly steps: Generator<DisposeStep, void>;
   readonly checkpointMs: number; readonly start: number; count: number; workMs: number; slowestMs: number; slowest: string; done: boolean }
-interface Resident { region: LiveGridRegion; lease: ResidencyLease; reloadsCheckpoint: boolean; reservations: number; evicting: boolean; disposalFailed?: boolean; outsideSince?: number }
+interface Resident { region: LiveGridRegion; lease: ResidencyLease; reloadsCheckpoint: boolean; reservations: number; evicting: boolean; disposalFailed?: boolean }
 
-// The motor's 6/10 m frame bands are independent. Residency waits five continuous fixed-step seconds outside
-// a further five seconds of travel distance, so a boulevard U-turn never churns a world at its request threshold.
-const COLD_DWELL_TICKS = 5 * 60;
 // Contact corrections at a closed readiness wall are not a U-turn. Accumulate real horizontal travel
 // before selecting another approach, so sub-centimetre capsule recoil cannot evict the world just prepared.
 const APPROACH_TRAVEL_METRES = 0.1;
@@ -170,16 +167,14 @@ export class LiveGridHost {
   /** One failed cold unload per excursion; quota failures retain their full claim until retry or re-approach. */
   private readonly coldUnloadRefused = new Set<string>();
   private readonly frames = new Set<() => void>();
+  private frameGeneration = 0;
   private readonly transitions: { from: string | null; to: string | null }[] = [];
   private crossings = 0;
-  private fixedTick = 0;
   private previousFeet: GridPoint | undefined;
   private readonly candidateDistances = new Map<GridCell,number>();
   private readonly approachWork:{candidates:GridCell[];boulevard:GridCell[]}[]=[];
   /** This host already owns the assembly and its frozen cells for its whole lifetime. */
   private targetCells: readonly GridCell[] | undefined;
-  /** A refused speculative retirement remains charged until an explicit durability retry. */
-  private readonly roadRetirementRefused = new Set<string>();
   private initialHomePending: boolean;
   private readonly highwayLease: ResidencyLease;
   private readonly highway: LiveGridHighway;
@@ -320,7 +315,7 @@ export class LiveGridHost {
     let admission: LiveGridAdmission | undefined;
     try {
       await (timing === undefined ? previous : timing.run('queue', () => previous));
-      this.assertAlive(); this.retireColdRegions();
+      this.assertAlive();
       const admitted = timing === undefined ? await this.prefetchProduct(instance) : await timing.run('metadata', () => this.prefetchProduct(instance));
       admission = admitted;
       this.assertAlive();
@@ -379,52 +374,23 @@ export class LiveGridHost {
     } finally { this.constructing.delete(instance); this.requests.delete(instance); timing?.finish(); }
   }
   private distance(cell: GridCell, p = this.worldFeet()): number { return Math.hypot(Math.max(0, Math.abs(p.x - cell.origin.x) - CHUNK_HALF), Math.max(0, Math.abs(p.z - cell.origin.z) - CHUNK_HALF)); }
-  /** Cold worlds use a wider release radius and five-second dwell. The last entered source stays warm on the road;
-   * a committed different destination releases it before entry, or before allocation when paired preparation is unsafe. */
-  private retireColdRegions(): void {
-    const kept = this.active === null ? this.lastSource() : null;
-    for (const cell of this.assembly.cells) {
-      const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell);
-      const resident = this.residents.get(cell.instance);
-      const inside = distance <= estimate.distance + Math.max(10, this.ports.readiness.link.speed * 5);
-      if (inside) {
-        this.coldUnloadRefused.delete(cell.instance);
-        if (resident !== undefined) delete resident.outsideSince;
-      } else if (resident !== undefined) resident.outsideSince ??= this.fixedTick;
-      const dwelling = resident !== undefined && (resident.outsideSince === undefined || this.fixedTick - resident.outsideSince < COLD_DWELL_TICKS);
-      resident?.lease.update({ distance, needed: cell.instance === this.active || cell.instance === kept || resident.reservations > 0 || resident.disposalFailed === true || dwelling });
-      if (!inside && !dwelling && resident !== undefined && cell.instance !== this.active && cell.instance !== kept && resident.reservations === 0 && !resident.evicting
-        && !this.coldUnloadRefused.has(cell.instance) && !this.retire(cell.instance)) this.coldUnloadRefused.add(cell.instance); // O20: in steps
+  /** Gameplay worlds belong only to the active cell or a reserved actual entry.
+   * Neighbour imagery is held by distance-owned tiles, not a kept whole source. */
+  private retireInactiveRegions(destination?: string): boolean {
+    let released = true;
+    for (const [instance, resident] of this.residents) {
+      const needed = instance === this.active || instance === destination || this.requests.has(instance) || resident.reservations > 0;
+      resident.lease.update({ distance: this.distance(this.assembly.cell(instance)), needed: needed || resident.disposalFailed === true });
+      if (needed) continue;
+      if (resident.disposalFailed === true || resident.evicting || this.coldUnloadRefused.has(instance)) { released = false; continue; }
+      if (!this.retire(instance)) { this.coldUnloadRefused.add(instance); released = false; }
     }
-  }
-  /** The cell most recently left for another (the active one excluded): a road crossing records two transitions,
-   * source -> road and road -> destination, so the last transition alone names only the road. */
-  private lastSource(): string | null {
-    for (let i = this.transitions.length - 1; i >= 0; i--) {
-      const from = this.transitions[i]?.from ?? null;
-      if (from !== null && from !== this.active) return from;
-    }
-    return null;
-  }
-  /** Keep an immediate return cheap, but release the frozen source before entering another neighbour.
-   * retire() appends sliced disposal to sequence; ensure() must capture that sequence afterwards. */
-  private retireWarmSource(destination: string): boolean {
-    const source = this.lastSource();
-    if (source === null || source === this.active || source === destination) return true;
-    return this.releaseKept(source);
-  }
-  /** Retire a kept world before another build-ahead claims memory; a refusal is remembered until `retry`. */
-  private releaseKept(instance: string): boolean {
-    if (!this.residents.has(instance)) return true;
-    if (this.roadRetirementRefused.has(instance)) return false;
-    if (this.retire(instance)) return true;
-    this.roadRetirementRefused.add(instance); return false;
+    return released;
   }
   /** Retry after a durability/budget change, instead of fetching the same failed request every tick. */
   retry(instance: string): void {
     if (this.requests.has(instance) || this.productRequests.has(instance)) throw new Error('Live admission is still pending');
     this.coldUnloadRefused.delete(instance);
-    this.roadRetirementRefused.delete(instance);
     // A quota-refused unload kept a complete native region: retry must not invalidate its valid readiness ticket.
     if (this.residents.has(instance)) return;
     this.issues.delete(instance); this.refusals.delete(instance); this.readiness.invalidate(instance);
@@ -434,7 +400,6 @@ export class LiveGridHost {
   /** Before the existing page physics/player step: radial requests are U-turn safe, and current-world walls synchronize first. */
   beforeFixed(): void {
     if (this.disposed) return;
-    this.fixedTick++;
     const work=this.approachWork.pop()??{candidates:[],boulevard:[]};
     try{this.beforeFixedWithWork(work);}
     finally{work.candidates.length=0;work.boulevard.length=0;if(!this.disposed)this.approachWork.push(work);}
@@ -460,8 +425,8 @@ export class LiveGridHost {
     candidates.sort((a,b) => (this.candidateDistances.get(a) ?? Infinity) - (this.candidateDistances.get(b) ?? Infinity) || a.instance.localeCompare(b.instance));
     // Immutable products are selected by distance, without a whole-world count cap.
     const nearby = candidates;
-    // Active/prepared frames and recently nearby worlds remain protected without changing motor bands.
-    this.retireColdRegions();
+    // The frame-transfer reservation protects an actual entry; inactive whole worlds retire in steps.
+    this.retireInactiveRegions();
     for (const cell of nearby) {
       const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell, feet);
       if (this.assembly.approaching(distance, estimate.distance) && !this.issues.has(cell.instance)) void background(cell.instance, this.prefetch([cell.instance]), () => !this.disposed);
@@ -632,16 +597,24 @@ export class LiveGridHost {
   async prepare(from: string | null, to: string | null): Promise<PreparedGridCrossing> {
     if (this.disposed || this.active !== from || from === to) throw new Error('Stale live frame preparation');
     if (from !== null && to !== null) throw new Error('Owned runtime crossing must commit onto the neutral road first');
-    if (from === null && to !== null) {
-      // Only actual entry constructs a region. Retire a prior source durably before a different destination allocates.
-      const source = this.lastSource();
-      if (!this.retireWarmSource(to)) throw new Error('Exclusive runtime awaits successful disposal');
-      if (source !== null && source !== to || !(this.residents.has(to) && this.ready(to))) await this.sequence;
+    const generation = ++this.frameGeneration;
+    for (const cancelPrevious of this.frames) cancelPrevious();
+    const current = (): void => {
       this.assertAlive();
-      if (source !== null && source !== to && this.residents.has(source)) throw new Error('Exclusive runtime awaits successful disposal');
+      if (generation !== this.frameGeneration || this.active !== from) throw new Error('Stale live frame preparation');
+    };
+    if (from === null && to !== null) {
+      // Drain any superseded requested entry, then release every unentered world
+      // before the requested destination allocates. Refused disposal stays charged.
+      await this.sequence;
+      current();
+      if (!this.retireInactiveRegions(to)) throw new Error('Exclusive runtime awaits successful disposal');
+      await this.sequence;
+      current();
       if (this.current() !== from) throw new Error('Stale live frame preparation');
     }
     if (to !== null) await this.ensure(to);
+    current();
     if (this.active !== from || !this.ready(to)) throw new Error('Unready live frame preparation');
     const destination = this.region(to)?.host;
     if (destination !== undefined && (destination.hasPlayerMotor || destination.player.id !== this.ports.player.health.id)) throw new Error('Invalid destination traveller');

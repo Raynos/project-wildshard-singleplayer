@@ -379,7 +379,8 @@ export class LiveGridSession {
       const leaveStart = diagnosticNow();
       gridCells.leave(); // entered callbacks must finish before their retained native world retires
       this.leaveTiming.push({ instance: from, leaveMs: diagnosticNow() - leaveStart }); if (this.leaveTiming.length > 16) this.leaveTiming.shift();
-      // G580 T1: the source stays resident and parked (re-entry is its re-activation); the cold-dwell rule retires it
+      // T7: after these entered hooks leave, the next live tick retires the source world in steps.
+      // Its independently owned neighbour tiles remain with the page's distance streamer.
     });
   }
 
@@ -400,7 +401,7 @@ export class LiveGridSession {
   }
 
   private prepareCrossing(from: string | null, to: string | null): ReturnType<LiveGridHost['prepare']> {
-    // G580 T1: the other residents stay; the cold-dwell rule bounds them
+    // T7: only actual entry builds a region; previous whole worlds retire before another allocation.
     if (from === null && to !== null && !this.live.state().pending.includes(to)) this.live.retry(to);
     return this.live.prepare(from, to);
   }
