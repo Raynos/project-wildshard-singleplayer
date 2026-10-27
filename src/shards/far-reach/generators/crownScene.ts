@@ -2,8 +2,16 @@ import { parseWorldScene, type PrivateScene, type WorldSceneRecipe } from '@wild
 import STONES from '../data/crownInstances.generated.json' with { type: 'json' };
 import { CROWN, DAIS } from "./layout";
 
-/** Prepared carved stones and dais retain their authored world frames and painted material ports. */
-export function crownSceneSource(): Uint8Array {
+/** The crown's assembly: its recipe, the painted model rows and the borrowed collider binding. */
+export interface CrownScene {
+  readonly recipe: WorldSceneRecipe;
+  readonly models: readonly { readonly id: string; readonly model: string; readonly look: string | null }[];
+  readonly bindings: { readonly colliders: { readonly kind: 'colliders'; readonly part: 'bake' } };
+}
+
+/** Prepared carved stones and dais retain their authored world frames and painted material ports (GR5: called by its
+ *  readers, no generated module). */
+export function crownScene(): CrownScene {
   const models = [
     { id: 'stone0', model: 'crown-stone', look: null },
     { id: 'stone1', model: 'crown-stone-b', look: null },
@@ -22,5 +30,5 @@ export function crownSceneSource(): Uint8Array {
   const recipe: WorldSceneRecipe = { scene: { version: 1, root: 'crown', nodes, textures: [],
     materials: models.map(row => ({ kind: 'port', id: row.id, source: row.id })) }, imports: [{ kind: 'baked', id: 'bake', piece: 'crown' }] };
   parseWorldScene(recipe);
-  return new TextEncoder().encode(`/** Crown assembly and borrowed collider binding, generated from authored placement rows. */\nexport const CROWN_SCENE = ${JSON.stringify({ recipe, models, bindings: { colliders: { kind: 'colliders', part: 'bake' } } })} as const;\n`);
+  return { recipe, models, bindings: { colliders: { kind: 'colliders', part: 'bake' } } };
 }

@@ -6511,39 +6511,6 @@
       "platform": "portable"
     },
     {
-      "id": "sky-crown-scene",
-      "shard": "far-reach",
-      "entry": "src/shards/far-reach/generators/crownScene.ts",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/far-reach/generators/crownScene.ts",
-        "crownSceneSource",
-        "src/shards/far-reach/generators/rows/crownScene.generated.ts",
-        "--bytes"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/format",
-        "src/sdk",
-        "src/shards/far-reach/generators/crownScene.ts",
-        "src/shards/far-reach/data/crownInstances.generated.json",
-        "src/shards/far-reach/generators/layout.ts",
-        "src/shards/far-reach/data/layout.generated.json",
-        "src/shards/far-reach/data/strings.json"
-      ],
-      "outputs": [
-        "src/shards/far-reach/generators/rows/crownScene.generated.ts"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/far-reach/generators/rows/crownScene.generated.ts"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "sky-rest-books",
       "shard": "far-reach",
       "entry": "src/shards/far-reach/generators/restScene.ts",
@@ -9077,7 +9044,6 @@
         "src/game/shardfile/bakedKinds.ts",
         "src/sdk/bake",
         "src/shards/far-reach/generators/rows/bookStand.ts",
-        "src/shards/far-reach/generators/rows/crownScene.generated.ts",
         "src/shards/far-reach/generators/fileInventory.ts",
         "src/shards/far-reach/generators/groundScene.ts",
         "src/shards/far-reach/generators/rows/isleLook.ts",
@@ -9175,7 +9141,8 @@
         "src/format/traversal.ts",
         "src/format/ui.ts",
         "src/shards/far-reach/generators/rows/storm.ts",
-        "src/shards/far-reach/generators/restScene.ts"
+        "src/shards/far-reach/generators/restScene.ts",
+        "src/shards/far-reach/generators/crownScene.ts"
       ],
       "outputs": [
         "public/assets/far-reach/map/top.webp",

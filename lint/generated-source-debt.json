@@ -560,7 +560,6 @@
     "src/shards/far-reach/data/winchHouse.json",
     "src/shards/far-reach/data/wind.generated.json",
     "src/shards/far-reach/data/worldRows.generated.json",
-    "src/shards/far-reach/generators/rows/crownScene.generated.ts",
     "src/shards/far-reach/generators/rows/islets.generated.ts",
     "src/shards/far-reach/look/map.baked.json",
     "src/shards/ink-cel-valley/assets/0023e509a425beb4f1a60d2492acef53c3247dd0254379f34f39c6aa99b4b926",

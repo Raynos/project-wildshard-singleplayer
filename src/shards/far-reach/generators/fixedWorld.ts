@@ -5,7 +5,7 @@ import { skyGroundValues, type SkyGroundValues } from './groundScene';
 import { parseWorldScene, type WorldSceneRecipe, type PrivateScene } from '@wildshard/format/clientChannels';
 import { restScenes } from './restScene';
 import ISLETS from '../data/isletScenes.generated.json' with { type: 'json' };
-import { CROWN_SCENE } from './rows/crownScene.generated';
+import { crownScene } from './crownScene';
 import { SKY_PIECES } from './worldRows';
 import { NOTES, WINCH, SUNREST, MILL } from "./layout";
 import { KEEPER_STAND } from './keeperStand';
@@ -41,7 +41,7 @@ export function fixedWorld(standalone: boolean, values: SkyFixedWorldValues): Fi
   const children: string[] = [];
   const scene: PrivateScene = { version: 1, root: 'fixed', nodes: [{ kind: 'group', id: 'fixed', children }], materials: [], textures: [] };
   const imports: WorldSceneRecipe['imports'] = [];
-  const models = new Set(['lectern-hd', 'lantern-hd', 'mill-tower', 'mill-foot', ...CROWN_SCENE.models.map(row => row.model)]);
+  const models = new Set(['lectern-hd', 'lantern-hd', 'mill-tower', 'mill-foot', ...crownScene().models.map(row => row.model)]);
   function append(id: string, input: unknown, at?: readonly [number,number,number], yaw?: number): void {
     const row = parseWorldScene(input), key = (name: string): string => `${id}.${name}`;
     children.push(key(row.scene.root));
@@ -99,7 +99,7 @@ export function fixedWorld(standalone: boolean, values: SkyFixedWorldValues): Fi
     append(keeper?'keeper':'notes',row,keeper?[KEEPER_STAND.x,SUNREST.y,KEEPER_STAND.z]:[NOTES.x,NOTES.y,NOTES.z],keeper?KEEPER_STAND.yaw:.6);
   }
   append('mill',painted(values.mill,[{id:'tower',model:'mill-tower',look:'mill-tower'},{id:'foot',model:'mill-foot',look:null}],['mill-tower','mill-foot']),[MILL.x,30,MILL.z],MILL.yaw);
-  const crown=painted(CROWN_SCENE.recipe,CROWN_SCENE.models,['crown-stone','crown-stone-b','crown-dais']);
+  const CROWN_SCENE=crownScene(), crown=painted(CROWN_SCENE.recipe,CROWN_SCENE.models,['crown-stone','crown-stone-b','crown-dais']);
   for(const node of crown.scene.nodes)if(node.kind==='mesh')node.whenTexture={texture:'crown-stone',present:true};
   // Crown geometry was all-or-nothing; gate its mesh subtree on all three maps.
   const crownRoot=crown.scene.nodes.find(node=>node.id===crown.scene.root);

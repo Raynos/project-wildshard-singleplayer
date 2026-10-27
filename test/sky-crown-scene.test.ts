@@ -2,7 +2,9 @@ import { expect, it } from 'vitest';
 import { BoxGeometry, Group, InstancedMesh, MeshStandardMaterial } from 'three';
 import { bindWorldSceneParts, createWorldScene } from '../src/game/plugin/scene';
 import type { ColliderDesc } from '../src/engine/world/registry';
-import { CROWN_SCENE } from '../src/shards/far-reach/generators/rows/crownScene.generated';
+import { crownScene } from '../src/shards/far-reach/generators/crownScene';
+
+const CROWN_SCENE = crownScene();
 
 it('assembles the carved arena around its borrowed baked part and collider owner', () => {
   const geometry = new BoxGeometry(), material = new MeshStandardMaterial(), baked = new Group(), colliders: ColliderDesc[] = [];
