@@ -5,6 +5,8 @@ import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native comparison checks every byte without expanding typed arrays into assertion objects.
 import { Buffer } from 'node:buffer';
 import { afterAll, expect, test } from 'vitest';
+import { halfFloatBeforeControl } from './fixtures/half-float-before-control';
+import { HalfOutputProof } from './fixtures/half-output-proof';
 import { build } from 'vite';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { prepareProjectOutput } from '../src/sdk/projectOutput';
@@ -58,13 +60,19 @@ async function prepareColdOutput() {
     return { project, context, cold, proofs, dispose: () => { rmSync(cache, { recursive: true, force: true }); } };
   } catch (error) { rmSync(cache, { recursive: true, force: true }); throw error; }
 }
-const fixture = await prepareColdOutput();
-afterAll(fixture.dispose);
+const fixture = await prepareColdOutput(), halfProof = new HalfOutputProof();
+const predecessor = await halfFloatBeforeControl(async () => {
+  const cold = await prepareColdOutput();
+  return { ...cold, prepared: await prepareProjectOutput(cold.project, cold.cold) };
+}, halfProof.observe);
+afterAll(() => { fixture.dispose(); predecessor.dispose(); });
 
 test('cold source output retains every admitted file byte and contract', async () => {
   expect(fixture.proofs.calls).toBe(1);
   // D179 B: the fabric and the scenes section read back through the refine predecessor layer; every other byte as pinned
-  const prepared = nineRefinePredecessor(await prepareProjectOutput(fixture.project, fixture.cold));
+  const current = await prepareProjectOutput(fixture.project, fixture.cold);
+  halfProof.expect(predecessor.prepared, current);
+  const prepared = nineRefinePredecessor(predecessor.prepared);
   const originalAssets = new Set(before.assets.map(row => row.name));
   const worldFiles = originalWorld.filter(row => row.path.startsWith('assets/'));
   const actualKeys = new Set([...prepared.assets.keys(), ...prepared.blobs.map(row => row.file.hash)]);

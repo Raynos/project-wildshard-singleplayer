@@ -127,9 +127,7 @@
     "driftwood-isle",
     "pine-hollow"
   ],
-  "test/scripts/nine-casts.test.ts": [
-    "nine-dragon-stack"
-  ],
+  "test/scripts/nine-casts.test.ts": [],
   "test/scripts/nine-sign-atlas.test.ts": [],
   "test/scripts/sunscar-matriarch.test.ts": [
     "sunscar-dunes"

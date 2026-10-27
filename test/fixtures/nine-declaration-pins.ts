@@ -1,4 +1,5 @@
 import { expect } from 'vitest';
+import { previousHalfDeclaration } from './nine-half-world';
 import { encodeCanonicalJson, hashImmutableBytes } from '../../src/sdk/immutable';
 import type { Shardfile } from '../../src/sdk/shardfile';
 import worldFiles from './nine-world-files.json' with { type: 'json' };
@@ -12,7 +13,10 @@ const signature = (value: unknown): { bytes: number; hash: string } => {
  *  T8 (82ac81812d, e389eb998e, b1f6916531) added the 16 L1 rows and the 12 coarse files only they draw, none in the
  *  library: without them it is 735799 B. The rest is I3's regridded world (978526b2f7): every file row but 17 is a world
  *  file the independently regenerated world fixture pins (f1af1023d3), and those 17 are pinned here by hash. */
-export function expectNineDeclaration(product: Shardfile): void {
+export function expectNineDeclaration(current: Shardfile): void {
+  // The independently pinned 411-file source proof defines the only allowed
+  // reference renaming; full declaration pins remain unchanged below.
+  const product = previousHalfDeclaration(current);
   const fine = new Set(product.tiles.filter(tile => tile.lod === 0).flatMap(tile => tile.files));
   const coarse = new Set(product.tiles.filter(tile => tile.lod === 1).flatMap(tile => tile.files).filter(file => !fine.has(file)));
   expect(coarse.size).toBe(12); expect(product.library.filter(file => coarse.has(file))).toEqual([]);

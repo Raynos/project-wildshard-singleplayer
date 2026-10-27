@@ -3,6 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bind only the explicit author root and its private cache.
 import { resolve } from 'node:path';
 import { afterAll, expect, test } from 'vitest';
+import { beforeHalfWorld, expectHalfWorld } from './fixtures/nine-half-world';
 import { build } from 'vite';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
@@ -36,9 +37,15 @@ afterAll(() => { fixture.dispose(); });
 test('cold source world preserves all 411 pinned wires and every geometry byte', () => {
   const { captured } = fixture;
   expect(captured.size).toBe(411);
+  expectHalfWorld(fixture.cold);
+  const predecessor = new Map([
+    ['world.json', new TextEncoder().encode(`${JSON.stringify(beforeHalfWorld.metadata, nineLayoutWord)}\n`)],
+    ['layout.json', new TextEncoder().encode(JSON.stringify(beforeHalfWorld.layout, nineLayoutWord))],
+    ...[...beforeHalfWorld.assets].map(([hash, bytes]) => [`blobs/${hash}`, bytes] as const),
+  ]);
   for (const row of before) {
     const key = row.path === 'data/layout.generated.json' ? 'layout.json' : row.path === 'data/world.generated.json' ? 'world.json' : row.path.replace('assets/', 'blobs/');
-    const bytes = captured.get(key); if (bytes === undefined) throw new Error(`Missing original ${key}`);
+    const bytes = predecessor.get(key); if (bytes === undefined) throw new Error(`Missing original ${key}`);
     expect(bytes.byteLength, key).toBe(row.bytes); expect(hashImmutableBytes(bytes), key).toBe(row.hash);
   }
 });
@@ -65,9 +72,9 @@ test('missing, extra, corrupt and wrongly published world bytes remain refusals'
   await expect(nineWorldProgram({ ...h, cached: () => Promise.resolve(bad) }, atlas)).rejects.toThrow('Missing owned Nine world layout.json');
   const extra = new Map(captured); extra.set('unexpected.bin', new Uint8Array());
   await expect(nineWorldProgram({ ...h, cached: () => Promise.resolve(extra) }, atlas)).rejects.toThrow('file inventory differs');
-  const first = before.find(row => row.path.startsWith('assets/')); if (first === undefined) throw new Error('Missing original geometry');
-  const corrupt = new Map(captured), key = first.path.replace('assets/', 'blobs/');
-  corrupt.set(key, new Uint8Array(first.bytes));
+  const first = [...fixture.cold.assets][0]; if (first === undefined) throw new Error('Missing current geometry');
+  const corrupt = new Map(captured), key = `blobs/${first[0]}`;
+  corrupt.set(key, new Uint8Array(first[1].byteLength));
   await expect(nineWorldProgram({ ...h, cached: () => Promise.resolve(corrupt) }, atlas)).rejects.toThrow('world bytes differ');
   await expect(nineWorldProgram({ ...h, asset: () => '0'.repeat(64), cached: () => Promise.resolve(captured) }, atlas)).rejects.toThrow('publication differs');
 });

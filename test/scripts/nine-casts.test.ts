@@ -4,7 +4,8 @@ import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- The offline proof reads retained GLBs and published layout inputs.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
-import { BufferAttribute, Float32BufferAttribute, Mesh, MeshBasicMaterial, Box3, Object3D, Sphere, Vector3, type BufferGeometry } from 'three';
+import { halfFloatBeforeControl } from '../fixtures/half-float-before-control';
+import { BufferAttribute, DataUtils, Float16BufferAttribute, Float32BufferAttribute, Mesh, MeshBasicMaterial, Box3, Object3D, Sphere, Vector3, type BufferGeometry } from 'three';
 
 import {nineCastBlobs, rawCast} from '../fixtures/nine-cast-blobs';
 import { createOwnedGeometry } from '../../src/engine/models/ownedGeometry';
@@ -15,6 +16,7 @@ import { readSourceModel } from '../../src/sdk/bake/skinned';
 import type { PreparedGeometry } from '../../src/shards/nine-dragon-stack/data/casts';
 import castRows from '../../src/shards/nine-dragon-stack/data/casts.json' with { type: 'json' };
 import { layoutBlobs } from '../../src/shards/nine-dragon-stack/generators/layoutBlobs';
+import { bakeLods } from '../../src/shards/nine-dragon-stack/generators/lods';
 import { bakeCasts, bakeFixedKits, castGeometry } from '../../src/shards/nine-dragon-stack/generators/casts';
 import { layoutProjection, restoreLayoutZeros } from '../../src/shards/nine-dragon-stack/generators/layoutProjection';
 import { LayoutRowsSchema, GeometryBootSchema } from '../../src/shards/nine-dragon-stack/generators/sections';
@@ -52,6 +54,7 @@ function drawnLevel(name: string, path: string, base: BufferGeometry, prepared: 
 }
 
 let packs: Map<PreparedGeometry, Uint8Array>;
+let originalPacks: Map<PreparedGeometry, Uint8Array>;
 let fixed: ReturnType<typeof bakeFixedKits>;
 beforeAll(async () => {
   const layout: unknown = sourceLayout;
@@ -59,6 +62,11 @@ beforeAll(async () => {
   fixed = bakeFixedKits(row.rows.slots);
   packs = await bakeCasts(url => new Uint8Array(readFileSync(`public${url}`)));
   for (const [key, bytes] of fixed.packs) packs.set(key, bytes);
+  originalPacks = await halfFloatBeforeControl(async () => {
+    const original = bakeFixedKits(row.rows.slots);
+    try { return new Map([...await bakeCasts(url => new Uint8Array(readFileSync(`public${url}`))), ...original.packs]); }
+    finally { for (const geometry of original.geometries.values()) geometry.dispose(); }
+  });
 }, 30_000);
 
 function channels(geometry: BufferGeometry): unknown {
@@ -86,7 +94,28 @@ test.each(names)('%s preserves the original geometry through the existing rest-p
   await library.preload();
   const geometry = library.geometry(name, { borrow: true });
   if (geometry === null) throw new Error(`Host lost cast ${name}`);
-  expect(channels(geometry)).toEqual(baseline[name]);
+  const originalBytes = originalPacks.get(name);
+  if (originalBytes === undefined) throw new Error(`Missing cast predecessor ${name}`);
+  const originalLibrary = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
+    geometryPools: [{ url: name, parts: [name], channels: CAST_CHANNELS }],
+  }, 'test Nine cast before-control', {}, async () => (await readSourceModel(originalBytes)).gltf);
+  await originalLibrary.preload();
+  const original = originalLibrary.geometry(name, { borrow: true });
+  if (original === null) throw new Error(`Host lost original cast ${name}`);
+  expect(channels(original)).toEqual(baseline[name]);
+  const expected = original.clone();
+  let source = fixed.geometries.get(name);
+  if (source === undefined) {
+    if (name === 'entries-open' || name === 'entries-capped' || name === 'facade-signs') throw new Error(`Missing source fixed kit ${name}`);
+    source = await castGeometry(name, url => new Uint8Array(readFileSync(`public${url}`)));
+  }
+  try {
+    for (const key of ['aFace', 'aPat']) if (source.getAttribute(key) instanceof Float16BufferAttribute) {
+      const attribute = original.getAttribute(key);
+      expected.setAttribute(key, new Float32BufferAttribute(Float32Array.from(attribute.array, bits => DataUtils.fromHalfFloat(bits)), attribute.itemSize));
+    }
+    expect(channels(geometry)).toEqual(channels(expected));
+  } finally { expected.dispose(); original.dispose(); if (!fixed.geometries.has(name)) source.dispose(); }
   // Borrowing hands the original decoded buffers to the world, without another resident copy.
   expect(library.geometry(name, { borrow: true })).toBe(geometry);
   geometry.dispose();
@@ -115,6 +144,7 @@ test('layout blobs retain every float64 bit and signed author zero', () => {
 
 const lodGeometries = new Map<string, BufferGeometry>();
 const lodBases = new Map<string, BufferGeometry>();
+const originalColourLods = new Map<string, { geometry: BufferGeometry; base: BufferGeometry; half: readonly string[] }>();
 beforeAll(async () => {
   const read = (url: string): Uint8Array => new Uint8Array(readFileSync(`public${url}`));
   for (const name of ['lion', 'walker-dark', 'walker-light', 'sitter-dark', 'sitter-light'] as const) lodBases.set(name, await castGeometry(name, read));
@@ -154,6 +184,18 @@ beforeAll(async () => {
   // the catalogue row's sphere (data/hookBounds.json) is the source cast's own
   expect(hookBounds.sphere).toEqual([...bounds.sphere.center, bounds.sphere.radius]);
   expect(channels(nativeHook)).toEqual(channels(hook));
+  const oldLods = await halfFloatBeforeControl(() => bakeLods(read));
+  const original = async (name: string): Promise<BufferGeometry> => {
+    const bytes = oldLods.get(name);
+    if (bytes === undefined) throw new Error(`Missing original colourway ${name}`);
+    const library = createModelLibrary<never, never>({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
+      geometryPools: [{ url: name, parts: [name], channels: CAST_CHANNELS }],
+    }, 'test original colourway', {}, async () => (await readSourceModel(bytes)).gltf);
+    await library.preload();
+    const geometry = library.geometry(name, { borrow: true });
+    if (geometry === null) throw new Error(`Missing original colourway geometry ${name}`);
+    return geometry;
+  };
   for (const key of Object.keys(lodBasis)) {
     const [name, suffix] = key.split(':'), base = lodBases.get(name ?? '');
     if (base === undefined || suffix === undefined) throw new Error(`Missing native LOD base ${key}`);
@@ -165,6 +207,13 @@ beforeAll(async () => {
     const prepared = library.geometry(path, { borrow: true });
     if (prepared === null) throw new Error(`Missing packed LOD ${key}`);
     lodGeometries.set(key, suffix === 'far' ? prepared : drawnLevel(name ?? '', path, base, prepared));
+    if (suffix.startsWith('mid') && ['walker-oxblood', 'walker-blue', 'walker-paper'].includes(name ?? '')) {
+      const previousBase = await original(name ?? ''), previousPrepared = await original(path);
+      const variantSource = lodBases.get(name === 'walker-paper' ? 'walker-light' : 'walker-dark');
+      if (variantSource === undefined) throw new Error('Missing original colourway source');
+      originalColourLods.set(key, { geometry: drawnLevel(name ?? '', path, previousBase, previousPrepared), base: previousBase,
+        half: ['aFace', 'aPat'].filter(channel => variantSource.getAttribute(channel) instanceof Float16BufferAttribute) });
+    }
   }
 }, 30_000);
 
@@ -174,7 +223,21 @@ test.each(Object.entries(lodBasis))('%s retains native bytes, bounds and buffer 
   if (!key.includes(':mid')) { expect(channels(geometry)).toEqual(expected); return; }
   // a middle level draws its own index over the full cast's attributes, so it carries the full cast's bounds
   const { box: _box, sphere: _sphere, ...bytes } = expected, donor = channels(base);
-  expect(channels(geometry)).toEqual({ ...bytes, box: v.parse(v.object({ box: v.unknown() }), donor).box, sphere: v.parse(v.object({ sphere: v.unknown() }), donor).sphere });
+  const original = originalColourLods.get(key);
+  if (original === undefined) {
+    expect(channels(geometry)).toEqual({ ...bytes, box: v.parse(v.object({ box: v.unknown() }), donor).box, sphere: v.parse(v.object({ sphere: v.unknown() }), donor).sphere });
+  } else {
+    const previous = channels(original.base);
+    expect(channels(original.geometry)).toEqual({ ...bytes, box: v.parse(v.object({ box: v.unknown() }), previous).box, sphere: v.parse(v.object({ sphere: v.unknown() }), previous).sphere });
+    const corrected = original.geometry.clone();
+    try {
+      for (const channel of original.half) {
+        const attribute = corrected.getAttribute(channel);
+        corrected.setAttribute(channel, new Float32BufferAttribute(Float32Array.from(attribute.array, bits => DataUtils.fromHalfFloat(bits)), attribute.itemSize));
+      }
+      expect(channels(geometry)).toEqual(channels(corrected));
+    } finally { corrected.dispose(); }
+  }
   for (const [name, values] of Object.entries(base.attributes)) expect(geometry.getAttribute(name)).toBe(values);
 });
 

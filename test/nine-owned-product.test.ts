@@ -7,13 +7,24 @@ import { expect, test } from 'vitest';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import product, { nineProduct, inputs } from './fixtures/nine-product-inputs';
-import { output } from './fixtures/nine-source-program';
+import { output, nineSourceProgram } from './fixtures/nine-source-program';
+// oxlint-disable-next-line import/no-nodejs-modules -- Prepare the real source output through its original project root.
+import { resolve } from 'node:path';
+import { prepareProjectOutput } from '../src/sdk/projectOutput';
+import { halfFloatBeforeControl } from './fixtures/half-float-before-control';
+import { HalfOutputProof } from './fixtures/half-output-proof';
 import nativeDecals from '../src/shards/nine-dragon-stack/data/nativeDecals.json' with { type: 'json' };
 import before from './fixtures/nine-admitted-output.json' with { type: 'json' };
 import { nineOutputRefinePredecessor } from './fixtures/nine-refine-predecessor';
 import { expectNineDeclaration } from './fixtures/nine-declaration-pins';
 import { SCRIPT_V2_REVISIONS } from '../src/format/scriptAdmissionV2';
 import { nineOutput as emitNineOutput } from '../src/shards/nine-dragon-stack/generators/productOutput';
+
+const halfProof = new HalfOutputProof();
+const predecessor = await halfFloatBeforeControl(async () => {
+  const made = await nineSourceProgram();
+  return { output: made.output, prepared: await prepareProjectOutput(resolve('src/shards/nine-dragon-stack'), made.output) };
+}, halfProof.observe);
 
 test('the product uses the supplied view memory while retaining every other declaration field', () => {
   expect(nineProduct({ pages: 1 })).toEqual(product);
@@ -28,7 +39,8 @@ test('source-owned files preserve the original complete output and executable by
   expect(hash).toBe('3548c07ed2ac758a530cb973e7fe45962f084a76135701152486ffdb013bb276');
   expect(bytes.byteLength).toBe(4859);
   // D179 B: the fabric reads back through the refine predecessor layer (the scenes section is projected below as before)
-  const actual = nineOutputRefinePredecessor(output);
+  halfProof.expect(predecessor.prepared, await prepareProjectOutput(resolve('src/shards/nine-dragon-stack'), output));
+  const actual = nineOutputRefinePredecessor(predecessor.output);
   const signature = (value: unknown): { bytes: number; hash: string } => {
     const source = new TextEncoder().encode(encodeCanonicalJson(value));
     return { bytes: source.byteLength, hash: hashImmutableBytes(source) };
