@@ -466,3 +466,16 @@ routed to its owner; no source/allowance edit. New exact-receipt and
 replaced-row controls are typed, not executed before landing under G769.
 The costing cut remains in flight, with its measured transfer saving
 pending the joined source cohort; it is not an I2 pass.
+
+### I2 JavaScript request batches (2026-10-27, sp-x9)
+
+In flight (reading at plan end): the existing unconditional startSelected
+module bank contains 349 emitted files on the shared 67c0cc preview. Batch
+only that bank's static dependencies into bounded control chunks; retain
+title dependencies, session-closure membership, optional dynamic roots and
+shard ownership. Execution-order wrappers protect circular module bindings.
+No plugin, new preload or ceiling increase. Native output is unchanged.
+Touched types, typed lint and scoped ratchet pass. The containing web build
+must still pass original title/session/grid ceilings and Pine/Nalati/Nine
+must be re-read against the original 250 total before-control request bar.
+X2 owns data admission and o5 owns content; neither owns chunking hunks.

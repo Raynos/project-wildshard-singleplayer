@@ -141,8 +141,7 @@ function resolveImport(request: string, importer: string): { readonly id: string
  *  index.html, and each home's extra file table beside it (was vite/bootModules.ts's output hook). No metadata fetch,
  *  speculative import or new service-worker install list. scripts/build-app.mjs runs it on the web build, before the
  *  service worker reads the bank. */
-export function writeBootModules(outDir: string, root: string, inlineLimit = 4096): void {
-  const bundle = writtenBundle(outDir, root);
+export function startupModuleRoots(root: string): readonly string[] {
   const entry = resolve(root, 'src/entry.ts');
   const requests = startupImports(readFileSync(entry, 'utf8'));
   const ids: string[] = [entry];
@@ -151,6 +150,12 @@ export function writeBootModules(outDir: string, root: string, inlineLimit = 409
     if (dependency === null) throw new Error(`Unresolved boot module: ${request}`);
     ids.push(dependency.id);
   }
+  return ids;
+}
+
+export function writeBootModules(outDir: string, root: string, inlineLimit = 4096): void {
+  const bundle = writtenBundle(outDir, root);
+  const entry = resolve(root, 'src/entry.ts'), ids = startupModuleRoots(root);
   const htmlFile = join(outDir, 'index.html'), html = existsSync(htmlFile) ? readFileSync(htmlFile, 'utf8') : '';
   if (!html.includes('<head>')) throw new Error('Missing boot module document');
   const client = resolveImport('./game/shardfile/client', entry);

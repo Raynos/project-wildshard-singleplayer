@@ -8,6 +8,7 @@ import { join } from 'node:path';
 import { rapierAlias } from './vite/rapier';
 import { assertHeavyLease } from './scripts/heavy-lane-lease.mjs';
 import { BUILD_ID_EXPRESSION } from './scripts/app-build/buildIdentity.mjs';
+import { controlChunkGroups } from './scripts/app-build/controlChunks';
 
 /** The world map atlas's define, as scripts/app-build/worldMapAtlas.ts baked it before the bundle. */
 function worldMapDefine(): unknown {
@@ -49,8 +50,11 @@ export default defineConfig(({ mode, command }) => {
       : {
         target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: 'hidden' as const, cssCodeSplit: false, manifest: true,
         // G221: standalone CLI calibration, never a game-entry or Developer switch.
-        rolldownOptions: { input: { main: join(process.cwd(), 'index.html'), calibration: join(process.cwd(), 'calibration/index.html') } },
-        // Manual groups remain disabled: Rolldown 1.2.9 emits circular chunks with invalid runtime bindings.
+        rolldownOptions: {
+          input: { main: join(process.cwd(), 'index.html'), calibration: join(process.cwd(), 'calibration/index.html') },
+          preserveEntrySignatures: false,
+          output: { strictExecutionOrder: true, codeSplitting: { groups: controlChunkGroups(process.cwd()) } },
+        },
       },
     assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
     resolve: { alias: rapierAlias }, // Rapier's wasm-importing module → plain bindings (vite/rapier.ts)
