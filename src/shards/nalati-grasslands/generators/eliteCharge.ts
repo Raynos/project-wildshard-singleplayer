@@ -1,4 +1,4 @@
-import ecology from '../data/ecology.generated.json' with { type: 'json' };
+import { NALATI_ECOLOGY as ecology } from './ecology.mjs';
 
 const fields = ['heading', 'speed', 'turn', 'engaged', 'leashing', 'phase2', 'clock', 'strikeTime'];
 const observed = new Set(['engaged', 'leashing', 'phase2', 'clock']);

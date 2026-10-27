@@ -10,7 +10,7 @@ import { smoothstep } from '@wildshard/engine/core/noise';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { MinimapPalette, MapOverlay } from '@wildshard/engine/ui/Minimap';
 import type { MapPoi } from '@wildshard/format/minimap';
-import layoutRows from '../data/layout.generated.json' with { type: 'json' };
+import * as layoutRows from './layout';
 import { riverMask } from './terrainRecipe';
 import { nalatiWetAt } from './wetRecipe';
 

@@ -69,7 +69,7 @@ import arenaFire from '../data/arenaFire.json' with { type: 'json' };
 import { horseCourseRows } from './courseScene';
 import { RidingPracticeSchema } from '@wildshard/format/practiceCourseRows';
 import charge from '../data/eliteCharge.generated.json' with {type:'json'};
-import ecology from '../data/ecology.generated.json' with { type: 'json' };
+import { NALATI_ECOLOGY as ecology } from './ecology.mjs';
 import admissionInput from '../behaviour/admission.generated.json' with {type:'json'};
 import { NALATI_PASTURE_MODULE, NALATI_TITAN_MODULE, type NalatiTitanPrograms } from './stormTitanRows.mjs';
 import { nalatiTitanProgram, type NalatiTitan } from './stormTitanProgram';

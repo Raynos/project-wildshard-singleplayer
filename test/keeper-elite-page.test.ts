@@ -1,7 +1,7 @@
 import {admissionPage} from './fixtures/nalati-return-modules';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 
-import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
+import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/generators/ecology.mjs';
 import { beforeEach, expect, test } from 'vitest';
 import { Group, Scene, Vector3, SkinnedMesh, BoxGeometry, MeshLambertMaterial } from 'three';
 import type { Game } from '../src/engine/core/Game';

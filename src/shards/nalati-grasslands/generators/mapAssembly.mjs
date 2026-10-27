@@ -12,6 +12,7 @@ import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 import { nativeNalatiDressingPlacements } from './nativeDressingPlacements.mjs';
 import { nalatiPoiPaintFromInputs, POI_PAINT_INPUTS } from './poiPaintProgram.ts';
 import { nalatiGeographySources, nalatiGeographyRows } from './geographySource.ts';
+import * as layoutRows from './layout.ts';
 import { nalatiCragRock } from './cragRockProgram.ts';
 import { nalatiSprucePool, SPRUCE_REST } from './sprucePool.ts';
 import { nalatiModelPaintProgram } from './modelPaintProgram.ts';
@@ -138,7 +139,7 @@ export async function nalatiMapAssembly(source) {
   const decorative = withPortableMath(() => decorativeRowsOnGround(ground)).desktop;
   assembly.add('snow-lotus', await asset(specimens.assets.snowLotus), decorative.lotus.poses.map(pose));
   assembly.add('far-herds', await asset(specimens.assets.herdHorse), decorative.horses.member.placements.map(p => new Matrix4().fromArray(p.matrix)));
-  const kokpar = read('boot/layout.generated.json').KOKPAR, riders = prepared.places.rows.find(row => row.name === 'kokpar').anchors.riders;
+  const kokpar = layoutRows.KOKPAR, riders = prepared.places.rows.find(row => row.name === 'kokpar').anchors.riders;
   const c = Math.cos(kokpar.rot), s = Math.sin(kokpar.rot);
   assembly.add('kokpar-riders', await asset(specimens.assets.kokparRider), riders.map((r, i) => {
     const lx = Math.cos(r.t) * kokpar.rx * r.k, lz = Math.sin(r.t) * kokpar.rz * r.k;
@@ -167,7 +168,7 @@ export async function nalatiMapAssembly(source) {
   for (const mesh of crags.meshes) assembly.add(mesh.key, mapGeometry(cragBytes, mesh.offset, mesh.row));
   // The engine's pure forest placer reads exactly the same native samples and
   // baked geography mask as the page. No shard manifest or runtime is imported.
-  const geography = nalatiGeographyRows(), layout = read('boot/layout.generated.json'), discovery = read('data/discovery.json');
+  const geography = nalatiGeographyRows(), layout = layoutRows, discovery = read('data/discovery.json');
   const channel = key => readNativeScalarField(key === 'pond' ? geography.ground.mask : geography.channels[key], geographyFiles).sample;
   const trails = [layout.S_ROAD_PTS, layout.N_ROAD_PTS, layout.E_ROAD_PTS, layout.W_ROAD_PTS, layout.SKY_ROAD, layout.CAMP_SPUR,
     ...layout.BOWL_TRACKS, layout.EAGLE_TRAIL, layout.CAVE_TRAIL, layout.ARGYMAQ_TRAIL];

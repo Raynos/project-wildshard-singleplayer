@@ -1,7 +1,7 @@
 import originalFinds from './fixtures/nalati-finds-original.json' with {type:'json'};
 import { parseFindsCatalogue } from '../src/format/findsCatalogue';
 import { nalatiFindsCatalogue } from '../src/shards/nalati-grasslands/generators/finds';
-import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
+import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/generators/ecology.mjs';
 import { expect, test } from 'vitest';
 import { createFindsCatalogue } from '../src/game/bag/findsCatalogue';
 import type { OwnedId } from '../src/game/loot/Owned';

@@ -12,7 +12,7 @@ import type { AnimalSim } from '../src/engine/entities/AnimalSim';
 import type { SimHost } from '../src/engine/sim';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
-import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
+import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/generators/ecology.mjs';
 
 function encounter(pattern: 'pouncer' | 'howler', original: boolean, withPack = false) {
   const f = nativeKernelOwners(), row = ecology.keeperElites.find(candidate => candidate.pattern === pattern);

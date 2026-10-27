@@ -5,7 +5,7 @@ import type { BufferAttribute, InterleavedBufferAttribute } from 'three';
 import { admittedSheepProduct, admittedSheepBody } from './fake/admittedSheep';
 import { FlockBrain } from '../src/engine/ai/flock';
 import { flock } from '../src/sdk/crowds';
-import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
+import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/generators/ecology.mjs';
 // The original Nalati sheep and flock rows, frozen from the legacy copy (fixtures/legacy-oracles/nalati-sheep.json)
 import FROZEN from './fixtures/legacy-oracles/nalati-sheep.json' with { type: 'json' };
 import { ShippingFlock } from './fixtures/flock-oracle/flock';

@@ -1,6 +1,6 @@
 import { parseEliteEntryRows, ELITE_BODY_COLUMNS, ELITE_CONDITION_COLUMNS, type EliteEntryRows, parseEliteEntryPageRows, type EliteEntryPageRows, parseEliteOutputActions, type EliteOutputAction } from '@wildshard/sdk/eliteEntryRows';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
-import ecology from '../data/ecology.generated.json' with { type: 'json' };
+import { NALATI_ECOLOGY as ecology } from './ecology.mjs';
 import roster from '../data/eliteRoster.json' with { type: 'json' };
 import charge from '../data/eliteCharge.generated.json' with { type: 'json' };
 import { nalatiStrikeRows } from './kurganRows';

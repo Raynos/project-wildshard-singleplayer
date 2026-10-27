@@ -23,7 +23,7 @@ import trailRows from '../src/shards/driftwood-isle/data/trailCatalogue.json' wi
 
 import { SceneFloorSchema } from '../src/format/sceneDressing';
 import sourcePlaces from './fixtures/nalati-places-original.json' with { type: 'json' };
-import layout from '../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
+import * as layout from '../src/shards/nalati-grasslands/generators/layout';
 import { readSceneFloors } from '../src/game/shardfile/sceneDressing';
 import { deckFloor, torFloor, type PlaceRow } from '../src/shards/nalati-grasslands/generators/placeRows';
 import { cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor } from '../src/shards/nalati-grasslands/generators/placement';

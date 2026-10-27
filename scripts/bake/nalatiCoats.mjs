@@ -14,7 +14,7 @@ const SHARD = '../../src/shards/nalati-grasslands';
 export async function nalatiCoatInputs() {
   const [{ bodySpecies }, { default: wolfPalette }, { default: ecology }, { CREATURE_HULLS, nalatiCoatUrl }] = await Promise.all([
     import(`${SHARD}/generators/speciesRows.ts`), import(`${SHARD}/data/wolfPalette.json`, { with: { type: 'json' } }),
-    import(`${SHARD}/data/ecology.generated.json`, { with: { type: 'json' } }), import(`${SHARD}/generators/riggedHulls.ts`)]);
+    import(`${SHARD}/generators/ecology.mjs`).then(m => ({ default: m.NALATI_ECOLOGY })), import(`${SHARD}/generators/riggedHulls.ts`)]);
   const rows = new Map(['horse', 'wolf', 'kokbori', ecology.argymaq].map(kind => [kind, bodySpecies(kind)]));
   return {
     specs: {

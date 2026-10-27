@@ -1,4 +1,4 @@
-import ecology from '../data/ecology.generated.json' with {type:'json'};
+import { NALATI_ECOLOGY as ecology } from './ecology.mjs';
 import { COVER_FLOCKS } from './coverBake.mjs';
 import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
 import PEOPLE from '../data/peopleVariants.json' with {type:'json'};

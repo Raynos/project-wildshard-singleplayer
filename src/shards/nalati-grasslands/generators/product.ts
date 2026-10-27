@@ -7,7 +7,7 @@ import { compactChannels } from './channelRows';
 import { SPECIES_POSES } from './speciesPoses';
 import skyDome from '../data/skyDome.json' with { type: 'json' };
 import charge from '../data/eliteCharge.generated.json' with { type: 'json' };
-import ecology from '../data/ecology.generated.json' with { type: 'json' };
+import { NALATI_ECOLOGY as ecology } from './ecology.mjs';
 import { peoplePrograms } from './peopleMotion';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';

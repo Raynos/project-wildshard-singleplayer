@@ -11,7 +11,7 @@ import { builtProduct } from './fixtures/builtProduct';
 import { nalatiNativeAssets } from './proof/nalati-grasslands/nativeAssets';
 import source from './fixtures/nalati-product-source';
 import { NALATI_STRIKES, sampleStrike } from './fixtures/nalati-strikes';
-import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
+import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/generators/ecology.mjs';
 
 test('Nalati admitted elite contacts retain every original shape and cover refusal', async () => {
   const OriginalRoster = rosters.NativeEliteRoster;

@@ -21,7 +21,7 @@ import { app } from '../src/engine/app/runtime';
 import type { AdventurePersistence } from '../src/game/quest/persistence';
 import type { ReturnProgram } from '../src/game/population/returnProgram';
 
-import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
+import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/generators/ecology.mjs';
 import { parseExternalElite } from '../src/format/eliteFeature';
 import { StrikeRunner } from '../src/engine/ai/strikes';
 import type { DayCycleClock } from '../src/engine/world/dayCycle';

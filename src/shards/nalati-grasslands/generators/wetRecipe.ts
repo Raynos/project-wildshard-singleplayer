@@ -7,7 +7,7 @@
  *   nalatiWetAt(x, z) → true in the water / the corridor
  */
 import { riverMask } from './terrainRecipe';
-import layoutRows from '../data/layout.generated.json' with { type: 'json' };
+import * as layoutRows from './layout';
 
 const { MELT_STREAM: BROOK, RIM_N: RIM_Z } = layoutRows;
 

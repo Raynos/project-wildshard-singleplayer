@@ -1,7 +1,7 @@
 import bindings from '../data/nightBindings.json' with { type: 'json' };
 import { weatherDecision } from './weatherDecision.mjs';
 import { BOWL } from './layout.ts';
-import ecology from '../data/ecology.generated.json' with { type: 'json' };
+import { NALATI_ECOLOGY as ecology } from './ecology.mjs';
 import { ghostArrowKind, nightCues } from './nightGeometry.ts';
 
 export async function nightProgram() {

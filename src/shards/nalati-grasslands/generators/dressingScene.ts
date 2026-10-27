@@ -1,6 +1,6 @@
 import type { NalatiCragRows } from './cragRockProgram';
 import paintedTextures from '../data/paintedTextures.json' with {type:'json'};
-import layout from '../data/layout.generated.json' with {type:'json'};
+import * as layout from './layout';
 import metrics from '../data/modelMetrics.json' with {type:'json'};
 import { ClientChannels } from '@wildshard/sdk/clientChannels';
 import { NALATI_FAR_HERD_CHANNELS } from './clientMotion';

@@ -4,7 +4,7 @@ import { nalatiEliteRows } from './fixtures/nalati-headless';
 import { NALATI_HEADLESS_ASSEMBLY as headlessAssembly } from './fixtures/nalati-headless-assembly';
 import { readPouncerSpec, readHowlerSpec } from '../src/engine/ai/stalker';
 import { buildEliteEntryRows, buildEliteEntryPageRows } from '../src/shards/nalati-grasslands/generators/eliteEntryRows';
-import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
+import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/generators/ecology.mjs';
 import source from '../src/shards/nalati-grasslands/data/eliteRoster.json' with { type: 'json' };
 import charge from '../src/shards/nalati-grasslands/data/eliteCharge.generated.json' with { type: 'json' };
 import { ELITE_BODY_COLUMNS, ELITE_CONDITION_COLUMNS } from '../src/format/eliteEntryRows';

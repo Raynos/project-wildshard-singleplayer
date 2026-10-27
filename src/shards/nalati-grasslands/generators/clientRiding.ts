@@ -2,7 +2,7 @@ import { parse } from 'valibot';
 import { ClientRidingSessionSchema } from '@wildshard/format/riding';
 import reins from '../data/reins.json' with { type: 'json' };
 import type { NalatiRidingPrograms } from './ridingRows.mjs';
-import ecology from '../data/ecology.generated.json' with { type: 'json' };
+import { NALATI_ECOLOGY as ecology } from './ecology.mjs';
 import nativeRide from '../data/nativeRiding.json' with { type: 'json' };
 import headlessBoot from '../data/headlessBoot.json' with { type: 'json' };
 import namePanel from '../data/namePanel.json' with { type: 'json' };

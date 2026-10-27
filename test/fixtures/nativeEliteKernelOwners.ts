@@ -9,7 +9,7 @@ import type { NativeEliteKernelLoans, NativeEliteKernelRow } from '../../src/eng
 import type { AnimalSim } from '../../src/engine/entities/AnimalSim';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { NALATI_STRIKES } from './nalati-strikes';
-import ecology from '../../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
+import { NALATI_ECOLOGY as ecology } from '../../src/shards/nalati-grasslands/generators/ecology.mjs';
 
 export function nativeKernelOwners(scope = new Scope('native-elites')) {
   lendNalatiAdmission(scope);

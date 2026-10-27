@@ -2,10 +2,10 @@ import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { SEED as TERRAIN_SEED } from './terrainSeed';
 import { Noise2D, smoothstep, clamp, lerp } from '@wildshard/engine/core/noise';
 import { buildTerrain } from '@wildshard/engine/world/terrainField';
-import layoutRows from '../data/layout.generated.json' with { type: 'json' };
+import * as layoutRows from './layout';
 import { edgeRise, riverZAt, riverHalfAt } from './edgeRecipe';
 import * as clearings from './clearings';
-import places from '../data/poiLayout.generated.json' with { type: 'json' };
+import * as places from './poiLayout';
 import type { ChunkTerrain, RGB, Vec2 } from '@wildshard/game/shard/manifest';
 
 const { RIVER_LEVEL, BOWL, RIM_N, SKY_ROAD, SKY_ROAD_RIM, EAGLE_ROCK, KOKPAR, KURGANS, SUMMER_YURTS,

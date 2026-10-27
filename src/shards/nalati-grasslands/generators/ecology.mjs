@@ -48,3 +48,7 @@ export function ecologyRows() {
     wildlife, mareVariants: author.mareVariants, modes: author.modes, gameplay, species: author.species,
     flocks: { world: rows(wildlife.flocks), specimen: rows(author.specimenFlocks) } };
 }
+
+/** The shard's ecology rows, built once per process and shared by every reader, as the retired nalati-layout job's
+ *  data/ecology.generated.json was (readers treat them as read-only). */
+export const NALATI_ECOLOGY = ecologyRows();

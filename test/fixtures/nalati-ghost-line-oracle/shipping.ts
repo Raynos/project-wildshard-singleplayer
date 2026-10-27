@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { AnimalSim as Animal } from '../../../src/engine/entities/AnimalSim';
 import { BOWL } from '../../../src/shards/nalati-grasslands/generators/layout';
-import ecology from '../../../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
+import { NALATI_ECOLOGY as ecology } from '../../../src/shards/nalati-grasslands/generators/ecology.mjs';
 /** One admitted night line; identity, death and body ownership remain with the real ghost roster. */
 export interface GhostLineMember<A extends Animal> { readonly a: A; readonly slot: number; dead: boolean }
 export interface GhostLine<A extends Animal> { readonly riders: readonly GhostLineMember<A>[]; s: number; mode: 'patrol' | 'engage'; theta: number; dir: 1 | -1; engagedT: number }

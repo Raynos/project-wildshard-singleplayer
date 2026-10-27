@@ -42,7 +42,7 @@ import * as titan from '../src/shards/nalati-grasslands/generators/stormTitanFig
 import { titanGeometryRows } from '../src/shards/nalati-grasslands/generators/stormTitanGeometry';
 import king from './fixtures/nalati-goldenKing-original.json' with { type: 'json' };
 import layout from './fixtures/nalati-kurganLayout-original.json' with { type: 'json' };
-import world from '../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
+import * as world from '../src/shards/nalati-grasslands/generators/layout';
 import { manager } from '@wildshard/engine/test/manager';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import {titanPrograms as programs} from './fixtures/titanInlineWitness';

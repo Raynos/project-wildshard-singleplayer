@@ -21,7 +21,7 @@ import { Elites } from '../src/game/Elite';
 import { PageWildEnvironment } from '../src/game/population/pageGroups';
 import { ELITE_CONDITION_COLUMNS } from '../src/format/eliteEntryRows';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
+import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/generators/ecology.mjs';
 import { parseExternalElite } from '../src/format/eliteFeature';
 import { strike } from '../src/sdk/species';
 import strikes from './fixtures/nalati-strikeProfiles-original.json' with { type: 'json' };

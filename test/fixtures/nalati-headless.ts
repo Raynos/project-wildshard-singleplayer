@@ -4,7 +4,7 @@ import type {BakedGrid} from '../../src/format/bakedTerrainBytes';
 import type { ShardProduct } from '../../src/game/shardfile/shardProduct';
 import type { SimHost } from '../../src/engine/sim';
 import type { NativeEliteKernelLoans } from '../../src/engine/ai/eliteKernels';
-import type ecology from '../../src/shards/nalati-grasslands/data/ecology.generated.json';
+import type { Ecology } from '../../src/shards/nalati-grasslands/data/ecologyTypes';
 import type { NalatiHeadlessAssembly } from '../../src/shards/nalati-grasslands/generators/nativeGroups';
 import type { nalatiNativeShelters } from '../../src/shards/nalati-grasslands/generators/shelters';
 import type { buildEliteEntryPageRows } from '../../src/shards/nalati-grasslands/generators/eliteEntryRows';
@@ -50,7 +50,7 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
             pageElites: Omit<ReturnType<typeof buildEliteEntryPageRows>, "profiles"> & {
                 profiles: {
                     id: string;
-                    value: typeof ecology.keeperElites[number];
+                    value: Ecology['keeperElites'][number];
                 }[];
             };
             eliteDefs: Record<'aqbars' | 'kokbori' | 'argymaq', EliteCoreDef>;

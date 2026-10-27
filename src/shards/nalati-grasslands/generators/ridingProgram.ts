@@ -1,5 +1,6 @@
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { NALATI_RIDING_SOURCES, nalatiRidingRows, type NalatiRidingEcology, type NalatiRidingPrograms } from './ridingRows.mjs';
+import { NALATI_RIDING_SOURCES, nalatiRidingRows, type NalatiRidingPrograms } from './ridingRows.mjs';
+import { NALATI_ECOLOGY } from './ecology.mjs';
 
 /** The product names the riding module and its witness ship under. */
 export const NALATI_RIDING_MODULE = 'behaviour/nalati.mounts.wasm', NALATI_RIDING_WITNESS = 'behaviour/riding-witness.bin';
@@ -15,18 +16,15 @@ export function ridingModuleOptions(programs: NalatiRidingPrograms, revisions: {
 }
 
 const decode = new TextDecoder('utf-8', { fatal: true }), encode = new TextEncoder();
-const ECOLOGY = 'data/ecology.generated.json';
 /** GR6 (G783): the mounts / taming / riding program compiled in the build from its declared authored sources and the
- *  shard's ecology rows (read as cached input bytes), in place of the retired `nalati-riding` job. */
+ *  shard's ecology rows (ecology.mjs, inside the bundled program the cache key covers), in place of the retired
+ *  `nalati-riding` job. */
 export async function nalatiRidingProgram(ctx: Pick<ProjectGenerationContext, 'cached' | 'compileReturnProjection'>): Promise<NalatiRiding> {
   const compile = ctx.compileReturnProjection;
   if (compile === undefined) throw new Error('Nalati riding needs return-projection compilation');
-  const files = await ctx.cached({ id: 'riding-program', inputs: [...NALATI_RIDING_SOURCES, ECOLOGY] }, async inputs => {
+  const files = await ctx.cached({ id: 'riding-program', inputs: NALATI_RIDING_SOURCES }, async inputs => {
     const text = (name: string): string => { const bytes = inputs.get(name); if (bytes === undefined) throw new Error(`Missing Nalati riding input ${name}`); return decode.decode(bytes); };
-    const ecology: unknown = JSON.parse(text(ECOLOGY));
-    if (typeof ecology !== 'object' || ecology === null || !('species' in ecology) || !('flocks' in ecology) || !('wildlife' in ecology)) throw new Error('Invalid Nalati ecology rows');
-    // the ecology rows are the shard's own admitted generated table; the builder reads only the fields NalatiRidingEcology names
-    const built = await nalatiRidingRows(compile, text, ecology as NalatiRidingEcology);
+    const built = await nalatiRidingRows(compile, text, NALATI_ECOLOGY);
     return new Map([['riding.json', encode.encode(JSON.stringify(built.programs))], ['riding.wasm', built.wasm], ['riding-witness.bin', built.witness]]);
   });
   const document = files.get('riding.json'), wasm = files.get('riding.wasm'), witness = files.get('riding-witness.bin');

@@ -7,7 +7,7 @@ import { NativeEliteLifecycle } from '../src/engine/ai/eliteLifecycle';
 import { HerdBrain, type HerdPorts } from '../src/engine/ai/herd';
 import type { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
+import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/generators/ecology.mjs';
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 import { nativeEliteCore } from './fixtures/nativeEliteCore';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

@@ -11,7 +11,7 @@ import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import { createBakedTerrainField,installDeclaredBakedTerrain,bakedTerrainSource } from '../src/engine/world/bakedTerrainField';
 import { basinBody } from '../src/engine/world/water/body';
 import { readScalarChannel,ScalarLatticeBindings } from '../src/engine/world/scalarChannel';
-import layout from '../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
+import * as layout from '../src/shards/nalati-grasslands/generators/layout';
 import { GROUND } from './fixtures/nalati-terrain';
 import nalati from '../src/shards/nalati-grasslands/discovery.generated';
 
