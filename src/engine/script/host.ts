@@ -252,8 +252,8 @@ export class ScriptHost {
     this.pending.push(...checked.events);
   }
   /**
-   * Advances when anything checkpoint() carries other than the tick (module memories and globals, failure history,
-   * allowances, pending events) differs from what the previous call saw. It compares in place against the copies it
+   * Advances when anything checkpoint() carries other than the tick and the ABI scratch rows (module memories and
+   * globals, failure history, allowances, pending events) differs from what the previous call saw. It compares in place against the copies it
    * kept and copies only what changed, so an idle caller allocates nothing.
    */
   stateRevision(): number {
@@ -273,8 +273,14 @@ export class ScriptHost {
       let globals = row.globals.size === good.globals.size;
       if (globals) for (const [key, value] of good.globals) if (!Object.is(row.globals.get(key), value)) { globals = false; break; }
       if (!globals) { row.globals = new Map(good.globals); changed = true; }
-      const memory = good.memory, kept = row.memory;
-      for (let i = 0; i < memory.length; i++) if (memory[i] !== kept[i]) { kept.set(memory); changed = true; break; }
+      // The ABI input and output rows are cleared and refilled (the tick included) before any guest code runs on a call,
+      // so their bytes never reach a later call or a restore's future: they are not compared.
+      const memory = good.memory, kept = row.memory, { input, inputBytes, output, outputRecords } = state.layout;
+      for (let i = 0; i < memory.length; i++) {
+        if (i === input) { i += inputBytes - 1; continue; }
+        if (i === output) { i += outputRecords * 40 - 1; continue; }
+        if (memory[i] !== kept[i]) { kept.set(memory); changed = true; break; }
+      }
     }
     if (changed) seen.revision++;
     return seen.revision;

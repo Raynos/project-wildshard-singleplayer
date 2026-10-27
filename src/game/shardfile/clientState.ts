@@ -3,7 +3,7 @@ import type { ShardfileSimulation } from '../plugin/simulation';
 import type { DeclaredItems } from './items';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { migrateLogicalState } from '@wildshard/format/migrations';
-import { logicalStateFromLane, restoreLogicalLane } from './logicalState';
+import { logicalStateFromLane, logicalStateFromWorld, restoreLogicalLane } from './logicalState';
 import { test as flagsMatch } from '@wildshard/engine/world/interact/flags';
 import { socketLiftEntries } from '@wildshard/format/socketLiftAssets';
 import { captureLiftRider, restoreLiftRider } from './liftRider';
@@ -53,8 +53,16 @@ export function installClientItemState(sim: ShardfileSimulation, items: Runtimes
 export function captureClientState(source: Shardfile, sim: ShardfileSimulation, items: Runtimes): ClientCheckpoint {
   if (portalTransitioning(sim.host.physics)) throw new Error('Cannot checkpoint during a portal transfer');
   const lane = sim.lane?.snapshot() ?? null;
-  return v.parse(logicalCheckpoint, { version: 2, shard: source.identity.slug, state: migrateLogicalState(logicalStateFromLane(source.state.version, lane), source.state), revision: source.identity.revision, tick: sim.host.state.tick,
+  // The live lane's world gives the same logical state as parsing its snapshot text back, without that parse.
+  const logical = sim.lane === undefined ? logicalStateFromLane(source.state.version, null) : logicalStateFromWorld(source.state.version, sim.lane.world);
+  return v.parse(logicalCheckpoint, { version: 2, shard: source.identity.slug, state: migrateLogicalState(logical, source.state), revision: source.identity.revision, tick: sim.host.state.tick,
     lane, ...clientStateParts(source, sim, items) });
+}
+/** The non-lane continuation as text with every clock left out (an item's state carries the sim tick it last stepped at):
+ * equal text means equal progress apart from the time. */
+export function clientStateMark(source: Shardfile, sim: ShardfileSimulation, items: Runtimes): string {
+  const states = Object.fromEntries([...items].map(([id, runtime]) => { const { tick: _tick, ...state } = runtime.snapshot(); return [id, state]; }));
+  return JSON.stringify({ ...clientStateParts(source, sim, items), items: states });
 }
 /** Every continuation field except the clock and the script lane (and the logical state read from that lane), unparsed:
  * the continuation's schema admits them. */

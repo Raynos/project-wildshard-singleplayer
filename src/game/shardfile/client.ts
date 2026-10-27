@@ -65,7 +65,7 @@ import { tileRing } from './tileDriver';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import { clientSimStep } from './clientStep';
 import { clientScene, projectItemFields, handledItemInputs } from './clientItems';
-import { captureClientState, clientStateParts, restoreClientState, installClientItemState, clientStateSave, clientCheckpoint } from './clientState';
+import { captureClientState, clientStateMark, restoreClientState, installClientItemState, clientStateSave, clientCheckpoint } from './clientState';
 import { portalTransitioning } from './portalTraversal';
 import { syncTargetColliders } from './targets';
 import type { ClientAssets } from './clientAssets';
@@ -543,7 +543,7 @@ export class ShardfileClient {
     const mark = (): string | undefined => {
       const lane = sim.lane, revision = lane === undefined ? 0 : lane.stateRevision?.();
       if (revision === undefined || ledger.unsaved || loot?.purse?.unsaved === true) return undefined;
-      return `${String(revision)}|${String(ledger.recordCount)}|${String(encounterWrites)}|${JSON.stringify(clientStateParts(source, sim, items.runtimes))}`;
+      return `${String(revision)}|${String(ledger.recordCount)}|${String(encounterWrites)}|${clientStateMark(source, sim, items.runtimes)}`;
     };
     const checkpoint = (): boolean => { quiet = undefined; return saver.checkpoint(); };
     sim.host.onStep('client.save', () => {
