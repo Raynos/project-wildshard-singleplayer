@@ -118,7 +118,7 @@ test('a compiled data owner parks and restores its actual finite hooks without a
 });
 
 
-test('abandoning a yielded isolated install restores bindings and permits a fresh install', async () => {
+test('cancelling a requested entry restores bindings and permits a fresh install', async () => {
   const scope = new Scope('cancelled-isolated-install'), app = new App();
   const manifest = { ...TEMPLATE, slug: parseShardSlug('cancelled-entry') };
   const source = emptyShardfile({ slug: manifest.slug, name: 'Cancelled entry', author: 'Fixture', revision: 1, seed: 7 });
@@ -145,14 +145,15 @@ test('abandoning a yielded isolated install restores bindings and permits a fres
     } };
   const session = new HybridRuntimeSession(new Map([['fixture', resident]]), scope);
   try {
-    const installing = session.installAhead('fixture');
+    const controller = new AbortController();
+    const installing = session.prepareEntry('fixture', controller.signal);
     const settled = (async () => { try { return { value: await installing }; } catch (error) { return { error }; } })();
-    await yielded; expect(visible).toBe(false); session.abandon('fixture');
+    await yielded; expect(visible).toBe(false); controller.abort();
     const result = await settled;
     expect('error' in result && String(result.error)).toContain('scope has closed');
     expect(cancelled?.disposed).toBe(true); expect(scope.disposed).toBe(false);
     expect(restores).toBe(1); expect(session.timings().current).toBeNull(); expect(visible).toBe(false);
-    expect(await session.installAhead('fixture')).toBe(true);
+    expect(await session.prepareEntry('fixture')).toBe(true);
     expect(builds).toBe(2); expect(restores).toBe(2); expect(visible).toBe(false);
     expect(await session.enter({ instance: 'fixture', slug: manifest.slug })).toBe(true);
     expect(builds).toBe(2); expect(visible).toBe(true);
@@ -160,7 +161,7 @@ test('abandoning a yielded isolated install restores bindings and permits a fres
   expect(visible).toBe(false);
 });
 
-test('isolated preparation preserves the entered source while the neighbour yields and finishes', async () => {
+test('neighbour modules stay inert and entry construction waits for the source to leave', async () => {
   const scope = new Scope('active-source-preparation'), app = new App(), visible = new Set<string>();
   let release: (() => void) | undefined, started: (() => void) | undefined;
   const warm = new Promise<void>(resolve => { release = resolve; });
@@ -191,16 +192,21 @@ test('isolated preparation preserves the entered source while the neighbour yiel
   const session = new HybridRuntimeSession(new Map([['source', source], ['incoming', incoming]]), scope);
   try {
     expect(await session.enter({ instance: 'source', slug: source.slug })).toBe(true);
-    const preparing = session.installAhead('incoming'); await warming;
+    await session.prepare('incoming');
+    await expect(session.prepareEntry('incoming')).rejects.toThrow('requires the neutral road');
     expect(session.state()).toEqual({ instance: 'source', ready: true });
     expect(visible).toEqual(new Set(['source']));
     expect(source.runtime.objects['built']).toBe('source');
     expect(incoming.runtime.objects['built']).toBeUndefined();
-    release?.(); expect(await preparing).toBe(true);
     expect(session.state()).toEqual({ instance: 'source', ready: true });
     expect(visible).toEqual(new Set(['source']));
     expect(incoming.runtime.objects['built']).toBeUndefined();
     session.leave(); expect(visible.size).toBe(0);
+    const preparing = session.prepareEntry('incoming'); await warming;
+    expect(session.state()).toEqual({ instance: null, ready: false });
+    expect(visible.size).toBe(0); expect(incoming.runtime.objects['built']).toBeUndefined();
+    release?.(); expect(await preparing).toBe(true);
+    expect(visible.size).toBe(0); expect(incoming.runtime.objects['built']).toBeUndefined();
     expect(await session.enter({ instance: 'incoming', slug: incoming.slug })).toBe(true);
     expect(visible).toEqual(new Set(['incoming']));
     expect(incoming.runtime.objects['built']).toBe('incoming');

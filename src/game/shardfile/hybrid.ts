@@ -358,15 +358,12 @@ export async function prepareHybridShard(input: ShardProduct | Pick<Shardfile, '
 }
 
 
-/** Only the entered cell owns gameplay callbacks. Module prefetch stays inert; claimed road preparation is explicit. */
+/** Only the entered cell owns gameplay callbacks. Neighbour prefetch admits modules and data only. */
 export class HybridRuntimeSession {
   private readonly residents: ReadonlyMap<string, HybridResident>;
   private readonly prepared = new Map<string, Promise<new () => ShardPlugin>>();
   private readonly retained = new Map<string, ActiveRuntime>();
   private readonly installations = new Map<string, Promise<boolean>>();
-  /** T7: each in-flight road preparation's scope, and the preparations abandoned before their scope existed. */
-  private readonly preparingScopes = new Map<string, Scope>();
-  private readonly abandoned = new Set<string>();
   private active: ActiveRuntime | undefined;
   private generation = 0;
   private disposed = false;
@@ -416,25 +413,19 @@ export class HybridRuntimeSession {
   timings(): { readonly current: Readonly<Pick<HybridHookTiming, 'instance' | 'hook' | 'start'>> | null; readonly completed: readonly HybridHookTiming[] } {
     return { current: this.currentHook, completed: [...this.completedHooks] };
   }
-  /** Build a fully claimed destination on the road, keeping its entered services and parent runtime slots unpublished.
-   * The resident must supply isolated construction bindings; module-only prepare remains safe for any resident. */
-  installAhead(instance: string): Promise<boolean> {
+  /** Finish an actually requested entry before its frame transfer. Neighbours use inert prepare() only.
+   * A source must leave first; entered services and parent runtime slots publish only at enter(). */
+  prepareEntry(instance: string, signal?: AbortSignal): Promise<boolean> {
     if (this.disposed) return Promise.reject(new Error('Hybrid session is disposed'));
+    if (this.active !== undefined) return Promise.reject(new Error('Entry preparation requires the neutral road'));
+    if (signal?.aborted === true) return Promise.reject(new Error('Entry preparation was cancelled'));
     const resident = this.residents.get(instance);
     if (resident === undefined) return Promise.reject(new Error('Missing hybrid resident'));
     const prior = this.installations.get(instance); if (prior !== undefined) return prior;
-    this.abandoned.delete(instance);
-    const request = this.install({ instance, slug: resident.slug }, true);
+    const request = this.install({ instance, slug: resident.slug }, true, signal);
     this.installations.set(instance, request);
     void request.finally(() => { if (this.installations.get(instance) === request) this.installations.delete(instance); }).catch(() => undefined);
     return request;
-  }
-  /** T7: give up a road preparation for a committed crossing into another cell. Its scope is disposed now, so scope-fenced
-   * work stops early and the install returns false at its next stage; the resident world stays. */
-  abandon(instance: string): void {
-    const scope = this.preparingScopes.get(instance);
-    if (scope === undefined) { if (this.installations.has(instance)) this.abandoned.add(instance); return; }
-    scope.dispose();
   }
   /** Called by the cell-interior producer, after leaving the old cell. Late hook completions cannot publish another scope. */
   async enter(cell: GridCellRef): Promise<boolean> {
@@ -442,16 +433,14 @@ export class HybridRuntimeSession {
     if (preparing !== undefined && !await preparing) return false;
     return this.install(cell, false);
   }
-  private async install(cell: GridCellRef, preparing: boolean): Promise<boolean> {
+  private async install(cell: GridCellRef, preparing: boolean, signal?: AbortSignal): Promise<boolean> {
     if (this.disposed) throw new Error('Hybrid session is disposed');
     const resident = this.residents.get(cell.instance);
     if (resident === undefined) throw new Error('Missing hybrid resident');
     const { slug: identity } = resident, { slug: cellIdentity } = cell;
     if (identity !== cellIdentity) throw new Error('Hybrid cell must match its catalogue instance and shard');
     if (this.active?.resident === resident) return this.active.ready;
-    // G580 T1: a road preparation builds while the source is still active (never itself), and a leave (the source's,
-    // bumping the generation) does not abort it: only its own scope or the resident's ends it
-    if (preparing && (this.active?.resident === resident || resident.retainRuntime !== true)) throw new Error('Road preparation requires an inactive retained resident');
+    if (preparing && (this.active !== undefined || resident.retainRuntime !== true)) throw new Error('Entry preparation requires a neutral retained resident');
     if (!preparing) this.leave();
     const generation = this.generation;
     let construction: (() => void) | undefined, preparingScope: Scope | undefined;
@@ -481,11 +470,11 @@ export class HybridRuntimeSession {
         }
       }
       const Plugin = await this.prepare(cell.instance);
-      if ((!preparing && generation !== this.generation) || resident.scope.disposed) return false;
+      if ((!preparing && generation !== this.generation) || resident.scope.disposed || signal?.aborted === true) return false;
       const scope = resident.scope.child(`runtime:${cell.instance}`), active: ActiveRuntime = { resident, scope, ready: false };
       if (preparing) {
-        preparingScope = scope; this.preparingScopes.set(cell.instance, scope);
-        if (this.abandoned.delete(cell.instance)) scope.dispose();
+        preparingScope = scope;
+        if (signal !== undefined) scope.listen(signal, 'abort', () => { scope.dispose(); }, { once: true });
       } else this.active = active;
       scope.onDispose(() => { if (this.active === active) this.active = undefined; if (this.retained.get(cell.instance) === active) this.retained.delete(cell.instance); });
       const slots = resident.retainRuntime === true ? createScopedRuntimeBinding(resident.runtime, scope) : undefined;
@@ -497,9 +486,9 @@ export class HybridRuntimeSession {
       // R12: while entered, the cell's own sky clock is the day cycle (its region's layered sky, or a painted sky's runtime)
       if (hooks !== undefined) { const owned = hooks.context; installEnteredRuntimeService(owned, (entered) => { enterSkyClock(owned.app, [owned.scope, resident.scope], entered); }); }
       const context = hooks?.context ?? installation.context;
-      const live = (): boolean => !scope.disposed && (preparing ? this.active?.resident !== resident : this.active === active && generation === this.generation);
+      const live = (): boolean => !scope.disposed && (preparing ? this.active === undefined : this.active === active && generation === this.generation);
       if (preparing) {
-        if (installation.prepareConstruction === undefined) throw new Error('Road preparation requires isolated construction bindings');
+        if (installation.prepareConstruction === undefined) throw new Error('Entry preparation requires isolated construction bindings');
         construction = installation.prepareConstruction(context);
       }
       await this.stage(scope, cell.instance, 'beforeWorld', () => ownerTask(scope, () => installation.beforeWorld?.(context))); if (!live()) return false;
@@ -530,7 +519,6 @@ export class HybridRuntimeSession {
       throw error;
     } finally {
       construction?.();
-      if (preparingScope !== undefined && this.preparingScopes.get(cell.instance) === preparingScope) this.preparingScopes.delete(cell.instance);
       if (preparingScope !== undefined && !this.retained.has(cell.instance)) preparingScope.dispose();
     }
   }

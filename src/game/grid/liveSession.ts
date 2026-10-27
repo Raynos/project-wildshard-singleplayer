@@ -794,18 +794,10 @@ export class LiveGridSession {
       catch (error) { this.transferWalls.delete(cell.instance); saved.unbind(); throw error; }
       this.runtimeRegions.set(cell.instance, prepared); this.runtimeResidents.set(cell.instance, prepared.resident);
       this.respawnCells.set(cell.instance, { instance: cell.instance, origin: cell.origin, entryways: retained.admitted.source.entryways });
-      // T7: a road approach abandoned for another crossing stops its runtime install at the next stage
-      const abandon = (): void => { this.hybrid.abandon(cell.instance); };
-      const stopped = (): boolean => signal?.aborted === true;
       try {
-        if (stopped()) throw new Error('Road approach abandoned for another crossing');
-        const unlisten = signal === undefined ? undefined : this.runtimeScope.listen(signal, 'abort', abandon, { once: true });
-        try {
-          await this.hybrid.prepare(cell.instance);
-          if (!await this.hybrid.installAhead(cell.instance)) throw new Error('Admitted runtime preparation left the approached cell');
-        } finally { unlisten?.(); }
-        if (stopped()) throw new Error('Road approach abandoned for another crossing');
-        prepared.park?.(); // parked until the crossing commits (the traveller is still on the road)
+        await this.hybrid.prepare(cell.instance);
+        if (!await this.hybrid.prepareEntry(cell.instance, signal)) throw new Error('Admitted entry preparation left its requested cell');
+        prepared.park?.(); // Only actual entry demand reaches here; keep its frame hidden until commit.
       }
       catch (error) {
         this.runtimeRegions.delete(cell.instance); this.runtimeResidents.delete(cell.instance); this.transferWalls.delete(cell.instance);
