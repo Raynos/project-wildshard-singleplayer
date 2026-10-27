@@ -1,7 +1,7 @@
 import piers from '../data/pierScenes.generated.json' with { type: 'json' };
 import type { DriftwoodSceneBanks } from './sceneBanks';
 import { REEF_SCENE_LIBRARY } from './reefCatalogue';
-import foliage from '../data/foliageScenes.generated.json' with { type: 'json' };
+import { driftwoodFoliageScenes } from './foliageScenesBank';
 import { REEF_LOOK } from './reefLook';
 import { driftwoodTrailRows } from './fixedFacts';
 import { parseWorldScenes, type WorldScenesSection } from '@wildshard/format/worldScenes';
@@ -47,7 +47,7 @@ export function worldScenes(banks: DriftwoodSceneBanks): WorldScenesSection {
     version: 1, catalogue: 'models/world-scenes.json',
     // the trail's fence post, signpost and plank step and the entry road deck: code-built specimens its placements name (G3)
     specimens: [...trailProductSpecimens(), entryDeckSpecimen()],
-    libraries: [...cargoRows.libraries, ...nativeRows.libraries, REEF_SCENE_LIBRARY, ...rockRows.libraries, ...parseWorldScenes({ version: 1, libraries: foliage.libraries, materials: [], steps: [] }).libraries, { id: 'cascade', kind: 'owned', models: ['waterfallSheet', 'waterfallRings', 'waterfallPuffs', 'coveStructure', 'coveRocks', 'coveGlow', 'covePools', 'wreckKit', 'wreckGlow', 'wreckRocks', 'trailside', 'hutKit', 'hutFlames', 'lookout', 'shipwreckKit', 'shipwreckGlow', 'shrineKit', 'shrineWater', 'shrineGlyphs', 'shrineSpecimenKit', 'shrineSpecimenWater', 'shrineSpecimenGlyphs', ...piers.slots, 'boatHull', 'boatSail', 'boatGear', 'mooringLines', 'duneLogs', ...Object.values(inventory.groups.driftLogs)].map(id => {
+    libraries: [...cargoRows.libraries, ...nativeRows.libraries, REEF_SCENE_LIBRARY, ...rockRows.libraries, ...parseWorldScenes({ version: 1, libraries: driftwoodFoliageScenes().libraries, materials: [], steps: [] }).libraries, { id: 'cascade', kind: 'owned', models: ['waterfallSheet', 'waterfallRings', 'waterfallPuffs', 'coveStructure', 'coveRocks', 'coveGlow', 'covePools', 'wreckKit', 'wreckGlow', 'wreckRocks', 'trailside', 'hutKit', 'hutFlames', 'lookout', 'shipwreckKit', 'shipwreckGlow', 'shrineKit', 'shrineWater', 'shrineGlyphs', 'shrineSpecimenKit', 'shrineSpecimenWater', 'shrineSpecimenGlyphs', ...piers.slots, 'boatHull', 'boatSail', 'boatGear', 'mooringLines', 'duneLogs', ...Object.values(inventory.groups.driftLogs)].map(id => {
       const row = inventory.draws.find(entry => entry.slot === id), file = id === 'covePools' ? 'models/scene-pools.glb' : id === 'waterfallRings' ? 'models/scene-rings.glb' : DRIFTWOOD_FIXED_SOURCES[id];
       if (row === undefined || file === undefined) throw new Error(`Missing cascade bake: ${id}`);
       const attributes: Record<string, string> = {};
@@ -82,6 +82,3 @@ export function worldScenes(banks: DriftwoodSceneBanks): WorldScenesSection {
   };
 }
 
-/** The original world index widths, normalized offline rather than expanded by the standalone GLB export. */
-export const SCENE_MODEL_BLOBS: { name: string; source: string; kind: string; }[] = [...foliage.blobs,
-];
