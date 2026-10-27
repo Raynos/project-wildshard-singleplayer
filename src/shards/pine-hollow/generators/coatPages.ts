@@ -19,26 +19,40 @@ export async function pineCoatPages(ctx: Pick<ProjectGenerationContext, 'cached'
     if (url === undefined) throw new Error(`Missing Pine rig in the KTX2 table: ${name}`);
     return url;
   }));
-  const rigs = await ctx.cached({ id: 'coat-rigs', inputs: urls }, inputs => new Map(urls.map(url => {
-    const bytes = inputs.get(url);
-    if (bytes === undefined || bytes.byteLength === 0) throw new Error(`Missing declared Pine rig ${url}`);
-    return [file(url), bytes];
-  })));
-  const blobs = [];
-  for (const tier of ['phone', 'desktop'] as const) {
-    const named = new Map(Object.values(pineHullResources(tier).coats).map(coat => [coat.key, coat.image]));
-    const painted = await producePineCoats(url => {
-      const bytes = rigs.get(file(url));
-      if (bytes === undefined) throw new Error(`Missing cached Pine rig ${url}`);
-      return Promise.resolve(bytes);
-    }, tier, { read: bytes => ctx.readImagePixels(bytes), write });
-    if (painted.length !== named.size) throw new Error(`Pine ${tier} coats differ from the hull book`);
-    for (const coat of painted) {
-      const name = named.get(coat.key);
-      if (name === undefined) throw new Error(`Pine coat ${coat.key} is not in the hull book`);
-      // D82: each tier's page is that tier's download only (the other tier never names it)
-      blobs.push(nameBlob(name, 'image', coat.png, { tier }));
+  const books = (['phone', 'desktop'] as const).map(tier => ({ tier,
+    named: new Map(Object.values(pineHullResources(tier).coats).map(coat => [coat.key, coat.image])) }));
+  // Cache the painted result, not just its rig copies: repeated program output
+  // construction must not decode, repaint and encode every unchanged coat.
+  const pages = await ctx.cached({ id: 'coat-pages', inputs: urls, native: true }, async inputs => {
+    const rigs = new Map(urls.map(url => {
+      const bytes = inputs.get(url);
+      if (bytes === undefined || bytes.byteLength === 0) throw new Error(`Missing declared Pine rig ${url}`);
+      return [file(url), bytes];
+    }));
+    const paintedPages = new Map<string, Uint8Array>();
+    for (const { tier, named } of books) {
+      const painted = await producePineCoats(url => {
+        const bytes = rigs.get(file(url));
+        if (bytes === undefined) throw new Error(`Missing cached Pine rig ${url}`);
+        return Promise.resolve(bytes);
+      }, tier, { read: bytes => ctx.readImagePixels(bytes), write });
+      if (painted.length !== named.size) throw new Error(`Pine ${tier} coats differ from the hull book`);
+      for (const coat of painted) {
+        const name = named.get(coat.key);
+        if (name === undefined) throw new Error(`Pine coat ${coat.key} is not in the hull book`);
+        if (paintedPages.has(name)) throw new Error(`Duplicate Pine coat ${name}`);
+        paintedPages.set(name, coat.png);
+      }
     }
+    return paintedPages;
+  });
+  const blobs = [];
+  for (const { tier, named } of books) for (const name of named.values()) {
+    const png = pages.get(name);
+    if (png === undefined) throw new Error(`Missing cached Pine coat ${name}`);
+    // D82: each tier's page is that tier's download only (the other tier never names it)
+    blobs.push(nameBlob(name, 'image', png, { tier }));
   }
+  if (pages.size !== blobs.length) throw new Error('Cached Pine coats differ from the hull book');
   return emitNamedBlobs(blobs);
 }
