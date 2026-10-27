@@ -27,8 +27,7 @@ Jake plays the game as an iOS home-screen PWA. It has no address bar, so a `?foo
        fails an option with no row.
     3. The game reads it with `setting(key)` (at load for a reload row) and `onSettingChange(key, fn)` (live).
     4. A test / capture script sets it before the load: `debugSettings(page, { key: 'value' })` (`scripts/debug-settings.mjs`).
-  - Both routes: `pnpm gen` updates `lint/ask-ids.json`; commit that inventory when a new ask owns a flag (Vercel
-    excludes docs). Every comparison row raises the Debug-row count capped in `lint/ratchet.json` (`debugRows.max`, the ask in
+  - Both routes: every comparison row raises the Debug-row count capped in `lint/ratchet.json` (`debugRows.max`, the ask in
     `raisedBy`); a reopened shard's lane can't edit `lint/`, so it asks the lead.
   - **Never add a new group without need.** The groups are Look · Ground cover & foliage · Sky & weather · Audio ·
     Combat & weapons · Creatures & NPCs · Performance · Loading & memory · Developer tools; lighting, shadows, post and

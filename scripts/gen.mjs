@@ -2,7 +2,6 @@
 import { resolve } from 'node:path';
 import { genShards, refreshDiscovery } from './gen-shards.mjs';
 import { genBudgetDerivations } from './gen-budget-derivations.mjs';
-import { genAskIds } from './gen-ask-ids.mjs';
 import { generationPlan, prepareProgramInputs, buildPrograms, emitProgramTables, programInputPlan } from './gen-programs.mjs';
 import { assertHeavyLease } from './heavy-lane-lease.mjs';
 import { generationConcurrency } from './generation-scheduling.mjs';
@@ -66,7 +65,6 @@ await emitProgramTables(root, plan, {
   },
   writeTables: async () => {
     await step('shards', () => generationTailCached(root, 'shards-before', () => genShards(undefined, false, false, vocabularyShard)));
-    await step('ask-ids', () => genAskIds());
     const { generateBootTables } = await import('../vite/gen.ts');
     await step('boot-tables', () => generationTailCached(`${import.meta.dirname}/..`, 'boot', async () => {
       if (buildInputs && process.env.WS_PRECOMMIT_BOOT_CACHE) {

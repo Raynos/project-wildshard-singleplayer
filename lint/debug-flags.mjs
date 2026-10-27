@@ -145,25 +145,3 @@ export function debugFlags(root, cacheDir) {
 export function primeDebugFlagFacts(root, cacheDir) {
   inventoryDebugFlags(root, cacheDir, true);
 }
-export function validateFlags(rows, { today, max, raisedBy = [], askExists: hasAsk }) {
-  const errors = [], overdue = [], now = Date.parse(`${today}T00:00:00Z`);
-  for (const row of rows) {
-    if (row.purpose !== undefined && row.purpose !== 'developer') errors.push(`Invalid purpose on ${row.id}: ${row.purpose}`);
-    if (typeof row.id !== 'string' || typeof row.ask !== 'string' || !/^E\d+$/u.test(row.ask) || !hasAsk(row.ask)) errors.push(`Unknown ask on ${row.id}: ${row.ask}`);
-    const date = Date.parse(`${row.reviewBy}T00:00:00Z`);
-    if (!/^\d{4}-\d{2}-\d{2}$/u.test(row.reviewBy ?? '') || !Number.isFinite(date) || new Date(date).toISOString().slice(0, 10) !== row.reviewBy) errors.push(`Invalid reviewBy on ${row.id}: ${row.reviewBy}`);
-    else if (date < now) overdue.push(`${row.id} | ${row.ask} | ${row.reviewBy}`);
-  }
-  const comparisons = rows.filter((row) => row.purpose !== 'developer').length;
-  if (comparisons > max) errors.push(`debugRows: was ${max}, now ${comparisons}; raise max and record the new ask in raisedBy`);
-  for (const ask of raisedBy) if (!hasAsk(ask)) errors.push(`Unknown raisedBy ask: ${ask}`);
-  return { errors, overdue };
-}
-export function askExists(root, id) {
-  const legacy = resolve(root, 'project/archive/2026-09-22-asks-table.md');
-  // the docs are the source where they exist; a Vercel tree drops docs/ (but keeps project/archive/), so it reads the inventory
-  if (existsSync(resolve(root, 'docs/tasks/asks')) && existsSync(legacy)) return existsSync(resolve(root, `docs/tasks/asks/${id}.md`)) || readFileSync(legacy, 'utf8').includes(`| ${id} |`);
-  // Vercel omits docs/. This generated inventory preserves the same ownership gate there.
-  const inventory = resolve(root, 'lint/ask-ids.json');
-  return existsSync(inventory) && JSON.parse(readFileSync(inventory, 'utf8')).includes(id);
-}
