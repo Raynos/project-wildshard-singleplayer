@@ -42,7 +42,9 @@ export async function nineSignsProgram(ctx: Pick<ProjectGenerationContext, 'cach
   const blobs = sources.map((row, index) => {
     if (row.source !== `data/signSource-${index}.generated.${row.kind}`) throw new Error('Nine sign source identity differs');
     const bytes = files.get(row.source); if (bytes === undefined) throw new Error(`Missing Nine sign ${row.source}`);
-    const blob = nameBlob(row.name, row.kind, bytes, row.options);
+    // a sign file named for one device tier is that tier's only (the phone never fetches the desktop atlas or glyphs)
+    const tier = /^signs\/(?:atlas|glyphs)-(phone|desktop)[-.]/u.exec(row.name)?.[1];
+    const blob = nameBlob(row.name, row.kind, bytes, tier === 'phone' || tier === 'desktop' ? { ...row.options, tier } : row.options);
     if (ctx.asset(blob.bytes) !== hashImmutableBytes(blob.bytes)) throw new Error('Nine sign publication differs');
     return blob;
   });
