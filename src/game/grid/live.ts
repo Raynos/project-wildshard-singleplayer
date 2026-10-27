@@ -460,7 +460,12 @@ export class LiveGridHost {
         if (distance < nextDistance - 0.000001) { predicted = cell; nextDistance = distance; }
         else if (Math.abs(distance - nextDistance) <= 0.000001) predicted = undefined;
       }
-      const approach = moving ?? predicted ?? nearby.find(cell => this.distance(cell, feet) <= wallReach);
+      // A stationary sample is not a redirect. Keep the verified render owner
+      // until a named heading or the distance fence replaces it; the cell just
+      // left must not steal that pin merely because its wall is still nearest.
+      const heldApproach = this.tileApproach === null ? undefined : this.assembly.cell(this.tileApproach.instance);
+      const approach = moving ?? predicted ?? heldApproach
+        ?? nearby.find(cell => cell.instance !== departed && this.distance(cell, feet) <= wallReach);
       if (approach !== undefined && this.ports.prepareNeighbour !== undefined && this.tileMetadata.has(approach.instance)
         && !this.residents.has(approach.instance) && !this.issues.has(approach.instance)
         && (this.active === null || moving === approach)
