@@ -33,9 +33,9 @@ async function coldWorldFixture() {
 const fixture = await coldWorldFixture();
 afterAll(() => { fixture.dispose(); });
 
-test('cold source world preserves all 399 original wires and every geometry byte', () => {
+test('cold source world preserves all 411 pinned wires and every geometry byte', () => {
   const { captured } = fixture;
-  expect(captured.size).toBe(399);
+  expect(captured.size).toBe(411);
   for (const row of before) {
     const key = row.path === 'data/layout.generated.json' ? 'layout.json' : row.path === 'data/world.generated.json' ? 'world.json' : row.path.replace('assets/', 'blobs/');
     const bytes = captured.get(key); if (bytes === undefined) throw new Error(`Missing original ${key}`);
@@ -48,7 +48,7 @@ test('a cache hit never rebuilds and retains complete rows and independently own
   const h = context(), hit = await nineWorldProgram({ ...h, cached: step => h.cached(step, () => { throw new Error('A hit must not rebuild'); }) }, structuredClone(atlas));
   const digest = (value: unknown): string => hashImmutableBytes(new TextEncoder().encode(JSON.stringify(value, nineLayoutWord)));
   expect(digest(hit.metadata)).toBe(digest(cold.metadata)); expect(digest(hit.layout)).toBe(digest(cold.layout));
-  expect(hit.assets.size).toBe(397); expect(cold.assets.size).toBe(397);
+  expect(hit.assets.size).toBe(409); expect(cold.assets.size).toBe(409);
   for (const [hash, bytes] of hit.assets) { expect(hashImmutableBytes(bytes)).toBe(hash); expect(bytes === cold.assets.get(hash)).toBe(false); }
 });
 
