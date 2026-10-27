@@ -6,6 +6,9 @@
 // out, and write `public/assets/hdri/<id>_2k.key.jpg` + `<id>_2k.key.gain.png` — the pair src/engine/world/BakedSky.ts decodes
 // (~0.3 MB instead of a 4–5 MB RGBE file).
 //
+// GR8 / D2: a standalone asset tool, not a scheduler job: its 14 pairs are committed binaries the shard reads as
+// authored inputs. Re-run it by hand (ImageMagick and the CC0 .hdr) when a key changes, and commit the new pair.
+//
 // Why the disc goes: the clock moves the sun, and PineDayNight turns each key about the vertical so its sun sits on the
 // clock's azimuth — but it cannot move it up or down, so a key's disc would hang a few degrees off the drawn sun (a second
 // sun). The clock draws its own disc (Sky.sunDisc, the god-ray source) and aureole (PineDayNight's dome), and the CSM light
