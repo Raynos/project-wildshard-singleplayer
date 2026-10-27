@@ -5,7 +5,7 @@ import { readFileSync, writeFileSync, renameSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import * as v from 'valibot';
-import { contentNamed } from './app-build/assetHashes';
+import { contentNamed } from './app-build/assetHashes.ts';
 
 export const BOOT_PUBLICATION = 'scripts/boot-publication.generated.json';
 const url = v.pipe(v.string(), v.maxLength(4096), v.check(value => value.startsWith('/assets/') && !/[\\?#]/u.test(value) && !/\p{Cc}/u.test(value) && value.split('/').slice(1).every(part => part !== '' && part !== '.' && part !== '..'), 'Invalid published asset URL'));

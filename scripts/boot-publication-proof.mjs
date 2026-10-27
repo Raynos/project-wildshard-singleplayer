@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync, realpathSync, statSync } from 'node:fs';
 import { resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { contentNamed } from './app-build/assetHashes';
+import { contentNamed } from './app-build/assetHashes.ts';
 import { readBootPublication, publishedBootTableSources } from './boot-publication.mjs';
 
 /** Verify complete actual publication bytes, versions and packed payloads.

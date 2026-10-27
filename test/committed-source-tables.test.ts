@@ -80,7 +80,7 @@ test('post-publication checking retains committed freshness and proves the live 
     git('init', '-q', '-b', 'main'); git('config', 'user.name', 'Fixture'); git('config', 'user.email', 'fixture@example.invalid');
     git('config', 'core.hooksPath', '/dev/null'); git('config', 'commit.gpgsign', 'false');
     put('.gitignore', 'node_modules/\ntmp/\n'); put('package.json', '{"type":"module"}');
-    for (const name of ['committed-source-tables.mjs', 'git-source-view.mjs', 'gen-source.mjs', 'boot-publication.mjs', 'boot-publication-proof.mjs', 'bake-loader.mjs', 'app-build/assetHashes.ts']) {
+    for (const name of ['committed-source-tables.mjs', 'git-source-view.mjs', 'gen-source.mjs', 'boot-publication.mjs', 'boot-publication-proof.mjs', 'app-build/assetHashes.ts']) {
       const target = resolve(root, 'scripts', name); mkdirSync(resolve(target, '..'), { recursive: true });
       copyFileSync(resolve(repository, 'scripts', name), target);
     }
