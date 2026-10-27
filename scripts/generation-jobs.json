@@ -1983,41 +1983,6 @@
       "platform": "portable"
     },
     {
-      "id": "pine-look-materials",
-      "shard": "pine-hollow",
-      "entry": "src/shards/pine-hollow/generators/lookMaterials.ts",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/pine-hollow/generators/lookMaterials.ts",
-        "pineLookMaterials",
-        "src/shards/pine-hollow/data/lookMaterials.generated.json"
-      ],
-      "inputRoots": [
-        "src/shards/pine-hollow/generators/lookMaterials.ts",
-        "src/shards/pine-hollow/generators/waterGraphs.ts",
-        "src/shards/pine-hollow/data/lookGraphs.json",
-        "src/shards/pine-hollow/data/waterLook.json",
-        "src/format",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/package.json",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
-      ],
-      "outputs": [
-        "src/shards/pine-hollow/data/lookMaterials.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/pine-hollow/data/lookMaterials.generated.json"
-      ],
-      "seedOutputs": [],
-      "platform": "portable"
-    },
-    {
       "id": "pine-ambient-birds",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-birds.mjs",

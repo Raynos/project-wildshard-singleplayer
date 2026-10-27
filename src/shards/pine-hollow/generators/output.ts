@@ -77,7 +77,7 @@ import { CABIN_LIGHT } from './cabinAssembly';
 import { HEARTH_LOOKS } from './hearthLook';
 import { FIGURE_CATALOGUE } from './figureCatalogue';
 import { WEAPON_FINISHES } from './weaponFinishes';
-import lookMaterials from '../data/lookMaterials.generated.json' with { type: 'json' };
+import { pineLookMaterials } from './lookMaterials';
 import props from '../data/props.json' with { type: 'json' };
 import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
 import floorRows from '../data/floorLayout.generated.json' with { type: 'json' };
@@ -87,6 +87,9 @@ import { NATIVE_VIEW, SPECIES_LOOKS } from './nativeView';
 import { pineDensityBlob } from './forestRows';
 import manifest from '../manifest.json' with { type: 'json' };
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+
+// GR8: called, not read from a scheduler job's output
+const lookMaterials = pineLookMaterials();
 
 // GR8: the grazer rows are called, not read from a scheduler job's output
 const grazers = grazerRows();

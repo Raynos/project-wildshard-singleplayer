@@ -14,7 +14,7 @@ import { PINE_RUNTIME_SPAWNS } from './spawns';
 import { PINE_STATE } from './state';
 import { PINE_EDGE_HEIGHTS } from './edges';
 import PINE_RUNTIME_COST from '../data/runtimeCost.json' with { type: 'json' };
-import looks from '../data/lookMaterials.generated.json' with { type: 'json' };
+import { pineLookMaterials } from './lookMaterials';
 import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
 import ground from '../data/groundTiles.json' with { type: 'json' };
 import { withPineGround } from './groundTiles';
@@ -22,6 +22,9 @@ import people from '../data/questNpcs.generated.json' with { type: 'json' };
 import journal from '../data/journal.generated.json' with { type: 'json' };
 import { PINE_QUEST_HOST } from './questHost';
 import shelterProgram from '../behaviour/shelter.generated.json' with { type: 'json' };
+
+// GR8: called, not read from a scheduler job's output
+const looks = pineLookMaterials();
 
 // The trusted legacy entry keeps the live world; SF29 binds its existing audio to these rows.
 // SF47-g edges (G93 / G99 / G103 / G131): the starter's four 8 m midpoint entryways (kind ground: Pine's terrain is the

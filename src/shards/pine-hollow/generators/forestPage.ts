@@ -10,7 +10,10 @@ import { cabinAmbienceRows } from './ambience';
 import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
 import FOREST_LOOKS from '../data/forestLook.json' with { type: 'json' };
 import water from '../data/waterLook.json' with { type: 'json' };
-import looks from '../data/lookMaterials.generated.json' with { type: 'json' };
+import { pineLookMaterials } from './lookMaterials';
+
+// GR8: called, not read from a scheduler job's output
+const looks = pineLookMaterials();
 
 export const FOREST_PAGE: ForestPageRowsType = v.parse(ForestPageSchema, {
   treeLooks: [{ look: FOREST_LOOKS.bark, band: 'trunk' }, { look: FOREST_LOOKS.needles, band: 'cards' }, { look: FOREST_LOOKS.twigs, band: 'twigs' }, { look: FOREST_LOOKS.far, band: 'far' }].map(row => ({ look: row.look, band: row.band, fade: 'fade', viewer: 'viewer' })),
