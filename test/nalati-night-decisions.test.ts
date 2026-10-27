@@ -9,6 +9,12 @@ import {weatherWitness as weather,withWeatherWitness} from './fixtures/weatherIn
 
 const night=withWeatherWitness(nightInput);
 
+// Cold native fixture preparation precedes the catalogue's timed assertions.
+const [{ originalNalatiScriptSections }, { originalHeldMetadata }, { NALATI_KOKPAR }, { NALATI_RIDING_PROGRAMS }, { NALATI_TITAN_PROGRAMS },
+  { NALATI_WEATHER }, { NALATI_ADMISSION }, { NALATI_CHARGE }] = await Promise.all([import('./fixtures/nalati-script-inventory'),
+  import('./fixtures/nalati-held-original'), import('./fixtures/nalati-kokpar'), import('./fixtures/nalati-riding'), import('./fixtures/nalati-titan'),
+  import('./fixtures/nalati-weather'), import('./fixtures/nalati-admission'), import('./fixtures/nalati-charge')]);
+const originalHeld = originalHeldMetadata();
 
 const author = (): { project: ReturnProgram['project'] } => {
   const module = ReturnProgram.page(night.program);
@@ -77,14 +83,10 @@ test('weather policy holds the titan storm and restores calm after its wind ends
   expect(script.project('wind', { ...fields, titanHeld: 0, windSpeed: -1, asked: -1 })).toEqual({ phaseT: 90, asked: -1 });
 });
 
-test('the actual return-script catalogue admits the shared weather/night module once', async () => {
+test('the actual return-script catalogue admits the shared weather/night module once', () => {
   // the catalogue section exactly as fixtures/nalati-output-original publishes it (that fixture swaps in these rows), built
   // from its script inventory alone rather than from the whole Nalati output
-  const [{ originalNalatiScriptSections }, { originalHeldMetadata }, { NALATI_KOKPAR }, { NALATI_RIDING_PROGRAMS }, { NALATI_TITAN_PROGRAMS },
-    { NALATI_WEATHER }, { NALATI_ADMISSION }, { NALATI_CHARGE }] = await Promise.all([import('./fixtures/nalati-script-inventory'),
-    import('./fixtures/nalati-held-original'), import('./fixtures/nalati-kokpar'), import('./fixtures/nalati-riding'), import('./fixtures/nalati-titan'),
-    import('./fixtures/nalati-weather'), import('./fixtures/nalati-admission'), import('./fixtures/nalati-charge')]);
-  const sections = originalNalatiScriptSections(originalHeldMetadata().held.program.v2, NALATI_KOKPAR, NALATI_RIDING_PROGRAMS, NALATI_TITAN_PROGRAMS,
+  const sections = originalNalatiScriptSections(originalHeld.held.program.v2, NALATI_KOKPAR, NALATI_RIDING_PROGRAMS, NALATI_TITAN_PROGRAMS,
     NALATI_WEATHER.rows, NALATI_ADMISSION, NALATI_CHARGE.rows);
   const rows = v.parse(ReturnModulesSchema, JSON.parse(encodeCanonicalJson(sections.get('actors/return-scripts'))));
   expect(night.program.script.module).toBe(weather.script.module);

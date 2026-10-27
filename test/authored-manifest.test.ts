@@ -31,6 +31,7 @@ import nineNavigation from './fixtures/nine-navigation.json' with { type: 'json'
 import { bootDiscovery } from './fixtures/nine-boot-discovery';
 import { discovery as driftwoodProgramDiscovery } from './fixtures/driftwood-boot-discovery';
 import { discovery as pineProgramDiscovery } from './fixtures/pine-discovery';
+import { discovery as nalatiProgramDiscovery } from './fixtures/nalati-discovery';
 import { generated as signalProgram } from './fixtures/sunscar-source-program';
 import * as v from 'valibot';
 
@@ -41,6 +42,7 @@ const driftwoodDiscovery = parseDiscoveryValues(driftwoodProgramDiscovery);
 const declaredSource = (slug: string): string => authoredManifestSource(root, slug,
   slug === 'nine-dragon-stack' ? { discovery: nineDiscovery } : slug === 'driftwood-isle' ? { discovery: driftwoodDiscovery }
     : slug === 'pine-hollow' ? { discovery: parseDiscoveryValues(pineProgramDiscovery) }
+    : slug === 'nalati-grasslands' ? { discovery: nalatiProgramDiscovery }
     : slug === 'sunscar-dunes' ? { discovery: parseDiscoveryValues(signalProgram.discovery) } : undefined);
 describe('authored JSON discovery', () => {
   test('reads checked spawn data without importing its generator at runtime', () => {
