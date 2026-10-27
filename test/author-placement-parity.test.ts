@@ -5,9 +5,9 @@ import { annulus as authorAnnulus } from '../src/sdk/bake/annulus';
 import { Noise2D, smoothstep, clamp, lerp } from '../src/engine/core/noise';
 import { Rng } from '../src/engine/core/rng';
 import { annulus } from '../src/engine/fx/groundFx';
-import { specimenKey, type ColliderDesc, type BoxSpec, type Draw, type ContactSurface } from '../src/sdk/bake/placement';
+import { specimenKey, siteFloor as authorSiteFloor, type FloorRect as AuthorFloor, type ColliderDesc, type BoxSpec, type Draw, type ContactSurface } from '../src/sdk/bake/placement';
 import type { ColliderDesc as RuntimeCollider } from '../src/engine/world/registry';
-import type { BoxSpec as RuntimeBox } from '../src/engine/physics/box';
+import { siteFloor, type FloorRect as RuntimeFloor, type BoxSpec as RuntimeBox } from '../src/engine/physics/box';
 import type { Draw as RuntimeDraw } from '../src/engine/models/place';
 import type { Material } from '../src/engine/physics/surface';
 import { specimenKey as runtimeSpecimenKey } from '../src/game/models/specimenCatalogue';
@@ -15,6 +15,7 @@ import { specimenKey as runtimeSpecimenKey } from '../src/game/models/specimenCa
 test('author placement types preserve the complete native data contract', () => {
   expectTypeOf<ColliderDesc>().toEqualTypeOf<RuntimeCollider>();
   expectTypeOf<BoxSpec>().toEqualTypeOf<RuntimeBox>();
+  expectTypeOf<AuthorFloor>().toEqualTypeOf<RuntimeFloor>();
   expectTypeOf<Draw>().toEqualTypeOf<RuntimeDraw>();
   expectTypeOf<ContactSurface>().toEqualTypeOf<Material>();
 });
@@ -63,4 +64,13 @@ test('specimen keys preserve insertion order, Unicode and JSON number spelling',
     expect(specimenKey('nalati-grasslands/fieldstone', params)).toBe(runtimeSpecimenKey('nalati-grasslands/fieldstone', params));
   }
   expect(specimenKey('x', { a: 1, b: 2 })).not.toBe(specimenKey('x', { b: 2, a: 1 }));
+});
+
+
+test('author site floors retain every native coordinate, optional field and signed zero', () => {
+  for (const rotation of [-Math.PI, -0.7, -0, 0, 0.7, Math.PI]) {
+    for (const slope of [undefined, -0, 0, -0.3, 0.5]) {
+      expect(authorSiteFloor(rotation, -3.2, 2, 4, 7, slope)).toEqual(siteFloor(rotation, -3.2, 2, 4, 7, slope));
+    }
+  }
 });

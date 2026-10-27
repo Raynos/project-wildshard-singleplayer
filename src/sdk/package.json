@@ -17,6 +17,7 @@
     "./bake/forest": "./bake/forest.ts",
     "./bake/meadow": "./bake/meadow.ts",
     "./bake/annulus": "./bake/annulus.ts",
+    "./bake/primitives": "./bake/primitives.ts",
     "./noise": "./noise.ts",
     "./bake/groundMap": "./bake/groundMap.ts",
     "./bake/mapAssembly": "./bake/mapAssembly.ts",
@@ -219,6 +220,10 @@
       "./bake/annulus": {
         "types": "./dist/types/sdk/bake/annulus.d.ts",
         "default": "./dist/bake/annulus.js"
+      },
+      "./bake/primitives": {
+        "types": "./dist/types/sdk/bake/primitives.d.ts",
+        "default": "./dist/bake/primitives.js"
       },
       "./noise": {
         "types": "./dist/types/sdk/noise.d.ts",

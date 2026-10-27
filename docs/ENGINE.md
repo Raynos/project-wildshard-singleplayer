@@ -3387,16 +3387,15 @@ engine/game/kit access. Generators never ship. SDK `version` owns provisional v0
 SDK `shardfile.parseShardfileField(field, input)` returns the defining schema's typed value;
 the assembled declaration still passes `parseShardfile` and its cross-field rules.
 
-Build-only `@wildshard/sdk/noise` defines seeded simplex noise, `fbm`,
-`ridged`, `smoothstep`, `clamp` and `lerp`. Its arithmetic is fenced against
-native noise; it installs no terrain or runtime services.
-`@wildshard/sdk/bake/annulus` defines horizontal ring geometry with the native
-vertex, UV and index order. `@wildshard/sdk/bake/placement` owns the authored
-`ColliderDesc`, `BoxSpec`, `Draw` and contact tags plus the ordered-JSON
-`specimenKey`. Its `boxDesc(spec, surface?)` retains the native half-height
-clamp, signed yaw, optional contact tag and ordered JSON without importing
-the live world registry. Compile-time parity checks keep those author
-contracts equal to the native registry/model data.
+Build-only `@wildshard/sdk/noise` owns native seeded simplex, `fbm`, `ridged`,
+`smoothstep`, `clamp` and `lerp`, without terrain/services.
+`@wildshard/sdk/bake/annulus` preserves native ring vertex/UV/index order.
+`@wildshard/sdk/bake/primitives` defines `bakeRock` and `bakeTriangles` with
+native vertex/RNG order. `@wildshard/sdk/bake/placement` owns `ColliderDesc`,
+`BoxSpec`, `FloorRect`, `Draw`, contact tags and ordered-JSON `specimenKey`.
+`boxDesc(spec, surface?)` keeps the half-height clamp, signed yaw and optional
+contact tag; `siteFloor(rot,lz,hw,hd,y,slope?)` keeps native local-z rotation
+and ramp arithmetic. No live registry; byte/type parity fences these contracts.
 
 `src/engine/models/ownedGeometry.ts` defines `createOwnedGeometry(url, channels?)`:
 an explicit owned-template intake for a single identity-space offline GLB.

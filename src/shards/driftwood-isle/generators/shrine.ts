@@ -23,12 +23,11 @@
  */
 import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
-import { Rng } from '@wildshard/engine/core/rng';
-import { siteFloor, type BoxSpec as Collider, type FloorRect } from '@wildshard/engine/physics/box';
-import { rock, tris } from '@wildshard/engine/world/geometryKit';
+import { Rng } from '@wildshard/sdk/random';
+import { siteFloor, boxDesc, type BoxSpec as Collider, type FloorRect, type ColliderDesc } from '@wildshard/sdk/bake/placement';
+import { bakeRock as rock, bakeTriangles as tris } from '@wildshard/sdk/bake/primitives';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 import { addOpenEnded, bakeLight, fern, broadClump, hibiscusBush, hibiscus, lilyPad, lotus, vineStrand, PLANT } from './lowpolyPlants';
-import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 
 import type { ShrineSite, ShrineAnchor, ShrineParams } from './shrineTypes';
 
@@ -344,7 +343,7 @@ export class ShrineBuilder {
   colliderDescs(): ColliderDesc[] { return this.descs; }
 
   /** a stone gull on a pedestal top, looking out along local +z (turned `yaw`) */
-  private gull(kit: LowPolyKit, rng: Rng, lx: number, y: number, lz: number, yaw: number): void {
+  private gull(kit: LowPolyKit, rng: LowPolyKit['rng'], lx: number, y: number, lz: number, yaw: number): void {
     const m = this.M(lx, y, lz, yaw);
     const body = new THREE.IcosahedronGeometry(1, 1).scale(0.26, 0.24, 0.46).translate(0, 0.42, -0.02);
     kit.add(body, C.statue, { matrix: m, jitter: 0.06 });
@@ -383,7 +382,7 @@ export class ShrineBuilder {
     }
   }
   /** an angular rune (3–5 zig-zag strokes, a bar) on a stone face: origin o, across u, face normal n (world) */
-  private rune(rng: Rng, o: THREE.Vector3, u: THREE.Vector3, n: THREE.Vector3, h: number): void {
+  private rune(rng: LowPolyKit['rng'], o: THREE.Vector3, u: THREE.Vector3, n: THREE.Vector3, h: number): void {
     const stroke = (x0: number, y0: number, x1: number, y1: number, th = 0.035) => {
       const dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy) || 1, px = -dy / len * th, py = dx / len * th;
       const P = (x: number, y: number) => [o.x + u.x * x + n.x * 0.012, o.y + y, o.z + u.z * x + n.z * 0.012];

@@ -23,3 +23,15 @@ export type Draw = 'single' | 'merged' | 'instanced' | 'batched';
 
 /** Stable specimen identity preserves parameter insertion order and native JSON spelling. */
 export function specimenKey(id: string, params: object): string { return `${id} ${JSON.stringify(params)}`; }
+
+
+/** A horizontal/ramped authored deck, including the native optional tapered profile. */
+export interface FloorRect {
+  readonly x: number; readonly z: number; readonly hw: number; readonly hd: number; readonly y: number;
+  readonly rot?: number; readonly slope?: number; readonly tilt?: number;
+  readonly profile?: readonly (readonly [number, number, number])[];
+}
+/** Place a floor on a site's local +z axis, retaining native signed rotation and optional slope. */
+export function siteFloor(rot: number, lz: number, hw: number, hd: number, y: number, slope?: number): FloorRect {
+  return { x: lz * Math.sin(rot), z: lz * Math.cos(rot), hw, hd, y, rot, ...(slope === undefined ? {} : { slope }) };
+}
