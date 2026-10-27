@@ -14,7 +14,7 @@ import * as compiler from '../src/game/shardfile/runtimeProduct';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseItems } from '../src/format/items';
-import { HELD_ARMS } from '../src/shards/driftwood-isle/generators/heldArms';
+import { HELD_ARMS } from './fixtures/driftwood-layout-source';
 import { DRIFTWOOD_SWORDS } from '../src/shards/driftwood-isle/generators/items';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 

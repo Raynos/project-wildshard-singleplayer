@@ -1,3 +1,4 @@
+import { DRIFTWOOD_LAYOUTS } from './fixtures/driftwood-layout-source';
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
@@ -23,7 +24,7 @@ import cove from '../src/shards/driftwood-isle/data/coveBake.json' with { type: 
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 test('authored quest anchors equal actual fixed site placement, with no second rotation', () => {
-  const data = v.parse(QuestWorldSchema, driftwoodQuestWorld());
+  const data = v.parse(QuestWorldSchema, driftwoodQuestWorld(DRIFTWOOD_LAYOUTS));
   expect(Object.keys(data.pois)).toEqual(['hut', 'lookout', 'wreck', 'shrine', 'cave']);
   const model = defineModel({ id: 'shared/anchor-fixture', name: 'Anchor fixture', category: 'buildings', pipeline: 'code', file: 'test/quest-world.test.ts', defaults: {}, build: () => new Group() });
   for (const [id, site] of [['hut', hut], ['lookout', lookout], ['shrine', shrine.world]] as const) {
@@ -42,7 +43,7 @@ function context(scope: Scope, read: () => Promise<unknown>): ShardContext {
 }
 
 test('quest world borrows its actual entered flock and leaves static rows independent', async () => {
-  const resident = new Scope('world-resident'), scope = resident.child('quest-world'), data = driftwoodQuestWorld(), flock = new AmbientGroup(GULL_FLOCK);
+  const resident = new Scope('world-resident'), scope = resident.child('quest-world'), data = driftwoodQuestWorld(DRIFTWOOD_LAYOUTS), flock = new AmbientGroup(GULL_FLOCK);
   let reads = 0;
   const ctx = context(scope, () => { reads++; return Promise.resolve(data); });
   try {
@@ -83,7 +84,7 @@ test.each([false, true])('quest world refuses a read completed after retirement 
 });
 
 test('quest world rows refuse functions, nonfinite anchors and reflected paths', () => {
-  const rows = driftwoodQuestWorld();
+  const rows = driftwoodQuestWorld(DRIFTWOOD_LAYOUTS);
   for (const pois of [{ hut: { anchors: { door: { x: Infinity, y: 0, z: 0, yaw: 0 } } } }, { hut: { anchors: () => ({}) } }, { hut: { owner: 'world', path: ['hut', 'anchors'] } }])
     expect(() => v.parse(QuestWorldSchema, { ...rows, pois })).toThrow();
 });

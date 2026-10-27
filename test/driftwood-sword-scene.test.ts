@@ -16,7 +16,7 @@ import type { ShardRuntime } from '../src/game/shard/runtime';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { emptyShardfile } from '../src/sdk/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { HELD_ARMS } from '../src/shards/driftwood-isle/generators/heldArms';
+import { HELD_ARMS } from './fixtures/driftwood-layout-source';
 import { FIXED_MODEL_NAMES } from '../src/shards/driftwood-isle/generators/modelFiles';
 import recipe from '../src/shards/driftwood-isle/data/ironSwordScene.json' with { type: 'json' };
 

@@ -1,6 +1,6 @@
 import { FIGURE_CATALOGUE } from '../../src/shards/driftwood-isle/generators/figureCatalogue';
 import { TOON_LOOK } from '../../src/shards/driftwood-isle/generators/toonPresentation';
-import { HELD_ARMS } from '../../src/shards/driftwood-isle/generators/heldArms';
+import { HELD_ARMS } from './driftwood-layout-source';
 import inventory from '../../src/shards/driftwood-isle/data/fixedGeometry.json' with { type: 'json' };
 import { encodeCanonicalJson, hashImmutableBytes } from '../../src/sdk/immutable';
 import { createShardProduct } from '@wildshard/game/shardfile/shardProduct';

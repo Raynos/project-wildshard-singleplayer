@@ -1,3 +1,4 @@
+import { DRIFTWOOD_LAYOUTS } from './fixtures/driftwood-layout-source';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { QuestPageSchema } from '../src/format/questPageComposition';
@@ -16,7 +17,7 @@ import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 
 function document() {
   return { ...page, frames, events, deaths: deaths.page, entryResources: {
-    world: driftwoodQuestWorld(), figures: driftwoodQuestFigures(), continuation,
+    world: driftwoodQuestWorld(DRIFTWOOD_LAYOUTS), figures: driftwoodQuestFigures(), continuation,
   } };
 }
 test('the defining page admits the original resource values without new document names', () => {
@@ -24,10 +25,10 @@ test('the defining page admits the original resource values without new document
   const blob = driftwoodJsonBlob('quests/page-composition.json', 'json', new TextEncoder().encode(JSON.stringify(rows)));
   if (blob.file.jsonSchema === undefined) throw new Error('Missing page schema');
   const admitted = validateNamedJsonSchema(blob.file.jsonSchema, blob.bytes);
-  expect(parseQuestWorldDocument(admitted)).toEqual(driftwoodQuestWorld());
+  expect(parseQuestWorldDocument(admitted)).toEqual(driftwoodQuestWorld(DRIFTWOOD_LAYOUTS));
   expect(parseQuestFiguresDocument(admitted)).toEqual(driftwoodQuestFigures());
   expect(parseQuestContinuationDocument(admitted)).toEqual(continuation);
-  expect(parseQuestWorldDocument(driftwoodQuestWorld())).toEqual(driftwoodQuestWorld());
+  expect(parseQuestWorldDocument(driftwoodQuestWorld(DRIFTWOOD_LAYOUTS))).toEqual(driftwoodQuestWorld(DRIFTWOOD_LAYOUTS));
   expect(parseQuestFiguresDocument(driftwoodQuestFigures())).toEqual(driftwoodQuestFigures());
   expect(parseQuestContinuationDocument(continuation)).toEqual(continuation);
 });

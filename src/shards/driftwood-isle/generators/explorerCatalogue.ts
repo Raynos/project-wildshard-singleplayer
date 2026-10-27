@@ -1,4 +1,4 @@
-import { HELD_ARMS } from './heldArms';
+import authoredArms from '../data/heldArms.json' with { type: 'json' };
 import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
 
 /** Ordered references retain the original native specimen order. */
@@ -53,7 +53,7 @@ export const EXPLORER_CATALOGUE: ReturnType<typeof parseExplorerCatalogue> = par
     }
     ,{kind:'posed',file:'look/gull-draw.json',source:'product'},
     {kind:'kit-figure',file:'people/cards.json',figure:'castaway',copies:1,drawnAs:'single'},
-    ...HELD_ARMS.weapons.map(weapon => ({kind:'held',item:weapon.item})),
+    ...authoredArms.weapons.map(weapon => ({kind:'held',item:weapon.item})),
     {kind:'collection',library:'driftwood.island',model:'chime',copies:0,drawnAs:'single'},
     {kind:'collection',library:'driftwood.island',model:'plaques',copies:0,drawnAs:'single'},
     {kind:'scene-model',library:'driftwood.island',model:'captainHat',copies:0,drawnAs:'single'},
