@@ -28,7 +28,6 @@ import lookGraphs from '../data/lookGraphs.json' with { type: 'json' };
 import presentationGraphs from '../data/painterlyGraphs.json' with { type: 'json' };
 import kokpar from '../data/kokpar.generated.json' with { type: 'json' };
 import titanProgram from '../behaviour/titan.generated.json' with { type: 'json' };
-import renderTiles from '../data/renderTiles.json' with { type: 'json' };
 import kingPose from '../data/goldenKingPose.generated.json' with { type: 'json' };
 import admission from '../behaviour/admission.generated.json' with { type: 'json' };
 import creatureViews from '../behaviour/creatureViews.generated.json' with { type: 'json' };
@@ -69,8 +68,21 @@ export interface NalatiHeldProgramCosts {
   readonly projectionPages: number;
 }
 
+const unknownRows = (value: unknown): value is readonly unknown[] => Array.isArray(value);
+// Only unwrap the source envelope here. The existing full shard parser below
+// admits every file, tile and props field with its unchanged defining schemas.
+function renderRows(value: unknown): { files: readonly unknown[]; tiles: readonly unknown[]; props: object } {
+  if (typeof value !== 'object' || value === null || !('version' in value) || value.version !== 1
+    || !('files' in value) || !unknownRows(value.files) || !('tiles' in value) || !unknownRows(value.tiles)
+    || !('props' in value) || typeof value.props !== 'object' || value.props === null || Array.isArray(value.props)) {
+    throw new Error('Missing explicit render rows');
+  }
+  return { files: value.files, tiles: value.tiles, props: value.props };
+}
+
 /** Compose the complete header with caller-owned costs; retain original module deduplication and page charges. */
-export function nalatiProductRows(species: NalatiSpeciesProgramCosts, held: NalatiHeldProgramCosts): ReturnType<typeof parseShardfile> {
+export function nalatiProductRows(species: NalatiSpeciesProgramCosts, held: NalatiHeldProgramCosts, render: unknown): ReturnType<typeof parseShardfile> {
+  const renderTiles = parseShardfile({ ...base, ...renderRows(render) });
   if (!Number.isSafeInteger(species.witnessBytes) || species.witnessBytes < 0
     || !Number.isSafeInteger(species.program.script.pages) || species.program.script.pages < 1) throw new Error('Invalid species program costs');
   if (!Number.isSafeInteger(held.compiledBytes) || held.compiledBytes < 0
