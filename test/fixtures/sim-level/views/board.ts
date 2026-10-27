@@ -6,6 +6,7 @@ import { ResidencyAllocator } from '../../../../src/game/grid/allocator';
 import { buildYield } from '../../../../src/engine/core/workSlice';
 import { Scope } from '../../../../src/engine/app/scope';
 import { buildTerrain } from '../../../../src/engine/world/terrainField';
+import type { Vec2 } from '../../../../src/engine/level/data';
 import { clientMaterials } from '../../../../src/game/shardfile/clientMaterials';
 import { clientViews } from '../../../../src/game/shardfile/clientViews';
 import { standaloneClientTiles } from '../../../../src/game/shardfile/tileContent';
@@ -37,7 +38,12 @@ const ambient = new HemisphereLight(new Color().setRGB(...key.ambient.sky), new 
 scene.add(dome, sun, sun.target, ambient);
 
 // today: the template look's terrainPainter (verbatim numbers from src/shards/_template/look/render.ts) on the legacy field
-const today = new Group(), field = buildTerrain(357, { landscape: (x, z, { n }) => poolMask(x, z) ? -3 : n.get(x * 0.015, z * 0.015) * 0.5, trails: layout.TRAIL, cabinSites: [] });
+const trails = layout.TRAIL.map(trail => trail.map((point): Vec2 => {
+  const [x, z] = point;
+  if (point.length !== 2 || x === undefined || z === undefined) throw new Error('View fixture trail requires two coordinates');
+  return [x, z];
+}));
+const today = new Group(), field = buildTerrain(357, { landscape: (x, z, { n }) => poolMask(x, z) ? -3 : n.get(x * 0.015, z * 0.015) * 0.5, trails, cabinSites: [] });
 const plane = new PlaneGeometry(200, 200, 40, 40); plane.rotateX(-Math.PI / 2);
 const pos = plane.getAttribute('position'); for (let i = 0; i < pos.count; i++) pos.setY(i, field.heightAt(pos.getX(i), pos.getZ(i)));
 plane.computeVertexNormals(); const ground = new Mesh(plane, new MeshStandardMaterial({ color: 0x7e8388, flatShading: true })); ground.receiveShadow = true;
