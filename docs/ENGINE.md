@@ -139,7 +139,7 @@ part of the collider), and a shard clips its sea at `SHORE_REVETMENT_INNER_FACE`
 `sim/seamGeometry` and `sim/seamLattice` expose the ordered steps/tolerances.
 `sim/edgeProfiles.immutableEdgeProfile` copies/validates/freezes rows; only its
 snapshots reuse proof. Other rows revalidate.
-`grid/compiledStrips` reads source-hashed, I12-bounded initial rings.
+`grid/compiledStrips` reads source-hashed, I12-bounded rings.
 Missing entries generate; corrupt declared files refuse.
 `@wildshard/engine/physics/frame` prepares rider/mount
 motor transfers. See [GRID-SIMULATION.md](GRID-SIMULATION.md) for readiness, snapshot and client integration ports.

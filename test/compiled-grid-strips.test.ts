@@ -5,7 +5,7 @@ import { Scope } from '../src/engine/app/scope';
 import { CONTENT_CAPS } from '../src/format/contentBounds';
 import { generatePlatform, type GeneratedStrip, type PlatformCell, type StripProfile } from '../src/engine/sim/strips';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { decodeCompiledGridStrips, parseCompiledGridHeader, platformGeometrySource, readCompiledGridStrips, type CompiledGridAddress } from '../src/game/grid/compiledStrips';
+import { decodeCompiledGridStrips, parseCompiledGridHeader, platformGeometrySource, readCompiledGridStrips, type CompiledGridAddress, type GridStripPhase } from '../src/game/grid/compiledStrips';
 import { encodeGridStripPage, writeGridStripPages } from '../scripts/app-build/gridStripPages';
 import { gridSeamAsset, readGridSeams, writeGridSeams } from '../scripts/app-build/gridSeams.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- This artifact fixture owns and removes only its bounded tmp directory.
@@ -78,16 +78,22 @@ test('the shipped initial ring is exactly the native subset, with all outer work
   const source = await platformGeometrySource(cells, empty), page = encodeGridStripPage(source, 'cell_0_0', 'fixture', selected);
   const header: unknown = JSON.parse(new TextDecoder().decode(page.header.bytes));
   sameStrips(decodeCompiledGridStrips(header, page.body.bytes, source, 'cell_0_0'), expected);
+  const outer = full.filter(strip => !ring(strip.mesh.origin.x, strip.mesh.origin.z));
+  const outerPage = encodeGridStripPage(source, 'cell_0_0', 'fixture', outer, 'outer');
+  const outerHeader: unknown = JSON.parse(new TextDecoder().decode(outerPage.header.bytes));
+  sameStrips(decodeCompiledGridStrips(outerHeader, outerPage.body.bytes, source, outerPage.page.home),
+    generatePlatform(cells, empty, new Map(), (x, z) => !ring(x, z)));
+  expect(() => decodeCompiledGridStrips(outerHeader, outerPage.body.bytes, source, 'cell_0_0')).toThrow('source');
 });
 
-async function fixture() {
+async function fixture(phase: GridStripPhase = 'initial') {
   const original = native(), source = await platformGeometrySource(original.cells, original.empty);
-  const page = encodeGridStripPage(source, 'probe', 'fixture', original.strips);
+  const page = encodeGridStripPage(source, 'probe', 'fixture', original.strips, phase);
   const directory = new TextEncoder().encode(JSON.stringify({ version: 1, pages: [page.page] }));
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', directory)), sha256 = Array.from(digest, byte => byte.toString(16).padStart(2, '0')).join('');
   const address: CompiledGridAddress = { url: `/assets/grid-strip-book-${sha256.slice(0, 8)}.json`, bytes: directory.length, sha256 };
   const files = new Map([[address.url, directory], [page.header.address.url, page.header.bytes], [page.body.address.url, page.body.bytes]]);
-  return { original, source, page, selector: { directory: address, homes: ['probe'] }, files };
+  return { original, source, page, selector: { directory: address, homes: [page.page.home] }, files };
 }
 
 test('only a completed exact page publishes arrays and a scoped source charge', async () => {
@@ -128,6 +134,23 @@ test('a retiring owner aborts before publication and leaves no source reservatio
   expect(signals.every(signal => signal.aborted)).toBe(true); expect(allocator.entries()).toEqual([]);
 });
 
+test('outer data is never initial demand and its source belongs to the outer child', async () => {
+  const initial = await fixture(), outer = await fixture('outer'), scope = new Scope('phase page'), child = scope.child('outer'), allocator = new ResidencyAllocator();
+  const urls: string[] = [];
+  const read = (files: ReadonlyMap<string, Uint8Array>) => (url: string): Promise<Response> => {
+    urls.push(url); const bytes = files.get(url); if (bytes === undefined) throw new Error('Unexpected phase request');
+    return Promise.resolve(new Response(Uint8Array.from(bytes).buffer));
+  };
+  await expect(readCompiledGridStrips(outer.selector, outer.original, 'probe', { scope, allocator }, read(outer.files), () => Promise.resolve())).resolves.toBeNull();
+  expect(urls).toEqual([]);
+  await readCompiledGridStrips(initial.selector, initial.original, 'probe', { scope, allocator }, read(initial.files), () => Promise.resolve());
+  const result = await readCompiledGridStrips(outer.selector, outer.original, 'probe', { scope: child, allocator }, read(outer.files), () => Promise.resolve(), 'outer');
+  if (result === null) throw new Error('Missing explicit outer data'); sameStrips(result, outer.original.strips);
+  expect(allocator.entries().map(row => row.id)).toEqual(['product:grid:seams:probe:outer:source', 'product:grid:seams:probe:source']);
+  child.dispose(); expect(allocator.entries().map(row => row.id)).toEqual(['product:grid:seams:probe:source']);
+  scope.dispose(); expect(allocator.entries()).toEqual([]);
+});
+
 test('the plain app step ships exact assets only inside the existing I12 ceiling', async () => {
   const f = await fixture(), root = mkdtempSync(resolve('tmp/grid-strip-assets-'));
   try {
@@ -141,5 +164,20 @@ test('the plain app step ships exact assets only inside the existing I12 ceiling
     const refused = writeGridStripPages(root, asset.address.sha256, [f.page], [{ name: 'fixture', bytes: 100, ceiling: 100 }]);
     expect(refused.geometry).toBeUndefined(); expect(refused.files).toEqual([]); expect(refused.rows[0]?.added).toBe(0);
     expect(readGridSeams(root).address.geometry).toBeUndefined();
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('initial and outer bodies share one I12 ceiling, with initial readiness first', async () => {
+  const f = await fixture(), outer = encodeGridStripPage(f.source, 'probe', 'fixture', f.original.strips, 'outer'), root = mkdtempSync(resolve('tmp/grid-strip-budget-'));
+  try {
+    const all = [f.page, outer], product = { name: 'fixture', bytes: 100, ceiling: CONTENT_CAPS.playing };
+    const complete = writeGridStripPages(root, 'a'.repeat(64), all, [product]), row = complete.rows[0];
+    if (row === undefined) throw new Error('Missing combined page');
+    expect(complete.rows).toHaveLength(1); expect(row.included).toBe(true); expect(row.outer).toBe(true);
+    const ceiling = product.bytes + row.added - 1;
+    const bounded = writeGridStripPages(root, 'a'.repeat(64), all, [{ ...product, ceiling }]);
+    expect(bounded.rows[0]).toMatchObject({ included: true, outer: false });
+    expect(product.bytes + (bounded.rows[0]?.added ?? Infinity)).toBeLessThanOrEqual(ceiling);
+    expect(bounded.geometry?.homes).toEqual(['probe']);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

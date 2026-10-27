@@ -11,6 +11,9 @@ type SeamFeatureKind = SeamFeature['kind'];
 type SeamTurnIn = NonNullable<GeneratedStrip['turnIn']>;
 
 export interface CompiledGridAddress { readonly url: string; readonly bytes: number; readonly sha256: string }
+export type GridStripPhase = 'initial' | 'outer';
+/** The outer capability has a distinct address and is never read by initial admission. */
+export function gridStripPageKey(home: string, phase: GridStripPhase): string { return phase === 'outer' ? `${home}:outer` : home; }
 /** Only eligible homes fetch the optional directory; other pages add no data requests. */
 export interface CompiledGridSelector { readonly directory: CompiledGridAddress; readonly homes: readonly string[] }
 export interface CompiledGridPage { readonly source: string; readonly home: string; readonly header: CompiledGridAddress; readonly body: CompiledGridAddress }
@@ -123,15 +126,16 @@ export function decodeCompiledGridStrips(input: unknown, bytes: Uint8Array, sour
 /** Optional exact-input baked initial ring. Missing entries use native construction;
  * a declared entry's corrupt bytes or header always refuse. */
 export async function readCompiledGridStrips(selector: CompiledGridSelector | undefined, input: { readonly cells: readonly PlatformCell[]; readonly empty: StripProfile }, home: string,
-  owner: { readonly scope: Scope; readonly allocator: ResidencyAllocator }, read: (url: string, signal: AbortSignal) => Promise<Response>, pause: () => Promise<void>): Promise<readonly GeneratedStrip[] | null> {
-  if (selector === undefined || !selector.homes.includes(home)) return null;
+  owner: { readonly scope: Scope; readonly allocator: ResidencyAllocator }, read: (url: string, signal: AbortSignal) => Promise<Response>, pause: () => Promise<void>, phase: GridStripPhase = 'initial'): Promise<readonly GeneratedStrip[] | null> {
+  const key = gridStripPageKey(home, phase);
+  if (selector === undefined || !selector.homes.includes(key)) return null;
   const live = (): void => { if (owner.scope.disposed || owner.scope.disposing) throw new Error('Grid admission scope disposed'); };
   live();
   const abort = new AbortController(), forget = owner.scope.capture('disposers', () => { abort.abort(); });
   const reservations: { readonly release: () => void }[] = [];
   let releaseSource: (() => void) | undefined, forgetSource: (() => void) | undefined, published = false;
   const reserve = (id: string, bytes: number): { readonly release: () => void } => {
-    const claim = owner.allocator.reserve({ id: `product:grid:seams:${home}:${id}`, category: 'product', owner: home, bytes, distance: 0, needed: true });
+    const claim = owner.allocator.reserve({ id: `product:grid:seams:${key}:${id}`, category: 'product', owner: home, bytes, distance: 0, needed: true });
     if (claim === null) throw new Error('Grid strip metadata residency deferred');
     return claim;
   };
@@ -144,14 +148,14 @@ export async function readCompiledGridStrips(selector: CompiledGridSelector | un
     const [directory, source] = await Promise.all([fetchAsset(selector.directory), platformGeometrySource(input.cells, input.empty)]); live();
     const book = v.parse(directorySchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(directory)));
     if (new Set(book.pages.map(page => `${page.source}/${page.home}`)).size !== book.pages.length) throw new Error('Duplicate grid strip page');
-    const page = book.pages.find(row => row.source === source && row.home === home); if (page === undefined) return null;
+    const page = book.pages.find(row => row.source === source && row.home === key); if (page === undefined) return null;
     reservations.push(reserve('decode', page.header.bytes * 2 + page.body.bytes * 2));
     const sourceLease = reserve('source', page.body.bytes * 2 + page.header.bytes * 4);
     let released = false;
     releaseSource = (): void => { if (!released) { released = true; sourceLease.release(); } };
     forgetSource = owner.scope.capture('disposers', releaseSource);
     const [header, body] = await Promise.all([fetchAsset(page.header), fetchAsset(page.body)]); live();
-    const steps = stripSteps(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(header)), body, source, home);
+    const steps = stripSteps(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(header)), body, source, key);
     try {
       for (;;) {
         live(); const step = steps.next();

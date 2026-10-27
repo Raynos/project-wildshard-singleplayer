@@ -15,7 +15,7 @@ import { findShard } from '../src/game/shard/registry.ts';
 import { platformInputs } from '../src/game/grid/platformInputs.ts';
 import { generatePlatform } from '../src/engine/sim/strips.ts';
 import { platformGeometrySource } from '../src/game/grid/compiledStrips.ts';
-import { encodeGridStripPage, writeGridStripPages } from './app-build/gridStripPages.ts';
+import { encodeGridStripPage, GridStripTransportLimitError, writeGridStripPages } from './app-build/gridStripPages.ts';
 import { phoneWireReport } from './phone-wire.mjs';
 import { existsSync } from 'node:fs';
 
@@ -70,8 +70,16 @@ for (const developer of [false, true]) for (const devserver of [false, true]) fo
   catch (error) { console.error(`[grid bake] road-level fallback: ${String(error)}`); cells = input.flat; strips = generatePlatform(cells, input.empty, plans); }
   const source = await platformGeometrySource(cells, input.empty), reach = 1.5 * assembly.pitch + 1;
   for (const home of assembly.cells) {
-    const initial = strips.filter(strip => Math.abs(strip.mesh.origin.x - home.origin.x) <= reach && Math.abs(strip.mesh.origin.z - home.origin.z) <= reach);
+    /** @param {import('../src/engine/sim/strips.ts').GeneratedStrip} strip */
+    const within = strip => Math.abs(strip.mesh.origin.x - home.origin.x) <= reach && Math.abs(strip.mesh.origin.z - home.origin.z) <= reach;
+    const initial = strips.filter(within);
     compiled.push(encodeGridStripPage(source, home.instance, home.slug, initial));
+    if (!existsSync(resolve(root, 'out', home.slug, 'shard.json'))) continue;
+    try { compiled.push(encodeGridStripPage(source, home.instance, home.slug, strips.filter(strip => !within(strip)), 'outer')); }
+    catch (error) {
+      if (!(error instanceof GridStripTransportLimitError)) throw error;
+      console.error(`[grid bake] ${home.instance} outer retains native construction: ${String(error)}`);
+    }
   }
 }
 // Edge reads complete concurrently. Their completion order must not change the
@@ -83,5 +91,5 @@ const names = [...new Set(compiled.map(row => row.slug))].filter(slug => existsS
 const wire = await phoneWireReport(root, names);
 if (wire.errors.length > 0) throw new Error(wire.errors.join('\n'));
 const pages = writeGridStripPages(outputRoot, createHash('sha256').update(output).digest('hex'), compiled, wire.rows);
-for (const row of pages.rows) console.error(`[grid strip wire] ${row.home} source=${row.source.slice(0, 8)} added=${row.added} product=${String(row.product)} ceiling=${String(row.ceiling)} ${row.included ? 'compiled' : 'native'}`);
+for (const row of pages.rows) console.error(`[grid strip wire] ${row.home} source=${row.source.slice(0, 8)} added=${row.added} product=${String(row.product)} ceiling=${String(row.ceiling)} ${row.included ? 'compiled' : 'native'}${row.outer ? '+outer' : ''}`);
 process.stdout.write(output);

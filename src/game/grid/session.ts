@@ -299,7 +299,7 @@ export class GridSession {
   private readonly mapImages: CellMinimaps;
   private readonly strips: CollisionStrip[];
   private readonly initialStripBytes: number;
-  private outerStripBuild: (() => Promise<readonly GeneratedStrip[]>) | undefined;
+  private outerStripBuild: ((scope: Scope) => Promise<readonly GeneratedStrip[]>) | undefined;
   private publishOuterStrips: ((strips: readonly GeneratedStrip[]) => void) | undefined;
   private outerStripsReady: Promise<void> | undefined;
   private readonly host: GridSessionHost;
@@ -420,13 +420,16 @@ export class GridSession {
       roadScope.child('road-tiles'), browserContentStore(caches), { pitch: assembly.pitch, plans, camera: () => host.frame?.camera }) : undefined;
     // Use the same source set for both halves if initial certification selected
     // the existing flat fallback. Outer failures never substitute different edges.
-    const outerStrips = (): Promise<readonly GeneratedStrip[]> => {
+    const outerStrips = async (owner: Scope): Promise<readonly GeneratedStrip[]> => {
       const source = platformInputs(assembly, flatPlatform ? undefined : edges);
-      const background = workSlice(undefined, host.scope);
-      return generatePlatformSliced(source.cells, source.empty, async () => {
-        if (host.scope.disposed || host.scope.disposing) throw new Error('Grid session left during outer seam preparation');
+      const background = workSlice(undefined, owner);
+      const pause = async (): Promise<void> => {
+        if (owner.disposed || owner.disposing || host.scope.disposed || host.scope.disposing) throw new Error('Grid session left during outer seam preparation');
         await background.check();
-      }, 4, seamPlans, (x, z) => !ring(x, z)); // T10: built in play after controls, 4 ms stretches beside the frame
+      };
+      const compiledOuter = await readCompiledGridStrips(address.geometry, source, instance, { scope: owner, allocator },
+        (url, signal) => fetch(url, { signal }), pause, 'outer');
+      return compiledOuter ?? generatePlatformSliced(source.cells, source.empty, pause, 4, seamPlans, (x, z) => !ring(x, z)); // T10: built in play after controls, 4 ms stretches beside the frame
     };
     const roadInput = { strips, home, pitch: assembly.pitch, layout: roadLayout(assembly, slug => findShard(slug)?.name ?? slug), scene: host.scene,
       scope: roadScope, camera: () => host.frame?.camera, plans, admission, ...(tileBacking === undefined ? {} : { tileBacking }) };
@@ -454,7 +457,7 @@ export class GridSession {
     } catch (error) { roadScope.dispose(); throw error; }
   }
 
-  constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[], preparedRoad?: { readonly road: PlatformRoad | Promise<PlatformRoad>; readonly outer?: () => Promise<PlatformRoad>; readonly outerStrips?: () => Promise<readonly GeneratedStrip[]>; readonly publishStrips?: (strips: readonly GeneratedStrip[]) => void; readonly plans: Map<Mesh, CullPlan>; readonly collidersInstalled?: true }) {
+  constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[], preparedRoad?: { readonly road: PlatformRoad | Promise<PlatformRoad>; readonly outer?: () => Promise<PlatformRoad>; readonly outerStrips?: (scope: Scope) => Promise<readonly GeneratedStrip[]>; readonly publishStrips?: (strips: readonly GeneratedStrip[]) => void; readonly plans: Map<Mesh, CullPlan>; readonly collidersInstalled?: true }) {
     this.host = host;
     this.roadPlans = preparedRoad?.plans ?? new Map<Mesh, CullPlan>();
     // before the page's first render: the lights a region's own pool shows through (regionalWorld `mirrorInto`)
@@ -893,7 +896,7 @@ export class GridSession {
     const active = (): void => { if (owner.disposed || owner.disposing || this.host.scope.disposed || this.host.scope.disposing) throw new Error('Outer platform owner left'); };
     const prepare = async (): Promise<void> => {
       try {
-        active(); const generated = await build(); active();
+        active(); const generated = await build(owner); active();
         const bytes = generated.reduce((sum, strip) => sum + strip.mesh.positions.byteLength + strip.mesh.indices.byteLength, 0);
         if (bytes > 0) {
           const claim = this.allocator.reserve({ id: 'sim:platform:outer', category: 'sim', owner: 'platform', bytes, distance: 0, needed: true });

@@ -6,25 +6,30 @@ import { isDeepStrictEqual } from 'node:util';
 import { BufferAttribute, BufferGeometry } from 'three';
 import { GeometryPackWriter } from '../../src/sdk/kit/geometryPack';
 import type { GeneratedStrip } from '../../src/engine/sim/strips';
-import { GRID_STRIP_FEATURE_KINDS, decodeCompiledGridStrips, parseCompiledGridHeader, type CompiledGridAddress, type CompiledGridHeader, type CompiledGridPage, type CompiledGridSelector } from '../../src/game/grid/compiledStrips';
+import { GRID_STRIP_FEATURE_KINDS, decodeCompiledGridStrips, gridStripPageKey, parseCompiledGridHeader, type CompiledGridAddress, type CompiledGridHeader, type CompiledGridPage, type CompiledGridSelector, type GridStripPhase } from '../../src/game/grid/compiledStrips';
 import { servedBytes } from '../phone-wire.mjs';
 
 export interface CompiledGridArtifact { readonly address: CompiledGridAddress; readonly bytes: Uint8Array }
-export interface CompiledGridCandidate { readonly page: CompiledGridPage; readonly slug: string; readonly header: CompiledGridArtifact; readonly body: CompiledGridArtifact }
-export interface GridStripWireRow { readonly source: string; readonly home: string; readonly slug: string; readonly added: number; readonly product: number | null; readonly ceiling: number | null; readonly included: boolean }
+export interface CompiledGridCandidate { readonly page: CompiledGridPage; readonly owner: string; readonly phase: GridStripPhase; readonly slug: string; readonly header: CompiledGridArtifact; readonly body: CompiledGridArtifact }
+export interface GridStripWireRow { readonly source: string; readonly home: string; readonly slug: string; readonly added: number; readonly product: number | null; readonly ceiling: number | null; readonly included: boolean; readonly outer: boolean }
 export interface CompiledGridBuild {
   readonly geometry?: CompiledGridSelector; readonly files: readonly CompiledGridAddress[]; readonly rows: readonly GridStripWireRow[];
 }
 const hash = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
 const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value, (_key, item: unknown) => typeof item === 'number' && Object.is(item, -0) ? '-0' : item));
+/** Optional outer pages over the original transport cap retain native construction. */
+export class GridStripTransportLimitError extends Error {
+  constructor(message: string) { super(message); this.name = 'GridStripTransportLimitError'; }
+}
 function artifact(bytes: Uint8Array, extension: 'json' | 'bin', kind: 'book' | 'page' | 'mesh'): CompiledGridArtifact {
   const sha256 = hash(bytes);
-  if (bytes.length === 0 || bytes.length > 16 * 1024 * 1024) throw new Error('Grid strip artifact exceeds its transport cap');
+  if (bytes.length === 0 || bytes.length > 16 * 1024 * 1024) throw new GridStripTransportLimitError('Grid strip artifact exceeds its transport cap');
   return { bytes, address: { url: `/assets/grid-strip-${kind}-${sha256.slice(0, 8)}.${extension}`, bytes: bytes.length, sha256 } };
 }
 
 /** Store the original indexed words, never deduplicate vertices or quantize them. */
-export function encodeGridStripPage(source: string, home: string, slug: string, strips: readonly GeneratedStrip[]): CompiledGridCandidate {
+export function encodeGridStripPage(source: string, home: string, slug: string, strips: readonly GeneratedStrip[], phase: GridStripPhase = 'initial'): CompiledGridCandidate {
+  const keyHome = gridStripPageKey(home, phase);
   const writer = new GeometryPackWriter('Grid strips'), indices = new Map<string, number>(), shapes: CompiledGridHeader['shapes'][number][] = [];
   const rows: CompiledGridHeader['strips'][number][] = [];
   const featureWords: number[] = [], surfaces: string[] = [], surfaceCodes = new Map<string, number>();
@@ -65,12 +70,12 @@ export function encodeGridStripPage(source: string, home: string, slug: string, 
   const packed = new Uint8Array(featureStart + featureWords.length * 8); packed.set(geometry);
   const view = new DataView(packed.buffer);
   for (const [index, value] of featureWords.entries()) view.setFloat64(featureStart + index * 8, value, true);
-  const header = artifact(json({ version: 1, source, home, rows: writer.rows(), surfaces, shapes, strips: rows } satisfies CompiledGridHeader), 'json', 'page');
+  const header = artifact(json({ version: 1, source, home: keyHome, rows: writer.rows(), surfaces, shapes, strips: rows } satisfies CompiledGridHeader), 'json', 'page');
   // Exercise the same valibot grammar the runtime admits, including signed zero.
   parseCompiledGridHeader(JSON.parse(new TextDecoder().decode(header.bytes)));
   const body = artifact(packed, 'bin', 'mesh');
   // Certify the bytes that will ship against this build's actual native output.
-  const decoded = decodeCompiledGridStrips(JSON.parse(new TextDecoder().decode(header.bytes)), body.bytes, source, home);
+  const decoded = decodeCompiledGridStrips(JSON.parse(new TextDecoder().decode(header.bytes)), body.bytes, source, keyHome);
   for (const [index, original] of strips.entries()) {
     const copy = decoded[index]; if (copy === undefined || copy.id !== original.id) throw new Error('Grid strip bake changed its order');
     for (const field of ['positions', 'colours', 'indices'] as const) {
@@ -81,7 +86,7 @@ export function encodeGridStripPage(source: string, home: string, slug: string, 
       turnIn: strip.turnIn ?? null, duplicates: strip.duplicates.map(row => ({ instance: row.instance, origin: row.mesh.origin })) })));
     if (!isDeepStrictEqual(facts(original), facts(copy))) throw new Error('Grid strip bake changed physical placement or features');
   }
-  return { slug, page: { source, home, header: header.address, body: body.address }, header, body };
+  return { slug, owner: home, phase, page: { source, home: keyHome, header: header.address, body: body.address }, header, body };
 }
 
 /** Choose only pages whose added directory/header/body wire fits the original I12 ceiling. */
@@ -89,10 +94,18 @@ export function writeGridStripPages(root: string, seams: string, candidates: rea
   const unique = new Map<string, CompiledGridCandidate>();
   for (const candidate of candidates) {
     const key = `${candidate.page.source}/${candidate.page.home}`, previous = unique.get(key);
-    if (previous !== undefined && (previous.page.body.sha256 !== candidate.page.body.sha256 || previous.page.header.sha256 !== candidate.page.header.sha256)) throw new Error('Grid strip page is not deterministic');
+    if (previous !== undefined && (previous.owner !== candidate.owner || previous.phase !== candidate.phase || previous.slug !== candidate.slug
+      || previous.page.body.sha256 !== candidate.page.body.sha256 || previous.page.header.sha256 !== candidate.page.header.sha256)) throw new Error('Grid strip page is not deterministic');
     unique.set(key, candidate);
   }
   const all = [...unique.values()].sort((a, b) => `${a.page.source}/${a.page.home}`.localeCompare(`${b.page.source}/${b.page.home}`));
+  const ownerKey = (candidate: CompiledGridCandidate): string => `${candidate.page.source}/${candidate.owner}`;
+  const groups = new Map<string, CompiledGridCandidate[]>();
+  for (const candidate of all) {
+    const key = ownerKey(candidate), rows = groups.get(key) ?? [];
+    if (rows[0] !== undefined && rows[0].slug !== candidate.slug) throw new Error('Grid strip owner differs');
+    rows.push(candidate); groups.set(key, rows);
+  }
   const product = new Map(products.map(row => [row.name, row]));
   const measured = new Map<string, number>();
   const wireOf = (file: CompiledGridArtifact): number => {
@@ -106,10 +119,18 @@ export function writeGridStripPages(root: string, seams: string, candidates: rea
   for (;;) {
     const wire = servedBytes(directory.bytes), blockedHomes = new Set(all.filter(candidate => {
       const row = product.get(candidate.slug); return row?.ceiling === undefined || row.bytes + wire > row.ceiling;
-    }).map(candidate => candidate.page.home));
+    }).map(candidate => candidate.owner));
+    const costs = new Map<string, number>(), hasOuter = new Set<string>();
+    for (const candidate of selected) {
+      const key = ownerKey(candidate); costs.set(key, (costs.get(key) ?? 0) + (ownWire.get(candidate) ?? 0));
+      if (candidate.phase === 'outer') hasOuter.add(key);
+    }
     const next = selected.filter(candidate => {
-      const row = product.get(candidate.slug);
-      return !blockedHomes.has(candidate.page.home) && row?.ceiling !== undefined && row.bytes + (ownWire.get(candidate) ?? 0) + wire <= row.ceiling;
+      const row = product.get(candidate.slug), key = ownerKey(candidate);
+      if (blockedHomes.has(candidate.owner) || row?.ceiling === undefined) return false;
+      if (row.bytes + (costs.get(key) ?? 0) + wire <= row.ceiling) return true;
+      // Keep initial readiness first. An outer bank cannot consume its headroom.
+      return candidate.phase === 'initial' && hasOuter.has(key);
     });
     if (next.length === selected.length) break;
     selected = next; directory = artifact(json({ version: 1, pages: selected.map(candidate => candidate.page) }), 'json', 'book');
@@ -131,11 +152,13 @@ export function writeGridStripPages(root: string, seams: string, candidates: rea
     files.set(file.address.url, file.address);
     writeFileSync(join(folder, basename(file.address.url)), file.bytes);
   }
-  const rows: GridStripWireRow[] = all.map(candidate => {
-    const row = product.get(candidate.slug), included = chosen.has(candidate);
-    return { source: candidate.page.source, home: candidate.page.home, slug: candidate.slug, included,
+  const rows: GridStripWireRow[] = [...groups.values()].map(group => {
+    const candidate = group[0]; if (candidate === undefined) throw new Error('Missing grid page owner');
+    const row = product.get(candidate.slug), included = group.some(part => part.phase === 'initial' && chosen.has(part)), outer = group.some(part => part.phase === 'outer' && chosen.has(part));
+    const readsDirectory = homes.includes(gridStripPageKey(candidate.owner, 'initial')) || homes.includes(gridStripPageKey(candidate.owner, 'outer'));
+    return { source: candidate.page.source, home: candidate.owner, slug: candidate.slug, included, outer,
       product: row?.bytes ?? null, ceiling: row?.ceiling ?? null,
-      added: included ? (ownWire.get(candidate) ?? 0) + directoryWire : homes.includes(candidate.page.home) ? directoryWire : 0 };
+      added: (readsDirectory ? directoryWire : 0) + group.reduce((sum, part) => sum + (chosen.has(part) ? ownWire.get(part) ?? 0 : 0), 0) };
   });
   const result: CompiledGridBuild = { ...(selected.length === 0 ? {} : { geometry: { directory: directory.address, homes } }), files: [...files.values()], rows };
   writeFileSync(join(root, 'out/.app/grid-strip-index.json'), JSON.stringify({ seams, ...result }));
