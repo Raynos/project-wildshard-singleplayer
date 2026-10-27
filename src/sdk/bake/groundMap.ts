@@ -12,6 +12,13 @@ const styleSchema = v.object({ kind: v.literal('ground'), classes: palette, sour
   water: v.exactOptional(v.object({ below: v.number(), fill: hexColour, within: v.exactOptional(v.object({ x0: v.number(), x1: v.number(), z0: v.number(), z1: v.number() })) })),
   raised: v.exactOptional(v.object({ bump: v.number(), classes: palette })) });
 type Style = v.InferOutput<typeof styleSchema>;
+const voidStyleSchema = v.pipe(v.object({ kind: v.literal('void'),
+  void: v.optional(v.union([hexColour, v.literal('transparent')])),
+  stone: v.pipe(v.array(hexColour), v.minLength(1), v.maxLength(65)),
+  stoneBands: v.pipe(v.array(v.number()), v.maxLength(64)), grass: hexColour, rim: hexColour,
+  sourceGain: v.optional(v.number(), 1), shade: v.optional(v.number(), .5) }),
+v.check(style => style.stone.length === style.stoneBands.length + 1, 'Void map bands need one more stone colour'));
+const sceneStyleSchema = v.union([styleSchema, voidStyleSchema]);
 type Triple = readonly [number, number, number];
 const byte = (value: number): number => Math.max(0, Math.min(255, Math.round(value)));
 function item<T>(values: ArrayLike<T>, index: number): T { const value = values[index]; if (value === undefined) throw new Error('Incomplete map geometry'); return value; }
@@ -63,6 +70,33 @@ function stylize(raster: MapRaster, style: Style): Uint8Array {
   return out;
 }
 
+/** The retained void palette: classify actual colour/height, ink occupied edges and keep exact integer relief. */
+function stylizeVoid(raster: MapRaster, style: v.InferOutput<typeof voidStyleSchema>): Uint8Array {
+  const { size, height, colour } = raster, out = new Uint8Array(size * size * 4);
+  const valid = (at: number): boolean => at >= 0 && at < height.length && height[at] !== -2147483648;
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const at = y * size + x;
+    if (!valid(at)) {
+      if (style.void !== 'transparent') {
+        const bg = hex(style.void ?? '#282e33');
+        for (let k = 0; k < 3; k++) out[at * 4 + k] = item(bg, k);
+        out[at * 4 + 3] = 255;
+      }
+      continue;
+    }
+    const h = item(height, at), rgb = triple(Array.from(colour.subarray(at * 3, at * 3 + 3), c => byte(c * style.sourceGain)));
+    const neighbours = [x > 0 ? at - 1 : -1, x + 1 < size ? at + 1 : -1, y > 0 ? at - size : -1, y + 1 < size ? at + size : -1];
+    const band = style.stoneBands.filter(b => h / 65536 >= b).length;
+    const fill = hex(neighbours.some(other => !valid(other)) ? style.rim
+      : rgb[1] > rgb[0] && rgb[1] > rgb[2] * 1.15 ? style.grass : item(style.stone, band));
+    const left = valid(at - 1) && x > 0 ? item(height, at - 1) : h, top = valid(at - size) ? item(height, at - size) : h;
+    const relief = Math.max(-80, Math.min(80, Math.trunc((left + top - h * 2) / 512))), shade = 256 + Math.trunc(relief * style.shade);
+    for (let k = 0; k < 3; k++) out[at * 4 + k] = byte(Math.trunc(item(fill, k) * shade / 256));
+    out[at * 4 + 3] = 255;
+  }
+  return out;
+}
+
 /** Paint the existing 500 m, +Z north/-X east ground map from actual L0 terrain and placed GLB triangles.
  * Returns RGBA8 bytes, not a file; the project writer supplies the normal lossless WebP and source identity. */
 export async function rasterGroundMap(terrain: Pick<BakedTerrain, 'terrain' | 'assets'>, props: Pick<BakedProps, 'props' | 'assets'>, style: unknown, clip: { clipBelow?: number | null; clipAbove?: number | null } = {}): Promise<{ pixels: Uint8Array; triangles: number }> {
@@ -83,16 +117,16 @@ export interface SceneMapBytes {
   json: (file: string) => unknown;
   bytes: (file: string) => Uint8Array;
 }
-/** Paint declared L0 terrain, GLBs and private scenes with the existing ground palette.
+/** Paint declared L0 terrain, GLBs and private scenes with the existing ground or void palette.
  * Returns the original 1000-square RGBA lattice from caller-owned inputs, without image/stamp publication.
  * GR9: `output` paints one declared output of a multi-output folder from its own `glbs`, in its own row's `style` (else the
  * folder's) leaving out its `exclude` node prefixes, as the script painter (`scripts/bake-data-maps.mjs`) did. */
 export async function rasterSceneMap(settings: unknown, data: SceneMapBytes, options: { readonly output?: string; readonly glbs?: readonly string[] } = {}): Promise<{ pixels: Uint8Array; triangles: number }> {
-  const admitted = v.parse(v.object({ style: styleSchema, clipBelow: v.exactOptional(v.nullable(v.number())), clipAbove: v.exactOptional(v.nullable(v.number())),
+  const admitted = v.parse(v.object({ style: sceneStyleSchema, clipBelow: v.exactOptional(v.nullable(v.number())), clipAbove: v.exactOptional(v.nullable(v.number())),
     outputs: v.exactOptional(v.record(v.string(), v.unknown())) }), settings);
   const own = options.output === undefined ? undefined : admitted.outputs?.[options.output];
-  const style = typeof own === 'object' && own !== null && 'style' in own ? v.parse(styleSchema, own.style) : admitted.style;
+  const style = typeof own === 'object' && own !== null && 'style' in own ? v.parse(sceneStyleSchema, own.style) : admitted.style;
   const raster = new MapRaster(1000, { clipBelow: admitted.clipBelow ?? -Infinity, clipAbove: admitted.clipAbove ?? Infinity });
   await paintMapGeometry(raster, settings, data, { ...(options.output === undefined ? {} : { output: options.output }), ...(options.glbs === undefined ? {} : { glbs: options.glbs }) });
-  return { pixels: stylize(raster, style), triangles: raster.triangles };
+  return { pixels: style.kind === 'void' ? stylizeVoid(raster, style) : stylize(raster, style), triangles: raster.triangles };
 }
