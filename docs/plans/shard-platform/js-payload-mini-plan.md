@@ -193,7 +193,7 @@ about 160 KB gzip lower again.
 
 ## J6 public-code warming (2026-10-27, sp-x9)
 
-Code landed in this commit; **in flight (reading at plan end, G780)**.
+Code `5d2b18a811`, corrected by `2cf1221753`; **in flight (reading at plan end, G780)**.
 The worker now has separate full cache/prune and public warm inventories.
 Warming uses the existing loading-bar module bank: common/client/grid static
 closures, public selected manifests and their selected feature groups, plus
@@ -220,7 +220,7 @@ its six explicit coverage rows remain open in the legacy-deletion plan.
 
 ### J6 public admission correction
 
-The warm transport source is **5d2b18a811**; this commit corrects its product
+The warm transport source is **5d2b18a811**; **2cf1221753** corrects its product
 classification. A visible experimental card is still locked to ordinary play,
 so its executable root must remain cold. Only live/early-access entries seed
 automatic warming; hidden, underscore, legacy, experimental and grid-only

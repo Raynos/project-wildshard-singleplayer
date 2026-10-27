@@ -229,3 +229,15 @@ work; the lane continues GR6, then iPhone downloads I6/I10.
 G768 stops GM3/G752. The candidate reader was never activated. The
 unfinished tooling graph, compiler and reporter hunks were removed from
 the live scripts/tests on 2026-10-27; committed producers are historical.
+
+
+### GM1 source and reading boundary (2026-10-27, sp-x9)
+
+The no-manual-cancellation policy is committed in `8c1cf94c59` and
+`cc85a53efd`. Current deploy concurrency cancels only pull-request runs;
+pushes retain their running verdict. A bounded thirty-push inventory
+through `40474486804` includes fourteen cancelled runs, but contains no
+actor-level cancellation evidence. Pending-run coalescing is not a human
+cancellation. The required 24-hour zero-manual-cancels reading therefore
+remains open; GM1 is **in flight**, not marked done from policy alone.
+GM3 remains superseded by G768 and GM7 dropped by G787.

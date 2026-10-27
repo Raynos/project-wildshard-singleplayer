@@ -156,3 +156,16 @@ and the top 5, and add a row only for a new loss over 2 lane-hours a day. SW5 ha
 6. **Budgets:** `openusage` (Claude and Codex weekly) against G605's steps.
 7. **Lane idle:** gaps over 5 minutes between a Codex `task_complete` and the next prompt, per lane, and the count of
    "no actionable row" replies; `herdr agent list` for who is idle now.
+
+
+### SW3 source boundary (2026-10-27, sp-x9)
+
+Fix-forward policy/source remains `81559b512a`, `0181f41dd4` and
+`97f3db9d72`, with CF3 `1f76530a1d` / CF4 `eafc904ce9`. No duplicate
+observer or pipeline is added. The ci-flow ordinary-record sample ending
+08:34:45 UTC has fourteen completed reds and no green among thirty pushes;
+last successful push ended the previous day at 23:27:06 UTC. This does not
+qualify SW3's maximum-red-window bar. Exact window starts and human
+cancellation attribution require the plan-end reading; they are not
+inferred from missing successes. SW3 remains **in flight (reading at plan
+end, G780)**. Existing damage owners retain the source fixes.

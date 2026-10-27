@@ -55,7 +55,7 @@ Rows LD1–LD4 delete nothing and need no QA; LD5–LD8 wait for Jake's word (G6
 
 ## LD4 Node comparison (2026-10-27, sp-x9)
 
-**In flight:** the data-only comparison is built in this commit. Full runtime
+**In flight:** the data-only comparison is built in `dd127fefb8`. Full runtime
 model/set/world registration coverage remains open below; LD4 is not declared parity-green.
 Run `node --experimental-transform-types --import ./scripts/bake-loader.mjs
 scripts/legacy-explorer-lists.ts <report.json>`. The checked-in inventory is
@@ -126,7 +126,7 @@ reader leases, verifies their section bytes and consumed named payloads, and
 releases every lease. No product is built, restored, copied or served. These
 historical product identities do not claim current-source freshness.
 
-The **executed phone-tier** capture in this commit resolves all six catalogues.
+The **executed phone-tier** capture in `7aa20be8f8` resolves all six catalogues.
 Five declared Model lists match (78 identities); Nine's declaration-only list
 lacks the original `nine-dragon-stack/fp-arms`. All six declared arena lists
 match. Every exact Set/POI difference and every input digest is retained in the

@@ -516,3 +516,37 @@ does not. Pixels/cards/fatals still refuse. CF3 **1f76530a1d** and CF4
 **eafc904ce9** remain in flight for the one end reading, not rebuilt here.
 BUILD-SPEED Phase 1.5 is already measured done (c8cf164dd6/fb781f41c1 and both
 named all-green deploy runs); this does not reopen that historical work.
+
+
+## Tooling source boundary and ordinary records (2026-10-27, sp-x9)
+
+GM1 policy is `8c1cf94c59` / `cc85a53efd`; CF3's cohort split is
+`1f76530a1d`; CF4's committed-file/import report is `eafc904ce9`;
+CF5's progress-only Explorer hang guard is `94ea180069`. These sources
+are landed. Their acceptance readings remain **in flight**, not done.
+BUILD-SPEED's historical Phase 1.5 CI row already has its two green
+deploy verdicts (`c8cf164dd6` / `fb781f41c1`); it is not reopened.
+
+Read-only sample: latest 30 main push runs returned through
+`40474486804`, spanning 07:42:13–08:34:45 UTC. Fourteen completed red,
+fourteen were cancelled, one ran and one was pending. No green verdict
+exists in this sample. Cancellation alone does not identify a human
+canceller, so it cannot qualify or disprove GM1's manual-cancel bar.
+Last successful push `40416522491` / `59a595ab106c` ran from
+2026-10-26 22:59:10 to 23:27:06 UTC: **27.93 minutes**, above CF3's
+13-minute target. The sample's red-only median is 2.72 minutes and is
+not a green critical-path improvement claim.
+
+Actual red `40473998558` printed last green
+`59a595ab106cfbdd8cd1e4362e73b30d02980335` and exactly three candidates:
+`c650a608b7` (sp-x2), `2c4cc1d2b4` (Codex) and `ef35b30ff6` (Codex),
+with failing-file/literal-import labels. This qualifies that diagnostic,
+not all red runs or a proven culprit. Generic Codex attribution does not
+identify a terminal lane. Missing generated inputs remain visible.
+The Pine asset failure inspected here is already tracked as damage D68;
+no competing source repair, build or retry was started.
+
+The latest smoke `40419839643` succeeded, but predates the sampled push
+failures. It cannot establish current CF5 acceptance or a fixed flake.
+No new smoke, browser, test, build or Simulator visit was run. CF3's
+green-time bar, all-red CF4 attribution and the plan-end readings stay open.
