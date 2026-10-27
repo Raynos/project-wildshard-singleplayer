@@ -14,8 +14,12 @@ const context = createProjectGeneration('src/shards/pine-hollow',
   hashImmutableBytes(new TextEncoder().encode('pine-life-author-v1')), new Map(), cache);
 
 test('Pine life metadata and its original executable remain exact without inline authoring bytes', async () => {
-  expect(JSON.parse(readFileSync('src/shards/pine-hollow/behaviour/life.generated.json', 'utf8'))).toEqual(original);
   const output = await prepareOutput(context);
+  // GR8: the product compiles the declared row; the page file names the compiled row with no bytes.
+  const page = output.namedFiles.find(row => row.name === 'actors/page-life.json');
+  const pageBytes = page === undefined ? undefined : output.assets.get(page.hash);
+  const pageRows: unknown = pageBytes === undefined ? undefined : JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(pageBytes));
+  expect(pageRows).toMatchObject({ program: original });
   const file = output.namedFiles.find(row => row.name === 'behaviour/pine.life.wasm');
   expect(file?.hash).toBe(hash);
   const bytes = file === undefined ? undefined : output.assets.get(file.hash);
@@ -40,11 +44,12 @@ test('Pine life refuses changed compiler metadata and missing, extra or substitu
     const built = await compiler(...args);
     return { ...built, rows: built.rows.map(row => { const changed = structuredClone(row); if (changed.id === original.script.id) changed.pages = 2; return changed; }) };
   } })).rejects.toThrow('life metadata is stale');
+  const row = new TextEncoder().encode(JSON.stringify(original.script));
   for (const { files, message } of [
     { files: new Map<string, Uint8Array>(), message: 'Missing life bytes' },
-    { files: new Map([['life.wasm', new Uint8Array([0])]]), message: 'Invalid or oversized module' },
-    { files: new Map([['life.wasm', oracle], ['extra.wasm', oracle]]), message: 'Missing life bytes' },
-    { files: new Map([['life.wasm', new Uint8Array(readFileSync('test/fixtures/pine-shelter-program.wasm'))]]), message: 'module differs from metadata' },
+    { files: new Map([['life.wasm', new Uint8Array([0])], ['life.json', row]]), message: 'Invalid or oversized module' },
+    { files: new Map([['life.wasm', oracle], ['life.json', row], ['extra.wasm', oracle]]), message: 'Missing life bytes' },
+    { files: new Map([['life.wasm', new Uint8Array(readFileSync('test/fixtures/pine-shelter-program.wasm'))], ['life.json', row]]), message: 'module differs from metadata' },
   ]) {
     await expect(prepareOutput({ ...context, cached: (step, generate) => step.id === 'life-program'
       ? Promise.resolve(files) : context.cached(step, generate) })).rejects.toThrow(message);

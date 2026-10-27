@@ -18,7 +18,7 @@ import { withPineGround } from './groundTiles';
 import { pineQuestNpcs } from './questNpcs';
 import journal from '../data/journal.generated.json' with { type: 'json' };
 import { PINE_QUEST_HOST } from './questHost';
-import shelterProgram from '../behaviour/shelter.generated.json' with { type: 'json' };
+import { returnGuest } from './returnPrograms';
 
 // GR8: called, not read from a scheduler job's output
 const people = pineQuestNpcs();
@@ -48,7 +48,7 @@ const base = emptyShardfile({ slug: 'pine-hollow', name: 'Pine Hollow', author: 
 const libraryFiles = [...world.shardfile.files.filter(file => world.shardfile.library.includes(file.hash)), ...journal.files];
 const criticalFiles = timbers.shardfile.files.filter(file => timbers.shardfile.critical.includes(file.hash));
 // The original seven one-page guests plus the admitted shelter guest, with live and rewind copies.
-const scriptMemory = 14 * 65536 + shelterProgram.script.pages * 65536 * 2;
+const scriptMemory = 14 * 65536 + returnGuest('shelter').row.pages * 65536 * 2;
 const row = (heights: readonly number[]): { heights: number[]; colours: [number, number, number][]; roadHeight: 0 } =>
   ({ heights: [...heights], colours: heights.map((): [number, number, number] => [0.25, 0.25, 0.25]), roadHeight: 0 });
 const authoredProduct: ReturnType<typeof parseShardfile> = parseShardfile({
