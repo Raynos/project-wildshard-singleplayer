@@ -12,362 +12,362 @@
   {
     "path": "public/assets/nine-dragon/baked/casts/entries-capped.glb",
     "bytes": 658464,
-    "hash": "636cacf412781c2339f373b72da3ee55a194c49ebb4e9ea75da20e959f6cacc9"
+    "hash": "c7c27571770b8314b792075e982f9aafb58cce3bb1cb866fcf076a24dedbb2b2"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/entries-open.glb",
     "bytes": 54600,
-    "hash": "48ebcc3989092f33810625c0c5c7c1f6d9bf02332258cb398f6b84da5ce2aaa3"
+    "hash": "191cd98e506617868b049e111af179b05dd7763c004f7f997074dbb41a02e5e4"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/facade-signs.glb",
     "bytes": 36292,
-    "hash": "10311d0f2f61b47dc24533f1ba52e4f4090081f1bcfff7de1a58c4ed018cda9c"
+    "hash": "ca772ab35156f60403d4af63ee4cb1d6da8e237eb2f5a898ea185f9fa0d98c2e"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/guard.glb",
     "bytes": 1122068,
-    "hash": "4ff25071f8bd3f728a27e39049b4524cf827bf6c1e9f4791bb6c0c841f2beb8a"
+    "hash": "04aec60373ff78c0bead91a1c46232f66dbd2e5fc3885b90ff01f350be6c6c98"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/lion-mid10.glb",
     "bytes": 2545876,
-    "hash": "29eaa0ee8c11279d4c7daa811f4d612137c68e81c8c0919603629f81891914e3"
+    "hash": "1ad706de6a031f78b1c097ec47f00eeb08d6bb9736de349c408c534fdfa10a87"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/lion-mid30.glb",
     "bytes": 2515324,
-    "hash": "6dff641ecf84c672580840de25b01698c5f4799d7ec98b25b098b6fea668edd0"
+    "hash": "46af08d4eff5322939e101faff9cf78f5ba439b740d724bc3e18747ee4166a4e"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/lion.glb",
     "bytes": 2593252,
-    "hash": "9641d52383bb3d353724eca9fd5084edc7976a5f9c185d85c3b91eaf6e76dbac"
+    "hash": "197f5a3cf9f65dc7c98f66147ffdaee71d0a3e2cf6944a022ea96bf3b56f2de0"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/sitter-dark-far.glb",
     "bytes": 14228,
-    "hash": "996aeb3ed1ec521011e01f560a9c543f98d568497d91591c6d602bc74eef51ee"
+    "hash": "f870cdac5433219475afc4f0ced879e0db158323ec821259acf6ae7013125b56"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/sitter-dark-mid12.glb",
     "bytes": 510072,
-    "hash": "6ba8509a464ef831c1b5294fc0bc248271a25dd36c8c18f55477eca1831c3f06"
+    "hash": "98e7471cf7d6a22d0d6096b6a7b776399fcb9ea6a04072c6edd4d9557a3caf9c"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/sitter-dark-mid22.glb",
     "bytes": 504636,
-    "hash": "8ab4db0bd3052cb578a87acfbe32d36502f28618fd6bd055154a4da137101bb9"
+    "hash": "094eadb3644f18b68f689cd9cb37aa015ad024c80f7848792b623ad7d1fda97b"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/sitter-dark.glb",
     "bytes": 514776,
-    "hash": "12bb8fd49616d7ff1290732475eeab7f827aff35e14d6af6769f0614692f4a12"
+    "hash": "3bb91fc86d2dcbd77de1aa44404d8df18bab74afd9a862bad0357e0ebbb4335a"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/sitter-light-far.glb",
     "bytes": 14232,
-    "hash": "44d3a40621168a301cbab682f87b452ec294ddae8dae8b34b89765f1e2af5b8a"
+    "hash": "b615fe085c492ee3aa4d03ad341e4ed0abfbd26f4264423882c66811e19adf1e"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/sitter-light-mid12.glb",
     "bytes": 510072,
-    "hash": "ad580299d7b37ab50151953c01530bbdfd5fe0c458686792cafc212c59bbb0c1"
+    "hash": "aa8ffc957c0747ebc65146bdc209989e57556880bff7538e6824e69cca8c34b2"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/sitter-light-mid22.glb",
     "bytes": 504636,
-    "hash": "2b883f40f6887eae09a118333233e6e2ea9c8b2e0b52bf6e58089e0e54e3e486"
+    "hash": "7891d6c9d5a897556941ecc02691cb5991c9b2629ea7acdd3495a3883440b415"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/sitter-light.glb",
     "bytes": 514776,
-    "hash": "b929c00b9e65e45a5bfb621874d3d69c919f53997e70d24bf6b5ef92f663e059"
+    "hash": "825c00f54dba2a5ad395ea894319f17cb36bde93418e2c6ac3ebf7f161f6f952"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/walker-blue-far.glb",
     "bytes": 13488,
-    "hash": "e1bd61fbb0782d9a67a5707d90dc1ef4757dc3a7b095f63b4d1a67850bce747c"
+    "hash": "e2b86b1d0cd28dc74aa33963954f6c2330dd59d35399ec48145b36959efb3c0c"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/walker-blue-mid12.glb",
     "bytes": 438540,
-    "hash": "d64b6dbeab3e836d71c8f0fe9b5c7238a256f98d3aeafe046833eddc3968bea0"
+    "hash": "ada211298a919a7bab7da77df4924f615d553b6d0f376dfe9a6d9a2ebd328775"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/walker-blue-mid22.glb",
     "bytes": 435564,
-    "hash": "4642d7d2ea9183caadc26a5dcd2935cba12950b6f94db2107a733e0edf1207bc"
+    "hash": "45a3dfe58c1216ecd2bae387d80e233b2aea5c75357ef196321fe856a11513d8"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/walker-blue.glb",
     "bytes": 443496,
-    "hash": "d74d0ba70fd30c62995d7495f4352a7be1cac25ac41f4f7f2f2107a3d219b0f2"
+    "hash": "d38827760d665974c6bb0108460c514e61dbfb6e8620b8593a011cd958e87589"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/walker-dark-far.glb",
     "bytes": 13488,
-    "hash": "9d329fba887a732a2b65afc6e2984704570fdf0a0439ba79875b31da7601837e"
+    "hash": "28d3927a626ce811cd4e73f29652f0fc43bd8b7579ef150011b0fd3b7ad42f77"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/walker-dark-mid12.glb",
     "bytes": 438540,
-    "hash": "0f739829e73bf0e035703c929f935d9b2b00675dd4a162664cb0e31b628c70c5"
+    "hash": "5df2127ec942acb1d40158fa2afc2adb74ad0f6d63f99e2c2d59107c13c9eaab"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/walker-dark-mid22.glb",
     "bytes": 435564,
-    "hash": "abc448cdc0b2c6403feec9dbd129ba5f7e01fa2728419a2f6855a090b47032de"
+    "hash": "3353c5fb51cb5c8373d531b1453727b64b222129b507d9e60ed3c98897678b79"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/walker-dark.glb",
     "bytes": 443496,
-    "hash": "2cda07b5ef09a1ef009053df33db68b0c8dbd152edf349a6eaec9bcab5c5b484"
+    "hash": "c5427ba76375f2132a203a4a2c68bf2bf48009266f537ec9433d631c766fcaeb"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/walker-light-far.glb",
     "bytes": 13488,
-    "hash": "56d11303e75cee2ad0d958450caef7342f1321fbd2d266339bde013a7287a86a"
+    "hash": "51f68f7348c8e934c65434192d0beedfe996ca4e62949d3e6cfc6f9e5485aea0"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/walker-light-mid12.glb",
     "bytes": 438544,
-    "hash": "5a9c3c03cb8c7b0088872459be58977d95aa9798e359ac95ac392ed8ad836faf"
+    "hash": "321e8df0709fb102c206b5679a9b1dc5702ed9b2df7e934ee041e71ba1c4e162"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/walker-light-mid22.glb",
     "bytes": 435564,
-    "hash": "b470465aaf7c3563e589dce44306566f61ef884f88ae9ec61db4d5d2ef7a2961"
+    "hash": "b398468270ea09871d0e4292ad8c86fefb17b242c2c3c9c6ef2074603b7c2689"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/walker-light.glb",
     "bytes": 443500,
-    "hash": "d8a22a0ca1fc7323583e78a1108ad070b09e988f75c531a657752991c7e353e9"
+    "hash": "c3d6e968073efcda80b9027104bfb309e23e4a5cbae9f5aa6539c5b3067728e4"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/walker-oxblood-far.glb",
     "bytes": 13492,
-    "hash": "606dc7680e7739d36f850d5d61acff281caa5bd86c91b1c2b15a64b68593ea39"
+    "hash": "c73a156884802f3e90b46e89b81c74034d6d4c551d0e277ac7d16ce07279653e"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/walker-oxblood-mid12.glb",
     "bytes": 438548,
-    "hash": "4ba3706cf0518ae992b392f5b321484da792038d36dc9371d70c4d3d3212f711"
+    "hash": "52247af2b9468b8f204ffc115d9f6fd112c7b9cf803dd03e2735eb52df29f2e5"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/walker-oxblood-mid22.glb",
     "bytes": 435568,
-    "hash": "edad825d7d92a2ae944722beae6fcbcc645e6e57ab34b017c836d41eb76d5fdd"
+    "hash": "009840a83d89f9d53570e40142959ba577d5c8b279f1fb0fd0f9ad40741afab7"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/walker-oxblood.glb",
     "bytes": 443504,
-    "hash": "08a458d11a597c6eecf4a32d9860aac4acb276f8eb8c6121d72a9dd51414221d"
+    "hash": "15dc5adf77a2aecff2136aedda58044157b9f460d5f4d092513ddbf51e9c0bf7"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/walker-paper-far.glb",
     "bytes": 13488,
-    "hash": "1970a530497edee86d69a5e2a5a4759c59638a4ee98880144d1114eb2e89fd34"
+    "hash": "11aacaca2e7129d22967bb880eeeb62b8fc26b6088bcc49092d145f7a7f3e491"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/walker-paper-mid12.glb",
     "bytes": 438544,
-    "hash": "b51e5ad1714b185e539967feabe51eac27e22714ece1e6b932808410cd6de6da"
+    "hash": "cba9c2bccd8fe5ea2287feeef2b61ab2927e05a20916adc6b9992af89cfb1a59"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/walker-paper-mid22.glb",
     "bytes": 435564,
-    "hash": "605f5408b90734f73d63c2ee2f606390ab30a0de04243126a55e8f29b7f10b1c"
+    "hash": "fa98662383a48f18176630c8b7ddda0e9afefc4f2468a356d5054e98526c64ed"
   },
   {
     "path": "public/assets/nine-dragon/baked/casts/walker-paper.glb",
     "bytes": 443500,
-    "hash": "fb92f59763b03500366e28d4131f614c31ad37bb6dcaf33a6b5cd518cfc43cba"
+    "hash": "7c58a4de0b69276d764649ca8def6d943f77925cc17425abfd945397e9ec5763"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-dragon-hook-mid15.generated.glb",
-    "bytes": 626208,
-    "hash": "471e5afe0710d85746fa4ccc2e814b107678d0795e92b749333b5d8ecb4c8e40"
+    "bytes": 420636,
+    "hash": "8394d1195bf9ec9f8e0af16d089d2c08cee0180405737155d3612ab217293caa"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-dragon-hook-mid40.generated.glb",
-    "bytes": 622056,
-    "hash": "6549453fc946fd6a4f4a7198b9bf2c75db9dcbec6ddfad21cd51bd57e672ff49"
+    "bytes": 416480,
+    "hash": "c7703483d6bd51171ccf43ebaed8475834b7beb6f0912a3acd3f1c24c2650623"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-entries-capped.generated.glb",
-    "bytes": 145036,
-    "hash": "4bcc21ba31192aee3e64586cd7482f61ed4c6bf0830865dc3be80b5e5a7d1b54"
+    "bytes": 96300,
+    "hash": "b9d0a2edcfb00880b2a4cbc18b25b267f2fc43e55b6fefa0f89cd98c838db219"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-entries-open.generated.glb",
-    "bytes": 14828,
-    "hash": "1788e0f33010bdb850c192d08772de280d8a1e65bfba0823d785b5d449bf8a0a"
+    "bytes": 10472,
+    "hash": "c87803c9af37d0edbb01957e7b4e8da01e371f355e04a6c5ca473bc93847f866"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-facade-signs.generated.glb",
-    "bytes": 10696,
-    "hash": "efd0c545ca0f8aa44170bdf3517a2870ab4b6d088499c57074e50b93e13058a4"
+    "bytes": 7664,
+    "hash": "bedec4ecc002f6c115803b708358f9e4723f8c3d1a4fbf6c4d622f27b41dd7b7"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-guard.generated.glb",
-    "bytes": 325700,
-    "hash": "93d7fd8d6e02f05f53fc39d7290e55c04cc69edde98d3f39882158e0b474cb9e"
+    "bytes": 913548,
+    "hash": "928a3200e133da77c35d1abe87550a0591f44ba9c21e2713930bb1d761125b99"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-lion-mid10.generated.glb",
-    "bytes": 729204,
-    "hash": "95c55f0b5acd948c41c3948981373b8bbcdef92ae575e6e2a80a0840e8c138a7"
+    "bytes": 2065944,
+    "hash": "6eed9ce7f99e486eed1a4dcd068391f0aec27e44853e62d48153d272d7fea775"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-lion-mid30.generated.glb",
-    "bytes": 718860,
-    "hash": "d794f9b0e808bff3ef98999dd27ae616739304d20fee77bd76d0af4c39d2d8d1"
+    "bytes": 2035392,
+    "hash": "7a1cbd15bd9aad2843deeb4648ccc2a19b5d69942d627ba92ee9ae0489654224"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-lion.generated.glb",
-    "bytes": 734792,
-    "hash": "d2f8ac5c9929919be4a1d0a260e1c37b786a99a0089c8c84a21f9228c781c5cb"
+    "bytes": 2113320,
+    "hash": "9d23146952e2f1cb6b28ec85a913cb4ee796f18618ee032b49816722e774ffb7"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-sitter-dark-far.generated.glb",
-    "bytes": 7404,
-    "hash": "1632541eddf0a062aa5b1b79752ca1a78942a3fad959e0a2bd5b977491fcc377"
+    "bytes": 4180,
+    "hash": "66e351be9b82a4b18798b80e77528b40f34886f3e63eeff5353b0930103937eb"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-sitter-dark-mid12.generated.glb",
-    "bytes": 149948,
-    "hash": "2c123219c172f7cea98bc2743ffc5082b5ac5597e6a92fc71de623dd2884f9c4"
+    "bytes": 415052,
+    "hash": "d48af91dc759e821130489a1d57d371914442f466ae4053c3a996a61349a5996"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-sitter-dark-mid22.generated.glb",
-    "bytes": 148344,
-    "hash": "420a0b05108ea595b2ff09108f3c3f6f711cb3653d4e967986609fc5ed614b7f"
+    "bytes": 409616,
+    "hash": "94044a0464fe52e3df0e75f31bf27769a8799ea84184fbb55186cb81bc7ea5bd"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-sitter-dark.generated.glb",
-    "bytes": 149968,
-    "hash": "6052dfc72038b5be2abc1228733fe659b1924d5f6f52cad286d10578efa1cf39"
+    "bytes": 419756,
+    "hash": "ecace542068efa57929150bf800f1d8e107feddd1506522d8a443c7b67b86c32"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-sitter-light-far.generated.glb",
-    "bytes": 7384,
-    "hash": "620071d74437bfb470bd3d7a53c6b8cc71bc03ea718aaf3526b187469c557478"
+    "bytes": 4196,
+    "hash": "14fb11adc2126f920731b502e7dc2651111104176cc0f86c05fef67d575df656"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-sitter-light-mid12.generated.glb",
-    "bytes": 149916,
-    "hash": "f2ebbf7997bccb7994317ea0fa6aa5a45257b702f4cf7c199905b648e5740161"
+    "bytes": 415052,
+    "hash": "2871719f5768e5ebb070affeed2a4dc407aded1dc76efa42a45127565c38623f"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-sitter-light-mid22.generated.glb",
-    "bytes": 148308,
-    "hash": "a59530273b317b967d5b5e4b9e13c0a721de9a397720cbede63dc79ea456d37a"
+    "bytes": 409616,
+    "hash": "43a82c616e0232b6c4367a1453839bcdc67eff90045dfc9e161ecdb50e94a994"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-sitter-light.generated.glb",
-    "bytes": 149936,
-    "hash": "07b5381ce856a61ac569169064b876236c11050d40f7fb0fc9005c02d3130bc9"
+    "bytes": 419756,
+    "hash": "ddfe88acd6644ea66c57f88d273884eac5de8181379b3168ce38f8af89bc2e99"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-walker-blue-far.generated.glb",
-    "bytes": 7196,
-    "hash": "954d4a2c681fa9b4739d40bd5270b92609cb372c16bf5d6dbf2db7b4f7a7fda3"
+    "bytes": 4128,
+    "hash": "1df9d8657743e8658a3ce8365ed02ffb0f667c9e8c33bbbf0feb2449cc61a010"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-walker-blue-mid12.generated.glb",
-    "bytes": 128936,
-    "hash": "983ea9a2d0c93e5fcae779f0b0fb188bf7886d90ee14af47a23560ff2e81dd11"
+    "bytes": 356724,
+    "hash": "b7369dca38f87135aeade6b5b9a7943c814e5b5b21d731bab2bcb794fabfb82f"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-walker-blue-mid22.generated.glb",
-    "bytes": 128100,
-    "hash": "9269af1002417c5fbf09c10bc1215c0f60575e3074668764d174ef42881779c0"
+    "bytes": 353748,
+    "hash": "e55af35dad6c209c4fae52893bfde26a439df40b9440e2019dd2561c64754544"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-walker-blue.generated.glb",
-    "bytes": 129504,
-    "hash": "d12d40e2f5e463b40dddafde010b3b7807825d2aabe9604e401d6ef5c60779c8"
+    "bytes": 361680,
+    "hash": "39319e72432405f7662840491d672747846074c31b57a10d201e8f75fffd8f15"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-walker-dark-far.generated.glb",
-    "bytes": 7176,
-    "hash": "fccd8bfde791b566a305673b4520ef5ce3cbff1b568cb71e572e36a01e883943"
+    "bytes": 4124,
+    "hash": "42a883f6bb84b1ed10f146e04beb3a99610cd95491612c41b46a51d1e3f2151f"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-walker-dark-mid12.generated.glb",
-    "bytes": 128360,
-    "hash": "0039688fd8c3fb944b2e0b378ef47eefa84c86d82018822e877520ff5cd4df22"
+    "bytes": 356724,
+    "hash": "4c2291462aa9bdf0dc880195c08acb4d7815fb88f717ac4ebbfd26803bfb2575"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-walker-dark-mid22.generated.glb",
-    "bytes": 127524,
-    "hash": "ef65ce2ae6f2bcbd523da6b2eb109eb9c6478705d336bca24a59758ee2238072"
+    "bytes": 353748,
+    "hash": "ae0f11e376694854a02e6bc470cff922bebd270159ce6100ab3e89c78358b150"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-walker-dark.generated.glb",
-    "bytes": 128928,
-    "hash": "45c5d220a10ff7e9adf38c57f26cfbb2162a395f46761e3cfbb9981aa756a726"
+    "bytes": 361680,
+    "hash": "b0ecfa75e453c5c3d1881c47f903fda0e7abb53e487ee9380dd8a9f0412ce9e2"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-walker-light-far.generated.glb",
-    "bytes": 7164,
-    "hash": "48633b884e2036a608f544971edccf55454e6ae4209d1ea060a0c8167f5524f0"
+    "bytes": 4152,
+    "hash": "33f38338d1e0b67067d7c3f65f17b68a66c476a3cc08a990a6037dfd28b02140"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-walker-light-mid12.generated.glb",
-    "bytes": 128288,
-    "hash": "ef649761e26b92d6c32e72623411604375f30abc1b4494a40d27e31cc089e650"
+    "bytes": 356728,
+    "hash": "66d45ffb6158c21ce610fc14f64f560b89d2e91a285975b8dbf29ee191bc8398"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-walker-light-mid22.generated.glb",
-    "bytes": 127452,
-    "hash": "1eafdd4159fd1536923e3e2fc9a935914840c29c5ec9bc10676fe0551cc88d3a"
+    "bytes": 353748,
+    "hash": "ae04ea9893feeb5d73a9a4fa1e92ed0cf62605c05b1dad5e20169a54334096b3"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-walker-light.generated.glb",
-    "bytes": 128856,
-    "hash": "6e0693c1c34443960368285294027a2414f0637a1ec541c288b31011b72320d1"
+    "bytes": 361684,
+    "hash": "a30a8067162fd224664c123057a21a94c564e5cdb3ab1403c3a01861b433b206"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-walker-oxblood-far.generated.glb",
-    "bytes": 7200,
-    "hash": "850efc3ea58af009e005670915a32cc23a8b0d7d8d22c83448060b5645e36838"
+    "bytes": 4144,
+    "hash": "e27fa7ce7b6e2bad268bc6209963dd333f7f55c5a043f4d303166ddbf03e3c50"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-walker-oxblood-mid12.generated.glb",
-    "bytes": 128868,
-    "hash": "60ea78d4e13847d1a9d570c22e49b24442611a0b4e367c166485959e4371fa87"
+    "bytes": 356732,
+    "hash": "3de354d5b70a32a4dc4bb423b502d01e54fc4846eae4fa49c95b5d651b0ae447"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-walker-oxblood-mid22.generated.glb",
-    "bytes": 128032,
-    "hash": "1f962cadff2db471d84251d8cb4517593094528df7acbfe63631dc4dd5e11bf4"
+    "bytes": 353752,
+    "hash": "cb85ce405f86dd46b1121e2c17b2cc0e2b9a813025a5c963ed072cd5ac003b97"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-walker-oxblood.generated.glb",
-    "bytes": 129436,
-    "hash": "41df8b0b41a3a3e51871c46bd93302aa14ec6284f6709cdccc39d0324877c34b"
+    "bytes": 361688,
+    "hash": "ae067bb8374d718d16fd84bd3b7aad4d34ede724d5aa7d21ad2bb93dde29513b"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-walker-paper-far.generated.glb",
-    "bytes": 7188,
-    "hash": "6b658c1bcb919a6e2341eb87877615e40b50b056b8326ea5887bbd5953d2c9aa"
+    "bytes": 4160,
+    "hash": "06ac47c8ef81f81f57eb27895043f2f7b5deafe3c538c7e8e8b4c81bdeec7c07"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-walker-paper-mid12.generated.glb",
-    "bytes": 128804,
-    "hash": "043ddae581e1ecf758c97cf808c2b3084ad882bf2a9cb81faa470b6f93d68009"
+    "bytes": 356728,
+    "hash": "2ff7c1478175805d4e1e116c84efe88e0a5b355791dffca0f1bc671c9766139c"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-walker-paper-mid22.generated.glb",
-    "bytes": 127968,
-    "hash": "74123b1561232050afdc96afe73fa4b9401311c09ba2dd5dcdc62598e2ed598d"
+    "bytes": 353748,
+    "hash": "e6edf78529a71e04d9a212048725458d30d35d0ed0f57c6630d4d884ba21b5b3"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/cast-walker-paper.generated.glb",
-    "bytes": 129372,
-    "hash": "43376680c527a5c35b2e1f4010f3862c9fde193255583870518d4c7a55427f6c"
+    "bytes": 361684,
+    "hash": "02fd4b34c1995e4a04f23057455b3a8a1b4d26972c387b701099167a28f4ea60"
   },
   {
     "path": "src/shards/nine-dragon-stack/data/castHook.generated.glb",
