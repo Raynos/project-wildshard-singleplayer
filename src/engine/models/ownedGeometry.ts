@@ -27,14 +27,15 @@ function dequantizeIntoSpace(geometry: BufferGeometry, mesh: Mesh): void {
   geometry.applyMatrix4(mesh.matrixWorld);
 }
 /** A grid-quantized mesh (`gridQuantized`) as a plain identity-space copy: positions baked into the model's own space and
- *  every normalized integer channel (Int8 normals, Uint8 colours) decoded to Float32, for readers that take only ordinary
- *  Float32 meshes (the rest geometry pools); null for any other mesh, which those readers keep as it is. */
+ *  every other channel (normalized Int8 normals and Uint8 colours, and the interleaved views its writer shares) copied
+ *  to its own plain Float32 attribute, for readers that take only ordinary Float32 meshes (the rest geometry pools); null
+ *  for any other mesh, which those readers keep as it is. */
 export function identitySpaceGeometry(mesh: Mesh): BufferGeometry | null {
   if (!gridQuantized(mesh)) return null;
   const geometry = mesh.geometry.clone();
   dequantizeIntoSpace(geometry, mesh);
   for (const [name, attribute] of Object.entries(geometry.attributes)) {
-    if (name === 'position' || !attribute.normalized) continue;
+    if (name === 'position' || (attribute instanceof BufferAttribute && attribute.array instanceof Float32Array && !attribute.normalized)) continue;
     const out = new Float32Array(attribute.count * attribute.itemSize);
     for (let i = 0; i < attribute.count; i++) for (let c = 0; c < attribute.itemSize; c++) out[i * attribute.itemSize + c] = attribute.getComponent(i, c);
     geometry.setAttribute(name, new BufferAttribute(out, attribute.itemSize));

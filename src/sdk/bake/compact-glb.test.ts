@@ -115,9 +115,9 @@ it('a rest pool reads a compacted model back as its identity-space Float32 mesh'
   expect(identitySpaceGeometry(original)).toBeNull();
   const decoded = identitySpaceGeometry(compact); if (decoded === null) throw new Error('Missing decoded geometry');
   try {
-    for (const name of ['position', 'normal', 'color']) {
-      const attribute = decoded.getAttribute(name);
-      expect(attribute.array, name).toBeInstanceOf(Float32Array); expect(attribute.normalized, name).toBe(false);
+    // every channel, not only the quantized ones: the writer interleaves its views, and a rest pool takes plain Float32 only
+    for (const [name, attribute] of Object.entries(decoded.attributes)) {
+      expect(attribute, name).toBeInstanceOf(BufferAttribute); expect(attribute.array, name).toBeInstanceOf(Float32Array); expect(attribute.normalized, name).toBe(false);
     }
     const pa = original.geometry.getAttribute('position'), pb = decoded.getAttribute('position'), na = original.geometry.getAttribute('normal'), nb = decoded.getAttribute('normal');
     let worst = 0, normal = 0;
