@@ -97,12 +97,12 @@ it('keeps explicit phone, desktop and shared pack bodies separate in each admiss
  const assets=new Map(bodies.map(body=>[hashImmutableBytes(body),body])),hashes=[...assets.keys()];
  shard.files=[...assets].map(([hash,body])=>({hash,kind:'binary' as const,compressed:body.length,decoded:body.length,gpu:0,triangles:0,draws:0,dependencies:[],critical:false}));
  shard.library=hashes;shard.late=hashes.slice(3).map(hash=>({hash}));shard.budgets.library={resident:786_432,compressed:786_432};
- const namedFiles=shard.files.map((file,i)=>({...file,kind:'bin' as const,path:`blobs/bin/${file.hash}.bin`,
+ const namedFiles=shard.files.map((file,i)=>({...file,kind:'bin' as const,path:`blobs/bin/${file.hash}.bin`,name:`medium-${i}.bin`,
   ...(i%3===0?{}:{tier:i%3===1?'phone' as const:'desktop' as const})}));
  const index=writeOutputProduct(shard,assets,directory,{namedFiles});
  const packs=(index.packs??[]).filter(pack=>pack.entries.some(entry=>assets.has(entry.hash)));
  expect(packs).toHaveLength(6);
- expect(packs.flatMap(pack=>pack.entries.map(entry=>entry.hash)).sort()).toEqual(hashes.sort());
+ expect(packs.flatMap(pack=>pack.entries.map(entry=>entry.hash)).sort()).toEqual([...hashes].sort());
  for(const pack of packs)expect(pack.entries).toHaveLength(1);
  expect(validateOutputProduct(directory).shard).toEqual(shard);
 });
