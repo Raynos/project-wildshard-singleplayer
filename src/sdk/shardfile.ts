@@ -12,7 +12,10 @@ export function parseShardfile(input: unknown): Shardfile { return parse(input);
 /** Admit one owned/cached declaration field with its defining schema.
  * The complete assembled declaration still crosses parseShardfile's cross-field rules. */
 export function parseShardfileField<Key extends keyof Shardfile>(field: Key, input: unknown): Shardfile[Key] {
-  return v.parse(ShardfileFieldSchemas[field], input);
+  // The defining mapped table binds each key to this output. TS7 widens a
+  // generic index across the workspace declaration boundary to all fields.
+  const schema = ShardfileFieldSchemas[field] as v.GenericSchema<unknown, Shardfile[Key]>;
+  return v.parse(schema, input);
 }
 /** Inspect semantic author errors using the client contract. */
 export function shardfileRules(input: Shardfile): string[] { return rules(input); }
