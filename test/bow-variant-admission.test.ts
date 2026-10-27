@@ -3,7 +3,7 @@ import {parse} from 'valibot';
 import {BowVariantSchema,BowSourceMultipliersSchema} from '../src/format/bowVariantRows';
 import {sourceMultiplier} from '../src/engine/combat/effects/types';
 import effects from '../src/shards/nalati-grasslands/data/weaponEffects.json' with {type:'json'};
-import rows from '../src/shards/nalati-grasslands/boot/bowVariant.generated.json' with {type:'json'};
+import rows from '../src/shards/nalati-grasslands/boot/bowVariant.json' with {type:'json'};
 
 test('the variant baker preserves its admitted payload without native validation',()=>{
   expect(parse(BowVariantSchema,rows)).toEqual(rows);

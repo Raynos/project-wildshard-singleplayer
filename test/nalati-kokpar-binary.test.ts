@@ -30,8 +30,8 @@ test('the original quest and bow guest retains every metadata and module byte',(
   const programme=v.parse(v.record(v.string(),v.unknown()),metadata['program']);
   expect(hashImmutableBytes(new TextEncoder().encode(JSON.stringify({...metadata,program:{...programme,bytes:inline.bytes}})))).toBe('dd0e1fb5444bf4b1bb2bb1d35fdedb55d407956efc14666efd640b3fa9f3c70b');
   expect(wire.program).toEqual(kokparProgram);
-  const variant=v.parse(v.object({program:ReturnProgramSchema}),JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/bowVariant.generated.json','utf8')));
-  const slots=parseHeldSlots(JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/mountedLoadout.generated.json','utf8')));
+  const variant=v.parse(v.object({program:ReturnProgramSchema}),JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/bowVariant.json','utf8')));
+  const slots=parseHeldSlots(JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/mountedLoadout.json','utf8')));
   expect(variant.program).toEqual(wire.program);expect(variant.program.bytes).toBe('');
   expect(slots.upgrades.find(row=>row.kind==='bow')?.power?.rows.program).toEqual(wire.program);
   expect(hashImmutableBytes(Uint8Array.from(atob(stored.course.bytes),byte=>byte.codePointAt(0)??0))).toBe('6ffc72748c1709f4239ac983fdda5841a524a026512287fe16f0fa498b276102');

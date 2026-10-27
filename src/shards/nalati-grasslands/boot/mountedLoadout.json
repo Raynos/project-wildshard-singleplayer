@@ -1,0 +1,296 @@
+{
+  "version": 1,
+  "id": "nalati.arsenal",
+  "slots": [
+    {
+      "id": "blade",
+      "kind": "blade",
+      "item": "weapon.sabre",
+      "source": {
+        "kind": "passes",
+        "file": "weapons/sabre.json"
+      }
+    },
+    {
+      "id": "polearm",
+      "kind": "polearm",
+      "item": "weapon.spear",
+      "file": "weapons/spear.json"
+    },
+    {
+      "id": "bow",
+      "kind": "bow",
+      "item": "weapon.bow",
+      "file": "weapons/bow-page.json"
+    },
+    {
+      "id": "firearm",
+      "kind": "firearm",
+      "item": "weapon.rifle",
+      "file": "weapons/rifle-page.json",
+      "muzzleLight": true
+    }
+  ],
+  "registration": [
+    "bow",
+    "blade",
+    "polearm",
+    "firearm"
+  ],
+  "bindAt": "equipment",
+  "pause": true,
+  "equipment": {
+    "primary": "blade",
+    "rifle": "firearm",
+    "extras": [
+      "bow",
+      "polearm"
+    ],
+    "order": [
+      "bow",
+      "blade",
+      "polearm"
+    ]
+  },
+  "selection": {
+    "unlock": [
+      "bow",
+      "polearm"
+    ],
+    "initial": "bow"
+  },
+  "mount": [
+    "blade",
+    "polearm",
+    "bow"
+  ],
+  "refills": [
+    {
+      "slot": "polearm",
+      "kind": "fill-capacity"
+    },
+    {
+      "slot": "bow",
+      "kind": "add-magazine"
+    }
+  ],
+  "upgrades": [
+    {
+      "id": "bow-reward",
+      "slot": "bow",
+      "kind": "bow",
+      "replacement": {
+        "item": "weapon.golden-bow",
+        "name": "Golden Bow"
+      },
+      "power": {
+        "kind": "charged-pierce",
+        "rows": {
+          "id": "weapon.golden-bow",
+          "name": "Golden Bow",
+          "style": "golden",
+          "drawSpeed": 1.2,
+          "program": {
+            "script": {
+              "id": "nalati.kokpar",
+              "abi": "1.0",
+              "side": "sim",
+              "module": "blobs/wasm/9b537d68433363e0ab4e432ef35f73fcd799638b31be7c83d0a499042ef3557f.wasm",
+              "source": "behaviour/kokpar.as",
+              "binding": {
+                "shard": true
+              },
+              "pages": 1,
+              "onFail": "hold",
+              "on": [
+                "signal"
+              ],
+              "tick": null,
+              "reads": [
+                "field"
+              ],
+              "commands": [
+                "channel"
+              ],
+              "actors": {},
+              "moves": {},
+              "strikes": {},
+              "cues": {},
+              "fields": {
+                "bowPower": "bowPower",
+                "bowThreshold": "bowThreshold",
+                "bowBaseDamage": "bowBaseDamage",
+                "bowPierce": "bowPierce",
+                "bowCrush": "bowCrush",
+                "bowCrushScale": "bowCrushScale",
+                "bonded": "bonded",
+                "argymaq": "argymaq",
+                "inside": "inside",
+                "king": "king",
+                "tied": "tied",
+                "titan": "titan",
+                "clueStep": "clueStep",
+                "clue0": "clue0",
+                "clue1": "clue1",
+                "clue2": "clue2",
+                "feather0": "feather0",
+                "feather1": "feather1",
+                "feather2": "feather2",
+                "elite0": "elite0",
+                "felled0": "felled0",
+                "elite1": "elite1",
+                "felled1": "felled1",
+                "elite2": "elite2",
+                "felled2": "felled2",
+                "elite3": "elite3",
+                "felled3": "felled3",
+                "elite4": "elite4",
+                "felled4": "felled4",
+                "carrying": "carrying",
+                "left": "left",
+                "slow": "slow",
+                "cheer": "cheer",
+                "warned": "warned",
+                "dt": "dt",
+                "playerX": "playerX",
+                "playerZ": "playerZ",
+                "goatX": "goatX",
+                "goatZ": "goatZ",
+                "mounted": "mounted",
+                "horse": "horse",
+                "fast": "fast",
+                "practice": "practice",
+                "horseX": "horseX",
+                "horseZ": "horseZ"
+              },
+              "flags": {},
+              "zones": {},
+              "spots": {},
+              "targets": {},
+              "spawns": {},
+              "signals": {
+                "bow": "bow",
+                "step": "step",
+                "win": "win",
+                "quest": "quest",
+                "carving": "carving",
+                "feathers": "feathers"
+              },
+              "facts": {},
+              "rewards": {},
+              "channels": {
+                "bowSun": "bowSun",
+                "bowDamage": "bowDamage",
+                "carrying": "carrying",
+                "left": "left",
+                "slow": "slow",
+                "cheer": "cheer",
+                "warned": "warned",
+                "event": "event",
+                "pose": "pose",
+                "goal": "goal",
+                "warning": "warning",
+                "qBonded": "qBonded",
+                "qArgymaq": "qArgymaq",
+                "qInside": "qInside",
+                "qKing": "qKing",
+                "qTied": "qTied",
+                "qTitan": "qTitan",
+                "qClue0": "qClue0",
+                "qClue1": "qClue1",
+                "qClue2": "qClue2",
+                "qFeather0": "qFeather0",
+                "qNotice0": "qNotice0",
+                "qFeather1": "qFeather1",
+                "qNotice1": "qNotice1",
+                "qFeather2": "qFeather2",
+                "qNotice2": "qNotice2",
+                "qElite0": "qElite0",
+                "qElite1": "qElite1",
+                "qElite2": "qElite2",
+                "qElite3": "qElite3",
+                "qElite4": "qElite4"
+              },
+              "impulses": {},
+              "weather": {},
+              "timers": [],
+              "stateVersion": 1,
+              "state": [],
+              "params": {
+                "clues": 3,
+                "elites": 5,
+                "feathers": 3,
+                "homeX": -61,
+                "homeZ": 36,
+                "fieldRadius": 56,
+                "goal0X": -33.98672168270723,
+                "goal0Z": 29.1023776159839,
+                "goal1X": -88.01327831729277,
+                "goal1Z": 42.8976223840161
+              },
+              "sourceHash": "0ca1c3007c145cb8ff9f9af92b730aaf9dbc33e69157c2076d68df283f701431"
+            },
+            "bytes": ""
+          },
+          "signal": "bow",
+          "threshold": 0.95,
+          "pierce": 1.2,
+          "crush": 3,
+          "crushKinds": [
+            "balbal",
+            "kurgan-balbal"
+          ],
+          "sourceTag": "arrow.sun",
+          "damageScale": {
+            "base": [
+              1,
+              1
+            ],
+            "kinds": {
+              "balbal": [
+                2,
+                3
+              ],
+              "kurgan-balbal": [
+                2,
+                3
+              ]
+            }
+          },
+          "flight": {
+            "base": 30,
+            "draw": 28,
+            "offset": 0.55,
+            "step": 0.6,
+            "from": 2.5,
+            "gap": 1.2
+          },
+          "trail": {
+            "points": 48,
+            "width": [
+              0.018,
+              0.03
+            ],
+            "lifetime": 1.1,
+            "fade": 1.5,
+            "color": [
+              2.4,
+              1.6,
+              0.5
+            ],
+            "order": 16
+          }
+        }
+      }
+    },
+    {
+      "id": "blade-reward",
+      "slot": "blade",
+      "kind": "blade-pass",
+      "replacement": {
+        "item": "weapon.naizagai",
+        "name": "Naizagai"
+      }
+    }
+  ]
+}

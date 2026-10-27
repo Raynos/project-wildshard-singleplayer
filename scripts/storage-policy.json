@@ -63,6 +63,13 @@
       "bytes": 2278148,
       "kind": "runtime",
       "purpose": "G630 / G607 Nine Dragon's near view (every cell near): its 181 L0 tile meshes reduced to the near budget, 42,142 triangles, one draw, 4.56 MB resident; baked by scripts/bake/near-placeholder.mjs (the other shards' near bakes are 0.35-4.2 MB)"
+    },
+    {
+      "path": "public/assets/nalati/baked/6f362ed67dfffeb86ad47768a8e43a59267da96dee77914d0f9cf2af70b8e3ea.glb",
+      "oid": "cd945f42ce75fc0dd1af300f331a1f9ff1a513f0",
+      "bytes": 1514632,
+      "kind": "runtime",
+      "purpose": "Nalati recurve bow rest pool, the committed output of the standalone bake-recurve-pool.mjs tool (GR6), named by recurve-pool.json"
     }
   ]
 }

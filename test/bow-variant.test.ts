@@ -23,7 +23,7 @@ import * as native from '../src/game/plugin/headless';
 import * as launcher from '../src/game/weapons/heldLauncher';
 import * as geometry from '../src/game/plugin/geometry';
 import bowPage from '../public/assets/nalati/baked/recurve-pool.json' with {type:'json'};
-import rows from '../src/shards/nalati-grasslands/boot/bowVariant.generated.json' with {type:'json'};
+import rows from '../src/shards/nalati-grasslands/boot/bowVariant.json' with {type:'json'};
 import items from '../src/shards/nalati-grasslands/data/items.json' with {type:'json'};
 
 const NativeBow=bowBinding.Bow;

@@ -4,7 +4,7 @@ import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
 import PEOPLE from '../data/peopleVariants.json' with {type:'json'};
 import { peopleRows } from './peopleRows.mjs';
 import mountedSpecimen from '../data/mountedSpecimen.json' with {type:'json'};
-import gear from '../data/gear.generated.json' with {type:'json'};
+import gear from '../data/gear.json' with {type:'json'};
 
 /** the camp's five, each its own merged atlas (the live camp draws them as one) */
 const campAtlases = Object.fromEntries(PEOPLE.map(person => {

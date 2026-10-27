@@ -5,7 +5,7 @@ import { HeldClaims } from '../src/game/loadout/claims';
 import { heldSlotRows } from '../src/shards/nalati-grasslands/generators/heldSlots';
 import loadout from '../src/shards/nalati-grasslands/data/loadout.json' with {type:'json'};
 import variants from '../src/shards/nalati-grasslands/data/legendaryWeapons.json' with {type:'json'};
-import power from '../src/shards/nalati-grasslands/boot/bowVariant.generated.json' with {type:'json'};
+import power from '../src/shards/nalati-grasslands/boot/bowVariant.json' with {type:'json'};
 
 const authored={...loadout,variants:{bow:{id:`weapon.${variants.goldenBow.id}`,name:variants.goldenBow.name},blade:{id:`weapon.${variants.naizagai.id}`,name:variants.naizagai.name}}};
 test('the entered kit retains its authored native slots and reward identities',()=>{

@@ -1,4 +1,7 @@
-// Gear is constructed once offline; runtime cards and reward orbs decode rows.
+// A standalone asset tool (GR6, D2-style: it builds engine models in the bake environment, which the product build does
+// not have): run it by hand when gear changes; `--check` reports stale committed outputs. Its outputs are committed
+// authored inputs: public/assets/nalati/baked/gear-specimens.bin, data/gear.json and boot/{mountedLoadout,bowTrail,
+// bowVariant}.json. Gear is constructed once offline; runtime cards and reward orbs decode rows.
 import { readFileSync } from 'node:fs';
 import { isDeepStrictEqual } from 'node:util';
 import { parse } from 'valibot';
@@ -74,9 +77,9 @@ try {
   const loadout=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/loadout.json'),'utf8')),variants=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/legendaryWeapons.json'),'utf8'));
   loadout.variants=Object.fromEntries([['bow','goldenBow'],['blade','naizagai']].map(([name,key])=>[name,{id:`weapon.${variants[key].id}`,name:variants[key].name}]));
   // build-time data (generators read it; play code reads the product's models/gear-book.json); the loadout is its own file
-  writer.put(resolve(import.meta.dirname, '../data/gear.generated.json'), jsonBytes({ catalogue, materials, variants: JSON.parse(readFileSync(resolve(import.meta.dirname, '../data/legendaryWeapons.json'), 'utf8')),
+  writer.put(resolve(import.meta.dirname, '../data/gear.json'), jsonBytes({ catalogue, materials, variants: JSON.parse(readFileSync(resolve(import.meta.dirname, '../data/legendaryWeapons.json'), 'utf8')),
     packed: { bin: '/assets/nalati/baked/gear-specimens.bin', bytes: bytes.length, rows } }));
-  writer.put(resolve(import.meta.dirname,'../boot/bowTrail.generated.json'),jsonBytes(JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/bowTrail.json'),'utf8'))));
+  writer.put(resolve(import.meta.dirname,'../boot/bowTrail.json'),jsonBytes(JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/bowTrail.json'),'utf8'))));
   const variant=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/bowVariant.json'),'utf8'));
   variant.program=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/kokpar.generated.json'),'utf8')).program;
   const multipliers=parse(BowSourceMultipliersSchema,effects.multipliers);
@@ -99,10 +102,10 @@ try {
   variant.damageScale={base:scales(''),kinds:Object.fromEntries([...kinds].map(kind=>[kind,scales(kind)]))};
   variant.trail=JSON.parse(readFileSync(resolve(import.meta.dirname,'../data/bowTrail.json'),'utf8'));
   const admittedVariant=parse(BowVariantSchema,variant);
-  writer.put(resolve(import.meta.dirname,'../boot/mountedLoadout.generated.json'),jsonBytes(heldSlotRows(loadout,admittedVariant)));
+  writer.put(resolve(import.meta.dirname,'../boot/mountedLoadout.json'),jsonBytes(heldSlotRows(loadout,admittedVariant)));
   if(!isDeepStrictEqual(admittedVariant,variant))throw new Error('Bow variant must include its admitted defaults');
-  writer.put(resolve(import.meta.dirname,'../boot/bowVariant.generated.json'),jsonBytes(variant));
-  writer.put(resolve(import.meta.dirname,'../boot/bowVariant.generated.d.json.ts'),"declare const variant: import('@wildshard/format/bowVariantRows').BowVariantRows;\nexport default variant;\n");
+  writer.put(resolve(import.meta.dirname,'../boot/bowVariant.json'),jsonBytes(variant));
+  writer.put(resolve(import.meta.dirname,'../boot/bowVariant.d.json.ts'),"import type { BowVariantRows } from '@wildshard/format/bowVariantRows';\n\n/** The bow variant rows (bake-gear.mjs writes them; a committed authored input since GR6). */\ndeclare const variant: BowVariantRows;\n// oxlint-disable-next-line import/no-default-export -- TypeScript requires a default declaration for this JSON module.\nexport default variant;\n");
   writer.finish();
 } finally { environment.dispose(); }
 

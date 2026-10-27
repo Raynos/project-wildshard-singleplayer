@@ -4,7 +4,7 @@ import { Scope } from '../src/engine/app/scope';
 import { HeldClaims } from '../src/game/loadout/claims';
 import * as geometry from '../src/game/plugin/geometry';
 import { heldSlotRows } from '../src/shards/nalati-grasslands/generators/heldSlots';
-import power from '../src/shards/nalati-grasslands/boot/bowVariant.generated.json' with {type:'json'};
+import power from '../src/shards/nalati-grasslands/boot/bowVariant.json' with {type:'json'};
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { declaredClientPlanEntry } from '../src/game/shard/declaredEntry';

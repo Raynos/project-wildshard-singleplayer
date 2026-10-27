@@ -5,7 +5,7 @@ import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { COVER_INPUTS, coverBinName, nalatiCoverBake, type NalatiCover } from './coverBake.mjs';
-import gear from '../data/gear.generated.json' with {type:'json'};
+import gear from '../data/gear.json' with {type:'json'};
 import { reinsCardBinary } from './reinsCard';
 
 /** the flock's sheep: the painted model (generators/bake-model-paint.mjs) in the painted creatures' material */

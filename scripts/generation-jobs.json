@@ -2295,40 +2295,6 @@
       ]
     },
     {
-      "id": "nalati-recurve-pool",
-      "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-recurve-pool.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-recurve-pool.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/nalati-grasslands/data/armsStyle.json",
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/format",
-        "src/shards/nalati-grasslands/generators/bake-recurve-pool.mjs",
-        "src/shards/nalati-grasslands/generators/recurvePool.ts",
-        "src/shards/nalati-grasslands/data/items.json",
-        "scripts/bake-loader.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
-      ],
-      "outputs": [
-        "public/assets/nalati/baked/6f362ed67dfffeb86ad47768a8e43a59267da96dee77914d0f9cf2af70b8e3ea.glb",
-        "public/assets/nalati/baked/recurve-pool.json"
-      ],
-      "platform": "portable",
-      "buildTimeOutputs": [
-        "public/assets/nalati/baked/6f362ed67dfffeb86ad47768a8e43a59267da96dee77914d0f9cf2af70b8e3ea.glb",
-        "public/assets/nalati/baked/recurve-pool.json"
-      ]
-    },
-    {
       "id": "driftwood-ground",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-driftwood-ground.mjs",
@@ -3369,72 +3335,6 @@
         "src/shards/nalati-grasslands/data/eliteCharge.generated.json",
         "src/shards/nalati-grasslands/data/night.generated.json",
         "src/shards/nalati-grasslands/behaviour/elite-charge.generated.wasm"
-      ],
-      "platform": "portable"
-    },
-    {
-      "id": "nalati-gear-specimens",
-      "shard": "nalati-grasslands",
-      "catalogueDependencies": [
-        "nalati-recurve-pool",
-        "nalati-kokpar"
-      ],
-      "entry": "src/shards/nalati-grasslands/generators/bake-gear.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./scripts/bake-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-gear.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/nalati-grasslands/data/armsStyle.json",
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/format",
-        "src/commons",
-        "src/shards/nalati-grasslands/generators/bake-gear.mjs",
-        "src/shards/nalati-grasslands/generators/heldSlots.ts",
-        "src/shards/nalati-grasslands/generators/gear.ts",
-        "src/shards/nalati-grasslands/generators/weaponRewards.ts",
-        "src/shards/nalati-grasslands/generators/sabre.ts",
-        "src/shards/nalati-grasslands/generators/spear.ts",
-        "src/shards/nalati-grasslands/generators/meleeGeo.ts",
-        "src/shards/nalati-grasslands/generators/geometryWriter.ts",
-        "src/shards/nalati-grasslands/data/items.json",
-        "src/shards/nalati-grasslands/data/heldRifle.json",
-        "public/assets/nalati/baked/recurve-pool.json",
-        "scripts/bake/environment.mjs",
-        "scripts/bake-loader.mjs",
-        "scripts/bake-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "src/shards/nalati-grasslands/data/legendaryWeapons.json",
-        "scripts/gen-starter-effects.mjs",
-        "scripts/gen-starter-bag.mjs",
-        "src/shards/nalati-grasslands/data/weaponEffects.json",
-        "public/assets/nalati/baked/6f362ed67dfffeb86ad47768a8e43a59267da96dee77914d0f9cf2af70b8e3ea.glb",
-        "src/shards/nalati-grasslands/data/loadout.json",
-        "src/shards/nalati-grasslands/data/bowTrail.json",
-        "src/shards/nalati-grasslands/data/bowVariant.json",
-        "src/shards/nalati-grasslands/data/kokpar.generated.json"
-      ],
-      "outputs": [
-        "public/assets/nalati/baked/gear-specimens.bin",
-        "src/shards/nalati-grasslands/data/gear.generated.json",
-        "src/shards/nalati-grasslands/boot/mountedLoadout.generated.json",
-        "src/shards/nalati-grasslands/boot/bowTrail.generated.json",
-        "src/shards/nalati-grasslands/boot/bowVariant.generated.json",
-        "src/shards/nalati-grasslands/boot/bowVariant.generated.d.json.ts"
-      ],
-      "buildTimeOutputs": [
-        "public/assets/nalati/baked/gear-specimens.bin",
-        "src/shards/nalati-grasslands/data/gear.generated.json",
-        "src/shards/nalati-grasslands/boot/mountedLoadout.generated.json",
-        "src/shards/nalati-grasslands/boot/bowTrail.generated.json",
-        "src/shards/nalati-grasslands/boot/bowVariant.generated.json",
-        "src/shards/nalati-grasslands/boot/bowVariant.generated.d.json.ts"
       ],
       "platform": "portable"
     },

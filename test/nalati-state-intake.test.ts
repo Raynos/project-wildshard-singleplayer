@@ -54,7 +54,7 @@ test('the shipped world assembly King intake retains its attack owner before wea
   if(assembly?.native===undefined)throw new Error('Missing native assembly feature');
   expect(plan.features.filter(row=>row.kind==='weather.forest')).toEqual([{kind:'weather.forest',file:'world/forest-weather.json',owner:'nalati.weather',hud:true}]);
   expect(await product.json('world/forest-weather.json')).toEqual(v.parse(ForestWeatherSchema,NALATI_WEATHER_PAGE));
-  const slotRows:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/mountedLoadout.generated.json','utf8'));
+  const slotRows:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/mountedLoadout.json','utf8'));
   expect(parseHeldSlots(await product.json('held/slots.json'))).toEqual(parseHeldSlots(slotRows));
   const fight=v.parse(v.object({programs:v.record(v.string(),v.unknown())}),await product.json('combat/titan-fight.json'));
   expect(Object.keys(fight.programs)).toStrictEqual(['attack','wind']);

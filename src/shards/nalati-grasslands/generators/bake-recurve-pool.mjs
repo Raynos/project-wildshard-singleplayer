@@ -1,3 +1,5 @@
+// A standalone asset tool (GR6, D2-style, with bake-gear.mjs, which reads its outputs): run it by hand when the recurve
+// bow changes; its committed outputs are public/assets/nalati/baked/recurve-pool.json and the pool GLB it names.
 import {createHash} from 'node:crypto';
 import {mkdirSync,writeFileSync,readFileSync} from 'node:fs';
 import {recurvePool} from './recurvePool.ts';

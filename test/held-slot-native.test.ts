@@ -5,7 +5,7 @@ import { MountedArsenal, VariantBowPower } from './fixtures/originalMountedArsen
 import * as THREE from 'three';
 import { bindEquipmentActors } from '../src/game/loadout/actors';
 import type { AnimalManager } from '../src/engine/entities/AnimalManager';
-import variant from '../src/shards/nalati-grasslands/boot/bowVariant.generated.json' with { type:'json' };
+import variant from '../src/shards/nalati-grasslands/boot/bowVariant.json' with { type:'json' };
 import { Scope } from '../src/engine/app/scope';
 import type { Targets } from '../src/engine/combat/types';
 import type { EquipmentService } from '../src/engine/combat/EquipmentService';
