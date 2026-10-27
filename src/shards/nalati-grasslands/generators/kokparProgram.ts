@@ -45,10 +45,11 @@ export function nalatiKokparWire(text: string): NalatiKokpar {
     || !object(compiled, ['source', 'bytes', 'courseBytes']) || compiled['source'] !== NALATI_KOKPAR_MODULE
     || typeof compiled['bytes'] !== 'number' || !Number.isSafeInteger(compiled['bytes']) || compiled['bytes'] < 1
     || typeof compiled['courseBytes'] !== 'number' || !Number.isSafeInteger(compiled['courseBytes']) || compiled['courseBytes'] < 1
-    || !point(home) || !Array.isArray(goals) || !goals.every(point) || !messages(notices)) throw new Error('Invalid cached kokpar rows');
+    || !point(home) || !Array.isArray(goals) || goals.length !== 2 || !goals.every(point) || !messages(notices)) throw new Error('Invalid cached kokpar rows');
   const scripts = parseDecisionScripts([program['script'], courseProgram['script']]);
   const round = scripts[0], course = scripts[1];
-  if (round === undefined || course === undefined || round.id !== 'nalati.kokpar' || course.id !== 'practice.course') throw new Error('Invalid cached kokpar scripts');
+  if (round === undefined || course === undefined || round.id !== 'nalati.kokpar' || course.id !== 'practice.course'
+    || round.source !== 'behaviour/kokpar.as' || course.source !== 'behaviour/course.as' || round.pages !== 1 || course.pages !== 1) throw new Error('Invalid cached kokpar scripts');
   return { program: { script: round, bytes: '' }, compiled: { source: compiled['source'], bytes: compiled['bytes'], courseBytes: compiled['courseBytes'] },
     course: { script: course, bytes: '' }, home, goals, messages: notices };
 }

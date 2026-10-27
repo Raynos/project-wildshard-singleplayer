@@ -1,3 +1,4 @@
+import { nalatiKokparWire } from '../src/shards/nalati-grasslands/generators/kokparProgram';
 import { expect, test } from 'vitest';
 import { NALATI_CURRENT_KOKPAR, NALATI_KOKPAR, NALATI_COURSE_WASM } from './fixtures/nalati-kokpar';
 import { NALATI_ADMISSION } from './fixtures/nalati-admission';
@@ -48,4 +49,16 @@ test('the raw course preserves original projections and refuses absent, foreign 
     owner.dispose();
     expect(() => raw.project('courseStep', fields)).toThrow('disposed');
   } finally { owner.dispose(); foreign.dispose(); }
+});
+
+test('the raw course cache refuses inline, incomplete and changed executable contracts', () => {
+  const rows = NALATI_CURRENT_KOKPAR;
+  for (const invalid of [
+    { ...rows, course: { ...rows.course, bytes: NALATI_KOKPAR.course.bytes } },
+    { ...rows, goals: [] },
+    { ...rows, compiled: { ...rows.compiled, courseBytes: -1 } },
+    { ...rows, compiled: { ...rows.compiled, source: 'changed.wasm' } },
+    { ...rows, course: { ...rows.course, script: { ...rows.course.script, pages: 2 } } },
+    { ...rows, program: { ...rows.program, script: { ...rows.program.script, source: 'behaviour/changed.as' } } },
+  ]) expect(() => nalatiKokparWire(JSON.stringify(invalid))).toThrow();
 });
