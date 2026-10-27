@@ -60,6 +60,7 @@ import { ArenaSceneView, CloudBody, type PatrolEncounterView } from './encounter
 import { ARENA_BURNT_PER_FRAME, ARENA_VIEW, arenaChainTell } from '@wildshard/format/arenaView';
 import {entryOwner, lateEntryOwner, presentEntryOwner} from '../shardfile/entryOwners';
 import { lendViewArray, lendViewCell, lendViewDraw, lendViewFrame, lendViewTell, lendViewValues } from '../shardfile/clientViewProgram';
+import { prepareLentLooks } from '../shardfile/lentLooks';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { GroundTell } from '../Elite';
 import type { ArcWeaponPower } from '../weapons/arcPower';
@@ -1235,6 +1236,9 @@ async function buildOpenArenaEncounter(ports: {readonly scope:Scope;readonly wea
   // constructor reads (one Nalati world-hook frame held the read, both admissions and the views: 136 ms at phone 4x)
   for (const program of [data.programs.attack, data.programs.wind]) { await buildYield(owner); constructionLive(); ReturnProgram.page(program, owner); }
   await buildYield(owner); constructionLive();
+  // its fire and cloud looks compile a build step each first: inside the constructor they shared one frame (~50 ms of a
+  // 133 ms Nalati world-hook frame at phone 4x)
+  await prepareLentLooks([data.arenaFire.flameLook, data.arenaFire.smokeLook, data.geometry.body.puffs.look]); constructionLive();
   const encounter = new ArenaRoomEncounter({kind:'open',world:{game,player,
     get weather() { return weatherOwner().storm; }, get air() { return weatherOwner().air; },tieSpot:point},rows:data}); constructionLive();
   ctx.answer('weather.storm-hold', held => Math.max(held, Number(encounter.engaged))); constructionLive();
