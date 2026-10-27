@@ -8,7 +8,7 @@ import { TIER } from '@wildshard/engine/core/tier';
 import { ForagerDrawSchema } from '@wildshard/format/ambientLife';
 import { SpecimenBookSchema } from '@wildshard/format/specimenCatalogue';
 import { WildlifePopulationSchema } from '@wildshard/format/wildlifePopulation';
-import { createPackedSpecimens } from '../models/specimenCatalogue';
+import { createPackedSpecimens, prepareSpecimenCatalogue } from '../models/specimenCatalogue';
 import type { ShardContext } from '../plugin/context';
 
 /** Project the actual native population's due poses without advancing its clock.
@@ -43,7 +43,8 @@ export async function prepareForagerDraw(ctx:ShardContext,input:unknown):Promise
   if(row===undefined||world===undefined||world===null)throw new Error('Missing native forager presentation');
   const book=v.parse(SpecimenBookSchema,await ctx.product.json(row.books[TIER]));
   if(book.packed===undefined)throw new Error('Forager specimen book is not packed');
-  const packed=createPackedSpecimens(book.packed);
+  // a product-file pack is read through the product, inflated and checked like every other specimen pack
+  const packed=createPackedSpecimens(book.packed,await prepareSpecimenCatalogue(ctx.product,[],ctx.scope,[book.packed]));
   await packed.load();
   const part=packed.parts(row.model,modelContext(world.sky),book.materials)?.[0];
   if(part===undefined)throw new Error('Missing prepared forager geometry');
