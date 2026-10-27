@@ -58,6 +58,10 @@ function* mergeSteps(root: Object3D): Generator<void, { readonly geometries: rea
       const parts: BufferGeometry[] = [];
       for (const member of members) {
         member.updateMatrix(); const copy = member.geometry.clone(); temporary.add(copy);
+        // These copies are private merge inputs, never drawn. Transform only
+        // their attributes; the merged result gets exact bounds below. Keeping
+        // cloned bounds here rescans every member before scanning the union.
+        copy.boundingBox = null; copy.boundingSphere = null;
         copy.applyMatrix4(member.matrix); parts.push(copy); yield;
       }
       // typed non-null, but null on a layout mismatch

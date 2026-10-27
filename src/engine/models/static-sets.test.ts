@@ -50,3 +50,29 @@ test('failed bounds pause disposes unpublished copies without freeing borrowed i
     expect(sourceDisposed).not.toHaveBeenCalled(); expect(f.root.children).toEqual([f.first, f.second]);
   } finally { dispose.mockRestore(); f.geometry.dispose(); f.material.dispose(); }
 });
+
+
+test('bounded sources transform once and only the merged geometry computes final bounds', async () => {
+  const f = fixture();
+  f.geometry.setAttribute('normal', new BufferAttribute(new Float32Array(f.geometry.getAttribute('position').count * 3).fill(0.25), 3));
+  f.geometry.computeBoundingBox(); f.geometry.computeBoundingSphere();
+  const sourceBox = f.geometry.boundingBox, sourceSphere = f.geometry.boundingSphere;
+  const originalBox = sourceBox?.clone(), originalSphere = sourceSphere?.clone();
+  const parts = [f.first, f.second].map(mesh => { mesh.updateMatrix(); return mesh.geometry.clone().applyMatrix4(mesh.matrix); });
+  const expected = mergeGeometries(parts, false);
+  expected.computeBoundingBox(); expected.computeBoundingSphere();
+  for (const part of parts) part.dispose();
+  const box = vi.spyOn(BufferGeometry.prototype, 'computeBoundingBox'), sphere = vi.spyOn(BufferGeometry.prototype, 'computeBoundingSphere');
+  try {
+    const result = await mergeStaticSiblingsSliced(f.root, { due: () => false, yield: () => Promise.resolve(), check: () => undefined });
+    const merged = result.geometries[0];
+    if (merged === undefined) throw new Error('Missing merged geometry');
+    expect(box).not.toHaveBeenCalled(); expect(sphere).not.toHaveBeenCalled();
+    expect(merged.getAttribute('position').array).toEqual(expected.getAttribute('position').array);
+    expect(merged.getAttribute('normal').array).toEqual(expected.getAttribute('normal').array);
+    expect(merged.boundingBox).toEqual(expected.boundingBox); expect(merged.boundingSphere).toEqual(expected.boundingSphere);
+    expect(f.geometry.boundingBox).toBe(sourceBox); expect(f.geometry.boundingSphere).toBe(sourceSphere);
+    expect(sourceBox).toEqual(originalBox); expect(sourceSphere).toEqual(originalSphere);
+    merged.dispose();
+  } finally { box.mockRestore(); sphere.mockRestore(); expected.dispose(); f.geometry.dispose(); f.material.dispose(); }
+});
