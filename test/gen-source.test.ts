@@ -5,6 +5,7 @@ import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSy
 // oxlint-disable-next-line import/no-nodejs-modules -- Run the actual plain runner against an invalid isolated registry.
 import { spawnSync } from 'node:child_process';
 import { expect, test } from 'vitest';
+import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
 import { manifestClosure, shardSource } from '../scripts/gen-shards.mjs';
 import { genSource } from '../scripts/gen-source.mjs';
 import { SOURCE_GENERATORS, selectSourceGenerators } from '../scripts/source-generators.mjs';
@@ -144,6 +145,14 @@ test('the committed closure follows authored static edges with no product or dis
       'src/shards/island/data/runtimeCost.json', 'src/shards/island/discovery.generated.ts',
       'src/shards/island/extra.webp', 'src/shards/island/manifest.json',
     ] });
+    const emitted = authoredManifestSource(root, 'island', { metadataOnly: true, discovery: {
+      budgets: {}, 'boot.explore': { art: ['/src/shards/island/extra.webp'] },
+    } });
+    expect(emitted).toContain('import binding0 from "./data/runtimeCost.json" with { type: \'json\' };');
+    expect(emitted).toContain('import image1 from "./extra.webp"');
+    expect(() => authoredManifestSource(root, 'island', { metadataOnly: true, discovery: {
+      budgets: {}, 'boot.explore': { art: ['/src/shards/island/unlisted.webp'] },
+    } })).toThrow('declared static imports differ from discovery');
     write('src/game/shard/visible.ts', "import './added';export const visible=true;");
     write('src/game/shard/added.ts', 'export const added=true;');
     expect(manifestClosure(root)['island']).toContain('src/game/shard/added.ts');
