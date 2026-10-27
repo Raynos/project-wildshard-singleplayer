@@ -79,7 +79,7 @@ import { prepareShardAssets } from '../shard/load';
 import { toLevelSpec } from '../shard/spec';
 import { prepareRegionalInputs } from './regionalInputs';
 import { regionalBuildCheckpoint } from './regionalBuildCheckpoint';
-import { timeClientPreparation } from '../shardfile/preparationTiming';
+import { clientPreparationBatch, timeClientPreparation } from '../shardfile/preparationTiming';
 import type { ShardWorld } from '../shard/world';
 import type { RegionalRuntimeFoundation, RegionalRuntimePage, RegionalRuntimeRequest, RegionalRuntimeTextures } from './regionalRuntime';
 import { frameLookOf, lookChainKind, regionChain, regionGrade, replacedKnobs, wholeChainKnobs, type FrameLookPort } from './frameLook';
@@ -255,12 +255,15 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
     // the look and roster loaders read the cell's admitted product (the one its ShardContext gets), never shard.config
     const product=ports.level===undefined||request.manifest.scalarBlocks!==undefined
       ?shardProductFromAdmission(request.admitted,request.scope):undefined;
-    if(product!==undefined)await prepareManifestScalarBlocks(request.manifest,product,request.scope);
+    // G782: Developer pages time each native foundation wait (`wildshard.prepare:<slug>:native.<step>`) beside its whole span
+    if(product!==undefined)await timeClientPreparation(request.manifest.slug,'native.scalar-blocks',()=>prepareManifestScalarBlocks(request.manifest,product,request.scope));
     const level = ports.level === undefined ? toLevelSpec(hasDeclaredClientPage(request.admitted.source) ? { ...request.manifest, ground: clientPageGround(request.admitted.source, request.admitted.assets) } : request.manifest, product) : ports.level(request.manifest);
     const { slug: identity } = request.manifest;
     if (level.id !== identity) throw new Error('Regional level identity differs from its trusted manifest');
     const resident = request.scope.child(`grid.world:${cell.instance}`), left = (): boolean => resident.disposed;
-    const checkpoint = regionalBuildCheckpoint(resident, ports.pause);
+    const pausePoint = regionalBuildCheckpoint(resident, ports.pause);
+    let pauses = clientPreparationBatch(identity, 'native.checkpoints', ['pause']);
+    const checkpoint = (): Promise<void> => (pauses === undefined ? pausePoint() : pauses.run('pause', pausePoint));
     const textures = request.textures ?? resolveRegionalRuntimeTextures(request.manifest);
     // Exclusive runtime construction has retired the source. Keep the destination's policy through asynchronous
     // setup, then restore the page on the road. Entered frame scopes reinstall this same resolved policy for hooks.
@@ -273,7 +276,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
     let presentationReady: Promise<[PromiseSettledResult<RegionalPresentationInputs>]> | undefined;
     ownSceneTree(scene, resident, app.assets);
     try {
-      await prepareShardAssets(request.manifest, registerGpuFiles);
+      await timeClientPreparation(identity, 'native.shard-assets', () => prepareShardAssets(request.manifest, registerGpuFiles));
       if (left()) throw new Error('Regional world left while registering its texture stand-ins');
       // M3 tiles-swap: the admitted product's reader for the resident runtime (a painter that binds its compiled tiles reads
       // it), handed over first: the level's declared navigation and a required manifest ground are that product's own files
@@ -293,7 +296,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       // This bodyless shell has no ground, entities or player motor yet. Its
       // native initialization can overlap product-backed navigation/look reads;
       // no height query or collider is published until the frame binds below.
-      const [inputs, simulation] = await Promise.allSettled([
+      const [inputs, simulation] = await timeClientPreparation(identity, 'native.inputs', () => Promise.allSettled([
         prepareRegionalInputs(level, resident, navigation === undefined ? undefined : () => navigation(level),
           look => prepareWorldLook(look, { renderer: game.renderer, sky, scope: resident })),
         Promise.resolve().then(() => {
@@ -301,7 +304,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           return withOwner(resident, () => createSimHost(simLevel(level), { rapier: ports.rapier, playerBody: false, ground: false,
             heightAt: (x, z) => field().heightAt(x, z), scope: resident }));
         }),
-      ]);
+      ]));
       // Drain both before teardown. Navigation/look keeps its original failure
       // precedence; every successful shell is already owned by resident.
       if (inputs.status === 'rejected') throw inputs.reason;
@@ -320,23 +323,23 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       terrainBinding.current = frame.terrain;
       // Required manifest ground must enter before collision sampling or native home construction.
       if (bakedTerrainSource(frame.terrain.base) !== null) {
-        await loadBakedTerrain(frame.terrain);
+        await timeClientPreparation(identity, 'native.baked-ground', () => loadBakedTerrain(frame.terrain));
         if (left()) throw new Error('Regional world left while loading its required ground');
       }
       // The real ground of the region's level, sampled from its own bound heightfield (never the home's).
-      const groundGrid = await slicedTerrainGrid((rows) => frame.run(app, rows), left);
+      const groundGrid = await timeClientPreparation(identity, 'native.ground-grid', () => slicedTerrainGrid((rows) => frame.run(app, rows), left));
       frame.run(app, () => { addTerrain(host.physics, groundGrid); });
       ports.install?.(host, request);
       await checkpoint();
       if (left()) throw new Error('Regional world left while building its collision');
-      const terrain = ports.terrain === undefined ? await regionalTerrain(level, resident, frame.terrain, levelLook) : await ports.terrain(level, resident, frame.terrain);
+      const terrain = await timeClientPreparation(identity, 'native.terrain', () => (ports.terrain === undefined ? regionalTerrain(level, resident, frame.terrain, levelLook) : ports.terrain(level, resident, frame.terrain)));
       await checkpoint();
       if (left()) throw new Error('Regional world left while building its terrain');
       const pendingPresentation = presentationReady;
       const [presentationInput] = await timeClientPreparation(identity, 'native.presentation-wait', () => pendingPresentation);
       if (presentationInput.status === 'rejected') throw presentationInput.reason;
       if (left() || resident.disposing) throw new Error('Regional world left before binding its presentation');
-      const presented = await regionalPresentation(request.admitted, request.entryPoint ?? request.manifest.spawn, scene, game.renderer, resident, () => game.sky.dayNight?.hour ?? null, request.allocator, cell.instance, sky, presentationInput.value, ports.tiles);
+      const presented = await timeClientPreparation(identity, 'native.presentation', () => regionalPresentation(request.admitted, request.entryPoint ?? request.manifest.spawn, scene, game.renderer, resident, () => game.sky.dayNight?.hour ?? null, request.allocator, cell.instance, sky, presentationInput.value, ports.tiles));
       if (left()) throw new Error('Regional world left while drawing its presentation ground');
       // a painter that bound its own ground (its compiled collider) moves the collision built above onto it
       if (terrain.groundBound) frame.run(app, () => { resampleTerrain(host.physics); });
@@ -345,7 +348,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       // Debug ▸ Ground tiles (P1/P2): a splat ground draws from its props tiles; the region's whole native ground mesh retires
       if (splatGroundDrawn(request.admitted.source.props)) terrain.retireMesh();
       const trees = level.trees?.factory;
-      const factory = typeof trees === 'function' ? await (await trees())(game.renderer, sky) : new TreeFactory(game.renderer).buildEmpty();
+      const factory = typeof trees === 'function' ? await timeClientPreparation(identity, 'native.tree-factory', async () => (await trees())(game.renderer, sky)) : new TreeFactory(game.renderer).buildEmpty();
       await checkpoint();
       if (left()) throw new Error('Regional world left while building its trees');
       const forest = frame.run(app, () => new Forest(factory, sky).build({ drawnBy: level.trees?.drawnBy ?? 'self' }));
@@ -355,7 +358,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       if (left()) throw new Error('Regional world left while building its forest');
       // its look's sky dressing reads the cloud field at composition: the common bake arrives first, never a marched fbm
       if (levelLook?.sky?.build !== undefined && sky instanceof SkyRig) {
-        await sky.loadCloudField();
+        await timeClientPreparation(identity, 'native.cloud-field', () => sky.loadCloudField());
         if (left()) throw new Error('Regional world left while loading its cloud field');
       }
       const ground = { heightAt: (x: number, z: number): number => field().heightAt(x, z), waterSurfaceAt: (x: number, z: number): number | null => water.restAt(x, z) };
@@ -539,6 +542,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           }
         },
       };
+      pauses?.finish(); pauses = undefined; // the foundation's own checkpoints; its hooks' later ones are not timed
       census.set(foundation, () => {
         const native = resident.disposed ? { bodies: 0, colliders: 0 } : { bodies: host.physics.world.bodies.len(), colliders: host.physics.world.colliders.len() };
         return { ...native, sceneBound: bound > 0, parented: scene.parent !== null, disposed: resident.disposed };
