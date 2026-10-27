@@ -12,7 +12,6 @@ import { pwaPlugin } from './vite/pwa-plugin';
 import { hashTree } from './scripts/app-build/assetHashes';
 import { rapierAlias, rapierPreviewPlugin } from './vite/rapier';
 import { assetIndex } from './scripts/app-build/gen';
-import { backdropPrefixPlugin } from './vite/backdropPrefix';
 import { chunkReport } from './vite/chunkReport';
 import { bootModulesPlugin } from './vite/bootModules';
 import { crossroadsRigPlugin } from './vite/crossroadsRig';
@@ -118,6 +117,6 @@ export default defineConfig(({ mode, command }) => {
     assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
     resolve: { alias: rapierAlias }, // Rapier's wasm-importing module → plain bindings (vite/rapier.ts)
     define: { __SHARDFILE_VALIDATOR__: JSON.stringify(validationRevision), __SHARDFILE_VERDICTS__: JSON.stringify(buildValidationReceipts(validationRevision)), __DEVSERVER__: mode === 'devserver', __BUILD_ID__: JSON.stringify(BUILD_ID), __SAVE_NAMESPACES__: JSON.stringify(readdirSync('src/shards').filter((slug) => existsSync(join('src/shards', slug, 'manifest.ts')))) },
-    plugins: native ? [assetTablesPlugin(), gridSeamPlansPlugin(), worldMapAtlasPlugin(), backdropPrefixPlugin(), versionPlugin(), nativePlugin()] : [assetTablesPlugin(), gridSeamPlansPlugin(), worldMapAtlasPlugin(), backdropPrefixPlugin(), versionPlugin(), crossroadsRigPlugin(BUILD_ID), bootModulesPlugin(), pwaPlugin(BUILD_ID), rapierPreviewPlugin(), chunkReport()],
+    plugins: native ? [assetTablesPlugin(), gridSeamPlansPlugin(), worldMapAtlasPlugin(), versionPlugin(), nativePlugin()] : [assetTablesPlugin(), gridSeamPlansPlugin(), worldMapAtlasPlugin(), versionPlugin(), crossroadsRigPlugin(BUILD_ID), bootModulesPlugin(), pwaPlugin(BUILD_ID), rapierPreviewPlugin(), chunkReport()],
   };
 });

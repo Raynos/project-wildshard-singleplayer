@@ -38,8 +38,8 @@ html, body { margin: 0; padding: 0; overflow: clip; height: 100%; background: #0
 .ws-glass {
   background: var(--ws-glass);
   border: 1px solid var(--ws-cyan-line);
-  backdrop-filter: blur(10px) saturate(1.2);
   -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  backdrop-filter: blur(10px) saturate(1.2);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 10px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(143, 227, 255, 0.12);
   position: relative;
 }

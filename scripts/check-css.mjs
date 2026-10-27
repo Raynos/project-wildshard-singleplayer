@@ -190,6 +190,22 @@ for (const file of cssFiles) {
   for (const match of source.matchAll(/\bz-index\s*:\s*[-+]?\d+/gu)) {
     report(true, file, source.slice(0, match.index).split('\n').length, 'z-index must use a UI layer token plus in-layer order');
   }
+  // E327 (PINE-HOLLOW-FOLLOWUPS F-G10): the build's CSS minifier reads a `-webkit-backdrop-filter` written after the
+  // unprefixed one as its override and keeps only the prefixed copy, which Chrome ignores (no HUD glass off Safari). With
+  // `-webkit-` first it keeps both, so every rule writes the pair in that order with one value (was vite/backdropPrefix.ts,
+  // which reordered them at build time). The sealed legacy copies are frozen and keep their bytes.
+  if (/\/src\/shards\/[^/]+-legacy\//u.test(file)) continue;
+  for (const block of source.matchAll(/\{[^{}]*\}/gu)) {
+    const declarations = block[0].slice(1, -1).split(';').filter(text => text.includes(':')).map(text => {
+      const at = text.indexOf(':');
+      return { name: text.slice(0, at).trim(), value: text.slice(at + 1).trim().replaceAll(/\s+/gu, ' ') };
+    });
+    declarations.forEach(({ name, value }, i) => {
+      const before = declarations[i - 1];
+      if (name !== 'backdrop-filter' || (before?.name === '-webkit-backdrop-filter' && before.value === value)) return;
+      report(true, file, source.slice(0, block.index).split('\n').length, `write '-webkit-backdrop-filter: ${value}' right before 'backdrop-filter: ${value}' (the minifier drops the unprefixed one otherwise)`);
+    });
+  }
 }
 
 const n = definedIn.size;

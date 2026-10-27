@@ -16,7 +16,7 @@
 /* ── quick bar (desktop F8, mockup F): one line under the crosshair ── */
 .ws-fb-quick { position: absolute; left: 50%; top: calc(50% + 34px); transform: translateX(-50%); width: min(880px, calc(100vw - 32px)); display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .ws-fb-cap { padding: 2px 8px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ws-cyan-dim); }
-.ws-fb-bar { width: 100%; display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(143, 227, 255, 0.12); backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2); }
+.ws-fb-bar { width: 100%; display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(143, 227, 255, 0.12); -webkit-backdrop-filter: blur(10px) saturate(1.2); backdrop-filter: blur(10px) saturate(1.2); }
 .ws-fb-cam { display: flex; align-items: center; gap: 6px; flex: none; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ws-cyan-dim); }
 .ws-fb-cam svg { width: 16px; height: 16px; color: var(--ws-cyan); }
 .ws-fb-input { flex: 1; min-width: 120px; padding: 6px 8px; background: rgba(0, 0, 0, 0.35); border: 1px solid var(--ws-cyan-line); border-radius: 0; color: var(--ws-text); font: 12px var(--ws-mono); outline: none; }
