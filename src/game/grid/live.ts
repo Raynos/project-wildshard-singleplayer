@@ -111,10 +111,6 @@ const COLD_DWELL_TICKS = 5 * 60;
 // Contact corrections at a closed readiness wall are not a U-turn. Accumulate real horizontal travel
 // before selecting another approach, so sub-centimetre capsule recoil cannot evict the world just prepared.
 const APPROACH_TRAVEL_METRES = 0.1;
-// A different mouth must stay ahead for real travel before cancelling a yielded guess.
-const APPROACH_REDIRECT_METRES = 2;
-/** T7: the nearest cells whose products (only) prefetch from the road. */
-const NEARBY_PRODUCTS = 4;
 const entryAxes = [['x', 'z'], ['z', 'x']] as const;
 // Distance can decrease while passing parallel to a cell. Only a ray into its first boundary's midpoint mouth
 // predicts entry; product downloads remain radial, but an unrelated native world must not block the real turn-in.
@@ -147,15 +143,9 @@ function boulevardApproachDistance(cell: GridCell, feet: GridPoint, previous: Gr
 
 /** A background admission (prefetch, road approach) that fails is recorded as the cell's issue and, until an explicit
  *  retry, not attempted again: say so once, or a failed build (op-hitch33: a throwing warm-up) leaves only a route timeout. */
-/** T7: a road-approach build given up for a committed crossing into another cell. It records no issue: the cell builds again
- *  when the traveller heads for it. */
-class ApproachAbandonedError extends Error {
-  override readonly name = 'ApproachAbandonedError';
-}
-
 async function background(instance: string, admission: Promise<unknown>, alive: () => boolean): Promise<void> {
   try { await admission; }
-  catch (error) { if (alive() && !(error instanceof ApproachAbandonedError)) console.error(`[grid] ${instance}: admission failed; it stays closed until a retry`, error); }
+  catch (error) { if (alive()) console.error(`[grid] ${instance}: admission failed; it stays closed until a retry`, error); }
 }
 
 /** One page traveller with frozen owned regions. Borrowed homes keep the existing standalone composition;
@@ -184,9 +174,8 @@ export class LiveGridHost {
   private crossings = 0;
   private fixedTick = 0;
   private previousFeet: GridPoint | undefined;
-  private approachRedirect: { instance: string; start: GridPoint } | undefined;
   private readonly candidateDistances = new Map<GridCell,number>();
-  private readonly approachWork:{candidates:GridCell[];nearby:GridCell[];boulevard:GridCell[];bounded:GridCell[]}[]=[];
+  private readonly approachWork:{candidates:GridCell[];boulevard:GridCell[]}[]=[];
   /** This host already owns the assembly and its frozen cells for its whole lifetime. */
   private targetCells: readonly GridCell[] | undefined;
   /** A refused speculative retirement remains charged until an explicit durability retry. */
@@ -291,8 +280,6 @@ export class LiveGridHost {
     })();
     this.productRequests.set(instance, request); return request;
   }
-  /** A road-approach guess remains speculative after construction, until entry or abandonment. */
-  private approach: { instance: string; controller: AbortController; demanded: boolean } | null = null;
   private tileApproach: { instance: string; tile: CellTile; controller: AbortController } | null = null;
   private prepareNeighbour(cell: GridCell, feet: GridPoint): void {
     const start = { x: Math.max(-CHUNK_HALF, Math.min(CHUNK_HALF, feet.x - cell.origin.x)),
@@ -313,7 +300,7 @@ export class LiveGridHost {
     })();
     void background(cell.instance, pending, () => !this.disposed && !controller.signal.aborted);
   }
-  private ensure(instance: string, guess = false): Promise<void> {
+  private ensure(instance: string): Promise<void> {
     if (this.disposed) return Promise.reject(new Error('Live grid is disposed'));
     const cell = this.assembly.cell(instance);
     if (this.residents.has(instance)) return Promise.resolve();
@@ -323,51 +310,20 @@ export class LiveGridHost {
     const ticket = this.readiness.request(instance, 0, estimate, bundle.hybridWireBytes > 0);
     if (ticket === null) return Promise.reject(new Error('Stale live grid readiness request'));
     const releasePriority = this.ports.prioritize?.(cell);
-    const controller = guess ? new AbortController() : undefined;
-    const request = this.admitRegion(cell, bundle, ticket, this.sequence, controller?.signal).finally(() => {
-      releasePriority?.();
-      // A completed guess is still speculative until entry: a U-turn must retire it, not the kept source.
-      if (this.approach?.controller === controller && (!this.residents.has(instance) || controller?.signal.aborted === true)) this.approach = null;
-    });
-    if (controller !== undefined) this.approach = { instance, controller, demanded: false };
+    const request = this.admitRegion(cell, bundle, ticket, this.sequence).finally(() => { releasePriority?.(); });
     this.requests.set(instance, request); this.sequence = this.settle(request); return request;
-  }
-  /** A committed crossing or sustained admitted heading abandons an obsolete road guess.
-   * Its existing request/claim keeps the queue until the constructor reaches its safe point and cleans up. */
-  private abandonApproach(destination: string): boolean {
-    const row = this.approach;
-    if (row === null || row.instance === destination) return true;
-    row.controller.abort();
-    if (this.residents.has(row.instance) && !this.retire(row.instance)) return false;
-    this.approach = null;
-    return true;
-  }
-  /** Count retiring worlds too: their complete claims remain live until final disposal. */
-  private canPrepareAlongside(instance: string, admission: LiveGridAdmission): boolean {
-    const source = this.active ?? this.lastSource(), limits = this.ports.preparationBudget;
-    return source !== null && source !== instance && this.residents.has(source)
-      && this.residents.size + this.retiring.size < 2
-      && admission.isolatedPreparation === true && limits !== undefined
-      && this.ports.allocator.canPrepareAlongside(source, instance, admission.bytes, limits);
   }
   private assertAlive(): void { if (this.disposed) throw new Error('Live grid is disposed'); }
   private async settle(request: Promise<void>): Promise<void> { try { await request; } catch { /* The requesting owner receives the admission error. */ } }
-  private async admitRegion(cell: GridCell, bundle: ReadinessBundle, ticket: ReadinessTicket, previous: Promise<void>, signal?: AbortSignal): Promise<void> {
+  private async admitRegion(cell: GridCell, bundle: ReadinessBundle, ticket: ReadinessTicket, previous: Promise<void>): Promise<void> {
     const instance = cell.instance, timing = clientPreparationBatch(cell.slug, `grid.prepare:${cell.instance}`, ['queue', 'metadata', 'create']);
     let admission: LiveGridAdmission | undefined;
-    const abandoned = (): void => { if (signal?.aborted === true) throw new ApproachAbandonedError(`Road approach of ${instance} abandoned for another crossing`); };
     try {
       await (timing === undefined ? previous : timing.run('queue', () => previous));
-      this.assertAlive(); abandoned(); this.retireColdRegions();
+      this.assertAlive(); this.retireColdRegions();
       const admitted = timing === undefined ? await this.prefetchProduct(instance) : await timing.run('metadata', () => this.prefetchProduct(instance));
       admission = admitted;
-      this.assertAlive(); abandoned();
-      const source = this.active ?? this.lastSource();
-      if (signal !== undefined && (this.residents.size + this.retiring.size >= 2
-        || source !== null && source !== instance && this.residents.has(source) && !this.canPrepareAlongside(instance, admitted))) {
-        // Recheck after queued/async work. Keep the metadata for a committed crossing's ordinary fallback.
-        this.readiness.invalidate(instance); return;
-      }
+      this.assertAlive();
       // A failed disposal stays fully charged and blocks construction even if the pair's budget would fit.
       if ([...this.residents.values()].some((row) => row.disposalFailed === true)) throw new Error('Exclusive runtime awaits successful disposal');
       this.products.delete(instance);
@@ -394,11 +350,11 @@ export class LiveGridHost {
         if (bundle.hybridWireBytes > 0 && admitted.prepareRuntime === undefined) throw new Error('Hybrid runtime admission is missing');
         this.assertAlive(); this.readiness.complete(ticket, 'runtime');
         if (this.ports.pause !== undefined) await this.ports.pause();
-        this.assertAlive(); abandoned();
-        region = timing === undefined ? await admitted.create(prior, lease, signal) : await timing.run('create', () => admitted.create(prior, lease, signal));
-        abandoned(); this.checkRegion(region);
+        this.assertAlive();
+        region = timing === undefined ? await admitted.create(prior, lease) : await timing.run('create', () => admitted.create(prior, lease));
+        this.checkRegion(region);
         if (this.ports.pause !== undefined) await this.ports.pause();
-        this.assertAlive(); abandoned();
+        this.assertAlive();
         if (packed !== undefined) this.saved.store(instance, packed);
         this.residents.set(instance, { region, lease, reloadsCheckpoint: admitted.reloadsCheckpoint === true || this.ports.read !== undefined, reservations: 0, evicting: false });
         this.readiness.complete(ticket, 'colliders'); this.readiness.complete(ticket, 'sim');
@@ -414,14 +370,12 @@ export class LiveGridHost {
         lease.release(); throw error;
       }
     } catch (error) {
-      // T7: an abandoned approach leaves no issue, so the cell can build again when the traveller heads for it
-      const gaveUp = signal?.aborted === true;
       this.readiness.invalidate(instance);
-      if (!gaveUp) { this.issues.set(instance, error instanceof Error ? error.message : String(error)); this.refusals.set(instance, error); }
+      this.issues.set(instance, error instanceof Error ? error.message : String(error)); this.refusals.set(instance, error);
       this.products.delete(instance);
       try { admission?.cancel?.(); }
       catch (cleanup) { throw new AggregateError([error, cleanup], 'Live admission and product cancellation failed', { cause: cleanup }); }
-      throw gaveUp && !(error instanceof ApproachAbandonedError) ? new ApproachAbandonedError(`Road approach of ${instance} abandoned for another crossing`, { cause: error }) : error;
+      throw error;
     } finally { this.constructing.delete(instance); this.requests.delete(instance); timing?.finish(); }
   }
   private distance(cell: GridCell, p = this.worldFeet()): number { return Math.hypot(Math.max(0, Math.abs(p.x - cell.origin.x) - CHUNK_HALF), Math.max(0, Math.abs(p.z - cell.origin.z) - CHUNK_HALF)); }
@@ -481,11 +435,11 @@ export class LiveGridHost {
   beforeFixed(): void {
     if (this.disposed) return;
     this.fixedTick++;
-    const work=this.approachWork.pop()??{candidates:[],nearby:[],boulevard:[],bounded:[]};
+    const work=this.approachWork.pop()??{candidates:[],boulevard:[]};
     try{this.beforeFixedWithWork(work);}
-    finally{work.candidates.length=0;work.nearby.length=0;work.boulevard.length=0;work.bounded.length=0;if(!this.disposed)this.approachWork.push(work);}
+    finally{work.candidates.length=0;work.boulevard.length=0;if(!this.disposed)this.approachWork.push(work);}
   }
-  private beforeFixedWithWork(work:{candidates:GridCell[];nearby:GridCell[];boulevard:GridCell[];bounded:GridCell[]}):void{
+  private beforeFixedWithWork(work:{candidates:GridCell[];boulevard:GridCell[]}):void{
     if (this.tileApproach?.instance === this.active && this.ports.gameplayReady(this.tileApproach.instance)) {
       this.tileApproach.controller.abort(); this.tileApproach = null;
     }
@@ -504,18 +458,15 @@ export class LiveGridHost {
     // Fixed cell poses and this tick's captured feet: avoid repeating hypot inside every sort comparison.
     for (const cell of candidates) this.candidateDistances.set(cell,this.distance(cell,feet));
     candidates.sort((a,b) => (this.candidateDistances.get(a) ?? Infinity) - (this.candidateDistances.get(b) ?? Infinity) || a.instance.localeCompare(b.instance));
-    const nearby=work.nearby;
-    for(let i=0;i<candidates.length&&i<NEARBY_PRODUCTS;i++){const cell=candidates[i];if(cell!==undefined)nearby.push(cell);}
+    // Immutable products are selected by distance, without a whole-world count cap.
+    const nearby = candidates;
     // Active/prepared frames and recently nearby worlds remain protected without changing motor bands.
     this.retireColdRegions();
     for (const cell of nearby) {
       const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell, feet);
       if (this.assembly.approaching(distance, estimate.distance) && !this.issues.has(cell.instance)) void background(cell.instance, this.prefetch([cell.instance]), () => !this.disposed);
     }
-    // Spend a safe approach on the destination's admitted world rather than waiting
-    // at its wall. Actual world-space movement selects the approaching cell: proximity alone would rebuild the
-    // just-retired source behind the traveller. Stationary/missed first samples retain the original wall reach.
-    // One constructor owns the queue until its cleanup settles, including an aborted guess.
+    // Approach preparation owns render tiles only, never a regional world or gameplay hooks.
     const moving = !travelled ? undefined : candidates.find(cell => headsToEntry(cell, feet, previous)
       && this.distance(cell, feet) < this.distance(cell, previous) - 0.000001);
     const tileApproach = this.tileApproach;
@@ -525,29 +476,6 @@ export class LiveGridHost {
         || this.distance(cell, feet) > readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link).distance) {
         tileApproach.controller.abort(); this.tileApproach = null;
       }
-    }
-    // Render tiles can use the road's lead time while the verified runtime module imports.
-    // The product/readiness promise remains pending; no regional constructor starts here.
-    if (this.requests.size === 0 && moving !== undefined && this.tileMetadata.has(moving.instance)
-      && this.ports.prepareNeighbour !== undefined && !this.residents.has(moving.instance) && !this.issues.has(moving.instance)
-      && this.assembly.approaching(this.distance(moving, feet), readinessModel(this.ports.readiness.bundle(moving), this.ports.readiness.link).distance)) {
-      this.prepareNeighbour(moving, feet);
-    }
-    const pendingApproach = this.approach;
-    if (this.requests.size === 0 || pendingApproach === null || pendingApproach.demanded || pendingApproach.controller.signal.aborted
-      || travelledDistance > this.ports.readiness.link.speed) this.approachRedirect = undefined;
-    else if (travelled) {
-      const product = moving === undefined ? undefined : this.products.get(moving.instance);
-      const isolated = product?.isolatedPreparation === true && this.ports.preparationBudget !== undefined;
-      const inReach = moving !== undefined && this.distance(moving, feet)
-        <= readinessModel(this.ports.readiness.bundle(moving), this.ports.readiness.link).distance;
-      if (moving !== undefined && moving.instance !== pendingApproach.instance && inReach
-        && (this.residents.has(moving.instance) || isolated)) {
-        if (this.approachRedirect?.instance !== moving.instance) this.approachRedirect = { instance: moving.instance, start: feet };
-        else if (Math.hypot(feet.x - this.approachRedirect.start.x, feet.z - this.approachRedirect.start.z) >= APPROACH_REDIRECT_METRES) {
-          this.abandonApproach(moving.instance); this.approachRedirect = undefined;
-        }
-      } else this.approachRedirect = undefined;
     }
     if (this.requests.size === 0) {
       const wallReach = 6 + this.ports.player.motor.opts.radius + 0.5 + this.ports.readiness.link.speed / 60;
@@ -561,50 +489,20 @@ export class LiveGridHost {
       // Product metadata identifies bounded native alternatives even when the nearer opaque product filled
       // the radial prefetch count. This admits immutable products/modules, never their foundations.
       for (const cell of boulevard) if (!this.issues.has(cell.instance)) void background(cell.instance, this.prefetch([cell.instance]), () => !this.disposed);
-      // Only bounded declarative/isolated alternatives may prepare on a boulevard;
-      // unknown opaque alternatives stay module-only. Resolve the next junction before later ones.
-      const bounded=boulevard.length===1?boulevard:work.bounded;
-      if(boulevard.length!==1)for(let i=0,length=boulevard.length;i<length;i++){
-        const cell=boulevard[i];if(cell===undefined)continue;const product=this.products.get(cell.instance);
-        if(product!==undefined&&(product.exclusiveRuntime!==true||product.isolatedPreparation===true))bounded.push(cell);
-      }
-      // A unique next-junction factory can use the full horizon. Equidistant sides wait for a turn.
-      // Opaque factories wait for a heading into their entry or their wall, and cannot overlap a kept source.
+      // A unique next junction can prepare tiles. Equidistant sides wait for a turn.
       let predicted: GridCell | undefined, nextDistance = Infinity;
-      for (const cell of bounded) {
+      for (const cell of boulevard) {
         const distance = boulevardApproachDistance(cell, feet, previous ?? feet, this.assembly.pitch);
         if (distance === undefined) continue;
         if (distance < nextDistance - 0.000001) { predicted = cell; nextDistance = distance; }
         else if (Math.abs(distance - nextDistance) <= 0.000001) predicted = undefined;
       }
-      const product = predicted === undefined ? undefined : this.products.get(predicted.instance);
-      const isolated = product?.isolatedPreparation === true;
-      const early = product !== undefined && (product.exclusiveRuntime !== true || isolated) ? predicted : undefined;
-      const approach = moving ?? early ?? nearby.find(cell => this.distance(cell, feet) <= wallReach);
-      if (approach !== undefined && !this.issues.has(approach.instance)) {
-        // G580 T4: a direct cross-road heading commits at the source edge, using the whole road for preparation.
-        // A unique upcoming boulevard mouth uses
-        // the full readiness horizon; the last departed source is excluded until a real ray turns back into it.
-        // Opaque alternatives at an ambiguous junction stay product/module-only until the turn identifies one destination.
-        const roadWidth = this.assembly.pitch - 2 * CHUNK_HALF;
-        const approachedProduct = this.products.get(approach.instance);
-        const tileOnly = approachedProduct?.tilePreparation === true && this.ports.prepareNeighbour !== undefined;
-        const reach = early === approach ? Infinity : approachedProduct?.isolatedPreparation === true
-          ? readinessModel(this.ports.readiness.bundle(approach), this.ports.readiness.link).distance
-          : moving === undefined ? wallReach : Math.max(wallReach, roadWidth);
-        // G723/G724: preserve the immediate return. Only explicitly isolated preparation that fits the strict
-        // page/owner budgets may build beside it; ordinary factories retain retire-before-allocation ordering.
-        const source = this.active ?? this.lastSource(), kept = source !== null && this.residents.has(source);
-        const samePrediction = this.approach === null || this.approach.instance === approach.instance;
-        // Inside a playing source, only a real direct heading and admitted isolated factory may use its lead time.
-        // Stationary proximity and ambiguous boulevard alternatives remain road-only; the source keeps its traveller.
-        const sourceApproach = this.active === null || moving === approach && approachedProduct !== undefined
-          && (tileOnly || this.canPrepareAlongside(approach.instance, approachedProduct));
-        if (sourceApproach && this.distance(approach, feet) <= reach && (samePrediction || travelled && this.abandonApproach(approach.instance))
-          && !this.residents.has(approach.instance) && (!kept || tileOnly || approachedProduct !== undefined && this.canPrepareAlongside(approach.instance, approachedProduct))) {
-          if (tileOnly) this.prepareNeighbour(approach, feet);
-          else void background(approach.instance, this.ensure(approach.instance, true), () => !this.disposed);
-        }
+      const approach = moving ?? predicted ?? nearby.find(cell => this.distance(cell, feet) <= wallReach);
+      if (approach !== undefined && this.ports.prepareNeighbour !== undefined && this.tileMetadata.has(approach.instance)
+        && !this.residents.has(approach.instance) && !this.issues.has(approach.instance)
+        && (this.active === null || moving === approach)
+        && this.assembly.approaching(this.distance(approach, feet), readinessModel(this.ports.readiness.bundle(approach), this.ports.readiness.link).distance)) {
+        this.prepareNeighbour(approach, feet);
       }
     }
     const walls = this.active === null ? this.highway.walls : this.region(this.active)?.walls;
@@ -735,11 +633,9 @@ export class LiveGridHost {
     if (this.disposed || this.active !== from || from === to) throw new Error('Stale live frame preparation');
     if (from !== null && to !== null) throw new Error('Owned runtime crossing must commit onto the neutral road first');
     if (from === null && to !== null) {
-      if (this.approach?.instance === to) { this.approach.demanded = true; this.approachRedirect = undefined; }
-      // Paired construction may finish early, but never enters while the kept source still owns its world.
-      // A U-turn instead reuses that source immediately and abandons only the incoming guess.
+      // Only actual entry constructs a region. Retire a prior source durably before a different destination allocates.
       const source = this.lastSource();
-      if (!this.abandonApproach(to) || !this.retireWarmSource(to)) throw new Error('Exclusive runtime awaits successful disposal');
+      if (!this.retireWarmSource(to)) throw new Error('Exclusive runtime awaits successful disposal');
       if (source !== null && source !== to || !(this.residents.has(to) && this.ready(to))) await this.sequence;
       this.assertAlive();
       if (source !== null && source !== to && this.residents.has(source)) throw new Error('Exclusive runtime awaits successful disposal');
@@ -763,10 +659,8 @@ export class LiveGridHost {
     return { cancel, commit: () => {
       if (closed || this.disposed || this.active !== from || !this.ready(to)) throw new Error('Stale live frame commit');
       motors.commit(); this.unbind?.(); this.unbind = undefined;
-      if (this.approach?.instance === to) this.approach = null;
       this.ports.player.motor = rider.motor; this.active = to;
       this.previousFeet = this.worldFeet(); // A committed spawn/frame placement is not the traveller's heading.
-      this.approachRedirect = undefined;
       const host = this.region(to)?.host; if (host !== undefined) this.unbind = host.bindExternalPlayer(this.ports.player);
       this.ports.bindFrame({ instance: to, physics: this.physics(to), motor: rider.motor, origin, ...(host === undefined ? {} : { host }) });
       this.residents.get(to ?? '')?.lease.update({ needed: true }); this.residents.get(from ?? '')?.lease.update({ needed: to === null });

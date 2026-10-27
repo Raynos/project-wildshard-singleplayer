@@ -22,6 +22,31 @@ function travel(live: LiveGridHost, at: { x: number; z: number }, dx: number, dz
   at.x += dx; at.z += dz; live.beforeFixed();
 }
 
+test.each([true, false])('T7: approach metadata never constructs a whole neighbouring world (paired=%s)', async paired => {
+  const tiles: string[] = [], f = await fixture({ paired, tilePreparation: true, tileApproaches: tiles });
+  try {
+    await f.enterHome(); await f.approachEast();
+    expect(tiles).toEqual([f.east.instance]);
+    expect(f.created()).toEqual([f.home.instance]);
+    expect(f.live.ready(f.east.instance)).toBe(false);
+    expect(f.live.current()).toBe(f.home.instance);
+    await f.cross(f.home.instance, f.east.instance);
+    expect(f.created()).toEqual([f.home.instance, f.east.instance]);
+    expect(f.live.current()).toBe(f.east.instance); expect(f.live.ready(f.east.instance)).toBe(true);
+    expect(f.live.state().residents).toEqual([f.east.instance]);
+  } finally { f.close(); }
+});
+
+test('T7: distance-selected metadata has no four-world admission cap', async () => {
+  const f = await fixture({ allNeighbours: true, horizonSeconds: 1000 });
+  try {
+    await f.enterHome(); f.live.beforeFixed(); await f.settle();
+    expect(new Set(f.admissions).size).toBeGreaterThan(4);
+    expect(f.created()).toEqual([f.home.instance]);
+    expect(f.live.state().residents).toEqual([f.home.instance]);
+  } finally { f.close(); }
+});
+
 async function fixture(options: { paired?: boolean; loading?: number; isolation?: boolean; allNeighbours?: boolean; horizonSeconds?: number;
   tilePreparation?: boolean; tileApproaches?: string[];
   tileReady?: () => Promise<void>; priorities?: string[];
