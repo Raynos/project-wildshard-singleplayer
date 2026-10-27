@@ -38,9 +38,8 @@ import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 // Compiler/native setup failures still refuse collection before the unchanged
 // timed assertions.
 const nalatiEnvelope=await readProjectAssets('src/shards/nalati-grasslands', undefined, { folder: 'nalati-grasslands', imageRoots: [
-    { prefix: '/assets/nalati/baked/', directory: 'public/assets/nalati/baked' },
-    { prefix: '/assets/nalati/models/', directory: 'public/assets/nalati/models' },
-    { prefix: '/assets/baked/nalati-grasslands/', directory: 'public/assets/baked/nalati-grasslands' },
+    { prefix: '/src/shards/nalati-grasslands/', directory: 'src/shards/nalati-grasslands' },
+    { prefix: '/assets/', directory: 'public/assets' },
   ] });
 
 test('the shipped world assembly King intake retains its attack owner before weather is published',async()=>{
