@@ -35,7 +35,9 @@ for (const selection of [Object.keys(frames), ['elder']]) it(`adopts ${selection
   Reflect.set(sky, 'csm', { lights: [] }); Reflect.set(sky, 'sunDir', new THREE.Vector3(0, 1, 0));
   vi.spyOn(sky, 'setupMaterial').mockImplementation(() => undefined);
   const scope = new Scope('atlas-test');
-  const rows = selection.length === 1 ? population.figures.elder.atlas.desktop : population.atlas.desktop;
+  const elder = population.figures['elder'];
+  if (elder === undefined) throw new Error('Missing the elder figure row');
+  const rows = selection.length === 1 ? elder.atlas.desktop : population.atlas.desktop;
   const mesh = await atlasFigureSkin(rows, sky, scope);
   expect(draw).toHaveBeenCalledTimes(selection.length);
   expect(mesh.name).toBe(rows.name);
