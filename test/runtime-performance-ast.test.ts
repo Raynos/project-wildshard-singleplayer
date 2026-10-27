@@ -8,6 +8,24 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
+import { runtimePerformanceSites } from '../lint/runtime-performance.mjs';
+
+test('hot propagation keeps aliases, cycles and every same-named helper', () => {
+  const source = `function first() { second(); }
+function second() { first(); }
+function helper() { return []; }
+function owner() { function helper() { return {}; } return helper; }
+const scheduled = first;
+system(scheduled);
+export function update() { helper(); }
+function cold() { return new Set(); }
+`;
+  const sites = runtimePerformanceSites(source);
+  expect(sites.filter(site => site.kind === 'unbounded-loop').map(site => source.slice(site.start, site.end)))
+    .toEqual(['function first() { second(); }', 'function second() { first(); }']);
+  expect(sites.filter(site => site.kind === 'frame-allocation').map(site => source.slice(site.start, site.end))).toEqual(['[]', '{}']);
+  expect(sites).toHaveLength(4);
+});
 
 test('supplied lint AST retains every standalone runtime site and frozen allowance', () => {
   const inventory = spawnSync('git', ['ls-files', '-z', '--', 'src/shards'], { encoding: 'utf8' });

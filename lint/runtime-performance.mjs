@@ -90,7 +90,23 @@ export function runtimePerformanceSites(source, filename = 'runtime.ts', supplie
   walk(program, node => { if (node.type === 'CallExpression' && SCHEDULERS.has(name(node.callee))) for (const arg of node.arguments) for (const fn of funcs) if (fn.id !== null && alias(name(arg)) === fn.id) fn.hot = true; });
   for (const fn of funcs) walk(fn.node.body, node => { if (node.type === 'CallExpression') fn.calls.add(alias(name(node.callee))); });
   // Local helpers called by a frame callback are hot too; aliasing a local helper does not hide its body.
-  for (let round = 0; round < funcs.length; round++) for (const fn of funcs) if (fn.hot) for (const target of funcs) if (target.id !== null && fn.calls.has(target.id)) target.hot = true;
+  // Preserve every same-named candidate, including nested/shadowed helpers.
+  // Index that conservative graph once instead of rescanning all functions in
+  // every propagation round and again at every recursive reachability step.
+  const named = new Map(), edges = new Map();
+  for (const fn of funcs) if (fn.id !== null) {
+    const group = named.get(fn.id) ?? [];
+    group.push(fn); named.set(fn.id, group);
+  }
+  for (const fn of funcs) {
+    const targets = new Set();
+    for (const called of fn.calls) for (const target of named.get(called) ?? []) targets.add(target);
+    edges.set(fn, targets);
+  }
+  const pending = funcs.filter(fn => fn.hot);
+  for (let index = 0; index < pending.length; index++) for (const target of edges.get(pending[index])) if (!target.hot) {
+    target.hot = true; pending.push(target);
+  }
   const inside = node => funcs.some(fn => fn.hot && startOf(node) >= startOf(fn.node.body) && endOf(node) <= endOf(fn.node.body));
   const issue = (node, kind, message) => {
     const start = startOf(node), end = endOf(node);
@@ -137,7 +153,7 @@ export function runtimePerformanceSites(source, filename = 'runtime.ts', supplie
   // Recursive helpers have no finite runtime bound. Include mutual recursion, not just direct self calls.
   const reaches = (from, to, seen = new Set()) => {
     if (seen.has(from)) return false; seen.add(from);
-    for (const target of funcs) if (target.id !== null && from.calls.has(target.id) && (target === to || reaches(target, to, seen))) return true;
+    for (const target of edges.get(from)) if (target === to || reaches(target, to, seen)) return true;
     return false;
   };
   for (const fn of funcs) if (fn.hot && reaches(fn, fn)) issue(fn.node, 'unbounded-loop', 'Recursive frame helpers have no statically finite bound');
