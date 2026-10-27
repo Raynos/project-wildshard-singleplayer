@@ -38,6 +38,7 @@
     "./shardfile": "./shardfile.ts",
     "./author": "./author.ts",
     "./assets": "./assets.ts",
+    "./bootInventory": "./bootInventory.ts",
     "./project": "./project.ts",
     "./projectGeneration": "./projectGeneration.ts",
     "./projectOutput": "./projectOutput.ts",
@@ -271,6 +272,10 @@
       "./author": {
         "types": "./dist/types/sdk/author.d.ts",
         "default": "./dist/author.js"
+      },
+      "./bootInventory": {
+        "types": "./dist/types/sdk/bootInventory.d.ts",
+        "default": "./dist/bootInventory.js"
       },
       "./assets": {
         "types": "./dist/types/sdk/assets.d.ts",

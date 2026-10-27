@@ -5,13 +5,23 @@ import originalBoot from './fixtures/nalati-boot-original.json' with { type: 'js
 import { nalatiBootInventory } from '../src/shards/nalati-grasslands/generators/bootInventory';
 import { bootSources, lateReads, nalatiBootAssets } from '../src/shards/nalati-grasslands/generators/bootFiles';
 
+test('explicit authored boot paths retain every original ordered mode', () => {
+  const inventory: Record<string, true> = {};
+  for (const tier of ['phone', 'desktop'] as const) for (const tex of ['img', 'ktx2'] as const)
+    for (const files of Object.values(originalBoot.sources.modes[tier][tex])) for (const file of files) inventory[file] = true;
+  const rows = nalatiBootInventory(originalBoot.assetFiles, inventory);
+  expect(rows.sources).toEqual(originalBoot.sources);
+  expect(rows.files).toEqual(originalBoot.files);
+  expect(rows.assetFiles).toEqual(originalBoot.assetFiles);
+});
+
 test('pre-admission Nalati rows retain ordered boot and late reads for every tier and texture mode', () => {
   // GR6: the boot rows are the program's discovery (bootProgram.ts); the inventory they come from keeps every selection
   const boot = nalatiBootInventory(nalatiBootAssets(), publicBytes());
   for (const tier of ['phone', 'desktop'] as const) for (const tex of ['img', 'ktx2'] as const) {
-    const expected = bootSources(tier, nalatiBootAssets(), tex);
+    const expected = bootSources(tier, nalatiBootAssets(), tex, publicBytes());
     expect(bootSourceFiles(boot.sources, tier, tex)).toEqual(expected);
-    expect(bootLateReads(boot.lateReads, tier, tex)).toEqual(lateReads(tier, tex));
+    expect(bootLateReads(boot.lateReads, tier, tex)).toEqual(lateReads(tier, tex, publicBytes()));
     expect(bootFileList({ sources: boot.sources, tier, tex }, tier)).toEqual(Object.values(expected).flat());
     if (tex === 'img') expect(bootFileList(boot.files, tier)).toEqual(Object.values(expected).flat());
   }

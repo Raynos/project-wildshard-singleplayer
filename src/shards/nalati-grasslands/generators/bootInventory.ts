@@ -1,10 +1,9 @@
-import type { BootModeRows } from '@wildshard/engine/level/spec';
-import type { ChunkFiles } from '@wildshard/engine/boot/bytes';
+import type { BootModes as BootModeRows, BootSources as ChunkFiles } from '@wildshard/sdk/bootInventory';
 import { bootSources, lateReads, type NalatiBootAssets } from './bootFiles';
 import BOOT_STEPS from '../data/bootSteps.json' with { type: 'json' };
 
 /** Pre-admission metadata preserves ordered tier/texture selections and loading weights. */
-export function nalatiBootInventory(assetFiles: NalatiBootAssets, inventory?: Readonly<Record<string, number | true>>): { sources: BootModeRows<ChunkFiles>; files: BootModeRows<readonly string[]>; lateReads: BootModeRows<readonly string[]>; steps: typeof BOOT_STEPS; assetFiles: NalatiBootAssets } {
+export function nalatiBootInventory(assetFiles: NalatiBootAssets, inventory: Readonly<Record<string, number | true>>): { sources: BootModeRows<ChunkFiles>; files: BootModeRows<readonly string[]>; lateReads: BootModeRows<readonly string[]>; steps: typeof BOOT_STEPS; assetFiles: NalatiBootAssets } {
   const resolve = (tier: 'phone' | 'desktop', tex: 'img' | 'ktx2') => {
     const sources = bootSources(tier, assetFiles, tex, inventory);
     return { sources, files: Object.values(sources).flat(), lateReads: lateReads(tier, tex, inventory) };

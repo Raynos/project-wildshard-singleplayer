@@ -1,0 +1,62 @@
+{
+  "world": {
+    "phone": [
+      "/assets/nalati/tex/meadow.phone.webp",
+      "/assets/nalati/tex/path.phone.webp",
+      "/assets/nalati/tex/gravel.phone.webp",
+      "/assets/nalati/tex/rock.phone.webp",
+      "/assets/nalati/tex/snow.phone.webp",
+      "/assets/nalati/tex/felt.phone.webp",
+      "/assets/nalati/cards.phone.webp",
+      "/assets/nalati/panorama.phone.webp",
+      "/assets/nalati/models/horse-wild.phone.rigged.glb",
+      "/assets/nalati/models/horse-saddled.phone.rigged.glb",
+      "/assets/nalati/models/wolf.phone.rigged.glb",
+      "/assets/nalati/models/snow-leopard.phone.rigged.glb",
+      "/assets/nalati/models/sheep.phone.rigged.glb",
+      "/assets/nalati/models/eagle.phone.rigged.glb",
+      "/assets/nalati/models/collie.phone.rigged.glb",
+      "/assets/nalati/models/ghost-horse.phone.rigged.glb",
+      "/assets/nalati/models/golden-king.phone.rigged.glb"
+    ],
+    "desktop": [
+      "/assets/nalati/tex/meadow.webp",
+      "/assets/nalati/tex/path.webp",
+      "/assets/nalati/tex/gravel.webp",
+      "/assets/nalati/tex/rock.webp",
+      "/assets/nalati/tex/snow.webp",
+      "/assets/nalati/tex/felt.webp",
+      "/assets/nalati/cards.webp",
+      "/assets/nalati/panorama.webp",
+      "/assets/nalati/models/horse-wild.rigged.glb",
+      "/assets/nalati/models/horse-saddled.rigged.glb",
+      "/assets/nalati/models/wolf.rigged.glb",
+      "/assets/nalati/models/snow-leopard.rigged.glb",
+      "/assets/nalati/models/sheep.rigged.glb",
+      "/assets/nalati/models/eagle.rigged.glb",
+      "/assets/nalati/models/collie.rigged.glb",
+      "/assets/nalati/models/ghost-horse.rigged.glb",
+      "/assets/nalati/models/golden-king.rigged.glb"
+    ]
+  },
+  "people": {
+    "phone": [
+      "/assets/nalati/models/people/elder.gen.phone.glb",
+      "/assets/nalati/models/people/herder-dauren.gen.phone.glb",
+      "/assets/nalati/models/people/herder-erlan.gen.phone.glb",
+      "/assets/nalati/models/people/child.gen.phone.glb",
+      "/assets/nalati/models/people/cook.gen.phone.glb"
+    ],
+    "desktop": [
+      "/assets/nalati/models/people/elder.gen.glb",
+      "/assets/nalati/models/people/herder-dauren.gen.glb",
+      "/assets/nalati/models/people/herder-erlan.gen.glb",
+      "/assets/nalati/models/people/child.gen.glb",
+      "/assets/nalati/models/people/cook.gen.glb"
+    ]
+  },
+  "bakedTexturesRoot": "/assets/baked/nalati-grasslands/tex/",
+  "physics": [
+    "/assets/physics/rapier.wasm"
+  ]
+}
