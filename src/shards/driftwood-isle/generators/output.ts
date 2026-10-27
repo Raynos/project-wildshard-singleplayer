@@ -1,4 +1,5 @@
 import { driftwoodFixedModelOutput } from './fixedModels';
+import { driftwoodSceneModelOutput } from './sceneModelProgram';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { driftwoodIslandProtoOutput } from './islandProtoProgram';
 import { driftwoodPhoneRockOutput } from './rockPhoneProgram';
@@ -176,6 +177,6 @@ export const sections: { 'world/movers': { movers: ({ id: string; execution: str
 /** Prototype geometry and the cove's and sea's page files (I8) belong to the owned-byte cache, never a generated asset
  *  under src. */
 export async function prepareOutput(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<typeof output> {
-  const fixed = await driftwoodFixedModelOutput(ctx), protos = await driftwoodIslandProtoOutput(ctx), pages = await driftwoodPageFileOutput(ctx), phoneRocks = await driftwoodPhoneRockOutput(ctx);
-  return { ...output, namedFiles: [...output.namedFiles, ...protos.files, ...pages.files, ...phoneRocks.files, ...fixed.files], assets: new Map([...output.assets, ...protos.assets, ...pages.assets, ...phoneRocks.assets, ...fixed.assets]) };
+  const fixed = await driftwoodFixedModelOutput(ctx), protos = await driftwoodIslandProtoOutput(ctx), pages = await driftwoodPageFileOutput(ctx), phoneRocks = await driftwoodPhoneRockOutput(ctx), scenes = await driftwoodSceneModelOutput(ctx);
+  return { ...output, namedFiles: [...output.namedFiles, ...protos.files, ...pages.files, ...phoneRocks.files, ...fixed.files, ...scenes.files], assets: new Map([...output.assets, ...protos.assets, ...pages.assets, ...phoneRocks.assets, ...fixed.assets, ...scenes.assets]) };
 }

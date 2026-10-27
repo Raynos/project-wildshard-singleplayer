@@ -66,6 +66,4 @@ export const WORLD_SCENES: WorldScenesSection = {
 
 /** The original world index widths, normalized offline rather than expanded by the standalone GLB export. */
 export const SCENE_MODEL_BLOBS: { name: string; source: string; kind: string; }[] = [...entryDeckFiles().map(({name,source,bytes})=>({name,source,kind:'bin',options:{decoded:bytes.length,gpu:bytes.length}})),...rocks.blobs, ...foliage.blobs,
-  { name: 'models/scene-pools.glb', kind: 'glb', source: 'assets/world-scenes/pools.glb' },
-  { name: 'models/scene-rings.glb', kind: 'glb', source: 'assets/world-scenes/rings.glb' },
 ];

@@ -404,8 +404,6 @@
     "src/shards/driftwood-isle/assets/rock-scenes/smallRock-big.glb",
     "src/shards/driftwood-isle/assets/rock-scenes/smallRock-flat.glb",
     "src/shards/driftwood-isle/assets/rock-scenes/smallRock-round.glb",
-    "src/shards/driftwood-isle/assets/world-scenes/pools.glb",
-    "src/shards/driftwood-isle/assets/world-scenes/rings.glb",
     "src/shards/driftwood-isle/behaviour/bridgeSway.generated.json",
     "src/shards/driftwood-isle/behaviour/bridgeSway.generated.wasm",
     "src/shards/driftwood-isle/behaviour/director.json",
