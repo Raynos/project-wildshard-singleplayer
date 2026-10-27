@@ -45,7 +45,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
   rmSync(resolve(outputRoot, 'catalog.json'), { force: true });
   const projects = resolve(root, 'src/shards'), frozen = legacyInventory(root);
   let count = 0;
-  const stale = [], runtimeReport = [];
+  const stale = [], runtimeReport = [], measured = [];
   // A folder may emit many products. Its shared source closure and prerequisite
   // generation are one immutable build-phase fact; output stamps/pixels stay
   // product-specific and are still checked for every output below.
@@ -142,6 +142,7 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     console.info(`tile bake: ${name} ${tiles.l0} L0/${tiles.l1} L1, 16 full 5x5 windows checked, ${Object.keys(tiles.debt).length} existing debt metrics`);
     console.info(`wildshard build: ${name} ${how === 'built' ? 'built' : `reused (${how})`} in ${((performance.now() - started) / 1000).toFixed(1)}s`);
     count++;
+    measured.push(name);
     } catch(error) {
       if(onFailure===undefined)throw error;
       // A previous product cannot vouch for a failed rebuild or grant a census user.
@@ -153,6 +154,13 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
   runtimeReport.sort((a,b)=>a.slug.localeCompare(b.slug));
   if (copyRuntime === 'closed') for (const report of runtimeReport) console.info(`runtime copy: ${JSON.stringify(report)}`);
   console.info(`wildshard build: ${count} shardfile project(s)`);
+  // I12 (G792): the build refuses a product whose declared phone wire grows past its ceiling
+  if (recorded && onFailure === undefined && measured.length > 0) {
+    const { phoneWireReport } = await import('./phone-wire.mjs');
+    const report = await phoneWireReport(root, measured);
+    for (const row of report.rows) console.info(`phone wire: ${row.name} ${(row.bytes / 1e6).toFixed(2)} MB${row.ceiling === undefined ? ' (no ceiling)' : ` of ${(row.ceiling / 1e6).toFixed(2)} MB`}`);
+    if (report.errors.length > 0) throw new Error(report.errors.join('\n'));
+  }
   if (stale.length > 0) {
     const message = `wildshard build: the baked map of ${stale.join(', ')} does not match its world (SF66); rebake: node scripts/bake-maps.mjs --url=<scripts/serve-build.sh --head> --shards=${stale.join(',')}`;
     if (strict) throw new Error(message);

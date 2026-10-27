@@ -164,6 +164,12 @@ export async function tierProductFilesPaced(source: Shardfile, tier: 'phone' | '
   const inactive = await paced(entryFileSteps(source, tier, descriptor), pause ?? (() => Promise.resolve()));
   return inactive.size === 0 ? source.files : source.files.filter(file => !inactive.has(file.hash));
 }
+/** The declared wire of a tier's entry: its selected files' compressed bytes plus the commons it requires, the sum
+ * admission reserves before it fetches (iphone-downloads I12's build-time ceiling reads it, G792). */
+export async function tierProductWire(source: Shardfile, tier: 'phone' | 'desktop'): Promise<number> {
+  const files = await tierProductFilesPaced(source, tier);
+  return files.reduce((sum, file) => sum + file.compressed, 0) + source.requires.commons.reduce((sum, hash) => sum + (source.requires.commonsWire[hash] ?? 0), 0);
+}
 function* tierLibrarySourceSteps(source: Shardfile, tier: 'phone' | 'desktop', assets?: ReadonlyMap<string, Uint8Array>): Generator<void, Shardfile> {
   const descriptor = outputDescriptor(source);
   if (descriptor === undefined) return source;
