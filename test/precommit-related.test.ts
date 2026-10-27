@@ -9,6 +9,7 @@ import { env, execPath } from 'node:process';
 import { expect, test } from 'vitest';
 import { linkNodeModules } from '../scripts/link-node-modules.mjs';
 import { commitRelated, relatedDeadline, relatedTestFailed, warmTypeJobs } from '../scripts/precommit-related.mjs';
+import { selectRelatedSuites } from '../scripts/precommit-selection.mjs';
 
 const repository = resolve('.');
 const fixtureEnv = Object.fromEntries(Object.entries(env).filter(([key]) => !key.startsWith('GIT_')));
@@ -163,7 +164,7 @@ test('real commit excludes a loose peer regression but refuses it when staged', 
   }finally{rmSync(root,{recursive:true,force:true});}
 },30_000);
 
-test('real commits refuse reds above twenty related suites and twenty staged tests', () => {
+test('the five-second commit cap preserves complete large candidate selections for CI', () => {
   const {root,git,put}=fixture();
   try {
     for(let index=0;index<19;index++)put(`test/extra-${index}.test.ts`,
@@ -171,30 +172,37 @@ test('real commits refuse reds above twenty related suites and twenty staged tes
     git('add','.');git('commit','-qm','twenty related suites');
     put('.githooks/pre-commit',`#!/bin/sh\nexec '${execPath}' '${resolve(root,'hook.mjs')}'\n`);
     chmodSync(resolve(root,'.githooks/pre-commit'),0o755);
-    put('hook.mjs',`import {execFileSync} from 'node:child_process';import {commitRelated} from '${resolve('scripts/precommit-related.mjs')}';await commitRelated(process.cwd(),execFileSync('git',['diff','--cached','--name-only','-z'],{encoding:'utf8'}).split('\\0').filter(Boolean));`);
+    // A deliberately unfinished hook reaches the authoritative five-second
+    // cap independently of Vitest startup or the machine's current load.
+    put('hook.mjs',"console.log('SLOW_HOOK_READY');await new Promise(resolve=>setTimeout(resolve,10000));throw Error('unfinished hook');");
     git('config','core.hooksPath','.githooks');
+    const commit=(paths:string[],count:number,direct:number):void=>{
+      git('add','--',...paths);
+      const tracked=git('ls-files','-z').split('\0').filter(Boolean);
+      const sources=new Map(tracked.map(path=>[path,git('show',`:${path}`)]));
+      const selection=selectRelatedSuites(sources,paths,tracked);
+      expect(selection.files).toHaveLength(count);
+      expect(selection.direct).toHaveLength(direct);
+      expect(selection.omitted).toBe(0);
+      expect(selection.files).toContain('test/value.test.ts');
+      if(tracked.includes('test/extra-19.test.ts'))expect(selection.files).toContain('test/extra-19.test.ts');
+      const parent=git('rev-parse','HEAD');
+      const result=spawnSync('bash',[resolve(repository,'scripts/commit.sh'),'test(cf1): bounded selection','--',...paths],{cwd:root,env:fixtureEnv,encoding:'utf8',timeout:20_000});
+      expect(result.error).toBeUndefined();
+      expect(result.status,result.stdout+result.stderr).toBe(0);
+      expect(result.stdout+result.stderr).toContain('SLOW_HOOK_READY');
+      expect(result.stdout+result.stderr).toContain('five-second hook cap; CI owns unfinished checks');
+      expect(git('rev-parse','HEAD')).not.toBe(parent);
+      expect(git('rev-parse','HEAD^')).toBe(parent);
+      for(const path of paths)expect(git('show',`HEAD:${path}`)).toBe(sources.get(path));
+    };
     put('src/value.ts','export const value = 2;\n');
-    const commit=(paths:string[])=>spawnSync('bash',[resolve(repository,'scripts/commit.sh'),'test(cf1): bounded selection','--',...paths],{cwd:root,env:fixtureEnv,encoding:'utf8',timeout:20_000});
-    const parent=git('rev-parse','HEAD'),red=commit(['src/value.ts']);
-    expect(red.status,red.stdout+red.stderr).not.toBe(0);
-    expect(red.stdout+red.stderr).toContain('selected 20 related suites');
-    expect(red.stdout+red.stderr).toContain('CF1 TEST FAILURE:');
-    expect(git('rev-parse','HEAD')).toBe(parent);
+    commit(['src/value.ts'],20,0);
     put('test/extra-19.test.ts','import {test,expect} from "vitest";import {value} from "../src/value";test("staged red above twenty",()=>expect(value).toBe(99));');
-    const expanded=commit(['src/value.ts','test/extra-19.test.ts']);
-    expect(expanded.status,expanded.stdout+expanded.stderr).not.toBe(0);
-    expect(expanded.stdout+expanded.stderr).toContain('staged red above twenty');
-    expect(expanded.stdout+expanded.stderr).toContain('CF1 TEST FAILURE:');
-    expect(expanded.stdout+expanded.stderr).not.toContain('no tests executed');
-    expect(git('rev-parse','HEAD')).toBe(parent);
+    commit(['src/value.ts','test/extra-19.test.ts'],21,1);
     const staged=Array.from({length:20},(_,index)=>`test/extra-${index}.test.ts`).concat('test/value.test.ts');
     for(const file of staged)put(file,`${readFileSync(resolve(root,file),'utf8')}\n// staged batch\n`);
-    const batch=commit(staged);
-    expect(batch.status,batch.stdout+batch.stderr).not.toBe(0);
-    expect(batch.stdout+batch.stderr).toContain('21 staged/direct suites');
-    expect(batch.stdout+batch.stderr).toContain('CF1 TEST FAILURE:');
-    expect(batch.stdout+batch.stderr).toContain(' RUN ');
-    expect(git('rev-parse','HEAD')).toBe(parent);
+    commit(staged,21,21);
   } finally {rmSync(root,{recursive:true,force:true});}
 },30_000);
 
