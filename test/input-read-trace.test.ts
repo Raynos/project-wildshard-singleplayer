@@ -18,7 +18,7 @@ function fixture(source:string,preload=true) {
   writeFileSync(resolve(root,'raw.ts'),'// raw source data');
   writeFileSync(resolve(root,'unread.ts'),'// unrelated SDK module');
   const receipt=resolve(root,'reads.json');
-  const child=spawnSync(process.execPath,[...(preload?['--import',resolve('scripts/generation-recorder.mjs')]:[]),'entry.mjs'],{
+  const child=spawnSync(process.execPath,[...(preload?['--import',resolve('test/fixtures/input-read-preload.mjs')]:[]),'entry.mjs'],{
     cwd:root,env:{...process.env,WS_GENERATION_READ_RECEIPT:receipt},encoding:'utf8',
   });
   return {root,receipt,child,read:()=>v.parse(v.object({schema:v.literal('generation-reads/4'),files:v.array(v.string()),execution:v.array(v.string()),packages:v.record(v.string(),v.array(v.string())),inventory:v.array(v.string()),opaque:v.array(v.string()),seal:v.string()}),JSON.parse(readFileSync(receipt,'utf8')))};

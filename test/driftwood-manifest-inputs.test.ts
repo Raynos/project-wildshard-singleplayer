@@ -31,7 +31,7 @@ test('discovery compilation needs no opaque spawn-evaluation subprocess', () => 
     writeFileSync(resolve(root, 'entry.mjs'),
       `import {authoredManifestSource} from ${JSON.stringify(resolve('scripts/authored-manifest.mjs'))};` +
       `authoredManifestSource(${JSON.stringify(process.cwd())},'driftwood-isle',{generation:true,metadataOnly:true});`);
-    const child = spawnSync(process.execPath, ['--import', resolve('scripts/generation-recorder.mjs'), 'entry.mjs'], {
+    const child = spawnSync(process.execPath, ['--import', resolve('test/fixtures/input-read-preload.mjs'), 'entry.mjs'], {
       cwd: root, env: { ...process.env, WS_GENERATION_READ_RECEIPT: receipt }, encoding: 'utf8',
     });
     expect(child.status, child.stderr).toBe(0);

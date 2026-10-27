@@ -21,7 +21,7 @@ test.each(['binary', 'schema'])('%s producer loads the CommonJS compiler only fo
     const bytes = kind === 'binary' ? new Uint8Array([1, 2, 3]) : new TextEncoder().encode('1');
     const add = kind === 'binary' ? "output.add('world/test.bin','bin',new Uint8Array([1,2,3]));"
       : "output.add('data/test.json','json',new TextEncoder().encode('1'),undefined,undefined,{$schema:'http://json-schema.org/draft-07/schema#',type:'number'});";
-    execFileSync(process.execPath, ['--import', './scripts/generation-recorder.mjs', '--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
+    execFileSync(process.execPath, ['--import', './test/fixtures/input-read-preload.mjs', '--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
       `import {namedBlobOutput}from'./scripts/named-blob-output.mjs';const output=namedBlobOutput(new URL(${JSON.stringify(pathToFileURL(`${project}/`).href)}),'trace');${add}`],
     { env: { ...process.env, WS_GENERATION_READ_RECEIPT: receipt }, maxBuffer: 16 * 1024 * 1024 });
     const trace = v.parse(v.object({ inventory: v.array(v.string()), execution: v.array(v.string()), opaque: v.array(v.string()) }), JSON.parse(readFileSync(receipt, 'utf8')));
