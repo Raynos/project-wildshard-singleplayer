@@ -1763,7 +1763,13 @@ function dequantizeWhole(geometry: BufferGeometry, grid: { readonly origin: read
   if (!(source instanceof Int16Array) || position.normalized || position.itemSize !== 3) throw new Error('Whole grid needs Int16 positions');
   const stride = position instanceof InterleavedBufferAttribute ? position.data.stride : 3, offset = position instanceof InterleavedBufferAttribute ? position.offset : 0;
   const out = new Float32Array(position.count * 3);
-  for (let i = 0; i < position.count; i++) for (let c = 0; c < 3; c++) out[i * 3 + c] = (source[i * stride + offset + c] ?? 0) * grid.step + (grid.origin[c] ?? 0);
+  const [x, y, z] = grid.origin, step = grid.step;
+  for (let i = 0; i < position.count; i++) {
+    const read = offset + i * stride, write = i * 3;
+    out[write] = (source[read] ?? 0) * step + x;
+    out[write + 1] = (source[read + 1] ?? 0) * step + y;
+    out[write + 2] = (source[read + 2] ?? 0) * step + z;
+  }
   geometry.setAttribute('position', new BufferAttribute(out, 3));
 }
 function wholeStorage(row: wholeV.InferOutput<typeof WholeAttribute>, count: number): BufferAttribute {
@@ -1835,7 +1841,12 @@ class WholeGeometryAssembler {
           const read = offset + local * stride, write = start * toSize;
           if (write + fromSize > to.length) throw new RangeError('Whole channel write outside source');
           if (shared[local] === 1) for (let i = 0; i < fromSize; i++) if (!Object.is(from[read + i], to[write + i])) throw new Error('Whole shared vertex differs');
-          for (let i = 0; i < fromSize; i++) to[write + i] = from[read + i] ?? 0;
+          if (fromSize >= 1 && fromSize <= 4 && Number.isInteger(fromSize)) {
+            to[write] = from[read] ?? 0;
+            if (fromSize > 1) to[write + 1] = from[read + 1] ?? 0;
+            if (fromSize > 2) to[write + 2] = from[read + 2] ?? 0;
+            if (fromSize > 3) to[write + 3] = from[read + 3] ?? 0;
+          } else for (let i = 0; i < fromSize; i++) to[write + i] = from[read + i] ?? 0;
         }
       }
       const index = input.getIndex()?.array ?? null, output = group.output.index?.array ?? null, done = group.triangles, triangles = row.triangles;
