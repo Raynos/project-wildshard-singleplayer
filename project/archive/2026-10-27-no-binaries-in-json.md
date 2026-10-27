@@ -2,7 +2,7 @@
 
 **State:** `archived 2026-10-27 (finished 2026-10-27)` — G796: B4 is done (GR3 retired Nine's last producers; no Nine
 entry is left in `lint/no-binary-json.json`). B5, its open sub-rows, the shared census row and B3's open family-board
-follow-up fold whole into [generators GR6–GR8](../../docs/plans/tooling-perf/generators-spike-mini-plan.md) (§ Folded rows). B1–B3 and B6 are done. Was: `in flight`
+follow-up fold whole into [generators GR6–GR8](2026-10-27-generators-spike.md) (§ Folded rows). B1–B3 and B6 are done. Was: `in flight`
 2026-10-25 (sp-x9, G709). B1/B2 are implemented and reverified;
 B3's alias gap is closed in `82060b4664`. B4–B6 remain open. JSON is UTF-8 text. Binary data inside it (base64 strings, data URIs, number arrays standing
 in for bytes) is **banned**: in committed files, generator outputs and shard files alike.

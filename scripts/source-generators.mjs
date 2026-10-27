@@ -1,5 +1,5 @@
 // G798 / GS2: the app-wide generated source tables (the GS1 inventory in
-// docs/plans/tooling-perf/generators-spike-mini-plan.md), one registry row each. A row names its outputs, the input
+// project/archive/2026-10-27-generators-spike.md), one registry row each. A row names its outputs, the input
 // globs that feed them and how they are made: `generate` returns every output's text from plain producers (no Vite
 // plugin, no virtual module, no shard build, G799); `run` drives a producer that writes its own outputs and has its own
 // --check. `pnpm gen:source` (scripts/gen-source.mjs) runs them; the pre-commit hook and CI select them by input.
