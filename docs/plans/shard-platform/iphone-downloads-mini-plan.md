@@ -516,3 +516,47 @@ Vite two-entry controls. Touched types/typed lint/scoped ratchet pass.
 I2 remains in flight: original Pine/Nalati/Nine page+worker transport
 reader is queued through browser-lane on shared b3, muted iPhone16Pro,
 2x scale; original250-total-request and12MB bars remain unchanged.
+
+### I2.5 Declared after-control library intake (2026-10-27, sp-x2)
+
+In flight (reading at plan end): the plain optional source field is
+`late?: {hash:string, at?:[number,number]}[]`, emitted under
+`admission.late` by the SDK's existing product writer. Every hash stays in
+files/library and the full decoded/GPU claim. Duplicate hashes, missing
+library/local-file membership and nonfinite/out-of-cell x/z positions
+refuse; old products omit the field with their previous bytes unchanged.
+
+Exact receipted first-party phone admission removes only the hinted roots
+from its eager library roots. Critical flags, authoritative/manifest roots
+and their complete dependencies still win. Untrusted/unreceipted admission
+validates all selected bytes. A normal product.file/ClientAssets read can
+await a hinted file earlier if actual content needs it. This is an intake
+schedule, never permission to hide required spawn content or its costs.
+
+Hydrated and native lazy products both complete through the same scoped
+after-control callback. Native product identity and scope leases remain
+synchronous; lazy queue setup cannot race publication of product aliases.
+Positioned file/dependency closures warm nearest-first, then unpositioned
+files, one verified low-priority read at a time. Retirement stops new work;
+missing/corrupt/quota-refused bodies never publish a complete offline
+product. Full tier-selected files, commons and sections must all be
+verified durable before its existing visited index is published, retaining
+the exact build-validation metadata. The late queue holds no settled
+page-body bank. Early demand can use the same cached bytes without another
+network download. Native admission is not replaced by full eager reads.
+
+Receipted late phone KTX2 cost-only intake keeps its full validated GPU
+bound until the real texture consumer parses the body. Non-late/device
+KTX2 and unreceipted body checks remain, as do commons/guest-memory checks.
+Desktop and frozen LEGACY transport policy are unchanged. Sp-o5 owns the
+heavy content producers/readers; sp-x9 owns boot-root/JS batching. This
+packet includes neither their variantOf nor reachControl working hunks.
+
+Touched format/game/SDK and four-fixture types, named typed lint and
+selected source ratchet pass. Six source controls cover late metadata,
+critical/dependency priority, spatial ordering, native early demand/cache
+completion, and unreceipted full validation. They are typed, not executed
+before landing under the explicit code-only instruction. No build,
+preview, browser or guard waiver in this packet. No new measured I2 pass;
+the code is ready for the joint three-row read after the boot fix and
+content source join. Latest recorded transfer misses remain unchanged.

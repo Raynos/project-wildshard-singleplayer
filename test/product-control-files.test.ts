@@ -1,6 +1,8 @@
+import * as v from 'valibot';
+import { AdmissionLateSchema } from '../src/format/admissionLate';
 import { expect, test } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
-import { controlFiles, deferredFiles } from '../src/game/shardfile/controlFiles';
+import { controlFiles, deferredFiles, lateFiles } from '../src/game/shardfile/controlFiles';
 
 test('control transport keeps critical and library dependencies but leaves distant tiles declared', () => {
   const source = emptyShardfile({ slug: 'control-files', name: 'Control', author: 'Fixture', seed: 1, revision: 1 });
@@ -29,4 +31,28 @@ test('distant warming preserves nearest-first dependency order and keeps non-til
   expect(ordered.indexOf(near)).toBeLessThan(ordered.indexOf(far));
   expect(ordered.indexOf(dependency)).toBeLessThan(ordered.indexOf(far));
   expect(ordered.at(-1)).toBe(other);
+});
+
+test('late library roots preserve control dependencies and order their own closures by declared position', () => {
+  const source = emptyShardfile({ slug: 'late-files', name: 'Late', author: 'Fixture', revision: 1, seed: 1 });
+  const hashes = ['a', 'b', 'c', 'd', 'e'].map(value => value.repeat(64));
+  const [critical, near, far, shared, other] = hashes;
+  if (critical === undefined || near === undefined || far === undefined || shared === undefined || other === undefined) throw new Error('Missing late fixture');
+  source.files = hashes.map(hash => ({ hash, kind: 'binary', compressed: 1, decoded: 8, gpu: 4, triangles: 0, draws: 0,
+    dependencies: hash === critical ? [shared] : [], critical: hash === critical }));
+  source.library = hashes; source.critical = [critical];
+  source.late = [{hash:far,at:[240,0]},{hash:near,at:[1,0]},{hash:shared,at:[100,0]},{hash:critical,at:[240,0]},{hash:other}];
+  source.spawn = {x:0,y:0,z:0,yaw:0};
+  const snapshot = structuredClone(source), initial = controlFiles(source, source.files);
+  expect(initial.map(file => file.hash)).toEqual([critical, shared]);
+  expect(lateFiles(source, source.files).map(file => file.hash)).toEqual([near, far, other]);
+  expect(source).toStrictEqual(snapshot);
+});
+
+test('late metadata refuses duplicate roots and positions outside the cell', () => {
+  const hash = 'a'.repeat(64);
+  expect(v.safeParse(AdmissionLateSchema, [{hash,at:[250,-250]}]).success).toBe(true);
+  for (const input of [[{hash},{hash}], [{hash,at:[251,0]}], [{hash,at:[0,Infinity]}], [{hash:'missing'}]]) {
+    expect(v.safeParse(AdmissionLateSchema, input).success).toBe(false);
+  }
 });

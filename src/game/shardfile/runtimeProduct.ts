@@ -1,3 +1,6 @@
+import { tierProductFilesPaced } from './productCost';
+import { lateFiles } from './controlFiles';
+import { productCacheCompletion } from './productCacheCompletion';
 import { lendLooks } from './lentLooks';
 import { recoverStaleClient } from '@wildshard/engine/boot/stuck';
 import { builtIndexHashes } from '@wildshard/format/builtIndexes';
@@ -167,6 +170,7 @@ interface ProductEntry {
 }
 const productRequests = new Map<string, Promise<ProductEntry>>();
 const productsByIndex = new Map<string, ProductEntry>();
+const productCompletions = new WeakMap<ShardProduct, (scope: Scope) => Promise<void>>();
 function productPolicy(options: ProductOptions): string { return `${options.firstParty ? 'first' : 'external'}|${options.offline ? 'offline' : 'online'}`; }
 function productRequestKey(options: ProductOptions): string { return `${new URL('.', options.base).href}|${options.descriptorHash ?? ''}|${productPolicy(options)}`; }
 function liveProductOwner(scope: Scope | null): scope is Scope { return scope !== null && !scope.disposed; }
@@ -197,6 +201,15 @@ export async function loadShardProduct(expectedIdentity: string, options: Produc
         const assets = new ClientAssets(source, new Map(), options);
         entry = { source, assets, options, key, owners: new Set(), requests: new Set(),
           product: shardProductData(source, base, ref => assets.read(ref), descriptor?.receipt === undefined, options.firstParty) };
+        if (options.firstParty && options.tier === 'phone' && descriptor?.receipt !== undefined && source.late !== undefined) {
+          let prepared: Promise<ReturnType<typeof productCacheCompletion>> | undefined;
+          const receipt = descriptor.receipt;
+          productCompletions.set(entry.product, async owner => {
+            prepared ??= tierProductFilesPaced(source, 'phone', options.pause).then(selected => productCacheCompletion(source, options, selected, lateFiles(source, selected), { source: descriptor.index, firstParty: true,
+              validation: { revision: receipt.revision, sourceHash: receipt.sourceHash, indexHash: descriptor.indexHash, worst: receipt.worst } }));
+            const complete = await prepared; await complete?.(owner);
+          });
+        }
         productsByIndex.set(key, entry);
       }
       entry.requests.add(requestKey);
@@ -225,8 +238,10 @@ export function provideManifestAdmission(manifest: ShardManifest, admitted: Admi
   manifestAdmissions.set(manifest, { admitted, options });
 }
 /** I2: only the active page's after-control hook may complete its deferred offline copy. */
-export async function completeManifestCache(manifest: ShardManifest, scope: Scope): Promise<void> {
-  await manifestAdmissions.get(manifest)?.admitted.completeCache?.(scope);
+export async function completeManifestCache(manifest: ShardManifest, scope: Scope, product?: ShardProduct): Promise<void> {
+  const installed = manifestAdmissions.get(manifest)?.admitted.completeCache;
+  if (installed !== undefined) await installed(scope);
+  else if (product !== undefined) await productCompletions.get(product)?.(scope);
 }
 
 /** Actual hydrated source for page lifecycle selection, without another descriptor or metadata mirror. */

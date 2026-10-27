@@ -163,7 +163,7 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
   }
   const {spawns:_spawns,...runtime} = source.runtime ?? {};
   const index = parseOutputIndex({format:'wildshard.shardfile',formatVersion:2,sdk:'0.2',version:source.version,identity:source.identity,requires:source.requires,
-    build:{sourceHash:hashImmutableBytes(jsonBytes(source)),validator:validationRevision() ?? 'source'},admission:{budgets:source.budgets,serverBudget:source.serverBudget,authorCaps:source.authorCaps,critical:source.critical,library:source.library},
+    build:{sourceHash:hashImmutableBytes(jsonBytes(source)),validator:validationRevision() ?? 'source'},admission:{budgets:source.budgets,serverBudget:source.serverBudget,authorCaps:source.authorCaps,critical:source.critical,library:source.library,...(source.late===undefined?{}:{late:source.late})},
     sections:sections.sort((a,b)=>a.name.localeCompare(b.name)),schemas:schemas.sort((a,b)=>a.path.localeCompare(b.path)),files:files.sort((a,b)=>a.hash.localeCompare(b.hash)||a.path.localeCompare(b.path)),...(packs.length===0?{}:{packs}),runtime:source.runtime === null ? null : {...runtime,trust:'first-party',files:options.runtime?.files ?? [],lines:options.runtime?.lines ?? 0}});
   // A writer owns this product directory, never a source folder. Preserve only the
   // already-copied runtime files; refuse unrelated leftovers in validation below.

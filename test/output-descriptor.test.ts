@@ -6,7 +6,7 @@ import { OUTPUT_SECTIONS, outputSectionPayloads } from '../src/format/outputFiel
 import { parseShardfile, type Shardfile } from '../src/format/shardSchema';
 import { parseStateLineage } from '../src/format/stateLineage';
 import { readProductDescriptor, admitProduct, type CachedProduct, type ProductCache, type ProductOptions } from '../src/game/shardfile/product';
-import { provideHybridDeclaration, runtimeProduct } from '../src/game/shardfile/runtimeProduct';
+import { provideHybridDeclaration, runtimeProduct, loadShardProduct, completeManifestCache } from '../src/game/shardfile/runtimeProduct';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { DownloadAccounting, installDownloadAccounting } from '../src/engine/boot/download';
@@ -23,7 +23,7 @@ import { leaseClientLibrary } from '../src/game/shardfile/clientLibrary';
 const encodeCanonicalJson = (value: unknown): Uint8Array => new TextEncoder().encode(canonicalJson(value));
 const base = 'https://example.test/shardfiles/loader-fixture/';
 const hash = (bytes: Uint8Array): Promise<string> => Promise.resolve(hashImmutableBytes(bytes));
-function fixture(blob = false, spawnX = 0, revision = 1, slug = 'loader-fixture', late = false): { source: Shardfile; index: OutputIndex; wires: Map<string, Uint8Array> } {
+function fixture(blob = false, spawnX = 0, revision = 1, slug = 'loader-fixture', late = false, declaredLate = false): { source: Shardfile; index: OutputIndex; wires: Map<string, Uint8Array> } {
   const source = emptyShardfile({ slug, name: 'Loader', author: 'Test', revision, seed: 1 });
   source.spawn.x = spawnX;
   const wires = new Map<string, Uint8Array>();
@@ -31,6 +31,7 @@ function fixture(blob = false, spawnX = 0, revision = 1, slug = 'loader-fixture'
     const bytes = new Uint8Array([1, 2, 3]), ref = hashImmutableBytes(bytes);
     source.files.push({ hash: ref, kind: 'binary', compressed: 3, decoded: 3, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false });
     if (!late) { source.library.push(ref); source.budgets.library = { resident: 3, compressed: 3 }; }
+    if (declaredLate) source.late = [{hash:ref,at:[25,0]}];
     wires.set(`blobs/bin/${ref}.bin`, bytes);
   }
   const sections = [...outputSectionPayloads(source)].map(([name, payload]) => {
@@ -42,8 +43,8 @@ function fixture(blob = false, spawnX = 0, revision = 1, slug = 'loader-fixture'
   });
   const index = parseOutputIndex({ format: 'wildshard.shardfile', formatVersion: 2, sdk: '0.2', version: source.version,
     identity: source.identity, build: { sourceHash: hashImmutableBytes(encodeCanonicalJson(source)), validator: 'test' }, requires: source.requires,
-    admission: { budgets: source.budgets, serverBudget: source.serverBudget, authorCaps: source.authorCaps, critical: source.critical, library: source.library },
-    sections, schemas: [], files: source.files.map(file => ({ ...file, kind: 'bin', path: `blobs/bin/${file.hash}.bin` })), runtime: null });
+    admission: { budgets: source.budgets, serverBudget: source.serverBudget, authorCaps: source.authorCaps, critical: source.critical, library: source.library, ...(source.late === undefined ? {} : {late:source.late}) },
+    sections, schemas: [], files: source.files.map(file => ({ ...file, kind: 'bin', ...(declaredLate ? {name:'late.bin'} : {}), path: `blobs/bin/${file.hash}.bin` })), runtime: null });
   wires.set('shard.json', encodeCanonicalJson(index));
   return { source, index, wires };
 }
@@ -726,4 +727,30 @@ test('a replaced cost row cannot borrow an original receipt to skip its byte rea
     await expect(leaseClientLibrary(projected, new Map(), { allocator, scope, owner: 'home', read, validatedSource: source })).rejects.toThrow('Unproven cost row');
     expect(read).toHaveBeenCalled(); expect(allocator.entries()).toHaveLength(0);
   } finally { scope.dispose(); restore(); }
+});
+
+
+test('declared late library round-trips into phone admission and native after-control warming', async () => {
+  const row = fixture(true, 0, 1, 'loader-fixture', false, true), restore = installIndexReceipt(row.index), store = cacheStore();
+  const scope = new Scope('late-native'), opts = options(row.wires, store.cache), original = opts.fetch, reads: string[] = [];
+  opts.tier = 'phone'; opts.fetch = url => { reads.push(url); return original(url); };
+  try {
+    const product = await loadShardProduct('loader-fixture', opts, scope);
+    expect(product.shardfile.late).toStrictEqual(row.source.late);
+    const admitted = await admitProduct(row.index, opts);
+    expect(admitted.assets.size).toBe(0); expect(reads.some(url => url.includes('/blobs/'))).toBe(false);
+    expect(store.product()).toBeNull();
+    await product.file('late.bin'); // actual demand can precede the optional warm queue
+    await completeManifestCache(sourceManifest(product.shardfile), scope, product);
+    expect(reads.filter(url => url.includes('/blobs/'))).toHaveLength(1);
+    expect(store.product()?.source).toStrictEqual(row.index);
+  } finally { scope.dispose(); restore(); }
+});
+
+test('an unreceipted late hint never skips byte validation or admits an undeclared root', async () => {
+  const row = fixture(true, 0, 1, 'loader-fixture', false, true), opts = options(row.wires), reads: string[] = [], original = opts.fetch;
+  opts.tier = 'phone'; opts.fetch = url => { reads.push(url); return original(url); };
+  const admitted = await admitProduct(row.index, opts);
+  expect(admitted.assets.size).toBe(1); expect(reads.filter(url => url.includes('/blobs/'))).toHaveLength(1);
+  expect(() => parseOutputIndex({...row.index,admission:{...row.index.admission,late:[{hash:'f'.repeat(64)}]}})).toThrow('declared library root');
 });

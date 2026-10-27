@@ -7,10 +7,13 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import { clientScriptViewCost } from '@wildshard/format/clientScripts';
 import { compendiumSketches } from '@wildshard/format/compendiumSketches';
 import { isBuildValidatedOutput } from './outputDescriptor';
+import { lateFiles } from './controlFiles';
+import { TIER } from '@wildshard/engine/core/tier';
 
 /** Re-read released transport through the verified reader before reserving costs.
  * Exact build-receipted file objects use their already validated decoded/GPU metadata.
- * KTX2 device costing and unreceipted files retain verified body reads. Images
+ * Before control, late KTX2 keeps its full validated GPU bound; its consumer still verifies the body.
+ * Other KTX2 device costing and unreceipted files retain verified body reads. Images
  * use admitted pixel/GPU metadata; their consumers own body reads. Costing
  * must not eagerly fetch URL-only card/Explorer pictures omitted by admission.
  * Reserve only library and commons bytes in the session's one allocator; render rings and the sim registry own their claims. */
@@ -19,6 +22,7 @@ export async function leaseClientLibrary(source: Shardfile, assets: ReadonlyMap<
   validatedSource?: Shardfile }): Promise<void> {
   const original = ports.validatedSource ?? source;
   const verifiedCosts = isBuildValidatedOutput(original) ? new Set(original.files) : null;
+  const postponed = verifiedCosts === null || TIER !== 'phone' ? new Set<string>() : new Set(lateFiles(original, original.files).map(file => file.hash));
   const files = new Map(source.files.map((file) => [file.hash, file])), closure = new Set<string>();
   const pending = [...source.library];
   while (pending.length > 0) {
@@ -30,7 +34,7 @@ export async function leaseClientLibrary(source: Shardfile, assets: ReadonlyMap<
     if (ref.startsWith('commons:')) continue;
     const file = files.get(ref); if (file === undefined) throw new Error('Missing admitted library residency');
     let gpu = file.gpu;
-    if (file.kind !== 'image' && (file.kind === 'ktx2' || verifiedCosts?.has(file) !== true)) {
+    if (file.kind !== 'image' && (file.kind === 'ktx2' && !postponed.has(ref) || verifiedCosts?.has(file) !== true)) {
       const wire = assets.get(ref) ?? await ports.read?.(ref);
       if (wire === undefined) throw new Error('Missing admitted library residency');
       if (file.kind === 'ktx2') gpu = parseKtx2(wire, ports.textures).gpu;

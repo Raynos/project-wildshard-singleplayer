@@ -1,3 +1,4 @@
+import { AdmissionLateSchema, type AdmissionLate } from './admissionLate';
 /** Versioned, renderer-free disk contract shared by the writer and network reader. */
 import { isOutputIndex, outputBlobPath } from './outputAddress';
 import { OUTPUT_SECTIONS, assembleOutputTransport, isPlatformDataSection, type OutputHostSectionName } from './outputFields';
@@ -28,7 +29,7 @@ const runtime = v.union([
 export const OutputIndexSchema: v.GenericSchema<OutputIndexRowsInput, OutputIndexRows> & { readonly entries: { readonly [Key in keyof OutputIndexRows]-?: v.GenericSchema<OutputIndexRowsInput[Key], OutputIndexRows[Key]> } } = v.strictObject({
   format: v.literal('wildshard.shardfile'), formatVersion: v.literal(2), sdk: v.literal('0.2'), version: v.literal(SHARDFILE_VERSION),
   identity: IdentitySchema, build: v.strictObject({ sourceHash: ShardHashSchema, validator: v.pipe(v.string(), v.minLength(1), v.maxLength(160)) }), requires: RequiresSchema,
-  admission: v.strictObject({ budgets: ShardfileFieldSchemas.budgets, serverBudget: ShardfileFieldSchemas.serverBudget, authorCaps: ShardfileFieldSchemas.authorCaps, critical: ShardfileFieldSchemas.critical, library: ShardfileFieldSchemas.library }),
+  admission: v.strictObject({ budgets: ShardfileFieldSchemas.budgets, serverBudget: ShardfileFieldSchemas.serverBudget, authorCaps: ShardfileFieldSchemas.authorCaps, critical: ShardfileFieldSchemas.critical, library: ShardfileFieldSchemas.library, late: v.exactOptional(AdmissionLateSchema) }),
   sections: v.pipe(v.array(section), v.maxLength(256)), schemas: v.pipe(v.array(v.strictObject(measuredFile)), v.maxLength(128)),
   files: v.pipe(v.array(fileSchema), v.maxLength(8192)), runtime: v.nullable(runtime),
   /** iPhone downloads I5: content-hashed concatenations of the small sections, schemas and files, so a reader can fetch
@@ -77,6 +78,8 @@ function parseOutputIndexRows(input: unknown): OutputIndex {
     // a tiered file is one device tier's named, non-critical download (the other tier's selection drops it)
     if ((entry.tier !== undefined || entry.variantOf !== undefined) && (entry.name === undefined || entry.commons === true || entry.critical)) throw new Error('A tiered or variant output file is a named, non-critical product file');
   }
+  const library = new Set(v.parse(ShardfileFieldSchemas.library, index.admission.library));
+  for (const row of index.admission.late ?? []) if (!library.has(row.hash) || !refs.has(row.hash)) throw new Error('Late output file must be a declared library root');
   // I5: a pack lives beside the blobs, is listed once, and holds only listed members at their exact sizes, in order
   const members = new Map([...index.sections, ...index.schemas].map(entry => [entry.hash, entry.bytes] as const));
   for (const entry of index.files) members.set(entry.hash, entry.compressed);
@@ -145,6 +148,7 @@ interface OutputIndexRowsInputFields {
         authorCaps: unknown;
         critical: unknown;
         library: unknown;
+        late?: AdmissionLate;
     };
     sections: {
         name: string;
@@ -263,6 +267,7 @@ interface OutputIndexRowsFields {
         authorCaps: unknown;
         critical: unknown;
         library: unknown;
+        late?: AdmissionLate;
     };
     sections: {
         name: string;

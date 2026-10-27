@@ -219,7 +219,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   ctx.startExplore?.();
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/engine/native/boot.ts, via src/native.ts) waits for this
   const completeOfflineCopy = async (): Promise<void> => {
-    try { await completeManifestCache(manifest, levelScope); }
+    try { await completeManifestCache(manifest, levelScope, ctx.product); }
     catch (error: unknown) { if (!levelScope.disposed && !levelScope.disposing) console.info('[cache] deferred offline copy', error); }
   };
   afterControl(game.levelScope, run => { game.onLate(run, 'game.boot.background'); },

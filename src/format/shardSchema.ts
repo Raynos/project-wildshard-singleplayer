@@ -1,3 +1,4 @@
+import { AdmissionLateSchema } from './admissionLate';
 import { ManifestMetadataSchema } from '@wildshard/format/minimap';
 import { hasDeclaredClientPage } from './runtimeBinds';
 import { diverPreset } from '@wildshard/format/flyers';
@@ -79,7 +80,7 @@ const rawSchema: v.GenericSchema<ShardfileRowsInput, ShardfileRows> & { readonly
   entryways: EntrywaysSchema,
   movers: v.optional(MoversSchema, []),
   modes: v.exactOptional(ModesSchema),
-  files: FilesSchema, tiles: TilesSchema, library: LibrarySchema, critical: CriticalSchema,
+  files: FilesSchema, tiles: TilesSchema, library: LibrarySchema, critical: CriticalSchema, late: v.exactOptional(AdmissionLateSchema),
   far: FarSchema,
   near: v.exactOptional(NearPlaceholderSchema),
   ui: v.optional(UiSchema, []),
@@ -138,6 +139,7 @@ export interface Shardfile {
   tiles: v.InferOutput<typeof TilesSchema>;
   library: v.InferOutput<typeof LibrarySchema>;
   critical: v.InferOutput<typeof CriticalSchema>;
+  late?: v.InferOutput<typeof AdmissionLateSchema>;
   far: v.InferOutput<typeof FarSchema>;
   near?: v.InferOutput<typeof NearPlaceholderSchema>;
   ui: v.InferOutput<typeof UiSchema>;
@@ -217,6 +219,7 @@ export function shardfileRules(s: Shardfile): string[] {
   if (commonsWire.length !== commons.size || commonsWire.some((id) => !commons.has(id))) errors.push('commons wire declarations match the exact commons hash keyset');
   const files = new Map(s.files.map((f) => [f.hash, f]));
   if (files.size !== s.files.length) errors.push('unique file hashes');
+  if ((s.late ?? []).some(row => !files.has(row.hash) || !s.library.includes(row.hash))) errors.push('late files are declared library roots');
   const refs = [...s.files.flatMap((f) => f.dependencies), ...s.tiles.flatMap((t) => t.files), ...s.library, ...s.critical, ...s.sim.scripts, ...(s.far?.files ?? []), ...nearPlaceholderRoots(s.near), ...(s.look.grade.lut === null ? [] : [s.look.grade.lut])];
   for (const r of refs) if (r.startsWith('commons:') ? !s.requires.commons.includes(r.slice(8)) : !files.has(r)) errors.push(`undeclared reference ${r}`);
   const visited = new Set<string>(), active = new Set<string>();
@@ -386,6 +389,7 @@ interface ShardfileRowsInputFields {
     tiles: v.InferInput<typeof TilesSchema>;
     library: v.InferInput<typeof LibrarySchema>;
     critical: v.InferInput<typeof CriticalSchema>;
+    late?: v.InferInput<typeof AdmissionLateSchema>;
     far: v.InferInput<typeof FarSchema>;
     near?: v.InferInput<typeof NearPlaceholderSchema>;
     ui?: v.InferInput<typeof UiSchema> | undefined;
@@ -456,6 +460,7 @@ interface ShardfileRowsFields {
     tiles: v.InferOutput<typeof TilesSchema>;
     library: v.InferOutput<typeof LibrarySchema>;
     critical: v.InferOutput<typeof CriticalSchema>;
+  late?: v.InferOutput<typeof AdmissionLateSchema>;
     far: v.InferOutput<typeof FarSchema>;
     near?: v.InferOutput<typeof NearPlaceholderSchema>;
     ui: v.InferOutput<typeof UiSchema>;

@@ -3,8 +3,8 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 /** I2: only an exact first-party validation receipt may use this transport subset. Keep the full declaration;
  * tile scopes verify their own later reads. Global/critical and manifest-construction bytes stay ready. */
 export function controlFiles(source: Shardfile, selected: readonly Shardfile['files'][number][]): Shardfile['files'] {
-  const card = source.presentation?.card;
-  const pending = [...source.critical, ...source.library, ...source.files.filter(file => file.critical).map(file => file.hash),
+  const card = source.presentation?.card, late = new Set((source.late ?? []).map(row => row.hash));
+  const pending = [...source.critical, ...source.library.filter(hash => !late.has(hash)), ...source.files.filter(file => file.critical).map(file => file.hash),
     ...source.navigation === null ? [] : [source.navigation.file], ...source.map === undefined ? [] : [source.map.image],
     ...card === undefined ? [] : [card.thumb, card.portrait, card.landscape]];
   const needed = new Set<string>(), files = new Map(source.files.map(file => [file.hash, file]));
@@ -24,10 +24,11 @@ export function controlFiles(source: Shardfile, selected: readonly Shardfile['fi
  * This order never changes the renderer's own required-tile priority or content declarations. */
 export function deferredFiles(source: Shardfile, selected: readonly Shardfile['files'][number][], initial: ReadonlySet<string>): Shardfile['files'] {
   const files = new Map(source.files.map(file => [file.hash, file])), priority = new Map<string, number>();
-  for (const tile of source.tiles) {
-    const distance = Math.hypot((tile.bounds.min[0] + tile.bounds.max[0]) / 2 - source.spawn.x,
-      (tile.bounds.min[2] + tile.bounds.max[2]) / 2 - source.spawn.z);
-    const pending = [...tile.files], seen = new Set<string>();
+  const roots = [...source.tiles.map(tile => ({ refs: tile.files, x: (tile.bounds.min[0] + tile.bounds.max[0]) / 2, z: (tile.bounds.min[2] + tile.bounds.max[2]) / 2 })),
+    ...(source.late ?? []).filter(row => row.at !== undefined).map(row => ({ refs: [row.hash], x: row.at?.[0] ?? source.spawn.x, z: row.at?.[1] ?? source.spawn.z }))];
+  for (const root of roots) {
+    const distance = Math.hypot(root.x - source.spawn.x, root.z - source.spawn.z);
+    const pending = [...root.refs], seen = new Set<string>();
     while (pending.length > 0) {
       const hash = pending.pop(); if (hash === undefined || seen.has(hash)) continue;
       seen.add(hash); priority.set(hash, Math.min(priority.get(hash) ?? Infinity, distance));
@@ -38,4 +39,15 @@ export function deferredFiles(source: Shardfile, selected: readonly Shardfile['f
     const left = priority.get(a.hash), right = priority.get(b.hash);
     return left === right ? 0 : left === undefined ? 1 : right === undefined ? -1 : left - right;
   });
+}
+
+/** Declared after-control library closure for native/lazy products; actual readers can still request it earlier. */
+export function lateFiles(source: Shardfile, selected: readonly Shardfile['files'][number][]): Shardfile['files'] {
+  const files = new Map(source.files.map(file => [file.hash, file])), wanted = new Set<string>(), pending = (source.late ?? []).map(row => row.hash);
+  while (pending.length > 0) {
+    const hash = pending.pop(); if (hash === undefined || wanted.has(hash)) continue;
+    wanted.add(hash); pending.push(...files.get(hash)?.dependencies ?? []);
+  }
+  const initial = new Set(controlFiles(source, selected).map(file => file.hash));
+  return deferredFiles(source, selected.filter(file => wanted.has(file.hash)), initial);
 }
