@@ -309,3 +309,19 @@ and island preflight check. Arbitrary mutable input still uses the original
 admitClientPlan boundary; replacement products require fresh admission.
 No phase order, feature, visual or frame-budget change. Touched types and
 typed lint pass; H4 remains open for its row-only shared-preview reading.
+
+### H4 row-only result after admission reuse (2026-10-27)
+
+`8a0728329d` is contained in shared `cfef1c4658` / `cfef1c4-mvqnc3n0`.
+One cold/warm real-grid pair, muted iPhone16Pro402x874 Chromium CPU4x,
+retains reveal/controls/movement and errors0. Home is4.972s cold/6.670s
+warm with1,174 colliders. Warm still exceeds H3/H4's1.5s bar; H4 remains
+open and no whole-home gain is claimed. Other changes are in this shared pin.
+The former repeated runtimeClientPhase admission stack has no sampled warm
+cost after immutable per-product reuse. Remaining named validation includes
+worldScenes tier projection20.952ms, placement15.974ms, creature looks15.392ms;
+these samples are inclusive and not the entire6.670s wall interval.
+Retain original failed bars and avoid inferring savings from sampling zeros.
+Only H4 is regraded; S1 stays with sp-o4. Raw home rows/CPU profiles:
+`tmp/sp-x9-miss-fixes/h4-after/grid/{cold,warm}/`, mapped warm stacks
+`h4-after-validation-stacks.json`. No caps or validators are removed.
