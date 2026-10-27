@@ -3,7 +3,7 @@
 // SF66 (G247): a shard whose baked map (look/map.baked.json) no longer matches its world is refused in CI and on Vercel,
 // so a stale map never deploys; a local build only warns, since the rebake itself needs a served build of that world
 // (node scripts/bake-maps.mjs --url=<scripts/serve-build.sh --head> --shards=<slug>). test/baked-maps.test.ts is the gate's check.
-import { existsSync, readdirSync, rmSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { runWildshard } from './wildshard.mjs';
@@ -14,7 +14,8 @@ import { randomBytes } from 'node:crypto';
 import { InputHashMemo } from './bake-input-hashes.mjs';
 import { productInputKey, productToolchainKey, matchingProductInputKey, publishProductInputs } from './shardfile-inputs.mjs';
 import { quietCli } from './quiet-cli.mjs';
-import { shardOutputs } from './shard-outputs.mjs';
+import { outputManifest, shardOutputs } from './shard-outputs.mjs';
+import { usesProgramDiscovery } from './program-discovery.mjs';
 import { shardfileValidationRevision } from './shardfile-validation-revision.mjs';
 import { runShardBuild, runShardBuildPool } from './shard-build-pool.mjs';
 import { prepareProductBuildTools } from './product-build-tools.mjs';
@@ -30,13 +31,14 @@ export function readBuiltShardfile(root, name, options = {}) { return selectBuil
 // the slot or the shared content-keyed cache (scripts/shardfile-cache.mjs). The plain `pnpm build` (the push gate)
 // rebuilds every shard into a fresh folder. CI may explicitly reuse exact input receipts, then fully validates each hit.
 // --shard=<slug>[,<slug>] builds only those shards: another shard's product stays only while its key still matches,
-// else it is removed, so a one-shard preview never serves a stale product of a changed shard.
+// else it is removed, so a one-shard preview never serves a stale product of a changed shard. A product whose discovery
+// is program-bound (scripts/program-discovery.mjs) is always built too: the app build writes its discovery module from
+// that product's current receipt, so it cannot be left stale (unchanged inputs reuse it at once).
 /** Pack every first-party map through the existing charged SDK row; missing maps keep the old no-map build path.
  * @param {string} root @param {{strict?:boolean, build?:typeof runWildshard, reuse?:boolean, only?:string[], scope?:string[], copyRuntime?:boolean|'closed',onFailure?:(slug:string,error:unknown)=>void}} options */
 export async function buildShardfiles(root, { strict = [process.env.CI, process.env.VERCEL].some(flag => flag !== undefined && flag !== '' && flag !== 'false'), build = runWildshard, reuse = false, only, scope, copyRuntime = 'closed',onFailure } = {}) {
   if(onFailure!==undefined&&strict)throw new Error('Product failure collection is report-only; strict builds must fail');
   if (scope !== undefined && only !== undefined) throw new Error('Product phase scope and CLI only filter cannot be combined');
-  const selected = scope ?? (strict ? undefined : only);
   const outputRoot = resolve(root, 'out');
   // Discard the retired discovery artifact left by older builds.
   rmSync(resolve(outputRoot, 'catalog.json'), { force: true });
@@ -66,6 +68,14 @@ export async function buildShardfiles(root, { strict = [process.env.CI, process.
     }
   }
   for (const slug of scope ?? only ?? []) if (!built.includes(slug)) throw new Error(`wildshard build: --shard=${slug} is not a first-party shardfile project (${built.join(', ')})`);
+  const bound = (only === undefined || strict ? [] : products).filter(({ folder, output }) => {
+    const manifest = resolve(projects, folder, 'manifest.json');
+    if (!existsSync(manifest)) return false;
+    const row = output === undefined ? undefined : shardOutputs(root, folder)?.find(entry => entry.slug === output);
+    return usesProgramDiscovery(row === undefined ? JSON.parse(readFileSync(manifest, 'utf8')) : outputManifest(root, folder, row));
+  }).map(row => row.name).filter(name => only?.includes(name) !== true);
+  if (bound.length > 0) console.info(`wildshard build: --shard also keeps the program-bound discovery products current: ${bound.join(', ')}`);
+  const selected = scope ?? (strict || only === undefined ? undefined : [...only, ...bound]);
   if (only !== undefined && strict) console.warn('wildshard build: --shard ignored in CI; building every shard');
   const recorded = build === runWildshard;
   const files = recorded ? undefined : treeHashes(root);
