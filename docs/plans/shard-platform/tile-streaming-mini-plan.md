@@ -1384,3 +1384,29 @@ byte oracle02d3a54716563d0691ba9cd50a76ca441821d8157d4faf8ef795eca121ca66c3
 stays unchanged. Do not repin or introduce a tolerance. Touched source
 types/lint/ratchet pass; land source before the exact failed-only oracle
 recovery under G769. Any remaining difference stays red and is audited.
+
+### P1 exact timber oracle restored (2026-10-27, sp-x2)
+
+Source repair d24e460d2d removes the lossy compact:true opt-in introduced
+by88fd3ebe2b. A direct original26 source rebuild now asserts exactly
+26 members and the unchanged aggregate
+02d3a54716563d0691ba9cd50a76ca441821d8157d4faf8ef795eca121ca66c3.
+Every original GLB hash, including its serialized channels/topology,
+is restored; no repin, tolerance or alternate expected bytes.
+
+The exact-channel source makes L0 4/7 measure359636 compressed bytes
+in both retained c6a9/7e3 preview products. Coordinator-approved
+8505673985 records only pine-hollow/tile/0/4/7/compressed=359636;
+the global300000 bar remains. This current overflow follows d24's
+exact-source restoration, not b5ef2ff17c cabin scheduling. All other
+coordinates/metrics remain unchanged; do not describe this as zero debt.
+
+The registered quest-catalogue-sites test refused before collection
+because its DW/Pine product prerequisites were stale. One ordinary
+required product build then refused concurrent scriptAdmissionV2.ts
+input mutation. The independent direct source rebuild executes the
+original26 aggregate assertion and passes (Node transform-types plus
+the maintained simulation resolver); it is not a whole-suite pass.
+No preview or browser was started for this recovery. Plan-end runtime
+reading remains separate. G804 hands the next I2 cohort to the plan
+coordinator while sp-x2 moves to the generators plan.
