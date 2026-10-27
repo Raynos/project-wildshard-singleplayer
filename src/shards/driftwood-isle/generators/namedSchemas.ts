@@ -3,13 +3,8 @@ import { NativeQuestCompositionSchema } from '@wildshard/format/nativeQuestCompo
 import { HEADLESS_ASSEMBLY_JSON_SCHEMA, ReturnProgramSchema, PageReturnRowsSchema, QuestTraderSchema, PosedLibrarySchema } from '@wildshard/format/namedJsonContracts';
 import * as v from 'valibot';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
-import { namedFormatJsonSchema, namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
-import { NumericPoseSchema } from '@wildshard/format/clientChannels';
-import { BuildingLifeRowsSchema, BuildingLifeLookSchema } from '@wildshard/format/buildings';
-import { DirectorSchema } from '@wildshard/format/director';
-import { DirectorStagesSchema } from '@wildshard/format/directorStages';
+import { namedFormatJsonSchema, namedJsonSchema, composeNamedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { EnemyPlacementsSchema, FixedGeometryGroupsSchema } from './sections';
-import { PopulationKeeperRowsSchema as KeeperRowsSchema } from '@wildshard/format/populationKeeper';
 import type { DriftwoodFixedLayouts } from './fixedLayouts';
 
 const text = v.string(), number = v.number();
@@ -43,6 +38,7 @@ const FixedLayoutsSchema: v.GenericSchema<unknown, DriftwoodFixedLayouts> = v.st
 export function parseDriftwoodFixedLayouts(input: unknown): DriftwoodFixedLayouts { return v.parse(FixedLayoutsSchema, input); }
 
 const sharedContracts: Readonly<Record<string, string>> = {
+  'sim/keeper.json': 'populationKeeper.PopulationKeeperRows',
   'quests/page-composition.json': 'questPageComposition.QuestPageComposition',
   'world/cover-composition.json': 'streamedCover.CoverComposition',
   'look/creature-looks.json': 'speciesLooks.PackedCreatureLooks',
@@ -64,18 +60,29 @@ const sharedContracts: Readonly<Record<string, string>> = {
 
 const schemas: Readonly<Record<string, v.GenericSchema>> = {
   'sim/returns.json': PageReturnRowsSchema,
-  'world/building-life.json': v.strictObject({ look: BuildingLifeLookSchema, life: BuildingLifeRowsSchema, initialDusk: number }),
   'models/fixed-geometry.json': FixedGeometryGroupsSchema,
-  'directors/main.json': v.strictObject({ declaration: DirectorSchema, module: v.strictObject({ module: text, bytes: text, file: v.exactOptional(v.pipe(v.string(), v.minLength(1), v.maxLength(240))) }), stages: DirectorStagesSchema, bindings: v.null(), seed: number }),
   'look/gull-draw.json': PosedLibrarySchema,
   'look/fish-draw.json': PosedLibrarySchema,
-  'poses/monkey.json': v.strictObject({ clips: v.tuple([NumericPoseSchema, NumericPoseSchema]), program: ReturnProgramSchema, perch: MixedPopulationSchema.entries.perch }),
   'quests/stall.json': QuestTraderSchema,
   'quests/discovery.json': v.strictObject({ places: v.array(v.strictObject({ id: text, label: text, completeLabel: text,
     at: v.strictObject({ poi: v.picklist(['world', 'hut', 'lookout', 'wreck', 'shrine', 'cave', 'pier']), x: number, z: number, anchor: v.exactOptional(text) }), r: number })),
     guide: v.strictObject({ wander: number, idle: number, idleSpeed: number, cooldown: number, retry: number }), glassCount: number, shardFlags: v.array(text) }),
   'sim/enemy-placement.json': EnemyPlacementsSchema,
-  'sim/keeper.json': KeeperRowsSchema,
+};
+
+const composedSchemas: Readonly<Record<string, Readonly<Record<string, unknown>>>> = {
+  'world/building-life.json': composeNamedJsonSchema({ kind: 'object', entries: {
+    look: 'buildings.BuildingLifeLook', life: 'buildings.BuildingLifeRows', initialDusk: number,
+  } }),
+  'directors/main.json': composeNamedJsonSchema({ kind: 'object', entries: {
+    declaration: 'director.Director', module: v.strictObject({ module: text, bytes: text,
+      file: v.exactOptional(v.pipe(v.string(), v.minLength(1), v.maxLength(240))) }),
+    stages: 'directorStages.DirectorStages', bindings: v.null(), seed: number,
+  } }),
+  'poses/monkey.json': composeNamedJsonSchema({ kind: 'object', entries: {
+    clips: { kind: 'tuple', items: ['clientChannels.NumericPose', 'clientChannels.NumericPose'] },
+    program: ReturnProgramSchema, perch: MixedPopulationSchema.entries.perch,
+  } }),
 };
 
 const nativeAssemblySchema = { ...HEADLESS_ASSEMBLY_JSON_SCHEMA,
@@ -89,7 +96,7 @@ export function driftwoodJsonBlob(name: string, kind: 'json', bytes: Uint8Array)
     : name.startsWith('world/piers/') || name.startsWith('world/foliage/') ? 'worldScenePlacement.WorldScenePlacement' : sharedContracts[name];
   const schema = schemas[name];
   const jsonSchema = name === 'sim/headless-assembly.json' ? nativeAssemblySchema
-    : contract !== undefined ? namedFormatJsonSchema(contract) : schema === undefined ? undefined : namedJsonSchema(schema);
+    : contract !== undefined ? namedFormatJsonSchema(contract) : composedSchemas[name] ?? (schema === undefined ? undefined : namedJsonSchema(schema));
   if (jsonSchema === undefined) throw new Error(`Missing Driftwood named JSON schema: ${name}`);
   return nameBlob(name, kind, bytes, { jsonSchema });
   } catch (error) { throw new Error(`Driftwood named JSON ${name}: ${String(error)}`, { cause: error }); }

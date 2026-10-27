@@ -45,7 +45,8 @@ import { BossProfileSchema, ArenaBossProfileSchema, RoamingBossProfileSchema, Sp
 import { NpcRowSchema, NpcMotionSchema, NpcDialogueRowSchema, QuestNpcBindingSchema, QuestNpcBindingsSchema } from '@wildshard/format/npcs';
 import { WeaponProfileSchema, MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema, LashWeaponProfileSchema, ConeWeaponProfileSchema, HeldBowBaseSchema, HeldBowRowsSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
 import { toJsonSchema, type JsonSchema } from '@valibot/to-json-schema';
-import { finite, type GenericSchema } from 'valibot';
+import { finite, strictObject, object, looseObject, tuple, type GenericSchema } from 'valibot';
+import { PopulationKeeperRowsSchema } from '@wildshard/format/populationKeeper';
 import { EdgeProfileSchema, EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { PlumbingSchema } from '@wildshard/format/plumbing';
 import { StateSchema } from '@wildshard/format/state';
@@ -195,6 +196,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'populationProjection.PopulationProjection': PopulationProjectionSchema,
   'sceneDressing.SceneDressing': SceneDressingSchema,
   'clientChannels.NumericPose': NumericPoseSchema,
+  'populationKeeper.PopulationKeeperRows': PopulationKeeperRowsSchema,
   'questInteractions.QuestPageInteractions': QuestPageInteractionsSchema,
   'questPageComposition.QuestPage': QuestPageSchema,
   'questContinuation.QuestContinuation': QuestContinuationSchema,
@@ -617,4 +619,28 @@ export function schemaAt(document: object, pointer = ''): unknown {
     value = Reflect.get(value, key);
   }
   return value;
+}
+
+
+/** Declarative author composition; named strings resolve only defining format roots. */
+export type NamedJsonComposition = string | GenericSchema
+  | { readonly kind: 'object'; readonly entries: Readonly<Record<string, NamedJsonComposition>>; readonly mode?: 'strict' | 'strip' | 'loose' }
+  | { readonly kind: 'tuple'; readonly items: readonly NamedJsonComposition[] };
+
+/** Compose defining roots and local structural leaves without exporting runtime consumer schemas.
+ * Conversion keeps the ordinary unknown-check/transform refusals and never infers a contract from data. */
+export function composeNamedJsonSchema(composition: NamedJsonComposition): Readonly<Record<string, unknown>> {
+  const resolve = (node: NamedJsonComposition): GenericSchema => {
+    if (typeof node === 'string') {
+      if (!Object.hasOwn(wireRoots, node)) throw new Error(`Unknown named format contract: ${node}`);
+      const root = wireRoots[node];
+      if (root === undefined) throw new Error(`Missing named format contract: ${node}`);
+      return root;
+    }
+    if (node.kind === 'schema') return node;
+    if (node.kind === 'tuple') return tuple(node.items.map(resolve));
+    const entries = Object.fromEntries(Object.entries(node.entries).map(([name, item]) => [name, resolve(item)]));
+    return node.mode === 'strip' ? object(entries) : node.mode === 'loose' ? looseObject(entries) : strictObject(entries);
+  };
+  return namedJsonSchema(resolve(composition));
 }
