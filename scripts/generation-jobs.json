@@ -7026,48 +7026,6 @@
       "seedOutputs": []
     },
     {
-      "id": "sky-bridge-colliders",
-      "shard": "far-reach",
-      "entry": "src/shards/far-reach/generators/bridgeColliders.ts",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/sdk/bake/json.mjs",
-        "src/shards/far-reach/generators/bridgeColliders.ts",
-        "skyBridgePhysicsPlacements",
-        "src/shards/far-reach/data/bridgePhysics.generated.json"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/format/json.ts",
-        "src/format/package.json",
-        "src/format/portalLink.ts",
-        "src/format/socketLift.ts",
-        "src/sdk/bake/json.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/sdk/entries.ts",
-        "src/sdk/package.json",
-        "src/sdk/physics.ts",
-        "src/sdk/sceneTransform.ts",
-        "src/shards/far-reach/generators/rows/isletDesign.ts",
-        "src/shards/far-reach/generators/layout.ts",
-        "src/shards/far-reach/data/layout.generated.json",
-        "src/shards/far-reach/data/strings.json",
-        "src/shards/far-reach/generators/bridgeColliders.ts",
-        "src/shards/far-reach/generators/risingIslets.ts",
-        "src/shards/far-reach/generators/palette.ts"
-      ],
-      "outputs": [
-        "src/shards/far-reach/data/bridgePhysics.generated.json"
-      ],
-      "platform": "portable",
-      "buildOutputs": {
-        "src/shards/far-reach/data/bridgePhysics.generated.json": "d5545bc47278abcf37fbefea7a2fdbad75a8998b684e309a1585da081ce425f7"
-      },
-      "seedOutputs": []
-    },
-    {
       "id": "driftwood-ground",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-driftwood-ground.mjs",
@@ -8284,7 +8242,6 @@
         "src/sdk/package.json",
         "src/sdk/quests.ts",
         "src/shards/far-reach/generators/rows/bookStand.ts",
-        "src/shards/far-reach/data/bridgePhysics.generated.json",
         "src/shards/far-reach/generators/fileInventory.ts",
         "src/shards/far-reach/generators/groundScene.ts",
         "src/shards/far-reach/generators/rows/isleLook.ts",
@@ -8341,7 +8298,14 @@
         "src/shards/far-reach/generators/rows/falls.ts",
         "src/shards/far-reach/generators/rows/skyIsles.ts",
         "src/shards/far-reach/generators/rows/trees.ts",
-        "src/shards/far-reach/generators/isletRigRows.ts"
+        "src/shards/far-reach/generators/isletRigRows.ts",
+        "src/format/json.ts",
+        "src/format/package.json",
+        "src/format/portalLink.ts",
+        "src/format/socketLift.ts",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/shards/far-reach/generators/bridgeColliders.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/worldRows.generated.json"
@@ -12220,7 +12184,6 @@
         "src/game/shardfile/bakedKinds.ts",
         "src/sdk/bake",
         "src/shards/far-reach/generators/rows/bookStand.ts",
-        "src/shards/far-reach/data/bridgePhysics.generated.json",
         "src/shards/far-reach/generators/rows/crownScene.generated.ts",
         "src/shards/far-reach/generators/fileInventory.ts",
         "src/shards/far-reach/generators/groundScene.ts",
@@ -12267,7 +12230,10 @@
         "src/sdk",
         "src/shards/far-reach/generators/millScene.ts",
         "src/shards/far-reach/generators/millModel.ts",
-        "src/shards/far-reach/generators/restFiles.ts"
+        "src/shards/far-reach/generators/restFiles.ts",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/bridgeColliders.ts",
+        "src/shards/far-reach/generators/millSceneProgram.ts"
       ],
       "outputs": [
         "public/assets/far-reach/map/top.webp",

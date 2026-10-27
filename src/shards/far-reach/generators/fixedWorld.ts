@@ -1,5 +1,5 @@
 import type { BakedColliderInput } from '@wildshard/game/shardfile/bakedKinds';
-import BRIDGE from '../data/bridgePhysics.generated.json' with { type: 'json' };
+import { skyBridgePhysicsPlacements } from './bridgeColliders';
 import { skyPhysicsPlacements } from './physicsPlacements';
 import { skyGroundValues, type SkyGroundValues } from './groundScene';
 import { parseWorldScene, type WorldSceneRecipe, type PrivateScene } from '@wildshard/format/clientChannels';
@@ -33,7 +33,7 @@ export function skyFixedWorldValues(mill: WorldSceneRecipe): SkyFixedWorldValues
 /** Fresh original contact rows for source libraries that do not need visual scene construction. */
 export function skyFixedWorldColliders(ground: SkyGroundValues['SKY_GROUND_COLLIDERS'] = skyGroundValues().SKY_GROUND_COLLIDERS): FixedWorldRows['colliders'] {
   const top=SUNREST.y+BOOK_STAND.height;
-  return [...structuredClone(BRIDGE),...skyPhysicsPlacements(),...structuredClone(ground),{id:'far.keeper.stand',colliders:[{kind:'box',x:KEEPER_STAND.x,y:(top+SUNREST.y)/2,z:KEEPER_STAND.z,hx:BOOK_STAND.footprint,hy:Math.max(.005,(top-SUNREST.y)/2),hz:BOOK_STAND.footprint,yaw:-KEEPER_STAND.yaw,surface:'wood'}]}];
+  return [...skyBridgePhysicsPlacements(),...skyPhysicsPlacements(),...structuredClone(ground),{id:'far.keeper.stand',colliders:[{kind:'box',x:KEEPER_STAND.x,y:(top+SUNREST.y)/2,z:KEEPER_STAND.z,hx:BOOK_STAND.footprint,hy:Math.max(.005,(top-SUNREST.y)/2),hz:BOOK_STAND.footprint,yaw:-KEEPER_STAND.yaw,surface:'wood'}]}];
 }
 
 /** Compose fixed visual hierarchies offline; the client keeps the existing scene/registry owners. */

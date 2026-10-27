@@ -495,7 +495,7 @@
     "test/shard-select-entries.test.ts": 1,
     "test/signal-bucket-mover.test.ts": 1,
     "test/sky-boot-inventory.test.ts": 6,
-    "test/sky-bridge-scene.test.ts": 3,
+    "test/sky-bridge-scene.test.ts": 1,
     "test/sky-crown-scene.test.ts": 1,
     "test/sky-ground-scene.test.ts": 2,
     "test/sky-mill-scene.test.ts": 1,
