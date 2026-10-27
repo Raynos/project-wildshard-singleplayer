@@ -4,7 +4,7 @@ import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { wildlifeGeometry } from './wildlife';
 import { KIND } from './wildlifeKinds';
-import { NodeIO, VertexLayout } from '@gltf-transform/core';
+import { VertexLayout, WebIO } from '@gltf-transform/core';
 import { EXTMeshoptCompression } from '@gltf-transform/extensions';
 import { MeshoptEncoder, MeshoptDecoder } from 'meshoptimizer';
 import { BIRD_FRAMES } from './birdVariants';
@@ -217,7 +217,7 @@ export async function bakeBirds(bytes: Uint8Array, sidecar: Sidecar): Promise<{
     const raw = staticGlb([{name: 'wildlife', geometry, material, compactIndex: true,
       customAttributes: {_PIVOT: 'aPivot', _INFO: 'aInfo', _TEX: 'aTexV'}}], 'ambient-wildlife');
     await Promise.all([MeshoptEncoder.ready, MeshoptDecoder.ready]);
-    const io = new NodeIO().setVertexLayout(VertexLayout.SEPARATE).registerExtensions([EXTMeshoptCompression])
+    const io = new WebIO().setVertexLayout(VertexLayout.SEPARATE).registerExtensions([EXTMeshoptCompression])
       .registerDependencies({'meshopt.encoder': MeshoptEncoder, 'meshopt.decoder': MeshoptDecoder});
     const document = await io.readBinary(raw);
     // No reorder, quantize or filters: the codec preserves the authored Float32 words.

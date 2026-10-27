@@ -5,15 +5,18 @@ import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 import models from '../data/questRideModels.json' with { type: 'json' };
 import { FIGURE_CATALOGUE } from './figureCatalogue';
 import { questRideGlbs } from './bake-timber-scenes.mjs';
+import { perSources, type PineSources } from './pineSources';
 
 const surface = FIGURE_CATALOGUE.material;
 if (surface === undefined) throw new Error('Quest rides need their original figure surface');
-// GR8 G31: the rides' GLBs are built here from the native code parts (no scheduler job, no stored files under assets/).
-const rides = questRideGlbs();
-/** The quest rides' raw GLBs, for the map assembly. */
-export const QUEST_RIDE_RAW_MODELS: NamedBlobType[] = rides.map(([name, bytes]) => nameBlob(name, 'glb', bytes));
-/** The quest rides' GLBs, meshopt-named as their `meshopt: true` sources were. */
-export const QUEST_RIDE_PACKED_MODELS: NamedBlobType[] = await Promise.all(rides.map(([name, bytes]) => nameMeshoptBlob(name, bytes)));
+/** The quest rides' GLBs: raw for the map assembly, and meshopt-named as their `meshopt: true` sources were. */
+export interface QuestRideModels { readonly raw: NamedBlobType[]; readonly packed: NamedBlobType[] }
+/** GR8 G31: the rides' GLBs are built here from the native code parts (no scheduler job, no stored files under assets/;
+ *  D65: the parts come from the program's sources), made once per sources. */
+export const questRideModels: (sources: PineSources) => Promise<QuestRideModels> = perSources(async (sources: PineSources): Promise<QuestRideModels> => {
+  const rides = questRideGlbs(sources);
+  return { raw: rides.map(([name, bytes]) => nameBlob(name, 'glb', bytes)), packed: await Promise.all(rides.map(([name, bytes]) => nameMeshoptBlob(name, bytes))) };
+});
 const scene = parseWorldScene({ scene: { version: 1, root: 'root', nodes: [
   { kind: 'group', id: 'root', children: models.map(row => row.id) },
   ...models.map(row => ({ kind: 'mesh', id: row.id, geometry: row.id, material: 'body', missing: 'empty',

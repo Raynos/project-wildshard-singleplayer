@@ -2,11 +2,7 @@
 import type { TreeSetVariant, TreeSpeciesTraits } from '@wildshard/engine/world/forest/treeSpecies';
 import * as v from 'valibot';
 import { TreeSetSchema , type TreeSetRows as TreeSetRowsType } from '@wildshard/format/treeSetRows';
-import { pineTreeRestRows } from './bake-tree-rest.mjs';
 import FOREST_LOOKS from '../data/forestLook.json' with { type: 'json' };
-
-// GR8 G32: the rest pool is a product file built by bake-tree-rest.mjs, not the retired job's public GLB
-const treeRest = pineTreeRestRows();
 
 /**
  * Pine Hollow's Blender-built photoreal tree set (PH-B4, Jake's PH-U17; moved from the engine, E405; the page reads them as TREE_SET's rows): its species and how
@@ -44,6 +40,18 @@ export const PINE_TREE_SET: readonly [{ readonly name: "pine-a"; readonly specie
 
 /** Assets used by the Pine tree bake and its declared boot files. */
 export const PINE_TREE_ASSETS: { readonly bark: "pine_bark"; readonly twigAtlas: "pine_tree_01"; readonly set: "pine-hollow-trees"; readonly setVariants: readonly [{ readonly name: "pine-a"; readonly species: "pine"; readonly height: 22; readonly trunk: 0.42; readonly collider: 1; }, { readonly name: "pine-b"; readonly species: "pine"; readonly height: 17; readonly trunk: 0.34; readonly collider: 1; }, { readonly name: "pine-c"; readonly species: "pine"; readonly height: 26; readonly trunk: 0.5; readonly collider: 1; }, { readonly name: "pine-young"; readonly species: "pine"; readonly height: 13; readonly trunk: 0.27; readonly collider: 1; }, { readonly name: "fir-a"; readonly species: "fir"; readonly height: 24; readonly trunk: 0.45; readonly collider: 1; }, { readonly name: "fir-b"; readonly species: "fir"; readonly height: 30; readonly trunk: 0.56; readonly collider: 1; }, { readonly name: "giant-a"; readonly species: "giant"; readonly height: 44; readonly trunk: 2; readonly collider: 1.2; }, { readonly name: "giant-b"; readonly species: "giant"; readonly height: 52; readonly trunk: 2.4; readonly collider: 1.2; }, { readonly name: "birch-a"; readonly species: "birch"; readonly height: 16; readonly trunk: 0.2; readonly collider: 1; }, { readonly name: "birch-twin"; readonly species: "birch"; readonly height: 13; readonly trunk: 0.16; readonly collider: 1.6; }, { readonly name: "snag-a"; readonly species: "snag"; readonly height: 14; readonly trunk: 0.38; readonly collider: 1; }, { readonly name: "snag-b"; readonly species: "snag"; readonly height: 10; readonly trunk: 0.3; readonly collider: 1; }, { readonly name: "sapling-pine"; readonly species: "sapling"; readonly height: 3.2; readonly trunk: 0.06; readonly collider: 1; }, { readonly name: "sapling-fir"; readonly species: "sapling"; readonly height: 4.5; readonly trunk: 0.08; readonly collider: 1; }]; } = { bark: 'pine_bark', twigAtlas: 'pine_tree_01', set: 'pine-hollow-trees', setVariants: PINE_TREE_SET } as const;
+
+/** GR8 G32: the rest pool's product file name; bake-tree-rest.mjs bakes it (not the retired job's public GLB). */
+export const TREE_REST_FILE = 'models/trees/rest.glb';
+/** The tree set's geometry rows: the pool's product name, its parts and its custom channels (the variants are the set's
+ *  trees.json order, which test/pine-tree-rest.test.ts holds). */
+export function pineTreeRestRows(): { geometry: typeof TREE_REST_FILE; parts: string[]; channels: { name: string; source: string; width: number; parts?: string[] }[] } {
+  const parts = PINE_TREE_SET.flatMap(row => ['trunk', 'trunkLo', 'hi', 'lo', 'twigs', 'far'].map(part => `${row.name}__${part}`));
+  const bark = PINE_TREE_SET.flatMap(row => ['trunk', 'trunkLo'].map(part => `${row.name}__${part}`));
+  return { geometry: TREE_REST_FILE, parts,
+    channels: [{ name: 'aWindWeight', source: '_wind_weight', width: 1 }, { name: 'aBarkLayer', source: '_bark_layer', width: 1, parts: bark }] };
+}
+const treeRest = pineTreeRestRows();
 
 const LABEL: Readonly<Record<string, string>> = {
   'pine-a': 'Scots pine A', 'pine-b': 'Scots pine B', 'pine-c': 'Scots pine C', 'pine-young': 'Young pine', 'fir-a': 'Fir A', 'fir-b': 'Fir B',

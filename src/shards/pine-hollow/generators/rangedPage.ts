@@ -8,39 +8,49 @@ import { RainPresentationSchema , type RainPresentationRows as RainPresentationR
 import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
 import { PINE_OUTPUT } from './outputInputs';
 import { tradeCatalogue } from './trades';
-import { CRAG_CAVE_ROWS } from './cragSceneContribution';
+import { cragScene } from './cragSceneContribution';
 import { PINE_QUEST_RUNTIME } from './questRuntime';
 import * as layout from './layout';
 import { pineQuestSites } from './bake-timber-scenes.mjs';
+import { perSources, type PineSources } from './pineSources';
 import waterRows from '../data/waterLook.json' with { type: 'json' };
 import rainBake from '../data/rain.json' with { type: 'json' };
 import weather from '../data/weatherLook.json' with { type: 'json' };
 
-const { rifle } = pineQuestSites();
-
 const { PINE_CAVE_HOOD, PINE_RAIN, PINE_RAIN_PROGRAMS } = weather;
 
 const painted = PINE_OUTPUT.custom['custom/paintedTextures'], pack = PINE_OUTPUT.custom['custom/trophyMounts'];
-export const RANGED_PAGE: RangedPageRowsType = v.parse(RangedPageSchema, {
-  id: 'pine.ranged', forest: 'pine.forest', elites: 'actors/elites.json', combat: 'combat/roaming.json', finishSource: 'held-finishes',
-  menu: { title: 'Finishes', note: "Everything here trades at Mott's stall", hint: "Trade at Mott's stall", gearHint: 'Tap a weapon to hold it · a finish to wear it', noTrade: 'Mott has no use for it', lines: tradeCatalogue().lines },
-  drops: { stream: 'skin-drops', rifleStream: 'cabin-rifle', labels: { rifle: 'lever-action', crossbow: 'crossbow' },
-    rifle: { at: [rifle.x, rifle.y, rifle.z], label: 'Take the lever-action',
-      toast: 'Lever-action rifle acquired · 1/2 to switch, Q to swap, R feeds the tube', scale: 1.3, parameters: ['rifle', 'lever'] } },
-  prewarm: [{ kind: 'antler-king', variant: 'warden' }, { kind: 'elk', variant: 'thrall' }, { kind: 'boar', variant: 'thrall' }],
-  collection: { source: 'collection-mounts', pack, chalk: painted.chalk, texture: painted.textures['chalk'] },
-  debugLap, life: 'actors/page-life.json', directional: true, shadowBatch: true,
-});
 export const WEATHER_OBSERVATIONS: ForestWeatherObservationRowsType = v.parse(ForestWeatherObservationSchema, { page: 'pine.forest', audio: 'pine.ranged', guide: PINE_QUEST_RUNTIME.leadPage.quest });
-const cave = layout.BEAR_CAVE, baked = '/assets/pine-hollow/baked/rain';
-/** The rain (G474 weather presentation): no rain under the bear cave's rock, nor in its mouth's hood. */
-export const RAIN: RainPresentationRowsType = v.parse(RainPresentationSchema, {
-  name: 'pine-weather', programs: PINE_RAIN_PROGRAMS, water: waterRows.surfaces.puddle, rings: Object.values(waterRows.looks),
-  look: { coverN: PINE_RAIN.coverN, streaks: PINE_RAIN.streaks, splashes: PINE_RAIN.splashes, lensDrops: PINE_RAIN.lensDrops },
-  cover: { page: 'pine.forest', roofs: [{ frame: { x: cave.x, z: cave.z, yaw: cave.rot }, polygon: CRAG_CAVE_ROWS.meta.inside }] },
-  hood: { x: cave.x, z: cave.z, rot: cave.rot, ...PINE_CAVE_HOOD },
-  bake: { phone: { url: `${baked}.phone.bin`, rows: rainBake.phone }, desktop: { url: `${baked}.bin`, rows: rainBake.desktop } },
+/** The rows `rangedPage` makes. */
+export interface RangedPage {
+  readonly RANGED_PAGE: RangedPageRowsType;
+  readonly RAIN: RainPresentationRowsType;
+  readonly RANGED_PAGE_BLOBS: NamedBlobType[];
+}
+/** D65: the ranged page, the rain and their blobs over the program's sources (the rifle's site, the cave's roof), made once per sources. */
+export const rangedPage: (sources: PineSources) => Promise<RangedPage> = perSources(async (sources: PineSources): Promise<RangedPage> => {
+  const { rifle } = pineQuestSites(sources), { CRAG_CAVE_ROWS } = await cragScene(sources);
+  const RANGED_PAGE: RangedPageRowsType = v.parse(RangedPageSchema, {
+    id: 'pine.ranged', forest: 'pine.forest', elites: 'actors/elites.json', combat: 'combat/roaming.json', finishSource: 'held-finishes',
+    menu: { title: 'Finishes', note: "Everything here trades at Mott's stall", hint: "Trade at Mott's stall", gearHint: 'Tap a weapon to hold it · a finish to wear it', noTrade: 'Mott has no use for it', lines: tradeCatalogue().lines },
+    drops: { stream: 'skin-drops', rifleStream: 'cabin-rifle', labels: { rifle: 'lever-action', crossbow: 'crossbow' },
+      rifle: { at: [rifle.x, rifle.y, rifle.z], label: 'Take the lever-action',
+        toast: 'Lever-action rifle acquired · 1/2 to switch, Q to swap, R feeds the tube', scale: 1.3, parameters: ['rifle', 'lever'] } },
+    prewarm: [{ kind: 'antler-king', variant: 'warden' }, { kind: 'elk', variant: 'thrall' }, { kind: 'boar', variant: 'thrall' }],
+    collection: { source: 'collection-mounts', pack, chalk: painted.chalk, texture: painted.textures['chalk'] },
+    debugLap, life: 'actors/page-life.json', directional: true, shadowBatch: true,
+  });
+  const cave = layout.BEAR_CAVE, baked = '/assets/pine-hollow/baked/rain';
+  /** The rain (G474 weather presentation): no rain under the bear cave's rock, nor in its mouth's hood. */
+  const RAIN: RainPresentationRowsType = v.parse(RainPresentationSchema, {
+    name: 'pine-weather', programs: PINE_RAIN_PROGRAMS, water: waterRows.surfaces.puddle, rings: Object.values(waterRows.looks),
+    look: { coverN: PINE_RAIN.coverN, streaks: PINE_RAIN.streaks, splashes: PINE_RAIN.splashes, lensDrops: PINE_RAIN.lensDrops },
+    cover: { page: 'pine.forest', roofs: [{ frame: { x: cave.x, z: cave.z, yaw: cave.rot }, polygon: CRAG_CAVE_ROWS.meta.inside }] },
+    hood: { x: cave.x, z: cave.z, rot: cave.rot, ...PINE_CAVE_HOOD },
+    bake: { phone: { url: `${baked}.phone.bin`, rows: rainBake.phone }, desktop: { url: `${baked}.bin`, rows: rainBake.desktop } },
+  });
+  const RANGED_PAGE_BLOBS: NamedBlobType[] = [nameBlob('client/ranged-page.json', 'json', new TextEncoder().encode(JSON.stringify(RANGED_PAGE))),
+    nameBlob('world/weather-observations.json', 'json', new TextEncoder().encode(JSON.stringify(WEATHER_OBSERVATIONS))),
+    nameBlob('world/rain.json', 'json', new TextEncoder().encode(JSON.stringify(RAIN)))];
+  return { RANGED_PAGE, RAIN, RANGED_PAGE_BLOBS };
 });
-export const RANGED_PAGE_BLOBS: NamedBlobType[] = [nameBlob('client/ranged-page.json', 'json', new TextEncoder().encode(JSON.stringify(RANGED_PAGE))),
-  nameBlob('world/weather-observations.json', 'json', new TextEncoder().encode(JSON.stringify(WEATHER_OBSERVATIONS))),
-  nameBlob('world/rain.json', 'json', new TextEncoder().encode(JSON.stringify(RAIN)))];

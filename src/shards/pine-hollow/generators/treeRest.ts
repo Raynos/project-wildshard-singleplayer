@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import { NodeIO, VertexLayout } from '@gltf-transform/core';
+import { VertexLayout, WebIO } from '@gltf-transform/core';
 import { EXTMeshoptCompression } from '@gltf-transform/extensions';
 import { dedup } from '@gltf-transform/functions';
 import { MeshoptEncoder, MeshoptDecoder } from 'meshoptimizer';
@@ -73,7 +73,7 @@ export async function bakeTreeRest(bytes: Uint8Array, variants: readonly { name:
       };
     }));
     await Promise.all([MeshoptEncoder.ready, MeshoptDecoder.ready]);
-    const io = new NodeIO().setVertexLayout(VertexLayout.SEPARATE).registerExtensions([EXTMeshoptCompression])
+    const io = new WebIO().setVertexLayout(VertexLayout.SEPARATE).registerExtensions([EXTMeshoptCompression])
       .registerDependencies({'meshopt.encoder': MeshoptEncoder, 'meshopt.decoder': MeshoptDecoder});
     const document = await io.readBinary(staticGlb(primitives, 'pine-tree-rest'));
     await document.transform(dedup());

@@ -1,4 +1,4 @@
-import { NodeIO, type Accessor, type Document } from '@gltf-transform/core';
+import { WebIO, type Accessor, type Document } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { MeshoptDecoder } from 'meshoptimizer';
 import * as THREE from 'three';
@@ -59,7 +59,7 @@ async function readDocument(glb: Uint8Array): Promise<Document> {
   const header = new DataView(glb.buffer, glb.byteOffset, glb.byteLength);
   if (header.getUint32(0, true) !== 0x46546c67 || header.getUint32(4, true) !== 2 || header.getUint32(8, true) !== glb.byteLength) throw new Error('Rig requires complete GLB 2 bytes');
   await MeshoptDecoder.ready;
-  return new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder }).readBinary(glb);
+  return new WebIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder }).readBinary(glb);
 }
 /** Decode GLB transform animation into standard Three tracks, preserving Float32 keys and STEP/LINEAR interpolation.
  * Stable named targets are required. Morph channels, cubic splines and normalized/integer animation accessors refuse;

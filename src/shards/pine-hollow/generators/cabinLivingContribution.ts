@@ -7,9 +7,7 @@ import { BuildingLifeRowsSchema , type BuildingLifeRows as BuildingLifeRowsType 
 import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
 import baked from '../data/cabinLivingScenes.generated.json' with { type: 'json' };
 import { pineCabins } from './bake-pine-cabins.mjs';
-
-const cabins = pineCabins().rows;
-
+import { perSources, type PineSources } from './pineSources';
 
 const id = v.string(), geometry = v.object({ key: id, id, source: v.object({ library: id, model: id }) });
 export const CabinLivingProfileSchema: v.ObjectSchema<{ readonly tier: v.PicklistSchema<["phone", "desktop"], undefined>; readonly shadow: v.BooleanSchema<undefined>; readonly shared: v.BooleanSchema<undefined>; readonly file: v.StringSchema<undefined>; readonly graph: v.GenericSchema<unknown, WorldSceneWeld>; readonly life: v.GenericSchema<unknown, BuildingLifeRowsType>; readonly geometry: v.ArraySchema<v.ObjectSchema<{ readonly key: v.StringSchema<undefined>; readonly id: v.StringSchema<undefined>; readonly source: v.ObjectSchema<{ readonly library: v.StringSchema<undefined>; readonly model: v.StringSchema<undefined>; }, undefined>; }, undefined>, undefined>; }, undefined> = v.object({ tier: v.picklist(['phone', 'desktop']), shadow: v.boolean(), shared: v.boolean(), file: id,
@@ -20,11 +18,15 @@ export const CABIN_LIVING_LIBRARIES: { id: string; kind: "owned"; models: { id: 
   models: rows.geometry.filter(row => row.library === library).map(({ library: _library, ...row }) => row) }));
 export const CABIN_LIVING_BLOBS: NamedBlobType[] = rows.profiles.map(row => nameBlob(row.file, 'json', new TextEncoder().encode(JSON.stringify({ graph: row.graph, life: row.life, geometry: row.geometry }))));
 /** Native facts consumed by world wiring, quests, the map and the collection wall. */
-export const CABIN_SITES: { buildings: { id: string; index: number; root: string; standalone: boolean; }[]; roofs: { x: number; z: number; rot: number; w: number; d: number; }[]; } = {
-  buildings: [...cabins.buildings.filter(row => !row.hamlet), ...cabins.buildings.filter(row => row.hamlet)].map(row => ({ id: row.id, index: row.index, root: `cabins.${row.id}.root`, standalone: !row.hamlet })),
-  roofs: cabins.buildings.filter(row => row.hamlet).map(row => ({ x: row.at[0], z: row.at[2], rot: row.rot, w: row.size[1] + 1, d: row.size[0] + 1 })),
-};
-export type CabinSites = typeof CABIN_SITES;
+export interface CabinSites { buildings: { id: string; index: number; root: string; standalone: boolean; }[]; roofs: { x: number; z: number; rot: number; w: number; d: number; }[]; }
+/** The cabin sites over the cabin bake (D65: its grid comes from the program's sources), made once per sources. */
+export const cabinSites: (sources: PineSources) => CabinSites = perSources((sources: PineSources): CabinSites => {
+  const cabins = pineCabins(sources).rows;
+  return {
+    buildings: [...cabins.buildings.filter(row => !row.hamlet), ...cabins.buildings.filter(row => row.hamlet)].map(row => ({ id: row.id, index: row.index, root: `cabins.${row.id}.root`, standalone: !row.hamlet })),
+    roofs: cabins.buildings.filter(row => row.hamlet).map(row => ({ x: row.at[0], z: row.at[2], rot: row.rot, w: row.size[1] + 1, d: row.size[0] + 1 })),
+  };
+});
 export type CabinLivingProfile = v.InferOutput<typeof CabinLivingProfileSchema>;
 /** Shell admission makes the live graph's native geometry available before either graph hydrates. */
 export function cabinLivingResources(tier: 'phone' | 'desktop', shadow: boolean): WorldSceneWeld['resources'] {

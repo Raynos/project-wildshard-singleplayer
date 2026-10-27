@@ -6,6 +6,7 @@
  * graph is ../data/streamLook.ts.
  */
 import { bakeStreamRows } from './bake-pine-streams.mjs';
+import type { PineSources } from './pineSources';
 
 /** The spray's anchors: at the foot of the fall's face, and over the plunge (lifted `lift` m off the pond). */
 const SPRAY_ANCHORS = {
@@ -13,9 +14,9 @@ const SPRAY_ANCHORS = {
   plunge: { n: 6, size: 5.5, rise: 3, lift: 0.3 },
 } as const;
 
-/** Each puff's origin (x, y, z), seed (4) and size (3), flattened in puff order. */
-export function sprayPuffRows(): { at: number[]; seed: number[]; size: number[] } {
-  const { faceFoot: [fx, fy, fz], plunge: [px, py, pz] } = bakeStreamRows().rows;
+/** Each puff's origin (x, y, z), seed (4) and size (3), flattened in puff order (the anchors over the sources' streams bake). */
+export function sprayPuffRows(sources: PineSources): { at: number[]; seed: number[]; size: number[] } {
+  const { faceFoot: [fx, fy, fz], plunge: [px, py, pz] } = bakeStreamRows(sources).rows;
   const anchors = [
     { p: [fx, fy, fz], ...SPRAY_ANCHORS.faceFoot },
     { p: [px, py + SPRAY_ANCHORS.plunge.lift, pz], ...SPRAY_ANCHORS.plunge },
