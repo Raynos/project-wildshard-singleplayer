@@ -14,10 +14,8 @@ import { BufferAttribute, BufferGeometry, Float32BufferAttribute, MeshStandardMa
 import { parseBakedTerrain, bakedSamplers } from '@wildshard/engine/world/BakedTerrain';
 import { canopyChannel, terrainChunkGeometry } from '@wildshard/engine/world/Terrain';
 import { _installBakedTerrain } from '@wildshard/engine/world/Heightfield';
-import { canopyMapOf, placeForest, plantSpecs } from '@wildshard/engine/world/forest/placement';
 import { filePolicy } from '@wildshard/engine/boot/filePolicy';
 import type { Ktx2Table } from '@wildshard/engine/boot/gpuFiles';
-import { findShard, setActiveChunk } from '@wildshard/game/shard/registry';
 import { sliceNativeLattice, type NativeLatticeAttribute, type NativeLatticeSource, type NativeLatticeTile } from './nativeLattice';
 import { staticGlb } from './glb';
 import { simplifyNativeLatticeTile } from './worldLod';
@@ -114,26 +112,6 @@ function coarseColours(tile: NativeLatticeTile, colourAt: NonNullable<SplatGroun
     out.set(rgb, i * 3);
   }
   return out;
-}
-
-/**
- * A native level's splat ground set (its `assets`: the four layer ids, tints and boreal extras) and the canopy density
- * (`canopyMapOf`, 256²) of the forest it plants on its committed bake: the level selected and its baked ground installed as
- * the page does, then `placeForest` on its tree set. Selects the level (build time only).
- */
-export interface NativeSplatGround {
-  readonly layers: readonly string[]; readonly tints: readonly (readonly [number, number, number])[];
-  readonly boreal: { readonly normalK: readonly number[]; readonly trailDust: readonly number[] } | null; readonly canopy: Float32Array;
-}
-export function nativeSplatGround(slug: string, bytes: Uint8Array): NativeSplatGround {
-  // an unknown level would select the default one (with only a warning): refuse it instead
-  if (findShard(slug) === undefined) throw new Error(`Native forest canopy: no level ${slug}`);
-  const def = setActiveChunk(slug), grid = parseBakedTerrain(Uint8Array.from(bytes).buffer);
-  if (grid === null) throw new Error(`Native forest canopy: unreadable bake for ${slug}`);
-  const assets = def.assets; if (assets === undefined) throw new Error(`Native level ${slug} has no splat ground`);
-  _installBakedTerrain(bakedSamplers(grid));
-  const boreal = assets.boreal === undefined ? null : { normalK: assets.boreal.normalK, trailDust: assets.boreal.trailDust };
-  return { layers: assets.groundLayers, tints: assets.groundTints, boreal, canopy: canopyMapOf(placeForest(plantSpecs(def.trees)).trees) };
 }
 
 /** One tier's four splat layers by role, as public asset paths. */

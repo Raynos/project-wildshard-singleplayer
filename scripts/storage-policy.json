@@ -44,62 +44,6 @@
       "purpose": "Sky Reach prepared world model pool, shipped and used by cold map builds"
     },
     {
-      "path": "src/shards/pine-hollow/assets/06d57c11228b0045c9b02eb13fc05ad97ba8a98c3e2dcf8d1ebb8b078d3060b0",
-      "oid": "80120fa6e7cbffeed9f34c997966d156ef81451b",
-      "bytes": 1348902,
-      "kind": "runtime",
-      "purpose": "Pine Hollow's splat ground layer (tile streaming P1, props.splat): a 1k ground texture-array layer KTX2, byte-identical to its public/assets/gpu/tex twin (the same git blob, no new object), content-addressed into the shard's product"
-    },
-    {
-      "path": "src/shards/pine-hollow/assets/3e67ab74de21f5c5be2c7e540b7d0d26da8310ebbf7e00e590692d637fc9a5d4",
-      "oid": "1ab0e9966cd70d7e94b816220f98dd833950152d",
-      "bytes": 1342504,
-      "kind": "runtime",
-      "purpose": "Pine Hollow's splat ground layer (tile streaming P1, props.splat): a 1k ground texture-array layer KTX2, byte-identical to its public/assets/gpu/tex twin (the same git blob, no new object), content-addressed into the shard's product"
-    },
-    {
-      "path": "src/shards/pine-hollow/assets/4b67681d84b2762edbe191c97868a4898a3a1ba697336bb50dade7a83ff3a19c",
-      "oid": "d3e0d157d15bdc06512b39514d0a8dc445d3eb9c",
-      "bytes": 1361441,
-      "kind": "runtime",
-      "purpose": "Pine Hollow's splat ground layer (tile streaming P1, props.splat): a 1k ground texture-array layer KTX2, byte-identical to its public/assets/gpu/tex twin (the same git blob, no new object), content-addressed into the shard's product"
-    },
-    {
-      "path": "src/shards/pine-hollow/assets/754f505bfa122a9dce903cfb117edae15f8701f06d25a79aa535f1cce63b035e",
-      "oid": "49ef2a1860fb1818abc5d7e1671f761c903d1eb0",
-      "bytes": 1298664,
-      "kind": "runtime",
-      "purpose": "Pine Hollow's splat ground layer (tile streaming P1, props.splat): a 1k ground texture-array layer KTX2, byte-identical to its public/assets/gpu/tex twin (the same git blob, no new object), content-addressed into the shard's product"
-    },
-    {
-      "path": "src/shards/pine-hollow/assets/90ff16b6a464c9065a4b8d09f22b45278731be6b05fcb04784edc8a3db7ab156",
-      "oid": "3ba7486b50ffa459647b546117fd1446d12f9266",
-      "bytes": 1308185,
-      "kind": "runtime",
-      "purpose": "Pine Hollow's splat ground layer (tile streaming P1, props.splat): a 1k ground texture-array layer KTX2, byte-identical to its public/assets/gpu/tex twin (the same git blob, no new object), content-addressed into the shard's product"
-    },
-    {
-      "path": "src/shards/pine-hollow/assets/a6ba8ef4bd2642fd99b79b14497f625b42fc5b3b10292db6fc950be15d4bf54f",
-      "oid": "238f865601c69fc1e1cab21a580298bce0c0649d",
-      "bytes": 1341010,
-      "kind": "runtime",
-      "purpose": "Pine Hollow's splat ground layer (tile streaming P1, props.splat): a 1k ground texture-array layer KTX2, byte-identical to its public/assets/gpu/tex twin (the same git blob, no new object), content-addressed into the shard's product"
-    },
-    {
-      "path": "src/shards/pine-hollow/assets/ec003df65ede7273bc5d27052d776c43f9e98b16ce6b061eefde63bb451b48bf",
-      "oid": "2ba6d40e840f3447e4226ecaf8b18096ad0dba43",
-      "bytes": 1317608,
-      "kind": "runtime",
-      "purpose": "Pine Hollow's splat ground layer (tile streaming P1, props.splat): a 1k ground texture-array layer KTX2, byte-identical to its public/assets/gpu/tex twin (the same git blob, no new object), content-addressed into the shard's product"
-    },
-    {
-      "path": "src/shards/pine-hollow/assets/ed453edb0cfada702ee087f02e113c32ffbe5dc7756d5303a863640c4e8a78db",
-      "oid": "a6fc887ba543191036c7547ff07eb4e5998916c7",
-      "bytes": 1336109,
-      "kind": "runtime",
-      "purpose": "Pine Hollow's splat ground layer (tile streaming P1, props.splat): a 1k ground texture-array layer KTX2, byte-identical to its public/assets/gpu/tex twin (the same git blob, no new object), content-addressed into the shard's product"
-    },
-    {
       "path": "src/shards/nalati-grasslands/data/sign-atlas-roads.bin",
       "oid": "838a68c2386f8fbf058cc99823844b6c948559a2",
       "bytes": 2097152,

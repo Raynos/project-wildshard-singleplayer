@@ -13,8 +13,7 @@ import { PINE_EDGE_HEIGHTS } from './edges';
 import PINE_RUNTIME_COST from '../data/runtimeCost.json' with { type: 'json' };
 import { pineLookMaterials } from './lookMaterials';
 import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
-import ground from '../data/groundTiles.json' with { type: 'json' };
-import { withPineGround } from './groundTiles';
+import { withPineGround, type PineGroundRows } from './groundTiles';
 import { pineQuestNpcs } from './questNpcs';
 import type { PineJournal } from './journal';
 import { PINE_QUEST_HOST } from './questHost';
@@ -47,7 +46,6 @@ const looks = pineLookMaterials();
 // floor, flat at y = 0 through each canyon gap) stand on Pine's real boundary rows (./data/edges.ts, the committed bake's).
 // The grid's terrain.bin reader paints no palette for Pine, so the colours stay its neutral grey.
 // tile streaming P1: the ground's 80 splat tiles, the timber on its 12 L0 tiles after it
-const world = withPineGround(timbers.props, timbers.shardfile, ground);
 const base = emptyShardfile({ slug: 'pine-hollow', name: 'Pine Hollow', author: 'Wildshard', revision: 1, seed: identity.seed });
 const criticalFiles = timbers.shardfile.files.filter(file => timbers.shardfile.critical.includes(file.hash));
 // The original seven one-page guests plus the admitted shelter guest, with live and rewind copies.
@@ -55,7 +53,8 @@ const scriptMemory = 14 * 65536 + returnGuest('shelter').row.pages * 65536 * 2;
 const row = (heights: readonly number[]): { heights: number[]; colours: [number, number, number][]; roadHeight: 0 } =>
   ({ heights: [...heights], colours: heights.map((): [number, number, number] => [0.25, 0.25, 0.25]), roadHeight: 0 });
 /** Pine's declaration, admitted with the journal its program reads (GR8: `generate.ts`; no scheduler job writes it). */
-export function pineProduct(journal: PineJournal): Shardfile {
+export function pineProduct(journal: PineJournal, ground: PineGroundRows): Shardfile {
+  const world = withPineGround(timbers.props, timbers.shardfile, ground);
   const libraryFiles = [...world.shardfile.files.filter(file => world.shardfile.library.includes(file.hash)), ...journal.files];
   return parseShardfile({
   ...base, ...world.shardfile, plumbing, props: world.props,

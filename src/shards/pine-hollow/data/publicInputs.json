@@ -28,5 +28,7 @@
   "trees": {
     "glb": "/assets/models/pine-hollow-trees/trees.glb",
     "sidecar": "/assets/models/pine-hollow-trees/trees.json"
-  }
+  },
+  "cave": "/assets/models/pine-hollow-crags/cave.json",
+  "groundLayers": "/assets/tex/"
 }

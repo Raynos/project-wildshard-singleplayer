@@ -121,7 +121,7 @@
     "src/shards/pine-hollow/generators/forestStory.ts": 1,
     "src/shards/pine-hollow/generators/heroScenes.ts": 1,
     "src/shards/pine-hollow/generators/populationEnvironment.ts": 1,
-    "src/shards/pine-hollow/generators/product.ts": 2,
+    "src/shards/pine-hollow/generators/product.ts": 1,
     "src/shards/pine-hollow/generators/riggedHulls.ts": 1,
     "src/shards/pine-hollow/generators/sceneModelRows.ts": 2,
     "src/shards/pine-hollow/generators/timberSceneContribution.ts": 1,
