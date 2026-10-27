@@ -1,6 +1,6 @@
 import type { GridCellEvents } from '../grid/cellEvents';
 import { enterDeclaredAudioPhase } from '../audio/sceneDirector';
-import { admitClientPlan, installClientPhase, type ClientPhase } from './clientPlan';
+import { admittedProductClientPlan, installClientPhase, type ClientPhase } from './clientPlan';
 import { bindResidentWorldScope, boundResidentWorldScope, residentWorldScope } from './hybridPresentation';
 import { MoverRuntime, type MoverInstallation } from '../plugin/mover';
 import { ownerTask, withOwner } from '@wildshard/engine/app/ownership';
@@ -28,7 +28,7 @@ import type { AudioData } from '@wildshard/format/audio';
 
 async function runtimeClientPhase(ctx: ShardContext, phase: ClientPhase, resident: Scope, lifetime?: 'entered'): Promise<void> {
   if (!ctx.product.has('client/plan')) return;
-  const plan = admitClientPlan(ctx.product.section('client/plan'), ctx.product);
+  const plan = admittedProductClientPlan(ctx.product);
   await installClientPhase(ctx, plan, phase, resident, lifetime);
 }
 
@@ -38,7 +38,7 @@ function preparePageRuntime(declaration: RuntimeDeclaration | null, product: Sha
   slug: string, firstParty: boolean, entries: readonly TrustedRuntimeEntry[]): Promise<new () => ShardPlugin> {
   if (declaration !== null && 'entry' in declaration) return prepareTrustedRuntime(declaration, slug, firstParty, entries);
   if (!firstParty || product === undefined || !product.has('client/plan')) return Promise.reject(new Error('Data resident requires its admitted client plan'));
-  admitClientPlan(product.section('client/plan'), product);
+  admittedProductClientPlan(product);
   return Promise.resolve(ClientPlanRuntime);
 }
 
@@ -388,7 +388,7 @@ export class HybridRuntimeSession {
     if (resident.declaration !== null && 'entry' in resident.declaration) return Promise.reject(new Error('Regional runtime requires a compiled client page'));
     const product = resident.product;
     if (!resident.firstParty || product === undefined || !product.has('client/plan')) return Promise.reject(new Error('Data resident requires its admitted client plan'));
-    admitClientPlan(product.section('client/plan'), product);
+    admittedProductClientPlan(product);
     const prepared = Promise.resolve(ClientPlanRuntime);
     this.prepared.set(instance, prepared);
     void prepared.catch(() => { if (this.prepared.get(instance) === prepared) this.prepared.delete(instance); });

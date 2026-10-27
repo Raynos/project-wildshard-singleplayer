@@ -297,3 +297,15 @@ visits count. No app source, cap, frame gate or movement assertion changed.
 Raw rows, full films and CPU profiles are in
 `tmp/sp-x9-plan-end/loading-qualified-{1,2,3}/grid/{cold,warm}/`;
 `loading-cpu.json` retains source attribution. Browser/preview uses released.
+
+### H4 immutable plan admission reuse (2026-10-27)
+
+D108's warm home profile identifies repeated parseClientPlan validation in
+runtimeClientPhase (19.719ms sampled, besides preparation/tier projections).
+Hybrid preparation and its world, bindings, kit and play phases now capture
+one fully admitted, detached immutable client plan per product object.
+The first capture retains every schema, required-section, file, ownership
+and island preflight check. Arbitrary mutable input still uses the original
+admitClientPlan boundary; replacement products require fresh admission.
+No phase order, feature, visual or frame-budget change. Touched types and
+typed lint pass; H4 remains open for its row-only shared-preview reading.

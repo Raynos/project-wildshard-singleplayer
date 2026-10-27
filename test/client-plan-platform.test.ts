@@ -29,7 +29,7 @@ import { entryOwner, publishEntryOwner } from '../src/game/shardfile/entryOwners
 import * as runtimeHookBindings from '../src/game/shardfile/clientRuntimeHooks';
 import * as viewPrograms from '../src/game/shardfile/clientViewProgram';
 import * as clientPhases from '../src/game/shardfile/clientPlan';
-import { admitClientPlan, installClientPhase } from '../src/game/shardfile/clientPlan';
+import { admitClientPlan, admittedProductClientPlan, installClientPhase } from '../src/game/shardfile/clientPlan';
 import { ShardfileClient } from '../src/game/shardfile/client';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { declaredClientPlanEntry } from '../src/game/shard/declaredEntry';
@@ -544,4 +544,22 @@ test('declared debug objects retain live getters at the original post-world boun
     Object.assign(f.ctx.game,{runtime:{...runtime,objects:{}}});
     expect(():unknown=>Reflect.get(exposed,'vehicle')).toThrow('owner changed');
   }finally{f.ctx.scope.dispose();}
+});
+
+
+test('runtime phases reuse one immutable checked plan per admitted product', () => {
+  const first = context(), replacement = context();
+  try {
+    const admitted = admittedProductClientPlan(first.ctx.product);
+    expect(admittedProductClientPlan(first.ctx.product)).toBe(admitted);
+    expect(Object.isFrozen(admitted)).toBe(true);
+    expect(Object.isFrozen(admitted.features)).toBe(true);
+    expect(admittedProductClientPlan(replacement.ctx.product)).not.toBe(admitted);
+    expect(admittedProductClientPlan(replacement.ctx.product)).toEqual(admitted);
+    // Arbitrary mutable input still goes through the original strict boundary.
+    expect(() => admitClientPlan({ version: 1, features: [{ kind: 'unreviewed' }] }, first.ctx.product)).toThrow();
+    const missing = context();
+    try { missing.sections.delete('client/plan'); expect(() => admittedProductClientPlan(missing.ctx.product)).toThrow(); }
+    finally { missing.ctx.scope.dispose(); }
+  } finally { first.ctx.scope.dispose(); replacement.ctx.scope.dispose(); }
 });

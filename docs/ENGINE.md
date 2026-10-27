@@ -11106,7 +11106,8 @@ duplicates, executable values, reflected owners and caller-selected order.
 `ProductError` before any feature runs. Headless simulation ignores this plan.
 `parseClientPlan` and source API `sdk/platformSections.clientPlanSection`
 return detached, deeply frozen rows. Ownership checks reuse only these private
-rows. Raw sections/copies still pass the full schema and all section/product checks.
+rows. `admittedProductClientPlan(product)` reuses immutable admission.
+Raw sections still pass all schema and product checks.
 
 The compiled registry in `src/game/shardfile/clientPlan.ts` owns the order:
 

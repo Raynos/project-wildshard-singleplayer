@@ -473,6 +473,17 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
     return { features: plan.features };
   } catch (error) { throw new ProductError(product.slug, 'client/plan', 'schema', error instanceof Error ? error.message : 'Invalid client plan'); }
 }
+const productPlans = new WeakMap<ShardProduct, AdmittedClientPlan>();
+/** Capture one fully checked, detached immutable plan for this admitted product.
+ * Runtime phases share this authority; arbitrary inputs still use admitClientPlan.
+ * A replacement product owns a fresh admission even when its slug is unchanged. */
+export function admittedProductClientPlan(product: ShardProduct): AdmittedClientPlan {
+  const known = productPlans.get(product);
+  if (known !== undefined) return known;
+  const admitted = Object.freeze(admitClientPlan(product.section('client/plan'), product));
+  productPlans.set(product, admitted);
+  return admitted;
+}
 // Open arenas bind before rooms, independent of the product's feature order.
 const phaseKey=(row:ClientFeatureRow):string=>row.kind==='debug.expose'?row.name:row.kind==='arena-room.entry'?`${row.kind}:${row.equipment===undefined?1:0}:${row.owner}`:row.kind;
 /** Run a platform-ordered phase with bounded frame-budget pauses. Resident scene construction is cached by its host. */
