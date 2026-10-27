@@ -1,3 +1,4 @@
+/// <reference types="node" />
 // oxlint-disable-next-line import/no-nodejs-modules -- Headless behaviour runs the real authored product bytes.
 import { readFileSync } from 'node:fs';
 import { QuestState } from '../src/engine/quest/core';
