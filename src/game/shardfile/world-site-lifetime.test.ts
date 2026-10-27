@@ -17,12 +17,13 @@ import { entryOwner } from './entryOwners';
 import type { SceneHandles } from './sceneHandles';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import * as v from 'valibot';
-import { DRIFTWOOD_LAYOUTS } from '../../../test/fixtures/driftwood-layout-source';
 
 const keys = ['hut', 'lookout', 'shrine'];
-const fixedLayouts: Readonly<Record<string, unknown>> = {
-  hut: DRIFTWOOD_LAYOUTS.hut, lookout: DRIFTWOOD_LAYOUTS.lookout, shrine: DRIFTWOOD_LAYOUTS.shrine,
-};
+// Keep this game-test input data-only: the source fixture's constructor/schema
+// closure belongs to the shard project. The original consumed facts are still
+// validated below and by the complete world-scene admission.
+const fixedLayouts = v.parse(v.record(v.string(), v.unknown()),
+  JSON.parse(readFileSync('test/fixtures/driftwood-layout-original.json', 'utf8')));
 const shipped = v.parse(v.looseObject({ product: v.string(), models: v.array(v.looseObject({ key: v.string(), choices: v.array(v.looseObject({ id: v.string() })) })) }),
   JSON.parse(readFileSync('src/shards/driftwood-isle/data/siteCatalogue.json', 'utf8')));
 const layoutSchema = v.looseObject({ origin: v.unknown(), colliders: v.array(v.unknown()), floors: v.array(v.unknown()), anchors: v.unknown(), descs: v.array(v.unknown()) });
