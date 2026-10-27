@@ -171,6 +171,8 @@ export class LiveGridHost {
   private readonly ghosts = new GhostWorlds();
   private readonly retiring = new Map<string, RetiringRegion>();
   private readonly products = new Map<string, LiveGridAdmission>();
+  /** Verified render capability only; runtime import completion still gates products/readiness. */
+  private readonly tileMetadata = new Set<string>();
   private readonly productRequests = new Map<string, Promise<LiveGridAdmission>>();
   private readonly issues = new Map<string, string>();
   private readonly refusals = new Map<string, unknown>();
@@ -271,12 +273,15 @@ export class LiveGridHost {
         await Promise.resolve(); this.assertAlive();
         const admitted = timing === undefined ? await this.ports.admit(cell) : await timing.run('admission', () => this.ports.admit(cell));
         admission = admitted; this.assertAlive();
+        if (admission.tilePreparation === true) this.tileMetadata.add(instance);
         const bundle = this.ports.readiness.bundle(cell);
         if ((bundle.hybridWireBytes > 0 || admission.exclusiveRuntime === true) && admission.prepareRuntime === undefined) throw new Error('Hybrid runtime admission is missing');
         await (timing === undefined ? admission.prepareRuntime?.() : timing.run('runtime', async () => { await admitted.prepareRuntime?.(); }));
         this.assertAlive();
         this.products.set(instance, admission); return admission;
       } catch (error) {
+        this.tileMetadata.delete(instance);
+        if (this.tileApproach?.instance === instance) { this.tileApproach.controller.abort(); this.tileApproach = null; }
         this.issues.set(instance, error instanceof Error ? error.message : String(error)); this.refusals.set(instance, error);
         try { admission?.cancel?.(); }
         catch (cleanup) { throw new AggregateError([error, cleanup], 'Live product admission and cancellation failed', { cause: cleanup }); }
@@ -511,6 +516,13 @@ export class LiveGridHost {
         || this.distance(cell, feet) > readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link).distance) {
         tileApproach.controller.abort(); this.tileApproach = null;
       }
+    }
+    // Render tiles can use the road's lead time while the verified runtime module imports.
+    // The product/readiness promise remains pending; no regional constructor starts here.
+    if (this.requests.size === 0 && moving !== undefined && this.tileMetadata.has(moving.instance)
+      && this.ports.prepareNeighbour !== undefined && !this.residents.has(moving.instance) && !this.issues.has(moving.instance)
+      && this.assembly.approaching(this.distance(moving, feet), readinessModel(this.ports.readiness.bundle(moving), this.ports.readiness.link).distance)) {
+      this.prepareNeighbour(moving, feet);
     }
     const pendingApproach = this.approach;
     if (this.requests.size === 0 || pendingApproach === null || pendingApproach.demanded || pendingApproach.controller.signal.aborted
@@ -759,6 +771,7 @@ export class LiveGridHost {
   dispose(): void {
     this.disposed = true;
     this.tileApproach?.controller.abort(); this.tileApproach = null;
+    this.tileMetadata.clear();
     for (const cancel of this.frames) cancel(); this.unbind?.(); this.unbind = undefined;
     // Return the still-live page traveller before freeing a world that contains its current controller.
     const page = null;

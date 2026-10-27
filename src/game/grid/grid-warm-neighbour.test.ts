@@ -22,7 +22,8 @@ function travel(live: LiveGridHost, at: { x: number; z: number }, dx: number, dz
   at.x += dx; at.z += dz; live.beforeFixed();
 }
 
-async function fixture(options: { paired?: boolean; loading?: number; isolation?: boolean; allNeighbours?: boolean; horizonSeconds?: number } = {}) {
+async function fixture(options: { paired?: boolean; loading?: number; isolation?: boolean; allNeighbours?: boolean; horizonSeconds?: number;
+  tilePreparation?: boolean; tileApproaches?: string[]; runtimeReady?: (instance: string) => Promise<void> } = {}) {
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const assembly = new GridAssembly({ developer: false, devserver: false }), home = assembly.cell('driftwood-isle');
   const east = assembly.cells.find(cell => cell.origin.x === assembly.pitch && cell.origin.z === 0);
@@ -41,13 +42,15 @@ async function fixture(options: { paired?: boolean; loading?: number; isolation?
     player, allocator: residency.allocator, continuations: 'durable', save: () => true,
     bindFrame: frame => { events.push(`frame:${frame.instance ?? 'road'}`); }, gameplayReady: () => true,
     ...(options.paired === true ? { preparationBudget: budget } : {}),
+    ...(options.tileApproaches === undefined ? {} : { prepareNeighbour: (cell: { instance: string }) => { options.tileApproaches?.push(cell.instance); return Promise.resolve(); } }),
     highway: { bytes: 1000, create: () => ({ physics: page.physics, dispose: () => undefined }) },
     prefetchable: cell => options.allNeighbours === true || [home.instance, east.instance, north.instance].includes(cell.instance),
     // a large world: its readiness reach starts well inside the source
     readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 3 },
       bundle: () => ({ criticalWireBytes: 1000, hybridWireBytes: 1000, decodeSeconds: 0, runtimeParseSeconds: options.horizonSeconds ?? 10 }) },
     admit: cell => { admissions.push(cell.instance); return Promise.resolve({ bytes: 1000, exclusiveRuntime: true, reloadsCheckpoint: true,
-      prepareRuntime: () => { runtimes.push(cell.instance); return Promise.resolve(); }, cancel: () => { cancelled.push(cell.instance); },
+      prepareRuntime: () => { runtimes.push(cell.instance); return options.runtimeReady?.(cell.instance) ?? Promise.resolve(); }, cancel: () => { cancelled.push(cell.instance); },
+      ...(options.tilePreparation === true ? { tilePreparation: true } : {}),
       ...(options.paired === true && options.isolation !== false ? { isolatedPreparation: true } : {}),
       create: (_saved, _claim, signal) => {
         signal?.addEventListener('abort', () => { control.aborted.push(cell.instance); }, { once: true });
@@ -250,6 +253,32 @@ test('G723: isolated preparation uses a direct heading inside the source without
     expect(f.events.indexOf(`disposed:${f.home.instance}`)).toBeLessThan(f.events.indexOf(`frame:${f.east.instance}`));
     expect(f.live.state().residents).toEqual([f.east.instance]);
   } finally { f.close(); }
+});
+
+test('verified entry tiles prepare during runtime import without publishing a world or readiness', async () => {
+  let finish = (): void => undefined;
+  const runtime = new Promise<void>(resolve => { finish = resolve; });
+  let blocked = '';
+  const tiles: string[] = [];
+  const f = await fixture({ paired: true, tilePreparation: true, tileApproaches: tiles,
+    runtimeReady: instance => instance === blocked ? runtime : Promise.resolve() });
+  blocked = f.east.instance;
+  try {
+    await f.enterHome();
+    const pending = f.live.prefetch([f.east.instance]);
+    await f.settle();
+    expect(f.runtimes).toContain(f.east.instance);
+    expect(f.created()).toEqual([f.home.instance]);
+    f.player.position.x = CHUNK_HALF - 30;
+    travel(f.live, f.player.position, 1, 0); await f.settle();
+    expect(tiles).toEqual([f.east.instance]);
+    expect(f.live.current()).toBe(f.home.instance); expect(f.live.ready(f.east.instance)).toBe(false);
+    expect(f.live.state().pending).toContain(f.east.instance);
+    finish(); await pending; await f.settle();
+    expect(f.created()).toEqual([f.home.instance]);
+    await f.cross(f.home.instance, f.east.instance);
+    expect(f.created()).toEqual([f.home.instance, f.east.instance]);
+  } finally { finish(); f.close(); }
 });
 
 test('G723: an active source keeps its ordinary ordering when isolation or the pair budget refuses', async () => {
