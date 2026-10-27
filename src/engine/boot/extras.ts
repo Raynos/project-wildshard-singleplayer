@@ -72,21 +72,38 @@ function artFor(def: BootLevel, background: boolean): { urls: string[]; bytes: R
 
 /** This shard's declared files; an active profile omits demand-loaded Explorer art. */
 const audioPriority = new WeakMap<ChunkFiles, ReadonlySet<string>>();
+/** the selected boot audio held back until after control (a phone profile's files outside its `controlFiles`) */
+const heldAudio = new WeakMap<ChunkFiles, readonly string[]>();
+/** each preload's after-control load of the held-back files */
+const lateLoads = new WeakMap<ChunkFiles, () => Promise<AudioBanks> | undefined>();
 
 export function bootFiles(def: BootLevel, tex: TexMode = texMode(), profile?: LevelAudioProfile): ChunkFiles {
   const art = artFor(def, profile === undefined);
   addBytes(art.bytes);
   const inventory = profile?.files() ?? bootAudioFiles(def.boot) ?? audioFiles();
-  const selected = profile === undefined ? undefined : new Set(profile.bootFiles(getMusicStyle()));
+  const boot = profile?.bootFiles(getMusicStyle());
+  // I7: on the phone the bar reads only the first seconds' audio; the rest of the boot set follows control.
+  const control = TIER === 'phone' ? profile?.controlFiles?.(getMusicStyle()) : undefined;
+  const selected = boot === undefined ? undefined : new Set(control === undefined ? boot : boot.filter(url => control.includes(url)));
   // Omitting a profile retains the complete inventory used by background shard prefetch.
   const audio = selected === undefined ? inventory : {
     music: inventory.music.filter(url => selected.has(url)), sfx: inventory.sfx.filter(url => selected.has(url)),
   };
   const files = { ...chunkFiles(def, tex), art: art.urls, ...audio };
+  if (control !== undefined && boot !== undefined && selected !== undefined) {
+    const shipped = new Set([...inventory.music, ...inventory.sfx]);
+    heldAudio.set(files, boot.filter(url => shipped.has(url) && !selected.has(url)));
+  }
   const priority = profile?.priorityFiles?.();
   if (priority) audioPriority.set(files, new Set(priority));
   return files;
 }
+
+/** the boot held back selected audio until after control (I7): the session runs the preload's `later()` */
+export function hasLateAudio(files: ChunkFiles): boolean { return (heldAudio.get(files)?.length ?? 0) > 0; }
+/** I7, after control: download the held-back boot audio and decode the whole selected set (after the preload's own
+ *  decode); undefined when nothing was held back or no preload started for `files` */
+export function startLateAudio(files: ChunkFiles): Promise<AudioBanks> | undefined { return lateLoads.get(files)?.(); }
 
 /** the art and the audio for the prefetch queue: the selected style + set (decoded in the bar) ahead of the others (downloaded only) */
 export function extraFetches(files: ChunkFiles): string[] {
@@ -161,6 +178,21 @@ export function startMenuPreload(files: ChunkFiles, def: BootLevel): Preload<voi
 
 /** audio files this page already read to the end once */
 const downloaded = new Set<string>();
+/** A decoder that runs one file at a time. decodeStyle and decodeSfxSet both start every file at once; gating their
+ *  decoder, not their reads, means WebKit never holds dozens of simultaneous native PCM outputs (E246 memory A/B). */
+function serialDecoder(decoded?: (bytes: ArrayBuffer) => void): (bytes: ArrayBuffer) => Promise<AudioBuffer> {
+  let tail: Promise<void> = Promise.resolve();
+  return (bytes) => {
+    const next = tail.then(async () => {
+      await macrotask();
+      const buffer = await waitFor('Decode selected audio clip', decodeBytes(bytes));
+      decoded?.(bytes);
+      return buffer;
+    });
+    tail = next.then(() => undefined, () => undefined);
+    return next;
+  };
+}
 
 /** a level's decoded audio: its music bank, its SFX bank and its own audio profile's bank */
 export interface AudioBanks { music: StyleBank | undefined; sfx: SfxBank; profile?: LevelAudioBank }
@@ -194,44 +226,55 @@ export function startDeferredAudioPreload(files: ChunkFiles, _def: BootLevel, pr
   // boundary. Their row ends with the reads, not when a later waiter attaches.
   void Promise.all(downloads).then(() => { reading?.end(); return undefined; }, () => { reading?.end(); return undefined; });
   let decoding: Promise<AudioBanks> | undefined;
+  const decode = (): Promise<AudioBanks> => {
+    if (decoding) return decoding;
+    decoding = (async () => {
+      await Promise.all(downloads);
+      const addresses = new WeakMap<ArrayBuffer, string>(), ready = new Set<string>();
+      const progress = loadingUnits('Prepared audio clips', urls.length);
+      progress(0);
+      const oneAtATime = serialDecoder((bytes) => {
+        const address = addresses.get(bytes);
+        if (address !== undefined) { ready.add(address); progress(ready.size); }
+      });
+      const read = (url: string): Promise<ArrayBuffer> => {
+        const bytes = selectedBytes.get(url);
+        if (!bytes) return Promise.reject(new Error(`${url} was not downloaded during the loading bar`));
+        const copy = bytes.slice(0); // decodeAudioData detaches its argument
+        addresses.set(copy, url);
+        return Promise.resolve(copy);
+      };
+      try {
+        const bank = await (profile ?? NO_AUDIO).decode(style, read, oneAtATime);
+        return { music: undefined, sfx: { set, credit: undefined, loops: new Map(), shots: new Map() }, profile: bank };
+      } finally { selectedBytes.clear(); }
+    })();
+    return decoding;
+  };
+  // I7: after control, the boot files the bar held back download (the worker caches them) and the whole
+  // selected set decodes again, one file at a time; the banks keep the slots already playing (Music.useBank).
+  lateLoads.set(files, () => {
+    const rest = heldAudio.get(files);
+    if (rest === undefined || rest.length === 0) return undefined;
+    return (async () => {
+      await decode().catch(() => undefined);
+      const fetched = new Set<string>(), allowed = new Set([...urls, ...rest]);
+      const read = async (url: string): Promise<ArrayBuffer> => {
+        if (!allowed.has(url)) throw new Error(`${url} is not a shipped boot audio file`);
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`${response.status} ${url}`);
+        fetched.add(url);
+        return response.arrayBuffer();
+      };
+      const bank = await (profile ?? NO_AUDIO).decode(style, read, serialDecoder());
+      for (const url of fetched) downloaded.add(url);
+      return { music: undefined, sfx: { set, credit: undefined, loops: new Map(), shots: new Map() }, profile: bank };
+    })();
+  });
   return {
     style,
     async wait(p) { c.attach(p, 'audio files'); await Promise.all(downloads); },
-    decode() {
-      if (decoding) return decoding;
-      decoding = (async () => {
-        await Promise.all(downloads);
-        let tail: Promise<void> = Promise.resolve();
-        const addresses = new WeakMap<ArrayBuffer, string>(), ready = new Set<string>();
-        const progress = loadingUnits('Prepared audio clips', selected.size);
-        progress(0);
-        // decodeStyle and decodeSfxSet both start every file at once. Gate their decoder, not their reads,
-        // so WebKit never holds dozens of simultaneous native PCM outputs during this memory A/B.
-        const oneAtATime = (bytes: ArrayBuffer): Promise<AudioBuffer> => {
-          const next = tail.then(async () => {
-            await macrotask();
-            const buffer = await waitFor('Decode selected audio clip', decodeBytes(bytes));
-            const address = addresses.get(bytes);
-            if (address !== undefined) { ready.add(address); progress(ready.size); }
-            return buffer;
-          });
-          tail = next.then(() => undefined, () => undefined);
-          return next;
-        };
-        const read = (url: string): Promise<ArrayBuffer> => {
-          const bytes = selectedBytes.get(url);
-          if (!bytes) return Promise.reject(new Error(`${url} was not downloaded during the loading bar`));
-          const copy = bytes.slice(0); // decodeAudioData detaches its argument
-          addresses.set(copy, url);
-          return Promise.resolve(copy);
-        };
-        try {
-          const bank = await (profile ?? NO_AUDIO).decode(style, read, oneAtATime);
-          return { music: undefined, sfx: { set, credit: undefined, loops: new Map(), shots: new Map() }, profile: bank };
-        } finally { selectedBytes.clear(); }
-      })();
-      return decoding;
-    },
+    decode,
   };
 }
 

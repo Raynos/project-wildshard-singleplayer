@@ -4,7 +4,7 @@ import type { playStage } from './play';
 import { asShell } from '@wildshard/engine/app/ownership';
 import { app } from '@wildshard/engine/app/runtime';
 import { releaseByteCounter } from '@wildshard/engine/boot/bytes';
-import { startAudioPreload } from '@wildshard/engine/boot/extras';
+import { hasLateAudio, startAudioPreload, startLateAudio, type AudioBanks } from '@wildshard/engine/boot/extras';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { loadingStage } from '@wildshard/engine/boot/waits';
 import { startShardPrefetch } from '@wildshard/engine/boot/shardPrefetch';
@@ -102,8 +102,11 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
     // The synth bridges the short delay. This empty bank prevents Music.prepare() from decoding the
     // same selected style again if the player taps before the deferred decode finishes.
     music.useBank({ genre: deferredAudio.style, set: 'base', slots: new Map(), stings: new Map(), log: [] });
-  } else {
-    const banks = await step('audio', (p) => (audioLoad ?? startAudioPreload(files, chunk, audioProfile)).wait(p));
+  }
+  // I7: a phone profile's boot audio past its first seconds downloads and decodes after control
+  const audioPreload = deferredAudio ? null : audioLoad ?? startAudioPreload(files, chunk, audioProfile);
+  if (audioPreload) {
+    const banks = await step('audio', (p) => audioPreload.wait(p));
     if (banks.music) music.useBank(banks.music); // the title theme's first gesture plays the stems at once
     if (banks.profile) audio.useLevelBank(banks.profile); else audio.useSamples(banks.sfx);
   }
@@ -174,18 +177,21 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   if (arrival?.mode === 'enter' || arrival?.mode === 'arena' || ctx.continuingGridEntry || (arrival === null && loading.playRequested)) enter();
   else if (arrival?.mode === 'explore') hud.startExplore(); // import the viewer only after shader compilation and the loader's peak
   if (arrival?.mode === 'arena') hud.enterArenaNow();
-  if (deferredAudio) {
-    const decodeAfterBoot = async (): Promise<void> => {
-      try {
-        const banks = await deferredAudio.decode();
-        if (banks.music) music.useBank(banks.music);
-        if (banks.profile) audio.useLevelBank(banks.profile); else audio.useSamples(banks.sfx);
-      } catch (error) {
-        console.info(`[audio] deferred level decode: ${error instanceof Error ? error.message : String(error)} — the synth plays`);
-      }
-    };
-    game.levelScope.raf(() => { game.levelScope.timeout(0, () => { void decodeAfterBoot(); }); });
-  }
+  const useBanks = (banks: AudioBanks): void => {
+    if (game.levelScope.disposed) return;
+    if (banks.music) music.useBank(banks.music);
+    if (banks.profile) audio.useLevelBank(banks.profile); else audio.useSamples(banks.sfx);
+  };
+  const decodeAfterBoot = async (): Promise<void> => {
+    try {
+      if (deferredAudio) useBanks(await deferredAudio.decode());
+      const late = startLateAudio(files);
+      if (late) useBanks(await late);
+    } catch (error) {
+      console.info(`[audio] deferred level decode: ${error instanceof Error ? error.message : String(error)} — the synth plays`);
+    }
+  };
+  if (deferredAudio || hasLateAudio(files)) game.levelScope.raf(() => { game.levelScope.timeout(0, () => { void decodeAfterBoot(); }); });
   // E183: while the title idles, draw the world's first frame once under the title art. The
   // first frame after the title paid every first-time cost at once — Pine Hollow's four elites built, the cover filled,
   // textures that arrived after the boot uploaded: EXPLORE WORLD's first tap stalled ~1.3 s at 4× CPU (and ENTER WORLD's

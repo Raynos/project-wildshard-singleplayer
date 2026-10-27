@@ -138,8 +138,10 @@ export interface SfxDecodePolicy {
 
 /** the files `decodeSfxSet(set, bed)` reads (URLs), so the loading bar can tell them from the files it only downloads */
 export function sfxFiles(set: string, bed: AmbientBed, policy: SfxDecodePolicy = {}): string[] { return [...new Set(sfxJobs(set, bed, policy).map((j) => j.url))]; }
+/** the selected bed's file of `set` (empty when the set has none): the one sample the first seconds of play loop */
+export function sfxBedFiles(set: string, bed: AmbientBed, policy: SfxDecodePolicy = {}): string[] { return sfxJobs(set, bed, policy).filter((j) => j.bed).map((j) => j.url); }
 
-interface Job { url: string; apply: (buf: AudioBuffer, bank: SfxBank) => void }
+interface Job { url: string; bed?: true; apply: (buf: AudioBuffer, bank: SfxBank) => void }
 function sfxJobs(set: string, bed: AmbientBed, policy: SfxDecodePolicy): Job[] {
   const j = sfxManifests()[set];
   if (!isObj(j)) return [];
@@ -149,7 +151,7 @@ function sfxJobs(set: string, bed: AmbientBed, policy: SfxDecodePolicy): Job[] {
     if (policy.omitLoops?.includes(name) || !isObj(v)) return;
     const u = url(v['file']);
     if (u === undefined) return;
-    jobs.push({ url: u, apply: (buffer, bank) => {
+    jobs.push({ url: u, ...(name === bed ? { bed: true } : {}), apply: (buffer, bank) => {
       const loopEnd = Math.min(buffer.duration, num(v['loopEnd'], buffer.duration)), loopStart = Math.max(0, Math.min(loopEnd - 0.05, num(v['loopStart'], 0)));
       const packed = compactSampleLoop(buffer, { loopStart, loopEnd }, u);
       bank.loops.set(name, { ...packed, gain: (policy.loopGains?.[name] ?? LOOP_GAIN[name] ?? 1) * num(v['gain'], 1) });

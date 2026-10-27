@@ -89,13 +89,14 @@ export const musicSetDir = (genre: MusicGenre, set: MusicSet = 'base'): string =
 /** this build's manifest for `genre` (compiled in from public/assets/music/<dir>/music.json), or undefined */
 export function musicManifest(genre: MusicGenre, set: MusicSet = 'base'): MusicManifest | undefined { return parseManifest(musicManifests()[musicSetDir(genre, set)]); }
 
-/** the files `decodeStyle(genre, slots)` reads (URLs), so the loading bar can tell them from the files it only downloads */
-export function styleFiles(genre: MusicGenre, slots: readonly SlotName[]): string[] {
+/** the files `decodeStyle(genre, slots)` reads (URLs), so the loading bar can tell them from the files it only downloads;
+ *  `withStings: false` lists the slots' stems alone */
+export function styleFiles(genre: MusicGenre, slots: readonly SlotName[], withStings = true): string[] {
   const m = musicManifest(genre);
   if (!m) return [];
   const files: string[] = [];
   for (const k of slots) { const sp = m.slots[k]; if (sp) files.push(sp.calm, ...(sp.tension === undefined ? [] : [sp.tension])); }
-  for (const k of STINGS) { const f = m.stings[k]; if (f !== undefined) files.push(f); }
+  if (withStings) for (const k of STINGS) { const f = m.stings[k]; if (f !== undefined) files.push(f); }
   return [...new Set(files.map((f) => `/assets/music/${genre}/${f}`))].filter(shipped);
 }
 

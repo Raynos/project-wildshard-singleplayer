@@ -19,6 +19,10 @@ export interface LevelAudioProfile {
   priorityFiles?: () => readonly string[];
   files: () => { music: string[]; sfx: string[] };
   bootFiles: (style: MusicStyle) => readonly string[];
+  /** The part of `bootFiles` the first seconds of play need: the boot slots' stems and the spawn bed. On the phone the
+   *  loading bar reads only these; every other boot file downloads and decodes after control (iphone-downloads I7).
+   *  Left out, every boot file is read before control. */
+  controlFiles?: (style: MusicStyle) => readonly string[];
   decode: (style: MusicStyle, read: AudioRead, decode: AudioDecode, onFile?: () => void) => Promise<LevelAudioBank>;
 }
 
@@ -48,7 +52,7 @@ export async function createCatalogueAudio(data: AudioData, extras?: AudioCatalo
   }
   const samples = data.samples, music = data.music, policy = samples?.catalogue;
   if (samples === undefined || music === undefined || policy === undefined) throw new Error('Missing declared audio catalogue');
-  const [{ audioFiles, musicDir, sfxDir }, { musicManifests, sfxManifests }, { getMusicStyle, getSfxSet }, { styleFiles, decodeStyle }, { sfxFiles, decodeSfxSet }] = await Promise.all([
+  const [{ audioFiles, musicDir, sfxDir }, { musicManifests, sfxManifests }, { getMusicStyle, getSfxSet }, { styleFiles, decodeStyle }, { sfxFiles, sfxBedFiles, decodeSfxSet }] = await Promise.all([
     import('../boot/audioFiles'), import('../boot/tables'), import('../ui/Settings'), import('./Stems'), import('./preload'),
   ]);
   const levels = { loopGains: samples.loopGains };
@@ -79,6 +83,8 @@ export async function createCatalogueAudio(data: AudioData, extras?: AudioCatalo
       return [...files.music, ...files.sfx].filter(url => dirs.some(dir => url.startsWith(dir)));
     } } : {}),
     bootFiles: style => [...styleFiles(style, music.bootSlots), ...selectedSfx()],
+    controlFiles: style => [...styleFiles(style, music.bootSlots, false), ...sfxBedFiles(getSfxSet(), samples.bed, levels),
+      ...(policy.overlaySamples && getSfxSet() !== 'synth' ? sfxBedFiles(samples.set, samples.bed, levels) : [])],
     decode: async (style, read, decode, onFile) => {
       const [title, bank] = await Promise.all([
         decodeStyle(style, music.bootSlots, read, decode, onFile).catch(() => undefined), decodeSamples(read, decode, onFile),
@@ -93,7 +99,7 @@ export async function createCatalogueAudio(data: AudioData, extras?: AudioCatalo
 async function createScoreSetAudio(data:AudioData):Promise<LevelAudioProfile> {
   const music=data.music,samples=data.samples,policy=music?.setCatalogue,set=music?.source;
   if(music===undefined||samples===undefined||policy===undefined||set===undefined||set===null)throw new Error('Missing score set catalogue');
-  const [{audioFiles},{musicManifest,shipped,styleFiles,decodeStyle},{scoreFiles,decodeScore},{cueFiles,decodeCueSet},{sfxFiles,decodeSfxSet},{MUSIC_STYLES,getSfxSet}]=await Promise.all([
+  const [{audioFiles},{musicManifest,shipped,styleFiles,decodeStyle},{scoreFiles,decodeScore},{cueFiles,decodeCueSet},{sfxFiles,sfxBedFiles,decodeSfxSet},{MUSIC_STYLES,getSfxSet}]=await Promise.all([
     import('../boot/audioFiles'),import('./Stems'),import('./SetScore'),import('./Cues'),import('./preload'),import('../ui/Settings'),
   ]);
   const slots=music.bootSlots.filter(slot=>slot!=='title');
@@ -110,6 +116,8 @@ async function createScoreSetAudio(data:AudioData):Promise<LevelAudioProfile> {
     bootFiles:style=>[...titleFiles(style),...(policy.baseSamples?sfxFiles(getSfxSet(),samples.bed):[]),
       ...(policy.cueOverlay?(useCues()?cueFiles(samples.set):[]):bootScore(style)),
       ...(policy.cueOverlay?bootScore(style):cueFiles(samples.set))],
+    controlFiles:style=>[...(policy.inventory==='base'?styleFiles(style,['title'],false):titleFiles(style)),
+      ...scoreFiles(set,scoreSlots(style),false),...(policy.baseSamples?sfxBedFiles(getSfxSet(),samples.bed):[])],
     decode:async(genre,read,decode,onFile)=>{
       const [title,score,cues,bank]=await Promise.all([
         decodeStyle(genre,['title'],read,decode,onFile,'base',policy.titleStings?undefined:[]).catch(()=>undefined),
