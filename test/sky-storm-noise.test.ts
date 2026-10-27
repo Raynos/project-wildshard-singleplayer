@@ -4,9 +4,16 @@ import { expect, it } from 'vitest';
 import { bakeStormNoise } from '../src/shards/far-reach/generators/stormNoise';
 import { STORM_NOISE, STORM_NOISE_SAMPLER } from '../src/shards/far-reach/generators/rows/stormNoise';
 import { bakeSkySeaTexture } from '../src/shards/far-reach/generators/seaTexture';
-import sky from '../src/shards/far-reach/shard.config';
+import { skyProductRows } from '../src/shards/far-reach/generators/product';
+import { originalSkyMovers } from './fixtures/sky-movers';
+import { originalSkyNavigation } from './fixtures/sky-navigation';
+import { skyStormNoiseInput, STORM_NOISE_INPUT } from '../src/shards/far-reach/generators/stormNoiseInput';
+// oxlint-disable-next-line import/no-nodejs-modules -- The native texture is a tracked public input with an unchanged complete byte oracle.
+import { readFileSync } from 'node:fs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { parseKtx2 } from '../src/format/ktx2Cost';
+
+const sky = skyProductRows(originalSkyNavigation(), originalSkyMovers());
 
 it('admits the original storm density and lighting as a cached linear library file', async () => {
   const SEA=bakeSkySeaTexture();
@@ -30,4 +37,17 @@ it('admits the original storm density and lighting as a cached linear library fi
   expect(parseKtx2(bytes).gpu).toBeLessThan(100_000);
   expect(sky.budgets.library.compressed).toBeGreaterThanOrEqual(STORM_NOISE.compressed);
   expect(sky.budgets.library.resident).toBeGreaterThanOrEqual(STORM_NOISE.gpu);
+});
+
+it('admits only the original public texture bytes with exact input and output inventories', async () => {
+  const original = new Uint8Array(readFileSync(new URL('../public/assets/far-reach/weather/storm-noise.ktx2', import.meta.url)));
+  const made = await skyStormNoiseInput({ cached: (step, generate) => {
+    expect(step.inputs).toEqual([STORM_NOISE_INPUT]);
+    return Promise.resolve(generate(new Map([[STORM_NOISE_INPUT, original]])));
+  } });
+  expect(made).toEqual(original); expect(made.byteLength).toBe(STORM_NOISE.compressed);
+  expect(hashImmutableBytes(made)).toBe(STORM_NOISE.hash);
+  await expect(skyStormNoiseInput({ cached: (_step, generate) => Promise.resolve(generate(new Map())) })).rejects.toThrow('input inventory');
+  await expect(skyStormNoiseInput({ cached: (_step, generate) => Promise.resolve(generate(new Map([[STORM_NOISE_INPUT, new Uint8Array([1])]]))) })).rejects.toThrow('identity');
+  await expect(skyStormNoiseInput({ cached: () => Promise.resolve(new Map([['storm.ktx2', original], ['foreign', original]])) })).rejects.toThrow('cache inventory');
 });

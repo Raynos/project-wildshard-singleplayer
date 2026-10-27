@@ -25,6 +25,8 @@ import { skyMillRestProgram } from './millRestProgram';
 import { skyRestPoolProgram } from './restPoolProgram';
 import { skyFanPoolProgram } from './fanPoolProgram';
 import { skySwardAtlasProgram } from './swardAtlasProgram';
+import { skyStormNoiseInput } from './stormNoiseInput';
+import { STORM_NOISE } from './rows/stormNoise';
 import { SWARD_ATLAS_FILE } from './rows/swardAtlas';
 import { skyCreatureRigOutput } from './creatureRigOutput';
 import { skyRigAssetSources } from './rigAssetSources';
@@ -112,6 +114,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<SkyS
   }
   for (const blob of [geometry, ...world, bridge, mill, fan, ...vanes, ...rest]) assets.set(blob.file.hash, blob.bytes);
   assets.set(SWARD_ATLAS_FILE.hash, await skySwardAtlasProgram(ctx));
+  assets.set(STORM_NOISE.hash, await skyStormNoiseInput(ctx));
   const tiles = await skyWorldTileProgram(ctx);
   if (tiles.size !== SKY_WORLD_TILE_ROWS.files.length + 1) throw new Error('Sky world tile publication inventory differs');
   for (const file of SKY_WORLD_TILE_ROWS.files) {
