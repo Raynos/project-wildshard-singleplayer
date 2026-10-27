@@ -11,13 +11,14 @@
  *
  * A mesh that is skinned, morphing or multi-material stays whole, as does one whose triangles (or instances) all fall in a
  * single tile (a moving part, say: its install pose says nothing about where it goes) and an instanced part with a
- * per-frame hook of its own (a culler that owns its count).
+ * per-frame hook of its own (a culler that owns its count). Static content (`single`: a frozen weld's mesh) never moves,
+ * so a mesh wholly in one tile follows that tile.
  */
 import { BufferAttribute, DynamicDrawUsage, InstancedBufferAttribute, InstancedMesh, type Matrix4, type Mesh, Object3D, SkinnedMesh } from 'three';
 import { compactResident, tileRanges, type TileContent } from './tileContent';
 
 /** The tiles content of `mesh` (its geometry in `toCell` cell-local space), drawing nothing until a tile attaches. */
-export function tiledMesh(id: string, mesh: Mesh, toCell: Matrix4): TileContent | null {
+export function tiledMesh(id: string, mesh: Mesh, toCell: Matrix4, options: { readonly single?: boolean } = {}): TileContent | null {
   if (instanced(mesh)) return tiledInstances(id, mesh, toCell);
   const geometry = mesh.geometry, position = geometry.getAttribute('position');
   if (mesh instanceof SkinnedMesh || Array.isArray(mesh.material) || geometry.groups.length > 0
@@ -33,7 +34,7 @@ export function tiledMesh(id: string, mesh: Mesh, toCell: Matrix4): TileContent 
   }
   const ranges = tileRanges(centroids, 2, 0, 1), tiles = new Set<number>();
   ranges.count.forEach((n, key) => { if (n > 0) tiles.add(key); });
-  if (tiles.size < 2) return null;
+  if (tiles.size < (options.single === true ? 1 : 2)) return null;
   // the source order stays on the CPU (the index is small next to the vertices); the drawn index is rewritten in place
   const source = index.array.slice(), resident = new Set<number>();
   if (geometry.index === null) geometry.setIndex(index);

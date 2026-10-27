@@ -34,6 +34,23 @@ test('a merged mesh draws only its resident tiles, one draw throughout', () => {
   expect(mesh.geometry.drawRange.count).toBe(0);
 });
 
+test('static content wholly in one tile follows that tile (a frozen weld mesh)', () => {
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new BufferAttribute(Float32Array.from([-200, 0, -200, -199, 0, -200, -200, 0, -199]), 3));
+  const mesh = new Mesh(geometry, new MeshBasicMaterial()), scope = new Scope('weld');
+  expect(tiledMesh('weld.hut', mesh, new Matrix4())).toBeNull();
+  const content = tiledMesh('weld.hut', mesh, new Matrix4(), { single: true });
+  if (content === null) throw new Error('expected a single-tile weld mesh');
+  expect([...content.tiles()]).toEqual([key(-200, -200)]);
+  expect(mesh.geometry.drawRange.count).toBe(0);
+  const held = scope.child('tile');
+  void content.attach(key(-200, -200), held);
+  expect(mesh.geometry.drawRange.count).toBe(3);
+  held.dispose();
+  expect(mesh.geometry.drawRange.count).toBe(0);
+  scope.dispose();
+});
+
 test('the cell transform places the triangles; a mesh in one tile stays whole', () => {
   const moved = tiledMesh('wreck.root', made(), new Matrix4().makeTranslation(50, 0, 0));
   expect(moved === null ? null : [...moved.tiles()].sort((a, b) => a - b)).toEqual([key(-150, -200), key(150, 150)].sort((a, b) => a - b));

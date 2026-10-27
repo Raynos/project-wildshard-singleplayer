@@ -18,6 +18,7 @@ import type { ShardProduct } from './shardProduct';
 import { plumbingKnob } from '../shard/declaredPlumbing';
 import { createBuildingCloud } from './buildingCloud';
 import type { SceneHandles } from './sceneHandles';
+import { tiledMesh } from './tiledMesh';
 
 type Distance = InferOutput<typeof WorldSceneDistanceSchema>;
 type WeldMaterial = Omit<InferOutput<typeof WorldSceneWeldMaterialSchema>, 'id'>;
@@ -258,6 +259,24 @@ async function hydrateWorldSceneWeldSliced(input: unknown, handles: SceneHandles
   } finally { steps.return(undefined); }
 }
 
+/**
+ * Tile streaming T3: a world weld's plain meshes by tile (their triangles by cell-local centroid, `tiledMesh`); a mesh
+ * wholly in one tile follows that tile. A mesh whose geometry another node shares stays whole (one index cannot draw two
+ * nodes' tiles), as do batches and their views, instances (a weld cull owns their counts), clouds and lights.
+ */
+function tileWeldMeshes(row: WorldSceneWeld, handles: SceneHandles): void {
+  const users = new Map<string, number>();
+  for (const node of row.nodes) if ('geometry' in node) { const key = keyOf(node.geometry); users.set(key, (users.get(key) ?? 0) + 1); }
+  for (const node of row.nodes) {
+    if (node.kind !== 'mesh' || users.get(keyOf(node.geometry)) !== 1) continue;
+    const mesh = handles.object(node.id);
+    if (!mesh3(mesh)) continue;
+    mesh.updateWorldMatrix(true, false);
+    const content = tiledMesh(`${row.id}.${node.id}`, mesh, mesh.matrixWorld, { single: true });
+    if (content !== null) handles.addTiled(content);
+  }
+}
+
 /** Deferred resident assembly; the single SceneHandles registry retains the final graph. */
 export class WorldSceneWeldAssembly {
   private pending: Promise<Object3D> | undefined;
@@ -280,6 +299,7 @@ export class WorldSceneWeldAssembly {
     let root: Object3D;
     try { root = await hydrateWorldSceneWeldSliced(this.row, this.handles, this.sources, this.owner, this.registry); }
     finally { this.staging.clear(); }
+    tileWeldMeshes(this.row, this.handles);
     for (const id of this.row.placements) await this.handles.place(id);
     if (this.owner.disposed) throw new Error('Frozen scene owner is disposed');
     for (const row of this.row.sets) {
