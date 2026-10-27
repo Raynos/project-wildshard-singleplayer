@@ -29,7 +29,7 @@ function catalogue(skins?: PineNpcSkins): FigureCatalogueRowType {
     const names = { ranger: 'ranger-hale', miller: 'miller-brandt', trader: 'trader-mott' }, name = NAMES.get(kind);
     if (name === undefined) throw new Error(`Missing Pine person ${kind}`);
     const surface = { name: `ph-npc-${kind}`, roughness: 0.85, metalness: 0, normalScale: [1, -1] };
-    const skinned = (tier: 'phone' | 'desktop') => skins === undefined ? row : { ...row, skin: { ...skins[kind][tier], surface } };
+    const skinned = (tier: 'phone' | 'desktop') => skins === undefined ? row : { ...row, skin: { ...skins[kind][tier], surface, late: true } };
     return [kind, { phone: skinned('phone'), desktop: skinned('desktop'),
       body: packed.parts[`npc-${kind}`], glass: kind === 'ranger' ? packed.parts['npc-ranger-glass'] : null,
       card: { id: `pine-hollow/${names[kind]}`, name, file: 'src/shards/pine-hollow/roster.ts', pipeline: ['hunyuan', 'code'], rig: { clips: ['idle', 'talk', 'point'] } } }];

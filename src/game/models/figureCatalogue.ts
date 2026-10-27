@@ -16,6 +16,13 @@ import { SceneHandles } from '../shardfile/sceneHandles';
 
 const nobody = new THREE.Vector3(0, 0, 1e4);
 
+/** Native quest timing, separate from serializable figure rows. The original
+ * distance fence keeps a figure visible at entry on its immediate path. */
+export interface FigureSkinTiming {
+  readonly viewer: { readonly x: number; readonly z: number };
+  readonly later: (id: string, at: { readonly x: number; readonly z: number }, run: () => Promise<void>) => Promise<boolean>;
+}
+
 /** Rows never execute shard code; named product data defines every card.
  * Each build gets a fresh publication namespace and owns async cancellation.
  */
@@ -33,7 +40,7 @@ export class FigureCatalogue {
       if (row.body !== undefined) geometry.geometry(String(row.body));
       if (row.glass !== undefined && row.glass !== null) geometry.geometry(String(row.glass));
     }
-    await FigureRows.prepareSkins(Object.values(data.figures).flatMap(row => row[TIER].skin ?? []));
+    await FigureRows.prepareSkins(Object.values(data.figures).flatMap(row => row[TIER].skin?.late === true ? [] : row[TIER].skin ?? []));
     if (owner?.disposed === true || owner?.disposing === true) throw new Error('Figure catalogue owner left');
     this.data = data; this.geometry = geometry;
   }
@@ -53,7 +60,7 @@ export class FigureCatalogue {
     if (row === undefined) throw new Error(`Figure catalogue is not admitted: ${id}`);
     return { row, geometry: this.geometry };
   }
-  create(id: string, context: SceneHandles, feet: readonly [number, number, number], yaw: number, owner?: Scope): FigureRows {
+  create(id: string, context: SceneHandles, feet: readonly [number, number, number], yaw: number, owner?: Scope, timing?: FigureSkinTiming): FigureRows {
     const { row, geometry } = this.row(id), spec = row[TIER], resources = new SceneHandles(context.sky), f = spec.fallback;
     if (f === undefined) return new FigureRows(context, spec, owner);
     if (geometry === undefined || row.body === undefined) throw new Error('Figure fallback requires its packed geometry');
@@ -64,7 +71,9 @@ export class FigureCatalogue {
       if (row.glass === null || row.glass === undefined) throw new Error('Figure glass requires its packed geometry');
       resources.publish(f.glass, geometry.geometry(String(row.glass)).clone());
     }
-    const fig = new FigureRows(resources, { ...spec, feet: [...feet], yaw }, owner);
+    const later = spec.skin?.late === true && timing !== undefined && Math.hypot(feet[0] - timing.viewer.x, feet[2] - timing.viewer.z) > spec.drawDistance
+      ? (run: () => Promise<void>): Promise<boolean> => timing.later(`figure-skin:${id}`, { x: feet[0], z: feet[2] }, run) : undefined;
+    const fig = new FigureRows(resources, { ...spec, feet: [...feet], yaw }, owner, later);
     return fig;
   }
   model(id: string): ModelDef<object> {
@@ -139,7 +148,7 @@ export class ProductFigureCatalogue {
     return this.pending;
   }
   material(resources: SceneHandles): THREE.MeshStandardMaterial { return this.figures.material(resources); }
-  create(id: string, resources: SceneHandles, feet: readonly [number, number, number], yaw: number, owner?: Scope): FigureRows { return this.figures.create(id, resources, feet, yaw, owner); }
+  create(id: string, resources: SceneHandles, feet: readonly [number, number, number], yaw: number, owner?: Scope, timing?: FigureSkinTiming): FigureRows { return this.figures.create(id, resources, feet, yaw, owner, timing); }
   model(id: string): ModelDef<object> { return this.figures.model(id); }
   rows(id: string): FigureRow { return this.figures.rows(id); }
   kit(id: string): unknown { return this.figures.kit(id); }

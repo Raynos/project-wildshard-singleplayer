@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
 import { BatchedMesh, Vector3, type Object3D, type Mesh } from 'three';
 import { withOwner } from '@wildshard/engine/app/ownership';
-import { WORK_SLICE_MS, workSlice } from '@wildshard/engine/core/workSlice';
+import { WORK_SLICE_MS, workSlice, buildYield } from '@wildshard/engine/core/workSlice';
 import type { Interactables } from '@wildshard/engine/world/interact/Interactables';
 import { bindInteractPlacements, createQuestPlacements, type InteractTable } from '@wildshard/engine/world/interact/types';
 import { validateTable } from '@wildshard/engine/world/interact/validate';
@@ -45,6 +45,7 @@ import { cableModes } from '@wildshard/engine/player/modes';
 import type { Placed } from '@wildshard/engine/models/place';
 import { installWorldScenes } from '../shardfile/worldScenes';
 import { residentWorldScope } from '../shardfile/hybridPresentation';
+import { ControlRefinement } from '../shardfile/controlRefinement';
 
 const finite = v.pipe(v.number(), v.finite());
 const point = v.strictObject({ x: finite, y: finite, z: finite });
@@ -237,10 +238,13 @@ export async function prepareQuestEntry(ctx: ShardContext, input: unknown): Prom
       const talkRows = talkInput, runtime = ctx.game.runtime, play = runtime?.play;
       if (new Set(talkRows.models.map(row => row.id)).size !== talkRows.models.length) throw new Error('Duplicate quest talk model');
       if (runtime === undefined || play === undefined || play === null) throw new Error('Quest talks require their entered play owners');
-      const requireLive = (): void => { if (ctx.scope.disposed) throw new Error('Quest talks left during model admission'); };
+      const requireLive = (): void => { if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('Quest talks left during model admission'); };
       requireLive();
       if (talksInstalled) throw new Error('Quest talks already installed');
       talksInstalled = true;
+      let skinQueue: ControlRefinement | undefined;
+      let skinSequence = 0;
+      const immediate: Promise<void>[] = [];
       const figures = new Map<string, QuestNpcTalkPorts<FigureRows>['figures'] extends ReadonlyMap<string, infer Model> ? Model : never>();
       for (const row of talkRows.models) {
         if (row.source === 'catalogue') {
@@ -248,7 +252,15 @@ export async function prepareQuestEntry(ctx: ShardContext, input: unknown): Prom
           requireLive();
           if (!(audio instanceof DeclaredAmbience)) throw new Error('Quest talk lost its figure or audio owner');
           const scene = new SceneHandles(world.sky);
-          figures.set(row.id, { kind: 'posed', create: (at, yaw) => book.create(row.id, scene, [at.x, at.y, at.z], yaw, ctx.scope),
+          figures.set(row.id, { kind: 'posed', create: (at, yaw) => {
+            const figure = book.create(row.id, scene, [at.x, at.y, at.z], yaw, ctx.scope, { viewer: world.player.position,
+              later: (id, position, run) => {
+                skinQueue ??= new ControlRefinement(ctx.scope, world.game.levelScope, () => world.player.position, () => buildYield(ctx.scope));
+                return skinQueue.add(`${id}:${String(skinSequence++)}`, position, run);
+              } });
+            if (!figure.skinDeferred) immediate.push(figure.ready);
+            return figure;
+          },
             bark: figure => { audio.sfx.bark(row.bark.group, figure.talkPoint); } });
         } else {
           const figure = FigureRows.entered(ctx.scope, row.id);
@@ -269,8 +281,9 @@ export async function prepareQuestEntry(ctx: ShardContext, input: unknown): Prom
           inventory: Object.fromEntries(play.inventory.items.map(item => [item.id, item.count])) }));
         if (row.after !== undefined && !paid && flags.has(row.after.flag)) services.run(row.after.service);
       }]));
-      return installStoryTalks(new QuestViews(ctx), ctx.product.shardfile, { flags, scene: world.game.scene, registry: world.registry,
+      const talks = installStoryTalks(new QuestViews(ctx), ctx.product.shardfile, { flags, scene: world.game.scene, registry: world.registry,
         prompts: runtime.interactables, groundAt: placement.floorAt, figures, calls });
+      await Promise.all(immediate); requireLive(); return talks;
     },
     bench: (): void => {
       const kit = interaction, play = ctx.game.runtime?.play;

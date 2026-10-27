@@ -45,6 +45,8 @@ export class FigureRows {
   readonly collider: BoxSpec;
   readonly colliders: readonly ColliderDesc[];
   readonly ready: Promise<void>;
+  /** True only when this instance's real caller queued its off-view skin. */
+  readonly skinDeferred: boolean;
   talking = false;
   private readonly signals = new Set<string>();
   /** Declared presentation requests are consumed by the original motion owner. */
@@ -61,9 +63,11 @@ export class FigureRows {
   private readonly person: ReturnType<typeof standingFigure> | undefined;
   private readonly skinState: FigureSkinState = { pending: null, owned: [] };
 
-  constructor(readonly resources: SceneHandles, input: unknown, owner: Scope = resourceScope()) {
+  constructor(readonly resources: SceneHandles, input: unknown, owner: Scope = resourceScope(),
+    skinLater?: (run: () => Promise<void>) => Promise<boolean>) {
     if (owner.disposed) throw new Error('Figure owner is disposed');
     const row = v.parse(FigureRowSchema, input); this.row = row;
+    this.skinDeferred = row.skin !== undefined && skinLater !== undefined;
     const ids = [`${row.id}.root`, `${row.id}.prompt`, ...row.joints.map(joint => joint.id), ...row.sockets.map(socket => socket.id)];
     if (new Set(ids).size !== ids.length || ids.some(id => resources.has(id))) throw new Error('Duplicate figure publication');
     this.group = row.root === undefined ? new THREE.Group() : resources.group(sourceId(row.root));
@@ -100,28 +104,32 @@ export class FigureRows {
       try {
       if (replacement !== undefined) {
         await Promise.resolve();
-        if (!this.live) return;
+        if (!this.live || owner.disposed || owner.disposing) return;
         const geometry = replacement.source.clone();
         replacement.target.geometry.dispose(); replacement.target.geometry = geometry; this.skinState.owned.push(geometry);
       }
       if (row.skin === undefined) return;
-      await skins.load(row.skin);
-      if (!this.live) return;
-      const rig = skins.rig(row.skin, resources.sky);
-      if (rig === null) throw new Error('Baked figure skin was not prepared');
-      // the cell clip's one walk over the skin's vertices, here while it loads rather than on the frame the figure adopts it
-      skinEnvelope(rig.mesh);
-      this.skinState.pending = rig; this.skinState.owned.push(rig.mesh.skeleton);
-      for (const joint of row.joints) if ('bone' in joint) {
-        const bone = rig.mesh.skeleton.bones.find(candidate => candidate.name === joint.bone);
-        if (bone === undefined) throw new Error(`Missing figure joint: ${joint.bone}`);
-        this.publish(joint.id, bone);
-      }
-      for (const socket of row.sockets) {
-        const joint = rig.mesh.skeleton.bones.find(bone => bone.name === socket.joint);
-        if (joint === undefined) throw new Error(`Missing figure socket: ${socket.joint}`);
-        this.publish(socket.id, joint);
-      }
+      const prepareSkin = async (): Promise<void> => {
+        if (row.skin === undefined || !this.live || owner.disposed || owner.disposing) return;
+        await skins.load(row.skin);
+        if (!this.live || owner.disposed || owner.disposing) return;
+        const rig = skins.rig(row.skin, resources.sky);
+        if (rig === null) throw new Error('Baked figure skin was not prepared');
+        // The cell clip's vertex walk stays with admission, before adoption.
+        skinEnvelope(rig.mesh);
+        this.skinState.pending = rig; this.skinState.owned.push(rig.mesh.skeleton);
+        for (const joint of row.joints) if ('bone' in joint) {
+          const bone = rig.mesh.skeleton.bones.find(candidate => candidate.name === joint.bone);
+          if (bone === undefined) throw new Error(`Missing figure joint: ${joint.bone}`);
+          this.publish(joint.id, bone);
+        }
+        for (const socket of row.sockets) {
+          const joint = rig.mesh.skeleton.bones.find(bone => bone.name === socket.joint);
+          if (joint === undefined) throw new Error(`Missing figure socket: ${socket.joint}`);
+          this.publish(socket.id, joint);
+        }
+      };
+      await (skinLater === undefined ? prepareSkin() : skinLater(prepareSkin));
       } catch (error: unknown) { this.dispose(); throw error; }
     })();
   }

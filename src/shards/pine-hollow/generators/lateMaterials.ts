@@ -2,6 +2,7 @@ import { lateSceneMaterialFiles } from '@wildshard/sdk/worldScenes';
 import type { ProjectOutput } from '@wildshard/sdk/projectOutput';
 import type { TimberWorld } from './timberWorldRows';
 import { HAMLET } from './layout';
+import { pineQuestNpcs } from './questNpcs';
 
 /** Fine landmark maps already wait behind the coarse placement, and cabin
  * props behind the late shell weld. Their product receipts share that fence. */
@@ -18,5 +19,6 @@ export function pineLateMaterialFiles(files: NonNullable<ProjectOutput['namedFil
   return lateSceneMaterialFiles(files, [
     ...marks.map(row => ({ variantOf: `pine-hollow-hero/${row.id}`, at: nearest(row.poses) })),
     ...['hatchet', 'wine_barrel_01', 'wooden_bucket_01', 'wooden_crate_02'].map(variantOf => ({ variantOf, at: [HAMLET.x, HAMLET.z] as const })),
+    ...pineQuestNpcs().rows.map(row => ({ variantOf: `people/${row.figure}`, at: [row.at.x, row.at.z] as const })),
   ]);
 }

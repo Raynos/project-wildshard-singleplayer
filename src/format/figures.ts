@@ -16,7 +16,7 @@ export const NpcFigureRowsSchema: v.GenericSchema<FigureMotionRowInput, FigureMo
 const point = v.tuple([finite, finite, finite]);
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
 /** Baked humanoid skin facts. No fitting, executable clips or loader hooks. */
-export const FigureSkinSchema: v.GenericSchema<FigureSkinRowInput, FigureSkinRow> = v.strictObject({ url: text, material: text, rest: v.pipe(v.array(point), v.length(21)), height: finite, y0: finite,
+export const FigureSkinSchema: v.GenericSchema<FigureSkinRowInput, FigureSkinRow> = v.strictObject({ url: text, material: text, late: v.exactOptional(v.literal(true)), rest: v.pipe(v.array(point), v.length(21)), height: finite, y0: finite,
   surface: v.strictObject({ name: text, roughness: finite, metalness: finite, normalScale: v.tuple([finite, finite]) }),
   lantern: v.nullable(point), ball: v.tuple([point, point]), walkSpeed: finite, walkCycle: finite,
   webs: v.strictObject({ split: finite, coatOnly: finite }) });
@@ -126,6 +126,8 @@ interface FigureMotionRowFields {
 export type FigureMotionRow = { [Key in keyof FigureMotionRowFields]: FigureMotionRowFields[Key] };
 export type FigureSkinRowInput = FigureSkinRow;
 interface FigureSkinRowFields {
+    /** Off-view native callers may defer this skin; explicit preparation stays immediate. */
+    late?: true;
     url: string;
     material: string;
     rest: ([

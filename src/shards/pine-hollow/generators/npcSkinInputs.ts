@@ -27,7 +27,7 @@ export async function pineNpcSkins(ctx: Pick<ProjectGenerationContext, 'cached'>
     const made = await bakeNpcSkin(bytes, { id: `pine.${kind}`, lantern: kind === 'ranger' });
     const name = `people/${kind}-skin${tier === 'phone' ? '.phone' : ''}.glb`;
     // D82: each tier's skin is that tier's download only (the other tier's catalogue row names its own)
-    blobs.push(nameBlob(name, 'glb', made.glb, { tier }));
+    blobs.push(nameBlob(name, 'glb', made.glb, { tier, variantOf: `people/${kind}` }));
     (rows[kind] ??= {})[tier] = { material: url, url: name, ...made.metadata };
     made.geometry.dispose();
   }

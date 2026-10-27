@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import * as v from 'valibot';
@@ -9,6 +10,9 @@ import { standInPerson } from './fixtures/npcFigureOracle';
 import { FigureSkins, type FigureRig } from '../src/game/systems/npc/figureSkins';
 import { PINE_NPC_SKINS as skins } from './fixtures/pine-program';
 import { Scope } from '../src/engine/app/scope';
+import { reachControl } from '../src/engine/boot/prefetch';
+import { ControlRefinement } from '../src/game/shardfile/controlRefinement';
+import { FigureCatalogue, type FigureSkinTiming } from '../src/game/models/figureCatalogue';
 
 function row(): FigureRow {
   return v.parse(FigureRowSchema, { id: 'person', name: 'standing', feet: [2, 3, 4], yaw: 0.3,
@@ -158,4 +162,76 @@ test('entered figure ids resolve only their live scope and refuse ambiguity', ()
     first.dispose(); expect(() => FigureRows.entered(a, 'person')).toThrow();
     b.dispose(); expect(() => FigureRows.entered(b, 'person')).toThrow();
   } finally { a.dispose(); b.dispose(); }
+});
+
+test.each(['complete', 'retire-queued', 'retire-started', 'refused'] as const)('off-view figure skins retain the actual control and ownership fence: %s', async mode => {
+  const owner = new Scope('late-figure'), level = new Scope('late-figure-control'), frames: FrameRequestCallback[] = [];
+  const raf = vi.spyOn(owner, 'raf').mockImplementation(run => { frames.push(run); return frames.length; });
+  const queue = new ControlRefinement(owner, level, () => ({ x: 0, z: 0 }), async () => { await Promise.resolve(); });
+  const hand = new THREE.Bone(); hand.name = 'handR';
+  const mesh = new THREE.SkinnedMesh(new THREE.BoxGeometry(), new THREE.MeshStandardMaterial()); mesh.add(hand); mesh.bind(new THREE.Skeleton([hand]));
+  const rig: FigureRig = { mesh, handR: hand, handAt: new THREE.Vector3(), height: 1.8, lanternAt: null, walkSpeed: .72, walkCycle: .72, pose: () => undefined };
+  const skin = skins.trader.phone, refusal = new Error('Original invalid skin');
+  let release = (): void => { throw new Error('No started skin read'); };
+  const load = vi.spyOn(FigureSkins.prototype, 'load').mockImplementation(async () => {
+    await new Promise<void>(resolve => { release = resolve; });
+    if (mode === 'refused') throw refusal;
+    return { rig: { geometry: mesh.geometry, rest: [], height: 1.8, y0: 0, lantern: null,
+      ball: [new THREE.Vector3(), new THREE.Vector3()], walkSpeed: .72, walkCycle: .72, webs: skin.webs }, map: null, normalMap: null };
+  });
+  const build = vi.spyOn(FigureSkins.prototype, 'rig').mockReturnValue(rig), handles = resources();
+  const figure = new FigureRows(handles, { ...row(), skin: { ...skin, late: true, surface: { name: 'coat', roughness: .85, metalness: 0, normalScale: [1, -1] } },
+    joints: [{ id: 'person.joint.hand', bone: 'handR' }], sockets: [{ id: 'person.hand', joint: 'handR' }] }, owner,
+  run => queue.add('npc', { x: 100, z: 100 }, run));
+  const result = (async (): Promise<unknown> => { try { await figure.ready; return undefined; } catch (error: unknown) { return error; } })();
+  const paint = (): void => { const frame = frames.shift(); if (frame === undefined) throw new Error('Missing controlled paint'); frame(1); };
+  try {
+    expect(figure.skinDeferred).toBe(true); expect(load).not.toHaveBeenCalled(); expect(handles.has('person.root')).toBe(true);
+    if (mode === 'retire-queued') { owner.dispose(); reachControl(level); expect(await result).toBeUndefined(); expect(load).not.toHaveBeenCalled(); }
+    else {
+      reachControl(level); expect(load).not.toHaveBeenCalled(); paint(); expect(load).not.toHaveBeenCalled(); paint(); await Promise.resolve();
+      expect(load).toHaveBeenCalledOnce(); if (mode === 'retire-started') owner.dispose(); release();
+      expect(await result).toBe(mode === 'refused' ? refusal : undefined);
+    }
+    expect(build).toHaveBeenCalledTimes(mode === 'complete' ? 1 : 0);
+    expect(handles.has('person.hand')).toBe(mode === 'complete');
+    expect(handles.has('person.root')).toBe(mode === 'complete');
+    if (mode === 'complete') { figure.update(0, 0, new THREE.Vector3()); expect(figure.group.children).toContain(mesh); }
+  } finally { owner.dispose(); level.dispose(); raf.mockRestore(); load.mockRestore(); build.mockRestore(); }
+});
+
+test('catalogue metadata skips explicit late skins while ordinary preparation stays mandatory', async () => {
+  const handles = resources(), owner = new Scope('skin-catalogue'), catalogue = new FigureCatalogue();
+  const skin = { ...skins.trader.phone, surface: { name: 'coat', roughness: .85, metalness: 0, normalScale: [1, -1] } };
+  const early = { ...row(), skin }, late = { ...row(), skin: { ...skin, late: true } };
+  const prepare = vi.spyOn(FigureRows, 'prepareSkins').mockResolvedValue(undefined);
+  try {
+    await catalogue.admit({ figures: { early: { phone: early, desktop: early }, later: { phone: late, desktop: late } } }, handles, owner);
+    expect(prepare).toHaveBeenCalledOnce(); expect(prepare.mock.calls[0]?.[0]).toHaveLength(1);
+    expect(prepare.mock.calls[0]?.[0][0]?.late).toBeUndefined();
+  } finally { owner.dispose(); prepare.mockRestore(); }
+});
+
+test('a late figure inside the original draw distance still reads before control', async () => {
+  const owner = new Scope('near-figure'), handles = resources(), catalogue = new FigureCatalogue();
+  handles.publish('0', handles.geometry('body'));
+  const skin = skins.trader.phone, spec = { ...row(), skin: { ...skin, late: true, surface: { name: 'coat', roughness: .85, metalness: 0, normalScale: [1, -1] } } };
+  const later = vi.fn<FigureSkinTiming['later']>().mockResolvedValue(false);
+  let release: () => void = () => undefined;
+  const load = vi.spyOn(FigureSkins.prototype, 'load').mockImplementation(async () => {
+    await new Promise<void>(resolve => { release = resolve; });
+    return { rig: { geometry: handles.geometry('body'), rest: [], height: 1.8, y0: 0, lantern: null,
+      ball: [new THREE.Vector3(), new THREE.Vector3()], walkSpeed: .72, walkCycle: .72, webs: skin.webs }, map: null, normalMap: null };
+  });
+  try {
+    await catalogue.admit({ figures: { person: { phone: spec, desktop: spec, body: 0 } } }, handles, owner);
+    expect(load).not.toHaveBeenCalled();
+    const timing = { viewer: { x: 0, z: 0 }, later };
+    const far = catalogue.create('person', handles, [200, 0, 0], 0, owner, timing);
+    const near = catalogue.create('person', handles, [1, 0, 1], 0, owner, timing);
+    expect(far.skinDeferred).toBe(true); expect(near.skinDeferred).toBe(false);
+    expect(later).toHaveBeenCalledOnce(); expect(load).toHaveBeenCalledOnce();
+    expect(near.colliders).toEqual(far.colliders); expect(near.group.position.toArray()).toEqual([1, 0, 1]);
+    owner.dispose(); release(); await Promise.all([near.ready, far.ready]);
+  } finally { owner.dispose(); release(); load.mockRestore(); }
 });
