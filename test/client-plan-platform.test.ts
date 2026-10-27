@@ -571,7 +571,8 @@ function phaseCompletionFixture() {
   const f = context(), order: string[] = [];
   const resident = new Scope('phase-completion-resident');
   const plan = parseClientPlan({ version: 1, features: [
-    { kind: 'world.runtime-hooks', overhead: [] }, { kind: 'world.updates', rows: [] },
+    { kind: 'world.runtime-hooks', bounds: { x: [-250, 250], z: [-250, 250], outer: { maxAbsXZ: 200, floor: -20 } }, overhead: [] },
+    { kind: 'world.updates', rows: [{ kind: 'wind', system: 'phase-fixture.wind', before: [] }] },
   ] });
   const updates = vi.spyOn(clientPhases.CLIENT_FEATURES['world.updates'], 'install').mockImplementation(() => { order.push('updates'); });
   const hooks = vi.spyOn(clientPhases.CLIENT_FEATURES['world.runtime-hooks'], 'install').mockImplementation(() => { order.push('hooks'); });
