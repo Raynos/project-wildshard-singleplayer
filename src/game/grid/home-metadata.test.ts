@@ -37,6 +37,26 @@ test('an unavailable descriptor adds no metadata work or new refusal', async () 
   await expect(prepareHomeMetadata(owner, () => null)).resolves.toBeUndefined(); owner.dispose();
 });
 
+test('an ancestor retiring between slices cannot acquire a home lease', async () => {
+  const parent = new Scope('retiring page'), owner = parent.child('home metadata');
+  // Reverse cleanup order pauses the parent before it reaches this child.
+  parent.onDispose(() => undefined);
+  const release = vi.fn<() => void>();
+  let finish = (_value: { release: () => void }): void => { throw new Error('Missing resolver'); };
+  const pending = new Promise<{ release: () => void }>(resolve => { finish = resolve; });
+  const ready = prepareHomeMetadata(owner, () => pending);
+  await Promise.resolve();
+  const retiring = parent.disposeSteps(); retiring.next();
+  expect(owner.disposed).toBe(false); expect(owner.disposing).toBe(true);
+  const read = vi.fn(() => Promise.resolve(null));
+  await expect(prepareHomeMetadata(owner, read)).rejects.toThrow('owner left');
+  expect(read).not.toHaveBeenCalled();
+  finish({ release });
+  await expect(ready).rejects.toThrow('owner left'); expect(release).toHaveBeenCalledOnce();
+  for (const _step of retiring) { /* Drain the original sliced teardown. */ }
+  expect(release).toHaveBeenCalledOnce();
+});
+
 test('only actual initial homes prefetch, never standalone or road recovery', () => {
   const common = { instance: 'cell-0-0', slug: 'driftwood-isle', catalogue: 'catalogue', at: 1, road: { x: 0, z: 0, yaw: 0 } };
   const recovery = { ...common, reason: 'reload' as const };
