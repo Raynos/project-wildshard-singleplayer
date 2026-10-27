@@ -1,8 +1,10 @@
 import { expect, test } from 'vitest';
 import { addTile, buildTile, createNavMesh } from 'navcat';
-import { buildNavmesh } from '../src/engine/physics/navmesh';
-import type { NavigationLayerData } from '../src/format/navigationBytes';
+import { buildNavmesh, parseNavmesh } from '../src/engine/physics/navmesh';
+import { decodeNavigation, type NavigationLayerData } from '../src/format/navigationBytes';
 import type { WorkSlice } from '../src/engine/core/workSlice';
+// oxlint-disable-next-line import/no-nodejs-modules -- Compare the complete tracked original navigation payload.
+import { readFileSync } from 'node:fs';
 
 function layer(): NavigationLayerData {
   return { radius: .3, height: 1.8, climb: .5, cellSize: .2, cellHeight: .1,
@@ -59,4 +61,19 @@ test('a navigation pause refusal still rejects the build before publication', as
     check: () => { checks++; return Promise.reject(failure); } };
   await expect(buildNavmesh([layer()], 0, slice)).rejects.toBe(failure);
   expect(checks).toBe(1);
+});
+
+test('the original navigation builds identical full meshes and walkable queries', async () => {
+  const bytes = readFileSync('src/shards/driftwood-isle/assets/navigation-c5185248a44d1f5c20c129e6bc25785ff6c1a81206f19f162d32cfe77131b464');
+  const expected = parseNavmesh(Uint8Array.from(bytes).buffer);
+  if (expected === null) throw new Error('Missing original navigation');
+  const slice: WorkSlice = { due: () => false, yield: () => Promise.reject(new Error('Unexpected yield')), check: () => undefined };
+  const actual = await buildNavmesh(decodeNavigation(bytes), bytes.byteLength, slice);
+  expect(actual.layers).toEqual(expected.layers);
+  actual.datum = expected.datum = () => 0;
+  for (const radius of [.1, .3, .5, 1]) for (const x of [-200, -100, 0, 100, 200]) {
+    const point = { x, y: 2, z: x / 2 };
+    expect(actual.closestWalkable(point, radius)).toEqual(expected.closestWalkable(point, radius));
+    expect(actual.clearAhead(point, .7, 8, radius)).toEqual(expected.clearAhead(point, .7, 8, radius));
+  }
 });
