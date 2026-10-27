@@ -15,7 +15,7 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { SkinLocker } from '../src/game/cosmetics/locker';
 import { saves } from '../src/engine/saves/runtime';
 import { appIdentity } from '../src/engine/app/identity';
-import { output } from '../src/shards/pine-hollow/generators/output';
+import { PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
 
 function product(slug: string, rows: unknown) {

@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { decodeFloorRecords } from '../src/shards/pine-hollow/generators/floorRows.mjs';
 import { pineFloorLayout } from '../src/shards/pine-hollow/generators/bake-pine-floor.mjs';
-import { output } from '../src/shards/pine-hollow/generators/output';
+import { PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';
 import { parseFloorRows } from '../src/shards/pine-hollow/generators/sections';
 
 const UP = new Vector3(0, 1, 0), normal = new Vector3(), place = new Vector3(), size = new Vector3(), tilt = new Quaternion(), turn = new Quaternion();

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { output } from '../src/shards/pine-hollow/generators/output';
+import { PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 
 function record(value: unknown): value is Record<string, unknown> {

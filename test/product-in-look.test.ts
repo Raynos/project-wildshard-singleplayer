@@ -7,7 +7,7 @@ import { createShardProduct, ProductError, type ShardProduct } from '@wildshard/
 import { emptyShardfile } from '../src/sdk/author';
 import type { ProjectOutput } from '../src/sdk/projectOutput';
 import { output as driftwoodOutput } from '../src/shards/driftwood-isle/generators/output';
-import { output as pineOutput } from '../src/shards/pine-hollow/generators/output';
+import { PINE_PREPARED_OUTPUT as pineOutput } from './fixtures/pine-program';
 import { MANIFEST as driftwood } from '../src/shards/driftwood-isle/discovery.generated';
 import { MANIFEST as pine } from '../src/shards/pine-hollow/discovery.generated';
 

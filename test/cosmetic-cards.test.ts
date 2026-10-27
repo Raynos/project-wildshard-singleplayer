@@ -5,7 +5,7 @@ import { expect, test } from 'vitest';
 import { CosmeticsLocker, SkinLocker, type CosmeticState } from '../src/game/cosmetics/locker';
 import { HeldFinishes } from '../src/game/loadout/finishes';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
-import { output } from '../src/shards/pine-hollow/generators/output';
+import { PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { FINISH_CARDS } from '../src/shards/pine-hollow/generators/finishCards';

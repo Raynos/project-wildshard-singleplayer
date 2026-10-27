@@ -2,7 +2,7 @@ import { afterEach, expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { HeldEquipmentSchema } from '../src/format/heldEquipment';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
-import { output as pineOutput } from '../src/shards/pine-hollow/generators/output';
+import { PINE_PREPARED_OUTPUT as pineOutput } from './fixtures/pine-program';
 import { Scope } from '../src/engine/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';

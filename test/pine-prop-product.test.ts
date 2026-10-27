@@ -5,7 +5,7 @@ import { expect, test } from 'vitest';
 import { parseWorldSceneModels } from '../src/format/worldSceneModels';
 import { parseWorldScenes } from '../src/format/worldScenes';
 import rows from '../src/shards/pine-hollow/data/props.json' with { type: 'json' };
-import { output } from '../src/shards/pine-hollow/generators/output';
+import { PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';
 import { MODEL_SCENES, SCENE_MODELS, SCENE_PLACEMENTS } from '../src/shards/pine-hollow/generators/sceneModelRows';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';

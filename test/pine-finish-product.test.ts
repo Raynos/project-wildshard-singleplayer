@@ -9,7 +9,7 @@ import { HeldFinishes } from '../src/game/loadout/finishes';
 import { WEAPON_FINISHES } from '../src/shards/pine-hollow/generators/weaponFinishes';
 import { HELD_GEAR } from '../src/shards/pine-hollow/generators/heldGear';
 import packed from '../src/shards/pine-hollow/data/codeParts.json' with { type: 'json' };
-import { output } from '../src/shards/pine-hollow/generators/output';
+import { PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
 import { HeldFinishesSchema } from '../src/format/heldFinishes';
 import { GeometryPack, packedRows } from '../src/sdk/kit/geometryPack';

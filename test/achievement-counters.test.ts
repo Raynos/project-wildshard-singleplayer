@@ -1,6 +1,6 @@
 import { expect,test } from 'vitest';
 import { parseAchievementCounterData } from '../src/format/achievementCounters';
-import { output as pineOutput } from '../src/shards/pine-hollow/generators/output';
+import { PINE_PREPARED_OUTPUT as pineOutput } from './fixtures/pine-program';
 import { output as driftwoodOutput } from '../src/shards/driftwood-isle/generators/output';
 import { createAchievementCounters } from '../src/game/achievements';
 import { PINE_FEAT_COUNTERS } from '../src/shards/pine-hollow/generators/questInventory';

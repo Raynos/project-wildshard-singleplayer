@@ -11,7 +11,7 @@ import * as v from 'valibot';
 import { ManifestMetadataSchema } from '../src/format/minimap';
 import { NATIVE_VIEW } from '../src/shards/pine-hollow/generators/nativeView';
 import { NativeViewSchema, CaveRowsSchema, PoolGroundSchema } from '../src/shards/pine-hollow/generators/sections';
-import { output } from '../src/shards/pine-hollow/generators/output';
+import { PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { resolveBootSources } from '../src/engine/boot/filePolicy';
