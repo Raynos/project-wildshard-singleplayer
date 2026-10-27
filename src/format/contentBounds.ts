@@ -23,10 +23,12 @@ export const CELL_ABOVE: number = CELL_HEIGHT - CELL_BELOW;
 export const HORIZON_RADIUS = 2300;
 /** Decimal bytes per MB in the streaming cost model. */
 export const CONTENT_MB = 1_000_000;
-/** C6 calibration from the Simulator template census at 965b2bd1d6:
+/** Historical admission allowance from the Simulator template census at 965b2bd1d6:
  * WebContent 250–261 MiB, GPU 39–43 MiB including content. Shard resident
  * bytes are added separately. This baseline is an estimate, not a target or
- * an observed process reading; live grid page allocations are separate claims. */
+ * an observed process reading; live grid page allocations are separate claims.
+ * G762 advisory projections use contentEstimate with a measured engine base;
+ * this conservative admission allowance cannot qualify native memory. */
 export const ENGINE_BASE_BYTES: number = 250 * 1024 * 1024;
 /** The one memory switch (src/format/memoryGates.json, G433): the Explorer / loading caps and whether memory checks refuse
  * (`enforce`) or only report (`report-only`, until SHARD-PLATFORM closes). Runtime admission always refuses over the caps. */
