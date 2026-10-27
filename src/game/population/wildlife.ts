@@ -23,12 +23,16 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { installDeclaredCrowdFrames, CrowdTargets, CrowdRoster, CrowdWeaponTarget } from '../shardfile/crowdRuntime';
-import { PageGroups, PagePopulationPlanner, bindPageGroups, wildEnv } from './pageGroups';
+import { PageGroups, PagePopulationPlanner, bindPageGroups, drainSteps, wildEnv } from './pageGroups';
 import { ReturnProgram, ProjectedMotionSample } from './returnProgram';
 
 type Rows = v.InferOutput<typeof WildlifePopulationSchema>;
 /** Explicit presentation work, interleaved with the director's original spawns. */
 export type WildlifeBuildStep = { kind: 'pause' } | { kind: 'foragers' } | { kind: 'crowd'; index: number; options: { x: number; z: number; count: number; seed: number; range: number } };
+/** A planner's per-member steps as the build's pauses. */
+function* paused<T>(steps: Generator<void, T>): Generator<WildlifeBuildStep, T> {
+  for (let step = steps.next(); ; step = steps.next()) { if (step.done === true) return step.value; yield { kind: 'pause' }; }
+}
 /** Client-only population director. Native owners handle every spawn, group,
  * relationship and observation; authored input is rows and admitted guests. */
 export class PageWildlife<T extends CrowdTargets = CrowdTargets> {
@@ -55,8 +59,9 @@ export class PageWildlife<T extends CrowdTargets = CrowdTargets> {
   get pastureProfile(): Rows['pastureActor'] { return this.rows.pastureActor; }
   *buildSteps(): Generator<WildlifeBuildStep,void> {
     const row = this.rows;
-    for (const pack of row.packs) { this.spawnPack(pack.x,pack.z,pack.variants); yield { kind: 'pause' }; }
-    for (const herd of row.herds) { this.spawnHerd(herd.x,herd.z,herd.mares,herd.foals,herd.stallion); yield { kind: 'pause' }; }
+    // one animal a step: a whole pack or herd was one 100-133 ms task in a cold Nalati crossing at phone 4x
+    for (const pack of row.packs) { yield* this.spawnPackSteps(pack.x,pack.z,pack.variants); yield { kind: 'pause' }; }
+    for (const herd of row.herds) { yield* this.spawnHerdSteps(herd.x,herd.z,herd.mares,herd.foals,herd.stallion); yield { kind: 'pause' }; }
     for (const [index,flock] of row.flocks.entries()) {
       yield { kind: 'crowd',index,options: { x: flock.x,z: flock.z,count: flock.count,seed: row.seed+index*101,range: flock.range } };
       if (this.flocks.length !== index+1) throw new Error('Unbound population crowd');
@@ -65,14 +70,16 @@ export class PageWildlife<T extends CrowdTargets = CrowdTargets> {
     if (row.mountables.length > 0) yield { kind: 'pause' };
     if (this.foragers !== null) yield { kind: 'foragers' };
   }
-  spawnPack(x: number,z: number,variants: readonly string[]): ReturnType<PageGroups['pack']> {
+  spawnPack(x: number,z: number,variants: readonly string[]): ReturnType<PageGroups['pack']> { return drainSteps(this.spawnPackSteps(x,z,variants)); }
+  private *spawnPackSteps(x: number,z: number,variants: readonly string[]): Generator<WildlifeBuildStep,ReturnType<PageGroups['pack']>> {
     const radius = v.parse(v.number(),this.placement.project('packPlan',{})['radius']);
-    const members = this.population.scatter({ kind: this.rows.kinds.predator,variants,x,z,radius }); this.predatorBodies.push(...members);
+    const members = yield* paused(this.population.scatterSteps({ kind: this.rows.kinds.predator,variants,x,z,radius })); this.predatorBodies.push(...members);
     return this.groups.pack(members.map(actor => actor.entityId),x,z);
   }
-  spawnHerd(x: number,z: number,mares: number,foals: number,stallion: boolean): ReturnType<PageGroups['herd']> {
-    const row = this.rows,members = this.population.planned({ kind: row.kinds.mount,x,z,observations: { mares,foals,stallion: Number(stallion),coats: row.coats.length },
-      variants: [...row.coats,...row.young,row.leader],start: 'herdStart',member: 'herdMember',offset: 'foal' });
+  spawnHerd(x: number,z: number,mares: number,foals: number,stallion: boolean): ReturnType<PageGroups['herd']> { return drainSteps(this.spawnHerdSteps(x,z,mares,foals,stallion)); }
+  private *spawnHerdSteps(x: number,z: number,mares: number,foals: number,stallion: boolean): Generator<WildlifeBuildStep,ReturnType<PageGroups['herd']>> {
+    const row = this.rows,members = yield* paused(this.population.plannedSteps({ kind: row.kinds.mount,x,z,observations: { mares,foals,stallion: Number(stallion),coats: row.coats.length },
+      variants: [...row.coats,...row.young,row.leader],start: 'herdStart',member: 'herdMember',offset: 'foal' }));
     return this.groups.herd(members.map(actor => actor.entityId));
   }
   /** Bind an already-built native crowd; return the optional guardian identity. */

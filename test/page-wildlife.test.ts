@@ -47,7 +47,9 @@ test('orchard population emits crowd work between native groups and mount placem
     packs: [{ x: 1,z: 1,variants: ['elder'] }],herds: [],flocks: [{ x: 4,z: 4,count: 24,dog: false,range: 12 }],
     mountables: [{ x: 8,z: 8,yaw: 0,variant: 'tame' }],foragers: null };
   const population = new PageWildlife(manager,rows,scope,playerPoint),build = population.buildSteps();
+  // one pause per spawned member, then the pack's own
   expect(build.next().value).toEqual({ kind: 'pause' }); expect(bodies.map(body => body.kind)).toEqual(['boar']);
+  expect(build.next().value).toEqual({ kind: 'pause' });
   const command = build.next().value; if (command?.kind !== 'crowd') throw new Error('Missing explicit crowd work');
   expect(command.index).toBe(0); expect(bodies).toHaveLength(1);
   const controller = new FlockBrain({ heightAt: () => 0,normalY: () => 1,inBounds: () => true,wetAt: () => false,playerCrouched: () => false,

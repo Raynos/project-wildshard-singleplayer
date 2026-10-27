@@ -123,13 +123,23 @@ export class PagePopulationPlanner {
   }
   /** Scatter a known ordered roster into one manager-owned group. */
   scatter(row: { readonly kind: string; readonly variants: readonly string[]; readonly x: number; readonly z: number; readonly radius: number }): Animal[] {
-    const herd = this.animals.addHerd(row.kind, row.x, row.z);
-    return row.variants.map(variant => this.member(this.place(row.kind, variant, row.x, row.z, row.radius), herd));
+    return drainSteps(this.scatterSteps(row));
+  }
+  /** `scatter`, yielding after each member (a sliced build spawns one animal a step). */
+  *scatterSteps(row: { readonly kind: string; readonly variants: readonly string[]; readonly x: number; readonly z: number; readonly radius: number }): Generator<void, Animal[]> {
+    const herd = this.animals.addHerd(row.kind, row.x, row.z), members: Animal[] = [];
+    for (const variant of row.variants) { members.push(this.member(this.place(row.kind, variant, row.x, row.z, row.radius), herd)); yield; }
+    return members;
   }
   /** A bounded guest plan selects each member and optional placement relative to
    * an earlier member or the group's origin. Allocation stays in source order. */
   planned(row: { readonly kind: string; readonly x: number; readonly z: number; readonly variants: readonly string[];
     readonly observations: Readonly<Record<string, number>>; readonly start: string; readonly member: string; readonly offset: string }): Animal[] {
+    return drainSteps(this.plannedSteps(row));
+  }
+  /** `planned`, yielding after each placed member. */
+  *plannedSteps(row: { readonly kind: string; readonly x: number; readonly z: number; readonly variants: readonly string[];
+    readonly observations: Readonly<Record<string, number>>; readonly start: string; readonly member: string; readonly offset: string }): Generator<void, Animal[]> {
     const herd = this.animals.addHerd(row.kind, row.x, row.z);
     const start = v.parse(v.object({ start: v.number(), count: whole }), this.program.project(row.start, row.observations, this.random));
     const members: Animal[] = [];
@@ -141,6 +151,7 @@ export class PagePopulationPlanner {
         const parent = members[v.parse(whole, plan['mother'])];
         if (parent !== undefined && parent !== actor) { const offset = v.parse(point, this.program.project(row.offset, {}, this.random)); actor.place(parent.position.x + offset.x, parent.position.z + offset.z, parent.yaw); }
       } else if (plan['place'] === 2) actor.place(row.x + v.parse(v.number(), plan['x']), row.z + v.parse(v.number(), plan['z']), v.parse(v.number(), plan['yaw']));
+      yield;
     }
     return members;
   }
@@ -251,4 +262,9 @@ export class PageGroups {
     const adopt = herd.adoptStallion.bind(herd); herd.adoptStallion = actor => { adopt(actor); renderedHerds.set(actor,herd); };
     this.herds.push(herd); for (const actor of members) { renderedHerds.set(actor,herd); } return herd;
   }
+}
+
+/** Run a stepped build to its end in one call, for callers that need its result at once. */
+export function drainSteps<Y, T>(steps: Generator<Y, T>): T {
+  for (let step = steps.next(); ; step = steps.next()) if (step.done === true) return step.value;
 }
