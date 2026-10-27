@@ -1,4 +1,5 @@
 import { engineString } from '../strings';
+import { diagnosticNow } from '../core/clock';
 /** A path supplies its vocabulary; the engine only accounts for exclusive wall time. */
 export interface LoadingStep { key: string; label: string; weight: number; aliases?: readonly string[] }
 export interface LoadingPath { id: string; steps: readonly LoadingStep[]; ignored?: readonly string[] }
@@ -37,7 +38,7 @@ export class LoadingTimeline {
   private last: string | null = null;
   private readonly now: () => number;
   private readonly presentation: LoadingPresentation | undefined;
-  constructor(path: LoadingPath, startedAt: number, now: () => number = () => performance.now(),
+  constructor(path: LoadingPath, startedAt: number, now: () => number = diagnosticNow,
     presentation?: LoadingPresentation) {
     this.path = path; this.now = now; this.at = startedAt; this.presentation = presentation;
     this.configure(path);
