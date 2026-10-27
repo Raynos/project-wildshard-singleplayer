@@ -1,11 +1,11 @@
 import { islandFoliagePlacements } from './islandDressing';
 import { terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 import { driftwoodGroundSampler } from './groundSampling';
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng } from '@wildshard/sdk/random';
 import volleyData from '../data/coconutSlots.json' with { type: 'json' };
 import { BodySlotsSchema } from '@wildshard/format/bodySlots';
 import { parse, type InferOutput } from 'valibot';
-import { sampleCreatureGroup, selectCreatureSites } from '@wildshard/game/plugin/brain';
+import { sampleCreatureGroup, selectCreatureSites } from '@wildshard/sdk/bake/creaturePlacement';
 import { ENEMY_COUNTS } from './fauna';
 import { driftwoodPhysics, driftwoodPhysicsGroundBytes } from './physics';
 

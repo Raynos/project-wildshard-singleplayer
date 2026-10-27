@@ -4,7 +4,6 @@ import { islandKnobs } from './tiers';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { _buildAs, buildTier, TIER, type Tier } from '@wildshard/engine/core/tier';
 import { Rng } from '@wildshard/sdk/random';
-import { seedOf, type Placement } from '@wildshard/engine/models/model';
 import { bindLevelSelection } from '@wildshard/engine/level/selection';
 import { HeightfieldBinding, bindHeightfield, normalAt, waterLevel, inChunk } from '@wildshard/engine/world/Heightfield';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
@@ -14,7 +13,7 @@ import TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
 import { nativeTerrainQueries } from '@wildshard/sdk/bake/forest';
 import { TRAILS } from './landscapeRows';
 import { DECLARED_SEA, WORLD_DROP } from './sea';
-import { palm, hibiscusBush, type PalmParams, type HibiscusBushParams } from './foliageModels';
+import { palm, hibiscusBush, type PalmParams, type HibiscusBushParams, type FoliagePlacement } from './foliageModels';
 import { palmGeometry } from './palm';
 import { leafClump } from './hibiscus';
 import { driftwoodGroundBytes } from './groundRows';
@@ -29,6 +28,9 @@ import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { hibiscusTransport, foliageTransport } from './hibiscusTransport';
 import publicInputs from '../data/publicInputs.json' with { type: 'json' };
+
+/** These producers always supply complete parameter data beside the owned foliage pose. */
+export interface IslandFoliagePlacement<P extends object> extends FoliagePlacement { readonly params: P }
 
 export interface PalmSpec { x: number; z: number; h: number; lean: number; leanDir: number; rot: number; fronds: number }
 export interface BushSpec { x: number; z: number; r: number; flowers: boolean }
@@ -74,7 +76,7 @@ function scatterPalms(heightAt: (x: number, z: number) => number, seed: number, 
   }
 
   /** each spec as a placement of the palm: its foot 0.2 m into the sand, its shape from the spec */
-function palmPlacements(heightAt: (x: number, z: number) => number, specs: readonly PalmSpec[]): Placement<PalmParams>[] {
+function palmPlacements(heightAt: (x: number, z: number) => number, specs: readonly PalmSpec[]): IslandFoliagePlacement<PalmParams>[] {
     return specs.map((p) => ({ x: p.x, y: heightAt(p.x, p.z) - 0.2, z: p.z, params: { h: p.h, lean: p.lean, leanDir: p.leanDir, rot: p.rot, fronds: p.fronds } }));
   }
 
@@ -103,7 +105,7 @@ function scatterBushes(heightAt: (x: number, z: number) => number, seed: number,
   }
 
   /** each spec as a placement of the bush: on the ground, its sway's phase from where it stands */
-function bushPlacements(heightAt: (x: number, z: number) => number, specs: readonly BushSpec[]): Placement<HibiscusBushParams>[] {
+function bushPlacements(heightAt: (x: number, z: number) => number, specs: readonly BushSpec[]): IslandFoliagePlacement<HibiscusBushParams>[] {
     return specs.map((b) => ({ x: b.x, y: heightAt(b.x, b.z), z: b.z, params: { r: b.r, flowers: b.flowers, phase: (b.x + b.z) * 0.37 } }));
   }
 
@@ -184,20 +186,20 @@ function buildIslandFoliageBatchRows(): IslandFoliageBatches {
  for(const tier of ['phone','desktop'] as const){
    _buildAs(tier);
    const rows=placed.tiers[tier],palms=rows.palms.specs;
-   const palmRng=new Rng(seedOf(palm)),bushRng=new Rng(seedOf(hibiscusBush));
+   const palmRng=new Rng(palm.seed),bushRng=new Rng(hibiscusBush.seed);
    const pg=rows.palms.placements.map(p=>palmGeometry({...palm.defaults,...p.params},palmRng).translate(p.x,p.y,p.z));
    const bg=rows.bushes.placements.map(p=>leafClump({...hibiscusBush.defaults,...p.params},bushRng).translate(p.x,p.y,p.z));
    const mergedPalms=mergeGeometries(pg),mergedBushes=mergeGeometries(bg);
    try{
     emit(hibiscusTransport(mergedBushes,bg,retainedIslandRuns(mergedBushes,(x,z)=>!inArea(x,z))),'bin','hibiscus',`world/hibiscus/${tier}.bin`);
     for(const variant of hibiscusBush.variants){
-     const shape=leafClump({...hibiscusBush.defaults,...variant.params},new Rng(seedOf(hibiscusBush))),material=new MeshStandardMaterial();
+     const shape=leafClump({...hibiscusBush.defaults,...variant.params},new Rng(hibiscusBush.seed)),material=new MeshStandardMaterial();
      try{emit(staticGlb([{geometry:shape,material,customAttributes:{_SWAY:'aSway'},compactIndex:true}],`hibiscus-${variant.id}`),'glb','hibiscus',`models/hibiscus/${tier}/${variant.id}.glb`);}
      finally{shape.dispose();material.dispose();}
     }
     emit(foliageTransport(mergedPalms,pg,retainedIslandRuns(mergedPalms,palmKeep(palms)),0x314d4c50,['position','color','sway']),'bin','palm',`world/palms/${tier}.bin`);
     for(const variant of palm.variants){
-     const shape=palmGeometry({...palm.defaults,...variant.params},new Rng(seedOf(palm))),material=new MeshStandardMaterial();
+     const shape=palmGeometry({...palm.defaults,...variant.params},new Rng(palm.seed)),material=new MeshStandardMaterial();
      try{emit(staticGlb([{geometry:shape,material,customAttributes:{_SWAY:'sway'},compactIndex:true}],`palm-${variant.id}`),'glb','palm',`models/palms/${tier}/${variant.id}.glb`);}
      finally{shape.dispose();material.dispose();}
     }
