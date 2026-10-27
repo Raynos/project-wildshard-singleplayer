@@ -1,4 +1,4 @@
-import { DRIFTWOOD_LAYOUTS } from './fixtures/driftwood-layout-source';
+import { DRIFTWOOD_LAYOUTS, DRIFTWOOD_ORIGINAL_LAYOUTS } from './fixtures/driftwood-layout-source';
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
@@ -16,12 +16,13 @@ import { questPageWorld } from '../src/game/quest/pageResources';
 import { QuestWorldSchema } from '../src/format/questWorld';
 import { driftwoodQuestWorld } from '../src/shards/driftwood-isle/generators/questWorld';
 import { GULL_FLOCK } from '../src/shards/driftwood-isle/generators/gullsLook';
-import hut from '../src/shards/driftwood-isle/data/hutBake.json' with { type: 'json' };
-import lookout from '../src/shards/driftwood-isle/data/lookoutBake.json' with { type: 'json' };
-import shrine from '../src/shards/driftwood-isle/data/shrineBake.json' with { type: 'json' };
-import wreck from '../src/shards/driftwood-isle/data/wreckBake.json' with { type: 'json' };
-import cove from '../src/shards/driftwood-isle/data/coveBake.json' with { type: 'json' };
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
+
+const hut = DRIFTWOOD_ORIGINAL_LAYOUTS.hut;
+const lookout = DRIFTWOOD_ORIGINAL_LAYOUTS.lookout;
+const shrine = DRIFTWOOD_ORIGINAL_LAYOUTS.shrine;
+const wreck = DRIFTWOOD_ORIGINAL_LAYOUTS.wreck;
+const cove = DRIFTWOOD_ORIGINAL_LAYOUTS.cove;
 
 test('authored quest anchors equal actual fixed site placement, with no second rotation', () => {
   const data = v.parse(QuestWorldSchema, driftwoodQuestWorld(DRIFTWOOD_LAYOUTS));

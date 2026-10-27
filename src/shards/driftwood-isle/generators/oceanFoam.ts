@@ -1,12 +1,8 @@
+import type { DriftwoodFixedLayouts } from './fixedLayouts';
 import piers from '../data/pierScenes.generated.json' with { type: 'json' };
 import landings from '../data/entryFloors.generated.json' with { type: 'json' };
-import wreck from '../data/wreckBake.json' with { type: 'json' };
-import cove from '../data/coveBake.json' with { type: 'json' };
 import { originalBridgeFacts } from './driftwoodBridge.mjs';
 import { driftwoodTrailRows } from './fixedFacts';
-import hut from '../data/hutBake.json' with { type: 'json' };
-import lookout from '../data/lookoutBake.json' with { type: 'json' };
-import shrine from '../data/shrineBake.json' with { type: 'json' };
 import { ENTRY_DECKS } from './entryDecks';
 import { STATIC_BOAT, SHORE_BOULDERS } from './staticWorld';
 import { BRIDGE } from './worldSites';
@@ -31,7 +27,7 @@ const bridge = islandBridge();
 /** Every static box standing in the sea the world build places (piers and jetties, the entry decks' slabs, the moored
  *  boat, the shore boulders, the sites, the wreck, the trail, the bridge, the sea cave), kept only where it pierces the
  *  foam band and rounded to the centimetre: the ocean stamps its foam rings around these (`WaterSurface.foamAround`). */
-function foam(): Box[] {
+export function driftwoodOceanFoam({ hut, lookout, wreck, shrine, cove }: DriftwoodFixedLayouts): Box[] {
   const { foamBand } = OCEAN_SURFACE.floor, level = OCEAN_FILES.level, cm = (value: number): number => Math.round(value * 100) / 100;
   const edges = new Set(landings.rows.map(row => row.edge));
   const boxes: Box[] = [...ENTRY_DECKS.filter(row => edges.has(row.edge)).map(row => row.slab), ...piers.facts.flatMap(row => row.boxes), ...STATIC_BOAT.walls,
@@ -40,4 +36,3 @@ function foam(): Box[] {
   return boxes.filter(b => b.yBottom < level + foamBand && b.yTop > level - foamBand)
     .map(({ x, z, hw, hd, rot, yTop, yBottom }) => ({ x: cm(x), z: cm(z), hw: cm(hw), hd: cm(hd), rot: cm(rot), yTop: cm(yTop), yBottom: cm(yBottom) }));
 }
-export const OCEAN_FOAM: Box[] = foam();

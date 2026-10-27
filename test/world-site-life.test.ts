@@ -1,3 +1,4 @@
+import { DRIFTWOOD_ORIGINAL_LAYOUTS } from './fixtures/driftwood-layout-source';
 import { formatJsonSchema, namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateDefinedSection } from '../src/sdk/sections';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
@@ -20,8 +21,9 @@ import type { FixedDraws } from '../src/game/models/fixedDraws';
 import type { ShardProduct } from '../src/game/shardfile/shardProduct';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import shrineRows from '../src/shards/driftwood-isle/data/buildingLife.json' with { type: 'json' };
-import shrineBake from '../src/shards/driftwood-isle/data/shrineBake.json' with { type: 'json' };
 import { WORLD_STAGES } from './fixtures/driftwood-world-stages';
+
+const shrineBake = DRIFTWOOD_ORIGINAL_LAYOUTS.shrine;
 
 const pose = { seeds: false, name: 'shrine-fireflies', at: { point: 'shrine.root', offset: [0, 2, 0] }, parent: 'shrine.root', center: [0, 1, 0], radius: 18, order: 4 } satisfies v.InferOutput<typeof BuildingCloudPoseSchema>;
 const lifeRow = { file: 'world/building-life.json', root: 'shrine.root', cloud: { draw: 'shrineFireflies', look: 'site-life-test-look', pose } };

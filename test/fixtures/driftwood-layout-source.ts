@@ -3,5 +3,6 @@ import { parseDriftwoodFixedLayouts } from '../../src/shards/driftwood-isle/gene
 import { driftwoodHeldArms } from '../../src/shards/driftwood-isle/generators/heldArms';
 
 /** Complete original native site facts, frozen before GR7 reader retirement. */
+export const DRIFTWOOD_ORIGINAL_LAYOUTS = original;
 export const DRIFTWOOD_LAYOUTS = parseDriftwoodFixedLayouts(original);
 export const HELD_ARMS = driftwoodHeldArms(DRIFTWOOD_LAYOUTS.wreck);

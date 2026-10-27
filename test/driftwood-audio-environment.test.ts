@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { DRIFTWOOD_LAYOUTS } from './fixtures/driftwood-layout-source';
+import { DRIFTWOOD_LAYOUTS, DRIFTWOOD_ORIGINAL_LAYOUTS } from './fixtures/driftwood-layout-source';
 import {expect,it,vi} from 'vitest';
 import {Group,PerspectiveCamera} from 'three';
 import {Scope} from '../src/engine/app/scope';
@@ -17,9 +17,10 @@ import {driftwoodGameplayAudioEnvironment} from '../src/shards/driftwood-isle/ge
 import source from '../src/shards/driftwood-isle/data/audioSource.json' with {type:'json'};
 import foliage from '../src/shards/driftwood-isle/data/foliagePlacements.generated.json' with {type:'json'};
 import island from '../src/shards/driftwood-isle/data/islandFacts.generated.json' with {type:'json'};
-import wreck from '../src/shards/driftwood-isle/data/wreckBake.json' with {type:'json'};
 import cove from '../src/shards/driftwood-isle/data/coveComposition.json' with {type:'json'};
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
+
+const wreck = DRIFTWOOD_ORIGINAL_LAYOUTS.wreck;
 
 it('emits the completed world facts in their original tier order, with the four floor gaps',()=>{
  const rows=driftwoodGameplayAudioEnvironment(DRIFTWOOD_LAYOUTS.wreck);

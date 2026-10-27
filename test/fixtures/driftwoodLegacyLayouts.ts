@@ -1,3 +1,4 @@
+import { DRIFTWOOD_ORIGINAL_LAYOUTS } from './driftwood-layout-source';
 import { HORIZON_RADIUS } from '@wildshard/format/contentBounds';
 import { SHORE_REVETMENT_INNER_FACE } from '@wildshard/engine/sim/shore';
 import { OCEAN } from '../../src/shards/driftwood-isle/generators/worldSites';
@@ -15,15 +16,17 @@ import npcScenes from '../../src/shards/driftwood-isle/data/npcScenes.generated.
 import foliage from '../../src/shards/driftwood-isle/data/foliagePlacements.generated.json' with { type: 'json' };
 import islandFacts from '../../src/shards/driftwood-isle/data/islandFacts.generated.json' with { type: 'json' };
 import cumulusPuffs from '../../src/shards/driftwood-isle/data/cumulusPuffs.json' with { type: 'json' };
-import coveBake from '../../src/shards/driftwood-isle/data/coveBake.json' with { type: 'json' };
-import shrineBake from '../../src/shards/driftwood-isle/data/shrineBake.json' with { type: 'json' };
-import hut from '../../src/shards/driftwood-isle/data/hutBake.json' with { type: 'json' };
-import lookout from '../../src/shards/driftwood-isle/data/lookoutBake.json' with { type: 'json' };
 import { driftwoodPierRows } from '../../src/shards/driftwood-isle/generators/fixedFacts';
 import { GULL_FLOCK } from '../../src/shards/driftwood-isle/generators/gullsLook';
 import { OCEAN_SURFACE } from '../../src/shards/driftwood-isle/generators/oceanLook';
 import { OCEAN_FILES } from '../../src/shards/driftwood-isle/generators/oceanFiles';
-import { OCEAN_FOAM } from '../../src/shards/driftwood-isle/generators/oceanFoam';
+import { driftwoodOceanFoam } from '../../src/shards/driftwood-isle/generators/oceanFoam';
+import { DRIFTWOOD_LAYOUTS } from './driftwood-layout-source';
+
+const coveBake = DRIFTWOOD_ORIGINAL_LAYOUTS.cove;
+const shrineBake = DRIFTWOOD_ORIGINAL_LAYOUTS.shrine;
+const hut = DRIFTWOOD_ORIGINAL_LAYOUTS.hut;
+const lookout = DRIFTWOOD_ORIGINAL_LAYOUTS.lookout;
 
 const piers = driftwoodPierRows();
 
@@ -38,7 +41,7 @@ const named = (label: string): string => { const name = DRIFTWOOD_ASSET_NAMES[la
 export const OCEAN_WATER_ROW = { id: 'sea',
   surface: { ...OCEAN_SURFACE, params: { level: OCEAN.level, deepDepth: OCEAN.deepDepth, shallow: [...OCEAN.shallowColor], deep: [...OCEAN.deepColor], edgeInset: SHORE_REVETMENT_INNER_FACE, seaEnd: HORIZON_RADIUS } },
   draw: { grid: { phone: { url: OCEAN_FILES.phone }, desktop: { url: OCEAN_FILES.desktop } }, attributes: { _depth: 'aDepth', _seed: 'aSeed' },
-    level: OCEAN_FILES.level, floor: { url: OCEAN_FILES.floor }, dry: ENTRY_DECKS.map(({ rect }) => rect), foam: OCEAN_FOAM,
+    level: OCEAN_FILES.level, floor: { url: OCEAN_FILES.floor }, dry: ENTRY_DECKS.map(({ rect }) => rect), foam: driftwoodOceanFoam(DRIFTWOOD_LAYOUTS),
     lent: { night: 'uToonNight' }, toonSeaLevel: true } } as const;
 
 /** Build-only client row assembly; the canonical registry validates it at publication. */
