@@ -14,7 +14,8 @@ import { SKY_ISLE_TILES, skyIsleTileLibrary } from '../src/shards/far-reach/gene
 import { skyProductRows } from '../src/shards/far-reach/generators/product';
 
 const metadata = 'src/shards/far-reach/data/props.json';
-const declarationHash = '2265bbfe4606de60cdc86578d70fe70b481d84184eacf7687b0a45e9e4823f1f';
+// G748 adds eleven L1 rows/files; 836028fd55 keeps them outside the library.
+const declarationHash = '11e51a5a7dd34311681c65c96cc0be4bbbca5bcc64886c9f11e77a5b56694b0b';
 
 test('the authored tile bank preserves complete metadata, costs and the original scene library', () => {
   const bytes = readFileSync(metadata);
@@ -25,7 +26,7 @@ test('the authored tile bank preserves complete metadata, costs and the original
 
 test('the declaration retains every original field, tile payload identity and admission cost', () => {
   const bytes = new TextEncoder().encode(`${JSON.stringify(skyProductRows())}\n`);
-  expect(bytes.byteLength).toBe(320_319);
+  expect(bytes.byteLength).toBe(325_153);
   expect(hashImmutableBytes(bytes)).toBe(declarationHash);
 });
 
