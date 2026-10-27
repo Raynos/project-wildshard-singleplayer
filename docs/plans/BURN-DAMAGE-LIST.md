@@ -107,6 +107,7 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D59 | For Jake's review (G20a, G769): `src/format/decisionScripts.ts` raises the decision-module cap from eight to nine, product-wide, so Pine's contract guest ships as a named module instead of 15,704 base64 characters in `quests/contracts.json`; `test/decision-module-cap.test.ts` pins nine and refuses ten. Nalati's practice course (GR6 B5) asks for the same ninth slot | this commit | sp-o1 (GR8) | open: Jake confirms the cap or names a module-budget design |
 
 | D60 | Required ratchet aborts before counts on stale generator-imports allowance for deleted src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs; exact tmp/sp-x1-crown-retire/ratchet.log | 8a0cba55cd | sp-x10 | open, routed; Far Reach touched rules measure0 |
+| D61 | HEAD previews fail: a Nalati generation stage opens `src/shards/nalati-grasslands/data/geography-forest.bin`, which the retired `nalati-geography` job no longer writes (`ENOENT`, log `tmp/serve/failed-20261027-030932-4400.log`); blocks every HEAD preview, so the G32 Pine tree check waits | `30a9e429c9` | sp-x6 (GR6) | open |
 
 ## Rows
 
