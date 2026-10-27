@@ -13,6 +13,7 @@ import { floorAtRects } from '@wildshard/engine/physics/box';
 import { defineModel, sharedModelContext, type ModelDef, type Placement } from '@wildshard/engine/models/model';
 import { placeSliced } from '@wildshard/engine/models/place';
 import { treeSetModel, type TreeSetParams } from '../models/treeSet';
+import { farStandIn } from './farStandIn';
 import { ForestPageSchema, LivingPageInputSchema, LivingPageSitesSchema, type ForestPageRows } from '@wildshard/format/forestPage';
 import { ForestGround } from '../looks/forestGround';
 import { productCoverAppearance } from '../looks/coverAppearance';
@@ -105,6 +106,10 @@ export async function prepareForestPage(ctx: ShardContext, input: unknown): Prom
         for (const id of rows.props) contacts.push(...(await resources.place(id)).colliders);
         // the page's tiled world (landmarks, and recipe meshes spanning tiles) follows the player by tile, as an assembled world's
         const owner = residentWorldScope(ctx), shard = ctx.product.shardfile;
+        // G748: beyond the render ring the trees and props stop drawing; the page's own near view stands in for them
+        if (rows.farStandIn === true && !resources.tiled().some(content => content.id === `${ctx.product.slug}.far-stand-in`)) {
+          const standIn = farStandIn(ctx); if (standIn !== null) resources.addTiled(standIn);
+        }
         await residentTiles(owner, resources.tiled(), shard.spawn, shard.entryways);
         const follow = followResidentTiles(owner, () => player.position);
         if (follow !== null) ctx.system({ id: `client.forest.tiles.${rows.id}`, phase: 'update', run: () => { follow(); } }); }); },
