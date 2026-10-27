@@ -303,7 +303,8 @@ test('output late hints refuse missing library roots and malformed scheduling me
   expect(() => mergeProjectBlobs(source(), new Map(), [], [], [{hash:blob.file.hash}])).toThrow('declared library roots');
   expect(() => mergeProjectBlobs(source(), new Map(), [blob], [], [{hash:blob.file.hash},{hash:blob.file.hash}])).toThrow('unique late');
   const local = source(), {name:_name,path:_path,kind:_kind,...metadata} = blob.file;
-  local.files.push({...metadata,kind:'binary'});
+  local.files.push({...metadata,kind:'binary',critical:true}); local.critical.push(blob.file.hash);
+  local.budgets.sim.compressed += blob.bytes.length; local.budgets.sim.resident += metadata.decoded+metadata.gpu;
   expect(() => mergeProjectBlobs(local,new Map([[blob.file.hash,blob.bytes]]),[blob],[],[{hash:blob.file.hash}])).toThrow('declared library roots');
   expect(local.library).toEqual([]); expect(local.late).toBeUndefined();
   expect(() => mergeProjectBlobs(source(),new Map(),[blob],[],[{hash:'world/late-shape.bin'}])).toThrow();

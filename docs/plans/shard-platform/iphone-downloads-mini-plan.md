@@ -913,6 +913,8 @@ and containing build/read follow. No deadline or inventory guard changed.
 
 ### I2.15 Exact project late-root refusal (2026-10-27, sp-x2)
 
+Defining validation source: `0c0d1ec0ca`.
+
 Red-fix for CI40529017541 at973, B15: the9e4f6f359e regression
 expects the missing-root diagnostic, but final generic parseShardfile
 reports only shardfile semantic rules. Keep the original assertions.
@@ -929,3 +931,11 @@ file, a logical-name hint, a valid content alias and duplicate aliases;
 all original missing-root/out-of-cell/duplicate assertions remain.
 Land source first under G769, then recover only the original failed
 negative case; no product, generator, preview or related walk.
+
+I2.15 recovery note: the first post-land failed-only run (7.80s) passes
+the original missing-root and duplicate assertions, then my additional
+non-library fixture correctly hits the earlier orphan guard. Correct
+that new fixture to a declared critical, reachable non-library file
+with exact sim costs; preserve the orphan guard and original assertions.
+SDK-fixture types, typed lint and scoped ratchet pass; only the same
+negative case recovers after this fixture source landing.
