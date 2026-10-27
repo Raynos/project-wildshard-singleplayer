@@ -1,7 +1,7 @@
 /** Pine's retained timber builders, expressed as real world meshes in one author Scene. */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { bake, WholeShape, type BakedScene } from '@wildshard/sdk/bake';
+import { WholeShape } from '@wildshard/sdk/bake';
 import type { TimberBuilder } from './timberKit';
 import { TimberRecorder } from './timberBake';
 import { bakeFireLookout } from './fireLookout';
@@ -50,17 +50,3 @@ export function pineSiteTimberScene(heightAt: (x: number, z: number) => number):
   }));
   return scene;
 }
-
-function finish(scene: THREE.Scene, project?: string): BakedScene {
-  try { return bake(scene, { slug: 'pine-hollow', name: 'Pine Hollow' }, project === undefined ? {} : { project }); }
-  finally {
-    scene.traverse(node => {
-      if (!(node instanceof THREE.Mesh)) return;
-      const geometry: unknown = node.geometry, material: unknown = node.material;
-      if (geometry instanceof THREE.BufferGeometry) geometry.dispose();
-      if (material instanceof THREE.Material) material.dispose();
-    });
-  }
-}
-/** Central Scene bake of the landing and footbridge, with original renderer-fitted geometry and placements. */
-export function pineSiteTimberBake(heightAt: (x: number, z: number) => number, project?: string): BakedScene { return finish(pineSiteTimberScene(heightAt), project); }

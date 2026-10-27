@@ -2444,8 +2444,6 @@
     "src/shards/pine-hollow/data/pondClip.generated.json",
     "src/shards/pine-hollow/data/propScenes.generated.json",
     "src/shards/pine-hollow/data/props.json",
-    "src/shards/pine-hollow/data/siteTimbers.json",
-    "src/shards/pine-hollow/data/siteTimbersScene.generated.json",
     "src/shards/pine-hollow/data/skyKeyBlobs.generated.json",
     "src/shards/pine-hollow/data/streamBlobs.generated.json",
     "src/shards/pine-hollow/data/streams.json",

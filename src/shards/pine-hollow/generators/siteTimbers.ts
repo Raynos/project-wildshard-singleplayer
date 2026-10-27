@@ -1,10 +1,9 @@
 /**
  * The zipline landing and the creek footbridge built (E315 M2; PINE-HOLLOW-REMASTER PH-B3; G285: an offline bake), on the
- * cabins' timber kit (../world/timber.ts). Build-time only: `src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs` runs `bakeSiteTimbers`
- * over Pine Hollow's baked terrain (the page's own grid), and writes what each builder leaves, at its site and on the
- * turntable's flat ground, to `public/assets/pine-hollow/baked/site-timbers.bin` + `../data/siteTimbers.json`; the page
- * finishes the timbers from them (its world scenes' timber library) and never runs this. test/shards/pine-hollow/site-timbers-bake.test.ts
- * is the stale gate. Each timber's stream is the level seed's (1337, the page's engine SEED while the landmarks build).
+ * cabins' timber kit (../world/timber.ts). Build-time only: `src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs`
+ * `bakeSiteTimberRows` runs `bakeSiteTimbers` over Pine Hollow's baked terrain (the page's own grid) for the rows each
+ * builder leaves, at its site and on the turntable's flat ground, which the timber world carries. Each timber's stream is
+ * the level seed's (1337, the page's engine SEED while the landmarks build).
  *
  * The landing: a 3 m deck on log posts over the N road, X-braced along the road's sides, a railing, the gantry with the
  * cable's anchor and the buffer block the trolley meets, and a stair down off its -X side with as many risers as the

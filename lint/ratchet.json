@@ -801,7 +801,7 @@
     "src/shards/pine-hollow/generators/bake-pine-crags.mjs": 4,
     "src/shards/pine-hollow/generators/bake-pine-lookout.mjs": 3,
     "src/shards/pine-hollow/generators/bake-pine-props.mjs": 2,
-    "src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs": 4,
+    "src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs": 3,
     "src/shards/pine-hollow/generators/bake-pine-streams.mjs": 4,
     "src/shards/pine-hollow/generators/bake-pine-wildlife.mjs": 4,
     "src/shards/pine-hollow/generators/pine-world-inventory.mjs": 4,
