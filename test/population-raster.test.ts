@@ -139,16 +139,12 @@ test('named wet rasters refuse missing, malformed, nonfinite and duplicate loans
 });
 
 
-/** Frozen pre-bd671 river recipe: native Math may differ across hosts.
- * Check every host result exactly before using the historical river bytes in
- * the complete metadata oracle. No rounding or tolerance enters either check.
- */
-function predecessorRiver(): {from:number;step:number;values:[number,number][]} {
-  return {from:-250,step:1,values:Array.from({length:501},(_,i):[number,number]=>{
-    const x=i-250,s=Math.min(1,Math.max(0,(Math.abs(x)-8)/52));
-    return [168+4*Math.exp(-((x/70)**2))+5*Math.sin(x*.017)+3*Math.sin(x*.041+1.3)-3*Math.sin(1.3),
-      (15+3*Math.sin(x*.009+2.1)+2*Math.sin(x*.031))*(.62+.38*s*s*(3-2*s))];
-  })};
+/** The independent pre-bd671 native rows are the byte oracle. Re-evaluating
+ * Math.sin on Linux cannot reproduce a frozen Darwin f64 publication exactly. */
+function predecessorRiver(): v.InferOutput<typeof PopulationFieldSchema>['river'] {
+  const frozen:unknown=JSON.parse(readFileSync('test/fixtures/nalati-headless-original.json','utf8'));
+  const root=v.parse(v.record(v.string(),v.unknown()),frozen),constants=v.parse(v.record(v.string(),v.unknown()),root['constants']);
+  return v.parse(PopulationFieldSchema,constants['nativeField']).river;
 }
 
 function assertPredecessorMetadata(input:unknown):void {
