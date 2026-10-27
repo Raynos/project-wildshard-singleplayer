@@ -509,6 +509,21 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertFalse((self.root / '.git/push-batch.json').exists())
         self.assertEqual(self.git('rev-parse', 'main'), tip)
 
+    def test_native_handoff_cannot_split_before_its_committed_ci_consumer(self):
+        self.commit('src/one.ts')
+        self.put('scripts/push-deferred-ci.mjs', 'export function nativeOutputReplayJob() {}')
+        tip = self.commit('src/two.ts')
+        uploads = []
+        def checker(*_):
+            return {'ok': False, 'budget': True, 'phase': 'ci-subset', 'unfinished': ['types'],
+                    'deferred': ['Gate-deferred: native-outputs'], 'files': [], 'output': '', 'steps': []}
+        result = PUSH['tick'](self.root, checker=checker, uploader=lambda *args: uploads.append(args) or 0)
+        self.assertEqual(result['status'], 'pushed')
+        self.assertEqual(result['tip'], tip)
+        self.assertEqual(result['gateDeferred'], ['Gate-deferred: native-outputs', 'Gate-deferred: types'])
+        self.assertEqual(len(uploads), 1)
+        self.assertFalse((self.root / '.git/push-batch.json').exists())
+
     def test_irreducible_cap_records_only_named_steps_and_exact_batch(self):
         tip = self.commit('src/one.ts')
         def checker(*_):

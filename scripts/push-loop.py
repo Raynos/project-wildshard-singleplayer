@@ -370,13 +370,20 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
         decision = BATCH['batch_disposition'](commits, [], result.get('unfinished') or [result['phase']])
         if decision['kind'] == 'split':
             prefix = fix_prefix(root, base, decision['tip']) if verdict['red'] else decision['tip']
+            if prefix is not None and 'Gate-deferred: native-outputs' in result.get('deferred', []):
+                try:
+                    consumer = git(root, 'show', prefix + ':scripts/push-deferred-ci.mjs')
+                    if 'nativeOutputReplayJob' not in consumer:
+                        prefix = None
+                except subprocess.SubprocessError:
+                    prefix = None
             if prefix is not None:
                 batch_file.write_text(json.dumps({'base': base, 'tip': prefix}))
                 return finish({'status': 'split', 'tip': tip, 'nextTip': prefix, 'phase': result['phase'],
                                'unfinished': decision['unfinished'], 'gateSeconds': round(time.monotonic()-started, 2),
                                'output': result['output'] + '\nBatch split before any CI handoff.'})
-            # A sole Red-fix prefix is atomic: publishing its unmarked interior
-            # would violate G759. Keep that exact fix prefix as the handoff unit.
+            # Keep a Red-fix and its CI consumer atomic. An older prefix cannot
+            # accept the new named handoff and would create a known CI red.
             decision = BATCH['batch_disposition']([tip], [], decision['unfinished'])
         if decision['kind'] == 'deferred':
             result.update(ok=True, types='ci-partial', deferred=list(dict.fromkeys(result.get('deferred', []) + decision['tags'])), batchCommits=commits)
