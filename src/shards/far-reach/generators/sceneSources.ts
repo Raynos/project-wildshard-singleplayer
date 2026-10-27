@@ -6,7 +6,7 @@ import * as files from './fileInventory';
 import { SKY_AO_FLOOR } from './modelFrames';
 import { BRIDGE_REST_URL, MILL_REST_URL, ISLET_POOL } from './restFiles';
 import heroes from '../data/heroLibrary.generated.json' with { type: 'json' };
-import rest from '../data/restPools.generated.json' with { type: 'json' };
+import { restPools } from './restScene';
 import { bridgeRestPool } from './bridgeRest';
 import { millRestRows } from './millModel';
 import { skyWorldRows } from './worldRows';
@@ -23,7 +23,7 @@ const world = skyWorldRows();
 
 /** The original library definitions, shared by native view and declared scenes. */
 const sky = { rows: { meshes: files.SKY_MESHES, preparedMeshes: files.SKY_MESHES, meshUrls: files.MODEL_URLS,
-  hd: [], hdUrls: {}, hdLooks: {}, aoFloor: SKY_AO_FLOOR, geometryPools: [files.FAN_POOL, ...rest, bridgePool, ISLET_POOL, mill],
+  hd: [], hdUrls: {}, hdLooks: {}, aoFloor: SKY_AO_FLOOR, geometryPools: [files.FAN_POOL, ...restPools(), bridgePool, ISLET_POOL, mill],
   rigs: SKY_RIG_LIBRARY, rigLoad: 'manual', mappedFallback: { roughness: 0.85, metalness: 0 } }, specimens: SKY_MODEL_SPECIMENS,
   held: [{ item: FAN_HELD_RECIPE.equipment.id, definition: fan, recipe: fanRecipe, resources: { geometry: FAN_HELD_RECIPE.resources.geometry.map(row => ({ id: row.id, source: { library: 'sky', model: row.args[0] } })) },
     attachments: FAN_HELD_RECIPE.attachments.map(row => ({ id: row.id, row: parsePrivateScene(row.row), parent: row.parent, resources: {

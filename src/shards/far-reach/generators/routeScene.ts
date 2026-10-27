@@ -1,6 +1,6 @@
 import { parsePrivateScene, parseWorldScene, parseWorldSceneBindings, type PrivateScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
 import { bridgeRestValues } from './bridgeRest';
-import REST from '../data/restScenes.generated.json' with { type: 'json' };
+import { restScenes } from './restScene';
 import { FALLEN_BRIDGE, NOTES, SPANS, UPDRAFT, VANES, WINCH } from "./layout";
 import { FALLEN_ANGLE } from './rows/moverBindings';
 import STRINGS from '../data/strings.json' with { type: 'json' };
@@ -61,7 +61,7 @@ export async function skyRouteValues(read: (url: string) => Uint8Array): Promise
   const BRIDGES = await bridgeRestValues(read);
   const root = { kind: 'group' as const, id: 'routes', children: [] as string[] };
   const nodes: PrivateScene['nodes'] = [root];
-  const registry = skyRouteRegistry(), bindings: SkyRouteValues['SKY_ROUTES']['bindings'][number][] = [];
+  const registry = skyRouteRegistry(), bindings: SkyRouteValues['SKY_ROUTES']['bindings'][number][] = [], REST = restScenes();
   for (const span of [...SPANS, ...RISING_ISLETS.map(entry => entry.bridge), UPDRAFT]) {
     const hover = span.kind === 'hover', row = hover ? REST.hover.find(entry => entry.id === span.id) : BRIDGES.spans.find(entry => entry.id === span.id);
     if (row === undefined) throw new Error(`Missing route scene ${span.id}`);

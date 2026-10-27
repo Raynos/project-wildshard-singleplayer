@@ -9,7 +9,7 @@ import { SKY_SOURCE_LIBRARIES, SKY_SOURCE_BLOBS } from './sceneSources';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import LAYOUT from '../data/layout.generated.json' with { type: 'json' };
 import { skyGroundValues } from './groundScene';
-import rest from '../data/restScenes.generated.json' with { type: 'json' };
+import { restScenes } from './restScene';
 import { SKY_ISLAND_BLOBS, SKY_ISLAND_LIBRARY, SKY_ISLE_TILES } from './islandScenes';
 import { SKY_MEADOW_BLOBS, SKY_MEADOW_FILE } from './meadowScene';
 
@@ -139,7 +139,7 @@ export function skyWorldSceneValues(millScene: SkyMillSceneValues['MILL_SCENE'],
     recipe.scene.nodes.push({ kind: 'group', id: 'islets.far.islet.rails', children: [] });
     scene(`fixed-${cube}`, recipe, { cube, registry, publish: { millHub: { kind: 'object', part: 'mill.hub' } } });
   }
-  scene('storm', { scene: rest.storm, imports: [] });
+  scene('storm', { scene: restScenes().storm, imports: [] });
   const moving = parseWorldScene({ scene: islets.scene, imports: [] });
   moving.scene.nodes = moving.scene.nodes.map(node => {
     if (node.kind !== 'object' || !node.source.startsWith('islet.')) return node;

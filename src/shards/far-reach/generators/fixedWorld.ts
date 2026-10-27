@@ -3,7 +3,7 @@ import { skyBridgePhysicsPlacements } from './bridgeColliders';
 import { skyPhysicsPlacements } from './physicsPlacements';
 import { skyGroundValues, type SkyGroundValues } from './groundScene';
 import { parseWorldScene, type WorldSceneRecipe, type PrivateScene } from '@wildshard/format/clientChannels';
-import REST from '../data/restScenes.generated.json' with { type: 'json' };
+import { restScenes } from './restScene';
 import ISLETS from '../data/isletScenes.generated.json' with { type: 'json' };
 import { CROWN_SCENE } from './rows/crownScene.generated';
 import { SKY_PIECES } from './worldRows';
@@ -90,6 +90,7 @@ export function fixedWorld(standalone: boolean, values: SkyFixedWorldValues): Fi
     return row;
   }
   append('islets',{scene:ISLETS.staticScene,imports:[]});
+  const REST=restScenes();
   append('winch',{scene:REST.winch,imports:[]},[WINCH.x,WINCH.y,WINCH.z]);
   for (const keeper of [false,true]) {
     const row=painted(REST.books[keeper?'keeper':'notes'],[{id:'lectern',model:'lectern-hd',look:null},

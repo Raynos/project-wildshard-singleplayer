@@ -224,8 +224,6 @@ src/shards/far-reach/data/heldPlayback.generated.json
 # Retained Sky Crown instance recipe, generated at build time.
 src/shards/far-reach/data/crownInstances.generated.json
 
-/src/shards/far-reach/data/restScenes.generated.json
-/src/shards/far-reach/data/restPools.generated.json
 /public/assets/far-reach/baked/rest-winch.glb
 /public/assets/far-reach/baked/rest-hover-0.glb
 /public/assets/far-reach/baked/rest-hover-1.glb
