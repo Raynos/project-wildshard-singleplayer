@@ -6,7 +6,7 @@
  * the optional `outline` hook (`clientMaterials().outline`): a graph that declares `stages.outline` draws its hull as each
  * mesh's second draw (terrain tiles, fine prop tiles, library panels and models; the coarse L1 proxy keeps one draw).
  */
-import { AdditiveBlending, Box3, Material, Mesh, type Object3D, type Texture } from 'three';
+import { AdditiveBlending, Box3, BufferAttribute, BufferGeometry, Material, Mesh, StaticDrawUsage, type Object3D, type Texture } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { TerrainTileData } from '@wildshard/format/terrainTileBytes';
 import { installTerrainTile, maskTerrainTile } from '@wildshard/engine/world/terrainTileView';
@@ -16,8 +16,11 @@ import type { ClientWorldViews, ResidentTile } from './tileContent';
 import type { GraphOutlineHook } from './clientGraphs';
 import { groundMerge } from './groundMerge';
 import type { Shardfile } from '@wildshard/format/shardSchema';
+import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
+import { workSlice } from '@wildshard/engine/core/workSlice';
 
 const isMaterial = (value: unknown): value is Material => value instanceof Material;
+const isGeometry = (value: unknown): value is BufferGeometry => value instanceof BufferGeometry;
 /** A tile mesh no taller than this (m) is flat; within FLOOR of the tile's lowest mesh it lies on the floor and casts no
  *  shadow. */
 const FLAT = 0.01, FLOOR = 0.1;
@@ -120,13 +123,41 @@ export function clientTileViews(ports: ViewPorts): ClientTileViews {
       // pools and glow were two shadow-map draws a tile; at runtime, so no tile byte changes). A flat mesh at the tile's floor (water, a ground sheet) has nothing in
       // its tile under it to shade, so it casts nothing either; a raised flat one (an awning, a deck) still does (RM12: the
       // canals' water was another depth draw a tile)
-      const lit: { mesh: Mesh; box: Box3 }[] = []; let floor = Infinity;
+      const lit: { mesh: Mesh; box: Box3 }[] = [], candidates: Mesh[] = []; let floor = Infinity;
       root.traverse((object) => {
-        if (!isMesh(object) || !object.castShadow) return;
-        const drawn: unknown = object.material;
-        if (isMaterial(drawn) && (drawn.blending === AdditiveBlending || isGlow(drawn))) { object.castShadow = false; return; }
-        const box = new Box3().setFromObject(object); lit.push({ mesh: object, box }); floor = Math.min(floor, box.min.y);
+        if (isMesh(object) && object.castShadow) candidates.push(object);
       });
+      const slice = workSlice(undefined, scope);
+      const live = (): void => { if (scope.disposed || scope.disposing) throw new Error('Tile caster owner left'); };
+      for (const object of candidates) {
+        live();
+        const drawn: unknown = object.material;
+        if (isMaterial(drawn) && (drawn.blending === AdditiveBlending || isGlow(drawn))) { object.castShadow = false; continue; }
+        const geometry: unknown = object.geometry;
+        if (isGeometry(geometry) && geometry.boundingBox === null && geometry.morphAttributes.position === undefined
+          && geometry.getAttribute === BufferGeometry.prototype.getAttribute && geometry.computeBoundingBox === BufferGeometry.prototype.computeBoundingBox) {
+          const position: unknown = geometry.getAttribute('position');
+          if (position instanceof BufferAttribute && position.array.buffer instanceof ArrayBuffer && position.usage === StaticDrawUsage
+            && position.getX === BufferAttribute.prototype.getX && position.getY === BufferAttribute.prototype.getY && position.getZ === BufferAttribute.prototype.getZ) {
+            const array = position.array, length = array.length, version = position.version, count = position.count,
+              itemSize = position.itemSize, normalized = position.normalized, steps = geometryBoundsSteps(geometry, 'box');
+            try {
+              for (;;) {
+                live();
+                if (geometry.boundingBox !== null || geometry.getAttribute('position') !== position || position.array !== array || array.length !== length
+                  || position.version !== version || position.count !== count || position.itemSize !== itemSize || position.normalized !== normalized
+                  || position.usage !== StaticDrawUsage || geometry.morphAttributes.position !== undefined
+                  || position.getX !== BufferAttribute.prototype.getX || position.getY !== BufferAttribute.prototype.getY || position.getZ !== BufferAttribute.prototype.getZ) break;
+                if (steps.next().done === true) break;
+                await slice.check();
+              }
+            } finally { steps.return(); }
+          }
+        }
+        const box = new Box3().setFromObject(object); lit.push({ mesh: object, box }); floor = Math.min(floor, box.min.y);
+        await slice.check();
+      }
+      live();
       const casters: Mesh[] = [];
       for (const { mesh, box } of lit) {
         if (box.max.y - box.min.y < FLAT && box.max.y <= floor + FLOOR) mesh.castShadow = false; else casters.push(mesh);
