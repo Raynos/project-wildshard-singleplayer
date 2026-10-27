@@ -4,28 +4,32 @@ import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the real runner before creating its fixture.
 import { resolve } from 'node:path';
-// oxlint-disable-next-line import/no-nodejs-modules -- Run the subprocess with the fixture CLI first on PATH.
+// oxlint-disable-next-line import/no-nodejs-modules -- Run the fixture's pinned CLI with the current runtime.
 import { env, execPath } from 'node:process';
 import { expect, test } from 'vitest';
 
 test('one typed process covers the full selection and each partition, and propagates failure', () => {
   mkdirSync('tmp', { recursive: true });
   const fixture = mkdtempSync(resolve('tmp', 'lint-all-'));
-  const binary = resolve(fixture, 'bin'), calls = resolve(fixture, 'calls.txt');
-  mkdirSync(binary);
+  const binary = resolve(fixture, 'node_modules/oxlint/bin'), calls = resolve(fixture, 'calls.txt');
+  mkdirSync(binary, { recursive: true });
+  writeFileSync(resolve(binary, '../package.json'), JSON.stringify({ type: 'module' }));
+  const runner = resolve(fixture, 'scripts/lint-all.mjs');
+  mkdirSync(resolve(runner, '..'));
+  writeFileSync(runner, readFileSync('scripts/lint-all.mjs', 'utf8'));
   const files = Array.from({ length: 1025 }, (_, index) => resolve(fixture, `source ${index}.ts`));
   for (const file of files) writeFileSync(file, 'export const value = 0;');
   const selection = resolve(fixture, 'files.txt');
   writeFileSync(selection, files.join('\n'));
-  writeFileSync(resolve(binary, 'pnpm'), String.raw`#!/usr/bin/env node
-import * as fs from 'node:fs';
+  const cli = resolve(binary, 'oxlint');
+  writeFileSync(cli, String.raw`import * as fs from 'node:fs';
 const args = process.argv.slice(2);
-if (args.join(' ') === 'exec oxlint --debug files') {
+if (args.join(' ') === '--debug files') {
   process.stdout.write(fs.readFileSync(process.env.LINT_ALL_SELECTION, 'utf8'));
 } else {
-  if (args[2] !== '--type-aware') process.exit(9);
-  const threads = Number(args[4]);
-  if (args[3] !== '--threads' || !Number.isSafeInteger(threads) || threads < 1 || threads > 8) process.exit(9);
+  if (args[0] !== '--type-aware') process.exit(9);
+  const threads = Number(args[2]);
+  if (args[1] !== '--threads' || !Number.isSafeInteger(threads) || threads < 1 || threads > 8) process.exit(9);
   const goThreads = Number(process.env.GOMAXPROCS);
   if (!Number.isSafeInteger(goThreads) || goThreads < 1 || goThreads > threads) process.exit(9);
   if (process.env.LINT_ALL_EXPECT_GO && process.env.GOMAXPROCS !== process.env.LINT_ALL_EXPECT_GO) process.exit(9);
@@ -35,12 +39,12 @@ if (args.join(' ') === 'exec oxlint --debug files') {
   }
   if (process.platform === 'darwin' && !process.env.LINT_ALL_EXPECT_GOGC && process.env.GOGC !== '200') process.exit(9);
   if (process.platform === 'darwin' && !process.env.LINT_ALL_EXPECT_GOMEMLIMIT && process.env.GOMEMLIMIT !== '5GiB') process.exit(9);
-  fs.appendFileSync(process.env.LINT_ALL_CALLS, args.slice(5).join('\n') + '\n--batch--\n');
+  fs.appendFileSync(process.env.LINT_ALL_CALLS, args.slice(3).join('\n') + '\n--batch--\n');
   if (process.env.LINT_ALL_FAIL === 'yes' && args.some(file => file.endsWith('source 256.ts'))) process.exit(7);
 }
 `, { mode: 0o755 });
-  const run = (failure: boolean, args: readonly string[] = [], settings: { workers?: string; gc?: string; memory?: string } = {}): ReturnType<typeof spawnSync> => spawnSync(execPath, [resolve('scripts/lint-all.mjs'), ...args], {
-    encoding: 'utf8', env: { ...Object.fromEntries(Object.entries(env).filter(([key]) => !['GOMAXPROCS', 'GOGC', 'GOMEMLIMIT'].includes(key))), PATH: `${binary}:${env['PATH'] ?? ''}`,
+  const run = (failure: boolean, args: readonly string[] = [], settings: { workers?: string; gc?: string; memory?: string } = {}): ReturnType<typeof spawnSync> => spawnSync(execPath, [runner, ...args], {
+    encoding: 'utf8', env: { ...Object.fromEntries(Object.entries(env).filter(([key]) => !['GOMAXPROCS', 'GOGC', 'GOMEMLIMIT'].includes(key))),
       ...(settings.workers === undefined ? {} : { GOMAXPROCS: settings.workers, LINT_ALL_EXPECT_GO: settings.workers }),
       ...(settings.gc === undefined ? {} : { GOGC: settings.gc, LINT_ALL_EXPECT_GOGC: settings.gc }),
       ...(settings.memory === undefined ? {} : { GOMEMLIMIT: settings.memory, LINT_ALL_EXPECT_GOMEMLIMIT: settings.memory }),
@@ -81,6 +85,8 @@ if (args.join(' ') === 'exec oxlint --debug files') {
     }
     expect([1, 2, 3, 4, 5].map(part => run(true, [`--shard=${part}/5`]).status ?? -1).sort((a, b) => a - b)).toEqual([0, 0, 0, 0, 7]);
     writeFileSync(selection, 'missing-lint-source.ts');
+    expect(run(false).status).toBe(1);
+    rmSync(cli);
     expect(run(false).status).toBe(1);
   } finally { rmSync(fixture, { recursive: true, force: true }); }
 });

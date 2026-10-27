@@ -6,6 +6,9 @@ import { resolve } from 'node:path';
 import { availableParallelism } from 'node:os';
 
 const root = resolve(import.meta.dirname, '..');
+// Invoke the installed CLI with this Node runtime, without starting pnpm twice.
+// The package and complete file selection remain the repository's pinned ones.
+const oxlint = resolve(root, 'node_modules/oxlint/bin/oxlint');
 const args = process.argv.slice(2);
 const shard = args.length === 1 ? /^--shard=([1-9]\d*)\/([1-9]\d*)$/u.exec(args[0]) : null;
 const part = shard === null ? 1 : Number(shard[1]), parts = shard === null ? 1 : Number(shard[2]);
@@ -13,7 +16,7 @@ if ((args.length > 0 && shard === null) || !Number.isSafeInteger(part) || !Numbe
   console.error('lint-all: expected --shard=PART/TOTAL with 1 <= PART <= TOTAL');
   process.exit(2);
 }
-const listed = spawnSync('pnpm', ['exec', 'oxlint', '--debug', 'files'], { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
+const listed = spawnSync(process.execPath, [oxlint, '--debug', 'files'], { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
 if (listed.error !== undefined || listed.status !== 0) {
   console.error(listed.error?.message ?? listed.stderr);
   process.exit(listed.status ?? 1);
@@ -45,6 +48,6 @@ const lintEnv = {
     GOMEMLIMIT: process.env.GOMEMLIMIT ?? '5GiB',
   } : {}),
 };
-const result = spawnSync('pnpm', ['exec', 'oxlint', '--type-aware', '--threads', String(threads), ...selected], { cwd: root, stdio: 'inherit', env: lintEnv });
+const result = spawnSync(process.execPath, [oxlint, '--type-aware', '--threads', String(threads), ...selected], { cwd: root, stdio: 'inherit', env: lintEnv });
 if (result.error !== undefined) console.error(result.error.message);
 process.exitCode = result.status ?? 1;
