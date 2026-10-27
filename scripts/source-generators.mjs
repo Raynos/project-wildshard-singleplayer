@@ -82,7 +82,8 @@ export const SOURCE_GENERATORS = [
   },
 ];
 
-/** The rows any of `paths` (repo-relative) feeds: a staged input selects every row whose outputs it can change. */
+/** The rows any of `paths` (repo-relative) touches: a changed input selects every row whose outputs it can change, and a
+ *  changed output selects its own row (a hand edit is regenerated or refused). */
 export function selectSourceGenerators(paths) {
-  return SOURCE_GENERATORS.filter(row => paths.some(path => row.inputs.some(glob => matchesGlob(path, glob))));
+  return SOURCE_GENERATORS.filter(row => paths.some(path => row.outputs.includes(path) || row.inputs.some(glob => matchesGlob(path, glob))));
 }

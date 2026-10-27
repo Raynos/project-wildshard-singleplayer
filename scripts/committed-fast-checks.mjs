@@ -162,6 +162,13 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
       const {ratchetApprovalFailures}=/** @type {typeof import('./ratchet-approval.mjs')} */(await module('scripts/ratchet-approval.mjs'));
       const policy=json(view,'lint/ratchet.json');
       failures.push(...closedComponentSources(root,policy.closedComponents));
+      // GS5 (G798): each committed gen:source table the push touches (an input or the table) equals a fresh run over
+      // the tip's own inputs.
+      if(view.files.has('scripts/gen-source.mjs')&&paths.length>0) {
+        const {genSource}=/** @type {typeof import('./gen-source.mjs')} */(await module('scripts/gen-source.mjs'));
+        try {await genSource(root,{check:true,committed:true,changed:paths});}
+        catch(error) {failures.push(error instanceof Error?error.message:String(error));}
+      }
       const commits=execFileSync('git',['rev-list','--reverse',`${base}..${tip}`],{cwd:root,encoding:'utf8'}).trim().split('\n').filter(Boolean);
       for(const commit of commits) {
         const before=gitSourceView(root,`${commit}^`),after=gitSourceView(root,commit);

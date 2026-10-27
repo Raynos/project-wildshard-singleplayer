@@ -10,6 +10,7 @@ test('a staged path selects only the gen:source rows it feeds', () => {
   expect(ids('src/shards/pine-hollow/manifest.json')).toEqual(['shard-slugs', 'shards', 'boot-tables']);
   expect(ids('public/assets/music/calm/music.json')).toEqual(['boot-audio', 'boot-tables', 'packs']);
   expect(ids('src/engine/core/Game.ts')).toEqual([]);
+  expect(ids('src/game/bag/starter.generated.ts')).toEqual(['starter-bag']);
 });
 
 test('every registry output is listed once and committed rows own tracked inputs only', () => {
