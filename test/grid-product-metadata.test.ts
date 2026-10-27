@@ -8,6 +8,7 @@ import * as runtime from '../src/game/shardfile/runtimeProduct';
 import { gridShardfileProduct } from '../src/game/grid/products';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { prepareApproachProductInputs } from '../src/game/grid/approachProductInputs';
+import { ApproachInputsDeferredError } from '../src/game/grid/productInputs';
 
 const scopes: Scope[] = [];
 afterEach(() => { for (const scope of scopes.splice(0)) scope.dispose(); });
@@ -148,4 +149,85 @@ test('an approach with no existing metadata admission starts no product IO', asy
   await prepareApproachProductInputs('driftwood-isle', f.owner, new AbortController().signal);
   expect(f.admit).not.toHaveBeenCalled(); expect(f.fetch).not.toHaveBeenCalled();
   expect(f.owner.allocator.entries()).toEqual([]);
+});
+
+
+test('a demanded map subset restores only its selected file, not the unrelated world wire', async () => {
+  const f = fixture(), unused = Uint8Array.of(7, 8, 9), hash = hashImmutableBytes(unused);
+  f.source.files.push({ hash, kind: 'binary', compressed: 3, decoded: 3, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false });
+  f.source.library.push(hash); f.wire.set(hash, unused);
+  const metadata = await gridShardfileProduct('driftwood-isle', f.owner, 'metadata');
+  if (metadata === null) throw new Error('Missing metadata');
+  const selected = await gridShardfileProduct('driftwood-isle', f.owner, { files: [f.ref] });
+  if (selected === null) throw new Error('Missing selected input');
+  expect(selected.admitted.assets.get(f.ref)).toEqual(Uint8Array.of(1, 2, 3)); expect(selected.admitted.assets.has(hash)).toBe(false);
+  expect(f.read).toHaveBeenCalledExactlyOnceWith('https://metadata.test/', f.ref);
+  await selected.releaseInputs(); selected.release(); metadata.release();
+});
+
+test('a file subset cannot refill a wire absent from the originally admitted tier', async () => {
+  const f = fixture(), unselected = hashImmutableBytes(Uint8Array.of(4, 5, 6));
+  f.source.files.push({ hash: unselected, kind: 'binary', compressed: 3, decoded: 3, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false });
+  const metadata = await gridShardfileProduct('driftwood-isle', f.owner, 'metadata');
+  if (metadata === null) throw new Error('Missing metadata');
+  await expect(gridShardfileProduct('driftwood-isle', f.owner, { files: [unselected] })).rejects.toThrow('Unselected product input');
+  expect(f.read).not.toHaveBeenCalled(); metadata.release();
+});
+
+async function metadataPressure() {
+  const probe = fixture(), metadata = await gridShardfileProduct('driftwood-isle', probe.owner, 'metadata');
+  if (metadata === null) throw new Error('Missing probe metadata');
+  const cap = probe.owner.allocator.cost().playing + 4;
+  metadata.release(); probe.owner.scope.dispose();
+  const f = fixture(false, cap), evict = vi.fn();
+  const kept = f.owner.allocator.reserve({ id: 'kept', category: 'sim', owner: 'kept', bytes: 3, distance: 1, needed: false, evictSync: () => { evict(); } });
+  if (kept === null) throw new Error('Kept world did not fit');
+  return { ...f, evict, kept };
+}
+
+test('fresh optional metadata defers before eviction or publication, required metadata still admits', async () => {
+  const f = await metadataPressure();
+  await expect(gridShardfileProduct('driftwood-isle', f.owner, 'optional-metadata')).rejects.toBeInstanceOf(ApproachInputsDeferredError);
+  expect(f.evict).not.toHaveBeenCalled(); expect(f.owner.allocator.has('kept')).toBe(true);
+  expect(f.owner.allocator.has('product:grid:driftwood-isle')).toBe(false); expect(f.read).not.toHaveBeenCalled();
+  const required = await gridShardfileProduct('driftwood-isle', f.owner, 'metadata');
+  if (required === null) throw new Error('Required metadata was poisoned');
+  expect(f.evict).toHaveBeenCalledOnce(); required.release(); f.kept.release();
+});
+
+test('required metadata promotes a joined optional loader before its source reservation', async () => {
+  const f = await metadataPressure();
+  let started = (): void => undefined, finish = (_response: Response): void => undefined;
+  const reading = new Promise<void>(resolve => { started = resolve; });
+  const gate = new Promise<Response>(resolve => { finish = resolve; });
+  f.fetch.mockImplementationOnce(() => { started(); return gate; });
+  const optional = gridShardfileProduct('driftwood-isle', f.owner, 'optional-metadata');
+  await reading;
+  const actual = gridShardfileProduct('driftwood-isle', f.owner, 'metadata');
+  finish(Response.json({}));
+  const [a, b] = await Promise.all([optional, actual]);
+  if (a === null || b === null) throw new Error('Missing promoted metadata');
+  expect(f.admit).toHaveBeenCalledOnce(); expect(f.evict).toHaveBeenCalledOnce();
+  a.release(); b.release(); f.kept.release();
+});
+
+test('required metadata retries when a joined optional reserve already declined', async () => {
+  const f = await metadataPressure();
+  let declined = (): void => undefined, finish = (): void => undefined;
+  const rejected = new Promise<void>(resolve => { declined = resolve; });
+  const gate = new Promise<void>(resolve => { finish = resolve; });
+  f.admit.mockImplementationOnce(async (_input, options) => {
+    try { options.reserve?.(f.source); }
+    catch (error) { declined(); await gate; throw error; }
+    throw new Error('Optional reservation unexpectedly fit');
+  });
+  const optional = gridShardfileProduct('driftwood-isle', f.owner, 'optional-metadata');
+  const refused = expect(optional).rejects.toBeInstanceOf(ApproachInputsDeferredError);
+  await rejected;
+  const actual = gridShardfileProduct('driftwood-isle', f.owner, 'metadata');
+  finish(); await refused;
+  const required = await actual;
+  if (required === null) throw new Error('Missing retried metadata');
+  expect(f.admit).toHaveBeenCalledTimes(2); expect(f.evict).toHaveBeenCalledOnce();
+  required.release(); f.kept.release();
 });

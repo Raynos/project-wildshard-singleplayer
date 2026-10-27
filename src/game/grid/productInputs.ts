@@ -53,7 +53,13 @@ export class ProductInputs {
   acquire(): Promise<ProductInputLease> { return this.acquireRefs(this.refs); }
   /** Explicit source-exit preparation restores only the originally admitted
    * tier's transport. Its charged borrow is shared with subsequent consumers. */
-  acquireTransport(signal: AbortSignal): Promise<ProductInputLease> { return this.acquireRefs(this.transportRefs, signal); }
+  acquireTransport(signal: AbortSignal, refs: readonly string[] = this.transportRefs): Promise<ProductInputLease> { return this.acquireSelected(refs, signal); }
+  /** A demanded UI file borrows only its selected transport, never every world input. */
+  acquireFiles(refs: readonly string[]): Promise<ProductInputLease> { return this.acquireSelected(refs); }
+  private acquireSelected(refs: readonly string[], signal?: AbortSignal): Promise<ProductInputLease> {
+    if (refs.some(ref => !this.transportRefs.includes(ref))) return Promise.reject(new Error('Unselected product input'));
+    return this.acquireRefs([...new Set(refs)], signal);
+  }
   private async acquireRefs(refs: readonly string[], signal?: AbortSignal): Promise<ProductInputLease> {
     this.users++;
     try {

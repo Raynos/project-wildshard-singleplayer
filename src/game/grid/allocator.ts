@@ -179,6 +179,9 @@ export class ResidencyAllocator {
     this.memory.syncResidents(this.entries_, owner => ({ ...shardCost(this.ownerTotal(owner), input), input }));
   }
 
+  /** Revision of charged costs, for deferred optional work; distances do not change it. */
+  get revision(): number { return this.accountingRevision; }
+
   /** The cost model over everything held now, decode / refinement overlap counted once. */
   cost(): { playing: number; loading: number; accounted: number; input: ContentCostInput } {
     const input = this.input(); return { ...contentCost(input), input };

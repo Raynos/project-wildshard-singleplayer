@@ -3870,11 +3870,10 @@ fences without constructing a status record. Movement callers query it at each
 original step; `status(instance)` still returns detached detail for UI readers.
 Both keep unknown instances, proxy edges and invalidated generations closed.
 
-`LiveGridPorts.prioritize(cell)` holds reference-counted product IO priority;
-unstarted speculative reads wait without owning a parser/worker slot. Page
-disposal rejects them; started reads drain. `prepareTransport(cell, signal)`
-loans verified inputs for one named source-exit approach, never a world.
-Redirect/disposal drains that loan; actual construction borrows it before release.
+`LiveGridPorts.prioritize(cell)` reference-counts IO priority. Queued
+speculation waits without parser/worker slots; started reads drain on disposal.
+`prepareTransport(cell, signal)` loans verified inputs for one source exit,
+never a world. Redirect drains it; construction borrows before release.
 
 `@wildshard/engine/sim/readiness` computes a cold-cache distance from speed, request latency, critical wire transfer at the configured link rate, stall and decode. Its separate hybrid line conservatively adds runtime-chunk request, transfer and parse work on the shared link. Critical wire is capped at 2,000,000 bytes: 30 m/s, 5 Mbit/s, 0.5 s latency, 10 s stall and 0.8 s decode give 435 m; a 500 kB hybrid chunk plus 0.2 s parsing raises it to 480 m. `TraversalReadiness` requests by radial edge distance, tracks completion of colliders/sim/runtime separately and invalidates stale generations on unload or failure. `@wildshard/engine/physics/readinessWalls` installs closed WORLD colliders in each frame and opens them only after all fences pass; call `sync` before the traveler moves. Null-instance proxy edges stay closed. Highway, strip and proxy ground belong to a separate platform scope and survive wall removal. Grid entry barrier centres sit 5 m outside the cell, allowing the 0.38 m capsule, 0.25 m wall half-width and 0.02 m controller skin to reach the unchanged 6 m entry trigger. Closed readiness barriers and the independent transfer fences still hold the traveller outside the authored cell until admission and a fixed-boundary reframe complete. Walls carry the same platform owner tag as deck/strip colliders. The joined Node fixture drives a gravity-bearing capsule at 30 m/s through the actual generated strip and residency driver with 3 s and 10 s stalls, a deliberately late collider, a U-turn, two world transfers, one enabled traveler capsule, unload/stale completion and a closed proxy edge.
 
@@ -5327,14 +5326,16 @@ Undeclared refs refuse before
 any deletion; host-referenced unbound/shared files remain. Caller-provided Maps
 without this callback are never mutated.
 
-`ProductInputs.acquire()` borrows a Map until its last idempotent async release.
-Refills verify size/hash, reserve bytes first and publish nothing on failure.
-`acquireTransport(signal)` restores the admitted tier with at most four reads;
-abort drains the started batch. `gridShardfileProduct`'s `{signal}` mode joins
-only existing admission, without an ordinary input borrow first. Its
-`ResidencyAllocator.reserveIfFits` defers before eviction; actual entry keeps
-ordinary `reserve`. Constructor overlaps share the loan. Declared-reference,
-offline, corrupt-cache and supplied-map release authority stays unchanged.
+`ProductInputs.acquire()` borrows verified inputs until its last async release.
+`acquireTransport(signal, refs?)` restores admitted-tier files, at most four
+reads; abort drains the batch. `acquireFiles(refs)` validates the same tier.
+`gridShardfileProduct`'s `{signal, files?}` joins existing admission without
+ordinary refill; `optional-metadata` starts non-evicting metadata admission.
+Required joins promote pending reserves or retry a typed decline once.
+`reserveIfFits` never evicts; actual entry keeps normal reserve. Allocator
+`revision` changes with charged costs, letting deferred views/maps retry.
+Optional map bytes, decode and retained pixels all use non-evicting claims.
+Reference, hash, offline and supplied-map release guards stay unchanged.
 
 Settled tile preparation holds source, decoded views and one verified reader,
 not input Maps. Late cells borrow through `gridShardfileProduct` before

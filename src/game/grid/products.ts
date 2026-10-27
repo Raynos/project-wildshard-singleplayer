@@ -249,21 +249,22 @@ export function gridPostCosts(allocator: ResidencyAllocator): GridPostCosts {
   return costs;
 }
 /** The slug's admitted data or trusted hybrid declaration; runtime entry still requires a separate regional factory. */
-export function gridShardfileProduct(slug: string, owner: GridProductOwner, mode?: { readonly signal: AbortSignal }): Promise<GridProduct> | null;
-export function gridShardfileProduct(slug: string, owner: GridProductOwner, mode: 'metadata'): Promise<GridProductMetadata> | null;
-export function gridShardfileProduct(slug: string, owner: GridProductOwner, mode?: 'metadata' | { readonly signal: AbortSignal }): Promise<GridProduct | GridProductMetadata> | null {
+export function gridShardfileProduct(slug: string, owner: GridProductOwner, mode?: { readonly signal?: AbortSignal; readonly files?: readonly string[] }): Promise<GridProduct> | null;
+export function gridShardfileProduct(slug: string, owner: GridProductOwner, mode: 'metadata' | 'optional-metadata'): Promise<GridProductMetadata> | null;
+export function gridShardfileProduct(slug: string, owner: GridProductOwner, mode?: 'metadata' | 'optional-metadata' | { readonly signal?: AbortSignal; readonly files?: readonly string[] }): Promise<GridProduct | GridProductMetadata> | null {
   const manifest = findShard(slug), descriptor = manifest?.shardfile ?? manifest?.gridShardfile;
   if (descriptor === undefined) return null;
   if (owner.scope.disposed) return Promise.reject(new Error('Grid product page disposed'));
   let cache = products.get(owner.allocator);
   // The approach borrows an existing product; first admission remains a real owner.
-  if (typeof mode === 'object' && (mode.signal.aborted || cache?.has(slug) !== true)) return null;
+  if (typeof mode === 'object' && mode.signal !== undefined && (mode.signal.aborted || cache?.has(slug) !== true)) return null;
   if (cache === undefined) {
     cache = new ProductLeases(owner.allocator, 'grid'); products.set(owner.allocator, cache);
     const owned = cache;
     owner.scope.onDispose(() => { owned.dispose(); products.delete(owner.allocator); });
   }
-  return cache.acquire(slug, async (reserve, releaseBytes) => {
+  const heldCache = cache, optional = mode === 'optional-metadata' || typeof mode === 'object' && mode.signal !== undefined;
+  const acquire = (): Promise<GridProduct | GridProductMetadata> => heldCache.acquire(slug, async (reserve, releaseBytes) => {
     const url = new URL(descriptor, location.href), original = browserShardfileOptions(new URL('.', url).href, true);
     const priority = admissionPriority(owner), content = original.cache, present = content?.verifiedPresent, verified = content?.verifiedAsset;
     const options: ProductOptions = { ...original, memory: owner.allocator.memory,
@@ -300,15 +301,15 @@ export function gridShardfileProduct(slug: string, owner: GridProductOwner, mode
     }, keep, selectedInputs);
     preparation.inputs = inputs;
     return { admitted, options, inputs };
-  }).then(async lease => {
+  }, optional).then(async lease => {
     try {
       const { admitted, options, inputs } = lease.value;
-      if (mode === 'metadata') {
+      if (mode === 'metadata' || mode === 'optional-metadata') {
         await inputs.releaseUnused();
         if (owner.scope.disposed) throw new Error('Grid product page disposed during metadata');
         return { admitted, options, release: lease.release };
       }
-      const input = await (typeof mode === 'object' ? inputs.acquireTransport(mode.signal) : inputs.acquire());
+      const input = await (typeof mode === 'object' ? mode.signal === undefined ? mode.files === undefined ? inputs.acquire() : inputs.acquireFiles(mode.files) : inputs.acquireTransport(mode.signal, mode.files) : inputs.acquire());
       if (owner.scope.disposed) { await input.release(); throw new Error('Grid product page disposed during preparation'); }
       let live = true;
       const close = async (): Promise<void> => {
@@ -323,4 +324,11 @@ export function gridShardfileProduct(slug: string, owner: GridProductOwner, mode
       } };
     } catch (error) { lease.release(); throw error; }
   });
+  return optional ? acquire() : retryOptionalAdmission(acquire);
+}
+/** Required demand can join an optional loader after its reservation declined.
+ * Retry that typed deferral once; every other refusal keeps its identity. */
+async function retryOptionalAdmission<T>(acquire: () => Promise<T>): Promise<T> {
+  try { return await acquire(); }
+  catch (error) { if (!(error instanceof ApproachInputsDeferredError)) throw error; return acquire(); }
 }

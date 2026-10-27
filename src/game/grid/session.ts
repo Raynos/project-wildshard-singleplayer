@@ -70,6 +70,8 @@ import { GridFrame, type GridFrameHost, type GridFrameState } from './frame';
 import { installHazeBand } from './hazeBand';
 import { LiveGridSession, type LiveGridPage, type LiveGridSessionState } from './liveSession';
 import { gridShardfileEdges, gridShardfileFarBytes, gridShardfileProduct, readGridShardfileFar, readGridShardfileNear } from './products';
+import { ApproachInputsDeferredError } from './productInputs';
+import { GridViewAdmissions } from './viewAdmissions';
 import { loadShardfileFar, loadShardfileNear } from './shardfileFar';
 import { jsonResidentBytes } from '../shardfile/productCost';
 import { RAIL_OFFSET, roadLayout } from './roadLayout';
@@ -243,13 +245,9 @@ const NearRow = v.object({ near: v.object({ gpu: num, decoded: num, content: v.o
  * world carries the shard's own props owns its cell; one built from the shard's own coarse tiles (`near.tiles`) never does,
  * as a shardfile's own near row never does: those tiles keep refining over it.
  */
-async function loadNear(slug: string, owner: Parameters<typeof gridShardfileProduct>[1]): Promise<{ prepared: FarPrepared; bytes: number; owns: boolean }> {
+async function loadNear(slug: string): Promise<{ prepared: FarPrepared; bytes: number; owns: boolean }> {
   const own = await readGridShardfileNear(slug);
   if (own !== null) return loadShardfileNear(own.rows, own.read);
-  // a cell without its own near row is admitted here as before: that admission warms its product for the crossing
-  const product = gridShardfileProduct(slug, owner);
-  const retained = product === null ? null : await product.catch(() => null);
-  retained?.release();
   const baked = bakedNearFiles(slug, publicBytes());
   if (baked === null) throw new Error('No declared near placeholder; retain far proxy');
   const response = await fetch(versionedUrl(baked.row));
@@ -321,8 +319,8 @@ export class GridSession {
   private roadTiles: RoadTileBacking | null = null;
   private readonly roadBudget: { readonly view: () => RoadViewCost | null; readonly resident: () => RoadResident };
   private readonly life: NeighbourLife;
-  private readonly admitNeighbour: ((cell: GridCell) => Promise<void>) | undefined;
-  private readonly admitNeighbourRender: ((cell: GridCell) => Promise<void>) | undefined;
+  private readonly admitNeighbour: ((cell: GridCell, required?: boolean) => Promise<void>) | undefined;
+  private readonly admitNeighbourRender: ((cell: GridCell) => Promise<boolean>) | undefined;
   /** G222 playtest #7: each neighbour's declared doors and gates, shown exactly when its region has them standing */
   private readonly panels: NeighbourPanels;
   private readonly softWalls: { readonly step: () => void; readonly state: () => SoftWallState };
@@ -440,13 +438,20 @@ export class GridSession {
     this.roadPlans = preparedRoad?.plans ?? new Map<Mesh, CullPlan>();
     // before the page's first render: the lights a region's own pool shows through (regionalWorld `mirrorInto`)
     if (isScene(host.scene)) LightPool.for(host.scene).reserve(GRID_REGION_POINT_LIGHTS);
+    const mapReads = new AbortController(); host.scope.onDispose(() => { mapReads.abort(); });
     this.mapImages = new CellMinimaps(host.scope, async slug => {
-      const pending = gridShardfileProduct(slug, { allocator: this.allocator, scope: host.scope });
-      if (pending === null) return undefined;
-      const product = await pending;
-      try { return leaseMapImage(product.admitted.source, product.admitted.assets, this.allocator, host.scope); }
-      finally { product.release(); }
-    }, identity => { const { slug: homeIdentity } = this.home; return identity === homeIdentity; });
+      const owner = { allocator: this.allocator, scope: host.scope };
+      const metadata = await gridShardfileProduct(slug, owner, 'optional-metadata');
+      if (metadata === null) return undefined;
+      try {
+        const map = metadata.admitted.source.map; if (map === undefined) return undefined;
+        const product = await gridShardfileProduct(slug, owner, { signal: mapReads.signal, files: [map.image] });
+        if (product === null) return undefined;
+        try { return leaseMapImage(product.admitted.source, product.admitted.assets, this.allocator, host.scope, true); }
+        finally { try { await product.releaseInputs(); } finally { product.release(); } }
+      } finally { metadata.release(); }
+    }, identity => { const { slug: homeIdentity } = this.home; return identity === homeIdentity; },
+    { revision: () => this.allocator.revision, deferred: error => error instanceof ApproachInputsDeferredError });
     const residency = host.residency;
     if (residency === undefined) throw new Error('Grid session requires the early page residency owner');
     if (allocator !== undefined && allocator !== residency.allocator) throw new Error('Grid session must share the page allocator');
@@ -640,7 +645,7 @@ export class GridSession {
       allocator: this.allocator, cells: this.assembly.cells, pitch: this.assembly.pitch, root: (id) => roots.get(id),
       readyToRefine: () => this.initialFarReady,
       ...(TIER === 'phone' ? { limit: PHONE_NEAR_CELLS } : {}),
-      load: (id) => loadNear(this.assembly.cell(id).slug, { allocator: this.allocator, scope: host.scope }),
+      load: (id) => loadNear(this.assembly.cell(id).slug),
       cover: (id, covered) => { const drawn = drawnFar.get(id); if (drawn !== undefined) drawn.view.mesh.visible = !covered && drawn.excluded.size < 16; },
       mask: (id) => drawnFar.get(id)?.excluded ?? new Set<number>(),
       ...(host.prepareView === undefined ? {} : { prepare: (view: FarProxyView, current: () => boolean) => host.prepareView?.(view.mesh, current) ?? Promise.resolve() }) });
@@ -744,16 +749,17 @@ export class GridSession {
    * fails to admit keeps its far proxy.
    */
   private tileAdmission(renderer: Renderer, roots: ReadonlyMap<string, Group>): {
-    complete: (cell: GridCell) => Promise<void>; render: (cell: GridCell) => Promise<void>;
+    complete: (cell: GridCell, required?: boolean) => Promise<void>; render: (cell: GridCell) => Promise<boolean>;
   } {
     const scope = this.host.scope, skins = new Map<string, Promise<ReadonlyMap<string, ClientSkin>>>();
     const shared = new Map<string, Promise<{ source: ClientRingInstance['source']; assets: ClientAssets; views: ClientTileViews; compile: (entry: unknown) => Material }>>();
-    const requested = new Map<string, { complete: Promise<void>; offered: Promise<void> }>();
-    const admit = async (cell: GridCell, offered: () => void): Promise<void> => {
+    const optional = new AbortController(); scope.onDispose(() => { optional.abort(); });
+    const admit = async (cell: GridCell, required: boolean, offered: () => void): Promise<void> => {
       const root = roots.get(cell.instance); if (root === undefined) return;
       try {
-        const product = gridShardfileProduct(cell.slug, { allocator: this.allocator, scope });
-        if (product === null) return;
+        const owner = { allocator: this.allocator, scope };
+        const product = required ? gridShardfileProduct(cell.slug, owner) : gridShardfileProduct(cell.slug, owner, { signal: optional.signal });
+        if (product === null) { if (!required) throw new ApproachInputsDeferredError(); return; }
         const retained = await product; let pageOwned = false;
         try {
           let loading = shared.get(cell.slug);
@@ -779,22 +785,18 @@ export class GridSession {
         } finally {
           try { await retained.releaseInputs(); } finally { if (!pageOwned) retained.release(); }
         }
-      } catch (error) { this.refuse(cell, error); throw error; } // Required entry retains the original refusal.
+      } catch (error) { if (!(error instanceof ApproachInputsDeferredError)) this.refuse(cell, error); throw error; } // Required entry retains the original refusal.
     };
-    const request = (cell: GridCell): { complete: Promise<void>; offered: Promise<void> } => {
-      const prior = requested.get(cell.instance); if (prior !== undefined) return prior;
-      let offer = (): void => undefined;
-      const offered = new Promise<void>(resolve => { offer = resolve; });
-      const pending = { complete: admit(cell, offer), offered }; requested.set(cell.instance, pending); return pending;
-    };
+    const requests = new GridViewAdmissions(async (cell: GridCell, required, offered) => {
+      if (scope.disposed || scope.disposing) throw new Error('Grid tile owner left');
+      await admit(cell, required, offered);
+    }, () => this.allocator.revision);
     return {
-      complete: cell => scope.disposed || scope.disposing ? Promise.reject(new Error('Grid tile owner left')) : request(cell).complete,
+      complete: (cell, required) => scope.disposed || scope.disposing ? Promise.reject(new Error('Grid tile owner left')) : requests.complete(cell, required),
       render: async cell => {
         if (scope.disposed || scope.disposing) throw new Error('Grid tile owner left');
-        const pending = request(cell);
-        // The complete promise also fences early refusals and disposal. It stays
-        // observed if offering wins; its existing finally retains input cleanup.
-        await Promise.race([pending.offered, pending.complete]);
+        try { await requests.render(cell); return true; }
+        catch (error) { if (error instanceof ApproachInputsDeferredError) return false; throw error; }
       },
     };
   }
@@ -897,7 +899,7 @@ export class GridSession {
       prepareStrips: cell => Math.max(Math.abs(cell.cell[0] - this.home.cell[0]), Math.abs(cell.cell[1] - this.home.cell[1])) <= 1 ? Promise.resolve() : this.prepareOuterStrips(), allocator: this.allocator,
       residency: this.host.residency.home(), tiles: this.clientTiles, lightingSettled: () => { this.prelinkViews(); },
       ...(this.admitNeighbour === undefined ? {} : { prepareDataTiles: async (cell: GridCell, scope: Scope, start: { readonly x: number; readonly z: number }) => {
-        await this.admitNeighbour?.(cell);
+        await this.admitNeighbour?.(cell, true);
         await this.clientTiles.enterOffered(cell.instance, scope, start);
       }, prepareNeighbourTiles: async (cell: GridCell, start: { readonly x: number; readonly z: number }, signal: AbortSignal) => {
         const owner = this.host.scope.child(`grid.tile-approach.${cell.instance}`);
@@ -905,7 +907,7 @@ export class GridSession {
         owner.listen(signal, 'abort', release, { once: true });
         try {
           if (signal.aborted) throw new Error('Tile approach abandoned');
-          await this.admitNeighbourRender?.(cell);
+          if (await this.admitNeighbourRender?.(cell) === false) { owner.dispose(); return; }
           if (owner.disposed || owner.disposing || signal.aborted) throw new Error('Tile approach abandoned');
           const prepare = this.clientTiles.prepareOffered;
           if (prepare === undefined) throw new Error('Tile approach preparation is unavailable');
