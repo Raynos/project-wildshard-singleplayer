@@ -6,7 +6,6 @@ import { compactChannels } from './channelRows';
 import { SPECIES_POSES } from './speciesPoses';
 import skyDome from '../data/skyDome.json' with { type: 'json' };
 import weatherDecision from '../behaviour/weather.generated.json' with { type: 'json' };
-import pasture from '../behaviour/pasture.generated.json' with { type: 'json' };
 import charge from '../data/eliteCharge.generated.json' with { type: 'json' };
 import ecology from '../data/ecology.generated.json' with { type: 'json' };
 import { peoplePrograms } from './peopleMotion';
@@ -28,7 +27,7 @@ import type { nalatiNavigationProgram } from './navigation';
 import lookGraphs from '../data/lookGraphs.json' with { type: 'json' };
 import presentationGraphs from '../data/painterlyGraphs.json' with { type: 'json' };
 import type { NalatiKokpar } from './kokparRows';
-import titanProgram from '../behaviour/titan.generated.json' with { type: 'json' };
+import type { NalatiTitanPrograms } from './stormTitanRows.mjs';
 import { nalatiGoldenKingPose } from './kurganRows';
 import admission from '../behaviour/admission.generated.json' with { type: 'json' };
 
@@ -78,7 +77,8 @@ function renderRows(value: unknown): { files: readonly unknown[]; tiles: readonl
 
 /** Compose the complete header with caller-owned costs; retain original module deduplication and page charges. */
 export function nalatiProductRows(species: NalatiSpeciesProgramCosts, held: NalatiHeldProgramCosts, render: unknown,
-  queryTerrain: Omit<BakedQueryTerrain, 'assets'>, navigation: Awaited<ReturnType<typeof nalatiNavigationProgram>>, kokpar: Pick<NalatiKokpar, 'program' | 'course' | 'compiled'>, ridingPrograms: Pick<NalatiRidingPrograms, 'approach' | 'breaking' | 'riding' | 'compiled'>): ReturnType<typeof parseShardfile> {
+  queryTerrain: Omit<BakedQueryTerrain, 'assets'>, navigation: Awaited<ReturnType<typeof nalatiNavigationProgram>>, kokpar: Pick<NalatiKokpar, 'program' | 'course' | 'compiled'>, ridingPrograms: Pick<NalatiRidingPrograms, 'approach' | 'breaking' | 'riding' | 'compiled'>, titanProgram: NalatiTitanPrograms): ReturnType<typeof parseShardfile> {
+  const pasture = titanProgram.wind;
   const files = [...navigation.files, ...queryTerrain.files].sort((a, b) => a.hash.localeCompare(b.hash));
   const resident = files.reduce((sum, file) => sum + file.decoded, 0);
   const renderTiles = parseShardfile({ ...base, ...renderRows(render) });

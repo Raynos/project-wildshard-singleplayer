@@ -38,8 +38,8 @@ import nightInput from '../src/shards/nalati-grasslands/data/night.generated.jso
 import {withWeatherWitness} from './fixtures/weatherInlineWitness';
 import { bossArena } from './fake/bossArena';
 import fireView from '../src/shards/nalati-grasslands/data/arenaFire.json' with { type: 'json' };
-import titan from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
-import geometry from '../src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json' with { type: 'json' };
+import * as titan from '../src/shards/nalati-grasslands/generators/stormTitanFight';
+import { titanGeometryRows } from '../src/shards/nalati-grasslands/generators/stormTitanGeometry';
 import king from './fixtures/nalati-goldenKing-original.json' with { type: 'json' };
 import layout from './fixtures/nalati-kurganLayout-original.json' with { type: 'json' };
 import world from '../src/shards/nalati-grasslands/boot/layout.generated.json' with { type: 'json' };
@@ -56,6 +56,8 @@ import { emptyShardfile } from '../src/sdk/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { nalatiTitanView } from '../src/shards/nalati-grasslands/generators/titanView';
 import { nalatiViewBytes } from './fixtures/nalati-view-modules';
+
+const geometry = titanGeometryRows();
 
 const night=withWeatherWitness(nightInput);
 

@@ -1,17 +1,29 @@
 import {expect,test} from 'vitest';
-import programs from '../src/shards/nalati-grasslands/behaviour/titan.generated.json' with {type:'json'};
-import pasture from '../src/shards/nalati-grasslands/behaviour/pasture.generated.json' with {type:'json'};
+// oxlint-disable-next-line import/no-nodejs-modules -- The named-file reader reads a scratch project's files.
+import {mkdirSync,mkdtempSync,writeFileSync} from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Scratch project paths.
+import {dirname,join} from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- The scratch project lives in the OS temp directory.
+import {tmpdir} from 'node:os';
+import {NALATI_PASTURE as pasture,NALATI_TITAN,NALATI_TITAN_PROGRAMS as programs} from './fixtures/nalati-titan';
 import {prepareProjectOutput} from '../src/sdk/projectOutput';
 import {hashImmutableBytes} from '../src/sdk/immutable';
 import {Scope} from '../src/engine/app/scope';
 import {ReturnProgram} from '../src/game/population/returnProgram';
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 
+// GR6: the named-file reader reads the build program's bytes from a scratch project, as it reads any source
+function scratchProject(files:Record<string,Uint8Array>):string{
+  const root=mkdtempSync(join(tmpdir(),'nalati-titan-'));
+  for(const [name,bytes] of Object.entries(files)){mkdirSync(join(root,dirname(name)),{recursive:true});writeFileSync(join(root,name),bytes);}
+  return root;
+}
+
 test('the generated programme stays binary through the existing project reader and original scope',async()=>{
  const meta=programs.compiled.pasture,row=pasture.v2;
  expect(row.bytes).toBe('');expect(programs.fire.v2.bytes).toBe('');expect(programs.wind.v2.bytes).toBe('');
  expect(meta.hash).toBe(row.artifact.hash);
- const output=await prepareProjectOutput(decodeURIComponent(new URL('../src/shards/nalati-grasslands',import.meta.url).pathname),{blobs:[{
+ const output=await prepareProjectOutput(scratchProject({[meta.source]:NALATI_TITAN.pasture.wasm}),{blobs:[{
   name:'behaviour/nalati.pasture.wasm',kind:'wasm',source:meta.source,options:{critical:true,script:{abi:2,lane:'project',
    pages:row.artifact.pages,ioBytes:row.artifact.ioBytes,compilerRevision:row.artifact.compilerRevision,admissionRevision:row.artifact.admissionRevision}}
  }]});

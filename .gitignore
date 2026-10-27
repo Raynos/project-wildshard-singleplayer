@@ -715,8 +715,6 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /public/assets/nalati/baked/painted-models/
 
 # Static Storm Titan rows and geometry are cheap build products.
-/src/shards/nalati-grasslands/data/stormTitanFight.generated.json
-/src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json
 
 # Nalati spear geometry and poses are reproducible build products.
 /src/shards/nalati-grasslands/data/spear.generated.json
@@ -805,7 +803,6 @@ src/shards/driftwood-isle/data/bridgeRows.d.json.ts
 # Nalati held gear is rebuilt from the retained C6 recipe.
 /public/assets/nalati/baked/gear-specimens.bin
 
-/src/shards/nalati-grasslands/behaviour/pasture.generated.json
 
 # Nalati small-model shapes are rebuilt from the cover producer.
 /public/assets/nalati/baked/cover-phone.bin

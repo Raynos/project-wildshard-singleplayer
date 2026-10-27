@@ -24,7 +24,7 @@ import type { Animal } from '../src/engine/entities/AnimalView';
 import type { AnimalManager } from '../src/engine/entities/AnimalManager';
 import { setTerrainHeight, setTerrainPlacement } from '../src/engine/world/terrainHeight';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import { headlessAssembly } from '../src/shards/nalati-grasslands/generators/nativeGroups';
+import { NALATI_HEADLESS_ASSEMBLY as headlessAssembly } from './fixtures/nalati-headless-assembly';
 
 test('orchard population emits crowd work between native groups and mount placement', () => {
   const previous=app.levelScope,previousHealth=wildEnv.playerHealth01,scope=new Scope('orchard.health');app.levelScope=scope;lendNalatiPasture(scope);

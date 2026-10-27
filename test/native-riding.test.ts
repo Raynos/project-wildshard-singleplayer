@@ -264,7 +264,7 @@ test('orchard fixture installs the complete native population through data rows'
   const { ForagerPopulationSchema } = await import('@wildshard/format/ambientLife');
   const { BOAR } = await import('@wildshard/game/systems/species/boar');
   const { default: brains } = await import('../src/shards/nalati-grasslands/data/brains.json');
-  const { default: pasture } = await import('../src/shards/nalati-grasslands/behaviour/pasture.generated.json');
+  const { NALATI_PASTURE: pasture } = await import('./fixtures/nalati-titan');
   const { default: foragerRow } = await import('../src/shards/nalati-grasslands/data/marmotForager.json');
   const v = await import('valibot');
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));

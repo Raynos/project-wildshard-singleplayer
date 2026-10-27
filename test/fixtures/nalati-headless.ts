@@ -5,7 +5,7 @@ import type { ShardProduct } from '../../src/game/shardfile/shardProduct';
 import type { SimHost } from '../../src/engine/sim';
 import type { NativeEliteKernelLoans } from '../../src/engine/ai/eliteKernels';
 import type ecology from '../../src/shards/nalati-grasslands/data/ecology.generated.json';
-import type { headlessAssembly } from '../../src/shards/nalati-grasslands/generators/nativeGroups';
+import type { NalatiHeadlessAssembly } from '../../src/shards/nalati-grasslands/generators/nativeGroups';
 import type { nalatiNativeShelters } from '../../src/shards/nalati-grasslands/generators/shelters';
 import type { buildEliteEntryPageRows } from '../../src/shards/nalati-grasslands/generators/eliteEntryRows';
 import type { EliteCoreDef, EliteCoreRule } from '../../src/game/eliteSystem';
@@ -45,7 +45,7 @@ const physicsRows = originalNalatiPhysics();
 export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHeadlessRuntime>[0], decodeNativeTerrain: (bytes:Uint8Array|undefined,row:{resolution:number;size:number;seed:number})=>BakedGrid = decodeTerrainTile): Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>> => {
     const { product, assets } = preparation, shard = product.shardfile;
     const { constants } = await product.json<{
-        constants: Omit<typeof headlessAssembly.constants, 'nativePopulation' | 'nativeRide' | 'nativeTaming' | 'pageWildlife' | 'pageGroups' | 'groupAdmission'> & {
+        constants: Omit<NalatiHeadlessAssembly['constants'], 'nativePopulation' | 'nativeRide' | 'nativeTaming' | 'pageWildlife' | 'pageGroups' | 'groupAdmission'> & {
             nativeShelters: ReturnType<typeof nalatiNativeShelters>;
             pageElites: Omit<ReturnType<typeof buildEliteEntryPageRows>, "profiles"> & {
                 profiles: {

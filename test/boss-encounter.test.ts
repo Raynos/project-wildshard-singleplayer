@@ -9,7 +9,7 @@ import bossRows from '../src/shards/pine-hollow/data/bossEncounter.json' with { 
 import bossPresentation from '../src/shards/pine-hollow/data/bossPresentation.json' with { type: 'json' };
 import { bossEncounterPresentation } from '@wildshard/format/bossEncounter';
 import { mockCanvas } from '@wildshard/engine/test/weaponParity';
-import titan from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
+import * as titan from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import king from './fixtures/nalati-goldenKing-original.json' with { type: 'json' };
 
 const ANTLER_KING_PRESENTATION = bossEncounterPresentation(bossPresentation, bossRows);

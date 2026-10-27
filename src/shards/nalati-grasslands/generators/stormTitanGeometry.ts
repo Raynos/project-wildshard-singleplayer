@@ -1,7 +1,7 @@
 import { numericChannelPrograms, type ClientChannels, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
 import { parsePrivateScene, type PrivateScene, type ClientChannelProgram } from '@wildshard/format/clientChannels';
 import * as THREE from 'three';
-import { TITAN_ARENA, TITAN_CHAINS, TITAN_PLACE } from './stormTitanFight';
+import { TITAN_ARENA, TITAN_CHAINS, TITAN_PLACE, TITAN_TUNING } from './stormTitanFight';
 
 /** Retained original static construction. Pose, shader hooks and hazards stay live. */
 function rng(seed: number): () => number { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
@@ -57,7 +57,7 @@ export function titanPuffs(phone: boolean): PuffRow[] {
     if (bone === undefined) throw new Error('Titan puff has no retained bone');
     const low = pf.bone === root ? 0.72 : pf.p.z < -4.5 ? 0.78 : 0.92 + 0.08 * Math.sin(i * 1.7);
     const k = low * (0.45 + 0.6 * (exposure[i] ?? 0.7));
-    return { bone, p: pf.p.toArray(), r: pf.r, ph: pf.ph, colour: [0.95 * k, 0.97 * k, 1.05 * k] };
+    return { bone, p: pf.p.toArray().map(plusZero), r: pf.r, ph: pf.ph, colour: [0.95 * k, 0.97 * k, 1.05 * k] };
   });
 }
 
@@ -106,10 +106,13 @@ function mergeTwo(a: THREE.BufferGeometry, b: THREE.BufferGeometry): THREE.Buffe
 }
 
 
+/** -0 as 0: the rows read as the retired job's JSON did (JSON writes -0 as 0). */
+function plusZero(value: number): number { return Object.is(value, -0) ? 0 : value; }
 /** Three's ordinary serialized BufferGeometry, without its random serialization UUID. */
 function geometryRow(g: THREE.BufferGeometry) {
   const out = new THREE.BufferGeometry().copy(g).toJSON();
   const { uuid: _uuid, ...row } = out; g.dispose();
+  for (const attribute of Object.values(row.data?.attributes ?? {})) attribute.array = attribute.array.map(plusZero);
   return row;
 }
 export function titanGeometry(): { phone: { puffs: PuffRow[]; flames: Omit<THREE.BufferGeometryJSON, 'uuid'> }; desktop: { puffs: PuffRow[]; flames: Omit<THREE.BufferGeometryJSON, 'uuid'> }; eyes: Omit<THREE.BufferGeometryJSON, 'uuid'> } {
@@ -120,8 +123,21 @@ export function titanGeometry(): { phone: { puffs: PuffRow[]; flames: Omit<THREE
     desktop: { puffs: titanPuffs(false), flames: geometryRow(flameClusterGeometry(false)) }, eyes };
 }
 
+const TITAN_BODY_STYLE = {
+  // game/boss/encounterView CloudBody: the self-lit heart, its glow, the gold ring and the dome; dark cumulus churning on the bones
+  materials: { heart: { kind: 'basic', colour: [1.6,1.9,3.8], additive: false }, glow: { kind: 'fx', mode: 'beam', colour: [.55,.7,2.4], alpha: .8 },
+    ring: { kind: 'basic', colour: [2.6,1.9,.6], additive: true, opacity: 0 }, dome: { kind: 'fx', mode: 'dome', colour: [2,1.6,.7], alpha: .85 },
+    eyes: { kind: 'basic', colour: [3.2,3.4,4.2], additive: false } },
+  group: 'titan.pose', root: 'root', scale: TITAN_PLACE.bodyScale, shown: ['heart','eyes'],
+  puffs: { bones: ['root','chest','head','upperR','foreR','handR','upperL','foreL','handL'], detail: 2, name: 'titan-cloud', look: 'nalati-titan-cloud',
+    swell: [.08,.9], drift: [.37,.29,.5], spin: .05, squash: .9 },
+  params: { time: 't', focus: 'heart', glow: 'glow', flash: 'flash', alpha: 'alpha', fogColour: 'fogC', fog: 'fog' },
+  focus: { part: 'heart', open: 'heartOpen', colour: [[1.6,1.9,3.8],[3.2,3.1,4.2]], glow: 'glow', glowAlpha: [.55,.45], lookGlow: [.3,.6], ring: 'ring', spin: .8, pulse: [.7,.3,9], dome: 'dome' },
+  // the Sky Spear: raised 34 m out past his right hand, or struck into the meadow
+  strip: { from: 'handR', back: 'foreR', reach: 34, colour: [2.2,2.4,3.8], segments: 18, every: .07, held: [.9,.5], struck: [1.4,.55] },
+};
 /** Private transforms and construction rows; the native view only lends bones and materials. */
-export function titanBodyRows(): { scene: PrivateScene; geometry: Record<string, Omit<THREE.BufferGeometryJSON, 'uuid'>>; [row: string]: unknown } {
+export function titanBodyRows(): { scene: PrivateScene; geometry: Record<string, Omit<THREE.BufferGeometryJSON, 'uuid'>> } & typeof TITAN_BODY_STYLE {
   const nodes = [
     { kind: 'group', id: 'view', children: ['root', 'ring'] },
     { kind: 'group', id: 'root', children: ['chest'] },
@@ -140,18 +156,12 @@ export function titanBodyRows(): { scene: PrivateScene; geometry: Record<string,
   ];
   return { scene: parsePrivateScene({ version: 1, root: 'view', nodes, materials: ['heart','glow','ring','dome','eyes'].map(id => ({ kind: 'port', id, source: id })) }),
     geometry: { heart: geometryRow(new THREE.IcosahedronGeometry(2.2,2)), glow: geometryRow(new THREE.SphereGeometry(4.4,24,16)),
-      dome: geometryRow(new THREE.SphereGeometry(5.2,32,16)), ring: geometryRow(new THREE.TorusGeometry(7.5,.5,6,56)) },
-    // game/boss/encounterView CloudBody: the self-lit heart, its glow, the gold ring and the dome; dark cumulus churning on the bones
-    materials: { heart: { kind: 'basic', colour: [1.6,1.9,3.8], additive: false }, glow: { kind: 'fx', mode: 'beam', colour: [.55,.7,2.4], alpha: .8 },
-      ring: { kind: 'basic', colour: [2.6,1.9,.6], additive: true, opacity: 0 }, dome: { kind: 'fx', mode: 'dome', colour: [2,1.6,.7], alpha: .85 },
-      eyes: { kind: 'basic', colour: [3.2,3.4,4.2], additive: false } },
-    group: 'titan.pose', root: 'root', scale: TITAN_PLACE.bodyScale, shown: ['heart','eyes'],
-    puffs: { bones: ['root','chest','head','upperR','foreR','handR','upperL','foreL','handL'], detail: 2, name: 'titan-cloud', look: 'nalati-titan-cloud',
-      swell: [.08,.9], drift: [.37,.29,.5], spin: .05, squash: .9 },
-    params: { time: 't', focus: 'heart', glow: 'glow', flash: 'flash', alpha: 'alpha', fogColour: 'fogC', fog: 'fog' },
-    focus: { part: 'heart', open: 'heartOpen', colour: [[1.6,1.9,3.8],[3.2,3.1,4.2]], glow: 'glow', glowAlpha: [.55,.45], lookGlow: [.3,.6], ring: 'ring', spin: .8, pulse: [.7,.3,9], dome: 'dome' },
-    // the Sky Spear: raised 34 m out past his right hand, or struck into the meadow
-    strip: { from: 'handR', back: 'foreR', reach: 34, colour: [2.2,2.4,3.8], segments: 18, every: .07, held: [.9,.5], struck: [1.4,.55] } };
+      dome: geometryRow(new THREE.SphereGeometry(5.2,32,16)), ring: geometryRow(new THREE.TorusGeometry(7.5,.5,6,56)) }, ...TITAN_BODY_STYLE };
+}
+
+/** The fight's geometry rows (phone / desktop puffs and flames, eyes, body, poses, arena); the retired job's JSON. */
+export function titanGeometryRows(): ReturnType<typeof titanGeometry> & { body: ReturnType<typeof titanBodyRows>; poses: ClientChannelProgram[]; arena: ReturnType<typeof titanArenaRows> } {
+  return { ...titanGeometry(), body: titanBodyRows(), poses: [...titanPoseRows(), ...titanFightPoseRows()], arena: titanArenaRows(TITAN_PLACE.arenaRadius, TITAN_TUNING.cell, TITAN_ARENA.grid) };
 }
 
 /** The bone and heart draw law becomes bounded numeric channels, never an AS frame tick. */

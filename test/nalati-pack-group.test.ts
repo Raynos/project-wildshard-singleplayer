@@ -20,7 +20,7 @@ import { SIM_LEVEL } from './fixtures/sim-level/level';
 import {PACK_PROFILE} from '../src/shards/nalati-grasslands/generators/packGroup';
 import {ReturnProgram} from '../src/game/population/returnProgram';
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
-import pasture from '../src/shards/nalati-grasslands/behaviour/pasture.generated.json' with {type:'json'};
+import {NALATI_PASTURE as pasture} from './fixtures/nalati-titan';
 import packBinding from '../src/shards/nalati-grasslands/data/packGuest.json' with {type:'json'};
 import {scriptAdmissionRows} from '../src/format/scriptContract';
 import {NALATI_SCRIPT_SECTIONS} from './fixtures/nalati-script-inventory';

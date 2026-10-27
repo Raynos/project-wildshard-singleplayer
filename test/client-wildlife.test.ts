@@ -16,7 +16,7 @@ import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { clientWildlife, installClientWildlife, PageWildlife } from '../src/game/population/wildlife';
 import { parseClientPlan } from '../src/format/clientPlan';
-import { headlessAssembly } from '../src/shards/nalati-grasslands/generators/nativeGroups';
+import { NALATI_HEADLESS_ASSEMBLY as headlessAssembly } from './fixtures/nalati-headless-assembly';
 import { admittedSheepProduct } from './fake/admittedSheep';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 

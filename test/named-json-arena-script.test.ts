@@ -7,13 +7,15 @@ import { nameBlob } from '@wildshard/sdk/blobs';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import titan from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with {type:'json'};
-import geometry from '../src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json' with {type:'json'};
+import * as titan from '../src/shards/nalati-grasslands/generators/stormTitanFight';
+import { titanGeometryRows } from '../src/shards/nalati-grasslands/generators/stormTitanGeometry';
 import arenaFire from '../src/shards/nalati-grasslands/data/arenaFire.json' with {type:'json'};
 import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 import nightInput from '../src/shards/nalati-grasslands/data/night.generated.json' with {type:'json'};
 import {withWeatherWitness} from './fixtures/weatherInlineWitness';
 import strikes from './fixtures/nalati-strikeProfiles-original.json' with {type:'json'};
+
+const geometry = titanGeometryRows();
 
 const night=withWeatherWitness(nightInput);
 

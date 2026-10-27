@@ -22,9 +22,11 @@ import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import {overrideTerrain} from '@wildshard/engine/test/terrain';
 import {mockCanvas} from '@wildshard/engine/test/weaponParity';
 import fireView from '../src/shards/nalati-grasslands/data/arenaFire.json' with {type:'json'};
-import titan from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with {type:'json'};
-import geometry from '../src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json' with {type:'json'};
+import * as titan from '../src/shards/nalati-grasslands/generators/stormTitanFight';
+import { titanGeometryRows } from '../src/shards/nalati-grasslands/generators/stormTitanGeometry';
 import {titanPrograms as programs} from './fixtures/titanInlineWitness';
+
+const geometry = titanGeometryRows();
 
 function run(original:boolean):{trace:unknown[];input:unknown[];ownerScope:boolean;onePrompt:boolean}{
   mockCanvas();

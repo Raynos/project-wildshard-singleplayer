@@ -2,11 +2,11 @@
 import { createHash } from 'node:crypto';
 import { BufferGeometryLoader, type BufferGeometry } from 'three';
 import { expect, it } from 'vitest';
-import fight from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
-import geometry from '../src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json' with { type: 'json' };
-import { titanGeometry, titanBodyRows, titanPoseRows, titanArenaRows, titanFightPoseRows } from '../src/shards/nalati-grasslands/generators/stormTitanGeometry';
+import { titanGeometryRows } from '../src/shards/nalati-grasslands/generators/stormTitanGeometry';
 import * as authored from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import baseline from './fixtures/nalati-storm-titan.json' with { type: 'json' };
+
+const geometry = titanGeometryRows();
 
 const hash = (value: unknown): string => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const numericHash = (value: unknown): string => createHash('sha256').update(JSON.stringify(value, (_key, item: unknown) => typeof item === 'number' ? Math.round(item * 1e9) / 1e9 : item)).digest('hex');
@@ -17,17 +17,14 @@ function fingerprint(g: BufferGeometry): string {
   return hash({ attributes, index: g.index === null ? null : { type: g.index.array.constructor.name, array: [...g.index.array] } });
 }
 
-it('retains every encounter, phase, reward and attack number', () => {
-  const {titanWhirlGate,titanWhirlView,...rows}=authored;
-  expect(fight).toEqual(rows);
+it('keeps every encounter, phase, reward and attack number JSON-exact', () => {
+  const {titanWhirlGate,titanWhirlView,...fight}=authored;
+  const wire=JSON.stringify(fight);
+  expect(JSON.parse(wire)).toStrictEqual(fight);
   expect(fight.TITAN_WHIRLS.gate).toStrictEqual(titanWhirlGate(fight.TITAN_WHIRLS.laws.length));
   expect(fight.TITAN_WHIRLS.view).toStrictEqual(titanWhirlView(fight.TITAN_WHIRLS.laws.length));
   expect(fight.TITAN_ENCOUNTER.id).toBe('storm-titan');
   expect(fight.TITAN_PHASES.map(row => row.at)).toEqual([1, 0.6, 0.3]);
-});
-
-it('rebuilds the same numeric JSON without serialization UUIDs', () => {
-  expect(numericHash({ ...titanGeometry(), body: titanBodyRows(), poses: [...titanPoseRows(), ...titanFightPoseRows()], arena: titanArenaRows(fight.TITAN_PLACE.arenaRadius,fight.TITAN_TUNING.cell,fight.TITAN_ARENA.grid) })).toBe(numericHash(geometry));
 });
 
 for (const tier of ['phone', 'desktop'] as const) it(`${tier}: preserves the original puff and mesh buffers`, () => {

@@ -17,7 +17,7 @@ import type {GroupBankValueV2} from '../src/format/scriptGroupBankV2';
 import type {GroupGuestFrameV2} from '../src/engine/ai/GroupBrain';
 import {ReturnProgram} from '../src/game/population/returnProgram';
 import binding from '../src/shards/nalati-grasslands/data/herdGuest.json' with {type:'json'};
-import pasture from '../src/shards/nalati-grasslands/behaviour/pasture.generated.json' with {type:'json'};
+import {NALATI_PASTURE as pasture} from './fixtures/nalati-titan';
 
 const modes=['graze','drift','alert','flee','settle'],states=['watch','warn','display','charge','wheel','lead','beaten','ridden'];
 const savedSchema=v.looseObject({state:v.record(v.string(),v.unknown()),lead:v.nullable(v.string()),stallion:v.nullable(v.string()),ridden:v.nullable(v.string()),chargeTarget:v.nullable(v.string()),foals:v.array(v.string()),mothers:v.array(v.tuple([v.string(),v.string()]))});

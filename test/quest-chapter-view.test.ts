@@ -17,8 +17,8 @@ import { bossArena } from './fake/bossArena';
 import { overrideTerrain } from '@wildshard/engine/test/terrain';
 import { mockCanvas } from '@wildshard/engine/test/weaponParity';
 import king from './fixtures/nalati-goldenKing-original.json' with { type: 'json' };
-import titan from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
-import geometry from '../src/shards/nalati-grasslands/data/stormTitanGeometry.generated.json' with { type: 'json' };
+import * as titan from '../src/shards/nalati-grasslands/generators/stormTitanFight';
+import { titanGeometryRows } from '../src/shards/nalati-grasslands/generators/stormTitanGeometry';
 import arenaFire from '../src/shards/nalati-grasslands/data/arenaFire.json' with { type: 'json' };
 import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 import { carriedQuestRows } from './fixtures/nalati-carried-quest';
@@ -47,6 +47,8 @@ import { peopleRows } from '../src/shards/nalati-grasslands/generators/peopleRow
 import content from '../src/shards/nalati-grasslands/data/questContent.json' with { type: 'json' };
 import { NALATI_KOKPAR as guest } from './fixtures/nalati-kokpar';
 import view from '../src/shards/nalati-grasslands/data/chapterView.json' with { type: 'json' };
+
+const geometry = titanGeometryRows();
 
 afterEach(() => { vi.restoreAllMocks(); });
 

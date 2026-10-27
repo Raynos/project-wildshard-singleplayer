@@ -776,6 +776,7 @@
     "src/shards/nalati-grasslands/generators/nalatiWorldRows.ts": 1,
     "src/shards/nalati-grasslands/generators/output.ts": 20,
     "src/shards/nalati-grasslands/generators/places.ts": 2,
+    "src/shards/nalati-grasslands/generators/stormTitanRows.mjs": 2,
     "src/shards/nalati-grasslands/generators/titanFireView.ts": 2,
     "src/shards/nalati-grasslands/generators/titanWhirlsView.ts": 2,
     "src/shards/nalati-grasslands/generators/yard.ts": 1,

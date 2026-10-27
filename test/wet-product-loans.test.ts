@@ -12,7 +12,7 @@ import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import {parseClientPlan} from '../src/format/clientPlan';
 import {installClientWildlife} from '../src/game/population/wildlife';
 import * as groups from '../src/game/population/pageGroups';
-import {headlessAssembly} from '../src/shards/nalati-grasslands/generators/nativeGroups';
+import { NALATI_HEADLESS_ASSEMBLY as headlessAssembly } from './fixtures/nalati-headless-assembly';
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import {prepareNalatiPopulation} from './fixtures/nalati-headless';
 import * as population from '../src/game/population/environment';

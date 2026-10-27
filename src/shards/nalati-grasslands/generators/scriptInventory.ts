@@ -3,9 +3,8 @@ import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
 import weatherDecision from '../behaviour/weather.generated.json' with { type: 'json' };
 import type { NalatiKokpar } from './kokparRows';
 import admission from '../behaviour/admission.generated.json' with { type: 'json' };
-import pasture from '../behaviour/pasture.generated.json' with { type: 'json' };
 import type { NalatiRidingPrograms } from './ridingRows.mjs';
-import titanProgram from '../behaviour/titan.generated.json' with { type: 'json' };
+import type { NalatiTitanPrograms } from './stormTitanRows.mjs';
 import charge from '../data/eliteCharge.generated.json' with { type: 'json' };
 
 const {compiled: _chargeFile,...chargeRows} = charge;
@@ -20,13 +19,13 @@ function projection(id: string, program: NalatiScriptProjection): Record<string,
 }
 /** Complete sim admission, shared by emitted sections and the module-cap proof.
  * Inline ABI1 witnesses are data; only selected executable rows appear here. */
-export function nalatiScriptSections(held: NalatiScriptProjection, kokpar: Pick<NalatiKokpar, 'program'>, ridingPrograms: Pick<NalatiRidingPrograms, 'approach'>): ReadonlyMap<PlatformDataSectionName, unknown> {
+export function nalatiScriptSections(held: NalatiScriptProjection, kokpar: Pick<NalatiKokpar, 'program'>, ridingPrograms: Pick<NalatiRidingPrograms, 'approach'>, titanProgram: Pick<NalatiTitanPrograms, 'attack' | 'wind'>): ReadonlyMap<PlatformDataSectionName, unknown> {
   const programs = [weatherDecision.script, kokpar.program.script];
   const legacy = programs.filter((row, index, all) => all.findIndex(entry => entry.module === row.module) === index);
   const sections: ReadonlyMap<PlatformDataSectionName, unknown> = new Map([
   ['actors/spawn-scripts', [chargeRows]],
   ['actors/return-scripts', [...legacy, projection('nalati.admission.projection',admission.v2), projection('nalati.held-weapons.projection', held),
-    projection('nalati.titan.projection', titanProgram.attack.v2),projection('nalati.mounts.projection',ridingPrograms.approach.v2),projection('nalati.pasture.projection',pasture.v2)]],
+    projection('nalati.titan.projection', titanProgram.attack.v2),projection('nalati.mounts.projection',ridingPrograms.approach.v2),projection('nalati.pasture.projection',titanProgram.wind.v2)]],
 ]);
   return structuredClone(sections);
 }

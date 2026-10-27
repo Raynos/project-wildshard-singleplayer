@@ -1,3 +1,9 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- The named-file reader reads a scratch project's files.
+import {mkdirSync,mkdtempSync,writeFileSync} from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Scratch project paths.
+import {dirname,join} from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- The scratch project lives in the OS temp directory.
+import {tmpdir} from 'node:os';
 import {expect,test} from 'vitest';
 import {parse} from 'valibot';
 import {ReturnModulesSchema,scriptAdmissionRows} from '../src/format/scriptContract';
@@ -8,12 +14,21 @@ import {prepareProjectOutput} from '../src/sdk/projectOutput';
 import {Scope} from '../src/engine/app/scope';
 import {ReturnProgram} from '../src/game/population/returnProgram';
 import {lendNalatiTitan,titanModuleBytes} from './fixtures/nalati-return-modules';
+import {nalatiRidingBlobs,nalatiTitanBlobs} from '../src/shards/nalati-grasslands/generators/output';
+import {NALATI_TITAN} from './fixtures/nalati-titan';
+import {NALATI_RIDING_PROGRAMS,NALATI_RIDING_WASM,NALATI_RIDING_WITNESS_BYTES} from './fixtures/nalati-riding';
 
+// GR6: the named-file reader reads the build program's bytes from a scratch project, as it reads any source
+function scratchProject(files:Record<string,Uint8Array>):string{
+  const root=mkdtempSync(join(tmpdir(),'nalati-titan-'));
+  for(const [name,bytes] of Object.entries(files)){mkdirSync(join(root,dirname(name)),{recursive:true});writeFileSync(join(root,name),bytes);}
+  return root;
+}
 const selected='459dfc9d9f511f4722e23e97079a5f44722a5cdf5734985c535ec8383b396054';
 test('Titan keeps every original witness and metadata byte while selected bytes stay raw',()=>{
   expect(programs.attack.v2.bytes).toBe('');expect(programs.rules.v2.bytes).toBe('');
   expect(titanModuleBytes.length).toBe(33384);expect(hashImmutableBytes(titanModuleBytes)).toBe(selected);
-  expect(programs.compiled.attack).toStrictEqual({source:'behaviour/titan.generated.wasm',bytes:33384,hash:selected});
+  expect(programs.compiled.attack).toStrictEqual({source:'behaviour/nalati.titan.attack.v2.wasm',bytes:33384,hash:selected});
   for(const key of ['attack','rules','wind','fire'] as const){
     const expected=key==='attack'||key==='rules'?'ba56b0de486d84b2dcf05695844f5ad61579d1eb4f3530d5211b85b2568f1e3b':'17a68c74224d7e331d3d53dbb217d44b433254df0897e2b2a064651870d94327';
     expect(programs[key].bytes).toBe('');
@@ -26,10 +41,11 @@ test('Titan keeps every original witness and metadata byte while selected bytes 
 
 test('the standard named-file reader ships that exact admitted module',async()=>{
   const row=programs.attack.v2;
-  const output=await prepareProjectOutput(decodeURIComponent(new URL('../src/shards/nalati-grasslands',import.meta.url).pathname),{blobs:[{
+  const project=scratchProject({[programs.compiled.attack.source]:titanModuleBytes,'behaviour/titan-witness.bin':titanWitnessBytes});
+  const output=await prepareProjectOutput(project,{blobs:[{
     name:'behaviour/nalati.titan.attack.v2.wasm',kind:'wasm',source:programs.compiled.attack.source,options:{dependencies:[hashImmutableBytes(titanWitnessBytes)],critical:true,script:{abi:2,lane:'project',
       pages:row.artifact.pages,ioBytes:row.artifact.ioBytes,compilerRevision:row.artifact.compilerRevision,admissionRevision:row.artifact.admissionRevision}}
-  },{name:'behaviour/titan-witness.bin',kind:'bin',source:'behaviour/titan-witness.generated.bin'}]});
+  },{name:'behaviour/titan-witness.bin',kind:'bin',source:'behaviour/titan-witness.bin'}]});
   const blob=output.blobs[0];if(blob===undefined)throw new Error('Missing raw Titan programme');
   expect(blob.bytes).toEqual(titanModuleBytes);expect(blob.file.path).toBe(`blobs/wasm/${selected}.wasm`);
   expect(blob.file.dependencies).toEqual([hashImmutableBytes(titanWitnessBytes)]);
@@ -82,8 +98,15 @@ test('binary witnesses add no executable to the complete return and spawn invent
 
 test('every witness dependency stays in the critical cohort with its executable',async()=>{
   const {output}=await import('./fixtures/nalati-output-original');
-  for(const name of ['titan','pasture','held','riding']){
+  for(const name of ['held']){
     const row=output.blobs.find(file=>file.name===`behaviour/${name}-witness.bin`);
     expect(row,`${name} witness must not become a render-library root`).toMatchObject({kind:'bin',options:{critical:true}});
   }
+  // GR6: the titan, pasture and riding witnesses are their build programs' named blobs, added beside their modules
+  for(const name of ['titan','pasture']){
+    const row=nalatiTitanBlobs(NALATI_TITAN).find(file=>file.file.name===`behaviour/${name}-witness.bin`);
+    expect(row?.file,`${name} witness must not become a render-library root`).toMatchObject({kind:'bin',critical:true});
+  }
+  const [riding]=nalatiRidingBlobs({programs:NALATI_RIDING_PROGRAMS,wasm:NALATI_RIDING_WASM,witness:NALATI_RIDING_WITNESS_BYTES});
+  expect(riding?.file,'riding witness must not become a render-library root').toMatchObject({name:'behaviour/riding-witness.bin',kind:'bin',critical:true});
 });

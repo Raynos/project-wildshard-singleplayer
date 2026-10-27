@@ -62,13 +62,14 @@ test('command operands are detached and retired owners refuse before native appl
 test('mismatched or inferred additional name tables refuse before instantiating a module',()=>{
   const scope=new Scope('titan.invalid-additional'),allocate=vi.spyOn(WebAssembly,'Instance');
   try{
-    const v2=programs.attack.v2;
+    const v2=programs.attack.v2,additional=v2.additional;
+    if(additional===undefined)throw new Error('Missing the Titan additional name tables');
     const corruptions=[
       {...v2,additional:undefined},
-      {...v2,additional:{...v2.additional,signals:['zzzzIgnite']}},
-      {...v2,additional:{...v2.additional,signals:['zzzzIgnite','zzzzDismount']}},
-      {...v2,additional:{...v2.additional,signals:[...v2.additional.signals,'zzzzUnknown']}},
-      {...v2,additional:{...v2.additional,signals:['bossBegin',...v2.additional.signals]}},
+      {...v2,additional:{...additional,signals:['zzzzIgnite']}},
+      {...v2,additional:{...additional,signals:['zzzzIgnite','zzzzDismount']}},
+      {...v2,additional:{...additional,signals:[...additional.signals,'zzzzUnknown']}},
+      {...v2,additional:{...additional,signals:['bossBegin',...additional.signals]}},
     ];
     for(const selected of corruptions)expect(()=>ReturnProgram.page({...programs.attack,v2:selected},scope)).toThrow();
     expect(allocate).not.toHaveBeenCalled();

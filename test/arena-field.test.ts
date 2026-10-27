@@ -8,7 +8,7 @@ import { Scope } from '../src/engine/app/scope';
 import { ProjectedState,ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
 import {titanPrograms as program} from './fixtures/titanInlineWitness';
-import fight from '../src/shards/nalati-grasslands/data/stormTitanFight.generated.json' with { type: 'json' };
+import * as fight from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import { TITAN_TRAIL, TITAN_FIRE_FIELD } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 
 let programmeScope:Scope;

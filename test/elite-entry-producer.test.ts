@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { nalatiEliteRows } from './fixtures/nalati-headless';
-import { headlessAssembly } from '../src/shards/nalati-grasslands/generators/nativeGroups';
+import { NALATI_HEADLESS_ASSEMBLY as headlessAssembly } from './fixtures/nalati-headless-assembly';
 import { readPouncerSpec, readHowlerSpec } from '../src/engine/ai/stalker';
 import { buildEliteEntryRows, buildEliteEntryPageRows } from '../src/shards/nalati-grasslands/generators/eliteEntryRows';
 import ecology from '../src/shards/nalati-grasslands/data/ecology.generated.json' with { type: 'json' };
