@@ -1757,23 +1757,6 @@ const WholePartition = wholeV.strictObject({ id: wholeV.string(), vertices: Whol
   // I3: the partition's positions are unnormalized Int16 on this grid of its whole shape (sdk/bake/props `wholeGrid`)
   grid: wholeV.exactOptional(wholeV.strictObject({ origin: wholeV.tuple([wholeV.number(), wholeV.number(), wholeV.number()]), step: wholeV.pipe(wholeV.number(), wholeV.minValue(1 / 4096), wholeV.maxValue(1)) })) });
 function isWholeMesh(node: Object3D): node is Mesh { return node instanceof Mesh; }
-/** I3: a gridded partition's Int16 positions back to float in its shape's own space (every partition of a shape shares
- *  the grid, so a shared vertex reads back the same float in each) */
-function dequantizeWhole(geometry: BufferGeometry, grid: { readonly origin: readonly [number, number, number]; readonly step: number }): void {
-  const position = geometry.getAttribute('position');
-  const source = position instanceof InterleavedBufferAttribute ? position.data.array : position.array;
-  if (!(source instanceof Int16Array) || position.normalized || position.itemSize !== 3) throw new Error('Whole grid needs Int16 positions');
-  const stride = position instanceof InterleavedBufferAttribute ? position.data.stride : 3, offset = position instanceof InterleavedBufferAttribute ? position.offset : 0;
-  const out = new Float32Array(position.count * 3);
-  const [x, y, z] = grid.origin, step = grid.step;
-  for (let i = 0; i < position.count; i++) {
-    const read = offset + i * stride, write = i * 3;
-    out[write] = (source[read] ?? 0) * step + x;
-    out[write + 1] = (source[read + 1] ?? 0) * step + y;
-    out[write + 2] = (source[read + 2] ?? 0) * step + z;
-  }
-  geometry.setAttribute('position', new BufferAttribute(out, 3));
-}
 function wholeStorage(row: wholeV.InferOutput<typeof WholeAttribute>, count: number): BufferAttribute {
   const n = row.itemSize * count;
   if (row.storage === 'Float16Array') return new Float16BufferAttribute(new Uint16Array(n), row.itemSize, row.normalized);
@@ -1795,8 +1778,12 @@ class WholeGeometryAssembler {
     const pose: unknown = node.userData['matrix64'] ?? (node instanceof InstancedMesh && node.count === 1 && Array.isArray(instances) && instances.length === 1 ? instances[0] : undefined);
     const row = wholeV.parse(WholePartition, metadata), channels = wholeV.parse(WholeNative, native), signature = JSON.stringify(channels);
     const values = wholeV.parse(wholeV.pipe(wholeV.array(wholeV.pipe(wholeV.number(), wholeV.finite())), wholeV.length(16)), pose), input = nativeWholeGeometry(node, ownership, true);
-    if (row.grid !== undefined) dequantizeWhole(input, row.grid);
     try {
+      if (row.grid !== undefined) {
+        const position = input.getAttribute('position');
+        const source = position instanceof InterleavedBufferAttribute ? position.data.array : position.array;
+        if (!(source instanceof Int16Array) || position.normalized || position.itemSize !== 3) throw new Error('Whole grid needs Int16 positions');
+      }
       let group = this.groups.get(row.id);
       if (group === undefined) {
         const output = new BufferGeometry();
@@ -1814,7 +1801,7 @@ class WholeGeometryAssembler {
         if (!(source instanceof BufferAttribute || source instanceof InterleavedBufferAttribute) || !(destination instanceof BufferAttribute)) throw new Error('Whole channel layout differs');
         return { from: source instanceof InterleavedBufferAttribute ? source.data.array : source.array, fromSize: source.itemSize,
           stride: source instanceof InterleavedBufferAttribute ? source.data.stride : source.itemSize, offset: source instanceof InterleavedBufferAttribute ? source.offset : 0,
-          count: source.count, to: destination.array, toSize: destination.itemSize };
+          count: source.count, to: destination.array, toSize: destination.itemSize, grid: name === 'position' ? row.grid : undefined };
       });
       const seen = group.seen, vertices = row.vertices;
       // Which listed vertices an earlier node (or an earlier entry of this list) already wrote, then one channel at a
@@ -1825,8 +1812,24 @@ class WholeGeometryAssembler {
         if (!(vertex < seen.length)) throw new Error('Whole vertex ordinal outside source');
         shared[local] = seen[vertex] ?? 0; seen[vertex] = 1;
       }
-      for (const { from, fromSize, stride, offset, count, to, toSize } of copies) {
+      for (const { from, fromSize, stride, offset, count, to, toSize, grid } of copies) {
         if (vertices.length > count) throw new Error('Whole channel layout differs');
+        if (grid !== undefined) {
+          // Restore directly into the final ordinal array. The original
+          // temporary Float32 attribute rounded before shared-byte comparison;
+          // keep that exact boundary without allocating/copying it first.
+          const [originX, originY, originZ] = grid.origin, step = grid.step;
+          for (let local = 0; local < vertices.length; local++) {
+            const read = offset + local * stride, write = (vertices[local] ?? 0) * toSize;
+            if (write + fromSize > to.length) throw new RangeError('Whole channel write outside source');
+            const x = Math.fround((from[read] ?? 0) * step + originX);
+            const y = Math.fround((from[read + 1] ?? 0) * step + originY);
+            const z = Math.fround((from[read + 2] ?? 0) * step + originZ);
+            if (shared[local] === 1 && (!Object.is(x, to[write]) || !Object.is(y, to[write + 1]) || !Object.is(z, to[write + 2]))) throw new Error('Whole shared vertex differs');
+            to[write] = x; to[write + 1] = y; to[write + 2] = z;
+          }
+          continue;
+        }
         // Ordinals arrive as start/length runs: a run of new vertices in the same element type is one block copy.
         const block = fromSize === toSize && stride === fromSize && offset === 0 && from.constructor === to.constructor;
         for (let local = 0; local < vertices.length; local++) {
