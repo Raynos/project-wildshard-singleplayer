@@ -109,10 +109,10 @@ it('packs encoded textures at the exact cap without changing small-body envelope
  expect(packs.map(pack=>pack.entries.map(entry=>entry.hash))).toEqual([hashes.slice(4,6),hashes.slice(0,1),hashes.slice(1,3)]);
  for(const pack of packs){
   const wire=readFileSync(resolve(directory,pack.path));expect(hashImmutableBytes(wire)).toBe(pack.hash);
-  for(const entry of pack.entries)expect(wire.subarray(entry.offset,entry.offset+entry.bytes)).toEqual(Buffer.from(assets.get(entry.hash)??[]));
+  for(const entry of pack.entries){const original=assets.get(entry.hash);if(original===undefined)throw new Error('Missing exact envelope member');expect(wire.subarray(entry.offset,entry.offset+entry.bytes).equals(original)).toBe(true);}
  }
  const restored=validateOutputProduct(directory);expect(restored.shard).toEqual(shard);
- for(const [hash,body] of assets)expect(restored.assets.get(hash)).toEqual(body);
+ for(const [hash,body] of assets){const actual=restored.assets.get(hash);if(actual===undefined)throw new Error('Missing restored envelope member');expect(Buffer.from(actual).equals(body)).toBe(true);}
 });
 
 it('keeps explicit phone, desktop and shared pack bodies separate in each admission phase',()=>{
@@ -148,12 +148,13 @@ it('does not publish grid evidence before entry admission succeeds',()=>{
  expect(existsSync(resolve(directory,'validation.json'))).toBe(false);
 });
 
-it('separates implicit entry alternatives from demanded pack members without tier labels',()=>{
- const shard=source(),directory=output(),bodies=[new Uint8Array(70000).fill(41),new Uint8Array(80000).fill(42),new Uint8Array(90000).fill(43)];
+it.each(['binary','ktx2'] as const)('separates implicit %s alternatives from demanded pack members without tier labels',kind=>{
+ const shard=source(),directory=output(),bodies=kind==='ktx2'?[textureBody(1_100_000,41),textureBody(1_200_000,42),textureBody(1_300_000,43)]:[new Uint8Array(70000).fill(41),new Uint8Array(80000).fill(42),new Uint8Array(90000).fill(43)];
  const assets=new Map(bodies.map(body=>[hashImmutableBytes(body),body])),hashes=[...assets.keys()];
- shard.files=[...assets].map(([hash,body])=>({hash,kind:'binary' as const,compressed:body.length,decoded:body.length,gpu:0,triangles:0,draws:0,dependencies:[],critical:false}));
- shard.library=hashes;shard.budgets.library={resident:240000,compressed:240000};
- const namedFiles=shard.files.map((file,i)=>({...file,kind:'bin' as const,path:`blobs/bin/${file.hash}.bin`,name:`implicit-${i}.bin`,...(i<2?{variantOf:'same-payload'}:{})}));
+ shard.files=[...assets].map(([hash,body])=>({hash,kind,compressed:body.length,decoded:kind==='ktx2'?0:body.length,gpu:kind==='ktx2'?4:0,triangles:0,draws:0,dependencies:[],critical:false}));
+ shard.library=hashes;shard.budgets.library={resident:4_000_000,compressed:4_000_000};
+ const extension=kind==='ktx2'?'ktx2':'bin';
+ const namedFiles=shard.files.map((file,i)=>({...file,kind:kind==='ktx2'?'ktx2' as const:'bin' as const,path:`blobs/${extension}/${file.hash}.${extension}`,name:`implicit-${i}.${extension}`,...(i<2?{variantOf:'same-payload'}:{})}));
  shard.files.sort((a,b)=>a.hash.localeCompare(b.hash));
  const index=writeOutputProduct(shard,assets,directory,{namedFiles});
  const packs=(index.packs??[]).filter(pack=>pack.entries.some(entry=>assets.has(entry.hash)));
@@ -165,7 +166,7 @@ it('separates implicit entry alternatives from demanded pack members without tie
  expect(index.files.every(file=>file.tier===undefined)).toBe(true);
  const restored=validateOutputProduct(directory);
  expect(restored.shard).toEqual(shard);
- for(const [hash,wire] of assets)expect(restored.assets.get(hash)).toEqual(wire);
+ for(const [hash,wire] of assets){const actual=restored.assets.get(hash);if(actual===undefined)throw new Error('Missing restored alternative');expect(Buffer.from(actual).equals(wire)).toBe(true);}
 });
 
 it.each(['cold','critical','dependency','played'] as const)('packs %s whole-library readers in the same phase as admission',mode=>{
