@@ -143,10 +143,14 @@ export async function installDeclaredProps(props: DeclaredProps, ports: {
     for (const mesh of instanced) disposeInstanced(mesh);
   };
   ports.scope.onDispose(() => { disposed = true; roots.removeFromParent(); releaseAll(); });
+  // js-heap H6: the inner closures share one context, and disposeTile and the dispose hook live as long as the props, so
+  // they capture these fields rather than `ports`; the transport map is dropped once every GLB is parsed.
+  const { scope, textures, surfaces } = ports;
+  let assets: ReadonlyMap<string, Uint8Array> | undefined = ports.assets;
   const parse = async (hash: string): Promise<Object3D> => {
-    const bytes = ports.assets.get(hash); if (bytes === undefined) throw new Error('Missing admitted props GLB');
+    const bytes = assets?.get(hash); if (bytes === undefined) throw new Error('Missing admitted props GLB');
     const gltf = await (await prepareRigLoader()).createRigLoader().parseBytesAsync(bytes, '');
-    const textureRef = props.textures.find((t) => t.model === hash)?.colour, texture = textureRef === undefined ? undefined : ports.textures?.get(textureRef);
+    const textureRef = props.textures.find((t) => t.model === hash)?.colour, texture = textureRef === undefined ? undefined : textures?.get(textureRef);
     if (textureRef !== undefined && texture === undefined) throw new Error('Missing admitted props texture');
     gltf.scene.traverse((o) => {
       if (!isMesh(o)) return;
@@ -156,7 +160,7 @@ export async function installDeclaredProps(props: DeclaredProps, ports: {
       if (isInstanced(o)) instanced.add(o);
       const original = Array.isArray(o.material) ? o.material : [o.material];
       const vertexColours = o.geometry.hasAttribute('color');
-      const named = ports.surfaces;
+      const named = surfaces;
       const familyConvert = (source: Material | undefined): Material => {
         const glb = source === undefined ? null : surfaceOf(source), standard = source instanceof MeshStandardMaterial ? source : null;
         const m = acquireVariant(family, { colour: glb?.color ?? null, roughness: standard?.roughness ?? null, metalness: standard?.metalness ?? null, map: texture, vertexColours,
@@ -171,7 +175,7 @@ export async function installDeclaredProps(props: DeclaredProps, ports: {
         if (binding.compiled === true || isNodeMaterial(binding.material)) {
           const mapped: unknown = source === undefined ? undefined : Reflect.get(source, 'map');
           const map = binding.maps.colour ?? texture ?? (mapped instanceof Texture ? mapped : undefined);
-          const material = bindGraphMeshMap(binding.material, map, ports.scope);
+          const material = bindGraphMeshMap(binding.material, map, scope);
           source?.dispose(); return material;
         }
         const glb = source === undefined ? null : surfaceOf(source), standard = source instanceof MeshStandardMaterial ? source : null, base = binding.material;
@@ -198,6 +202,7 @@ export async function installDeclaredProps(props: DeclaredProps, ports: {
     for (const panel of ports.includeLibrary === false || (ports.lod ?? 0) !== 0 ? [] : props.panels) { const root = await parse(panel.file); root.visible = panel.visible ?? true; panels.set(panel.id, root); roots.add(root); }
     for (const model of ports.includeLibrary === false ? [] : props.models) models.set(model.id, await parse(model.file));
     const far = props.far === null || ports.lod !== 'far' ? null : await parse(props.far); if (far !== null) { far.visible = ports.lod === 'far'; roots.add(far); }
+    assets = undefined;
     const disposeTile = (key: string): void => {
       const root = tiles.get(key); if (root === undefined) return; root.removeFromParent(); tiles.delete(key);
       root.traverse((o) => {
