@@ -1,8 +1,7 @@
 import { Color, Matrix4, Quaternion, Vector3, Vector4 } from 'three';
-import { zlibSync } from 'fflate';
+import { encodePortableBytes } from '@wildshard/sdk/bake/portableBytes';
 import * as v from 'valibot';
-import { LightEmitters } from '@wildshard/engine/fx/lightEmitters';
-import type { LightPoolRow } from '@wildshard/format/lightEmitters';
+import { bakeLightSources, type AuthoredLightEmitter } from '@wildshard/sdk/bake/lightSources';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { bakeLightVolume } from './lightVolume';
 import { neonSize } from './signMath';
@@ -33,10 +32,10 @@ export const LightPoolProfilesSchema: v.StrictObjectSchema<{ readonly maximum: v
 type LightPoolProfiles = v.InferOutput<typeof LightPoolProfilesSchema>;
 /** The existing emitter layout projects numeric pool rows; the shared host materialises both volume and uniform views. */
 export function lightPoolRows(opt: { readonly lanterns: readonly EmitterLike[]; readonly ctxEmitters: readonly EmitterLike[];
-  readonly signs: readonly EmitterLike[]; readonly windows: readonly WindowLike[] }, POOL: LightPoolProfiles): LightPoolRow[] {
+  readonly signs: readonly EmitterLike[]; readonly windows: readonly WindowLike[] }, POOL: LightPoolProfiles): AuthoredLightEmitter[] {
   const shops = opt.ctxEmitters.filter((e) => !isLamp(e));
   const lamps = opt.ctxEmitters.filter(isLamp).map((e) => e.at);
-  const rows: LightPoolRow[] = [];
+  const rows: AuthoredLightEmitter[] = [];
   const push = (at: Vector3, color: Color, gain: number, radius: number, cut: number): void => {
     rows.push({ id: `light.${String(rows.length)}`, at: [at.x, at.y, at.z], colour: [color.r, color.g, color.b], gain, radius, cut, initially: true });
   };
@@ -54,10 +53,10 @@ export function lightPoolRows(opt: { readonly lanterns: readonly EmitterLike[]; 
     push(e.at, e.color, row.k * Math.min(e.power, 1.5), Math.max(row.rMin, row.rPerSize * Math.max(e.w, e.h)), row.cut);
   }
   const point = new Vector3(), normal = new Vector3();
-  for (const window of opt.windows) if (window.win.y > 0) {
-    point.setFromMatrixPosition(window.m); normal.setFromMatrixColumn(window.m, 2).normalize();
-    const h = new Vector3().setFromMatrixColumn(window.m, 1).length(), row = POOL.window;
-    push(point.clone().addScaledVector(normal, row.out).setY(point.y + h * 0.5), window.light, row.k * window.win.y, row.r, row.cut);
+  for (const opening of opt.windows) if (opening.win.y > 0) {
+    point.setFromMatrixPosition(opening.m); normal.setFromMatrixColumn(opening.m, 2).normalize();
+    const h = new Vector3().setFromMatrixColumn(opening.m, 1).length(), row = POOL.window;
+    push(point.clone().addScaledVector(normal, row.out).setY(point.y + h * 0.5), opening.light, row.k * opening.win.y, row.r, row.cut);
   }
   return rows;
 }
@@ -113,7 +112,7 @@ function volumeData(layout: NineSourceWorld['layout'], atlas: NineNativeAtlas): 
   const found = cached.get(layout); if (found?.atlas === identity) return found.data;
   const blobs: NamedBlob[] = [], rows: Record<string, VolumeRow> = {};
   for (const tier of ['phone', 'desktop'] as const) for (const caps of [false, true]) {
-    const lights = new LightEmitters(lightPoolRows(volumeSources(tier, caps, layout, atlas), v.parse(LightPoolProfilesSchema, pools))).volume();
+    const lights = bakeLightSources(lightPoolRows(volumeSources(tier, caps, layout, atlas), v.parse(LightPoolProfilesSchema, pools)));
     const key = `looks/volumes-${tier}-${caps ? 'capped' : 'open'}`;
     const boxes = [{ min: new Vector3(-30, 123, -175), max: new Vector3(110, 171, 28), cell: 1 },
       { min: new Vector3(-30, -100, -46), max: new Vector3(2, 123, 18), cell: 1.5 }];
@@ -122,7 +121,7 @@ function volumeData(layout: NineSourceWorld['layout'], atlas: NineNativeAtlas): 
       const data = tex.image.data;
       if (!(data instanceof Uint8Array)) throw new Error('Nine volume bake has no byte payload');
       const file = `${key}-${index}`;
-      const volume = nameBlob(`${file}.bin`, 'bin', zlibSync(data, { level: 9 }), { decoded: data.length, gpu: data.length });
+      const volume = nameBlob(`${file}.bin`, 'bin', encodePortableBytes(data, 9), { decoded: data.length, gpu: data.length });
       const existing = blobs.find(blob => blob.file.hash === volume.file.hash);
       if (existing === undefined) blobs.push(volume);
       const name = existing?.file.name ?? volume.file.name;

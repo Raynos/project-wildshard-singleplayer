@@ -11562,15 +11562,14 @@ callback, property path, save or gameplay rule enters the feature.
 Shared lamps use SiteLights' fixed inverse-square decay; other values
 refuse admission.
 
-`engine/fx/lightEmitters.LightEmitters` materialises plain numeric rows in
-original order as irradiance-volume sources or a bounded live vector uniform.
-Nine's lantern/window volume and Signal's four firelight slots use this same
-owner. A PBR ground row's `pools.source` names its owning emitter input;
-`FamilyContext.emitterPools` resolves that uniform once at compilation.
-Dusk updates retain its identity without copying pools every frame or
-recompiling shaders. The old `setGroundPools` adapter is removed.
-Resident scope lookup lives in `game/shardfile/hybridPresentation`, so
-quest presentation does not import the runtime lifecycle.
+`engine/fx/lightEmitters.LightEmitters` materialises ordered numeric rows
+as irradiance sources or a bounded live uniform. Author code uses
+`@wildshard/sdk/bake/lightSources.bakeLightSources(rows)` for detached initial
+sources with the same strict identity, numeric and 16384-row bounds.
+Ground `pools.source` resolves once through `FamilyContext.emitterPools`;
+dusk keeps uniform identity without copies or shader recompilation.
+`game/shardfile/hybridPresentation` owns resident lookup, outside quest
+presentation. The old `setGroundPools` adapter is removed.
 
 ### Eased weather fields (G474, G484, G486)
 

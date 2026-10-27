@@ -53,6 +53,7 @@
     "./bake/simplifier": "./bake/simplifier.ts",
     "./bake/glb": "./bake/glb.ts",
     "./bake/specimenCatalogue": "./bake/specimenCatalogue.ts",
+    "./bake/lightSources": "./bake/lightSources.ts",
     "./bake/coarseCopy": "./bake/coarseCopy.ts",
     "./bake/glbCompression": "./bake/glbCompression.ts",
     "./bake/compactGlb": "./bake/compactGlb.ts",
@@ -325,6 +326,10 @@
       "./bake/glb": {
         "types": "./dist/types/sdk/bake/glb.d.ts",
         "default": "./dist/bake/glb.js"
+      },
+      "./bake/lightSources": {
+        "types": "./dist/types/sdk/bake/lightSources.d.ts",
+        "default": "./dist/bake/lightSources.js"
       },
       "./bake/specimenCatalogue": {
         "types": "./dist/types/sdk/bake/specimenCatalogue.d.ts",
