@@ -112,9 +112,14 @@ existing import selector and type-project membership with declared generator
 roots/outputs and CF3's product-consumer registry. It reads index bytes only.
 Selected-test product prerequisites do not recursively expand the touched
 consumer cohort; shared source/recipe changes include every primary output.
-The live hooks stay on committed code until candidate execution is qualified.
-Remaining: wire commit/push consumers, exact candidate types/products, G757
-split/tag handling, and the original SW11 long-cohort cost refusal.
+Selection producer `3a17943f8e` is done. Checker snapshot producer
+`2245e4ea61` is done; the wrapper now loads its controller and both CF1 entry
+modules from the checked parent, preserving unfinished shared-tree edits.
+Two real-wrapper controls failed before this wiring: loose policy could both
+reject a valid candidate and bypass a committed refusal. All five isolation
+controls pass after it. Unknown hooks retain whole-parent freshness checking.
+Remaining: wire exact candidate types/products and commit/push consumers,
+G757 split/tag handling, and the original SW11 long-cohort cost refusal.
 
 ## Questions for Jake
 

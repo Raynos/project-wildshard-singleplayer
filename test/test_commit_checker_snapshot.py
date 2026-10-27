@@ -72,6 +72,42 @@ class CheckerSnapshotTest(unittest.TestCase):
         self.assertEqual(snapshot(self.root, 'HEAD', self.root / 'owned-pin', self.env), self.env)
         self.assertFalse((self.root / 'owned-pin').exists())
 
+    def real_wrapper(self, reject=False):
+        self.put('scripts/commit-checker-snapshot.py',
+                 (ROOT / 'scripts/commit-checker-snapshot.py').read_text())
+        self.put('scripts/precommit-inputs.mjs', "throw Error('committed checker refusal');" if reject
+                 else "import{value}from'./precommit-related.mjs';if(value!=='committed')throw Error('wrong checker');")
+        self.put('.githooks/pre-commit', '#!/bin/sh\nexec node scripts/precommit-inputs.mjs\n')
+        hook = self.root / '.githooks/pre-commit'
+        hook.chmod(0o755)
+        self.git('add', '.')
+        self.git('commit', '-qm', 'install checker')
+        self.git('config', 'core.hooksPath', '.githooks')
+        parent = self.git('rev-parse', 'HEAD').stdout.strip()
+        self.put('scripts/commit-checker-snapshot.py', "raise RuntimeError('loose controller poison')\n")
+        self.put('scripts/precommit-inputs.mjs', "export const rescue='loose';" if reject
+                 else "throw Error('loose checker poison');")
+        self.put('scripts/precommit-related.mjs', "throw Error('loose related poison');")
+        self.put('src/user.mjs', "export const value='changed';")
+        result = subprocess.run(['bash', str(ROOT / 'scripts/commit.sh'),
+            'test(commit): pin checker policy', '--', 'src/user.mjs'], cwd=self.root,
+            env=self.env, text=True, capture_output=True, check=False, timeout=15)
+        return parent, result
+
+    def test_real_wrapper_pins_parent_and_preserves_uncommitted_checker_poison(self):
+        parent, result = self.real_wrapper()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertNotEqual(self.git('rev-parse', 'HEAD').stdout.strip(), parent)
+        self.assertIn('changed', self.git('show', 'HEAD:src/user.mjs').stdout)
+        self.assertIn('loose checker poison', (self.root / 'scripts/precommit-inputs.mjs').read_text())
+        self.assertIn('loose controller poison', (self.root / 'scripts/commit-checker-snapshot.py').read_text())
+
+    def test_real_wrapper_keeps_committed_refusal_against_loose_rescue(self):
+        parent, result = self.real_wrapper(reject=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('committed checker refusal', result.stdout + result.stderr)
+        self.assertEqual(self.git('rev-parse', 'HEAD').stdout.strip(), parent)
+
 
 if __name__ == '__main__':
     unittest.main()

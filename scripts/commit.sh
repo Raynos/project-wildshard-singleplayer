@@ -220,9 +220,25 @@ try:
         (view / "commondir").write_text(common + "\n")
         check_env = {**candidate_env, "GIT_DIR": str(view), "GIT_COMMON_DIR": common,
                      "GIT_WORK_TREE": os.getcwd(), "GIT_EDITOR": ":", "WS_COMMIT_READ_SET": str(read_set)}
+        # Execute installed CF1 policy from the committed parent, never another
+        # lane's unfinished entry-module edits. Ordinary candidate source still
+        # flows through the normal staged-byte adapter used by those checkers.
+        checker_path = "scripts/commit-checker-snapshot.py"
+        checker_installed = git("ls-tree", "--name-only", parent, "--", checker_path).strip()
+        if checker_installed:
+            controller = scratch / "checker-controller.py"
+            controller.write_bytes(git("show", parent + ":" + checker_path))
+            check_env = runpy.run_path(str(controller))["snapshot_checkers"](
+                os.getcwd(), parent, scratch / "checkers", check_env)
         code = subprocess.run(["git", "hook", "run", "--ignore-missing", "pre-commit"], env=check_env).returncode
         if code:
             raise SystemExit(code)
+        if checker_installed and read_set.exists():
+            # Only extend an actual hook read set. Creating one for an unknown
+            # hook would defeat its conservative whole-parent freshness check.
+            with read_set.open("a") as output:
+                output.write(json.dumps(dict(root=os.getcwd(), paths=[checker_path,
+                    "scripts/precommit-inputs.mjs", "scripts/precommit-related.mjs"])) + "\n")
         # Keep all remaining hooks (message policy, signing and post-commit)
         # on Git's normal path. Only pre-commit consumes the already-run proof.
         dispatch = scratch / "hooks"
