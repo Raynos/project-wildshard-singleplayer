@@ -4,7 +4,7 @@ import { TREE_REST_FILE, TREE_SET } from './treeSet';
 import { NativeQuestCompositionSchema, NativeQuestServiceSpotsSchema, parseNativeQuestServiceSpots } from '@wildshard/format/nativeQuestComposition';
 import forestWeather from '../data/forestWeather.json' with { type: 'json' };
 import { forestStory } from './forestStory';
-import { questPage } from './pageComposition';
+import { questPage, questPageBlob } from './pageComposition';
 import { pineSpots } from './spots';
 import { rangedPage } from './rangedPage';
 import { forestPage } from './forestPage';
@@ -332,11 +332,15 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Pine
   const peopleFile = emitNamedBlobs([nameBlob('people/catalogue.json', 'json', new TextEncoder().encode(encodeCanonicalJson(pineFigureCatalogue(people.rows))))]);
   const drawFile = emitNamedBlobs([nameBlob('look/wildlife-draw.json', 'json', new TextEncoder().encode(encodeCanonicalJson(wildlifeDraw(flock.ranges))))]);
   const lifeProgram = { script: life.script, bytes: '' };
+  // D97: the quest page's chapter runs the compiled lead as the quest runtime does (the static page names its unset module)
+  const page = emitNamedBlobs([questPageBlob(questPage(sources).PINE_QUEST_PAGE, lifeProgram)]), stale = output.namedFiles.find(file => file.name === 'quests/page-composition.json');
+  if (stale === undefined) throw new Error('Pine quest page is missing from the static output');
   const programs = emitNamedBlobs([nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...pageLife(await pineAmbientPerches(ctx)), program: lifeProgram }))),
     nameBlob('actors/shelter.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ step: 'pine.rain-shelter', environment: 'pine.habitat', roster: 'pine.roster', weather: 'pine.air', herdLimit: 512, look: shelterLook, program: { script: shelter.script, bytes: '' } })))]);
-  const namedFiles = [...output.namedFiles, ...trees.files, ...heroMaterials.files, ...timberMaterials.files, life.file, ...birds.files, ...client.files, ...creatures.files, ...rigs.files, ...programs.files, ...contracts.files.files, ...elites.files.files, ...journal.files, ...kingFiles.files, ...flock.files.files, ...drawFile.files, ...people.files.files, ...peopleFile.files, ...coats.files, night.blob.file, clock.file].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
+  const namedFiles = [...output.namedFiles.filter(file => file !== stale), ...page.files, ...trees.files, ...heroMaterials.files, ...timberMaterials.files, life.file, ...birds.files, ...client.files, ...creatures.files, ...rigs.files, ...programs.files, ...contracts.files.files, ...elites.files.files, ...journal.files, ...kingFiles.files, ...flock.files.files, ...drawFile.files, ...people.files.files, ...peopleFile.files, ...coats.files, night.blob.file, clock.file].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
   const assets = new Map([...output.assets, ...trees.assets, ...heroMaterials.assets, ...timberMaterials.assets, ...birds.assets, ...client.assets, ...creatures.assets, ...rigs.assets, ...programs.assets, ...contracts.files.assets, ...elites.files.assets, ...journal.assets, ...kingFiles.assets, ...flock.files.assets, ...drawFile.assets, ...people.files.assets, ...peopleFile.assets, ...coats.assets, [night.blob.file.hash, night.blob.bytes], [clock.file.hash, clock.bytes]]);
   assets.set(life.file.hash, life.bytes);
+  assets.delete(stale.hash); for (const [hash, bytes] of page.assets) assets.set(hash, bytes);
   const sortedAssets = [...assets].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
   const platform = emitPlatformSections(new Map<PlatformDataSectionName, unknown>([...platformRows, ['actors/return-scripts', [life.script, shelter.script, contracts.script]], ['actors/spawn-scripts', [night.row, ...elites.programs]]]));
   const customRows = emitCustom(sources, new Map<string, unknown>([['custom/questRuntime', { ...PINE_QUEST_PAYLOAD, lead: { ...PINE_QUEST_PAYLOAD.lead, program: lifeProgram } }], ['custom/kingKit', king.rows]]));

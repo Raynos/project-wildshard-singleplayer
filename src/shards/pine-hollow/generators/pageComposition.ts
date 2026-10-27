@@ -51,8 +51,12 @@ export const questPage: (sources: PineSources) => QuestPage = perSources((source
     placeInterval: 0.5, jumps: story.jumps, browser: story.debug.browser,
     systems: { kit: 'quest.kit', kitAfter: ['engine.compendium.installCompendium'], talks: 'quest', cable: 'quest.cable', places: 'quest.places', before },
   });
-  /** the page's published rows (game shard install reads them as Driftwood's: quests/page-composition.json) */
-  const PINE_QUEST_PAGE_BLOB: NamedBlobType = nameBlob('quests/page-composition.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_QUEST_PAGE)),
-    { jsonSchema: namedJsonSchema(QuestPageSchema) });
-  return { PINE_QUEST_PAGE, PINE_QUEST_PAGE_BLOB };
+  return { PINE_QUEST_PAGE, PINE_QUEST_PAGE_BLOB: questPageBlob(PINE_QUEST_PAGE, PINE_QUEST_PAGE.chapter?.program) };
 });
+
+/** The page's published rows (game shard install reads them as Driftwood's: quests/page-composition.json), its chapter on
+ *  `program`: D97, `prepareOutput` passes the lead's compiled program (the static rows name the lead's unset module). */
+export function questPageBlob(page: QuestPageRowsType, program: unknown): NamedBlobType {
+  const rows = v.parse(QuestPageSchema, { ...page, chapter: { ...page.chapter, program } });
+  return nameBlob('quests/page-composition.json', 'json', new TextEncoder().encode(encodeCanonicalJson(rows)), { jsonSchema: namedJsonSchema(QuestPageSchema) });
+}
