@@ -9,6 +9,9 @@
 // loads no shard runtime or legacy code. Every run bakes in memory; --check writes nothing.
 //
 //   scripts/browser-lane.sh node scripts/bake-textures.mjs [--chunk pine-hollow|driftwood-isle|--all] [--check]
+//
+// GR9 (G798): a plain script, run by hand when the painters change; its outputs are committed files, not catalogue
+// outputs, and --check verifies them.
 import { existsSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { build } from 'vite';
