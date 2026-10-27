@@ -289,7 +289,8 @@ GEN_ARGS="--proof"; SHARDFILE_ARGS="--reuse"
 [ -n "$SHARDS" ] && SHARDFILE_ARGS="$SHARDFILE_ARGS --shard=$SHARDS"
 ( cd "$SRC" && python3 "$REPO/scripts/heavy-lane.py" build -- bash -c \
   'step() { local s=$SECONDS; "$@" || return; echo "serve-build step $1 $2: $((SECONDS - s))s"; }
-   step node scripts/gen.mjs $3 && step node scripts/build-shardfiles.mjs $4 && step pnpm exec vite build --mode "$1" --config "$2"' \
+   app="pnpm exec vite build"; [ -f scripts/build-app.mjs ] && app="node scripts/build-app.mjs"   # a --rev tree may predate it
+   step node scripts/gen.mjs $3 && step node scripts/build-shardfiles.mjs $4 && step $app --mode "$1" --config "$2"' \
   bash "$MODE" "$CFG" "$GEN_ARGS" "$SHARDFILE_ARGS" ) > "$BASE/$stamp/build.log" 2>&1 \
   || { echo "serve-build: build failed; stderr/stdout tail from $BASE/$stamp/build.log:" >&2; tail -60 "$BASE/$stamp/build.log" >&2
          # the build directory goes with the failed preview: keep its whole log (a shard's first error sits above the tail)

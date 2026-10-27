@@ -17,6 +17,8 @@ STEPS='pnpm exec vite build'
 if [ -f scripts/gen.mjs ]; then STEPS='node scripts/gen.mjs && pnpm exec vite build'; fi
 # build-shardfiles.mjs arrived after gen.mjs (the 1–3 Oct Sky Reach SHAs have gen.mjs only)
 if [ -f scripts/build-shardfiles.mjs ]; then STEPS='node scripts/gen.mjs && node scripts/build-shardfiles.mjs && pnpm exec vite build'; fi
+# the app build script (D24) arrived after both; older SHAs build with a bare vite build
+if [ -f scripts/build-app.mjs ]; then STEPS="${STEPS/pnpm exec vite build/node scripts\/build-app.mjs}"; fi
 echo "[$L] build: $STEPS"
 python3 "$REPO/scripts/heavy-lane.py" build -- bash -c "$STEPS" 2>&1 | tail -4
 cp SHA dist/SHA

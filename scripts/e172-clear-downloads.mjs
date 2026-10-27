@@ -53,7 +53,7 @@ const proxy = http.createServer((req, res) => {
 proxy.listen(PROXY_PORT);
 const URL0 = `${BASE}/?nolock=1&mute=1&touch=1&tier=phone&chunk=driftwood-isle`;
 
-if (!has('no-build')) execSync('npx vite build', { cwd: ROOT, stdio: 'inherit' });
+if (!has('no-build')) execSync('node scripts/build-app.mjs', { cwd: ROOT, stdio: 'inherit' });
 const preview = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] });
 const cleanup = () => { if (!preview.killed) preview.kill('SIGTERM'); proxy.close(); };
 process.on('exit', cleanup); process.on('SIGINT', () => { cleanup(); process.exit(130); });

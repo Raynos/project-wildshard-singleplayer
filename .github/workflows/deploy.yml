@@ -140,7 +140,7 @@ jobs:
         if: env.DEPLOY == 'true' && steps.live.outputs.skip != 'true' && steps.pin.outputs.ci_green != 'true'
         run: |
           pnpm test
-          python3 scripts/heavy-lane.py build -- pnpm exec vite build
+          python3 scripts/heavy-lane.py build -- node scripts/build-app.mjs
           node scripts/check-devserver.mjs dist
 
       # SF74 W16: push / PR CI runs test:checks' commands and the vite build + chunk check at once (serial ~205 s on the
@@ -154,7 +154,7 @@ jobs:
         run: zstd -d --rm test-products.tar.zst
       - name: Verify preparation, checks and build (parallel)
         if: env.DEPLOY != 'true'
-        run: python3 scripts/ci-fail-fast.py -- node scripts/build-without-browser.mjs -- node scripts/ci-checks.mjs --prepared 'python3 scripts/heavy-lane.py build -- pnpm exec vite build && node scripts/check-devserver.mjs dist'
+        run: python3 scripts/ci-fail-fast.py -- node scripts/build-without-browser.mjs -- node scripts/ci-checks.mjs --prepared 'python3 scripts/heavy-lane.py build -- node scripts/build-app.mjs && node scripts/check-devserver.mjs dist'
 
       - name: CSS check
         if: steps.live.outputs.skip != 'true'

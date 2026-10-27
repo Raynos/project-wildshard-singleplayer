@@ -1037,7 +1037,9 @@ function exportTree(ref) {
     if (!nm) { console.error('no node_modules with vite next to this checkout'); process.exit(2); }
     linkNodeModules(dirname(nm), dir); // E432: @wildshard/* → this export
     console.error('> vite build');
-    execSync(`node "${join(dir, 'node_modules/vite/bin/vite.js')}" build`, { cwd: dir, stdio: ['ignore', 'ignore', 'inherit'] });
+    // the export's own app build script (D24), else a bare vite build for a ref that predates it
+    const app = existsSync(join(dir, 'scripts/build-app.mjs')) ? 'node scripts/build-app.mjs' : `node "${join(dir, 'node_modules/vite/bin/vite.js')}" build`;
+    execSync(app, { cwd: dir, stdio: ['ignore', 'ignore', 'inherit'] });
   } else console.error(`> reusing ${dir}/dist`);
   return dir;
 }
