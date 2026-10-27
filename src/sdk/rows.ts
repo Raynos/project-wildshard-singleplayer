@@ -9,6 +9,7 @@ import { JournalRowSchema as GameJournalRowSchema, journalRowRules as gameJourna
 import { parseContractCatalogue as gameParseContractCatalogue, type ContractCatalogue as GameContractCatalogue } from '@wildshard/format/contracts';
 import { parseAmbientLife as gameParseAmbientLife, type AmbientLifeData as GameAmbientLife } from '@wildshard/format/ambientLife';
 import { parsePageLife as gameParsePageLife, type PageLifeRows as GamePageLifeRows } from '@wildshard/format/pageLife';
+import { PopulationEnvironmentSchema as GamePopulationEnvironmentSchema, type PopulationEnvironmentRows as GamePopulationEnvironment } from '@wildshard/format/populationEnvironment';
 import * as v from 'valibot';
 
 /** Numeric row declarations and registered view/presentation recipes. */
@@ -55,3 +56,7 @@ export function parseAmbientLife(input: unknown): AmbientLife { return gameParse
 export type PageLifeRows = GamePageLifeRows;
 /** Validate a page's life rows before they are serialized (GR8: a shard program calls this). */
 export function parsePageLife(input: unknown): PageLifeRows { return gameParsePageLife(input); }
+/** One admitted population environment (the habitat a roster's herds read). */
+export type PopulationEnvironment = GamePopulationEnvironment;
+/** Validate a population environment before it is serialized (GR8: a shard program calls this). */
+export function parsePopulationEnvironment(input: unknown): PopulationEnvironment { return v.parse(GamePopulationEnvironmentSchema, input); }

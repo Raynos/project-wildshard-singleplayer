@@ -755,8 +755,7 @@
     "ground": {
       "platform": "declared",
       "rows": {
-        "module": "./data/ground.generated.json",
-        "export": "default"
+        "program": true
       }
     },
     "render": {
@@ -786,15 +785,13 @@
     "forestQueries": {
       "platform": "declared",
       "rows": {
-        "module": "./data/geography.generated.json",
-        "export": "default"
+        "program": true
       }
     },
     "pondClip": {
       "platform": "declared",
       "rows": {
-        "module": "./data/pondClip.generated.json",
-        "export": "default"
+        "program": true
       }
     },
     "ktx2": {

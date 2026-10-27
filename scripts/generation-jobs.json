@@ -325,48 +325,6 @@
       "platform": "portable"
     },
     {
-      "id": "pine-geography",
-      "shard": "pine-hollow",
-      "entry": "src/shards/pine-hollow/generators/bake-geography.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/pine-hollow/generators/bake-geography.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/pine-hollow/generators/bake-geography.mjs",
-        "src/shards/pine-hollow/generators/geography.ts",
-        "src/shards/pine-hollow/generators/forestGeography.ts",
-        "src/shards/pine-hollow/generators/floorNoise.ts",
-        "src/shards/pine-hollow/generators/seedStream.ts",
-        "src/shards/pine-hollow/manifest.json",
-        "src/shards/pine-hollow/generators/layout.ts",
-        "scripts/bake-output.mjs",
-        "src/sdk/bake/source-loader.mjs",
-        "src/shards/pine-hollow/data/terrainBindings.json",
-        "src/format/populationEnvironment.ts",
-        "src/format/scalarChannel.ts",
-        "src/shards/pine-hollow/generators/forestRows.ts",
-        "src/sdk/package.json",
-        "src/sdk/bake/byteCodec.ts",
-        "src/sdk/bake/portableBytes.ts"
-      ],
-      "outputs": [
-        "src/shards/pine-hollow/data/geography.generated.json",
-        "public/assets/pine-hollow/scalars/forest-density.bin",
-        "src/shards/pine-hollow/data/ground.generated.json",
-        "src/shards/pine-hollow/data/pondClip.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/pine-hollow/data/geography.generated.json",
-        "public/assets/pine-hollow/scalars/forest-density.bin",
-        "src/shards/pine-hollow/data/ground.generated.json",
-        "src/shards/pine-hollow/data/pondClip.generated.json"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "nalati-rifle-rows",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-rifle.mjs",
@@ -4578,8 +4536,7 @@
         "pine-timber-world",
         "pine-cabin-scenes",
         "pine-cabin-living",
-        "pine-hero-scenes",
-        "pine-geography"
+        "pine-hero-scenes"
       ]
     },
     {
@@ -4721,8 +4678,7 @@
       "platform": "portable",
       "catalogueDependencies": [
         "driftwood-foliage-scenes",
-        "driftwood-pier-scenes",
-        "driftwood-native-specimens"
+        "driftwood-pier-scenes"
       ]
     },
     {

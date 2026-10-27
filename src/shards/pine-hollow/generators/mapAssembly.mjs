@@ -1,4 +1,3 @@
-import { readScalarChannel } from '@wildshard/engine/world/scalarChannel';
 // G508: complete map rest assembly, exclusively from shipping source data.
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -18,6 +17,8 @@ import { pineFloorLayout } from './bake-pine-floor.mjs';
 import * as PINE_LAYOUT from './layout.ts';
 import { bakePineUndergrowth } from './undergrowth.ts';
 import { inBeaverPool } from './geography.ts';
+import { pineGeographyRows } from './geographyRows.ts';
+import { pineForestRows } from './forestRows.ts';
 
 const base = resolve(import.meta.dirname, '..'), root = resolve(base, '../../..');
 const read = file => readMapJson(resolve(base, file));
@@ -72,9 +73,9 @@ export async function pineMapAssembly() {
   }
   assembly.add('pond', new BufferGeometry().setAttribute('position', new Float32BufferAttribute(points, 3)).setIndex(indices));
 
-  const manifest = read('manifest.json'), geography = read('data/geography.generated.json');
-  const densityFile = 'assets/pine-hollow/scalars/forest-density.bin';
-  const density = readScalarChannel(geography.density, new Map([[densityFile, readFileSync(resolve(root, 'public', densityFile))]]));
+  // GR8 G33b: the program's geography rows and the candidates' own densities (the retired pine-geography job's files)
+  const manifest = read('manifest.json'), geography = pineGeographyRows().forestQueries;
+  const density = Float64Array.from(pineForestRows(manifest), row => row.density);
   if (density.length !== geography.forest.length) throw new Error('Map forest density differs');
   const candidates = new Map(geography.forest.map((row,index) => [`${row.x},${row.z}`,{ row,index }]));
   const at = (x, z) => { const row = candidates.get(`${x},${z}`); if (row === undefined) throw new Error('Map forest candidate differs'); return row; };

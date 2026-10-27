@@ -4,19 +4,19 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import * as pine from '../src/shards/pine-hollow/generators/layout';
-import clipRows from '../src/shards/pine-hollow/data/pondClip.generated.json' with { type: 'json' };
 import { creekWaterAt, inBeaverPool as originalPool } from '../src/shards/pine-hollow/generators/geography';
-import groundRows from '../src/shards/pine-hollow/data/ground.generated.json' with { type: 'json' };
 import { declaredForestQueries, declaredGround, declaredPondClip } from '../src/game/shard/manifest';
 import { pondGrid } from '../src/engine/world/pondGrid';
 import { setLiveWaterLevel } from '../src/engine/world/water/declared';
 import { forestDensity, oldGrowthMask, speciesMix } from '../src/shards/pine-hollow/generators/forestGeography';
-import geography from '../src/shards/pine-hollow/data/geography.generated.json' with { type: 'json' };
+import { pineGeographyRows } from '../src/shards/pine-hollow/generators/geographyRows';
 import manifest from '../src/shards/pine-hollow/manifest.json' with { type: 'json' };
 import { PINE_TREE_IDS } from '../src/shards/pine-hollow/generators/treeSet';
 import { ScalarLatticeBindings, readScalarChannel } from '../src/engine/world/scalarChannel';
 import { pineDensityBlob } from '../src/shards/pine-hollow/generators/forestRows';
 
+// GR8 G33b: the program's declared rows (the retired pine-geography job's files)
+const { pondClip: clipRows, ground: groundRows, forestQueries: geography } = pineGeographyRows();
 const digest = (value: unknown): string => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
 it('retains every Pine coordinate and discovery anchor from ac722f90c', () => {

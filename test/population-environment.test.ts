@@ -7,12 +7,15 @@ import { installPopulationEnvironment, populationEnvironment } from '../src/game
 import { bakedSamplers } from '../src/format/bakedTerrainSampling';
 import { terrainTileHeight } from '../src/format/terrainTileBytes';
 import { POPULATION_ENVIRONMENT } from '../src/shards/pine-hollow/generators/populationEnvironment';
-import groundRows from '../src/shards/pine-hollow/data/ground.generated.json' with { type: 'json' };
+import { pineGeographyRows } from '../src/shards/pine-hollow/generators/geographyRows';
 import { declaredGround } from '../src/game/shard/manifest';
 import { TreeGrid } from '../src/engine/world/forest/placement';
 import type { HuntTree } from '../src/engine/ai/hunt';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { Rng } from '../src/engine/core/rng';
+
+// GR8 G33b: the program's declared ground rows
+const groundRows = pineGeographyRows().ground;
 
 let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
