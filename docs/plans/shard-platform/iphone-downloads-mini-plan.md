@@ -479,3 +479,16 @@ Touched types, typed lint and scoped ratchet pass. The containing web build
 must still pass original title/session/grid ceilings and Pine/Nalati/Nine
 must be re-read against the original 250 total before-control request bar.
 X2 owns data admission and o5 owns content; neither owns chunking hunks.
+
+I2 mechanism source boundary (2026-10-27, sp-x2): a8465f58ca
+(after-control queues), 573a3bebd7 (phone admission), 95a47c50a3
+(native tiled-phone pack demand and Vite expectation), bb85e4e158
+(receipted cost-only library IO) are landed; bb85 is origin verified.
+Status remains in flight (reading at plan end); the most recent actual
+three-row observation is95a above, not a claimed measurement of bb85.
+No own preview/browser is retained. Graphical content sp-o5 and generic
+JS batching sp-x9 are independent sources for the joined qualification.
+Fresh game compilation now passes the repaired framePacing annotation
+7972590759 and stops at foreign untracked rigAtlas.ts TS4111; routed
+sp-ci-deploy. Own scoped fixture types and touched typed lint remain0;
+no tests, source allowance change or false whole-tree types claim.
