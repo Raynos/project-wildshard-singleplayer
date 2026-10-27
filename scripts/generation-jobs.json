@@ -10710,6 +10710,8 @@
         "src/sdk/decisionScriptBindings.ts",
         "src/format/scriptAbiV1.ts",
         "src/format/decisionScripts.ts",
+        "src/engine/package.json",
+        "pnpm-workspace.yaml",
         "src/engine/core/config.ts",
         "src/engine/core/noise.ts",
         "src/engine/core/rng.ts",
@@ -11276,6 +11278,7 @@
       ],
       "inputRoots": [
         "scripts/named-blob-output.mjs",
+        "scripts/bake-output.mjs",
         "src/engine",
         "src/game",
         "src/sdk",
