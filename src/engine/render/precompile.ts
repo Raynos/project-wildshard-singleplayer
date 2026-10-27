@@ -1043,13 +1043,23 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   // Holding at a wall can lend builders more shared frame time, but must not
   // enlarge this caller's explicit shader slice and join two slow native units.
   const spent = (start: number): boolean => performance.now() - start >= sliceMs || nativeBudgetSpent(sliceMs);
+  let tFrame = performance.now(), programsAtFrame = programCount(renderer);
+  let nativeInSlice = false, cachedCpuJobs = 0, cachedCpuMs = 0, settledInFrame = 0, settledDuringIssue = 0;
+  let issueFrame = 0;
+  // Link readiness or first-use queries may need a completed frame internally.
+  // The outer issue loop must then measure the frame actually receiving work,
+  // rather than wait again because its old clock predates that completed draw.
+  const pauseIssue = async (): Promise<void> => {
+    await pause(); checkCurrent(); issueFrame++;
+    tFrame = performance.now(); programsAtFrame = programCount(renderer); nativeInSlice = false; settledInFrame = 0;
+  };
   const resolveProgram = async (program: ProgramLike, start: number): Promise<void> => {
     // Completion queries and first-use queries are separate native units. A slow ready() must not admit a second
     // expensive query, or its node-block preparation, into the same continuation. Cheap queries still batch.
     let sliceStart = start;
-    if (spent(sliceStart)) { await pause(); checkCurrent(); sliceStart = performance.now(); }
+    if (spent(sliceStart)) { await pauseIssue(); sliceStart = tFrame; }
     if (!resolvedPrograms.has(program)) { program.getUniforms(); reportLinkFailure(renderer.getContext(), program); }
-    if (spent(sliceStart) && needsBlocks(program)) { await pause(); checkCurrent(); }
+    if (spent(sliceStart) && needsBlocks(program)) await pauseIssue();
     prepareBlocks(program); resolvedPrograms.add(program);
   };
   // Keep issue and first use on one painted slice when the driver has already finished linking.
@@ -1067,17 +1077,16 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   };
   const total = () => jobs.length + Math.max(created.length, 1) + textures.length;
   const mode = parallel ? 'parallel' : 'serial';
-  let tFrame = performance.now(), programsAtFrame = programCount(renderer);
-  let nativeInSlice = false, cachedCpuJobs = 0, cachedCpuMs = 0, settledInFrame = 0, settledDuringIssue = 0;
   const settleInSlice = async (): Promise<void> => {
     if (queued[settled] === undefined || settledInFrame >= programsPerFrame()) return;
-    const previous = settled, started = performance.now(), priorNative = nativeInSlice;
+    const previous = settled, started = performance.now(), priorNative = nativeInSlice, previousFrame = issueFrame;
     await settleOne(tFrame);
     const completed = settled - previous;
     settledInFrame += completed; settledDuringIssue += completed;
     // A cheap completed query leaves no unresolved native unit of its own.
     // It cannot erase an earlier issue, a slow query or an unfinished poll.
-    nativeInSlice = priorNative || completed === 0 || performance.now() - started >= sliceMs;
+    nativeInSlice = (previousFrame === issueFrame && priorNative) || completed === 0
+      || performance.now() - Math.max(started, tFrame) >= sliceMs;
   };
   const preparedTargets = new Set<THREE.WebGLRenderTarget | null>([null]);
   let targetFences = fencedTargets.get(renderer);

@@ -98,6 +98,16 @@ test('unfinished links remain mandatory even when they cannot overlap issue', as
   expect(result.events.filter(event => event.kind === 'uniforms').map(event => event.id).sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
 });
 
+test('a slow readiness query starts first use on a new frame without discarding its cheap remainder', async () => {
+  const result = await issue({ compileMs: 2, queryMs: 1, readyMs: 12 });
+  const firstUse = result.events.find(event => event.kind === 'uniforms');
+  const secondCompile = result.events.find(event => event.kind === 'compile' && event.id === 1);
+  expect(firstUse?.frame).toBe(1); expect(secondCompile?.frame).toBe(firstUse?.frame);
+  const slow = result.events.filter(event => event.cost >= 6);
+  expect(new Set(slow.map(event => event.frame)).size).toBe(slow.length);
+  expect(result.events.filter(event => event.kind === 'uniforms')).toHaveLength(8);
+});
+
 test('owner cancellation during a link fence admits no following compile', async () => {
   const result = await issue({ compileMs: 12, queryMs: 12, cancel: true });
   expect(result.cancelAt).toBeGreaterThan(0); expect(result.events.length).toBe(result.cancelAt);
