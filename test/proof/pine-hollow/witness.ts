@@ -10,7 +10,7 @@ import { gunzipSync, gzipSync } from 'node:zlib';
 import { Vector3 } from 'three';
 import { readWitnessManifest } from '../../../scripts/witness-checkpoints.mjs';
 import * as v from 'valibot';
-import source from '../../../src/shards/pine-hollow/shard.config';
+import { PINE as source } from '../../fixtures/pine-program';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost, type SimSnapshot } from '../../../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';

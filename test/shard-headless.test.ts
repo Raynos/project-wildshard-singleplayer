@@ -14,7 +14,7 @@ import { createNativeProofWorker } from './fixtures/headless-worker';
 import { TEMPLATE_SOURCE as template } from './fixtures/templateSource';
 import { PASTEL_SOURCE as pastel } from './fixtures/pastelSource';
 import driftwood from '../src/shards/driftwood-isle/shard.config';
-import pine from '../src/shards/pine-hollow/shard.config';
+import { PINE as pine } from './fixtures/pine-program';
 import nalati from './fixtures/nalati-product-source';
 import nine from './fixtures/nine-product-inputs';
 import { source as signal } from './fixtures/sunscar-source-program';

@@ -11,7 +11,7 @@ import { installClientCatalogue } from '../src/game/shardfile/clientCatalogue';
 import type { ShardContext } from '../src/game/plugin/context';
 import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
 import { HeldFinishes } from '../src/game/loadout/finishes';
-import source from '../src/shards/pine-hollow/shard.config';
+import { PINE as source } from './fixtures/pine-program';
 import { STARTER_EFFECTS } from '../src/game/loadout/effects';
 import starterRows from '../src/game/systems/effects/starterRows.json' with { type: 'json' };
 import loot from '../src/shards/driftwood-isle/data/loot.generated.json' with { type: 'json' };

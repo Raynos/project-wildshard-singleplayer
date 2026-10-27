@@ -6,7 +6,7 @@ import { bossesSave, elitesSave } from '../src/game/saves';
 import { bindRuntimeJsonRecord } from '../src/game/plugin/headless';
 import { bindAdventurePersistence } from '../src/game/quest/persistence';
 import rows from '../src/shards/pine-hollow/data/persistence.json' with { type: 'json' };
-import source from '../src/shards/pine-hollow/shard.config';
+import { PINE as source } from './fixtures/pine-program';
 
 test('adopts old Pine boss and elite saves once and reloads current records', () => {
   const instance = 'test-pine-json-old-save', scope = new Scope('old-pine'), next = new Scope('reload-pine');

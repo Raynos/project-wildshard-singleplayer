@@ -93,6 +93,8 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 
 | D48 | Real strict discovery-provider build fails Far Reach with `Sky static contact envelope differs` (`staticSceneIntake.ts:36`); discovery modules cannot be restored | `452dadcbf1` (defining intake; observed in local provider restore) | sp-x1 | routed by sp-ci-deploy; source/intake correspondence fix requested |
 
+| D49 | Driftwood's `shard.config.ts` default export is now a build function, so five tests that treat it as a Shardfile no longer typecheck or pass typed lint (`chapter-story`, `grid-query-terrain`, `quest-catalogue-sites`, `quest-story`, `runtime-equipment`: "Property 'identity' does not exist on type 'Shardfile \| ((ctx) => Promise<Shardfile>)'"); found by sp-o1 moving Pine's readers to `test/fixtures/pine-program.ts` | `60e393b0e8` | sp-x10 (GR7 Driftwood) | open; those five keep reading Pine's static rows until fixed |
+
 ## Rows
 
 Parked: none of these is built until SHARD-PLATFORM completes and Jake says go.

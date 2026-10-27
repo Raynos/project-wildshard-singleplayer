@@ -8,7 +8,7 @@ import {runtimeBinds,withoutRuntimeRows} from '../src/game/plugin/headless';
 import {regionalRuntimeAccountedBytes} from '../src/game/grid/regionalRuntime';
 import {useOwnedGridHome} from '../src/game/grid/pageShell';
 import {MANIFEST} from '../src/shards/pine-hollow/discovery.generated';
-import source from '../src/shards/pine-hollow/generators/product';
+import { PINE as source } from './fixtures/pine-program';
 import cost from '../src/shards/pine-hollow/data/runtimeCost.json' with {type:'json'};
 import aliases from '../src/shards/pine-hollow/data/astc6.generated.json' with {type:'json'};
 import {runtimeAccountedBytes} from '../src/format/runtimeCost';

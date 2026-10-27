@@ -1,6 +1,5 @@
 import { expect, test } from 'vitest';
-import { output } from '../src/shards/pine-hollow/generators/output';
-import pine from '../src/shards/pine-hollow/shard.config';
+import { PINE as pine, PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import type { ContractCatalogue } from '../src/format/contracts';
 

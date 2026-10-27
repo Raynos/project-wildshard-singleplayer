@@ -9,7 +9,7 @@ import { registerNativeQuestInputs } from '../src/game/quest/nativeInputs';
 import { nativeInventorySchema } from '../src/game/inventoryLaw';
 import * as v from 'valibot';
 import { parseQuestHost, questHostBindingRules } from '../src/format/questHost';
-import pine from '../src/shards/pine-hollow/generators/product';
+import { PINE as pine } from './fixtures/pine-program';
 import driftwood from './fixtures/driftwood-product-source';
 import { pineQuestNpcs } from '../src/shards/pine-hollow/generators/questNpcs';
 import { PINE_QUEST_RUNTIME, PINE_QUEST_PAYLOAD } from '../src/shards/pine-hollow/generators/questRuntime';

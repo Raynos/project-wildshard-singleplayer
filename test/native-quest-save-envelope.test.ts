@@ -6,7 +6,7 @@ import { createSimHost, type SimValue } from '../src/engine/sim';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { prepareNativeQuestEntry } from './fixtures/native-hosts/quest/nativeEntry';
 import { registerNativeQuestInputs } from '../src/game/quest/nativeInputs';
-import pine from '../src/shards/pine-hollow/generators/product';
+import { PINE as pine } from './fixtures/pine-program';
 import driftwood from './fixtures/driftwood-product-source';
 import story from '../src/shards/pine-hollow/data/nativeStory.json';
 import legacy from './fixtures/quest-step-legacy-saves.json';

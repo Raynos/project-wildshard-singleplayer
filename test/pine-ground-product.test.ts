@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { checkTileMaterialNames, splatTerrainOf, splatTextureRefs } from '@wildshard/format/splatTerrain';
 import { preflightDeclaredCosts } from '@wildshard/format/assetAdmission';
-import product from '../src/shards/pine-hollow/generators/product';
+import { PINE as product } from './fixtures/pine-program';
 import timbers from '../src/shards/pine-hollow/data/timberWorld.generated.json' with { type: 'json' };
 
 // Tile streaming P1: Pine's product carries its splat ground on all 64 L0 props tiles and its coarse ground on the 16 L1, the timber after it on its 12 L0 tiles,
