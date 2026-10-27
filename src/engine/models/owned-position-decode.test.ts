@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { BufferAttribute, BufferGeometry, InterleavedBuffer, InterleavedBufferAttribute, Mesh, MeshBasicMaterial } from 'three';
+import { BufferAttribute, BufferGeometry, InterleavedBuffer, InterleavedBufferAttribute, Matrix4, Mesh, MeshBasicMaterial, Vector3 } from 'three';
 import { identitySpaceGeometry } from './ownedGeometry';
 
 /** The original two-pass result: the Float32 store between normalization and
@@ -167,4 +167,60 @@ test.each(['getX', 'setXYZ'] as const)('custom compact-normal %s retains Three b
     expect(new Uint8Array(a.array.buffer, a.array.byteOffset, a.array.byteLength)).toEqual(new Uint8Array(b.array.buffer, b.array.byteOffset, b.array.byteLength));
     expect(actual.getAttribute('position').array).toEqual(expected.getAttribute('position').array);
   } finally { custom.mockRestore(); expected?.dispose(); actual?.dispose(); closeMesh(mesh); }
+});
+
+
+test.each(['projective', 'signed-zero'] as const)('scalar position transform keeps full original bytes for %s matrices', mode => {
+  const mesh = boundedMesh(), gate = mesh.matrixWorld.clone();
+  if (mode === 'signed-zero') mesh.geometry.setAttribute('position', new BufferAttribute(new Int16Array(9), 3, true));
+  mesh.geometry.computeBoundingBox(); mesh.geometry.computeBoundingSphere();
+  const transform = mode === 'projective' ? new Matrix4().set(
+    .37, -.21, .11, 1.23456789, .17, 2.1, -.13, -.987654321, -.25, .09, 3.7, 9.87654321, .125, -.0625, .25, 1)
+    : new Matrix4().set(-0, -0, -0, -0, 0, 1, 0, -0, 0, 0, 1, -0, 0, 0, 0, 1);
+  mesh.matrixWorld.copy(transform); const expected = original(mesh); mesh.matrixWorld.copy(gate);
+  // The public door accepts the grid first; a clone completion can change its still-mutable transform.
+  const clone = mesh.geometry.clone.bind(mesh.geometry);
+  const copied = vi.spyOn(mesh.geometry, 'clone').mockImplementation(() => { const geometry = clone(); mesh.matrixWorld.copy(transform); return geometry; });
+  let actual: BufferGeometry | null = null;
+  try {
+    actual = identitySpaceGeometry(mesh);
+    if (actual === null) throw new Error('Missing quantized result');
+    const a = actual.getAttribute('position').array, b = expected.getAttribute('position').array;
+    expect(new Uint8Array(a.buffer, a.byteOffset, a.byteLength)).toEqual(new Uint8Array(b.buffer, b.byteOffset, b.byteLength));
+    expect(actual.boundingBox).toEqual(expected.boundingBox); expect(actual.boundingSphere).toEqual(expected.boundingSphere);
+    if (mode === 'signed-zero') expect(Object.is(a[0], -0)).toBe(true);
+  } finally { copied.mockRestore(); actual?.dispose(); expected.dispose(); closeMesh(mesh); }
+});
+
+test('custom matrix element accessors retain their original reads and position bytes', () => {
+  const mesh = boundedMesh(), scale = mesh.matrixWorld.elements[0]; let calls = 0;
+  const clone = mesh.geometry.clone.bind(mesh.geometry);
+  const copied = vi.spyOn(mesh.geometry, 'clone').mockImplementation(() => {
+    const geometry = clone(); Object.defineProperty(mesh.matrixWorld.elements, '0', { configurable: true, get: () => { calls++; return scale; } }); return geometry;
+  });
+  let expected: BufferGeometry | undefined, actual: BufferGeometry | null = null;
+  try {
+    expected = original(mesh); const expectedCalls = calls;
+    Object.defineProperty(mesh.matrixWorld.elements, '0', { configurable: true, writable: true, value: scale }); calls = 0;
+    actual = identitySpaceGeometry(mesh);
+    if (actual === null) throw new Error('Missing quantized result');
+    const a = actual.getAttribute('position').array, b = expected.getAttribute('position').array;
+    expect(new Uint8Array(a.buffer, a.byteOffset, a.byteLength)).toEqual(new Uint8Array(b.buffer, b.byteOffset, b.byteLength));
+    expect(calls).toBe(expectedCalls);
+  } finally { copied.mockRestore(); actual?.dispose(); expected?.dispose(); closeMesh(mesh); }
+});
+
+test('custom Vector3 matrix transforms retain the original complete position bytes', () => {
+  const mesh = boundedMesh(), apply: unknown = Reflect.get(Vector3.prototype, 'applyMatrix4');
+  if (typeof apply !== 'function') throw new Error('Missing original matrix transform');
+  const changed = vi.spyOn(Vector3.prototype, 'applyMatrix4').mockImplementation(function transform(this: Vector3, matrix: Matrix4) {
+    Reflect.apply(apply, this, [matrix]); this.x += .00000001; return this;
+  });
+  let expected: BufferGeometry | undefined, actual: BufferGeometry | null = null;
+  try {
+    expected = original(mesh); actual = identitySpaceGeometry(mesh);
+    if (actual === null) throw new Error('Missing quantized result');
+    const a = actual.getAttribute('position').array, b = expected.getAttribute('position').array;
+    expect(new Uint8Array(a.buffer, a.byteOffset, a.byteLength)).toEqual(new Uint8Array(b.buffer, b.byteOffset, b.byteLength));
+  } finally { changed.mockRestore(); actual?.dispose(); expected?.dispose(); closeMesh(mesh); }
 });

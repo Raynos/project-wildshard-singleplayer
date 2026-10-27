@@ -79,6 +79,31 @@ function restoreCompactNormal(normal: CompactNormal, matrix: Matrix4): void {
     array[at] = Math.round(point.x * 127); array[at + 1] = Math.round(point.y * 127); array[at + 2] = Math.round(point.z * 127);
   }
 }
+const positionVectorMethods: readonly unknown[] = ['set', 'applyMatrix4'].map((name): unknown => Reflect.get(Vector3.prototype, name));
+const positionMathNames = ['fround', 'min', 'max'] as const;
+const positionMathFunctions = positionMathNames.map(name => Math[name]);
+const positionCountGetter: unknown = Reflect.get(Object.getOwnPropertyDescriptor(InterleavedBufferAttribute.prototype, 'count') ?? {}, 'get');
+/** Snapshot only ordinary, callback-free matrix storage. Custom readers/methods and morphs keep the original Vector3 path. */
+function positionMatrix(geometry: BufferGeometry, mesh: Mesh, position: BufferAttribute | InterleavedBufferAttribute,
+  storage: BufferAttribute | InterleavedBufferAttribute['data'], source: unknown, point: Vector3): Matrix4['elements'] | undefined {
+  if (!ArrayBuffer.isView(source) || 'position' in geometry.morphAttributes
+    || ['x', 'y', 'z'].some(name => typeof Object.getOwnPropertyDescriptor(point, name)?.value !== 'number')) return undefined;
+  const interleaved = position instanceof InterleavedBufferAttribute;
+  if (Object.getPrototypeOf(position) !== (interleaved ? InterleavedBufferAttribute.prototype : BufferAttribute.prototype)
+    || typeof Object.getOwnPropertyDescriptor(storage, 'count')?.value !== 'number'
+    || (interleaved && (Object.hasOwn(position, 'count') || Object.getOwnPropertyDescriptor(position, 'data')?.value !== storage
+      || Object.getOwnPropertyDescriptor(InterleavedBufferAttribute.prototype, 'count')?.get !== positionCountGetter))) return undefined;
+  const matrix: unknown = Object.getOwnPropertyDescriptor(mesh, 'matrixWorld')?.value;
+  if (typeof matrix !== 'object' || matrix === null) return undefined;
+  const elements: unknown = Object.getOwnPropertyDescriptor(matrix, 'elements')?.value;
+  if (!Array.isArray(elements) || Object.getPrototypeOf(elements) !== Array.prototype
+    || Object.getOwnPropertyDescriptor(elements, 'length')?.value !== 16) return undefined;
+  for (let i = 0; i < 16; i++) if (typeof Object.getOwnPropertyDescriptor(elements, i)?.value !== 'number') return undefined;
+  if (Object.getOwnPropertyDescriptor(Vector3.prototype, 'set')?.value !== positionVectorMethods[0]
+    || Object.getOwnPropertyDescriptor(Vector3.prototype, 'applyMatrix4')?.value !== positionVectorMethods[1]
+    || positionMathNames.some((name, i) => Object.getOwnPropertyDescriptor(Math, name)?.value !== positionMathFunctions[i])) return undefined;
+  return mesh.matrixWorld.elements;
+}
 function dequantizeIntoSpace(geometry: BufferGeometry, mesh: Mesh): void {
   const position = geometry.getAttribute('position'), out = new Float32Array(position.count * 3), point = new Vector3();
   const box = geometry.boundingBox, sphere = geometry.boundingSphere;
@@ -99,18 +124,31 @@ function dequantizeIntoSpace(geometry: BufferGeometry, mesh: Mesh): void {
   const scanBounds = (box !== null || sphere !== null) && geometry.morphAttributes.position === undefined
     && geometry.computeBoundingBox === computeBox && geometry.computeBoundingSphere === computeSphere
     && BufferAttribute.prototype.getX === positionGetters[0] && BufferAttribute.prototype.getY === positionGetters[1] && BufferAttribute.prototype.getZ === positionGetters[2];
+  const transform = numericReads ? positionMatrix(geometry, mesh, position, positionStorage, source, point) : undefined;
+  const m0=transform?.[0]??0,m1=transform?.[1]??0,m2=transform?.[2]??0,m3=transform?.[3]??0;
+  const m4=transform?.[4]??0,m5=transform?.[5]??0,m6=transform?.[6]??0,m7=transform?.[7]??0;
+  const m8=transform?.[8]??0,m9=transform?.[9]??0,m10=transform?.[10]??0,m11=transform?.[11]??0;
+  const m12=transform?.[12]??0,m13=transform?.[13]??0,m14=transform?.[14]??0,m15=transform?.[15]??0;
   let minX = Infinity, minY = Infinity, minZ = Infinity, maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
   // Preserve the old normalized -> Float32 -> matrix -> Float32 rounding,
   // without writing and rereading a temporary position for every vertex.
   for (let i = 0; i < position.count; i++) {
     const at = offset + i * stride, x = numericReads ? source[at] : undefined;
     const y = numericReads ? source[at + 1] : undefined, z = numericReads ? source[at + 2] : undefined;
-    if (x === undefined || y === undefined || z === undefined) point.set(Math.fround(position.getX(i)), Math.fround(position.getY(i)), Math.fround(position.getZ(i)));
-    else point.set(Math.fround(Math.max(x / 32767, -1)), Math.fround(Math.max(y / 32767, -1)), Math.fround(Math.max(z / 32767, -1)));
-    point.applyMatrix4(mesh.matrixWorld);
-    out[i * 3] = point.x; out[i * 3 + 1] = point.y; out[i * 3 + 2] = point.z;
+    let px: number, py: number, pz: number;
+    if (transform !== undefined && x !== undefined && y !== undefined && z !== undefined) {
+      const nx=Math.fround(Math.max(x/32767,-1)),ny=Math.fround(Math.max(y/32767,-1)),nz=Math.fround(Math.max(z/32767,-1));
+      // Vector3.applyMatrix4's exact expression order, including a projective denominator.
+      const w=1/(m3*nx+m7*ny+m11*nz+m15);
+      px=(m0*nx+m4*ny+m8*nz+m12)*w;py=(m1*nx+m5*ny+m9*nz+m13)*w;pz=(m2*nx+m6*ny+m10*nz+m14)*w;
+    } else {
+      if (x === undefined || y === undefined || z === undefined) point.set(Math.fround(position.getX(i)), Math.fround(position.getY(i)), Math.fround(position.getZ(i)));
+      else point.set(Math.fround(Math.max(x / 32767, -1)), Math.fround(Math.max(y / 32767, -1)), Math.fround(Math.max(z / 32767, -1)));
+      point.applyMatrix4(mesh.matrixWorld);px=point.x;py=point.y;pz=point.z;
+    }
+    out[i * 3] = px; out[i * 3 + 1] = py; out[i * 3 + 2] = pz;
     if (scanBounds) {
-      const px = Math.fround(point.x), py = Math.fround(point.y), pz = Math.fround(point.z);
+      px = Math.fround(px); py = Math.fround(py); pz = Math.fround(pz);
       minX = Math.min(minX, px); minY = Math.min(minY, py); minZ = Math.min(minZ, pz);
       maxX = Math.max(maxX, px); maxY = Math.max(maxY, py); maxZ = Math.max(maxZ, pz);
     }
