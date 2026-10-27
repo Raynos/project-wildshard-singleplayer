@@ -1,3 +1,4 @@
+import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { executeBundle } from './executeBundle';
 import { mergeProjectSections } from './projectSections';
 import { writeNewProject } from './newProject';
@@ -226,11 +227,11 @@ export function projectAssets(project: string, shard: Shardfile, layout: 'projec
  * terrain gains its far / near placeholders when `placeholders` is set (the CLI's default).
  */
 export async function buildProject(project: string, output?: string, options: { decisionLegacyLines?: number; output?: string; outputFormat?: 2; manifest?: ProjectManifestSource; copyRuntime?: boolean; runtimeCheck?: RuntimeCopyOptions['check']; devserver?: boolean; client?: string | null; map?: ProjectMap; mapSourceHash?: string; placeholders?: boolean; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse', sections: ReadonlyMap<string, unknown>) => Promise<void> } = {}): Promise<Shardfile> {
-  let phaseStarted = performance.now();
+  let phaseStarted = diagnosticNow();
   const phase = (name: string): void => {
-    const now = performance.now();
+    const now = diagnosticNow();
     if (process.env['GITHUB_ACTIONS'] === 'true') console.info(`author timing: ${JSON.stringify({ pid: process.pid, phase: name, product: options.output ?? project, seconds: Number(((now - phaseStarted) / 1000).toFixed(3)) })}`);
-    phaseStarted = performance.now();
+    phaseStarted = diagnosticNow();
   };
   await buildBehaviourProject(project); phase('behaviour-compile');
   const loaded = await readProjectAssets(project, options.map, options.manifest, options), assets = loaded.assets;

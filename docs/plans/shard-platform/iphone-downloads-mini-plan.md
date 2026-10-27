@@ -573,8 +573,11 @@ No `nameBlob` option or file metadata change. Ordinary readProjectAssets
 forwards it; the existing writer emits source.late as admission.late.
 Legacy outputs omit the property and retain their previous object shape.
 
-SDK and SDK-test types, touched typed lint and selected ratchet pass.
-Three control sources cover ordinary project intake, round-trip disk
+SDK and SDK-test types and touched typed lint pass in9e4f6f359e.
+The initial selected ratchet refused three pre-existing raw timing reads
+in touched project.ts; the follow-on uses the existing diagnosticNow API
+without changing phase semantics, and the actual selected ratchet now
+lowers. No allowance or clock-budget change. Three control sources cover ordinary project intake, round-trip disk
 output/full costs, and malformed/missing/duplicate roots. They are typed,
 not executed before landing under G769. No build or new reading for this
 adapter. Sp-o5 can now emit actual late cabin/sky/creature declarations
@@ -608,3 +611,9 @@ sp-o5 owns actual heavy content deferral. No source-only gain, native
 memory result, isolated load attribution or Simulator pass is claimed.
 I2 remains in flight for the joined source read; boot-root refusal is
 closed on this b3 pin, and previous refused logs remain historical.
+
+I2 late source handoff: d181227f53 is the wire/native reader;
+9e4f6f359e is the ordinary ProjectOutput producer adapter. Both landed
+code-only with the existing content/JS producer split intact. Source stays
+in flight (reading at plan end); the b3 shared cohort above predates these
+late declarations and must not be credited as their transfer saving.
