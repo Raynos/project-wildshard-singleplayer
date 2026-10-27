@@ -31,6 +31,17 @@ test('busy draws retain the ordinary allowance until the actual frame deadline',
   expect(frameBudgetSpent(8, 1028)).toBe(true);
 });
 
+test('a frame that overran its interval still admits the ordinary slice after it is drawn (D110)', () => {
+  // 30 fps cap, a 60 ms frame (4x CPU): due the moment it lands, yet a build may start right after it
+  noteFrameDrawn(1060, 1000, 30);
+  expect(frameBudgetSpent(8, 1060.5)).toBe(false);
+  expect(frameBudgetSpent(8, 1067.9)).toBe(false);
+  expect(frameBudgetSpent(8, 1068)).toBe(true);
+  // a frame within its interval keeps the due rule
+  noteFrameDrawn(1090, 1060, 30);
+  expect(frameBudgetSpent(8, 1091.4)).toBe(true);
+});
+
 test('queued continuations recheck the shared budget after their task wakes', async () => {
   Reflect.set(globalThis, 'MessageChannel', undefined); Reflect.set(globalThis, 'requestAnimationFrame', () => 0);
   const frames: ((time: number) => void)[] = [];

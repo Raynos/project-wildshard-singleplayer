@@ -70,7 +70,11 @@ export function frameDue(now: number = diagnosticNow()): boolean {
  */
 export function frameBudgetSpent(budgetMs: number, now: number = diagnosticNow()): boolean {
   if (held) return presenting(now) && now - lastDrawn >= heldBudget(budgetMs);
-  return presenting(now) && (now - lastDrawn >= Math.min(budgetMs, interval / 4, BUILD_FRAME_MS / 2) || frameDue(now));
+  // D110: a frame that overran its interval (drawn after the next was due: a phone at 4x CPU) is due the moment it lands,
+  // so the due rule would end every slice before it starts and no sliced build would run again; after such a frame the
+  // builds get their ordinary slice instead
+  const overran = lastDrawn - lastFrameAt >= interval - DUE_SLACK_MS;
+  return presenting(now) && (now - lastDrawn >= Math.min(budgetMs, interval / 4, BUILD_FRAME_MS / 2) || (!overran && frameDue(now)));
 }
 
 
