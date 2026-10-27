@@ -85,9 +85,11 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 
 | D44 | Push-loop fixtures still asserted retired split, red hold, 180-second cap and fail-closed behavior | `7d70d351bb` | sp-ci-deploy | fixed daf42ed943 + defb0f9fd2 + feb2658690; 45 native cases pass |
 
-| D45 | Nalati grass native scatter constructor omitted geography program/source, seed and source metadata inputs from its sealed job | `6e84134e0c` (source migration; observed in shared tree) | sp-ci-deploy | source fix b4fb652955; real generation in flight |
+| D45 | Nalati grass native scatter constructor omitted geography program/source, seed and source metadata inputs from its sealed job | `6e84134e0c` (source migration; observed in shared tree) | sp-ci-deploy | fixed b4fb652955; real sealed grass producer generates 11 outputs (3.206s) |
 
 | D46 | Shared-tree generation cannot discover `open-plots-world`: its declared `generators/bake-plots.mjs` was removed in an in-flight migration; real discovery restore is masked | — (working tree after `d6ca33cfc8`) | sp-o2 | routed by sp-ci-deploy; sync retirement requested |
+
+| D47 | CI `generated-inputs`: Driftwood map assembly cannot resolve owned geometry `cascade/mooringLines` (`scripts/map-world.mjs:44`, `mapAssembly.mjs:76`) | `c7a57488e4` (run 40464950813) | sp-x10 | routed by sp-ci-deploy; defining model/source correspondence requested |
 
 ## Rows
 
