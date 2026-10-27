@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { NativeInventory } from '../src/game/inventoryLaw';
 import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
 import { pineItems } from '../src/shards/pine-hollow/generators/channelSections';
-import DRIFTWOOD from '../src/shards/driftwood-isle/data/items.generated.json' with { type: 'json' };
+import { DRIFTWOOD_ITEMS as DRIFTWOOD } from './fixtures/driftwood-items';
 
 // GR8: called, not read from a scheduler job's output
 const PINE = pineItems();

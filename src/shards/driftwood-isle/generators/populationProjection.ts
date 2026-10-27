@@ -4,13 +4,16 @@ import { enemyPlacements } from './enemyPlacement';
 import { driftwoodGroundSampler } from './groundSampling';
 import { DRIFTWOOD_SPECIES_PROGRAMS } from './speciesPrograms';
 import { RETURN_PROGRAM } from './returnProgram';
-import items from '../data/items.generated.json' with { type: 'json' };
+import { driftwoodItems } from './items';
 import foliage from '../data/foliagePlacements.generated.json' with { type: 'json' };
 import island from '../data/islandFacts.generated.json' with { type: 'json' };
 import physics from '../data/physics.generated.json' with { type: 'json' };
 
 /** Compile presentation rows from the same placement, physical and species inputs. */
 export function populationProjectionRows(): v.InferOutput<typeof PopulationProjectionSchema> {
+  const items = driftwoodItems();
+  const launch = items.launches?.['coconut'];
+  if (launch === undefined) throw new Error('Missing authored coconut launch');
   const placement = enemyPlacements(), strike = DRIFTWOOD_SPECIES_PROGRAMS.program.strikes.find(row => row.id === 'strike.monkey.coconut');
   if (strike === undefined) throw new Error('Missing population contact');
   const heightAt = driftwoodGroundSampler();
@@ -25,7 +28,7 @@ export function populationProjectionRows(): v.InferOutput<typeof PopulationProje
     counts: { crabs: { kind: 'crab', groups: false, practice: false }, monkeys: { kind: 'monkey', groups: false, practice: false }, sailors: { kind: 'sailor', groups: false, practice: false },
       troops: { kind: 'monkey', groups: true, practice: false }, crabGroups: { kind: 'crab', groups: true, practice: true } },
     practice: { program: RETURN_PROGRAM, law: { signal: 'practice', initial: { dead: 0 }, parameters: { delay: 45, away: 30 }, retain: { dead: 'dead' } } }, hold: { kind: 'sailor', ...physics.habitat.hold },
-    volley: placement.volley, launch: items.launches.coconut, strike: { id: strike.id, damage: strike.damage, tags: ['creature.monkey', 'feel.blow', 'cover.checked'] },
+    volley: placement.volley, launch, strike: { id: strike.id, damage: strike.damage, tags: ['creature.monkey', 'feel.blow', 'cover.checked'] },
     contact: { sound: 'coconut_hit', landSound: 'coconut_land', landAge: 3, splash: .3 }, husk: { colour: '#5a3d22', detail: 0 },
     splash: { capacity: 240, gravity: 9.81, colour: [.75, .95, 1], size: .05, opacity: .9, count: 60, radius: .5, height: [.2, 1.4], speed: [.6, 2.2], up: [1.2, 2.5], life: [.5, .6] },
     effects: [{ kind: 'captain', state: 'st', actions: [{ state: 1, sound: 'sailor_groan' }, { state: 3, sound: 'sailor_groan' }, { state: 4, sound: 'sailor_groan' },

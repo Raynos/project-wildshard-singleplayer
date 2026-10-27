@@ -1,3 +1,4 @@
+import { parseItems, type ShardItems } from '@wildshard/sdk/rows';
 import { DRIFTWOOD_ITEMS } from './questInventory';
 import { DRIFTWOOD_PLAYER_GRANTS, DRIFTWOOD_WORN_GRANTS, DRIFTWOOD_WEAPON_GRANTS } from './economy';
 import { DRIFTWOOD_NATIVE_PACK } from './nativeInventory';
@@ -18,3 +19,6 @@ export const DRIFTWOOD_SWORDS: { version: number; catalogue: { id: string; label
   }),
   contexts: [], loadout: { effects: { statuses: false, player: DRIFTWOOD_PLAYER_GRANTS, worn: DRIFTWOOD_WORN_GRANTS, weapons: [{ items: ['weapon.driftwood-isle.wood', 'weapon.driftwood-isle.iron'], grants: DRIFTWOOD_WEAPON_GRANTS }], hitCap: 'effect.hit-cap' }, runtime: { pause: true, owners: [{ item: 'weapon.driftwood-isle.wood', slot: 'primary', row: 'native' }, { item: 'weapon.driftwood-isle.iron', slot: 'extra', row: 'native' }] }, inventory: DRIFTWOOD_NATIVE_PACK, primary: 'weapon.driftwood-isle.wood', secondary: null, tools: [] },
 };
+
+/** Validate the complete original authored inventory at its defining producer. */
+export function driftwoodItems(): ShardItems { return parseItems(DRIFTWOOD_SWORDS); }

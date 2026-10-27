@@ -104,9 +104,10 @@ test('native item rows preserve all three old continuations, contacts, RNG, stow
 }, 30_000);
 
 test('the second native user keeps swept phases, synchronous reaction order and its saved wire', async () => {
-  const [{ default: DRIFTWOOD_SWORDS }, { default: policy }, { installNativeMelee }] = await Promise.all([
-    import('../src/shards/driftwood-isle/data/items.generated.json'), import('../src/shards/driftwood-isle/data/nativeSwords.json'), import('../src/game/plugin/simulation'),
+  const [{ driftwoodItems }, { default: policy }, { installNativeMelee }] = await Promise.all([
+    import('../src/shards/driftwood-isle/generators/items'), import('../src/shards/driftwood-isle/data/nativeSwords.json'), import('../src/game/plugin/simulation'),
   ]);
+  const DRIFTWOOD_SWORDS = driftwoodItems();
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const level = fixtureLevel(-1.6);
   const frame = createNativeCombatFrame(), expected: string[] = [], actual: string[] = [];

@@ -11,7 +11,7 @@ import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { PINE_NATIVE_LOADOUT } from './fixtures/weapon-oracle/nativeLoadout';
 import { aimShare } from './fixtures/weapon-oracle/headlessRanged';
 import { pineItems } from '../src/shards/pine-hollow/generators/channelSections';
-import DW_ITEMS from '../src/shards/driftwood-isle/data/items.generated.json' with { type: 'json' };
+import { DRIFTWOOD_ITEMS as DW_ITEMS } from './fixtures/driftwood-items';
 import DW_POLICY from '../src/shards/driftwood-isle/data/nativeSwords.json' with { type: 'json' };
 
 // GR8: called, not read from a scheduler job's output
