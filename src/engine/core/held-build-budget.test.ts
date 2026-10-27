@@ -30,6 +30,20 @@ test('held CPU slices run until the held frame floor, never past it', () => {
   expect(nativeBudgetSpent(8, 1032 + HELD_BUILD_MS - 1)).toBe(false);
 });
 
+// G782: a capped loop's frame runs at the first vsync after its cadence anchor; held slices count the floor from that
+// vsync, not the earlier anchor (which left ~10 ms of every held frame idle)
+test('held CPU slices count the floor from the frame actual vsync, not its earlier cadence anchor', () => {
+  setBuildHeld(true);
+  noteFrameDrawn(1045, 1033.3, 30, 1023.3); // due at 1023.3, ran at the 1033.3 vsync, drawn by 1045
+  expect(frameBudgetSpent(8, 1023.3 + HELD_FRAME_FLOOR_MS - 1)).toBe(false); // the anchor's floor has passed: keep going
+  expect(heldDrawDeferred(1050)).toBe(true);
+  expect(frameBudgetSpent(8, 1033.3 + HELD_FRAME_FLOOR_MS - 2)).toBe(true); // the vsync's floor: the next frame is due
+  expect(heldDrawDeferred(1033.3 + HELD_FRAME_FLOOR_MS)).toBe(false);
+  noteFrameDrawn(1100, 1090, 30, 1090); // anchor and vsync agree: unchanged
+  expect(frameBudgetSpent(8, 1090 + HELD_FRAME_FLOOR_MS - 3)).toBe(false);
+  expect(frameBudgetSpent(8, 1090 + HELD_FRAME_FLOOR_MS - 2)).toBe(true);
+});
+
 // G782: held, the loop skips vsyncs only while CPU slices run and the floor is not yet due; never otherwise.
 test('held CPU slices defer the next draw up to the 30 fps floor', () => {
   noteFrameDrawn(1004, 1000, 0);

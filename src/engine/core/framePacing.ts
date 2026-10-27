@@ -61,8 +61,11 @@ function noteHeldInterval(on: boolean): void {
   if (Number.isFinite(heldSince)) performance.measure(`wildshard.prepare:grid:held.${String(heldIntervals++)}`, { start: heldSince, end: now });
   heldSince = Number.NEGATIVE_INFINITY;
 }
-/** The latest a held frame may start: HELD_FRAME_FLOOR_MS after the last drawn one started, less the due slack. */
-const heldDeadline = (): number => lastFrameAt + HELD_FRAME_FLOOR_MS - DUE_SLACK_MS;
+/** The latest a held frame may start: HELD_FRAME_FLOOR_MS after the last drawn one started, less the due slack. A capped
+ *  loop's cadence anchor (`lastFrameAt`) can precede the vsync the frame actually ran at (`lastVsyncAt`) by up to a vsync,
+ *  and the next frame cannot start before the next vsync after it anyway: counting from the anchor left Pine's held slices
+ *  ~10 ms idle every frame (G782), so the floor counts from the later of the two. */
+const heldDeadline = (): number => Math.max(lastFrameAt, lastVsyncAt) + HELD_FRAME_FLOOR_MS - DUE_SLACK_MS;
 /** A build stretch's budget: `budgetMs`, or HELD_BUILD_MS while the traveller is held. */
 export function heldBudget(budgetMs: number): number { return held ? Math.max(budgetMs, HELD_BUILD_MS) : budgetMs; }
 /** Whether the traveller is held at a grid cell's wall (`setBuildHeld`). */
