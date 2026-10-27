@@ -24,7 +24,7 @@ function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promi
   const hookEnd = source.indexOf('            afterKit: async entered =>', hookStart);
   if ([declarationsStart, declarationsEnd, hookStart, hookEnd].some(at => at < 0)) throw new Error('Regional hook ports missing');
   const factory: unknown = runInNewContext(stripTypeScriptTypes(`(function(ports) {
-    const {owner, foundation, request, view, preparedModels, preparing, world} = ports;
+    const {owner, foundation, request, view, preparedModels, preparing, world, arrivalAt} = ports;
     ${source.slice(declarationsStart, declarationsEnd)}
     const hooks = {${source.slice(hookStart, hookEnd)}};
     return {start: () => hooks.afterWorld(null), kit: () => {if (typeof equipmentReady === 'function') equipmentReady();},
@@ -34,7 +34,8 @@ function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promi
   const owner = new Scope('equipment-overlap'), root = new Group(), models = new Group();
   root.visible = false; models.visible = false; models.name = 'staged-equipment';
   const calls: string[] = [], worldReady = deferred(), finalStarted = deferred();
-  const ports = {owner, view: {root}, preparedModels: options.models === false ? null : models, preparing: options.enabled !== false, world: {},
+  // the arrival point (D188) is the runtime's own closure: a fixture with no crossing entry has none
+  const ports = {owner, view: {root}, preparedModels: options.models === false ? null : models, preparing: options.enabled !== false, world: {}, arrivalAt: (): undefined => undefined,
     foundation: {prepareWorldMaterials: (): void => {calls.push('look'); worldReady.resolve();}, ...(options.worldOnly === true ? {} : {beforeWarm: (): void => {calls.push('before-final'); worldReady.resolve();}})},
     request: {page: {world: {game: {warmEnteredFrame: async (scope: Scope, lighting: Object3D,
       before: (prepare: (roots: readonly Object3D[], exteriorPrograms?: boolean) => Promise<void>, prepareFrame: () => Promise<void>) => Promise<void>): Promise<void> => {
