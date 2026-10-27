@@ -13605,6 +13605,12 @@ holds and immediate masks prevent a child opening a hole in its parent.
 Prepared work is cancelled before its budget lease releases; late results
 are discarded by lease identity. Render adapters own construction scopes.
 
+`RingCatalogue.revision()` optionally publishes a monotonic content/cost
+revision. A fully uploaded, stationary plan with the same revision skips
+planning until demand changes. Unknown dynamic catalogues retain polling.
+Movement, pins, full-ring changes, eviction and unfinished requests always
+retain the ordinary scheduling path; no upload or budget admission is skipped.
+
 The scheduler preserves the 150 m trace and count/byte budgets, and stops
 starting more uploads once `uploadMsPerFrame` (default 12 ms) is spent.
 One synchronous upload remains indivisible. `TileStreamBudget.now` is an

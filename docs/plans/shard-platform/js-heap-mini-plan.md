@@ -229,9 +229,9 @@ numbers; a row's lane re-measures before/after with G1.
 
 | Row | What | Saves (heap / alloc per s / GC) | Owner | Effort | Done when |
 |---|---|---|---|---|---|
-| G1 | **Guard first:** `scripts/shard-phone-memory.mjs --heap <shard>` on the clean path (Developer off, no pins, direct `/?chunk=`): boot allocated MiB, settled used after GC, idle MiB/s over 60 s, major GCs per 30 s; checked against `scripts/memory/js-heap-ratchet.json`, **exit 1 on > 10 % regression**, ratchet only lowers (`--rebase` refuses an increase) | n/a: makes every row below measurable and refuses regressions | done source (2026-10-27, sp-x9; this commit), baseline pending G769 | S | one command prints the four readings for `_template` and `blender-template` and fails on a seeded regression in its test; run at milestones and by each row's lane |
+| G1 | **Guard first:** `scripts/shard-phone-memory.mjs --heap <shard>` on the clean path (Developer off, no pins, direct `/?chunk=`): boot allocated MiB, settled used after GC, idle MiB/s over 60 s, major GCs per 30 s; checked against `scripts/memory/js-heap-ratchet.json`, **exit 1 on > 10 % regression**, ratchet only lowers (`--rebase` refuses an increase) | n/a: makes every row below measurable and refuses regressions | done `77e46ccbbc`, baseline pending G769 | S | one command prints the four readings for `_template` and `blender-template` and fails on a seeded regression in its test; run at milestones and by each row's lane |
 | H1 | Stop per-draw program re-evaluation: find the materials that flip `needsProgramChange` (instanced/plain or skinned/plain sharing a material, shared shadow depth material, per-frame light-state version) and give each variant its own material/depth material, or keep the light count stable | ~1.4 MiB/s idle, fewer major GCs, CPU per draw | Opus (render) | M | idle `getParameters` + `getProgramCacheKey` < 0.05 MiB/s; `renderer.info.programs` and the look unchanged |
-| H2 | Tile streamer stationary early-out: skip `planDesired` when the camera's ring tile and the budget are unchanged; reuse work rows; key catalogue lookups numerically | ~0.8 MiB/s | Codex | S | `tileStreamer.ts` < 0.05 MiB/s at idle; walk test unchanged |
+| H2 | Tile streamer stationary early-out: skip `planDesired` when the camera's ring tile and the budget are unchanged; reuse work rows; key catalogue lookups numerically | ~0.8 MiB/s | done source (2026-10-27, sp-x9; this commit), baseline pending G769 | S | `tileStreamer.ts` < 0.05 MiB/s at idle; walk test unchanged |
 | H3 | Checkpoint only when state changed: dirty flag or compare with the last written string; `SaveStore` keeps its parsed doc instead of re-reading `savedDoc` per write; script memory checkpoint as bytes (base64 once), not `number[]` | ~0.65 MiB/s, plus the save I/O | Codex | M | an idle checkpoint with unchanged state allocates < 50 KiB; saves round-trip tests green |
 | H4 | Script host per-tick copies: copy `shared`/`players`/frames only on an effect commit; no `Object.fromEntries` view per call | ~0.45 MiB/s | Codex | M | `script/*` < 0.1 MiB/s at idle; script determinism tests green |
 | H5 | Input layout only on change: rebuild `touchLayout`/`refresh` sets when the context stack or an `enabled()` answer changes | ~0.24 MiB/s | Codex | S | `InputService.ts` < 0.02 MiB/s at idle; no HUD change (E332 not triggered) |
@@ -277,3 +277,20 @@ The offline `heap-check <report.json> <ratchet.json>` command and seeded
 regression controls are included. Per G769 only touched types and lint run
 before landing; both Template baselines and executed regression qualification
 remain pending until readings resume after the build plan.
+
+
+## H2 implementation (G769)
+
+Fully published stationary plans stop rebuilding demand, leases and masks.
+The camera position, velocity and full-detail centre remain exact so moving
+inside a tile preserves existing threshold and lookahead decisions. Pending
+fetches/uploads, retries, changed pins, full rings, costs and eviction retain
+the original scheduler. A catalogue without an explicit content revision
+keeps polling; the production catalogue reports admitted tile-array changes,
+and the grid adapter also reports far charges and placeholder policy changes.
+Tile costs use numeric lod/x/z maps with original first-row precedence.
+
+Touched engine/game and fixture types plus typed lint qualify this source
+landing. The existing full walk/hash assertions remain intact, and new idle,
+revision, movement, pin and eviction controls are included but unexecuted
+before landing under G769. Heap-rate and gameplay measurements stay pending.

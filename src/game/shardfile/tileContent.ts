@@ -241,26 +241,35 @@ function lodKey(tile: { level: RingTile['level']; x: number; z: number }): strin
 
 /** Resident bytes per ring tile from the shardfile rows; null where the shard has no such tile (and for far, until SF23). */
 export function clientRingCatalogue(instances: ReadonlyMap<string, { readonly source: Shardfile }>): RingCatalogue {
-  // sp-o105: the rings ask this many times every fixed step; each source's rows are indexed once by their lod key (the first
-  // row of a key wins, as the linear search did) instead of formatting every row's key on every question
-  const indexes = new WeakMap<Shardfile['tiles'], ReadonlyMap<string, number | null>>();
-  const index = (tiles: Shardfile['tiles']): ReadonlyMap<string, number | null> => {
+  // Numeric lod/x/z indexes retain first-row precedence without creating a
+  // descriptor object or formatting a tile key on every catalogue read.
+  const indexes = new WeakMap<Shardfile['tiles'], Map<number, Map<number, Map<number, number | null>>>>();
+  const observed = new Map<string, Shardfile['tiles']>(); let revision = 0;
+  const index = (tiles: Shardfile['tiles']): Map<number, Map<number, Map<number, number | null>>> => {
     let found = indexes.get(tiles);
     if (found === undefined) {
-      const made = new Map<string, number | null>();
+      found = new Map();
       for (const tile of tiles) {
-        const key = `${tile.lod}/${tile.x}/${tile.z}`;
+        let lod = found.get(tile.lod); if (lod === undefined) { lod = new Map(); found.set(tile.lod, lod); }
+        let x = lod.get(tile.x); if (x === undefined) { x = new Map(); lod.set(tile.x, x); }
         const empty = tile.files.length === 0 && tile.compressed === 0 && tile.decoded === 0 && tile.gpu === 0 && tile.triangles === 0 && tile.draws === 0;
-        if (!made.has(key)) made.set(key, empty ? null : tile.decoded + tile.gpu);
+        if (!x.has(tile.z)) x.set(tile.z, empty ? null : tile.decoded + tile.gpu);
       }
-      indexes.set(tiles, made); found = made;
+      indexes.set(tiles, found);
     }
     return found;
   };
-  return (instance, level, x, z) => {
-    const key = lodKey({ level, x, z }), source = instances.get(instance)?.source; if (key === null || source === undefined) return null;
-    return index(source.tiles).get(key) ?? null;
+  const bytes: RingCatalogue = (instance, level, x, z) => {
+    const source = instances.get(instance)?.source; if (level === 'far' || source === undefined) return null;
+    return index(source.tiles).get(level === 'l0' ? 0 : 1)?.get(x)?.get(z) ?? null;
   };
+  return Object.assign(bytes, { revision: (): number => {
+    for (const [instance, entry] of instances) if (observed.get(instance) !== entry.source.tiles) {
+      observed.set(instance, entry.source.tiles); revision++;
+    }
+    for (const instance of observed.keys()) if (!instances.has(instance)) { observed.delete(instance); revision++; }
+    return revision;
+  } });
 }
 
 /** The rings' ports for these instances; every prepared tile's scope is a child of `scope`. */

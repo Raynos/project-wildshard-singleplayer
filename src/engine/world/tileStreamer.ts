@@ -56,7 +56,12 @@ export type RingLevel = 'far' | 'l1' | 'l0';
 /** One streamable tile; x/z start at the rectangle's −x/−z corner (0 for far). */
 export interface RingTile { readonly key: string; readonly instance: string; readonly type: TileKind; readonly level: RingLevel; readonly x: number; readonly z: number }
 /** What a cell's tiles cost resident (decoded + GPU bytes); null = the shard has no such tile (its parent keeps drawing). */
-export type RingCatalogue = (instance: string, level: RingLevel, x: number, z: number, type?: TileKind) => number | null;
+export interface RingCatalogue {
+  (instance: string, level: RingLevel, x: number, z: number, type?: TileKind): number | null;
+  /** Optional monotonic content revision. Without it every step keeps the
+   * original dynamic catalogue walk. Change it when any offered tile/cost changes. */
+  readonly revision?: () => number;
+}
 /** The renderer's handle on an uploaded tile. Quadrants 0..3 for an L1 tile, regions 0..15 (x + 4z) for a far proxy. */
 export interface RingView { mask: (excluded: ReadonlySet<number>) => void; shadow: (enabled: boolean) => void; dispose: () => void }
 /**
@@ -224,6 +229,8 @@ export class TileStreamer<D> {
   private readonly catalogue: RingCatalogue;
   private readonly ports: RingPorts<D>;
   private readonly options: Required<RingOptions>;
+  private demandRevision = 0;
+  private idlePlan: { x: number; z: number; vx: number; vz: number; cx: number; cz: number; catalogue: number; demand: number } | null = null;
   private frame = 0;
   private refused = 0;
   private evictions = 0;
@@ -272,7 +279,7 @@ export class TileStreamer<D> {
       const pin = this.pins.get(tile.key);
       if (pin === undefined) this.pins.set(tile.key, { tile, refs: 1 }); else pin.refs++;
     }
-    this.requirements.add(requirement);
+    this.requirements.add(requirement); this.demandRevision++;
     this.resolveRequirements();
     return { ready, release: () => { this.unpin(requirement, new Error('Tile requirement released')); } };
   }
@@ -283,14 +290,16 @@ export class TileStreamer<D> {
   setFullRing(instance: string, radius: number | null): void {
     if (this.disposed) throw new Error('Tile streamer is disposed');
     this.cell(instance);
-    if (radius === null) { this.fullRings.delete(instance); return; }
+    if (radius === null) { if (this.fullRings.delete(instance)) this.demandRevision++; return; }
     if (!Number.isInteger(radius) || radius < 0 || radius > 8) throw new RangeError('Invalid full tile ring');
     const current = this.fullRings.get(instance);
-    if (current === undefined) this.fullRings.set(instance, { radius, x: null, z: null }); else current.radius = radius;
+    if (current === undefined) { this.fullRings.set(instance, { radius, x: null, z: null }); this.demandRevision++; }
+    else if (current.radius !== radius) { current.radius = radius; this.demandRevision++; }
   }
 
   private unpin(requirement: Requirement, error: Error): void {
     if (!this.requirements.delete(requirement)) return;
+    this.demandRevision++;
     for (const tile of requirement.tiles) {
       const pin = this.pins.get(tile.key);
       if (pin !== undefined && --pin.refs === 0) this.pins.delete(tile.key);
@@ -357,8 +366,18 @@ export class TileStreamer<D> {
   /** One fixed step: choose, release, request, upload, re-mask. */
   step(camera: RingCamera, fullCentre: { readonly x: number; readonly z: number } = camera): void {
     if (this.disposed) throw new Error('Render rings are disposed');
-    if (![camera.x, camera.z, camera.vx, camera.vz, fullCentre.x, fullCentre.z].every(Number.isFinite)) throw new RangeError('Invalid ring camera');
-    this.frame++;
+    if (!Number.isFinite(camera.x) || !Number.isFinite(camera.z) || !Number.isFinite(camera.vx)
+      || !Number.isFinite(camera.vz) || !Number.isFinite(fullCentre.x) || !Number.isFinite(fullCentre.z)) throw new RangeError('Invalid ring camera');
+    const frame = ++this.frame, revision = this.catalogue.revision?.(), prior = this.idlePlan;
+    if (revision !== undefined && !Number.isSafeInteger(revision)) throw new RangeError('Invalid ring catalogue revision');
+    // Only a fully published stationary plan can stop. Dynamic catalogues
+    // without a revision, movement, new pins, eviction and changed costs walk
+    // the original scheduler, including retries and pending upload budgets.
+    if (prior !== null && revision === prior.catalogue && this.demandRevision === prior.demand
+      && camera.x === prior.x && camera.z === prior.z && camera.vx === prior.vx && camera.vz === prior.vz
+      && fullCentre.x === prior.cx && fullCentre.z === prior.cz) return;
+    this.idlePlan = null;
+    const demand = this.demandRevision;
     // Keep the desired map borrowed until every callback in this step has finished.
     // Nested catalogue, lease and disposal calls receive another workspace.
     const work = this.desiredWork.pop() ?? { l0Rows: [], l1Rows: [], l0: [], l1: [], cellRows: [], ranked: [], fine: [], want: new Map(), wantRows: [] };
@@ -372,6 +391,13 @@ export class TileStreamer<D> {
       this.release(want, camera); // this step's uploads may have pushed a level over its resident cap
       this.remaskAll(camera);
       this.resolveRequirements();
+      if (revision !== undefined && this.frame === frame && demand === this.demandRevision && this.completed.length === 0) {
+        let settled = true;
+        for (const id of want.keys()) if (this.slots.get(id)?.state !== 'uploaded') { settled = false; break; }
+        if (settled) for (const slot of this.slots.values()) if (slot.state !== 'uploaded') { settled = false; break; }
+        if (settled) this.idlePlan = { x: camera.x, z: camera.z, vx: camera.vx, vz: camera.vz,
+          cx: fullCentre.x, cz: fullCentre.z, catalogue: revision, demand };
+      }
     } finally {
       work.l0.length = 0; work.l1.length = 0; work.ranked.length = 0; work.fine.length = 0; work.want.clear();
       if (!this.disposed) this.desiredWork.push(work);
@@ -618,7 +644,7 @@ export class TileStreamer<D> {
       try {
         this.ports.fetch(tile, (result) => {
           if (this.disposed) { if (!(result instanceof Error)) this.ports.discard?.(tile, result); return; }
-          this.completed.push({ tile, lease, result });
+          this.completed.push({ tile, lease, result }); this.demandRevision++;
         });
       } catch (error) { this.failRequirements(tile, error instanceof Error ? error : new Error(String(error))); this.drop(slot); throw error; }
     }
@@ -656,7 +682,7 @@ export class TileStreamer<D> {
   /** Dispose, unhold the parent, release the lease (a no-op once the allocator evicted it) and re-mask the parent. */
   private drop(slot: Slot<D>): void {
     if (this.slots.get(slot.tile.key) !== slot) return;
-    this.slots.delete(slot.tile.key);
+    this.slots.delete(slot.tile.key); this.demandRevision++;
     const errors: unknown[] = [];
     const clean = (run: () => void): void => { try { run(); } catch (error) { errors.push(error); } };
     const view = slot.view, data = slot.data; slot.view = null; slot.data = null;

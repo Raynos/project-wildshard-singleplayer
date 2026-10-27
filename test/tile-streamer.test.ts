@@ -256,3 +256,39 @@ test.each([
   } finally { streamer.dispose(); }
   expect(allocator.entries()).toEqual([]);
 });
+
+test('revisioned stationary publication stops planning and wakes for costs, pins, movement and eviction', async () => {
+  const allocator = new ResidencyAllocator(); let reads = 0, revision = 0, evict = (): void => undefined;
+  const catalogue = Object.assign((_instance: string, level: RingLevel): number | null => { reads++; return level === 'far' ? 1 : null; },
+    { revision: (): number => revision });
+  const streamer = new TileStreamer([{ instance: 'home', origin: { x: 0, z: 0 } }], {
+    now: () => 0, reserve: claim => { evict = claim.evictSync; return allocator.reserve(claim); },
+  }, catalogue, { fetch: (tile, done) => { done(tile.key); },
+    upload: () => ({ mask: () => undefined, shadow: () => undefined, dispose: () => undefined }) });
+  const still = { x: 0, z: 0, vx: 0, vz: 0 };
+  try {
+    for (let i = 0; i < 4; i++) streamer.step(still);
+    const settled = reads;
+    for (let i = 0; i < 100; i++) streamer.step(still);
+    expect(reads).toBe(settled); expect(streamer.stats().frame).toBe(104);
+    revision++; streamer.step(still); expect(reads).toBeGreaterThan(settled);
+    const changed = reads; streamer.step({ ...still, x: 0.001 }); expect(reads).toBeGreaterThan(changed);
+    streamer.step(still); const moved = reads;
+    const pin = streamer.require('home', [0]); await pin.ready;
+    streamer.step(still); expect(reads).toBeGreaterThan(moved); pin.release(); streamer.step(still);
+    const pinned = reads; evict(); streamer.step(still); expect(reads).toBeGreaterThan(pinned);
+    expect(streamer.resident()).toContain('home:far');
+  } finally { streamer.dispose(); }
+});
+
+test('a stationary dynamic catalogue keeps its original polling unless it advertises revisions', () => {
+  const allocator = new ResidencyAllocator(); let reads = 0;
+  const streamer = new TileStreamer([{ instance: 'home', origin: { x: 0, z: 0 } }],
+    { now: () => 0, reserve: claim => allocator.reserve(claim) },
+    (_instance, level) => { reads++; return level === 'far' ? 1 : null; },
+    { fetch: (tile, done) => { done(tile.key); }, upload: () => ({ mask: () => undefined, shadow: () => undefined, dispose: () => undefined }) });
+  try {
+    streamer.step({ x: 0, z: 0, vx: 0, vz: 0 }); const before = reads;
+    streamer.step({ x: 0, z: 0, vx: 0, vz: 0 }); expect(reads).toBeGreaterThan(before);
+  } finally { streamer.dispose(); }
+});

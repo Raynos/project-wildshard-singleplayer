@@ -610,8 +610,24 @@ export class GridSession {
     // ground over the cell), so the rings stop refining it to its own L1 / L0 tiles, which would mask the near view near
     // the road (round 3's first A = B); a terrain-only near view (the template, its world in its tiles) keeps them; a cell
     // with no near view keeps its far proxy until entered (only the entered world lights its tiles)
-    this.rings = new TileStreamer(this.neighbours, this.allocator, (id, level, x, z) => (level === 'far' ? this.costs.get(id) ?? this.declaredFar.get(id) ?? 1_600_000
-      : this.placeholderBlocksTiles(id) ? null : tileCost(id, level, x, z)),
+    const farCosts = new Map<string, number>(), blocked = new Map<string, boolean>();
+    let catalogueRevision = 0, tileRevision = -1;
+    const catalogue = Object.assign((id: string, level: RingTile['level'], x: number, z: number): number | null => (level === 'far'
+      ? this.costs.get(id) ?? this.declaredFar.get(id) ?? 1_600_000 : this.placeholderBlocksTiles(id) ? null : tileCost(id, level, x, z)), {
+      revision: (): number => {
+        const current = tileCost.revision?.() ?? -1;
+        if (current !== tileRevision) { tileRevision = current; catalogueRevision++; }
+        for (const cell of this.neighbours) {
+          const bytes = this.costs.get(cell.instance) ?? this.declaredFar.get(cell.instance) ?? 1_600_000;
+          const hidden = this.placeholderBlocksTiles(cell.instance);
+          if (farCosts.get(cell.instance) !== bytes || blocked.get(cell.instance) !== hidden) {
+            farCosts.set(cell.instance, bytes); blocked.set(cell.instance, hidden); catalogueRevision++;
+          }
+        }
+        return catalogueRevision;
+      },
+    });
+    this.rings = new TileStreamer(this.neighbours, this.allocator, catalogue,
       levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports), { farRadius: FAR_RING.reach, uploadsPerFrame: 1, uploadBytesPerFrame: 4_000_000 });
     this.clientTiles = clientTileRegistration(tiles.instances, this.rings, () => TILE_RING);
     this.admitNeighbour = host.renderer === undefined ? undefined : this.tileAdmission(host.renderer, roots);
