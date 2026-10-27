@@ -7,7 +7,7 @@ Both print a performance report. New and outside projects refuse target overages
 only the canonical six old shards in the trusted checkout warn while they convert.
 A borrowed old slug does not grant an exemption. Runtime admission remains hard.
 
-The only hard memory budgets are the **complete worst-location totals: 1,000 MB
+The only hard memory budgets are the **complete worst-location totals: 1,200 MB
 playing and 1,800 MB loading**, including the engine, neighbours, commons and overlap.
 Library, simulation, tile and far resident targets are tradeable warnings, not separate
 per-shard memory caps. Wire/render targets still refuse new content:
