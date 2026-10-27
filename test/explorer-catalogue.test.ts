@@ -11,7 +11,7 @@ import { nameBlob, emitNamedBlobs } from '../src/sdk/blobs';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { ProductFigureCatalogue } from '../src/game/models/figureCatalogue';
 import { defineModel } from '../src/engine/models/model';
-import { PINE_WILDLIFE_DRAW as WILDLIFE_DRAW } from './fixtures/pine-program';
+import { PINE_WILDLIFE_DRAW as WILDLIFE_DRAW } from './fixtures/pine-wildlife';
 import { explorerRoster } from '../src/game/models/explorerCatalogue';
 import { installWorldScenes } from '../src/game/shardfile/worldScenes';
 import { drawSceneRows, prepareSceneDrawRows } from '../src/game/shardfile/sceneDraws';
