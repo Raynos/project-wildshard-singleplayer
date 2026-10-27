@@ -20,7 +20,7 @@ test('Pine page, quest and population declarations preserve literal and mutable 
 import {POPULATION_ROSTER} from './pine-hollow/generators/population';
 import {PINE_GRAPH} from './pine-hollow/generators/questGraph';
 import {PINE_QUEST_RUNTIME,PINE_QUEST_PAYLOAD} from './pine-hollow/generators/questRuntime';
-import {QUEST_RIDE_MODEL_BLOBS} from './pine-hollow/generators/questRideScenes';
+import {QUEST_RIDE_STEP} from './pine-hollow/generators/questRideScenes';
 export const actor:'antler-king'=PINE_PAGE_DEATH_EFFECTS[0].when[0].kind;
 export const flag:'dead:king'=PINE_PAGE_DEATH_EFFECTS[0].effects[0].flag;
 export const revision:1=POPULATION_ROSTER.version;
@@ -28,8 +28,7 @@ POPULATION_ROSTER.seed=2;
 PINE_GRAPH.actor='another-actor';
 PINE_QUEST_RUNTIME.leadPage.quest='another-quest';
 PINE_QUEST_PAYLOAD.policy.readingDelay=0.2;
-const model=QUEST_RIDE_MODEL_BLOBS[0];
-if(model!==undefined)model.kind='another-kind';
+QUEST_RIDE_STEP.scene='another-scene';
 `;
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   noPropertyAccessFromIndexSignature:true,target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,
@@ -49,7 +48,7 @@ POPULATION_ROSTER.version=2;
 POPULATION_ROSTER.seed='bad';
 PINE_QUEST_RUNTIME.leadPage.quest=1;
 PINE_QUEST_PAYLOAD.policy.readingDelay='late';
-if(model!==undefined)model.kind=1;
+QUEST_RIDE_STEP.scene=1;
 PINE_GRAPH.missing;
 `;
  const refused=diagnostics().map(diagnostic=>diagnostic.code);

@@ -3,11 +3,16 @@ import codeParts from '../data/codeParts.json' with { type: 'json' };
 /** Final timber draws, shadow proxies and native placement facts; no page-side weld. */
 import { parseWorldScenePlacement , type WorldScenePlacementRow as WorldScenePlacementRowType } from '@wildshard/format/worldScenePlacement';
 import { Matrix4, Object3D } from 'three';
-import baked from '../data/timberScenes.generated.json' with { type: 'json' };
+import { nameBlob, nameMeshoptBlob, type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
+import { hashImmutableBytes } from '@wildshard/sdk/immutable';
+import { pineQuestSites, pineTimberScenes } from './bake-timber-scenes.mjs';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import plumbing from '../data/plumbing.json' with { type: 'json' };
 import { TIMBER_MATERIALS } from './timberMaterials';
 import type { TimberSceneCopy } from './timberScenes';
+
+// GR8 G31: the timber scenes and quest sites are the producer's (bake-timber-scenes.mjs), not a stored timberScenes.generated.json
+const { copies, geometry, glbs } = await pineTimberScenes(), baked = { copies, geometry, sites: pineQuestSites() };
 
 type Draw = Omit<TimberSceneCopy['draws'][number], 'sphere'> & { readonly sphere: readonly number[] };
 type Proxy = Omit<TimberSceneCopy['proxies'][number], 'sphere'> & { readonly sphere: readonly number[] };
@@ -57,14 +62,17 @@ const room = new Object3D(); room.position.fromArray(ranger.at); room.rotation.y
 const shelf = room.matrixWorld.clone().multiply(new Matrix4().makeTranslation(-0.6, 1.78, -3.02));
 TIMBER_PLACEMENTS.push(parseWorldScenePlacement({ id: 'timbers.token-shelf', model: 'token-shelf', draw: 'single',
   poses: [{ x: shelf.elements[12], y: shelf.elements[13], z: shelf.elements[14], matrix: shelf.elements }], piece: { id: 'pine-hollow/token-shelf' } }));
-const hashes = new Map(Object.entries(baked.geometryHashes)), canonical = new Map<string, string>(), files = new Map<string, string>();
-export const TIMBER_BLOBS: typeof baked.blobs = [];
-for (const blob of baked.blobs) {
-  const hash = hashes.get(blob.source); if (hash === undefined) throw new Error(`Missing timber hash: ${blob.source}`);
+const canonical = new Map<string, string>(), files = new Map<string, string>(), unique: [string, Uint8Array][] = [];
+for (const [file, bytes] of glbs) {
+  const hash = hashImmutableBytes(bytes);
   let name = canonical.get(hash);
-  if (name === undefined) { name = blob.name; canonical.set(hash, name); TIMBER_BLOBS.push(blob); }
-  files.set(blob.name, name);
+  if (name === undefined) { name = file; canonical.set(hash, name); unique.push([file, bytes]); }
+  files.set(file, name);
 }
+/** The timbers' distinct GLBs, raw for the map assembly. */
+export const TIMBER_RAW_MODELS: NamedBlobType[] = unique.map(([name, bytes]) => nameBlob(name, 'glb', bytes));
+/** The timbers' distinct GLBs, meshopt-named as their `meshopt: true` sources were. */
+export const TIMBER_PACKED_MODELS: NamedBlobType[] = await Promise.all(unique.map(([name, bytes]) => nameMeshoptBlob(name, bytes)));
 const model = (row: typeof baked.geometry[number]) => {
   const file = files.get(row.file); if (file === undefined) throw new Error(`Missing timber blob: ${row.file}`);
   return { ...row, file };

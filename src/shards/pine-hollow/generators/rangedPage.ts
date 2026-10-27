@@ -11,10 +11,12 @@ import { tradeCatalogue } from './trades';
 import { CRAG_CAVE_ROWS } from './cragSceneContribution';
 import { PINE_QUEST_RUNTIME } from './questRuntime';
 import * as layout from './layout';
-import questScenes from '../data/timberScenes.generated.json' with { type: 'json' };
+import { pineQuestSites } from './bake-timber-scenes.mjs';
 import waterRows from '../data/waterLook.json' with { type: 'json' };
 import rainBake from '../data/rain.json' with { type: 'json' };
 import weather from '../data/weatherLook.json' with { type: 'json' };
+
+const { rifle } = pineQuestSites();
 
 const { PINE_CAVE_HOOD, PINE_RAIN, PINE_RAIN_PROGRAMS } = weather;
 
@@ -23,7 +25,7 @@ export const RANGED_PAGE: RangedPageRowsType = v.parse(RangedPageSchema, {
   id: 'pine.ranged', forest: 'pine.forest', elites: 'actors/elites.json', combat: 'combat/roaming.json', finishSource: 'held-finishes',
   menu: { title: 'Finishes', note: "Everything here trades at Mott's stall", hint: "Trade at Mott's stall", gearHint: 'Tap a weapon to hold it · a finish to wear it', noTrade: 'Mott has no use for it', lines: tradeCatalogue().lines },
   drops: { stream: 'skin-drops', rifleStream: 'cabin-rifle', labels: { rifle: 'lever-action', crossbow: 'crossbow' },
-    rifle: { at: [questScenes.sites.rifle.x, questScenes.sites.rifle.y, questScenes.sites.rifle.z], label: 'Take the lever-action',
+    rifle: { at: [rifle.x, rifle.y, rifle.z], label: 'Take the lever-action',
       toast: 'Lever-action rifle acquired · 1/2 to switch, Q to swap, R feeds the tube', scale: 1.3, parameters: ['rifle', 'lever'] } },
   prewarm: [{ kind: 'antler-king', variant: 'warden' }, { kind: 'elk', variant: 'thrall' }, { kind: 'boar', variant: 'thrall' }],
   collection: { source: 'collection-mounts', pack, chalk: painted.chalk, texture: painted.textures['chalk'] },

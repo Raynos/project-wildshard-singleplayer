@@ -827,8 +827,6 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /src/shards/driftwood-isle/assets/rock-scenes/
 /src/shards/driftwood-isle/data/rockScenes.generated.json
 
-/src/shards/pine-hollow/assets/timber-scenes/
-/src/shards/pine-hollow/data/timberScenes.generated.json
 
 # Native static world author outputs.
 /src/shards/driftwood-isle/assets/foliage-scenes/

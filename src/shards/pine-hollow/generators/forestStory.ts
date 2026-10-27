@@ -9,7 +9,7 @@ import { yawWorld } from '@wildshard/engine/world/yawFrame';
 import loadout from '../data/loadout.json' with { type: 'json' };
 import policy from '../data/forestStory.json' with { type: 'json' };
 import timbers from '../data/timberWorld.generated.json' with { type: 'json' };
-import scenes from '../data/timberScenes.generated.json' with { type: 'json' };
+import { pineQuestSites } from './bake-timber-scenes.mjs';
 import { pineQuestNpcs } from './questNpcs';
 import * as layout from './layout';
 import sky from '../data/sky.json' with { type: 'json' };
@@ -18,6 +18,8 @@ import { QuestPageTalksSchema , type QuestPageTalksRows as QuestPageTalksRowsTyp
 import { ContractBoardPageSchema, parseContractBoardPage } from '@wildshard/format/contracts';
 import { PINE_PANELS } from './panels';
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+
+const sites = pineQuestSites();
 
 // GR8: called, not read from a scheduler job's output
 const roster = pineQuestNpcs();
@@ -60,7 +62,7 @@ pool: { name: string; flag: string; water: string; still: { scene: string; surfa
   cable: { id: 'pine.zipline', scene: 'quest-rides.root', trolley: 'quest-rides.trolley', prompt: triple([zip.launch[0], zip.launch[1] + 1.1, zip.launch[2]]),
     radius: 2.3, label: 'Ride the zipline', top: zip.top, launch: zip.launch, landing: zip.landing, arrival: 'Down the line and into the Hollow', audio: 'ambience', shot: 'zipline' },
   mover: { id: 'pine.canoe', mesh: 'quest-rides.canoe', binding: { systemId: 'pine.movers', bindings: [{ id: 'pine.canoe', target: 'canoe', group: 'group', visibility: 'enabled', order: 'XYZ' }] }, rest: 'heroes.canoe.root' },
-  secret: { ...scenes.sites.hollow, mid: triple(scenes.sites.hollow.mid), mouths: scenes.sites.hollow.mouths.map(triple), scene: 'quests.hollow-log', projection: 'secret' },
+  secret: { ...sites.hollow, mid: triple(sites.hollow.mid), mouths: sites.hollow.mouths.map(triple), scene: 'quests.hollow-log', projection: 'secret' },
   // the views' rows (game/quest/questPageViews): the journal-complete achievement; the dam sluice's flag lowers the pool
   journal: { event: 'journal' },
   // the beaver pool: the dam sluice's flag lowers it (its look stands the surface over the bed, the declared creek's pool
