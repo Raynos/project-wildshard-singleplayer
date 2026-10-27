@@ -218,7 +218,7 @@ export function verifiedPreparedGeneration(root) {
 
 /** Stage the declared source closure, generate there and publish verified outputs only; never mutate a source bake.
  * @param {string} root @param {import('./generate.mjs').ShardGenerationJob} descriptor
- * @param {{preparation?:import('./generate.mjs').GenerationPreparation,inputHashes?:InputHashMemo,cacheDir?:string,forceCompare?:boolean,determinism?:boolean,restore?:boolean,restoreOutputs?:string[],catalogPath?:string,onComparison?:(rows:readonly import('./generate.mjs').GenerationComparison[])=>void}} [options] */
+ * @param {{preparation?:import('./generate.mjs').GenerationPreparation,inputHashes?:InputHashMemo,cacheDir?:string,forceCompare?:boolean,determinism?:boolean,restore?:boolean,restoreOutputs?:string[],catalogPath?:string}} [options] */
 export async function generateShardJob(root,descriptor,options={}) {
   const job=v.parse(Descriptor,descriptor), catalog=options.catalogPath ?? 'scripts/generation-jobs.json';
   const inputHashes=options.inputHashes ?? new InputHashMemo(root);
