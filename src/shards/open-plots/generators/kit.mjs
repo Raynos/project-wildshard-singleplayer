@@ -215,7 +215,8 @@ function mover(w, x, y, z, size, seed) {
   const c = [seed, 0, 0], top = [x, y + size * 1.4, z], a = [x - size, y - size, z - size], b = [x + size, y - size, z - size], d = [x, y - size, z + size * 1.4];
   w.tri('Glow', top, b, a, c); w.tri('Glow', top, d, b, c); w.tri('Glow', top, a, d, c); w.tri('Glow', a, b, d, c);
 }
-/** A firefly: a 7 cm mover the glow graph wanders (+-0.8 m) and blinks green. */
+/** A firefly: a 12 cm mover the glow graph wanders (+-0.8 m) and blinks green (RM10.3: 7 cm did not read past a few
+ *  metres). */
 function firefly(w, x, y, z) { placeMovingLight(w, 'firefly', [x, y, z]); }
 /** RM10.1: a round paper sky lantern of the Glow part about (x, y, z), `r` its belly radius: an 8-sided body narrow at
  *  the foot, swelling just under the middle and drawn in at the top, closed both ends (48 triangles), every vertex the
@@ -233,9 +234,9 @@ function paperLantern(w, x, y, z, r, seed) {
     w.tri('Glow', crown, rings[2][j], rings[2][i], c); w.tri('Glow', foot, rings[0][i], rings[0][j], c);
   }
 }
-/** A floating sky lantern: a round paper lantern (0.4 m belly, 0.9 m tall) the glow graph bobs and drifts (+-2 m), lit
- *  orange. */
-function skyLantern(w, x, y, z) { placeMovingLight(w, 'sky-lantern', [x, y, z]); }
+/** A floating sky lantern: a round paper lantern (`r` its belly, 0.4 m: 0.9 m tall) the glow graph bobs and drifts
+ *  (+-2 m), lit orange. */
+function skyLantern(w, x, y, z, r = 0.4) { placeMovingLight(w, 'sky-lantern', [x, y, z], r); }
 /** RM10.2: steam over a food cart at (x, y, z): three small octahedra in the additive Pool draw, marked by a vertex
  *  colour with blue and no red (no pool light has that) and seeded by green, so the pool graph lifts each 2.4 m on its own
  *  ~3 s loop, drifting and fading in and out (24 triangles). */
@@ -252,12 +253,12 @@ function steam(w, x, y, z) {
 }
 /** One moving light: consumes the next seed and writes its marked shape (a firefly's tetrahedron, a sky lantern's paper
  *  body). */
-function placeMovingLight(w, kind, position) {
+function placeMovingLight(w, kind, position, r = 0.4) {
   if (!['firefly', 'sky-lantern'].includes(kind) || !Array.isArray(position) || position.length !== 3
-    || position.some(value => !Number.isFinite(value))) throw new Error('open-plots: invalid moving light');
+    || position.some(value => !Number.isFinite(value)) || !(r > 0)) throw new Error('open-plots: invalid moving light');
   const seed = nextSeed() * 0.5;
-  if (kind === 'firefly') mover(w, position[0], position[1], position[2], 0.07, seed);
-  else paperLantern(w, position[0], position[1], position[2], 0.4, 0.5 + seed);
+  if (kind === 'firefly') mover(w, position[0], position[1], position[2], 0.12, seed);
+  else paperLantern(w, position[0], position[1], position[2], r, 0.5 + seed);
 }
 /** A lantern on a post of `height` and its pool of light. With the kit's models (RM4, opt-in: the layout's kit) it is
  *  the stone post, paper-lantern bracket or banner post by place, its model emitting the bake's light; without them,
@@ -566,6 +567,8 @@ function forecourt(w, p) {
     w.lanternEmitter?.([x, 2.5, z], [...p.lantern]);
     w.box('Glow', [x - 0.25, 2.2, z - 0.25], [x + 0.25, 2.8, z + 0.25], p.lantern, p.lantern);
     pool(w, x, z, 4.5, p.pool);
+    // RM10.2: the kiosks cook too: steam off each roof's peak (the road entry's side views look across them)
+    steam(w, x, 4.8, z);
     w.solid([x - 2, 0, z - 2], [x + 2, 1.1, z + 2]);
   }
 }
@@ -741,6 +744,8 @@ export function bakeLanternVertices(part, lights, { gain, radius, cut }) {
   return colours;
 }
 
+/** RM10 (D112): no lane life within this many metres of the gate (its wings span the plaza's lanes). */
+const GATE_CLEAR = 30;
 /** The lane on a tile's north (side 0) or east (side 1) seam: two strings of bulbs 3 m either side of the seam, sagging
  *  between posts at the crossings' corners, the bulbs alternating gold and red (Glow, merged into the tile's glow draw). */
 function stringLights(w, p, side, centre) {
@@ -749,6 +754,7 @@ function stringLights(w, p, side, centre) {
   // an entry's footprint (8 m wide, 15 m in from the plot's edge, on the x = 0 and z = 0 seams) stays clear above the road
   const clear = (x, z) => { const wx = centre[0] + x, wz = centre[1] + z, margin = 1.5;
     return (Math.abs(wx) < 4 + margin && Math.abs(wz) > 235 - margin) || (Math.abs(wz) < 4 + margin && Math.abs(wx) > 235 - margin); };
+  laneLife(w, along, (x, z) => clear(x, z) || Math.hypot(centre[0] + x, centre[1] + z) < GATE_CLEAR);
   // RM8.5: the kit's round bulbs hang every 3 m (the tetrahedra's 2.5 m with every family on put an S tile over 15k)
   if (w.hasModel('strings')) { modelStrings(w, p, along, ends, clear, top, sag, 3); return; }
   for (const off of [-3, 3]) {
@@ -773,6 +779,21 @@ function stringLights(w, p, side, centre) {
       w.lanternEmitter?.([x, y, z], [...colour]);
       w.tri('Glow', apex, b, a, colour); w.tri('Glow', apex, c, b, colour); w.tri('Glow', apex, a, c, colour); w.tri('Glow', a, b, c, colour);
     }
+  }
+}
+
+/** RM10 (D112): the life every lane carries, so it reads straight down a lane from the road entry, where the plaza's
+ *  lanterns and the stall rows' steam are too far: three round sky lanterns (0.6 m belly) over the lane's middle at 9.5 to
+ *  15.5 m, a quarter of a tile apart, and four fireflies low at its edges (160 triangles a seam, all in the Glow draw);
+ *  none inside `GATE_CLEAR` m of the gate, whose wings span the plaza's lanes (the plaza keeps its own sky lanterns). */
+function laneLife(w, along, clear) {
+  for (const [u, y] of [[-HALF / 2, 9.5], [0, 15.5], [HALF / 2, 12.5]]) {
+    const [x, , z] = along(u, 0, y);
+    if (!clear(x, z)) skyLantern(w, x, y, z, 0.6);
+  }
+  for (const [u, off, y] of [[-HALF * 0.8, -3.6, 1.4], [-HALF * 0.4, 3.6, 1.9], [HALF * 0.4, -3.6, 1.6], [HALF * 0.8, 3.6, 1.3]]) {
+    const [x, , z] = along(u, off, y);
+    if (!clear(x, z)) firefly(w, x, y, z);
   }
 }
 

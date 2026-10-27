@@ -28,7 +28,7 @@
     },
     "banner": {
       "band": 6,
-      "sway": 0.06
+      "sway": 0.2
     }
   },
   "flagstone": {
