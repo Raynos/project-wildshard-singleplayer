@@ -20,7 +20,7 @@ import { preflightShardfile } from '@wildshard/format/preflight';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { assertExternalShardSlug, externalShardInstance } from './identity';
 import { runtimeBoundWorldFiles } from '../plugin/headless';
-import { neighbourProductFilesPaced, runtimeOnlyProductFilesPaced, tierLibrarySourcePaced, tierProductFilesPaced, urlImageLibrarySourcePaced, scopedSpecimenLibrarySourcePaced, deviceLibraryCostPaced } from './productCost';
+import { neighbourProductFilesPaced, runtimeOnlyProductFilesPaced, tierLibrarySourcePaced, tierProductFilesPaced, urlImageLibrarySourcePaced, scopedSpecimenLibrarySourcePaced, playLibrarySourcePaced, deviceLibraryCostPaced } from './productCost';
 import { carryOutputDescriptor, IncompleteOutputCacheError, isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from './outputDescriptor';
 import { checkedProductCosts, parseCheckedProduct, prepareCheckedProduct, validateCheckedProductAssets } from './productChecks';
 
@@ -430,7 +430,9 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
     const scopedSource = await scopedSpecimenLibrarySourcePaced(imageSource, assets,
       options.tier === undefined ? undefined : { tier: options.tier, ...(options.quality === undefined ? {} : { overrides: options.quality }) }, options.pause);
     await options.pause?.();
-    acceptValidatedCost(source, await deviceLibraryCostPaced(scopedSource, assets, options.textures, options.pause), options.memory);
+    const playSource = await playLibrarySourcePaced(scopedSource, options.pause);
+    await options.pause?.();
+    acceptValidatedCost(source, await deviceLibraryCostPaced(playSource, assets, options.textures, options.pause), options.memory);
     await options.pause?.();
   }
   if (!options.offline && options.cache !== undefined) {

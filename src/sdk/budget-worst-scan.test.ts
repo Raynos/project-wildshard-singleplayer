@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import { nearbyContentCost, worstContentCost, worstContentCostSteps } from '@wildshard/format/budget';
 import { emptyShardfile } from './author';
+import { textureLibrarySource } from '@wildshard/format/deviceMemoryCost';
 
 const MB = 1_000_000;
 
@@ -71,4 +72,13 @@ test('a tile whose files the library holds is charged once, in the library', () 
   expect(held.accounted).toBe(streamed.accounted);
   // anywhere in the cell, holding the tile's files in the library costs what declaring that tile empty does
   expect(worstContentCost(make(['a'.repeat(64)])).playing).toBe(worstContentCost(make(['a'.repeat(64)], 0)).playing);
+});
+
+test('a library KTX2 file is charged its upload only: its decoded mips are dropped once uploaded (D122)', () => {
+  const source = emptyShardfile({ slug: 'ktx2-library', name: 'KTX2 library', author: 'Test', revision: 1, seed: 11 });
+  source.files = [{ hash: 'c'.repeat(64), kind: 'ktx2', compressed: 1, decoded: 10 * MB, gpu: 5 * MB, triangles: 0, draws: 0, dependencies: [], critical: false },
+    { hash: 'd'.repeat(64), kind: 'glb', compressed: 1, decoded: 7 * MB, gpu: 3 * MB, triangles: 0, draws: 0, dependencies: [], critical: false }];
+  source.library = ['c'.repeat(64), 'd'.repeat(64)]; source.budgets.library.resident = 25 * MB;
+  // no transcode support: only the decoded copy goes, the GPU bound stays the RGBA fallback; a GLB keeps both
+  expect(textureLibrarySource(source, new Map()).budgets.library.resident).toBe(15 * MB);
 });

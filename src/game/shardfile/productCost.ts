@@ -194,6 +194,50 @@ function* tierLibrarySourceSteps(source: Shardfile, tier: 'phone' | 'desktop', a
   } };
 }
 
+/** D122: a whole library the world loads only for the Explorer (`load: 'explorer'`, read cold by a specimen) is never
+ *  resident in play, so its files leave the play charge. A file stays charged when anything else names it: a played
+ *  library, a tile, the critical set, another file's dependencies or any other section or field. `props.wholeLibrary`
+ *  counts as a reader only when the client plan assembles an island library (its fixed draws read the whole library by
+ *  slug in play); otherwise only the Explorer and bakes read it. */
+export function playLibrarySource(source: Shardfile): Shardfile {
+  return drive(playLibrarySourceSteps(source));
+}
+/** `playLibrarySource`, paced like the admission's other projections. */
+export function playLibrarySourcePaced(source: Shardfile, pause: (() => Promise<void>) | undefined): Promise<Shardfile> {
+  return paced(playLibrarySourceSteps(source), pause ?? (() => Promise.resolve()));
+}
+function* playLibrarySourceSteps(source: Shardfile): Generator<void, Shardfile> {
+  const descriptor = outputDescriptor(source), input = descriptor?.sections.get('world/scenes');
+  if (descriptor === undefined || input === undefined) return source;
+  const scenes = parseWorldScenes(input), names = new Map<string, string>();
+  for (const file of descriptor.index.files) for (const name of [file.hash, file.path, `/shardfiles/${source.identity.slug}/${file.path}`, ...file.name === undefined ? [] : [file.name]]) names.set(name, file.hash);
+  const eligible = new Set<string>(), other = new Set<string>(source.critical);
+  for (const row of scenes.libraries) if (row.kind === 'whole') {
+    for (const model of row.models) for (const ref of model.files) { const hash = names.get(ref) ?? ref; (row.load === 'explorer' ? eligible : other).add(hash); }
+  }
+  if (eligible.size === 0) return source;
+  const into = (text: string): void => { const hash = names.get(text); if (hash !== undefined) other.add(hash); };
+  const plan: unknown = descriptor.sections.get('client/plan'), features: unknown = typeof plan === 'object' && plan !== null ? Reflect.get(plan, 'features') : undefined;
+  const islands = Array.isArray(features) && features.some((row: unknown) => typeof row === 'object' && row !== null && Reflect.get(row, 'kind') === 'world.assembly' && Reflect.get(row, 'library') !== undefined);
+  const { files: _files, library: _library, critical: _critical, props, ...rest } = source;
+  const fields = islands || props === null ? { ...rest, props } : { ...rest, props: { ...props, wholeLibrary: [] } };
+  const { libraries: _libraries, ...world } = scenes, sections: unknown[] = [world];
+  for (const [name, section] of descriptor.sections) {
+    if (name === 'world/scenes') continue;
+    // the props section carries the same whole-library list as `props` (its `props` row)
+    const row: unknown = typeof section === 'object' && section !== null ? Reflect.get(section, 'props') : undefined;
+    sections.push(!islands && name === 'world/props' && typeof section === 'object' && section !== null && typeof row === 'object' && row !== null
+      ? { ...section, props: { ...row, wholeLibrary: [] } } : section);
+  }
+  yield* stringsSteps([fields, ...sections], into);
+  for (const file of source.files) for (const ref of file.dependencies) other.add(ref);
+  const library = new Set(source.library);
+  let saving = 0;
+  for (const file of source.files) if (library.has(file.hash) && eligible.has(file.hash) && !other.has(file.hash)) saving += file.decoded + file.gpu;
+  if (saving === 0) return source;
+  return { ...source, budgets: { ...source.budgets, library: { ...source.budgets.library, resident: Math.max(0, source.budgets.library.resident - saving) } } };
+}
+
 /** Immutable manifest/journal URLs never create the data-URL string charged by image intake.
  * Keep one wire copy, CPU pixels and compositor pixels. Any other reader retains the full envelope. */
 export function urlImageLibrarySource(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, verifiedMissingImages: ReadonlySet<string> = new Set()): Shardfile {

@@ -16,9 +16,11 @@ export function acceptValidatedCost(source: Shardfile, cost: ReturnType<typeof w
   if (!acceptsProductCost(memory, source, 'declared', cost)) throw new Error(`declared worst-location total exceeds envelope: ${cost.playing}`);
 }
 
-/** Device cost projection after byte admission; source ceilings retain their full RGBA fallback. */
+/** Device cost projection after byte admission; source ceilings retain their full RGBA fallback. A KTX2 file's declared
+ *  decoded bytes never stay resident beside its upload (the format charges it none, and the loader drops its transcoded
+ *  mips once uploaded), so on every device only its GPU bytes are charged. */
 export function textureLibrarySource(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, support?: TextureTranscodeSupport): Shardfile {
-  if (support === undefined || (!support.astc && !support.bc7)) return source;
+  const transcodes = support !== undefined && (support.astc || support.bc7);
   const files = new Map(source.files.map(file => [file.hash, file])), seen = new Set<string>(), pending = [...source.library];
   let saving = 0;
   while (pending.length > 0) {
@@ -27,9 +29,12 @@ export function textureLibrarySource(source: Shardfile, assets: ReadonlyMap<stri
     const file = files.get(ref); if (file === undefined) continue;
     pending.push(...file.dependencies);
     if (file.kind !== 'ktx2') continue;
+    saving += file.decoded;
+    if (!transcodes) continue;
     const bytes = assets.get(ref); if (bytes === undefined) throw new Error('Missing admitted texture cost bytes');
     saving += parseKtx2(bytes).gpu - parseKtx2(bytes, support).gpu;
   }
+  if (saving === 0) return source;
   return { ...source, budgets: { ...source.budgets, library: { ...source.budgets.library, resident: Math.max(0, source.budgets.library.resident - saving) } } };
 }
 
