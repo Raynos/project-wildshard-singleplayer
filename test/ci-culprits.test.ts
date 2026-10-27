@@ -22,8 +22,13 @@ test('a partial checkout fetches dependency waves together without reading impor
     git(source,'config','uploadpack.allowFilter','true');
     git(source,'config','uploadpack.allowAnySHA1InWant','true');
     const imports=Array.from({length:40},(_,i)=>`import '../src/dependency-${i}.js';`);
-    writeFileSync(resolve(source,'test/failure.test.ts'),`${imports.join('\n')}\nimport '../src/data.json';\n`);
+    writeFileSync(resolve(source,'test/failure.test.ts'),`${imports.join('\n')}\nimport '../src/chain-0.js';\nimport '../src/data.json';\n`);
     for(let i=0;i<40;i++)writeFileSync(resolve(source,`src/dependency-${i}.js`),`export const value=${i};\n`);
+    const chain=(version:number):void=>{
+      for(let i=0;i<12;i++)writeFileSync(resolve(source,`src/chain-${i}.js`),
+        `${i<11?`import './chain-${i+1}.js';\n`:''}export const value=${version};\n`);
+    };
+    chain(0);
     writeFileSync(resolve(source,'src/data.json'),JSON.stringify({value:'old'.repeat(4000)}));
     const commit=():string=>{
       git(source,'add','.');git(source,'-c','core.hooksPath=/dev/null','-c','user.name=Fixture','-c','user.email=fixture@example.invalid',
@@ -32,12 +37,19 @@ test('a partial checkout fetches dependency waves together without reading impor
     };
     const base=commit();
     writeFileSync(resolve(source,'src/dependency-39.js'),'export const value=999;\n');
+    chain(1);
     const dependency=commit();
     writeFileSync(resolve(source,'src/data.json'),JSON.stringify({value:'new'.repeat(4000)}));
     const sha=commit(),dataHash=git(source,'rev-parse',`${sha}:src/data.json`);
     git(reader,'init','-q');git(reader,'remote','add','origin',pathToFileURL(source).href);
     git(reader,'fetch','--quiet','--filter=blob:none','origin',sha);
     expect(git(reader,'config','--bool','--get','remote.origin.promisor')).toBe('true');
+    // Match a real sparse CI checkout: current code is local, historical
+    // versions and data payloads remain absent from the promisor object store.
+    const current=git(source,'ls-tree','-r','--format=%(objectname) %(path)',sha).split('\n')
+      .filter(row=>/\.[jt]s$/u.test(row)).map(row=>row.split(' ')[0]);
+    execFileSync('git',['fetch','--quiet','--no-tags','--no-write-fetch-head','--filter=blob:none','origin','--stdin'],
+      {cwd:reader,input:`${current.join('\n')}\n`,stdio:['pipe','pipe','pipe']});
     const dataPresent=():string=>execFileSync('git',['--no-lazy-fetch','cat-file','--batch-check=%(objectname) %(objecttype)'],
       {cwd:reader,encoding:'utf8',input:`${dataHash}\n`}).trim();
     expect(dataPresent()).toBe(`${dataHash} missing`);

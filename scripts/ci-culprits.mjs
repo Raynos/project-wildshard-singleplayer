@@ -113,7 +113,13 @@ export function culpritReport(root,base,sha,files){
   if(remote.error!==undefined)throw remote.error;
   if(remote.status!==0 && remote.status!==1)throw new Error('Cannot read immutable source remote');
   const promisor=remote.status===0&&remote.stdout.trim()==='true';
-  const current=closure(root,gitSourceView(root,sha),files,promisor),previous=closure(root,gitSourceView(root,base),files,promisor);
+  const currentView=gitSourceView(root,sha),previousView=gitSourceView(root,base);
+  const current=closure(root,currentView,files,promisor);
+  // Checkout already hydrated current source. Fetch its historical counterparts
+  // together so a deep old import chain does not need a round trip per level.
+  // Old-only imports are still discovered and fetched by the unchanged walk.
+  if(promisor)primeSources(root,previousView,current.paths.filter(file=>previousView.files.has(file)&&/\.[cm]?[jt]sx?$/u.test(file)),true);
+  const previous=closure(root,previousView,files,promisor);
   const paths=[...new Set([...current.paths,...previous.paths])].sort((a,b)=>a.localeCompare(b));
   const commits=(/** @type {string[]} */ selected)=>git(root,['log','-n','3','--format=%H',`${base}..${sha}`,'--',...selected]).split('\n').filter(Boolean);
   const direct=commits(files),related=commits(paths);
