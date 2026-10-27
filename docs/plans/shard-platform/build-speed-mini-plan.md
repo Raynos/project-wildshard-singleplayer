@@ -1,5 +1,7 @@
 # Build speed: mini plan for the builder (G548)
 
+**State:** `done` 2026-10-27 (G809, sp-ci-deploy). Build work was already counted complete; its last CI row now closes on the [first green main push 40582611712](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40582611712) at `0012c73e11b2a4940c87af5075eec52c69492251`. This records the first green run, without claiming a new ruler benchmark or the former CI timing window.
+
 Jake, 2026-10-20 ~19:15 Cancun: *"why did the build take so long? … We can just cut the build wall clock time down 10
 times, down 90%"*. Benchmark by the plan agent's subagent on 8042d30ab3 (`check` slot, under the build lease; samples and
 logs were in the session scratchpad and are not kept). Goes with G547 (2 builds at a time, 5 check slots).
