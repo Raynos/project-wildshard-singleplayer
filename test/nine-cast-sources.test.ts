@@ -12,13 +12,17 @@ import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { NINE_SCENE_BLOBS, NINE_WORLD_SCENES } from './fixtures/nine-product-inputs';
 import { parseWorldSceneModels } from '../src/format/worldSceneModels';
-import { BufferGeometry, Color, Mesh, MeshStandardMaterial, Texture, type Object3D } from 'three';
+import { BufferGeometry, Color, Matrix4, Mesh, MeshStandardMaterial, Texture, Vector3, type Object3D } from 'three';
 import { weldSceneMaterial } from '../src/game/shardfile/worldSceneWeld';
 import hookRows from '../src/shards/nine-dragon-stack/data/hookSpecimen.json' with { type: 'json' };
 
 const CAST_BLOBS=await nineCastBlobs();
 
 const isGeometry = (value: unknown): value is BufferGeometry => value instanceof BufferGeometry;
+/** The channels the phone casts quantize (sdk/bake/compactGlb.ts `compactPhoneGlb`): their stored type and its normalized
+ *  maximum; every other channel stays exact. */
+const PHONE_CHANNELS: Readonly<Record<string, { readonly type: Int16ArrayConstructor | Int8ArrayConstructor | Uint8ArrayConstructor; readonly max: number }>> = {
+  position: { type: Int16Array, max: 32767 }, normal: { type: Int8Array, max: 127 }, color: { type: Uint8Array, max: 255 } };
 
 test('cast resource rows publish exact channels and preserve middle-LOD sharing without mutating source templates', async () => {
   const named = (name: string): Uint8Array => {
@@ -40,10 +44,32 @@ test('cast resource rows publish exact channels and preserve middle-LOD sharing 
     expect(Object.keys(actualGeometry.attributes)).toEqual(Object.keys(expectedGeometry.attributes));
     for (const [key, attribute] of Object.entries(expectedGeometry.attributes)) {
       const decoded = actualGeometry.getAttribute(key);
-      expect(decoded.normalized).toBe(attribute.normalized); expect(decoded.itemSize).toBe(attribute.itemSize);
-      expect(decoded.array.constructor).toBe(attribute.array.constructor);
-      expect(Buffer.compare(new Uint8Array(decoded.array.buffer, decoded.array.byteOffset, decoded.array.byteLength),
-        new Uint8Array(attribute.array.buffer, attribute.array.byteOffset, attribute.array.byteLength)), `${file}:${key}`).toBe(0);
+      expect(decoded.itemSize).toBe(attribute.itemSize);
+      const step = PHONE_CHANNELS[key];
+      if (step === undefined) {
+        // every other channel is carried byte for byte (read element by element: the phone GLB interleaves its vertex
+        // channels, so a decoded attribute's array is the whole interleaved buffer)
+        expect(decoded.normalized).toBe(attribute.normalized); expect(decoded.array.constructor).toBe(attribute.array.constructor);
+        const channel = new Float32Array(attribute.count * attribute.itemSize);
+        for (let i = 0; i < attribute.count; i++) for (let c = 0; c < attribute.itemSize; c++) channel[i * attribute.itemSize + c] = decoded.getComponent(i, c);
+        expect(attribute.array).toBeInstanceOf(Float32Array);
+        expect(Buffer.compare(new Uint8Array(channel.buffer),
+          new Uint8Array(attribute.array.buffer, attribute.array.byteOffset, attribute.array.byteLength)), `${file}:${key}`).toBe(0);
+        continue;
+      }
+      // I3c (c877add154): the phone casts quantize position (Int16 on the grid in the node's transform), normal (Int8) and
+      // colour (Uint8), all normalized: each decoded value lies within half its quantization step of the original
+      expect(decoded.normalized, `${file}:${key}`).toBe(true); expect(decoded.array.constructor, `${file}:${key}`).toBe(step.type);
+      expect(attribute.array.constructor, `${file}:${key}`).toBe(Float32Array);
+      const grid = key === 'position' ? actual.matrix : new Matrix4(), half = new Vector3(1, 1, 1).multiplyScalar(0.5 / step.max);
+      if (key === 'position') half.multiply(new Vector3().setFromMatrixScale(grid));
+      const value = new Vector3(), raw = new Vector3();
+      let worst = 0;
+      for (let i = 0; i < attribute.count; i++) {
+        value.fromBufferAttribute(decoded, i).applyMatrix4(grid); raw.fromBufferAttribute(attribute, i);
+        for (const axis of ['x', 'y', 'z'] as const) worst = Math.max(worst, Math.abs(value[axis] - raw[axis]) - half[axis] - 1e-6 * Math.abs(raw[axis]));
+      }
+      expect(worst, `${file}:${key}`).toBeLessThanOrEqual(1e-6);
     }
     expect(actualGeometry.index?.array).toEqual(expectedGeometry.index?.array);
     expect(actualGeometry.groups).toEqual(expectedGeometry.groups);
