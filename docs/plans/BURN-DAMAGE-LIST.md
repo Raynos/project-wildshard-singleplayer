@@ -68,6 +68,7 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D29 | Far Reach product build: far-reach/generators/product.ts:33 parseShardfile throws 'shardfile semantic rules' (no rule named), so `serve-build --head` and `--rev 2896dc0d85` fail (log tmp/serve/failed-20261027-011921-4400.log); a127a8a built | between `112cbc3787` and `84f531f9dc` (refactor(sky) handoff commits) | Far Reach generator lane (sp-x1, GR5) | open |
 | D30 | HEAD preview build: `Missing or duplicate catalogue dependency: nalati-poi-paint` (log tmp/serve/failed-20261027-012330-4400.log) | `aec0cd6ff9` (refactor(nalati): own POI paint construction) or later | Nalati generator lane | open |
 | D31 | Shared tree: uncommitted `scripts/generation-jobs.json` edit leaves job `pine-grazers` incomplete, so `pnpm gen` / working-tree previews stop ('Incomplete generation job pine-grazers') and generated discovery files (e.g. far-reach/discovery.generated.ts) go missing for focused tests | — (working tree) | owner of the pine-grazers edit (sp-x7 finds) | open |
+| D32 | Pine generation stage: `src/shards/pine-hollow/generators/quests.ts` imports `@wildshard/sdk/quests`, which the generation stage's linked node_modules does not export, so `serve-build --rev 8a832edf7b` fails (ERR_MODULE_NOT_FOUND; log tmp/serve/failed-20261027-012212-4400.log:643) | `8a832edf7b` or earlier (sent to sp-x7 01:22) | breaker (sp-x7 finds) | open |
 
 ## Rows
 

@@ -39,6 +39,10 @@ export interface PlatformRoadInput {
   readonly plans: Map<Mesh, CullPlan>;
   /** G144: admit each allocation's byte plan before building it. */
   readonly admission: PlatformRenderAdmission;
+  /** loading-speed A1 (ring-first): build only the strips and road pieces standing at these grid points (absent: all) */
+  readonly within?: (x: number, z: number) => boolean;
+  /** build the void floor and its rail (default true; one build of a split road draws it) */
+  readonly voidFloor?: boolean;
 }
 /** The readouts and the roots the road budget measures. */
 export interface PlatformRoad {
@@ -75,15 +79,39 @@ export async function installPlatformRoadSliced(input: PlatformRoadInput, pause:
   } finally { if (!completed) steps.return(undefined); }
 }
 
+/** the layout's pieces standing at points `within` accepts (the rail stays: it belongs to the void floor) */
+function layoutWithin(layout: RoadLayout, within: (x: number, z: number) => boolean): RoadLayout {
+  return { segments: layout.segments.filter(s => within(s.centre.x, s.centre.z)), junctions: layout.junctions.filter(j => within(j.centre.x, j.centre.z)),
+    signs: layout.signs.filter(s => within(s.at.x, s.at.z)), lights: layout.lights.filter(l => within(l.at.x, l.at.z)), rail: layout.rail };
+}
+
+/** Two builds of one road system (A1's ring-first halves) as one: their readouts summed, roots joined, hooks shared. */
+export function combinePlatformRoads(first: PlatformRoad, second: PlatformRoad): PlatformRoad {
+  const a = first.road, b = second.road, sa = first.seams, sb = second.seams, buckets: Partial<Record<string, number>> = { ...sa.buckets };
+  for (const [bucket, count] of Object.entries(sb.buckets)) buckets[bucket] = (buckets[bucket] ?? 0) + (count ?? 0);
+  return {
+    road: { segments: a.segments + b.segments, junctions: a.junctions + b.junctions, roundabouts: a.roundabouts + b.roundabouts, signs: a.signs + b.signs, lights: a.lights + b.lights, draws: a.draws + b.draws },
+    seams: { triangles: sa.triangles + sb.triangles, draws: sa.draws + sb.draws, buckets },
+    roots: [...first.roots, ...second.roots],
+    horizon: (owned) => { first.horizon(owned); second.horizon(owned); },
+    overlayLight: (weight) => { first.overlayLight(weight); second.overlayLight(weight); },
+  };
+}
+
 function* platformRoadSteps(input: PlatformRoadInput): Generator<void, PlatformRoad | undefined> {
-  const { strips, home, pitch, layout, scene, scope, admission } = input;
+  const { home, pitch, scene, scope, admission, within } = input;
+  const strips = within === undefined ? input.strips : input.strips.filter(strip => within(strip.mesh.origin.x, strip.mesh.origin.z));
+  const layout = within === undefined ? input.layout : layoutWithin(input.layout, within);
   const culler: RoadCuller = { pitch, plans: input.plans, ...(input.camera === undefined ? {} : { camera: input.camera }) };
   // the seams' materials keyed by the generator's feature ranges: the same triangles the world collides with
   const seams = seamSolidSource(strips, home, undefined, pitch);
   const parts: SolidPart[] = [...seams.parts], solid = (part: SolidPart): void => { parts.push(part); };
   const overlayLight = new RoadOverlayLight();
   const road = yield* installRoadLookSteps({ layout, home, scene, scope, solid, cull: culler, admission, overlayLight });
-  const voidLook = installVoidLook({ rail: layout.rail, home, scene, scope, solid, admission });
+  const voidLook = input.voidFloor === false ? null : installVoidLook({ rail: layout.rail, home, scene, scope, solid, admission });
+  // this build's own boulevard group (a split road adds one per build)
+  let boulevard: Object3D | undefined;
+  for (const child of scene.children) if (child.name === 'grid-boulevard') boulevard = child;
   const meshes: Mesh[] = [];
   yield;
   const deckBytes = yield* meshBytesSteps(parts.map(solidSource), SOLID_FLOATS, { pitch, lod: ROAD_LOD }, true);
@@ -110,6 +138,6 @@ function* platformRoadSteps(input: PlatformRoadInput): Generator<void, PlatformR
   // Disposer closures retain this build environment. Only the admitted meshes need to survive;
   // the split/merge sources have already been copied into their final uploaded representation.
   parts.length = 0; seams.parts.length = 0;
-  const roots = [...meshes, scene.getObjectByName('grid-boulevard'), scene.getObjectByName('grid-void')].filter((o): o is Object3D => o !== undefined);
-  return { road, seams: seams.state, roots, horizon: voidLook.fade, overlayLight: (w) => { overlayLight.weight(w); } };
+  const roots = [...meshes, boulevard, voidLook === null ? undefined : scene.getObjectByName('grid-void')].filter((o): o is Object3D => o !== undefined);
+  return { road, seams: seams.state, roots, horizon: (owned) => { voidLook?.fade(owned); }, overlayLight: (w) => { overlayLight.weight(w); } };
 }

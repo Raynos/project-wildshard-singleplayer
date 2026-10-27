@@ -70,7 +70,7 @@ import { loadShardfileFar, loadShardfileNear } from './shardfileFar';
 import { jsonResidentBytes } from '../shardfile/productCost';
 import { RAIL_OFFSET, roadLayout } from './roadLayout';
 import type { RoadLookState } from './roadLook';
-import { installPlatformRoad, installPlatformRoadSliced, type PlatformRoad } from './roadLookPlatform';
+import { combinePlatformRoads, installPlatformRoad, installPlatformRoadSliced, type PlatformRoad } from './roadLookPlatform';
 import { collisionStrips, type CollisionStrip } from './collisionStrips';
 import { installSoftWallLook, type SoftWallState } from './softWallLook';
 import type { SeamLookState } from './seamLook';
@@ -299,6 +299,8 @@ export class GridSession {
   /** whether the road install has landed (or failed: the reveal never waits on a road that cannot come) */
   private roadSettled = false;
   private roadLanding: Promise<void> = Promise.resolve();
+  /** loading-speed A1: builds the outer ring's road once (null: none to build, or started) */
+  private startOuterRoad: (() => void) | null = null;
   private readonly roadPlans = new Map<Mesh, CullPlan>();
   private readonly roadBudget: { readonly view: () => RoadViewCost | null; readonly resident: () => RoadResident };
   private readonly life: NeighbourLife;
@@ -371,9 +373,15 @@ export class GridSession {
     const admission = new PlatformRenderResidency(allocator, roadScope), plans = new Map<Mesh, CullPlan>();
     // The road system (~1.8 s of geometry at 4x CPU on the phone tier, after the seams) builds beside the next loading
     // steps instead of before them; the session takes it when it lands and the entry reveal waits for it (`ringsReady`)
-    const road = installPlatformRoadSliced({ strips, home, pitch: assembly.pitch,
-      layout: roadLayout(assembly, slug => findShard(slug)?.name ?? slug), scene: host.scene, scope: roadScope,
-      camera: () => host.frame?.camera, plans, admission }, async () => { await construction.check(); });
+    // loading-speed A1 (ring-first, render side): the home and its eight neighbours' strips and road pieces build before
+    // controls; the outer sixteen cells' build once play has started (`backgroundReady`), in the same scope and budget
+    const reach = 1.5 * assembly.pitch + 1;
+    const ring = (x: number, z: number): boolean => Math.abs(x - home.origin.x) <= reach && Math.abs(z - home.origin.z) <= reach;
+    const roadInput = { strips, home, pitch: assembly.pitch, layout: roadLayout(assembly, slug => findShard(slug)?.name ?? slug), scene: host.scene,
+      scope: roadScope, camera: () => host.frame?.camera, plans, admission };
+    const pause = async (): Promise<void> => { await construction.check(); };
+    const road = installPlatformRoadSliced({ ...roadInput, within: ring }, pause);
+    const outer = (): Promise<PlatformRoad> => installPlatformRoadSliced({ ...roadInput, within: (x, z) => !ring(x, z), voidFloor: false }, pause);
     road.catch(() => { roadScope.dispose(); });
     try {
       await construction.yield();
@@ -385,14 +393,14 @@ export class GridSession {
         await construction.check();
       }
       if (host.scope.disposed || host.scope.disposing) throw new Error('Grid session left during collider preparation');
-      const session = new GridSession(host, edges, allocator, strips, { road, plans, collidersInstalled: true });
+      const session = new GridSession(host, edges, allocator, strips, { road, outer, plans, collidersInstalled: true });
       progress?.set(3, 3, `${assembly.cells.length} cells · ${strips.length} seams`);
       await construction.yield();
       return session;
     } catch (error) { roadScope.dispose(); throw error; }
   }
 
-  constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[], preparedRoad?: { readonly road: PlatformRoad | Promise<PlatformRoad>; readonly plans: Map<Mesh, CullPlan>; readonly collidersInstalled?: true }) {
+  constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[], preparedRoad?: { readonly road: PlatformRoad | Promise<PlatformRoad>; readonly outer?: () => Promise<PlatformRoad>; readonly plans: Map<Mesh, CullPlan>; readonly collidersInstalled?: true }) {
     this.host = host;
     // before the page's first render: the lights a region's own pool shows through (regionalWorld `mirrorInto`)
     if (isScene(host.scene)) LightPool.for(host.scene).reserve(GRID_REGION_POINT_LIGHTS);
@@ -438,9 +446,22 @@ export class GridSession {
     let platformRoad: PlatformRoad | null = null, horizon: number | undefined, weight: number | undefined;
     const take = (road: PlatformRoad): void => {
       if (preparedRoad !== undefined) for (const [mesh, plan] of preparedRoad.plans) this.roadPlans.set(mesh, plan);
-      platformRoad = road; this.road = road.road; this.seams = road.seams; this.roadRoots = road.roots; this.roadSettled = true;
+      platformRoad = platformRoad === null ? road : combinePlatformRoads(platformRoad, road);
+      this.road = platformRoad.road; this.seams = platformRoad.seams; this.roadRoots = platformRoad.roots; this.roadSettled = true;
       if (horizon !== undefined) road.horizon(horizon);
       if (weight !== undefined) road.overlayLight(weight);
+    };
+    // A1: the outer ring's road, started by `step` once play has begun and the inner ring has landed
+    const outer = preparedRoad?.outer;
+    if (outer !== undefined) this.startOuterRoad = () => {
+      const landOuter = async (): Promise<void> => {
+        try { const road = await outer(); if (!host.scope.disposed) take(road); }
+        catch (error: unknown) {
+          this.issues.set('road.outer', error instanceof Error ? error.message : String(error));
+          console.warn('[grid] the outer road did not install:', error);
+        }
+      };
+      void landOuter();
     };
     const given = preparedRoad?.road;
     if (given instanceof Promise) {
@@ -819,6 +840,7 @@ export class GridSession {
     const speed = Math.hypot(this.velocity.x, this.velocity.z);
     // Match L1's 400 m reach plus the rings' four-second travel lookahead. Distant
     // cells keep their baked proxy without admitting their full product at boot.
+    if (this.startOuterRoad !== null && this.roadSettled && this.host.backgroundReady?.() !== false) { const start = this.startOuterRoad; this.startOuterRoad = null; start(); }
     if (this.host.backgroundReady?.() !== false) for (const cell of this.neighbours) {
       const distance = Math.hypot(Math.max(0, Math.abs(at.x - cell.origin.x) - CHUNK_HALF), Math.max(0, Math.abs(at.z - cell.origin.z) - CHUNK_HALF));
       if (this.assembly.approaching(distance, 400 + Math.min(speed, 60) * 4)) void this.admitNeighbour?.(cell).catch(() => undefined);
