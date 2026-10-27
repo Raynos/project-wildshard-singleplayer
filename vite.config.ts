@@ -15,7 +15,6 @@ import { assetIndex } from './scripts/app-build/gen';
 import { backdropPrefixPlugin } from './vite/backdropPrefix';
 import { chunkReport } from './vite/chunkReport';
 import { bootModulesPlugin } from './vite/bootModules';
-import { noTopLevelAwait } from './vite/noTopLevelAwait';
 import { crossroadsRigPlugin } from './vite/crossroadsRig';
 import { assertHeavyLease } from './scripts/heavy-lane-lease.mjs';
 
@@ -117,9 +116,8 @@ export default defineConfig(({ mode, command }) => {
         // Manual groups remain disabled: Rolldown 1.2.9 emits circular chunks with invalid runtime bindings.
       },
     assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
-    worker: { plugins: () => [noTopLevelAwait()] },
     resolve: { alias: rapierAlias }, // Rapier's wasm-importing module → plain bindings (vite/rapier.ts)
     define: { __SHARDFILE_VALIDATOR__: JSON.stringify(validationRevision), __SHARDFILE_VERDICTS__: JSON.stringify(buildValidationReceipts(validationRevision)), __DEVSERVER__: mode === 'devserver', __BUILD_ID__: JSON.stringify(BUILD_ID), __SAVE_NAMESPACES__: JSON.stringify(readdirSync('src/shards').filter((slug) => existsSync(join('src/shards', slug, 'manifest.ts')))) },
-    plugins: native ? [assetTablesPlugin(), gridSeamPlansPlugin(), worldMapAtlasPlugin(), backdropPrefixPlugin(), versionPlugin(), nativePlugin(), noTopLevelAwait()] : [assetTablesPlugin(), gridSeamPlansPlugin(), worldMapAtlasPlugin(), backdropPrefixPlugin(), versionPlugin(), crossroadsRigPlugin(BUILD_ID), bootModulesPlugin(), pwaPlugin(BUILD_ID), rapierPreviewPlugin(), chunkReport(), noTopLevelAwait()],
+    plugins: native ? [assetTablesPlugin(), gridSeamPlansPlugin(), worldMapAtlasPlugin(), backdropPrefixPlugin(), versionPlugin(), nativePlugin()] : [assetTablesPlugin(), gridSeamPlansPlugin(), worldMapAtlasPlugin(), backdropPrefixPlugin(), versionPlugin(), crossroadsRigPlugin(BUILD_ID), bootModulesPlugin(), pwaPlugin(BUILD_ID), rapierPreviewPlugin(), chunkReport()],
   };
 });

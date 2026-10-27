@@ -6,6 +6,7 @@
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { checkNoTopLevelAwait } from './app-build/noTopLevelAwait.mjs';
 import { copyOutputProducts } from './app-build/outputProducts.mjs';
 
 const args = process.argv.slice(2);
@@ -39,6 +40,10 @@ const vite = resolve(import.meta.dirname, '../node_modules/vite/bin/vite.js');
 const build = spawnSync(process.execPath, [vite, 'build', ...args], { stdio: 'inherit' });
 if (build.error !== undefined) throw build.error;
 if (build.status !== 0) { process.exitCode = build.status ?? 1; process.exit(); }
+
+// no emitted app JavaScript may suspend its module's evaluation (was vite/noTopLevelAwait.ts); inline workers are iife,
+// where the bundler refuses top-level await itself
+checkNoTopLevelAwait(outDir, resolve('public'));
 
 // the compiled DEVSERVER mode, as a machine-readable artifact beside the bundle (scripts/check-devserver.mjs, sdk/dev.ts);
 // the bundle itself takes it from the __DEVSERVER__ define (was vite/devserver.ts)
