@@ -22,7 +22,7 @@ import { PainterlyLook } from '@wildshard/engine/render/families/painterly';
 import { familyCompileJobs, familyMaterial } from '@wildshard/engine/render/families/registry';
 import { staticGlb } from '../../src/sdk/bake/glb';
 import { defineWorldSceneCatalogue } from '../../src/game/models/worldSceneCatalogue';
-import modelCatalogue from '../../src/shards/driftwood-isle/boot/modelCatalogue.generated.json';
+import { driftwoodPierScenes } from '../../src/shards/driftwood-isle/generators/pierScenesBank';
 import layout from '../../src/shards/_template/data/layout.json' with { type: 'json' };
 import { poolMask } from '../../src/shards/_template/generators/world';
 import { readProductDescriptor, browserContentHash } from '../../src/game/shardfile/product';
@@ -31,7 +31,7 @@ import { outputBlobUrl } from '../../src/game/shardfile/outputDescriptor';
 const productBase = new URL('template-product/shard.json', location.href).href;
 const source = await readProductDescriptor({ base: productBase, offline: false, firstParty: true, fetch: url => fetch(url), hash: browserContentHash });
 
-const sites = defineWorldSceneCatalogue(modelCatalogue.siteCatalogue);
+const sites = defineWorldSceneCatalogue({ product: 'driftwood-isle', models: [driftwoodPierScenes().boat] });
 const boat = sites.model('boat');
 const W = 600, H = 800;
 const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
