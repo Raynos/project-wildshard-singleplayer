@@ -1,6 +1,8 @@
 import {lendNalatiKokpar} from './fixtures/nalati-return-modules';
 import { afterEach, expect, test, vi } from 'vitest';
 import { HeldClaims } from '../src/game/loadout/claims';
+import { parse } from 'valibot';
+import { BowVariantSchema } from '../src/format/bowVariantRows';
 import { MountedArsenal, VariantBowPower } from './fixtures/originalMountedArsenal';
 import * as THREE from 'three';
 import { bindEquipmentActors } from '../src/game/loadout/actors';
@@ -129,7 +131,7 @@ async function run(mode:'original'|'slots'){
     const damage=vi.fn(()=>2),loose=vi.fn<NonNullable<InstanceType<typeof bowBinding.Bow>['onLoose']>>();initial.damageMultiplier=damage;initial.onLoose=loose;bladeBefore.passChain=3;
     kit.setMount(mount);kit.refill();
     f.powerBoundary.mockImplementation(bow=>{expect(bow.damageMultiplier).toBe(damage);expect(bow.onLoose).toBe(loose);});
-    const originalPower='blade' in kit?null:new VariantBowPower(f.scene,f.camera,variant);
+    const originalPower='blade' in kit?null:new VariantBowPower(f.scene,f.camera,parse(BowVariantSchema,variant));
     if('blade' in kit)kit.bowPower('bow-reward');
     const bladePower=legacyDouble<ArcWeaponPower>({});
     if('blade' in kit){kit.upgradeBow('bow-reward',equipment);kit.upgradeBlade('blade-reward',equipment,bladePower);}

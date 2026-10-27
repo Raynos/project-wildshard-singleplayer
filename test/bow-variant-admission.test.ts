@@ -22,11 +22,12 @@ test('the variant baker preserves its admitted payload without native validation
 
 
 test('baked damage columns equal the original tag law for every native target and unknown kind',()=>{
+  const admitted=parse(BowVariantSchema,rows);
   const multipliers=parse(BowSourceMultipliersSchema,effects.multipliers);
   const kinds=['balbal','kurgan-balbal','horse','argymaq','wolf','sheep','marmot','eagle','golden-king','qyran','qara-batyr','storm-titan','unknown','constructor','__proto__'];
   for(const kind of kinds)for(const sun of [false,true])for(const previous of [-2,-0,0,.1,1,2,Math.PI]){
-    const expected=previous*sourceMultiplier(multipliers,{weaponTags:[rows.id],sourceTags:sun?[rows.sourceTag]:[],targetTags:[`creature.${kind}`]});
-    const scales=Object.hasOwn(rows.damageScale.kinds,kind)?rows.damageScale.kinds[kind]:undefined;
-    expect(previous*(scales??rows.damageScale.base)[sun?1:0]).toBe(expected);
+    const expected=previous*sourceMultiplier(multipliers,{weaponTags:[admitted.id],sourceTags:sun?[admitted.sourceTag]:[],targetTags:[`creature.${kind}`]});
+    const scales=Object.hasOwn(admitted.damageScale.kinds,kind)?admitted.damageScale.kinds[kind]:undefined;
+    expect(previous*(scales??admitted.damageScale.base)[sun?1:0]).toBe(expected);
   }
 });

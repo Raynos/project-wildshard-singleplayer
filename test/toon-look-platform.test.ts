@@ -55,7 +55,12 @@ test('rejects executable look rows and missing or unsorted day keys', () => {
   expect(() => parseToonLook({ ...row, ground: { ...row.ground, files: { ground: '', slab: 'ok' } } })).toThrow();
 });
 
+function assertUnchangedClockRows(input: unknown): asserts input is v.InferOutput<typeof ToonDaySchema> {
+  expect(v.parse(ToonDaySchema, input)).toEqual(input);
+}
+
 test('the data clock preserves shipping sky curves at all 1001 day/night phases', () => {
+  assertUnchangedClockRows(DRIFTWOOD_SKY_DAY);
   const original = dayClock(TOON_DAY_PRESET, DRIFTWOOD_SKY_DAY, { dusk: 'dusk' });
   const admitted = dayClock(TOON_DAY_PRESET, v.parse(ToonDaySchema, DRIFTWOOD_SKY_DAY), { dusk: 'dusk' });
   for (let i = 0; i <= 1000; i++) {
