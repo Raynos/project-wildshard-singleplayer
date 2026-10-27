@@ -1,6 +1,12 @@
 import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Check the actual exact-source reporting and blocking workflows.
-import { readFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Execute the actual legacy-owner guard in tiny isolated fixtures.
+import { spawnSync } from 'node:child_process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Resolve only the fixture directory owned by this case.
+import { resolve } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- Keep the fixture on the same real Node runtime.
+import process from 'node:process';
 import { quarantineSource } from '../scripts/quarantine-source.mjs';
 
 const sha = 'a'.repeat(40), expected = { run: '123', sha, repository: 'owner/repo' };
@@ -58,4 +64,25 @@ test('push reporters leave the aggregate while PR reporting and strict producer 
   const dispatch = deploy.split('\n  dispatch-boot-smoke:\n')[1];
   expect(dispatch).not.toContain('needs: behaviour-quarantine');
   expect(deploy).toContain('products, behaviour, behaviour-products]');
+});
+
+test('an older source must retain its real embedded push reporter before external reporting can defer', () => {
+  const workflow = readFileSync('.github/workflows/test-quarantine.yml', 'utf8');
+  const body = workflow.split("node --input-type=module <<'NODE'\n")[1]?.split('          NODE\n')[0];
+  if (body === undefined) throw new Error('Missing original reporting-owner guard');
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp/quarantine-owner-'));
+  try {
+    mkdirSync(resolve(root, '.github/workflows'), { recursive: true });
+    for (const [source, status] of [
+      ["\n  behaviour-quarantine:\n    if: github.event_name == 'push' || github.event_name == 'pull_request'\n", 0],
+      ["\n  behaviour-quarantine:\n    if: github.event_name == 'pull_request'\n", 1],
+      ['\n  products:\n    steps: []\n', 1],
+    ] as const) {
+      writeFileSync(resolve(root, '.github/workflows/deploy.yml'), source);
+      const result = spawnSync(process.execPath, ['--input-type=module', '--eval', body], { cwd: root, encoding: 'utf8' });
+      expect(result.status, result.stderr).toBe(status);
+      if (status !== 0) expect(result.stderr).toContain('Source has no push quarantine reporter');
+    }
+  } finally { rmSync(root, { recursive: true, force: true }); }
 });
