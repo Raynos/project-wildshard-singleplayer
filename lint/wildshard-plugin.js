@@ -446,12 +446,12 @@ export function legacySourcePath(filename) {
 const runtimePerformance = rule('Custom runtime has bounded work and no frame allocations, raw rendering, DOM, timers or fetch', context => {
   const filename = pathOf(context);
   if (!/^src\/shards\/[^/]+\/runtime\/.*\.[jt]s$/u.test(filename)) return {};
-  return { Program() {
+  return { Program(program) {
     const primary = legacySourcePath(filename), match = /^src\/shards\/([^/]+)\/(.+)$/u.exec(filename);
     const digest = match === null ? undefined : frozenShards[match[1]]?.files[match[2]];
     const violations = primary !== null && digest !== undefined
-      ? frozenRuntimePerformanceViolations(context.sourceCode.text, filename, primary, digest, runtimeDebt)
-      : runtimePerformanceViolations(context.sourceCode.text, filename, runtimeDebt);
+      ? frozenRuntimePerformanceViolations(context.sourceCode.text, filename, primary, digest, runtimeDebt, program)
+      : runtimePerformanceViolations(context.sourceCode.text, filename, runtimeDebt, program);
     for (const site of violations) {
       context.report({ loc: { line: site.line, column: 0 }, message: `${site.kind}: ${site.message}` });
     }

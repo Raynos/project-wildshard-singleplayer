@@ -14,6 +14,10 @@ const unwrap = node => {
   while (['TSAsExpression', 'TSSatisfiesExpression', 'ParenthesizedExpression', 'TSNonNullExpression', 'ChainExpression'].includes(value?.type)) value = value.expression;
   return value;
 };
+// Oxlint's supplied AST uses ranges; standalone parses expose start/end.
+// Read either representation without modifying or retaining the caller's AST.
+const startOf = node => node.start ?? node.range[0];
+const endOf = node => node.end ?? node.range[1];
 // Each analysis has several whole-file and function-body passes. Index the
 // immutable parse once; subtree intervals preserve the original preorder.
 const indexedWalk = program => {
@@ -42,12 +46,14 @@ const indexedWalk = program => {
 };
 
 /** Exact source-site identities survive line moves, but never allow new code or another copy of a violation. */
-export function runtimePerformanceSites(source, filename = 'runtime.ts') {
-  const parsed = parseSync(filename, source), issues = [], constants = new Map(), funcs = [], parents = new Map();
-  if (parsed.errors.length > 0) return [{ kind: 'syntax', start: 0, end: source.length, line: 1, site: 'syntax', message: 'Runtime source must parse before it can be checked' }];
-  const walk = indexedWalk(parsed.program);
+export function runtimePerformanceSites(source, filename = 'runtime.ts', supplied = null) {
+  const parsed = supplied === null ? parseSync(filename, source) : null;
+  const issues = [], constants = new Map(), funcs = [], parents = new Map();
+  if (parsed !== null && parsed.errors.length > 0) return [{ kind: 'syntax', start: 0, end: source.length, line: 1, site: 'syntax', message: 'Runtime source must parse before it can be checked' }];
+  const program = supplied ?? parsed.program;
+  const walk = indexedWalk(program);
   const ambiguous = new Set();
-  walk(parsed.program, (node, parent) => {
+  walk(program, (node, parent) => {
     parents.set(node, parent);
     if (node.type === 'VariableDeclarator' && node.id.type === 'Identifier') {
       if (constants.has(node.id.name) || parent?.kind !== 'const') ambiguous.add(node.id.name);
@@ -68,7 +74,7 @@ export function runtimePerformanceSites(source, filename = 'runtime.ts') {
     if (node.type === 'MemberExpression') return node.computed ? constant(node.property) : node.property.name;
     return null;
   };
-  walk(parsed.program, node => {
+  walk(program, node => {
     if (!FUNCTIONS.has(node.type)) return;
     const parent = parents.get(node), grand = parents.get(parent);
     const id = node.id?.name ?? (parent?.type === 'VariableDeclarator' ? name(parent.id) : ['Property', 'MethodDefinition', 'PropertyDefinition'].includes(parent?.type) ? name(parent.key) ?? constant(parent.key) : null);
@@ -80,16 +86,17 @@ export function runtimePerformanceSites(source, filename = 'runtime.ts') {
     if (seen.has(id)) return id; seen.add(id);
     const initial = unwrap(constants.get(id)); return initial?.type === 'Identifier' ? alias(initial.name, seen) : id;
   };
-  walk(parsed.program, node => { if (node.type === 'Property' && HOT.test(name(node.key) ?? constant(node.key) ?? '')) for (const fn of funcs) if (fn.id !== null && alias(name(node.value)) === fn.id) fn.hot = true; });
-  walk(parsed.program, node => { if (node.type === 'CallExpression' && SCHEDULERS.has(name(node.callee))) for (const arg of node.arguments) for (const fn of funcs) if (fn.id !== null && alias(name(arg)) === fn.id) fn.hot = true; });
+  walk(program, node => { if (node.type === 'Property' && HOT.test(name(node.key) ?? constant(node.key) ?? '')) for (const fn of funcs) if (fn.id !== null && alias(name(node.value)) === fn.id) fn.hot = true; });
+  walk(program, node => { if (node.type === 'CallExpression' && SCHEDULERS.has(name(node.callee))) for (const arg of node.arguments) for (const fn of funcs) if (fn.id !== null && alias(name(arg)) === fn.id) fn.hot = true; });
   for (const fn of funcs) walk(fn.node.body, node => { if (node.type === 'CallExpression') fn.calls.add(alias(name(node.callee))); });
   // Local helpers called by a frame callback are hot too; aliasing a local helper does not hide its body.
   for (let round = 0; round < funcs.length; round++) for (const fn of funcs) if (fn.hot) for (const target of funcs) if (target.id !== null && fn.calls.has(target.id)) target.hot = true;
-  const inside = node => funcs.some(fn => fn.hot && node.start >= fn.node.body.start && node.end <= fn.node.body.end);
+  const inside = node => funcs.some(fn => fn.hot && startOf(node) >= startOf(fn.node.body) && endOf(node) <= endOf(fn.node.body));
   const issue = (node, kind, message) => {
-    const text = source.slice(node.start, node.end).replaceAll(/\s+/gu, ' ').trim();
+    const start = startOf(node), end = endOf(node);
+    const text = source.slice(start, end).replaceAll(/\s+/gu, ' ').trim();
     const site = createHash('sha256').update(`${kind}:${text}`).digest('hex');
-    issues.push({ kind, start: node.start, end: node.end, line: source.slice(0, node.start).split('\n').length, site, message });
+    issues.push({ kind, start, end, line: source.slice(0, start).split('\n').length, site, message });
   };
   const bound = raw => {
     const node = unwrap(raw), value = constant(node);
@@ -109,7 +116,7 @@ export function runtimePerformanceSites(source, filename = 'runtime.ts') {
     walk(node.body, body => { if ((body.type === 'AssignmentExpression' && name(body.left) === id) || (body.type === 'UpdateExpression' && name(body.argument) === id)) changed = true; });
     return !changed;
   };
-  walk(parsed.program, (node, parent) => {
+  walk(program, (node, parent) => {
     // Type-only imports/declarations do not acquire a runtime renderer or DOM handle.
     let ancestor = node;
     while (ancestor) { if (ancestor.type.startsWith('TS') && !['TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression', 'TSInstantiationExpression'].includes(ancestor.type)) return; ancestor = parents.get(ancestor); }
@@ -138,19 +145,19 @@ export function runtimePerformanceSites(source, filename = 'runtime.ts') {
 }
 
 /** Existing transition debt is exact by path, syntax hash and multiplicity; outside projects receive no allowance. */
-export function runtimePerformanceViolations(source, filename, baseline = {}) {
+export function runtimePerformanceViolations(source, filename, baseline = {}, supplied = null) {
   const counts = new Map();
-  return runtimePerformanceSites(source, filename).filter(issue => {
+  return runtimePerformanceSites(source, filename, supplied).filter(issue => {
     const key = `${filename}:${issue.kind}:${issue.site}`, count = (counts.get(key) ?? 0) + 1; counts.set(key, count);
     return count > (baseline[key]?.count ?? 0);
   });
 }
 
 /** Frozen files retain only exact historical site debt; changed bytes gain no historical allowance. */
-export function frozenRuntimePerformanceViolations(source, filename, primary, digest, baseline) {
-  if (createHash('sha256').update(source).digest('hex') !== digest) return runtimePerformanceViolations(source, filename);
+export function frozenRuntimePerformanceViolations(source, filename, primary, digest, baseline, supplied = null) {
+  if (createHash('sha256').update(source).digest('hex') !== digest) return runtimePerformanceViolations(source, filename, {}, supplied);
   const counts = new Map();
-  return runtimePerformanceSites(source, filename).filter(issue => {
+  return runtimePerformanceSites(source, filename, supplied).filter(issue => {
     const suffix = `:${issue.kind}:${issue.site}`, key = filename + suffix;
     const count = (counts.get(key) ?? 0) + 1; counts.set(key, count);
     return count > (baseline[key]?.count ?? baseline[primary + suffix]?.count ?? 0);
