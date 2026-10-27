@@ -41,7 +41,9 @@ function decode(row: SceneBuffers, files?: ReadonlyMap<string, Uint8Array>, vali
     if (bytes.byteLength % width !== 0) throw new Error('Misaligned scene buffer storage');
     const storage = buffer.storage === 'f32' ? new Float32Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 4)
       : buffer.storage === 'u16' ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes;
-    if (storage instanceof Float32Array && !storage.every(Number.isFinite)) throw new Error('Nonfinite scene buffer');
+    if (storage instanceof Float32Array) {
+      for (let i = 0; i < storage.length; i++) if (!Number.isFinite(storage[i])) throw new Error('Nonfinite scene buffer');
+    }
     if (buffer.stride !== undefined && storage.length % buffer.stride !== 0) throw new Error('Misaligned scene interleave');
     result.set(buffer.id, storage);
   }
@@ -98,7 +100,8 @@ function buildGeometries(row: SceneBuffers, counts: readonly (number | undefined
         if (!(index instanceof BufferAttribute) || index.normalized || !(index.array instanceof Uint16Array || index.array instanceof Uint8Array)) throw new Error('Invalid scene triangle index');
         if (!geometry.hasAttribute('position')) throw new Error('Scene index needs position vertices');
         const vertices = geometry.getAttribute('position').count;
-        if (index.count % 3 !== 0 || index.array.some(value => value >= vertices)) throw new Error('Scene index exceeds its vertices');
+        if (index.count % 3 !== 0) throw new Error('Scene index exceeds its vertices');
+        for (let i = 0; i < index.array.length; i++) if ((index.array[i] ?? vertices) >= vertices) throw new Error('Scene index exceeds its vertices');
         geometry.setIndex(index);
       }
       if (geometry instanceof InstancedBufferGeometry && definition.instances !== undefined) {
