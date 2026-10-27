@@ -221,6 +221,9 @@ async function register(s: ServiceWorkerContainer, settle: () => void): Promise<
   // The host's no-cache still revalidates every update. Consult its ETag:
   // WebKit's default imports mode bypasses that conditional HTTP cache.
   try { reg = await s.register(url, { scope: '/', updateViaCache: 'all' }); } catch { settle(); return; }
+  // A host that blocks worker installation can resolve without a registration.
+  // Treat that as unavailable support, just like a rejected registration.
+  if (reg === undefined) { settle(); return; }
   watch(reg);
   // Standalone installs live for days: keep discovering updates so the pill can offer them.
   pageScope.listen(document, 'visibilitychange', () => {
