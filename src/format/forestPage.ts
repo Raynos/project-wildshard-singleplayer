@@ -42,14 +42,44 @@ export const ForestGroundLayoutSchema: v.GenericSchema<ForestGroundLayoutInput, 
 
 const GroundShellSchema = v.pipe(v.strictObject({ counts: v.array(count), layout: v.record(id, v.pipe(v.array(v.unknown()), v.maxLength(40_000))) }),
   v.check(row => groundCounts(row), 'Invalid forest ground counts'));
-const GROUND_STEP = 1024, groundPlacements = v.array(place);
-/** `ForestGroundLayoutSchema` in steps of 1024 placements, the same rules and output: Pine's layout (up to 40k
+const GROUND_STEP = 512;
+const PLACE_KEYS = ['x', 'y', 'z', 'nx', 'ny', 'nz', 'rot', 'scale', 'r', 'g', 'b'] as const;
+const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
+/** `place` read by hand: the same strict keys, finite numbers and optional 16-number matrix, the same output object.
+ *  T10: 1024 rows through valibot were a ~25 ms step in a drawn frame of a Pine crossing on the Simulator. */
+function readPlacement(input: unknown): GroundPlacement {
+  if (typeof input !== 'object' || input === null || Array.isArray(input)) throw new Error('Invalid forest ground placement');
+  let known = 0;
+  for (const key in input) {
+    if (!Object.hasOwn(input, key)) continue;
+    if (key !== 'matrix' && !(PLACE_KEYS as readonly string[]).includes(key)) throw new Error(`Invalid forest ground placement key: ${key}`);
+    known++;
+  }
+  const field = (key: typeof PLACE_KEYS[number]): number => {
+    const value: unknown = Reflect.get(input, key);
+    if (!finite(value)) throw new Error(`Invalid forest ground placement ${key}`);
+    return value;
+  };
+  const row: GroundPlacement = { x: field('x'), y: field('y'), z: field('z'), nx: field('nx'), ny: field('ny'), nz: field('nz'), rot: field('rot'),
+    scale: field('scale'), r: field('r'), g: field('g'), b: field('b') };
+  if (!Object.hasOwn(input, 'matrix')) { if (known !== PLACE_KEYS.length) throw new Error('Invalid forest ground placement'); return row; }
+  const matrix: unknown = Reflect.get(input, 'matrix');
+  if (!Array.isArray(matrix) || matrix.length !== 16 || known !== PLACE_KEYS.length + 1) throw new Error('Invalid forest ground placement matrix');
+  const values: number[] = [];
+  for (const value of matrix as readonly unknown[]) { if (!finite(value)) throw new Error('Invalid forest ground placement matrix'); values.push(value); }
+  row.matrix = values;
+  return row;
+}
+/** `ForestGroundLayoutSchema` in steps of 512 placements, the same rules and output: Pine's layout (up to 40k
  *  placements) was one ~90 ms parse in a drawn frame. */
 export function* forestGroundLayoutSteps(input: unknown): Generator<void, ForestGroundLayout> {
   const shell = v.parse(GroundShellSchema, input), layout: Record<string, GroundPlacement[]> = {};
   for (const [kind, entries] of Object.entries(shell.layout)) {
     const placements: GroundPlacement[] = [];
-    for (let at = 0; at < entries.length; at += GROUND_STEP) { placements.push(...v.parse(groundPlacements, entries.slice(at, at + GROUND_STEP))); yield; }
+    for (let at = 0; at < entries.length; at += GROUND_STEP) {
+      for (let i = at; i < Math.min(entries.length, at + GROUND_STEP); i++) placements.push(readPlacement(entries[i]));
+      yield;
+    }
     layout[kind] = placements;
   }
   return { counts: shell.counts, layout };

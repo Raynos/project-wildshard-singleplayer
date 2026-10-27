@@ -82,4 +82,14 @@ test('the forest ground layout admitted in steps keeps the schema rules and outp
   expect(run(input)).toEqual(v.parse(ForestGroundLayoutSchema, input));
   expect(() => run({ counts: [1], layout: { orchard: [] } })).toThrow('Invalid forest ground counts');
   expect(() => run({ ...input, layout: { ...input.layout, stone: [at(1), { ...at(2), scale: 'big' }] } })).toThrow();
+  // T10's hand reader refuses what the schema refuses: an unknown or missing key, a non-finite number, a short or
+  // non-numeric matrix, an explicit undefined matrix, a non-object row; a row without a matrix reads as the schema's
+  const { matrix: _matrix, ...bare } = at(3);
+  const one = (row: unknown) => ({ counts: [1], layout: { stone: [row] } });
+  expect(run(one(bare))).toEqual(v.parse(ForestGroundLayoutSchema, one(bare)));
+  for (const row of [{ ...bare, extra: 1 }, { ...bare, x: undefined }, { ...bare, y: Number.NaN }, { ...bare, z: Infinity }, { ...bare, matrix: [1] },
+    { ...bare, matrix: Array.from({ length: 16 }, () => '1') }, { ...bare, matrix: undefined }, [bare], null, 'row']) {
+    expect(() => v.parse(ForestGroundLayoutSchema, one(row))).toThrow();
+    expect(() => run(one(row))).toThrow();
+  }
 });

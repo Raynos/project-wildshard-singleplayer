@@ -9,6 +9,10 @@ const integer = v.pipe(nonnegative, v.integer());
 const word = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(0xffffffff));
 const layerMask = v.pipe(v.number(), v.integer(), v.minValue(-0x80000000), v.maxValue(0xffffffff));
 const list = <T extends v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>>(schema: T, max: number) => v.pipe(v.array(schema), v.maxLength(max));
+const isWord = (value: unknown): boolean => typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 0xffffffff;
+/** `list(word, max)` checked in one loop, the same rule (T10: a weld's matrix words through per-element pipes were most of a
+ *  ~16 ms parse in a drawn frame of a Pine crossing on the Simulator); the admitted array is the input's, not a copy */
+const words = (max: number) => v.custom<number[]>(value => Array.isArray(value) && value.length <= max && value.every(isWord), 'Invalid word list');
 const bits = (length: number) => v.pipe(v.array(word), v.length(length));
 const finiteWords = (values: readonly number[], wide: boolean): boolean => {
   const buffer = Uint32Array.from(values).buffer;
@@ -33,12 +37,12 @@ export const WorldSceneWeldNodeSchema: v.GenericSchema<WorldSceneWeldNodeInput, 
   v.strictObject({ ...common, ...draw, kind: v.literal('mesh') }),
   v.strictObject({ ...common, ...draw, kind: v.literal('batch') }),
   v.strictObject({ ...common, ...draw, kind: v.literal('instances'), capacity: v.pipe(integer, v.minValue(1), v.maxValue(8192)),
-    count: v.pipe(integer, v.maxValue(8192)), matrixWords: list(word, 131072), instanceSphere: sphere, instanceBox: v.exactOptional(box) }),
+    count: v.pipe(integer, v.maxValue(8192)), matrixWords: words(131072), instanceSphere: sphere, instanceBox: v.exactOptional(box) }),
   v.strictObject({ ...common, kind: v.literal('view'), batch: id, start: integer, count: integer, sphere, box }),
-  v.strictObject({ ...common, kind: v.literal('cloud'), material: id, seedWords: list(word, 131072), sphere }),
+  v.strictObject({ ...common, kind: v.literal('cloud'), material: id, seedWords: words(131072), sphere }),
   v.strictObject({ ...common, kind: v.literal('light'), color: v.pipe(word, v.maxValue(0xffffff)), intensity: nonnegative, distance: nonnegative, decay: nonnegative }),
 ]);
-const hosted = v.strictObject({ meshes: list(id, 128), lists: list(v.strictObject({ unit: integer, matrixWords: list(word, 131072) }), 128) });
+const hosted = v.strictObject({ meshes: list(id, 128), lists: list(v.strictObject({ unit: integer, matrixWords: words(131072) }), 128) });
 /** Fresh specimen materials copy only declared maps, retaining native constructor defaults (a world-scenes section's
  *  `mapped` material row is the same grammar). */
 export const WorldSceneWeldMaterialSchema: v.StrictObjectSchema<{ readonly id: v.GenericSchema<WorldSceneWeldMaterialRowsInput['id'], WorldSceneWeldMaterialRows['id']>; readonly kind: v.GenericSchema<WorldSceneWeldMaterialRowsInput['kind'], WorldSceneWeldMaterialRows['kind']>; readonly source: v.ExactOptionalSchema<v.GenericSchema<Exclude<WorldSceneWeldMaterialRowsInput['source'], undefined>, Exclude<WorldSceneWeldMaterialRows['source'], undefined>>, undefined>; readonly properties: v.GenericSchema<WorldSceneWeldMaterialRowsInput['properties'], WorldSceneWeldMaterialRows['properties']>; readonly sky: v.OptionalSchema<v.GenericSchema<Exclude<WorldSceneWeldMaterialRowsInput['sky'], undefined>, Exclude<WorldSceneWeldMaterialRows['sky'], undefined>>, false>; readonly blending: v.ExactOptionalSchema<v.GenericSchema<Exclude<WorldSceneWeldMaterialRowsInput['blending'], undefined>, Exclude<WorldSceneWeldMaterialRows['blending'], undefined>>, undefined>; readonly fog: v.ExactOptionalSchema<v.GenericSchema<Exclude<WorldSceneWeldMaterialRowsInput['fog'], undefined>, Exclude<WorldSceneWeldMaterialRows['fog'], undefined>>, undefined>; }, undefined> = v.strictObject({ id, kind: v.picklist(['standard', 'basic']),
@@ -49,7 +53,7 @@ export const WorldSceneWeldMaterialSchema: v.StrictObjectSchema<{ readonly id: v
 const cull = v.strictObject({ roots: list(id, 128), origins: list(finite, 384), units: list(integer, 128), details: list(distance, 128), hosted: list(hosted, 128) });
 const setRow = v.strictObject({ id, name: id, file: id, place: v.exactOptional(id), members: list(id, 128) });
 const resource = v.variant('kind', [v.strictObject({ id, kind: v.literal('geometry'), source: geometry }),
-  v.strictObject({ id, kind: v.literal('seeds'), words: v.pipe(list(word, 131072), v.check(values => values.length % 4 === 0 && finiteWords(values, false))) })]);
+  v.strictObject({ id, kind: v.literal('seeds'), words: v.pipe(words(131072), v.check(values => values.length % 4 === 0 && finiteWords(values, false))) })]);
 export const WorldSceneWeldSchema: v.GenericSchema<WorldSceneWeldInput, WorldSceneWeld> = v.pipe(v.unknown(), v.check(isJsonData, 'Frozen scenes require plain JSON'),
   v.strictObject({ id, root: id, result: v.exactOptional(id), nodes: list(WorldSceneWeldNodeSchema, 4096), materials: v.optional(list(WorldSceneWeldMaterialSchema, 128), []), culls: v.optional(list(cull, 32), []),
     placements: v.optional(list(id, 128), []), sets: v.optional(list(setRow, 32), []), resources: v.optional(list(resource, 512), []) }),
