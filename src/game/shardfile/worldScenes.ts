@@ -45,6 +45,7 @@ import { runtimeLookMaterials } from './runtimeProduct';
 import { loadingUnits } from '@wildshard/engine/boot/waits';
 import { timeClientPreparation } from './preparationTiming';
 import { tiledMesh } from './tiledMesh';
+import { constructionCheckpoint } from './constructionCheckpoint';
 
 function instances3(value: unknown): value is InstancedMesh { return value instanceof InstancedMesh; }
 function mesh3(value: unknown): value is Mesh { return value instanceof Mesh; }
@@ -386,7 +387,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
             libraries.set(row.id, { geometry: id => models.geometry(id), models });
           }
           libraryProgress(libraryIndex + 1, row.id);
-          await buildYield(owner);
+          const pause = constructionCheckpoint(owner); if (pause !== undefined) await pause;
         });
       }
     });
@@ -432,7 +433,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
         materials.set(row.id, material); handles.publish(`materials.${row.id}`, material);
         if (row.kind === 'standard' || row.kind === 'basic' || row.kind === 'mapped') owner.onDispose(() => { material.dispose(); });
         materialProgress(materialIndex + 1, row.id);
-        await buildYield(owner);
+        const pause = constructionCheckpoint(owner); if (pause !== undefined) await pause;
       }
     });
     const sky = ctx.game.runtime?.world?.sky, game = ctx.game.runtime?.world?.game;
@@ -497,7 +498,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       const batch = new WorldSceneBatch(row, material, preparedGeometry, owner, registry());
       handles.publish(row.id, batch);
       if (sky !== undefined && game !== undefined) withOwner(owner, () => { game.onUpdate(() => { batch.update(sky.viewCamera); }); });
-      await buildYield(owner);
+      const pause = constructionCheckpoint(owner); if (pause !== undefined) await pause;
     }
     if (sky !== undefined && catalogue !== undefined) {
       const geometries = new Map<string, BufferGeometry>();
@@ -580,11 +581,11 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
         const active = scalar === undefined ? undefined : () => handles.number(scalar) !== 0;
         const destination = registry();
         withOwner(owner, () => destination.add({ id: instance.id === '' ? row.id : `${row.id}.${instance.id}`, name: row.name, file: row.file, category: row.category, object: prepared.root, colliders: prepared.colliders, ...(row.surface === undefined ? {} : { surface: row.surface }), solidFloor: row.solidFloor, ...(active === undefined ? {} : { active }), ...(row.mode === undefined ? {} : { mode: row.mode }) }));
-        await buildYield(owner);
+        const pause = constructionCheckpoint(owner); if (pause !== undefined) await pause;
       }
       if (section.libraries.some(row => row.kind === 'models' || row.kind === 'baked')) ctx.root.add(made.root);
       sceneProgress(++scenesDone, prefix);
-      await buildYield(owner);
+      const pause = constructionCheckpoint(owner); if (pause !== undefined) await pause;
     }
     if (bufferedContents.length > 0) {
       const world = ctx.game.runtime?.world;
