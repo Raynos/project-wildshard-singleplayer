@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "gen": "python3 scripts/heavy-lane.py build -- node scripts/gen.mjs",
+    "gen:source": "node --import ./scripts/bake-loader.mjs scripts/gen-source.mjs",
     "docs": "node scripts/docs.mjs",
     "dev": "bash scripts/serve-build.sh",
     "prebuild": "node scripts/check-css.mjs",

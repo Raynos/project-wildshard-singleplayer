@@ -204,6 +204,13 @@ export function refreshDiscovery(root = resolve(import.meta.dirname, '..')) {
   }
 }
 
+/** The four app-wide shard tables (the shard list, slugs as TS and JSON, the manifest closure) by output path: what
+ *  genShards writes and gen:source (scripts/source-generators.mjs) registers. */
+export function shardTables(root) {
+  const closure = manifestClosure(root);
+  return { 'src/shards.generated.ts': shardSource(root), 'src/game/shard/slugs.generated.ts': slugSource(root), 'src/game/shard/slugs.generated.json': `${JSON.stringify(Object.fromEntries(shardSlugs(root).map(slug=>[slug,true])),null,2)}\n`, 'src/game/shard/manifest-closure.generated.json': `${JSON.stringify(closure, null, 2)}\n` };
+}
+
 export function genShards(root = resolve(import.meta.dirname, '..'), check = false, initializeMissing = false, shard = '') {
   genShardWords(root, check, shard);
   genDecisionPolicies(root, check, initializeMissing);
@@ -222,8 +229,7 @@ export function genShards(root = resolve(import.meta.dirname, '..'), check = fal
     if (check) throw new Error(`gen-shards: stale ${relative(root, path)} (run pnpm gen)`);
     rmSync(path);
   }
-  const closure = manifestClosure(root);
-  const outputs = { 'src/shards.generated.ts': shardSource(root), 'src/game/shard/slugs.generated.ts': slugSource(root), 'src/game/shard/slugs.generated.json': `${JSON.stringify(Object.fromEntries(shardSlugs(root).map(slug=>[slug,true])),null,2)}\n`, 'src/game/shard/manifest-closure.generated.json': `${JSON.stringify(closure, null, 2)}\n` };
+  const outputs = shardTables(root);
   for (const [name, source] of Object.entries(outputs)) {
     const out = resolve(root, name);
     const exists = existsSync(out), same = exists && readFileSync(out, 'utf8') === source;
