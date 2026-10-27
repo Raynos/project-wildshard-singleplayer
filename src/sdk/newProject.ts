@@ -31,8 +31,9 @@ sections and hash-named blobs. In this repository use \`out/<slug>/\`.
 
 This project has no runtime TypeScript. Use admitted platform rows and WASM
 behaviour; executable build logic belongs in \`generators/\`. Keep the
-\`shard.config.ts\` entry declaration-only and JSON contracts erased as
-\`*.d.json.ts\`. Read the shipped data contract in SHARDFILE.md.
+\`shard.config.ts\` entry declaration-only. Check authored JSON at its source
+intake; keep standalone product interfaces in plain committed files. Read
+the shipped data contract in SHARDFILE.md.
 
 For a complete playable reference, see \`src/shards/_template/\` in the
 Wildshard repository: terrain and props are generated from data, its map is

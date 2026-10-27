@@ -12,7 +12,7 @@ import { readScene, type SceneDescription } from './scene';
 import { confined, publishScene, type SynthResult } from './bake';
 
 /** Inspect an ordinary three.js graph and publish canonical scene.json, with an immutable content-hash copy.
- * Graph generation still executes on each synth; expensive producers use the shared generation-job cache separately.
+ * Graph generation still executes on each synth; expensive producers use the verified native bake cache separately.
  * No client, rendering, physics service, wire-format admission or generated source file is involved. */
 export function synthScene(scene: Object3D, project: string, slug: string): SynthResult {
   if (!/^[a-z][a-z0-9-]{0,127}$/u.test(slug)) throw new Error('Scene synth requires a bounded shard slug');
