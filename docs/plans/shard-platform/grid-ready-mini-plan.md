@@ -1,7 +1,7 @@
 # Grid-ready for one shard: mini plan for the builder (G557)
 
 **2026-10-27 (G784):** 9 of 10 shards are grid-ready. Nalati's row stays open until Nalati crosses under the G782 bar
-(every crossing under 5 s warm and under 8 s cold), measured in [grid-crossing](grid-crossing-mini-plan.md).
+(every crossing under 5 s warm and under 8 s cold), measured in [grid-crossing](grid-crossing-mini-plan.md). Latest `5f1eadb19e` G780 reading: cold refused×3 (no commit); warm refused×3 (no commit); qualification stays open.
 
 Jake, 2026-10-21 ~08:20 Cancun: *"FFS grid readiness will never complete right? Make me a mini plan to complete grid
 readiness for one shard."* And: *"grid readiness should not be blocked on my iPhone; we should have a final iPhone
@@ -310,3 +310,7 @@ hypothesis; they do not attribute these exact Simulator stalls. Next: bound
 parked submissions and establish completion before exposure, preserving every
 program/layout, draw and cancellation fence. No further crossing feature cut
 until this regression is fixed.
+
+## G784 Nalati plan-end reading (2026-10-27, sp-x8 with sp-o1)
+
+Nalati uses shared D97-fixed `bc0c7cf54f` / build `bc0c7cf-mvqm0q9g`; DW/Sky remain measured on5f1. The earlier three Nalati world-hook fetch refusals on5f1 are retained separately. Three independent cold/warm pairs, phone4x/iPhone16Pro/DPR2/muted: cold refused×3 (no commit); warm refused×3 (no commit). Only completed cold entries prime warm visits; failed entries supply no commit time. Nalati remains open under G784 and the plan remains9/10; other historical readiness latches are untouched. The full table and measured preparation/long-frame windows are recorded in grid-crossing. Existing hook snapshots identify phase windows, not a uniquely sampled native cause or breaking commit. No additional browser, Simulator or retry reading is substituted.
