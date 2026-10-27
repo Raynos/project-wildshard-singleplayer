@@ -486,41 +486,28 @@ export async function warmParkedDraws(renderer: ParkedDrawRenderer, scene: THREE
   if (!(view instanceof THREE.Camera)) throw new Error('Parked view must retain its camera type');
   const standIns = new ShadowStandIns(renderer instanceof THREE.WebGLRenderer ? renderer : null);
   const benched: BenchedLayers = { objects: [], masks: [] };
-  const budget = options.budget ?? DEFAULT_BUDGET, byteCap = budget.bufferBytes ?? Number.POSITIVE_INFINITY;
   const warmed = warmedFor(renderer), context = warmContextKey(renderer, scene, camera, root, reveal, options.environment, target);
-  const bindings = new Set<string>(), uploaded = new Set<ArrayBufferView>();
   let drawn = 0, done = 0;
   const total = slices.reduce((count, slice) => count + slice.length, 0);
   try {
     options.onProgress?.(0, total);
     await prepareParkedBounds(drawables, current, pause);
     await prepareParkedInstanceBounds(drawables, current, pause);
-    // G782: slices share a completed frame until the precompile CPU slice is spent or the frame's new buffers reach the
-    // slice cap; a live WebKit budget (`newBindings`) still gives a slice with a first-use binding a frame of its own, as
-    // its native first draws block past the JavaScript submission. Every drawn frame still ends on `pause()`.
-    let frameStart = diagnosticNow(), frameSlices = 0, frameBytes = 0;
+    // One slice per completed frame: a slice's native first draws (pipelines, buffer uploads) are bounded per frame, and
+    // a CPU clock cannot see them (two slices a frame under 6 ms of JavaScript stalled Pine's GPU process past 30 s).
+    // A drawable an earlier warm already drew exactly (G782) is left out; a slice left empty costs no frame.
     for (const whole of slices) {
       if (!current()) throw new Error('Parked draw owner left');
       const slice = whole.filter(object => !alreadyWarmed(warmed, renderer, object, camera, context));
       done += whole.length - slice.length;
       if (slice.length === 0) { options.onProgress?.(done, total); continue; }
-      const buffers = slice.flatMap(drawBuffers).filter(buffer => !uploaded.has(buffer));
-      const bytes = buffers.reduce((sum, buffer) => sum + buffer.byteLength, 0);
-      const cold = budget.newBindings !== undefined && slice.some(object => !bindings.has(drawBindingKey(object)));
-      if (frameSlices > 0 && (diagnosticNow() - frameStart >= LIVE_PRECOMPILE_SLICE_MS || frameBytes + bytes > byteCap || cold)) {
-        await pause();
-        if (!current()) throw new Error('Parked draw owner left');
-        frameStart = diagnosticNow(); frameSlices = 0; frameBytes = 0;
-      }
       try { drawSlice(renderer, scene, camera, view, target, root, slice, options.environment, standIns, reveal, benched); }
       catch (error) { console.error(`[parked draws] the pre-draw stopped after ${String(drawn)} drawables; the entry frame draws the rest`, error); return drawn; }
-      for (const object of slice) { recordWarmed(warmed, renderer, object, camera, context); bindings.add(drawBindingKey(object)); }
-      for (const buffer of buffers) uploaded.add(buffer);
-      drawn += slice.length; done += slice.length; frameSlices++; frameBytes += bytes;
-      if (cold) frameStart = Number.NEGATIVE_INFINITY; // a first-use binding's frame takes nothing after it either
+      for (const object of slice) recordWarmed(warmed, renderer, object, camera, context);
+      drawn += slice.length; done += slice.length;
       options.onProgress?.(done, total);
+      await pause();
     }
-    if (frameSlices > 0) await pause();
   } finally { standIns.dispose(); }
   return drawn;
 }

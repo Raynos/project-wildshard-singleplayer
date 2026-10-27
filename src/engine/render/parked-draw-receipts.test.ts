@@ -46,7 +46,7 @@ test('a later parked warm of the same pipelines draws nothing new; a fresh geome
   const geometry = new BoxGeometry(), material = new MeshBasicMaterial(), other = new BoxGeometry(), f = fixture([material]);
   try {
     f.root.add(new Mesh(geometry, material), new InstancedMesh(geometry, material, 2));
-    expect(await f.warm()).toEqual({ drawn: 2, pauses: 1 });
+    expect(await f.warm()).toEqual({ drawn: 2, pauses: 2 });
     // the destination is parked again with new wrappers over the same library geometry and material
     f.root.clear(); f.root.add(new Mesh(geometry, material));
     expect(await f.warm()).toEqual({ drawn: 0, pauses: 0 });
@@ -72,14 +72,14 @@ test('a new instance buffer, a disposed material or a disposed geometry keeps it
   } finally { f.dispose(); geometry.dispose(); material.dispose(); }
 });
 
-test('a live WebKit budget gives each first-use binding its own completed frame; copies share it', async () => {
+test('every drawn slice gets its own completed frame, under the live WebKit budget too', async () => {
   const geometry = new BoxGeometry(), material = new MeshBasicMaterial(), f = fixture([material]);
   try {
     f.root.add(...Array.from({ length: 20 }, () => new InstancedMesh(geometry, material, 1)));
-    // slices of 8, 8, 4: the first holds the binding's first use and ends its frame; the two copy slices share the next
+    // slices of 8, 8, 4 (copies share the binding's first use), a completed frame each
     const { drawn, pauses } = await f.warm(LIVE_PARKED_BUDGET);
     expect(drawn).toBe(20);
-    expect(pauses).toBe(2);
+    expect(pauses).toBe(3);
     expect(f.draws.map(slice => slice.length)).toEqual([8, 8, 4]);
   } finally { f.dispose(); geometry.dispose(); material.dispose(); }
 });
