@@ -14,6 +14,7 @@ import { facetGeometry, lowPolyMaterials, oneMaterial, patchEyeGlow } from './lo
 import type { EyeSpot } from './species/look';
 import { app } from '../app/runtime';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
+import { drawNeutral } from '../render/drawNeutral';
 import { pageScope, resourceScope } from '../app/resources';
 import { workSlice } from '../core/workSlice';
 import { ktx2Leased, leaseInKtx2, leaseOutKtx2 } from '../core/ktx2';
@@ -697,10 +698,11 @@ export class AnimalFactory {
     }
     const mesh = new THREE.SkinnedMesh(model.geometry, model.render.oneMaterial || model.hull !== undefined ? [drawn] : [drawn, model.hard, model.eye]);
     if (drawn !== fur) {
-      mesh.onBeforeRender = (_renderer, _scene, _camera, _geometry, material) => {
+      // a shared body's colours follow this animal's fur: uniforms only (draw-neutral)
+      mesh.onBeforeRender = drawNeutral((_renderer, _scene, _camera, _geometry, material) => {
         if (material !== drawn) return;
         drawn.color.copy(fur.color); drawn.emissive.copy(fur.emissive); drawn.emissiveIntensity = fur.emissiveIntensity;
-      };
+      });
     }
     if (drawn === fur || first) look?.decorateMaterials?.(mesh.material);
     this.pendingRigs.get(`${model.kind}:${model.variant}`)?.push({ mesh, fur: drawn });

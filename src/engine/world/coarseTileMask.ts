@@ -12,6 +12,7 @@ import { familyVariant } from '../render/families/registry';
 import { applyNodeCoarseMask } from '../render/nodeCoarseMask';
 import { CHUNK_HALF } from '../core/config';
 import type { Scope } from '../app/scope';
+import { drawNeutral, isDrawNeutral } from '../render/drawNeutral';
 
 /** a coarse tile is 125 m (four per cell side), so a quadrant is 62.5 m */
 const COARSE_SIZE = 125;
@@ -54,9 +55,11 @@ export function coarseTileMask(root: Object3D, x: number, z: number, scope: Scop
     const before = object.material, draw: unknown = Reflect.get(object, 'onBeforeRender');
     if (typeof draw !== 'function') throw new Error('coarse tile mask: a mesh without its draw hook');
     object.material = Array.isArray(before) ? before.map(variant) : variant(before);
-    object.onBeforeRender = function onBeforeRender(this: Object3D, ...args: Parameters<Object3D['onBeforeRender']>): void {
+    const onBeforeRender = function onBeforeRender(this: Object3D, ...args: Parameters<Object3D['onBeforeRender']>): void {
       coarseMaskOrigin(root.matrixWorld, x, z, origin.value); Reflect.apply(draw, this, args);
     };
+    // the mask only sets its origin uniform: draw-neutral when the hook it wraps is (or is the default)
+    object.onBeforeRender = draw === Mesh.prototype.onBeforeRender || isDrawNeutral(draw) ? drawNeutral(onBeforeRender) : onBeforeRender;
     scope.onDispose(() => { object.material = before; Reflect.set(object, 'onBeforeRender', draw); });
   });
   for (const material of own.values()) {

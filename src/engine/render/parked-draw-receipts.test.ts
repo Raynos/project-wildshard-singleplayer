@@ -2,6 +2,7 @@ import { expect, test } from 'vitest';
 import { Bone, BoxGeometry, Float32BufferAttribute, Group, InstancedMesh, Mesh, MeshBasicMaterial, PCFShadowMap, PerspectiveCamera, Scene, Skeleton,
   SkinnedMesh, Uint16BufferAttribute, Vector4, WebGLRenderTarget, type Camera, type Material, type Object3D } from 'three';
 import { LIVE_PARKED_BUDGET, warmParkedDraws, type ParkedDrawBudget, type ParkedDrawRenderer } from './parkedDraws';
+import { drawNeutral } from './drawNeutral';
 
 const ONE_A_SLICE: ParkedDrawBudget = { drawables: 1, newMaterials: 1 };
 
@@ -146,6 +147,24 @@ test('skins over a built pipeline pace as copies; a per-object callback keeps a 
     const hooked = [new Mesh(new BoxGeometry(), material), new Mesh(new BoxGeometry(), material)];
     for (const mesh of hooked) { geometries.push(mesh.geometry); mesh.onBeforeRender = () => undefined; }
     f.root.add(...hooked);
+    expect(await f.warm(LIVE_PARKED_BUDGET)).toEqual({ drawn: 2, pauses: 2 });
+  } finally { f.dispose(); for (const geometry of geometries) geometry.dispose(); material.dispose(); }
+});
+
+test('callbacks declared draw-neutral pace as copies; a wrapped unmarked hook does not', async () => {
+  const material = new MeshBasicMaterial(), f = fixture([material]);
+  const geometries = [new BoxGeometry(), new BoxGeometry(), new BoxGeometry()];
+  try {
+    f.compile(material, 7);
+    const neutral = geometries.map(geometry => { const mesh = new Mesh(geometry, material); mesh.onBeforeRender = drawNeutral(() => undefined); return mesh; });
+    f.root.add(...neutral);
+    expect(await f.warm(LIVE_PARKED_BUDGET)).toEqual({ drawn: 3, pauses: 1 });
+    f.root.clear();
+    const partly = new Mesh(new BoxGeometry(), material), hooked = new Mesh(new BoxGeometry(), material);
+    partly.onBeforeRender = drawNeutral(() => undefined); partly.onAfterRender = () => undefined; // one unmarked hook keeps its own first use
+    hooked.onBeforeRender = () => undefined;
+    geometries.push(partly.geometry, hooked.geometry);
+    f.root.add(partly, hooked);
     expect(await f.warm(LIVE_PARKED_BUDGET)).toEqual({ drawn: 2, pauses: 2 });
   } finally { f.dispose(); for (const geometry of geometries) geometry.dispose(); material.dispose(); }
 });

@@ -7,6 +7,7 @@ import { programObjectKey, LIVE_PRECOMPILE_SLICE_MS } from './precompile';
 import { diagnosticNow } from '../core/clock';
 import { geometryBoundsSteps } from '../world/geometryBounds';
 import { pageScope } from '../app/resources';
+import { isDrawNeutral } from './drawNeutral';
 import type { Scope } from '../app/scope';
 
 /**
@@ -358,17 +359,21 @@ function programIdList(renderer: object, object: THREE.Object3D): string[] | und
 
 /** Whether a drawable's first draw is wholly described by its programs, vertex layout and draw kind, so a built pipeline
  *  lets it pace as a copy. Skins qualify (the skinning and bone count are in the program, the skin attributes in the
- *  layout; their only own upload is a small bone texture), as do points, lines and sprites. A per-object callback can
- *  change the draw on its first render (painterly's adds a colour attribute, a new layout), and morph targets and custom
- *  depth or distance materials bring programs the key does not name: those keep a first use of their own. */
+ *  layout; their only own upload is a small bone texture), as do points, lines and sprites, and callbacks declared
+ *  draw-neutral (`drawNeutral.ts`: uniforms, counts or flags only). Any other per-object callback can change the draw on
+ *  its first render (painterly's adds a colour attribute, a new layout), and morph targets and custom depth or distance
+ *  materials bring programs the key does not name: those keep a first use of their own. */
 function pacedAsCopy(object: THREE.Object3D): boolean {
   const geometry: unknown = (object as THREE.Object3D & { geometry?: unknown }).geometry;
   if (!isBufferGeometry(geometry) || object instanceof THREE.BatchedMesh) return false;
   if (object instanceof THREE.Mesh && (object.morphTargetInfluences !== undefined || geometry.morphAttributes.position !== undefined
     || object instanceof THREE.InstancedMesh && object.morphTexture !== null)) return false;
+  const base = THREE.Object3D.prototype;
   return object.customDepthMaterial === undefined && object.customDistanceMaterial === undefined
-    && object.onBeforeRender === THREE.Object3D.prototype.onBeforeRender && object.onAfterRender === THREE.Object3D.prototype.onAfterRender
-    && object.onBeforeShadow === THREE.Object3D.prototype.onBeforeShadow && object.onAfterShadow === THREE.Object3D.prototype.onAfterShadow;
+    && (object.onBeforeRender === base.onBeforeRender || isDrawNeutral(Reflect.get(object, 'onBeforeRender')))
+    && (object.onAfterRender === base.onAfterRender || isDrawNeutral(Reflect.get(object, 'onAfterRender')))
+    && (object.onBeforeShadow === base.onBeforeShadow || isDrawNeutral(Reflect.get(object, 'onBeforeShadow')))
+    && (object.onAfterShadow === base.onAfterShadow || isDrawNeutral(Reflect.get(object, 'onAfterShadow')));
 }
 
 /** `material`'s native pipeline for `object` under `context`: the program the renderer holds for it (precompile linked

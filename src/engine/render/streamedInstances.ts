@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { drawNeutral } from './drawNeutral';
 
 /**
  * Cell-streamed instances (SHARD-PLATFORM W2, G441): the bookkeeping a scatter streamed round a viewer shares, with
@@ -119,7 +120,7 @@ export class InstanceTier {
     this.meshes = meshes;
     this.attrs = attrs;
     this.bytesPer = 4 * (16 + (meshes[0].instanceColor ? 3 : 0) + attrs.reduce((s, a) => s + a.size, 0));
-    meshes.forEach((m, i) => { m.onBeforeRender = () => { this.drawn[i] = true; }; });
+    meshes.forEach((m, i) => { m.onBeforeRender = drawNeutral(() => { this.drawn[i] = true; }); });
   }
   /** The mesh drawn. */
   get shown(): THREE.InstancedMesh { return this.meshes[this.front] ?? this.meshes[0]; }

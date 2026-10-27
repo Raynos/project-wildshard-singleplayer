@@ -32,6 +32,7 @@
  * (`render/graphBackend.ts`), a lazy chunk; nothing on the default render path imports it.
  */
 import * as THREE from 'three';
+import { drawNeutral } from '../drawNeutral';
 import {
   ConditionalNode, ContextNode, ConvertNode, JoinNode, MathNode, MeshBasicNodeMaterial, MeshStandardNodeMaterial, OperatorNode,
   Node as BaseNode, PhysicalLightingModel, SplitNode, Texture3DNode, TextureNode, type Node, type NodeBuilder, type NodeFrame, type NodeMaterial, type UniformArrayNode,
@@ -183,7 +184,7 @@ export function attachOutline(mesh: THREE.Mesh, outline: NodeMaterial): THREE.Me
     instanced.instanceMatrix = mesh.instanceMatrix;
     instanced.instanceColor = mesh.instanceColor;
     instanced.count = mesh.count;
-    instanced.onBeforeRender = () => { instanced.count = mesh.count; };
+    instanced.onBeforeRender = drawNeutral(() => { instanced.count = mesh.count; });
     hull = instanced;
   } else hull = new THREE.Mesh(geometry, outline);
   hull.name = `${mesh.name}:outline`;
