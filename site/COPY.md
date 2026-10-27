@@ -54,11 +54,11 @@ build me a bright island with a pier, a wreck and a shrine
 
 ## Hero · image description
 
-The grid from the air, in engine: Driftwood Isle between Sky Reach and Nalati, joined by roads
+Driftwood Isle in the game: a long pier into a turquoise sea under a ringed planet
 
 ## Hero · image tag
 
-In engine · the grid, in testing
+In engine · Driftwood Isle
 
 ## Hero · kicker
 
@@ -128,7 +128,7 @@ GPT mockup
 
 ## What · map description
 
-Concept map, drawn by code: the Heart of the world after a hundred shards, its plots ringed by roads
+Concept map, drawn by code: the whole world after a hundred shards, every plot ringed by roads, placeholder plots at the edge and the void beyond
 
 ## What · map tag
 

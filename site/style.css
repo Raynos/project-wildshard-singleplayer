@@ -736,6 +736,10 @@ footer { flex-wrap: wrap; }
 
 /* ===== E506 · the world map (/map/), home's map plate and the desktop's lit 5 × 5 ===== */
 #what .plate a { display: block; }
+#what .plate img { aspect-ratio: auto; height: auto; } /* E507: the whole map, all 100 shards */
+#what .plate .tag { top: 6px; left: 6px; letter-spacing: .06em; } /* one line, over the placeholder ring, not the hundred */
+/* phones: the full map is taller than the old crop, so the lede (the hero's tagline again, one screen up) goes (length rule) */
+@media (max-width: 1023px) { #what .lede { display: none; } }
 #what .note { margin-top: 8px; }
 #what .more-page { margin-top: 12px; }
 .grid-mini { display: none; }
