@@ -88,3 +88,21 @@ date until Nalati is under 5 s warm / 8 s cold), and the rows only Jake can fini
 | 25 | Close gen speed into GR12? | **G796**: yes, folded whole |
 | 26 | TS / lint folds? | **G796**: T5 closed, T1 and R4 into GR12, T4 format + engine, B5 into GR6–GR8 |
 | 27 | Night Market RM1 / RM12 / RM5.4? | **G785**: accept all three; RM5.4 into the G755 figure redo |
+
+## Landed, awaiting the plan-end reading (G780), 11:20 Cancun 10-27
+
+Why the counter moves slowly: under G780 a row whose code has landed stays "in flight, reading at plan end" until its
+one plan-end reading, so most of today's commits land into rows that don't close yet. These rows have their code in
+and wait only on that reading (sub-rows count inside their parent row):
+
+| Plan | Rows with code landed, awaiting the reading |
+|---|---|
+| grid-crossing | T2 (T2.1-T2.3), T3 (T3.2-T3.14), T4 (T4.1-T4.4) |
+| tile-streaming | T3, T5, T6.2, T8 (T8.2, T8.3, P1-P5, N2), T10 (T10.3, T10.4), S1, S2, S3 (S3.1, S3.5, S3.6), G748.5-.7, U2, U3 |
+| generators redesign | GR6, GR7, GR9, GR12 (GR12.7-GR12.37), gen-speed G1-G37, D1-D17 sub-rows |
+| loading + loading-speed | L9, L10, L11, L12, L14, H3, A1 |
+| iphone-downloads | I3 |
+
+Readings already taken that MISS their bar (open, owned): G782 cold crossings (Pine 20.7, Nalati 19.0, DW 16.5, Sky
+10.6 s vs 8; warm met on Sky / Pine / Nalati ~1 s), I2 before control (Pine 55 MB / 146 req, Nalati 54 MB / 95, Nine
+98 MB / 42 vs 12 MB / 250), H4 warm home, S1 boot shaders 1.6 s (D176). Jake picks pending: D175, D178, D179.

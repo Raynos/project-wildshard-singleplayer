@@ -15,25 +15,24 @@ once per plan at the end (G780); official Simulator readings last (G777).
 **Memory (G682: Template <= 198.5 MiB):** native Template 268 / 246 MiB ratcheted (C4, G781).
 
 **For wildshard-v (G711):** generation catalogue **empty** (dd873bc775, ~10:30Z; was 41 / 41 / 61 / 38 jobs);
-`generation-jobs.json` deleted, GR12 tail sp-x1 + sp-x9. Every product builds under its phone ceiling (Nalati 93.5 /
-96.3, Pine 110.5 / 112.2, Nine 160.3 / 210.2 after I3). Plan-end readings mostly recorded (G780). Met since:
-RM5 / RM10 (D111 / D112), H10 shader text 15.4 -> 2.4 MiB, J6, H2, T11 landmarks, T3, T10 source-complete, Nine
-memory banner (D122), Pine lease crash D121, D110 frame budget, D24 SW + preview server; since: H1 closed (0
-re-selections, heap 0), I11 done (137 KB), D152 WebKit parked budget raised on Simulator proof (e80511aa70, Pine road
-entry 16.9 -> 13.4 s, fps held), S1 setup -53 %, D154 NaN black blocks fixed (4d205445fd). **G782 crossings:
+`generation-jobs.json` deleted. Every product builds under its phone ceiling. Met today: RM5 / RM10, H10, J6, H2,
+T11, T3, D122, D121, D110, D24, H1, I11, D152 (Simulator-proven fence raise), D154 NaN blocks. **G782 crossings:
 warm solved** by last-cell retention (b7d6c8b728: Sky / Pine / Nalati ~1.0 s full warm, memory 677-817 MB < 1.2 GB;
 DW 11.9 s until sp-x8 / sp-x6 stop a speculative reserve evicting the kept world). **Cold** still over 8 s after the
 held duty fix (18736fc479): Pine 20.7, Nalati 19.4, DW 16.5, Sky 10.6 s; owners sp-o1 Pine world, sp-o2 Nalati
 world, sp-o3 shaders, sp-x1 DW, sp-x10 Sky; held view >= 30 fps. Jake picks: D175 / D178 / D179. Closed
 as a miss: S1 1.6 s (D176). Open: H4 (sp-x9), I2 (Pine 100 MB / 296 product req; sp-x2 / sp-o5 / sp-x9).
 Counter 157 / 209 = 75 %.
-**CI:** owner table in BURN-DAMAGE-LIST; 973 red on tests only (gen / products / docs / types / lint / web green);
-25 cases routed, mostly fixed. Awaiting a qualifying CI + boot smoke.
+**11:15 reply:** (1) G803 applied: 3 Opus = sp-o1, sp-o3, sp-o5; sp-o2 / sp-o4 stop at their boundary (sp-o4
+done 11:20). (2) Rows aren't closing because they're G780 'landed, reading at plan end': the list is in
+[finish-line](finish-line.md#landed-awaiting-the-plan-end-reading-g780-1120-cancun-10-27); readings that miss (G782
+cold, I2, H4, S1) are owned. (3) CI: sp-ci-deploy's table routes every red to its breaking lane (G754);
+ground-merge types fixed (dac57a84b0); HEAD previews blocked on Pine tile 0/4/7 bake (sp-x2, top priority). (4)
+sp-x9's pane title is stale; its row is Nalati cold crossing spans (from sp-o4).
 **Blocked on Jake:** road B pilot play; boards as they land; LD5-LD8 / A1 / A2 / M2 / RM13 (counted, G779).
 
-**Lanes (G605 back per Jake 09:10; Claude active 70 % -> 2 Opus):** sp-o1 + sp-o3 stay; sp-o2 / sp-o4 / sp-o5 finish
-their task and stop (no new rows). 6 Codex (sp-x1, x2, x6, x8, x9, x10) + sp-ci-deploy (CI / deploy, no cancels).
-Next: 1 Opus at 80 %, 0 at 90 %. origin/main d060092f68.
+**Lanes (G803, Jake 11:15: 3 Opus until the account hits 100 %; Claude active 70 %):** sp-o1, sp-o3, sp-o5 + 6
+Codex (sp-x1, x2, x6, x8, x9, x10) + sp-ci-deploy (CI / deploy, no cancels).
 
-**Rules:** G704 (<= ~20 files/move commit). G605. Fix forward, no reverts (G674). No new Debug rows (G669). G670.
+**Rules:** G704 (<= ~20 files/move commit). G803. No reverts (G674). No new Debug rows (G669). G670.
 Never herdr wildshard-v.
