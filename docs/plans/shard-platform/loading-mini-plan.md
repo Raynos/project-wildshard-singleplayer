@@ -730,3 +730,15 @@ Current exact-boundary qualification is the0e50 cold visit: all14 executed start
 The update pill's static "UPDATING…" stays with U1-U3 in [loading-speed-mini-plan.md](loading-speed-mini-plan.md);
 this audit adds no update rows: the Simulator run shows the reload itself is 0.5 s, so U1's split (adopt wait,
 worker install, re-downloaded packs) is where the time goes.
+
+## Shared plan-end observation (2026-10-27)
+
+The 3-cold/3-warm Driftwood grid cohort on `5f1eadb19e` is recorded in
+[loading-speed's plan-end reading](loading-speed-mini-plan.md#plan-end-chromium-reading--2026-10-27-g777g780).
+All six visits reach controls and normal movement/errors 0, but controls take
+14.033–16.300 s cold / 13.612–15.026 s warm. Actual stage wire traffic is
+71,038,639–71,059,606 B cold / 496,698 B warm; cold all-traffic body before
+controls is 76,087,848–76,092,585 B. Warm cumulative scratch accounting is
+rejected because it includes the prior visit. This is an explicitly bounded
+Chromium CPU-4x observation, not full L9-L14 all-frame/start or own-content
+L10 qualification. No prior failed result, cache category or bar is erased.
