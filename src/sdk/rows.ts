@@ -10,6 +10,7 @@ import { parseContractCatalogue as gameParseContractCatalogue, type ContractCata
 import { parseAmbientLife as gameParseAmbientLife, type AmbientLifeData as GameAmbientLife } from '@wildshard/format/ambientLife';
 import { parsePageLife as gameParsePageLife, type PageLifeRows as GamePageLifeRows } from '@wildshard/format/pageLife';
 import { PopulationEnvironmentSchema as GamePopulationEnvironmentSchema, type PopulationEnvironmentRows as GamePopulationEnvironment } from '@wildshard/format/populationEnvironment';
+import { FigureCatalogueSchema as GameFigureCatalogueSchema, type FigureCatalogueRow as GameFigureCatalogue } from '@wildshard/format/figures';
 import * as v from 'valibot';
 
 /** Numeric row declarations and registered view/presentation recipes. */
@@ -60,3 +61,7 @@ export function parsePageLife(input: unknown): PageLifeRows { return gameParsePa
 export type PopulationEnvironment = GamePopulationEnvironment;
 /** Validate a population environment before it is serialized (GR8: a shard program calls this). */
 export function parsePopulationEnvironment(input: unknown): PopulationEnvironment { return v.parse(GamePopulationEnvironmentSchema, input); }
+/** One admitted figure catalogue (people's figures, anchors, skins and cards). */
+export type FigureCatalogue = GameFigureCatalogue;
+/** Validate a figure catalogue before it is serialized (GR8: a shard program calls this). */
+export function parseFigureCatalogue(input: unknown): FigureCatalogue { return v.parse(GameFigureCatalogueSchema, input); }

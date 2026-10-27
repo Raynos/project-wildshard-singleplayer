@@ -7,7 +7,7 @@ import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { NPC_FIGURE } from '../src/shards/pine-hollow/generators/peopleLook';
 import { standInPerson } from './fixtures/npcFigureOracle';
 import { FigureSkins, type FigureRig } from '../src/game/systems/npc/figureSkins';
-import skins from '../src/shards/pine-hollow/data/npcSkins.generated.json' with { type: 'json' };
+import { PINE_NPC_SKINS as skins } from './fixtures/pine-program';
 import { Scope } from '../src/engine/app/scope';
 
 function row(): FigureRow {

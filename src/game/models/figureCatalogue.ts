@@ -107,6 +107,11 @@ export class ProductFigureCatalogue {
     const check = (): void => { if (owner.disposed || owner.disposing) throw new Error('Figure catalogue owner left'); };
     check();
     const data = v.parse(FigureCatalogueSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file(this.file))));
+    // GR8: a skin the product names (a file name, not a /-rooted public URL) loads through the product's own URL for it
+    const named = (url: string): string => url.startsWith('/') ? url : product.url(url);
+    for (const row of Object.values(data.figures)) for (const skin of [row.phone.skin, row.desktop.skin]) {
+      if (skin !== undefined) { skin.url = named(skin.url); skin.material = named(skin.material); }
+    }
     check();
     if (!allowPacked && data.pack !== undefined) throw new Error('Resolved island figures require unpacked catalogue rows');
     const resources = new SceneHandles();

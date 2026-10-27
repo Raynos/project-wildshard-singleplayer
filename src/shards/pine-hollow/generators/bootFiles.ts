@@ -1,5 +1,4 @@
 import painted from '../data/paintedTextures.json' with {type:'json'};
-import skins from '../data/npcSkins.generated.json' with {type:'json'};
 
 const PINE_BOOT_ASSET_1="/assets/baked/pine-hollow/sky.json";
 const PINE_BOOT_ASSET_2="/assets/baked/pine-hollow/tex/";
@@ -229,11 +228,8 @@ export const PINE_BOOT_FILES: {
                     typeof PINE_BOOT_ASSET_7,
                     typeof PINE_BOOT_ASSET_8,
                     typeof PINE_BOOT_ASSET_9,
-                    string,
                     typeof PINE_BOOT_ASSET_10,
-                    string,
                     typeof PINE_BOOT_ASSET_11,
-                    string,
                     ...string[],
                     "/assets/pine-hollow/baked/rain.phone.bin"
                 ];
@@ -244,11 +240,8 @@ export const PINE_BOOT_FILES: {
                     typeof PINE_BOOT_ASSET_7,
                     typeof PINE_BOOT_ASSET_8,
                     typeof PINE_BOOT_ASSET_9,
-                    string,
                     typeof PINE_BOOT_ASSET_10,
-                    string,
                     typeof PINE_BOOT_ASSET_11,
-                    string,
                     ...string[],
                     "/assets/pine-hollow/baked/rain.bin"
                 ];
@@ -551,9 +544,9 @@ export const PINE_BOOT_FILES: {
           "/assets/horizon/pine-hollow-night-phone.webp",
           PINE_BOOT_ASSET_7,
           PINE_BOOT_ASSET_8,
-          PINE_BOOT_ASSET_9, skins.ranger.phone.url,
-          PINE_BOOT_ASSET_10, skins.trader.phone.url,
-          PINE_BOOT_ASSET_11, skins.miller.phone.url,
+          PINE_BOOT_ASSET_9,
+          PINE_BOOT_ASSET_10,
+          PINE_BOOT_ASSET_11,
           ...painted.urls,
           "/assets/pine-hollow/baked/rain.phone.bin"
         ],
@@ -563,9 +556,9 @@ export const PINE_BOOT_FILES: {
           "/assets/horizon/pine-hollow-night.webp",
           PINE_BOOT_ASSET_7,
           PINE_BOOT_ASSET_8,
-          PINE_BOOT_ASSET_9, skins.ranger.desktop.url,
-          PINE_BOOT_ASSET_10, skins.trader.desktop.url,
-          PINE_BOOT_ASSET_11, skins.miller.desktop.url,
+          PINE_BOOT_ASSET_9,
+          PINE_BOOT_ASSET_10,
+          PINE_BOOT_ASSET_11,
           ...painted.urls,
           "/assets/pine-hollow/baked/rain.bin"
         ]

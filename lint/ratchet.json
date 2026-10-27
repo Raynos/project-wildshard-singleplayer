@@ -1018,6 +1018,7 @@
   },
   "wildshard/shard-sandbox": {
     "src/shards/pine-hollow/blender/crags/export-cave.mjs": 2,
+    "src/shards/pine-hollow/generators/bootFiles.ts": 13,
     "src/shards/pine-hollow/generators/coatProducer.ts": 1
   },
   "closedComponents": {

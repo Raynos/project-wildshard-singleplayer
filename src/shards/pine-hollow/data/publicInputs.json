@@ -30,5 +30,19 @@
     "sidecar": "/assets/models/pine-hollow-trees/trees.json"
   },
   "cave": "/assets/models/pine-hollow-crags/cave.json",
-  "groundLayers": "/assets/tex/"
+  "groundLayers": "/assets/tex/",
+  "npcs": {
+    "ranger": {
+      "desktop": "/assets/pine-hollow/npcs/ranger.glb",
+      "phone": "/assets/pine-hollow/npcs/ranger.phone.glb"
+    },
+    "trader": {
+      "desktop": "/assets/pine-hollow/npcs/trader.glb",
+      "phone": "/assets/pine-hollow/npcs/trader.phone.glb"
+    },
+    "miller": {
+      "desktop": "/assets/pine-hollow/npcs/miller.glb",
+      "phone": "/assets/pine-hollow/npcs/miller.phone.glb"
+    }
+  }
 }
