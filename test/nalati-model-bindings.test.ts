@@ -2,10 +2,28 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { SpecimenAssetSchema } from '../src/format/specimenCatalogue';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { nalatiPaintedAtlasFile, nalatiPaintedGeometryFile, nalatiPaintedBindings, nalatiPaintedModelNames, nalatiLatePaintedNames } from '../src/shards/nalati-grasslands/generators/modelBindings';
+import { nalatiPaintedAtlasFile, nalatiPaintedGeometryFile, nalatiPaintedBindings, nalatiPaintedModelNames, nalatiLatePaintedNames, nalatiLateCatalogueNames, nalatiDeferredCatalogueScene } from '../src/shards/nalati-grasslands/generators/modelBindings';
 
 const prefix = '/assets/nalati/baked/painted-models/';
 const material = { id: 'rock', family: 'painterly', rim: .3, bands: .8, floor: .2 } as const;
+
+test('live phone annotation preserves every existing scene and catalogue field',()=>{
+  const book={rows:[{key:'specimen',source:{file:'model.bin'}}],packed:{bin:{file:'bank.bin',bytes:7}}};
+  const scene={name:'owned',geometry:{shape:{file:'world.bin'}},catalogues:[book],statics:[{name:'camp',pose:[1,2,3]}]},before=structuredClone(scene);
+  expect(nalatiDeferredCatalogueScene(scene)).toEqual({...scene,catalogues:[{...book,load:'after-control'}]});
+  expect(scene).toStrictEqual(before);
+  expect(()=>nalatiDeferredCatalogueScene({})).toThrow('Missing scene');
+  expect(()=>nalatiDeferredCatalogueScene({catalogues:[null]})).toThrow('Invalid scene');
+});
+
+test('only exclusive after-control catalogue sources enter the late inventory',()=>{
+  const input={catalogues:[{load:'after-control',rows:[{file:'only.bin'},{file:'shared.bin'},{file:'eager.bin'}]},
+    {rows:[{file:'eager.bin'}]}],geometry:{shape:{file:'shared.bin'}},labels:['ignored.bin']};
+  const before=structuredClone(input);
+  expect(nalatiLateCatalogueNames(input)).toEqual(['only.bin']);expect(input).toStrictEqual(before);
+  expect(nalatiLateCatalogueNames({catalogues:[{rows:[{file:'default.bin'}]}]})).toEqual([]);
+  expect(nalatiLateCatalogueNames(null)).toEqual([]);
+});
 
 test('only unselected painted alternatives enter the late transport seam', () => {
   const file = (name: string) => ({ file: `models/painted/${name}`, bytes: 7 });

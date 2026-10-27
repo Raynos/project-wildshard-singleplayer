@@ -73,7 +73,7 @@ const sceneDressing = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
   name:id,
   instances:v.optional(SceneInstancesSchema,[]),
   staticModels:v.optional(list(v.strictObject({model:SpecimenModelMetadataSchema,geometry:id,material:id}),128),[]),
-  catalogues:list(v.union([v.strictObject({rows:SpecimenCatalogueSchema,packed:v.exactOptional(PackedSpecimenSchema),materials:v.optional(v.record(id,SpecimenMaterialSchema),{})}),v.strictObject({rows:SpecimenCatalogueSchema,pack:id})]),8),
+  catalogues:list(v.union([v.strictObject({rows:SpecimenCatalogueSchema,load:v.exactOptional(v.literal('after-control')),packed:v.exactOptional(PackedSpecimenSchema),materials:v.optional(v.record(id,SpecimenMaterialSchema),{})}),v.strictObject({rows:SpecimenCatalogueSchema,load:v.exactOptional(v.literal('after-control')),pack:id})]),8),
   packs:v.record(id,v.strictObject({rows:PackedSpecimenSchema,materials:v.record(id,SpecimenMaterialSchema)})),
   geometry:v.record(id,geometry),
   materials:v.record(id,v.variant('kind',[
@@ -118,9 +118,9 @@ const sceneDressing = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
 },'Dressing references require declared shapes, materials, models and complete copy bounds'));
 export interface SceneDressingRows { name: string; instances: v.InferOutput<typeof SceneInstancesSchema>;
   staticModels: ({ model: v.InferOutput<typeof SpecimenModelMetadataSchema>; geometry: string; material: string;
-  })[]; catalogues: (({ rows: v.InferOutput<typeof SpecimenCatalogueSchema>; packed?: v.InferOutput<typeof
+  })[]; catalogues: (({ rows: v.InferOutput<typeof SpecimenCatalogueSchema>; load?: 'after-control'; packed?: v.InferOutput<typeof
   PackedSpecimenSchema>; materials: Record<string, v.InferOutput<typeof SpecimenMaterialSchema>>; }) | ({ rows:
-  v.InferOutput<typeof SpecimenCatalogueSchema>; pack: string; }))[]; packs: Record<string, { rows:
+  v.InferOutput<typeof SpecimenCatalogueSchema>; load?: 'after-control'; pack: string; }))[]; packs: Record<string, { rows:
   v.InferOutput<typeof PackedSpecimenSchema>; materials: Record<string, v.InferOutput<typeof
   SpecimenMaterialSchema>>; }>; geometry: Record<string, ({ kind: 'asset'; row: v.InferOutput<typeof
   SpecimenAssetSchema>; }) | ({ kind: 'baked'; url: string; address: { file: string; word: number; }; row:

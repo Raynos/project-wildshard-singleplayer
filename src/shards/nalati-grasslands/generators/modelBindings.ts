@@ -77,3 +77,34 @@ export function nalatiLatePaintedNames(input: unknown): readonly string[] {
   visit(input);
   return [...candidates].filter(name => !selected.has(name)).sort();
 }
+
+/** Metadata-only specimen books do not draw the world. Keep any shared scene
+ * source early; only exclusively declared after-control catalogue files defer. */
+export function nalatiLateCatalogueNames(input: unknown): readonly string[] {
+  const late=new Set<string>(),early=new Set<string>();
+  const collect=(value:unknown,into:Set<string>):void=>{
+    if(Array.isArray(value)){for(const child of value)collect(child,into);return;}
+    if(value!==null&&typeof value==='object'){
+      if('file'in value&&typeof value.file==='string')into.add(value.file);
+      for(const child of Object.values(value))collect(child,into);
+    }
+  };
+  if(input===null||typeof input!=='object'||!('catalogues'in input)||!Array.isArray(input.catalogues))return [];
+  const books:readonly unknown[]=input.catalogues;
+  for(const book of books)collect(book,book!==null&&typeof book==='object'&&'load'in book&&book.load==='after-control'?late:early);
+  for(const [key,value]of Object.entries(input))if(key!=='catalogues')collect(value,early);
+  return [...late].filter(name=>!early.has(name)).sort();
+}
+
+/** Annotate already-constructed scene data; the original complete named-file
+ * schema remains its publication guard. No geometry or catalogue row changes. */
+export function nalatiDeferredCatalogueScene(input:unknown):unknown{
+  if(input===null||typeof input!=='object'||!('catalogues'in input)||!Array.isArray(input.catalogues))throw new Error('Missing scene catalogues');
+  const books:readonly unknown[]=input.catalogues;
+  const catalogues:object[]=[];
+  for(const book of books){
+    if(book===null||typeof book!=='object'||Array.isArray(book))throw new Error('Invalid scene catalogue');
+    catalogues.push({...book,load:'after-control'});
+  }
+  return{...input,catalogues};
+}

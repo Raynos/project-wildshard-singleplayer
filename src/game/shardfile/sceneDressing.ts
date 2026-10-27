@@ -21,7 +21,8 @@ import { instancedQuad } from '@wildshard/engine/render/instancedGeometry';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import { mergeStaticSiblingsSliced } from '@wildshard/engine/models/staticSets';
-import { createPackedSpecimens, defineSpecimenCatalogue, prepareSpecimenCatalogue, loadBoundSpecimen, loadSpecimenTexture, specimenMaterial } from '../models/specimenCatalogue';
+import { createPackedSpecimens, defineSpecimenCatalogue, prepareSpecimenCatalogue, planSpecimenCatalogue, loadBoundSpecimen, loadSpecimenTexture, specimenMaterial } from '../models/specimenCatalogue';
+import { ControlRefinement } from './controlRefinement';
 import { fetchLaneBake, readBakedGeometry, bakedGeometryBytes } from '../plugin/geometry';
 import { createClientScene } from '../plugin/scene';
 import { AmbientWingField } from '../ambient/wingField';
@@ -172,7 +173,7 @@ export class SceneDressing {
   private readonly animations:SceneDressingRows['animations'];
   private readonly motes:SceneDressingRows['motes'];
   private readonly emitters:SceneDressingRows['emitters'];
-  private constructor(private readonly ctx: ShardContext, rows: SceneDressingRows) { this.group.name=rows.name;this.animations=rows.animations;this.motes=rows.motes;this.emitters=rows.emitters; }
+  private constructor(private readonly ctx: ShardContext, rows: SceneDressingRows, private readonly catalogueReads:ReadonlyMap<number,()=>Promise<void>>) { this.group.name=rows.name;this.animations=rows.animations;this.motes=rows.motes;this.emitters=rows.emitters; }
 
   static async install(ctx: ShardContext, input: unknown): Promise<SceneDressing> {
     const rows=v.parse(SceneDressingSchema,input);
@@ -187,16 +188,23 @@ export class SceneDressing {
       if(scope.disposed||scope.disposing||ctx.scope!==scope||ctx.product!==product||product.file!==read||product.hasFile!==hasFile
         ||ctx.game!==game||game.runtime!==runtime||runtime?.world!==preparedWorld)throw new Error('Scene contact file owner changed or retired');
     };
+    const catalogueReads=new Map<number,()=>Promise<void>>();
+    for(const [index,source]of rows.catalogues.entries())if(source.load==='after-control'){
+      const packed='pack'in source?rows.packs[source.pack]?.rows:source.packed;
+      const prepare=planSpecimenCatalogue(product,source.rows,scope,packed===undefined?[]:[packed]);
+      catalogueReads.set(index,async()=>{live();const prepared=await prepare();live();for(const [name,bytes]of prepared)files.set(name,bytes);});
+    }
     live();for(const file of names)if(!hasFile.call(product,file))throw new Error(`Missing scene contact file ${file}`);
     for(const file of names){live();const bytes=await read.call(product,file);live();files.set(file,bytes);}
     const raw=await prepareBinarySources(product,[...Object.values(rows.geometry).flatMap(row=>row.kind==='file'?[{source:{file:row.file},bytes:bakedGeometryBytes(row.row)}]:[]),
       ...Object.values(rows.materials).flatMap(row=>row.kind==='lettering-file'?[{source:{file:row.file},bytes:row.width*row.height*4}]:[]),
       ...rows.statics.flatMap(row=>row.members.flatMap(member=>member.floors.flatMap(floor=>'file'in floor?[{source:{file:floor.file},bytes:floor.res*floor.res*4}]:[])))],scope);
     live();for(const [name,bytes] of raw)files.set(name,bytes);
-    const specimens=await prepareSpecimenCatalogue(product,rows.catalogues.flatMap(source=>source.rows),scope,
-      [...Object.values(rows.packs).map(source=>source.rows),...rows.catalogues.flatMap(source=>'pack'in source||source.packed===undefined?[]:[source.packed])],
+    const eagerCatalogues=rows.catalogues.filter(source=>source.load!=='after-control');
+    const specimens=await prepareSpecimenCatalogue(product,eagerCatalogues.flatMap(source=>source.rows),scope,
+      [...Object.values(rows.packs).map(source=>source.rows),...eagerCatalogues.flatMap(source=>'pack'in source||source.packed===undefined?[]:[source.packed])],
       [...Object.values(rows.geometry).flatMap(source=>source.kind==='asset'?[source.row]:[]),...Object.values(rows.materials).flatMap(source=>source.kind==='asset'?[source.row]:[]),...rows.sites.map(source=>source.rows.generated)]);live();for(const [name,bytes]of specimens)files.set(name,bytes);
-    const owner=new SceneDressing(ctx,rows);
+    const owner=new SceneDressing(ctx,rows,catalogueReads);
     await owner.build(rows,files);
     // Floor/picking closures can retain the build context. Decoded contacts and
     // geometry own their copies; only catalogue rebuilds still read this map.
@@ -212,6 +220,13 @@ export class SceneDressing {
     }
     ctx.scope.onDispose(()=>{if(installed.get(ctx.product)===owner)installed.delete(ctx.product);owner.instances?.dispose();for(const piece of owner.pieces.values())piece.object.removeFromParent();owner.group.removeFromParent();});
     ctx.system({id:'client.scene.dressing',phase:'update',after:['main.world'],before:['engine.creatures.update'],run:dt=>owner.update(dt)});
+    if(catalogueReads.size>0){
+      const world=runtime?.world,origin=product.shardfile.spawn;
+      const queue=new ControlRefinement(scope,world?.game.levelScope,()=>world?.player.position??origin,()=>buildYield(scope));
+      const pending=[...catalogueReads].map(([index,prepare])=>queue.add(`catalogue:${String(index)}`,origin,prepare));
+      const warm=async():Promise<void>=>{try{await Promise.all(pending);}catch(error:unknown){if(!scope.disposed&&!scope.disposing)console.error('[scene] deferred catalogue preparation failed',error);}};
+      void warm();
+    }
     return owner;
   }
   static current(ctx: ShardContext): SceneDressing { const value=books.get(ctx.scope)?.get(ctx.product);if(value===undefined||ctx.scope.disposed)throw new Error('Scene dressing is not installed');return value; }
@@ -230,9 +245,9 @@ export class SceneDressing {
     const missing=looks.filter(id=>!hasLentLook(id));if(missing.length>0)lendLooks(ctx.scope,await runtimeLookMaterials({scope:ctx.scope,game:ctx.game},ctx.product.shardfile,true,missing));
     const sky=world.sky, models=modelContext(sky), pause=()=>buildYield(ctx.scope);
     const definitions=new Map<string,ModelDef<object>>();
-    for(const source of rows.catalogues){
+    for(const [index,source]of rows.catalogues.entries()){
       const pack='pack'in source?rows.packs[source.pack]:{rows:source.packed,materials:source.materials};if(pack===undefined)throw new Error('Missing catalogue pack');
-      const catalogue=defineSpecimenCatalogue<Record<string,object>>(source.rows,pack.rows,pack.materials,files);
+      const catalogue=defineSpecimenCatalogue<Record<string,object>>(source.rows,pack.rows,pack.materials,files,this.catalogueReads.get(index));
       for(const row of source.rows)definitions.set(row.model.id,catalogue.model(row.key));
     }
     const packs=new Map(Object.entries(rows.packs).map(([key,source])=>[key,createPackedSpecimens(source.rows,files)]));

@@ -15,7 +15,8 @@ import {createShardProduct} from '../src/game/shardfile/shardProduct';
 import {SceneDressing} from '../src/game/shardfile/sceneDressing';
 import type {ShardContext} from '../src/game/plugin/context';
 import {explorerRoster} from '../src/game/models/explorerCatalogue';
-import {createPackedSpecimens,defineSpecimenCatalogue,prepareSpecimenCatalogue} from '../src/game/models/specimenCatalogue';
+import {createPackedSpecimens,defineSpecimenCatalogue,prepareSpecimenCatalogue,planSpecimenCatalogue} from '../src/game/models/specimenCatalogue';
+import {reachControl} from '../src/engine/boot/prefetch';
 
 function deferred<T>():{promise:Promise<T>;resolve:(value:T)=>void}{
   let finish:(value:T)=>void=()=>{throw new Error('Missing deferred resolver');};
@@ -39,6 +40,75 @@ function skyFixture():SkyRig{
   vi.spyOn(sky,'setupMaterial').mockImplementation(()=>undefined);return sky;
 }
 afterEach(()=>{vi.restoreAllMocks();});
+
+test('planned specimen sources wait for demand and share one exact decode',async()=>{
+  const scope=new Scope('planned-specimen'),files=new Map<string,Uint8Array>();
+  const file=vi.fn<(_name:string)=>Promise<Uint8Array>>().mockResolvedValue(forge.wire);
+  const read=planSpecimenCatalogue({file,hasFile:()=>true},forge.rows,scope,[forge.packed]);
+  const catalogue=defineSpecimenCatalogue<Record<string,object>>(forge.rows,forge.packed,materials,files,async()=>{
+    for(const [name,bytes]of await read())files.set(name,bytes);
+  });
+  const model=catalogue.model('anvil'),context=modelContext(skyFixture());
+  expect(file).not.toHaveBeenCalled();expect(()=>model.build(context,{},new Rng(1))).toThrow('requires preparation');
+  try{
+    await Promise.all([model.prepare?.(),model.prepare?.()]);expect(file).toHaveBeenCalledTimes(1);expect(files.get(forge.file)).toEqual(forge.raw);
+    const first=model.build(context,{},new Rng(1)),second=model.build(context,{},new Rng(1));
+    if(!(first instanceof THREE.Group)||!(second instanceof THREE.Group))throw new Error('Missing prepared groups');
+    const a=first.children[0],b=second.children[0];if(!(a instanceof THREE.Mesh)||!(b instanceof THREE.Mesh))throw new Error('Missing prepared meshes');
+    const x:unknown=a.geometry,y:unknown=b.geometry;if(!(x instanceof THREE.BufferGeometry)||!(y instanceof THREE.BufferGeometry))throw new Error('Missing prepared geometry');
+    const position:unknown=x.getAttribute('position'),other:unknown=y.getAttribute('position');
+    if(!(position instanceof THREE.BufferAttribute)||!(other instanceof THREE.BufferAttribute))throw new Error('Missing prepared positions');
+    expect(new Uint8Array(position.array.buffer,position.array.byteOffset,position.array.byteLength)).toEqual(forge.raw);
+    expect(position.array).not.toBe(other.array);x.dispose();y.dispose();
+    scope.dispose();await expect(model.prepare?.()).rejects.toThrow('retired');
+  }finally{scope.dispose();}
+});
+
+test('planned source admission refuses missing names without starting IO',()=>{
+  const file=vi.fn<(_name:string)=>Promise<Uint8Array>>().mockResolvedValue(forge.wire);
+  expect(()=>planSpecimenCatalogue({file,hasFile:()=>false},forge.rows,undefined,[forge.packed])).toThrow('Missing binary source');
+  expect(file).not.toHaveBeenCalled();
+});
+
+test('a planned malformed bank retains its refusal without retry or URL fallback',async()=>{
+  const file=vi.fn<(_name:string)=>Promise<Uint8Array>>().mockResolvedValue(forge.wire.subarray(1));
+  const fetch=vi.spyOn(globalThis,'fetch').mockRejectedValue(new Error('No fallback'));
+  const read=planSpecimenCatalogue({file,hasFile:()=>true},forge.rows,undefined,[forge.packed]);
+  await expect(read()).rejects.toThrow('byte count');await expect(read()).rejects.toThrow('byte count');
+  expect(file).toHaveBeenCalledTimes(1);expect(fetch).not.toHaveBeenCalled();
+});
+
+test('retirement before demand starts no planned read and replacement invalidates a ready plan',async()=>{
+  const scope=new Scope('plan-retired'),file=vi.fn<(_name:string)=>Promise<Uint8Array>>().mockResolvedValue(forge.wire);
+  const read=planSpecimenCatalogue({file,hasFile:()=>true},forge.rows,scope,[forge.packed]);scope.dispose();
+  await expect(read()).rejects.toThrow('retired');expect(file).not.toHaveBeenCalled();
+  const product={file,hasFile:()=>true},ready=planSpecimenCatalogue(product,forge.rows,undefined,[forge.packed]);await ready();
+  product.file=vi.fn<(_name:string)=>Promise<Uint8Array>>().mockResolvedValue(forge.wire);
+  await expect(ready()).rejects.toThrow('changed');expect(product.file).not.toHaveBeenCalled();
+});
+
+test('planned retirement drains an in-flight bank without returning its bytes',async()=>{
+  const scope=new Scope('plan-drain'),reply=deferred<Uint8Array>(),read=planSpecimenCatalogue({file:()=>reply.promise,hasFile:()=>true},forge.rows,scope,[forge.packed]);
+  const work=read();scope.dispose();reply.resolve(forge.wire);await expect(work).rejects.toThrow('retired');
+});
+
+test.each([false,true])('late dressing catalogue follows controlled paint; retire=%s',async retired=>{
+  const scope=new Scope('dressing-late'),level=new Scope('dressing-level'),frames:FrameRequestCallback[]=[];
+  vi.spyOn(scope,'raf').mockImplementation(run=>{frames.push(run);return frames.length;});
+  const file=vi.fn<(_name:string)=>Promise<Uint8Array>>().mockResolvedValue(forge.wire),sky=skyFixture();
+  type Runtime=NonNullable<ShardContext['game']['runtime']>;type World=NonNullable<Runtime['world']>;
+  const world=legacyDouble<World>({sky,game:legacyDouble<World['game']>({levelScope:level}),player:legacyDouble<World['player']>({position:new THREE.Vector3()})});
+  const product=legacyDouble<ShardContext['product']>({slug:'late-dressing',shardfile:emptyShardfile({slug:'late-dressing',name:'Late',author:'Fixture',seed:1,revision:1}),file,hasFile:()=>true});
+  const ctx=legacyDouble<ShardContext>({scope,root:new THREE.Group(),system:vi.fn<ShardContext['system']>(),product,
+    app:legacyDouble<ShardContext['app']>({registry:new WorldRegistry()}),game:legacyDouble<ShardContext['game']>({runtime:legacyDouble<Runtime>({world})})});
+  try{
+    await SceneDressing.install(ctx,{name:'late',catalogues:[{rows:forge.rows,packed:forge.packed,materials,load:'after-control'}],packs:{},geometry:{},materials:{},layers:[],statics:[],animations:[]});
+    expect(file).not.toHaveBeenCalled();if(retired)scope.dispose();reachControl(level);
+    if(!retired)for(let i=0;i<2;i++){const frame=frames.shift();if(frame===undefined)throw new Error('Missing control paint');frame(1);await Promise.resolve();}
+    if(retired){await Promise.resolve();expect(file).not.toHaveBeenCalled();}
+    else await vi.waitFor(()=>{expect(file).toHaveBeenCalledTimes(1);});
+  }finally{scope.dispose();level.dispose();}
+});
 
 test('two packed file declarations preserve every word and independent catalogue geometry',async()=>{
   const sources=new Map([[forge.file,forge.wire],[orchard.file,orchard.wire]]),scope=new Scope('packed-files');

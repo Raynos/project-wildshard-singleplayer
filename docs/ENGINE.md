@@ -5910,16 +5910,10 @@ bands, optional specimen material and Float32 convex hulls. It never loads,
 fits or poses geometry. Pine crags and Driftwood cove prototypes use it.
 
 `@wildshard/game/models/specimenCatalogue.defineSpecimenCatalogue<Params>(rows,
-packed?, materials?, files?)` registers; `.model(key)` selects.
-Rows: metadata/parameters/colliders; owned identity GLBs, packed parts, asset
-slots (optional phone source/retained attrs). Unknown params refuse
-without I/O. `loadSpecimenAsset(row,input?)` and
-`loadBoundSpecimen(sky,row,input?)` accept owned bytes/prepared files;
-`url`/`phoneUrl`: legacy paths or `{file,bytes}`. Publication checks tier
-lengths/headers/resources. Owned bytes need preparation, no URL fallback.
-Disposal/failure frees caches/inputs. Format `SpecimenCatalogueSchema`, `PackedSpecimenSchema` and
-`SpecimenMaterialSchema` reject non-JSON, accessors, cycles, callbacks,
-unbounded catalogues and paths outside `/assets/`.
+packed?,materials?,files?,prepare?)` registers params/colliders and GLB/packed slots (phone sources, retained attrs); `.model(key)` selects.
+Unknown params refuse pre-IO. `loadSpecimenAsset`/`loadBoundSpecimen` take
+bytes/prepared files, legacy URLs or `{file,bytes}`; tier size/header/resource checks stay. No owned URL fallback; disposal/failure releases inputs.
+Schemas reject accessors/cycles/callbacks, invalid JSON, paths and bounds.
 SDK `@wildshard/sdk/bake/specimenCatalogue`: strict `defineSpecimenCatalogue`
 book/model lookup, canonical `nameSpecimenBook` JSON/schema, and fresh
 `sharedPickupCatalogue()` metadata without runtime/I/O.
@@ -5942,6 +5936,10 @@ distinct. Disposal/rejection invalidates caches without URL fallback.
 `loadPacked()` retains lazy URL bakes. `use(raw)` (`catalogue.usePacked(raw)`)
 admits inflated bytes; each build owns fresh arrays with original indices,
 optional expansion and bounds.
+`planSpecimenCatalogue` preflights sources without IO; its memoized
+reader retains owner/reader checks. Dressing `load:'after-control'`
+uses `ModelDef.prepare`: first demand or controlled paint starts IO; builds
+refuse until ready. World/colliders and eager defaults stay.
 
 `prepareBinarySources(product,requests,scope?,banks?)` preflights named
 files. Fully demanded banks restore detached SHA-256-checked members;

@@ -363,6 +363,17 @@ export function createPackedSpecimens(input: unknown,files:ReadonlyMap<string,Ui
 /** Prepare declared raw files and compressed packed banks before publishing definitions.
  * Each bank is decoded once per preparation; catalogue builds still own fresh geometry arrays. */
 export function prepareSpecimenCatalogue(product:BinaryFileReader,input:unknown,scope?:Scope,packedInputs:readonly unknown[]=[],assetInputs:readonly unknown[]=[]):Promise<ReadonlyMap<string,Uint8Array>> {
+  return specimenPreparation(product,input,scope,packedInputs,assetInputs).read();
+}
+
+/** Admit named sources now, then read once on specimen demand or after control. */
+export function planSpecimenCatalogue(product:BinaryFileReader,input:unknown,scope?:Scope,packedInputs:readonly unknown[]=[],assetInputs:readonly unknown[]=[]):()=>Promise<ReadonlyMap<string,Uint8Array>> {
+  const plan=specimenPreparation(product,input,scope,packedInputs,assetInputs);plan.check();return plan.read;
+}
+
+function specimenPreparation(product:BinaryFileReader,input:unknown,scope:Scope|undefined,packedInputs:readonly unknown[],assetInputs:readonly unknown[]):{
+  check:()=>void;read:()=>Promise<ReadonlyMap<string,Uint8Array>>;
+} {
   jsonData(input);const rows=v.parse(SpecimenCatalogueSchema,input);
   jsonData(packedInputs);const packs=packedInputs.map(value=>v.parse(PackedSpecimenSchema,value));
   jsonData(assetInputs);const declaredAssets=assetInputs.map(value=>v.parse(SpecimenAssetSchema,value));
@@ -382,7 +393,15 @@ export function prepareSpecimenCatalogue(product:BinaryFileReader,input:unknown,
   for(const pack of packs)if(typeof pack.bin!=='string'&&rawNames.has(pack.bin.file))throw new Error('Conflicting specimen source encodings');
   const read=product.file,has=product.hasFile;
   const live=():void=>{if(scope?.disposed===true||scope?.disposing===true||product.file!==read||product.hasFile!==has)throw new Error('Specimen source owner retired or changed');};
-  return(async():Promise<ReadonlyMap<string,Uint8Array>>=>{
+  const check=():void=>{
+    live();if(read===undefined&&(rawNames.size>0||packs.some(pack=>typeof pack.bin!=='string')))throw new Error('Specimen source requires its product reader');
+    if(has!==undefined)for(const name of [...rawNames,...packs.flatMap(pack=>typeof pack.bin==='string'?[]:[pack.bin.file])]){
+      if(!has.call(product,name))throw new Error(`Missing binary source ${name}`);
+    }
+  };
+  let pending:Promise<ReadonlyMap<string,Uint8Array>>|undefined;
+  const load=async():Promise<ReadonlyMap<string,Uint8Array>>=>{
+    check();
     live();const files=new Map(await prepareBinarySources(product,[...sources,...packs.flatMap(pack=>typeof pack.bin==='string'?[]:[{source:{file:pack.bin.file},bytes:pack.bin.bytes}])],scope));live();
     const checked=new Set<Uint8Array>();
     for(const asset of assets){const bytes=assetBytes(asset,files);if(bytes!==undefined&&!checked.has(bytes)){selfContainedSpecimen(bytes);checked.add(bytes);}}
@@ -395,13 +414,14 @@ export function prepareSpecimenCatalogue(product:BinaryFileReader,input:unknown,
       createPackedSpecimens(pack).use(bytes);
     }
     return files;
-  })();
+  };
+  return{check,read:()=>{try{check();pending??=load();return pending;}catch(error:unknown){return Promise.reject(error instanceof Error?error:new Error('Specimen source check failed',{cause:error}));}}};
 }
 
 /** Complete model declaration: parameters and specimen selection are data, with no shard callback. */
 export type SpecimenModelRow = v.InferOutput<typeof SpecimenCatalogueSchema>[number];
 /** Bind a named parameter map to an ordered catalogue. Definitions register immediately; assets remain lazy. */
-export function defineSpecimenCatalogue<Params extends { readonly [K in keyof Params]: object }>(input: unknown, packedInput?: unknown, materialRowsInput: unknown = {}, files:ReadonlyMap<string,Uint8Array>=new Map()): { readonly model: <K extends keyof Params & string>(key: K) => ModelDef<Params[K]>; readonly usePacked: (bytes: Uint8Array) => void; readonly loadPacked:()=>Promise<void> } {
+export function defineSpecimenCatalogue<Params extends { readonly [K in keyof Params]: object }>(input: unknown, packedInput?: unknown, materialRowsInput: unknown = {}, files:ReadonlyMap<string,Uint8Array>=new Map(),prepare?:()=>Promise<void>): { readonly model: <K extends keyof Params & string>(key: K) => ModelDef<Params[K]>; readonly usePacked: (bytes: Uint8Array) => void; readonly loadPacked:()=>Promise<void> } {
   jsonData(input);
   jsonData(materialRowsInput);
   const packed = packedInput === undefined ? undefined : createPackedSpecimens(packedInput,files);
@@ -410,12 +430,17 @@ export function defineSpecimenCatalogue<Params extends { readonly [K in keyof Pa
   if (rows.length > 1024 || new Set(rows.map(row => row.key)).size !== rows.length || new Set(rows.map(row => row.model.id)).size !== rows.length) throw new Error('Specimen catalogue must be bounded and unique');
   const parameterKey=(value:object):string=>JSON.stringify(Object.entries(value).sort(([a],[b])=>a<b?-1:a>b?1:0));
   for(const row of rows)if(row.source.kind==='selection'&&new Set(row.source.variants.map(variant=>parameterKey(variant.params))).size!==row.source.variants.length)throw new Error('Duplicate specimen selection');
-  for(const row of rows)for(const source of row.source.kind==='selection'?row.source.variants.map(variant=>variant.source):[row.source])if(source.kind==='asset'){
+  const validate=():void=>{for(const row of rows)for(const source of row.source.kind==='selection'?row.source.variants.map(variant=>variant.source):[row.source])if(source.kind==='asset'){
     assetBytes(source.asset,files); const atlas = boundAtlas(source.asset); if (atlas !== undefined) atlasBytes(atlas,files);
-  }
+  }};
+  let ready=prepare===undefined,pending:Promise<void>|undefined;
+  const ensure=async():Promise<void>=>{validate();await packed?.load();ready=true;};
+  const prepareModel=async():Promise<void>=>{await prepare?.();pending??=ensure();return pending;};
+  if(ready)validate();
   const definitions = new Map<string, ModelDef<object>>();
   for (const row of rows) {
     const build = (ctx: ModelContext, params: object): ModelBuild => {
+      if(!ready)throw new Error('Specimen catalogue requires preparation');
       const source = row.source.kind==='selection'?row.source.variants.find(candidate=>parameterKey(candidate.params)===parameterKey(params))?.source:row.source;
       if(source===undefined)throw new Error(`No authored specimen: ${row.model.id}`);
       if(source.kind==='inline'||source.kind==='file'){
@@ -474,7 +499,7 @@ export function defineSpecimenCatalogue<Params extends { readonly [K in keyof Pa
         ...(binding.color === undefined ? {} : { color: binding.color }) };
       Object.assign(build, { gen: { id: row.model.id, name: instance.name, lod: instance.lod, look } });
     }
-    definitions.set(row.key, defineModel<object>({ ...metadata, build,
+    definitions.set(row.key, defineModel<object>({ ...metadata, build,...(prepare===undefined?{}:{prepare:prepareModel}),
       ...(modelSurface === undefined ? {} : { surface: modelSurface }), ...(seed === undefined ? {} : { seed }),
       ...(variants === undefined ? {} : { variants }), ...(specimenYaw === undefined ? {} : { specimenYaw }),
       ...(row.colliders === undefined ? {} : { colliders: () => (row.colliders ?? []).map(collider => {
