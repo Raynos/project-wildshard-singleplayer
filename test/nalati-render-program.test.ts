@@ -7,6 +7,7 @@ import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nalatiRenderTileProgram } from '../src/shards/nalati-grasslands/generators/renderTileProgram';
 import originals from './fixtures/nalati-render-source-files.json' with { type: 'json' };
+import { EXACT_RENDER_METADATA, i3Predecessor } from './fixtures/nalati-render-i3';
 
 test('the owned render cache preserves all original cold bytes and isolated persistent hits', async () => {
   const cache = mkdtempSync(resolve('tmp/nalati-render-owned-'));
@@ -20,12 +21,22 @@ test('the owned render cache preserves all original cold bytes and isolated pers
       return ctx.cached(step, inputs => { constructions++; return make(inputs); });
     } };
   };
+  // iPhone downloads I3: the program publishes the I3 render tiles; through the predecessor layer (nalati-render-i3.ts, whose
+  // geometry nalati-render-source.test.ts qualifies) every original pin maps to its file: a compacted L0 tile under its
+  // own hash, the pre-I3 metadata for the shipped one, every other file byte for byte
   const check = (files: ReadonlyMap<string, Uint8Array>) => {
+    const metadata = files.get('data/renderTiles.json');
+    if (metadata === undefined) throw new Error('Missing render metadata');
+    const { renamed } = i3Predecessor(EXACT_RENDER_METADATA, metadata), path = (pin: string): string => {
+      const next = renamed.get(pin.slice('assets/'.length)); return next === undefined ? pin : `assets/${next}`;
+    };
     expect([...files.keys()].sort((a, b) => a.localeCompare(b)))
-      .toEqual(originals.map(row => row.path).sort((a, b) => a.localeCompare(b)));
+      .toEqual(originals.map(row => path(row.path)).sort((a, b) => a.localeCompare(b)));
     for (const pin of originals) {
-      const bytes = files.get(pin.path);
+      const bytes = files.get(path(pin.path));
       if (bytes === undefined) throw new Error(`Missing original render source ${pin.path}`);
+      if (pin.path === 'data/renderTiles.json') { expect(hashImmutableBytes(EXACT_RENDER_METADATA)).toBe(pin.sha256); continue; }
+      if (path(pin.path) !== pin.path) { expect(hashImmutableBytes(bytes), pin.path).toBe(path(pin.path).slice('assets/'.length)); continue; }
       expect(bytes.byteLength, pin.path).toBe(pin.bytes);
       expect(hashImmutableBytes(bytes), pin.path).toBe(pin.sha256);
     }
