@@ -327,7 +327,7 @@ export interface ClientTileRegistration {
   owns: (instance: string) => boolean;
   /** True only after the entered root has replaced its whole coarse cover. */
   coverageReady?: (instance: string) => boolean;
-  /** A render-only entry pin temporarily lets the scheduler refine a whole-near fallback. */
+  /** A render-only approach pin holds the bounded arrival ring without installing an entered world. */
   preparing?: (instance: string) => boolean;
   dispose: () => void;
   offer: (instance: string, entry: ClientRingInstance) => void;
@@ -338,7 +338,7 @@ export interface ClientTileRegistration {
   enter: (instance: string, entry: ClientRingInstance, scope: Scope, start: { readonly x: number; readonly z: number }) => Promise<{ readonly fine: ReadonlySet<string>; refresh: () => Promise<void> }>;
 }
 
-/** Borrow the existing scheduler; late neighbour admissions update its fallback without replacing an entered root. */
+/** Borrow the existing scheduler; retain admitted neighbour views for restoration after an entered owner retires. */
 export function clientTileRegistration(instances: Map<string, ClientRingInstance>,
   streamer: Pick<TileStreamer<unknown>, 'require' | 'resident' | 'setFullRing' | 'retireRefinement'>, radius: () => number,
   retainFar: (instance: string) => boolean = () => false): ClientTileRegistration {
@@ -427,8 +427,8 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
         if (prior?.root !== entry.root || prior.views !== entry.views) streamer.retireRefinement(instance);
         instances.set(instance, { ...entry, source: { ...entry.source, tiles: entry.source.tiles.filter(tile => keys.has(`${tile.lod}/${tile.x}/${tile.z}`)) } });
         entered.set(instance, release); scope.onDispose(release);
-        // H3: pin the spawn view before broad coverage. Otherwise every L1
-        // quadrant and uncovered distant L0 competes ahead of these first reads.
+        // H3: pin the spawn view before broad coarse coverage. Otherwise all
+        // L1 quadrants compete ahead of these first reads.
         // Parent-first streaming supplies this ring's coarse parents as needed.
         const spawn = await pinSpawn(instance, start, requirements, ownerLeft, 'Entered tile owner left');
         // Entryways remain critical: the same declared rank-zero set must be

@@ -244,7 +244,7 @@ browsers and the owned preview are closed; no Sim was used.
 | T7.1 — superseded by T7.7–T7.10 ( source `379647e12b` + `e5f73af853`) | Approach declared tiled destinations through the existing render scheduler, pinning only their entry ring. No regional constructor or entered-root replacement on a guess. Abort the pin on redirect, distant departure, owner retirement or completed entry. While pinned, the whole-near fallback permits fine refinement; masks still cover partial parents. Releasing the final pin restores its old refinement policy, and registration disposal releases all pins. Actual demand retains all runtime/save/collider/readiness gates. T7.7–T7.10 remove every speculative whole-world constructor, paired-world budget port and the four-product selection cap; neighbour preparation owns tiles only. | `grid/live.ts`, `liveSession.ts`, `session.ts`, `shardfile/tileContent.ts` | sp-x8 | bounded slice | types + typed lint + scoped ratchet clean; full ratchet stops on D37; D47 fixed `15f149539c`; cause-fixed preview `8422baac07` passes generation then refuses new Nine coarse L1 debt (`82ac81812d`, sp-o5), zero browser samples; runtime/G782 qualification still blocked | T2, T4, T6 |
 | T8 | Every shard on tiles, all seven as written (G790: Nalati, Pine, Nine, Sky, Sunscar, open plots, template); complete grid plus bounded tile costs and fine-file ownership | shard generators / shared SDK tile producer | sp-x2 / sp-x10 / sp-o3 / sp-o5 | ≤1h slices | **in flight (2026-10-27):** the old four-tile split is not done merely because metadata now has64L0. Current audit below: Pine wire cut in this commit; Nine dense L0 work sp-o3; Sky whole fine-library ownership sp-x10; open-plot cost/draw work sp-x2. Nalati/Sunscar/Template retained64/16 grids have no cap debt, not fresh runtime qualification. Preserve Driftwood B and its exact6/4 exception; D87 lossless coarse repair b80fee8ea6 is separate. No previews/readings until plan end (G780).  Plan-end measured6/8 families at both ring choices: DW6/15, Pine6/15, Sky8/14, Signal9/25, Template9/25, Night Market9/25 observed render keys (edge-clipped actual scopes, not proof of every expected key). Nalati/Nine unavailable. Declared resident closures and whole-fine comparisons below; no all-seven runtime PASS.  Authorized a423 recovery now measures Nine9/11 render scopes and9collider scopes,132.93/151.55 MiB declared fine closure versus160.49 MiB all-fine. Nalati remains blocked before controls. No all-seven runtime qualification.  Final source-repaired Nalati325 now reaches controls with6/15 render and6collider scopes:1.35/3.40 MiB declared closure versus14.38 MiB all-fine. Every family has a spawn record across pins; cold/overlay/T7 memory misses keep the full milestone in flight. | T3 |
 | T9 | G638 picked A: 62.5 m gap, pitch 562.5; asphalt unchanged at 15 m, side strips 23.75 m, seams/junction/routes follow the lattice | strips, roadLook, roadLayout, config | Codex (sp-x6) | 2 d | **done** (2026-10-24): runtime `ae2dca27dc`; native 15/30 m/s peer routes each 4 crossings / 0 stuck; labelled phone road/junction witnesses; current-origin `57d1344dc1` EWNS held walks all complete / 0 stuck / gates open. [Compact receipts](../../../progress/shard-platform/tile-streaming/t9-lattice.md); T1 retirement and T10 broader milestone stay separate | T2 |
-| T10 — in flight (reading at plan end; G780), source `45086a7db8` | Delete the whole-shard loading path after all-seven T8: no missing-L1 permanent fine coverage and no Whole cell Debug choice | tileContent.ts, tileResidency.ts, debugOptions.ts, strings.ts | sp-x2 | eight files | Coarse parents cover the world; bounded3×3/5×5 fine rings, overlay and coarse/far landmarks remain. Engine/game types, scoped registration-fixture types and touched typed lint pass. Frozen LEGACY untouched. The one final Simulator/soak reading remains at the plan end (G780), not a pre-land gate or new PASS claim.  Plan-end: observed ring sizes stay at most9/25; deletion source remains landed. Missing Nalati/Nine and T7/S3.7 observations prevent final qualification. No Simulator or soak clearance; G606 paths untouched.  Authorized a423 recovery observes Nine at9/11 render keys (within9/25 limits); Nalati and T7/S3.7 stay unqualified. Whole-path deletion source remains landed; no new delete or G606 change.  Final Nalati325 observes bounded6/15 render keys. T7/S3.7 remains the recorded a423 staging miss; no further deletion, grid retry or Simulator reading. | T8 |
+| T10 — in flight (source complete; official Simulator reading last, G777) | Delete whole-shard entered loading and Whole cell Debug choice after all-seven T8 | tileContent.ts, tileResidency.ts, debugOptions.ts, engine/strings.ts | sp-x2 | Source deletions89f7d3598a,9e6e110d3e,45086a7db8,404b717e02; final source audit2026-10-27 | All-seven T8 producer/runtime ownership confirmed by coordinator. No permanent distant-L0 coverage or radius8 choice remains. Entered render rings stay3x3/5x5, colliders at most3x3, occupied fine rows require nonempty coarse parents. Preserve coarse/far landmarks, shared library/state and G606 frozen LEGACY. Current engine/game tsc-b and four-file typed lint pass. No new preview, product, tests or Simulator; final reading stays last, and recorded T7/S3.7 misses remain open. | T8 |
 | T11 (stays open, G775; G761 had closed it because Pine and Nalati draw far content whole) | **done (sp-o1, plan-end reading on `db62fede6c`, 2026-10-27):** code `325c4e38db` + `8bfa934fe4` (sp-o5): Pine's crag cliff, boulder and scree places tile with a coarse copy drawn beyond the ring up to its edge; the crag skin and the waterfall and streams draw whole, so they never leave. Reading (Pine standalone, Chromium iPhone 16 Pro phone tier, Developer on, facing the north ridge, 3 × 3 and 5 × 5): the waterfall, its spray and the crag skin draw at every pose; the coarse cliffs draw every on-screen copy the ring leaves out (62 of 81 in view from spawn, the rest off the frustum); full + coarse copies are equal across rings (z 0: cliffs 62 = 62, boulders 5 = 5; z 40: 62 = 62, boulders 0 + 32 = 22 + 10) and the 3 × 3 / 5 × 5 views show the same spires and lookout (only the trees take their far stand-in). Crag boulders draw coarse past the 3 × 3 ring (z 80: 22 tiled + 33 coarse), scree up to its own far; past the rows' authored phone `far` (boulders 170 m, scree 110 m, cliffs 900 m) they cull as the whole build did, which is not ring eviction. Mossy boulders are tile props, not landmarks, and leave with the ring. Draws / triangles 3 × 3 vs 5 × 5: spawn 208 / 1.02 M vs 241 / 1.11 M; z 40 214 / 1.05 M vs 309 / 1.21 M; z 80 252 / 1.01 M vs 366 / 1.11 M. One gap: the coarse cells test the frustum and the tiled cliff rows do not (`frustum: false`), so 11 off-screen cliff copies at z 80 cast no shadow at 3 × 3. The walk on to z 110 crashed both rings (T6.2's lease × mip retirement, `boar-albedo … lost its allocation after mip retirement`), fixed in `7ebe3b9fac` (sp-o3, D121): on `4715cf3491` the walk (0,-235) → (0,140) passes at 3 × 3 and 5 × 5 with 0 errors. Far landmarks survive the ring: authored landmarks beyond the N×N ring (Pine crag spires, waterfall) draw a coarse stand-in from their LOD / impostor in the coarse ring, evicted only at its edge (found by sp-o1 at 5 × 5, 10-23) | tile residency, landmark LODs | Opus sp-o1 | 0.5–1 d | Pine spawn view at 5 × 5 shows the spires and waterfall | T2 |
 
 ### RM8.1 quantized authored tiles (2026-10-26, sp-x2)
@@ -808,7 +808,7 @@ A neighbour shard is only scene-graph level of detail (far proxy → L1 → L0 t
   - B: Pine first.
 - **D-S3 · One ground path.**
   - **A, recommended:** the whole-shard `Terrain.build` goes for every tiled shard, so the engine has one ground path.
-  - B: keep it as the Debug "whole shard" option until T10.
+  - B (historical alternative) is superseded by T10: only3x3/5x5 remain; actual tiled pages skip full-ground drawing (`9e6e110d3e`).
 
 </details>
 
@@ -934,8 +934,9 @@ full original texture footprints require a graphical producer change to fit;
 lossless transport alone cannot solve them. Do not relabel the same assets as
 library/global cost or fabricate empty occupied parents. Existing exact debt,
 wire/resident/draw caps, source geometry and texture pixels stay unchanged.
-Remaining T10 source deletion waits for the actual all-seven T8 ownership
-migrations; no new preview, reading, product build or render gain is claimed.
+Historical T10 boundary: this cost audit preceded the all-seven ownership
+migrations. They are now confirmed; the source deletion audit below closes
+that wait. No new preview, product build or render gain is claimed.
 
 | Slice | State | Current source qualification |
 |---|---|---|
@@ -1008,8 +1009,9 @@ No sp-x2 rebuild/preview is started for this already-checked source. The one
 plan-end reading remains outstanding. The current T10 source audit confirms
 whole-cell ring selection and permanent missing-L1 fine coverage are already
 removed by `45086a7db8`, `89f7d3598a` and `404b717e02`. Sky fine-library migration is now landed in `8bf41b2b33`; consume that
-producer boundary. Nine migration remains unlanded at this audit; preserve
-its still-used reader/Explorer paths until its defining producer lands. G606 frozen sources untouched.
+producer boundary. Nine migration was unlanded at this historical audit; its T3 ownership is
+now confirmed through `c1a7396a78`. Preserve still-used reader/Explorer paths
+and G606 frozen sources; they are not whole-shard loading fallbacks.
 
 ### One plan-end Chromium reader (G780/G777, sp-x2)
 
@@ -1330,3 +1332,38 @@ Raw:`tmp/sp-x2/tile-plan-recovery/nalati-325/reading.json`; offline
 closed naturally and distinct4405 borrow released, preserving peer owners.
 No owned build, browser, Sim or observer remains. Source repairs belong to
 their defining owner SHAs; the earlier reports are not silently regraded.
+
+
+### T10 final source deletion audit (2026-10-27, sp-x2)
+
+Coordinator confirms T8 on all seven: Pine88fd3ebe2b/0dac41902a, Sky,
+Nine through T3 c1a7396a78, open plots1361eb295e, Nalati, Sunscar and
+Template. The requested source deletions already landed; no second deletion
+of coarse/far or native landmark content is needed:
+
+- `89f7d3598a` removes entered radius8; ring() accepts only0/1/2.
+- `9e6e110d3e` skips temporary whole splat-ground allocation for tile-drawn pages.
+- `45086a7db8` removes permanent missing-L1 distant fine requirements and the
+Whole cell Debug option/label; saved unknown/old choices resolve to5x5.
+- `404b717e02` rejects empty occupied coarse declarations before instance/root/
+lease mutation. The retained original fixture checks missing and empty
+parents with no ownership, pin or allocator mutation.
+
+Current source audit: tileContent.enter uses bounded spawn/entry rings and
+coarse L1 coverage; standaloneClientTiles enters the same scheduler, without
+an all-L0 constructor branch. tileResidency and debugOptions expose only
+3x3/5x5; engine/strings holds only those labels. The game strings facade
+contains no Whole choice. Restoring an admitted neighbour view on departure
+and retaining its far proxy while coarse coverage fills are required
+coverage/lifetime paths, not whole-shard fine loading. Shared libraries,
+coarse/far landmarks and frozen LEGACY remain intact.
+
+Remove only stale source comments about whole-near or uncovered distant-L0
+fallbacks, and clear obsolete plan waits. Runtime behavior is unchanged by
+this audit commit; the defining runtime source SHAs are listed above.
+Current engine/game tsc-b and typed lint on tileContent, tileResidency,
+debugOptions and engine/strings pass. Required ratchet is attempted before
+landing; no allowance edits. No tests, generation, product build, preview,
+soak, memory claim or Simulator reading. **Source complete, qualification
+in flight:** G777 official Simulator reading stays last. Existing T7/S3.7
+D110 and T4/T5 misses are not erased or turned into a T10 acceptance PASS.
