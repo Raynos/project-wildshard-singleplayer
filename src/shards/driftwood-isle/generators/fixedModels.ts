@@ -1,5 +1,5 @@
-import { emitNamedBlobs, nameBlob, nameMeshoptBlob, type EmittedBlobs, type NamedBlob } from '@wildshard/sdk/blobs';
-import { compactPhoneGlb } from '@wildshard/sdk/bake/compactGlb';
+import { emitNamedBlobs, nameMeshoptBlob, type EmittedBlobs, type NamedBlob } from '@wildshard/sdk/blobs';
+import { nameCompactBlob } from '@wildshard/sdk/bake/compactGlb';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { FIXED_MODEL_NAMES } from './modelFiles';
@@ -21,8 +21,7 @@ export async function driftwoodFixedModelOutput(ctx: Pick<ProjectGenerationConte
   for (const [url, name] of Object.entries(FIXED_MODEL_NAMES)) {
     const filename = url.slice(url.lastIndexOf('/') + 1), bytes = files.get(`baked/fixed-models/${filename}`);
     if (bytes === undefined || bytes.byteLength === 0) throw new Error(`Missing owned fixed model: ${name}`);
-    const compact = exact(name) ? bytes : await compactPhoneGlb(bytes);
-    blobs.push(compact === bytes ? await nameMeshoptBlob(name, bytes) : nameBlob(name, 'glb', compact));
+    blobs.push(exact(name) ? await nameMeshoptBlob(name, bytes) : await nameCompactBlob(name, bytes));
   }
   const output = emitNamedBlobs(blobs), assets = new Map(output.assets);
   // Coarse tile rows belong to the root declaration; their bytes have already

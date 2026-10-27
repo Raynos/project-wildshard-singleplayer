@@ -1,5 +1,6 @@
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { emitNamedBlobs, nameBlob, nameMeshoptBlob, type EmittedBlobs } from '@wildshard/sdk/blobs';
+import { nameCompactBlob } from '@wildshard/sdk/bake/compactGlb';
 import { DRIFTWOOD_FIXED_INPUTS, driftwoodFixedBytes, driftwoodFixedFiles } from './fixedProgram';
 import { driftwoodCargoBank, type DriftwoodCargoBank } from './cargoBank';
 import { driftwoodFixedLayouts, type DriftwoodFixedLayouts } from './fixedLayouts';
@@ -89,5 +90,7 @@ export async function driftwoodSceneBankOutput(banks: DriftwoodSceneBanks): Prom
     // the entry road decks' raw specimen geometry (the specimen catalogue job wrote it under data/)
     ...entryDeckFiles().map(file => nameBlob(file.name, 'bin', file.bytes, { decoded: file.bytes.length, gpu: file.bytes.length })),
     // the synchronous banks' shipped blobs (the reef's), named as assets.ts names its sources: GLBs meshopt, the rest plain
-    ...await Promise.all(DRIFTWOOD_BANK_BLOBS.map(row => row.kind === 'glb' ? nameMeshoptBlob(row.name, row.bytes) : Promise.resolve(nameBlob(row.name, row.kind, row.bytes))))]);
+    // (I3: the faceted ground and its slab in phone geometry, read back by the owned-geometry intake)
+    ...await Promise.all(DRIFTWOOD_BANK_BLOBS.map(row => row.kind !== 'glb' ? Promise.resolve(nameBlob(row.name, row.kind, row.bytes))
+      : row.name.startsWith('world/ground/') ? nameCompactBlob(row.name, row.bytes) : nameMeshoptBlob(row.name, row.bytes)))]);
 }

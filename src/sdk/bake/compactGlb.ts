@@ -4,6 +4,7 @@ import { WebIO, type Accessor, type Document } from '@gltf-transform/core';
 import { ALL_EXTENSIONS, KHRMeshQuantization, type InstancedMesh } from '@gltf-transform/extensions';
 import { MeshoptDecoder } from 'meshoptimizer';
 import { compressGlb } from './glbCompression';
+import { nameBlob, nameMeshoptBlob, type NamedBlob } from '../blobs';
 
 /** The brotli size a phone pays for a file over the wire: the deploy's own encoding, quality 3 (Vercel's responses match it
  *  byte for byte; scripts/phone-wire.mjs measures the same). */
@@ -95,6 +96,13 @@ export async function compactPhoneGlb(input: Uint8Array): Promise<Uint8Array> {
   const plain = await io.writeBinary(doc), packed = compressGlb(plain);
   const sizes = [input, plain, packed].map(bytes => ({ bytes, size: brotliBytes(bytes) }));
   return sizes.reduce((best, row) => row.size < best.size ? row : best).bytes;
+}
+
+/** Name a built GLB the way a phone-geometry producer ships it (I3): `compactPhoneGlb`'s pick when it compacts the file,
+ *  else the lossless meshopt pick of a `meshopt: true` source (`nameMeshoptBlob`). */
+export async function nameCompactBlob(name: string, bytes: Uint8Array): Promise<NamedBlob> {
+  const compact = await compactPhoneGlb(bytes);
+  return compact === bytes ? nameMeshoptBlob(name, bytes) : nameBlob(name, 'glb', compact);
 }
 
 /** Fold a grid (`centre`, uniform `half`) into each instance: T' = T + R(S * centre), S' = S * half, so that
