@@ -71,6 +71,8 @@ export interface LiveGridPorts {
   /** Metadata-only prefetch eligibility. Unsupported far proxies do not consume cold request slots; explicit transfers
    *  still run normal admission and readiness. Absent: every cell is a candidate, as in standalone Node drivers. */
   prefetchable?: (cell: GridCell) => boolean;
+  /** Product-only prefetch waits while this is false (T10: the page's spawn settle); required entry never waits. Absent: always. */
+  backgroundReady?: () => boolean;
   save: (instance: string, snapshot: SimSnapshot) => boolean;
   /** The same save in stages (each `yield` may wait a frame) for {@link LiveGridHost.checkpointSteps}; absent saves in one stage. */
   saveSteps?: (instance: string, snapshot: SimSnapshot) => Generator<undefined, boolean>;
@@ -532,7 +534,7 @@ export class LiveGridHost {
     this.retireInactiveRegions();
     for (const cell of nearby) {
       const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell, feet);
-      if (this.assembly.approaching(distance, estimate.distance) && !this.issues.has(cell.instance)) void background(cell.instance, this.prefetch([cell.instance]), () => !this.disposed);
+      if (this.assembly.approaching(distance, estimate.distance) && !this.issues.has(cell.instance) && this.ports.backgroundReady?.() !== false) void background(cell.instance, this.prefetch([cell.instance]), () => !this.disposed);
     }
     // Approach preparation owns render tiles only, never a regional world or gameplay hooks.
     const moving = !travelled ? undefined : candidates.find(cell => headsToEntry(cell, feet, previous)

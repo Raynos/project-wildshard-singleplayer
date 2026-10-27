@@ -118,6 +118,11 @@ import type { LiveGridSession } from '../grid/liveSession';
 import { pickInteractable } from '@wildshard/engine/world/interact/Interactables';
 import { terrainDatum } from '@wildshard/engine/world/terrainHeight';
 
+/** T10: the grid page's background waits for this much drawn play after control at spawn (ms)… */
+const GRID_SPAWN_SETTLE_MS = 3000;
+/** …or for the player to move this far from where control began (m): a walk or a ride opens it at once */
+const GRID_SPAWN_SETTLE_METRES = 2;
+
 async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promise<{ grid: DeclarationGridSession | null; gridLive: LiveGridSession | null; leakPhysics: Physics; perf: Perf; audio: Audio; music: Music; playerHealth: PlayerHealth; exploring: () => boolean; hands: Hands; windupWarn: WindupWarn<Animal> | null; resuming: boolean; continuingGridEntry: boolean; arrival: TitleArrival | null; menuFirst: boolean; enter: () => void; getPlayground: () => Playground | null; minimap: Minimap; startExplore: (() => void) | undefined; animals: AnimalManager; getArena: () => TrainingArena | null; prepareArena: () => Promise<TrainingArena>; swimArms: SwimArms | undefined; crossbow: Weapon; rifle: Weapon | null; longbow: Weapon | null; weapons: EquipmentService; enteredEquipment: EnteredEquipment | undefined; lockSys: LockOnSystem; touchControls: TouchControls; hud: HUD; world: World & { chunk: ShardManifest; }; game: Game; sky: SkyRig; player: Player; forest: Forest; params: URLSearchParams; chunk: ShardManifest; registry: WorldRegistry; fragileBoot: boolean; failGpuBoot: (reason: string, stack?: string) => void; onBootContextLost: (event: Event) => void; nolock: boolean; viewer: () => THREE.Vector3; edgeDressing: { boundary: Boundary; water: Water | null; streams: null; horizon: Horizon; }; boundary: Boundary; water: Water | null; horizon: Horizon; interactables: Interactable[]; props: null; prepareAudio: () => { audio: Audio; music: Music; }; disableBootGpuGuard: () => void; level: LevelContext | undefined; loading: Loading; audioProfile: LevelAudioProfile | undefined; files: Readonly<Record<"sky" | "baked" | "terrain" | "trees" | "physics" | "cabins" | "props" | "art" | "music" | "sfx", readonly string[]>>; bootSteps: Record<string, number>; plan: Plan<"audio" | "sky" | "terrain" | "physics" | "cabins" | "props" | "renderer" | "cards" | "forest" | "edge" | "grass" | "animals" | "weapon" | "assembly" | "menu" | "shaders" | "firstFrame">; step: StepRunner; menuLoad: Preload<void> | null; audioLoad: Preload<AudioBanks> | null; deferredAudio: (Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks>; }) | null; fieldModels: Promise<(ctx: FieldModelsContext) => void> | null; manifest: ShardManifest; slug: string; stage: LoadStage; boot: StagedBoot; session: SessionState; kit: KitPorts; product: ShardProduct; }> {
   const { manifest, boot, session, kit, files, step, menuLoad, world, game, sky, player, params, chunk, registry, nolock, viewer, boundary, horizon, prepareAudio, animals, getArena, prepareArena, swimArms, crossbow, rifle, longbow, weapons, lockSys, touchControls, hud } = ctx;
   const leakPhysics = world.physics; // The borrowed page world outlives temporary active frames.
@@ -568,8 +573,14 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
     // seams/road/far and near views only after the first controllable frame.
     // Latch once: pausing later must not retire already admitted outer views.
     whenControl(game.levelScope, game.levelScope, () => { gridControlReady = true; });
-    game.onLate(() => {
-      if (gridControlReady && hud.entered && !hud.paused && !revealing() && !gridHomeSim.pending) gridBackgroundReady = true;
+    // T10 (G777): and only once the spawn has drawn ~3 s of play after control, or the player has moved 2 m from where
+    // control began (a walk or a ride opens it at once, so a crossing never waits on it): the neighbour products, outer
+    // strips and views were single 14-36 ms tasks inside the spawn view's first seconds (Simulator spawn p95 55-66 ms)
+    let settledMs = 0, controlAt: { readonly x: number; readonly z: number } | null = null;
+    game.onLate((dt) => {
+      if (gridBackgroundReady || !(gridControlReady && hud.entered && !hud.paused && !revealing() && !gridHomeSim.pending)) return;
+      controlAt ??= { x: player.position.x, z: player.position.z }; settledMs += dt * 1000;
+      if (settledMs >= GRID_SPAWN_SETTLE_MS || Math.hypot(player.position.x - controlAt.x, player.position.z - controlAt.z) >= GRID_SPAWN_SETTLE_METRES) gridBackgroundReady = true;
     }, 'game.grid.background');
     const gridHud = installGridHud({ scope: game.levelScope, hudRoot: hud.root, camera: game.camera, cells: gridCells,
       title: (cell) => { const shard = findShard(cell.slug); return { name: shard?.name ?? cell.slug, subtitle: shard?.biome ?? '' }; },

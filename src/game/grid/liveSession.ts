@@ -138,6 +138,8 @@ export interface LiveGridSessionPorts {
   /** Told once the lighting a crossing changes is in place (an entered runtime's activation settled, or the road again
    *  after a leave), so resident neighbour views can link the programs that lighting needs before they first draw. */
   readonly lightingSettled?: () => void;
+  /** Product-only neighbour prefetch waits while this is false (the page's spawn settle, T10). */
+  readonly backgroundReady?: () => boolean;
   readonly residency: HomeResidencyClaim;
   readonly assembly: GridAssembly; readonly home: GridCell; readonly physics: Physics; readonly scope: Scope;
   readonly walls: ReadinessWalls; readonly strips: readonly CollisionStrip[]; readonly allocator: ResidencyAllocator;
@@ -284,6 +286,7 @@ export class LiveGridSession {
       prioritize: (cell) => prioritizeGridProduct(cell.slug, { allocator: ports.allocator, scope }),
       pause: () => yieldGridAdmission(scope),
       prefetchable: (cell) => { const manifest = findShard(cell.slug); return (manifest?.shardfile ?? manifest?.gridShardfile) !== undefined; },
+      ...(ports.backgroundReady === undefined ? {} : { backgroundReady: ports.backgroundReady }),
       save: (instance, snapshot) => this.regionSave(instance).checkpoint(snapshot),
       saveSteps: (instance, snapshot) => this.regionSave(instance).checkpointSteps(snapshot),
       saveBytesSteps: (instance, snapshot) => this.regionSave(instance).checkpointSteps(snapshot),
