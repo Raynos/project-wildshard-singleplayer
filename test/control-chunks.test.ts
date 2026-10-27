@@ -57,7 +57,7 @@ test('calibration initial code stays outside the actual public HTML static closu
     writeFileSync(resolve(root, 'index.html'), '<script type="module" src="/src/entry.ts"></script>');
     writeFileSync(resolve(root, 'calibration/index.html'), '<script type="module" src="/calibration/entry.ts"></script>');
     writeFileSync(resolve(root, 'calibration/entry.ts'), 'import {runtime} from "../src/engine/app/runtime"; globalThis.calibration = runtime;');
-    writeFileSync(resolve(root, 'src/engine/app/runtime.ts'), 'export const runtime = 42;');
+    writeFileSync(resolve(root, 'src/engine/app/runtime.ts'), 'globalThis.runtimeStarted = performance.now(); export const runtime = globalThis.runtimeStarted;');
     writeFileSync(resolve(root, 'src/core.ts'), 'import {runtime} from "./engine/app/runtime"; export const control = runtime;');
     const title = ['engine/ui/StartTitle', 'game/mainMenu', 'game/grid/pageEntry', 'game/travel/travel'];
     for (const file of title) writeFileSync(resolve(root, `src/${file}.ts`), 'export const label = "title";');
