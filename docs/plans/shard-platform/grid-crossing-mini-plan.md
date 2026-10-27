@@ -431,3 +431,66 @@ failed crossing times. X2 attributed the83dff/2f6 batching family to X9;
 canonical damage G782-Sky-boot-root and CI have both logs. No guard waiver,
 private emitted-root repair, repeated route or blind preview retry is queued.
 One affected DW pair remains pending the defining boot-root repair.
+
+## Nalati warm-return attribution (sp-x6, 2026-10-27)
+
+Coordinator requested attribution of the remaining ~21s warm return after
+I11. One original cold/departure/warm pair attaches to the existing shared
+65359f578afa875473f22a423d3044119e2a7f88 preview, with the maintained
+G782 road driver, iPhone16Pro/phone/4x/DPR2/muted. CPU profiler is ON;
+GL observer is OFF. This is a diagnostic, not a new acceptance or an
+isolated comparison against later source. No application source changes.
+
+Both visits complete/errors0, skipped0/context intact. Request-to-commit
+is21.5015s cold/15.6999s warm, still over8/5s; drive p95/max50/233.3ms
+cold and50/166.7ms warm. The driver correctly exits1 on the retained
+frame-stall checks; the timing also misses8/5s. There are **zero resource requests inside either
+timed entry**, and no product-admission measure starts in the warm window.
+The old cold admission measure remains in performance history; it must not
+be charged to warm entry. Cold prior-world count0, warm1: this is a real
+successful cold visit and departure in the same document.
+
+| Repeated preparation | Cold | Warm |
+|---|---:|---:|
+| Regional foundation |1.6494s|1.0799s|
+| Dressing construction |2.9345s|2.4520s|
+| Within dressing: geometry / layers |0.9303/0.7150s|0.8410/0.7426s|
+| Assembly / props (nested) |1.1224/1.0872s|0.6061/0.5996s|
+| Shader/composer |5.5683s|3.1001s|
+| Compile jobs / exact-cache hits |489/4|489/208|
+| Node builds |44/548.4ms|42/435.1ms|
+| Uploads / new buffer KiB |100/40539|100/40539|
+| Parked viewmodels |24/0.5311s|24/0.5222s|
+| Parked world draws |218/4.1330s|218/3.8669s|
+| Offscreen draws |12/0.4013s|12/0.3998s|
+
+These nested elapsed spans are not additive CPU measurements. The warm
+sample charges5.362s inclusive to the ordinary Game loop, including3.032s
+to native Three render and2.236s to the depth/composer path;2.887s is idle.
+Those are nested sampled stacks, not GPU time. Repeated inflate is245.5ms
+inclusive sampled CPU; packed geometry copy/build186.4ms; scatter pose
+decode/validation168.2ms. These pure input passes recur despite cached
+bytes, but cannot alone explain a15.7s return. No whole-window cache or
+network theory accounts for this profile.
+
+Source explains the repeat: T7 retires whole regional worlds on road leave
+(liveSession.ts installCrossing/live.ts retire), and preparationAdmission
+intentionally caches metadata only. The next create builds a fresh
+regional scope/look/physics shell and SceneDressing. Its BufferGeometry,
+materials and root identities differ, so GPU readiness replays the fresh
+bindings:100 uploads/~39.59MiB,218 world draws,24 viewmodels and12 offscreen
+draws again. Product admission and native program retention are separate
+caches;208 exact compile hits do not mean the whole world stayed resident.
+
+This keeps **T2/T3 and G782 open**. The counted next targets are immutable
+decoded dressing/templates under T3's existing charged/evictable ownership,
+and T2's released sampler/reference node keys and fresh binding work.
+Retain the T7 retirement policy, per-shard admission, all real readiness
+draws and WebKit upload cap; skipping the final GPU fence is not a fix.
+The data does not justify raising that cap or keeping an uncharged world.
+Later0e90 resident-template work applies to WorldScenes; this profile's
+Nalati uses SceneDressing, so no gain from that later source is claimed.
+
+The original profile/request files were under tmp/sp-x6-nalati-warm while
+analysing; scalar findings live here and in the commit, not a new receipt
+document. Browser and own shared-preview borrower closed after analysis.
