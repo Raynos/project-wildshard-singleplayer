@@ -14,9 +14,14 @@ import { pineGeographyRows } from './geographyRows';
 export async function generate(ctx: ProjectGenerationContext): Promise<GeneratedProject> {
   const ground = await pineGroundTiles(ctx);
   for (const bytes of ground.assets) ctx.asset(bytes);
-  const shard = parseShardfile({ ...pineProduct(await pineJournal(ctx), ground.rows), movers: await canoeMovers(ctx), modes: PINE_MODES });
+  const output = await prepareOutput(ctx), product = pineProduct(await pineJournal(ctx), ground.rows);
+  // D71: the SDK charges each named critical file (the tree rest pool, the guests) to the sim budget as it admits the
+  // output; the server holds the same bytes, so the declared server memory covers them too
+  const critical = output.namedFiles.reduce((n, file) => file.critical ? n + file.decoded + file.gpu : n, 0);
+  const shard = parseShardfile({ ...product, serverBudget: { ...product.serverBudget, memory: product.serverBudget.memory + critical },
+    movers: await canoeMovers(ctx), modes: PINE_MODES });
   // G33b: the declared ground, forest-query and pond-clip rows the manifest binds as program discovery
   const geography = pineGeographyRows();
-  return { shard, output: await prepareOutput(ctx),
+  return { shard, output,
     discovery: { 'ground.rows': geography.ground, 'forestQueries.rows': geography.forestQueries, 'pondClip.rows': geography.pondClip } };
 }
