@@ -68,12 +68,28 @@ export function worldSceneWeldFile(row: InferOutput<typeof WorldSceneWeldSourceS
 /** Admit bounded specimen blobs separately from the small catalogue, before geometry intake. */
 export async function admitWorldSceneModelGraphs(product: Pick<ShardProduct, 'hasFile' | 'file'>, catalogue: WorldSceneModels): Promise<ReadonlyMap<string, WorldSceneWeld>> {
   const result = new Map<string, WorldSceneWeld>(), decoder = new TextDecoder('utf-8', { fatal: true });
-  for (const leaf of catalogue.models.flatMap(model => model.choices.flatMap(worldSceneModelGraphs))) {
-    if ('file' in leaf && result.has(leaf.file)) continue;
-    if ('file' in leaf && !product.hasFile(leaf.file)) throw new Error('Missing frozen specimen blob');
-    const row = 'file' in leaf ? parseWorldSceneWeld(JSON.parse(decoder.decode(await product.file(leaf.file)))) : leaf;
-    if (row.culls.length > 0 || row.placements.length > 0 || row.sets.length > 0 || row.resources.length > 0) throw new Error('Frozen specimens cannot install world services');
-    if ('file' in leaf) result.set(leaf.file, row);
+  const seen = new Set<string>();
+  const leaves = catalogue.models.flatMap(model => model.choices.flatMap(worldSceneModelGraphs)).filter(leaf => {
+    if (!('file' in leaf)) return true;
+    if (seen.has(leaf.file)) return false;
+    seen.add(leaf.file); return true;
+  });
+  // Descriptors are independently verified product files. Read a bounded group,
+  // then admit in authored order; even a refused first graph drains its group.
+  for (let offset = 0; offset < leaves.length; offset += 4) {
+    const batch = leaves.slice(offset, offset + 4);
+    const ready = await Promise.allSettled(batch.map(async leaf => {
+      if (!('file' in leaf)) return { row: leaf };
+      if (!product.hasFile(leaf.file)) throw new Error('Missing frozen specimen blob');
+      return { bytes: await product.file(leaf.file) };
+    }));
+    for (const [index, leaf] of batch.entries()) {
+      const loaded = ready[index]; if (loaded === undefined) throw new Error('Missing frozen specimen read');
+      if (loaded.status === 'rejected') throw loaded.reason;
+      const row = 'bytes' in loaded.value ? parseWorldSceneWeld(JSON.parse(decoder.decode(loaded.value.bytes))) : loaded.value.row;
+      if (row.culls.length > 0 || row.placements.length > 0 || row.sets.length > 0 || row.resources.length > 0) throw new Error('Frozen specimens cannot install world services');
+      if ('file' in leaf) result.set(leaf.file, row);
+    }
   }
   return result;
 }

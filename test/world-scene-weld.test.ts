@@ -314,3 +314,47 @@ test('retirement at a frozen construction slice removes partial handles and owne
     expect(f.handles.object('berth')).toBe(f.berth);
   } finally { release(); clock.mockRestore(); f.owner.dispose(); f.geometry.dispose(); f.material.dispose(); }
 });
+
+
+function namedGraphCatalogue(names: readonly string[]) {
+  return parseWorldSceneModels({ product: 'fixture-quay', models: [{ key: 'crate', id: 'fixture-quay/crate', name: 'Crate', file: 'crate.json',
+    category: 'props', pipeline: 'cc0', defaults: {}, assembly: 'scene', choices: names.map((file, index) => ({ id: String(index), params: {},
+      size: [1, 1, 1], colliders: [], draws: [], scene: { phone: { file }, desktop: { file } } })) }] });
+}
+
+test('named graph reads overlap in bounded groups and publish unique files in authored order', async () => {
+  const names = ['a.json', 'b.json', 'c.json', 'd.json', 'e.json'];
+  const waiting = new Map<string, (bytes: Uint8Array) => void>(), reads: string[] = [];
+  const pending = admitWorldSceneModelGraphs({ hasFile: () => true, file: name => {
+    reads.push(name); return new Promise<Uint8Array>(resolve => { waiting.set(name, resolve); });
+  } }, namedGraphCatalogue(names));
+  const release = (name: string): void => {
+    const resolve = waiting.get(name); if (resolve === undefined) throw new Error('Missing graph read');
+    resolve(new TextEncoder().encode(JSON.stringify({ id: name, root: 'specimen', nodes: [] })));
+  };
+  expect(reads).toEqual(names.slice(0, 4));
+  for (const name of names.slice(0, 4).reverse()) release(name);
+  await vi.waitFor(() => { expect(reads).toEqual(names); });
+  release('e.json');
+  expect([...(await pending).keys()]).toEqual(names);
+});
+
+test('a refused named graph drains its started reads before the next group can start', async () => {
+  const names = ['a.json', 'b.json', 'c.json', 'd.json', 'e.json'];
+  const waiting = new Map<string, (bytes: Uint8Array) => void>(), reads: string[] = [];
+  const pending = admitWorldSceneModelGraphs({ hasFile: () => true, file: name => {
+    reads.push(name); return new Promise<Uint8Array>(resolve => { waiting.set(name, resolve); });
+  } }, namedGraphCatalogue(names));
+  const settled = vi.fn(); void pending.then(settled, settled);
+  const release = (name: string, services: boolean): void => {
+    const resolve = waiting.get(name); if (resolve === undefined) throw new Error('Missing graph read');
+    resolve(new TextEncoder().encode(JSON.stringify({ id: name, root: 'specimen', nodes: [],
+      ...(services ? { resources: [{ id: 'hidden-service', kind: 'seeds', words: [0, 0, 0, 0] }] } : {}) })));
+  };
+  expect(reads).toEqual(names.slice(0, 4)); release('a.json', true);
+  await new Promise<void>(resolve => { setTimeout(resolve, 0); });
+  expect(settled).not.toHaveBeenCalled();
+  for (const name of names.slice(1, 4)) release(name, false);
+  await expect(pending).rejects.toThrow('cannot install world services');
+  expect(reads).toEqual(names.slice(0, 4));
+});
