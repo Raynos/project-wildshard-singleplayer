@@ -2,6 +2,9 @@ import { BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMateri
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { bakeProps, type BakedProps } from '@wildshard/sdk/bake/props';
 import { coarseCopy } from '@wildshard/sdk/bake/coarseCopy';
+import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
+import { assetCost } from '@wildshard/sdk/assets';
+import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { driftwoodFixedSource } from './fixedSource';
 
 /** The voxel AO the fixed world's sources read (generators/fixedSource.ts), the coarse tiles' one input file. */
@@ -21,8 +24,27 @@ export function driftwoodCoarseTiles(aoBytes: Uint8Array): Pick<BakedProps, 'til
   try {
     const baked = bakeProps({ static: new Group(), coarse: coarse.group, far, family: 'pbr' });
     const tiles = baked.tiles.filter(tile => tile.lod === 1 && tile.files.length > 0), keep = new Set(tiles.flatMap(tile => tile.files));
-    return { tiles, files: baked.files.filter(file => keep.has(file.hash)), assets: new Map([...baked.assets].filter(([hash]) => keep.has(hash))),
-      models: baked.props.tiles.filter(model => model.lod === 1 && keep.has(model.file)) };
+    const remapped = new Map<string, BakedProps['files'][number]>(), assets = new Map<string, Uint8Array>();
+    for (const file of baked.files.filter(row => keep.has(row.hash))) {
+      const original = baked.assets.get(file.hash);
+      if (original === undefined) throw new Error('Missing Driftwood coarse tile bytes');
+      const packed = compressGlb(original), bytes = packed.length < original.length ? packed : original;
+      const next = { ...file, hash: hashImmutableBytes(bytes), compressed: bytes.length, ...assetCost('glb', bytes) };
+      remapped.set(file.hash, next); assets.set(next.hash, bytes);
+    }
+    const remap = (hash: string): BakedProps['files'][number] => {
+      const file = remapped.get(hash);
+      if (file === undefined) throw new Error('Missing Driftwood coarse tile reference');
+      return file;
+    };
+    return { tiles: tiles.map(tile => {
+      const files = tile.files.map(remap);
+      const cost = files.reduce((sum, file) => ({ compressed: sum.compressed + file.compressed, decoded: sum.decoded + file.decoded,
+        gpu: sum.gpu + file.gpu, triangles: sum.triangles + file.triangles, draws: sum.draws + file.draws }),
+      { compressed: 0, decoded: 0, gpu: 0, triangles: 0, draws: 0 });
+      return Object.assign(tile, cost, { files: files.map(file => file.hash) });
+    }), files: [...remapped.values()], assets,
+      models: baked.props.tiles.filter(model => model.lod === 1 && keep.has(model.file)).map(model => Object.assign(model, { file: remap(model.file).hash })) };
   } finally { coarse.dispose(); material.dispose(); marker.dispose(); for (const geometry of fixed.geometries.values()) geometry.dispose(); }
 }
 
