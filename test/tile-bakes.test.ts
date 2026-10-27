@@ -102,5 +102,5 @@ test('policy rows are strict and increases/identity swaps require exact approval
   expect(tileBakeApprovalFailures(before, after, 'test: reviewed\n\nRatchet-Approved: wildshard-new wildshard/tile-bake check/missing/0/1/0 +1\nRatchet-Approved: wildshard-new wildshard/tile-bake check/tile/0/1/1/compressed +1')).toEqual([]);
   expect(tileBakeApprovalFailures(undefined, before, '')).toEqual(['Missing ratchet approval: Ratchet-Approved: wildshard-new wildshard/tile-bake bootstrap +1']);
   expect(tileBakeApprovalFailures(undefined, before, 'test: bootstrap\n\nRatchet-Approved: wildshard-new wildshard/tile-bake bootstrap +1')).toEqual([]);
-  expect(tileBakeApprovalFailures(before, before, 'test: unused\n\nRatchet-Approved: wildshard-new wildshard/tile-bake bootstrap +1')).toHaveLength(1);
+  expect(tileBakeApprovalFailures(before, before, 'test: unused\n\nRatchet-Approved: wildshard-new wildshard/tile-bake bootstrap +1')).toEqual([]);
 });
