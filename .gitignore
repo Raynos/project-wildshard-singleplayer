@@ -46,6 +46,15 @@ __pycache__/
 # E357 F9: build-derived tables; KTX2 tables require local basisu and stay committed.
 src/**/*.generated.*
 !src/**/ktx2.generated.ts
+# GS3 (G798): app tables made by `pnpm gen:source` from tracked inputs alone are committed (scripts/source-generators.mjs).
+!src/game/systems/viewmodel/clips.generated.ts
+!src/game/weapons/starter.generated.ts
+!src/game/bag/starter.generated.ts
+!src/game/systems/effects/starter.generated.ts
+!src/game/shard/slugs.generated.ts
+!src/game/shard/slugs.generated.json
+!src/game/boot/audio.generated.ts
+!src/game/shard/portShares.generated.ts
 
 # local caches and raw capture frames (never committed)
 /.cache/
