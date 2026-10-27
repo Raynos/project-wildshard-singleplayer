@@ -1,3 +1,4 @@
+import { originalNalatiPhysics } from '../../fixtures/nalati-physics-original';
 import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
 // oxlint-disable-next-line import/no-nodejs-modules -- The renderer-denying native witness asserts the actual captured world.
 import assert from 'node:assert/strict';
@@ -13,7 +14,7 @@ import { prepareHeadlessRuntime } from '../../fixtures/nalati-headless';
 import { nalatiTamingWitness } from './taming';
 import { canonicalSimDigest, sameBytes } from '../../fake/simState';
 
-const physics:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/data/physics.generated.json','utf8'));
+const physics:unknown=originalNalatiPhysics();
 const nalatiBake=()=>createNativeBakeReader(physics,{label:'Nalati',resolution:256,size:500,parked:false,rig:'segments',provenance:'piece',shapes:[1,2,6,9]},{file:'data/physics-ground.bin',bytes:readFileSync('src/shards/nalati-grasslands/data/physics-ground.bin')},[0,1].map(index=>({file:`data/physics-colliders-${index}.bin`,bytes:readFileSync(`src/shards/nalati-grasslands/data/physics-colliders-${index}.bin`)}))).read();
 
 /** Gaps are gameplay requirements, not exemptions; a boot/replay proof cannot certify the whole shard. */

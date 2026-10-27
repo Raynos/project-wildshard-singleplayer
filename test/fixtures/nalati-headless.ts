@@ -28,7 +28,7 @@ import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import { installTrampleTrail } from '@wildshard/game/systems/looks/trample';
 import { createNativeBakeReader } from '@wildshard/game/population/nativeBake';
 import { installNativeCollision } from '@wildshard/game/population/nativeBake';
-import physicsRows from '../../src/shards/nalati-grasslands/data/physics.generated.json' with { type: 'json' };
+import { originalNalatiPhysics } from './nalati-physics-original';
 import { StrikeRunner } from '@wildshard/engine/ai/strikes';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { ReturnProgram } from '@wildshard/game/population/returnProgram';
@@ -40,6 +40,8 @@ import { nativeEliteBindings } from '@wildshard/engine/ai/eliteRoster';
 import { trustedLevel } from '../../src/game/plugin/simulation';
 import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
 import { need, readJson, prepareReturns } from './headless-plan';
+
+const physicsRows = originalNalatiPhysics();
 export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHeadlessRuntime>[0], decodeNativeTerrain: (bytes:Uint8Array|undefined,row:{resolution:number;size:number;seed:number})=>BakedGrid = decodeTerrainTile): Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>> => {
     const { product, assets } = preparation, shard = product.shardfile;
     const { constants } = await product.json<{

@@ -1,3 +1,4 @@
+import { originalNalatiPhysics } from './fixtures/nalati-physics-original';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare the actual authoring buffers and standard product intake.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
@@ -66,7 +67,7 @@ test('all 2021 authored hulls retain their exact ordered bytes and collider meta
   const second = readFileSync('src/shards/nalati-grasslands/data/physics-colliders-1.bin');
   const blocks = [{file:'data/physics-colliders-0.bin',bytes:first},{file:'data/physics-colliders-1.bin',bytes:second}];
   expect([first.length,second.length]).toEqual([999840,147120]);
-  const source:unknown = JSON.parse(readFileSync('src/shards/nalati-grasslands/data/physics.generated.json','utf8'));
+  const source:unknown = originalNalatiPhysics();
   const groundBytes = readFileSync('src/shards/nalati-grasslands/data/physics-ground.bin');
   const bake = createNativeBakeReader(source,{...options,label:'Nalati',resolution:256,size:500},
     {file:'data/physics-ground.bin',bytes:groundBytes},blocks).read();

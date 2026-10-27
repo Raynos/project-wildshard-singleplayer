@@ -149,7 +149,8 @@
     "./bake/portableBytes": "./bake/portableBytes.ts",
     "./bake/mapRest": "./bake/mapRest.ts",
     "./worldScenes": "./worldScenes.ts",
-    "./finds": "./finds.ts"
+    "./finds": "./finds.ts",
+    "./nativePopulationRows": "./nativePopulationRows.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -697,6 +698,10 @@
       "./finds": {
         "types": "./dist/types/sdk/finds.d.ts",
         "default": "./dist/finds.js"
+      },
+      "./nativePopulationRows": {
+        "types": "./dist/types/sdk/nativePopulationRows.d.ts",
+        "default": "./dist/nativePopulationRows.js"
       }
     }
   }

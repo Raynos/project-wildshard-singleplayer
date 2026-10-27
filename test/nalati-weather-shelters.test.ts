@@ -1,3 +1,4 @@
+import { originalNalatiPhysics } from './fixtures/nalati-physics-original';
 // oxlint-disable-next-line import/no-nodejs-modules -- validate generated shelter observations without inferring the full physics JSON type
 import {readFileSync} from 'node:fs';
 import {array,finite,number,object,parse,pipe,tuple} from 'valibot';
@@ -9,7 +10,7 @@ import {nalatiNativeShelters} from '../src/shards/nalati-grasslands/generators/s
 
 const scalar=pipe(number(),finite());
 const physics=parse(object({yurts:array(tuple([scalar,scalar,scalar]))}),
- JSON.parse(readFileSync('src/shards/nalati-grasslands/data/physics.generated.json','utf8')));
+ originalNalatiPhysics());
 const places=parse(object({rows:array(object({colliders:array(object({x:scalar,z:scalar,hw:scalar,hd:scalar,yTop:scalar,yBottom:scalar}))}))}),
  JSON.parse(readFileSync('test/fixtures/nalati-places-original.json','utf8')));
 

@@ -1,3 +1,4 @@
+import { originalNalatiPhysics } from './fixtures/nalati-physics-original';
 import {originalNativeGround} from './fixtures/native-bake-inline';
 // oxlint-disable-next-line import/no-nodejs-modules -- Assert the captured native authoring bytes, not a browser asset alias.
 import { readFileSync } from 'node:fs';
@@ -43,7 +44,7 @@ test('missing, mismatched, malformed and short floor blocks publish no decoded r
 test('the Nalati raw floor is byte-exact to the original 256-square capture',()=>{
   const raw=readFileSync('src/shards/nalati-grasslands/data/physics-ground.bin');
   expect(raw.length).toBe(262144);expect(hashImmutableBytes(raw)).toBe('13d0dbaf5c19066bad33a1ca49587029430ce44538665094fae7bdd5568660f5');
-  const source:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/data/physics.generated.json','utf8'));
+  const source:unknown=originalNalatiPhysics();
   const ground=v.parse(v.object({ground:nativeGroundRecordSchema(256,true)}),source).ground;
   const decoded=nativeBakeGround(ground,256,500,'Nalati',{file,bytes:raw});
   expect(new Uint8Array(decoded.heights.buffer)).toEqual(Uint8Array.from(raw));

@@ -1,3 +1,4 @@
+import { originalNalatiPhysics } from '../../fixtures/nalati-physics-original';
 // oxlint-disable-next-line import/no-nodejs-modules -- read the original native proof input without inferring its full generated JSON type
 import {readFileSync} from 'node:fs';
 import * as v from 'valibot';
@@ -17,7 +18,7 @@ import { mountedPlayerOf } from '@wildshard/game/riding/native';
 import { canonicalSimDigest } from '../../fake/simState';
 
 const physics=(()=>{
- const rows:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/data/physics.generated.json','utf8'));
+ const rows:unknown=originalNalatiPhysics();
  const finite=v.pipe(v.number(),v.finite());
  v.assert(v.object({spawns:v.array(v.object({id:v.string(),at:v.pipe(v.array(finite),v.length(3))}))}),rows);return rows;
 })();
