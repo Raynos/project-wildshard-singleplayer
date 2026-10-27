@@ -59,7 +59,7 @@ export function nalatiPaintedBindings(input: unknown, files: ReadonlyMap<string,
  * shared or phone-selected reference anywhere in the books keeps its source. */
 export function nalatiLatePaintedNames(input: unknown): readonly string[] {
   const candidates = new Set<string>(), selected = new Set<string>();
-  const location = (value: unknown): string | undefined => {
+  const paintedFile = (value: unknown): string | undefined => {
     if (value === null || typeof value !== 'object' || !('file' in value)) return undefined;
     return typeof value.file === 'string' && value.file.startsWith('models/painted/') ? value.file : undefined;
   };
@@ -69,7 +69,7 @@ export function nalatiLatePaintedNames(input: unknown): readonly string[] {
     if (value === null || typeof value !== 'object') return;
     const skipped = new Set<string>();
     for (const [normal, phone] of [['url', 'phoneUrl'], ['atlas', 'phoneAtlas']] as const) {
-      const full = location(Reflect.get(value, normal)), small = location(Reflect.get(value, phone));
+      const full = paintedFile(Reflect.get(value, normal)), small = paintedFile(Reflect.get(value, phone));
       if (full !== undefined && small !== undefined) { candidates.add(full); skipped.add(normal); }
     }
     for (const [key, child] of Object.entries(value)) if (!skipped.has(key)) visit(child);
