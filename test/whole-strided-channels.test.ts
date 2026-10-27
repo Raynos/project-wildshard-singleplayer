@@ -108,3 +108,28 @@ test.each(['storage', 'normalized', 'width'] as const)('invalid grid %s still re
     expect(facts(node.geometry)).toEqual(before);
   } finally { disposed.mockRestore(); node.geometry.dispose(); }
 });
+
+
+test.each(['borrow', 'take'] as const)('signed grid extremes retain the original Float32 write boundary (%s)', ownership => {
+  const samples = [[-32768, -1, 32767], [12, 0, -23], [-237, 32767, 100], [32767, -32768, 5]] as const;
+  const ordinals = [[0, 1, 2], [1, 3, 2]], origin = [0.1000000000003, -1 / 3, 4.25000000000001] as const;
+  const step = 0.00031250000000000006, nodes = [partition([0, 1, 2], 0, true), partition([1, 3, 2], 1, true)];
+  for (const [index, node] of nodes.entries()) {
+    const attribute: unknown = node.geometry.getAttribute('position'), vertices = ordinals[index];
+    if (!(attribute instanceof InterleavedBufferAttribute) || vertices === undefined) throw new Error('Missing signed grid fixture');
+    for (const [local, vertex] of vertices.entries()) {
+      const sample = samples[vertex]; if (sample === undefined) throw new Error('Missing signed grid vertex');
+      attribute.setXYZ(local, sample[0], sample[1], sample[2]);
+    }
+    node.userData['wholePartition'] = { id: 'source', vertices, triangles: [index], vertexCount: 4, indexCount: 6, index: 'u16', grid: { origin, step } };
+  }
+  // Independent former temporary-array oracle, including non-binary scale and
+  // origins at both signed Int16 limits; compare raw Float32 words, no tolerance.
+  const expected = Float32Array.from(samples.flatMap(([x, y, z]) => [x * step + origin[0], y * step + origin[1], z * step + origin[2]]));
+  const result = assembleWholeGeometryViews(nodes, ownership);
+  try {
+    const actual: unknown = result.get('source')?.geometry.getAttribute('position');
+    if (!(actual instanceof BufferAttribute)) throw new Error('Missing signed grid output');
+    expect(new Uint8Array(actual.array.buffer, actual.array.byteOffset, actual.array.byteLength)).toEqual(new Uint8Array(expected.buffer));
+  } finally { for (const view of result.values()) view.geometry.dispose(); for (const node of nodes) node.geometry.dispose(); }
+});
