@@ -18,6 +18,7 @@ git = LIVE['git']
 PUSH_GATE_SECONDS = 180  # G756: one hard batch cap; no successful budget skips.
 RED_HOLD = runpy.run_path(str(Path(__file__).with_name('push_red_hold.py')))
 latest_verdict = RED_HOLD['completed_push_verdict']
+BATCH = runpy.run_path(str(Path(__file__).with_name('push_batch.py')))
 
 
 def fix_prefix(root, base, tip):
@@ -106,19 +107,66 @@ def fast_tools(root, revision, deadline):
         yield folder
 
 
+def check_subset(root, tip, files, deadline):
+    environment = dict(os.environ, WS_GIT_CHECK_DEADLINE=str(int((time.time() + max(0, deadline-time.monotonic())) * 1000)))
+    rc, output = LIVE['run'](['node', str(root / 'scripts/push-subset-mirror.mjs'),
+                              str(root), tip, json.dumps(files)], root, deadline, environment)
+    lines = [line[len('PUSH_SUBSET_RESULT '):] for line in output.splitlines()
+             if line.startswith('PUSH_SUBSET_RESULT ')]
+    observed = re.search(r'(?:FAIL\s+|Tests\s+\d+ failed|Test Files\s+\d+ failed|\berror(?:\s|\[|\()|(?:Error|TypeError|SyntaxError|RangeError|ReferenceError):)', LIVE['ANSI'].sub('', output), re.I)
+    if rc == 124 and not lines and observed is None:
+        return {'ok': False, 'budget': True, 'unfinished': ['ci-subset'], 'output': output, 'files': []}
+    try:
+        if len(lines) != 1:
+            raise ValueError('Expected one exact subset result')
+        payload = json.loads(lines[0])
+        rows = payload['results']
+        if (not isinstance(rows, list) or any(not isinstance(row, dict) or
+                not isinstance(row.get('name'), str) or type(row.get('code')) is not int or
+                type(row.get('timedOut')) is not bool or not isinstance(row.get('output'), str)
+                for row in rows) or len({row['name'] for row in rows}) != len(rows)):
+            raise ValueError('Invalid subset results')
+        failed, unfinished = payload['verdict']['failed'], payload['verdict']['unfinished']
+        BATCH['batch_disposition']([tip], failed, unfinished)
+        names = {row['name'] for row in rows}
+        if not set(failed + unfinished).issubset(names):
+            raise ValueError('Subset verdict names an absent step')
+        nonzero = {row['name'] for row in rows if row['code'] != 0}
+        if nonzero != set(failed + unfinished):
+            raise ValueError('Subset verdict lost an unfinished or refused step')
+        for row in rows:
+            if row['name'] not in unfinished:
+                continue
+            blocked = row.get('blocked')
+            if blocked is not None:
+                if (not isinstance(blocked, list) or not blocked or
+                        not all(isinstance(name, str) and name in unfinished for name in blocked)):
+                    raise ValueError('Unfinished reader has no unfinished producer')
+            elif row['code'] != 124 or not row['timedOut']:
+                raise ValueError('A real subset refusal cannot be handed to CI')
+        expected = 1 if failed else 2 if unfinished else 0
+        if rc != expected:
+            raise ValueError('Subset process and result disagree')
+        return {'ok': not failed and not unfinished, 'budget': bool(unfinished) and not failed,
+                'unfinished': unfinished, 'failed': failed, 'output': output,
+                'files': LIVE['failure_paths'](output) if failed else []}
+    except (KeyError, TypeError, ValueError) as error:
+        return {'ok': False, 'output': output + '\nUnverified CI subset: ' + str(error), 'files': []}
+
+
 def check_committed(root, base, tip, deadline):
     names = ('binary-json', 'tool-inputs', 'storage', 'deleted-paths', 'ratchet', 'guards', 'fast-lint',
-             'typed-lint', 'related-tests')
+             'ci-subset')
     steps = LIVE['GateSteps'](names)
-    steps.skip(('typed-lint', 'related-tests'), 'ci-G675')
-    result = {'ok': False, 'phase': 'binary-json', 'files': [], 'output': '', 'types': 'ci', 'steps': steps.rows}
+    result = {'ok': False, 'phase': 'binary-json', 'files': [], 'output': '', 'types': 'unverified', 'steps': steps.rows}
     def refuse_budget(phase):
         for entry in steps.rows:
             if entry['step'] == phase:
                 entry.update(status='failed', reason='budget')
             elif entry['status'] == 'skipped' and entry.get('reason') == 'not-reached':
                 entry.update(reason='prior-refusal')
-        result.update(ok=False, phase=phase,
+        unfinished = [row['step'] for row in steps.rows if row['status'] != 'passed' and row.get('reason') != 'no-deletions']
+        result.update(ok=False, budget=True, unfinished=unfinished, phase=phase,
                       output=result['output'] + '\nREFUSED ' + phase + ': local budget exhausted.')
         return result
 
@@ -171,7 +219,15 @@ def check_committed(root, base, tip, deadline):
     except (OSError, subprocess.SubprocessError) as error:
         result.update(phase='tool-inputs', output=result['output'] + '\nExact checker inputs failed: ' + str(error))
         return result
-    result.update(ok=True, phase='passed', output=result['output'] + '\nTyped lint and all test execution belong to CI (G675).')
+    with steps.measure('ci-subset') as row:
+        subset = check_subset(root, tip, files, deadline)
+        row['status'] = 'budget' if subset.get('budget') else 'passed' if subset['ok'] else 'failed'
+    result['output'] += '\n' + subset['output']
+    if not subset['ok']:
+        result.update(phase='ci-subset', files=subset['files'], budget=subset.get('budget', False),
+                      unfinished=subset.get('unfinished', []))
+        return result
+    result.update(ok=True, phase='passed', types='checked', output=result['output'] + '\nExact committed CI subset passed.')
     return result
 
 
@@ -288,8 +344,36 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
         return finish({'status': 'red', 'tip': batch_tip, 'bad': None, 'phase': 'ci-verdict',
                        'types': 'unverified', 'gateSeconds': round(time.monotonic()-started, 2),
                        'output': 'Publication held: ' + str(error)})
+    batch_file = common / 'push-batch.json'
+    limited = load(batch_file, {})
+    limit = limited.get('tip') if limited.get('base') == base else None
+    if isinstance(limit, str) and re.fullmatch(r'[0-9a-f]{40}', limit):
+        try:
+            if git(root, 'merge-base', base, limit) == base and git(root, 'merge-base', limit, tip) == limit:
+                eligible = fix_prefix(root, base, limit) if verdict['red'] else limit
+                if eligible is not None:
+                    tip = eligible
+        except subprocess.SubprocessError:
+            pass  # A stale operational hint never changes candidate authority.
     result = checker(root, base, tip, deadline)
     attempts.append((tip, result.get('steps', [])))
+    if result.get('budget'):
+        commits = git(root, 'rev-list', '--reverse', '--first-parent', base + '..' + tip).splitlines()
+        decision = BATCH['batch_disposition'](commits, [], result.get('unfinished') or [result['phase']])
+        if decision['kind'] == 'split':
+            prefix = fix_prefix(root, base, decision['tip']) if verdict['red'] else decision['tip']
+            if prefix is not None:
+                batch_file.write_text(json.dumps({'base': base, 'tip': prefix}))
+                return finish({'status': 'split', 'tip': tip, 'nextTip': prefix, 'phase': result['phase'],
+                               'unfinished': decision['unfinished'], 'gateSeconds': round(time.monotonic()-started, 2),
+                               'output': result['output'] + '\nBatch split before any CI handoff.'})
+            # A sole Red-fix prefix is atomic: publishing its unmarked interior
+            # would violate G759. Keep that exact fix prefix as the handoff unit.
+            decision = BATCH['batch_disposition']([tip], [], decision['unfinished'])
+        if decision['kind'] == 'deferred':
+            result.update(ok=True, types='ci-partial', deferred=decision['tags'], batchCommits=commits)
+            result['output'] += '\n' + '\n'.join(decision['tags'])
+
     candidate = tip
     bad = None
     if not result['ok']:
@@ -300,7 +384,7 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
         candidate = git(root, 'rev-parse', bad + '^') if bad else base
         if verdict['red'] and candidate != base:
             candidate = fix_prefix(root, base, candidate) or base
-        # The prefix must pass too, in the remaining original 45s budget.
+        # The prefix must pass too, in the remaining original 180s budget.
         if candidate != base:
             prefix = checker(root, base, candidate, deadline)
             attempts.append((candidate, prefix.get('steps', [])))
@@ -330,17 +414,20 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
     gate_seconds = round(time.monotonic() - started, 2)
     upload_started = time.monotonic()
     rc = uploader(candidate, env)
+    if rc == 0:
+        batch_file.unlink(missing_ok=True)
     return finish({'status': 'pushed' if rc == 0 else 'upload-red', 'tip': candidate, 'bad': bad,
                    'types': result.get('types', 'unavailable'),
                    'gateSeconds': gate_seconds, 'uploadSeconds': round(time.monotonic()-upload_started, 4),
-                   'output': result['output']})
+                   'output': result['output'], 'gateDeferred': result.get('deferred', []),
+                   'batchCommits': result.get('batchCommits', [])})
 
 
 def main():
     root = Path(git(Path.cwd(), 'rev-parse', '--show-toplevel'))
     if len(sys.argv) == 3 and sys.argv[1] == '--check':
         tip = git(root, 'rev-parse', sys.argv[2])
-        result = check_committed(root, git(root, 'merge-base', 'origin/main', tip), tip, time.monotonic() + LIVE['LIMIT'] - 2)
+        result = check_committed(root, git(root, 'merge-base', 'origin/main', tip), tip, time.monotonic() + PUSH_GATE_SECONDS)
         print(json.dumps(result))
         return 0 if result['ok'] else 1
     folder = root / 'tmp/push-loop'
@@ -360,7 +447,7 @@ def main():
     with (common / 'push.log').open('a') as log:
         log.write(time.strftime('%Y-%m-%dT%H:%M:%S%z ') + json.dumps(result) + '\n')
     print(json.dumps(result))
-    return 0 if result['status'] in ('idle', 'pushed', 'quiet', 'held') else 1
+    return 0 if result['status'] in ('idle', 'pushed', 'quiet', 'held', 'split') else 1
 
 
 if __name__ == '__main__':

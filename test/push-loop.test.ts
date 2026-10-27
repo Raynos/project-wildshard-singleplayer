@@ -4,9 +4,10 @@ import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { liveTests, sourceInputs } from '../scripts/push-inputs.mjs';
+import pushSource from '../scripts/push-loop.py?raw';
 
 test('related tests, prefix uploads and refusal retries', () => {
-  execFileSync('python3', ['test/test_push_loop.py'], { encoding: 'utf8', timeout: 30_000 });
+  execFileSync('python3', ['test/test_push_loop.py', '--candidate-stdin'], { input: pushSource, encoding: 'utf8', timeout: 30_000 });
   execFileSync('python3', ['scripts/test_sp_tools.py'], { encoding: 'utf8', timeout: 30_000 });
 });
 

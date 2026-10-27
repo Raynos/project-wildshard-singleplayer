@@ -16,8 +16,13 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 TOOL_ROOT = Path(os.environ.get('WS_PUSH_TOOL_ROOT', ROOT / 'scripts'))
 PUSH = {'__file__': str(TOOL_ROOT / 'push-loop.py'), '__name__': 'push_loop_fixture'}
-exec(compile(Path(os.environ.get('WS_SW8_CANDIDATE', TOOL_ROOT / 'push-loop.py')).read_text(),
-             str(TOOL_ROOT / 'push-loop.py'), 'exec'), PUSH)
+if '--candidate-stdin' in sys.argv:
+    sys.argv.remove('--candidate-stdin')
+    candidate_source = sys.stdin.read()
+else:
+    candidate_source = Path(os.environ.get('WS_SW8_CANDIDATE', TOOL_ROOT / 'push-loop.py')).read_text()
+exec(compile(candidate_source, str(TOOL_ROOT / 'push-loop.py'), 'exec'), PUSH)
+CHECK_SUBSET = PUSH.get('check_subset')
 SOURCE = runpy.run_path(str(TOOL_ROOT / 'push-source.py'))
 LIVE = PUSH['LIVE']
 RESTORE_RUNTIME = runpy.run_path(str(TOOL_ROOT / 'runtime_input_copies.py'))['restore_runtime_inputs']
@@ -43,6 +48,9 @@ class PushLoop(unittest.TestCase):
         verdict = patch.dict(PUSH, latest_verdict=lambda *_: {'id': 1, 'sha': self.base, 'red': False})
         verdict.start()
         self.addCleanup(verdict.stop)
+        subset = patch.dict(PUSH, check_subset=lambda *_: {'ok': True, 'files': [], 'output': 'exact subset passed'})
+        subset.start()
+        self.addCleanup(subset.stop)
 
     def git(self, *args):
         env = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
@@ -409,17 +417,86 @@ readFileSync('../public/assets/native/untracked.bin');
         with patch.dict(PUSH, fast_tools=prepared), patch.dict(LIVE, run=runner):
             result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
         self.assertTrue(result['ok'])
-        self.assertEqual(result['types'], 'ci')
+        self.assertEqual(result['types'], 'checked')
         self.assertEqual(calls, ['storage', 'ratchet', 'guards', 'fast-lint'])
         self.assertEqual(cleanups, [tip])
         steps = {row['step']: row for row in result['steps']}
         self.assertNotIn('source-prepare', steps)
         self.assertNotIn('source-cleanup', steps)
         self.assertEqual(steps['fast-lint']['status'], 'passed')
-        for phase in ['typed-lint', 'related-tests']:
-            self.assertEqual(steps[phase]['status'], 'skipped')
-            self.assertEqual(steps[phase]['reason'], 'ci-G675')
+        self.assertEqual(steps['ci-subset']['status'], 'passed')
+        self.assertNotIn('ci-G675', str(steps))
         self.assertEqual(steps['deleted-paths']['reason'], 'no-deletions')
+
+    def test_ci_subset_intake_requires_one_complete_consistent_result(self):
+        self.assertIsNotNone(CHECK_SUBSET)
+        row = {'name': 'types', 'code': 0, 'timedOut': False, 'output': ''}
+        payload = {'results': [row], 'verdict': {'failed': [], 'unfinished': []}}
+        cases = [(0, '', False), (0, 'PUSH_SUBSET_RESULT {}', False),
+                 (0, 'PUSH_SUBSET_RESULT ' + json.dumps(payload), True)]
+        for rc, output, accepted in cases:
+            with patch.dict(LIVE, run=lambda *_: (rc, output)):
+                result = CHECK_SUBSET(self.root, self.base, [], time.monotonic() + 5)
+            self.assertEqual(result['ok'], accepted)
+        payload['results'][0]['code'] = 1
+        with patch.dict(LIVE, run=lambda *_: (0, 'PUSH_SUBSET_RESULT ' + json.dumps(payload))):
+            result = CHECK_SUBSET(self.root, self.base, [], time.monotonic() + 5)
+        self.assertFalse(result['ok'])
+        self.assertNotIn('budget', result)
+        with patch.dict(LIVE, run=lambda *_: (124, 'TypeError: observed original refusal')):
+            result = CHECK_SUBSET(self.root, self.base, [], time.monotonic() + 5)
+        self.assertFalse(result['ok'])
+        self.assertNotIn('budget', result)
+
+    def test_ci_subset_refusal_and_named_cap_remain_distinct(self):
+        for code, timed, failed, unfinished, budget in [
+                (1, False, ['types'], [], False), (124, True, [], ['types'], True)]:
+            payload = {'results': [{'name': 'types', 'code': code, 'timedOut': timed, 'output': 'original'}],
+                       'verdict': {'failed': failed, 'unfinished': unfinished}}
+            with patch.dict(LIVE, run=lambda *_: (1 if failed else 2, 'PUSH_SUBSET_RESULT ' + json.dumps(payload))):
+                result = CHECK_SUBSET(self.root, self.base, [], time.monotonic() + 5)
+            self.assertFalse(result['ok'])
+            self.assertEqual(result['budget'], budget)
+            self.assertEqual(result['unfinished'], unfinished)
+        payload = {'results': [{'name': 'types', 'code': 7, 'timedOut': False, 'output': 'actual refusal'}],
+                   'verdict': {'failed': [], 'unfinished': ['types']}}
+        with patch.dict(LIVE, run=lambda *_: (2, 'PUSH_SUBSET_RESULT ' + json.dumps(payload))):
+            result = CHECK_SUBSET(self.root, self.base, [], time.monotonic() + 5)
+        self.assertFalse(result['ok'])
+        self.assertNotIn('budget', result)
+
+    def test_an_over_cap_batch_splits_before_any_upload_or_handoff(self):
+        first = self.commit('src/one.ts')
+        tip = self.commit('src/two.ts')
+        checked, uploads = [], []
+        def checker(_root, _base, candidate, _deadline):
+            checked.append(candidate)
+            return {'ok': False, 'budget': True, 'phase': 'ci-subset', 'unfinished': ['types'],
+                    'files': [], 'output': 'partial', 'steps': []}
+        result = PUSH['tick'](self.root, checker=checker, uploader=lambda *args: uploads.append(args))
+        self.assertEqual(result['status'], 'split')
+        self.assertEqual(result['nextTip'], first)
+        self.assertEqual(uploads, [])
+        def passed(_root, _base, candidate, _deadline):
+            checked.append(candidate)
+            return {'ok': True, 'phase': 'passed', 'files': [], 'output': '', 'steps': [], 'types': 'checked'}
+        result = PUSH['tick'](self.root, checker=passed, uploader=lambda *_: 0)
+        self.assertEqual(checked, [tip, first])
+        self.assertEqual(result['tip'], first)
+        self.assertFalse((self.root / '.git/push-batch.json').exists())
+        self.assertEqual(self.git('rev-parse', 'main'), tip)
+
+    def test_irreducible_cap_records_only_named_steps_and_exact_batch(self):
+        tip = self.commit('src/one.ts')
+        def checker(*_):
+            return {'ok': False, 'budget': True, 'phase': 'ci-subset', 'unfinished': ['products', 'tests-products'],
+                    'files': [], 'output': 'original partial', 'steps': []}
+        result = PUSH['tick'](self.root, checker=checker, uploader=lambda *_: 0)
+        self.assertEqual(result['status'], 'pushed')
+        self.assertEqual(result['types'], 'ci-partial')
+        self.assertEqual(result['gateDeferred'], ['Gate-deferred: products', 'Gate-deferred: tests-products'])
+        self.assertEqual(result['batchCommits'], [tip])
+        self.assertIn('original partial', result['output'])
 
     def test_step_timings_cover_policy_recent_related_and_typed_work_once(self):
         tip = self.commit('src/timed.ts')
@@ -561,10 +638,15 @@ readFileSync('../public/assets/native/untracked.bin');
                 with patch.dict(PUSH, fast_tools=prepared, check_binary_json=binary), patch.dict(LIVE, run=runner):
                     result = PUSH['tick'](self.root, checker=PUSH['check_committed'],
                                           uploader=lambda *args: uploads.append(args), notify=lambda *_: True)
-                self.assertEqual(result['status'], 'red')
-                self.assertEqual(result['phase'], phase)
                 self.assertEqual(result['tip'], tip)
-                self.assertEqual(uploads, [])
+                if cause == 'budget':
+                    self.assertEqual(result['status'], 'upload-red')
+                    self.assertEqual(len(uploads), 1)
+                    self.assertIn('Gate-deferred: ' + phase, result['gateDeferred'])
+                else:
+                    self.assertEqual(result['status'], 'red')
+                    self.assertEqual(result['phase'], phase)
+                    self.assertEqual(uploads, [])
                 self.assertIsNone(result['bad'])
                 steps = {row['step']: row for row in result['steps'] if row['step'] != 'attribution'}
                 self.assertEqual(steps[phase]['status'], 'failed')
@@ -716,7 +798,7 @@ readFileSync('../public/assets/native/untracked.bin');
         with patch.dict(PUSH, fast_tools=prepared), patch.dict(LIVE, run=lambda *args: calls.append(args[0]) or (0, '')):
             result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
         self.assertTrue(result['ok'])
-        self.assertEqual(result['types'], 'ci')
+        self.assertEqual(result['types'], 'checked')
         self.assertEqual([command[5] for command in calls], ['storage', 'ratchet', 'guards', 'fast-lint'])
         self.assertFalse(any('oxlint' in command or 'vitest' in command for command in calls))
 
