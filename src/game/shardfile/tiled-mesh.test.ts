@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { BufferAttribute, BufferGeometry, DynamicDrawUsage, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
 import { tiledMesh } from './tiledMesh';
-import { tileKey } from './tileContent';
+import { compactResident, tileKey, tileRanges } from './tileContent';
 import { tileOf } from './tileOrder';
 
 // Tile streaming T3: a merged recipe mesh keeps one draw; its index holds only the resident tiles' triangles. A made-up
@@ -137,4 +137,46 @@ test('an instanced part whose channel holds fewer instances, or whose geometry a
   short.setAttribute('position', new BufferAttribute(Float32Array.from([0, 0, 0, 1, 0, 0, 0, 0, 1]), 3));
   short.setAttribute('aSeed', new InstancedBufferAttribute(Float32Array.from([10, 20]), 1));
   expect(tiledMesh('short', place(new InstancedMesh(short, new MeshBasicMaterial(), 3)), new Matrix4())).toBeNull();
+});
+
+
+test.each([false, true])('fused partition matches every original triangle ordinal (wide index=%s)', wide => {
+  const positions = new Float32Array(512 * 9);
+  for (let triangle = 0; triangle < 512; triangle++) {
+    const x = (triangle % 8 - 4) * 62.5, z = (Math.floor(triangle / 8) % 8 - 4) * 62.5;
+    // Exact edges, Float32 edge rounding and cancellation all use the original zero-first arithmetic.
+    positions.set(triangle % 7 === 0 ? [2 ** 24, -0, z, -(2 ** 24), 0, z, x * 3, -0, z]
+      : [x - .000001, triangle % 3, z, x + .000001, -1, z, x, 1, z + .000001], triangle * 9);
+  }
+  const source = wide ? Uint32Array.from({ length: 512 * 3 }, (_, i) => (i * 997) % (512 * 3))
+    : Uint16Array.from({ length: 512 * 3 }, (_, i) => (i * 997) % (512 * 3));
+  const geometry = new BufferGeometry(), position = new BufferAttribute(positions, 3), index = new BufferAttribute(source.slice(), 1);
+  geometry.setAttribute('position', position); geometry.setIndex(index);
+  const mesh = new Mesh(geometry, new MeshBasicMaterial()), transform = new Matrix4().set(
+    1, .125, -.25, .000001, 0, 1, 0, 0, .25, -.125, 1, -.000001, 0, 0, 0, 1);
+  const centres = new Float32Array(512 * 2), e = transform.elements;
+  for (let t = 0; t < 512; t++) {
+    let x = 0, y = 0, z = 0;
+    for (let c = 0; c < 3; c++) { const v = index.getX(t * 3 + c); x += position.getX(v); y += position.getY(v); z += position.getZ(v); }
+    x /= 3; y /= 3; z /= 3;
+    centres[t * 2] = e[0] * x + e[4] * y + e[8] * z + e[12];
+    centres[t * 2 + 1] = e[2] * x + e[6] * y + e[10] * z + e[14];
+  }
+  const ranges = tileRanges(centres, 2, 0, 1), content = tiledMesh('full ordinal oracle', mesh, transform);
+  if (content === null) throw new Error('Expected a partitioned mesh');
+  const expected = source.slice(), resident = new Set<number>(), scope = new Scope('full ordinal oracle'), held = new Map<number, Scope>();
+  const check = (): void => {
+    const triangles = compactResident(ranges, resident, source, expected, 3);
+    expect(geometry.drawRange.count).toBe(triangles * 3); expect(index.array).toEqual(expected);
+  };
+  const expectedTiles = Array.from(ranges.count, (count, tile) => count > 0 ? tile : -1).filter(tile => tile >= 0);
+  expect([...content.tiles()]).toEqual(expectedTiles);
+  try {
+    check();
+    for (const tile of [...expectedTiles].reverse()) {
+      const owner = scope.child('tile'); held.set(tile, owner); resident.add(tile); void content.attach(tile, owner); check();
+    }
+    for (const tile of expectedTiles.filter((_, i) => i % 2 === 0)) { held.get(tile)?.dispose(); resident.delete(tile); check(); }
+    scope.dispose(); resident.clear(); check();
+  } finally { scope.dispose(); geometry.dispose(); mesh.material.dispose(); }
 });

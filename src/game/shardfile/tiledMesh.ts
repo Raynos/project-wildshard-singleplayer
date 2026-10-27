@@ -15,7 +15,8 @@
  * so a mesh wholly in one tile follows that tile.
  */
 import { BufferAttribute, DynamicDrawUsage, InstancedBufferAttribute, InstancedMesh, type Matrix4, type Mesh, Object3D, SkinnedMesh } from 'three';
-import { compactResident, tileRanges, type TileContent } from './tileContent';
+import { compactResident, tileKey, tileRanges, type TileContent } from './tileContent';
+import { TILES_PER_SIDE, tileOf } from './tileOrder';
 
 const attributeReaders: readonly unknown[] = ['getX', 'getY', 'getZ'].map((key): unknown => Reflect.get(BufferAttribute.prototype, key));
 function originalReader(attribute: BufferAttribute, key: string, expected: unknown): boolean {
@@ -46,8 +47,9 @@ export function tiledMesh(id: string, mesh: Mesh, toCell: Matrix4, options: { re
   if (mesh instanceof SkinnedMesh || Array.isArray(mesh.material) || geometry.groups.length > 0
     || Object.keys(geometry.morphAttributes).length > 0 || !(position instanceof BufferAttribute) || position.count === 0) return null;
   const index = geometry.index ?? new BufferAttribute(position.count > 65535 ? Uint32Array.from({ length: position.count }, (_, k) => k) : Uint16Array.from({ length: position.count }, (_, k) => k), 1);
-  const triangles = Math.floor(index.count / 3), centroids = new Float32Array(triangles * 2), e = toCell.elements;
-  const arrays = centroidArrays(index, position);
+  const triangles = Math.floor(index.count / 3), keys = new Int32Array(triangles), e = toCell.elements;
+  const count = new Int32Array(TILES_PER_SIDE * TILES_PER_SIDE), start = new Int32Array(count.length);
+  const arrays = centroidArrays(index, position), centroids = arrays === null ? new Float32Array(triangles * 2) : undefined;
   for (let t = 0; t < triangles; t++) {
     let x = 0, y = 0, z = 0;
     if (arrays === null) {
@@ -60,10 +62,24 @@ export function tiledMesh(id: string, mesh: Mesh, toCell: Matrix4, options: { re
       z = ((0 + (positions[a + 2] ?? Number.NaN)) + (positions[b + 2] ?? Number.NaN)) + (positions[c + 2] ?? Number.NaN);
     }
     x /= 3; y /= 3; z /= 3;
-    centroids[t * 2] = e[0] * x + e[4] * y + e[8] * z + e[12];
-    centroids[t * 2 + 1] = e[2] * x + e[6] * y + e[10] * z + e[14];
+    if (centroids !== undefined) {
+      centroids[t * 2] = e[0] * x + e[4] * y + e[8] * z + e[12];
+      centroids[t * 2 + 1] = e[2] * x + e[6] * y + e[10] * z + e[14];
+      continue; // Custom readers keep their complete original scan before any tile classification/refusal.
+    }
+    // Match the former Float32 centroid storage before classifying, including edge rounding.
+    const key = tileKey(tileOf(Math.fround(e[0] * x + e[4] * y + e[8] * z + e[12]),
+      Math.fround(e[2] * x + e[6] * y + e[10] * z + e[14])));
+    keys[t] = key; count[key] = (count[key] ?? 0) + 1;
   }
-  const ranges = tileRanges(centroids, 2, 0, 1), tiles = new Set<number>();
+  // Stable counting partition: retain every triangle's original ordinal within its tile,
+  // without a second centroid scan or a full intermediate coordinate buffer.
+  for (let tile = 1; tile < count.length; tile++) start[tile] = (start[tile - 1] ?? 0) + (count[tile - 1] ?? 0);
+  const order = new Uint32Array(triangles), next = Int32Array.from(start);
+  for (let triangle = 0; triangle < triangles; triangle++) {
+    const key = keys[triangle] ?? 0, at = next[key] ?? 0; order[at] = triangle; next[key] = at + 1;
+  }
+  const ranges = centroids === undefined ? { order, start, count } : tileRanges(centroids, 2, 0, 1), tiles = new Set<number>();
   ranges.count.forEach((n, key) => { if (n > 0) tiles.add(key); });
   if (tiles.size < (options.single === true ? 1 : 2)) return null;
   // the source order stays on the CPU (the index is small next to the vertices); the drawn index is rewritten in place
@@ -72,8 +88,8 @@ export function tiledMesh(id: string, mesh: Mesh, toCell: Matrix4, options: { re
   // rewritten on every tile change: never a static buffer whose CPU copy a GPU-only release may drop (E264)
   index.setUsage(DynamicDrawUsage);
   const draw = (): void => {
-    const count = compactResident(ranges, resident, source, index.array, 3);
-    geometry.setDrawRange(0, count * 3); index.needsUpdate = true;
+    const drawnCount = compactResident(ranges, resident, source, index.array, 3);
+    geometry.setDrawRange(0, drawnCount * 3); index.needsUpdate = true;
   };
   draw();
   return { id, tiles: () => tiles, attach: (tile, scope) => {
