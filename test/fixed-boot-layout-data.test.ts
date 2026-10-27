@@ -1,7 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin the exact predecessor's metadata and double-precision coordinates.
 import { createHash } from 'node:crypto';
-// oxlint-disable-next-line import/no-nodejs-modules -- Read the registered native density output for exact-byte parity.
-import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import * as pine from '../src/shards/pine-hollow/generators/layout';
 import { creekWaterAt, inBeaverPool as originalPool } from '../src/shards/pine-hollow/generators/geography';
@@ -20,7 +18,8 @@ const { pondClip: clipRows, ground: groundRows, forestQueries: geography } = pin
 const digest = (value: unknown): string => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
 it('retains every Pine coordinate and discovery anchor from ac722f90c', () => {
-  const fixed = Object.fromEntries(Object.entries(pine).filter(([name]) => name !== 'beaverPoolLevel'));
+  // sorted by name: Node lists a module namespace alphabetically (the retired JSON's order), vitest in declaration order
+  const fixed = Object.fromEntries(Object.entries(pine).filter(([name]) => name !== 'beaverPoolLevel').sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
   expect(digest(fixed)).toBe('cd5c2991da80c6159aa96f2a0d5a324c9ff6fd8b82630aa3db0b6cf6c47b3277');
   expect(pine.SPURS['den']).toBe(pine.DEN_TRAIL);
   expect(pine.SPURS['lookout']).toBe(pine.LOOKOUT_TRAIL);
@@ -28,7 +27,9 @@ it('retains every Pine coordinate and discovery anchor from ac722f90c', () => {
 });
 
 const creek = declaredGround(groundRows).water?.find(body => body.id === 'creek');
-const densityBlocks = new Map([['assets/pine-hollow/scalars/forest-density.bin', readFileSync(new URL('../public/assets/pine-hollow/scalars/forest-density.bin', import.meta.url))]]);
+// the density channel from its owned constructor (a6c278ebfa retired the public file); the digest below pins its bytes
+const densityBlob = pineDensityBlob(manifest);
+const densityBlocks = new Map([[densityBlob.name, densityBlob.bytes]]);
 const scalarBlocks = new ScalarLatticeBindings();
 const FOREST_QUERIES = declaredForestQueries(geography, scalarBlocks), inBeaverPool = declaredPondClip(clipRows);
 scalarBlocks.prepare(densityBlocks);
