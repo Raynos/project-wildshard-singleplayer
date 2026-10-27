@@ -175,7 +175,13 @@ export async function buildNavmesh(layers: readonly NavigationLayerData[], bytes
   const built: NavLayer[] = [];
   for (const layer of layers) {
     const mesh = layerMesh(layer);
-    for (const tile of layer.tiles) { addLayerTile(mesh, layer, tile); await slice.check(); }
+    for (const tile of layer.tiles) {
+      addLayerTile(mesh, layer, tile);
+      // Only a spent slice yields. Awaiting undefined after each tile also
+      // interleaves unrelated preparation while this batch still has budget.
+      const pause = slice.check();
+      if (pause !== undefined) await pause;
+    }
     built.push({ radius: layer.radius, height: layer.height, climb: layer.climb, mesh });
   }
   return new Navmesh(built, bytes);
