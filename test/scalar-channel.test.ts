@@ -1,3 +1,7 @@
+import { pineDensityBlob } from '../src/shards/pine-hollow/generators/forestRows';
+import { pineGeographyRows } from '../src/shards/pine-hollow/generators/geographyRows';
+import { forestDensity as pineForestDensity } from '../src/shards/pine-hollow/generators/forestGeography';
+import pineManifest from '../src/shards/pine-hollow/manifest.json' with { type: 'json' };
 import {scalarBlockBytes,readNalatiScalarBlocks} from './fixtures/nalati-scalar-blocks';
 // oxlint-disable-next-line import/no-nodejs-modules -- validate numeric geography fixtures without inferring the full generated JSON type
 import { readFileSync } from 'node:fs';
@@ -76,4 +80,21 @@ test('actual Nalati channels and every existing sampler retain exact boundary, s
 
 test('the defining scalar and forest schemas emit through their retained wire roots', () => {
   expect(formatJsonSchema(ScalarChannelSchema)).toBeDefined();expect(formatJsonSchema(ForestRowsSchema)).toBeDefined();
+});
+
+// Pine's retired geography writer no longer publishes a loose density file.
+// The same defining channel intake must accept the owned program's bytes.
+test('Pine owned density prepares every declared f64 candidate without a loose output', () => {
+  const row = pineGeographyRows().forestQueries, intake = new ScalarLatticeBindings();
+  const forest = declaredForestQueries(row, intake), density = pineDensityBlob(pineManifest);
+  expect(intake.files).toEqual([density.name]);
+  expect(() => intake.prepare(new Map())).toThrow();
+  const first = row.forest[0];
+  if (first === undefined) throw new Error('Missing Pine forest candidates');
+  expect(() => forest.density(first.x, first.z)).toThrow('not prepared');
+  intake.prepare(new Map([[density.name, density.bytes]]));
+  expect(intake.prepared).toBe(true);
+  for (const candidate of row.forest) {
+    expect(forest.density(candidate.x, candidate.z)).toBe(pineForestDensity(candidate.x, candidate.z));
+  }
 });

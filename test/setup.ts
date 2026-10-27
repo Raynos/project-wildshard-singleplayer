@@ -8,6 +8,8 @@ import { ENGINE_CONTENT_STRINGS } from '../src/game/engineStrings';
 import { installEngineStrings } from '../src/engine/strings';
 import { prepareNativeScalarBlocks } from '../scripts/bake/nativeWorld.mjs';
 import { nalatiGeographySources } from '../src/shards/nalati-grasslands/generators/geographySource';
+import { pineDensityBlob } from '../src/shards/pine-hollow/generators/forestRows';
+import pineManifest from '../src/shards/pine-hollow/manifest.json' with { type: 'json' };
 /**
  * Test environment: plain node plus the two browser globals the game's pure modules touch at import time —
  * `localStorage` (Settings / Inventory / Progress / boot timings persist there) and `location` (the chunk registry
@@ -54,6 +56,9 @@ for (const definition of scalarDefinitions()) {
       if (bytes === undefined) throw new Error(`Missing owned Nalati scalar source: ${file}`);
       return [file, bytes];
     })));
+  } else if (definition.slug === 'pine-hollow' && intake !== undefined && !intake.prepared) {
+    const density = pineDensityBlob(pineManifest);
+    intake.prepare(new Map([[density.name, density.bytes]]));
   }
   prepareNativeScalarBlocks(definition, process.cwd());
 }
