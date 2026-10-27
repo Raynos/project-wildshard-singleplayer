@@ -16,8 +16,7 @@ import { lastEnd } from '@wildshard/engine/boot/lastEnd';
 import { setDev } from '@wildshard/engine/core/devMode';
 import { buildTitleDeck, titleCards, type TitleDeck, type TitleDeckOptions } from './titleDeck';
 import { DEVSERVER, gridEntryShown, gridMode, menuMode } from './grid/menu';
-import { titlePrefetchOrder } from './grid/titleOrder';
-import { startGridPrefetch } from './grid/prefetch';
+import { retried } from '@wildshard/engine/boot/retry';
 import { pageScope } from '@wildshard/engine/app/resources';
 import { dropGridIntent, enterGrid, gridRecoveryLoop } from './grid/pageEntry';
 
@@ -27,6 +26,12 @@ import { buildWhatsNewBanner, type HiddenStore } from './whatsNewBanner';
 import './mainMenu.css';
 /** G554: the menu's background prefetch waits for the title's first frames and taps. */
 const MENU_PREFETCH_DELAY_MS = 4000;
+/** The grid prefetch's own code loads when it starts, outside the title's first download (D126). */
+async function startMenuPrefetch(): Promise<void> {
+  const [{ startGridPrefetch }, { titlePrefetchOrder }] = await Promise.all([retried(() => import('./grid/prefetch')), retried(() => import('./grid/titleOrder'))]);
+  const cells = gridMode(DEVSERVER);
+  startGridPrefetch(titlePrefetchOrder(cells), titlePrefetchOrder(cells, 'phone'));
+}
 
 /** the hero (G341 layouts, G344 interim pick): real in-engine aerials over the central roundabout at a phone-1x lens
  * (art/main-menu-hero/round-3-square): LS-c full-bleed on landscape screens, the square SQ-c as the centre band on
@@ -148,8 +153,9 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
   const gridCard = main.querySelector('.ws-main-grid');
   if (gridCard instanceof HTMLButtonElement) deck.onTap(gridCard, () => { if (gridEntryShown(mode())) onGrid(); });
   // G554: from the menu, Infinite Wildshard's whole known set downloads to disk in the background (crossroads outward),
-  // after the title's first frames and taps; the grid's own loading later moves its home cell to the front
-  if (grid) pageScope.timeout(MENU_PREFETCH_DELAY_MS, () => { const cells = gridMode(DEVSERVER); startGridPrefetch(titlePrefetchOrder(cells), titlePrefetchOrder(cells, 'phone')); });
+  // after the title's first frames and taps; the grid's own loading later moves its home cell to the front. The prefetch
+  // code itself loads then too, so it stays out of the title's first download (D126)
+  if (grid) pageScope.timeout(MENU_PREFETCH_DELAY_MS, () => { void startMenuPrefetch(); });
   deck.onTap(required(main, '.ws-main-settings', HTMLButtonElement), () => { opts.onSettings(); });
   // E483 (Jake: "a better dev toggle … without having to go to the settings page"; E140's ask): the same live switch as
   // Settings ▸ Developer. Both title paths rebuild on the change (StartTitle / HUD `onDev`) on this screen, so the menu, the
