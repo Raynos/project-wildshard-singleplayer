@@ -5979,7 +5979,6 @@
       ],
       "platform": "portable",
       "catalogueDependencies": [
-        "nalati-crags",
         "nalati-spruce",
         "nalati-terrain-scene",
         "nalati-kurgan",
