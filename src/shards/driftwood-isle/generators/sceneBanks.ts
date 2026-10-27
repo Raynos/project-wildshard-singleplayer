@@ -2,6 +2,7 @@ import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration'
 import { emitNamedBlobs, nameBlob, nameMeshoptBlob, type EmittedBlobs } from '@wildshard/sdk/blobs';
 import { DRIFTWOOD_FIXED_INPUTS, driftwoodFixedBytes, driftwoodFixedFiles } from './fixedProgram';
 import { driftwoodCargoBank, type DriftwoodCargoBank } from './cargoBank';
+import { driftwoodFixedLayouts, type DriftwoodFixedLayouts } from './fixedLayouts';
 import { driftwoodRockBank, type DriftwoodRockBank } from './rockBank';
 import { driftwoodIslandPlan } from './productPageFiles';
 import { BLENDER_MODELS } from './blenderArea';
@@ -14,6 +15,7 @@ import { BLENDER_MODELS } from './blenderArea';
  */
 export interface DriftwoodSceneBanks {
   readonly cargo: DriftwoodCargoBank;
+  readonly layouts: DriftwoodFixedLayouts;
   readonly rocks: DriftwoodRockBank;
 }
 /** The committed public files the banks read beside the fixed program's: the Blender island's placement table and
@@ -23,6 +25,7 @@ export const DRIFTWOOD_SCENE_BANK_INPUTS: readonly string[] = [`${BLENDER_MODELS
  *  (`driftwoodFixedBytes`) and `DRIFTWOOD_SCENE_BANK_INPUTS` by URL. */
 export interface DriftwoodSceneBankInputs {
   readonly fixed: ReadonlyMap<string, Uint8Array>;
+  readonly layouts?: DriftwoodFixedLayouts;
   readonly files: ReadonlyMap<string, Uint8Array>;
 }
 
@@ -36,7 +39,7 @@ export async function driftwoodSceneBanks(inputs: DriftwoodSceneBankInputs): Pro
   const plan = (tier: 'phone' | 'desktop'): ReturnType<typeof driftwoodIslandPlan> => driftwoodIslandPlan(file(table), file(metadata), tier);
   const smallRocks = plan('phone').smallRocks;
   if (JSON.stringify(smallRocks) !== JSON.stringify(plan('desktop').smallRocks)) throw new Error('Small-rock tier placements differ');
-  return { cargo: await driftwoodCargoBank(inputs.fixed), rocks: driftwoodRockBank(smallRocks) };
+  return { layouts: inputs.layouts ?? driftwoodFixedLayouts(inputs.fixed), cargo: await driftwoodCargoBank(inputs.fixed), rocks: driftwoodRockBank(smallRocks) };
 }
 /** The product build's banks: the fixed files and the public inputs come through the owned-byte cache. */
 export async function driftwoodSceneBanksCached(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<DriftwoodSceneBanks> {
@@ -45,8 +48,8 @@ export async function driftwoodSceneBanksCached(ctx: Pick<ProjectGenerationConte
 }
 /** A retained build driver's banks (the map bake, the specimen catalogue): the fixed program runs on its declared public
  *  inputs, which the driver reads (`read('/assets/…')`), as do the banks' own. */
-export async function driftwoodSceneBanksFrom(read: (url: string) => Uint8Array): Promise<DriftwoodSceneBanks> {
-  return driftwoodSceneBanks({ fixed: await driftwoodFixedBytes(new Map(DRIFTWOOD_FIXED_INPUTS.map(url => [url, read(url)]))),
+export async function driftwoodSceneBanksFrom(read: (url: string) => Uint8Array, fixed?: ReadonlyMap<string, Uint8Array>): Promise<DriftwoodSceneBanks> {
+  return driftwoodSceneBanks({ fixed: fixed ?? await driftwoodFixedBytes(new Map(DRIFTWOOD_FIXED_INPUTS.map(url => [url, read(url)]))),
     files: new Map(DRIFTWOOD_SCENE_BANK_INPUTS.map(url => [url, read(url)])) });
 }
 /** The banks' product files, named as their sources were: cargo's GLBs as `meshopt: true` sources (assets.ts), the desktop

@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { Matrix4, Quaternion, Vector3 } from 'three';
 import { MapAssembly, mapModel, readMapJson } from '../../../../scripts/map-geometry.mjs';
 import { MapWorld, mapPool } from '../../../../scripts/map-world.mjs';
-import { WORLD_SCENES, SCENE_MODEL_BLOBS } from './worldScenes.ts';
+import { worldScenes, SCENE_MODEL_BLOBS } from './worldScenes.ts';
 import { DRIFTWOOD_OUTPUT, DRIFTWOOD_FIXED_SOURCES } from './assets.ts';
 import { siteCatalogue } from './siteCatalogue.ts';
 import { WORLD_DROP } from './sea.ts';
@@ -13,6 +13,7 @@ import { originalBridgeFacts } from './driftwoodBridge.mjs';
 import { DRIFTWOOD_FIXED_INPUTS, driftwoodFixedBytes } from './fixedProgram.ts';
 import { FIXED_MODEL_NAMES } from './modelFiles.ts';
 import { driftwoodSceneModelBytes } from './sceneModelProgram.ts';
+import { driftwoodSceneBanksFrom, driftwoodSceneBankOutput } from './sceneBanks.ts';
 
 const base = resolve(import.meta.dirname, '..'), root = resolve(base, '../../..');
 const read = file => readMapJson(resolve(base, file));
@@ -69,8 +70,9 @@ async function coverRest(assembly, file, fixed) {
 }
 
 export async function driftwoodMapAssembly() {
-  const assembly = new MapAssembly(), catalogue = siteCatalogue(), piers = read('data/pierScenes.generated.json'), foliage = read('data/foliageScenes.generated.json');
+  const assembly = new MapAssembly(), piers = read('data/pierScenes.generated.json'), foliage = read('data/foliageScenes.generated.json');
   const fixedFiles = await driftwoodFixedBytes(new Map(DRIFTWOOD_FIXED_INPUTS.map(name => [name, new Uint8Array(readFileSync(resolve(root, `public${name}`)))])));
+  const banks = await driftwoodSceneBanksFrom(url => new Uint8Array(readFileSync(resolve(root, `public${url}`))), fixedFiles), catalogue = siteCatalogue(banks), WORLD_SCENES = worldScenes(banks);
   const fixedBlobs = Object.entries(FIXED_MODEL_NAMES).map(([url, name]) => {
     const bytes = fixedFiles.get(`baked/fixed-models/${url.slice(url.lastIndexOf('/') + 1)}`);
     if (bytes === undefined) throw new Error(`Missing owned map fixed model: ${name}`);
@@ -81,7 +83,12 @@ export async function driftwoodMapAssembly() {
     if (bytes === undefined) throw new Error(`Missing owned map scene model: ${file.name}`);
     return { file, bytes };
   });
-  const blobs = [...fixedBlobs, ...sceneBlobs, ...DRIFTWOOD_OUTPUT.blobs, ...SCENE_MODEL_BLOBS], recipes = [named('scenes/rocks.json', read('data/rockScenes.generated.json').scene), named('scenes/zipline.json', piers.zipScene),
+  const sceneBankOutput = await driftwoodSceneBankOutput(banks), bankBlobs = sceneBankOutput.files.map(file => {
+    const bytes = sceneBankOutput.assets.get(file.hash);
+    if (bytes === undefined) throw new Error(`Missing owned map scene-bank model: ${file.name}`);
+    return { file, bytes };
+  });
+  const blobs = [...fixedBlobs, ...sceneBlobs, ...bankBlobs, ...DRIFTWOOD_OUTPUT.blobs, ...SCENE_MODEL_BLOBS], recipes = [named('scenes/rocks.json', banks.rocks.scene), named('scenes/zipline.json', piers.zipScene),
     named('scenes/moorings.json', simple('lines', 'still')), ...['palms', 'hibiscus', 'reef', 'logs'].map(kind => named(`scenes/${kind}.json`, simple('plant'))),
     ...['cascade', 'cove', 'wreck', 'trail'].map(kind => named(`scenes/${kind}.json`, read(`data/${kind === 'trail' ? 'trail' : kind}Scene.json`)))];
   const world = new MapWorld(assembly, base, WORLD_SCENES, catalogue, [...blobs, ...recipes]), files = new Map(blobs.map(row => row.file === undefined ? [row.name, resolve(base, row.source)] : [row.file.name, row.bytes]));
