@@ -1,7 +1,6 @@
 import grappleProfile from '../data/grappleProfile.json' with { type: 'json' };
 import * as v from 'valibot';
-import type { Material } from '@wildshard/engine/physics/surface';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import type { ContactSurface, ColliderDesc } from '@wildshard/sdk/bake/placement';
 import { treadBoxes } from '@wildshard/engine/physics/pieces';
 import { bakedColliderDesc, bakedColliderSchemas } from './bakedColliders';
 import { deckCapRows } from './portalFloors';
@@ -13,7 +12,7 @@ const baked = ninePhysics();
 
 const finite = v.pipe(v.number(), v.finite());
 const capRows = deckCapRows();
-const SURFACES: readonly Material[] = ['wood', 'metal', 'flesh', 'felt', 'stone', 'rock', 'sand'];
+const SURFACES: readonly ContactSurface[] = ['wood', 'metal', 'flesh', 'felt', 'stone', 'rock', 'sand'];
 const Vec = v.strictObject({ x: finite, y: finite, z: finite });
 /** One baked collider, strictly (@wildshard/sdk/props/bakedColliders): every engine `ColliderDesc` kind the page registered, an unknown field refuses the bake. */
 const { Surface, Collider } = bakedColliderSchemas(SURFACES);
