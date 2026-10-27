@@ -202,3 +202,21 @@ test('retiring across an explicit build yield stops later stages and GPU release
     expect(()=>entryOwner(f.scope,'object','second')).toThrow();
   }finally{resume();pause.mockRestore();f.finish();}
 });
+
+
+test('construction parses its private assembly once while public admission remains strict', async () => {
+  const f = fixture(); f.admit.mockRestore();
+  const { library: _library, ...ports } = f.ports;
+  const data = sceneConstruction();
+  ports.scenes.publish('first.root', new Group()); ports.scenes.publish('second.root', new Group());
+  const parse = vi.spyOn(v, 'parse');
+  try {
+    await WorldAssembly.construct(data, ports);
+    expect(parse.mock.calls.filter(args => args[0] === WorldAssemblySchema)).toHaveLength(1);
+    parse.mockClear();
+    const source = { stages: [{ kind: 'group', id: 'public', label: 'Public', part: 'second.root' }] };
+    WorldAssembly.admit(source, { scope: f.scope, scenes: ports.scenes, context: model.sharedModelContext(f.world.sky, f.world.game), registry: f.world.registry, slice: () => Promise.resolve() });
+    expect(parse.mock.calls.filter(args => args[0] === WorldAssemblySchema)).toHaveLength(1);
+    expect(() => WorldAssembly.admit({ ...source, unexpected: true }, { scope: f.scope, context: model.sharedModelContext(f.world.sky, f.world.game), registry: f.world.registry, slice: () => Promise.resolve() })).toThrow();
+  } finally { parse.mockRestore(); f.finish(); }
+});

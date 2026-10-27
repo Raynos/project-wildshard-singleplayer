@@ -100,6 +100,11 @@ function installDrawnModels(ports: Pick<WorldAssemblyPorts, 'scope' | 'draws' | 
   publishEntryOwner(scope, 'drawn-models', stage.id, models);
 }
 
+// Only construct's private parsed object can lend these rows, during the
+// synchronous cursor creation below. No caller input, owner or pending build
+// enters this table; public admit always parses unproven values.
+const constructionStages = new WeakMap<object, readonly WorldAssemblyStage[]>();
+
 /** G571: an admitted world assembly (format/worldAssembly), run stage by stage in its declared order. Client-only. */
 export class WorldAssembly {
   /** Resolve the declared native metadata prelude before the caller creates programs or reports progress.
@@ -152,12 +157,15 @@ export class WorldAssembly {
       if (publication !== undefined && entryOwner(scope, 'object', publication.id) !== publication.root) throw new Error('World construction root changed');
     };
     live();
-    const create = (root: Object3D, slice: WorldAssemblyPorts['slice'], draws: FixedDraws | undefined, cells?: Uint8Array): WorldAssembly => WorldAssembly.admit(parsed, {
-      scope, ...(scenes === undefined ? {} : { scenes }), ...(native === undefined ? {} : { weatherContext: native }), ...(ports.sites === undefined ? {} : { sites: ports.sites }),
-      context: sharedModelContext(sky, game), registry, slice, product, ...(draws === undefined ? {} : { draws }), physics, fixed: game,
-      ...(cells === undefined ? {} : { cover: { cells, viewer, updates: game } }),
-      entry: { root, scope, tier: game.tier, physics, ...(ports.variant === undefined ? {} : { variant: ports.variant }), piece: piece => { registry.add(piece); } },
-    });
+    const create = (root: Object3D, slice: WorldAssemblyPorts['slice'], draws: FixedDraws | undefined, cells?: Uint8Array): WorldAssembly => {
+      constructionStages.set(parsed, stages);
+      try { return WorldAssembly.admit(parsed, {
+        scope, ...(scenes === undefined ? {} : { scenes }), ...(native === undefined ? {} : { weatherContext: native }), ...(ports.sites === undefined ? {} : { sites: ports.sites }),
+        context: sharedModelContext(sky, game), registry, slice, product, ...(draws === undefined ? {} : { draws }), physics, fixed: game,
+        ...(cells === undefined ? {} : { cover: { cells, viewer, updates: game } }),
+        entry: { root, scope, tier: game.tier, physics, ...(ports.variant === undefined ? {} : { variant: ports.variant }), piece: piece => { registry.add(piece); } },
+      }); } finally { constructionStages.delete(parsed); }
+    };
     if (rows === undefined) {
       const assembly = create(scene, () => Promise.resolve(), originalDraws ?? library?.loaded());
       for (const stage of stages) { live(); await assembly.next(stage.id); live(); }
@@ -256,7 +264,10 @@ export class WorldAssembly {
 
   private at = 0;
   private constructor(private readonly stages: readonly WorldAssemblyStage[], private readonly ports: WorldAssemblyPorts) {}
-  static admit(input: unknown, ports: WorldAssemblyPorts): WorldAssembly { return new WorldAssembly(admitted(input), ports); }
+  static admit(input: unknown, ports: WorldAssemblyPorts): WorldAssembly {
+    const prepared = typeof input === 'object' && input !== null ? constructionStages.get(input) : undefined;
+    return new WorldAssembly(prepared ?? admitted(input), ports);
+  }
 
   /** Borrow the completed stages into an entered child, preserving every
    * construction owner. Stage kinds determine the finite loan kinds; no
