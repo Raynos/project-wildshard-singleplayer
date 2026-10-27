@@ -27,6 +27,7 @@ import { TITLE_SKIPPERS } from './debugOptions';
 import { MUSIC_CREDIT, sfxCredit } from '../audio/credits';
 import { BOOT_OPTIONS, getSfxSet, pendingReload, saveSetting, savedSetting, settingFromUrl, settingParams, settingsReloadUrl, type OptionKey, type OptionValue } from './Settings';
 import { markReload } from '../boot/lastEnd';
+import { buildOfflineRow } from './offlineDownload';
 import { buildMusicStyleRow } from './musicStyleRow';
 
 const el = (cls: string, html = '', tag = 'div'): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
@@ -47,11 +48,14 @@ let refresh: (() => void) | undefined;
 /** the Debug registry (E162), the same one the pause menu renders (E172) */
 let debug: DebugMenu | null = null;
 let developerTools: DebugMenu | null = null;
+/** G727 / I9: the Offline play row, when the game installed its download */
+let offline: ReturnType<typeof buildOfflineRow> = null;
 const scope = uiScope('bootSettings', app.engineScope);
 let openScope: Scope | null = null;
 let layer: UiHandle | null = null;
 
 export function openBootSettings(): void {
+  const built = root !== undefined;
   const r = root ?? build(); // the page's one panel (src/engine/app/ownership.ts): its Esc listener is not a shard's
   root = r;
   // re-read which Debug rows apply to the selected level, and their choices
@@ -59,7 +63,7 @@ export function openBootSettings(): void {
   debug?.applies({ chunk: activeLevel(), weapons: new Set() });
   developerTools?.applies({ chunk: activeLevel(), weapons: new Set() });
   if (layer?.active !== true) { openScope = scope.child('open'); layer = app.ui.push('menu', { root: r, order: 0, back: close }, openScope); openScope.interval(2000, () => { debug?.paint(); developerTools?.paint(); }); }
-  refresh?.();
+  refresh?.(); if (built) offline?.refresh(); // a fresh panel has just sized it
   r.classList.add('show');
   r.inert = false;
 }
@@ -87,6 +91,7 @@ function build(): HTMLElement {
 
   const running = el('ws-gmenu-note');
   running.textContent = engineString('s_a348737554c0', [TIER]);
+  offline = buildOfflineRow(scope);
   const status = el('ws-gmenu-note');
   const actions = el('ws-gmenu-reload-actions');
   const apply = el('ws-gmenu-btn resume', engineString('s_aa22d01f58bf'), 'button') as HTMLButtonElement; apply.type = 'button';
@@ -136,6 +141,7 @@ function build(): HTMLElement {
     seg(engineString('s_c77c3af22c64'), false, aaOpts, () => gfxPrefs.aa, (v) => { if (v === 'auto' || v === 'on' || v === 'off') { gfxPrefs.aa = v; saveGfxPrefs(); } }),
     el('ws-gmenu-label', engineString('s_799c26913574')), row('touch', LABELS.touch),
     buildMusicStyleRow(scope),
+    ...offline === null ? [] : [offline], // G727 / I9: Download everything, before the first shard
     ...devSwitchRows(), // developer mode (E140): live, no reload
     tools, dbg);
   // the agents' screenshot URLs carry params that win over the saved picks for that load: say so
