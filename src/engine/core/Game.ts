@@ -1089,7 +1089,8 @@ export class Game {
       onStage('parked-draws', diagnosticNow() - start, drawn);
       if (keep !== undefined && arrival !== undefined) {
         const rest: THREE.Object3D[] = [];
-        futureRoot.traverseVisible(object => { if (object !== futureRoot && Reflect.get(object, 'material') !== undefined && !keep(object)) rest.push(object); });
+        // the parked root itself is hidden while it waits: walk its children, each by its own visibility
+        for (const child of futureRoot.children) child.traverseVisible(object => { if (Reflect.get(object, 'material') !== undefined && !keep(object)) rest.push(object); });
         onStage('arrival-deferred', 0, rest.length);
         if (rest.length > 0) void this.warmArrivalRest(owner, composer, futureRoot, rest, arrival.at, futureEnvironment);
       }
