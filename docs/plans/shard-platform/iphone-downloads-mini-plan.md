@@ -423,3 +423,46 @@ large-shard blocker, not licence to drop required content or raise limits.
 | pastel-plain | 1.178 / 13 | 4.682 / 156 |
 | pine-hollow | 130.290 / 836 | 7.822 / 92 |
 | sunscar-dunes | 6.751 / 62 | 1.192 / 80 |
+
+### I2.4 Cost-only library reads (2026-10-27, sp-x2)
+
+The cause-fixed95a47c50a326ba59cd4eb8dbb7755a1d7b413efb follow-on
+cohort reaches control on all3 with0 page errors, but still0/3 meet both
+limits. Build95a47c5-mvqqvp4a; identical first-cohort profile/fence/counts,
+fresh named sessions/origins, no unchanged retry or deadline extension.
+Raw tmp/sp-x2/i2-reading/final. The reader argument's full SHA suffix was
+mistyped; the build command/registry resolve the exact95a SHA above and
+its observed version matches95a47c5. Source identification comes from
+that actual build creator, not the typo in raw protocol metadata. All
+contexts/proxies closed, final parent4401 released.
+
+| Row | Encoded MB before control | Requests started by control | Tap to control | Page errors |
+|---|---:|---:|---:|---:|
+| Pine | 180.866385 | 1036 | 20.062 s | 0 |
+| Nalati | 103.162006 | 816 | 14.456 s | 0 |
+| Nine | 165.854936 | 752 | 11.935 s | 0 |
+
+No isolated pack-cut improvement is claimed: joint revisions/concurrent
+peer workloads and direct required reads differ. The original180s cap
+and12MB/250-request bars remain. Sp-o5 now owns graphical spawn-vs-late
+content on Pine/Nalati/Nine; sp-x9 owns the generic JS request cut (actual
+469-523 JS requests alone exceed250). Sp-x2 keeps the mechanism and other
+shards. This is a source join, not a second duplicate baseline request.
+
+A concrete generic eager-read cause is leaseClientLibrary: it rereads
+every non-image library body before reserving claims, though only KTX2
+cost depends on parsing those bytes at the current device. This packet
+uses the exact build receipt for cost-only file rows, through the original
+validated source and identical file-object membership even after host
+row projections. Full decoded+GPU claims remain unchanged. Replaced file
+objects cannot borrow the receipt. Unreceipted files, device-specific
+KTX2 parsing, commons and guest memory checks keep their original byte
+readers and refusals. Actual content consumers still verify every wire.
+No new late field, content/cap change or placeholder is introduced.
+
+Touched scoped fixture types, typed lint and source ratchet pass. The
+latest game compiler is blocked by foreign live framePacing.ts41 TS9010,
+routed to its owner; no source/allowance edit. New exact-receipt and
+replaced-row controls are typed, not executed before landing under G769.
+The costing cut remains in flight, with its measured transfer saving
+pending the joined source cohort; it is not an I2 pass.

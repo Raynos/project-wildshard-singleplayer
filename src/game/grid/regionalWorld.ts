@@ -158,7 +158,7 @@ async function regionalPresentation(admitted: AdmittedProduct, start: { readonly
   }
   {
     const product = shardProductFromAdmission(admitted, scope);
-    await leaseClientLibrary(full, assets.retained, { scope, allocator, owner: instance, textures: ktx2TranscodeSupport(renderer), read: ref => assets.read(ref) });
+    await leaseClientLibrary(full, assets.retained, { validatedSource: admitted.source, scope, allocator, owner: instance, textures: ktx2TranscodeSupport(renderer), read: ref => assets.read(ref) });
     lendLooks(scope, presentation);
     bindPaintedMaterialMaps(product, scope, presentation);
     await bindSceneSourceLooks(product, scope, presentation);

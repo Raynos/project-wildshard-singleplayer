@@ -183,6 +183,7 @@ const runtimeDays = new WeakSet();
 export class ShardfileClient {
   private plan: AdmittedClientPlan | undefined;
   private readonly source: Shardfile;
+  private readonly validatedSource: Shardfile;
   private readonly assets: ClientAssets;
   private readonly bindings: ShardfileClientBindings;
   private presentation: Awaited<ReturnType<typeof clientMaterials>> | undefined;
@@ -198,6 +199,7 @@ export class ShardfileClient {
   /** The declared state as authored: a runtime-bound host field keeps its default for the look's curves. */
   private readonly curveState: Shardfile['state'];
   constructor(source: Shardfile, assets: ClientAssets, bindings: ShardfileClientBindings) {
+    this.validatedSource = source;
     if (bindings.residency !== undefined) {
       const home = bindings.residency.home();
       if (home.instance !== bindings.instance || home.allocator !== bindings.allocator) throw new Error('Shardfile client requires its early page home residency');
@@ -246,7 +248,7 @@ export class ShardfileClient {
     const allocator = this.bindings.allocator; if (allocator === undefined) throw new Error('Shardfile requires its session residency allocator');
     // The reviewed opaque-runtime claim includes its whole home. Cache leases remain pinned above;
     // ordinary data homes account library/commons and tile parts independently in the same allocator.
-    if (this.bindings.residency === undefined || this.source.runtime === null) await leaseClientLibrary(this.source, this.assets.retained, { scope: ctx.scope, allocator, owner: this.bindings.instance, textures: ktx2TranscodeSupport(world.game.renderer), read: ref => this.assets.read(ref) });
+    if (this.bindings.residency === undefined || this.source.runtime === null) await leaseClientLibrary(this.source, this.assets.retained, { validatedSource: this.validatedSource, scope: ctx.scope, allocator, owner: this.bindings.instance, textures: ktx2TranscodeSupport(world.game.renderer), read: ref => this.assets.read(ref) });
     const presentation = await clientMaterials({ ...this.source, state: this.curveState }, this.assets.retained, world.game.renderer, ctx.scope, { trustedGraphs: this.nativeFeatures || this.bindings.trustedRuntime === true });
     this.presentation = presentation;
     if (this.nativeFeatures) presentation.graphs.bind({ hour: () => world.game.sky.dayNight?.hour ?? null });

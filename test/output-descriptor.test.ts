@@ -17,6 +17,8 @@ import { sourceManifest } from '../src/game/plugin/context';
 import { installShards, shards } from '../src/game/shard/list';
 import { game, setActiveChunk } from '../src/game/shard/registry';
 import { Scope } from '../src/engine/app/scope';
+import { ResidencyAllocator } from '../src/game/grid/allocator';
+import { leaseClientLibrary } from '../src/game/shardfile/clientLibrary';
 
 const encodeCanonicalJson = (value: unknown): Uint8Array => new TextEncoder().encode(canonicalJson(value));
 const base = 'https://example.test/shardfiles/loader-fixture/';
@@ -695,4 +697,33 @@ test('an off-page transport supplies verified stored blobs without a page read o
   expect(again.assets.get(file.hash)).toEqual(new Uint8Array([1, 2, 3]));
   expect(cold.bytes.get(file.hash)).toEqual(new Uint8Array([1, 2, 3]));
   expect(pageReads.some(url => url.endsWith(file.path))).toBe(true);
+});
+
+
+test('exact receipted library costs reserve all bytes without reading unused bodies', async () => {
+  const row = fixture(true), restore = installIndexReceipt(row.index), store = cacheStore(), opts = options(row.wires, store.cache);
+  const scope = new Scope('receipt-costs'), allocator = new ResidencyAllocator();
+  try {
+    const source = await readProductDescriptor(opts), read = vi.fn(() => Promise.reject(new Error('Cost-only body read')));
+    expect(isBuildValidatedOutput(source)).toBe(true);
+    // A host may project rows, but only exact original file objects inherit its build proof.
+    await leaseClientLibrary({ ...source }, new Map(), { allocator, scope, owner: 'home', read, validatedSource: source });
+    expect(read).not.toHaveBeenCalled(); expect(allocator.cost().input.libraries).toBe(3);
+    const ref = source.files[0]?.hash; if (ref === undefined) throw new Error('Missing fixture library');
+    const assets = new ClientAssets(source, new Map(), opts);
+    await expect(assets.read(ref)).resolves.toEqual(new Uint8Array([1, 2, 3]));
+  } finally { scope.dispose(); restore(); }
+  expect(allocator.entries()).toHaveLength(0);
+});
+
+test('a replaced cost row cannot borrow an original receipt to skip its byte reader', async () => {
+  const row = fixture(true), restore = installIndexReceipt(row.index), store = cacheStore();
+  const scope = new Scope('receipt-cost-refusal'), allocator = new ResidencyAllocator();
+  try {
+    const source = await readProductDescriptor(options(row.wires, store.cache));
+    const projected = { ...source, files: source.files.map(file => ({ ...file, decoded: file.decoded + 1 })) };
+    const read = vi.fn(() => Promise.reject(new Error('Unproven cost row')));
+    await expect(leaseClientLibrary(projected, new Map(), { allocator, scope, owner: 'home', read, validatedSource: source })).rejects.toThrow('Unproven cost row');
+    expect(read).toHaveBeenCalled(); expect(allocator.entries()).toHaveLength(0);
+  } finally { scope.dispose(); restore(); }
 });
