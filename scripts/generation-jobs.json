@@ -532,39 +532,6 @@
       "platform": "portable"
     },
     {
-      "id": "pine-contract-program",
-      "shard": "pine-hollow",
-      "entry": "src/shards/pine-hollow/generators/bake-contracts.mjs",
-      "command": [
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/pine-hollow/generators/bake-contracts.mjs"
-      ],
-      "inputRoots": [
-        "src/shards/pine-hollow/generators/bake-contracts.mjs",
-        "src/shards/pine-hollow/generators/contractProgram.ts",
-        "src/shards/pine-hollow/behaviour/contracts.as",
-        "src/shards/pine-hollow/behaviour/contractsRandom.as",
-        "src/shards/pine-hollow/behaviour/contractsRules.as",
-        "src/format/decisionScripts.ts",
-        "src/format/decisionBindings.ts",
-        "src/format/scriptAbiV1.ts",
-        "src/format/scriptContract.ts",
-        "scripts/bake-output.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/sdk",
-        "src/sdk/decisionScriptBindings.ts"
-      ],
-      "outputs": [
-        "src/shards/pine-hollow/data/contractsProgram.generated.json"
-      ],
-      "buildTimeOutputs": [
-        "src/shards/pine-hollow/data/contractsProgram.generated.json"
-      ],
-      "platform": "portable"
-    },
-    {
       "id": "pine-geography",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-geography.mjs",
@@ -6849,8 +6816,7 @@
         "nalati-spruce",
         "nalati-terrain-scene",
         "nalati-kurgan",
-        "nalati-layout",
-        "nalati-geography"
+        "nalati-layout"
       ]
     },
     {
@@ -6948,8 +6914,7 @@
       ],
       "platform": "portable",
       "catalogueDependencies": [
-        "pine-map-assembly",
-        "pine-contract-program"
+        "pine-map-assembly"
       ]
     },
     {
@@ -6994,12 +6959,9 @@
       "platform": "portable",
       "catalogueDependencies": [
         "driftwood-fixed-models",
-        "driftwood-faceted-ground",
         "driftwood-island-dressing",
         "driftwood-foliage-scenes",
         "driftwood-pier-scenes",
-        "driftwood-zipline",
-        "driftwood-reef",
         "driftwood-native-specimens"
       ]
     },

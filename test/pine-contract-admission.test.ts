@@ -13,6 +13,7 @@ test('the actual contract file validates before page or native board constructio
     read: () => Promise.resolve(body) }).json<ContractCatalogue>('quests/contracts.json');
   const catalogue = await read(bytes);
   expect(catalogue.rows).toHaveLength(11);
+  expect(catalogue.program?.bytes).toBe('');
   const encode = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
   await expect(read(encode({ ...catalogue, slots: 0 }))).rejects.toThrow('refuses its schema');
   await expect(read(encode({ ...catalogue, tags: [{ tag: 'unbound', any: [{}] }] }))).rejects.toThrow('refuses its schema');

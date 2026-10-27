@@ -89,7 +89,8 @@ function safeInput(value: unknown): boolean {
 export const DecisionScriptsSchema: v.GenericSchema<unknown, DecisionScripts> & { readonly pipe: readonly [unknown, unknown, v.ArraySchema<typeof row, undefined>, unknown, unknown, unknown, unknown, unknown] } = v.pipe(v.unknown(), v.check(safeInput, 'plain JSON without unsafe property names'), v.array(v.pipe(row, v.check(value => decisionScriptRowRules(value).length === 0, 'script row semantic rules'))),
   v.maxLength(64), v.check(rows => unique(rows.map(value => value.id)), 'unique script ids'),
   v.check(rows => rows.reduce((count, value) => count + ('spawnGroup' in value.binding ? Object.keys(value.actors).length : 1), 0) <= 64, 'at most 64 logical decision bindings'),
-  v.check(rows => new Set(rows.map(value => value.module)).size <= 8, 'at most eight decision modules'),
+  // G20a / G769: nine, so Pine's contract guest ships as a named module (no inline bytes) beside its eight others.
+  v.check(rows => new Set(rows.map(value => value.module)).size <= 9, 'at most nine decision modules'),
   v.transform(rows => rows.map(omitEmptyBodyMaps)));
 
 /** Parse unknown direct input only after rejecting accessors, prototypes and non-JSON values. */

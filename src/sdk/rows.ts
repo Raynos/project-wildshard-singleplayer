@@ -6,6 +6,7 @@ import { parseEliteFeature as gameParseEliteFeature, type EliteFeatureRows as Ga
 import { spawnScriptRegistries as gameSpawnScriptRegistries } from '@wildshard/format/spawnScripts';
 import type { DecisionRegistries as GameDecisionRegistries } from '@wildshard/format/decisionBindings';
 import { JournalRowSchema as GameJournalRowSchema, journalRowRules as gameJournalRowRules, type JournalRow as GameJournalRow } from '@wildshard/format/compendiumRows';
+import { parseContractCatalogue as gameParseContractCatalogue, type ContractCatalogue as GameContractCatalogue } from '@wildshard/format/contracts';
 import * as v from 'valibot';
 
 /** Numeric row declarations and registered view/presentation recipes. */
@@ -40,3 +41,7 @@ export function parseJournalRow(input: unknown): JournalRow {
   if (errors.length > 0) throw new Error(errors.join(', '));
   return row;
 }
+/** One admitted contract catalogue (the board's rows and its programme row). */
+export type ContractCatalogue = GameContractCatalogue;
+/** Validate a contract catalogue before it is serialized (GR8: a shard program calls this instead of a bake script). */
+export function parseContractCatalogue(input: unknown): ContractCatalogue { return gameParseContractCatalogue(input); }
