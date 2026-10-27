@@ -50,7 +50,7 @@ test('only a fully successful push dispatches all seven exact-artifact smoke leg
   expect(dispatch).toContain('-f sha="$GITHUB_SHA" -f source_run="$GITHUB_RUN_ID" -f automatic=true');
   expect(deploy).toContain('run: python3 scripts/ci-fail-fast.py -- pnpm run docs');
   expect(smoke).not.toMatch(/^ {2}workflow_run:/mu);
-  expect(smoke).toContain('part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer, phone-route]');
+  expect(smoke).toContain('part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer, phone-route, title-quarantine]');
   expect(smoke).toContain('needs: [build, boot-smoke]');
   expect(smoke).toMatch(/JOB_PROOF_RUN: \$\{\{ !inputs\.automatic && inputs\.source_run \|\| '' \}\}/u);
 });

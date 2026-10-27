@@ -209,6 +209,20 @@ touched game/script project types and typed lint pass. Historical traces remain
 contention evidence without assigning an exact callback to either owner. The
 ordinary exact-artifact smoke acceptance is still open until this source ships.
 
+G758 quarantine: the two retained no-code-cause failures occurred at 15:12 and
+16:04 UTC on October 26 (runs 40346975383 / 40355584392). Only Nine's original
+public/Developer title PNG assertions move to a non-blocking exact-artifact leg,
+owned by **sp-x1**, until **2026-10-28 03:30 UTC**. Every assertion and native
+capture limit stays intact there. Ordinary Nine admission/gameplay and all other
+pictures continue blocking. The ordinary title captures automatically block again
+at expiry, even without a follow-up edit; no other stage is quarantined.
+
+Pinned `b26e4be1d7` preview built all 24 products and the app in 174.87 seconds.
+One original public/Developer Nine pair passed both title PNGs plus admission and
+gameplay with no app faults; its browser and preview borrower were closed. The
+55-case related walk and 44-case commit selection passed. This local result does
+not close the ordinary CI acceptance or reset the 24-hour owner deadline.
+
 ## G745: Jake's phone smoke route
 
 **In flight (2026-10-26, sp-x9; transferred from sp-x7).** A seventh exact-artifact leg follows
