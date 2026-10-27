@@ -135,6 +135,9 @@ export interface GridSessionHost {
   readonly feet: () => { readonly x: number; readonly y: number; readonly z: number };
   /** Home/far coverage can load before controls; neighbour products and near views start after this boundary. */
   readonly backgroundReady?: () => boolean;
+  /** Presentation-only short range while an actual crossing waits at its
+   * in-world screen. Disabled in the same frame the crossing settles. */
+  readonly heldFrame?: { enabled: boolean };
   /** Register once per fixed step (the page's one fixed step; never a second loop). */
   readonly onFixed: (fn: (dt: number) => void) => void;
   /** SF19a's one frame: the camera, composer and grade effects, and the page's late phase (absent: never built) */
@@ -545,7 +548,7 @@ export class GridSession {
       return edge === undefined ? null : { edge: { instance: waiting, x: edge.x, z: edge.z, axis: edge.axis, halfLength: edge.halfLength }, cell: centre, ground: edge.floor };
     });
     setParkedMatricesFrozen(true); // G580 T2: a hidden parked world skips matrix updates during its warm-up
-    host.scope.onDispose(() => { this.cellLoading.close(); setWarmUpHeld(false); setParkedMatricesFrozen(false); setBuildHeld(false); });
+    host.scope.onDispose(() => { this.cellLoading.close(); if (host.heldFrame !== undefined) host.heldFrame.enabled = false; setWarmUpHeld(false); setParkedMatricesFrozen(false); setBuildHeld(false); });
     // G78: a shimmer line at every shard border on its real ground; G119: SAVING… / SAVE FAILED, RETRY while a crossing waits
     const rows = new Map((edges ?? []).map((cell) => [cell.instance, cell.edges]));
     let status: CrossingSaveStatus = null, polled = 0;
@@ -994,6 +997,7 @@ export class GridSession {
     this.roadTiles?.step({ x: at.x, z: at.z, vx: this.velocity.x * clamp, vz: this.velocity.z * clamp });
     for (const cell of this.neighbours) if (this.placeholderBlocksTiles(cell.instance)) this.rings.retireRefinement(cell.instance);
     this.stepCellLoading();
+    if (this.host.heldFrame !== undefined) this.host.heldFrame.enabled = this.cellLoading.open !== null && this.live?.travelState().crossing.phase === 'preparing';
     this.shimmer.step();
     const active = this.live === null ? this.home.instance : this.live.live.current();
     const eye = this.host.eye?.();

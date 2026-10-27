@@ -1,6 +1,7 @@
 import { app } from '../app/runtime';
 import { engineString } from '../strings';
 import { Scope } from '../app/scope';
+import { FrameDrawRanges, type FrameDrawRange } from '../render/frameDrawRange';
 import { installBrowserScopeEnvironment } from '../app/view/scopeEnvironment';
 import { SceneOwnership, sceneResourceOwner } from '../app/sceneOwnership';
 import { UploadOwnership } from '../render/uploadOwnership';
@@ -145,6 +146,10 @@ export interface EntryPreparation {
 }
 
 export class Game {
+  private readonly frameDrawRanges: FrameDrawRanges = new FrameDrawRanges();
+  /** Limit distant ordinary draws only during live presentation; the owning
+   * caller enables its range while waiting and disables it before playing. */
+  bindFrameDrawRange(owner: Scope, distance: number): FrameDrawRange { return this.frameDrawRanges.bind(owner, distance); }
   readonly app: typeof app = app;
   renderer: Renderer;
   /** The page's one rendered scene: the render pass, AO, shadows, the sky and the leak census read this root. */
@@ -1164,7 +1169,7 @@ export class Game {
         try { this.lookStrategy?.frame?.(realDt, t); }
         finally { if (this.app.cpu.enabled && this.lookStrategy?.frame !== undefined) this.app.cpu.record(this.app.cpu.ticket(this.levelScope), diagnosticNow() - lookStart); }
         cullPlaced(this.camera); // placed models' per-copy culling and LODs for this view (src/engine/models/place.ts; nothing when none cull)
-        composer.render(realDt);
+        this.frameDrawRanges.draw(this.rootScene, this.camera, composer, realDt);
         noteDrawnEnvironment(this.rootScene.environment); // what the frame lit with, for view-root warm-ups (drawnEnvironment.ts)
         if (this.compositionChanged && this.compositionObservers.size > 0) {
           const bytes = this.composerAllocationResources().reduce((sum, row) => sum + row.bytes, 0);

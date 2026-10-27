@@ -1218,6 +1218,9 @@ Streamed-root preparation now shares the entered-frame presented-time bound: a s
 with a named issue instead of leaving a far/near fetch pending forever. The draw barrier itself also carries this bound,
 including sky/post callers outside an entered-frame warm-up. Disposing its owner rejects immediately.
 
+`Game.bindFrameDrawRange(owner, distance)`: an `enabled` live-draw mask.
+Visibility restores in finally; sky/custom/unknown draws and warm-up stay.
+
 `Game.warmEnteredFrame(owner, futureRoot?, before?)` captures the region scene. Callers pass its view root and sibling
 lights; only parked-root visibility is ignored.
 `before(prepare, prepareFrame)` warms roots during construction and page programs after kit completes, without drawing.
@@ -1276,10 +1279,9 @@ A two-sided material can still issue two variants; one native query can still ov
 preparation uses the existing 6 ms slice on both browser families. Initial boot retains its
 ordinary grouping and 12 ms bound; readiness still awaits the complete inventory before exposure.
 
-Live WebKit uses `LIVE_PARKED_BUDGET`: up to8 draws,1 fresh material/binding,
-256KiB fresh buffers/frame. Copies share exact geometry/material/version/program
-shape; callbacks, skinning and morphs isolate. All draws remain; one oversized
-drawable goes alone. Optional `ParkedDrawBudget.newBindings` leaves other budgets unchanged.
+Live WebKit: `LIVE_PARKED_BUDGET` allows8 draws,1 fresh exact binding/material,
+256KiB fresh buffers. Custom/skin/morph and oversized draws isolate;
+`newBindings` is optional. Every draw remains.
 Native slices wait for completed draws, even held; skipped rAFs cannot release them.
 Static bounds use 6 ms painted scans: 32K vertices / 512 instances per step.
 Other geometry keeps native bounds. Boot/desktop keep budgets; native draws can stall.
