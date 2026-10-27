@@ -4,16 +4,21 @@ import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration'
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { FIXED_MODEL_NAMES } from './modelFiles';
 import { driftwoodFixedFiles } from './fixedProgram';
+import { GULL_DRAW } from './gullDraw';
+import { FISH_DRAW } from './fishDraw';
+
+/** The fixed models a posed library draws (`posedAssets`: one identity-space Float32 mesh, read as stored): never compacted. */
+const POSED = new Set([GULL_DRAW, FISH_DRAW].flatMap(draw => [draw.tiers.phone.geometry, draw.tiers.desktop.geometry]));
 
 /** Admit every original fixed draw with byte-derived costs as file intake does: 16-bit grid positions, 8-bit normals and
- *  colours (± meshopt) when that serves fewer bytes (iPhone downloads I3, `compactPhoneGlb`), else the lossless meshopt
- *  selection. */
+ *  colours (± meshopt) when that serves fewer bytes (iPhone downloads I3, `compactPhoneGlb`), else (and for a posed draw)
+ *  the lossless meshopt selection. */
 export async function driftwoodFixedModelOutput(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<EmittedBlobs> {
   const files = await driftwoodFixedFiles(ctx), blobs: NamedBlob[] = [];
   for (const [url, name] of Object.entries(FIXED_MODEL_NAMES)) {
     const filename = url.slice(url.lastIndexOf('/') + 1), bytes = files.get(`baked/fixed-models/${filename}`);
     if (bytes === undefined || bytes.byteLength === 0) throw new Error(`Missing owned fixed model: ${name}`);
-    const compact = await compactPhoneGlb(bytes);
+    const compact = POSED.has(name) ? bytes : await compactPhoneGlb(bytes);
     blobs.push(compact === bytes ? await nameMeshoptBlob(name, bytes) : nameBlob(name, 'glb', compact));
   }
   const output = emitNamedBlobs(blobs), assets = new Map(output.assets);
