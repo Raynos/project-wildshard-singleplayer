@@ -16,6 +16,7 @@ export class AnimMachine {
   private live = true;
   private current: string | null = null;
   private stateChannel: ClipChannel | undefined;
+  private forgetScope: (() => void) | undefined;
   readonly def: AnimMachineDef;
   readonly rig: RigInstance;
   constructor(def: AnimMachineDef, rig: RigInstance, scope?: Scope) {
@@ -27,7 +28,10 @@ export class AnimMachine {
       this.actions.set(name, action);
     }
     for (const state of Object.values(def.states)) this.action(state.clip);
-    scope?.onDispose(() => { this.dispose(); });
+    const forget = scope?.capture('disposers', () => { this.dispose(); });
+    // A closed scope disposes synchronously while capture is registering.
+    if (this.live) this.forgetScope = forget;
+    else forget?.();
   }
   get state(): string | null { return this.current; }
   action(name: ClipName): AnimationAction {
@@ -59,8 +63,12 @@ export class AnimMachine {
   dispose(): void {
     if (!this.live) return;
     this.live = false;
+    const forget = this.forgetScope;
+    this.forgetScope = undefined;
+    forget?.();
     this.mixer.stopAllAction(); this.mixer.uncacheRoot(this.rig.root);
     this.actions.clear(); this.channels.length = 0;
+    this.stateChannel = undefined;
   }
 }
 export interface AnimService {
