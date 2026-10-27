@@ -155,6 +155,25 @@ test('native generated inputs match canonical committed producer bytes',()=>{
   }finally{f.close();}
 });
 
+test('native generated data requires its exact committed catalogue hash',()=>{
+  const f=fixture();try {
+    const bytes='{"layout":1}',file='src/layout.generated.json';
+    const hash='7ab5c3764baa1cbd91989e42e3fdb3f2927c7282cc3263e9372d3a144aa869ff';
+    f.put('.gitignore','tmp/\nnode_modules/\n*.generated.json\n');
+    f.put('scripts/generation-jobs.json',JSON.stringify({jobs:[{outputs:[file],buildOutputs:{[file]:hash}}]}));
+    f.put('src/main.ts',"import layout from './layout.generated.json';export const value=layout;");
+    const tip=f.commit();
+    const absent=f.run('fast-lint',tip);expect(absent.stdout).toContain('unverified inputs src/layout.generated.json');
+    f.put(file,bytes);
+    const good=f.run('fast-lint',tip);
+    expect(good.status,good.stdout+good.stderr).toBe(0);expect(good.stdout).toContain('Fast lint passed on 1 exact changed files');
+    f.put(file,'{"layout":2}');
+    const changed=f.run('fast-lint',tip);
+    expect(changed.stdout).toContain('unverified inputs src/layout.generated.json');
+    expect(changed.stdout).not.toContain('Fast lint passed');
+  }finally{f.close();}
+});
+
 test('deleted-path guard ignores loose rescues and keeps frozen legacy references historical',()=>{
   const f=fixture();try {
     f.put('src/other.ts','export const other=1;');f.commit();f.git('rm','src/other.ts');

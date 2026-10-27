@@ -66,7 +66,7 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
                 target=`src/${packageName[1]}/${entry.slice(2)}`;
               }
               if(target===null)continue;
-              const resolved=[target,`${target}.ts`,`${target}.tsx`,`${target}.mts`,`${target}.mjs`,`${target}.js`,`${target}/index.ts`].find(path=>view.files.has(path)||view.derived.has(path));
+              const resolved=[target,`${target}.ts`,`${target}.tsx`,`${target}.mts`,`${target}.mjs`,`${target}.js`,`${target}/index.ts`].find(path=>view.files.has(path)||view.derived.has(path)||view.admitGenerated(path));
               if(resolved===undefined)missing.add(target);else visit(resolved);
             }
           };visit(selected);return {inputs:[...seen],missing:[...missing],mismatched:[...mismatched]};

@@ -1,9 +1,11 @@
 // Read-only Git inputs for fast checks. No checkout, generated cache or source tree.
 import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { registerHooks, syncBuiltinESMExports } from 'node:module';
 import { dirname, isAbsolute, matchesGlob, relative, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import * as v from 'valibot';
 
 /** @param {string} root @param {string} revision */
 export function gitSourceView(root, revision) {
@@ -25,9 +27,33 @@ export function gitSourceView(root, revision) {
   }
   /** @type {Map<string,Buffer>} */
   const cache = new Map();
+  /** @type {Map<string,string>|undefined} */ let generatedPins;
+  /** @returns {boolean} */
+  const admitGenerated=(/** @type {string} */ path)=>{
+    if(generatedPins===undefined){
+      generatedPins=new Map();
+      if(files.has('scripts/generation-jobs.json')){
+        const catalogue=v.parse(v.object({jobs:v.array(v.object({outputs:v.array(v.string()),buildOutputs:v.optional(v.record(v.string(),v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{})}))}),JSON.parse(command(['show',`${revision}:scripts/generation-jobs.json`]).toString('utf8')));
+        for(const job of catalogue.jobs)for(const [file,hash] of Object.entries(job.buildOutputs)){
+          if(!job.outputs.includes(file))throw new Error(`Undeclared generated pin: ${file}`);
+          generatedPins.set(file,hash);
+        }
+      }
+    }
+    const pin=generatedPins.get(path);if(pin===undefined)return false;
+    try{
+      const bytes=actualRead(resolve(root,path));
+      if(createHash('sha256').update(bytes).digest('hex')!==pin)return false;
+      derived.set(path,bytes);return true;
+    }catch{return false;}
+  };
+  /** @returns {Buffer} */
   const read = (/** @type {string} */ path) => {
     const generated=derived.get(path);if(generated!==undefined)return generated;
-    const hash=files.get(path);if(hash===undefined)throw Object.assign(new Error(`Missing committed input: ${path}`),{code:'ENOENT'});
+    const hash=files.get(path);if(hash===undefined){
+      if(admitGenerated(path)){const bytes=derived.get(path);if(bytes!==undefined)return bytes;}
+      throw Object.assign(new Error(`Missing committed input: ${path}`),{code:'ENOENT'});
+    }
     let bytes=cache.get(hash);if(bytes===undefined){bytes=command(['cat-file','blob',hash]);cache.set(hash,bytes);}return bytes;
   };
   /** Batch immutable text reads for tree-scanning guards, never materialize source. @param {string[]} paths */
@@ -46,7 +72,7 @@ export function gitSourceView(root, revision) {
     }
   };
   const matches=(/** @type {string} */ path)=>{try{return read(path).equals(actualRead(resolve(root,path)));}catch{return false;}};
-  return {root,revision,files,directories,derived,read,matches,prime};
+  return {root,revision,files,directories,derived,read,matches,prime,admitGenerated};
 }
 
 /** Pin synchronous policy readers and JS imports to one Git inventory. Scratch and packages stay native.
@@ -151,5 +177,5 @@ export async function deriveGitStarterTables(view) {
 }
 if(process.env.WS_GIT_CHECK_ROOT!==undefined&&process.env.WS_GIT_CHECK_REV!==undefined) {
   const view=gitSourceView(resolve(process.env.WS_GIT_CHECK_ROOT),process.env.WS_GIT_CHECK_REV);
-  installGitSourceView(view);await deriveGitVocabulary(view);
+  installGitSourceView(view);await deriveGitVocabulary(view);await deriveGitStarterTables(view);
 }
