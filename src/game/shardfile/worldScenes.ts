@@ -320,6 +320,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
             finish.push(whole.done); libraries.set(row.id, { geometry: whole.geometry });
           } else if (row.kind === 'owned') {
             const models = new Map<string, WorldSceneGeometry>();
+            const modelSlice = workSlice(undefined, owner);
             const neededModels = row.models.filter(model => residentReferences.has(JSON.stringify([row.id, model.id])));
             const modelProgress = loadingUnits('Home models', neededModels.length);
             modelProgress(0, row.id);
@@ -342,8 +343,10 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
               const geometry = await readWorldSceneGeometry(owner, reader, { file, attributes: model.attributes, ...(model.segments === undefined ? {} : { segments: model.segments }) }, ctx.app.assets);
               finish.push(geometry.done); models.set(model.id, geometry);
               modelProgress(modelIndex + 1, model.id);
+              // Cached templates retain the same budget without a forced task hop per lease.
               // Consumers keep private mutable copies; finish releases the construction lease.
-              await buildYield(owner);
+              requireSceneOwner(owner);
+              if (modelSlice.due()) await modelSlice.yield();
             }
             libraries.set(row.id, { geometry: id => models.get(id)?.copy() ?? null });
           } else {
