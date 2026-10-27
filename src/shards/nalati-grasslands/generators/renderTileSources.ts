@@ -15,11 +15,13 @@ export interface NalatiRenderTileSources {
 }
 
 /** Construct the retained render-tile publication from explicit native terrain bytes.
- * No filesystem, generated metadata, cache or publication is installed by importing this module. */
-export async function nalatiRenderTileSources(native: Uint8Array): Promise<NalatiRenderTileSources> {
+ * No filesystem, generated metadata, cache or publication is installed by importing this module.
+ * iPhone downloads I3: the L0 tiles ship in phone geometry; `phase` 'exact' is the pre-I3 publication, which only the
+ * predecessor oracle (test/nalati-render-source.test.ts) builds. */
+export async function nalatiRenderTileSources(native: Uint8Array, phase: 'i3' | 'exact' = 'i3'): Promise<NalatiRenderTileSources> {
   // T8 (G786) / G748.6: the 16 L1 squares are tile rows too (the same 1 m policy as the pair files the painted ground draws;
   // runtime-bound like the L0 rows, so the client never draws them twice), so every occupied parent has its coarse tile
-  const { assets, nativeGround, ...rows } = await bakeNalatiWorldRowsLod(native, [], 'painterly', L1_TILE_POLICY);
+  const { assets, nativeGround, ...rows } = await bakeNalatiWorldRowsLod(native, [], 'painterly', L1_TILE_POLICY, undefined, phase);
   const tiles = new Set(rows.tiles.flatMap(tile => tile.files));
   const metadata = new TextEncoder().encode(`${JSON.stringify({ version: 1, tiles: rows.tiles,
     files: rows.files.filter(file => tiles.has(file.hash)), props: rows.props })}\n`);

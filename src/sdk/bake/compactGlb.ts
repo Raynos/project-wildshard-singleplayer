@@ -29,7 +29,7 @@ const quantized = (accessor: Accessor, array: Int16Array<ArrayBuffer> | Int8Arra
  * with exactly one mesh on one identity-space node, float positions and no skin, morph target or animation is compacted
  * (channels already quantized stay as they are); every other file, and every channel but POSITION / NORMAL / COLOR_0, passes through unchanged.
  */
-export async function compactPhoneGlb(input: Uint8Array): Promise<Uint8Array> {
+export async function compactPhoneGlb(input: Uint8Array, options: { readonly contain?: true } = {}): Promise<Uint8Array> {
   await MeshoptDecoder.ready;
   const io = new WebIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
   const doc = await io.readBinary(Uint8Array.from(input)), root = doc.getRoot();
@@ -62,7 +62,16 @@ export async function compactPhoneGlb(input: Uint8Array): Promise<Uint8Array> {
       const out = new Int16Array(position.getCount() * 3);
       for (let i = 0; i < position.getCount(); i++) {
         position.getElement(i, point);
-        for (let axis = 0; axis < 3; axis++) out[i * 3 + axis] = Math.round(((point[axis] ?? 0) - (centre[axis] ?? 0)) / half * 32767);
+        for (let axis = 0; axis < 3; axis++) {
+          let q = Math.round(((point[axis] ?? 0) - (centre[axis] ?? 0)) / half * 32767);
+          // `contain`: a grid step never carries a vertex past the mesh's own bounds (a placed tile's cell edge, ±250 m)
+          if (options.contain === true) {
+            const at = (step: number): number => step / 32767 * half + (centre[axis] ?? 0);
+            while (q > -32767 && at(q) > (max[axis] ?? 0)) q--;
+            while (q < 32767 && at(q) < (min[axis] ?? 0)) q++;
+          }
+          out[i * 3 + axis] = q;
+        }
       }
       quantized(position, out); done.add(position);
     }
@@ -110,9 +119,10 @@ export async function nameCompactBlob(name: string, bytes: Uint8Array, options: 
 
 /** `compactPhoneGlb` for a placed tile beside the cell's entryways: rounding onto the grid may lift a road-height vertex by
  *  under half a step, which the entryway clearance check (format/entryClearance) rightly refuses, so a tile whose compact
- *  triangles obstruct an entry footprint its exact ones did not keeps its exact bytes. */
+ *  triangles obstruct an entry footprint its exact ones did not keeps its exact bytes. Its grid never carries a vertex past
+ *  the tile's own bounds (`contain`), which the cell's draw-bounds check holds to ±250 m. */
 export async function compactClearGlb(input: Uint8Array, entryways: readonly Pick<ShardEntryways[number], 'edge' | 'width'>[]): Promise<Uint8Array> {
-  const compact = await compactPhoneGlb(input);
+  const compact = await compactPhoneGlb(input, { contain: true });
   if (compact === input) return input;
   const rectangles = entryFootprints(entryways);
   const obstructs = (bytes: Uint8Array): boolean => {

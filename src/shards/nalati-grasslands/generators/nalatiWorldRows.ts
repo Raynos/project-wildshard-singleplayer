@@ -2,6 +2,9 @@ import { WorldBakeRows, type BakedWorldRows } from '@wildshard/sdk/bake/worldRow
 import { staticMaterialNames, type StaticMaterialCatalogue } from '@wildshard/sdk/bake/staticMaterials';
 import type { NativeGround } from '@wildshard/format/nativeGround';
 import { bakeNalatiGround, bakeNalatiGroundLod, nalatiGroundSource, type NalatiGroundTile, type NalatiStaticTile } from './nalatiGroundSource';
+import { compactClearGlb } from '@wildshard/sdk/bake/compactGlb';
+import { parseGlb } from '@wildshard/sdk/assets';
+import { emptyShardfile } from '@wildshard/sdk/author';
 
 /** Compile ordinary render rows, with one combined ground/props GLB per address and the unchanged critical WSTR.
  * This is an offline assembly seam, not product admission: the caller supplies the real catalogue/textures,
@@ -16,9 +19,17 @@ export function bakeNalatiWorldRows(nativeTerrain: Uint8Array, staticTiles: read
 
 /** Explicit offline L1 candidate; records actual shared-tool error rather than claiming a zero-error simplified mesh.
  * The source WSTR remains critical and unchanged. This does not select a live look or grant a retirement discount.
+ * `phase` 'exact' is the pre-I3 construction (every tile as baked): only the I3 predecessor oracle builds it.
  */
-export async function bakeNalatiWorldRowsLod(nativeTerrain: Uint8Array, staticTiles: readonly NalatiStaticTile[], family: string, policy: { targetRatio: number; maxErrorMetres: number }, catalogue?: Pick<StaticMaterialCatalogue, 'snapshot' | 'dependencies'>): Promise<BakedWorldRows & { nativeGround: NativeGround }> {
-  return packNalatiWorldRows(nativeTerrain, await bakeNalatiGroundLod(nalatiGroundSource(nativeTerrain), policy, staticTiles), family, catalogue);
+export async function bakeNalatiWorldRowsLod(nativeTerrain: Uint8Array, staticTiles: readonly NalatiStaticTile[], family: string, policy: { targetRatio: number; maxErrorMetres: number }, catalogue?: Pick<StaticMaterialCatalogue, 'snapshot' | 'dependencies'>, phase: 'i3' | 'exact' = 'i3'): Promise<BakedWorldRows & { nativeGround: NativeGround }> {
+  // iPhone downloads I3: the L0 tiles (the painter mesh, read by the owned-geometry intake) ship in phone geometry; a tile
+  // by an entryway keeps its exact bytes if rounding would lift it into the entry's clearance (compactClearGlb)
+  const entryways = emptyShardfile({ slug: 'nalati-grasslands', name: 'Nalati Grasslands', author: 'Wildshard', revision: 1, seed: 1 }).entryways, tiles: NalatiGroundTile[] = [];
+  for (const entry of await bakeNalatiGroundLod(nalatiGroundSource(nativeTerrain), policy, staticTiles)) {
+    const bytes = entry.tile.lod === 0 && phase === 'i3' ? await compactClearGlb(entry.bytes, entryways) : entry.bytes;
+    tiles.push(bytes === entry.bytes ? entry : { ...entry, bytes, cost: parseGlb(bytes) });
+  }
+  return packNalatiWorldRows(nativeTerrain, tiles, family, catalogue);
 }
 
 function packNalatiWorldRows(nativeTerrain: Uint8Array, entries: readonly NalatiGroundTile[], family: string, catalogue?: Pick<StaticMaterialCatalogue, 'snapshot' | 'dependencies'>): BakedWorldRows & { nativeGround: NativeGround } {
