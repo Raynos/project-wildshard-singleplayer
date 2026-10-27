@@ -18,8 +18,6 @@
     "src/shards/driftwood-isle-legacy/runtime/baked.ts": 1,
     "src/shards/driftwood-isle-legacy/runtime/headless.ts": 1,
     "src/shards/nalati-grasslands-legacy/runtime/baked.ts": 1,
-    "src/shards/nalati-grasslands/generators/dressingScene.ts": 1,
-    "src/shards/nalati-grasslands/generators/product.ts": 1,
     "src/shards/nine-dragon-stack/generators/bake-glyphs.mjs": 2,
     "src/shards/pine-hollow-legacy/runtime/baked.ts": 1
   }

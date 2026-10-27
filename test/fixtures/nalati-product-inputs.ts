@@ -18,5 +18,5 @@ const nav = { navigation: navigationRows, files: parseShardfileField('files', na
 
 /** Original complete spatial inputs for unchanged header/cost controls; never a live source fallback. */
 export function originalNalatiProductRows(species: Inputs[0], held: Inputs[1], render: Inputs[2]): ReturnType<typeof nalatiProductRows> {
-  return nalatiProductRows(species, held, render, queryRows, nav, NALATI_KOKPAR, NALATI_RIDING_PROGRAMS, NALATI_TITAN_PROGRAMS, NALATI_WEATHER, NALATI_ADMISSION, NALATI_CHARGE.rows);
+  return nalatiProductRows(species, held, render, queryRows, nav, NALATI_KOKPAR, NALATI_RIDING_PROGRAMS, NALATI_TITAN_PROGRAMS, NALATI_WEATHER, NALATI_ADMISSION, NALATI_CHARGE.rows, program => atob(program.bytes).length);
 }

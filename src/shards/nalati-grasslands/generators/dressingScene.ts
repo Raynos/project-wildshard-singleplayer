@@ -78,11 +78,13 @@ function readPreparedDressing(input:unknown) {
   return{prepared,scenes,placed};
 }
 
-const encoded=(raw:Uint8Array):string=>{let encodedText='';for(const byte of zlibSync(raw))encodedText+=String.fromCodePoint(byte);return btoa(encodedText);};
-type ContactSource=(raw:Uint8Array)=>{data:string}|{file:string};
-const inlineContact:ContactSource=raw=>({data:encoded(raw)});
-type ClothSource=(raw:Uint8Array)=>{kind:'inline';data:string}|{kind:'baked-file';file:string};
-const inlineCloth:ClothSource=raw=>({kind:'inline',data:encoded(raw)});
+/** Explicit byte transports supplied by the source publisher or an independent predecessor fixture. */
+export interface DressingByteSources {
+  readonly contact: (raw: Uint8Array) => { data: string } | { file: string };
+  readonly cloth: (raw: Uint8Array) => { kind: 'inline'; data: string } | { kind: 'baked-file'; file: string };
+}
+type ContactSource = DressingByteSources['contact'];
+type ClothSource = DressingByteSources['cloth'];
 const id=(name:string)=>`nalati-grasslands/${name}`;
 const preparedContacts=(inputs:readonly unknown[],source:ContactSource)=>{
   const contacts=v.parse(SceneDressingContactsSchema,inputs.map(input=>{const parsed=v.parse(v.looseObject({heading:v.exactOptional(v.tuple([number,number]))}),input),{heading,...contact}=parsed;return heading===undefined?contact:Object.assign(contact,{yaw:Math.atan2(...heading)});}));
@@ -93,7 +95,7 @@ const preparedContacts=(inputs:readonly unknown[],source:ContactSource)=>{
 
 
 /** Existing baked shapes and placements become Z2 rows; no page-side scatter or model constructors. */
-function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<typeof decorativeProfiles>,input:ReturnType<typeof readPreparedDressing>,balbal:v.InferOutput<typeof balbalSchema>,specimens:v.InferOutput<typeof specimensSchema>,paint:v.InferOutput<typeof paintSchema>,cover:v.InferOutput<typeof coverSchema>,cragRows:NalatiCragRows,contactSource:ContactSource=inlineContact,clothSource:ClothSource=inlineCloth) {
+function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<typeof decorativeProfiles>,input:ReturnType<typeof readPreparedDressing>,balbal:v.InferOutput<typeof balbalSchema>,specimens:v.InferOutput<typeof specimensSchema>,paint:v.InferOutput<typeof paintSchema>,cover:v.InferOutput<typeof coverSchema>,cragRows:NalatiCragRows,contactSource:ContactSource,clothSource:ClothSource) {
   const {prepared,scenes,placed}=input;
   const phone=tier==='phone',profile=cover[tier];
   const geometry:Record<string,unknown>={},materials:Record<string,unknown>={},addresses:number[]=[];
@@ -215,7 +217,7 @@ export function dressingSceneBlobs(input:unknown,runtime:unknown,balbal:unknown,
 }
 
 /** Admitted tier rows from caller-owned runtime metadata for catalogue and format consumers. */
-export function dressingScene(tier:'phone'|'desktop',input:unknown,runtime:unknown,balbal:unknown,specimens:unknown,paintRows:unknown,coverRows:unknown,cragRows:NalatiCragRows):SceneDressingRows{return compileDressingScene(tier,v.parse(decorativeProfiles,input),readPreparedDressing(runtime),v.parse(balbalSchema,balbal),v.parse(specimensSchema,specimens),v.parse(paintSchema,paintRows),v.parse(coverSchema,coverRows),cragRows).rows;}
+export function dressingScene(tier:'phone'|'desktop',input:unknown,runtime:unknown,balbal:unknown,specimens:unknown,paintRows:unknown,coverRows:unknown,cragRows:NalatiCragRows,bytes:DressingByteSources):SceneDressingRows{return compileDressingScene(tier,v.parse(decorativeProfiles,input),readPreparedDressing(runtime),v.parse(balbalSchema,balbal),v.parse(specimensSchema,specimens),v.parse(paintSchema,paintRows),v.parse(coverSchema,coverRows),cragRows,bytes.contact,bytes.cloth).rows;}
 
 /** Decorative poses keep the existing visual programs and RNG continuation; none owns gameplay actors. */
 function bowlScene(tier:'phone'|'desktop',data:v.InferOutput<typeof decorativeProfile>,geometry:Record<string,unknown>,materials:Record<string,unknown>,prepared:ReturnType<typeof readPreparedDressing>['prepared'],specimens:v.InferOutput<typeof specimensSchema>,paint:v.InferOutput<typeof paintSchema>){

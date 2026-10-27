@@ -73,9 +73,10 @@ function renderRows(value: unknown): { files: readonly unknown[]; tiles: readonl
   return { files: value.files, tiles: value.tiles, props: value.props };
 }
 
-/** Compose the complete header with caller-owned costs; retain original module deduplication and page charges. */
+/** Compose the complete header with caller-owned byte lengths; retain module deduplication and page charges.
+ * Named source programs carry empty inline bytes; historical fixture transport is measured by its fixture owner. */
 export function nalatiProductRows(species: NalatiSpeciesProgramCosts, held: NalatiHeldProgramCosts, render: unknown,
-  queryTerrain: Omit<BakedQueryTerrain, 'assets'>, navigation: Awaited<ReturnType<typeof nalatiNavigationProgram>>, kokpar: Pick<NalatiKokpar, 'program' | 'course' | 'compiled'>, ridingPrograms: Pick<NalatiRidingPrograms, 'approach' | 'breaking' | 'riding' | 'compiled'>, titanProgram: NalatiTitanPrograms, weather: Pick<NalatiWeather, 'rows' | 'channels'>, admission: NalatiAdmission, charge: Pick<NalatiCharge, 'script' | 'bytes' | 'compiled'>): ReturnType<typeof parseShardfile> {
+  queryTerrain: Omit<BakedQueryTerrain, 'assets'>, navigation: Awaited<ReturnType<typeof nalatiNavigationProgram>>, kokpar: Pick<NalatiKokpar, 'program' | 'course' | 'compiled'>, ridingPrograms: Pick<NalatiRidingPrograms, 'approach' | 'breaking' | 'riding' | 'compiled'>, titanProgram: NalatiTitanPrograms, weather: Pick<NalatiWeather, 'rows' | 'channels'>, admission: NalatiAdmission, charge: Pick<NalatiCharge, 'script' | 'bytes' | 'compiled'>, programByteLength: (program: NalatiSpeciesProgramCosts['program']) => number): ReturnType<typeof parseShardfile> {
   const weatherDecision = weather.rows, weatherChannels = weather.channels.weather, herdChannels = weather.channels.herd;
   const pasture = titanProgram.wind;
   const files = [...navigation.files, ...queryTerrain.files].sort((a, b) => a.hash.localeCompare(b.hash));
@@ -86,7 +87,7 @@ export function nalatiProductRows(species: NalatiSpeciesProgramCosts, held: Nala
   if (!Number.isSafeInteger(held.compiledBytes) || held.compiledBytes < 0
     || [held.projectionPages, held.program.script.pages, held.stealthProgram.script.pages].some(pages => !Number.isSafeInteger(pages) || pages < 1)) throw new Error('Invalid held program costs');
   const programs = [held.program,held.stealthProgram,species.program,weatherDecision,kokpar.program,kokpar.course, admission, pasture, titanProgram.attack,titanProgram.fire,titanProgram.wind,titanProgram.rules, ridingPrograms.approach, ridingPrograms.breaking, ridingPrograms.riding, charge];
-  const programBytes = programs.filter((program,index,all)=>all.findIndex(entry=>entry.script.module===program.script.module)===index).reduce((sum, program) => sum + atob(program.bytes).length, weatherDecision.compiled.bytes+kokpar.compiled.bytes+(kokpar.compiled.courseBytes??0)+admission.compiled.witnessBytes+titanProgram.compiled.witnessBytes+species.witnessBytes+ridingPrograms.compiled.witnessBytes+charge.compiled.bytes);
+  const programBytes = programs.filter((program,index,all)=>all.findIndex(entry=>entry.script.module===program.script.module)===index).reduce((sum, program) => { const bytes=programByteLength(program); if(!Number.isSafeInteger(bytes)||bytes<0)throw new Error('Invalid program byte cost'); return sum+bytes; }, weatherDecision.compiled.bytes+kokpar.compiled.bytes+(kokpar.compiled.courseBytes??0)+admission.compiled.witnessBytes+titanProgram.compiled.witnessBytes+species.witnessBytes+ridingPrograms.compiled.witnessBytes+charge.compiled.bytes);
   // Retain the legacy witness allowance and account for the one selected v2
   // module, shared by attack/rules in the original construction scope.
   const projection = titanProgram.attack.v2;

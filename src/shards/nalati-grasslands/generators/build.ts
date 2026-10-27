@@ -11,7 +11,7 @@ import { nalatiRidingProgram } from './ridingProgram';
 import { nalatiTitanProgram } from './stormTitanProgram';
 import { nalatiChargeProgram } from './chargeProgram';
 
-/** Partial source construction retains the scheduler until the last producer retires. */
+/** Owned source programs supply admitted binary charges; no inline executable decoding is needed. */
 export async function build(ctx: ProjectGenerationContext): Promise<ReturnType<typeof nalatiProductRows>> {
   const species = await prepareSpecies(ctx);
   const render = await nalatiRenderTileProgram(ctx), metadata = render.get('data/renderTiles.json');
@@ -23,5 +23,8 @@ export async function build(ctx: ProjectGenerationContext): Promise<ReturnType<t
   return nalatiProductRows(species.rows, {
     program: species.rows.program, stealthProgram: species.rows.program,
     compiledBytes: species.rows.compiled.bytes, projectionPages: species.rows.program.v2.artifact.pages,
-  }, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(metadata)) as unknown, await nalatiQueryTerrainProgram(ctx), await nalatiNavigationProgram(ctx), (await nalatiKokparProgram(ctx)).rows, (await nalatiRidingProgram(ctx)).programs, (await nalatiTitanProgram(ctx)).programs, await nalatiWeatherProgram(ctx), (await nalatiAdmissionProgram(ctx)).program, (await nalatiChargeProgram(ctx)).rows);
+  }, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(metadata)) as unknown, await nalatiQueryTerrainProgram(ctx), await nalatiNavigationProgram(ctx), (await nalatiKokparProgram(ctx)).rows, (await nalatiRidingProgram(ctx)).programs, (await nalatiTitanProgram(ctx)).programs, await nalatiWeatherProgram(ctx), (await nalatiAdmissionProgram(ctx)).program, (await nalatiChargeProgram(ctx)).rows, program => {
+    if(program.bytes!=='')throw new Error('Nalati product requires file-owned program bytes');
+    return 0;
+  });
 }
