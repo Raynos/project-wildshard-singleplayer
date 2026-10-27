@@ -2,6 +2,7 @@
 
 Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E423 (2026-10-03).
 
+- **Never cancel running push CI or boot-smoke by hand** (GM1): every running push run finishes and lists every red.
 - `.github/workflows/deploy.yml` runs the gates on every push and pull request. Production
   deploys at :17 each hour or from `gh workflow run deploy`; the job skips if `/version.json` reports the **selected proven commit**. `gh workflow run deploy -f force=true`
   redeploys the same commit. The job builds Vercel output in GitHub Actions and uploads it
