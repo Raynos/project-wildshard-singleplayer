@@ -1,5 +1,5 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { Bone, BufferGeometry, Float32BufferAttribute, MeshStandardMaterial, Skeleton, SkinnedMesh, Texture, Uint16BufferAttribute } from 'three';
+import { Bone, BufferGeometry, Float32BufferAttribute, MeshStandardMaterial, Skeleton, SkinnedMesh, Texture, TextureLoader, Uint16BufferAttribute } from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { riggedHulls } from '@wildshard/game/looks/riggedHulls';
 
@@ -45,4 +45,17 @@ test('a refused verified map frees its sibling and never falls back to the URL l
   await expect(family.preload()).rejects.toThrow('Verified body hash mismatch');
   expect(dispose).toHaveBeenCalledOnce(); expect(urlRead).not.toHaveBeenCalled();
   expect(() => family.skin('bird', 'adult', [])).toThrow('not prepared');
+});
+
+
+test('a public image coat keeps the original image decoder beside verified rig maps', async () => {
+  const image = new Texture<HTMLImageElement>(), imageRead = vi.spyOn(TextureLoader.prototype, 'loadAsync').mockResolvedValue(image);
+  const textures: Texture[] = [], texture = vi.fn((_name: string): Promise<Texture> => {
+    const value = new Texture(); textures.push(value); return Promise.resolve(value);
+  });
+  const family = riggedHulls(row, { files, coats: { 'body:bird:adult': { key: '/unmapped/coat.png', image: '/original/coat.png' } } }, { rig: sourceRig, texture });
+  await family.preload();
+  expect(texture.mock.calls).toEqual([['creature/base.ktx2'], ['creature/normal.ktx2']]);
+  expect(imageRead).toHaveBeenCalledExactlyOnceWith('/original/coat.png');
+  (await family.load('body')).geometry.dispose(); for (const value of [...textures, image]) value.dispose();
 });

@@ -43,7 +43,10 @@ export function productRiggedHulls(slug: string): RiggedHulls {
       const product = await loadFirstPartyProduct(slug), book = product.section('look/rigged-hulls');
       const source = book.tiers[TIER];
       if (book.productFiles) {
-        family = riggedHulls(book.family, source, productHullTransport(slug));
+        // Only named KTX2 coats use the byte parser. Other image codecs keep their original URL decoder.
+        const resources = { ...source, coats: Object.fromEntries(Object.entries(source.coats).map(([name, coat]) =>
+          [name, coat.image.startsWith('/') || coat.image.endsWith('.ktx2') ? coat : { ...coat, image: product.url(coat.image) }])) };
+        family = riggedHulls(book.family, resources, productHullTransport(slug));
         return family;
       }
       family = riggedHulls(book.family, source); return family;
@@ -237,7 +240,7 @@ export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls, tran
       const coat = urls.coats[`${name}:${kind}:${variant}`];
       if (coat === undefined) return;
       // Logical names consume the same verified product body as admission; public coats keep their original URL/cache key.
-      const owned = transport !== undefined && !coat.image.startsWith('/');
+      const owned = transport !== undefined && !coat.image.startsWith('/') && coat.image.endsWith('.ktx2');
       const tex = owned ? await readTexture(coat.image) : await ktx2Texture(coat.key) ?? (urls.coatDecode === 'bitmap'
         ? new THREE.Texture(await fetchImage(coat.image, Infinity, false)) : await new THREE.TextureLoader().loadAsync(coat.image));
       tex.flipY = map.flipY; tex.anisotropy = map.anisotropy; tex.wrapS = map.wrapS; tex.wrapT = map.wrapT;
