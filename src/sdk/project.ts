@@ -145,6 +145,14 @@ async function projectModule(project: string, decisionLegacyLines?: number, sele
     if (!isProjectGenerator(prepareOutput) || sidecarModule === undefined) throw new Error('Output preparation must be a build function');
     sidecarOutput = await prepareOutput(generation);
   }
+  // GR6: an output sidecar may also build the project's map lattice (`prepareMap(ctx)` → `{ pixels, name? }`), as a
+  // source program returning `map` does; one producer of the map only
+  const prepareMap = sidecar?.['prepareMap'];
+  if (prepareMap !== undefined) {
+    if (!isProjectGenerator(prepareMap)) throw new Error('Map preparation must be a build function');
+    if (map !== undefined) throw new Error('Generated project declares its map twice');
+    map = await generatedProjectMap(await prepareMap(generation), mapSourceHash ?? program.hash);
+  }
   shard = mergeProjectSections(shard, sidecar?.['sections']);
   const output = await prepareProjectOutput(project, generatedOutput ?? (sidecar === undefined ? loaded['output'] : sidecarOutput), { source: shard, options: projectDecisionOptions(loaded['buildOptions'], projectDecisionBudget(project, decisionLegacyLines)) });
   // The CLI-only sidecar may declare the runtime/const.ts mirrors too (a browser config cannot import data/ values).

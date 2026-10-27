@@ -10,7 +10,10 @@ publishes owned bytes. Injected `compileScript`, `compileScriptV2`,
 `compileDecisionScripts` and optional `compileDecisionRows` compile without
 author filesystem/compiler imports. Compiler dependencies enter cache keys.
 An output sidecar may export `prepareOutput(ctx)` alongside `output`; its
-result crosses product admission, keyed by config and sidecar source.
+result crosses product admission, keyed by config and sidecar source. It may
+also export `prepareMap(ctx)`, returning `{ pixels, name? }` (a 1000 × 1000
+RGBA lattice), published as the project map exactly as a source program's
+returned `map` is; a project has one map producer.
 
 `proveStaticPortalEntries(shard, pieces)` is an uncached build capability for
 static portal links. It admits the shard, installs the declared baked pieces,

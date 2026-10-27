@@ -171,6 +171,27 @@ export async function prepareOutput(ctx) {
   expect(revised.assets.get(nextFile.hash)).toEqual(new Uint8Array([7, 8, 9]));
 });
 
+test('an output sidecar may prepare the project map lattice, published as its named image', async () => {
+  const path = directory(); mkdirSync(resolve(path, 'generators'));
+  writeFileSync(resolve(path, 'shard.config.ts'), `export default ${JSON.stringify(source())};`);
+  writeFileSync(resolve(path, 'generators/output.ts'), `
+export const output = {};
+export async function prepareMap() { const pixels = new Uint8Array(1000 * 1000 * 4); pixels.fill(200); return { pixels, name: 'ui/images/map' }; }`);
+  const made = await readProjectAssets(path), image = made.shard.map?.image;
+  if (image === undefined) throw new Error('Missing prepared map');
+  expect(made.shard.map?.tilesHash).toMatch(/^[a-f0-9]{64}$/u);
+  expect(made.assets.get(image)?.byteLength).toBeGreaterThan(0);
+});
+
+test('map preparation refuses a non-function and a second map producer', async () => {
+  const path = directory(); mkdirSync(resolve(path, 'generators'));
+  writeFileSync(resolve(path, 'shard.config.ts'), `export default ${JSON.stringify(source())};`);
+  writeFileSync(resolve(path, 'generators/output.ts'), 'export const output={}; export const prepareMap=42;');
+  await expect(readProjectAssets(path)).rejects.toThrow('Map preparation must be a build function');
+  writeFileSync(resolve(path, 'generators/output.ts'), 'export const output={}; export function prepareMap(){return {pixels:new Uint8Array(3)};}');
+  await expect(readProjectAssets(path)).rejects.toThrow('Invalid generated map lattice');
+});
+
 test('output preparation retains function, filesystem and output admission refusals', async () => {
   const path = directory(); mkdirSync(resolve(path, 'generators'));
   writeFileSync(resolve(path, 'shard.config.ts'), `export default ${JSON.stringify(source())};`);
