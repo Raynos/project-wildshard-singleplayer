@@ -1,9 +1,10 @@
 // @vitest-environment happy-dom
 import {afterEach,expect,test,vi} from 'vitest';
 import {readPrefetchIndex} from '../src/game/grid/prefetchIndex';
+import type {OutputDownloadIndex} from '../src/format/outputDownload';
 
 const hash='a'.repeat(64);
-const index={sections:[],schemas:[],files:[],runtime:null};
+const index={format:'wildshard.shardfile',formatVersion:2,sections:[],schemas:[],files:[],runtime:null} satisfies OutputDownloadIndex & {format:'wildshard.shardfile';formatVersion:2};
 afterEach(()=>{vi.unstubAllGlobals();});
 
 test('index admission delegates bytes to the existing cache writer and closes its worker',async()=>{
