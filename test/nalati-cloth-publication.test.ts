@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import {unzlibSync} from 'fflate';
 import {base64Bytes,decodeLaneBytes} from '../src/engine/core/deflate';
 import {SceneDressingSchema} from '../src/format/sceneDressing';
-import {dressingScene,dressingSceneBlobs} from '../src/shards/nalati-grasslands/generators/dressingScene';
+import {dressingScene,dressingSceneBlobs} from './fixtures/nalati-dressing-scene';
 import {readBakedGeometry} from '../src/game/plugin/geometry';
 import {nalatiSpecimens} from './fixtures/nalati-specimens';
 import {nalatiBalbal} from './fixtures/nalati-balbal';

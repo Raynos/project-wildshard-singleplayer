@@ -16,7 +16,7 @@ import pins from './fixtures/nalati-place-runtime-files.json' with { type: 'json
 
 const prefix = 'src/shards/nalati-grasslands/';
 const normalize = (value: unknown): unknown => { const result: unknown = JSON.parse(new TextDecoder().decode(jsonBytes(value))); return result; };
-function read(name: PlaceRuntimeInput): unknown { const path = name === 'dressing' ? 'test/fixtures/nalati-dressing-geos.json' : name === 'data/places.json' ? 'test/fixtures/nalati-places-original.json' : `${prefix}${name}`; const input: unknown = JSON.parse(readFileSync(path, 'utf8')); return input; }
+function read(name: PlaceRuntimeInput): unknown { const path = name === 'dressing' ? 'test/fixtures/nalati-dressing-geos.json' : name === 'data/places.json' ? 'test/fixtures/nalati-places-original.json' : name === 'data/poiPaint.json' ? 'test/fixtures/nalati-poi-paint-original.json' : `${prefix}${name}`; const input: unknown = JSON.parse(readFileSync(path, 'utf8')); return input; }
 
 test('pure runtime preparation preserves all seven complete output pins and input records', () => {
   const inputs = new Map<PlaceRuntimeInput, unknown>();

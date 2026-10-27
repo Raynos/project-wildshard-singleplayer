@@ -6,7 +6,7 @@ import { nalatiDecorative } from './fixtures/nalati-decorative';
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { decorativeRows } from '../src/shards/nalati-grasslands/generators/decorativeInput';
-import { dressingScene, dressingSceneBlobs as namedDressingSceneBlobs } from '../src/shards/nalati-grasslands/generators/dressingScene';
+import { dressingScene, dressingSceneBlobs as namedDressingSceneBlobs } from './fixtures/nalati-dressing-scene';
 import {originalDressingContactTransport} from './fixtures/nalati-contact-transport';
 import * as v from 'valibot';
 import { withPortableMath } from '../src/commons/bake/portableMath';

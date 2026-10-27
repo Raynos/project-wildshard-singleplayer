@@ -11,6 +11,7 @@ export const nalatiRuntimePacket=placeRuntimeRows(name=>{
   if(name==='data/places.json')return places;
   if(name==='data/campCatalogue.json')return specimens.catalogue;
   if(name==='dressing')return dressing;
+  if(name==='data/poiPaint.json')return JSON.parse(readFileSync('test/fixtures/nalati-poi-paint-original.json','utf8')) as unknown;
   const input:unknown=JSON.parse(readFileSync(`src/shards/nalati-grasslands/${name}`,'utf8'));return input;
 },value=>{const text=JSON.stringify(value);if(text===undefined)throw new Error('Missing original runtime value');const normalized:unknown=JSON.parse(text);return normalized;});
 export const nalatiRuntime=nalatiRuntimePacket.runtime;

@@ -10,12 +10,13 @@ import {expect,test} from 'vitest';
 import * as v from 'valibot';
 import {unzlibSync} from 'fflate';
 import {readNamedBlob} from '../src/sdk/blobs';
-import {dressingScene,DRESSING_CONTACT_SOURCES} from '../src/shards/nalati-grasslands/generators/dressingScene';
+import { dressingScene } from './fixtures/nalati-dressing-scene';
+import { DRESSING_CONTACT_SOURCES } from '../src/shards/nalati-grasslands/generators/dressingScene';
 import reference from './fixtures/nalati-contact-blocks.json' with {type:'json'};
 
 const finite=v.pipe(v.number(),v.finite());
 const paint=v.parse(v.object({contacts:v.record(v.string(),v.record(v.string(),v.object({file:v.string(),origins:v.array(v.tuple([finite,finite,finite,finite]))})))}),
-  JSON.parse(readFileSync('src/shards/nalati-grasslands/data/poiPaint.json','utf8')));
+  JSON.parse(readFileSync('test/fixtures/nalati-poi-paint-original.json','utf8')));
 const hash=(bytes:Uint8Array):string=>createHash('sha256').update(bytes).digest('hex');
 
 test('both POI tiers preserve every packed point and ordered origin through named binary intake',async()=>{

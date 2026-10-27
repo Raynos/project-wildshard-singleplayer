@@ -16,7 +16,7 @@ import pins from './fixtures/nalati-place-runtime-files.json' with { type: 'json
 import placePins from './fixtures/nalati-place-wires.json' with { type: 'json' };
 
 const prefix = 'src/shards/nalati-grasslands/';
-function original(path: string): unknown { const value: unknown = JSON.parse(readFileSync(path === 'data/places.json' ? 'test/fixtures/nalati-places-original.json' : `${prefix}${path}`, 'utf8')); return value; }
+function original(path: string): unknown { const value: unknown = JSON.parse(readFileSync(path === 'data/places.json' ? 'test/fixtures/nalati-places-original.json' : path === 'data/poiPaint.json' ? 'test/fixtures/nalati-poi-paint-original.json' : `${prefix}${path}`, 'utf8')); return value; }
 const inputs = { places: original('data/places.json'), paint: original('data/poiPaint.json') };
 
 test('frozen placement metadata retains both complete original file hashes', () => {

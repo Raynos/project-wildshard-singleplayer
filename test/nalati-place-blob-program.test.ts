@@ -32,7 +32,7 @@ import shapeBookOriginal from './fixtures/nalati-shape-book.json' with { type: '
 import shapeBookRowsOriginal from './fixtures/nalati-shape-book-original.json' with { type: 'json' };
 import * as v from 'valibot';
 import { discoverGeneration } from '../scripts/generate.mjs';
-import { dressingScene, dressingSceneBlobs } from '../src/shards/nalati-grasslands/generators/dressingScene';
+import { dressingScene, dressingSceneBlobs } from './fixtures/nalati-dressing-scene';
 import {originalDressingContactTransport} from './fixtures/nalati-contact-transport';
 import { nalatiRuntimeRows } from '../src/shards/nalati-grasslands/generators/runtimeRows';
 import { nalatiRuntime } from './fixtures/nalati-runtime';
@@ -44,7 +44,7 @@ const modelPartFile = v.looseObject({ name: v.string(), compressed: v.number(), 
 const modelPartsOriginal = v.parse(v.array(v.object({ file: v.string(), geometry: modelPartFile, atlas: v.nullable(modelPartFile) })),
   JSON.parse(readFileSync('test/fixtures/nalati-model-parts.json', 'utf8')));
 
-const paintInput: unknown = JSON.parse(readFileSync('src/shards/nalati-grasslands/data/poiPaint.json', 'utf8'));
+const paintInput: unknown = JSON.parse(readFileSync('test/fixtures/nalati-poi-paint-original.json', 'utf8'));
 const productShapeRow = (row: typeof shapeBookRowsOriginal.draws[number]) => 'lane' in row ? { ...row, lane: { file: 'world/places.bin', offset: row.lane.offset } } : row;
 
 const originalAssembly: unknown = JSON.parse(readFileSync('test/fixtures/nalati-headless-original.json', 'utf8'));

@@ -8,7 +8,7 @@ import { BoxGeometry,BufferAttribute,Group,InstancedMesh,Matrix4,MeshBasicMateri
 import { SceneInstancesSchema } from '../src/format/sceneInstances';
 import { SceneInstanceFields } from '../src/game/shardfile/sceneInstances';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
-import { dressingScene } from '../src/shards/nalati-grasslands/generators/dressingScene';
+import { dressingScene } from './fixtures/nalati-dressing-scene';
 import { kokparOval } from './fixtures/nalati-kokpar-oracle';
 
 function instanced(value:unknown):value is InstancedMesh{return value instanceof InstancedMesh;}
