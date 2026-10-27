@@ -21,6 +21,7 @@ function fixture() {
   const compile = (job: Object3D, _camera: PerspectiveCamera, target: Scene): void => {
     expect(compileSceneSource(target)).toBe(scene);
     let lights = 0; target.traverseVisible(object => {if (object instanceof DirectionalLight) lights++;});
+    job.traverseVisible(object => {if (object instanceof DirectionalLight) lights++;});
     job.traverse(object => {if (object instanceof Mesh && object.material instanceof MeshBasicMaterial) compiled.push({material: object.material.name,
       receiver: object.receiveShadow, fog: target.fog, lights, environment: target.environment});});
   };

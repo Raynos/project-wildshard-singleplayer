@@ -33,7 +33,7 @@ function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promi
   if (typeof factory !== 'function') throw new Error('Regional hook factory missing');
   const owner = new Scope('equipment-overlap'), root = new Group(), models = new Group();
   root.visible = false; models.visible = false; models.name = 'staged-equipment';
-  const calls: string[] = [], worldReady = deferred();
+  const calls: string[] = [], worldReady = deferred(), finalStarted = deferred();
   const ports = {owner, view: {root}, preparedModels: options.models === false ? null : models, preparing: options.enabled !== false, world: {},
     foundation: {prepareWorldMaterials: (): void => {calls.push('look'); worldReady.resolve();}, ...(options.worldOnly === true ? {} : {beforeWarm: (): void => {calls.push('before-final'); worldReady.resolve();}})},
     request: {page: {world: {game: {warmEnteredFrame: async (scope: Scope, lighting: Object3D,
@@ -45,7 +45,7 @@ function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promi
         if (object === root) worldReady.resolve();
         await options.prepare?.(object);
       }, async () => {calls.push('frame'); await options.prepare?.(models);}, async () => {calls.push('page-only'); await options.page?.();});
-      calls.push('final'); await options.prepare?.(models);
+      calls.push('final'); finalStarted.resolve(); await options.prepare?.(models);
     }}}}},
   };
   const instance: unknown = Reflect.apply(factory, undefined, [ports]);
@@ -60,7 +60,7 @@ function fixture(options: {models?: boolean; prepare?: (root: Object3D) => Promi
     if (typeof value !== 'object' || value === null || typeof Reflect.get(value, 'then') !== 'function') throw new Error('Missing preparation task');
     return Promise.resolve(value).then(() => undefined);
   };
-  return {owner, root, models, calls, worldReady: worldReady.promise, start: () => task('start'), kit: () => {invoke('kit');},
+  return {owner, root, models, calls, worldReady: worldReady.promise, finalStarted: finalStarted.promise, start: () => task('start'), kit: () => {invoke('kit');},
     content: () => {invoke('content');}, result: () => task('result'), rawResult: () => invoke('result')};
 }
 
@@ -83,7 +83,7 @@ test('the final inventory still waits for equipment when play finishes first', a
   await f.start(); const result = f.result(), observed = settle(result);
   try {
     f.content(); await flush(); expect(f.calls).toEqual(['look', 'page-only']);
-    f.kit(); await f.worldReady; await flush(); expect(f.calls).toEqual(['look', 'page-only', 'before-final', 'final']);
+    f.kit(); await f.finalStarted; expect(f.calls).toEqual(['look', 'page-only', 'before-final', 'final']);
     equipment.resolve(); await result;
     expect(f.calls.at(-1)).toBe('final');
   } finally {equipment.resolve(); f.kit(); f.content(); f.owner.dispose(); await observed;}
