@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { ShardfileSchema as GameSchema, parseShardfile as parse, shardfileRules as rules, type Shardfile as GameShardfile } from '@wildshard/format/shardSchema';
+import { ShardfileSchema as GameSchema, ShardfileFieldSchemas, parseShardfile as parse, shardfileRules as rules, type Shardfile as GameShardfile } from '@wildshard/format/shardSchema';
 import { assertStateCompatibility as assertCompatibility } from '@wildshard/format/stateLineage';
 
 /** Author-facing serialisable renderer-neutral shardfile contract. */
@@ -9,6 +9,11 @@ export type Shardfile = GameShardfile;
 export const ShardfileSchema: v.GenericSchema<unknown, Shardfile> = v.pipe(GameSchema);
 /** Parse untrusted author output using the same contract as the client. */
 export function parseShardfile(input: unknown): Shardfile { return parse(input); }
+/** Admit one owned/cached declaration field with its defining schema.
+ * The complete assembled declaration still crosses parseShardfile's cross-field rules. */
+export function parseShardfileField<Key extends keyof Shardfile>(field: Key, input: unknown): Shardfile[Key] {
+  return v.parse(ShardfileFieldSchemas[field], input);
+}
 /** Inspect semantic author errors using the client contract. */
 export function shardfileRules(input: Shardfile): string[] { return rules(input); }
 /** Refuse saved-state identity changes between two validated revisions of the same shard. */

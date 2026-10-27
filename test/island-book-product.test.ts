@@ -14,7 +14,7 @@ import { WORLD_STAGES } from '../src/shards/driftwood-isle/generators/worldAssem
 import { NATIVE_VIEW } from '../src/shards/driftwood-isle/generators/nativeView';
 import { WAKE_ENCOUNTER } from '../src/shards/driftwood-isle/generators/wakeEncounter';
 import { output } from '../src/shards/driftwood-isle/generators/output';
-import source from '../src/shards/driftwood-isle/generators/product';
+import source from './fixtures/driftwood-product-source';
 import manifest from '../src/shards/driftwood-isle/manifest.json' with {type:'json'};
 import headless from '../src/shards/driftwood-isle/data/headlessAssembly.json' with {type:'json'};
 

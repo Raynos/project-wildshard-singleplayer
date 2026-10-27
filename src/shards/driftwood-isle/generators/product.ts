@@ -14,7 +14,7 @@ import DRIFTWOOD_RUNTIME_COST from '../data/runtimeCost.json' with { type: 'json
 import { DECLARED_SEA, WORLD_DROP } from './sea';
 import { ENTRY_LANDINGS } from './entryLandings';
 import navigation from '../data/navigation.generated.json' with { type: 'json' };
-import fixed from '../data/fixedTiles.generated.json' with { type: 'json' };
+import type { DriftwoodFixedProduct } from './fixedProduct';
 import lookGraphs from '../data/lookMaterials.generated.json' with { type: 'json' };
 import skyChannels from '../data/skyChannels.generated.json' with { type: 'json' };
 import captainCoat from '../data/captainCoat.json' with { type: 'json' };
@@ -39,12 +39,14 @@ const row = (authored: readonly number[]): { heights: number[]; colours: [number
   const heights = lowered(authored);
   return { heights, colours: heights.map((): [number, number, number] => [0.5, 0.5, 0.5]), roadHeight: 0 };
 };
+/** Compose the unchanged admitted declaration from caller-owned fixed-world values. */
+export function driftwoodProductRows(fixed: DriftwoodFixedProduct): ReturnType<typeof parseShardfile> {
 const simulationFiles = [...navigation.files, ...fixed.files.filter(file => fixed.critical.includes(file.hash))];
 // G7: the Drowned Captain's painted coat, an admitted look texture his graph samples by hash (generators/bake-captain-coat.mjs)
 const coat = captainCoat.file;
 // The fixed view guest retains live and rewind memory under the existing client limits.
 const viewMemory = bridgeSwayModule.pages * 65536 * 2;
-const authoredProduct: ReturnType<typeof parseShardfile> = parseShardfile({
+return parseShardfile({
   ...base,state:{...base.state,shared:CAPTAIN_FIELDS}, rows: { ...base.rows, loot: [LOOT] },
   sim: { ...base.sim, scripts: [] },
   navigation: navigation.navigation, files: [...navigation.files, ...fixed.files, coat], critical: [...navigation.critical, ...fixed.critical],
@@ -74,5 +76,6 @@ const authoredProduct: ReturnType<typeof parseShardfile> = parseShardfile({
     colliders: ENTRY_LANDINGS.map((landing) => ({ id: `landing.${landing.edge}`, panel: null, initialActive: true, shapes: [{ ...landing.box }] })) },
   spawn: { x: 0, y: 1.2, z: -194, yaw: Math.PI },
 });
-// oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
-export default authoredProduct;
+}
+// oxlint-disable-next-line import/no-default-export -- Offline callers supply the same admitted fixed-world rows.
+export default driftwoodProductRows;

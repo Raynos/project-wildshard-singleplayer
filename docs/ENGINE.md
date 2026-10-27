@@ -3374,11 +3374,11 @@ initialization and any later identity addition require exact coordinator approva
 
 ## 25. Author SDK
 
-`@wildshard/sdk` is the workspace layer above the game. Its public modules are the author boundary:
-`@wildshard/sdk/version` defines `SHARDFILE_VERSION` (currently provisional v0). Public shard project files
-(`shard.config.ts`, `data/`, `behaviour/`, `quests/`) import only the SDK or their own public files.
-Trusted transition code in `runtime/` keeps legacy public engine/game/kit access; build-time generators never ship.
-The SDK cannot import shard content. Each module owns its exports; there is no barrel.
+The SDK is the author workspace above game: defining modules, no barrels or shard imports.
+Public config/data/behaviour/quests import SDK or own files; trusted runtime retains legacy
+engine/game/kit access. Generators never ship. SDK `version` owns provisional v0 `SHARDFILE_VERSION`.
+SDK `shardfile.parseShardfileField(field, input)` returns the defining schema's typed value;
+the assembled declaration still passes `parseShardfile` and its cross-field rules.
 
 Build-only `@wildshard/sdk/noise` defines seeded simplex noise, `fbm`,
 `ridged`, `smoothstep`, `clamp` and `lerp`. Its arithmetic is fenced against

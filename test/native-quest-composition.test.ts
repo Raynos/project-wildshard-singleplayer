@@ -19,7 +19,7 @@ import { parseQuestHost } from '../src/format/questHost';
 import { parseAchievementCounterData } from '../src/format/achievementCounters';
 import { orchardPopulation } from './fixtures/mixed-population';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
-import product from '../src/shards/driftwood-isle/generators/product';
+import product from './fixtures/driftwood-product-source';
 import policy from '../src/shards/driftwood-isle/data/nativeQuest.json' with { type: 'json' };
 import swords from '../src/shards/driftwood-isle/data/nativeSwords.json' with { type: 'json' };
 import declaration from '../src/shards/driftwood-isle/data/director.json' with { type: 'json' };

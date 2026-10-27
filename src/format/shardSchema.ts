@@ -112,7 +112,7 @@ const rawSchema: v.GenericSchema<ShardfileRowsInput, ShardfileRows> & { readonly
 });
 /** Defining field schemas used by the sectioned output writer and reader.
  * Cross-field rules still run once the complete product is assembled. */
-export const ShardfileFieldSchemas: Readonly<Record<keyof Shardfile, v.GenericSchema>> = rawSchema.entries;
+export const ShardfileFieldSchemas: { readonly [Key in keyof Shardfile]-?: v.GenericSchema<unknown, Shardfile[Key]> } = rawSchema.entries;
 /** A serialisable shardfile v0, independent of renderer and placement. */
 /** Public parsed output, independently named by section. The unchanged schema
  * is checked against this interface, so consumers need not expand its input tree. */

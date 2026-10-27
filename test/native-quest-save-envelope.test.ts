@@ -7,7 +7,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { prepareNativeQuestEntry } from './fixtures/native-hosts/quest/nativeEntry';
 import { registerNativeQuestInputs } from '../src/game/quest/nativeInputs';
 import pine from '../src/shards/pine-hollow/generators/product';
-import driftwood from '../src/shards/driftwood-isle/generators/product';
+import driftwood from './fixtures/driftwood-product-source';
 import story from '../src/shards/pine-hollow/data/nativeStory.json';
 import legacy from './fixtures/quest-step-legacy-saves.json';
 import { SIM_LEVEL } from './fixtures/sim-level/level';

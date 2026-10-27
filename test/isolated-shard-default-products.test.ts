@@ -16,7 +16,7 @@ for(const name of ['driftwood-isle','ink-cel-valley','nalati-grasslands','pine-h
 
 test('default products retain the complete admitted shardfile contract',()=>{
  const consumer=resolve('src/shards/t4-default-product-consumer.ts');
- let source=`import driftwood from './driftwood-isle/generators/product';
+ let source=`import driftwood from '../../test/fixtures/driftwood-product-source';
 import ink from './ink-cel-valley/generators/product';
 import nalati from '../../test/fixtures/nalati-product-source';
 import pine from './pine-hollow/generators/product';
