@@ -45,11 +45,11 @@ export class RuledKit {
   private readonly idx: number[] = [];
   private n = 0;
   /**
-   * E281 round 2 (memory): aFace and aPat as half floats — 88 bytes a vertex instead of 104. Only for a kit that is
-   * never merged with a swept kit of its name (mergeGeometries needs one array type per attribute). The program reads the same values; aMisc (exact flag bits), aOff (world metres), the normals the
+   * E281 round 2 (memory): aFace and aPat as half floats — 88 bytes a vertex instead of 104. iPhone downloads I3: the
+   * default, as swept kits write them half too (mergeGeometries needs one array type per attribute). The program reads the same values; aMisc (exact flag bits), aOff (world metres), the normals the
    * spill bake reads and the spill itself stay float.
    */
-  compact = false;
+  compact = true;
   /** an offline bake's geometry: what build() made of the first `base` vertices, which the page's own additions follow */
 
   /** a kit holding an offline bake's built geometry; what is added to it after goes on after (build appends it); a subclass's call makes that subclass */

@@ -4,7 +4,7 @@
 // a shaped cross-section (talons, horns, roots, cords, tassel strands, cloth wraps), deformed ellipsoids (heads, clumps,
 // knuckles) and raw triangle meshes (a converted GLB). It writes the SAME attributes as the ruled kit (position, normal,
 // color, aFace, aPat, aMisc, aOff), so both merge into one geometry, one program, one draw call (`mergeKits`).
-import { type Box3, BufferGeometry, Color, Float32BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
+import { type Box3, BufferGeometry, Color, DataUtils, Float16BufferAttribute, Float32BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 /** the same look the ruled kit takes (wash colour, pattern kind + params, emit, line weight, edge bits) */
@@ -217,8 +217,11 @@ export class SweptKit {
     g.setAttribute('position', new Float32BufferAttribute(this.pos, 3));
     g.setAttribute('normal', new Float32BufferAttribute(this.nor, 3));
     g.setAttribute('color', new Float32BufferAttribute(this.col, 3));
-    g.setAttribute('aFace', new Float32BufferAttribute(this.face, 4));
-    g.setAttribute('aPat', new Float32BufferAttribute(this.pat, 4));
+    // iPhone downloads I3: aFace and aPat as half floats, like every ruled kit (one storage per channel, so the two still
+    // merge); aMisc (exact flag bits), aOff (world metres) and the spill stay float
+    const half = (a: readonly number[]): Uint16Array => Uint16Array.from(a, value => DataUtils.toHalfFloat(value));
+    g.setAttribute('aFace', new Float16BufferAttribute(half(this.face), 4));
+    g.setAttribute('aPat', new Float16BufferAttribute(half(this.pat), 4));
     g.setAttribute('aMisc', new Float32BufferAttribute(this.misc, 4));
     g.setAttribute('aOff', new Float32BufferAttribute(this.off, 2));
     g.setAttribute('aSpill', new Float32BufferAttribute(new Float32Array(this.n * 3), 3));
