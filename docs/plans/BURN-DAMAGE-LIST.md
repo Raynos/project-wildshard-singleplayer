@@ -112,6 +112,7 @@ since is red; the latest (`60e9b7bfe6`) fails `generated-inputs`, which fails fa
 | D63 | Pine product build refuses 'config must bundle as one module': `generators/kingKit.ts` imports `@wildshard/game/plugin/geometry`, whose dynamic `import('../shardfile/runtimeProduct')` becomes a second config chunk (`runtimeProduct-*.js`, 199 modules) even with code splitting off; `node scripts/build-shardfiles.mjs --shard=pine-hollow` exits 1 | `98e0b24f9b` | sp-o1 | open |
 
 | D64 | Plan-end preview `f7783051c9` passes Far Reach ownership then Pine map generation cannot read tracked `public/assets/models/pine-hollow-crags/crags.glb` from sealed `cragSceneContribution.ts` (`tmp/serve/failed-20261027-025756-4407.log:684`, 20.82 s, zero samples) | `bc78671a96` | sp-o3 (crag producer; sp-o1 routed) | open; no guard change or duplicate generation |
+| D65 | Pine product build refuses 'shard.config.ts must use injected build capabilities for file access (node:fs, node:module)': GR8 G23-G33's in-memory producers (bake-pine-streams / -floor / -cabins / -props / -crags, bake-prop-scenes, bake-crag-scenes, bake-timber-scenes, bake-tree-rest, bake-keyed-sky) read files with node:fs from modules the config imports statically (sprayPuffs, sceneModelRows, worldScenes, the scene contributions, treeSet, forestStory, rangedPage, sourceOutput); masked by earlier config reds until 915042034e. Fix: the rows move into generate(ctx) through ctx.cached | `97e058d299` (G23) | sp-o3 | open; fixing now |
 
 ## Rows
 
