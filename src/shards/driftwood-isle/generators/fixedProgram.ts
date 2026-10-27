@@ -11,6 +11,7 @@ import { castawayHead } from './castawayHead';
 import { driftwoodOwnedScene } from './scene';
 import { driftwoodGroundBytes } from './groundRows';
 import inventory from '../data/fixedGeometry.json' with { type: 'json' };
+import { driftwoodCoarseTiles } from './coarseTiles';
 
 /** The complete native inputs; every other value is constructed from this producer's author source. */
 export const DRIFTWOOD_FIXED_INPUTS: readonly string[] = [
@@ -63,12 +64,16 @@ export async function driftwoodFixedBytes(inputs: ReadonlyMap<string, Uint8Array
     const libraryFiles = [...library.values()].sort((a, b) => a.hash < b.hash ? -1 : a.hash > b.hash ? 1 : 0);
     const queries = bakeQueryTerrain(readNativeTerrain(driftwoodGroundBytes()), { normalEpsilon: 0.6, datum: -0.8 });
     for (const [hash, bytes] of queries.assets) baked.assets.set(hash, bytes);
-    const product = { terrain: queries.terrain, props: { ...baked.props.props, wholeLibrary: templateFiles }, tiles: baked.shardfile.tiles,
-      files: [...baked.shardfile.files, ...libraryFiles, ...queries.files].sort((a, b) => a.hash.localeCompare(b.hash)),
+    const coarse = driftwoodCoarseTiles(aoBytes), coarseTiles = coarse.tiles.filter(tile => !baked.shardfile.tiles.some(row => row.lod === 1 && row.x === tile.x && row.z === tile.z));
+    const product = { terrain: queries.terrain, props: { ...baked.props.props,
+      tiles: [...baked.props.props.tiles, ...coarse.models.filter(model => coarseTiles.some(tile => tile.files.includes(model.file)))], wholeLibrary: templateFiles },
+      tiles: [...baked.shardfile.tiles, ...coarseTiles],
+      files: [...baked.shardfile.files, ...libraryFiles, ...queries.files, ...coarse.files].sort((a, b) => a.hash.localeCompare(b.hash)),
       library: templateFiles, critical: [...baked.shardfile.critical, ...queries.critical], templateFiles,
       report: baked.props.report, libraryCost: { resident: libraryFiles.reduce((sum, file) => sum + file.decoded + file.gpu, 0),
         compressed: libraryFiles.reduce((sum, file) => sum + file.compressed, 0) } };
     for (const [hash, bytes] of baked.assets) files.set(`assets/${hash}`, bytes);
+    for (const [hash, bytes] of coarse.assets) files.set(`owned/coarse/${hash}.glb`, bytes);
     files.set('data/fixedTiles.generated.json', text.encode(`${JSON.stringify(product)}\n`));
     const blobs = [...blobRows.values()].sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
     const byUrl = Object.fromEntries([...aliases].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
