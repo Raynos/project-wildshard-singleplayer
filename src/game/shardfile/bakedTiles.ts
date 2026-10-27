@@ -20,7 +20,7 @@ import { defineGeometryModel, modelContext } from '@wildshard/engine/models/mode
 import { placeSliced } from '@wildshard/engine/models/place';
 import type { CullOptions } from '@wildshard/engine/models/cull';
 import { sunBounce } from '@wildshard/engine/render/lightmaps';
-import { boxDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
+import { boxDesc, type ColliderDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
@@ -32,14 +32,19 @@ import { lendLooks, lentLook, setLentParam, setLentTexture } from './lentLooks';
 import { runtimeLookMaterials } from './runtimeProduct';
 import type { ShardProduct } from './shardProduct';
 import { wearBakedTiles } from '../looks/vertexWear';
+import { colliderTileKeys, type TileContent } from './tileContent';
+import { tiledMesh } from './tiledMesh';
 
 /** What a row is drawn into: the product its files resolve against, the live world, and the scope its pieces leave with
  *  (absent: the ambient owner, as a resident world's build). */
 export interface BakedTilesOwner { readonly product: ShardProduct; readonly parent: THREE.Object3D; readonly sky: SkyRig; readonly registry: WorldRegistry; readonly scope?: Scope;
   /** the world's ground mesh geometry a row's `wear` declares as its part 0 */
   readonly ground?: THREE.BufferGeometry }
-/** The drawn set: its group, its tiles in file order, and its once-a-frame bounce update. */
-export interface BakedTiles { readonly group: THREE.Group; readonly tiles: readonly THREE.Mesh[]; readonly update: () => void }
+/** The drawn set: its group, its tiles in file order, its once-a-frame bounce update, and (registered whole, under its own
+ *  scope) the colliders no copy claims, which `bakedTileContents` moves onto the collider ring. */
+export interface BakedTiles { readonly group: THREE.Group; readonly tiles: readonly THREE.Mesh[]; readonly update: () => void; readonly unclaimed?: BakedUnclaimed }
+/** A set's unclaimed collider boxes, their piece's metadata and the scope that holds their whole-set registration. */
+interface BakedUnclaimed { readonly piece: Omit<Parameters<WorldRegistry['add']>[0], 'id' | 'colliders'>; readonly id: string; readonly colliders: readonly ColliderDesc[]; readonly whole: Scope; readonly registry: WorldRegistry }
 
 const owned = <T>(owner: BakedTilesOwner, fn: () => T): T => owner.scope === undefined ? fn() : withOwner(owner.scope, fn);
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
@@ -113,11 +118,11 @@ export async function installBakedTiles(owner: BakedTilesOwner, input: BakedTile
   });
   if (tiles.length === 0) throw new Error(`Baked tiles ${row.id} has no ${TIER} tiles`);
   if (row.wear !== undefined) await wearBakedTiles(product, row.wear, TIER, owner.ground ?? null, tiles);
-  if (instances !== null && table !== null && protos !== null && plan !== null) await placeFamilies(owner, row, instances, new Float32Array(Uint8Array.from(table).buffer), protos, plan, group);
+  const unclaimed = instances !== null && table !== null && protos !== null && plan !== null ? await placeFamilies(owner, row, instances, new Float32Array(Uint8Array.from(table).buffer), protos, plan, group) : undefined;
   const sun = row.sun, light = (): THREE.DirectionalLight | undefined => sky.csm.lights[0];
   const update = sun === null ? () => undefined : () => { setLentParam(row.look, sun.param, sunBounce(light(), sky.sunDir.y, sun.referenceY, sun.gain)); };
   update();
-  return { group, tiles, update };
+  return { group, tiles, update, ...(unclaimed === undefined ? {} : { unclaimed }) };
 }
 
 /**
@@ -125,7 +130,7 @@ export async function installBakedTiles(owner: BakedTilesOwner, input: BakedTile
  * table row's matrix and tint. Casters are drawn while the camera or a casting cascade sees them; cover by cells within
  * its reach. A family's collider boxes go on its piece (`<id>-<key>`); boxes no copy claims register as `<id>-unclaimed`.
  */
-async function placeFamilies(owner: BakedTilesOwner, row: BakedTilesRow, instances: NonNullable<BakedTilesRow['instances']>, f: Float32Array, protos: THREE.Group, plan: BakedPlan, group: THREE.Group): Promise<void> {
+async function placeFamilies(owner: BakedTilesOwner, row: BakedTilesRow, instances: NonNullable<BakedTilesRow['instances']>, f: Float32Array, protos: THREE.Group, plan: BakedPlan, group: THREE.Group): Promise<BakedUnclaimed | undefined> {
   const geometry = new Map<string, THREE.BufferGeometry>();
   protos.traverse(o => { if (isMesh(o)) geometry.set(o.name, o.geometry); });
   const materials = Object.fromEntries(Object.entries(instances.looks).map(([slot, entry]) => [slot, lentLook(entry.look)]));
@@ -143,7 +148,47 @@ async function placeFamilies(owner: BakedTilesOwner, row: BakedTilesRow, instanc
     await owned(owner, () => placeSliced(model, placements, { ctx, draw: 'instanced', registry: owner.registry, parent: group, cull,
       piece: { id: `${row.id}-${family.key}`, ...(family.colliders.length > 0 ? { colliders: family.colliders.map(c => boxDesc(c, instances.surface)) } : {}) } }, slice.due));
   }
-  owned(owner, () => owner.registry.add({ id: `${row.id}-unclaimed`, name: instances.unclaimed, category: 'nature', file: 'src/game/shardfile/bakedTiles.ts', colliders: plan.unclaimed.map(c => boxDesc(c, instances.surface)), surface: instances.surface, solidFloor: false }));
+  const piece = { name: instances.unclaimed, category: 'nature' as const, file: 'src/game/shardfile/bakedTiles.ts', surface: instances.surface, solidFloor: false };
+  const colliders = plan.unclaimed.map(c => boxDesc(c, instances.surface)), id = `${row.id}-unclaimed`;
+  if (owner.scope === undefined) { owned(owner, () => owner.registry.add({ ...piece, id, colliders })); return undefined; }
+  // T3: whole under its own scope, until bakedTileContents moves the boxes onto the collider ring
+  const whole = owner.scope.child(`baked.${row.id}.unclaimed`);
+  withOwner(whole, () => owner.registry.add({ ...piece, id, colliders }));
+  return { piece, id, colliders, whole, registry: owner.registry };
+}
+
+/** baked sets already tiled (a set is shared by its shard's residents: it is tiled once) */
+const tiledSets = new WeakSet<BakedTiles>();
+/**
+ * Tile streaming T3: a baked set by tile. Each tile mesh draws only its resident tiles' triangles (by cell-local centroid,
+ * `tiledMesh`; a mesh wholly in one tile follows that tile; a geometry two meshes share stays whole), and the colliders no
+ * copy claims leave their whole-set registration for the collider ring, each box in every tile its footprint reaches.
+ * The families' copies and their piece colliders stay whole (one placed model each).
+ */
+export function bakedTileContents(baked: BakedTiles): TileContent[] {
+  if (tiledSets.has(baked)) return [];
+  tiledSets.add(baked);
+  const users = new Map<THREE.BufferGeometry, number>(), contents: TileContent[] = [];
+  for (const mesh of baked.tiles) users.set(mesh.geometry, (users.get(mesh.geometry) ?? 0) + 1);
+  for (const mesh of baked.tiles) {
+    if (users.get(mesh.geometry) !== 1) continue;
+    // its own matrix is cell-local (the GLB node's, lowered by the drop, under an identity group)
+    const content = tiledMesh(`${baked.group.name}.${mesh.name}`, mesh, mesh.matrix, { single: true });
+    if (content !== null) contents.push(content);
+  }
+  const unclaimed = baked.unclaimed;
+  if (unclaimed !== undefined && unclaimed.colliders.length > 0 && !unclaimed.whole.disposed) {
+    const byTile = new Map<number, ColliderDesc[]>();
+    for (const shape of unclaimed.colliders) for (const tile of colliderTileKeys(shape)) { const list = byTile.get(tile); if (list === undefined) byTile.set(tile, [shape]); else list.push(shape); }
+    const tiles = new Set(byTile.keys());
+    unclaimed.whole.dispose();
+    contents.push({ id: `${unclaimed.id}.colliders`, tiles: () => tiles, attach: () => Promise.resolve(), attachColliders: (tile, scope) => {
+      const colliders = byTile.get(tile);
+      if (colliders !== undefined && !scope.disposed) withOwner(scope, () => unclaimed.registry.add({ ...unclaimed.piece, id: `${unclaimed.id}.c${String(tile)}`, colliders }));
+      return Promise.resolve();
+    } });
+  }
+  return contents;
 }
 
 /** One draw per shard while its first resident lives, whichever path asks first: the `world.baked` feature, or a trusted

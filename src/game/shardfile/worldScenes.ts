@@ -417,7 +417,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
         // Decoder-only staging is adopted by the assembly, never uploaded.
         geometry.set(key, shape); await copies.check();
       }
-      handles.publish(row.id, new WorldSceneWeldAssembly(row, handles, { geometry, materials, plumbing: product.shardfile.plumbing }, owner, registry()));
+      handles.publish(row.id, new WorldSceneWeldAssembly(row, handles, { geometry, materials, plumbing: product.shardfile.plumbing }, owner, registry(), ctx.root));
     }
     if (batches.size > 0 && sky === undefined) throw new Error('Scene batches need a world sky');
     for (const row of batches.values()) {

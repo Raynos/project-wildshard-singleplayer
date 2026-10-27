@@ -13,7 +13,7 @@ import { boundResidentWorldScope } from './hybridPresentation';
 import { runtimeLookMaterials } from './runtimeProduct';
 import { lendLooks } from './lentLooks';
 import { installWorldScenes } from './worldScenes';
-import { residentBakedTiles } from './bakedTiles';
+import { bakedTileContents, residentBakedTiles, type BakedTiles } from './bakedTiles';
 import { publishEntryOwner, lendEntryOwner, entryOwner, presentEntryOwner } from './entryOwners';
 import { timeClientPreparation } from './preparationTiming';
 import { followResidentTiles, noteTileBytes, residentTiles } from './tileDriver';
@@ -66,7 +66,9 @@ export async function installClientWorldAssembly(ctx: ShardContext, row: Extract
     const materials = await timed('looks', () => runtimeLookMaterials({ scope: owner, game: ctx.game }, product.shardfile, true, bound ? looks.bound : looks.unbound)); check();
     lendLooks(owner, materials);
     const scenes = await timed('scenes', () => installWorldScenes(ctx, sceneRows, owner)); check();
-    const baked = book === undefined ? new Map() : await timed('baked', () => residentBakedTiles(ctx, owner)); check();
+    const baked: ReadonlyMap<string, BakedTiles> = book === undefined ? new Map<string, BakedTiles>() : await timed('baked', () => residentBakedTiles(ctx, owner)); check();
+    // T3: the baked sets by tile (their meshes' triangles, their unclaimed colliders on the collider ring)
+    for (const set of baked.values()) for (const content of bakedTileContents(set)) scenes.addTiled(content);
     const variant = construction.variant?.[cube === null ? 'standalone' : 'cell'];
     await timed('construct', () => WorldAssembly.construct(row.rows, { runtime, product, scope: owner, scenes, baked, progress,
       ...(book === undefined ? {} : { library: book.library, sites: book.sites }), ...(variant === undefined ? {} : { variant }) })); check();

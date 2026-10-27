@@ -1,4 +1,4 @@
-import { Box3, BufferAttribute, BufferGeometry, Group, InstancedMesh, type Material, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, PointLight, Sphere, Texture, Vector3 } from 'three';
+import { Box3, BufferAttribute, BufferGeometry, Group, InstancedMesh, type Material, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, PointLight, Sphere, Texture, Vector3 } from 'three';
 import { WeldBatch, WeldView, shadowProxyMaterial } from '@wildshard/engine/models/weld';
 import { WeldCull } from '@wildshard/engine/models/cull';
 import { installWeldCulling } from '@wildshard/engine/models/place';
@@ -264,15 +264,20 @@ async function hydrateWorldSceneWeldSliced(input: unknown, handles: SceneHandles
  * wholly in one tile follows that tile. A mesh whose geometry another node shares stays whole (one index cannot draw two
  * nodes' tiles), as do batches and their views, instances (a weld cull owns their counts), clouds and lights.
  */
-function tileWeldMeshes(row: WorldSceneWeld, handles: SceneHandles): void {
-  const users = new Map<string, number>();
+function tileWeldMeshes(row: WorldSceneWeld, handles: SceneHandles, cell: Object3D | null): void {
+  // cell-local: relative to the cell's world group when the weld already hangs under it (that group may be offset or
+  // rebased, G630); a weld not yet attached is in cell space already, as a recipe part under its unparented root
+  const root = handles.object(row.root);
+  root.updateWorldMatrix(true, true);
+  let under = false;
+  root.traverseAncestors(ancestor => { if (ancestor === cell) under = true; });
+  const toCell = under && cell !== null ? cell.matrixWorld.clone().invert() : new Matrix4(), users = new Map<string, number>();
   for (const node of row.nodes) if ('geometry' in node) { const key = keyOf(node.geometry); users.set(key, (users.get(key) ?? 0) + 1); }
   for (const node of row.nodes) {
     if (node.kind !== 'mesh' || users.get(keyOf(node.geometry)) !== 1) continue;
     const mesh = handles.object(node.id);
     if (!mesh3(mesh)) continue;
-    mesh.updateWorldMatrix(true, false);
-    const content = tiledMesh(`${row.id}.${node.id}`, mesh, mesh.matrixWorld, { single: true });
+    const content = tiledMesh(`${row.id}.${node.id}`, mesh, toCell.clone().multiply(mesh.matrixWorld), { single: true });
     if (content !== null) handles.addTiled(content);
   }
 }
@@ -283,7 +288,7 @@ export class WorldSceneWeldAssembly {
   private readonly sources: FrozenSceneSources;
   private readonly staging: Map<string, BufferGeometry>;
   constructor(private readonly row: WorldSceneWeld, private readonly handles: SceneHandles, sources: FrozenSceneSources,
-    private readonly owner: Scope, private readonly registry: WorldRegistry) {
+    private readonly owner: Scope, private readonly registry: WorldRegistry, private readonly cell: Object3D | null = null) {
     this.staging = new Map(sources.geometry);
     this.sources = { ...sources, geometry: this.staging };
   }
@@ -299,7 +304,7 @@ export class WorldSceneWeldAssembly {
     let root: Object3D;
     try { root = await hydrateWorldSceneWeldSliced(this.row, this.handles, this.sources, this.owner, this.registry); }
     finally { this.staging.clear(); }
-    tileWeldMeshes(this.row, this.handles);
+    tileWeldMeshes(this.row, this.handles, this.cell);
     for (const id of this.row.placements) await this.handles.place(id);
     if (this.owner.disposed) throw new Error('Frozen scene owner is disposed');
     for (const row of this.row.sets) {
