@@ -38,6 +38,8 @@ function sectionSchemas(slug,outputs,jsonInputs=[]) {
     generate:root=>schemaTables(root,slug)};
 }
 
+const MANIFEST_INPUTS = ['src/**/*.ts', 'src/**/*.tsx', 'src/**/*.mjs', 'src/**/*.js', 'src/**/package.json', 'src/shards/*/manifest.json', 'src/shards/*/outputs.json', 'src/shards/*/{data,boot}/*.json', 'tsconfig*.json', 'scripts/gen-shards.mjs', 'scripts/shard-outputs.mjs', 'scripts/authored-manifest.mjs', 'scripts/manifest-static-imports.mjs', 'scripts/manifest-art-inputs.json'];
+
 /** @type {readonly SourceGenerator[]} */
 export const SOURCE_GENERATORS = [
   sectionSchemas('driftwood-isle',['src/shards/driftwood-isle/generators/sectionSchemas.ts','src/shards/driftwood-isle/runtime/productSections.d.ts'],['src/shards/driftwood-isle/data/bridgeRows.json']),
@@ -64,7 +66,7 @@ export const SOURCE_GENERATORS = [
   {
     id: 'manifest-closure',
     outputs: ['src/game/shard/manifest-closure.generated.json'],
-    inputs: ['src/**/*.ts', 'src/**/*.tsx', 'src/**/*.mjs', 'src/**/*.js', 'src/**/package.json', 'src/shards/*/manifest.json', 'src/shards/*/outputs.json', 'src/shards/*/{data,boot}/*.json', 'tsconfig*.json', 'scripts/gen-shards.mjs', 'scripts/shard-outputs.mjs', 'scripts/authored-manifest.mjs', 'scripts/manifest-static-imports.mjs', 'scripts/manifest-art-inputs.json'],
+    inputs: MANIFEST_INPUTS,
     committed: true,
     note: 'walks authored runtime edges and declared program-art inputs without any discovery output or product',
     generate: async root => ({ 'src/game/shard/manifest-closure.generated.json': `${JSON.stringify((await import(pathToFileURL(`${root}/scripts/gen-shards.mjs`).href)).manifestClosure(root), null, 2)}\n` }),
@@ -78,13 +80,21 @@ export const SOURCE_GENERATORS = [
     generate: async root => ({ 'src/game/boot/audio.generated.ts': (await import(pathToFileURL(`${root}/scripts/app-build/gen.ts`).href)).audioTableSource() }),
   },
   {
+    id: 'manifest-art',
+    outputs: ['src/game/shard/art.generated.ts'],
+    inputs: [...MANIFEST_INPUTS, 'src/**/*.jpg', 'src/**/*.jpeg', 'src/**/*.png', 'src/**/*.webp', 'scripts/app-build/gen.ts'],
+    committed: true,
+    note: 'declared source images and their sizes come from the authored static closure, without discovery or products',
+    generate: async root => ({ 'src/game/shard/art.generated.ts': (await import(pathToFileURL(`${root}/scripts/app-build/gen.ts`).href)).artTableSource(root) }),
+  },
+  {
     id: 'boot-tables',
-    outputs: ['src/game/boot/bytes.generated.ts', 'src/game/boot/versions.generated.ts', 'src/game/shard/art.generated.ts'],
-    inputs: ['public/assets/**', 'src/shards/*/manifest.ts', 'src/shards/*/manifest.json', 'src/shards/**/*.jpg', 'src/shards/**/*.jpeg', 'src/shards/**/*.png', 'src/shards/**/*.webp', 'scripts/app-build/gen.ts', 'scripts/app-build/assetHashes.ts'],
+    outputs: ['src/game/boot/bytes.generated.ts', 'src/game/boot/versions.generated.ts'],
+    inputs: ['public/assets/**', 'scripts/app-build/gen.ts', 'scripts/app-build/assetHashes.ts'],
     committed: false,
-    note: 'size and hash every public/assets file (the shard builds\' baked outputs included) and walk the discovery modules',
+    note: 'size and hash every public/assets file, including the shard builds\' baked outputs',
     // the boot writers read public/assets and the manifests from the working directory (the repo root)
-    generate: async root => (await import(pathToFileURL(`${root}/scripts/app-build/gen.ts`).href)).bootTableSources(),
+    generate: async root => (await import(pathToFileURL(`${root}/scripts/app-build/gen.ts`).href)).bootTransportTableSources(),
   },
   {
     id: 'packs',
