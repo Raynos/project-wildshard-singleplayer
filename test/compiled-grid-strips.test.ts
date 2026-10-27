@@ -61,7 +61,7 @@ test.each([256, 257])('shipped typed triangles match native construction word fo
 
 test.each([256, 257])('baked seam channels retain every rendered word and bound (%s samples)', async count => {
   const original = native(count), source = await platformGeometrySource(original.cells, original.empty);
-  const frame = { origin: { x: 17.25, z: -8.5 }, pitch: CONTENT_CAPS.pitch };
+  const frame = { origin: { x: 17.25, y: 0, z: -8.5 }, pitch: CONTENT_CAPS.pitch };
   const page = encodeGridStripPage(source, 'probe', 'fixture', original.strips, 'initial', frame);
   const header: unknown = JSON.parse(new TextDecoder().decode(page.header.bytes));
   const decoded = decodeCompiledGridLook(header, page.body.bytes, source, 'probe');
@@ -89,6 +89,7 @@ test.each([256, 257])('baked seam channels retain every rendered word and bound 
   expect(() => build(decoded.strips, { origin: { x: 0, z: 0 } }, undefined, frame.pitch, decoded.look)).toThrow('home frame');
   const metadata = parseCompiledGridHeader(header).look;
   if (metadata === undefined) throw new Error('Missing baked metadata');
+  expect(metadata.origin).toEqual({ x: frame.origin.x, z: frame.origin.z });
   const bad = page.body.bytes.slice(); new DataView(bad.buffer).setFloat32(metadata.offset, Number.NaN, true);
   expect(() => decodeCompiledGridLook(header, bad, source, 'probe')).toThrow('look channels');
   const wrongCount = structuredClone(header);

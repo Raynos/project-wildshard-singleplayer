@@ -36,7 +36,7 @@ function bakeLookChannels(strips: readonly GeneratedStrip[], frame: Pick<SeamGeo
     try {
       const normals = geometry.getAttribute('normal').array, uvs = geometry.getAttribute('uv').array, sphere = geometry.boundingSphere;
       if (!(normals instanceof Float32Array) || !(uvs instanceof Float32Array) || sphere === null) throw new Error('Missing native seam look channels');
-      return { ...frame, normals, uvs, sphere: { centre: [sphere.center.x, sphere.center.y, sphere.center.z], radius: sphere.radius } };
+      return { origin: { x: frame.origin.x, z: frame.origin.z }, pitch: frame.pitch, normals, uvs, sphere: { centre: [sphere.center.x, sphere.center.y, sphere.center.z], radius: sphere.radius } };
     } finally { geometry.dispose(); }
   }
 }
