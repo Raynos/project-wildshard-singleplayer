@@ -630,8 +630,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       if ((!this.engineFogOn() && patch === undefined) || Reflect.get(ctx.material, 'fog') !== true || ctx.fog === null) return out;
       const scale: unknown = Reflect.get(ctx.material, 'graphFogScale');
       const node = typeof scale === 'object' && scale !== null && isNode(scale) ? new ConvertNode<'float'>(scale, 'float') : undefined;
-      const engine = engineFog(out, ctx.fog, node);
-      if (patch === undefined) return engine;
+      if (patch === undefined) return engineFog(out, ctx.fog, node);
+      // only a trusted function patch reads the engine fog (the colour ramp computes its own): build it only for one
+      const engine = typeof patch === 'function' ? engineFog(out, ctx.fog, node) : out;
       const origin = bound?.origin ?? layerFrameOf(ctx.material)?.origin;
       const shift = origin === undefined ? null : reference('value', 'vec3', origin);
       const fogContext = { engine, fog: ctx.fog, position: shift === null ? positionWorld : positionWorld.sub(shift),

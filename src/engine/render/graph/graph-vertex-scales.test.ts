@@ -46,7 +46,11 @@ test('vertex factors reach directional light and both engine fog blends', () => 
   expect(shader.vertexShader).toContain('wildshardGraphSunScale = clamp(');
   expect(shader.vertexShader).toContain('wildshardGraphFogScale = clamp(');
   expect(shader.fragmentShader.match(/wildshardGraphSunScale/g)?.length).toBeGreaterThan(1);
-  expect(shader.fragmentShader.match(/wildshardGraphFogScale/g)?.length).toBeGreaterThan(2);
+  // the engine fog is a shared layout function (engineFog.ts): the factor is its scale argument, and both its blends
+  // (scene fog, weather fog) read that scale
+  expect(shader.fragmentShader).toMatch(/wsEngineFog\w*S\( [^;]*wildshardGraphFogScale/u);
+  const body = /vec3 wsEngineFog\w*S \([^)]*\) \{([\s\S]*?)\n\}/u.exec(shader.fragmentShader)?.[1] ?? '';
+  expect(body.match(/clamp\( scale, 0\.0, 1\.0 \)/gu)?.length).toBe(2);
   const neutral = program({ ...graph, stages: { surface: { colour: [1, 1, 1] } } });
   expect(neutral.vertexShader).not.toContain('wildshardGraphSunScale');
   expect(neutral.fragmentShader).not.toContain('wildshardGraphFogScale');
