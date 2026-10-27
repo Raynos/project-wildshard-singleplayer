@@ -17,9 +17,9 @@ shader builds (sp-x8 scheduling seam). L18: DW 107 -> 78 MB, then rocks -4.57 / 
 
 **Memory (G682: Template <= 198.5 MiB):** native Template 268 / 246 MiB (C4.3, sp-x2); C6.2 closed (G762).
 
-**For wildshard-v (G711):** plan cleanup applied (96e933e1a0, a223c570e7, 34ed8e8f82); lane paths in ready-queue.md (MB10,
-f913ec3105); counter ~71 % (149.5/210). Generators are the long pole: GR5 sp-x1, GR6 sp-x6 + sp-o5, GR7 sp-x10 + sp-o4,
-GR8 sp-o1 + sp-o3, GR9 sp-o2; GS1-GS5 landed (sp-o3). Crossings sp-x8; T10 + tile S1-S3 sp-x2; js-heap/LD4/J6 sp-x9.
+**For wildshard-v (G711):** generation jobs at ~08:15Z: Nalati 24, Driftwood 23, Pine 13, Far Reach 8 (from 41/41/61/38;
+GR5 sp-x1 + sp-o2, GR6 sp-x6 + sp-o5, GR7 sp-x10 + sp-o4, GR8 sp-o1 + sp-o3; GR9 + GS1-GS5 landed). I3 phone geometry
+(sp-o2: DW -0.64 MB br, Nine slice next). Crossings sp-x8; T10 + tile S1-S3 sp-x2; js-heap/LD4/J6 sp-x9.
 **Blocked on Jake:** road B pilot play; boards as they land; LD5-LD8 / A1 / A2 / M2 / RM13 (counted, G779).
 
 **Lanes (G735; Claude active 17 %, Codex 41 %):** 5 Opus + 5 Codex + sp-x7 (releases/reds only, no cancels). sp-o1 RM8.1 -> RM8.6 -> G755 figures -> RM13;
