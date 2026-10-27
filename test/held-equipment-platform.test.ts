@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { emptyShardfile } from '../src/sdk/author';
-import { readProjectAssets } from '../src/sdk/project';
-import { outputPlatformPayloads } from '../src/sdk/outputProduct';
+import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import { builtProduct } from './fixtures/builtProduct';
 import { HeldEquipmentSchema } from '../src/format/heldEquipment';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { HeldEquipment, heldLauncherProfile, heldFirearmSettings } from '../src/game/plugin/heldEquipment';
@@ -14,9 +14,9 @@ const items = pineItems();
 
 // Another shard authors its own assets, hand materials, action presentation and motion.
 test('a fictional harbour shard drives held equipment entirely from platform rows', async () => {
-  // the build's declared intake (scripts/wildshard.mjs): Pine's program lists its public inputs through it (b8a8db5fd4)
-  const authored = await readProjectAssets('src/shards/pine-hollow', undefined, { folder: 'pine-hollow', imageRoots: [{ prefix: '/assets/', directory: 'public/assets' }] });
-  const rows = structuredClone(v.parse(HeldEquipmentSchema, outputPlatformPayloads(authored.output.platform, ['held/equipment']).get('held/equipment')));
+  // Pine's built product (CI's build or the matching local cache), not its whole author output rebuilt in the case
+  const pine = await loadHeadlessProduct(builtProduct('pine-hollow'));
+  const rows = structuredClone(v.parse(HeldEquipmentSchema, pine.section('held/equipment')));
   rows.firearm.asset.url = '/assets/harbour/weapons/harpoon-carbine.glb';
   rows.firearm.pool.url = 'harbour/carbine-details.glb'; rows.launcher.pool.url = 'harbour/harpoon.glb'; rows.hands.pool.url = 'harbour/hands.glb';
   rows.handNames = { hands: 'harbour-canvas', coat: 'harbour-oilskin' };
