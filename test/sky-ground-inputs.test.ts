@@ -1,10 +1,8 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Isolate real sealed-driver fixtures.
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep omitted-source catalogues in repository scratch.
-import { relative, resolve } from 'node:path';
+import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
+import { discoverGeneration } from '../scripts/generate.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { skyGroundSource, skyGroundValues } from '../src/shards/far-reach/generators/groundScene';
@@ -45,21 +43,11 @@ test('ground source bundles without generated metadata or file/compiler services
   }
 });
 
-test('the retained map reader declares source ground and refuses a missing hull source', async () => {
-  const root = resolve('.'), { jobs } = discoverGeneration(root), job = jobs.find(row => row.id === 'sky-data-map');
-  if (job === undefined) throw new Error('Missing retained world row writer');
-  expect(jobs.some(row => row.id === 'sky-ground-scene')).toBe(false);
-  expect(jobs.flatMap(row => row.outputs)).not.toContain('src/shards/far-reach/data/groundScene.generated.json');
-  expect(job.inputRoots).not.toContain('src/shards/far-reach/data/groundScene.generated.json');
-  expect(job.inputRoots).not.toContain('src/shards/far-reach/data/knolls.json');
-  const source = 'src/shards/far-reach/generators/knoll.ts';
-  expect(job.inputRoots).toContain(source);
-  const omitted = { ...job, inputRoots: job.inputRoots.filter(path => path !== source) };
-  const expected = '3a05afd8da12568f27c2ecaaa33d7212ba6817d006ed4f7a3fc1fa418ceb9b9d', cacheDir = mkdtempSync(resolve('tmp/sky-ground-inputs-'));
-  const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
-  try {
-    writeFileSync(catalogPath, JSON.stringify({ schema: '../scripts/generation-jobs.schema.json', jobs: jobs.map(row => row.id === job.id ? omitted : row) }));
-    await expect(generateShardJob(root, omitted, { cacheDir, catalogPath, forceCompare: true })).rejects.toThrow('Generator exited 1');
-    expect(hashImmutableBytes(new TextEncoder().encode(`${JSON.stringify(skyWorldRows())}\n`))).toBe(expected);
-  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
+test('source ground and hull rows need no scheduled writer or metadata reader', () => {
+  const { jobs } = discoverGeneration('.');
+  for (const id of ['sky-data-map', 'sky-ground-scene']) expect(jobs.some(row => row.id === id)).toBe(false);
+  for (const job of jobs) for (const handoff of ['src/shards/far-reach/data/groundScene.generated.json', 'src/shards/far-reach/data/knolls.json']) {
+    expect(job.outputs).not.toContain(handoff); expect(job.inputRoots).not.toContain(handoff);
+  }
+  expect(hashImmutableBytes(new TextEncoder().encode(`${JSON.stringify(skyWorldRows())}\n`))).toBe('3a05afd8da12568f27c2ecaaa33d7212ba6817d006ed4f7a3fc1fa418ceb9b9d');
 });

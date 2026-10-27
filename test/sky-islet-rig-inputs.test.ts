@@ -1,10 +1,8 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare original authored outputs and isolate actual sealed-driver fixtures.
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Keep omitted-source catalogues under repository scratch.
-import { relative, resolve } from 'node:path';
+import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
-import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
+import { discoverGeneration } from '../scripts/generate.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { skyIsletRigRows } from '../src/shards/far-reach/generators/isletRigRows';
 import { isletMotionRows } from '../src/shards/far-reach/generators/isletMotion';
@@ -44,16 +42,8 @@ test('motion source rows detach every caller and retire their publication job', 
   expect(discoverGeneration('.').jobs.some(job => job.id === 'sky-islet-motion')).toBe(false);
 });
 
-test('the retained cold sealed map reader refuses an omitted defining rig source', async () => {
-  const root = resolve('.'), { jobs } = discoverGeneration(root), job = jobs.find(row => row.id === 'sky-data-map');
-  if (job === undefined) throw new Error('Missing retained map reader');
-  expect(job.inputRoots).not.toContain('src/shards/far-reach/data/isletRig.json');
-  const source = 'src/shards/far-reach/generators/isletRigRows.ts';
-  expect(job.inputRoots).toContain(source);
-  const cacheDir = mkdtempSync(resolve('tmp/sky-islet-rig-inputs-'));
-  try {
-    const omitted = { ...job, inputRoots: job.inputRoots.filter(path => path !== source) }, catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
-    writeFileSync(catalogPath, JSON.stringify({ schema: '../scripts/generation-jobs.schema.json', jobs: jobs.map(row => row.id === job.id ? omitted : row) }));
-    await expect(generateShardJob(root, omitted, { cacheDir, catalogPath, forceCompare: true })).rejects.toThrow('Generator exited 1');
-  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
+test('the map has no scheduler or stored rig handoff reader', () => {
+  const { jobs } = discoverGeneration('.');
+  expect(jobs.some(job => job.id === 'sky-data-map')).toBe(false);
+  for (const job of jobs) expect(job.inputRoots).not.toContain('src/shards/far-reach/data/isletRig.json');
 });

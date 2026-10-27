@@ -1,7 +1,12 @@
+import { skyMapPixels, skyMapProgram } from '../src/shards/far-reach/generators/mapProgram';
+import { SKY_MAP_INPUTS } from '../src/shards/far-reach/generators/bake-map.mjs';
+import { originalSkyMapInputs } from './fixtures/sky-map-source';
+import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { generatedProjectMap } from '../src/sdk/projectMap';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own the isolated sealed cache and compare complete original map bytes.
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine omission catalogues and producer outputs to repository scratch.
-import { relative, resolve } from 'node:path';
+import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Match the original native level-nine pack writer byte for byte.
 import { deflateSync } from 'node:zlib';
 import { build } from 'vite';
@@ -9,13 +14,12 @@ import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { skyMapWorldSources } from '../src/shards/far-reach/generators/mapWorldSources';
 import { BAKED_PIECES } from '../src/shards/far-reach/generators/fileInventory';
 import { expect, test } from 'vitest';
-import { discoverGeneration, generateShardJob } from '../scripts/generate.mjs';
+import { discoverGeneration } from '../scripts/generate.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { MILL_REST_INPUTS } from '../src/shards/far-reach/generators/millRestProgram';
 import { PREPARED_MODEL_INPUTS } from '../src/shards/far-reach/generators/preparedModelProgram';
 
 const handoff = 'public/assets/far-reach/baked/prepared-models.glb';
-const image = 'public/assets/far-reach/map/top.webp';
 const hash = 'a4d2c58042946dc131c67027993aa567121d45bab1e33759248acb8aa704728d';
 const worldHandoffs = [...BAKED_PIECES.map(piece => `../../../public/assets/far-reach/baked/${piece}.glb`),
   '../../../public/assets/far-reach/baked/isles.bin', 'data/isles.json', 'data/geometries.json', 'owned-ground.json'];
@@ -81,53 +85,35 @@ const originalWorldInputs: Readonly<Record<string, { readonly bytes: number; rea
 };
 const rootPath = (file: string): string => file.startsWith('../../../public/') ? file.slice(9) : `src/shards/far-reach/${file}`;
 
-test('the sealed map owns all prepared-model inputs and retains every original image byte without the public GLB', async () => {
-  const root = resolve('.'), job = discoverGeneration(root).jobs.find(row => row.id === 'sky-data-map');
-  if (job === undefined) throw new Error('Missing retained Sky map');
-  expect(job.inputRoots).not.toContain(handoff);
-  expect(job.inputRoots).not.toContain('src/shards/far-reach/data/groundScene.generated.json');
-  for (const file of [...bridgeHandoffs, ...millHandoffs]) expect(job.inputRoots).not.toContain(file);
-  for (const file of worldHandoffs) expect(job.inputRoots).not.toContain(rootPath(file));
-  for (const url of [...PREPARED_MODEL_INPUTS, ...MILL_REST_INPUTS]) expect(job.inputRoots).toContain(`public${url}`);
-  mkdirSync('tmp', { recursive: true });
-  const cacheDir = mkdtempSync(resolve('tmp/sky-map-source-'));
+test('the source map owns every native input and retains the complete original image and RGBA identity', async () => {
+  expect(discoverGeneration('.').jobs.some(job => job.id === 'sky-data-map')).toBe(false);
+  for (const url of [...PREPARED_MODEL_INPUTS, ...MILL_REST_INPUTS]) expect(SKY_MAP_INPUTS).toContain(url);
+  for (const file of [handoff, ...bridgeHandoffs, ...millHandoffs, ...worldHandoffs.map(rootPath)]) expect(SKY_MAP_INPUTS).not.toContain(file);
+  const cache = mkdtempSync(resolve('tmp/sky-map-native-'));
   try {
-    const result = await generateShardJob(root, job, { cacheDir, forceCompare: true });
-    try {
-      for (const file of worldHandoffs) expect(existsSync(resolve(result.directory, rootPath(file))), file).toBe(false);
-      for (const file of [...bridgeHandoffs, ...millHandoffs]) expect(existsSync(resolve(result.directory, file)), file).toBe(false);
-      expect(result.hit).toBe(false);
-      expect(result.hashes[image]).toBe(hash);
-      expect(existsSync(resolve(result.directory, handoff))).toBe(false);
-      const actual = readFileSync(resolve(result.directory, image));
-      expect(actual.byteLength).toBe(17_566);
-      expect(hashImmutableBytes(actual)).toBe(hash);
-      const stamp: unknown = JSON.parse(readFileSync(resolve(result.directory, 'src/shards/far-reach/look/map.baked.json'), 'utf8'));
-      expect(stamp).toMatchObject({ pixelHash: '39a0770cfbeebbf625bcb62fed48113a2c37ea436467fb9cfa1339c5912c420a',
-        image: '/assets/far-reach/map/top.webp', size: 1000, metres: 500, north: '+z', east: '-x', style: 'data:void', bytes: 17_566 });
-    } finally { result.release(); }
-  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
+    const ctx = createProjectGeneration(resolve('src/shards/far-reach'), 'a'.repeat(64), new Map(), cache,
+      [{ prefix: '/assets/', directory: resolve('public/assets') }]);
+    const cold = await skyMapProgram(ctx), encoded = await generatedProjectMap(cold, 'a'.repeat(64));
+    expect(cold.pixels.byteLength).toBe(4_000_000);
+    const prefix = new TextEncoder().encode('map-rgba8/1\u00001000x1000\u0000'), stamped = new Uint8Array(prefix.length + cold.pixels.length);
+    stamped.set(prefix); stamped.set(cold.pixels, prefix.length);
+    expect(hashImmutableBytes(stamped)).toBe('39a0770cfbeebbf625bcb62fed48113a2c37ea436467fb9cfa1339c5912c420a');
+    expect(encoded.map.bytes.byteLength).toBe(17_566); expect(hashImmutableBytes(encoded.map.bytes)).toBe(hash);
+    const original = hashImmutableBytes(cold.pixels); cold.pixels.fill(0);
+    expect(hashImmutableBytes((await skyMapProgram(ctx)).pixels)).toBe(original);
+    await expect(skyMapProgram({ cached: () => Promise.resolve(new Map()) })).rejects.toThrow('cache inventory differs');
+    const missing = createProjectGeneration(resolve('src/shards/far-reach'), 'a'.repeat(64), new Map(), resolve(cache, 'missing'));
+    await expect(skyMapProgram(missing)).rejects.toThrow('exactly one declared root');
+  } finally { rmSync(cache, { recursive: true, force: true }); }
 });
 
-test('the real sealed map refuses an omitted original model rather than using the retained public geometry', async () => {
-  const root = resolve('.'), { jobs } = discoverGeneration(root), job = jobs.find(row => row.id === 'sky-data-map');
-  if (job === undefined) throw new Error('Missing retained Sky map');
-  const source = 'public/assets/far-reach/fan/hand-hd.glb';
-  expect(job.inputRoots).toContain(source);
-  mkdirSync('tmp', { recursive: true });
-  const cacheDir = mkdtempSync(resolve('tmp/sky-map-omitted-'));
-  try {
-    const omitted = { ...job, inputRoots: job.inputRoots.filter(path => path !== source) };
-    const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
-    writeFileSync(resolve(root, catalogPath), JSON.stringify({ schema: 'generation-jobs/1',
-      notice: 'DO NOT EDIT isolated omission fixture', jobs: jobs.map(row => row.id === job.id ? omitted : row) }));
-    await expect(generateShardJob(root, omitted, { cacheDir, catalogPath, forceCompare: true })).rejects.toThrow('Generator exited 1');
-  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
+test.each(['/assets/far-reach/fan/hand-hd.glb', ...MILL_REST_INPUTS])('the source map refuses omitted original native model %s', async url => {
+  const inputs = originalSkyMapInputs(); expect(inputs.has(url)).toBe(true); inputs.delete(url);
+  await expect(skyMapPixels(inputs)).rejects.toThrow('native input inventory differs');
 });
-
 
 test('owned map world inputs preserve every original native payload and metadata without stored handoffs', () => {
-  const settings: unknown = JSON.parse(readFileSync('src/shards/far-reach/look/map.json', 'utf8'));
+  const settings: unknown = JSON.parse(readFileSync('src/shards/far-reach/data/map.json', 'utf8'));
   expect(settings).toHaveProperty('inputs');
   if (typeof settings !== 'object' || settings === null || !('inputs' in settings) || !Array.isArray(settings.inputs)) {
     throw new Error('Missing map input authority');
@@ -154,45 +140,18 @@ test('owned map world inputs preserve every original native payload and metadata
   check(skyMapWorldSources(compress));
 });
 
-test.each(['mapWorldSources.ts', 'groundScene.ts'])('the real sealed map refuses omitted defining source %s', async leaf => {
-  const root = resolve('.'), { jobs } = discoverGeneration(root), job = jobs.find(row => row.id === 'sky-data-map');
-  if (job === undefined) throw new Error('Missing retained Sky map');
-  const folder = 'src/shards/far-reach/generators', source = `${folder}/${leaf}`;
-  expect(job.inputRoots).toContain(folder);
-  const leaves = readdirSync(resolve(root, folder), { recursive: true, withFileTypes: true }).filter(file => file.isFile())
-    .map(file => relative(root, resolve(file.parentPath, file.name)));
-  const inputRoots = [...new Set(job.inputRoots.flatMap(path => path === folder ? leaves : [path]))].filter(path => path !== source);
-  const omitted = { ...job, inputRoots }, cacheDir = mkdtempSync(resolve('tmp/sky-map-world-omitted-'));
-  try {
-    const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
-    writeFileSync(resolve(root, catalogPath), JSON.stringify({ schema: 'generation-jobs/1',
-      notice: 'DO NOT EDIT isolated defining-source omission', jobs: jobs.map(row => row.id === job.id ? omitted : row) }));
-    await expect(generateShardJob(root, omitted, { cacheDir, catalogPath, forceCompare: true })).rejects.toThrow('Generator exited 1');
-  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
-});
-
 test('the map world source bundles without generated imports or file/compiler services', async () => {
   const result = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false,
-    lib: { entry: resolve('src/shards/far-reach/generators/mapWorldSources.ts'), formats: ['es'] },
+    lib: { entry: resolve('src/shards/far-reach/generators/mapProgram.ts'), formats: ['es'] },
     rolldownOptions: { external: [/^node:/u, 'assemblyscript/dist/asc.js'], output: { codeSplitting: false } } } });
   const output = Array.isArray(result) ? result[0] : result;
   if (output === undefined || !('output' in output)) throw new Error('Missing map world source bundle');
   const chunks = output.output.filter(row => row.type === 'chunk'); expect(chunks).toHaveLength(1);
   for (const chunk of chunks) {
     assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
-    expect(Object.keys(chunk.modules).some(path => path.includes('.generated.'))).toBe(false);
+    for (const leaf of ['mapWorldSources.ts', 'groundScene.ts', 'knoll.ts', 'isletRigRows.ts', 'bridgeRest.ts', 'mapProgram.ts']) {
+      expect(Object.keys(chunk.modules).some(path => path.endsWith(`/${leaf}`)), leaf).toBe(true);
+    }
   }
 });
 
-test.each(MILL_REST_INPUTS)('the actual sealed map refuses omitted native mill model %s', async url => {
-  const root = resolve('.'), { jobs } = discoverGeneration(root), job = jobs.find(row => row.id === 'sky-data-map');
-  if (job === undefined) throw new Error('Missing retained Sky map');
-  const input = `public${url}`; expect(job.inputRoots).toContain(input);
-  const omitted = { ...job, inputRoots: job.inputRoots.filter(path => path !== input) }, cacheDir = mkdtempSync(resolve('tmp/sky-map-mill-'));
-  try {
-    const catalogPath = relative(root, resolve(cacheDir, 'omitted.json'));
-    writeFileSync(catalogPath, JSON.stringify({ schema: 'generation-jobs/1', notice: 'DO NOT EDIT native mill omission',
-      jobs: jobs.map(row => row.id === job.id ? omitted : row) }));
-    await expect(generateShardJob(root, omitted, { cacheDir, catalogPath, forceCompare: true })).rejects.toThrow('Generator exited 1');
-  } finally { rmSync(cacheDir, { recursive: true, force: true }); }
-});

@@ -22,9 +22,6 @@ test('source islet rest projection retains the complete original wire without a 
   expect(() => mapSceneRest({ nodes: [{ id: 'empty', instances: 2 }] }, [], [])).toThrow('Incomplete map rest instance slots');
   const { jobs } = discoverGeneration('.');
   expect(jobs.some(job => job.id === 'sky-map-rest')).toBe(false);
-  const map = jobs.find(job => job.id === 'sky-data-map');
-  if (map === undefined) throw new Error('Missing retained map producer');
-  for (const path of ['src/shards/far-reach/data/isletScenes.generated.json', 'src/shards/far-reach/data/mapRest.generated.json']) {
-    expect(map.inputRoots).not.toContain(path);
-  }
+  expect(jobs.some(job => job.id === 'sky-data-map')).toBe(false);
+  for (const job of jobs) for (const path of ['src/shards/far-reach/data/isletScenes.generated.json', 'src/shards/far-reach/data/mapRest.generated.json']) expect(job.inputRoots).not.toContain(path);
 });

@@ -1,3 +1,4 @@
+import { SKY_MAP_INPUTS } from '../src/shards/far-reach/generators/bake-map.mjs';
 import { skyHeroLibrarySource, skyHeroLibraryProgram, HERO_LIBRARY_INPUTS } from '../src/shards/far-reach/generators/heroLibrary';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own only the isolated cold cache and matching omission catalogue.
@@ -72,10 +73,8 @@ test('both vane writers retire after map adoption of the exact native source', (
       expect(job.inputRoots, job.id).not.toContain(path);
     }
   }
-  const map = jobs.find(job => job.id === 'sky-data-map');
-  if (map === undefined) throw new Error('Missing retained map producer');
-  expect(map.inputRoots).toContain('src/shards/far-reach/generators/vaneProgram.ts');
-  expect(map.inputRoots).toContain('public/assets/far-reach/models/wind-vane/wind-vane.glb');
+  expect(jobs.some(job => job.id === 'sky-data-map')).toBe(false);
+  expect(SKY_MAP_INPUTS).toContain('/assets/far-reach/models/wind-vane/wind-vane.glb');
 });
 
 test('boot metadata has no publisher or handoff readers after direct source discovery', () => {

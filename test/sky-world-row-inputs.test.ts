@@ -15,14 +15,10 @@ test('the owned world reader preserves every original baked paint, piece and col
 });
 
 test('world publication is retired and its retained map reader declares source-owned rows', () => {
-  const { jobs } = discoverGeneration(resolve('.')), job = jobs.find(row => row.id === 'sky-data-map');
+  const { jobs } = discoverGeneration(resolve('.'));
+  expect(jobs.some(row => row.id === 'sky-data-map')).toBe(false);
   expect(jobs.some(row => row.id === 'sky-world-rows')).toBe(false);
-  if (job === undefined) throw new Error('Missing retained map reader');
-  for (const path of removed) expect(job.inputRoots, path).not.toContain(path);
-  expect(job.inputRoots).toContain('src/shards/far-reach/generators/worldPieceBytes.ts');
-  const ground = 'src/shards/far-reach/generators/groundScene.ts';
-  expect(job.inputRoots).toContain(ground);
-  expect(job.inputRoots).not.toContain('src/shards/far-reach/data/groundScene.generated.json');
+  for (const job of jobs) for (const path of [...removed, 'src/shards/far-reach/data/groundScene.generated.json']) expect(job.inputRoots, path).not.toContain(path);
   const rows = skyWorldRows(), first = Object.values(rows.bakes)[0];
   if (first === undefined) throw new Error('Missing original baked rows');
   Reflect.set(first.kinds, 'length', 0); Reflect.set(rows.pieces, 'length', 0);
