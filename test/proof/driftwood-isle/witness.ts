@@ -12,8 +12,6 @@ import { createHash } from 'node:crypto';
 import { gzipSync, gunzipSync } from 'node:zlib';
 import * as v from 'valibot';
 import { readWitnessManifest, witnessPayloadHashes } from '../../../scripts/witness-checkpoints.mjs';
-import source from '../../fixtures/driftwood-product-source';
-import { driftwoodFixedAssets } from '../../fixtures/driftwood-fixed-bank';
 import bossRows from '../../../src/shards/driftwood-isle/data/bossEncounter.json' with { type: 'json' };
 import { readNativeQuestSpots } from '../../fixtures/native-hosts/quest/nativeComposition';
 import { DRIFTWOOD_SPOTS as nativeQuestSpots } from '../../../src/shards/driftwood-isle/generators/spots';
@@ -45,8 +43,10 @@ export function witnessProductDirectory(): string {
 let DIR = new URL('checkpoints/', import.meta.url), MANIFEST = new URL('manifest.json', DIR);
 /** Select a generator-owned output directory; native recorders and replay readers share this explicit port. */
 export function setCheckpointDirectory(directory: URL): void { DIR = directory; MANIFEST = new URL('manifest.json', DIR); }
-const fixedAssets = await driftwoodFixedAssets();
-const assets = new Map(source.files.map(file => [file.hash, fixedAssets.get(file.hash) ?? new Uint8Array(readFileSync(new URL(`src/shards/driftwood-isle/assets/${file.hash}`, ROOT)))]));
+// The native witness consumes the admitted product's bytes, never authoring
+// geometry constructors (which legitimately depend on renderer materials).
+const witnessProduct = await loadHeadlessProduct(witnessProductDirectory());
+const source = witnessProduct.shardfile;
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0));
 const Frame = v.pipe(v.array(TickCommandSchema), v.maxLength(1024));
 const Tape = v.pipe(v.array(Frame), v.maxLength(60_000));
@@ -68,11 +68,25 @@ export const OPEN = [
 ];
 export const SCOPE = 'Real Sealed Ring, reef and spawn-to-zipline journeys, earned chest pack, Captain/swim and golden-hour reward carry continuations and emitted ledger facts; not whole-shard compatibility';
 export function driftwoodRapier(): Promise<Rapier> { return loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', ROOT))); }
-function nativeAssets(product: ShardProduct): Map<string, Uint8Array> {
+function nativeFiles(product: ShardProduct): NonNullable<ReturnType<typeof outputDescriptor>>['index']['files'] {
   const descriptor = outputDescriptor(product.shardfile);
   if (descriptor === undefined) throw new Error('Missing admitted native output');
-  return new Map([...assets, ...descriptor.index.files.filter(file => file.kind === 'wasm' || product.shardfile.files.some(required => required.hash === file.hash)).map(file => [file.hash,
-    Uint8Array.from(readFileSync(new URL(file.path, pathToFileURL(`${witnessProductDirectory()}/`))))] as const)]);
+  const required = new Set(product.shardfile.files.map(file => file.hash));
+  return descriptor.index.files.filter(file => file.kind === 'wasm' || required.has(file.commons === true ? `commons:${file.hash}` : file.hash));
+}
+/** Fingerprint the same pinned native byte closure used by every recorder/fork. */
+export function witnessProductInputFiles(): readonly string[] {
+  const root = pathToFileURL(`${witnessProductDirectory()}/`);
+  return ['shard.json', ...nativeFiles(witnessProduct).map(file => file.path)].map(path => new URL(path, root).href);
+}
+function nativeAssets(product: ShardProduct): Map<string, Uint8Array> {
+  const assets = new Map<string, Uint8Array>(), root = pathToFileURL(`${witnessProductDirectory()}/`);
+  for (const file of nativeFiles(product)) {
+    const bytes = Uint8Array.from(readFileSync(new URL(file.path, root)));
+    if (bytes.byteLength !== file.compressed || hash(bytes) !== file.hash) throw new Error(`Native witness product blob differs: ${file.path}`);
+    assets.set(file.commons === true ? `commons:${file.hash}` : file.hash, bytes);
+  }
+  return assets;
 }
 async function boot(rapier: Rapier, snapshot?: string): Promise<TrustedHeadlessResident> {
   const product = await loadHeadlessProduct(witnessProductDirectory());
