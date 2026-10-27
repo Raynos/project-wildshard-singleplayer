@@ -67,7 +67,7 @@ test('declared wildlife waits for animals, owns one frame and retires its hook',
     expect(frame).toMatchObject({ id: 'orchard.wildlife', after: ['orchard.places'], before: ['engine.creatures.update'] });
     frame.run(.1, 2); expect(begin).not.toHaveBeenCalled();
     const build = hooks.animalsBuilt; if (build === undefined) throw new Error('Missing animal stage');
-    await build(animals); expect(pause).toHaveBeenCalledOnce(); expect(clientWildlife(ctx)).toBeInstanceOf(PageWildlife);
+    await build(animals); expect(pause).toHaveBeenCalledTimes(2); expect(clientWildlife(ctx)).toBeInstanceOf(PageWildlife);
     application.events.ask('combat.targets.ray',request);expect(hits).toEqual(['prior','wildlife','night','titan']);hits.length=0;
     expect(ray).toHaveBeenCalledWith(request.origin,request.dir,request.maxDist,null);
     expect(animals.navSteer).toBe(true); frame.run(.1, 3);

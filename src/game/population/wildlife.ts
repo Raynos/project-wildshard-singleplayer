@@ -177,6 +177,9 @@ export async function installClientWildlife(ctx: ShardContext, feature: ClientFe
     animals.wetAt = (x, z) => wildEnv.wetAt(x, z);
     animals.navSteer = feature.navSteer;
     const population = new PageWildlife<CrowdDraw>(animals, rows,world.game.levelScope,world.player.position);
+    // the population's admission and its first pack take a task each: together they were one 117 ms afterKit frame of a
+    // cold Nalati crossing at phone 4x (~32 ms admitting its programmes, ~59 ms the first pack)
+    await macrotask(); ensureActive();
     for (const step of population.buildSteps()) {
       ensureActive();
       if (step.kind === 'crowd') {
