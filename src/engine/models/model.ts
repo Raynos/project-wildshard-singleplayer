@@ -241,7 +241,7 @@ export interface ModelDef<P extends object> {
   readonly variants?: readonly ModelVariant<P>[];
   /** the rng stream a `place` call's builds draw from, in placement order (default: a hash of `id`) */
   readonly seed?: number;
-  /** Optional async code/resource preparation, awaited by the roster before any specimen builds. */
+  /** Optional async code/resource preparation, awaited by the roster and direct Explorer listings before specimen builds. */
   readonly prepare?: () => Promise<void>;
   /** Catalogue builds own their resources only while shown, including temporary tier comparisons. */
   readonly specimenLifetime?: 'view';

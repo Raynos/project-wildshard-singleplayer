@@ -25,6 +25,7 @@ import { specimenReady, paramsOf, seedOf, type ModelContext, type ModelDef, type
 import { resourceScope } from '../app/resources';
 import { withOwner } from '../app/ownership';
 import type { Scope } from '../app/scope';
+import { loadingSpecimen } from './gear';
 
 export interface ListOptions {
   readonly ctx: ModelContext;
@@ -50,10 +51,25 @@ export function listModel<P extends object>(def: ModelDef<P>, o: ListOptions): v
   const specimen = new THREE.Group();
   specimen.name = `model:${def.id}`;
   const parent = resourceScope(), owners = new Set<Scope>();
+  // Direct listings, unlike roster listings, can reach a card before its sources are prepared.
+  const scoped = def.specimenLifetime === 'view' || def.prepare !== undefined;
   const build = (variant?: string): THREE.Object3D => {
-    const owner = def.specimenLifetime === 'view' ? parent.child(`specimen/${def.id}`) : undefined;
+    const owner = scoped ? parent.child(`specimen/${def.id}`) : undefined;
     if (owner !== undefined) owners.add(owner);
     const make = () => def.build(owner === undefined ? o.ctx : { ...o.ctx, specimenScope: owner }, paramsOf(def, variant, undefined), new Rng(seedOf(def)));
+    const prepared = def.prepare;
+    if (prepared !== undefined && owner !== undefined) {
+      return loadingSpecimen(def.id, [1, 1, 1], async () => {
+        await prepared();
+        if (owner.disposed || owner.disposing) throw new Error('Specimen view retired during preparation');
+        const made = withOwner(owner, make);
+        const obj = Array.isArray(made) ? group((made as readonly ModelPart[]).map(meshOf), def.id) : made as THREE.Object3D;
+        owner.onDispose(() => { obj.removeFromParent(); });
+        if (def.specimenYaw !== undefined) obj.rotation.y = def.specimenYaw;
+        await specimenReady(obj);
+        return obj;
+      }, owner);
+    }
     let built: ReturnType<typeof make>;
     try { built = owner === undefined ? make() : withOwner(owner, make); }
     catch (error) { owner?.dispose(); if (owner !== undefined) owners.delete(owner); throw error; }
@@ -69,7 +85,7 @@ export function listModel<P extends object>(def: ModelDef<P>, o: ListOptions): v
     specimen.removeFromParent(); specimen.clear(); specimens.clear();
     for (const owner of owners) owner.dispose(); owners.clear();
   };
-  if (def.specimenLifetime === 'view') parent.onDispose(release);
+  if (scoped) parent.onDispose(release);
   const kept = (variant?: string): THREE.Object3D => {
     const key = variant ?? '';
     let obj = specimens.get(key);
@@ -78,7 +94,7 @@ export function listModel<P extends object>(def: ModelDef<P>, o: ListOptions): v
   };
   const { copies } = o;
   const entry: ModelEntry = {
-    ...(def.specimenLifetime === 'view' ? { release, ready: () => specimenReady(specimen) } : {}),
+    ...(scoped ? { release, ready: () => specimenReady(specimen) } : {}),
     id: def.id, category: def.category, live: false, pipeline: o.pipeline ?? def.pipeline, drawnAs: o.drawnAs ?? (def.rig ? 'skinned' : 'single'),
     object: () => { if (specimen.children.length === 0) specimen.add(kept()); return specimen; },
     buildAt: (tier) => withTier(tier, () => build()),
@@ -91,7 +107,7 @@ export function listModel<P extends object>(def: ModelDef<P>, o: ListOptions): v
     entry.variants = def.variants.map((v) => ({ id: v.id, label: v.label }));
     entry.rebuild = (variant?: string): void => {
       const container = specimen.parent;
-      if (def.specimenLifetime === 'view') release();
+      if (scoped) release();
       specimen.clear();
       specimen.add(kept(variant));
       container?.add(specimen);

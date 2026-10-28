@@ -1,6 +1,8 @@
 import {zlibSync} from 'fflate';
 import * as THREE from 'three';
 import {afterEach,expect,test,vi} from 'vitest';
+import {listModel} from '../src/engine/models/live';
+import {withOwner} from '../src/engine/app/ownership';
 import {Scope} from '../src/engine/app/scope';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import {Rng} from '../src/engine/core/rng';
@@ -213,4 +215,42 @@ test('the existing Explorer and dressing adapters prepare admitted banks without
     expect(root.children).toContain(host.group);expect(SceneDressing.current(ctx)).toBe(host);expect(fetch).not.toHaveBeenCalled();
   }finally{scope.dispose();}
   expect(root.children).toHaveLength(0);
+});
+
+// The Explorer calls object() before ready(); listing itself must remain free of IO.
+test.each([false,true])('direct deferred specimen listing awaits sources; retired=%s',async retired=>{
+  const owner=new Scope('direct-specimen'),files=new Map<string,Uint8Array>(),reply=deferred<Uint8Array>();
+  let reads=0;
+  const read=planSpecimenCatalogue({file:()=>{reads++;return reply.promise;},hasFile:()=>true},forge.rows,owner,[forge.packed]);
+  const catalogue=defineSpecimenCatalogue<Record<string,object>>(forge.rows,forge.packed,materials,files,async()=>{
+    for(const [name,bytes]of await read())files.set(name,bytes);
+  });
+  const model=catalogue.model('anvil'),ctx=modelContext(skyFixture()),registry=new WorldRegistry();
+  try{
+    withOwner(owner,()=>{listModel(model,{ctx,registry});});
+    expect(reads).toBe(0);expect(()=>model.build(ctx,{},new Rng(1))).toThrow('requires preparation');
+    const card=registry.get('model:fixture/anvil')?.model;if(card?.ready===undefined||card.release===undefined)throw new Error('Missing prepared view contract');
+    const root=card.object(),placeholder=root.children[0]?.children[0],ready=card.ready();
+    expect(reads).toBe(1);expect(placeholder).toBeInstanceOf(THREE.Mesh);
+    if(retired)card.release();
+    reply.resolve(forge.wire);await ready;
+    const positions:number[]=[];root.traverse(node=>{if(node instanceof THREE.Mesh){const geometry:unknown=node.geometry;if(!(geometry instanceof THREE.BufferGeometry))throw new Error('Missing native geometry');const position:unknown=geometry.getAttribute('position');if(!(position instanceof THREE.BufferAttribute))throw new Error('Missing exact positions');for(let i=0;i<position.count;i++)positions.push(position.getX(i),position.getY(i),position.getZ(i));}});
+    expect(positions).toEqual(retired?[]:Array.from(new Float32Array(forge.raw.buffer)));
+    expect(reads).toBe(1);
+    card.release();expect(root.children).toHaveLength(0);
+  }finally{owner.dispose();}
+});
+
+test('direct deferred specimen failure refuses Explorer readiness without building',async()=>{
+  const owner=new Scope('failed-direct-specimen'),ctx=modelContext(skyFixture()),registry=new WorldRegistry();
+  const catalogue=defineSpecimenCatalogue<Record<string,object>>(forge.rows,forge.packed,materials,new Map(),()=>Promise.reject(new Error('Exact source refused')));
+  const warn=vi.spyOn(console,'warn').mockImplementation(()=>undefined);
+  try{
+    withOwner(owner,()=>{listModel(catalogue.model('anvil'),{ctx,registry});});
+    const card=registry.get('model:fixture/anvil')?.model;if(card?.ready===undefined)throw new Error('Missing readiness');
+    const root=card.object(),holder=root.children[0],placeholder=holder?.children[0];
+    await expect(card.ready()).rejects.toThrow('Exact source refused');
+    expect(holder?.children).toEqual([placeholder]);expect(warn).toHaveBeenCalledOnce();
+    expect(()=>catalogue.model('anvil').build(ctx,{},new Rng(1))).toThrow('requires preparation');
+  }finally{owner.dispose();}
 });
