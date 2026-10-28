@@ -123,7 +123,7 @@ try {
         if (errors.length > 0) throw new Error(`Entry crawl page errors: ${errors.join('; ')}`);
         const timeOrigin = v.parse(v.number(), await page.evaluate('performance.timeOrigin'));
         const spans = v.parse(spansSchema, await page.evaluate('performance.getEntriesByType("measure").map(row=>({name:row.name,startTime:row.startTime,duration:row.duration}))'));
-        const spansForEntry = spans.filter(row => row.name === `wildshard.prepare:${cell.slug}:grid.prepare:${cell.slug}.create`);
+        const spansForEntry = spans.filter(row => row.name === `wildshard.prepare:${cell.slug}:grid.prepare:${cell.instance}.create`);
         if (spansForEntry.length !== 1) throw new Error(`Expected one completed cold entry span: ${cell.slug}`);
         const hold = spansForEntry[0]; if (hold === undefined) throw new Error('Entry span missing');
         const urls = entryDemandUrls(cell.slug, source, demands.filter(row => row.at >= timeOrigin + hold.startTime && row.at <= timeOrigin + hold.startTime + hold.duration));
