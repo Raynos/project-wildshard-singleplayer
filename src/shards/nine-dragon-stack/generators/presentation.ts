@@ -1,6 +1,6 @@
 import type { NineSourceWorld } from './worldProgram';
 import { BufferAttribute, Color, InstancedBufferAttribute, InstancedBufferGeometry, Matrix4, type Mesh, Quaternion, Vector3, Vector4 } from 'three';
-import { parseSceneBuffers, type SceneBuffers } from '@wildshard/format/sceneBuffers';
+import { worldSceneBuffers as parseSceneBuffers } from '@wildshard/sdk/worldScenes';
 import { volumeSources } from './lightVolumes';
 import { buildStreaks, stairStreaks } from './receiverCards';
 import { buildHalos } from './haloCards';
@@ -9,6 +9,8 @@ import plan from '../data/layoutPlan.json' with { type: 'json' };
 import type { NineWorldDeclarations } from './worldRows';
 import lantern from '../data/lantern.json' with { type: 'json' };
 import type { NineNativeAtlas } from './nativeSignMetadata';
+
+type SceneBuffers = ReturnType<typeof parseSceneBuffers>;
 
 const { STAIR, WELL, Y0 } = plan;
 /** Native typed channels, index and receiver order become data for the existing scene-buffer reader.

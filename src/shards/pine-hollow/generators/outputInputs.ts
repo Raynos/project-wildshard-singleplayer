@@ -1,6 +1,7 @@
 import { PINE_HELD_BOW } from './longbow';
 import { HANDS_MATERIAL, COAT_MATERIAL } from './handsLook';
-import {parseClientChannels,parsePrivateScene} from '@wildshard/format/clientChannels';
+import {parseClientChannels} from '@wildshard/sdk/rows';
+import {privateSceneRows as parsePrivateScene} from '@wildshard/sdk/worldScenes';
 import playback from '../data/heldPlayback.json' with {type:'json'};
 import inputs from '../data/heldInputs.json' with {type:'json'};
 import sights from '../data/heldSights.json' with {type:'json'};

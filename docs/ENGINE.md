@@ -6273,6 +6273,8 @@ welds (`worldSceneWeldRows`) and surface properties
 `worldSceneWeldData` admits an author-owned mutable draft through the same
 grammar; runtime weld admission retains its immutable result.
 `caveInteriorRows` admits bounded packed cave roofs, frames and material ports.
+`privateSceneRows` admits complete private node/material records without
+a runtime scene host or any file reads.
 `AuthorWorldScenes` preserves authored fields before parser defaults;
 `AuthorBuildingAssembly` carries the complete native building grammar.
 `buildingLookRows`, `buildingLifeRows` and `emptyBuildingLifeRows` admit

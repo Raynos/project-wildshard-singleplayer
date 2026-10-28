@@ -1,7 +1,6 @@
 
 import { nameBlob, nameMeshoptBlob, type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
-import { parseWorldScene } from '@wildshard/format/clientChannels';
-import type { WorldScenesSection } from '@wildshard/format/worldScenes';
+import { worldSceneRecipe as parseWorldScene, type AuthorWorldScenes as WorldScenesSection } from '@wildshard/sdk/worldScenes';
 import models from '../data/questRideModels.json' with { type: 'json' };
 import { FIGURE_CATALOGUE } from './figureCatalogue';
 import { questRideGlbs } from './bake-timber-scenes.mjs';

@@ -1,5 +1,5 @@
 import type { NineHeldInputs } from './heldGraphFiles';
-import { parsePrivateScene } from '@wildshard/format/clientChannels';
+import { privateSceneRows as parsePrivateScene } from '@wildshard/sdk/worldScenes';
 import { GraphArmsSchema, parseGraphArms } from '@wildshard/format/graphArmsRows';
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import pendants from '../data/heldPendants.json' with { type: 'json' };

@@ -1,4 +1,4 @@
-import { parseWorldScene, parseWorldSceneBindings, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
+import { parseWorldScene, parseWorldSceneBindings, parsePrivateScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
 import { CaveInteriorSchema, type CaveInteriorRows } from '@wildshard/format/caveInterior';
 import { parseSceneBuffers } from '@wildshard/format/sceneBuffers';
 import { WorldSceneWeldSchema, parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
@@ -24,6 +24,9 @@ export interface SceneEffectField {
 
 /** Admit a bounded private world recipe before source publication; no runtime is installed. */
 export function worldSceneRecipe(input: unknown): WorldSceneRecipe { return parseWorldScene(input); }
+
+/** Admit complete private scene nodes and material ports before publication, without a scene host. */
+export function privateSceneRows(input: unknown): ReturnType<typeof parsePrivateScene> { return parsePrivateScene(input); }
 
 /** Admit finite typed transform/material/anchor ports using the defining platform grammar. */
 export function worldSceneBindings(input: unknown): ReturnType<typeof parseWorldSceneBindings> { return parseWorldSceneBindings(input); }

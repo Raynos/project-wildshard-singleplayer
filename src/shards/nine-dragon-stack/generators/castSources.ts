@@ -1,10 +1,12 @@
 import type { HookProduct } from './hookProduct';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
-import { parseWorldSceneWeld, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
+import { worldSceneWeldRows as parseWorldSceneWeld } from '@wildshard/sdk/worldScenes';
 import castRows from '../data/casts.json' with { type: 'json' };
 import crowdRows from '../data/crowdModels.json' with { type: 'json' };
 import lodRows from '../data/lod.json' with { type: 'json' };
 import hookRows from '../data/hookSpecimen.json' with { type: 'json' };
+
+type WorldSceneWeld = ReturnType<typeof parseWorldSceneWeld>;
 
 const crowd = Object.entries(crowdRows).flatMap(([key, row]) => row.variants.map(variant => `${key}-${variant.id}`));
 export const CAST_NAMES: string[] = [...crowd, 'lion', ...castRows.FIXED_KITS, ...[10, 30].map(distance => `lion-mid${distance}`),

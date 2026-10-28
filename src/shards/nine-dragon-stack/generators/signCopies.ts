@@ -1,5 +1,5 @@
 import { Box3, Vector3 } from 'three';
-import type { Placement } from '@wildshard/engine/models/model';
+import type { AuthorPlacement as Placement } from '@wildshard/sdk/bake/placement';
 import type { SignModelParams, SignModelRow } from '../data/signTypes';
 
 export interface PlacedSign<S extends string = string> {

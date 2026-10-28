@@ -5,13 +5,23 @@ import { parseSceneBuffers } from '@wildshard/format/sceneBuffers';
 import { WorldSceneWeldSchema, parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { WorldSceneSurfaceSchema } from '@wildshard/format/worldSceneSurface';
 import { BakedBuildingLookSchema, parseBuildingLifeRows, emptyBuildingLifeRows as nativeEmptyBuildingLifeRows } from '@wildshard/format/buildings';
-import { worldSceneModels, worldSceneBuffers, worldSceneWeldRows, worldSceneWeldData, worldSceneSurfaceProperties, buildingLookRows, buildingLifeRows, emptyBuildingLifeRows } from './worldScenes';
+import { parsePrivateScene } from '@wildshard/format/clientChannels';
+import { worldSceneModels, worldSceneBuffers, worldSceneWeldRows, worldSceneWeldData, worldSceneSurfaceProperties, buildingLookRows, buildingLifeRows, emptyBuildingLifeRows, privateSceneRows } from './worldScenes';
 
 const model = {
   key: 'marker', id: 'author-scene/marker', name: 'Marker', category: 'props',
   pipeline: 'code', file: 'models/marker.ts', defaults: {},
   choices: [{ id: 'only', params: {}, size: [1, 2, 3], draws: [], colliders: [] }],
 };
+
+test('author private scenes preserve complete defaults and defining refusals', () => {
+  const input = { version: 1, root: 'root', nodes: [{ kind: 'group', id: 'root', children: [] }], materials: [] };
+  expect(privateSceneRows(input)).toEqual(parsePrivateScene(input));
+  for (const invalid of [{ ...input, version: 9 }, { ...input, root: '' }, { ...input, callback: () => undefined }]) {
+    expect(() => privateSceneRows(invalid)).toThrow();
+    expect(() => parsePrivateScene(invalid)).toThrow();
+  }
+});
 
 test('author model catalogues preserve every admitted field and default', () => {
   const input = { product: 'author-scene', models: [model] };
