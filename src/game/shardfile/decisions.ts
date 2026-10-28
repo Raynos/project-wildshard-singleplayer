@@ -81,6 +81,8 @@ export class ShardDecisions {
   private readonly spots: ReturnType<typeof worldTargetSpots>;
   private readonly actors: ReadonlyMap<number, string>;
   private readonly names: ReadonlyMap<string, number>;
+  /** Private actor registry order is fixed at admission; reuse its scalar handles while polling regions. */
+  private readonly actorHandles: readonly number[];
   private readonly enabled = new Map<number, boolean>();
   private readonly motions = new Map<number, Motion>();
   private readonly striking = new Map<number, Strike>();
@@ -116,6 +118,7 @@ export class ShardDecisions {
     const registries = buildDecisionRegistries(source, this.moves, targets, nativeStrikes, declared, nativeActors);
     this.registries = bodyOps === undefined ? registries : { ...registries, bodies: bodyOps.registries.bodies, colliders: bodyOps.registries.colliders };
     this.names = new Map([...this.registries.actors ?? [], [sim.player.id, DECISION_PLAYER_HANDLE] as const]); this.actors = inverse(this.names);
+    this.actorHandles = [...this.names.values()];
     this.strikes = new Map(simStrikes(source.rows));
     for (const { weight: _weight, ...row } of nativeStrikes) this.strikes.set(row.id, { ...row, range: row.range ?? Infinity });
     const moveErrors = actorMoveRules(this.moves, { spots: new Set(this.registries.spots?.keys()), fields: new Set(this.registries.fields?.keys()), strikes: new Set(this.strikes.keys()) });
@@ -422,7 +425,7 @@ export class ShardDecisions {
     for (const region of this.source.quests.triggers) {
       if (region.kind !== 'region') continue;
       const zone = requireValue(this.registries.zones?.get(region.id), 'zone');
-      for (const actor of this.names.values()) {
+      for (const actor of this.actorHandles) {
         const key = `${zone}:${actor}`, inside = this.inside(region.id, actor), before = this.zones.has(key);
         if (before === inside) continue;
         if (inside) this.zones.add(key); else this.zones.delete(key);
