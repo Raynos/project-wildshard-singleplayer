@@ -269,7 +269,7 @@ test.each([false,true])('packed specimens retain authored keys after product par
   const sorted=Object.fromEntries(Object.entries(defaults).sort(([a],[b])=>a.localeCompare(b)));
   if(nested)Object.assign(sorted,{boards:[{direction:1,text:'Camp'},{direction:-1,text:'Pass'}]});
   const authoredKey=`fixture/anvil ${JSON.stringify(defaults)}`;
-  const packed={...forge.packed,rows:[{...forge.packed.rows[0],key:authoredKey}]};
+  const packed={...forge.packed,rows:[{...forge.packed.rows[0],key:authoredKey},{key:'opaque named shape',parts:[]}]};
   const rows=[{...forge.rows[0],model:{...forge.rows[0]?.model,defaults:sorted}}];
   const files=await prepareSpecimenCatalogue({file:()=>Promise.resolve(forge.wire),hasFile:()=>true},rows,undefined,[packed]);
   const catalogue=defineSpecimenCatalogue<Record<string,object>>(rows,packed,materials,files);
@@ -283,6 +283,7 @@ test.each([false,true])('packed specimens retain authored keys after product par
   expect(position.count).toBe(forge.raw.length/12);
   expect(packed.rows[0]?.key).toBe(authoredKey);
   const parts=createPackedSpecimens(packed,files);await parts.load();
+  expect(parts.parts('opaque named shape',modelContext(skyFixture()),materials)).toEqual([]);
   expect(parts.parts(`fixture/anvil ${JSON.stringify({...sorted,palette:1})}`,modelContext(skyFixture()),materials)).toBeNull();
   expect(parts.parts(`other/anvil ${JSON.stringify(sorted)}`,modelContext(skyFixture()),materials)).toBeNull();
   if(nested)expect(parts.parts(`fixture/anvil ${JSON.stringify({...sorted,boards:[{direction:-1,text:'Pass'},{direction:1,text:'Camp'}]})}`,modelContext(skyFixture()),materials)).toBeNull();

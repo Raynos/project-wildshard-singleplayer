@@ -318,7 +318,7 @@ export function specimenKey(id: string, params: object): string { return `${id} 
 // Product JSON sorts object members, while the immutable bank retains the
 // author's wire key. Match the same parameter values without rewriting either.
 function packedLookupKey(key: string): string {
-  const split=key.indexOf(' ');if(split===-1)return key;
+  const split=key.indexOf(' ');if(split===-1||key[split+1]!=='{')return key;
   const params:unknown=JSON.parse(key.slice(split+1));jsonData(params);
   return `${key.slice(0,split)} ${JSON.stringify(params,(_name,value:unknown)=>
     value!==null&&typeof value==='object'&&!Array.isArray(value)
