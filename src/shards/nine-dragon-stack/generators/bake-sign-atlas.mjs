@@ -2,7 +2,7 @@ import { nineLayoutData } from './layoutSource.ts';
 import { fixedKitRows, readFixedSlots } from './casts.ts';
 // Native WebKit reference raster; portable product intake reads these retained bytes.
 import { resolve } from 'node:path';
-import { readFileSync } from 'node:fs';
+import rawSignRows from '../data/signView.json' with { type: 'json' };
 import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
 import { openNativeRaster, bundleNativeRaster } from '@wildshard/sdk/bake/nativeRaster';
 import { byteWriter, outputHash, browserBakeBytes } from '../../../../scripts/bake-output.mjs';
@@ -19,7 +19,7 @@ if (code === undefined) throw new Error('Nine sign page failed to bundle');
 const layout = nineLayoutData();
 const fixed = fixedKitRows(readFixedSlots(layout));
 const calls = [...layout.rows.signs, ...fixed.signs];
-const signRows = parseSignView(JSON.parse(readFileSync(resolve(root, 'src/shards/nine-dragon-stack/data/signView.json'), 'utf8')));
+const signRows = parseSignView(rawSignRows);
 
 // Single-level lossless R8/RGBA8 KTX2. Both retain the old bottom-up raster and GPU mip law.
 async function ktx(png, mono, file) {

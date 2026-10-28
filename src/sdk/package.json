@@ -137,6 +137,7 @@
     "./directorAbi": "./directorAbi.ts",
     "./sceneAnimation": "./sceneAnimation.ts",
     "./immutable": "./immutable.ts",
+    "./sourceReader": "./sourceReader.ts",
     "./runtimeMirrors": "./runtimeMirrors.ts",
     "./bake/normalizeRig": "./bake/normalizeRig.ts",
     "./compileMovers": "./compileMovers.ts",

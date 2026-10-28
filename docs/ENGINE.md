@@ -4352,6 +4352,8 @@ with the existing trusted author budget, normalization and diagnostics. Its
 it installs no shader compiler, renderer or runtime admission policy.
 `bake/materialGraph.colourLutSampleTransform` gives the native fitted cube's texel-centre
 scale and offset. Its RGBA8 layout lives in `format/colourLut`; it loads no texture or renderer.
+Author CLI `sourceReader.readBoundedFile(path, maximum)` reads owned bytes with a validated
+cap before allocation, detects growth and always closes its descriptor. Importing it reads no files.
 `bake/practiceCourse.AuthorPracticeScene` / `AuthorHookPracticeLayout` preserve the entire authored
 course/contact/map and route contracts. `spawns.AuthorSpawnTables` carries native population/placement data only.
 

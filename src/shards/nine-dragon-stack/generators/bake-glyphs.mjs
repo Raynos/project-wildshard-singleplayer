@@ -1,6 +1,6 @@
 // Run through scripts/browser-lane.sh. Native WebKit pixels are committed; product intake is portable.
 import { resolve } from 'node:path';
-import { readFileSync } from 'node:fs';
+import { readBoundedFile } from '@wildshard/sdk/sourceReader';
 import { openNativeRaster, bundleNativeRaster } from '@wildshard/sdk/bake/nativeRaster';
 import { decodeBuildDeflate } from '@wildshard/sdk/bake/byteCodec';
 import { byteWriter, jsonBytes, outputHash, browserBakeBytes } from '../../../../scripts/bake-output.mjs';
@@ -17,7 +17,7 @@ try {
   const { page } = session;
   // Optional private reference extracted from the pre-conversion runtime, for a one-time byte differential.
   const original = process.env.NINE_GLYPH_REFERENCE;
-  if (original !== undefined) await page.addScriptTag({ content: readFileSync(original, 'utf8') });
+  if (original !== undefined) await page.addScriptTag({ content: new TextDecoder('utf-8', { fatal: true }).decode(readBoundedFile(original, 8_000_000)) });
   for (const tier of ['phone', 'desktop']) {
     const sink = await browserBakeBytes(page);
     let row, chunks;
