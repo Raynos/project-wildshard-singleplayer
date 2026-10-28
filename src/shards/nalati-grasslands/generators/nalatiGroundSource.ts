@@ -9,7 +9,7 @@ import { buildPainterlyGeometry, type TerrainPaintSource } from './terrainPainte
 import terrainPaintPolicy from '../data/terrainPaintPolicy.json' with { type: 'json' };
 import { TERRAIN, SEED, groundColor, surfaceAt } from './terrainRecipe';
 
-export const TERRAIN_PAINT_SOURCE: TerrainPaintSource = { seed: SEED, terrain: TERRAIN, groundColor, surfaceAt, slabDepth: terrainPaintPolicy.slabDepth };
+export const TERRAIN_PAINT_SOURCE = { seed: SEED, terrain: TERRAIN, groundColor, surfaceAt, slabDepth: terrainPaintPolicy.slabDepth } satisfies TerrainPaintSource;
 
 const CHANNELS = { normal: 3, color: 3, surf: 4, rdir: 2, zone: 3 } as const;
 /** the painter names its masks as the painted-terrain layer reads them */
