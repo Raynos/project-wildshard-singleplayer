@@ -32,7 +32,7 @@ test('all six native glyph files preserve original pixels and metrics on cold an
       field.packed.forEach((name, index) => {
         const packed = hit.files.get(name); if (packed === undefined) throw new Error('Missing native glyph pixels');
         const chunk = unzlibSync(packed); expect(chunk.byteLength).toBe(2_097_152);
-        expect(decodeBuildDeflate(packed, 2_097_152)).toEqual(chunk);
+        expect(Buffer.compare(decodeBuildDeflate(packed, 2_097_152), chunk)).toBe(0);
         pixels.set(chunk, index * 2_097_152);
       });
       expect(hashImmutableBytes(pixels)).toBe(original[tier].pixelHash);
