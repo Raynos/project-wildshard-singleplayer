@@ -30,8 +30,7 @@ export function captureScatterSource(mesh: THREE.Object3D): ScatterSource | unde
 }
 
 export function scatterLayer(name: string, geometry: THREE.BufferGeometry, material: THREE.Material, list: ScatterPose[], farScale: number, castShadow = false, keepNear = 26): ScatterLayer {
-  if (list.length > 1_000_000 || !Number.isFinite(farScale) || farScale <= 0 || !Number.isFinite(keepNear) || keepNear < 0
-    || list.some(row => ![row.x,row.y,row.z,row.yaw,row.sx,row.sy,row.sz,row.far,row.r,row.g,row.b,row.tiltX??0,row.tiltZ??0].every(Number.isFinite) || row.far<0 || row.far*farScale>2000)) throw new Error('Invalid scatter rows');
+  if (list.length > 1_000_000 || !Number.isFinite(farScale) || farScale <= 0 || !Number.isFinite(keepNear) || keepNear < 0 || !list.every(row => finiteRow(row, farScale))) throw new Error('Invalid scatter rows');
   geometry.computeBoundingSphere();
   const mesh = new THREE.InstancedMesh(geometry, material, Math.max(1, list.length));
   mesh.name = name; mesh.frustumCulled = false; mesh.castShadow = castShadow; mesh.receiveShadow = true;
@@ -40,18 +39,27 @@ export function scatterLayer(name: string, geometry: THREE.BufferGeometry, mater
   mesh.instanceColor.setUsage(THREE.DynamicDrawUsage);
   const matrices = new Float32Array(list.length * 16), colours = new Float32Array(list.length * 3), spheres = new Float32Array(list.length * 4), ranges = new Float32Array(list.length);
   const transform = new THREE.Matrix4(), rotation = new THREE.Quaternion(), angles = new THREE.Euler(), point = new THREE.Vector3(), scale = new THREE.Vector3(), sphere = new THREE.Sphere();
-  list.forEach((it, i) => {
+  // T10 (Nalati cold tail): written straight into the typed arrays, and cells keyed by number (an array literal per copy
+  // and a string per row were most of this build: 59 ms of a Nalati entry's dressing at phone 4x)
+  const radius = geometry.boundingSphere?.radius ?? 1;
+  for (let i = 0; i < list.length; i++) {
+    const it = list[i];
+    if (it === undefined) continue;
     transform.compose(point.set(it.x, it.y, it.z), rotation.setFromEuler(angles.set(it.tiltX ?? 0, it.yaw, it.tiltZ ?? 0, 'YXZ')), scale.set(it.sx, it.sy, it.sz)).toArray(matrices, i * 16);
-    colours.set([it.r, it.g, it.b], i * 3); spheres.set([it.x, it.y, it.z, (geometry.boundingSphere?.radius ?? 1) * Math.max(it.sx, it.sy, it.sz)], i * 4); ranges[i] = it.far * farScale;
-  });
+    colours[i * 3] = it.r; colours[i * 3 + 1] = it.g; colours[i * 3 + 2] = it.b;
+    spheres[i * 4] = it.x; spheres[i * 4 + 1] = it.y; spheres[i * 4 + 2] = it.z; spheres[i * 4 + 3] = radius * Math.max(it.sx, it.sy, it.sz);
+    ranges[i] = it.far * farScale;
+  }
   // 24 m cells, each with the box round its instances' spheres and the xz bounds of their centres: a cell wholly past
   // keepNear and outside the frustum skips its instances in one test (G639: per-instance sphere tests and string-keyed
   // cell reads were ~2 ms of a Nalati look frame at phone 4x). Cells list in the old window's order, nearest first.
-  const buckets = new Map<string, { cx: number; cz: number; members: number[] }>();
-  list.forEach((it, i) => {
-    const cx = Math.floor(it.x / 24), cz = Math.floor(it.z / 24), key = `${cx},${cz}`, bucket = buckets.get(key);
+  const buckets = new Map<number | string, { cx: number; cz: number; members: number[] }>();
+  for (let i = 0; i < list.length; i++) {
+    const it = list[i];
+    if (it === undefined) continue;
+    const cx = Math.floor(it.x / 24), cz = Math.floor(it.z / 24), key = cellKey(cx, cz), bucket = buckets.get(key);
     if (bucket === undefined) buckets.set(key, { cx, cz, members: [i] }); else bucket.members.push(i);
-  });
+  }
   const cells = [...buckets.values()].sort((a, b) => a.cz - b.cz || a.cx - b.cx).map(({ cx, cz, members }) => {
     const box = new THREE.Box3();
     let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
@@ -93,6 +101,18 @@ export function scatterLayer(name: string, geometry: THREE.BufferGeometry, mater
   return { name, mesh, count: list.length, cull, get visible() { return mesh.count; }, get tris() { return mesh.count * tris; } };
 }
 
+/** the validation `scatterLayer` applies to each row: every number finite, its draw distance within reach */
+function finiteRow(row: ScatterPose, farScale: number): boolean {
+  return Number.isFinite(row.x) && Number.isFinite(row.y) && Number.isFinite(row.z) && Number.isFinite(row.yaw) && Number.isFinite(row.sx)
+    && Number.isFinite(row.sy) && Number.isFinite(row.sz) && Number.isFinite(row.far) && Number.isFinite(row.r) && Number.isFinite(row.g)
+    && Number.isFinite(row.b) && Number.isFinite(row.tiltX ?? 0) && Number.isFinite(row.tiltZ ?? 0) && row.far >= 0 && row.far * farScale <= 2000;
+}
+/** one key per 24 m cell (cells only group, and are sorted by (cz, cx) after): a number while it is one-to-one, the
+ *  original string past that */
+function cellKey(cx: number, cz: number): number | string {
+  return Math.abs(cx) < 2_097_152 && Math.abs(cz) < 2_097_152 ? cx * 4_194_304 + cz : `${cx},${cz}`;
+}
+
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _b = new THREE.Box3();
 
 /** each instance's world box (6 floats: min xyz, max xyz): its layer's geometry box at the instance's transform */
@@ -103,7 +123,7 @@ export function instanceBoxes(geometry: THREE.BufferGeometry, list: readonly Sca
   list.forEach((it, i) => {
     _m.compose(_p.set(it.x, it.y, it.z), _q.setFromEuler(_e.set(it.tiltX ?? 0, it.yaw, it.tiltZ ?? 0, 'YXZ')), _s.set(it.sx, it.sy, it.sz));
     _b.copy(bb).applyMatrix4(_m);
-    out.set([_b.min.x, _b.min.y, _b.min.z, _b.max.x, _b.max.y, _b.max.z], i * 6);
+    out[i * 6] = _b.min.x; out[i * 6 + 1] = _b.min.y; out[i * 6 + 2] = _b.min.z; out[i * 6 + 3] = _b.max.x; out[i * 6 + 4] = _b.max.y; out[i * 6 + 5] = _b.max.z;
   });
   return out;
 }
