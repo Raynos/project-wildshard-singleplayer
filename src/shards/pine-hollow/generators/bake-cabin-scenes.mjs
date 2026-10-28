@@ -5,7 +5,7 @@ import {BufferAttribute,MeshStandardMaterial} from 'three';
 import {staticGlb} from '@wildshard/sdk/bake/glb';
 import {hashImmutableBytes} from '@wildshard/sdk/immutable';
 import {installPortableMath} from '@wildshard/commons/bake/portableMath';
-import {parseWorldSceneWeld} from '@wildshard/format/worldSceneWeld';
+import {worldSceneWeldRows as parseWorldSceneWeld} from '@wildshard/sdk/worldScenes';
 import {cabinSceneSources} from './cabinSceneSources.mjs';
 import {CabinSceneRecorder} from './cabinScenes.ts';
 import {perSources} from './pineSources.ts';
