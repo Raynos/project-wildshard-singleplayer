@@ -145,10 +145,11 @@ jobs:
 
       # SF74 W16: push / PR CI runs test:checks' commands and the vite build + chunk check at once (serial ~205 s on the
       # runner); typecheck and lint run in their own job beside this one, and vitest in its shards.
-      - uses: actions/download-artifact@v4
+      # Own the whole download/extraction process after the observed Node-action
+      # zero exit without completion, which left a partial zstd file.
+      - name: Download exact-run prepared products
         if: env.DEPLOY != 'true'
-        with:
-          name: test-products
+        run: python3 scripts/ci-fail-fast.py -- gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name test-products
       - name: Decompress exact-run prepared products
         if: env.DEPLOY != 'true'
         run: zstd -d --rm test-products.tar.zst

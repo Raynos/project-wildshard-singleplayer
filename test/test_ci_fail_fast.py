@@ -35,6 +35,24 @@ class FailFastTests(unittest.TestCase):
                 self.assertEqual(source.count('run: python3 scripts/ci-fail-fast.py -- node scripts/'+command+'\n'),count)
                 self.assertNotIn('run: node scripts/'+command+'\n',source)
 
+    def test_web_prepared_download_is_owned_and_keeps_exact_run_and_unpack(self):
+        source = Path('.github/workflows/deploy.yml').read_text()
+        # A job body includes two-space job names and deeper step indentation.
+        lines = source.splitlines()
+        start = lines.index('  build-and-deploy:')
+        end = next((index for index in range(start + 1, len(lines))
+                    if lines[index].startswith('  ') and not lines[index].startswith('   ')
+                    and lines[index].endswith(':')), len(lines))
+        web = '\n'.join(lines[start:end])
+        command = 'python3 scripts/ci-fail-fast.py -- gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name test-products'
+        self.assertEqual(web.count('run: ' + command), 1)
+        self.assertNotIn('uses: actions/download-artifact@', web)
+        self.assertIn("if: env.DEPLOY != 'true'", web)
+        self.assertIn('run: zstd -d --rm test-products.tar.zst', web)
+        self.assertIn('scripts/ci-checks.mjs --prepared', web)
+        self.assertIn('python3 scripts/ci-products.py unpack', web)
+        self.assertLess(web.index('run: ' + command), web.index('run: zstd -d --rm test-products.tar.zst'))
+
     def test_annotation_properties_are_not_part_of_the_file(self):
         output='::error file=test/script-v2-strip.test.ts,title=test/script-v2-strip.test.ts::Error: missing input'
         self.assertEqual(API['failure_files'](output),['test/script-v2-strip.test.ts'])
