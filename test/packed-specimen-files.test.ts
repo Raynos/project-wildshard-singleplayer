@@ -35,7 +35,7 @@ function fixture(id:string,points:readonly number[]){
   return {raw,wire,file,packed,rows};
 }
 const forge=fixture('anvil',[0,0,0,2,0,0,0,1,0]),orchard=fixture('crate',[-1,-2,-3,1,2,3,1,-2,3,0,1,0]);
-const materials={stone:{id:'fixture-stone',family:'painterly'}};
+const materials={stone:{id:'fixture-stone',family:'painterly' as const}};
 function skyFixture():SkyRig{
   const sky:unknown=Object.create(SkyRig.prototype);
   if(!(sky instanceof SkyRig))throw new Error('Missing test sky');
@@ -260,4 +260,30 @@ test.each([false,true])('deferred specimen failure refuses Explorer readiness; p
     expect(holder?.children).toEqual([placeholder]);expect(warn).toHaveBeenCalledOnce();
     expect(()=>catalogue.model('anvil').build(ctx,{},new Rng(1))).toThrow('requires preparation');
   }finally{owner.dispose();}
+});
+
+// Canonical product JSON may reorder object members without changing parameter values.
+test.each([false,true])('packed specimens retain authored keys after product parameter reordering; nested=%s',async nested=>{
+  const defaults={r:3,flue:true,palette:0,old:false,base:'lattice',pennant:true,
+    ...(nested?{boards:[{text:'Camp',direction:1},{text:'Pass',direction:-1}]}:{})};
+  const sorted=Object.fromEntries(Object.entries(defaults).sort(([a],[b])=>a.localeCompare(b)));
+  if(nested)Object.assign(sorted,{boards:[{direction:1,text:'Camp'},{direction:-1,text:'Pass'}]});
+  const authoredKey=`fixture/anvil ${JSON.stringify(defaults)}`;
+  const packed={...forge.packed,rows:[{...forge.packed.rows[0],key:authoredKey}]};
+  const rows=[{...forge.rows[0],model:{...forge.rows[0]?.model,defaults:sorted}}];
+  const files=await prepareSpecimenCatalogue({file:()=>Promise.resolve(forge.wire),hasFile:()=>true},rows,undefined,[packed]);
+  const catalogue=defineSpecimenCatalogue<Record<string,object>>(rows,packed,materials,files);
+  await catalogue.loadPacked();
+  const model=catalogue.model('anvil'),made=model.build(modelContext(skyFixture()),sorted,new Rng(1));
+  if(!(made instanceof THREE.Group))throw new Error('Missing parameter-order specimen');
+  expect(made.children).toHaveLength(1);
+  const mesh=made.children[0];if(!(mesh instanceof THREE.Mesh))throw new Error('Missing parameter-order geometry');
+  const shape:unknown=mesh.geometry;if(!(shape instanceof THREE.BufferGeometry))throw new Error('Missing parameter-order shape');
+  const position:unknown=shape.getAttribute('position');if(!(position instanceof THREE.BufferAttribute))throw new Error('Missing parameter-order positions');
+  expect(position.count).toBe(forge.raw.length/12);
+  expect(packed.rows[0]?.key).toBe(authoredKey);
+  const parts=createPackedSpecimens(packed,files);await parts.load();
+  expect(parts.parts(`fixture/anvil ${JSON.stringify({...sorted,palette:1})}`,modelContext(skyFixture()),materials)).toBeNull();
+  expect(parts.parts(`other/anvil ${JSON.stringify(sorted)}`,modelContext(skyFixture()),materials)).toBeNull();
+  if(nested)expect(parts.parts(`fixture/anvil ${JSON.stringify({...sorted,boards:[{direction:-1,text:'Pass'},{direction:1,text:'Camp'}]})}`,modelContext(skyFixture()),materials)).toBeNull();
 });

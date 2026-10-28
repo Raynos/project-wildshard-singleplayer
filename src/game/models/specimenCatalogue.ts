@@ -315,6 +315,15 @@ export interface PackedSpecimenBake {
 }
 /** Stable wire key: model identity and the authored parameter property order. */
 export function specimenKey(id: string, params: object): string { return `${id} ${JSON.stringify(params)}`; }
+// Product JSON sorts object members, while the immutable bank retains the
+// author's wire key. Match the same parameter values without rewriting either.
+function packedLookupKey(key: string): string {
+  const split=key.indexOf(' ');if(split===-1)return key;
+  const params:unknown=JSON.parse(key.slice(split+1));jsonData(params);
+  return `${key.slice(0,split)} ${JSON.stringify(params,(_name,value:unknown)=>
+    value!==null&&typeof value==='object'&&!Array.isArray(value)
+      ?Object.fromEntries(Object.entries(value).sort(([a],[b])=>a<b?-1:a>b?1:0)):value)}`;
+}
 interface PackedBakeState { readonly bytes: Uint8Array; readonly offsets: readonly number[] }
 
 /** A packed specimen binary is immutable; builds decode fresh attributes just as the bake declares. */
@@ -327,6 +336,7 @@ export function createPackedSpecimens(input: unknown,files:ReadonlyMap<string,Ui
   const bake = v.parse(PackedSpecimenSchema, input);
   const location=typeof bake.bin==='string'?bake.bin:bake.bin.file;
   let state: PackedBakeState | undefined, pending: Promise<void> | undefined;
+  let lookup:ReadonlyMap<string,number>|undefined;
   const use = (bytes: Uint8Array): void => {
     if (bytes.length !== bake.bytes) throw new Error(`Specimen byte count differs: ${location}`);
     let offset = 0;
@@ -344,7 +354,12 @@ export function createPackedSpecimens(input: unknown,files:ReadonlyMap<string,Ui
       return pending;
     },
     parts: (key, ctx, materialRows) => {
-      const index = bake.rows.findIndex(row => row.key === key), row = bake.rows[index];
+      let index=bake.rows.findIndex(row=>row.key===key);
+      if(index<0){
+        if(lookup===undefined){const entries=new Map<string,number>();for(const [at,row]of bake.rows.entries()){const identity=packedLookupKey(row.key);if(!entries.has(identity))entries.set(identity,at);}lookup=entries;}
+        index=lookup.get(packedLookupKey(key))??-1;
+      }
+      const row=bake.rows[index];
       if (state === undefined || row === undefined) return null;
       const loaded = state;
       let first = 0;
