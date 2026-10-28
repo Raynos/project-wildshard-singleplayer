@@ -12,9 +12,9 @@
 // they stand — the queues the square's builders fill — and squareProps.ts places them.
 import { type BufferGeometry, Matrix4, Quaternion, Vector3 } from 'three';
 import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
-import * as v from 'valibot';
+import { numberTupleRows } from '@wildshard/sdk/rows';
 
-const GATE = { ...NINE_LAYOUT_PLAN.GATE, posts: v.parse(v.tuple([v.number(), v.number(), v.number(), v.number()]), NINE_LAYOUT_PLAN.GATE.posts) };
+const GATE = { ...NINE_LAYOUT_PLAN.GATE, posts: numberTupleRows(NINE_LAYOUT_PLAN.GATE.posts, 4) };
 
 
 const { PLAZA, STREET, WELL, Y0 } = NINE_LAYOUT_PLAN;

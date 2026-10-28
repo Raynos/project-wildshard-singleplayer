@@ -9,14 +9,14 @@ import paint from '../data/paint.json' with { type: 'json' };
 import { BOOTHS, PARASOLS, PAVILIONS, hawkerStall, marketDiners, marketRow, noodleStall, pavilionDiners, pavilions, stallDiners } from './stalls';
 import { K, type Kit, type Look } from './kit';
 import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
-import * as v from 'valibot';
+import { numberTupleRows } from '@wildshard/sdk/rows';
 import { walkable } from './layoutMath';
 import { dragonHook, scooter } from './props';
 import { WELL_RUNS, balustrade, mahjongTable } from './squareParts';
 import dims from '../data/specimenDims.json' with { type: 'json' };
 import { Rng } from '@wildshard/sdk/random';
 
-const GATE = { ...NINE_LAYOUT_PLAN.GATE, posts: v.parse(v.tuple([v.number(), v.number(), v.number(), v.number()]), NINE_LAYOUT_PLAN.GATE.posts) };
+const GATE = { ...NINE_LAYOUT_PLAN.GATE, posts: numberTupleRows(NINE_LAYOUT_PLAN.GATE.posts, 4) };
 
 
 const SURF = paint.surfaces;

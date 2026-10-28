@@ -36,6 +36,21 @@ export function bowVariantRows(input: unknown): v.InferOutput<typeof BowVariantS
 /** Admit JSON-only held slots with the original registration/equipment/refill/upgrade ownership checks. */
 export function heldSlotsRows(input: unknown): ReturnType<typeof parseHeldSlots> { return parseHeldSlots(input); }
 
+const numberTriple = v.tuple([v.number(), v.number(), v.number()]);
+const numberQuad = v.tuple([v.number(), v.number(), v.number(), v.number()]);
+const numberArray = v.array(v.number());
+/** Admit native numeric record words; finiteness and geometry bounds remain the enclosing grammar's policy. */
+export function numberArrayRows(input: unknown): number[] { return v.parse(numberArray, input); }
+/** Admit native three/four-word author values, preserving signed zero and the tuple's extra-word policy. */
+export function numberTupleRows(input: unknown, width: 3): [number, number, number];
+export function numberTupleRows(input: unknown, width: 4): [number, number, number, number];
+export function numberTupleRows(input: unknown, width: 3 | 4): [number, number, number] | [number, number, number, number];
+export function numberTupleRows(input: unknown, width: 3 | 4): number[] {
+  if (width === 3) return v.parse(numberTriple, input);
+  if (width === 4) return v.parse(numberQuad, input);
+  throw new Error('Unsupported author numeric tuple width');
+}
+
 /** Admit ordered model references without installing a species, scene or Explorer owner. */
 export function explorerCatalogueRows(input: unknown): ReturnType<typeof parseExplorerCatalogue> { return parseExplorerCatalogue(input); }
 

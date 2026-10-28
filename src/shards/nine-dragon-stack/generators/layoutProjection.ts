@@ -1,4 +1,5 @@
-import * as v from 'valibot';
+import { parseSectionValue } from '@wildshard/sdk/sections';
+import { numberTupleRows, numberArrayRows } from '@wildshard/sdk/rows';
 import { LayoutProjectionSchema, LayoutRowsSchema, type LayoutRows, type LayoutProjection } from './sections';
 import { fixedKitRows } from './casts';
 import lantern from '../data/lantern.json' with { type: 'json' };
@@ -32,7 +33,7 @@ export function layoutProjection(rows: LayoutRows, records: readonly number[], b
     if (values.length !== count) throw new Error('Nine layout ran out of records');
     return values;
   };
-  const point = (): [number, number, number] => v.parse(v.tuple([v.number(), v.number(), v.number()]), words(3));
+  const point = (): [number, number, number] => numberTupleRows(words(3), 3);
   const lanterns = Array.from({ length: c.lanterns }, () => words(16));
   const acs = Array.from({ length: c.acs }, () => words(16));
   const hooks = Array.from({ length: c.hooks }, point);
@@ -43,7 +44,7 @@ export function layoutProjection(rows: LayoutRows, records: readonly number[], b
   if (at !== records.length) throw new Error('Nine layout has records left over');
   const used = new Set([...rows.kits.flatMap(row => row.geo === null ? [] : [row.geo]), ...rows.alphaKits.map(row => row.geo), ...(rows.shell === null ? [] : [rows.shell])]);
   for (const row of rows.inKit) if (!rows.kits.some(kit => kit.name === row.kit)) throw new Error(`Nine model ${row.model} has no kit ${row.kit}`);
-  return v.parse(LayoutProjectionSchema, { geometries: [...used].map(id => {
+  return parseSectionValue(LayoutProjectionSchema, { geometries: [...used].map(id => {
     const row = rows.geometries[id]; if (row === undefined) throw new Error(`Missing Nine geometry ${id}`);
     // O19: the layout bake's bounds, so entry assigns them instead of scanning vertices
     const baked = bounds[id]; if (baked === undefined || bounds.length !== rows.geometries.length) throw new Error(`Missing Nine layout bounds ${id}`);
@@ -64,11 +65,11 @@ export function reviveLayout(_key: string, value: unknown): unknown {
 }
 /** The offline layout bake's rows and float64 records (owned layout data), revived and checked once. */
 export function bakedLayout(source: Pick<NineLayoutInput, 'rows' | 'records' | 'count'>): { readonly rows: LayoutRows; readonly records: number[] } {
-  const rows = v.parse(LayoutRowsSchema, JSON.parse(JSON.stringify(source.rows, (_key, value: unknown) =>
+  const rows = parseSectionValue(LayoutRowsSchema, JSON.parse(JSON.stringify(source.rows, (_key, value: unknown) =>
     typeof value === 'number' && Object.is(value, -0) ? '-0' : value === Infinity ? 'Infinity' : value === -Infinity ? '-Infinity' : value), reviveLayout));
   const records = source.records.map(value => reviveLayout('', value));
   if (records.length !== source.count || records.some(value => typeof value !== 'number' || Number.isNaN(value))) throw new Error('Nine layout record inventory differs');
-  return { rows, records: v.parse(v.array(v.number()), records) };
+  return { rows, records: numberArrayRows(records) };
 }
 /** The page's layout projection (geometry/layout-projection.json), from the bake. */
 export function bakedLayoutProjection(source: NineLayoutInput, fixedRows?: NineFixedLanterns): LayoutProjection {
