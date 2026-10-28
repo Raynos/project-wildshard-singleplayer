@@ -690,3 +690,35 @@ G754-4dc-Template-pose-pin: CLOSED — CI40665232624@4dc behaviour13 job12274724
 G754-898-arena-upload-timeout: OPEN — CI40672681554@8987 behaviour12 job122774763304 times out test/arena-room-gpu-lifetime.test.ts90 private-room upload/picking/sand/template/lazy-interior case at its original30000ms. First observed89870fa5b3 after greenfdcf; causal first badUNISOLATED across e52800cc55 cache/graph lifetime and89870fa5b3 idle traversal (both CF4 candidates, neither proven). Owner wildshard-new graphical routing; prior room fixture repair owner sp-x10. Distinct from the fixed B15 native GC-child timeout. Preserve complete9195420B upload/retirement/picking/sand/templates/rebuild/real-GC controls and30s; no timeout/pin/guard waiver. Exact tmp/sp-ci-deploy-898-b12.log.
 
 G754-898-grid-seam-timeout: OPEN — CI40672681554@8987 behaviour14 job122774763285 times out test/grid-seam-plans.test.ts20 complete mesh/duplicate/feature/turn-in parity at its original30000ms. First observed89870fa5b3; causal first badUNISOLATED, CF4 finds no failing-file/literal-import change since greenfdcf. Historical test source65c5401847/ae2dca27dc; owner wildshard-new routing, compiled-grid/seam expertise lead sp-x9. Preserve both original tests, every byte/order/feature, serialized plans, changed-field cache and malformed refusal; no cap/deadline/guard waiver. Whole-result deep comparisons are only a profiling lead. Exact tmp/sp-ci-deploy-898-b14.log.
+
+### Escape input measurement audit (2026-10-28)
+
+The remaining agent-browser after-play failures were tainted by CLI
+`press Escape`: an inert page receives 14,172 events in two seconds,
+versus exactly the trusted down/up pair through the shared CDP helper
+`222c87942b`. Retain the old failures as invalid performance evidence,
+not proof of absent demand, slow storage, or a stable first bad app SHA.
+This audit checks the input path of each row; it does not exclude unrelated
+shared-machine noise or regrade measurements that never used CLI Escape.
+
+One sequential original after-play visit per affected shard on frozen HEAD
+`222c87942beaad835000671ce6d19addea665753`, muted iPhone 16 Pro, DPR2,
+CPU1, first30 live, original180s no-progress guard and all real canvas pixel
+checks. Both portraits inspected; no parser/cache instrumentation, forced
+GC, cap change or production change. Raw `tmp/sp-x9-escape-audit/`.
+
+| Row checked | Escape exposure / result |
+|---|---|
+| Nine Explorer after play | **CLOSED:** CLI Escape tainted the old 5/60 failures; CDP HEAD visit **60/60 in4.770s**, first30 **901frames**, runtime/errors/reports0, original pixel failures0. Raw `nine-head/nine-dragon-stack.json`. |
+| Nalati Explorer after play | **CLOSED:** CLI Escape tainted the old workload-dependent stalls/bisect; CDP HEAD visit **94/94 in8.329s**, first30 **902frames**, runtime/errors/reports0, original pixel failures0. Raw `nalati-head/nalati-grasslands.json`. Earlier f4000 positive reading retained; no new missing-demand/cache policy fix. |
+| T10 / D12 frame-floor poses | Unaffected by this input bug: `scripts/frame-floor.mjs` uses native Safari/Simulator or Playwright; no agent-browser Escape. Official **13/15** verdict retained; no repeat. |
+| T7 five-cycle misses | Unaffected: `scripts/tile-plan-reading.mjs` and the owner's recovery use Playwright held-input routes, no Escape. Existing timing/ghost/return-memory misses remain; no repeat or grade change. |
+| H3 / H4 / D108 warm Home | Unaffected: `tmp/sp-x9-loading-g804/live-reader.mjs` and `tmp/sp-x6-h4-cache/read.mjs` use Playwright, no Escape. H4 **3.374s vs1.5s** stays open; no repeat. |
+| A1 / A1-baked assembly | Unaffected: the same Playwright cold/warm driver never sends Escape. Latest **770.1ms warm vs600ms** stays open; no repeat. |
+| H1-H11 / D107 heap | Unaffected: `tmp/sp-x2/damage-review/heap-reader.mjs` and the original clean heap reader use Playwright, no CLI Escape. Existing heap bars/qualifications retained; no repeat. |
+| M1 / M2 native loading | Unaffected: `scripts/loading-benchmark/accuracy-safari.mjs` uses native Safari, no agent-browser Escape. Native content-cache initialization attribution and existing M2 results remain separate. |
+| I2 / D131 before-control bytes/requests | Unaffected: the original24-entry census closes without Escape; extended Nine/Nalati drivers send Escape only after the control fence and first30. Existing byte floors remain open; no repeat. |
+| D132/I9 and D133/I10 settings | Unaffected: `tmp/sp-x8-damage-133-142-132/browser.mjs` uses Playwright keyboard Escape, not the CLI native-key mapping. Existing proof/row statuses retained. |
+| D193 / D194 loading byte/detail accuracy | Unaffected: the Playwright accuracy reader never sends Escape. D193 observation limitation stays open; D194 **557.8ms vs1000ms** remains closed. |
+| Pine lodge persistence | Old CLI Escape sites found and migrated by sp-x8; qualitative claim/tear/reload assertions only. Owner confirms no open performance miss cites this runner/output; no performance repeat. |
+
