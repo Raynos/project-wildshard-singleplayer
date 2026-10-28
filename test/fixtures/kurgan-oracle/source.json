@@ -3,8 +3,12 @@
   "source": "src/shards/nalati-grasslands/world/KurganDungeon.ts",
   "blob": "d9945f7463d260de06af4e82c63b86a1a2e88eaa",
   "sha256": "344fd949d8bfc3e0767c8ce30879e2f8b257fb76fc3af516f7fd71a5538d3039",
-  "changes": "Only relative import paths and the exported class name; inverse rewrites reconstruct the shipping blob byte-for-byte.",
+  "changes": "Relative import paths, the exported class name and bdd0a16b41's type-only public RNG port alias; inverse rewrites reconstruct the shipping blob byte-for-byte. The RNG alias erases to the identical executable body.",
   "rewrites": [
+    [
+      "import type { Rng } from '@wildshard/engine/core/rng';",
+      "import type { RngPort as Rng } from '@wildshard/engine/core/rng';"
+    ],
     [
       "'./paint'",
       "'../../../src/shards/nalati-grasslands/generators/paint'"
