@@ -13,12 +13,11 @@ const SEED = [0.5];
 /** an empty array of double elements; `slice` copies the seed's kind and records no allocation site */
 function doubleArray(): number[] { const array = SEED.slice(); array.length = 0; return array; }
 
-interface Vector3Uniform { cache: number[] | Float64Array; addr: WebGLUniformLocation | null }
+interface Vector3Uniform { cache: number[] | Float64Array; addr: WebGLUniformLocation | null; setValue: (gl: WebGLRenderingContext, value: Vector3Value) => void }
 interface Vector3Value { x?: number; y?: number; z?: number; r?: number; g?: number; b?: number }
 interface Vector3State {
   legacy: number[]; buffer: Float32Array; numbers: Float64Array;
   native: (this: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value) => void;
-  handle: (state: Vector3State, uniform: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value) => void;
 }
 function nativeVectorValue(state: Vector3State, uniform: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value): void {
   if (uniform.cache === state.numbers) {
@@ -44,16 +43,6 @@ function colorVectorValue(state: Vector3State, uniform: Vector3Uniform, gl: WebG
   if (value.r !== undefined) uploadVector3(state, uniform, gl, value, value.r, value.g, value.b);
   else nativeVectorValue(state, uniform, gl, value);
 }
-// Stable color/vector inputs share their numeric code without mixing its field
-// reads. A binding can change form; its existing handler changes with the value.
-function setXYZ(state: Vector3State, uniform: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value): void {
-  if (value.x !== undefined) uploadVector3(state, uniform, gl, value, value.x, value.y, value.z);
-  else { state.handle = setRGB; colorVectorValue(state, uniform, gl, value); }
-}
-function setRGB(state: Vector3State, uniform: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value): void {
-  if (value.x !== undefined) { state.handle = setXYZ; uploadVector3(state, uniform, gl, value, value.x, value.y, value.z); }
-  else colorVectorValue(state, uniform, gl, value);
-}
 /** WebGL converts each scalar argument to float32. Keep that exact payload in
  * one per-uniform buffer instead of boxing three changing native arguments.
  * Array inputs retain Three's own validation, length and cache behavior. */
@@ -64,10 +53,18 @@ function bufferVector3(node: object, legacy: number[]): void {
   // integer/boolean uniforms. Restore the native array only when an
   // array (including malformed lengths) actually reaches the original setter.
   const state: Vector3State = { legacy, buffer: new Float32Array(3), numbers: new Float64Array(3),
-    native: native as Vector3State['native'], handle: setRGB };
-  Reflect.set(node, 'setValue', function setVector3(this: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value): void {
-    state.handle(state, this, gl, value);
-  });
+    native: native as Vector3State['native'] };
+  // Each native binding calls its current value-kind setter directly. Kind
+  // changes replace only this binding's setter; neither path allocates a frame.
+  function setXYZ(this: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value): void {
+    if (value.x !== undefined) uploadVector3(state, this, gl, value, value.x, value.y, value.z);
+    else { this.setValue = setRGB; colorVectorValue(state, this, gl, value); }
+  }
+  function setRGB(this: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value): void {
+    if (value.x !== undefined) { this.setValue = setXYZ; uploadVector3(state, this, gl, value, value.x, value.y, value.z); }
+    else colorVectorValue(state, this, gl, value);
+  }
+  Reflect.set(node, 'setValue', setRGB);
 }
 
 /** swap each float leaf's cache under a program's uniform tree (structured uniforms nest in `seq`) */
