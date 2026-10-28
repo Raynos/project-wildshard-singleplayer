@@ -10,7 +10,7 @@ import { parseContractCatalogue as gameParseContractCatalogue, type ContractCata
 import { parseAmbientLife as gameParseAmbientLife, type AmbientLifeData as GameAmbientLife } from '@wildshard/format/ambientLife';
 import { parsePageLife as gameParsePageLife, type PageLifeRows as GamePageLifeRows } from '@wildshard/format/pageLife';
 import { PopulationEnvironmentSchema as GamePopulationEnvironmentSchema, type PopulationEnvironmentRows as GamePopulationEnvironment } from '@wildshard/format/populationEnvironment';
-import { FigureCatalogueSchema as GameFigureCatalogueSchema, type FigureCatalogueRow as GameFigureCatalogue } from '@wildshard/format/figures';
+import { FigureCatalogueSchema as GameFigureCatalogueSchema, NpcFigureRowsSchema, type FigureCatalogueRow as GameFigureCatalogue } from '@wildshard/format/figures';
 import { RangedPageSchema, ForestWeatherObservationSchema } from '@wildshard/format/rangedPage';
 import { RainPresentationSchema } from '@wildshard/format/rainPresentation';
 import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
@@ -21,9 +21,21 @@ import { CoverCompositionSchema } from '@wildshard/format/streamedCover';
 import * as v from 'valibot';
 import { ItemCatalogue } from '@wildshard/game/loadout/itemCatalogue';
 import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
+import { QuestTraderSchema } from '@wildshard/format/namedJsonContracts';
+import { parseBarterEconomy } from '@wildshard/format/lootEconomy';
+import type { ExchangeRows } from '@wildshard/format/exchange';
 
 /** Admit ordered model references without installing a species, scene or Explorer owner. */
 export function explorerCatalogueRows(input: unknown): ReturnType<typeof parseExplorerCatalogue> { return parseExplorerCatalogue(input); }
+
+/** Admit authored NPC figure motion without creating a figure or loading a skeleton. */
+export function npcFigureRows(input: unknown): v.InferOutput<typeof NpcFigureRowsSchema> { return v.parse(NpcFigureRowsSchema, input); }
+/** Admit complete trader page policy before any shop or inventory owner exists. */
+export function questTraderRows(input: unknown): v.InferOutput<typeof QuestTraderSchema> { return v.parse(QuestTraderSchema, input); }
+/** Admit the native bounded barter grammar and its original cross-row checks. */
+export function barterEconomyRows(input: unknown): ReturnType<typeof parseBarterEconomy> { return parseBarterEconomy(input); }
+/** Complete author exchange tables; no affordability, storage or transaction service is lent. */
+export type AuthorExchangeRows = ExchangeRows;
 
 /** Resolve admitted equipment presentation without lending a catalogue or weapon service. */
 export function equipmentRows(input: unknown, id: string): ReturnType<ItemCatalogue['equipment']> { return new ItemCatalogue(input).equipment(id); }

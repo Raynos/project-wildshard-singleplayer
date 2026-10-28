@@ -6,10 +6,9 @@
  * toward the old-growth 5.5 – 8 s into every 9 s of talk; the stand-in breathes and sways as it talks. Encoded into the
  * product's people/catalogue.json; the shared figure host admits the same rows.
  */
-import * as v from 'valibot';
-import { NpcFigureRowsSchema , type FigureMotionRow as FigureMotionRowType } from '@wildshard/format/figures';
+import { npcFigureRows } from '@wildshard/sdk/rows';
 
-export const NPC_FIGURE: FigureMotionRowType = v.parse(NpcFigureRowsSchema, {
+export const NPC_FIGURE: ReturnType<typeof npcFigureRows> = npcFigureRows({
   collider: { half: 0.28, top: 1.8, bottom: 0.3 },
   talkHeight: 1.6,
   drawDistance: 140,
