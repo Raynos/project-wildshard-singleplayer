@@ -1,10 +1,20 @@
 // @vitest-environment node
 import { expect, test } from 'vitest';
 import { Window } from 'happy-dom';
+// oxlint-disable-next-line import/no-nodejs-modules -- Execute the real generated bootstrap against isolated storage.
+import { runInNewContext } from 'node:vm';
 import { phoneEngine } from '../scripts/parity/phone-route-runner.mjs';
 import { phoneRouteFailures, phoneRoutePlans, type PhoneReceipt, type PhoneObservation } from '../scripts/parity/phone-route.mjs';
 import { phoneTouchButton, phoneWallTarget } from '../scripts/parity/phone-route-page.mjs';
-import { phonePageTarget } from '../scripts/parity/phone-route-browser.mjs';
+import { phoneBootstrap, phonePageTarget } from '../scripts/parity/phone-route-browser.mjs';
+
+test('phone bootstrap persists numeric mute after a caller replaces settings',()=>{
+  const stored=new Map<string,string>();
+  const localStorage={getItem:(key:string)=>stored.get(key)??null,setItem:(key:string,value:string)=>{stored.set(key,value);}};
+  runInNewContext(phoneBootstrap('localStorage.setItem("wildshard.save.v2.global",JSON.stringify({keys:{settings:{v:1,data:{tier:"phone",volume:0.8}}}}));'),{window:{},location:{href:'http://localhost/'},localStorage});
+  const saved:unknown=JSON.parse(stored.get('wildshard.save.v2.global')??'null');
+  expect(saved).toMatchObject({keys:{settings:{data:{tier:'phone',volume:0}}}});
+});
 
 test('native route selects its exact document instead of the older version probe',()=>{
   const base='http://127.0.0.1:4403/',probe={url:`${base}version.json`,webSocketDebuggerUrl:'ws://localhost:9232/probe'},game={url:base,webSocketDebuggerUrl:'ws://localhost:9232/game'};

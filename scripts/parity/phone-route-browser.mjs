@@ -30,7 +30,7 @@ export function phonePageTarget(list,url) {
 /** Compose independently valid source statements before either browser executes them.
  * @param {string} paintScript */
 export function phoneBootstrap(paintScript) {
-  return `${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};\nwindow.__wildshardHarness={seed:357,capture:null};\n${paintScript};\nwindow.__phoneRouteBootURL=location.href;`;
+  return `${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};\nwindow.__wildshardHarness={seed:357,capture:null};\n${paintScript};\n${saveFixtureCode({scope:'global',key:'settings',merge:true,data:{volume:0}})};\nwindow.__phoneRouteBootURL=location.href;`;
 }
 
 /** @param {string} engine @param {string} base @param {string} _out @returns {Promise<import('./phone-route.mjs').PhonePage>} */
