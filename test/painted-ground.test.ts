@@ -60,6 +60,24 @@ test('a second shard paints its ground from its own tiles, colour graph, shapes 
   expect(geometry.boundingSphere?.radius).toBeGreaterThan(0);
 });
 
+test.each([false,true])('cold demanded ground meshes finish before publication (refusal %s)', async refuse => {
+  const reads:string[]=[],borrowed=product(reads),original=borrowed.file;
+  let release:((bytes:Uint8Array)=>void)|undefined,failRead:((error:Error)=>void)|undefined;
+  const blocked=new Promise<Uint8Array>((resolve,reject)=>{release=resolve;failRead=reject;});
+  vi.spyOn(borrowed,'file').mockImplementation(name=>{if(name!=='world/terrain/bank.glb')return original(name);reads.push(name);return blocked;});
+  vi.spyOn(specimens,'loadSpecimenTexture').mockResolvedValue(new Texture());
+  vi.spyOn(runtimeProducts,'loadFirstPartyProduct').mockResolvedValue(borrowed);
+  const scope=new Scope('demanded-marsh'),terrain=new Terrain();let settled=false;
+  const pending=paintedGroundPainter('reed-marsh',marsh,tiles,bake).build(terrain,field,scope);
+  void pending.then(()=>{settled=true;return undefined;},()=>{settled=true;return undefined;});
+  try{
+    await vi.waitFor(()=>{expect(reads).toContain('world/terrain/bank.glb');});
+    expect(settled).toBe(false);expect(terrain.group.children).toHaveLength(0);
+    if(refuse){failRead?.(new Error('Required ground read refused'));await expect(pending).rejects.toThrow('Required ground read refused');expect(terrain.group.children).toHaveLength(0);}
+    else{release?.(triangle());await pending;expect(terrain.group.children).toHaveLength(2);expect(terrain.mesh.geometry.getAttribute('position').count).toBe(3);}
+  }finally{release?.(triangle());await pending.catch(()=>undefined);scope.dispose();}
+});
+
 test('rows refuse a missing tile, an unknown colour graph and a recipe without its named mesh', async () => {
   vi.spyOn(specimens, 'loadSpecimenTexture').mockResolvedValue(new Texture());
   vi.spyOn(runtimeProducts, 'loadFirstPartyProduct').mockResolvedValue(product([]));

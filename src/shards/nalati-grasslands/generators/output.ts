@@ -418,6 +418,11 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
     return [name, owned] as const;
   }));
   const lateNames=new Set(nalatiLatePaintedNames([...boundBooks.values()]));
+  // The painted-ground reader awaits these exact meshes before publishing its
+  // first view. Admission must not warm their whole pack as a second transport
+  // beside those demand reads; retain every file, cost and required-read fence.
+  for(const row of NALATI_L1_PAIRS)lateNames.add(row.name);
+  lateNames.add('world/terrain/slab.glb');
   // The selected dressing reader awaits its bank before world publication;
   // general warm must not pull the phone copy into a desktop entry.
   lateNames.add(NALATI_PHONE_CRAG_FILE);
