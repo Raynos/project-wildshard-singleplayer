@@ -9365,6 +9365,9 @@ registration order and has unique kinds; empty arrays install nothing. This is
 separate from the normalized `actors/species` inventory. Both owners read admitted
 product rows; visuals remain with existing species looks and bodies.
 
+`sdk/species.socketRigCreatureRows` admits a complete model/coat/socket
+creature card through its original strict schema before any body is built.
+
 `bake/species.AuthorSpeciesRows` retains complete native fur, variant,
 rig and gameplay policy before its owned body builder is attached.
 Equipment author types derive from `rows.equipmentRows` admission.
