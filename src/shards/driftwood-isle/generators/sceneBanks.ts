@@ -11,7 +11,7 @@ import { driftwoodIslandPlan } from './productPageFiles';
 import { BLENDER_MODELS } from './blenderArea';
 import { DRIFTWOOD_BANK_BLOBS } from './assets';
 import { trailSpecimenBank } from './trailsideModels';
-import { islandCoverBank } from './islandDressing';
+import { islandCoverBank } from './islandCoverBank';
 import { entryDeckFiles } from './entryDeckSpecimen';
 import { driftwoodIslandFacts, driftwoodIslandFactsFrom, type DriftwoodIslandFacts } from './islandFacts';
 
