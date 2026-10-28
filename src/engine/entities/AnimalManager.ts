@@ -306,9 +306,8 @@ export class AnimalManager {
   private resident: ((x: number, z: number) => boolean) | null = null;
   /** T6.2 lease: per model, its animals, when one was last awake, and the woken models still taking textures back */
   private readonly modelOf = new WeakMap<Animal, AnimalModel>();
-  private readonly modelAnimals = new Map<AnimalModel, number>();
-  private readonly awakeModels = new Set<AnimalModel>();
-  private readonly lastAwake = new Map<AnimalModel, number>();
+  private readonly modelCounts = new WeakMap<AnimalModel, { count: number; awake: boolean; lastAwake: number | undefined }>();
+  private readonly modelOrder: AnimalModel[] = [];
   private readonly waking = new Set<AnimalModel>();
   private dodgeId = dodgeFx.id;
   private playerSprinting = false;
@@ -597,19 +596,32 @@ export class AnimalManager {
    * spawn RNG never change: only what the hidden rigs would have drawn with comes and goes.
    */
   private leaseModels(now: number): void {
-    const counts = this.modelAnimals, awake = this.awakeModels;
-    counts.clear(); awake.clear(); this.waking.clear();
+    const counts = this.modelCounts, order = this.modelOrder;
+    // Only model identities are retained between polls; counts live in weak,
+    // private records. Reset in place and refill the first-animal order without
+    // clearing/rebuilding a Map and Set on every frame.
+    for (let index = 0; index < order.length; index++) {
+      const model = order[index], row = model === undefined ? undefined : counts.get(model);
+      if (row !== undefined) { row.count = 0; row.awake = false; }
+    }
+    if (this.waking.size > 0) this.waking.clear();
+    let used = 0;
     for (const a of this.animals) {
       const model = this.modelOf.get(a);
       if (model === undefined) continue;
-      counts.set(model, (counts.get(model) ?? 0) + 1);
-      if (!this.outside(a)) awake.add(model);
+      let row = counts.get(model);
+      if (row === undefined) { row = { count: 0, awake: false, lastAwake: undefined }; counts.set(model, row); }
+      if (row.count === 0) order[used++] = model;
+      row.count++;
+      if (!this.outside(a)) row.awake = true;
     }
-    for (const [model, n] of counts) {
-      if (awake.has(model)) { this.lastAwake.set(model, now); if (!this.factory.leaseIn(model)) this.waking.add(model); continue; }
-      const since = this.lastAwake.get(model);
-      if (since === undefined) this.lastAwake.set(model, now);
-      else if (now - since >= LEASE_GRACE && n === this.factory.rigsOf(model)) this.factory.leaseOut(model);
+    order.length = used;
+    for (let index = 0; index < used; index++) {
+      const model = order[index]; if (model === undefined) continue;
+      const row = counts.get(model); if (row === undefined) continue;
+      if (row.awake) { row.lastAwake = now; if (!this.factory.leaseIn(model)) this.waking.add(model); continue; }
+      if (row.lastAwake === undefined) row.lastAwake = now;
+      else if (now - row.lastAwake >= LEASE_GRACE && row.count === this.factory.rigsOf(model)) this.factory.leaseOut(model);
     }
   }
 
