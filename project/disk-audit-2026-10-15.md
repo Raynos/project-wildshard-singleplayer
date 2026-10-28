@@ -302,6 +302,22 @@ The boot purge was at **212k files**, up 45k in 4 h and closing on the 250k inve
   `$TMPDIR/node-compile-cache` reached 49k files. The new top-level slot `tmp/build-mirror/ruler` is 3.3 GB and outside
   G547's seven slots.
 
+## 12. 2026-10-28 14:56 check: `./tmp` 60 → 100 GB and 550k → 908k files since 10-24 (OPEN)
+
+- The Mac rebooted on 10-26 at about 18:48. The boot purge is now **78k** files, and `/cores` is empty: Jake deleted 426 GB of
+  core dumps, caused by `ulimit -c unlimited` in `~/.bashrc:12`, which is still set.
+- **No single writer.** 2,109 top-level `tmp` entries are new since 10-24 12:47 (2,635 in all), and together they hold
+  37 GB. These are lane scratch dirs: `sp-x6*` 44, `sp-x9*` 41, `sp-x8*` 23, and so on. The biggest by file count is
+  `sp-x9-loading-g804` (91k files, 2.8 GB). `commit-source-*`: 17 dirs, 1 GB, the newest from 10-27.
+- `tmp/serve` went 1.8 → **13.3 GB** (211 entries, 8 live builds). `build-mirror` is 30 GB / 339k files. `tmp/vitest`
+  is 4.3 GB / 125k files.
+- **Fix:** lanes need an owner-side sweep of their own `tmp/<lane>*` dirs when a task ends. Alternatively,
+  `scripts/commit.sh` could warn when `./tmp` passes a size limit, which the removed `boot-temp-warn.sh` used to do
+  for the boot-purged folders.
+- **Outside the repo:** `~/Library/Caches/node-compile-cache` refilled from 0 to **47 GB** in 2 days (about 23 GB a
+  day). The cause is the dotfiles' global `NODE_COMPILE_CACHE` (section 2). `.git/commit-vitest-cache` (87a1387349) is
+  back to 1.4 GB after Jake cleared it.
+
 ## Decisions (Jake, 2026-10-15)
 
 - **Boot-purge warning: 500,000 files.**
