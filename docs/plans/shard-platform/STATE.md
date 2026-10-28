@@ -4,14 +4,14 @@
 remaining misses move to BURN-DAMAGE-LIST. NM pilot R1-R3 and RP2-RP4 move to a new parked open-plots plan
 (wildshard-v, after Jake's play). Jake QAs legacy (his word starts LD5-LD8 and A1-A2 at once), M2 and T10. After the archive
 commit every lane and the coordinator stop. The render tails need Opus, and Opus needs the account switch (Claude 97 %).
-**Live P0s, one combined release f708fbbaea:** NM card + BootSpec (sp-x10; card QA'd on 3156eae054), Bag > MAP static
-(G826, Safari PASS), boot memory-yield mitigation (a23222fbee; the freeze never reproduced on the Sim, even upgrading from an old
-SW). CI green; smoke rerun after a GitHub macOS runner capacity failure (4 / 6 passed, Grid + Explorer re-running).
+**LIVE f708fbbaea (f708fbbae-mvsd2hc1, ~12:15 Cancun), the combined P0 release:** Night Market card in SHARD SELECT
+(QA'd), Bag > MAP fixed (static painter, G826, Safari PASS), boot memory-yield mitigation for the loading freeze (a23222fbee;
+the freeze never reproduced on the Sim, so Jake's phone is the check), fresh What's new. Ready for Jake's re-check.
 **G828 (Jake):** crossing-time cuts stop. T2-T4 and grid-ready Nalati close as 'not reachable in this architecture'
 (Chromium cold DW 7.5, Nalati 10.4, Pine 14.7 s; sp-x6 marks), not on the damage list. Nobody drafts a one-world plan.
 **G825:** sp-ci-deploy rewrites src/game/whatsNew.json now for live a3f28a795, and with every release.
 
-**(1) LIVE a3f28a7953** until f708fbbaea ships. Damage list: [BURN-DAMAGE-LIST](../BURN-DAMAGE-LIST.md) only.
+Damage list: [BURN-DAMAGE-LIST](../BURN-DAMAGE-LIST.md) only.
 
 **G819-G823 marked:** H3 closed, H4 / A1 accepted misses (43114e578e); T7 open (2 DW misses, 769b2f616a); RM13 closed (G827).
 T10 official floor with spawn settle (cd73c3a642): still 13 / 15 (spawn p95 41, Pine drive 42 ms; Opus).
