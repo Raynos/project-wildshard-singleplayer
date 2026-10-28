@@ -4,7 +4,8 @@ import { readPineProject } from './fixtures/pine-project';
 import { HeldEquipmentSchema } from '../src/format/heldEquipment';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
 import { HUNTER_HANDS, HANDS_MATERIAL, COAT_MATERIAL } from '../src/shards/pine-hollow/generators/handsLook';
-import { LONGBOW_LOOK, StaveBowLookSchema } from '../src/shards/pine-hollow/generators/longbowLook';
+import { LONGBOW_LOOK, type ArrowLook, type StaveBowLook } from '../src/shards/pine-hollow/generators/longbowLook';
+import { StaveBowLookSchema, type ArrowLook as OriginalArrowLook, type StaveBowLook as OriginalStaveBowLook } from './fixtures/pine-longbow-look';
 import LEVER_DETAILS from '../src/shards/pine-hollow/data/leverDetails.json' with { type: 'json' };
 import { ARROW_MATERIAL, LONGBOW_MATERIAL, LONGBOW_POSES } from '../src/shards/pine-hollow/generators/longbowPresentation';
 import { CROSSBOW_HAND_HOLDS } from '../src/shards/pine-hollow/generators/crossbowRows';
@@ -44,3 +45,11 @@ test('every Pine weapon hold and the Longbow look are in the emitted hands pool'
   expect(pool.heldBow.bow.bake.arrow).toBe(JSON.stringify(LONGBOW_LOOK.arrow));
   expect(loaded.output.namedFiles?.some(file => file.name === pool.pool.url)).toBe(true);
 }, 30000);
+
+test('data-only stave ports remain mutually identical to the frozen native grammar', () => {
+  const native = v.parse(StaveBowLookSchema, LONGBOW_LOOK);
+  const current: StaveBowLook = native, original: OriginalStaveBowLook = current;
+  const arrow: ArrowLook = original.arrow, originalArrow: OriginalArrowLook = arrow;
+  expect(original).toEqual(LONGBOW_LOOK);
+  expect(originalArrow).toEqual(LONGBOW_LOOK.arrow);
+});
