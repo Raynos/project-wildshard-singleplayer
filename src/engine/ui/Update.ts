@@ -38,9 +38,16 @@ hudSlots.widget('band.1', el, 0, scope, document.body);
 
 let busy = false;
 let targetBuild: string | null = null;
+let newer = false;
 const screen = new UpdateProgress(scope, __BUILD_ID__, () => { busy = false; void reload(); });
 async function reload(): Promise<void> {
   if (busy) return;
+  const sw = window.__ws_sw;
+  // A pause-menu tap requests the background update; gameplay is never
+  // replaced here. The title observer or the next travel owns adoption.
+  if (!titleBoundary() || (newer && sw?.enabled && navigator.serviceWorker?.controller && sw.waiting === null)) {
+    requestInstall(); return;
+  }
   busy = true;
   const text = el.querySelector('[data-el="text"]'), attempt = scope.child('update');
   const started = diagnosticNow(), downloads = new DownloadAccounting(location.href, started);
@@ -54,9 +61,8 @@ async function reload(): Promise<void> {
   // live until the document leaves, then release this attempt's observers.
   attempt.listen(window, 'pagehide', () => { attempt.dispose(); }, { once: true });
   // A newer service worker waiting: adopt it (SKIP_WAITING → controllerchange → reload, src/engine/boot/sw.ts).
-  const sw = window.__ws_sw;
   const waiting = sw?.waiting;
-  screen.start(targetBuild, waiting !== undefined && waiting !== null && waiting.state !== 'redundant');
+  screen.boundary(targetBuild, waiting !== undefined && waiting !== null && waiting.state !== 'redundant');
   if (!await screen.present()) return;
   if (sw && waiting && waiting.state !== 'redundant') {
     screen.phase('install');
@@ -64,16 +70,15 @@ async function reload(): Promise<void> {
     if (navigator.serviceWorker !== undefined) attempt.listen(navigator.serviceWorker, 'controllerchange', () => {
       if (navigator.serviceWorker.controller === waiting) screen.phase('reload');
     });
-    await sw.adopt(undefined, 'build pill tap');
+    await sw.activate();
   }
-  // Still here: nothing was waiting, or the hand-over never landed within adopt()'s cap — e.g. the announced worker went
-  // redundant because a later deploy superseded it, which left the pill dead to taps (E53). Cache-bust the document
-  // itself; keep ?chunk= and friends.
+  // This is the title, including a return from an entered world. Remove the
+  // old world destination so adoption cannot send the player back into play.
   const url = new URL(location.href);
   screen.phase('reload');
   if (!await screen.present()) return;
-  url.searchParams.set('v', Date.now().toString(36));
-  markReload('build pill tap (?v= reload)');
+  for (const key of ['v', 'chunk', 'explore', 'at', 'glreload', 'cam', 'model', 'skipintro', 'tour', 'quest', 'drop', 'x', 'z', 'yaw', 'pitch']) url.searchParams.delete(key);
+  markReload('update at title boundary');
   location.replace(url.toString());
 }
 // pointerup as well as click: iOS drops the synthesized click when a tap jitters (index.html cancels touchmove for the
@@ -81,13 +86,21 @@ async function reload(): Promise<void> {
 scope.listen(el, 'pointerup', () => { void reload(); });
 scope.listen(el, 'click', () => { void reload(); });
 
-let newer = false;
 let newLabel = '';
+function titleBoundary(): boolean {
+  return document.querySelector('#hud.intro .ws-menu:not(.hide), #hud.intro .ws-main:not(.hide)') !== null;
+}
+function requestInstall(): void {
+  void navigator.serviceWorker?.getRegistration().then(registration => registration?.update()).catch(() => undefined);
+  const text = el.querySelector('[data-el="text"]');
+  if (text !== null) text.textContent = engineString('s_update_next_boundary');
+}
 /** the pill's words: a player reads "New version", a developer the build ids */
 const paint = (): void => {
   const text = el.querySelector('[data-el="text"]');
   if (!text || busy) return;
-  text.textContent = !newer ? engineString('s_9e4fe13a912d', [sha]) : isDev() ? engineString('s_cdffb5171a9f', [newLabel]) : engineString('s_24d3f7fed5a7');
+  text.textContent = !newer ? engineString('s_9e4fe13a912d', [sha]) : isDev()
+    ? engineString('s_update_next_boundary_dev', [newLabel]) : engineString('s_update_next_boundary');
 };
 const lightUp = (label: string): void => {
   newer = true;
@@ -107,7 +120,7 @@ async function check(): Promise<void> {
     if (!r.ok) return;
     const j: unknown = await r.json();
     if (typeof j === 'object' && j !== null && 'build' in j && typeof j.build === 'string' && j.build !== '' && j.build !== __BUILD_ID__) {
-      targetBuild = j.build; lightUp(shortBuild(j.build));
+      targetBuild = j.build; requestInstall(); lightUp(shortBuild(j.build));
     }
   } catch { /* offline — keep the plain reload pill */ }
 }
@@ -128,6 +141,9 @@ function sync(): void {
   el.classList.toggle('visible', show); // menu-only: never over the game view, even when a newer build exists
   // the band the menu overlay keeps free above its sheet (gmenu.css) — only while the pill is actually up
   document.documentElement.style.setProperty('--ws-pill', show ? '24px' : '0px');
+  // Initial title or return-to-title: an installed update can now replace the
+  // document. Loading and Explore's hidden intro HUD are not title boundaries.
+  if (!busy && titleBoundary() && window.__ws_sw?.waiting?.state === 'installed') void reload();
 }
 sync();
 onDev(() => { paint(); sync(); });

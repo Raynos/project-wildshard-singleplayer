@@ -73,6 +73,13 @@ export class UpdateProgress {
     this.store.write(this.state); this.mount(); this.track(diagnosticNow()); this.paint();
   }
 
+  /** Background installation is complete before a boundary is offered. The
+   * covering handoff starts here, never when the running session hears of it. */
+  boundary(target: string | null, installed: boolean): void {
+    this.start(target, installed);
+    this.phase(installed ? 'install' : 'reload');
+  }
+
   /** Give the covering screen a paint before starting a navigation. Disposal
    * settles this wait rather than abandoning a cancelled RAF promise. */
   present(): Promise<boolean> {

@@ -1,6 +1,8 @@
 /** English engine UI strings. Content-owned overrides are installed by the composition root. */
 export const ENGINE_STRINGS = {
   "s_update_heading": "Updating",
+  "s_update_next_boundary": "Update on next travel / title",
+  "s_update_next_boundary_dev": "⟦0⟧ · Update on next travel / title",
   "s_update_found": "New build found",
   "s_update_requested": "Refresh requested",
   "s_update_download": "Downloading boot pack",

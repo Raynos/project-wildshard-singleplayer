@@ -66,9 +66,17 @@ Driftwood from the title, cold and warm. Source references are origin/main lines
 
 From the service-worker review's part (b); all Codex, size M:
 
-- **QF2.N1 — background update adoption** (review B1): the update installs in the background and the pill says
-  "update on next travel / title"; `travel` sends SKIP_WAITING, waits ≤ 1 s for claim, then `location.replace`; the
-  `?v=` path and its network-first branch are deleted (`sw.ts`, `Update.ts`, `UpdateProgress.ts`, `travel.ts` 61-70).
+- **QF2.N1 — done (2026-10-28, sp-x9), background update adoption** (review B1): install stays in the
+  background; the pill says "Update on next travel / title". Travel claims an installed worker for at most1s,
+  then replaces the page once; returning to the title drops the old world destination. No document `?v=` reload;
+  T1 already removed its separate network-first branch. Before landing:8 real-worker phone fixture cases pass
+  across Chromium/WebKit (including pending installs and expired claims),52 focused cases/types/typed lint pass.
+  Actual containing WT build531c375199-mvspgj66: Chromium DW→Template→DW, claim455.9ms, DW cold/warm
+  FCP24/36ms; WebKit DW cold/warm through a fresh title, claim2ms, commit188ms, FCP24/15ms. Both keep the
+  world while a worker waits; no `?v=` or blocked cached-shell navigation. WebKit's88 native audio access-control
+  console-derived pageerrors remain separate unlocalized damage below, not a clean-console PASS. Entered-world
+  WebKit carousel gesture recovery is retained/unqualified; no gesture or look fix claimed. Raw
+  `tmp/sp-x9-qf2-n1/{browser-destination,app-qualified,app-webkit-fresh-title}`.
 - **QF2.N2 — done (2026-10-28, sp-x2; this commit): versioned cache-first `shard.json`** (review B2). The validated build table supplies the exact path/full SHA; the reader adds `?v=<hash8>`, the worker serves only exact version keys cache-first, and full-hash verification remains before section reads. Versioned transfers have a10s inactivity bound, healthy progress passes3s, and never race a visited index; unknown/custom descriptors retain the original3s path. **Prelanding actual WT build50cb43c960-mvsor0po, Chromium/WebKit iPhone16Pro:** cold uses `?v=1d2bea75`, exact990883B/fullSHA; warm with descriptor network held makes0 index network requests, both actual entries complete. Chromium errors0. WebKit also reports an independent native pack access-control console error around immediate warm navigation; original refusal and timeOrigin follow-up retained/routedsp-x9, not filtered or claimed fixed (coordinator directs landing N2 because its behavior passes).137 retained/new descriptor/address/worker controls, types and named lint pass. Raw `tmp/sp-x2/qf2-n2/browser/` and `time-origin/`. 
 - **QF2.N3 — done (2026-10-28, sp-x6; `30584ca91a`): one shared wait list** (review B3): the inline script and `Loading` share one registry (label, bytes,
   deadline, retry) from the first byte, so no await is unlabelled (`index.html`, `Loading.ts`, `boot/download.ts`). **Prelanding Chromium/WebKit iPhone16Pro:** first paint91/95ms; same state/map/row and unchanged start/deadline through adoption; held CSS labelled Retry8.3s; real SW code pack35/34 visible progress samples, removed on completion; errors0. Scoped source/fixture types, typed lint, ratchet and six focused suites pass; no transport credit or scheduling change.

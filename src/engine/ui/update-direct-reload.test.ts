@@ -17,7 +17,7 @@ test('no waiting worker reloads after the modal paint without an adoption wait',
   setDev(false);
   vi.useFakeTimers(); vi.stubGlobal('__BUILD_ID__', 'fixture-before');
   vi.stubGlobal('fetch', () => Promise.resolve(Response.json({ build: 'fixture-before' })));
-  document.body.innerHTML = '<div class="ws-load"></div>';
+  document.body.innerHTML = '<div id="hud" class="intro"><div class="ws-menu"></div></div>';
   const adopt = vi.fn(() => Promise.resolve());
   Object.defineProperty(window, '__ws_sw', { configurable: true, value: { waiting: null, adopt } });
   const replace = vi.fn<(url: string) => void>();
@@ -31,6 +31,6 @@ test('no waiting worker reloads after the modal paint without an adoption wait',
   await vi.advanceTimersByTimeAsync(100);
   expect(adopt).not.toHaveBeenCalled(); expect(replace).toHaveBeenCalledTimes(1);
   const destination = new URL(replace.mock.calls[0]?.[0] ?? '');
-  expect(destination.searchParams.get('chunk')).toBe('canal-reserve');
-  expect(destination.searchParams.has('v')).toBe(true);
+  expect(destination.searchParams.has('chunk')).toBe(false);
+  expect(destination.searchParams.has('v')).toBe(false);
 });

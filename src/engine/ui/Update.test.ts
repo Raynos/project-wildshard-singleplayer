@@ -19,10 +19,10 @@ test('one update reports completed files through adoption and a slow reload, the
   vi.useFakeTimers({toFake:['setTimeout','clearTimeout','setInterval','clearInterval','Date','performance','requestAnimationFrame','cancelAnimationFrame']});
   vi.stubGlobal('__BUILD_ID__','fixture-before');
   vi.stubGlobal('fetch',()=>Promise.resolve(Response.json({build:'fixture-before'})));
-  document.body.innerHTML='<div class="ws-load"></div>';
+  document.body.innerHTML='<div id="hud" class="intro"><div class="ws-menu"></div></div>';
   let adopted:()=>void=()=>{throw new Error('Adoption has not started');};
   const pending=new Promise<void>(resolve=>{adopted=resolve;}),adopt=vi.fn(()=>pending);
-  Object.defineProperty(window,'__ws_sw',{configurable:true,value:{waiting:{state:'installed'},adopt}});
+  Object.defineProperty(window,'__ws_sw',{configurable:true,value:{waiting:{state:'installed'},activate:adopt}});
   const replace=vi.fn<(url:string)=>void>();
   vi.stubGlobal('location',Object.assign(new URL('https://example.com/?chunk=canal-reserve'),{replace,reload:vi.fn()}));
   await import('./Update');
@@ -44,8 +44,8 @@ test('one update reports completed files through adoption and a slow reload, the
   adopted();await vi.advanceTimersByTimeAsync(500);
   expect(replace).toHaveBeenCalledTimes(1);
   const destination=new URL(replace.mock.calls[0]?.[0]??'');
-  expect(destination.searchParams.has('v')).toBe(true);
-  expect(destination.searchParams.get('chunk')).toBe('canal-reserve');
+  expect(destination.searchParams.has('v')).toBe(false);
+  expect(destination.searchParams.has('chunk')).toBe(false);
   expect(button.textContent).toContain('2 files · 1.3s');
   window.dispatchEvent(new Event('pagehide'));
   const ended=button.textContent;

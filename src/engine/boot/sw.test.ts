@@ -43,12 +43,22 @@ test('adoption skips stale workers, fences its controller and retires expired na
   }
   wsSw.waiting=original;await swAdopt();expect(original.messages).toEqual(originalMessages);
   const announced=new WorkerHandle();wsSw.waiting=announced;
-  void swAdopt('/resume','fixture');
+  const adoption=swAdopt('/resume','fixture');
   expect(announced.messages).toEqual([{type:'SKIP_WAITING'}]);
   container.controller=new WorkerHandle();container.dispatchEvent(new Event('controllerchange'));
   expect(replace).not.toHaveBeenCalled();expect(reload).not.toHaveBeenCalled();
-  container.controller=announced;container.dispatchEvent(new Event('controllerchange'));
+  container.controller=announced;container.dispatchEvent(new Event('controllerchange'));await adoption;
   expect(replace).toHaveBeenCalledExactlyOnceWith('/resume');
+  const boundary=new WorkerHandle();wsSw.waiting=boundary;
+  const boundaryAttempt=wsSw.activate();await vi.advanceTimersByTimeAsync(999);
+  expect(boundary.messages).toEqual([{type:'SKIP_WAITING'}]);
+  await vi.advanceTimersByTimeAsync(1);expect(await boundaryAttempt).toBe(false);
+  container.controller=boundary;container.dispatchEvent(new Event('controllerchange'));
+  expect(replace).toHaveBeenCalledTimes(1);
+  const claimed=new WorkerHandle();wsSw.waiting=claimed;const claim=wsSw.activate();
+  container.controller=claimed;container.dispatchEvent(new Event('controllerchange'));
+  expect(await claim).toBe(true);expect(wsSw.waiting).toBeNull();
+  expect(replace).toHaveBeenCalledTimes(1);
   const expired=new WorkerHandle();wsSw.waiting=expired;
   const pending=swAdopt('/late');await vi.advanceTimersByTimeAsync(2500);await pending;
   container.controller=expired;container.dispatchEvent(new Event('controllerchange'));

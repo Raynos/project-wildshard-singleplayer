@@ -14,21 +14,18 @@ import { receiveWorkerDownloads } from './download';
  *     `await window.__ws_sw?.ready` before its first asset fetch to get that guarantee; without it the first
  *     few requests race the claim and are cached on the next visit instead.
  *
- *  2. **Discover new builds, but never reload on our own.** The title screen already has a build pill
- *     (src/engine/ui/Update.ts: "new build · tap to update") that is the one surface for taking a new deploy, so a
- *     waiting worker is *announced*, not adopted: no toast, no mid-session reload.
+ *  2. **Install in the background; adopt only at travel or the title.** A waiting worker is announced
+ *     without replacing gameplay. Update.ts handles the visible title boundary; travel waits at most one second
+ *     for a claim before its ordinary fresh-page navigation.
  *
  * CONTRACT — `window.__ws_sw` (also the module's exports):
  *
  *   ready: Promise<void>        resolves when the worker controls this page, or after CAP_MS, or at once when
  *                               service workers are off (`?sw=0`, dev without `?sw=1`, no SW support).
  *   waiting: ServiceWorker|null a newer build is installed and waiting to activate; null otherwise.
- *   adopt(to?): Promise<void>   take the waiting build now: SKIP_WAITING → controllerchange → location.reload()
- *                               (or `location.replace(to)`: GpuRecovery's long-away reload keeps its ?glreload / ?at=).
- *                               Resolves (without reloading) if there is nothing waiting or the hand-over does
- *                               not land within CAP_MS. The pill's tap handler should prefer this over its plain
- *                               `?v=` reload when `waiting` is set, so the reload comes up on the new worker
- *                               and its precached shell rather than on the old worker revalidating.
+ *   activate(): Promise<boolean> claim an installed update at a natural boundary, at most 1 s; never navigates.
+ *   adopt(to?): Promise<boolean> explicit recovery: claim, then reload/replace once; true if sent.
+ *                               False means unavailable or expired; recovery retains its ordinary fallback.
  *   version(): Promise<SwVersion|null>  what the controlling worker holds ({ build, entries, bytes, caches }),
  *                               null when nothing controls the page.
  *
@@ -45,6 +42,8 @@ declare const __BUILD_ID__: string;
 
 /** The longest boot waits for the worker to take control, or for a hand-over to a new build. */
 const CAP_MS = 2500;
+/** Natural navigation must not wait for installation or a stalled activation. */
+const BOUNDARY_MS = 1000;
 
 export interface SwVersion {
   type: 'VERSION';
@@ -61,8 +60,10 @@ export interface WsSw {
   /** Explicit network-only opt-outs also disable optional code transports. */
   readonly enabled?: boolean;
   waiting: ServiceWorker | null;
+  /** Claim an already-installed update before a natural navigation; never navigates itself. */
+  activate: () => Promise<boolean>;
   /** `why`: what asked for it, recorded for the next boot (src/engine/boot/lastEnd.ts) */
-  adopt: (to?: string, why?: string) => Promise<void>;
+  adopt: (to?: string, why?: string) => Promise<boolean>;
   version: () => Promise<SwVersion | null>;
 }
 
@@ -110,7 +111,7 @@ if (sw !== null) {
 }
 
 // declared ahead of the functions that read it (they only run after registration; `boot()` is hoisted)
-const api: WsSw = { ready: boot(), enabled: swAllowed(), waiting: null, adopt, version };
+const api: WsSw = { ready: boot(), enabled: swAllowed(), waiting: null, activate: () => activateWaiting(BOUNDARY_MS), adopt, version };
 
 function swAllowed(): boolean {
   if (!sw) return false;
@@ -120,11 +121,8 @@ function swAllowed(): boolean {
 }
 
 /**
- * A newer worker reached `installed` while we are controlled: announce it, do not adopt it — unless it holds the build
- * this page already runs. That happens when the pill was tapped before the worker finished installing: the `?v=`
- * reload fetched the new build from the network under the old worker, and the new worker then came up waiting. Lighting
- * the pill for it asked for a second tap and a second loading screen for the build already on screen (E95), so it is
- * adopted quietly at pagehide instead (no mid-session replacement or extra reload).
+ * Announce a completed background install. Same-build replacements wait for
+ * pagehide/travel too; even a usable title/control signal is not a claim.
  */
 function announce(w: ServiceWorker): void {
   void (async () => {
@@ -170,30 +168,39 @@ function watch(reg: ServiceWorkerRegistration): void {
 }
 
 /** `to`: where the page goes once the new worker controls it (default: reload this URL) */
-async function adopt(to?: string, why = 'new build adopted'): Promise<void> {
-  const w = api.waiting;
+async function adopt(to?: string, why = 'new build adopted'): Promise<boolean> {
+  if (!await activateWaiting(CAP_MS)) return false;
+  markReload(`${why}: the new service worker took over`);
+  if (to === undefined) location.reload();
+  else location.replace(to);
+  return true;
+}
+
+/** Only a completed install participates. A late claim cannot navigate an expired caller. */
+function activateWaiting(limit: number): Promise<boolean> {
+  const w = api.waiting ?? sameBuild;
   // An announcement can outlive its worker (another tab already adopted it,
   // or a later install replaced it). None of those states needs a hand-over.
   if (!sw || !w || pageScope.disposed || pageScope.disposing || sw.controller === w
-    || (w.state !== 'installed' && w.state !== 'activating')) return;
-  await new Promise<void>((resolve) => {
+    || (w.state !== 'installed' && w.state !== 'activating')) return Promise.resolve(false);
+  return new Promise<boolean>((resolve) => {
     const attempt = pageScope.child('worker-adoption');
-    const clean = (): void => attempt.dispose();
-    attempt.timeout(CAP_MS, () => { clean(); resolve(); });
+    const finish = (claimed: boolean): void => { resolve(claimed); attempt.dispose(); };
+    attempt.onDispose(() => { resolve(false); });
+    attempt.timeout(limit, () => { finish(false); });
     attempt.listen(sw, 'controllerchange', () => {
       if (sw.controller !== w) return;
-      clean();
-      markReload(`${why}: the new service worker took over`);
-      if (to === undefined) location.reload();
-      else location.replace(to);
+      if (api.waiting === w) api.waiting = null;
+      if (sameBuild === w) sameBuild = null;
+      finish(true);
     });
     attempt.listen(w, 'statechange', () => {
-      if (w.state === 'redundant') { clean(); resolve(); }
+      if (w.state === 'redundant') { finish(false); }
     });
     try {
       // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker.postMessage has no targetOrigin parameter (that is Window.postMessage)
       w.postMessage({ type: 'SKIP_WAITING' });
-    } catch { clean(); resolve(); } // the ordinary document reload remains available
+    } catch { finish(false); } // the ordinary document navigation remains available
   });
 }
 

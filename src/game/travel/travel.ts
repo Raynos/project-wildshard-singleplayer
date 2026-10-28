@@ -59,15 +59,22 @@ export function bindTravelInventory(source: TravelSource): () => void {
   return () => { if (running === source) running = null; };
 }
 const service = travelService({ source: () => running, slot: travelSlot(), now: () => Date.now(), navigate: (request) => {
+  void navigate(request);
+} });
+async function navigate(request: TravelRequest): Promise<void> {
   setTitleArrival({ slug: request.to, mode: request.mode, name: findTitleManifest(request.to)?.name ?? request.to });
   const url = new URL(location.href);
   url.searchParams.set('chunk', request.to);
   for (const name of ['at', 'glreload', 'x', 'z', 'yaw', 'pitch', 'explore', 'cam', 'model', 'skipintro', 'tour', 'quest', 'drop']) url.searchParams.delete(name);
   if (request.mode === 'explore') url.searchParams.set('explore', 'hub');
+  url.searchParams.delete('v');
+  // Installation is already in the background. Only the bounded claim may
+  // precede this fresh-page handoff; an unavailable worker never blocks travel.
+  await window.__ws_sw?.activate();
   // Replacing releases WebKit's previous page rather than parking its heap in the back/forward cache.
   markUnload(`shard switch to ${request.to} (fresh page)`);
   location.replace(url.toString());
-} });
+}
 export function travel(request: TravelRequest): void {
   const manifest = findTitleManifest(request.to);
   if (manifest === undefined) return;
