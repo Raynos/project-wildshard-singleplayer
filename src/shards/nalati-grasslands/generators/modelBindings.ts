@@ -99,7 +99,7 @@ export function nalatiLateCatalogueNames(input: unknown): readonly string[] {
 /** These owned support files have already been compiled into the live rows.
  * Keep every name/hash/path alias demanded by any published programme early;
  * unreferenced originals remain available through the verified async reader. */
-export function nalatiLateSupportNames(files: readonly { readonly name?: string; readonly hash: string; readonly path: string }[], consumers: unknown): readonly string[] {
+export function nalatiLateSupportNames(files: readonly { readonly name?: string; readonly hash: string; readonly path: string }[], consumers: unknown, sections: Iterable<Uint8Array> = []): readonly string[] {
   const aliases=new Map<string,string>(),names:string[]=[];
   for(const file of files){
     if(file.name===undefined)throw new Error('Support file requires its owned name');
@@ -111,7 +111,9 @@ export function nalatiLateSupportNames(files: readonly { readonly name?: string;
     else if(Array.isArray(value)){for(const item of value)visit(item);}
     else if(value!==null&&typeof value==='object'){for(const item of Object.values(value))visit(item);}
   };
-  visit(consumers);return names.filter(name=>!required.has(name)).sort();
+  visit(consumers);
+  for(const bytes of sections){const value:unknown=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));visit(value);}
+  return names.filter(name=>!required.has(name)).sort();
 }
 
 /** The phone never opens the desktop dressing book. Only names exclusive to

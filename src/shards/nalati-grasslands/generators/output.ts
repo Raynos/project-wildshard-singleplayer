@@ -453,7 +453,9 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
   });
   const supportNames=new Set(DRESSING_ATLAS_SOURCES.map(row=>row.name));
   const supportFiles=[...placements.files,...sources.filter(row=>row.file.name!==undefined&&supportNames.has(row.file.name)).map(row=>row.file)];
-  for(const name of nalatiLateSupportNames(supportFiles,[platform,template.look,template.props,template.map,template.critical,...consumerRows]))lateNames.add(name);
+  // Platform sections are emitted bytes, so inspect their complete decoded
+  // rows as well as every named JSON consumer before deferring any source.
+  for(const name of nalatiLateSupportNames(supportFiles,consumerRows,platform.files.values()))lateNames.add(name);
   const late=[...new Set([...lateNames].map(name=>{
     const file=fileByName.get(name);if(file===undefined)throw new Error('Missing late model source');return file.hash;
   }))].map(hash=>({hash}));

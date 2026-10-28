@@ -9,6 +9,10 @@ test('compiled support timing retains all published consumer aliases and source 
   const consumers=[{world:{file:'named'}},{specimen:['hash-hashed']},{other:{nested:{source:'blobs/physical.bin'}}}],before=structuredClone({files,consumers});
   expect(nalatiLateSupportNames(files,consumers)).toEqual(['unused']);
   expect(nalatiLateSupportNames(files,[...consumers,{future:{file:'unused'}}])).toEqual([]);
+  const section=new TextEncoder().encode(JSON.stringify({world:{file:'unused'}})),sectionBefore=section.slice();
+  expect(nalatiLateSupportNames(files,consumers,[section])).toEqual([]);
+  expect(section).toStrictEqual(sectionBefore);
+  expect(()=>nalatiLateSupportNames(files,consumers,[Uint8Array.of(255)])).toThrow();
   expect({files,consumers}).toStrictEqual(before);
   expect(()=>nalatiLateSupportNames([{hash:'h',path:'p'}],[])).toThrow('owned name');
 });
