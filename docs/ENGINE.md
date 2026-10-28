@@ -6286,6 +6286,9 @@ Signal well prompts use these rows on their existing input owners.
 (`parseRainPresentation`) and page/audio/guide observations
 (`parseForestWeatherObservation`) through the original row grammars.
 `explorerCatalogueRows` admits ordered model references with the defining JSON/identity checks and no runtime installer.
+`sdk/quests.nativeQuestCompositionRows` and `sdk/director.chapterDirectorRows` retain native quest resource and
+chapter-effect checks. `sdk/bossProfiles.roamingEncounterRows`, `roamingCombatRows` and `roamingProjectionRows`
+admit complete encounter/profile, combat and rig/effect data without creating a fight, view or runtime owner.
 
 ### Static world scene recipes
 

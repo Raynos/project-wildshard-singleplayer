@@ -1,8 +1,7 @@
 
 /** Compile the roaming projection from its existing encounter, rig and look rows. */
 import { Color } from 'three';
-import * as v from 'valibot';
-import { RoamingBossProjectionSchema , type RoamingBossProjectionRows as RoamingBossProjectionRowsType } from '@wildshard/format/roamingBossProjection';
+import { roamingProjectionRows as admitProjection } from '@wildshard/sdk/bossProfiles';
 import { NATIVE_VIEW } from './nativeView';
 import { pineKingCollision } from './kingCollision';
 import type { KingKitRows } from './kingKit';
@@ -16,8 +15,8 @@ const material = (id: string, gain: number) => ({ id, colour: new Color(D.glowMa
   gain, roughness: D.glowMat.roughness, metalness: D.glowMat.metalness, lit: false, fog: D.glowMat.fog });
 const hazardMeshes = [{ geometry: 'king-lantern-frame', material: 'frame' }, { geometry: 'king-lantern-glass', material: 'glass' }];
 /** The King's projection rows over his baked kit (GR8: the program bakes the kit; `roamingCombat` reads this). */
-export function roamingProjection(source: KingKitRows): RoamingBossProjectionRowsType {
-  return v.parse(RoamingBossProjectionSchema, {
+export function roamingProjection(source: KingKitRows): ReturnType<typeof admitProjection> {
+  return admitProjection({
   id: 'pine.king.projection', session: 'pine.combat', spawn: 'pine.antler-king', spawnStream: 'pine.spawn.thrall', variant: 'warden',
   socketRig: { id: 'pine.king.rig', pool: source.pool, collision: { joints: bossCollision.joints, volumes: bossCollision.volumes },
     materials: [{ id: 'frame', colour: new Color(D.frameMat.color).toArray(), emissive: [0, 0, 0], gain: 1,

@@ -1,6 +1,10 @@
 import type { parseDirector } from '@wildshard/format/director';
 import { directorDataHostIssues, parseDirectorStages, type DirectorStagesData, type DirectorStagesDefinition } from '@wildshard/format/directorStages';
 import { Object3D } from 'three';
+import { parseChapterDirector } from '@wildshard/format/chapterDirector';
+
+/** Admit closed chapter effects, observations and wake wiring before any entered director exists. */
+export function chapterDirectorRows(input: unknown): ReturnType<typeof parseChapterDirector> { return parseChapterDirector(input); }
 
 /** Typed director data with bounded observations, payloads and reserved grid subscriptions. */
 export type DirectorData = ReturnType<typeof parseDirector>;
