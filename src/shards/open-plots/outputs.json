@@ -512,6 +512,8 @@
       "accent": "pink",
       "manifest": {
         "name": "Night Market · Open Plot Pilot",
+        "status": "experimental",
+        "shardSelect": true,
         "blurb": "The open-plot pilot (G633): a Night Market of house courts, canals, stall rows and gardens round a pagoda gate, a world still to be built.",
         "bindings": {
           "accent": "pink"
