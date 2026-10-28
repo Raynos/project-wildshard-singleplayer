@@ -69,6 +69,12 @@ export function unshuffleLanes(lanes: Uint8Array, out: Uint8Array<ArrayBuffer> =
 export async function fetchLaneBytes(url: string): Promise<Uint8Array> {
   return restoreLaneBytes(await fetchDeflatedBytes(url));
 }
+/** zlib bytes already in hand, inflated by the platform's paced stream decoder (as `fetchDeflatedBytes`); the input is not kept. */
+export function inflateBytes(bytes: Uint8Array): Promise<Uint8Array> {
+  const body = new Response(bytes.slice()).body;
+  if (body === null) return Promise.reject(new Error('Inflate requires a byte stream'));
+  return inflateStream(body);
+}
 /** Decode admitted lane bytes. Size-declared Zstd uses the existing worker;
  * original zlib files retain native paced inflate. Both restore identical words. */
 export async function decodeLaneBytes(bytes: Uint8Array): Promise<Uint8Array> {

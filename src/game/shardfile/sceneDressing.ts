@@ -1,12 +1,11 @@
 import {prepareBinarySources,binarySourceBytes} from '../models/binarySource';
-import { decodeLaneBytes } from '@wildshard/engine/core/deflate';
+import { decodeLaneBytes, inflateBytes } from '@wildshard/engine/core/deflate';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import { clientPreparationBatch, timeClientPreparation } from './preparationTiming';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { SceneInstanceFields } from './sceneInstances';
 import * as THREE from 'three';
 import * as v from 'valibot';
-import { unzlibSync } from 'fflate';
 import { SceneDressingSchema, SceneFloorSchema, readSceneScatterPose, type SceneDressingRows } from '@wildshard/format/sceneDressing';
 import { FrameCamera } from '@wildshard/engine/world/frameCamera';
 import { modelContext, defineModel, type ModelDef } from '@wildshard/engine/models/model';
@@ -304,8 +303,8 @@ export class SceneDressing {
       await timeClientPreparation(ctx.product.slug,`dressing.layer.${row.id}`,async()=>{
       const poses=await at.run('poses',()=>timeClientPreparation(ctx.product.slug,`dressing.poses.${row.id}`,()=>sceneScatterPoses(ctx,row,pause)));
       if(poses.length===0)return;
+      const colliderRows=Array.isArray(row.contacts)?contacts(row.contacts):await unpackHulls(row.contacts,files);
       const layer=scatterLayer(row.id,needGeometry(row.geometry),needMaterial(row.material),poses,row.far,row.castShadow,row.keepNear);this.layers.push(layer);this.group.add(layer.mesh);
-      const colliderRows=Array.isArray(row.contacts)?contacts(row.contacts):unpackHulls(row.contacts,files);
       const registered=at.sync('place',()=>withOwner(ctx.scope,()=>place(needModel(row.model),poses.map(it=>({x:it.x,y:it.y,z:it.z})),{
         ctx:models,draw:'instanced',registry:ctx.app.registry,drawnInto:{object:layer.mesh,boxes:instanceBoxes(layer.mesh.geometry,poses),colliders:colliderRows},piece:{solidFloor:true,collide:false,split:{every:150,yieldTask:pause}},
       })));await at.run('registered',()=>registered.registered);this.placed.push(registered);this.byTile(row.id,needModel(row.model),registered.colliders);
@@ -319,9 +318,10 @@ export class SceneDressing {
       const piece={name:row.name,object:made.root,tris:row.tris,placed:[] as Placed[],anchors:row.anchors};this.pieces.set(row.name,piece);
       this.group.add(made.root);this.propTris+=row.tris;
       for(const member of row.members){
+        const colliders=Array.isArray(member.contacts)?contacts(member.contacts):await unpackHulls(member.contacts,files);
         const floors=readSceneFloors(member.floors,files),floor=(x:number,z:number):number|undefined=>{let top:number|undefined;for(const sample of floors){const height=sample(x,z);if(height!==undefined&&(top===undefined||height>top))top=height;}return top;};
         const registered=withOwner(ctx.scope,()=>place(needModel(member.model),member.placements.map(({matrix,heading,...pose})=>({...pose,...(heading===undefined?{}:{yaw:Math.atan2(...heading)}),...(matrix===undefined?{}:{matrix:new THREE.Matrix4().fromArray(matrix)})})),{
-          ctx:models,draw:member.draw,registry:ctx.app.registry,drawnInto:{object:made.root,boxes:Float32Array.from(member.boxes),colliders:Array.isArray(member.contacts)?contacts(member.contacts):unpackHulls(member.contacts,files)},piece:{solidFloor:true,...(floors.length===0?{}:{floor}),collide:false,split:{every:150,yieldTask:pause}},
+          ctx:models,draw:member.draw,registry:ctx.app.registry,drawnInto:{object:made.root,boxes:Float32Array.from(member.boxes),colliders},piece:{solidFloor:true,...(floors.length===0?{}:{floor}),collide:false,split:{every:150,yieldTask:pause}},
         }));await registered.registered;this.placed.push(registered);piece.placed.push(registered);
         this.byTile(`${row.name}.${String(row.members.indexOf(member))}`,needModel(member.model),registered.colliders);await pause();
       }
@@ -400,11 +400,13 @@ export class SceneDressing {
 }
 function meshObject(value:THREE.Object3D):value is THREE.Mesh{return value instanceof THREE.Mesh;}
 
-function unpackHulls(row:Exclude<SceneDressingRows['layers'][number]['contacts'],readonly unknown[]>,files:ReadonlyMap<string,Uint8Array>):ReturnType<typeof contacts>{
+/** T10: the hull file inflates in the platform's paced stream decoder (fflate's script inflate was 40 ms of a Nalati
+ *  entry's dressing at phone 4x); the bytes are the same. */
+async function unpackHulls(row:Exclude<SceneDressingRows['layers'][number]['contacts'],readonly unknown[]>,files:ReadonlyMap<string,Uint8Array>):Promise<ReturnType<typeof contacts>>{
   if('data'in row)throw new Error('Scene contacts require named files');
   const packed=files.get(row.file);
   if(packed===undefined)throw new Error('Missing scene contact bytes');
-  const bytes=unzlibSync(packed),view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);let at=0;
+  const bytes=await inflateBytes(packed),view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);let at=0;
   // G782: each hull reads its packed float32 lane straight into its own owned points, finite-checked as the collider
   // grammar does; its origin and surface were admitted with the dressing rows (no temporary number lane, no second copy).
   const owned:ReturnType<typeof contacts>=[];
