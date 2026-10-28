@@ -13,18 +13,18 @@ reload CSS + quick steps + hold toggle (sp-x6), minimap labels off (792fa39d79),
 B1 whole-pack reads (B2 count a measured miss), shard.json 3 s race, audio first-use loading (16afe / dfe).
 
 **Jake's QA 10-28 PASSED:** Night Market (G827), loading / M2 (G831), tiles / T10 iPhone (G832), DW phone cut B (G833).
-**Open:** Nine wet-neon reflections + hands (sp-o3), Pine blob / crag + pier far reading + NM figures (sp-o5), QF10 blur
-(not reproduced) + Nine title red (sp-o4); tile T6 / T7 quick wins then damage list (G842); Props D201, Sky D199.
+**Open (Opus, G853 order):** Nine plan NR1 / NR2 / NR8 (sp-o3) and NR3 / NR5-NR7 (sp-o5); Far Reach FR2 / FR3 (sp-o3 next);
+Pine blob / crag + NM figures (sp-o4). Done: Nine title red (f2e66fd723), pier QF12, Far Reach FR4. Codex: NR4, FR1; tile T6 / T7 quick wins then damage list (G842); Props D201, Sky D199.
 CO6 boards: [round-1](../../../art/legacy-vs-shardfile/round-1-2026-10-28/README.md); Sky Reach islet gap logged.
 
 **Rules (10-28):** G848 no visual work on Codex (Opus-only; Codex bisects). G844 every look commit lands with a labelled
 same-camera before / after. G846 the detailed loading screen stays for everyone (hold toggle Developer-only). G828 no
 crossing-time cuts, no one-world plan drafts.
 
-**Lanes:** 3 Opus (sp-o3 / o4 / o5, G836 on Jake's new account), 5 Codex (x1 / x2 / x6 / x9 / x10; sp-x8 released at its
+**Lanes:** 3 Opus (sp-o3 / o4 / o5; G853: 2 from 60 %, 1 from 80 % weekly; now 3 %), 5 Codex (x1 / x2 / x6 / x9 / x10; sp-x8 released at its
 boundary) + sp-ci-deploy. Counter: Jake's CO5 fix pending (true 188.5 / 209 before today's marks).
 
 **Still open for wildshard-v / Jake:** herd clock, material variants / mesh quantising, RM8.1e witness, D53 CLIs; picks
 D183 / D185.
 
-**Rules:** G704. G807. G836. G844. G848. No reverts (G674). No new Debug rows (G669). Never herdr wildshard-v.
+**Rules:** G704. G807. G844. G848. G853. No reverts (G674). No new Debug rows (G669). Never herdr wildshard-v.
