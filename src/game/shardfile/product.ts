@@ -206,6 +206,7 @@ function resolveDescriptor(input: unknown, options: ProductOptions, lineage = fa
   const base = new URL('.', options.base).href, cache = options.cache, backgroundStore = cache?.putAssetBackground;
   return resolveOutputDescriptor(input, {
     offline: options.offline, hash: options.hash, firstParty: options.firstParty, deferAssetDeclarations: true, ...(lineage ? { lineage } : {}),
+    ...(options.cacheHintTurn === undefined ? {} : { cacheHintTurn: options.cacheHintTurn }),
     ...(options.pause === undefined ? {} : { pause: options.pause }),
     declare: (path, bytes) => { declareDownloadFile(new URL(path, base).href, bytes); },
     cacheHit: (path, hash, bytes) => { recordCachedDownload(hash, bytes, new URL(path, base).href); },

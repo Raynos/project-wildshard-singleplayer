@@ -448,7 +448,7 @@ async function run(mode, index, target) {
     origin: performance.timeOrigin,
     navigation: performance.getEntriesByType('navigation').map(entry => entry.toJSON()),
     resources: performance.getEntriesByType('resource').map(entry => entry.toJSON()),
-    measures: performance.getEntriesByType('measure').map(entry => entry.toJSON())
+    measures: performance.getEntriesByType('measure').map(entry => ({ ...entry.toJSON(), detail: entry.detail }))
   })`));
   // video seconds of a page time: the recording started at recordingAt (wall clock), the tap at tapAt
   const videoAt = ms => (tap + ms - recordingAt) / 1000;

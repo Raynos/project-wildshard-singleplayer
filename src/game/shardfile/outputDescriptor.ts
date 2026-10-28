@@ -32,6 +32,9 @@ export interface OutputDescriptorReader {
    * `stored` proves durable content-cache persistence, not merely a scheduled write. */
   verified?: (hash: string, path: string, maximum: number) => Promise<{ bytes: Uint8Array; cached: boolean; stored: boolean } | null>;
   cached?: (hash: string, path: string, maximum: number) => Promise<Uint8Array | null>;
+  /** Online packed sections may leave a slow cache hint after this visible turn.
+   * Offline reads still await durable bytes; every fallback pack/member is verified. */
+  cacheHintTurn?: (signal: AbortSignal) => Promise<void>;
   /** A verified cache hit also completes its named section/schema path. */
   cacheHit?: (path: string, hash: string, bytes: number) => void;
   store?: (hash: string, bytes: Uint8Array) => Promise<boolean>;
@@ -147,12 +150,20 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   const packed = current === null || reader.pack === undefined || reader.offline ? undefined
     : packReads(current.packs, new Set([...current.sections, ...current.schemas].map(entry => entry.hash)), reader.pack, reader.hash);
   let cached = reader.cached !== undefined || reader.verified !== undefined;
+  const cachedSection = async (section: OutputIndex['sections'][number], inPack: boolean): Promise<Uint8Array | null | undefined> => {
+    if (reader.cached === undefined) return undefined;
+    const pending = reader.cached(section.hash, section.path, section.bytes);
+    if (!inPack || reader.offline || reader.cacheHintTurn === undefined) return pending;
+    const controller = new AbortController();
+    try { return await Promise.race([pending, reader.cacheHintTurn(controller.signal).then(() => null)]); }
+    finally { controller.abort(); }
+  };
   const stores: Promise<void>[] = [];
   let pendingStores = 0;
   const load = async (section: OutputIndex['sections'][number]): Promise<readonly [string, unknown]> => {
     const inPack = packed?.has(section.hash) === true;
     const verified = inPack || reader.verified === undefined ? null : await reader.verified(section.hash, section.path, section.bytes);
-    let bytes = verified?.bytes ?? await reader.cached?.(section.hash, section.path, section.bytes);
+    let bytes = verified?.bytes ?? await cachedSection(section, inPack);
     if (verified !== null && verified !== undefined) {
       bytes = verified.bytes;
       if (bytes.length !== section.bytes) throw new Error('Shardfile section hash or size mismatch');

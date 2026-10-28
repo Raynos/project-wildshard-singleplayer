@@ -401,6 +401,64 @@ test('a product stored whole asks for persistent storage once (iPhone downloads 
   } finally { persist.mockRestore(); }
 });
 
+function packedSectionFixture() {
+  const f = fixture(), parts = f.index.sections.map(section => {
+    const bytes = f.wires.get(section.path); if (bytes === undefined) throw new Error('Missing section bytes');
+    return { hash: section.hash, bytes };
+  });
+  const bytes = new Uint8Array(parts.reduce((total, part) => total + part.bytes.length, 0));
+  const entries: { hash: string; offset: number; bytes: number }[] = []; let offset = 0;
+  for (const part of parts) { bytes.set(part.bytes, offset); entries.push({ hash: part.hash, offset, bytes: part.bytes.length }); offset += part.bytes.length; }
+  const digest = hashImmutableBytes(bytes), path = `blobs/pack/${digest}.pack`;
+  const index = parseOutputIndex({ ...f.index, packs: [{ path, hash: digest, bytes: bytes.length, entries }] });
+  f.wires.set(path, bytes); f.wires.set('shard.json', encodeCanonicalJson(index));
+  return { ...f, index, path, bytes };
+}
+
+test('online packed descriptors pass a pending disk recovery after one hint turn', async () => {
+  const f = packedSectionFixture(), store = cacheStore(), reads: string[] = [];
+  let release = (): void => { throw new Error('Missing cache gate'); };
+  const pending = new Promise<Uint8Array | null>(resolve => { release = () => { resolve(null); }; });
+  const plain = options(f.wires, { ...store.cache, asset: () => pending });
+  try {
+    const source = await readProductDescriptor({ ...plain, cacheHintTurn: () => Promise.resolve(),
+      fetch: url => { reads.push(url.slice(base.length)); return plain.fetch(url); } });
+    expect(source).toEqual(parseShardfile(f.source));
+    expect(reads).toEqual(['shard.json', f.path]);
+  } finally { release(); }
+});
+
+test('ready descriptor cache bytes cancel the hint turn without reading a pack', async () => {
+  const f = packedSectionFixture(), store = cacheStore(), reads: string[] = []; let cancelled = 0;
+  const plain = options(f.wires, { ...store.cache, asset: (_base, digest) => {
+    const section = f.index.sections.find(row => row.hash === digest);
+    return Promise.resolve(section === undefined ? null : f.wires.get(section.path) ?? null);
+  } });
+  await expect(readProductDescriptor({ ...plain, cacheHintTurn: signal => new Promise<void>(resolve => {
+    signal.addEventListener('abort', () => { cancelled++; resolve(); }, { once: true });
+  }), fetch: url => { reads.push(url.slice(base.length)); return plain.fetch(url); } })).resolves.toEqual(parseShardfile(f.source));
+  expect(reads).toEqual(['shard.json']); expect(cancelled).toBe(f.index.sections.length);
+});
+
+test.each(['offline', 'unpacked'] as const)('descriptor %s reads keep the original durable cache barrier', async mode => {
+  const f = packedSectionFixture(); let finish = (): void => { throw new Error('Missing cache gate'); }, completed = false;
+  const gate = new Promise<void>(resolve => { finish = resolve; }), turn = vi.fn(() => Promise.resolve()), read = vi.fn(() => Promise.reject(new Error('Unexpected transport')));
+  const pending = resolveOutputDescriptor(mode === 'unpacked' ? { ...f.index, packs: [] } : f.index, {
+    offline: mode === 'offline', hash, read, pack: read, cacheHintTurn: turn,
+    cached: async (_digest, path) => { await gate; return f.wires.get(path) ?? null; },
+  }).then(value => { completed = true; return value; });
+  await Promise.resolve(); await Promise.resolve();
+  expect(completed).toBe(false); expect(turn).not.toHaveBeenCalled(); expect(read).not.toHaveBeenCalled();
+  finish(); await expect(pending).resolves.toMatchObject({ identity: f.source.identity });
+});
+
+test('a slow descriptor cache never excuses corrupt fallback pack bytes', async () => {
+  const f = packedSectionFixture(), store = cacheStore(), corrupt = Uint8Array.from(f.bytes); corrupt[0] = 255;
+  f.wires.set(f.path, corrupt);
+  await expect(readProductDescriptor({ ...options(f.wires, { ...store.cache, asset: () => new Promise<Uint8Array | null>(() => { /* Cache stays pending while the pack refuses. */ }) }),
+    cacheHintTurn: () => Promise.resolve() })).rejects.toThrow('pack hash or size mismatch');
+});
+
 test('packed sections and files come from one read of each pack (iPhone downloads I5)', async () => {
   const { wires, index } = fixture(true), packs: NonNullable<OutputIndex['packs']> = [];
   for (const members of [[...index.sections, ...index.schemas].map(entry => ({ path: entry.path, hash: entry.hash })), index.files.map(file => ({ path: file.path, hash: file.hash }))]) {
