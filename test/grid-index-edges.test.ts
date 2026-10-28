@@ -1,3 +1,4 @@
+import { parseOutputIndex } from '@wildshard/format/outputIndex';
 import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { outputSectionPayloads } from '@wildshard/format/outputFields';
@@ -20,7 +21,7 @@ function fixture(slug = 'edge-fixture') {
     const bytes = wires.get(path); if (bytes === undefined) return Promise.reject(new Error(`Full admission attempted: ${path}`));
     return Promise.resolve(new Response(Uint8Array.from(bytes)));
   });
-  return { source, url, edgeUrl, wires, fetch, options: { base: new URL('.', url).href, offline: false, firstParty: false, fetch, hash: (bytes: Uint8Array) => Promise.resolve(hashImmutableBytes(bytes)) } };
+  return { source, url, edgeUrl, sectionBytes, wires, fetch, options: { base: new URL('.', url).href, offline: false, firstParty: false, fetch, hash: (bytes: Uint8Array) => Promise.resolve(hashImmutableBytes(bytes)) } };
 }
 
 test('a build-owned grid index skips grammar but keeps identity and section hashes', async () => {
@@ -150,4 +151,49 @@ test('G608: a near view reads its index, tiles and look sections and only its de
   expect(await near.read(hash)).toEqual(glb);
   await expect(near.read('0'.repeat(64))).rejects.toThrow('Undeclared grid near file');
   expect(fetch.mock.calls.map(([path]) => path)).toEqual([url, at('sections/world/tiles.json'), at('sections/look/look.json'), at(`blobs/glb/${hash}.glb`)]);
+});
+
+
+function packedGridFixture(slug: string, corruptMember = false) {
+  const f = fixture(slug), encode = (value: unknown) => new TextEncoder().encode(encodeCanonicalJson(value));
+  const indexWire = f.wires.get(f.url);
+  if (indexWire === undefined) throw new Error('Missing packed index');
+  const index = parseOutputIndex(JSON.parse(new TextDecoder().decode(indexWire)));
+  const members = new Map([...f.sectionBytes.values()].map(body => [hashImmutableBytes(body), body]));
+  const wire = new Uint8Array([...members.values()].reduce((sum, body) => sum + body.length, 0));
+  let offset = 0;
+  const entries = [...members].map(([hash, body]) => { const entry = { hash, offset, bytes: body.length }; wire.set(body, offset); offset += body.length; return entry; });
+  if (corruptMember) {
+    const edge = index.sections.find(section => section.name === 'world/edge'), entry = entries.find(row => row.hash === edge?.hash);
+    if (entry === undefined) throw new Error('Missing packed edge');
+    wire[entry.offset] = 99;
+  }
+  const hash = hashImmutableBytes(wire), pack = { path: `blobs/pack/${hash}.pack`, hash, bytes: wire.length, entries };
+  const packUrl = new URL(pack.path, f.url).href;
+  f.wires.set(f.url, encode({ ...index, packs: [pack] })); f.wires.set(packUrl, wire);
+  return { ...f, packUrl, wire };
+}
+
+test('neighbour section waves use one verified whole pack instead of section GETs', async () => {
+  const f = packedGridFixture('packed-neighbour');
+  expect(await readGridProductEdges(f.url, f.source.identity.slug, f.options)).toEqual({ edge: f.source.edge, entryways: f.source.entryways });
+  expect(await readGridProductNear(f.url, f.source.identity.slug, f.options)).toBeNull();
+  expect(await readGridProductEdges(f.url, f.source.identity.slug, f.options)).toEqual({ edge: f.source.edge, entryways: f.source.entryways });
+  expect(f.fetch.mock.calls.map(([url]) => url)).toEqual([f.url, f.packUrl, f.url, f.url]);
+});
+
+test('neighbour pack hash refusal can retry, and member hashes remain independent', async () => {
+  const f = packedGridFixture('packed-neighbour-retry'), wrong = Uint8Array.from(f.wire); wrong[0] = 99;
+  f.wires.set(f.packUrl, wrong);
+  await expect(readGridProductEdges(f.url, f.source.identity.slug, f.options)).rejects.toThrow('pack hash or size');
+  f.wires.set(f.packUrl, f.wire);
+  expect(await readGridProductEdges(f.url, f.source.identity.slug, f.options)).toEqual({ edge: f.source.edge, entryways: f.source.entryways });
+  const corrupt = packedGridFixture('packed-neighbour-member', true);
+  await expect(readGridProductEdges(corrupt.url, corrupt.source.identity.slug, corrupt.options)).rejects.toThrow('file sections/world/edge.json hash or size');
+});
+
+test('offline neighbour sections never fall through to a network pack', async () => {
+  const f = packedGridFixture('packed-neighbour-offline');
+  await expect(readGridProductEdges(f.url, f.source.identity.slug, { ...f.options, offline: true })).rejects.toThrow('Missing cached grid product file');
+  expect(f.fetch).toHaveBeenCalledExactlyOnceWith(f.url);
 });

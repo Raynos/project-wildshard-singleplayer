@@ -27,6 +27,7 @@ import { recordCachedDownload } from '@wildshard/engine/boot/download';
 import { GridAdmissionPriority } from './admissionPriority';
 import { timeClientPreparation } from '../shardfile/preparationTiming';
 import { readCheckedOutputIndex } from '../shardfile/outputIndexChecks';
+import { packReads, type PackReads } from '../shardfile/packReads';
 
 const edgeRows = v.strictObject({ edge: EdgeProfilesSchema, entryways: EntrywaysSchema });
 const farRow = v.looseObject({ far: v.nullable(v.looseObject({ decoded: v.number(), gpu: v.number() })) });
@@ -37,7 +38,7 @@ const nearRow = v.looseObject({ near: v.optional(NearPlaceholderSchema) });
 const edges = new WeakMap<ResidencyAllocator, Map<string, Promise<Pick<Shardfile, 'edge' | 'entryways'>>>>();
 
 /** A product's bounded index, read once for several section or file reads (no runtime or asset is admitted). */
-interface GridProductIndex { readonly index: OutputIndex; readonly url: string; readonly options: ProductOptions }
+interface GridProductIndex { readonly index: OutputIndex; readonly url: string; readonly options: ProductOptions; readonly packed: PackReads }
 /** each index's parse by its bytes' hash: a cell's far, near and edge reads each parsed the same index (G639: ~0.9 ms a
  *  frame over a Sky Reach drive at phone 4x). The index is still read and its stale-client check still runs every time;
  *  only the parse of the same bytes is kept. The oldest of 32 leaves first. */
@@ -59,14 +60,20 @@ async function readGridProductIndex(url: string, identity: string, options: Prod
   }
   const { slug: declaredIdentity } = index.identity;
   if (declaredIdentity !== identity.replace(/^_/u, '')) throw new Error('Grid product index identity differs from its cell');
-  return { index, url, options };
+  const packed = packReads(index.packs, new Set([...index.sections, ...index.schemas].map(row => row.hash)), async (path, maximum) => {
+    const response = await options.fetch(new URL(path, url).href);
+    if (response.status === 206) { await response.body?.cancel(); throw new Error('Grid pack requires a whole response'); }
+    return boundedResponse(response, maximum);
+  }, options.hash);
+  return { index, url, options, packed };
 }
 /** One immutable file the index declares (a section or a blob), from the content cache or the product URL, size and hash
  * checked; a network read is kept in the content cache like an admission's. */
 async function readGridProductFile(at: GridProductIndex, path: string, hash: string, size: number): Promise<Uint8Array> {
   const { options } = at, base = new URL('.', at.url).href, address = new URL(path, at.url).href;
   const held = await options.cache?.asset(base, hash) ?? await options.cachedResponse?.(address, hash, size);
-  const bytes = held ?? await boundedResponse(await options.fetch(address), size);
+  if ((held === null || held === undefined) && options.offline) throw new Error(`Missing cached grid product file ${path}`);
+  const bytes = held ?? (at.packed.has(hash) ? await at.packed.read(hash) : await boundedResponse(await options.fetch(address), size));
   if (bytes.length !== size || await options.hash(bytes) !== hash) throw new Error(`Grid product file ${path} hash or size mismatch`);
   // a grid cell's file is not the home load's: a cache hit is credited as cache, never declared into the home track
   if (held !== null && held !== undefined) recordCachedDownload(hash, bytes.length);
