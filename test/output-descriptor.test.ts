@@ -157,9 +157,9 @@ test('descriptor deadline retains the declared index filename and refuses crosse
   expect(requests).toEqual([]);
 });
 
-function installIndexReceipt(index: OutputIndex): () => void {
+function installIndexReceipt(index: OutputIndex, path?: string): () => void {
   const values = { __SHARDFILE_VALIDATOR__: 'index-receipt-test', __SHARDFILE_VERDICTS__: [{ revision: 'index-receipt-test', sourceHash: index.build.sourceHash,
-    indexHash: hashImmutableBytes(encodeCanonicalJson(index)), worst: { playing: 0, loading: 0, accounted: 0, location: [0, 0] } }] };
+    indexHash: hashImmutableBytes(encodeCanonicalJson(index)), ...(path === undefined ? {} : { path }), worst: { playing: 0, loading: 0, accounted: 0, location: [0, 0] } }] };
   const previous = new Map(Object.keys(values).map(name => [name, Object.getOwnPropertyDescriptor(globalThis, name)] as const));
   for (const [name, value] of Object.entries(values)) Object.defineProperty(globalThis, name, { configurable: true, writable: true, value });
   return () => {
@@ -1145,4 +1145,73 @@ test('low-priority adjacent demands share one whole response and independent mem
   expect(fetchRange).not.toHaveBeenCalled();
   expect(verify.mock.calls.map(([bytes])=>Array.from(bytes))).toEqual([Array.from(f.wire),[1,2,3],[4,5,6]]);
   expect(fetch).not.toHaveBeenCalled(); expect(assets.retained.size).toBe(0);
+});
+
+test('a build-addressed descriptor uses its exact version and healthy progress outlives three seconds', async () => {
+  const f=fixture(),opts=options(f.wires),release=installIndexReceipt(f.index,new URL('shard.json',base).pathname);
+  const wire=f.wires.get('shard.json');if(wire===undefined)throw new Error('Missing descriptor wire');
+  let body:ReadableStreamDefaultController<Uint8Array>|undefined;
+  const requests:string[]=[],refresh=vi.fn<(run:()=>Promise<void>)=>void>();
+  const fetcher=opts.fetch;
+  opts.fetch=(url,signal)=>{
+    requests.push(url);const address=new URL(url);
+    if(address.pathname.endsWith('/shard.json')){
+      expect(address.search).toBe(`?v=${hashImmutableBytes(wire).slice(0,8)}`);expect(signal).toBeDefined();
+      return Promise.resolve(new Response(new ReadableStream<Uint8Array>({start(controller){body=controller;}})));
+    }
+    return fetcher(url,signal);
+  };
+  opts.revalidateAfterControl=refresh;vi.useFakeTimers();
+  try{
+    const pending=readProductDescriptor(opts);await vi.advanceTimersByTimeAsync(4000);
+    if(body===undefined)throw new Error('Descriptor request not started');
+    body.enqueue(wire.slice(0,Math.floor(wire.length/2)));await vi.advanceTimersByTimeAsync(4000);
+    body.enqueue(wire.slice(Math.floor(wire.length/2)));body.close();
+    expect(await pending).toStrictEqual(f.source);expect(requests.filter(url=>new URL(url).pathname.endsWith('/shard.json'))).toHaveLength(1);
+    expect(refresh).not.toHaveBeenCalled();expect(vi.getTimerCount()).toBe(0);
+  }finally{release();vi.useRealTimers();}
+});
+
+test.each([false,true])('a versioned descriptor has a finite inactive transfer without the visited race (body=%s)',async body=>{
+  const f=fixture(),store=cacheStore(),opts=options(f.wires,store.cache);
+  await admitProduct(await readProductDescriptor(opts),opts);
+  const release=installIndexReceipt(f.index,new URL('shard.json',base).pathname),refresh=vi.fn<(run:()=>Promise<void>)=>void>();let aborted=false,settled=false;
+  const held:ProductOptions={...opts,revalidateAfterControl:refresh,fetch:(_url,signal)=>{
+    if(signal===undefined)throw new Error('Missing descriptor signal');
+    if(body)return Promise.resolve(new Response(new ReadableStream<Uint8Array>({start(controller){controller.enqueue(Uint8Array.of(123));signal.addEventListener('abort',()=>{aborted=true;controller.error(signal.reason);},{once:true});}})));
+    return new Promise((_resolve,reject)=>{signal.addEventListener('abort',()=>{aborted=true;reject(new Error('Descriptor cancelled',{cause:signal.reason}));},{once:true});});
+  }};
+  vi.useFakeTimers();
+  try{
+    const rejected=expect(readProductDescriptor(held).finally(()=>{settled=true;})).rejects.toThrow('Versioned shardfile download stalled');
+    await vi.advanceTimersByTimeAsync(3000);expect(settled).toBe(false);
+    await vi.advanceTimersByTimeAsync(7000);await rejected;
+    expect(aborted).toBe(true);expect(refresh).not.toHaveBeenCalled();expect(vi.getTimerCount()).toBe(0);
+  }finally{release();vi.useRealTimers();}
+});
+
+test('build-addressed descriptor bytes and caller digests retain exact refusal before section reads',async()=>{
+  const f=fixture(),opts=options(f.wires),release=installIndexReceipt(f.index,new URL('shard.json',base).pathname),calls:string[]=[];
+  const read=opts.fetch;opts.fetch=(url,signal)=>{calls.push(url);const address=new URL(url);address.search='';return read(address.href,signal);};
+  try{
+    await expect(readProductDescriptor({...opts,descriptorHash:'f'.repeat(64)})).rejects.toThrow('descriptor hash mismatch');expect(calls).toEqual([]);
+    const changed=fixture(false,10).wires.get('shard.json');if(changed===undefined)throw new Error('Missing changed index');
+    f.wires.set('shard.json',changed);
+    await expect(readProductDescriptor(opts)).rejects.toThrow('descriptor hash mismatch');
+    expect(calls).toHaveLength(1);expect(new URL(calls[0]??'').pathname).toBe(new URL('shard.json',base).pathname);
+  }finally{release();}
+});
+
+test('offline build-addressed products retain complete-index and visited-origin verification',async()=>{
+  const f=fixture(),store=cacheStore(),opts=options(f.wires,store.cache);
+  await admitProduct(await readProductDescriptor(opts),opts);
+  const release=installIndexReceipt(f.index,new URL('shard.json',base).pathname),fetcher=vi.fn<ProductOptions['fetch']>();
+  try{
+    expect(await readProductDescriptor({...opts,offline:true,fetch:fetcher})).toStrictEqual(f.source);
+    await store.cache.putProduct(base,{source:fixture(false,10).index,firstParty:true});
+    await expect(readProductDescriptor({...opts,offline:true,fetch:fetcher})).rejects.toThrow('descriptor hash mismatch');
+    await store.cache.putProduct(base,{source:f.index,firstParty:false});
+    await expect(readProductDescriptor({...opts,offline:true,fetch:fetcher})).rejects.toThrow('not been visited offline');
+    expect(fetcher).not.toHaveBeenCalled();
+  }finally{release();}
 });

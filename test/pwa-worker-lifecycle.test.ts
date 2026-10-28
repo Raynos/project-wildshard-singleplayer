@@ -789,6 +789,20 @@ test('indexed worker stamps preserve exact member ordinals and refuse undeclared
   expect(() => workerIndexedStamps(urls, [], { files: ['/missing'], entries: {} })).toThrow('absent');
 });
 
+test('versioned shard indexes hit exact cache keys without network or cross-version aliasing',async()=>{
+  const path='/shardfiles/example/shard.json',versioned=new URL(`${path}?v=aaaaaaaa`,base).href;
+  const f=fixture(()=>Promise.resolve(new Response('new index'))),cache=await f.open('ws-static-unit-assets');
+  await cache.put(new URL(path,base).href,new Response('unversioned stale'));
+  await cache.put(versioned,new Response('exact version'));
+  await f.dispatch('fetch',{request:new Request(versioned)});
+  expect(await f.responses[0]?.text()).toBe('exact version');expect(f.fetch).not.toHaveBeenCalled();
+  expect(f.responses[0]?.headers.get('server-timing')).toContain('ws-cache');
+  await f.dispatch('fetch',{request:new Request(new URL(`${path}?v=bbbbbbbb`,base))});
+  expect(await f.responses[1]?.text()).toBe('new index');expect(f.fetch).toHaveBeenCalledTimes(1);
+  f.navigator.onLine=false;await f.dispatch('fetch',{request:new Request(versioned)});
+  expect(await f.responses[2]?.text()).toBe('exact version');expect(f.fetch).toHaveBeenCalledTimes(1);
+});
+
 test('concurrent warm requests settle on navigation without restarting during the new boot', async () => {
   vi.useFakeTimers(); vi.setSystemTime(1000);
   const f = fixture(); await f.dispatch('install');

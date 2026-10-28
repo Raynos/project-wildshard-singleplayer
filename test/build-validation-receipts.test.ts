@@ -25,7 +25,7 @@ function fixture() {
 test('client receipts preserve every runtime trust field and omit build-only discovery', () => {
   const f = fixture(), rows = buildValidationReceipts('receipt-test', f.root);
   const expected = { revision: f.receipt.revision, sourceHash: f.receipt.sourceHash, indexHash: f.receipt.indexHash, worst: f.receipt.worst };
-  expect(rows).toEqual([expected]); expect(JSON.stringify(rows).length).toBeLessThan(1000);
+  expect(rows).toEqual([{ ...expected, path: '/shardfiles/check/shard.json' }]); expect(JSON.stringify(rows).length).toBeLessThan(1000);
   expect(JSON.parse(readFileSync(join(f.directory, 'validation.json'), 'utf8'))).toEqual(f.receipt);
   const previous = Object.getOwnPropertyDescriptor(globalThis, '__SHARDFILE_VALIDATOR__');
   Object.defineProperty(globalThis, '__SHARDFILE_VALIDATOR__', { configurable: true, value: 'receipt-test' });

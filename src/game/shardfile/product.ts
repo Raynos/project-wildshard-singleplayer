@@ -11,6 +11,7 @@ import { assertStateCompatibility, parseOutputLineageIndex, parseStateLineage } 
 import type { MemoryAdmission } from '@wildshard/format/memoryAdmission';
 import { SHARDFILE_VERSION, shardfileRevision } from '@wildshard/format/version';
 import { isOutputIndex } from '@wildshard/format/outputAddress';
+import { builtIndexHash } from '@wildshard/format/builtIndexes';
 
 import { acceptValidatedCost } from '@wildshard/format/deviceMemoryCost';
 import { PRODUCT_CACHE_NAME } from '@wildshard/engine/pwa/cacheNames';
@@ -240,20 +241,31 @@ function resolveDescriptor(input: unknown, options: ProductOptions, lineage = fa
 
 const DESCRIPTOR_WAIT_MS = 3000;
 /** Bound the complete descriptor transfer, including a body stalled after headers. */
-async function descriptorWire(options: ProductOptions, url: URL, refresh = false): Promise<Uint8Array | null> {
+async function descriptorWire(options: ProductOptions, url: URL, refresh = false, immutable = false): Promise<Uint8Array | null> {
   const controller = new AbortController();
   const owner = new Scope('product-descriptor-transfer');
   try {
-    const elapsed = new Promise<null>(resolve => { owner.timeout(DESCRIPTOR_WAIT_MS, () => { resolve(null); controller.abort(); }); });
+    let deadline: ReturnType<Scope['timeout']> | undefined;
+    let renew = (): void => { /* Installed before the transport starts. */ };
+    const elapsed = new Promise<null>(resolve => {
+      renew = (): void => {
+        if (owner.disposed) return;
+        if (deadline !== undefined) owner.cancelTimer(deadline);
+        deadline = owner.timeout(immutable ? 10000 : DESCRIPTOR_WAIT_MS, () => { resolve(null); controller.abort(); });
+      };
+      renew();
+    });
     const fetcher = refresh ? options.backgroundFetch ?? options.fetch : options.fetch;
     const network = (async () => {
       const progress = refresh ? undefined : options.progress, label = options.descriptorPath ?? url.pathname;
       let bytesRead = 0;
       progress?.({ phase: 'descriptor', detail: `Fetching shard descriptor · ${label}`, bytesRead, bytesTotal: 0, filesDone: 0, filesTotal: 1 });
       const response = await fetcher(url.href, controller.signal), length = Number(response.headers.get('content-length'));
+      if (immutable) renew();
       const bytesTotal = Number.isSafeInteger(length) && length > 0 ? length : 0;
       const bytes = await boundedResponse(response, limits.sourceBytes, size => {
         bytesRead += size;
+        if (immutable && size > 0) renew();
         progress?.({ phase: 'descriptor', detail: `Reading shard descriptor · ${label}`, bytesRead, bytesTotal, filesDone: 0, filesTotal: 1 });
       });
       progress?.({ phase: 'descriptor', detail: `Parsing shard descriptor · ${label}`, bytesRead, bytesTotal: bytesRead, filesDone: 1, filesTotal: 1 });
@@ -272,6 +284,9 @@ export async function readProductDescriptor(options: ProductOptions, declaredUrl
   const base = new URL('.', options.base).href;
   const url = new URL(declaredUrl?.href ?? 'shard.json', base);
   if (new URL('.', url).href !== base || url.pathname.endsWith('/') || url.search !== '' || url.hash !== '') throw new Error('Descriptor must be an unqualified file in its product directory');
+  const indexHash = options.firstParty && url.pathname.endsWith('/shard.json') ? builtIndexHash(url.pathname) : null;
+  if (indexHash !== null && options.descriptorHash !== undefined && options.descriptorHash !== indexHash) throw new Error('Shardfile descriptor hash mismatch');
+  if (indexHash !== null) url.searchParams.set('v', indexHash.slice(0, 8));
   // Observe a failed cache read without making a healthy network response depend on it.
   const cached = (async () => { try { return { value: await options.cache?.product(base) }; } catch (error: unknown) { return { error }; } })();
   let visited: CachedProduct | null | undefined;
@@ -282,10 +297,12 @@ export async function readProductDescriptor(options: ProductOptions, declaredUrl
   }
   if (options.offline && (visited === null || visited === undefined || (options.firstParty && !visited.firstParty))) throw new Error('Shardfile has not been visited offline');
   let input: unknown = visited?.source;
+  if (options.offline && indexHash !== null) await checkedDescriptorWire(validationSourceBytes(input), { ...options, descriptorHash: indexHash });
   if (!options.offline) {
-    const bytes = await descriptorWire({ ...options, base }, url);
-    if (bytes !== null) input = await checkedDescriptorWire(bytes, options);
+    const bytes = await descriptorWire({ ...options, base }, url, false, indexHash !== null);
+    if (bytes !== null) input = await checkedDescriptorWire(bytes, indexHash === null ? options : { ...options, descriptorHash: indexHash });
     else {
+      if (indexHash !== null) throw new Error(`Versioned shardfile download stalled · ${url.pathname}`);
       const held = await cached;
       if ('error' in held) throw held.error;
       const previous = held.value;

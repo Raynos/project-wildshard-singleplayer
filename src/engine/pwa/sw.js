@@ -667,6 +667,13 @@ workerScope.listen(self, 'fetch', (event) => {
     event.respondWith(networkFirst(req, SHELL));
     return;
   }
+  // The client appends only its build-owned index hash. Query identity is
+  // exact: another build's descriptor can never satisfy this cache key.
+  if (/^\/shardfiles\/[^/]+\/shard\.json$/u.test(url.pathname)
+    && url.searchParams.size === 1 && /^[a-f0-9]{8}$/u.test(url.searchParams.get('v') ?? '')) {
+    event.respondWith(cacheFirst(req, STATIC));
+    return;
+  }
   const blobHash = SHARD_BLOB_RE.exec(url.pathname)?.[1];
   if (blobHash !== undefined) {
     event.respondWith(shardBlob(req, blobHash));
