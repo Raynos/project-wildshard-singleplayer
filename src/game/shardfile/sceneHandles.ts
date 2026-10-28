@@ -77,6 +77,8 @@ export class SceneHandles {
   }
   /** Resolve the construction mode before the first entry row publishes a placement root. */
   requiresWhole(id: string): boolean {
+    const placement = this.values.get(id);
+    if (placement instanceof WorldScenePlacement && placement.requiresWhole()) return true;
     for (const value of this.values.values()) if (value instanceof WorldSceneWeldAssembly && value.usesPlacement(id)) return true;
     return false;
   }
@@ -91,6 +93,7 @@ export class SceneHandles {
     // placed already (whole, by a stage that needs its copies at once, as a cover field; or tiled by an earlier row): that
     // placement stands, and this one has no tiles of its own
     if (this.has(`${id}.root`)) return { id, tiles: () => new Set<number>(), attach: () => Promise.resolve() };
+    if (value.requiresWhole()) throw new Error('Following scene placement requires its original copy');
     // a placement drawn into a set keeps the set as its root (it tiles only its colliders); any other gets a container
     const part = value.drawnInto(), container = part === undefined ? new Group() : null;
     if (container !== null) container.name = id;

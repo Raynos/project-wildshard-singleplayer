@@ -83,6 +83,9 @@ export class WorldScenePlacement {
   /** T3: the scene part a set draws this placement's copies into (`drawnInto`), if any: by tile, such a placement carries
    *  only its copies' colliders and tap boxes; the set keeps drawing them. */
   drawnInto(): string | undefined { return this.row.drawnInto?.part; }
+  /** A single moving copy lends its own pose and collider frame. An extra
+   * tiled container would apply the mover's absolute pose a second time. */
+  requiresWhole(): boolean { return this.row.piece?.follows === 'copy'; }
   /** The model its copies are (the placed model's id, as `load()`'s `Placed.model`). */
   modelId(): string { return this.catalogue.model(this.row.model).id; }
   /** T3: the tiles (keys j * 8 + i, cell-local) holding this placement's copies, or reached by its authored colliders. */
