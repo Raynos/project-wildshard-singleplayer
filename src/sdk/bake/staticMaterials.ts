@@ -36,7 +36,7 @@ export type StaticTextureResolver = (source: Readonly<WorldTexture>, role: 'srgb
 /** Named multi-material transport for both native-world and normalized-GLB bakes.
  * Every source slot is explicit. Geometry is borrowed; generated wire materials and faceted copies are owned until dispose(). */
 export class StaticMaterialCatalogue {
-  private readonly rows = new Map<string, { source: WorldMaterial & { vertexColours?: boolean; faceted?: boolean }; binding: BoundMaterial; material: MeshStandardMaterial; dependencies: string[]; additive: boolean }>();
+  private readonly rows = new Map<string, { source: WorldMaterial & { vertexColours?: boolean; faceted?: boolean }; binding: BoundMaterial; material: MeshStandardMaterial; dependencies: string[]; additive: boolean; modelSpace: boolean }>();
   private readonly textures = new Map<string, Uint8Array>();
   private readonly samplers = new Map<string, string>();
   private readonly geometry = new Set<BufferGeometry>();
@@ -82,8 +82,18 @@ export class StaticMaterialCatalogue {
       material.roughness = source.roughness; material.metalness = source.metalness; material.emissive.fromArray(source.emissive);
       material.side = source.doubleSided ? 2 : 0; material.transparent = source.alpha === 'BLEND'; material.alphaTest = cutoff;
       const additive = graph?.effectState?.blend === 'additive';
-      this.rows.set(source.name, { source: structuredClone(source), binding, material, dependencies: [...new Set(dependencies)].sort(), additive });
+      // a graph that reads the mesh's own model-space position (the hologram's turn about its pivot) needs the authored
+      // metres there, not a tile grid's units
+      const modelSpace = graph !== undefined && Object.values(graph.nodes).some(node => node.op === 'positionLocal' || node.op === 'positionGeometry');
+      this.rows.set(source.name, { source: structuredClone(source), binding, material, dependencies: [...new Set(dependencies)].sort(), additive, modelSpace });
     } } catch (error) { this.dispose(); throw error; }
+  }
+
+  /** Whether slot `name`'s graph reads the mesh's model-space position: such a primitive keeps float positions in metres,
+   *  never a tile grid's quantized units (RM8.1e). */
+  modelSpace(name: string): boolean {
+    const row = this.rows.get(name); if (row === undefined) throw new Error(`Unmapped static primitive material ${name}`);
+    return row.modelSpace;
   }
 
   /** Assign one source material slot to one primitive; multi-material meshes split by their actual geometry groups first. */

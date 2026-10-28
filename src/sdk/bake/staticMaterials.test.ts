@@ -35,3 +35,20 @@ test.each(['factor', 'normal', 'emissive', 'alpha', 'implicit-map'] as const)('g
   expect(() => new StaticMaterialCatalogue([source], { poster: { family: 'graph', graph: selected } }, new Map([['poster', selected]]), () => { throw new Error('Must refuse before texture intake'); }))
     .toThrow('explicit factor-binding adapter');
 });
+test('a model-space graph keeps its primitive off the tile grid (RM8.1e)', () => {
+  const plain = { ...poster(), maps: { colour: null, normal: null, metallicRoughness: null, occlusion: null, emissive: null } };
+  const flat: GraphIr = { version: 1, kind: 'material', model: 'unlit', nodes: { t: { op: 'time' }, o: { op: 'combine', in: [0, 't', 0] }, c: { op: 'const', value: [0.2, 0.9, 1] } },
+    stages: { 'vertex.offset': { offset: 'o' }, surface: { colour: 'c' } } };
+  const turned: GraphIr = { version: 1, kind: 'material', model: 'unlit', effectState: { blend: 'additive' },
+    nodes: { pl: { op: 'positionLocal' }, c: { op: 'const', value: [0.2, 0.9, 1] } }, stages: { 'vertex.offset': { offset: 'pl' }, surface: { colour: 'c' } } };
+  const read: GraphIr = { version: 1, kind: 'material', model: 'unlit', nodes: { pg: { op: 'positionGeometry' }, c: { op: 'swizzle', in: ['pg'], mask: 'xyz' } }, stages: { surface: { colour: 'c' } } };
+  const sources = [{ ...plain, name: 'Flat', id: 'flat' }, { ...plain, name: 'Hologram', id: 'hologram' }, { ...plain, name: 'Read', id: 'read' }];
+  const catalogue = new StaticMaterialCatalogue(sources, { flat: { family: 'graph', graph: flat }, hologram: { family: 'graph', graph: turned }, read: { family: 'graph', graph: read } },
+    new Map([['flat', flat], ['hologram', turned], ['read', read]]), () => { throw new Error('No textures'); });
+  try {
+    expect(catalogue.modelSpace('Flat')).toBe(false);
+    expect(catalogue.modelSpace('Hologram')).toBe(true);
+    expect(catalogue.modelSpace('Read')).toBe(true);
+    expect(() => catalogue.modelSpace('Missing')).toThrow('Unmapped static primitive material');
+  } finally { catalogue.dispose(); }
+});

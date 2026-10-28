@@ -105,9 +105,12 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array, graph
       for (const [name, parts] of groups) {
         const merged = mergeWorldGeometry(parts); transient.push(merged);
         // RM8.1a: welded, 16-bit indexed, Int8 normals and Uint16 colours (KHR_mesh_quantization) on the wire
-        const primitive = catalogue.primitive(name, merged, { castShadow }), compact = compactTileGeometry(primitive.geometry, grid); transient.push(compact);
+        // RM8.1e: a model-space graph (the open plots' turning hologram) keeps slice A's float metres: on the grid its
+        // positions are grid units about the grid's origin, and its pivot and turn radius came out 512x (the cyan sheets)
+        const own = grid !== undefined && !catalogue.modelSpace(name) ? grid : undefined;
+        const primitive = catalogue.primitive(name, merged, { castShadow }), compact = compactTileGeometry(primitive.geometry, own); transient.push(compact);
         primitives.push({ ...primitive, geometry: compact, quantizedChannels: true, compactIndex: true,
-          ...(grid === undefined ? {} : { meshoptReady: true, transform: tileGridTransform(grid) }) });
+          ...(own === undefined ? {} : { meshoptReady: true, transform: tileGridTransform(own) }) });
       }
       const glb = primitives.length === 0 ? new Uint8Array() : staticGlb(primitives);
       return { bytes: grid === undefined || glb.length === 0 ? glb : compressGlb(glb), dependencies: catalogue.dependencies([...groups.keys()]), box };
