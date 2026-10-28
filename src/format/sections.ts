@@ -62,7 +62,7 @@ export interface PlatformSections {
   'ui/completion': CompletionRows;
   /** Existing native owners selected by admitted data, never client runtime code. */
   'sim/runtime-plan': NativeRuntimePlanData;
-  'world/tiles': Pick<Shardfile, 'tiles' | 'far' | 'near'>;
+  'world/tiles': Pick<Shardfile, 'tiles' | 'far' | 'near' | 'ring'>;
   'world/terrain': Pick<Shardfile, 'terrain' | 'nativeGround'>;
   'world/edge': Pick<Shardfile, 'edge' | 'entryways'>;
   'world/collision': Pick<Shardfile, 'meshCollision'>;

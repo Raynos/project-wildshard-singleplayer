@@ -1,5 +1,5 @@
 import { TileDriver, tileRing } from './tileDriver';
-import { ring, type TileContent } from './tileContent';
+import { ring, ringRadius, type TileContent } from './tileContent';
 import { tileOf } from './tileOrder';
 import { residentTileEntry } from './tileEntry';
 import { tileBufferedDraws } from './tileBufferedDraws';
@@ -693,10 +693,10 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       // Their separate child driver keeps those hosts from attaching them twice.
       const tiles = owner.child('buffered-tiles');
       const at = residentTileEntry(resident) ?? product.shardfile.spawn;
-      const driver = new TileDriver(tiles, bufferedContents, tileRing, () => buildYield(tiles));
+      const radius = (): number => ringRadius(product.shardfile, tileRing), driver = new TileDriver(tiles, bufferedContents, radius, () => buildYield(tiles));
       // Warm only the requested render ring, including every edge-overlap chunk.
       // Spawn and unrelated entryways do not belong to this crossing's intake.
-      await driver.require(ring(tileOf(at.x, at.z), tileRing()));
+      await driver.require(ring(tileOf(at.x, at.z), radius()));
       await driver.coarse(at.x, at.z);
       ctx.system({ id: 'client.world.buffered-tiles', phase: 'update', run: () => { driver.step(world.player.position.x, world.player.position.z); } });
     }

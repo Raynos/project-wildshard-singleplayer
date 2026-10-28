@@ -7,7 +7,8 @@ import { skyWorldTileSource } from '../src/shards/far-reach/generators/worldTile
 import { skyProductRows } from '../src/shards/far-reach/generators/product';
 
 // T8 moves the same island channels from whole residency to named fine tile draws.
-const declarationHash = '3c180b42457202e53ff6d49476534a879a1d655b70081b21bed5cac8ba9a8008';
+// FR2: + `"ring":"cell",` (14 B), Sky's whole-cell tile ring
+const declarationHash = 'b95a12c23cde905f3543f47eeade4e5c3bc8110de760b97af8be9064887de76e';
 
 test('the complete named tile metadata retains its publication contract', () => {
   const bytes = withPortableMath(skyWorldTileSource).get('data/props.json');
@@ -17,7 +18,7 @@ test('the complete named tile metadata retains its publication contract', () => 
 
 test('the declaration pins complete streamed ownership and actual admission costs', () => {
   const bytes = new TextEncoder().encode(`${JSON.stringify(skyProductRows(originalSkyNavigation(), originalSkyMovers()))}\n`);
-  expect(bytes.byteLength).toBe(327_396);
+  expect(bytes.byteLength).toBe(327_410);
   expect(hashImmutableBytes(bytes)).toBe(declarationHash);
 });
 

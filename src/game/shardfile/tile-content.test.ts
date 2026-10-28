@@ -1,6 +1,6 @@
 import { TILES_PER_SIDE, type CellTile } from './tileOrder';
 import { expect, test } from 'vitest';
-import { bucketByTile, compactResident, followTile, ring, tileKey, tileRanges } from './tileContent';
+import { bucketByTile, CELL_RING, compactResident, followTile, ring, ringRadius, tileKey, tileRanges } from './tileContent';
 
 const TILES = TILES_PER_SIDE * TILES_PER_SIDE;
 
@@ -38,10 +38,17 @@ test('T3: instances sort by tile; the resident tiles compact to the front, one d
   expect(() => compactResident(ranges, new Set([0, 36, 63]), values, new Float32Array(6), 3)).toThrow('exceed');
 });
 
+test('FR2: a product declaring ring: cell enters with the whole cell; any other keeps the device ring', () => {
+  expect(ringRadius({ ring: 'cell' }, () => 2)).toBe(CELL_RING);
+  expect(ring({ i: 0, j: 7 }, CELL_RING).size).toBe(64);
+  expect(ringRadius({}, () => 1)).toBe(1);
+});
+
 test('T3: the ring clips to the cell; the followed tile waits out its hysteresis', () => {
   expect(ring({ i: 0, j: 0 }, 1).size).toBe(4);
   expect(ring({ i: 4, j: 4 }, 2).size).toBe(25);
-  expect(() => ring({ i: 4, j: 4 }, 8)).toThrow('0, 1 or 2');
+  expect(ring({ i: 4, j: 4 }, 7).size).toBe(64);
+  expect(() => ring({ i: 4, j: 4 }, 8)).toThrow('0 to 7');
   const start = followTile(null, 1, 1);
   expect(start).toEqual({ i: 4, j: 4 });
   // 1 m over the edge into the next tile: stays; 5 m in: moves

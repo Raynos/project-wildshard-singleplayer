@@ -40,6 +40,9 @@ export function skyProductRows(navigation: SkyNavigationRows, movers: MoverData)
   // The authored clips declare every bridge, islet and gate; both hosts install this admitted order once.
   movers,
   // Static island geometry belongs only to the tile streamer. Explorer borrows its admitted L0 partitions cold.
+  // FR2: open sky, every tile is on screen from a hover; the whole cell draws its fine tiles and decorations (2.9 MB
+  // decoded + GPU for all 64 L0 tiles, the files already ship), so nothing past a 5 x 5 ring falls to its 1.5 % copy
+  ring: 'cell',
   library: [...base.library, ...skyMaps.library, STORM_NOISE.hash, SWARD_ATLAS_FILE.hash], tiles: isleProps.tiles, files: [...skyMaps.files, { ...STORM_NOISE, dependencies: [] }, { ...SWARD_ATLAS_FILE, dependencies: [] }, ...navigation.files, ...isleProps.files], critical: [...navigation.critical],
   budgets: { ...base.budgets, client: SKY_REACH_RUNTIME_COST, library: { ...skyMaps.budget, compressed: skyMaps.budget.compressed + STORM_NOISE.compressed + SWARD_ATLAS_FILE.compressed, resident: skyMaps.budget.resident + STORM_NOISE.decoded + STORM_NOISE.gpu + SWARD_ATLAS_FILE.gpu, downloadAllowance: 8_811_813 + STORM_NOISE.compressed + SWARD_ATLAS_FILE.compressed }, sim: { resident: 1_000_000 + navigation.files.reduce((sum, file) => sum + file.decoded, 0), compressed: navigation.files.reduce((sum, file) => sum + file.compressed, 0) } },
   sim: { ...base.sim, scripts: [] },

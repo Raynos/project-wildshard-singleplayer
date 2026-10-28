@@ -212,7 +212,7 @@ export function noteTileBytes(resident: Scope, rows: readonly { readonly lod: nu
  * surviving tiles or coarse stand-ins. Nothing tiled: nothing to do.
  */
 export function residentTiles(resident: Scope, contents: readonly TileContent[], spawn: { readonly x: number; readonly z: number },
-  _entryways: readonly TileEntryway[]): Promise<void> {
+  _entryways: readonly TileEntryway[], radius: () => number = tileRing): Promise<void> {
   if (contents.length === 0) return Promise.resolve();
   const existing = started.get(resident);
   if (existing !== undefined && !existing.state.complete) return existing.pending;
@@ -222,7 +222,7 @@ export function residentTiles(resident: Scope, contents: readonly TileContent[],
     const live = (): void => { if (resident.disposed || resident.disposing) throw new Error('Tile resident is disposed'); };
     live();
     const entry = residentTileEntry(resident), at = entry ?? spawn;
-    const driver = drivers.get(resident) ?? new TileDriver(resident, contents, tileRing, () => buildYield(resident)), order = tileOrder(at);
+    const driver = drivers.get(resident) ?? new TileDriver(resident, contents, radius, () => buildYield(resident)), order = tileOrder(at);
     await driver.require(tileKeys(order.tiles.filter(tile => order.rank(tile) === 0))); live();
     await driver.coarse(at.x, at.z); live();
     drivers.set(resident, driver);

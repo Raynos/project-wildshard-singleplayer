@@ -83,6 +83,7 @@ const rawSchema: v.GenericSchema<ShardfileRowsInput, ShardfileRows> & { readonly
   files: FilesSchema, tiles: TilesSchema, library: LibrarySchema, critical: CriticalSchema, late: v.exactOptional(AdmissionLateSchema),
   far: FarSchema,
   near: v.exactOptional(NearPlaceholderSchema),
+  ring: v.exactOptional(v.literal('cell')),
   ui: v.optional(UiSchema, []),
   rows: v.optional(RowsSchema, { strikes: [], weather: [], days: [], species: [], looks: [], compendiums: [], loot: [] }),
   terrain: v.optional(v.nullable(TerrainSchema), null),
@@ -142,6 +143,9 @@ export interface Shardfile {
   late?: v.InferOutput<typeof AdmissionLateSchema>;
   far: v.InferOutput<typeof FarSchema>;
   near?: v.InferOutput<typeof NearPlaceholderSchema>;
+  /** the entered cell's render ring of fine tiles: absent, the device's ring around the player (5 x 5); 'cell', every
+   *  tile in full (an open-sky world whose every tile is on screen: nothing past a ring is left to its coarse copy) */
+  ring?: 'cell';
   ui: v.InferOutput<typeof UiSchema>;
   rows: v.InferOutput<typeof RowsSchema>;
   terrain: v.InferOutput<typeof TerrainSchema> | null;
@@ -392,6 +396,7 @@ interface ShardfileRowsInputFields {
     late?: v.InferInput<typeof AdmissionLateSchema>;
     far: v.InferInput<typeof FarSchema>;
     near?: v.InferInput<typeof NearPlaceholderSchema>;
+    ring?: 'cell';
     ui?: v.InferInput<typeof UiSchema> | undefined;
     rows?: unknown;
     terrain?: (v.InferInput<typeof TerrainSchema>) | null | undefined;
@@ -463,6 +468,7 @@ interface ShardfileRowsFields {
   late?: v.InferOutput<typeof AdmissionLateSchema>;
     far: v.InferOutput<typeof FarSchema>;
     near?: v.InferOutput<typeof NearPlaceholderSchema>;
+    ring?: 'cell';
     ui: v.InferOutput<typeof UiSchema>;
     rows: v.InferOutput<typeof RowsSchema>;
     terrain: (v.InferOutput<typeof TerrainSchema>) | null;

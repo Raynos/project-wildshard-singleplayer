@@ -41,6 +41,10 @@ export interface TileContent {
 }
 
 const TILES = TILES_PER_SIDE * TILES_PER_SIDE;
+/** the ring radius (tiles) that holds the whole cell from any tile in it */
+export const CELL_RING: number = TILES_PER_SIDE - 1;
+/** The entered ring's radius for a product: the whole cell where it declares `ring: 'cell'`, else the device's (`radius`). */
+export function ringRadius(source: Pick<Shardfile, 'ring'>, radius: () => number): number { return source.ring === 'cell' ? CELL_RING : radius(); }
 const HALF = (TILES_PER_SIDE * TILE_SIZE) / 2;
 
 /** A tile's key (0 ... 63). */
@@ -94,9 +98,10 @@ export function compactResident(ranges: TileRanges, resident: ReadonlySet<number
   return written;
 }
 
-/** Entered content stays within the approved 5 x 5 ring; no whole-cell override (G669/G747). */
+/** Entered content keeps to the device's ring (5 x 5), or the whole cell where its product declares `ring: 'cell'`
+ *  (`ringRadius`: an open-sky world whose every tile is on screen; FR2). */
 export function ring(centre: CellTile, radius: number): Set<number> {
-  if (!Number.isInteger(radius) || radius < 0 || radius > 2) throw new RangeError('An entered ring radius is 0, 1 or 2 tiles');
+  if (!Number.isInteger(radius) || radius < 0 || radius > CELL_RING) throw new RangeError('An entered ring radius is 0 to 7 tiles');
   const keys = new Set<number>();
   for (let j = Math.max(0, centre.j - radius); j <= Math.min(TILES_PER_SIDE - 1, centre.j + radius); j++)
     for (let i = Math.max(0, centre.i - radius); i <= Math.min(TILES_PER_SIDE - 1, centre.i + radius); i++) keys.add(tileKey({ i, j }));
@@ -467,7 +472,7 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
         const spawn = await pinSpawn(instance, start, requirements, ownerLeft, 'Entered tile owner left', critical);
         // Broad render demand must not compete ahead of the spawn ring and
         // mandatory entryways during initial preparation. In play it is exact.
-        streamer.setFullRing(instance, radius());
+        streamer.setFullRing(instance, ringRadius(entry.source, radius));
         // Pin complete coverage for this owner, but let an admitted far proxy
         // cover the unfinished quadrants while the page scheduler fills them.
         const coarse = streamer.require(instance, Array.from({ length: 16 }, (_, key) => key), 'l1');
@@ -487,7 +492,7 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
         if (ownerLeft()) throw new Error('Entered tile owner left');
         return {
           get fine() { return new Set(streamer.resident().filter(key => key.startsWith(`${instance}:l0/`)).map(key => key.slice(instance.length + 1).replace('l0/', '0/'))); },
-          refresh: () => { if (!closed) streamer.setFullRing(instance, radius()); return Promise.resolve(); },
+          refresh: () => { if (!closed) streamer.setFullRing(instance, ringRadius(entry.source, radius)); return Promise.resolve(); },
         };
       } catch (error) { release(); throw error; }
     },
