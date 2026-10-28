@@ -53,13 +53,13 @@ export function unshuffleLanes(lanes: Uint8Array, out: Uint8Array<ArrayBuffer> =
   if (LITTLE_ENDIAN_WORDS && out.byteOffset % 4 === 0) {
     const words = new Uint32Array(out.buffer, out.byteOffset, n), third = n * 2, fourth = n * 3;
     let i = wordStart;
-    // Four aligned source words hold four bytes from each lane. Transpose
-    // those bits into four output words, without changing the slice boundary.
-    if (lanes.byteOffset % 4 === 0 && n % 4 === 0 && wordStart % 4 === 0) {
-      const source = new Uint32Array(lanes.buffer, lanes.byteOffset, n), lane = n / 4;
+    // Four little-endian reads hold four bytes from each lane, including
+    // unaligned lane starts. Transpose without changing the slice boundary.
+    if (wordStart + 3 < wordEnd) {
+      const source = new DataView(lanes.buffer, lanes.byteOffset, lanes.byteLength);
       for (; i + 3 < wordEnd; i += 4) {
-        const at = i / 4, a = source[at] ?? 0, b = source[lane + at] ?? 0;
-        const c = source[lane * 2 + at] ?? 0, d = source[lane * 3 + at] ?? 0;
+        const a = source.getUint32(i, true), b = source.getUint32(n + i, true);
+        const c = source.getUint32(third + i, true), d = source.getUint32(fourth + i, true);
         words[i] = (a & 255) | ((b & 255) << 8) | ((c & 255) << 16) | (d << 24);
         words[i + 1] = ((a >>> 8) & 255) | (b & 65280) | ((c & 65280) << 8) | ((d & 65280) << 16);
         words[i + 2] = ((a >>> 16) & 255) | ((b >>> 8) & 65280) | (c & 16711680) | ((d & 16711680) << 8);
