@@ -1,4 +1,4 @@
-import type { Color, Matrix4 } from 'three';
+import { Euler, Matrix4, Quaternion, Vector3, type Color } from 'three';
 import { parse } from 'valibot';
 import { FigureRowSchema } from '@wildshard/format/figures';
 
@@ -9,6 +9,21 @@ export interface AuthorPlacement<P extends object> {
   readonly scale?: number; readonly matrix?: Matrix4;
   readonly params?: Partial<P>; readonly variant?: string;
   readonly color?: number | Color; readonly host?: number;
+}
+
+/** Authored uniform-scale model rest pose, including optional local pitch and roll. */
+export interface AuthorModelPose {
+  readonly x: number; readonly y: number; readonly z: number; readonly yaw: number; readonly scale: number;
+  readonly pitch?: number; readonly roll?: number;
+}
+const modelPosition = new Vector3(), modelRotation = new Euler(), modelOrientation = new Quaternion(), modelSize = new Vector3();
+/** Compile an owned YXZ model matrix with native operation and accessor order.
+ * Capture all inputs before private scratch; recursive author getters cannot change the outer result. */
+export function bakeModelPose(pose: AuthorModelPose): Matrix4 {
+  const x = pose.x, y = pose.y, z = pose.z, pitch = pose.pitch ?? 0, yaw = pose.yaw, roll = pose.roll ?? 0,
+    sx = pose.scale, sy = pose.scale, sz = pose.scale;
+  return new Matrix4().compose(modelPosition.set(x, y, z),
+    modelOrientation.setFromEuler(modelRotation.set(pitch, yaw, roll, 'YXZ')), modelSize.set(sx, sy, sz));
 }
 
 /** Author contact tags retain the native surface vocabulary. */

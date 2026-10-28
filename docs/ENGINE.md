@@ -3392,7 +3392,8 @@ Build-only `@wildshard/sdk/noise`: seeded simplex, `fbm`, `ridged`,
 `smoothstep`, `clamp`, `lerp`. `bake/annulus` retains ring channel order;
 `bake/primitives` owns rocks, timbers, planks, ropes, sag lines and triangles.
 `bake/placement` owns contact/pose data, `FloorRect`, `specimenKey`,
-`boxDesc`, `siteFloor`; native rotation/clamp semantics.
+`boxDesc`, `siteFloor`; native rotation/clamp semantics. `bakeModelPose` compiles an owned YXZ model matrix,
+capturing coordinates and three scale reads before private scratch, including recursive author getters.
 `bake/creaturePlacement`: `sampleCreatureGroup` / `selectCreatureSites`;
 borrowed stream/ground, native bounds and rejection/yaw/tie/spacing order.
 `bake/geometryBounds.bakeGeometryBoundsSteps`: native box/sphere scans,

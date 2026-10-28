@@ -2,7 +2,31 @@ import { expect, expectTypeOf, test } from 'vitest';
 import type { Placement } from '@wildshard/engine/models/model';
 import { boxDesc as nativeBox } from '@wildshard/engine/world/registry';
 import { yawWorld as nativeWorld } from '@wildshard/engine/world/yawFrame';
-import { boxDesc, yawWorld, type BoxSpec, type ContactSurface, type AuthorPlacement } from './placement';
+import { modelPoseMatrix } from '@wildshard/engine/models/modelPose';
+import { bakeModelPose, boxDesc, yawWorld, type AuthorModelPose, type BoxSpec, type ContactSurface, type AuthorPlacement } from './placement';
+
+test('owned model poses retain every native matrix word and independent storage', () => {
+  const poses: AuthorModelPose[] = [
+    { x: -0, y: 0, z: -0, yaw: 0, scale: 1 },
+    { x: 17.25, y: -3, z: 127, yaw: 1.234, pitch: -.37, roll: .19, scale: .001 },
+    { x: -112, y: 1.25, z: .125, yaw: -2.7, pitch: .8, roll: -1.1, scale: -1.25 },
+  ];
+  const made = poses.map(bakeModelPose), saved = made.map(matrix => matrix.elements.slice());
+  for (const [index, pose] of poses.entries()) expect(made[index]?.elements).toEqual(modelPoseMatrix(pose).elements);
+  bakeModelPose({ x: 99, y: 88, z: 77, yaw: 6, scale: 4 });
+  for (const [index, matrix] of made.entries()) expect(matrix.elements).toEqual(saved[index]);
+  expect(new Set(made).size).toBe(poses.length);
+});
+
+test('recursive model getters retain native read order without sharing scratch', () => {
+  const inner = { x: 100, y: 200, z: 300, yaw: .5, scale: 10 };
+  const pose = (compile: typeof bakeModelPose): AuthorModelPose => {
+    let scales = 0;
+    return { get x() { compile(inner); return 1; }, y: 2, z: 3, yaw: .75,
+      get scale() { compile(inner); return ++scales; } };
+  };
+  expect(bakeModelPose(pose(bakeModelPose)).elements).toEqual(modelPoseMatrix(pose(modelPoseMatrix)).elements);
+});
 
 const rows: readonly BoxSpec[] = [
   { x: 0, z: 0, hw: 2, hd: 3, rot: 0, yBottom: -1, yTop: 5 },

@@ -3,7 +3,7 @@
 
 /** Final model/placement rows. All shape, rest-pose and contact work belongs to the offline producers. */
 import { Matrix4, Quaternion, Vector3 } from 'three';
-import { modelPoseMatrix } from '@wildshard/engine/models/modelPose';
+import { bakeModelPose as modelPoseMatrix } from '@wildshard/sdk/bake/placement';
 import { worldSceneModels as parseWorldSceneModels, worldSceneRows as parseWorldScenes, worldScenePlacement as parseWorldScenePlacement } from '@wildshard/sdk/worldScenes';
 import heroRows from '../data/heroRows.json' with { type: 'json' };
 import { timberWorld } from './timberWorldRows';
