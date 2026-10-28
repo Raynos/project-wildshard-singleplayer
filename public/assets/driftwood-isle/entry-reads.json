@@ -1,0 +1,402 @@
+[
+ {
+  "region": "driftwood-isle",
+  "tier": "phone",
+  "at": [
+   0,
+   0
+  ],
+  "reads": [
+   {
+    "url": "/assets/baked/common/cloud-field.bin?v=43838700",
+    "hash": "43838700391a6a34fdb4ed60f9b410f1cf07921bf824de88cb43a75b1ea5adb7",
+    "bytes": 262144
+   },
+   {
+    "url": "/assets/gpu/baked/driftwood-isle/tex/giant-db470988.ktx2",
+    "hash": "db4709889a0178640f16a3502442c80419054b60986feae50dfef7977b99d257",
+    "bytes": 154680
+   },
+   {
+    "url": "/assets/lut/driftwood-isle.bin?v=1232cd60",
+    "hash": "1232cd60c9419c5d42b65acb6f18784b3d0114dc68fdc504c165243342490620",
+    "bytes": 143748
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/32effebc6968e9cac94608900deb35033341b762057dcf04834c65734ab8960f.glb",
+    "hash": "32effebc6968e9cac94608900deb35033341b762057dcf04834c65734ab8960f",
+    "bytes": 14096
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/c15329ac98d96632142b200cd2251f45d3030322552c4f7197547aea94825802.glb",
+    "hash": "c15329ac98d96632142b200cd2251f45d3030322552c4f7197547aea94825802",
+    "bytes": 14108
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/039d87611a694fc92fb70fa83f303a26c303c3d05a83a1f3fdeedf3b28dec0bb.glb",
+    "hash": "039d87611a694fc92fb70fa83f303a26c303c3d05a83a1f3fdeedf3b28dec0bb",
+    "bytes": 4800
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/6e815a3fa4744d6570dfd3cd1643e9d30889ecebcf235f12f6e03cb7038f974d.glb",
+    "hash": "6e815a3fa4744d6570dfd3cd1643e9d30889ecebcf235f12f6e03cb7038f974d",
+    "bytes": 6960
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/c184060e8a140df7ab8c88c1cf9ca8014c08c802d33c74ca7d4f891d6f78c575.glb",
+    "hash": "c184060e8a140df7ab8c88c1cf9ca8014c08c802d33c74ca7d4f891d6f78c575",
+    "bytes": 16024
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/b59f69a83a2fefe83aacbbf8c94493c53ac21587ba89b8628d4cb2fd42da1314.glb",
+    "hash": "b59f69a83a2fefe83aacbbf8c94493c53ac21587ba89b8628d4cb2fd42da1314",
+    "bytes": 13920
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/c703c93cc061b8bcbbe697d9522a2eebd795f4fddeb3fc3187b872874ac22e8c.glb",
+    "hash": "c703c93cc061b8bcbbe697d9522a2eebd795f4fddeb3fc3187b872874ac22e8c",
+    "bytes": 16140
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/37674c8afe95b2893e71487ef964fd281c3ae1236fc9ae953bc307892e9be6f5.glb",
+    "hash": "37674c8afe95b2893e71487ef964fd281c3ae1236fc9ae953bc307892e9be6f5",
+    "bytes": 33560
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/00a1ea13a9e22e46de10a9c9cefb84f0b56effaee788dfe3bef6c01ca8c78c09.glb",
+    "hash": "00a1ea13a9e22e46de10a9c9cefb84f0b56effaee788dfe3bef6c01ca8c78c09",
+    "bytes": 25532
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/7005431de5a06f6d8c4bf3585a8704a0c12a66131cf11892ea6900253d8f4354.glb",
+    "hash": "7005431de5a06f6d8c4bf3585a8704a0c12a66131cf11892ea6900253d8f4354",
+    "bytes": 18496
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/304b61cfce4d3ccecad3ba568d6ed5badd822b35c465b6f127b2ff13801817c5.glb",
+    "hash": "304b61cfce4d3ccecad3ba568d6ed5badd822b35c465b6f127b2ff13801817c5",
+    "bytes": 274368
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/1d5201af3e0988326b887abdb4a28e2c9e7a93b50f72df19839e8b3cc0206ccd.glb",
+    "hash": "1d5201af3e0988326b887abdb4a28e2c9e7a93b50f72df19839e8b3cc0206ccd",
+    "bytes": 208080
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/3e05a5aea31f69065adaa28038e4692b6753cf3ea8c61d499c0a1dec88dc0891.glb",
+    "hash": "3e05a5aea31f69065adaa28038e4692b6753cf3ea8c61d499c0a1dec88dc0891",
+    "bytes": 13832
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/4115bd2e8eabfed4b862df11c036c967745cd8f50f251b78c278b485570c88c5.glb",
+    "hash": "4115bd2e8eabfed4b862df11c036c967745cd8f50f251b78c278b485570c88c5",
+    "bytes": 616580
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/7f79e114882c34deedd12bdb7cd1e88e63bbfdc00f9d99d1dcda257c83b5d0d9.glb",
+    "hash": "7f79e114882c34deedd12bdb7cd1e88e63bbfdc00f9d99d1dcda257c83b5d0d9",
+    "bytes": 2952
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/43b7ead36308e32a6cb68dd4551b598bc27fe9694cab03650b4f57d71384191d.glb",
+    "hash": "43b7ead36308e32a6cb68dd4551b598bc27fe9694cab03650b4f57d71384191d",
+    "bytes": 237312
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/9b5b1272d0d4b084b6aa946acfd8afaf5a1b118137b7a7504625d0984c2e3939.glb",
+    "hash": "9b5b1272d0d4b084b6aa946acfd8afaf5a1b118137b7a7504625d0984c2e3939",
+    "bytes": 608132
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/b27de6f253d7ff7e1d556f658dce346bdbb3284eecb0a0f3903042d64bc262c4.glb",
+    "hash": "b27de6f253d7ff7e1d556f658dce346bdbb3284eecb0a0f3903042d64bc262c4",
+    "bytes": 170644
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/13e87c03207c6e50bb3b8c778a33995ab139a9e1732523081bd15c5ed816ab69.glb",
+    "hash": "13e87c03207c6e50bb3b8c778a33995ab139a9e1732523081bd15c5ed816ab69",
+    "bytes": 3244
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/6516f6b3f8efdd132dbbe66c59a3b94c91be7235e563226d0619fbf02a2fbf02.glb",
+    "hash": "6516f6b3f8efdd132dbbe66c59a3b94c91be7235e563226d0619fbf02a2fbf02",
+    "bytes": 245848
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/bc17dfccae49e77cca8e04ba3423d4f3e81d01b8baf66d5451fe60de227c3858.glb",
+    "hash": "bc17dfccae49e77cca8e04ba3423d4f3e81d01b8baf66d5451fe60de227c3858",
+    "bytes": 493316
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/f6b394adcde1986be7d62c1046509aa49727142280f5f64c91053e53a0178804.glb",
+    "hash": "f6b394adcde1986be7d62c1046509aa49727142280f5f64c91053e53a0178804",
+    "bytes": 2904
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/7124d2e1e247e83e2b0947ac0be61db0a8d3df1823de5bfb7a841babe816f1b7.glb",
+    "hash": "7124d2e1e247e83e2b0947ac0be61db0a8d3df1823de5bfb7a841babe816f1b7",
+    "bytes": 536088
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/d4ee132955e44868002691b40a85c50ca826f06f24ca92c6546abdc8130bd7d7.glb",
+    "hash": "d4ee132955e44868002691b40a85c50ca826f06f24ca92c6546abdc8130bd7d7",
+    "bytes": 1740
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/6b21da84427feee72a8da5457952458b9dea6128f7b2f93ee8a9d9a398c5c61c.glb",
+    "hash": "6b21da84427feee72a8da5457952458b9dea6128f7b2f93ee8a9d9a398c5c61c",
+    "bytes": 5968
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/b88ee513f8060bbe3d1dc142123d7d70024204067cf773d31f1f82105029859e.glb",
+    "hash": "b88ee513f8060bbe3d1dc142123d7d70024204067cf773d31f1f82105029859e",
+    "bytes": 534940
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/9c1a2ed84ded1452acca9936e0c2dda13410984612311566d3346aa5cc1e90cf.glb",
+    "hash": "9c1a2ed84ded1452acca9936e0c2dda13410984612311566d3346aa5cc1e90cf",
+    "bytes": 1728
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/525d51cae5444c43fb56a0e71229159743b408cf5fe3cecc867c14077c4250f4.glb",
+    "hash": "525d51cae5444c43fb56a0e71229159743b408cf5fe3cecc867c14077c4250f4",
+    "bytes": 5132
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/9e1896930dc2a10ab9b8da0050446a28a21d66788bbfae7fb1212f5b7a1c6dec.glb",
+    "hash": "9e1896930dc2a10ab9b8da0050446a28a21d66788bbfae7fb1212f5b7a1c6dec",
+    "bytes": 201608
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/65fef49381f3e2816f4e094c6dce913e977b501f6ece356dc09fc0908693af53.glb",
+    "hash": "65fef49381f3e2816f4e094c6dce913e977b501f6ece356dc09fc0908693af53",
+    "bytes": 8140
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/a9933d076a5d013a53b42d0d31fb2585d90c7ac05ead280d740c26e7593ed54f.glb",
+    "hash": "a9933d076a5d013a53b42d0d31fb2585d90c7ac05ead280d740c26e7593ed54f",
+    "bytes": 131668
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/ed9f7e3da493811e72aaca9e131692161480adae14abf46eb8fa056b176d1339.glb",
+    "hash": "ed9f7e3da493811e72aaca9e131692161480adae14abf46eb8fa056b176d1339",
+    "bytes": 8140
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/44ef47217d1f874620911c20eee8e81bd8c2d207ca1710a8240c3e34f83c65f3.glb",
+    "hash": "44ef47217d1f874620911c20eee8e81bd8c2d207ca1710a8240c3e34f83c65f3",
+    "bytes": 190140
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/329e844e1882da07e87e9dc9b88b12c07bad07509cd3b35a3e6e942c5c9974a5.glb",
+    "hash": "329e844e1882da07e87e9dc9b88b12c07bad07509cd3b35a3e6e942c5c9974a5",
+    "bytes": 139560
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/142309f5f0c768c2bf0c132af60de60e763fa9a817cf07aa7cc2c4806e21f7d0.glb",
+    "hash": "142309f5f0c768c2bf0c132af60de60e763fa9a817cf07aa7cc2c4806e21f7d0",
+    "bytes": 8140
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/a99f9ad48c954e57a76a233c1c3ccd5c442c9685ddd01fdeb70a8f4e7d249965.glb",
+    "hash": "a99f9ad48c954e57a76a233c1c3ccd5c442c9685ddd01fdeb70a8f4e7d249965",
+    "bytes": 80656
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/7e897ea8fd2c0c7b9e84bc4e2d480122228dff6731c511fecdc23f47d260b0a2.glb",
+    "hash": "7e897ea8fd2c0c7b9e84bc4e2d480122228dff6731c511fecdc23f47d260b0a2",
+    "bytes": 144632
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/7adc290db61cedcb6d45121059ec7a52c7654269f91a5da3aeb1b49e74634cb2.glb",
+    "hash": "7adc290db61cedcb6d45121059ec7a52c7654269f91a5da3aeb1b49e74634cb2",
+    "bytes": 94832
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/8164ee061d64df10ce876860b86e74bdcec22509fc83e56bde4d11275b5a8409.glb",
+    "hash": "8164ee061d64df10ce876860b86e74bdcec22509fc83e56bde4d11275b5a8409",
+    "bytes": 8164
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/394d84ec6c6757b56f136abc20f17e848a7c69193d139b45ea24a7e553634408.glb",
+    "hash": "394d84ec6c6757b56f136abc20f17e848a7c69193d139b45ea24a7e553634408",
+    "bytes": 35580
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/c07a6d5e31d29c1dc9f96234e8fc40e686d70bcd06119af8085231c289ab9031.glb",
+    "hash": "c07a6d5e31d29c1dc9f96234e8fc40e686d70bcd06119af8085231c289ab9031",
+    "bytes": 4364
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/1e12aeeede94312f5292a82f757df7b763006cdfc47e57a3d192d58a784b5126.glb",
+    "hash": "1e12aeeede94312f5292a82f757df7b763006cdfc47e57a3d192d58a784b5126",
+    "bytes": 32748
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/da2b679bd7a756276887ed0de6e86d8965b3f192441c805ad4d74bc4b3bcaf13.glb",
+    "hash": "da2b679bd7a756276887ed0de6e86d8965b3f192441c805ad4d74bc4b3bcaf13",
+    "bytes": 10452
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/199c2de04d1dc0294af729ea1dc3d48b7f77bff62c640677b5a5a277902968be.glb",
+    "hash": "199c2de04d1dc0294af729ea1dc3d48b7f77bff62c640677b5a5a277902968be",
+    "bytes": 261736
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/26a0c542d84eb949d7945e51f9322658275cd2fd21ee94784a99d129aba88cb0.glb",
+    "hash": "26a0c542d84eb949d7945e51f9322658275cd2fd21ee94784a99d129aba88cb0",
+    "bytes": 2932
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/4d2c0ca55beaf48b75cfcbddecb8d4e09f6c8824773aa2a90553180984918a21.glb",
+    "hash": "4d2c0ca55beaf48b75cfcbddecb8d4e09f6c8824773aa2a90553180984918a21",
+    "bytes": 2944
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/6846788820947e7ddb75bb9ab2c278d302311724c3bc5192022f43c660bd5d22.glb",
+    "hash": "6846788820947e7ddb75bb9ab2c278d302311724c3bc5192022f43c660bd5d22",
+    "bytes": 2936
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/121e7ec0488fc61d5e01fb0f244ec7d8c3ea586c3b9d671087eb6f85c208eb4d.glb",
+    "hash": "121e7ec0488fc61d5e01fb0f244ec7d8c3ea586c3b9d671087eb6f85c208eb4d",
+    "bytes": 188916
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/75e77f393511027bb5234a7cca92fba38990958ac039055095e825311a0b228d.glb",
+    "hash": "75e77f393511027bb5234a7cca92fba38990958ac039055095e825311a0b228d",
+    "bytes": 46908
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/246c9d14ecff78ee2025b970811e3b8f8021c93a54114e047736e57049b023f0.glb",
+    "hash": "246c9d14ecff78ee2025b970811e3b8f8021c93a54114e047736e57049b023f0",
+    "bytes": 444248
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/92cb5eda15b9f11de952f94800b778e07c898cf6b38636e9f4b61704baf62f09.glb",
+    "hash": "92cb5eda15b9f11de952f94800b778e07c898cf6b38636e9f4b61704baf62f09",
+    "bytes": 103688
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/7fe26d4512c914ea7cfcb35775df511314f4d77b0747111841ef29ddf798ed8d.glb",
+    "hash": "7fe26d4512c914ea7cfcb35775df511314f4d77b0747111841ef29ddf798ed8d",
+    "bytes": 1784
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/84d5d9805caca0ad2d8ff697572c4921c5ef499fc5c15fd74edfbc669e5d8210.glb",
+    "hash": "84d5d9805caca0ad2d8ff697572c4921c5ef499fc5c15fd74edfbc669e5d8210",
+    "bytes": 177748
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/d1720c1ebadd0c6ae02bc19cf329a011629d570f5031f43ef2e6ad9572cb1e54.glb",
+    "hash": "d1720c1ebadd0c6ae02bc19cf329a011629d570f5031f43ef2e6ad9572cb1e54",
+    "bytes": 134000
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/1066cdb5139147e96aeeabe042928fe394ad9bf1643164e5db231b41601d91be.glb",
+    "hash": "1066cdb5139147e96aeeabe042928fe394ad9bf1643164e5db231b41601d91be",
+    "bytes": 122128
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/f73c7f302b023472ed9bf80e1ebff50a3a8a5be20a2f48f3284a052c4ac5a861.glb",
+    "hash": "f73c7f302b023472ed9bf80e1ebff50a3a8a5be20a2f48f3284a052c4ac5a861",
+    "bytes": 835792
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/425b64a6c040172eeabec85d5ed48744dd50651d8a7024262148deca5914e148.glb",
+    "hash": "425b64a6c040172eeabec85d5ed48744dd50651d8a7024262148deca5914e148",
+    "bytes": 75668
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/7b51f98ac828109dda0831ea9675261bd8fc36984e828f8712c2fe954a5aad3f.glb",
+    "hash": "7b51f98ac828109dda0831ea9675261bd8fc36984e828f8712c2fe954a5aad3f",
+    "bytes": 106004
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/52266886cddf4722e7edabd2595fbd854061f8d843947b95dfd9d44e337779ff.glb",
+    "hash": "52266886cddf4722e7edabd2595fbd854061f8d843947b95dfd9d44e337779ff",
+    "bytes": 43024
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/cb747927f71cfef4d52d54c8fac95957e77f11ac70c674a9e755dc966b1690d7.glb",
+    "hash": "cb747927f71cfef4d52d54c8fac95957e77f11ac70c674a9e755dc966b1690d7",
+    "bytes": 1570020
+   },
+   {
+    "url": "/assets/baked/driftwood-isle/near.json?v=ffc3b61e",
+    "hash": "ffc3b61e4d36780844927aca6902e05b0b1a5a237c4e86959ad8dc2468b89aa6",
+    "bytes": 456
+   },
+   {
+    "url": "/assets/baked/driftwood-isle/near.glb?v=48fc8a98",
+    "hash": "48fc8a98e788c592a26423f10dc7b932b4797149597303bb9c062fd75f8eb1f9",
+    "bytes": 4166428
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/e6a0388921daa408b8dc0c0ccb1732248b41a68cdcf73029258e0875b96f9a34.glb",
+    "hash": "e6a0388921daa408b8dc0c0ccb1732248b41a68cdcf73029258e0875b96f9a34",
+    "bytes": 2320
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/25c5a0a82b38da220f6b3e10f195e049480044b533d887176e34ae2c81dcd0cb.glb",
+    "hash": "25c5a0a82b38da220f6b3e10f195e049480044b533d887176e34ae2c81dcd0cb",
+    "bytes": 11428
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/e5cb664bc9f4daf03632b549036766fea779bbbcd0425b5d45ce1f640b5b51af.glb",
+    "hash": "e5cb664bc9f4daf03632b549036766fea779bbbcd0425b5d45ce1f640b5b51af",
+    "bytes": 11492
+   },
+   {
+    "url": "/assets/models/driftwood-fp/fp-arms.glb?v=2c233b8c",
+    "hash": "2c233b8c91c82a26c8fbfd3867095cbfec6cec81caa9bd9a12b243075236550a",
+    "bytes": 373240
+   }
+  ]
+ },
+ {
+  "region": "driftwood-isle",
+  "tier": "desktop",
+  "at": [
+   0,
+   0
+  ],
+  "reads": [
+   {
+    "url": "/assets/baked/common/cloud-field.bin?v=43838700",
+    "hash": "43838700391a6a34fdb4ed60f9b410f1cf07921bf824de88cb43a75b1ea5adb7",
+    "bytes": 262144
+   },
+   {
+    "url": "/assets/baked/driftwood-isle/tex/giant.jpg?v=29445521",
+    "hash": "294455219e4cae78bc8ef095924dc7f7e03d4c4bba2708033ceffa244cf7443c",
+    "bytes": 25127
+   },
+   {
+    "url": "/assets/lut/driftwood-isle.bin?v=1232cd60",
+    "hash": "1232cd60c9419c5d42b65acb6f18784b3d0114dc68fdc504c165243342490620",
+    "bytes": 143748
+   },
+   {
+    "url": "/assets/baked/driftwood-isle/near.json?v=ffc3b61e",
+    "hash": "ffc3b61e4d36780844927aca6902e05b0b1a5a237c4e86959ad8dc2468b89aa6",
+    "bytes": 456
+   },
+   {
+    "url": "/assets/baked/driftwood-isle/near.glb?v=48fc8a98",
+    "hash": "48fc8a98e788c592a26423f10dc7b932b4797149597303bb9c062fd75f8eb1f9",
+    "bytes": 4166428
+   },
+   {
+    "url": "/shardfiles/driftwood-isle/blobs/glb/e6a0388921daa408b8dc0c0ccb1732248b41a68cdcf73029258e0875b96f9a34.glb",
+    "hash": "e6a0388921daa408b8dc0c0ccb1732248b41a68cdcf73029258e0875b96f9a34",
+    "bytes": 2320
+   },
+   {
+    "url": "/assets/models/driftwood-fp/fp-arms.glb?v=2c233b8c",
+    "hash": "2c233b8c91c82a26c8fbfd3867095cbfec6cec81caa9bd9a12b243075236550a",
+    "bytes": 373240
+   }
+  ]
+ }
+]

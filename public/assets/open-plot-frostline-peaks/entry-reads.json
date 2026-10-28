@@ -1,0 +1,51 @@
+[
+ {
+  "region": "open-plot-0-4",
+  "tier": "phone",
+  "at": [
+   0,
+   0
+  ],
+  "reads": [
+   {
+    "url": "/shardfiles/open-plot-frostline-peaks/blobs/glb/9b4e88da07c8eb55eded16a0d70d805837ea000f31c9a868c75e798106f0caef.glb",
+    "hash": "9b4e88da07c8eb55eded16a0d70d805837ea000f31c9a868c75e798106f0caef",
+    "bytes": 3980
+   },
+   {
+    "url": "/shardfiles/open-plot-frostline-peaks/blobs/glb/c73ed03e7adea59317118ffcf0d564e44ba29369b6cd7be42cb1bb18deae1cd7.glb",
+    "hash": "c73ed03e7adea59317118ffcf0d564e44ba29369b6cd7be42cb1bb18deae1cd7",
+    "bytes": 3968
+   },
+   {
+    "url": "/shardfiles/open-plot-frostline-peaks/blobs/glb/8e7db4260aec3d42a36bd1d60f0d7ef5e41e1f563a29a14dc539ec24c4112a14.glb",
+    "hash": "8e7db4260aec3d42a36bd1d60f0d7ef5e41e1f563a29a14dc539ec24c4112a14",
+    "bytes": 3980
+   },
+   {
+    "url": "/shardfiles/open-plot-frostline-peaks/blobs/glb/dc4be40c457e01899f8b1e8b518c85d1c2043bda66b671a4d29ea6b0956dafb9.glb",
+    "hash": "dc4be40c457e01899f8b1e8b518c85d1c2043bda66b671a4d29ea6b0956dafb9",
+    "bytes": 3968
+   },
+   {
+    "url": "/shardfiles/open-plot-frostline-peaks/blobs/glb/7d092d68e95d2c2627596d1cf5e41633c0013d5845350fe7d95dc63ff571921a.glb",
+    "hash": "7d092d68e95d2c2627596d1cf5e41633c0013d5845350fe7d95dc63ff571921a",
+    "bytes": 3984
+   },
+   {
+    "url": "/shardfiles/open-plot-frostline-peaks/blobs/glb/72f05610eac0ced109b464c6cf6ad692e910920a17437c27cfdf037c1a62fb49.glb",
+    "hash": "72f05610eac0ced109b464c6cf6ad692e910920a17437c27cfdf037c1a62fb49",
+    "bytes": 3976
+   }
+  ]
+ },
+ {
+  "region": "open-plot-0-4",
+  "tier": "desktop",
+  "at": [
+   0,
+   0
+  ],
+  "reads": []
+ }
+]

@@ -1,0 +1,61 @@
+[
+ {
+  "region": "blender-template-1",
+  "tier": "phone",
+  "at": [
+   0,
+   0
+  ],
+  "reads": [
+   {
+    "url": "/shardfiles/blender-template/blobs/glb/1df5ce0b6cae72ec4cf3c41510681ba70ebb474f9745d536ebd4f03e8fc82de9.glb",
+    "hash": "1df5ce0b6cae72ec4cf3c41510681ba70ebb474f9745d536ebd4f03e8fc82de9",
+    "bytes": 18876
+   },
+   {
+    "url": "/shardfiles/blender-template/blobs/glb/9026e1c4f0250832b69a989e69fe3071e5cad72adfe9c22ce11c409b18bb3357.glb",
+    "hash": "9026e1c4f0250832b69a989e69fe3071e5cad72adfe9c22ce11c409b18bb3357",
+    "bytes": 5936
+   },
+   {
+    "url": "/shardfiles/blender-template/blobs/glb/46460a50da44fb8e792b48a646ec9ce025bb309d315dbcf67d2e9598591750de.glb",
+    "hash": "46460a50da44fb8e792b48a646ec9ce025bb309d315dbcf67d2e9598591750de",
+    "bytes": 7220
+   },
+   {
+    "url": "/shardfiles/blender-template/blobs/glb/2d2f6d00a14c89a4efb7f679b371118f564f258797ed8b8b42baf4ae60902ea6.glb",
+    "hash": "2d2f6d00a14c89a4efb7f679b371118f564f258797ed8b8b42baf4ae60902ea6",
+    "bytes": 7228
+   },
+   {
+    "url": "/shardfiles/blender-template/blobs/glb/611633cee0e5822b744486e6dff5414ad5b159eaabffe1c0ba0bb68be794bfa1.glb",
+    "hash": "611633cee0e5822b744486e6dff5414ad5b159eaabffe1c0ba0bb68be794bfa1",
+    "bytes": 2820
+   },
+   {
+    "url": "/shardfiles/blender-template/blobs/glb/ede05013f575b4216d2b4b3f8a14d611ef28756f952f702bb169529c8ab02eff.glb",
+    "hash": "ede05013f575b4216d2b4b3f8a14d611ef28756f952f702bb169529c8ab02eff",
+    "bytes": 23528
+   },
+   {
+    "url": "/shardfiles/blender-template/blobs/glb/7bebdcdaf0be30d9f8d21bde72af68c32d825d12dc668f48109223ed7ff71c9f.glb",
+    "hash": "7bebdcdaf0be30d9f8d21bde72af68c32d825d12dc668f48109223ed7ff71c9f",
+    "bytes": 5472
+   },
+   {
+    "url": "/shardfiles/blender-template/blobs/glb/bc14dd152815ea6ed39458dcf89f2d69173d61d6e2b57be99d31ce2da64ccf67.glb",
+    "hash": "bc14dd152815ea6ed39458dcf89f2d69173d61d6e2b57be99d31ce2da64ccf67",
+    "bytes": 10744
+   }
+  ]
+ },
+ {
+  "region": "blender-template-1",
+  "tier": "desktop",
+  "at": [
+   0,
+   0
+  ],
+  "reads": []
+ }
+]

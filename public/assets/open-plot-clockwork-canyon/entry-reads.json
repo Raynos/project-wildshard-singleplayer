@@ -1,0 +1,20 @@
+[
+ {
+  "region": "open-plot-4-3",
+  "tier": "phone",
+  "at": [
+   0,
+   0
+  ],
+  "reads": []
+ },
+ {
+  "region": "open-plot-4-3",
+  "tier": "desktop",
+  "at": [
+   0,
+   0
+  ],
+  "reads": []
+ }
+]

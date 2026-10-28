@@ -1,0 +1,61 @@
+[
+ {
+  "region": "open-plot-2-4",
+  "tier": "phone",
+  "at": [
+   0,
+   0
+  ],
+  "reads": [
+   {
+    "url": "/shardfiles/open-plot-showcase-template/blobs/glb/d8b64b57309d62d737d7659b8037eb98c0457a5c250ae96959e7393ccdc5435f.glb",
+    "hash": "d8b64b57309d62d737d7659b8037eb98c0457a5c250ae96959e7393ccdc5435f",
+    "bytes": 4028
+   },
+   {
+    "url": "/shardfiles/open-plot-showcase-template/blobs/glb/012846a7e62885defda1291c1980f87e514453714d7c0bec96d1559a5fe18f95.glb",
+    "hash": "012846a7e62885defda1291c1980f87e514453714d7c0bec96d1559a5fe18f95",
+    "bytes": 4036
+   },
+   {
+    "url": "/shardfiles/open-plot-showcase-template/blobs/glb/c3314cf1d25a4f5a649536c2363321e5cecaa6ef1a75fce909981cf609e4a985.glb",
+    "hash": "c3314cf1d25a4f5a649536c2363321e5cecaa6ef1a75fce909981cf609e4a985",
+    "bytes": 3980
+   },
+   {
+    "url": "/shardfiles/open-plot-showcase-template/blobs/glb/4f737b9af4f9e9b9f105c11d645b593950d443f7101e63a5f0697c82a359715c.glb",
+    "hash": "4f737b9af4f9e9b9f105c11d645b593950d443f7101e63a5f0697c82a359715c",
+    "bytes": 3968
+   },
+   {
+    "url": "/shardfiles/open-plot-showcase-template/blobs/glb/6d6e62f0542b8b588fd2a1f05503ee218c2a1e19f073817fed0bbb9b78dd50a3.glb",
+    "hash": "6d6e62f0542b8b588fd2a1f05503ee218c2a1e19f073817fed0bbb9b78dd50a3",
+    "bytes": 3980
+   },
+   {
+    "url": "/shardfiles/open-plot-showcase-template/blobs/glb/64429212799871fe7f4b4f95acf464e95d1c7472d1a9c90303e56051e1eac9f6.glb",
+    "hash": "64429212799871fe7f4b4f95acf464e95d1c7472d1a9c90303e56051e1eac9f6",
+    "bytes": 3968
+   },
+   {
+    "url": "/shardfiles/open-plot-showcase-template/blobs/glb/88d29b84753aa103d668c5857039a6abd3eb130ca6e3490c2d6a52a7f12d1e30.glb",
+    "hash": "88d29b84753aa103d668c5857039a6abd3eb130ca6e3490c2d6a52a7f12d1e30",
+    "bytes": 3976
+   },
+   {
+    "url": "/shardfiles/open-plot-showcase-template/blobs/glb/55d1d5bd4c04b2bba16a95d6d8fa248e08e732f53c7897ddea0ea76b17d9c437.glb",
+    "hash": "55d1d5bd4c04b2bba16a95d6d8fa248e08e732f53c7897ddea0ea76b17d9c437",
+    "bytes": 3984
+   }
+  ]
+ },
+ {
+  "region": "open-plot-2-4",
+  "tier": "desktop",
+  "at": [
+   0,
+   0
+  ],
+  "reads": []
+ }
+]

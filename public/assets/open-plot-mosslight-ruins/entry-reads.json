@@ -1,0 +1,61 @@
+[
+ {
+  "region": "open-plot-0-3",
+  "tier": "phone",
+  "at": [
+   0,
+   0
+  ],
+  "reads": [
+   {
+    "url": "/shardfiles/open-plot-mosslight-ruins/blobs/glb/34c6819e583242ee91582b6e9f940205011dec7a5f93d81b4c1665d88717bdce.glb",
+    "hash": "34c6819e583242ee91582b6e9f940205011dec7a5f93d81b4c1665d88717bdce",
+    "bytes": 4048
+   },
+   {
+    "url": "/shardfiles/open-plot-mosslight-ruins/blobs/glb/761495713d23f3562d9bc3646cb46a173ba16909207cf32a6632d98bcf538599.glb",
+    "hash": "761495713d23f3562d9bc3646cb46a173ba16909207cf32a6632d98bcf538599",
+    "bytes": 4060
+   },
+   {
+    "url": "/shardfiles/open-plot-mosslight-ruins/blobs/glb/eb3b216132feeedb6878ca3754e4df87178a142d3c166e121236d9c74e17807c.glb",
+    "hash": "eb3b216132feeedb6878ca3754e4df87178a142d3c166e121236d9c74e17807c",
+    "bytes": 3984
+   },
+   {
+    "url": "/shardfiles/open-plot-mosslight-ruins/blobs/glb/3cf62cd17e6da1a782789e784a90a2cb1ab66a840b178e5c6fcb5145f9f8fae6.glb",
+    "hash": "3cf62cd17e6da1a782789e784a90a2cb1ab66a840b178e5c6fcb5145f9f8fae6",
+    "bytes": 3976
+   },
+   {
+    "url": "/shardfiles/open-plot-mosslight-ruins/blobs/glb/5c847871b4b66426d5f5cedf3160c9aa62faa36894899290c85e6a516027ceec.glb",
+    "hash": "5c847871b4b66426d5f5cedf3160c9aa62faa36894899290c85e6a516027ceec",
+    "bytes": 3984
+   },
+   {
+    "url": "/shardfiles/open-plot-mosslight-ruins/blobs/glb/443b859553479801c9c1a9f850b84648f9ac1a2d049a218dfb24ee0040802f44.glb",
+    "hash": "443b859553479801c9c1a9f850b84648f9ac1a2d049a218dfb24ee0040802f44",
+    "bytes": 3976
+   },
+   {
+    "url": "/shardfiles/open-plot-mosslight-ruins/blobs/glb/6606ec26a543a2940cdca609f1ef4d344461082ef015b7a2b6148b74f8e9c579.glb",
+    "hash": "6606ec26a543a2940cdca609f1ef4d344461082ef015b7a2b6148b74f8e9c579",
+    "bytes": 3968
+   },
+   {
+    "url": "/shardfiles/open-plot-mosslight-ruins/blobs/glb/cc5f4599169276d37bd4908ddde22e180c7bf07112ffa79240f6c1601f7ddc25.glb",
+    "hash": "cc5f4599169276d37bd4908ddde22e180c7bf07112ffa79240f6c1601f7ddc25",
+    "bytes": 3976
+   }
+  ]
+ },
+ {
+  "region": "open-plot-0-3",
+  "tier": "desktop",
+  "at": [
+   0,
+   0
+  ],
+  "reads": []
+ }
+]

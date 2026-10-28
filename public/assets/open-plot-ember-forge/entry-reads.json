@@ -1,0 +1,51 @@
+[
+ {
+  "region": "open-plot-4-1",
+  "tier": "phone",
+  "at": [
+   0,
+   0
+  ],
+  "reads": [
+   {
+    "url": "/shardfiles/open-plot-ember-forge/blobs/glb/1ee5562c76288812f9d4c96f7350ee3296b049a8887de11f60c69227ac0e7694.glb",
+    "hash": "1ee5562c76288812f9d4c96f7350ee3296b049a8887de11f60c69227ac0e7694",
+    "bytes": 3968
+   },
+   {
+    "url": "/shardfiles/open-plot-ember-forge/blobs/glb/82f0eaf29502e9c38b638274943f72c11c551e84d830c61178b20c838708b4f8.glb",
+    "hash": "82f0eaf29502e9c38b638274943f72c11c551e84d830c61178b20c838708b4f8",
+    "bytes": 3976
+   },
+   {
+    "url": "/shardfiles/open-plot-ember-forge/blobs/glb/5f697ffd5b5166f6653c0854575280994d411e0d23c65c188d66bfccbc0cb8d8.glb",
+    "hash": "5f697ffd5b5166f6653c0854575280994d411e0d23c65c188d66bfccbc0cb8d8",
+    "bytes": 3968
+   },
+   {
+    "url": "/shardfiles/open-plot-ember-forge/blobs/glb/ec9b65856a028af07ff7c9eb4237945adfc4964c495a28bb5372e7c18919d075.glb",
+    "hash": "ec9b65856a028af07ff7c9eb4237945adfc4964c495a28bb5372e7c18919d075",
+    "bytes": 3976
+   },
+   {
+    "url": "/shardfiles/open-plot-ember-forge/blobs/glb/0f8ca62fe75b9fb2dd7532efbb5445e70dff54c114068b46330b5b9328b4db0f.glb",
+    "hash": "0f8ca62fe75b9fb2dd7532efbb5445e70dff54c114068b46330b5b9328b4db0f",
+    "bytes": 3984
+   },
+   {
+    "url": "/shardfiles/open-plot-ember-forge/blobs/glb/89acb08d412d0164b3d510a3ff0b65a6d0a63cdc80947be8ee5f52383485a433.glb",
+    "hash": "89acb08d412d0164b3d510a3ff0b65a6d0a63cdc80947be8ee5f52383485a433",
+    "bytes": 3976
+   }
+  ]
+ },
+ {
+  "region": "open-plot-4-1",
+  "tier": "desktop",
+  "at": [
+   0,
+   0
+  ],
+  "reads": []
+ }
+]

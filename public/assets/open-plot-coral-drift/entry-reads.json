@@ -1,0 +1,51 @@
+[
+ {
+  "region": "open-plot-0-0",
+  "tier": "phone",
+  "at": [
+   0,
+   0
+  ],
+  "reads": [
+   {
+    "url": "/shardfiles/open-plot-coral-drift/blobs/glb/a0ed7ea8e78f2b0cb61b76434d316ccb39b7984dc11faa3623dd7983fc072c02.glb",
+    "hash": "a0ed7ea8e78f2b0cb61b76434d316ccb39b7984dc11faa3623dd7983fc072c02",
+    "bytes": 3968
+   },
+   {
+    "url": "/shardfiles/open-plot-coral-drift/blobs/glb/4e4ddc5623a8b2e061f33d8fba7f241afa98af449d1de78a0e86f8b15efa617d.glb",
+    "hash": "4e4ddc5623a8b2e061f33d8fba7f241afa98af449d1de78a0e86f8b15efa617d",
+    "bytes": 3976
+   },
+   {
+    "url": "/shardfiles/open-plot-coral-drift/blobs/glb/07481f25c165fc471570579cbb8055dd5f64ba907dcae49edf27ac041e77778d.glb",
+    "hash": "07481f25c165fc471570579cbb8055dd5f64ba907dcae49edf27ac041e77778d",
+    "bytes": 3968
+   },
+   {
+    "url": "/shardfiles/open-plot-coral-drift/blobs/glb/87dd7e388574e82827137cce7c9e1d7f5af82f45e467fa6027bf83ae56701e61.glb",
+    "hash": "87dd7e388574e82827137cce7c9e1d7f5af82f45e467fa6027bf83ae56701e61",
+    "bytes": 3976
+   },
+   {
+    "url": "/shardfiles/open-plot-coral-drift/blobs/glb/2f599c863ba2cffacab91e829002fdb53c7711e4fa5ad21cee83f42a9810578e.glb",
+    "hash": "2f599c863ba2cffacab91e829002fdb53c7711e4fa5ad21cee83f42a9810578e",
+    "bytes": 3984
+   },
+   {
+    "url": "/shardfiles/open-plot-coral-drift/blobs/glb/18834e12604fd6d2245da5a5a1172b487e6923bd1e7457363e7c7453c4a94975.glb",
+    "hash": "18834e12604fd6d2245da5a5a1172b487e6923bd1e7457363e7c7453c4a94975",
+    "bytes": 3976
+   }
+  ]
+ },
+ {
+  "region": "open-plot-0-0",
+  "tier": "desktop",
+  "at": [
+   0,
+   0
+  ],
+  "reads": []
+ }
+]

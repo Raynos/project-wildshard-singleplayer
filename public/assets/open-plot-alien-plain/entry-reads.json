@@ -1,0 +1,51 @@
+[
+ {
+  "region": "open-plot-4-0",
+  "tier": "phone",
+  "at": [
+   0,
+   0
+  ],
+  "reads": [
+   {
+    "url": "/shardfiles/open-plot-alien-plain/blobs/glb/4d4932f2b5b48200c92b378afb4feff2098ebcc5b3dfd441c74eb9453f218274.glb",
+    "hash": "4d4932f2b5b48200c92b378afb4feff2098ebcc5b3dfd441c74eb9453f218274",
+    "bytes": 3968
+   },
+   {
+    "url": "/shardfiles/open-plot-alien-plain/blobs/glb/2b5f0af8a70286289b35f77b310cbbf434907b9b97076a943d50d6a84017670b.glb",
+    "hash": "2b5f0af8a70286289b35f77b310cbbf434907b9b97076a943d50d6a84017670b",
+    "bytes": 3976
+   },
+   {
+    "url": "/shardfiles/open-plot-alien-plain/blobs/glb/2d0894b243690f921fb21e802c1e2f7457472b9217106a6ab26c7416bbd54a07.glb",
+    "hash": "2d0894b243690f921fb21e802c1e2f7457472b9217106a6ab26c7416bbd54a07",
+    "bytes": 3968
+   },
+   {
+    "url": "/shardfiles/open-plot-alien-plain/blobs/glb/9e228b492fc045ddd276ff3fe183b6a746f3aa10f0cae23cc08cd8710ca57a5f.glb",
+    "hash": "9e228b492fc045ddd276ff3fe183b6a746f3aa10f0cae23cc08cd8710ca57a5f",
+    "bytes": 3976
+   },
+   {
+    "url": "/shardfiles/open-plot-alien-plain/blobs/glb/bc384478720e12eefbfe4a6e36efdf463c5b08513b6405cbd836ffabe81a0d20.glb",
+    "hash": "bc384478720e12eefbfe4a6e36efdf463c5b08513b6405cbd836ffabe81a0d20",
+    "bytes": 3984
+   },
+   {
+    "url": "/shardfiles/open-plot-alien-plain/blobs/glb/f358c3f4b63167ee837321c907c707d7fcd1e97fd63f9b734c092bf2b839b959.glb",
+    "hash": "f358c3f4b63167ee837321c907c707d7fcd1e97fd63f9b734c092bf2b839b959",
+    "bytes": 3976
+   }
+  ]
+ },
+ {
+  "region": "open-plot-4-0",
+  "tier": "desktop",
+  "at": [
+   0,
+   0
+  ],
+  "reads": []
+ }
+]

@@ -1,0 +1,707 @@
+[
+ {
+  "region": "far-reach",
+  "tier": "phone",
+  "at": [
+   0,
+   0
+  ],
+  "reads": [
+   {
+    "url": "/assets/far-reach/tex/clouds.webp?v=0b0c53bb",
+    "hash": "0b0c53bbed2fb93c4bfb6f0e2a9cdbb2e7fe51b6a0fd6e1f9bc69061512de606",
+    "bytes": 50934
+   },
+   {
+    "url": "/assets/far-reach/fan/leaf.webp?v=0280fddf",
+    "hash": "0280fddf1060a89033087aed819fff00d2a9c828be431396d1cdf111787f3cac",
+    "bytes": 82240
+   },
+   {
+    "url": "/assets/far-reach/tex/mill-stone.webp?v=5b09fa4f",
+    "hash": "5b09fa4ff18b1b40734a942b34eea55898c282f556c86b4ff3413407c16abf7b",
+    "bytes": 235726
+   },
+   {
+    "url": "/assets/far-reach/sky/panorama.phone.webp?v=c478acc8",
+    "hash": "c478acc84ee1aeaebb89112f3784cbc5538b78c7e7e8c7df42b9f1ddd878403b",
+    "bytes": 390020
+   },
+   {
+    "url": "/assets/far-reach/tex/cloudsea.webp?v=6e5e4f0e",
+    "hash": "6e5e4f0effb223f6ba3c5f683fd0e9aa90abfa69da94bd1b036b1746101fb84d",
+    "bytes": 130816
+   },
+   {
+    "url": "/assets/far-reach/tex/maelstrom.webp?v=e6f882e4",
+    "hash": "e6f882e4df24fe6f5e4a857cb7526de18048e8bba604081f41d90005644bd9dc",
+    "bytes": 163816
+   },
+   {
+    "url": "/assets/lut/far-reach.bin?v=0fb5e641",
+    "hash": "0fb5e641f93432486efd63de854047c0fab22a60f2acf16d139fe2c94c3a4269",
+    "bytes": 143748
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/a5b779f379598b3e6afbf7640a0c5c30c802a2f4f51b53bb0934c29260b46a74.glb",
+    "hash": "a5b779f379598b3e6afbf7640a0c5c30c802a2f4f51b53bb0934c29260b46a74",
+    "bytes": 43928
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/13ad79dd37f10805d3450bbc59a450f27a3262065e85358c8e27f8d3e82b9ad5.glb",
+    "hash": "13ad79dd37f10805d3450bbc59a450f27a3262065e85358c8e27f8d3e82b9ad5",
+    "bytes": 54316
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/5f5a9a056455af528c872807359347ee60007990dc6854e36f54f2e8db5b86d1.glb",
+    "hash": "5f5a9a056455af528c872807359347ee60007990dc6854e36f54f2e8db5b86d1",
+    "bytes": 683792
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/513b3fcabd206ded1bf034b44cf14341a1c7d7f1ea34d65d26e0822c08e7d93e.glb",
+    "hash": "513b3fcabd206ded1bf034b44cf14341a1c7d7f1ea34d65d26e0822c08e7d93e",
+    "bytes": 9772
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/ff13b7fe71e5b3f4f371117b01042870f1854e65c3389bcba049282af54d290f.glb",
+    "hash": "ff13b7fe71e5b3f4f371117b01042870f1854e65c3389bcba049282af54d290f",
+    "bytes": 21768
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/87ead1ed570a6d979772339f49f534c29b89fe74c47621372f8ca181553eb71c.glb",
+    "hash": "87ead1ed570a6d979772339f49f534c29b89fe74c47621372f8ca181553eb71c",
+    "bytes": 21764
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/fca144c2bebcf604855dd842d4be38769dfeaf3f69b51a5f049f3d3f3c945241.glb",
+    "hash": "fca144c2bebcf604855dd842d4be38769dfeaf3f69b51a5f049f3d3f3c945241",
+    "bytes": 21756
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/fc828ac38a91fd74abbe6fc63f823096e42744d9ed0d0fc057d74c73c3a5ec32.glb",
+    "hash": "fc828ac38a91fd74abbe6fc63f823096e42744d9ed0d0fc057d74c73c3a5ec32",
+    "bytes": 43108
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/609bb5060b4d6ec2a95268dd7800ea1b89275525e6d637cf7b96250c70372e62.glb",
+    "hash": "609bb5060b4d6ec2a95268dd7800ea1b89275525e6d637cf7b96250c70372e62",
+    "bytes": 6224
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/1a31cb2c7b426d9ffb14db4e39792aeb0bde86f6f01d0b1796130a3a0c7d8bf0.glb",
+    "hash": "1a31cb2c7b426d9ffb14db4e39792aeb0bde86f6f01d0b1796130a3a0c7d8bf0",
+    "bytes": 2109968
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/3c18959354dfbd48b6faa7f68d5a4072b88e2b4c2133084b9cee8e07f6c1f048.glb",
+    "hash": "3c18959354dfbd48b6faa7f68d5a4072b88e2b4c2133084b9cee8e07f6c1f048",
+    "bytes": 12956
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/3b12beff5b5ae8fbb51433b27890591e85bdc9049dd999e19cc4700400603b37.glb",
+    "hash": "3b12beff5b5ae8fbb51433b27890591e85bdc9049dd999e19cc4700400603b37",
+    "bytes": 1828044
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580.glb",
+    "hash": "bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580",
+    "bytes": 10134100
+   },
+   {
+    "url": "/assets/gpu/far-reach/models/keeper-hd/keeper-hd-9da1fe4b.glb",
+    "hash": "9da1fe4bf4c7124cf8c058c5c14c3d5f0f7615ce1ca21ff80f6d8b826f2415f4",
+    "bytes": 1388960
+   },
+   {
+    "url": "/assets/gpu/far-reach/models/post-hd/post-hd-a79ab025.glb",
+    "hash": "a79ab02526b962970d9069257338ab9ecb2833d5a4eb05309567a3fa79eb7f08",
+    "bytes": 1218376
+   },
+   {
+    "url": "/assets/gpu/far-reach/fan/hand-hd-c0f55842.glb",
+    "hash": "c0f558428b197db5acb28d24b51d9286c9753bce637188a4397027939177046d",
+    "bytes": 1115032
+   },
+   {
+    "url": "/assets/gpu/far-reach/models/isle-mass-hd/isle-mass-hd-ddefbb74.glb",
+    "hash": "ddefbb74b95152d5222f479ec9943ba9663b47d41bd89babf9aed4b3e78291b4",
+    "bytes": 1471216
+   },
+   {
+    "url": "/assets/gpu/far-reach/models/isle-canopy-hd/isle-canopy-hd-bf1fd6f4.glb",
+    "hash": "bf1fd6f4726419e0f94108ad44f0e9224513960e9ecd0c5df8f23c07da9cea29",
+    "bytes": 1450792
+   },
+   {
+    "url": "/assets/gpu/far-reach/models/isle-falls-hd/isle-falls-hd-e08d88b4.glb",
+    "hash": "e08d88b439e5ee71aafc3b85acbc17cb668fcba3b5d460fc937c71620753012a",
+    "bytes": 1470900
+   },
+   {
+    "url": "/assets/gpu/far-reach/models/isle-spire-hd/isle-spire-hd-4d9fa20b.glb",
+    "hash": "4d9fa20bb83c0802a161d80fde15fbb1d0c7537c6b5955f534044224498aec49",
+    "bytes": 1486016
+   },
+   {
+    "url": "/assets/gpu/far-reach/models/isle-twin-hd/isle-twin-hd-f3db4a4e.glb",
+    "hash": "f3db4a4ea0cdce33fe120162ca3a35ce6b15dcd6a26358b5ca706ef07fc311eb",
+    "bytes": 1442264
+   },
+   {
+    "url": "/assets/gpu/far-reach/models/isle-shelf-hd/isle-shelf-hd-2d4d0a78.glb",
+    "hash": "2d4d0a7865510d803521eb5c27c511b387406a7edf0dd14a8accb8fe15efaf33",
+    "bytes": 1448736
+   },
+   {
+    "url": "/assets/gpu/far-reach/models/trees/tree-pine-tall-137f635a.glb",
+    "hash": "137f635a0839ccfe44452fdea54c9378ea3898ec1fea59a450ef6c09f8c5e6f7",
+    "bytes": 416828
+   },
+   {
+    "url": "/assets/gpu/far-reach/models/trees/tree-pine-wide-36ae0de0.glb",
+    "hash": "36ae0de053c2122f39402777baa9b449ec67dfc78edc4c46c756b4a5d110d3c4",
+    "bytes": 431100
+   },
+   {
+    "url": "/assets/gpu/far-reach/models/trees/tree-pine-young-af30d3a7.glb",
+    "hash": "af30d3a7ae4bb15b052b41dd0ce55d7959c2437326442c052a8addaf08d4b67f",
+    "bytes": 425936
+   },
+   {
+    "url": "/assets/gpu/far-reach/models/trees/tree-oak-eec69fd1.glb",
+    "hash": "eec69fd14ade170762faa1be839812f4b480b693c25330c0d1bf0a6871b3d844",
+    "bytes": 424676
+   },
+   {
+    "url": "/assets/gpu/far-reach/models/trees/tree-bush-f83b25e1.glb",
+    "hash": "f83b25e10f2415ad44440bd7179157826fb52e1b5d212aca370f505fedefb43a",
+    "bytes": 462328
+   },
+   {
+    "url": "/assets/gpu/far-reach/models/crown/crown-stone-9f11341b.glb",
+    "hash": "9f11341bf94331d7a4581549291b1ee68a187a34c03768d2da1a06a84a6adcc7",
+    "bytes": 1026704
+   },
+   {
+    "url": "/assets/gpu/far-reach/models/crown/crown-stone-b-29462c51.glb",
+    "hash": "29462c5151de39811f9faea44369c9248bb90dafd4f1fc84d991095ed2da09d7",
+    "bytes": 989116
+   },
+   {
+    "url": "/assets/gpu/far-reach/models/crown/crown-dais-5be87ff4.glb",
+    "hash": "5be87ff4e9d6cf5f8263ffdaf2c13b1115107762ac201496fbf61754c2137db5",
+    "bytes": 1085524
+   },
+   {
+    "url": "/assets/gpu/far-reach/models/lectern-hd/lectern-hd-4684ff2d.glb",
+    "hash": "4684ff2dab881658008de9d747639317885394bc9d345fa8be2f802f1918b3c2",
+    "bytes": 1032948
+   },
+   {
+    "url": "/assets/gpu/far-reach/models/lantern-hd/lantern-hd-e550eb78.glb",
+    "hash": "e550eb78cbdc67ad6506ad3c63f1b0c95117bb44c4309a987f31f96867fe8d49",
+    "bytes": 315480
+   },
+   {
+    "url": "/assets/gpu/far-reach/models/mill/mill-tower-69879071.glb",
+    "hash": "69879071abe4281831a0c83dfbde7d29fa4f61182cd840d5c9bed74cf453f812",
+    "bytes": 1323020
+   },
+   {
+    "url": "/assets/gpu/far-reach/models/mill/mill-foot-1ce9ad12.glb",
+    "hash": "1ce9ad12ed9f8a7cccc9b0ebf1b22ca0e250bacf4bd0afa3888e19a5f275ae02",
+    "bytes": 1403472
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/0946ca25b8bb75aca6386cf177f31dd12c324c7acb30450a0ce2b223afc00d09.glb",
+    "hash": "0946ca25b8bb75aca6386cf177f31dd12c324c7acb30450a0ce2b223afc00d09",
+    "bytes": 284152
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/9e13f71c1ab243908ad51c6ae0ceffb33a5d2b58a33d3329f046cf54bff7f685.glb",
+    "hash": "9e13f71c1ab243908ad51c6ae0ceffb33a5d2b58a33d3329f046cf54bff7f685",
+    "bytes": 114424
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/216d946b01189d068313ee631b3f6688964c5c2b22a239de62c3146f681b494a.glb",
+    "hash": "216d946b01189d068313ee631b3f6688964c5c2b22a239de62c3146f681b494a",
+    "bytes": 14692
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/1cb9c09a391ec1cf3282f3d9ce08938c0fc054694c8cbef8dad7b8f1c8866fcb.glb",
+    "hash": "1cb9c09a391ec1cf3282f3d9ce08938c0fc054694c8cbef8dad7b8f1c8866fcb",
+    "bytes": 14288
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/80d4702049e4ea208058d759593e1538373edadac9c5bf96b1520564a12af3f2.glb",
+    "hash": "80d4702049e4ea208058d759593e1538373edadac9c5bf96b1520564a12af3f2",
+    "bytes": 1021940
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/ff18bc072d5b9ac9657fb0eedcea8e56f53352dd7287c8b2ea1ad657d4cc5151.glb",
+    "hash": "ff18bc072d5b9ac9657fb0eedcea8e56f53352dd7287c8b2ea1ad657d4cc5151",
+    "bytes": 8912
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/97e919d64a10aedd7258bb7c76cf01a78cef95764b8c5233b22c92435a5fa2a6.glb",
+    "hash": "97e919d64a10aedd7258bb7c76cf01a78cef95764b8c5233b22c92435a5fa2a6",
+    "bytes": 54004
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/cb33dc7b8f36985fabda61b01084b271b59ae3aa5dbd0f2fe5b00fef9d111576.glb",
+    "hash": "cb33dc7b8f36985fabda61b01084b271b59ae3aa5dbd0f2fe5b00fef9d111576",
+    "bytes": 116224
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/49b8daf1fe50d93991c4d63ae9a2a7358b027d37d8825dae4a4f6f3c89496f47.glb",
+    "hash": "49b8daf1fe50d93991c4d63ae9a2a7358b027d37d8825dae4a4f6f3c89496f47",
+    "bytes": 5624
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/c20fab6b445be7ca507389ba87266cf36e4c2c89af22dd99650ec5a6357e22dc.glb",
+    "hash": "c20fab6b445be7ca507389ba87266cf36e4c2c89af22dd99650ec5a6357e22dc",
+    "bytes": 592924
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/523b302a418d05f3db2d3bdab3af6c7606edf7a08e27aa1ecc184a63952bd6ec.glb",
+    "hash": "523b302a418d05f3db2d3bdab3af6c7606edf7a08e27aa1ecc184a63952bd6ec",
+    "bytes": 60824
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/92a982dac8347299f6a5ce8ae90727136fc7a4eb55468aa1cd55bb1f5092989f.glb",
+    "hash": "92a982dac8347299f6a5ce8ae90727136fc7a4eb55468aa1cd55bb1f5092989f",
+    "bytes": 11168
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/0138f2bea90b565d161238a3318d42c010cb7746e2cf13444f7ff7808c0b5289.glb",
+    "hash": "0138f2bea90b565d161238a3318d42c010cb7746e2cf13444f7ff7808c0b5289",
+    "bytes": 10160
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/321016b37e425143d7164ce0d867000341953d83ac32366c54bff23a961b1afb.glb",
+    "hash": "321016b37e425143d7164ce0d867000341953d83ac32366c54bff23a961b1afb",
+    "bytes": 93456
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/b6c63ce1effcf365df687dedc6e4805117834ce9e7fbbd36f1313aeab008fc3c.glb",
+    "hash": "b6c63ce1effcf365df687dedc6e4805117834ce9e7fbbd36f1313aeab008fc3c",
+    "bytes": 58508
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/78cbfe5504117324e30a2d0d44bda811d76100e92d002680d2e0ef4bed287675.glb",
+    "hash": "78cbfe5504117324e30a2d0d44bda811d76100e92d002680d2e0ef4bed287675",
+    "bytes": 150708
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/9a96db076965d27c0a95c03f9719098c28b00d32c26830eed8a66561b78e5e1f.glb",
+    "hash": "9a96db076965d27c0a95c03f9719098c28b00d32c26830eed8a66561b78e5e1f",
+    "bytes": 36100
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/1c057979c81e5fafd2f97a151b7936c90ccf01555b2f307b911fc628e7c19af0.glb",
+    "hash": "1c057979c81e5fafd2f97a151b7936c90ccf01555b2f307b911fc628e7c19af0",
+    "bytes": 492772
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/bb8ab3271fb98f8c6684f14771d8cb5c7a77b3ba2646087fe0956db18da9c018.glb",
+    "hash": "bb8ab3271fb98f8c6684f14771d8cb5c7a77b3ba2646087fe0956db18da9c018",
+    "bytes": 94368
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/d0f39e6fa142c5f12c9949e6ba91f6bc621cd8bfaa8c2c327650f05439a56020.glb",
+    "hash": "d0f39e6fa142c5f12c9949e6ba91f6bc621cd8bfaa8c2c327650f05439a56020",
+    "bytes": 74448
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/55467d69a6f7144ba38a06a7f917a3de09d30a44e9c9e1729a6e520af2d6be31.glb",
+    "hash": "55467d69a6f7144ba38a06a7f917a3de09d30a44e9c9e1729a6e520af2d6be31",
+    "bytes": 10132
+   }
+  ]
+ },
+ {
+  "region": "far-reach",
+  "tier": "desktop",
+  "at": [
+   0,
+   0
+  ],
+  "reads": [
+   {
+    "url": "/assets/far-reach/tex/clouds.webp?v=0b0c53bb",
+    "hash": "0b0c53bbed2fb93c4bfb6f0e2a9cdbb2e7fe51b6a0fd6e1f9bc69061512de606",
+    "bytes": 50934
+   },
+   {
+    "url": "/assets/far-reach/fan/leaf.webp?v=0280fddf",
+    "hash": "0280fddf1060a89033087aed819fff00d2a9c828be431396d1cdf111787f3cac",
+    "bytes": 82240
+   },
+   {
+    "url": "/assets/far-reach/tex/mill-stone.webp?v=5b09fa4f",
+    "hash": "5b09fa4ff18b1b40734a942b34eea55898c282f556c86b4ff3413407c16abf7b",
+    "bytes": 235726
+   },
+   {
+    "url": "/assets/far-reach/sky/panorama.webp?v=144e4f8d",
+    "hash": "144e4f8d38f51419abfc508cdb408ab1075478b0c2486c12f5259b02167fbc18",
+    "bytes": 580124
+   },
+   {
+    "url": "/assets/far-reach/tex/cloudsea.webp?v=6e5e4f0e",
+    "hash": "6e5e4f0effb223f6ba3c5f683fd0e9aa90abfa69da94bd1b036b1746101fb84d",
+    "bytes": 130816
+   },
+   {
+    "url": "/assets/far-reach/tex/maelstrom.webp?v=e6f882e4",
+    "hash": "e6f882e4df24fe6f5e4a857cb7526de18048e8bba604081f41d90005644bd9dc",
+    "bytes": 163816
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/a5b779f379598b3e6afbf7640a0c5c30c802a2f4f51b53bb0934c29260b46a74.glb",
+    "hash": "a5b779f379598b3e6afbf7640a0c5c30c802a2f4f51b53bb0934c29260b46a74",
+    "bytes": 43928
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/13ad79dd37f10805d3450bbc59a450f27a3262065e85358c8e27f8d3e82b9ad5.glb",
+    "hash": "13ad79dd37f10805d3450bbc59a450f27a3262065e85358c8e27f8d3e82b9ad5",
+    "bytes": 54316
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/5f5a9a056455af528c872807359347ee60007990dc6854e36f54f2e8db5b86d1.glb",
+    "hash": "5f5a9a056455af528c872807359347ee60007990dc6854e36f54f2e8db5b86d1",
+    "bytes": 683792
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/513b3fcabd206ded1bf034b44cf14341a1c7d7f1ea34d65d26e0822c08e7d93e.glb",
+    "hash": "513b3fcabd206ded1bf034b44cf14341a1c7d7f1ea34d65d26e0822c08e7d93e",
+    "bytes": 9772
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/ff13b7fe71e5b3f4f371117b01042870f1854e65c3389bcba049282af54d290f.glb",
+    "hash": "ff13b7fe71e5b3f4f371117b01042870f1854e65c3389bcba049282af54d290f",
+    "bytes": 21768
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/87ead1ed570a6d979772339f49f534c29b89fe74c47621372f8ca181553eb71c.glb",
+    "hash": "87ead1ed570a6d979772339f49f534c29b89fe74c47621372f8ca181553eb71c",
+    "bytes": 21764
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/fca144c2bebcf604855dd842d4be38769dfeaf3f69b51a5f049f3d3f3c945241.glb",
+    "hash": "fca144c2bebcf604855dd842d4be38769dfeaf3f69b51a5f049f3d3f3c945241",
+    "bytes": 21756
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/fc828ac38a91fd74abbe6fc63f823096e42744d9ed0d0fc057d74c73c3a5ec32.glb",
+    "hash": "fc828ac38a91fd74abbe6fc63f823096e42744d9ed0d0fc057d74c73c3a5ec32",
+    "bytes": 43108
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/609bb5060b4d6ec2a95268dd7800ea1b89275525e6d637cf7b96250c70372e62.glb",
+    "hash": "609bb5060b4d6ec2a95268dd7800ea1b89275525e6d637cf7b96250c70372e62",
+    "bytes": 6224
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/1a31cb2c7b426d9ffb14db4e39792aeb0bde86f6f01d0b1796130a3a0c7d8bf0.glb",
+    "hash": "1a31cb2c7b426d9ffb14db4e39792aeb0bde86f6f01d0b1796130a3a0c7d8bf0",
+    "bytes": 2109968
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/3c18959354dfbd48b6faa7f68d5a4072b88e2b4c2133084b9cee8e07f6c1f048.glb",
+    "hash": "3c18959354dfbd48b6faa7f68d5a4072b88e2b4c2133084b9cee8e07f6c1f048",
+    "bytes": 12956
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/3b12beff5b5ae8fbb51433b27890591e85bdc9049dd999e19cc4700400603b37.glb",
+    "hash": "3b12beff5b5ae8fbb51433b27890591e85bdc9049dd999e19cc4700400603b37",
+    "bytes": 1828044
+   },
+   {
+    "url": "/assets/lut/far-reach.bin?v=0fb5e641",
+    "hash": "0fb5e641f93432486efd63de854047c0fab22a60f2acf16d139fe2c94c3a4269",
+    "bytes": 143748
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580.glb",
+    "hash": "bd1a0a75879e2f3e72e2ab2b8d0c18a79d7e7746478b3fedc6961199a714c580",
+    "bytes": 10134100
+   },
+   {
+    "url": "/assets/far-reach/models/keeper-hd/keeper-hd.glb?v=97db17e8",
+    "hash": "97db17e8e1251424442bab6251aa8f7d85afcbb768a78574c9bff570c13f5b3a",
+    "bytes": 295916
+   },
+   {
+    "url": "/assets/far-reach/models/post-hd/post-hd.glb?v=8d63ac3a",
+    "hash": "8d63ac3a0ad844e71f7fbb17174266cd1e83fac64ee758208c10488709df7840",
+    "bytes": 176000
+   },
+   {
+    "url": "/assets/far-reach/fan/hand-hd.glb?v=97d15509",
+    "hash": "97d15509a16132c6c06a1f3e80fb13d2884eba19bc2b77af54d370c87c31e2a6",
+    "bytes": 214044
+   },
+   {
+    "url": "/assets/far-reach/models/isle-mass-hd/isle-mass-hd.glb?v=711c2ffc",
+    "hash": "711c2ffc1d8b1950f9dcf861609157c570bbd1003f2360085d5c72edb22fdd6b",
+    "bytes": 339576
+   },
+   {
+    "url": "/assets/far-reach/models/isle-canopy-hd/isle-canopy-hd.glb?v=01e70785",
+    "hash": "01e707852b5af9cb4b91d7524fe7b14726c042cc0d496cac4e67c286f4477dea",
+    "bytes": 325488
+   },
+   {
+    "url": "/assets/far-reach/models/isle-falls-hd/isle-falls-hd.glb?v=6606fae1",
+    "hash": "6606fae1440e443515c8fa7e04b8125a47ec2b96270e0eb8759bd76c0eaf106f",
+    "bytes": 346860
+   },
+   {
+    "url": "/assets/far-reach/models/isle-spire-hd/isle-spire-hd.glb?v=a9d99e9d",
+    "hash": "a9d99e9d09772a7b90f1ea2ff5ef968f2cc07b30f5ef940a44a3e2ff00f29189",
+    "bytes": 380224
+   },
+   {
+    "url": "/assets/far-reach/models/isle-twin-hd/isle-twin-hd.glb?v=ef136f71",
+    "hash": "ef136f716b3179e1c356e65fd698f69a7eb3e115dc91702ce5fa13b9ecdeb73c",
+    "bytes": 305648
+   },
+   {
+    "url": "/assets/far-reach/models/isle-shelf-hd/isle-shelf-hd.glb?v=ba8fbfdf",
+    "hash": "ba8fbfdfc7fc0e2ba517478a24e035a70048293492243277b240f0c2350d1593",
+    "bytes": 309464
+   },
+   {
+    "url": "/assets/far-reach/models/trees/tree-pine-tall.glb?v=73875460",
+    "hash": "73875460915ed7fbf86776d801bcbc22b2d21ea1891ca12aeb04aef89624d044",
+    "bytes": 130284
+   },
+   {
+    "url": "/assets/far-reach/models/trees/tree-pine-wide.glb?v=495d4015",
+    "hash": "495d401541c68b6f1a0b659cc9f2d51ce5027174b933d8383ad93c1ebbc1ad25",
+    "bytes": 146924
+   },
+   {
+    "url": "/assets/far-reach/models/trees/tree-pine-young.glb?v=7e2370b3",
+    "hash": "7e2370b3cbc8bb2bdfe8002127f7ac7bd8f75bfa9be4a8c96dc502105a5e896d",
+    "bytes": 136600
+   },
+   {
+    "url": "/assets/far-reach/models/trees/tree-oak.glb?v=3cf8cfdf",
+    "hash": "3cf8cfdf1183d464ff47a458a61b241af221aa2a27f2813920001cba698819a5",
+    "bytes": 139764
+   },
+   {
+    "url": "/assets/far-reach/models/trees/tree-bush.glb?v=75ecdb30",
+    "hash": "75ecdb30f5372085663174c9cfcbbf008ac5b23e50b4687a82144174c9c9553a",
+    "bytes": 187160
+   },
+   {
+    "url": "/assets/far-reach/models/crown/crown-stone.glb?v=4dc68d9c",
+    "hash": "4dc68d9cb6af2e347a5cd9a389470266d0384f8d8d046ae741c81b6b2a0edcbe",
+    "bytes": 132048
+   },
+   {
+    "url": "/assets/far-reach/models/crown/crown-stone-b.glb?v=9b9783f7",
+    "hash": "9b9783f7048586cefbdbe11c629097bad06887df298a485518c405c89021bd9b",
+    "bytes": 152268
+   },
+   {
+    "url": "/assets/far-reach/models/crown/crown-dais.glb?v=d77eb3a3",
+    "hash": "d77eb3a33f87d66bbaaac106a2e99b46409652017cfb1ffba76a91563b9693c6",
+    "bytes": 147612
+   },
+   {
+    "url": "/assets/far-reach/models/lectern-hd/lectern-hd.glb?v=ca733a57",
+    "hash": "ca733a5776e6d9a7d33ea14d55e606c4368366d082117bdf9976bb6f3554c26d",
+    "bytes": 129352
+   },
+   {
+    "url": "/assets/far-reach/models/lantern-hd/lantern-hd.glb?v=6f8e377e",
+    "hash": "6f8e377edd67b96ce98903feb05b8607f2f8276af2c860358b8edfdf5b0dbe5d",
+    "bytes": 68372
+   },
+   {
+    "url": "/assets/far-reach/models/mill/mill-tower.glb?v=a5f57566",
+    "hash": "a5f575665ea6b9c1d94cc04d5d7a2aa6935d1fd5660e27fefc867e3bb66c62f1",
+    "bytes": 262004
+   },
+   {
+    "url": "/assets/far-reach/models/mill/mill-foot.glb?v=7081685d",
+    "hash": "7081685dceaad9ab9316bbbfd32c899eb851b39c10ddb5f788dbcd52b0428e49",
+    "bytes": 268036
+   },
+   {
+    "url": "/assets/baked/_template/near.json?v=ce5f4fb8",
+    "hash": "ce5f4fb878f0f323b50777bca1f5340b4bbe4f58de0d191e694fef72a77fdb7f",
+    "bytes": 461
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/0946ca25b8bb75aca6386cf177f31dd12c324c7acb30450a0ce2b223afc00d09.glb",
+    "hash": "0946ca25b8bb75aca6386cf177f31dd12c324c7acb30450a0ce2b223afc00d09",
+    "bytes": 284152
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/9e13f71c1ab243908ad51c6ae0ceffb33a5d2b58a33d3329f046cf54bff7f685.glb",
+    "hash": "9e13f71c1ab243908ad51c6ae0ceffb33a5d2b58a33d3329f046cf54bff7f685",
+    "bytes": 114424
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/216d946b01189d068313ee631b3f6688964c5c2b22a239de62c3146f681b494a.glb",
+    "hash": "216d946b01189d068313ee631b3f6688964c5c2b22a239de62c3146f681b494a",
+    "bytes": 14692
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/1cb9c09a391ec1cf3282f3d9ce08938c0fc054694c8cbef8dad7b8f1c8866fcb.glb",
+    "hash": "1cb9c09a391ec1cf3282f3d9ce08938c0fc054694c8cbef8dad7b8f1c8866fcb",
+    "bytes": 14288
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/80d4702049e4ea208058d759593e1538373edadac9c5bf96b1520564a12af3f2.glb",
+    "hash": "80d4702049e4ea208058d759593e1538373edadac9c5bf96b1520564a12af3f2",
+    "bytes": 1021940
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/ff18bc072d5b9ac9657fb0eedcea8e56f53352dd7287c8b2ea1ad657d4cc5151.glb",
+    "hash": "ff18bc072d5b9ac9657fb0eedcea8e56f53352dd7287c8b2ea1ad657d4cc5151",
+    "bytes": 8912
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/97e919d64a10aedd7258bb7c76cf01a78cef95764b8c5233b22c92435a5fa2a6.glb",
+    "hash": "97e919d64a10aedd7258bb7c76cf01a78cef95764b8c5233b22c92435a5fa2a6",
+    "bytes": 54004
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/cb33dc7b8f36985fabda61b01084b271b59ae3aa5dbd0f2fe5b00fef9d111576.glb",
+    "hash": "cb33dc7b8f36985fabda61b01084b271b59ae3aa5dbd0f2fe5b00fef9d111576",
+    "bytes": 116224
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/49b8daf1fe50d93991c4d63ae9a2a7358b027d37d8825dae4a4f6f3c89496f47.glb",
+    "hash": "49b8daf1fe50d93991c4d63ae9a2a7358b027d37d8825dae4a4f6f3c89496f47",
+    "bytes": 5624
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/c20fab6b445be7ca507389ba87266cf36e4c2c89af22dd99650ec5a6357e22dc.glb",
+    "hash": "c20fab6b445be7ca507389ba87266cf36e4c2c89af22dd99650ec5a6357e22dc",
+    "bytes": 592924
+   },
+   {
+    "url": "/assets/baked/_template/near.glb?v=7e50a721",
+    "hash": "7e50a7212eec5c6b59710b82af44a80331221b0a83ab878600658c5697d72acb",
+    "bytes": 906760
+   },
+   {
+    "url": "/assets/baked/blender-template/near.json?v=620da5c4",
+    "hash": "620da5c4bfd37ab7072fd273f5a7707f976f425c40367dda442340bc554bdc1c",
+    "bytes": 459
+   },
+   {
+    "url": "/assets/baked/sunscar-dunes/near.json?v=411fa7ae",
+    "hash": "411fa7ae3397eba1a08aacf84ce5df6e230e2c0731b28e91a840a7c09857055f",
+    "bytes": 527
+   },
+   {
+    "url": "/assets/baked/driftwood-isle/near.json?v=ffc3b61e",
+    "hash": "ffc3b61e4d36780844927aca6902e05b0b1a5a237c4e86959ad8dc2468b89aa6",
+    "bytes": 456
+   },
+   {
+    "url": "/assets/baked/nine-dragon-stack/near.json?v=fd5517ee",
+    "hash": "fd5517ee8e9bd2efa61f54ce7be9de61469fe36b6d4feea3b8a90b6e470ea8f0",
+    "bytes": 538
+   },
+   {
+    "url": "/assets/baked/nalati-grasslands/near.json?v=9351f72d",
+    "hash": "9351f72dc0303e66f72a3a2b06d987fae5faa16df30dc6924ec9ca44944f8bf7",
+    "bytes": 464
+   },
+   {
+    "url": "/assets/baked/ink-cel-valley/near.json?v=6ced2af8",
+    "hash": "6ced2af810a91bc75144179de21d392cd19dfc9a0c8cd5c7b4c800babe15068a",
+    "bytes": 461
+   },
+   {
+    "url": "/assets/baked/pastel-plain/near.json?v=fb58bba6",
+    "hash": "fb58bba6da3e109159c03c90c130665b0a5c67b8e587bd2dda2489d850521476",
+    "bytes": 461
+   },
+   {
+    "url": "/assets/baked/pine-hollow/near.json?v=9888e0ea",
+    "hash": "9888e0ea1c71e4097ace30738c05a1b730767faa5f1a9f22874b7ddec6c40dca",
+    "bytes": 490
+   },
+   {
+    "url": "/assets/baked/blender-template/near.glb?v=564c0f8a",
+    "hash": "564c0f8ad7134022db5816b818a8f088f1b76dfbf929abe0f392fbdae2364f25",
+    "bytes": 349080
+   },
+   {
+    "url": "/assets/baked/sunscar-dunes/near.glb?v=dadbf869",
+    "hash": "dadbf869eef3d98316ea990be2251d024c54e512ae5a3ed8eb05031d6968d2d2",
+    "bytes": 665980
+   },
+   {
+    "url": "/assets/baked/driftwood-isle/near.glb?v=48fc8a98",
+    "hash": "48fc8a98e788c592a26423f10dc7b932b4797149597303bb9c062fd75f8eb1f9",
+    "bytes": 4166428
+   },
+   {
+    "url": "/assets/baked/nine-dragon-stack/near.glb?v=a663cd8c",
+    "hash": "a663cd8c63a763013ac9429675637247844b2419f52f7dd6c9dfaa46e234c376",
+    "bytes": 2278148
+   },
+   {
+    "url": "/assets/baked/nalati-grasslands/near.glb?v=77836045",
+    "hash": "77836045878bb7274857ce6cd8b27809ae554261ac8c98116ceab9627ffdad73",
+    "bytes": 3863736
+   },
+   {
+    "url": "/assets/baked/ink-cel-valley/near.glb?v=43ca8313",
+    "hash": "43ca831385f49eb8db0a22ce772ad908def36de25973e5520d909ad8022e62f6",
+    "bytes": 907100
+   },
+   {
+    "url": "/assets/baked/pastel-plain/near.glb?v=2b497af6",
+    "hash": "2b497af60a0a97ecf3f8aab925832d8b0437b5599ac3237db2c260da7aa559d2",
+    "bytes": 890508
+   },
+   {
+    "url": "/assets/baked/pine-hollow/near.glb?v=11dcb0b8",
+    "hash": "11dcb0b8c092fd1d4942e2f7c9a9e4a788b88c34ee1c29aed135f5777e017825",
+    "bytes": 4201384
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/1c057979c81e5fafd2f97a151b7936c90ccf01555b2f307b911fc628e7c19af0.glb",
+    "hash": "1c057979c81e5fafd2f97a151b7936c90ccf01555b2f307b911fc628e7c19af0",
+    "bytes": 492772
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/bb8ab3271fb98f8c6684f14771d8cb5c7a77b3ba2646087fe0956db18da9c018.glb",
+    "hash": "bb8ab3271fb98f8c6684f14771d8cb5c7a77b3ba2646087fe0956db18da9c018",
+    "bytes": 94368
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/d0f39e6fa142c5f12c9949e6ba91f6bc621cd8bfaa8c2c327650f05439a56020.glb",
+    "hash": "d0f39e6fa142c5f12c9949e6ba91f6bc621cd8bfaa8c2c327650f05439a56020",
+    "bytes": 74448
+   },
+   {
+    "url": "/shardfiles/far-reach/blobs/glb/55467d69a6f7144ba38a06a7f917a3de09d30a44e9c9e1729a6e520af2d6be31.glb",
+    "hash": "55467d69a6f7144ba38a06a7f917a3de09d30a44e9c9e1729a6e520af2d6be31",
+    "bytes": 10132
+   },
+   {
+    "url": "/assets/baked/far-reach/near.json?v=401b6746",
+    "hash": "401b6746dd8b7fea6c64db882e3ab1302145f6f2eef4a54d7089f44581c553e0",
+    "bytes": 455
+   },
+   {
+    "url": "/assets/baked/far-reach/near.glb?v=3e3a9d97",
+    "hash": "3e3a9d970d5b47831516f89695ca94d34b379219f5889ccc6abe0e86e8fe055b",
+    "bytes": 2089520
+   }
+  ]
+ }
+]

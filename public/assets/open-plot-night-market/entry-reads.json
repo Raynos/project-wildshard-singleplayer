@@ -1,0 +1,120 @@
+[
+ {
+  "region": "open-plot-nw",
+  "tier": "phone",
+  "at": [
+   0,
+   0
+  ],
+  "reads": [
+   {
+    "url": "/shardfiles/open-plot-night-market/blobs/glb/7d7295dfa670075674e9c0c5a904f8eca4bde17f1edd3c091102b4d7e51d41fe.glb",
+    "hash": "7d7295dfa670075674e9c0c5a904f8eca4bde17f1edd3c091102b4d7e51d41fe",
+    "bytes": 49904
+   },
+   {
+    "url": "/shardfiles/open-plot-night-market/blobs/glb/6146e449373efe57f2699c78b39c5e69106e9496e2a9d494e2ff2687a21acf9f.glb",
+    "hash": "6146e449373efe57f2699c78b39c5e69106e9496e2a9d494e2ff2687a21acf9f",
+    "bytes": 50944
+   },
+   {
+    "url": "/shardfiles/open-plot-night-market/blobs/glb/4df3125451af677f0c6e4a9a648fa28d4aff50c6a1197866d3686b53021d4dd2.glb",
+    "hash": "4df3125451af677f0c6e4a9a648fa28d4aff50c6a1197866d3686b53021d4dd2",
+    "bytes": 148912
+   },
+   {
+    "url": "/shardfiles/open-plot-night-market/blobs/glb/7161122f1d18db7c3db4b3492e1289c49e6662a3cca8dbe2fc9e029b851fc5fd.glb",
+    "hash": "7161122f1d18db7c3db4b3492e1289c49e6662a3cca8dbe2fc9e029b851fc5fd",
+    "bytes": 146048
+   },
+   {
+    "url": "/shardfiles/open-plot-night-market/blobs/glb/d355b4e517fdf5098d02cb15a7eb14478444cb88e6a2c3097c27448fd9c5f764.glb",
+    "hash": "d355b4e517fdf5098d02cb15a7eb14478444cb88e6a2c3097c27448fd9c5f764",
+    "bytes": 146212
+   },
+   {
+    "url": "/shardfiles/open-plot-night-market/blobs/glb/6c6bd8a38c284cd522e2370e51823ad6abc58f0edd0b42b5ba7258791618269e.glb",
+    "hash": "6c6bd8a38c284cd522e2370e51823ad6abc58f0edd0b42b5ba7258791618269e",
+    "bytes": 148984
+   },
+   {
+    "url": "/shardfiles/open-plot-night-market/blobs/glb/c71d174ab81cbb64c1b7fc27df9c2e2a564a1cfc1830244f6c98a8fbb4e83ddd.glb",
+    "hash": "c71d174ab81cbb64c1b7fc27df9c2e2a564a1cfc1830244f6c98a8fbb4e83ddd",
+    "bytes": 145968
+   },
+   {
+    "url": "/shardfiles/open-plot-night-market/blobs/glb/40a90e4b976a8378bf5bd746f99a72e8a370ba03d680e714a42d36942aaf62d9.glb",
+    "hash": "40a90e4b976a8378bf5bd746f99a72e8a370ba03d680e714a42d36942aaf62d9",
+    "bytes": 148876
+   }
+  ]
+ },
+ {
+  "region": "open-plot-nw",
+  "tier": "desktop",
+  "at": [
+   0,
+   0
+  ],
+  "reads": []
+ },
+ {
+  "region": "open-plot-1-0",
+  "tier": "phone",
+  "at": [
+   0,
+   0
+  ],
+  "reads": [
+   {
+    "url": "/shardfiles/open-plot-night-market/blobs/glb/056f99e99e62cb6e4d53a21c054dd0ee5c5042d5c98d984880a656aeb0d78029.glb",
+    "hash": "056f99e99e62cb6e4d53a21c054dd0ee5c5042d5c98d984880a656aeb0d78029",
+    "bytes": 38104
+   },
+   {
+    "url": "/shardfiles/open-plot-night-market/blobs/glb/b8c35d7053c1522929115fe0506b9a0ae35f5f19a5d827bb21eae0691a41633f.glb",
+    "hash": "b8c35d7053c1522929115fe0506b9a0ae35f5f19a5d827bb21eae0691a41633f",
+    "bytes": 39128
+   },
+   {
+    "url": "/shardfiles/open-plot-night-market/blobs/glb/99451ef818ef8ab326d406b93dd4f8b38ed292713556503d84eed90feade11bb.glb",
+    "hash": "99451ef818ef8ab326d406b93dd4f8b38ed292713556503d84eed90feade11bb",
+    "bytes": 148948
+   },
+   {
+    "url": "/shardfiles/open-plot-night-market/blobs/glb/3e3e9cc313929e75a36127c93850e2ba851e81a01ac5f8991ec42e7066da0e59.glb",
+    "hash": "3e3e9cc313929e75a36127c93850e2ba851e81a01ac5f8991ec42e7066da0e59",
+    "bytes": 146164
+   },
+   {
+    "url": "/shardfiles/open-plot-night-market/blobs/glb/c71d174ab81cbb64c1b7fc27df9c2e2a564a1cfc1830244f6c98a8fbb4e83ddd.glb",
+    "hash": "c71d174ab81cbb64c1b7fc27df9c2e2a564a1cfc1830244f6c98a8fbb4e83ddd",
+    "bytes": 145968
+   },
+   {
+    "url": "/shardfiles/open-plot-night-market/blobs/glb/40a90e4b976a8378bf5bd746f99a72e8a370ba03d680e714a42d36942aaf62d9.glb",
+    "hash": "40a90e4b976a8378bf5bd746f99a72e8a370ba03d680e714a42d36942aaf62d9",
+    "bytes": 148876
+   },
+   {
+    "url": "/shardfiles/open-plot-night-market/blobs/glb/6c6bd8a38c284cd522e2370e51823ad6abc58f0edd0b42b5ba7258791618269e.glb",
+    "hash": "6c6bd8a38c284cd522e2370e51823ad6abc58f0edd0b42b5ba7258791618269e",
+    "bytes": 148984
+   },
+   {
+    "url": "/shardfiles/open-plot-night-market/blobs/glb/d355b4e517fdf5098d02cb15a7eb14478444cb88e6a2c3097c27448fd9c5f764.glb",
+    "hash": "d355b4e517fdf5098d02cb15a7eb14478444cb88e6a2c3097c27448fd9c5f764",
+    "bytes": 146212
+   }
+  ]
+ },
+ {
+  "region": "open-plot-1-0",
+  "tier": "desktop",
+  "at": [
+   0,
+   0
+  ],
+  "reads": []
+ }
+]

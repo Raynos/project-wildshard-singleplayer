@@ -1,0 +1,61 @@
+[
+ {
+  "region": "open-plot-3-0",
+  "tier": "phone",
+  "at": [
+   0,
+   0
+  ],
+  "reads": [
+   {
+    "url": "/shardfiles/open-plot-desert-ruin/blobs/glb/208c1b3df2e9485bfe1bca0474d60a2b288ca3d4e0ee93e0a1e2bd032528779b.glb",
+    "hash": "208c1b3df2e9485bfe1bca0474d60a2b288ca3d4e0ee93e0a1e2bd032528779b",
+    "bytes": 4032
+   },
+   {
+    "url": "/shardfiles/open-plot-desert-ruin/blobs/glb/966f7dd85f52aa162f9f2076ece1f4edb2fee41fccf5ad96ccc8333596aa5183.glb",
+    "hash": "966f7dd85f52aa162f9f2076ece1f4edb2fee41fccf5ad96ccc8333596aa5183",
+    "bytes": 3980
+   },
+   {
+    "url": "/shardfiles/open-plot-desert-ruin/blobs/glb/1a82f416f693fd420d3791a7ddb386e77081560e53f2d77bc8406e81c2a434b4.glb",
+    "hash": "1a82f416f693fd420d3791a7ddb386e77081560e53f2d77bc8406e81c2a434b4",
+    "bytes": 3964
+   },
+   {
+    "url": "/shardfiles/open-plot-desert-ruin/blobs/glb/dd018a4b2b39b8bb4a97bbd8ddfb87ed4c0ff87dcfacc7576ea4d89a66542b87.glb",
+    "hash": "dd018a4b2b39b8bb4a97bbd8ddfb87ed4c0ff87dcfacc7576ea4d89a66542b87",
+    "bytes": 3976
+   },
+   {
+    "url": "/shardfiles/open-plot-desert-ruin/blobs/glb/837d5293db41d46d4d87b46971b520e775b6ff674ea299bac4c0061d033cb7b8.glb",
+    "hash": "837d5293db41d46d4d87b46971b520e775b6ff674ea299bac4c0061d033cb7b8",
+    "bytes": 3964
+   },
+   {
+    "url": "/shardfiles/open-plot-desert-ruin/blobs/glb/472319f156d7de6ee9528b826fd7b5f21295209ec9ab29d8a19deb21ff9452cf.glb",
+    "hash": "472319f156d7de6ee9528b826fd7b5f21295209ec9ab29d8a19deb21ff9452cf",
+    "bytes": 3976
+   },
+   {
+    "url": "/shardfiles/open-plot-desert-ruin/blobs/glb/3727993e50ee5fe1de2d0817cec49a3a018ae2767b35f64c3be7a7d3a72b0477.glb",
+    "hash": "3727993e50ee5fe1de2d0817cec49a3a018ae2767b35f64c3be7a7d3a72b0477",
+    "bytes": 3976
+   },
+   {
+    "url": "/shardfiles/open-plot-desert-ruin/blobs/glb/778f8e4bc699946f71d51352828f0e2ed31d130bed654a73c2c0f8959e2e11aa.glb",
+    "hash": "778f8e4bc699946f71d51352828f0e2ed31d130bed654a73c2c0f8959e2e11aa",
+    "bytes": 3980
+   }
+  ]
+ },
+ {
+  "region": "open-plot-3-0",
+  "tier": "desktop",
+  "at": [
+   0,
+   0
+  ],
+  "reads": []
+ }
+]

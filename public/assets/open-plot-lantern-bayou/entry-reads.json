@@ -1,0 +1,51 @@
+[
+ {
+  "region": "open-plot-0-1",
+  "tier": "phone",
+  "at": [
+   0,
+   0
+  ],
+  "reads": [
+   {
+    "url": "/shardfiles/open-plot-lantern-bayou/blobs/glb/d10a1dd4079c5cc48f128b2245f331299c54550f74180c635103d5a3cc119172.glb",
+    "hash": "d10a1dd4079c5cc48f128b2245f331299c54550f74180c635103d5a3cc119172",
+    "bytes": 3968
+   },
+   {
+    "url": "/shardfiles/open-plot-lantern-bayou/blobs/glb/3079600446919bbbea80bc93d99ce24140f21dbe4ccb6922837ffbe548eaa66a.glb",
+    "hash": "3079600446919bbbea80bc93d99ce24140f21dbe4ccb6922837ffbe548eaa66a",
+    "bytes": 3976
+   },
+   {
+    "url": "/shardfiles/open-plot-lantern-bayou/blobs/glb/fa96c7261026a0c7a1d1d21aa27474446311c9de97514dd919202b6e8f369802.glb",
+    "hash": "fa96c7261026a0c7a1d1d21aa27474446311c9de97514dd919202b6e8f369802",
+    "bytes": 3968
+   },
+   {
+    "url": "/shardfiles/open-plot-lantern-bayou/blobs/glb/72e86ec7b7245cf85114178e330910ff4622224f2081c74c44328abfd2bf9941.glb",
+    "hash": "72e86ec7b7245cf85114178e330910ff4622224f2081c74c44328abfd2bf9941",
+    "bytes": 3976
+   },
+   {
+    "url": "/shardfiles/open-plot-lantern-bayou/blobs/glb/83d81d5d116a88f38c0ac51640cfd2f6f81402a3e2aba564ec47a0651d5b2817.glb",
+    "hash": "83d81d5d116a88f38c0ac51640cfd2f6f81402a3e2aba564ec47a0651d5b2817",
+    "bytes": 3984
+   },
+   {
+    "url": "/shardfiles/open-plot-lantern-bayou/blobs/glb/6faeb7e21192eb9d3cb559aa1c70fcbd047181874ff550a0467683cf850afed9.glb",
+    "hash": "6faeb7e21192eb9d3cb559aa1c70fcbd047181874ff550a0467683cf850afed9",
+    "bytes": 3976
+   }
+  ]
+ },
+ {
+  "region": "open-plot-0-1",
+  "tier": "desktop",
+  "at": [
+   0,
+   0
+  ],
+  "reads": []
+ }
+]

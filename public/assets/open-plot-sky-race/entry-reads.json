@@ -1,0 +1,61 @@
+[
+ {
+  "region": "open-plot-2-0",
+  "tier": "phone",
+  "at": [
+   0,
+   0
+  ],
+  "reads": [
+   {
+    "url": "/shardfiles/open-plot-sky-race/blobs/glb/7a485d232c8cd30f78c6eef8a0ec02f24b56b830da82918a3e6fe25b0afd3e8f.glb",
+    "hash": "7a485d232c8cd30f78c6eef8a0ec02f24b56b830da82918a3e6fe25b0afd3e8f",
+    "bytes": 4036
+   },
+   {
+    "url": "/shardfiles/open-plot-sky-race/blobs/glb/5096a06c1b4a6b7a3695d65fa8b9fd68e05eae42dc55428eb3d59ccbc6bb8037.glb",
+    "hash": "5096a06c1b4a6b7a3695d65fa8b9fd68e05eae42dc55428eb3d59ccbc6bb8037",
+    "bytes": 3980
+   },
+   {
+    "url": "/shardfiles/open-plot-sky-race/blobs/glb/2b58e3bef79dbd2a7bdf406c928e668b5661776acc55d49052ba11a0b512f1cf.glb",
+    "hash": "2b58e3bef79dbd2a7bdf406c928e668b5661776acc55d49052ba11a0b512f1cf",
+    "bytes": 3968
+   },
+   {
+    "url": "/shardfiles/open-plot-sky-race/blobs/glb/17a2a39fcefee0e4950448e256ca7a13187cb6e782b5dfe724161964c41d19d3.glb",
+    "hash": "17a2a39fcefee0e4950448e256ca7a13187cb6e782b5dfe724161964c41d19d3",
+    "bytes": 3976
+   },
+   {
+    "url": "/shardfiles/open-plot-sky-race/blobs/glb/a52d4470a8049dc5454a555a947d7085535b41ae94aa34260c2e45c642cae0d5.glb",
+    "hash": "a52d4470a8049dc5454a555a947d7085535b41ae94aa34260c2e45c642cae0d5",
+    "bytes": 3968
+   },
+   {
+    "url": "/shardfiles/open-plot-sky-race/blobs/glb/92174ddff5f26f63611d574ad6262e275de1f37b602471958040ddd007e727d8.glb",
+    "hash": "92174ddff5f26f63611d574ad6262e275de1f37b602471958040ddd007e727d8",
+    "bytes": 3976
+   },
+   {
+    "url": "/shardfiles/open-plot-sky-race/blobs/glb/f4be2371f5f606741183248e4342fb1b8ba80e8024722976c4ea69ec5a573d38.glb",
+    "hash": "f4be2371f5f606741183248e4342fb1b8ba80e8024722976c4ea69ec5a573d38",
+    "bytes": 3976
+   },
+   {
+    "url": "/shardfiles/open-plot-sky-race/blobs/glb/03c0206fd249d2cc859390592394272757451fd2392147f1577f5cf2d9ac0bf9.glb",
+    "hash": "03c0206fd249d2cc859390592394272757451fd2392147f1577f5cf2d9ac0bf9",
+    "bytes": 3980
+   }
+  ]
+ },
+ {
+  "region": "open-plot-2-0",
+  "tier": "desktop",
+  "at": [
+   0,
+   0
+  ],
+  "reads": []
+ }
+]
