@@ -1,22 +1,20 @@
 # SHARD-PLATFORM — State (wildshard-new; ≤ 3 KB)
 
-**G824 (Jake): SHARD-PLATFORM archives today.** Speed tails (T2-T4, Nalati grid-ready, T6 / T7) get cut until 18:00 Cancun,
-then each miss moves to BURN-DAMAGE-LIST with its numbers. NM pilot R1-R3 and RP2-RP4 move to a new parked open-plots plan
+**G824 (Jake): SHARD-PLATFORM archives today.** Tile T6 / T7 finish today if they can (crossings: G828);
+remaining misses move to BURN-DAMAGE-LIST. NM pilot R1-R3 and RP2-RP4 move to a new parked open-plots plan
 (wildshard-v, after Jake's play). Jake QAs legacy (his word starts LD5-LD8 and A1-A2 at once), M2 and T10. After the archive
 commit every lane and the coordinator stop. The render tails need Opus, and Opus needs the account switch (Claude 97 %).
 **Live P0s (one combined release):** NM card 72a… needs a BootSpec for the now-selectable plot (sp-x10); Bag > MAP lazy
 painter made static (sp-x9, G826); loading freeze not reproduced on the Sim (live cold 20.3 s / warm 8.1 s reach controls),
 so sp-x2 restores a yield after every memory reserve as a mitigation. ETA: CI ~10:45-11:00, six smoke ~11:00-11:20 Cancun.
+**G828 (Jake):** crossing-time cuts stop. T2-T4 and grid-ready Nalati close as 'not reachable in this architecture'
+(Chromium cold DW 7.5, Nalati 10.4, Pine 14.7 s; sp-x6 marks), not on the damage list. Nobody drafts a one-world plan.
 **G825:** sp-ci-deploy rewrites src/game/whatsNew.json now for live a3f28a795, and with every release.
 
 **(1) LIVE a3f28a7953**; 879cf2768d retries at 10:09 Cancun. Damage list: [BURN-DAMAGE-LIST](../BURN-DAMAGE-LIST.md) only.
 
-**Jake's triage G819-G823, being marked now:** I2 closes on per-shard floor ratchets (DW 30.8, Nine 19.2, Nalati ~55, Pine
-77.5 MB; sp-x2). H3 closes on its order slices; H4 (warm home 3.37-3.74 s) and A1 (770 ms) close as accepted misses with
-damage lines (sp-x9). T7 re-marked with the census off (sp-x8). T10 samples spawn after a settle; one official Sim reading
-follows (sp-x1). Crossings keep the Chromium 4x bar (G820): T2-T4 / Nalati grid-ready stay open. Pine cold 14.7 s and Nalati
-10.4 s keep being cut; their remaining time is the render tail (Nalati 4.66 s shader-to-commit), which needs Opus. Idle Codex
-lanes burn damage-list red tests and flakies, oldest first (G819; sp-x6 started).
+**G819-G823 (marking):** I2 closes on per-shard floor ratchets (sp-x2); H3 closes, H4 / A1 accepted misses (sp-x9); T7 judged
+with the census off (sp-x8); T10 spawn sampled after a settle, official Sim reading next (sp-x1); idle lanes burn damage reds.
 **Counter:** true 188.5 / 209 before G819-G823's marks (sp-x8 recount, cc69600).
 
 **Still open for wildshard-v / Jake:** Nalati herd clock (tick once per 0.1 s; recommend yes). Fewer material variants
