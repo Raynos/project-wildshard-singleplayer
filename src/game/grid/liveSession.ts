@@ -77,12 +77,16 @@ import { copyPrompts, enteredCopy } from './copyPrompts';
 import { yieldGridAdmission, yieldGridConstruction } from './admissionYield';
 import { HybridRuntimeSession, type HybridResident } from '../shardfile/hybrid';
 
-import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type PreparedRegionalRuntime, type RegionalRuntimePage } from './regionalRuntime';
+import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type PreparedRegionalRuntime, type RegionalRuntimePage, type RegionalRuntimeTextures } from './regionalRuntime';
 import type { ClientTileRegistration } from '../shardfile/tileContent';
 import { createRegionalWorldFoundation, hangCellDataSky, resolveRegionalRuntimeTextures } from './regionalWorld';
 import { regionalRuntimeCheckpoint } from './runtimeCheckpoint';
 import { regionalDataCellBytes } from './runtimeCost';
 import { resolveLevelBounds } from '../shard/runtime';
+
+/** The cached metadata claim and its later constructor enter the same immutable
+ * texture policy. Fresh inputs remain borrowed only by actual construction. */
+interface RegionalPreparationChoice { textures?: RegionalRuntimeTextures }
 
 /** The page traveller the live host rebinds (the existing Player; never a second capsule). */
 export interface LiveTraveller {
@@ -620,12 +624,13 @@ export class LiveGridSession {
 
   /** Shardfile cells admit a bodyless regional host with their strip duplicates; every other cell waits for M3. */
   private admit(cell: GridCell, required = false): Promise<LiveGridAdmission> {
-    return preparationAdmission(() => this.prepareAdmission(cell, true, required), () => this.prepareAdmission(cell, false));
+    const choice: RegionalPreparationChoice = {};
+    return preparationAdmission(() => this.prepareAdmission(cell, choice, true, required), () => this.prepareAdmission(cell, choice, false));
   }
 
-  private prepareAdmission(cell: GridCell, metadata: true, required?: boolean): Promise<GridAdmissionMetadata>;
-  private prepareAdmission(cell: GridCell, metadata: false): Promise<LiveGridAdmission>;
-  private async prepareAdmission(cell: GridCell, metadata: boolean, required = true): Promise<GridAdmissionMetadata | LiveGridAdmission> {
+  private prepareAdmission(cell: GridCell, choice: RegionalPreparationChoice, metadata: true, required?: boolean): Promise<GridAdmissionMetadata>;
+  private prepareAdmission(cell: GridCell, choice: RegionalPreparationChoice, metadata: false): Promise<LiveGridAdmission>;
+  private async prepareAdmission(cell: GridCell, choice: RegionalPreparationChoice, metadata: boolean, required = true): Promise<GridAdmissionMetadata | LiveGridAdmission> {
     if (!metadata) await this.ports.prepareStrips?.(cell);
     if (this.ports.scope.disposed || this.ports.scope.disposing) throw new Error('Grid admission scope disposed');
     const productOwner = { allocator: this.ports.allocator, scope: this.ports.scope };
@@ -650,7 +655,7 @@ export class LiveGridSession {
       if (pair !== null) throw new Error(pair);
     }
     if (source.runtime !== null || hasDeclaredClientPage(source)) {
-      return finish(await (metadata ? this.admitRuntime(cell, retained, true) : this.admitRuntime(cell, retained, false)));
+      return finish(await (metadata ? this.admitRuntime(cell, retained, choice, true) : this.admitRuntime(cell, retained, choice, false)));
     }
     const bytes = regionalDataCellBytes(cell.slug, source, findShard(cell.slug));
     if (metadata) return finish({ bytes, isolatedPreparation: true, tilePreparation: source.tiles.some(tile => tile.lod === 0), reloadsCheckpoint: true, cancel: retained.release });
@@ -758,15 +763,15 @@ export class LiveGridSession {
     } catch (error) { try { releaseProduct(); } finally { product.release(); } throw error; }
   }
 
-  private admitRuntime(cell: GridCell, retained: GridProductMetadata, metadata: true): Promise<GridAdmissionMetadata>;
-  private admitRuntime(cell: GridCell, retained: GridProductMetadata, metadata: false): Promise<LiveGridAdmission>;
-  private async admitRuntime(cell: GridCell, retained: GridProductMetadata, metadata: boolean): Promise<GridAdmissionMetadata | LiveGridAdmission> {
+  private admitRuntime(cell: GridCell, retained: GridProductMetadata, choice: RegionalPreparationChoice, metadata: true): Promise<GridAdmissionMetadata>;
+  private admitRuntime(cell: GridCell, retained: GridProductMetadata, choice: RegionalPreparationChoice, metadata: false): Promise<LiveGridAdmission>;
+  private async admitRuntime(cell: GridCell, retained: GridProductMetadata, choice: RegionalPreparationChoice, metadata: boolean): Promise<GridAdmissionMetadata | LiveGridAdmission> {
     const manifest = findShard(cell.slug), declaration = retained.admitted.source.runtime;
     const dataPage = hasDeclaredClientPage(retained.admitted.source);
     if (manifest === undefined || !dataPage && (declaration === null || 'entry' in declaration)) throw new GridCellWaitingError('Missing declared regional page owner');
     const page = this.page.runtimePage?.();
     if (page === undefined || page === null) throw new GridCellWaitingError('Regional page services are not ready');
-    const textures = resolveRegionalRuntimeTextures(manifest, this.ports.allocator.cost().input), bytes = regionalRuntimeAccountedBytes(retained.admitted, manifest, textures.mode);
+    const textures = choice.textures ??= resolveRegionalRuntimeTextures(manifest, this.ports.allocator.cost().input), bytes = regionalRuntimeAccountedBytes(retained.admitted, manifest, textures.mode);
     const prepareEntry = async (): Promise<void> => {
       if (declaration === null) return;
       if (manifest.clientPlanRuntime !== true) throw new GridCellWaitingError('Client-plan runtime requires its built-in manifest policy');
