@@ -20,6 +20,7 @@ import { parseQuestStepRows, parseQuestHintRows, parseQuestServiceActions, parse
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
 import { CoverCompositionSchema } from '@wildshard/format/streamedCover';
+import { ManifestMetadataSchema } from '@wildshard/format/minimap';
 import * as v from 'valibot';
 import { ItemCatalogue } from '@wildshard/game/loadout/itemCatalogue';
 import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
@@ -173,3 +174,10 @@ export function coverCompositionRows(input: unknown): v.InferOutput<typeof Cover
 
 /** Admit a complete carried-quest continuation with native state/event ownership checks. */
 export function carriedQuestRows(input: unknown): ReturnType<typeof parseCarriedQuest> { return parseCarriedQuest(input); }
+
+/** Admit only explicitly selected native manifest fields, retaining their full
+ * defaults, nested grammars and issue paths without lending unrelated metadata. */
+export function manifestFieldRows<const Keys extends v.ObjectKeys<typeof ManifestMetadataSchema>>(keys: Keys, input: unknown):
+  v.InferOutput<ReturnType<typeof v.pick<typeof ManifestMetadataSchema, Keys>>> {
+  return v.parse(v.pick(ManifestMetadataSchema, keys), input);
+}

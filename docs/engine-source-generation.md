@@ -168,3 +168,10 @@ continuation-state and event-identity admission before construction.
 `paintedTerrainAttributes()` in `@wildshard/sdk/bake/terrain` lends the
 actual native mask, track and zone layout without renderer dependencies;
 it changes neither terrain samples nor channel ownership.
+
+`manifestFieldRows(keys, input)` in `@wildshard/sdk/rows` admits explicitly
+selected manifest metadata with native types, defaults and issue paths.
+`specimenShapeSources(input)` in `@wildshard/sdk/bake/specimenCatalogue`
+admits painter-produced key/name/geometry envelopes while preserving opaque
+geometry identity. The receiving specimen grammar still admits geometry
+and owns publication; source admission creates no model or runtime service.

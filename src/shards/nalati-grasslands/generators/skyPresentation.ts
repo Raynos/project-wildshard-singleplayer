@@ -1,16 +1,12 @@
-import * as v from 'valibot';
-import { authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
 import { Color } from 'three';
 import type { SkyRows, SkySchema } from '../data/skyTypes';
 import NALATI_MANIFEST_ROWS from '../data/manifestRows.json' with { type: 'json' };
 import { visualPack, type VisualRow } from './weatherFxChannels';
-import type { ClientChannelProgram } from '@wildshard/sdk/rows';
-
-const ManifestMetadataSchema: ReturnType<typeof authorFormatSchema<'minimap.ManifestMetadataSchema'>> = authorFormatSchema('minimap.ManifestMetadataSchema');
+import { manifestFieldRows, type ClientChannelProgram } from '@wildshard/sdk/rows';
 
 /** Numeric day keys and their live-preset field layout, built before admission. */
 export function skyRows(): SkyRows {
- const {sky:S,grade:G,atmosphere:A}=v.parse(v.pick(ManifestMetadataSchema,['sky','grade','atmosphere']), {sky:NALATI_MANIFEST_ROWS.sky,grade:NALATI_MANIFEST_ROWS.grade,atmosphere:NALATI_MANIFEST_ROWS.atmosphere});
+ const {sky:S,grade:G,atmosphere:A}=manifestFieldRows(['sky','grade','atmosphere'], {sky:NALATI_MANIFEST_ROWS.sky,grade:NALATI_MANIFEST_ROWS.grade,atmosphere:NALATI_MANIFEST_ROWS.atmosphere});
  const P=S.painted,volume=A.volumetric;
  if(P===undefined||volume===undefined)throw new Error('Missing painted sky metadata');
  const vs=volume.strength;

@@ -1,4 +1,4 @@
-import { parse } from 'valibot';
+import { parse, object, array, string, unknown } from 'valibot';
 import { PickupCatalogueSchema, SpecimenBookSchema, type PickupCatalogueRows, type SpecimenBookRows, type SpecimenModelMetadataRows } from '@wildshard/format/specimenCatalogue';
 import pickupRows from '@wildshard/game/data/pickupCatalogue' with { type: 'json' };
 import { namedJsonSchema } from '../formatJsonSchema';
@@ -36,4 +36,12 @@ export function nameSpecimenBook(name: string, input: unknown, options: Pick<Blo
   return nameBlob(name, 'json', new TextEncoder().encode(encodeCanonicalJson(book)), {
     ...options, jsonSchema: namedJsonSchema(SpecimenBookSchema),
   });
+}
+
+/** Admit the named shape envelope from an offline painter. Geometry remains
+ * opaque here and must pass the consumer's complete geometry grammar; no model
+ * is constructed and unrelated source metadata is stripped as before. */
+export function specimenShapeSources(input: unknown): { key: string; name: string; geometry: unknown }[] {
+  const shapeSources = object({ rows: array(object({ key: string(), name: string(), geometry: unknown() })) });
+  return parse(shapeSources, input).rows;
 }
