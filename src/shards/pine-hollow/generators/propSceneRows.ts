@@ -1,7 +1,7 @@
 /** Static scatter matrices and collision descriptors, authored in the native registration order. */
 import { Matrix4, Quaternion, Vector3 } from 'three';
-import { placeCollider, poseOf } from '@wildshard/engine/models/colliders';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import { placeContactRows } from '@wildshard/sdk/bake/contactRows';
+import type { ColliderDesc } from '@wildshard/sdk/bake/placement';
 import type { PropPose, PropRows } from './propRows';
 import type { PinePropShapes } from './propShapes';
 
@@ -27,7 +27,7 @@ export function bakePropSceneRows(rows: PropRows, shapes: PinePropShapes['rows']
     const shape = shapes.rocks[kind], matrix = frame(pose);
     if (shape === undefined) throw new Error('Unknown authored boulder shape');
     rockFrames[kind]?.push(matrix);
-    if (solid === 1) rocks.push(placeCollider({ kind: 'hull', x: 0, y: 0, z: 0, points: Float32Array.from(shape.hull) }, poseOf({ x: pose[0], y: pose[1], z: pose[2], matrix })));
+    if (solid === 1) rocks.push(...placeContactRows([{ kind: 'hull', x: 0, y: 0, z: 0, points: Float32Array.from(shape.hull) }], { x: pose[0], y: pose[1], z: pose[2], matrix }));
   }
   const add = (id: string, shape: { readonly name: string; readonly sphere: readonly number[] }, material: string, matrices: readonly Matrix4[]): void => {
     if (matrices.length === 0) return;
@@ -39,12 +39,12 @@ export function bakePropSceneRows(rows: PropRows, shapes: PinePropShapes['rows']
   for (const [i, shape] of shapes.log.parts.entries()) add(`log-${i}`, shape, `props.log.${i}`, logFrames);
   for (const [i, pose] of rows.stumps.entries()) {
     const matrix = stumpFrames[i]; if (matrix === undefined) throw new Error('Missing authored stump frame');
-    const placed = poseOf({ x: pose[0], y: pose[1], z: pose[2], matrix });
-    for (const shape of shapes.stumps) stumps.push(placeCollider({ kind: 'hull', x: 0, y: 0, z: 0, points: Float32Array.from(shape.hull) }, placed));
+    stumps.push(...placeContactRows(shapes.stumps.map(shape => ({ kind: 'hull', x: 0, y: 0, z: 0, points: Float32Array.from(shape.hull) })),
+      { x: pose[0], y: pose[1], z: pose[2], matrix }));
   }
   for (const [i, pose] of rows.logs.entries()) {
     const matrix = logFrames[i]; if (matrix === undefined) throw new Error('Missing authored log frame');
-    logs.push(placeCollider(shapes.log.capsule, poseOf({ x: pose[0], y: pose[1], z: pose[2], matrix })));
+    logs.push(...placeContactRows([shapes.log.capsule], { x: pose[0], y: pose[1], z: pose[2], matrix }));
   }
   return { groups, registry: [
     { id: 'props', name: 'Mossy boulder', surface: 'rock', colliders: rocks },

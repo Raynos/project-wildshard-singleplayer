@@ -1,4 +1,23 @@
-import type { ColliderDesc } from './placement';
+import { readColliderRows, poseOf, placeCollider } from '@wildshard/engine/models/colliders';
+import type { AuthorPlacement, ColliderDesc, ContactSurface } from './placement';
+
+/** Explicit authored shape/surface vocabulary, enforced before any geometry lane is borrowed. */
+export interface AuthorContactPolicy {
+  readonly kinds: readonly ColliderDesc['kind'][];
+  readonly surfaces: readonly ContactSurface[];
+  readonly requireSurface?: boolean;
+}
+
+/** Admit fresh bounded contact rows with the native strict grammar and owned numeric lane copies. */
+export function admitContactRows(rows: readonly unknown[], policy: AuthorContactPolicy): ColliderDesc[] {
+  return readColliderRows(rows, policy);
+}
+
+/** Compile an ordered contact batch at one authored pose using the native matrix/quaternion/scale law. */
+export function placeContactRows(rows: readonly ColliderDesc[], placement: AuthorPlacement<object>): ColliderDesc[] {
+  const pose = poseOf(placement);
+  return rows.map(row => placeCollider(row, pose));
+}
 
 /** Compile authored stair contacts with the native block order and exact arithmetic.
  * This returns data only; registration, Rapier shapes and collision queries remain engine-owned. */

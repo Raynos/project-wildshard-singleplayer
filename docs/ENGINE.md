@@ -4932,6 +4932,10 @@ The adapter supplies the existing pattern ports: the ram's live home and shared 
 `bake/contactRows.treadBoxRows` compiles authored stair blocks with the native
 word arithmetic, minimum height, surface and order; it allocates data only.
 Rapier shapes, registration and queries stay in the engine.
+`admitContactRows` retains native bounded shape/surface validation and owned
+numeric lanes. `placeContactRows` compiles an ordered batch at one explicit
+pose with the native matrix/quaternion/scale law, returning contact data only.
+
 
 `bootInventory.bootRecipeFiles` / `bootRecipeSources` resolve ordered author recipes against a required explicit inventory, GPU aliases and optional page/alias tables. Native transform order, duplicates, recursion/file limits and missing-metadata refusals remain; these functions never borrow the live page's inventory.
 `composeNamedJsonSchema` composes named roots, local Valibot leaves, objects and tuples; normal check refusals remain.
