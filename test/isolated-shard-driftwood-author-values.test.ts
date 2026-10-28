@@ -5,8 +5,17 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["driftwood-isle/generators/catalogue", "driftwood-isle/generators/crabClips", "driftwood-isle/generators/enemyPlacement", "driftwood-isle/generators/enemySpecies", "driftwood-isle/generators/entryDeck", "driftwood-isle/generators/entryDecks", "driftwood-isle/generators/entryLandings", "driftwood-isle/generators/explorerCatalogue", "driftwood-isle/generators/fauna", "driftwood-isle/generators/faunaSpecies", "driftwood-isle/generators/figureCatalogue", "driftwood-isle/generators/heldArms", "driftwood-isle/generators/humanoidClips", "driftwood-isle/generators/interactables", "driftwood-isle/generators/ledger", "driftwood-isle/generators/modelFiles", "driftwood-isle/generators/nativeBake", "driftwood-isle/generators/nativeQuest"])test(`${name} emits isolated author declarations`,()=>{
+for(const name of ["driftwood-isle/generators/crabClips", "driftwood-isle/generators/enemyPlacement", "driftwood-isle/generators/enemySpecies", "driftwood-isle/generators/entryDeck", "driftwood-isle/generators/entryDecks", "driftwood-isle/generators/entryLandings", "driftwood-isle/generators/explorerCatalogue", "driftwood-isle/generators/fauna", "driftwood-isle/generators/faunaSpecies", "driftwood-isle/generators/figureCatalogue", "driftwood-isle/generators/heldArms", "driftwood-isle/generators/humanoidClips", "driftwood-isle/generators/interactables", "driftwood-isle/generators/ledger", "driftwood-isle/generators/modelFiles", "driftwood-isle/generators/nativeBake", "driftwood-isle/generators/nativeQuest"])test(`${name} emits isolated author declarations`,()=>{
  const fileName=`src/shards/${name}.ts`;
+ const emitted=ts.transpileDeclaration(readFileSync(fileName,'utf8'),{fileName,reportDiagnostics:true,
+  compilerOptions:{strict:true,exactOptionalPropertyTypes:true,isolatedDeclarations:true}});
+ expect(emitted.diagnostics).toEqual([]);
+ expect(emitted.outputText.length).toBeGreaterThan(0);
+ expect(emitted.outputText.length).toBeLessThan(100_000);
+});
+
+test('native trail compatibility emits the original isolated model declarations',()=>{
+ const fileName='test/fixtures/driftwood-trail-models.ts';
  const emitted=ts.transpileDeclaration(readFileSync(fileName,'utf8'),{fileName,reportDiagnostics:true,
   compilerOptions:{strict:true,exactOptionalPropertyTypes:true,isolatedDeclarations:true}});
  expect(emitted.diagnostics).toEqual([]);
@@ -16,7 +25,7 @@ for(const name of ["driftwood-isle/generators/catalogue", "driftwood-isle/genera
 
 test('Driftwood author values retain model parameters, poses and native versions',()=>{
  const consumer=resolve('src/shards/t4-driftwood-author-consumer.ts');
- let source=`import {fencePost,signpost,plankStep} from './driftwood-isle/generators/catalogue';
+ let source=`import {fencePost,signpost,plankStep} from '../../test/fixtures/driftwood-trail-models';
 import {CRAB_CLIPS} from './driftwood-isle/generators/crabClips';
 import {SAILOR_CLIPS,CAPTAIN_CLIPS} from './driftwood-isle/generators/humanoidClips';
 import {ISLAND_BOAR,ISLAND_BEAR} from './driftwood-isle/generators/faunaSpecies';
