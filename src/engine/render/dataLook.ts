@@ -609,9 +609,11 @@ export function paintedLook(spec: PaintedLookSpec): LookStrategy {
       const base = { hemi: 1, fogSun: new THREE.Color(), haze: new THREE.Color() };
       return { clock, horizon: new THREE.Color(spec.horizon ?? spec.fog.color), lut, clouds: own.dome, ...(pieces === null ? {} : { dressing: pieces.group }),
         // Hide the disc mesh too: `sun.disc: false` only hides its material, and three still uploads the geometry of a
-        // visible mesh whose material is hidden.
+        // visible mesh whose material is hidden. A look with `rays` keeps it: the sky built it as the god rays' source only,
+        // out of the frame (E398), and a hidden source draws no rays.
         bind: (targets) => {
-          targets.disc.visible = false; air = () => (targets.underwater() ? null : targets.fog); live = targets;
+          if (spec.rays === undefined) targets.disc.visible = false;
+          air =() => (targets.underwater() ? null : targets.fog); live = targets;
           base.hemi = targets.hemi.intensity; base.fogSun.copy(targets.fogU.fogSunColor.value); base.haze.copy(targets.far.uHazeCol.value);
         },
         update: (dt: number) => {
