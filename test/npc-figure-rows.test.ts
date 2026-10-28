@@ -224,7 +224,8 @@ test('a late figure inside the original draw distance still reads before control
       ball: [new THREE.Vector3(), new THREE.Vector3()], walkSpeed: .72, walkCycle: .72, webs: skin.webs }, map: null, normalMap: null };
   });
   try {
-    await catalogue.admit({ figures: { person: { phone: spec, desktop: spec, body: 0 } } }, handles, owner);
+    await catalogue.admit({ material: { name: 'figure', roughness: .85, metalness: 0 },
+      figures: { person: { phone: spec, desktop: spec, body: 0 } } }, handles, owner);
     expect(load).not.toHaveBeenCalled();
     const timing = { viewer: { x: 0, z: 0 }, later };
     const far = catalogue.create('person', handles, [200, 0, 0], 0, owner, timing);
