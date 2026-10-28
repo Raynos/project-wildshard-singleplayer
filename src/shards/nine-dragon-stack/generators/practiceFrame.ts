@@ -1,7 +1,7 @@
-import type { HookPracticeRow } from '@wildshard/format/practiceCourseRows';
+import type { AuthorHookPracticeLayout } from '@wildshard/sdk/bake/practiceCourse';
 
 /** Numeric observations for the admitted course guest; static checkpoint facing is baked once. */
-export function practiceFrame(row: HookPracticeRow): Readonly<Record<string, number>> {
+export function practiceFrame(row: AuthorHookPracticeLayout['course']): Readonly<Record<string, number>> {
   const startPad = row.pads.findIndex(pad => pad.id === row.run.from), finishPad = row.pads.findIndex(pad => pad.id === row.run.to);
   if (row.pads.length > 11 || startPad === -1 || finishPad === -1) throw new Error('Invalid practice pads');
   return { startPad, finishPad, padCount: row.pads.length, fallY: row.fallY, lowest: Math.min(...row.pads.map(pad => pad.top)),
