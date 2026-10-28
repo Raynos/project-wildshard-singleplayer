@@ -14,7 +14,7 @@ import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
 import { siteFloor, type BoxSpec as Collider, type FloorRect } from '@wildshard/engine/physics/box';
 import { log, plank, rope, tris } from '@wildshard/engine/world/geometryKit';
-import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
+import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sdk/bake/facetedGeometry';
 import { bakeLight, type BakedLight } from './lowpolyPlants';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 

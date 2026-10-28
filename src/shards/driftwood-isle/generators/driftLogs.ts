@@ -15,7 +15,7 @@
  */
 import * as THREE from 'three';
 import { log, wobble } from '@wildshard/engine/world/geometryKit';
-import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
+import { FacetedGeometryBuilder as LowPolyKit, type FacetedGeometrySink } from '@wildshard/sdk/bake/facetedGeometry';
 
 /** the body tones (one per log), the facet leans, the crack and the end grain */
 export const DRIFT: { readonly tones: readonly ["#ab9d85", "#9d8e75", "#b4a894"]; readonly silver: THREE.Color; readonly brown: THREE.Color; readonly crack: THREE.Color; readonly end: THREE.Color; 
@@ -49,7 +49,7 @@ const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3
 const _body = new THREE.Color(), _facet = new THREE.Color();
 
 /** a faceted driftwood log from a to b (radius r0 → r1), painted per facet, added to the kit */
-export function addDriftLog(kit: LowPolyKit, a: THREE.Vector3, b: THREE.Vector3, r0: number, r1: number, o: DriftLogOpts = {}): void {
+export function addDriftLog(kit: FacetedGeometrySink, a: THREE.Vector3, b: THREE.Vector3, r0: number, r1: number, o: DriftLogOpts = {}): void {
   const rng = kit.rng, jitter = o.jitter ?? 0.07, cracks = o.cracks ?? 0.12;
   const g = log(a, b, r0, r1, o.sides ?? 6, o.twist ?? 0);
   if (o.wobble !== undefined && o.wobble > 0) wobble(g, o.wobble, rng);

@@ -26,7 +26,7 @@ import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/sdk/random';
 import { siteFloor, boxDesc, type BoxSpec as Collider, type FloorRect, type ColliderDesc } from '@wildshard/sdk/bake/placement';
 import { bakeRock as rock, bakeTriangles as tris } from '@wildshard/sdk/bake/primitives';
-import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
+import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sdk/bake/facetedGeometry';
 import { addOpenEnded, bakeLight, fern, broadClump, hibiscusBush, hibiscus, lilyPad, lotus, vineStrand, PLANT } from './lowpolyPlants';
 
 import type { ShrineSite, ShrineAnchor, ShrineParams } from './shrineTypes';

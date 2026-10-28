@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import type { Rng } from '@wildshard/sdk/random';
 import { bakeLog as log, bakeTriangles as tris } from '@wildshard/sdk/bake/primitives';
-import type { AddOpts, ColorLike, LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
+import type { FacetedPartOptions as AddOpts, ColorLike, FacetedGeometrySink as LowPolyKit } from '@wildshard/sdk/bake/facetedGeometry';
 
 const tmpColor = new THREE.Color();
 const asColor = (c: ColorLike): THREE.Color => (typeof c === 'string' ? tmpColor.set(c) : c);

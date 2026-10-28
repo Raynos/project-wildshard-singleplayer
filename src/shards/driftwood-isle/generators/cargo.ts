@@ -9,12 +9,12 @@
  *   addBarrel(kit, matrix, lying);  addCrate(kit, matrix, size, broken);  addCoil(kit, matrix, r);
  */
 import * as THREE from 'three';
-import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
+import { FacetedGeometryBuilder as LowPolyKit, type FacetedGeometrySink } from '@wildshard/sdk/bake/facetedGeometry';
 
 const C = { barrel: '#8a5a34', barrelB: '#76492a', band: '#3b3b3f', crate: '#a47b4b', crateB: '#8b6538', rope: '#b99d6c' };
 
 /** a barrel at `m` (its centre; `lying`: on its side, the axis along local x) */
-export function addBarrel(kit: LowPolyKit, m: THREE.Matrix4, lying = false): void {
+export function addBarrel(kit: FacetedGeometrySink, m: THREE.Matrix4, lying = false): void {
   const rng = kit.rng;
   const g = new THREE.CylinderGeometry(0.34, 0.34, 0.9, 9);
   const bulge = g.getAttribute('position');
@@ -25,7 +25,7 @@ export function addBarrel(kit: LowPolyKit, m: THREE.Matrix4, lying = false): voi
 }
 
 /** a crate of side `s` standing at `m` (its foot); `broken`: three slats of one face, the bottom and one side */
-export function addCrate(kit: LowPolyKit, m: THREE.Matrix4, s: number, broken = false): void {
+export function addCrate(kit: FacetedGeometrySink, m: THREE.Matrix4, s: number, broken = false): void {
   const rng = kit.rng;
   const faces: [number, number, number, number, number, number][] = [[0, s / 2, 0, s, s, s]];
   for (const f of faces) {
@@ -37,7 +37,7 @@ export function addCrate(kit: LowPolyKit, m: THREE.Matrix4, s: number, broken = 
 }
 
 /** a rope coil of outer radius `r` lying at `m` */
-export function addCoil(kit: LowPolyKit, m: THREE.Matrix4, r = 0.3): void {
+export function addCoil(kit: FacetedGeometrySink, m: THREE.Matrix4, r = 0.3): void {
   for (let k = 0; k < 3; k++) kit.add(new THREE.TorusGeometry(r - k * 0.06, 0.035, 4, 10).rotateX(Math.PI / 2).translate(0, 0.035 + k * 0.05, 0), C.rope, { matrix: m, jitter: 0.05 });
 }
 

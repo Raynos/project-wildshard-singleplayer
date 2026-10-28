@@ -4,7 +4,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
 import { rock, log, tris, withoutHidden } from '@wildshard/engine/world/geometryKit';
-import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
+import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sdk/bake/facetedGeometry';
 import { bakeLight, type BakedLight } from './lowpolyPlants';
 import { authoredRockGeometry as rockGeometry } from './rocks';
 import { REEF_ROCK } from './rockProfiles';
