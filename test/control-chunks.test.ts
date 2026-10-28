@@ -77,6 +77,7 @@ test('phase banks keep initial and late code isolated and retain unchanged contr
     for (const file of title) writeFileSync(resolve(root, `src/${file}.ts`), 'export const label = "title";');
     writeFileSync(resolve(root, 'src/entry.ts'), `async function startSelected(){return import('./core');}
       globalThis.launch = startSelected; globalThis.optional = () => import('./optional');
+      globalThis.grid = () => import('./game/grid/session');
       globalThis.title = () => Promise.all([${title.map(file => `import('./${file}')`).join(',')}]);`);
     const outDir = resolve(root, 'dist');
     await build({ root, configFile: false, logLevel: 'silent', build: { outDir, manifest: true, sourcemap: 'hidden',
@@ -104,6 +105,10 @@ test('phase banks keep initial and late code isolated and retain unchanged contr
     const optional = resolve(root, 'src/optional.ts'), control = resolve(root, 'src/core.ts');
     expect(modules('index.html').has(optional)).toBe(false);
     expect(modules('calibration/index.html').has(optional)).toBe(false);
+    const grid = resolve(root, 'src/game/grid/session.ts');
+    const gridBank = Object.entries(bundle).find(([, file]) => Object.hasOwn(file.modules ?? {}, grid));
+    expect(gridBank?.[0]).toMatch(/\/grid-session-/u);
+    expect(Object.keys(gridBank?.[1].modules ?? {})).toEqual([grid]);
     const controlBytes = (files: typeof bundle): readonly string[] => Object.entries(files)
       .filter(([, file]) => Object.hasOwn(file.modules ?? {}, control)).map(([name, file]) => `${name}\n${file.code}`).sort();
     const before = controlBytes(bundle);

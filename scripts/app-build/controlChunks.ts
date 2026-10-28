@@ -67,6 +67,9 @@ export function controlChunkGroups(root: string): Rolldown.CodeSplittingGroup[] 
     { name: controlChunkSelector(root, startup, 'initial', homes), tags: ['$initial'], includeDependenciesRecursively: false, maxSize: 2_000_000 },
     { name: 'entry-optional', tags: ['$initial'], test: id => !id.includes('/src/shards/'), entriesAware: true, includeDependenciesRecursively: false, maxSize: 2_000_000 },
     { name: controlChunkSelector(root, startup, 'title', homes), includeDependenciesRecursively: false, maxSize: 2_000_000 },
+    // This entry has its own 300 KB raw / 100 KB gzip per-chunk ceiling.
+    // Its dependencies still join their exact shared requirement banks.
+    { name: 'grid-session', test: id => id === resolve(root, 'src/game/grid/session.ts'), includeDependenciesRecursively: false },
     { name: controlChunkSelector(root, startup, 'control', homes), includeDependenciesRecursively: false, maxSize: 4_000_000 },
     { name: id => { const slug = /\/src\/shards\/([^/]+)\//u.exec(id)?.[1]; return slug === undefined ? null : `shard-${slug}`; },
       entriesAware: true, includeDependenciesRecursively: false, maxSize: 4_000_000 },
