@@ -1,4 +1,4 @@
-import { BufferGeometry, InstancedMesh, Mesh, Object3D, SkinnedMesh, type Material } from 'three';
+import { BufferAttribute, BufferGeometry, InstancedMesh, Matrix3, Mesh, Object3D, SkinnedMesh, type InterleavedBufferAttribute, type Material, type Matrix4 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { WorkSlice } from '../core/workSlice';
 import { geometryBoundsSteps } from '../world/geometryBounds';
@@ -20,6 +20,38 @@ function mergeable(node: Object3D): node is Mesh<BufferGeometry, Material> {
   const geometry: unknown = node.geometry, material: unknown = node.material, hook: unknown = Reflect.get(node, 'onBeforeRender');
   return node.visible && node.children.length === 0 && hook === defaultBeforeRender && !Array.isArray(material)
     && isGeometry(geometry) && geometry.groups.length === 0 && Object.keys(geometry.morphAttributes).length === 0;
+}
+const normalMatrix = new Matrix3();
+const plainVectors = (attribute: BufferAttribute | InterleavedBufferAttribute | undefined): attribute is BufferAttribute & { array: Float32Array } =>
+  attribute instanceof BufferAttribute && !attribute.normalized && attribute.itemSize === 3 && attribute.array instanceof Float32Array;
+/** `geometry.applyMatrix4(matrix)` on a private merge copy with no bounds: the same float math, read and written straight on
+ *  Float32 positions and normals (T10: three's per-vertex reads and writes were 24 ms of a Nalati entry's dressing at phone
+ *  4x). A tangent, or any other storage, takes three's own path. */
+function transformCopy(geometry: BufferGeometry, matrix: Matrix4): void {
+  const position = geometry.attributes['position'], normal = geometry.attributes['normal'];
+  if (geometry.attributes['tangent'] !== undefined || (position !== undefined && !plainVectors(position)) || (normal !== undefined && !plainVectors(normal))) {
+    geometry.applyMatrix4(matrix); return;
+  }
+  if (position !== undefined) {
+    const e = matrix.elements, out = position.array;
+    for (let i = 0; i < out.length; i += 3) {
+      const x = out[i] ?? 0, y = out[i + 1] ?? 0, z = out[i + 2] ?? 0, w = 1 / ((e[3] ?? 0) * x + (e[7] ?? 0) * y + (e[11] ?? 0) * z + (e[15] ?? 1));
+      out[i] = ((e[0] ?? 1) * x + (e[4] ?? 0) * y + (e[8] ?? 0) * z + (e[12] ?? 0)) * w;
+      out[i + 1] = ((e[1] ?? 0) * x + (e[5] ?? 1) * y + (e[9] ?? 0) * z + (e[13] ?? 0)) * w;
+      out[i + 2] = ((e[2] ?? 0) * x + (e[6] ?? 0) * y + (e[10] ?? 1) * z + (e[14] ?? 0)) * w;
+    }
+    position.needsUpdate = true;
+  }
+  if (normal !== undefined) {
+    const e = normalMatrix.getNormalMatrix(matrix).elements, out = normal.array;
+    for (let i = 0; i < out.length; i += 3) {
+      const x = out[i] ?? 0, y = out[i + 1] ?? 0, z = out[i + 2] ?? 0;
+      const nx = (e[0] ?? 1) * x + (e[3] ?? 0) * y + (e[6] ?? 0) * z, ny = (e[1] ?? 0) * x + (e[4] ?? 1) * y + (e[7] ?? 0) * z, nz = (e[2] ?? 0) * x + (e[5] ?? 0) * y + (e[8] ?? 1) * z;
+      const scale = 1 / (Math.sqrt(nx * nx + ny * ny + nz * nz) || 1); // Vector3.normalize
+      out[i] = nx * scale; out[i + 1] = ny * scale; out[i + 2] = nz * scale;
+    }
+    normal.needsUpdate = true;
+  }
 }
 function signature(node: Mesh<BufferGeometry, Material>): string {
   const geometry = node.geometry, attributes = Object.keys(geometry.attributes).sort().map((name) => {
@@ -62,7 +94,7 @@ function* mergeSteps(root: Object3D): Generator<void, { readonly geometries: rea
         // their attributes; the merged result gets exact bounds below. Keeping
         // cloned bounds here rescans every member before scanning the union.
         copy.boundingBox = null; copy.boundingSphere = null;
-        copy.applyMatrix4(member.matrix); parts.push(copy); yield;
+        transformCopy(copy, member.matrix); parts.push(copy); yield;
       }
       // typed non-null, but null on a layout mismatch
       const merged: unknown = mergeGeometries(parts, false);

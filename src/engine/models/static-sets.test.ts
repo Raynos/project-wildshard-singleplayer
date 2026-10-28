@@ -76,3 +76,22 @@ test('bounded sources transform once and only the merged geometry computes final
     merged.dispose();
   } finally { box.mockRestore(); sphere.mockRestore(); expected.dispose(); f.geometry.dispose(); f.material.dispose(); }
 });
+
+test('T10: transformed copies match three for varied, zero and normalized normals', async () => {
+  for (const normalized of [false, true]) {
+    const f = fixture(), count = f.geometry.getAttribute('position').count;
+    const normals = normalized ? new Int8Array(count * 3) : new Float32Array(count * 3);
+    for (let i = 0; i < normals.length; i++) normals[i] = i < 3 ? 0 : normalized ? (i * 37) % 255 - 127 : ((i * 37) % 23 - 11) / 5;
+    f.geometry.setAttribute('normal', new BufferAttribute(normals, 3, normalized));
+    const parts = [f.first, f.second].map(mesh => { mesh.updateMatrix(); return mesh.geometry.clone().applyMatrix4(mesh.matrix); });
+    const expected = mergeGeometries(parts, false);
+    for (const part of parts) part.dispose();
+    try {
+      const merged = (await mergeStaticSiblingsSliced(f.root, { due: () => false, yield: () => Promise.resolve(), check: () => undefined })).geometries[0];
+      if (merged === undefined) throw new Error('Missing merged geometry');
+      expect(merged.getAttribute('position').array).toEqual(expected.getAttribute('position').array);
+      expect(merged.getAttribute('normal').array).toEqual(expected.getAttribute('normal').array);
+      merged.dispose();
+    } finally { expected.dispose(); f.geometry.dispose(); f.material.dispose(); }
+  }
+});
