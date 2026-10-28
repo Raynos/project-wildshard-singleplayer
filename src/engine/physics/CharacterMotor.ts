@@ -95,6 +95,8 @@ export class CharacterMotor {
   private readonly rot = { x: 0, y: 0, z: 0, w: 1 };
   private readonly probe = { x: 0, y: 0, z: 0 };
   private readonly flat = { x: 0, y: 0, z: 0 };
+  /** Rapier reads a translation synchronously; retain its numeric upload row. */
+  private readonly translation = { x: 0, y: 0, z: 0 };
   private touchShape: Capsule | null = null; private touchMargin = -1;
   private deckProbe: Capsule | null = null;
 
@@ -274,13 +276,17 @@ export class CharacterMotor {
   move(feet: Vec3, want: Vec3, ignoreGround = false): MoveResult {
     const r = this.result;
     if (!this.enabled) { feet.x += want.x; feet.y += want.y; feet.z += want.z; r.grounded = false; r.groundNormalY = 1; r.horizontalFreedom = 1; r.groundCollider = null; this.anchorBody = null; return r; }
-    const { R } = this.physics;
-    this.collider.setTranslation({ x: feet.x, y: feet.y + this.lift, z: feet.z });
+    const { R } = this.physics, translation = this.translation;
+    translation.x = feet.x; translation.y = feet.y + this.lift; translation.z = feet.z;
+    this.collider.setTranslation(translation);
     const wantH = Math.hypot(want.x, want.z);
     // SF49 / SF51: a sideways move near a kinematic body (a mover's deck, at rest or ridden) starts a skin higher (see
     // `nearDeck`); a move with no sideways part isn't snapped back down by the controller, so it starts where it is.
     const lifted = wantH > 1e-6 && want.y <= 0 && this.nearDeck(feet) ? this.kcc.offset() : 0;
-    if (lifted > 0) this.collider.setTranslation({ x: feet.x, y: feet.y + this.lift + lifted, z: feet.z });
+    if (lifted > 0) {
+      translation.x = feet.x; translation.y = feet.y + this.lift + lifted; translation.z = feet.z;
+      this.collider.setTranslation(translation);
+    }
     const pred = ignoreGround ? this.notGround : undefined;
     this.kcc.computeColliderMovement(this.collider, want, R.QueryFilterFlags.EXCLUDE_SENSORS, this.filter, pred);
     let m = this.kcc.computedMovement();
@@ -293,7 +299,8 @@ export class CharacterMotor {
       m = this.kcc.computedMovement();
     }
     feet.x += m.x; feet.y += m.y + lifted; feet.z += m.z;
-    this.collider.setTranslation({ x: feet.x, y: feet.y + this.lift, z: feet.z });
+    translation.x = feet.x; translation.y = feet.y + this.lift; translation.z = feet.z;
+    this.collider.setTranslation(translation);
     r.grounded = this.kcc.computedGrounded();
     r.horizontalFreedom = wantH > 1e-6 ? Math.min(1, Math.hypot(m.x, m.z) / wantH) : 1;
     // the ground under the feet: a short ray down from just above them. (The controller's own contacts are empty while
