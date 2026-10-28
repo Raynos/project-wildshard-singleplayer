@@ -553,6 +553,38 @@ class SharedReleaseTests(unittest.TestCase):
         self.assertEqual((self.registry / self.port).read_text(), self.row)
         self.assertEqual(self.module.read(self.path), state)
 
+    def test_owned_ordinary_preview_releases_a_reused_shared_port(self):
+        state = dict(status='ready', port=int(self.port), owners=['foreign-lane'],
+            owner='foreign-lane', pid=12345, out=str(self.registry / 'old-output'))
+        self.module.write(self.path, state)
+        observed = {'SERVE_STOP_OBSERVED_PID': str(os.getpid()), 'SERVE_STOP_OBSERVED_OUT': str(self.out)}
+        with patch.dict(os.environ, observed), patch.object(self.module.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0)) as child:
+            self.assertEqual(self.module.release(self.registry, self.port, 'lane-a', False, ['unused']), 0)
+            child.assert_called_once()
+        self.assertEqual(self.module.read(self.path), state)
+
+    def test_reused_port_does_not_allow_a_foreign_ordinary_owner(self):
+        state = dict(status='ready', port=int(self.port), owners=['old-lane'],
+            owner='old-lane', pid=12345, out=str(self.registry / 'old-output'))
+        self.module.write(self.path, state)
+        observed = {'SERVE_STOP_OBSERVED_PID': str(os.getpid()), 'SERVE_STOP_OBSERVED_OUT': str(self.out)}
+        with patch.dict(os.environ, observed), patch.object(self.module.subprocess, 'run') as child:
+            with self.assertRaisesRegex(ValueError, 'No matching shared preview identity'):
+                self.module.release(self.registry, self.port, 'foreign-lane', False, ['unused'])
+            child.assert_not_called()
+        self.assertEqual((self.registry / self.port).read_text(), self.row)
+
+    def test_reused_port_with_a_partial_process_identity_still_refuses(self):
+        state = dict(status='ready', port=int(self.port), owners=['lane-a'],
+            owner='lane-a', pid=os.getpid(), out=str(self.registry / 'old-output'))
+        self.module.write(self.path, state)
+        observed = {'SERVE_STOP_OBSERVED_PID': str(os.getpid()), 'SERVE_STOP_OBSERVED_OUT': str(self.out)}
+        with patch.dict(os.environ, observed), patch.object(self.module.subprocess, 'run') as child:
+            with self.assertRaisesRegex(ValueError, 'No matching shared preview identity'):
+                self.module.release(self.registry, self.port, 'lane-a', False, ['unused'])
+            child.assert_not_called()
+        self.assertEqual((self.registry / self.port).read_text(), self.row)
+
     def test_teardown_holds_port_lease_and_passes_exact_registry_identity(self):
         self.shared()
         def stopped(_command, **kwargs):

@@ -228,7 +228,16 @@ def release(registry, port, owner, all_mine, command):
         paths = [path for path, state in candidates
                  if state.get('pid') == int(row[0]) and state.get('out') == row[2]]
         if candidates and not paths:
-            raise ValueError('No matching shared preview identity; refusing teardown')
+            # An ordinary preview can reuse a former shared port. Only its
+            # observed, owned registry row permits ignoring wholly unrelated
+            # records; a partial shared identity still refuses teardown.
+            ordinary = (row[3] == owner and expected_pid == row[0]
+                        and os.environ.get('SERVE_STOP_OBSERVED_OUT') == row[2]
+                        and Path(row[2]).is_dir()
+                        and all(state.get('pid') != int(row[0]) and state.get('out') != row[2]
+                                for _, state in candidates))
+            if not ordinary:
+                raise ValueError('No matching shared preview identity; refusing teardown')
     for path in paths:
         with lock(path):
             state = read(path)
