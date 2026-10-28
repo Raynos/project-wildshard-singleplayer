@@ -74,7 +74,8 @@ test('seven nested coordinate reads retain original order/results and explicitly
     deepStrictEqual(run(true, true), run(false, true));
     deepStrictEqual(run(true), run(false));
     const count = freed.mock.calls.length; f.physics.dispose(); disposed = true;
-    expect(freed.mock.calls.length - count).toBe(8);
+    // Eight retained ray vectors plus the separately owned native-step gravity vector.
+    expect(freed.mock.calls.length - count).toBe(9);
     const ray = new f.R.Ray({ x: 0, y: 1, z: 0 }, { x: 0, y: -1, z: 0 });
     expect(() => f.physics.castRay(ray, 20, true)).toThrow('Cannot query a disposed physics world');
     expect(() => f.physics.castRayAndGetNormal(ray, 20, true)).toThrow('Cannot query a disposed physics world');

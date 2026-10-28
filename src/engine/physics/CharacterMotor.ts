@@ -95,6 +95,7 @@ export class CharacterMotor {
   private readonly rot = { x: 0, y: 0, z: 0, w: 1 };
   private readonly probe = { x: 0, y: 0, z: 0 };
   private readonly flat = { x: 0, y: 0, z: 0 };
+  private readonly movement = { x: 0, y: 0, z: 0 };
   /** Rapier reads a translation synchronously; retain its numeric upload row. */
   private readonly translation = { x: 0, y: 0, z: 0 };
   private touchShape: Capsule | null = null; private touchMargin = -1;
@@ -289,14 +290,14 @@ export class CharacterMotor {
     }
     const pred = ignoreGround ? this.notGround : undefined;
     this.kcc.computeColliderMovement(this.collider, want, R.QueryFilterFlags.EXCLUDE_SENSORS, this.filter, pred);
-    let m = this.kcc.computedMovement();
+    let m = this.kcc.computedMovement(this.movement);
     // E285: now and then Rapier stops the whole move on the floor the capsule already rests on (one contact, normal
     // straight up, time of impact 0), and a dash ended on that "wall" (~1 dodge in 5). Such a stall is retried flat;
     // the snap still keeps the feet on the ground, and anything that really blocks the way blocks the retry too.
     if (wantH > 1e-6 && want.y <= 0 && Math.hypot(m.x, m.z) < wantH * 0.3 && this.stalledOnFloor()) {
       this.flat.x = want.x; this.flat.y = 0; this.flat.z = want.z;
       this.kcc.computeColliderMovement(this.collider, this.flat, R.QueryFilterFlags.EXCLUDE_SENSORS, this.filter, pred);
-      m = this.kcc.computedMovement();
+      m = this.kcc.computedMovement(this.movement);
     }
     feet.x += m.x; feet.y += m.y + lifted; feet.z += m.z;
     translation.x = feet.x; translation.y = feet.y + this.lift; translation.z = feet.z;

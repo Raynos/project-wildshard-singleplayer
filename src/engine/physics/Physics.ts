@@ -39,7 +39,7 @@ function createRayVectors(): RayVectors {
   try { return { origin, direction: new RawVector(0, 0, 0) }; }
   catch (error) { origin.free(); throw error; }
 }
-function writeRayVector(target: RawVector, value: { x: number; y: number; z: number }): void {
+function writeNativeVector(target: RawVector, value: { x: number; y: number; z: number }): void {
   const x = value.x, y = value.y, z = value.z;
   target.x = x; target.y = y; target.z = z;
 }
@@ -57,6 +57,7 @@ export class Physics {
   readonly R: Rapier;
   private readonly rayVectors: RayVectors[] = [];
   private rayDepth = 0;
+  private gravityVector: RawVector | undefined;
   private readonly bodyCaptures = new Map<number, () => void>();
   private readonly colliderCaptures = new Map<number, () => void>();
   private readonly bodyOwners = new Map<number, Scope>();
@@ -115,7 +116,7 @@ export class Physics {
     let vectors = this.rayVectors[at];
     try {
       if (vectors === undefined) { vectors = createRayVectors(); if (at < 4) this.rayVectors[at] = vectors; }
-      writeRayVector(vectors.origin, ray.origin); writeRayVector(vectors.direction, ray.dir);
+      writeNativeVector(vectors.origin, ray.origin); writeNativeVector(vectors.direction, ray.dir);
       return vectors;
     } catch (error) {
       this.rayDepth--;
@@ -177,7 +178,12 @@ export class Physics {
   step(): void {
     const t0 = performance.now(), w = this.world;
     if (w.softBodies.len() > 0) throw new Error('Physics steps no soft bodies: their split pieces would go unwrapped');
-    w.physicsPipeline.step(w.gravity, w.integrationParameters, w.islands, w.broadPhase, w.narrowPhase, w.bodies, w.colliders, w.softBodies, w.impulseJoints, w.multibodyJoints, w.ccdSolver);
+    const gravity = this.gravityVector ??= new RawVector(0, 0, 0);
+    writeNativeVector(gravity, w.gravity);
+    // The existing step never supplies events or hooks. Call that identical
+    // native branch with its owned f32 input instead of a new vector wrapper.
+    w.physicsPipeline.raw.step(gravity, w.integrationParameters.raw, w.islands.raw, w.broadPhase.raw, w.narrowPhase.raw,
+      w.bodies.raw, w.colliders.raw, w.softBodies.raw, w.impulseJoints.raw, w.multibodyJoints.raw, w.ccdSolver.raw);
     this.stepMs = performance.now() - t0;
   }
 
@@ -190,6 +196,7 @@ export class Physics {
     this.world.forEachCollider(untagCollider); this.world.free(); this.freed = true;
     for (const vectors of this.rayVectors) { vectors.origin.free(); vectors.direction.free(); }
     this.rayVectors.length = 0;
+    this.gravityVector?.free(); this.gravityVector = undefined;
     // Whole-world retirement has freed these handles. Their scopes may outlive this world (cold regions);
     // unregister native cleanup callbacks so they cannot later dereference a freed Rapier set.
     for (const forget of this.bodyCaptures.values()) forget();
