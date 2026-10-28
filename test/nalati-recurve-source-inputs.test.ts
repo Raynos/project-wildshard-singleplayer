@@ -17,8 +17,8 @@ test('recurve author policy retains original native tuning without the wind stra
   expect(() => parseBowProfile({ family: 'bow' })).toThrow();
 });
 
-test('the full recurve pool and every emitted row retain their original bytes', async () => {
-  const current = await recurvePool();
+test('the full recurve pool and every emitted row retain their original bytes', () => {
+  const current = recurvePool();
   expect(current.rows).toEqual(original.rows);
   expect(JSON.stringify(current.rows)).toBe(JSON.stringify(original.rows));
   expect(current.glb.length).toBe(original.bytes);
