@@ -256,10 +256,32 @@ const fileOf = (texture: THREE.CompressedTexture, url: string, level: number): v
   const last = texture.mipmaps.at(-1);
   files.set(texture, { url, level, tail: last === undefined ? undefined : { data: last.data.slice(), width: last.width, height: last.height } });
 };
+/** The bytes in flight per resolved URL: concurrent loads of one file share one read, and so (KTX2Loader keys its
+ *  transcode on the buffer) one texture, as three's FileLoader shares them. */
+const reading = new Map<string, Promise<ArrayBuffer>>();
+/** `target.loadAsync(url)` without three's FileLoader, which re-streams every response chunk through a progress
+ *  ReadableStream nobody here listens to (T10: its enqueue / close were ~200 ms of a Pine cold entry at phone 4x). Same
+ *  URL resolution (the page's modifier on the default manager), credentials, headers and status rule, then the loader's
+ *  own parse. */
+export function loadKtx2(target: Pick<KTX2Loader, 'manager' | 'path' | 'requestHeader' | 'withCredentials' | 'parse'>, url: string): Promise<THREE.CompressedTexture> {
+  const resolved = target.manager.resolveURL(target.path + url);
+  let bytes = reading.get(resolved);
+  if (bytes === undefined) {
+    bytes = fetch(resolved, { headers: target.requestHeader, credentials: target.withCredentials ? 'include' : 'same-origin' }).then(response => {
+      if (response.status !== 200 && response.status !== 0) throw new Error(`fetch for "${response.url}" responded with ${String(response.status)}: ${response.statusText}`);
+      return response.arrayBuffer();
+    });
+    reading.set(resolved, bytes);
+    const read = bytes;
+    const clear = (): void => { if (reading.get(resolved) === read) reading.delete(resolved); };
+    read.finally(clear).catch(() => undefined);
+  }
+  return bytes.then(buffer => new Promise<THREE.CompressedTexture>((resolve, reject) => { target.parse(buffer, resolve, reject); }));
+}
 function load(url: string, keep: boolean): Promise<THREE.CompressedTexture> {
   let p = transcoded.get(url);
   if (p === undefined) {
-    p = ktx2Loader().loadAsync(url);
+    p = loadKtx2(ktx2Loader(), url);
     if (keep) {
       transcoded.set(url, p);
       p.finally(() => { pageScope.timeout(0, () => { transcoded.delete(url); }); }).catch(() => undefined);
@@ -404,7 +426,7 @@ export async function linearKtx2Texture(served: string, maxSize: typeof Infinity
   if (url === undefined) return null;
   let p = linearTranscoded.get(url);
   if (p === undefined) {
-    p = linearKtx2Loader().loadAsync(url);
+    p = loadKtx2(linearKtx2Loader(), url);
     linearTranscoded.set(url, p);
     p.finally(() => { pageScope.timeout(0, () => { linearTranscoded.delete(url); }); }).catch(() => undefined);
   }
