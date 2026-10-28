@@ -55,3 +55,13 @@ test('a growing acquire adds to a sealed, full pool; an ordinary one is handed a
   expect(kept.parent).toBe(pool.group); expect(pool.size).toBe(1);
   home.visible = false; render(scene); expect(kept.intensity).toBe(0); expect(kept.parent).toBe(pool.group);
 });
+
+// T7 / T10: a spare made before the first render is the light a late, growing acquire takes, so the count a boot built its
+// lit programs for never moves (a home's creature light grew the pool 5 -> 6 after the first render)
+test('a spare made before the first render is taken by a later growing acquire without moving the count', () => {
+  const scene = new THREE.Scene(), home = new THREE.Group(); scene.add(home);
+  const pool = LightPool.for(scene); pool.spare(1);
+  expect(pool.size).toBe(1); expect(pool.free).toBe(1); render(scene);
+  const kept = pool.acquire(0x7fe8ff, 4, 7, 2, home, true);
+  expect(kept.parent).toBe(pool.group); expect(pool.size).toBe(1); expect(pool.free).toBe(0);
+});

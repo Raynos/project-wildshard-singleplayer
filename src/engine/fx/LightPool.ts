@@ -83,6 +83,18 @@ export class LightPool {
     scope.onDispose(() => { page.sources.delete(this); if (this.mirroredBy === page) this.mirroredBy = null; for (const light of this.lights) light.layers.enable(0); });
   }
 
+  /** Make `count` free dark lights now (counted, never mirrored), for content known to ask after the first render: a
+   *  later `acquire` takes one instead of growing a sealed pool, so the count, and every lit program built at boot, stays.
+   *  A spare nobody takes is a dark light: no pixel changes. */
+  spare(count: number): void {
+    if (this.sealed) console.warn('[LightPool] spares after the first render: the light count moves once');
+    for (let free = this.lights.length - this.busy.size; free < count; free++) {
+      const light = new THREE.PointLight(0xffffff, 0); light.castShadow = false;
+      if (this.mirroredBy !== null) light.layers.disableAll();
+      this.lights.push(light); this.group.add(light);
+    }
+  }
+
   /** `grow` (G808): a sealed, full pool adds the light anyway (the count moves this once) instead of handing out a detached
    *  one. For content that keeps its lights for the session and would otherwise add them to the scene itself: as its own
    *  scene lights they left the count whenever their content hid (home content seen from another cell), so every lit

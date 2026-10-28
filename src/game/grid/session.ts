@@ -116,6 +116,8 @@ import { admittedRuntimeProduct } from '../shardfile/runtimeProduct';
  *  five cabin lights. A point light costs every lit fragment a loop step, so this is the grid's real maximum, not more;
  *  a region that shows more warns once and leaves the rest dark. */
 export const GRID_REGION_POINT_LIGHTS = 5;
+/** free page lights for home content that lights itself after the first render (the population projection's) */
+export const GRID_HOME_SPARE_POINT_LIGHTS = 1;
 const isScene = (node: Object3D): node is Scene => node instanceof Scene;
 
 declare const __GRID_SEAM_ASSET__: GridSeamAddress;
@@ -478,7 +480,13 @@ export class GridSession {
     this.host = host;
     this.roadPlans = preparedRoad?.plans ?? new Map<Mesh, CullPlan>();
     // before the page's first render: the lights a region's own pool shows through (regionalWorld `mirrorInto`)
-    if (isScene(host.scene)) LightPool.for(host.scene).reserve(GRID_REGION_POINT_LIGHTS);
+    if (isScene(host.scene)) {
+      LightPool.for(host.scene).reserve(GRID_REGION_POINT_LIGHTS);
+      // T7 / T10: the home population's projection light (game/population/projection.ts) asks after the first render;
+      // growing the sealed pool then moved the count 5 -> 6 and rebuilt every lit program the boot had built (the 63
+      // unused 5-light programs of a Driftwood visit, linked again after control)
+      LightPool.for(host.scene).spare(GRID_HOME_SPARE_POINT_LIGHTS);
+    }
     const mapReads = new AbortController(); host.scope.onDispose(() => { mapReads.abort(); });
     this.mapImages = new CellMinimaps(host.scope, async slug => {
       const owner = { allocator: this.allocator, scope: host.scope };
