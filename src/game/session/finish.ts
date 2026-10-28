@@ -144,7 +144,10 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   await Promise.race([Promise.all([drawn, ctx.minimap.prepare()]), new Promise<void>((resolve) => { game.levelScope.timeout(1500, resolve); })]);
   // P0: the phone's spawn programs settle while loading still covers the reveal.
   // Undrawn world programs remain in the sliced after-control warm-up below.
-  if (TIER === 'phone') {
+  // A boot that lands on the title reveals nothing yet: it draws no frame before ENTER (CI's 0.3 fps runner spent ~70 s
+  // of Nine's 150 s title budget on these 20+ frames), and the title's own warm-up below links the world meanwhile.
+  const entersAtReveal = hud.entered || arrival?.mode === 'enter' || arrival?.mode === 'arena' || ctx.continuingGridEntry;
+  if (TIER === 'phone' && entersAtReveal) {
     // The title gate otherwise prevents any real frame before enter(). Keep
     // input/reveal closed, but draw the admitted spawn under the opaque loader.
     const previousGate = game.frameGate;
