@@ -15,6 +15,27 @@ function hash(view: DataView, at: number): number {
   value = Math.imul(value ^ view.getUint32(at + 12, true), 16777619);
   return (value >>> 0) & 0xfffff;
 }
+function hashWords(a: number, b: number, c: number, d: number): number {
+  let value = Math.imul(2166136261 ^ a, 16777619);
+  value = Math.imul(value ^ b, 16777619);
+  value = Math.imul(value ^ c, 16777619);
+  value = Math.imul(value ^ d, 16777619);
+  return (value >>> 0) & 0xfffff;
+}
+// Four consecutive starts share five little-endian word loads. Keep every
+// position and write order, including collisions. The caller leaves at least
+// 64 bytes after the run, so the grouped window stays inside the input.
+function indexMatch(view: DataView, dictionary: Int32Array, start: number, end: number): void {
+  let i = start;
+  for (; i + 3 < end; i += 4) {
+    const a = view.getUint32(i, true), b = view.getUint32(i + 4, true), c = view.getUint32(i + 8, true), d = view.getUint32(i + 12, true), e = view.getUint32(i + 16, true);
+    dictionary[hashWords(a, b, c, d)] = i;
+    dictionary[hashWords((a >>> 8) | (b << 24), (b >>> 8) | (c << 24), (c >>> 8) | (d << 24), (d >>> 8) | (e << 24))] = i + 1;
+    dictionary[hashWords((a >>> 16) | (b << 16), (b >>> 16) | (c << 16), (c >>> 16) | (d << 16), (d >>> 16) | (e << 16))] = i + 2;
+    dictionary[hashWords((a >>> 24) | (b << 8), (b >>> 24) | (c << 8), (c >>> 24) | (d << 8), (d >>> 24) | (e << 8))] = i + 3;
+  }
+  for (; i < end; i++) dictionary[hash(view, i)] = i;
+}
 // Only matches of at least 64 bytes can emit a reference. Reject shorter
 // candidates before extending their prefix; qualifying lengths stay exact.
 function matchedBytes(left: DataView, leftAt: number, right: DataView, rightAt: number): number {
@@ -78,7 +99,8 @@ export function encodePhysicsReferences(bytes: Uint8Array, basis?: Uint8Array): 
     if (length < matchMinimum) { at++; continue; }
     flush(at);
     encoded[written++] = external ? 2 : 1; view.setUint32(written, external ? basisAt : at - previous, true); written += 4; view.setUint32(written, length, true); written += 4;
-    if (!external) for (let i = at + 1; i < at + length && i + 16 <= bytes.length; i++) dictionary[hash(rawView, i)] = i;
+    // No future search can observe dictionary writes after the final match.
+    if (!external && at + length + matchMinimum <= bytes.length) indexMatch(rawView, dictionary, at + 1, at + length);
     at += length; literal = at;
   }
   flush(bytes.length);
