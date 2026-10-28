@@ -280,19 +280,25 @@ export function clientRingCatalogue(instances: ReadonlyMap<string, { readonly so
     const source = instances.get(instance)?.source; if (level === 'far' || source === undefined) return null;
     return index(source.tiles).get(level === 'l0' ? 0 : 1)?.get(x)?.get(z) ?? null;
   };
+  // The visitors belong to this catalogue, not each frame's poll. Native
+  // forEach retains Map's live insertion/deletion order without entry tuples.
+  const observe = (entry: { readonly source: Shardfile }, instance: string): void => {
+    if (observed.get(instance) !== entry.source.tiles) { observed.set(instance, entry.source.tiles); revision++; }
+  };
+  const forget = (_tiles: Shardfile['tiles'], instance: string): void => {
+    if (!instances.has(instance)) { observed.delete(instance); revision++; }
+  };
   return Object.assign(bytes, { revision: (): number => {
-    for (const [instance, entry] of instances) if (observed.get(instance) !== entry.source.tiles) {
-      observed.set(instance, entry.source.tiles); revision++;
-    }
-    for (const instance of observed.keys()) if (!instances.has(instance)) { observed.delete(instance); revision++; }
+    instances.forEach(observe); observed.forEach(forget);
     return revision;
   } });
 }
 
 /** The page step must not share the first tile's closure environment: that
  * environment also contains its scope, even after its check is removed. */
+function runRingCheck(check: () => void): void { check(); }
 function ringCheckStep(checks: ReadonlySet<() => void>): () => void {
-  return () => { for (const held of checks) held(); };
+  return () => { checks.forEach(runRingCheck); };
 }
 
 /** The rings' ports for these instances; every prepared tile's scope is a child of `scope`. */

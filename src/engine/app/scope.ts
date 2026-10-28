@@ -1,7 +1,10 @@
 import type { Object3D } from 'three';
-import { withOwner } from './ownership';
+import { withOwner, withOwnerCall } from './ownership';
 import { scopeEnvironment } from './scopeEnvironment';
 import { scopedProperty } from './scopedProperty';
+
+// Keep the frame timestamp out of a newly captured owner closure on every RAF.
+function runFrame(fn: FrameRequestCallback, time: number): void { fn(time); }
 
 export interface Disposable3 { dispose: () => void }
 export interface PhysicsHandle { remove: () => void }
@@ -312,7 +315,7 @@ export class Scope {
     if (this.closed) return 0;
     let forget = () => { /* Filled before the frame can fire. */ };
     const native = scopeEnvironment();
-    const id = native.frame((time) => { forget(); this.rafCancels?.delete(id); if (!this.closed) withOwner(this, () => fn(time)); });
+    const id = native.frame((time) => { forget(); this.rafCancels?.delete(id); if (!this.closed) withOwnerCall(this, runFrame, fn, time); });
     const cancel = (): void => { native.cancelFrame(id); this.rafCancels?.delete(id); forget(); };
     forget = this.registration({ kind: 'raf' }, 'rafs', cancel); (this.rafCancels ??= new Map()).set(id, cancel);
     return id;
