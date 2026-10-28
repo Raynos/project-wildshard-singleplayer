@@ -1,10 +1,13 @@
 import type { Object3D } from 'three';
 import { withOwner, withOwnerCall } from './ownership';
-import { scopeEnvironment } from './scopeEnvironment';
+import { scopeEnvironment, type ScopeEnvironment } from './scopeEnvironment';
 import { scopedProperty } from './scopedProperty';
 
 // Keep the frame timestamp out of a newly captured owner closure on every RAF.
-function runFrame(fn: FrameRequestCallback, time: number): void { fn(time); }
+function runFrame(fn: FrameRequestCallback | undefined, time: number): void {
+  if (fn === undefined) throw new TypeError('fn is not a function');
+  fn(time);
+}
 
 export interface Disposable3 { dispose: () => void }
 export interface PhysicsHandle { remove: () => void }
@@ -35,6 +38,29 @@ export interface NativeCensus {
   timers: { timeouts: number; intervals: number; raf: number };
 }
 interface Registration { scope: Scope; target?: EventTarget; timer?: ReturnType<typeof setTimeout>; kind: 'listeners' | 'timeouts' | 'intervals' | 'raf' }
+interface FrameRecord {
+  id: number | undefined; fn: FrameRequestCallback | undefined; native: ScopeEnvironment | undefined;
+  readonly owner: Scope; readonly cleanup: Cleanup; readonly registration: Registration;
+  run: FrameRequestCallback; readonly cancel: () => void;
+  readonly beforeId: () => void; readonly begin: () => void; readonly finish: () => void;
+}
+// A retained Error can keep its frame's function alive. The native driver owns
+// only a weak record reference; user code runs outside the record's closures.
+function frameDriver(ref: WeakRef<FrameRecord>): FrameRequestCallback {
+  return (time) => { dispatchFrame(ref, time); };
+}
+function dispatchFrame(ref: WeakRef<FrameRecord>, time: number): void {
+  const record = ref.deref(); if (record === undefined) return; // retired native request
+  const fn = record.fn, owner = record.owner;
+  if (record.id === undefined) {
+    record.beforeId();
+    if (!owner.disposed) withOwnerCall(owner, runFrame, fn, time);
+    return;
+  }
+  record.begin();
+  if (!owner.disposed) withOwnerCall(owner, runFrame, fn, time);
+  record.finish();
+}
 // Declaration consumers can have Node timer overloads; zero remains the closed-scope sentinel there too.
 type ScopedTimer<T> = T | 0;
 const registrations = new Set<Registration>();
@@ -310,16 +336,69 @@ export class Scope {
     return id;
   }
   private rafCancels: Map<number, () => void> | undefined;
+  private freeFrames: (FrameRecord | undefined)[] | undefined;
+  private freeFrameCount = 0;
   cancelRaf(id: number): void { this.rafCancels?.get(id)?.(); }
+  /** Created outside raf(fn)'s activation: an empty record never keeps the
+   * first callback's closure alive. Only completed callbacks return a record
+   * to the empty cache; a cancelled request keeps its own fn/id until then. */
+  private newFrameRecord(): FrameRecord {
+    const registration: Registration = { scope: this, kind: 'raf' };
+    const record: FrameRecord = {
+      id: undefined, fn: undefined, native: undefined, owner: this, registration,
+      cleanup: { kind: 'rafs', run: () => { registrations.delete(registration); record.cancel(); } },
+      cancel: () => {
+        const id = record.id;
+        if (id !== undefined) record.native?.cancelFrame(id);
+        if (id !== undefined) this.rafCancels?.delete(id);
+        registrations.delete(registration); this.cleanups.delete(record.cleanup);
+        // Keep this request's values for an already-dispatched callback.
+        // A cancelled request is not returned to the empty cache.
+      },
+      beforeId: () => {
+        // Match the old optional-map/id ordering for injected synchronous
+        // schedulers. Native RAF always calls after its identifier returns.
+        if (this.rafCancels !== undefined) throw new ReferenceError("Cannot access 'id' before initialization");
+      },
+      begin: () => {
+        const id = record.id;
+        registrations.delete(registration); this.cleanups.delete(record.cleanup);
+        if (id !== undefined) this.rafCancels?.delete(id);
+        record.fn = undefined;
+        // Sliced teardown may already hold this cleanup. Keep its original
+        // native cancellation after a callback fires during retirement.
+        if (!this.closed) { record.id = undefined; record.native = undefined; }
+      },
+      finish: () => {
+        if (!this.closed && this.freeFrameCount < 4) {
+          const free = this.freeFrames ??= [undefined, undefined, undefined, undefined];
+          free[this.freeFrameCount++] = record;
+        }
+      },
+      run: () => undefined, // replaced before the record can reach a scheduler
+    };
+    record.run = frameDriver(new WeakRef(record));
+    return record;
+  }
+
   raf(fn: FrameRequestCallback): number {
     if (this.closed) return 0;
-    let forget = () => { /* Filled before the frame can fire. */ };
-    const native = scopeEnvironment();
-    const id = native.frame((time) => { forget(); this.rafCancels?.delete(id); if (!this.closed) withOwnerCall(this, runFrame, fn, time); });
-    const cancel = (): void => { native.cancelFrame(id); this.rafCancels?.delete(id); forget(); };
-    forget = this.registration({ kind: 'raf' }, 'rafs', cancel); (this.rafCancels ??= new Map()).set(id, cancel);
+    const index = this.freeFrameCount - 1;
+    let record = index < 0 ? undefined : this.freeFrames?.[index];
+    if (record === undefined) record = this.newFrameRecord();
+    else { this.freeFrameCount = index; if (this.freeFrames !== undefined) this.freeFrames[index] = undefined; }
+    const native = scopeEnvironment(); record.fn = fn; record.native = native;
+    let id: number;
+    try { id = native.frame(record.run); } catch (error) { record.fn = undefined; record.native = undefined; throw error; }
+    record.id = id;
+    // A conforming native scheduler cannot close the scope inside frame().
+    // Keep the original immediate cleanup for injected hosts that do so.
+    if (this.closed) record.cancel();
+    else { registrations.add(record.registration); this.cleanups.add(record.cleanup); }
+    (this.rafCancels ??= new Map()).set(id, record.cancel);
     return id;
   }
+
   onDispose(fn: () => void): void { this.track('disposers', fn); }
   /** O20: a cleanup in parts (a cache's evictions, one per part): `dispose()` runs it whole, `disposeSteps()` yields after
    *  each part, so one big cleanup never holds a sliced retirement's frame. */
@@ -334,7 +413,7 @@ export class Scope {
 
   dispose(): void {
     if (this.closed) return;
-    this.closed = true;
+    this.closed = true; this.freeFrames = undefined; this.freeFrameCount = 0;
     const cleanups = [...this.cleanups].reverse();
     this.cleanups.clear();
     const errors: unknown[] = [];
@@ -362,7 +441,7 @@ export class Scope {
    */
   *disposeSteps(): Generator<DisposeStep, void> {
     if (this.closed) return;
-    this.closed = true;
+    this.closed = true; this.freeFrames = undefined; this.freeFrameCount = 0;
     const cleanups = [...this.cleanups].reverse();
     this.cleanups.clear();
     const errors: unknown[] = [];
