@@ -1,39 +1,30 @@
 # SHARD-PLATFORM — State (wildshard-new; ≤ 3 KB)
 
-**G824 (Jake): SHARD-PLATFORM archives today.** Tile T6 / T7 finish today if they can (crossings: G828);
-remaining misses move to BURN-DAMAGE-LIST. NM pilot R1-R3 and RP2-RP4 move to a new parked open-plots plan
-(wildshard-v, after Jake's play). Jake QAs legacy (his word starts LD5-LD8 and A1-A2 at once), M2 and T10. After the archive
-commit every lane and the coordinator stop. Opus is back (G836).
-**LIVE a6701db713** (a6701db71-mvsi9z8w). G841's 'release now' (run 40760324647) had nothing newer to ship: 460… failed the
-Nine Developer title budget (sp-o4 fixing: spawn settle on title boots), so the G830 / QA fixes ride the next fully green SHA.
-**Jake's QA 10-28 PASSED:** Night Market (G827), loading / M2 (G831, plan closed), tiles / T10 iPhone (G832; pop-in and
-far visibility on the damage list), Driftwood phone cut B -8.4 MB stays (G833, G812 closed). Only LEGACY remains (his word).
-**More P0s in the next release:** SW stall limits incl. shard.json / navigation (sp-x2, G830), tap paints the loading screen
-first + reload-step CSS + quick-step grouping + hold toggle (sp-x6), T5 labels off the minimap (792fa39d79), pier stand-in
-(sp-x10), bad lagoon water bisect (sp-x1), Props 23.7 s freeze bisect (sp-x8), reveal holds until spawn shaders link (sp-x9).
-**Lanes now:** 3 Opus (sp-o3 / o4 / o5; G836, G848 all visual work), 5 Codex (x1 / x2 / x6 / x9 / x10; sp-x8 released at its
-boundary) + sp-ci-deploy.
-**Reply to wildshard-v (G836):** 3 Opus lanes restarted on CO1 render fixes: sp-o3 water, sp-o4 reveal after spawn shaders +
-blurred top, sp-o5 pier / far stand-ins. The SW stall limits (G830) are on sp-x2. The loading
-archive ffad75f6e3; SW13 9132329eee. CO6: [boards](../../../art/legacy-vs-shardfile/round-1-2026-10-28/README.md); Sky gap; Jake word pending.
-**G828 (Jake):** crossing-time cuts stop. T2-T4 and grid-ready Nalati close as 'not reachable in this architecture'
-(DW 7.5, Nalati 10.4, Pine 14.7 s cold), off the damage list. Nobody drafts a one-world plan.
-**G825:** sp-ci-deploy rewrites src/game/whatsNew.json now for live a3f28a795, and with every release.
+**G824: SHARD-PLATFORM archives today; after the archive commit EVERY lane and the coordinator stop until Jake's retro
+(G845).** Only legacy-deletion (LD4b goldens, then LD5-LD10 all at once on Jake's word, G840 / G843) waits on Jake.
+Archived today: loading, iphone-downloads, grid-crossing, shared-waits, open-plots (hologram), mega-build, finish-line,
+NM pilot, remaster-open-plots, grid-ready, build-speed, custom-code-freeze (A1 / A2 = LD9 / LD10, G838).
 
-Damage list: [BURN-DAMAGE-LIST](../BURN-DAMAGE-LIST.md) only.
+**LIVE a6701db713** (a6701db71-mvsi9z8w). G841's 'release now' (run 40760324647) had nothing newer: 460… failed the Nine
+Developer title budget (sp-o4: spawn settle on title boots), so the G830 / QA fixes ride the next fully green SHA.
+**Landed for that release:** SW stall limits + QF2 T1-T8 + B4 / B5 (sp-x2, f3bf5b331b), tap-paints loading screen +
+reload CSS + quick steps + hold toggle (sp-x6), minimap labels off (792fa39d79), water plane (04a6eb0c48), pier stand-in
+(a87795e6bd), sailboat (828dd585c8), Far Reach islets / Keeper / windmill (18aaab1583), WebKit warm-up pacing (91fb71d907),
+B1 whole-pack reads (B2 count a measured miss), shard.json 3 s race, audio first-use loading (16afe / dfe).
 
-**G819-G823 marked:** H3 closed, H4 / A1 accepted misses (43114e578e); T7 open (2 DW misses, 769b2f616a); RM13 closed (G827).
-T10 official floor with spawn settle (cd73c3a642): still 13 / 15 (spawn p95 41, Pine drive 42 ms; Opus).
-**Counter:** true 188.5 / 209 before G819-G823's marks (sp-x8 recount, cc69600).
+**Jake's QA 10-28 PASSED:** Night Market (G827), loading / M2 (G831), tiles / T10 iPhone (G832), DW phone cut B (G833).
+**Open:** Nine wet-neon reflections + hands (sp-o3), Pine blob / crag + pier far reading + NM figures (sp-o5), QF10 blur
+(not reproduced) + Nine title red (sp-o4); tile T6 / T7 quick wins then damage list (G842); Props D201, Sky D199.
+CO6 boards: [round-1](../../../art/legacy-vs-shardfile/round-1-2026-10-28/README.md); Sky Reach islet gap logged.
 
-**Still open:** herd clock, material variants / mesh quantising, Pine T7.7, RM8.1e witness, D53 CLIs (all recommended as
-before); picks D183 / D185; legacy (LD5-LD8, A1-A2) on Jake's word.
+**Rules (10-28):** G848 no visual work on Codex (Opus-only; Codex bisects). G844 every look commit lands with a labelled
+same-camera before / after. G846 the detailed loading screen stays for everyone (hold toggle Developer-only). G828 no
+crossing-time cuts, no one-world plan drafts.
 
-**FYI Jake:** Pine white ground / teal tree cards (D189) and the slow-link Pine crossing (D190 / D196) are fixed and live.
-**M2:** Sim cold 7.37 s pass, warm 8.44 s miss (an intermittent Safari ~975 ms hold before SW dispatch, not app code).
-**Explorer-after-play fixed:** Nalati 94 / 94 (f4000a3f59 frame-wait cap); Nine 60 / 60 (the harness's agent-browser Escape
-key flood, 222c87942b).
-**Opus (needs the morning account switch; Claude 97 %):** Pine drive (T10), Nalati / Pine cold render tails, T7 GPU
-footprint, D154, D197 render half, RM8.1e witness.
+**Lanes:** 3 Opus (sp-o3 / o4 / o5, G836 on Jake's new account), 5 Codex (x1 / x2 / x6 / x9 / x10; sp-x8 released at its
+boundary) + sp-ci-deploy. Counter: Jake's CO5 fix pending (true 188.5 / 209 before today's marks).
 
-**Rules:** G704. G807. G818. G819-G823. No reverts (G674). No new Debug rows (G669). G670. Never herdr wildshard-v.
+**Still open for wildshard-v / Jake:** herd clock, material variants / mesh quantising, RM8.1e witness, D53 CLIs; picks
+D183 / D185.
+
+**Rules:** G704. G807. G836. G844. G848. No reverts (G674). No new Debug rows (G669). Never herdr wildshard-v.
