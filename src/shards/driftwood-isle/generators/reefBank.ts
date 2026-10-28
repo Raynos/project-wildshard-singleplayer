@@ -4,7 +4,8 @@ import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { Rng } from '@wildshard/sdk/random';
-import { WRECK } from './worldSites';
+import { WRECK, OCEAN } from './worldSites';
+import foliagePolicy from '../data/foliagePolicy.json' with { type: 'json' };
 import { SEED, WORLD_DROP } from './landscapeRows';
 import { REEF_SPECIMENS, REEF_MODEL_SEED } from './reefSpecimenRows';
 import { LAGOON_REEF, scatterLagoon, type LagoonField, type ReefLayout } from './reefScatter';
@@ -34,7 +35,7 @@ export function driftwoodReefBank(): DriftwoodReefBank { bank ??= buildReefBank(
 function buildReefBank(): DriftwoodReefBank {
   const native = readNativeTerrain(driftwoodGroundBytes());
   // the island's heights with its G164 datum, as the level's bound heightfield samples them; normals unshifted
-  const field: LagoonField = { heightAt: (x, z) => native.heightAt(x, z) - WORLD_DROP, normalAt: (x, z, reach) => native.normalAt(x, z, reach) };
+  const field: LagoonField = { half: native.grid.size / 2, level: OCEAN.level, roadWidth: foliagePolicy.roadWidth, heightAt: (x, z) => native.heightAt(x, z) - WORLD_DROP, normalAt: (x, z, reach) => native.normalAt(x, z, reach) };
   const blobs = new Map<string, ReefBlob>(), byUrl: Record<string, string> = {}, names = new Map<string, string>();
   const emit = (bytes: Uint8Array, kind: ReefBlob['kind'], name: string): void => {
     const hash = hashImmutableBytes(bytes), owner = names.get(hash) ?? name;
