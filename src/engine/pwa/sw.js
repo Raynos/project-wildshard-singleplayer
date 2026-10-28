@@ -75,8 +75,16 @@ const FONTS = JSON.parse('__FONTS__');
 /** Build-owned per-entry code transport. Unselected entries are never fetched. */
 /** @type {{files: string[], entries: Record<string, readonly [string, number, number, readonly number[]]>}} */
 const CODE_PACKS = JSON.parse('__CODE_PACKS__');
-/** @type {Map<string, Promise<string>>} */
+/** @type {Map<string, {work:Promise<string>, ports:Set<MessagePort>}>} */
 const codePackJobs = new Map();
+const cachePublications = new Map();
+function publishCached(cache, key, response) {
+  const url = typeof key === 'string' ? key : key.url;
+  const work = cache.put(key, response).catch(() => undefined).finally(() => {
+    if (cachePublications.get(url) === work) cachePublications.delete(url);
+  });
+  cachePublications.set(url, work);
+}
 const SHELL = `ws-shell-${BUILD}`;
 const STATIC = `ws-static-${ASSETS}`;
 const IMMUTABLE_CACHE = 'ws-immutable';
@@ -153,6 +161,7 @@ async function backgroundCache(cache, url) {
  */
 async function fillMissing(cache, urls, strict = false) {
   await Promise.all(urls.map(async (u) => {
+    await cachePublications.get(abs(u));
     if (await cache.match(abs(u), MATCH_OPTS)) return;
     // the previous build's static cache still holds it (the icons, the fonts): a copy, not a download (E160 — an asset
     // deploy names a new static cache before `activate` carries the old one over, and install re-fetched ~0.5 MB here)
@@ -203,7 +212,7 @@ workerScope.listen(self, 'install', (event) => {
         // The pill adopted it, the reload ran the index chunk, and then `import(main)` 404'd: a loader frozen at
         // 00:00.0 and nothing else. A mismatch fails the install instead: the old worker keeps serving, and the next
         // update() fetches the live sw.js and tries again.
-        const doc = await fetch(abs('/index.html'), { cache: 'no-store' });
+        const doc = await fetchAttempt(new Request(abs('/index.html'), { cache: 'no-store' }));
         if (!doc.ok) throw new Error(`install: /index.html ${doc.status}`);
         const foreign = await foreignRefs(doc.clone());
         if (foreign.length > 0) throw new Error(`install: /index.html is another build's (${foreign.join(', ')})`);
@@ -437,19 +446,29 @@ workerScope.listen(self, 'message', (event) => {
     const declared = Object.values(CODE_PACKS.entries).find(row => Array.isArray(row) && row[0] === data.url && row[1] === data.bytes && row[2] === data.decoded);
     if (!declared || !port) { if (port) port.postMessage({ type: 'CODE_PACK_DONE', status: 'unsupported' }); return; }
     port.postMessage({ type: 'CODE_PACK_STARTED' });
-    let work = codePackJobs.get(data.url);
-    if (!work) {
-      work = prepareWorkerCodePack(declared).finally(() => { codePackJobs.delete(data.url); });
-      codePackJobs.set(data.url, work);
-    }
-    event.waitUntil(work.then(status => { port.postMessage({ type: 'CODE_PACK_DONE', status }); return status; }));
+    let job = codePackJobs.get(data.url);
+    if (!job) {
+      const ports = new Set([port]);
+      const work = prepareWorkerCodePack(declared, loaded => {
+        for (const listener of ports) {
+          // oxlint-disable-next-line unicorn/require-post-message-target-origin -- MessagePort.postMessage has no targetOrigin parameter.
+          listener.postMessage({ type: 'CODE_PACK_PROGRESS', url: data.url, loaded, total: declared[1] });
+        }
+      }).finally(() => { codePackJobs.delete(data.url); });
+      job = { work, ports }; codePackJobs.set(data.url, job);
+    } else job.ports.add(port);
+    const current = job;
+    event.waitUntil(current.work.then(status => {
+      current.ports.delete(port); port.postMessage({ type: 'CODE_PACK_DONE', status }); return status;
+    }));
   }
 });
 
 /** Whole, authenticated code only; failed storage/transport keeps the original
  * complete per-module retry path. Never publish a partial/corrupt pack body.
- * @param {readonly [string, number, number, readonly number[]]} row */
-async function prepareWorkerCodePack(row) {
+ * @param {readonly [string, number, number, readonly number[]]} row
+ * @param {(loaded:number)=>void} [progress] */
+async function prepareWorkerCodePack(row, progress) {
   try {
     const [url, bytes, decoded, members] = row, cache = await caches.open(IMMUTABLE_CACHE);
     const paths = members.map(index => CODE_PACKS.files[index]);
@@ -461,7 +480,7 @@ async function prepareWorkerCodePack(row) {
     if (!response.ok) throw new Error('Failed code pack transport');
     const hash = /\/([a-f0-9]{64})\.pack$/.exec(url)?.[1];
     if (hash === undefined) throw new Error('Invalid code pack address');
-    const entries = await codePackEntries(await readCodePackTransport(response, bytes), [bytes, decoded, hash], new Set(paths));
+    const entries = await codePackEntries(await readCodePackTransport(response, bytes, progress), [bytes, decoded, hash], new Set(paths));
     if (entries.length !== paths.length) throw new Error('Incomplete code pack registry');
     for (let index = 0; index < entries.length; index += 4) {
       await Promise.all(entries.slice(index, index + 4).map(([path, value]) => cache.put(abs(path), new Response(value, {
@@ -627,47 +646,70 @@ const FETCH_ATTEMPT_MS = 10000;
 class WorkerFetchStallError extends Error {
   constructor(url) { super(`Service worker fetch stalled: ${url}`); this.name = 'WorkerFetchStallError'; }
 }
+/** Only executable/style resources need E188's complete-body retry barrier. */
+function wholeCode(req) {
+  return req.destination === 'script' || req.destination === 'style' || /\.(?:m?js|css)$/.test(new URL(req.url).pathname);
+}
 /** @param {Request|string} input @param {{stallMs?:number, deadlineMs?:number}} [options] @returns {Promise<Response>} */
 async function fetchAttempt(input, { stallMs = FETCH_ATTEMPT_MS, deadlineMs } = {}) {
   const req = typeof input === 'string' ? new Request(input) : input;
   const owner = new WorkerScope(), controller = new AbortController();
-  const abort = () => { controller.abort(req.signal.reason); };
-  owner.listen(req.signal, 'abort', abort);
-  if (req.signal.aborted) abort();
-  let watch = new WorkerScope();
-  let reset = () => undefined;
-  /** @type {ReadableStreamDefaultReader<Uint8Array>|undefined} */
-  let reader;
+  let watch = new WorkerScope(), reset = () => undefined;
+  /** @type {ReadableStreamDefaultReader<Uint8Array>|undefined} */ let reader;
+  /** @type {ReadableStreamDefaultController<Uint8Array>|undefined} */ let output;
+  let transferred = false, ended = false;
+  const cleanup = () => { if (ended) return; ended = true; owner.dispose(); watch.dispose(); };
+  const cancelBody = () => { if (reader) void reader.cancel().catch(() => undefined); };
   /** @type {Promise<never>} */
   const deadline = new Promise((_resolve, reject) => {
-    const expire = () => { reject(new WorkerFetchStallError(req.url)); controller.abort(); };
+    /** @param {Error} error */
+    const fail = error => {
+      reject(error); controller.abort(error);
+      if (output) output.error(error);
+      cancelBody(); cleanup();
+    };
+    const abort = () => {
+      const reason = req.signal.reason;
+      fail(reason instanceof Error ? reason : new Error('Worker fetch aborted', { cause: reason }));
+    };
+    owner.listen(req.signal, 'abort', abort);
+    if (req.signal.aborted) { abort(); return; }
+    const expire = () => { fail(new WorkerFetchStallError(req.url)); };
     if (deadlineMs !== undefined) owner.timeout(deadlineMs, expire);
     reset = () => {
-      watch.dispose(); watch = new WorkerScope();
-      watch.timeout(stallMs, expire);
+      watch.dispose(); watch = new WorkerScope(); watch.timeout(stallMs, expire);
     };
     reset();
   });
-  const read = async () => {
-    const res = await fetch(input, { signal: controller.signal });
+  try {
+    const res = await Promise.race([fetch(input, { signal: controller.signal }), deadline]);
     if (!res.ok || res.body === null) return res;
     reset(); reader = res.body.getReader();
+    if (!wholeCode(req)) {
+      const stream = new ReadableStream({
+        start(target) { output = target; },
+        async pull(target) {
+          try {
+            const part = await Promise.race([reader.read(), deadline]);
+            if (part.done) { target.close(); reader.releaseLock(); cleanup(); }
+            else { if (part.value.byteLength > 0) reset(); target.enqueue(part.value); }
+          } catch (error) { target.error(error); cancelBody(); cleanup(); }
+        },
+        cancel(reason) { controller.abort(reason); cancelBody(); cleanup(); },
+      });
+      transferred = true;
+      return new Response(stream, { status: res.status, statusText: res.statusText, headers: res.headers });
+    }
     /** @type {Uint8Array[]} */ const chunks = [];
     try {
       for (;;) {
-        const part = await reader.read();
+        const part = await Promise.race([reader.read(), deadline]);
         if (part.done) break;
         if (part.value.byteLength > 0) { chunks.push(part.value); reset(); }
       }
     } finally { reader.releaseLock(); }
     return new Response(new Blob(chunks), { status: res.status, statusText: res.statusText, headers: res.headers });
-  };
-  try { return await Promise.race([read(), deadline]); }
-  finally {
-    owner.dispose(); watch.dispose();
-    // Also release an uncooperative host body when abort itself never settles it.
-    if (controller.signal.aborted && reader) void reader.cancel().catch(() => undefined);
-  }
+  } finally { if (!transferred) cleanup(); }
 }
 
 function sleep(ms) { return new Promise((resolve) => { workerScope.timeout(ms, resolve); }); }
@@ -701,7 +743,7 @@ async function cacheFirst(req, name) {
       return transportReceipt(held, true);
     }
   }
-  return fetchWhole(req, cache);
+  return wholeCode(req) ? fetchWhole(req, cache) : networkFirst(req, name);
 }
 
 /**
@@ -750,7 +792,7 @@ async function networkFirst(req, name, key, doc = false) {
   try {
     const res = await fetchAttempt(req);
     if (doc) putDocument(cache, key ?? req, res.clone()).catch(() => undefined);
-    else if (res.ok) cache.put(key ?? req, res.clone()).catch(() => undefined);
+    else if (res.ok) publishCached(cache, key ?? req, res.clone());
     return transportReceipt(res);
   } catch (e) {
     const hit = await cache.match(key ?? req, MATCH_OPTS);
@@ -758,7 +800,7 @@ async function networkFirst(req, name, key, doc = false) {
     if (!(e instanceof WorkerFetchStallError) || req.signal.aborted) throw e;
     const res = await fetchAttempt(new Request(req, { cache: 'reload' }));
     if (doc) putDocument(cache, key ?? req, res.clone()).catch(() => undefined);
-    else if (res.ok) cache.put(key ?? req, res.clone()).catch(() => undefined);
+    else if (res.ok) publishCached(cache, key ?? req, res.clone());
     return transportReceipt(res);
   }
 }

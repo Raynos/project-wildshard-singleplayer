@@ -58,8 +58,8 @@ async function codePackHash(bytes) {
   return [...new Uint8Array(hash)].map(byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
-/** @param {Response} response @param {number} expected @returns {Promise<ArrayBuffer>} */
-export async function readCodePackTransport(response, expected) {
+/** @param {Response} response @param {number} expected @param {(loaded:number)=>void} [progress] @returns {Promise<ArrayBuffer>} */
+export async function readCodePackTransport(response, expected, progress) {
   if (!response.ok || response.body === null || !Number.isSafeInteger(expected) || expected < 1 || expected > 32 * 1024 * 1024) throw new Error('Failed code pack transport');
   const reader = response.body.getReader(), body = new Uint8Array(expected); let at = 0;
   try {
@@ -68,6 +68,7 @@ export async function readCodePackTransport(response, expected) {
       if (result.done) break;
       if (at + result.value.byteLength > expected) throw new Error('Oversized code pack transport');
       body.set(result.value, at); at += result.value.byteLength;
+      if (result.value.byteLength > 0) progress?.(at);
     }
   } finally { await reader.cancel(); reader.releaseLock(); }
   if (at !== expected) throw new Error('Truncated code pack transport');

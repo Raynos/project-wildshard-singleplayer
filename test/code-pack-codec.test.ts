@@ -49,3 +49,25 @@ test('truncation, expansion and nonmember URLs refuse before code publication', 
     await expect(codePackEntries(wire, expected, new Set())).rejects.toThrow('Invalid code pack member');
   });
 });
+
+test('transport progress exposes actual prefixes while final bytes keep their original authentication', async () => {
+  await packet(async (wire, expected) => {
+    let controller: ReadableStreamDefaultController<Uint8Array> | undefined;
+    const stream = new ReadableStream<Uint8Array>({ start(value) { controller = value; } });
+    const counts: number[] = [];
+    let first: (() => void) | undefined;
+    const prefix = new Promise<void>(_resolve => { first = _resolve; });
+    const work = readCodePackTransport(new Response(stream), expected[0], loaded => {
+      counts.push(loaded); first?.();
+    });
+    if(controller===undefined)throw new Error('Missing byte stream');
+    const half=Math.floor(wire.byteLength/2);
+    controller.enqueue(new Uint8Array(wire.slice(0,half)));await prefix;
+    expect(counts).toEqual([half]);
+    controller.enqueue(new Uint8Array(wire.slice(half)));controller.close();
+    const complete=await work;
+    expect(counts).toEqual([half,expected[0]]);expect(complete).toEqual(wire);
+    const entries=await codePackEntries(complete,expected,new Set([member]));
+    expect(entries.map(([url,bytes])=>[url,new TextDecoder().decode(bytes)])).toEqual([[member,source]]);
+  });
+});

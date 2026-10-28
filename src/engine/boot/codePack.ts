@@ -1,5 +1,5 @@
 import type { Scope } from '../app/scope';
-import { declareDownloadFile } from './download';
+import { declareDownloadFile, noteDownloadRead } from './download';
 
 /** Compiler-owned, content-addressed transport; module URLs remain unchanged. */
 export function readCodePack(input: unknown): readonly [string, number, number] {
@@ -22,13 +22,25 @@ export async function prepareCodePack(input: unknown, owner: Scope): Promise<(()
   if (worker === null || worker === undefined || owner.disposed) return null;
   const declare = (): void => { declareDownloadFile(url, bytes); };
   const channel = new MessageChannel();
-  let stored = false;
+  let stored = false, received = 0;
+  const shell = document.querySelector<HTMLElement>('.ws-load');
+  const progress = (loaded: number): void => {
+    noteDownloadRead(loaded - received); received = loaded;
+    if (shell !== null) {
+      shell.dataset['codePackUrl'] = url; shell.dataset['codePackLoaded'] = String(loaded);
+      shell.dataset['codePackTotal'] = String(bytes);
+    }
+  };
   await new Promise<void>(resolve => {
     let ended = false;
     let cancelDeadline = (): void => { /* Installed before the worker is messaged. */ };
     const finish = (): void => {
       if (ended) return;
-      ended = true; cancelDeadline(); channel.port1.close(); channel.port2.close(); resolve();
+      ended = true; cancelDeadline(); channel.port1.close(); channel.port2.close();
+      if (!stored && shell?.dataset['codePackUrl'] === url) {
+        delete shell.dataset['codePackUrl']; delete shell.dataset['codePackLoaded']; delete shell.dataset['codePackTotal'];
+      }
+      resolve();
     };
     const timer = owner.timeout(2500, finish);
     cancelDeadline = (): void => { owner.cancelTimer(timer); };
@@ -38,10 +50,14 @@ export async function prepareCodePack(input: unknown, owner: Scope): Promise<(()
       const data = event.data;
       if (typeof data !== 'object' || data === null || !('type' in data)) return;
       if (data.type === 'CODE_PACK_STARTED' && !started) {
-        started = true; owner.cancelTimer(timer);
+        started = true; progress(0); owner.cancelTimer(timer);
         const transfer = owner.timeout(15000, finish);
         cancelDeadline = (): void => { owner.cancelTimer(transfer); };
       }
+      else if (data.type === 'CODE_PACK_PROGRESS' && started
+        && 'url' in data && data.url === url && 'total' in data && data.total === bytes
+        && 'loaded' in data && typeof data.loaded === 'number' && Number.isSafeInteger(data.loaded)
+        && data.loaded >= received && data.loaded <= bytes) progress(data.loaded);
       else if (data.type === 'CODE_PACK_DONE') {
         stored = 'status' in data && data.status === 'stored'; finish();
       }

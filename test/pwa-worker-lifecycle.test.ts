@@ -62,7 +62,7 @@ function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>, 
     .replace("'__INSTALL__'", JSON.stringify(JSON.stringify([entry, dependency, css])))
     .replace("'__CODE_PACKS__'", JSON.stringify(JSON.stringify(packs ?? { files: [], entries: {} })))
     .replace("'__FONTS__'", JSON.stringify(JSON.stringify(fonts)));
-  runInNewContext(`${owner}\n${packSource}\n${worker}`, { self, caches, fetch, URL, Request, Response, Headers, Blob, DecompressionStream, TextDecoder, AbortController, setTimeout, clearTimeout, Date, console, crypto });
+  runInNewContext(`${owner}\n${packSource}\n${worker}`, { self, caches, fetch, URL, Request, Response, Headers, Blob, ReadableStream, DecompressionStream, TextDecoder, AbortController, setTimeout, clearTimeout, Date, console, crypto });
   const dispatch = async (kind: string, payload: Pick<WorkerEvent, 'data' | 'request' | 'ports'> = {}): Promise<void> => {
     const pending: Promise<unknown>[] = [];
     for (const listener of listeners.get(kind) ?? []) listener({ ...payload, source: { postMessage: (value: unknown) => { replies.push(value); } }, waitUntil: work => { pending.push(work); }, respondWith: work => { pending.push(work.then(response => { responses.push(response); return response; })); } });
@@ -148,7 +148,9 @@ test('one selected code pack publishes exact original URLs and supports offline 
     const messages: unknown[] = [];
     await f.dispatch('message', { data: { type: 'PREPARE_CODE_PACK', url: row[0], bytes: row[1], decoded: row[2] },
       ports: [{ postMessage: value => { messages.push(value); } }] });
-    expect(messages).toEqual([{ type: 'CODE_PACK_STARTED' }, { type: 'CODE_PACK_DONE', status: 'stored' }]);
+    expect(messages).toEqual([{ type: 'CODE_PACK_STARTED' },
+      { type: 'CODE_PACK_PROGRESS', url: row[0], loaded: row[1], total: row[1] },
+      { type: 'CODE_PACK_DONE', status: 'stored' }]);
     expect(f.fetch.mock.calls.map(([url]) => url)).toEqual([new URL(row[0], base).href]);
     const cache = await f.open('ws-immutable');
     expect(await (await cache.match(new URL(lazy, base).href))?.text()).toBe('export const selected = 42;');
@@ -527,7 +529,11 @@ test('activation claims without downloading a manifest or traversing any cache',
 test('a cold uncached navigation has one3s total deadline even while its HTML trickles', async () => {
   vi.useFakeTimers(); let stream: ReadableStreamDefaultController<Uint8Array> | undefined;
   const f = fixture(() => Promise.resolve(new Response(new ReadableStream<Uint8Array>({ start(c) { stream = c; } }))));
-  const work = expect(f.dispatch('fetch', { request: new Request(new URL('/index.html', base)) })).rejects.toThrow('Service worker fetch stalled');
+  const body = async (): Promise<void> => {
+    await f.dispatch('fetch', { request: new Request(new URL('/index.html', base)) });
+    await f.responses[0]?.text();
+  };
+  const work = expect(body()).rejects.toThrow('Service worker fetch stalled');
   await vi.advanceTimersByTimeAsync(2500);
   if (stream === undefined) throw new Error('Missing response stream');
   stream.enqueue(new TextEncoder().encode('<html>'));
@@ -577,5 +583,23 @@ test('GC stops at30s and late cache traversal cannot delete or publish after exp
   finish([new Request(key)]); await vi.advanceTimersByTimeAsync(0);
   expect(await (await f.open('ws-static-old')).match(key).then(r=>r?.text())).toBe('retained');
   expect(await (await f.open('ws-static-unit-assets')).match(key)).toBeUndefined();
+  expect(vi.getTimerCount()).toBe(0);
+});
+
+test('GLB data reaches the page before completion and a stalled suffix cannot enter the cache', async () => {
+  vi.useFakeTimers();
+  let stream: ReadableStreamDefaultController<Uint8Array> | undefined;
+  const f = fixture(() => Promise.resolve(new Response(new ReadableStream<Uint8Array>({
+    start(c) { stream = c; c.enqueue(Uint8Array.of(1,2,3)); },
+  }))));
+  const path = '/assets/tex/object-aaaaaaaa.glb';
+  await f.dispatch('fetch', {request:new Request(new URL(path,base))});
+  const reader = f.responses[0]?.body?.getReader();
+  if(reader===undefined||stream===undefined)throw new Error('Missing live data body');
+  expect(await reader.read()).toEqual({done:false,value:Uint8Array.of(1,2,3)});
+  const suffix=expect(reader.read()).rejects.toThrow('Service worker fetch stalled');
+  await vi.advanceTimersByTimeAsync(10000);await suffix;reader.releaseLock();
+  expect(f.fetch).toHaveBeenCalledTimes(1);
+  expect(await(await f.open('ws-static-unit-assets')).match(new URL(path,base).href)).toBeUndefined();
   expect(vi.getTimerCount()).toBe(0);
 });
