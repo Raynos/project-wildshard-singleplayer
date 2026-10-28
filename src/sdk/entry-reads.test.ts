@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { crawlEntryReadSet, type EntryCrawlPorts } from './entryReads';
+import { crawlEntryReadSet, entryDemandUrls, type EntryCrawlPorts } from './entryReads';
 import { hashImmutableBytes } from './immutable';
 
 test('entry crawling records demand order across out-of-order completion without changing repeated reads', async () => {
@@ -47,4 +47,18 @@ test('changing bodies and invalid URLs refuse the crawl without a product or a n
     visit: async (_entry, _tier, take) => { await take('https://foreign.invalid/file'); },
   })).rejects.toThrow();
   expect(read).not.toHaveBeenCalled();
+});
+
+
+test('native pack demands retain only completely covered files in first-demand order', () => {
+  const inventory = { files: [{ path: 'blobs/bin/one.bin', hash: 'one', compressed: 3 }, { path: 'blobs/bin/two.bin', hash: 'two', compressed: 4 }],
+    packs: [{ path: 'blobs/pack/group.pack', bytes: 9, entries: [{ hash: 'meta', offset: 0, bytes: 2 }, { hash: 'one', offset: 2, bytes: 3 }, { hash: 'two', offset: 5, bytes: 4 }] }] };
+  const pack = '/shardfiles/fixture/blobs/pack/group.pack';
+  expect(entryDemandUrls('fixture', inventory, [{ url: pack, range: 'bytes=5-8' }, { url: pack, range: 'bytes=0-4' },
+    { url: '/assets/fixture/skin.ktx2?v=abcdef' }, { url: pack, range: 'bytes=2-4' }])).toEqual([
+    '/shardfiles/fixture/blobs/bin/two.bin', '/shardfiles/fixture/blobs/bin/one.bin', '/assets/fixture/skin.ktx2?v=abcdef']);
+  expect(entryDemandUrls('fixture', inventory, [{ url: pack }])).toEqual(['/shardfiles/fixture/blobs/bin/one.bin', '/shardfiles/fixture/blobs/bin/two.bin']);
+  expect(() => entryDemandUrls('fixture', inventory, [{ url: pack, range: 'bytes=1-4' }])).toThrow('cuts a member');
+  expect(() => entryDemandUrls('fixture', inventory, [{ url: pack, range: 'bytes=0-99' }])).toThrow('outside');
+  expect(() => entryDemandUrls('fixture', inventory, [{ url: pack, range: 'bytes=2-4,5-8' }])).toThrow('one bounded range');
 });
