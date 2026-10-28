@@ -19,7 +19,7 @@ import { signBoard, signSize, neonSize } from './signMath';
 import { geometryWriter } from './bakeWrite';
 import type { AuthoredPlacement as Placement } from './contracts/modelPlacement';
 import { type BakedPlace, type LayoutRows, LayoutRowsSchema, type SignCallRow } from './sections';
-import * as v from 'valibot';
+import { parseSectionValue } from '@wildshard/sdk/sections';
 
 const tuple = (p: Vector3): [number, number, number] => [p.x, p.y, p.z];
 
@@ -150,7 +150,7 @@ export function nineLayoutSource(): { bin: Uint8Array; rows: LayoutRows; records
     sheets: wellSheets.map((s) => ({ y: s.y, band: s.band, a: s.a })),
     banyan: plan === null ? null : { lumps: plan.lumps.map((l) => ({ c: tuple(l.c), r: tuple(l.r), up: l.up, seed: l.seed, wash: l.wash })), hangs: plan.hangs.map(tuple) },
   };
-  const rows = v.parse(LayoutRowsSchema, draft);
+  const rows = parseSectionValue(LayoutRowsSchema, draft);
   const json = new TextEncoder().encode(JSON.stringify(rows, replacer));
   const head = Math.ceil((8 + json.length) / 8) * 8;
   const geoBytes = blocks.reduce((n, b) => n + b.length, 0);

@@ -1,6 +1,6 @@
 
 import codeParts from '../data/codeParts.json' with { type: 'json' };
-import * as v from 'valibot';
+import { parseSectionValue } from '@wildshard/sdk/sections';
 import { CaveRowsSchema } from './sections';
 import { Matrix4 } from 'three';
 import { cragScene } from './cragSceneContribution';
@@ -48,7 +48,7 @@ export const worldScenes: (sources: PineSources) => Promise<WorldScenes> = perSo
   const { CRAG_CAVE_ROWS } = await cragScene(sources), { CABIN_JSON_BLOBS } = await cabinScene(sources);
   const { MODEL_SCENES, SCENE_MODELS, SCENE_PLACEMENTS, PROP_RAW_MODELS, PROP_PACKED_MODELS } = await sceneModelRows(sources);
   const { raw: QUEST_RIDE_RAW_MODELS, packed: QUEST_RIDE_PACKED_MODELS } = await questRideModels(sources);
-  v.parse(CaveRowsSchema, CRAG_CAVE_ROWS);
+  parseSectionValue(CaveRowsSchema, CRAG_CAVE_ROWS);
   /** The bear cave (G483 world scene assembly): its baked interior, its mouth's frame, its look near the mouth and its rock. */
   const CAVE_INTERIOR = caveInteriorRows({ product: 'pine-hollow', file: 'world/crag-cave.json', roof: { url: codeParts.url, rows: codeParts.rows, part: codeParts.parts['cave-roof'] }, look: CAVE_LOOK,
     frame: { x: layout.BEAR_CAVE.x, z: layout.BEAR_CAVE.z, yaw: layout.BEAR_CAVE.rot }, rock: { look: CRAG_LOOK, fill: 'caveFill', pbr: 'mossy_rock', grit: 'rock_ground' } });
