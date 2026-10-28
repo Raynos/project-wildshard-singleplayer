@@ -3,7 +3,23 @@ import * as v from 'valibot';
 import { SceneDressingSchema } from '../src/format/sceneDressing';
 import { emptyShardfile } from '../src/sdk/author';
 import { controlFiles, lateFiles } from '../src/game/shardfile/controlFiles';
-import { nalatiLatePaintedNames, nalatiDeferredCatalogueScene } from '../src/shards/nalati-grasslands/generators/modelBindings';
+import { nalatiLatePaintedNames, nalatiDeferredCatalogueScene, nalatiLateDressingNames } from '../src/shards/nalati-grasslands/generators/modelBindings';
+
+test('desktop hints preserve native demand and critical dependency precedence', () => {
+  const desktop='world/dressing-desktop.json',phone='world/dressing-phone.json';
+  const files=[desktop,phone,'desktop.bin','shared.bin'].map((name,index)=>({name,hash:String(index+1).repeat(64),
+    kind:'binary' as const,compressed:7,decoded:7,gpu:0,triangles:0,draws:0,critical:index===1,dependencies:[] as string[]}));
+  const scene=emptyShardfile({slug:'desktop-warm',name:'Warm',author:'Fixture',seed:1,revision:1});
+  scene.files=files;scene.library=files.map(row=>row.hash);
+  const hints=nalatiLateDressingNames(new Map([[desktop,{file:'desktop.bin',shared:'shared.bin'}],[phone,{file:'shared.bin'}]]),new Set(files.map(row=>row.name)),[]);
+  scene.late=files.filter(row=>hints.includes(row.name)).map(row=>({hash:row.hash}));
+  expect(controlFiles(scene,files).map(row=>row.hash)).toEqual(['2'.repeat(64),'4'.repeat(64)]);
+  expect(lateFiles(scene,files).map(row=>row.hash)).toEqual(['1'.repeat(64),'3'.repeat(64)]);
+  const first=files[1],needed=files[2];if(first===undefined||needed===undefined)throw new Error('Missing dependency fixture');
+  first.dependencies.push(needed.hash);
+  expect(controlFiles(scene,files).map(row=>row.hash)).toEqual(['2'.repeat(64),'3'.repeat(64),'4'.repeat(64)]);
+  expect(lateFiles(scene,files).map(row=>row.hash)).toEqual(['1'.repeat(64)]);
+});
 
 test('catalogue timing stays a closed data declaration with eager absence preserved',()=>{
   const source={name:'timing',catalogues:[{rows:[],materials:{}}],packs:{},geometry:{},materials:{},layers:[],statics:[],animations:[]};
