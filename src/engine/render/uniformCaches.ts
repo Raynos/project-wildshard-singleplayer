@@ -13,6 +13,29 @@ const SEED = [0.5];
 /** an empty array of double elements; `slice` copies the seed's kind and records no allocation site */
 function doubleArray(): number[] { const array = SEED.slice(); array.length = 0; return array; }
 
+interface Vector3Uniform { cache: number[]; addr: WebGLUniformLocation | null }
+interface Vector3Value { x?: number; y: number; z: number; r?: number; g: number; b: number }
+/** WebGL converts each scalar argument to float32. Keep that exact payload in
+ * one per-uniform buffer instead of boxing three changing native arguments.
+ * Array inputs retain Three's own validation, length and cache behavior. */
+function bufferVector3(node: object): void {
+  const native: unknown = Reflect.get(node, 'setValue');
+  if (typeof native !== 'function') return;
+  const arrayValue = native as (this: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value) => void;
+  const buffer = new Float32Array(3);
+  Reflect.set(node, 'setValue', function setVector3(this: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value): void {
+    let x: number, y: number, z: number;
+    if (value.x !== undefined) { x = value.x; y = value.y; z = value.z; }
+    else if (value.r !== undefined) { x = value.r; y = value.g; z = value.b; }
+    else { arrayValue.call(this, gl, value); return; }
+    const cache = this.cache;
+    if (cache[0] === x && cache[1] === y && cache[2] === z) return;
+    buffer[0] = x; buffer[1] = y; buffer[2] = z;
+    gl.uniform3fv(this.addr, buffer);
+    cache[0] = x; cache[1] = y; cache[2] = z;
+  });
+}
+
 /** swap each float leaf's cache under a program's uniform tree (structured uniforms nest in `seq`) */
 function rekind(node: unknown): void {
   if (typeof node !== 'object' || node === null) return;
@@ -23,6 +46,8 @@ function rekind(node: unknown): void {
   const fresh = doubleArray();
   for (const value of cache as readonly unknown[]) { if (typeof value !== 'number') return; fresh.push(value); }
   Reflect.set(node, 'cache', fresh);
+  // PureArrayUniform has the same GL type but owns flattening and array length.
+  if (type === 0x8b51 && Reflect.get(node, 'size') === undefined) bufferVector3(node);
 }
 
 /** wrap one new program's `getUniforms`: its first call (three's own first use) builds the tree, then swaps the caches and
