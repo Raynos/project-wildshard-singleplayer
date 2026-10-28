@@ -48,12 +48,19 @@ export function validateDefinedJson(schemaBytes: Uint8Array, bytes: Uint8Array):
   return validateNamedJson(schemaBytes, bytes, Ajv);
 }
 
+/** Parse authored section values with their defining native grammar. Use when
+ * the wire schema is owned separately: defaults, transforms and custom checks
+ * still run, without converting that grammar into a different JSON schema. */
+export function parseSectionValue<S extends v.GenericSchema>(schema: S, value: unknown): v.InferOutput<S> {
+  return v.parse(schema, value);
+}
+
 /** Declare a private section in data/. Values are parsed by Valibot and then checked against the emitted
  * schema. Unsupported predicates and transforms refuse conversion instead of weakening disk admission. */
 export function defineSection<S extends v.GenericSchema>(name: string, schema: S, value: v.InferInput<S>): DefinedSection<v.InferOutput<S>> {
   assertName(name);
   if (!isJsonData(value)) throw new Error('Custom section value must be plain JSON');
-  const parsed = v.parse(schema, value);
+  const parsed = parseSectionValue(schema, value);
   const jsonSchema = toJsonSchema(schema, { target: 'draft-07', errorMode: 'throw', typeMode: 'ignore' });
   validateDefinedSection(new TextEncoder().encode(encodeCanonicalJson(jsonSchema)), parsed);
   return { name, value: parsed, jsonSchema };

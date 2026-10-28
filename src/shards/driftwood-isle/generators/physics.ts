@@ -1,6 +1,6 @@
-import { nameBlob } from '@wildshard/sdk/blobs';
-import { nativeColliderRecordSchema } from '@wildshard/format/nativePhysics';
-import * as v from 'valibot';
+import { nameBlob, emitNamedBlobs, type EmittedBlobs } from '@wildshard/sdk/blobs';
+import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import { nativeColliderSourceRows } from '@wildshard/sdk/formatJsonSchema';
 import rows from '../data/physicsRows.json' with { type: 'json' };
 import { driftwoodGroundRows } from './groundRows';
 
@@ -38,7 +38,7 @@ export function driftwoodPhysicsFloor(): ReturnType<typeof nameBlob> {
 /** Authored immutable hull buffers through the existing named binary intake. */
 export function driftwoodPhysicsSources(): { name: string; kind: 'bin'; source: string; options: { decoded: number } }[] {
   const colliders = new Map<string, number>();
-  for (const solid of v.parse(v.array(nativeColliderRecordSchema([1, 2, 9], 'tagged', true)), rows.solids)) {
+  for (const solid of nativeColliderSourceRows(rows.solids, [1, 2, 9], 'tagged')) {
     for (const range of [solid.vertices, solid.indices]) {
       if (range === undefined) continue;
       if (typeof range === 'string') throw new Error('Driftwood physics requires admitted raw collider ranges');
@@ -46,4 +46,30 @@ export function driftwoodPhysicsSources(): { name: string; kind: 'bin'; source: 
     }
   }
   return Array.from(colliders, ([name, decoded]) => ({ name, kind: 'bin' as const, source: name, options: { decoded } }));
+}
+
+/** Publish the original tracked proof hulls through the explicit source reader.
+ * Owned file identities let timing refer to their real hashes, never pins. */
+export async function driftwoodPhysicsOwnedSources(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<EmittedBlobs> {
+  const sources = driftwoodPhysicsSources();
+  const files = await ctx.cached({ id: 'native-proof-hulls', inputs: sources.map(row => row.source) }, inputs => {
+    if (inputs.size !== sources.length || sources.some(row => (inputs.get(row.source)?.byteLength ?? 0) === 0)) throw new Error('Driftwood proof hull inventory differs');
+    return new Map(inputs);
+  });
+  return emitNamedBlobs(sources.map(row => {
+    const bytes = files.get(row.source);
+    if (bytes === undefined) throw new Error('Missing Driftwood proof hull bytes');
+    return nameBlob(row.name, row.kind, bytes, row.options);
+  }));
+}
+
+/** Only native proof consumers borrow this bank. Required and shared readers
+ * still win through the common control-file selector. All costs stay declared. */
+export function driftwoodProofLateRoots(files: readonly { readonly name?: string; readonly hash: string }[]): { hash: string }[] {
+  const names = ['sim/headless-assembly.json', floorFile, ...driftwoodPhysicsSources().map(row => row.name)];
+  return [...new Set(names.map(name => {
+    const file = files.find(row => row.name === name);
+    if (file === undefined) throw new Error(`Missing Driftwood proof file: ${name}`);
+    return file.hash;
+  }))].map(hash => ({ hash }));
 }

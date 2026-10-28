@@ -388,6 +388,7 @@
     },
     "music": {
       "base": "island",
+      "controlTension": "late",
       "bootSlots": [
         "title",
         "island"

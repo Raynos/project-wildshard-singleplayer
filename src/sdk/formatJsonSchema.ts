@@ -5,7 +5,7 @@ import { ResolvedIslandLibrarySchema } from '@wildshard/format/islandLibrary';
 import { CollectionDisplaysSchema } from '@wildshard/format/collectionDisplay';
 import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, SpecimenAssetSchema } from '@wildshard/format/specimenCatalogue';
 import { BinarySourceSchema } from '@wildshard/format/binarySource';
-import { NativeGroundFileSchema, nativeBodySchema, nativeColliderRecordSchema } from '@wildshard/format/nativePhysics';
+import { NativeGroundFileSchema, nativeBodySchema, nativeColliderRecordSchema, type NativeColliderRecord, type NativeArrayStorage } from '@wildshard/format/nativePhysics';
 import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import { ReturnModulesSchema } from '@wildshard/format/scriptContract';
 import { BowVariantSchema } from '@wildshard/format/bowVariantRows';
@@ -54,7 +54,7 @@ import { BossProfileSchema, ArenaBossProfileSchema, RoamingBossProfileSchema, Sp
 import { NpcRowSchema, NpcMotionSchema, NpcDialogueRowSchema, QuestNpcBindingSchema, QuestNpcBindingsSchema, QuestPageTalksSchema } from '@wildshard/format/npcs';
 import { WeaponProfileSchema, MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema, LashWeaponProfileSchema, ConeWeaponProfileSchema, HeldBowBaseSchema, HeldBowRowsSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
 import { toJsonSchema, type JsonSchema } from '@valibot/to-json-schema';
-import { finite, strictObject, object, looseObject, tuple, type GenericSchema } from 'valibot';
+import { finite, strictObject, object, looseObject, tuple, array, parse, type GenericSchema } from 'valibot';
 import { PopulationKeeperRowsSchema } from '@wildshard/format/populationKeeper';
 import { EdgeProfileSchema, EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { PlumbingSchema } from '@wildshard/format/plumbing';
@@ -738,4 +738,11 @@ const authorFormats: AuthorFormatObjects = {
 export function authorFormatSchema<Name extends keyof AuthorFormatObjects>(name: Name): AuthorFormatObjects[Name] {
   if (!Object.hasOwn(authorFormats, name)) throw new Error(`Unknown author format: ${name}`);
   return authorFormats[name];
+}
+
+/** Admit authored native collider arrays with the defining shape/provenance
+ * checks and original file-slice storage. No decoding or runtime service. */
+export function nativeColliderSourceRows<const S extends readonly (1 | 2 | 6 | 9)[]>(rowsValue: unknown, shapes: S,
+  owner: 'piece' | 'tagged'): NativeColliderRecord<S[number], NativeArrayStorage>[] {
+  return parse(array(nativeColliderRecordSchema(shapes, owner, true)), rowsValue);
 }

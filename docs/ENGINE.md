@@ -8641,6 +8641,14 @@ Values must be plain JSON;
 Valibot supplies defaults before emission. Predicates or transformations
 that cannot be represented by JSON Schema refuse instead of being dropped.
 
+`parseSectionValue(schema, value)` runs the defining native parser when an
+existing section owns its wire grammar separately. It preserves defaults,
+transforms, custom predicates and refusals without converting that grammar;
+the caller still publishes and validates its original wire schema.
+`formatJsonSchema.nativeColliderSourceRows(rows, shapes, owner)` admits an
+array through the defining native collider grammar with original file-slice
+storage and shape/provenance checks; it neither reads nor decodes files.
+
 `emitDefinedSections(definitions)` returns sorted index descriptors and a
 map of canonical bytes at `sections/custom/name.json` and
 `schemas/custom/name.schema.json`. The product writer owns publishing those

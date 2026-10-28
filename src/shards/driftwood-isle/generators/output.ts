@@ -27,7 +27,7 @@ import { CREATURE_INSTALL } from './creatureLook';
 import nativePopulationPolicy from '../data/nativePopulationPolicy.json' with { type: 'json' };
 import { driftwoodJsonBlob as nameBlob } from './namedSchemas';
 import { driftwoodNativeRows } from './nativeBake';
-import { driftwoodPhysics, driftwoodPhysicsFloor, driftwoodPhysicsSources } from './physics';
+import { driftwoodPhysics, driftwoodPhysicsFloor, driftwoodPhysicsSources, driftwoodPhysicsOwnedSources, driftwoodProofLateRoots } from './physics';
 import { WAKE_ENCOUNTER } from './wakeEncounter';
 import { NATIVE_QUEST_PROPS } from './nativeQuestProps';
 import { EXPLORER_CATALOGUE } from './explorerCatalogue';
@@ -88,7 +88,6 @@ import { captureDriftwoodMovers } from './movers';
 
 import { emitPlatformSections, type PlatformSectionName as PlatformDataSectionName } from '@wildshard/sdk/platformSections';
 import { DRIFTWOOD_SPECIES_PROGRAMS } from './speciesPrograms';
-import * as v from 'valibot';
 import {SECTIONS,FixedGeometryGroupsSchema} from './sections';
 import {WIRE_SCHEMAS} from './sectionSchemas';
 import { emitNamedBlobs, nameBlob as nameGuestBlob } from '@wildshard/sdk/blobs';
@@ -96,7 +95,7 @@ import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { DRIFTWOOD_FEAT_COUNTERS } from './questInventory';
 import { enemyPlacements } from './enemyPlacement';
 import { keeperRows } from './keeperRows';
-import { emitDefinedSections } from '@wildshard/sdk/sections';
+import { emitDefinedSections, parseSectionValue } from '@wildshard/sdk/sections';
 import { DRIFTWOOD_OUTPUT } from '../generators/assets';
 import { DRIFTWOOD_CLIENT_SECTIONS, driftwoodOceanWaterRow } from './clientSections';
 import type { DriftwoodCreatureBodyBank } from './creatureBodyBank';
@@ -107,14 +106,14 @@ import { driftwoodBootProgram } from './bootProgram';
 
 const nativePhysics = driftwoodPhysics();
 
-const schemas:Readonly<Record<string,v.GenericSchema>>=SECTIONS;
+const schemas:Readonly<Record<string,Parameters<typeof parseSectionValue>[0]>>=SECTIONS;
 const placed = enemyPlacements();
 const values=[...DRIFTWOOD_CLIENT_SECTIONS, {name:'custom/enemyPlacements',value:placed}];
 if(values.length!==Object.keys(schemas).length)throw new Error('Incomplete Driftwood section inventory');
 const custom=emitDefinedSections(values.map(({name,value})=>{
  const schema=schemas[name],jsonSchema=WIRE_SCHEMAS[name];
  if(schema===undefined||jsonSchema===undefined)throw new Error(`Missing generated Driftwood section: ${name}`);
- return {name,jsonSchema,value:v.parse(schema,value)};
+ return {name,jsonSchema,value:parseSectionValue(schema,value)};
 }));
 
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
@@ -141,7 +140,7 @@ const placements = emitNamedBlobs([nameBlob('actors/page-life.json', 'json', new
   nameBlob('scenes/trail.json', 'json', new TextEncoder().encode(encodeCanonicalJson(trailScene))),
   nameBlob('scenes/cove.json', 'json', new TextEncoder().encode(encodeCanonicalJson(coveScene))),
   nameBlob('scenes/cascade.json', 'json', new TextEncoder().encode(encodeCanonicalJson(cascadeScene))),
-  nameBlob('models/fixed-geometry.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(FixedGeometryGroupsSchema, fixedInventory.groups)))),
+  nameBlob('models/fixed-geometry.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseSectionValue(FixedGeometryGroupsSchema, fixedInventory.groups)))),
   nameBlob('sim/headless-assembly.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...headlessAssembly, constants: { sea: DECLARED_SEA, nativeQuest: DRIFTWOOD_NATIVE_QUEST, nativeQuestSpots, nativeCounters, nativeEncounter: WAKE_ENCOUNTER.encounter, chapterDirector: CHAPTER_DIRECTOR, nativeChapterCues: WAKE_ENCOUNTER.cues.map(({ id, operation }) => ({ id, operation })), mixedPopulation: { ...mixedPopulation, attackTurnCap: nativePopulationPolicy.attackTurnCap, practice: { ...mixedPopulation.practice, at: placed.practice, ...DRIFTWOOD_SPECIES_PROGRAMS.spawns.find(row => row.id === 'spawn.driftwood.practice')?.respawn }, poses: [{ kind: 'crab', clips: [crabClips] }, { kind: 'sailor', clips: [sailorClips], lift: [1.5, 1.5, -2.3, 6] }, { kind: 'captain', clips: [captainClips] }, { kind: 'monkey', clips: monkeyClips }] }, questProps: NATIVE_QUEST_PROPS, ...driftwoodNativeRows(nativePhysics), dayStyle: TOON_LOOK.sky.day, questKillSteps, entries: ENTRY_WALK, swords: headlessSwords, interact: DRIFTWOOD_INTERACT, interactSpots: authoredSpots.rows } }))),
   nameBlob('quests/chapter-director.json', 'json', new TextEncoder().encode(encodeCanonicalJson(CHAPTER_DIRECTOR))),
   nameBlob('quests/wake-boss.json', 'json', new TextEncoder().encode(encodeCanonicalJson(WAKE_ENCOUNTER))),
@@ -218,16 +217,18 @@ export function driftwoodCatalogueFiles(banks: DriftwoodSceneBanks): ReturnType<
 
 /** Prototype geometry and the cove's and sea's page files (I8) belong to the owned-byte cache, never a generated asset
  *  under src. */
-export async function prepareOutput(ctx: Pick<ProjectGenerationContext, 'cached' | 'inputFiles' | 'compileScript' | 'compileScriptV2' | 'compileDecisionRows'>): Promise<typeof output> {
+export async function prepareOutput(ctx: Pick<ProjectGenerationContext, 'cached' | 'inputFiles' | 'compileScript' | 'compileScriptV2' | 'compileDecisionRows'>): Promise<typeof output & { late: { hash: string }[] }> {
   const banks = await driftwoodSceneBanksCached(ctx), bankFiles = await driftwoodSceneBankOutput(banks), foliageFiles = await driftwoodFoliageSceneOutput(ctx);
   const guestFiles = await driftwoodGuestFiles(ctx), guests = driftwoodGuestRows(guestFiles), guestModules = guestModuleFiles(guestFiles, guests);
   const floor = emitNamedBlobs([driftwoodPhysicsFloor()]);
+  const hulls = await driftwoodPhysicsOwnedSources(ctx), hullNames = new Set(hulls.files.map(row => row.name));
   const rows = driftwoodOutputRows(banks.layouts, banks.facts, guests);
   const catalogue = driftwoodCatalogueFiles(banks);
   const fixed = await driftwoodFixedModelOutput(ctx), protos = await driftwoodIslandProtoOutput(ctx), pages = await driftwoodPageFileOutput(ctx), phoneRocks = await driftwoodPhoneRockOutput(banks.rocks.glbs), scenes = await driftwoodSceneModelOutput(ctx);
   return { ...rows, platform: emitPlatformSections(platformRows(worldScenes(banks), banks.layouts, banks.facts, banks.creatures, guests)),
-    namedFiles: [...rows.namedFiles, ...floor.files, ...guestModules.files, ...catalogue.files, ...protos.files, ...pages.files, ...phoneRocks.files, ...fixed.files, ...scenes.files, ...bankFiles.files, ...foliageFiles.files],
-    assets: new Map([...rows.assets, ...floor.assets, ...guestModules.assets, ...catalogue.assets, ...protos.assets, ...pages.assets, ...phoneRocks.assets, ...fixed.assets, ...scenes.assets, ...bankFiles.assets, ...foliageFiles.assets]) };
+    blobs: rows.blobs.filter(row => !hullNames.has(row.name)), late: driftwoodProofLateRoots([...rows.namedFiles, ...floor.files, ...hulls.files]),
+    namedFiles: [...rows.namedFiles, ...floor.files, ...hulls.files, ...guestModules.files, ...catalogue.files, ...protos.files, ...pages.files, ...phoneRocks.files, ...fixed.files, ...scenes.files, ...bankFiles.files, ...foliageFiles.files],
+    assets: new Map([...rows.assets, ...floor.assets, ...hulls.assets, ...guestModules.assets, ...catalogue.assets, ...protos.assets, ...pages.assets, ...phoneRocks.assets, ...fixed.assets, ...scenes.assets, ...bankFiles.assets, ...foliageFiles.assets]) };
 }
 
 /** GR7: the map lattice (the source-owned map: the SDK publishes it as `ui/images/map` and the public alias). */
