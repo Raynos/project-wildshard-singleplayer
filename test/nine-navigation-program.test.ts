@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Own only the isolated native-input/cache fixture and read the original authored bytes.
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve explicit project/cache paths, never an inferred public root.
-import { dirname, resolve } from 'node:path';
+import { dirname, matchesGlob, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare every original native byte without expanding assertion objects.
 import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
@@ -20,7 +20,9 @@ function fixture(): string { mkdirSync('tmp', { recursive: true }); return mkdte
 
 test('the original public navigation transport is explicitly owned by the defining shard', () => {
   const manifest = v.parse(v.object({ assetGlobs: v.array(v.string()) }), JSON.parse(readFileSync(resolve(project, 'manifest.json'), 'utf8')));
-  expect(manifest.assetGlobs).toContain(`public${before.url}`);
+  const owners = manifest.assetGlobs.filter(pattern => matchesGlob(`public${before.url}`, pattern));
+  expect(owners).toEqual(['public/assets/baked/nine-dragon-stack/**']);
+  for (const owner of owners) expect(matchesGlob('public/assets/baked/far-reach/navmesh.bin', owner)).toBe(false);
   const bytes = new Uint8Array(readFileSync(resolve('public', before.url.slice(1))));
   expect(bytes.byteLength).toBe(6047);
   expect(hashImmutableBytes(bytes)).toBe(before.navigation.file);
