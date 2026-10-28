@@ -2,6 +2,7 @@ import { expect, test } from 'vitest';
 import { peopleRows } from '../src/shards/nalati-grasslands/generators/peopleRows.mjs';
 import { EXPLORER_CATALOGUE } from '../src/shards/nalati-grasslands/generators/explorerCatalogue';
 import { nalatiLateFigureNames } from '../src/shards/nalati-grasslands/generators/modelBindings';
+import { atlasFigureCard } from '../src/game/models/kitFigureCard';
 
 const singles = ['child', 'cook', 'elder', 'herderGate', 'herderRail'].map(id => `models/people/${id}.glb`);
 
@@ -24,4 +25,15 @@ test('a shared entered atlas or non-atlas card cannot defer an early-play source
     .toEqual(singles.slice(1));
   expect(nalatiLateFigureNames({ entries: [{ kind: 'held', atlases: { phone: { url: protectedFile } } }] }, {})).toEqual([]);
   expect(nalatiLateFigureNames({}, peopleRows.atlas)).toEqual([]);
+});
+
+test('real card registration retains every variant without resolving a skin before a view asks for it', () => {
+  const row = EXPLORER_CATALOGUE.entries.find(entry => entry.kind === 'kit-figure' && 'atlases' in entry);
+  if (row?.kind !== 'kit-figure' || !('atlases' in row)) throw new Error('Missing original camp card');
+  const resolved: string[] = [];
+  const model = atlasFigureCard(row, url => { resolved.push(url); return url; });
+  expect(model.specimenLifetime).toBe('view');
+  expect(model.prepare).toBeUndefined();
+  expect(model.variants?.map(variant => variant.id)).toEqual(Object.keys(peopleRows.figures));
+  expect(resolved).toEqual([]);
 });
