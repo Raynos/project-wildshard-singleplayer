@@ -25,7 +25,7 @@ import { toLevelSpec } from '../shard/spec';
 import { productPaintedLook } from '../looks/paintedLook';
 import { emptyLook } from './emptyLook';
 import { shardfileLook } from './look';
-import { admitProduct, boundedResponse, readProductInput, readProductDescriptor, type AdmittedProduct, type ProductOptions } from './product';
+import { admitProduct, readProductInput, readProductDescriptor, type AdmittedProduct, type ProductOptions } from './product';
 import { manifestReader, provideManifestAdmission } from './runtimeProduct';
 import { ClientAssets } from './clientAssets';
 import type { ShardfileClientBindings } from './client';
@@ -155,25 +155,7 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
   const url = new URL(manifest.shardfile, options.base);
   if (url.origin !== new URL(options.base).origin || url.search !== '' || url.hash !== '') throw new Error('Manifest shardfile must be an unqualified same-origin source');
   const productOptions = { ...options, base: new URL('.', url).href, descriptorPath: url.pathname };
-  let input: unknown;
-  if (options.offline) {
-    options.progress?.({ phase: 'descriptor', detail: `Reading visited shard descriptor · ${url.pathname}`, bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 1 });
-    const visited = await options.cache?.product(productOptions.base);
-    if (visited?.firstParty !== true) throw new Error('First-party shardfile has not been visited offline');
-    input = visited.source;
-  } else {
-    let bytesRead = 0;
-    options.progress?.({ phase: 'descriptor', detail: `Fetching shard descriptor · ${url.pathname}`, bytesRead, bytesTotal: 0, filesDone: 0, filesTotal: 1 });
-    const response = await options.fetch(url.href), length = Number(response.headers.get('content-length'));
-    const bytesTotal = Number.isSafeInteger(length) && length > 0 ? length : 0;
-    const bytes = await boundedResponse(response, limits.sourceBytes, (size) => {
-      bytesRead += size; options.progress?.({ phase: 'descriptor', detail: `Reading shard descriptor · ${url.pathname}`, bytesRead, bytesTotal, filesDone: 0, filesTotal: 1 });
-    });
-    options.progress?.({ phase: 'descriptor', detail: `Parsing shard descriptor · ${url.pathname}`, bytesRead, bytesTotal: bytesRead, filesDone: 1, filesTotal: 1 });
-    input = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
-  }
-  if (!isOutputIndex(input)) throw new Error('Manifest shardfile requires a format-2 output');
-  const source = await readProductInput(input, productOptions);
+  const source = await readProductDescriptor(productOptions, url);
   const { slug: authoredIdentity } = source.identity, expectedIdentity = manifest.slug.replace(/^_/u, '');
   if (authoredIdentity !== expectedIdentity) throw new Error('Manifest and shardfile identities differ');
   if (source.runtime !== null) throw new Error('Custom runtime requires trusted hybrid composition');

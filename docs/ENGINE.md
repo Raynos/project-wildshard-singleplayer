@@ -8840,6 +8840,9 @@ that same parser/comment counting law for author tools.
 ### Split shardfile loading (P1b)
 
 `game/shardfile/product.readProductDescriptor` reads the v2 index.
+Its optional declared URL retains a manifest's index filename, restricted
+to an unqualified file in that product directory. First-party manifest
+entry and transitional header reads share the same bounded reader.
 Online descriptor headers and body share a three-second deadline. A
 visited fallback rechecks the canonical index against the catalogue /
 bundle hashes, then reads only verified cached sections; an absent or

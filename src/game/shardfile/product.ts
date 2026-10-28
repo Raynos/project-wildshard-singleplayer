@@ -240,13 +240,25 @@ function resolveDescriptor(input: unknown, options: ProductOptions, lineage = fa
 
 const DESCRIPTOR_WAIT_MS = 3000;
 /** Bound the complete descriptor transfer, including a body stalled after headers. */
-async function descriptorWire(options: ProductOptions, refresh = false): Promise<Uint8Array | null> {
+async function descriptorWire(options: ProductOptions, url: URL, refresh = false): Promise<Uint8Array | null> {
   const controller = new AbortController();
   const owner = new Scope('product-descriptor-transfer');
   try {
     const elapsed = new Promise<null>(resolve => { owner.timeout(DESCRIPTOR_WAIT_MS, () => { resolve(null); controller.abort(); }); });
     const fetcher = refresh ? options.backgroundFetch ?? options.fetch : options.fetch;
-    const network = (async () => boundedResponse(await fetcher(new URL('shard.json', options.base).href, controller.signal), limits.sourceBytes))();
+    const network = (async () => {
+      const progress = refresh ? undefined : options.progress, label = options.descriptorPath ?? url.pathname;
+      let bytesRead = 0;
+      progress?.({ phase: 'descriptor', detail: `Fetching shard descriptor · ${label}`, bytesRead, bytesTotal: 0, filesDone: 0, filesTotal: 1 });
+      const response = await fetcher(url.href, controller.signal), length = Number(response.headers.get('content-length'));
+      const bytesTotal = Number.isSafeInteger(length) && length > 0 ? length : 0;
+      const bytes = await boundedResponse(response, limits.sourceBytes, size => {
+        bytesRead += size;
+        progress?.({ phase: 'descriptor', detail: `Reading shard descriptor · ${label}`, bytesRead, bytesTotal, filesDone: 0, filesTotal: 1 });
+      });
+      progress?.({ phase: 'descriptor', detail: `Parsing shard descriptor · ${label}`, bytesRead, bytesTotal: bytesRead, filesDone: 1, filesTotal: 1 });
+      return bytes;
+    })();
     return await Promise.race([network, elapsed]);
   } finally { owner.dispose(); }
 }
@@ -256,8 +268,10 @@ async function checkedDescriptorWire(bytes: Uint8Array, options: ProductOptions)
 }
 /** Read a format-2 output, verifying the catalogue hash before any section fetch.
  * A stalled online revisit uses only its completely admitted cached index and verified cached sections. */
-export async function readProductDescriptor(options: ProductOptions): Promise<Shardfile> {
+export async function readProductDescriptor(options: ProductOptions, declaredUrl?: URL): Promise<Shardfile> {
   const base = new URL('.', options.base).href;
+  const url = new URL(declaredUrl?.href ?? 'shard.json', base);
+  if (new URL('.', url).href !== base || url.pathname.endsWith('/') || url.search !== '' || url.hash !== '') throw new Error('Descriptor must be an unqualified file in its product directory');
   // Observe a failed cache read without making a healthy network response depend on it.
   const cached = (async () => { try { return { value: await options.cache?.product(base) }; } catch (error: unknown) { return { error }; } })();
   let visited: CachedProduct | null | undefined;
@@ -269,7 +283,7 @@ export async function readProductDescriptor(options: ProductOptions): Promise<Sh
   if (options.offline && (visited === null || visited === undefined || (options.firstParty && !visited.firstParty))) throw new Error('Shardfile has not been visited offline');
   let input: unknown = visited?.source;
   if (!options.offline) {
-    const bytes = await descriptorWire({ ...options, base });
+    const bytes = await descriptorWire({ ...options, base }, url);
     if (bytes !== null) input = await checkedDescriptorWire(bytes, options);
     else {
       const held = await cached;
@@ -283,7 +297,7 @@ export async function readProductDescriptor(options: ProductOptions): Promise<Sh
       await checkedDescriptorWire(validationSourceBytes(previous.source), options);
       const source = await readProductInput(previous.source, { ...options, offline: true });
       options.revalidateAfterControl?.(async () => {
-        const fresh = await descriptorWire({ ...options, base }, true);
+        const fresh = await descriptorWire({ ...options, base }, url, true);
         if (fresh !== null) await checkedDescriptorWire(fresh, options);
       });
       return source;

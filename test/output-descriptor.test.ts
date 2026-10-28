@@ -107,17 +107,18 @@ test('descriptor deadline uses a verified revisit at 3 seconds for stalled heade
 });
 
 test('descriptor deadline cannot admit an absent, foreign, changed or incomplete visited product', async () => {
-  for (const refused of ['absent', 'foreign', 'changed', 'incomplete'] as const) {
+  for (const refused of ['absent', 'foreign', 'changed', 'catalogue', 'incomplete'] as const) {
     const f = fixture(), store = cacheStore(), opts = options(f.wires, store.cache);
     if (refused !== 'absent') await admitProduct(await readProductDescriptor(opts), opts);
     if (refused === 'foreign') await store.cache.putProduct(base, { source: f.index, firstParty: false });
     if (refused === 'incomplete') store.bytes.clear();
-    const held: ProductOptions = { ...opts, ...(refused === 'changed' ? { descriptorHash: 'f'.repeat(64) } : {}), fetch: (_url, signal) =>
+    const held: ProductOptions = { ...opts, ...(refused === 'changed' ? { descriptorHash: 'f'.repeat(64) } : {}),
+      ...(refused === 'catalogue' ? { built: { indexes: new Set<string>(), stale: () => Promise.resolve() } } : {}), fetch: (_url, signal) =>
       new Promise((_resolve, reject) => { signal?.addEventListener('abort', () => { reject(new DOMException('Descriptor aborted', 'AbortError')); }, { once: true }); }) };
     vi.useFakeTimers();
     try {
       const expected = expect(readProductDescriptor(held)).rejects.toThrow(refused === 'changed' ? 'descriptor hash mismatch'
-        : refused === 'incomplete' ? 'incomplete section cache' : 'no visited offline copy');
+        : refused === 'catalogue' ? 'older than the shard' : refused === 'incomplete' ? 'incomplete section cache' : 'no visited offline copy');
       await vi.advanceTimersByTimeAsync(3000); await expected;
       expect(vi.getTimerCount()).toBe(0);
     } finally { vi.useRealTimers(); }
@@ -130,6 +131,28 @@ test('descriptor deadline retains immediate network hash, HTTP and size refusals
   await expect(readProductDescriptor({ ...opts, descriptorHash: 'f'.repeat(64) })).rejects.toThrow('descriptor hash mismatch');
   await expect(readProductDescriptor({ ...opts, fetch: () => Promise.resolve(new Response(null, { status: 503 })) })).rejects.toThrow('Unavailable');
   await expect(readProductDescriptor({ ...opts, fetch: () => Promise.resolve(new Response('{}', { headers: { 'content-length': '999999999' } })) })).rejects.toThrow('size exceeds cap');
+});
+
+test('descriptor deadline does not make a healthy first visit depend on a failed cache read', async () => {
+  const f = fixture(), store = cacheStore(), opts = options(f.wires, store.cache);
+  store.cache.product = () => { throw new Error('Disk unavailable'); };
+  expect(await readProductDescriptor(opts)).toStrictEqual(f.source);
+});
+
+test('descriptor deadline retains the declared index filename and refuses crossed or qualified URLs', async () => {
+  const f = fixture(), wire = f.wires.get('shard.json');
+  if (wire === undefined) throw new Error('Missing index fixture');
+  f.wires.delete('shard.json'); f.wires.set('entry.json', wire);
+  const opts = options(f.wires), fetcher = opts.fetch, requests: string[] = [];
+  opts.fetch = (url, signal) => { requests.push(url); return fetcher(url, signal); };
+  expect(await readProductDescriptor(opts, new URL('entry.json', base))).toStrictEqual(f.source);
+  expect(requests).toContain(new URL('entry.json', base).href);
+  expect(requests).not.toContain(new URL('shard.json', base).href);
+  requests.length = 0;
+  for (const path of ['../other/entry.json', 'https://other.test/entry.json', 'entry.json?v=1', 'entry.json#part', './']) {
+    await expect(readProductDescriptor(opts, new URL(path, base))).rejects.toThrow('unqualified file in its product directory');
+  }
+  expect(requests).toEqual([]);
 });
 
 function installIndexReceipt(index: OutputIndex): () => void {
