@@ -1,5 +1,4 @@
 import type * as THREE from 'three';
-import type { ModelBuild, ModelContext, ModelDef } from '@wildshard/engine/models/model';
 import type { BoxSpec, ContactSurface as Material, ColliderDesc } from '@wildshard/sdk/bake/placement';
 import type { Board } from './campParams';
 import { PaintKit, v3, type ColorLike, type FinishOpts, type Painter, type PaintOpts, type NalatiTexName } from './paint';
@@ -47,11 +46,15 @@ export interface PaintSpec {
   readonly layers?: readonly NalatiTexName[];
 }
 
-// Retain ModelDef's exact callback signature; the kit stream type comes from its actual PaintKit factory.
-type ModelRng = Parameters<ModelDef<object>['build']>[2];
-type Build<P> = (ctx: ModelContext, p: P, rng: ModelRng) => ModelBuild;
-interface PaintedBuild<P> { (ctx: ModelContext, p: P, rng: ModelRng): ModelBuild; readonly paint: Paint<P>; readonly spec: PaintSpec }
-export const isPainted = <P>(b: Build<P>): b is PaintedBuild<P> => 'paint' in b;
+/** Offline painter marker: invoking it never constructs a runtime model. */
+interface PaintedBuild<P> { (...args: unknown[]): never; readonly paint: Paint<P>; readonly spec: PaintSpec }
+/** The specimen consumes an ID, typed defaults and an opaque, never-invoked build pointer. */
+export interface PaintedModelSource<P extends object> {
+  readonly id: string;
+  readonly defaults: P;
+  readonly build: (...args: never[]) => unknown;
+}
+export const isPainted = <P>(b: (...args: never[]) => unknown): b is PaintedBuild<P> => 'paint' in b;
 
 /** the first copy each fitted model painted (its specimen is painted there) */
 const firsts = new WeakMap<object, { at: PaintAt; p: object }>();
@@ -84,9 +87,9 @@ export function painted<P extends object>(paint: Paint<P>, spec: PaintSpec): Pai
 }
 
 /** a painted model's specimen geometry for `p` (its build's parts without materials); refuses any other model */
-export function paintedSpecimen<P extends object>(def: ModelDef<P>, p: P, ground: Ground): { geometry: THREE.BufferGeometry; layer: NalatiTexName | null }[] {
+export function paintedSpecimen<P extends object>(def: PaintedModelSource<P>, p: NoInfer<P>, ground: Ground): { geometry: THREE.BufferGeometry; layer: NalatiTexName | null }[] {
   const b = def.build;
-  if (!isPainted(b)) throw new Error(`paintedSpecimen: ${def.id} is not a painted model`);
+  if (!isPainted<P>(b)) throw new Error(`paintedSpecimen: ${def.id} is not a painted model`);
   return specimenParts(b.paint, b.spec, b, p, ground);
 }
 

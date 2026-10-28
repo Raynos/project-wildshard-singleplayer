@@ -2,13 +2,14 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
-import { modelContext, type ModelBuild, type ModelPart, type Placement } from '@wildshard/engine/models/model';
+import type { Placement } from '@wildshard/engine/models/model';
 import type { ColliderDesc, BoxSpec } from '@wildshard/sdk/bake/placement';
 import { trailColliders } from './trailColliders';
-import { buildFencePost, buildPlankStep, buildSignpost, trailPart, TRAIL_COLOURS as C, type PlankStepParams, type SignpostParams } from './trailsideModels';
+import { buildFencePost, buildPlankStep, buildSignpost, trailPart, TRAIL_COLOURS as C, type PlankStepParams, type SignpostParams, type TrailMeshPart } from './trailsideModels';
 import { flightOf, trailsideSpecKey, type TrailsideSpec } from './trailsideLayout';
 
-const isParts = (b: ModelBuild): b is readonly ModelPart[] => Array.isArray(b);
+type ModelBuild = readonly TrailMeshPart[] | THREE.Object3D;
+const isParts = (b: ModelBuild): b is readonly TrailMeshPart[] => Array.isArray(b);
 // These two original authored slopes have adjacent native atan2 results on
 // arm64 and x64. Retain the defining bake's exact doubles at those exact
 // inputs; other terrain samples continue through the native calculation.
@@ -33,9 +34,7 @@ export interface TrailsideGeometry {
 }
 /** Offline original weld; the supplied native height binding is the sole terrain authority. */
 export function trailsideGeometry(spec: TrailsideSpec, heightAt: (x: number, z: number) => number): TrailsideGeometry {
-  const ctx = modelContext(null), material = new THREE.MeshStandardMaterial();
-  // Only geometry is retained; prime the models' shared material slot without a renderer or a sky service.
-  ctx.once('driftwood-isle/trail:material', () => material);
+  const material = new THREE.MeshStandardMaterial();
   const colliders: BoxSpec[] = [];
     const rng = new Rng(SEED ^ 0x7a11);
     const parts: THREE.BufferGeometry[] = [];
@@ -76,7 +75,7 @@ export function trailsideGeometry(spec: TrailsideSpec, heightAt: (x: number, z: 
       }
       // thick weathered pilings, a rope lashing under the cap, the rope sagging in a catenary between them (E43)
       for (const p of line) {
-        if (weld(buildFencePost(ctx, {}, rng), p.x, p.y, p.z, posts.boxes)) posts.pls.push({ x: p.x, y: p.y, z: p.z });
+        if (weld(buildFencePost(material, {}, rng), p.x, p.y, p.z, posts.boxes)) posts.pls.push({ x: p.x, y: p.y, z: p.z });
         colliders.push({ x: p.x, z: p.z, hw: 0.16, hd: 0.16, rot: 0, yTop: p.y + 1.2, yBottom: p.y - 1 });
       }
       for (let i = 0; i < line.length - 1; i++) {
@@ -105,7 +104,7 @@ export function trailsideGeometry(spec: TrailsideSpec, heightAt: (x: number, z: 
         const lo = heightAt(x - ax * hw, z - az * hw), hi = heightAt(x + ax * hw, z + az * hw);
         const y = Math.max(heightAt(x, z), (lo + hi) / 2);
         const params: PlankStepParams = { w, roll: plankRoll(hi - lo, w), yaw: ang, dark: i % 2 === 1 };
-        if (weld(buildPlankStep(ctx, params, rng), x, y, z, planks.boxes)) planks.pls.push({ x, y, z, params });
+        if (weld(buildPlankStep(material, params, rng), x, y, z, planks.boxes)) planks.pls.push({ x, y, z, params });
       }
       const runs = Math.max(1, Math.round(len / 2.8));
       for (const side of [-1, 1]) {
@@ -149,7 +148,7 @@ export function trailsideGeometry(spec: TrailsideSpec, heightAt: (x: number, z: 
     for (const sg of spec.signs) {
       const y = heightAt(sg.x, sg.z);
       const params: SignpostParams = { arrows: sg.arrows.map((a) => a.toward), labels: sg.arrows.map((a) => a.label ?? '') };
-      if (weld(buildSignpost(ctx, params, rng), sg.x, y, sg.z, signs.boxes)) signs.pls.push({ x: sg.x, y, z: sg.z, params });
+      if (weld(buildSignpost(material, params, rng), sg.x, y, sg.z, signs.boxes)) signs.pls.push({ x: sg.x, y, z: sg.z, params });
       colliders.push({ x: sg.x, z: sg.z, hw: 0.12, hd: 0.12, rot: 0, yTop: y + 2.4, yBottom: y - 1 });
     }
 

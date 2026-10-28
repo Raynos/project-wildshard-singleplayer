@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { trailFontFacts } from './trailFont';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '@wildshard/sdk/random';
-import { modelContext, seedOf, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import publicInputs from '../data/publicInputs.json' with { type: 'json' };
@@ -28,13 +27,12 @@ const C = {
 };
 export const TRAIL_COLOURS: { post: THREE.Color; postTop: THREE.Color; rope: THREE.Color; plank: THREE.Color; plankDark: THREE.Color; board: THREE.Color; boardEdge: THREE.Color; letter: THREE.Color; } = C;
 
-/** the trail's one material (the dressing and the trail's own geometry share it: one draw) */
-export function trailMaterial(ctx: ModelContext): THREE.MeshStandardMaterial {
-  return ctx.once('driftwood-isle/trail:material', () => {
-    const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.88, metalness: 0, side: THREE.DoubleSide });
-    ctx.sky.setupMaterial(mat);
-    return mat;
-  });
+/** One complete authored trail draw; the producer lends its existing material. */
+export interface TrailMeshPart {
+  readonly geometry: THREE.BufferGeometry;
+  readonly material: THREE.MeshStandardMaterial;
+  readonly castShadow: true;
+  readonly receiveShadow: true;
 }
 
 /** paint a part one colour (per-face jitter from the stream) and keep it: the trail's own `add` */
@@ -50,20 +48,20 @@ export function trailPart(parts: THREE.BufferGeometry[], rng: Rng): (g: THREE.Bu
 }
 
 /** A trail specimen's build: its parts in own space, from the params and the stream it is handed. */
-export type TrailBuild<P extends object> = (ctx: ModelContext, params: P, rng: Rng) => readonly ModelPart[];
+export type TrailBuild<P extends object> = (material: THREE.MeshStandardMaterial, params: P, rng: Rng) => readonly TrailMeshPart[];
 
-const one = (ctx: ModelContext, parts: THREE.BufferGeometry[]): ModelPart[] =>
-  [{ geometry: parts.length === 1 && parts[0] ? parts[0] : mergeGeometries(parts, false), material: trailMaterial(ctx), castShadow: true, receiveShadow: true }];
+const one = (material: THREE.MeshStandardMaterial, parts: THREE.BufferGeometry[]): TrailMeshPart[] =>
+  [{ geometry: parts.length === 1 && parts[0] ? parts[0] : mergeGeometries(parts, false), material, castShadow: true, receiveShadow: true }];
 
 /** The fence post's build (the trail's runtime model is the specimen catalogue's row with it, trailside.ts). D76: the
  *  builds live apart from the catalogue, so the product's author bundle reaches no game runtime through the bank. */
-export const buildFencePost: TrailBuild<Record<string, never>> = (ctx, _p, rng) => {
+export const buildFencePost: TrailBuild<Record<string, never>> = (material, _p, rng) => {
   const parts: THREE.BufferGeometry[] = [], add = trailPart(parts, rng);
   const tilt = rng.range(-0.06, 0.06);
   add(new THREE.CylinderGeometry(0.13, 0.16, 1.55, 6).rotateZ(tilt).translate(0, 0.45, 0), C.post, 0.08);
   add(new THREE.CylinderGeometry(0.14, 0.14, 0.07, 6).translate(0, 1.22, 0), C.postTop, 0.04);
   for (let r = 0; r < 3; r++) add(new THREE.CylinderGeometry(0.175, 0.175, 0.07, 6).translate(0, 1.0 - r * 0.08, 0), r === 1 ? C.postTop : C.rope, 0.04);
-  return one(ctx, parts);
+  return one(material, parts);
 };
 
 export interface SignpostParams {
@@ -94,7 +92,7 @@ function lettering(text: string, cx: number, side: 1 | -1): THREE.BufferGeometry
 }
 
 /** The signpost's build. */
-export const buildSignpost: TrailBuild<SignpostParams> = (ctx, p, rng) => {
+export const buildSignpost: TrailBuild<SignpostParams> = (material, p, rng) => {
     const parts: THREE.BufferGeometry[] = [], add = trailPart(parts, rng);
     add(new THREE.CylinderGeometry(0.09, 0.11, 2.4, 6).translate(0, 1.1, 0), C.post, 0.06);
     p.arrows.forEach((toward, i) => {
@@ -108,7 +106,7 @@ export const buildSignpost: TrailBuild<SignpostParams> = (ctx, p, rng) => {
       // the place's name, burnt dark into both faces
       for (const side of [1, -1] as const) for (const g of lettering(text, len / 2 + 0.1, side)) { g.rotateY(toward - Math.PI / 2); g.translate(0, by, 0); add(g, C.letter, 0.03); }
     });
-    return one(ctx, parts);
+    return one(material, parts);
 };
 
 export interface PlankStepParams {
@@ -122,18 +120,18 @@ export interface PlankStepParams {
 }
 
 /** The plank step's build. */
-export const buildPlankStep: TrailBuild<PlankStepParams> = (ctx, p, rng) => {
+export const buildPlankStep: TrailBuild<PlankStepParams> = (material, p, rng) => {
   const parts: THREE.BufferGeometry[] = [], add = trailPart(parts, rng);
   const g = new THREE.BoxGeometry(p.w, 0.14, 0.42); g.rotateZ(p.roll); g.rotateY(p.yaw); g.translate(0, 0.02, 0);
   add(g, p.dark ? C.plankDark : C.plank, 0.05);
-  return one(ctx, parts);
+  return one(material, parts);
 };
 
 /** The trail specimens' Explorer GLBs (GR7: the `driftwood-trail-specimens` job's hash-named public copies): each fence post,
  *  signpost and plank-step variant's one native draw by product name, and the public URL each had (trailCatalogue.json's
  *  variant URLs, trailSpecimens.ts) mapped to that name. */
 export interface TrailSpecimenBank { readonly glbs: ReadonlyMap<string, Uint8Array>; readonly byUrl: Readonly<Record<string, string>> }
-const isParts = (built: unknown): built is readonly ModelPart[] => Array.isArray(built);
+const isParts = (built: unknown): built is readonly TrailMeshPart[] => Array.isArray(built);
 const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const numbers = (value: unknown): value is readonly number[] => Array.isArray(value) && (value as readonly unknown[]).every(item => typeof item === 'number');
 const strings = (value: unknown): value is readonly string[] => Array.isArray(value) && (value as readonly unknown[]).every(item => typeof item === 'string');
@@ -153,15 +151,14 @@ let trailSpecimens: TrailSpecimenBank | undefined;
 /** Built once per build process (no file is read); every reader treats it as read-only. */
 export function trailSpecimenBank(): TrailSpecimenBank { trailSpecimens ??= buildTrailSpecimens(); return trailSpecimens; }
 function buildTrailSpecimens(): TrailSpecimenBank {
-  const ctx = modelContext(null), material = new THREE.MeshStandardMaterial(), glbs = new Map<string, Uint8Array>(), byUrl: Record<string, string> = {};
-  ctx.once('driftwood-isle/trail:material', () => material);
+  const material = new THREE.MeshStandardMaterial(), glbs = new Map<string, Uint8Array>(), byUrl: Record<string, string> = {};
   // each specimen's catalogue row (trailCatalogue.json: the id, seed, defaults and variants its runtime model carries)
   const add = <P extends object>(key: string, build: TrailBuild<P>, params: (value: unknown) => P): void => {
     const model = trailRows.find(row => row.key === key)?.model;
     if (model === undefined) throw new Error(`Missing trail catalogue row: ${key}`);
     const variants: readonly { readonly id: string; readonly params: object }[] = 'variants' in model ? model.variants : [{ id: 'fencePost', params: {} }];
     for (const variant of variants) {
-      const parts = build(ctx, params({ ...model.defaults, ...variant.params }), new Rng(seedOf(model)));
+      const parts = build(material, params({ ...model.defaults, ...variant.params }), new Rng(model.seed));
       const part = isParts(parts) && parts.length === 1 ? parts[0] : undefined;
       if (part === undefined) throw new Error('Trail specimen needs one native draw');
       const bytes = staticGlb([{ geometry: part.geometry, material, compactIndex: true }], model.id), name = `models/trail/${variant.id}.glb`;

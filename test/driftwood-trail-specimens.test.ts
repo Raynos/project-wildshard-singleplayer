@@ -11,10 +11,6 @@ import { buildFencePost, buildPlankStep, buildSignpost, type PlankStepParams, ty
 import { TRAIL_SPECIMENS } from '../src/shards/driftwood-isle/generators/trailSpecimens';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 
-// the trail's native models: each catalogue row with its own build (trailsideModels.ts)
-const nativePost: ModelDef<Record<string, never>> = { ...fencePost, build: buildFencePost };
-const nativeSign: ModelDef<SignpostParams> = { ...signpost, build: buildSignpost };
-const nativePlank: ModelDef<PlankStepParams> = { ...plankStep, build: buildPlankStep };
 
 it('transfers sole geometry ownership and leaves no template behind', async () => {
   const original = new BoxGeometry(), intake = modelGeometry('/owned-model.glb');
@@ -33,6 +29,12 @@ it('loads all authored trail cards through their native material and refuses unb
   vi.spyOn(sky, 'setupMaterial').mockImplementation(() => undefined);
   const ctx = modelContext(sky), material = new MeshStandardMaterial();
   ctx.once('driftwood-isle/trail:material', () => material);
+  const nativePost: ModelDef<Record<string, never>> = { ...fencePost,
+    build: (context, params, rng) => buildFencePost(context.once('driftwood-isle/trail:material', () => material), params, rng) };
+  const nativeSign: ModelDef<SignpostParams> = { ...signpost,
+    build: (context, params, rng) => buildSignpost(context.once('driftwood-isle/trail:material', () => material), params, rng) };
+  const nativePlank: ModelDef<PlankStepParams> = { ...plankStep,
+    build: (context, params, rng) => buildPlankStep(context.once('driftwood-isle/trail:material', () => material), params, rng) };
   const emitted = new Map<string, Uint8Array>();
   const cards: (() => Promise<void>)[] = [];
   const isParts = (built: ModelBuild): built is readonly ModelPart[] => Array.isArray(built);

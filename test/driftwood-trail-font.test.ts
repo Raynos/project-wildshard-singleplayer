@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { type BufferGeometry, MeshStandardMaterial } from 'three';
 import { Rng } from '../src/engine/core/rng';
-import { modelContext, type ModelBuild, type ModelPart } from '../src/engine/models/model';
+import type { ModelBuild, ModelPart } from '../src/engine/models/model';
 import { trailFontFacts } from '../src/shards/driftwood-isle/generators/trailFont';
 import { buildSignpost } from '../src/shards/driftwood-isle/generators/trailsideModels';
 
@@ -9,12 +9,10 @@ it('composes readable trail signs from quad runs while leaving unsupported chara
   const font = trailFontFacts();
   expect(font['H']).toBeDefined();
   expect(font[' ']).toBeUndefined();
-  const ctx = modelContext(null);
   const material = new MeshStandardMaterial();
-  ctx.once('driftwood-isle/trail:material', () => material);
   const isParts = (parts: ModelBuild): parts is readonly ModelPart[] => Array.isArray(parts);
   const geometry = (label: string): BufferGeometry => {
-    const parts = buildSignpost(ctx, { arrows: [0], labels: [label] }, new Rng(31));
+    const parts = buildSignpost(material, { arrows: [0], labels: [label] }, new Rng(31));
     if (!isParts(parts) || parts[0] === undefined) throw new Error('Sign geometry absent');
     return parts[0].geometry;
   };
