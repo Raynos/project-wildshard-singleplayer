@@ -1,5 +1,4 @@
 import { MODEL_FILES } from './modelPaint.mjs';
-import type { HeldSlotsRows } from '@wildshard/format/heldArms';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 
 const publicPrefix = '/assets/nalati/baked/painted-models/';
@@ -132,12 +131,23 @@ export function nalatiDeferredCatalogueScene(input:unknown):unknown{
   return{...input,catalogues};
 }
 
+/** Read-only projection of rows already admitted by the caller's held schema. */
+interface HeldPoolTiming {
+  readonly slots: readonly {
+    readonly id: string; readonly kind: string; readonly file?: string;
+    readonly source?: string | { readonly kind: string; readonly file?: string };
+    readonly geometry?: 'on-select';
+  }[];
+  readonly equipment: { readonly primary: string };
+  readonly selection: { readonly initial?: string };
+}
+
 /** Hints follow admitted deferred slots, never their item names. Primary and
  * initial equipment stay early; any eager alias of the same pool also wins. */
-export function nalatiLateHeldNames(rows: HeldSlotsRows, pools: ReadonlyMap<string, string>): readonly string[] {
+export function nalatiLateHeldNames(rows: HeldPoolTiming, pools: ReadonlyMap<string, string>): readonly string[] {
   const late = new Set<string>(), early = new Set<string>();
   for (const row of rows.slots) {
-    const file = 'file' in row ? row.file : row.kind === 'blade' && row.source.kind === 'passes' ? row.source.file : undefined;
+    const file = 'file' in row ? row.file : row.kind === 'blade' && typeof row.source === 'object' && row.source.kind === 'passes' ? row.source.file : undefined;
     const pool = file === undefined ? undefined : pools.get(file);
     if (pool === undefined) continue;
     const deferred = row.kind === 'polearm' && row.geometry === 'on-select'
