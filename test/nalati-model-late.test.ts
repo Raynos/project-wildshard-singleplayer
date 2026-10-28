@@ -1,7 +1,18 @@
 import { expect, test } from 'vitest';
+import * as v from 'valibot';
+import { SceneDressingSchema } from '../src/format/sceneDressing';
 import { emptyShardfile } from '../src/sdk/author';
 import { controlFiles, lateFiles } from '../src/game/shardfile/controlFiles';
-import { nalatiLatePaintedNames } from '../src/shards/nalati-grasslands/generators/modelBindings';
+import { nalatiLatePaintedNames, nalatiDeferredCatalogueScene } from '../src/shards/nalati-grasslands/generators/modelBindings';
+
+test('catalogue timing stays a closed data declaration with eager absence preserved',()=>{
+  const source={name:'timing',catalogues:[{rows:[],materials:{}}],packs:{},geometry:{},materials:{},layers:[],statics:[],animations:[]};
+  const eager=v.parse(SceneDressingSchema,source),late=v.parse(SceneDressingSchema,nalatiDeferredCatalogueScene(source));
+  expect(eager.catalogues[0]).not.toHaveProperty('load');expect(late.catalogues[0]?.load).toBe('after-control');
+  for(const load of ['before-control',null,{},()=>undefined]){
+    expect(v.safeParse(SceneDressingSchema,{...source,catalogues:[{...source.catalogues[0],load}]}).success).toBe(false);
+  }
+});
 
 test('painted alternative hints keep critical and shared dependency overrides', () => {
   const names = ['large.glb', 'small.glb', 'large.ktx2', 'small.ktx2'].map(name => `models/painted/${name}`);
