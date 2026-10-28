@@ -1,5 +1,5 @@
 import type { Scope } from '../app/scope';
-import { declareDownloadFile, noteDownloadRead } from './download';
+import { declareDownloadFile, noteDownloadRead, beginLoadingWait, reportLoadingWait, finishLoadingWait } from './download';
 
 /** Compiler-owned, content-addressed transport; module URLs remain unchanged. */
 export function readCodePack(input: unknown): readonly [string, number, number] {
@@ -23,9 +23,11 @@ export async function prepareCodePack(input: unknown, owner: Scope): Promise<(()
   const declare = (): void => { declareDownloadFile(url, bytes); };
   const channel = new MessageChannel();
   let stored = false, received = 0;
+  const waitId = beginLoadingWait(`application code ${url}`, { kind: 'file', totalBytes: bytes });
   const shell = document.querySelector<HTMLElement>('.ws-load');
   const progress = (loaded: number): void => {
     noteDownloadRead(loaded - received); received = loaded;
+    reportLoadingWait(waitId, { loadedBytes: loaded });
     if (shell !== null) {
       shell.dataset['codePackUrl'] = url; shell.dataset['codePackLoaded'] = String(loaded);
       shell.dataset['codePackTotal'] = String(bytes);
@@ -36,7 +38,7 @@ export async function prepareCodePack(input: unknown, owner: Scope): Promise<(()
     let cancelDeadline = (): void => { /* Installed before the worker is messaged. */ };
     const finish = (): void => {
       if (ended) return;
-      ended = true; cancelDeadline(); channel.port1.close(); channel.port2.close();
+      ended = true; finishLoadingWait(waitId); cancelDeadline(); channel.port1.close(); channel.port2.close();
       if (!stored && shell?.dataset['codePackUrl'] === url) {
         delete shell.dataset['codePackUrl']; delete shell.dataset['codePackLoaded']; delete shell.dataset['codePackTotal'];
       }

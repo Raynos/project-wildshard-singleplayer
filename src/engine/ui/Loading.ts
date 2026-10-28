@@ -7,10 +7,9 @@ import { TIER } from '../core/tier';
 import { loadShellTemplate } from '../boot/shell';
 import { appIdentity } from '../app/identity';
 import { recordBootCheckpoint, recordBootProgress, startBoot } from '../boot/bootTrace';
-import { DownloadAccounting, installDownloadAccounting, observeDownloadAccounting, type DownloadSnapshot } from '../boot/download';
+import { DownloadAccounting, installDownloadAccounting, observeDownloadAccounting, beginLoadingWait, adoptLoadingWait, reportLoadingWait, finishLoadingWait, loadingWaitState, type DownloadSnapshot } from '../boot/download';
 import { loadingDownloadText, loadingDownloadFraction, loadingPrefetchFraction, loadingPrefetchText, type LoadingPrefetchSnapshot } from '../boot/loadingDownloadText';
 import { LoadingTimeline, installLoadingTimeline, type LoadingPath, type LoadingRow, type LoadingGap } from '../boot/timeline';
-import { LoadingStall } from '../boot/stall';
 import { combinedLoadingFraction, loadingExpectations, loadingFraction, type LoadingTimings, type LoadingTimingKey, type LoadingCalibration } from '../boot/weights';
 import { loadPathTimings, savePathTimings } from '../boot/pathTiming';
 import { isDev, onDev } from '../core/devMode';
@@ -75,7 +74,8 @@ export class Loading {
   private readonly timeline: LoadingTimeline;
   private phase: { end: () => void; detail: (text: string) => void } | undefined;
   private phaseKey = 'modules';
-  private readonly stall = new LoadingStall(this.t0);
+  private readonly waitId: number;
+  private retryWait: (() => void) | null = null;
   private readonly identity: string;
   private timingKey: LoadingTimingKey;
   private baseline: LoadingTimings = {};
@@ -117,6 +117,9 @@ export class Loading {
       }, beforeStart: () => { this.paintBoundarySetup(); },
       initialSetup: {at: startedAt, setup: Number(this.root.dataset['initialSetup'])}});
     this.phase = this.scoped ? undefined : this.timeline.begin('modules');
+    this.waitId = this.scoped ? beginLoadingWait('Loading cell', { owner: this.timeline.waitOwner, startedAt: this.t0 })
+      : adoptLoadingWait(this.root, this.timeline.waitOwner, 'modules');
+    this.scope.onDispose(() => { finishLoadingWait(this.waitId); });
     if (!this.scoped) this.scope.onDispose(installLoadingTimeline(this.timeline));
     this.downloads = new DownloadAccounting(location.href, shell === null ? this.t0 : 0);
     this.scope.onDispose(this.scoped ? observeDownloadAccounting(this.downloads) : installDownloadAccounting(this.downloads));
@@ -131,7 +134,7 @@ export class Loading {
     this.els = { slug: el('slug'), tier: el('tier'), clock: el('clock'), dlFact: el('dlFact'), dlPct: el('dlPct'), dlBar: el('dlBar'), pfRow: el('pfRow'), pfFact: el('pfFact'), pfPct: el('pfPct'), suFact: el('suFact'), suPct: el('suPct'), suBar: el('suBar'), rows: el('rows'), foot: el('foot'), bar: el('bar'), line: el('line'), diagnostics: el('diagnostics'), retry: el('retry') };
     this.els.retry.onclick = null; // Adopt the inline retry without keeping its document-only handler.
     set(this.els.retry, engineString('s_loading_retry'));
-    listenTap(this.scope, this.els.retry, () => { markReload('loading wait retry'); location.reload(); });
+    listenTap(this.scope, this.els.retry, () => { markReload('loading wait retry'); if (this.retryWait === null) location.reload(); else this.retryWait(); });
     this.els.slug.textContent = chunk.name;
     this.els.tier.textContent = engineString('s_783b614ae363', [TIER, Math.round(innerWidth * devicePixelRatio), Math.round(innerHeight * devicePixelRatio), nav.hardwareConcurrency ?? engineString('s_8a8de823d5ed'), navigator.serviceWorker?.controller ? engineString('s_5c75b0e90774') : '']);
     const key = 'loadAttempt';
@@ -405,21 +408,26 @@ export class Loading {
 
   private paintWaiting(timeline: TimelineSnapshot): void {
     if (this.view?.error || this.failedReason !== null) return;
-    const pending = this.scoped ? [] : loadingStepWaits(bootWaits(), timeline.display, timeline.current, this.timeline.waitOwner);
+    const pending = this.scoped ? [] : loadingStepWaits(bootWaits(), timeline.display, timeline.current, this.timeline.waitOwner).filter(wait => wait.id !== this.waitId);
     const files = pending.filter(wait => wait.kind === 'file');
     // The outer admission promise has no file identity. Let the current
     // reported phase/hash explain its paced CPU/cache work between real waits.
-    const wait = files[0] ?? pending.find(row => row.kind !== 'admission');
+    const wait = files[0] ?? pending.find(row => row.id !== this.waitId && row.kind !== 'admission');
     const transfer = this.downloads.snapshot();
     const current = timeline.rows.find(row => row.key === timeline.display);
     const signature = `${timeline.display}:${timeline.current}:${transfer.networkBytes}:${transfer.cachedBytes}:${this.downloads.progressVersion}:${wait?.id ?? 0}`;
-    const quietMs = this.stall.quietMs(signature, performance.now());
-    const stalled = !this.finished && quietMs >= 8_000;
+    const label = wait?.label ?? (current === undefined ? undefined : `${current.label}${current.detail ? ` · ${current.detail}` : ''}`) ?? timeline.gaps.find(row => row.state === 'on')?.label ?? 'Final activation';
+    reportLoadingWait(this.waitId, { label, step: timeline.display, progress: signature,
+      loadedBytes: transfer.declaredDoneBytes, totalBytes: transfer.declaredBytes > 0 ? transfer.declaredBytes : null });
+    const fallback = loadingWaitState().pending.get(this.waitId), selected = wait ?? fallback;
+    const now = performance.now();
+    const quietMs = Math.max(0, now - Math.max(selected?.progressAt ?? now, fallback?.progressAt ?? 0));
+    const stalled = !this.finished && quietMs >= (selected?.deadlineMs ?? 8000);
+    this.retryWait = selected?.retry ?? null;
     this.els.retry.hidden = !stalled;
     setData(this.root, 'stalled', String(stalled));
     setData(this.root, 'waiting', wait?.label ?? '');
     setData(this.root, 'filesInFlight', String(files.length));
-    const label = wait?.label ?? (current === undefined ? undefined : `${current.label}${current.detail ? ` · ${current.detail}` : ''}`) ?? timeline.gaps.find(row => row.state === 'on')?.label ?? 'Final activation';
     const detail = wait === undefined ? `Now working on: ${label}` : `Now waiting for: ${label} · ${(wait.ageMs / 1000).toFixed(1)} s${files.length > 0 ? ` · ${files.length} files in flight` : ''}${pending.length > 1 ? ` · ${pending.length} waits` : ''}`;
     // A quiet phase still reports its actual age, without advancing a byte,
     // file or setup credit. Keep the eight-second retry classification separate
@@ -449,7 +457,7 @@ export class Loading {
    */
   done(): Promise<void> {
     if (this.completion !== undefined) return this.completion;
-    this.finished = true; this.phase?.end(); this.phase = undefined;
+    this.finished = true; finishLoadingWait(this.waitId); this.phase?.end(); this.phase = undefined;
     const measured = Object.fromEntries(this.timeline.snapshot().rows.filter(row => row.state !== 'todo').map(row => [row.key, row.ms]));
     savePathTimings(this.timingKey, measured, this.baseline);
     if (this.view !== null) this.paint(this.view);

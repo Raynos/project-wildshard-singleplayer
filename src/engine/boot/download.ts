@@ -1,3 +1,64 @@
+import { diagnosticNow } from '../core/clock';
+
+export type LoadingWaitKind = 'work' | 'file' | 'admission' | 'worker' | 'wasm' | 'shader';
+/** One live operation, from first HTML through runtime adoption. Bytes describe
+ * observed activity only; they never credit the verified download ledger. */
+export interface LoadingWaitEntry {
+  id: number; label: string; kind: LoadingWaitKind; step: string | null; owner: symbol | null;
+  startedAt: number; progressAt: number; loadedBytes: number; totalBytes: number | null;
+  deadlineMs: number; retry: (() => void) | null; progress: string; inline: boolean;
+}
+export interface LoadingWaitState { version: 1; sequence: number; pending: Map<number, LoadingWaitEntry> }
+const loadingWaitKey = Symbol.for('engine.loading.waits.v1');
+function isLoadingWaitState(value: unknown): value is LoadingWaitState {
+  return typeof value === 'object' && value !== null && 'version' in value && value.version === 1
+    && 'sequence' in value && typeof value.sequence === 'number' && Number.isSafeInteger(value.sequence)
+    && 'pending' in value && Object.prototype.toString.call(value.pending) === '[object Map]';
+}
+/** The first-document script installs this exact data contract. Bare harnesses
+ * create it on first use; importing the module installs no service. */
+export function loadingWaitState(target: object = typeof document === 'undefined' ? globalThis : document): LoadingWaitState {
+  const value: unknown = Reflect.get(target, loadingWaitKey);
+  if (value !== undefined) {
+    if (!isLoadingWaitState(value)) throw new Error('Invalid loading wait registry');
+    return value;
+  }
+  const state: LoadingWaitState = { version: 1, sequence: 0, pending: new Map() };
+  Reflect.set(target, loadingWaitKey, state); return state;
+}
+export type LoadingWaitOptions = Partial<Pick<LoadingWaitEntry, 'kind' | 'step' | 'owner' | 'startedAt' | 'progressAt' | 'loadedBytes' | 'totalBytes' | 'deadlineMs' | 'retry' | 'inline'>>;
+/** Register already-started work without changing its lifetime or concurrency. */
+export function beginLoadingWait(label: string, options: LoadingWaitOptions = {}): number {
+  const state = loadingWaitState(), id = ++state.sequence, now = diagnosticNow();
+  state.pending.set(id, { id, label, kind: options.kind ?? 'work', step: options.step ?? null, owner: options.owner ?? null,
+    startedAt: options.startedAt ?? now, progressAt: options.progressAt ?? now, loadedBytes: options.loadedBytes ?? 0,
+    totalBytes: options.totalBytes ?? null, deadlineMs: options.deadlineMs ?? 8000, retry: options.retry === undefined
+      ? typeof location === 'undefined' ? null : () => { location.reload(); } : options.retry,
+    progress: '', inline: options.inline ?? false });
+  return id;
+}
+/** Only real byte growth or a semantic progress-key change renews the deadline. */
+export function reportLoadingWait(id: number, update: Partial<Pick<LoadingWaitEntry, 'label' | 'loadedBytes' | 'totalBytes' | 'progress' | 'owner' | 'step'>>, now: number = diagnosticNow()): void {
+  const row = loadingWaitState().pending.get(id); if (row === undefined) return;
+  if ((update.loadedBytes !== undefined && update.loadedBytes > row.loadedBytes)
+    || (update.progress !== undefined && row.progress !== '' && update.progress !== row.progress)) row.progressAt = now;
+  Object.assign(row, update);
+}
+export function finishLoadingWait(id: number): void { loadingWaitState().pending.delete(id); }
+/** Adopt the same inline fallback and bind early promises to the real attempt.
+ * Neither adoption nor a new renderer resets any pending operation's clock. */
+export function adoptLoadingWait(root: HTMLElement, owner: symbol, step: string | null): number {
+  const state = loadingWaitState(), previous = Number(root.dataset['loadingWaitId']);
+  const row = state.pending.get(previous);
+  const id = row?.inline === true ? previous : beginLoadingWait('Application modules');
+  const adopted = state.pending.get(id);
+  if (adopted === undefined) throw new Error('Missing adopted loading wait');
+  adopted.inline = false; adopted.owner = owner; adopted.step = step; adopted.progress = '';
+  delete root.dataset['loadingWaitId'];
+  for (const pending of state.pending.values()) if (pending.owner === null && !pending.inline) { pending.owner = owner; pending.step = step; }
+  return id;
+}
+
 /** Actual page transport, independent of legacy step-completion credits. */
 export interface DownloadSnapshot {
   networkBytes: number; cachedBytes: number; pendingBytes: number;

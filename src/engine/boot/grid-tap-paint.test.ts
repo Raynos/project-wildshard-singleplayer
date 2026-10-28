@@ -6,6 +6,7 @@ import { Scope } from '../app/scope';
 import { installScopeEnvironment, scopeEnvironment } from '../app/scopeEnvironment';
 import { loadShellTemplate, beginNavigationShell, waitForLoadingStyles } from './shell';
 import { guardBoot } from './stuck';
+import { bootWaits } from './waits';
 
 const native = scopeEnvironment();
 let owner = new Scope('tap-test'), next = 1;
@@ -110,12 +111,12 @@ test('startup styles retain the first-paint owner and name each actual pending s
   document.body.insertAdjacentHTML('beforeend', `<div class="ws-load" data-shell>${loadShellTemplate()}</div>`);
   const first = pendingStyle('first'), second = pendingStyle('second'), entered = vi.fn();
   const loading = waitForLoadingStyles(owner).then(entered);
-  expect(document.querySelector<HTMLElement>('.ws-load')?.dataset['loadingWait']).toBe('Stylesheet /first.css');
+  expect(bootWaits().map(wait => wait.label)).toEqual(['Stylesheet /first.css', 'Stylesheet /second.css']);
   first.dispatchEvent(new Event('load')); await Promise.resolve(); expect(entered).not.toHaveBeenCalled();
-  expect(document.querySelector<HTMLElement>('.ws-load')?.dataset['loadingWait']).toBe('Stylesheet /second.css');
+  expect(bootWaits().map(wait => wait.label)).toEqual(['Stylesheet /second.css']);
   second.dispatchEvent(new Event('load')); await loading;
   expect(entered).toHaveBeenCalledTimes(1);
-  expect(document.querySelector<HTMLElement>('.ws-load')?.dataset['loadingWait']).toBeUndefined();
+  expect(bootWaits()).toEqual([]);
   expect(document.querySelector('.ws-load[data-shell]')).not.toBeNull();
 });
 

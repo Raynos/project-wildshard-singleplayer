@@ -1037,17 +1037,18 @@ receipts (including hints arriving later), not an estimate of wire bytes.
 The panel names missing wire measurements, withholds download 100 percent,
 and the accuracy checker refuses acceptance while any remain.
 
-`waitFor(label, promise, kind?)` in `@wildshard/engine/boot/waits` observes an
-already-started promise and unregisters it on either outcome. `bootWaits()`
-returns live labels, kinds, monotonic ages and the originating loading step.
-Waits carry their timeline's non-serialized attempt identity. `loadingStepWaits`
-selects the displayed step, then its nested current work, from that same
-attempt; unrelated page music never supplies the footer. Product admission,
-file reads, workers, Wasm and shader linking retain their original scheduling.
-Synchronous work remains a reported stage. The tier line says "worker ready"
-only when a service worker controls this page; it does not claim cached files.
-The player bar combines equal shares of the same actual Download and weighted
-Setup fractions shown separately in Developer, during admission and setup.
+`waitFor(label, promise, kind?)` in `@wildshard/engine/boot/waits` observes
+already-started promises and removes them on either outcome. `bootWaits()`
+reads the same first-HTML wait list as `Loading`: label, observed bytes,
+quiet deadline, Retry capability, monotonic age and attempt/step identity.
+`loadingStepWaits` selects only that attempt's displayed or nested step;
+unrelated music does not supply its footer. Scheduling stays unchanged.
+`beginLoadingWait`, `reportLoadingWait` and `finishLoadingWait` in
+`@wildshard/engine/boot/download` manage these data-only records.
+`adoptLoadingWait` preserves the inline row, age and deadline and binds early
+promises to the real attempt. Only real byte growth or a semantic progress
+key renews a deadline; labels and duplicate messages do not. Metadata never
+credits the separate verified download ledger. Completion removes the row.
 
 `Loading.setPath({id, steps, ignored?}, calibrations?)` accepts a data-only step
 vocabulary and measured baseline tables supplied by the composition root.

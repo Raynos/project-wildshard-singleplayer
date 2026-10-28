@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { DownloadAccounting, type DownloadTiming, installDownloadAccounting, receiveWorkerDownloads, observeDownloadAccounting, currentDownloadAccounting, declareDownloadFile, declareModuleFiles, recordCachedDownload } from './download';
+import { DownloadAccounting, type DownloadTiming, installDownloadAccounting, receiveWorkerDownloads, observeDownloadAccounting, currentDownloadAccounting, declareDownloadFile, declareModuleFiles, recordCachedDownload, beginLoadingWait, reportLoadingWait, finishLoadingWait, loadingWaitState } from './download';
 
 const base = 'https://game.test/';
 const timing = (name: string, extra: Partial<DownloadTiming> = {}): DownloadTiming => ({
@@ -193,4 +193,21 @@ it('keeps decoded module content separate from encoded body and wire receipts', 
   accounting.declare('/assets/unsized.js', 2000);
   accounting.resource(timing('/assets/unsized.js', { transferSize: 0, encodedBodySize: 0, workerStart: 1 }));
   expect(accounting.snapshot()).toMatchObject({ declaredBytes: 3000, declaredDoneBytes: 3000, networkBytes: 400, unclassifiedBytes: 0, unclassifiedFiles: 1 });
+});
+
+it('shared wait metadata renews only for byte growth or real semantic progress, without download credit', () => {
+  const accounting = new DownloadAccounting(base), release = installDownloadAccounting(accounting);
+  const state = loadingWaitState(), id = beginLoadingWait('Held body', { loadedBytes: 0, totalBytes: 4096, progressAt: 100, retry: null });
+  try {
+    const row = state.pending.get(id); if (row === undefined) throw new Error('Missing shared wait');
+    reportLoadingWait(id, { loadedBytes: 1024 }, 200);
+    expect(row.progressAt).toBe(200); expect(row.loadedBytes).toBe(1024);
+    reportLoadingWait(id, { loadedBytes: 1024, label: 'A more precise held body' }, 1000);
+    expect(row.progressAt).toBe(200);
+    reportLoadingWait(id, { progress: 'source' }, 1200); expect(row.progressAt).toBe(200);
+    reportLoadingWait(id, { progress: 'decode' }, 1400); expect(row.progressAt).toBe(1400);
+    expect(row).toMatchObject({ totalBytes: 4096, deadlineMs: 8000, retry: null });
+    expect(accounting.snapshot()).toMatchObject({ networkBytes: 0, cachedBytes: 0, filesDone: 0 });
+  } finally { finishLoadingWait(id); release(); }
+  expect(state.pending.has(id)).toBe(false);
 });

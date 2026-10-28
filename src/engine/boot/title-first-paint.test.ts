@@ -5,6 +5,7 @@ import { Window } from 'happy-dom';
 import { afterEach, expect, test } from 'vitest';
 import { showStartTitle } from '../ui/StartTitle';
 import type { TitleDeckView } from '../ui/HUD';
+import { loadingWaitState, type LoadingWaitEntry } from './download';
 
 const html = readFileSync('index.html', 'utf8');
 const windows: Window[] = [];
@@ -89,11 +90,16 @@ test('a title handoff restarts the inline clock without application modules', as
   const window = firstDocument('', undefined, true), root = window.document.querySelector('.ws-load[data-shell]');
   if (!(root instanceof window.HTMLElement)) throw new Error('Missing inline shell');
   const name = root.querySelector('[data-el="slug"]'); if (name === null) throw new Error('Missing destination');
+  const state = loadingWaitState(window.document);
+  const old: LoadingWaitEntry = { id: ++state.sequence, label: 'Old title background read', kind: 'file', step: null, owner: null,
+    startedAt: -1, progressAt: -1, loadedBytes: 0, totalBytes: null, deadlineMs: 8000, retry: null, progress: '', inline: false };
+  state.pending.set(old.id, old);
   name.textContent = 'A different island'; root.dataset['navigation'] = '';
   window.document.documentElement.classList.remove('title-first');
   window.document.dispatchEvent(new window.Event('ws:loading-navigation'));
   expect(root.dataset['step']).toBe('navigation.document');
   expect(name.textContent).toBe('A different island');
+  expect(root.querySelector('[data-el="line"]')?.textContent).toBe('Opening A different island');
   const clock = root.querySelector('[data-el="clock"]');
   if (!(clock instanceof window.HTMLElement)) throw new Error('Missing clock');
   expect(window.getComputedStyle(clock).display).not.toBe('none');
@@ -108,16 +114,19 @@ test('the inline eight-second retry uses real byte progress, including per-pack 
   const frame = (at: number): void => { frames.now = at; for (const run of frames.callbacks.splice(0)) run(at); };
   frame(7999); expect(wait.hidden).toBe(true);
   frame(8000); expect(wait.hidden).toBe(false); expect(wait.textContent).toContain('Waiting for Application modules · 8.0 s');
-  root.dataset['codePackUrl'] = '/application.pack'; root.dataset['codePackLoaded'] = '1048576'; root.dataset['codePackTotal'] = '2097152';
-  frame(8500); expect(wait.hidden).toBe(true);
-  expect(root.querySelector('[data-el="dlFact"]')?.textContent).toBe('1.00 / 2.00 MB application code');
-  expect(root.dataset['moduleBytes']).toBe('0'); // Progress visibility never credits a verified receipt.
+  const state = loadingWaitState(window.document);
+  const pack: LoadingWaitEntry = { id: ++state.sequence, label: 'Application code /application.pack', kind: 'file', step: null, owner: null,
+    startedAt: 8500, progressAt: 8500, loadedBytes: 1048576, totalBytes: 2097152, deadlineMs: 8000,
+    retry: null, progress: '', inline: false };
+  state.pending.set(pack.id, pack); frame(8500); expect(wait.hidden).toBe(true);
+  expect(root.querySelector('[data-el="dlFact"]')?.textContent).toBe('1.00 / 2.00 MB · Application code /application.pack');
+  expect(root.dataset['moduleBytes']).toBe('0'); // Visibility never credits a verified receipt.
   frame(16499); expect(wait.hidden).toBe(true);
   frame(16500); expect(wait.hidden).toBe(false); // Duplicate messages never renew the deadline.
-  root.dataset['codePackLoaded'] = '2097152'; frame(16600); expect(wait.hidden).toBe(true);
-  root.dataset['codePackUrl'] = '/next.pack'; root.dataset['codePackLoaded'] = '0'; frame(17000);
-  root.dataset['codePackLoaded'] = '1048576'; frame(24000); expect(wait.hidden).toBe(true);
-  root.dataset['loadingWait'] = 'Stylesheet /held.css'; frame(32000);
+  pack.loadedBytes = 2097152; pack.progressAt = 16600; frame(16600); expect(wait.hidden).toBe(true);
+  pack.loadedBytes = 0; pack.totalBytes = 2097152; pack.label = 'Application code /next.pack'; pack.progressAt = 17000; frame(17000);
+  pack.loadedBytes = 1048576; pack.progressAt = 24000; frame(24000); expect(wait.hidden).toBe(true);
+  pack.label = 'Stylesheet /held.css'; frame(32000);
   expect(wait.textContent).toContain('Waiting for Stylesheet /held.css · 8.0 s');
 });
 

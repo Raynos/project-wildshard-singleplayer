@@ -1,28 +1,33 @@
 import { currentLoadingTimeline } from './timeline';
 import { diagnosticNow } from '../core/clock';
+import { loadingWaitState, type LoadingWaitState, type LoadingWaitEntry, type LoadingWaitKind } from './download';
 /** Pending asynchronous work is observed without changing its owner, queue or concurrency. */
-export type WaitKind = 'work' | 'file' | 'admission' | 'worker' | 'wasm' | 'shader';
-export interface BootWait { id: number; label: string; kind: WaitKind; startedAt: number; ageMs: number; step: string | null; owner: symbol | null }
+export type WaitKind = LoadingWaitKind;
+export interface BootWait extends LoadingWaitEntry { ageMs: number }
 export class WaitRegistry {
-  private sequence = 0;
-  private readonly pending = new Map<number, Omit<BootWait, 'ageMs'>>();
+  private readonly state: () => LoadingWaitState;
   private readonly now: () => number;
-  constructor(now: () => number = diagnosticNow) { this.now = now; }
+  constructor(now: () => number = diagnosticNow, state?: () => LoadingWaitState) {
+    this.now = now; const own: LoadingWaitState = { version: 1, sequence: 0, pending: new Map() };
+    this.state = state ?? (() => own);
+  }
   /** Register an already-started operation and remove it on either resolution or rejection. */
   async waitFor<T>(label: string, promise: Promise<T>, kind: WaitKind = 'work', step: string | null = null, owner: symbol | null = null): Promise<T> {
-    const id = ++this.sequence;
-    this.pending.set(id, { id, label, kind, step, owner, startedAt: this.now() });
+    const state = this.state(), id = ++state.sequence, now = this.now();
+    state.pending.set(id, { id, label, kind, step, owner, startedAt: now, progressAt: now, loadedBytes: 0, totalBytes: null,
+      deadlineMs: 8000, retry: typeof location === 'undefined' ? null : () => { location.reload(); }, progress: '', inline: false });
     try { return await promise; }
-    finally { this.pending.delete(id); }
+    finally { state.pending.delete(id); }
   }
   snapshot(): BootWait[] {
     const now = this.now();
-    return [...this.pending.values()].map(wait => ({ id: wait.id, label: wait.label, kind: wait.kind,
-      step: wait.step, owner: wait.owner, startedAt: wait.startedAt, ageMs: Math.max(0, now - wait.startedAt) }));
+    const rows: BootWait[] = [];
+    for (const wait of this.state().pending.values()) rows.push({ ...wait, ageMs: Math.max(0, now - wait.startedAt) });
+    return rows;
   }
 }
 
-const waits = new WaitRegistry();
+const waits = new WaitRegistry(diagnosticNow, loadingWaitState);
 /** Observe an existing promise; callers retain their admission, lifetime and concurrency policy. */
 export function waitFor<T>(label: string, promise: Promise<T>, kind: WaitKind = 'work'): Promise<T> {
   const timeline = currentLoadingTimeline();

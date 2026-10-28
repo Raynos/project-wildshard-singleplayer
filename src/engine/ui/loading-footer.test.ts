@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { Loading } from './Loading';
 import type { ProgressView } from '../boot/plan';
-import { declareDownloadFile, recordCachedDownload } from '../boot/download';
+import { declareDownloadFile, recordCachedDownload, beginLoadingWait, finishLoadingWait, loadingWaitState, reportLoadingWait } from '../boot/download';
 import { currentLoadingTimeline } from '../boot/timeline';
 import { waitFor } from '../boot/waits';
 import { loadShellTemplate } from '../boot/shell';
@@ -434,4 +434,27 @@ it('repaints the facts of a step at most every 200 ms while its clock moves ever
     now = 430; vi.advanceTimersByTime(32);
     expect(foot()).toContain('Activating');
   } finally { loading.scope.dispose(); }
+});
+
+it('adopts the first-document wait list without resetting a pending deadline or its retry', () => {
+  const root = document.createElement('div'); root.className = 'ws-load'; root.dataset['shell'] = '';
+  root.dataset['startedAt'] = '100'; root.innerHTML = loadShellTemplate(); document.body.append(root);
+  const inline = beginLoadingWait('Application modules', { inline: true }); root.dataset['loadingWaitId'] = String(inline);
+  const retry = vi.fn<() => void>(), id = beginLoadingWait('Held source bytes', { kind: 'file', totalBytes: 4096, retry });
+  const state = loadingWaitState(), pending = state.pending.get(id);
+  now = 7900;
+  const loading = new Loading({ id: 'shared-waits', name: 'Shared waits' });
+  try {
+    expect(loadingWaitState()).toBe(state); expect(state.pending.get(id)).toBe(pending);
+    expect(state.pending.get(inline)?.inline).toBe(false);
+    loading.waiting('Preparing services');
+    now = 8101; vi.advanceTimersByTime(200);
+    expect(loading.root.querySelector<HTMLElement>('[data-el="retry"]')?.hidden).toBe(false);
+    expect(loading.root.querySelector('[data-el="foot"]')?.textContent).toContain('Waiting for Held source bytes · 8.0 s');
+    loading.root.querySelector<HTMLButtonElement>('[data-el="retry"]')?.click(); expect(retry).toHaveBeenCalledTimes(1);
+    reportLoadingWait(id, { loadedBytes: 1024 }); now = 8350; vi.advanceTimersByTime(200);
+    expect(loading.root.querySelector<HTMLElement>('[data-el="retry"]')?.hidden).toBe(true);
+    expect(pending?.loadedBytes).toBe(1024); expect(loadingWaitState().pending.get(id)).toBe(pending);
+  } finally { finishLoadingWait(id); loading.scope.dispose(); }
+  expect(state.pending.has(inline)).toBe(false);
 });

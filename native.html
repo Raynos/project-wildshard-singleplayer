@@ -157,6 +157,8 @@
       // Loading adopts the same DOM and time origin; title arrival is read here, never consumed.
       (() => {
         const running = new WeakMap();
+        const key = Symbol.for('engine.loading.waits.v1');
+        const waits = document[key] || (document[key] = { version: 1, sequence: 0, pending: new Map() });
         const start = () => {
         const root = document.querySelector('.ws-load[data-navigation], .ws-load[data-shell]');
         if (!root) return;
@@ -165,6 +167,16 @@
         const token = {}; running.set(root, token);
         const initialSetup = root.querySelector('[data-el="suPct"]')?.textContent;
         const started = performance.now();
+        const previous = waits.pending.get(Number(root.dataset.loadingWaitId));
+        if (previous?.inline) waits.pending.delete(previous.id);
+        const fallback = { id: ++waits.sequence, label: '', kind: 'work', step: null, owner: null,
+          startedAt: started, progressAt: started, loadedBytes: 0, totalBytes: null, deadlineMs: 8000,
+          retry: () => location.reload(), progress: '', inline: true };
+        waits.pending.set(fallback.id, fallback); root.dataset.loadingWaitId = String(fallback.id);
+        const selectedWait = () => {
+          const pending = [...waits.pending.values()].filter(wait => !wait.inline && wait.owner === null && (!navigation || wait.startedAt >= started));
+          return pending.find(wait => wait.kind === 'file') || pending.find(wait => wait.kind !== 'admission') || fallback;
+        };
         root.dataset.startedAt = String(started);
         if (/^(?:100|\d{1,2})$/.test(initialSetup ?? '')) root.dataset.initialSetup = initialSetup;
         root.dataset.step = navigation ? 'navigation.document' : 'admission.modules';
@@ -187,46 +199,43 @@
         field('slug', name);
         field('tier', tier + ' · selecting quality');
         const waitLabel = navigation ? 'Opening ' + name : 'Application modules';
+        fallback.label = waitLabel;
         field('line', navigation ? waitLabel : 'Loading application modules');
         field('suFact', navigation ? waitLabel : 'Loading application modules');
         // H7 (js-heap): each module entry counted once as it arrives, not every entry rescanned every frame
-        let bytes = 0, progressAt = started, packUrl = '', packLoaded = 0;
+        let bytes = 0;
         const add = (entries) => {
           const previous = bytes;
           for (const item of entries) if ((!navigation || item.startTime >= started) && (item.initiatorType === 'script' || item.initiatorType === 'link')) bytes += item.encodedBodySize || item.transferSize || 0;
-          if (bytes > previous) progressAt = performance.now();
+          if (bytes > previous) { fallback.progressAt = performance.now(); fallback.loadedBytes = bytes; }
         };
         let observer = null;
         try { observer = new PerformanceObserver((list) => add(list.getEntries())); observer.observe({ type: 'resource', buffered: true }); }
         catch { add(performance.getEntriesByType('resource')); }
         const resources = () => {
           root.dataset.moduleBytes = String(bytes);
-          const url = root.dataset.codePackUrl || '', loaded = Number(root.dataset.codePackLoaded), total = Number(root.dataset.codePackTotal);
-          if (url && Number.isSafeInteger(loaded) && Number.isSafeInteger(total) && loaded >= 0 && total > 0 && loaded <= total) {
-            const samePack = url === packUrl;
-            if (!samePack || loaded > packLoaded) progressAt = performance.now();
-            packLoaded = samePack ? Math.max(packLoaded, loaded) : loaded; packUrl = url;
-            field('dlFact', (packLoaded / 1048576).toFixed(2) + ' / ' + (total / 1048576).toFixed(2) + ' MB application code');
-          } else field('dlFact', bytes > 0 ? (bytes / 1048576).toFixed(2) + ' MB modules read · total pending' : 'Waiting for application modules');
+          const wait = selectedWait();
+          if (wait.totalBytes !== null) field('dlFact', (wait.loadedBytes / 1048576).toFixed(2) + ' / ' + (wait.totalBytes / 1048576).toFixed(2) + ' MB · ' + wait.label);
+          else field('dlFact', bytes > 0 ? (bytes / 1048576).toFixed(2) + ' MB modules read · total pending' : 'Waiting for ' + wait.label);
         };
         const retry = root.querySelector('[data-el="retry"]');
         const titleWait = document.querySelector('.ws-launch-wait');
-        const reload = () => { if (running.get(root) === token) location.reload(); };
+        const reload = () => { if (running.get(root) === token) selectedWait().retry?.(); };
         if (retry) retry.onclick = reload;
         const titleRetry = titleWait?.querySelector('button'); if (titleRetry) titleRetry.onclick = reload;
         // the loop ends when Loading adopts the panel, or when the page turns out to be the title (a URL with harness
         // parameters is not title-first while this script runs, so the loop otherwise ran on under the menu forever)
         const tick = () => {
-          if (running.get(root) !== token) { observer?.disconnect(); return; }
+          if (running.get(root) !== token) { observer?.disconnect(); if (fallback.inline) waits.pending.delete(fallback.id); return; }
           const title = document.documentElement.classList.contains('title-first') && !root.hasAttribute('data-navigation');
-          if (!root.isConnected || (!root.hasAttribute('data-shell') && !root.hasAttribute('data-navigation')) || (title && !document.querySelector('[data-title-shell]'))) { observer?.disconnect(); running.delete(root); if (titleWait) titleWait.hidden = true; return; }
+          if (!root.isConnected || (!root.hasAttribute('data-shell') && !root.hasAttribute('data-navigation')) || (title && !document.querySelector('[data-title-shell]'))) { observer?.disconnect(); running.delete(root); if (fallback.inline) waits.pending.delete(fallback.id); if (titleWait) titleWait.hidden = true; return; }
           const seconds = (performance.now() - started) / 1000;
           field('clock', String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + (seconds % 60).toFixed(1).padStart(4, '0'));
           resources();
-          const quiet = performance.now() - progressAt, stalled = quiet >= 8000;
-          const currentWait = root.dataset.loadingWait || waitLabel;
-          field('line', root.dataset.loadingWait || (navigation ? waitLabel : 'Loading application modules'));
-          field('suFact', root.dataset.loadingWait || (navigation ? waitLabel : 'Loading application modules'));
+          const wait = selectedWait();
+          const quiet = Math.max(0, performance.now() - Math.max(wait.progressAt, fallback.progressAt)), stalled = quiet >= wait.deadlineMs;
+          const currentWait = wait.label;
+          field('line', currentWait); field('suFact', currentWait);
           const waiting = 'Waiting for ' + currentWait + ' · ' + (quiet / 1000).toFixed(1) + ' s';
           root.dataset.stalled = String(stalled);
           if (retry) retry.hidden = !stalled;

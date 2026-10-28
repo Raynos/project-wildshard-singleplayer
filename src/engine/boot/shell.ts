@@ -10,6 +10,7 @@
 import type { Scope } from '../app/scope';
 import { HudSlots } from '../ui/hudSlots';
 import { appIdentity } from '../app/identity';
+import { beginLoadingWait, finishLoadingWait } from './download';
 
 const shellHtml = (tagline: string): string => `<div class="ws-load-head">
 <div class="ws-wordmark">${appIdentity().wordmark}</div>
@@ -47,26 +48,18 @@ export async function waitForLoadingStyles(owner: Scope): Promise<void> {
   const links = [...document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"][media="print"]')]
     .filter(link => !link.disabled && link.sheet === null);
   if (links.length === 0) return;
-  const scope = owner.child('loading.styles'), pending = new Set(links);
-  const root = document.querySelector<HTMLElement>('.ws-load[data-shell]');
-  const label = (): void => {
-    const link = pending.values().next().value;
-    if (root !== null) {
-      if (link === undefined) delete root.dataset['loadingWait'];
-      else root.dataset['loadingWait'] = `Stylesheet ${new URL(link.href, location.href).pathname}`;
-    }
-  };
-  label();
+  const scope = owner.child('loading.styles'), waits: number[] = [];
   try {
     await Promise.all(links.map(link => new Promise<void>((resolve, reject) => {
-      const loaded = (): void => { pending.delete(link); label(); resolve(); };
+      const id = beginLoadingWait(`Stylesheet ${new URL(link.href, location.href).pathname}`, { kind: 'file' }); waits.push(id);
+      const loaded = (): void => { finishLoadingWait(id); resolve(); };
       scope.listen(link, 'load', loaded);
       scope.listen(link, 'error', () => { reject(new Error(`Stylesheet failed: ${link.href}`)); });
       scope.onDispose(() => { reject(new DOMException('Stylesheet wait retired', 'AbortError')); });
       if (link.sheet !== null) loaded();
     })));
   } finally {
-    if (root !== null) delete root.dataset['loadingWait'];
+    for (const id of waits) finishLoadingWait(id);
     scope.dispose();
   }
 }
