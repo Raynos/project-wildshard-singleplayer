@@ -4,8 +4,9 @@ const bytes=v.object({resident:v.number(),wire:v.number(),files:v.number()});
 const processBytes=v.object({renderer:v.number(),gpu:v.number(),browser:v.number()});
 const row=v.looseObject({shard:v.string(),ring:v.string(),failures:v.array(v.string()),
   observedTapToControlsMs:v.optional(v.number()),
+  coarseDrawn:v.optional(v.array(v.string())),
   declared:v.optional(v.object({resident:bytes,wholeFine:bytes,rowResident:v.number()})),
-  state:v.optional(v.looseObject({render:v.array(v.number()),colliders:v.array(v.number())})),
+  state:v.optional(v.looseObject({render:v.array(v.number()),colliders:v.array(v.number()),coarseScopes:v.optional(v.array(v.string()))})),
   frames:v.optional(v.looseObject({maxMs:v.number(),p95Ms:v.nullable(v.number())})),
   process:v.optional(processBytes),
   overlay:v.optional(v.object({rects:v.array(v.unknown()),labels:v.array(v.string())})),
@@ -38,6 +39,9 @@ export function tilePlanMarkdown(input){
     '', '| Shard | Ring | Owned render/collider tiles | Declared resident closure MiB / whole-fine MiB | Observed GPU MiB | Scene CPU backing MiB | Renderer+GPU footprint MiB | Worst / p95 frame ms | T5 rect records / unique MB strings | First-observed controls ms | Raw failures |',
     '|---|---|---|---|---|---|---|---|---|---|---|'];
   for(const r of data.rows)lines.push(`| ${r.shard} | ${r.ring} | ${r.state===undefined?'unavailable':`${r.state.render.length}/${r.state.colliders.length}`} | ${mib(r.declared?.resident.resident)} / ${mib(r.declared?.wholeFine.resident)} | ${mib(r.share?.total)} | ${mib(r.share?.sceneCpu?.totalBytes)} | ${mib(r.process===undefined?undefined:r.process.renderer+r.process.gpu)} | ${ms(r.frames?.maxMs)} / ${ms(r.frames?.p95Ms)} | ${r.overlay===undefined?'unavailable':`${r.overlay.rects.length}/${r.overlay.labels.length}`} | ${ms(r.observedTapToControlsMs)} | ${r.failures.length} |`);
+  lines.push('', 'T8 coarse coverage: resident custom-parent scopes and unmasked attached coordinates are separate. Merged draws list only parents with kept indices. This is not an occlusion or pixel oracle; missing telemetry stays unavailable.',
+    '', '| Shard / ring | Custom L1 resident scopes | Unmasked attached L1 coordinates |', '|---|---|---|');
+  for (const r of data.rows) lines.push(`| ${r.shard} / ${r.ring} | ${r.state?.coarseScopes?.length ?? 'unavailable'} | ${r.coarseDrawn === undefined ? 'unavailable' : `${r.coarseDrawn.length}: ${r.coarseDrawn.join(', ')}`} |`);
   lines.push('', 'T0 observed GPU classification, MiB. These are current spawn shares, not removable bytes or historical savings.',
     '', '| Shard / ring | Engine | Known global | Single-node buffer candidate | Shared | Unknown | RAM ledger capacity | Bounded scene nodes / all |',
     '|---|---|---|---|---|---|---|---|');

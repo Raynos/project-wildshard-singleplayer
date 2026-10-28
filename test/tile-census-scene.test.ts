@@ -3,6 +3,7 @@ import { runInNewContext } from 'node:vm';
 import { BufferAttribute, BufferGeometry, InstancedMesh, InterleavedBuffer, InterleavedBufferAttribute, Mesh, MeshBasicMaterial, Scene } from 'three';
 import { expect, test } from 'vitest';
 import { captureTileScene, censusReadSource } from '../scripts/parity/tile-census-scene.mjs';
+import { tilePlanMarkdown } from '../scripts/tile-plan-report.mjs';
 
 function fixture() {
   const backing = new ArrayBuffer(48), position = new BufferAttribute(new Float32Array(backing, 0, 6), 3);
@@ -131,4 +132,13 @@ test('coarse census reads merged parents and respects masks and ancestor visibil
   expect(captureTileScene(f.scene, f.sourceIds).coarseTiles.every(row => !row.visible)).toBe(true);
   f.a.userData['coarseTiles'] = [{ x: 4, z: 0, visible: true }];
   expect(() => captureTileScene(f.scene, f.sourceIds)).toThrow('Invalid coarse tile coordinate');
+});
+
+test('coarse report keeps masked residents separate and old readings unavailable', () => {
+  const report = tilePlanMarkdown({ protocol: 'tile-plan-chromium/1', pin: 'fixture', complete: true, errors: [], grid: [], rows: [
+    { shard: 'orchard', ring: '5x5', failures: [], state: { render: [], colliders: [], coarseScopes: ['a', 'b'] }, coarseDrawn: ['0/1'] },
+    { shard: 'predecessor', ring: '5x5', failures: [] },
+  ] });
+  expect(report).toContain('| orchard / 5x5 | 2 | 1: 0/1 |');
+  expect(report).toContain('| predecessor / 5x5 | unavailable | unavailable |');
 });
