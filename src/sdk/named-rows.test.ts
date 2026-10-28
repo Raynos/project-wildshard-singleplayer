@@ -63,3 +63,50 @@ test('source refinements keep original order/messages and cannot silently become
   expect(outcome(() => compiled.parse({ ...rows, n: Infinity }))).toEqual(outcome(() => v.parse(original, { ...rows, n: Infinity })));
   expect(() => compiled.jsonSchema).toThrow(); expect(() => namedJsonSchema(original)).toThrow();
 });
+
+test('native unions, discriminated variants and bounded records retain exact admission', () => {
+  const count = { kind: 'number', safeInteger: true, min: 0 } as const;
+  const word = { kind: 'string', regex: /^[a-f0-9]{4}$/u } as const;
+  const a = { kind: 'object', mode: 'strip', entries: { kind: { kind: 'literal', value: 'a' }, count } } as const;
+  const b = { kind: 'object', entries: { kind: { kind: 'literal', value: 'b' }, word } } as const;
+  const va = v.object({ kind: v.literal('a'), count: v.pipe(v.number(), v.safeInteger(), v.minValue(0)) });
+  const vb = v.strictObject({ kind: v.literal('b'), word: v.pipe(v.string(), v.regex(/^[a-f0-9]{4}$/u)) });
+  const variants = defineNamedRows({ kind: 'variant', key: 'kind', options: [a, b] });
+  const original = v.variant('kind', [va, vb]);
+  expectTypeOf<ReturnType<typeof variants.parse>>().toEqualTypeOf<v.InferOutput<typeof original>>();
+  for (const input of [{ kind: 'a', count: 2, extra: 4 }, { kind: 'b', word: 'a09f' }, null, {},
+    { kind: 'c' }, { kind: 'a', count: Number.MAX_SAFE_INTEGER + 1 }, { kind: 'a', count: -1 },
+    { kind: 'b', word: 'nope' }, { kind: 'b', word: 'ffff', extra: 1 }])
+    expect(outcome(() => variants.parse(input))).toEqual(outcome(() => v.parse(original, input)));
+  expect(() => variants.jsonSchema).toThrow(); expect(() => namedJsonSchema(original)).toThrow();
+  const combined = defineNamedRows({ kind: 'union', options: [count, word] });
+  const nativeUnion = v.union([va.entries.count, vb.entries.word]);
+  expectTypeOf<ReturnType<typeof combined.parse>>().toEqualTypeOf<v.InferOutput<typeof nativeUnion>>();
+  for (const input of [0, '0000', Infinity, 1.5, 'bad', null])
+    expect(outcome(() => combined.parse(input))).toEqual(outcome(() => v.parse(nativeUnion, input)));
+  const records = defineNamedRows({ kind: 'record', key: { kind: 'string' }, value: count, maxEntries: 2 });
+  const nativeRecord = v.pipe(v.record(v.string(), va.entries.count), v.maxEntries(2));
+  for (const input of [{}, { a: 1, b: 2 }, { a: 1, b: 2, c: 3 }, { a: Infinity }])
+    expect(outcome(() => records.parse(input))).toEqual(outcome(() => v.parse(nativeRecord, input)));
+  expect(records.jsonSchema).toEqual(namedJsonSchema(nativeRecord));
+});
+
+test('admit preserves native assertion identity and unknown fields without skipping guards', () => {
+  const contract = defineNamedRows({ kind: 'object', mode: 'strip', entries: { count: number } });
+  const input = { extra: { ordered: true }, count: 2 };
+  expect(contract.admit(input)).toBe(input); expect(Object.keys(input)).toEqual(['extra', 'count']);
+  expect(contract.accepts(input)).toBe(true); expect(contract.accepts({ count: Infinity })).toBe(false);
+  expect(contract.parse(input)).toEqual({ count: 2 }); expect(contract.parse(input)).not.toBe(input);
+  const original = v.object({ count: nativeNumber });
+  for (const bad of [{ count: Infinity }, {}, null])
+    expect(outcome(() => contract.admit(bad))).toEqual(outcome(() => { v.assert(original, bad); return bad; }));
+});
+
+test('native transformed leaves retain input types and identity for admit', () => {
+  const transformed = v.pipe(v.string(), v.transform(value => value.length));
+  const contract = defineNamedRows({ kind: 'object', entries: { size: transformed } });
+  expectTypeOf<ReturnType<typeof contract.admit>>().toEqualTypeOf<{ size: string }>();
+  expectTypeOf<ReturnType<typeof contract.parse>>().toEqualTypeOf<{ size: number }>();
+  const input = { size: 'abcd' };
+  expect(contract.admit(input)).toBe(input); expect(contract.parse(input)).toEqual({ size: 4 });
+});
