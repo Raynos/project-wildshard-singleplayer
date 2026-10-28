@@ -107,3 +107,14 @@ test('a refused selected grass bank drains borrowed readers without publishing a
   release(bytes);await expect(work).rejects.toThrow('Original grass bank refusal');
   expect(reads).toEqual(selected.slice(0,4));expect(()=>paintedWorldOf(product.slug)).toThrow('No painted world');
 });
+
+test('malformed grass input names refuse before any overlapping file read starts',async()=>{
+  const look=rawLook(),height=grassRows.height;
+  if(typeof height==='string')throw new Error('Missing original named grass height');
+  let reads=0;
+  const product={slug:'unadmitted-grass-input',json:()=>Promise.resolve({...look,painted:{...look.painted,
+    grass:{...look.painted.grass,rows:{...grassRows,height:{...height,file:'../outside.bin'}}}}}),
+    file:()=>{reads++;return Promise.resolve(Uint8Array.of(1));}};
+  await expect(postGraphLook(product,{file:'look/post.json',field:[]})).rejects.toThrow();
+  expect(reads).toBe(0);expect(()=>paintedWorldOf(product.slug)).toThrow('No painted world');
+});
