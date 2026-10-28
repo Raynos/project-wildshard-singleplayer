@@ -6,7 +6,7 @@ import { parseEliteFeature as gameParseEliteFeature, type EliteFeatureRows as Ga
 import { parseSpawnScript as gameParseSpawnScript, spawnScriptRegistries as gameSpawnScriptRegistries, type SpawnScriptRows as GameSpawnScriptRows } from '@wildshard/format/spawnScripts';
 import type { DecisionRegistries as GameDecisionRegistries } from '@wildshard/format/decisionBindings';
 import { JournalRowSchema as GameJournalRowSchema, journalRowRules as gameJournalRowRules, type JournalRow as GameJournalRow } from '@wildshard/format/compendiumRows';
-import { parseContractCatalogue as gameParseContractCatalogue, type ContractCatalogue as GameContractCatalogue } from '@wildshard/format/contracts';
+import { parseContractCatalogue as gameParseContractCatalogue, parseContractBoardPage, type ContractCatalogue as GameContractCatalogue } from '@wildshard/format/contracts';
 import { parseAmbientLife as gameParseAmbientLife, type AmbientLifeData as GameAmbientLife } from '@wildshard/format/ambientLife';
 import { parsePageLife as gameParsePageLife, type PageLifeRows as GamePageLifeRows } from '@wildshard/format/pageLife';
 import { PopulationEnvironmentSchema as GamePopulationEnvironmentSchema, type PopulationEnvironmentRows as GamePopulationEnvironment } from '@wildshard/format/populationEnvironment';
@@ -83,6 +83,8 @@ export function parseJournalRow(input: unknown): JournalRow {
 export type ContractCatalogue = GameContractCatalogue;
 /** Validate a contract catalogue before it is serialized (GR8: a shard program calls this instead of a bake script). */
 export function parseContractCatalogue(input: unknown): ContractCatalogue { return gameParseContractCatalogue(input); }
+/** Admit board catalogue, panel and store ownership through every defining cross-row check. */
+export function contractBoardPageRows(input: unknown): ReturnType<typeof parseContractBoardPage> { return parseContractBoardPage(input); }
 /** One admitted forest community (a shard's ambient life policy). */
 export type AmbientLife = GameAmbientLife;
 /** Validate an ambient life policy before its page rows are built. */

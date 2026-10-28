@@ -15,10 +15,13 @@ import { pineQuestNpcs } from './questNpcs';
 import * as layout from './layout';
 import sky from '../data/sky.json' with { type: 'json' };
 import { BEATS, beatFlags, type Beat } from './questBeats';
-import { QuestPageTalksSchema , type QuestPageTalksRows as QuestPageTalksRowsType } from '@wildshard/format/npcs';
-import { ContractBoardPageSchema, parseContractBoardPage } from '@wildshard/format/contracts';
+import { contractBoardPageRows as parseContractBoardPage } from '@wildshard/sdk/rows';
 import { PINE_PANELS } from './panels';
-import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { authorFormatSchema, namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+
+const QuestPageTalksSchema: ReturnType<typeof authorFormatSchema<'npcs.QuestPageTalksSchema'>> = authorFormatSchema('npcs.QuestPageTalksSchema');
+const ContractBoardPageSchema: ReturnType<typeof authorFormatSchema<'contracts.ContractBoardPageSchema'>> = authorFormatSchema('contracts.ContractBoardPageSchema');
+type QuestPageTalksRowsType = v.InferOutput<typeof QuestPageTalksSchema>;
 
 // GR8: called, not read from a scheduler job's output
 const roster = pineQuestNpcs();
