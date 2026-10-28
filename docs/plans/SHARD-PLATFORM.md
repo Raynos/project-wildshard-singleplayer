@@ -50,7 +50,7 @@ plan? … what is in scope … and what do we all have to complete to be done?"*
 | [mega-build](shard-platform/mega-build-mini-plan.md) + [finish-line](shard-platform/finish-line.md) | G768–G799 | **active** 10-27: how lanes stop waiting, and the path to every mini plan at 100 %; all questions answered |
 | [grid-ready](shard-platform/grid-ready-mini-plan.md) | G557–G561, G598 | **9 of 10**; Nalati's row stays open until it crosses under 5 s warm / 8 s cold (G784, G782) |
 | [grid-crossing](shard-platform/grid-crossing-mini-plan.md) | G579–G581, G782 | **open**: T1, T5, T6 done; T2–T4 to every crossing under 5 s warm and 8 s cold (G782) |
-| [loading-speed](shard-platform/loading-speed-mini-plan.md) (folds in [loading](shard-platform/loading-mini-plan.md), G618) | G543, G554, G618, G619, G622 | **open**: tap → controls < 5 s warm, < 15 s cold; M1 baseline next |
+| [loading-speed](../../project/archive/2026-10-28-loading-speed.md) (folds in [loading](../../project/archive/2026-10-28-loading.md), G618) | G543, G554, G618, G619, G622 | **done (G831)**: phone QA complete; H4 3.374–3.740 s vs1.5 s and A1 770.1 ms vs600 ms accepted misses (G822/G831); deeper fixes belong to the next mega plan |
 | [shared-waits](shard-platform/shared-waits-mini-plan.md) | G666 | **done** (G809): [first green main push 40582611712](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40582611712) at `0012c73e11b2a4940c87af5075eec52c69492251`; applicable CI rows marked in their plans |
 | [ci-flow](../../project/archive/2026-10-27-ci-flow.md) | E495 | **done** (G809; archived 2026-10-27): [first green main push 40582611712](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40582611712) at `0012c73e11b2a4940c87af5075eec52c69492251`; applicable CI rows marked in their plans |
 | [green-main](../../project/archive/2026-10-27-green-main.md) | G751–G754, G756 | **done** (G809; archived 2026-10-27): [first green main push 40582611712](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40582611712) at `0012c73e11b2a4940c87af5075eec52c69492251`; applicable CI rows marked in their plans |
@@ -524,10 +524,10 @@ line to Jake at each milestone.
 
 ## Where things live
 
-Everything in [`shard-platform/`](shard-platform/), beside this file:
+Everything in [`shard-platform/`](shard-platform), beside this file:
 
 - [STATE.md](shard-platform/STATE.md): the live status, calls for Jake and the fleet (coordinator only, ≤ 3 KB).
-- [decisions.md](shard-platform/decisions.md): every decision G1–G833+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
+- [decisions.md](shard-platform/decisions.md): every decision G1–G835+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
 - [rows.md](shard-platform/rows.md): §4 in full, Part A and Part B, with done-whens and evidence.
 - [contracts.md](shard-platform/contracts.md): §3 in full (determinism, caps, the grid, versioning, a shard project).
 - [history.md](shard-platform/history.md): the long State line, the council-time baseline (old §2), the pre-G291 measure and the 2026-10-04 Handoff.
