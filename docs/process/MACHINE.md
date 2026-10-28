@@ -23,6 +23,7 @@ Each open game tab costs ~1.5 cores and ~1 GB for as long as it is open.
   `status` shows who holds what; the log is `~/.browser-lane/reap.log`.
 - **Mute every test browser** (`--mute-audio`, and `mute=1` on game URLs). Headless Chromium plays the game's audio
   out of the Mac's speakers while Jake works.
+- `agent-browser press Escape` floods macOS with ~7k native keydowns/second; use CDP `Input.dispatchKeyEvent` through `scripts/parity/browser-escape.mjs` instead.
 - **Capture as the phone:** `agent-browser set device "iPhone 16 Pro"` (402×874, 3×) with `touch&tier=phone`. A 1×
   capture looks blurry and misjudges sharpness.
 - Render on the GPU: agent-browser does by default, and Playwright scripts pass `--use-angle=metal`. SwiftShader only
