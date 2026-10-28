@@ -1,11 +1,11 @@
 {
   "date": "28 OCT 2026",
-  "updated": "2026-10-28T15:12:30Z",
+  "updated": "2026-10-28T17:10:54Z",
   "entries": [
     "Pine Hollow: textured paths and trees without solid backings",
     "Crossings finish loading on slow connections",
-    "Faster returns to places you have just visited",
-    "Safari: the bag MAP no longer waits at 0 / 1",
-    "Developer: open the Night Market placeholder from SHARD SELECT"
+    "Faster returns to recently visited places",
+    "Safari: open the bag MAP without the 0 / 1 loading stall",
+    "Developer: try the Night Market placeholder from SHARD SELECT"
   ]
 }
