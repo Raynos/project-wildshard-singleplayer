@@ -1,5 +1,5 @@
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { ResidencyAllocator, ResidencyLease } from './allocator';
+import type { ResidencyAllocator, ResidencyClaim, ResidencyLease } from './allocator';
 
 /**
  * The renderer's pure preflight result, in bytes. Count retained JS data (including CPU buffers/canvases) and all GPU
@@ -15,6 +15,8 @@ export interface PlatformRenderBytePlan {
 /** The look executes its existing builder only after this admission; register its resources on the supplied scope. */
 export interface PlatformRenderAdmission {
   allocate: <T>(plan: PlatformRenderBytePlan, build: (scope: Scope) => T) => T;
+  /** `allocate` whose admission may wait, in steps, for the evictions that make room (a retained world's disposal, T10) */
+  allocateSteps?: <T>(plan: PlatformRenderBytePlan, build: (scope: Scope) => T) => Generator<void, T>;
   /** Shrink only after native buffers are disposed; growth requires ordinary admission. */
   shrink?: (id: string, retainedBytes: number) => void;
 }
@@ -40,6 +42,13 @@ export class PlatformRenderResidency implements PlatformRenderAdmission {
   private assertActive(): void { if (this.scope.disposed || this.scope.disposing) throw new Error('Platform render session is disposed'); }
 
   allocate<T>(plan: PlatformRenderBytePlan, build: (scope: Scope) => T): T {
+    return this.adopt(plan, this.allocator.reserve(this.claim(plan)), build);
+  }
+  *allocateSteps<T>(plan: PlatformRenderBytePlan, build: (scope: Scope) => T): Generator<void, T> {
+    const claim = this.claim(plan);
+    return this.adopt(plan, yield* this.allocator.reserveSteps(claim), build);
+  }
+  private claim(plan: PlatformRenderBytePlan): ResidencyClaim {
     this.assertActive();
     if (!/^[a-z][a-z0-9.-]{0,79}$/u.test(plan.id) || !Number.isSafeInteger(plan.jsBytes) || plan.jsBytes < 0
       || !Number.isSafeInteger(plan.gpuBytes) || plan.gpuBytes < 0 || !Number.isSafeInteger(plan.jsBytes + plan.gpuBytes)) {
@@ -47,8 +56,9 @@ export class PlatformRenderResidency implements PlatformRenderAdmission {
     }
     const id = `platform:render:${plan.id}`;
     if (this.allocator.has(id)) throw new Error(`Platform render allocation ${plan.id} already exists`);
-    const lease = this.allocator.reserve({ id, category: 'l0', owner: 'platform', bytes: plan.jsBytes + plan.gpuBytes,
-      distance: 0, needed: true });
+    return { id, category: 'l0', owner: 'platform', bytes: plan.jsBytes + plan.gpuBytes, distance: 0, needed: true };
+  }
+  private adopt<T>(plan: PlatformRenderBytePlan, lease: ResidencyLease | null, build: (scope: Scope) => T): T {
     if (lease === null) throw new PlatformRenderAdmissionError(plan);
     // Eviction callbacks can close a session while reserve prepares another claim.
     try { this.assertActive(); } catch (error) { lease.release(); throw error; }
@@ -72,7 +82,8 @@ export class PlatformRenderResidency implements PlatformRenderAdmission {
 
 /** Admit before advancing a sliced builder; failure or cancellation disposes its resources before the claim. */
 export function* allocateRenderSteps<T>(admission: PlatformRenderAdmission, plan: PlatformRenderBytePlan, build: (scope: Scope) => Generator<void, T | undefined>): Generator<void, T | undefined> {
-  const admitted = admission.allocate(plan, owner => ({ owner, steps: build(owner) }));
+  const start = (owner: Scope): { owner: Scope; steps: Generator<void, T | undefined> } => ({ owner, steps: build(owner) });
+  const admitted = admission.allocateSteps === undefined ? admission.allocate(plan, start) : yield* admission.allocateSteps(plan, start);
   let completed = false;
   try {
     for (;;) {

@@ -451,12 +451,14 @@ export class LiveGridHost {
         bind(() => {
           if (this.residents.get(instance) !== resident) return null;
           const prepared = this.prepareUnload(instance);
-          return prepared === null ? null : { abort: prepared.abort, commit: () => {
+          if (prepared === null) return null;
+          const steps = prepared.steps;
+          return { abort: prepared.abort, commit: () => {
             prepared.commit();
             // A failed disposer keeps its full claim; never let allocator
             // eviction remove it merely because the callback returned.
             if (this.residents.get(instance) === resident) throw new Error('Retained world disposal failed');
-          } };
+          }, ...(steps === undefined ? {} : { steps: () => this.checkedEviction(steps(), instance, resident) }) };
         });
         resident.evictionBound = true;
       } catch { return false; }
@@ -649,7 +651,13 @@ export class LiveGridHost {
     try { if (!resident.disposalFailed && !this.checkpoint(instance)) return null; } catch { return null; }
     const checkpointMs = diagnosticNow() - checkpointStart;
     resident.evicting = true; let closed = false;
-    return { abort: () => { if (closed) return; closed = true; resident.evicting = false; }, commit: () => {
+    const retire = resident.region.retire;
+    return { abort: () => { if (closed) return; closed = true; resident.evicting = false; },
+      ...(retire === undefined || resident.disposalFailed === true ? {} : { steps: (): Generator<void, void> => {
+        if (closed) throw new Error('Residency eviction already settled');
+        closed = true; return this.evictionSteps(instance, resident, retire, checkpointMs);
+      } }),
+      commit: () => {
       if (closed) return; closed = true;
       this.ports.keepPrograms?.(instance);
       const disposeStart = diagnosticNow();
@@ -678,14 +686,28 @@ export class LiveGridHost {
     const checkpointStart = diagnosticNow();
     try { if (!this.checkpoint(instance)) return false; } catch { return false; }
     const checkpointMs = diagnosticNow() - checkpointStart;
+    resident.evicting = true;
+    const record = this.startRetirement(instance, resident, retire, checkpointMs);
+    this.sequence = this.settle(Promise.all([this.sequence, this.drainRetirement(record)]).then(() => undefined));
+    return true;
+  }
+  /** a frozen, checkpointed world leaves the residents (its readiness closes) and starts its stepped disposal; its claim
+   *  stays held until `finishRetirement` */
+  private startRetirement(instance: string, resident: Resident, retire: () => Generator<DisposeStep, void>, checkpointMs: number): RetiringRegion {
     this.ports.keepPrograms?.(instance);
     this.forgetLastCell(instance);
-    resident.evicting = true; this.residents.delete(instance); this.readiness.invalidate(instance);
+    this.residents.delete(instance); this.readiness.invalidate(instance);
     this.ghosts.retired(instance, resident.region.ghostRoots ?? [resident.region]);
     const record: RetiringRegion = { instance, resident, steps: retire(), checkpointMs, start: diagnosticNow(), count: 0, workMs: 0, slowestMs: 0, slowest: '', done: false };
     this.retiring.set(instance, record);
-    this.sequence = this.settle(Promise.all([this.sequence, this.drainRetirement(record)]).then(() => undefined));
-    return true;
+    return record;
+  }
+  /** one disposal step of a retiring world; true once its last step ran */
+  private advance(record: RetiringRegion): boolean {
+    const at = diagnosticNow(), step = record.steps.next(), ms = diagnosticNow() - at;
+    record.count++; record.workMs += ms;
+    if (ms > record.slowestMs) { record.slowestMs = ms; record.slowest = step.done === true ? 'final' : `${step.value.scope}:${step.value.kind}`; }
+    return step.done === true;
   }
   private async drainRetirement(record: RetiringRegion): Promise<void> {
     // Its own stretch per frame, not the builds' shared one: starved by tile and prefetch work it took 31-35 s on the
@@ -695,14 +717,42 @@ export class LiveGridHost {
     try {
       for (;;) {
         if (record.done) return;
-        const at = diagnosticNow(), step = record.steps.next(), ms = diagnosticNow() - at;
-        record.count++; record.workMs += ms;
-        if (ms > record.slowestMs) { record.slowestMs = ms; record.slowest = step.done === true ? 'final' : `${step.value.scope}:${step.value.kind}`; }
-        if (step.done === true) break;
+        if (this.advance(record)) break;
         if (diagnosticNow() - stretch >= WORK_SLICE_MS) { await slice.yield(); stretch = diagnosticNow(); }
       }
       this.finishRetirement(record, undefined);
     } catch (error) { this.finishRetirement(record, { error }); }
+  }
+  /** a stepped eviction, then the same check as its one-shot commit: a failed disposer keeps its full claim */
+  private *checkedEviction(steps: Generator<void, void>, instance: string, resident: Resident): Generator<void, void> {
+    yield* steps;
+    if (this.residents.get(instance) === resident) throw new Error('Retained world disposal failed');
+  }
+  /**
+   * T10: an allocator eviction of a world with stepped disposal, driven by the evicting caller one disposal step per yield
+   * (a road's render admission in a drive disposed a whole retained world in one 118 ms frame). The same order as `retire`:
+   * out of the residents first, its claim held until the last step, every later admission waiting on `sequence`. Left
+   * unfinished (the caller stopped), the rest drains on its own; a failure keeps the full claim, as `retire`'s does.
+   */
+  private *evictionSteps(instance: string, resident: Resident, retire: () => Generator<DisposeStep, void>, checkpointMs: number): Generator<void, void> {
+    const record = this.startRetirement(instance, resident, retire, checkpointMs);
+    let settle = (): void => undefined;
+    const finished = new Promise<void>(resolve => { settle = resolve; });
+    this.sequence = this.settle(Promise.all([this.sequence, finished]).then(() => undefined));
+    let ended = false;
+    try {
+      for (;;) {
+        if (record.done) { ended = true; return; }
+        let last: boolean;
+        try { last = this.advance(record); }
+        catch (error) { ended = true; this.finishRetirement(record, { error }); return; }
+        if (last) { ended = true; this.finishRetirement(record, undefined); return; }
+        yield;
+      }
+    } finally {
+      if (ended) settle();
+      else void this.drainRetirement(record).finally(settle);
+    }
   }
   private finishRetirement(record: RetiringRegion, failure: { readonly error: unknown } | undefined): void {
     if (record.done) return;
