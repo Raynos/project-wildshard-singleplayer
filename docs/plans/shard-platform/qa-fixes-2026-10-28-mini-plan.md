@@ -43,7 +43,13 @@ Driftwood from the title, cold and warm. Source references are origin/main lines
 | QF14 | **Empty space at the bottom of the loading screen (finding 8).** The Developer `holdLoading` toggle goes there (Developer on only; no new Debug row, G669) | sp-x6 (Codex) | 1 h | with Developer on the toggle sits in the bottom band; with Developer off the band is empty; `loading-hold.test.ts` covers it |
 | QF15 | **Minimap shows the T5 tile "0.1 MB" labels (finding 13).** Landed `792fa39d79` (not live) | landed; ships in the release | 0 | no tile label on the minimap of the release |
 | QF16 | **WHAT'S NEW stale since 10-21 (finding 7, G825).** Refreshed `a6701db713` (not live); sp-ci-deploy rewrites `src/game/whatsNew.json` with every release: 3–5 true player-visible lines, newest first | sp-ci-deploy | 0.5 h a release | the release's `whatsNew.json` is dated today and names QF1–QF15's visible changes |
-| QF17 | **Bulk downloads: 527 files for one Driftwood entry (finding 17).** Pending input: `docs/plans/shard-platform/reviews/bulk-downloads-2026-10-28.md` (wildshard-v). Its rows are added here when it lands; nothing is built before it | Codex, after the review | after the review | the review's rows are added here and met |
+| QF17 | **Bulk downloads (finding 17): the review's quick wins B1–B6.** [bulk-downloads-2026-10-28](reviews/bulk-downloads-2026-10-28.md) (`645e86f8a1`): the "527 files" are pack members; the real cost is ~266 requests before control and 97–221 after it on Driftwood. B1–B5 need no format change. The review's per-phase pack design is a note for Jake's next plan only, never rows here | Codex | see B1–B6 | B1–B6 met; Driftwood before control ~266 → ≤ ~255 (B1–B5) / ~105 (with B6), after control 97 → ~8 |
+| QF17.B1 | **Read each pack whole, once.** `readPacked` fetches each pack in one GET (≤ 4 MB), verified by its hash, members sliced in memory and shared across waves; no byte ranges. Removes the likely cause of the 18.6 s range hang (three 2.3–4.2 MB packs read as 5–7 ranges each) | Codex | S | Driftwood pack reads 24 → 13 on both engines; no 206 response in the entry's network log |
+| QF17.B2 | **Grid neighbours read their sections through their packs** (the I5.3 path) | Codex | S | after-control section requests 140 → ~10 on the Driftwood grid entry |
+| QF17.B3 | **Sounds as one pack, or decoded on first use:** the 91 SFX / music `.m4a` stop downloading one by one after control | Codex | S–M | after-control sound requests 91 → 1–3; every sound still plays on first use |
+| QF17.B4 | **SW cache-first for shard files:** `/shardfiles/*/blobs/**` served cache-first from one cache (no `ws-static` copy), at most 6 downloads in flight (2 after control) | Codex (with sp-x2's QF1) | S | one `cache.put` per file, not 2; never more than 6 in flight before control on either engine |
+| QF17.B5 | **Retry with backoff and a step deadline** (after QF1 / G830): a failed or stalled download retries with backoff + jitter; a step past its deadline shows a Retry button | Codex | S | a dropped request recovers on retry; a held step shows Retry on both engines, never a still screen |
+| QF17.B6 | **Coarser JS chunks:** coarser `controlChunkGroups` (startup / session / shard / late) in the existing Rolldown config; an output setting, not a plugin, so it fits G799. Weighed against js-payload's lazy loads with a build-time JS-size reading (I12's guard) so lazy code stays lazy | Codex | M | JS requests 166–234 → ~10–20 on a Driftwood entry; I12's guard green; map, bag, pause and HUD stay eager (G826) |
 | QF18 | **Night Market missing from SHARD SELECT (finding 6).** Fixed `72a67f451b` (live) | done | 0 | done `72a67f451b` |
 
 ## Ship
@@ -56,4 +62,5 @@ Driftwood from the title, cold and warm. Source references are origin/main lines
   wildshard-v (close-out §3.2).
 - **The build id goes to wildshard-v through STATE.md** (it is talking to Jake; never herdr-prompt it), with the rows
   the build contains. wildshard-v tells Jake. No phone chore for Jake: his next play is the check.
-- QF2 and QF17 open a second release once their reviews land; this page then gains their rows.
+- QF17's B1–B6 ride the first release they land in; none waits for another. QF2 opens a second release once the
+  service-worker review lands; this page then gains its rows.
