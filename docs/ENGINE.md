@@ -4252,6 +4252,11 @@ including plain-data/refusal checks, before any native owner exists.
 `roadSocketMetrics()` returns detached midpoint cell/width/asphalt dimensions for
 authored terrain and piers; callers never borrow mutable runtime configuration.
 
+`bake/sourceMetadata` admits complete model prototype facts, source LOD/plant
+metadata and cover-prefix metadata before baking. Each projection keeps the
+original strip/finite/recording-number grammar and detached result ownership;
+callers retain their own asset roots and JSON decoding policy.
+
 ### Existing runtime definitions under plugin modules
 
 The following modules contain the existing implementations; there is no facade

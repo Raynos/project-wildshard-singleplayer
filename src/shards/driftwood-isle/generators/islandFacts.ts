@@ -1,5 +1,5 @@
 import { Box3, Vector3 } from 'three';
-import * as v from 'valibot';
+import { modelPrototypeFacts, modelSourceMetadata } from '@wildshard/sdk/bake/sourceMetadata';
 import { islandProtos, type IslandProto } from './islandProtos';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 
@@ -13,9 +13,7 @@ export const DRIFTWOOD_ISLAND_FACT_INPUTS: readonly string[] = ['/assets/models/
 
 /** Admit complete native prototype observations before synchronous declaration readers use them. */
 export function parseDriftwoodIslandFacts(bytes: Uint8Array): DriftwoodIslandFacts {
- const n=v.pipe(v.number(),v.finite()),point=v.object({x:n,y:n,z:n});
- return v.parse(v.object({protos:v.array(v.object({name:v.string(),present:v.boolean(),empty:v.boolean(),min:point,max:point,half:n,top:n})),
-  extraPalms:v.array(v.object({x:n,z:n,h:n,lean:n,leanDir:n,rot:n,fronds:n})),bake:v.object({bounceGain:n,sunY:n})}),JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)));
+ return modelPrototypeFacts(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)));
 }
 
 /** Retained drivers provide only committed native inputs, never a copied facts file. */
@@ -42,8 +40,7 @@ export function prototypeFacts(name:string,proto:IslandProto|undefined):ProtoFac
 /** The native Blender GLB and LOD recipe are the sole authority for these cheap metadata rows. */
 export async function islandPrototypeFacts(readAsset:(url:string)=>Uint8Array):Promise<Uint8Array> {
  const base='/assets/models/driftwood-blender/';
- const n=v.pipe(v.number(),v.finite()),palm=v.object({x:n,z:n,h:n,lean:n,leanDir:n,rot:n,fronds:n});
- const meta=v.parse(v.object({protos:v.array(v.object({name:v.string()})),lod:v.record(v.string(),v.number()),extraPalms:v.array(palm),bake:v.object({bounceGain:n,refSun:v.tuple([n,n,n])})}),JSON.parse(new TextDecoder().decode(readAsset(`${base}island.json`))));
+ const meta=modelSourceMetadata(JSON.parse(new TextDecoder().decode(readAsset(`${base}island.json`))));
  const protos=await islandProtos(readAsset(`${base}island.glb`),meta);
  // everything the runtime reads of island.json (G467): the prototype facts, the extra palms the monkeys climb, and the
  // bounce bake's gain and reference sun height

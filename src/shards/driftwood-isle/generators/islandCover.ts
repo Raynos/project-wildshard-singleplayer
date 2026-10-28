@@ -1,7 +1,7 @@
 import ISLAND_COVER_FILES from '../data/islandCoverFiles.json' with { type: 'json' };
 /** Build-time cover splat; the page only admits and installs its declared file. */
 import * as THREE from 'three';
-import * as v from 'valibot';
+import { modelCoverMetadata } from '@wildshard/sdk/bake/sourceMetadata';
 import { triAreas, type CoverTri } from './coverTris';
 import { islandProtos, type IslandProto } from './islandProtos';
 import { AuthorCoverGrid, baseCoverGrid } from './coverGrid';
@@ -164,7 +164,7 @@ export function islandSets(f: Float32Array, meta: CoverMeta, used: number, phone
  *  ground's grid (TERRAIN_RES², row by row), then the island's terrain tiles — and the layout its declaration carries. */
 export async function bakeFullIslandCover(readAsset: (url: string) => Uint8Array, phone: boolean, palms: readonly {x:number;z:number}[], ground: {heightAt:(x:number,z:number)=>number;normalAt:(x:number,z:number,eps:number)=>[number,number,number];trailDistance:(x:number,z:number)=>number}, seed: number, facts: DriftwoodIslandFacts): Promise<{bytes:Uint8Array;cells:Uint8Array;used:number;texture:{width:number;height:number};groundRect:[number,number,number,number];parts:[number,number][]}> {
   const base = '/assets/models/driftwood-blender/';
-  const meta = v.parse(v.object({ protos: v.array(v.object({ name: v.string(), kind: v.string() })), mustDraw: v.number() }), JSON.parse(new TextDecoder().decode(readAsset(`${base}island.json`))));
+  const meta = modelCoverMetadata(JSON.parse(new TextDecoder().decode(readAsset(`${base}island.json`))));
   const protos = await islandProtos(readAsset(`${base}island.glb`), meta), f = islandPlacements(Uint8Array.from(readAsset(`${base}placements.bin`)).buffer);
   const used = islandUsed(f, meta, phone), sets = islandSets(f, meta, used, phone);
   const grid=baseCoverGrid(palms,ground.heightAt,ground.normalAt,ground.trailDistance);
