@@ -1,7 +1,28 @@
 import { expect, test, vi } from 'vitest';
 import { DataTexture, PerspectiveCamera, Scene } from 'three';
 import { gpuOnlyTexture } from '../core/gpuOnly';
-import { installTextureUploadEvents, type TextureUploadRenderer } from './textureUploadEvents';
+import { installTextureUploadEvents, onceTextureUploaded, type TextureUploadRenderer } from './textureUploadEvents';
+
+test('empty draws forward native arguments and a failed draw cannot finish a pending upload', () => {
+  const scene = new Scene(), camera = new PerspectiveCamera(), texture = new DataTexture(), failure = new Error('native draw');
+  const rows = new WeakMap<object, { __version: number }>();
+  let calls = 0, fail = false, completed = 0;
+  const renderer: TextureUploadRenderer = {
+    properties: { get: value => typeof value === 'object' && value !== null ? rows.get(value) : undefined },
+    initTexture: () => undefined,
+    render(actualScene, actualCamera): void {
+      expect(this).toBe(renderer); expect(actualScene).toBe(scene); expect(actualCamera).toBe(camera); calls++;
+      rows.set(texture, { __version: texture.version }); rows.set(texture.source, { __version: texture.source.version });
+      if (fail) throw failure;
+    },
+  };
+  installTextureUploadEvents(renderer);
+  for (let frame = 0; frame < 128; frame++) renderer.render(scene, camera);
+  onceTextureUploaded(texture, () => { completed++; }); renderer.properties.get(texture);
+  fail = true; expect(() => renderer.render(scene, camera)).toThrow(failure); expect(completed).toBe(0);
+  fail = false; renderer.render(scene, camera); expect(completed).toBe(1);
+  renderer.render(scene, camera); expect(completed).toBe(1); expect(calls).toBe(131); texture.dispose();
+});
 
 test('native texture hooks stay intact and release only after both upload versions complete', () => {
   const rows = new WeakMap<object, { __version?: number }>();

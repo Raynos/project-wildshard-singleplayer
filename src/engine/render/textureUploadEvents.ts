@@ -38,6 +38,7 @@ export function installTextureUploadEvents(renderer: TextureUploadRenderer): voi
     return typeof row === 'object' && row !== null ? Reflect.get(row, '__version') : undefined;
   };
   const flush = (): void => {
+    if (pending.size === 0) return;
     for (const ref of pending) {
       const texture = ref.deref();
       if (texture === undefined) { pending.delete(ref); continue; }
@@ -49,5 +50,5 @@ export function installTextureUploadEvents(renderer: TextureUploadRenderer): voi
   };
   const init = renderer.initTexture.bind(renderer), draw = renderer.render.bind(renderer);
   renderer.initTexture = texture => { init(texture); flush(); };
-  renderer.render = (...args) => { draw(...args); flush(); };
+  renderer.render = (scene, camera) => { draw(scene, camera); flush(); };
 }
