@@ -1,5 +1,5 @@
 /** Original cabin geometry and glTF hierarchy, decoded without a Node image host. */
-import {createHash} from 'node:crypto';
+import {hashImmutableBytes} from '@wildshard/sdk/immutable';
 import {Mesh} from 'three';
 import {GeometryPack,packedRows} from '@wildshard/sdk/kit/geometryPack';
 import {readSourceModel} from '@wildshard/sdk/bake/skinned';
@@ -49,14 +49,14 @@ async function model(url,sources){
   node.material.userData.cabinSource={url,part,material:materialId};
   descriptors.push({url,part,material:materialId,name:node.material.name});
  });
- return{scene:loaded.gltf.scene,descriptors,sourceHash:createHash('sha256').update(bytes).digest('hex')};
+ return{scene:loaded.gltf.scene,descriptors,sourceHash:hashImmutableBytes(bytes)};
 }
 /** All shape data comes from the published native pack or original glTF buffers, read through the program's sources
  *  (GR8: the cabin scene and living rows are the program's, bake-cabin-scenes.mjs / bake-cabin-living.mjs). */
 export async function cabinSceneSources(tier,sources){
  if(!['phone','desktop'].includes(tier))throw new Error('Cabin author tier differs');
  const {rows,bin:bytes}=pineCabins(sources);
- if(createHash('sha256').update(bytes).digest('hex')!==rows.bin)throw new Error('Cabin native geometry pack hash differs');
+ if(hashImmutableBytes(bytes)!==rows.bin)throw new Error('Cabin native geometry pack hash differs');
  const geometryPack=new GeometryPack(bytes,packedRows(rows),'native cabin scene'),geometry=new Map();
  for(let i=0;i<rows.geometries.length;i++){
   const shape=geometryPack.geometry(i);
