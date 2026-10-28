@@ -4985,6 +4985,9 @@ pose with the native matrix/quaternion/scale law, returning contact data only.
 hull, mesh and stair grammars with an explicit surface vocabulary. Recording
 retains finite words and integer indices; runtime lane/size admission remains
 the separate `admitContactRows` operation. No physics owner is constructed.
+`recordedPhysicsPieces`, `recordedPhysicsPoints` and `recordedColliderRows`
+admit strict captured registry data, identity-frame follows and optional exact
+contact counts; selection, ownership and registration remain with the caller.
 
 
 `bootInventory.bootRecipeFiles` / `bootRecipeSources` resolve ordered author recipes against a required explicit inventory, GPU aliases and optional page/alias tables. Native transform order, duplicates, recursion/file limits and missing-metadata refusals remain; these functions never borrow the live page's inventory.

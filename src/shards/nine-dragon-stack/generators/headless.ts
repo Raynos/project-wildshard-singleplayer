@@ -1,8 +1,7 @@
 import grappleProfile from '../data/grappleProfile.json' with { type: 'json' };
-import * as v from 'valibot';
 import type { ContactSurface, ColliderDesc } from '@wildshard/sdk/bake/placement';
-import { treadBoxRows as treadBoxes } from '@wildshard/sdk/bake/contactRows';
-import { bakedColliderDesc, bakedColliderSchemas } from './bakedColliders';
+import { treadBoxRows as treadBoxes, recordedPhysicsPieces, recordedPhysicsPoints, recordedColliderRows } from '@wildshard/sdk/bake/contactRows';
+import { bakedColliderDesc } from './bakedColliders';
 import { deckCapRows } from './portalFloors';
 import portals from '../data/portals.json' with { type: 'json' };
 import plan from '../data/layoutPlan.json' with { type: 'json' };
@@ -10,21 +9,12 @@ import { ninePhysics } from './physics';
 
 const baked = ninePhysics();
 
-const finite = v.pipe(v.number(), v.finite());
 const capRows = deckCapRows();
 const SURFACES: readonly ContactSurface[] = ['wood', 'metal', 'flesh', 'felt', 'stone', 'rock', 'sand'];
-const Vec = v.strictObject({ x: finite, y: finite, z: finite });
-/** One baked collider, strictly (@wildshard/sdk/props/bakedColliders): every engine `ColliderDesc` kind the page registered, an unknown field refuses the bake. */
-const { Surface, Collider } = bakedColliderSchemas(SURFACES);
-const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
-const Piece = v.strictObject({ id: v.string(), name: v.string(), category: v.string(), file: v.string(), colliders: v.array(Collider), active: v.boolean(),
-  surface: v.exactOptional(Surface), colliderOwner: v.exactOptional(v.string()),
-  // a followed piece (the Well safety cap) baked at rest: its frame is the world's, so it stands where its boxes say
-  follows: v.optional(v.strictObject({ matrix: v.pipe(v.array(finite), v.check(m => m.length === 16 && m.every((x, i) => x === IDENTITY[i]), 'a baked followed piece rests at the world frame')), rotation: v.boolean() })) });
 /** Nine's native colliders, from authored rows (generators/physics.ts, G350-ND), strictly. */
-const NINE_PIECES = v.parse(v.array(Piece), baked.pieces);
+const NINE_PIECES = recordedPhysicsPieces(baked.pieces, SURFACES);
 /** The Fei Zhua's dragon hooks (the ring centres the claw bites) as the page's world placed them, from the same bake. */
-const NINE_HOOKS = v.parse(v.array(Vec), baked.hooks);
+const NINE_HOOKS = recordedPhysicsPoints(baked.hooks);
 /** The engine's own HUD / Weapon Explorer arena (engine/practice), registered under every Developer page: not Nine's world. */
 const PRACTICE = 'src/engine/practice/';
 /** The fragment's floors piece (plugin.ts world stage), which carries the standalone deck caps. */
@@ -36,7 +26,7 @@ const FLOORS = 'nds-floors';
  */
 function withoutCaps(colliders: readonly ColliderDesc[]): ColliderDesc[] {
   const left = [...colliders], key = (c: ColliderDesc): string => JSON.stringify(Object.entries(c).sort(([a], [b]) => a.localeCompare(b)));
-  (['north', 'south', 'east', 'west'] as const).flatMap(edge => v.parse(v.pipe(v.array(Collider), v.length(4)), capRows[edge]).map(bakedColliderDesc)).forEach(cap => {
+  (['north', 'south', 'east', 'west'] as const).flatMap(edge => recordedColliderRows(capRows[edge], SURFACES, 4).map(bakedColliderDesc)).forEach(cap => {
     const want = key(cap), at = left.findIndex(c => key(c) === want);
     if (at === -1) throw new Error('The baked Nine floors lack a standalone deck cap the recipe names');
     left.splice(at, 1);

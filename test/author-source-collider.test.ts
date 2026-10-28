@@ -1,6 +1,6 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
-import { sourceColliderSchemas, type SourceCollider } from '../src/sdk/bake/contactRows';
+import { sourceColliderSchemas, recordedPhysicsPieces, recordedPhysicsPoints, recordedColliderRows, type SourceCollider } from '../src/sdk/bake/contactRows';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { bakedColliderSchemas, bakedColliderDesc, type BakedCollider } from '../src/shards/nine-dragon-stack/generators/bakedColliders';
@@ -56,4 +56,27 @@ test('recorded admission retains exact malformed-shape refusals', () => {
   ]) expect(() => v.parse(Collider, bad)).toThrow();
   // This is the recording grammar; runtime size and lane limits remain a later admission step.
   expect(v.parse(Collider, { ...ball, radius: -1 })).toEqual({ ...ball, radius: -1 });
+});
+
+test('recorded pieces keep frame, optionality, contact count and strict point admission', () => {
+  const matrix = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+  const ball = { kind: 'ball', x: -0, y: 1, z: 2, radius: 3 };
+  const piece = { id: 'one', name: 'One', category: 'buildings', file: 'author.ts', colliders: [ball], active: true,
+    surface: 'wood', colliderOwner: 'owner', follows: { matrix, rotation: false } };
+  const actual = recordedPhysicsPieces([piece], ['wood']);
+  expect(actual).toEqual([piece]);
+  expect(actual[0]?.follows?.matrix).not.toBe(matrix);
+  expect(recordedPhysicsPieces([{ ...piece, follows: undefined }], ['wood'])[0]).toHaveProperty('follows', undefined);
+  expect(recordedColliderRows([ball, ball, ball, ball], ['wood'], 4)).toEqual([ball, ball, ball, ball]);
+  expect(() => recordedColliderRows([ball], ['wood'], 4)).toThrow();
+  expect(() => recordedColliderRows([], ['wood'], -1)).toThrow();
+  expect(() => recordedColliderRows([], ['wood'], 0.5)).toThrow();
+  expect(recordedColliderRows([], ['wood'], 0)).toEqual([]);
+  expect(recordedPhysicsPoints([{ x: -0, y: 1, z: 2 }])).toEqual([{ x: -0, y: 1, z: 2 }]);
+  for (const bad of [{ ...piece, extra: 1 }, { ...piece, surface: 'stone' },
+    { ...piece, follows: { matrix: matrix.slice(1), rotation: false } },
+    { ...piece, follows: { matrix: matrix.map((value, index) => index === 0 ? 2 : value), rotation: false } },
+    { ...piece, follows: { matrix, rotation: 'false' } }]) expect(() => recordedPhysicsPieces([bad], ['wood'])).toThrow();
+  for (const bad of [[{ x: 0, y: 1, z: Infinity }], [{ x: 0, y: 1, z: 2, extra: 1 }], [{}]])
+    expect(() => recordedPhysicsPoints(bad)).toThrow();
 });

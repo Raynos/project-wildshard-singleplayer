@@ -26,6 +26,32 @@ export function sourceColliderSchemas(surfaces: readonly ContactSurface[]): Sour
 /** One admitted source shape; numeric buffers remain ordinary owned arrays. */
 export type SourceCollider = v.InferOutput<SourceColliderSchemas['Collider']>;
 
+/** A captured author registry piece, before any runtime registration or resource borrowing. */
+export interface RecordedPhysicsPiece {
+  id: string; name: string; category: string; file: string; colliders: SourceCollider[]; active: boolean;
+  surface?: ContactSurface; colliderOwner?: string;
+  follows?: { matrix: number[]; rotation: boolean } | undefined;
+}
+/** Admit recorded world-frame pieces with the exact identity-frame rule for followed pieces. */
+export function recordedPhysicsPieces(input: unknown, surfaces: readonly ContactSurface[]): RecordedPhysicsPiece[] {
+  const { Surface, Collider } = sourceColliderSchemas(surfaces);
+  const identity = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+  return v.parse(v.array(v.strictObject({ id: v.string(), name: v.string(), category: v.string(), file: v.string(),
+    colliders: v.array(Collider), active: v.boolean(), surface: v.exactOptional(Surface), colliderOwner: v.exactOptional(v.string()),
+    follows: v.optional(v.strictObject({ matrix: v.pipe(v.array(finite),
+      v.check(matrix => matrix.length === 16 && matrix.every((value, index) => value === identity[index]), 'a baked followed piece rests at the world frame')),
+    rotation: v.boolean() })) })), input);
+}
+/** Admit finite recorded points with strict coordinate ownership. */
+export function recordedPhysicsPoints(input: unknown): { x: number; y: number; z: number }[] { return v.parse(v.array(Vec), input); }
+/** Admit source contacts, optionally requiring the exact original recorded count. */
+export function recordedColliderRows(input: unknown, surfaces: readonly ContactSurface[], length?: number): SourceCollider[] {
+  const schema = v.array(sourceColliderSchemas(surfaces).Collider);
+  if (length === undefined) return v.parse(schema, input);
+  if (!Number.isSafeInteger(length) || length < 0) throw new Error('Invalid recorded contact count');
+  return v.parse(v.pipe(schema, v.length(length)), input);
+}
+
 /** Explicit authored shape/surface vocabulary, enforced before any geometry lane is borrowed. */
 export interface AuthorContactPolicy {
   readonly kinds: readonly ColliderDesc['kind'][];
