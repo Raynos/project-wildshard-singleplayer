@@ -63,8 +63,9 @@ export function jsonDataHeapBytes(value: unknown): number | undefined {
 function boundedJsonData(value: unknown, separateSchemas: boolean, diagnostic?:{nodes:number}, heap?: { bytes: number }): boolean {
   const active = new Set<object>();
   let nodes = 0;
+  const nodeLimit = diagnostic === undefined ? 100000 : 1000000;
   const visit = (item: unknown, depth: number, location: 'index' | 'files' | 'file' | 'other'): boolean => {
-    if (++nodes > (diagnostic===undefined?100000:1000000) || depth > 64) return false;
+    if (++nodes > nodeLimit || depth > 64) return false;
     if (item === null || typeof item === 'boolean' || typeof item === 'string') {
       if (heap !== undefined) heap.bytes += typeof item === 'string' ? 24 + item.length * 2 : 8;
       return true;
@@ -87,8 +88,19 @@ function boundedJsonData(value: unknown, separateSchemas: boolean, diagnostic?:{
       const key = array ? i : keys[i] ?? '';
       if (heap !== undefined && !array) heap.bytes += 24 + (keys[i]?.length ?? 0) * 2;
       const next = location === 'index' && key === 'files' ? 'files' : location === 'files' && array ? 'file' : 'other';
-      ok = descriptor?.enumerable === true && descriptor.get === undefined && descriptor.set === undefined
-        && (separateSchemas && location === 'file' && key === 'jsonSchema' ? isJsonData(descriptor.value) : visit(descriptor.value, depth + 1, next));
+      ok = descriptor?.enumerable === true && descriptor.get === undefined && descriptor.set === undefined;
+      if (!ok || descriptor === undefined) continue;
+      const child: unknown = descriptor.value;
+      if (separateSchemas && location === 'file' && key === 'jsonSchema') ok = isJsonData(child);
+      else if (typeof child === 'number') {
+        // Numeric lattice leaves need no recursive container visit. Count
+        // every occurrence and retain the same depth, canonical and heap gates.
+        ok = ++nodes <= nodeLimit && depth < 64;
+        if (ok) {
+          if (heap !== undefined) heap.bytes += 8;
+          ok = Number.isFinite(child) && !Object.is(child, -0);
+        }
+      } else ok = visit(child, depth + 1, next);
     }
     active.delete(item);
     return ok;

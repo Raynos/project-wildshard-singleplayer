@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { parseNamedJson } from './json';
+import { isJsonData as boundedJson, isJsonDataWithFileSchemas, jsonDataHeapBytes, jsonDataNodes as countJsonNodes, parseNamedJson } from './json';
 
 const bytes = (text: string): Uint8Array => new TextEncoder().encode(text);
 
@@ -69,4 +69,23 @@ test('named JSON preserves own keys and has no extra depth or node cap', () => {
   while (Array.isArray(value)) { value = value[0]; levels++; }
   expect(levels).toBe(depth); expect(value).toBe(1);
   expect(() => parseNamedJson(Uint8Array.of(0xff))).toThrow();
+});
+
+test('numeric children retain separate schema budgets and exact diagnostic occurrence counts', () => {
+  const schema = Array.from({ length: 99999 }, () => 0), value = { files: [{ jsonSchema: schema }, { jsonSchema: schema }] };
+  expect(isJsonDataWithFileSchemas(value)).toBe(true);
+  expect(boundedJson(value)).toBe(false);
+  expect(jsonDataHeapBytes(value)).toBeUndefined();
+  expect(countJsonNodes(value)).toBe(200004);
+  expect(isJsonDataWithFileSchemas({ files: [{ jsonSchema: [...schema, 0] }] })).toBe(false);
+});
+
+test('numeric leaf specialization never reads accessor or hidden array elements', () => {
+  let reads = 0; const accessor = [0], hidden = [0];
+  Object.defineProperty(accessor, '0', { enumerable: true, get() { reads++; return 1; } });
+  Object.defineProperty(hidden, '0', { enumerable: false, value: 1 });
+  for (const value of [accessor, hidden]) {
+    expect(boundedJson(value)).toBe(false); expect(jsonDataHeapBytes(value)).toBeUndefined(); expect(countJsonNodes(value)).toBeUndefined();
+  }
+  expect(reads).toBe(0);
 });
