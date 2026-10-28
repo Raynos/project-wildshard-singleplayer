@@ -1,7 +1,10 @@
 import { numericChannelPrograms, type ClientChannels, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
-import { parsePrivateScene, type PrivateScene, type ClientChannelProgram } from '@wildshard/format/clientChannels';
+import { privateSceneRows as parsePrivateScene } from '@wildshard/sdk/worldScenes';
+import type { ClientChannelProgram } from '@wildshard/sdk/rows';
 import * as THREE from 'three';
 import { TITAN_ARENA, TITAN_CHAINS, TITAN_PLACE, TITAN_TUNING } from './stormTitanFight';
+
+type PrivateScene = ReturnType<typeof parsePrivateScene>;
 
 /** Retained original static construction. Pose, shader hooks and hazards stay live. */
 function rng(seed: number): () => number { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }

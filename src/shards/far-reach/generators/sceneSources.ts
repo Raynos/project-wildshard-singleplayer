@@ -1,4 +1,4 @@
-import { parsePrivateScene } from '@wildshard/format/clientChannels';
+import { privateSceneRows as parsePrivateScene } from '@wildshard/sdk/worldScenes';
 import { QUEST_NPC } from './questNpc';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import type { SceneModelSource, SceneBakeSource } from '@wildshard/game/shardfile/sceneSources';

@@ -1,4 +1,4 @@
-import { parsePrivateScene, parseWorldScene, parseWorldSceneBindings, type PrivateScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
+import { privateSceneRows as parsePrivateScene, worldSceneRecipe as parseWorldScene, worldSceneBindings as parseWorldSceneBindings } from '@wildshard/sdk/worldScenes';
 import { bridgeRestValues } from './bridgeRest';
 import { restScenes } from './restScene';
 import { FALLEN_BRIDGE, NOTES, SPANS, UPDRAFT, VANES, WINCH } from "./layout";
@@ -6,6 +6,9 @@ import { FALLEN_ANGLE } from './rows/moverBindings';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import { RISING_ISLETS } from './risingIslets';
 import { PALETTE } from './palette';
+
+type PrivateScene = ReturnType<typeof parsePrivateScene>;
+type WorldSceneRecipe = ReturnType<typeof parseWorldScene>;
 
 type SceneMaterial = PrivateScene['materials'][number];
 /** The rope rails (faceted rope brown) and the hover decks' faint glass, declared here so the client builds no material of its

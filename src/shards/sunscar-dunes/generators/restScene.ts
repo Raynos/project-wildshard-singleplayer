@@ -8,7 +8,10 @@ import { decodeTerrainTile, terrainTileHeight } from '@wildshard/format/terrainT
 import { fireRows, lampRows, COOKFIRE, WAYMARK_FIRE, type FirePool } from './rows/fire';
 import { towerAnchors } from './tower';
 import { waymarkFrame } from './places';
-import { parsePrivateScene, parseWorldScene, type PrivateScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
+import { privateSceneRows as parsePrivateScene, worldSceneRecipe as parseWorldScene } from '@wildshard/sdk/worldScenes';
+
+type PrivateScene = ReturnType<typeof parsePrivateScene>;
+type WorldSceneRecipe = ReturnType<typeof parseWorldScene>;
 
 /** Bucket-local rope, open pail and jar; stable part identities stay with the existing well motion owner. */
 export function wellRest(): ClientSceneBake {
