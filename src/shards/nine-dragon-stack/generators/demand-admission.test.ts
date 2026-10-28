@@ -20,3 +20,14 @@ test('a volume outside the published inventory refuses; absent optional cold fil
   expect(() => nineDemandFiles([], [{ hash: 'a'.repeat(64) }])).toThrow('must be a published file');
   expect(nineDemandFiles([{ hash: 'a'.repeat(64) }], [])).toEqual([]);
 });
+
+test('retained author headers stay cold without deferring glyph textures or live window channels', () => {
+  const files = [
+    { hash: 'a'.repeat(64), name: 'geometry/layout.json' },
+    { hash: 'b'.repeat(64), name: 'signs/atlas-phone.json' },
+    { hash: 'c'.repeat(64), name: 'signs/atlas-desktop.json' },
+    { hash: 'd'.repeat(64), name: 'signs/atlas-phone-colour.ktx2' },
+    { hash: 'e'.repeat(64), name: 'signs/glyphs-phone.ktx2' },
+    { hash: 'f'.repeat(64), name: 'geometry/facade-windows-1.bin' }];
+  expect(nineDemandFiles(files, [])).toEqual(files.slice(0, 3).map(({ hash }) => ({ hash })));
+});
