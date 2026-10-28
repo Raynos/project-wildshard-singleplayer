@@ -26,7 +26,9 @@
  *  - `startDeferredAudioPreload()`  the same selected counted downloads and offline cache, with selected
  *                           decoding serialized after the loader fades and the world starts (E246 memory A/B).
  */
-import { publicBytes } from './tables';
+import { publicBytes, bootPacks } from './tables';
+import { audioPackReader } from './audioPack';
+import { onOwnerDispose } from '../app/ownership';
 import { texMode, type TexMode } from './gpuFiles';
 import { bootCatalog, type BootLevel } from './catalog';
 import { chunkFiles } from './manifest';
@@ -203,7 +205,7 @@ function serialDecoder(decoded?: (bytes: ArrayBuffer) => void): (bytes: ArrayBuf
 export interface AudioBanks { music: StyleBank | undefined; sfx: SfxBank; profile?: LevelAudioBank }
 
 /** Count/cache this profile's selected files, then decode its banks at the original boot/deferred boundary. */
-export function startDeferredAudioPreload(files: ChunkFiles, _def: BootLevel, profile?: LevelAudioProfile): Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks> } {
+export function startDeferredAudioPreload(files: ChunkFiles, def: BootLevel, profile?: LevelAudioProfile): Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks> } {
   const style = getMusicStyle(), set = getSfxSet();
   // E357 G19: an asset-free level omits audio.preload (ENGINE §15)
   const selected = new Set((profile ?? NO_AUDIO).bootFiles(style));
@@ -215,6 +217,8 @@ export function startDeferredAudioPreload(files: ChunkFiles, _def: BootLevel, pr
   // Keep only the selected compressed bytes until decode. That makes the post-bar decode work offline even if
   // Cache Storage is unavailable; the background shard prefetch retains the complete other-style inventory.
   const selectedBytes = new Map<string, ArrayBuffer>();
+  const lifetime = new AbortController();
+  onOwnerDispose(() => { lifetime.abort(); selectedBytes.clear(); });
   const downloads = urls.map(url => waitFor(`Read audio ${url}`, (async () => {
     try {
       await whenPrefetched(url);
@@ -253,29 +257,34 @@ export function startDeferredAudioPreload(files: ChunkFiles, _def: BootLevel, pr
         const selectedProfile = profile ?? NO_AUDIO;
         const bank = await (TIER === 'phone' ? selectedProfile.controlDecode ?? selectedProfile.decode : selectedProfile.decode)(style, read, oneAtATime);
         return { music: undefined, sfx: { set, credit: undefined, loops: new Map(), shots: new Map() }, profile: bank };
-      } finally { selectedBytes.clear(); }
+      } finally { if (!hasLateAudio(files)) selectedBytes.clear(); }
     })();
     return decoding;
   };
   // I7: after control, the boot files the bar held back download (the worker caches them) and the whole
   // selected set decodes again, one file at a time; the banks keep the slots already playing (Music.useBank).
+  let lateDecoding: Promise<AudioBanks> | undefined;
   lateLoads.set(files, () => {
     const rest = heldAudio.get(files);
     if (rest === undefined || rest.length === 0) return undefined;
-    return (async () => {
+    lateDecoding ??= (async () => {
       await decode().catch(() => undefined);
       const fetched = new Set<string>(), allowed = new Set([...urls, ...rest]);
+      const packed = audioPackReader(bootPacks()[`${def.slug}-audio-${style}`]?.['phone'], new Set(rest), fetch, lifetime.signal);
       const read = async (url: string): Promise<ArrayBuffer> => {
         if (!allowed.has(url)) throw new Error(`${url} is not a shipped boot audio file`);
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`${response.status} ${url}`);
+        const retained = selectedBytes.get(url);
+        const bytes = retained === undefined ? await packed.read(url) : retained.slice(0);
         fetched.add(url);
-        return response.arrayBuffer();
+        return bytes;
       };
-      const bank = await (profile ?? NO_AUDIO).decode(style, read, serialDecoder());
-      for (const url of fetched) downloaded.add(url);
-      return { music: undefined, sfx: { set, credit: undefined, loops: new Map(), shots: new Map() }, profile: bank };
+      try {
+        const bank = await (profile ?? NO_AUDIO).decode(style, read, serialDecoder());
+        for (const url of fetched) downloaded.add(url);
+        return { music: undefined, sfx: { set, credit: undefined, loops: new Map(), shots: new Map() }, profile: bank };
+      } finally { selectedBytes.clear(); packed.release(); }
     })();
+    return lateDecoding;
   });
   return {
     style,

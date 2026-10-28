@@ -36,6 +36,7 @@ import { pathToFileURL } from 'node:url';
 import { assetIndex, assetVersionRows } from './app-build/gen.ts';
 import { parseBootPublication, publishedBootTableSources, publishBootPublication, readBootPublication } from './boot-publication.mjs';
 import { bootPackParts } from './boot-pack-parts.mjs';
+import { lateAudioGroups } from './app-build/audioPacks.ts';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const PUBLIC = resolve(ROOT, 'public');
@@ -59,7 +60,7 @@ await Promise.all(SHARDS.map((m) => prepareShardAssets(m, registerGpuFiles)));
 const { chunkFiles } = await imp('src/engine/boot/manifest.ts');
 const { bootFetches } = await imp('src/engine/boot/prefetch.ts');
 
-const TYPES = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', glb: 'model/gltf-binary', gltf: 'model/gltf+json', bin: 'application/octet-stream', json: 'application/json' };
+const TYPES = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', glb: 'model/gltf-binary', gltf: 'model/gltf+json', bin: 'application/octet-stream', json: 'application/json', m4a: 'audio/mp4', wav: 'audio/wav' };
 const typeOf = (p) => TYPES[/\.(\w+)$/.exec(p)?.[1] ?? ''] ?? 'application/octet-stream';
 
 /** glTF textures ahead of their .gltf, everything else in the boot's own order */
@@ -78,6 +79,22 @@ function packOrder(paths) {
 if (!CHECK) mkdirSync(PACK_DIR, { recursive: true });
 const packs = {};
 const keep = new Set();
+/** @param {string} slug @param {string} tierName @param {readonly string[]} paths */
+function writeParts(slug, tierName, paths) {
+  return bootPackParts(paths, path => readFileSync(resolve(PUBLIC, `.${path}`)).length).map(group => {
+    const bodies = group.map(path => readFileSync(resolve(PUBLIC, `.${path}`)));
+    const blob = Buffer.concat(bodies);
+    const name = `${slug}.${tierName}-${createHash('sha256').update(blob).digest('hex').slice(0, 8)}.bin`;
+    keep.add(name);
+    let offset = 0;
+    const files = group.map((path, index) => {
+      const bytes = bodies[index].length, row = [path, offset, bytes, typeOf(path)]; offset += bytes; return row;
+    });
+    const out = resolve(PACK_DIR, name);
+    if (!CHECK && !existsSync(out)) writeFileSync(out, blob);
+    return { url: `/assets/packs/${name}`, bytes: blob.length, files };
+  });
+}
 for (const def of PLAYABLE_SHARDS) {
   for (const tierName of TIERS) {
     if (tierName === 'desktop' && def.load === undefined) continue; // unmigrated shards keep their existing phone-only packs
@@ -86,20 +103,13 @@ for (const def of PLAYABLE_SHARDS) {
     const paths = packOrder(bootFetches(def, files));
     if (paths.length < 2) continue;
     for (const p of paths) if (!existsSync(resolve(PUBLIC, `.${p}`))) throw new Error(`bake-packs: ${def.slug} boots ${p} but public has no such file`);
-    const parts = bootPackParts(paths, path => readFileSync(resolve(PUBLIC, `.${path}`)).length).map((group) => {
-      const bodies = group.map((p) => readFileSync(resolve(PUBLIC, `.${p}`)));
-      const blob = Buffer.concat(bodies);
-      const name = `${def.slug}.${tierName}-${createHash('sha256').update(blob).digest('hex').slice(0, 8)}.bin`;
-      keep.add(name);
-      let o = 0;
-      const rows = group.map((p, i) => { const n = bodies[i].length; const row = [p, o, n, typeOf(p)]; o += n; return row; });
-      const out = resolve(PACK_DIR, name);
-      if (!CHECK && !existsSync(out)) writeFileSync(out, blob);
-      return { url: `/assets/packs/${name}`, bytes: blob.length, files: rows };
-    });
+    const parts = writeParts(def.slug, tierName, paths);
     packs[def.slug] = { ...packs[def.slug], [tierName]: { parts } };
     const total = parts.reduce((s, x) => s + x.bytes, 0);
     console.log(`[pack] ${def.slug}.${tierName}: ${paths.length} files, ${(total / 1e6).toFixed(2)} MB in ${parts.length} parts (${parts.map((x) => (x.bytes / 1e6).toFixed(1)).join(' + ')} MB)`);
+  }
+  for (const [name, paths] of Object.entries(await lateAudioGroups(ROOT, def.slug))) {
+    packs[name] = { phone: { parts: writeParts(name, 'phone', paths) } };
   }
 }
 
