@@ -1,5 +1,5 @@
-import { validateGraph, type GraphIr, type GraphNode, type GraphRef } from '@wildshard/format/materialGraph';
-import type { ScaledPostRow } from '@wildshard/format/scaledPost';
+import { checkAuthorGraph, type AuthorGraph as GraphIr, type AuthorGraphNode as GraphNode,
+  type AuthorGraphRef as GraphRef, type AuthorScaledPost as ScaledPostRow } from '@wildshard/sdk/bake/materialGraph';
 import { LUT_SIZE } from '@wildshard/engine/render/lut';
 import fog from '../data/lookGraphs.json' with { type: 'json' };
 import { Screen } from './screenGraph';
@@ -13,7 +13,7 @@ import { Screen } from './screenGraph';
 
 /** Inline the silk fog stage at a point and eye in the root's frame: its colour for `input` (input · T + inscatter) and T. */
 function silkFog(g: Screen, world: GraphRef, eye: GraphRef, input: GraphRef): { readonly colour: GraphRef; readonly transmission: GraphRef } {
-  const checked = validateGraph(fog['nine-silk-fog'], { trustedBudget: true });
+  const checked = checkAuthorGraph(fog['nine-silk-fog']);
   if (!checked.ok) throw new Error([...new Set(checked.errors)].slice(0, 12).join('\n'));
   const graph = checked.graph, output = graph.stages.fog?.colour;
   if (typeof output !== 'string') throw new Error('Missing silk fog output');

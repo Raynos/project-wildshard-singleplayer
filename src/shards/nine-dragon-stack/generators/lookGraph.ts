@@ -1,4 +1,6 @@
-import { validateGraph, type GraphIr, type GraphNode, type GraphParam, type GraphRef, type GraphStages, type GraphArrayParam } from '@wildshard/format/materialGraph';
+import { checkAuthorGraph, type AuthorGraph as GraphIr, type AuthorGraphNode as GraphNode,
+  type AuthorGraphParam as GraphParam, type AuthorGraphRef as GraphRef, type AuthorGraphStages as GraphStages,
+  type AuthorGraphArrayParam as GraphArrayParam } from '@wildshard/sdk/bake/materialGraph';
 
 /** Author arithmetic once, emit only admitted graph rows into the shardfile. */
 export class LookGraph {
@@ -37,7 +39,7 @@ export class LookGraph {
   }
   /** Reuse the admitted silk program's transmission; additive light receives no inscatter. */
   fog(source: unknown, world: GraphRef): GraphRef {
-    const checked = validateGraph(source, { trustedBudget: true });
+    const checked = checkAuthorGraph(source);
     if (!checked.ok) throw new Error([...new Set(checked.errors)].slice(0, 12).join('\n'));
     const graph = checked.graph, output = graph.stages.fog?.colour;
     if (typeof output !== 'string') throw new Error('Missing silk fog output');
@@ -77,7 +79,7 @@ export class LookGraph {
     parameters(nodes);
     const graph: GraphIr = { version: 1, kind, ...(kind === 'post' ? {} : { model: 'unlit', doubleSided: true, effectState: state ?? { fog: false, blend: 'additive', depthWrite: false } }),
       budget: { nodes: 4096, samplers: 8, instructions: 8192 }, nodes, arrays: this.arrays, params: Object.fromEntries(Object.entries(this.params).filter(([id]) => names.has(id))), stages: compactStages };
-    const checked = validateGraph(graph, { trustedBudget: true });
+    const checked = checkAuthorGraph(graph);
     if (!checked.ok) throw new Error([...new Set(checked.errors)].slice(0, 12).join('\n'));
     if (new TextEncoder().encode(JSON.stringify(checked.graph)).length > 64000) throw new Error('Nine graph exceeds 64,000 bytes');
     return { ...checked.graph, budget: { nodes: Math.max(1, checked.cost.nodes), samplers: Math.max(1, checked.cost.samplers), instructions: Math.max(1, checked.cost.instructions) } };

@@ -4340,6 +4340,11 @@ The page-bound physics producers still need their G320 authoring-only conversion
 
 ### Materials and light rows (DS1.4)
 
+`bake/materialGraph.checkAuthorGraph` validates portable offline graph rows
+with the existing trusted author budget, normalization and diagnostics. Its
+`AuthorGraph*` and `AuthorScaledPost` types retain complete native grammar;
+it installs no shader compiler, renderer or runtime admission policy.
+
 `@wildshard/sdk/materials` defines the authoring materials a generator puts on its
 three.js meshes. Each is an ordinary three.js material (a generator previews in
 any three.js renderer) that also knows its shardfile catalogue entry,

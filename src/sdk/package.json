@@ -16,6 +16,7 @@
     "./bake/basisGlb": "./bake/basisGlb.ts",
     "./bake/placement": "./bake/placement.ts",
     "./bake/forest": "./bake/forest.ts",
+    "./bake/materialGraph": "./bake/materialGraph.ts",
     "./bake/meadow": "./bake/meadow.ts",
     "./bake/annulus": "./bake/annulus.ts",
     "./bake/primitives": "./bake/primitives.ts",
@@ -624,6 +625,10 @@
       "./materials": {
         "types": "./dist/types/sdk/materials.d.ts",
         "default": "./dist/materials.js"
+      },
+      "./bake/materialGraph": {
+        "types": "./dist/types/sdk/bake/materialGraph.d.ts",
+        "default": "./dist/bake/materialGraph.js"
       },
       "./sceneAudio": {
         "types": "./dist/types/sdk/sceneAudio.d.ts",
