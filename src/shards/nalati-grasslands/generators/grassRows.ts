@@ -2,7 +2,9 @@ import {encodePortableBytes} from '@wildshard/sdk/bake/portableBytes';
 import * as THREE from 'three';
 import type { InstancedBufferGeometry } from 'three';
 import { tileFieldGeometry, type TileCardRow } from '@wildshard/sdk/looks/tileField';
-import type { SceneBuffers } from '@wildshard/format/sceneBuffers';
+import type { worldSceneBuffers } from '@wildshard/sdk/worldScenes';
+
+type SceneBuffers = ReturnType<typeof worldSceneBuffers>;
 
 interface RingCfg { T: number; G: number; s: number; w: number; seg: number }
 const MAX_TILES = 256;

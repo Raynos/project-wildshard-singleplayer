@@ -1,10 +1,10 @@
-import { SpecimenCatalogueSchema } from '@wildshard/format/specimenCatalogue';
+import { authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
 import rows from '../data/campCatalogue.json' with { type: 'json' };
 import type { CatalogueParams } from './campParams';
 
 // The defining schema's standard interface avoids a runtime catalogue and
 // admits every header before any author painter can use its parameter data.
-const checked = await SpecimenCatalogueSchema['~standard'].validate(rows);
+const checked = await authorFormatSchema('specimenCatalogue.SpecimenCatalogueSchema')['~standard'].validate(rows);
 if (checked.issues !== undefined) throw new Error('Invalid Nalati author catalogue');
 const declarations = checked.value;
 if (declarations.length > 1024 || new Set(declarations.map(row => row.key)).size !== declarations.length

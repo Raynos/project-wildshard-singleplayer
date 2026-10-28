@@ -1,4 +1,4 @@
-import type { DayClockRow } from '@wildshard/format/dayCycle';
+import type { AuthorDayClock as DayClockRow } from '@wildshard/sdk/rows';
 import NALATI_MANIFEST_ROWS from '../data/manifestRows.json' with { type: 'json' };
 
 /** The page and native clock's initial sun alignment, resolved from the authored manifest at build time. */

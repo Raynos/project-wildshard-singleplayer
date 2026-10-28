@@ -1,4 +1,4 @@
-import type { ViewProgramRows } from '@wildshard/format/viewProgram';
+import type { AuthorViewProgramRows as ViewProgramRows } from '@wildshard/sdk/arenaView';
 
 /** Live balbals (the night's warriors and the golden king's adds) and golden eagles the module presents at once. */
 const BALBALS = 16, EAGLES = 2;
