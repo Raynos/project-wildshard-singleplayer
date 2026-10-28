@@ -246,3 +246,34 @@ test.each(['partial', 'offset', 'shared', 'duplicate-triangle', 'spoofed-proof']
     }
   } finally { node.geometry.dispose(); other.geometry.dispose(); }
 });
+
+test.each([false, true].flatMap(grid => (['borrow', 'take'] as const).map(ownership => ({ grid, ownership }))))(
+  'private identity runs retain all bytes across shared nodes (grid $grid, $ownership)', ({ grid, ownership }) => {
+    const build = (encoded: boolean): Mesh[] => [0, 1].map(triangle => {
+      const node = completePartition(grid, encoded), row: unknown = node.userData['wholePartition'];
+      if (typeof row !== 'object' || row === null) throw new Error('Missing partition');
+      node.userData['wholePartition'] = { ...row, triangles: [triangle] };
+      node.geometry.setIndex(triangle === 0 ? [0, 1, 2] : [1, 3, 2]); return node;
+    });
+    const plain = build(false), encoded = build(true), expected = assembleWholeGeometryViews(plain, ownership), actual = assembleWholeGeometryViews(encoded, ownership);
+    try {
+      const a = expected.get('source'), b = actual.get('source'); if (a === undefined || b === undefined) throw new Error('Missing shared result');
+      expect(facts(b.geometry)).toEqual(facts(a.geometry)); expect(b.matrix.elements).toEqual(a.matrix.elements);
+    } finally { for (const view of [...expected.values(), ...actual.values()]) view.geometry.dispose(); for (const node of [...plain, ...encoded]) node.geometry.dispose(); }
+  });
+
+test.each([[0], [0, -1], [0, 1.5], [0, (1 << 24) + 1]])('private vertex runs retain malformed bounded-pair refusal (%j)', (...runs) => {
+  const node = completePartition(false, true), row: unknown = node.userData['wholePartition'];
+  if (typeof row !== 'object' || row === null) throw new Error('Missing partition');
+  node.userData['wholePartition'] = { ...row, vertices: { runs } };
+  try { expect(() => assembleWholeGeometryViews([node], 'take')).toThrow(); }
+  finally { node.geometry.dispose(); }
+});
+
+test('wire metadata cannot supply the private lazy vertex length', () => {
+  const node = completePartition(false, true), row: unknown = node.userData['wholePartition'];
+  if (typeof row !== 'object' || row === null) throw new Error('Missing partition');
+  node.userData['wholePartition'] = { ...row, vertexLength: 0 };
+  try { expect(() => assembleWholeGeometryViews([node], 'take')).toThrow(); }
+  finally { node.geometry.dispose(); }
+});

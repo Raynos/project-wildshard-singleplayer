@@ -1723,17 +1723,41 @@ const WholeOrdinal = wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minVa
 /** A plain ordinal list, checked in one loop with WholeOrdinal's rules (valibot's per-element pipe over whole tiles' lists
  *  was ~150 ms of a phone-tier home region) */
 const isOrdinals = (list: unknown): list is number[] => Array.isArray(list) && list.every((ordinal: unknown) => typeof ordinal === 'number' && Number.isInteger(ordinal) && ordinal >= 0);
+interface WholeOrdinalValues { readonly values: number[]; readonly length: number; readonly dense: boolean }
+const wholeArrayTag = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Uint8Array.prototype), Symbol.toStringTag);
+function wholeUnsignedIndex(index: unknown): boolean {
+  if (index === null) return true;
+  if (!ArrayBuffer.isView(index)) return false;
+  const tag: unknown = wholeArrayTag?.get?.call(index);
+  return tag === 'Uint16Array' || tag === 'Uint32Array';
+}
+function explicitWholeOrdinals(values: number[]): WholeOrdinalValues {
+  // Explicit caller arrays retain their original reference and live length.
+  return { values, get length(): number { return values.length; }, dense: false };
+}
+function runWholeOrdinals(runs: number[]): WholeOrdinalValues {
+  let values: number[] | undefined;
+  const length = runs.reduce((sum, ordinal, i) => sum + (i % 2 === 1 ? ordinal : 0), 0);
+  return { length, dense: runs.length === 2 && runs[0] === 0, get values(): number[] {
+    if (values === undefined) {
+      values = [];
+      for (let i = 0; i < runs.length; i += 2) { const start = runs[i] ?? 0, count = runs[i + 1] ?? 0; for (let k = 0; k < count; k++) values.push(start + k); }
+    }
+    return values;
+  } };
+}
 const WholeOrdinals = wholeV.union([wholeV.pipe(wholeV.custom<number[]>(isOrdinals, 'whole ordinals are non-negative integers'),
-  wholeV.transform(values => ({ values, dense: false }))), wholeV.pipe(wholeV.strictObject({ runs: wholeV.array(WholeOrdinal) }),
+  wholeV.transform(explicitWholeOrdinals)), wholeV.pipe(wholeV.strictObject({ runs: wholeV.array(WholeOrdinal) }),
   wholeV.check(row => row.runs.length % 2 === 0 && row.runs.every((ordinal, i) => i % 2 === 0 || ordinal > 0)
     && row.runs.reduce((sum, ordinal, i) => sum + (i % 2 === 1 ? ordinal : 0), 0) <= WHOLE_ORDINALS_MAX, 'whole ordinal runs are bounded start/length pairs'),
-  wholeV.transform(row => { const list: number[] = []; for (let i = 0; i < row.runs.length; i += 2) { const start = row.runs[i] ?? 0, length = row.runs[i + 1] ?? 0; for (let k = 0; k < length; k++) list.push(start + k); } return { values: list, dense: row.runs.length === 2 && row.runs[0] === 0 }; }))]);
+  wholeV.transform(row => runWholeOrdinals(row.runs)))]);
 const WholePartition = wholeV.pipe(wholeV.strictObject({ id: wholeV.string(), vertices: WholeOrdinals, triangles: WholeOrdinals, vertexCount: wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(1)), indexCount: wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(0)), index: wholeV.picklist(['none', 'u16', 'u32']),
   // I3: the partition's positions are unnormalized Int16 on this grid of its whole shape (sdk/bake/props `wholeGrid`)
   grid: wholeV.exactOptional(wholeV.strictObject({ origin: wholeV.tuple([wholeV.number(), wholeV.number(), wholeV.number()]), step: wholeV.pipe(wholeV.number(), wholeV.minValue(1 / 4096), wholeV.maxValue(1)) })) }),
   // The proof lives only in this parsed row: caller-owned explicit arrays
   // never qualify, even when they currently look like a complete run.
-  wholeV.transform(row => ({ ...row, vertices: row.vertices.values, triangles: row.triangles.values, denseVertices: row.vertices.dense })));
+  wholeV.transform(row => ({ ...row, get vertices(): number[] { return row.vertices.values; },
+    get vertexLength(): number { return row.vertices.length; }, triangles: row.triangles.values, denseVertices: row.vertices.dense })));
 function isWholeMesh(node: Object3D): node is Mesh { return node instanceof Mesh; }
 function wholeStorage(row: wholeV.InferOutput<typeof WholeAttribute>, count: number): BufferAttribute {
   const n = row.itemSize * count;
@@ -1819,7 +1843,8 @@ class WholeGeometryAssembler {
         if (!(source instanceof Int16Array) || position.normalized || position.itemSize !== 3) throw new Error('Whole grid needs Int16 positions');
       }
       let group = this.groups.get(row.id);
-      const completeFreshVertices = group === undefined && row.denseVertices && row.vertices.length === row.vertexCount;
+      const denseVertexLength = row.denseVertices ? row.vertexLength : 0;
+      const completeFreshVertices = group === undefined && row.denseVertices && denseVertexLength === row.vertexCount;
       if (group === undefined) {
         const output = new BufferGeometry();
         for (const [name, channel] of Object.entries(channels)) output.setAttribute(name, wholeStorage(row.grid !== undefined && name === 'position' ? { ...channel, storage: 'Float32Array', normalized: false } : channel, row.vertexCount));
@@ -1831,25 +1856,26 @@ class WholeGeometryAssembler {
       // The channels are resolved once per node and copied in plain index loops: the per-vertex entries / getAttribute /
       // subarray walk was one ~600 ms desktop (~1.5 s iOS Simulator) task for a Nine Dragon tile when a grid cell builds it
       // on the road (sp-o112). The bytes written, the shared-vertex check and every refusal are unchanged.
-      const copies = row.vertices.length === 0 ? [] : Object.entries(group.output.attributes).map(([name, destination]) => {
+      const vertices = row.denseVertices ? undefined : row.vertices;
+      const copies = (vertices?.length ?? denseVertexLength) === 0 ? [] : Object.entries(group.output.attributes).map(([name, destination]) => {
         const source = input.getAttribute(name);
         if (!(source instanceof BufferAttribute || source instanceof InterleavedBufferAttribute) || !(destination instanceof BufferAttribute)) throw new Error('Whole channel layout differs');
         return { from: source instanceof InterleavedBufferAttribute ? source.data.array : source.array, fromSize: source.itemSize,
           stride: source instanceof InterleavedBufferAttribute ? source.data.stride : source.itemSize, offset: source instanceof InterleavedBufferAttribute ? source.offset : 0,
           count: source.count, to: destination.array, toSize: destination.itemSize, grid: name === 'position' ? row.grid : undefined };
       });
-      const seen = group.seen, vertices = row.vertices;
+      const seen = group.seen;
       // Which listed vertices an earlier node (or an earlier entry of this list) already wrote, then one channel at a
       // time: the per-vertex channel walk was ~0.4 s of a phone-4x Nine preparation. Writes and refusals are unchanged.
-      const shared = new Uint8Array(completeFreshVertices ? 0 : vertices.length);
+      const shared = new Uint8Array(completeFreshVertices ? 0 : (vertices?.length ?? denseVertexLength));
       if (completeFreshVertices) seen.fill(1);
-      else for (let local = 0; local < vertices.length; local++) {
-        const vertex = vertices[local] ?? Number.NaN;
+      else for (let local = 0; local < (vertices?.length ?? denseVertexLength); local++) {
+        const vertex = vertices === undefined ? local : vertices[local] ?? Number.NaN;
         if (!(vertex < seen.length)) throw new Error('Whole vertex ordinal outside source');
         shared[local] = seen[vertex] ?? 0; seen[vertex] = 1;
       }
       for (const { from, fromSize, stride, offset, count, to, toSize, grid } of copies) {
-        if (vertices.length > count) throw new Error('Whole channel layout differs');
+        if ((vertices?.length ?? denseVertexLength) > count) throw new Error('Whole channel layout differs');
         if (grid !== undefined) {
           // Restore directly into the final ordinal array. The original
           // temporary Float32 attribute rounded before shared-byte comparison;
@@ -1863,8 +1889,8 @@ class WholeGeometryAssembler {
             }
             continue;
           }
-          for (let local = 0; local < vertices.length; local++) {
-            const read = offset + local * stride, write = (vertices[local] ?? 0) * toSize;
+          for (let local = 0; local < (vertices?.length ?? denseVertexLength); local++) {
+            const read = offset + local * stride, write = (vertices === undefined ? local : vertices[local] ?? 0) * toSize;
             if (write + fromSize > to.length) throw new RangeError('Whole channel write outside source');
             const x = Math.fround((from[read] ?? 0) * step + originX);
             const y = Math.fround((from[read + 1] ?? 0) * step + originY);
@@ -1877,7 +1903,7 @@ class WholeGeometryAssembler {
         // Ordinals arrive as start/length runs: a run of new vertices in the same element type is one block copy.
         const block = fromSize === toSize && stride === fromSize && offset === 0 && from.constructor === to.constructor;
         if (completeFreshVertices && fromSize === toSize) {
-          if (block && vertices.length * fromSize <= from.length) to.set(from.subarray(0, vertices.length * fromSize));
+          if (block && (vertices?.length ?? denseVertexLength) * fromSize <= from.length) to.set(from.subarray(0, (vertices?.length ?? denseVertexLength) * fromSize));
           else for (let read = offset, write = 0; write < to.length; read += stride, write += toSize) {
             to[write] = from[read] ?? 0;
             if (fromSize > 1) to[write + 1] = from[read + 1] ?? 0;
@@ -1886,11 +1912,11 @@ class WholeGeometryAssembler {
           }
           continue;
         }
-        for (let local = 0; local < vertices.length; local++) {
-          const start = vertices[local] ?? 0;
+        for (let local = 0; local < (vertices?.length ?? denseVertexLength); local++) {
+          const start = vertices === undefined ? local : vertices[local] ?? 0;
           if (block && shared[local] === 0) {
             let end = local + 1;
-            while (end < vertices.length && shared[end] === 0 && vertices[end] === start + end - local) end++;
+            while (end < (vertices?.length ?? denseVertexLength) && shared[end] === 0 && (vertices === undefined ? end : vertices[end]) === start + end - local) end++;
             if (end - local > 1 && end * fromSize <= from.length) {
               if ((start + end - local) * toSize > to.length) throw new RangeError('Whole channel write outside source');
               to.set(from.subarray(local * fromSize, end * fromSize), start * toSize);
@@ -1909,11 +1935,15 @@ class WholeGeometryAssembler {
         }
       }
       const index = input.getIndex()?.array ?? null, output = group.output.index?.array ?? null, done = group.triangles, triangles = row.triangles;
+      const integerIndex = wholeUnsignedIndex(index);
       for (let local = 0; local < triangles.length; local++) {
         const triangle = triangles[local] ?? Number.NaN;
         if (!(triangle < done.length) || done[triangle] === 1) throw new Error('Whole duplicate or invalid triangle');
         for (let corner = 0; corner < 3; corner++) {
-          const vertex = vertices[index === null ? local * 3 + corner : index[local * 3 + corner] ?? local * 3 + corner];
+          const at = index === null ? local * 3 + corner : index[local * 3 + corner] ?? local * 3 + corner;
+          let vertex: number | undefined;
+          if (vertices !== undefined) vertex = vertices[at];
+          else if (integerIndex ? at < denseVertexLength : Number.isInteger(at) && at >= 0 && at < denseVertexLength) vertex = at;
           if (vertex === undefined) throw new Error('Whole missing triangle vertex');
           if (output !== null) output[triangle * 3 + corner] = vertex;
           else if (vertex !== triangle * 3 + corner) throw new Error('Whole non-indexed topology differs');
