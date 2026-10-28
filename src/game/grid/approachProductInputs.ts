@@ -40,8 +40,9 @@ export function prepareApproachProductInputs(slug: string, owner: GridProductOwn
     // T7.14: what this region's entry will read, nearest-first, into the content / HTTP cache while the approach lasts
     try {
       const generation = ++readGeneration;
+      let readId = 0;
       const count = await prefetchEntryReads(slug, TIER, { source: product.admitted.source, readBlob: hash => product.reader.read(hash),
-        reserve: read => owner.allocator.reserveIfFits({ id: `entry-read:${slug}:${generation}:${read.hash}`, owner: 'grid', category: 'product',
+        reserve: read => owner.allocator.reserveIfFits({ id: `entry-read:${slug}:${generation}:${++readId}`, owner: 'grid', category: 'product',
           bytes: 2 * read.bytes, distance: 0, needed: true }),
         fetchAsset: async (read, abort) => {
           const response = await fetch(read.url, { signal: abort, priority: 'low' });
