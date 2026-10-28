@@ -1,4 +1,4 @@
-import type { ExchangeRows } from '@wildshard/format/exchange';
+import type { AuthorExchangeRows as ExchangeRows } from '@wildshard/sdk/rows';
 
 type NativeEffectId = `effect.${string}`;
 type NativeTag = `${string}.${string}`;

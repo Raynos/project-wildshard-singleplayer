@@ -1,7 +1,7 @@
 // SHARD-PLATFORM W2c (build-time look graphs): data/reefLook.ts's SF59 material graphs, built only at build time and emitted
 // as JSON (generators/lookMaterials.ts → generators/product.ts, the shardfile's `look.materials`); play code
 // reads the ids and rows in data/reefLook.ts, never these builders.
-import type { GraphIr, GraphNode, GraphRef } from '@wildshard/format/materialGraph';
+import type { AuthorGraph as GraphIr, AuthorGraphNode as GraphNode, AuthorGraphRef as GraphRef } from '@wildshard/sdk/bake/materialGraph';
 import { REEF_LOOK } from './reefLook';
 
 function reefGraph(): GraphIr {

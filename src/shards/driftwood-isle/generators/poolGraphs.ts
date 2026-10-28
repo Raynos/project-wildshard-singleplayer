@@ -1,7 +1,7 @@
 // SHARD-PLATFORM W2c (build-time look graphs): data/poolLook.ts's SF59 material graphs, built only at build time and emitted
 // as JSON (generators/lookMaterials.ts → generators/product.ts, the shardfile's `look.materials`); play code
 // reads the ids and rows in data/poolLook.ts, never these builders.
-import type { GraphIr, GraphNode, GraphRef } from '@wildshard/format/materialGraph';
+import type { AuthorGraph as GraphIr, AuthorGraphNode as GraphNode, AuthorGraphRef as GraphRef } from '@wildshard/sdk/bake/materialGraph';
 import authoredPoolLook from '../data/poolLook.json' with { type: 'json' };
 
 const { POOL_LOOK, SHRINE_POOL_LOOK } = authoredPoolLook;

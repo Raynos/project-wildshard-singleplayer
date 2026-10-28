@@ -1,5 +1,5 @@
 import { DRIFTWOOD_FAUNA_PLANS, ENEMY_COUNTS } from './fauna';
-import type { SpawnTables } from '@wildshard/format/spawnTables';
+import type { AuthorSpawnTables as SpawnTables } from '@wildshard/sdk/spawns';
 
 /** Counts consume one draw per tidepool/grove, in the original placement order. */
 export const DRIFTWOOD_ENEMIES: SpawnTables[number] = {

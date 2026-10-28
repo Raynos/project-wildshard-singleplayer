@@ -1,7 +1,9 @@
 import { REEF_SPECIMENS } from './reefSpecimenRows';
 import { REEF_FILES } from './reefFiles';
-import type { WorldSceneModels } from '@wildshard/format/worldSceneModels';
+import type { worldSceneModels } from '@wildshard/sdk/worldScenes';
 import { driftwoodReefBank } from './reefBank';
+
+type WorldSceneModels = ReturnType<typeof worldSceneModels>;
 
 /** Fixed authored shapes use Z2's existing owned-geometry and model-choice data. */
 export function reefCatalogue(): WorldSceneModels['models'] {

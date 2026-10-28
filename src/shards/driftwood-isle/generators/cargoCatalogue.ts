@@ -1,5 +1,7 @@
-import type { WorldSceneModels } from '@wildshard/format/worldSceneModels';
+import type { worldSceneModels } from '@wildshard/sdk/worldScenes';
 import type { FixedWreckLayout } from './fixedLayouts';
+
+type WorldSceneModels = ReturnType<typeof worldSceneModels>;
 
 /** Every original card and live wreck copy retains its exact parameter choice. */
 function cargoCards(wreck: FixedWreckLayout): ({ key: string; id: string; name: string; defaults: { lying: boolean; size?: never; broken?: never; r?: never; }; variants: ({ id: string; label: string; params: { lying?: never; }; } | { id: string; label: string; params: { lying: boolean; }; })[]; params: { lying: boolean; }[]; } | { key: string; id: string; name: string; defaults: { size: number; broken: boolean; lying?: never; r?: never; }; variants: ({ id: string; label: string; params: { size?: never; broken?: never; }; } | { id: string; label: string; params: { size: number; broken?: never; }; } | { id: string; label: string; params: { size: number; broken: boolean; }; })[]; params: { size: number; broken: boolean; }[]; } | { key: string; id: string; name: string; defaults: { r: number; lying?: never; size?: never; broken?: never; }; variants: never[]; params: { r: number; }[]; })[] {
