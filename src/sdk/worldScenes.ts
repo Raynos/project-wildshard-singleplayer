@@ -1,7 +1,7 @@
 import { parseWorldScene, parseWorldSceneBindings, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
 import { CaveInteriorSchema, type CaveInteriorRows } from '@wildshard/format/caveInterior';
 import { parseSceneBuffers } from '@wildshard/format/sceneBuffers';
-import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
+import { WorldSceneWeldSchema, parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { parseWorldScenes, type WorldScenesSection } from '@wildshard/format/worldScenes';
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { WorldSceneSurfaceSchema, type WorldSceneSurface } from '@wildshard/format/worldSceneSurface';
@@ -70,6 +70,9 @@ export function worldSceneBuffers(input: unknown): ReturnType<typeof parseSceneB
 
 /** Admit frozen scene topology, exact transform words and ordered hosted cull lanes. */
 export function worldSceneWeldRows(input: unknown): ReturnType<typeof parseWorldSceneWeld> { return parseWorldSceneWeld(input); }
+
+/** Admit an owned author draft with the same grammar, before runtime admission freezes it. */
+export function worldSceneWeldData(input: unknown): ReturnType<typeof parseWorldSceneWeld> { return parse(WorldSceneWeldSchema, input); }
 
 /** Admit the defining finite surface properties without inventing a material or resource owner. */
 export function worldSceneSurfaceProperties(input: unknown): WorldSceneSurface['properties'] { return parse(WorldSceneSurfaceSchema.entries.properties, input); }

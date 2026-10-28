@@ -2,10 +2,10 @@ import { expect, test } from 'vitest';
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { parse } from 'valibot';
 import { parseSceneBuffers } from '@wildshard/format/sceneBuffers';
-import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
+import { WorldSceneWeldSchema, parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { WorldSceneSurfaceSchema } from '@wildshard/format/worldSceneSurface';
 import { BakedBuildingLookSchema, parseBuildingLifeRows, emptyBuildingLifeRows as nativeEmptyBuildingLifeRows } from '@wildshard/format/buildings';
-import { worldSceneModels, worldSceneBuffers, worldSceneWeldRows, worldSceneSurfaceProperties, buildingLookRows, buildingLifeRows, emptyBuildingLifeRows } from './worldScenes';
+import { worldSceneModels, worldSceneBuffers, worldSceneWeldRows, worldSceneWeldData, worldSceneSurfaceProperties, buildingLookRows, buildingLifeRows, emptyBuildingLifeRows } from './worldScenes';
 
 const model = {
   key: 'marker', id: 'author-scene/marker', name: 'Marker', category: 'props',
@@ -42,9 +42,15 @@ test('author frozen topology retains original transform words, defaults and uniq
   const input = { id: 'shell', root: 'root', nodes: [{ id: 'group', kind: 'group', parent: 'root', layers: -1, matrixBits, matrixAutoUpdate: false }],
     materials: [{ id: 'wood', kind: 'standard', properties: { roughness: 0.8, color: [0.1, 0.2, 0.3] } }] };
   expect(worldSceneWeldRows(input)).toEqual(parseWorldSceneWeld(input));
+  const draft = worldSceneWeldData(input);
+  expect(draft).toEqual(parse(WorldSceneWeldSchema, input));
+  expect(Object.isFrozen(draft)).toBe(false);
+  expect(Object.isFrozen(worldSceneWeldRows(input))).toBe(true);
+  expect(draft).not.toBe(input);
   for (const invalid of [{ ...input, nodes: [...input.nodes, ...input.nodes] },
     { ...input, nodes: [{ ...input.nodes[0], matrixBits: [1] }] }, { ...input, callback: () => undefined }]) {
     expect(() => worldSceneWeldRows(invalid)).toThrow();
+    expect(() => worldSceneWeldData(invalid)).toThrow();
     expect(() => parseWorldSceneWeld(invalid)).toThrow();
   }
 });

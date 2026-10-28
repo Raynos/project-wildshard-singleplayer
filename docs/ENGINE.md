@@ -6259,6 +6259,8 @@ Signal well prompts use these rows on their existing input owners.
 (`worldSceneModels`), typed draw buffers (`worldSceneBuffers`), frozen
 welds (`worldSceneWeldRows`) and surface properties
 (`worldSceneSurfaceProperties`) through defining format parsers.
+`worldSceneWeldData` admits an author-owned mutable draft through the same
+grammar; runtime weld admission retains its immutable result.
 `caveInteriorRows` admits bounded packed cave roofs, frames and material ports.
 `AuthorWorldScenes` preserves authored fields before parser defaults;
 `AuthorBuildingAssembly` carries the complete native building grammar.
