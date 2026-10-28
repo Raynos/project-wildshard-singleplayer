@@ -896,6 +896,8 @@ rAF timestamp measures polling timing; neither substitutes for the delivered dra
 
 `beginLoading({id, name, trace?})` from `@wildshard/engine/ui/Loading` adopts the first-HTML panel before product hydration. Repeating it for the same active identity returns the same panel and clock. `Loading.paintAdmission({phase, detail, bytesRead, bytesTotal, filesDone, filesTotal})` shows actual pre-plan work; an unknown total stays explicit. `waiting(detail)` identifies module or service waits. The session then hands its ordinary plan to that instance with `paint(view)`, preserving verified admission bytes and reaching 100 only at plan completion. The first HTML reads the title-arrival display name without consuming its one-shot navigation intent.
 
+Detailed loading stays public; only the saved hold switch is Developer-only (G846).
+
 `beginNavigationShell(name, scope, navigate, card?)` from
 `@wildshard/engine/boot/shell` shows the existing HTML panel synchronously
 (or mounts identical markup through owned HUD slots when a running page

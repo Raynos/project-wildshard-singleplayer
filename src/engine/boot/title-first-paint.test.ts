@@ -64,6 +64,27 @@ test('a selected shard keeps its existing loader and does not preload the title 
   expect([...html.matchAll(/<link rel="stylesheet"[^>]*>/gu)].every(([link]) => link.includes('media="print"') && link.includes('onload='))).toBe(true);
 });
 
+test('public first paint and admitted loading keep every detailed progress field visible', () => {
+  const window = firstDocument('?chunk=driftwood-isle'), root = window.document.querySelector('.ws-load[data-shell]');
+  if (!(root instanceof window.HTMLElement)) throw new Error('Missing public loading shell');
+  const detailed = ['.ws-load-clock', '.ws-load-meta', '.ws-load-track', '.ws-load-log', '.ws-load-diagnostics', '.ws-load-foot'];
+  const visible = (): void => {
+    expect(Object.hasOwn(window.document.documentElement.dataset, 'dev')).toBe(false);
+    for (const selector of detailed) {
+      const field = root.querySelector(selector);
+      if (!(field instanceof window.HTMLElement)) throw new Error(`Missing progress field ${selector}`);
+      expect(window.getComputedStyle(field).display).not.toBe('none');
+    }
+  };
+  visible();
+  const style = window.document.createElement('style');
+  style.textContent = readFileSync('src/engine/ui/loading.css', 'utf8'); window.document.head.append(style);
+  delete root.dataset['shell']; visible();
+  const simple = root.querySelector('.ws-load-simple');
+  if (!(simple instanceof window.HTMLElement)) throw new Error('Missing compatibility progress field');
+  expect(window.getComputedStyle(simple).display).toBe('none');
+});
+
 test('a title handoff restarts the inline clock without application modules', async () => {
   const window = firstDocument('', undefined, true), root = window.document.querySelector('.ws-load[data-shell]');
   if (!(root instanceof window.HTMLElement)) throw new Error('Missing inline shell');

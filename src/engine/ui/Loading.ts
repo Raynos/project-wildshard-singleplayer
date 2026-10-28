@@ -30,9 +30,8 @@ const savedStorage = saveStorage('session');
  * an elapsed clock, and one row per step with its wall ms and live detail. Bytes and completed work come
  * from the producer; unknown totals and waits stay explicit. `done()` fades it out and resolves when it is gone.
  *
- * Players (E140, the user's 4a) see only the shard's display name, one bar combining actual downloads and measured setup time and a short line;
- * the tracks, the step log, the tier line and "Loading chunk · <slug>" are developer mode's (`<html data-dev>`, set by
- * index.html before the first paint — src/engine/core/devMode.ts; loading.css does the hiding).
+ * Everyone sees the detailed tracks, grouped step log, tier and elapsed clock (G846).
+ * Only the existing hold-at-completion setting is Developer-only.
  */
 type TimelineSnapshot = ReturnType<LoadingTimeline['snapshot']>;
 type ElKey = 'clock' | 'dlFact' | 'dlPct' | 'dlBar' | 'pfRow' | 'pfFact' | 'pfPct' | 'suFact' | 'suPct' | 'suBar' | 'rows' | 'foot' | 'slug' | 'tier' | 'bar' | 'line' | 'diagnostics' | 'retry';

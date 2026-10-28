@@ -44,9 +44,11 @@
       .ws-load[data-shell] .ws-load-panel { box-sizing: border-box; width: calc(100% - 32px); max-width: 560px; padding: 22px 18px; border: 1px solid #8fe3ff33; background: #091624e0; }
       .ws-load[data-shell] .ws-load-title { font: 700 20px Rajdhani, system-ui, sans-serif; }
       .ws-load[data-shell] .ws-load-bar { height: 4px; margin: 16px 0; background: #8fe3ff33; }
-      .ws-load[data-shell] .ws-load-track, .ws-load[data-shell] .ws-load-meta, .ws-load[data-shell] .ws-load-log, .ws-load[data-shell] .ws-load-diagnostics, .ws-load[data-shell] .ws-load-clock, .ws-load[data-shell] .ws-load-kicker { display: none; }
-      :root[data-dev] .ws-load[data-shell] .ws-load-simple { display: block; }
-      :root[data-dev] .ws-load[data-shell] .ws-load-clock { display: inline; float: right; color: #8fe3ff; font: 12px ui-monospace, monospace; }
+      .ws-load[data-shell] .ws-load-simple { display: none; }
+      .ws-load[data-shell] .ws-load-clock { display: inline; float: right; color: #8fe3ff; font: 12px ui-monospace, monospace; }
+      .ws-load[data-shell] .ws-load-meta, .ws-load[data-shell] .ws-load-track, .ws-load[data-shell] .ws-load-log { margin-top: 14px; }
+      .ws-load[data-shell] .ws-load-track-row { display: flex; justify-content: space-between; gap: 12px; }
+      .ws-load[data-shell] .ws-load-track-row[hidden] { display: none; }
       .ws-load[data-shell] .ws-load-foot { display: flex; gap: 12px; align-items: center; padding: 16px; }
       .ws-load-retry, .ws-launch-wait button { min-height: 44px; padding: 8px 16px; border: 1px solid #8fe3ff; background: #091624; color: #8fe3ff; font: inherit; cursor: pointer; }
       .ws-load-retry[hidden], .ws-launch-wait[hidden] { display: none; }
@@ -108,8 +110,8 @@
       if (['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-stack'].includes(loadShard)) {
         document.documentElement.style.setProperty('--ws-load-portrait', 'url("/assets/title/' + loadShard + '-portrait.jpg")');
       }
-      // developer mode (E140, src/engine/core/devMode.ts reads the same key): the loading screen's details, the frame meter, the
-      // build id show only under <html data-dev> — set here, before the first paint of the loading panel. No URL switch (E162)
+      // Developer mode controls the hold switch, frame meter and build id.
+      // Loading progress stays detailed for everyone (G846). No URL switch (E162).
       try { if (JSON.parse(localStorage.getItem('wildshard.save.v2.device') || '{}').keys?.devMode?.data === true) document.documentElement.setAttribute('data-dev', ''); } catch { /* storage blocked: player mode */ }
     </script>
     <!-- Plain launches paint this approved title art without waiting for a bundle.
