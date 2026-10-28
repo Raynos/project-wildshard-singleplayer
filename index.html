@@ -225,7 +225,10 @@
           field('clock', String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + (seconds % 60).toFixed(1).padStart(4, '0'));
           resources();
           const quiet = performance.now() - progressAt, stalled = quiet >= 8000;
-          const waiting = 'Waiting for ' + waitLabel + ' · ' + (quiet / 1000).toFixed(1) + ' s';
+          const currentWait = root.dataset.loadingWait || waitLabel;
+          field('line', root.dataset.loadingWait || (navigation ? waitLabel : 'Loading application modules'));
+          field('suFact', root.dataset.loadingWait || (navigation ? waitLabel : 'Loading application modules'));
+          const waiting = 'Waiting for ' + currentWait + ' · ' + (quiet / 1000).toFixed(1) + ' s';
           root.dataset.stalled = String(stalled);
           if (retry) retry.hidden = !stalled;
           if (stalled) field('foot', waiting);

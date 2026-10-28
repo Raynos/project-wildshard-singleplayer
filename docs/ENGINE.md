@@ -898,14 +898,14 @@ rAF timestamp measures polling timing; neither substitutes for the delivered dra
 
 Detailed loading stays public; only the saved hold switch is Developer-only (G846).
 
-`beginNavigationShell(name, scope, navigate, card?)` from
-`@wildshard/engine/boot/shell` shows the existing HTML panel synchronously
-(or mounts identical markup through owned HUD slots when a running page
-has retired it). Its CSS is linked before module evaluation. It returns
-an attempt Scope and runs the compiled navigation callback only after a
-complete frame can paint. Retirement cancels pending frames and restores
-the panel/card; a failed handoff retires the attempt. It imports no
-renderer or save service.
+`beginNavigationShell(name, scope, navigate, card?)` in
+`@wildshard/engine/boot/shell` mounts or adopts the HTML panel immediately.
+Its returned attempt Scope runs navigation after a complete paint frame;
+retirement cancels frames and restores the panel/card. Handoff failure
+retires the attempt; no renderer or save service is imported.
+`waitForLoadingStyles(scope)` keeps that first paint until nonblocking
+startup sheets load. It names the pending URL, preserves load/error
+semantics and removes listeners on completion or retirement.
 
 `freshPageArrival(at, now?, startedAt?)` in `@wildshard/engine/boot/titleArrival`
 checks one-shot entry intent against the receiving document's start before cold modules

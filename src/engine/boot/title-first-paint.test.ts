@@ -117,6 +117,8 @@ test('the inline eight-second retry uses real byte progress, including per-pack 
   root.dataset['codePackLoaded'] = '2097152'; frame(16600); expect(wait.hidden).toBe(true);
   root.dataset['codePackUrl'] = '/next.pack'; root.dataset['codePackLoaded'] = '0'; frame(17000);
   root.dataset['codePackLoaded'] = '1048576'; frame(24000); expect(wait.hidden).toBe(true);
+  root.dataset['loadingWait'] = 'Stylesheet /held.css'; frame(32000);
+  expect(wait.textContent).toContain('Waiting for Stylesheet /held.css · 8.0 s');
 });
 
 test('the first-paint panel survives failed title start and retires only after the real deck is mounted', () => {

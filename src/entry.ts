@@ -24,6 +24,7 @@ import { reserveHomeDownload, prepareHomeExtras, prepareHomeModules, prepareBoot
  * WebKit sees it. A module that fetched fine but threw is not run twice: the engine keeps it errored and rethrows at once.
  */
 import { guardBoot } from '@wildshard/engine/boot/stuck';
+import { waitForLoadingStyles } from '@wildshard/engine/boot/shell';
 import { inspectPreviousBoot, previousBootLine, previousBootLevel } from '@wildshard/engine/boot/bootTrace';
 import { Scope } from '@wildshard/engine/app/scope';
 import { retried } from '@wildshard/engine/boot/retry';
@@ -49,6 +50,7 @@ inspectPreviousBoot();
 // Safari may reload the same document after WebContent dies. Keep that automatic retry on the
 // renderer-free title until the player chooses a shard again.
 async function enterPage(): Promise<unknown> {
+  await waitFor('Startup stylesheets', waitForLoadingStyles(entryScope), 'file');
   const { consumeGridRecovery, gridRecoveryRefused } = await retried(() => import('@wildshard/game/grid/pageEntry'));
   const end = lastEnd();
   const recovery = consumeGridRecovery({ unexpected: end.kind === 'unexpected', previous: end, search });

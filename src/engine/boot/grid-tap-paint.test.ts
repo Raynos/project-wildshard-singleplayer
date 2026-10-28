@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { Scope } from '../app/scope';
 import { installScopeEnvironment, scopeEnvironment } from '../app/scopeEnvironment';
-import { loadShellTemplate, beginNavigationShell } from './shell';
+import { loadShellTemplate, beginNavigationShell, waitForLoadingStyles } from './shell';
 import { guardBoot } from './stuck';
 
 const native = scopeEnvironment();
@@ -97,4 +97,39 @@ test('a ten-second boot wait exposes a direct reload without a network or worker
     document.querySelector<HTMLButtonElement>('#wsstuck button')?.click();
     expect(reload).toHaveBeenCalledTimes(1); expect(fetch).not.toHaveBeenCalled();
   } finally { finish(); await Promise.resolve(); vi.unstubAllGlobals(); vi.useRealTimers(); }
+});
+
+function pendingStyle(name: string): HTMLLinkElement {
+  const link = document.createElement('link'); link.rel = 'stylesheet'; link.media = 'print';
+  // Expose a native resource identity without starting network in this event fixture.
+  Object.defineProperty(link, 'href', { value: `https://styles.test/${name}.css` });
+  document.head.append(link); return link;
+}
+
+test('startup styles retain the first-paint owner and name each actual pending sheet', async () => {
+  document.body.insertAdjacentHTML('beforeend', `<div class="ws-load" data-shell>${loadShellTemplate()}</div>`);
+  const first = pendingStyle('first'), second = pendingStyle('second'), entered = vi.fn();
+  const loading = waitForLoadingStyles(owner).then(entered);
+  expect(document.querySelector<HTMLElement>('.ws-load')?.dataset['loadingWait']).toBe('Stylesheet /first.css');
+  first.dispatchEvent(new Event('load')); await Promise.resolve(); expect(entered).not.toHaveBeenCalled();
+  expect(document.querySelector<HTMLElement>('.ws-load')?.dataset['loadingWait']).toBe('Stylesheet /second.css');
+  second.dispatchEvent(new Event('load')); await loading;
+  expect(entered).toHaveBeenCalledTimes(1);
+  expect(document.querySelector<HTMLElement>('.ws-load')?.dataset['loadingWait']).toBeUndefined();
+  expect(document.querySelector('.ws-load[data-shell]')).not.toBeNull();
+});
+
+test('a failed stylesheet and a retired style owner refuse without starting the page', async () => {
+  const link = pendingStyle('failed'), failed = waitForLoadingStyles(owner);
+  const observed = expect(failed).rejects.toThrow('Stylesheet failed: https://styles.test/failed.css');
+  link.dispatchEvent(new Event('error')); await observed;
+  const retired = waitForLoadingStyles(owner), cancellation = expect(retired).rejects.toMatchObject({ name: 'AbortError' });
+  owner.dispose(); await cancellation;
+});
+
+test('already parsed or disabled sheets never add a startup wait', async () => {
+  const parsed = pendingStyle('parsed'), disabled = pendingStyle('disabled'); disabled.disabled = true;
+  Object.defineProperty(parsed, 'sheet', { value: new CSSStyleSheet() });
+  await waitForLoadingStyles(owner);
+  owner.dispose(); await expect(waitForLoadingStyles(owner)).rejects.toThrow('live owner');
 });
