@@ -1769,3 +1769,27 @@ No Simulator/quiet qualification, cap increase, source look change or
 Escape CLI input is part of this evidence. Remaining cadence/native
 footprint/retired-root-count gates remain OPEN; instrument choice is
 with the coordinator, with no default or threshold change in this work.
+
+### Keeper check after the recovery (2026-10-28)
+
+The remaining 2–3 region ghost entries are not G782's intentional
+last-cell warm retention. `retainDeparted` leaves that world in
+`residents` and never calls the ghost registry. `startRetirement` clears
+its last-cell marker and removes the resident before registering roots;
+the synchronous unload path registers only after disposal. The policy
+window is 30,000 ms. Both retained before-snapshot diagnostics explicitly
+show `retainedCell: null`, only DW live, and older retired-root entries.
+
+In the full five-cycle run the oldest DW entry ages from 97.3 s to
+631.9 s; in the default-amortised run it ages from 120.5 s to 622.8 s.
+This is not a 30 s warm keeper. All return registries contain only the
+current DW world, with no Sky whole-runtime claim and no stepped
+retirement pending.
+
+Do not reclassify these counters as expected warm residents, or mark
+native leakage proven solely from them. The separate post-collection
+one-return heap has no disposed named scopes, but it does not qualify
+all five unforced returns. The remaining retired-root counter cause
+stays unresolved; the coordinator assigns native/GPU footprint work to
+Opus. No additional source change, keeper/counter suppression, expiry
+extension, cap change or reading was made for this check.
