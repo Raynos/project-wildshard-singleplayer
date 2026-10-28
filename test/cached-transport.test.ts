@@ -1,4 +1,5 @@
 import { expect, test, vi } from 'vitest';
+import { bootWaits } from '../src/engine/boot/waits';
 import { cachedTransport } from '../src/game/shardfile/cachedTransport';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
@@ -46,6 +47,8 @@ test('an abandoned URL hint drains a late response without reading or hashing it
   const response = new Response(new ReadableStream<Uint8Array>({ cancel }));
   const pending = cachedTransport({ match: () => new Promise<Response>(resolve => { complete = resolve; }) },
     'https://game.test/late.bin', 3, hash, () => true, undefined, owner.signal);
-  owner.abort(); if (complete === undefined) throw new Error('Missing pending hint'); complete(response);
-  expect(await pending).toBeNull(); expect(cancel).toHaveBeenCalledOnce(); expect(hash).not.toHaveBeenCalled();
+  owner.abort(); expect(await pending).toBeNull();
+  expect(bootWaits().some(wait => wait.label.includes('https://game.test/late.bin'))).toBe(false);
+  if (complete === undefined) throw new Error('Missing pending hint'); complete(response);
+  for (let i = 0; i < 8; i++) await Promise.resolve(); expect(cancel).toHaveBeenCalledOnce(); expect(hash).not.toHaveBeenCalled();
 });

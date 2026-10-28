@@ -1,5 +1,27 @@
+import { Scope } from '@wildshard/engine/app/scope';
 import { boundedResponse } from './product';
 import { waitFor } from '@wildshard/engine/boot/waits';
+
+function discardResponse(response: Response | undefined): void {
+  void response?.body?.cancel().catch(() => undefined);
+}
+
+/** The browser operation is not cancellable; its observer and late body are. */
+function hintResponse(storage: Pick<CacheStorage, 'match'>, url: string, signal?: AbortSignal): Promise<Response | undefined> {
+  const lookup = storage.match(url);
+  if (signal === undefined) return lookup;
+  const owner = new Scope('url-cache-response');
+  const stopped = new Promise<undefined>(resolve => {
+    owner.onDispose(() => { resolve(undefined); });
+    owner.listen(signal, 'abort', () => { owner.dispose(); }, { once: true });
+    if (signal.aborted) owner.dispose();
+  });
+  const ready = lookup.then(response => {
+    if (signal.aborted) { discardResponse(response); return undefined; }
+    return response;
+  });
+  return Promise.race([ready, stopped]).finally(() => { owner.dispose(); });
+}
 
 /** URL caches are hints: only bounded bytes with an independently expected hash can replace a request. */
 export async function cachedTransport(storage: Pick<CacheStorage, 'match'>, url: string, maximum: number,
@@ -9,9 +31,9 @@ export async function cachedTransport(storage: Pick<CacheStorage, 'match'>, url:
   try {
     if (cancelled()) return null;
     const label = url;
-    const response = await waitFor(`URL cache ${label}`, storage.match(url), 'file');
+    const response = await waitFor(`URL cache ${label}`, hintResponse(storage, url, signal), 'file');
     if (response === undefined) return null;
-    if (cancelled()) { await response.body?.cancel(); return null; }
+    if (cancelled()) { discardResponse(response); return null; }
     const original = await boundedResponse(response, maximum);
     if (cancelled()) return null;
     let bytes = original, actual: string;
