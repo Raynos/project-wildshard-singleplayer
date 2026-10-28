@@ -1,7 +1,12 @@
 # SHARD-PLATFORM — State (wildshard-new; ≤ 3 KB)
 
-**(1) LIVE a3f28a7953** (full CI + six smoke); 879cf2768d release retries at 10:09 Cancun (Vercel upload fetch failed, no
-source cause). Damage list: [BURN-DAMAGE-LIST](../BURN-DAMAGE-LIST.md) only. Jake is on phone QA (morning 10-28).
+**G824 (Jake): SHARD-PLATFORM archives today.** Speed tails (T2-T4, Nalati grid-ready, T6 / T7) get cut until 18:00 Cancun,
+then each miss moves to BURN-DAMAGE-LIST with its numbers. NM pilot R1-R3 and RP2-RP4 move to a new parked open-plots plan
+(wildshard-v, after Jake's play). Jake QAs legacy (his word starts LD5-LD8 and A1-A2 at once), M2 and T10. After the archive
+commit every lane and the coordinator stop. The render tails need Opus, and Opus needs the account switch (Claude 97 %).
+**G825:** sp-ci-deploy rewrites src/game/whatsNew.json now for live a3f28a795, and with every release.
+
+**(1) LIVE a3f28a7953**; 879cf2768d retries at 10:09 Cancun. Damage list: [BURN-DAMAGE-LIST](../BURN-DAMAGE-LIST.md) only.
 
 **Jake's triage G819-G823, being marked now:** I2 closes on per-shard floor ratchets (DW 30.8, Nine 19.2, Nalati ~55, Pine
 77.5 MB; sp-x2). H3 closes on its order slices; H4 (warm home 3.37-3.74 s) and A1 (770 ms) close as accepted misses with
