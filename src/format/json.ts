@@ -9,6 +9,40 @@
  */
 export function isJsonData(value: unknown): boolean { return boundedJsonData(value, false); }
 
+/**
+ * `isJsonData` in steps of `every` visited values, the same checks and verdict (T10: a crossing's product admission walked
+ * a whole source in one drawn frame, 23-34 ms at phone 4x). An explicit stack instead of recursion; the verdict is order
+ * independent, as above. The caller resumes it between frames and must not change the value meanwhile.
+ */
+export function* isJsonDataSteps(value: unknown, every = 4096): Generator<void, boolean> {
+  interface Frame { readonly item: object; readonly array: boolean; readonly keys: readonly string[]; readonly count: number; next: number; readonly depth: number }
+  const active = new Set<object>(), frames: Frame[] = [];
+  let nodes = 0, since = 0;
+  // one value: false refuses it; a container passes its own checks and is pushed to walk
+  const enter = (item: unknown, depth: number): boolean => {
+    if (++nodes > 100000 || depth > 64) return false;
+    if (item === null || typeof item === 'boolean' || typeof item === 'string') return true;
+    if (typeof item === 'number') return Number.isFinite(item) && !Object.is(item, -0);
+    if (typeof item !== 'object' || active.has(item) || Object.getOwnPropertySymbols(item).length > 0) return false;
+    const array = Array.isArray(item);
+    if (array && item.length > 100000) return false;
+    if (!array && Object.getPrototypeOf(item) !== Object.prototype && Object.getPrototypeOf(item) !== null) return false;
+    const keys = Object.getOwnPropertyNames(item);
+    if (array && keys.length !== item.length + 1) return false;
+    active.add(item); frames.push({ item, array, keys, count: array ? item.length : keys.length, next: 0, depth });
+    return true;
+  };
+  if (!enter(value, 0)) return false;
+  for (let frame = frames.at(-1); frame !== undefined; frame = frames.at(-1)) {
+    if (frame.next >= frame.count) { active.delete(frame.item); frames.pop(); continue; }
+    const i = frame.next++, descriptor = Object.getOwnPropertyDescriptor(frame.item, frame.array ? i : frame.keys[i] ?? '');
+    if (descriptor?.enumerable !== true || descriptor.get !== undefined || descriptor.set !== undefined) return false;
+    if (!enter(descriptor.value, frame.depth + 1)) return false;
+    if (++since >= every) { since = 0; yield; }
+  }
+  return true;
+}
+
 /** An output index gives each files[].jsonSchema its own unchanged plain-JSON
  * budget. Repeated defining schemas do not spend the envelope's node budget. */
 export function isJsonDataWithFileSchemas(value: unknown): boolean { return boundedJsonData(value, true); }

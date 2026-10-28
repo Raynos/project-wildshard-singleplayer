@@ -8,7 +8,7 @@ import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import type { worstContentCost } from '@wildshard/format/budget';
 import { deviceLibraryCostSteps } from '@wildshard/format/deviceMemoryCost';
 import { frameBudgetSpent } from '@wildshard/engine/core/framePacing';
-import { preflightShardfile } from '@wildshard/format/preflight';
+import { preflightShardfile, preflightShardfileSteps } from '@wildshard/format/preflight';
 import { jsonDataHeapBytes } from '@wildshard/format/json';
 import { outputDescriptor, isBuildValidatedOutput } from './outputDescriptor';
 import { isPlatformDataSection } from '@wildshard/format/outputFields';
@@ -312,6 +312,35 @@ export function productResidentBytes(source: Shardfile): number {
   // Preflight already checked every JSON node. Count that same source without
   // repeating its descriptor/prototype validation a second time.
   return wire + jsonHeapBytes(source) * 2 + (source.files.length + source.requires.commons.length) * 128 + 1024;
+}
+
+/** `productResidentBytes` in steps of `every` visited values, the same checks, refusals and bytes (T10: one admission walked a
+ *  whole source in one drawn frame of a drive, 23-34 ms at phone 4x). The source must not change between steps. */
+export function* productResidentBytesSteps(source: Shardfile, every = 4096): Generator<void, number> {
+  yield* preflightShardfileSteps(source, every);
+  const wire = source.files.reduce((sum, file) => sum + file.compressed, 0)
+    + source.requires.commons.reduce((sum, hash) => sum + (source.requires.commonsWire[hash] ?? 0), 0);
+  return wire + (yield* jsonHeapBytesSteps(source, every)) * 2 + (source.files.length + source.requires.commons.length) * 128 + 1024;
+}
+/** `jsonHeapBytes` yielding every `every` containers */
+function* jsonHeapBytesSteps(input: unknown, every: number): Generator<void, number> {
+  let heap = 0, since = 0;
+  const pending: unknown[] = [input];
+  const count = (item: unknown): void => {
+    if (typeof item === 'string') heap += 24 + item.length * 2;
+    else if (typeof item === 'object' && item !== null) pending.push(item);
+    else heap += 8;
+  };
+  while (pending.length > 0) {
+    if (++since >= every) { since = 0; yield; }
+    const value = pending.pop();
+    if (Array.isArray(value)) { const items: readonly unknown[] = value; heap += 40 + items.length * 8; for (const item of items) count(item); }
+    else if (typeof value === 'object' && value !== null) {
+      const fields = value as Readonly<Record<string, unknown>>, keys = Object.keys(value); heap += 64 + keys.length * 16;
+      for (const key of keys) { heap += 24 + key.length * 2; count(fields[key]); }
+    } else count(value);
+  }
+  return heap;
 }
 
 /** Files read only through the asynchronous runtime product API. Inventory membership is not a use:

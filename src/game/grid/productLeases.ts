@@ -1,7 +1,8 @@
 import type { ResidencyAllocator, ResidencyLease } from './allocator';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { ApproachInputsDeferredError } from './productInputs';
-import { productResidentBytes } from '../shardfile/productCost';
+import { productResidentBytesSteps } from '../shardfile/productCost';
+import { workSlice } from '@wildshard/engine/core/workSlice';
 
 /** A caller holds the product while any admitted source or immutable transport bytes are still in use. */
 export interface ProductLease<T> { readonly value: T; release: () => void }
@@ -16,15 +17,21 @@ export class ProductLeases<T> {
   /** An approach can join an existing admission, never start another product load. */
   has(key: string): boolean { return !this.closed && this.entries.has(key); }
   /** Reserve the source/wire claim before the loader reads immutable assets; concurrent copies share one admission. */
-  async acquire(key: string, load: (reserve: (source: Shardfile) => void, releaseBytes: (bytes: number) => void) => Promise<T>, optional = false): Promise<ProductLease<T>> {
+  async acquire(key: string, load: (reserve: (source: Shardfile) => Promise<void>, releaseBytes: (bytes: number) => void) => Promise<T>, optional = false): Promise<ProductLease<T>> {
     if (this.disposed()) throw new Error('Product cache disposed');
     let entry = this.entries.get(key);
     if (entry === undefined) {
       const fresh: Entry<T> = { promise: Promise.resolve().then(async () => {
         try {
-          const value = await load(source => {
+          const value = await load(async source => {
             if (this.closed || fresh.claim !== undefined) throw new Error('Product admission disposed or reserved twice');
-            fresh.bytes = productResidentBytes(source);
+            // T10: the source's residency walk (preflight and heap count) runs in steps under the frame's work slice, the
+            // same checks and bytes: in a drive it was one 23-34 ms unit of a drawn frame per product at phone 4x
+            const steps = productResidentBytesSteps(source), slice = workSlice();
+            let step = steps.next();
+            while (step.done !== true) { if (slice.due()) await slice.yield(); step = steps.next(); }
+            if (this.closed || fresh.claim !== undefined) throw new Error('Product admission disposed or reserved twice');
+            fresh.bytes = step.value;
             const request = { id: `product:${this.owner}:${key}`, category: 'product' as const, owner: this.owner,
               bytes: fresh.bytes, distance: 0, needed: true, evictSync: () => { this.entries.delete(key); fresh.claim = undefined; } };
             const claim = fresh.optional ? this.allocator.reserveIfFits(request) : this.allocator.reserve(request);

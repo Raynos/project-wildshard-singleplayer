@@ -88,7 +88,7 @@ export interface ProductOptions {
   /** G216: trusted page Developer policy; authored data cannot provide it or bypass exact asset checks. */
   memory?: MemoryAdmission;
   /** Trusted residency owner reserves parsed source and immutable transport before any asset-cache read or owned copy. */
-  reserve?: (source: Shardfile) => void;
+  reserve?: (source: Shardfile) => void | Promise<void>;
   /** Trusted presentation observer; it does not participate in admission decisions. */
   progress?: (progress: ProductProgress) => void;
   /** Trusted presentation scheduling between complete checks; validation never skips work. */
@@ -343,7 +343,7 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
     if (previous !== undefined) assertStateCompatibility(parseStateLineage(previous), source);
   }
   await options.pause?.();
-  options.reserve?.(source);
+  await options.reserve?.(source);
   await options.pause?.();
   // Only an exact build validation receipt can replace byte-by-byte validation
   // of unselected alternatives. Keep the complete descriptor for verified late

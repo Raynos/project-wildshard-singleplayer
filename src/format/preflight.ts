@@ -1,5 +1,5 @@
 import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
-import { assertCellBounds } from './cellBounds';
+import { assertCellBounds, assertCellBoundsSteps } from './cellBounds';
 import { assertCommonsCosts } from './commonsCosts';
 
 const identifierKeys = new Set(['id', 'slug', 'name', 'actorId', 'rewardId', 'field', 'scene', 'entity', 'owner', 'sharedField', 'playerField']);
@@ -20,26 +20,12 @@ function wire(input: unknown): number {
 
 /** Check collection, JSON source and distinct declared wire bounds without reading any immutable asset. */
 export function preflightShardfile(input: unknown): void {
-  const files = own(input, 'files'), requires = own(input, 'requires'), state = own(input, 'state');
-  const commons = own(requires, 'commons');
-  arrayCap(files, limits.files, 'files'); arrayCap(commons, limits.commons, 'commons');
-  arrayCap(own(state, 'shared'), limits.stateFields, 'shared state'); arrayCap(own(state, 'player'), limits.stateFields, 'player state');
-  arrayCap(own(input, 'water'), limits.waterBodies, 'water');
+  const { files, requires, commons } = collections(input);
   // The bounds fence first validates the complete plain-JSON tree. Reuse that
   // refusal instead of repeating its descriptor/prototype walk beforehand.
-  try { assertCellBounds(input); } catch (error) {
-    if (error instanceof Error && error.message === 'Cell bounds require plain JSON data') throw new Error('Shardfile preflight requires bounded plain JSON data', { cause: error });
-    throw error;
-  }
+  try { assertCellBounds(input); } catch (error) { throw boundsRefusal(error); }
 
   let bytes = 0;
-  const encoder = new TextEncoder();
-  // SF67: an ASCII string's UTF-8 length is its length; only others are encoded (a TextEncoder copy of every string of the
-  // source was ~40 % of the template's 120-200 ms cached-product task at 4x CPU)
-  const utf8Length = (text: string): number => {
-    for (let i = 0; i < text.length; i++) if ((text.codePointAt(i) ?? 0) > 0x7f) return encoder.encode(text).length;
-    return text.length;
-  };
   const add = (count: number): void => { bytes += count; if (bytes > limits.sourceBytes) throw new Error('Shardfile source exceeds admission cap'); };
   const string = (value: string, maximum: number): void => {
     if (value.length > maximum) throw new Error('Shardfile string exceeds admission cap');
@@ -64,7 +50,31 @@ export function preflightShardfile(input: unknown): void {
     add(JSON.stringify(value).length);
   };
   visit(input);
+  declaredWires(files, requires, commons);
+}
 
+const encoder = new TextEncoder();
+// SF67: an ASCII string's UTF-8 length is its length; only others are encoded (a TextEncoder copy of every string of the
+// source was ~40 % of the template's 120-200 ms cached-product task at 4x CPU)
+function utf8Length(text: string): number {
+  for (let i = 0; i < text.length; i++) if ((text.codePointAt(i) ?? 0) > 0x7f) return encoder.encode(text).length;
+  return text.length;
+}
+/** the collection caps, before any walk */
+function collections(input: unknown): { files: unknown; requires: unknown; commons: unknown } {
+  const files = own(input, 'files'), requires = own(input, 'requires'), state = own(input, 'state');
+  const commons = own(requires, 'commons');
+  arrayCap(files, limits.files, 'files'); arrayCap(commons, limits.commons, 'commons');
+  arrayCap(own(state, 'shared'), limits.stateFields, 'shared state'); arrayCap(own(state, 'player'), limits.stateFields, 'player state');
+  arrayCap(own(input, 'water'), limits.waterBodies, 'water');
+  return { files, requires, commons };
+}
+function boundsRefusal(error: unknown): unknown {
+  if (error instanceof Error && error.message === 'Cell bounds require plain JSON data') return new Error('Shardfile preflight requires bounded plain JSON data', { cause: error });
+  return error;
+}
+/** distinct declared wire sizes, after the walks */
+function declaredWires(files: unknown, requires: unknown, commons: unknown): void {
   const declared = new Map<string, number>(); let total = 0;
   const include = (hash: unknown, size: unknown): void => {
     if (typeof hash !== 'string' || !/^[a-f0-9]{64}$/u.test(hash)) throw new Error('Shardfile wire declaration requires a content hash');
@@ -82,4 +92,44 @@ export function preflightShardfile(input: unknown): void {
     for (const hash of commons) include(hash, typeof hash === 'string' ? own(sizes, hash) : undefined);
     if (commons.every((hash): hash is string => typeof hash === 'string')) assertCommonsCosts(commons, own(requires, 'commonsCosts'));
   }
+}
+
+/**
+ * `preflightShardfile` in steps of `every` visited values (T10: product admission walked a whole source in one drawn frame of
+ * a drive, 23-34 ms at phone 4x): the same caps, fence, bounds, size count and wire checks in the same order, with the same
+ * refusals. The size walk is the same pre-order on the same builtins (JSON.stringify per value, Object.entries per object;
+ * dc806989b0 showed hand-rolled helpers slower in cold page code). The value must not change between steps.
+ */
+export function* preflightShardfileSteps(input: unknown, every = 4096): Generator<void, void> {
+  const { files, requires, commons } = collections(input);
+  try { yield* assertCellBoundsSteps(input, 'shardfile', every); } catch (error) { throw boundsRefusal(error); }
+  let bytes = 0, since = 0;
+  const add = (count: number): void => { bytes += count; if (bytes > limits.sourceBytes) throw new Error('Shardfile source exceeds admission cap'); };
+  const string = (value: string, maximum: number): void => {
+    if (value.length > maximum) throw new Error('Shardfile string exceeds admission cap');
+    add(utf8Length(JSON.stringify(value)));
+  };
+  // pre-order through a stack: a field is pushed as its key with its value, so its key is counted just before its subtree
+  const values: unknown[] = [input], keys: (string | null)[] = [null];
+  while (values.length > 0) {
+    if (++since >= every) { since = 0; yield; }
+    const value = values.pop(), key = keys.pop() ?? null;
+    if (key !== null) {
+      string(key, limits.idCharacters); add(1);
+      if (typeof value === 'string' && identifierKeys.has(key)) { string(value, limits.idCharacters); continue; }
+    }
+    if (typeof value === 'string') { string(value, limits.textCharacters); continue; }
+    if (Array.isArray(value)) {
+      add(2 + Math.max(0, value.length - 1));
+      for (let i = value.length - 1; i >= 0; i--) { values.push(value[i]); keys.push(null); }
+      continue;
+    }
+    if (typeof value === 'object' && value !== null) {
+      const entries = Object.entries(value); add(2 + Math.max(0, entries.length - 1));
+      for (let i = entries.length - 1; i >= 0; i--) { const entry = entries[i]; if (entry !== undefined) { values.push(entry[1]); keys.push(entry[0]); } }
+      continue;
+    }
+    add(JSON.stringify(value).length);
+  }
+  declaredWires(files, requires, commons);
 }
