@@ -70,6 +70,9 @@ facing-back, stall and sky. Capture muted through `scripts/browser-lane.sh` as a
   wrote their half-float `aFace` / `aPat` as plain Uint16 words and the GPU read `kind` 16896 for 3. `mergeKits` keeps the
   half channel; `wholePieceJoin` had the same loss. Floor joints, puddles, pool light, rail carving and stair edges are
   back. Board [11-nr2](../../../art/nine-dragon-stack/round-32-shardfile-regressions/11-nr2-board.jpg) (A-D, Chromium + WebKit).
+- **G858 for NR1 + NR2:** [13-golden](../../../art/nine-dragon-stack/round-32-shardfile-regressions/13-golden-board.jpg),
+  A-D golden (`art/legacy-goldens/nine-dragon-stack/`) | before (the goldens' own SHARDFILE frames, `033398c5c6`) |
+  after (`3cadfddf16`), Chromium.
 - **NR8: sheet at `3cadfddf16`**, [12-nr8](../../../art/nine-dragon-stack/round-32-shardfile-regressions/12-nr8-sheet.jpg):
   CO6 A-D plus five views (A back, A down 55 deg, A up 38 deg, C back, B back), LEGACY | SHARDFILE on Chromium and
   WebKit, 36 captures, 0 page errors. Hands, floor, stairs, sky and reflections match. **Still off:** B's haze and wall
