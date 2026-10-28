@@ -507,7 +507,8 @@ type SunInputs = Readonly<Record<string, Node>>;
  * the sun sub-graph was lowered again for every directional light (each cascade) of every build of every material: the
  * largest family of a Driftwood build's setup nodes after the environment lookup. three generates a layout function's
  * code once per renderer, so a build now pays one call a light, and every material with the same sun term (each toon
- * material: the family's preset) shares it. Its body lowers with the first compile's closure: pure math over arguments.
+ * material: the family's preset) shares it. Its body owns only arithmetic records and scalar lowering policy;
+ * texture resolvers, material environments and runtime owners never enter this renderer-lived cache.
  */
 const sunLayouts = new Map<string, (inputs: SunInputs) => Node>();
 /** Even an unfogged unlit graph may explicitly read its scene; loop bodies retain that dependency. */
@@ -568,6 +569,123 @@ const literal = (v: GraphLiteral): Val => {
   return { t: 'vec4', n: vec4(x, y, z, w) };
 };
 const widest = (vals: readonly Val[]): GraphValueType => vals.reduce<GraphValueType>((t, v) => (LEN[v.t] > LEN[t] ? v.t : t), 'float');
+interface SunSelectPolicy { readonly bothSample: boolean; readonly branch: boolean }
+interface SunLayoutDescription {
+  readonly nodes: Readonly<Record<string, GraphNode>>;
+  readonly frontier: readonly string[];
+  readonly types: readonly GraphValueType[];
+  readonly sun: GraphRef;
+  readonly specular: GraphRef | undefined;
+  readonly selects: ReadonlyMap<string, SunSelectPolicy>;
+  readonly variables: ReadonlySet<string>;
+}
+/** Same guarded arithmetic as the full graph, with no material or runtime environment. */
+function sunDivisor(y: Node, r: GraphRef | undefined): Node {
+  const nonZeroLiteral = typeof r === 'number' ? r !== 0 : Array.isArray(r) && r.every((x) => x !== 0);
+  if (nonZeroLiteral) return y;
+  return new OperatorNode('+', y, new OperatorNode('*', new MathNode('step', new MathNode('abs', y), float(DIV_EPSILON)), float(DIV_EPSILON)));
+}
+function sunValue(n: GraphNode, ins: readonly Val[], sun: { readonly direction: Node<'vec3'>; readonly colour: Node<'vec3'>; readonly shadow: Node<'float'> },
+  policy: SunSelectPolicy | undefined, selects: { light: number; branch: number }): Val {
+  const [a, b, c] = ins;
+  const one = (): Val => { if (a === undefined) throw new Error(`material graph: ${n.op} lacks an input`); return a; };
+  const two = (): [Val, Val] => { if (a === undefined || b === undefined) throw new Error(`material graph: ${n.op} lacks inputs`); return [a, b]; };
+  const three = (): [Val, Val, Val] => { if (a === undefined || b === undefined || c === undefined) throw new Error(`material graph: ${n.op} lacks inputs`); return [a, b, c]; };
+  const same = (f: (...xs: Node[]) => Node, vals: readonly Val[]): Val => { const t = widest(vals); return { t, n: f(...vals.map((v) => widen(v, t))) }; };
+  switch (n.op) {
+    case 'const': return literal(n.value ?? 0);
+    case 'sunDirection': return { t: 'vec3', n: sun.direction };
+    case 'sunColour': return { t: 'vec3', n: sun.colour };
+    case 'sunShadow': return { t: 'float', n: sun.shadow };
+      case 'add': return same((x, y) => new OperatorNode('+', x, y), two());
+      case 'sub': return same((x, y) => new OperatorNode('-', x, y), two());
+      case 'mul': return same((x, y) => new OperatorNode('*', x, y), two());
+      case 'div': return same((x, y) => new OperatorNode('/', x, sunDivisor(y, n.in?.[1])), two());
+      case 'min': return same((x, y) => new MathNode('min', x, y), two());
+      case 'max': return same((x, y) => new MathNode('max', x, y), two());
+      case 'atan': return same((y, x) => { const m = new MathNode('atan', y); m.bNode = x; return m; }, two()); // GLSL's atan(y, x) (three's typings list atan as unary)
+      case 'mod': return same((x, y) => { const d = sunDivisor(y, n.in?.[1]); return new OperatorNode('-', x, new OperatorNode('*', d, new MathNode('floor', new OperatorNode('/', x, d)))); }, two());
+      case 'pow': return same((x, y) => new MathNode('pow', new MathNode('max', x, float(0)), y), two());
+      case 'step': return same((x, y) => new MathNode('step', x, y), two());
+      case 'clamp': return same((x, lo, hi) => new MathNode('clamp', x, lo, hi), three());
+      case 'smoothstep': return same((e0, e1, x) => new MathNode('smoothstep', e0, e1, x), three());
+      case 'abs': case 'floor': case 'fract': case 'sin': case 'cos': case 'exp': case 'negate': case 'normalize': {
+        const v = one();
+        return { t: v.t, n: new MathNode(n.op, v.n) };
+      }
+      case 'oneMinus': { const v = one(); return { t: v.t, n: new OperatorNode('-', widen({ t: 'float', n: float(1) }, v.t), v.n) }; }
+      case 'saturate': { const v = one(); return { t: v.t, n: new MathNode('clamp', v.n, float(0), float(1)) }; }
+      case 'length': return { t: 'float', n: new MathNode('length', one().n) };
+      case 'cross': { const [x, y] = two(); return { t: 'vec3', n: new MathNode('cross', x.n, y.n) }; }
+      case 'dot': { const [x, y] = two(); return { t: 'float', n: new MathNode('dot', x.n, y.n) }; }
+      case 'mix': {
+        const [x, y, f] = three(), t = widest([x, y]);
+        return { t, n: new MathNode('mix', widen(x, t), widen(y, t), f.n) };
+      }
+      case 'lt': case 'lte': case 'gt': case 'gte': case 'eq': {
+        const [x, y] = two();
+        const op = n.op === 'lt' ? '<' : n.op === 'lte' ? '<=' : n.op === 'gt' ? '>' : n.op === 'gte' ? '>=' : '==';
+        return { t: 'bool', n: new OperatorNode(op, x.n, y.n) };
+      }
+      case 'and': { const [x, y] = two(); return { t: 'bool', n: and(asBool(x), asBool(y)) }; }
+      case 'or': { const [x, y] = two(); return { t: 'bool', n: or(asBool(x), asBool(y)) }; }
+      case 'not': return { t: 'bool', n: not(asBool(one())) };
+      case 'select': {
+        const [cond, x, y] = three();
+        const bothSample = policy?.bothSample === true;
+        if (x.t === 'bool' && y.t === 'bool' && bothSample) {
+          selects.light++;
+          return { t: 'bool', n: new ConvertNode<'bool'>(new MathNode('mix', new ConvertNode<'float'>(y.n, 'float'), new ConvertNode<'float'>(x.n, 'float'), new ConvertNode<'float'>(cond.n, 'float')), 'bool') };
+        }
+        if (x.t === 'bool' && y.t === 'bool') { selects.branch++; return { t: 'bool', n: new ConditionalNode(asBool(cond), x.n, y.n) }; }
+        const t = widest([x, y]);
+        if (policy?.branch === true) {
+          selects.branch++;
+          return { t, n: new ConditionalNode(asBool(cond), widen(x, t), widen(y, t)) };
+        }
+        selects.light++;
+        return { t, n: new MathNode('mix', widen(y, t), widen(x, t), new ConvertNode<'float'>(cond.n, 'float')) };
+      }
+      case 'swizzle': {
+        const mask = n.mask ?? 'x';
+        const t: GraphValueType = mask.length === 1 ? 'float' : mask.length === 2 ? 'vec2' : mask.length === 3 ? 'vec3' : 'vec4';
+        return { t, n: new SplitNode(one().n, mask) };
+      }
+      case 'combine': {
+        const k = ins.reduce((s, v) => s + LEN[v.t], 0);
+        const t: GraphValueType = k === 2 ? 'vec2' : k === 3 ? 'vec3' : 'vec4';
+        return { t, n: new JoinNode(ins.map((v) => v.n)) };
+      }
+    default: throw new Error(`material graph: non-pure sun operation ${n.op}`);
+  }
+}
+/** A shared layout captures only admitted arithmetic records and scalar lowering
+ * policy. Creating it inside compileOwned kept the first material's texture
+ * resolver, construction Scope and entire retired runtime reachable forever. */
+function createSunLayout(key: string, description: SunLayoutDescription, selects: { light: number; branch: number }): (inputs: SunInputs) => Node {
+  const { nodes, frontier, types } = description;
+  const fn = Fn<SunInputs, Node>((inputs: SunInputs): Node => {
+    const argument = (name: string): Node => { const value = inputs[name]; if (value === undefined) throw new Error(`material graph: the sun term lacks ${name}`); return value; };
+    const sun = { direction: new ConvertNode<'vec3'>(argument('direction'), 'vec3'), colour: new ConvertNode<'vec3'>(argument('colour'), 'vec3'), shadow: new ConvertNode<'float'>(argument('shadow'), 'float') };
+    const argumentsByRef = new Map<string, Val>(frontier.map((r, i) => [r, { t: types[i] ?? 'float', n: argument(`f${String(i)}`) }]));
+    const memo = new Map<string, Val>();
+    const ref = (r: GraphRef): Val => {
+      if (typeof r !== 'string') return literal(r);
+      const supplied = argumentsByRef.get(r); if (supplied !== undefined) return supplied;
+      const hit = memo.get(r); if (hit !== undefined) return hit;
+      const node = nodes[r]; if (node === undefined) throw new Error(`material graph: unknown sun node ${r}`);
+      const built = sunValue(node, (node.in ?? []).map(ref), sun, description.selects.get(r), selects);
+      const value = description.variables.has(r) && built.n instanceof ConditionalNode ? { ...built, n: Var(built.n) } : built;
+      memo.set(r, value); return value;
+    };
+    return vec4(new ConvertNode<'vec3'>(widen(ref(description.sun), 'vec3'), 'vec3'), description.specular === undefined ? float(0) : asFloat(ref(description.specular)));
+  }).setLayout({ name: `wsGraphSun${fnv1a32(key).toString(16)}`, type: 'vec4', inputs: [
+    { name: 'direction', type: 'vec3' }, { name: 'colour', type: 'vec3' }, { name: 'shadow', type: 'float' },
+    ...types.map((type, i) => ({ name: `f${String(i)}`, type })),
+  ] });
+  return (inputs: SunInputs): Node => fn(inputs);
+}
+
 
 /** the 1×1 black texture a lent texture param samples until its runtime lends one (shared, never freed: 4 bytes) */
 let standIn: THREE.DataTexture | null = null;
@@ -796,8 +914,6 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
   }
   // the lighting stage's inputs, live only while its sub-graph builds; a node reading a sun input memoizes per light
   let sunIn: { readonly direction: Node<'vec3'>; readonly colour: Node<'vec3'>; readonly shadow: Node<'float'> } | null = null;
-  // a sun layout function's arguments, by the node each stands for, live only while its body lowers
-  let sunArguments: ReadonlyMap<string, Val> | null = null;
   let irradianceIn: Node<'vec3'> | null = null;
   let environmentIn: { readonly radiance: Node<'vec3'>; readonly irradiance: Node<'vec3'> } | null = null;
   let litIn: Node<'vec3'> | null = null;
@@ -808,8 +924,6 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
 
   function ref(r: GraphRef, scope: Scope): Val {
     if (typeof r !== 'string') return literal(r);
-    const argument = sunArguments?.get(r);
-    if (argument !== undefined) return argument;
     for (let s: Scope | null = scope; s !== null; s = s.parent) {
       const n = s.nodes[r];
       if (n === undefined) continue;
@@ -1212,19 +1326,19 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
       const key = JSON.stringify([plan.body.map(r => [r, scope.nodes[r]]), lit.sun, plan.specular ? specularRef : null, plan.frontier, types]);
       const known = sunLayouts.get(key);
       if (known !== undefined) return known;
-      const fn = Fn<SunInputs, Node>((inputs: SunInputs): Node => {
-        const argument = (name: string): Node => { const value = inputs[name]; if (value === undefined) throw new Error(`material graph: the sun term lacks ${name}`); return value; };
-        sunIn = { direction: new ConvertNode<'vec3'>(argument('direction'), 'vec3'), colour: new ConvertNode<'vec3'>(argument('colour'), 'vec3'), shadow: new ConvertNode<'float'>(argument('shadow'), 'float') };
-        sunArguments = new Map(plan.frontier.map((r, i) => [r, { t: types[i] ?? 'float', n: argument(`f${String(i)}`) }]));
-        fresh();
-        try {
-          return vec4(asVec3(lit.sun), plan.specular && specularRef !== undefined ? asFloat(ref(specularRef, scope)) : float(0));
-        } finally { sunIn = null; sunArguments = null; fresh(); }
-      }).setLayout({ name: `wsGraphSun${fnv1a32(key).toString(16)}`, type: 'vec4', inputs: [
-        { name: 'direction', type: 'vec3' }, { name: 'colour', type: 'vec3' }, { name: 'shadow', type: 'float' },
-        ...types.map((type, i) => ({ name: `f${String(i)}`, type })),
-      ] });
-      const call = (inputs: SunInputs): Node => fn(inputs);
+      const policies = new Map<string, SunSelectPolicy>();
+      for (const r of plan.body) {
+        const node = scope.nodes[r]; if (node?.op !== 'select') continue;
+        const sampleX = samples(node.in?.[1], scope), sampleY = samples(node.in?.[2], scope);
+        const pureLoop = scope.parent !== null && !sampleX && !sampleY && !Object.values(scope.nodes).some(n => n.op === 'fwidth' || n.op === 'dFdx' || n.op === 'dFdy');
+        policies.set(r, { bothSample: sampleX && sampleY, branch: (scope.parent === null || pureLoop) && !(sampleX && sampleY)
+          && Math.max(ownCost(node.in?.[1], scope.nodes, readersIn(scope)), ownCost(node.in?.[2], scope.nodes, readersIn(scope))) > BRANCH_LIGHT_COST });
+      }
+      const nodes: Record<string, GraphNode> = {};
+      for (const r of plan.body) { const node = scope.nodes[r]; if (node === undefined) throw new Error(`material graph: unknown sun node ${r}`); nodes[r] = node; }
+      const call = createSunLayout(key, { nodes, frontier: plan.frontier, types, sun: lit.sun,
+        specular: plan.specular ? specularRef : undefined, selects: policies,
+        variables: new Set(scope === root ? plan.body.filter(r => (readers.get(r) ?? 0) > 1) : []) }, selects);
       sunLayouts.set(key, call);
       return call;
     };

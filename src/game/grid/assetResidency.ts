@@ -5,7 +5,7 @@ import type { ResidencyAllocator, ResidencyLease, ResidencyEviction } from './al
 type AssetPort = Parameters<App['assets']['bindResidency']>[0];
 /** Renderer composition supplies concrete allocation identities; Node residency imports no rendering module. */
 export type AssetAllocationReader = (resource: Disposable3) => readonly { identity: object; bytes: number; kind: 'cpu' | 'gpu' }[];
-interface CacheConsumer { readonly users: Set<Scope>; readonly evict: (() => boolean) | undefined; readonly reusable: boolean; readonly revisit: boolean; active: boolean; lastUse: number; retired: boolean }
+interface CacheConsumer { readonly users: Map<Scope, (() => void) | undefined>; readonly evict: (() => boolean) | undefined; readonly reusable: boolean; readonly revisit: boolean; active: boolean; lastUse: number; retired: boolean }
 interface Allocation { readonly identity: object; lease: ResidencyLease; readonly bytes: number; readonly kind: 'cpu' | 'gpu'; readonly consumers: Set<CacheConsumer>; refs: number; covering: string | undefined; independent: boolean }
 const bridges = new WeakMap<ResidencyAllocator, AssetResidencyBridge>();
 
@@ -39,7 +39,7 @@ export class AssetResidencyBridge implements AssetPort {
   private *retireCoverage(scope: Scope): Generator<undefined, void> {
     this.owners.delete(scope);
     const errors: unknown[] = [];
-    for (const consumer of this.consumers) if (consumer.users.delete(scope) || consumer.users.size === 0) {
+    for (const consumer of this.consumers) if (this.forgetUser(consumer, scope) || consumer.users.size === 0) {
       // Async source templates may never be drawn; with no consumer/acquisition they are safe to evict too.
       consumer.retired = true;
       try { this.evictUnused(consumer); } catch (error) { errors.push(error); }
@@ -71,10 +71,26 @@ export class AssetResidencyBridge implements AssetPort {
     return lease;
   }
   private evictUnused(consumer: CacheConsumer): void {
-    for (const user of consumer.users) if (user.disposed) consumer.users.delete(user);
+    for (const user of consumer.users.keys()) if (user.disposed) this.forgetUser(consumer, user);
     // Ordinary reuse spans live residents. Explicit revisit builds keep their real
     // idle charges until budget pressure evicts them; active acquisitions stay protected.
     if (consumer.retired && consumer.users.size === 0 && !consumer.revisit && (!consumer.reusable || !consumer.active)) consumer.evict?.();
+  }
+  private forgetUser(consumer: CacheConsumer, scope: Scope): boolean {
+    if (!consumer.users.has(scope)) return false;
+    const forget = consumer.users.get(scope);
+    consumer.users.delete(scope); forget?.(); return true;
+  }
+  /** Tiles and other non-runtime consumers can share a cache with a live page.
+   * Their retirement must detach immediately, without waiting for that cache's
+   * final acquisition or a covered runtime's cleanup to prune their scopes. */
+  private observeUser(consumer: CacheConsumer, scope: Scope, independent: boolean): void {
+    if (consumer.users.has(scope)) return;
+    // Covered runtimes retain their existing stepped eviction/error boundary.
+    const forget = independent ? scope.capture('disposers', () => {
+      consumer.users.delete(scope); consumer.retired = true; this.evictUnused(consumer);
+    }) : undefined;
+    consumer.users.set(scope, forget);
   }
   private prepareEviction(identity: object): ResidencyEviction | null {
     // G639: asked once per eviction candidate (a burst of idle builds on an entry over target): check the set in place and
@@ -114,7 +130,7 @@ export class AssetResidencyBridge implements AssetPort {
       }
     } catch (error) { this.release(held); for (const release of unhold) release(); throw error; }
     let live = true;
-    const consumer: CacheConsumer = { users: new Set(), evict, reusable, revisit, active: false, lastUse: ++this.uses, retired: false };
+    const consumer: CacheConsumer = { users: new Map(), evict, reusable, revisit, active: false, lastUse: ++this.uses, retired: false };
     for (const entry of held) entry.consumers.add(consumer);
     const initialOwner = this.runtimeOwner(owner ?? this.readOwner());
     this.consumers.add(consumer);
@@ -138,7 +154,7 @@ export class AssetResidencyBridge implements AssetPort {
         } else entry.lease.update({ coveredBy: actualCoverage ?? null });
         entry.covering = actualCoverage;
       }
-      if (user !== undefined) consumer.users.add(user);
+      if (user !== undefined) this.observeUser(consumer, user, runtime === undefined);
     };
     try { observe(initialOwner ?? null); this.refresh(held); }
     catch (error) { live = false; this.consumers.delete(consumer); this.release(held, consumer); throw error; }
@@ -149,6 +165,7 @@ export class AssetResidencyBridge implements AssetPort {
     }, unused: () => { if (live) this.evictUnused(consumer); }, release: () => { if (live) { live = false; this.consumers.delete(consumer); this.release(held, consumer); } } };
   }
   private release(held: readonly Allocation[], consumer?: CacheConsumer): void {
+    if (consumer !== undefined) for (const scope of consumer.users.keys()) this.forgetUser(consumer, scope);
     // O20: each entry keeps its identity, so a region's retirement deletes in O(1) instead of scanning every allocation
     for (const entry of held) {
       if (consumer !== undefined) entry.consumers.delete(consumer);
@@ -158,6 +175,7 @@ export class AssetResidencyBridge implements AssetPort {
   }
   /** Detach only with the actual renderer owner; unloading a level alone must not uncharge still-live cached GPU data. */
   dispose(): void {
+    for (const consumer of this.consumers) for (const scope of consumer.users.keys()) this.forgetUser(consumer, scope);
     for (const entry of this.allocations.values()) entry.lease.release();
     this.allocations.clear(); this.owners.clear(); this.consumers.clear(); bridges.delete(this.allocator);
   }

@@ -14,6 +14,8 @@ import { clientRingPorts, type PreparedRingTile } from '../src/game/shardfile/ti
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { emptyShardfile } from '../src/sdk/author';
 import { TileDecoder } from '../src/game/grid/tileDecoder';
+import { AssetService } from '../src/engine/app/assets';
+import { AssetResidencyBridge } from '../src/game/grid/assetResidency';
 
 let childProved = false;
 function collectionRuntime(): (() => void) | null {
@@ -30,7 +32,7 @@ function collectionRuntime(): (() => void) | null {
       const output = execFileSync(process.execPath, ['--expose-gc', resolvePath('node_modules/vitest/vitest.mjs'), 'run', '--config', config], {
         env: { ...process.env, WS_GRID_GHOST_GC: '1', NO_COLOR: '1' }, encoding: 'utf8', stdio: 'pipe', timeout: 30_000,
       });
-      expect(output).toContain('4 passed'); childProved = true;
+      expect(output).toContain('5 passed'); childProved = true;
     } finally { rmSync(directory, { recursive: true, force: true }); }
   }
   expect(childProved).toBe(true);
@@ -60,10 +62,10 @@ test('the client retirement observer watches roots weakly through repeated publi
   const page = new Scope('client tile page'), root = new Group(), ghosts = new GhostWorlds(), decoder = new TileDecoder();
   const assets = new ClientAssets(source, new Map(), { base: 'https://example.invalid/', offline: true, firstParty: true,
     fetch: () => Promise.reject(new Error('No fixture network')), hash: () => Promise.reject(new Error('No fixture hashing')) });
-  const refs: WeakRef<object>[] = []; let retired = 0;
+  const refs: WeakRef<object>[] = [], frameSteps: (() => void)[] = []; let retired = 0;
   const ports = clientRingPorts(new Map([['home', { source, assets, root, views: {
     terrain: () => { throw new Error('No fixture terrain'); }, props: () => Promise.resolve(null), panels: () => Promise.resolve(new Map()),
-  } }]]), { scope: page, decoder, retired: (tile, roots) => {
+  } }]]), { scope: page, decoder, frame: step => { frameSteps.push(step); }, retired: (tile, roots) => {
     retired++; ghosts.retired(tile.key, roots, 0); for (const value of roots) refs.push(new WeakRef(value));
   } });
   const tile: RingTile = { key: 'home:l0/0/0', instance: 'home', type: 'level', level: 'l0', x: 0, z: 0 };
@@ -72,6 +74,7 @@ test('the client retirement observer watches roots weakly through repeated publi
       await retireClientTile(ports, tile); expect(root.children).toHaveLength(0);
     }
     expect(retired).toBe(20); expect(refs).toHaveLength(40);
+    expect(frameSteps).toHaveLength(1); frameSteps[0]?.();
     for (let turn = 0; turn < 40; turn++) {
       await new Promise<void>(resolve => { setTimeout(resolve, 0); }); gc();
       if (refs.every(ref => ref.deref() === undefined) && ghosts.count(GHOST_AFTER_MS) === 0) break;
@@ -125,4 +128,40 @@ test('twenty tile load/evict cycles collect roots while their page and ports sta
     for (let step = 0; step < 6; step++) { streamer.step(near); await Promise.resolve(); }
     expect(streamer.stats().resident.far).toBe(1); expect(live).toBe(1); expect(prepared).toBe(21);
   } finally { streamer.dispose(); page.dispose(); }
+});
+
+test('a shared live cache does not keep its retired tile consumers or their region parents', async () => {
+  const gc = collectionRuntime(); if (gc === null) return;
+  const page = new Scope('cache page'), allocator = new ResidencyAllocator(), ghosts = new GhostWorlds();
+  let disposals = 0;
+  const resource = { dispose: () => { disposals++; } }, backing = new Uint8Array(128);
+  const assets = new AssetService<typeof resource>(), bridge = new AssetResidencyBridge(allocator,
+    () => [{ identity: backing.buffer, bytes: backing.byteLength, kind: 'cpu' }]);
+  const unbind = assets.bindResidency(bridge), refs: WeakRef<Scope>[] = [];
+  assets.register('shared', resource, { retain: true, cache: true, reusable: true });
+  assets.acquire('shared'); assets.observeResidency(resource, page);
+  const visit = (cycle: number): void => {
+    const region = page.child(`region:${String(cycle)}`), tile = region.child('tile');
+    refs.push(new WeakRef(region), new WeakRef(tile));
+    assets.acquire('shared'); tile.onDispose(() => { assets.release('shared'); });
+    assets.observeResidency(resource, tile);
+    region.dispose(); ghosts.retired(String(cycle), [region, tile], 0);
+  };
+  try {
+    for (let cycle = 0; cycle < 20; cycle++) visit(cycle);
+    expect(assets.retained()).toEqual([{ key: 'shared', refs: 1, retained: true }]);
+    expect(disposals).toBe(0);
+    expect(allocator.entries().filter(row => row.category === 'commons').map(row => row.accountedBytes)).toEqual([128]);
+    for (let turn = 0; turn < 40; turn++) {
+      await new Promise<void>(resolve => { setTimeout(resolve, 0); }); gc();
+      if (refs.every(ref => ref.deref() === undefined) && ghosts.count(GHOST_AFTER_MS) === 0) break;
+    }
+    expect(refs.every(ref => ref.deref() === undefined)).toBe(true);
+    expect(ghosts.regions(GHOST_AFTER_MS)).toEqual([]);
+    expect(assets.acquire('shared')).toBe(resource); assets.release('shared');
+    expect(page.disposed).toBe(false); expect(disposals).toBe(0);
+  } finally {
+    page.dispose(); assets.release('shared'); assets.evictCached('shared'); unbind(); bridge.dispose();
+  }
+  expect(disposals).toBe(1); expect(allocator.entries()).toEqual([]);
 });

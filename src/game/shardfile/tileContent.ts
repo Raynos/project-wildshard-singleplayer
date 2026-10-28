@@ -289,6 +289,12 @@ export function clientRingCatalogue(instances: ReadonlyMap<string, { readonly so
   } });
 }
 
+/** The page step must not share the first tile's closure environment: that
+ * environment also contains its scope, even after its check is removed. */
+function ringCheckStep(checks: ReadonlySet<() => void>): () => void {
+  return () => { for (const held of checks) held(); };
+}
+
 /** The rings' ports for these instances; every prepared tile's scope is a child of `scope`. */
 export function clientRingPorts(instances: ReadonlyMap<string, ClientRingInstance>, ports: { scope: Scope; decoder: TileDecoder;
   /** Prepare the detached, fully built tile before publication; rejection retires only this tile's scope. */
@@ -302,7 +308,7 @@ export function clientRingPorts(instances: ReadonlyMap<string, ClientRingInstanc
   let stepping = false;
   const checked = (frame: (step: () => void) => void, scope: Scope) => (check: () => void): void => {
     // one frame step for the ports, registered with the first published tile (a failed entry registers none)
-    if (!stepping) { stepping = true; frame(() => { for (const held of checks) held(); }); }
+    if (!stepping) { stepping = true; frame(ringCheckStep(checks)); }
     checks.add(check); scope.onDispose(() => { checks.delete(check); });
   };
   const prepare = async (tile: RingTile, instance: ClientRingInstance, scope: Scope, group: Group): Promise<PreparedRingTile> => {
