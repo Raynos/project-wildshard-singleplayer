@@ -107,7 +107,9 @@ export async function openPhoneBrowser(engine, base, _out) {
       if (inspector === null) throw new Error('Safari inspector unavailable');
       await inspector.send('Page.enable');
       await inspector.send('Page.setBootstrapScript', { source: phoneBootstrap(paintScript) });
-      simctl(['openurl',udid,url]); await connect(url);
+      // Bootstrap belongs to this page. simctl openurl may create another tab
+      // and leave both the settings/error observer and Inspector on the probe.
+      await inspector.send('Page.navigate', {url}); await connect(url);
     },
     async click(selector) {
       await raw(`(${phoneTouchButton.toString()})(${JSON.stringify(selector)})`);
