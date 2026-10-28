@@ -1,3 +1,4 @@
+import { PAINTED_TERRAIN_ATTRIBUTES } from '@wildshard/format/materialFamilies';
 import { CELL_ABOVE, CELL_BELOW, CONTENT_CAPS } from '@wildshard/format/contentBounds';
 import { bilinearTerrainSamplers, encodeTerrainTile, terrainTileCost, terrainTileHeight, type TerrainTileData } from '@wildshard/format/terrainTileBytes';
 import { validateTerrainAssets } from '@wildshard/format/product';
@@ -182,3 +183,6 @@ export function bakeTerrain(source: TerrainBakeSource): BakedTerrain {
   const result: BakedTerrain = { terrain, tiles, files, critical, assets, edge: { north: edgeAt('north'), east: edgeAt('east'), south: edgeAt('south'), west: edgeAt('west') } };
   validateTerrainAssets(terrain, assets, result); return result;
 }
+
+/** Defining per-vertex terrain masks, track vectors and zone channel layout. */
+export function paintedTerrainAttributes(): typeof PAINTED_TERRAIN_ATTRIBUTES { return PAINTED_TERRAIN_ATTRIBUTES; }

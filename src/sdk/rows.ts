@@ -16,7 +16,7 @@ import { FigureCatalogueSchema as GameFigureCatalogueSchema, NpcFigureRowsSchema
 import { RangedPageSchema, ForestWeatherObservationSchema } from '@wildshard/format/rangedPage';
 import { RainPresentationSchema } from '@wildshard/format/rainPresentation';
 import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
-import { parseQuestStepRows, parseQuestHintRows, parseQuestServiceActions } from '@wildshard/format/questSteps';
+import { parseQuestStepRows, parseQuestHintRows, parseQuestServiceActions, parseCarriedQuest } from '@wildshard/format/questSteps';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
 import { CoverCompositionSchema } from '@wildshard/format/streamedCover';
@@ -170,3 +170,6 @@ export function questPageInteractionRows(input: unknown): ReturnType<typeof pars
 export function questPageCompositionRows(input: unknown): v.InferOutput<typeof QuestPageCompositionSchema> { return v.parse(QuestPageCompositionSchema, input); }
 /** Admit cover ownership references without constructing ground or geometry. */
 export function coverCompositionRows(input: unknown): v.InferOutput<typeof CoverCompositionSchema> { return v.parse(CoverCompositionSchema, input); }
+
+/** Admit a complete carried-quest continuation with native state/event ownership checks. */
+export function carriedQuestRows(input: unknown): ReturnType<typeof parseCarriedQuest> { return parseCarriedQuest(input); }

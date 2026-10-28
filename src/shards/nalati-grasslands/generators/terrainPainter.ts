@@ -1,10 +1,11 @@
 /** Build-only native terrain painter. The client consumes its lossless geometry. */
 import * as THREE from 'three';
 import { Noise2D } from '@wildshard/sdk/noise';
-import type { NativeTerrainSource } from '@wildshard/sdk/bake/terrain';
-import { PAINTED_TERRAIN_ATTRIBUTES as ATTR } from '@wildshard/format/materialFamilies';
+import { paintedTerrainAttributes, type NativeTerrainSource } from '@wildshard/sdk/bake/terrain';
 import type { groundColor, surfaceAt } from './terrainRecipe';
 import { zoneWeights } from './zones';
+
+const ATTR: ReturnType<typeof paintedTerrainAttributes> = paintedTerrainAttributes();
 
 /** The author samples the supplied native lattice and trails; no runtime field is installed. */
 export interface TerrainPaintField extends Pick<NativeTerrainSource, 'heightAt' | 'normalAt'> {

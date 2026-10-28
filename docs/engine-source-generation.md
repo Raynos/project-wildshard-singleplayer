@@ -162,3 +162,9 @@ constructing presentation owners. `scriptV1ReferenceKinds()` in
 for default elision. `ridingPracticeRows()` in `@wildshard/sdk/bake/practiceCourse`
 admits the complete native course, including controller and return-program
 checks; `AuthorRidingPracticeLayout` retains its full output shape.
+
+`carriedQuestRows()` in `@wildshard/sdk/rows` retains native JSON,
+continuation-state and event-identity admission before construction.
+`paintedTerrainAttributes()` in `@wildshard/sdk/bake/terrain` lends the
+actual native mask, track and zone layout without renderer dependencies;
+it changes neither terrain samples nor channel ownership.
