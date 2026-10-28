@@ -6292,6 +6292,8 @@ Signal well prompts use these rows on their existing input owners.
 `explorerCatalogueRows` admits ordered model references with the defining JSON/identity checks and no runtime installer.
 `npcFigureRows`, `questTraderRows` and `barterEconomyRows` retain native figure-motion, trader-page and barter checks;
 `AuthorExchangeRows` preserves the complete transaction table data without lending inventory or storage.
+`weapons/bowProfile.sharedBowAuthorBase` compiles a detached numeric shared bow base from its committed author JSON,
+preserving native field order without importing the runtime wind owner or lending a profile object.
 `contractBoardPageRows` retains the defining catalogue, panel and store checks without constructing a board page.
 `sdk/interactions.readInteractionPlacements` / `bindInteractionPlacements` compile bounded finite rest poses in
 native table order, retaining identity/kind/missing-row refusals. Table/pickup types derive from the actual compiler;

@@ -185,6 +185,7 @@
     "./weapons/starterMoves": "./weapons/starterMoves.ts",
     "./weapons/starterMeleeProfile": "./weapons/starterMeleeProfile.ts",
     "./weapons/starterBowProfile": "./weapons/starterBowProfile.ts",
+    "./weapons/starterBow.json": "./weapons/starterBow.json",
     "./weapons/Sword": "./weapons/Sword.ts",
     "./weapons/Bow": "./weapons/Bow.ts",
     "./shardfile/portalRideBinding": "./shardfile/portalRideBinding.ts",
