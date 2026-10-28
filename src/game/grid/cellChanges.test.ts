@@ -141,3 +141,45 @@ test('a watched absent field stays out of key walks until it holds a value', () 
   const empty: Record<string, unknown> = {}, stopEmpty = onCellField(empty, 'position', () => undefined); stopEmpty();
   expect(Object.getOwnPropertyDescriptor(empty, 'position')).toBeUndefined();
 });
+
+test('field delivery retains snapshot order across warm writes and reentrant membership edits', () => {
+  const target = { value: 0 }, calls: string[] = [];
+  let editing = false, stopLater = (): void => undefined, stopAdded = (): void => undefined;
+  const added = (): void => { calls.push(`added:${target.value}`); };
+  const stopFirst = onCellField(target, 'value', () => {
+    calls.push(`first:${target.value}`);
+    if (!editing) return;
+    editing = false;
+    stopLater(); stopAdded = onCellField(target, 'value', added);
+    target.value = 4;
+  });
+  stopLater = onCellField(target, 'value', () => { calls.push(`later:${target.value}`); });
+  try {
+    target.value = 1; target.value = 2;
+    expect(calls).toEqual(['first:1', 'later:1', 'first:2', 'later:2']);
+    calls.length = 0; editing = true; target.value = 3;
+    expect(calls).toEqual(['first:3', 'first:4', 'added:4']);
+    target.value = 5;
+    expect(calls).toEqual(['first:3', 'first:4', 'added:4', 'first:5', 'added:5']);
+  } finally { stopFirst(); stopLater(); stopAdded(); }
+  expect(Object.getOwnPropertyDescriptor(target, 'value')).toEqual({ value: 5, configurable: true, writable: true, enumerable: true });
+});
+
+test('field snapshots retain removed-and-readded listeners and release retained setters', () => {
+  const target = { value: 0 }, calls: string[] = [];
+  let change = false, stopSecond = (): void => undefined;
+  const second = (): void => { calls.push('second'); };
+  const stopFirst = onCellField(target, 'value', () => {
+    calls.push('first');
+    if (change) { change = false; stopSecond(); stopSecond = onCellField(target, 'value', second); }
+  });
+  stopSecond = onCellField(target, 'value', second);
+  target.value = 1; change = true; target.value = 2;
+  expect(calls).toEqual(['first', 'second', 'first', 'second']);
+  const setter = Object.getOwnPropertyDescriptor(target, 'value')?.set?.bind(target);
+  if (setter === undefined) throw new Error('Missing retained field setter');
+  stopFirst(); stopSecond();
+  setter(3);
+  expect(calls).toEqual(['first', 'second', 'first', 'second']);
+  expect(target.value).toBe(2);
+});
