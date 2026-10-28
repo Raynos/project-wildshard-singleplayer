@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest';
+import { publicBytes } from '../src/engine/boot/tables';
 import { driftwoodBootInventory } from '../src/shards/driftwood-isle/generators/bootInventory';
 import { DRIFTWOOD_BOOT_FILES, DRIFTWOOD_BOOT_SOURCES } from '../src/shards/driftwood-isle/generators/bootRecipes';
 import { GPU_FILES } from '../src/shards/driftwood-isle/ktx2.generated';
@@ -11,7 +12,7 @@ import { driftwoodBootProgram } from '../src/shards/driftwood-isle/generators/bo
 const { sources, files, lateReads } = original;
 
 test('offline boot rows preserve ordered sources and filtered late reads for all four choices', () => {
-  expect({ sources, files, lateReads }).toEqual(driftwoodBootInventory());
+  expect({ sources, files, lateReads }).toEqual(driftwoodBootInventory(publicBytes()));
   for (const tier of ['phone', 'desktop'] as const) for (const mode of ['img', 'ktx2'] as const) {
     const expected = resolveBootSources(DRIFTWOOD_BOOT_FILES, DRIFTWOOD_BOOT_SOURCES, tier, mode, GPU_FILES);
     const named = new Set(['reef', 'ground', 'palms', 'hibiscus', 'cover', 'island', 'records', 'lights'].flatMap(group => resolveBootFiles(DRIFTWOOD_BOOT_FILES, group, tier, mode, GPU_FILES)));
@@ -64,4 +65,9 @@ test('boot discovery uses fresh supplied inventory and has no source-file bindin
   expect(driftwoodBootProgram(ctx)['boot.files']).not.toEqual(first['boot.files']);
   expect(first.poses).toEqual(original.poses);
   expect(() => driftwoodBootProgram({})).toThrow('public inventory capability');
+});
+
+
+test('boot authoring requires the caller inventory before selecting any recipe', () => {
+  expect(() => { Reflect.apply(driftwoodBootInventory, undefined, []); }).toThrow('Boot authoring requires an explicit inventory');
 });
