@@ -28,6 +28,8 @@ export function createClientChannels(input: unknown): ClientChannelLane {
 export interface ClientChannelLane {
   readonly reads: readonly string[]; readonly frame: ClientChannelFrame; readonly geometry?: ClientTubeFrame; readonly connectors?: readonly ClientConnectorFrame[]; evaluate: (observation: ClientChannelObservation) => void;
   bindNumeric: (rows: readonly ClientNumericPortRow[], targets: ReadonlyMap<string, unknown>) => ClientNumericPorts;
+  /** no private locals: an evaluation depends only on its observation, so a skipped one loses nothing (T10) */
+  readonly stateless: boolean;
 }
 /** A lane over a program its caller has just admitted with `parseClientChannels` (G639: a table installed group by group
  *  re-validated every row it had parsed; Nalati's entry spent 0.3-0.65 s frames in it). Its arrays are copied, never kept. */
@@ -180,7 +182,7 @@ export function admittedClientChannels(program: ClientChannelProgram): ClientCha
     }
     published.set(scratch); locals.set(next); initialized = true;
   };
-  return Object.freeze({ bindNumeric: createClientNumericPorts, reads: Object.freeze([...program.reads]), frame, evaluate, ...(geometry === undefined ? {} : { geometry }), ...(connectors === undefined ? {} : { connectors }) });
+  return Object.freeze({ bindNumeric: createClientNumericPorts, reads: Object.freeze([...program.reads]), frame, evaluate, stateless: slots.length === 0, ...(geometry === undefined ? {} : { geometry }), ...(connectors === undefined ? {} : { connectors }) });
 }
 
 

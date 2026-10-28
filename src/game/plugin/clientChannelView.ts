@@ -111,7 +111,9 @@ export function createClientChannelView(input: unknown, targets: ReadonlyMap<str
       else binding.numeric.apply(lane.frame);
     }
   };
-  return Object.freeze({ bindNumeric: lane.bindNumeric, reads: lane.reads, frame: lane.frame, evaluate, ...(lane.connectors === undefined ? {} : { connectors: lane.connectors }) });
+  return Object.freeze({ bindNumeric: lane.bindNumeric, reads: lane.reads, frame: lane.frame, evaluate,
+    // a view that toggles a node's visibility may be what shows a hidden model again: never skippable
+    stateless: lane.stateless && bindings.every(binding => binding.numeric !== null), ...(lane.connectors === undefined ? {} : { connectors: lane.connectors }) });
 }
 
 /** Copy only the fixed mover ABI's published observations, never its world or module memory. */

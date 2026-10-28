@@ -4,7 +4,7 @@ import { createClientChannels, bindClientChannelInputs } from './channels';
 import { readBorrowedOwner, type BorrowedOwnerPath } from './borrowed';
 import { bindMeleeContacts } from './simulation';
 import { createClientScene, createHeldMeleeBinding, type ClientScene, type ClientScenePorts } from './scene';
-import { type Object3D, BufferGeometry, Group, Mesh, BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PointLight, Vector2, Vector3, MathUtils } from "three";
+import { Object3D, BufferGeometry, Group, Mesh, BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PointLight, Vector2, Vector3, MathUtils } from "three";
 import { blocks } from "@wildshard/engine/blocks";
 import type { ContactFamily, ContactScanTarget, ContactFamilyPorts, ContactWorldTarget, WorldContactDispatcher } from "@wildshard/engine/combat/contactWeapon";
 import { Weapon, type WeaponState, type AimInfo } from "@wildshard/engine/combat/Weapon";
@@ -201,6 +201,8 @@ export class HeldPlayback {
   private readonly attachments: ClientScene[] = [];
   private elapsed = 0;
   private delta = 0;
+  /** the held model's own node (its private scene's root, else its first part): a hidden ancestor means nothing of it draws */
+  private readonly anchor: Object3D | null;
   private readonly inputs = new Map<string, ReadonlyMap<string, () => number>>();
   private readonly groups = new Map<string, { lane: ReturnType<typeof createClientChannelView>; copied: number[]; outputs?: ReturnType<ReturnType<typeof createClientChannelView>['bindNumeric']> }[]>();
   constructor(rows: Readonly<Record<string, readonly unknown[]>>, parts: ReadonlyMap<string, unknown>, kernels?: ClientGeometryKernels | ((parts: ReadonlyMap<string, unknown>, model: ClientScene | null) => ClientGeometryKernels), source?: { readonly row: unknown; readonly ports: ClientScenePorts }) {
@@ -208,6 +210,9 @@ export class HeldPlayback {
     if (groups.length === 0 || groups.length > 16) throw new RangeError('Held playback groups exceed admission');
     for (const [id, programs] of groups) if (!/^[a-z][a-zA-Z0-9.-]*$/u.test(id) || id.length > 128 || !Array.isArray(programs) || programs.length === 0 || programs.length > 8) throw new Error('Invalid held playback group');
     this.model = source === undefined ? null : createClientScene(source.row, source.ports);
+    let anchor: Object3D | null = this.model?.root ?? null;
+    if (anchor === null) for (const part of parts.values()) if (part instanceof Object3D) { anchor = part; break; }
+    this.anchor = anchor;
     try {
     const targets = new Map(parts);
     for (const [id, object] of this.model?.parts ?? []) {
@@ -271,10 +276,20 @@ export class HeldPlayback {
     const bindings = rows.map(row => { if (!property(row.property)) throw new Error('Missing held output channel'); return { ...row, property: row.property }; });
     view.outputs = view.lane.bindNumeric(bindings, owners);
   }
+  /** whether a node above the held model (the model itself, its holster, the viewmodel) is hidden */
+  private hidden(): boolean {
+    for (let node = this.anchor; node !== null; node = node.parent) if (!node.visible) return true;
+    return false;
+  }
   /** Copy a bounded observation into one selected view group; never lends authoritative objects. */
   apply(group: string, values: Readonly<Record<string, number>>): void {
     const views = this.groups.get(group); if (views === undefined) throw new Error('Missing held playback group');
+    // T10: a holstered weapon's model is hidden, yet every equipped weapon is updated each frame (its clocks, its shots in
+    // flight); a stateless view of an undrawn model is skipped: its next evaluation, from that frame's observation, writes
+    // exactly what it would have (views with private locals still run every frame)
+    const hidden = this.hidden();
     for (const { lane, copied, outputs } of views) {
+      if (hidden && lane.stateless) continue;
       for (let i = 0; i < lane.reads.length; i++) {
         const key = lane.reads[i]; if (key === undefined) throw new Error('Missing held playback read');
         const value = values[key] ?? this.inputs.get(group)?.get(key)?.(); if (value === undefined) throw new Error(`Missing held playback observation ${key}`);
