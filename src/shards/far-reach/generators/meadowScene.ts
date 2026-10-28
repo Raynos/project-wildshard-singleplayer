@@ -1,4 +1,4 @@
-import { unzlibSync } from 'fflate';
+import { decodePortableBytes } from '@wildshard/sdk/bake/portableBytes';
 import { worldSceneBuffers as parseSceneBuffers } from '@wildshard/sdk/worldScenes';
 
 import { nameBlob } from '@wildshard/sdk/blobs';
@@ -9,7 +9,7 @@ type SceneBuffers = ReturnType<typeof parseSceneBuffers>;
 
 /** The original blade bytes, card channels and chunk LOD transforms, frozen before product compilation. */
 export function skyMeadowScene(publish: (id: string, bytes: Uint8Array) => { file: string; byteOffset: number }): SceneBuffers {
-  const bytes = unzlibSync(bakeMeadowBlades()), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const bytes = decodePortableBytes(bakeMeadowBlades()), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const chunks = view.getUint32(0, true), buffers: SceneBuffers['buffers'] = [], attributes: SceneBuffers['attributes'] = [];
   const geometries: SceneBuffers['geometries'] = [], draws: SceneBuffers['draws'] = [];
   const cards = [meadowCard(1), meadowCard(1 + MEADOW.layers)];

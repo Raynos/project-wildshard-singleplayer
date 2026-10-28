@@ -1,4 +1,4 @@
-import { parseDeclaredQuestPage } from '@wildshard/format/declaredQuestPage';
+import { declaredQuestPageRows as parseDeclaredQuestPage } from '@wildshard/sdk/quests';
 import FLAGS from '../data/flags.json' with { type: 'json' };
 import STRINGS from '../data/strings.json' with { type: 'json' };
 

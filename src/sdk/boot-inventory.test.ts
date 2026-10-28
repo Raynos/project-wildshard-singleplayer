@@ -2,7 +2,16 @@ import { expect, test } from 'vitest';
 import { filePolicy } from '@wildshard/engine/boot/filePolicy';
 import { CLOUD_FIELD_URL } from '@wildshard/engine/boot/bakedApi';
 import { RAPIER_WASM_URL } from '@wildshard/engine/physics/wasmUrl';
-import { bootFilePolicy, sharedBootPhysics, sharedBootTextures, type BootInventory } from './bootInventory';
+import { bakedBootTextureSource, bootFilePolicy, sharedBootPhysics, sharedBootTextures, type BootInventory } from './bootInventory';
+
+test('native bake texture sources retain their owned namespace and reject path injection', () => {
+  const first = bakedBootTextureSource('driftwood-isle');
+  expect(first).toEqual({ publicPrefix: '/assets/baked/driftwood-isle/tex/' });
+  Reflect.set(first, 'publicPrefix', 'changed');
+  expect(bakedBootTextureSource('driftwood-isle')).toEqual({ publicPrefix: '/assets/baked/driftwood-isle/tex/' });
+  expect(bakedBootTextureSource('driftwood-isle')).not.toBe(first);
+  for (const owner of ['', '..', 'a/b', 'a?b', 'a#b', 'A', 'a'.repeat(65)]) expect(() => bakedBootTextureSource(owner)).toThrow('owner');
+});
 
 test('shared boot physics preserves native identity and gives each author independent storage', () => {
   const first = sharedBootPhysics(), second = sharedBootPhysics();

@@ -31,6 +31,13 @@ export function sharedBootTextures(inventory: BootInventory): string[] {
 /** The engine's required physics input in native boot order, as an independent author row. */
 export function sharedBootPhysics(): readonly [typeof RAPIER_WASM_URL] { return [RAPIER_WASM_URL]; }
 
+/** Owned native bake-texture namespace used by retained author boot recipes.
+ * The owner is a bounded project id, never a caller-supplied URL or path. */
+export function bakedBootTextureSource<const Owner extends string>(owner: Owner): { readonly publicPrefix: `/assets/baked/${Owner}/tex/` } {
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(owner) || owner.length > 64) throw new Error('Invalid baked texture owner');
+  return { publicPrefix: `/assets/baked/${owner}/tex/` };
+}
+
 export interface BootRecipe {
   readonly source: { readonly urls: readonly string[] | Readonly<Record<BootTier, readonly string[]>> }
     | { readonly concat: readonly string[] } | { readonly publicPrefix: string }

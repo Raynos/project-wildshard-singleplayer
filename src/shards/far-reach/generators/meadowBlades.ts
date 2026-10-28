@@ -1,4 +1,4 @@
-import { zlibSync } from 'fflate';
+import { encodePortableBytes } from '@wildshard/sdk/bake/portableBytes';
 import { ISLES, KNOLLS } from "./layout";
 import { meadowHoles, meadowPaths } from './placements';
 import { heroStoneDiscs } from './dressing';
@@ -140,5 +140,5 @@ export function bakeMeadowBlades(): Uint8Array {
       at += 8;
     }
   });
-  return zlibSync(out, { level: 9 });
+  return encodePortableBytes(out, 9);
 }

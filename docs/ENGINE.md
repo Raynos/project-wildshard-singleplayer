@@ -4262,6 +4262,12 @@ Effect author ports (`worldTargetRows`, `worldLightEmitters`, `worldEasedFields`
 contracts. `bake/terrain.readTerrainTileSource` exposes the original WTT triangular
 height query, including its outside-grid refusal, without a runtime owner.
 
+`bakedBootTextureSource(projectId)` names the bounded native bake-texture
+namespace; shared physics inputs come from `sharedBootPhysics()`. Both produce
+independent author rows rather than raw cross-owner paths. Portable source codecs
+(`bake/portableBytes`) retain the defining deflate bytes, own selected views and
+keep the build byte cap; `worldColourFunction` admits complete colour expressions.
+
 ### Existing runtime definitions under plugin modules
 
 The following modules contain the existing implementations; there is no facade
