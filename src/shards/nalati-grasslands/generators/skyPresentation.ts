@@ -1,10 +1,12 @@
 import * as v from 'valibot';
-import { ManifestMetadataSchema } from '@wildshard/format/minimap';
+import { authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
 import { Color } from 'three';
 import type { SkyRows, SkySchema } from '../data/skyTypes';
 import NALATI_MANIFEST_ROWS from '../data/manifestRows.json' with { type: 'json' };
 import { visualPack, type VisualRow } from './weatherFxChannels';
-import type { ClientChannelProgram } from '@wildshard/format/clientChannels';
+import type { ClientChannelProgram } from '@wildshard/sdk/rows';
+
+const ManifestMetadataSchema: ReturnType<typeof authorFormatSchema<'minimap.ManifestMetadataSchema'>> = authorFormatSchema('minimap.ManifestMetadataSchema');
 
 /** Numeric day keys and their live-preset field layout, built before admission. */
 export function skyRows(): SkyRows {

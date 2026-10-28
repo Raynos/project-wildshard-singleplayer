@@ -1,3 +1,4 @@
+import { ManifestMetadataSchema } from '@wildshard/format/minimap';
 import { HEADLESS_ASSEMBLY_JSON_SCHEMA, ReturnProgramSchema, PageReturnRowsSchema, QuestTraderSchema, PosedLibrarySchema } from '@wildshard/format/namedJsonContracts';
 import { NativeQuestCompositionSchema } from '@wildshard/format/nativeQuestComposition';
 import { MixedPopulationSchema } from '@wildshard/format/mixedPopulation';
@@ -679,6 +680,7 @@ interface AuthorFormatObjects {
   readonly 'clientChannels.PrivateSceneSchema': typeof PrivateSceneSchema;
   readonly 'collectionDisplay.CollectionDisplaysSchema': typeof CollectionDisplaysSchema;
   readonly 'bodySlots.BodySlotsSchema': typeof BodySlotsSchema;
+  readonly 'minimap.ManifestMetadataSchema': typeof ManifestMetadataSchema;
   readonly 'islandLibrary.ResolvedIslandLibrarySchema': typeof ResolvedIslandLibrarySchema;
   readonly 'mixedPopulation.MixedPopulationSchema': typeof MixedPopulationSchema;
   readonly 'nativeQuestComposition.NativeQuestCompositionSchema': typeof NativeQuestCompositionSchema;
@@ -717,6 +719,7 @@ const authorFormats: AuthorFormatObjects = {
   'clientChannels.PrivateSceneSchema': PrivateSceneSchema,
   'collectionDisplay.CollectionDisplaysSchema': CollectionDisplaysSchema,
   'bodySlots.BodySlotsSchema': BodySlotsSchema,
+  'minimap.ManifestMetadataSchema': ManifestMetadataSchema,
   'islandLibrary.ResolvedIslandLibrarySchema': ResolvedIslandLibrarySchema,
   'mixedPopulation.MixedPopulationSchema': MixedPopulationSchema,
   'nativeQuestComposition.NativeQuestCompositionSchema': NativeQuestCompositionSchema,
