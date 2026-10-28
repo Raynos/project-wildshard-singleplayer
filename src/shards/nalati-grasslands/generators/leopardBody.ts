@@ -1,7 +1,7 @@
-import { smoothstep as sstep } from '@wildshard/engine/core/noise';
-import type { Rng } from '@wildshard/engine/core/rng';
+import { smoothstep as sstep } from '@wildshard/sdk/noise';
+import type { Rng } from '@wildshard/sdk/random';
 import { loft, skinPlain, S, boneIndex, mix, paletteColors, paintNoise, type Paint, type RGB, type Station } from '@wildshard/engine/entities/species/loft';
-import type { AnimalSpecies, BoneDef, VariantDef } from '@wildshard/engine/entities/species/registry';
+import type { AnimalSpecies, BoneDef, VariantDef } from '@wildshard/sdk/bake/species';
 import * as THREE from 'three';
 
 /**

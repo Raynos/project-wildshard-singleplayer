@@ -1,4 +1,4 @@
-import type { AnimalDims, BoneDef, VariantDef } from '@wildshard/engine/entities/species/registry';
+import type { AnimalDims, BoneDef, VariantDef } from '@wildshard/sdk/bake/species';
 
 /**
  * The loft families Nalati bakes (`generators/bodies.ts`): the horse (and the riders' and elites' horses), the canid, and the

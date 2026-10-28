@@ -1,7 +1,7 @@
 import rowsJson from '../data/bodies.json' with { type: 'json' };
 import type { BufferAttribute, BufferGeometry, InterleavedBufferAttribute, EulerOrder } from 'three';
-import { Rng } from '@wildshard/engine/core/rng';
-import type { AnimalDims, AnimalSpecies, SpeciesDef, VariantDef } from '@wildshard/engine/entities/species/registry';
+import { Rng } from '@wildshard/sdk/random';
+import type { AnimalDims, AnimalSpecies } from '@wildshard/sdk/bake/species';
 import { buildHorse } from './horseBody';
 import { buildCanid } from './canidBody';
 import { buildFelid } from './leopardBody';
@@ -14,7 +14,9 @@ import { BODY_ATTRS, bodyKey, type BodyFamily, type BodyGeometryRow, type BodyRo
 const HORSE_SPECIES = bodySpecies('horse'), WOLF_SPECIES = bodySpecies('wolf'), SHEEPDOG_VARIANTS = bodySpecies('sheepdog').variants;
 
 /** what a family's variant list needs of its species row */
-type AnimalSpeciesRow = Pick<SpeciesDef, 'variants' | 'spawnOnly'>;
+type BodySpecies = ReturnType<typeof bodySpecies>;
+type VariantDef = BodySpecies['variants'][number];
+type AnimalSpeciesRow = Pick<BodySpecies, 'variants' | 'spawnOnly'>;
 
 /**
  * Build-time only (SHARD-PLATFORM M3, Nalati's species bodies bake): every horse-family, canid, leopard, eagle, Golden King
@@ -118,8 +120,8 @@ export const NALATI_BODY_ROWS: BodyRows = {
 interface TamingPoseRecipe {
   readonly joints: readonly { readonly name: string; readonly parent: number; readonly position: readonly [number, number, number]; readonly order: EulerOrder; readonly scale: readonly [number, number, number] }[];
   readonly custom: boolean;
-  readonly gait?: Readonly<NonNullable<SpeciesDef['gait']>> | undefined;
-  readonly pose?: Readonly<NonNullable<SpeciesDef['pose']>> | undefined;
+  readonly gait?: Readonly<NonNullable<BodySpecies['gait']>> | undefined;
+  readonly pose?: Readonly<NonNullable<BodySpecies['pose']>> | undefined;
   readonly deathSplay?: boolean;
 }
 
