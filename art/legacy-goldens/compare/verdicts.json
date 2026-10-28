@@ -1,0 +1,34 @@
+{
+  "judged": "2026-10-28-a70d446ee2",
+  "accepted": {
+    "driftwood-isle": "denser, higher clouds and warmer planks (G855); the phone geometry cut (G833).",
+    "pine-hollow": "no colour LUT (G854, landed 3a2af030ec).",
+    "far-reach": "no horizon isles outside the 500 m cell (G857)."
+  },
+  "pairs": {
+    "nine-dragon-stack/1-A": {"verdict": "needs", "row": "NR2 / NR8", "note": "The carved stone rail and lotus posts on the left render as a flat dark-blue mass. Hands (NR1), floor tiles and reflections match."},
+    "nine-dragon-stack/2-B": {"verdict": "needs", "row": "NR3", "note": "The haze over the far stack is gone, so the facades read darker and more saturated; the foreground rail is flat dark blue."},
+    "nine-dragon-stack/3-C": {"verdict": "needs", "row": "NR2 / NR3 / NR6", "note": "The bright stair-edge highlights are gone, the right-hand facade is washed pale, and the rain streaks are heavier."},
+    "nine-dragon-stack/4-D": {"verdict": "great", "note": "Floor, crowd, gate and tree match; the crowd and rain move between visits."},
+    "pine-hollow/1-gate": {"verdict": "great", "note": "The near pine is a fuller tree than LEGACY's thin one; far trees are real now (a3050f9d2c)."},
+    "pine-hollow/2-cabin": {"verdict": "great", "note": "The boss bar is gameplay state (Old Ironhide had aggroed in LEGACY), not a look change."},
+    "pine-hollow/3-pond": {"verdict": "needs", "row": "no row yet", "note": "The wooden prop in the right foreground and the snow patch by the pond are missing; a canoe sits where the snow was."},
+    "pine-hollow/4-spawn-opposite": {"verdict": "great", "note": "Matches the golden now that the LUT is gone (G854)."},
+    "driftwood-isle/1-pier": {"verdict": "great", "note": "Clouds and planks are the accepted G855 look."},
+    "driftwood-isle/2-beach": {"verdict": "great"},
+    "driftwood-isle/3-wreck": {"verdict": "great", "note": "Minor: the held sword casts no shadow on the sand."},
+    "driftwood-isle/4-spawn-opposite": {"verdict": "great"},
+    "far-reach/1-spawn": {"verdict": "needs", "row": "FR3", "note": "The meadow is flat olive grass: LEGACY's white flower specks and darker clumps are gone (likely the same thin sward as R4)."},
+    "far-reach/2-hover": {"verdict": "great", "note": "The red glow and the flyer at the top are a live creature."},
+    "far-reach/3-windmill": {"verdict": "needs", "row": "FR3", "note": "Same flat meadow as camera 1: no flower specks, uniform olive grass."},
+    "far-reach/4-roost": {"verdict": "needs", "row": "FR3", "note": "Same flat meadow: no flower specks; the near grass is uniform olive. The windmill blades turn between visits."},
+    "nalati-grasslands/1-camp": {"verdict": "great"},
+    "nalati-grasslands/2-bridge": {"verdict": "great"},
+    "nalati-grasslands/3-plains": {"verdict": "great", "note": "The tall grass sways between visits, which is most of the SSIM gap."},
+    "nalati-grasslands/4-spawn-opposite": {"verdict": "great", "note": "Minor: a row of small dark stones edges the path toward the barrier."},
+    "sunscar-dunes/1-spawn": {"verdict": "great"},
+    "sunscar-dunes/2-whip": {"verdict": "great"},
+    "sunscar-dunes/3-ray": {"verdict": "great"},
+    "sunscar-dunes/4-quest": {"verdict": "great"}
+  }
+}
