@@ -11,16 +11,16 @@ import { MeshoptSimplifier } from 'meshoptimizer';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { bakeGloveFist as gloveFist, bakeRiderArm as riderArm } from '@wildshard/sdk/bake/riderArms';
 import items from '../data/items.json' with { type: 'json' };
-import { BowWeaponProfileSchema, type HeldBowBaseSchema } from '@wildshard/format/weaponProfiles';
-import { BOW } from '@wildshard/game/weapons/starterBowProfile';
-import * as schema from 'valibot';
+import { parseBowProfile, type parseHeldBowFile } from '@wildshard/sdk/weapons/bowProfile';
+import policy from '../data/recurvePolicy.json' with { type: 'json' };
 
-const BOW_PROFILE = schema.parse(BowWeaponProfileSchema, items.rows.find(row => row.id === 'weapon.bow')?.profile);
+const BOW_PROFILE = parseBowProfile(items.rows.find(row => row.id === 'weapon.bow')?.profile);
 
 /** Original riding/feel/loose policy, emitted without executable view strategies. */
-export function recurveBase(): schema.InferInput<typeof HeldBowBaseSchema> {
-  const { wind, ...base } = BOW; void wind;
-  return { ...base, quiver: BOW_PROFILE.quiver, speedBase: BOW_PROFILE.speedBase, speedDraw: BOW_PROFILE.speedDraw, damageScale: BOW_PROFILE.damageScale,
+export function recurveBase(): ReturnType<typeof parseHeldBowFile>['base'] {
+  const { family, arcMode } = policy;
+  if (family !== 'bow' || (arcMode !== 'setting' && arcMode !== 'aim')) throw new Error('Invalid authored recurve policy');
+  return { ...policy, family, arcMode, quiver: BOW_PROFILE.quiver, speedBase: BOW_PROFILE.speedBase, speedDraw: BOW_PROFILE.speedDraw, damageScale: BOW_PROFILE.damageScale,
     aimSpread: BOW_PROFILE.spread.aimMultiplier, draw: BOW_PROFILE.draw, loose: { ...BOW_PROFILE.spread, muzzle: BOW_PROFILE.muzzle },
     projectile: { ...BOW_PROFILE.flight, maxFlying: BOW_PROFILE.pool, substeps: BOW_PROFILE.substeps, lifetime: BOW_PROFILE.lifetime }, mounted: {
       drawTime: 0.9, rearAngle: 110, rearDraw: 0.2, rearSpread: 0.5, arc: false,
