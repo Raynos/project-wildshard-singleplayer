@@ -25,6 +25,10 @@ import { QuestTraderSchema } from '@wildshard/format/namedJsonContracts';
 import { parseBarterEconomy } from '@wildshard/format/lootEconomy';
 import type { ExchangeRows } from '@wildshard/format/exchange';
 import { parseGraphArms } from '@wildshard/format/graphArmsRows';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
+
+/** Admit and freeze the complete finite feature plan before any feature or runtime owner is installed. */
+export function clientPlanRows(input: unknown): ReturnType<typeof parseClientPlan> { return parseClientPlan(input); }
 
 /** Admit ordered model references without installing a species, scene or Explorer owner. */
 export function explorerCatalogueRows(input: unknown): ReturnType<typeof parseExplorerCatalogue> { return parseExplorerCatalogue(input); }

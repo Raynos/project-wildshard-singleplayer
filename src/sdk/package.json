@@ -16,6 +16,7 @@
     "./bake/basisGlb": "./bake/basisGlb.ts",
     "./bake/placement": "./bake/placement.ts",
     "./bake/colliders": "./bake/colliders.ts",
+    "./bake/questPlacement": "./bake/questPlacement.ts",
     "./bake/contactRows": "./bake/contactRows.ts",
     "./bake/forest": "./bake/forest.ts",
     "./bake/materialGraph": "./bake/materialGraph.ts",
@@ -216,6 +217,10 @@
       "./bake/basisGlb": {
         "types": "./dist/types/sdk/bake/basisGlb.d.ts",
         "default": "./dist/bake/basisGlb.js"
+      },
+      "./bake/questPlacement": {
+        "types": "./dist/types/sdk/bake/questPlacement.d.ts",
+        "default": "./dist/bake/questPlacement.js"
       },
       "./bake/colliders": {
         "types": "./dist/types/sdk/bake/colliders.d.ts",

@@ -1,11 +1,15 @@
 /** Authored completion copy; the existing platform card owns safety, progress and its page lifetime. */
-import { parseCompletion, type CompletionRows } from '@wildshard/format/completion';
-import { createQuestPlacements, type Place } from '@wildshard/engine/world/interact/types';
+import { completionCardRows as parseCompletion } from '@wildshard/sdk/quests';
+import { createAuthorQuestPlacements as createQuestPlacements } from '@wildshard/sdk/bake/questPlacement';
 import frames from '../data/questFrames.json' with { type: 'json' };
 import { DRIFTWOOD_PLACES } from './discovery';
 import placeSets from '../data/placeSets.json' with { type: 'json' };
-import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
+import type { clientPlanRows } from '@wildshard/sdk/rows';
 import { SHARD_FLAGS, SEA_GLASS_COUNT, SEA_GLASS_POINTS, SEA_GLASS_FLAG, REEF_TREASURE } from './interactables';
+
+type CompletionRows = ReturnType<typeof parseCompletion>;
+type ClientFeatureRow = ReturnType<typeof clientPlanRows>['features'][number];
+type Place = Omit<Parameters<ReturnType<typeof createQuestPlacements>['place']>[0], 'poi'> & Pick<typeof DRIFTWOOD_PLACES[number]['at'], 'poi'>;
 
 export const COMPLETE_CONTENT: { seenFlag: string; shardName: string; safeRadius: number; pollSeconds: number; maximumTodo: number; coveredEvents: string[]; more: string; titleFallback: string; stats: { time: string; achievements: string; shards: string; glass: string; places: string; title: string; }; menuSubtitle: string; toastSuffix: string; card: { kicker: string; flavour: string[]; }; glass: { label: string; short: string; flagPrefix: string; points: [number, number][]; }; extras: { label: string; short: string; flag: string; at: Place; }[]; } = {
   seenFlag: 'seen:complete',

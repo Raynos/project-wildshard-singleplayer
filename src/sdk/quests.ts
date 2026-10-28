@@ -4,6 +4,7 @@ import { QuestDataSchema as schema, parseQuestData as parseData, type QuestData 
 import { parseNativeQuestComposition } from '@wildshard/format/nativeQuestComposition';
 import { NativeQuestPropsSchema } from '@wildshard/format/questInteractions';
 import type { InteractDef } from '@wildshard/engine/world/interact/types';
+import { parseCompletion } from '@wildshard/format/completion';
 
 /** Compile declared quest graphs and dialogue trees with bounded, serialisable script hook names. */
 export const QuestDataSchema: v.SchemaWithPipe<readonly [typeof schema]> = v.pipe(schema);
@@ -20,6 +21,9 @@ export function nativeQuestCompositionRows(input: unknown): ReturnType<typeof pa
 
 /** Admit complete captured quest floors, drop identities and gate contacts before any physical owner exists. */
 export function questPropRows(input: unknown): v.InferOutput<typeof NativeQuestPropsSchema> { return v.parse(NativeQuestPropsSchema, input); }
+
+/** Admit complete completion card/stat/find policy with its original cross-row references and plain-data checks. */
+export function completionCardRows(input: unknown): ReturnType<typeof parseCompletion> { return parseCompletion(input); }
 
 /** Compile the shared table's automatic saved/transient flag; barrels own no automatic flag.
  * This policy allocates data only, without raising a flag or installing an interaction. */
