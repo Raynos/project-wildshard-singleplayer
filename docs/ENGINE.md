@@ -3387,14 +3387,15 @@ engine/game/kit access. Generators never ship. SDK `version` owns provisional v0
 SDK `shardfile.parseShardfileField(field, input)` returns the defining schema's typed value;
 the assembled declaration still passes `parseShardfile` and its cross-field rules.
 
-Build-only `@wildshard/sdk/noise` owns native seeded simplex, `fbm`, `ridged`,
-`smoothstep`, `clamp` and `lerp`. `bake/annulus` preserves ring channel order.
-`bake/primitives` owns boulders, timbers, planks, ropes, sag lines and triangles.
-`bake/placement` defines `ColliderDesc`, `BoxSpec`, `FloorRect`, `Draw`, contact
-tags, `specimenKey`, `boxDesc` and `siteFloor`: native channel/RNG/type/rotation
-order, clamps and contact semantics; no live registry. `bake/creaturePlacement`
-owns `sampleCreatureGroup` / `selectCreatureSites`; streams/ground stay
-borrowed, with native bounds, rejection/yaw order and stable tie/spacing rules.
+Build-only `@wildshard/sdk/noise`: seeded simplex, `fbm`, `ridged`,
+`smoothstep`, `clamp`, `lerp`. `bake/annulus` retains ring channel order;
+`bake/primitives` owns rocks, timbers, planks, ropes, sag lines and triangles.
+`bake/placement` owns contact/pose data, `FloorRect`, `specimenKey`,
+`boxDesc`, `siteFloor`; native rotation/clamp semantics.
+`bake/creaturePlacement`: `sampleCreatureGroup` / `selectCreatureSites`;
+borrowed stream/ground, native bounds and rejection/yaw/tie/spacing order.
+`bake/geometryBounds.bakeGeometryBoundsSteps`: native box/sphere scans,
+yield/publication order, bound identity and Three fallbacks.
 
 `src/engine/models/ownedGeometry.ts` defines `createOwnedGeometry(url, channels?)`:
 an explicit owned-template intake for a single identity-space offline GLB.

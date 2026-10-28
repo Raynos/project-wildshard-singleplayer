@@ -19,6 +19,7 @@
     "./bake/annulus": "./bake/annulus.ts",
     "./bake/primitives": "./bake/primitives.ts",
     "./bake/creaturePlacement": "./bake/creaturePlacement.ts",
+    "./bake/geometryBounds": "./bake/geometryBounds.ts",
     "./noise": "./noise.ts",
     "./bake/groundMap": "./bake/groundMap.ts",
     "./bake/mapAssembly": "./bake/mapAssembly.ts",
@@ -222,6 +223,10 @@
       "./bake/annulus": {
         "types": "./dist/types/sdk/bake/annulus.d.ts",
         "default": "./dist/bake/annulus.js"
+      },
+      "./bake/geometryBounds": {
+        "types": "./dist/types/sdk/bake/geometryBounds.d.ts",
+        "default": "./dist/bake/geometryBounds.js"
       },
       "./bake/creaturePlacement": {
         "types": "./dist/types/sdk/bake/creaturePlacement.d.ts",

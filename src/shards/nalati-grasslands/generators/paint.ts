@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type materials from '../data/campMaterials.json';
-import { Noise2D, smoothstep } from '@wildshard/engine/core/noise';
+import { Noise2D, smoothstep } from '@wildshard/sdk/noise';
 import { Rng } from '@wildshard/engine/core/rng';
-import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
+import { bakeGeometryBoundsSteps as geometryBoundsSteps } from '@wildshard/sdk/bake/geometryBounds';
 import { voxelAO, aoTint, hemisphere } from '@wildshard/engine/world/voxelAO';
 
 export type NalatiTexName = Exclude<keyof typeof materials, 'poi'>;

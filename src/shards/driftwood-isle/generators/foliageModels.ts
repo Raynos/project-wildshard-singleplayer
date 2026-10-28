@@ -1,5 +1,5 @@
 import { Matrix4, Quaternion, Vector3 } from 'three';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import type { ColliderDesc } from '@wildshard/sdk/bake/placement';
 
 export interface PalmParams { readonly h: number; readonly lean: number; readonly leanDir: number; readonly rot: number; readonly fronds: number }
 export interface HibiscusBushParams { readonly r: number; readonly flowers: boolean; readonly phase: number }
