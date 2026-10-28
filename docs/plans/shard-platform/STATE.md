@@ -12,7 +12,7 @@ first + reload-step CSS + quick-step grouping + hold toggle (sp-x6), T5 labels o
 (sp-x10), bad lagoon water bisect (sp-x1), Props 23.7 s freeze bisect (sp-x8), reveal holds until spawn shaders link (sp-x9).
 **Reply to wildshard-v (G836):** 3 Opus lanes restarted on CO1 render fixes: sp-o3 water, sp-o4 reveal after spawn shaders +
 blurred top, sp-o5 pier / far stand-ins. The SW stall limits (G830) are on sp-x2. The loading
-archive move is committed (ffad75f6e3, both archive files tracked). SW13's mark fixed (9132329eee). CO6 boards: first free Codex lane.
+archive ffad75f6e3; SW13 9132329eee. CO6: [boards](../../../art/legacy-vs-shardfile/round-1-2026-10-28/README.md); Sky gap; Jake word pending.
 **G828 (Jake):** crossing-time cuts stop. T2-T4 and grid-ready Nalati close as 'not reachable in this architecture'
 (DW 7.5, Nalati 10.4, Pine 14.7 s cold), off the damage list. Nobody drafts a one-world plan.
 **G825:** sp-ci-deploy rewrites src/game/whatsNew.json now for live a3f28a795, and with every release.
