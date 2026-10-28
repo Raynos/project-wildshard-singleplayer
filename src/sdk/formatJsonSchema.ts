@@ -656,6 +656,10 @@ export function composeNamedJsonSchema(composition: NamedJsonComposition): Reado
 
 /** Exact defining pure-format objects for checked author compositions. */
 interface AuthorFormatObjects {
+  readonly 'lootBag.LootBagSchema': typeof LootBagSchema;
+  readonly 'questContinuation.QuestContinuationSchema': typeof QuestContinuationSchema;
+  readonly 'npcs.QuestNpcBindingsSchema': typeof QuestNpcBindingsSchema;
+  readonly 'questHost.QuestHostSchema': typeof QuestHostSchema;
   readonly 'speciesBookRows.CreatureGuestSchema': typeof CreatureGuestSchema;
   readonly 'speciesBookRows.SpeciesLookBookSchema': typeof SpeciesLookBookSchema;
   readonly 'paintedLook.PaintedLookSchema': typeof PaintedLookSchema;
@@ -689,6 +693,10 @@ interface AuthorFormatObjects {
   readonly 'nativePhysics.nativeColliderRecordSchema': typeof nativeColliderRecordSchema;
 }
 const authorFormats: AuthorFormatObjects = {
+  'lootBag.LootBagSchema': LootBagSchema,
+  'questContinuation.QuestContinuationSchema': QuestContinuationSchema,
+  'npcs.QuestNpcBindingsSchema': QuestNpcBindingsSchema,
+  'questHost.QuestHostSchema': QuestHostSchema,
   'speciesBookRows.CreatureGuestSchema': CreatureGuestSchema,
   'speciesBookRows.SpeciesLookBookSchema': SpeciesLookBookSchema,
   'paintedLook.PaintedLookSchema': PaintedLookSchema,

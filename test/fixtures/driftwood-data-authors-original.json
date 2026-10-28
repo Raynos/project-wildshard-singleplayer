@@ -1,0 +1,14 @@
+{
+  "world": {
+    "bytes": 689324,
+    "hash": "fe9f5fafa32378d7370026beec57f6b2eb71c74d17f0adc7d4e8aeece58df1b0"
+  },
+  "loot": {
+    "bytes": 9692,
+    "hash": "993cdbe46c4ead756a50e24d336251fe8c49356c0a5d777ccb231635e3c0cf42"
+  },
+  "quest": {
+    "bytes": 10449,
+    "hash": "0291e96b328ef79e3caa90108fd96646334881b08bf8b4a719b5c028f23fa828"
+  }
+}

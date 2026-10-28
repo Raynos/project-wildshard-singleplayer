@@ -4,7 +4,7 @@ import { REEF_SCENE_LIBRARY } from './reefCatalogue';
 import { driftwoodFoliageScenes } from './foliageScenesBank';
 import { REEF_LOOK } from './reefLook';
 import { driftwoodTrailRows } from './fixedFacts';
-import { parseWorldScenes, type WorldScenesSection } from '@wildshard/format/worldScenes';
+import { worldSceneRows as parseWorldScenes, type AuthorWorldScenes as WorldScenesSection } from '@wildshard/sdk/worldScenes';
 import inventory from '../data/fixedGeometry.json' with { type: 'json' };
 import { driftwoodZiplineBank } from './ziplineBank';
 import { DRIFTWOOD_FIXED_SOURCES } from './assets';
@@ -12,10 +12,14 @@ import authoredPoolLook from '../data/poolLook.json' with { type: 'json' };
 import { CASCADE_LOOKS } from './waterfallLook';
 import { worldPlacements, TRAIL_PLACEMENTS } from './worldPlacements';
 import trailSpecimens from '../data/trailCatalogue.json' with { type: 'json' };
-import { SpecimenCatalogueSchema, type SpecimenCatalogueRows, type SpecimenLocationRows } from '@wildshard/format/specimenCatalogue';
+import { authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
 import { trailSpecimenBank } from './trailsideModels';
 import { entryDeckSpecimen } from './entryDeckSpecimen';
 import * as v from 'valibot';
+
+const SpecimenCatalogueSchema: ReturnType<typeof authorFormatSchema<'specimenCatalogue.SpecimenCatalogueSchema'>> = authorFormatSchema('specimenCatalogue.SpecimenCatalogueSchema');
+type SpecimenCatalogueRows = v.InferOutput<typeof SpecimenCatalogueSchema>;
+type SpecimenLocationRows = Extract<SpecimenCatalogueRows[number]['source'], { kind: 'owned' }>['variants'][number]['url'];
 
 const trail = driftwoodTrailRows();
 

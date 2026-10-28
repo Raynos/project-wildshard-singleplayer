@@ -4,7 +4,7 @@ import { expect, expectTypeOf, test } from 'vitest';
 import { createQuestPlacements, type QuestPlace, type QuestPlaceAnchor, type QuestPlacementPorts, type Place } from '../src/engine/world/interact/types';
 import { createAuthorQuestPlacements, type AuthorQuestPlace, type AuthorQuestAnchor, type AuthorQuestPlacementPorts } from '../src/sdk/bake/questPlacement';
 import { completionCardRows } from '../src/sdk/quests';
-import { clientPlanRows } from '../src/sdk/rows';
+import { clientPlanSection } from '../src/sdk/platformSections';
 import { parseCompletion } from '../src/format/completion';
 import { parseClientPlan } from '../src/format/clientPlan';
 import { completionRows, placeSetRows, COMPLETE_CONTENT } from '../src/shards/driftwood-isle/generators/completion';
@@ -18,7 +18,7 @@ test('complete authored placement ports retain native optional fields and generi
   expectTypeOf<ReturnType<typeof createAuthorQuestPlacements>>().toEqualTypeOf<ReturnType<typeof createQuestPlacements>>();
   expectTypeOf<typeof COMPLETE_CONTENT.extras[number]['at']>().toEqualTypeOf<Omit<QuestPlace, 'poi'> & Pick<Place, 'poi'>>();
   expectTypeOf<ReturnType<typeof completionCardRows>>().toEqualTypeOf<ReturnType<typeof parseCompletion>>();
-  expectTypeOf<ReturnType<typeof clientPlanRows>>().toEqualTypeOf<ReturnType<typeof parseClientPlan>>();
+  expectTypeOf<ReturnType<typeof clientPlanSection>>().toEqualTypeOf<ReturnType<typeof parseClientPlan>>();
 });
 
 test('frame arithmetic, dynamic floors, strict reach and anchor precedence retain native results', () => {
@@ -65,10 +65,10 @@ test('every original completion, place-set and authored content byte is retained
   const bytes = new TextEncoder().encode(JSON.stringify({ completion, sets, content: COMPLETE_CONTENT }));
   expect({ bytes: bytes.byteLength, hash: hashImmutableBytes(bytes) }).toEqual(original);
   expect(completionCardRows(completion)).toEqual(parseCompletion(completion));
-  const plan = clientPlanRows({ version: 1, features: [{ kind: 'world.sets', rows: sets }] });
+  const plan = clientPlanSection({ version: 1, features: [{ kind: 'world.sets', rows: sets }] });
   expect(plan).toEqual(parseClientPlan({ version: 1, features: [{ kind: 'world.sets', rows: sets }] }));
   expect(Object.isFrozen(plan)).toBe(true); expect(Object.isFrozen(plan.features)).toBe(true);
-  expect(() => clientPlanRows({ version: 1, features: [{ kind: 'invented' }] })).toThrow();
+  expect(() => clientPlanSection({ version: 1, features: [{ kind: 'invented' }] })).toThrow();
   expect(() => completionCardRows({ ...completion, stats: [{ label: 'bad', value: { kind: 'group', group: 'missing', total: 1 } }] })).toThrow();
 });
 

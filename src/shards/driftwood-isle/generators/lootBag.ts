@@ -1,8 +1,11 @@
 import * as v from 'valibot';
-import { LootBagSchema, type LootBagRows } from '@wildshard/format/lootBag';
-import { QuestContinuationSchema } from '@wildshard/format/questContinuation';
+import { authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
 import { DRIFTWOOD_LOOT as loot } from './loot';
 import continuation from '../data/questContinuation.json' with { type: 'json' };
+
+const LootBagSchema: ReturnType<typeof authorFormatSchema<'lootBag.LootBagSchema'>> = authorFormatSchema('lootBag.LootBagSchema');
+const QuestContinuationSchema: ReturnType<typeof authorFormatSchema<'questContinuation.QuestContinuationSchema'>> = authorFormatSchema('questContinuation.QuestContinuationSchema');
+type LootBagRows = v.InferOutput<typeof LootBagSchema>;
 
 /** Exact display projection of existing native economy; never a second owner. */
 export function driftwoodLootBag(): LootBagRows {
