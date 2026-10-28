@@ -4,12 +4,15 @@
 remaining misses move to BURN-DAMAGE-LIST. NM pilot R1-R3 and RP2-RP4 move to a new parked open-plots plan
 (wildshard-v, after Jake's play). Jake QAs legacy (his word starts LD5-LD8 and A1-A2 at once), M2 and T10. After the archive
 commit every lane and the coordinator stop. Opus is back (G836).
-**LIVE 9364930c36** (P0 release f708fbbaea + headless fix).
+**LIVE a6701db713** (a6701db71-mvsi9z8w). G841's 'release now' (run 40760324647) had nothing newer to ship: 460… failed the
+Nine Developer title budget (sp-o4 fixing: spawn settle on title boots), so the G830 / QA fixes ride the next fully green SHA.
 **Jake's QA 10-28 PASSED:** Night Market (G827), loading / M2 (G831, plan closed), tiles / T10 iPhone (G832; pop-in and
 far visibility on the damage list), Driftwood phone cut B -8.4 MB stays (G833, G812 closed). Only LEGACY remains (his word).
 **More P0s in the next release:** SW stall limits incl. shard.json / navigation (sp-x2, G830), tap paints the loading screen
 first + reload-step CSS + quick-step grouping + hold toggle (sp-x6), T5 labels off the minimap (792fa39d79), pier stand-in
 (sp-x10), bad lagoon water bisect (sp-x1), Props 23.7 s freeze bisect (sp-x8), reveal holds until spawn shaders link (sp-x9).
+**Lanes now:** 3 Opus (sp-o3 / o4 / o5; G836, G848 all visual work), 5 Codex (x1 / x2 / x6 / x9 / x10; sp-x8 released at its
+boundary) + sp-ci-deploy.
 **Reply to wildshard-v (G836):** 3 Opus lanes restarted on CO1 render fixes: sp-o3 water, sp-o4 reveal after spawn shaders +
 blurred top, sp-o5 pier / far stand-ins. The SW stall limits (G830) are on sp-x2. The loading
 archive ffad75f6e3; SW13 9132329eee. CO6: [boards](../../../art/legacy-vs-shardfile/round-1-2026-10-28/README.md); Sky gap; Jake word pending.
