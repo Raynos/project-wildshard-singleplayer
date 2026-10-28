@@ -98,5 +98,10 @@
       "hull": "aHullN"
     }
   },
-  "TASSEL_DARK_EVERY": 3
+  "TASSEL_DARK_EVERY": 3,
+  "REST_GRAVITY": [
+    -2.458,
+    -1.749,
+    -5.770
+  ]
 }

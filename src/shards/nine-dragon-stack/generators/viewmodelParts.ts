@@ -43,7 +43,11 @@ export function buildViewmodelParts(): { knot: BufferGeometry; tassel: BufferGeo
   kx.ellipsoid(v3(0, 0.008, 0), v3(1, 0, 0), v3(0, 1, 0), v3(0, 0, 1), 0.012, 0.0135, 0.012, { cls: viewmodel.classes.silk }, (d) => 1 + 0.08 * Math.sin(d.x * 9) * Math.sin(d.z * 9), 14);
   kx.lathe(0, -0.024, 0, [[0.007, 0], [0.0135, 0.005], [0.0145, 0.012], [0.012, 0.018], [0.008, 0.022]], 16, { cls: viewmodel.classes.brass, line: 1, edges: 4 | 8 });
   const tassel = new StrandTassel({ ...cloth.TASSEL, ...tuples.TASSEL }, tasselGeo()), sheet = new ClothSheet({ ...cloth.TALISMAN, ...tuples.TALISMAN }, sheetGeo(), cordGeo());
-  const q = new Quaternion(), gravity = new Vector3(0, -9.8, 0);
+  // NR7: the pendants settle hanging the way LEGACY's live cloth hangs at a level idle. Its sim ran in the rig's space with
+  // the world's down (÷ the viewmodel squeeze); turned into the weapon bone's frame at that idle that is REST_GRAVITY
+  // (measured in-game on both builds' shared rig: k 1.505, the bone's idle turn). The bone's own -Y (the old bake's down)
+  // runs along the hilt, which bunched the tassel at the grip and stood the fu out sideways.
+  const q = new Quaternion(), gravity = new Vector3().fromArray(cloth.REST_GRAVITY), down = gravity.clone().normalize();
   const pivot = (name: keyof typeof arms.ARMS.pendants): Vector3 => new Vector3().fromArray(arms.ARMS.pendants[name]);
   const caps = arms.ARMS.colliders.filter(row => row.a.bone === arms.ARMS.weapon && row.b.bone === arms.ARMS.weapon)
     .map(row => ({ a: new Vector3().fromArray(row.a.at ?? [0, 0, 0]), b: new Vector3().fromArray(row.b.at ?? [0, 0, 0]), r: row.r }));
@@ -52,7 +56,7 @@ export function buildViewmodelParts(): { knot: BufferGeometry; tassel: BufferGeo
     sheet.step(1 / 60, pivot('talisman'), q, gravity, 0, caps);
   }
   const knot = kx.build().applyQuaternion(new Quaternion().setFromUnitVectors(new Vector3(0, -1, 0), tassel.capDir)).translate(tassel.cap.x, tassel.cap.y, tassel.cap.z);
-  for (const [geometry, top, length] of [[tassel.geo, pivot('tassel').y - cloth.TASSEL.cordLen - cloth.TASSEL.cap, cloth.TASSEL.len], [sheet.geo, pivot('talisman').y - cloth.TALISMAN.cordLen, cloth.TALISMAN.h], [sheet.cordGeo, pivot('talisman').y, cloth.TALISMAN.cordLen]] as const) {
+  for (const [geometry, top, length] of [[tassel.geo, pivot('tassel').addScaledVector(down, cloth.TASSEL.cordLen + cloth.TASSEL.cap), cloth.TASSEL.len], [sheet.geo, pivot('talisman').addScaledVector(down, cloth.TALISMAN.cordLen), cloth.TALISMAN.h], [sheet.cordGeo, pivot('talisman'), cloth.TALISMAN.cordLen]] as const) {
     const pos = geometry.getAttribute('position'), field = new Float32Array(pos.count * 4), p = new Vector3();
     for (let i = 0; i < pos.count; i++) {
       p.fromBufferAttribute(pos, i);
@@ -61,7 +65,8 @@ export function buildViewmodelParts(): { knot: BufferGeometry; tassel: BufferGeo
         const axis = cap.b.clone().sub(cap.a), t = Math.max(0, Math.min(1, p.clone().sub(cap.a).dot(axis) / Math.max(axis.lengthSq(), 1e-12)));
         clearance = Math.min(clearance, Math.max(0, p.distanceTo(cap.a.clone().addScaledVector(axis, t)) - cap.r - motion.pad) * .4);
       }
-      const weight = Math.max(0, Math.min(1, (top - p.y) / length));
+      // how far down the hang (along the settled down) the vertex sits below its anchor: 0 at the anchor, 1 a length on
+      const weight = Math.max(0, Math.min(1, p.clone().sub(top).dot(down) / length));
       field[i * 4] = weight * weight * clearance;
       field[i * 4 + 1] = p.x * motion.phaseX + p.y * motion.phaseY;
       field[i * 4 + 2] = motion.depth;
