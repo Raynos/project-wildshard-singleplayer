@@ -175,3 +175,12 @@ selected manifest metadata with native types, defaults and issue paths.
 admits painter-produced key/name/geometry envelopes while preserving opaque
 geometry identity. The receiving specimen grammar still admits geometry
 and owns publication; source admission creates no model or runtime service.
+
+`creatureSurfaceFrame(input, defaults, observations)` in
+`@wildshard/sdk/clientChannels` admits ordered smoothing, floor and look
+inputs before author expression compilation. Native safe keys, finite
+scalars and the 16/32 bank ceilings remain. `namePopulationHabitat()` in
+`@wildshard/sdk/nativePopulationRows` publishes canopy heights, ledges and
+the native forager continuation with source-supplied exact tree count and
+ledge limit, sharing the exact grammar with its named JSON reader.
+Neither operation constructs an animation or habitat runtime owner.

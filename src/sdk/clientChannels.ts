@@ -143,3 +143,27 @@ export function creaturePoseRows(input: unknown): v.InferOutput<typeof NumericPo
 
 /** The defining channel bounds used by bounded source recipe packers. */
 export function clientChannelLimits(): typeof CLIENT_CHANNEL_LIMITS { return CLIENT_CHANNEL_LIMITS; }
+
+/** Offline smoothing and floor observations used to author creature channels. */
+export interface CreatureSurfaceFrame {
+  smooth: { input: string; output: string; rate: number; initial: number | null }[];
+  floor: { field: string; lift: string; death: string; delay: number; rate: number };
+  look: [number, number, number];
+  group: string;
+}
+/** Admit the complete ordered frame inputs before compiling channel expressions.
+ * Defaults stay caller-owned; this only validates them and the observation-bank
+ * ceiling. No animation state or frame owner is constructed. */
+export function creatureSurfaceFrame(input: unknown, defaults: unknown, observationPrograms: unknown): CreatureSurfaceFrame {
+  const number = v.pipe(v.number(), v.finite());
+  const key = v.pipe(v.string(), v.minLength(1), v.maxLength(96),
+    v.check(value => !['__proto__', 'prototype', 'constructor'].includes(value)));
+  const frame = v.parse(v.object({
+    smooth: v.pipe(v.array(v.object({ input: key, output: key, rate: number, initial: v.nullable(number) })), v.maxLength(16)),
+    floor: v.object({ field: key, lift: key, death: key, delay: number, rate: number }),
+    look: v.tuple([number, number, number]), group: key,
+  }), input);
+  v.parse(v.record(key, number), defaults);
+  v.parse(v.pipe(v.array(v.unknown()), v.maxLength(32)), observationPrograms);
+  return frame;
+}

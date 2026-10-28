@@ -1,9 +1,12 @@
 import * as v from 'valibot';
 import { NativeGroupRowsSchema, PageGroupRowsSchema, PopulationKnockdownSchema } from '@wildshard/format/creatures';
 import { WildlifePopulationSchema } from '@wildshard/format/wildlifePopulation';
-import { ForagerPopulationSchema } from '@wildshard/format/ambientLife';
+import { ForagerPopulationSchema, ForagerContinuation } from '@wildshard/format/ambientLife';
 import { PopulationFieldSchema } from '@wildshard/format/populationEnvironment';
 import { parseNativePopulationRows } from '@wildshard/format/populationRoster';
+import { nameBlob, type NamedBlob } from './blobs';
+import { encodeCanonicalJson } from './immutable';
+import { namedJsonSchema } from './formatJsonSchema';
 
 /** Admit complete native fauna/encounter/pose roster data with its original identity and resource checks. */
 export function parseNativePopulationRoster(input: unknown): ReturnType<typeof parseNativePopulationRows> { return parseNativePopulationRows(input); }
@@ -23,4 +26,21 @@ export function parsePopulationKnockdownSource(input: unknown): v.InferOutput<ty
 /** Preserve the required population/forager/row envelope without installing its native host. */
 export function parsePopulationForagerSource(input: unknown): v.InferOutput<typeof ForagerPopulationSchema> {
   return v.parse(v.object({ population: v.object({ forager: v.object({ row: ForagerPopulationSchema }) }) }), input).population.forager.row;
+}
+
+/** Name an authored canopy/ledge/forager habitat with its exact row counts and
+ * native continuation grammar. Limits belong to the supplied source inventory,
+ * and both author admission and the emitted reader retain the same schema. */
+export function namePopulationHabitat(name: string, input: unknown, treeCount: number, maxLedges: number): NamedBlob {
+  if (!Number.isSafeInteger(treeCount) || treeCount < 0 || !Number.isSafeInteger(maxLedges) || maxLedges < 0)
+    throw new Error('Invalid population habitat limits');
+  const number = v.pipe(v.number(), v.finite());
+  const schema = v.strictObject({
+    trees: v.pipe(v.array(v.tuple([number, number, v.pipe(number, v.minValue(0))])), v.length(treeCount)),
+    tops: v.pipe(v.array(number), v.length(treeCount)),
+    ledges: v.pipe(v.array(v.strictObject({ x: number, y: number, z: number, r: v.pipe(number, v.minValue(0)) })), v.maxLength(maxLedges)),
+    marmots: ForagerContinuation,
+  });
+  const rows = v.parse(schema, input);
+  return nameBlob(name, 'json', new TextEncoder().encode(encodeCanonicalJson(rows)), { jsonSchema: namedJsonSchema(schema) });
 }
