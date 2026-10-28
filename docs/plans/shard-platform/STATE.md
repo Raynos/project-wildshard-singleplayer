@@ -4,6 +4,9 @@
 then each miss moves to BURN-DAMAGE-LIST with its numbers. NM pilot R1-R3 and RP2-RP4 move to a new parked open-plots plan
 (wildshard-v, after Jake's play). Jake QAs legacy (his word starts LD5-LD8 and A1-A2 at once), M2 and T10. After the archive
 commit every lane and the coordinator stop. The render tails need Opus, and Opus needs the account switch (Claude 97 %).
+**Night Market card (Jake blocked on QA):** sp-x10 fixes shardSelect for NM (745567649a hid every open plot). Production only
+ships a SHA with CI + exact six-leg smoke green (deploy-pin), so live needs ~1 h after the push; sp-ci-deploy dispatches the moment
+it's proven. Faster for QA only if Jake wants it: a Vercel preview URL of the card SHA (not production). Question for Jake.
 **G825:** sp-ci-deploy rewrites src/game/whatsNew.json now for live a3f28a795, and with every release.
 
 **(1) LIVE a3f28a7953**; 879cf2768d retries at 10:09 Cancun. Damage list: [BURN-DAMAGE-LIST](../BURN-DAMAGE-LIST.md) only.
