@@ -1,5 +1,5 @@
 import { AnimationClip, Euler, Group, Quaternion, QuaternionKeyframeTrack, Vector3, VectorKeyframeTrack } from 'three';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import type { ColliderDesc } from '@wildshard/sdk/bake/placement';
 import type { MoverData } from '@wildshard/format/movers';
 import { Mover } from '@wildshard/sdk/movers';
 import { SPANS, FALLEN_BRIDGE, APOTHEM } from "./layout";

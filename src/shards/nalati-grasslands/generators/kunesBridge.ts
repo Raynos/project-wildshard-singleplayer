@@ -4,7 +4,7 @@ import type { ModelDef } from '@wildshard/engine/models/model';
 import { kunesBridge } from './catalogue';
 import type { KunesBridgeParams } from './campParams';
 import { deckFloor } from './placeRows';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import type { ColliderDesc } from '@wildshard/sdk/bake/placement';
 import { M, v3 } from './paint';
 import { pole, blob } from './smoothGeometry';
 import { slab, type Box } from './solid';

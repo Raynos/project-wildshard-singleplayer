@@ -3,9 +3,8 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
 import { modelContext, type ModelBuild, type ModelPart, type Placement } from '@wildshard/engine/models/model';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import type { ColliderDesc, BoxSpec } from '@wildshard/sdk/bake/placement';
 import { trailColliders } from './trailColliders';
-import type { BoxSpec } from '@wildshard/sdk/bake/placement';
 import { buildFencePost, buildPlankStep, buildSignpost, trailPart, TRAIL_COLOURS as C, type PlankStepParams, type SignpostParams } from './trailsideModels';
 import { flightOf, trailsideSpecKey, type TrailsideSpec } from './trailsideLayout';
 

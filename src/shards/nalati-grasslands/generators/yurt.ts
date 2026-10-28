@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { ModelDef } from '@wildshard/engine/models/model';
 import { yurt } from './catalogue';
 import type { YurtParams } from './campParams';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import type { ColliderDesc } from '@wildshard/sdk/bake/placement';
 import { M, v3 } from './paint';
 import { lathe, pole, revolve, revolveUV } from './smoothGeometry';
 import { prism, type Box } from './solid';

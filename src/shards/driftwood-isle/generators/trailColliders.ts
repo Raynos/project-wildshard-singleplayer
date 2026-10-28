@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import type { ColliderDesc } from '@wildshard/sdk/bake/placement';
 import { flightOf, type TrailsideSpec, type StepsSpec } from './trailsideLayout';
 
 /** Native trail treads and rail boxes, evaluated by the existing static trail author job. */

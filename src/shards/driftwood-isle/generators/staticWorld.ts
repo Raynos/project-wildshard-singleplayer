@@ -1,6 +1,6 @@
 /** Fixed world facts compiled beside the existing geometry and foliage products. */
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import type { ColliderDesc } from '@wildshard/sdk/bake/placement';
 import authoredLayout from '../data/layout.json' with { type: 'json' };
 import { SHORE_LEVEL, WORLD_DROP } from './landscapeRows';
 import { BOAT_LAYOUT } from './boatLayout';

@@ -1,7 +1,5 @@
 import * as THREE from 'three';
-import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
-import type { Material } from '@wildshard/engine/physics/surface';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import type { BoxSpec as Collider, ContactSurface as Material, ColliderDesc } from '@wildshard/sdk/bake/placement';
 
 /** Shipping chamber dungeon declaration, shared by the native chamber and arena row. */
 export const DUNGEON = { x: -40, y: 140, z: -95 };
