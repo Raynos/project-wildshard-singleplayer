@@ -291,9 +291,8 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
                   prepareFrame(frameScope); app.bindPlayerServices(pageScope, frameScope); view.prepare(frameScope);
                   return () => { frameScope.dispose(); };
                 } catch (error) { frameScope.dispose(); throw error; }
-              });
-              const forget = owner.capture('disposers', leave);
-              return () => { try { forget(); leave(); } finally { preparing = false; } };
+              }, owner);
+              return () => { try { leave(); } finally { preparing = false; } };
             } }),
             beforeWorld: entered => { enteredContext = entered; installEnteredRuntimeService(entered, entry => {
               foundation.enter(entry); app.bindPlayerServices(pageScope, entry); view.enter(entry);

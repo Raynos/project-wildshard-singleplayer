@@ -13,8 +13,11 @@ const loggedSites = new Set<string>();
 const dev = (import.meta as { env?: { DEV?: boolean } }).env?.DEV === true;
 /** One facade per (service, scope). */
 const facades = new WeakMap<object, WeakMap<Scope, object>>();
-interface ConstructionEnvironment { scope: Scope; enter: () => () => void; leave: (() => void) | null; changing: boolean }
+interface ConstructionEnvironment { scope: Scope; lifetime: Scope; enter: () => () => void; leave: (() => void) | null; changing: boolean }
 let construction: ConstructionEnvironment | null = null;
+function environmentLive(environment: ConstructionEnvironment): boolean {
+  return !environment.scope.disposed && !environment.scope.disposing && !environment.lifetime.disposed && !environment.lifetime.disposing;
+}
 function enterEnvironment(environment: ConstructionEnvironment): void {
   environment.changing = true;
   try { environment.leave = environment.enter(); } finally { environment.changing = false; }
@@ -39,7 +42,7 @@ export function ownerOr(fallback: Scope): Scope | null { return entered > 0 ? ow
  *  `await` continuation of that construction runs in it. Null outside one, and while an unrelated `withOwner` section
  *  (a road or UI callback) has suspended it. Never a stray read (op-hitch37). */
 export function constructionOwner(): Scope | null {
-  return construction !== null && construction.leave !== null && !construction.changing && !construction.scope.disposed ? construction.scope : null;
+  return construction !== null && construction.leave !== null && !construction.changing && environmentLive(construction) ? construction.scope : null;
 }
 export function enterOwner(next: Scope | null): void { owner = next; }
 export function withOwner<T>(scope: Scope | null, fn: () => T): T { return withOwnerCall(scope, fn, undefined, undefined); }
@@ -49,14 +52,14 @@ export function withOwnerCall<A, B, T>(scope: Scope | null, fn: (a: A, b: B) => 
   // explicit owners, so they temporarily restore the page frame instead of observing the construction's globals.
   const environment = construction;
   const suspend = environment !== null && !environment.changing && environment.leave !== null && scope?.belongsTo(environment.scope) !== true;
-  const resume = environment?.leave === null && !environment.changing && !environment.scope.disposed && scope?.belongsTo(environment.scope) === true;
+  const resume = environment?.leave === null && !environment.changing && environmentLive(environment) && scope?.belongsTo(environment.scope) === true;
   if (suspend) leaveEnvironment(environment);
   if (resume) enterEnvironment(environment);
   const previous = owner; owner = scope; entered++;
   try { return fn(a, b); } finally {
     owner = previous; entered--;
     if (resume && construction === environment) leaveEnvironment(environment);
-    if (suspend && construction === environment && !environment.scope.disposed) enterEnvironment(environment);
+    if (suspend && construction === environment && environmentLive(environment)) enterEnvironment(environment);
   }
 }
 
@@ -65,12 +68,12 @@ export function withOwnerCall<A, B, T>(scope: Scope | null, fn: (a: A, b: B) => 
  * `enter` installs only reversible construction bindings (terrain/registry/selection), never input, systems or
  * presentation. Every unrelated `withOwner` section suspends it until that callback returns. Native async work must
  * carry captured services as usual; this is not async-local storage. Concurrent ambient constructions are refused.
- * The returned leave is idempotent and the scope also owns cancellation. No environment is installed on import.
+ * The returned leave is idempotent. `lifetime` owns cancellation and may be a shorter-lived child of the binding scope. No environment is installed on import.
  */
-export function bindConstructionEnvironment(scope: Scope, enter: () => () => void): () => void {
-  if (scope.disposed) throw new Error('Construction environment requires a live scope');
+export function bindConstructionEnvironment(scope: Scope, enter: () => () => void, lifetime: Scope = scope): () => void {
+  if (scope.disposed || scope.disposing || lifetime.disposed || lifetime.disposing) throw new Error('Construction environment requires a live scope');
   if (construction !== null) throw new Error('Leave the previous construction environment before preparing another');
-  const environment: ConstructionEnvironment = { scope, enter, leave: null, changing: false };
+  const environment: ConstructionEnvironment = { scope, lifetime, enter, leave: null, changing: false };
   construction = environment;
   try { enterEnvironment(environment); } catch (error) { construction = null; throw error; }
   let forget = (): void => undefined;
@@ -80,7 +83,7 @@ export function bindConstructionEnvironment(scope: Scope, enter: () => () => voi
     construction = null;
     leaveEnvironment(environment);
   };
-  forget = scope.capture('disposers', leave);
+  forget = lifetime.capture('disposers', leave);
   return leave;
 }
 export function asShell<T>(fn: () => T): T { return withOwner(null, fn); }

@@ -23,7 +23,9 @@ function fixture(failView = false) {
   const state = { scene: 'page', player: 'page', registry: 'page' }, frames: Scope[] = [];
   const ports = { scope: resident, owner: runtime, pageScope: page, bindConstructionEnvironment,
     request: { page: { world: { game: { stageViewmodels: (owner: Scope): null => { expect(owner).toBe(runtime); return null; } } } } },
-    prepareFrame: (scope: Scope): void => { frames.push(scope); scope.expose(state, 'scene', 'destination'); },
+    prepareFrame: (scope: Scope): void => {
+      if (resident.disposed || scope.disposed) throw new Error('Regional construction requires a live resident and owner');
+      frames.push(scope); scope.expose(state, 'scene', 'destination'); },
     app: { bindPlayerServices: (from: Scope, scope: Scope): void => { expect(from).toBe(page); scope.expose(state, 'player', 'destination'); } },
     view: { prepare: (scope: Scope): void => { scope.expose(state, 'registry', 'destination'); if (failView) throw new Error('Frame refused'); } },
   };
@@ -98,4 +100,20 @@ test('a failed frame setup restores every alias and releases the runtime constru
     expect(f.frames).toHaveLength(1); expect(f.frames[0]?.disposed).toBe(true);
     expect(f.runtime.census).toEqual(before);
   } finally { f.page.dispose(); }
+});
+
+
+test.each(['whole', 'sliced'] as const)('a %s runtime teardown cannot restore its frame through a page callback', kind => {
+  const f = fixture(), leave = f.start();
+  let callbacks = 0;
+  f.runtime.onDispose(() => { f.road.add('cleanup'); callbacks++; });
+  try {
+    if (kind === 'whole') f.runtime.dispose();
+    else for (const _step of f.runtime.disposeSteps()) { /* Drain the actual child teardown. */ }
+    expect(callbacks).toBe(1); expect(f.resident.disposed).toBe(false);
+    expect(f.frames).toHaveLength(1); expect(f.frames[0]?.disposed).toBe(true);
+    expect(constructionOwner()).toBeNull();
+    expect(f.events).toEqual([{ id: 'cleanup', scene: 'page', player: 'page', registry: 'page' }]);
+    f.world.add('retained'); expect(f.events.at(-1)?.scene).toBe('page');
+  } finally { leave(); f.page.dispose(); }
 });
