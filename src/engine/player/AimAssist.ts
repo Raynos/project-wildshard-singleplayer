@@ -43,7 +43,6 @@ const TRACK_RADIUS = 0.9, TRACK_MIN = DEG, TRACK_MAX_ANGLE = 5 * DEG;
 const TRACK_GAIN = 0.65, TRACK_MAX_RATE = 45 * DEG;         // rad/s cap on the added rotation
 const TRACK_STALE = 0.25;                                    // s — a bearing sample older than this is not a velocity
 
-interface Candidate { target: AimTarget; dist: number; angle: number; yawTo: number; pitchTo: number; radius: number; wy: number; wp: number; hasVel: boolean }
 interface Bearing { yaw: number; pitch: number; t: number }
 
 const _aim = new THREE.Vector3(), _head = new THREE.Vector3(), _body = new THREE.Vector3(), _bdir = new THREE.Vector3(), _fwd = new THREE.Vector3(), _dir = new THREE.Vector3();
@@ -59,6 +58,9 @@ export class AimAssist {
   private bearings = new Map<AimTarget, Bearing>();
   private dragX = 0; private dragY = 0;
   private clock = 0;
+  private readonly removeStaleBearing = (bearing: Bearing, target: AimTarget): void => {
+    if (bearing.t !== this.clock) this.bearings.delete(target);
+  };
   /** raw LOOK-pad delta (px, screen y down) since the last frame — TouchControls calls this from pointermove */
   noteLook(dx: number, dy: number): void { this.dragX += dx; this.dragY += dy; }
 
@@ -76,7 +78,10 @@ export class AimAssist {
     // ── candidates: alive, close, in front — bearings are sampled for all of them so a target that becomes active already has a velocity ──
     const yaw = player.yaw, pitch = player.pitch, p = player.camera.position;
     _fwd.set(-Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
-    let best: Candidate | null = null;
+    // The winner is private to this call. Scalar locals preserve nested-update
+    // isolation without allocating one temporary object per nearer candidate.
+    let best: AimTarget | null = null;
+    let bestDist = 0, bestAngle = 0, bestYaw = 0, bestPitch = 0, bestRadius = 0, bestWy = 0, bestWp = 0, bestHasVel = false;
     const margin = adsOn ? FRICTION_MARGIN_ADS : FRICTION_MARGIN_HIP;
     for (const t of app.aimTargets) {
       if (!t.alive || t.hidden) { this.bearings.delete(t); continue; }
@@ -102,21 +107,24 @@ export class AimAssist {
       const angle = Math.acos(Math.min(1, dot));
       const cone = clamp(Math.atan((bodyRadius(t) + margin) / dist), FRICTION_MIN, FRICTION_MAX);
       if (angle > cone) continue;
-      if (!best || angle / cone < best.angle / best.radius) best = { target: t, dist, angle, yawTo, pitchTo, radius: cone, wy, wp, hasVel };
+      if (!best || angle / cone < bestAngle / bestRadius) {
+        best = t; bestDist = dist; bestAngle = angle; bestYaw = yawTo; bestPitch = pitchTo;
+        bestRadius = cone; bestWy = wy; bestWp = wp; bestHasVel = hasVel;
+      }
     }
     // a target gone from the list (a retired region's animals) keeps no bearing, nor the world it points into (live P0)
-    for (const [target, bearing] of this.bearings) if (bearing.t !== this.clock) this.bearings.delete(target);
+    this.bearings.forEach(this.removeStaleBearing);
 
     if (best) {
       // 1. friction: full strength at the centre, none at the edge
       const strength = adsOn ? FRICTION_ADS : FRICTION_HIP;
-      this.scale = strength + (1 - strength) * clamp(best.angle / best.radius, 0, 1);
+      this.scale = strength + (1 - strength) * clamp(bestAngle / bestRadius, 0, 1);
     }
 
     // 2. snap: on the ADS rising edge, onto the nearest animal inside the snap cone — unless the pad is being flicked
     if (engaged && best && lookDragPxPerSec <= SNAP_DRAG_LOCKOUT) {
-      const snapCone = clamp(Math.atan((bodyRadius(best.target) + SNAP_MARGIN) / best.dist), SNAP_MIN, SNAP_MAX);
-      if (best.angle <= snapCone) this.snap = { target: best.target, elapsed: 0, prevEase: 0 };
+      const snapCone = clamp(Math.atan((bodyRadius(best) + SNAP_MARGIN) / bestDist), SNAP_MIN, SNAP_MAX);
+      if (bestAngle <= snapCone) this.snap = { target: best, elapsed: 0, prevEase: 0 };
     }
     if (!adsOn) this.snap = null;
     if (this.snap) {
@@ -140,13 +148,13 @@ export class AimAssist {
     // 3. tracking: while ADS holds an animal inside the inner cone, follow 65 % of its bearing rate (capped), unless pushed away
     //    (not during the snap — that already re-aims at the moving aim point every frame)
     if (adsOn && best && !this.snap) {
-      const inner = clamp(Math.atan(TRACK_RADIUS / best.dist), TRACK_MIN, TRACK_MAX_ANGLE);
-      if (best.angle <= inner && best.hasVel) {
-        let { wy, wp } = best;
+      const inner = clamp(Math.atan(TRACK_RADIUS / bestDist), TRACK_MIN, TRACK_MAX_ANGLE);
+      if (bestAngle <= inner && bestHasVel) {
+        let wy = bestWy, wp = bestWp;
         const rate = Math.hypot(wy, wp);
         if (rate > TRACK_MAX_RATE / TRACK_GAIN) { wy *= TRACK_MAX_RATE / TRACK_GAIN / rate; wp *= TRACK_MAX_RATE / TRACK_GAIN / rate; }
         // screen-space direction to the animal (x right, y down) vs the drag: a push away releases the tracking
-        const tx = -wrap(best.yawTo - player.yaw), ty = -(best.pitchTo - player.pitch);
+        const tx = -wrap(bestYaw - player.yaw), ty = -(bestPitch - player.pitch);
         const away = (dragX !== 0 || dragY !== 0) && dragX * tx + dragY * ty < 0;
         if (!away) {
           const ay = wy * TRACK_GAIN * dt, ap = wp * TRACK_GAIN * dt;
