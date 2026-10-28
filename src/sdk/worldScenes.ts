@@ -2,7 +2,7 @@ import { parseWorldScene, parseWorldSceneBindings, type WorldSceneRecipe } from 
 import { CaveInteriorSchema, type CaveInteriorRows } from '@wildshard/format/caveInterior';
 import { parseSceneBuffers } from '@wildshard/format/sceneBuffers';
 import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
-import { parseWorldScenes } from '@wildshard/format/worldScenes';
+import { parseWorldScenes, type WorldScenesSection } from '@wildshard/format/worldScenes';
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { WorldSceneSurfaceSchema, type WorldSceneSurface } from '@wildshard/format/worldSceneSurface';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
@@ -28,6 +28,9 @@ export function worldSceneBindings(input: unknown): ReturnType<typeof parseWorld
 
 /** Admit the complete data-only scene section with its original identity and reference checks. */
 export function worldSceneRows(input: unknown): ReturnType<typeof parseWorldScenes> { return parseWorldScenes(input); }
+
+/** Authored scene sections before admission fills lent resources and uniform defaults. */
+export type AuthorWorldScenes = WorldScenesSection;
 
 /** Admit a static model catalogue with the original identity, choice, LOD and plain-data checks. */
 export function worldSceneModels(input: unknown): ReturnType<typeof parseWorldSceneModels> { return parseWorldSceneModels(input); }

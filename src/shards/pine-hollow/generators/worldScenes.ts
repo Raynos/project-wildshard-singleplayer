@@ -4,7 +4,7 @@ import * as v from 'valibot';
 import { CaveRowsSchema } from './sections';
 import { Matrix4 } from 'three';
 import { cragScene } from './cragSceneContribution';
-import { caveInteriorRows, type worldSceneRows } from '@wildshard/sdk/worldScenes';
+import { caveInteriorRows, type AuthorWorldScenes as WorldScenesSection } from '@wildshard/sdk/worldScenes';
 import { CRAG_LOOK, CAVE_LOOK } from './cragLook';
 import * as layout from './layout';
 import { sceneModelRows } from './sceneModelRows';
@@ -16,8 +16,6 @@ import { SPRAY_LOOK } from './streamLook';
 import waterRows from '../data/waterLook.json' with { type: 'json' };
 import { QUEST_RIDE_BLOBS, QUEST_RIDE_LIBRARY, QUEST_RIDE_MATERIAL, QUEST_RIDE_STEP, questRideModels } from './questRideScenes';
 import { perSources, type PineSources } from './pineSources';
-
-type WorldScenesSection = ReturnType<typeof worldSceneRows>;
 
 const { surfaces: WATER_SURFACES } = waterRows;
 
