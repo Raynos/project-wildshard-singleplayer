@@ -5121,6 +5121,10 @@ using its own material. Extras `matrix64` and `instances64` retain source
 transform doubles alongside portable glTF transforms. These bytes count in
 normal product admission; omitting the options preserves existing outputs.
 
+`@wildshard/sdk/bake/forest.treeSetRows` admits authored tree pools,
+material slots and ordered variants through the defining tree-set grammar.
+`NativeForestSpecies` names the placement law's ordered planting traits.
+
 ### Provisional prop-tile budgets
 
 `bakeProps` warns when a tile exceeds the provisional resident, compressed,

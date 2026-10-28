@@ -1,8 +1,8 @@
 
-import type { TreeSetVariant, TreeSpeciesTraits } from '@wildshard/engine/world/forest/treeSpecies';
-import * as v from 'valibot';
-import { TreeSetSchema , type TreeSetRows as TreeSetRowsType } from '@wildshard/format/treeSetRows';
+import { treeSetRows, type NativeForestSpecies } from '@wildshard/sdk/bake/forest';
 import FOREST_LOOKS from '../data/forestLook.json' with { type: 'json' };
+
+type TreeSetVariant = Omit<ReturnType<typeof treeSetRows>['variants'][number], 'label'>;
 
 /**
  * Pine Hollow's Blender-built photoreal tree set (PH-B4, Jake's PH-U17; moved from the engine, E405; the page reads them as TREE_SET's rows): its species and how
@@ -11,7 +11,7 @@ import FOREST_LOOKS from '../data/forestLook.json' with { type: 'json' };
  * `collider` scales the trunk capsule over the trunk radius (the giants' buttresses stand out past it; the twin birch's
  * two stems). The order of PINE_TREE_SPECIES is the placement's draw order: keep it.
  */
-export const PINE_TREE_SPECIES: readonly TreeSpeciesTraits[] = [
+export const PINE_TREE_SPECIES: readonly NativeForestSpecies[] = [
   { id: 'pine', scale: [0.8, 1.2], grows: true, girth: 0.15, spacing: 'normal' },
   { id: 'fir', scale: [0.8, 1.2], grows: true, girth: 0.15, spacing: 'normal' },
   { id: 'giant', scale: [0.88, 1.08], grows: false, girth: 0.15, spacing: 'wide' },
@@ -64,7 +64,7 @@ const LABEL: Readonly<Record<string, string>> = {
  * 14 variants, each a trunk (bark array), near branch cards with twigs, far cards with the trunk's lo bark and a 2-quad
  * impostor, in the forest's four look.materials graphs (../data/forestLook.json). The page draws them as one model.
  */
-export const TREE_SET: TreeSetRowsType = v.parse(TreeSetSchema, {
+export const TREE_SET: ReturnType<typeof treeSetRows> = treeSetRows({
   product: 'pine-hollow', set: PINE_TREE_ASSETS.set,
   geometry: { url: treeRest.geometry, parts: treeRest.parts, channels: treeRest.channels },
   looks: { kind: 'graphs', ...FOREST_LOOKS, anisotropy: { cards: 8, far: 4 } }, tintBark: false,

@@ -2,8 +2,15 @@ import { canopyMapOf, placeForest, type ForestPlacementSource, type PlantSpec } 
 import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
 import type { ForestSpec, TerrainSpec } from '@wildshard/engine/level/data';
 import { readNativeTerrain } from './terrain';
+import { TreeSetSchema } from '@wildshard/format/treeSetRows';
 import { ManifestMetadataSchema } from '@wildshard/format/minimap';
 import * as v from 'valibot';
+
+/** Ordered planting traits accepted by the native forest placement law. */
+export type NativeForestSpecies = NonNullable<NonNullable<ForestPlacementSource['forest']>['speciesTraits']>[number];
+
+/** Admit an authored tree pool, material slots and ordered variants before publication. */
+export function treeSetRows(input: unknown): v.InferOutput<typeof TreeSetSchema> { return v.parse(TreeSetSchema, input); }
 
 /** Owned native tree data; no live color, scene or geometry object enters an author result. */
 export interface NativeForestTree {
