@@ -59,7 +59,7 @@ import { loadClientSkins, type ClientSkin } from './clientSkins';
 import { clientViews } from './clientViews';
 import { createShardfileClientScripts, captureClientScriptPosition } from './clientScripts';
 
-import { installClientWater } from './clientWater';
+import { installClientWater, undrawnWater } from './clientWater';
 import { standaloneClientTiles } from './tileContent';
 import { tileRing } from './tileDriver';
 import { buildYield } from '@wildshard/engine/core/workSlice';
@@ -266,7 +266,7 @@ export class ShardfileClient {
     }
     this.itemModels = await loadItemModels(this.source.items, this.assets.retained, ctx.scope);
     this.skins = await loadClientSkins(this.source, this.assets.retained, presentation.compile, ctx.scope);
-    installClientWater(this.source.water, { root: ctx.root, scope: ctx.scope, materials: presentation.materials, outline: presentation.outline });
+    installClientWater(undrawnWater(this.source.water, this.plan?.features ?? []), { root: ctx.root, scope: ctx.scope, materials: presentation.materials, outline: presentation.outline });
     const nativeWorld = this.nativeFeatures || this.mode === 'presentation';
     const start = nativeWorld ? ctx.manifest.spawn : this.source.spawn;
     const collider = nativeWorld && this.source.terrain !== null ? await this.assets.read(this.source.terrain.collider) : undefined;

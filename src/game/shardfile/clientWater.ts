@@ -10,6 +10,7 @@ import { BufferAttribute, BufferGeometry, CircleGeometry, Mesh, MeshStandardMate
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardWater } from '@wildshard/format/water';
 import type { GraphOutlineHook } from './clientGraphs';
+import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 
 /** the cell edge (500 m) a sea plane covers */
 const CELL = 500;
@@ -34,6 +35,14 @@ function surface(body: ShardWater[number]): BufferGeometry {
   // ShapeGeometry lies in x/y; rotating −90° about x maps y → −z, so the outline is drawn with z negated
   const outline = new Shape(shape.points.map(([x, z]) => new Vector2(x, -z)));
   const g = new ShapeGeometry(outline); g.rotateX(-Math.PI / 2); g.translate(0, body.level, 0); return g;
+}
+
+/** The declared bodies left for `installClientWater`: a body the client plan's `world.water` feature draws (its own graph
+ *  surface: Driftwood's lowered sea is its ocean) gets no plain stand-in plane (CO1: the template's translucent grey plane
+ *  sat at the same level over Driftwood's ocean and showed through as hard-edged pale-lavender patches over the lagoon). */
+export function undrawnWater(water: ShardWater, features: readonly ClientFeatureRow[]): ShardWater {
+  const drawn = new Set(features.flatMap(row => row.kind === 'world.water' ? row.rows.map(body => body.id) : []));
+  return water.filter(body => !drawn.has(body.id));
 }
 
 /** Draw every declared water body's surface under `root`; the scope takes the meshes, geometry and default material. */
