@@ -1,7 +1,7 @@
 /** Original plank counter and displayed shop goods; offline geometry only. */
 import * as THREE from 'three';
-import { log, plank, rope, rock } from '@wildshard/engine/world/geometryKit';
-import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
+import { bakeLog as log, bakePlank as plank, bakeRope as rope, bakeRock as rock } from '@wildshard/sdk/bake/primitives';
+import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sdk/bake/facetedGeometry';
 import { COUNTER_TOP as TOP } from './counterLayout';
 
 const C = {

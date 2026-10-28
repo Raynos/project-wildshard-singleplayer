@@ -1,7 +1,7 @@
 /** Original fixed hat geometry, executed only by the offline GLB baker (G262 / G285). */
 import * as THREE from 'three';
-import { rock, tris } from '@wildshard/engine/world/geometryKit';
-import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
+import { bakeRock as rock, bakeTriangles as tris } from '@wildshard/sdk/bake/primitives';
+import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sdk/bake/facetedGeometry';
 
 const C = { felt: '#2a292f', feltB: '#232228', top: '#323039', trim: '#c9a24a', band: '#3a2f2c', cockade: '#8e302a', button: '#d8b457', kelp: '#4f7a3a' };
 

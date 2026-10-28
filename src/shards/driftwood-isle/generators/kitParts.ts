@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { log, plank, rock, rope } from '@wildshard/engine/world/geometryKit';
+import { bakeLog as log, bakePlank as plank, bakeRock as rock, bakeRope as rope } from '@wildshard/sdk/bake/primitives';
 import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sdk/bake/facetedGeometry';
 
 /** A primitive's kind; `args` are the constructor's (`log`: a, b, r0, r1, sides, twist; `rope`: r then the points
