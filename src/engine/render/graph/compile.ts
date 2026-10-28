@@ -771,10 +771,14 @@ function codecGridded(object: THREE.Object3D): object is THREE.Mesh {
   if (!(geometry instanceof THREE.BufferGeometry)) return false;
   const known = codecGrids.get(geometry);
   if (known !== undefined) return known;
+  // the grid's 4-byte-strided Int16 positions decode as an interleaved attribute; a plain one is read the same way
   const position: unknown = geometry.getAttribute('position');
-  if (!(position instanceof THREE.BufferAttribute) || arrayReleased(position)) return false;
+  const plain = position instanceof THREE.BufferAttribute, interleaved = position instanceof THREE.InterleavedBufferAttribute;
+  if (!plain && !interleaved) return false;
+  if (arrayReleased(position) || (interleaved && arrayReleased(position.data))) return false;
+  const array: unknown = plain ? position.array : interleaved ? position.data.array : null, normalized = plain || interleaved ? position.normalized : true;
   const s = object.scale, q = object.quaternion;
-  const grid = position.array instanceof Int16Array && !position.normalized && s.x > 0 && Math.abs(s.y - s.x) < 1e-9 && Math.abs(s.z - s.x) < 1e-9
+  const grid = array instanceof Int16Array && !normalized && s.x > 0 && Math.abs(s.y - s.x) < 1e-9 && Math.abs(s.z - s.x) < 1e-9
     && Math.abs(q.x) + Math.abs(q.y) + Math.abs(q.z) < 1e-9;
   codecGrids.set(geometry, grid);
   return grid;
