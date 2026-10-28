@@ -1,4 +1,6 @@
 import { expect, test } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Native strict equality compares the complete seam result and typed-array bytes without enumerating every index.
+import { deepStrictEqual } from 'node:assert';
 import * as v from 'valibot';
 import fixture from './fixtures/grid-seam-cache.json';
 import { CONTENT_CAPS } from '@wildshard/format/contentBounds';
@@ -25,14 +27,14 @@ test('build plans preserve every mesh, duplicate, feature and turn-in byte', asy
   const wire: unknown = JSON.parse(serialized);
   const schema = v.array(v.tuple([v.string(), v.array(v.array(v.number()))]));
   const baked = new Map(v.parse(schema, wire)), count = baked.size;
-  expect(await generatePlatformSliced(input, empty, () => Promise.resolve(), 12, baked)).toEqual(original);
+  deepStrictEqual(await generatePlatformSliced(input, empty, () => Promise.resolve(), 12, baked), original);
   expect(baked.size).toBe(count);
   // A changed field cannot reuse the older field's retained rows.
   const first = input[0]; if (first === undefined) throw new Error('Missing cell');
   const changed = { ...first, observations: undefined };
   const next: PlatformCell = { instance: changed.instance, cell: changed.cell, origin: changed.origin, edges: changed.edges };
   const revised = [next, ...input.slice(1)];
-  expect(generatePlatform(revised, empty, baked)).toEqual(generatePlatform(revised, empty));
+  deepStrictEqual(generatePlatform(revised, empty, baked), generatePlatform(revised, empty));
   expect(baked.size).toBeGreaterThan(count);
 });
 
