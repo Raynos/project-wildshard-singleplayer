@@ -176,7 +176,10 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
     const { slug: cellIdentity } = request.cell, { slug: manifestIdentity } = request.manifest;
     if (cellIdentity !== manifestIdentity) throw new Error('Regional factory identity differs from its catalogue cell');
     const claim = request.allocator.entries().find(row => row.id === request.claim.id);
-    if (claim === undefined || claim.owner !== request.cell.instance || claim.bytes !== bytes) throw new Error('Regional factory requires its whole-runtime lease');
+    if (claim === undefined || claim.owner !== request.cell.instance || claim.bytes !== bytes) {
+      const actual = claim === undefined ? 'missing' : `${claim.owner}/${claim.bytes}`;
+      throw new Error(`Regional factory requires its whole-runtime lease: ${request.claim.id}; expected ${request.cell.instance}/${bytes}, found ${actual}`);
+    }
     const prepare = ports.prepareFoundation;
     if (prepare === undefined) throw new Error('Regional terrain/forest/animals binding is not prepared');
     const scope = request.scope.child(`grid.runtime:${request.cell.instance}`);

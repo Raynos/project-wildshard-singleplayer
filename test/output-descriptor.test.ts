@@ -956,3 +956,20 @@ test('low-priority read-ahead and actual demand share one exact verified body', 
   await expect(assets.read(file.hash)).rejects.toThrow('Ordinary retry');
   expect(fetch).toHaveBeenCalledOnce();
 });
+
+
+test('low-priority adjacent demands keep their exact range and independent member hashes', async () => {
+  const f = await rangeDemandFixture(), plain = options(f.wires);
+  const fetch = vi.fn(() => Promise.reject(new Error('Unexpected full body')));
+  const fetchRange = vi.fn((url: string, start: number, end: number, priority?: 'low') => {
+    expect(url).toBe(new URL(f.path, base).href); expect(priority).toBe('low');
+    return Promise.resolve(new Response(f.wire.slice(start, end + 1), { status: 206, headers: { 'content-range': `bytes ${start}-${end}/${f.wire.length}` } }));
+  });
+  const assets = new ClientAssets(f.source, new Map(), { ...plain, fetch, backgroundFetch: fetch, fetchRange });
+  expect(await Promise.all([assets.read(f.first.hash, 'low'), assets.read(f.second.hash, 'low')])).toEqual([
+    new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6]),
+  ]);
+  expect(fetchRange).toHaveBeenCalledOnce();
+  expect(fetchRange).toHaveBeenCalledWith(new URL(f.path, base).href, 0, 5, 'low');
+  expect(fetch).not.toHaveBeenCalled(); expect(assets.retained.size).toBe(0);
+});
