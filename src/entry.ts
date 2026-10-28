@@ -143,8 +143,21 @@ async function startSelected(): Promise<void> {
   };
   loading.waiting('Preparing application services');
   // Cover the full-ALL route's five observed misses; never recycle growables.
-  const { prepareScriptMemoryBank } = await retried(() => import('./engine/script/moduleV2'));
-  await prepareScriptMemoryBank([35, 0, 1, 0], task, [{ initial: 1, maximum: 2, count: 5 }, { initial: 1, maximum: 64, count: 4 }]);
+  const [{ prepareScriptMemoryBank }, { workSlice }, { diagnosticNow }] = await Promise.all([
+    retried(() => import('./engine/script/moduleV2')), retried(() => import('@wildshard/engine/core/workSlice')),
+    retried(() => import('@wildshard/engine/core/clock')),
+  ]);
+  const memorySlice = workSlice(undefined, entryScope), memoryStartedAt = diagnosticNow();
+  let memoryTurns = 0, memoryWaitMs = 0;
+  await prepareScriptMemoryBank([35, 0, 1, 0], async () => {
+    const pending = memorySlice.check();
+    if (pending !== undefined) {
+      memoryTurns++; const at = diagnosticNow(); await pending; memoryWaitMs += diagnosticNow() - at;
+    }
+    if (entryScope.disposed || entryScope.disposing) throw new Error('Entry memory preparation ended');
+  }, [{ initial: 1, maximum: 2, count: 5 }, { initial: 1, maximum: 64, count: 4 }]);
+  performance.measure('wildshard.prepare:boot.script-memory-bank', { start: memoryStartedAt, end: diagnosticNow(),
+    detail: { memoryTurns, memoryWaitMs } });
   // Start every original import together; only admission's prerequisites block
   // its preparation. The full import barrier still precedes publication.
   const [speciesModule, iconsModule, pickupsModule, pickupRowsModule, propsModule, starterModule, hoverboardModule,

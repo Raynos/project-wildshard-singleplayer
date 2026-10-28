@@ -3,6 +3,7 @@
 // Run it inside the Simulator lane; each official reading owns its quiet window:
 //   scripts/sim-lane.sh run --max 45 wildshard-iphone node scripts/sim-grid-entry.mjs --base=<url> | --rev=<sha>
 //     [--runs=3] [--modes=cold,warm] [--out=tmp/sim-grid-entry/<label>] [--keep-video]
+//     --startup-trace=1 appends passive Resource Timing/measures after the original controls/frame window.
 //     [--shard=sunscar-dunes] selects the explicit compiled card, never legacy, and samples eight seconds after controls.
 //     [--upgrade-from=<old-origin>] installs the old worker, switches this same origin to the new build, then taps grid.
 //     [--core-memory=menu|select|_template|blender-template|templates|all] reads independent Developer-on floors at 10/60/120s, no Network capture or GC.
@@ -441,6 +442,14 @@ async function run(mode, index, target) {
     worstFrameAfterControlsMs: restored ? null : Math.round(entry.worst), worstFrameAt: restored || entry.worstAt === null ? null : Math.round(entry.worstAt),
     stepTotals: entry.totals, downloadShown: entry.downloads, downloadDrops: entry.downloads.filter((value, i) => i > 0 && value < (entry.downloads[i - 1] ?? 0)).length,
     rows: entry.rows.map(([key, ms, text, detail]) => ({ key, ms: Math.round(ms), label: text, detail })) };
+  // Passive startup diagnosis after the original controls/frame window. It
+  // issues no cache reads or network requests and never changes M1's clocks.
+  if (args['startup-trace'] === '1') result.startup = JSON.parse(await page.evaluate(`JSON.stringify({
+    origin: performance.timeOrigin,
+    navigation: performance.getEntriesByType('navigation').map(entry => entry.toJSON()),
+    resources: performance.getEntriesByType('resource').map(entry => entry.toJSON()),
+    measures: performance.getEntriesByType('measure').map(entry => entry.toJSON())
+  })`));
   // video seconds of a page time: the recording started at recordingAt (wall clock), the tap at tapAt
   const videoAt = ms => (tap + ms - recordingAt) / 1000;
   result.brokenFrames = restored || result.loaderEndMs === null ? null : brokenFrames(video, videoAt(result.loaderEndMs), videoAt(result.revealStartMs));
