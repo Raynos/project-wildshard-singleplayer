@@ -3,6 +3,10 @@ import { ALL_EXTENSIONS, type InstancedMesh } from '@gltf-transform/extensions';
 import { MeshoptDecoder } from 'meshoptimizer';
 import { Matrix4, Quaternion, Vector3, type BufferGeometry } from 'three';
 import type { TerrainTileData } from '@wildshard/format/terrainTileBytes';
+import type { MapPaletteRow } from '@wildshard/format/minimap';
+
+/** Complete source-owned paint bands and ordered overlays before runtime map installation. */
+export type AuthorMapPalette = MapPaletteRow;
 
 const identity = new Matrix4();
 const byte = (value: number): number => Math.max(0, Math.min(255, Math.round(value)));

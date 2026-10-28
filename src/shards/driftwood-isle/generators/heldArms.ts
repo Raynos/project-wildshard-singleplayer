@@ -1,14 +1,13 @@
 import scene from '../data/ironSwordScene.json' with { type: 'json' };
 import steps from '../data/questSteps.json' with { type: 'json' };
-import * as v from 'valibot';
-import { HeldArmsSchema } from '@wildshard/format/heldArms';
+import { toonHeldArmsRows } from '@wildshard/sdk/rows';
 import authored from '../data/heldArms.json' with { type: 'json' };
 import type { FixedWreckLayout } from './fixedLayouts';
 import { DRIFTWOOD_FIXED_SOURCES } from './assets';
 
 /** Bake the existing rack anchor and asset identities; runtime claims need no world-object callbacks. */
-export function driftwoodHeldArms(wreck: FixedWreckLayout): v.InferOutput<(typeof HeldArmsSchema)['options'][0]> {
-  return v.parse(HeldArmsSchema.options[0], { ...authored, claims: authored.claims.map(({ site, ...claim }) => {
+export function driftwoodHeldArms(wreck: FixedWreckLayout): ReturnType<typeof toonHeldArmsRows> {
+  return toonHeldArmsRows({ ...authored, claims: authored.claims.map(({ site, ...claim }) => {
   const anchor: unknown = Reflect.get(wreck.anchors, site.anchor);
   if (typeof anchor !== 'object' || anchor === null || !('x' in anchor) || !('y' in anchor) || !('z' in anchor) || !('yaw' in anchor)
     || typeof anchor.x !== 'number' || typeof anchor.y !== 'number' || typeof anchor.z !== 'number' || typeof anchor.yaw !== 'number')

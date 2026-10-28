@@ -1,5 +1,4 @@
-import * as v from 'valibot';
-import { PopulationProjectionSchema } from '@wildshard/format/populationProjection';
+import { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
 import { enemyPlacements } from './enemyPlacement';
 import { driftwoodGroundSampler } from './groundSampling';
 import { DRIFTWOOD_SPECIES_PROGRAMS } from './speciesPrograms';
@@ -14,7 +13,7 @@ const physics = driftwoodPhysics();
 const foliage = islandFoliagePlacements();
 
 /** Compile presentation rows from the same placement, physical and species inputs. */
-export function populationProjectionRows(island: DriftwoodIslandFacts, program: DriftwoodGuestRows['returnProgram']): v.InferOutput<typeof PopulationProjectionSchema> {
+export function populationProjectionRows(island: DriftwoodIslandFacts, program: DriftwoodGuestRows['returnProgram']): ReturnType<typeof authorFormatRows<'populationProjection.PopulationProjectionSchema'>> {
   const items = driftwoodItems();
   const launch = items.launches?.['coconut'];
   if (launch === undefined) throw new Error('Missing authored coconut launch');
@@ -26,7 +25,7 @@ export function populationProjectionRows(island: DriftwoodIslandFacts, program: 
     return { crown: [row.x + Math.cos(row.leanDir) * row.lean * row.h, base + row.h + .5, row.z + Math.sin(row.leanDir) * row.lean * row.h],
       base: [row.x, base + .2, row.z] };
   });
-  return v.parse(PopulationProjectionSchema, {
+  return authorFormatRows('populationProjection.PopulationProjectionSchema', {
     id: 'coconut', seed: placement.seed, random: placement.seed ^ 0xe11e,
     page: { phone: { ...placement.page.phone, perches: perches([...foliage.tiers.phone.palms.specs, ...island.extraPalms]) }, desktop: { ...placement.page.desktop, perches: perches([...foliage.tiers.desktop.palms.specs, ...island.extraPalms]) } },
     counts: { crabs: { kind: 'crab', groups: false, practice: false }, monkeys: { kind: 'monkey', groups: false, practice: false }, sailors: { kind: 'sailor', groups: false, practice: false },

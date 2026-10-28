@@ -27,7 +27,7 @@ import type { ExchangeRows } from '@wildshard/format/exchange';
 import { parseGraphArms } from '@wildshard/format/graphArmsRows';
 import { MountedLoadoutSchema } from '@wildshard/format/loadout';
 import { BowVariantSchema } from '@wildshard/format/bowVariantRows';
-import { parseHeldSlots } from '@wildshard/format/heldArms';
+import { parseHeldSlots, HeldArmsSchema } from '@wildshard/format/heldArms';
 
 /** Admit the complete native mounted arsenal declaration before compiling its slot rows. */
 export function mountedLoadoutRows(input: unknown): v.InferOutput<typeof MountedLoadoutSchema> { return v.parse(MountedLoadoutSchema, input); }
@@ -35,6 +35,8 @@ export function mountedLoadoutRows(input: unknown): v.InferOutput<typeof Mounted
 export function bowVariantRows(input: unknown): v.InferOutput<typeof BowVariantSchema> { return v.parse(BowVariantSchema, input); }
 /** Admit JSON-only held slots with the original registration/equipment/refill/upgrade ownership checks. */
 export function heldSlotsRows(input: unknown): ReturnType<typeof parseHeldSlots> { return parseHeldSlots(input); }
+/** Admit the complete original toon rig, Explorer cards and world claims through their defining grammar. */
+export function toonHeldArmsRows(input: unknown): v.InferOutput<(typeof HeldArmsSchema)['options'][0]> { return v.parse(HeldArmsSchema.options[0], input); }
 
 const numberTriple = v.tuple([v.number(), v.number(), v.number()]);
 const numberQuad = v.tuple([v.number(), v.number(), v.number(), v.number()]);

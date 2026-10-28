@@ -1,6 +1,9 @@
-import type { MapPaletteRow } from '@wildshard/format/minimap';
-import type { ScalarLatticeRows,ScalarTripletRows } from '@wildshard/format/scalarChannel';
-import type { GroundRows } from '@wildshard/format/terrain';
+import type { AuthorMapPalette as MapPaletteRow } from '@wildshard/sdk/bake/mapRaster';
+import type { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
+
+type GroundRows = ReturnType<typeof authorFormatRows<'terrain.GroundRowsSchema'>>;
+type ScalarLatticeRows = ReturnType<typeof authorFormatRows<'scalarChannel.ScalarLatticeSchema'>>;
+type ScalarTripletRows = ReturnType<typeof authorFormatRows<'scalarChannel.ScalarTripletSchema'>>;
 
 /** Offline scalar rasters and fixed metadata; no runtime recipe is carried. */
 export interface GeographyRows {

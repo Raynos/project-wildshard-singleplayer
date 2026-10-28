@@ -1,3 +1,4 @@
+import { BakedTilesSchema } from '@wildshard/format/bakedTiles';
 import { ManifestMetadataSchema } from '@wildshard/format/minimap';
 import { HEADLESS_ASSEMBLY_JSON_SCHEMA, ReturnProgramSchema, PageReturnRowsSchema, QuestTraderSchema, PosedLibrarySchema } from '@wildshard/format/namedJsonContracts';
 import { NativeQuestCompositionSchema } from '@wildshard/format/nativeQuestComposition';
@@ -680,6 +681,12 @@ interface AuthorFormatObjects {
   readonly 'clientChannels.PrivateSceneSchema': typeof PrivateSceneSchema;
   readonly 'collectionDisplay.CollectionDisplaysSchema': typeof CollectionDisplaysSchema;
   readonly 'bodySlots.BodySlotsSchema': typeof BodySlotsSchema;
+  readonly 'bakedTiles.BakedTilesSchema': typeof BakedTilesSchema;
+  readonly 'populationProjection.PopulationProjectionSchema': typeof PopulationProjectionSchema;
+  readonly 'populationKeeper.PopulationKeeperRowsSchema': typeof PopulationKeeperRowsSchema;
+  readonly 'scalarChannel.ScalarTripletSchema': typeof ScalarTripletSchema;
+  readonly 'scalarChannel.ScalarLatticeSchema': typeof ScalarLatticeSchema;
+  readonly 'terrain.GroundRowsSchema': typeof GroundRowsSchema;
   readonly 'questFigures.KitFigureCardsSchema': typeof KitFigureCardsSchema;
   readonly 'questFigures.QuestFiguresSchema': typeof QuestFiguresSchema;
   readonly 'catalogueEconomy.CatalogueEconomySchema': typeof CatalogueEconomySchema;
@@ -722,6 +729,12 @@ const authorFormats: AuthorFormatObjects = {
   'clientChannels.PrivateSceneSchema': PrivateSceneSchema,
   'collectionDisplay.CollectionDisplaysSchema': CollectionDisplaysSchema,
   'bodySlots.BodySlotsSchema': BodySlotsSchema,
+  'bakedTiles.BakedTilesSchema': BakedTilesSchema,
+  'populationProjection.PopulationProjectionSchema': PopulationProjectionSchema,
+  'populationKeeper.PopulationKeeperRowsSchema': PopulationKeeperRowsSchema,
+  'scalarChannel.ScalarTripletSchema': ScalarTripletSchema,
+  'scalarChannel.ScalarLatticeSchema': ScalarLatticeSchema,
+  'terrain.GroundRowsSchema': GroundRowsSchema,
   'questFigures.KitFigureCardsSchema': KitFigureCardsSchema,
   'questFigures.QuestFiguresSchema': QuestFiguresSchema,
   'catalogueEconomy.CatalogueEconomySchema': CatalogueEconomySchema,

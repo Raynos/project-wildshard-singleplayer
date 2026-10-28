@@ -1,6 +1,8 @@
 import * as LAYOUT from './layout';
 import STRINGS from '../data/strings.json' with { type: 'json' };
-import type { MapMark, MapPaletteRow } from '@wildshard/format/minimap';
+import type { AuthorMapPalette as MapPaletteRow } from '@wildshard/sdk/bake/mapRaster';
+
+type MapMark = MapPaletteRow['marks'][number];
 
 /**
  * Signal Dunes' map look (loop 4; review #14, mockup B) as rows for `@wildshard/format/minimap`'s `mapPalette`: the manifest's

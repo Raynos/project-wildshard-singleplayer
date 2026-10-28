@@ -4977,6 +4977,11 @@ pose with the native matrix/quaternion/scale law, returning contact data only.
 validator subset, retaining exact output types, defaults, custom checks and issue
 order. Grammar factories, structural documents and unknown names refuse.
 
+`toonHeldArmsRows(value)` in `@wildshard/sdk/rows` admits the complete original
+toon rig, Explorer card and world-claim grammar with native issue ordering.
+`AuthorMapPalette` in `@wildshard/sdk/bake/mapRaster` is the complete source
+paint-band and ordered-overlay declaration type.
+
 The native physics body/collider grammar factories retain exact rig, shape, range and provenance signatures;
 selecting or using them allocates no runtime body, collider, registry or world.
 

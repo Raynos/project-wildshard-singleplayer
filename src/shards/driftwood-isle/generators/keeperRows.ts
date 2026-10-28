@@ -5,14 +5,13 @@ import { ISLAND_BOAR as BOAR, ISLAND_BEAR as BEAR } from './faunaSpecies';
 import { driftwoodPhysics } from './physics';
 import { DRIFTWOOD_NATIVE_FAUNA } from './nativeFauna';
 import type { enemyPlacements } from './enemyPlacement';
-import type * as v from 'valibot';
-import type { PopulationKeeperRowsSchema } from '@wildshard/format/populationKeeper';
+import type { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
 import ecology from '../data/ecology.json' with { type: 'json' };
 import type { DriftwoodGuestRows } from './guestPrograms';
 
 const physics = driftwoodPhysics();
 
-type NativeKeeperRows = v.InferOutput<typeof PopulationKeeperRowsSchema>;
+type NativeKeeperRows = ReturnType<typeof authorFormatRows<'populationKeeper.PopulationKeeperRowsSchema'>>;
 
 /** Authored rows have no context predicates; retain the native clamping, order and last-row fallback. */
 function rolledVariant(rows: readonly { readonly id: string; readonly weight: number }[], draw: number): string | undefined {
