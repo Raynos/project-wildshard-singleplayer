@@ -2,25 +2,39 @@ import type { OutputIndex } from '@wildshard/format/outputIndex';
 
 type Pack = NonNullable<OutputIndex['packs']>[number];
 const wholePacks = new WeakMap<object, Map<string, Promise<Uint8Array>>>();
+interface SharedPack { readonly pending?: Promise<Uint8Array>; readonly bytes?: WeakRef<Uint8Array> }
+const sharedPacks = new WeakMap<object, Map<string, SharedPack>>();
 
 /** One verified whole GET per immutable index inventory, shared across admission
  * and later demand waves. Failed attempts leave no retained rejection. The weak
  * owner lets the bytes go with their product, rather than a global URL cache. */
 export function readPackWhole(owner: object, pack: Pack,
-  read: (path: string, maximum: number) => Promise<Uint8Array>, hash: (bytes: Uint8Array) => Promise<string>): Promise<Uint8Array> {
+  read: (path: string, maximum: number) => Promise<Uint8Array>, hash: (bytes: Uint8Array) => Promise<string>, identity: object = hash): Promise<Uint8Array> {
   if (pack.bytes < 1 || pack.bytes > 4_194_304) return Promise.reject(new Error('Shardfile pack size exceeds 4 MiB'));
   let whole = wholePacks.get(owner);
   if (whole === undefined) { whole = new Map(); wholePacks.set(owner, whole); }
-  const previous = whole.get(pack.hash);
+  const key = `${pack.hash}:${pack.bytes}`, previous = whole.get(key);
   if (previous !== undefined) return previous;
-  const held = whole;
+  let shared = sharedPacks.get(identity);
+  if (shared === undefined) { shared = new Map(); sharedPacks.set(identity, shared); }
+  const held = whole, common = shared, known = common.get(key), present = known?.bytes?.deref();
+  // Separate parses of the same immutable index can overlap (notably WebKit's
+  // descriptor and admission). Coalesce their verified bytes without making
+  // the page table a new strong backing owner after those products retire.
+  if (known?.pending !== undefined) { held.set(key, known.pending); return known.pending; }
+  if (present !== undefined) { const borrowed = Promise.resolve(present); held.set(key, borrowed); return borrowed; }
   const bytes = (async () => {
     const wire = await read(pack.path, pack.bytes);
     if (wire.length !== pack.bytes || await hash(wire) !== pack.hash) throw new Error('Shardfile pack hash or size mismatch');
     return wire;
   })();
-  held.set(pack.hash, bytes);
-  void bytes.catch(() => { if (held.get(pack.hash) === bytes) held.delete(pack.hash); });
+  held.set(key, bytes); common.set(key, { pending: bytes });
+  if (common.size > 512) { const oldest = common.keys().next().value; if (oldest !== undefined) common.delete(oldest); }
+  void bytes.then(wire => { common.set(key, { bytes: new WeakRef(wire) }); return undefined; }, () => {
+    if (held.get(key) === bytes) held.delete(key);
+    if (common.get(key)?.pending === bytes) common.delete(key);
+    return undefined;
+  });
   return bytes;
 }
 

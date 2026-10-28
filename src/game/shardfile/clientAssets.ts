@@ -108,7 +108,7 @@ export class ClientAssets {
       const response = await fetch(new URL(path, this.options.base).href);
       if (response.status === 206) { await response.body?.cancel(); throw new Error('Resident pack requires a whole response'); }
       return this.observe(pack.hash, await boundedResponse(response, maximum));
-    }, bytes => this.hashOf(bytes));
+    }, bytes => this.hashOf(bytes), this.options.hash);
     return wire.slice(member.offset, member.offset + member.bytes);
   }
 

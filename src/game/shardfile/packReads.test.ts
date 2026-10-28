@@ -51,3 +51,14 @@ test('separate phase readers share the same verified pack across later waves', a
   expect(await later.read(b)).toEqual(Uint8Array.of(3, 4));
   expect(read).toHaveBeenCalledOnce(); expect(digest).toHaveBeenCalledOnce();
 });
+
+
+test('separate parses of an immutable index coalesce in-flight whole reads without sharing mutable members', async () => {
+  const wire = Uint8Array.of(1, 2, 3, 4), read = vi.fn(() => Promise.resolve(wire)), digest = vi.fn(() => Promise.resolve(hash));
+  const first = packReads([pack], new Set([a, b]), read, digest);
+  const other = packReads([{ ...pack, entries: structuredClone(pack.entries) }], new Set([a, b]), read, digest);
+  const [left, right] = await Promise.all([first.read(a), other.read(b)]);
+  left[0] = 99;
+  expect(right).toEqual(Uint8Array.of(3, 4)); expect(await other.read(a)).toEqual(Uint8Array.of(1, 2));
+  expect(read).toHaveBeenCalledOnce(); expect(digest).toHaveBeenCalledOnce();
+});
