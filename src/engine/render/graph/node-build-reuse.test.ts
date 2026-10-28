@@ -37,7 +37,7 @@ function harness(): { handler: EngineNodesHandler; build: (material: THREE.Mater
   const build = (material: THREE.Material): THREE.WebGLProgramParametersWithUniforms => {
     const mesh = new THREE.Mesh(geometry, material); scene.add(mesh);
     handler.setObject(mesh, material);
-    const parameters: object = { precision: 'highp', customProgramCacheKey: material.customProgramCacheKey() };
+    const parameters: object = { precision: 'highp', shaderName: material.name, customProgramCacheKey: material.customProgramCacheKey() };
     const isParameters = (value: object): value is THREE.WebGLProgramParametersWithUniforms => !Array.isArray(value);
     if (!isParameters(parameters)) throw new Error('Missing parameters');
     handler.build(material, mesh, parameters);
@@ -45,6 +45,7 @@ function harness(): { handler: EngineNodesHandler; build: (material: THREE.Mater
   };
   return { handler, build, done: () => { handler.renderEnd(); geometry.dispose(); } };
 }
+type Harness = ReturnType<typeof harness>;
 const named = (parameters: THREE.WebGLProgramParametersWithUniforms, value: unknown): string[] =>
   Object.entries(parameters.uniforms).filter(([, uniform]) => uniform.value === value).map(([name]) => name);
 
@@ -155,4 +156,18 @@ test('build diagnostics separate the stock frontend from a reused build', () => 
     expect(second.vertexShader).toBe(first.vertexShader);
     expect(second.fragmentShader).toBe(first.fragmentShader);
   } finally { frontend.mockRestore(); clock.mockRestore(); done(); a.material.dispose(); b.material.dispose(); }
+});
+
+// G808: three keys no program by its material's name (shaderName is only a SHADER_NAME label), so neither may the reuse
+test('equal graphs whose materials carry different names reuse one build', () => {
+  setDev(true);
+  const { handler, build, done }: Harness = harness();
+  const a = compileGraph(GRAPH(0.25)), b = compileGraph(GRAPH(0.75));
+  a.material.name = 'under-fern'; b.material.name = 'under-moss';
+  const ta = new THREE.DataTexture(new Uint8Array(4), 1, 1), tb = new THREE.DataTexture(new Uint8Array(4), 1, 1);
+  a.setTexture('painting', ta); b.setTexture('painting', tb);
+  try {
+    build(a.material); build(b.material);
+    expect(handler.reuses).toBe(1);
+  } finally { done(); a.material.dispose(); b.material.dispose(); ta.dispose(); tb.dispose(); }
 });

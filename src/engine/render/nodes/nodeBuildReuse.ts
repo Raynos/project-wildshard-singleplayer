@@ -87,6 +87,8 @@ export class GraphNodeOwner {
  * its programs by (primitive fields and defines, read before the build writes its code into them), with the custom
  * program key's leading material hash cut (its node ids differ between equal graphs; the rest is the scene, target,
  * fog, layer and object), the object's class and the material's plain user data (the graph compiler's build switches).
+ * `shaderName` (the material's name) is left out: three writes it only as a `SHADER_NAME` label and never keys a program
+ * by it, so Pine's six under-* covers, equal graphs under one key, each paid a full node build (G808, ~25 ms each at 4x).
  * Null when the custom key does not start with the material's hash (a variant keyed another way).
  */
 export function reuseKey(parameters: object, object: THREE.Object3D, material: THREE.Material, shared: string | null = null): string | null {
@@ -102,7 +104,7 @@ export function reuseKey(parameters: object, object: THREE.Object3D, material: T
   }
   for (const key of Object.keys(parameters).sort()) {
     const value: unknown = Reflect.get(parameters, key);
-    if (key === 'customProgramCacheKey') continue;
+    if (key === 'customProgramCacheKey' || key === 'shaderName') continue;
     if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') parts.push(`${key}=${String(value)}`);
     else if (value === undefined || value === null) parts.push(`${key}=`);
   }
