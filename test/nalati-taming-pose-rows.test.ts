@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { hashImmutableBytes } from '@wildshard/sdk/immutable';
+import { hashImmutableBytes, encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import original from './fixtures/nalati-taming-poses-original.json' with { type: 'json' };
 import { nalatiTamingPoseRows } from '../src/shards/nalati-grasslands/generators/tamingPoseRows';
 
@@ -14,4 +14,5 @@ test('the taming handoff retains its original pose-array pin and declared horse 
   expect(handoff.byteLength).toBe(85858);
   expect(hashImmutableBytes(handoff)).toBe('93d2101b641c092d213b0485dc9b831e0b809b56a5531d36fb9ddee66dd1a28a');
   expect(nalatiTamingPoseRows()).toEqual(original);
+  expect(encodeCanonicalJson(nalatiTamingPoseRows())).toBe(encodeCanonicalJson(original));
 });
