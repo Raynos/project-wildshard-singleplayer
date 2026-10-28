@@ -6419,6 +6419,9 @@ native numeric grammar before the caller's geometry and layout checks.
 `sdk/interactions.readInteractionPlacements` / `bindInteractionPlacements` compile bounded finite rest poses in
 native table order, retaining identity/kind/missing-row refusals. Table/pickup types derive from the actual compiler;
 no geometry, prompt, physics or registry owner is constructed or borrowed.
+`worldScenes.worldSceneLivingBakeRows` admits ordered living-scene profiles,
+library geometry and blob ownership through the original graph/life validators,
+with native metadata stripping and no live building or resource owner.
 `graphArmsRows` admits held graph/rig bindings and resource checks without constructing a view or material;
 `namedFormatJsonSchema('graphArmsRows.GraphArms')` keeps its defining wire document exact.
 `sdk/quests.nativeQuestCompositionRows` and `sdk/director.chapterDirectorRows` retain native quest resource and

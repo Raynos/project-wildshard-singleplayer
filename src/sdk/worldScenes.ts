@@ -6,7 +6,7 @@ import { parseWorldScenes, type WorldScenesSection } from '@wildshard/format/wor
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { WorldSceneSurfaceSchema, type WorldSceneSurface } from '@wildshard/format/worldSceneSurface';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
-import { parse, record, string, strictObject, array, boolean, object, exactOptional, type InferOutput } from 'valibot';
+import { parse, record, string, strictObject, array, boolean, object, exactOptional, picklist, pipe, unknown, transform, type InferOutput } from 'valibot';
 import { SceneDrawsSchema, type SceneDrawsRows } from '@wildshard/format/sceneDraws';
 import type { SceneModelSource, SceneBakeSource } from '@wildshard/game/shardfile/sceneSources';
 import { nameBlob, type NamedBlob } from './blobs';
@@ -165,4 +165,25 @@ export function modelSceneSourceFile(name: string, input: SceneModelSource): Nam
 export function bakedSceneSourceFile(name: string, input: SceneBakeSource): NamedBlob {
   if (Object.keys(input.rows).length > 128) throw new Error('Invalid declared bake source');
   return nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(input)));
+}
+
+/** Complete admitted living-scene profile, before any geometry or door owner is installed. */
+export interface AuthorLivingSceneProfile {
+  tier: 'phone' | 'desktop'; shadow: boolean; shared: boolean; file: string;
+  graph: ReturnType<typeof worldSceneWeldData>;
+  life: ReturnType<typeof buildingLifeRows>;
+  geometry: { key: string; id: string; source: { library: string; model: string } }[];
+}
+/** Admit ordered living-scene bake metadata through the defining graph and life
+ * grammars. Unused bake hashes strip as before; no resource reader is lent. */
+export function worldSceneLivingBakeRows(input: unknown): {
+  blobs: { name: string; kind: 'glb' | 'json'; source: string }[];
+  profiles: AuthorLivingSceneProfile[];
+  geometry: { id: string; library: string; file: string; attributes: Record<string, string> }[];
+} {
+  const id = string(), geometry = object({ key: id, id, source: object({ library: id, model: id }) });
+  const profile = object({ tier: picklist(['phone', 'desktop']), shadow: boolean(), shared: boolean(), file: id,
+    graph: pipe(unknown(), transform(worldSceneWeldData)), life: pipe(unknown(), transform(buildingLifeRows)), geometry: array(geometry) });
+  return parse(object({ blobs: array(object({ name: id, kind: picklist(['glb', 'json']), source: id })),
+    profiles: array(profile), geometry: array(object({ id, library: id, file: id, attributes: record(id, id) })) }), input);
 }
