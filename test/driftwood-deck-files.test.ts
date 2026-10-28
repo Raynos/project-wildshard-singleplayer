@@ -14,11 +14,19 @@ import {driftwoodModelCatalogue} from './fixtures/driftwoodModelCatalogue';
 const pins={deep:'247da8ed53b57d128fdfc9de4dc17722e85594ccc091a308ce0060224b98d47a',shallow:'fdd6865555774ed20743338b7b16afd9798d8ecf9fa7fa0609c8bd503c513548',world:'f53767fa4ff41a219b644198f806d0615e380d1be5daa55dcc41b3a7461898e4'};
 test('the complete catalogue preserves deck transport and corrected source provenance',async()=>{
   const book:unknown=await driftwoodModelCatalogue();
-  expect(hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(book)))).toBe('3096cd5cd18b3d995ccfdddddc91bf1f2f74c49c83e6e074d7c47bf67e5f5684');
+  expect(hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(book)))).toBe('de3b55560459ac50684b82e4b0d3acd1e0747eb5be1eb28034086c083767bb43');
+  // 0cbf60142c added only the unplaced shrine's explicit demand policy.
+  // Reverse that verified scheduling field before checking both full old wires.
+  v.assert(v.object({siteCatalogue:v.object({models:v.array(v.object({key:v.string(),file:v.string(),load:v.optional(v.literal('demand'))}))})}),book);
+  expect(book.siteCatalogue.models.filter(model=>model.load!==undefined).map(model=>model.key)).toEqual(['shrine']);
+  const beforeDemand=structuredClone(book), shrine=beforeDemand.siteCatalogue.models[3];
+  if(shrine===undefined)throw new Error('Missing original shrine');
+  expect(shrine.key).toBe('shrine');expect(shrine.load).toBe('demand');
+  delete shrine.load;
+  expect(hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson(beforeDemand)))).toBe('3096cd5cd18b3d995ccfdddddc91bf1f2f74c49c83e6e074d7c47bf67e5f5684');
   // The original pin used stale upstream source labels. Reverse only the six
   // proven provenance corrections and retain that full-catalogue byte oracle.
-  v.assert(v.object({siteCatalogue:v.object({models:v.array(v.object({key:v.string(),file:v.string()}))})}),book);
-  const original=structuredClone(book), keys=['palm','hibiscus','driftLog','pier','boat','zipline'];
+  const original=structuredClone(beforeDemand), keys=['palm','hibiscus','driftLog','pier','boat','zipline'];
   for(const [offset,key]of keys.entries()){
     const model=original.siteCatalogue.models[7+offset];if(model===undefined)throw new Error('Missing original source model');
     expect(model.key).toBe(key);
