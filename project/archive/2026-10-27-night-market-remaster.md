@@ -5,8 +5,8 @@ RM5.4 folds into the G755 figure redo (RM4.8). G777: RM12 is done on its Chromiu
 reading runs once at the plan's end (G780). RM13 is Jake's and stays in the % (G779). Before that, 2026-10-24: Jake
 ruled D1–D4 (G726): the **4 hero cameras** only (8 domes; the inside corner stays consistent), Blender + TRELLIS.2/Hunyuan3D-2, budget **+300 MB**, Codex RM1–RM3 now, Opus from Tue 13:00. Read at HEAD a8a15bb462.
 Graphical work is Opus, and Opus lanes are 0 until **Tue 10-27 13:00** (G605); Codex can prepare data and tooling before
-then (D4). Builds on the [Night Market pilot](night-market-pilot-mini-plan.md) (NM0–NM14, G632/G633/G641/G681/G684/G700)
-and feeds the [remaster of the 18 other plots](remaster-open-plots-mini-plan.md) (RP2, G712/G714).
+then (D4). Builds on the [Night Market pilot](2026-10-28-night-market-pilot.md) (NM0–NM14, G632/G633/G641/G681/G684/G700)
+and feeds the [remaster of the 18 other plots](2026-10-28-remaster-open-plots.md) (RP2, G712/G714).
 
 Jake, 2026-10-24 ~22:20 Cancun, after three phone screenshots of the Night Market plot on build 0b1ca136e (iPhone
 portrait, 29–30 fps, MEM 0.92 GB, 2 worlds): *"lol fucking night market looks like trash fire. Have a dedicated agent come

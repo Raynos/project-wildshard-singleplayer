@@ -6,9 +6,9 @@ Jake, 2026-10-28: *"You're approved to go and do the park plan, the draft park p
 plots."* This plan replaces Night Market pilot R1–R3 and remaster-open-plots RP2–RP4 (G774, G824). Decisions stay in
 [shard-platform/decisions.md](shard-platform/decisions.md) until this plan has its own file. Read at HEAD 2f074203c9.
 
-Sources: [night-market-pilot](shard-platform/night-market-pilot-mini-plan.md) (NM0–NM11),
+Sources: [night-market-pilot](../../project/archive/2026-10-28-night-market-pilot.md) (NM0–NM11),
 [night-market-remaster](../../project/archive/2026-10-27-night-market-remaster.md) (RM0–RM14, the dome method),
-[remaster-open-plots](shard-platform/remaster-open-plots-mini-plan.md) (the 19 ideas, the RM14 style-row how-to).
+[remaster-open-plots](../../project/archive/2026-10-28-remaster-open-plots.md) (the 19 ideas, the RM14 style-row how-to).
 Approved mockups: `art/grid/round-62-open-plot-palettes/<nn>-<slug>.jpg` (G712, G714), four views each.
 
 ## 1. What Night Market proved
