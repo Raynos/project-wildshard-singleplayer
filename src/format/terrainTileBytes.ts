@@ -68,13 +68,20 @@ export function decodeTerrainTile(bytes: Uint8Array | undefined, sampling?: Terr
 }
 /** Sample the same diagonal split as Rapier heightfields, rather than a bilinear surface that differs from collision. */
 export function terrainTileHeight(data: TerrainTileData, x: number, z: number, policy?: { layout?: 'column-major'; boundary?: 'clamp' }): number {
-  if (policy?.boundary !== 'clamp' && (![x, z].every(Number.isFinite) || x < data.x || z < data.z || x > data.x + data.size || z > data.z + data.size)) throw new Error('Point outside terrain');
+  if (policy?.boundary !== 'clamp' && (!Number.isFinite(x) || !Number.isFinite(z) || x < data.x || z < data.z || x > data.x + data.size || z > data.z + data.size)) throw new Error('Point outside terrain');
   const n = data.resolution - 1, column = policy?.layout === 'column-major', step = data.size / n;
   const gridX = column ? (x - data.x) / step : (x - data.x) / data.size * n, gridZ = column ? (z - data.z) / step : (z - data.z) / data.size * n;
   const gx = policy?.boundary === 'clamp' ? Math.min(n, Math.max(0, gridX)) : gridX, gz = policy?.boundary === 'clamp' ? Math.min(n, Math.max(0, gridZ)) : gridZ;
   const ix = Math.min(n - 1, Math.floor(gx)), iz = Math.min(n - 1, Math.floor(gz)), u = gx - ix, v = gz - iz;
-  const at = (dx: number, dz: number): number => data.heights[column ? (ix + dx) * data.resolution + iz + dz : (iz + dz) * data.resolution + ix + dx] ?? (column ? Number.NaN : 0);
-  return u + v <= 1 ? at(0, 0) + (at(1, 0) - at(0, 0)) * u + (at(0, 1) - at(0, 0)) * v : at(1, 1) + (at(0, 1) - at(1, 1)) * (1 - u) + (at(1, 0) - at(1, 1)) * (1 - v);
+  const base = column ? ix * data.resolution + iz : iz * data.resolution + ix;
+  const xStep = column ? data.resolution : 1, zStep = column ? 1 : data.resolution, empty = column ? Number.NaN : 0;
+  const h10 = data.heights[base + xStep] ?? empty, h01 = data.heights[base + zStep] ?? empty;
+  if (u + v <= 1) {
+    const h00 = data.heights[base] ?? empty;
+    return h00 + (h10 - h00) * u + (h01 - h00) * v;
+  }
+  const h11 = data.heights[base + xStep + zStep] ?? empty;
+  return h11 + (h01 - h11) * (1 - u) + (h10 - h11) * (1 - v);
 }
 /** Native bilinear queries on an admitted whole-cell original lattice, with its original central-difference normal law.
  * Datum shifts height only; normals are computed before the shift, preserving the native floating-point operation order. */

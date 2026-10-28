@@ -10,6 +10,7 @@ import type { AssetService } from './assets';
  */
 let materialWalks: WeakMap<Material, readonly Disposable3[]> | null = null;
 const isMaterial = (value: object): value is Material => value instanceof Material;
+const isTexture = (value: object): value is Texture => value instanceof Texture;
 function materialResources(material: Material): readonly Disposable3[] {
   if (materialWalks === null) { const walks = new WeakMap<Material, readonly Disposable3[]>(); materialWalks = walks; queueMicrotask(() => { if (materialWalks === walks) materialWalks = null; }); }
   let known = materialWalks.get(material);
@@ -104,7 +105,7 @@ export function ownSceneResource(resource: Disposable3, scope: Scope, assets?: P
   const owner = ownerOf(resource);
   // A final tree capture runs after this scope's resource cleanups. Its existing ownership still prevents a second
   // native disposal; only newly discovered resources need immediate capture on the already-closing scope.
-  if (!(resource instanceof Texture)) {
+  if (!isTexture(resource)) {
     if (owner !== undefined && (!owner.disposed || owner === scope || scope.sharesTeardown(owner))) {
       // O18: a live owner forgot the resource when it was disposed; a later use uploads it again, so it owns it again
       if (!owner.disposed && !owner.owns(resource)) owner.own(resource);
@@ -123,6 +124,11 @@ export function ownSceneResource(resource: Disposable3, scope: Scope, assets?: P
   const users = leases;
   users.add(scope);
   if (owner === undefined || owner.disposed) markResourceOwner(resource, scope);
+  captureTextureLease(resource, scope, users);
+}
+
+// Keep the release closures' context out of the already-owned draw fast path.
+function captureTextureLease(resource: Texture, scope: Scope, users: Set<Scope>): void {
   const release = (): boolean => {
     users.delete(scope);
     const next = users.values().next();
