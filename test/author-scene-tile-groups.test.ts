@@ -12,11 +12,12 @@ test('scene tile groups retain native order, empty groups and detached ownership
   expect(current['z']?.files).not.toBe(input.z.files);
   expect(current['z']?.files).toEqual(['b.glb', 'a.glb', 'b.glb']);
   expect(worldSceneTileGroups({})).toEqual({});
+  expect(worldSceneTileGroups([])).toEqual(v.parse(original, []));
 });
 
 test('scene tile group admission keeps all original strict member refusals', () => {
   const original = v.record(v.string(), v.strictObject({ files: v.array(v.string()), resident: v.boolean() }));
-  for (const bad of [null, [], { a: {} }, { a: { files: [], resident: 'true' } },
+  for (const bad of [null, { a: {} }, { a: { files: [], resident: 'true' } },
     { a: { files: [1], resident: true } }, { a: { files: [], resident: false, extra: true } }]) {
     expect(() => worldSceneTileGroups(bad)).toThrow();
     expect(() => v.parse(original, bad)).toThrow();
