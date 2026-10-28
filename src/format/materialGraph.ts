@@ -292,7 +292,10 @@ export function graphAdmissionErrors(input: unknown, nodeLimit: number = DEFAULT
       if (active.has(value)) return ['graph: JSON cycle refused'];
       const prototype: unknown = Object.getPrototypeOf(value), array = Array.isArray(value);
       if ((array ? prototype !== Array.prototype : prototype !== Object.prototype && prototype !== null) || Object.getOwnPropertySymbols(value).length > 0) return ['graph: plain JSON data required'];
-      const descriptors = Object.getOwnPropertyDescriptors(value), keys = Object.keys(descriptors);
+      // Every own string key still participates, including hidden properties.
+      // Read its descriptor only as visited instead of allocating a second
+      // object holding descriptors for the entire container.
+      const keys = Object.getOwnPropertyNames(value);
       // Array length is bookkeeping, never an entry in its JSON representation.
       const count = keys.length - Number(array);
       if (entry.nodes) { nodes += count; if (nodes > nodeLimit) return [`budget: ${nodes} nodes (at most ${nodeLimit}); all nested nodes counted`]; }
@@ -301,7 +304,7 @@ export function graphAdmissionErrors(input: unknown, nodeLimit: number = DEFAULT
       active.add(value); pending.push({ leave: value });
       for (const key of keys) {
         if (array && key === 'length') continue;
-        const descriptor = descriptors[key];
+        const descriptor = Object.getOwnPropertyDescriptor(value, key);
         if (descriptor === undefined || descriptor.get !== undefined || descriptor.set !== undefined || !descriptor.enumerable) return ['graph: JSON accessors and hidden properties refused'];
         if (!array) bytes += stringBytes(key) + 1;
         const child: unknown = descriptor.value;
