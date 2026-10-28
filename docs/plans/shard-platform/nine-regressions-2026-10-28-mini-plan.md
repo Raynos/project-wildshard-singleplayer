@@ -60,6 +60,22 @@ facing-back, stall and sky. Capture muted through `scripts/browser-lane.sh` as a
 - **NR6: open, no rain cause found.** The composite's rain is LEGACY's term for term (cell 7 x 70 px, density, length, falloff, mix 0.55) with the same live values (`uRain` 0.55 / 0.14 / 520 / 2, `uDpr` 0.8, buffer 804 x 1362) and `uTime` advancing 1 s a second; the strokes read brighter on NR2's flat navy. Re-read after NR2.
 - **NR7: done** `e2531efa60` (fix(nine): hang the jian cloth at the idle down). The cloth bake settled in the weapon bone's frame along its own -Y (the hilt); it now settles with the idle's down (`REST_GRAVITY`, measured on the shared rig). Board [9-nr7](../../../art/nine-dragon-stack/round-32-shardfile-regressions/9-nr7-cloth-board.jpg).
 
+### Marks (sp-o3, 2026-10-28)
+
+- **NR1: done** `e944149bd6` (fix(nine): draw held ink hulls with the camera). The projection write moved from the hull
+  materials' `onBeforeRender` (replaced by three's node handler at every draw) to each held mesh's own hook. Board
+  [6-nr1](../../../art/nine-dragon-stack/round-32-shardfile-regressions/6-nr1-board.jpg) (A-D, Chromium + WebKit).
+- **NR2: done** `3cadfddf16` (fix(nine): keep kit half channels when merging). Not program share: three's
+  `mergeGeometries` rebuilt every channel as a plain `BufferAttribute`, so the layout bake's merged kits (and `kitx.merge`)
+  wrote their half-float `aFace` / `aPat` as plain Uint16 words and the GPU read `kind` 16896 for 3. `mergeKits` keeps the
+  half channel; `wholePieceJoin` had the same loss. Floor joints, puddles, pool light, rail carving and stair edges are
+  back. Board [11-nr2](../../../art/nine-dragon-stack/round-32-shardfile-regressions/11-nr2-board.jpg) (A-D, Chromium + WebKit).
+- **NR8: sheet at `3cadfddf16`**, [12-nr8](../../../art/nine-dragon-stack/round-32-shardfile-regressions/12-nr8-sheet.jpg):
+  CO6 A-D plus five views (A back, A down 55 deg, A up 38 deg, C back, B back), LEGACY | SHARDFILE on Chromium and
+  WebKit, 36 captures, 0 page errors. Hands, floor, stairs, sky and reflections match. **Still off:** B's haze and wall
+  pallor (SHARDFILE deeper navy, NR3 facade half); A down shows no red jian tassel over the blade and the left rail's
+  carved gold panel is plain stone (NR7 / NR3). Re-run the sheet once those land.
+
 ## Order
 
 NR1 first (Jake's headline, one small fix) → NR2 bisect (it may fix the wall pallor in NR3) → NR3 → NR4 → NR5 → NR6, NR7 → NR8. NR4 runs
