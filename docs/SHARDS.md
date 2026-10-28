@@ -407,8 +407,8 @@ look of its own.
   pure-sky keys blended on a dome that re-lights the IBL (`world/PineDayNight.ts`, `pineSkyKeys.ts`); dawn ground fog
   and rain showers (`world/PineWeather.ts`, `PineWeatherFX.ts`); the pond, creek and waterfall on one water program
   (`world/waterSurface.ts`, `PineStreams.ts`); the painted far country at infinity (`world/Horizon.ts`); the Ridge's
-  granite skin, its crag kit and the bear cave (`world/PineCrags.ts`, `scripts/blender/pine-hollow/crags/`); the learned LUT
-  (`public/assets/lut/pine-hollow.bin`).
+  granite skin, its crag kit and the bear cave (`world/PineCrags.ts`, `scripts/blender/pine-hollow/crags/`). No colour LUT
+  (G854: Jake kept the LEGACY golden's grade; the learned `pine-hollow.bin` went).
 - **World:** the three cabins (`world/Cabin.ts`); the mill hamlet, the fire lookout + zipline, the footbridge, the
   standing stones, the waystones, the dam and the canoe (`world/PineLandmarks.ts`; the image-to-3D hero props in
   `public/assets/models/pine-hollow-hero/`).

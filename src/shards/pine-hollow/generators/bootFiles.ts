@@ -220,7 +220,6 @@ export const PINE_BOOT_FILES: {
         readonly source: {
             readonly urls: {
                 readonly phone: readonly [
-                    "/assets/lut/pine-hollow.bin",
                     "/assets/horizon/pine-hollow-day-phone.webp",
                     "/assets/horizon/pine-hollow-night-phone.webp",
                     typeof PINE_BOOT_ASSET_7,
@@ -229,7 +228,6 @@ export const PINE_BOOT_FILES: {
                     "/assets/pine-hollow/baked/rain.phone.bin"
                 ];
                 readonly desktop: readonly [
-                    "/assets/lut/pine-hollow.bin",
                     "/assets/horizon/pine-hollow-day.webp",
                     "/assets/horizon/pine-hollow-night.webp",
                     typeof PINE_BOOT_ASSET_7,
@@ -532,7 +530,6 @@ export const PINE_BOOT_FILES: {
     "source": {
       "urls": {
         "phone": [
-          "/assets/lut/pine-hollow.bin",
           "/assets/horizon/pine-hollow-day-phone.webp",
           "/assets/horizon/pine-hollow-night-phone.webp",
           PINE_BOOT_ASSET_7,
@@ -541,7 +538,6 @@ export const PINE_BOOT_FILES: {
           "/assets/pine-hollow/baked/rain.phone.bin"
         ],
         "desktop": [
-          "/assets/lut/pine-hollow.bin",
           "/assets/horizon/pine-hollow-day.webp",
           "/assets/horizon/pine-hollow-night.webp",
           PINE_BOOT_ASSET_7,
