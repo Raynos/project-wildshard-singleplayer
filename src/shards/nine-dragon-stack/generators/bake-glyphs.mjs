@@ -2,7 +2,7 @@
 import { resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { build } from 'vite';
-import { webkit, devices } from 'playwright';
+import { openNativeRaster } from '@wildshard/sdk/bake/nativeRaster';
 import { decodeBuildDeflate } from '@wildshard/sdk/bake/byteCodec';
 import { byteWriter, jsonBytes, outputHash, browserBakeBytes } from '../../../../scripts/bake-output.mjs';
 
@@ -16,14 +16,12 @@ const result = await build({
 });
 const code = (Array.isArray(result) ? result : [result]).flatMap(b => 'output' in b ? b.output : []).find(c => c.type === 'chunk')?.code;
 if (code === undefined) throw new Error('Nine glyph page failed to bundle');
-const browser = await webkit.launch({ headless: true });
+const session = await openNativeRaster({
+  html: '<!doctype html><meta charset="utf-8"><title>Nine glyph bake</title>', source: code,
+});
 const tiers = {}, proof = {}, writer = byteWriter(process.argv.includes('--check'), 'nine-glyphs');
 try {
-  const context = await browser.newContext(devices['iPhone 16 Pro']);
-  const page = await context.newPage();
-  // Blank, silent page. It uses the exact system font stack the existing Nine runtime uses.
-  await page.setContent('<!doctype html><meta charset="utf-8"><title>Nine glyph bake</title>');
-  await page.addScriptTag({ content: code });
+  const { page } = session;
   // Optional private reference extracted from the pre-conversion runtime, for a one-time byte differential.
   const original = process.env.NINE_GLYPH_REFERENCE;
   if (original !== undefined) await page.addScriptTag({ content: readFileSync(original, 'utf8') });
@@ -62,7 +60,7 @@ try {
     tiers[tier] = { ...row, packed, pixelHash: outputHash(data) };
     console.log(`Nine ${tier}: ${row.size}x${row.size} RG8, ${data.length} decoded, ${chunks.reduce((sum, part) => sum + part.byteLength, 0)} wire, ${tiers[tier].pixelHash}`);
   }
-} finally { await browser.close(); }
+} finally { await session.dispose(); }
 writer.put(resolve(outputData, 'glyphs.json'), jsonBytes(tiers, 0));
 writer.finish();
 

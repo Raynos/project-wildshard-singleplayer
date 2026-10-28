@@ -1,7 +1,7 @@
 // Native reference pixels, retained as ordinary lossless product images.
 import { resolve } from 'node:path';
 import { build } from 'vite';
-import { webkit, devices } from 'playwright';
+import { openNativeRaster } from '@wildshard/sdk/bake/nativeRaster';
 import { byteWriter, outputHash, browserBakeBytes } from '../../../../scripts/bake-output.mjs';
 import nativeDecals from '../data/nativeDecals.json' with { type: 'json' };
 import { readImagePixels } from '@wildshard/sdk/bake/image';
@@ -14,11 +14,11 @@ const result = await build({ configFile: false, logLevel: 'silent', publicDir: f
 const code = (Array.isArray(result) ? result : [result]).flatMap(bundle => 'output' in bundle ? bundle.output : []).find(chunk => chunk.type === 'chunk')?.code;
 if (code === undefined) throw new Error('Decal painter failed to bundle');
 const writer = byteWriter(process.argv.includes('--check'), 'nine-decal-atlas');
-const browser = await webkit.launch({ headless: true });
+const session = await openNativeRaster({
+  html: '<!doctype html><meta charset="utf-8"><title>Nine decal bake</title>', source: code, module: true,
+});
 try {
-  const context = await browser.newContext(devices['iPhone 16 Pro']), page = await context.newPage();
-  await page.setContent('<!doctype html><meta charset="utf-8"><title>Nine decal bake</title>');
-  await page.addScriptTag({ type: 'module', content: code });
+  const { page } = session;
   await page.waitForFunction(() => typeof window.bakeNineDecal === 'function');
   for (const tier of ['phone', 'desktop']) {
     const sink = await browserBakeBytes(page);
@@ -43,5 +43,5 @@ try {
     writer.put(resolve(root, 'public', source.url.slice(1)), bytes);
     console.log(`Nine ${tier} decal: ${raster.width}x${raster.height}, ${bytes.length} bytes, exact RGBA ${outputHash(original)}`);
   }
-} finally { await browser.close(); }
+} finally { await session.dispose(); }
 writer.finish();
