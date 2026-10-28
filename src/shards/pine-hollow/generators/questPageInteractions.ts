@@ -1,6 +1,8 @@
-import { parseQuestPageInteractions, type QuestPageInteractionsData } from '@wildshard/format/questInteractions';
+import { questPageInteractionRows as parseQuestPageInteractions } from '@wildshard/sdk/rows';
 import policy from '../data/forestStory.json' with { type: 'json' };
 import wardens from '../data/wardensHollow.json' with { type: 'json' };
+
+type QuestPageInteractionsData = ReturnType<typeof parseQuestPageInteractions>;
 
 /** Waystone prompts borrow native flag rules and the entered sound timer. */
 const LANTERN_PAGE = {
