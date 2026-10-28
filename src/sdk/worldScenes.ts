@@ -6,7 +6,7 @@ import { parseWorldScenes, type WorldScenesSection } from '@wildshard/format/wor
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { WorldSceneSurfaceSchema, type WorldSceneSurface } from '@wildshard/format/worldSceneSurface';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
-import { parse, record, string, strictObject, array, boolean } from 'valibot';
+import { parse, record, string, strictObject, array, boolean, object, exactOptional } from 'valibot';
 import { SceneDrawsSchema, type SceneDrawsRows } from '@wildshard/format/sceneDraws';
 import type { SceneModelSource, SceneBakeSource } from '@wildshard/game/shardfile/sceneSources';
 import { nameBlob, type NamedBlob } from './blobs';
@@ -23,6 +23,13 @@ export interface AuthorSceneTileGroup { files: string[]; resident: boolean }
 /** Admit owned source tile groups before constructing model aliases or borrowing geometry. */
 export function worldSceneTileGroups(input: unknown): Record<string, AuthorSceneTileGroup> {
   return parse(record(string(), strictObject({ files: array(string()), resident: boolean() })), input);
+}
+
+/** Ordered source geometry file ownership before publication; unrelated tile metadata is stripped. */
+export interface AuthorSceneTileFiles { file: string; additionalFiles?: string[] }
+/** Admit main/additional source files without deduplicating or borrowing any byte payload. */
+export function worldSceneTileFiles(input: unknown): AuthorSceneTileFiles[] {
+  return parse(array(object({ file: string(), additionalFiles: exactOptional(array(string())) })), input);
 }
 
 /** Admit ordered entry blocks and their native resource/variant checks before constructing a world. */

@@ -1,4 +1,5 @@
-import * as v from 'valibot';
+import { parseSectionValue } from '@wildshard/sdk/sections';
+import { worldSceneTileFiles } from '@wildshard/sdk/worldScenes';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { formatJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import type { NineSourceWorld } from './worldProgram';
@@ -15,7 +16,7 @@ export function layoutWireSchema(): ReturnType<typeof formatJsonSchema> { return
 export function layoutBlobs(source: NineSourceWorld, { SET_TILES, worldRows }: NineWorldScenes): NamedBlob[] {
   const world = source.metadata;
   const { rows, records: numeric } = bakedLayout(source.layout);
-  const tiles = v.parse(v.array(v.object({ file: v.string(), additionalFiles: v.exactOptional(v.array(v.string())) })), world.props?.tiles);
+  const tiles = worldSceneTileFiles(world.props?.tiles);
   const library = { ...world.libraries, layout: [...tiles.flatMap(tile => [tile.file].concat(tile.additionalFiles ?? [])), ...world.libraries.layout.filter(hash => !SET_TILES.has(hash))],
     specimenBoxes: world.specimenBoxes, records: numeric.length, layoutDraws: rows.geometries.length };
   const negativeZeros: string[][] = [];
@@ -24,6 +25,6 @@ export function layoutBlobs(source: NineSourceWorld, { SET_TILES, worldRows }: N
     else if (value !== null && typeof value === 'object') for (const [key, child] of Object.entries(value)) locate(child, [...path, key]);
   };
   locate(rows, []);
-  const boot = v.parse(GeometryBootSchema, { rows, library, negativeZeros, world: worldRows.rows });
+  const boot = parseSectionValue(GeometryBootSchema, { rows, library, negativeZeros, world: worldRows.rows });
   return [nameBlob('geometry/layout.json', 'json', json(boot), { jsonSchema: layoutWireSchema() })];
 }
