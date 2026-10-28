@@ -143,23 +143,13 @@ async function startSelected(): Promise<void> {
     if (typeof moduleRows !== 'object' || moduleRows === null || !Object.hasOwn(moduleRows, kind)) throw new Error('Missing boot module rows');
     preloadModuleFiles(Reflect.get(moduleRows, kind));
   };
+  // This exact mandatory bank can download/compile while services prepare;
+  // modulepreload never executes or publishes its modules.
+  modules('common');
   loading.waiting('Preparing application services');
-  // Cover the full-ALL route's five observed misses; never recycle growables.
-  const [{ prepareScriptMemoryBank }, { yieldTask }, { diagnosticNow }] = await Promise.all([
-    retried(() => import('./engine/script/moduleV2')), retried(() => import('@wildshard/engine/core/workSlice')),
-    retried(() => import('@wildshard/engine/core/clock')),
-  ]);
-  const memoryStartedAt = diagnosticNow();
-  let memoryTurns = 0, memoryWaitMs = 0;
-  await prepareScriptMemoryBank([35, 0, 1, 0], async () => {
-    // Each native reserve gets its own task, even when the CPU budget is free.
-    memoryTurns++; const at = diagnosticNow(); await yieldTask(entryScope); memoryWaitMs += diagnosticNow() - at;
-    if (entryScope.disposed || entryScope.disposing) throw new Error('Entry memory preparation ended');
-  }, [{ initial: 1, maximum: 2, count: 5 }, { initial: 1, maximum: 64, count: 4 }]);
-  performance.measure('wildshard.prepare:boot.script-memory-bank', { start: memoryStartedAt, end: diagnosticNow(),
-    detail: { memoryTurns, memoryWaitMs } });
-  // Start every original import together; only admission's prerequisites block
-  // its preparation. The full import barrier still precedes publication.
+  // Resolve the same required code while each memory reserve yields. Imports
+  // cannot publish content: the memory bank and full import barrier still
+  // precede admission and installation, with their original refusal order.
   const [speciesModule, iconsModule, pickupsModule, pickupRowsModule, propsModule, starterModule, hoverboardModule,
     voicesModule, combatModule, boarModule, familiesModule, sourceModule, runtimeModule, gridEntryModule,
     pathsModule, entryModule, calibrationModule, prefetchModule] = [
@@ -176,6 +166,20 @@ async function startSelected(): Promise<void> {
   const imports = prepareBootImports(Promise.all([speciesModule, iconsModule, pickupsModule, pickupRowsModule, propsModule,
     starterModule, hoverboardModule, voicesModule, combatModule, boarModule, familiesModule, sourceModule, runtimeModule,
     gridEntryModule, pathsModule, entryModule, calibrationModule, prefetchModule]));
+  // Cover the full-ALL route's five observed misses; never recycle growables.
+  const [{ prepareScriptMemoryBank }, { yieldTask }, { diagnosticNow }] = await Promise.all([
+    retried(() => import('./engine/script/moduleV2')), retried(() => import('@wildshard/engine/core/workSlice')),
+    retried(() => import('@wildshard/engine/core/clock')),
+  ]);
+  const memoryStartedAt = diagnosticNow();
+  let memoryTurns = 0, memoryWaitMs = 0;
+  await prepareScriptMemoryBank([35, 0, 1, 0], async () => {
+    // Each native reserve gets its own task, even when the CPU budget is free.
+    memoryTurns++; const at = diagnosticNow(); await yieldTask(entryScope); memoryWaitMs += diagnosticNow() - at;
+    if (entryScope.disposed || entryScope.disposing) throw new Error('Entry memory preparation ended');
+  }, [{ initial: 1, maximum: 2, count: 5 }, { initial: 1, maximum: 64, count: 4 }]);
+  performance.measure('wildshard.prepare:boot.script-memory-bank', { start: memoryStartedAt, end: diagnosticNow(),
+    detail: { memoryTurns, memoryWaitMs } });
   const [{ sharedWeaponVoices, declaredWeaponVoices }, { BOAR_LOOK }, { declaredKitItemFamilies },
     { configuredShardfile, installShardfileProduct, installManifestShardfile, preparePageResidency }, { browserShardfileOptions },
     { pageGridRecovery }, { loadingPath }, { shardEntry }, { default: calibration }, { gridPrefetchStatus }] = await Promise.all([
@@ -198,7 +202,6 @@ async function startSelected(): Promise<void> {
       typeof moduleRows === 'object' && moduleRows !== null && 'extras' in moduleRows ? moduleRows.extras : undefined,
       game.shard.shardfile, document.baseURI, entryScope) : null;
     if (source === null && path === 'shardfile') prepareHomeModules(game.shard.shardfile, document.baseURI);
-    modules('common');
     if (path === 'shardfile') modules('client');
     if (path === 'grid') modules('grid');
     if (extras !== null) { loading.waiting('Reading selected download inventory'); await waitFor('Read selected download inventory', extras.read(), 'file'); }
