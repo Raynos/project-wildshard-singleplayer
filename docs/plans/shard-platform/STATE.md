@@ -27,6 +27,10 @@ crossing-time cuts, no one-world plan drafts.
 **Lanes:** 3 Opus (sp-o3 / o4 / o5; G853: 2 from 60 %, 1 from 80 % weekly; now 3 %), 5 Codex (x1 / x2 / x6 / x9 / x10; sp-x8 released at its
 boundary) + sp-ci-deploy. Counter: Jake's CO5 fix pending (true 188.5 / 209 before today's marks).
 
+**PICK for Jake (Pine P3 + pale crag, one cause):** SHARDFILE applies Pine's colour LUT (G322 'always carried'); LEGACY
+didn't (its renamed id 'pine-hollow-legacy' has no LUT file), so the goldens are LUT-less. Board 6ead6c59f8:
+art/pine-hollow/round-2-g848-lut/board.jpg. A keep the LUT (sp-o4 + my rec, per G322) or B drop it to match the golden.
+Likely the same for Driftwood's warmer planks. No code change until picked.
 **Still open for wildshard-v / Jake:** herd clock, material variants / mesh quantising, RM8.1e witness, D53 CLIs; picks
 D183 / D185.
 
