@@ -1,3 +1,4 @@
+import { questPageCompositionRows, coverCompositionRows, questStepRows as parseQuestStepRows, questHintRows as parseQuestHintRows, questServiceRows as parseQuestServiceActions, questPageInteractionRows as parseQuestPageInteractions, achievementCounterRows as parseAchievementCounterData } from '@wildshard/sdk/rows';
 import { driftwoodFixedModelOutput } from './fixedModels';
 import { driftwoodSceneModelOutput } from './sceneModelProgram';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
@@ -11,7 +12,6 @@ import { DRIFTWOOD_NATIVE_QUEST } from './nativeQuest';
 import { GULL_DRAW } from './gullDraw';
 import { FISH_DRAW } from './fishDraw';
 import { DRIFTWOOD_SPOTS as nativeQuestSpots } from './spots';
-import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
 import pageComposition from '../data/questPageComposition.json' with { type: 'json' };
 import { driftwoodQuestContinuation } from './lootBag';
 import { driftwoodQuestWorld } from './questWorld';
@@ -34,8 +34,6 @@ import { EXPLORER_CATALOGUE } from './explorerCatalogue';
 import authoredSpots from '../data/spotsRows.json' with { type: 'json' };
 import { CHAPTER_DIRECTOR } from './chapterDirector';
 import { PAGE_LIFE } from './pageLife';
-import { parse } from 'valibot';
-import { CoverCompositionSchema } from '@wildshard/format/streamedCover';
 import coverComposition from '../data/coverComposition.json' with { type: 'json' };
 import { worldSceneRecipe as parseWorldScene } from '@wildshard/sdk/worldScenes';
 import { driftwoodPierScenes } from './pierScenesBank';
@@ -69,7 +67,6 @@ import type { DriftwoodFixedLayouts } from './fixedLayouts';
 import questKillSteps from '../data/questKillSteps.json' with { type: 'json' };
 import questSteps from '../data/questSteps.json' with { type: 'json' };
 import questHints from '../data/questHints.json' with { type: 'json' };
-import { parseQuestStepRows, parseQuestHintRows, parseQuestServiceActions } from '@wildshard/format/questSteps';
 import { ENTRY_WALK } from './entryWalk';
 import headlessSwords from '../data/nativeSwords.json' with { type: 'json' };
 import headlessAssembly from '../data/headlessAssembly.json' with { type: 'json' };
@@ -84,7 +81,6 @@ import { BARREL_DECISION, BARREL_BODIES } from './barrelDecision';
 import { CAPTAIN_DECISION, CAPTAIN_MOVES, CAPTAIN_STRIKES, CAPTAIN_TARGETS } from './captainDecision';
 import { completionRows, placeSetRows } from './completion';
 import { TRADER_PAGE } from './traderPage';
-import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { DRIFTWOOD_PLACES, GUIDE } from './discovery';
 import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SHARD_FLAGS } from './interactables';
 import { DRIFTWOOD_MODES } from './modes';
@@ -97,7 +93,6 @@ import {SECTIONS,FixedGeometryGroupsSchema} from './sections';
 import {WIRE_SCHEMAS} from './sectionSchemas';
 import { emitNamedBlobs, nameBlob as nameGuestBlob } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
-import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
 import { DRIFTWOOD_FEAT_COUNTERS } from './questInventory';
 import { enemyPlacements } from './enemyPlacement';
 import { keeperRows } from './keeperRows';
@@ -132,7 +127,7 @@ const BRIDGE_SWAY_SCRIPT = { abi: 2 as const, lane: 'view' as const, pages: 1, i
   compilerRevision: SCRIPT_V2_REVISIONS.compiler, admissionRevision: SCRIPT_V2_REVISIONS.admission };
 const placements = emitNamedBlobs([nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
 
-  nameBlob('world/cover-composition.json', 'json', new TextEncoder().encode(JSON.stringify(parse(CoverCompositionSchema, coverComposition)))),
+  nameBlob('world/cover-composition.json', 'json', new TextEncoder().encode(JSON.stringify(coverCompositionRows(coverComposition)))),
 
   nameBlob('scenes/zipline.json', 'json', sceneBytes(driftwoodPierScenes().zipScene)),
   nameBlob('scenes/moorings.json', 'json', sceneBytes({ scene: { version: 1, root: 'root', nodes: [{ kind: 'group', id: 'root', children: ['lines'] }, { kind: 'mesh', id: 'lines', geometry: 'lines', material: 'still', missing: 'empty', castShadow: true }], materials: [{ kind: 'port', id: 'still', source: 'still' }] }, imports: [] })),
@@ -172,7 +167,7 @@ function foliagePlacements(layouts: DriftwoodFixedLayouts) {
   ...(['phone', 'desktop'] as const).flatMap(tier => (['palms', 'hibiscus'] as const).map(kind => nameBlob(`world/foliage/${kind}-${tier}.json`, 'json', new TextEncoder().encode(JSON.stringify({ ...foliage.placements[tier][kind], poses: uprightPoses(foliage.placements[tier][kind].poses), id: `foliage.${kind === 'palms' ? 'palms' : 'bushes'}.${tier}` }))))),];
 }
 function questComposition(layouts: DriftwoodFixedLayouts) {
-  return nameBlob('quests/page-composition.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(QuestPageCompositionSchema, { ...pageComposition, frames: questFrames, events: questEvents, deaths: questDeaths.page, entryResources: { world: driftwoodQuestWorld(layouts), figures: driftwoodQuestFigures(), continuation: driftwoodQuestContinuation() } }))));
+  return nameBlob('quests/page-composition.json', 'json', new TextEncoder().encode(encodeCanonicalJson(questPageCompositionRows({ ...pageComposition, frames: questFrames, events: questEvents, deaths: questDeaths.page, entryResources: { world: driftwoodQuestWorld(layouts), figures: driftwoodQuestFigures(), continuation: driftwoodQuestContinuation() } }))));
 }
 function populationComposition(facts: DriftwoodIslandFacts, guests: DriftwoodGuestRows) {
   return nameBlob('actors/projection.json', 'json', new TextEncoder().encode(encodeCanonicalJson(populationProjectionRows(facts, guests.returnProgram))));
