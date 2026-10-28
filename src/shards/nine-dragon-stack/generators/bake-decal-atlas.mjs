@@ -6,21 +6,21 @@ import nativeDecals from '../data/nativeDecals.json' with { type: 'json' };
 import { readImagePixels } from '@wildshard/sdk/bake/image';
 
 const root = resolve(import.meta.dirname, '../../../..');
-const code = await bundleNativeRaster({ root, entry: resolve(import.meta.dirname, 'decalAtlasPage.ts'), format: 'es', discardModuleSideEffects: true });
+const code = await bundleNativeRaster({ root, entry: resolve(import.meta.dirname, 'decalAtlasPage.ts'), format: 'iife', name: 'NineDecalBake' });
 if (code === undefined) throw new Error('Decal painter failed to bundle');
 const writer = byteWriter(process.argv.includes('--check'), 'nine-decal-atlas');
 const session = await openNativeRaster({
-  html: '<!doctype html><meta charset="utf-8"><title>Nine decal bake</title>', source: code, module: true,
+  html: '<!doctype html><meta charset="utf-8"><title>Nine decal bake</title>', source: code,
 });
 try {
   const { page } = session;
-  await page.waitForFunction(() => typeof window.bakeNineDecal === 'function');
+  await page.waitForFunction(() => typeof window.NineDecalBake.bakeNineDecal === 'function');
   for (const tier of ['phone', 'desktop']) {
     const sink = await browserBakeBytes(page);
     let raster, bytes, original;
     try {
       raster = await page.evaluate(async ({ selected, url }) => {
-        const row = await window.bakeNineDecal(selected);
+        const row = await window.NineDecalBake.bakeNineDecal(selected);
         const send = async (id, body) => {
           const response = await fetch(`${url}${id}`, { method: 'POST', body });
           if (!response.ok) throw new Error('Decal byte handoff refused');

@@ -47,7 +47,7 @@ try {
     let row, geometryBytes, mono, colour;
     try {
       row = await page.evaluate(async input => {
-        const { mono: monoCanvas, colour: colourCanvas, ...metadata } = window.bakeNineSigns(input.tier, input.calls, input.signRows);
+        const { mono: monoCanvas, colour: colourCanvas, ...metadata } = window.NineSignBake.bakeSignAtlasPage(input.tier, input.calls, input.signRows);
         const chunks = []; let byteOffset = 0;
         const pack = bytes => { const range = { byteOffset, byteLength: bytes.byteLength }; chunks.push(bytes); byteOffset += bytes.byteLength; return range; };
         const geometries = Object.fromEntries(Object.entries(metadata.geometries).map(([key, geometry]) => [key, { ...geometry,

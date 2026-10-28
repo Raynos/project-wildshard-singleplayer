@@ -3,10 +3,8 @@ import decals from '../data/decals.json' with { type: 'json' };
 import plumbing from '../data/plumbing.json' with { type: 'json' };
 
 interface DecalRaster { readonly width: number; readonly height: number; readonly png: Uint8Array<ArrayBuffer>; readonly rgba: Uint8ClampedArray<ArrayBuffer> }
-declare global { interface Window { bakeNineDecal: (tier: 'phone' | 'desktop') => Promise<DecalRaster> } }
-
 /** Retain the old native canvas raster at each declared tier scale. */
-window.bakeNineDecal = async tier => {
+export async function bakeNineDecal(tier: 'phone' | 'desktop'): Promise<DecalRaster> {
   const row = canvasAtlasRows(decals.JIAN_DECALS);
   const scale = plumbing.knobs.find(knob => knob.id === 'nine.decalScale')?.[tier];
   if (scale === undefined) throw new Error('Missing authored decal scale');
@@ -24,4 +22,4 @@ window.bakeNineDecal = async tier => {
     });
     return { width: image.width, height: image.height, png: new Uint8Array(await blob.arrayBuffer()), rgba: pixels };
   } finally { texture.dispose(); }
-};
+}

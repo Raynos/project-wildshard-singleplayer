@@ -67,5 +67,3 @@ export function bakeSignAtlasPage(tier: 'phone' | 'desktop', calls: readonly Sig
   for (const { at, color, ...rest } of builder.lights) lights.push({ ...rest, at: at.toArray(), color: color.toArray() });
   return { ...snapshot, keys, geometries, placed, lights };
 }
-declare global { interface Window { bakeNineSigns: typeof bakeSignAtlasPage } }
-window.bakeNineSigns = bakeSignAtlasPage;

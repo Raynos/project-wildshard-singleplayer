@@ -14,5 +14,3 @@ export function bakeGlyphPage(tier: keyof typeof GLYPH_LAYOUT): { size: number; 
   return { size: field.size, layout, rects: Object.fromEntries(field.rects), packed };
 }
 
-declare global { interface Window { bakeNineGlyphs: typeof bakeGlyphPage } }
-window.bakeNineGlyphs = bakeGlyphPage;

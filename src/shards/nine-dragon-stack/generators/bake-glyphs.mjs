@@ -23,7 +23,7 @@ try {
     let row, chunks;
     try {
       row = await page.evaluate(async ({ selected, url }) => {
-        const baked = window.bakeNineGlyphs(selected), packed = [];
+        const baked = window.NineGlyphBake.bakeGlyphPage(selected), packed = [];
         for (let i = 0; i < baked.packed.length; i++) {
           const id = `part-${i}`, bytes = baked.packed[i];
           if (bytes === undefined) throw new Error('Missing glyph byte block');
