@@ -14,6 +14,7 @@ import { installDoubleElements } from './doubleElements';
 import { installUniformCacheKinds } from './uniformCaches';
 import { installCompileShadowSkip } from './compileShadows';
 import { installSkinnedSortSpheres } from './skinnedSpheres';
+import { isDev, onDev } from '../core/devMode';
 import { installShadowMaterialOwnership } from './shadowMaterialOwnership';
 import type { AssetService } from '../app/assets';
 import type { Scope } from '../app/scope';
@@ -42,11 +43,22 @@ export function createRenderer(canvas: HTMLCanvasElement, context: WebGL2Renderi
   ownership.uploads.attach(renderer);
   installShadowMaterialOwnership(renderer, ownership.assets, ownership.scope);
   installCompileShadowSkip(renderer);
-  installGpuLabels(renderer);
+  const stopLabels = installDeveloperLabels(renderer);
   const dispose = renderer.dispose.bind(renderer);
-  renderer.dispose = () => { try { dispose(); } finally { stopJournal(); } };
+  renderer.dispose = () => { try { dispose(); } finally { stopLabels(); stopJournal(); } };
   installFrameCounter(renderer); // SF59: the engine counts its own renders (frameCounter.ts)
   installTextureUploadEvents(renderer);
   installCompressedTextureRetirement(renderer);
   return renderer;
+}
+
+/** T10: the GPU labels are Developer's (and the census harnesses'), like the allocation journal: the public build's draws,
+ *  renders and compiles skip their wrappers altogether (an extra call layer on every draw of a Pine frame). Turning
+ *  Developer on installs them from then on (a new diagnostic interval); they stay until the renderer goes. */
+function installDeveloperLabels(renderer: Renderer): () => void {
+  const census = typeof window !== 'undefined' && typeof Reflect.get(window, '__sc_label_gl') === 'function';
+  if (census || isDev()) { installGpuLabels(renderer); return () => undefined; }
+  let stop: (() => void) | undefined;
+  stop = onDev(on => { if (!on || stop === undefined) return; stop(); stop = undefined; installGpuLabels(renderer); });
+  return () => { stop?.(); stop = undefined; };
 }
