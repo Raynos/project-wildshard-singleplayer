@@ -15,7 +15,8 @@ import { tileResidencyRadius } from '@wildshard/engine/ui/tileResidency';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { frameBudgetSpent } from '@wildshard/engine/core/framePacing';
 import { buildYield, WORK_SLICE_MS } from '@wildshard/engine/core/workSlice';
-import { followTile, ring, tileKey, type TileContent } from './tileContent';
+import { followTile, ring, ringRadius, tileKey, type TileContent } from './tileContent';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import { tileOf, tileOrder, type CellTile, type TileEntryway } from './tileOrder';
 import { noteEnteredTiles } from './enteredTileReadout';
 import { residentTileEntry } from './tileEntry';
@@ -178,6 +179,8 @@ export const tileKeys = (tiles: readonly CellTile[]): number[] => tiles.map(tile
 export const TILE_RING = 2;
 /** T5/T10: Developer picks 3 x 3 or the shipped 5 x 5. Creatures sleep beyond the 5 x 5 (`followRing`'s default). */
 export function tileRing(): number { return tileResidencyRadius(); }
+/** FR2: a product's ring radius as a driver's `radius`: its whole cell where it declares `ring: 'cell'`, else `tileRing`. */
+export function productTileRing(source: Pick<Shardfile, 'ring'>): () => number { return () => ringRadius(source, tileRing); }
 
 /**
  * T6: the render ring as a viewer-following test (a creature manager's residency, `AnimalManager.setResidency`): given the
