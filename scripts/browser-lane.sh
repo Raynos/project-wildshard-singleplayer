@@ -50,7 +50,9 @@ DEV_MAX_AGE_H="${DEV_MAX_AGE_H:-2}"
 # BUILD-SPEED 1.3 (E491): the command must START with the browser binary, which may sit inside a "Google Chrome for
 # Testing.app" bundle whose path has spaces; the old `[^ ]*` could never cross them, so no Chrome for Testing root was
 # ever matched and a 4-day-old agent-browser Chrome survived every reap.
-BROWSER_RE='^ *[0-9]+ +[0-9]+ +/[^ ]*/(ms-playwright|\.agent-browser/browsers)/.*/(chrome-headless-shell|Chromium|Google Chrome for Testing|chrome)( |$)'
+# Only the actual browser executable may contain spaces: a Framework directory
+# in a Crashpad helper path is not the Chrome for Testing executable.
+BROWSER_RE='^ *[0-9]+ +[0-9]+ +/[^ ]*/(ms-playwright|\.agent-browser/browsers)/([^ /]+/)*(Google Chrome for Testing\.app/Contents/MacOS/Google Chrome for Testing|chrome-headless-shell|Chromium|chrome)( |$)'
 SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 
 # seconds since a process started (ps etime: [[dd-]hh:]mm:ss)

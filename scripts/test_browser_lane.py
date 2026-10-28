@@ -40,6 +40,36 @@ class BrowserAdmissionTests(unittest.TestCase):
                               env={**self.env, **extra}, capture_output=True,
                               text=True, timeout=6, check=False)
 
+    def processes(self, rows):
+        self.command('ps', f"import sys\n"
+                     f"if sys.argv[1:] == ['-Ao', 'pid=,ppid=,command=']: print({rows!r})\n"
+                     "elif 'ppid=' in sys.argv: print('1')\n"
+                     "elif 'etime=' in sys.argv: print('00:01')\n")
+
+    def test_crashpad_framework_paths_are_not_browser_roots(self):
+        bundle = '/Users/fixture/Library/Caches/ms-playwright/chromium-1243/chrome-mac-arm64/Google Chrome for Testing.app/Contents/'
+        browser = bundle + 'MacOS/Google Chrome for Testing'
+        crashpad = bundle + 'Frameworks/Google Chrome for Testing Framework.framework/Versions/153/Helpers/chrome_crashpad_handler'
+        self.processes('\n'.join([
+            f'201 1 {browser} --remote-debugging-pipe',
+            f'202 1 {crashpad} --monitor-self --annotation=prod=Google Chrome for Testing_Mac',
+            f'203 1 {crashpad} --no-periodic-tasks',
+            f'204 1 {browser} --type=renderer',
+            f'205 1 /usr/bin/node launch.js {browser}',
+        ]))
+        self.assertEqual(self.lane('capacity', BROWSER_LANES='4').stdout, '4 3\n')
+        self.assertEqual(self.lane('free', BROWSER_LANES='4').returncode, 0)
+
+    def test_all_four_actual_browser_roots_still_fill_the_cap(self):
+        self.processes('\n'.join([
+            '301 1 /cache/ms-playwright/chromium-1/chrome-linux/chrome --headless',
+            '302 1 /cache/ms-playwright/chromium-2/chrome-mac/Chromium.app/Contents/MacOS/Chromium --headless',
+            '303 1 /cache/ms-playwright/chromium_headless_shell-3/chrome-linux/headless/chrome-headless-shell --headless',
+            '304 1 /Users/fixture/.agent-browser/browsers/chrome-4/chrome-mac/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --headless',
+        ]))
+        self.assertEqual(self.lane('capacity', BROWSER_LANES='4').stdout, '4 0\n')
+        self.assertEqual(self.lane('free', BROWSER_LANES='4').returncode, 1)
+
     def test_wait_and_command_fail_without_running_child_when_full(self):
         for args in [('wait',), ('touch', str(self.root / 'child-ran'))]:
             started = time.monotonic()
