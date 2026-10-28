@@ -3,6 +3,7 @@ import * as v from 'valibot';
 import { WorldAssemblySchema } from '../src/format/worldAssembly';
 import { formatJsonSchema, namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { worldAssemblyRows } from '../src/sdk/worldScenes';
 
 const models = { stages: [{ kind: 'drawn-models', id: 'orchard.signs', look: {painterly: {rim: 0.4}}, models: [{id: 'north', draw: 'sign:north'}] }] };
 
@@ -11,8 +12,11 @@ test('the defining assembly root emits structural rows and retains its explicit 
   expect(JSON.stringify(formatJsonSchema(WorldAssemblySchema))).toContain('@wildshard/format/worldAssembly#WorldAssemblySchema');
   const admitted = validateNamedJsonSchema(schema, new TextEncoder().encode(JSON.stringify(models)));
   expect(v.parse(WorldAssemblySchema, admitted)).toEqual(models);
+  expect(worldAssemblyRows(models)).toEqual(v.parse(WorldAssemblySchema, admitted));
   expect(v.safeParse(WorldAssemblySchema, {stages: [{...models.stages[0], models: [{id: 'same', draw: 'one'}, {id: 'same', draw: 'two'}]}]}).success).toBe(false);
   expect(v.safeParse(WorldAssemblySchema, {stages: [{...models.stages[0], arbitrary: true}]}).success).toBe(false);
+  expect(() => worldAssemblyRows({stages: [{...models.stages[0], models: [{id: 'same', draw: 'one'}, {id: 'same', draw: 'two'}]}]})).toThrow();
+  expect(() => worldAssemblyRows({stages: [{...models.stages[0], arbitrary: true}]})).toThrow();
 });
 
 test('assembly emission does not grant a bridge to a foreign custom predicate', () => {
@@ -24,8 +28,8 @@ test('assembly emission does not grant a bridge to a foreign custom predicate', 
 test('arena room variants retain the original open wire and refuse mixed room resources',()=>{
   const open={kind:'arena-room',id:'orchard.open',files:{fight:'fight.json',geometry:'geometry.json'},weather:'weather',anchor:'tie'};
   const room={kind:'arena-room',mode:'room',id:'orchard.room',file:'fight.json',entrance:{part:'garden',anchor:'entry'}};
-  expect(v.parse(WorldAssemblySchema,{stages:[open]})).toEqual({stages:[open]});
-  expect(v.parse(WorldAssemblySchema,{stages:[room]})).toEqual({stages:[room]});
-  expect(()=>v.parse(WorldAssemblySchema,{stages:[{...open,...room}]})).toThrow();
-  expect(()=>v.parse(WorldAssemblySchema,{stages:[{...room,mode:'anything'}]})).toThrow();
+  expect(worldAssemblyRows({stages:[open]})).toEqual(v.parse(WorldAssemblySchema,{stages:[open]}));
+  expect(worldAssemblyRows({stages:[room]})).toEqual(v.parse(WorldAssemblySchema,{stages:[room]}));
+  expect(()=>worldAssemblyRows({stages:[{...open,...room}]})).toThrow();
+  expect(()=>worldAssemblyRows({stages:[{...room,mode:'anything'}]})).toThrow();
 });

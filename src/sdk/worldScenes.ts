@@ -12,6 +12,13 @@ import { AdmissionLateSchema, type LateFile } from '@wildshard/format/admissionL
 import { BakedBuildingLookSchema, parseBuildingLifeRows as nativeBuildingLifeRows, emptyBuildingLifeRows as nativeEmptyBuildingLifeRows,
   type BuildingAssemblyRows, type BakedBuildingLookRows } from '@wildshard/format/buildings';
 import type { OutputFile } from '@wildshard/format/outputIndex';
+import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
+
+/** Admit ordered world construction stages and their original resource/variant rules.
+ * The result is data only; no scene, lifetime or runtime handle is constructed. */
+export function worldAssemblyRows(input: unknown): ReturnType<typeof parse<typeof WorldAssemblySchema>> {
+  return parse(WorldAssemblySchema, input);
+}
 
 /** Source-owned effect declarations retain the platform field contract. */
 export interface SceneEffectField {

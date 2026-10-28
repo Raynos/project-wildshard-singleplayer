@@ -1,5 +1,4 @@
-import * as v from 'valibot';
-import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
+import { worldAssemblyRows } from '@wildshard/sdk/worldScenes';
 import { nineBuildBlocks } from './worldEntry';
 import { MOVER_STAGES } from './moversView';
 import type { NineWorldScenes } from './worldScenes';
@@ -14,7 +13,7 @@ const STATIC_GEOMETRY = 'Nine Dragon static geometry (only the positions stay in
  * where it paused, a work slice where it sliced) and its static geometry GPU-only. Each deck ending is a construction
  * variant: `capped` played alone, `open` in a grid cell.
  */
-export function nineWorldAssembly(source: { readonly seed: number; readonly looks: readonly string[] }, scenes: NineWorldScenes): v.InferOutput<typeof WorldAssemblySchema> {
+export function nineWorldAssembly(source: { readonly seed: number; readonly looks: readonly string[] }, scenes: NineWorldScenes): ReturnType<typeof worldAssemblyRows> {
   const blocks = nineBuildBlocks(scenes);
   const entry = (id: string, label: string) => {
     const rows = blocks[id]; if (rows === undefined) throw new Error(`Missing Nine build block ${id}`);
@@ -27,7 +26,7 @@ export function nineWorldAssembly(source: { readonly seed: number; readonly look
   const lastMover = MOVER_STAGES[MOVER_STAGES.length - 1]; if (lastMover === undefined) throw new Error('Nine has no movers');
   // the banyan crown's parts, when the layout bake drew a crown (the dressing step publishes them)
   const dressing = scenes.NINE_WORLD_SCENES.steps.find(step => step.id === 'dressing'), crown = ['crown-cards', 'crown-core'].filter(id => dressing?.publish[id] !== undefined);
-  return v.parse(WorldAssemblySchema, {
+  return worldAssemblyRows({
     construction: {
       looks: { unbound: looks, bound: looks }, root: { id: 'nine.root', name: 'nine-dragon-stack' }, variant: { standalone: 'capped', cell: 'open' },
       seed: source.seed,
