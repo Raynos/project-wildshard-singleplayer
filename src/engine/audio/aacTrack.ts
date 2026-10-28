@@ -72,7 +72,7 @@ export class AacTrack {
         const buffer = this.buffer(plan.frames);
         for (const part of plan.parts) {
           const pcm = await pull.read(part.start, part.frames);
-          if (scope.disposed) throw new Error('AAC preparation owner retired');
+          if (scope.disposed || scope.disposing) throw new Error('AAC preparation owner retired');
           pcm.forEach((channel, i) => { buffer.getChannelData(i).set(channel, part.destination); });
         }
         windows.push({ plan, buffer });

@@ -5,6 +5,7 @@ import { AacTrack } from './aacTrack';
 import { indexRecordingAac } from '@wildshard/format/aacIndex';
 import { parseManifest } from './Stems';
 import type { AacCodecFactory } from './aacPull';
+import { Scope } from '../app/scope';
 
 class Pcm {
   readonly sampleRate = 48000;
@@ -57,5 +58,14 @@ it('bounds paired stereo/mono preparation on the same rounded loop without whole
     expect(joined[0]?.plan.loop).toBeDefined();
     expect(joined.reduce((sum, window) => sum + window.buffer.length * window.buffer.numberOfChannels * 4, 0)).toBeLessThan(3000000);
     expect(joined.map(window => window.plan)).not.toEqual(right.map(window => window.plan));
+    const owner = new Scope('late-pair-owner');
+    const pending = tension.primeAt(0, owner);
+    owner.onDispose(() => { /* Hold sliced retirement before its decoder child. */ });
+    const retirement = owner.disposeSteps();
+    try {
+      expect(retirement.next().done).toBe(false);
+      await expect(pending).rejects.toThrow('AAC preparation owner retired');
+      expect(tension.ready).toBe(false);
+    } finally { for (const _step of retirement) { /* Drain the started decoder. */ } }
   } finally { vi.unstubAllGlobals(); }
 });

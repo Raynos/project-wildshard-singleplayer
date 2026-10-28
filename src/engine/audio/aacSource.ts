@@ -56,7 +56,7 @@ export class AacSource {
       void this.pump();
     } catch (error) { this.scope.dispose(); throw error; }
   }
-  private active(): boolean { return !this.scope.disposed; }
+  private active(): boolean { return !this.scope.disposed && !this.scope.disposing; }
   get residentWindows(): number { return this.windows.size; }
   get peakWindows(): number { return this.peak; }
   dispose(): void { this.scope.dispose(); }
@@ -74,7 +74,7 @@ export class AacSource {
   }
   private schedule(plan: AacWindow, buffer: AudioBuffer): void {
     const ctx = this.ports.context, start = this.t0 + plan.timeline / RATE;
-    if (this.scope.disposed || start >= this.stopAt) return;
+    if (!this.active() || start >= this.stopAt) return;
     if (this.windows.size >= MAX_WINDOWS) throw new Error('AAC source window admission exceeded');
     const owner = this.scope.child('AAC.window');
     try {
