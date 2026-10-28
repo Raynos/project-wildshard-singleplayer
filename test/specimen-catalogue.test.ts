@@ -50,6 +50,16 @@ function testSky(): SkyRig {
 const binary = (): Uint8Array => unshuffleLanes(new Uint8Array(inflateSync(nativePlaceFile('specimens.bin'))));
 const bake = v.parse(PackedSpecimenSchema, { ...packedRows, bin: '/assets/nalati/baked/specimens.bin' });
 
+function expectSameWords(actual: ArrayBufferView | null | undefined, expected: ArrayBufferView | null): void {
+  if (expected === null) { expect(actual).toBeNull(); return; }
+  if (actual === undefined || actual === null) throw new Error('Missing original specimen channel');
+  expect(actual.constructor).toBe(expected.constructor);
+  expect(actual.byteLength).toBe(expected.byteLength);
+  // Preserve every word, including signed zero, without recursive numeric-key equality.
+  expect(Buffer.compare(new Uint8Array(actual.buffer, actual.byteOffset, actual.byteLength),
+    new Uint8Array(expected.buffer, expected.byteOffset, expected.byteLength))).toBe(0);
+}
+
 describe('declared specimen catalogue', () => {
   it('retains nested parameter defaults and authored variant merges', () => {
     expect(paramsOf(trail.signpost, 'three', undefined)).toEqual({ arrows: [0.45, 0.75, -0.87], labels: ['LOOKOUT', 'WRECK', 'SHRINE'] });
@@ -109,9 +119,9 @@ describe('declared specimen catalogue', () => {
           const original = readBakedGeometry(bytes, at, part.geometry), expected = part.geometry.expand ? original.toNonIndexed() : original;
           if (part.geometry.expand) { expected.computeBoundingBox(); expected.computeBoundingSphere(); }
           const actual = parts?.[index]?.geometry, second = again?.[index]?.geometry;
-          expect(actual?.getIndex()?.array ?? null).toEqual(expected.getIndex()?.array ?? null);
+          expectSameWords(actual?.getIndex()?.array ?? null, expected.getIndex()?.array ?? null);
           for (const name of Object.keys(expected.attributes)) {
-            expect(actual?.getAttribute(name).array).toEqual(expected.getAttribute(name).array);
+            expectSameWords(actual?.getAttribute(name).array, expected.getAttribute(name).array);
             expect(actual?.getAttribute(name).array).not.toBe(second?.getAttribute(name).array);
           }
           expect(parts?.[index]?.material).toBe(again?.[index]?.material);
