@@ -423,6 +423,11 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
   // beside those demand reads; retain every file, cost and required-read fence.
   for(const row of NALATI_L1_PAIRS)lateNames.add(row.name);
   lateNames.add('world/terrain/slab.glb');
+  // Scalar fields and the selected grass profile likewise await their owned
+  // byte sources before construction. Skip only duplicate admission warming;
+  // critical terrain/collision roots retain their existing early priority.
+  for(const row of geographySources)lateNames.add(row.name);
+  for(const row of grass.rows.sources)lateNames.add(row.name);
   // The selected dressing reader awaits its bank before world publication;
   // general warm must not pull the phone copy into a desktop entry.
   lateNames.add(NALATI_PHONE_CRAG_FILE);
