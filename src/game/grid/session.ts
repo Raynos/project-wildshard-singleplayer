@@ -454,8 +454,14 @@ export class GridSession {
       finally { signs?.release(); }
     })();
     const outer = async (): Promise<PlatformRoad> => {
-      try { return await installPlatformRoadSliced({ ...roadInput, allocationKey: 'road.outer', within: (x, z) => !ring(x, z), voidFloor: false }, pause); }
-      finally { grain?.release(); strips.length = 0; } // Native collision views retain positions/indices, never render-only colours.
+      let outerSigns: ReturnType<typeof startRoadSigns>;
+      try {
+        outerSigns = startRoadSigns(roadScope, allocator, instance, layout.signs.filter(sign => !ring(sign.at.x, sign.at.z)), 'outer');
+        if (outerSigns !== undefined) await waitFor('Grid outer road signs', outerSigns.ready, 'worker');
+        if (roadScope.disposed || roadScope.disposing) throw new Error('Grid session left during outer road preparation');
+        return await installPlatformRoadSliced({ ...roadInput, ...(outerSigns === undefined ? {} : { signs: outerSigns.get }),
+          allocationKey: 'road.outer', within: (x, z) => !ring(x, z), voidFloor: false }, pause);
+      } finally { outerSigns?.release(); grain?.release(); strips.length = 0; } // Collision views retain positions/indices, never render-only colours.
     };
     road.catch(() => { grain?.release(); roadScope.dispose(); });
     try {

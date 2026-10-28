@@ -5,17 +5,17 @@ import { coverageTable } from './roadSolid';
 import { roadSignPaintLayout, type RoadSignSource } from './roadSignPaint';
 
 export interface RoadSignPreparation { readonly ready: Promise<void>; readonly get: RoadSignSource; readonly release: () => void }
-/** Initial-ring coverage only; exact original main-thread painting remains the fallback and outer-ring path. */
-export function startRoadSigns(parent: Scope, allocator: ResidencyAllocator, home: string, signs: readonly RoadSign[]): RoadSignPreparation | undefined {
+/** One road bank's scoped coverage; exact original main-thread painting remains the fallback. */
+export function startRoadSigns(parent: Scope, allocator: ResidencyAllocator, home: string, signs: readonly RoadSign[], phase: 'initial' | 'outer' = 'initial'): RoadSignPreparation | undefined {
   if (typeof Worker !== 'function' || typeof OffscreenCanvas !== 'function' || parent.disposed || parent.disposing) return undefined;
   const layout = roadSignPaintLayout(signs), rows = [...layout.lines.values()], signature = JSON.stringify(rows), count = layout.width * layout.height;
   if (rows.length > 2048 || count > 16 * 1024 * 1024 || signature.length > 131072) return undefined;
   // Canvas + RGBA readback + final RG8 + conversion lookup; duplicated job text is bounded too.
-  const lease = allocator.reserve({ id: `product:grid:road-signs:${home}`, category: 'product', owner: home,
+  const lease = allocator.reserve({ id: `product:grid:road-signs:${home}${phase === 'outer' ? ':outer' : ''}`, category: 'product', owner: home,
     bytes: count * 10 + 131072 + signature.length * 4 + 1024, distance: 0, needed: true });
   if (lease === null) return undefined;
   if (parent.disposed || parent.disposing) { lease.release(); return undefined; }
-  const scope = parent.child('road-signs'); let worker: Worker | undefined, plane: Uint8Array<ArrayBuffer> | undefined;
+  const scope = parent.child(phase === 'outer' ? 'road-signs-outer' : 'road-signs'); let worker: Worker | undefined, plane: Uint8Array<ArrayBuffer> | undefined;
   let settled = false, complete: (() => void) | undefined, deadline: ReturnType<Scope['timeout']> | undefined;
   const ready = new Promise<void>(resolve => { complete = resolve; }), listeners: (() => void)[] = [];
   const stop = (): void => { scope.cancelTimer(deadline); deadline = undefined; for (const forget of listeners.splice(0)) forget(); worker?.terminate(); worker = undefined; };

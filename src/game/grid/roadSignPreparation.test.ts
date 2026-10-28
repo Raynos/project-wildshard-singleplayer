@@ -67,3 +67,25 @@ test('layout keeps unique line order, last matching row, slots and exact non-pow
   expect([...layout.lines.values()]).toEqual([last, b, c]); expect(layout.lines.get('left|Port|120')).toBe(last);
   expect([layout.width, layout.height]).toEqual([1024, 128]); expect(layout.slot(2)).toEqual([0, 64]); expect(layout.slot(3)).toEqual([512, 64]);
 });
+
+test('initial and later banks keep distinct claims, planes and cleanup under the same home owner', async () => {
+  support(); const scope = new Scope('sign-banks'), allocator = new ResidencyAllocator();
+  const outerSigns: RoadSign[] = [{ at: { x: 1200, z: 1200 }, facing: { x: 0, z: 1 }, lines: [{ arrow: 'left', names: ['Outer'], metres: 240 }] }];
+  const initial = startRoadSigns(scope, allocator, 'home', signs), outer = startRoadSigns(scope, allocator, 'home', outerSigns, 'outer');
+  if (initial === undefined || outer === undefined) throw new Error('Missing bank preparations');
+  try {
+    expect(workers).toHaveLength(2); const a = workers[0], b = workers[1];
+    if (a === undefined || b === undefined) throw new Error('Missing bank workers');
+    const layout = roadSignPaintLayout(signs), later = roadSignPaintLayout(outerSigns);
+    const first = new Uint8Array(layout.width * layout.height * 2).fill(41), last = new Uint8Array(later.width * later.height * 2).fill(42);
+    a.reply({ width: layout.width, height: layout.height, pixels: first }); b.reply({ width: later.width, height: later.height, pixels: last });
+    await Promise.all([initial.ready, outer.ready]);
+    expect(allocator.entries()).toHaveLength(2);
+    expect(allocator.entries().every(entry => entry.owner === 'home')).toBe(true);
+    expect(initial.get(layout)?.[0]).toBe(41); expect(outer.get(later)?.[0]).toBe(42);
+    expect(initial.get(later)).toBeUndefined(); expect(outer.get(layout)).toBeUndefined();
+    initial.release(); expect(allocator.entries()).toHaveLength(1); expect(outer.get(later)?.[0]).toBe(42);
+    outer.release(); expect(allocator.entries()).toEqual([]);
+    expect([a.terminated, b.terminated]).toEqual([1, 1]);
+  } finally { scope.dispose(); }
+});
