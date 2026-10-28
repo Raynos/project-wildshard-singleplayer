@@ -1,10 +1,13 @@
 import type { BakedPiece } from './fileInventory';
-import type { WorldPieceRow } from '@wildshard/game/shardfile/bakedKinds';
+import type { bakedSceneSourceFile } from '@wildshard/sdk/worldScenes';
 import { skyWorldPieceValues, type SkyWorldPieceRows } from './worldPieceBytes';
 import { FALLEN_BRIDGE, MILL, NOTES, STEP, VANES, WINCH, WINCH_HOUSE } from "./layout";
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import { skyGroundValues } from './groundScene';
 import { skyRouteRegistry } from './routeScene';
+
+type SourceWorldPiece = NonNullable<Parameters<typeof bakedSceneSourceFile>[1]['placements']>['rows'][number];
+type WorldPieceRow<Kind extends string = string> = Omit<SourceWorldPiece, 'baked'> & { readonly baked?: Kind };
 
 const { SKY_GROUND } = skyGroundValues();
 const pieces = skyWorldPieceValues();

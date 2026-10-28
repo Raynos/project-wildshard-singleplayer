@@ -1,6 +1,7 @@
 import { ClientChannels } from '@wildshard/sdk/clientChannels';
-import { parseClientChannels } from '@wildshard/format/clientChannels';
-import type { RGB } from '@wildshard/engine/level/data';
+import { parseClientChannels } from '@wildshard/sdk/rows';
+
+type RGB = [number, number, number];
 
 type Scalar = number | { scale: number } | { add: number } | null;
 const colours = ['sun', 'zenith', 'horizon', 'ground', 'glow', 'hemiSky', 'hemiGround', 'fog', 'fogSun', 'shade', 'rim', 'cloudSun', 'cloud', 'planet', 'shadowTint', 'highTint', 'lift', 'gain', 'vol'] as const;

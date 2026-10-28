@@ -7,7 +7,9 @@
  * the painting S and E, their feet in the cloud deck under the slab (look/cloudSea.ts, y −68) so from above they rise
  * out of the clouds instead of ringing the world like a fence. Compass azimuths: 0 = north (+z), 90 = east (−x), 180 = south, 270 = west.
  */
-import type { ChunkHorizon } from '@wildshard/game/shard/manifest';
+import type { readManifestSource } from '@wildshard/sdk/projectManifest';
+
+type ChunkHorizon = NonNullable<Awaited<ReturnType<typeof readManifestSource>>['authored']['horizon']>;
 
 export const NALATI_HORIZON_V2: ChunkHorizon = {
   cloudSea: true,

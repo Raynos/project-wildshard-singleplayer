@@ -1,8 +1,7 @@
-import type { BakedColliderInput } from '@wildshard/game/shardfile/bakedKinds';
 import { skyBridgePhysicsPlacements } from './bridgeColliders';
 import { skyPhysicsPlacements } from './physicsPlacements';
 import { skyGroundValues, type SkyGroundValues } from './groundScene';
-import { worldSceneRecipe as parseWorldScene } from '@wildshard/sdk/worldScenes';
+import { worldSceneRecipe as parseWorldScene, type bakedSceneSourceFile } from '@wildshard/sdk/worldScenes';
 
 import { restScenes } from './restScene';
 import { isletScenes } from './isletScene';
@@ -14,6 +13,7 @@ import { BOOK_STAND } from './rows/bookStand';
 
 type WorldSceneRecipe = ReturnType<typeof parseWorldScene>;
 type PrivateScene = WorldSceneRecipe['scene'];
+type BakedColliderInput = NonNullable<NonNullable<Parameters<typeof bakedSceneSourceFile>[1]['placements']>['colliders']>[number]['colliders'][number];
 
 export interface FixedWorldRows {
   readonly recipe: WorldSceneRecipe; readonly models: readonly string[]; readonly textureOnly: readonly string[];

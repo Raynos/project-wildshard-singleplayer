@@ -2,7 +2,10 @@ import * as files from './fileInventory';
 import { SKY_STAND_INS } from './standIns';
 import { SKY_CREATURE_LOOK_ROWS } from './creatureLooks';
 import STRINGS from '../data/strings.json' with { type: 'json' };
-import type { RigLibraryRows, ModelSpecimenRow } from '@wildshard/game/plugin/geometry';
+import type { modelSceneSourceFile } from '@wildshard/sdk/worldScenes';
+
+type RigLibraryRows = NonNullable<Parameters<typeof modelSceneSourceFile>[1]['rows']['rigs']>;
+type ModelSpecimenRow = NonNullable<Parameters<typeof modelSceneSourceFile>[1]['specimens']>[number];
 
 /** Shared loader descriptor: original load order, body copies and decode release. */
 export const SKY_RIG_LIBRARY = { bodies: { creatures: files.SKY_CREATURES, urls: files.SKY_CREATURE_RIGS, standIns: SKY_STAND_INS,
