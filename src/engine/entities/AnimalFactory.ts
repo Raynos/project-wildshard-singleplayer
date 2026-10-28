@@ -710,7 +710,9 @@ export class AnimalFactory {
     if (root === undefined) throw new Error(`species '${model.kind}': no 'body' bone`);
     mesh.add(root);
     mesh.updateMatrixWorld(true);
-    mesh.bind(new THREE.Skeleton(list));
+    // Skeleton already records inverses from these current world matrices.
+    // Supplying that same bind matrix avoids a second tree update/inversion.
+    mesh.bind(new THREE.Skeleton(list), mesh.matrixWorld);
     const contract = model.species.rigContract;
     bindRig(mesh, [], contract, { skeleton: contract.skeleton, procedural: contract.clips });
     mesh.castShadow = true; mesh.receiveShadow = true;

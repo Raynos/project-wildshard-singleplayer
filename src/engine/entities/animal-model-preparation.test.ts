@@ -5,6 +5,7 @@ import { Scope } from '../app/scope';
 import { currentOwner } from '../app/ownership';
 import { pageScope } from '../app/resources';
 import { app } from '../app/runtime';
+import { BufferAttribute, Skeleton, Vector3 } from 'three';
 
 const models = new Set<AnimalModel>(), owners: Scope[] = [];
 afterEach(() => {
@@ -50,6 +51,47 @@ test('retiring the owner during a pending slice refuses further model constructi
   await expect(pending).rejects.toThrow('owner closed');
   expect(build).not.toHaveBeenCalled();
   await expect(prepared.prepareModels(Array.from({ length: 1025 }, () => ({ kind: 'elk' })))).rejects.toThrow('Excessive');
+});
+
+test.each(['bear', 'horse', 'wolf'])('one bind inversion preserves every native %s joint and posed vertex', kind => {
+  const prepared = factory(), model = prepared.model(kind); models.add(model);
+  const inversions = vi.spyOn(Skeleton.prototype, 'calculateInverses');
+  const before = prepared.instantiate(model, .37);
+  // The original no-matrix bind updates the fresh native tree and recomputes
+  // its inverses. It supplies the independent before result for this rig.
+  before.mesh.bind(before.mesh.skeleton);
+  expect(inversions).toHaveBeenCalledTimes(2); inversions.mockClear();
+  const actual = prepared.instantiate(model, .37);
+  try {
+    expect(inversions).toHaveBeenCalledTimes(1);
+    expect(actual.mesh.geometry).toBe(before.mesh.geometry);
+    expect(actual.mesh.bindMatrix.elements).toStrictEqual(before.mesh.bindMatrix.elements);
+    expect(actual.mesh.bindMatrixInverse.elements).toStrictEqual(before.mesh.bindMatrixInverse.elements);
+    expect(actual.mesh.skeleton.boneInverses.map(matrix => matrix.elements)).toStrictEqual(before.mesh.skeleton.boneInverses.map(matrix => matrix.elements));
+    const position = model.geometry.getAttribute('position');
+    if (!(position instanceof BufferAttribute)) throw new Error('Missing native rig positions');
+    for (const pose of [false, true]) {
+      const samples: Float64Array[] = [];
+      for (const rig of [before, actual]) {
+        for (const [index, bone] of rig.mesh.skeleton.bones.entries()) {
+          if (pose) bone.rotation.set(index * .003, index * -.005, index * .007);
+        }
+        rig.mesh.updateMatrixWorld(true); rig.mesh.skeleton.update();
+        const vertices = new Float64Array(position.count * 3), vertex = new Vector3();
+        for (let index = 0; index < position.count; index++) {
+          vertex.fromBufferAttribute(position, index); rig.mesh.applyBoneTransform(index, vertex); vertex.toArray(vertices, index * 3);
+        }
+        samples.push(vertices);
+      }
+      const [original, current] = samples;
+      if (original === undefined || current === undefined) throw new Error('Missing paired native pose');
+      expect(Buffer.compare(Buffer.from(original.buffer), Buffer.from(current.buffer))).toBe(0);
+      expect(actual.mesh.skeleton.boneMatrices).toStrictEqual(before.mesh.skeleton.boneMatrices);
+    }
+  } finally {
+    inversions.mockRestore(); before.mesh.skeleton.dispose(); actual.mesh.skeleton.dispose();
+    before.materials[0]?.dispose(); actual.materials[0]?.dispose();
+  }
 });
 
 test('prepares all potential variants when authored placement leaves the manager to roll', async () => {
