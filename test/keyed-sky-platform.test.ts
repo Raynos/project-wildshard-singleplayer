@@ -1,6 +1,7 @@
 import { gunzipSync } from 'fflate';
 import oracle from './fixtures/keyed-sky-half-oracle.json';
-import { encodeGainKey, packGainKey } from '../scripts/bake/keyed-sky.mjs';
+import { encodeGainKey, packGainKey } from '../src/sdk/bake/keyedSky';
+import { encodeGainKey as nativeEncodeGainKey, packGainKey as nativePackGainKey } from '../scripts/bake/keyed-sky.mjs';
 import { describe, expect, it } from 'vitest';
 import { DayCycle } from '../src/engine/world/dayCycle';
 import { parseKeyedSky, SKY_PRESET } from '../src/format/keyedSky';
@@ -77,6 +78,17 @@ it('matches the original worker bits across every gain and colour byte', async (
     const c = i % 256, g = i >>> 8; color.set([c, c * 3 % 256, 255 - c, 255], i * 4); gain.set([g, g, g, 255], i * 4);
   }
   const result = packGainKey(color, gain, oracle.width, oracle.height);
+  const native = nativePackGainKey(color, gain, oracle.width, oracle.height);
+  expect(Buffer.compare(new Uint8Array(result.data.buffer), new Uint8Array(native.data.buffer))).toBe(0);
+  expect(result.horizon).toEqual(native.horizon);
+  expect(Buffer.compare(encodeGainKey(result.data), nativeEncodeGainKey(native.data))).toBe(0);
   const digest = await crypto.subtle.digest('SHA-256', result.data.slice().buffer);
   expect(Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('')).toBe(oracle.sha256);
+});
+
+it('encodes only the selected native half-float view', () => {
+  const storage = new Uint16Array([123, 15360, 16384, 17408, 456]), view = storage.subarray(1, 4);
+  const bytes = encodeGainKey(view);
+  expect(Buffer.compare(bytes, nativeEncodeGainKey(view))).toBe(0);
+  expect(Buffer.compare(gunzipSync(bytes), new Uint8Array(view.buffer, view.byteOffset, view.byteLength))).toBe(0);
 });

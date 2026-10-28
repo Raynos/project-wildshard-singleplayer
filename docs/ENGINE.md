@@ -3035,6 +3035,9 @@ Their authoring contracts live in `@wildshard/format/dayLook`; live colour
 presets remain in `@wildshard/game/looks/dayLookPresets`.
 Day-clock dusk/lamps readers are numeric preset field ids, with no caller
 callbacks.
+`@wildshard/sdk/bake/keyedSky.packGainKey` owns the pure colour/gain compiler and
+unrounded horizon sampling; `encodeGainKey` encodes the selected half-float view
+with the original level-9 gzip/OS-marker contract. Neither reads files or installs a renderer.
 
 
 **Graph day skies (SHARD-PLATFORM W2 C2).** `@wildshard/game/looks/graphDaySky` (`src/game/looks/graphDaySky.ts`)

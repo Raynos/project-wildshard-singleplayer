@@ -2,7 +2,7 @@
 // rows (with each key's packed file, size and horizon) and the packed key bytes by product name; output.ts names them in
 // memory (no scheduler job, no stored files under assets/). D65: the key planes come from the program's sources and are
 // decoded by the build context's image reader (no Sharp in the config bundle).
-import { encodeGainKey, packGainKey } from '../../../../scripts/bake/keyed-sky.mjs';
+import { encodeGainKey, packGainKey } from '@wildshard/sdk/bake/keyedSky';
 import sky from '../data/sky.json' with { type: 'json' };
 import { skyKeySource } from './pineSources.ts';
 

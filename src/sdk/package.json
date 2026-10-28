@@ -64,6 +64,7 @@
     "./bake/lightSources": "./bake/lightSources.ts",
     "./bake/canvasAtlas": "./bake/canvasAtlas.ts",
     "./bake/nativeRaster": "./bake/nativeRaster.ts",
+    "./bake/keyedSky": "./bake/keyedSky.ts",
     "./bake/coarseCopy": "./bake/coarseCopy.ts",
     "./bake/glbCompression": "./bake/glbCompression.ts",
     "./bake/compactGlb": "./bake/compactGlb.ts",
