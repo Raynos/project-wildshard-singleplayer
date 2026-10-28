@@ -4,13 +4,13 @@ import { authorFormatSchema, namedFormatJsonSchema, namedJsonSchema, composeName
 import { EnemyPlacementsSchema, FixedGeometryGroupsSchema } from './sections';
 import type { DriftwoodFixedLayouts } from './fixedLayouts';
 
-const MixedPopulationSchema = authorFormatSchema('mixedPopulation.MixedPopulationSchema');
-const NativeQuestCompositionSchema = authorFormatSchema('nativeQuestComposition.NativeQuestCompositionSchema');
-const HEADLESS_ASSEMBLY_JSON_SCHEMA = authorFormatSchema('namedJsonContracts.HEADLESS_ASSEMBLY_JSON_SCHEMA');
-const ReturnProgramSchema = authorFormatSchema('namedJsonContracts.ReturnProgramSchema');
-const PageReturnRowsSchema = authorFormatSchema('namedJsonContracts.PageReturnRowsSchema');
-const QuestTraderSchema = authorFormatSchema('namedJsonContracts.QuestTraderSchema');
-const PosedLibrarySchema = authorFormatSchema('namedJsonContracts.PosedLibrarySchema');
+const MixedPopulationSchema: ReturnType<typeof authorFormatSchema<'mixedPopulation.MixedPopulationSchema'>> = authorFormatSchema('mixedPopulation.MixedPopulationSchema');
+const NativeQuestCompositionSchema: ReturnType<typeof authorFormatSchema<'nativeQuestComposition.NativeQuestCompositionSchema'>> = authorFormatSchema('nativeQuestComposition.NativeQuestCompositionSchema');
+const HEADLESS_ASSEMBLY_JSON_SCHEMA: ReturnType<typeof authorFormatSchema<'namedJsonContracts.HEADLESS_ASSEMBLY_JSON_SCHEMA'>> = authorFormatSchema('namedJsonContracts.HEADLESS_ASSEMBLY_JSON_SCHEMA');
+const ReturnProgramSchema: ReturnType<typeof authorFormatSchema<'namedJsonContracts.ReturnProgramSchema'>> = authorFormatSchema('namedJsonContracts.ReturnProgramSchema');
+const PageReturnRowsSchema: ReturnType<typeof authorFormatSchema<'namedJsonContracts.PageReturnRowsSchema'>> = authorFormatSchema('namedJsonContracts.PageReturnRowsSchema');
+const QuestTraderSchema: ReturnType<typeof authorFormatSchema<'namedJsonContracts.QuestTraderSchema'>> = authorFormatSchema('namedJsonContracts.QuestTraderSchema');
+const PosedLibrarySchema: ReturnType<typeof authorFormatSchema<'namedJsonContracts.PosedLibrarySchema'>> = authorFormatSchema('namedJsonContracts.PosedLibrarySchema');
 
 const text = v.string(), number = v.number();
 const layoutNumber = v.pipe(v.number(), v.finite());

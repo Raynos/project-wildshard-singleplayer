@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import rows from '../data/speciesLooks.json' with { type: 'json' };
 import { authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
 
-const SpeciesLookBookSchema = authorFormatSchema('speciesBookRows.SpeciesLookBookSchema');
+const SpeciesLookBookSchema: ReturnType<typeof authorFormatSchema<'speciesBookRows.SpeciesLookBookSchema'>> = authorFormatSchema('speciesBookRows.SpeciesLookBookSchema');
 type VariantDef = AuthorSpeciesRows['variants'][number];
 /** Build-only variant facts shared with the admitted body catalogue. */
 export function bodySpecies(kind: string): Pick<AuthorSpeciesRows, 'kind' | 'label' | 'variants' | 'spawnOnly' | 'pose' | 'gait'> {

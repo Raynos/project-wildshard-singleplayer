@@ -19,17 +19,17 @@ import contactInput from '../data/poiContacts.json' with {type:'json'};
 import atlases from '../data/signAtlases.json' with {type:'json'};
 import * as v from 'valibot';
 
-const SceneDressingSchema = authorFormatSchema('sceneDressing.SceneDressingSchema');
-const SceneBakedGeometrySchema = authorFormatSchema('sceneDressing.SceneBakedGeometrySchema');
-const SceneFloorSchema = authorFormatSchema('sceneDressing.SceneFloorSchema');
-const SceneDressingContactsSchema = authorFormatSchema('sceneDressing.SceneDressingContactsSchema');
-const SpecimenCatalogueSchema = authorFormatSchema('specimenCatalogue.SpecimenCatalogueSchema');
-const PackedSpecimenSchema = authorFormatSchema('specimenCatalogue.PackedSpecimenSchema');
-const SpecimenMaterialSchema = authorFormatSchema('specimenCatalogue.SpecimenMaterialSchema');
-const SpecimenAssetSchema = authorFormatSchema('specimenCatalogue.SpecimenAssetSchema');
-const AmbientFlockSchema = authorFormatSchema('ambientLife.AmbientFlockSchema');
-const AmbientPerchesSchema = authorFormatSchema('ambientLife.AmbientPerchesSchema');
-const PrivateSceneSchema = authorFormatSchema('clientChannels.PrivateSceneSchema');
+const SceneDressingSchema: ReturnType<typeof authorFormatSchema<'sceneDressing.SceneDressingSchema'>> = authorFormatSchema('sceneDressing.SceneDressingSchema');
+const SceneBakedGeometrySchema: ReturnType<typeof authorFormatSchema<'sceneDressing.SceneBakedGeometrySchema'>> = authorFormatSchema('sceneDressing.SceneBakedGeometrySchema');
+const SceneFloorSchema: ReturnType<typeof authorFormatSchema<'sceneDressing.SceneFloorSchema'>> = authorFormatSchema('sceneDressing.SceneFloorSchema');
+const SceneDressingContactsSchema: ReturnType<typeof authorFormatSchema<'sceneDressing.SceneDressingContactsSchema'>> = authorFormatSchema('sceneDressing.SceneDressingContactsSchema');
+const SpecimenCatalogueSchema: ReturnType<typeof authorFormatSchema<'specimenCatalogue.SpecimenCatalogueSchema'>> = authorFormatSchema('specimenCatalogue.SpecimenCatalogueSchema');
+const PackedSpecimenSchema: ReturnType<typeof authorFormatSchema<'specimenCatalogue.PackedSpecimenSchema'>> = authorFormatSchema('specimenCatalogue.PackedSpecimenSchema');
+const SpecimenMaterialSchema: ReturnType<typeof authorFormatSchema<'specimenCatalogue.SpecimenMaterialSchema'>> = authorFormatSchema('specimenCatalogue.SpecimenMaterialSchema');
+const SpecimenAssetSchema: ReturnType<typeof authorFormatSchema<'specimenCatalogue.SpecimenAssetSchema'>> = authorFormatSchema('specimenCatalogue.SpecimenAssetSchema');
+const AmbientFlockSchema: ReturnType<typeof authorFormatSchema<'ambientLife.AmbientFlockSchema'>> = authorFormatSchema('ambientLife.AmbientFlockSchema');
+const AmbientPerchesSchema: ReturnType<typeof authorFormatSchema<'ambientLife.AmbientPerchesSchema'>> = authorFormatSchema('ambientLife.AmbientPerchesSchema');
+const PrivateSceneSchema: ReturnType<typeof authorFormatSchema<'clientChannels.PrivateSceneSchema'>> = authorFormatSchema('clientChannels.PrivateSceneSchema');
 type SceneDressingRows = v.InferOutput<typeof SceneDressingSchema>;
 
 const text=v.string(),number=v.number(),xyz=v.tuple([number,number,number]);
@@ -44,7 +44,10 @@ const decorativeProfiles=v.object({phone:decorativeProfile,desktop:decorativePro
 const place=v.object({name:text,tris:number,anchors:v.optional(v.object({riders:v.optional(v.array(v.object({t:number,k:number,w:number,bob:number})),[])}),{riders:[]}),instances:v.array(v.tuple([text,v.object({asset:SpecimenAssetSchema,scene:PrivateSceneSchema})])),effects:v.array(v.tupleWithRest([text,xyz],v.unknown())),members:v.array(v.tuple([text,memberSchema])),meshes:v.array(v.object({material:text,offset:number,geometry:SceneBakedGeometrySchema}))});
 const preparedSchema=v.object({places:v.object({rows:v.array(place)}),dressing:v.object({rows:v.array(v.object({key:text,offset:number,geometry:SceneBakedGeometrySchema}))})});
 const materialsSchema=v.record(text,SpecimenMaterialSchema);
-const specimensSchema=v.object({catalogue:SpecimenCatalogueSchema,packed:PackedSpecimenSchema,materials:materialsSchema,assets:v.record(text,SpecimenAssetSchema)});
+const specimensSchema: v.ObjectSchema<{ catalogue: typeof SpecimenCatalogueSchema; packed: typeof PackedSpecimenSchema;
+  materials: v.RecordSchema<v.StringSchema<undefined>, typeof SpecimenMaterialSchema, undefined>;
+  assets: v.RecordSchema<v.StringSchema<undefined>, typeof SpecimenAssetSchema, undefined> }, undefined>
+  =v.object({catalogue:SpecimenCatalogueSchema,packed:PackedSpecimenSchema,materials:materialsSchema,assets:v.record(text,SpecimenAssetSchema)});
 const profileSchema=v.object({catalogue:SpecimenCatalogueSchema,packed:PackedSpecimenSchema,life:v.array(v.object({kind:text,row:AmbientFlockSchema,perches:AmbientPerchesSchema}))});
 const coverSchema=v.object({phone:profileSchema,desktop:profileSchema,materials:materialsSchema,butterflies:v.object({phone:number,desktop:number}),hue:v.array(v.union([text,number])),raptors:number});
 const paintContact={origins:v.array(v.tuple([number,number,number,number]))};
@@ -59,10 +62,10 @@ export function nalatiDressingSpecimens(catalogue:unknown,materials:unknown,pack
   return v.parse(specimensSchema,nalatiSpecimenRows(admitted.output,surfaces.output,v.parse(v.record(text,v.unknown()),packed)));
 }
 /** Exact raw contact files, read only by the SDK's normal named-file intake. */
-export const DRESSING_CONTACT_SOURCES=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text,
+export const DRESSING_CONTACT_SOURCES: { name: string; kind: 'bin'; source: string; options: { decoded: number } }[]=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text,
   options:v.object({decoded:v.pipe(number,v.integer(),v.minValue(0))})})), contactInput.sources);
 /** Both exact sign rasters enter through the same named binary source path; two base planes bound the rectangular mip chain. */
-export const DRESSING_ATLAS_SOURCES=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text,options:v.object({gpu:number})})),Object.values(atlases).map(row=>({name:row.file,kind:'bin',source:row.source,options:{gpu:row.width*row.height*8}})));
+export const DRESSING_ATLAS_SOURCES: { name: string; kind: 'bin'; source: string; options: { gpu: number } }[]=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text,options:v.object({gpu:number})})),Object.values(atlases).map(row=>({name:row.file,kind:'bin',source:row.source,options:{gpu:row.width*row.height*8}})));
 /** Exact existing compressed byte lanes, admitted under logical product names before client decoding: the crag bank's
  *  decoded size over both tiers' shapes. */
 export function dressingCragDecoded(cragRows:NalatiCragRows):number{return Math.max(...[cragRows.phone,cragRows.desktop].flatMap(tier=>tier.meshes.map(part=>{

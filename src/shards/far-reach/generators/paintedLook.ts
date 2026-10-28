@@ -4,14 +4,14 @@ import { checkAuthorGraph } from '@wildshard/sdk/bake/materialGraph';
 import * as v from 'valibot';
 import { SKY_WORLD_PREPARATION } from './worldTextures';
 
-const PaintedLookSchema = authorFormatSchema('paintedLook.PaintedLookSchema');
-const MaterialsSchema = authorFormatSchema('materials.MaterialsSchema');
+const PaintedLookSchema: ReturnType<typeof authorFormatSchema<'paintedLook.PaintedLookSchema'>> = authorFormatSchema('paintedLook.PaintedLookSchema');
+const MaterialsSchema: ReturnType<typeof authorFormatSchema<'materials.MaterialsSchema'>> = authorFormatSchema('materials.MaterialsSchema');
 type PaintedLookRow = v.InferOutput<typeof PaintedLookSchema>;
 
 /** Original authored per-instance float32 storage, read through the normal named-file intake. */
 const cumulus=SKY_PAINTED.dressing.cumulus.cards.cards[0];
 if(cumulus===undefined)throw new Error('Missing authored cumulus attributes');
-export const SKY_PAINTED_ATTRIBUTE_SOURCES=[
+export const SKY_PAINTED_ATTRIBUTE_SOURCES: { name: string; kind: 'bin'; source: string; options: { critical: boolean; gpu: number } }[]=[
   ...Object.entries(cumulus.instances).map(([name,row])=>({name:row.file,kind:'bin' as const,source:`data/sky-cumulus-${name}.bin`,options:{critical:true,gpu:row.count*4}})),
   ...SKY_PAINTED.dressing.glow.cards.cards.flatMap(card=>Object.entries(card.instances)
     .map(([name,row])=>({name:row.file,kind:'bin' as const,source:`data/sky-glow-${name}.bin`,options:{critical:true,gpu:row.count*4}}))),
@@ -39,7 +39,7 @@ const graphs: Readonly<Record<string, unknown>> = {
   'sky-glow': SKY_PAINTED.dressing.glow.graph, 'sky-maelstrom': SKY_PAINTED.dressing.maelstrom.graph,
   ...Object.fromEntries(SKY_PAINTED.dressing.seas.map((row, i) => [`sky-sea-${i}`, row.graph])), 'sky-cumulus': SKY_PAINTED.dressing.cumulus.graph,
 };
-export const SKY_PAINTED_GRAPHS = v.parse(MaterialsSchema, Object.fromEntries(Object.entries(graphs).map(([id, input]) => {
+export const SKY_PAINTED_GRAPHS: v.InferOutput<typeof MaterialsSchema> = v.parse(MaterialsSchema, Object.fromEntries(Object.entries(graphs).map(([id, input]) => {
   const checked = checkAuthorGraph(input);
   if (!checked.ok) throw new Error(checked.errors.join('; '));
   const graph = checked.graph;

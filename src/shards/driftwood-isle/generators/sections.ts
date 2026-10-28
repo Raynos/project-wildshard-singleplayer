@@ -5,14 +5,14 @@
 import * as v from 'valibot';
 import { authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
 
-const CollectionDisplaysSchema = authorFormatSchema('collectionDisplay.CollectionDisplaysSchema');
+const CollectionDisplaysSchema: ReturnType<typeof authorFormatSchema<'collectionDisplay.CollectionDisplaysSchema'>> = authorFormatSchema('collectionDisplay.CollectionDisplaysSchema');
 type CollectionDisplaysRowsInputType = v.InferInput<typeof CollectionDisplaysSchema>;
 type CollectionDisplaysRowsType = v.InferOutput<typeof CollectionDisplaysSchema>;
-const AmbientFlockSchema = authorFormatSchema('ambientLife.AmbientFlockSchema');
+const AmbientFlockSchema: ReturnType<typeof authorFormatSchema<'ambientLife.AmbientFlockSchema'>> = authorFormatSchema('ambientLife.AmbientFlockSchema');
 type AmbientFlockDataType = v.InferOutput<typeof AmbientFlockSchema>;
-const BodySlotsSchema = authorFormatSchema('bodySlots.BodySlotsSchema');
+const BodySlotsSchema: ReturnType<typeof authorFormatSchema<'bodySlots.BodySlotsSchema'>> = authorFormatSchema('bodySlots.BodySlotsSchema');
 type BodySlotsDataType = v.InferOutput<typeof BodySlotsSchema>;
-const ResolvedIslandLibrarySchema = authorFormatSchema('islandLibrary.ResolvedIslandLibrarySchema');
+const ResolvedIslandLibrarySchema: ReturnType<typeof authorFormatSchema<'islandLibrary.ResolvedIslandLibrarySchema'>> = authorFormatSchema('islandLibrary.ResolvedIslandLibrarySchema');
 type ResolvedIslandLibraryRowsInputType = v.InferInput<typeof ResolvedIslandLibrarySchema>;
 type ResolvedIslandLibraryRowsType = v.InferOutput<typeof ResolvedIslandLibrarySchema>;
 
