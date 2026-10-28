@@ -4931,6 +4931,8 @@ The adapter supplies the existing pattern ports: the ram's live home and shared 
 `bake/species`, `bootInventory`, `rows`, `weapons/meleeProfile` and `formatJsonSchema` are offline APIs.
 `bake/placement.figureColliderRows` admits the complete figure row, then compiles its original box/capsule anchor contacts. It constructs no figure, skin, scene or service; missing colliders retain empty contact ownership.
 
+`@wildshard/sdk/bake/colliders` compiles successive placement poses and stepwise Float32 geometry transforms, relative world hulls and ordered support points. `bakePlacedGeometry` mutates caller-owned geometry; the other kernels return owned matrices/contact storage. Explicit matrices apply once. These offline kernels construct no renderer, registry or physics service.
+
 `sharedMeleeAuthorBase` returns the shared melee author policy as detached data with owned native Vector3/Quaternion/Color poses, preserving every field and property order. `sdk/weapons/thrownProfile.parseThrownWeaponProfile` admits complete finite throw/flight/damage/pickup tuning before view authoring. Neither operation creates a runtime view or owner.
 
 `@wildshard/sdk/bake/simplifier` provides `simplifyPaintedGeometry`: explicit vertex target, colour/normal weights and relative error reduce indexed authored geometry into detached position/normal/colour channels and first-use ordered indices. The caller retains the source and owns the result.
