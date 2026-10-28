@@ -93,7 +93,6 @@ import { LockOn } from '@wildshard/engine/ui/LockOn';
 import { FullMap } from '@wildshard/engine/ui/Map';
 import { GameMenu } from '@wildshard/engine/ui/Menu';
 import { Minimap } from '@wildshard/engine/ui/Minimap';
-import { gridTileOverlay, tileOverlay } from '../shardfile/tileOverlay';
 import { Perf } from '@wildshard/engine/ui/Perf';
 import { rotateGated } from '@wildshard/engine/ui/RotateGate';
 import { getNumber, onNumber, type getMusicStyle } from '@wildshard/engine/ui/Settings';
@@ -139,9 +138,6 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
   const perf = new Perf(game); // frame meter top-right (?perf=0 hides)
   const minimap = new Minimap(); // circular minimap (Heightfield is installed by now)
   if (chunk.hud?.dayBadge === true) minimap.showDayBadge(); // the sun / moon on its rim (Nalati)
-  // tile streaming T5 (G775): Developer ▸ the entered world's tile borders, resident rings and MB per tile on the minimap
-  if (pageMode() !== 'grid') minimap.setDebugExtras(tileOverlay);
-  game.levelScope.onDispose(() => { minimap.setDebugExtras(null); });
   const fullMap = new FullMap(minimap); // the menu's MAP tab (Menu.ts mounts it); tap the minimap / M to open
   const keepAlive = new KeepAlive();
   let gridBackgroundReady = false;
@@ -593,8 +589,6 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
     const atlas = await loadGridMapAtlas(game.levelScope, grid.allocator, __GRID_MAP_ATLAS__);
     const blend = installMinimapBlend(minimap, { assembly: grid.assembly, home: grid.home, cells: gridCells, worldFeet: () => grid.worldFeet(), image: (id) => grid.mapImage(id),
       name: (cell) => findShard(cell.slug)?.name ?? cell.slug }, game.levelScope, fullMap, atlas); // Full map is complete before the first Bag open.
-    // T5.3 (G775): Developer ▸ the entered cell's tile borders and resident ring on the grid minimap
-    minimap.setDebugExtras(() => gridTileOverlay(() => grid.tileOverlayState()));
     // playtest round 3: the menu names the shard whose cell you are in (the full map's arrow reads mapAt's home frame too)
     game.levelScope.onDispose(gridCells.onEnter((cell) => { menu.setLevelName(findShard(cell.slug)?.name ?? cell.slug); }));
     // SF38 / G30: Developer mode's points budget over the one live allocator (no element or timer until Developer is on)
