@@ -44,7 +44,7 @@ const row = (authored: readonly number[]): { heights: number[]; colours: [number
 export function driftwoodProductRows(fixed: DriftwoodFixedProduct, audio: AudioData, bridgePages: DriftwoodGuestRows['bridge']['pages'], navigation: ReturnType<typeof driftwoodNavigationRows>): ReturnType<typeof parseShardfile> {
 const questRows = driftwoodQuestRows();
 const simulationFiles = [...navigation.files, ...fixed.files.filter(file => fixed.critical.includes(file.hash))];
-// G7: the Drowned Captain's painted coat, an admitted look texture his graph samples by hash (generators/bake-captain-coat.mjs)
+// G7: the Drowned Captain's painted coat, an admitted look texture his graph samples by hash (scripts/bake-captain-coat.mjs)
 const coat = captainCoat.file;
 // The fixed view guest retains live and rewind memory under the existing client limits.
 const viewMemory = bridgePages * 65536 * 2;

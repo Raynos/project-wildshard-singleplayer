@@ -30,6 +30,20 @@ export function authorToolProgram(root: string, path: string, source: string): s
       if (typeof levels !== 'string' || resolve(dirname(file), levels) !== root) throw new Error('Author root differs from the repository');
       node['init'] = { type: 'Literal', value: '<repository-root>' };
     }
+    if (node['type'] === 'NewExpression' && record(node['callee'])['name'] === 'URL') {
+      const args = node['arguments'];
+      if (Array.isArray(args) && args.length === 2) {
+        const pathNode = record(args[0]), base = record(args[1]);
+        if (pathNode['type'] === 'Literal' && typeof pathNode['value'] === 'string' && pathNode['value'].startsWith('.')
+          && base['type'] === 'MemberExpression' && record(base['property'])['name'] === 'url') {
+          const meta = record(base['object']);
+          if (meta['type'] === 'MetaProperty' && record(meta['meta'])['name'] === 'import' && record(meta['property'])['name'] === 'meta') {
+            const address = pathNode['value'];
+            node['arguments'] = [{ type: 'Literal', value: relative(root, resolve(dirname(file), address)), directory: address.endsWith('/') }, args[1]];
+          }
+        }
+      }
+    }
     return Object.fromEntries(Object.entries(node).filter(([key]) => !['start', 'end', 'loc', 'range', 'raw', 'comments'].includes(key)).map(([key, child]) => [key, clean(child)]));
   };
   return JSON.stringify(clean(parseSync(file, source).program));

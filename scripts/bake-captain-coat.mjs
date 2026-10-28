@@ -1,7 +1,7 @@
 // G7: the Drowned Captain's painted coat as an admitted look texture. The page used to load the whole captain GLB at run
 // time only to lend its embedded atlas to the captain's graph (species/captainMesh.ts); the atlas is now a UASTC KTX2 in
 // the product, bound by hash in data/lookGraphs.json, so the captain's look is rows. GLTF textures are not flipped.
-// node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs src/shards/driftwood-isle/generators/bake-captain-coat.mjs [--encode]
+// node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs scripts/bake-captain-coat.mjs [--encode]
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
@@ -9,7 +9,7 @@ import { parseKtx2 } from '@wildshard/sdk/assets';
 import { bakeColourTexture } from '@wildshard/sdk/bake/texture';
 import { readImagePixels, writeImagePixels } from '@wildshard/sdk/bake/image';
 
-const root = resolve(import.meta.dirname, '../../../..'), project = resolve(root, 'src/shards/driftwood-isle');
+const root = resolve(import.meta.dirname, '..'), project = resolve(root, 'src/shards/driftwood-isle');
 const pin = resolve(project, 'data/captainCoat.json');
 /** the GLB's one embedded image (the atlas the captain's material samples) */
 function embeddedImage(glb) {
