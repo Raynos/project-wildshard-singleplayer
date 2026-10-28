@@ -113,17 +113,27 @@ function cellKey(cx: number, cz: number): number | string {
   return Math.abs(cx) < 2_097_152 && Math.abs(cz) < 2_097_152 ? cx * 4_194_304 + cz : `${cx},${cz}`;
 }
 
-const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _b = new THREE.Box3();
+const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _p = new THREE.Vector3(), _s = new THREE.Vector3();
 
 /** each instance's world box (6 floats: min xyz, max xyz): its layer's geometry box at the instance's transform */
 export function instanceBoxes(geometry: THREE.BufferGeometry, list: readonly ScatterPose[]): Float32Array {
   if (geometry.boundingBox === null) geometry.computeBoundingBox();
   const bb = geometry.boundingBox ?? new THREE.Box3();
-  const out = new Float32Array(list.length * 6);
+  const out = new Float32Array(list.length * 6), lo = bb.min, hi = bb.max, empty = bb.isEmpty();
   list.forEach((it, i) => {
-    _m.compose(_p.set(it.x, it.y, it.z), _q.setFromEuler(_e.set(it.tiltX ?? 0, it.yaw, it.tiltZ ?? 0, 'YXZ')), _s.set(it.sx, it.sy, it.sz));
-    _b.copy(bb).applyMatrix4(_m);
-    out[i * 6] = _b.min.x; out[i * 6 + 1] = _b.min.y; out[i * 6 + 2] = _b.min.z; out[i * 6 + 3] = _b.max.x; out[i * 6 + 4] = _b.max.y; out[i * 6 + 5] = _b.max.z;
+    if (empty) { out[i * 6] = lo.x; out[i * 6 + 1] = lo.y; out[i * 6 + 2] = lo.z; out[i * 6 + 3] = hi.x; out[i * 6 + 4] = hi.y; out[i * 6 + 5] = hi.z; return; }
+    const e = _m.compose(_p.set(it.x, it.y, it.z), _q.setFromEuler(_e.set(it.tiltX ?? 0, it.yaw, it.tiltZ ?? 0, 'YXZ')), _s.set(it.sx, it.sy, it.sz)).elements;
+    // Box3.applyMatrix4 inlined (T10: its eight Vector3s through setFromPoints were most of 26 ms of a Nalati entry's
+    // dressing at phone 4x): each corner by Vector3.applyMatrix4's arithmetic, then the same min / max
+    let x0 = Infinity, y0 = Infinity, z0 = Infinity, x1 = -Infinity, y1 = -Infinity, z1 = -Infinity;
+    for (let c = 0; c < 8; c++) {
+      const x = (c & 4) === 0 ? lo.x : hi.x, y = (c & 2) === 0 ? lo.y : hi.y, z = (c & 1) === 0 ? lo.z : hi.z;
+      const w = 1 / ((e[3] ?? 0) * x + (e[7] ?? 0) * y + (e[11] ?? 0) * z + (e[15] ?? 1));
+      const px = ((e[0] ?? 1) * x + (e[4] ?? 0) * y + (e[8] ?? 0) * z + (e[12] ?? 0)) * w, py = ((e[1] ?? 0) * x + (e[5] ?? 1) * y + (e[9] ?? 0) * z + (e[13] ?? 0)) * w;
+      const pz = ((e[2] ?? 0) * x + (e[6] ?? 0) * y + (e[10] ?? 1) * z + (e[14] ?? 0)) * w;
+      x0 = Math.min(x0, px); y0 = Math.min(y0, py); z0 = Math.min(z0, pz); x1 = Math.max(x1, px); y1 = Math.max(y1, py); z1 = Math.max(z1, pz);
+    }
+    out[i * 6] = x0; out[i * 6 + 1] = y0; out[i * 6 + 2] = z0; out[i * 6 + 3] = x1; out[i * 6 + 4] = y1; out[i * 6 + 5] = z1;
   });
   return out;
 }

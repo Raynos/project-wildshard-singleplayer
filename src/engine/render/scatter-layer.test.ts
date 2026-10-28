@@ -24,6 +24,8 @@ test('a scatter layer records exactly each row\'s matrix, colour, sphere and ran
     box.copy(geometry.boundingBox ?? box).applyMatrix4(m.compose(new THREE.Vector3(it.x, it.y, it.z), new THREE.Quaternion().setFromEuler(new THREE.Euler(it.tiltX ?? 0, it.yaw, it.tiltZ ?? 0, 'YXZ')), new THREE.Vector3(it.sx, it.sy, it.sz)));
     expect([...boxes.subarray(i * 6, i * 6 + 6)]).toEqual([...Float32Array.of(box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z)]);
   }
+  const empty = new THREE.BufferGeometry(); empty.boundingBox = new THREE.Box3();
+  expect([...instanceBoxes(empty, rows.slice(0, 2))]).toEqual([...Float32Array.of(Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity, Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity)]);
   geometry.dispose(); material.dispose();
 });
 
