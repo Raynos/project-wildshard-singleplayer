@@ -29,3 +29,21 @@ test('a clipped node material keeps its alpha cutoff (D189: three\'s NodeMateria
     expect(crossing.material.alphaTest).toBe(0.45);
   } finally { scope.dispose(); }
 });
+
+test('T10: matrix writes are hooked only on manual nodes (an auto node recomposes its matrix), and still clip there', () => {
+  const scope = new Scope('clip matrix writes'), root = new Group();
+  try {
+    const material = new MeshLambertMaterial(), guard = cellClip(root, 250, scope); guard.sweep();
+    const auto = new Mesh(new BoxGeometry(2, 40, 2), material); root.add(auto);
+    expect(Object.getOwnPropertyDescriptor(auto.matrix, 'copy')).toBeUndefined();
+    const manual = new Mesh(new BoxGeometry(2, 40, 2), material); manual.matrixAutoUpdate = false; root.add(manual); guard.sweep();
+    expect(manual.material).toBe(material);
+    expect(Object.getOwnPropertyDescriptor(manual.matrix, 'copy')).toBeDefined();
+    manual.matrix.setPosition(250, 0, 0); manual.updateMatrixWorld(true); guard.sweep();
+    expect(manual.material).not.toBe(material);
+    manual.matrixAutoUpdate = true;
+    expect(Object.getOwnPropertyDescriptor(manual.matrix, 'copy')).toBeUndefined();
+    manual.matrixAutoUpdate = false;
+    expect(Object.getOwnPropertyDescriptor(manual.matrix, 'copy')).toBeDefined();
+  } finally { scope.dispose(); }
+});

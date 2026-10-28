@@ -475,16 +475,18 @@ export function cellClip(root: Object3D, half: number, scope: Scope, options: Ce
       undo.push(onCellMethods(q, ['_onChangeCallback'], rotated));
       undo.push(onCellMethods(node.rotation, ['_onChangeCallback'], rotated));
     }
-    // Matrix-auto objects already emit via position/scale/quaternion. Explicit
-    // matrix writers use these mutation methods; renderer compose is excluded.
+    // Matrix-auto objects already emit via position/scale/quaternion, and their matrix is recomposed from those at every
+    // update, so a write through its methods never stands: explicit matrix writers are hooked only while the node is manual
+    // (T10: ~25 method wrappers on every node of every Pine herd rig were ~40 ms of its cold spawn at phone 4x). Renderer
+    // compose is excluded.
     const matrixMethods = ['set', 'identity', 'copy', 'copyPosition', 'setPosition', 'multiply', 'premultiply', 'multiplyMatrices', 'multiplyScalar', 'transpose', 'invert', 'scale', 'makeTranslation', 'makeRotationX', 'makeRotationY', 'makeRotationZ', 'makeRotationAxis', 'makeScale', 'makeShear', 'fromArray'];
-    undo.push(onCellMethods(node.matrix, matrixMethods, moved));
     let manualStop: () => void = () => undefined;
     const manual = (): void => {
       manualStop();
       const stopFlag = node.matrixAutoUpdate ? () => undefined : onCellField(node, 'matrixWorldNeedsUpdate', () => { if (node.matrixWorldNeedsUpdate) mark(node, true); });
+      const stopWrites = node.matrixAutoUpdate ? () => undefined : onCellMethods(node.matrix, matrixMethods, moved);
       const stopCompose = node.matrixAutoUpdate ? () => undefined : onCellMethods(node.matrix, ['compose'], moved);
-      manualStop = () => { stopFlag(); stopCompose(); };
+      manualStop = () => { stopFlag(); stopWrites(); stopCompose(); };
     };
     manual(); undo.push(() => { manualStop(); });
     undo.push(onCellField(node, 'matrixAutoUpdate', () => { manual(); moved(); }));
