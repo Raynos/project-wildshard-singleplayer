@@ -2,7 +2,7 @@
 import { expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import * as v from 'valibot';
-import { FigureRowSchema, type FigureRow } from '../src/format/figures';
+import { FigureRowSchema, type FigureRow, type FigureCatalogueRow } from '../src/format/figures';
 import { FigureRows } from '../src/game/systems/npc/figureRows';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { NPC_FIGURE } from '../src/shards/pine-hollow/generators/peopleLook';
@@ -262,8 +262,11 @@ test.each(['ready', 'retired', 'refused'] as const)('a late figure card prepares
   const material = vi.spyOn(SkyRig.prototype, 'setupMaterial').mockImplementation(() => undefined);
   const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
   try {
+    const card: NonNullable<FigureCatalogueRow['figures'][string]['card']> = {
+      id: `test/late-figure-${mode}`, name: 'Person', file: 'test/npc-figure-rows.test.ts', pipeline: ['code'], rig: { clips: ['idle'] },
+    };
     await catalogue.admit({ material: { name: 'figure', roughness: .85, metalness: 0 }, figures: { person: {
-      phone: spec, desktop: spec, body: 0, card: { id: `test/late-figure-${mode}`, name: 'Person', file: 'test/npc-figure-rows.test.ts', pipeline: 'code' },
+      phone: spec, desktop: spec, body: 0, card,
     } } }, handles, catalogueOwner);
     prepare.mockClear();
     const model = catalogue.model('person');
