@@ -196,7 +196,12 @@ export class ShardDecisions {
   private position(handle: number) { return handle === DECISION_PLAYER_HANDLE ? this.sim.player.position : requireValue(this.actor(handle), 'actor position').position; }
   private name(kind: keyof DecisionRegistries, id: number): string { return requireValue(inverse(this.registries[kind]).get(id), `undeclared ${kind}`); }
   private inside(zone: string, actor: number): boolean {
-    const row = this.source.quests.triggers.find(value => value.kind === 'region' && value.id === zone);
+    const rows = this.source.quests.triggers, count = rows.length;
+    let row: Shardfile['quests']['triggers'][number] | undefined;
+    for (let index = 0; index < count; index++) {
+      const candidate = requireValue(rows[index], 'decision zone row');
+      if (candidate.kind === 'region' && candidate.id === zone) { row = candidate; break; }
+    }
     if (row?.kind !== 'region') throw new Error('Missing decision zone');
     const point = this.position(actor); return Math.hypot(point.x - row.x, point.z - row.z) <= row.radius;
   }
@@ -359,7 +364,8 @@ export class ShardDecisions {
     if (reset || runner?.state === 'windup') { this.striking.delete(actor); body?.cancelAttack(); runner?.cancel(); }
   }
   private lifecycle(): void {
-    for (const [index, row] of this.rows.entries()) {
+    for (let index = 0; index < this.rows.length; index++) {
+      const row = requireValue(this.rows[index], 'decision row');
       const binding = row.binding;
       const control = this.sim.borrowedControls?.get(row.id);
       const active = control === undefined ? 'shard' in binding || 'spawnGroup' in binding || ('encounter' in binding ? this.encounters.get(binding.encounter)?.boss.state === 'fight'
@@ -413,7 +419,8 @@ export class ShardDecisions {
       if (runner?.busy === true) continue;
       this.striking.delete(handle); this.host.enqueue(strike.binding, [11, handle, strike.strike, Number(strike.hit), 0, 0]);
     }
-    for (const region of this.source.quests.triggers.filter(row => row.kind === 'region')) {
+    for (const region of this.source.quests.triggers) {
+      if (region.kind !== 'region') continue;
       const zone = requireValue(this.registries.zones?.get(region.id), 'zone');
       for (const actor of this.names.values()) {
         const key = `${zone}:${actor}`, inside = this.inside(region.id, actor), before = this.zones.has(key);
@@ -422,7 +429,8 @@ export class ShardDecisions {
         this.publish([inside ? 4 : 5, zone, actor, 0, 0, 0]);
       }
     }
-    for (const [index, row] of this.rows.entries()) {
+    for (let index = 0; index < this.rows.length; index++) {
+      const row = requireValue(this.rows[index], 'decision row');
       const control = this.sim.borrowedControls?.get(row.id);
       if (control === undefined) continue;
       const before = this.phases.get(row.id) ?? 0; this.phases.set(row.id, control.phase);
@@ -433,7 +441,7 @@ export class ShardDecisions {
       const before = this.phases.get(id) ?? 0, phase = encounter.boss.phase;
       this.phases.set(id, phase); if (phase !== before) { const row = requireValue(this.source.encounters.find(value => value.id === id), 'encounter'); this.publish([8, requireValue(this.names.get(row.entity), 'encounter actor'), phase, 0, 0, 0]); }
     }
-    for (const event of this.movers?.drainEndEvents() ?? []) { const signal = this.registries.signals?.get(event.mover); if (signal !== undefined) this.publish([13, signal, Number(event.atEnd), 0, 0, 0]); }
+    if (this.movers !== undefined) for (const event of this.movers.drainEndEvents()) { const signal = this.registries.signals?.get(event.mover); if (signal !== undefined) this.publish([13, signal, Number(event.atEnd), 0, 0, 0]); }
   }
   /** Existing combat/interactions feed this queue; events never execute Wasm synchronously. */
   publish(event: ScriptV1Event): void {

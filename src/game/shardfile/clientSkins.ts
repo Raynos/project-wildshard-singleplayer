@@ -125,17 +125,16 @@ export class SkinDriver {
   }
   /** The clip the creature's state asks for: death, then the attack, the hit reaction, the gait, idle (grazing when it grazes). */
   private choose(c: SkinDriveState): ClipName | null {
-    const has = (name: ClipName): boolean => this.skin.clips.has(name);
     // a new blow raises the flinch (Animal.stagger / applyDamage); the reaction plays once from its start
     if (c.alive && c.flinch > this.flinch + 0.05) this.hitT = 0; else if (this.hitT >= 0) this.hitT += c.dt;
     this.flinch = c.flinch;
     if (this.hitT >= (this.skin.clips.get('hit')?.duration ?? 0)) this.hitT = -1;
-    if (!c.alive) return has('die') ? 'die' : null;
-    if (c.attack >= 0 && has('attack')) return 'attack';
-    if (this.hitT >= 0 && has('hit')) return 'hit';
-    if (Math.hypot(c.speed, c.strafe) / c.scale > 0.15 && has('walk')) return 'walk';
-    if (c.state === 'graze' && has('idle.graze')) return 'idle.graze';
-    return has('idle') ? 'idle' : null;
+    if (!c.alive) return this.skin.clips.has('die') ? 'die' : null;
+    if (c.attack >= 0 && this.skin.clips.has('attack')) return 'attack';
+    if (this.hitT >= 0 && this.skin.clips.has('hit')) return 'hit';
+    if (Math.hypot(c.speed, c.strafe) / c.scale > 0.15 && this.skin.clips.has('walk')) return 'walk';
+    if (c.state === 'graze' && this.skin.clips.has('idle.graze')) return 'idle.graze';
+    return this.skin.clips.has('idle') ? 'idle' : null;
   }
   /** Pose this instance's bones for the frame. */
   step(c: SkinDriveState): void {
@@ -146,7 +145,9 @@ export class SkinDriver {
     const time = name === 'die' ? this.since : name === 'attack' ? c.attack * this.skin.attackSpan : name === 'hit' ? this.hitT : name === 'walk' ? c.phase * clip.duration : c.t;
     const looping = name === 'walk' || name.startsWith('idle'), at = looping ? time % clip.duration : Math.min(time, clip.duration);
     this.active?.restore();
-    for (const track of clip.tracks) {
+    const tracks = clip.tracks;
+    for (let index = 0; index < tracks.length; index++) {
+      const track = tracks[index]; if (track === undefined) throw new Error('Missing skin track');
       const bone = this.bones[track.bone]; if (bone === undefined) continue;
       const value = track.interpolant.evaluate(at);
       if (track.property === 'quaternion') bone.quaternion.copy(_q.fromArray(value)); else bone[track.property].fromArray(value);

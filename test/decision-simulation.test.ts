@@ -50,6 +50,33 @@ function fixture(wasm = bytes, binding?: { shard: true } | { encounter: string }
   return { source, assets, sections, scripts, options: { sections } };
 }
 
+test('region observations retain ordered enter/leave events and exact continuation membership', async () => {
+  const f = fixture(await module('return 0;')), row = f.scripts[0];
+  if (row === undefined) throw new Error('Missing zone decision');
+  row.on = ['start', 'zone.enter', 'zone.leave'];
+  f.source.quests.flags.push('hut');
+  f.source.quests.triggers = [{ id: 'hut', kind: 'region', flag: 'hut', x: 0, z: 6, radius: 2 }];
+  const live = createShardfileSim(f.source, f.assets, { ...f.options, rapier: await rapier });
+  const decision = live.decisions;
+  if (decision === undefined) throw new Error('Missing native decision');
+  const zone = decision.registries.zones?.get('hut'), a = decision.registries.actors?.get('actor.a'), b = decision.registries.actors?.get('actor.b');
+  if (zone === undefined || a === undefined || b === undefined) throw new Error('Missing original zone handles');
+  const enqueue = vi.spyOn(decision.host, 'enqueue');
+  const events = (): unknown[] => enqueue.mock.calls.filter(([, event]) => event[0] === 4 || event[0] === 5);
+  try {
+    live.host.step();
+    expect(events()).toEqual([[1, [4, zone, a, 0, 0, 0]], [1, [4, zone, b, 0, 0, 0]]]);
+    enqueue.mockClear(); live.host.step(); expect(events()).toEqual([]);
+    const saved = decision.snapshot(); decision.restore(saved);
+    expect(decision.snapshot()).toBe(saved);
+    enqueue.mockClear(); live.host.step(); expect(events()).toEqual([]);
+    const actor = live.host.entities.get('actor.a'); if (actor === undefined) throw new Error('Missing native zone actor');
+    actor.place(20, 20, 0);
+    enqueue.mockClear(); live.host.step(); expect(events()).toEqual([[1, [5, zone, a, 0, 0, 0]]]);
+    enqueue.mockClear(); live.host.step(); expect(events()).toEqual([]);
+  } finally { enqueue.mockRestore(); live.dispose(); }
+});
+
 test('achievement display rows preserve a pre-catalogue decision continuation silently', async () => {
   const f = fixture(), first = createShardfileSim(f.source, f.assets, { ...f.options, rapier: await rapier });
   let restored: ShardfileSimulation | undefined;

@@ -15,49 +15,38 @@ function doubleArray(): number[] { const array = SEED.slice(); array.length = 0;
 
 interface Vector3Uniform { cache: number[] | Float64Array; addr: WebGLUniformLocation | null }
 interface Vector3Value { x?: number; y?: number; z?: number; r?: number; g?: number; b?: number }
-interface Vector3State {
-  legacy: number[]; numbers: Float64Array; buffer: Float32Array;
-  native: (this: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value) => void;
-}
-const vectorStates = new WeakMap<object, Vector3State>();
-function nativeVectorValue(uniform: Vector3Uniform, state: Vector3State, gl: WebGLRenderingContext, value: Vector3Value): void {
-  if (uniform.cache === state.numbers) {
-    state.legacy[0] = state.numbers[0] ?? 0; state.legacy[1] = state.numbers[1] ?? 0; state.legacy[2] = state.numbers[2] ?? 0;
-    uniform.cache = state.legacy;
-  }
-  state.native.call(uniform, gl, value);
-}
-// One numeric implementation for all uniforms; each leaf owns only its state.
-function setVector3(this: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value): void {
-  const state = vectorStates.get(this); if (state === undefined) throw new Error('Missing vector uniform state');
-  let x: number, y: number | undefined, z: number | undefined;
-  if (value.x !== undefined) { x = value.x; y = value.y; z = value.z; }
-  else if (value.r !== undefined) { x = value.r; y = value.g; z = value.b; }
-  else { nativeVectorValue(this, state, gl, value); return; }
-  const cache = this.cache;
-  if (typeof y !== 'number' || typeof z !== 'number' || (cache.length > 0 && cache.length !== 3)) {
-    nativeVectorValue(this, state, gl, value); return;
-  }
-  if (cache[0] === x && cache[1] === y && cache[2] === z) return;
-  const buffer = state.buffer;
-  buffer[0] = x; buffer[1] = y; buffer[2] = z;
-  gl.uniform3fv(this.addr, buffer);
-  const numbers = state.numbers;
-  numbers[0] = x; numbers[1] = y; numbers[2] = z; this.cache = numbers;
-}
 /** WebGL converts each scalar argument to float32. Keep that exact payload in
  * one per-uniform buffer instead of boxing three changing native arguments.
  * Array inputs retain Three's own validation, length and cache behavior. */
 function bufferVector3(node: object, legacy: number[]): void {
   const native: unknown = Reflect.get(node, 'setValue');
   if (typeof native !== 'function') return;
+  const arrayValue = native as (this: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value) => void;
+  const buffer = new Float32Array(3), numbers = new Float64Array(3);
   // Float64 cache stores cannot widen through native helpers shared with
   // integer/boolean uniforms. Restore the native array only when an
   // array (including malformed lengths) actually reaches the original setter.
-  vectorStates.set(node, { legacy, buffer: new Float32Array(3), numbers: new Float64Array(3),
-    native: native as Vector3State['native'],
+  function nativeValue(this: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value): void {
+    if (this.cache === numbers) {
+      legacy[0] = numbers[0] ?? 0; legacy[1] = numbers[1] ?? 0; legacy[2] = numbers[2] ?? 0;
+      this.cache = legacy;
+    }
+    arrayValue.call(this, gl, value);
+  }
+  Reflect.set(node, 'setValue', function setVector3(this: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value): void {
+    let x: number, y: number | undefined, z: number | undefined;
+    if (value.x !== undefined) { x = value.x; y = value.y; z = value.z; }
+    else if (value.r !== undefined) { x = value.r; y = value.g; z = value.b; }
+    else { nativeValue.call(this, gl, value); return; }
+    const cache = this.cache;
+    if (typeof y !== 'number' || typeof z !== 'number' || (cache.length > 0 && cache.length !== 3)) {
+      nativeValue.call(this, gl, value); return;
+    }
+    if (cache[0] === x && cache[1] === y && cache[2] === z) return;
+    buffer[0] = x; buffer[1] = y; buffer[2] = z;
+    gl.uniform3fv(this.addr, buffer);
+    numbers[0] = x; numbers[1] = y; numbers[2] = z; this.cache = numbers;
   });
-  Reflect.set(node, 'setValue', setVector3);
 }
 
 /** swap each float leaf's cache under a program's uniform tree (structured uniforms nest in `seq`) */
