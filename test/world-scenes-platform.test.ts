@@ -334,11 +334,13 @@ test.each([false, true])('cold demand-loaded Explorer cards await geometry and b
   } finally { supply(triangle()); file.mockRestore(); product.mockRestore(); scan.mockRestore(); owner.dispose(); context.scope.dispose(); material.dispose(); }
 });
 
-test.each(['unplaced', 'placed', 'direct'] as const)('demand catalogue intake retains actual %s requirements', async mode => {
+test.each(['unplaced', 'placed', 'direct', 'shared'] as const)('demand catalogue intake retains actual %s requirements', async mode => {
   const { parseWorldSceneModels } = await import('../src/format/worldSceneModels');
   const context = fixture(), rows = section();
-  const catalogue = { product: 'fixture-harbour', models: [{ key: 'optional', id: 'fixture-harbour/optional', load: 'demand', name: 'Optional', category: 'props', pipeline: 'code', file: 'optional.ts', defaults: {},
-    choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [{ id: 'spare', library: 'optional', model: 'spare', material: 'paint' }] }] }] };
+  const optional = { key: 'optional', id: 'fixture-harbour/optional', load: 'demand', name: 'Optional', category: 'props', pipeline: 'code', file: 'optional.ts', defaults: {},
+    choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [{ id: 'spare', library: 'optional', model: 'spare', material: 'paint' }] }] };
+  const { load: _load, ...required } = optional;
+  const catalogue = { product: 'fixture-harbour', models: [optional, ...mode === 'shared' ? [{ ...required, key: 'required', id: 'fixture-harbour/required' }] : []] };
   const oldFile = context.product.file.bind(context.product), has = context.product.hasFile.bind(context.product);
   const file = vi.spyOn(context.product, 'file').mockImplementation(name => name === 'models/catalogue.json'
     ? Promise.resolve(new TextEncoder().encode(JSON.stringify(catalogue))) : name === 'models/spare.glb' ? Promise.resolve(triangle()) : oldFile(name));
