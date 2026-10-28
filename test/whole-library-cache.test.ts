@@ -18,7 +18,7 @@ import * as geometryModule from '../src/game/plugin/geometry';
 
 const originalTier = TIER;
 afterEach(() => { initializeTier(originalTier); vi.restoreAllMocks(); });
-function fixture(limit = 10000, transform = new Matrix4(), part = 'draw') {
+function fixture(limit = 10000, transform = new Matrix4(), part = 'draw', readCold?: () => Promise<Uint8Array | null>) {
   const owner = new Scope('whole-source'), shape = new BufferGeometry();
   shape.setAttribute('position', new BufferAttribute(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]), 3));
   shape.setAttribute('normal', new BufferAttribute(new Float32Array([0, 0, 2, 0, 0, 2, 0, 0, 2]), 3));
@@ -28,9 +28,11 @@ function fixture(limit = 10000, transform = new Matrix4(), part = 'draw') {
   const hash = hashImmutableBytes(bytes), source = emptyShardfile({ slug: 'whole-cache', name: 'Whole cache', author: 'Fixture', revision: 1, seed: 1 });
   source.files.push({ hash, kind: 'glb', compressed: bytes.length, decoded: bytes.length, gpu: 72, triangles: 1, draws: 1, dependencies: [], critical: false });
   source.library.push(hash);
-  provideRuntimeProduct({ source, assets: new Map([[hash, bytes]]), cached: false }, owner, {
+  provideRuntimeProduct({ source, assets: readCold === undefined ? new Map([[hash, bytes]]) : new Map(), cached: false }, owner, {
     base: 'https://test.example/shardfiles/whole-cache/', offline: false, firstParty: true,
     fetch: () => Promise.reject(new Error('Use admitted bytes')), hash: wire => Promise.resolve(hashImmutableBytes(wire)),
+    ...(readCold === undefined ? {} : { cache: { product: () => Promise.resolve(null), asset: () => Promise.reject(new Error('Use verified cold source')),
+      putProduct: () => Promise.resolve(), putAsset: () => Promise.resolve(true), verifiedAsset: readCold } }),
   });
   const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source, sections: new Map(), files: new Map(), read: () => Promise.resolve(bytes) });
   const parsed = parseWorldScenes({ version: 1, libraries: [{ id: 'parts', kind: 'whole', models: [
@@ -54,6 +56,25 @@ function fixture(limit = 10000, transform = new Matrix4(), part = 'draw') {
   } };
 }
 const ids = new Set(['plain', 'alias', 'posed']);
+
+test('a cold non-play reader awaits its exact whole source instead of requiring eager play transport', async () => {
+  let deliver: (bytes: Uint8Array) => void = () => undefined;
+  const bytes = new Promise<Uint8Array>(resolve => { deliver = resolve; });
+  const readCold = vi.fn(() => bytes), f = fixture(10000, new Matrix4(), 'draw', readCold);
+  let completed = false;
+  const pending = readWholeLibrary(f.owner, f.product, f.row, ids).then(value => { completed = true; return value; });
+  try {
+    await vi.waitFor(() => { expect(readCold).toHaveBeenCalledOnce(); });
+    expect(readCold).toHaveBeenCalledWith(f.hash);
+    expect(completed).toBe(false);
+    deliver(Uint8Array.from(f.bytes));
+    const reader = await pending, geometry = reader.geometry('plain');
+    expect(words(geometry)).toMatchObject({ position: new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]) });
+    expect(f.product.shardfile.library).toContain(f.hash);
+    geometry?.dispose(); reader.done();
+  } finally { deliver(Uint8Array.from(f.bytes)); f.close(); await pending.catch(() => undefined); }
+});
+
 function words(geometry: BufferGeometry | null): unknown {
   if (geometry === null) throw new Error('Missing geometry');
   return Object.fromEntries(Object.entries(geometry.attributes).map(([name, attribute]) => [name, attribute.array]));
