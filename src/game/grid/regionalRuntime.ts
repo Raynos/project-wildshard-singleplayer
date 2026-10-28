@@ -211,7 +211,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
       app.cpu.bind(scope, request.cell.instance);
       const view = createRegionalView({ cell: request.cell, home: ports.home, scene: request.page.world.game.rootScene,
         physics: host.physics, slot: app, assets: app.assets, allocator: request.allocator, claim: request.claim,
-        scope, ground: foundation.ground,
+        scope, ground: foundation.ground, ownGround: request.manifest.cellGround === 'world',
         prepare: (node, root) => request.page.world.game.warmSceneRoots([node], () => !scope.disposed && node.parent !== null, root) });
       request.page.world.game.bindHiddenFrameRoot(scope, view.root);
       // D188 (Jake's G815): where the crossing reveals the player, in render space (the cell's root carries its origin);

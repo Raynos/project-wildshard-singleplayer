@@ -570,6 +570,9 @@ export interface ShardManifest {
   horizon?: ChunkHorizon;
   /** Visual edge dressing only (default visible); never disables player-containment colliders. */
   boundary?: { visible?: boolean };
+  /** G784 / D189: 'world' = the entered world draws its whole cell's ground itself, so the grid cell's coarse tiles hide at
+   *  once on entry; absent, those tiles are its ground and stay until the tile registration's coarse replacement. */
+  cellGround?: 'world';
   /** Authored far-field imagery; consumed by the generic painted-horizon renderer. */
   horizonStrips?: { day: string; night: string; elMin: number; elMax: number; scale?: number; phone?: { day: string; night: string } };
   /**

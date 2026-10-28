@@ -15,6 +15,7 @@
   ],
   "api": 1,
   "gridShardfile": "/shardfiles/nalati-grasslands/shard.json",
+  "cellGround": "world",
   "entries": {
     "legacy": true,
     "shardfile": true

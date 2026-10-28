@@ -15,8 +15,9 @@
  * Generic game code (E405): no shard is named here.
  */
 
-/** Cover the coarse root after replacement is ready, until the idempotent release. */
-export interface CellCoverPort { readonly cover: (instance: string) => () => void }
+/** Cover the coarse root after replacement is ready, until the idempotent release. `ownGround`: the entered world draws
+ *  its whole cell's ground itself (manifest `cellGround: 'world'`), so the root hides at once (G784 / D189). */
+export interface CellCoverPort { readonly cover: (instance: string, ownGround?: boolean) => () => void }
 
 const ports = new WeakMap<object, CellCoverPort>();
 /** Bind the session's port to the scene it draws (the page's root scene); returns the unbind. One port per scene. */
@@ -35,19 +36,21 @@ export function cellCoverOf(scene: object): CellCoverPort | null { return ports.
  */
 export function cellCoverPort(root: (instance: string) => { visible: boolean } | undefined,
   ready: (instance: string) => boolean = () => true): CellCoverPort & { readonly covered: (instance: string) => boolean; readonly refresh: () => void } {
-  const counts = new Map<string, number>();
+  const counts = new Map<string, number>(), own = new Set<string>();
+  const hidden = (instance: string): boolean => own.has(instance) || ready(instance);
   return {
     covered: (instance) => (counts.get(instance) ?? 0) > 0,
-    refresh: () => { for (const instance of counts.keys()) { const target = root(instance); if (target !== undefined) target.visible = !ready(instance); } },
-    cover: (instance) => {
+    refresh: () => { for (const instance of counts.keys()) { const target = root(instance); if (target !== undefined) target.visible = !hidden(instance); } },
+    cover: (instance, ownGround = false) => {
       counts.set(instance, (counts.get(instance) ?? 0) + 1);
-      const target = root(instance); if (target !== undefined) target.visible = !ready(instance);
+      if (ownGround) own.add(instance);
+      const target = root(instance); if (target !== undefined) target.visible = !hidden(instance);
       let released = false;
       return () => {
         if (released) return; released = true;
         const left = (counts.get(instance) ?? 1) - 1;
         if (left > 0) { counts.set(instance, left); return; }
-        counts.delete(instance);
+        counts.delete(instance); own.delete(instance);
         const shown = root(instance); if (shown !== undefined) shown.visible = true;
       };
     },

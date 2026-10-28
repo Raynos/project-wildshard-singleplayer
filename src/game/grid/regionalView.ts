@@ -65,6 +65,9 @@ export interface RegionalViewRequest {
   /** the page's precompile for one draw, against this view's root's own lights: a clip variant made after the warm-up
    *  links here before it draws (`cellClip`) */
   readonly prepare?: (node: Object3D, root: Object3D) => Promise<void>;
+  /** The entered world draws its whole cell's ground itself (manifest `cellGround: 'world'`): the cell's coarse tiles
+   *  hide at once on entry instead of waiting for their replacement (G784 / D189). */
+  readonly ownGround?: boolean;
 }
 
 /** Live counts a leak check compares against zero after leave. */
@@ -177,7 +180,7 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
     slot.registryValue = registry; bindings++; if (present) visibleBindings++;
     root.visible = visibleBindings > 0;
     // G223: the cell's coarse cover (far proxy, ring tiles) hands over to this root while the entry lives
-    const uncover = present ? cellCoverOf(request.scene)?.cover(cell.instance) ?? ((): void => undefined) : (): void => undefined;
+    const uncover = present ? cellCoverOf(request.scene)?.cover(cell.instance, request.ownGround === true) ?? ((): void => undefined) : (): void => undefined;
     let restored = false;
     let forgetEntry = (): void => undefined, forgetView = (): void => undefined;
     const restore = (): void => {
