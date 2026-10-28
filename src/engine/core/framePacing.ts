@@ -134,20 +134,32 @@ export function nextDrawnFrame(owner?: Scope): Promise<void> {
   const scope = owner ?? resourceScope(), since = lastDrawn, start = diagnosticNow();
   return new Promise<void>((resolve) => {
     let done = false, forget = (): void => undefined;
-    const finish = (): void => { if (done) return; done = true; forget(); resolve(); };
+    let frame: number | undefined, cap: ReturnType<Scope['timeout']> | undefined, task: ReturnType<Scope['timeout']> | undefined, turn: Scope | undefined;
+    const finish = (): void => {
+      if (done) return;
+      done = true; forget();
+      if (frame !== undefined) scope.cancelRaf(frame);
+      if (cap !== undefined) scope.cancelTimer(cap);
+      if (task !== undefined) scope.cancelTimer(task);
+      turn?.dispose(); resolve();
+    };
     forget = scope.capture('disposers', finish);
     const check = (): void => {
       if (done) return;
       if (lastDrawn > since || diagnosticNow() - start >= WAIT_CAP_MS || typeof globalThis.requestAnimationFrame !== 'function') { finish(); return; }
       // A task after rAF leaves paint first. A nested timer costs 4 ms of the next build's frame before any work starts.
-      scope.raf(() => {
-        if (typeof globalThis.MessageChannel !== 'function') { scope.timeout(0, check); return; }
-        const channel = new MessageChannel(), turn = scope.child('frame-turn');
-        turn.onDispose(() => { channel.port1.close(); channel.port2.close(); });
-        turn.listen(channel.port1, 'message', () => { turn.dispose(); scope.run(check); }, { once: true });
+      frame = scope.raf(() => {
+        frame = undefined;
+        if (typeof globalThis.MessageChannel !== 'function') { task = scope.timeout(0, () => { task = undefined; check(); }); return; }
+        const channel = new MessageChannel(), active = scope.child('frame-turn'); turn = active;
+        active.onDispose(() => { channel.port1.close(); channel.port2.close(); });
+        active.listen(channel.port1, 'message', () => { active.dispose(); turn = undefined; scope.run(check); }, { once: true });
         channel.port1.start(); channel.port2.postMessage(0);
       });
     };
+    // A hidden or suspended presentation can stop rAF entirely. The existing
+    // cap must have its own task, rather than waiting for another frame to check it.
+    if (!done) cap = scope.timeout(WAIT_CAP_MS, finish);
     check();
   });
 }

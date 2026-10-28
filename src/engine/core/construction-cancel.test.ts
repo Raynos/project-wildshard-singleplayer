@@ -87,3 +87,19 @@ test('G723: sliced retirement also settles a pending construction task', async (
   for (const _step of owner.disposeSteps()) { /* Same lifetime completion as whole retirement. */ }
   await microtasks(); expect(settled).toBe(true); await pending;
 });
+
+
+test('a missing animation frame still settles at the existing 100ms cap', async () => {
+  vi.useFakeTimers();
+  const { frames, cancelled } = pendingFrame(), owner = new Scope('suspended-build-frame'), before = owner.census;
+  let settled = false;
+  try {
+    const pending = nextDrawnFrame(owner).then(() => { settled = true; return undefined; });
+    expect(frames).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(99); expect(settled).toBe(false);
+    await vi.advanceTimersByTimeAsync(1); await pending;
+    expect(settled).toBe(true); expect(cancelled).toEqual([1]); expect(owner.census).toEqual(before);
+    for (const frame of frames) frame(now);
+    await microtasks(); expect(owner.census).toEqual(before);
+  } finally { owner.dispose(); vi.useRealTimers(); }
+});
