@@ -43,13 +43,19 @@ export function controlChunkSelector(root: string, startup = startupModuleRoots(
       session = staticClosure(graph, [resolve(root, 'src/game/session/session.ts')]);
     }
     const needed = controls.get(id) ?? 0n, titleMask = title?.get(id) ?? 0n;
+    // An unconditional HTML dependency already runs in every entry in this
+    // exact set. Later title/session labels cannot narrow its initial use;
+    // keeping them here only makes another mandatory module transaction.
+    if (boundary === 'initial') {
+      const entryMask = initial?.get(id) ?? 0n;
+      return entryMask === 0n || id.includes('/src/shards/') || /\.css(?:\?|$)/u.test(id) ? null : `entry-${entryMask.toString(36)}`;
+    }
     if (needed === 0n && titleMask === 0n) return null;
     const roles = `${(initial?.get(id) ?? 0n).toString(36)}-${titleMask.toString(36)}-${needed.toString(36)}-${session?.has(id) === true ? 'session' : 'startup'}`;
     // Asset modules contain URL strings. Equal real requirements can share a
     // bank without fetching image bodies or admitting another home's code.
     if (boundary === 'assets') return /\.(?:avif|gif|jpe?g|png|svg|webp)$/u.test(id) ? `asset-urls-${roles}` : null;
     if (id.includes('/src/shards/')) return null;
-    if (boundary === 'initial') return `entry-${roles}`;
     if (boundary === 'title') return titleMask > 0n ? `title-${roles}` : null;
     if (titleMask > 0n || !/\.(?:[cm]?[jt]sx?|json)$/u.test(id) || id.includes('/out/')) return null;
     return `control-${roles}`;

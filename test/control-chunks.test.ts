@@ -42,6 +42,27 @@ test('a subsequent build uses its own graph, including changed optional requirem
   expect(second('/fixture/src/second.ts', graph)).toMatch(/^control-.*-startup$/u);
 });
 
+test('unconditional initial banks ignore later roles but preserve their exact HTML entry sets', () => {
+  const root = '/fixture', rows: Readonly<Record<string, readonly string[]>> = {
+    '/fixture/index.html': ['/fixture/src/entry.ts', '/fixture/src/bootOnly.ts', '/fixture/src/shared.ts', '/fixture/src/base.css'],
+    '/fixture/calibration/index.html': ['/fixture/src/calibrationOnly.ts', '/fixture/src/shared.ts'],
+    '/fixture/src/entry.ts': ['/fixture/src/titleAndSession.ts'],
+    '/fixture/src/game/session/session.ts': ['/fixture/src/titleAndSession.ts', '/fixture/src/sessionOnly.ts'],
+  };
+  const graph = { getModuleInfo: (id: string) => ({ importedIds: rows[id] ?? [] }) };
+  const select = controlChunkSelector(root, ['/fixture/src/entry.ts', '/fixture/src/game/session/session.ts'], 'initial');
+  // bootOnly has no later role; titleAndSession has both. Main requires
+  // them together even though their later masks differ.
+  expect(select('/fixture/src/bootOnly.ts', graph)).toBe('entry-1');
+  expect(select('/fixture/src/titleAndSession.ts', graph)).toBe('entry-1');
+  expect(select('/fixture/src/entry.ts', graph)).toBe('entry-1');
+  expect(select('/fixture/src/shared.ts', graph)).toBe('entry-3');
+  expect(select('/fixture/src/calibrationOnly.ts', graph)).toBe('entry-2');
+  expect(select('/fixture/src/sessionOnly.ts', graph)).toBeNull();
+  expect(select('/fixture/src/lazyExplorer.ts', graph)).toBeNull();
+  expect(select('/fixture/src/base.css', graph)).toBeNull();
+});
+
 test('entry-aware chunk labels preserve the strict named module bank contract', () => {
   const pattern = controlChunkFileName({ name: 'title-boundary~main~session' });
   expect(pattern).toBe('assets/title-boundary-main-session-[hash].js');
