@@ -246,7 +246,9 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
       void completeOfflineCopy();
       if (deferredAudio || hasLateAudio(files)) void decodeAfterBoot();
       if (ctx.grid !== null) startGridPrefetch(gridPrefetchOrder(ctx.grid.assembly, player.position), gridPrefetchOrder(ctx.grid.assembly, player.position, 'phone'));
-      asShell(() => { startShardPrefetch(manifest); });
+      // Native grids already prefetch their phone ring through verified product packs.
+      // The older full-catalogue boot prefetch belongs only to standalone entries.
+      if (ctx.grid === null) asShell(() => { startShardPrefetch(manifest); });
     });
 
 
