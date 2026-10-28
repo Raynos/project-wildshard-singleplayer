@@ -56,8 +56,11 @@ function observeDraws(renderer: DrawTarget, final: WeakSet<THREE.Texture>): void
     try { draw(camera, scene, geometry, material, object, group); complete = true; }
     finally {
       depth--;
-      if (depth === 0) {
-        if (complete && bound.size > 0) for (const texture of bound) {
+      // Empty Set.clear() still replaces V8's backing table. Most draws have
+      // no pending compressed input after first-draw retirement; keep that
+      // empty storage instead of allocating a table for every ordinary draw.
+      if (depth === 0 && bound.size > 0) {
+        if (complete) for (const texture of bound) {
           const properties: unknown = get(texture);
           // A direct immutable draw has no earlier loader readiness fence. Retain
           // its bytes unless native texture and source versions both completed.
