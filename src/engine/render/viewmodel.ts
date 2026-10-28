@@ -4,6 +4,7 @@ import { constructionOwner, currentOwner, enteredOwner } from '../app/ownership'
 import type { Scope } from '../app/scope';
 
 const viewMesh = (part: Object3D): part is Mesh => part instanceof Mesh;
+const opaqueMaterial = (material: Material): boolean => !material.transparent;
 
 /** One camera-space transparent pass, shared by every equipped weapon. */
 export class ViewmodelRoot extends Group {
@@ -11,6 +12,7 @@ export class ViewmodelRoot extends Group {
   private readonly transparentCopies = new WeakMap<Material, Material>();
   /** Staged models that keep their own pass (`mountOwnPass`): never prepared, never counted for the shared clear. */
   private readonly ownPass = new WeakSet<Object3D>();
+  private readonly drawsChild = (child: Object3D): boolean => this.drawsMesh(child);
   private readonly clearer = new Mesh(new BoxGeometry(0.001, 0.001, 0.001), new MeshBasicMaterial({
     colorWrite: false, depthWrite: false, transparent: true, fog: false,
   }));
@@ -64,29 +66,32 @@ export class ViewmodelRoot extends Group {
   private transparent(material: Material): Material {
     // Kit families already configure these exact materials for the transparent queue; retain their identity.
     if (material.transparent) return material;
-    let copy = this.transparentCopies.get(material);
-    if (copy === undefined) {
-      copy = material.clone(); copy.transparent = true;
-      const cloned = copy;
-      copy.onBeforeCompile = (shader, renderer) => { material.onBeforeCompile.call(cloned, shader, renderer); };
-      copy.customProgramCacheKey = () => material.customProgramCacheKey();
-      this.transparentCopies.set(material, copy);
-    }
+    return this.transparentCopies.get(material) ?? this.cloneTransparent(material);
+  }
+  // Shader forwarding captures its source only when a copy is first needed.
+  private cloneTransparent(material: Material): Material {
+    const copy = material.clone(); copy.transparent = true;
+    copy.onBeforeCompile = (shader, renderer) => { material.onBeforeCompile.call(copy, shader, renderer); };
+    copy.customProgramCacheKey = () => material.customProgramCacheKey();
+    this.transparentCopies.set(material, copy);
     return copy;
+  }
+  private copyTransparentArray(materials: Material[]): Material[] {
+    return materials.map(material => this.transparent(material));
   }
   private prepare(part: Object3D): void {
     if (this.ownPass.has(part)) return;
     if (viewMesh(part)) {
       part.renderOrder = Math.max(1000, part.renderOrder); part.frustumCulled = false; part.castShadow = false;
       if (Array.isArray(part.material)) {
-        if (part.material.some((material) => !material.transparent)) part.material = part.material.map((material) => this.transparent(material));
+        if (part.material.some(opaqueMaterial)) part.material = this.copyTransparentArray(part.material);
       } else part.material = this.transparent(part.material);
     }
     for (const child of part.children) this.prepare(child);
   }
   private drawsMesh(part: Object3D): boolean {
     if (!part.visible || this.ownPass.has(part)) return false;
-    return part instanceof Mesh || part.children.some((child) => this.drawsMesh(child));
+    return part instanceof Mesh || part.children.some(this.drawsChild);
   }
   override updateMatrixWorld(force?: boolean): void {
     this.syncClearer();
