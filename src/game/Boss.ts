@@ -6,6 +6,7 @@ import { BossBrain, type BossScript } from '@wildshard/engine/ai/BossBrain';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Player } from '@wildshard/engine/player/Player';
 import { WeaponPickup } from '@wildshard/engine/player/WeaponPickup';
+import { LightPool } from '@wildshard/engine/fx/LightPool';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
@@ -159,9 +160,10 @@ export interface BossHost {
   player: Pick<Player, 'position' | 'yaw' | 'pitch'>;
   camera: THREE.PerspectiveCamera;
   renderer?: Renderer;
-  /** a point light that is always in the scene from boot (intensity 0): hidden while the reward orb's own light is up,
-   *  so the scene's light count — part of every lit program's key — never changes (no recompile hitch at the victory) */
-  spareLight?: THREE.Light;
+  /** a point light held dark from boot so the scene's light count (part of every lit program's key) never changes at the
+   *  victory. A LightPool light of `scene` (G808) is released, and the reward orb's own pooled light takes its slot; a raw
+   *  scene light (the frozen legacy shards) is hidden while the orb's light is up, as before */
+  spareLight?: THREE.PointLight;
   /** the intro locks movement + weapons */
   lockInput: (on: boolean) => void;
   /** a dead player back at the checkpoint: full health, the quiver / javelins refilled */
@@ -209,13 +211,17 @@ export class Boss extends BossBrain {
     super.update(dt, t);
     if (this.drop !== null) {
       this.drop.update(dt, t, this.renderHost.renderer, this.renderHost.camera);
-      if (this.drop.group.parent === null) { this.drop = null; if (this.renderHost.spareLight) this.renderHost.spareLight.visible = true; }
+      if (this.drop.group.parent === null) { this.drop = null; if (this.renderHost.spareLight && !this.pooledSpare()) this.renderHost.spareLight.visible = true; }
     }
   }
 
+  /** whether the spare light is a slot of the scene's LightPool (G808) rather than a raw scene light */
+  private pooledSpare(): boolean { return this.renderHost.spareLight?.parent === LightPool.for(this.renderHost.scene).group; }
+
   private spawnReward(): void {
     const r = this.def.reward;
-    if (this.renderHost.spareLight) this.renderHost.spareLight.visible = false;
+    const spare = this.renderHost.spareLight;
+    if (spare !== undefined) { if (this.pooledSpare()) LightPool.for(this.renderHost.scene).release(spare); else spare.visible = false; }
     const drop = new WeaponPickup({ scene: this.renderHost.scene, item: r.model(), position: this.script.rewardPoint(), tier: 'legendary', prompt: r.prompt, scale: 1.7, radius: 2.6 });
     this.drop = drop;
     this.renderHost.addInteractable(drop.interactable);

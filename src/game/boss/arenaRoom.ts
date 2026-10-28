@@ -5,6 +5,7 @@ import { app } from '@wildshard/engine/app/runtime';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { fxMaterial, type FxMaterial } from '@wildshard/engine/fx/groundFx';
+import { LightPool } from '@wildshard/engine/fx/LightPool';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { HeightPatch } from '@wildshard/engine/physics/heightPatch';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
@@ -1043,8 +1044,20 @@ class OpenArenaProjection implements BossScript {
 
 }
 
+/**
+ * G808: the arena's spare light (the reward's slot, dark until the victory) is a LightPool light of the scene it lights.
+ * A raw scene light counted in every lit program's key: two arenas in a grid region raised the page from 5 to 7 point
+ * lights, so a crossing into Nalati linked 83 of its 142 programs a second time, once per light count. A region's pool
+ * is mirrored onto the page's reserved lights (regionalWorld.ts), so the page count never moves; a solo page's pool is
+ * fixed after its first render. Same colour, reach, decay and place; dark, so nothing it lights changes.
+ */
+function pooledSpare(scene:THREE.Scene,colour:THREE.ColorRepresentation,at:THREE.Vector3):THREE.PointLight{
+  const light=LightPool.for(scene).acquire(colour,0,1,2);light.position.copy(at);return light;
+}
+
 export class ArenaRoomEncounter {
-  readonly spareLight:THREE.PointLight;
+  /** the reward's light slot, dark until the victory (Boss.ts): a LightPool light once the arena is in its scene */
+  spareLight:THREE.PointLight;
   private readonly room:BossArenaRoom|null;
   get dungeon():BossArenaRoom{if(this.room===null)throw new Error('Open arena has no room');return this.room;}
   boss:Boss|null=null;ui:BossBar|null=null;
@@ -1078,13 +1091,13 @@ export class ArenaRoomEncounter {
       this.room=null;this.rows=null;this.openWorld=source.world;this.openRows=source.rows;
       for(const [name,row]of Object.entries(source.rows.contacts))this.contacts.set(name,strikeFromData(row));
       const projection=this.projection=new OpenArenaProjection(source.world,this,source.rows);
-      this.spareLight=new THREE.PointLight(source.rows.view.light.colour,0,1,2);this.spareLight.position.set(source.rows.arena.body.x,source.rows.view.light.y,source.rows.arena.body.z);source.world.game.scene.add(this.spareLight);
+      this.spareLight=pooledSpare(source.world.game.scene,source.rows.view.light.colour,new THREE.Vector3(source.rows.arena.body.x,source.rows.view.light.y,source.rows.arena.body.z));
       const spot=projection.cairnSpot();this.prompt={position:new THREE.Vector3(spot.x,spot.y+source.rows.view.promptLift,spot.z),radius:0,label:source.rows.lines.tie,onInteract:()=>{this.tie();}};
     }
   }
   async buildSliced(world:{readonly scene:THREE.Scene;readonly registry:WorldRegistry}):Promise<this>{
     const dungeon=this.room;if(dungeon===null)throw new Error('Open arena is already constructed');
-    await dungeon.buildSliced(true,macrotask);await macrotask();world.scene.add(dungeon.group,this.spareLight);dungeon.register(world.registry);
+    await dungeon.buildSliced(true,macrotask);await macrotask();world.scene.add(dungeon.group);this.spareLight=pooledSpare(world.scene,this.spareLight.color,this.spareLight.position);dungeon.register(world.registry);
     return this;
   }
   riderOwner():PatrolEncounterView|null{return this.riders;}
