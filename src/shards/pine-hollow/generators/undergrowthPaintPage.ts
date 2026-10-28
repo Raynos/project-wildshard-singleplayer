@@ -4,7 +4,7 @@
  * on a canvas at every launch, and encodes each one (WebP; its alpha plane stays lossless).
  * No game, no level, no shard runtime is loaded.
  */
-import { paintSteps, type CanvasAtlasRow } from '@wildshard/game/plugin/geometry';
+import { paintSteps, type CanvasAtlasRow } from '@wildshard/sdk/bake/canvasAtlas';
 import { sendPaintedCanvas, type PaintedBake } from './paintedBytes';
 import { FERN_PAINT, LITTER_PAINT, MOSS_PAINT, REED_PAINT, SHRUB_PAINT, STONE_PAINT } from './undergrowthPaint';
 
