@@ -1307,7 +1307,7 @@ test('fresh unpinned and external products retain ordinary source validation', a
   }
 });
 
-async function packedDemandFixture() {
+async function packedDemandFixture(overlap = false) {
   const bodies = [new Uint8Array([1, 2, 3]), ...[4, 6, 8, 10].map(n => new Uint8Array([n, n + 1]))];
   const fWires = new Map<string, Uint8Array>();
   const hashes = bodies.map(hashImmutableBytes), names = new Map(hashes.map((hash, i) => [hash, `models/demand-${i}.bin`]));
@@ -1325,7 +1325,12 @@ async function packedDemandFixture() {
   let offset = 0;
   const entries = bodies.map(body => { const row = { hash: hashImmutableBytes(body), offset, bytes: body.length }; wire.set(body, offset); offset += body.length; return row; });
   const pack = { path: `blobs/pack/${hashImmutableBytes(wire)}.pack`, hash: hashImmutableBytes(wire), bytes: wire.length, entries };
-  const index = parseOutputIndex({ ...f.index, packs: [pack] });
+  const shared = bodies[1], tail = bodies[4];
+  if (shared === undefined || tail === undefined) throw new Error('Missing overlapping pack members');
+  const twin = new Uint8Array(shared.length + tail.length); twin.set(shared); twin.set(tail, shared.length);
+  const earlier = { path: `blobs/pack/${hashImmutableBytes(twin)}.pack`, hash: hashImmutableBytes(twin), bytes: twin.length,
+    entries: [{ hash: hashImmutableBytes(shared), offset: 0, bytes: shared.length }, { hash: hashImmutableBytes(tail), offset: shared.length, bytes: tail.length }] };
+  const index = parseOutputIndex({ ...f.index, packs: overlap ? [earlier, pack] : [pack] });
   const resolved = await resolveOutputDescriptor(index, { offline: false, hash: f.options.hash,
     read: path => { const body = f.wires.get(path); if (body === undefined) throw new Error('Missing demand section'); return Promise.resolve(body); } });
   const source = schema.parseShardfile(resolved); carryOutputDescriptor(resolved, source);
@@ -1392,4 +1397,18 @@ test.each(['hash', 'short', 'range'] as const)('failed packed demand %s releases
   bad = false;
   expect(await Promise.all([reader.read(a), reader.read(b)])).toEqual(f.bodies.slice(0, 2));
   expect(ranges).toEqual([[0, 4], [0, 4]]); expect(reader.retained.size).toBe(0);
+});
+
+
+test('a shared member keeps its claimed envelope offset across legal overlapping packs', async () => {
+  const f = await packedDemandFixture(true), [a, b] = f.hashes;
+  if (a === undefined || b === undefined) throw new Error('Missing demand hashes');
+  const ranges: [number, number][] = [];
+  const fetchRange: NonNullable<ProductOptions['fetchRange']> = (_url, start, end) => {
+    ranges.push([start, end]);
+    return Promise.resolve(new Response(Uint8Array.from(f.wire.slice(start, end + 1)), { status: 206, headers: { 'content-range': `bytes ${start}-${end}/${f.wire.length}` } }));
+  };
+  const reader = new ClientAssets(f.source, new Map(), { ...f.options, fetchRange });
+  expect(await Promise.all([reader.read(a), reader.read(b)])).toEqual(f.bodies.slice(0, 2));
+  expect(ranges).toEqual([[0, 4]]);
 });

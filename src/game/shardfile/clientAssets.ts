@@ -13,7 +13,7 @@ export class ClientAssets {
   private readonly packs = new Map<string, Promise<Uint8Array>>();
   // A demand belongs to exactly one live envelope (null means direct fetch).
   // Its original read releases the assignment, including cache hits/refusals.
-  private readonly packedDemands = new Map<string, { readonly start: number; readonly wire: Promise<Uint8Array> } | null>();
+  private readonly packedDemands = new Map<string, { readonly offset: number; readonly wire: Promise<Uint8Array> } | null>();
   private readonly source: Shardfile;
   private readonly options: ProductOptions;
   // The admitted source's files by hash, built on the first lease (every tile scope leases its closure at boot).
@@ -98,7 +98,7 @@ export class ClientAssets {
     const claimed = this.packedDemands.get(ref);
     if (claimed === null) return undefined;
     if (claimed !== undefined) {
-      const offset = member.offset - claimed.start;
+      const offset = claimed.offset;
       return (await claimed.wire).slice(offset, offset + member.bytes);
     }
     // Cache awaits above admit the caller's current read-ahead wave before this
@@ -137,10 +137,9 @@ export class ClientAssets {
       })();
       this.packs.set(key, pending);
     }
-    const envelope = { start, wire: pending };
     for (let i = first; i <= last; i++) {
       const entry = pack.entries[i];
-      if (entry !== undefined) this.packedDemands.set(entry.hash, envelope);
+      if (entry !== undefined) this.packedDemands.set(entry.hash, { offset: entry.offset - start, wire: pending });
     }
     try {
       const offset = member.offset - start;
