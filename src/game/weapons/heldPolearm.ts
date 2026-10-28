@@ -567,7 +567,7 @@ export class PolearmSet {
     const part=r.parts.geometry(id);if(part===null)throw new Error(`Missing polearm part ${id}`);return [id,part] as const;
    }));
    super(world,targets,{profile:opts.profile??r.profile,javelin:r.javelin,view:r.view,allowUnlocked:opts.allowUnlocked??false,...(opts.owner===undefined?{}:{owner:opts.owner}),program:r.rows.program,presentation:r.rows.presentation,
-    geometry:r.deferred?async()=>{await r.parts.preload();return geometries();}:geometries()});
+    geometry:r.deferred?async()=>{await r.parts.preload();const sourceOwner=opts.owner??world.game.levelScope;if(sourceOwner.disposed||sourceOwner.disposing)throw new Error('Polearm preparation owner left');return geometries();}:geometries()});
   }
  })(this);
  private need():NonNullable<PolearmSet['data']>{if(this.data===null)throw new Error('Polearm rows not prepared');return this.data;}
