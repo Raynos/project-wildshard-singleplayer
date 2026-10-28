@@ -1,5 +1,5 @@
-import { authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
-import * as v from 'valibot';
+import { authorFormatSchema, nativeColliderSourceRows } from '@wildshard/sdk/formatJsonSchema';
+import { parseSectionValue } from '@wildshard/sdk/sections';
 import { PinePhysicsSchema } from './sections';
 import PINE_TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
 import rows from '../data/physicsRows.json' with { type: 'json' };
@@ -26,10 +26,10 @@ function physicsRows(): PinePhysicsRows {
   const payload = { version: 1, profile: 'authored rows', notice: 'DO NOT EDIT: regenerate with generators/physics.ts (pine-physics).',
     ground: rows.ground, actors: rows.actors, parked: rows.parked, kingHit: rows.kingHit, herds: rows.herds, trees,
     shelterTrees: rows.shelterTrees, pieces: rows.pieces, solids: rows.solids };
-  v.parse(PinePhysicsSchema, payload);
-  for (const actor of [...rows.actors, ...rows.parked]) v.parse(nativeBodySchema('segments'), actor.spec);
+  parseSectionValue(PinePhysicsSchema, payload);
+  for (const actor of [...rows.actors, ...rows.parked]) parseSectionValue(nativeBodySchema('segments'), actor.spec);
   const solid = nativeColliderRecordSchema([1, 2, 6, 9], 'piece', true);
-  for (const row of rows.solids) v.parse(solid, row);
+  for (const row of rows.solids) parseSectionValue(solid, row);
   if (rows.ground.rows !== PINE_TERRAIN.res - 1 || rows.ground.cols !== PINE_TERRAIN.res - 1) throw new Error('Pine physics: divergent native lattice');
   return payload;
 }
@@ -43,7 +43,7 @@ export function pinePhysicsBytes(): Uint8Array { return new TextEncoder().encode
 /** Original floor and hull buffers through the existing named binary intake. */
 export function pinePhysicsSources(): { name: string; kind: 'bin'; source: string; options: { decoded: number } }[] {
   const colliders = new Map<string, number>();
-  for (const solid of v.parse(v.array(nativeColliderRecordSchema([1, 2, 6, 9], 'piece', true)), rows.solids)) {
+  for (const solid of nativeColliderSourceRows(rows.solids, [1, 2, 6, 9], 'piece')) {
     for (const range of [solid.vertices, solid.indices]) {
       if (range === undefined) continue;
       if (typeof range === 'string') throw new Error('Pine physics requires admitted raw collider ranges');
