@@ -1,7 +1,17 @@
 import { expect, test } from 'vitest';
 import { filePolicy } from '@wildshard/engine/boot/filePolicy';
 import { CLOUD_FIELD_URL } from '@wildshard/engine/boot/bakedApi';
-import { bootFilePolicy, sharedBootTextures, type BootInventory } from './bootInventory';
+import { RAPIER_WASM_URL } from '@wildshard/engine/physics/wasmUrl';
+import { bootFilePolicy, sharedBootPhysics, sharedBootTextures, type BootInventory } from './bootInventory';
+
+test('shared boot physics preserves native identity and gives each author independent storage', () => {
+  const first = sharedBootPhysics(), second = sharedBootPhysics();
+  expect(first).toEqual([RAPIER_WASM_URL]);
+  expect(second).not.toBe(first);
+  Reflect.set(first, 0, 'changed');
+  expect(second).toEqual([RAPIER_WASM_URL]);
+  expect(sharedBootPhysics()).toEqual(second);
+});
 
 test('explicit boot inventory keeps original phone fallbacks and GPU precedence', () => {
   const inventory: BootInventory = { '/fixture/model.phone.glb': true, '/fixture/paint.phone.webp': 24 };

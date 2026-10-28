@@ -1,5 +1,6 @@
 import { filePolicy } from '@wildshard/engine/boot/filePolicy';
 import { CLOUD_FIELD_URL } from '@wildshard/engine/boot/bakedApi';
+import { RAPIER_WASM_URL } from '@wildshard/engine/physics/wasmUrl';
 
 /** Authoring inputs are explicit presence/byte tables, never a live download service. */
 export type BootInventory = Readonly<Record<string, number | true>>;
@@ -26,6 +27,9 @@ export function bootFilePolicy(tier: BootTier, mode: BootTextures, table: BootGp
 export function sharedBootTextures(inventory: BootInventory): string[] {
   return CLOUD_FIELD_URL in inventory ? [CLOUD_FIELD_URL] : [];
 }
+
+/** The engine's required physics input in native boot order, as an independent author row. */
+export function sharedBootPhysics(): readonly [typeof RAPIER_WASM_URL] { return [RAPIER_WASM_URL]; }
 
 export interface BootRecipe {
   readonly source: { readonly urls: readonly string[] | Readonly<Record<BootTier, readonly string[]>> }

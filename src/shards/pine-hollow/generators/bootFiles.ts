@@ -1,4 +1,5 @@
 import painted from '../data/paintedTextures.json' with {type:'json'};
+import { sharedBootPhysics } from '@wildshard/sdk/bootInventory';
 
 const PINE_BOOT_ASSET_1="/assets/baked/pine-hollow/sky.json";
 const PINE_BOOT_ASSET_2="/assets/baked/pine-hollow/tex/";
@@ -9,7 +10,7 @@ const PINE_BOOT_ASSET_6="/assets/models/dead_tree_trunk/dead_tree_trunk_lod.glb"
 const PINE_BOOT_ASSET_7="/assets/pine-hollow/weapons/lever-rifle.glb";
 const PINE_BOOT_ASSET_8="/assets/pine-hollow/weapons/skinning-knife.glb";
 const PINE_BOOT_ASSET_12="/assets/baked/pine-hollow/navmesh.bin";
-const PINE_BOOT_ASSET_13="/assets/physics/rapier.wasm";
+const PINE_BOOT_ASSET_13=sharedBootPhysics()[0];
 
 /** Ordered boot selections; GPU inventory and admitted prop/coat aliases are borrowed at resolution. */
 export const PINE_BOOT_FILES: {

@@ -4949,6 +4949,8 @@ pose with the native matrix/quaternion/scale law, returning contact data only.
 
 
 `bootInventory.bootRecipeFiles` / `bootRecipeSources` resolve ordered author recipes against a required explicit inventory, GPU aliases and optional page/alias tables. Native transform order, duplicates, recursion/file limits and missing-metadata refusals remain; these functions never borrow the live page's inventory.
+`sharedBootPhysics` returns a fresh native-order physics input row. Its identity comes from the defining
+`engine/physics/wasmUrl` metadata module, without importing or initializing Rapier.
 `composeNamedJsonSchema` composes named roots, local Valibot leaves, objects and tuples; normal check refusals remain.
 
 The author CLI `wildshard schema list` lists format schemas and the shardfile declaration. `wildshard schema shardfile /properties` discovers all sections without Valibot internals. `schemaDeclaration` and `schemaAt` are defined in `@wildshard/sdk/formatJsonSchema`; discovery preserves native semantic checks and grants no admission. See [schema discovery](authoring/schema-discovery.md) for pointers, tuple arity, identifier grammars and installed declaration locations.
