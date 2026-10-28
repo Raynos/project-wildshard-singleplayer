@@ -102,3 +102,30 @@ test('retirement during a spent join drains without publishing the stale fine pi
     expect(f.cover).toHaveBeenCalledOnce();
   } finally { release(); f.close(); }
 });
+
+test('concurrent arrivals await one current union before either fine hold becomes ready', async () => {
+  const f = fixture(), first = f.owner.child('first-joining'), second = f.owner.child('second-joining'), keys = [...f.content.tiles()];
+  const a = keys[0], b = keys[1]; if (a === undefined || b === undefined) throw new Error('Missing original tiles');
+  let release = (): void => undefined, started = (): void => undefined, added = (): void => undefined;
+  const paused = new Promise<void>(resolve => { started = resolve; }), resume = new Promise<void>(resolve => { release = resolve; });
+  const joined = new Promise<void>(resolve => { added = resolve; }), register = second.onDispose.bind(second);
+  vi.spyOn(second, 'onDispose').mockImplementation(cleanup => { register(cleanup); added(); });
+  const original = work.workSlice; let held = false;
+  vi.spyOn(work, 'workSlice').mockImplementation((budget, owner) => owner !== f.owner ? original(budget, owner) : {
+    due: () => !held, yield: () => Promise.resolve(), check: () => { if (held) return undefined; held = true; started(); return resume; },
+  });
+  let firstReady = false, secondReady = false;
+  const initial = f.mesh.geometry, left = (async () => { await f.content.attach(a, first); firstReady = true; })();
+  try {
+    await paused;
+    const right = (async () => { await f.content.attach(b, second); secondReady = true; })();
+    await joined;
+    expect(firstReady).toBe(false); expect(secondReady).toBe(false); expect(f.mesh.geometry).toBe(initial);
+    release(); await Promise.all([left, right]);
+    expect(firstReady && secondReady).toBe(true); expect(f.mesh.children).toEqual([]); expect(f.mesh.geometry.groups).toEqual([]);
+    expect(f.mesh.geometry.getAttribute('position').array).toEqual(f.original.getAttribute('position').array);
+    expect(f.read).toHaveBeenCalledTimes(2);
+    first.dispose(); expect(f.mesh.geometry.getAttribute('position').count).toBe(3);
+    second.dispose(); expect(f.mesh.geometry.attributes).toEqual({});
+  } finally { release(); f.close(); }
+});
