@@ -10,7 +10,7 @@ const PINE_BOOT_ASSET_6="/assets/models/dead_tree_trunk/dead_tree_trunk_lod.glb"
 const PINE_BOOT_ASSET_7="/assets/pine-hollow/weapons/lever-rifle.glb";
 const PINE_BOOT_ASSET_8="/assets/pine-hollow/weapons/skinning-knife.glb";
 const PINE_BOOT_ASSET_12="/assets/baked/pine-hollow/navmesh.bin";
-const PINE_BOOT_ASSET_13=sharedBootPhysics()[0];
+const PINE_BOOT_ASSET_13: ReturnType<typeof sharedBootPhysics>[0]=sharedBootPhysics()[0];
 
 /** Ordered boot selections; GPU inventory and admitted prop/coat aliases are borrowed at resolution. */
 export const PINE_BOOT_FILES: {
