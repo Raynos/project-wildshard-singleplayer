@@ -70,17 +70,24 @@ export function uploadCompressedTexture(renderer: UploadTarget, texture: THREE.T
     retainCompressedMipmaps(texture);
     recordBootCheckpoint('texture:upload', { id: texture.id, version, name: texture.name, format: texture.format,
       mips: texture.mipmaps.length, width: texture.mipmaps[0]?.width ?? 0, height: texture.mipmaps[0]?.height ?? 0 });
-    renderer.initTexture(texture);
     // The error round trip is synchronous: on WebKit `getError` waits for the GPU process to drain every queued command,
     // the upload and the frame before it (sp-o291: 16 Pine road-entry uploads waited 247 ms on the Simulator, one 54 ms
     // stall inside a travel frame). Loading keeps the check; a live upload between drawn frames skips the wait (the
-    // format was already vetted by the KTX2 probe).
-    const gl = renderer.getContext(), error = presenting() ? gl.NO_ERROR : gl.getError();
-    if (error !== gl.NO_ERROR) {
-      const fault = new Error(`Graphics error ${error} after compressed texture ${texture.name || texture.format}`);
+    // format was already vetted by the KTX2 probe). An error already queued before the upload (a draw, a uniform, a link
+    // since the last read) fails the same way but says so: one read after the upload could not tell them apart (the
+    // public Pine smoke's 'Graphics error 1282 after compressed texture 37808' named no stage or texture).
+    const gl = renderer.getContext(), checked = !presenting();
+    const label = `${texture.name || texture.format} (#${String(texture.id)}, ${String(texture.mipmaps[0]?.width ?? 0)}x${String(texture.mipmaps[0]?.height ?? 0)}, ${String(texture.mipmaps.length)} mips)`;
+    const fail = (error: number, when: 'before' | 'after'): Error => {
+      const fault = new Error(`Graphics error ${String(error)} ${when} compressed texture ${label}`);
       queue.failed.set(texture, { allocation: allocation(), error: fault });
-      throw fault;
-    }
+      return fault;
+    };
+    const prior = checked ? gl.getError() : gl.NO_ERROR;
+    if (prior !== gl.NO_ERROR) throw fail(prior, 'before');
+    renderer.initTexture(texture);
+    const error = checked ? gl.getError() : gl.NO_ERROR;
+    if (error !== gl.NO_ERROR) throw fail(error, 'after');
     queue.failed.delete(texture);
     await frame(); check();
     return undefined;
