@@ -1,11 +1,14 @@
 /** The phone spawn view finishes linking under loading; undrawn programs stay deferred. */
 import type { Game } from '@wildshard/engine/core/Game';
 import { precompileLevel, waitForDrawnFrame } from '@wildshard/engine/render/precompile';
-import { boundEntryWarmup, EntryWarmupStallError } from '@wildshard/engine/render/entryWarmupBound';
+import { boundEntryWarmup, ENTRY_NO_FRAME_MS, EntryWarmupStallError } from '@wildshard/engine/render/entryWarmupBound';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 
 /** Actual drawn frames with no new node builds before spawn is ready. */
 const QUIET_FRAMES = 20;
+/** Presented time the spawn view may take to link before the reveal goes ahead (ms): WebKit settles in ~1 s, Chromium
+ *  phone 4x in ~3 s and 6x in ~9 s; 10x needs over 30 s, and paid all of the old 30 s entry bound before failing. */
+const SPAWN_LINK_MS = 12000;
 
 /** Compile only the spawn view and observe its real rendered programs, under the entry bound. Linking before the reveal
  * only smooths the first seconds of play: a device too slow to finish inside the bound (a CPU-throttled phone, where
@@ -25,7 +28,7 @@ export async function settleEntryPrograms(game: Game): Promise<{ ms: number; bui
         if (now === last) quiet++; else { quiet = 0; last = now; }
       }
       if (!current()) throw new Error('Spawn program warm-up owner left');
-    });
+    }, { noFrameMs: ENTRY_NO_FRAME_MS, totalMs: SPAWN_LINK_MS });
   } catch (error) {
     if (!(error instanceof EntryWarmupStallError) || scope.disposed) throw error;
     stalled = error.message;
