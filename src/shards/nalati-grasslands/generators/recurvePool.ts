@@ -7,7 +7,7 @@ import ARM_STYLE from '../data/armsStyle.json' with {type:'json'};
 // stave (`styles`, the first the base), swapped in by the host's repaint.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { MeshoptSimplifier } from 'meshoptimizer';
+import { simplifyPaintedGeometry } from '@wildshard/sdk/bake/simplifier';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { bakeGloveFist as gloveFist, bakeRiderArm as riderArm } from '@wildshard/sdk/bake/riderArms';
 import items from '../data/items.json' with { type: 'json' };
@@ -238,34 +238,6 @@ function staveRest(fist: THREE.BufferGeometry) {
 /** The sleeves' vertex budget: the engine's rider arm is ~19.6 k vertices (96 around, 3 mm rings through its ornament
  *  bands); simplified with colour and normal weights it reads the same at arm's length and keeps the pool under 1 MB. */
 const SLEEVE_VERTS = 6000;
-function decimate(g: THREE.BufferGeometry, verts: number): THREE.BufferGeometry {
-  const p = g.getAttribute('position'), n = g.getAttribute('normal'), c = g.getAttribute('color'), src = g.getIndex();
-  if (src === null) throw new Error('[nalati recurve pool] a sleeve to decimate must be indexed');
-  const count = p.count, pos = new Float32Array(count * 3), attr = new Float32Array(count * 6);
-  for (let i = 0; i < count; i++) {
-    pos[i * 3] = p.getX(i); pos[i * 3 + 1] = p.getY(i); pos[i * 3 + 2] = p.getZ(i);
-    attr.set([c.getX(i), c.getY(i), c.getZ(i), n.getX(i), n.getY(i), n.getZ(i)], i * 6);
-  }
-  const index = Uint32Array.from({ length: src.count }, (_, i) => src.getX(i));
-  const target = Math.round(index.length * (verts / count) / 3) * 3;
-  const [kept] = MeshoptSimplifier.simplifyWithAttributes(index, pos, 3, attr, 6, [12, 12, 12, 1, 1, 1], null, target, 0.05);
-  const remap = new Int32Array(count).fill(-1), order: number[] = [], out = new Uint32Array(kept.length);
-  for (let i = 0; i < kept.length; i++) {
-    const v = kept[i] ?? 0;
-    let m = remap[v] ?? -1;
-    if (m < 0) { m = order.length; remap[v] = m; order.push(v); }
-    out[i] = m;
-  }
-  const take = (a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute): THREE.BufferAttribute => {
-    const o = new Float32Array(order.length * 3);
-    order.forEach((v, i) => { o[i * 3] = a.getX(v); o[i * 3 + 1] = a.getY(v); o[i * 3 + 2] = a.getZ(v); });
-    return new THREE.BufferAttribute(o, 3);
-  };
-  const d = new THREE.BufferGeometry();
-  d.setAttribute('position', take(p)); d.setAttribute('normal', take(n)); d.setAttribute('color', take(c));
-  d.setIndex(new THREE.BufferAttribute(out, 1));
-  return d;
-}
 
 const v3 = (v: THREE.Vector3): V3 => [v.x, v.y, v.z];
 const V = (x: number, y: number, z: number): V3 => [x, y, z];
@@ -285,13 +257,12 @@ const PARTS = { stave: 'recurve-stave', nocked: 'recurve-arrow-nocked', rightFis
 const CHANNELS = [{ name: 'paintRecurve', semantic: '_PAINT_RECURVE' }, { name: 'paintGolden', semantic: '_PAINT_GOLDEN' }, { name: 'paintSkyWolf', semantic: '_PAINT_SKY_WOLF' }];
 
 /** Every recurve part as one rest-geometry pool GLB, and the held bow draw's rows. */
-export async function recurvePool(): Promise<{ glb: Uint8Array; rows: { pool: { url: string; parts: readonly string[]; channels: readonly unknown[] }; bow: unknown; base: ReturnType<typeof recurveBase> } }> {
-  await MeshoptSimplifier.ready;
+export function recurvePool(): { glb: Uint8Array; rows: { pool: { url: string; parts: readonly string[]; channels: readonly unknown[] }; bow: unknown; base: ReturnType<typeof recurveBase> } } {
   const lf = gloveFist(ARM_STYLE, L_FIST), rf = gloveFist(ARM_STYLE, R_FIST);
   const stave = staveRest(lf.geometry);
   const parts = new Map<string, THREE.BufferGeometry>([
     [PARTS.stave, stave.geometry], [PARTS.rightFist, pnc(rf.geometry)],
-    [PARTS.leftSleeve, decimate(riderArm(ARM_STYLE, 1.0, 1), SLEEVE_VERTS)], [PARTS.rightSleeve, decimate(riderArm(ARM_STYLE, 0.9, 2), SLEEVE_VERTS)],
+    [PARTS.leftSleeve, simplifyPaintedGeometry(riderArm(ARM_STYLE, 1.0, 1), { vertices: SLEEVE_VERTS, colourWeight: 12, normalWeight: 1, error: 0.05 })], [PARTS.rightSleeve, simplifyPaintedGeometry(riderArm(ARM_STYLE, 0.9, 2), { vertices: SLEEVE_VERTS, colourWeight: 12, normalWeight: 1, error: 0.05 })],
     [PARTS.arrow, arrowGeometry()], [PARTS.nocked, arrowGeometry()],
   ]);
   const neutral = new THREE.MeshStandardMaterial();

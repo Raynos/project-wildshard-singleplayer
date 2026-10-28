@@ -4923,6 +4923,8 @@ The adapter supplies the existing pattern ports: the ram's live home and shared 
 
 `bake/species`, `bootInventory`, `rows`, `weapons/meleeProfile` and `formatJsonSchema` are offline APIs.
 `bake/placement.figureColliderRows` admits the complete figure row, then compiles its original box/capsule anchor contacts. It constructs no figure, skin, scene or service; missing colliders retain empty contact ownership.
+
+`@wildshard/sdk/bake/simplifier` provides `simplifyPaintedGeometry`: explicit vertex target, colour/normal weights and relative error reduce indexed authored geometry into detached position/normal/colour channels and first-use ordered indices. The caller retains the source and owns the result.
 `rows` admits achievement counters, quest steps/hints/services, page interactions/composition and cover ownership through their defining strict formats. These author data functions install no page, service, geometry or storage owner.
 `bake/placement.AuthorPlacement` retains the complete native author copy pose, including matrix, parameter overrides, variant, tint and weld host; it grants no runtime registration service.
 `bake/contactRows.treadBoxRows` compiles authored stair blocks with the native
