@@ -16,7 +16,7 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 
 function dressingSceneBlobs(...args:Parameters<typeof namedDressingSceneBlobs>):ReturnType<typeof namedDressingSceneBlobs>{
   return originalDressingContactTransport(namedDressingSceneBlobs(...args),new Map((['phone','desktop']as const)
-    .map(tier=>[`world/dressing-${tier}.json`,dressingScene(tier,...args)])));
+    .map(tier=>[`world/dressing-${tier}.json`,dressingScene(tier,args[0],args[1],args[2],args[3])])));
 }
 
 for (const fresh of [false, true]) test(`${fresh ? 'fresh native' : 'prepared native'} profiles preserve all complete dressing scenes and addresses`, () => {
