@@ -207,6 +207,10 @@
   },
   "publishConfig": {
     "exports": {
+      "./entryReads": {
+        "types": "./dist/types/sdk/entryReads.d.ts",
+        "default": "./dist/entryReads.js"
+      },
       "./bake/basisGlb": {
         "types": "./dist/types/sdk/bake/basisGlb.d.ts",
         "default": "./dist/bake/basisGlb.js"
