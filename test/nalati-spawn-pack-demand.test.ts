@@ -52,3 +52,10 @@ test('incomplete windows, duplicate members and inconsistent pack sizes refuse',
   const bad=structuredClone(observed),first=bad.groups[0];if(first===undefined)throw new Error('Missing pack');first.bytes++;
   expect(()=>nalatiSpawnPackLateNames(files,bad)).toThrow('Invalid observed pack inventory');
 });
+
+test('a trace missing cached or direct-URL consumers cannot classify their recorded members',()=>{
+  for(const path of ['retained','url']){
+    const incomplete={...observed,demanded:observed.demanded.filter(row=>!row.paths.includes(path))};
+    expect(()=>nalatiSpawnPackLateNames(files,incomplete)).toThrow('Missing observed consumer');
+  }
+});
