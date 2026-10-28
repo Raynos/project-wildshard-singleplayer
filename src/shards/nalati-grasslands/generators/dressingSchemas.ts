@@ -1,23 +1,27 @@
-import * as v from 'valibot';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
-import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { defineNamedRows, type NamedRows } from '@wildshard/sdk/formatJsonSchema';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { packDressingTable } from './dressingTable';
 
-const number = v.number(), xz = { x: number, z: number };
+const number = { kind: 'number' } as const, xz = { x: number, z: number };
 /** Wire forms of dressingPlan.ts's Inst, LogSpec, Spot and DressPlan rows. */
-const instance = v.array(v.strictObject({ ...xz, y: number, yaw: number, sx: number, sy: number, sz: number,
-  tiltX: v.exactOptional(number), tiltZ: v.exactOptional(number), solid: v.exactOptional(v.literal(true)),
-  far: number, r: number, g: number, b: number }));
-const spot = v.array(v.strictObject({ ...xz, s: number }));
-export const DRESSING_SCHEMAS: Readonly<Record<string, v.GenericSchema>> = {
+const instance = defineNamedRows({ kind: 'array', item: { kind: 'object', entries: {
+  ...xz, y: number, yaw: number, sx: number, sy: number, sz: number,
+  tiltX: { kind: 'exact-optional', item: number }, tiltZ: { kind: 'exact-optional', item: number },
+  solid: { kind: 'exact-optional', item: { kind: 'literal', value: true } },
+  far: number, r: number, g: number, b: number,
+} } });
+const spot = defineNamedRows({ kind: 'array', item: { kind: 'object', entries: { ...xz, s: number } } });
+export const DRESSING_SCHEMAS: Readonly<Record<string, NamedRows<unknown[]>>> = {
   boulder: instance, slab: instance, juniper: instance, rose: instance, willow: instance, lupin: instance, reed: instance,
-  logs: v.array(v.strictObject({ ax: number, az: number, bx: number, bz: number, r: number, drift: v.boolean() })),
+  logs: defineNamedRows({ kind: 'array', item: { kind: 'object', entries: { ax: number, az: number, bx: number, bz: number, r: number, drift: { kind: 'boolean' } } } }),
   stumps: spot, ovoos: spot, poles: spot,
-  fences: v.array(v.array(v.tuple([number, number]))), gates: v.array(v.strictObject({ ...xz, yaw: number })),
-  drifts: v.array(v.strictObject({ ...xz, y: number, r: number })),
-  colliders: v.array(v.strictObject({ ...xz, hw: number, hd: number, rot: number, yBottom: number, yTop: number, ghost: v.exactOptional(v.literal(true)) })),
-  clutter: v.array(v.strictObject({ ...xz, yaw: number, kind: number })),
+  fences: defineNamedRows({ kind: 'array', item: { kind: 'array', item: { kind: 'tuple', items: [number, number] } } }),
+  gates: defineNamedRows({ kind: 'array', item: { kind: 'object', entries: { ...xz, yaw: number } } }),
+  drifts: defineNamedRows({ kind: 'array', item: { kind: 'object', entries: { ...xz, y: number, r: number } } }),
+  colliders: defineNamedRows({ kind: 'array', item: { kind: 'object', entries: { ...xz, hw: number, hd: number, rot: number, yBottom: number, yTop: number,
+    ghost: { kind: 'exact-optional', item: { kind: 'literal', value: true } } } } }),
+  clutter: defineNamedRows({ kind: 'array', item: { kind: 'object', entries: { ...xz, yaw: number, kind: number } } }),
 };
 
 /** Each dressing producer attaches its authored row contract; unknown kinds refuse. */
@@ -25,7 +29,7 @@ export function nalatiDressingBlob(name: string, kind: 'json', bytes: Uint8Array
   const key = /^world\/dressing-([a-z]+)\.json$/u.exec(name)?.[1];
   const schema = key === undefined ? undefined : DRESSING_SCHEMAS[key];
   if (schema === undefined) throw new Error(`Missing dressing schema: ${name}`);
-  return nameBlob(name, kind, bytes, { jsonSchema: namedJsonSchema(schema) });
+  return nameBlob(name, kind, bytes, { jsonSchema: schema.jsonSchema });
 }
 
 /** Pack source-owned native placement rows with their original file names, exact doubles and admission schemas. */
@@ -37,6 +41,6 @@ export function nalatiDressingPlacementBlobs(files: ReadonlyMap<string, Uint8Arr
     if (key === 'stone' || key === 'daisy') return nameBlob(`world/dressing-${key}.bin`, 'bin', packDressingTable(rows));
     const schema = DRESSING_SCHEMAS[key];
     if (schema === undefined) throw new Error('Missing owned dressing placement schema');
-    return nalatiDressingBlob(`world/dressing-${key}.json`, 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(schema, rows))));
+    return nalatiDressingBlob(`world/dressing-${key}.json`, 'json', new TextEncoder().encode(encodeCanonicalJson(schema.parse(rows))));
   });
 }

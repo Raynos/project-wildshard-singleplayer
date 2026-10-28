@@ -50,9 +50,12 @@ test('Nalati admits every shipping dressing groups and camp keep-out population'
   };
   const product = { file: (name: string) => Promise.resolve(read(name)) };
   const readRows = async (key: string): Promise<unknown> => key === 'stone' || key === 'daisy' ? readDressingTable(await product.file(`world/dressing-${key}.bin`)) : JSON.parse(new TextDecoder().decode(await product.file(`world/dressing-${key}.json`)));
-  const schemas:Readonly<Record<string,v.GenericSchema<unknown,readonly unknown[]>>> = { ...DRESSING_SCHEMAS, stone: v.array(SceneScatterPoseSchema), daisy: v.array(SceneScatterPoseSchema) };
-  const plan:Record<string,readonly unknown[]> = Object.fromEntries(await Promise.all(Object.entries(schemas).filter(([key]) => key !== 'clutter').map(async ([key,schema]):Promise<readonly[string,readonly unknown[]]> => [key,v.parse(schema,await readRows(key))])));
-  const clutter = v.parse(DRESSING_SCHEMAS['clutter'] ?? v.never(), await readRows('clutter'));
+  const scatter = { parse: (input: unknown): readonly unknown[] => v.parse(v.array(SceneScatterPoseSchema), input) };
+  const schemas:Readonly<Record<string,{ readonly parse: (input: unknown) => readonly unknown[] }>> = { ...DRESSING_SCHEMAS, stone: scatter, daisy: scatter };
+  const plan:Record<string,readonly unknown[]> = Object.fromEntries(await Promise.all(Object.entries(schemas).filter(([key]) => key !== 'clutter').map(async ([key,schema]):Promise<readonly[string,readonly unknown[]]> => [key,schema.parse(await readRows(key))])));
+  const clutterSchema = DRESSING_SCHEMAS['clutter'];
+  if (clutterSchema === undefined) throw new Error('Missing original clutter contract');
+  const clutter = clutterSchema.parse(await readRows('clutter'));
   const populations = {
     boulder: 1900, slab: 1579, stone: 19791, juniper: 278, rose: 136, willow: 230,
     lupin: 2778, daisy: 8811, reed: 1050, logs: 17, stumps: 11, ovoos: 9,
