@@ -11,6 +11,7 @@ import { entryOwner,publishEntryOwner } from '../src/game/shardfile/entryOwners'
 import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
 import * as sceneHost from '../src/game/shardfile/worldScenes';
 import * as bakedHost from '../src/game/shardfile/bakedTiles';
+import * as wholeGeometry from '../src/game/plugin/geometry';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { expect,test,vi } from 'vitest';
 import * as v from 'valibot';
@@ -99,7 +100,8 @@ function emptyLooks(): Awaited<ReturnType<typeof runtimeProduct.runtimeLookMater
 function nativeFixture(f: ReturnType<typeof fixture>, construction?: Scope) {
   const scope=construction?.child('entered')??new Scope('unbound');
   if(construction!==undefined)bindResidentWorldScope(scope,construction);
-  const world=legacyDouble<ShardWorld>({game:legacyDouble<ShardWorld['game']>({}),registry:legacyDouble<ShardWorld['registry']>({}),sky:legacyDouble<ShardWorld['sky']>({}),physics:legacyDouble<ShardWorld['physics']>({})}),runtime=legacyDouble<ShardRuntime>({world});
+  const registrationScope=construction??scope;
+  const world=legacyDouble<ShardWorld>({game:legacyDouble<ShardWorld['game']>({registrationScope}),registry:legacyDouble<ShardWorld['registry']>({}),sky:legacyDouble<ShardWorld['sky']>({}),physics:legacyDouble<ShardWorld['physics']>({})}),runtime=legacyDouble<ShardRuntime>({world});
   const ctx=legacyDouble<ShardContext>({scope,product:f.product,cube:null,progress:legacyDouble<ShardContext['progress']>({set:()=>undefined,detail:()=>undefined}),game:legacyDouble<ShardContext['game']>({runtime})});
   return{scope,world,runtime,ctx};
 }
@@ -109,6 +111,7 @@ test('native entered dispatch retains one bound build through leave/reentry and 
   let finish:()=>void=()=>{throw new Error('No build');},started:()=>void=()=>{throw new Error('No start');};
   const complete=new Promise<void>(resolve=>{finish=resolve;}),begin=new Promise<void>(resolve=>{started=resolve;});
   const ownerBook=await first.scope.run(()=>admittedIslandBook(f.product,book.id));
+  const whole=vi.spyOn(wholeGeometry,'readWholeGeometry').mockImplementation(owner=>{expect(owner.belongsTo(construction)).toBe(true);return Promise.resolve(new Map<string,wholeGeometry.WholeGeometryView>());});
   const materials=vi.spyOn(runtimeProduct,'runtimeLookMaterials').mockImplementation(ctx=>{events.push('looks');expect(ctx.scope).toBe(construction);return Promise.resolve(emptyLooks());});
   const scenes=vi.spyOn(sceneHost,'installWorldScenes').mockResolvedValue(new SceneHandles({setupMaterial:()=>undefined}));
   const baked=vi.spyOn(bakedHost,'residentBakedTiles').mockResolvedValue(new Map());
@@ -116,7 +119,9 @@ test('native entered dispatch retains one bound build through leave/reentry and 
   const build=vi.spyOn(WorldAssembly,'construct').mockImplementation(async(_rows,ports)=>{events.push('build');expect(ports.scope).toBe(construction);expect(ports.library).toBe(ownerBook.library);expect(ports.sites).toBe(ownerBook.sites);started();await complete;publishEntryOwner(ports.scope,'object','root',group);return {};});
   try{
     const pending=CLIENT_FEATURES['world.assembly'].install(first.ctx,assembly,construction);await Promise.race([begin,pending]);
-    first.scope.dispose();finish();await expect(pending).rejects.toThrow('ended');
+    const intakeOwner=whole.mock.calls[0]?.[0];if(intakeOwner===undefined)throw new Error('Missing construction intake owner');
+    first.scope.dispose();expect(intakeOwner.disposed).toBe(false);finish();await expect(pending).rejects.toThrow('ended');
+    expect(intakeOwner.disposed).toBe(true);expect(whole).toHaveBeenCalledTimes(1);
     expect(entryOwner(construction,'object','root')).toBe(group);expect(build).toHaveBeenCalledTimes(1);
     const next=nativeFixture(f,construction);Object.assign(next.ctx.game,{runtime:first.runtime});
     await CLIENT_FEATURES['world.assembly'].install(next.ctx,assembly,construction);
@@ -125,12 +130,13 @@ test('native entered dispatch retains one bound build through leave/reentry and 
     expect(entryOwner(next.scope,'collection','collection')).toBe(resolved.library.collections);
     expect(entryOwner(next.scope,'fixed-draws','draws')).toBe(draws);expect(entryOwner(next.scope,'object','root')).toBe(group);
     next.scope.dispose();expect(entryOwner(construction,'object','root')).toBe(group);
-  }finally{finish();construction.dispose();for(const spy of[materials,scenes,baked,loaded,build])spy.mockRestore();}
+  }finally{finish();construction.dispose();for(const spy of[materials,scenes,baked,loaded,build,whole])spy.mockRestore();}
 });
 
 test('unbound native construction keeps its entered authority and never acquires a resident cache',async()=>{
   const f=fixture(),first=nativeFixture(f),next=nativeFixture(f),owners:Scope[]=[];
   const ownerBook=await first.scope.run(()=>admittedIslandBook(f.product,book.id));
+  const whole=vi.spyOn(wholeGeometry,'readWholeGeometry').mockResolvedValue(new Map<string,wholeGeometry.WholeGeometryView>());
   const materials=vi.spyOn(runtimeProduct,'runtimeLookMaterials').mockResolvedValue(emptyLooks());
   const scenes=vi.spyOn(sceneHost,'installWorldScenes').mockResolvedValue(new SceneHandles({setupMaterial:()=>undefined}));
   const baked=vi.spyOn(bakedHost,'residentBakedTiles').mockResolvedValue(new Map());
@@ -140,9 +146,11 @@ test('unbound native construction keeps its entered authority and never acquires
     await CLIENT_FEATURES['world.assembly'].install(first.ctx,assembly,first.scope);first.scope.dispose();
     await CLIENT_FEATURES['world.assembly'].install(next.ctx,assembly,next.scope);
     expect(owners).toEqual([first.scope,next.scope]);expect(build).toHaveBeenCalledTimes(2);
+    expect(whole.mock.calls.map(([owner])=>[owner.belongsTo(first.scope),owner.belongsTo(next.scope)])).toEqual([[true,false],[false,true]]);
+    expect(whole.mock.calls.every(([owner])=>owner.disposed)).toBe(true);
     expect(materials.mock.calls.map(call=>call[3])).toEqual([rows.construction.looks.unbound,rows.construction.looks.unbound]);
     next.scope.dispose();await expect(CLIENT_FEATURES['world.assembly'].install(next.ctx,assembly,next.scope)).rejects.toThrow('left');expect(build).toHaveBeenCalledTimes(2);
-  }finally{first.scope.dispose();next.scope.dispose();for(const spy of[materials,scenes,baked,loaded,build])spy.mockRestore();}
+  }finally{first.scope.dispose();next.scope.dispose();for(const spy of[materials,scenes,baked,loaded,build,whole])spy.mockRestore();}
 });
 
 test('caller retirement or a replaced book during catalogue read refuses later use',async()=>{
