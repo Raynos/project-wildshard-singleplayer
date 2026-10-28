@@ -12,7 +12,7 @@ import type { SimHost } from '@wildshard/engine/sim';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import * as v from 'valibot';
 import { ReturnModulesSchema, type ReturnModuleRow, admitScriptContract } from '@wildshard/format/scriptContract';
-import { sha256 } from '../plugin/moduleHash';
+import { loanedSha256, sha256 } from '../plugin/moduleHash';
 import { isJsonData } from '@wildshard/format/json';
 import { parseReturnProjectionV2 } from '@wildshard/format/returnProjectionV2';
 import { ReturnProjectionV2,type PreparedProjectionV2 } from './returnProjectionV2';
@@ -48,7 +48,8 @@ function rawModule(owner:Scope|undefined,row:ReturnType<typeof readProgram>,witn
     if(contract.abi===2||contract.pages!==row.script.pages)throw new Error('Raw return module contract mismatch');
   }else if(contract.abi!==2||contract.pages!==artifact.pages||contract.ioBytes!==artifact.ioBytes)throw new Error('Raw return module contract mismatch');
   const bytes:unknown=Map.prototype.get.call(loan.assets,hash);
-  if(!(bytes instanceof Uint8Array)||sha256(bytes)!==hash)throw new Error('Raw return module hash mismatch');
+  // T10: the loan's immutable bytes are verified once per byte source (loanedSha256), not again in every admission path
+  if(!(bytes instanceof Uint8Array)||loanedSha256(bytes)!==hash)throw new Error('Raw return module hash mismatch');
   return bytes;
 }
 
@@ -82,7 +83,7 @@ function admitReturn(row: ReturnType<typeof readProgram>, owner?: Scope, witness
     || row.script.reads.some(read => !['field', 'random', 'groundHeight', 'radial'].includes(read))) throw new Error('Invalid return projection');
   if(row.bytes===''&&witness===undefined)throw new Error('Missing admitted raw return module loan');
   const bytes = witness ?? Uint8Array.from(atob(row.bytes), byte => byte.codePointAt(0) ?? 0);
-  if (`blobs/wasm/${sha256(bytes)}.wasm` !== row.script.module) throw new Error('Return module hash mismatch');
+  if (`blobs/wasm/${witness === undefined ? sha256(bytes) : loanedSha256(bytes)}.wasm` !== row.script.module) throw new Error('Return module hash mismatch');
   if (owner?.disposed === true || owner?.disposing === true) throw new Error('Return owner disposed');
   admitScriptContract(bytes, { abi: 1, pages: row.script.pages });
   return bytes;

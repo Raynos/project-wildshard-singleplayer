@@ -6,7 +6,7 @@ import { prepareV2Rng } from '@wildshard/format/scriptRngV2';
 import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
 import { createV2FrameWriter,validateV2Frame,type V2FrameAuthority } from '@wildshard/format/scriptWireV2';
 import type { Rng,RngState } from '@wildshard/engine/core/rng';
-import { sha256 } from '../plugin/moduleHash';
+import { loanedSha256, sha256 } from '../plugin/moduleHash';
 import { GroupStepV2 } from '@wildshard/engine/script/groupStepV2';
 import { ScriptModuleV2, prepareScriptMemory, type PreparedScriptMemory } from '@wildshard/engine/script/moduleV2';
 import { prepareV2Observations } from '@wildshard/engine/script/observationsV2';
@@ -58,7 +58,8 @@ function projectionSource(input: unknown, owner?: Scope, raw?: Uint8Array) {
   if(raw!==undefined&&(row.bytes!==''||owner===undefined))throw new Error('Raw return module requires its original owner');
   if(row.bytes===''&&raw===undefined)throw new Error('Missing admitted raw return module loan');
   const bytes = raw===undefined?Uint8Array.from(atob(row.bytes),byte => byte.codePointAt(0) ?? 0):Uint8Array.from(raw);
-  if (sha256(bytes) !== row.artifact.hash) throw new Error('Return projection hash mismatch');
+  // T10: a raw module is the loan's immutable array (its copy above hashes the same): verified once per byte source
+  if ((raw === undefined ? sha256(bytes) : loanedSha256(raw)) !== row.artifact.hash) throw new Error('Return projection hash mismatch');
   const admitted = admitScriptV2(bytes,{ lane: 'project',ioBytes: layout.bytes,compilerRevision: row.artifact.compilerRevision,admissionRevision: row.artifact.admissionRevision });
   if (admitted.initialPages !== row.artifact.pages || admitted.io !== layout.io) throw new Error('Return projection layout mismatch');
   return { row, layout, bytes };
