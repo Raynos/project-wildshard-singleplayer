@@ -434,6 +434,9 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
   const slotInput:unknown=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(slotSource.bytes));
   const slots=v.parse(HeldSlotsSchema,slotInput);
   for(const name of nalatiLateHeldNames(slots,new Map([['weapons/spear.json',spear.rows.pool.url]])))lateNames.add(name);
+  // Only the native proof readers borrow this separate floor/hull bank. Live
+  // collision keeps its world declarations; proof demand still reads it whole.
+  for(const source of nalatiPhysicsSources())lateNames.add(source.name);
   for(const name of catalogueNames)if(fileByName.has(name))lateNames.add(name);
   for(const name of nalatiLateDressingNames(boundBooks,new Set(fileByName.keys()),shapeDraws))lateNames.add(name);
   const late=[...new Set([...lateNames].map(name=>{

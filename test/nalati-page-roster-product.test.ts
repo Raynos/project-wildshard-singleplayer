@@ -21,6 +21,36 @@ const nalatiEnvelope = await readProjectAssets('src/shards/nalati-grasslands', u
     { prefix: '/assets/', directory: 'public/assets' },
   ] });
 
+test('proof-only native physics stays byte-exact and out of the entered warm', () => {
+  const expected = [
+    ['data/physics-ground.bin', '13d0dbaf5c19066bad33a1ca49587029430ce44538665094fae7bdd5568660f5', 262144],
+    ['data/physics-colliders-0.bin', '238c9e25120ab8e89ddf3f8c20434e9a808b7bc19cb2a928011ca3f90ade34f1', 999840],
+    ['data/physics-colliders-1.bin', 'a98661800d44e6dfb62b81ecdb310eeebe09837f373bf260dfcae5da07c72d95', 147120],
+  ] as const;
+  const late = new Set(nalatiEnvelope.shard.late?.map(row => row.hash));
+  for (const [name, hash, bytes] of expected) {
+    const file = nalatiEnvelope.output.namedFiles?.find(row => row.name === name);
+    expect(file, name).toMatchObject({ hash, compressed: bytes, decoded: bytes, critical: false, dependencies: [] });
+    const payload = nalatiEnvelope.assets.get(hash);
+    if (payload === undefined) throw new Error(`Missing admitted proof bytes: ${name}`);
+    expect(contentHash(payload), name).toBe(hash);
+    expect(late.has(hash), name).toBe(true);
+  }
+  const references = new Set<string>();
+  const collect = (value: unknown): void => {
+    if (typeof value === 'string') references.add(value);
+    else if (Array.isArray(value)) for (const child of value) collect(child);
+    else if (value !== null && typeof value === 'object') for (const child of Object.values(value)) collect(child);
+  };
+  for (const [path, bytes] of nalatiEnvelope.output.platform?.files ?? []) {
+    if (path.startsWith('sections/')) collect(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)) as unknown);
+  }
+  for (const [name, hash] of expected) {
+    expect(references.has(name), name).toBe(false);
+    expect(references.has(hash), name).toBe(false);
+  }
+});
+
 test('the shared assembly document retains the complete page elite roster and its contact lookup', () => {
   const product = nalatiEnvelope;
   const bootFile = product.output.namedFiles?.find(row => row.name === 'sim/headless-boot.json');
