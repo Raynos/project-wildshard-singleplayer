@@ -1,7 +1,8 @@
-import { parseWorldScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
+import { worldSceneRecipe as parseWorldScene, type AuthorWorldScenes as WorldScenesSection } from '@wildshard/sdk/worldScenes';
 import { facadeWindowPackets } from './facadeWindowPackets';
 import type { NineWindowLayout } from './facadeWindows';
-import type { WorldScenesSection } from '@wildshard/format/worldScenes';
+
+type WorldSceneRecipe = ReturnType<typeof parseWorldScene>;
 
 /** Extend the existing dressing/cards recipes; two draws fit dressing's original instance cap. */
 export function addWindowNodes(input: WorldSceneRecipe, indices: readonly number[], source: NineWindowLayout): WorldSceneRecipe {

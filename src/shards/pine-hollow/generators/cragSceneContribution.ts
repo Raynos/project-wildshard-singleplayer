@@ -1,11 +1,13 @@
 
 /** Z2 rows compiled from the original crag kit, fixed skin slots and cave frame. */
-import { parseWorldScenePlacement , type WorldScenePlacementRow as WorldScenePlacementRowType } from '@wildshard/format/worldScenePlacement';
+import { worldScenePlacement as parseWorldScenePlacement } from '@wildshard/sdk/worldScenes';
 import { pineCragScenes, type CragBatchRow, type CragCaveRows, type CragModelRow } from './bake-crag-scenes.mjs';
 import { perSources, type PineSources } from './pineSources';
 import { nameBlob, type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
 import { nameCompactBlobs } from '@wildshard/sdk/bake/compactGlb';
 import { CRAG_LOOK } from './cragLook';
+
+type WorldScenePlacementRowType = ReturnType<typeof parseWorldScenePlacement>;
 
 /** Only fixed skin templates and their batch/placement wrappers are tier-exclusive. */
 function membership(id: string): { readonly tier?: 'phone' | 'desktop' } {

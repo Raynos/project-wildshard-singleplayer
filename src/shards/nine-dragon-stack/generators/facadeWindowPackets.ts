@@ -1,5 +1,5 @@
 import { facadeWindowBlobs, type NineWindowLayout } from './facadeWindows';
-import type { WorldScenesSection } from '@wildshard/format/worldScenes';
+import type { AuthorWorldScenes as WorldScenesSection } from '@wildshard/sdk/worldScenes';
 
 interface Packet { readonly file: string; readonly storage: 'f32'; readonly byteOffset: number; readonly count: number }
 type InstanceAttribute = WorldScenesSection['steps'][number]['instanceAttributes'][number] & { readonly packet: Packet };
