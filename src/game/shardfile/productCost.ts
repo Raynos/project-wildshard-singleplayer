@@ -9,7 +9,7 @@ import type { worstContentCost } from '@wildshard/format/budget';
 import { deviceLibraryCostSteps } from '@wildshard/format/deviceMemoryCost';
 import { frameBudgetSpent } from '@wildshard/engine/core/framePacing';
 import { preflightShardfile } from '@wildshard/format/preflight';
-import { isJsonData } from '@wildshard/format/json';
+import { jsonDataHeapBytes } from '@wildshard/format/json';
 import { outputDescriptor, isBuildValidatedOutput } from './outputDescriptor';
 import { isPlatformDataSection } from '@wildshard/format/outputFields';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
@@ -277,8 +277,9 @@ function* urlImageLibrarySourceSteps(source: Shardfile, assets: ReadonlyMap<stri
 
 /** Conservative heap estimate for a bounded plain-JSON source or its owned projection, including strings and container overhead. */
 export function jsonResidentBytes(input: unknown): number {
-  if (!isJsonData(input)) throw new Error('Product residency needs bounded plain JSON');
-  return jsonHeapBytes(input);
+  const bytes = jsonDataHeapBytes(input);
+  if (bytes === undefined) throw new Error('Product residency needs bounded plain JSON');
+  return bytes;
 }
 /** Heap accounting after this caller has validated the same synchronous value. */
 function jsonHeapBytes(input: unknown): number {
@@ -294,7 +295,7 @@ function jsonHeapBytes(input: unknown): number {
     const value = pending.pop();
     if (Array.isArray(value)) { const items: readonly unknown[] = value; heap += 40 + items.length * 8; for (const item of items) count(item); }
     else if (typeof value === 'object' && value !== null) {
-      // Both callers validated this synchronous plain-data tree. Keep the key
+      // The caller validated this synchronous plain-data tree. Keep the key
       // snapshot without allocating an extra pair array for every property.
       const fields = value as Readonly<Record<string, unknown>>, keys = Object.keys(value); heap += 64 + keys.length * 16;
       for (const key of keys) { heap += 24 + key.length * 2; count(fields[key]); }
