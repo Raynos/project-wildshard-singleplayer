@@ -54,8 +54,29 @@ function isCall(i: Instruction | undefined, target: number): boolean { return i?
 function charge(code: readonly Instruction[], at: number, fuel: number, bytes: number): boolean {
   const i = code[at]; return i?.op === 0x41 && (i.arg ?? 0) >= bytes && isCall(code[at + 1], fuel);
 }
+// Like v2 admission, retain only a small page-local set of successful byte
+// inspections. Compare the complete bytes on every hit: identity alone cannot
+// admit a mutated caller buffer. Results never share the mutable globals array.
+const recentAdmissions: { abi: 0 | 1; bytes: Uint8Array; admission: ScriptAdmission }[] = [];
+function sameBytes(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.byteLength !== b.byteLength) return false;
+  for (let i = 0; i < a.byteLength; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
 /** Validate bytes and metering without instantiating or executing any module code. Tables are capped at zero in v0. */
 export function admitScript(bytes: Uint8Array, abi: 0 | 1 = 0): ScriptAdmission {
+  if (bytes.length > SCRIPT_ABI.maxBytes) throw new Error('Invalid or oversized module');
+  // Read the typed array's actual storage, not caller-overridden slice,
+  // iterator or byteLength properties. Inspection and the cache share it.
+  const snapshot = new Uint8Array(bytes);
+  const known = recentAdmissions.find(row => row.abi === abi && sameBytes(row.bytes, snapshot));
+  if (known !== undefined) return { ...known.admission, globals: [...known.admission.globals] };
+  const admission = inspectScript(snapshot, abi);
+  recentAdmissions.unshift({ abi, bytes: snapshot, admission: { ...admission, globals: [...admission.globals] } });
+  recentAdmissions.length = Math.min(recentAdmissions.length, 16);
+  return admission;
+}
+function inspectScript(bytes: Uint8Array, abi: 0 | 1): ScriptAdmission {
   const required = abi === 1 ? SCRIPT_V1_EXPORTS : SCRIPT_EXPORTS;
   const allowed = abi === 1 ? SCRIPT_V1_IMPORTS : SCRIPT_IMPORTS;
   if (bytes.length > SCRIPT_ABI.maxBytes || !WebAssembly.validate(new Uint8Array(bytes))) throw new Error('Invalid or oversized module');

@@ -10,7 +10,8 @@ import { nameBlob } from '../src/sdk/blobs';
 import { wireProgram } from '../src/shards/nalati-grasslands/generators/returnProgramRows';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import * as v from 'valibot';
-import {titanPrograms as programs} from './fixtures/titanInlineWitness';
+import {titanPrograms as programs,titanWitnessBytes} from './fixtures/titanInlineWitness';
+import {admitScript} from '../src/format/scriptAdmission';
 
 const spear={phase:0,mode:3,dt:2,t:0,cd:0,x:0,z:0,px:1,pz:1,chain:0,aim:1,lock:.2,stuck:.5};
 
@@ -132,4 +133,53 @@ test('native observation and ordered candidate snapshots preserve signed zero wi
   let reads=0;const before=a.snapshot();
   expect(()=>selected.project('spear',{...frame,get x(){reads++;return -0;}},a)).toThrow('Invalid return observation frame');
   expect(reads).toBe(0);expect(a.snapshot()).toStrictEqual(before);
+});
+
+/** Native Wasm custom sections change bytes without changing executable code. */
+function tagged(tag: number): Uint8Array<ArrayBuffer> {
+  const bytes = new Uint8Array(titanWitnessBytes.length + 4);
+  bytes.set(titanWitnessBytes); bytes.set([0, 2, 1, tag], titanWitnessBytes.length);
+  return bytes;
+}
+
+test('successful legacy admission compares all bytes and detaches each result', () => {
+  const bytes = tagged(65), validate = vi.spyOn(WebAssembly, 'validate');
+  const slice = vi.spyOn(bytes, 'slice').mockReturnValue(bytes);
+  try {
+    const first = admitScript(bytes, 1), expected = structuredClone(first);
+    expect(validate).toHaveBeenCalledTimes(1);
+    expect(Reflect.set(first.globals, '0', 'caller mutation')).toBe(true);
+    const second = admitScript(new Uint8Array(bytes), 1);
+    expect(second).toStrictEqual(expected);
+    expect(second.globals).not.toBe(first.globals);
+    expect(validate).toHaveBeenCalledTimes(1);
+    // The ABI is part of the admission, even for byte-identical modules.
+    expect(() => admitScript(bytes, 0)).toThrow();
+    expect(validate).toHaveBeenCalledTimes(2);
+    bytes[0] = 1;
+    expect(() => admitScript(bytes, 1)).toThrow('Invalid or oversized module');
+    expect(() => admitScript(bytes, 1)).toThrow('Invalid or oversized module');
+    expect(validate).toHaveBeenCalledTimes(4);
+    bytes[0] = 0;
+    expect(admitScript(bytes, 1)).toStrictEqual(expected);
+    expect(validate).toHaveBeenCalledTimes(4);
+    expect(admitScript(tagged(66), 1)).toStrictEqual(expected);
+    expect(validate).toHaveBeenCalledTimes(5);
+    const trailing = new Uint8Array(bytes.length + 1);
+    trailing.set(bytes); trailing[bytes.length] = 1;
+    Object.defineProperty(trailing, 'byteLength', { value: bytes.length });
+    expect(() => admitScript(trailing, 1)).toThrow('Invalid or oversized module');
+    expect(validate).toHaveBeenCalledTimes(6);
+    expect(slice).not.toHaveBeenCalled();
+  } finally { slice.mockRestore(); validate.mockRestore(); }
+});
+
+test('legacy byte inspections retain at most sixteen successful modules', () => {
+  const first = tagged(97), expected = admitScript(first, 1);
+  for (let tag = 98; tag <= 113; tag++) expect(admitScript(tagged(tag), 1)).toStrictEqual(expected);
+  const validate = vi.spyOn(WebAssembly, 'validate');
+  try {
+    expect(admitScript(first, 1)).toStrictEqual(expected);
+    expect(validate).toHaveBeenCalledTimes(1);
+  } finally { validate.mockRestore(); }
 });
