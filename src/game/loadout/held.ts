@@ -5,6 +5,7 @@ import * as v from 'valibot';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
+import { whenControl } from '@wildshard/engine/boot/prefetch';
 import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 import { fixIBL, VIEWMODEL_GROUP, worldHit } from '@wildshard/engine/combat/view/ranged';
 import { listenPage } from '@wildshard/engine/input/dom';
@@ -85,7 +86,10 @@ export function installHeldLoadout(context: ShardContext, input: unknown): HeldL
   if (rounds !== null) rifle.state.reserve = rounds;
   if (arrows !== null) longbow.state.bolts = Math.min(longbow.magazine, arrows);
   const kept = { rounds: rifle.state.reserve, arrows: longbow.state.bolts };
-  const sfx = new DeclaredSoundBank(audio, audioRows, context.scope); sfx.prewarm(row.audio.prewarm);
+  const sfx = new DeclaredSoundBank(audio, audioRows, context.scope);
+  // A speculative sample warm-up is not equipment readiness. Keep real shot
+  // demand immediate, but let the first controlled paint precede this bank IO.
+  whenControl(world.game.levelScope, context.scope, () => { sfx.prewarm(row.audio.prewarm); });
   let dirty = false, saveT = 0;
   const live = (): number => crossbow.state.bolts;
   const dress = new Map<string, THREE.Material>();
