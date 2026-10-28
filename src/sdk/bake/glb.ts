@@ -1,3 +1,4 @@
+import * as schema from 'valibot';
 import { BufferAttribute, Float16BufferAttribute, Matrix4, type Color, type InterleavedBufferAttribute, MeshBasicMaterial, MeshStandardMaterial, Quaternion, Vector3, Group, Mesh, type Material, type Object3D, BufferGeometry, Euler } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { parseGlb } from '../assets';
@@ -335,4 +336,16 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
   v.setUint32(20 + length, offset, true); v.setUint32(24 + length, 0x004e4942, true);
   let at = 28 + length; for (const chunk of chunks) { bytes.set(chunk, at); at += chunk.length; }
   parseGlb(bytes); return bytes;
+}
+
+/** Read ordered whole-partition identities from a bounded standard GLB JSON
+ * chunk. Unrelated glTF metadata strips; malformed optional structures refuse. */
+export function glbWholePartitionIds(bytes: Uint8Array): string[] {
+  if (bytes.byteLength < 20) throw new Error('GLB partition is truncated');
+  const header = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), length = header.getUint32(12, true);
+  if (header.getUint32(0, true) !== 0x46546c67 || header.getUint32(4, true) !== 2 || header.getUint32(8, true) !== bytes.byteLength
+    || header.getUint32(16, true) !== 0x4e4f534a || length > bytes.byteLength - 20) throw new Error('GLB partition header differs');
+  const json: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes.subarray(20, 20 + length)));
+  const value = schema.parse(schema.object({ nodes: schema.optional(schema.array(schema.object({ extras: schema.optional(schema.object({ wholePartition: schema.optional(schema.object({ id: schema.string() })) })) })), []) }), json);
+  return value.nodes.flatMap(node => node.extras?.wholePartition === undefined ? [] : [node.extras.wholePartition.id]);
 }

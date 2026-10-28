@@ -6,7 +6,7 @@ import { parseWorldScenes, type WorldScenesSection } from '@wildshard/format/wor
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { WorldSceneSurfaceSchema, type WorldSceneSurface } from '@wildshard/format/worldSceneSurface';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
-import { parse, record, string, strictObject, array, boolean, object, exactOptional, picklist, pipe, unknown, transform, type InferOutput } from 'valibot';
+import { parse, record, string, strictObject, array, boolean, object, exactOptional, picklist, pipe, unknown, transform, number, finite, regex, type GenericSchema, type ArraySchema, type StrictObjectSchema, type InferOutput } from 'valibot';
 import { SceneDrawsSchema, type SceneDrawsRows } from '@wildshard/format/sceneDraws';
 import type { SceneModelSource, SceneBakeSource } from '@wildshard/game/shardfile/sceneSources';
 import { nameBlob, type NamedBlob } from './blobs';
@@ -196,4 +196,15 @@ export function worldSceneLivingBakeRows(input: unknown): {
     graph: pipe(unknown(), transform(worldSceneWeldData)), life: pipe(unknown(), transform(buildingLifeRows)), geometry: array(geometry) });
   return parse(object({ blobs: array(object({ name: id, kind: picklist(['glb', 'json']), source: id })),
     profiles: array(profile), geometry: array(object({ id, library: id, file: id, attributes: record(id, id) })) }), input);
+}
+
+/** Admit a complete source row book with finite word records and hashed tile
+ * ownership. The caller's defining row grammar still owns every local field. */
+export function worldSceneSourceRecords<Schema extends GenericSchema>(schema: Schema, input: unknown): InferOutput<StrictObjectSchema<{
+  readonly rows: Schema;
+  readonly records: ArraySchema<GenericSchema<unknown, number>, undefined>;
+  readonly wholeTiles: GenericSchema<unknown, Record<string, AuthorSceneTileGroup>>;
+}, undefined>> {
+  return parse(strictObject({ rows: schema, records: array(pipe(number(), finite())),
+    wholeTiles: record(string(), strictObject({ files: array(pipe(string(), regex(/^[a-f0-9]{64}$/u))), resident: boolean() })) }), input);
 }

@@ -6427,6 +6427,10 @@ no geometry, prompt, physics or registry owner is constructed or borrowed.
 `worldScenes.worldSceneLivingBakeRows` admits ordered living-scene profiles,
 library geometry and blob ownership through the original graph/life validators,
 with native metadata stripping and no live building or resource owner.
+`worldScenes.worldSceneSourceRecords(schema,input)` admits complete source rows,
+finite records and strict hashed tile ownership with the caller's native grammar.
+`bake/glb.glbWholePartitionIds(bytes)` reads ordered identities from the bounded
+GLB JSON chunk and rejects malformed headers or optional node metadata.
 `graphArmsRows` admits held graph/rig bindings and resource checks without constructing a view or material;
 `namedFormatJsonSchema('graphArmsRows.GraphArms')` keeps its defining wire document exact.
 `sdk/quests.nativeQuestCompositionRows` and `sdk/director.chapterDirectorRows` retain native quest resource and

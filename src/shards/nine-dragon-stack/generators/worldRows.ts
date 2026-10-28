@@ -11,7 +11,9 @@ import { portalPlanRows } from './portalEntries';
 import { tintAbove } from './lods';
 import { BAKED, DRAWN_AS, SMALL, isPiece, type PieceId } from './facadeIds';
 import { LayoutRowsSchema, WorldRowsSchema, type WorldRows } from './sections';
-import * as v from 'valibot';
+import { parseSectionValue } from '@wildshard/sdk/sections';
+import { worldSceneSourceRecords } from '@wildshard/sdk/worldScenes';
+import { glbWholePartitionIds } from '@wildshard/sdk/bake/glb';
 
 const { SHEET_LAYERS, STEAM_PUFFS } = worldDressingRows;
 
@@ -28,28 +30,21 @@ export interface NineWorldDeclarations {
 
 /** Cached rows cross the same data schema before any matrix offset is consumed. */
 export function parseWorldDeclarations(input: unknown): NineWorldDeclarations {
-  const value = v.parse(v.strictObject({ rows: WorldRowsSchema, records: v.array(v.pipe(v.number(), v.finite())),
-    wholeTiles: v.record(v.string(), v.strictObject({ files: v.array(v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u))), resident: v.boolean() })) }), input);
+  const value = worldSceneSourceRecords(WorldRowsSchema, input);
   if (value.rows.records !== value.records.length) throw new Error('Nine world declaration record inventory differs');
   return value;
 }
 
 /** Read only the original whole-partition identity from a bounded GLB JSON chunk. */
 export function worldPartitionIds(bytes: Uint8Array): string[] {
-  if (bytes.byteLength < 20) throw new Error('Nine partition GLB is truncated');
-  const header = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), length = header.getUint32(12, true);
-  if (header.getUint32(0, true) !== 0x46546c67 || header.getUint32(4, true) !== 2 || header.getUint32(8, true) !== bytes.byteLength
-    || header.getUint32(16, true) !== 0x4e4f534a || length > bytes.byteLength - 20) throw new Error('Nine partition GLB header differs');
-  const json: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes.subarray(20, 20 + length)));
-  const value = v.parse(v.object({ nodes: v.optional(v.array(v.object({ extras: v.optional(v.object({ wholePartition: v.optional(v.object({ id: v.string() })) })) })), []) }), json);
-  return value.nodes.flatMap(node => node.extras?.wholePartition === undefined ? [] : [node.extras.wholePartition.id]);
+  return glbWholePartitionIds(bytes);
 }
 
 const { PLAZA, STREET, STAIR, WELL, Y0 } = NINE_LAYOUT_PLAN;
 
 /** Compile placement queues and floor laws into immutable rows; no client queue or geometry scan remains. */
 export async function worldRows(input: unknown, records: readonly number[], read: (url: string) => Uint8Array): Promise<{ rows: WorldRows; records: number[] }> {
-  const rows = v.parse(LayoutRowsSchema, input), c = rows.counts, values: number[] = [];
+  const rows = parseSectionValue(LayoutRowsSchema, input), c = rows.counts, values: number[] = [];
   const store = (row: readonly number[]): number => { const at = values.length; for (const value of row) values.push(value); return at; };
   let offset = 0;
   const matrices = (count: number): Matrix4[] => Array.from({ length: count }, () => {
@@ -118,5 +113,5 @@ export async function worldRows(input: unknown, records: readonly number[], read
   const poseRecords = (poses: readonly { matrix: number[]; color: number[] }[]): number => store(poses.flatMap(pose => pose.matrix.concat(pose.color)));
   const facade = { drawn: [...groups].map(([id, poses]) => ({ id, poses: poseRecords(poses), count: poses.length, small: SMALL.has(id) })),
     baked: [...baked].map(([id, group]) => ({ id, poses: poseRecords(group.poses), count: group.poses.length, boxes: store(group.boxes) })) };
-  return { rows: v.parse(WorldRowsSchema, { records: values.length, sheetLayers: SHEET_LAYERS, steamPuffs: STEAM_PUFFS, facade, portalLanterns, lions, shares, sets, crowd: dealt, floors, regions, shaft: SHAFT, wellRects: WELL_RECTS, rim: RIM, crossings: rows.crossings, sheets: rows.sheets }), records: values };
+  return { rows: parseSectionValue(WorldRowsSchema, { records: values.length, sheetLayers: SHEET_LAYERS, steamPuffs: STEAM_PUFFS, facade, portalLanterns, lions, shares, sets, crowd: dealt, floors, regions, shaft: SHAFT, wellRects: WELL_RECTS, rim: RIM, crossings: rows.crossings, sheets: rows.sheets }), records: values };
 }
