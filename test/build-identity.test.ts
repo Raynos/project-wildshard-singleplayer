@@ -38,3 +38,10 @@ test('the post-bundle stamp covers web and native document entries without modif
     expect(() => stampBuildDocuments(root)).toThrow('Document entry escapes build');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
+
+test('the bundled first-paint document never waits for an extracted stylesheet', () => {
+  const html = '<html><head><link rel="stylesheet" crossorigin href="/assets/app-123.css"></head><body><script data-loading-first-paint></script></body></html>';
+  const result = stampBuildHtml(html, 'new-build');
+  expect(result).toContain('href="/assets/app-123.css" media="print" onload="this.media=\'all\'"');
+  expect(stampBuildHtml(html.replace('data-loading-first-paint', ''), 'new-build')).not.toContain('media="print"');
+});

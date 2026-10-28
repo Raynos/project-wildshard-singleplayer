@@ -17,6 +17,7 @@ import { isDev, onDev } from '../core/devMode';
 import { getSetting, onSetting } from './Settings';
 import { listenTap } from '../input/dom';
 import { withOwner } from '../app/ownership';
+import { holdLoadingSwitch } from './devSwitch';
 import './loading.css';
 
 const savedStorage = saveStorage('session');
@@ -143,6 +144,10 @@ export class Loading {
     } catch { /* a storage-denied PWA still gets the loader */ }
     this.attempt = attempt;
     this.rowsEl = this.els.rows;
+    if (!this.scoped) {
+      const hold = holdLoadingSwitch(this.scope); hold.classList.add('ws-load-hold');
+      this.root.querySelector('.ws-load-body')?.append(hold);
+    }
     const tick = (): void => { this.tickClock(); this.raf = this.scope.raf(tick); };
     tick();
   }
@@ -338,8 +343,13 @@ export class Loading {
       shown.push(row);
       for (const gap of timeline.gaps) if (gap.after === row.key) shown.push(gap);
     }
-    while (this.rowsEl.children.length < shown.length) { const d = document.createElement('div'); d.innerHTML = engineString('s_a9fadf880555'); this.rowsEl.append(d); }
-    shown.forEach((r, i) => {
+    const quick = shown.filter(row => 'key' in row && row.state === 'ok' && row.ms < 500);
+    const visible = shown.filter(row => row.state === 'on' || row.ms >= 500);
+    if (quick.length > 0) visible.push({ label: engineString('s_loading_quick_steps', [quick.length]), state: 'ok', ms: quick.reduce((sum, row) => sum + row.ms, 0), after: null });
+    while (this.rowsEl.children.length > visible.length) this.rowsEl.lastElementChild?.remove();
+    this.paintedRows.length = visible.length;
+    while (this.rowsEl.children.length < visible.length) { const d = document.createElement('div'); d.innerHTML = engineString('s_a9fadf880555'); this.rowsEl.append(d); }
+    visible.forEach((r, i) => {
       const previous = this.paintedRows[i];
       // Completed rows keep their exact values. Avoid translating their
       // labels and reading their DOM children on every active-step paint.

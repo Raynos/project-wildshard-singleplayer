@@ -15,12 +15,15 @@ import plots from '../src/shards/open-plots/outputs.json' with { type: 'json' };
 const card = (slug: TitleCard['slug'], legacy: boolean): TitleCard => ({ slug, name: slug, label: slug, thumbnail: '', heroPortrait: '', heroLandscape: '',
   entries: { legacy, shardfile: true } });
 const CARDS = [card('driftwood-isle', true), card('pine-hollow', true), card('far-reach', false)];
+const decks: ReturnType<typeof buildTitleDeck>[] = [];
+const paintFrames = (): Promise<void> => new Promise(resolve => { requestAnimationFrame(() => { requestAnimationFrame(() => { resolve(); }); }); });
 
 function deck(): { root: HTMLElement; select: (i: number) => void; entered: [string, string][] } {
   installShards([]);
   const entered: [string, string][] = [];
   const built = buildTitleDeck({ cards: CARDS, active: null, onEnter: (c, entry) => { entered.push([c.slug, entry]); }, onExplore: () => undefined, onSettings: () => undefined,
     mode: () => ({ developer: true, devserver: true }) });
+  decks.push(built);
   document.body.append(built.root);
   return { root: built.root, select: (i) => { built.select(i, false); }, entered };
 }
@@ -34,21 +37,25 @@ const row = (): { set: (v: string) => void; purpose?: 'developer' } => {
 };
 const play = (root: HTMLElement): void => { root.querySelector<HTMLButtonElement>('.ws-menu-play')?.click(); };
 
-afterEach(() => { setDev(false); document.body.replaceChildren(); vi.unstubAllGlobals(); });
+afterEach(() => { for (const built of decks.splice(0)) built.dispose(); setDev(false); document.body.replaceChildren(); vi.unstubAllGlobals(); });
 
-test('row off (the default): every card shows only ENTER WORLD and enters its shardfile, in Developer too', () => {
+test('row off (the default): every card shows only ENTER WORLD and enters its shardfile, in Developer too', async () => {
   setDev(true);
   const d = deck();
   expect(row().purpose).toBe('developer');
-  CARDS.forEach((_, i) => {
-    d.select(i);
-    expect(shown(d.root)).toEqual(['Enter world']);
-    play(d.root);
-  });
-  expect(d.entered).toEqual(CARDS.map((c) => [c.slug, 'shardfile']));
+  for (const [i, c] of CARDS.entries()) {
+    const visit = i === 0 ? d : deck(); visit.select(i);
+    expect(shown(visit.root)).toEqual(['Enter world']);
+    play(visit.root);
+    expect(visit.entered).toEqual([]);
+    expect(document.querySelector('[data-navigation] [data-el="slug"]')?.textContent).toBe(c.name);
+    await paintFrames();
+    expect(visit.entered).toEqual([[c.slug, 'shardfile']]);
+    decks.at(-1)?.dispose();
+  }
 });
 
-test('row on in Developer: LEGACY and SHARDFILE come back, and LEGACY enters the legacy copy', () => {
+test('row on in Developer: LEGACY and SHARDFILE come back, and LEGACY enters the legacy copy', async () => {
   setDev(true);
   const d = deck();
   row().set('on');
@@ -58,6 +65,8 @@ test('row on in Developer: LEGACY and SHARDFILE come back, and LEGACY enters the
     expect(d.root.querySelector<HTMLButtonElement>('.ws-menu-play')?.disabled).toBe(!(c.entries?.legacy ?? false));
   });
   d.select(0); play(d.root);
+  expect(d.entered).toEqual([]);
+  await paintFrames();
   expect(d.entered).toEqual([['driftwood-isle', 'legacy']]);
   row().set('off');
   expect(shown(d.root)).toEqual(['Enter world']);
@@ -133,7 +142,7 @@ test('Settings responds on pointerup once, keeps keyboard click, and retires its
   expect(settings).toHaveBeenCalledTimes(2);
 });
 
-test('shared title actions toggle once per tap and disabled entry buttons stay inert', () => {
+test('shared title actions toggle once per tap and disabled entry buttons stay inert', async () => {
   const entered = vi.fn<() => void>(), toggled = vi.fn<() => void>();
   const built = buildTitleDeck({ cards: CARDS, active: null, onEnter: entered,
     onExplore: () => undefined, onSettings: () => undefined, mode: () => ({ developer: true, devserver: true }) });
@@ -152,6 +161,8 @@ test('shared title actions toggle once per tap and disabled entry buttons stay i
   playButton.disabled = false;
   playButton.dispatchEvent(new PointerEvent('pointerup', { button: 0 }));
   playButton.dispatchEvent(new MouseEvent('click', { detail: 1 }));
+  expect(entered).not.toHaveBeenCalled();
+  await paintFrames();
   expect(entered).toHaveBeenCalledTimes(1);
   built.dispose();
 });
@@ -160,11 +171,12 @@ test('every retained Legacy button resolves and boots its original plugin and lo
   const manifests = [...SHARDS, ...LEGACY_SHARDS];
   installShards(manifests); setDev(true);
   const cards = titleCards(true), selected: ShardManifest[] = [];
-  const built = buildTitleDeck({ cards, active: null, onEnter: (choice, mode) => {
+  const makeDeck = (): ReturnType<typeof buildTitleDeck> => buildTitleDeck({ cards, active: null, onEnter: (choice, mode) => {
     const manifest = shardEntryManifest(manifests, choice.slug, mode ?? 'legacy');
     if (manifest === undefined) throw new Error('Missing selected manifest');
     selected.push(manifest);
   }, onExplore: () => undefined, onSettings: () => undefined, mode: () => ({ developer: true, devserver: true }) });
+  let built = makeDeck();
   document.body.append(built.root);
   const option = [...authoredRows].find(optionRow => optionRow.id === 'legacyShardButtons');
   if (option === undefined) throw new Error('Missing Legacy shard buttons');
@@ -172,12 +184,16 @@ test('every retained Legacy button resolves and boots its original plugin and lo
 
   try {
     for (const copy of LEGACY_SHARDS) {
+      // Each retained entry is a fresh page in production, not a second tap on
+      // the already-departing title. Preserve every plugin/look qualification.
+      if (selected.length > 0) { built.dispose(); built.root.remove(); built = makeDeck(); document.body.append(built.root); }
       const primary = copy.slug.slice(0, -'-legacy'.length);
       const index = cards.findIndex(choice => choice.slug === primary);
       expect(index, copy.slug).toBeGreaterThanOrEqual(0);
       built.select(index, false);
       const button = built.root.querySelector<HTMLButtonElement>('.ws-menu-play');
       expect(button?.disabled, copy.slug).toBe(false); button?.click();
+      await paintFrames();
       expect(selected.at(-1), copy.slug).toBe(copy);
       if (copy.load === undefined || copy.render === undefined) throw new Error('Frozen boot loader missing');
       const loaded = await copy.load();
@@ -192,5 +208,5 @@ test('every retained Legacy button resolves and boots its original plugin and lo
       }
     }
     expect(selected).toEqual(LEGACY_SHARDS);
-  } finally { option.set('off'); installShards([]); }
+  } finally { built.dispose(); option.set('off'); installShards([]); }
 }, 60_000); // Six real lazy plugin/look graphs compile once; no world, renderer or network double.

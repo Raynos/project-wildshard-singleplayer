@@ -23,6 +23,10 @@
 .ws-update-screen-panel { width: 100%; max-width: 560px; box-sizing: border-box; padding: 20px 18px; }
 .ws-update-screen h1 { display: flex; align-items: baseline; gap: 16px; margin: 0; font: 700 20px var(--ws-display); letter-spacing: .14em; text-transform: uppercase; }
 .ws-update-screen-clock { margin-left: auto; font: 12px var(--ws-mono); color: var(--ws-cyan); font-variant-numeric: tabular-nums; }
+.ws-update-screen-clock[hidden] { display: none; }
+.ws-update-screen[data-phase='install'] .ws-update-screen-fact::before, .ws-update-screen[data-phase='reload'] .ws-update-screen-fact::before { content: ''; display: inline-block; width: 12px; height: 12px; margin-right: 10px; vertical-align: -2px; border: 2px solid rgba(143, 227, 255, .25); border-top-color: #8fe3ff; border-radius: 50%; animation: ws-update-reload 1s linear infinite; will-change: transform; }
+@keyframes ws-update-reload { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ws-update-screen-fact::before { animation: none !important; } }
 .ws-update-screen ol { list-style: none; counter-reset: update-step; padding: 0; margin: 24px 0; }
 .ws-update-screen li { counter-increment: update-step; display: flex; align-items: center; gap: 12px; min-height: 42px; font-size: 12px; color: var(--ws-text-dim); border-bottom: 1px solid rgba(143, 227, 255, .08); }
 .ws-update-screen li::before { content: counter(update-step); width: 22px; height: 22px; display: grid; place-items: center; flex: none; border: 1px solid var(--ws-cyan-line); font-size: 10px; }

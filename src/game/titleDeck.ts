@@ -1,6 +1,7 @@
 import { pageScope } from '@wildshard/engine/app/resources';
 import { isDev } from '@wildshard/engine/core/devMode';
 import { listenDom, listenTap } from '@wildshard/engine/input/dom';
+import { beginNavigationShell } from '@wildshard/engine/boot/shell';
 /**
  * The title screen's shard deck — ONE implementation for both ways in (E318, Jake: "lol wtf why do we have two title
  * screens, one only please"): the cold launch (src/engine/ui/StartTitle.ts, renderer-free, before any shard loads) and pause ▸
@@ -312,11 +313,18 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     if (i !== index) { index = i; apply(); }
   };
   // SF65: the way in is recorded for the next page's boot (src/game/shard/entryMode.ts), then the card is entered
+  let entering = false;
   const enterAs = (c: DeckEntry, entry: ShardEntryMode): void => {
+    if (entering) return;
     if (c.shard === null || !canEnter(c, mode())) return;
     if (c.entries !== undefined && !hasEntry(c.entries, entry)) return;
-    chooseShardEntry(c.slug, entry);
-    opts.onEnter(c.shard, entry);
+    const shard = c.shard;
+    entering = true;
+    const attempt = beginNavigationShell(c.name, scope, () => {
+      chooseShardEntry(c.slug, entry);
+      opts.onEnter(shard, entry);
+    }, entry === 'shardfile' ? shardfile : play);
+    attempt.onDispose(() => { entering = false; });
   };
   /** ENTER WORLD, or a key: the shard's shardfile (G531; with the legacy buttons on, the buttons pick LEGACY / SHARDFILE) */
   const activate = (): void => {

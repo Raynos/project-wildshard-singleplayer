@@ -1144,6 +1144,11 @@ CPU utilisation. Home-region counts come from the actual regional world.
 `holdLoading` pick freezes completed clock/rows until PLAY: `holdRequested`
 gates gameplay; `playRequested` identifies PLAY. Public/scoped cell loads
 auto-fade; disposal before entry rejects completion.
+The live loading panel offers the same `holdLoading` switch beneath its facts,
+Developer only. Completed steps below500ms collapse into one count/time line;
+the timeline retains every original row. Title entry paints the shell before
+its durable handoff. Reload uses a CSS transform, and inline document styling
+paints while external stylesheets are still in flight.
 The application supplies its committed timing table with Simulator receipts; paths
 without measurements use the declared step weights as a fallback.
 

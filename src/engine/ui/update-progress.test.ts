@@ -53,6 +53,18 @@ test('pagehide releases the old dialog but preserves the handoff until the reque
   expect(document.querySelector('[role="dialog"]')).toBeNull(); expect(store.read()).toBeNull();
 });
 
+test('reload replaces the ticking clock and zero receipts before navigation can suspend JavaScript', async () => {
+  const screen = new UpdateProgress(owner(), 'old-build', () => undefined, memory(), () => now);
+  screen.start('new-build', true); screen.phase('reload');
+  const clock = document.querySelector<HTMLElement>('.ws-update-screen-clock');
+  expect(clock?.hidden).toBe(true); expect(clock?.textContent).toBe('');
+  expect(document.querySelector('[role="status"]')?.textContent).toBe('Reloading…');
+  expect(document.querySelector('[aria-current="step"]')?.textContent).toBe('Reloading…');
+  now += 1000; await vi.advanceTimersByTimeAsync(1000);
+  expect(clock?.textContent).toBe('');
+  expect(document.querySelector('[role="status"]')?.textContent).toBe('Reloading…');
+});
+
 test('a wrong build cannot dismiss the modal and its retry remains available between repaints', async () => {
   const store = memory(incoming()), retry = vi.fn<() => void>();
   new UpdateProgress(owner(), 'still-old', retry, store, () => now);

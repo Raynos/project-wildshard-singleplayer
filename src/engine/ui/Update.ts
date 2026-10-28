@@ -60,6 +60,7 @@ async function reload(): Promise<void> {
   if (!await screen.present()) return;
   if (sw && waiting && waiting.state !== 'redundant') {
     screen.phase('install');
+    if (!await screen.present()) return;
     if (navigator.serviceWorker !== undefined) attempt.listen(navigator.serviceWorker, 'controllerchange', () => {
       if (navigator.serviceWorker.controller === waiting) screen.phase('reload');
     });
@@ -70,6 +71,7 @@ async function reload(): Promise<void> {
   // itself; keep ?chunk= and friends.
   const url = new URL(location.href);
   screen.phase('reload');
+  if (!await screen.present()) return;
   url.searchParams.set('v', Date.now().toString(36));
   markReload('build pill tap (?v= reload)');
   location.replace(url.toString());

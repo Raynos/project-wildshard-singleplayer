@@ -3,6 +3,7 @@ import { uiScope } from './ownership';
 import { engineString } from '../strings';
 import { getSetting, onSetting, setSetting } from './Settings';
 import { withOwner } from '../app/ownership';
+import type { Scope } from '../app/scope';
 /**
  * Settings ▸ DEVELOPER (E140, the user's 1c): the one visible switch for developer mode (src/engine/core/devMode.ts), in the pause
  * menu's Settings (src/engine/ui/Menu.ts) and the title's (src/engine/ui/BootSettings.ts). Styled by gmenu.css like every other switch.
@@ -28,6 +29,11 @@ export function devSwitchRows(): HTMLElement[] {
   const note = document.createElement('div');
   note.className = 'ws-gmenu-note';
   note.textContent = engineString('s_f427cd6641a5');
+  return [label, b, note, holdLoadingSwitch(scope)];
+}
+
+/** One persisted Developer choice, shared by Settings and the live loader. */
+export function holdLoadingSwitch(scope: Scope): HTMLButtonElement {
   const hold = document.createElement('button');
   hold.type = 'button'; hold.className = 'ws-gmenu-switch'; hold.setAttribute('role', 'switch');
   hold.innerHTML = engineString('s_d652c0be6be8', [engineString('s_loading_hold')]);
@@ -38,6 +44,6 @@ export function devSwitchRows(): HTMLElement[] {
   };
   paintHold(); withOwner(scope, () => { scope.onDispose(onDev(paintHold)); scope.onDispose(onSetting('holdLoading', paintHold)); });
   listenTap(scope, hold, () => { if (isDev()) setSetting('holdLoading', !getSetting('holdLoading')); });
-  return [label, b, note, hold];
+  return hold;
 }
 

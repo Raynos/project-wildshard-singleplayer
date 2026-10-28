@@ -36,6 +36,18 @@ function ready(scoped = false): Loading {
   return loading;
 }
 
+it('offers the same Developer hold setting beneath the panel during loading', async () => {
+  const loading = ready(), toggle = loading.root.querySelector<HTMLButtonElement>('.ws-load-hold');
+  expect(toggle?.hidden).toBe(true);
+  setDev(true); expect(toggle?.hidden).toBe(false);
+  toggle?.click(); expect(getSetting('holdLoading')).toBe(true);
+  expect(toggle?.getAttribute('aria-checked')).toBe('true');
+  const finished = loading.done();
+  expect(loading.root.dataset['hold']).toBe('true');
+  toggle?.click(); await vi.advanceTimersByTimeAsync(1000); await finished;
+  expect(getSetting('holdLoading')).toBe(false); expect(loading.scope.disposed).toBe(true);
+});
+
 it('defaults to auto-entry and persists the hold without a URL switch', () => {
   const stored = new Map<string, string>();
   const storage = { getItem: (key: string): string | null => stored.get(key) ?? null,

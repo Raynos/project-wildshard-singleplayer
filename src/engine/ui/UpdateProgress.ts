@@ -185,8 +185,13 @@ export class UpdateProgress {
         if (skipped) row.dataset['state'] = 'pending';
       }
     });
-    if (this.clock !== undefined) this.clock.textContent = engineString('s_update_elapsed', [(elapsed / 1000).toFixed(1)]);
-    if (this.fact !== undefined) this.fact.textContent = state.files > 0 && state.network === 0 && state.cached === 0
+    // Navigation can suspend this document's timers before replacing its pixels.
+    // The reload indicator is a CSS transform, never a frozen JS stopwatch.
+    if (this.clock !== undefined) {
+      this.clock.hidden = state.phase === 'reload';
+      this.clock.textContent = state.phase === 'reload' ? '' : engineString('s_update_elapsed', [(elapsed / 1000).toFixed(1)]);
+    }
+    if (this.fact !== undefined) this.fact.textContent = state.phase === 'reload' ? engineString('s_update_reload') : state.files > 0 && state.network === 0 && state.cached === 0
       ? engineString('s_update_files_only', [state.files])
       : engineString('s_update_bytes', [state.files, Math.round(state.network / 1024), Math.round(state.cached / 1024)]);
     if (this.failed || elapsed >= 30000) this.showRetry();

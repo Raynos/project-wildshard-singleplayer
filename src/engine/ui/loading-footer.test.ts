@@ -122,12 +122,31 @@ it('retains a completed short step start even when it finished before the first 
     expect(Number.isFinite(setupAtStart)).toBe(true);
     loading.endAdmission();
     now = 500; const world = timeline.begin('world'); vi.advanceTimersByTime(32);
-    const row = loading.root.querySelector<HTMLElement>('[data-key="admission"]');
-    expect(row?.dataset['startedAt']).toBe('120');
-    expect(row?.dataset['setupAtStart']).toBe(String(setupAtStart));
-    expect(row?.dataset['ms']).toBe('0');
-    expect(row?.className).toBe('ok');
+    // Presentation collapses quick steps, while the complete timing record is retained.
+    expect(timeline.snapshot().rows.find(row => row.key === 'admission')).toMatchObject({
+      startedAt: 120, setupAtStart, ms: 0, state: 'ok',
+    });
+    expect(loading.root.querySelector('[data-key="admission"]')).toBeNull();
+    expect(loading.root.querySelector('[data-el="rows"]')?.textContent).toContain('2 quick steps');
     world.end();
+  } finally { loading.scope.dispose(); }
+});
+
+it('groups only completed sub-500ms steps and keeps the exact 500ms boundary visible', async () => {
+  const loading = new Loading({ id: 'quick-boundary', name: 'Quick boundary' });
+  try {
+    loading.setPath({ id: 'shardfile', steps: ['modules', 'quick', 'slow'].map(key => ({key, label: key, weight: 1})) });
+    loading.waiting('Modules'); now = 200; loading.endAdmission();
+    const timeline = currentLoadingTimeline(); if (timeline === undefined) throw new Error('Missing timeline');
+    const quick = timeline.begin('quick'); now = 699; quick.end();
+    const slow = timeline.begin('slow'); now = 1199; slow.end();
+    const completed = loading.done();
+    const rows = [...loading.root.querySelectorAll<HTMLElement>('[data-el="rows"] > div')];
+    expect(rows).toHaveLength(2);
+    expect(rows[0]?.dataset['key']).toBe('slow'); expect(rows[0]?.dataset['ms']).toBe('500');
+    expect(rows[1]?.textContent).toContain('2 quick steps'); expect(rows[1]?.dataset['ms']).toBe('599');
+    expect(timeline.snapshot().rows.map(row => row.ms)).toEqual([100, 499, 500]);
+    await vi.advanceTimersByTimeAsync(1000); await completed;
   } finally { loading.scope.dispose(); }
 });
 

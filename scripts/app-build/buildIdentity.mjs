@@ -11,10 +11,14 @@ export const BUILD_ID_EXPRESSION = '(globalThis.__WS_BUILD_ID__ ?? "")';
 export function stampBuildHtml(html, build) {
   if (build.length === 0 || !/^[\w.-]+$/u.test(build)) throw new Error('Invalid document build identity');
   if (html.includes('globalThis.__WS_BUILD_ID__=')) throw new Error('Duplicate document build identity');
-  const heads = [...html.matchAll(/<head(?:\s[^>]*)?>/giu)];
+  // Vite hoists one extracted sheet back into head. Keep the inline launch /
+  // loading shell paintable even if that sheet's response has stalled.
+  const source = html.includes('data-loading-first-paint') ? html.replaceAll(/<link\b[^>]*\brel="stylesheet"[^>]*>/giu,
+    tag => tag.includes('media=') ? tag : tag.replace(/\s*\/?\s*>$/u, ' media="print" onload="this.media=\'all\'">')) : html;
+  const heads = [...source.matchAll(/<head(?:\s[^>]*)?>/giu)];
   if (heads.length !== 1 || heads[0]?.index === undefined) throw new Error('Missing or ambiguous document head');
   const end = heads[0].index + heads[0][0].length;
-  return `${html.slice(0, end)}<script>globalThis.__WS_BUILD_ID__=${JSON.stringify(build)};</script>${html.slice(end)}`;
+  return `${source.slice(0, end)}<script>globalThis.__WS_BUILD_ID__=${JSON.stringify(build)};</script>${source.slice(end)}`;
 }
 
 /** Plain post-bundle step, before the service worker hashes the final HTML.

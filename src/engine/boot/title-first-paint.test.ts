@@ -49,6 +49,9 @@ test('a selected shard keeps its existing loader and does not preload the title 
   expect(root.dataset['initialSetup']).toBe(root.querySelector('[data-el="suPct"]')?.textContent);
   expect(root.dataset['initialSetup']).toBe('0');
   expect(Number.isFinite(Number(root.dataset['startedAt']))).toBe(true);
+  expect(window.getComputedStyle(root).position).toBe('fixed');
+  expect(window.getComputedStyle(root).display).toBe('flex');
+  expect([...html.matchAll(/<link rel="stylesheet"[^>]*>/gu)].every(([link]) => link.includes('media="print"') && link.includes('onload='))).toBe(true);
 });
 
 test('the first-paint panel survives failed title start and retires only after the real deck is mounted', () => {
