@@ -1,13 +1,13 @@
 
 
-import * as v from 'valibot';
-import { NativeQuestPropsSchema , type NativeQuestPropsRows as NativeQuestPropsRowsType } from '@wildshard/format/questInteractions';
-import { autoFlag , type Cond as CondType } from '@wildshard/engine/world/interact/types';
+import { questPropRows, questAutomaticFlag as autoFlag } from '@wildshard/sdk/quests';
 import { DRIFTWOOD_INTERACT } from './interactables';
 import { DECLARED_SEA } from './sea';
 import { DRIFTWOOD_SPOTS as spots } from './spots';
 import { driftwoodPhysics } from './physics';
 import policy from '../data/nativeQuest.json' with { type: 'json' };
+
+type CondType = NonNullable<Extract<typeof DRIFTWOOD_INTERACT.rows[number], { kind: 'plate' }>['showWhen']>;
 
 const physics = driftwoodPhysics();
 
@@ -24,7 +24,7 @@ export const NATIVE_BARRELS: { id: string; home: { x: number; y: number; z: numb
 export const NATIVE_PLATES: { at: { x: number; y: number; z: number; }; size: number; when: CondType | undefined; }[] = DRIFTWOOD_INTERACT.rows.flatMap(row => row.kind === 'plate' ? [{ at: point(row.id), size: row.size, when: row.showWhen }] : []);
 export const NATIVE_WATER: number = DECLARED_SEA.level;
 /** Physical prop and platform samples; the barrel's watch is the shard's decision script (G566), its save key the declared body. */
-export const NATIVE_QUEST_PROPS: NativeQuestPropsRowsType = v.parse(NativeQuestPropsSchema, {
+export const NATIVE_QUEST_PROPS: ReturnType<typeof questPropRows> = questPropRows({
   drops: [policy.keyDrop],
   floors: NATIVE_FLOORS,
   bodies: NATIVE_BARRELS.map(row => ({ owner: row.owner.id, body: 'barrel' })),
