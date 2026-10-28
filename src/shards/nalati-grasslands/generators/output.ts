@@ -1,4 +1,5 @@
 import { nalatiWeatherProgram, type NalatiWeather } from './weatherProgram';
+import { nalatiSpawnPackLateNames } from './spawnPackDemand';
 import { nalatiRenderTileProgram } from './renderTileProgram';
 import {grassChannelBytes} from './grassRows';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
@@ -463,6 +464,9 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
   // Platform sections are emitted bytes, so inspect their complete decoded
   // rows as well as every named JSON consumer before deferring any source.
   for(const name of nalatiLateSupportNames(supportFiles,consumerRows,platform.files.values()))lateNames.add(name);
+  // The recorded spawn/30-second consumer set partitions existing pack phases;
+  // critical/dependency priority and every original member byte remain owned.
+  for(const name of nalatiSpawnPackLateNames(publishedFiles))lateNames.add(name);
   const late=[...new Set([...lateNames].map(name=>{
     const file=fileByName.get(name);if(file===undefined)throw new Error('Missing late model source');return file.hash;
   }))].map(hash=>({hash}));

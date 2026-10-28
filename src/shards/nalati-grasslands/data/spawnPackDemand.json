@@ -1,0 +1,2890 @@
+{
+  "schema": "wildshard-spawn-pack-demand/1",
+  "source": {
+    "sha": "53c38853bb125b9991efe373599847404b656675",
+    "indexSha256": "3896b1afa6418378f3894427e2c054f6b612b02c662ca4d08433bd1019699d85",
+    "tier": "phone",
+    "device": "iPhone 16 Pro",
+    "scale": 2,
+    "protocol": "One instrumented ordinary Nalati entry plus 30 seconds live spawn; conditional ClientAssets.read and retained-map.get logpoints; original module bytes unchanged; diagnostic timing is not acceptance evidence; include direct member URL requests alongside cached and asynchronous byte reads; whole-pack admission fetches are excluded from consumer evidence",
+    "consumerReadCalls": 291,
+    "retainedReadCalls": 104,
+    "errors": [],
+    "directMemberReadCalls": 1
+  },
+  "window": {
+    "controlMs": 6682,
+    "throughMs": 37176,
+    "playMs": 30042,
+    "frames": 901
+  },
+  "demanded": [
+    {
+      "hash": "003b85e7cdfd20b60df25fcaac743890125fbdef40170b1049448cb49c8894cd",
+      "firstReadMs": 6034,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "00c49128d201aed13678486e26de17b3d39e608d5ab537e02b2a64bf6be3de07",
+      "firstReadMs": 3151,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "014787fe471315d1d1e6f13d2d4427abb1617c2b4c21948103ff9e4f52d15c5d",
+      "firstReadMs": 6764,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "01e4eb24a14d223d2edb4e0415360a55ca9b9e2c7d65825a3127ce14d14d8b4c",
+      "firstReadMs": 6035,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "0363f1ab57a073862d728798f2be0f2206fb763cd44ebd1c213b29db1d65cc47",
+      "firstReadMs": 3277,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "05a6f5f9b38f3068d42c4647c053d02cfcf7115767da5c0246f3af560e21c250",
+      "firstReadMs": 6928,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "0738530153ed8ec463d4fce39a3ef7bcf73eff3b6e6063e506a43bc57274ee1f",
+      "firstReadMs": 2143,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "089670e338407f62675d698f6dd86b1b5d8b0c86c1531f197ff31f204a119a06",
+      "firstReadMs": 3273,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "08fb893a25f0714ea07add04b1c52318458da5313b899ad721d683679ea61a68",
+      "firstReadMs": 6034,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "09463dfbd52f3bf943c9f1203ad1bab3febca73ad0da10a8e242aaf418fb0b09",
+      "firstReadMs": 3171,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "0a3978574d5b0d5cd549c4f12b329f9e68e53d40874a6b16f3ef6ca717dbb473",
+      "firstReadMs": 5684,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "0a603fada9d360044a686d6ff70c196b4255d91fd097c7d6ac9e58a410643dba",
+      "firstReadMs": 6973,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "0aa417e0f591942215d7148cd18be06eb6c9321dad09178193565b96939b0d16",
+      "firstReadMs": 6978,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "0aea784f254f0166ca74f310e3667ac00d7a1ab13444cf9c9086709582c61c96",
+      "firstReadMs": 1100,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "0b0553454fbd153506da4bc3b12f2aabba235ba456802d6a312bbb2d9e0bdcdc",
+      "firstReadMs": 3278,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "0b6383ea5d6ced515700de7f11f3f8dd5192baa346c79bc60cdf09c55c5070cc",
+      "firstReadMs": 1341,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "0c435ae6a300984e3a6e4625434ffada340d45d519363d5bf353b31ff20aacb8",
+      "firstReadMs": 7009,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "0dccd64d875cc3cdea5635abe499ac054e99fb404764b2aa36bb4c15d71b31ec",
+      "firstReadMs": 7031,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "0e194e7c8504e337154fa4db5b399958e01fdd926c35a75c8bb7c0f15e574239",
+      "firstReadMs": 6033,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "1036e13c60a3e9bb6f21bd9fb4280238a3a63eeb93b5c2979129bd613ec212ae",
+      "firstReadMs": 5076,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "133da0337eba27bffef08bf191e05d68bbfe4445417a0427050c08ce1ef52ba8",
+      "firstReadMs": 3153,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "13d0dbaf5c19066bad33a1ca49587029430ce44538665094fae7bdd5568660f5",
+      "firstReadMs": 7039,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "146bda25740e30a9874d24c64f45a6297e99875450e92ada5fd44b817fade965",
+      "firstReadMs": 2136,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "14f577a4625e924cc0cf1d125e377a669bd7a0cc865edac45397238993f53eae",
+      "firstReadMs": 3276,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "1525cce1feb4d6cea0b88ba896d4236cfed31b2a4ce2cfbe8e930a6079f7d549",
+      "firstReadMs": 6034,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "1572cc613c2880ef68554379ac74cb1e808b86f9c5adc4e5a2c1f577ffd7731d",
+      "firstReadMs": 2093,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "15f18d497aa4c0cb303f6505c10a111d452c453443b9d35c5a573e4b92863355",
+      "firstReadMs": 7062,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "16413d5e2cc41d0bcf01877ac0290c53a38991b4386d7119977501602916c659",
+      "firstReadMs": 3290,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "1641afc53f05e073f782ed32f6a1c4f0c1fb49cec34e01b745538e3713949352",
+      "firstReadMs": 1106,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "165b75b0efc112c1163da022a6c5b3167b649578794c7295e132aa069db71cd5",
+      "firstReadMs": 3286,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "166d495ae538065d398fa47a8a4a2ce7b63c6c5cc29fa9cfb01f097c49f3ad05",
+      "firstReadMs": 2011,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "1709fdc42624c47cf790ddd213c48f2f4100616941e78d488af42b159b63a854",
+      "firstReadMs": 7075,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "17a68c74224d7e331d3d53dbb217d44b433254df0897e2b2a064651870d94327",
+      "firstReadMs": 3173,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "19520c1adbe4cc39d12c33badd4c7218b701289d07c0cde968f07ad9811917bc",
+      "firstReadMs": 1341,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "19d1a792f557610aa044e0c39d4959aa1ae3fd5ba48b8c789a08e58029c95212",
+      "firstReadMs": 3285,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "1a0acde0d0271791763095b0a3f55b593829faa1a0280f2754cbbe037bdd2257",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "1acb12b861ac09895eaaf93524ddc687c240caf5ada070459dad6d721670acdd",
+      "firstReadMs": 3290,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "1af306bacf8f10fba72ae65f122a4756425d227dd791070c649f672df56228a8",
+      "firstReadMs": 7080,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "1afd66b4c6e49ad25cd2fcf17c07aa6de09c5cb9a1ddedc12760d84360e13dcc",
+      "firstReadMs": 3284,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "1b30941242fb21e2d44cb683dfd6e2eff1d1301631ace0668246a78588b3f75e",
+      "firstReadMs": 3291,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "1b37a9b36fbe72da2cae1f509ddd7b55267c4988e71b6c0c793fda36cc9f99c9",
+      "firstReadMs": 3153,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "1c3343ca928ec240a353b853090d1e40e085371b1ec120fadf7aa3c57d1c99bd",
+      "firstReadMs": 2099,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "1e73b1d58c2430f9b7fc0282fa0e75756ddcc350b54313ef44fb0bbaaa535547",
+      "firstReadMs": 3287,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "1f3aaa2a7b44aa0526343828af9e9e375eb8b881d2c57792998376ccde8c15d4",
+      "firstReadMs": 6035,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "1fcf04191e29ed3ec21bcde9ec84c453f41ffd80a04abf5cb9e86ef624f6678e",
+      "firstReadMs": 2113,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "2098cdeda510664077a732c7a947ce1686538b1fde5373a57751b07dc2ed70a6",
+      "firstReadMs": 3278,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "20c087521628bdd91ef810182b036f78a6042bc8cc96eb5f25c9c29df3cfebdf",
+      "firstReadMs": 5013,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "20c9fe6b5488598a00426b541d45b2ccb83e52296ebee07b244579f0e4aac3e9",
+      "firstReadMs": 3284,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "223ce1ab45d736c5fb526308cb86bc6d61bdeb482ac886a7d47306fd5a8c41b5",
+      "firstReadMs": 1201,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "231404e2339350744bc7d5e93780711c62e1b796a5148e113480f176034ddedf",
+      "firstReadMs": 6033,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "232255ff67b193c6ad7582903a80d0d99760a49d6d0cacf713584df564b25705",
+      "firstReadMs": 3285,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "238c9e25120ab8e89ddf3f8c20434e9a808b7bc19cb2a928011ca3f90ade34f1",
+      "firstReadMs": 7102,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "249385a4a2119e8876afe056ffbad5930a422540e1364df4d72380ef8b2f0c79",
+      "firstReadMs": 6921,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "2545e70af04bb687ff5debc805e296aab740d80d975a7cff329e3fedaea29c75",
+      "firstReadMs": 3151,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "262d9218a0f70b8dc314063ac367944083d8e7f57543c19759193b321e2302d7",
+      "firstReadMs": 1106,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "2903222b4e9072885d98d9434933aaade07be95be3f7d99dca0a0b09842195ba",
+      "firstReadMs": 7130,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "292657da49836741792bc14dad16267fc1cc95bcf151938aa180199b85a6c268",
+      "firstReadMs": 3285,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "2a785d244fcf7943b6ca3e47f54c5e675566a589af53cdf9488711d49d34caa3",
+      "firstReadMs": 5014,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "2ad34843da40365a3e2c06733f22f290130dbe1a3a65c14f760a596d4f0d146c",
+      "firstReadMs": 6764,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "2c2b942ba2fbd3b001945de545c706a5312f12bb6f1bfc25109e6706e8e99af2",
+      "firstReadMs": 5014,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "2d1cc4cbf216940a1d6cc9f8b3a2625f0a3d734404dd6b5eea1fe4a65dd3badd",
+      "firstReadMs": 7139,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "2f2e44cc3aa95b6e5150f4f8e48f75523469b3c63613d2249e83824894e88e8f",
+      "firstReadMs": 3286,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "2f8405caae1fd2d4b0c8aa52a7a9a812824e010425d9df7d557cbc4f27bc05b0",
+      "firstReadMs": 7148,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "301b887756dbdcd81dec3b3aab1f709e295e034cfaee01440603a8e0df850fe5",
+      "firstReadMs": 1106,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "31bdfbbef4a14eef2a66f398cbac2c53561fc532dc1f22deae4a339c2c14df96",
+      "firstReadMs": 6032,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "31f46016e071151f68724c5b8937a4147e01ef99ff6fb24da29b47f7de391029",
+      "firstReadMs": 3279,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "328fc550e6a65449ca9b3ab338687518f4798bd6d39d3ac07bf317c7c827d62b",
+      "firstReadMs": 1341,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "35f4728bb261b24365040c30441511cfddf4dbc19d8353ac27e70f0a96a72c6f",
+      "firstReadMs": 3285,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "3764938cc4c63ba0df30cdab2674d623e1542e1d6eaf086ae490228404f5b66f",
+      "firstReadMs": 3153,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "3775be692940f0b33493147efd29256f36542f87aae5bb3069b87ba7c4a7c765",
+      "firstReadMs": 3152,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "37e62ca857687f9f708979e4619113cde15e8dfa9ab2479db93104d92f81a8e5",
+      "firstReadMs": 7163,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "39c6b14fcb0ff128840ab566b16205c331896f32878795bb8eea6d7c22d4551e",
+      "firstReadMs": 3274,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "39f5fab6174078794b6b13fc15030b237f98be0a14070dc346258f5c6718fe9c",
+      "firstReadMs": 2152,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "3a10479b6bb2f3b49d20197e5f0f05779cc1d52b119710fee28f4f61edf348ae",
+      "firstReadMs": 7172,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "3b85722fa57e338466b84443e57100559e2de14bc9d55b8868af0a234d3bcb1c",
+      "firstReadMs": 1100,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "3bbd41035f99a3acf97dad784ea15fed33d9f37c49f307ef23e7192d52ff5217",
+      "firstReadMs": 2125,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "3d8b628555859e11064d10090f5ebcdba47e2f94a3c6a6b018fb465e3a24f6be",
+      "firstReadMs": 3152,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "3ec83bb0550f94528096c4367bcb18f45af723b6b21296f84c08b4c3b6683c2c",
+      "firstReadMs": 3153,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "40073c9058ff9f356957c9e71715915851956276dfca3a2b25166bc2e5e09cbf",
+      "firstReadMs": 3156,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "4221e4989da83bcb70992476394c7c101551d22b16611c2853183c3585beb69f",
+      "firstReadMs": 7181,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "4306e4377dae6506c67a444c55974d4b2bbceb4d89375db1f643ceb5e9eaf86f",
+      "firstReadMs": 2175,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "449c2e7e3f98a429077242e69dc384768a6d49a823800cd7b5fec52705c0ff76",
+      "firstReadMs": 3156,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "45521f74138994b4c99b096d97cc00c0bb132e7701e56d8f520802c1342d701f",
+      "firstReadMs": 4210,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "459dfc9d9f511f4722e23e97079a5f44722a5cdf5734985c535ec8383b396054",
+      "firstReadMs": 3170,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "45ac62fdf44b83dd06ed55de034577712732a535385de1718e16862279b4634f",
+      "firstReadMs": 3283,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "46d521bd3a3936c6702ebde4d7fa083c4b042b05dec0deb55ab1b52bc597ed84",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "4816316c024a1666da03e3d0f6d52737b361cbf9344ae14f0c4b94ca2de8ca64",
+      "firstReadMs": 7195,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "483c3a06f3c385cb04e4699d170121914ed493be9dd1e57022069be0daaffc3a",
+      "firstReadMs": 3151,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "4871e6318c3e34feda0dc65eef983244b71cb8e783f3128c4067d58304157f82",
+      "firstReadMs": 5067,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "497162a658e7255e621f7657f39cff196f146002525b722ab74a05fcebdb3c03",
+      "firstReadMs": 3286,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "4a31a2b080284dea17f1b27ef0f97bdbff455ae6f249251c1b405e62d3623ef9",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "4b29d14640d560aa4eff1c9bbf2b5bb78cb39acf2dfe034710e6a47227ca11f0",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "4cc4d385ae989b1e6df1a705efe041087951e2b337da3b05e012f2584e830933",
+      "firstReadMs": 3152,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "4d0fdbfd26724b198efaac12415528eebf7942917f030e00e28243ab487a8224",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "4e3ee0ea1f0b1148c836ab04fb1f80675cf3d9fcd7e83a6f963d9b5c7299f0bc",
+      "firstReadMs": 3394,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "4eb12c54d41413d5142252186d5e6d8b5c95ff0945ee3fb0779d9f4c4d780d6e",
+      "firstReadMs": 2232,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "4ed5fd7e4d3d5f3eccb7cd19814937ceb76946bcbf1fcc5896e5742179ecdc18",
+      "firstReadMs": 3156,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "4fbeb523f025702579d7e2096795183d9e66665bd6d437fd09e79e63348ef4da",
+      "firstReadMs": 1306,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "51183121eb51505467b3cc0af2adc0a28f924c050e7f964f1799c984ef03fdc4",
+      "firstReadMs": 3152,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "51a765e699e9030ff6234a9096c003a369ce1f43c99eac499945a6af040c43ad",
+      "firstReadMs": 1092,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "524a7c622cbb9539fcf09d9e6d80c07075d08576eeb06dd68f636ff9c5e172bc",
+      "firstReadMs": 3151,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "531ef49a7f12abd86daee61b2307c29f352ea864ce0ea24b3a1bc346e18eea86",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "534adab61fb490aa088fc87fcde086191d428383a7e292b7546aba99be714f01",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "534c6ac26f8adca2da2624ffb0a06582f1dcc341caa99299306b162cd440cb88",
+      "firstReadMs": 3290,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "54636329b7c948f2697ebea52aec652fc3ba8cfbdf4dfbf6a06628e07922d461",
+      "firstReadMs": 2147,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "54b912629e5107295464078c70966b5d61e19f2c89a428304c5743a76f9e0274",
+      "firstReadMs": 7204,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "57919bb109a7fbe95afce2f9f49f576d4cc3d0c16af690937cac6f7a4d892f04",
+      "firstReadMs": 1100,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "58488bb0ef2de93724314c8184787b74a068ca1b10854bd2b690eff59a4942b6",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "5897e0e026500ea37cdded86efd799f6e2a0080dd7ab373539ffce5bbbffea49",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "58cceedc844d759fd91c981b5f812603bef8d68ca60985176800434dc1444804",
+      "firstReadMs": 3287,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "594272461b037cc63bfa24778e91873bc0ab9b35e399a07fa02ca476004d0112",
+      "firstReadMs": 3152,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "5954ad32066c8a9876d698d0de68e241130c6891e5bbb145dcf1227bccf20357",
+      "firstReadMs": 6033,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "597b13a0028c4c7c0e6e8aef34ccfdadeaf002a88172a97263c320c8594ca1f9",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "59d322c9c98410269def4586408ddc5945555e4fc010380c059e77c0505473bc",
+      "firstReadMs": 5592,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "5b4d2f8ddf99da39e9bd2d13f30d393f2dc444b8d0177324413f47c140198437",
+      "firstReadMs": 3296,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "5c54feb25440b27e45d516a12e05d916cbba3ca47415eacbff5bbad66eb22aa0",
+      "firstReadMs": 7212,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "6052aa4d70602f4a940de323327421d6ff8af5270ac0e197d124b6612548e1a2",
+      "firstReadMs": 5076,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "60c94c58be1c785e9fbaed7692fa8b849b924c9cb48cbe83696ec31d7ad00bc8",
+      "firstReadMs": 3167,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "61d680cdf497c9906df63cec350d3abc4606833fdf80cba2e4bcf4ab5a7ac1d3",
+      "firstReadMs": 3418,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "6269d0dbe6f29c70d14370063a2da302dc12aca265254562305cf70eab2482f4",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "63ba39ff5925f4866ce8bd3fefbca188cacc54418e469ce02d3f40f6cabee7d1",
+      "firstReadMs": 2202,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "63c1dad84905fcfd659dbb30d68da4efca96447570899df745b2c45be414a857",
+      "firstReadMs": 7240,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "641df821ffb1a1e0c1d94feb7a14a6b0d00403eb2d3a072301e6d9d93b8f2bc5",
+      "firstReadMs": 3287,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "64c4b8619e7f4783f941d06315076f71ff170b5bd3e3b135fdd8c829066b6995",
+      "firstReadMs": 3278,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "65a79815c367e6f7a4bc1c5c51ea413b0e4d1158aae825535a98cdf6646a8fc1",
+      "firstReadMs": 1092,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "65c3c525a93c7c212588782b39978beb65789c60440651e5625b3297a98a4766",
+      "firstReadMs": 2265,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "6700c327d1f7f38a90440c02f5ac971f5076df0c381720f97fdac919c6d2c38b",
+      "firstReadMs": 6035,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "684eb745c674954c485d7f3c2482f131af1d324eca2d53841d432feb056fa940",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "68c5f160bde55ab114dd22c92e1bb0fb86ea23e761e7cd84aad1107b371371d8",
+      "firstReadMs": 7264,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "6a7845ac197f537e3f5c4ff17d72e817797fb8b8de5e0a596344b4c535bfaab1",
+      "firstReadMs": 3152,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "6bd840cc28157f5368eced8a87db1cb52d5bfd958230639106d4deef9102c88f",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "6db72992afcb9f19e23cf81a5a6c95f85306908b4d7b58c630984580d610e6e4",
+      "firstReadMs": 3153,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "6e16f0115e38906fbc4688d24d1d72c98cf115302a1cdd8e88882258144c5dc6",
+      "firstReadMs": 6034,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "6e209b5a809ab3f3bef9c7f2884f454471212c8a449a6bc9587e472804bc07b8",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "6ffc72748c1709f4239ac983fdda5841a524a026512287fe16f0fa498b276102",
+      "firstReadMs": 3166,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "707361281d2d9655de00302477badff50df97ffd1628152dc5fc8f0bac597ed0",
+      "firstReadMs": 6034,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "7205f4b121b232b5e493f7b591e5a9c27b3788d598da74a00e2a58d7bda42d89",
+      "firstReadMs": 7273,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "724bdae2ee943c04d631a5890bcbaf585e221c414f78a1d73aa6c123a647bf81",
+      "firstReadMs": 7287,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "729ed1ab92483f05fc4471f3a8c66e5bebf00961b658a7c4b3490a01512d7b64",
+      "firstReadMs": 3279,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "73b9d2ab9a3679093d7349442d764e40b3f9b47f31eea581e49aafe02a61d45c",
+      "firstReadMs": 1100,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "73bf2a5dd5c7d8a328620414bcffeb7c77435a1c98d0a1e12fec35c93d19e3a1",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "73d990f4ee4b6c5cd31d766daa0a321545403ab343b34b31058c36bd620a42f5",
+      "firstReadMs": 1335,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "73f960dda72e7cfcc6392405d261747065f8a03b6024538aa05fef9d4f893828",
+      "firstReadMs": 3279,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "73fec4bfd0575d4e80a93d74742eb7941ac7aad353ffe7b5bf03c5c972ebf863",
+      "firstReadMs": 3291,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "7491afc9489511378d52c48fd98d0cd435e7521de8d7fc93c2f4a43b1ee05adb",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "78290f6451162b4c1e7f8cda388589ff116cd583650fb96cd8022a6763ca06fa",
+      "firstReadMs": 2067,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "79096f2ff7fc171c5147e277f031f9ed8d35019dc5cf32bc44ae7f2ec17e5d1b",
+      "firstReadMs": 5686,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "793707b1f09380d5eb349dcaa5c061cf3f7f8a29c4efea886f8c7a71ced5491e",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "7ad9a06df48035cf18113f53331983c1732226a6c21fab23343c2996a52825ca",
+      "firstReadMs": 3152,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "7cbdd30d8cadaa4e4af0561cfdd43886df5200fab72717c2985a3cb598262a96",
+      "firstReadMs": 2120,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "7d1473776fe41a839a032927cf880fa1b0720fb3f059271e3e3304a53521e4f9",
+      "firstReadMs": 3287,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "7ef91a55cdb6568f415ec473c64f366af967b334fc94b34f1580b334867ee781",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "81591eb9d09eb7863b4634f6a863bc7836d2fc1290e6bee2d3a4226944bbd9de",
+      "firstReadMs": 3152,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "822694b3287b5b09781e531c2edfbc5def284a757fc097dcc23061b09e79f85c",
+      "firstReadMs": 3283,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "827334eb0dc4171f3f2d81f3a4268568b52f0a7ea2b71f16de929bae3e80d0fe",
+      "firstReadMs": 1092,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "82ba6cfa16f75ea96635d3b7b5f5ad4f75fb5d43251126aadc8336c461429bcd",
+      "firstReadMs": 3153,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "83675f83d3fbcca49b4650e216e30d3a2a0951c221b4efa9933ebb6e536d61b7",
+      "firstReadMs": 7295,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "84af696dc3e296973fc6d7e039705e47906f6461a9e78734757a073c60ab04c6",
+      "firstReadMs": 3152,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "84bd39abf54a633b3946e0e1dea7c1816565609c034799f5310db55a7b65d4ca",
+      "firstReadMs": 3172,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "853422408cce327f42492cf3bad4b4eb061427e8e0046e72af1bc906ba2e1fef",
+      "firstReadMs": 3285,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "86941c8e5bfd65c30de647530f28138c621a360cac07561b14eea24d19a76ac0",
+      "firstReadMs": 3785,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "87e51e95e14a28cbc1d98828d8cec1864bccef8237e4cf941bb6b208b5fcb5e9",
+      "firstReadMs": 3169,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "87f7580e4ab0bdbd7f2e65f87f86bbf5416d2a2f89d8d93683b65ab090dee39a",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "895bd0eff0cc3cd710b4a16e624c9dc962bc35e90e8f8985c8dfab0bc2ee3cf4",
+      "firstReadMs": 3280,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "89cdb417cbbab6cdb255005adae10319b8ff9e037af8f5ab009ba26b268c7900",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "8ac2108fc71f8715ea9bc92917a5afcd78d580f4726d2317b64d82e6e55130c4",
+      "firstReadMs": 7301,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "8af5efdb51e32e2a3bf37e505c6825802449dd584b4f518d2d8b27959b17bee1",
+      "firstReadMs": 3152,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "8cf10a48ea9a02e799ab906fab12786c168933b3f8878a8b4cdb1df2e902324a",
+      "firstReadMs": 2107,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "8d0e2897b0ff6f88826b40a6637bd88327e87cc3d6aade3b2207dff938e63f1b",
+      "firstReadMs": 3153,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "8e12aae5c502e205b43616ba48afbb8c9fb34a3fac9e07da34b73426711f9fce",
+      "firstReadMs": 2276,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "9028a2e07c6c920aec08bfbd62da3f063f93ff05bd8110da85987bdb51ea73a5",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "951be9afac0629f2197cbd6bba2914bc8cc02202c6d825844a39ec156d9a1b11",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "9560941086752a170a60fa47556a45128744a1e800ba75106ecd1d6c8b4a7b4a",
+      "firstReadMs": 5074,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "9622fcdb4202ad31aef9c12406dd6bdedeaa26ddcc421efda7098b2d3320dead",
+      "firstReadMs": 3290,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "9814f8b49a28acc52d77d137b2fb1dd0859ab7407f0f7bf07da9e19ccc46893e",
+      "firstReadMs": 3156,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "99d1984d15331e75a13fed320a6e98d29efb956c22e080e1fc3da2dbadee6288",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "9aa799f2ced70417c92b85dc358690fd6b748515ae43094e6503c10f45d8f689",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "9b537d68433363e0ab4e432ef35f73fcd799638b31be7c83d0a499042ef3557f",
+      "firstReadMs": 3165,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "9cf5d26a4251e831c3df7935af5486d96421dd53a2797bf81b7208df31715190",
+      "firstReadMs": 3396,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "9ec094b897540742319290ff63899f62e54b15054c3eb098e9385eb7fecb530b",
+      "firstReadMs": 7311,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "9f47e3acdb952a17e7a24b50f579209a34667b0be61e6159ea31fb4d17209e3d",
+      "firstReadMs": 7322,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "a066bc0877cb9a84d71ba7a2939c2f78285af51147655b927dbc229b54c9f413",
+      "firstReadMs": 7328,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "a1a7812164e869892d97f600ff29ae7bcc9906c1529cbac0f541cb46793d76c0",
+      "firstReadMs": 5307,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "a35c2e6a3527a6e3509d7df83b76c203878bba6b806eb92ef03de1b963d316d5",
+      "firstReadMs": 3168,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "a399fedf8ef7939e3bf4e8de3d95f6d3d8f1476f7e685a2f246b7f75bb20e06c",
+      "firstReadMs": 3284,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "a43893dbc6b7569e56c8fca51bb3e3d1da45c7a4e2b2880fc0fb9efc31982127",
+      "firstReadMs": 2157,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "a65d60c77276c739c181d84f07087c90837586292156800f1dcead6014ee313d",
+      "firstReadMs": 7344,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "a6897b67bd447645beaf4663029a932e22637727788a20b5d0ced1b28244c398",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "a7ea12b52ff393aec6c1ac5d9e8027f60017bab0f50c04782e470454f871182f",
+      "firstReadMs": 2161,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "a88f8a338bc22b2d4ff593fdbaa0572d668e5748ba18095551e77e63d7116c65",
+      "firstReadMs": 2188,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "a89aeadca3519ca8ff4e67700fdff64d4009252d678175ee1909969ba0350117",
+      "firstReadMs": 7356,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "a94a6811ea528bf2d9482bc5a2eb13b761f1b8675c6a368b821e0e843296fdc8",
+      "firstReadMs": 2256,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "a98661800d44e6dfb62b81ecdb310eeebe09837f373bf260dfcae5da07c72d95",
+      "firstReadMs": 7370,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "a9f6ffe5697d4875bc7cb92f13e23d655d80268b46bd53ae95a2c5f0446994b0",
+      "firstReadMs": 5678,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "aa48158d01d8990f525b7ffc5007c016e7e696f5f54c096bec125cb9abb270ae",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "aa5d30f5245c9cda2311010b6b0a54145fa472b990c68f2a793afa13b8619e5a",
+      "firstReadMs": 1341,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "aa77d470ed3f24f9f64e2869e15450579d5897950c0d1811680a8e08ac005e47",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "aa7e2d9bc73ea28a30e130686a7f1d5150f0783ef69d5381a93e601d6d53fed3",
+      "firstReadMs": 3152,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "aa9d3620280da386dc166e838681f1c86906a934fd324c5dffb7d59e8e54eb12",
+      "firstReadMs": 7378,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "ad104a6180880294b56b657b4fe169c2faca9fa84959f70edcf19d45fe3c97c7",
+      "firstReadMs": 3283,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "ad5d7bb6176166e7f7e10d709fa702542a36a0b19af54639862844513cccb7dd",
+      "firstReadMs": 7399,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "ad6844f8ccad8bb9c673f4c82646b91d0ba26fbbfcdd82ddbdbef208c1937196",
+      "firstReadMs": 1106,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "ad763e14e45fdebdd23b65f0daf00e481b763519351b50c697ea5ba052791385",
+      "firstReadMs": 2245,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "b018e4811be40e345a1d5ba3214b7260ac238a51b033a06dd69421a95906a55e",
+      "firstReadMs": 3279,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "b05ee4ff6fe77d8e269a40f23ac3d53bec85ec197a3d7af87beba1c17a65faaf",
+      "firstReadMs": 3167,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "b170a9e2cc394d78b269bd3abbc6b0ad361db40c06b91aed2c2be8ebd5463b6e",
+      "firstReadMs": 7424,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "b3228e701382b4d4c5672d172fdea66bd4c25c4f9adacfe6856cafb36aee9c43",
+      "firstReadMs": 3288,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "b35efe728409cd896cbb0b4d16a02406da3ab8c16ad3b150ed65944e028116a4",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "b3c75e46c9c49bba83bd9756d993e006e61f6e15d421a9f95d773d931cbda6b5",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "b660c5f92c0b850914f6bbd3e0d019b7cc0c189606495608774bd0be090cae28",
+      "firstReadMs": 6035,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "b6ee5cdb66de8189c39740617eeef5d89b60afc0b9ff2bfd6010fdcd501fab5f",
+      "firstReadMs": 1335,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "b8fa7740e37cfb3a555705218fb578cf5e242e21f6d5327b8e9a659ca7a8401e",
+      "firstReadMs": 3153,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "b970b7ae38e1889a6be8318635c716b00bb831558a22c8d34b5085e7e4a73976",
+      "firstReadMs": 5066,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "b9b0b00ddbe44a14e0b5406723e2c52c09984cc9843bfac6c4118057dc2dacc8",
+      "firstReadMs": 3156,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "ba56b0de486d84b2dcf05695844f5ad61579d1eb4f3530d5211b85b2568f1e3b",
+      "firstReadMs": 3170,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "bbec383649ccbb1e0af784e92c3031a3e2a3c72ae4a6f057e99726b72a9ef95d",
+      "firstReadMs": 3156,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "bc3cb49c1e84e10747e3fb4686203dace4e081dbbc3f8c30324cee7694fdf244",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "bc55942282e96a8f6a5e25e427020111323b8f81d13b7f4f3d899b1731f810ae",
+      "firstReadMs": 3287,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "bed853d8e1711c81b370928c84a98aa6e769d08ed60f4b375fac0cf1154d9d86",
+      "firstReadMs": 7445,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "bf0d905e95f5a2a9748f1e59ad17b0d3364cfa903bf91257527eb3ecbc713fe0",
+      "firstReadMs": 3288,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "bf5749fc2dd6f8160197c903a85a8ac293f5eaf709126c2eded4ad0f9ce57714",
+      "firstReadMs": 5591,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "bf94fd45cda91918d87c4d315911e0047be1d4985073ce10e15125dbbd57ec16",
+      "firstReadMs": 7471,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "c22050b2179000f9f51bb21aeb9ce2f1fb08c033d48ffce235d9505da46b94fb",
+      "firstReadMs": 1335,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "c233e91bcaa736ac3a6d0fda48923c263769cc18f8e7afc1d59c83b66568ec67",
+      "firstReadMs": 5442,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "c2bd76e5fca39288c84e41e7de17862b2d64842dbe111959c5dc070aae84ef2a",
+      "firstReadMs": 7476,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "c2ea001032e9b1e2d94012a68c46c198449af1ee58a0135dc236aa341bcfca25",
+      "firstReadMs": 2183,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "c363377699e4af7362f7bbf24dadbd214ec204dd1710339d1e7a3aaa1564f405",
+      "firstReadMs": 5690,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "c3d34cb6621c17b16dc0ac32ce62b0f3ee1a096edd4d96352f2a844a8045114a",
+      "firstReadMs": 7500,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "c41f1dfc2fa1b2beae542a97f01171feeedfeb35dbeaee2f7cae1e3252ae1e0a",
+      "firstReadMs": 6034,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "c49ee33bf00c1b8ab681814dcbb16d4e39439fbbb371f38115e3419f1fdb8a9c",
+      "firstReadMs": 3352,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "c5df9895c53e8d76713f1fda5a625aea1c6586394b80d88553c3659ba941fcde",
+      "firstReadMs": 3153,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "c612871bebe9bfb61ae952318c3ff97cf00e14aca43720a75ce205261cd9cb2c",
+      "firstReadMs": 3279,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "c7df357c4bb9f13bf6dccda6ec8dcfde53dd178689da867b641769cac788d028",
+      "firstReadMs": 3275,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "c80b2f4c18549dbd5a8dd162e47cd1f34264b1b1298cb4a182ffedffe1e1e00c",
+      "firstReadMs": 7507,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "c8bc0a34e42bd416a8dd8d6d76b08a4d80cb3d548579b4d2cd651b02eab3fced",
+      "firstReadMs": 3164,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "c90845d39f23dc12ba5e7999eaad3b44f200422b63c59c7b815bbd71fc0e9655",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "c912245c75c581cbcec8bc7eb10c9bc5e6aaaea5fb79a3c6a1c8547e0a5ca2bf",
+      "firstReadMs": 3289,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "cc0350ba0ebca44c42e7fdad9afecd116e0ede9e676e0e1206d77fb7b37edcd0",
+      "firstReadMs": 2342,
+      "paths": [
+        "url"
+      ]
+    },
+    {
+      "hash": "ccb1c9cdd22401ed2512d4700544b11bfff283cd6cf355e0d4037004b085adfb",
+      "firstReadMs": 5074,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "cebeb2b57c3a35f539d3fb299c5dfb99dd6a8ed4eef692f0ddd380fd325834b8",
+      "firstReadMs": 7538,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "cfbaf604fbb34e44e6436ab20607cf23a839e3131a0efb3368c687f3e5648879",
+      "firstReadMs": 7569,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "d15467a0a3e7b181b2f98ed37469960abd1c625962ec2d0ffd30b57856a409b9",
+      "firstReadMs": 5076,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "d2bdc7a50c3f3119ed15ca03154a6ed6039ea4fd1f0bc32e479d4844e30ef0e6",
+      "firstReadMs": 5014,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "d3b0dd4556e327e81d46f16a11b074c637474d1cb67917a8884ec36c23303b83",
+      "firstReadMs": 1092,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "d3cf211d9a7a7916e2abf270e9c6a054bd8fe80335ce0b8395621474f178de19",
+      "firstReadMs": 2129,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "d4b0727222dff41bab3d2079cb3574ecee3ad1ce65996dadda7b3be5625bcc33",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "d6661c318086ee8b392264e8e2b0e129059d18afdf6fc3b651cdfd91fb1dfd95",
+      "firstReadMs": 1334,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "d6de954bd7547f8889e6935ccaf5ce09becfa5d5948062eb24f8f5cb5511937a",
+      "firstReadMs": 3153,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "d7c011ddfccd96ef4d831ac7f7c6b5e73825ba32640b8e572052847d282466fb",
+      "firstReadMs": 2169,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "d832747e6277a2998d9f76298352b05fc304d6df2f613916426ed53c05912cd7",
+      "firstReadMs": 7576,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "d86a90e95f80713ff119785b5aa854a0c2123aa047efd55a399def7757b5f8e1",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "d87f78e16b298db787e12aa2a9e0bebf63a289090209c136b3c915ffbae61dee",
+      "firstReadMs": 5075,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "d92658104561c2b06d82a76dedc445bbde9c61a89c78b0c38e5e2da569ea338e",
+      "firstReadMs": 7590,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "d940c43f1f3c03b36eeb5869bb5b6aad543ccee9313ecf93f07b40088a6ed5b4",
+      "firstReadMs": 3153,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "dabc1feca4eaa375485410aa1b9bd4adeb25fb6aef07bc4a0ecdac1299d75fd9",
+      "firstReadMs": 5054,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "db9dde986e6ad6e3ad2fc7002dda6e097d123afa543b77813078dfd3fa4332f4",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "dd55078b7128af5dbad669ccb1f5042595d9e0d03ae9e33b983d82dc4b3cc145",
+      "firstReadMs": 3256,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "e3410221f4afe5d3d6ebbc51de1adadb571a6f16630d1cd9a3d2acea92489193",
+      "firstReadMs": 5687,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "e3bc6d7cb4ef81f0d67d8ce9f68881d5816c22129f5d454e5abd5cf5431ec53e",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "e3cb6487ddbfca5d732ad0424221bfa55718bbc475c132c3fa3c32a336d6298b",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "e726016c96012cee10c1b352bca450cccda2dc387410a11732a26edab74235b6",
+      "firstReadMs": 5427,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "e7c02ed5752f9a2b4f51dd122c217da91193aef4786ad80c71f19bfc8edb7bfa",
+      "firstReadMs": 3289,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "e8fbaf4dae86b5ecf9ccf27b96a1a49d3f5be23ec16b88ceec171551f18e5989",
+      "firstReadMs": 5591,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "e95b4401ed59d91a7acc56d640292250e542b8da89421df7a67674016cbef498",
+      "firstReadMs": 6927,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "ea527b416b0b73f44f4cbc54eb97c57eb061b6742fabb4ccfd2c615e957ce3fb",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "eacec6ef3b6fb468753cde44bd82aa084aa8a0cb0ef16d4e46e93d6bd498540f",
+      "firstReadMs": 3279,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "ec1282219cd79471dbbdfa8d58e801ebb4b95e73d44106f7e325eb0fc9028440",
+      "firstReadMs": 5775,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "f00aa71dc5d1c4dbe8aa15835e1106516125a1f1f297eaaff19c802d53db068a",
+      "firstReadMs": 2217,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "f45ce6799a9ec3c96b4dd2e4fd8394afee81de974ceaecada6c7bef5112e4130",
+      "firstReadMs": 7609,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "f4c7cc99fc94b9c45d125e932929f5ecd47ffcf3f2287440e24cf22fca128471",
+      "firstReadMs": 7635,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "f4ec12c5608ed86d88a0ab58cb945a7ea11108f9ddf4944f8ad1f6adeb70ffd3",
+      "firstReadMs": 3284,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "f727df6d5a597843eb4e21774d25cbc520533383131089d274dcc29bd6d078e6",
+      "firstReadMs": 3156,
+      "paths": [
+        "read",
+        "retained"
+      ]
+    },
+    {
+      "hash": "f973da86c428fd3ac1a44bcca2cb7cdf9681b1c971062071956f8fe1bad5979b",
+      "firstReadMs": 3153,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "fa249a2515fca0cf85e77d5fbae5f0332ce6ff145ab1deba939d4943048d9eaf",
+      "firstReadMs": 3172,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "faca591b0c0883c0e72ec1900d4c44eca4344fd33adb43b52c6c61d5fdd7c0b9",
+      "firstReadMs": 7661,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "fb898576f04e59f3edfd468d9ef13300b7041aefddd4ec9930ab67ec942b4cc1",
+      "firstReadMs": 6033,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "fc12dc1f57e2a7213b832024331bdb186e033d1d5a6640d2f5bc51cbef720b98",
+      "firstReadMs": 7669,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "fd50237807325d3b7000bb738af0ef183207bdbd387dd39ea1d30fe3ad7cd1ea",
+      "firstReadMs": 3287,
+      "paths": [
+        "read"
+      ]
+    },
+    {
+      "hash": "fefd950292c7f022ec5b48b470075e3222079e82fb8d32b6318f975aaf7d6b8d",
+      "firstReadMs": 3153,
+      "paths": [
+        "retained"
+      ]
+    },
+    {
+      "hash": "ff406967717a89054be3e5b4a2e12d0a338091188cf2dca6eff368020f0efc81",
+      "firstReadMs": 7696,
+      "paths": [
+        "read"
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "hash": "daedbdcc8c37c56e4c363445c0e441f5c824c9e41189887c064144fda90d73d4",
+      "path": "blobs/pack/daedbdcc8c37c56e4c363445c0e441f5c824c9e41189887c064144fda90d73d4.pack",
+      "bytes": 4115935,
+      "members": [
+        {
+          "hash": "4b29d14640d560aa4eff1c9bbf2b5bb78cb39acf2dfe034710e6a47227ca11f0",
+          "name": "world/dressing-phone.json",
+          "bytes": 872771,
+          "phase": "control",
+          "firstReadMs": 3156,
+          "paths": [
+            "read",
+            "retained"
+          ]
+        },
+        {
+          "hash": "cc0350ba0ebca44c42e7fdad9afecd116e0ede9e676e0e1206d77fb7b37edcd0",
+          "name": "models/trees/spruce.glb",
+          "bytes": 285116,
+          "phase": "control",
+          "firstReadMs": 2342,
+          "paths": [
+            "url"
+          ]
+        },
+        {
+          "hash": "00c49128d201aed13678486e26de17b3d39e608d5ab537e02b2a64bf6be3de07",
+          "name": null,
+          "bytes": 9706,
+          "phase": "control",
+          "firstReadMs": 3151,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "133da0337eba27bffef08bf191e05d68bbfe4445417a0427050c08ce1ef52ba8",
+          "name": null,
+          "bytes": 42786,
+          "phase": "control",
+          "firstReadMs": 3153,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "166d495ae538065d398fa47a8a4a2ce7b63c6c5cc29fa9cfb01f097c49f3ad05",
+          "name": null,
+          "bytes": 524320,
+          "phase": "control",
+          "firstReadMs": 2011,
+          "paths": [
+            "read",
+            "retained"
+          ]
+        },
+        {
+          "hash": "1b37a9b36fbe72da2cae1f509ddd7b55267c4988e71b6c0c793fda36cc9f99c9",
+          "name": null,
+          "bytes": 7567,
+          "phase": "control",
+          "firstReadMs": 3153,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "223ce1ab45d736c5fb526308cb86bc6d61bdeb482ac886a7d47306fd5a8c41b5",
+          "name": null,
+          "bytes": 271000,
+          "phase": "control",
+          "firstReadMs": 1201,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "2545e70af04bb687ff5debc805e296aab740d80d975a7cff329e3fedaea29c75",
+          "name": null,
+          "bytes": 21150,
+          "phase": "control",
+          "firstReadMs": 3151,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "3764938cc4c63ba0df30cdab2674d623e1542e1d6eaf086ae490228404f5b66f",
+          "name": null,
+          "bytes": 8120,
+          "phase": "control",
+          "firstReadMs": 3153,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "3775be692940f0b33493147efd29256f36542f87aae5bb3069b87ba7c4a7c765",
+          "name": null,
+          "bytes": 4775,
+          "phase": "control",
+          "firstReadMs": 3152,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "3d8b628555859e11064d10090f5ebcdba47e2f94a3c6a6b018fb465e3a24f6be",
+          "name": null,
+          "bytes": 30659,
+          "phase": "control",
+          "firstReadMs": 3152,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "3ec83bb0550f94528096c4367bcb18f45af723b6b21296f84c08b4c3b6683c2c",
+          "name": null,
+          "bytes": 8275,
+          "phase": "control",
+          "firstReadMs": 3153,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "483c3a06f3c385cb04e4699d170121914ed493be9dd1e57022069be0daaffc3a",
+          "name": null,
+          "bytes": 36975,
+          "phase": "control",
+          "firstReadMs": 3151,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "4cc4d385ae989b1e6df1a705efe041087951e2b337da3b05e012f2584e830933",
+          "name": null,
+          "bytes": 1648,
+          "phase": "control",
+          "firstReadMs": 3152,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "51183121eb51505467b3cc0af2adc0a28f924c050e7f964f1799c984ef03fdc4",
+          "name": null,
+          "bytes": 3802,
+          "phase": "control",
+          "firstReadMs": 3152,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "524a7c622cbb9539fcf09d9e6d80c07075d08576eeb06dd68f636ff9c5e172bc",
+          "name": null,
+          "bytes": 5921,
+          "phase": "control",
+          "firstReadMs": 3151,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "594272461b037cc63bfa24778e91873bc0ab9b35e399a07fa02ca476004d0112",
+          "name": null,
+          "bytes": 1646,
+          "phase": "control",
+          "firstReadMs": 3152,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "6a7845ac197f537e3f5c4ff17d72e817797fb8b8de5e0a596344b4c535bfaab1",
+          "name": null,
+          "bytes": 20959,
+          "phase": "control",
+          "firstReadMs": 3152,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "6db72992afcb9f19e23cf81a5a6c95f85306908b4d7b58c630984580d610e6e4",
+          "name": null,
+          "bytes": 2229,
+          "phase": "control",
+          "firstReadMs": 3153,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "7ad9a06df48035cf18113f53331983c1732226a6c21fab23343c2996a52825ca",
+          "name": null,
+          "bytes": 2085,
+          "phase": "control",
+          "firstReadMs": 3152,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "81591eb9d09eb7863b4634f6a863bc7836d2fc1290e6bee2d3a4226944bbd9de",
+          "name": null,
+          "bytes": 17689,
+          "phase": "control",
+          "firstReadMs": 3152,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "82ba6cfa16f75ea96635d3b7b5f5ad4f75fb5d43251126aadc8336c461429bcd",
+          "name": null,
+          "bytes": 1356,
+          "phase": "control",
+          "firstReadMs": 3153,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "84af696dc3e296973fc6d7e039705e47906f6461a9e78734757a073c60ab04c6",
+          "name": null,
+          "bytes": 1649,
+          "phase": "control",
+          "firstReadMs": 3152,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "8af5efdb51e32e2a3bf37e505c6825802449dd584b4f518d2d8b27959b17bee1",
+          "name": null,
+          "bytes": 20265,
+          "phase": "control",
+          "firstReadMs": 3152,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "8d0e2897b0ff6f88826b40a6637bd88327e87cc3d6aade3b2207dff938e63f1b",
+          "name": null,
+          "bytes": 12397,
+          "phase": "control",
+          "firstReadMs": 3153,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "aa7e2d9bc73ea28a30e130686a7f1d5150f0783ef69d5381a93e601d6d53fed3",
+          "name": null,
+          "bytes": 30210,
+          "phase": "control",
+          "firstReadMs": 3152,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "c233e91bcaa736ac3a6d0fda48923c263769cc18f8e7afc1d59c83b66568ec67",
+          "name": "actors/balbal-cracks.bin",
+          "bytes": 161760,
+          "phase": "control",
+          "firstReadMs": 5442,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "20c087521628bdd91ef810182b036f78a6042bc8cc96eb5f25c9c29df3cfebdf",
+          "name": "audio/fields/bowl.bin",
+          "bytes": 15753,
+          "phase": "control",
+          "firstReadMs": 5013,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "d2bdc7a50c3f3119ed15ca03154a6ed6039ea4fd1f0bc32e479d4844e30ef0e6",
+          "name": "audio/fields/river.bin",
+          "bytes": 4666,
+          "phase": "control",
+          "firstReadMs": 5014,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "2a785d244fcf7943b6ca3e47f54c5e675566a589af53cdf9488711d49d34caa3",
+          "name": "audio/fields/snow.bin",
+          "bytes": 9110,
+          "phase": "control",
+          "firstReadMs": 5014,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "2c2b942ba2fbd3b001945de545c706a5312f12bb6f1bfc25109e6706e8e99af2",
+          "name": "audio/fields/valley.bin",
+          "bytes": 7446,
+          "phase": "control",
+          "firstReadMs": 5014,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "bc3cb49c1e84e10747e3fb4686203dace4e081dbbc3f8c30324cee7694fdf244",
+          "name": "audio/scene.json",
+          "bytes": 23554,
+          "phase": "control",
+          "firstReadMs": 3156,
+          "paths": [
+            "read",
+            "retained"
+          ]
+        },
+        {
+          "hash": "b8fa7740e37cfb3a555705218fb578cf5e242e21f6d5327b8e9a659ca7a8401e",
+          "name": null,
+          "bytes": 3028,
+          "phase": "control",
+          "firstReadMs": 3153,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "60c94c58be1c785e9fbaed7692fa8b849b924c9cb48cbe83696ec31d7ad00bc8",
+          "name": "behaviour/admission-witness.bin",
+          "bytes": 21529,
+          "phase": "control",
+          "firstReadMs": 3167,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "87e51e95e14a28cbc1d98828d8cec1864bccef8237e4cf941bb6b208b5fcb5e9",
+          "name": "behaviour/held-witness.bin",
+          "bytes": 39814,
+          "phase": "control",
+          "firstReadMs": 3169,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "17a68c74224d7e331d3d53dbb217d44b433254df0897e2b2a064651870d94327",
+          "name": "behaviour/pasture-witness.bin",
+          "bytes": 19763,
+          "phase": "control",
+          "firstReadMs": 3173,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "84bd39abf54a633b3946e0e1dea7c1816565609c034799f5310db55a7b65d4ca",
+          "name": "behaviour/riding-witness.bin",
+          "bytes": 26795,
+          "phase": "control",
+          "firstReadMs": 3172,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "ba56b0de486d84b2dcf05695844f5ad61579d1eb4f3530d5211b85b2568f1e3b",
+          "name": "behaviour/titan-witness.bin",
+          "bytes": 47060,
+          "phase": "control",
+          "firstReadMs": 3170,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "c5df9895c53e8d76713f1fda5a625aea1c6586394b80d88553c3659ba941fcde",
+          "name": null,
+          "bytes": 1933,
+          "phase": "control",
+          "firstReadMs": 3153,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "d6de954bd7547f8889e6935ccaf5ce09becfa5d5948062eb24f8f5cb5511937a",
+          "name": null,
+          "bytes": 4023,
+          "phase": "control",
+          "firstReadMs": 3153,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "d940c43f1f3c03b36eeb5869bb5b6aad543ccee9313ecf93f07b40088a6ed5b4",
+          "name": null,
+          "bytes": 1944,
+          "phase": "control",
+          "firstReadMs": 3153,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "51a765e699e9030ff6234a9096c003a369ce1f43c99eac499945a6af040c43ad",
+          "name": "data/geography-blue.bin",
+          "bytes": 194971,
+          "phase": "control",
+          "firstReadMs": 1092,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "827334eb0dc4171f3f2d81f3a4268568b52f0a7ea2b71f16de929bae3e80d0fe",
+          "name": "data/geography-forest.bin",
+          "bytes": 14715,
+          "phase": "control",
+          "firstReadMs": 1092,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "73b9d2ab9a3679093d7349442d764e40b3f9b47f31eea581e49aafe02a61d45c",
+          "name": "data/geography-gravel.bin",
+          "bytes": 42570,
+          "phase": "control",
+          "firstReadMs": 1100,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "d3b0dd4556e327e81d46f16a11b074c637474d1cb67917a8884ec36c23303b83",
+          "name": "data/geography-green.bin",
+          "bytes": 192024,
+          "phase": "control",
+          "firstReadMs": 1092,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "0aea784f254f0166ca74f310e3667ac00d7a1ab13444cf9c9086709582c61c96",
+          "name": "data/geography-ice.bin",
+          "bytes": 38966,
+          "phase": "control",
+          "firstReadMs": 1100,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "ad6844f8ccad8bb9c673f4c82646b91d0ba26fbbfcdd82ddbdbef208c1937196",
+          "name": "data/geography-mapBlue.bin",
+          "bytes": 91252,
+          "phase": "control",
+          "firstReadMs": 1106,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "1641afc53f05e073f782ed32f6a1c4f0c1fb49cec34e01b745538e3713949352",
+          "name": "data/geography-mapGreen.bin",
+          "bytes": 88352,
+          "phase": "control",
+          "firstReadMs": 1106,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "301b887756dbdcd81dec3b3aab1f709e295e034cfaee01440603a8e0df850fe5",
+          "name": "data/geography-mapRed.bin",
+          "bytes": 90442,
+          "phase": "control",
+          "firstReadMs": 1106,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "57919bb109a7fbe95afce2f9f49f576d4cc3d0c16af690937cac6f7a4d892f04",
+          "name": "data/geography-pond.bin",
+          "bytes": 5476,
+          "phase": "control",
+          "firstReadMs": 1100,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "65a79815c367e6f7a4bc1c5c51ea413b0e4d1158aae825535a98cdf6646a8fc1",
+          "name": "data/geography-red.bin",
+          "bytes": 194475,
+          "phase": "control",
+          "firstReadMs": 1092,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "3b85722fa57e338466b84443e57100559e2de14bc9d55b8868af0a234d3bcb1c",
+          "name": "data/geography-rock.bin",
+          "bytes": 41754,
+          "phase": "control",
+          "firstReadMs": 1100,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "262d9218a0f70b8dc314063ac367944083d8e7f57543c19759193b321e2302d7",
+          "name": "data/geography-wet.bin",
+          "bytes": 622,
+          "phase": "control",
+          "firstReadMs": 1106,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "f973da86c428fd3ac1a44bcca2cb7cdf9681b1c971062071956f8fe1bad5979b",
+          "name": null,
+          "bytes": 15031,
+          "phase": "control",
+          "firstReadMs": 3153,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "fefd950292c7f022ec5b48b470075e3222079e82fb8d32b6318f975aaf7d6b8d",
+          "name": null,
+          "bytes": 5221,
+          "phase": "control",
+          "firstReadMs": 3153,
+          "paths": [
+            "retained"
+          ]
+        },
+        {
+          "hash": "c22050b2179000f9f51bb21aeb9ce2f1fb08c033d48ffce235d9505da46b94fb",
+          "name": "look/grass/field.bin",
+          "bytes": 48434,
+          "phase": "control",
+          "firstReadMs": 1335,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "b6ee5cdb66de8189c39740617eeef5d89b60afc0b9ff2bfd6010fdcd501fab5f",
+          "name": "look/grass/ground.bin",
+          "bytes": 30887,
+          "phase": "control",
+          "firstReadMs": 1335,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "d6661c318086ee8b392264e8e2b0e129059d18afdf6fc3b651cdfd91fb1dfd95",
+          "name": "look/grass/height.bin",
+          "bytes": 350855,
+          "phase": "control",
+          "firstReadMs": 1334,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "73d990f4ee4b6c5cd31d766daa0a321545403ab343b34b31058c36bd620a42f5",
+          "name": "look/grass/mask.bin",
+          "bytes": 35434,
+          "phase": "control",
+          "firstReadMs": 1335,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "328fc550e6a65449ca9b3ab338687518f4798bd6d39d3ac07bf317c7c827d62b",
+          "name": "look/grass/phone-blades.bin",
+          "bytes": 823,
+          "phase": "control",
+          "firstReadMs": 1341,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "19520c1adbe4cc39d12c33badd4c7218b701289d07c0cde968f07ad9811917bc",
+          "name": "look/grass/phone-cards.bin",
+          "bytes": 377,
+          "phase": "control",
+          "firstReadMs": 1341,
+          "paths": [
+            "read"
+          ]
+        }
+      ]
+    },
+    {
+      "hash": "e0dddba385a69d8dd5befb2c2dc78e2c1c098077d3bed22cba4db3198f503341",
+      "path": "blobs/pack/e0dddba385a69d8dd5befb2c2dc78e2c1c098077d3bed22cba4db3198f503341.pack",
+      "bytes": 4004560,
+      "members": [
+        {
+          "hash": "aa5d30f5245c9cda2311010b6b0a54145fa472b990c68f2a793afa13b8619e5a",
+          "name": "look/grass/phone-channels.bin",
+          "bytes": 155482,
+          "phase": "control",
+          "firstReadMs": 1341,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "0b6383ea5d6ced515700de7f11f3f8dd5192baa346c79bc60cdf09c55c5070cc",
+          "name": "look/grass/phone-flowers.bin",
+          "bytes": 461,
+          "phase": "control",
+          "firstReadMs": 1341,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "4fbeb523f025702579d7e2096795183d9e66665bd6d437fd09e79e63348ef4da",
+          "name": "look/post.json",
+          "bytes": 19456,
+          "phase": "control",
+          "firstReadMs": 1306,
+          "paths": [
+            "read",
+            "retained"
+          ]
+        },
+        {
+          "hash": "39c6b14fcb0ff128840ab566b16205c331896f32878795bb8eea6d7c22d4551e",
+          "name": "models/contacts/phone-boulder-tall.bin",
+          "bytes": 111169,
+          "phase": "control",
+          "firstReadMs": 3274,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "089670e338407f62675d698f6dd86b1b5d8b0c86c1531f197ff31f204a119a06",
+          "name": "models/contacts/phone-boulder.bin",
+          "bytes": 395732,
+          "phase": "control",
+          "firstReadMs": 3273,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "c7df357c4bb9f13bf6dccda6ec8dcfde53dd178689da867b641769cac788d028",
+          "name": "models/contacts/phone-slab.bin",
+          "bytes": 302656,
+          "phase": "control",
+          "firstReadMs": 3275,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "16413d5e2cc41d0bcf01877ac0290c53a38991b4386d7119977501602916c659",
+          "name": "models/painted/atlas-16413d5e2cc41d0bcf01877ac0290c53a38991b4386d7119977501602916c659.ktx2",
+          "bytes": 268330,
+          "phase": "control",
+          "firstReadMs": 3290,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "1acb12b861ac09895eaaf93524ddc687c240caf5ada070459dad6d721670acdd",
+          "name": "models/painted/atlas-1acb12b861ac09895eaaf93524ddc687c240caf5ada070459dad6d721670acdd.ktx2",
+          "bytes": 348031,
+          "phase": "control",
+          "firstReadMs": 3290,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "1b30941242fb21e2d44cb683dfd6e2eff1d1301631ace0668246a78588b3f75e",
+          "name": "models/painted/atlas-1b30941242fb21e2d44cb683dfd6e2eff1d1301631ace0668246a78588b3f75e.ktx2",
+          "bytes": 471529,
+          "phase": "control",
+          "firstReadMs": 3291,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "1e73b1d58c2430f9b7fc0282fa0e75756ddcc350b54313ef44fb0bbaaa535547",
+          "name": "models/painted/atlas-1e73b1d58c2430f9b7fc0282fa0e75756ddcc350b54313ef44fb0bbaaa535547.ktx2",
+          "bytes": 594013,
+          "phase": "control",
+          "firstReadMs": 3287,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "534c6ac26f8adca2da2624ffb0a06582f1dcc341caa99299306b162cd440cb88",
+          "name": "models/painted/atlas-534c6ac26f8adca2da2624ffb0a06582f1dcc341caa99299306b162cd440cb88.ktx2",
+          "bytes": 235524,
+          "phase": "control",
+          "firstReadMs": 3290,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "59d322c9c98410269def4586408ddc5945555e4fc010380c059e77c0505473bc",
+          "name": "models/painted/atlas-59d322c9c98410269def4586408ddc5945555e4fc010380c059e77c0505473bc.ktx2",
+          "bytes": 479235,
+          "phase": "control",
+          "firstReadMs": 5592,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "7d1473776fe41a839a032927cf880fa1b0720fb3f059271e3e3304a53521e4f9",
+          "name": "models/painted/atlas-7d1473776fe41a839a032927cf880fa1b0720fb3f059271e3e3304a53521e4f9.ktx2",
+          "bytes": 622942,
+          "phase": "control",
+          "firstReadMs": 3287,
+          "paths": [
+            "read"
+          ]
+        }
+      ]
+    },
+    {
+      "hash": "b455a0a3bc485cf3eea35a7609cad315a4cd6ff6bfd1efa6c0e64f67474cc0dc",
+      "path": "blobs/pack/b455a0a3bc485cf3eea35a7609cad315a4cd6ff6bfd1efa6c0e64f67474cc0dc.pack",
+      "bytes": 4125661,
+      "members": [
+        {
+          "hash": "9622fcdb4202ad31aef9c12406dd6bdedeaa26ddcc421efda7098b2d3320dead",
+          "name": "models/painted/atlas-9622fcdb4202ad31aef9c12406dd6bdedeaa26ddcc421efda7098b2d3320dead.ktx2",
+          "bytes": 438717,
+          "phase": "control",
+          "firstReadMs": 3290,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "b3228e701382b4d4c5672d172fdea66bd4c25c4f9adacfe6856cafb36aee9c43",
+          "name": "models/painted/atlas-b3228e701382b4d4c5672d172fdea66bd4c25c4f9adacfe6856cafb36aee9c43.ktx2",
+          "bytes": 546232,
+          "phase": "control",
+          "firstReadMs": 3288,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "bc55942282e96a8f6a5e25e427020111323b8f81d13b7f4f3d899b1731f810ae",
+          "name": "models/painted/atlas-bc55942282e96a8f6a5e25e427020111323b8f81d13b7f4f3d899b1731f810ae.ktx2",
+          "bytes": 626246,
+          "phase": "control",
+          "firstReadMs": 3287,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "bf0d905e95f5a2a9748f1e59ad17b0d3364cfa903bf91257527eb3ecbc713fe0",
+          "name": "models/painted/atlas-bf0d905e95f5a2a9748f1e59ad17b0d3364cfa903bf91257527eb3ecbc713fe0.ktx2",
+          "bytes": 593576,
+          "phase": "control",
+          "firstReadMs": 3288,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "c912245c75c581cbcec8bc7eb10c9bc5e6aaaea5fb79a3c6a1c8547e0a5ca2bf",
+          "name": "models/painted/atlas-c912245c75c581cbcec8bc7eb10c9bc5e6aaaea5fb79a3c6a1c8547e0a5ca2bf.ktx2",
+          "bytes": 480190,
+          "phase": "control",
+          "firstReadMs": 3289,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "e7c02ed5752f9a2b4f51dd122c217da91193aef4786ad80c71f19bfc8edb7bfa",
+          "name": "models/painted/atlas-e7c02ed5752f9a2b4f51dd122c217da91193aef4786ad80c71f19bfc8edb7bfa.ktx2",
+          "bytes": 633203,
+          "phase": "control",
+          "firstReadMs": 3289,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "fd50237807325d3b7000bb738af0ef183207bdbd387dd39ea1d30fe3ad7cd1ea",
+          "name": "models/painted/atlas-fd50237807325d3b7000bb738af0ef183207bdbd387dd39ea1d30fe3ad7cd1ea.ktx2",
+          "bytes": 487697,
+          "phase": "control",
+          "firstReadMs": 3287,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "165b75b0efc112c1163da022a6c5b3167b649578794c7295e132aa069db71cd5",
+          "name": "models/painted/geometry-165b75b0efc112c1163da022a6c5b3167b649578794c7295e132aa069db71cd5.glb",
+          "bytes": 224544,
+          "phase": "control",
+          "firstReadMs": 3286,
+          "paths": [
+            "read"
+          ]
+        },
+        {
+          "hash": "19d1a792f557610aa044e0c39d4959aa1ae3fd5ba48b8c789a08e58029c95212",
+          "name": "models/painted/geometry-19d1a792f557610aa044e0c39d4959aa1ae3fd5ba48b8c789a08e58029c95212.glb",
+          "bytes": 95256,
+          "phase": "control",
+          "firstReadMs": 3285,
+          "paths": [
+            "read"
+          ]
+        }
+      ]
+    }
+  ],
+  "directMemberReads": [
+    {
+      "hash": "cc0350ba0ebca44c42e7fdad9afecd116e0ede9e676e0e1206d77fb7b37edcd0",
+      "path": "blobs/glb/cc0350ba0ebca44c42e7fdad9afecd116e0ede9e676e0e1206d77fb7b37edcd0.glb",
+      "firstReadMs": 2342,
+      "encodedBytes": 119515,
+      "through": "control"
+    }
+  ]
+}
