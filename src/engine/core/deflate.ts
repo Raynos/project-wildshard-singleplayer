@@ -10,7 +10,7 @@ export async function fetchDeflatedBytes(url: string): Promise<Uint8Array> {
   if (!response.ok || response.body === null) throw new Error(`${String(response.status)} ${url}`);
   return inflateStream(response.body);
 }
-async function inflateStream(body: ReadableStream<Uint8Array<ArrayBuffer>>): Promise<Uint8Array> {
+async function inflateStream(body: ReadableStream<Uint8Array<ArrayBuffer>>): Promise<Uint8Array<ArrayBuffer>> {
   const reader = body.getReader(), slice = workSlice(WORK_SLICE_MS, pageScope);
   let chunk: Uint8Array<ArrayBuffer> | undefined, offset = 0;
   const input = new ReadableStream<BufferSource>({
@@ -70,7 +70,7 @@ export async function fetchLaneBytes(url: string): Promise<Uint8Array> {
   return restoreLaneBytes(await fetchDeflatedBytes(url));
 }
 /** zlib bytes already in hand, inflated by the platform's paced stream decoder (as `fetchDeflatedBytes`); the input is not kept. */
-export function inflateBytes(bytes: Uint8Array): Promise<Uint8Array> {
+export function inflateBytes(bytes: Uint8Array): Promise<Uint8Array<ArrayBuffer>> {
   const body = new Response(bytes.slice()).body;
   if (body === null) return Promise.reject(new Error('Inflate requires a byte stream'));
   return inflateStream(body);

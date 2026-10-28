@@ -4,6 +4,7 @@ import { ResourceMemo } from '@wildshard/engine/app/cachedAssets';
 import * as THREE from 'three';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { workSlice } from '@wildshard/engine/core/workSlice';
+import { inflateBytes } from '@wildshard/engine/core/deflate';
 
 import { TIER } from '@wildshard/engine/core/tier';
 import type { Renderer } from '@wildshard/engine/render/renderer';
@@ -65,6 +66,14 @@ export class GrassPresentationProfile {
     if(bytes===undefined)throw new Error(`Missing grass file ${payload.file}`);
     return unzlibSync(bytes);
   }
+  /** `decode`, in the platform's paced stream decoder (T10: fflate's script inflate of these maps and rows was ~58 ms of a
+   *  Nalati entry at phone 4x); the bytes are the same */
+  private inflate(payload: GrassPayload): Promise<Uint8Array<ArrayBuffer>> {
+    if(typeof payload==='string')return Promise.reject(new Error('Grass requires binary files'));
+    const bytes=this.files.get(payload.file);
+    if(bytes===undefined)return Promise.reject(new Error(`Missing grass file ${payload.file}`));
+    return inflateBytes(bytes);
+  }
   /** what `prepare` decoded for the next build (each taken once: a build owns its arrays) */
   private readonly prepared = new Map<GrassPayload, Uint8Array<ArrayBuffer> | ReturnType<typeof parseSceneBuffers>>();
   /** G639: before the synchronous build, the looks compile one build step each and the maps and draw rows decode in
@@ -72,10 +81,11 @@ export class GrassPresentationProfile {
   async prepare(): Promise<void> {
     await prepareLentLooks(this.input.view.looks);
     const slice = workSlice(), rows = this.input[TIER];
-    this.heightTexture(); await slice.check();
-    for (const encoded of [this.input.field, this.input.ground]) { this.prepared.set(encoded, this.decode(encoded)); await slice.check(); }
-    if(rows.channels!==undefined){this.prepared.set(rows.channels,this.decode(rows.channels));await slice.check();}
-    for (const encoded of [rows.scenes.blades, rows.scenes.flowers, rows.scenes.cards]) { this.prepared.set(encoded, sceneRows(this.decode(encoded))); await slice.check(); }
+    if (this.heightTextures.peek('height') === undefined) this.prepared.set(this.input.height, await this.inflate(this.input.height));
+    this.heightTexture(); this.prepared.delete(this.input.height); await slice.check();
+    for (const encoded of [this.input.field, this.input.ground]) { this.prepared.set(encoded, await this.inflate(encoded)); await slice.check(); }
+    if(rows.channels!==undefined){this.prepared.set(rows.channels,await this.inflate(rows.channels));await slice.check();}
+    for (const encoded of [rows.scenes.blades, rows.scenes.flowers, rows.scenes.cards]) { this.prepared.set(encoded, sceneRows(await this.inflate(encoded))); await slice.check(); }
   }
   /** a map's bytes: prepared, else decoded now */
   bytes(encoded: GrassPayload): Uint8Array<ArrayBuffer> {
@@ -120,7 +130,7 @@ mood(night: number, dusk: number, overcast: number): void {
 
   heightTexture(): THREE.DataTexture {
     return this.heightTextures.acquire('height', () => {
-      const bytes = this.decode(this.input.height), data = new Uint16Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/2), n = this.input.view.heightSize;
+      const bytes = this.bytes(this.input.height), data = new Uint16Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/2), n = this.input.view.heightSize;
       const texture = new THREE.DataTexture(data,n,n,THREE.RedFormat,THREE.HalfFloatType);
       texture.magFilter = texture.minFilter = THREE.LinearFilter; texture.needsUpdate = true;
       return texture;
