@@ -1,6 +1,14 @@
 import { parseCLI } from 'vitest/node';
 import { assertHeavyLease } from './heavy-lane-lease.mjs';
 
+/** Node 24 shares WASM import wrappers across isolates but can reclaim a dying
+ * wrapper twice after worker retirement (nodejs/node#66366). Keep code alive for
+ * the test fork's bounded lifetime; JS GC and all test limits remain enabled.
+ * Remove after the V8 lifetime backport in nodejs/node#66376 ships in Node 24. */
+export function vitestNodeExecArgv(version: string = process.versions.node): string[] {
+  return version.split('.')[0] === '24' ? ['--no-wasm-code-gc'] : [];
+}
+
 /** Local tests leave cores for the other lanes and the measurement lane (BUILD-SPEED 1.1: a dozen lanes each
  * spawning 6 workers put 18 workers on 18 cores); CI retains Vitest's runner default. */
 export function vitestMaxWorkers(env: NodeJS.ProcessEnv = process.env): number | undefined {
