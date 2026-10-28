@@ -619,7 +619,16 @@ export const ArenaRoomEncounterSchema: v.GenericSchema<BoundedArenaEncounterInpu
 /** Read schema-checked named products; no validator is imported into play. */
 export async function readArenaScriptData(product: Pick<ShardProduct,'json'>, files: { fight: string; geometry: string }): Promise<ArenaScriptData> {
   const [root,geometry]=await Promise.all([product.json<ArenaScriptFightFile>(files.fight),product.json<ArenaScriptData['geometry']>(files.geometry)]);
+  // T10: the fight's two programme declarations are read-only; frozen, ReturnProgram admits each once (its frozen-input
+  // memo) instead of re-parsing it in projectionBindings, page and prepareMemory (two 8-11 ms parses inside the encounter's
+  // constructor frame of a Nalati drive at phone 4x)
+  for (const program of [root.programs.attack, root.programs.wind]) freezeDeclaration(program);
   return {...root.arenaScript,programs:root.programs,arenaFire:root.arenaFire,geometry};
+}
+function freezeDeclaration(value: unknown): void {
+  if (typeof value !== 'object' || value === null || Object.isFrozen(value)) return;
+  for (const child of Object.values(value)) freezeDeclaration(child);
+  Object.freeze(value);
 }
 /** Native cloud resources are identical for an entered fight and its specimen. */
 function arenaScriptCloud(scene: THREE.Scene, state: Readonly<Record<string,number>>, data: ArenaScriptData): CloudBody {
