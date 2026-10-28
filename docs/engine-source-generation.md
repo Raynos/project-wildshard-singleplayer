@@ -184,3 +184,16 @@ scalars and the 16/32 bank ceilings remain. `namePopulationHabitat()` in
 the native forager continuation with source-supplied exact tree count and
 ledge limit, sharing the exact grammar with its named JSON reader.
 Neither operation constructs an animation or habitat runtime owner.
+
+`defineNamedRows(description, refinement?, message?)` in
+`@wildshard/sdk/formatJsonSchema` compiles a source-owned finite grammar once.
+Its `parse(input)` retains complete mutable object/tuple/literal/exact-optional
+types and native defaults, stripping and issue paths. Its `schema` can be
+lent as a nested native leaf; lazy `jsonSchema` comes from that same grammar.
+Descriptions support bounded numbers/strings/arrays, booleans, opaque values,
+null/literals/picklists, tuples, records, nullable/exact-optional values and
+strict (default), strip or loose objects. Existing named format identities
+and native leaves retain their definitions. Source refinements execute after
+the full shape with their original message; their wire conversion still
+refuses unless the defining converter knows the check. No input-derived
+schema, runtime service or alternate validator is introduced.

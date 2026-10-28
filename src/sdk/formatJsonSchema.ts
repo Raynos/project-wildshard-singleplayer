@@ -57,7 +57,7 @@ import { BossProfileSchema, ArenaBossProfileSchema, RoamingBossProfileSchema, Sp
 import { NpcRowSchema, NpcMotionSchema, NpcDialogueRowSchema, QuestNpcBindingSchema, QuestNpcBindingsSchema, QuestPageTalksSchema } from '@wildshard/format/npcs';
 import { WeaponProfileSchema, MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema, LashWeaponProfileSchema, ConeWeaponProfileSchema, HeldBowBaseSchema, HeldBowRowsSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
 import { toJsonSchema, type JsonSchema } from '@valibot/to-json-schema';
-import { finite, strictObject, object, looseObject, tuple, array, literal as literalSchema, parse, type GenericSchema, type InferOutput } from 'valibot';
+import { finite, strictObject, object, looseObject, tuple, array, literal as literalSchema, parse, pipe, check as sourceCheck, number, string, boolean, unknown, null as nullSchema, integer, minValue, maxValue, minLength, maxLength, startsWith, length, picklist, record, nullable, exactOptional, type GenericSchema, type InferOutput } from 'valibot';
 import { PopulationKeeperRowsSchema } from '@wildshard/format/populationKeeper';
 import { EdgeProfileSchema, EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { PlumbingSchema } from '@wildshard/format/plumbing';
@@ -637,30 +637,117 @@ export function schemaAt(document: object, pointer = ''): unknown {
 
 /** Declarative author composition; named strings resolve only defining format roots. */
 export type NamedJsonComposition = string | GenericSchema
-  | { readonly kind: 'literal'; readonly value: string | number | boolean }
+  | { readonly kind: 'number'; readonly finite?: boolean; readonly integer?: boolean; readonly min?: number; readonly max?: number }
+  | { readonly kind: 'string'; readonly min?: number; readonly max?: number; readonly startsWith?: string }
+  | { readonly kind: 'boolean' | 'unknown' | 'null' }
+  | { readonly kind: 'literal'; readonly value: string | number | boolean | null }
+  | { readonly kind: 'picklist'; readonly values: readonly (string | number)[] }
+  | { readonly kind: 'array'; readonly item: NamedJsonComposition; readonly min?: number; readonly max?: number; readonly length?: number }
   | { readonly kind: 'object'; readonly entries: Readonly<Record<string, NamedJsonComposition>>; readonly mode?: 'strict' | 'strip' | 'loose' }
-  | { readonly kind: 'tuple'; readonly items: readonly NamedJsonComposition[] };
+  | { readonly kind: 'tuple'; readonly items: readonly NamedJsonComposition[] }
+  | { readonly kind: 'record'; readonly key: { readonly kind: 'string'; readonly min?: number; readonly max?: number; readonly startsWith?: string }; readonly value: NamedJsonComposition }
+  | { readonly kind: 'nullable' | 'exact-optional'; readonly item: NamedJsonComposition };
+
+type OptionalCompositionKeys<E extends Readonly<Record<string, NamedJsonComposition>>> = {
+  [K in keyof E]: E[K] extends { readonly kind: 'exact-optional' } ? K : never
+}[keyof E];
+type CompositionObjectValue<E extends Readonly<Record<string, NamedJsonComposition>>> = {
+  -readonly [K in Exclude<keyof E, OptionalCompositionKeys<E>>]: NamedRowValue<E[K]>
+} & { -readonly [K in OptionalCompositionKeys<E>]?: E[K] extends { readonly item: infer I extends NamedJsonComposition } ? NamedRowValue<I> : never };
+type FlattenCompositionObject<T> = { [K in keyof T]: T[K] };
+
+/** Mutable native output, retaining tuple lengths, exact optionality and literal
+ * discriminants. A named format string stays opaque; an admitted native leaf
+ * retains its complete defining output type. */
+export type NamedRowValue<C extends NamedJsonComposition> = NamedJsonComposition extends C ? unknown : C extends GenericSchema ? InferOutput<C>
+  : C extends { readonly kind: 'number' } ? number
+  : C extends { readonly kind: 'string' } ? string
+  : C extends { readonly kind: 'boolean' } ? boolean
+  : C extends { readonly kind: 'null' } ? null
+  : C extends { readonly kind: 'literal'; readonly value: infer L } ? L
+  : C extends { readonly kind: 'picklist'; readonly values: readonly (infer L)[] } ? L
+  : C extends { readonly kind: 'array'; readonly item: infer I extends NamedJsonComposition } ? NamedRowValue<I>[]
+  : C extends { readonly kind: 'tuple'; readonly items: infer I extends readonly NamedJsonComposition[] } ? { -readonly [K in keyof I]: NamedRowValue<I[K]> }
+  : C extends { readonly kind: 'object'; readonly entries: infer E extends Readonly<Record<string, NamedJsonComposition>> } ? C extends { readonly mode: 'loose' } ? FlattenCompositionObject<CompositionObjectValue<E>> & Record<string, unknown> : FlattenCompositionObject<CompositionObjectValue<E>>
+  : C extends { readonly kind: 'record'; readonly value: infer V extends NamedJsonComposition } ? Record<string, NamedRowValue<V>>
+  : C extends { readonly kind: 'nullable'; readonly item: infer I extends NamedJsonComposition } ? NamedRowValue<I> | null
+  : C extends { readonly kind: 'exact-optional'; readonly item: infer I extends NamedJsonComposition } ? NamedRowValue<I> | undefined
+  : unknown;
+
+function resolveNamedComposition(node: NamedJsonComposition): GenericSchema {
+  if (typeof node === 'string') {
+    if (!Object.hasOwn(wireRoots, node)) throw new Error(`Unknown named format contract: ${node}`);
+    const root = wireRoots[node];
+    if (root === undefined) throw new Error(`Missing named format contract: ${node}`);
+    return root;
+  }
+  switch (node.kind) {
+    case 'schema': return node;
+    case 'number': {
+      let schema: GenericSchema<unknown, number> = number();
+      if (node.finite === true) schema = pipe(schema, finite());
+      if (node.integer === true) schema = pipe(schema, integer());
+      if (node.min !== undefined) schema = pipe(schema, minValue(node.min));
+      if (node.max !== undefined) schema = pipe(schema, maxValue(node.max));
+      return schema;
+    }
+    case 'string': {
+      let schema: GenericSchema<unknown, string> = string();
+      if (node.min !== undefined) schema = pipe(schema, minLength(node.min));
+      if (node.max !== undefined) schema = pipe(schema, maxLength(node.max));
+      if (node.startsWith !== undefined) schema = pipe(schema, startsWith(node.startsWith));
+      return schema;
+    }
+    case 'boolean': return boolean();
+    case 'unknown': return unknown();
+    case 'null': return nullSchema();
+    case 'literal': {
+      if (typeof node.value === 'number' && !Number.isFinite(node.value)) throw new Error('Named JSON literal must be finite');
+      return node.value === null ? nullSchema() : literalSchema(node.value);
+    }
+    case 'picklist': return picklist(node.values);
+    case 'array': {
+      let schema: GenericSchema<unknown, unknown[]> = array(resolveNamedComposition(node.item));
+      if (node.min !== undefined) schema = pipe(schema, minLength(node.min));
+      if (node.max !== undefined) schema = pipe(schema, maxLength(node.max));
+      if (node.length !== undefined) schema = pipe(schema, length(node.length));
+      return schema;
+    }
+    case 'tuple': return tuple(node.items.map(resolveNamedComposition));
+    case 'object': {
+      const entries = Object.fromEntries(Object.entries(node.entries).map(([name, item]) => [name, resolveNamedComposition(item)]));
+      return node.mode === 'strip' ? object(entries) : node.mode === 'loose' ? looseObject(entries) : strictObject(entries);
+    }
+    case 'record': return record(resolveNamedComposition(node.key) as GenericSchema<string, string>, resolveNamedComposition(node.value));
+    case 'nullable': return nullable(resolveNamedComposition(node.item));
+    case 'exact-optional': return exactOptional(resolveNamedComposition(node.item));
+    default: throw new Error('Unknown named row composition');
+  }
+}
+
+/** One compiled source contract, with complete native admission and the exact
+ * wire schema from that same grammar. Custom checks stay author-side; asking
+ * for their wire schema still refuses unless the defining bridge knows them. */
+export interface NamedRows<T = unknown> {
+  readonly schema: GenericSchema<unknown, T>;
+  readonly jsonSchema: Readonly<Record<string, unknown>>;
+  readonly parse: (input: unknown) => T;
+}
+
+/** Compile a source-owned finite grammar once, before validating or emitting
+ * any rows. The recursive output mapping mirrors each native compiler branch;
+ * no input value is cast to its admitted output type. */
+export function defineNamedRows<const C extends NamedJsonComposition>(composition: C,
+  refinement?: (value: NamedRowValue<C>) => boolean, message?: string): NamedRows<NamedRowValue<C>> {
+  const native = resolveNamedComposition(composition) as GenericSchema<unknown, NamedRowValue<C>>;
+  const schema = refinement === undefined ? native : pipe(native, sourceCheck(refinement, message));
+  return { schema, parse: rowsValue => parse(schema, rowsValue), get jsonSchema() { return namedJsonSchema(schema); } };
+}
 
 /** Compose defining roots and local structural leaves without exporting runtime consumer schemas.
  * Conversion keeps the ordinary unknown-check/transform refusals and never infers a contract from data. */
 export function composeNamedJsonSchema(composition: NamedJsonComposition): Readonly<Record<string, unknown>> {
-  const resolve = (node: NamedJsonComposition): GenericSchema => {
-    if (typeof node === 'string') {
-      if (!Object.hasOwn(wireRoots, node)) throw new Error(`Unknown named format contract: ${node}`);
-      const root = wireRoots[node];
-      if (root === undefined) throw new Error(`Missing named format contract: ${node}`);
-      return root;
-    }
-    if (node.kind === 'schema') return node;
-    if (node.kind === 'literal') {
-      if (typeof node.value === 'number' && !Number.isFinite(node.value)) throw new Error('Named JSON literal must be finite');
-      return literalSchema(node.value);
-    }
-    if (node.kind === 'tuple') return tuple(node.items.map(resolve));
-    const entries = Object.fromEntries(Object.entries(node.entries).map(([name, item]) => [name, resolve(item)]));
-    return node.mode === 'strip' ? object(entries) : node.mode === 'loose' ? looseObject(entries) : strictObject(entries);
-  };
-  return namedJsonSchema(resolve(composition));
+  return namedJsonSchema(resolveNamedComposition(composition));
 }
 
 /** Exact defining pure-format objects for checked author compositions. */
