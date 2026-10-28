@@ -16,6 +16,8 @@ export interface PhoneFps { label:string; elapsedMs:number; frames:number; worst
 export interface PhonePage {
   engine:'simulator-safari'|'webkit-iphone'; faults:string[];
   cold:(url:string,paintScript:string)=>Promise<void>; click:(selector:string)=>Promise<void>;
+  /** Reattach only after an intentional UI action navigates to this exact document. */
+  followNavigation?:(url:string)=>Promise<void>;
   evaluate:(expression:string)=>Promise<unknown>; screenshot:(path:string)=>Promise<Buffer>; close:()=>Promise<void>;
 }
 export interface PhoneReceipt {

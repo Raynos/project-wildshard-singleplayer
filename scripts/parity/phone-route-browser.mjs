@@ -50,6 +50,7 @@ export async function openPhoneBrowser(engine, base, _out) {
       async cold(url, paintScript) { await context.addInitScript({ content: paintScript }); await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 }); },
       async click(selector) { await page.locator(selector).tap({ timeout: 10000 }); },
       evaluate: expression => page.evaluate(expression),
+      async followNavigation(url) { await page.waitForURL(url,{waitUntil:'domcontentloaded',timeout:90000}); },
       screenshot: path => page.screenshot({ path, type: path.endsWith('.jpg') ? 'jpeg' : 'png', timeout: 10000 }),
       async close() { try { await context.close(); } finally { await browser.close(); } },
     };
@@ -123,6 +124,7 @@ export async function openPhoneBrowser(engine, base, _out) {
       await raw(`(${phoneTouchButton.toString()})(${JSON.stringify(selector)})`);
     },
     evaluate,
+    followNavigation: connect,
     screenshot(path) {
       simctl(['io',udid,'screenshot',`--type=${path.endsWith('.jpg')?'jpeg':'png'}`,path]);
       return Promise.resolve(readFileSync(path));
