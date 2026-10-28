@@ -26,42 +26,26 @@ const left = (ctx: ShardContext): boolean => ctx.scope.disposed || ctx.scope.dis
 export async function installProductCreatures(ctx: ShardContext, decisions: SpeciesDecisionAuthority): Promise<void> {
   const rows = v.parse(CreatureInstallSchema, await ctx.product.json('actors/creature-install.json'));
   if (left(ctx)) return;
-  // These three immutable inputs are independent. Observe failures at once,
-  // deliver them only at the original cursor, and drain started reads even if
-  // an earlier input fails or the entered owner retires.
-  const read = async (name: string): Promise<{ readonly ok: true; readonly value: unknown } | { readonly ok: false; readonly error: unknown }> => {
-    try { return { ok: true, value: await ctx.product.json(name) }; }
-    catch (error: unknown) { return { ok: false, error }; }
-  };
-  const perchInput = read(rows.perch), lookInput = read(rows.packed.file), projectionInput = read(rows.projection);
-  try {
-    const perchResult = await perchInput;
-    if (!perchResult.ok) throw perchResult.error;
-    const perchRows = perchResult.value;
-    if (left(ctx)) return;
-    const lookResult = await lookInput;
-    if (!lookResult.ok) throw lookResult.error;
-    const lookRows = lookResult.value;
-    if (left(ctx)) return;
-    const perch = new PerchBodyBinding(perchRows, ctx.scope);
-    const section = ctx.product.section('actors/species-programs'), program = section.program;
-    if (program === undefined || section.spawns?.find(row => row.id === rows.practice)?.respawn === undefined) throw new Error('Creature install requires its admitted species programs');
-    ctx.rows.species([...perch.species(ctx, program, decisions), ...section.page]);
-    const book = productHullBook(ctx.product), packed = book.packed.looks(lookRows);
-    const looks = [...rows.packed.kinds.map(kind => packed.get(kind)), ...rows.hulls.map(kind => book.look(kind))];
-    ctx.rows.speciesLook(looks.map(look => lentGraphLook(look.kind === perch.row.kind ? { ...look, animate: perch.animate } : look, rows.lent)));
-    ctx.rows.spawnTable(declaredSpawnTables(section.spawns));
-    const loot = readLootTables(ctx.product.section('economy/loot').rows.loot[0]?.economy?.tables);
-    ctx.rows.lootTable(loot);
-    for (const row of loot) registerLootTable(row, ctx.scope);
-    await book.packed.preload();
-    if (left(ctx)) return;
-    const projectionResult = await projectionInput;
-    if (!projectionResult.ok) throw projectionResult.error;
-    const projection = projectionResult.value;
-    if (left(ctx)) return;
-    installPopulationProjection(ctx, projection);
-  } finally { await Promise.all([perchInput, lookInput, projectionInput]); }
+  const perchRows = await ctx.product.json(rows.perch);
+  if (left(ctx)) return;
+  const lookRows = await ctx.product.json(rows.packed.file);
+  if (left(ctx)) return;
+  const perch = new PerchBodyBinding(perchRows, ctx.scope);
+  const section = ctx.product.section('actors/species-programs'), program = section.program;
+  if (program === undefined || section.spawns?.find(row => row.id === rows.practice)?.respawn === undefined) throw new Error('Creature install requires its admitted species programs');
+  ctx.rows.species([...perch.species(ctx, program, decisions), ...section.page]);
+  const book = productHullBook(ctx.product), packed = book.packed.looks(lookRows);
+  const looks = [...rows.packed.kinds.map(kind => packed.get(kind)), ...rows.hulls.map(kind => book.look(kind))];
+  ctx.rows.speciesLook(looks.map(look => lentGraphLook(look.kind === perch.row.kind ? { ...look, animate: perch.animate } : look, rows.lent)));
+  ctx.rows.spawnTable(declaredSpawnTables(section.spawns));
+  const loot = readLootTables(ctx.product.section('economy/loot').rows.loot[0]?.economy?.tables);
+  ctx.rows.lootTable(loot);
+  for (const row of loot) registerLootTable(row, ctx.scope);
+  await book.packed.preload();
+  if (left(ctx)) return;
+  const projection = await ctx.product.json(rows.projection);
+  if (left(ctx)) return;
+  installPopulationProjection(ctx, projection);
 }
 
 

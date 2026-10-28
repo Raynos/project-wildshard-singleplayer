@@ -32,33 +32,19 @@ test('a page left during any awaited install read binds no creature rows', async
   }
 });
 
-test('independent creature inputs start together and a failed perch drains later reads', async () => {
-  const scope = new Scope('creature-read-drain'), requested: string[] = [], bound: string[] = [];
-  const firstError = new Error('perch failed'), laterError = new Error('look failed');
-  let finishProjection: (value: object) => void = () => { throw new Error('projection was not started'); };
-  const projection = new Promise<object>(resolve => { finishProjection = resolve; });
+test('a refused perch leaves later inputs unread and binds no rows', async () => {
+  const scope = new Scope('creature-refusal'), requested: string[] = [];
+  const failure = new Error('perch failed');
   const json = async <T,>(name: string): Promise<T> => {
     requested.push(name);
+    await Promise.resolve();
     if (name === 'actors/creature-install.json') return CREATURE_INSTALL as T;
-    if (name === CREATURE_INSTALL.perch) throw firstError;
-    if (name === CREATURE_INSTALL.packed.file) throw laterError;
-    if (name === CREATURE_INSTALL.projection) return await projection as T;
-    throw new Error('undeclared read');
+    throw failure;
   };
   const ctx = legacyDouble<ShardContext>({ scope, product: legacyDouble<ShardContext['product']>({ json,
-    section: (): never => { bound.push('section'); throw new Error('published before inputs'); } }) });
-  let completed = false;
-  const result = (async (): Promise<unknown> => {
-    try { await installProductCreatures(ctx, legacyDouble<SpeciesDecisionAuthority>({})); return undefined; }
-    catch (error: unknown) { return error; }
-    finally { completed = true; }
-  })();
+    section: (): never => { throw new Error('published after refusal'); } }) });
   try {
-    await Promise.resolve(); await Promise.resolve(); await Promise.resolve();
-    expect(requested).toEqual(['actors/creature-install.json', CREATURE_INSTALL.perch, CREATURE_INSTALL.packed.file, CREATURE_INSTALL.projection]);
-    expect(completed).toBe(false);
-    expect(bound).toEqual([]);
-    finishProjection({});
-    expect(await result).toBe(firstError);
-  } finally { finishProjection({}); await result; scope.dispose(); }
+    await expect(installProductCreatures(ctx, legacyDouble<SpeciesDecisionAuthority>({}))).rejects.toBe(failure);
+    expect(requested).toEqual(['actors/creature-install.json', CREATURE_INSTALL.perch]);
+  } finally { scope.dispose(); }
 });
