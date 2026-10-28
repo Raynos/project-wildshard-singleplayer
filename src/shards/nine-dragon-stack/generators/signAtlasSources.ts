@@ -1,11 +1,11 @@
-import * as v from 'valibot';
+import { cachedBlobSources } from '@wildshard/sdk/bake/sourceMetadata';
+import { parseDeviceTierSections } from '@wildshard/sdk/sections';
 import { SignAtlasSchema } from './sections';
 
 function buildSignSourceRows(source: { readonly sources: unknown; readonly rows: unknown }): { sources: { name: string; kind: "json" | "glb" | "ktx2"; source: string; options: { decoded: number; gpu: number; triangles: number; draws: number; critical: boolean; dependencies: string[]; }; }[]; rows: { phone: { glyphLayout: { cell: number; fontPx: number; spread: number; skeletonSpread: number; }; keys: Record<string, string>; pools: { name: string; parts: string[]; }[]; channels: { name: string; source: string; width: number; parts?: string[]; }[]; lights: { at: [number, number, number]; color: [number, number, number]; w: number; h: number; power: number; spill: number; }[]; neonLights: { at: [number, number, number]; color: [number, number, number]; w: number; h: number; power: number; spill: number; }[]; copies: { neon: boolean; boxes: number[]; poses: { x: number; y: number; z: number; yaw: number; variant: string; params: Record<string, unknown>; }[]; }[]; }; desktop: { glyphLayout: { cell: number; fontPx: number; spread: number; skeletonSpread: number; }; keys: Record<string, string>; pools: { name: string; parts: string[]; }[]; channels: { name: string; source: string; width: number; parts?: string[]; }[]; lights: { at: [number, number, number]; color: [number, number, number]; w: number; h: number; power: number; spill: number; }[]; neonLights: { at: [number, number, number]; color: [number, number, number]; w: number; h: number; power: number; spill: number; }[]; copies: { neon: boolean; boxes: number[]; poses: { x: number; y: number; z: number; yaw: number; variant: string; params: Record<string, unknown>; }[]; }[]; }; }; libraries: { id: string; kind: string; publish: string; files: { file: string; tier: "phone" | "desktop"; parts: string[]; channels: { parts?: string[]; name: string; source: string; width: number; }[]; }[]; }[]; } {
-const SIGN_ATLAS_SOURCES = v.parse(v.array(v.object({ name: v.string(), kind: v.picklist(['glb', 'ktx2', 'json']), source: v.string(),
-  options: v.object({ decoded: v.number(), gpu: v.number(), triangles: v.number(), draws: v.number(), critical: v.boolean(), dependencies: v.array(v.string()) }) })), source.sources);
+const SIGN_ATLAS_SOURCES = cachedBlobSources({ sources: source.sources }, ['glb', 'ktx2', 'json'], 'strip');
 /** The same admitted metadata used by the offline product builder. */
-const SIGN_ATLAS_ROWS = v.parse(v.object({ phone: SignAtlasSchema, desktop: SignAtlasSchema }),
+const SIGN_ATLAS_ROWS = parseDeviceTierSections(SignAtlasSchema,
   JSON.parse(JSON.stringify(source.rows), (_key, value: unknown) => value === '-0' ? -0 : value));
 const tierFiles = (['phone', 'desktop'] as const).map(tier => {
   const rows = SIGN_ATLAS_ROWS[tier];

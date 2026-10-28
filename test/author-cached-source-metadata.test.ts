@@ -2,6 +2,7 @@ import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
 import { cachedBlobSources, type CachedBlobSource } from '../src/sdk/bake/sourceMetadata';
 import { parseSignSourceRows } from '../src/shards/nine-dragon-stack/generators/signAtlasOutput';
+import { parseDeviceTierSections } from '../src/sdk/sections';
 
 const kinds = ['glb', 'ktx2', 'json'] as const;
 const original = v.object({ sources: v.array(v.strictObject({ name: v.string(), kind: v.picklist(kinds), source: v.string(),
@@ -35,4 +36,32 @@ test('cached metadata preserves all row, option, type and missing-field refusals
     expect(() => v.parse(original, input)).toThrow();
   }
   expect(() => cachedBlobSources({ sources: [row] }, ['glb'])).toThrow();
+});
+
+test('earlier source metadata can retain native stripping without weakening final admission', () => {
+  const row = source(), input = { sources: [{ ...row, extra: 1, options: { ...row.options, extra: true } }] };
+  const loose = v.object({ sources: v.array(v.object({ name: v.string(), kind: v.picklist(kinds), source: v.string(),
+    options: v.object({ decoded: v.number(), gpu: v.number(), triangles: v.number(), draws: v.number(), critical: v.boolean(), dependencies: v.array(v.string()) }) })) });
+  expect(cachedBlobSources(input, kinds, 'strip')).toEqual(v.parse(loose, input).sources);
+  expect(() => cachedBlobSources(input, kinds)).toThrow();
+});
+
+test('device-tier section admission keeps transforms, order, ownership and refusals', () => {
+  const calls: number[] = [];
+  const schema = v.object({ value: v.pipe(v.number(), v.transform(value => { calls.push(value); return value * 2; })) });
+  const input = { phone: { value: 1, extra: true }, desktop: { value: 2 }, extra: true };
+  const actual = parseDeviceTierSections(schema, input);
+  expect(actual).toEqual({ phone: { value: 2 }, desktop: { value: 4 } });
+  expect(calls).toEqual([1, 2]);
+  calls.length = 0;
+  expect(actual).toEqual(v.parse(v.object({ phone: schema, desktop: schema }), input));
+  expect(calls).toEqual([1, 2]);
+  expect(actual.phone).not.toBe(input.phone);
+  expectTypeOf(actual).toEqualTypeOf<{ phone: { value: number }; desktop: { value: number } }>();
+  for (const bad of [null, {}, { phone: { value: 1 } }, { phone: { value: '1' }, desktop: { value: 2 } }]) {
+    expect(() => parseDeviceTierSections(schema, bad)).toThrow();
+    expect(() => v.parse(v.object({ phone: schema, desktop: schema }), bad)).toThrow();
+  }
+  const optional = v.optional(v.string());
+  expect(parseDeviceTierSections(optional, {})).toEqual(v.parse(v.object({ phone: optional, desktop: optional }), {}));
 });

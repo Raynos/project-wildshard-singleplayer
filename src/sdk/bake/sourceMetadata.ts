@@ -10,12 +10,13 @@ export interface CachedBlobSource<K extends NamedBlobKind> {
 }
 
 /** Re-admit owned cached metadata for an explicit set of file kinds.
- * The envelope strips unrelated cache fields; rows/options reject unknown fields.
+ * The envelope strips unrelated cache fields; rows/options reject unknown fields
+ * unless an earlier cache stage explicitly requests native stripping.
  * Costs keep the recording grammar; nameBlob validates their actual byte claims. */
-export function cachedBlobSources<const K extends readonly NamedBlobKind[]>(input: unknown, kinds: K): CachedBlobSource<K[number]>[] {
-  return v.parse(v.object({ sources: v.array(v.strictObject({
-    name: v.string(), kind: v.picklist(kinds), source: v.string(),
-    options: v.strictObject({ decoded: v.number(), gpu: v.number(), triangles: v.number(), draws: v.number(),
-      critical: v.boolean(), dependencies: v.array(v.string()) }),
-  })) }), input).sources;
+export function cachedBlobSources<const K extends readonly NamedBlobKind[]>(input: unknown, kinds: K, unknownFields: 'reject' | 'strip' = 'reject'): CachedBlobSource<K[number]>[] {
+  const costs = { decoded: v.number(), gpu: v.number(), triangles: v.number(), draws: v.number(),
+    critical: v.boolean(), dependencies: v.array(v.string()) };
+  const fields = { name: v.string(), kind: v.picklist(kinds), source: v.string(),
+    options: unknownFields === 'strip' ? v.object(costs) : v.strictObject(costs) };
+  return v.parse(v.object({ sources: v.array(unknownFields === 'strip' ? v.object(fields) : v.strictObject(fields)) }), input).sources;
 }

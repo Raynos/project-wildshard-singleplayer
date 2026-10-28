@@ -55,6 +55,11 @@ export function parseSectionValue<S extends v.GenericSchema>(schema: S, value: u
   return v.parse(schema, value);
 }
 
+/** Admit both device-tier records with the same defining grammar and native transform/default order. */
+export function parseDeviceTierSections<S extends v.GenericSchema>(schema: S, value: unknown): v.InferOutput<v.ObjectSchema<{ readonly phone: S; readonly desktop: S }, undefined>> {
+  return v.parse(v.object({ phone: schema, desktop: schema }), value);
+}
+
 /** Declare a private section in data/. Values are parsed by Valibot and then checked against the emitted
  * schema. Unsupported predicates and transforms refuse conversion instead of weakening disk admission. */
 export function defineSection<S extends v.GenericSchema>(name: string, schema: S, value: v.InferInput<S>): DefinedSection<v.InferOutput<S>> {
