@@ -1,5 +1,8 @@
+import { unzlibSync, zlibSync } from 'fflate';
 import { nativePlaceFile } from './fixtures/nalati-native-place-files';
 import { nalatiSpecimens } from './fixtures/nalati-specimens';
+import { originalDressingEntryTransport } from './fixtures/nalati-entry-transport';
+import { nalatiCragRows } from './fixtures/nalati-crags';
 import { nalatiBalbal } from './fixtures/nalati-balbal';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own the real immutable cache and compare the original shipping bytes.
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
@@ -33,7 +36,7 @@ import assemblyOriginal from './fixtures/nalati-headless-assembly.json' with { t
 import shapeBookOriginal from './fixtures/nalati-shape-book.json' with { type: 'json' };
 import shapeBookRowsOriginal from './fixtures/nalati-shape-book-original.json' with { type: 'json' };
 import * as v from 'valibot';
-import { dressingScene, dressingSceneBlobs } from './fixtures/nalati-dressing-scene';
+import { dressingScene, dressingSceneBlobs, originalDressingCragProvenance } from './fixtures/nalati-dressing-scene';
 import {originalDressingContactTransport} from './fixtures/nalati-contact-transport';
 import { originalDressingCoverTransport } from './fixtures/nalati-cover-transport';
 import { nalatiRuntimeRows } from '../src/shards/nalati-grasslands/generators/runtimeRows';
@@ -152,8 +155,11 @@ const sceneParityFixture = (() => {
     const contactScenes=originalDressingContactTransport(hit.namedFiles.map(file=>{
       const bytes=hit.assets.get(file.hash);if(bytes===undefined)throw new Error('Missing owned output bytes');return{file,bytes};
     }),sceneOriginals);
-    const projectedScenes = originalDressingCoverTransport(contactScenes, sceneOriginals);
-  return { frozenScenes, expectedScenes, projectedScenes, contactScenes, sceneOriginals };
+    const phoneCragDecoded = Math.max(...nalatiCragRows.phone.meshes.map(part => part.offset
+    + part.row.attrs.reduce((sum, attribute) => sum + part.row.count * attribute[2] * 4, 0) + (part.row.index === null ? 0 : part.row.indexCount * 4)));
+    const projectedScenes = originalDressingCragProvenance(originalDressingEntryTransport(originalDressingCoverTransport(contactScenes, sceneOriginals), sceneOriginals,
+      { bytes: readFileSync('public/assets/nalati/baked/crags.bin'), hash: cragOriginal.hash }, phoneCragDecoded));
+  return { frozenScenes, expectedScenes, projectedScenes, contactScenes, sceneOriginals, phoneCragDecoded };
 })();
 
 test('cached held source metadata refuses a changed executable or compiled byte charge', async () => {
@@ -375,6 +381,55 @@ test('the actual cold output hook preserves every predecessor file cost and bina
     if (dressing === undefined) throw new Error('Output lost the owned dressing bytes');
     expect(dressing.length).toBe(dressingOriginal.compressed); expect(hashImmutableBytes(dressing)).toBe(dressingOriginal.hash);
     expect(Buffer.compare(dressing, readFileSync('test/fixtures/nalati-dressing.bin'))).toBe(0);
+});
+
+test('the historical crag pointer projection rejects unproved source changes', () => {
+  for (const tier of ['phone', 'desktop'] as const) {
+    const name = `world/dressing-${tier}.json`, file = coldOutputFixture.output.namedFiles.find(candidate => candidate.name === name);
+    const bytes = file === undefined ? undefined : coldOutputFixture.output.assets.get(file.hash);
+    if (file === undefined || bytes === undefined) throw new Error('Missing actual named dressing scene');
+    const before = bytes.slice(), rows = v.parse(SceneDressingSchema, JSON.parse(new TextDecoder().decode(bytes)));
+    const current = rows.staticModels.filter(row => row.model.id === 'nalati-grasslands/crag-rock');
+    expect(current).toHaveLength(1);
+    expect(current[0]?.model.file).toBe('src/shards/nalati-grasslands/generators/cragRockProgram.ts');
+    const projected = originalDressingCragProvenance([{ file, bytes }])[0];
+    if (projected === undefined) throw new Error('Missing historical scene projection');
+    const restored = v.parse(SceneDressingSchema, JSON.parse(new TextDecoder().decode(projected.bytes)));
+    const source = restored.staticModels.find(row => row.model.id === 'nalati-grasslands/crag-rock');
+    if (source === undefined) throw new Error('Missing projected crag');
+    expect(source.model.file).toBe('src/shards/nalati-grasslands/generators/bake-crag-rock.mjs');
+    source.model.file = 'src/shards/nalati-grasslands/generators/cragRockProgram.ts';
+    expect(restored).toEqual(rows); expect(Buffer.compare(bytes, before)).toBe(0);
+    for (const mode of ['missing', 'duplicate', 'changed'] as const) {
+      const bad = structuredClone(rows), model = bad.staticModels.find(row => row.model.id === 'nalati-grasslands/crag-rock');
+      if (model === undefined) throw new Error('Missing provenance control');
+      if (mode === 'missing') bad.staticModels = bad.staticModels.filter(row => row !== model);
+      else if (mode === 'duplicate') bad.staticModels.push(structuredClone(model));
+      else model.model.file = 'src/unproved-producer.ts';
+      const corrupt = nameBlob(name, 'json', new TextEncoder().encode(encodeCanonicalJson(bad)));
+      expect(() => originalDressingCragProvenance([corrupt])).toThrow(mode === 'missing'
+        ? 'Dressing references require declared shapes, materials, models and complete copy bounds' : 'Crag producer provenance differs');
+    }
+  }
+});
+
+test('the phone entry projection rejects changed native crag words and unproved schedules', () => {
+  const { contactScenes, sceneOriginals, phoneCragDecoded } = sceneParityFixture;
+  const rows = originalDressingCoverTransport(contactScenes, sceneOriginals), completeCrags = { bytes: readFileSync('public/assets/nalati/baked/crags.bin'), hash: cragOriginal.hash };
+  const changed = rows.map(blob => {
+    if (blob.file.name !== 'world/crags-phone.bin') return blob;
+    const words = unzlibSync(blob.bytes); words[0] = (words[0] ?? 0) ^ 1;
+    return nameBlob(blob.file.name, 'bin', zlibSync(words), { decoded: blob.file.decoded });
+  });
+  expect(() => originalDressingEntryTransport(changed, sceneOriginals, completeCrags, phoneCragDecoded)).toThrow('Selected phone crag words differ');
+  const scheduled = rows.map(blob => {
+    if (blob.file.name !== 'world/dressing-phone.json') return blob;
+    const scene = v.parse(SceneDressingSchema, JSON.parse(new TextDecoder().decode(blob.bytes))), book = scene.catalogues[1];
+    if (book === undefined) throw new Error('Missing eager catalogue control');
+    book.load = 'after-control';
+    return nameBlob(blob.file.name, 'json', new TextEncoder().encode(encodeCanonicalJson(scene)));
+  });
+  expect(() => originalDressingEntryTransport(scheduled, sceneOriginals, completeCrags, phoneCragDecoded)).toThrow('Unproved catalogue scheduling change');
 });
 
 test('missing authored and owned bytes refuse before output publication', async () => {

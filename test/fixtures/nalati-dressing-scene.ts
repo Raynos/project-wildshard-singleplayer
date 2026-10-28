@@ -32,11 +32,17 @@ function predecessorCragSource(rows: SceneDressingRows): SceneDressingRows {
 export function dressingScene(...args: Parameters<typeof currentDressingScene>): ReturnType<typeof scene> {
   return predecessorCragSource(currentDressingScene(...args));
 }
-export function dressingSceneBlobs(input: unknown, runtime: unknown, balbal: unknown, specimens: unknown, cragFiles?: Readonly<Record<'phone'|'desktop',string>>): ReturnType<typeof blobs> {
-  return blobs(input, runtime, balbal, specimens, paint, nalatiPredecessorCoverRows, nalatiCragRows,cragFiles).map(blob => {
+/** Project only the verified defining crag source pointer for complete historical
+ * scene comparisons. Production metadata and every other byte stay unchanged. */
+export function originalDressingCragProvenance(input: readonly ReturnType<typeof nameBlob>[]): ReturnType<typeof blobs> {
+  return input.map(blob => {
     const name = blob.file.name;
     if (name !== 'world/dressing-phone.json' && name !== 'world/dressing-desktop.json') return blob;
     const rows = predecessorCragSource(parse(SceneDressingSchema, JSON.parse(new TextDecoder().decode(blob.bytes))));
     return nameBlob(name, 'json', new TextEncoder().encode(encodeCanonicalJson(rows)), blob.file.jsonSchema === undefined ? {} : { jsonSchema: blob.file.jsonSchema });
   });
+}
+
+export function dressingSceneBlobs(input: unknown, runtime: unknown, balbal: unknown, specimens: unknown, cragFiles?: Readonly<Record<'phone'|'desktop',string>>): ReturnType<typeof blobs> {
+  return originalDressingCragProvenance(blobs(input, runtime, balbal, specimens, paint, nalatiPredecessorCoverRows, nalatiCragRows, cragFiles));
 }
