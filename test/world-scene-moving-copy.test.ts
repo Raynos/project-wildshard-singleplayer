@@ -17,7 +17,7 @@ import { WorldScenePlacement } from '../src/game/shardfile/worldScenePlacement';
 const originalEnvironment = scopeEnvironment();
 afterEach(() => { installScopeEnvironment(originalEnvironment); });
 
-function fixture(moving = true) {
+function fixture(moving = true, copies = 1) {
   const scope = new Scope('moving-copy'), fake = new FakeGame(), game = fake.asGame(), registry = new WorldRegistry();
   registry.scope = scope;
   const sky: unknown = Object.create(SkyRig.prototype);
@@ -33,7 +33,8 @@ function fixture(moving = true) {
     file: 'fixture-ferry.ts', defaults: {}, build: () => new Group().add(new Mesh(geometry, material)),
     colliders: () => [{ kind: 'box', x: 0, y: 0, z: 0, hx: 1, hy: 0.5, hz: 3 }] });
   const row = parse(WorldScenePlacementSchema, { id: 'ferry', model: 'ferry',
-    draw: 'single', poses: [{ x: 37, y: 2, z: -83, matrix: new Matrix4().makeTranslation(37, 2, -83).elements }],
+    draw: 'single', poses: Array.from({ length: copies }, (_, i) => ({ x: 37 + i, y: 2, z: -83,
+      matrix: new Matrix4().makeTranslation(37 + i, 2, -83).elements })),
     piece: { id: 'ferry-piece', ...(moving ? { follows: 'copy' } : {}) } });
   const handles = new SceneHandles(), placement = new WorldScenePlacement(ctx, row, { model: () => model }, scope, new Map(), []);
   handles.publish('ferry', placement);
@@ -50,16 +51,34 @@ test('a moving copy keeps its original object and local collider frame through a
     // it creates a container and nests the already placed copy below it.
     for (const content of f.handles.tiled()) for (const tile of content.tiles()) await content.attach(tile, f.scope.child('tile'));
     const root = f.handles.object('ferry.root');
-    root.position.set(38, 2.5, -85); root.rotation.set(0.08, 0.2, -0.03); root.updateWorldMatrix(true, true);
     const mesh = root.getObjectByProperty('isMesh', true);
     if (!(mesh instanceof Mesh)) throw new Error('Missing actual rendered copy');
-    expect(mesh.getWorldPosition(new Vector3()).toArray()).toEqual([38, 2.5, -85]);
+    for (const [position, rotation] of [
+      [[37, 2, -83], [0, 0, 0]],
+      [[38, 2.5, -85], [0.08, 0.2, -0.03]],
+      [[36, 1.5, -82], [-0.1, -0.3, 0.02]],
+    ] as const) {
+      root.position.set(position[0], position[1], position[2]);
+      root.rotation.set(rotation[0], rotation[1], rotation[2]); root.updateWorldMatrix(true, true);
+      expect(mesh.getWorldPosition(new Vector3()).toArray()).toEqual(position);
+      expect(f.handles.object('ferry.root')).toBe(root);
+    }
     expect(f.handles.requiresWhole('ferry')).toBe(true);
     expect(f.handles.tiled()).toHaveLength(0);
     expect(f.registry.pieces).toHaveLength(1);
     expect(f.registry.pieces[0]?.follows).toBe(root);
     expect(f.registry.pieces[0]?.colliders).toEqual([{ kind: 'box', x: 0, y: 0, z: 0, hx: 1, hy: 0.5, hz: 3 }]);
     expect(await f.handles.place('ferry')).toBe(await f.placement.load());
+  } finally { f.close(); }
+});
+
+test('the original one-copy mover contract refuses multiple copies without publishing a root', async () => {
+  const f = fixture(true, 2);
+  try {
+    expect(f.handles.requiresWhole('ferry')).toBe(true);
+    await expect(f.handles.place('ferry')).rejects.toThrow("one 'single' placement only");
+    expect(f.handles.has('ferry.root')).toBe(false);
+    expect(f.registry.pieces).toHaveLength(0);
   } finally { f.close(); }
 });
 
