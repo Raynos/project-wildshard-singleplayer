@@ -36,7 +36,7 @@ import { nineMoversView } from './moversView';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import type { ProjectOutput } from '@wildshard/sdk/projectOutput';
 import { nineRefinementFiles } from './refinementAdmission';
-import { nineDemandFiles } from './demandAdmission';
+import { nineDemandFiles, nineDesktopPoolFiles } from './demandAdmission';
 
 /** Complete output ownership before the author CLI resolves the remaining file adapters. */
 export interface NineOutput extends ProjectOutput {
@@ -97,7 +97,7 @@ const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(LAYOUT_PLACEMENT_BLOBS, v
   nameBlob('weapons/jian-halo.json', 'json', json({ geometry: { ...halo.geo.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000001' }, material: { ...halo.mat.toJSON(), uuid: '96d3a000-0000-4000-8000-000000000002' } })),
 ], rawMovers, decalBlobs, inputs.casts.blobs, inputs.signs.blobs, [inputs.courseProgram.blob]));
 
-return { late: [...nineRefinementFiles(NINE_WORLD_SCENES.libraries), ...nineDemandFiles(emitted.files, volumes.map(volume => volume.file))], blobs: [...moverSources,{name:"practice/card.webp",kind:"image",source:"explore/playground-grapple.webp"},...decalSources], namedFiles: emitted.files, assets: new Map([...emitted.assets, ...heldGraphFiles.assets, ...inputs.ownedWorld.assets]),
+return { late: [...nineRefinementFiles(NINE_WORLD_SCENES.libraries), ...nineDemandFiles(emitted.files, volumes.map(volume => volume.file)), ...nineDesktopPoolFiles(emitted.files, NINE_WORLD_SCENES.libraries)], blobs: [...moverSources,{name:"practice/card.webp",kind:"image",source:"explore/playground-grapple.webp"},...decalSources], namedFiles: emitted.files, assets: new Map([...emitted.assets, ...heldGraphFiles.assets, ...inputs.ownedWorld.assets]),
   platform: emitPlatformSections(new Map<PlatformDataSectionName, unknown>([['ui/strings', strings], ['world/scenes', { ...NINE_WORLD_SCENES, entry: nineWorldEntry(inputs.scenes) }], ['held/arms', heldPrimary], ['actors/return-scripts',[inputs.courseProgram.script]], ['view/modules', [{ id: 'nine.movers', module: `blobs/wasm/${movers.hash}.wasm`, side: 'view', ...MOVERS_OPTIONS.script }]], ['client/plan', {version:1,features:[practiceCard, {kind:'strings.register'}, {kind:'world.assembly', rows: nineWorldAssembly(inputs.construction, inputs.scenes), entered: { root: 'nine.root', blocks: ['pieces'] }}, {kind:'view.program', id:'movers', rows: nineMoversView(), module: 'views/movers.wasm'}, {kind:'world.runtime-hooks',overhead:[],bounds:{x:[-250,250],z:[-250,250],outer:{maxAbsXZ:200,floor:-20}}}, {kind:'held.claims.prepare',id:'held.primary'}, {kind:'held.claims.install',claims:'held.primary'}, {kind:'held.claims.enter',claims:'held.primary',grapple:{item:'tool.fei-zhua',source:'sim/headless-constants.json',presentation:'weapons/jian-row.json'}}, {kind:'portal.ride',source:'sim/headless-constants.json'}]}]])) };
 }
 
