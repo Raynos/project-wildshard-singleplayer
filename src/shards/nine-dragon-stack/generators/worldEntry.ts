@@ -1,4 +1,4 @@
-import { parseWorldEntry, type WorldEntryRows } from '@wildshard/format/worldEntry';
+import { worldEntryRows as parseWorldEntry } from '@wildshard/sdk/worldScenes';
 import { AddEquation, CustomBlending, OneFactor, ZeroFactor } from 'three';
 import canopy from '../data/canopy.json' with { type: 'json' };
 import light from '../data/light.json' with { type: 'json' };
@@ -6,6 +6,8 @@ import { nineWorldInstallRows, type NinePhysicsPlacement } from './physicsPlacem
 import { deckFloorRows } from './floorRows';
 import windowBindings from '../data/windowBindings.json' with { type: 'json' };
 import type { NineWorldScenes } from './worldScenes';
+
+type WorldEntryRows = ReturnType<typeof parseWorldEntry>;
 
 const deckFloors = deckFloorRows();
 

@@ -1,5 +1,5 @@
 
-import { parseQuestHost , type QuestHostRow as QuestHostRowType } from '@wildshard/format/questHost';
+import { questHostRows as parseQuestHost } from '@wildshard/sdk/quests';
 import { pineTableFromPlacements } from './questTable';
 import { PINE_GRAPH, pineQuestRows } from './questGraph';
 import { pineSpots } from './spots';
@@ -42,7 +42,7 @@ const routes = [
 
 /** Original modal priority and actor routing are admitted data; the native owner
  * dispatches each command in order at its existing continuation phase. */
-export const PINE_QUEST_HOST: QuestHostRowType = parseQuestHost({
+export const PINE_QUEST_HOST: ReturnType<typeof parseQuestHost> = parseQuestHost({
   version: 1, graph: PINE_GRAPH, interactions, flags, npcs: [], drive: 'external',
   actors: { ids: [], error: 'Missing quest actor' },
   observations: [{ binding: 'event:quest.riding', kind: 'cable', cable: policy.cable, state: 'riding' },

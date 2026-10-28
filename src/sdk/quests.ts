@@ -1,10 +1,23 @@
 import * as v from 'valibot';
-import { parsePersistedQuestPage as parsePage, type PersistedQuestPage } from '@wildshard/format/questStory';
+import { parsePersistedQuestPage as parsePage, parseQuestStory, type PersistedQuestPage } from '@wildshard/format/questStory';
 import { QuestDataSchema as schema, parseQuestData as parseData, type QuestData as Data } from '@wildshard/format/quests';
 import { parseNativeQuestComposition } from '@wildshard/format/nativeQuestComposition';
 import { NativeQuestPropsSchema } from '@wildshard/format/questInteractions';
 import type { InteractDef } from '@wildshard/engine/world/interact/types';
 import { parseCompletion } from '@wildshard/format/completion';
+import { parseQuestHost } from '@wildshard/format/questHost';
+import { parsePanelDefinition, type PanelTemplate, type PanelValue } from '@wildshard/format/panelTemplate';
+
+/** Complete authored markup and expression grammar; no DOM or input owner is created. */
+export type AuthorPanelTemplate = PanelTemplate;
+/** A native read-only panel expression over caller-owned values. */
+export type AuthorPanelValue = PanelValue;
+/** Admit saved-state chapter presentation with its native bounded data grammar. */
+export function questStoryRows(input: unknown): ReturnType<typeof parseQuestStory> { return parseQuestStory(input); }
+/** Admit command priority, actor routes and graph references before a quest owner exists. */
+export function questHostRows(input: unknown): ReturnType<typeof parseQuestHost> { return parseQuestHost(input); }
+/** Admit static panel markup and all native expression/action checks without constructing UI. */
+export function panelDefinitionRows(input: unknown): ReturnType<typeof parsePanelDefinition> { return parsePanelDefinition(input); }
 
 /** Compile declared quest graphs and dialogue trees with bounded, serialisable script hook names. */
 export const QuestDataSchema: v.SchemaWithPipe<readonly [typeof schema]> = v.pipe(schema);

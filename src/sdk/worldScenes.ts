@@ -16,6 +16,10 @@ import { BakedBuildingLookSchema, parseBuildingLifeRows as nativeBuildingLifeRow
   type BuildingAssemblyRows, type BakedBuildingLookRows } from '@wildshard/format/buildings';
 import type { OutputFile } from '@wildshard/format/outputIndex';
 import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
+import { parseWorldEntry } from '@wildshard/format/worldEntry';
+
+/** Admit ordered entry blocks and their native resource/variant checks before constructing a world. */
+export function worldEntryRows(input: unknown): ReturnType<typeof parseWorldEntry> { return parseWorldEntry(input); }
 
 /** Admit ordered world construction stages and their original resource/variant rules.
  * The result is data only; no scene, lifetime or runtime handle is constructed. */

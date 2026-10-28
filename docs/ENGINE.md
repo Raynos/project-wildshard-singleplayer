@@ -6341,6 +6341,10 @@ a runtime scene host or any file reads.
 `sceneDrawRows` admits bounded effect draws. `modelSceneSourceFile` and `bakedSceneSourceFile` publish typed model/rig/held and baked-kind source libraries with their native inventory limits, preserving JSON ordering and numeric spelling. Runtime resource admission remains authoritative.
 `worldAssemblyRows` admits ordered construction stages, resource variants and their native cross-row rules
 without constructing a scene or lending runtime handles.
+`worldEntryRows` admits ordered entry blocks through the native resource and variant checks.
+`quests.questStoryRows`, `questHostRows` and `panelDefinitionRows` admit complete saved-story,
+command-routing and panel data. `AuthorPanelTemplate` and `AuthorPanelValue` retain the native
+markup/expression grammar; these APIs construct no world, quest owner or UI.
 `AuthorWorldScenes` preserves authored fields before parser defaults;
 `AuthorBuildingAssembly` carries the complete native building grammar.
 `buildingLookRows`, `buildingLifeRows` and `emptyBuildingLifeRows` admit
