@@ -1,4 +1,4 @@
-import { workerScope } from '../app/workerScope.js';
+import { workerScope, WorkerScope } from '../app/workerScope.js';
 import { codePackEntries, readCodePackTransport } from './codePack.js';
 /* Wildshard service worker (project/archive/2026-09-22-load-perf.md §1b / §P3, docs/design/cache-policy.md).
  * Ported from game-demos/trials-gauntlet-demo/src/pwa/sw.js — it shipped on WebKit/Metal; port, don't redesign.
@@ -48,8 +48,8 @@ import { codePackEntries, readCodePackTransport } from './codePack.js';
  *             the music / sfx manifests (music.json, sfx.json) are compiled into the bundle and never fetched;
  *             offline (navigator.onLine false) network-first answers from the cache without trying the network;
  *             the document: cache-first with a background revalidate (a flapping link must never hold the
- *             first paint); a `?v=` reload from the build pill (src/engine/ui/Update.ts) is network-first; a network copy
- *             is stored only when it is this build's own document (another build's would outlive its deploy);
+ *             first paint), including a `?v=` reload from the build pill (G837); a network copy is stored
+ *             only when it is this build's own document (another build's would outlive its deploy);
  *             asset-index.json / sw.js / manifest.webmanifest: network-first, cache fallback;
  *             version.json: untouched (network-only — the build pill must see the server, not us);
  *             cross-origin (Google Fonts) and `?sw=0`: untouched.
@@ -142,7 +142,7 @@ if (workerTransport) {
 }
 
 async function backgroundCache(cache, url) {
-  const response = await fetch(abs(url));
+  const response = await fetchAttempt(abs(url));
   if (!response.ok) throw new Error(`precache: ${url} ${response.status}`);
   await cache.put(abs(url), response);
 }
@@ -442,7 +442,7 @@ async function prepareWorkerCodePack(row) {
     let complete = true;
     for (const path of paths) if (!await cache.match(abs(path), MATCH_OPTS)) { complete = false; break; }
     if (complete) return 'hit';
-    const response = await fetch(abs(url));
+    const response = await fetchAttempt(abs(url));
     if (!response.ok) throw new Error('Failed code pack transport');
     const hash = /\/([a-f0-9]{64})\.pack$/.exec(url)?.[1];
     if (hash === undefined) throw new Error('Invalid code pack address');
@@ -544,7 +544,7 @@ workerScope.listen(self, 'fetch', (event) => {
   if (url.pathname === '/version.json') return; // network-only: the build pill must see the server
   const isDoc = req.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html';
   if (isDoc) {
-    event.respondWith(documentResponse(event, req, url));
+    event.respondWith(documentResponse(event, req));
     return;
   }
   if (NETWORK_FIRST_RE.test(url.pathname)) {
@@ -582,31 +582,77 @@ workerScope.listen(self, 'fetch', (event) => {
  * The document, cache-first with a background revalidate. Network-first here is the gauntlet's B-SLOW bug:
  * a flapping radio holds the first paint behind a request whose bytes are already on disk, and `/` is
  * `no-store` on the host so the HTTP cache is not a second line of defence. A new build arrives by its own
- * worker installing and the build pill adopting it (src/engine/boot/sw.ts), never by this revalidate — except the
- * pill's plain "reload" (`?v=<token>`, src/engine/ui/Update.ts), which is the player asking for the server's copy:
- * that one is network-first, with the cache as the offline fallback.
+ * worker installing and the build pill adopting it (src/engine/boot/sw.ts), never by this revalidate. G837:
+ * even an explicit reload serves this worker's already verified shell immediately; network revalidation
+ * must not hold the replacement document's first paint.
  */
-async function documentResponse(event, req, url) {
+async function documentResponse(event, req) {
   const cache = await caches.open(SHELL);
   const key = abs('/index.html');
-  if (url.searchParams.has('v')) return networkFirst(req, SHELL, key, true);
   const hit = await cache.match(key, MATCH_OPTS);
   if (hit) {
     if (offline()) return transportReceipt(hit, true); // no revalidate that can only fail
     event.waitUntil(
-      fetch(req)
+      fetchAttempt(req)
         .then((res) => putDocument(cache, key, res))
         .catch(() => undefined),
     );
     return transportReceipt(hit, true);
   }
-  const res = await fetch(req);
-  putDocument(cache, key, res.clone()).catch(() => undefined);
-  return transportReceipt(res);
+  return networkFirst(req, SHELL, key, true);
 }
 
-/** the files a boot cannot survive losing: the hashed JS and CSS (fetchWhole) */
-const CODE_RE = /^\/assets\/[^/]+-[\w-]{8}\.(?:js|css)$/;
+// A flapping radio may never reject a request or finish its body. Bound each
+// headers/body stall before committing a response to the page. Byte progress
+// renews the stall clock, so a large healthy download keeps its original bytes.
+// A fresh request can then bypass a stuck HTTP-cache transaction.
+const FETCH_ATTEMPT_MS = 10000;
+class WorkerFetchStallError extends Error {
+  constructor(url) { super(`Service worker fetch stalled: ${url}`); this.name = 'WorkerFetchStallError'; }
+}
+/** @param {Request|string} input @returns {Promise<Response>} */
+async function fetchAttempt(input) {
+  const req = typeof input === 'string' ? new Request(input) : input;
+  const owner = new WorkerScope(), controller = new AbortController();
+  const abort = () => { controller.abort(req.signal.reason); };
+  owner.listen(req.signal, 'abort', abort);
+  if (req.signal.aborted) abort();
+  let watch = new WorkerScope();
+  let reset = () => undefined;
+  /** @type {ReadableStreamDefaultReader<Uint8Array>|undefined} */
+  let reader;
+  /** @type {Promise<never>} */
+  const deadline = new Promise((_resolve, reject) => {
+    reset = () => {
+      watch.dispose(); watch = new WorkerScope();
+      watch.timeout(FETCH_ATTEMPT_MS, () => {
+        reject(new WorkerFetchStallError(req.url)); controller.abort();
+      });
+    };
+    reset();
+  });
+  const read = async () => {
+    const res = await fetch(input, { signal: controller.signal });
+    if (!res.ok || res.body === null) return res;
+    reset(); reader = res.body.getReader();
+    /** @type {Uint8Array[]} */ const chunks = [];
+    try {
+      for (;;) {
+        const part = await reader.read();
+        if (part.done) break;
+        if (part.value.byteLength > 0) { chunks.push(part.value); reset(); }
+      }
+    } finally { reader.releaseLock(); }
+    return new Response(new Blob(chunks), { status: res.status, statusText: res.statusText, headers: res.headers });
+  };
+  try { return await Promise.race([read(), deadline]); }
+  finally {
+    owner.dispose(); watch.dispose();
+    // Also release an uncooperative host body when abort itself never settles it.
+    if (controller.signal.aborted && reader) void reader.cancel().catch(() => undefined);
+  }
+}
+
 function sleep(ms) { return new Promise((resolve) => { workerScope.timeout(ms, resolve); }); }
 
 /** Report provenance through Resource Timing, without reading or copying the response body. */
@@ -634,10 +680,7 @@ async function cacheFirst(req, name) {
       return transportReceipt(held, true);
     }
   }
-  if (req.destination === 'script' || CODE_RE.test(new URL(req.url).pathname)) return fetchWhole(req, cache);
-  const res = await fetch(req);
-  if (res.ok) cache.put(req, res.clone()).catch(() => undefined);
-  return transportReceipt(res);
+  return fetchWhole(req, cache);
 }
 
 /**
@@ -654,10 +697,10 @@ async function fetchWhole(req, cache) {
   for (const wait of [700, 2000, 0]) {
     const last = wait === 0;
     try {
-      const res = await fetch(attempt);
+      const res = await fetchAttempt(attempt);
       if (!res.ok && !last) throw new Error(`HTTP ${res.status}`);
       if (!res.ok) return res;
-      const whole = new Response(await res.blob(), { status: res.status, statusText: res.statusText, headers: res.headers });
+      const whole = res;
       // A first-use chunk can be requested offline as soon as its import
       // completes. Finish this publication attempt before returning its bytes;
       // a detached write raced that next request and could outlive the worker.
@@ -684,13 +727,17 @@ async function networkFirst(req, name, key, doc = false) {
     if (hit) return transportReceipt(hit, true);
   }
   try {
-    const res = await fetch(req);
+    const res = await fetchAttempt(req);
     if (doc) putDocument(cache, key ?? req, res.clone()).catch(() => undefined);
     else if (res.ok) cache.put(key ?? req, res.clone()).catch(() => undefined);
     return transportReceipt(res);
   } catch (e) {
     const hit = await cache.match(key ?? req, MATCH_OPTS);
     if (hit) return transportReceipt(hit, true);
-    throw e;
+    if (!(e instanceof WorkerFetchStallError) || req.signal.aborted) throw e;
+    const res = await fetchAttempt(new Request(req, { cache: 'reload' }));
+    if (doc) putDocument(cache, key ?? req, res.clone()).catch(() => undefined);
+    else if (res.ok) cache.put(key ?? req, res.clone()).catch(() => undefined);
+    return transportReceipt(res);
   }
 }

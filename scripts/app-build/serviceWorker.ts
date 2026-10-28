@@ -123,7 +123,7 @@ export function workerInstallFiles(bundle: Readonly<Record<string, {
  *  module bank in index.html. `buildId` is the bundle's own BUILD_ID (version.json). */
 export function serviceWorkerCore(bundle: Readonly<Record<string, EmittedFile>>, root: string, buildId: string): { core: string; build: string; assets: string; hashed: string[] } {
   const packSource = readFileSync(join(root, 'src/engine/pwa/codePack.js'), 'utf8').replaceAll(/^export /gm, '');
-  const src = `${readFileSync(join(root, 'src/engine/app/workerScope.js'), 'utf8').replaceAll(/^export /gm, '')}\n${packSource}\n${readFileSync(join(root, 'src/engine/pwa/sw.js'), 'utf8').replace("import { workerScope } from '../app/workerScope.js';\n", '').replace("import { codePackEntries, readCodePackTransport } from './codePack.js';\n", '')}`;
+  const src = `${readFileSync(join(root, 'src/engine/app/workerScope.js'), 'utf8').replaceAll(/^export /gm, '')}\n${packSource}\n${readFileSync(join(root, 'src/engine/pwa/sw.js'), 'utf8').replace("import { workerScope, WorkerScope } from '../app/workerScope.js';\n", '').replace("import { codePackEntries, readCodePackTransport } from './codePack.js';\n", '')}`;
   const fontDir = join(root, 'public', 'fonts');
   const fonts = existsSync(fontDir) ? readdirSync(fontDir).filter(f => f.endsWith('.woff2')).sort().map(f => `/fonts/${f}`) : [];
   const assetRows = publicStamp(root, ['assets', 'basis', 'fonts']);

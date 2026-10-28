@@ -34,6 +34,7 @@ function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>, 
   const listeners = new Map<string, ((event: WorkerEvent) => void)[]>(), books = new Map<string, StoredCache>();
   const installErrors: unknown[] = [];
   const replies: unknown[] = [];
+  const responses: Response[] = [];
   const open = (name: string): Promise<StoredCache> => {
     let cache = books.get(name); if (cache === undefined) { cache = new StoredCache(); books.set(name, cache); } return Promise.resolve(cache);
   };
@@ -54,7 +55,7 @@ function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>, 
     } };
   const owner = readFileSync('src/engine/app/workerScope.js', 'utf8').replaceAll(/^export /gmu, '');
   const packSource = readFileSync('src/engine/pwa/codePack.js', 'utf8').replaceAll(/^export /gmu, '');
-  const worker = readFileSync('src/engine/pwa/sw.js', 'utf8').replace("import { workerScope } from '../app/workerScope.js';\n", '').replace("import { codePackEntries, readCodePackTransport } from './codePack.js';\n", '')
+  const worker = readFileSync('src/engine/pwa/sw.js', 'utf8').replace("import { workerScope, WorkerScope } from '../app/workerScope.js';\n", '').replace("import { codePackEntries, readCodePackTransport } from './codePack.js';\n", '')
     .replaceAll('__BUILD_ID__', 'unit-build').replaceAll('__ASSET_ID__', 'unit-assets')
     .replace("'__BUNDLE__'", JSON.stringify(JSON.stringify(bundle)))
     .replace("'__WARM__'", JSON.stringify(JSON.stringify(warm)))
@@ -64,10 +65,10 @@ function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>, 
   runInNewContext(`${owner}\n${packSource}\n${worker}`, { self, caches, fetch, URL, Request, Response, Headers, Blob, DecompressionStream, TextDecoder, AbortController, setTimeout, clearTimeout, Date, console, crypto });
   const dispatch = async (kind: string, payload: Pick<WorkerEvent, 'data' | 'request' | 'ports'> = {}): Promise<void> => {
     const pending: Promise<unknown>[] = [];
-    for (const listener of listeners.get(kind) ?? []) listener({ ...payload, source: { postMessage: (value: unknown) => { replies.push(value); } }, waitUntil: work => { pending.push(work); }, respondWith: work => { pending.push(work); } });
+    for (const listener of listeners.get(kind) ?? []) listener({ ...payload, source: { postMessage: (value: unknown) => { replies.push(value); } }, waitUntil: work => { pending.push(work); }, respondWith: work => { pending.push(work.then(response => { responses.push(response); return response; })); } });
     await Promise.all(pending);
   };
-  return { fetch, open, dispatch, navigator, installErrors, replies };
+  return { fetch, open, dispatch, navigator, installErrors, replies, responses };
 }
 afterEach(() => { vi.useRealTimers(); });
 
@@ -434,4 +435,79 @@ test('background code is serial, yields its body to foreground reads, then suppo
   await f.dispatch('fetch', { request: new Request(new URL(lazy, base)) });
   await f.dispatch('fetch', { request: new Request(new URL(later, base)) });
   expect(f.fetch.mock.calls).toHaveLength(before);
+});
+
+
+test.each([entry, css, '/shardfiles/driftwood-isle/shard.json', '/assets/map/paint.json', '/index.html'])(
+  'a stalled %s request aborts and retries the network without publishing partial bytes', async path => {
+    vi.useFakeTimers();
+    let reads = 0;
+    const body = path === '/index.html' ? `<script src="${entry}"></script>` : 'exact fallback bytes';
+    const f = fixture(() => ++reads === 1 ? new Promise<Response>(() => { /* No headers ever arrive. */ }) : Promise.resolve(new Response(body)));
+    const work = f.dispatch('fetch', { request: new Request(new URL(path, base)) });
+    await vi.advanceTimersByTimeAsync(10700);
+    await work;
+    expect(f.fetch).toHaveBeenCalledTimes(2);
+    expect(f.fetch.mock.calls[0]?.[1]?.signal?.aborted).toBe(true);
+    const retried = f.fetch.mock.calls[1]?.[0];
+    expect(retried instanceof Request && retried.cache).toBe('reload');
+    expect(await f.responses[0]?.text()).toBe(body);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+test('stylesheet body stalls are bounded after successful headers and retry exact whole bytes', async () => {
+  vi.useFakeTimers(); let reads = 0;
+  const f = fixture(() => Promise.resolve(++reads === 1 ? new Response(new ReadableStream({
+    start(controller) { controller.enqueue(new TextEncoder().encode('partial CSS')); },
+  })) : new Response('complete CSS')));
+  const work = f.dispatch('fetch', { request: new Request(new URL(css, base)) });
+  await vi.advanceTimersByTimeAsync(10700); await work;
+  expect(await f.responses[0]?.text()).toBe('complete CSS');
+  expect(f.fetch.mock.calls[0]?.[1]?.signal?.aborted).toBe(true);
+  expect(await (await f.open('ws-immutable')).match(new URL(css, base).href).then(response => response?.text())).toBe('complete CSS');
+  expect(vi.getTimerCount()).toBe(0);
+});
+
+test('an explicit navigation reload serves its exact shell before a stalled revalidation', async () => {
+  vi.useFakeTimers();
+  const f = fixture(() => new Promise<Response>(() => { /* Radio remains pending. */ }));
+  const previous = `<script src="${entry}"></script>previous shell`;
+  await (await f.open('ws-shell-unit-build')).put(new URL('/index.html', base).href, new Response(previous));
+  const work = f.dispatch('fetch', { request: new Request(new URL('/?v=reload', base)) });
+  await vi.advanceTimersByTimeAsync(0);
+  expect(await f.responses.at(-1)?.text()).toBe(previous);
+  expect(f.fetch).toHaveBeenCalledTimes(1);
+  await vi.advanceTimersByTimeAsync(10000); await work;
+  expect(f.responses.at(-1)?.headers.get('server-timing')).toContain('ws-cache');
+  f.navigator.onLine = false; f.fetch.mockClear();
+  await f.dispatch('fetch', { request: new Request(new URL('/?v=offline', base)) });
+  expect(f.fetch).not.toHaveBeenCalled();
+  expect(await f.responses.at(-1)?.text()).toBe(previous);
+});
+
+test('all stalled script attempts terminate and publish no partial module', async () => {
+  vi.useFakeTimers();
+  const f = fixture(() => new Promise<Response>(() => { /* Even abort cannot settle this host. */ }));
+  const work = expect(f.dispatch('fetch', { request: scriptRequest(lazy) })).rejects.toThrow('Service worker fetch stalled');
+  await vi.advanceTimersByTimeAsync(32700); await work;
+  expect(f.fetch).toHaveBeenCalledTimes(3);
+  expect(await (await f.open('ws-immutable')).match(new URL(lazy, base).href)).toBeUndefined();
+  expect(vi.getTimerCount()).toBe(0);
+});
+
+
+test('a healthy slow body keeps progressing beyond the per-stall limit without a retry', async () => {
+  vi.useFakeTimers();
+  let stream: ReadableStreamDefaultController<Uint8Array> | undefined;
+  const f = fixture(() => Promise.resolve(new Response(new ReadableStream<Uint8Array>({ start(controller) { stream = controller; } }))));
+  const work = f.dispatch('fetch', { request: new Request(new URL(css, base)) });
+  await vi.advanceTimersByTimeAsync(9000);
+  if (stream === undefined) throw new Error('Missing body source');
+  stream.enqueue(new TextEncoder().encode('first'));
+  await vi.advanceTimersByTimeAsync(9000); stream.enqueue(new TextEncoder().encode('second'));
+  await vi.advanceTimersByTimeAsync(9000); stream.close(); await work;
+  expect(await f.responses[0]?.text()).toBe('firstsecond');
+  expect(f.fetch).toHaveBeenCalledTimes(1);
+  expect(f.fetch.mock.calls[0]?.[1]?.signal?.aborted).toBe(false);
+  expect(vi.getTimerCount()).toBe(0);
 });

@@ -15,8 +15,8 @@ export function readCodePack(input: unknown): readonly [string, number, number] 
 
 /** Ask the controlling worker to verify and durably publish the existing code
  * bank. Unsupported workers/storage failures retain normal per-module fetches.
- * Only the initial protocol handshake is timed; a started transfer is owned by
- * the original boot/network deadline rather than a second competing download. */
+ * Both handshake and started transfer are bounded. A stalled worker yields to
+ * the original per-module path instead of retaining the title handoff forever. */
 export async function prepareCodePack(input: unknown, owner: Scope): Promise<(() => void) | null> {
   const [url, bytes, decoded] = readCodePack(input), worker = navigator.serviceWorker?.controller;
   if (worker === null || worker === undefined || owner.disposed) return null;
@@ -25,18 +25,23 @@ export async function prepareCodePack(input: unknown, owner: Scope): Promise<(()
   let stored = false;
   await new Promise<void>(resolve => {
     let ended = false;
-    let cancelHandshake = (): void => { /* Installed before the worker is messaged. */ };
+    let cancelDeadline = (): void => { /* Installed before the worker is messaged. */ };
     const finish = (): void => {
       if (ended) return;
-      ended = true; cancelHandshake(); channel.port1.close(); channel.port2.close(); resolve();
+      ended = true; cancelDeadline(); channel.port1.close(); channel.port2.close(); resolve();
     };
     const timer = owner.timeout(2500, finish);
-    cancelHandshake = (): void => { owner.cancelTimer(timer); };
+    cancelDeadline = (): void => { owner.cancelTimer(timer); };
+    let started = false;
     owner.onDispose(finish);
     channel.port1.onmessage = (event: MessageEvent<unknown>): void => {
       const data = event.data;
       if (typeof data !== 'object' || data === null || !('type' in data)) return;
-      if (data.type === 'CODE_PACK_STARTED') owner.cancelTimer(timer);
+      if (data.type === 'CODE_PACK_STARTED' && !started) {
+        started = true; owner.cancelTimer(timer);
+        const transfer = owner.timeout(15000, finish);
+        cancelDeadline = (): void => { owner.cancelTimer(transfer); };
+      }
       else if (data.type === 'CODE_PACK_DONE') {
         stored = 'status' in data && data.status === 'stored'; finish();
       }
