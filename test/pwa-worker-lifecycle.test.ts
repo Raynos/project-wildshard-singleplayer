@@ -5,6 +5,7 @@ import { runInNewContext } from 'node:vm';
 import { afterEach, expect, test, vi } from 'vitest';
 import { contentNamed } from '../scripts/app-build/assetHashes';
 import { writeCodePacks } from '../scripts/app-build/codePacks';
+import { CONTENT_CACHE_NAME, CONTENT_CACHE_ROOT } from '../src/engine/boot/contentCache';
 // oxlint-disable-next-line import/no-nodejs-modules -- The transport fixture owns only its exact temporary output tree.
 import { resolve as resolvePath } from 'node:path';
 
@@ -57,12 +58,13 @@ function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>, 
   const packSource = readFileSync('src/engine/pwa/codePack.js', 'utf8').replaceAll(/^export /gmu, '');
   const worker = readFileSync('src/engine/pwa/sw.js', 'utf8').replace("import { workerScope, WorkerScope } from '../app/workerScope.js';\n", '').replace("import { codePackEntries, readCodePackTransport } from './codePack.js';\n", '')
     .replaceAll('__BUILD_ID__', 'unit-build').replaceAll('__ASSET_ID__', 'unit-assets')
+    .replaceAll('__CONTENT_CACHE__', CONTENT_CACHE_NAME).replaceAll('__CONTENT_ROOT__', CONTENT_CACHE_ROOT)
     .replace("'__BUNDLE__'", JSON.stringify(JSON.stringify(bundle)))
     .replace("'__WARM__'", JSON.stringify(JSON.stringify(warm)))
     .replace("'__INSTALL__'", JSON.stringify(JSON.stringify([entry, dependency, css])))
     .replace("'__CODE_PACKS__'", JSON.stringify(JSON.stringify(packs ?? { files: [], entries: {} })))
     .replace("'__FONTS__'", JSON.stringify(JSON.stringify(fonts)));
-  runInNewContext(`${owner}\n${packSource}\n${worker}`, { self, caches, fetch, URL, Request, Response, Headers, Blob, ReadableStream, DecompressionStream, TextDecoder, AbortController, setTimeout, clearTimeout, Date, console, crypto });
+  runInNewContext(`${owner}\n${packSource}\n${worker}`, { self, caches, fetch, URL, Request, Response, Headers, Blob, ReadableStream, DecompressionStream, TextDecoder, AbortController, Error, setTimeout, clearTimeout, Date, console, crypto });
   const dispatch = async (kind: string, payload: Pick<WorkerEvent, 'data' | 'request' | 'ports'> = {}): Promise<void> => {
     const pending: Promise<unknown>[] = [];
     for (const listener of listeners.get(kind) ?? []) listener({ ...payload, source: { postMessage: (value: unknown) => { replies.push(value); } }, waitUntil: work => { pending.push(work); }, respondWith: work => { pending.push(work.then(response => { responses.push(response); return response; })); } });
@@ -602,4 +604,61 @@ test('GLB data reaches the page before completion and a stalled suffix cannot en
   expect(f.fetch).toHaveBeenCalledTimes(1);
   expect(await(await f.open('ws-static-unit-assets')).match(new URL(path,base).href)).toBeUndefined();
   expect(vi.getTimerCount()).toBe(0);
+});
+
+test('shard blobs reuse only the verified content cache and leave persistence to its owner', async () => {
+  const hash = 'a'.repeat(64), path = `/shardfiles/sample/blobs/glb/${hash}.glb`, url = new URL(path, base).href;
+  const f = fixture(() => Promise.resolve(new Response(Uint8Array.of(1,2,3))));
+  const content = await f.open(CONTENT_CACHE_NAME), legacy = await f.open('ws-static-unit-assets');
+  const key = new URL(hash, new URL(CONTENT_CACHE_ROOT, base)).href;
+  const contentWrites = vi.spyOn(content, 'put'), legacyWrites = vi.spyOn(legacy, 'put');
+  await f.dispatch('fetch', {request:new Request(url)});
+  const bytes = await f.responses[0]?.arrayBuffer(); expect(new Uint8Array(bytes ?? [])).toEqual(Uint8Array.of(1,2,3));
+  expect(contentWrites).not.toHaveBeenCalled(); expect(legacyWrites).not.toHaveBeenCalled();
+  // The authenticated owner publishes once. The next request is offline and
+  // must use that exact canonical key without another network or static copy.
+  await content.put(key, new Response(bytes)); f.navigator.onLine = false;
+  await f.dispatch('fetch', {request:new Request(url)});
+  expect(await f.responses[1]?.arrayBuffer()).toEqual(bytes);
+  expect(f.responses[1]?.headers.get('server-timing')).toContain('ws-cache');
+  expect(f.fetch).toHaveBeenCalledTimes(1); expect(contentWrites).toHaveBeenCalledTimes(1); expect(legacyWrites).not.toHaveBeenCalled();
+  await f.dispatch('message',{data:{type:'STORE',url,blob:new Blob([Uint8Array.of(1,2,3)])}});
+  await f.dispatch('message',{data:{type:'PREFETCH',url}});
+  expect(f.replies).toContainEqual({type:'STORED',status:'failed',bytes:0});
+  expect(f.replies).toContainEqual({type:'PREFETCHED',status:'hit',bytes:0});
+  expect(contentWrites).toHaveBeenCalledTimes(1); expect(legacyWrites).not.toHaveBeenCalled();
+});
+
+test('shard Range reads preserve their response rather than replaying a full cached body', async () => {
+  const hash='b'.repeat(64), url=new URL(`/shardfiles/sample/blobs/bin/${hash}.bin`,base).href;
+  const f=fixture(()=>Promise.resolve(new Response(Uint8Array.of(7,8),{status:206,headers:{'content-range':'bytes 2-3/6'}})));
+  await(await f.open(CONTENT_CACHE_NAME)).put(new URL(hash,new URL(CONTENT_CACHE_ROOT,base)).href,new Response(Uint8Array.of(0,1,7,8,4,5)));
+  await f.dispatch('fetch',{request:new Request(url,{headers:{range:'bytes=2-3'}})});
+  expect(f.responses[0]?.status).toBe(206); expect(f.responses[0]?.headers.get('content-range')).toBe('bytes 2-3/6');
+  expect(new Uint8Array(await f.responses[0]?.arrayBuffer()??[])).toEqual(Uint8Array.of(7,8));
+  expect(f.fetch).toHaveBeenCalledTimes(1);
+});
+
+test('shard download slots cover whole bodies, cancel queued work, and drop to two after control', async () => {
+  const sources: ReadableStreamDefaultController<Uint8Array>[]=[];
+  const f=fixture(url=>Promise.resolve(url.includes('/blobs/')?new Response(new ReadableStream<Uint8Array>({start(c){sources.push(c);c.enqueue(Uint8Array.of(3));}})):Response.json({})));
+  const request=(i:number,signal?:AbortSignal):Request=>new Request(new URL(`/shardfiles/sample/blobs/bin/${i.toString(16).padStart(64,'0')}.bin`,base),signal===undefined?{}:{signal});
+  await Promise.all(Array.from({length:6},(_,i)=>f.dispatch('fetch',{request:request(i)})));
+  expect(sources).toHaveLength(6);
+  const abort=new AbortController(); const cancelled=expect(f.dispatch('fetch',{request:request(6,abort.signal)})).rejects.toThrow('cancel queue');
+  abort.abort(new Error('cancel queue')); await cancelled;
+  const queued=f.dispatch('fetch',{request:request(7)});
+  await Promise.resolve(); expect(sources).toHaveLength(6);
+  await f.responses[0]?.body?.cancel(); await queued; expect(sources).toHaveLength(7);
+  await f.dispatch('message',{data:{type:'GC'}});
+  const late=f.dispatch('fetch',{request:request(8)});
+  // Six already-started downloads finish naturally. A post-control request
+  // stays queued until fewer than two bodies are still live.
+  await Promise.all(f.responses.slice(1,6).map(async r=>{await r.body?.cancel();})); await late;
+  expect(sources).toHaveLength(8);
+  const last=f.dispatch('fetch',{request:request(9)});
+  await Promise.resolve(); expect(sources).toHaveLength(8);
+  await f.responses[6]?.body?.cancel(); await last; expect(sources).toHaveLength(9);
+  await Promise.all(f.responses.slice(7).map(async r=>{await r.body?.cancel();}));
+  expect(f.fetch.mock.calls.filter(([input])=>(typeof input==='string'?input:input.url).includes('/blobs/'))).toHaveLength(9);
 });

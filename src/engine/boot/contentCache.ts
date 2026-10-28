@@ -18,6 +18,8 @@ export interface ContentCachePorts {
 export interface ContentCacheStats { bytes: number; entries: number }
 /** Version-independent, origin-wide immutable bytes shared by every content source and visited instance. */
 export const CONTENT_CACHE_NAME = 'ws-content-v0';
+/** Canonical immutable-body keys shared with the worker's read-only transport. */
+export const CONTENT_CACHE_ROOT = '/__ws_content__/v0/';
 const MAX_FILE = 25_000_000, MAX_INDEX = 2_000_000;
 
 /** The index size is an allocation hint, never authority over the stream/hash.
@@ -67,7 +69,7 @@ export class ContentCache {
   private readonly inflight = new Map<string, Promise<Uint8Array>>();
   private readonly pendingWrites = new Set<Promise<boolean>>();
   constructor(ports: ContentCachePorts) {
-    this.ports = ports; this.root = new URL('/__ws_content__/v0/', ports.origin).href;
+    this.ports = ports; this.root = new URL(CONTENT_CACHE_ROOT, ports.origin).href;
     // G554: room for the grid's whole known set (~650 MB, ~6k files), still capped at a quarter of the origin's quota
     this.maximum = ports.maxBytes ?? 1536 * 1024 * 1024; this.entries = ports.maxEntries ?? 10_000; this.reserve = ports.reserveBytes ?? 32 * 1024 * 1024;
     if (![this.maximum, this.entries, this.reserve].every((n) => Number.isSafeInteger(n) && n >= 0) || this.entries > 10000) throw new Error('Invalid content cache limits');

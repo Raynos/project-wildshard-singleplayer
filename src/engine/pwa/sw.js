@@ -88,8 +88,41 @@ function publishCached(cache, key, response) {
 const SHELL = `ws-shell-${BUILD}`;
 const STATIC = `ws-static-${ASSETS}`;
 const IMMUTABLE_CACHE = 'ws-immutable';
+const CONTENT_CACHE = '__CONTENT_CACHE__', CONTENT_ROOT = '__CONTENT_ROOT__';
 // Content-addressed author bytes and visited manifests have their own admission/quota policy, independent of a build.
-const KEEP = [SHELL, STATIC, IMMUTABLE_CACHE, 'ws-content-v0', '__PRODUCT_CACHE__']; // src/engine/pwa/cacheNames.ts
+const KEEP = [SHELL, STATIC, IMMUTABLE_CACHE, CONTENT_CACHE, '__PRODUCT_CACHE__'];
+const SHARD_BLOB_RE = /^\/shardfiles\/[^/]+\/blobs\/(?:[^/]+\/)*([a-f0-9]{64})\.[a-z0-9]+$/;
+let blobLimit = 6, blobActive = 0;
+/** @type {{req:Request, resolve:(release:()=>void)=>void, reject:(reason:unknown)=>void, owner:WorkerScope}[]} */
+const blobQueue = [];
+function pumpBlobs() {
+  while (blobActive < blobLimit && blobQueue.length > 0) {
+    const ticket = blobQueue.shift();
+    if (!ticket) break;
+    ticket.owner.dispose(); blobActive++;
+    let released = false;
+    ticket.resolve(() => {
+      if (released) return;
+      released = true; blobActive--; pumpBlobs();
+    });
+  }
+}
+/** Hold a network slot through body completion, not just response headers.
+ * @param {Request} req @returns {Promise<()=>void>} */
+function reserveBlob(req) {
+  return new Promise((resolve, reject) => {
+    const owner = new WorkerScope();
+    const ticket = { req, resolve, reject, owner };
+    const abort = () => {
+      const index = blobQueue.indexOf(ticket);
+      if (index !== -1) blobQueue.splice(index, 1);
+      const reason = req.signal.reason;
+      owner.dispose(); reject(reason instanceof Error ? reason : new Error('Content download aborted', { cause: reason }));
+    };
+    if (req.signal.aborted) { abort(); return; }
+    owner.listen(req.signal, 'abort', abort); blobQueue.push(ticket); pumpBlobs();
+  });
+}
 /** E160: content names include packs, `<name>-<hash8>.<ext>` and `<sha256>.<ext>`.
  * scripts/app-build/assetHashes.ts contentNamed: keep in step. */
 const CONTENT_NAMED_RE = /^\/assets\/packs\/|-[0-9a-f]{8}\.[a-z0-9]+$|\/[0-9a-f]{64}\.[a-z0-9]+$/;
@@ -437,7 +470,7 @@ workerScope.listen(self, 'message', (event) => {
     timings: performance.getEntriesByType('resource').map(entry => entry.toJSON()),
   })));
   else if (data.type === 'VERSION') event.waitUntil(reply(event, version()));
-  else if (data.type === 'GC') event.waitUntil(reply(event, collectCaches()));
+  else if (data.type === 'GC') { blobLimit = 2; event.waitUntil(reply(event, collectCaches())); }
   else if (data.type === 'BUILD') event.waitUntil(reply(event, Promise.resolve({ type: 'BUILD', build: BUILD, activationStage })));
   else if (data.type === 'PREFETCH' && typeof data.url === 'string') event.waitUntil(reply(event, prefetchOne(data.url)));
   else if (data.type === 'STORE' && typeof data.url === 'string' && data.blob instanceof Blob) event.waitUntil(reply(event, storeOne(data.url, data.blob)));
@@ -503,6 +536,7 @@ async function prepareWorkerCodePack(row, progress) {
 async function storeOne(u, blob) {
   const url = new URL(u, self.registration.scope);
   const out = (status, bytes = 0) => ({ type: 'STORED', status, bytes });
+  if (SHARD_BLOB_RE.test(url.pathname)) return out('failed'); // Only the verified content owner may persist these bodies.
   if (url.origin !== self.location.origin || !CONTENT_NAMED_RE.test(url.pathname)) return out('failed');
   const cache = await caches.open(cacheFor(url.pathname));
   if (await cache.match(url.href, MATCH_OPTS)) return out('hit');
@@ -520,6 +554,11 @@ async function prefetchOne(u) {
   const url = new URL(u, self.registration.scope);
   const out = (status, bytes = 0) => ({ type: 'PREFETCHED', status, bytes });
   if (url.origin !== self.location.origin) return out('failed');
+  const blobHash = SHARD_BLOB_RE.exec(url.pathname)?.[1];
+  if (blobHash !== undefined) {
+    const cache = await caches.open(CONTENT_CACHE);
+    return out(await cache.match(new URL(blobHash, abs(CONTENT_ROOT)).href, MATCH_OPTS) ? 'hit' : 'failed');
+  }
   const cache = await caches.open(cacheFor(url.pathname));
   if (await cache.match(url.href, MATCH_OPTS)) return out('hit');
   try {
@@ -578,11 +617,17 @@ workerScope.listen(self, 'fetch', (event) => {
   if (url.pathname === '/version.json') return; // network-only: the build pill must see the server
   const isDoc = req.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html';
   if (isDoc) {
+    blobLimit = 6; pumpBlobs();
     event.respondWith(documentResponse(event, req));
     return;
   }
   if (NETWORK_FIRST_RE.test(url.pathname)) {
     event.respondWith(networkFirst(req, SHELL));
+    return;
+  }
+  const blobHash = SHARD_BLOB_RE.exec(url.pathname)?.[1];
+  if (blobHash !== undefined) {
+    event.respondWith(shardBlob(req, blobHash));
     return;
   }
   // Module imports use destination script, including unversioned entry/helper URLs.
@@ -650,15 +695,15 @@ class WorkerFetchStallError extends Error {
 function wholeCode(req) {
   return req.destination === 'script' || req.destination === 'style' || /\.(?:m?js|css)$/.test(new URL(req.url).pathname);
 }
-/** @param {Request|string} input @param {{stallMs?:number, deadlineMs?:number}} [options] @returns {Promise<Response>} */
-async function fetchAttempt(input, { stallMs = FETCH_ATTEMPT_MS, deadlineMs } = {}) {
+/** @param {Request|string} input @param {{stallMs?:number, deadlineMs?:number, onFinish?:()=>void}} [options] @returns {Promise<Response>} */
+async function fetchAttempt(input, { stallMs = FETCH_ATTEMPT_MS, deadlineMs, onFinish } = {}) {
   const req = typeof input === 'string' ? new Request(input) : input;
   const owner = new WorkerScope(), controller = new AbortController();
   let watch = new WorkerScope(), reset = () => undefined;
   /** @type {ReadableStreamDefaultReader<Uint8Array>|undefined} */ let reader;
   /** @type {ReadableStreamDefaultController<Uint8Array>|undefined} */ let output;
   let transferred = false, ended = false;
-  const cleanup = () => { if (ended) return; ended = true; owner.dispose(); watch.dispose(); };
+  const cleanup = () => { if (ended) return; ended = true; owner.dispose(); watch.dispose(); onFinish?.(); };
   const cancelBody = () => { if (reader) void reader.cancel().catch(() => undefined); };
   /** @type {Promise<never>} */
   const deadline = new Promise((_resolve, reject) => {
@@ -683,7 +728,7 @@ async function fetchAttempt(input, { stallMs = FETCH_ATTEMPT_MS, deadlineMs } = 
   });
   try {
     const res = await Promise.race([fetch(input, { signal: controller.signal }), deadline]);
-    if (!res.ok || res.body === null) return res;
+    if (res.body === null) return res;
     reset(); reader = res.body.getReader();
     if (!wholeCode(req)) {
       const stream = new ReadableStream({
@@ -721,6 +766,30 @@ function transportReceipt(response, cached = false) {
   const bytes = Number(headers.get('content-length')) || 0;
   headers.set('server-timing', `${previous ? `${previous},` : ''}${cached ? 'ws-cache' : 'ws-network'};dur=${bytes}${!cached && workerTransport ? ',ws-receipt' : ''}`);
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+
+/** ContentCache alone authenticates, indexes and stores these bodies. The
+ * worker only reads that same cache; a miss must not create a second static
+ * copy or bypass the content owner's quota/LRU. Legacy Range readers retain
+ * their original network response and complete-member verification. */
+async function shardBlob(req, hash) {
+  if (!req.headers.has('range')) {
+    try {
+      const cache = await caches.open(CONTENT_CACHE);
+      const hit = await cache.match(new URL(hash, abs(CONTENT_ROOT)).href, MATCH_OPTS);
+      if (hit) return transportReceipt(hit, true);
+    } catch { /* Storage denial keeps the original verified online reader. */ }
+  }
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const release = await reserveBlob(req);
+    try {
+      return transportReceipt(await fetchAttempt(attempt === 0 ? req : new Request(req, { cache: 'reload' }), { onFinish: release }));
+    } catch (error) {
+      release();
+      if (!(error instanceof WorkerFetchStallError) || req.signal.aborted || attempt > 0) throw error;
+    }
+  }
+  throw new Error('Unreachable content download');
 }
 
 async function cacheFirst(req, name) {

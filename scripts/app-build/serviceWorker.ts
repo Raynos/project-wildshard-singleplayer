@@ -20,6 +20,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { dirname, join } from 'node:path';
 import { hashTree } from './assetHashes';
 import { PRODUCT_CACHE_NAME } from '../../src/engine/pwa/cacheNames';
+import { CONTENT_CACHE_NAME, CONTENT_CACHE_ROOT } from '../../src/engine/boot/contentCache';
 import { bootModuleFiles } from './bootModules';
 import { writtenBundle, type EmittedFile } from './writtenBundle';
 import { readModuleFiles } from '../../src/engine/boot/download';
@@ -152,7 +153,8 @@ export function serviceWorkerCore(bundle: Readonly<Record<string, EmittedFile>>,
   if (warm.some(file => !hashed.includes(file))) throw new Error('Worker warm file is absent from the emitted bundle');
   const core = src.replaceAll('__BUILD_ID__', build).replaceAll('__ASSET_ID__', assets).replace("'__BUNDLE__'", JSON.stringify(JSON.stringify(hashed)))
     .replace("'__INSTALL__'", JSON.stringify(JSON.stringify(install))).replace("'__WARM__'", JSON.stringify(JSON.stringify(warm)))
-    .replace("'__FONTS__'", JSON.stringify(JSON.stringify(fonts))).replace("'__CODE_PACKS__'", JSON.stringify(JSON.stringify(code))).replace('__PRODUCT_CACHE__', PRODUCT_CACHE_NAME);
+    .replace("'__FONTS__'", JSON.stringify(JSON.stringify(fonts))).replace("'__CODE_PACKS__'", JSON.stringify(JSON.stringify(code))).replace('__PRODUCT_CACHE__', PRODUCT_CACHE_NAME)
+    .replaceAll('__CONTENT_CACHE__', CONTENT_CACHE_NAME).replaceAll('__CONTENT_ROOT__', CONTENT_CACHE_ROOT);
   return { core, build, assets, hashed };
 }
 
