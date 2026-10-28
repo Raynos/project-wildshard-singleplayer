@@ -52,9 +52,18 @@ function rawModule(owner:Scope|undefined,row:ReturnType<typeof readProgram>,witn
   return bytes;
 }
 
+/** admitted programs by their frozen declaration (T10: every herd and pack of a Nalati entry admitted the same declaration
+ *  again, ~10 ms a group at phone 4x, before its owner's instance memo returned the shared program). A frozen input cannot
+ *  change, so its admission is reused; anything else is admitted on every call. */
+const admittedPrograms = new WeakMap<object, ReturnType<typeof admitProgram>>();
 /** Detach the closed descriptor before consulting a scope's admitted modules.
  * A declared v2 projection never falls back to legacy bytes on refusal. */
-function readProgram(input: unknown): Omit<v.InferOutput<typeof ReturnProgramSchema>,'script'> & { script: DecisionScriptRow } {
+function readProgram(input: unknown): ReturnType<typeof admitProgram> {
+  if (typeof input !== 'object' || input === null || !Object.isFrozen(input)) return admitProgram(input);
+  const known = admittedPrograms.get(input); if (known !== undefined) return known;
+  const row = admitProgram(input); admittedPrograms.set(input, row); return row;
+}
+function admitProgram(input: unknown): Omit<v.InferOutput<typeof ReturnProgramSchema>,'script'> & { script: DecisionScriptRow } {
   if (!isJsonData(input)) throw new Error('Return program requires JSON data');
   const row = v.parse(ReturnProgramSchema,input),script = parseDecisionScripts([row.script])[0];
   if (script === undefined) throw new Error('Missing return script');
