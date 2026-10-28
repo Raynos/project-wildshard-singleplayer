@@ -143,17 +143,15 @@ async function startSelected(): Promise<void> {
   };
   loading.waiting('Preparing application services');
   // Cover the full-ALL route's five observed misses; never recycle growables.
-  const [{ prepareScriptMemoryBank }, { workSlice }, { diagnosticNow }] = await Promise.all([
+  const [{ prepareScriptMemoryBank }, { yieldTask }, { diagnosticNow }] = await Promise.all([
     retried(() => import('./engine/script/moduleV2')), retried(() => import('@wildshard/engine/core/workSlice')),
     retried(() => import('@wildshard/engine/core/clock')),
   ]);
-  const memorySlice = workSlice(undefined, entryScope), memoryStartedAt = diagnosticNow();
+  const memoryStartedAt = diagnosticNow();
   let memoryTurns = 0, memoryWaitMs = 0;
   await prepareScriptMemoryBank([35, 0, 1, 0], async () => {
-    const pending = memorySlice.check();
-    if (pending !== undefined) {
-      memoryTurns++; const at = diagnosticNow(); await pending; memoryWaitMs += diagnosticNow() - at;
-    }
+    // Each native reserve gets its own task, even when the CPU budget is free.
+    memoryTurns++; const at = diagnosticNow(); await yieldTask(entryScope); memoryWaitMs += diagnosticNow() - at;
     if (entryScope.disposed || entryScope.disposing) throw new Error('Entry memory preparation ended');
   }, [{ initial: 1, maximum: 2, count: 5 }, { initial: 1, maximum: 64, count: 4 }]);
   performance.measure('wildshard.prepare:boot.script-memory-bank', { start: memoryStartedAt, end: diagnosticNow(),
