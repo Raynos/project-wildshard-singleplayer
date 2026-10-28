@@ -938,3 +938,21 @@ test('an unsupported range refuses without a whole-pack fallback and a repaired 
   expect(await Promise.all([assets.read(f.first.hash),assets.read(f.second.hash)])).toEqual([new Uint8Array([1,2,3]),new Uint8Array([4,5,6])]);
   expect(reads).toBe(2);expect(assets.retained.size).toBe(0);
 });
+
+
+test('low-priority read-ahead and actual demand share one exact verified body', async () => {
+  const row = fixture(true), opts = options(row.wires), source = await readProductDescriptor(opts);
+  const file = source.files[0], bytes = row.wires.get(`blobs/bin/${file?.hash ?? ''}.bin`);
+  if (file === undefined || bytes === undefined) throw new Error('Native body fixture missing');
+  let finish = (_value: Response): void => undefined;
+  const body = new Promise<Response>(resolve => { finish = resolve; });
+  const backgroundFetch = vi.fn(() => body), fetch = vi.fn(() => Promise.reject(new Error('Ordinary retry'))), verify = vi.fn(hash);
+  const assets = new ClientAssets(source, new Map(), { ...opts, hash: verify, fetch, backgroundFetch });
+  const warm = assets.read(file.hash, 'low'), demand = assets.read(file.hash);
+  finish(new Response(Uint8Array.from(bytes)));
+  expect(await warm).toEqual(bytes); expect(await demand).toBe(await warm);
+  expect(backgroundFetch).toHaveBeenCalledOnce(); expect(fetch).not.toHaveBeenCalled();
+  expect(verify).toHaveBeenCalledOnce(); expect(assets.retained.size).toBe(0);
+  await expect(assets.read(file.hash)).rejects.toThrow('Ordinary retry');
+  expect(fetch).toHaveBeenCalledOnce();
+});

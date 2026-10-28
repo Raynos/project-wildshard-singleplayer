@@ -161,18 +161,3 @@ test(flightGc, async () => {
 });
 
 
-test('low-priority read-ahead and actual demand share one exact verified body', async () => {
-  const f = fixture();
-  let finish = (_value: Response): void => undefined;
-  const body = new Promise<Response>(resolve => { finish = resolve; });
-  const backgroundFetch = vi.fn(() => body);
-  const assets = new ClientAssets(f.source, new Map(), { ...f.options, offline: false, backgroundFetch });
-  const warm = assets.read(f.ref, 'low'), demand = assets.read(f.ref);
-  await Promise.resolve(); await Promise.resolve(); await Promise.resolve();
-  finish(new Response(Uint8Array.from(f.bytes)));
-  expect(await warm).toEqual(f.bytes); expect(await demand).toBe(await warm);
-  expect(backgroundFetch).toHaveBeenCalledOnce(); expect(f.fetch).not.toHaveBeenCalled();
-  expect(f.options.hash).toHaveBeenCalledOnce(); expect(assets.retained.size).toBe(0);
-  await expect(assets.read(f.ref)).rejects.toThrow('Unexpected transport fetch');
-  expect(f.fetch).toHaveBeenCalledOnce();
-});
