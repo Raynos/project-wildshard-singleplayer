@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { SEED } from '@wildshard/engine/core/config';
+import { SEED } from './landscapeRows';
 import { Rng } from '@wildshard/sdk/random';
-import { withoutHidden } from '@wildshard/engine/world/geometryKit';
+import { cullFacetedParts as withoutHidden } from '@wildshard/sdk/bake/facetedGeometry';
 import { bakeLog as log, bakePlank as plank, bakeRock as rock, bakeRope as rope } from '@wildshard/sdk/bake/primitives';
 import { ShipwreckBuilder, WRECK_COLOURS as C, type CargoCopy, type WreckAround } from './shipwreck';
 import { addBarrel, addCoil, addCrate } from './cargo';

@@ -76,7 +76,7 @@ export function bakeSagLine(a: THREE.Vector3, b: THREE.Vector3, sag: number, n =
 
 
 /** displace every distinct vertex position by up to ±amp (shared corners move together) */
-function wobble(g: THREE.BufferGeometry, amp: number, rng: Pick<Rng, 'range'>): void {
+export function bakeWobble(g: THREE.BufferGeometry, amp: number, rng: Pick<Rng, 'range'>): void {
   const pos = g.getAttribute('position');
   const seen = new Map<string, [number, number, number]>();
   for (let i = 0; i < pos.count; i++) {
@@ -91,7 +91,7 @@ function wobble(g: THREE.BufferGeometry, amp: number, rng: Pick<Rng, 'range'>): 
 /** a flat-bottomed plank/board: a box with its corners nudged (± wob) so rows of them look hand-sawn */
 export function bakePlank(len: number, w: number, t: number, rng: Pick<Rng, 'range'>, wob = 0.012): THREE.BufferGeometry {
   const g = new THREE.BoxGeometry(len, t, w);
-  wobble(g, wob, rng);
+  bakeWobble(g, wob, rng);
   return g;
 }
 

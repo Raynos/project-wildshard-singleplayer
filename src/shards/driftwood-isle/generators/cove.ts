@@ -1,10 +1,10 @@
 /** Original cove dressing, generated offline against the admitted native terrain. */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { SEED } from '@wildshard/engine/core/config';
-import { Rng } from '@wildshard/engine/core/rng';
-import { rock, log, tris, withoutHidden } from '@wildshard/engine/world/geometryKit';
-import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sdk/bake/facetedGeometry';
+import { SEED } from './landscapeRows';
+import { Rng } from '@wildshard/sdk/random';
+import { bakeRock as rock, bakeLog as log, bakeTriangles as tris } from '@wildshard/sdk/bake/primitives';
+import { FacetedGeometryBuilder as LowPolyKit, cullFacetedParts as withoutHidden } from '@wildshard/sdk/bake/facetedGeometry';
 import { bakeLight, type BakedLight } from './lowpolyPlants';
 import { authoredRockGeometry as rockGeometry } from './rocks';
 import { REEF_ROCK } from './rockProfiles';

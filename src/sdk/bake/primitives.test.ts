@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
-import { Vector3, type BufferGeometry } from 'three';
+import { BoxGeometry, BufferAttribute, Vector3, type BufferGeometry } from 'three';
 import { Rng as NativeRng } from '@wildshard/engine/core/rng';
-import { rock, tris, log, beam, plank, rope, sagLine } from '@wildshard/engine/world/geometryKit';
+import { rock, tris, log, beam, plank, rope, sagLine, wobble } from '@wildshard/engine/world/geometryKit';
 import { Rng } from '../random';
-import { bakeRock, bakeTriangles, bakeLog, bakeBeam, bakePlank, bakeRope, bakeSagLine } from './primitives';
+import { bakeRock, bakeTriangles, bakeLog, bakeBeam, bakePlank, bakeRope, bakeSagLine, bakeWobble } from './primitives';
 
 function exact(actual: BufferGeometry, original: BufferGeometry): void {
   expect(Object.keys(actual.attributes)).toEqual(Object.keys(original.attributes));
@@ -64,5 +64,18 @@ test('author planks retain native shared-corner wobble and stream continuation',
     const original = plank(1.2, 0.3, 0.07, source, wob), actual = bakePlank(1.2, 0.3, 0.07, author, wob);
     try { exact(actual, original); expect(author.snapshot()).toEqual(source.snapshot()); }
     finally { actual.dispose(); original.dispose(); }
+  }
+});
+
+test('standalone author wobble retains every duplicate corner and RNG continuation', () => {
+  for (const seed of [0, -1, 791]) for (const amp of [0, 0.012, 0.7]) {
+    const source = new NativeRng(seed), author = new Rng(seed), original = new BoxGeometry(1.3, 0.71, 2.9), actual = original.clone();
+    try {
+      wobble(original, amp, source); bakeWobble(actual, amp, author);
+      exact(actual, original); expect(author.snapshot()).toEqual(source.snapshot());
+      const expected = original.getAttribute('position'), output = actual.getAttribute('position');
+      if (!(expected instanceof BufferAttribute) || !(output instanceof BufferAttribute)) throw new Error('Unexpected interleaved box');
+      expect(output.version).toBe(expected.version);
+    } finally { original.dispose(); actual.dispose(); }
   }
 });

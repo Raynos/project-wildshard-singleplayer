@@ -4941,6 +4941,8 @@ The adapter supplies the existing pattern ports: the ram's live home and shared 
 
 `@wildshard/sdk/bake/facetedGeometry` provides `FacetedGeometryBuilder` for offline seeded face painting, wobble, topped parts, sway attributes, AO and hidden-face removal. Added parts are consumed; `finish` returns owned geometry and clears the pending parts. Terrain contacts are explicit callbacks; no renderer, material or live level is constructed.
 
+`bake/primitives.bakeWobble` mutates distinct shared corners with the caller's RNG stream. `bake/facetedGeometry.cullFacetedParts` consumes only parts whose hidden triangles are removed; unchanged parts retain identity, and retained channel bits, normalized flags, part order and userData ownership are preserved. Ground samples are explicit callbacks.
+
 `withFacetedAO(bytes, compile)` runs a synchronous author compilation with a private committed AO table, then releases its entries on success or failure. Nested calls retain existing entries; malformed tables keep the original marching fallback. A thenable result refuses.
 `rows` admits achievement counters, quest steps/hints/services, page interactions/composition and cover ownership through their defining strict formats. These author data functions install no page, service, geometry or storage owner.
 `bake/placement.AuthorPlacement` retains the complete native author copy pose, including matrix, parameter overrides, variant, tint and weld host; it grants no runtime registration service.

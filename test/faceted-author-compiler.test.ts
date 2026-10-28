@@ -3,7 +3,8 @@ import { execFileSync } from 'node:child_process';
 import { expect, expectTypeOf, test } from 'vitest';
 import { BoxGeometry, BufferAttribute, type BufferGeometry, Color, Matrix4, PlaneGeometry, SphereGeometry } from 'three';
 import { LowPolyKit } from '../src/engine/world/lowpolyKit';
-import { FacetedGeometryBuilder, type FacetedGeometrySink } from '../src/sdk/bake/facetedGeometry';
+import { withoutHidden } from '../src/engine/world/geometryKit';
+import { FacetedGeometryBuilder, cullFacetedParts, type FacetedGeometrySink } from '../src/sdk/bake/facetedGeometry';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
 type Options = NonNullable<Parameters<FacetedGeometryBuilder['finish']>[0]>;
@@ -55,4 +56,34 @@ test('the actual author compiler runs beneath the unchanged native renderer guar
     console.log(g.getAttribute('position').count);g.dispose();`;
   const result = execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/sim-node-loader.mjs', '--input-type=module', '-e', source], { encoding: 'utf8', timeout: 30_000 });
   expect(result.trim()).toBe('36');
+});
+
+test('finished-part culling preserves native hidden faces and every retained attribute bit', () => {
+  const parts = [new BoxGeometry(3, 3, 3).toNonIndexed(), new BoxGeometry(0.7, 0.7, 0.7).toNonIndexed(),
+    new BoxGeometry(1, 1, 1).toNonIndexed().translate(2, -4, 0), new PlaneGeometry(2, 2).toNonIndexed().translate(7, 0, 0)];
+  for (const row of parts) {
+    const count = row.getAttribute('position').count;
+    row.setAttribute('aTest', new BufferAttribute(new Int8Array(count).map((_value, i) => i % 127 - 63), 1, true));
+    row.userData = { owner: 'author' };
+  }
+  const copies = parts.map(row => row.clone()), options = { ground: () => -1 };
+  const native = withoutHidden(parts, options), actual = cullFacetedParts(copies, options);
+  try {
+    expect(actual.map(identity)).toEqual(native.map(identity));
+    expect(actual[1]?.getAttribute('position').count).toBe(0);
+    expect(actual[2]?.getAttribute('position').count).toBe(0);
+    for (let i = 0; i < actual.length; i++) {
+      expect(actual[i] === copies[i]).toBe(native[i] === parts[i]);
+      expect(actual[i]?.userData).toBe(copies[i]?.userData);
+    }
+  } finally { for (const row of [...native, ...actual]) row.dispose(); }
+});
+
+test('finished-part culling lends untouched part identity without disposing it', () => {
+  const geometry = new BoxGeometry(1, 1, 1).toNonIndexed();
+  let disposals = 0;
+  geometry.addEventListener('dispose', () => { disposals++; });
+  const result = cullFacetedParts([geometry]);
+  expect(result).toEqual([geometry]); expect(result[0]).toBe(geometry); expect(disposals).toBe(0);
+  geometry.dispose(); expect(disposals).toBe(1);
 });

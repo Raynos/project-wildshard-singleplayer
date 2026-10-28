@@ -11,12 +11,11 @@
  * descriptors, the anchors and the floor rectangles (deck, steps). The defining fixed program owns both.
  */
 import * as THREE from 'three';
-import { SEED } from '@wildshard/engine/core/config';
-import { siteFloor, type BoxSpec as Collider, type FloorRect } from '@wildshard/engine/physics/box';
-import { log, plank, rope, tris } from '@wildshard/engine/world/geometryKit';
+import { SEED } from './landscapeRows';
+import { siteFloor, type BoxSpec as Collider, type FloorRect, boxDesc, type ColliderDesc } from '@wildshard/sdk/bake/placement';
+import { bakeLog as log, bakePlank as plank, bakeRope as rope, bakeTriangles as tris } from '@wildshard/sdk/bake/primitives';
 import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sdk/bake/facetedGeometry';
 import { bakeLight, type BakedLight } from './lowpolyPlants';
-import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 
 /** Where a hut stands: its centre (world xz) and which way its door faces (rot, radians; 0 = −z). */
 export interface HutSite { readonly x: number; readonly z: number; readonly rot: number }

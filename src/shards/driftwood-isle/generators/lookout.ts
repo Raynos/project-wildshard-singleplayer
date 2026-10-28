@@ -11,11 +11,10 @@
  * boxes, the physics descriptors, the anchors and the floor (platform, stair). The defining fixed program owns both.
  */
 import * as THREE from 'three';
-import { SEED } from '@wildshard/engine/core/config';
-import { siteFloor, type BoxSpec as Collider, type FloorRect } from '@wildshard/engine/physics/box';
-import { log, beam, plank, rope, rock, sagLine, tris } from '@wildshard/engine/world/geometryKit';
+import { SEED } from './landscapeRows';
+import { siteFloor, type BoxSpec as Collider, type FloorRect, boxDesc, type ColliderDesc } from '@wildshard/sdk/bake/placement';
+import { bakeLog as log, bakeBeam as beam, bakePlank as plank, bakeRope as rope, bakeRock as rock, bakeSagLine as sagLine, bakeTriangles as tris } from '@wildshard/sdk/bake/primitives';
 import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sdk/bake/facetedGeometry';
-import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 
 /** Where a lookout stands: its centre (world xz) and which side its stair descends toward (rot, radians). */
 export interface LookoutSite { readonly x: number; readonly z: number; readonly rot: number }

@@ -14,7 +14,7 @@
  *   · the two end caps are dark end grain.
  */
 import * as THREE from 'three';
-import { log, wobble } from '@wildshard/engine/world/geometryKit';
+import { bakeLog as log, bakeWobble as wobble } from '@wildshard/sdk/bake/primitives';
 import { FacetedGeometryBuilder as LowPolyKit, type FacetedGeometrySink } from '@wildshard/sdk/bake/facetedGeometry';
 
 /** the body tones (one per log), the facet leans, the crack and the end grain */

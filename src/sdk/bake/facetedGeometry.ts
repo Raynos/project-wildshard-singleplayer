@@ -342,6 +342,14 @@ function dropTriangles(geometry: THREE.BufferGeometry, hidden: Uint8Array): THRE
   return out;
 }
 
+/** Cull finished non-indexed parts against each other and an explicit optional ground.
+ * Unchanged parts retain identity; replaced parts are consumed. All retained attribute bits,
+ * normalized flags and userData ownership survive in original part/triangle order. */
+export function cullFacetedParts(parts: readonly THREE.BufferGeometry[], options: FacetedHiddenOptions = {}): THREE.BufferGeometry[] {
+  const hidden = hiddenTriangles(parts, options);
+  return parts.map((geometry, i) => dropTriangles(geometry, hidden[i] ?? new Uint8Array(0)));
+}
+
 /** Compile synchronously with a private copy of a committed native AO table.
  * Nested scopes retain prior entries; the new entries are released after success or failure.
  * Malformed tables keep the native fallback march. Thenable results refuse. */
