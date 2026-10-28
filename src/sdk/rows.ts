@@ -13,6 +13,11 @@ import { PopulationEnvironmentSchema as GamePopulationEnvironmentSchema, type Po
 import { FigureCatalogueSchema as GameFigureCatalogueSchema, type FigureCatalogueRow as GameFigureCatalogue } from '@wildshard/format/figures';
 import { RangedPageSchema, ForestWeatherObservationSchema } from '@wildshard/format/rangedPage';
 import { RainPresentationSchema } from '@wildshard/format/rainPresentation';
+import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
+import { parseQuestStepRows, parseQuestHintRows, parseQuestServiceActions } from '@wildshard/format/questSteps';
+import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
+import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
+import { CoverCompositionSchema } from '@wildshard/format/streamedCover';
 import * as v from 'valibot';
 import { ItemCatalogue } from '@wildshard/game/loadout/itemCatalogue';
 
@@ -84,3 +89,18 @@ export function parseForestWeatherObservation(input: unknown): v.InferOutput<typ
 
 /** Admit bounded rain presentation, ordered roof polygons and native bake rows. */
 export function parseRainPresentation(input: unknown): v.InferOutput<typeof RainPresentationSchema> { return v.parse(RainPresentationSchema, input); }
+
+/** Admit bounded achievement policy without borrowing progress or storage. */
+export function achievementCounterRows(input: unknown): ReturnType<typeof parseAchievementCounterData> { return parseAchievementCounterData(input); }
+/** Admit portable ordered quest steps with their defining cross-row checks. */
+export function questStepRows(input: unknown): ReturnType<typeof parseQuestStepRows> { return parseQuestStepRows(input); }
+/** Admit bounded control hints and their existing observation grammar. */
+export function questHintRows(input: unknown): ReturnType<typeof parseQuestHintRows> { return parseQuestHintRows(input); }
+/** Admit quest service actions without installing page services. */
+export function questServiceRows(input: unknown): ReturnType<typeof parseQuestServiceActions> { return parseQuestServiceActions(input); }
+/** Admit borrowed page interaction identities and their original restore rules. */
+export function questPageInteractionRows(input: unknown): ReturnType<typeof parseQuestPageInteractions> { return parseQuestPageInteractions(input); }
+/** Admit complete quest composition data, including caller-owned entry resources. */
+export function questPageCompositionRows(input: unknown): v.InferOutput<typeof QuestPageCompositionSchema> { return v.parse(QuestPageCompositionSchema, input); }
+/** Admit cover ownership references without constructing ground or geometry. */
+export function coverCompositionRows(input: unknown): v.InferOutput<typeof CoverCompositionSchema> { return v.parse(CoverCompositionSchema, input); }

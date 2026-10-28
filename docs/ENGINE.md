@@ -4914,6 +4914,7 @@ The adapter supplies the existing pattern ports: the ram's live home and shared 
 ## Author schema discovery (OS-F3)
 
 `bake/species`, `bootInventory`, `rows`, `weapons/meleeProfile` and `formatJsonSchema` are offline APIs.
+`rows` admits achievement counters, quest steps/hints/services, page interactions/composition and cover ownership through their defining strict formats. These author data functions install no page, service, geometry or storage owner.
 `bake/placement.AuthorPlacement` retains the complete native author copy pose, including matrix, parameter overrides, variant, tint and weld host; it grants no runtime registration service.
 `bootInventory.bootRecipeFiles` / `bootRecipeSources` resolve ordered author recipes against a required explicit inventory, GPU aliases and optional page/alias tables. Native transform order, duplicates, recursion/file limits and missing-metadata refusals remain; these functions never borrow the live page's inventory.
 `composeNamedJsonSchema` composes named roots, local Valibot leaves, objects and tuples; normal check refusals remain.
