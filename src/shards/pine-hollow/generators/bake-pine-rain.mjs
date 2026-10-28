@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SHARD-PLATFORM W2 C2: Pine Hollow's rain, the static half, baked offline (generators/rainBake.ts): the crowns' cover map
-// (from the forest the page plants: the level selected, its terrain grid installed, `placeForest` on the tree set, as
-// scripts/bake-chunk.mjs does) and each tier's merged puddle discs over the page's own Heightfield. One geometry pack per
+// (from explicit native candidates, ground masks and the retained terrain, without selecting or installing a level)
+// and each tier's merged puddle discs over those same terrain samplers. One geometry pack per
 // tier (@wildshard/sdk/kit/geometryPack: the puddles' positions, `aWater` and index, then the cover's floats), its 4-byte words in four lanes and
 // zlib-compressed, to public/assets/pine-hollow/baked/rain[.phone].bin, and the packs' rows to
 // src/shards/pine-hollow/data/rain.json; the page reads them (runtime/looks/rainFx.ts `loadRainBake`). `--check` refuses a
@@ -10,35 +10,38 @@
 import weather from '../data/weatherLook.json' with { type: 'json' };
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
 import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
 import { GeometryPackWriter } from '@wildshard/sdk/kit/geometryPack';
+import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
+import { bakePlantedForest, nativeTerrainQueries } from '@wildshard/sdk/bake/forest';
+import manifest from '../manifest.json' with { type: 'json' };
+import terrainBindings from '../data/terrainBindings.json' with { type: 'json' };
+import { pineGeographyRows } from './geographyRows.ts';
+import { pineForestRows } from './forestRows.ts';
+import { creekWaterAt } from './geography.ts';
 import { wildlifeWordLanes as shuffleLanes } from './wildlifeWords.ts';
 import { crownCover, puddleGeometry } from './rainBake.ts';
 
 const root = resolve(import.meta.dirname, '../../../..'), check = process.argv.includes('--check');
-const load = (path) => import(pathToFileURL(resolve(root, path)).href);
-const { SHARDS } = await load('src/shards.generated.ts');
-const registry = await load('src/game/shard/registry.ts');
-const HF = await load('src/engine/world/Heightfield.ts');
-const BT = await load('src/engine/world/BakedTerrain.ts');
-const placement = await load('src/engine/world/forest/placement.ts');
-const config = await load('src/engine/core/config.ts');
 const { PINE_RAIN } = weather;
-
-const def = SHARDS.find((shard) => shard.slug === 'pine-hollow');
-if (def === undefined) throw new Error('bake-pine-rain: no pine-hollow shard');
-registry.setActiveChunk(def.slug);
-HF._installBakedTerrain(BT.bakedSamplers(BT.parseBakedTerrain(Uint8Array.from(readFileSync(resolve(root, 'public/assets/baked/pine-hollow/terrain.bin'))).buffer)));
-const { trees } = placement.placeForest(placement.plantSpecs(def.trees));
-const N = PINE_RAIN.coverN, half = config.CHUNK_HALF, seed = config.SEED;
+const terrain = Uint8Array.from(readFileSync(resolve(root, terrainBindings.terrain))), native = readNativeTerrain(terrain);
+const declaredGround = pineGeographyRows().ground;
+const { trees } = bakePlantedForest({
+  seed: manifest.seed, treeCount: manifest.treeCount, forest: manifest.forest, candidates: pineForestRows(manifest), terrain,
+  ground: { seed: declaredGround.terrain.seed, trails: declaredGround.trails, cabinSites: declaredGround.cabinSites,
+    pond: declaredGround.pond, water: declaredGround.water },
+  variants: manifest.trees.setVariants.map(row => ({ trunkRadius: row.trunk, height: row.height, species: row.species, collider: row.collider })),
+});
+const N = PINE_RAIN.coverN, half = native.grid.size / 2, seed = manifest.seed;
 const cover = crownCover(trees, N, half);
 // the page's coverAt: the texel's byte over 255
 const coverAt = (x, z) => {
   const i = Math.floor((x + half) / (2 * half) * N), j = Math.floor((z + half) / (2 * half) * N);
   return i < 0 || j < 0 || i >= N || j >= N ? 0 : (cover[j * N + i] ?? 0) / 255;
 };
-const ground = { heightAt: HF.heightAt, normalAt: HF.normalAt, splatAt: HF.splatAt, trailDistance: HF.trailDistance, cabinMask: HF.cabinMask, pondMask: HF.pondMask, streamAt: HF.streamAt, inChunk: HF.inChunk };
+const ground = { ...native, ...nativeTerrainQueries(declaredGround.terrain.seed, {
+  trails: declaredGround.trails, cabinSites: declaredGround.cabinSites, pond: declaredGround.pond, streamAt: creekWaterAt,
+}, () => declaredGround.water), inChunk: (x, z, margin = 0) => Math.abs(x) <= half - margin && Math.abs(z) <= half - margin };
 const rows = {};
 let stale = false;
 for (const tier of /** @type {const} */ (['phone', 'desktop'])) {
