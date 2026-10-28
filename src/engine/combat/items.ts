@@ -99,6 +99,9 @@ export class ItemRuntime {
       this.fuel = Math.max(0, this.fuel - dt / this.spec.fuelSeconds);
       if (this.fuel === 0) { this.lit = false; this.notify('light'); }
     }
+    // Fuel notifications may have queued a command: check only after those
+    // callbacks, and still advance every clock above when nothing is pending.
+    if (this.pending.length === 0) return;
     const pending = this.pending; this.pending = [];
     for (const command of pending) {
       if (this.ports.active?.() === false || !this.ports.actor.alive || (this.spec.kind === 'weapon' && this.cooldown > 0)) continue;
