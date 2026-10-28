@@ -8,7 +8,7 @@ import { runInNewContext } from 'node:vm';
 import { Scope } from '../app/scope';
 import { installScopeEnvironment, scopeEnvironment } from '../app/scopeEnvironment';
 import { waitForDrawnFrame } from '../render/precompile';
-import { HELD_PARKED_BUDGET, LIVE_PARKED_BUDGET } from '../render/parkedDraws';
+import { HELD_PARKED_BUDGET, HELD_WEBKIT_PARKED_BUDGET, LIVE_PARKED_BUDGET } from '../render/parkedDraws';
 
 const original = scopeEnvironment();
 afterEach(() => { installScopeEnvironment(original); vi.useRealTimers(); });
@@ -34,7 +34,7 @@ async function fixture(isolated: boolean, held = true, frameCount = 1) {
     ${source.slice(budgetStart, pauseEnd)}
     ${paced}
     ${source.slice(call, end)}
-  }).call(game)`), { game, owner, current: () => !owner.disposed, waitForDrawnFrame, buildYield, buildHeld: () => held, HELD_PARKED_BUDGET, LIVE_PARKED_BUDGET,
+  }).call(game)`), { game, owner, current: () => !owner.disposed, waitForDrawnFrame, buildYield, buildHeld: () => held, HELD_PARKED_BUDGET, HELD_WEBKIT_PARKED_BUDGET, LIVE_PARKED_BUDGET,
     isolateImageUploads: isolated, composer: { inputBuffer: {} }, futureRoot: {}, keep: undefined,
     futureEnvironment: null, progress: () => undefined,
     warmParkedDraws: (...args: unknown[]) => { captured = args[6]; options = args[7]; return Promise.resolve(0); } });
@@ -75,9 +75,10 @@ test('retirement rejects a pending parked batch instead of admitting more native
 });
 
 
-test.each([true, false])('live WebKit limits cold bindings and fresh buffers even with held travel %s', async held => {
+// G808: held at the wall a WebKit slice uploads up to 2 MiB; driving keeps 512 KiB. The pipeline fences are the same.
+test.each([[true, 2 * 1024 * 1024], [false, 512 * 1024]])('live WebKit limits cold bindings and fresh buffers (held %s)', async (held, bytes) => {
   const f = await fixture(true, held);
-  try { expect(f.options).toMatchObject({ budget: { drawables: 8, newMaterials: 2, newBindings: 2, bufferBytes: 512 * 1024 } }); }
+  try { expect(f.options).toMatchObject({ budget: { drawables: 8, newMaterials: 2, newBindings: 2, bufferBytes: bytes } }); }
   finally { f.owner.dispose(); }
 });
 

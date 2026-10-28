@@ -1060,10 +1060,11 @@ export class Game {
     onStage('shaders-and-composer', diagnosticNow() - shaderStart, 1);
     const nodesAfter = nodeStats();
     if (nodesAfter !== null) onStage('node-builds', nodesAfter.buildMs - (nodesBefore?.buildMs ?? 0), nodesAfter.builds - (nodesBefore?.builds ?? 0));
-    const { warmParkedDraws, warmOffscreenPasses, HELD_PARKED_BUDGET, LIVE_PARKED_BUDGET } = await import('../render/parkedDraws');
+    const { warmParkedDraws, warmOffscreenPasses, HELD_PARKED_BUDGET, HELD_WEBKIT_PARKED_BUDGET, LIVE_PARKED_BUDGET } = await import('../render/parkedDraws');
     // WebKit first draws can block despite cheap JavaScript submissions. Pace cold
     // bindings one per completed frame; bounded copies share that already-warmed layout.
-    const drawBudget = isolateImageUploads && this.frameCount > 0 ? { budget: LIVE_PARKED_BUDGET }
+    // G808: held at the wall, a WebKit slice may upload 2 MiB of new buffers (same pipeline fences).
+    const drawBudget = isolateImageUploads && this.frameCount > 0 ? { budget: buildHeld() ? HELD_WEBKIT_PARKED_BUDGET : LIVE_PARKED_BUDGET }
       : buildHeld() ? { budget: HELD_PARKED_BUDGET } : {};
     // Held, off WebKit (pipelines build outside the main thread): several planned slices may share a completed frame's
     // draw while held frames keep the 30 fps floor (Pine's afterPlay idled 3.2 s at one slice a frame); WebKit keeps its fences.

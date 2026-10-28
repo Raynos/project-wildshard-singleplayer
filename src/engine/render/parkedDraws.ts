@@ -362,6 +362,12 @@ const DEFAULT_BUDGET: ParkedDrawBudget = { drawables: 8, newMaterials: 2, buffer
  * 16.85 -> 13.35 s, held 27.6 -> 28.9 fps (median 30.3 both), longest drive frame 230 -> 115 ms, frames over 50 ms
  * 34 -> 19, no context loss; the iPhone check is the plan's device reading. */
 export const LIVE_PARKED_BUDGET: ParkedDrawBudget = { drawables: 8, newMaterials: 2, newBindings: 2, bufferBytes: 512 * 1024 };
+/** The live budget while the traveller is held at the wall on WebKit: the same pipeline fences, 2 MiB of new buffers a
+ *  slice. G808: a Nalati arrival uploads 21.6 MB, so 512 KiB slices made its warm upload-bound (23 of 56 slices one
+ *  0.5-3.5 MB mesh each). iOS Simulator Nalati road entry (5e4dc308c0, one run each, frame-floor --surface=sim --quiet):
+ *  crossing 7.77 -> 6.65 s, held 26.7 -> 27.7 fps, parked 1.90 -> 1.58 s (49 -> 45 slices), held models 426 -> 145 ms,
+ *  drive p95 43 / max 147 both, playing 1471 -> 1473 MB, no context loss. Driving keeps LIVE_PARKED_BUDGET. */
+export const HELD_WEBKIT_PARKED_BUDGET: ParkedDrawBudget = { ...LIVE_PARKED_BUDGET, bufferBytes: 2 * 1024 * 1024 };
 /** G580 T5: while the traveller waits at the wall (engine/core/framePacing buildHeld), a slice may draw four times as
  *  many drawables: each slice costs a drawn frame, and the held view's longer frames cost no movement. Its new buffers
  *  stay under 6 MiB (G743): a cold Driftwood crossing's held slices of 12.8 and 15.6 MB filled Chromium's transfer
