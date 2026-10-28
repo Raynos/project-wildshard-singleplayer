@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { Rng } from '../core/rng';
+import type { RngPort } from '../core/rng';
 import { Noise2D } from '../core/noise';
 import { bakedGeometry } from './geometryBake';
 import { dropTriangles, hiddenTriangles, type HiddenOptions } from './hiddenFaces';
@@ -15,7 +15,7 @@ import { dropTriangles, hiddenTriangles, type HiddenOptions } from './hiddenFace
 // ── flat-shaded primitives ──────────────────────────────────────────────────────────────────────────
 
 /** displace every distinct vertex position by up to ±amp (shared corners move together) */
-export function wobble(g: THREE.BufferGeometry, amp: number, rng: Rng): void {
+export function wobble(g: THREE.BufferGeometry, amp: number, rng: RngPort): void {
   const pos = g.getAttribute('position');
   const seen = new Map<string, [number, number, number]>();
   for (let i = 0; i < pos.count; i++) {
@@ -81,7 +81,7 @@ export function sagLine(a: THREE.Vector3, b: THREE.Vector3, sag: number, n = 6):
  * A boulder: an icosahedron (detail 0 = 20 faces, 1 = 80) with every vertex pushed in/out by value
  * noise, squashed vertically. Shared vertices move together so the rock stays watertight.
  */
-export function rock(r: number, detail: number, rng: Rng, squash = 0.7, rough = 0.28): THREE.BufferGeometry {
+export function rock(r: number, detail: number, rng: RngPort, squash = 0.7, rough = 0.28): THREE.BufferGeometry {
   const g = new THREE.IcosahedronGeometry(r, detail);
   const pos = g.getAttribute('position');
   const seen = new Map<string, number>();
@@ -96,7 +96,7 @@ export function rock(r: number, detail: number, rng: Rng, squash = 0.7, rough = 
 }
 
 /** a flat-bottomed plank/board: a box with its corners nudged (± wob) so rows of them look hand-sawn */
-export function plank(len: number, w: number, t: number, rng: Rng, wob = 0.012): THREE.BufferGeometry {
+export function plank(len: number, w: number, t: number, rng: RngPort, wob = 0.012): THREE.BufferGeometry {
   const g = new THREE.BoxGeometry(len, t, w);
   wobble(g, wob, rng);
   return g;
@@ -124,14 +124,14 @@ export function pole(a: THREE.Vector3, b: THREE.Vector3, r0: number, r1: number 
 
 /** a smooth lumpy stone: an icosphere (detail 2 = 320 faces, 1 = 80) displaced by seeded noise, squashed. A shard that adds
  *  a geometry bake (./geometryBake.ts) reads the shape from it; the smooth normals are exact arithmetic, made here */
-export function blob(r: number, rng: Rng, detail = 1, squash = 0.75, rough = 0.22): THREE.BufferGeometry {
+export function blob(r: number, rng: RngPort, detail = 1, squash = 0.75, rough = 0.22): THREE.BufferGeometry {
   const g = bakedGeometry('engine/blob', [r, detail, squash, rough], rng, () => blobShape(r, rng, detail, squash, rough));
   g.computeVertexNormals();
   return g;
 }
 
 /** the blob's welded, displaced shape: indexed, `position` only */
-function blobShape(r: number, rng: Rng, detail: number, squash: number, rough: number): THREE.BufferGeometry {
+function blobShape(r: number, rng: RngPort, detail: number, squash: number, rough: number): THREE.BufferGeometry {
   const g = new THREE.IcosahedronGeometry(r, detail);
   const merged = mergeVerticesByPos(g);
   const pos = merged.getAttribute('position');

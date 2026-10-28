@@ -332,13 +332,11 @@ const random = ctx.app.rng.stream('cosmetic');   // prop scatter: may stay unsee
 
 
 
-The build-only `Rng` and `RngState` in `@wildshard/sdk/random` give shard
-generators Mulberry32 without an engine/runtime import. `new Rng(seed)`,
-`Rng.scrambled(seed)`, draws, snapshot/restore and numeric/string forks
-match `core/rng` exactly. The structural `Rng` instance shape also accepts the
-runtime oracle when a builder is exercised by parity tests. Never use
-this constructor for live gameplay; use `app.rng` there. The permanent
-`test/sdk-author-random.test.ts` fences both implementations' sequences.
+Build-only `Rng`/`RngState` (`@wildshard/sdk/random`) preserve engine
+Mulberry32 draws, forks and continuations; `test/sdk-author-random.test.ts`
+fences parity. Live gameplay uses `app.rng`. `core/rng.RngPort` is the
+structural draw/fork/snapshot/restore contract for geometry builders and
+bake recorders; implementations own their storage.
 
 ## 3. Events, asks, tags
 

@@ -1,11 +1,23 @@
 /** Mulberry32 continuation, including fork seed and the legacy scrambled-fork mode. */
 export interface RngState { version: number; state: number; initial: number; scrambledFork: boolean }
+/** Public seeded draws and continuation; independent of a generator's private storage. */
+export interface RngPort {
+  readonly next: () => number;
+  readonly range: (a: number, b: number) => number;
+  readonly int: (a: number, b: number) => number;
+  readonly pick: <T>(arr: readonly T[]) => T;
+  readonly chance: (p: number) => boolean;
+  readonly weighted: <T>(pairs: readonly (readonly [T, number])[]) => T;
+  readonly fork: (salt: number | string) => RngPort;
+  readonly snapshot: () => RngState;
+  readonly restore: (state: RngState) => void;
+}
 const uint32 = (value: number): boolean => Number.isInteger(value) && value >= 0 && value <= 0xffffffff;
 function validateRngState(state: RngState): void {
   if (state.version !== 1 || !uint32(state.state) || !uint32(state.initial) || typeof state.scrambledFork !== 'boolean') throw new RangeError('Invalid RNG snapshot');
 }
 // Deterministic PRNG (mulberry32) so every playtest sees the same chunk.
-export class Rng {
+export class Rng implements RngPort {
   private s: number;
   private initial: number;
   private scrambledFork = false;

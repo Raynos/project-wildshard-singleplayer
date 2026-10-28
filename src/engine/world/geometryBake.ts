@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { Rng, RngState } from '../core/rng';
+import type { RngPort, RngState } from '../core/rng';
 
 /**
  * Baked builder geometry (SF67 fix 3 part 4, E461): a code-built model's geometry, built once at `wildshard build` time and
@@ -45,7 +45,7 @@ const MAGIC = 0x42475357, VERSION = 1;
 const baked = new Map<string, { readonly view: DataView; readonly at: number }>();
 const stats = { hits: 0, misses: 0 };
 /** Build-only replacement for a recorded builder; null delegates to its original callback. */
-export type GeometryBakeProducer = (id: string, inputs: readonly number[], rng: Rng | null) => THREE.BufferGeometry | null;
+export type GeometryBakeProducer = (id: string, inputs: readonly number[], rng: RngPort | null) => THREE.BufferGeometry | null;
 let recording: Map<string, BakedGeometry> | null = null;
 let recordingProducer: GeometryBakeProducer | null = null;
 const _f64 = new Float64Array(1), _u32 = new Uint32Array(_f64.buffer);
@@ -95,7 +95,7 @@ function arrayOf(type: number, buffer: ArrayBuffer, at: number, length: number):
 const pad4 = (n: number): number => (n + 3) & ~3;
 
 /** The geometry `build` returns, or the bake's copy of it (see the module comment). */
-export function bakedGeometry(id: string, inputs: readonly number[], rng: Rng | null, build: () => THREE.BufferGeometry): THREE.BufferGeometry {
+export function bakedGeometry(id: string, inputs: readonly number[], rng: RngPort | null, build: () => THREE.BufferGeometry): THREE.BufferGeometry {
   if (baked.size === 0 && recording === null) return build();
   const key = keyOf(id, inputs, rng === null ? null : rng.snapshot());
   if (recording === null) {
