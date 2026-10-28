@@ -159,6 +159,33 @@ for (const change of ['entered','resident','world'] as const) {
   });
 }
 
+test('early catalogue refusal reaches its original assembly cursor without a second read', async () => {
+  const f=fixture(),owner=new Scope('early-failure'),native=nativeFixture(f,owner);
+  let started:()=>void=()=>{throw new Error('No read gate');};const began=new Promise<void>(resolve=>{started=resolve;});
+  f.reads.mockImplementationOnce(()=>{started();return Promise.reject(new Error('original catalogue refusal'));});
+  const materials=vi.spyOn(runtimeProduct,'runtimeLookMaterials').mockResolvedValue(emptyLooks());
+  const drain=prepareClientWorldAssembly(native.ctx,assembly);
+  try {
+    await began;
+    await expect(CLIENT_FEATURES['world.assembly'].install(native.ctx,assembly,owner)).rejects.toThrow('original catalogue refusal');
+    expect(f.reads.mock.calls).toEqual([['models.json']]);expect(materials).not.toHaveBeenCalled();
+  } finally {await drain?.();materials.mockRestore();native.scope.dispose();owner.dispose();}
+});
+
+test('shared early intake drains only after every caller releases once', async () => {
+  const f=fixture(),owner=new Scope('early-shared'),native=nativeFixture(f,owner);
+  const record=await native.scope.run(()=>admittedIslandBook(f.product,book.id));
+  let started:()=>void=()=>{throw new Error('No preparation gate');};const begin=new Promise<void>(resolve=>{started=resolve;});
+  const drain=vi.fn(async()=>{await Promise.resolve();});
+  const preparation=vi.spyOn(record.library,'prepareGeometry').mockImplementation(()=>{started();return drain;});
+  const first=prepareClientWorldAssembly(native.ctx,assembly),second=prepareClientWorldAssembly(native.ctx,assembly);
+  try {
+    expect(first).toBeTypeOf('function');expect(second).toBeTypeOf('function');await begin;
+    await first?.();await first?.();expect(drain).not.toHaveBeenCalled();
+    await second?.();await second?.();expect(drain).toHaveBeenCalledTimes(1);expect(preparation).toHaveBeenCalledTimes(1);
+  } finally {await first?.();await second?.();preparation.mockRestore();native.scope.dispose();owner.dispose();}
+});
+
 test('native entered dispatch retains one bound build through leave/reentry and lends the original owners',async()=>{
   const f=fixture(),construction=new Scope('resident'),first=nativeFixture(f,construction),events:string[]=[],group=new Group();
   let finish:()=>void=()=>{throw new Error('No build');},started:()=>void=()=>{throw new Error('No start');};

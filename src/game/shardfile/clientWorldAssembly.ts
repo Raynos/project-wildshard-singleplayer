@@ -23,6 +23,25 @@ const enteredScopes = new WeakSet<ShardContext['scope']>();
 const residents = new WeakMap<IslandLibrary<unknown> | ShardProduct, {
   readonly recipe: string; readonly scenes: unknown; readonly world: HybridResidentWorld<SceneHandles>;
 }>();
+interface AssemblyPreparation {
+  readonly product: ShardProduct;
+  readonly library: string;
+  readonly pending: Promise<(() => Promise<void>) | undefined>;
+  users: number;
+}
+const preparations = new WeakMap<ShardContext['scope'], AssemblyPreparation>();
+function borrowPreparation(scope: ShardContext['scope'], preparation: AssemblyPreparation): () => Promise<void> {
+  preparation.users++;
+  let released: Promise<void> | undefined;
+  return () => { released ??= drainPreparation(scope, preparation); return released; };
+}
+async function drainPreparation(scope: ShardContext['scope'], preparation: AssemblyPreparation): Promise<void> {
+  if (--preparation.users > 0) return;
+  try {
+    const [result] = await Promise.allSettled([preparation.pending]);
+    if (result?.status === 'fulfilled') await result.value?.();
+  } finally { if (preparations.get(scope) === preparation) preparations.delete(scope); }
+}
 /** Start only bounded, owner-bound geometry intake before the ordered world
  * features. The original assembly still admits figures and publishes templates;
  * the phase drains this work even when an earlier feature fails. */
@@ -30,6 +49,11 @@ export function prepareClientWorldAssembly(ctx: ShardContext, row: Extract<Clien
   if (row.native !== undefined || row.library === undefined) return undefined;
   const { scope, product } = ctx, owner = boundResidentWorldScope(scope) ?? scope;
   const source = product.shardfile, read = product.file, json = product.json, library = row.library;
+  const previous = preparations.get(scope);
+  if (previous !== undefined) {
+    if (previous.product !== product || previous.library !== library) throw new Error('Island preparation declaration changed');
+    return borrowPreparation(scope, previous);
+  }
   const game = ctx.game, runtime = game.runtime, world = runtime?.world, host = world?.game, registration = host?.registrationScope;
   const pending = scope.run(async () => {
     const book = await admittedIslandBook(product, library);
@@ -43,10 +67,9 @@ export function prepareClientWorldAssembly(ctx: ShardContext, row: Extract<Clien
   // A speculative failure surfaces at the original assembly admission cursor.
   // Earlier feature errors keep priority, but never strand started intake.
   void pending.catch(() => undefined);
-  return async () => {
-    const [result] = await Promise.allSettled([pending]);
-    if (result?.status === 'fulfilled') await result.value?.();
-  };
+  const preparation = { product, library, pending, users: 0 };
+  preparations.set(scope, preparation);
+  return borrowPreparation(scope, preparation);
 }
 /** Construction remains on its original bound owner; entered reads borrow only
  * after it completes. Leaving an entry never cancels a still-live resident. */
@@ -77,6 +100,11 @@ export async function installClientWorldAssembly(ctx: ShardContext, row: Extract
   live(); preflightIslandBook(product, row);
   if (row.entered !== undefined && enteredScopes.has(scope)) throw new Error('World assembly pieces already entered');
   const libraryId = row.library;
+  const preparation = preparations.get(scope);
+  if (preparation !== undefined) {
+    if (preparation.product !== product || preparation.library !== libraryId) throw new Error('Island preparation declaration changed');
+    await preparation.pending; live();
+  }
   const book = libraryId === undefined ? undefined : await scope.run(() => admittedIslandBook(product, libraryId)); live();
   const construction = row.rows.construction;
   if (construction?.looks === undefined) throw new Error('World construction metadata missing');
