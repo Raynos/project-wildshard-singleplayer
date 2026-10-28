@@ -53,9 +53,10 @@ export function controlChunkSelector(root: string, startup = startupModuleRoots(
   };
 }
 
-/** Explicit equal-requirement cohorts plus execution-order wrappers avoid broad
- * vendor/engine groups. Unselected optional code and shard owners retain their
- * automatic lazy boundaries; initial-only helpers remain entry-aware. */
+/** Phase banks keep exact home requirements and initial/title execution
+ * boundaries. Larger banks trade a wider update invalidation for fewer module
+ * requests; shard and late banks remain entry-aware, so optional imports stay
+ * optional. A content edit cannot fold another shard into a shared bank. */
 export function controlChunkGroups(root: string): Rolldown.CodeSplittingGroup[] {
   const startup = startupModuleRoots(root), grid = gridModuleRoots(root);
   const base = [...startup, ...['src/main.ts', 'src/game/shardfile/client.ts', 'src/game/session/session.ts'].map(file => resolve(root, file))];
@@ -63,10 +64,13 @@ export function controlChunkGroups(root: string): Rolldown.CodeSplittingGroup[] 
   return [
     // HTML proxies and compiler helpers are entry dependencies too. Their actual
     // entry sets keep calibration's initial Three graph off the public shell.
-    { name: controlChunkSelector(root, startup, 'initial', homes), tags: ['$initial'], includeDependenciesRecursively: false, maxSize: 384_000 },
-    { name: 'entry-optional', tags: ['$initial'], test: id => !id.includes('/src/shards/'), entriesAware: true, includeDependenciesRecursively: false, maxSize: 192_000 },
-    { name: controlChunkSelector(root, startup, 'title', homes), includeDependenciesRecursively: false, maxSize: 192_000 },
-    { name: controlChunkSelector(root, startup, 'control', homes), includeDependenciesRecursively: false, maxSize: 384_000 },
+    { name: controlChunkSelector(root, startup, 'initial', homes), tags: ['$initial'], includeDependenciesRecursively: false, maxSize: 2_000_000 },
+    { name: 'entry-optional', tags: ['$initial'], test: id => !id.includes('/src/shards/'), entriesAware: true, includeDependenciesRecursively: false, maxSize: 2_000_000 },
+    { name: controlChunkSelector(root, startup, 'title', homes), includeDependenciesRecursively: false, maxSize: 2_000_000 },
+    { name: controlChunkSelector(root, startup, 'control', homes), includeDependenciesRecursively: false, maxSize: 4_000_000 },
+    { name: id => { const slug = /\/src\/shards\/([^/]+)\//u.exec(id)?.[1]; return slug === undefined ? null : `shard-${slug}`; },
+      entriesAware: true, includeDependenciesRecursively: false, maxSize: 4_000_000 },
+    { name: 'late', entriesAware: true, includeDependenciesRecursively: false, maxSize: 4_000_000 },
   ];
 }
 

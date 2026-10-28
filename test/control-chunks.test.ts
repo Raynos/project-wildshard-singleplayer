@@ -60,7 +60,7 @@ test('home batches combine equal requirements without admitting another home or 
   expect(select('/fixture/explorer.ts', graph)).toBeNull();
 });
 
-test('calibration initial code stays outside the actual public HTML static closure', async () => {
+test('phase banks keep initial and late code isolated and retain unchanged control bytes', async () => {
   mkdirSync('tmp/control-chunks', { recursive: true });
   const root = mkdtempSync(resolve('tmp/control-chunks/entries-'));
   try {
@@ -72,10 +72,12 @@ test('calibration initial code stays outside the actual public HTML static closu
     writeFileSync(resolve(root, 'src/core.ts'), 'import {runtime} from "./engine/app/runtime"; export const control = runtime;');
     writeFileSync(resolve(root, 'src/game/grid/session.ts'), 'export const grid = true;');
     writeFileSync(resolve(root, 'src/game/shardfile/client.ts'), 'export const client = true;');
+    writeFileSync(resolve(root, 'src/optional.ts'), 'globalThis.optionalValue = "first late value";');
     const title = ['engine/ui/StartTitle', 'game/mainMenu', 'game/grid/pageEntry', 'game/travel/travel'];
     for (const file of title) writeFileSync(resolve(root, `src/${file}.ts`), 'export const label = "title";');
     writeFileSync(resolve(root, 'src/entry.ts'), `async function startSelected(){return import('./core');}
-      globalThis.launch = startSelected; globalThis.title = () => Promise.all([${title.map(file => `import('./${file}')`).join(',')}]);`);
+      globalThis.launch = startSelected; globalThis.optional = () => import('./optional');
+      globalThis.title = () => Promise.all([${title.map(file => `import('./${file}')`).join(',')}]);`);
     const outDir = resolve(root, 'dist');
     await build({ root, configFile: false, logLevel: 'silent', build: { outDir, manifest: true, sourcemap: 'hidden',
       rolldownOptions: { input: { main: resolve(root, 'index.html'), calibration: resolve(root, 'calibration/index.html') },
@@ -99,5 +101,18 @@ test('calibration initial code stays outside the actual public HTML static closu
     const runtime = resolve(root, 'src/engine/app/runtime.ts');
     expect(modules('index.html').has(runtime)).toBe(false);
     expect(modules('calibration/index.html').has(runtime)).toBe(true);
+    const optional = resolve(root, 'src/optional.ts'), control = resolve(root, 'src/core.ts');
+    expect(modules('index.html').has(optional)).toBe(false);
+    expect(modules('calibration/index.html').has(optional)).toBe(false);
+    const controlBytes = (files: typeof bundle): readonly string[] => Object.entries(files)
+      .filter(([, file]) => Object.hasOwn(file.modules ?? {}, control)).map(([name, file]) => `${name}\n${file.code}`).sort();
+    const before = controlBytes(bundle);
+    expect(before.length).toBeGreaterThan(0);
+    writeFileSync(resolve(root, 'src/optional.ts'), 'globalThis.optionalValue = "changed late value";');
+    await build({ root, configFile: false, logLevel: 'silent', build: { outDir, manifest: true, sourcemap: 'hidden',
+      rolldownOptions: { input: { main: resolve(root, 'index.html'), calibration: resolve(root, 'calibration/index.html') },
+        preserveEntrySignatures: false, output: { strictExecutionOrder: true, chunkFileNames: controlChunkFileName,
+          codeSplitting: { groups: controlChunkGroups(root) } } } } });
+    expect(controlBytes(writtenBundle(outDir, root))).toEqual(before);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
