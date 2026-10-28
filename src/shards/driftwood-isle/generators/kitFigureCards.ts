@@ -1,6 +1,7 @@
 import { driftwoodQuestFigures } from './questFigures';
-import * as v from 'valibot';
-import { KitFigureCardsSchema, type KitFigureCardsRows } from '@wildshard/format/questFigures';
+import { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
+
+type KitFigureCardsRows = ReturnType<typeof authorFormatRows<'questFigures.KitFigureCardsSchema'>>;
 
 /** The Explorer keeps the original own-space kit card, including the unlit
  * flames and the conditional borrowed smoke. Its explicit view owns its cold
@@ -8,7 +9,7 @@ import { KitFigureCardsSchema, type KitFigureCardsRows } from '@wildshard/format
 export function driftwoodKitFigureCards(): KitFigureCardsRows {
   const castaway = driftwoodQuestFigures().figures.find(row => row.id === 'castaway');
   if (castaway === undefined) throw new Error('Missing castaway card bindings');
-  return v.parse(KitFigureCardsSchema, {
+  return authorFormatRows('questFigures.KitFigureCardsSchema', {
     catalogue: 'people/catalogue.json', draws: 'custom/fixedLayouts',
     cards: { castaway: {
       model: { id: 'driftwood-isle/castaway', name: 'Wendell, the castaway', category: 'people', pipeline: 'code',

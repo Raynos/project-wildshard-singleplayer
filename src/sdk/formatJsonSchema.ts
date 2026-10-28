@@ -55,7 +55,7 @@ import { BossProfileSchema, ArenaBossProfileSchema, RoamingBossProfileSchema, Sp
 import { NpcRowSchema, NpcMotionSchema, NpcDialogueRowSchema, QuestNpcBindingSchema, QuestNpcBindingsSchema, QuestPageTalksSchema } from '@wildshard/format/npcs';
 import { WeaponProfileSchema, MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema, LashWeaponProfileSchema, ConeWeaponProfileSchema, HeldBowBaseSchema, HeldBowRowsSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
 import { toJsonSchema, type JsonSchema } from '@valibot/to-json-schema';
-import { finite, strictObject, object, looseObject, tuple, array, parse, type GenericSchema } from 'valibot';
+import { finite, strictObject, object, looseObject, tuple, array, parse, type GenericSchema, type InferOutput } from 'valibot';
 import { PopulationKeeperRowsSchema } from '@wildshard/format/populationKeeper';
 import { EdgeProfileSchema, EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { PlumbingSchema } from '@wildshard/format/plumbing';
@@ -680,6 +680,9 @@ interface AuthorFormatObjects {
   readonly 'clientChannels.PrivateSceneSchema': typeof PrivateSceneSchema;
   readonly 'collectionDisplay.CollectionDisplaysSchema': typeof CollectionDisplaysSchema;
   readonly 'bodySlots.BodySlotsSchema': typeof BodySlotsSchema;
+  readonly 'questFigures.KitFigureCardsSchema': typeof KitFigureCardsSchema;
+  readonly 'questFigures.QuestFiguresSchema': typeof QuestFiguresSchema;
+  readonly 'catalogueEconomy.CatalogueEconomySchema': typeof CatalogueEconomySchema;
   readonly 'minimap.ManifestMetadataSchema': typeof ManifestMetadataSchema;
   readonly 'islandLibrary.ResolvedIslandLibrarySchema': typeof ResolvedIslandLibrarySchema;
   readonly 'mixedPopulation.MixedPopulationSchema': typeof MixedPopulationSchema;
@@ -719,6 +722,9 @@ const authorFormats: AuthorFormatObjects = {
   'clientChannels.PrivateSceneSchema': PrivateSceneSchema,
   'collectionDisplay.CollectionDisplaysSchema': CollectionDisplaysSchema,
   'bodySlots.BodySlotsSchema': BodySlotsSchema,
+  'questFigures.KitFigureCardsSchema': KitFigureCardsSchema,
+  'questFigures.QuestFiguresSchema': QuestFiguresSchema,
+  'catalogueEconomy.CatalogueEconomySchema': CatalogueEconomySchema,
   'minimap.ManifestMetadataSchema': ManifestMetadataSchema,
   'islandLibrary.ResolvedIslandLibrarySchema': ResolvedIslandLibrarySchema,
   'mixedPopulation.MixedPopulationSchema': MixedPopulationSchema,
@@ -741,6 +747,17 @@ const authorFormats: AuthorFormatObjects = {
 export function authorFormatSchema<Name extends keyof AuthorFormatObjects>(name: Name): AuthorFormatObjects[Name] {
   if (!Object.hasOwn(authorFormats, name)) throw new Error(`Unknown author format: ${name}`);
   return authorFormats[name];
+}
+
+/** Finite validator identities; factories and structural documents are not admission grammars. */
+type AuthorSchemaName = { [Name in keyof AuthorFormatObjects]: AuthorFormatObjects[Name] extends GenericSchema ? Name : never }[keyof AuthorFormatObjects];
+
+/** Admit author data through its original defining validator, preserving defaults,
+ * custom checks, transforms and issue ordering. No ad-hoc schema or runtime service is accepted. */
+export function authorFormatRows<Name extends AuthorSchemaName>(name: Name, rowsValue: unknown): InferOutput<AuthorFormatObjects[Name]> {
+  const schema = authorFormatSchema(name);
+  if (schema.kind !== 'schema') throw new Error('Author admission requires a validator');
+  return parse(schema, rowsValue);
 }
 
 /** Admit authored native collider arrays with the defining shape/provenance

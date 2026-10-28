@@ -4973,6 +4973,10 @@ pose with the native matrix/quaternion/scale law, returning contact data only.
 `composeNamedJsonSchema` composes named roots, local Valibot leaves, objects and tuples; normal check refusals remain.
 
 `authorFormatSchema("module.ExportName")` selects a finite, exactly typed defining format validator, pure grammar factory or structural document for checked author compositions. It preserves object identity, object entries, custom checks and named metadata; unknown/prototype names refuse. The migrated wire-root registry is unchanged.
+`authorFormatRows("module.Schema", value)` admits data through only the finite
+validator subset, retaining exact output types, defaults, custom checks and issue
+order. Grammar factories, structural documents and unknown names refuse.
+
 The native physics body/collider grammar factories retain exact rig, shape, range and provenance signatures;
 selecting or using them allocates no runtime body, collider, registry or world.
 

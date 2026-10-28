@@ -2,14 +2,15 @@ import inventory from '../data/fixedGeometry.json' with { type: 'json' };
 import page from '../data/questPageComposition.json' with { type: 'json' };
 import stall from '../data/traderStall.json' with { type: 'json' };
 import { CASTAWAY_SMOKE, SMOKE_LOOK } from './smokeLook';
-import * as v from 'valibot';
-import { QuestFiguresSchema, type QuestFiguresRows } from '@wildshard/format/questFigures';
+import { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
+
+type QuestFiguresRows = ReturnType<typeof authorFormatRows<'questFigures.QuestFiguresSchema'>>;
 
 /** Literal bindings over the original kit rigs. The compiled figure installer
  * resolves QuestPlace frames once; fire-relative geometry stays in that frame. */
 export function driftwoodQuestFigures(): QuestFiguresRows {
   const { flames, ...castaway } = inventory.groups.npc.castaway;
-  return v.parse(QuestFiguresSchema, { figures: [{
+  return authorFormatRows('questFigures.QuestFiguresSchema', { figures: [{
     id: page.speaker.figure, kit: 'castaway', feet: page.speaker.feet, fire: page.speaker.fire,
     parts: castaway, campAt: 'fire',
     objects: [

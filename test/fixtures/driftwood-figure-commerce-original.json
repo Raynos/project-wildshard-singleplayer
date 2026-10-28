@@ -1,0 +1,27 @@
+[
+  {
+    "name": "figures",
+    "bytes": 10294,
+    "hash": "0d1ccc85f6930041514a7905deaee5887ae695c43990491418e6f82da2a2630a"
+  },
+  {
+    "name": "quest",
+    "bytes": 1272,
+    "hash": "6a396e282e48b20821abd3131c38005227f849ca2be01e6bb6777d302e1d4ad6"
+  },
+  {
+    "name": "cards",
+    "bytes": 1057,
+    "hash": "6802a0139b1aab168f6f98159556e30c4637045444d13838e0f0727b05f77c3b"
+  },
+  {
+    "name": "economy",
+    "bytes": 2203,
+    "hash": "41d46c9c15510e66214e2a44f38c9cc17f75f9245917630e6b99ded2902f7a8d"
+  },
+  {
+    "name": "trader",
+    "bytes": 1316,
+    "hash": "c8203e1728eb747da27509c501848097498ff0e2ea0eb22275bb1ba353a14c8b"
+  }
+]

@@ -1,5 +1,4 @@
-import * as v from 'valibot';
-import { FigureCatalogueSchema } from '@wildshard/format/figures';
+import { parseFigureCatalogue } from '@wildshard/sdk/rows';
 import castaway from '../data/castawayFigure.json' with { type: 'json' };
 import trader from '../data/traderFigure.json' with { type: 'json' };
 import { npcRestScenes } from './npcScenes';
@@ -24,6 +23,6 @@ const TRADER_KIT = { scene: scenes.trader, material: 'default', neck: 1.48, hide
       offer: { yaw: -0.35, pitch: 0.3, within: 11 } }] };
 
 /** The same figure-row admission as skinned people, over the existing pivot kit, with each figure's kit rows. */
-export const FIGURE_CATALOGUE: v.InferOutput<typeof FigureCatalogueSchema> = v.parse(FigureCatalogueSchema, { figures: {
+export const FIGURE_CATALOGUE: ReturnType<typeof parseFigureCatalogue> = parseFigureCatalogue({ figures: {
   castaway: { phone: castaway, desktop: castaway, kit: CASTAWAY_KIT }, trader: { phone: trader, desktop: trader, kit: TRADER_KIT },
 } });
