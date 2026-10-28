@@ -55,3 +55,39 @@ Title before the tap (cold): menu painted 1.6 s after navigation; tap → loadin
 Sheets in this folder: `chromium-grid-cold-sheet.jpg`, `chromium-grid-warm-sheet.jpg`,
 `chromium-select-driftwood-cold-sheet.jpg`, `webkit-sim-grid-cold-sheet.jpg`, `webkit-sim-grid-warm-sheet.jpg`.
 Videos (not committed): `tmp/phone-loading/*.mp4`.
+
+## Shared measuring command (G862)
+
+`pnpm phone-loading --live --preset phone --flow grid --record --webkit`
+runs cold, then warm in the same context, with a fresh document per entry.
+Use `--flow select:driftwood-isle` for SHARD SELECT, `--head` / `--rev SHA`
+for a shared pinned preview, or `--url http://127.0.0.1:PORT/` to attach an
+already served working candidate. The command owns the browser-lane lease,
+mutes audio and uses the iPhone 16 Pro viewport. The title dwell defaults to
+3 s; `--title-dwell 10000` measures the title-prefetch row's 10 s protocol.
+After control the default 4 s background-copy window matches the original
+capture; `--after-control` changes it explicitly. It is outside the total.
+
+The `phone` profile is CPU 10× / 10–2 Mb/s / 100 ms RTT; `lte` is CPU 6× /
+20–5 Mb/s / 60 ms; `desktop` removes emulation. Chromium throttles the page
+and worker network before their requests. Worker CPU emulation is unsupported.
+Playwright WebKit has no equivalent CDP throttle: its JSON explicitly records
+an **unthrottled engine check**, never a phone-speed-equivalent measurement.
+
+Each engine/cache run writes one JSON in `tmp/phone-loading/<date-build>/`,
+plus an optional video and labelled contact sheet. The table separates page
+network, worker network and page responses served by the worker; do not add
+cached page bytes to physical network bytes. Incomplete requests retain a null
+end. All console/page errors and incomplete attempts remain visible.
+`rows[].duration` is exclusive time; `wallMs` is the true end minus start.
+`measures[].detail` is preserved, including batch calls / elapsedMs / longestMs:
+a first-to-last wall span is not the sum of waits. Older builds expose only
+visible rows, marked as such; they cannot recover collapsed quick-step clocks.
+
+The committed [baseline-a6701db71.json](baseline-a6701db71.json) normalizes the
+retained **original live capture**, not a rerun: 53.270 / 27.556 s, 548 / 288
+requests and 96 / 93 long tasks. Original missing absolute row ends and measure
+details stay null. `--compare art/loading/round-1-phone-speed/baseline-a6701db71.json`
+prints total regressions over 10% or step regressions over 1 s in red, without
+changing the exit status. Actual incomplete/error runs still return nonzero.
+No CI job, budget gate or scheduled automation uses this command.

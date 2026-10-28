@@ -37,6 +37,7 @@
     "tex-tiers": "node scripts/tex-tiers.mjs",
     "timelapse": "bash scripts/timelapse.sh",
     "bench": "node scripts/bench-load.mjs",
+    "phone-loading": "scripts/browser-lane.sh --max 30 node --experimental-transform-types scripts/phone-loading/main.ts",
     "bench:ci": "node scripts/bench-load.mjs --ci",
     "blender:island": "bash scripts/blender/build.sh driftwood-isle/island",
     "inbox:pull": "node scripts/inbox-pull.mjs",
