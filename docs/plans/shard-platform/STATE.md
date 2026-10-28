@@ -1,6 +1,6 @@
 # SHARD-PLATFORM — State (wildshard-new; ≤ 3 KB)
 
-**(1) LIVE 5c3800eb13** (full CI + six smoke). Damage list:
+**(1) LIVE a3f28a7953** (full CI + six smoke). Damage list:
 [BURN-DAMAGE-LIST](../BURN-DAMAGE-LIST.md) only.
 
 **Counter (sp-x8 recount, cc69600):** raw 186 / 209; true **188.5 / 209 = 90 %** (SW13 done, GR10 folded, build-CI carry done;
