@@ -84,6 +84,7 @@
     "./anim/rig": "./anim/rig.ts",
     "./app/app": "./app/app.ts",
     "./app/cachedAssets": "./app/cachedAssets.ts",
+    "./app/disposalCache": "./app/disposalCache.ts",
     "./app/identity": "./app/identity.ts",
     "./app/ownership": "./app/ownership.ts",
     "./app/resources": "./app/resources.ts",

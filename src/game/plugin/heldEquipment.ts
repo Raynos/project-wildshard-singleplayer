@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { cacheUntilDisposed, retainCachedResources, ResourceMemo } from '@wildshard/engine/app/cachedAssets';
+import { retainCachedResources, ResourceMemo } from '@wildshard/engine/app/cachedAssets';
+import { cacheUntilDisposed } from '@wildshard/engine/app/disposalCache';
 import { loadTexture } from '@wildshard/engine/core/assets';
 import { viewmodelRowMaterial, type RangedWorld, type TexSet, type ViewmodelSet } from '@wildshard/engine/combat/view/ranged';
 import { prepareRangedFeel } from '@wildshard/engine/combat/view/rangedFeel';

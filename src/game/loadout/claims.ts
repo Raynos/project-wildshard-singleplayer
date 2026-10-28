@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { isJsonData } from '@wildshard/format/json';
-import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
+import { cacheUntilDisposed } from '@wildshard/engine/app/disposalCache';
 import { Rng } from '@wildshard/engine/core/rng';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { ItemPickup } from '@wildshard/engine/player/WeaponPickup';

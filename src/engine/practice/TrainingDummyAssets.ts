@@ -1,5 +1,6 @@
 import { loadRigFile, bindRig } from '../anim/rig';
-import { cacheUntilDisposed, retainCachedResources } from '../app/cachedAssets';
+import { retainCachedResources } from '../app/cachedAssets';
+import { cacheUntilDisposed } from '../app/disposalCache';
 /** The three local TRELLIS.2 figures, skinned in Blender and shared by the arena and Model Explorer. */
 import * as THREE from 'three';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';

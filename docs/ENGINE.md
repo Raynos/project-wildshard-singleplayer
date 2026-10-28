@@ -8262,6 +8262,10 @@ forgets, and `cacheUntilDisposed` invalidates on real retirement, preserving
 geometry rebinding. Failed factories retry; invalidated late promises cannot
 overwrite newer values. The optional invalidation callback clears dependent
 memo/preload state. Pine keeps its own NPC skin admission, PBR and pose law.
+`app/disposalCache#cacheUntilDisposed` is the defining pure retirement tracker:
+it preserves original promise identity and watches resources without an app,
+renderer or asset service. `models/model#modelContext(null)` uses that kernel;
+its native memo, rejected-load retry and binding-only rebind behavior stay intact.
 The G441 W3 user is Nalati `species/hulls.ts#CreatureRigs`: replace its
 ready/loading maps and disposal invalidation while preserving coat adoption,
 preload policy, generated rig decoding and existing failure behaviour.
