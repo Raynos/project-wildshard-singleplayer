@@ -1,4 +1,4 @@
-import { defineNamedRows } from '@wildshard/sdk/formatJsonSchema';
+import { defineNamedRows , type NamedRows } from '@wildshard/sdk/formatJsonSchema';
 import { driftwoodEntryFloorRows } from './entryFloors';
 import { ENTRY_ROWS as authoredEntryRows } from './entryRows';
 
@@ -8,7 +8,7 @@ const extent = { ...finite, min: 0.005, max: 250 } as const;
 const box = { kind: 'object', mode: 'strict', entries: { kind: { kind: 'literal', value: 'box' }, x: finite, y: finite, z: finite,
   hx: extent, hy: extent, hz: extent, surface: { kind: 'literal', value: 'stone' } } } as const;
 const landing = { kind: 'object', mode: 'strict', entries: { edge: { kind: 'picklist', values: DRY_ENTRIES }, box } } as const;
-const transport = defineNamedRows({ kind: 'object', mode: 'strict', entries: {
+const transport: NamedRows<{ notice: string; rows: { edge: "north" | "east" | "south" | "west"; box: { x: number; z: number; y: number; kind: "box"; hx: number; hy: number; hz: number; surface: "stone"; }; }[]; }> = defineNamedRows({ kind: 'object', mode: 'strict', entries: {
   notice: { kind: 'string', startsWith: 'DO NOT EDIT:' }, rows: { kind: 'array', item: landing, length: 4 },
 } }, value => value.rows.every((row, index) => row.edge === DRY_ENTRIES[index]), 'original entry registration order');
 
