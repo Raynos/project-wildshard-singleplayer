@@ -80,8 +80,9 @@ function finiteWords(values: Float32Array): boolean {
 }
 
 interface DecodedGridStrips { readonly strips: readonly GeneratedStrip[]; readonly look?: SeamGeometryChannels }
-function* stripSteps(input: unknown, bytes: Uint8Array, source: string, home: string, nativeLook?: Uint8Array): Generator<void, DecodedGridStrips> {
-  const header = parseCompiledGridHeader(input);
+// Only these public decoders or the verified file reader admit this private
+// snapshot. Keep all binary/source/feature/finite checks in the same steps.
+function* stripSteps(header: CompiledGridHeader, bytes: Uint8Array, source: string, home: string, nativeLook?: Uint8Array): Generator<void, DecodedGridStrips> {
   if (header.source !== source || header.home !== home || header.rows.geometries.length !== header.shapes.length) throw new Error('Grid strip source differs from this page');
   const featureStart = Math.ceil(header.rows.bytes / 8) * 8;
   const featureEnd = header.look?.offset ?? bytes.length;
@@ -146,13 +147,13 @@ function* stripSteps(input: unknown, bytes: Uint8Array, source: string, home: st
 
 /** Renderer-free exact decoder for authoring and byte-parity qualification. */
 export function decodeCompiledGridStrips(input: unknown, bytes: Uint8Array, source: string, home: string): readonly GeneratedStrip[] {
-  const steps = stripSteps(input, bytes, source, home);
+  const steps = stripSteps(parseCompiledGridHeader(input), bytes, source, home);
   for (;;) { const step = steps.next(); if (step.done) return step.value.strips; }
 }
 
 /** Decode the optional source-verified normal/UV channels alongside the original collision triangles. */
 export function decodeCompiledGridLook(input: unknown, bytes: Uint8Array, source: string, home: string): DecodedGridStrips {
-  const steps = stripSteps(input, bytes, source, home);
+  const steps = stripSteps(parseCompiledGridHeader(input), bytes, source, home);
   for (;;) { const step = steps.next(); if (step.done) return step.value; }
 }
 

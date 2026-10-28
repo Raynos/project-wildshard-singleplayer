@@ -2,7 +2,7 @@ import { materialColourGraph } from '@wildshard/engine/render/graph/colourFuncti
 import { isJsonData } from '@wildshard/format/json';
 import { clientPreparationBatch } from '../shardfile/preparationTiming';
 import { unzlibSync } from 'fflate';
-import { type NativeAttributeSchema as WholeAttribute, NativeAttributesSchema as WholeNative, nativeWholeGeometry, admitNativeWholeGeometry } from '@wildshard/engine/models/nativeGeometry';
+import { type NativeAttributeSchema as WholeAttribute, admitNativeWholeGeometry } from '@wildshard/engine/models/nativeGeometry';
 import { fetchDeflatedBytes, fetchLaneBytes, unshuffleLanes as restoreLanes } from '@wildshard/engine/core/deflate';
 import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
 import { BAKED_BYTES as codecBakedBytes, appendGeometry as codecAppendGeometry, bakedGeometryBytes as codecBakedGeometryBytes, pad4 as codecPad4, readBakedGeometry as codecReadBakedGeometry, type BakedGeometryRow as CodecBakedGeometryRow, type BakedType as CodecBakedType } from './bakedGeometry';
@@ -1786,12 +1786,12 @@ export function wholeGeometryPieces(nodes: readonly Mesh[]): WholeGeometryPiece[
   const result: WholeGeometryPiece[] = [], seen = new Map<string, Set<number>>();
   try {
     for (const node of nodes) {
-      const metadata: unknown = node.userData['wholePartition'], native: unknown = node.userData['nativeAttributes'];
-      const row = wholeV.parse(WholePartition, metadata), channels = wholeV.parse(WholeNative, native);
+      const metadata: unknown = node.userData['wholePartition'];
+      const row = wholeV.parse(WholePartition, metadata);
       const instances: unknown = node.userData['instances64'];
       const pose: unknown = node.userData['matrix64'] ?? (node instanceof InstancedMesh && node.count === 1 && Array.isArray(instances) && instances.length === 1 ? instances[0] : undefined);
       const values = wholeV.parse(wholeV.pipe(wholeV.array(wholeV.pipe(wholeV.number(), wholeV.finite())), wholeV.length(16)), pose);
-      const geometry = nativeWholeGeometry(node, 'borrow', true);
+      const { geometry, channels } = admitNativeWholeGeometry(node, 'borrow', true);
       try {
         if (geometry.groups.length > 0 || Object.keys(geometry.morphAttributes).length > 0) throw new Error('Whole piece needs one plain draw');
         for (const [name, channel] of Object.entries(channels)) {

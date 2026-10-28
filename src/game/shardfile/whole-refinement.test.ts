@@ -73,3 +73,14 @@ test('a first identity source preserves raw signed zero while repeated aliases k
   expect(repeat.getAttribute('position').array).toEqual(oracle.getAttribute('position').array);
   expect(repeat.getAttribute('normal').array).toEqual(oracle.getAttribute('normal').array);
 });
+
+test('partial pieces reuse only their own invocation channel admission', () => {
+  const mesh = tile(0), original: unknown = mesh.userData['nativeAttributes']; let reads = 0;
+  Object.defineProperty(mesh.userData, 'nativeAttributes', { get() { reads++; return original; } });
+  const pieces = wholeGeometryPieces([mesh]); own(pieces);
+  expect(reads).toBe(1); expect(pieces).toHaveLength(1);
+  const normal = mesh.geometry.getAttribute('normal');
+  mesh.geometry.deleteAttribute('normal');
+  expect(() => wholeGeometryPieces([mesh])).toThrow('missing typed channel');
+  expect(reads).toBe(2); mesh.geometry.setAttribute('normal', normal);
+});
