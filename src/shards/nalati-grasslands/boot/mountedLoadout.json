@@ -15,7 +15,8 @@
       "id": "polearm",
       "kind": "polearm",
       "item": "weapon.spear",
-      "file": "weapons/spear.json"
+      "file": "weapons/spear.json",
+      "geometry": "on-select"
     },
     {
       "id": "bow",

@@ -1,4 +1,5 @@
 import { MODEL_FILES } from './modelPaint.mjs';
+import type { HeldSlotsRows } from '@wildshard/format/heldArms';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 
 const publicPrefix = '/assets/nalati/baked/painted-models/';
@@ -129,4 +130,19 @@ export function nalatiDeferredCatalogueScene(input:unknown):unknown{
     catalogues.push(direct?{...book}:{...book,load:'after-control'});
   }
   return{...input,catalogues};
+}
+
+/** Hints follow admitted deferred slots, never their item names. Primary and
+ * initial equipment stay early; any eager alias of the same pool also wins. */
+export function nalatiLateHeldNames(rows: HeldSlotsRows, pools: ReadonlyMap<string, string>): readonly string[] {
+  const late = new Set<string>(), early = new Set<string>();
+  for (const row of rows.slots) {
+    const file = 'file' in row ? row.file : row.kind === 'blade' && row.source.kind === 'passes' ? row.source.file : undefined;
+    const pool = file === undefined ? undefined : pools.get(file);
+    if (pool === undefined) continue;
+    const deferred = row.kind === 'polearm' && row.geometry === 'on-select'
+      && row.id !== rows.equipment.primary && row.id !== rows.selection.initial;
+    (deferred ? late : early).add(pool);
+  }
+  return [...late].filter(name => !early.has(name)).sort();
 }

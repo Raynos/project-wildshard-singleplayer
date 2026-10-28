@@ -8,7 +8,7 @@ import { nalatiSpeciesProgram } from './speciesProgram';
 import { nalatiHeldSource, type NalatiHeldRows } from './heldMetadata';
 import type { NalatiSpeciesSourceInputs } from './speciesPreparation';
 import { nalatiModelPartsProgram } from './modelPartsProgram';
-import { nalatiPaintedAtlasFile, nalatiPaintedGeometryFile, nalatiPaintedBindings, nalatiPaintedModelNames, nalatiLatePaintedNames, nalatiLateCatalogueNames, nalatiLateDressingNames, nalatiDeferredCatalogueScene } from './modelBindings';
+import { nalatiPaintedAtlasFile, nalatiPaintedGeometryFile, nalatiPaintedBindings, nalatiPaintedModelNames, nalatiLatePaintedNames, nalatiLateCatalogueNames, nalatiLateDressingNames, nalatiLateHeldNames, nalatiDeferredCatalogueScene } from './modelBindings';
 import { nalatiQuestProp } from './questProp';
 import { nalatiBalbalSpecimen } from './balbalSpecimen';
 import modelMetrics from '../data/modelMetrics.json' with { type: 'json' };
@@ -428,7 +428,12 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
     if (bytes === undefined) throw new Error(`Missing owned paint shape ${row.source}`);
     return nameBlob(row.name, row.kind, bytes);
   })], runtime.floors.map(floor => nameBlob(floor.name, 'bin', floor.bytes)), [propBlob], carvings, held, [...renderPairs, ...coarseTiles], ownedGeography, views, [kokpar.blob, kokpar.courseBlob], ridingModules, nalatiTitanBlobs(titan), nalatiAdmissionBlobs(admissionBank), [nalatiChargeBlob(charge)]));
-  const fileByName=new Map([...sources.map(source=>source.file),...modelBlobs.map(blob=>blob.file),...namedFiles,specimenBank.file].flatMap(file=>file.name===undefined?[]:[[file.name,file] as const]));
+  const fileByName=new Map([...sources.map(source=>source.file),...modelBlobs.map(blob=>blob.file),...namedFiles,specimenBank.file,...terrainDraws.map(blob=>blob.file)].flatMap(file=>file.name===undefined?[]:[[file.name,file] as const]));
+  const slotSource=sources.find(source=>source.file.name==='held/slots.json');
+  if(slotSource===undefined)throw new Error('Missing held timing declaration');
+  const slotInput:unknown=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(slotSource.bytes));
+  const slots=v.parse(HeldSlotsSchema,slotInput);
+  for(const name of nalatiLateHeldNames(slots,new Map([['weapons/spear.json',spear.rows.pool.url]])))lateNames.add(name);
   for(const name of catalogueNames)if(fileByName.has(name))lateNames.add(name);
   for(const name of nalatiLateDressingNames(boundBooks,new Set(fileByName.keys()),shapeDraws))lateNames.add(name);
   const late=[...new Set([...lateNames].map(name=>{
