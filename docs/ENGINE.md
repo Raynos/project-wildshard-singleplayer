@@ -2072,7 +2072,6 @@ The credits "Music: MiniMax-Music3" and "Powered by Stability AI" are licence co
 | `RigContract`, `RigRef`, `RigInstance`, `RigBake`, `ClipName`, `SocketName`, `AnimService` | the contract a species, NPC or viewmodel declares |
 
 `loadRigFile(url, aliases?)` can lend a file's dependency aliases by resolved URL pathname.
-An optional third `{ decodePriority: "interactive" }` gives actual player demand precedence over queued background parses. The active parse is never preempted, one native decode remains active, and each priority keeps FIFO. Ordinary calls and resource alias routing are unchanged.
 Alias and ordinary dependency URLs still pass through the default loading manager's tier and pack routing;
 the aliases use a private manager and never replace the session's resolver.
 
@@ -4093,7 +4092,6 @@ the current page and its declared exterior lighting. It borrows the real
 materials, leaves the live scene untouched, and fences work to the resident
 owner. `Game.warmSceneRoots(roots, current)` supplies the real composer target
 on every browser; early boot retains ordinary whole-world preparation.
-Its optional fourth `exteriorRoots` argument limits future-world variants to a subset of the supplied roots; all roots retain current-scene readiness within the same owner and deadline. Camera-owned equipment can omit exterior variants while its world projectiles retain them.
 The grid's optional `prepareFar(view)` port prepares a hidden, already-admitted
 proxy during fetch. Its upload exposes the same mesh and material; cancellation
 or failure disposes the staged view with its existing ring lease.

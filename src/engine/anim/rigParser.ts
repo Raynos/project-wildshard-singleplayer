@@ -6,11 +6,10 @@ import { pageScope } from '../app/resources';
 import { waitFor } from '../boot/waits';
 import { buildYield, WORK_SLICE_MS, workSlice, type WorkSlice } from '../core/workSlice';
 import { buildHeld, frameBudgetSpent, frameDue, presenting } from '../core/framePacing';
-import { RigDecodeQueue } from './rigDecodeQueue';
 
 // FileLoader starts every network read immediately. Only the parser's temporary
 // meshopt/image/geometry allocations share this page-wide decode slot.
-const decodeQueue = new RigDecodeQueue();
+let decodeTail: Promise<void> = Promise.resolve();
 let decodeSlice: WorkSlice | undefined;
 /** The shared loader defers immutable bytes until its decode slot. Complete GLBs
  * lend their wire buffer: Three copies the BIN chunk before decoding geometry. */
@@ -18,8 +17,6 @@ export interface RigLoader extends GLTFLoader {
   parseBytesAsync: (bytes: Uint8Array, path: string) => Promise<GLTF>;
 }
 class BoundedRigLoader extends GLTFLoader implements RigLoader {
-  private readonly priority: 'normal' | 'interactive';
-  constructor(manager?: LoadingManager, priority: 'normal' | 'interactive' = 'normal') { super(manager); this.priority=priority; }
   override parse(...[data, path, onLoad, onError]: Parameters<GLTFLoader['parse']>): void {
     this.parseSource(() => data, path, onLoad, onError);
   }
@@ -34,7 +31,7 @@ class BoundedRigLoader extends GLTFLoader implements RigLoader {
     }, path, resolve, reject); });
   }
   private parseSource(read: () => Parameters<GLTFLoader['parse']>[0], path: string, onLoad: (file: GLTF) => void, onError?: Parameters<GLTFLoader['parse']>[3]): void {
-    const parsed = decodeQueue.enqueue(async () => {
+    const parsed = decodeTail.then(async () => {
       // Cached CPU-only models otherwise chain every parse in microtasks. Let
       // uploads/frames and temporary-buffer retirement run between spent slices.
       if (typeof window !== 'undefined') {
@@ -46,17 +43,18 @@ class BoundedRigLoader extends GLTFLoader implements RigLoader {
         await waitFor('GLTF decode pacing', Promise.resolve(pause), 'work');
       }
       // Observe only active work: queued callers must not crowd this owner out
-      // of the grid's bounded oldest-wait snapshot. Keep the single serial slot.
+      // of the grid's bounded oldest-wait snapshot. Keep the original serial tail.
       return waitFor(`GLTF decode ${path || '(owned bytes)'}`,
         new Promise<GLTF>((resolve, reject) => { super.parse(read(), path, resolve, reject); }), 'work');
-    }, this.priority);
-    // The queue releases failures too, retaining no decoded scene after the
-    // existing caller receives its resource owner.
+    });
+    // A failed file must release the slot as well as a successful one. Keep no
+    // decoded scene in the tail after handing it to its existing resource owner.
+    decodeTail = parsed.then(() => undefined, () => undefined);
     void parsed.then(onLoad, onError ?? ((error: unknown) => { console.error(error); }));
   }
 }
 
 /** One native parser policy for rigs, model pools and owned geometry. Reads stay
  * parallel; a page decodes one GLTF at a time, including direct parseAsync calls. */
-export function createRigLoader(manager?: LoadingManager, priority: 'normal' | 'interactive' = 'normal'): RigLoader { installGltfKtx2(GLTFLoader); return new BoundedRigLoader(manager, priority).setMeshoptDecoder(MeshoptDecoder); }
+export function createRigLoader(manager?: LoadingManager): RigLoader { installGltfKtx2(GLTFLoader); return new BoundedRigLoader(manager).setMeshoptDecoder(MeshoptDecoder); }
 

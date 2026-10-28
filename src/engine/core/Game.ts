@@ -809,9 +809,8 @@ export class Game {
 
   /** Prepare newly streamed roots before exposure, using the allocated composer target.
    * Early boot retains ordinary whole-world preparation. Streamed views share the entered-frame
-   * time bound, so a stalled draw/link rejects through their admission issue path.
-   * exteriorRoots optionally narrows future-world variants to a subset of roots; current-scene readiness covers every root. */
-  async warmSceneRoots(roots: readonly THREE.Object3D[], current: () => boolean, futureLighting?: THREE.Object3D, exteriorRoots?: readonly THREE.Object3D[]): Promise<void> {
+   * time bound, so a stalled draw/link rejects through their admission issue path. */
+  async warmSceneRoots(roots: readonly THREE.Object3D[], current: () => boolean, futureLighting?: THREE.Object3D): Promise<void> {
     const composer = this._composer;
     if (composer === null) return;
     const { prepareSceneRoots, waitForDrawnFrame, LIVE_UPLOAD_BUDGET } = await import('../render/precompile');
@@ -820,13 +819,8 @@ export class Game {
       const pause = this.frameCount > 0 ? () => waitForDrawnFrame(this.levelScope, () => this.frameCount, live) : undefined;
       // before play (no frame drawn yet) the boot's Shaders step builds what the first frame draws and the rest is warmed
       // in play: a region's own warm-up here keeps only its resources then
-      if(exteriorRoots!==undefined&&exteriorRoots.some(root=>!roots.includes(root)))throw new Error('Exterior preparation needs a declared streamed root');
       await prepareSceneRoots(this.renderer, this.camera, this.rootScene, composer.inputBuffer, roots, live, pause,
-        LIVE_UPLOAD_BUDGET, this.frameCount > 0, futureLighting, undefined, exteriorRoots===undefined);
-      // Camera-owned equipment draws only in its installing scene. Its world
-      // projectiles retain exterior variants under this same bound and owner.
-      if(exteriorRoots!==undefined&&exteriorRoots.length>0)await prepareSceneRoots(this.renderer,this.camera,this.rootScene,composer.inputBuffer,exteriorRoots,live,pause,
-        LIVE_UPLOAD_BUDGET,false,futureLighting,undefined,true);
+        LIVE_UPLOAD_BUDGET, this.frameCount > 0, futureLighting);
     });
   }
 

@@ -24,7 +24,7 @@ import items from '../src/shards/nalati-grasslands/data/items.json' with { type:
 const spear=parse(PolearmRowsSchema,{...nalatiSpear.rows,program:originalHeldMetadata().held.programs.polearm,presentation:powers.polearm});
 afterEach(()=>{vi.restoreAllMocks();});
 function lendHeld(owner:Scope):void{
-  const program=parse(ReturnProgramSchema,originalHeldMetadata().held.programs.polearm),script=parseDecisionScripts([program.script])[0],projection=program.v2;
+  const program=parse(ReturnProgramSchema,originalHeldMetadata().held.program),script=parseDecisionScripts([program.script])[0],projection=program.v2;
   if(script===undefined||projection===undefined)throw new Error('Missing original held module declarations');
   const module=projection.artifact;
   const rows=parse(ReturnModulesSchema,[script,{id:'nalati.held-weapons.projection',module:`blobs/wasm/${module.hash}.wasm`,side:'sim',abi:2,lane:'project',pages:module.pages,ioBytes:module.ioBytes,compilerRevision:module.compilerRevision,admissionRevision:module.admissionRevision}]);
@@ -51,7 +51,7 @@ test('explicit spare geometry keeps admitted numeric state and native decision c
     expect(weapon.needsPreparation).toBe(true);expect(f.lookup).not.toHaveBeenCalled();const state=weapon.state;
     weapon.update(.05,1);weapon.update(.05,1.05);expect(f.decision).toHaveBeenCalledOnce();expect(f.decision.mock.calls[0]?.[0]).toBe(.1);
     expect(weapon.state).toBe(state);expect(weapon.state.ammo).toBe(weapon.maxJavelins);expect(()=>weapon.setActive(true)).toThrow('not prepared');
-    await Promise.all([weapon.prepareView(),weapon.prepareView()]);expect(f.preload).toHaveBeenCalledOnce();expect(f.warm).toHaveBeenCalledOnce();const call=f.warm.mock.calls[0];if(call===undefined)throw new Error('Missing visual warm');expect(call[0][0]).toBe(weapon.model);expect(call[3]).toEqual([call[0][1]]);expect(call[3]).not.toContain(weapon.model);expect(weapon.needsPreparation).toBe(false);
+    await Promise.all([weapon.prepareView(),weapon.prepareView()]);expect(f.preload).toHaveBeenCalledOnce();expect(f.warm).toHaveBeenCalledOnce();expect(weapon.needsPreparation).toBe(false);
     expect(weapon.state).toBe(state);weapon.setActive(true);expect(weapon.model.visible).toBe(true);expect(weapon.model.children.length).toBeGreaterThan(0);
     await weapon.prepareView();expect(f.preload).toHaveBeenCalledOnce();
   }finally{f.scope.dispose();f.part.dispose();}
