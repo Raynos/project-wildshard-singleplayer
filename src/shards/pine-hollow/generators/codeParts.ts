@@ -12,8 +12,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
-import { plank } from '@wildshard/engine/world/geometryKit';
-import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
+import { bakePlank as plank } from '@wildshard/sdk/bake/primitives';
+import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sdk/bake/facetedGeometry';
 import { readBakedGeometry } from '@wildshard/sdk/kit/bakedGeometry';
 import { sharedPickupCatalogue } from '@wildshard/sdk/bake/specimenCatalogue';
 import HOLLOW_LOG_SHAPE from '../data/hollowLog.json' with { type: 'json' }; // length, outer and bore radius (m), the rotted bed's depth
