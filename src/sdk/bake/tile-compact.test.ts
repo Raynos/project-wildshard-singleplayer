@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { parseGlbData } from '@wildshard/format/glbCost';
 import { staticGlb } from './glb';
 import { compressGlb } from './glbCompression';
-import { compactTileGeometry, tileGrid, tileGridTransform } from './worldGeometry';
+import { compactTileGeometry, modelGrid, tileGrid, tileGridTransform } from './worldGeometry';
 
 // RM8.1a: a clipped tile's triangle soup welds into indexed, quantized channels without moving a position
 test('compacted tile geometry keeps every triangle, exact positions and close normals and colours', () => {
@@ -69,4 +69,11 @@ test('a gridded tile keeps every triangle within half a grid step through its pa
     const match = [...original].some(v => [0, 1, 2].every(axis => Math.abs((seen[at + axis] ?? Number.NaN) - (p[v * 3 + axis] ?? Number.NaN)) <= grid.step / 2 + 1e-9));
     expect(match).toBe(true);
   }
+});
+
+test('a model-space primitive gets a grid pinned at its model origin (RM8.1e)', () => {
+  const near = modelGrid(new Box3(new Vector3(-20, 0, -18), new Vector3(20, 30, 18)));
+  expect(near).toEqual({ origin: [0, 0, 0], step: 1 / 512 });
+  expect(modelGrid(new Box3(new Vector3(-100, 0, 0), new Vector3(10, 10, 10))).step).toBe(1 / 256);
+  expect(() => modelGrid(new Box3(new Vector3(0, 0, 0), new Vector3(40000, 1, 1)))).toThrow('too far from its model origin');
 });

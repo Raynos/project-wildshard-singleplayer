@@ -89,6 +89,16 @@ export function tileGrid(box: Box3): TileGrid {
   }
   throw new Error('World tile is too large for a 16-bit position grid');
 }
+/** RM8.1e: the grid of a primitive whose graph reads its model-space position (the open plots' hologram, turned about
+ *  its model origin): origin pinned at that model origin, so the graph's model space is the authored metres times one
+ *  uniform scale (1 / step) and a turn about the origin, a linear map, comes out the same once the node scales back. */
+export function modelGrid(box: Box3): TileGrid {
+  const lo = box.min.toArray(), hi = box.max.toArray();
+  for (let step = 1 / 512; step <= 1; step *= 2) {
+    if (lo.every(v => Math.abs(v) / step <= 32767) && hi.every(v => Math.abs(v) / step <= 32767)) return { origin: [0, 0, 0], step };
+  }
+  throw new Error('World primitive is too far from its model origin for a 16-bit position grid');
+}
 /** The node transform that dequantizes a grid's Int16 positions. */
 export function tileGridTransform(grid: TileGrid): Matrix4 {
   return new Matrix4().compose(new Vector3(...grid.origin), new Quaternion(), new Vector3(grid.step, grid.step, grid.step));

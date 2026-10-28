@@ -8,7 +8,7 @@ import { normalizeWorldGlb, type NormalizedWorld, type WorldPrimitive } from './
 import { parseWorldSource } from '../worldSource';
 import { bakeWorldTexture } from './textureWasm';
 import { StaticMaterialCatalogue } from './staticMaterials';
-import { compactTileGeometry, tileGrid, tileGridTransform, worldGeometry, mergeWorldGeometry } from './worldGeometry';
+import { compactTileGeometry, modelGrid, tileGrid, tileGridTransform, worldGeometry, mergeWorldGeometry } from './worldGeometry';
 import { compressGlb } from './glbCompression';
 import { staticGlb, type GlbPrimitive } from './glb';
 import { simplifyWorldPrimitive } from './worldLod';
@@ -105,9 +105,9 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array, graph
       for (const [name, parts] of groups) {
         const merged = mergeWorldGeometry(parts); transient.push(merged);
         // RM8.1a: welded, 16-bit indexed, Int8 normals and Uint16 colours (KHR_mesh_quantization) on the wire
-        // RM8.1e: a model-space graph (the open plots' turning hologram) keeps slice A's float metres: on the grid its
-        // positions are grid units about the grid's origin, and its pivot and turn radius came out 512x (the cyan sheets)
-        const own = grid !== undefined && !catalogue.modelSpace(name) ? grid : undefined;
+        // RM8.1e: a model-space graph (the open plots' turning hologram) gets a grid pinned at its model origin: on the tile's
+        // grid its positions were grid units about the tile centre, and its turn about the origin swung 512x (cyan sheets)
+        const own = grid === undefined ? undefined : catalogue.modelSpace(name) ? modelGrid(modelBox(merged)) : grid;
         const primitive = catalogue.primitive(name, merged, { castShadow }), compact = compactTileGeometry(primitive.geometry, own); transient.push(compact);
         primitives.push({ ...primitive, geometry: compact, quantizedChannels: true, compactIndex: true,
           ...(own === undefined ? {} : { meshoptReady: true, transform: tileGridTransform(own) }) });
@@ -185,4 +185,11 @@ export async function bakeAuthoredWorld(input: unknown, bytes: Uint8Array, graph
     if (authored.near === 'coarse') return { shard: await coarseNearView(shard, baked.assets, name => lightNames.has(name), name => colourNames.has(name)), assets: baked.assets };
     return { shard, assets: baked.assets };
   } finally { catalogue.dispose(); geometry.forEach(part => part.dispose()); }
+}
+
+/** A primitive's own bounding box (its positions, in its model space). */
+function modelBox(geometry: BufferGeometry): Box3 {
+  geometry.computeBoundingBox();
+  const box = geometry.boundingBox; if (box === null) throw new Error('World primitive has no positions');
+  return box.clone();
 }
