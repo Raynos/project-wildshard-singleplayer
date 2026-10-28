@@ -12,6 +12,7 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import * as v from 'valibot';
 import {titanPrograms as programs,titanWitnessBytes} from './fixtures/titanInlineWitness';
 import {admitScript} from '../src/format/scriptAdmission';
+import {checkReturnProjectionV2Rows,parseReturnProjectionV2} from '../src/format/returnProjectionV2';
 
 const spear={phase:0,mode:3,dt:2,t:0,cd:0,x:0,z:0,px:1,pz:1,chain:0,aim:1,lock:.2,stuck:.5};
 
@@ -51,6 +52,27 @@ test('owned snapshots leave cached caller bindings detached and mutable',()=>{
     expect(program.project('bossClamp',{fullHp:100,share:.3})).toStrictEqual({hp:30});
     expect(()=>ReturnProgram.page(input,owner)).toThrow('Shared return declaration changed');
   }finally{owner.dispose();}
+});
+
+test('containing return admission retains every V2 cross-field refusal',()=>{
+  const row=v.parse(ReturnProgramSchema,programs.attack);
+  if(row.v2===undefined)throw new Error('Missing original V2 declaration');
+  const original=JSON.stringify(row.v2);
+  checkReturnProjectionV2Rows(row.v2);
+  expect(row.v2).toStrictEqual(parseReturnProjectionV2(row.v2));
+  expect(JSON.stringify(row.v2)).toBe(original);
+  const invalid=[{...row.v2,fields:[...row.v2.fields].reverse()},
+    {...row.v2,artifact:{...row.v2.artifact,ioBytes:656}},
+    {...row.v2,additional:{fields:['not-declared']}}];
+  for(const input of invalid){
+    const composed=()=>{
+      const selected=v.parse(ReturnProgramSchema,{...programs.attack,v2:input});
+      if(selected.v2===undefined)throw new Error('Missing selected V2');
+      checkReturnProjectionV2Rows(selected.v2);
+    };
+    expect(composed).toThrow();expect(()=>parseReturnProjectionV2(input)).toThrow();
+    expect(()=>ReturnProgram.page({...programs.attack,v2:input})).toThrow();
+  }
 });
 
 test('descriptor mutation, malformed selections and accessor rows cannot alter a cached module',()=>{

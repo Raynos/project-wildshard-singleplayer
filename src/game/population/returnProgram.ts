@@ -14,7 +14,7 @@ import * as v from 'valibot';
 import { ReturnModulesSchema, type ReturnModuleRow, admitScriptContract } from '@wildshard/format/scriptContract';
 import { loanedSha256, sha256 } from '../plugin/moduleHash';
 import { isJsonData } from '@wildshard/format/json';
-import { parseReturnProjectionV2 } from '@wildshard/format/returnProjectionV2';
+import { checkReturnProjectionV2Rows } from '@wildshard/format/returnProjectionV2';
 import { ReturnProjectionV2,type PreparedProjectionV2 } from './returnProjectionV2';
 import type {ShardProduct} from '../shardfile/shardProduct';
 import {outputDescriptor} from '../shardfile/outputDescriptor';
@@ -69,7 +69,8 @@ function admitProgram(input: unknown): Omit<v.InferOutput<typeof ReturnProgramSc
   const row = v.parse(ReturnProgramSchema,input),script = parseDecisionScripts([row.script])[0];
   if (script === undefined) throw new Error('Missing return script');
   if (row.v2 !== undefined) {
-    const v2 = parseReturnProjectionV2(row.v2);
+    const v2 = row.v2;
+    checkReturnProjectionV2Rows(v2);
     if (Object.keys(script.params).length > 0 || script.reads.some(read => read !== 'field' && read !== 'random' && read !== 'radial')
       || (['fields','signals','channels'] as const).some(kind => JSON.stringify([...Object.values(script[kind]).sort(),...(v2.additional?.[kind]??[])]) !== JSON.stringify(v2[kind]))) throw new Error('Mismatched return projection declaration');
   }

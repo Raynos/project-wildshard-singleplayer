@@ -12990,6 +12990,11 @@ rows; the projector keeps only the scoped original programme loan, avoiding
 per-step descriptor admission. Page wildlife and guard projections borrow the
 same original world scope and selected admission instance.
 
+`checkReturnProjectionV2Rows` checks cross-field rules on rows already
+admitted by `ReturnProjectionV2Schema`; containing schemas reuse those rows.
+Unknown inputs still use `parseReturnProjectionV2` for full JSON and shape
+admission before the same checks.
+
 `CrowdGuardSchema` requires the finite projection row; the page and native
 bindings have no duplicate sampling/apply callback. A state operation may
 set `required:true` to refuse an unknown state index during whole-bank

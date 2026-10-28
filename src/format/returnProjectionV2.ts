@@ -26,6 +26,13 @@ export function returnProjectionV2Layout(fields: number,pages = 1,outputCapacity
 export function parseReturnProjectionV2(input: unknown): ReturnProjectionV2Rows {
   if (!isJsonData(input)) throw new Error('Return projection requires JSON data');
   const row = v.parse(ReturnProjectionV2Schema,input);
+  checkReturnProjectionV2Rows(row);
+  return row;
+}
+/** Check cross-field rules after ReturnProjectionV2Schema has admitted the
+ * complete shape. Unknown inputs must use parseReturnProjectionV2 instead.
+ * A containing admitted schema can reuse its rows without parsing them again. */
+export function checkReturnProjectionV2Rows(row: ReturnProjectionV2Rows): void {
   if(row.groups!==undefined)parseGroupStepV2(row.groups);
   if (row.artifact.ioBytes !== returnProjectionV2Layout(row.fields.length,row.artifact.pages,row.outputCapacity,row.groups).bytes
     || [row.fields,row.signals,row.channels].some(list => new Set(list).size !== list.length || list.some((name,i) => i > 0 && (list[i-1] ?? '') >= name))) throw new Error('Invalid projection declaration');
@@ -34,7 +41,6 @@ export function parseReturnProjectionV2(input: unknown): ReturnProjectionV2Rows 
     if(extra.some((name,index)=>!declared.includes(name)||index>0&&(extra[index-1]??'')>=name)
       ||JSON.stringify(declared.slice(base.length))!==JSON.stringify(extra))throw new Error('Invalid additional projection names');
   }
-  return row;
 }
 
 /** Admitted data contracts, independent of validator implementation metadata. */
