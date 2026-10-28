@@ -262,7 +262,75 @@ reader; shared SDK/build changes run all affected behaviour groups (G746).
 | RM8.1b Quantized tile producer | done (sp-o1: A 850a6efb5f; B/C this commit) | Every L0 tile primitive is welded (identical complete vertices only), Int8 normals; a tile (not a panel) goes onto one shared power-of-two grid (`tileGrid`: 1/512 m, coarsened only for a tile too tall for 16 bits; origin on the grid, so a shared point quantizes alike in both tiles): unnormalized Int16 positions dequantized by the node, Uint8 colours, 4-byte strides, vertex-cache and fetch reorder (meshopt), then `compressGlb`. Night Market kit-on S tiles 121 → 53.9 (A) → 17.7 B/tri, 251 KB a geometry tile; default layout fits. |
 | RM8.1c Geometry and budget readers | done (sp-o1, this commit) | glbCost / glbTriangles admit unnormalized Int16 POSITION (node-dequantized) and read Int8/Int16; GLTFLoader and the near reader already decode both. Open: `gpu` counts packed sizes, not padded strides (1-2 B/vertex low, alike for every meshopt-packed model; a global fix moves other ceilings). |
 | RM8.1d Authored activation and per-shard sizing | done (this commit) | Active in bakeAuthoredWorld for every authored shard; sp-x1's all-24 refresh on the frozen source exit 0 (109 s, no tile-bake/T8 refusal). |
-| RM8.1e Milestone and RM8 handoff | open | Normal products and tile caps green for every authored shard; exact/accepted pixel parity, then hand the defining SHA and Night Market numbers to sp-o1. No kit density activation or cap waiver in this codec row. |
+| RM8.1e Milestone and RM8 handoff | in flight (2026-10-28, sp-x8): all 24 normal products / pinned tile policy PASS on `35281b4d8e`; pixel acceptance open | Defining codec `850a6efb5f` + `6e9a4660dd`. Current census and Night Market numbers below are the handoff (sp-o1 released). No product/cap repair or density activation needed; no cap/debt waiver. Codec-specific per-shard pixel evidence is not established by the numerical controls; routed to wildshard-new with the pin, as an evidence gap rather than an observed regression. |
+
+#### RM8.1e current-product census (2026-10-28)
+
+Normal frozen build: `35281b4d8ec4998fe675fa06b517eaf0eae18feb`.
+All 24 current emitted products cover every authored world; six frozen legacy
+products are outside this refresh. Each product's validation/index identity and
+all physical file, section, schema and runtime payload sizes/hashes pass.
+Tile checks use that same pin's exact policy (SHA256
+`bba1636a7ce2fb28c1b50844a04608dba29c1467dd1fedb5079944b416ad9136`)
+and matching reader sources, checked before and after the census. PASS means
+no new/worse tile or 5x5-window debt; it does not mean zero nominal excess.
+The last column counts existing positive metric exceptions (including missing
+coordinates), not extra waivers. Every product has 16 full interior windows.
+
+| Product | Normal product | Tile/window caps | L0 / L1 rows | Retained metric exceptions |
+|---|---|---|---|---|
+| `_template` | PASS | PASS | 64 / 16 | 0 |
+| `blender-template` | PASS | PASS | 64 / 12 | 4 |
+| `driftwood-isle` | PASS | PASS | 64 / 16 | 5 |
+| `far-reach` | PASS | PASS | 64 / 16 | 0 |
+| `ink-cel-valley` | PASS | PASS | 64 / 16 | 0 |
+| `nalati-grasslands` | PASS | PASS | 64 / 16 | 0 |
+| `nine-dragon-stack` | PASS | PASS | 64 / 16 | 58 |
+| `open-plot-alien-plain` | PASS | PASS | 64 / 16 | 15 |
+| `open-plot-clockwork-canyon` | PASS | PASS | 64 / 16 | 16 |
+| `open-plot-coral-drift` | PASS | PASS | 64 / 16 | 16 |
+| `open-plot-desert-ruin` | PASS | PASS | 64 / 16 | 15 |
+| `open-plot-ember-forge` | PASS | PASS | 64 / 16 | 15 |
+| `open-plot-frostline-peaks` | PASS | PASS | 64 / 16 | 16 |
+| `open-plot-lantern-bayou` | PASS | PASS | 64 / 16 | 15 |
+| `open-plot-mosslight-ruins` | PASS | PASS | 64 / 16 | 16 |
+| `open-plot-night-market` | PASS | PASS | 64 / 16 | 37 |
+| `open-plot-showcase-template` | PASS | PASS | 64 / 16 | 16 |
+| `open-plot-sky-harbor` | PASS | PASS | 64 / 16 | 16 |
+| `open-plot-sky-race` | PASS | PASS | 64 / 16 | 16 |
+| `open-plot-starfall-observatory` | PASS | PASS | 64 / 16 | 16 |
+| `open-plot-thin-ice` | PASS | PASS | 64 / 16 | 15 |
+| `pastel-plain` | PASS | PASS | 64 / 16 | 0 |
+| `pine-hollow` | PASS | PASS | 64 / 16 | 1 |
+| `sunscar-dunes` | PASS | PASS | 64 / 16 | 0 |
+
+Blender Template's four retained exceptions are the absent L1 corner cells
+(0,0), (0,3), (3,0), (3,3); this census does not claim a complete L1 lattice
+there. No current product or tile-policy failure requires a non-graphical fix.
+No policy, cap, density or generated artifact was edited for this milestone.
+
+**Night Market handoff:** original codec stages `850a6efb5f` / `6e9a4660dd`
+measured kit-on S geometry 121 -> 53.9 -> 17.7 B/triangle and about 251 KB per
+geometry tile. Current pin: 157 files / 34 sections; 64 L0 GLBs total
+10,814,008 wire bytes / 581,185 triangles = **18.607 B/triangle**, largest
+geometry GLB **263,120 B**. Its 16 L1 GLBs total 763,252 B / 47,152 triangles
+= 16.187 B/triangle. These are geometry-file bytes, not whole tile closures.
+Whole L0 row maxima: resident 9,983,296 B and compressed 1,856,576 B at (3,3),
+14,522 triangles at (1,2), 9 draws at (0,2); all fit the existing exact policy
+with 37 retained metric exceptions. L1 maxima: resident 320,768 B, compressed
+65,424 B and 3,627 triangles at (1,1), 2 draws. Night product worker 46.2 s;
+normal product phase 60 s. These are this build's numbers, not an isolated
+codec speed comparison.
+
+**Parity exit remains open:** six original compact-grid/near-intake controls
+pass (two suites, 9.03 s): triangle/position bounds, transformed near data,
+meshopt-equivalent near output and malformed-payload recovery. They are not a
+pixel comparison. The accepted Night Market RM13 board on `b9699cb002`
+(`art/grid/round-72-night-market-rm13/board.jpg`) is overall remaster evidence,
+not a codec-only A/B for all authored shards. The missing per-shard pixel
+witness/acceptance was routed to wildshard-new against `35281b4d8e` and the
+two defining codec SHAs; no pixel regression is asserted. RM8.1c's existing
+padded GPU-stride accounting debt remains explicit and is not waived here.
 
 ### T4 / T6 / T8 bounded slices (G711)
 
