@@ -1,5 +1,4 @@
-import { ARENA_VIEW, arenaChainTell } from '@wildshard/format/arenaView';
-import type { ViewProgramRows } from '@wildshard/format/viewProgram';
+import { ARENA_VIEW, arenaChainTell, type AuthorViewProgramRows as ViewProgramRows } from '@wildshard/sdk/arenaView';
 import { TITAN_CLOCKS, TITAN_SCRIPT } from './stormTitanFight';
 
 /**

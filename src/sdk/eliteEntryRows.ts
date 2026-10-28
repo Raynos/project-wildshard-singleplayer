@@ -1,7 +1,15 @@
 import { parseEliteEntryRows as parseRows, parseEliteEntryPageRows as parsePage,
   ELITE_BODY_COLUMNS as bodyColumns, ELITE_CONDITION_COLUMNS as conditionColumns,
   type EliteEntryRows as Rows, type EliteEntryPageRows as Page } from '@wildshard/format/eliteEntryRows';
-import { parseEliteOutputActions as parseActions, type EliteOutputAction as Action } from '@wildshard/format/eliteFeature';
+import { parseEliteOutputActions as parseActions, type EliteOutputAction as Action,
+  ELITE_VIEW_FIELDS as viewFields, eliteViewSource as viewSource, eliteViewTell as viewTell } from '@wildshard/format/eliteFeature';
+
+/** Defining ordered input columns lent by each elite's native presentation owner. */
+export const ELITE_VIEW_FIELDS: typeof viewFields = viewFields;
+/** Native named input source; constructing its label installs no view owner. */
+export function eliteViewSource(elite: string): string { return viewSource(elite); }
+/** Native named lane tell; its lifetime remains with the entered owner. */
+export function eliteViewTell(elite: string): string { return viewTell(elite); }
 
 /** Admitted native elite-construction rows. */
 export type EliteEntryRows = Rows;

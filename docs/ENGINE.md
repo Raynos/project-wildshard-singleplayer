@@ -4164,10 +4164,6 @@ entry and hiding it again on leave.
 Game plugins are the `src/game/package.json` exports: trusted shard `runtime/` and type imports name defining modules, with no second runtime SDK, wrappers or allowlist. Authoring uses SDK/commons, never game runtime modules; frozen legacy inputs remain.
 
 `@wildshard/sdk/bake/byteCodec.decodeBuildDeflate` returns owned bounded zlib bytes. `ProjectGenerationContext.compileReturnProjection` injects dual AS compilation with unchanged source/ABI checks.
-`bake/sourceMetadata.cachedBlobSources(input,kinds)` re-admits cached author
-source metadata against an explicit file-kind vocabulary. Rows/options stay
-strict, dependency order is retained, and output arrays are owned; actual byte
-and cost claims still pass through `nameBlob` before publication.
 
 The current migration inventory is reproducible with `node scripts/game-plugins.mjs`:
 it follows primary shards' runtime closures to their SDK facade imports and lists
@@ -5006,6 +5002,10 @@ native JSON actor projection. ABI2, declared signal/field/channel names and
 operation references are checked by the defining parser before publication;
 no compiler, live actor or continuation is created. The finite author format
 selectors also retain the exact mounted-seat and client-riding validators.
+`arenaView.AuthorViewProgramRows` retains the complete mutable native view
+bank. `arenaView.arenaChainTell` and the `eliteEntryRows` fields and source/tell
+helpers retain native ordered columns and owner labels. Constructing metadata
+creates no view, tell or lifetime.
 `decisionScripts.AuthorGroupStepProfile` retains the complete native group
 bank, observation columns, signals and actions, including mutable profile
 arrays. Its type has no compiler, runtime or continuation dependency.

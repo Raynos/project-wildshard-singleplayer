@@ -1,5 +1,5 @@
-import { ELITE_VIEW_FIELDS, eliteViewSource, eliteViewTell } from '@wildshard/format/eliteFeature';
-import type { ViewProgramRows } from '@wildshard/format/viewProgram';
+import { ELITE_VIEW_FIELDS, eliteViewSource, eliteViewTell } from '@wildshard/sdk/eliteEntryRows';
+import type { AuthorViewProgramRows as ViewProgramRows } from '@wildshard/sdk/arenaView';
 
 /**
  * Nalati zero R9 (G621): the external elites' lane tells as a view program (behaviour/eliteViews.as) over the values
