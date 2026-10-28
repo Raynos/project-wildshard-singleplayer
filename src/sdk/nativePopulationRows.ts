@@ -3,6 +3,10 @@ import { NativeGroupRowsSchema, PageGroupRowsSchema, PopulationKnockdownSchema }
 import { WildlifePopulationSchema } from '@wildshard/format/wildlifePopulation';
 import { ForagerPopulationSchema } from '@wildshard/format/ambientLife';
 import { PopulationFieldSchema } from '@wildshard/format/populationEnvironment';
+import { parseNativePopulationRows } from '@wildshard/format/populationRoster';
+
+/** Admit complete native fauna/encounter/pose roster data with its original identity and resource checks. */
+export function parseNativePopulationRoster(input: unknown): ReturnType<typeof parseNativePopulationRows> { return parseNativePopulationRows(input); }
 
 /** Admit data-only native group ownership, ordered steps and guest bindings without a live world. */
 export function parseNativeGroupRows(input: unknown): v.InferOutput<typeof NativeGroupRowsSchema> { return v.parse(NativeGroupRowsSchema, input); }
