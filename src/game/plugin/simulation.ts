@@ -377,6 +377,10 @@ export function prepareShardfileSimRestore(shard: Shardfile, assets: ReadonlyMap
   try { return { ...target, simulation: bindShardfileSim(target.host, shard, assets, ports) }; }
   catch (error) { target.host.dispose(); throw error; }
 }
+/** Replace a private Object.entries snapshot value, preserving its tuple and
+ * the downstream native observation validation rather than making a second pair. */
+function observationValue(entry: [string, unknown], value: boolean): asserts entry is [string, boolean] { entry[1] = value; }
+
 /** Reinstall matching adapters into a fresh standalone restore host; restoring skips collider allocation and stepping. */
 export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, ports: ShardfileSimPorts): ShardfileSimulation {
   if (shard.nativeGround !== null) throw new Error('Native ground retains its trusted runtime simulation; a flat declared proxy is forbidden');
@@ -559,13 +563,29 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
       if (Object.values(data.inputs).some(binding => binding.startsWith('flag:') && !shard.quests.flags.includes(binding.slice(5)))
         || data.stages.some(stage => stage.do.some(action => 'flag' in action && !shard.quests.flags.includes(action.flag.key)))) throw new Error('Director flag has no declared native owner');
       const director = new DirectorStageLane(data);
-      host.onStep(`director.${data.id}`, (_dt, native) => {
-        const observation = Object.fromEntries(Object.entries(data.inputs).map(([name, binding]) => {
+      // Cache only bounded immutable binding decodes, not observations or hosts.
+      // Each tick still snapshots the current source entries before any reads.
+      const bindings = new Map<string, { range: ReturnType<typeof directorDayRange>; flag: string }>();
+      const observeInput = (entry: [string, string]): [string, boolean] => {
+        const binding = entry[1];
+        let plan = bindings.get(binding);
+        if (plan === undefined) {
           const range = directorDayRange(binding);
-          if (range === null) return [name, native.flags.has(binding.slice(5))];
+          plan = { range, flag: range === null ? binding.slice(5) : '' };
+          if (typeof binding === 'string' && bindings.size < 16) bindings.set(binding, plan);
+        }
+        let value: boolean;
+        if (plan.range === null) value = host.flags.has(plan.flag);
+        else {
           if (day === undefined) throw new Error('Missing director day clock');
-          return [name, inNormalizedDayRange(day(), range[0], range[1])];
-        }));
+          value = inNormalizedDayRange(day(), plan.range[0], plan.range[1]);
+        }
+        const result: [string, unknown] = entry;
+        observationValue(result, value);
+        return result;
+      };
+      host.onStep(`director.${data.id}`, (_dt, native) => {
+        const observation = Object.fromEntries(Object.entries(data.inputs).map(observeInput));
         for (const action of director.step(native.state.tick, observation)) {
           if (!('flag' in action)) throw new Error('Director action has no native owner');
           native.flags.set(action.flag.key, action.flag.value);
