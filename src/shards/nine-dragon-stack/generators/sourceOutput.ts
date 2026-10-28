@@ -8,6 +8,7 @@ import { parseBurstFields } from './sections';
 import bursts from '../data/burstFields.json' with { type: 'json' };
 import { readNineProductInputs } from './product';
 import { nineProductFrom } from './productDefinition';
+import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 
 type OutputSources = Pick<NineOutputInputs, 'construction' | 'held' | 'ownedWorld' | 'scenes' | 'casts' | 'signs' | 'courseProgram'>;
 async function sourcesFor(ctx: ProjectGenerationContext): Promise<OutputSources> {
@@ -21,6 +22,13 @@ export async function nineSourceOutput(ctx: ProjectGenerationContext, supplied?:
   const movers = await nineMoversProgram(ctx);
   const entryProof = await nineEntryProof(ctx);
   const decals = await nineNativeDecals(ctx);
-  return nineOutput(movers, { ...sources, entryProof, decals: { blobs: decals }, bursts: parseBurstFields(bursts),
+  const output = nineOutput(movers, { ...sources, entryProof, decals: { blobs: decals }, bursts: parseBurstFields(bursts),
     graphArmsSchema: heldViewSchema(), scriptRevisions: { compiler: NINE_MOVERS_CONTRACT.compilerRevision, admission: NINE_MOVERS_CONTRACT.admissionRevision } });
+  // Keep the original source-blob publication, but admit its exact late hash
+  // from the same tracked input. The unopened course card is not spawn data.
+  const name = 'explore/playground-grapple.webp';
+  const card = (await ctx.cached({ id: 'practice-card-admission', inputs: [name] }, inputs => inputs)).get(name);
+  if (card === undefined) throw new Error('Missing Nine practice card input');
+  const hash = hashImmutableBytes(card);
+  return { ...output, late: [...output.late ?? [], ...output.late?.some(row => row.hash === hash) === true ? [] : [{ hash }]] };
 }
