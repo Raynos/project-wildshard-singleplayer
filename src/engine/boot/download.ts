@@ -241,14 +241,16 @@ interface ModuleBank {
   readonly text: string;
   readonly files: readonly (readonly [string, number])[];
   readonly groups: object;
+  readonly published: WeakMap<DownloadAccounting, Set<readonly [string, number]>>;
 }
+interface ModuleSelection { readonly bank: ModuleBank; readonly files: readonly (readonly [string, number])[] }
 const moduleBanks = new WeakMap<Element, ModuleBank>();
 
 /** Resolve the complete selected bank before publishing any prefix. */
-function selectedModuleFiles(kinds: readonly string[]): readonly (readonly [string, number])[] {
-  if (typeof document === 'undefined' || kinds.length === 0) return [];
+function selectedModuleFiles(kinds: readonly string[]): ModuleSelection | undefined {
+  if (typeof document === 'undefined' || kinds.length === 0) return undefined;
   const element = document.getElementById('boot-module-files');
-  if (element === null) return []; // Source and isolated fixtures have no compiler inventory.
+  if (element === null) return undefined; // Source and isolated fixtures have no compiler inventory.
   const text = element.textContent;
   let admitted = moduleBanks.get(element);
   if (admitted === undefined || admitted.text !== text) {
@@ -260,7 +262,7 @@ function selectedModuleFiles(kinds: readonly string[]): readonly (readonly [stri
     if (typeof groups !== 'object' || groups === null) throw new Error('Missing client module groups');
     // Privately parsed rows never escape. Changed text or a replacement element
     // must pass the complete bank admission again, including unselected files.
-    admitted = { text, files, groups }; moduleBanks.set(element, admitted);
+    admitted = { text, files, groups, published: new WeakMap() }; moduleBanks.set(element, admitted);
   }
   const { files, groups } = admitted;
   const selected = new Map<number, readonly [string, number]>();
@@ -273,17 +275,36 @@ function selectedModuleFiles(kinds: readonly string[]): readonly (readonly [stri
       selected.set(index, file);
     }
   }
-  return [...selected.values()];
+  return { bank: admitted, files: [...selected.values()] };
 }
 
-/** Declare selected graphs without starting their reads. */
-export function declareModuleGroups(kinds: readonly string[]): void { declareModuleFiles(selectedModuleFiles(kinds)); }
+function publishModuleSelection(selection: ModuleSelection): void {
+  accountingTargets(accounting => {
+    let published = selection.bank.published.get(accounting);
+    if (published === undefined) { published = new Set(); selection.bank.published.set(accounting, published); }
+    for (const file of selection.files) {
+      if (published.has(file)) continue;
+      accounting.declare(file[0], file[1]);
+      published.add(file);
+    }
+  });
+}
+
+/** Declare selected graphs without starting their reads. Privately admitted
+ * facts publish once per ledger; new attempts and observers still get them. */
+export function declareModuleGroups(kinds: readonly string[]): void {
+  const selection = selectedModuleFiles(kinds);
+  if (selection !== undefined) publishModuleSelection(selection);
+}
 
 /** Prepare only compiler-selected code in parallel, without executing modules.
  * Original import sites still install in order and own their retry/failure policy. */
 export function preloadModuleFiles(input: unknown): void {
   const files = readModuleFiles(input);
   for (const [url, bytes] of files) declareDownloadFile(url, bytes);
+  preloadAdmittedModuleFiles(files);
+}
+function preloadAdmittedModuleFiles(files: readonly (readonly [string, number])[]): void {
   if (typeof document === 'undefined') return;
   const present = new Set([...document.querySelectorAll<HTMLLinkElement>('link[rel="modulepreload"]')].map(link => link.href));
   for (const [url] of files) {
@@ -296,4 +317,9 @@ export function preloadModuleFiles(input: unknown): void {
   }
 }
 /** Admission of every selected row precedes every preload and declaration. */
-export function preloadModuleGroups(kinds: readonly string[]): void { preloadModuleFiles(selectedModuleFiles(kinds)); }
+export function preloadModuleGroups(kinds: readonly string[]): void {
+  const selection = selectedModuleFiles(kinds);
+  if (selection === undefined) return;
+  publishModuleSelection(selection);
+  preloadAdmittedModuleFiles(selection.files);
+}

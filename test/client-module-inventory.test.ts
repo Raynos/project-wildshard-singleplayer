@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, test, vi } from 'vitest';
-import { DownloadAccounting, installDownloadAccounting, declareModuleGroups, preloadModuleFiles, preloadModuleGroups } from '../src/engine/boot/download';
+import { DownloadAccounting, installDownloadAccounting, observeDownloadAccounting, declareModuleGroups, preloadModuleFiles, preloadModuleGroups } from '../src/engine/boot/download';
 import { declareProductClientModules, prepareClientModuleGroups } from '../src/game/shardfile/clientModules';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
@@ -16,13 +16,60 @@ test('warm module groups reuse private parsing but publish to each loading ledge
   try {
     for (let i = 0; i < 2; i++) {
       const accounting = new DownloadAccounting(document.baseURI), dispose = installDownloadAccounting(accounting);
+      const declare = vi.spyOn(accounting, 'declare');
       try {
         declareModuleGroups(['models.gltf']); declareModuleGroups(['models.gltf']);
+        expect(declare).toHaveBeenCalledTimes(1);
         expect(accounting.snapshot()).toMatchObject({declaredBytes:8,declaredFiles:1,networkBytes:0,cachedBytes:0});
       } finally { dispose(); }
     }
     expect(parse).toHaveBeenCalledTimes(1);
   } finally { parse.mockRestore(); }
+});
+
+test('new observers receive admitted facts while old targets retain only real receipts', () => {
+  bank({files:[['/assets/shared.js',4],['/assets/parser.js',8]],groups:{shared:[0],'models.gltf':[0,1]}});
+  declareModuleGroups(['models.gltf']); // No targets: never consumes future publication.
+  const boot = new DownloadAccounting('https://fixture.invalid/'), observer = new DownloadAccounting('https://fixture.invalid/');
+  const dispose = installDownloadAccounting(boot), declared = vi.spyOn(boot, 'declare');
+  let stop: (() => void) | undefined;
+  try {
+    declareModuleGroups(['shared']); preloadModuleGroups(['models.gltf']);
+    expect(declared).toHaveBeenCalledTimes(2);
+    stop = observeDownloadAccounting(observer);
+    const observed = vi.spyOn(observer, 'declare');
+    declareModuleGroups(['models.gltf']);
+    expect(declared).toHaveBeenCalledTimes(2);
+    expect(observed).toHaveBeenCalledTimes(2);
+    boot.resource({name:'https://fixture.invalid/assets/parser.js',startTime:1,transferSize:11,
+      encodedBodySize:8,workerStart:0,serverTiming:[]});
+    declareModuleGroups(['models.gltf']);
+    expect(boot.snapshot()).toMatchObject({declaredBytes:12,declaredDoneBytes:8,networkBytes:11,cachedBytes:0});
+    expect(observer.snapshot()).toMatchObject({declaredBytes:12,declaredDoneBytes:0,networkBytes:0,cachedBytes:0});
+    stop();
+    stop = observeDownloadAccounting(observer);
+    declareModuleGroups(['models.gltf']);
+    expect(observed).toHaveBeenCalledTimes(2);
+  } finally { stop?.(); dispose(); }
+});
+
+test('changed or replaced banks republish exact new facts to the same ledger', () => {
+  const input = {files:[['/assets/parser.js',8]],groups:{'models.gltf':[0]}};
+  bank(input);
+  const accounting = new DownloadAccounting('https://fixture.invalid/'), dispose = installDownloadAccounting(accounting);
+  const declared = vi.spyOn(accounting, 'declare');
+  try {
+    declareModuleGroups(['models.gltf']);
+    const element = document.getElementById('boot-module-files');
+    if (element === null) throw new Error('Missing test module bank');
+    element.textContent = JSON.stringify({optional:{...input,files:[['/assets/parser.js',12]]}});
+    declareModuleGroups(['models.gltf']);
+    expect(accounting.snapshot()).toMatchObject({declaredBytes:12,declaredFiles:1,networkBytes:0,cachedBytes:0});
+    document.body.replaceChildren(); bank(input);
+    declareModuleGroups(['models.gltf']);
+    expect(declared).toHaveBeenCalledTimes(3);
+    expect(accounting.snapshot().declaredBytes).toBe(12); // Original max-size merge remains authoritative.
+  } finally { dispose(); }
 });
 
 test('changed module text revalidates unselected files before publishing anything', () => {
