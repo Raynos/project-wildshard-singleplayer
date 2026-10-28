@@ -473,6 +473,8 @@ async function measureShard(driver, shard, deadline) {
     }
     // Measure the actual boot spawn before camera scans can retire its cell. A later teleport into
     // an unloaded home is refused/recovered onto the road; labelling that row 'spawn' hid the wrong view.
+    // G823: give this pose its own post-boot settle, just as each standing pose gets after placement.
+    await sleep(settleMs);
     const spawnRow = await standingSample(driver, meta.spawn); rows.push(spawnRow);
     console.log(`${surface} ${shard} spawn: ${spawnRow.medianFps} fps, p95 ${spawnRow.p95Ms} ms, p99 ${spawnRow.p99Ms} ms — ${spawnRow.pass ? 'PASS' : 'FAIL'}`);
     // O11: the outer road starts with no inner cell admitted; deck-east stands on Nine's boulevard and admits it. O17: a
