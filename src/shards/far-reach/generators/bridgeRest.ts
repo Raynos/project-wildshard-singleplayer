@@ -4,7 +4,7 @@ import { clientSceneGlb } from '@wildshard/sdk/bake/glb';
 import { GeometryPack, packedRows } from '@wildshard/sdk/kit/geometryPack';
 import { bakeSkyBridges, ropeSpans } from './bridges';
 import { BRIDGE_REST_URL } from './restFiles';
-import type { PrivateScene } from '@wildshard/format/clientChannels';
+import type { AuthorPrivateScene as PrivateScene } from '@wildshard/sdk/worldScenes';
 
 type ReadAsset = (url: string) => Uint8Array;
 interface BridgeSpan { id: string; deckGeometry: string; deck: number[]; posts: number[]; ropes: string[] }

@@ -1,5 +1,5 @@
 import { NATIVE_VIEW } from './nativeView';
-import type { WorldConstructionRows } from '@wildshard/format/worldAssembly';
+import type { AuthorWorldConstruction as WorldConstructionRows } from '@wildshard/sdk/worldScenes';
 import { islandFoliagePlacements } from './islandDressing';
 
 const foliage = islandFoliagePlacements();

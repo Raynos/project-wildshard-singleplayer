@@ -1,4 +1,4 @@
-import { parseWorldEntry, type WorldEntryRows, type WorldEntryStep } from '@wildshard/format/worldEntry';
+import { worldEntryRows as parseWorldEntry, type AuthorWorldEntry as WorldEntryRows, type AuthorWorldEntryStep as WorldEntryStep } from '@wildshard/sdk/worldScenes';
 import { ISLAND_KNOBS } from './tiers';
 import type { FixedCoveLayout } from './fixedLayouts';
 import composition from '../data/coveComposition.json' with { type: 'json' };

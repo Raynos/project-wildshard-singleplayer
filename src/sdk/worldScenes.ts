@@ -6,7 +6,7 @@ import { parseWorldScenes, type WorldScenesSection } from '@wildshard/format/wor
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { WorldSceneSurfaceSchema, type WorldSceneSurface } from '@wildshard/format/worldSceneSurface';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
-import { parse, record, string, strictObject, array, boolean, object, exactOptional } from 'valibot';
+import { parse, record, string, strictObject, array, boolean, object, exactOptional, type InferOutput } from 'valibot';
 import { SceneDrawsSchema, type SceneDrawsRows } from '@wildshard/format/sceneDraws';
 import type { SceneModelSource, SceneBakeSource } from '@wildshard/game/shardfile/sceneSources';
 import { nameBlob, type NamedBlob } from './blobs';
@@ -17,6 +17,8 @@ import { BakedBuildingLookSchema, parseBuildingLifeRows as nativeBuildingLifeRow
 import type { OutputFile } from '@wildshard/format/outputIndex';
 import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import { parseWorldEntry } from '@wildshard/format/worldEntry';
+import { parseSceneMotion } from '@wildshard/format/sceneMotion';
+import type { WorldUpdatesRows } from '@wildshard/format/worldUpdates';
 
 /** A source geometry's ordered tile files and its resident ownership flag. */
 export interface AuthorSceneTileGroup { files: string[]; resident: boolean }
@@ -64,6 +66,25 @@ export function worldSceneRows(input: unknown): ReturnType<typeof parseWorldScen
 
 /** Authored scene sections before admission fills lent resources and uniform defaults. */
 export type AuthorWorldScenes = WorldScenesSection;
+/** Complete native private hierarchy and materials before runtime installation. */
+export type AuthorPrivateScene = ReturnType<typeof parsePrivateScene>;
+/** Complete scene recipe, including imports and reference/placement contracts. */
+export type AuthorWorldSceneRecipe = WorldSceneRecipe;
+/** Complete admitted copy placement, including drawn-elsewhere ownership. */
+export type AuthorWorldScenePlacement = ReturnType<typeof parseWorldScenePlacement>;
+/** Ordered construction/checkpoint metadata before a world is installed. */
+export type AuthorWorldConstruction = NonNullable<InferOutput<typeof WorldAssemblySchema>['construction']>;
+/** Complete entry block map and one native ordered step. */
+export type AuthorWorldEntry = ReturnType<typeof parseWorldEntry>;
+export type AuthorWorldEntryStep = AuthorWorldEntry['blocks'][string][number];
+/** Complete rope-deck site metadata accepted by native assembly. */
+export type AuthorRopeDeckSite = Extract<InferOutput<typeof WorldAssemblySchema>['stages'][number], { kind: 'rope-deck' }>['site'];
+/** Complete ordered native update declarations; clocks and owners stay runtime-side. */
+export type AuthorWorldUpdates = WorldUpdatesRows;
+/** Complete detached native motion/channel binding declaration. */
+export type AuthorSceneMotion = ReturnType<typeof parseSceneMotion>;
+/** Admit original native scene motion, retaining plain-data and owner/target checks. */
+export function worldSceneMotion(input: unknown): AuthorSceneMotion { return parseSceneMotion(input); }
 
 /** Admit a static model catalogue with the original identity, choice, LOD and plain-data checks. */
 export function worldSceneModels(input: unknown): ReturnType<typeof parseWorldSceneModels> { return parseWorldSceneModels(input); }

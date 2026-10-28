@@ -1,6 +1,6 @@
 import page from '../data/questPageComposition.json' with { type: 'json' };
 
-import type { ViewProgramRows } from '@wildshard/format/viewProgram';
+import type { AuthorViewProgramRows as ViewProgramRows } from '@wildshard/sdk/arenaView';
 
 /** The rope deck's camera sway as a view program: the deck's floor under the player, the player's y and horizontal speed,
  *  then the original law's nine parameters in the module's order; its bank (roll, dip) added to the camera. */

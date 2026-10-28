@@ -1,4 +1,4 @@
-import { parseSceneMotion } from '@wildshard/format/sceneMotion';
+import { worldSceneMotion as parseSceneMotion } from '@wildshard/sdk/worldScenes';
 import { SIGNAL_BUCKET_CHANNELS } from './bucket';
 import motion from '../data/nativeMotion.json' with { type: 'json' };
 

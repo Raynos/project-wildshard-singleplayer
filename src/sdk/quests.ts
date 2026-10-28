@@ -5,11 +5,14 @@ import { parseNativeQuestComposition } from '@wildshard/format/nativeQuestCompos
 import { NativeQuestPropsSchema } from '@wildshard/format/questInteractions';
 import type { InteractDef } from '@wildshard/engine/world/interact/types';
 import { parseCompletion } from '@wildshard/format/completion';
+import type { QuestWorldRows } from '@wildshard/format/questWorld';
 import { parseQuestHost } from '@wildshard/format/questHost';
 import { parsePanelDefinition, type PanelTemplate, type PanelValue } from '@wildshard/format/panelTemplate';
 
 /** Complete authored markup and expression grammar; no DOM or input owner is created. */
 export type AuthorPanelTemplate = PanelTemplate;
+/** Complete authored quest-world anchors and named sites, with native mutable row contracts. */
+export type AuthorQuestWorld = QuestWorldRows;
 /** A native read-only panel expression over caller-owned values. */
 export type AuthorPanelValue = PanelValue;
 /** Admit saved-state chapter presentation with its native bounded data grammar. */

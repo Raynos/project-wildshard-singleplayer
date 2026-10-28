@@ -1,4 +1,4 @@
-import { parseWorldScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
+import { worldSceneRecipe as parseWorldScene, type AuthorWorldSceneRecipe as WorldSceneRecipe } from '@wildshard/sdk/worldScenes';
 import { LECTERN } from './rows/bookStand';
 import { REST_URLS } from './restFiles';
 import { BoxGeometry, BufferGeometry, CylinderGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, RingGeometry, SphereGeometry } from 'three';

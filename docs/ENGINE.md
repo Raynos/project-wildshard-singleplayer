@@ -5014,6 +5014,12 @@ native JSON actor projection. ABI2, declared signal/field/channel names and
 operation references are checked by the defining parser before publication;
 no compiler, live actor or continuation is created. The finite author format
 selectors also retain the exact mounted-seat and client-riding validators.
+The world-scenes module exposes complete author contracts for private
+hierarchies, recipes, placements, construction, entry blocks/steps, rope-deck
+sites, updates and scene motion. The quests module exposes AuthorQuestWorld.
+All retain their defining native mutable/readonly fields and references.
+worldSceneMotion admits original plain-data motion, native owners and target
+bindings through the defining parser; it creates no clock or live binding.
 Finite author format identities include the native ground-record factory
 and complete forager continuation. Factory overloads and validator metadata
 retain exact identity. The rows module exposes AuthorDayClock as the complete

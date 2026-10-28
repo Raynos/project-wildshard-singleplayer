@@ -1,4 +1,4 @@
-import { parseSceneMotion } from '@wildshard/format/sceneMotion';
+import { worldSceneMotion as parseSceneMotion } from '@wildshard/sdk/worldScenes';
 import { SKY_MOVER_VIEWS } from './rows/moverViews';
 import { SKY_LIFT_PROMPTS } from './rows/liftPrompts';
 import { SKY_NATIVE_WORLD } from './rows/nativeWorld';
