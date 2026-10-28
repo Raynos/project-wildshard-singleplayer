@@ -152,6 +152,57 @@ function completePartition(gridded: boolean, encoded: boolean): Mesh {
   return node;
 }
 
+function completeTriangles(kind: 'u16' | 'u32' | 'none', encoded: boolean): Mesh {
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new BufferAttribute(new Float32Array([0, -0, 1, 1, 0, 0, -1, 2, 3, 4, 1, -2, 3, 0, 1, 2, 4, 1]), 3));
+  geometry.setAttribute('color', new BufferAttribute(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]), 3, true));
+  if (kind !== 'none') geometry.setIndex(new BufferAttribute(kind === 'u16' ? new Uint16Array([5, 0, 3, 1, 4, 2]) : new Uint32Array([5, 0, 3, 1, 4, 2]), 1));
+  const node = new Mesh(geometry);
+  node.userData['nativeAttributes'] = {
+    position: { semantic: 'POSITION', storage: 'Float32Array', normalized: false, itemSize: 3 },
+    color: { semantic: 'COLOR_0', storage: 'Uint8Array', normalized: true, itemSize: 3 },
+  };
+  node.userData['matrix64'] = new Matrix4().makeTranslation(3, 7, -8).elements;
+  node.userData['wholePartition'] = { id: 'triangles', vertices: { runs: [0, 6] }, triangles: encoded ? { runs: [0, 2] } : [0, 1], vertexCount: 6, indexCount: kind === 'none' ? 0 : 6, index: kind };
+  return node;
+}
+
+test.each((['u16', 'u32', 'none'] as const).flatMap(kind => (['borrow', 'take'] as const).map(ownership => ({ kind, ownership }))))(
+  'complete triangle runs retain every explicit index/channel/bounds byte ($kind, $ownership)', ({ kind, ownership }) => {
+    const explicit = completeTriangles(kind, false), encoded = completeTriangles(kind, true), original = facts(encoded.geometry);
+    const before = assembleWholeGeometryViews([explicit], ownership), after = assembleWholeGeometryViews([encoded], ownership);
+    try {
+      const a = before.get('triangles'), b = after.get('triangles');
+      if (a === undefined || b === undefined) throw new Error('Missing complete triangles');
+      expect(facts(b.geometry)).toEqual(facts(a.geometry)); expect(b.matrix.elements).toEqual(a.matrix.elements);
+      expect(facts(encoded.geometry)).toEqual(original);
+    } finally { for (const view of [...before.values(), ...after.values()]) view.geometry.dispose(); explicit.geometry.dispose(); encoded.geometry.dispose(); }
+  });
+
+test.each(['outside', 'fraction', 'nan', 'duplicate', 'missing'] as const)('complete triangle run keeps %s refusal', kind => {
+  const node = completeTriangles('u32', true);
+  if (kind === 'outside') node.geometry.setIndex(new BufferAttribute(new Uint32Array([6, 0, 3, 1, 4, 2]), 1));
+  if (kind === 'fraction' || kind === 'nan') node.geometry.setIndex(new BufferAttribute(new Float32Array([kind === 'nan' ? Number.NaN : 0.5, 0, 3, 1, 4, 2]), 1));
+  if (kind === 'duplicate' || kind === 'missing') node.userData['wholePartition'] = { id: 'triangles', vertices: { runs: [0, 6] }, triangles: { runs: kind === 'duplicate' ? [0, 1, 0, 1] : [0, 1] }, vertexCount: 6, indexCount: 6, index: 'u32' };
+  try { expect(() => assembleWholeGeometryViews([node], 'take')).toThrow(kind === 'duplicate' ? 'Whole duplicate or invalid triangle' : kind === 'missing' ? 'Whole source triangles is incomplete' : 'Whole missing triangle vertex'); }
+  finally { node.geometry.dispose(); }
+});
+
+test('a trailing source index outside the declared triangle list retains original fallback bytes', () => {
+  const explicit = completeTriangles('u32', false), encoded = completeTriangles('u32', true);
+  for (const node of [explicit, encoded]) {
+    node.geometry.setIndex(new BufferAttribute(new Uint32Array([5, 0, 3, 1, 4, 2, 999]), 1));
+    node.userData['wholePartition'] = { id: 'triangles', vertices: { runs: [0, 6] }, triangles: node === encoded ? { runs: [0, 2] } : [0, 1], vertexCount: 6, indexCount: 7, index: 'u32' };
+  }
+  const before = assembleWholeGeometryViews([explicit]), after = assembleWholeGeometryViews([encoded], 'take');
+  try {
+    const a = before.get('triangles'), b = after.get('triangles');
+    if (a === undefined || b === undefined) throw new Error('Missing triangle fallback');
+    expect(facts(b.geometry)).toEqual(facts(a.geometry));
+    expect(b.geometry.index?.array).toEqual(new Uint32Array([5, 0, 3, 1, 4, 2, 0]));
+  } finally { for (const view of [...before.values(), ...after.values()]) view.geometry.dispose(); explicit.geometry.dispose(); encoded.geometry.dispose(); }
+});
+
 test.each([false, true].flatMap(grid => [false, true].map(take => ({ grid, take }))))(
   'complete source runs retain explicit-list channel/index/bounds bytes (grid $grid, take $take)', ({ grid, take }) => {
     const explicit = completePartition(grid, false), encoded = completePartition(grid, true);
