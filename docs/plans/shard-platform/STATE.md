@@ -4,7 +4,7 @@
 remaining misses move to BURN-DAMAGE-LIST. NM pilot R1-R3 and RP2-RP4 move to a new parked open-plots plan
 (wildshard-v, after Jake's play). Jake QAs legacy (his word starts LD5-LD8 and A1-A2 at once), M2 and T10. After the archive
 commit every lane and the coordinator stop. The render tails need Opus, and Opus needs the account switch (Claude 97 %).
-**LIVE f708fbbaea (f708fbbae-mvsd2hc1, ~12:15 Cancun), the combined P0 release:** Night Market card in SHARD SELECT
+**LIVE 9364930c36** (adds sp-x2's headless fix) **on top of the combined P0 release f708fbbaea:** Night Market card in SHARD SELECT
 (QA'd), Bag > MAP fixed (static painter, G826, Safari PASS), boot memory-yield mitigation for the loading freeze (a23222fbee;
 the freeze never reproduced on the Sim, so Jake's phone is the check), fresh What's new. Ready for Jake's re-check.
 **G828 (Jake):** crossing-time cuts stop. T2-T4 and grid-ready Nalati close as 'not reachable in this architecture'
