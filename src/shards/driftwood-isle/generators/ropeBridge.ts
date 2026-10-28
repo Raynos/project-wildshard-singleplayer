@@ -1,12 +1,14 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { SEED } from '@wildshard/engine/core/config';
+import bridgeGeometry from '../data/bridgeGeometryPolicy.json' with { type: 'json' };
 import { Rng } from '@wildshard/sdk/random';
 import { boxDesc, type ColliderDesc, type BoxSpec as Collider } from '@wildshard/sdk/bake/placement';
-import type { RopeDeckRest, RopeDeckSpan as RopeBridgeSpec } from '@wildshard/format/ropeDeckSite';
-import type { RopeDeckPoses as DeckPoses } from '@wildshard/engine/physics/ropeChain';
-
-type DeckSegment = RopeDeckRest['segments'][number];
+/** Numeric authored span; no live site or physics service is needed by the builder. */
+interface RopeBridgeSpec { a: [number, number]; b: [number, number]; sag?: number; width?: number }
+interface Point { x: number; y: number; z: number }
+interface Rotation extends Point { w: number }
+interface DeckSegment extends Point { hz: number; rot: Rotation }
+interface DeckPoses { pose: (i: number, alpha: number, p: Point, q: Rotation) => void }
 
 const C = { post: new THREE.Color('#6f5638'), plank: new THREE.Color('#a07c53'), plankDark: new THREE.Color('#7d5f3f'), rope: new THREE.Color('#d2bd85') };
 /** a deck segment's length before it is fitted to the span (m), its half thickness, its weight (kg) */
@@ -61,7 +63,7 @@ class RopeBridgeBuilder {
   private deckY(t: number) { return this.ya + (this.yb - this.ya) * t - this.sag * 4 * t * (1 - t); }
 
   build(): this {
-    const rng = new Rng(SEED ^ 0xb21d);
+    const rng = new Rng(bridgeGeometry.seed ^ 0xb21d);
     const { a, b } = this.spec;
     this.width = this.spec.width ?? 1.4; this.sag = this.spec.sag ?? 1.0;
     this.ya = this.ground(a[0], a[1]) + 0.35; this.yb = this.ground(b[0], b[1]) + 0.35;
