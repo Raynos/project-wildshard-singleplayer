@@ -33,10 +33,18 @@ function plain(attribute: unknown): unknown {
  * Borrowed input is copied. An exclusively owned decoded mesh may transfer its
  * plain attributes/index; half-float restoration still creates its typed wrapper. */
 export function nativeWholeGeometry(node: Mesh, ownership: 'borrow' | 'take' = 'borrow', preserveInterleaving = false): BufferGeometry {
+  return admitNativeWholeGeometry(node, ownership, preserveInterleaving).geometry;
+}
+
+/** One admission and restoration, returning the detached channel snapshot used
+ * to check the geometry. No caller-supplied schema proof or cross-call cache. */
+export function admitNativeWholeGeometry(node: Mesh, ownership: 'borrow' | 'take' = 'borrow', preserveInterleaving = false): {
+  readonly geometry: BufferGeometry; readonly channels: v.InferOutput<typeof NativeAttributesSchema>;
+} {
   const metadata: unknown = node.userData['nativeAttributes'], input: unknown = node.geometry;
   if (!(input instanceof BufferGeometry)) throw new Error('Whole shape needs geometry');
-  const result = new BufferGeometry();
-  for (const [name, row] of Object.entries(v.parse(NativeAttributesSchema, metadata))) {
+  const channels = v.parse(NativeAttributesSchema, metadata), result = new BufferGeometry();
+  for (const [name, row] of Object.entries(channels)) {
     const channel = semantics[row.semantic] ?? row.semantic.toLowerCase();
     const stored: unknown = input.getAttribute(channel);
     // An exclusive decoder can lend its stride directly to a final assembler.
@@ -58,7 +66,7 @@ export function nativeWholeGeometry(node: Mesh, ownership: 'borrow' | 'take' = '
   }
   const index = input.getIndex();
   result.setIndex(ownership === 'take' ? index : index?.clone() ?? null);
-  return result;
+  return { geometry: result, channels };
 }
 
 /** The channels three's materials read by name. */

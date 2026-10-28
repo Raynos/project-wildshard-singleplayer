@@ -2,7 +2,7 @@ import { materialColourGraph } from '@wildshard/engine/render/graph/colourFuncti
 import { isJsonData } from '@wildshard/format/json';
 import { clientPreparationBatch } from '../shardfile/preparationTiming';
 import { unzlibSync } from 'fflate';
-import { type NativeAttributeSchema as WholeAttribute, NativeAttributesSchema as WholeNative, nativeWholeGeometry } from '@wildshard/engine/models/nativeGeometry';
+import { type NativeAttributeSchema as WholeAttribute, NativeAttributesSchema as WholeNative, nativeWholeGeometry, admitNativeWholeGeometry } from '@wildshard/engine/models/nativeGeometry';
 import { fetchDeflatedBytes, fetchLaneBytes, unshuffleLanes as restoreLanes } from '@wildshard/engine/core/deflate';
 import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
 import { BAKED_BYTES as codecBakedBytes, appendGeometry as codecAppendGeometry, bakedGeometryBytes as codecBakedGeometryBytes, pad4 as codecPad4, readBakedGeometry as codecReadBakedGeometry, type BakedGeometryRow as CodecBakedGeometryRow, type BakedType as CodecBakedType } from './bakedGeometry';
@@ -1832,11 +1832,13 @@ export function wholeGeometryPieces(nodes: readonly Mesh[]): WholeGeometryPiece[
 class WholeGeometryAssembler {
   private readonly groups = new Map<string, { output: BufferGeometry; matrix: Matrix4; seen: Uint8Array; triangles: Uint8Array; layout: string }>();
   add(node: Mesh, ownership: 'borrow' | 'take' = 'borrow'): void {
-    const metadata: unknown = node.userData['wholePartition'], native: unknown = node.userData['nativeAttributes'], instances: unknown = node.userData['instances64'];
+    const metadata: unknown = node.userData['wholePartition'], instances: unknown = node.userData['instances64'];
     const pose: unknown = node.userData['matrix64'] ?? (node instanceof InstancedMesh && node.count === 1 && Array.isArray(instances) && instances.length === 1 ? instances[0] : undefined);
-    const row = wholeV.parse(WholePartition, metadata), channels = wholeV.parse(WholeNative, native), signature = JSON.stringify(channels);
-    const values = wholeV.parse(wholeV.pipe(wholeV.array(wholeV.pipe(wholeV.number(), wholeV.finite())), wholeV.length(16)), pose), input = nativeWholeGeometry(node, ownership, true);
+    const row = wholeV.parse(WholePartition, metadata);
+    const values = wholeV.parse(wholeV.pipe(wholeV.array(wholeV.pipe(wholeV.number(), wholeV.finite())), wholeV.length(16)), pose);
+    const { geometry: input, channels } = admitNativeWholeGeometry(node, ownership, true);
     try {
+      const signature = JSON.stringify(channels);
       if (row.grid !== undefined) {
         const position = input.getAttribute('position');
         const source = position instanceof InterleavedBufferAttribute ? position.data.array : position.array;

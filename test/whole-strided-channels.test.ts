@@ -289,3 +289,12 @@ test.each(['signed', 'fraction', 'nan', 'tagged-fraction'] as const)('compact or
   try { expect(() => assembleWholeGeometryViews([node], 'take')).toThrow('Whole missing triangle vertex'); }
   finally { node.geometry.dispose(); }
 });
+
+test.each(['borrow', 'take'] as const)('whole assembly reads and admits native metadata once per node (%s)', ownership => {
+  const node = completePartition(true, true), metadata: unknown = node.userData['nativeAttributes'];
+  let reads = 0;
+  Object.defineProperty(node.userData, 'nativeAttributes', { get: () => { reads++; return metadata; } });
+  const result = assembleWholeGeometryViews([node], ownership);
+  try { expect(reads).toBe(1); expect(result.size).toBe(1); }
+  finally { for (const view of result.values()) view.geometry.dispose(); node.geometry.dispose(); }
+});

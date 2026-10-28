@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { BufferAttribute, BufferGeometry, InterleavedBuffer, InterleavedBufferAttribute, Mesh, type TypedArray } from 'three';
-import { nativeWholeGeometry } from './nativeGeometry';
+import { admitNativeWholeGeometry, nativeWholeGeometry } from './nativeGeometry';
 
 const constructors = [Float32Array, Uint16Array, Uint32Array, Int16Array, Int8Array, Uint8Array];
 const bytes = (array: TypedArray): Uint8Array => new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
@@ -37,4 +37,20 @@ test('native channel copying retains missing-channel and metadata refusals', () 
   expect(() => nativeWholeGeometry(mesh)).toThrow('storage mismatch');
   mesh.userData['nativeAttributes'] = { position: { semantic: 'POSITION', storage: 'Uint16Array', itemSize: 5, normalized: false } };
   expect(() => nativeWholeGeometry(mesh)).toThrow(); mesh.geometry.dispose();
+});
+
+test('one restoration returns its detached admitted metadata and rechecks the next call', () => {
+  const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array([0, -0, 0, 1, 0, 0, 0, 1, 0]), 3));
+  const mesh = new Mesh(geometry), channel = { semantic: 'POSITION', storage: 'Float32Array', itemSize: 3, normalized: false };
+  let reads = 0;
+  Object.defineProperty(mesh.userData, 'nativeAttributes', { get: () => { reads++; return { position: channel }; } });
+  const admitted = admitNativeWholeGeometry(mesh);
+  try {
+    expect(reads).toBe(1); expect(admitted.channels).toEqual({ position: channel });
+    expect(bytes(admitted.geometry.getAttribute('position').array)).toEqual(bytes(geometry.getAttribute('position').array));
+    expect(admitted.channels['position']).not.toBe(channel);
+    channel.itemSize = 5;
+    expect(admitted.channels['position']?.itemSize).toBe(3);
+    expect(() => admitNativeWholeGeometry(mesh)).toThrow(); expect(reads).toBe(2);
+  } finally { admitted.geometry.dispose(); geometry.dispose(); }
 });
