@@ -305,6 +305,21 @@ test.each(['hit','miss','short','refusal'] as const)('packed admission honours a
   expect(transport.mock.calls.filter(([,hash])=>hash===f.ref)).toHaveLength(0);
 });
 
+test.each([false,true])('a cold non-play reader demands an admitted late file with its original hash (corrupt %s)', async corrupt => {
+  const f=fixture();f.source.late=[{hash:f.ref}];
+  const sourceHash=hashImmutableBytes(bytes(f.source)),index=parseOutputIndex({...f.index,build:{...f.index.build,sourceHash},admission:{...f.index.admission,late:f.source.late}});
+  trust({...f.receipt,sourceHash,indexHash:hashImmutableBytes(bytes(index))});
+  const fetch=vi.fn(f.options.fetch),options:ProductOptions={...f.options,tier:'phone',fetch};
+  const admitted=await admitProduct(index,options),path=`blobs/bin/${f.ref}.bin`;
+  expect(admitted.assets.has(f.ref)).toBe(false);expect(admitted.source.files).toEqual(f.source.files);
+  expect(fetch.mock.calls.some(([url])=>url.endsWith(path))).toBe(false);
+  const product=shardProductFromAdmission(admitted,own(),options);
+  expect(product.hasFile('models/token.bin')).toBe(true);
+  if(corrupt){f.wires.set(path,Uint8Array.of(1,2,4));await expect(product.file('models/token.bin')).rejects.toThrow('hash or size mismatch');}
+  else expect(await product.file('models/token.bin')).toEqual(f.blob);
+  expect(fetch.mock.calls.filter(([url])=>url.endsWith(path))).toHaveLength(1);
+});
+
 test('raw cache bytes remain isolated from a transferred failed hash and expose pending file/hash waits', async () => {
   const f = fixture(); trust(f.receipt); const source = await readProductDescriptor(f.options);
   let resolveCache: ((wire: Uint8Array) => void) | undefined, rejectHash: ((error: Error) => void) | undefined;
