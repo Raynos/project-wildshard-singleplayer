@@ -6288,6 +6288,8 @@ Signal well prompts use these rows on their existing input owners.
 `explorerCatalogueRows` admits ordered model references with the defining JSON/identity checks and no runtime installer.
 `npcFigureRows`, `questTraderRows` and `barterEconomyRows` retain native figure-motion, trader-page and barter checks;
 `AuthorExchangeRows` preserves the complete transaction table data without lending inventory or storage.
+`graphArmsRows` admits held graph/rig bindings and resource checks without constructing a view or material;
+`namedFormatJsonSchema('graphArmsRows.GraphArms')` keeps its defining wire document exact.
 `sdk/quests.nativeQuestCompositionRows` and `sdk/director.chapterDirectorRows` retain native quest resource and
 chapter-effect checks. `sdk/bossProfiles.roamingEncounterRows`, `roamingCombatRows` and `roamingProjectionRows`
 admit complete encounter/profile, combat and rig/effect data without creating a fight, view or runtime owner.

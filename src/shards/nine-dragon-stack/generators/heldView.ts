@@ -1,7 +1,7 @@
 import type { NineHeldInputs } from './heldGraphFiles';
 import { privateSceneRows as parsePrivateScene } from '@wildshard/sdk/worldScenes';
-import { GraphArmsSchema, parseGraphArms } from '@wildshard/format/graphArmsRows';
-import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { graphArmsRows as parseGraphArms } from '@wildshard/sdk/rows';
+import { namedFormatJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import pendants from '../data/heldPendants.json' with { type: 'json' };
 import arms from '../data/arms.json' with { type: 'json' };
 
@@ -9,7 +9,7 @@ const { ARMS, ARMS_BASE, ARMS_MAPS } = arms;
 const TRAIL = 'nine-vm-trail', EDGE = 'nine-vm-edge';
 
 /** The same defining arms contract accompanies the held presentation's named JSON file. */
-export function heldViewSchema(): ReturnType<typeof namedJsonSchema> { return namedJsonSchema(GraphArmsSchema); }
+export function heldViewSchema(): ReturnType<typeof namedFormatJsonSchema> { return namedFormatJsonSchema('graphArmsRows.GraphArms'); }
 
 /** The held arms as one GraphArms row (the graph kind of game/systems/viewmodel/heldView.ts); runtime code never imports authoring JSON. */
 export function heldView({ profile, files }: NineHeldInputs): Readonly<Record<string, unknown>> {

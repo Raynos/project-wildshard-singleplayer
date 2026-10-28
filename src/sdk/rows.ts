@@ -24,6 +24,7 @@ import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
 import { QuestTraderSchema } from '@wildshard/format/namedJsonContracts';
 import { parseBarterEconomy } from '@wildshard/format/lootEconomy';
 import type { ExchangeRows } from '@wildshard/format/exchange';
+import { parseGraphArms } from '@wildshard/format/graphArmsRows';
 
 /** Admit ordered model references without installing a species, scene or Explorer owner. */
 export function explorerCatalogueRows(input: unknown): ReturnType<typeof parseExplorerCatalogue> { return parseExplorerCatalogue(input); }
@@ -36,6 +37,8 @@ export function questTraderRows(input: unknown): v.InferOutput<typeof QuestTrade
 export function barterEconomyRows(input: unknown): ReturnType<typeof parseBarterEconomy> { return parseBarterEconomy(input); }
 /** Complete author exchange tables; no affordability, storage or transaction service is lent. */
 export type AuthorExchangeRows = ExchangeRows;
+/** Admit held graph/rig bindings and native resource checks without constructing a view or material. */
+export function graphArmsRows(input: unknown): ReturnType<typeof parseGraphArms> { return parseGraphArms(input); }
 
 /** Resolve admitted equipment presentation without lending a catalogue or weapon service. */
 export function equipmentRows(input: unknown, id: string): ReturnType<ItemCatalogue['equipment']> { return new ItemCatalogue(input).equipment(id); }

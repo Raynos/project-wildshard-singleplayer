@@ -185,6 +185,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'worldUpdates.WorldUpdates': WorldUpdatesSchema,
   'streamedCover.StreamedCover': StreamedCoverSchema,
   'practiceCourseRows.PracticeScene':PracticeSceneSchema,
+  'graphArmsRows.GraphArms': GraphArmsSchema,
   'practiceCourseRows.RidingPractice':RidingPracticeSchema,
   'mountedSpecimenRows.MountedSpecimenSeat': MountedSpecimenSeatSchema,
   'speciesBookRows.SpeciesActorsFile': SpeciesActorsFileSchema,
