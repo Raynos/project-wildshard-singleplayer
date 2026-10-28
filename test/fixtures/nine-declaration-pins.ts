@@ -1,5 +1,8 @@
 import { expect } from 'vitest';
-import { previousHalfDeclaration } from './nine-half-world';
+import { beforeHalfWorld, previousHalfDeclaration, previousHalfHashes } from './nine-half-world';
+import { inputs } from './nine-product-inputs';
+import { layoutBlobs } from '../../src/shards/nine-dragon-stack/generators/layoutBlobs';
+import { bakedLayout } from '../../src/shards/nine-dragon-stack/generators/layoutProjection';
 import { encodeCanonicalJson, hashImmutableBytes } from '../../src/sdk/immutable';
 import type { Shardfile } from '../../src/sdk/shardfile';
 import worldFiles from './nine-world-files.json' with { type: 'json' };
@@ -9,6 +12,23 @@ const signature = (value: unknown): { bytes: number; hash: string } => {
   return { bytes: source.byteLength, hash: hashImmutableBytes(source) };
 };
 
+/** NR2: the layout wire names every kit's aFace / aPat half floats f16; its predecessor named the merged kits' u16.
+ *  The predecessor wire is the current one with each attribute label from the predecessor layout and its references
+ *  renamed back, so only its hash moves. */
+function previousLayoutWire(): { readonly current: string; readonly previous: string } {
+  const blob = layoutBlobs(inputs.ownedWorld, inputs.scenes)[0]; if (blob === undefined) throw new Error('Missing Nine layout wire');
+  const value: unknown = JSON.parse(new TextDecoder().decode(blob.bytes)), former = bakedLayout(beforeHalfWorld.layout).rows.geometries;
+  const rows: unknown = typeof value === 'object' && value !== null ? Reflect.get(value, 'rows') : undefined;
+  const geometries: unknown = typeof rows === 'object' && rows !== null ? Reflect.get(rows, 'geometries') : undefined;
+  if (!Array.isArray(geometries) || geometries.length !== former.length) throw new Error('Nine layout wire rows differ');
+  for (const [i, row] of geometries.entries()) {
+    const attrs: unknown = typeof row === 'object' && row !== null ? Reflect.get(row, 'attrs') : undefined, old = former[i]?.attrs;
+    if (!Array.isArray(attrs) || old === undefined || attrs.length !== old.length) throw new Error('Nine layout wire channels differ');
+    for (const [j, attr] of attrs.entries()) { const was = old[j]; if (Array.isArray(attr) && was !== undefined && attr[0] === was[0]) attr[1] = was[1]; }
+  }
+  return { current: blob.file.hash, previous: hashImmutableBytes(new TextEncoder().encode(previousHalfHashes(JSON.stringify(value)))) };
+}
+
 /** Nine's complete declaration, attributed. The declaration pinned at 734805 B / c80c8026 (ba4dab6764) moved twice.
  *  T8 (82ac81812d, e389eb998e, b1f6916531) added the 16 L1 rows and the 12 coarse files only they draw, none in the
  *  library: without them it is 735799 B. The rest is I3's regridded world (978526b2f7): every file row but 17 is a world
@@ -16,7 +36,8 @@ const signature = (value: unknown): { bytes: number; hash: string } => {
 export function expectNineDeclaration(current: Shardfile): void {
   // The independently pinned 411-file source proof defines the only allowed
   // reference renaming; full declaration pins remain unchanged below.
-  const product = previousHalfDeclaration(current);
+  const wire = previousLayoutWire();
+  const product = JSON.parse(JSON.stringify(previousHalfDeclaration(current)).replaceAll(wire.current, wire.previous)) as Shardfile;
   const fine = new Set(product.tiles.filter(tile => tile.lod === 0).flatMap(tile => tile.files));
   const coarse = new Set(product.tiles.filter(tile => tile.lod === 1).flatMap(tile => tile.files).filter(file => !fine.has(file)));
   expect(coarse.size).toBe(12); expect(product.library.filter(file => coarse.has(file))).toEqual([]);

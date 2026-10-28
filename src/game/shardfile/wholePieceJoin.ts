@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, InterleavedBufferAttribute, Matrix3, Matrix4, Vector3, type TypedArrayConstructor } from 'three';
+import { BufferAttribute, BufferGeometry, Float16BufferAttribute, InterleavedBufferAttribute, Matrix3, Matrix4, Vector3, type TypedArrayConstructor } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { WholeGeometryPiece } from '../plugin/geometry';
 
@@ -64,27 +64,31 @@ function* merge(copies: readonly BufferGeometry[]): Generator<void, BufferGeomet
       yield;
       const attributes = copies.map(copy => copy.getAttribute(name)), template = attributes[0];
       if (template === undefined) throw new Error('Whole piece channels cannot join');
+      // NR2: a half-float channel is its class, not its storage (three uploads a plain Uint16Array as integers), so the
+      // union keeps the Float16 wrapper: Nine's fabric aFace / aPat read as raw half bits shaded its stone flat
+      const half = template instanceof Float16BufferAttribute;
       for (const attribute of attributes) if (attribute.array.constructor !== template.array.constructor || attribute.itemSize !== template.itemSize
-        || attribute.normalized !== template.normalized || gpuType(attribute) !== gpuType(template)) throw new Error('Whole piece channels cannot join');
+        || attribute.normalized !== template.normalized || gpuType(attribute) !== gpuType(template) || (attribute instanceof Float16BufferAttribute) !== half) throw new Error('Whole piece channels cannot join');
       // TypedArray.constructor loses its construct signature in lib.d.ts;
       // admission and the exact constructor check above retain its native type.
       const Storage = template.array.constructor as TypedArrayConstructor;
       const array = new Storage(attributes.reduce((n, attribute) => n + attribute.count * attribute.itemSize, 0));
-      const joined = new BufferAttribute(array, template.itemSize, template.normalized), kind = gpuType(template);
-      if (kind !== undefined) joined.gpuType = kind;
       let offset = 0;
       for (const attribute of attributes) {
         if (attribute instanceof InterleavedBufferAttribute) {
-          const tuple = offset / template.itemSize;
-          for (let i = 0; i < attribute.count; i++) {
+          // the stored words as they are (no normalize or half-float round trip)
+          for (let i = 0, at = offset; i < attribute.count; i++) {
             if (i % 256 === 0) yield;
-            for (let lane = 0; lane < template.itemSize; lane++) joined.setComponent(tuple + i, lane, attribute.getComponent(i, lane));
+            for (let lane = 0; lane < template.itemSize; lane++) array[at++] = raw(attribute, i, lane) ?? 0;
           }
         } else for (let i = 0; i < attribute.array.length; i += 16384) {
           yield; array.set(attribute.array.subarray(i, i + 16384), offset + i);
         }
         offset += attribute.count * template.itemSize;
       }
+      // Float16BufferAttribute copies its array, so it wraps the filled storage last
+      const joined = half && array instanceof Uint16Array ? new Float16BufferAttribute(array, template.itemSize, template.normalized) : new BufferAttribute(array, template.itemSize, template.normalized), kind = gpuType(template);
+      if (kind !== undefined) joined.gpuType = kind;
       geometry.setAttribute(name, joined);
     }
     complete = true; return geometry;

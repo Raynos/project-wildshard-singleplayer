@@ -4,7 +4,7 @@
 // a shaped cross-section (talons, horns, roots, cords, tassel strands, cloth wraps), deformed ellipsoids (heads, clumps,
 // knuckles) and raw triangle meshes (a converted GLB). It writes the SAME attributes as the ruled kit (position, normal,
 // color, aFace, aPat, aMisc, aOff), so both merge into one geometry, one program, one draw call (`mergeKits`).
-import { type Box3, BufferGeometry, Color, DataUtils, Float16BufferAttribute, Float32BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
+import { type Box3, BufferAttribute, BufferGeometry, Color, DataUtils, Float16BufferAttribute, Float32BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 /** the same look the ruled kit takes (wash colour, pattern kind + params, emit, line weight, edge bits) */
@@ -231,9 +231,15 @@ export class SweptKit {
   }
 }
 
-/** merge ruled and swept kit geometries (same attribute set) into one */
+/** merge ruled and swept kit geometries (same attribute set) into one. A half-float channel stays one: three's merger
+ *  rebuilds every channel as a plain attribute, so aFace / aPat were written as integers (u16 in the bake, Uint16Array in
+ *  the fine tiles) and the fabric's stone, rails and treads shaded flat (Nine NR2) */
 export function mergeKits(parts: readonly BufferGeometry[]): BufferGeometry {
   const g = mergeGeometries([...parts], false);
+  for (const [name, attribute] of Object.entries(g.attributes)) {
+    if (!(attribute instanceof BufferAttribute) || !(attribute.array instanceof Uint16Array) || !parts.every(part => part.getAttribute(name) instanceof Float16BufferAttribute)) continue;
+    g.setAttribute(name, new Float16BufferAttribute(attribute.array, attribute.itemSize, attribute.normalized));
+  }
   g.computeBoundingSphere();
   return g;
 }

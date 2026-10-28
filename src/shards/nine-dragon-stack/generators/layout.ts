@@ -4,7 +4,7 @@
  * world GLBs. Product consumers receive those owned values directly.
  */
 import type { BufferGeometry, Color, Matrix4, Vector3 } from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { mergeKits } from './kit/sweptKit';
 import { Ctx } from './ctx';
 import { Kit } from './kit';
 import { buildSquare } from './square';
@@ -95,8 +95,7 @@ export function nineLayoutSource(): { bin: Uint8Array; rows: LayoutRows; records
   const kits = [...ctx.kits].map(([name, k]) => {
     const extra = ctx.kitxs.get(name), base = k.vertexCount > 0 ? k.build() : null;
     const swept = extra !== undefined && extra.vertexCount > 0 ? extra.build() : null;
-    const geometry = base === null ? swept : swept === null ? base : mergeGeometries([base, swept], false);
-    if (base !== null && swept !== null && geometry === null) throw new Error(`Nine kit channels differ: ${name}`);
+    const geometry = base === null ? swept : swept === null ? base : mergeKits([base, swept]);
     geometry?.computeBoundingSphere();
     return { name, geo: geometry === null ? null : addGeometry(geometry), compact: k.compact };
   });

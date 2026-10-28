@@ -73,7 +73,8 @@ export class HalfOutputProof {
     for (let pass = 0; pending.length > 0 && pass <= candidates.length; pass++) {
       const count = pending.length;
       pending = pending.filter(pair => {
-        const source = text(pair.before), value = JSON.parse(source) as Json;
+        // NR2: the corrected kit merge keeps a layout kit's aFace / aPat half floats (labelled f16, formerly u16)
+        const source = text(pair.before).replace(/\["(aFace|aPat)","u16",/gu, '["$1","f16",'), value = JSON.parse(source) as Json;
         const projected = JSON.stringify(rewrite(value), null, source.includes('\n  "') ? 2 : undefined) + (source.endsWith('\n') ? '\n' : '');
         if (projected !== text(pair.current)) return true;
         this.observe(pair.before, pair.current); return false;

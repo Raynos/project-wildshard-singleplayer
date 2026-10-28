@@ -108,6 +108,8 @@ test('sliced join retains exact transform rounding, half words and native merger
     expect(found.itemSize).toBe(expected.itemSize); expect(found.gpuType).toBe(expected.gpuType);
   }
   expect(actual.index?.array).toEqual(oracle.index?.array); expect(actual.groups).toEqual(oracle.groups);
+  // NR2: the half words stay a half-float channel (three's merger and the plain wrapper upload them as integers)
+  expect(actual.getAttribute('uv')).toBeInstanceOf(Float16BufferAttribute); expect(actual.getAttribute('uv').getX(0)).toBe(-0);
 });
 
 test('one large original piece has bounded validation, transform and index progress', () => {
