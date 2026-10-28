@@ -1330,6 +1330,7 @@ async function packedDemandFixture(overlap = false) {
   const twin = new Uint8Array(shared.length + tail.length); twin.set(shared); twin.set(tail, shared.length);
   const earlier = { path: `blobs/pack/${hashImmutableBytes(twin)}.pack`, hash: hashImmutableBytes(twin), bytes: twin.length,
     entries: [{ hash: hashImmutableBytes(shared), offset: 0, bytes: shared.length }, { hash: hashImmutableBytes(tail), offset: shared.length, bytes: tail.length }] };
+  f.wires.set(pack.path, wire); f.wires.set(earlier.path, twin);
   const index = parseOutputIndex({ ...f.index, packs: overlap ? [earlier, pack] : [pack] });
   const resolved = await resolveOutputDescriptor(index, { offline: false, hash: f.options.hash,
     read: path => { const body = f.wires.get(path); if (body === undefined) throw new Error('Missing demand section'); return Promise.resolve(body); } });
@@ -1342,75 +1343,59 @@ function demandGate<T>() {
   return { promise, resolve: finish };
 }
 
-test('growing packed demand waves claim disjoint envelopes and release them after use', async () => {
-  const f = await packedDemandFixture(), first = demandGate<undefined>(), second = demandGate<undefined>(), release = demandGate<undefined>();
-  const ranges: [number, number][] = [];
-  const fetchRange: NonNullable<ProductOptions['fetchRange']> = async (_url, start, end) => {
-    ranges.push([start, end]); (ranges.length === 1 ? first : second).resolve(undefined);
-    await release.promise;
-    return new Response(Uint8Array.from(f.wire.slice(start, end + 1)), { status: 206, headers: { 'content-range': `bytes ${start}-${end}/${f.wire.length}` } });
-  };
-  const reader = new ClientAssets(f.source, new Map(), { ...f.options, fetchRange });
-  const [a, b, c, d] = f.hashes;
-  if (a === undefined || b === undefined || c === undefined || d === undefined) throw new Error('Missing demand hashes');
-  const early = [reader.read(a), reader.read(b)]; await first.promise;
-  const later = [reader.read(c), reader.read(d)]; await second.promise;
-  release.resolve(undefined);
-  expect(await Promise.all([...early, ...later])).toEqual(f.bodies.slice(0, 4));
-  expect(ranges).toEqual([[0, 4], [5, 8]]);
-  expect(await Promise.all([reader.read(a), reader.read(b)])).toEqual(f.bodies.slice(0, 2));
-  expect(ranges).toEqual([[0, 4], [5, 8], [0, 4]]);
-  expect(reader.retained.size).toBe(0);
+test('growing packed demand waves share one whole GET and detached members after release', async () => {
+  const f = await packedDemandFixture(), started = demandGate<undefined>(), release = demandGate<undefined>();
+  const fetch = vi.fn(async (url: string) => { started.resolve(undefined); await release.promise; return f.options.fetch(url); });
+  const fetchRange = vi.fn(() => Promise.reject(new Error('No range request allowed')));
+  const reader = new ClientAssets(f.source, new Map(), { ...f.options, fetch, fetchRange });
+  const [a, b, c, d, e] = f.hashes;
+  if (a === undefined || b === undefined || c === undefined || d === undefined || e === undefined) throw new Error('Missing demand hashes');
+  const early = [reader.read(a), reader.read(b)]; await started.promise;
+  const later = [reader.read(c), reader.read(d)]; release.resolve(undefined);
+  const received = await Promise.all([...early, ...later]);
+  expect(received).toEqual(f.bodies.slice(0, 4)); received[0]?.fill(99);
+  reader.releaseAll();
+  expect(await Promise.all([reader.read(a), reader.read(b), reader.read(e)])).toEqual([f.bodies[0], f.bodies[1], f.bodies[4]]);
+  expect(fetch).toHaveBeenCalledExactlyOnceWith(new URL(f.pack.path, f.options.base).href);
+  expect(fetchRange).not.toHaveBeenCalled(); expect(reader.retained.size).toBe(0);
 });
 
-test('a packed wave cannot fetch an already started direct borrower again', async () => {
-  const f = await packedDemandFixture(), direct = demandGate<undefined>(), range = demandGate<undefined>(), release = demandGate<undefined>();
+test('a single packed borrower starts the whole GET and later borrowers join it', async () => {
+  const f = await packedDemandFixture(), started = demandGate<undefined>(), release = demandGate<undefined>();
   const [a, b, c] = f.hashes;
   if (a === undefined || b === undefined || c === undefined) throw new Error('Missing demand hashes');
-  const ranges: [number, number][] = [];
-  const fetch = vi.fn(async (url: string) => { direct.resolve(undefined); await release.promise; return f.options.fetch(url); });
-  const fetchRange: NonNullable<ProductOptions['fetchRange']> = async (_url, start, end) => {
-    ranges.push([start, end]); range.resolve(undefined); await release.promise;
-    return new Response(Uint8Array.from(f.wire.slice(start, end + 1)), { status: 206, headers: { 'content-range': `bytes ${start}-${end}/${f.wire.length}` } });
-  };
-  const reader = new ClientAssets(f.source, new Map(), { ...f.options, fetch, fetchRange });
-  const initial = reader.read(a); await direct.promise;
-  const later = [reader.read(b), reader.read(c)]; await range.promise; release.resolve(undefined);
+  const fetch = vi.fn(async (url: string) => { started.resolve(undefined); await release.promise; return f.options.fetch(url); });
+  const reader = new ClientAssets(f.source, new Map(), { ...f.options, fetch });
+  const initial = reader.read(a); await started.promise;
+  const later = [reader.read(b), reader.read(c)]; release.resolve(undefined);
   expect(await Promise.all([initial, ...later])).toEqual(f.bodies.slice(0, 3));
-  expect(ranges).toEqual([[3, 6]]); expect(fetch).toHaveBeenCalledTimes(1);
+  expect(fetch).toHaveBeenCalledExactlyOnceWith(new URL(f.pack.path, f.options.base).href);
 });
 
-test.each(['hash', 'short', 'range'] as const)('failed packed demand %s releases every assignment before retry', async mode => {
-  const f = await packedDemandFixture(), ranges: [number, number][] = [];
-  const [a, b] = f.hashes;
+test.each(['hash', 'short', 'partial'] as const)('failed whole-pack demand %s leaves a clean retry', async mode => {
+  const f = await packedDemandFixture(), [a, b] = f.hashes;
   if (a === undefined || b === undefined) throw new Error('Missing demand hashes');
   let bad = true;
-  const fetchRange: NonNullable<ProductOptions['fetchRange']> = (_url, start, end) => {
-    ranges.push([start, end]); let wire = Uint8Array.from(f.wire.slice(start, end + 1));
+  const fetch = vi.fn(() => {
+    let wire = Uint8Array.from(f.wire);
     if (bad && mode === 'hash') wire[0] = 99;
     if (bad && mode === 'short') wire = wire.slice(0, -1);
-    return Promise.resolve(new Response(wire, { status: 206, headers: { 'content-range': bad && mode === 'range' ? 'bytes 0-0/1' : `bytes ${start}-${end}/${f.wire.length}` } }));
-  };
-  const reader = new ClientAssets(f.source, new Map(), { ...f.options, fetchRange });
+    return Promise.resolve(new Response(wire, { status: bad && mode === 'partial' ? 206 : 200 }));
+  });
+  const reader = new ClientAssets(f.source, new Map(), { ...f.options, fetch });
   const first = await Promise.allSettled([reader.read(a), reader.read(b)]);
-  expect(first[0]?.status).toBe('rejected');
+  expect(first.every(result => result.status === 'rejected')).toBe(true);
   bad = false;
   expect(await Promise.all([reader.read(a), reader.read(b)])).toEqual(f.bodies.slice(0, 2));
-  expect(ranges).toEqual([[0, 4], [0, 4]]); expect(reader.retained.size).toBe(0);
+  expect(fetch).toHaveBeenCalledTimes(2); expect(reader.retained.size).toBe(0);
 });
 
-
-test('a shared member keeps its claimed envelope offset across legal overlapping packs', async () => {
+test('legal overlapping packs retain each member offset and verify each whole envelope once', async () => {
   const f = await packedDemandFixture(true), [a, b] = f.hashes;
   if (a === undefined || b === undefined) throw new Error('Missing demand hashes');
-  const ranges: [number, number][] = [];
-  const fetchRange: NonNullable<ProductOptions['fetchRange']> = (_url, start, end) => {
-    ranges.push([start, end]);
-    return Promise.resolve(new Response(Uint8Array.from(f.wire.slice(start, end + 1)), { status: 206, headers: { 'content-range': `bytes ${start}-${end}/${f.wire.length}` } }));
-  };
-  const reader = new ClientAssets(f.source, new Map(), { ...f.options, fetchRange });
+  const fetch = vi.fn(f.options.fetch), reader = new ClientAssets(f.source, new Map(), { ...f.options, fetch });
   expect(await Promise.all([reader.read(a), reader.read(b)])).toEqual(f.bodies.slice(0, 2));
-  expect(ranges).toEqual([[0, 4]]);
+  expect(await reader.read(b)).toEqual(f.bodies[1]); expect(fetch).toHaveBeenCalledTimes(2);
 });
 
 test('foreground demand starts verified transport after the URL hint paint turn, sharing one read', async () => {

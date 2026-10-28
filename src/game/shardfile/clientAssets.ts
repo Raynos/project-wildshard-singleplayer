@@ -4,16 +4,13 @@ import { memoryAttribution } from '@wildshard/engine/core/memoryAttribution';
 import { declareDownloadFile, recordCachedDownload, recordPackedDownload } from '@wildshard/engine/boot/download';
 import { boundedResponse, type ProductOptions } from './product';
 import { outputBlobUrl, outputDescriptor } from './outputDescriptor';
+import { readPackWhole } from './packReads';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** Release admitted transport copies after decoding; revisiting a tile rechecks immutable bytes from cache or the product. */
 export class ClientAssets {
   private readonly wire: Map<string, Uint8Array>;
   private readonly pending = new Map<string, Promise<Uint8Array>>();
-  private readonly packs = new Map<string, Promise<Uint8Array>>();
-  // A demand belongs to exactly one live envelope (null means direct fetch).
-  // Its original read releases the assignment, including cache hits/refusals.
-  private readonly packedDemands = new Map<string, { readonly offset: number; readonly wire: Promise<Uint8Array> } | null>();
   private readonly source: Shardfile;
   private readonly options: ProductOptions;
   // The admitted source's files by hash, built on the first lease (every tile scope leases its closure at boot).
@@ -46,7 +43,7 @@ export class ClientAssets {
     const read = this.readReleased(ref, file?.compressed ?? this.source.requires.commonsWire[ref.replace(/^commons:/u, '')] ?? 0, priority);
     this.pending.set(ref, read);
     try { return await read; }
-    finally { this.pending.delete(ref); this.packedDemands.delete(ref); }
+    finally { this.pending.delete(ref); }
   }
   private async readReleased(ref: string, cap: number, priority?: 'low'): Promise<Uint8Array> {
     const hash = ref.replace(/^commons:/u, ''), base = new URL('.', this.options.base).href;
@@ -98,64 +95,21 @@ export class ClientAssets {
     } finally { controller.abort(); }
   }
 
-  /** Share only an in-flight named pack across concurrent demand reads. No settled
-   * pack backing survives the borrowers; each decoder receives its owned member. */
+  /** Fetch each pack whole once for this product, across concurrent and later
+   * demand waves; every decoder still receives an owned, hash-checked member. */
   private async readPacked(ref: string, cap: number, priority?: 'low'): Promise<Uint8Array | undefined> {
-    const descriptor = outputDescriptor(this.source);
-    const pack = descriptor?.index.packs?.find(row => row.entries.some(entry => entry.hash === ref));
+    const packs = outputDescriptor(this.source)?.index.packs;
+    const pack = packs?.find(row => row.entries.some(entry => entry.hash === ref));
     const member = pack?.entries.find(entry => entry.hash === ref);
-    if (pack === undefined || member === undefined) return undefined;
+    if (packs === undefined || pack === undefined || member === undefined) return undefined;
     if (member.bytes !== cap) throw new Error('Resident packed member size mismatch');
-    const claimed = this.packedDemands.get(ref);
-    if (claimed === null) return undefined;
-    if (claimed !== undefined) {
-      const offset = claimed.offset;
-      return (await claimed.wire).slice(offset, offset + member.bytes);
-    }
-    // Cache awaits above admit the caller's current read-ahead wave before this
-    // snapshot. Only contiguous demanded members may share a partial envelope.
-    const index = pack.entries.indexOf(member);
-    let first = index, last = index;
-    const available = (hash: string): boolean => this.pending.has(hash) && !this.packedDemands.has(hash);
-    while (first > 0 && available(pack.entries[first - 1]?.hash ?? '')) first--;
-    while (last + 1 < pack.entries.length && available(pack.entries[last + 1]?.hash ?? '')) last++;
-    const whole = first === 0 && last === pack.entries.length - 1;
-    const left = pack.entries[first], right = pack.entries[last];
-    if (left === undefined || right === undefined) throw new Error('Resident packed member missing');
-    if (!whole && (first === last || this.options.fetchRange === undefined)) {
-      this.packedDemands.set(ref, null); return undefined;
-    }
-    const start = left.offset, end = right.offset + right.bytes - 1, size = end - start + 1;
-    const key = `${pack.hash}:${start}-${end}`;
-    let pending = this.packs.get(key);
-    if (pending === undefined) {
-      pending = (async () => {
-        const url = new URL(pack.path, this.options.base).href;
-        let response: Response;
-        if (whole) response = await (priority === 'low' ? this.options.backgroundFetch ?? this.options.fetch : this.options.fetch)(url);
-        else {
-          const read = this.options.fetchRange;
-          if (read === undefined) throw new Error('Resident pack range capability missing');
-          response = await (priority === undefined ? read(url, start, end) : read(url, start, end, priority));
-          if (response.status !== 206 || response.headers.get('content-range') !== `bytes ${start}-${end}/${pack.bytes}`) {
-            await response.body?.cancel();
-            throw new Error('Resident pack range response differs');
-          }
-        }
-        const wire = await boundedResponse(response, size);
-        if (wire.length !== size || whole && await this.hashOf(wire) !== pack.hash) throw new Error('Resident pack hash or size mismatch');
-        return wire;
-      })();
-      this.packs.set(key, pending);
-    }
-    for (let i = first; i <= last; i++) {
-      const entry = pack.entries[i];
-      if (entry !== undefined) this.packedDemands.set(entry.hash, { offset: entry.offset - start, wire: pending });
-    }
-    try {
-      const offset = member.offset - start;
-      return (await pending).slice(offset, offset + member.bytes);
-    } finally { if (this.packs.get(key) === pending) this.packs.delete(key); }
+    const wire = await readPackWhole(packs, pack, async (path, maximum) => {
+      const fetch = priority === 'low' ? this.options.backgroundFetch ?? this.options.fetch : this.options.fetch;
+      const response = await fetch(new URL(path, this.options.base).href);
+      if (response.status === 206) { await response.body?.cancel(); throw new Error('Resident pack requires a whole response'); }
+      return this.observe(pack.hash, await boundedResponse(response, maximum));
+    }, bytes => this.hashOf(bytes));
+    return wire.slice(member.offset, member.offset + member.bytes);
   }
 
   /** SHA-256 of `bytes` off the page (an owned copy through `hashOwned`), else on the page. */
@@ -186,9 +140,9 @@ export class ClientAssets {
   }
   /** Forget only decoded or runtime-owned transport copies; future reads still check immutable cache/network bytes. */
   releaseTransport(refs: Iterable<string>): void { for (const ref of refs) this.wire.delete(ref); }
-  /** js-heap H6: once the boot has played, keep no transport at all: a probe saw no read of a retained root in 20 s of
-   *  play on the Template or Driftwood (each root is read only while the boot builds), and a later read rechecks the
-   *  immutable cache, or the network, as a released tile does. */
+  /** js-heap H6: once the boot has played, release decoded member transport: a probe saw no read of a retained root in 20 s of
+   *  play on the Template or Driftwood. Verified whole packs remain shared for this product lifetime (QF17.B1);
+   *  later reads still verify each detached member, without another range or whole-pack download. */
   releaseAll(): void { this.wire.clear(); }
   /** Keep only authoritative and library roots while render tiles stream through temporary admitted maps. */
   releaseTiles(): void {

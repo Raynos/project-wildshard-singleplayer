@@ -40,3 +40,14 @@ test('an intersecting partial pack cannot hide a later complete envelope', async
   expect(await phase.read(a)).toEqual(Uint8Array.of(1, 2));
   expect(read).toHaveBeenCalledExactlyOnceWith(complete.path, 2);
 });
+
+
+test('separate phase readers share the same verified pack across later waves', async () => {
+  const packs = [pack], wire = Uint8Array.of(1, 2, 3, 4), read = vi.fn(() => Promise.resolve(wire));
+  const digest = vi.fn(() => Promise.resolve(hash));
+  const first = packReads(packs, new Set([a, b]), read, digest);
+  expect(await first.read(a)).toEqual(Uint8Array.of(1, 2));
+  const later = packReads(packs, new Set([a, b]), read, digest);
+  expect(await later.read(b)).toEqual(Uint8Array.of(3, 4));
+  expect(read).toHaveBeenCalledOnce(); expect(digest).toHaveBeenCalledOnce();
+});
