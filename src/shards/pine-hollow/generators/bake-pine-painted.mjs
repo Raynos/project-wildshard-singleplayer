@@ -11,19 +11,18 @@
 //     src/shards/pine-hollow/generators/bake-pine-painted.mjs [--check]
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { bundleNativeRaster, openNativeRasterPage } from '@wildshard/sdk/bake/nativeRaster';
 import { writeImagePixels } from '@wildshard/sdk/bake/image';
 import { COAT_SIZE, coatPixels } from './coatCanvas.ts';
 
-const ROOT = resolve(import.meta.dirname, '../../../..');
-const OUT = resolve(ROOT, 'public/assets/pine-hollow/painted'), check = process.argv.includes('--check');
+const ROOT = new URL('../../../../', import.meta.url);
+const OUT = new URL('public/assets/pine-hollow/painted/', ROOT), check = process.argv.includes('--check');
 function publish(file, bytes) {
   if (check) {
     if (!existsSync(file) || !readFileSync(file).equals(Buffer.from(bytes))) throw new Error(`bake-pine-painted: stale output ${file}`);
   } else writeFileSync(file, bytes);
 }
-const manifest = JSON.parse(readFileSync(resolve(ROOT, 'src/shards/pine-hollow/manifest.json'), 'utf8'));
+const manifest = JSON.parse(readFileSync(new URL('src/shards/pine-hollow/manifest.json', ROOT), 'utf8'));
 const ORIGIN = 'https://pine-painted.invalid/';
 
 /** the coat's maps, row 0 last (an image texture's top row is v = 1) */
@@ -39,7 +38,7 @@ async function coat() {
 
 /** one bake page's module, bundled on its own */
 async function bundlePage(file, name) {
-  const code = await bundleNativeRaster({ root: ROOT, entry: resolve(ROOT, 'src/shards/pine-hollow/generators', file), format: 'iife', name, fileName: 'pinePaintedPage' });
+  const code = await bundleNativeRaster({ root: ROOT, entry: new URL(encodeURIComponent(file), import.meta.url), format: 'iife', name, fileName: 'pinePaintedPage' });
   if (code === undefined) throw new Error(`bake-pine-painted: ${file} did not bundle`);
   return code;
 }
@@ -52,8 +51,8 @@ async function page() {
     const errors = [];
     tab.on('pageerror', (e) => { errors.push(e.message); });
     const inputs = new Map([
-      ['chalk.webp', { mime: 'image/webp', bytes: readFileSync(resolve(ROOT, 'public/assets/pine-hollow/journal/chalk.webp')) }],
-      ['font.woff2', { mime: 'font/woff2', bytes: readFileSync(resolve(ROOT, 'public/fonts/caveat-600-latin.woff2')) }],
+      ['chalk.webp', { mime: 'image/webp', bytes: readFileSync(new URL('public/assets/pine-hollow/journal/chalk.webp', ROOT)) }],
+      ['font.woff2', { mime: 'font/woff2', bytes: readFileSync(new URL('public/fonts/caveat-600-latin.woff2', ROOT)) }],
     ]);
     const expected = new Set(['endGrain', 'glow', 'chalk', 'ferns', 'shrubs', 'litter', 'stones', 'moss', 'reeds']);
     const received = new Map(); let total = 0;
@@ -106,12 +105,12 @@ if (!check) mkdirSync(OUT, { recursive: true });
 const textures = {}, keep = new Set();
 for (const [key, { bytes, ext }] of Object.entries(files).sort(([a], [b]) => a.localeCompare(b))) {
   const name = NAME[key] ?? key, file = `${name}-${hashImmutableBytes(bytes)}.${ext}`;
-  publish(resolve(OUT, file), bytes); keep.add(file);
+  publish(new URL(encodeURIComponent(file), OUT), bytes); keep.add(file);
   textures[name] = { url: `/assets/pine-hollow/painted/${file}`, ...LOOK[key] };
   console.log(`bake-pine-painted: ${file} ${String(bytes.length)} B`);
 }
 for (const file of readdirSync(OUT)) if (!keep.has(file)) {
-  if (check) throw new Error(`bake-pine-painted: obsolete output ${file}`); else rmSync(resolve(OUT, file));
+  if (check) throw new Error(`bake-pine-painted: obsolete output ${file}`); else rmSync(new URL(encodeURIComponent(file), OUT));
 }
 const urls = Object.values(textures).map((t) => t.url);
-publish(resolve(ROOT, 'src/shards/pine-hollow/data/paintedTextures.json'), `${JSON.stringify({ textures, urls, chalk: painted.chalk }, null, 2)}\n`);
+publish(new URL('src/shards/pine-hollow/data/paintedTextures.json', ROOT), `${JSON.stringify({ textures, urls, chalk: painted.chalk }, null, 2)}\n`);

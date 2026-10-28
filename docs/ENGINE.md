@@ -6000,7 +6000,8 @@ page under browser-lane. Setup refusal/`dispose()` close it.
 WebKit or Chromium, with copied launch flags and the same phone context.
 The caller retains document, route and native byte publication policy.
 `bundleNativeRaster` owns offline page compilation: explicit entry/root,
-ES/IIFE/name/fileName/side-effect policy; original target and no splitting.
+filesystem strings or file URLs, ES/IIFE/name/fileName/side-effect policy;
+original target and no splitting. Non-file URL schemes refuse before compilation.
 Painters and missing-code refusals remain caller-owned; no Vite plugin.
 
 `@wildshard/engine/core/ktx2.parseKtx2Bytes(bytes)` validates bounded KTX2,

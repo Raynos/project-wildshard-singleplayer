@@ -1,4 +1,6 @@
 import { build } from 'vite';
+// oxlint-disable-next-line import/no-nodejs-modules -- The explicit author bundler converts file URLs on its native host.
+import { fileURLToPath } from 'node:url';
 import { devices, webkit, chromium, type BrowserContextOptions, type Page } from 'playwright';
 
 /** Setup operations required from a native reference page. */
@@ -81,8 +83,8 @@ async function prepareNativeRaster<P extends NativeRasterPage>(input: NativeRast
 
 /** Explicit native-reference bundle settings; painters and publication remain caller-owned. */
 export interface NativeRasterBundle {
-  readonly root: string;
-  readonly entry: string;
+  readonly root: string | URL;
+  readonly entry: string | URL;
   readonly format: 'es' | 'iife';
   readonly name?: string;
   readonly fileName?: string;
@@ -92,7 +94,9 @@ export interface NativeRasterBundle {
 /** Bundle one native reference page with the original offline target and split policy.
  * Missing code stays undefined so the author retains its defining refusal. No Vite plugin is installed. */
 export async function bundleNativeRaster(input: NativeRasterBundle): Promise<string | undefined> {
-  const { root, entry, format, name, fileName, discardModuleSideEffects } = input;
+  const { format, name, fileName, discardModuleSideEffects } = input;
+  const root = typeof input.root === 'string' ? input.root : fileURLToPath(input.root);
+  const entry = typeof input.entry === 'string' ? input.entry : fileURLToPath(input.entry);
   const result = await build({ configFile: false, logLevel: 'silent', publicDir: false, root,
     build: { write: false, target: 'esnext', minify: false,
       lib: { entry, formats: [format], ...(name === undefined ? {} : { name }), ...(fileName === undefined ? {} : { fileName }) },
