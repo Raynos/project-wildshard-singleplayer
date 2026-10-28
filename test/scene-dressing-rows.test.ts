@@ -32,6 +32,7 @@ import { nameBlob } from '../src/sdk/blobs';
 import { isJsonData } from '../src/format/json';
 import { readBakedGeometry } from '../src/game/plugin/geometry';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
+import type {SkyRig} from '../src/engine/world/skyRig';
 
 test('tier-specific crag transport changes only the phone file binding',()=>{
   const original=dressingSceneBlobs(nalatiDecorative,nalatiRuntime,nalatiBalbal,nalatiSpecimens);
@@ -55,6 +56,34 @@ const prepared=v.parse(v.object({places:v.object({rows:v.array(v.object({name:v.
   nalatiRuntime);
 
 const wire = (input:unknown):unknown => JSON.parse(encodeCanonicalJson(input));
+
+test('a cold baked bank settles before dressing and its Explorer clone are published',async()=>{
+  const shape=new THREE.BoxGeometry(1,2,3);shape.clearGroups();
+  const blocks:Uint8Array[]=[],layout=writeGeometry(shape,blocks,'cold-crag');shape.dispose();
+  const raw=join(blocks),lanes=new Uint8Array(raw.length),words=raw.length/4;
+  for(let at=0;at<raw.length;at++)lanes[(at%4)*words+Math.floor(at/4)]=raw[at]??0;
+  let enter:()=>void=()=>{throw new Error('Missing read fence');},finish:(bytes:Uint8Array)=>void=()=>{throw new Error('Missing source fence');};
+  const entered=new Promise<void>(resolve=>{enter=resolve;}),pending=new Promise<Uint8Array>(resolve=>{finish=resolve;});
+  const scope=new Scope('cold-crag'),root=new THREE.Group(),registry=new WorldRegistry(),system=vi.fn<ShardContext['system']>(),reads:string[]=[];
+  const file=(name:string):Promise<Uint8Array>=>{reads.push(name);if(name==='bank.bin'){enter();return pending;}if(name==='address.bin')return Promise.resolve(new Uint8Array(4));throw new Error('Unexpected source');};
+  const paint=new THREE.MeshBasicMaterial();scope.own(paint);lendLooks(scope,{materials:new Map([['fixture-cold-crag',paint]]),setParam:()=>undefined,setTexture:()=>undefined,bindMeshMap:()=>paint});
+  type Runtime=NonNullable<ShardContext['game']['runtime']>;
+  const world=legacyDouble<NonNullable<Runtime['world']>>({sky:legacyDouble<SkyRig>({})}),runtime=legacyDouble<Runtime>({world});
+  const ctx=legacyDouble<ShardContext>({scope,root,system,app:legacyDouble<ShardContext['app']>({registry}),product:legacyDouble<ShardContext['product']>({slug:'cold-crag',file,hasFile:()=>true}),game:legacyDouble<ShardContext['game']>({runtime})});
+  const rows={name:'cold-crag',catalogues:[],packs:{},geometry:{shape:{kind:'baked-file',file:'bank.bin',address:{file:'address.bin',word:0},row:layout}},materials:{paint:{kind:'look',look:'fixture-cold-crag'}},layers:[],animations:[],
+    staticModels:[{model:{id:'fixture/cold-crag',name:'Cold crag',file:'test/scene-dressing-rows.test.ts',category:'props',pipeline:'code',defaults:{}},geometry:'shape',material:'paint'}],
+    statics:[{name:'draw',tris:12,geometry:{shape:'shape'},materials:{paint:'paint'},members:[{model:'fixture/cold-crag',draw:'merged',placements:[{x:0,y:0,z:0}],boxes:[-.5,-1,-1.5,.5,1,1.5],contacts:[],floors:[]}],
+      recipe:{version:1,root:'mesh',materials:[{kind:'port',id:'paint',source:'paint'}],nodes:[{kind:'mesh',id:'mesh',geometry:'shape',material:'paint',missing:'empty'}]}}]};
+  try{
+    const work=SceneDressing.install(ctx,rows);await Promise.race([entered,work.then(()=>{throw new Error('Bank did not hold publication');})]);
+    expect(system).not.toHaveBeenCalled();expect(registry.get('fixture/cold-crag')).toBeUndefined();expect(()=>SceneDressing.current(ctx)).toThrow('not installed');
+    finish(zlibSync(lanes));await work;
+    expect(reads).toEqual(['bank.bin','address.bin']);expect(SceneDressing.current(ctx).group).toBe(root.children[0]);
+    const card=registry.get('fixture/cold-crag')?.model;if(card===undefined)throw new Error('Missing prepared Explorer card');
+    let vertices=0;card.object().traverse(node=>{if(node instanceof THREE.Mesh){const geometry:unknown=node.geometry;if(!(geometry instanceof THREE.BufferGeometry))throw new Error('Missing cloned geometry');const position:unknown=geometry.getAttribute('position');if(!(position instanceof THREE.BufferAttribute))throw new Error('Missing cloned positions');vertices+=position.count;}});
+    expect(vertices).toBe(layout.count);
+  }finally{scope.dispose();}
+});
 test.each([['geometry','world'],['geometry','retire'],['geometry','length'],['lettering','world'],['lettering','retire'],['lettering','length']]as const)('raw %s refuses %s changes before any resource or system publication',async(kind,failure)=>{
   const inputShape=new THREE.BoxGeometry(1,2,1);inputShape.clearGroups();const blocks:Uint8Array[]=[],layout=writeGeometry(inputShape,blocks,'held');inputShape.dispose();
   const parent=new Scope('raw.parent'),scope=parent.child('raw.entered'),root=new THREE.Group(),system=vi.fn<ShardContext['system']>();
