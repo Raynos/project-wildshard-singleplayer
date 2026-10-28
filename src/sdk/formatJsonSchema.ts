@@ -1,4 +1,5 @@
 import { BakedTilesSchema } from '@wildshard/format/bakedTiles';
+import { ClientRidingSessionSchema } from '@wildshard/format/riding';
 import { ManifestMetadataSchema } from '@wildshard/format/minimap';
 import { HEADLESS_ASSEMBLY_JSON_SCHEMA, ReturnProgramSchema, PageReturnRowsSchema, QuestTraderSchema, PosedLibrarySchema } from '@wildshard/format/namedJsonContracts';
 import { NativeQuestCompositionSchema } from '@wildshard/format/nativeQuestComposition';
@@ -659,6 +660,8 @@ export function composeNamedJsonSchema(composition: NamedJsonComposition): Reado
 
 /** Exact defining pure-format objects for checked author compositions. */
 interface AuthorFormatObjects {
+  readonly 'riding.ClientRidingSessionSchema': typeof ClientRidingSessionSchema;
+  readonly 'mountedSpecimenRows.MountedSpecimenSeatSchema': typeof MountedSpecimenSeatSchema;
   readonly 'lootEconomy.ClaimedPickupSchema': typeof ClaimedPickupSchema;
   readonly 'lootBag.LootBagSchema': typeof LootBagSchema;
   readonly 'questContinuation.QuestContinuationSchema': typeof QuestContinuationSchema;
@@ -707,6 +710,8 @@ interface AuthorFormatObjects {
   readonly 'nativePhysics.nativeColliderRecordSchema': typeof nativeColliderRecordSchema;
 }
 const authorFormats: AuthorFormatObjects = {
+  'riding.ClientRidingSessionSchema': ClientRidingSessionSchema,
+  'mountedSpecimenRows.MountedSpecimenSeatSchema': MountedSpecimenSeatSchema,
   'lootEconomy.ClaimedPickupSchema': ClaimedPickupSchema,
   'lootBag.LootBagSchema': LootBagSchema,
   'questContinuation.QuestContinuationSchema': QuestContinuationSchema,

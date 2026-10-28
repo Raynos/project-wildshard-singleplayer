@@ -1,5 +1,8 @@
-import { parseActorProjectionV2,type ActorProjectionV2Rows } from '@wildshard/format/actorProjectionV2';
-import type { CreatureGuestRows } from '@wildshard/format/speciesBookRows';
+import { actorProjectionRows as parseActorProjectionV2 } from '@wildshard/sdk/decisionScripts';
+import type { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
+
+type CreatureGuestRows = ReturnType<typeof authorFormatRows<'speciesBookRows.CreatureGuestSchema'>>;
+type ActorProjectionV2Rows = ReturnType<typeof parseActorProjectionV2>;
 
 /** Compile the existing authored guest metadata into H4 columns. This producer
 * has no live actor, service, clock or continuation. */

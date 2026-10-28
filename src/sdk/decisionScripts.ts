@@ -1,6 +1,7 @@
 import { parseReturnProjectionV2 as parseProjection, type ReturnProjectionV2Rows as Projection } from '@wildshard/format/returnProjectionV2';
 import { parseDecisionScripts as parse, type DecisionScriptRow as Row } from '@wildshard/format/decisionScripts';
 import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
+import { parseActorProjectionV2 as nativeActorProjection } from '@wildshard/format/actorProjectionV2';
 
 /** Version stamps for source-owned projection metadata; no compiler is loaded. */
 export function scriptV2Revisions(): typeof SCRIPT_V2_REVISIONS { return SCRIPT_V2_REVISIONS; }
@@ -14,3 +15,7 @@ export function parseDecisionScripts(input: unknown): readonly Row[] { return pa
 export type ReturnProjectionV2Rows = Projection;
 /** Admit cached or authored projection metadata through the runtime's complete contract. */
 export function parseReturnProjectionV2(input: unknown): ReturnProjectionV2Rows { return parseProjection(input); }
+
+/** Admit JSON actor columns and operations with the defining ABI2, declared
+ * signal/field/channel checks. No compiler, runtime or continuation is created. */
+export function actorProjectionRows(input: unknown): ReturnType<typeof nativeActorProjection> { return nativeActorProjection(input); }

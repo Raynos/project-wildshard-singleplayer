@@ -1,0 +1,22 @@
+[
+  {
+    "name": "tree",
+    "bytes": 1225,
+    "hash": "12b264e2e19b1da7ed6ad0b76e2df066db5639f4c41f9c1bf723782705ef4152"
+  },
+  {
+    "name": "mounted",
+    "bytes": 1820,
+    "hash": "d7609dcaab47139096c8fa1843043a973d97cfac99ca31906da814d70a0dddbe"
+  },
+  {
+    "name": "riding",
+    "bytes": 32468,
+    "hash": "41656883e6ee7fd00fba7d543840717dba33493bcdf08757c88ea5781cf2f7c9"
+  },
+  {
+    "name": "actor",
+    "bytes": 13314,
+    "hash": "592785ab477e5b4b745aabcfc23cd14258945248173253fbf9c016cf24e60bbe"
+  }
+]

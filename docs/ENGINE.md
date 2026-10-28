@@ -4988,6 +4988,12 @@ paint-band and ordered-overlay declaration type.
 The native physics body/collider grammar factories retain exact rig, shape, range and provenance signatures;
 selecting or using them allocates no runtime body, collider, registry or world.
 
+`@wildshard/sdk/decisionScripts.actorProjectionRows(input)` admits the complete
+native JSON actor projection. ABI2, declared signal/field/channel names and
+operation references are checked by the defining parser before publication;
+no compiler, live actor or continuation is created. The finite author format
+selectors also retain the exact mounted-seat and client-riding validators.
+
 The author CLI `wildshard schema list` lists format schemas and the shardfile declaration. `wildshard schema shardfile /properties` discovers all sections without Valibot internals. `schemaDeclaration` and `schemaAt` are defined in `@wildshard/sdk/formatJsonSchema`; discovery preserves native semantic checks and grants no admission. See [schema discovery](authoring/schema-discovery.md) for pointers, tuple arity, identifier grammars and installed declaration locations.
 
 ## Typed numeric author scripts (OS-F4)
