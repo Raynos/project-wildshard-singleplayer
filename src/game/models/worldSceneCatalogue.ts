@@ -115,6 +115,7 @@ function selectedResources(catalogue: WorldSceneModels, selection: Selection, so
 }
 function ready(sources: Sources | undefined, catalogue: WorldSceneModels, selection: Selection): boolean {
   if (sources === undefined) return false;
+  if (worldSceneModelGraphs(selection.choice).some(leaf => 'file' in leaf && !sources.scenes?.has(leaf.file))) return false;
   const needed = selectedResources(catalogue, selection, sources);
   return needed.geometry.every(ref => sources.geometries.has(JSON.stringify([ref.library, ref.model]))) && needed.materials.every(id => sources.materials.has(id));
 }
@@ -137,7 +138,9 @@ async function load(ctx: ModelContext, product: string, catalogue: WorldSceneMod
     if (!Object.is(admitted.shardfile.identity.slug, product)) throw new Error('Scene model product identity differs');
     if (rows.catalogue === undefined || !same(parseWorldSceneModels(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await admitted.file(rows.catalogue)))), catalogue)) throw new Error('Scene model boot metadata differs from its admitted catalogue');
     const geometries = new Map(current.value?.geometries);
-    const scenes = current.value?.scenes ?? await admitWorldSceneModelGraphs(admitted, catalogue);
+    const scenes = new Map(current.value?.scenes);
+    const requested = { ...catalogue, models: [{ ...selection.model, choices: [selection.choice] }] };
+    for (const [file, graph] of await admitWorldSceneModelGraphs(admitted, requested)) scenes.set(file, graph);
     const declared = selectedResources(catalogue, selection, { scenes, plumbing: admitted.shardfile.plumbing });
     const slots = new Set(declared.materials);
     // a mapped material's source row comes with it (the section declares the source first)

@@ -60,7 +60,7 @@ export interface CabinScene {
   readonly CABIN_PLACEMENTS: ReturnType<typeof parseWorldScenePlacement>[];
   readonly CABIN_JSON_BLOBS: ReturnType<typeof nameBlob>[];
   readonly CABIN_WELDS: { id: string; file: { knob: string; false: { phone: string; desktop: string; }; true: { phone: string; desktop: string; }; }; late: { at: [number, number] }; }[];
-  /** I2: the late weld's node shapes (not the living resources other draws borrow), fetched after control at the hamlet */
+  /** I2: independent specimen documents and late shell shapes; actual living/placement demand stays authoritative. */
   readonly CABIN_LATE: { hash: string; at: [number, number] }[];
   readonly CABIN_LIBRARIES: { id: string; kind: "owned"; models: { id: string; file: string; attributes: Record<string, string>; }[]; }[];
   readonly CABIN_RAW_MODELS: NamedBlob[];
@@ -135,7 +135,8 @@ export const cabinScene: (sources: PineSources) => Promise<CabinScene> = perSour
   // the living libraries' models name shared shape files too: those are the resources' files, read at intake
   const livingFiles = new Set([...living.CABIN_LIVING_SHAPES.map(([name]) => name), ...living.CABIN_LIVING_LIBRARIES.flatMap(library => library.models.map(model => model.file))]);
   const resident = new Set(CABIN_PACKED_MODELS.filter(blob => blob.file.name !== undefined && livingFiles.has(blob.file.name)).map(blob => blob.file.hash));
-  const CABIN_LATE = [...new Set(CABIN_PACKED_MODELS.map(blob => blob.file.hash).filter(hash => !resident.has(hash)))]
+  const CABIN_LATE = [...new Set([...CABIN_PACKED_MODELS.map(blob => blob.file.hash).filter(hash => !resident.has(hash)),
+    ...CABIN_JSON_BLOBS.filter(blob => blob.file.name?.startsWith('scenes/cabins/') === true).map(blob => blob.file.hash)])]
     .map(hash => ({ hash, at: [HAMLET.x, HAMLET.z] as [number, number] }));
   const CABIN_MATERIALS: unknown[] = metadata.sourceMaterials.map(row => ({ id: slot(row.id), kind: 'source', load: 'placement', url: row.url,
     aliases: authored.propMaterials, part: row.part, ...(row.id.includes('.pit.') ? { publishObject: 'cabins.source.pit' } : row.id.includes('.lantern.') ? { publishObject: 'cabins.source.lantern' } : {}), ...(row.id.includes('.prop.') ? { anisotropy: 8, anisotropyMaps: ['map', 'normalMap', 'roughnessMap', 'aoMap'] } : {}) }));
@@ -161,7 +162,7 @@ export const cabinScene: (sources: PineSources) => Promise<CabinScene> = perSour
     const colliders = boxRow === undefined || boxRow === null ? [] : [{ kind: 'box', x: 0, y: boxRow.h / 2, z: 0, hx: boxRow.hw, hy: boxRow.h / 2, hz: boxRow.hd, surface: 'wood' }];
     const choices = family.key === 'log-cabin' ? variants : [{ id: 'only', params: building ? { site: 0 } : {} }];
     CABIN_MODEL_ROWS.push({ key: family.key, id: `pine-hollow/${family.key}`, name: family.name, file: 'data/cabinScenes.generated.json',
-      category: building ? 'buildings' : 'props', pipeline: building ? 'code' : 'cc0', ...(building || prop !== undefined ? { surface: 'wood' } : {}),
+      load: 'demand', category: building ? 'buildings' : 'props', pipeline: building ? 'code' : 'cc0', ...(building || prop !== undefined ? { surface: 'wood' } : {}),
       defaults: building ? { site: 0 } : {}, variants: family.key === 'log-cabin' ? variants : [], assembly: 'scene',
       choices: choices.map(choice => ({ id: choice.id, params: choice.params, size: [1, 1, 1], draws: [], colliders,
         scene: { knob: 'pine.cabinDetailShadows',

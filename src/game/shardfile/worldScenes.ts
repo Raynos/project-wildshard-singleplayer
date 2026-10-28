@@ -160,11 +160,10 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       reference(draw);
       if (!source(draw) || !slots.has(draw.material)) throw new Error('Scene catalogue needs owned geometry and declared material slots');
     }
-    reads.queue(catalogue.models.flatMap(model => model.choices.flatMap(worldSceneModelGraphs)).flatMap(row => 'file' in row ? [row.file] : []));
-    modelScenes = await admitWorldSceneModelGraphs({ hasFile: product.hasFile, file: name => reads.file(name) }, catalogue);
-    const resources = worldSceneModelResources(catalogue, [...modelScenes.values()]);
-    for (const draw of resources.geometry) { reference(draw); if (!source(draw)) throw new Error('Frozen specimens need owned geometry'); }
-    for (const slot of resources.materials) if (!slots.has(slot)) throw new Error('Missing frozen specimen material slot');
+    // Demand-only specimen bodies may stay cold, but their complete declared
+    // inventory must still exist before any live world is constructed.
+    for (const model of catalogue.models) for (const choice of model.choices)
+      for (const row of worldSceneModelGraphs(choice)) if ('file' in row) requireFile(row.file);
   }
   const immediate = new Set(section.steps.flatMap(step => Object.values(step.materials)));
   if (section.materials.some(row => row.kind === 'source' && row.load === 'placement' && immediate.has(row.id))) throw new Error('Deferred source material requires a named model placement');
@@ -241,6 +240,22 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       if (admissionSlice.due()) await admissionSlice.yield();
     }
   });
+  if (catalogue !== undefined) {
+    // A frozen world node already draws merged placements. Its independent
+    // Explorer specimen is not a second live draw. Direct placements still
+    // admit every alternative before geometry or material allocation.
+    const direct = new Set(placements.filter(row => row.drawnInto === undefined).map(row => row.model));
+    const eager = { ...catalogue, models: catalogue.models.filter(model => model.load !== 'demand' || direct.has(model.key)) };
+    reads.queue(eager.models.flatMap(model => model.choices.flatMap(worldSceneModelGraphs)).flatMap(row => 'file' in row ? [row.file] : []));
+    modelScenes = await admitWorldSceneModelGraphs({ hasFile: product.hasFile, file: name => reads.file(name) }, eager);
+    const resources = worldSceneModelResources(catalogue, [...modelScenes.values()]);
+    for (const draw of resources.geometry) {
+      reference(draw);
+      const library = libraryRows.get(draw.library);
+      if (library?.kind !== 'owned' && library?.kind !== 'whole' && library?.kind !== 'pool') throw new Error('Frozen specimens need owned geometry');
+    }
+    for (const slot of resources.materials) if (!slots.has(slot)) throw new Error('Missing frozen specimen material slot');
+  }
   for (const step of section.steps) {
     await prepareSceneDrawRows(product, step.draws ?? []);
     for (const row of step.draws ?? []) if (!slots.has(row.material)) throw new Error(`Missing scene draw slot: ${row.material}`);
@@ -282,8 +297,8 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     recipesProgress(++recipesDone, step.id);
   }
   for (const row of placements) if (row.drawnInto !== undefined && (!published.has(row.drawnInto.part) && !deferredPlacements.has(row.id) || row.drawnInto.boxes.length !== row.poses.length * 6)) throw new Error('Scene placement needs a published part and one box per copy');
-  // Specimen graphs are fully admitted above; their buffers belong to a requested
-  // Explorer choice, rather than every resident world and inactive profile.
+  // Eager and directly drawn specimen graphs are admitted above. Demand-only
+  // documents and their buffers belong to the actual Explorer choice.
   const placedModelKeys = new Set(placements.map(row => row.model));
   const residentModels = catalogue === undefined ? undefined : { ...catalogue, models: catalogue.models.filter(model => model.assembly !== 'scene' && (model.load !== 'demand' || placedModelKeys.has(model.key))) };
   const coldOnly = (ref: { readonly library: string }): boolean => { const row = libraryRows.get(ref.library); return row?.kind === 'whole' && (row.load === 'explorer' || row.load === 'refine'); };
