@@ -18,12 +18,12 @@ test('the plan is the tier row in first-demand order, with the blobs this produc
   expect(plan.map(read => read.hash)).toEqual([hash(1), hash(2), hash(4)]);
 });
 
-const ports = (files: readonly string[], json: unknown = set): EntryReadPorts & { blobs: string[]; assets: string[] } => {
+const ports = (files: readonly string[], json: unknown = set, fetchJson: EntryReadPorts['fetchJson'] = () => Promise.resolve(json)): EntryReadPorts & { blobs: string[]; assets: string[] } => {
   const blobs: string[] = [], assets: string[] = [];
   return { blobs, assets, source: { files: files.map(h => ({ hash: h })) as never },
     readBlob: h => { blobs.push(h); return Promise.resolve(); },
     fetchAsset: url => { assets.push(url); return Promise.resolve(); },
-    fetchJson: () => Promise.resolve(json) };
+    fetchJson };
 };
 
 test('a verified approach reads blobs through the product reader and assets through the HTTP cache, and counts them', async () => {
@@ -38,6 +38,6 @@ test('a turn-away starts no read, and a missing or invalid record prefetches not
   const p = ports([hash(1), hash(3)]);
   expect(await prefetchEntryReads('pine-hollow', 'phone', p, aborted.signal)).toBe(0); expect(p.blobs).toEqual([]);
   expect(await prefetchEntryReads('pine-hollow', 'phone', ports([hash(1)], { not: 'a set' }), new AbortController().signal)).toBe(0);
-  const missing = ports([hash(1)]); missing.fetchJson = () => Promise.reject(new Error('404'));
+  const missing = ports([hash(1)], set, () => Promise.reject(new Error('404')));
   expect(await prefetchEntryReads('pine-hollow', 'phone', missing, new AbortController().signal)).toBe(0);
 });
