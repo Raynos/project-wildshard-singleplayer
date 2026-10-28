@@ -13,7 +13,7 @@ build. Go fast as fuck. And then deal with the damage later."*
 ## Why it exists
 
 - The mega build (G768, G769) lands on types + lint only. Main may be red; CI and the night after catch the rest.
-- Checks that made lanes wait were switched off, not fixed ([mega-build](shard-platform/mega-build-mini-plan.md) MB1–MB7).
+- Checks that made lanes wait were switched off, not fixed ([mega-build](../../project/archive/2026-10-28-mega-build.md) MB1–MB7).
 - Every break that lands needs one place to be written down, or it is forgotten by the time the plan ends.
 - This file is that place: the one real damage list. STATE.md only points here.
 - When SHARD-PLATFORM is done, this plan turns main green, gets the deploy moving and puts back what Jake wants back.
