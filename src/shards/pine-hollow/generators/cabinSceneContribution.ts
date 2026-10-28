@@ -1,7 +1,7 @@
 /** Product rows over the completed cabin bake. The author-only graph book keeps
  * bundled declarations free of file I/O; the product still emits individual graphs. */
 import { Matrix4 } from 'three';
-import * as v from 'valibot';
+import { defineNamedRows, type NamedRows } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { nameCompactBlobs } from '@wildshard/sdk/bake/compactGlb';
 import { worldSceneWeldRows as parseWorldSceneWeld, worldScenePlacement as parseWorldScenePlacement } from '@wildshard/sdk/worldScenes';
@@ -16,22 +16,37 @@ import { HAMLET } from './layout';
 
 type WorldSceneWeld = ReturnType<typeof parseWorldSceneWeld>;
 
-const text = v.string(), words = v.array(v.number()), contacts = v.array(v.unknown());
-const registration = v.variant('kind', [
-  v.object({ kind: v.literal('building'), id: text, part: text, boxWords: words, colliders: contacts, floors: contacts }),
-  v.object({ kind: v.literal('prop'), prop: v.picklist(['crate', 'barrel', 'bucket', 'hatchet']), hamlet: v.boolean(), part: text, matrices: v.array(words), boxWords: words }),
-  v.object({ kind: v.literal('drawn'), id: text, which: v.picklist(['firePitObj', 'lanternObj']), part: text, matrixBits: words, boxWords: words }),
-]);
-/** The cabin scene rows the program bakes (bake-cabin-scenes.mjs; the retired pine-cabin-scenes job's rows). */
-const CabinSceneRowsSchema = v.object({
-  blobs: v.array(v.object({ name: text, kind: v.picklist(['glb', 'json']), source: text })),
-  geometry: v.array(v.object({ id: text, library: text, file: text, segments: v.exactOptional(v.array(text)), attributes: v.record(text, text) })),
-  worlds: v.array(v.object({ tier: v.picklist(['phone', 'desktop']), shadow: v.boolean(), file: text, registrations: v.array(registration) })),
-  specimens: v.array(v.object({ tier: v.picklist(['phone', 'desktop']), shadow: v.boolean(), key: text, choice: text, file: text })),
-  graphs: v.array(v.object({ file: text, graph: v.unknown() })),
-  sourceMaterials: v.array(v.object({ id: text, url: text, part: v.number() })),
-});
-type CabinSceneRows = v.InferOutput<typeof CabinSceneRowsSchema>;
+const text = { kind: 'string' } as const, number = { kind: 'number' } as const;
+const words = { kind: 'array', item: number } as const, contacts = { kind: 'array', item: { kind: 'unknown' } } as const;
+const registration = { kind: 'variant', key: 'kind', options: [
+  { kind: 'object', mode: 'strip', entries: { kind: { kind: 'literal', value: 'building' }, id: text, part: text, boxWords: words, colliders: contacts, floors: contacts } },
+  { kind: 'object', mode: 'strip', entries: { kind: { kind: 'literal', value: 'prop' }, prop: { kind: 'picklist', values: ['crate', 'barrel', 'bucket', 'hatchet'] }, hamlet: { kind: 'boolean' }, part: text, matrices: { kind: 'array', item: words }, boxWords: words } },
+  { kind: 'object', mode: 'strip', entries: { kind: { kind: 'literal', value: 'drawn' }, id: text, which: { kind: 'picklist', values: ['firePitObj', 'lanternObj'] }, part: text, matrixBits: words, boxWords: words } },
+] } as const;
+const tierShape = { kind: 'picklist', values: ['phone', 'desktop'] } as const;
+/** The source-owned scene grammar, independent of the scene file reader. */
+const cabinSceneShape = { kind: 'object', mode: 'strip', entries: {
+  blobs: { kind: 'array', item: { kind: 'object', mode: 'strip', entries: { name: text, kind: { kind: 'picklist', values: ['glb', 'json'] }, source: text } } },
+  geometry: { kind: 'array', item: { kind: 'object', mode: 'strip', entries: { id: text, library: text, file: text, segments: { kind: 'exact-optional', item: { kind: 'array', item: text } }, attributes: { kind: 'record', key: text, value: text } } } },
+  worlds: { kind: 'array', item: { kind: 'object', mode: 'strip', entries: { tier: tierShape, shadow: { kind: 'boolean' }, file: text, registrations: { kind: 'array', item: registration } } } },
+  specimens: { kind: 'array', item: { kind: 'object', mode: 'strip', entries: { tier: tierShape, shadow: { kind: 'boolean' }, key: text, choice: text, file: text } } },
+  graphs: { kind: 'array', item: { kind: 'object', mode: 'strip', entries: { file: text, graph: { kind: 'unknown' } } } },
+  sourceMaterials: { kind: 'array', item: { kind: 'object', mode: 'strip', entries: { id: text, url: text, part: number } } },
+} } as const;
+/** One parser/wire contract compiled from the complete native source grammar. */
+export const CABIN_SCENE_ROWS: Pick<NamedRows<CabinSceneRows>, 'schema' | 'jsonSchema' | 'parse'> = defineNamedRows(cabinSceneShape);
+interface CabinSceneRows {
+  blobs: { name: string; kind: 'glb' | 'json'; source: string }[];
+  geometry: { id: string; library: string; file: string; segments?: string[]; attributes: Record<string, string> }[];
+  worlds: { tier: 'phone' | 'desktop'; shadow: boolean; file: string; registrations: (
+    { kind: 'building'; id: string; part: string; boxWords: number[]; colliders: unknown[]; floors: unknown[] } |
+    { kind: 'prop'; prop: 'crate' | 'barrel' | 'bucket' | 'hatchet'; hamlet: boolean; part: string; matrices: number[][]; boxWords: number[] } |
+    { kind: 'drawn'; id: string; which: 'firePitObj' | 'lanternObj'; part: string; matrixBits: number[]; boxWords: number[] }
+  )[] }[];
+  specimens: { tier: 'phone' | 'desktop'; shadow: boolean; key: string; choice: string; file: string }[];
+  graphs: { file: string; graph: unknown }[];
+  sourceMaterials: { id: string; url: string; part: number }[];
+}
 const slot = (id: string): string => id.startsWith('materials.') ? id.slice('materials.'.length) : id;
 const floatValues = (values: readonly number[]): number[] => Array.from(new Float32Array(Uint32Array.from(values).buffer));
 const doubleValues = (values: readonly number[]): number[] => Array.from(new Float64Array(Uint32Array.from(values).buffer));
@@ -71,7 +86,7 @@ export interface CabinScene {
 /** D65: the cabin scene rows over the cabin bake (its grid comes from the program's sources), made once per sources;
  *  GR8: the scene and living rows and shapes are the program's bake (bake-cabin-scenes.mjs, bake-cabin-living.mjs). */
 export const cabinScene: (sources: PineSources) => Promise<CabinScene> = perSources(async (sources: PineSources): Promise<CabinScene> => {
-  const bake = await cabinSceneBake(sources), metadata = v.parse(CabinSceneRowsSchema, bake.rows), living = await cabinLiving(sources);
+  const bake = await cabinSceneBake(sources), metadata = CABIN_SCENE_ROWS.parse(bake.rows), living = await cabinLiving(sources);
   const cabins = pineCabins(sources).rows;
   const authored = timberWorld(sources);
   const CABIN_PLACEMENTS: ReturnType<typeof parseWorldScenePlacement>[] = [];
