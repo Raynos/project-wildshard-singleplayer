@@ -1,7 +1,6 @@
-import type * as v from 'valibot';
-import type { MeleeWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
+import type { parseMeleeWeaponProfile } from '@wildshard/sdk/weapons/meleeProfile';
 
-type Swing = v.InferOutput<typeof MeleeWeaponProfileSchema>['moves']['combo'][number];
+type Swing = ReturnType<typeof parseMeleeWeaponProfile>['moves']['combo'][number];
 
 /** The shipping driftwood-isle sword combat parameters; the separate move recipes own poses, trails and camera response. */
 export const DRIFTWOOD_MELEE_PROFILE: { family: "melee"; damage: number; reach: number; swingScale: number; cooldown: number; comboGap: number; chainLag: number; heavyCharge: number; moves: { combo: [{ windup: number; slashEnd: number; total: number; damage: number; stagger: number; sweep: number; }, { windup: number; slashEnd: number; total: number; damage: number; stagger: number; sweep: number; }, { windup: number; slashEnd: number; total: number; damage: number; stagger: number; sweep: number; }]; heavy: { windup: number; slashEnd: number; total: number; damage: number; stagger: number; sweep: number; }; }; lunge: { range: number; heavyRange: number; cone: number; stop: number; speed: number; minTime: number; maxTime: number; }; sweep: { rays: number; extensions: number[]; step: number; maxSamples: number; maxHits: number; }; } = {
@@ -14,6 +13,6 @@ export const DRIFTWOOD_MELEE_PROFILE: { family: "melee"; damage: number; reach: 
   ] satisfies [Swing, Swing, Swing], heavy: { windup: 0.06, slashEnd: 0.30, total: 0.62, damage: 2, stagger: 1, sweep: 0.35 } },
   lunge: { range: 4, heavyRange: 5, cone: 25 * Math.PI / 180, stop: 1.1, speed: 22, minTime: 0.08, maxTime: 0.15 },
   sweep: { rays: 5, extensions: [0.12, 0.24, 0.36, 0.48], step: 0.09, maxSamples: 6, maxHits: 8 },
-} satisfies v.InferOutput<typeof MeleeWeaponProfileSchema>;
+} satisfies ReturnType<typeof parseMeleeWeaponProfile>;
 /** Existing iron upgrade changes only base contact damage. */
 export const DRIFTWOOD_IRON_PROFILE: { damage: number; family: "melee"; reach: number; swingScale: number; cooldown: number; comboGap: number; chainLag: number; heavyCharge: number; moves: { combo: [{ windup: number; slashEnd: number; total: number; damage: number; stagger: number; sweep: number; }, { windup: number; slashEnd: number; total: number; damage: number; stagger: number; sweep: number; }, { windup: number; slashEnd: number; total: number; damage: number; stagger: number; sweep: number; }]; heavy: { windup: number; slashEnd: number; total: number; damage: number; stagger: number; sweep: number; }; }; lunge: { range: number; heavyRange: number; cone: number; stop: number; speed: number; minTime: number; maxTime: number; }; sweep: { rays: number; extensions: number[]; step: number; maxSamples: number; maxHits: number; }; } = { ...DRIFTWOOD_MELEE_PROFILE, damage: 28 };

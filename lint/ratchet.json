@@ -255,7 +255,6 @@
     "src/game/titleDeck.ts": 4
   },
   "wildshard/no-runtime-in-build": {
-    "src/shards/driftwood-isle/generators/driftwoodDuneLogs.d.mts": 1,
     "src/shards/nalati-grasslands/generators/bake-nalati-bodies.d.mts": 1,
     "src/shards/nalati-grasslands/generators/horseBody.ts": 1
   },
