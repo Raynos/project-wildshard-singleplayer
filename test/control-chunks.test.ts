@@ -61,6 +61,21 @@ test('home batches combine equal requirements without admitting another home or 
   expect(select('/fixture/explorer.ts', graph)).toBeNull();
 });
 
+test('asset URL banks share exact phase requirements without merging shard code or late images', () => {
+  const rows: Readonly<Record<string, readonly string[]>> = {
+    '/fixture/home.ts': ['/fixture/src/shards/one/thumb.jpg', '/fixture/src/shards/two/thumb.jpg'],
+    '/fixture/other.ts': ['/fixture/src/shards/one/thumb.jpg', '/fixture/src/shards/two/thumb.jpg', '/fixture/src/shards/three/only.png'],
+  };
+  const graph = { getModuleInfo: (id: string) => ({ importedIds: rows[id] ?? [] }) };
+  const select = controlChunkSelector('/fixture', [], 'assets', [['/fixture/home.ts'], ['/fixture/other.ts']]);
+  const first = select('/fixture/src/shards/one/thumb.jpg', graph);
+  expect(first).toMatch(/^asset-urls-/u);
+  expect(select('/fixture/src/shards/two/thumb.jpg', graph)).toBe(first);
+  expect(select('/fixture/src/shards/three/only.png', graph)).not.toBe(first);
+  expect(select('/fixture/src/shards/one/late.png', graph)).toBeNull();
+  expect(select('/fixture/src/shards/one/gameplay.ts', graph)).toBeNull();
+});
+
 test('phase banks keep initial and late code isolated and retain unchanged control bytes', async () => {
   mkdirSync('tmp/control-chunks', { recursive: true });
   const root = mkdtempSync(resolve('tmp/control-chunks/entries-'));
@@ -82,7 +97,7 @@ test('phase banks keep initial and late code isolated and retain unchanged contr
       globalThis.grid = () => import('./game/grid/session');
       globalThis.title = () => Promise.all([${title.map(file => `import('./${file}')`).join(',')}]);`);
     const outDir = resolve(root, 'dist');
-    await build({ root, configFile: false, logLevel: 'silent', build: { outDir, manifest: true, sourcemap: 'hidden',
+    await build({ root, configFile: false, logLevel: 'silent', build: { outDir, manifest: true, sourcemap: 'hidden', cssCodeSplit: false,
       rolldownOptions: { input: { main: resolve(root, 'index.html'), calibration: resolve(root, 'calibration/index.html') },
         preserveEntrySignatures: false, output: { strictExecutionOrder: true, chunkFileNames: controlChunkFileName,
           codeSplitting: { groups: controlChunkGroups(root) } } } } });
@@ -121,7 +136,7 @@ test('phase banks keep initial and late code isolated and retain unchanged contr
     const before = controlBytes(bundle);
     expect(before.length).toBeGreaterThan(0);
     writeFileSync(resolve(root, 'src/optional.ts'), 'globalThis.optionalValue = "changed late value";');
-    await build({ root, configFile: false, logLevel: 'silent', build: { outDir, manifest: true, sourcemap: 'hidden',
+    await build({ root, configFile: false, logLevel: 'silent', build: { outDir, manifest: true, sourcemap: 'hidden', cssCodeSplit: false,
       rolldownOptions: { input: { main: resolve(root, 'index.html'), calibration: resolve(root, 'calibration/index.html') },
         preserveEntrySignatures: false, output: { strictExecutionOrder: true, chunkFileNames: controlChunkFileName,
           codeSplitting: { groups: controlChunkGroups(root) } } } } });

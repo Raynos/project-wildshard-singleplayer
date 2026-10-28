@@ -30,7 +30,7 @@ function membership(graph: ModuleGraph, rows: readonly (readonly string[])[]): M
 /** Merge only equal requirements across actual title roots and home entries.
  * A home never fetches another home's optional feature. The session budget and
  * initial HTML boundaries remain separate. All graph state belongs to one build. */
-export function controlChunkSelector(root: string, startup = startupModuleRoots(root), boundary: 'control' | 'title' | 'initial' = 'control', homes: readonly (readonly string[])[] = []): (id: string, graph: ModuleGraph) => string | null {
+export function controlChunkSelector(root: string, startup = startupModuleRoots(root), boundary: 'control' | 'title' | 'initial' | 'assets' = 'control', homes: readonly (readonly string[])[] = []): (id: string, graph: ModuleGraph) => string | null {
   let controls: Map<string, bigint> | undefined, title: Map<string, bigint> | undefined, initial: Map<string, bigint> | undefined, session: Set<string> | undefined;
   return (id, graph) => {
     if (controls === undefined) {
@@ -42,10 +42,13 @@ export function controlChunkSelector(root: string, startup = startupModuleRoots(
       initial = membership(graph, [[resolve(root, 'index.html')], [resolve(root, 'calibration/index.html')]]);
       session = staticClosure(graph, [resolve(root, 'src/game/session/session.ts')]);
     }
-    if (id.includes('/src/shards/')) return null;
     const needed = controls.get(id) ?? 0n, titleMask = title?.get(id) ?? 0n;
     if (needed === 0n && titleMask === 0n) return null;
     const roles = `${(initial?.get(id) ?? 0n).toString(36)}-${titleMask.toString(36)}-${needed.toString(36)}-${session?.has(id) === true ? 'session' : 'startup'}`;
+    // Asset modules contain URL strings. Equal real requirements can share a
+    // bank without fetching image bodies or admitting another home's code.
+    if (boundary === 'assets') return /\.(?:avif|gif|jpe?g|png|svg|webp)$/u.test(id) ? `asset-urls-${roles}` : null;
+    if (id.includes('/src/shards/')) return null;
     if (boundary === 'initial') return `entry-${roles}`;
     if (boundary === 'title') return titleMask > 0n ? `title-${roles}` : null;
     if (titleMask > 0n || !/\.(?:[cm]?[jt]sx?|json)$/u.test(id) || id.includes('/out/')) return null;
@@ -63,6 +66,7 @@ export function controlChunkGroups(root: string): Rolldown.CodeSplittingGroup[] 
   const homes = homeModuleRoots(root).flatMap(optional => [[...base, ...optional], [...base, ...optional, ...grid]]);
   const dataRoots = new Set([...startup, ...homes.flat()].filter(id => id.endsWith('.json')));
   return [
+    { name: controlChunkSelector(root, startup, 'assets', homes), includeDependenciesRecursively: false },
     // Named JSON imports are boot-bank roots too. Give each an explicit owner
     // instead of depending on its residual locations in a coarse source map.
     { name: id => dataRoots.has(id) ? `startup-data-${relative(root, id)}` : null, includeDependenciesRecursively: false },
