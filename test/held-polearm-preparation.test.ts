@@ -13,14 +13,25 @@ import { parse } from 'valibot';
 import { PolearmRowsSchema } from '../src/format/heldMelee';
 import { HeldDecision } from '../src/game/weapons/heldDecision';
 import { originalHeldMetadata } from './fixtures/nalati-held-original';
-import { lendNalatiHeld } from './fixtures/nalati-return-modules';
+import { originalSpeciesFile } from './fixtures/nalati-original-species';
+import { ReturnProgram } from '../src/game/population/returnProgram';
+import { ReturnProgramSchema } from '../src/format/namedJsonContracts';
+import { ReturnModulesSchema } from '../src/format/scriptContract';
+import { parseDecisionScripts } from '../src/format/decisionScripts';
 import powers from '../src/shards/nalati-grasslands/data/weaponPowers.json' with { type: 'json' };
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
 
 const spear=parse(PolearmRowsSchema,{...nalatiSpear.rows,program:originalHeldMetadata().held.programs.polearm,presentation:powers.polearm});
 afterEach(()=>{vi.restoreAllMocks();});
+function lendHeld(owner:Scope):void{
+  const program=parse(ReturnProgramSchema,originalHeldMetadata().held.programs.polearm),script=parseDecisionScripts([program.script])[0],projection=program.v2;
+  if(script===undefined||projection===undefined)throw new Error('Missing original held module declarations');
+  const module=projection.artifact;
+  const rows=parse(ReturnModulesSchema,[script,{id:'nalati.held-weapons.projection',module:`blobs/wasm/${module.hash}.wasm`,side:'sim',abi:2,lane:'project',pages:module.pages,ioBytes:module.ioBytes,compilerRevision:module.compilerRevision,admissionRevision:module.admissionRevision}]);
+  ReturnProgram.lendModules(owner,new Map([[script.module.slice('blobs/wasm/'.length,-'.wasm'.length),originalSpeciesFile('held-witness.bin')],[module.hash,originalSpeciesFile('held-weapons.wasm')]]),rows);
+}
 function fixture(){
-  const scope=new Scope('held-pool');lendNalatiHeld(scope);const decision=vi.spyOn(HeldDecision.prototype,'update');const part=new BoxGeometry(),preload=vi.fn(()=>Promise.resolve()),lookup=vi.fn(()=>part);
+  const scope=new Scope('held-pool');lendHeld(scope);const decision=vi.spyOn(HeldDecision.prototype,'update');const part=new BoxGeometry(),preload=vi.fn(()=>Promise.resolve()),lookup=vi.fn(()=>part);
   vi.spyOn(geometry,'createModelLibrary').mockReturnValue(legacyDouble<ReturnType<typeof geometry.createModelLibrary>>({preload,geometry:lookup}));
   vi.spyOn(paint,'painterlyMaterial').mockImplementation(()=>new MeshLambertMaterial());
   vi.spyOn(ranged,'viewmodelMaterial').mockImplementation(()=>new MeshPhysicalMaterial());
