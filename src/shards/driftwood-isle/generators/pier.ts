@@ -4,7 +4,8 @@ import type {Rng} from '@wildshard/sdk/random';
 import type {PierParams,PierSpec} from './pierContract';
 import {pierDeckAt,pierHalfWidthAt,pierPosts} from './pierLayout';
 
-const C = {
+/** the pier's wood and rope colours (also the far stand-in's, generators/pierCoarse.ts) */
+export const PIER_PALETTE = {
   plank: new THREE.Color('#9a7a56'),
   plankLight: new THREE.Color('#b08d64'),
   plankDark: new THREE.Color('#7c6244'),
@@ -14,6 +15,7 @@ const C = {
   ropeDark: new THREE.Color('#b59e6a'),
   brass: new THREE.Color('#d9b45a'),
 };
+const C = PIER_PALETTE;
 
 /**
  * The pier's pennant (E111). A swallowtail in the Lookout banner's blues with its white diamond. It flies downwind
