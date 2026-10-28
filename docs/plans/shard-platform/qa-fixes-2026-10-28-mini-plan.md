@@ -4,6 +4,7 @@
 lanes. Part of [close-out](close-out-mini-plan.md) CO1; archives with SHARD-PLATFORM (CO8). Read at HEAD `1c1d80f451`;
 the working tree already holds uncommitted edits for QF1, QF3–QF5, QF13 and QF14 (sw.js, codePack.ts, Loading.ts,
 UpdateProgress.ts, devSwitch.ts, loading.css, update.css): their owners land them with `commit.sh --patch`.
+**Reviews:** [service-worker-2026-10-28](../../reviews/service-worker-2026-10-28.md), [bulk-downloads-2026-10-28](../../reviews/bulk-downloads-2026-10-28.md)
 
 Jake, 2026-10-28 ~14:10 (G837): *"the page should be fast. It shouldn't freeze ... The page needs to reload instantly.
 If there needs to be a progress bar somewhere, or if there needs to be some downloading thing somewhere, it needs to be
@@ -27,8 +28,16 @@ Driftwood from the title, cold and warm. Source references are origin/main lines
 
 | Row | What | Owner | Size | Done when |
 |---|---|---|---|---|
-| QF1 | **Stall limits on every service-worker download the page waits on (G830; finding 4).** The loading screen sat 25 s on step 1 waiting for `/shardfiles/driftwood-isle/shard.json`. `src/engine/pwa/sw.js` `fetchWhole` (~652–676) and its network path (~437–466) get a per-attempt stall limit that falls back to the network; covers the page reload, the stylesheet, `shard.json` and the map code. `src/engine/boot/codePack.ts:39` gets a deadline after `CODE_PACK_STARTED` | sp-x2 (Codex) | 0.5 d | the 11-run freeze repro (`tmp/loading-freeze/`, WebKit stalled 1 of 7 cold, Chromium 1 of 4) stalls 0 of 10 on each engine; a stalled response shows its fallback within the limit |
-| QF2 | **The page never freezes (G837; findings 16, 18).** A navigation or reload never waits on the SW's network path: the HTML shell is served at once and paints its own loading UI before it awaits anything; every wait shows progress, what it waits for and a retry; no invisible preloads. The design rows come from the pending review `docs/plans/shard-platform/reviews/service-worker-2026-10-28.md`; QF1 ships first | Codex, rows from the review (wildshard-v writes it) | after the review | the review's rows are added here and met; on both engines a throttled reload paints within 1 s and never shows a still frame without a moving indicator |
+| QF1 | **Stall limits on every service-worker download the page waits on (G830; finding 4).** The loading screen sat 25 s on step 1 waiting for `/shardfiles/driftwood-isle/shard.json`. `src/engine/pwa/sw.js` `fetchWhole` (~652–676) and its network path (~437–466) get a per-attempt stall limit that falls back to the network; covers the page reload, the stylesheet, `shard.json` and the map code. `src/engine/boot/codePack.ts:39` gets a deadline after `CODE_PACK_STARTED`. **A stop-gap only:** 3 attempts × 10 s is still 30 s frozen; QF2.T1, T3 and T6 bound the wait | sp-x2 (Codex) | 0.5 d | the 11-run freeze repro (`tmp/loading-freeze/`, WebKit stalled 1 of 7 cold, Chromium 1 of 4) stalls 0 of 10 on each engine; a stalled response shows its fallback within the limit |
+| QF2 | **The page never freezes (G837; findings 16, 18).** A navigation or reload never waits on the SW's network path: the HTML shell is served at once and paints its own loading UI before it awaits anything; every wait shows progress, what it waits for and a retry; no invisible preloads. Rows T1–T8 from [service-worker-2026-10-28](reviews/service-worker-2026-10-28.md) (`0409006f5d`, rules R1–R6); QF1 ships first | Codex | T1–T8, S each | T1–T8 met; on both engines a throttled reload paints within 1 s and never shows a still frame without a moving indicator |
+| QF2.T1 | **`?v=` navigations served cache first from the cached shell** (it already belongs to this worker's build, E144); network only on a cache miss, raced against 3 s (`sw.js` 589-604; R1) | Codex | S | an update / `?v=` reload with the network held commits the cached shell on both engines; no navigation request waits on the network when the shell is cached |
+| QF2.T2 | **`activate` only claims;** manifest GC moves to a `GC` message the page sends after `ws:control-ready`, its manifest fetch through `fetchAttempt` (`sw.js` 241-284; `sw.ts` 95-99; R2) | Codex | S | `activate` does `clients.claim()` and nothing else; GC runs after control with a deadline |
+| QF2.T3 | **`shard.json` races the network against 3 s,** then admits the visited (hash-verified) product; revalidates after control (`product.ts` 240-250) | Codex | S | with the network held, a revisited shard passes `shard.json` in ≤ 3 s on both engines |
+| QF2.T4 | **The handoff clock runs:** `beginNavigationShell` starts the inline tick, and the inline script stops returning early once `data-navigation` is set (`shell.ts` 45-64; `index.html` 136-190; R3) | Codex | S | the title's handoff panel timer moves on every navigation on both engines |
+| QF2.T5 | **Code-pack progress is visible:** the worker posts `CODE_PACK_PROGRESS` and the shell's download line shows it (`sw.js` 420-458; `codePack.ts`; `index.html` 168-178) | Codex | S | a cold entry shows code-pack bytes rising in the shell on both engines |
+| QF2.T6 | **One page deadline:** any wait over 8 s with no new bytes shows "Waiting for X · n s · Retry"; the stuck card drops 25 → 10 s and its RELOAD is a plain reload (`Loading.ts` 419; `stuck.ts` 31, 110-122; R4) | Codex | S | a held download shows the labelled Retry line at 8 s and the stuck card at 10 s on both engines; RELOAD is instant with T1 |
+| QF2.T7 | **No same-build SKIP_WAITING mid-session:** deferred to `pagehide` / travel (`sw.ts` 85-90, 119-128; R6) | Codex | S | a same-build worker update never swaps mid-page |
+| QF2.T8 | **Buffer only JS / CSS bodies whole;** other bodies stream, so the page counts bytes and G830's stall clock still applies (`sw.js` 615-655; R5) | Codex | S | `fetchAttempt` buffers only `destination: script/style`; a large GLB shows bytes rising during its download |
 | QF3 | **Loading screen frozen at 00:00.0 (finding 1).** The title's handoff panel stays painted while the next page's stylesheet waits on the SW. The destination page paints its loading screen from inline critical CSS before it awaits any stylesheet | sp-x6 (Codex) | 3 h | with the stylesheet held 10 s, both engines show the loading screen's timer moving from the first frame |
 | QF4 | **UPDATING froze at "Reloading title 0.0S, 0 files" (finding 2).** `src/engine/ui/UpdateProgress.ts`'s 250 ms interval dies on navigation. The reload step animates in CSS (`styles/update.css`), so it moves until the next page paints | sp-x6 (Codex) | 2 h | an update-and-reload on both engines never shows a still UPDATING frame; `update-progress.test.ts` covers the CSS step |
 | QF5 | **Tapping SHARDFILE shows no loading screen for a while (finding 3).** The tap paints the loading screen first; the preload starts after that paint | sp-x6 (Codex) | 2 h | the first frame after the tap is the loading screen on both engines (trace: paint before the first product request) |
@@ -52,6 +61,20 @@ Driftwood from the title, cold and warm. Source references are origin/main lines
 | QF17.B6 | **Coarser JS chunks:** coarser `controlChunkGroups` (startup / session / shard / late) in the existing Rolldown config; an output setting, not a plugin, so it fits G799. Weighed against js-payload's lazy loads with a build-time JS-size reading (I12's guard) so lazy code stays lazy | Codex | M | JS requests 166–234 → ~10–20 on a Driftwood entry; I12's guard green; map, bag, pause and HUD stay eager (G826) |
 | QF18 | **Night Market missing from SHARD SELECT (finding 6).** Fixed `72a67f451b` (live) | done | 0 | done `72a67f451b` |
 
+## Next (built in this plan after QF2.T1–T8 land, not deferred)
+
+From the service-worker review's part (b); all Codex, size M:
+
+- **QF2.N1 — background update adoption** (review B1): the update installs in the background and the pill says
+  "update on next travel / title"; `travel` sends SKIP_WAITING, waits ≤ 1 s for claim, then `location.replace`; the
+  `?v=` path and its network-first branch are deleted (`sw.ts`, `Update.ts`, `UpdateProgress.ts`, `travel.ts` 61-70).
+- **QF2.N2 — versioned cache-first `shard.json`** (review B2): `?v=<hash8>` from the build's tables, cache first like
+  `/assets/…?v=`, so T3's race goes away (`sw.js` 560, `product.ts`).
+- **QF2.N3 — one shared wait list** (review B3): the inline script and `Loading` share one registry (label, bytes,
+  deadline, retry) from the first byte, so no await is unlabelled (`index.html`, `Loading.ts`, `boot/download.ts`).
+- **QF2.N4 — faster worker start, yielding prefetch** (review B4): sw.js stamps parsed lazily; background revalidates
+  and PREFETCH abort on a navigation (`prefetchOne` 485-503) (`sw.js`, `scripts/app-build/serviceWorker.ts`).
+
 ## Ship
 
 - **One immediate release** (G830): sp-ci-deploy runs `gh workflow run deploy` on the newest green `main` that holds
@@ -62,5 +85,5 @@ Driftwood from the title, cold and warm. Source references are origin/main lines
   wildshard-v (close-out §3.2).
 - **The build id goes to wildshard-v through STATE.md** (it is talking to Jake; never herdr-prompt it), with the rows
   the build contains. wildshard-v tells Jake. No phone chore for Jake: his next play is the check.
-- QF17's B1–B6 ride the first release they land in; none waits for another. QF2 opens a second release once the
-  service-worker review lands; this page then gains its rows.
+- QF17's B1–B6 ride the first release they land in; none waits for another. QF2.T1–T8 ride the same release
+  where they are landed (the review sizes them for it); N1–N4 follow in a later release.
