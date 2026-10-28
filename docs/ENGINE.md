@@ -1892,7 +1892,7 @@ export const BUDGETS: LevelSpec['budgets'] = { phone: tier(30), desktop: tier(60
 | Export | What it is |
 |---|---|
 | `castRay`, `castSegment`, `floorBelow`, `lineOfSight`, `sticksIn` | the queries |
-| `Physics.castRay`, `Physics.castRayAndGetNormal` | Native Rapier ray queries with the World flags, groups, collider/body exclusions and predicate contract. Up to four reentrant input-vector pairs stay owned by the Physics lifetime; deeper scratch is freed on return, all retained pairs on disposal. Hits/normals/features remain detached. |
+| `Physics.castRay`, `Physics.castRayAndGetNormal` | Native Rapier ray queries with the World flags, groups, collider/body exclusions and predicate contract. Up to four reentrant input-vector pairs stay owned by the Physics lifetime; deeper scratch is freed on return, all retained pairs on disposal. Hits/normals/features remain detached unless an explicit normal-result target is supplied; that target and its normal vector are filled through Rapier's native output API. |
 | `EngineProbe.colliderTag(handle)` | reads the active probe world's actual material / owner identity for a live native collider; missing handles return `undefined`, retired probes refuse, with no debug overlay or native write |
 | `ctx.piece(piece)` | registers a built piece: `{ id, name, category, file, object, colliders?, surface?, active?, floor?, model? }`. It draws, collides, shows on the map and in Explore's catalog |
 | `WorldRegistry`, `activeRegistry` | the registry (`app.registry`); `activeRegistry` is a port |

@@ -14,7 +14,7 @@
  * `passThrough` lets a kind of body through for a while (a stampede through the player on foot), `touching` lists what
  * lies within a margin of the capsule (the herd jostling a rider).
  */
-import type { Capsule, Collider, KinematicCharacterController, Ray, RigidBody } from '@dimforge/rapier3d-simd';
+import type { Capsule, Collider, KinematicCharacterController, Ray, RayColliderIntersection, RigidBody } from '@dimforge/rapier3d-simd';
 import type { Physics } from './Physics';
 import { GROUP, groups, queryGroups, type GroupName } from './groups';
 import { isTerrainCollider, tagCollider } from './surface';
@@ -89,6 +89,7 @@ export class CharacterMotor {
   private readonly anchor = { x: 0, y: 0, z: 0 };
   private anchorBody: RigidBody | null = null;
   private readonly ray: Ray;
+  private groundHit: RayColliderIntersection | undefined;
   /** a lying capsule: its half axis (between the caps) and heading; the quaternion that lays it along the heading */
   private readonly halfAxis: number;
   private yaw = 0;
@@ -309,11 +310,14 @@ export class CharacterMotor {
     r.groundNormalY = 1; r.downhillX = 0; r.downhillZ = 0; r.groundCollider = null;
     if (r.grounded) {
       this.ray.origin.x = feet.x; this.ray.origin.y = feet.y + GROUND_PROBE_UP; this.ray.origin.z = feet.z;
-      const hit = this.physics.castRayAndGetNormal(this.ray, GROUND_PROBE_UP + GROUND_PROBE_DOWN, true, R.QueryFilterFlags.EXCLUDE_SENSORS, this.filter, this.collider);
+      const hit = this.physics.castRayAndGetNormal(this.ray, GROUND_PROBE_UP + GROUND_PROBE_DOWN, true, R.QueryFilterFlags.EXCLUDE_SENSORS, this.filter, this.collider, undefined, undefined, this.groundHit);
       if (hit) {
         const nrm = hit.normal, h = Math.hypot(nrm.x, nrm.z) || 1;
         r.groundCollider = hit.collider;
         r.groundNormalY = nrm.y; r.downhillX = nrm.x / h; r.downhillZ = nrm.z / h;
+        // Keep only numeric query scratch. A retired foreign surface must not
+        // stay rooted through it; the public move result owns its actual hit.
+        hit.collider = this.collider; this.groundHit = hit;
       }
     }
     this.pin(feet);
@@ -371,6 +375,7 @@ export class CharacterMotor {
   }
 
   dispose(): void {
+    this.groundHit = undefined;
     this.physics.world.removeCharacterController(this.kcc);
     this.physics.world.removeCollider(this.collider, false);
   }

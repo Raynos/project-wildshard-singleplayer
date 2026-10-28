@@ -139,15 +139,17 @@ export class Physics {
       return hit === undefined ? null : this.R.RayColliderHit.fromRaw(w.colliders, hit);
     } finally { this.releaseRay(vectors); }
   }
-  /** Native normal/feature results with the same detached Rapier conversion and bounded input scratch. */
+  /** Native normal/feature results with bounded input scratch. The default
+   * result is detached; an explicit target uses Rapier's existing output API. */
   castRayAndGetNormal(ray: Ray, maxToi: number, solid: boolean, flags?: QueryFilterFlags, groups?: InteractionGroups,
-    exclude?: Collider, excludeBody?: RigidBody, predicate?: (collider: Collider) => boolean): RayColliderIntersection | null {
+    exclude?: Collider, excludeBody?: RigidBody, predicate?: (collider: Collider) => boolean,
+    target?: RayColliderIntersection): RayColliderIntersection | null {
     const vectors = this.borrowRay(ray), w = this.world;
     try {
       const hit = w.broadPhase.raw.castRayAndGetNormal(w.narrowPhase.raw, w.bodies.raw, w.colliders.raw, vectors.origin, vectors.direction,
         maxToi, solid, flags ?? 0, groups, exclude?.handle ?? null, excludeBody?.handle ?? null,
         predicate === undefined ? noRayPredicate : w.colliders.castClosure(predicate));
-      return hit === undefined ? null : this.R.RayColliderIntersection.fromBuffer(w.colliders, hit);
+      return hit === undefined ? null : this.R.RayColliderIntersection.fromBuffer(w.colliders, hit, target);
     } finally { this.releaseRay(vectors); }
   }
 

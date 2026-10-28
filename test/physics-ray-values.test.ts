@@ -52,6 +52,34 @@ test('4096 native casts retain every detached hit/normal/feature, filter and com
   } finally { f.physics.dispose(); }
 });
 
+test('explicit normal output retains every native value and identity without changing detached defaults', async () => {
+  const f = await fixture(), ray = new f.R.Ray({ x: 0, y: 7, z: 0 }, { x: 0, y: -1, z: 0 });
+  try {
+    const target = f.physics.castRayAndGetNormal(ray, 20, true);
+    if (target === null) throw new Error('Missing real native output target');
+    const normal = target.normal, saved = f.physics.snapshot();
+    let hits = 0, misses = 0;
+    for (let i = 0; i < 2048; i++) {
+      ray.origin.x = Math.sin(i * .31) * 13; ray.origin.y = 7; ray.origin.z = Math.cos(i * .17) * 4;
+      const prior: { collider: typeof f.sensor; time: number; normal: { x: number; y: number; z: number }; feature: number; id: number | undefined }
+        = { collider: target.collider, time: target.timeOfImpact, normal: { ...normal }, feature: target.featureType, id: target.featureId };
+      const baseline = f.world.castRayAndGetNormal(ray, 20, i % 2 === 0, f.R.QueryFilterFlags.EXCLUDE_SENSORS);
+      const hit = f.physics.castRayAndGetNormal(ray, 20, i % 2 === 0, f.R.QueryFilterFlags.EXCLUDE_SENSORS,
+        undefined, undefined, undefined, undefined, target);
+      deepStrictEqual(hit, baseline);
+      if (hit === null) {
+        misses++;
+        deepStrictEqual({ collider: target.collider, time: target.timeOfImpact, normal: { ...normal }, feature: target.featureType, id: target.featureId }, prior);
+      } else {
+        hits++; expect(hit).toBe(target); expect(hit.normal).toBe(normal);
+        const detached = f.physics.castRayAndGetNormal(ray, 20, i % 2 === 0, f.R.QueryFilterFlags.EXCLUDE_SENSORS);
+        deepStrictEqual(detached, hit); expect(detached).not.toBe(target); expect(detached?.normal).not.toBe(normal);
+      }
+    }
+    expect(hits).toBeGreaterThan(0); expect(misses).toBeGreaterThan(0); deepStrictEqual(f.physics.snapshot(), saved);
+  } finally { f.physics.dispose(); }
+});
+
 test('seven nested coordinate reads retain original order/results and explicitly release bounded native scratch', async () => {
   const f = await fixture(), freed = vi.spyOn(RawVector.prototype, 'free');
   const run = (scratch: boolean, fail = false) => {
