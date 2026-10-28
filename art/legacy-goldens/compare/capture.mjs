@@ -4,6 +4,11 @@
 // the goldens README points to. Run it through scripts/browser-lane.sh on a serve-build.sh --head preview (README.md).
 //
 //   node art/legacy-goldens/compare/capture.mjs --base=http://127.0.0.1:44xx/ --out=tmp/golden-compare/raw [--shards=a,b]
+//     [--cameras=art/legacy-goldens/compare/cameras24.json] [--mode=legacy|shardfile] [--cams=1,5,9]
+// --cameras: the 24-camera set (G859); its frames hide every element but the canvases (no HUD), at device pixels, named <nn>-<camera>-<mode>.png. A camera
+// without an eye takes the player's settled eye plus its lift; receipts-<slug>.json records it, and the LEGACY run's
+// eyes are written back into the set (compare.py eyes) so SHARDFILE renders the same camera.
+// --mode=legacy enters through the LEGACY button (Debug > Legacy shard buttons) and expects `<slug>-legacy`.
 import {chromium,devices} from 'playwright';
 import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
 import {readFile} from 'node:fs/promises';
@@ -16,7 +21,9 @@ const arg=(k,d)=>process.argv.find(x=>x.startsWith(`--${k}=`))?.slice(k.length+3
 const base=arg('base',''),root=arg('out','tmp/golden-compare/raw');
 if(!base)throw Error('--base=<preview url> is required');
 const head=arg('sha',execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim());
-const canonical=JSON.parse(readFileSync('art/legacy-vs-shardfile/round-1-2026-10-28/cameras.json','utf8')).pairedCameras;
+const set=arg('cameras','');const mode=arg('mode','shardfile');if(!['legacy','shardfile'].includes(mode))throw Error(`--mode=${mode}`);
+const canonical=set?JSON.parse(readFileSync(set,'utf8')).cameras:JSON.parse(readFileSync('art/legacy-vs-shardfile/round-1-2026-10-28/cameras.json','utf8')).pairedCameras;
+const only=arg('cams','')?new Set(arg('cams','').split(',').map(Number)):null;
 const slugs=arg('shards',Object.keys(canonical).join(',')).split(',');
 const FRAMES=120,SETTLE_MS=30000;
 mkdirSync(root,{recursive:true});
@@ -63,25 +70,36 @@ try{for(const slug of slugs){
   const names=await page.locator('.ws-menu-card b').allTextContents();
   await page.locator(`.ws-menu-dots i[data-i="${loadingCardIndex(names,slug)}"]`).click();
   // SHARDFILE button while the legacy buttons exist; ENTER WORLD (the shardfile, G531) once they are gone
-  const dual=page.locator('.ws-menu-shardfile');const button=await dual.isVisible()?dual:page.locator('.ws-menu-play');
-  if(await button.isDisabled())throw Error('SHARDFILE entry disabled');await button.click();
+  const dual=page.locator('.ws-menu-shardfile');
+  if(mode==='legacy'&&!await dual.isVisible())throw Error('No LEGACY button (Legacy shard buttons row off or legacy deleted)');
+  const button=mode==='legacy'?page.locator('.ws-menu-play'):await dual.isVisible()?dual:page.locator('.ws-menu-play');
+  if(await button.isDisabled())throw Error(`${mode} entry disabled`);await button.click();
   await page.waitForFunction(()=>!!window.__wildshard?.world?.hud?.entered&&!document.querySelector('.ws-load')&&window.__wildshard.world.game.frameGate(),undefined,{timeout:180000});
   if(await page.evaluate(()=>window.__wildshard.world.hud.paused))await pressEscape(endpoint,page.url());
   row.entry=await page.evaluate(()=>({url:location.href,id:window.__wildshard.world.game.level.id}));
-  if(row.entry.id!==slug)throw Error(`Not SHARDFILE: ${row.entry.id}`);
+  const want=mode==='legacy'?`${slug}-legacy`:slug;if(row.entry.id!==want)throw Error(`Not ${mode}: ${row.entry.id}`);row.mode=mode;
   for(let i=0;i<canonical[slug].length;i++){
-   const c=canonical[slug][i];
+   const c=canonical[slug][i];if(only&&!only.has(c.n??i+1))continue;
    const probe=c.probe??{x:c.feet?.[0]??c.eye[0],z:c.feet?.[2]??c.eye[2],yaw:-c.yaw*Math.PI/180,pitch:c.pitch*Math.PI/180,...c.feet?{y:c.feet[1]}:{}};
    if(c.spawnFallback)delete probe.y;
    await page.evaluate(p=>{window.__wildshard.world.game.hold=false;return window.__wildshard.pose(p);},probe);
    await frames(page,FRAMES);const idle=await settle(page,inflight);await frames(page,30);
    const observed=await page.evaluate(c=>{
-    const w=window.__wildshard.world,g=w.game;g.hold=true;g.camera.position.set(...c.eye);
+    const w=window.__wildshard.world,g=w.game;g.hold=true;
+    const player=w.player.position.toArray(),settled=g.camera.position.toArray();
+    const eye=c.eye??[settled[0],settled[1]+(c.lift??0),settled[2]];g.camera.position.set(...eye);
     g.camera.rotation.set(c.pitch*Math.PI/180,-c.yaw*Math.PI/180,0,'YXZ');g.camera.fov=c.fov;g.camera.updateProjectionMatrix();g.camera.updateMatrixWorld();g.shardFrame();g.composer.render(0);
-    return{eye:g.camera.position.toArray(),rotation:g.camera.rotation.toArray(),fov:g.camera.fov,frame:g.frameCount};
+    return{eye:g.camera.position.toArray(),rotation:g.camera.rotation.toArray(),fov:g.camera.fov,frame:g.frameCount,player,settledEye:settled};
    },c);
-   const shot=`${dir}/${i+1}-${c.name}-shardfile.png`;await page.screenshot({path:shot,type:'png',scale:'css'});
-   row.poses.push({name:c.name,idle,...observed,shot});
+   const shot=set?`${dir}/${String(c.n).padStart(2,'0')}-${c.name}-${mode}.png`:`${dir}/${i+1}-${c.name}-shardfile.png`;
+   // the 24-camera set hides the HUD (every element but the canvases; a canvas read-back misses Nine's layered composite)
+   // and the minimap: a canvas smaller than half the viewport stays hidden
+   if(set){await page.evaluate(()=>{for(const el of document.querySelectorAll('canvas')){const r=el.getBoundingClientRect();el.dataset.wsShot=r.width*r.height>=innerWidth*innerHeight/2?'1':'0';}});
+    const hide=await page.addStyleTag({content:'body *{visibility:hidden!important}canvas[data-ws-shot="1"]{visibility:visible!important}'});
+    await page.screenshot({path:shot,type:'png',scale:'device'});await hide.evaluate(e=>e.remove());}
+   else await page.screenshot({path:shot,type:'png',scale:'css'});
+   row.poses.push({n:c.n??i+1,name:c.name,idle,...observed,shot});
+   writeFileSync(`${root}/receipts-${slug}.json`,JSON.stringify(row,null,1));
   }
   row.status=row.errors.length===0?'complete':'errors';
  }catch(error){row.status='failed';row.failure=String(error);if(page)await page.screenshot({path:`${dir}/failure.jpg`,type:'jpeg',quality:80,scale:'css'}).catch(()=>{});}
