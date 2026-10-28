@@ -4,7 +4,7 @@ import type materials from '../data/campMaterials.json';
 import { Noise2D, smoothstep } from '@wildshard/sdk/noise';
 import { Rng } from '@wildshard/sdk/random';
 import { bakeGeometryBoundsSteps as geometryBoundsSteps } from '@wildshard/sdk/bake/geometryBounds';
-import { voxelAO, aoTint, hemisphere } from '@wildshard/engine/world/voxelAO';
+import { bakeVoxelOcclusion as voxelAO, bakeOcclusionTint as aoTint, bakeOcclusionDirections as hemisphere } from '@wildshard/sdk/bake/facetedGeometry';
 
 export type NalatiTexName = Exclude<keyof typeof materials, 'poi'>;
 

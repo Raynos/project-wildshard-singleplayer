@@ -4954,6 +4954,11 @@ The adapter supplies the existing pattern ports: the ram's live home and shared 
 `bake/primitives.bakeWobble` mutates distinct shared corners with the caller's RNG stream. `bake/facetedGeometry.cullFacetedParts` consumes only parts whose hidden triangles are removed; unchanged parts retain identity, and retained channel bits, normalized flags, part order and userData ownership are preserved. Ground samples are explicit callbacks.
 
 `withFacetedAO(bytes, compile)` runs a synchronous author compilation with a private committed AO table, then releases its entries on success or failure. Nested calls retain existing entries; malformed tables keep the original marching fallback. A thenable result refuses.
+`bakeOcclusionDirections`, `bakeVoxelOcclusion` and `bakeOcclusionTint` expose
+the native offline ring, raster/march and colour operations in the same
+module. Face, welded-position and vertex modes keep complete native
+parameters, ground-call order, Float64 samples, recorder/cache identity and
+packed/interleaved colour update semantics. No live service is installed.
 `@wildshard/sdk/bake/questPlacement.createAuthorQuestPlacements` compiles bounded authored frames, explicit/model anchors and borrowed floor callbacks with the native anchor precedence and strict registry reach. It owns only its validated anchor map, never a physical, prompt or save service. `quests.completionCardRows` and `platformSections.clientPlanSection` retain the defining complete schema/reference checks; admitted client plans keep their original immutable identity.
 
 `quests.questPropRows` admits captured quest floor grids, drops, body identities and gate contacts through the defining strict schema. `quests.questAutomaticFlag` compiles the shared interaction kind/id flag policy without raising flags or constructing physical or page owners.

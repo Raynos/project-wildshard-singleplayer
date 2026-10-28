@@ -4,6 +4,16 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { Rng } from '../random';
 import { voxelAO, aoTint, hemisphere, addVoxelAOBake } from '@wildshard/engine/world/voxelAO';
 
+/** Compile ordered offline hemisphere rays with the native ring arithmetic. */
+export function bakeOcclusionDirections(...args: Parameters<typeof hemisphere>): ReturnType<typeof hemisphere> { return hemisphere(...args); }
+
+/** Bake native face, welded-position or vertex occlusion over caller-owned geometry.
+ * Bounds, ground callbacks, recorder keys and scoped cache loans retain their defining law. */
+export function bakeVoxelOcclusion(...args: Parameters<typeof voxelAO>): ReturnType<typeof voxelAO> { return voxelAO(...args); }
+
+/** Apply native occlusion to the supplied colour attribute, preserving other channels. */
+export function bakeOcclusionTint(...args: Parameters<typeof aoTint>): void { aoTint(...args); }
+
 function wobble(g: THREE.BufferGeometry, amp: number, rng: Pick<Rng, 'range'>): void {
   const pos = g.getAttribute('position');
   const seen = new Map<string, [number, number, number]>();
