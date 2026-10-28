@@ -130,8 +130,8 @@ export class ReturnProgram {
   /** The same immutable admitted descriptor used by this selected instance. */
   readonly groupBindings?:GroupGuestBindingsV2;
   readonly prepareGroup?:NonNullable<NumericProjection['prepareGroup']>;
-  private constructor(input: unknown, floor: (x: number, z: number) => number,private readonly owner?: Scope,raw?:Uint8Array,witness?:Uint8Array,prepared?:PreparedScriptMemory) {
-    const row = readProgram(input),script = row.script;
+  private constructor(row: ReturnType<typeof readProgram>, floor: (x: number, z: number) => number,private readonly owner?: Scope,raw?:Uint8Array,witness?:Uint8Array,prepared?:PreparedScriptMemory) {
+    const script = row.script;
     const freeze=(value:unknown):void=>{if(typeof value!=='object'||value===null||Object.isFrozen(value))return;for(const child of Object.values(value))freeze(child);Object.freeze(value);};
     freeze(row);this.declaration=row;
     const bytes = admitReturn(row, owner, witness);
@@ -182,7 +182,10 @@ export class ReturnProgram {
     const prepared = book.memories.get(key);
     if (prepared !== undefined && prepared.declaration !== declaration) throw new Error('Shared return declaration changed');
     book.memories.delete(key);
-    const program = owner.run(() => new ReturnProgram(row, floor,owner,raw,witness,prepared?.memory));
+    // Admission already detached and checked this descriptor. Each new owner still
+    // receives its own frozen snapshot; admitting that snapshot a second time
+    // repeated the JSON/schema walks for every first pack and herd.
+    const program = owner.run(() => new ReturnProgram(structuredClone(row), floor,owner,raw,witness,prepared?.memory));
     modules.set(key, { declaration, program });
     return program;
   }
@@ -250,7 +253,7 @@ export class ReturnProgram {
   static projectionBindings(input:unknown):{readonly script:Pick<DecisionScriptRow,'fields'|'signals'|'channels'>} { const row=readProgram(input);return {script:row.v2===undefined?row.script:{fields:Object.fromEntries(row.v2.fields.map(name=>[name,name])),signals:Object.fromEntries(row.v2.signals.map(name=>[name,name])),channels:Object.fromEntries(row.v2.channels.map(name=>[name,name]))}}; }
   /** Built-in terrain owners share one admitted instance per module and scope. */
   static native(host: SimHost, input: unknown): ReturnProgram { return ReturnProgram.owned(host.scope, input, (x, z) => host.groundHeightAt(x, z)); }
-  static page(input: unknown, owner?: Scope): ReturnProgram { return owner === undefined ? new ReturnProgram(input, terrainHeight) : ReturnProgram.owned(owner, input, terrainHeight); }
+  static page(input: unknown, owner?: Scope): ReturnProgram { return owner === undefined ? new ReturnProgram(readProgram(input), terrainHeight) : ReturnProgram.owned(owner, input, terrainHeight); }
 
   private validateOwner():void {
     if(this.owner?.disposed===true||this.owner?.disposing===true)throw new Error('Return owner disposed');

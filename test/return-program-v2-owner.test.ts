@@ -24,11 +24,32 @@ test('selected attack/rules share the original module owner and instantiate only
     const first=ReturnProgram.page(programs.attack,owner);
     expect(ReturnProgram.page(structuredClone(programs.rules),owner)).toBe(first);expect(instances).toBe(1);
     expect(first.prepare).toBeTypeOf('function');
-    expect(ReturnProgram.page(programs.attack,other)).not.toBe(first);expect(instances).toBe(2);
+    const second=ReturnProgram.page(programs.attack,other);
+    expect(second).not.toBe(first);expect(instances).toBe(2);
+    expect(second.declaration).toStrictEqual(first.declaration);
+    expect(second.declaration).not.toBe(first.declaration);
+    expect(second.declaration.script).not.toBe(first.declaration.script);
+    expect(second.declaration.v2).not.toBe(first.declaration.v2);
+    expect(Object.isFrozen(second.declaration.script.fields)).toBe(true);
     const legacy=ReturnProgram.page({script:programs.attack.script,bytes:programs.attack.bytes},owner);
     expect(legacy).not.toBe(first);expect(legacy.prepare).toBeUndefined();expect(instances).toBe(3);
     expect(first.project('bossClamp',{fullHp:100,share:.3})).toStrictEqual(legacy.project('bossClamp',{fullHp:100,share:.3}));
   }finally{spy.mockRestore();owner.dispose();other.dispose();}
+});
+
+test('owned snapshots leave cached caller bindings detached and mutable',()=>{
+  const input=Object.freeze({script:structuredClone(programs.attack.script),bytes:programs.attack.bytes});
+  const binding=ReturnProgram.projectionBindings(input),owner=new Scope('fixture.return-binding-snapshot');
+  try{
+    const program=ReturnProgram.page(input,owner),before=JSON.stringify(program.declaration);
+    const name=Object.keys(binding.script.fields)[0];
+    if(name===undefined)throw new Error('Missing original field binding');
+    expect(Object.isFrozen(binding.script.fields)).toBe(false);
+    expect(Reflect.set(binding.script.fields,name,'changed')).toBe(true);
+    expect(JSON.stringify(program.declaration)).toBe(before);
+    expect(program.project('bossClamp',{fullHp:100,share:.3})).toStrictEqual({hp:30});
+    expect(()=>ReturnProgram.page(input,owner)).toThrow('Shared return declaration changed');
+  }finally{owner.dispose();}
 });
 
 test('descriptor mutation, malformed selections and accessor rows cannot alter a cached module',()=>{
