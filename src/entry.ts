@@ -95,8 +95,8 @@ async function showPageTitle(): Promise<void> {
       onExplore: (card) => { travel({ to: card.slug, mode: 'explore' }); },
       onGrid: grid.onGrid,
       ...(grid.screen === undefined ? {} : { screen: grid.screen }),
-      // Settings' level-specific debug predicates initialize only after this tap.
-      onSettings: () => { void retried(() => import('./shardList')).then(settings); },
+      // Settings needs common inventory and level predicates, without booting a renderer.
+      onSettings: () => { void retried(async () => { const { openTitleSettings } = await import('./titleSettings'); await openTitleSettings(settings); }); },
       ...(lines === '' ? {} : { notice: lines }),
     });
   });

@@ -1,12 +1,56 @@
 import { expect, test, vi } from 'vitest';
 import { assetTableAsset, assetTableBanks, selectedPackTables } from '../scripts/app-build/assetTables.mjs';
 import { prepareAssetTables, prepareAssetPacks, readAssetTables } from '../src/assetTables';
+import { installAssetTables, publicBytes } from '../src/engine/boot/tables';
+import { openTitleSettings } from '../src/titleSettings';
 
 function fixture() {
   const data = { bytes: { '/assets/kept.bin': 42 }, versions: { '/assets/kept.bin': 'abc' }, music: { theme: { loop: 1 } }, sfx: {},
     packs: { legacy: { phone: { bytes: 42, files: [['/assets/kept.bin', 0, 42, 'application/octet-stream']], parts: [{ url: '/assets/packs/p.bin', bytes: 42, files: [['/assets/kept.bin', 0, 42, 'application/octet-stream']] }] } } } };
   const source = JSON.stringify(data); return { data, source, asset: assetTableAsset(source) };
 }
+
+function titleFixture(read: (url: string) => Promise<Response>) {
+  const data = { ...fixture().data, packs: {} }, source = JSON.stringify(data), asset = assetTableAsset(source);
+  const slot = Symbol.for('engine.asset-tables'), previous: unknown = Reflect.get(globalThis, slot);
+  Reflect.deleteProperty(globalThis, slot);
+  return { data, source, asset, inventory: async () => { installAssetTables(await readAssetTables(asset.address, read)); }, restore: () => {
+    if (previous === undefined) Reflect.deleteProperty(globalThis, slot); else Reflect.set(globalThis, slot, previous);
+  } };
+}
+
+test('renderer-free title Settings awaits verified inventory and shard registration before strict readers run', async () => {
+  let finishRead: (value: Response) => void = () => { throw new Error('missing table read'); };
+  let finishRegistry: (value: Record<string, never>) => void = () => { throw new Error('missing registry'); };
+  const response = new Promise<Response>(resolve => { finishRead = resolve; });
+  const registry = new Promise<Record<string, never>>(resolve => { finishRegistry = resolve; });
+  const read = vi.fn(() => response), f = titleFixture(read);
+  try {
+    expect(publicBytes).toThrow('No asset tables installed');
+    const open = vi.fn(() => { expect(publicBytes()).toEqual(f.data.bytes); });
+    const pending = openTitleSettings(open, { inventory: f.inventory, registry: () => registry });
+    expect(read).toHaveBeenCalledExactlyOnceWith(f.asset.address.url); expect(open).not.toHaveBeenCalled();
+    finishRead(new Response(f.source));
+    await vi.waitFor(() => { expect(publicBytes()).toEqual(f.data.bytes); });
+    expect(open).not.toHaveBeenCalled();
+    finishRegistry({}); await pending;
+    expect(open).toHaveBeenCalledTimes(1); expect(read).toHaveBeenCalledTimes(1);
+  } finally { f.restore(); }
+});
+
+test('renderer-free title Settings refuses corrupt inventory and can reopen after the exact read recovers', async () => {
+  let wire = '';
+  const read = vi.fn(() => Promise.resolve(new Response(wire))), f = titleFixture(read);
+  wire = f.source.replace('kept', 'lost');
+  try {
+    const open = vi.fn(() => { expect(publicBytes()).toEqual(f.data.bytes); });
+    const preparation = { inventory: f.inventory, registry: () => Promise.resolve() };
+    await expect(openTitleSettings(open, preparation)).rejects.toThrow('Asset tables differ from the build');
+    expect(open).not.toHaveBeenCalled(); expect(publicBytes).toThrow('No asset tables installed');
+    wire = f.source; await openTitleSettings(open, preparation);
+    expect(open).toHaveBeenCalledTimes(1); expect(read).toHaveBeenCalledTimes(2);
+  } finally { f.restore(); }
+});
 test('selected-entry transport retains every original table value and pack tuple', async () => {
   const f = fixture();
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(f.source)));
