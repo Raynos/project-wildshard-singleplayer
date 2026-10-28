@@ -26,10 +26,10 @@ test.each(['phone', 'desktop'] as const)('Pine keeps NPC appearances out of spec
   const names = ['ranger', 'miller', 'trader'];
   const files = Object.fromEntries(names.map((name, index) => [`/assets/pine-hollow/npcs/${name}.glb`, `/assets/gpu/npcs/${String(index)}.glb`]));
   const inventory = Object.fromEntries([...Object.keys(files), ...Object.values(files),
-    '/assets/lut/pine-hollow.bin', '/assets/pine-hollow/weapons/lever-rifle.glb', '/assets/pine-hollow/weapons/skinning-knife.glb'].map(path => [path, true] as const));
+    '/assets/pine-hollow/weapons/lever-rifle.glb', '/assets/pine-hollow/weapons/skinning-knife.glb'].map(path => [path, true] as const));
   for (const mode of ['img', 'ktx2'] as const) {
     const boot = resolveBootFiles(PINE_BOOT_FILES, 'world', tier, mode, { phone: files, desktop: files }, { inventory });
-    expect(boot).toContain('/assets/lut/pine-hollow.bin');
+    expect(boot).not.toContain('/assets/lut/pine-hollow.bin'); // G854: Pine has no colour LUT
     expect(boot).toContain('/assets/pine-hollow/weapons/lever-rifle.glb');
     expect(boot).toContain('/assets/pine-hollow/weapons/skinning-knife.glb');
     for (const url of [...Object.keys(files), ...Object.values(files)]) expect(boot).not.toContain(url);
