@@ -63,7 +63,8 @@ export function runtimeBoundWorldFiles(source: Shardfile): ReadonlySet<string> {
   if (files.size === 0) return files;
   // a file another (unbound) declaration still names stays the data client's
   const moverModules = new Set(binds.has('movers') ? source.movers.map(row => row.module) : []);
-  const unbound = { ...source, movers: binds.has('movers') ? [] : source.movers, sim: { ...source.sim, scripts: source.sim.scripts.filter(ref => !moverModules.has(ref)) }, terrain: binds.has('terrain') ? null : source.terrain, props: binds.has('props') ? null : source.props, tiles: [], files: [], critical: [], library: [], far: null };
+  // Late roots schedule the same inventory; they never install a second reader.
+  const unbound = { ...source, movers: binds.has('movers') ? [] : source.movers, sim: { ...source.sim, scripts: source.sim.scripts.filter(ref => !moverModules.has(ref)) }, terrain: binds.has('terrain') ? null : source.terrain, props: binds.has('props') ? null : source.props, tiles: [], files: [], critical: [], library: [], late: [], far: null };
   const text = JSON.stringify(unbound);
   let hashes = false;
   for (const ref of files) {

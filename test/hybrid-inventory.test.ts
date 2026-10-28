@@ -42,6 +42,29 @@ test('bound file classification finds distinct overlapping hashes through the fi
   expect([...runtimeBoundWorldFiles(source)]).toEqual([boundB]);
 });
 
+test('late scheduling keeps real shared readers and never becomes a reader itself', () => {
+  const source = emptyShardfile({ slug: 'late-bound', name: boundA, author: 'Test', revision: 1, seed: 1 });
+  source.runtime = { entry: 'runtime/index.ts', binds: ['movers'] };
+  source.movers = [boundA, boundB].map((module, index) => ({ id: `ref-${String(index)}`, entity: index + 1, module, kind: 'channel',
+    at: { x: 0, y: 0, z: 0 }, euler: { x: 0, y: 0, z: 0 }, enabled: true, boxes: [], input: [] }));
+  source.sim.scripts = [boundA, boundB]; source.late = [{ hash: boundA }, { hash: boundB, at: [1, 2] }];
+  const before = structuredClone(source);
+  expect([...runtimeBoundWorldFiles(source)]).toEqual([boundB]);
+  expect(source).toEqual(before);
+});
+
+test('late world inventory retains the original native tile and simulation ownership', () => {
+  const source = { ...NINE, late: NINE.library.map(hash => ({ hash })) };
+  expect([...runtimeBoundWorldFiles(source)]).toEqual([...runtimeBoundWorldFiles(NINE)]);
+  expect(withoutRuntimeRows(source).tiles).toEqual(withoutRuntimeRows(NINE).tiles);
+  const assets = new ClientAssets(source, new Map(), { base: 'https://example.test/native/', firstParty: true, offline: false,
+    fetch: () => Promise.reject(new Error('No asset read expected')), hash: () => Promise.resolve('a'.repeat(64)) });
+  let expected = 0;
+  new ShardfileClient(source, assets, { instance: source.identity.slug, recipes: new Map(), items: new Map(), catalogue: [], voices: () => new Map(),
+    icon: () => { throw new Error('No item read expected'); }, onSimulationExpected: () => { expected++; }, trustedRuntime: true, worldOwner: 'runtime', audioOwner: 'runtime' });
+  expect(expected).toBe(0);
+});
+
 // The callback is the public simulation-handoff contract, not a private mode probe.
 test('native blob inventory does not announce a data sim; declared behavior still does', () => {
   const source = emptyShardfile({ slug: 'inventory', name: 'Inventory', author: 'Test', revision: 1, seed: 1 });
