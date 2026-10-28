@@ -29,7 +29,8 @@ export class ClientAssets {
   pin(): () => void { return this.lease(this.roots()); }
   /** Pin an admitted tile and its dependencies until its render scope is released. */
   lease(refs: Iterable<string>): () => void { return this.options.cache?.pin?.([...this.closure(refs)].map((ref) => ref.replace(/^commons:/u, ''))) ?? (() => undefined); }
-  async read(ref: string): Promise<Uint8Array> {
+  /** Optional read-ahead shares actual demand's pending verification, at low network priority. */
+  async read(ref: string, priority?: 'low'): Promise<Uint8Array> {
     const file = this.source.files.find((row) => row.hash === ref);
     if (file === undefined && !this.source.requires.commons.some((hash) => ref === `commons:${hash}`)) throw new Error('Undeclared resident asset');
     // a cached read resolves at once, unless the frame's build budget is spent (pacedResolve): a hook's chain of
@@ -39,12 +40,12 @@ export class ClientAssets {
     // reads borrow one verification/backing too; decoders that transfer copy it.
     // Keep no settled result: later residency rereads still check cache/network.
     const previous = this.pending.get(ref); if (previous !== undefined) return previous;
-    const read = this.readReleased(ref, file?.compressed ?? this.source.requires.commonsWire[ref.replace(/^commons:/u, '')] ?? 0);
+    const read = this.readReleased(ref, file?.compressed ?? this.source.requires.commonsWire[ref.replace(/^commons:/u, '')] ?? 0, priority);
     this.pending.set(ref, read);
     try { return await read; }
     finally { this.pending.delete(ref); }
   }
-  private async readReleased(ref: string, cap: number): Promise<Uint8Array> {
+  private async readReleased(ref: string, cap: number, priority?: 'low'): Promise<Uint8Array> {
     const hash = ref.replace(/^commons:/u, ''), base = new URL('.', this.options.base).href;
     // Residency rereads may have no format-2 descriptor. Accounting observes
     // those unknown-path reads on completion and never changes cache refusals.
@@ -64,8 +65,9 @@ export class ClientAssets {
     }
     if (bytes === null || bytes === undefined) {
       if (this.options.offline) throw new Error('Missing cached resident tile');
-      const member = await this.readPacked(ref, cap); packed = member !== undefined;
-      bytes = member ?? await boundedResponse(await this.options.fetch(outputBlobUrl(this.source, ref, base)), cap);
+      const member = await this.readPacked(ref, cap, priority); packed = member !== undefined;
+      const fetch = priority === 'low' ? this.options.backgroundFetch ?? this.options.fetch : this.options.fetch;
+      bytes = member ?? await boundedResponse(await fetch(outputBlobUrl(this.source, ref, base)), cap);
       downloaded = true;
     }
     if (bytes.length !== cap || await this.hashOf(bytes) !== hash) throw new Error('Resident tile hash or size mismatch');
@@ -84,7 +86,7 @@ export class ClientAssets {
   }
   /** Share only an in-flight named pack across concurrent demand reads. No settled
    * pack backing survives the borrowers; each decoder receives its owned member. */
-  private async readPacked(ref: string, cap: number): Promise<Uint8Array | undefined> {
+  private async readPacked(ref: string, cap: number, priority?: 'low'): Promise<Uint8Array | undefined> {
     const descriptor = outputDescriptor(this.source);
     const pack = descriptor?.index.packs?.find(row => row.entries.some(entry => entry.hash === ref));
     const member = pack?.entries.find(entry => entry.hash === ref);
@@ -107,11 +109,11 @@ export class ClientAssets {
       pending = (async () => {
         const url = new URL(pack.path, this.options.base).href;
         let response: Response;
-        if (whole) response = await this.options.fetch(url);
+        if (whole) response = await (priority === 'low' ? this.options.backgroundFetch ?? this.options.fetch : this.options.fetch)(url);
         else {
           const read = this.options.fetchRange;
           if (read === undefined) throw new Error('Resident pack range capability missing');
-          response = await read(url, start, end);
+          response = await (priority === undefined ? read(url, start, end) : read(url, start, end, priority));
           if (response.status !== 206 || response.headers.get('content-range') !== `bytes ${start}-${end}/${pack.bytes}`) {
             await response.body?.cancel();
             throw new Error('Resident pack range response differs');

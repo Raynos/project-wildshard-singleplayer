@@ -75,7 +75,7 @@ export interface ProductOptions {
   verifiedResponse?: (url: string, hash: string, maximum: number) => Promise<Uint8Array | null>;
   fetch: (url: string) => Promise<Response>;
   /** Optional exact HTTP byte ranges for adjacent concurrently demanded pack members. */
-  fetchRange?: (url: string, start: number, end: number) => Promise<Response>;
+  fetchRange?: (url: string, start: number, end: number, priority?: 'low') => Promise<Response>;
   /** Same verified network capability at low priority, used only by after-control warming. */
   backgroundFetch?: (url: string) => Promise<Response>;
   /** Optional off-page asset read (the content-cache worker): the URL cache when trusted, else the network, verified

@@ -41,7 +41,7 @@ export function prepareApproachProductInputs(slug: string, owner: GridProductOwn
     try {
       const generation = ++readGeneration;
       let readId = 0;
-      const count = await prefetchEntryReads(slug, TIER, { source: product.admitted.source, readBlob: hash => product.reader.read(hash),
+      const count = await prefetchEntryReads(slug, TIER, { source: product.admitted.source, readBlob: hash => product.reader.read(hash, 'low'),
         reserve: read => owner.allocator.reserveIfFits({ id: `entry-read:${slug}:${generation}:${++readId}`, owner: 'grid', category: 'product',
           bytes: 2 * read.bytes, distance: 0, needed: true }),
         fetchAsset: async (read, abort) => {
