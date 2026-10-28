@@ -44,5 +44,5 @@ export async function phoneBirdsAtlasOutput(ctx: Pick<ProjectGenerationContext, 
   });
   const bytes = files.get(file);
   if (files.size !== 1 || bytes === undefined || bytes.byteLength === 0) throw new Error('Phone birds atlas cache inventory differs');
-  return emitNamedBlobs([nameBlob('models/life/birds.phone.base.ktx2', 'ktx2', bytes)]);
+  return emitNamedBlobs([nameBlob('models/life/birds.phone.base.ktx2', 'ktx2', bytes, { tier: 'phone' })]);
 }

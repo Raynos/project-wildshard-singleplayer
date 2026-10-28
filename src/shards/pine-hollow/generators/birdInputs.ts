@@ -25,10 +25,12 @@ export async function pineBirds(ctx: Pick<ProjectGenerationContext, 'cached'>): 
   const sidecar = parseBirdSidecar(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(file('birds.json'))));
   const desktop = await bakeBirds(file('desktop.glb'), sidecar), phone = await bakeBirds(file('phone.glb'), sidecar);
   return { ranges: desktop.ranges, files: emitNamedBlobs([
-    nameBlob('models/life/birds.base.ktx2', 'ktx2', texture(split(file('desktop.ktx2.glb')), 'base')),
-    await nameMeshoptBlob('models/life/birds.glb', geometry(split(file('desktop.glb')))),
-    await nameMeshoptBlob('models/life/birds-rest.glb', desktop.glb),
-    await nameMeshoptBlob('models/life/birds.phone.glb', geometry(split(file('phone.glb')))),
-    await nameMeshoptBlob('models/life/birds-rest.phone.glb', phone.glb),
+    // The live posed library and its cold Explorer cards both select tiers[TIER].
+    // Keep the unused device's immutable bodies out of this tier's admission/pack.
+    nameBlob('models/life/birds.base.ktx2', 'ktx2', texture(split(file('desktop.ktx2.glb')), 'base'), { tier: 'desktop' }),
+    await nameMeshoptBlob('models/life/birds.glb', geometry(split(file('desktop.glb'))), { tier: 'desktop' }),
+    await nameMeshoptBlob('models/life/birds-rest.glb', desktop.glb, { tier: 'desktop' }),
+    await nameMeshoptBlob('models/life/birds.phone.glb', geometry(split(file('phone.glb'))), { tier: 'phone' }),
+    await nameMeshoptBlob('models/life/birds-rest.phone.glb', phone.glb, { tier: 'phone' }),
   ]) };
 }
