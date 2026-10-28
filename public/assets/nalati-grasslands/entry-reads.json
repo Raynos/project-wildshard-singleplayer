@@ -1,0 +1,462 @@
+[
+ {
+  "region": "nalati-grasslands",
+  "tier": "phone",
+  "at": [
+   0,
+   0
+  ],
+  "reads": [
+   {
+    "url": "/assets/nalati/tex/meadow.phone.webp?v=208de92f",
+    "hash": "208de92f4cb2ff9ceb52d1b0fc1ab8cba3b023e9dd9abf912feca36be5fef219",
+    "bytes": 109540
+   },
+   {
+    "url": "/assets/nalati/tex/path.phone.webp?v=18533080",
+    "hash": "18533080e28e9323ac427a2411ecea1ab233b77ee1941c7e6c7bab6ca7b6b28b",
+    "bytes": 93708
+   },
+   {
+    "url": "/assets/nalati/tex/gravel.phone.webp?v=f79b32a4",
+    "hash": "f79b32a45d2d6493b04d9bbf178da0cb9b12d8b8b27b0b74792c0344fe20650a",
+    "bytes": 102924
+   },
+   {
+    "url": "/assets/nalati/tex/rock.phone.webp?v=0f54a481",
+    "hash": "0f54a4811bd5f2c099d3f56ebbe9abee19144fc29d6392ddafbb12e9261c4825",
+    "bytes": 96844
+   },
+   {
+    "url": "/assets/nalati/tex/snow.phone.webp?v=9e8443f9",
+    "hash": "9e8443f96ba96d2730ffd23ddc359ea2f0e21a2dab7097bac956c28635e5825f",
+    "bytes": 51752
+   },
+   {
+    "url": "/shardfiles/nalati-grasslands/blobs/glb/cc0350ba0ebca44c42e7fdad9afecd116e0ede9e676e0e1206d77fb7b37edcd0.glb",
+    "hash": "cc0350ba0ebca44c42e7fdad9afecd116e0ede9e676e0e1206d77fb7b37edcd0",
+    "bytes": 285116
+   },
+   {
+    "url": "/assets/baked/common/cloud-field.bin?v=43838700",
+    "hash": "43838700391a6a34fdb4ed60f9b410f1cf07921bf824de88cb43a75b1ea5adb7",
+    "bytes": 262144
+   },
+   {
+    "url": "/assets/nalati/tex/felt.phone.webp?v=8fccaa2b",
+    "hash": "8fccaa2bb6aed3b3b0b69527b70a0a4b56c7a2c540ed4318c9db8683273d924c",
+    "bytes": 62218
+   },
+   {
+    "url": "/assets/nalati/cards.phone.webp?v=064f5564",
+    "hash": "064f55644e90685bd4aa2fa62cced8bb2742f96339c33958049e9a959c49c388",
+    "bytes": 318112
+   },
+   {
+    "url": "/assets/nalati/panorama.phone.webp?v=00486151",
+    "hash": "00486151404514934c56208192dab94d8bbbb1b892bbd6cafbee1708a2be0d8f",
+    "bytes": 443158
+   },
+   {
+    "url": "/shardfiles/nalati-grasslands/blobs/glb/840e919d901c0d160b4b27b72c6f534bacc3c2e4c6bb72c3f88cfe0be664506f.glb",
+    "hash": "840e919d901c0d160b4b27b72c6f534bacc3c2e4c6bb72c3f88cfe0be664506f",
+    "bytes": 1153352
+   },
+   {
+    "url": "/shardfiles/nalati-grasslands/blobs/glb/8d37c76dd72b69080e869d35de880a0547fd6ea2353bb6cfe229fc93e1532cac.glb",
+    "hash": "8d37c76dd72b69080e869d35de880a0547fd6ea2353bb6cfe229fc93e1532cac",
+    "bytes": 2512520
+   },
+   {
+    "url": "/assets/nalati/baked/gear-specimens.bin?v=9588d585",
+    "hash": "9588d585c22f05179ba6b000aad4896423a5bfe70e242c709f536de362dbb1cf",
+    "bytes": 845774
+   },
+   {
+    "url": "/assets/nalati/models/horse-wild.phone.rigged.glb?v=81a8d81c",
+    "hash": "81a8d81c1b8d90055c89d0bf0a997e46289e7ef82ee7b142219f97a45bf139ef",
+    "bytes": 239292
+   },
+   {
+    "url": "/assets/nalati/models/horse-saddled.phone.rigged.glb?v=7885a705",
+    "hash": "7885a70507ef1ce6b6f4a87c72f9706b0a53785e934bc0803a964d3c75528bc2",
+    "bytes": 263288
+   },
+   {
+    "url": "/assets/nalati/models/wolf.phone.rigged.glb?v=95b9dd80",
+    "hash": "95b9dd80571f28bc439b4ab79a3da066e379ac69bc21200de938b25d210792aa",
+    "bytes": 250312
+   },
+   {
+    "url": "/assets/nalati/models/collie.phone.rigged.glb?v=57d95890",
+    "hash": "57d95890e85e8a0035d0a88b3b182a64943c7b3b2b0e21ff9c0a11dae3ea696a",
+    "bytes": 268216
+   },
+   {
+    "url": "/assets/nalati/models/golden-king.phone.rigged.glb?v=bbacec1d",
+    "hash": "bbacec1df3512090880d6797bb535a61a6ed151db029c51f902116352c348d8b",
+    "bytes": 221616
+   },
+   {
+    "url": "/assets/nalati/models/snow-leopard.phone.rigged.glb?v=ccadd8f5",
+    "hash": "ccadd8f58a863e111b5432e76b2cd334b870e5d0a9ca361448bb16d01a6d64ed",
+    "bytes": 379916
+   },
+   {
+    "url": "/assets/nalati/models/eagle.phone.rigged.glb?v=282ca9e4",
+    "hash": "282ca9e4335f35e3889ac3f847448d3396f226dbf825bdffa66048c097647bdd",
+    "bytes": 183352
+   },
+   {
+    "url": "/assets/nalati/models/ghost-horse.phone.rigged.glb?v=4cd3d751",
+    "hash": "4cd3d751d0a28721d6cda4f396b689f4edd357d425005d2824903c7ab561d6ed",
+    "bytes": 309572
+   },
+   {
+    "url": "/assets/nalati/models/coats/horse-wild.argymaq.stallion.coat.phone.webp?v=2b95fcee",
+    "hash": "2b95fcee8af827432da50cdb498d6d19e5496c21057ff8e2c4e6813b979e218b",
+    "bytes": 182886
+   },
+   {
+    "url": "/assets/nalati/models/coats/horse-wild.horse.bay.coat.phone.webp?v=d8bd318c",
+    "hash": "d8bd318c579b83a221c63b7e349a84ac99091dffb325c69308a4b82d29d3e101",
+    "bytes": 269500
+   },
+   {
+    "url": "/assets/nalati/models/coats/horse-wild.horse.black.coat.phone.webp?v=2b95fcee",
+    "hash": "2b95fcee8af827432da50cdb498d6d19e5496c21057ff8e2c4e6813b979e218b",
+    "bytes": 182886
+   },
+   {
+    "url": "/assets/nalati/models/coats/horse-wild.horse.chestnut.coat.phone.webp?v=d2c8f122",
+    "hash": "d2c8f122ab019fb75570ee287f4fbfe09a9acbdec6c6d6e9debbbdf7e75c5603",
+    "bytes": 296188
+   },
+   {
+    "url": "/assets/nalati/models/coats/horse-wild.horse.foal-bay.coat.phone.webp?v=0de5fa79",
+    "hash": "0de5fa79f14dffa17d92433407148eb8d565865b2639fdeb9edea52fa99ed470",
+    "bytes": 342416
+   },
+   {
+    "url": "/assets/nalati/models/coats/horse-wild.horse.foal-chestnut.coat.phone.webp?v=2e939f54",
+    "hash": "2e939f54a6d2b4a8cdb4b23d153b07d7a4eea01dd074a3254f37f83b5044df4f",
+    "bytes": 348862
+   },
+   {
+    "url": "/assets/nalati/models/coats/horse-wild.horse.grey.coat.phone.webp?v=d6d8766d",
+    "hash": "d6d8766d24efc9c9414ed7f39ce8ac4be77b3caca91923348153dce8ac5d0b3f",
+    "bytes": 249346
+   },
+   {
+    "url": "/assets/nalati/models/coats/horse-wild.horse.stallion.coat.phone.webp?v=2b95fcee",
+    "hash": "2b95fcee8af827432da50cdb498d6d19e5496c21057ff8e2c4e6813b979e218b",
+    "bytes": 182886
+   },
+   {
+    "url": "/assets/nalati/models/coats/horse-saddled.horse.camp-black.coat.phone.webp?v=620f53fd",
+    "hash": "620f53fdd939f9984c0851cf6fe1e7daac60b93446c02f672f66bb3ff12347dc",
+    "bytes": 268938
+   },
+   {
+    "url": "/assets/nalati/models/coats/horse-saddled.horse.tulpar.coat.phone.webp?v=620f53fd",
+    "hash": "620f53fdd939f9984c0851cf6fe1e7daac60b93446c02f672f66bb3ff12347dc",
+    "bytes": 268938
+   },
+   {
+    "url": "/assets/nalati/models/coats/wolf.kokbori.kokbori.coat.phone.webp?v=28a31005",
+    "hash": "28a3100507395e38629d9f01fafcdbb76d36f006de9a58b7e4b6d4434ea0705f",
+    "bytes": 313334
+   },
+   {
+    "url": "/assets/nalati/models/coats/wolf.wolf.alpha.coat.phone.webp?v=06298919",
+    "hash": "0629891922cbb7306e5332a4c916d6131fe4efebb6070a3f8d837bd405355a9b",
+    "bytes": 271410
+   },
+   {
+    "url": "/assets/nalati/models/coats/wolf.wolf.dark.coat.phone.webp?v=173ac5ad",
+    "hash": "173ac5ad98ec5c140af882e197081e76f02cb790059bb6a3177ce36106787a81",
+    "bytes": 256698
+   },
+   {
+    "url": "/assets/nalati/models/coats/wolf.wolf.scout.coat.phone.webp?v=a093afeb",
+    "hash": "a093afeb6c52557387e165b3b463ab623d5f386a50a48b883b178937e28ef38f",
+    "bytes": 317758
+   },
+   {
+    "url": "/assets/nalati/models/coats/wolf.wolf.tawny.coat.phone.webp?v=01c8f2e7",
+    "hash": "01c8f2e711d1fd979f87079b9df5d200edd40ce0763a1af6f272ce83eefae703",
+    "bytes": 332116
+   },
+   {
+    "url": "/assets/nalati/models/sheep.phone.rigged.glb?v=4e70f8eb",
+    "hash": "4e70f8eb9ffee578a4b825dac129a3193732ec61c0c030fc8c01b539f04cd63f",
+    "bytes": 154692
+   },
+   {
+    "url": "/assets/nalati/baked/6f362ed67dfffeb86ad47768a8e43a59267da96dee77914d0f9cf2af70b8e3ea.glb",
+    "hash": "6f362ed67dfffeb86ad47768a8e43a59267da96dee77914d0f9cf2af70b8e3ea",
+    "bytes": 1514632
+   },
+   {
+    "url": "/shardfiles/nalati-grasslands/blobs/glb/4f552180f7997276e036177289dc8591d3c7802e3019d44aa96e67e9654d3324.glb",
+    "hash": "4f552180f7997276e036177289dc8591d3c7802e3019d44aa96e67e9654d3324",
+    "bytes": 1279720
+   },
+   {
+    "url": "/assets/nalati/models/people/elder.gen.phone.glb?v=ac0e90a0",
+    "hash": "ac0e90a02b653870c2359c80304424a56c6249049049b023f4829a0974cdd756",
+    "bytes": 147876
+   },
+   {
+    "url": "/assets/nalati/models/people/herder-dauren.gen.phone.glb?v=6a33d373",
+    "hash": "6a33d373c15229e43588631f3956e6913eade4391ecf47940b53520d486b13b3",
+    "bytes": 150968
+   },
+   {
+    "url": "/assets/nalati/models/people/herder-erlan.gen.phone.glb?v=33e8584d",
+    "hash": "33e8584d9e7b3ae4f413cb0a706708d59699fa38fa65f6dea0164bede2a2e23c",
+    "bytes": 146256
+   },
+   {
+    "url": "/assets/nalati/models/people/child.gen.phone.glb?v=4942f9b8",
+    "hash": "4942f9b896868d4f7ca0a2e98244260f93346ab9157f12dea720af45c342f261",
+    "bytes": 170552
+   },
+   {
+    "url": "/assets/nalati/models/people/cook.gen.phone.glb?v=7025593e",
+    "hash": "7025593e88b19f9cee3dd3c1e970ee65ba887f990c252b0c7ff3d16994249dca",
+    "bytes": 151568
+   }
+  ]
+ },
+ {
+  "region": "nalati-grasslands",
+  "tier": "desktop",
+  "at": [
+   0,
+   0
+  ],
+  "reads": [
+   {
+    "url": "/assets/nalati/tex/meadow.webp?v=e886d04b",
+    "hash": "e886d04b2137b7b5060f3ed65b7f1f72fe9d87fd5aca022398fc3269bcebeaf2",
+    "bytes": 333368
+   },
+   {
+    "url": "/assets/nalati/tex/path.webp?v=5178e247",
+    "hash": "5178e247c5b2e47d12b2328c49d7768ecab8ae61a637a89e2aa0acdc4ae273fb",
+    "bytes": 296860
+   },
+   {
+    "url": "/assets/nalati/tex/gravel.webp?v=e827ef3f",
+    "hash": "e827ef3f8341c2475f6d26a5f8552f104eae4791301d462374afc8dd3d79a5ea",
+    "bytes": 317112
+   },
+   {
+    "url": "/assets/nalati/tex/rock.webp?v=ac935db4",
+    "hash": "ac935db436a11853e3a0d086e17fdd657e766cdd9771704afc58efff79bf5c5e",
+    "bytes": 308786
+   },
+   {
+    "url": "/assets/nalati/tex/snow.webp?v=a2e02a43",
+    "hash": "a2e02a43b234a9f8edb84a0de1bd3759163a673d7cd61a0887392c9353db826e",
+    "bytes": 148894
+   },
+   {
+    "url": "/shardfiles/nalati-grasslands/blobs/glb/cc0350ba0ebca44c42e7fdad9afecd116e0ede9e676e0e1206d77fb7b37edcd0.glb",
+    "hash": "cc0350ba0ebca44c42e7fdad9afecd116e0ede9e676e0e1206d77fb7b37edcd0",
+    "bytes": 285116
+   },
+   {
+    "url": "/assets/baked/common/cloud-field.bin?v=43838700",
+    "hash": "43838700391a6a34fdb4ed60f9b410f1cf07921bf824de88cb43a75b1ea5adb7",
+    "bytes": 262144
+   },
+   {
+    "url": "/assets/nalati/tex/felt.webp?v=e1a4bc0a",
+    "hash": "e1a4bc0a6c4e9b1fa43867b56e2aa722fd9b98ec42e93b0da3587ed3d9e65cf1",
+    "bytes": 206374
+   },
+   {
+    "url": "/assets/nalati/cards.webp?v=33ca6034",
+    "hash": "33ca6034d810d0e6852fb45877b854621a1caff5d79bb5a714dc9c1d7ec9cdd2",
+    "bytes": 892054
+   },
+   {
+    "url": "/assets/nalati/panorama.webp?v=b3ce2201",
+    "hash": "b3ce2201daeba3a13d90c9a591feaeb574d3e831e1138674bab148aa09815d53",
+    "bytes": 766800
+   },
+   {
+    "url": "/shardfiles/nalati-grasslands/blobs/glb/840e919d901c0d160b4b27b72c6f534bacc3c2e4c6bb72c3f88cfe0be664506f.glb",
+    "hash": "840e919d901c0d160b4b27b72c6f534bacc3c2e4c6bb72c3f88cfe0be664506f",
+    "bytes": 1153352
+   },
+   {
+    "url": "/shardfiles/nalati-grasslands/blobs/glb/8d37c76dd72b69080e869d35de880a0547fd6ea2353bb6cfe229fc93e1532cac.glb",
+    "hash": "8d37c76dd72b69080e869d35de880a0547fd6ea2353bb6cfe229fc93e1532cac",
+    "bytes": 2512520
+   },
+   {
+    "url": "/assets/nalati/baked/gear-specimens.bin?v=9588d585",
+    "hash": "9588d585c22f05179ba6b000aad4896423a5bfe70e242c709f536de362dbb1cf",
+    "bytes": 845774
+   },
+   {
+    "url": "/assets/nalati/models/horse-wild.rigged.glb?v=3b2d86dd",
+    "hash": "3b2d86dd2415f572c80b6b204034fbb537600c546be0d600c753968b49621d49",
+    "bytes": 372604
+   },
+   {
+    "url": "/assets/nalati/models/horse-saddled.rigged.glb?v=db374b34",
+    "hash": "db374b347ec4976d8786cdb6911da1d2605217621c96baeb317e6d0bf5bf5f37",
+    "bytes": 390340
+   },
+   {
+    "url": "/assets/nalati/models/wolf.rigged.glb?v=6f9f1f0e",
+    "hash": "6f9f1f0ed63fbeb01347ade01812aead05794e0a543a4ef442ad601847dcfb06",
+    "bytes": 480660
+   },
+   {
+    "url": "/assets/nalati/models/collie.rigged.glb?v=7e5730a5",
+    "hash": "7e5730a5f5b06b5dd7d905af4cd8cd36f18e49d1e3a365743430575ff7d08a46",
+    "bytes": 414408
+   },
+   {
+    "url": "/assets/nalati/models/golden-king.rigged.glb?v=595df0ab",
+    "hash": "595df0ab953a2db0ca2b0ae222edee6c466e37ade5525e28abb44eaf23b398bc",
+    "bytes": 415780
+   },
+   {
+    "url": "/assets/nalati/models/snow-leopard.rigged.glb?v=616a3f37",
+    "hash": "616a3f37f1df3f10ddccf1a29faea9daf96d0e21d0ec5b8cb1ef49346474512d",
+    "bytes": 734516
+   },
+   {
+    "url": "/assets/nalati/models/eagle.rigged.glb?v=f957fb72",
+    "hash": "f957fb72ea6db195b01af04964eaa0b64bb58e64f5080b345b4cca6965c60d1f",
+    "bytes": 317936
+   },
+   {
+    "url": "/assets/nalati/models/ghost-horse.rigged.glb?v=3a557ec7",
+    "hash": "3a557ec7ca1fcaa454a317ddb36a3f668d5e59fb04793016f6db23f88d97ec94",
+    "bytes": 420616
+   },
+   {
+    "url": "/assets/nalati/models/coats/wolf.kokbori.kokbori.coat.webp?v=fd4aeee5",
+    "hash": "fd4aeee50c6612ebd5e81a2ec4460cff4259c5ef295e0426bf82b1abc40ec6fb",
+    "bytes": 1016270
+   },
+   {
+    "url": "/assets/nalati/models/coats/wolf.wolf.alpha.coat.webp?v=991289c3",
+    "hash": "991289c38a6a8ea0f11b78ba2b3aff81bd98ad899ddbcb53fd31a5f0cd3325a6",
+    "bytes": 887206
+   },
+   {
+    "url": "/assets/nalati/models/coats/wolf.wolf.dark.coat.webp?v=1ec2175a",
+    "hash": "1ec2175ae67fa58ceddd07f2d3aa64b8ffb0a0b87e2f6d7afbd580610cd9782c",
+    "bytes": 826442
+   },
+   {
+    "url": "/assets/nalati/models/coats/wolf.wolf.scout.coat.webp?v=11f9700b",
+    "hash": "11f9700bd566d501e43264d4d40f7e79e2338fc28075d343039cb48acd2b30e6",
+    "bytes": 1035518
+   },
+   {
+    "url": "/assets/nalati/models/coats/wolf.wolf.tawny.coat.webp?v=3bafa4fd",
+    "hash": "3bafa4fd4861abd9677ebe071df0d8896e744e92338e5c5fc40e60daf5653843",
+    "bytes": 1080288
+   },
+   {
+    "url": "/assets/nalati/models/coats/horse-saddled.horse.camp-black.coat.webp?v=b5f6aa33",
+    "hash": "b5f6aa330744abc1c47eeecd7be4e3e6e4455e600bc6c387e0dcf711492237c8",
+    "bytes": 803448
+   },
+   {
+    "url": "/assets/nalati/models/coats/horse-saddled.horse.tulpar.coat.webp?v=b5f6aa33",
+    "hash": "b5f6aa330744abc1c47eeecd7be4e3e6e4455e600bc6c387e0dcf711492237c8",
+    "bytes": 803448
+   },
+   {
+    "url": "/assets/nalati/models/coats/horse-wild.argymaq.stallion.coat.webp?v=04cb4067",
+    "hash": "04cb406766272177e7966b4268352adef153012bf8f1f4d898e207a6a22238b5",
+    "bytes": 531438
+   },
+   {
+    "url": "/assets/nalati/models/coats/horse-wild.horse.bay.coat.webp?v=cc42a6aa",
+    "hash": "cc42a6aa221bdbddeb69446602659f8e1e4d1fc4e62571c0f49924facb820d2b",
+    "bytes": 774018
+   },
+   {
+    "url": "/assets/nalati/models/coats/horse-wild.horse.black.coat.webp?v=04cb4067",
+    "hash": "04cb406766272177e7966b4268352adef153012bf8f1f4d898e207a6a22238b5",
+    "bytes": 531438
+   },
+   {
+    "url": "/assets/nalati/models/coats/horse-wild.horse.chestnut.coat.webp?v=0fd78514",
+    "hash": "0fd7851451f6c28891d053db656e1cc2f282af4e3d3065229120a33345a44c5e",
+    "bytes": 870700
+   },
+   {
+    "url": "/assets/nalati/models/coats/horse-wild.horse.foal-bay.coat.webp?v=97a94ae5",
+    "hash": "97a94ae52664544214a7b67063f03624a83ae7b4e82b5284d3a0b0a777bfecaa",
+    "bytes": 1003334
+   },
+   {
+    "url": "/assets/nalati/models/coats/horse-wild.horse.foal-chestnut.coat.webp?v=fbdd6ed4",
+    "hash": "fbdd6ed424bcb3c5ac840dea691ae968aa93367b1bf212bd562662915c50fb0c",
+    "bytes": 1027216
+   },
+   {
+    "url": "/assets/nalati/models/coats/horse-wild.horse.grey.coat.webp?v=474b931c",
+    "hash": "474b931cdf966efdb5b7967fa23b9ab9ff741e45f25fb298440b6cda51ace30d",
+    "bytes": 727744
+   },
+   {
+    "url": "/assets/nalati/models/coats/horse-wild.horse.stallion.coat.webp?v=04cb4067",
+    "hash": "04cb406766272177e7966b4268352adef153012bf8f1f4d898e207a6a22238b5",
+    "bytes": 531438
+   },
+   {
+    "url": "/assets/nalati/models/sheep.rigged.glb?v=d38b8dcf",
+    "hash": "d38b8dcf1214936469a5c1b08251e62c9b44768e67f378819850029e11b7195d",
+    "bytes": 359964
+   },
+   {
+    "url": "/assets/nalati/baked/6f362ed67dfffeb86ad47768a8e43a59267da96dee77914d0f9cf2af70b8e3ea.glb",
+    "hash": "6f362ed67dfffeb86ad47768a8e43a59267da96dee77914d0f9cf2af70b8e3ea",
+    "bytes": 1514632
+   },
+   {
+    "url": "/shardfiles/nalati-grasslands/blobs/glb/4f552180f7997276e036177289dc8591d3c7802e3019d44aa96e67e9654d3324.glb",
+    "hash": "4f552180f7997276e036177289dc8591d3c7802e3019d44aa96e67e9654d3324",
+    "bytes": 1279720
+   },
+   {
+    "url": "/assets/nalati/models/people/elder.gen.glb?v=82fab1a8",
+    "hash": "82fab1a8e1a4c5a5651393ce08a2dd46c140e3ce9c0f8bebdfa91ceccc68b180",
+    "bytes": 217704
+   },
+   {
+    "url": "/assets/nalati/models/people/herder-dauren.gen.glb?v=fc4022ef",
+    "hash": "fc4022ef4daa0e8fea228effbdeedaa387435099fe7dd95d5810bf82af74898b",
+    "bytes": 231684
+   },
+   {
+    "url": "/assets/nalati/models/people/herder-erlan.gen.glb?v=7e3af5f3",
+    "hash": "7e3af5f30e84725440eaba4b5beebcfe92c2e935732b39961b0bbb3567d18b98",
+    "bytes": 214668
+   },
+   {
+    "url": "/assets/nalati/models/people/child.gen.glb?v=addde194",
+    "hash": "addde194fc4eadcff9970e3c4397194b20a9fcd35d463b00c6ca1d6ead9c7a3c",
+    "bytes": 260204
+   },
+   {
+    "url": "/assets/nalati/models/people/cook.gen.glb?v=a0208acc",
+    "hash": "a0208acc89800cc1db1d8099295da93431c86a0549697cc0b727007747dc7b56",
+    "bytes": 226980
+   }
+  ]
+ }
+]
