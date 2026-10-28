@@ -15,6 +15,8 @@ export interface ScriptLaneOptions extends Omit<ScriptHostOptions, 'world'> { wo
 export interface ScriptLanePort {
   readonly host: ScriptHost; readonly world: DeclaredScriptWorld; readonly divisor: number;
   step: (tick: number, commands?: ReadonlyMap<string, number>) => readonly ScriptCall[];
+  /** Same execution without unused results; older facades execute their full step. */
+  stepWithoutResults?: (tick: number, commands?: ReadonlyMap<string, number>) => void;
   enqueue: (event: ScriptEvent) => void; snapshot: () => string; restore: (text: string) => void;
   /** Advances when snapshot() may differ other than in its tick; a lane without one is always treated as changed. */
   stateRevision?: () => number;
@@ -95,14 +97,25 @@ export class ScriptLane {
   }
   /** Stable fixed-tick input: tick, dt, actor command, entity, actor token, role, state counts, state values. */
   step(tick: number, commands: ReadonlyMap<string, number> = NO_COMMANDS): readonly ScriptCall[] {
+    return this.advance(tick, commands, true);
+  }
+  /** Execute every due authoritative binding without constructing unused call
+   * results. State, events, failure handling and all host limits are unchanged. */
+  stepWithoutResults(tick: number, commands: ReadonlyMap<string, number> = NO_COMMANDS): void {
+    this.advance(tick, commands, false);
+  }
+  private advance(tick: number, commands: ReadonlyMap<string, number>, retain: true): readonly ScriptCall[];
+  private advance(tick: number, commands: ReadonlyMap<string, number>, retain: false): void;
+  private advance(tick: number, commands: ReadonlyMap<string, number>, retain: boolean): readonly ScriptCall[] | void {
     if (!Number.isSafeInteger(tick) || tick < 0) throw new Error('Invalid script lane tick');
-    if (tick % this.divisor !== 0) return [];
+    if (tick % this.divisor !== 0) return retain ? [] : undefined;
     this.commands = commands;
-    const pending = this.host.beginTick(tick), calls: ScriptCall[] = [];
+    const pending = this.host.beginTick(tick), calls: ScriptCall[] | undefined = retain ? [] : undefined;
     for (const binding of this.schedule.bindings) {
       const input = this.schedule.input(binding, tick); if (input === undefined) throw new Error('Missing numeric script input');
       const events = pending.length === 0 ? NO_EVENT_ROWS : pending.flatMap(event => event.target === binding.entity ? [event.type, event.target, event.value, 0, 0, 0] : []);
-      calls.push(this.host.call(binding.module, binding.entity, input, events));
+      if (calls === undefined) this.host.callWithoutResult(binding.module, binding.entity, input, events);
+      else calls.push(this.host.call(binding.module, binding.entity, input, events));
     }
     return calls;
   }
@@ -127,7 +140,11 @@ export class ScriptLane {
 }
 /** Install fixed-step work and a same-engine continuation adapter, scoped to the real headless/client sim host. */
 export function installScriptLane(sim: Pick<SimHost, 'onStep' | 'state'>, id: string, lane: ScriptLanePort, commands: () => ReadonlyMap<string, number> = () => NO_COMMANDS): () => void {
-  return sim.onStep(id, () => { lane.step(sim.state.tick, commands()); }, { snapshot: () => lane.snapshot(), restore: (value) => {
+  return sim.onStep(id, () => {
+    const step = lane.stepWithoutResults;
+    if (step === undefined) lane.step(sim.state.tick, commands());
+    else step.call(lane, sim.state.tick, commands());
+  }, { snapshot: () => lane.snapshot(), restore: (value) => {
     if (typeof value !== 'string') throw new Error('Invalid script adapter snapshot'); lane.restore(value);
   } });
 }
