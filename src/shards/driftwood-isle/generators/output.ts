@@ -96,6 +96,7 @@ import { DRIFTWOOD_FEAT_COUNTERS } from './questInventory';
 import { enemyPlacements } from './enemyPlacement';
 import { keeperRows } from './keeperRows';
 import { emitDefinedSections, parseSectionValue } from '@wildshard/sdk/sections';
+import { authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
 import { DRIFTWOOD_OUTPUT } from '../generators/assets';
 import { DRIFTWOOD_CLIENT_SECTIONS, driftwoodOceanWaterRow } from './clientSections';
 import type { DriftwoodCreatureBodyBank } from './creatureBodyBank';
@@ -124,6 +125,16 @@ const sceneBytes = (value: unknown): Uint8Array => new TextEncoder().encode(enco
 const SCRIPT_V2_REVISIONS = scriptV2Revisions();
 const BRIDGE_SWAY_SCRIPT = { abi: 2 as const, lane: 'view' as const, pages: 1, ioBytes: 4096,
   compilerRevision: SCRIPT_V2_REVISIONS.compiler, admissionRevision: SCRIPT_V2_REVISIONS.admission };
+// The page consumes only these two original constants. Keep the same bounded
+// native JSON value grammar; the interaction host still admits its own rows.
+const nativeDocumentSchema = authorFormatSchema('namedJsonContracts.HEADLESS_ASSEMBLY_JSON_SCHEMA');
+const interactionWireSchema = {
+  $schema: nativeDocumentSchema.$schema, definitions: nativeDocumentSchema.definitions,
+  type: 'object', additionalProperties: false, required: ['constants'],
+  properties: { constants: { type: 'object', additionalProperties: false, required: ['interact', 'interactSpots'],
+    properties: { interact: nativeDocumentSchema.properties.constants, interactSpots: nativeDocumentSchema.properties.constants } } },
+};
+
 const placements = emitNamedBlobs([nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
 
   nameBlob('world/cover-composition.json', 'json', new TextEncoder().encode(JSON.stringify(coverCompositionRows(coverComposition)))),
@@ -141,6 +152,7 @@ const placements = emitNamedBlobs([nameBlob('actors/page-life.json', 'json', new
   nameBlob('scenes/cove.json', 'json', new TextEncoder().encode(encodeCanonicalJson(coveScene))),
   nameBlob('scenes/cascade.json', 'json', new TextEncoder().encode(encodeCanonicalJson(cascadeScene))),
   nameBlob('models/fixed-geometry.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseSectionValue(FixedGeometryGroupsSchema, fixedInventory.groups)))),
+  nameGuestBlob('quests/interaction-source.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ constants: { interact: DRIFTWOOD_INTERACT, interactSpots: authoredSpots.rows } })), { jsonSchema: interactionWireSchema }),
   nameBlob('sim/headless-assembly.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...headlessAssembly, constants: { sea: DECLARED_SEA, nativeQuest: DRIFTWOOD_NATIVE_QUEST, nativeQuestSpots, nativeCounters, nativeEncounter: WAKE_ENCOUNTER.encounter, chapterDirector: CHAPTER_DIRECTOR, nativeChapterCues: WAKE_ENCOUNTER.cues.map(({ id, operation }) => ({ id, operation })), mixedPopulation: { ...mixedPopulation, attackTurnCap: nativePopulationPolicy.attackTurnCap, practice: { ...mixedPopulation.practice, at: placed.practice, ...DRIFTWOOD_SPECIES_PROGRAMS.spawns.find(row => row.id === 'spawn.driftwood.practice')?.respawn }, poses: [{ kind: 'crab', clips: [crabClips] }, { kind: 'sailor', clips: [sailorClips], lift: [1.5, 1.5, -2.3, 6] }, { kind: 'captain', clips: [captainClips] }, { kind: 'monkey', clips: monkeyClips }] }, questProps: NATIVE_QUEST_PROPS, ...driftwoodNativeRows(nativePhysics), dayStyle: TOON_LOOK.sky.day, questKillSteps, entries: ENTRY_WALK, swords: headlessSwords, interact: DRIFTWOOD_INTERACT, interactSpots: authoredSpots.rows } }))),
   nameBlob('quests/chapter-director.json', 'json', new TextEncoder().encode(encodeCanonicalJson(CHAPTER_DIRECTOR))),
   nameBlob('quests/wake-boss.json', 'json', new TextEncoder().encode(encodeCanonicalJson(WAKE_ENCOUNTER))),

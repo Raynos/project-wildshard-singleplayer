@@ -47,3 +47,11 @@ test('missing tracked hull inputs refuse rather than minting a late-file pin', a
   const missing: ProjectGenerationContext['cached'] = (_step, generate) => Promise.resolve(generate(new Map()));
   await expect(driftwoodPhysicsOwnedSources({ cached: missing })).rejects.toThrow('proof hull inventory differs');
 });
+
+
+test('unexpected or empty hull inputs refuse before owned publication', async () => {
+  for (const inputs of [new Map([['unexpected.bin', bytes]]), new Map(sources.map(row => [row.source, new Uint8Array()]))]) {
+    const invalid: ProjectGenerationContext['cached'] = (_step, generate) => Promise.resolve(generate(inputs));
+    await expect(driftwoodPhysicsOwnedSources({ cached: invalid })).rejects.toThrow('proof hull inventory differs');
+  }
+});

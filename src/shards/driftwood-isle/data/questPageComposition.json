@@ -5,7 +5,7 @@
   "map": { "publish": { "tally": true } },
   "files": {
     "discovery": "quests/discovery.json", "services": "quests/services.json",
-    "assembly": "sim/headless-assembly.json", "stall": "quests/stall.json",
+    "assembly": "quests/interaction-source.json", "stall": "quests/stall.json",
     "encounter": "quests/wake-boss.json",
     "hints": "quests/hints.json", "returns": "sim/returns.json", "trader": "quests/trader.json"
   },
