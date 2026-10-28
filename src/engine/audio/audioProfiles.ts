@@ -5,6 +5,7 @@ import type { ScoreSelection } from './scoreSelection';
 export interface AudioSampleProfile { set: string; bed: string; loopGains: Readonly<Record<string, number>>; omitLoops?: readonly string[] | undefined; omitShots?: readonly string[] | undefined; omitSlots?: readonly string[] | undefined }
 /** Existing music catalogue and bounded scene selection; stem decoding and bar-grid playback remain engine-owned. */
 export interface AudioMusicProfile {
+  controlTension?: 'late';
   setPlayback?:AudioMusic['setPlayback'];
   setCatalogue?:AudioMusic['setCatalogue'];
   id: string; base: string; slots: readonly string[]; bootSlots: readonly string[]; synthLead: 'pluck' | 'marimba'; minFade: number;

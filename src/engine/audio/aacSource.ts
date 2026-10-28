@@ -1,5 +1,5 @@
 import { AAC_PREFILL_FRAMES, type AacTrack } from './aacTrack';
-import { AacWindows, type AacWindow } from './aacWindows';
+import { AacWindows, trimAacWindow, type AacWindow } from './aacWindows';
 import { AacPull } from './aacPull';
 import type { Scope } from '../app/scope';
 import { withOwner } from '../app/ownership';
@@ -33,20 +33,25 @@ export class AacSource {
   private stopAt = Infinity;
   private retired = false;
   private peak = 0;
-  constructor(track: AacTrack, ports: AacSourcePorts, t0: number) {
-    if (ports.scope.disposed || ports.context.sampleRate !== RATE || !Number.isFinite(t0) || t0 < ports.context.currentTime) {
+  constructor(track: AacTrack, ports: AacSourcePorts, t0: number, join?: { readonly initial: number; readonly at: number }) {
+    const at = join?.at ?? t0;
+    if (ports.scope.disposed || ports.scope.disposing || ports.context.sampleRate !== RATE || !Number.isFinite(t0) || t0 < 0
+      || !Number.isFinite(at) || at < ports.context.currentTime || at < t0 || at - t0 >= LOOKAHEAD) {
       throw new Error('AAC source requires a live owner, 48 kHz context and future start');
     }
     this.track = track; this.ports = ports; this.t0 = t0; this.scope = ports.scope.child('AAC.source');
-    this.plans = new AacWindows(track.loopStart, track.loopEnd, track.frames);
+    this.plans = new AacWindows(track.loopStart, track.loopEnd, track.frames, join?.initial ?? 0);
     this.pull = new AacPull(track.bytes, track.index, track.factory, this.scope);
     this.scope.onDispose(() => { this.windows.clear(); });
     this.next = this.plans.next();
     try {
-      for (const prepared of track.take()) {
+      const timeline = Math.round((at - t0) * RATE);
+      for (const prepared of track.take(join?.initial ?? 0)) {
         const plan = this.next; this.next = this.plans.next();
-        this.schedule(plan, prepared.buffer);
+        if (plan.timeline + plan.duration <= timeline) continue;
+        this.schedule(plan.timeline < timeline ? trimAacWindow(plan, timeline) : plan, prepared.buffer);
       }
+      if (this.windows.size === 0) throw new Error('AAC join exceeds its prepared native windows');
       this.scope.interval(50, () => { void this.pump(); });
       void this.pump();
     } catch (error) { this.scope.dispose(); throw error; }

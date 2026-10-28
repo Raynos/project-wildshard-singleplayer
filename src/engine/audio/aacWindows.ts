@@ -7,6 +7,18 @@ export interface AacWindow {
   readonly parts: readonly { readonly start: number; readonly frames: number; readonly destination: number }[];
   readonly loop?: { readonly start: number; readonly end: number };
 }
+/** Join an already prepared native window at an exact timeline sample. Keep
+ * its original PCM/guards; only the native source offset and remaining span
+ * change. A seam window may wrap once inside its own guarded buffer. */
+export function trimAacWindow(plan: AacWindow, timeline: number): AacWindow {
+  if (!Number.isSafeInteger(timeline) || timeline < plan.timeline || timeline >= plan.timeline + plan.duration) {
+    throw new Error('AAC join must lie inside its prepared window');
+  }
+  const skipped = timeline - plan.timeline;
+  let offset = plan.offset + skipped;
+  if (plan.loop !== undefined && offset >= plan.loop.end) offset = plan.loop.start + (offset - plan.loop.end) % (plan.loop.end - plan.loop.start);
+  return { ...plan, timeline, duration: plan.duration - skipped, offset };
+}
 const RATE = 48000, WINDOW = 24000, SEAM = 6000, GUARD = 32;
 /** Integer-loop eligibility is deliberately conservative: fractional loop cuts / resampling retain the old source. */
 export function aacWindowEligible(rate: number, loopStart: number, loopEnd: number, sourceFrames: number): boolean {

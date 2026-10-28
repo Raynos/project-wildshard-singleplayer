@@ -622,7 +622,14 @@ export class Music {
     if (bank.genre !== this._genre) return;
     const old = this.bank;
     if (old?.genre === bank.genre && old.set === bank.set) {
-      for (const [slot, audio] of bank.slots) bank.slots.set(slot, old.slots.get(slot) ?? audio);
+      for (const [slot, audio] of bank.slots) {
+        const previous = old.slots.get(slot);
+        if (previous?.tension === undefined && previous && audio.tension !== undefined) {
+          previous.tension = audio.tension;
+          if (this.deck?.audio === previous) void this.completeTension(this.deck, audio.tension);
+        }
+        bank.slots.set(slot, previous ?? audio);
+      }
       for (const [sting, audio] of bank.stings) bank.stings.set(sting, old.stings.get(sting) ?? audio);
     }
     if (old !== bank) old?.slots.delete('title');
@@ -630,6 +637,10 @@ export class Music {
     if (bank.slots.has('title')) this.titleRetired = false;
     this.retireTitle();
     this.sync();
+  }
+  private async completeTension(deck: Deck, stem: AudioBuffer | AacTrack): Promise<void> {
+    try { await deck.completeTension(stem); }
+    catch (error: unknown) { console.info('[music] late tension preparation failed', error); }
   }
   private retireTitle(): void {
     if (this.state.mode !== 'menu' && this.bank?.slots.delete('title')) this.titleRetired = true;

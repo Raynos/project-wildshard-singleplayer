@@ -250,7 +250,8 @@ export function startDeferredAudioPreload(files: ChunkFiles, _def: BootLevel, pr
         return Promise.resolve(copy);
       };
       try {
-        const bank = await (profile ?? NO_AUDIO).decode(style, read, oneAtATime);
+        const selectedProfile = profile ?? NO_AUDIO;
+        const bank = await (TIER === 'phone' ? selectedProfile.controlDecode ?? selectedProfile.decode : selectedProfile.decode)(style, read, oneAtATime);
         return { music: undefined, sfx: { set, credit: undefined, loops: new Map(), shots: new Map() }, profile: bank };
       } finally { selectedBytes.clear(); }
     })();

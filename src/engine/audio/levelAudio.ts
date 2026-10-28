@@ -23,6 +23,8 @@ export interface LevelAudioProfile {
    *  loading bar reads only these; every other boot file downloads and decodes after control (iphone-downloads I7).
    *  Left out, every boot file is read before control. */
   controlFiles?: (style: MusicStyle) => readonly string[];
+  /** Optional first-control decoder for exactly the declared control files; full decode follows control. */
+  controlDecode?: (style: MusicStyle, read: AudioRead, decode: AudioDecode, onFile?: () => void) => Promise<LevelAudioBank>;
   decode: (style: MusicStyle, read: AudioRead, decode: AudioDecode, onFile?: () => void) => Promise<LevelAudioBank>;
 }
 
@@ -83,8 +85,14 @@ export async function createCatalogueAudio(data: AudioData, extras?: AudioCatalo
       return [...files.music, ...files.sfx].filter(url => dirs.some(dir => url.startsWith(dir)));
     } } : {}),
     bootFiles: style => [...styleFiles(style, music.bootSlots), ...selectedSfx()],
-    controlFiles: style => [...styleFiles(style, music.bootSlots, false), ...sfxBedFiles(getSfxSet(), samples.bed, levels),
+    controlFiles: style => [...styleFiles(style, music.bootSlots, false, music.controlTension !== 'late'), ...sfxBedFiles(getSfxSet(), samples.bed, levels),
       ...(policy.overlaySamples && getSfxSet() !== 'synth' ? sfxBedFiles(samples.set, samples.bed, levels) : [])],
+    ...(music.controlTension === 'late' ? { controlDecode: async (style: MusicStyle, read: AudioRead, decode: AudioDecode, onFile?: () => void): Promise<LevelAudioBank> => {
+      const [title, bank] = await Promise.all([
+        decodeStyle(style, music.bootSlots, read, decode, onFile, 'base', [], false).catch(() => undefined), decodeSamples(read, decode, onFile),
+      ]);
+      return { title, samples: bank, score: { slots: new Map(), stings: new Map() }, cues: { loops: new Map(), shots: new Map() } };
+    } } : {}),
     decode: async (style, read, decode, onFile) => {
       const [title, bank] = await Promise.all([
         decodeStyle(style, music.bootSlots, read, decode, onFile).catch(() => undefined), decodeSamples(read, decode, onFile),

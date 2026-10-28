@@ -91,11 +91,11 @@ export function musicManifest(genre: MusicGenre, set: MusicSet = 'base'): MusicM
 
 /** the files `decodeStyle(genre, slots)` reads (URLs), so the loading bar can tell them from the files it only downloads;
  *  `withStings: false` lists the slots' stems alone */
-export function styleFiles(genre: MusicGenre, slots: readonly SlotName[], withStings = true): string[] {
+export function styleFiles(genre: MusicGenre, slots: readonly SlotName[], withStings = true, withTension = true): string[] {
   const m = musicManifest(genre);
   if (!m) return [];
   const files: string[] = [];
-  for (const k of slots) { const sp = m.slots[k]; if (sp) files.push(sp.calm, ...(sp.tension === undefined ? [] : [sp.tension])); }
+  for (const k of slots) { const sp = m.slots[k]; if (sp) files.push(sp.calm, ...(!withTension || sp.tension === undefined ? [] : [sp.tension])); }
   if (withStings) for (const k of STINGS) { const f = m.stings[k]; if (f !== undefined) files.push(f); }
   return [...new Set(files.map((f) => `/assets/music/${genre}/${f}`))].filter(shipped);
 }
@@ -104,7 +104,7 @@ export function styleFiles(genre: MusicGenre, slots: readonly SlotName[], withSt
  * Decode `slots` + every sting of `genre`. `read` hands over a file's bytes (by URL), `decode` turns them into an AudioBuffer
  * (an OfflineAudioContext's — no live context needed). Rejects only when the build has no manifest for the genre.
  */
-export async function decodeStyle(genre: MusicGenre, slots: readonly SlotName[], read: (url: string) => Promise<ArrayBuffer>, decode: (bytes: ArrayBuffer) => Promise<AudioBuffer>, onFile?: () => void, set: MusicSet = 'base', stings: readonly StemSting[] = STINGS): Promise<StyleBank> {
+export async function decodeStyle(genre: MusicGenre, slots: readonly SlotName[], read: (url: string) => Promise<ArrayBuffer>, decode: (bytes: ArrayBuffer) => Promise<AudioBuffer>, onFile?: () => void, set: MusicSet = 'base', stings: readonly StemSting[] = STINGS, withTension = true): Promise<StyleBank> {
   const m = musicManifest(genre, set);
   if (!m) throw new Error(`no music.json for '${musicSetDir(genre, set)}' in this build`);
   const base = `/assets/music/${musicSetDir(genre, set)}/`;
@@ -132,7 +132,7 @@ export async function decodeStyle(genre: MusicGenre, slots: readonly SlotName[],
           if (owner.disposed) throw new Error('Music preparation owner retired');
           return prepared ?? await decode(bytes);
         }) : one(file);
-        const [calm, tension, ...layers] = await Promise.all([stem(spec.calm), spec.tension === undefined ? Promise.resolve(undefined) : stem(spec.tension), ...spec.layers.map(one)]);
+        const [calm, tension, ...layers] = await Promise.all([stem(spec.calm), !withTension || spec.tension === undefined ? Promise.resolve(undefined) : stem(spec.tension), ...spec.layers.map(one)]);
         // the loop must fit the file (a bad loopEnd would loop into silence)
         if (spec.loopEnd > calm.duration + 0.05) throw new Error(`${slot}: loopEnd ${spec.loopEnd} past the file (${calm.duration.toFixed(2)} s)`);
         // stems of one recording: a stem of another length would drift off the calm one — drop it rather than play it wrong
@@ -154,7 +154,9 @@ export async function decodeStyle(genre: MusicGenre, slots: readonly SlotName[],
 export class Deck {
   private readonly scope = resourceScope().child('Deck');
   readonly out: GainNode;
-  readonly tensionGain: GainNode | undefined;
+  private joinedGain: GainNode | undefined;
+  get tensionGain(): GainNode | undefined { return this.joinedGain; }
+  private joining: Promise<void> | undefined;
   /** the boss's layer gains (bass, drums), set per phase */
   readonly layerGains: GainNode[] = [];
   readonly bar: number;
@@ -180,6 +182,7 @@ export class Deck {
     this.slot = audio.slot;
     this.genre = audio.genre;
     this.t0 = t0;
+    this.tension = tension;
     tap.sound?.(`stems.bed:${audio.slot}`);
     const { spec } = audio;
     this.bar = (60 / spec.bpm) * spec.beatsPerBar;
@@ -215,8 +218,8 @@ export class Deck {
     mk(audio.calm, this.out);
     if (audio.tension) {
       this.tension = tension;
-      this.tensionGain = ctx.createGain(); this.tensionGain.gain.value = tension; this.tensionGain.connect(this.out);
-      mk(audio.tension, this.tensionGain);
+      this.joinedGain = ctx.createGain(); this.joinedGain.gain.value = tension; this.joinedGain.connect(this.out);
+      mk(audio.tension, this.joinedGain);
     }
     this._phase = phase;
     const pg = spec.phases[phase] ?? [];
@@ -254,6 +257,45 @@ export class Deck {
   }
   get level(): number { return this.tension; }
 
+  /** Add a later admitted stem on this deck's original bar and source-sample
+   * clock. The calm source stays live; retirement or a crossfade cancels join. */
+  completeTension(stem: AudioBuffer | AacTrack): Promise<void> {
+    if (this.joining) return this.joining;
+    if (this.joinedGain || this.scope.disposed || this.scope.disposing || this.stopAt !== Infinity) return Promise.resolve();
+    const work = this.joinTension(stem).finally(() => { if (this.joining === work) this.joining = undefined; });
+    this.joining = work;
+    return work;
+  }
+  private async joinTension(stem: AudioBuffer | AacTrack): Promise<void> {
+    const ctx = this.ctx, spec = this.spec;
+    if (Math.abs(stem.duration - this.audio.calm.duration) >= .05) throw new Error('Late tension length differs from its calm recording');
+    const owner = this.scope.child('Deck.tension');
+    try {
+      const planned = this.nextBar(ctx.currentTime + .05);
+      const elapsed = (planned - this.t0) * 48000;
+      const start = Math.round(spec.loopStart * 48000), end = Math.round(spec.loopEnd * 48000);
+      const initial = Math.round(elapsed < end ? elapsed : start + (elapsed - start) % (end - start));
+      const prepared = stem instanceof AacTrack && ctx.sampleRate !== stem.sampleRate ? await stem.decoded() : stem;
+      if (prepared instanceof AacTrack) await prepared.primeAt(initial, owner);
+      if (owner.disposed || owner.disposing || this.stopAt !== Infinity) { owner.dispose(); return; }
+      const at = this.nextBar(ctx.currentTime + .05), gain = ctx.createGain();
+      owner.onDispose(() => { gain.disconnect(); });
+      gain.gain.setValueAtTime(0, at); gain.gain.linearRampToValueAtTime(this.tension, at + this.bar / spec.beatsPerBar);
+      gain.connect(this.out);
+      if (prepared instanceof AacTrack) {
+        this.streams.push(new AacSource(prepared, { context: ctx, output: gain, scope: owner,
+          ended: () => owner.dispose(), failed: error => { owner.dispose(); console.info('[music] late tension source failed', error); } }, planned, { initial, at }));
+      } else {
+        const source = withOwner(owner, () => ownAudioSource(ctx.createBufferSource()));
+        owner.onDispose(() => { source.buffer = null; });
+        source.buffer = prepared; source.loop = true; source.loopStart = spec.loopStart; source.loopEnd = spec.loopEnd;
+        const elapsedAt = at - this.t0, offset = elapsedAt < spec.loopEnd ? elapsedAt : spec.loopStart + (elapsedAt - spec.loopStart) % (spec.loopEnd - spec.loopStart);
+        source.connect(gain); source.start(at, offset); this.srcs.push(source);
+      }
+      this.joinedGain = gain;
+    } catch (error) { owner.dispose(); throw error; }
+  }
+
   /** the first bar line at or after `t` — bars run from loopStart in file time, and the loop is whole bars, so the grid never breaks */
   nextBar(t: number): number {
     const a = this.t0 + this.spec.loopStart;
@@ -264,7 +306,8 @@ export class Deck {
   setTension(level: number, now: number): void {
     if (this.scope.disposed) return;
     const g = this.tensionGain;
-    if (!g || Math.abs(level - this.tension) < 1e-3) return;
+    if (!g) { this.tension = level; return; }
+    if (Math.abs(level - this.tension) < 1e-3) return;
     const tb = this.nextBar(now + 0.02), beat = this.bar / this.spec.beatsPerBar;
     const cp: { cancelAndHoldAtTime?: (t: number) => void } = g.gain;
     if (cp.cancelAndHoldAtTime) cp.cancelAndHoldAtTime(tb); else { g.gain.cancelScheduledValues(tb); g.gain.setValueAtTime(this.tension, tb); }

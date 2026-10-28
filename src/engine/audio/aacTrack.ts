@@ -21,6 +21,8 @@ export class AacTrack {
   readonly index: RecordingAacIndex;
   readonly factory: AacCodecFactory;
   private prepared: readonly AacPreparedWindow[] | undefined;
+  private preparedInitial = 0;
+  private preparingInitial = 0;
   private preparing: Promise<void> | undefined;
   private fallback: Promise<AudioBuffer> | undefined;
   private readonly decode: (bytes: ArrayBuffer) => Promise<AudioBuffer>;
@@ -31,26 +33,37 @@ export class AacTrack {
     this.frames = index.sizes.length * 1024 - index.primingFrames; this.duration = this.frames / 48000;
     this.decode = decode; this.makeBuffer = makeBuffer;
   }
-  get ready(): boolean { return this.prepared !== undefined; }
+  get ready(): boolean { return this.prepared !== undefined && this.preparedInitial === 0; }
   /** Move prebuffer ownership to the playing source, so the bank cannot retain already-ended PCM. */
-  take(): readonly AacPreparedWindow[] {
+  take(initial = 0): readonly AacPreparedWindow[] {
     const result = this.prepared;
-    if (!result) throw new Error('AAC prebuffer is not ready');
+    if (!result || this.preparedInitial !== initial) throw new Error('AAC prebuffer is not ready at the requested sample');
     this.prepared = undefined;
     return result;
   }
   /** Replay re-primes short windows before the bar handoff; concurrent requests share the same bounded work. */
   prime(owner?: Scope): Promise<void> {
-    if (owner?.disposed) return Promise.reject(new Error('AAC preparation owner retired'));
-    if (this.prepared) return Promise.resolve();
-    if (this.preparing) return this.preparing;
-    const work = this.fill(owner).finally(() => { if (this.preparing === work) this.preparing = undefined; });
+    return this.primeAt(0, owner);
+  }
+  /** Prepare the same bounded windows at an authored source sample, for a
+   * late stem joining its already playing partner without restarting it. */
+  primeAt(initial: number, owner?: Scope): Promise<void> {
+    if (owner?.disposed || owner?.disposing) return Promise.reject(new Error('AAC preparation owner retired'));
+    if (!Number.isSafeInteger(initial) || initial < 0 || initial >= this.loopEnd) return Promise.reject(new Error('Invalid AAC preparation source sample'));
+    if (this.prepared && this.preparedInitial === initial) return Promise.resolve();
+    if (this.preparing) {
+      if (this.preparingInitial === initial) return this.preparing;
+      const previous = this.preparing;
+      return (async () => { await previous; await this.primeAt(initial, owner); })();
+    }
+    this.prepared = undefined; this.preparingInitial = initial;
+    const work = this.fill(owner, initial).finally(() => { if (this.preparing === work) this.preparing = undefined; });
     this.preparing = work;
     return work;
   }
-  private async fill(owner?: Scope): Promise<void> {
+  private async fill(owner: Scope | undefined, initial: number): Promise<void> {
     const scope = owner?.child('AAC.prepare') ?? new Scope('AAC.prepare');
-    const pull = new AacPull(this.bytes, this.index, this.factory, scope), plans = new AacWindows(this.loopStart, this.loopEnd, this.frames);
+    const pull = new AacPull(this.bytes, this.index, this.factory, scope), plans = new AacWindows(this.loopStart, this.loopEnd, this.frames, initial);
     const windows: AacPreparedWindow[] = [];
     try {
       for (;;) {
@@ -64,7 +77,7 @@ export class AacTrack {
         }
         windows.push({ plan, buffer });
       }
-      this.prepared = windows;
+      this.preparedInitial = initial; this.prepared = windows;
     } finally { scope.dispose(); }
   }
   /** Allocate only the admitted channel count; live playback uses the same ownership label as preparation. */

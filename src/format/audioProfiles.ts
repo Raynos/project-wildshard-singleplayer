@@ -56,6 +56,7 @@ export const AudioMixSchema: v.GenericSchema<AudioMixRecipe> = v.strictObject({v
 
 /** Bounded music catalogue selection; the engine keeps today's bar-grid calm/tension/boss stem decoding. */
 export const AudioMusicSchema: v.GenericSchema<AudioMusic> = v.pipe(v.strictObject({ id, base: id, slots: list, bootSlots: list,
+  controlTension:v.exactOptional(v.literal('late')),
   setPlayback:v.exactOptional(v.strictObject({scene:v.pipe(v.record(id,scalar),v.check(rows=>Object.keys(rows).length<=16)),stateMode:v.boolean(),waitForBank:v.boolean()})),
   setCatalogue:v.exactOptional(v.strictObject({inventory:v.picklist(['base','title']),priority:v.boolean(),bootSynth:v.boolean(),titleStings:v.boolean(),baseSamples:v.boolean(),cueOverlay:v.boolean()})),
   lifecycle:v.exactOptional(v.strictObject({persistent:v.boolean(),dispose:v.boolean(),logChanges:v.boolean(),bossScene:v.exactOptional(id)})),
@@ -323,6 +324,8 @@ export const AudioZonesSchema: v.GenericSchema<AudioZones> = v.strictObject({ id
 /** The validated score's stable catalogue slots and scene rules. */
 export interface AudioMusic { id: string; base: string; slots: string[]; bootSlots: string[]; setPlayback?: {
   scene: Record<string, string | number | boolean | null>; stateMode: boolean; waitForBank: boolean; };
+  /** Keep the original calm recording at control; admit tension afterward on the same sample clock. */
+  controlTension?: 'late';
   setCatalogue?: { inventory: 'base' | 'title'; priority: boolean; bootSynth: boolean; titleStings: boolean;
   baseSamples: boolean; cueOverlay: boolean; }; lifecycle?: { persistent: boolean; dispose: boolean; logChanges:
   boolean; bossScene?: string; }; synthLead: 'pluck' | 'marimba'; minFade: number; source: { dir: string;

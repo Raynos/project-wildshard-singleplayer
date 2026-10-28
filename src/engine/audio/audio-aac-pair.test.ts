@@ -49,5 +49,13 @@ it('bounds paired stereo/mono preparation on the same rounded loop without whole
     const bytes = [...left, ...right].reduce((sum, window) => sum + window.buffer.length * window.buffer.numberOfChannels * 4, 0);
     expect(bytes).toBeLessThan(6000000); expect(closed).toBeGreaterThan(0);
     expect(calm.ready).toBe(false); expect(tension.ready).toBe(false);
+    const phase = tension.loopEnd - 2000;
+    await tension.primeAt(phase);
+    expect(tension.ready).toBe(false);
+    expect(() => tension.take()).toThrow('requested sample');
+    const joined = tension.take(phase);
+    expect(joined[0]?.plan.loop).toBeDefined();
+    expect(joined.reduce((sum, window) => sum + window.buffer.length * window.buffer.numberOfChannels * 4, 0)).toBeLessThan(3000000);
+    expect(joined.map(window => window.plan)).not.toEqual(right.map(window => window.plan));
   } finally { vi.unstubAllGlobals(); }
 });

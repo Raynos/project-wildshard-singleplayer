@@ -307,6 +307,7 @@
     "cues": [],
     "music": {
       "base": "pine",
+      "controlTension": "late",
       "bootSlots": [
         "title",
         "pine"
