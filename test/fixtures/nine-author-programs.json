@@ -1,0 +1,7 @@
+[
+  {
+    "script": "scripts/bake-nine-decal-atlas.mjs",
+    "beforeSha256": "bb1925bc33d497eec46ecebca54e1dfaf86193f5d397c6a0719ee09125b8736c",
+    "programSha256": "cd20e36c1de9aca7cf37867026b3ecdf06f54f809d4c165e10cffeaba9629ed5"
+  }
+]

@@ -1,12 +1,12 @@
 // Native reference pixels, retained as ordinary lossless product images.
 import { resolve } from 'node:path';
 import { openNativeRaster, bundleNativeRaster } from '@wildshard/sdk/bake/nativeRaster';
-import { byteWriter, outputHash, browserBakeBytes } from '../../../../scripts/bake-output.mjs';
-import nativeDecals from '../data/nativeDecals.json' with { type: 'json' };
+import { byteWriter, outputHash, browserBakeBytes } from './bake-output.mjs';
+import nativeDecals from '../src/shards/nine-dragon-stack/data/nativeDecals.json' with { type: 'json' };
 import { readImagePixels } from '@wildshard/sdk/bake/image';
 
-const root = resolve(import.meta.dirname, '../../../..');
-const code = await bundleNativeRaster({ root, entry: resolve(import.meta.dirname, 'decalAtlasPage.ts'), format: 'iife', name: 'NineDecalBake' });
+const root = resolve(import.meta.dirname, '..');
+const code = await bundleNativeRaster({ root, entry: resolve(root, 'src/shards/nine-dragon-stack/generators/decalAtlasPage.ts'), format: 'iife', name: 'NineDecalBake' });
 if (code === undefined) throw new Error('Decal painter failed to bundle');
 const writer = byteWriter(process.argv.includes('--check'), 'nine-decal-atlas');
 const session = await openNativeRaster({
