@@ -1,4 +1,4 @@
-import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import terrainBounds from '../data/terrainBounds.json' with { type: 'json' };
 import { SEED as TERRAIN_SEED } from './terrainSeed';
 import { Noise2D, smoothstep, clamp, lerp } from '@wildshard/sdk/noise';
 import { buildTerrain } from '@wildshard/engine/world/terrainField';
@@ -6,7 +6,11 @@ import * as layoutRows from './layout';
 import { edgeRise, riverZAt, riverHalfAt } from './edgeRecipe';
 import * as clearings from './clearings';
 import * as places from './poiLayout';
-import type { ChunkTerrain, RGB, Vec2 } from '@wildshard/game/shard/manifest';
+// Keep the complete numeric field contract of the compiler, without a live manifest.
+type ChunkTerrain = ReturnType<typeof buildTerrain>;
+type RGB = [number, number, number];
+type Vec2 = [number, number];
+const CHUNK_HALF = terrainBounds.half;
 
 /** The landscape consumes numeric samplers; both native terrain and author fields supply them. */
 type TerrainNoise = Pick<Noise2D, 'get' | 'fbm' | 'ridged'>;
