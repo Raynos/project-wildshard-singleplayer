@@ -644,8 +644,10 @@ export const ENGINE_STRINGS = {
 } as const;
 export type EngineStringKey = keyof typeof ENGINE_STRINGS;
 const overrides: Partial<Record<EngineStringKey, string>> = {};
+const NO_ARGS: readonly unknown[] = Object.freeze([]);
 export function installEngineStrings(values: Partial<Record<EngineStringKey, string>>): void { Object.assign(overrides, values); }
-export function engineString(key: EngineStringKey, args: readonly unknown[] = []): string {
+export function engineString(key: EngineStringKey, args: readonly unknown[] = NO_ARGS): string {
   const text = overrides[key] ?? ENGINE_STRINGS[key];
+  if (!text.includes('⟦')) return text;
   return text.replaceAll(/⟦(\d+)⟧/gu, (_match, index: string) => String(args[Number(index)]));
 }
