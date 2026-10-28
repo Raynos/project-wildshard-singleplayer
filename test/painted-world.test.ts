@@ -6,7 +6,8 @@ import { paintedWorld, paintedWorldOf, postGraphLook } from '../src/game/looks/p
 import { PaintedWorldSchema } from '../src/format/postGraphLook';
 import { NALATI_PAINTED as paintedTextures } from '../src/shards/nalati-grasslands/generators/paintedRows';
 import { nalatiSpecimens as specimenData } from './fixtures/nalati-specimens';
-import { GrassPresentationSchema } from '../src/format/fieldPresentation';
+import { GrassPresentationSchema, grassPresentationFiles } from '../src/format/fieldPresentation';
+import { TIER } from '../src/engine/core/tier';
 import capture from '../src/shards/nalati-grasslands/data/staticCapture.json' with { type: 'json' };
 import { nalatiGrassJson } from './fixtures/nalati-grass-bake';
 
@@ -44,13 +45,16 @@ test('a level builds its painted world once a page and its world wiring reads th
 });
 
 const rawLook = () => ({passes:{},sides:[],composite:{pass:'frame',output:'out'},inputs:{},uniforms:{},painted:moor()});
-test('product look reads every raw grass file through its original receiver before publishing',async()=>{
+test('product look awaits every selected grass file through its original receiver before publishing',async()=>{
   const reads:string[]=[],product={slug:'raw-grass-world',json:()=>Promise.resolve(rawLook()),file(name:string):Promise<Uint8Array>{
     expect(this).toBe(product);reads.push(name);const bytes=GRASS_FILES.get(name);
     if(bytes===undefined)throw new Error(`Missing grass file ${name}`);return Promise.resolve(bytes);
   }};
   await postGraphLook(product,{file:'look/post.json',field:[]});
-  expect(reads).toEqual([...GRASS_FILES.keys()]);expect(paintedWorldOf(product.slug).grass.input.view).toEqual(grassRows.view);
+  const selected=grassPresentationFiles(grassRows,TIER),other=TIER==='phone'?'desktop':'phone';
+  expect(reads).toEqual(selected);
+  for(const sourceName of grassPresentationFiles(grassRows,other).filter(candidate=>!selected.includes(candidate)))expect(reads).not.toContain(sourceName);
+  expect(paintedWorldOf(product.slug).grass.input.view).toEqual(grassRows.view);
 });
 test.each(['json','file'] as const)('product look refuses replaced %s across raw intake before publication',async key=>{
   let finish:(value:Uint8Array)=>void=()=>{throw new Error('Missing pending reader');};

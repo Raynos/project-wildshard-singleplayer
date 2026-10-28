@@ -41,11 +41,12 @@ export const GrassPresentationSchema:GrassPresentationType = v.object({ height: 
     trail: v.object({ speedLimit: positive, strength: positive }),
     gainFalloff: tuple, saturationFalloff: tuple, tintNight: tuple, tintStorm: tuple }) });
 export type GrassPresentationRows = v.InferOutput<typeof GrassPresentationSchema>;
-/** All declared binary blocks, in row order with duplicate file loans read once. */
-export function grassPresentationFiles(rows: GrassPresentationRows): readonly string[] {
+/** Selected tier plus shared blocks; an omitted tier retains the complete inventory. */
+export function grassPresentationFiles(rows: GrassPresentationRows, selected?: 'phone' | 'desktop'): readonly string[] {
+  const tiers = selected === undefined ? [rows.phone, rows.desktop] : [rows[selected]];
   return [...new Set([rows.height,rows.mask,rows.field,rows.ground,
-    ...Object.values(rows.phone.scenes),...Object.values(rows.desktop.scenes),
-    ...[rows.phone.channels,rows.desktop.channels].flatMap(row=>row===undefined?[]:[row])]
+    ...tiers.flatMap(profile => Object.values(profile.scenes)),
+    ...tiers.flatMap(profile => profile.channels === undefined ? [] : [profile.channels])]
     .flatMap(row=>typeof row==='string'?[]:[row.file]))];
 }
 /** Static capture sizes and tuning; the native passes retain their original programs. */

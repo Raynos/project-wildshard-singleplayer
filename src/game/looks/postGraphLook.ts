@@ -201,18 +201,18 @@ function lentTextures(rows: NonNullable<PostGraphLookRow['textures']>, bag: Unif
 
 /** Read a level's post-graph look from its product file (`field` the path to its row) and make its strategy. */
 export async function postGraphLook(product: { readonly slug: string; readonly json: (name: string) => Promise<unknown>; readonly file?: (name:string)=>Promise<Uint8Array> }, source: { readonly file: string; readonly field: readonly string[] }): Promise<LookStrategy> {
-  const json=product.json,readFile=product.file;
+  const json=product.json,readFile=product.file,tier=TIER;
   const live=():void=>{if(product.json!==json||product.file!==readFile)throw new Error('Painted world product reader changed');};
   let at: unknown = await json.call(product,source.file);live();
   for (const key of source.field) at = typeof at === 'object' && at !== null ? Reflect.get(at, key) : undefined;
   const painted = v.parse(PostGraphLookSchema, at).painted,files=new Map<string,Uint8Array>();
-  if(painted!==undefined)for(const file of grassPresentationFiles(v.parse(GrassPresentationSchema,painted.grass.rows))){
+  if(painted!==undefined)for(const file of grassPresentationFiles(v.parse(GrassPresentationSchema,painted.grass.rows),tier)){
     if(readFile===undefined)throw new Error('Painted world product file reader required');
     live();const bytes=await readFile.call(product,file);live();files.set(file,bytes);
   }
   const look = postGraphLookOf(product.slug, at);
   // a painterly level's painted world (fog, ground, grass, sky) beside its graphs
-  return painted === undefined ? look : { ...look, ...paintedWorld(product.slug, painted,files).look };
+  return painted === undefined ? look : { ...look, ...paintedWorld(product.slug, painted,files,tier).look };
 }
 
 /** A level's post-graph look from its admitted row (`slug` names its LUT): an engine-chain look, or with `scene` its own. */
@@ -381,11 +381,11 @@ const paintedWorlds = new Map<string, PaintedWorldParts>();
 
 /** The painted world of the level `slug` from its rows (the post-graph look's `painted` row), built on the first call of
  *  the page. */
-export function paintedWorld(slug: string, input: unknown, files:ReadonlyMap<string,Uint8Array>=new Map()): PaintedWorldParts {
+export function paintedWorld(slug: string, input: unknown, files:ReadonlyMap<string,Uint8Array>=new Map(), selected?: Tier): PaintedWorldParts {
   const had = paintedWorlds.get(slug);
   if (had !== undefined) return had;
   const row = v.parse(PaintedWorldSchema, input), { fog } = row;
-  const grass = new GrassPresentationProfile(row.grass.rows,files), bake = staticCaptureUniforms(row.capture), air = paintedAir(row.air);
+  const grass = new GrassPresentationProfile(row.grass.rows,files,selected), bake = staticCaptureUniforms(row.capture), air = paintedAir(row.air);
   const fogLut = headingTexture({ samples: fog.lut, stride: 3, half: true, name: `${slug}-fog-lut` });
   const ramp = new ColourRampFog({ start: fog.start, end: fog.end, near: fog.haze, zenith: fog.haze, panorama: { lut: { value: fogLut },
     aerial: { value: v4Of(fog.aerial) }, edge: { value: v4Of(fog.edge) }, tint: panoramaTint } }).model(fog.order);

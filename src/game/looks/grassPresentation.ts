@@ -51,12 +51,12 @@ export class GrassPresentationProfile {
   private readonly instances = new Set<WeakRef<GrassPresentation>>();
   track(instance: GrassPresentation): void { this.instances.add(new WeakRef(instance)); }
   readonly input: GrassPresentationRows;
-  constructor(input: unknown, private readonly files: ReadonlyMap<string,Uint8Array> = new Map()) {
+  constructor(input: unknown, private readonly files: ReadonlyMap<string,Uint8Array> = new Map(), selected?: 'phone' | 'desktop') {
     this.input = v.parse(GrassPresentationSchema,input);
     const payloads=[this.input.height,this.input.mask,this.input.field,this.input.ground,
       ...Object.values(this.input.phone.scenes),...Object.values(this.input.desktop.scenes)];
     if(payloads.some(payload=>typeof payload==='string'))throw new Error('Grass requires binary files');
-    for(const file of grassPresentationFiles(this.input))if(!files.has(file))throw new Error(`Missing grass file ${file}`);
+    for(const file of grassPresentationFiles(this.input,selected))if(!files.has(file))throw new Error(`Missing grass file ${file}`);
     this.uniforms.uGrassGain.value = this.input.view.gain;
   }
   private decode(payload: GrassPayload): Uint8Array<ArrayBuffer> {

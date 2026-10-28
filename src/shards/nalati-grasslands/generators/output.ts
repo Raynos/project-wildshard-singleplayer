@@ -8,7 +8,7 @@ import { nalatiSpeciesProgram } from './speciesProgram';
 import { nalatiHeldSource, type NalatiHeldRows } from './heldMetadata';
 import type { NalatiSpeciesSourceInputs } from './speciesPreparation';
 import { nalatiModelPartsProgram } from './modelPartsProgram';
-import { nalatiPaintedAtlasFile, nalatiPaintedGeometryFile, nalatiPaintedBindings, nalatiPaintedModelNames, nalatiLatePaintedNames, nalatiLateCatalogueNames, nalatiLateDressingNames, nalatiLateHeldNames, nalatiLateFigureNames, nalatiDeferredCatalogueScene } from './modelBindings';
+import { nalatiPaintedAtlasFile, nalatiPaintedGeometryFile, nalatiPaintedBindings, nalatiPaintedModelNames, nalatiLatePaintedNames, nalatiLateCatalogueNames, nalatiLateDressingNames, nalatiLateHeldNames, nalatiLateFigureNames, nalatiLateGrassNames, nalatiDeferredCatalogueScene } from './modelBindings';
 import { nalatiQuestProp } from './questProp';
 import { nalatiBalbalSpecimen } from './balbalSpecimen';
 import modelMetrics from '../data/modelMetrics.json' with { type: 'json' };
@@ -438,6 +438,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
   // collision keeps its world declarations; proof demand still reads it whole.
   for(const source of nalatiPhysicsSources())lateNames.add(source.name);
   for(const name of nalatiLateFigureNames(EXPLORER_CATALOGUE,peopleFrames.atlas))lateNames.add(name);
+  for(const name of nalatiLateGrassNames(grass.rows))lateNames.add(name);
   for(const name of catalogueNames)if(fileByName.has(name))lateNames.add(name);
   for(const name of nalatiLateDressingNames(boundBooks,new Set(fileByName.keys()),shapeDraws))lateNames.add(name);
   const late=[...new Set([...lateNames].map(name=>{

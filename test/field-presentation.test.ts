@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import * as THREE from 'three';
 import { zlibSync } from 'fflate';
 import { parse } from 'valibot';
-import { GrassPresentationSchema, StaticCaptureSchema } from '../src/format/fieldPresentation';
+import { GrassPresentationSchema, StaticCaptureSchema, grassPresentationFiles } from '../src/format/fieldPresentation';
 import { GrassPresentationProfile } from '../src/game/looks/grassPresentation';
 import { STATIC_CONTACT_GRAPH, staticCaptureUniforms } from '../src/game/looks/staticCapture';
 import { validateGraph } from '../src/format/materialGraph';
@@ -23,6 +23,18 @@ const scene = encoded('orchard/scene.bin',new TextEncoder().encode(JSON.stringif
 const tier = { rings:[{T:2,G:2}],flowers:{T:3,G:2},cards:{T:1,s:.4},near:[1,2],per:2,scenes:{blades:scene,flowers:scene,cards:scene} };
 function orchard() { return { height:encoded('orchard/height.bin',new Uint8Array(8)),mask:raster,field:raster,ground:raster,phone:tier,desktop:tier,
   view:{ ...view,looks:['orchard-blades','orchard-petals','orchard-clover'],half:1,heightSize:2,heightOrigin:-1,lattice:2,gain:.7,gainFalloff:[.1,.2,.3],saturationFalloff:[0,0,0],tintNight:[0,0,0],tintStorm:[0,0,0] } }; }
+it('selected grass admission retains shared aliases and strict missing-file guards for either tier',()=>{
+  const shared=orchard(),phoneScene=encoded('orchard/phone-scene.bin',new TextEncoder().encode('{}')),desktopScene=encoded('orchard/desktop-scene.bin',new TextEncoder().encode('{}'));
+  const row=parse(GrassPresentationSchema,{...shared,phone:{...shared.phone,scenes:{blades:phoneScene,flowers:scene,cards:scene}},desktop:{...shared.desktop,scenes:{blades:desktopScene,flowers:scene,cards:scene}}});
+  for(const selectedTier of ['phone','desktop']as const){
+    const selected=grassPresentationFiles(row,selectedTier),prepared=new Map(selected.map(name=>{const bytes=files.get(name);if(bytes===undefined)throw new Error('Missing exact source');return [name,bytes];}));
+    expect(selected).toContain(scene.file);expect(selected).toContain(selectedTier==='phone'?phoneScene.file:desktopScene.file);
+    expect(selected).not.toContain(selectedTier==='phone'?desktopScene.file:phoneScene.file);
+    expect(()=>new GrassPresentationProfile(row,prepared,selectedTier)).not.toThrow();
+    expect(()=>new GrassPresentationProfile(row,prepared)).toThrow('Missing grass file');
+    prepared.delete(scene.file);expect(()=>new GrassPresentationProfile(row,prepared,selectedTier)).toThrow('Missing grass file');
+  }
+});
 it('gives an unrelated orchard its own field, mood and texture lifetime',()=>{
   const profile=new GrassPresentationProfile(orchard(),files);profile.mood(1,0,0);
   expect(profile.uniforms.uGrassGain.value).toBeCloseTo(.56);expect(profile.uniforms.uGrassTint.value.toArray()).toEqual([1,1,1]);

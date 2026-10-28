@@ -175,3 +175,18 @@ export function nalatiLateFigureNames(catalogue: unknown, enteredAtlas: unknown)
   collect(enteredAtlas, early);
   return [...late].filter(name => !early.has(name)).sort();
 }
+
+/** Desktop grass is not drawn on phone. Shared loans stay early; desktop demand awaits its exact files. */
+export function nalatiLateGrassNames(rows: unknown): readonly string[] {
+  if(rows===null||typeof rows!=='object'||!('phone'in rows)||!('desktop'in rows))throw new Error('Missing grass timing tiers');
+  const early=new Set<string>(),desktop=new Set<string>();
+  const collect=(value:unknown,names:Set<string>):void=>{
+    if(Array.isArray(value)){for(const child of value)collect(child,names);return;}
+    if(value===null||typeof value!=='object')return;
+    if('file'in value&&typeof value.file==='string')names.add(value.file);
+    for(const child of Object.values(value))collect(child,names);
+  };
+  for(const key of ['height','mask','field','ground','phone'])collect(Reflect.get(rows,key),early);
+  collect(rows.desktop,desktop);
+  return [...desktop].filter(name=>!early.has(name)).sort();
+}
