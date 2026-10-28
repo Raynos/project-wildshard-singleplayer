@@ -1,17 +1,12 @@
 // Native reference pixels, retained as ordinary lossless product images.
 import { resolve } from 'node:path';
-import { build } from 'vite';
-import { openNativeRaster } from '@wildshard/sdk/bake/nativeRaster';
+import { openNativeRaster, bundleNativeRaster } from '@wildshard/sdk/bake/nativeRaster';
 import { byteWriter, outputHash, browserBakeBytes } from '../../../../scripts/bake-output.mjs';
 import nativeDecals from '../data/nativeDecals.json' with { type: 'json' };
 import { readImagePixels } from '@wildshard/sdk/bake/image';
 
 const root = resolve(import.meta.dirname, '../../../..');
-const result = await build({ configFile: false, logLevel: 'silent', publicDir: false, root,
-  build: { write: false, target: 'esnext', minify: false,
-    lib: { entry: resolve(import.meta.dirname, 'decalAtlasPage.ts'), formats: ['es'] },
-    rolldownOptions: { treeshake: { moduleSideEffects: false }, output: { codeSplitting: false } } } });
-const code = (Array.isArray(result) ? result : [result]).flatMap(bundle => 'output' in bundle ? bundle.output : []).find(chunk => chunk.type === 'chunk')?.code;
+const code = await bundleNativeRaster({ root, entry: resolve(import.meta.dirname, 'decalAtlasPage.ts'), format: 'es', discardModuleSideEffects: true });
 if (code === undefined) throw new Error('Decal painter failed to bundle');
 const writer = byteWriter(process.argv.includes('--check'), 'nine-decal-atlas');
 const session = await openNativeRaster({

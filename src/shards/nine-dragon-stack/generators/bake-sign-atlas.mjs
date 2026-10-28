@@ -4,8 +4,7 @@ import { fixedKitRows, readFixedSlots } from './casts.ts';
 import { resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
-import { build } from 'vite';
-import { openNativeRaster } from '@wildshard/sdk/bake/nativeRaster';
+import { openNativeRaster, bundleNativeRaster } from '@wildshard/sdk/bake/nativeRaster';
 import { byteWriter, outputHash, browserBakeBytes } from '../../../../scripts/bake-output.mjs';
 import { readImagePixels } from '@wildshard/sdk/bake/image';
 import { parseSignView } from './sections.ts';
@@ -15,10 +14,7 @@ const writer = byteWriter(process.argv.includes('--check'), 'nine-sign-atlas');
 // GD2: this explicit asset refresh/check publishes native inputs outside source.
 const outputData = resolve(root, 'public/assets/nine-dragon/authored/sign-atlas');
 const entry = process.env.NINE_SIGN_ENTRY ?? resolve(import.meta.dirname, 'signAtlasPage.ts');
-const result = await build({ configFile: false, logLevel: 'silent', publicDir: false, root,
-  build: { write: false, target: 'esnext', minify: false,
-    lib: { entry, formats: ['iife'], name: 'NineSignBake' }, rolldownOptions: { output: { codeSplitting: false } } } });
-const code = (Array.isArray(result) ? result : [result]).flatMap(b => 'output' in b ? b.output : []).find(c => c.type === 'chunk')?.code;
+const code = await bundleNativeRaster({ root, entry, format: 'iife', name: 'NineSignBake' });
 if (code === undefined) throw new Error('Nine sign page failed to bundle');
 const layout = nineLayoutData();
 const fixed = fixedKitRows(readFixedSlots(layout));

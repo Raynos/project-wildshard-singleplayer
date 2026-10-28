@@ -1,20 +1,13 @@
 // Run through scripts/browser-lane.sh. Native WebKit pixels are committed; product intake is portable.
 import { resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { build } from 'vite';
-import { openNativeRaster } from '@wildshard/sdk/bake/nativeRaster';
+import { openNativeRaster, bundleNativeRaster } from '@wildshard/sdk/bake/nativeRaster';
 import { decodeBuildDeflate } from '@wildshard/sdk/bake/byteCodec';
 import { byteWriter, jsonBytes, outputHash, browserBakeBytes } from '../../../../scripts/bake-output.mjs';
 
 const root = resolve(import.meta.dirname, '../../../..');
 const outputData = resolve(root, 'public/assets/nine-dragon/authored/glyphs');
-const result = await build({
-  configFile: false, logLevel: 'silent', publicDir: false, root,
-  build: { write: false, target: 'esnext', minify: false,
-    lib: { entry: resolve(import.meta.dirname, 'glyphPage.ts'), formats: ['iife'], name: 'NineGlyphBake' },
-    rolldownOptions: { output: { codeSplitting: false } } },
-});
-const code = (Array.isArray(result) ? result : [result]).flatMap(b => 'output' in b ? b.output : []).find(c => c.type === 'chunk')?.code;
+const code = await bundleNativeRaster({ root, entry: resolve(import.meta.dirname, 'glyphPage.ts'), format: 'iife', name: 'NineGlyphBake' });
 if (code === undefined) throw new Error('Nine glyph page failed to bundle');
 const session = await openNativeRaster({
   html: '<!doctype html><meta charset="utf-8"><title>Nine glyph bake</title>', source: code,

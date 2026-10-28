@@ -12,7 +12,7 @@
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { build } from 'vite';
+import { bundleNativeRaster } from '@wildshard/sdk/bake/nativeRaster';
 import { writeImagePixels } from '@wildshard/sdk/bake/image';
 import { COAT_SIZE, coatPixels } from './coatCanvas.ts';
 
@@ -39,11 +39,7 @@ async function coat() {
 
 /** one bake page's module, bundled on its own */
 async function bundlePage(file) {
-  const bundle = await build({
-    configFile: false, logLevel: 'silent', publicDir: false, root: ROOT,
-    build: { write: false, target: 'esnext', minify: false, lib: { entry: resolve(ROOT, 'src/shards/pine-hollow/generators', file), formats: ['es'], fileName: 'pinePaintedPage' }, rolldownOptions: { output: { codeSplitting: false } } },
-  });
-  const code = (Array.isArray(bundle) ? bundle : [bundle]).flatMap((b) => ('output' in b ? b.output : [])).find((c) => c.type === 'chunk')?.code;
+  const code = await bundleNativeRaster({ root: ROOT, entry: resolve(ROOT, 'src/shards/pine-hollow/generators', file), format: 'es', fileName: 'pinePaintedPage' });
   if (code === undefined) throw new Error(`bake-pine-painted: ${file} did not bundle`);
   return code;
 }

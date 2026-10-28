@@ -1,3 +1,4 @@
+import { build } from 'vite';
 import { devices, webkit, type BrowserContextOptions, type Page } from 'playwright';
 
 /** Setup operations required from a native reference page. */
@@ -48,4 +49,25 @@ async function prepareNativeRaster<P extends NativeRasterPage>(input: NativeRast
     await browser.close();
     throw error;
   }
+}
+
+/** Explicit native-reference bundle settings; painters and publication remain caller-owned. */
+export interface NativeRasterBundle {
+  readonly root: string;
+  readonly entry: string;
+  readonly format: 'es' | 'iife';
+  readonly name?: string;
+  readonly fileName?: string;
+  readonly discardModuleSideEffects?: boolean;
+}
+
+/** Bundle one native reference page with the original offline target and split policy.
+ * Missing code stays undefined so the author retains its defining refusal. No Vite plugin is installed. */
+export async function bundleNativeRaster(input: NativeRasterBundle): Promise<string | undefined> {
+  const { root, entry, format, name, fileName, discardModuleSideEffects } = input;
+  const result = await build({ configFile: false, logLevel: 'silent', publicDir: false, root,
+    build: { write: false, target: 'esnext', minify: false,
+      lib: { entry, formats: [format], ...(name === undefined ? {} : { name }), ...(fileName === undefined ? {} : { fileName }) },
+      rolldownOptions: { ...(discardModuleSideEffects === true ? { treeshake: { moduleSideEffects: false } } : {}), output: { codeSplitting: false } } } });
+  return (Array.isArray(result) ? result : [result]).flatMap(bundle => 'output' in bundle ? bundle.output : []).find(chunk => chunk.type === 'chunk')?.code;
 }
