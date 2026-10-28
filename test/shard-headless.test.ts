@@ -12,34 +12,20 @@ import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
 import { productHeadlessSections } from '../src/sdk/headlessSections';
 import { createNativeProofWorker } from './fixtures/headless-worker';
-import { TEMPLATE_SOURCE as template } from './fixtures/templateSource';
-import { PASTEL_SOURCE as pastel } from './fixtures/pastelSource';
-import driftwood from './fixtures/driftwood-product-source';
-import { PINE as pine } from './fixtures/pine-program';
-import nalati from './fixtures/nalati-product-source';
-import nine from './fixtures/nine-product-inputs';
-import { source as signal } from './fixtures/sunscar-source-program';
-import { skyProductRows } from '../src/shards/far-reach/generators/product';
-import { originalSkyNavigation } from './fixtures/sky-navigation';
-import { originalSkyMovers } from './fixtures/sky-movers';
-
-const sky = skyProductRows(originalSkyNavigation(), originalSkyMovers());
-
-const cases = [
-  ['_template', template, false], ['pastel-plain', pastel, false],
-  ['driftwood-isle', driftwood, true], ['pine-hollow', pine, true],
-  ['nalati-grasslands', nalati, true], ['nine-dragon-stack', nine, true],
-  ['sunscar-dunes', signal, false], ['far-reach', sky, false],
-] as const;
+// Admit the same verified products the native scenarios run. Authored-world
+// fixtures are deliberately loaded only after all native workers are disposed.
+const cases = await Promise.all([
+  '_template', 'pastel-plain', 'driftwood-isle', 'pine-hollow',
+  'nalati-grasslands', 'nine-dragon-stack', 'sunscar-dunes', 'far-reach',
+].map(async slug => ({ slug, product: await loadHeadlessProduct(builtProduct(slug)) })));
 
 // Each simulation owns a separate native worker. Overlap two independent
 // starts/tick tapes without multiplying the file's peak native residency by five.
 vi.setConfig({ maxConcurrency: 2 });
 afterAll(() => { vi.resetConfig(); });
 
-
 // Compatibility means a living headless shard, never a historical fingerprint or replay suffix.
-for (const [slug, _input] of cases) it.concurrent(`${slug}: boots and advances a living headless simulation`, async () => {
+for (const { slug } of cases) it.concurrent(`${slug}: boots and advances a living headless simulation`, async () => {
   const directory = builtProduct(slug), product = await loadHeadlessProduct(directory), source = product.shardfile;
   const descriptor = outputDescriptor(source); if (descriptor === undefined) throw new Error('Missing admitted headless inventory');
   const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash,
@@ -65,7 +51,7 @@ for (const [slug, _input] of cases) it.concurrent(`${slug}: boots and advances a
   } finally { await sim.dispose(); }
 }, 120_000);
 
-for (const [slug, input] of cases) for (const row of parseShardfile(input).quests.quests) it(`${slug}: ${row.title} completes without repeating its completion`, () => {
+for (const { slug, product } of cases) for (const row of product.shardfile.quests.quests) it(`${slug}: ${row.title} completes without repeating its completion`, () => {
   const flags = new Flags(`behaviour.${slug}`, false), quest = new QuestState(row, flags);
   let completed = false, repeated = false;
   quest.observe({ complete: () => { if (completed) repeated = true; completed = true; } });
@@ -82,3 +68,25 @@ for (const [slug, input] of cases) for (const row of parseShardfile(input).quest
     expect(repeated).toBe(false);
   } finally { quest.dispose(); }
 });
+
+// Keep the independent source oracle, but never overlap its compiler/Wasm world
+// construction with the native workers above. Compare complete inventories so a
+// producer cannot silently drop a quest (or its flags, triggers or dialogue).
+it('admitted quest inventories match the original source declarations', async () => {
+  const [template, pastel, driftwood, pine, nalati, nine, signal, skyRows, navigation, movers] = await Promise.all([
+    import('./fixtures/templateSource'), import('./fixtures/pastelSource'),
+    import('./fixtures/driftwood-product-source'), import('./fixtures/pine-program'),
+    import('./fixtures/nalati-product-source'), import('./fixtures/nine-product-inputs'),
+    import('./fixtures/sunscar-source-program'), import('../src/shards/far-reach/generators/product'),
+    import('./fixtures/sky-navigation'), import('./fixtures/sky-movers'),
+  ]);
+  const expected = {
+    '_template': template.TEMPLATE_SOURCE, 'pastel-plain': pastel.PASTEL_SOURCE,
+    'driftwood-isle': driftwood.default, 'pine-hollow': pine.PINE,
+    'nalati-grasslands': nalati.default, 'nine-dragon-stack': nine.default,
+    'sunscar-dunes': signal.source,
+    'far-reach': skyRows.skyProductRows(navigation.originalSkyNavigation(), movers.originalSkyMovers()),
+  };
+  expect(Object.fromEntries(cases.map(({ slug, product }) => [slug, product.shardfile.quests])))
+    .toStrictEqual(Object.fromEntries(Object.entries(expected).map(([slug, input]) => [slug, parseShardfile(input).quests])));
+}, 120_000);

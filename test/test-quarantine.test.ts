@@ -18,10 +18,10 @@ test('quarantine preserves the whole suite and returns expired cases to blocking
   expect(() => activeQuarantines(registry, Number.NaN)).toThrow('Invalid quarantine clock');
 });
 
-test('D15 creature arithmetic stays blocking without a reporting quarantine', () => {
-  const repaired = ['test/nalati-creature-views.test.ts'];
+test('D15 qualified suites stay blocking without a reporting quarantine', () => {
+  const repaired = ['test/nalati-creature-views.test.ts', 'test/shard-headless.test.ts'];
   const listed = readQuarantines(process.cwd(), true);
-  expect(listed.some(row => row.file === repaired[0])).toBe(false);
+  expect(listed.some(row => repaired.includes(row.file))).toBe(false);
   expect(quarantineCohort(repaired, listed, 'product-free')).toEqual(repaired);
   expect(quarantineCohort(repaired, listed, 'quarantine')).toEqual([]);
 });
