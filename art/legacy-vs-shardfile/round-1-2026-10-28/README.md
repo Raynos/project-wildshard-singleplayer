@@ -51,10 +51,11 @@ standing eye and the same coordinates in both modes.
 
 **Sky Reach:** on this captured pin the native spawn / hover / windmill
 views lack rock underbodies and vegetation visible in LEGACY. The
-sheet explicitly labels this difference. It is routed to sp-o5's
-far-stand-in work; a causal first bad commit is not established. This
-batch predates later CO1 source and does not claim that work fixes it.
-The difference is also retained in BURN-DAMAGE-LIST.
+sheet explicitly labels this difference. This graphical gap has no
+confirmed owner: sp-o5 confirms its CO1 stand-in work covers Driftwood
+only and no landed Sky Reach fix is known. A causal first bad commit
+is not established. STATE links this batch for coordinator routing;
+the difference is retained in BURN-DAMAGE-LIST.
 
 ## LD4 Node gaps, retained explicitly
 
