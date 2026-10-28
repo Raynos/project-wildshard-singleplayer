@@ -1,4 +1,4 @@
-import * as v from 'valibot';
+import { defineNamedRows } from '@wildshard/sdk/formatJsonSchema';
 import * as DUNES from '../duneRows';
 import type { AuthorDayClock as DayClockRow } from '@wildshard/sdk/rows';
 import { DUSK_CURVES } from './dusk';
@@ -7,6 +7,13 @@ import { SKY_LOOK, type DuskSkyRow } from './familyLook';
 import { PAINTED_URLS } from './files';
 
 type Rgb = readonly [number, number, number];
+
+const number = { kind: 'number' } as const;
+const rgb = { kind: 'tuple', items: [number, number, number] } as const;
+const sandTint = defineNamedRows({ kind: 'object', mode: 'strip', entries: {
+  sand: rgb, hollow: rgb, crest: rgb, ring: number, span: number, hollowGain: number,
+  crestGain: number, skirtHollow: number,
+} }).parse(DUNES.SAND_TINT);
 
 /** A dusk look's sand tint: a vertex's height against its `ring` m ring mean, over `span` m, lerps the sand toward the
  *  hollow (× `hollowGain`) or the crest (× `crestGain`); the skirt is the sand `skirtHollow` toward the hollow. */
@@ -68,6 +75,6 @@ export const SIGNAL_DUSK_LOOK: DuskLookRow = {
   fog: FOG, key: { dir: KEY_DIR, color: KEY_LIGHT.color, deep: DEEP_KEY, intensity: KEY_LIGHT.intensity }, clock: DUSK_CLOCK,
   curves: DUSK_CURVES,
   // Validate the JSON RGB arity before passing the tint to the existing look.
-  tint: v.parse(v.object({ sand: v.tuple([v.number(), v.number(), v.number()]), hollow: v.tuple([v.number(), v.number(), v.number()]), crest: v.tuple([v.number(), v.number(), v.number()]), ring: v.number(), span: v.number(), hollowGain: v.number(), crestGain: v.number(), skirtHollow: v.number() }), DUNES.SAND_TINT), skirt: { grid: SKIRT_GRID, swell: SKIRT_SWELL },
+  tint: sandTint, skirt: { grid: SKIRT_GRID, swell: SKIRT_SWELL },
   sky: { ...SKY_LOOK, strips: [{ key: 'early', url: PAINTED_URLS.early }, { key: 'late', url: PAINTED_URLS.late }], tag: 'sunscar.sky', fault: '[sunscar-dunes] painted sky', scope: 'sunscar-dunes.sky' },
 };

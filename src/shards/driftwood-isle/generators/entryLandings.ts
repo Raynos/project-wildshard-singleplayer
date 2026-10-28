@@ -1,22 +1,22 @@
-import * as v from 'valibot';
+import { defineNamedRows } from '@wildshard/sdk/formatJsonSchema';
 import { driftwoodEntryFloorRows } from './entryFloors';
 import { ENTRY_ROWS as authoredEntryRows } from './entryRows';
 
 const { DRY_ENTRIES } = authoredEntryRows;
+const finite = { kind: 'number', finite: true } as const;
+const extent = { ...finite, min: 0.005, max: 250 } as const;
+const box = { kind: 'object', mode: 'strict', entries: { kind: { kind: 'literal', value: 'box' }, x: finite, y: finite, z: finite,
+  hx: extent, hy: extent, hz: extent, surface: { kind: 'literal', value: 'stone' } } } as const;
+const landing = { kind: 'object', mode: 'strict', entries: { edge: { kind: 'picklist', values: DRY_ENTRIES }, box } } as const;
+const transport = defineNamedRows({ kind: 'object', mode: 'strict', entries: {
+  notice: { kind: 'string', startsWith: 'DO NOT EDIT:' }, rows: { kind: 'array', item: landing, length: 4 },
+} }, value => value.rows.every((row, index) => row.edge === DRY_ENTRIES[index]), 'original entry registration order');
 
-const finite = v.pipe(v.number(), v.finite());
-const extent = v.pipe(finite, v.minValue(0.005), v.maxValue(250));
-const box = v.strictObject({ kind: v.literal('box'), x: finite, y: finite, z: finite,
-  hx: extent, hy: extent, hz: extent, surface: v.literal('stone') });
-const landing: v.StrictObjectSchema<{ readonly edge: v.PicklistSchema<["north", "east", "south", "west"], undefined>; readonly box: v.StrictObjectSchema<{ readonly kind: v.LiteralSchema<"box", undefined>; readonly x: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>; readonly y: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>; readonly z: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>; readonly hx: v.SchemaWithPipe<readonly [v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>, v.MinValueAction<number, 0.005, undefined>, v.MaxValueAction<number, 250, undefined>]>; readonly hy: v.SchemaWithPipe<readonly [v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>, v.MinValueAction<number, 0.005, undefined>, v.MaxValueAction<number, 250, undefined>]>; readonly hz: v.SchemaWithPipe<readonly [v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>]>, v.MinValueAction<number, 0.005, undefined>, v.MaxValueAction<number, 250, undefined>]>; readonly surface: v.LiteralSchema<"stone", undefined>; }, undefined>; }, undefined> = v.strictObject({ edge: v.picklist(DRY_ENTRIES), box });
-const transport = v.pipe(v.strictObject({ notice: v.pipe(v.string(), v.startsWith('DO NOT EDIT:')),
-  rows: v.pipe(v.array(landing), v.length(4)) }),
-  v.check(value => value.rows.every((row, index) => row.edge === DRY_ENTRIES[index]), 'original entry registration order'));
 /** One immutable landing: the native world and shardfile consume the same admitted row. */
-export type EntryLanding = v.InferOutput<typeof landing>;
+export type EntryLanding = ReturnType<typeof transport.parse>['rows'][number];
 /** Refuse malformed cached data before it reaches the native collider owner. */
 function decodeEntryLandings(source: unknown): EntryLanding[] {
-  return v.parse(transport, source).rows;
+  return transport.parse(source).rows;
 }
 /** Native slabs compiled at build time; no runtime recipe or generator enters the client. */
 export const ENTRY_LANDINGS: readonly EntryLanding[] = decodeEntryLandings(driftwoodEntryFloorRows());
