@@ -13,7 +13,7 @@ afterEach(async () => {
   for (const window of windows.splice(0)) await window.happyDOM.close();
   document.body.innerHTML = '';
 });
-function firstDocument(search: string, frames?: Frames): Window {
+function firstDocument(search: string, frames?: Frames, developer = false): Window {
   const window = new Window({ url: `https://launch.test/${search}`, width: 402, height: 874, settings: {
     enableJavaScriptEvaluation: true, disableJavaScriptFileLoading: true, disableCSSFileLoading: true,
     enableImageFileLoading: false, handleDisabledFileLoadingAsSuccess: true,
@@ -26,6 +26,9 @@ function firstDocument(search: string, frames?: Frames): Window {
   }
   windows.push(window);
   window.document.write(html);
+  // Happy DOM does not retain the head's lexical homeParams across script tags;
+  // the real storage-to-Developer gate is covered by the two-engine phone run.
+  if (developer) window.document.documentElement.dataset['dev'] = '';
   return window;
 }
 
@@ -62,7 +65,7 @@ test('a selected shard keeps its existing loader and does not preload the title 
 });
 
 test('a title handoff restarts the inline clock without application modules', async () => {
-  const window = firstDocument(''), root = window.document.querySelector('.ws-load[data-shell]');
+  const window = firstDocument('', undefined, true), root = window.document.querySelector('.ws-load[data-shell]');
   if (!(root instanceof window.HTMLElement)) throw new Error('Missing inline shell');
   const name = root.querySelector('[data-el="slug"]'); if (name === null) throw new Error('Missing destination');
   name.textContent = 'A different island'; root.dataset['navigation'] = '';
@@ -70,6 +73,9 @@ test('a title handoff restarts the inline clock without application modules', as
   window.document.dispatchEvent(new window.Event('ws:loading-navigation'));
   expect(root.dataset['step']).toBe('navigation.document');
   expect(name.textContent).toBe('A different island');
+  const clock = root.querySelector('[data-el="clock"]');
+  if (!(clock instanceof window.HTMLElement)) throw new Error('Missing clock');
+  expect(window.getComputedStyle(clock).display).not.toBe('none');
   await new Promise(resolve => { setTimeout(resolve, 180); });
   expect(root.querySelector('[data-el="clock"]')?.textContent).not.toBe('00:00.0');
 });
