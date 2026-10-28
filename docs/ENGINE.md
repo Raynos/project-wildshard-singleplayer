@@ -3391,6 +3391,8 @@ the assembled declaration still passes `parseShardfile` and its cross-field rule
 Build-only `@wildshard/sdk/noise`: seeded simplex, `fbm`, `ridged`,
 `smoothstep`, `clamp`, `lerp`. `bake/annulus` retains ring channel order;
 `bake/primitives` owns rocks, timbers, planks, ropes, sag lines and triangles.
+`bake/simplifier.prepareGeometrySimplifier` retains the explicit asynchronous author readiness boundary;
+`simplifyPaintedGeometry` compacts kept colour/normal vertices in native first-use order.
 `bake/placement` owns contact/pose data, `FloorRect`, `specimenKey`,
 `boxDesc`, `siteFloor`; native rotation/clamp semantics. `bakeModelPose` compiles an owned YXZ model matrix,
 capturing coordinates and three scale reads before private scratch, including recursive author getters.

@@ -3,6 +3,9 @@ import { MeshoptSimplifier } from 'meshoptimizer/simplifier';
 
 await MeshoptSimplifier.ready;
 
+/** Preserve an author's explicit asynchronous readiness boundary before compiling owned geometry. */
+export function prepareGeometrySimplifier(): Promise<void> { return MeshoptSimplifier.ready; }
+
 /** Author bakes simplify through the SDK (shard generators import only three, the SDK and commons): meshoptimizer's
  *  simplifier on an indexed position set, keeping every surface within `error` metres. Borders are free unless
  *  `lockBorder`. Returns the kept triangle indices. */

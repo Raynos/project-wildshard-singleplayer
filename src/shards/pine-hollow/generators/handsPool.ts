@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { MeshoptSimplifier } from 'meshoptimizer';
+import { prepareGeometrySimplifier, simplifyPaintedGeometry } from '@wildshard/sdk/bake/simplifier';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { bakeArmColour as lin, bakeArmPalette as armPalette, bakeGloveFist as gloveFist, bakeRiderArm as riderArm } from '@wildshard/sdk/bake/riderArms';
 import BASE_ARM_STYLE from '../data/armsStyle.json' with {type:'json'};
@@ -327,33 +327,8 @@ function staveRest(look: StaveBowLook, fist: Geo): { geometry: Geo; ringU: numbe
  *  and normals (the folds) so the pattern and silhouette keep where they change. Kept vertices keep their own normals. */
 const SLEEVE_VERTS = 7000;
 function decimate(g: Geo, verts: number): Geo {
-  const p = g.getAttribute('position'), n = g.getAttribute('normal'), c = g.getAttribute('color'), src = g.getIndex();
-  if (src === null) throw new Error('[pine-hollow hands pool] a sleeve to decimate must be indexed');
-  const count = p.count, pos = new Float32Array(count * 3), attr = new Float32Array(count * 6);
-  for (let i = 0; i < count; i++) {
-    pos[i * 3] = p.getX(i); pos[i * 3 + 1] = p.getY(i); pos[i * 3 + 2] = p.getZ(i);
-    attr.set([c.getX(i), c.getY(i), c.getZ(i), n.getX(i), n.getY(i), n.getZ(i)], i * 6);
-  }
-  const index = Uint32Array.from({ length: src.count }, (_, i) => src.getX(i));
-  const target = Math.round(index.length * (verts / count) / 3) * 3;
-  const [kept] = MeshoptSimplifier.simplifyWithAttributes(index, pos, 3, attr, 6, [12, 12, 12, 1, 1, 1], null, target, 0.05);
-  const remap = new Int32Array(count).fill(-1), order: number[] = [];
-  const out = new Uint32Array(kept.length);
-  for (let i = 0; i < kept.length; i++) {
-    const v = kept[i] ?? 0;
-    let m = remap[v] ?? -1;
-    if (m < 0) { m = order.length; remap[v] = m; order.push(v); }
-    out[i] = m;
-  }
-  const take = (a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute): THREE.BufferAttribute => {
-    const o = new Float32Array(order.length * 3);
-    order.forEach((v, i) => { o[i * 3] = a.getX(v); o[i * 3 + 1] = a.getY(v); o[i * 3 + 2] = a.getZ(v); });
-    return new THREE.BufferAttribute(o, 3);
-  };
-  const d = new THREE.BufferGeometry();
-  d.setAttribute('position', take(p)); d.setAttribute('normal', take(n)); d.setAttribute('color', take(c));
-  d.setIndex(new THREE.BufferAttribute(out, 1));
-  return d;
+  if (g.getIndex() === null) throw new Error('[pine-hollow hands pool] a sleeve to decimate must be indexed');
+  return simplifyPaintedGeometry(g, { vertices: verts, colourWeight: 12, normalWeight: 1, error: 0.05 });
 }
 
 // ───────────────────────────── the pool ─────────────────────────────
@@ -384,7 +359,7 @@ function gripWrap(look: StaveBowLook, u: number, ph: number, sign: number): numb
 
 /** Every hand and Longbow part as one rest-geometry pool GLB, and the rows the runtime reads it by. */
 async function buildHandsPool() {
-  await MeshoptSimplifier.ready;
+  await prepareGeometrySimplifier();
   const parts = new Map<string, Geo>();
   const hands: Record<string, { geometry: string; sleeve: string | null; wrist: V3; dir: V3 }> = {};
   for (const [name, held, mirror] of HAND_SPECS) {
