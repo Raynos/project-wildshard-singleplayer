@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { activeQuarantines, quarantineCohort } from '../scripts/test-quarantine';
+import { activeQuarantines, quarantineCohort, readQuarantines } from '../scripts/test-quarantine';
 
 test('quarantine preserves the whole suite and returns expired cases to blocking CI', () => {
   const row = { file: 'test/owner.test.ts', owner: 'lane', openedAt: '2026-10-27T07:00:00Z', expiresAt: '2026-10-28T07:00:00Z', reason: 'retained flake' };
@@ -16,4 +16,12 @@ test('quarantine preserves the whole suite and returns expired cases to blocking
   expect(() => activeQuarantines({ ...registry, entries: [{ ...row, owner: '' }] })).toThrow();
   expect(() => activeQuarantines({ ...registry, entries: [{ ...row, expiresAt: '2026-10-29T07:00:00Z' }] })).toThrow();
   expect(() => activeQuarantines(registry, Number.NaN)).toThrow('Invalid quarantine clock');
+});
+
+test('D15 creature arithmetic stays blocking without a reporting quarantine', () => {
+  const repaired = ['test/nalati-creature-views.test.ts'];
+  const listed = readQuarantines(process.cwd(), true);
+  expect(listed.some(row => row.file === repaired[0])).toBe(false);
+  expect(quarantineCohort(repaired, listed, 'product-free')).toEqual(repaired);
+  expect(quarantineCohort(repaired, listed, 'quarantine')).toEqual([]);
 });

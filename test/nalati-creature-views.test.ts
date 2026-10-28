@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { BufferGeometry, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, Vector3 } from 'three';
+import { BufferGeometry, Color, type ColorSpace, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, Vector3 } from 'three';
 import { App } from '../src/engine/app/app';
 import { Scope } from '../src/engine/app/scope';
 import { createLevelInstallation } from '../src/engine/level/installation';
@@ -33,6 +33,14 @@ const crack = (a: Actor): MeshBasicMaterial => {
   return mesh.material;
 };
 
+/** Extra diagnostic reads cannot spend time in this arithmetic-only fixture. */
+class DiagnosticColor extends Color {
+  override setRGB(r: number, g: number, b: number, colorSpace?: ColorSpace): this {
+    for (let read = 0; read < 32; read++) performance.now();
+    return super.setRGB(r, g, b, colorSpace);
+  }
+}
+
 /** The original animateBalbal / animateEagle arithmetic over a reference memory. */
 function original(a: Actor, ref: Ref, t: number, dt: number): { glow: number; yOffset: number } {
   const m = a.mem, g = ground(a.position.x, a.position.z);
@@ -60,14 +68,16 @@ test('balbal glow and height and eagle height match the original animate arithme
   const rising = actor('rising', 'balbal', 4, { field: 1 }), dungeon = actor('dungeon', 'balbal', -6, { floorY: -12 }, false);
   const dying = actor('dying', 'balbal', 9, {}), eagle = actor('eagle', 'eagle', 20, {}, false), horse = actor('horse', 'horse', 1, {}, false);
   const animals: Actor[] = [horse, rising, dungeon, dying, eagle];
+  const lit = crack(rising); lit.color = new DiagnosticColor().copy(lit.color);
   Object.defineProperty(ctx.game, 'runtime', { value: { world: { registry: new WorldRegistry(), player: { position: new Vector3(), velocity: new Vector3(), yaw: 0 }, game: { camera } },
     play: { animals: { animals } } } });
   const systems: Parameters<typeof ctx.system>[0][] = [];
   const install = vi.spyOn(ctx, 'system').mockImplementation(row => { systems.push(row); });
   setTerrainHeight(ground);
-  // This arithmetic oracle runs every frame; separate ViewLane tests own adaptive overrun cadence.
+  // One diagnostic instant per displayed frame: extra observer reads do not
+  // spend a fake CPU budget. Separate ViewLane tests own adaptive cadence.
   let elapsed = 0;
-  const clock = vi.spyOn(performance, 'now').mockImplementation(() => { elapsed += .05; return elapsed; });
+  const clock = vi.spyOn(performance, 'now').mockImplementation(() => elapsed);
   try {
     installViewProgram(ctx, feature, module);
     const system = systems[0]; if (system === undefined) throw new Error('Missing creature views');
@@ -84,7 +94,7 @@ test('balbal glow and height and eagle height match the original animate arithme
       if (frame === 3) dungeon.mesh.add(Object.assign(new Mesh(new BufferGeometry(), new MeshBasicMaterial({ color: 0xff7519 })), { name: 'balbal-cracks' }));
       if (frame >= 5) eagle.mem['altY'] = 40 + Math.sin(frame * .1) * 3;
       if (frame === 60) { eagle.mem['altY'] = 31; eagle.mem['altS'] = 31; refs.set(eagle, { deathT: -1, deadT: 0, altS: 31 }); }
-      t += dt; system.run(dt, t);
+      t += dt; elapsed += .05; system.run(dt, t);
       for (const a of [rising, dungeon, dying, eagle]) {
         const ref = refs.get(a); if (ref === undefined) throw new Error('Missing reference');
         const want = original(a, ref, t, dt);
