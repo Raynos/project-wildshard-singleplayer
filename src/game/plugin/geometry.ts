@@ -1757,7 +1757,8 @@ const WholePartition = wholeV.pipe(wholeV.strictObject({ id: wholeV.string(), ve
   // The proof lives only in this parsed row: caller-owned explicit arrays
   // never qualify, even when they currently look like a complete run.
   wholeV.transform(row => ({ ...row, get vertices(): number[] { return row.vertices.values; },
-    get vertexLength(): number { return row.vertices.length; }, triangles: row.triangles.values, denseVertices: row.vertices.dense })));
+    get vertexLength(): number { return row.vertices.length; }, get triangles(): number[] { return row.triangles.values; },
+    get triangleLength(): number { return row.triangles.length; }, denseVertices: row.vertices.dense, denseTriangles: row.triangles.dense })));
 function isWholeMesh(node: Object3D): node is Mesh { return node instanceof Mesh; }
 function wholeStorage(row: wholeV.InferOutput<typeof WholeAttribute>, count: number): BufferAttribute {
   const n = row.itemSize * count;
@@ -1936,10 +1937,11 @@ class WholeGeometryAssembler {
           } else for (let i = 0; i < fromSize; i++) to[write + i] = from[read + i] ?? 0;
         }
       }
-      const index = input.getIndex()?.array ?? null, output = group.output.index?.array ?? null, done = group.triangles, triangles = row.triangles;
+      const index = input.getIndex()?.array ?? null, output = group.output.index?.array ?? null, done = group.triangles;
+      const triangles = row.denseTriangles ? undefined : row.triangles, triangleLength = row.denseTriangles ? row.triangleLength : 0;
       const integerIndex = wholeUnsignedIndex(index);
-      for (let local = 0; local < triangles.length; local++) {
-        const triangle = triangles[local] ?? Number.NaN;
+      for (let local = 0; local < (triangles?.length ?? triangleLength); local++) {
+        const triangle = triangles === undefined ? local : triangles[local] ?? Number.NaN;
         if (!(triangle < done.length) || done[triangle] === 1) throw new Error('Whole duplicate or invalid triangle');
         for (let corner = 0; corner < 3; corner++) {
           const at = index === null ? local * 3 + corner : index[local * 3 + corner] ?? local * 3 + corner;

@@ -298,3 +298,25 @@ test.each(['borrow', 'take'] as const)('whole assembly reads and admits native m
   try { expect(reads).toBe(1); expect(result.size).toBe(1); }
   finally { for (const view of result.values()) view.geometry.dispose(); node.geometry.dispose(); }
 });
+
+test('non-monotonic triangle runs keep the explicit ordinal and complete channel bytes', () => {
+  const explicit = completeTriangles('u32', false), encoded = completeTriangles('u32', true);
+  const metadata = { id: 'triangles', vertices: { runs: [0, 6] }, vertexCount: 6, indexCount: 6, index: 'u32' };
+  explicit.userData['wholePartition'] = { ...metadata, triangles: [1, 0] };
+  encoded.userData['wholePartition'] = { ...metadata, triangles: { runs: [1, 1, 0, 1] } };
+  const a = assembleWholeGeometryViews([explicit]), b = assembleWholeGeometryViews([encoded]);
+  try {
+    const before = a.get('triangles'), after = b.get('triangles');
+    if (before === undefined || after === undefined) throw new Error('Missing assembled triangles');
+    expect(facts(after.geometry)).toEqual(facts(before.geometry));
+  }
+  finally { for (const view of [...a.values(), ...b.values()]) view.geometry.dispose(); explicit.geometry.dispose(); encoded.geometry.dispose(); }
+});
+
+test.each(['outside', 'spoofed-length'] as const)('lazy triangle runs keep %s refusal', kind => {
+  const node = completeTriangles('u32', true), row: unknown = node.userData['wholePartition'];
+  if (typeof row !== 'object' || row === null) throw new Error('Missing triangle metadata');
+  node.userData['wholePartition'] = kind === 'outside' ? { ...row, triangles: { runs: [0, 3] } } : { ...row, triangleLength: 0 };
+  try { expect(() => assembleWholeGeometryViews([node], 'take')).toThrow(); }
+  finally { node.geometry.dispose(); }
+});
