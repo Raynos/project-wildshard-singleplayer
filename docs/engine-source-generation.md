@@ -205,3 +205,8 @@ Defaulted fields remain optional in `NamedRowInput` and required in parsed
 output; exact optionals retain their explicit-undefined policy. Lending a
 contract's `schema` to a parent preserves separate transformed-leaf input
 and output types, so identity admission never claims a parsed value.
+
+`NamedRows.safeParse(input)` exposes the same native non-throwing result as
+the defining parser, including parsed defaults, detached output and complete
+issues. Use it when a source retains a paired declaration refusal message;
+validation still runs against the complete grammar before publication.

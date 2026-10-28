@@ -8,7 +8,7 @@ import { POI_CLEARINGS } from './clearings';
 import { KOKPAR, KURGANS, SUMMER_YURTS } from './layout';
 import * as THREE from 'three';
 import { encodePortableBytes } from '@wildshard/sdk/bake/portableBytes';
-import { authorFormatSchema, namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { authorFormatSchema, namedJsonSchema, defineNamedRows, type NamedRows, type NamedRowValue } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { writeGeometry, join } from './geometryWriter';
@@ -17,7 +17,7 @@ import { nalatiPoiScenes } from './poiScenes';
 import { nalatiSpecimenRows } from './specimenRows';
 import contactInput from '../data/poiContacts.json' with {type:'json'};
 import atlases from '../data/signAtlases.json' with {type:'json'};
-import * as v from 'valibot';
+import { parseSectionValue } from '@wildshard/sdk/sections';
 
 const SceneDressingSchema: ReturnType<typeof authorFormatSchema<'sceneDressing.SceneDressingSchema'>> = authorFormatSchema('sceneDressing.SceneDressingSchema');
 const SceneBakedGeometrySchema: ReturnType<typeof authorFormatSchema<'sceneDressing.SceneBakedGeometrySchema'>> = authorFormatSchema('sceneDressing.SceneBakedGeometrySchema');
@@ -30,63 +30,68 @@ const SpecimenAssetSchema: ReturnType<typeof authorFormatSchema<'specimenCatalog
 const AmbientFlockSchema: ReturnType<typeof authorFormatSchema<'ambientLife.AmbientFlockSchema'>> = authorFormatSchema('ambientLife.AmbientFlockSchema');
 const AmbientPerchesSchema: ReturnType<typeof authorFormatSchema<'ambientLife.AmbientPerchesSchema'>> = authorFormatSchema('ambientLife.AmbientPerchesSchema');
 const PrivateSceneSchema: ReturnType<typeof authorFormatSchema<'clientChannels.PrivateSceneSchema'>> = authorFormatSchema('clientChannels.PrivateSceneSchema');
-type SceneDressingRows = v.InferOutput<typeof SceneDressingSchema>;
+type SceneDressingRows = NamedRowValue<typeof SceneDressingSchema>;
 
-const text=v.string(),number=v.number(),xyz=v.tuple([number,number,number]);
-const memberSchema=v.object({draw:v.picklist(['instanced','merged']),placements:v.array(v.object({x:number,y:number,z:number,yaw:v.exactOptional(number),heading:v.exactOptional(v.tuple([number,number])),matrix:v.exactOptional(v.array(number))})),boxes:v.array(number),floors:v.array(SceneFloorSchema),solid:v.array(v.unknown()),descs:v.array(v.unknown())});
+const text=defineNamedRows({ kind: 'string' }).schema,number=defineNamedRows({ kind: 'number' }).schema,xyz=defineNamedRows({ kind: 'tuple', items: [number,number,number] }).schema;
+const memberSchema=defineNamedRows({ kind: 'object', mode: 'strip', entries: {draw:{ kind: 'picklist', values: ['instanced','merged'] },placements:{ kind: 'array', item: { kind: 'object', mode: 'strip', entries: {x:number,y:number,z:number,yaw:{ kind: 'exact-optional', item: number },heading:{ kind: 'exact-optional', item: { kind: 'tuple', items: [number,number] } },matrix:{ kind: 'exact-optional', item: { kind: 'array', item: number } }} } },boxes:{ kind: 'array', item: number },floors:{ kind: 'array', item: SceneFloorSchema },solid:{ kind: 'array', item: { kind: 'unknown' } },descs:{ kind: 'array', item: { kind: 'unknown' } }} }).schema;
 // Private author input only; the emitted scene retains its existing public admission.
-const decorativeProfile=v.object({
-  horses:v.object({total:number,random:v.object({version:number,state:number,initial:number,scrambledFork:v.boolean()}),
-    member:memberSchema,herds:v.array(v.object({x:number,z:number,r:number,horses:v.array(v.object({x:number,z:number,yaw:number,turn:number,speed:number,s:number,c:number}))}))}),
-  lotus:v.object({scene:v.unknown(),poses:v.array(v.unknown()),member:memberSchema}),
-});
-const decorativeProfiles=v.object({phone:decorativeProfile,desktop:decorativeProfile});
-const place=v.object({name:text,tris:number,anchors:v.optional(v.object({riders:v.optional(v.array(v.object({t:number,k:number,w:number,bob:number})),[])}),{riders:[]}),instances:v.array(v.tuple([text,v.object({asset:SpecimenAssetSchema,scene:PrivateSceneSchema})])),effects:v.array(v.tupleWithRest([text,xyz],v.unknown())),members:v.array(v.tuple([text,memberSchema])),meshes:v.array(v.object({material:text,offset:number,geometry:SceneBakedGeometrySchema}))});
-const preparedSchema=v.object({places:v.object({rows:v.array(place)}),dressing:v.object({rows:v.array(v.object({key:text,offset:number,geometry:SceneBakedGeometrySchema}))})});
-const materialsSchema=v.record(text,SpecimenMaterialSchema);
-const specimensSchema: v.ObjectSchema<{ catalogue: typeof SpecimenCatalogueSchema; packed: typeof PackedSpecimenSchema;
-  materials: v.RecordSchema<v.StringSchema<undefined>, typeof SpecimenMaterialSchema, undefined>;
-  assets: v.RecordSchema<v.StringSchema<undefined>, typeof SpecimenAssetSchema, undefined> }, undefined>
-  =v.object({catalogue:SpecimenCatalogueSchema,packed:PackedSpecimenSchema,materials:materialsSchema,assets:v.record(text,SpecimenAssetSchema)});
-const profileSchema=v.object({catalogue:SpecimenCatalogueSchema,packed:PackedSpecimenSchema,life:v.array(v.object({kind:text,row:AmbientFlockSchema,perches:AmbientPerchesSchema}))});
-const coverSchema=v.object({phone:profileSchema,desktop:profileSchema,materials:materialsSchema,butterflies:v.object({phone:number,desktop:number}),hue:v.array(v.union([text,number])),raptors:number});
-const paintContact={origins:v.array(v.tuple([number,number,number,number]))};
-const paintSchema=v.object({glacierSnout:v.object({x:number,y:number,z:number}),rows:v.array(v.object({key:text,name:text,geometry:SceneBakedGeometrySchema,bounds:v.exactOptional(v.tuple([number,number,number,number,number,number]))})),contacts:v.record(text,v.record(text,v.union([
-  v.object({...paintContact,file:text}),v.object({...paintContact,points:text}),
-])))});
-const balbalSchema=v.object({catalogue:SpecimenCatalogueSchema,generated:SpecimenAssetSchema,sites:v.record(text,v.unknown())});
+const decorativeProfile=defineNamedRows({ kind: 'object', mode: 'strip', entries: {
+  horses:{ kind: 'object', mode: 'strip', entries: {total:number,random:{ kind: 'object', mode: 'strip', entries: {version:number,state:number,initial:number,scrambledFork:{ kind: 'boolean' }} },
+    member:memberSchema,herds:{ kind: 'array', item: { kind: 'object', mode: 'strip', entries: {x:number,z:number,r:number,horses:{ kind: 'array', item: { kind: 'object', mode: 'strip', entries: {x:number,z:number,yaw:number,turn:number,speed:number,s:number,c:number} } }} } }} },
+  lotus:{ kind: 'object', mode: 'strip', entries: {scene:{ kind: 'unknown' },poses:{ kind: 'array', item: { kind: 'unknown' } },member:memberSchema} },
+} }).schema;
+const decorativeProfiles=defineNamedRows({ kind: 'object', mode: 'strip', entries: {phone:decorativeProfile,desktop:decorativeProfile} }).schema;
+const place=defineNamedRows({ kind: 'object', mode: 'strip', entries: {name:text,tris:number,anchors:{ kind: 'optional', item: { kind: 'object', mode: 'strip', entries: {riders:{ kind: 'optional', item: { kind: 'array', item: { kind: 'object', mode: 'strip', entries: {t:number,k:number,w:number,bob:number} } }, default: [] }} }, default: {riders:[]} },instances:{ kind: 'array', item: { kind: 'tuple', items: [text,{ kind: 'object', mode: 'strip', entries: {asset:SpecimenAssetSchema,scene:PrivateSceneSchema} }] } },effects:{ kind: 'array', item: { kind: 'tuple-rest', items: [text,xyz], rest: { kind: 'unknown' } } },members:{ kind: 'array', item: { kind: 'tuple', items: [text,memberSchema] } },meshes:{ kind: 'array', item: { kind: 'object', mode: 'strip', entries: {material:text,offset:number,geometry:SceneBakedGeometrySchema} } }} }).schema;
+const preparedSchema=defineNamedRows({ kind: 'object', mode: 'strip', entries: {places:{ kind: 'object', mode: 'strip', entries: {rows:{ kind: 'array', item: place }} },dressing:{ kind: 'object', mode: 'strip', entries: {rows:{ kind: 'array', item: { kind: 'object', mode: 'strip', entries: {key:text,offset:number,geometry:SceneBakedGeometrySchema} } }} }} }).schema;
+const materialsSchema=defineNamedRows({ kind: 'record', key: { kind: 'string' }, value: SpecimenMaterialSchema }).schema;
+interface DressingSpecimenFields {
+  catalogue: NamedRowValue<typeof SpecimenCatalogueSchema>;
+  packed: NamedRowValue<typeof PackedSpecimenSchema>;
+  materials: Record<string, NamedRowValue<typeof SpecimenMaterialSchema>>;
+  assets: Record<string, NamedRowValue<typeof SpecimenAssetSchema>>;
+}
+type DressingSpecimens = { [Key in keyof DressingSpecimenFields]: DressingSpecimenFields[Key] };
+const specimensSchema: NamedRows<DressingSpecimens, unknown>['schema'] = defineNamedRows({ kind: 'object', mode: 'strip', entries: {catalogue:SpecimenCatalogueSchema,packed:PackedSpecimenSchema,materials:materialsSchema,assets:{ kind: 'record', key: { kind: 'string' }, value: SpecimenAssetSchema }} }).schema;
+const profileSchema=defineNamedRows({ kind: 'object', mode: 'strip', entries: {catalogue:SpecimenCatalogueSchema,packed:PackedSpecimenSchema,life:{ kind: 'array', item: { kind: 'object', mode: 'strip', entries: {kind:text,row:AmbientFlockSchema,perches:AmbientPerchesSchema} } }} }).schema;
+const coverSchema=defineNamedRows({ kind: 'object', mode: 'strip', entries: {phone:profileSchema,desktop:profileSchema,materials:materialsSchema,butterflies:{ kind: 'object', mode: 'strip', entries: {phone:number,desktop:number} },hue:{ kind: 'array', item: { kind: 'union', options: [text,number] } },raptors:number} }).schema;
+const paintContact={origins:defineNamedRows({ kind: 'array', item: { kind: 'tuple', items: [number,number,number,number] } }).schema};
+const paintSchema=defineNamedRows({ kind: 'object', mode: 'strip', entries: {glacierSnout:{ kind: 'object', mode: 'strip', entries: {x:number,y:number,z:number} },rows:{ kind: 'array', item: { kind: 'object', mode: 'strip', entries: {key:text,name:text,geometry:SceneBakedGeometrySchema,bounds:{ kind: 'exact-optional', item: { kind: 'tuple', items: [number,number,number,number,number,number] } }} } },contacts:{ kind: 'record', key: { kind: 'string' }, value: { kind: 'record', key: { kind: 'string' }, value: { kind: 'union', options: [
+  { kind: 'object', mode: 'strip', entries: {...paintContact,file:text} },{ kind: 'object', mode: 'strip', entries: {...paintContact,points:text} },
+] } } }} }).schema;
+const balbalSchema=defineNamedRows({ kind: 'object', mode: 'strip', entries: {catalogue:SpecimenCatalogueSchema,generated:SpecimenAssetSchema,sites:{ kind: 'record', key: { kind: 'string' }, value: { kind: 'unknown' } }} }).schema;
 /** Admit caller-owned packed rows with the original catalogue, material and asset schemas. */
-export function nalatiDressingSpecimens(catalogue:unknown,materials:unknown,packed:unknown):v.InferOutput<typeof specimensSchema> {
-  const admitted=v.safeParse(SpecimenCatalogueSchema,catalogue),surfaces=v.safeParse(materialsSchema,materials);
+export function nalatiDressingSpecimens(catalogue:unknown,materials:unknown,packed:unknown):NamedRowValue<typeof specimensSchema> {
+  const admitted=defineNamedRows(SpecimenCatalogueSchema).safeParse(catalogue),surfaces=defineNamedRows(materialsSchema).safeParse(materials);
   if(!admitted.success||!surfaces.success)throw new Error('Invalid supplied Nalati specimen declarations');
-  return v.parse(specimensSchema,nalatiSpecimenRows(admitted.output,surfaces.output,v.parse(v.record(text,v.unknown()),packed)));
+  return parseSectionValue(specimensSchema, nalatiSpecimenRows(admitted.output,surfaces.output,parseSectionValue(defineNamedRows({ kind: 'record', key: { kind: 'string' }, value: { kind: 'unknown' } }).schema, packed)));
 }
 /** Exact raw contact files, read only by the SDK's normal named-file intake. */
-export const DRESSING_CONTACT_SOURCES: { name: string; kind: 'bin'; source: string; options: { decoded: number } }[]=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text,
-  options:v.object({decoded:v.pipe(number,v.integer(),v.minValue(0))})})), contactInput.sources);
+export const DRESSING_CONTACT_SOURCES: { name: string; kind: 'bin'; source: string; options: { decoded: number } }[]=parseSectionValue(defineNamedRows({ kind: 'array', item: { kind: 'object', mode: 'strip', entries: {name:text,kind:{ kind: 'literal', value: 'bin' },source:text,
+  options:{ kind: 'object', mode: 'strip', entries: {decoded:{ kind: 'number', integer: true, min: 0 }} }} } }).schema, contactInput.sources);
 /** Both exact sign rasters enter through the same named binary source path; two base planes bound the rectangular mip chain. */
-export const DRESSING_ATLAS_SOURCES: { name: string; kind: 'bin'; source: string; options: { gpu: number } }[]=v.parse(v.array(v.object({name:text,kind:v.literal('bin'),source:text,options:v.object({gpu:number})})),Object.values(atlases).map(row=>({name:row.file,kind:'bin',source:row.source,options:{gpu:row.width*row.height*8}})));
+export const DRESSING_ATLAS_SOURCES: { name: string; kind: 'bin'; source: string; options: { gpu: number } }[]=parseSectionValue(defineNamedRows({ kind: 'array', item: { kind: 'object', mode: 'strip', entries: {name:text,kind:{ kind: 'literal', value: 'bin' },source:text,options:{ kind: 'object', mode: 'strip', entries: {gpu:number} }} } }).schema, Object.values(atlases).map(row=>({name:row.file,kind:'bin',source:row.source,options:{gpu:row.width*row.height*8}})));
 /** Exact existing compressed byte lanes, admitted under logical product names before client decoding: the crag bank's
  *  decoded size over both tiers' shapes. */
 export function dressingCragDecoded(cragRows:NalatiCragRows):number{return Math.max(...[cragRows.phone,cragRows.desktop].flatMap(tier=>tier.meshes.map(part=>{
-  const row=v.parse(SceneBakedGeometrySchema,part.row);
+  const row=parseSectionValue(SceneBakedGeometrySchema, part.row);
   if(row.attrs.some(attribute=>attribute[1]!=='f32'))throw new Error('Crag writer requires float32 attributes');
   return part.offset+row.attrs.reduce((bytes,attribute)=>bytes+row.count*attribute[2]*4,0)+(row.index===null?0:row.indexCount*4);
 })));}
 // The owning runtime preparation supplies place anchors and baked camp smoke.
-const spot=v.object({x:number,y:number,z:number}),placedSchema=v.object({places:v.object({rows:v.array(v.object({name:text,
-  anchors:v.optional(v.object({entrance:v.exactOptional(v.object({...spot.entries,facing:number})),ledges:v.exactOptional(v.array(v.object({...spot.entries,r:number}))),
-    balbalSpots:v.exactOptional(v.array(v.object({x:number,z:number,yaw:number,scale:number})))}),{}),
-  members:v.array(v.tuple([text,v.object({placements:v.array(spot)})]))}))}),
-  view:v.object({smoke:v.object({centre:xyz,radius:number,attributes:v.object({aEmitter:v.array(number),aSeed:v.array(number),aCfg:v.array(number)})})})});
+const spotEntries = { x: number, y: number, z: number };
+const spot=defineNamedRows({ kind: 'object', mode: 'strip', entries: {x:number,y:number,z:number} }).schema,placedSchema=defineNamedRows({ kind: 'object', mode: 'strip', entries: {places:{ kind: 'object', mode: 'strip', entries: {rows:{ kind: 'array', item: { kind: 'object', mode: 'strip', entries: {name:text,
+  anchors:{ kind: 'optional', item: { kind: 'object', mode: 'strip', entries: {entrance:{ kind: 'exact-optional', item: { kind: 'object', mode: 'strip', entries: {...spotEntries,facing:number} } },ledges:{ kind: 'exact-optional', item: { kind: 'array', item: { kind: 'object', mode: 'strip', entries: {...spotEntries,r:number} } } },
+    balbalSpots:{ kind: 'exact-optional', item: { kind: 'array', item: { kind: 'object', mode: 'strip', entries: {x:number,z:number,yaw:number,scale:number} } } }} }, default: {} },
+  members:{ kind: 'array', item: { kind: 'tuple', items: [text,{ kind: 'object', mode: 'strip', entries: {placements:{ kind: 'array', item: spot }} }] } }} } }} },
+  view:{ kind: 'object', mode: 'strip', entries: {smoke:{ kind: 'object', mode: 'strip', entries: {centre:xyz,radius:number,attributes:{ kind: 'object', mode: 'strip', entries: {aEmitter:{ kind: 'array', item: number },aSeed:{ kind: 'array', item: number },aCfg:{ kind: 'array', item: number }} }} }} }} }).schema;
 
-const scenePlacesSchema=v.object({rows:v.array(v.object({name:text,group:v.nullable(text),
-  meshes:v.array(v.object({name:text,material:text,slot:number}))}))});
+const scenePlacesSchema=defineNamedRows({ kind: 'object', mode: 'strip', entries: {rows:{ kind: 'array', item: { kind: 'object', mode: 'strip', entries: {name:text,group:{ kind: 'nullable', item: text },
+  meshes:{ kind: 'array', item: { kind: 'object', mode: 'strip', entries: {name:text,material:text,slot:number} } }} } }} }).schema;
 function readPreparedDressing(input:unknown) {
-  const source=v.parse(v.looseObject({places:v.looseObject({rows:v.array(v.looseObject({name:text}))})}),input);
-  const prepared=v.parse(preparedSchema,{...source,places:{rows:source.places.rows.filter(row=>['camp','bridge','roads','summerCamp','kurgans','eagleRock','cairn','crags','watchtower','dressing-statics','dressing-clutter','kokpar','outcrops'].includes(row.name))}});
-  const scenes=v.parse(v.record(text,PrivateSceneSchema),nalatiPoiScenes(v.parse(scenePlacesSchema,source.places)));
-  const placed=v.parse(placedSchema,source);
+  const source=parseSectionValue(defineNamedRows({ kind: 'object', mode: 'loose', entries: {places:{ kind: 'object', mode: 'loose', entries: {rows:{ kind: 'array', item: { kind: 'object', mode: 'loose', entries: {name:text} } }} }} }).schema, input);
+  const prepared=parseSectionValue(preparedSchema, {...source,places:{rows:source.places.rows.filter(row=>['camp','bridge','roads','summerCamp','kurgans','eagleRock','cairn','crags','watchtower','dressing-statics','dressing-clutter','kokpar','outcrops'].includes(row.name))}});
+  const scenes=parseSectionValue(defineNamedRows({ kind: 'record', key: { kind: 'string' }, value: PrivateSceneSchema }).schema, nalatiPoiScenes(parseSectionValue(scenePlacesSchema, source.places)));
+  const placed=parseSectionValue(placedSchema, source);
   return{prepared,scenes,placed};
 }
 
@@ -99,7 +104,7 @@ type ContactSource = DressingByteSources['contact'];
 type ClothSource = DressingByteSources['cloth'];
 const id=(name:string)=>`nalati-grasslands/${name}`;
 const preparedContacts=(inputs:readonly unknown[],source:ContactSource)=>{
-  const contacts=v.parse(SceneDressingContactsSchema,inputs.map(input=>{const parsed=v.parse(v.looseObject({heading:v.exactOptional(v.tuple([number,number]))}),input),{heading,...contact}=parsed;return heading===undefined?contact:Object.assign(contact,{yaw:Math.atan2(...heading)});}));
+  const contacts=parseSectionValue(SceneDressingContactsSchema, inputs.map(input=>{const parsed=parseSectionValue(defineNamedRows({ kind: 'object', mode: 'loose', entries: {heading:{ kind: 'exact-optional', item: { kind: 'tuple', items: [number,number] } }} }).schema, input),{heading,...contact}=parsed;return heading===undefined?contact:Object.assign(contact,{yaw:Math.atan2(...heading)});}));
   const hulls=contacts.filter(row=>row.kind==='hull');
   if(hulls.length===0||hulls.length!==contacts.length||hulls.some(row=>row.surface!=='rock'||row.yaw!==undefined||row.rot!==undefined))return contacts;
   return{kind:'packed-hulls',...source(new Uint8Array(Float32Array.from(hulls.flatMap(row=>row.points)).buffer)),origins:hulls.map(row=>[row.x,row.y,row.z,row.points.length]),surface:'rock'};
@@ -107,11 +112,11 @@ const preparedContacts=(inputs:readonly unknown[],source:ContactSource)=>{
 
 
 /** Existing baked shapes and placements become Z2 rows; no page-side scatter or model constructors. */
-function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<typeof decorativeProfiles>,input:ReturnType<typeof readPreparedDressing>,balbal:v.InferOutput<typeof balbalSchema>,specimens:v.InferOutput<typeof specimensSchema>,paint:v.InferOutput<typeof paintSchema>,cover:v.InferOutput<typeof coverSchema>,cragRows:NalatiCragRows,contactSource:ContactSource,clothSource:ClothSource,cragFile='world/crags.bin') {
+function compileDressingScene(tier:'phone'|'desktop',profiles:NamedRowValue<typeof decorativeProfiles>,input:ReturnType<typeof readPreparedDressing>,balbal:NamedRowValue<typeof balbalSchema>,specimens:NamedRowValue<typeof specimensSchema>,paint:NamedRowValue<typeof paintSchema>,cover:NamedRowValue<typeof coverSchema>,cragRows:NalatiCragRows,contactSource:ContactSource,clothSource:ClothSource,cragFile='world/crags.bin') {
   const {prepared,scenes,placed}=input;
   const phone=tier==='phone',profile=cover[tier];
   const geometry:Record<string,unknown>={},materials:Record<string,unknown>={},addresses:number[]=[];
-  const baked=(file:string,offset:number,row:v.InferOutput<typeof SceneBakedGeometrySchema>)=>({kind:'baked-file',file,address:{file:`world/dressing-addresses-${tier}.bin`,word:addresses.push(offset)-1},row});
+  const baked=(file:string,offset:number,row:NamedRowValue<typeof SceneBakedGeometrySchema>)=>({kind:'baked-file',file,address:{file:`world/dressing-addresses-${tier}.bin`,word:addresses.push(offset)-1},row});
   const shape=(key:string)=>{const row=prepared.dressing.rows.find(candidate=>candidate.key===key);if(row===undefined)throw new Error(`Missing dressing shape ${key}`);return baked('world/dressing.bin',row.offset,row.geometry);};
   const actor=(key:string)=>{const row=paint.rows.find(candidate=>candidate.key===key);if(row===undefined)throw new Error(`Missing dressing actor ${key}`);return{kind:'file',file:row.name,row:row.geometry};};
   for(const key of ['boulder','boulder-tall','slab'])geometry[key]=actor(`dressing:${tier}:${key}`);
@@ -157,7 +162,7 @@ function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<type
   materials['butterfly']={kind:'painterly',rim:.3,bands:.5,shade:.6,emissive:0x101010};materials['raptor']={kind:'painterly',rim:.6,bands:.6};
   const bowl=bowlScene(tier,profiles[tier],geometry,materials,prepared,specimens,paint);statics.push(...bowl.statics);
   const crags=cragRows[tier],cragGeometry:Record<string,string>={};
-  for(const part of crags.meshes){geometry[part.key]=baked(cragFile,part.offset,v.parse(SceneBakedGeometrySchema,part.row));cragGeometry[part.key]=part.key;}
+  for(const part of crags.meshes){geometry[part.key]=baked(cragFile,part.offset,parseSectionValue(SceneBakedGeometrySchema, part.row));cragGeometry[part.key]=part.key;}
   const rockTexture=specimens.materials['rock']?.texture,snowTexture=specimens.materials['snow']?.texture;
   if(rockTexture===undefined||snowTexture===undefined)throw new Error('Missing prepared crag tiles');
   materials['crag']={kind:'look',look:phone?'nalati-crag-phone':'nalati-crag',params:{rockMean:paintedTextures.mean.rock,scale:[1/paintedTextures.metres.rock,1/paintedTextures.metres.snow],snowBand:[layout.SNOW_LINE-14,layout.SNOW_LINE-2]},textures:{rock:rockTexture,snow:snowTexture}};
@@ -175,7 +180,7 @@ function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<type
   if(clothInput.kind==='baked-file')geometry['cloth']={...clothInput,row:cloth.row,sphere:cloth.sphere,address:{file:`world/dressing-addresses-${tier}.bin`,word:addresses.push(0)-1}};
   const payload:unknown=JSON.parse(encodeCanonicalJson(result)),bytes=new Uint8Array(addresses.length*4),view=new DataView(bytes.buffer);
   addresses.forEach((offset,word)=>{if(!Number.isSafeInteger(offset)||offset<0||offset>0xffffffff)throw new Error('Invalid baked source address');view.setUint32(word*4,offset,true);});
-  return{rows:v.parse(SceneDressingSchema,payload),addresses:bytes};
+  return{rows:parseSectionValue(SceneDressingSchema, payload),addresses:bytes};
 }
 
 /** The places' gameplay anchors: the great kurgan's entrance, the crag ledges and the Wind Cairn's tie spot (3.6 m east, at its foot). */
@@ -196,7 +201,7 @@ function clothGeometry(prepared:ReturnType<typeof readPreparedDressing>['prepare
     const [kind,point]=effect;const a=effect[2],b=effect[3],color=effect[4],options=effect[5];
     if(kind==='emitter')continue;
     if(typeof a!=='number'||typeof b!=='number'||!(typeof color==='string'||typeof color==='number'))throw new Error('Invalid cloth rows');
-    const x=point[0],y=point[1],z=point[2],opts=v.parse(v.record(v.string(),v.unknown()),options??{}),get=(key:string,base:number)=>{const value=opts[key];return typeof value==='number'?value:base;};
+    const x=point[0],y=point[1],z=point[2],opts=parseSectionValue(defineNamedRows({ kind: 'record', key: { kind: 'string' }, value: { kind: 'unknown' } }).schema, options??{}),get=(key:string,base:number)=>{const value=opts[key];return typeof value==='number'?value:base;};
     const len=kind==='flag'?b:a,w=kind==='flag'?0:b,span=kind==='flag'?[0,-a,0]:kind==='strip'?[b,0,0]:[0,0,b];
     const droop=kind==='strip'?.8:get('droop',kind==='flag'?.25:.45),taper=kind==='strip'?.2:get('taper',kind==='flag'?0:.35);
     const phase=(x*1.7+z*2.3+strips*.61)%(Math.PI*2),seg=Math.max(2,Math.min(14,Math.round(len*5))),rows=seg+1,v0=A.length/4,c=new THREE.Color(color);strips++;bounds.expandByPoint(new THREE.Vector3(x,y,z));
@@ -213,7 +218,7 @@ function clothGeometry(prepared:ReturnType<typeof readPreparedDressing>['prepare
 
 /** Supplied profiles retain exact tier rows; hulls and cloth share content-addressed binary loans. */
 export function dressingSceneBlobs(input:unknown,runtime:unknown,balbal:unknown,specimens:unknown,paintRows:unknown,coverRows:unknown,cragRows:NalatiCragRows,cragFiles?:Readonly<Record<'phone'|'desktop',string>>):ReturnType<typeof nameBlob>[] {
-  const profiles=v.parse(decorativeProfiles,input),prepared=readPreparedDressing(runtime),binaries=new Map<string,ReturnType<typeof nameBlob>>();
+  const profiles=parseSectionValue(decorativeProfiles, input),prepared=readPreparedDressing(runtime),binaries=new Map<string,ReturnType<typeof nameBlob>>();
   const source:ContactSource=raw=>{
     const bytes=encodePortableBytes(raw,6),file=`world/dressing-contacts/${hashImmutableBytes(bytes)}.bin`;
     if(!binaries.has(file))binaries.set(file,nameBlob(file,'bin',bytes,{decoded:raw.byteLength}));
@@ -224,15 +229,15 @@ export function dressingSceneBlobs(input:unknown,runtime:unknown,balbal:unknown,
     if(!binaries.has(file))binaries.set(file,nameBlob(file,'bin',bytes,{decoded:raw.byteLength}));
     return{kind:'baked-file',file};
   };
-  const tiers=(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier,profiles,prepared,v.parse(balbalSchema,balbal),v.parse(specimensSchema,specimens),v.parse(paintSchema,paintRows),v.parse(coverSchema,coverRows),cragRows,source,cloth,cragFiles?.[tier]);return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:namedJsonSchema(SceneDressingSchema)}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});
+  const tiers=(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier,profiles,prepared,parseSectionValue(balbalSchema, balbal),parseSectionValue(specimensSchema, specimens),parseSectionValue(paintSchema, paintRows),parseSectionValue(coverSchema, coverRows),cragRows,source,cloth,cragFiles?.[tier]);return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:namedJsonSchema(SceneDressingSchema)}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});
   return[...tiers,...binaries.values()];
 }
 
 /** Admitted tier rows from caller-owned runtime metadata for catalogue and format consumers. */
-export function dressingScene(tier:'phone'|'desktop',input:unknown,runtime:unknown,balbal:unknown,specimens:unknown,paintRows:unknown,coverRows:unknown,cragRows:NalatiCragRows,bytes:DressingByteSources):SceneDressingRows{return compileDressingScene(tier,v.parse(decorativeProfiles,input),readPreparedDressing(runtime),v.parse(balbalSchema,balbal),v.parse(specimensSchema,specimens),v.parse(paintSchema,paintRows),v.parse(coverSchema,coverRows),cragRows,bytes.contact,bytes.cloth).rows;}
+export function dressingScene(tier:'phone'|'desktop',input:unknown,runtime:unknown,balbal:unknown,specimens:unknown,paintRows:unknown,coverRows:unknown,cragRows:NalatiCragRows,bytes:DressingByteSources):SceneDressingRows{return compileDressingScene(tier,parseSectionValue(decorativeProfiles, input),readPreparedDressing(runtime),parseSectionValue(balbalSchema, balbal),parseSectionValue(specimensSchema, specimens),parseSectionValue(paintSchema, paintRows),parseSectionValue(coverSchema, coverRows),cragRows,bytes.contact,bytes.cloth).rows;}
 
 /** Decorative poses keep the existing visual programs and RNG continuation; none owns gameplay actors. */
-function bowlScene(tier:'phone'|'desktop',data:v.InferOutput<typeof decorativeProfile>,geometry:Record<string,unknown>,materials:Record<string,unknown>,prepared:ReturnType<typeof readPreparedDressing>['prepared'],specimens:v.InferOutput<typeof specimensSchema>,paint:v.InferOutput<typeof paintSchema>){
+function bowlScene(tier:'phone'|'desktop',data:NamedRowValue<typeof decorativeProfile>,geometry:Record<string,unknown>,materials:Record<string,unknown>,prepared:ReturnType<typeof readPreparedDressing>['prepared'],specimens:NamedRowValue<typeof specimensSchema>,paint:NamedRowValue<typeof paintSchema>){
   const phone=tier==='phone',statics:unknown[]=[],instances:unknown[]=[];
   const empty=(name:string,tris:number,members:unknown[],groupName=`nalati-${name}`)=>({name,tris,members,geometry:{},materials:{},recipe:{version:1,root:'root',materials:[],nodes:[{kind:'group',id:'root',name:groupName,children:[]}]}});
   const putMember=(model:string,member:typeof data.horses.member)=>({model,draw:member.draw,placements:member.placements,boxes:member.boxes,contacts:[...member.solid,...member.descs]});
@@ -255,7 +260,7 @@ function bowlScene(tier:'phone'|'desktop',data:v.InferOutput<typeof decorativePr
     blocked:[],palette:[],ground:0,near:0,far:null,bounds:[KOKPAR.x,1.5,KOKPAR.z,Math.max(KOKPAR.rx,KOKPAR.rz)+5],groundBounds:true,castShadow:!phone,receiveShadow:true,
     uniform:{look:'nalati-riders',param:'clock'},attributes:[{name:'aPhase',width:1,values:riders.map((_,i)=>i*1.7)}],programs:[{row:kokparPose(),inputs:[{kind:'state',slot:0},{kind:'state',slot:1},{kind:'state',slot:2},{kind:'state',slot:3}],outputs:[{property:'value',slot:0},{property:'x',slot:4},{property:'z',slot:5},{property:'yaw',slot:6},{property:'y',slot:7},{property:'pitch',slot:8},{property:'roll',slot:9}]}]});
   geometry['snow-lotus']={kind:'asset',row:specimens.assets['snowLotus']};materials['snow-lotus']={kind:'asset',row:specimens.assets['snowLotus']};
-  const lotusScene=structuredClone(v.parse(PrivateSceneSchema,data.lotus.scene));lotusScene.nodes.push({kind:'group',id:'root',name:'nalati-snow-lotus',children:[lotusScene.root]});lotusScene.root='root';
+  const lotusScene=structuredClone(parseSectionValue(PrivateSceneSchema, data.lotus.scene));lotusScene.nodes.push({kind:'group',id:'root',name:'nalati-snow-lotus',children:[lotusScene.root]});lotusScene.root='root';
   statics.push({name:'snowLotus',tris:data.lotus.poses.length*metrics.triangles['snow-lotus'],members:[putMember('nalati-grasslands/snow-lotus',data.lotus.member)],recipe:lotusScene,geometry:{model:'snow-lotus'},materials:{material:'snow-lotus'}});
   const fixed=paint.rows.find(row=>row.key==='glacier-snout:world'),specimen=paint.rows.find(row=>row.key==='glacier-snout:specimen');if(fixed===undefined||specimen===undefined)throw new Error('Missing glacier shapes');
   geometry['glacier']={kind:'file',file:fixed.name,row:fixed.geometry};geometry['glacier-specimen']={kind:'file',file:specimen.name,row:specimen.geometry};

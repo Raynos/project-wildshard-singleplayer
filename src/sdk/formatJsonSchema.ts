@@ -57,7 +57,7 @@ import { BossProfileSchema, ArenaBossProfileSchema, RoamingBossProfileSchema, Sp
 import { NpcRowSchema, NpcMotionSchema, NpcDialogueRowSchema, QuestNpcBindingSchema, QuestNpcBindingsSchema, QuestPageTalksSchema } from '@wildshard/format/npcs';
 import { WeaponProfileSchema, MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema, LashWeaponProfileSchema, ConeWeaponProfileSchema, HeldBowBaseSchema, HeldBowRowsSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
 import { toJsonSchema, type JsonSchema } from '@valibot/to-json-schema';
-import { finite, strictObject, object, looseObject, tuple, tupleWithRest, optional, array, literal as literalSchema, parse, pipe, check as sourceCheck, number, string, boolean, unknown, null as nullSchema, integer, minValue, maxValue, minLength, maxLength, startsWith, length, picklist, record, nullable, exactOptional, safeInteger, regex as sourceRegex, maxEntries, union, variant, assert, is as sourceIs, type VariantOptions, type GenericSchema, type InferInput, type InferOutput } from 'valibot';
+import { finite, strictObject, object, looseObject, tuple, tupleWithRest, optional, array, literal as literalSchema, parse, safeParse as sourceSafeParse, pipe, check as sourceCheck, number, string, boolean, unknown, null as nullSchema, integer, minValue, maxValue, minLength, maxLength, startsWith, length, picklist, record, nullable, exactOptional, safeInteger, regex as sourceRegex, maxEntries, union, variant, assert, is as sourceIs, type VariantOptions, type SafeParseResult, type GenericSchema, type InferInput, type InferOutput } from 'valibot';
 import { PopulationKeeperRowsSchema } from '@wildshard/format/populationKeeper';
 import { EdgeProfileSchema, EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { PlumbingSchema } from '@wildshard/format/plumbing';
@@ -752,6 +752,8 @@ export interface NamedRows<T = unknown, I = T> {
   readonly schema: GenericSchema<I, T>;
   readonly jsonSchema: Readonly<Record<string, unknown>>;
   readonly parse: (input: unknown) => T;
+  /** Preserve native non-throwing parsed output and complete validation issues. */
+  readonly safeParse: (input: unknown) => SafeParseResult<GenericSchema<I, T>>;
   /** Validate and retain the original object, including unknown stripped fields. */
   readonly admit: (input: unknown) => I;
   /** Non-throwing native admission for callers retaining their own error text. */
@@ -765,7 +767,7 @@ export function defineNamedRows<const C extends NamedJsonComposition>(compositio
   refinement?: (value: NamedRowValue<C>) => boolean, message?: string): NamedRows<NamedRowValue<C>, NamedRowInput<C>> {
   const native = resolveNamedComposition(composition) as GenericSchema<NamedRowInput<C>, NamedRowValue<C>>;
   const schema = refinement === undefined ? native : pipe(native, sourceCheck(refinement, message));
-  return { schema, parse: rowsValue => parse(schema, rowsValue), admit: rowsValue => { assert(schema, rowsValue); return rowsValue; },
+  return { schema, parse: rowsValue => parse(schema, rowsValue), safeParse: rowsValue => sourceSafeParse(schema, rowsValue), admit: rowsValue => { assert(schema, rowsValue); return rowsValue; },
     accepts: (rowsValue): rowsValue is NamedRowInput<C> => sourceIs(schema, rowsValue), get jsonSchema() { return namedJsonSchema(schema); } };
 }
 
