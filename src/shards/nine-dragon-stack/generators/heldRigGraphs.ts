@@ -1,4 +1,4 @@
-import type { GraphIr, GraphNode } from '@wildshard/format/materialGraph';
+import type { AuthorGraph as GraphIr, AuthorGraphNode as GraphNode } from '@wildshard/sdk/bake/materialGraph';
 import type { NineHeldProfile } from './heldProfile';
 
 /** Select original GLB channels at build time; no per-vertex startup repair. */

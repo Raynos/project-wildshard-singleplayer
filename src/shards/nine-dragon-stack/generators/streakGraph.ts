@@ -1,4 +1,4 @@
-import type { GraphIr } from '@wildshard/format/materialGraph';
+import type { AuthorGraph as GraphIr } from '@wildshard/sdk/bake/materialGraph';
 import { LookGraph } from './lookGraph';
 import fog from '../data/lookGraphs.json' with { type: 'json' };
 

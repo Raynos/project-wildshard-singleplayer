@@ -23,7 +23,7 @@
  */
 // Pine Hollow's water look graphs, built at build time (SHARD-PLATFORM W2c): emitted into
 // data/lookMaterials.generated.json by ./lookMaterials.ts; the ids and rows the play code reads stay in ../data/waterLook.json.
-import type { GraphIr, GraphNode, GraphParam, GraphRef } from '@wildshard/format/materialGraph';
+import type { AuthorGraph as GraphIr, AuthorGraphNode as GraphNode, AuthorGraphParam as GraphParam, AuthorGraphRef as GraphRef } from '@wildshard/sdk/bake/materialGraph';
 import waterRows from '../data/waterLook.json' with { type: 'json' };
 
 // Skyline RGB stores occluder height / top, distance / dist and bank albedo / bank.

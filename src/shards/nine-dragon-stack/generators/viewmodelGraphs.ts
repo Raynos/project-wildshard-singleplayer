@@ -2,7 +2,7 @@ import type { NineHeldProfile } from './heldProfile';
 import { heldRigGraphs } from './heldRigGraphs';
 import { Color } from 'three';
 import { heldEffects } from './heldEffects';
-import type { GraphIr, GraphRef, GraphParam } from '@wildshard/format/materialGraph';
+import type { AuthorGraph as GraphIr, AuthorGraphRef as GraphRef, AuthorGraphParam as GraphParam } from '@wildshard/sdk/bake/materialGraph';
 import { LookGraph } from './lookGraph';
 import rows from '../data/viewmodelUniforms.json' with { type: 'json' };
 import decals from '../data/decals.json' with { type: 'json' };

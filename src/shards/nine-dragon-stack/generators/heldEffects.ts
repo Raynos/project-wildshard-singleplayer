@@ -1,5 +1,5 @@
 import { Color } from 'three';
-import type { GraphIr, GraphRef } from '@wildshard/format/materialGraph';
+import type { AuthorGraph as GraphIr, AuthorGraphRef as GraphRef } from '@wildshard/sdk/bake/materialGraph';
 import { LookGraph } from './lookGraph';
 
 /** Held light ribbons use the same material graph interpreter as the world. */

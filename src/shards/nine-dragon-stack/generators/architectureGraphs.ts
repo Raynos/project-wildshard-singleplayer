@@ -1,4 +1,4 @@
-import type { GraphIr, GraphRef, GraphStages } from '@wildshard/format/materialGraph';
+import type { AuthorGraph as GraphIr, AuthorGraphRef as GraphRef, AuthorGraphStages as GraphStages } from '@wildshard/sdk/bake/materialGraph';
 import { LookGraph } from './lookGraph';
 
 const shapes = {
