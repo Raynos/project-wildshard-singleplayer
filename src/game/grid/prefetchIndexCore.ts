@@ -27,6 +27,7 @@ export async function preparePrefetchIndex(request:PrefetchIndexRequest,content:
   const source=await resolveOutputDescriptor(input,{offline:false,firstParty:true,hash:contentHash,
     pause:yieldTask,
     read:(path,maximum)=>read(new URL(path,base).href,maximum),
+    pack:(path,maximum)=>read(new URL(path,base).href,maximum),
     cached:hash=>content.get(hash),store:(hash,body)=>content.put(hash,body,true)});
   if(!isBuildValidatedOutput(source))return index;
   const kept=new Set((await tierProductFilesPaced(source,'phone',yieldTask)).map(file=>file.hash));

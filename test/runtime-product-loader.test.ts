@@ -1450,3 +1450,29 @@ test('foreground hint expiry retains exact size and SHA refusals', async () => {
     await expect(reader.read(f.ref)).rejects.toThrow(/hash or size|size differs|larger|oversized|length/iu);
   }
 });
+
+
+test('phone neighbour schedule resolves every section and schema from one verified pack', async () => {
+  const f = fixture(), members = new Map<string, Uint8Array>();
+  for (const section of [...f.index.sections, ...f.index.schemas]) {
+    const body = f.wires.get(section.path);
+    if (body === undefined) throw new Error('Missing packed schedule member');
+    members.set(section.hash, body);
+  }
+  const wire = new Uint8Array([...members.values()].reduce((sum, body) => sum + body.length, 0));
+  let offset = 0;
+  const entries = [...members].map(([hash, body]) => { const row = { hash, offset, bytes: body.length }; wire.set(body, offset); offset += body.length; return row; });
+  const packHash = hashImmutableBytes(wire), path = `blobs/pack/${packHash}.pack`;
+  const index = parseOutputIndex({ ...f.index, packs: [{ path, hash: packHash, bytes: wire.length, entries }] });
+  const indexWire = bytes(index); f.wires.set('shard.json', indexWire); f.wires.set(path, wire);
+  trust({ ...f.receipt, indexHash: hashImmutableBytes(indexWire) });
+  const fetch = vi.fn(f.options.fetch), stored = new Map<string, Uint8Array>(); vi.stubGlobal('fetch', fetch);
+  const { preparePrefetchIndex } = await import('../src/game/grid/prefetchIndexCore');
+  const schedule = await preparePrefetchIndex({ url: new URL('shard.json', f.options.base).href, indexHashes: [hashImmutableBytes(indexWire)], phone: true }, {
+    get: () => Promise.resolve(null), put: (hash, body) => { stored.set(hash, body); return Promise.resolve(true); },
+  });
+  expect(schedule?.files.map(file => file.hash)).toContain(f.ref);
+  expect(fetch.mock.calls.map(([url]) => url)).toEqual([new URL('shard.json', f.options.base).href, new URL(path, f.options.base).href]);
+  expect([...stored.keys()].sort()).toEqual([...members.keys()].sort());
+  for (const [hash, body] of stored) expect(hashImmutableBytes(body)).toBe(hash);
+});
