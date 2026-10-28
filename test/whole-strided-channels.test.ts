@@ -277,3 +277,15 @@ test('wire metadata cannot supply the private lazy vertex length', () => {
   try { expect(() => assembleWholeGeometryViews([node], 'take')).toThrow(); }
   finally { node.geometry.dispose(); }
 });
+
+// The private identity mapping must not treat signed or fractional native
+// indices as unsigned, even when a caller forges a public string tag.
+test.each(['signed', 'fraction', 'nan', 'tagged-fraction'] as const)('compact ordinals retain %s native-index refusal', kind => {
+  const node = completeTriangles('u32', true);
+  const indices = kind === 'signed' ? new Int32Array([-1, 0, 3, 1, 4, 2])
+    : new Float32Array([kind === 'nan' ? Number.NaN : 0.5, 0, 3, 1, 4, 2]);
+  if (kind === 'tagged-fraction') Object.defineProperty(indices, Symbol.toStringTag, { value: 'Uint32Array' });
+  node.geometry.setIndex(new BufferAttribute(indices, 1));
+  try { expect(() => assembleWholeGeometryViews([node], 'take')).toThrow('Whole missing triangle vertex'); }
+  finally { node.geometry.dispose(); }
+});
