@@ -10,7 +10,7 @@ function fixture() {
   let now = 0;
   const gain = (): GainNode => {
     const param: AudioParam = legacyDouble<AudioParam>({ value: 0, setValueAtTime: () => param,
-      linearRampToValueAtTime: () => param, cancelScheduledValues: () => param });
+      linearRampToValueAtTime: () => param, cancelScheduledValues: () => param, cancelAndHoldAtTime: () => param });
     return legacyDouble<GainNode>({ gain: param, connect: () => gain(), disconnect: () => undefined });
   };
   const ctx = legacyDouble<BaseAudioContext>({ sampleRate: 48000, get currentTime() { return now; }, state: 'running',

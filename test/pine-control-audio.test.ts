@@ -26,13 +26,13 @@ test('Pine keeps exact calm and inventory while only tension leaves the phone co
 });
 
 test('the opted-in control decoder skips tension and the full after-control decoder still prepares it', async () => {
-  const profile = await createCatalogueAudio(parseAudioData(source.audio));
   const read = vi.fn<(url: string) => Promise<ArrayBuffer>>(() => Promise.reject(new Error('Unselected read')));
   const decode = vi.fn<(bytes: ArrayBuffer) => Promise<AudioBuffer>>(() => Promise.reject(new Error('Unexpected decode')));
   const prepare = vi.spyOn(stems, 'decodeStyle').mockResolvedValue({ genre: 'piano', set: 'base', slots: new Map(), stings: new Map(), log: [] });
   vi.spyOn(settings, 'getSfxSet').mockReturnValue('synth');
   vi.spyOn(samples, 'decodeSfxSet').mockResolvedValue({ set: 'synth', credit: undefined, loops: new Map(), shots: new Map() });
   try {
+    const profile = await createCatalogueAudio(parseAudioData(source.audio));
     if (!profile.controlDecode) throw new Error('Missing declared control decoder');
     await profile.controlDecode('piano', read, decode);
     expect(prepare).toHaveBeenLastCalledWith('piano', ['title', 'pine'], read, decode, undefined, 'base', [], false);
