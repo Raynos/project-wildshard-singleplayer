@@ -1,0 +1,71 @@
+# Nine regressions 10-28: SHARDFILE against LEGACY, one buildable list (G834)
+
+**State:** `open` 2026-10-28 ~15:30 Cancun. Spike by a wildshard-v subagent for wildshard-new, which hands the rows to
+lanes. Jake (10-28): *"Nine Dragon has some really obvious visual regressions, especially the shadows on the hands."*
+Part of [close-out](close-out-mini-plan.md) after CO6; archives with SHARD-PLATFORM (CO8). Read and captured at HEAD
+`4990c215fb`; start board: [CO6 Nine sheet](../../../art/legacy-vs-shardfile/round-1-2026-10-28/nine-dragon-stack-board.jpg)
+(`93eb52800f`). Boards: [round-32](../../../art/nine-dragon-stack/round-32-shardfile-regressions/) 1–5.
+
+## Summary
+
+1. **Hands:** not a shadow. The ink outline hull draws with a default projection, so a black copy of the claw, glove,
+   guard and blade edge sits off the real arms, toward the centre and in front of them.
+2. **Wet stone:** the square floor, the Well balustrade and the stair treads are flat navy, with no joints, puddles or
+   pool light. The streak cards still draw on top.
+3. **City:** the facades are pale and flat with dark windows, and the far lit towers are gone from the sky. That is most
+   of "the scene is darker".
+4. The CO6 sheet's missing wet reflections do not reproduce at HEAD (all 9 views, both engines). NR5 re-checks them under
+   CO6's own saved midday / clear settings.
+5. All of it shows on Chromium and WebKit alike ([board 4](../../../art/nine-dragon-stack/round-32-shardfile-regressions/4-webkit-check-board.jpg)).
+   None of it needs a look pick: every fix restores LEGACY.
+
+## Regressions
+
+| # | What | Where (board) | Cause | file:line | First bad |
+|---|---|---|---|---|---|
+| R1 | Black copies of claw, glove, guard, a 2nd cyan blade edge | [1-hands](../../../art/nine-dragon-stack/round-32-shardfile-regressions/1-hands-ink-hull-board.jpg); CO6 A–D | The hull graph projects by hand with the param `projection` (default `[1, 1, -1, -.2]`). HeldView writes it from `material.onBeforeRender`, but three's node handler overwrites `material.onBeforeRender` with its own callback at every draw. Measured: 0 hook calls in 10 frames; the camera is `[1.607, 0.949, -1.00006, -0.160]`, so the hull is drawn 0.62× narrow and nearer than the body. | `src/game/systems/viewmodel/heldView.ts:132`; `src/shards/nine-dragon-stack/generators/viewmodelGraphs.ts:103`; `node_modules/three/examples/jsm/tsl/WebGLNodesHandler.js:447` | Already bad on `08348223b9` (10-24, [board 5](../../../art/nine-dragon-stack/round-32-shardfile-regressions/5-bisect-floor-board.jpg)). The hook pattern dates from `0a80c5a717` (10-20) and `1668232c61` kept it; not bisected further |
+| R2 | Floor, balustrade and stair treads flat navy | [2-wet-stone](../../../art/nine-dragon-stack/round-32-shardfile-regressions/2-wet-stone-flat-board.jpg); CO6 A, C | **Not isolated.** Ruled out: the coarse tiles (hiding all 20 changes nothing); the paint array (all 12 layers fetch); missing kit attributes (`kit:paifang` carries aFace / aMisc / aPat / aOff / aSpill). Leads: a `[programShare] graph:material wrote other code under a shared program key` warning on entry, and `AttributeNode … "position" / "normal" not found` (some build bound to the wrong geometry). Also check the light volumes `uLpVolA/B`. | `src/engine/render/graph/compile.ts` (program share); `generators/worldScenes.ts:235` (volumes) | **Good on `08348223b9`** (10-24 23:55, [board 5](../../../art/nine-dragon-stack/round-32-shardfile-regressions/5-bisect-floor-board.jpg)); bad on `93eb52800f` and HEAD. The 10-25…10-28 render and Nine producer series is the range |
+| R3 | Facades pale and flat, windows unlit, far skyline towers and window dots gone | [3-facades](../../../art/nine-dragon-stack/round-32-shardfile-regressions/3-facades-windows-sky-board.jpg); CO6 B | Not the R2 break: the windows were already unlit on `08348223b9`, though the walls have paled further since. Leads: the architecture graph's window and spill terms; the sky towers in the painted sky / far layers. | `generators/architectureGraphs.ts`, `generators/facadeWindows.ts` | Before 10-24 for the windows; wall pallor in R2's range |
+| R4 | 20 coarse tiles drawn inside the city; their GLB attributes are `_aface _amisc _aoff _apat _aspill` and the graph reads `aFace …` | (no visible damage near spawn) | The glTF custom-attribute renaming is not mapped back, so coarse stand-ins shade flat wherever they show (the far rim). All 20 are also visible while the city is resident; check that is intended. | `src/game/grid/cellClip.ts`, coarse product writer | Not bisected (T8 coarse rows, 10-28 `49e5f5a138`?) |
+| R5 | CO6 sheet: no wet reflections at all | CO6 A–D | Does not reproduce at HEAD with default settings. CO6 used saved **midday / clear** settings, so the card gain (`lent cardOn`) may drop under a weather or time setting. | `generators/composite.ts:66` | Unknown |
+| R6 | Rain strokes longer and brighter | every view | Not checked; the drizzle px scale (`uRain` index 3 from the buffer ratio) is suspect. | `generators/composite.ts:63` | Unknown |
+| R7 | Jian talisman (fu) larger, red tassel shorter | 1-hands row 1 | Held cloth rows; check after R1 (the hull copy hides part of the tassel) | `generators/heldProfile.ts` | Unknown |
+
+The LD4 gaps (`fp-arms` and six Sets missing from the declaration adapter) are registration coverage, not pixels. Every Set
+in the capture is present (booth, parasol, pavilion, balustrade-panel). They stay
+[legacy-deletion](legacy-deletion-mini-plan.md) LD4-ND rows and are not repeated here.
+
+## Rows
+
+Every row is done only when it **matches LEGACY on the same cameras on Chromium and WebKit, shown on a labelled board**.
+Cameras: CO6's A–D ([cameras.json](../../../art/legacy-vs-shardfile/round-1-2026-10-28/cameras.json)), plus look-down,
+facing-back, stall and sky. Capture muted through `scripts/browser-lane.sh` as an iPhone 16 Pro (portrait, phone tier,
+2×) on a preview of HEAD.
+
+| Row | What | Owner | Size | Done when |
+|---|---|---|---|---|
+| NR1 | Bind the hull's `projection` where the node handler cannot overwrite it: the mesh's `onBeforeRender` or the held view's per-frame camera write, or replace the param with the graph's camera projection node. Same audit for every `frame` row with `source: 'projection'`, and grep other `material.onBeforeRender` writers on graph materials. | Opus | S | No black copy or 2nd blade edge in the 3 hand rows of board 1; matches LEGACY on Chromium and WebKit, shown on a labelled board |
+| NR2 | Bisect R2 on `--rev` previews from `08348223b9` (good) to `93eb52800f` (bad), CO6 camera A only. Name the first bad SHA, then fix it (program-share key, bound geometry, lent volumes). | Opus | M | Floor joints, puddles, pool light, carved rail and stair edges are back; matches LEGACY on Chromium and WebKit, shown on a labelled board |
+| NR3 | Facade lit windows, grime and the far skyline: whatever NR2 leaves, fixed in the architecture / sky graphs | Opus | M | Board 3's three rows match LEGACY on Chromium and WebKit, shown on a labelled board |
+| NR4 | Map the GLB `_a*` custom attributes back to the graph names (or write them under their own names), and confirm coarse tiles under resident fine content are meant to draw | Codex | S | No `AttributeNode … not found` warning on Nine entry; the far rim matches LEGACY on Chromium and WebKit, shown on a labelled board |
+| NR5 | Re-run CO6's exact entry (seed 357, saved midday / clear, 90 frames); if the cards vanish, fix the card gain under that setting | Opus | S | Wet reflections at A–D under CO6's settings match LEGACY on Chromium and WebKit, shown on a labelled board |
+| NR6 | Rain stroke length and opacity against LEGACY (`uRain` px scale) | Opus | S | 5 s clips each way show the same drizzle; matches LEGACY on Chromium and WebKit, shown on a labelled board |
+| NR7 | Held cloth (fu, tassel) after NR1 | Opus | S | Board 1 row 1 matches LEGACY on Chromium and WebKit, shown on a labelled board |
+| NR8 | One closing sheet: CO6's A–D plus the 5 extra views, LEGACY against SHARDFILE, at the fixed SHA | Opus | S | The sheet matches LEGACY on Chromium and WebKit, shown on a labelled board; linked from close-out CO6 |
+
+## Order
+
+NR1 first (Jake's headline, one small fix) → NR2 bisect (it may fix the wall pallor in NR3) → NR3 → NR4 → NR5 → NR6, NR7 → NR8. NR4 runs
+in parallel on a Codex lane. Nothing here waits on Jake.
+
+## Questions for Jake
+
+None. Every fix restores the LEGACY look he already approved.
+
+## Capture notes
+
+- Captures: muted Chromium (`--use-angle=metal`) and WebKit, on the shared `4990c215fb` preview, entered through SHARD
+  SELECT's LEGACY and SHARDFILE buttons (Developer + the Legacy shard buttons row, as CO6). Zero page errors either way.
+- The scratch scripts were deleted, so NR2 rebuilds its own probe. Pose: `window.__wildshard.pose` with harness pins.
+  Hook test: wrap the hull material's `onBeforeRender` and count calls. Attributes: walk `scene` for each mesh's
+  geometry attribute names.
