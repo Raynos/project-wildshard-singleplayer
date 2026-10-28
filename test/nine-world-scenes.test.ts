@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { parseWorldSceneModels } from '../src/format/worldSceneModels';
-import { parseWorldScenes } from '../src/format/worldScenes';
+import { parseWorldScenes, worldScenesForTier } from '../src/format/worldScenes';
 import { controlFileHashes } from '../src/format/admissionControl';
 import { emptyShardfile } from '../src/sdk/author';
 import { defineWorldSceneCatalogue } from '../src/game/models/worldSceneCatalogue';
@@ -14,6 +14,19 @@ const blob = (name: string): unknown => {
   if (row === undefined) throw new Error(`Missing blob ${name}`);
   return JSON.parse(new TextDecoder().decode(row.bytes));
 };
+
+test('phone pool selection preserves shared files and explicit device pairs without changing its source', () => {
+  const source = parseWorldScenes({ version: 1, libraries: [{ id: 'fixture', kind: 'pool', files: [
+    { file: 'shared.glb', tier: 'phone', parts: ['shared'] },
+    { file: 'shared.glb', tier: 'desktop', parts: ['shared'] },
+    { file: 'desktop.glb', tier: 'desktop', parts: ['other'] },
+    { file: 'common.glb', parts: ['common'] },
+    { file: { phone: 'phone.glb', desktop: 'desktop.glb' }, parts: ['pair'] }] }], materials: [], steps: [] });
+  const before = structuredClone(source), selected = worldScenesForTier(source, 'phone').libraries[0];
+  if (selected?.kind !== 'pool') throw new Error('Missing selected pool');
+  expect(selected.files.map(file => file.file)).toEqual(['shared.glb', 'common.glb', { phone: 'phone.glb', desktop: 'desktop.glb' }]);
+  expect(source).toEqual(before);
+});
 
 test('the real fine-file inventory defers transport while critical demand still wins', () => {
   const late = nineRefinementFiles(NINE_WORLD_SCENES.libraries), hashes = new Set(late.map(row => row.hash));
