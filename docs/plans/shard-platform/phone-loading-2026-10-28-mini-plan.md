@@ -98,6 +98,9 @@ Every row lands on quick checks, and its numbers go in the commit.
 | PL10 | **After control:** defer the 117 post-control requests and 4.6 s of long tasks to idle (with QF6) | Codex | S | ≤ 1 s of long tasks in the first 4 s after control, both runs |
 | PL11 | **WebKit handoff clock:** the panel sits at 00:00.0 / 0 % for 1.5–2 s after the tap. Check against QF2.T4 | Codex | S | Sim: the clock advances within 500 ms of the tap, cold and warm |
 | PL12 | **Reveal fly-in, 2.2–3.0 s:** shorten it, or skip it on warm entries. Changes the look: Jake's pick, as a variant | Opus | S | Jake picks; −2 s warm if he takes the skip |
+| PL13 | **Title prefetch (G863):** on the title, prefetch the home / last shard's product in the background on ANY network, its progress visible on the title (G837). Built after PL1–PL3 | sp-x9 (Codex) | M | cold tap-to-control drops by the prefetched bytes' time when the title sat ≥ 10 s; progress shows on the title; `pnpm phone-loading` cold + warm, Chromium + WebKit |
+| PL14 | **Cache the built home region (G864):** after the first entry, keep the built home region (home shard only, bounded storage, invalidated on a build / version change) so a warm entry restores it instead of rebuilding | sp-x10 (Codex) | M | warm Home region restores (no rebuild) and is measurably faster; a new build invalidates it; storage bound stated; `pnpm phone-loading` |
+| PL15 | **Workers (G865):** move decode / parse / build to background workers, default off behind ONE Developer Debug row (A main thread / B workers) for Jake's phone A/B. No earlier 3 × 3 reveal | sp-x2 (Codex) | L | B saves measured seconds over A on `pnpm phone-loading` cold + warm, same pixels; A unchanged; Jake picks on his phone, then the row and the losing path go |
 
 ## Needs the next plan (G828, one-world; Jake writes it, no rows here)
 
