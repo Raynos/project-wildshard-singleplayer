@@ -156,3 +156,22 @@ export function nalatiLateHeldNames(rows: HeldPoolTiming, pools: ReadonlyMap<str
   }
   return [...late].filter(name => !early.has(name)).sort();
 }
+
+/** Individual Explorer atlas variants are not the merged skin used by live
+ * camp figures. Any atlas also named by the entered group keeps its eager loan. */
+export function nalatiLateFigureNames(catalogue: unknown, enteredAtlas: unknown): readonly string[] {
+  const late = new Set<string>(), early = new Set<string>();
+  const collect = (value: unknown, names: Set<string>): void => {
+    if (typeof value === 'string' && value.startsWith('models/people/') && value.endsWith('.glb')) names.add(value);
+    else if (Array.isArray(value)) for (const child of value) collect(child, names);
+    else if (value !== null && typeof value === 'object') for (const child of Object.values(value)) collect(child, names);
+  };
+  if (catalogue !== null && typeof catalogue === 'object' && 'entries' in catalogue && Array.isArray(catalogue.entries)) {
+    const entries: readonly unknown[] = catalogue.entries;
+    for (const row of entries) {
+      if (row !== null && typeof row === 'object' && 'kind' in row && row.kind === 'kit-figure' && 'atlases' in row) collect(row.atlases, late);
+    }
+  }
+  collect(enteredAtlas, early);
+  return [...late].filter(name => !early.has(name)).sort();
+}
