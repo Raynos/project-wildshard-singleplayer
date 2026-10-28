@@ -1,6 +1,7 @@
 import { readImagePixels, writeImagePixels } from '@wildshard/sdk/bake/image';
 import { readRigRest } from '@wildshard/sdk/bake/rig';
 import * as THREE from 'three';
+import { nalatiRigFile } from './rigSources';
 
 /**
  * Nalati's creature coats, painted offline (scripts/bake-coats.mjs --shard=nalati-grasslands; SHARD-PLATFORM G226).
@@ -174,7 +175,7 @@ export interface NalatiCoat { readonly url: string; readonly png: Uint8Array; re
 export async function produceNalatiCoats(readAsset: (url: string) => Promise<Uint8Array>, tier: 'phone' | 'desktop', inputs: NalatiCoatInputs): Promise<NalatiCoat[]> {
   const out: NalatiCoat[] = [];
   for (const [name, spec] of Object.entries(inputs.specs)) {
-    const rest = await readRigRest(await readAsset(`/assets/nalati/models/${name}${tier === 'phone' ? '.phone' : ''}.rigged.glb`));
+    const rest = await readRigRest(await readAsset(nalatiRigFile(name, tier)));
     const atlas = await readImagePixels(rest.colourImage), source = inputs.tint(spec.source[0], spec.source[1]);
     for (const [key, hull] of Object.entries(inputs.hulls)) {
       if (hull !== name) continue;

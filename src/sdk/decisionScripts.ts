@@ -2,6 +2,10 @@ import { parseReturnProjectionV2 as parseProjection, type ReturnProjectionV2Rows
 import { parseDecisionScripts as parse, type DecisionScriptRow as Row } from '@wildshard/format/decisionScripts';
 import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
 import { parseActorProjectionV2 as nativeActorProjection } from '@wildshard/format/actorProjectionV2';
+import type { GroupStepProfileV2 } from '@wildshard/format/scriptGroupStepV2';
+
+/** Complete group author profile, including bank, columns, signals and native actions. */
+export type AuthorGroupStepProfile = GroupStepProfileV2;
 
 /** Version stamps for source-owned projection metadata; no compiler is loaded. */
 export function scriptV2Revisions(): typeof SCRIPT_V2_REVISIONS { return SCRIPT_V2_REVISIONS; }

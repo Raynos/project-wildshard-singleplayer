@@ -1,8 +1,8 @@
 // R10b: the shared pasture programme's groups: the herd's main rows (data/herdGroup.json) and the wolf pack's profile,
 // matching behaviour/pack.as's indices.
-import type { GroupStepProfileV2 } from '@wildshard/format/scriptGroupStepV2';
-import type { ObservationColumnV2 } from '@wildshard/format/scriptObservationColumnsV2';
+import type { AuthorGroupStepProfile as GroupStepProfileV2 } from '@wildshard/sdk/decisionScripts';
 
+type ObservationColumnV2 = GroupStepProfileV2['columns'][number];
 
 const num = (name: string, integer = false, min?: number, max?: number) =>
   ({ name, kind: 'number' as const, ...(integer ? { integer } : {}), ...(min === undefined ? {} : { min }), ...(max === undefined ? {} : { max }) });

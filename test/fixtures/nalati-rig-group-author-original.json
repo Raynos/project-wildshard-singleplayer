@@ -1,0 +1,210 @@
+{
+  "rigs": {
+    "family": {
+      "label": "nalati",
+      "rigs": [
+        "horse-wild",
+        "horse-saddled",
+        "wolf",
+        "snow-leopard",
+        "eagle",
+        "collie",
+        "ghost-horse",
+        "golden-king"
+      ],
+      "hulls": {
+        "horse:bay": "horse-wild",
+        "horse:chestnut": "horse-wild",
+        "horse:dun": "horse-wild",
+        "horse:grey": "horse-wild",
+        "horse:black": "horse-wild",
+        "horse:foal-bay": "horse-wild",
+        "horse:foal-chestnut": "horse-wild",
+        "horse:stallion": "horse-wild",
+        "argymaq:stallion": "horse-wild",
+        "horse:camp-bay": "horse-saddled",
+        "horse:camp-black": "horse-saddled",
+        "horse:tulpar": "horse-saddled",
+        "wolf:grey": "wolf",
+        "wolf:tawny": "wolf",
+        "wolf:dark": "wolf",
+        "wolf:scout": "wolf",
+        "wolf:alpha": "wolf",
+        "kokbori:kokbori": "wolf",
+        "leopard:aqbars": "snow-leopard",
+        "eagle:qyran": "eagle",
+        "sheepdog:collie": "collie",
+        "ghost-rider:rider": "ghost-horse",
+        "ghost-rider:captain": "ghost-horse",
+        "golden-king:king": "golden-king"
+      }
+    },
+    "productFiles": false,
+    "tiers": {
+      "phone": {
+        "files": {
+          "horse-wild": "/assets/nalati/models/horse-wild.phone.rigged.glb",
+          "horse-saddled": "/assets/nalati/models/horse-saddled.phone.rigged.glb",
+          "wolf": "/assets/nalati/models/wolf.phone.rigged.glb",
+          "snow-leopard": "/assets/nalati/models/snow-leopard.phone.rigged.glb",
+          "sheep": "/assets/nalati/models/sheep.phone.rigged.glb",
+          "eagle": "/assets/nalati/models/eagle.phone.rigged.glb",
+          "collie": "/assets/nalati/models/collie.phone.rigged.glb",
+          "ghost-horse": "/assets/nalati/models/ghost-horse.phone.rigged.glb",
+          "golden-king": "/assets/nalati/models/golden-king.phone.rigged.glb"
+        },
+        "coats": {
+          "horse-wild:horse:bay": {
+            "key": "/assets/nalati/models/coats/horse-wild.horse.bay.coat.phone.webp",
+            "image": "/assets/nalati/models/coats/horse-wild.horse.bay.coat.webp"
+          },
+          "horse-wild:horse:chestnut": {
+            "key": "/assets/nalati/models/coats/horse-wild.horse.chestnut.coat.phone.webp",
+            "image": "/assets/nalati/models/coats/horse-wild.horse.chestnut.coat.webp"
+          },
+          "horse-wild:horse:grey": {
+            "key": "/assets/nalati/models/coats/horse-wild.horse.grey.coat.phone.webp",
+            "image": "/assets/nalati/models/coats/horse-wild.horse.grey.coat.webp"
+          },
+          "horse-wild:horse:black": {
+            "key": "/assets/nalati/models/coats/horse-wild.horse.black.coat.phone.webp",
+            "image": "/assets/nalati/models/coats/horse-wild.horse.black.coat.webp"
+          },
+          "horse-wild:horse:foal-bay": {
+            "key": "/assets/nalati/models/coats/horse-wild.horse.foal-bay.coat.phone.webp",
+            "image": "/assets/nalati/models/coats/horse-wild.horse.foal-bay.coat.webp"
+          },
+          "horse-wild:horse:foal-chestnut": {
+            "key": "/assets/nalati/models/coats/horse-wild.horse.foal-chestnut.coat.phone.webp",
+            "image": "/assets/nalati/models/coats/horse-wild.horse.foal-chestnut.coat.webp"
+          },
+          "horse-wild:horse:stallion": {
+            "key": "/assets/nalati/models/coats/horse-wild.horse.stallion.coat.phone.webp",
+            "image": "/assets/nalati/models/coats/horse-wild.horse.stallion.coat.webp"
+          },
+          "horse-wild:argymaq:stallion": {
+            "key": "/assets/nalati/models/coats/horse-wild.argymaq.stallion.coat.phone.webp",
+            "image": "/assets/nalati/models/coats/horse-wild.argymaq.stallion.coat.webp"
+          },
+          "horse-saddled:horse:camp-black": {
+            "key": "/assets/nalati/models/coats/horse-saddled.horse.camp-black.coat.phone.webp",
+            "image": "/assets/nalati/models/coats/horse-saddled.horse.camp-black.coat.webp"
+          },
+          "horse-saddled:horse:tulpar": {
+            "key": "/assets/nalati/models/coats/horse-saddled.horse.tulpar.coat.phone.webp",
+            "image": "/assets/nalati/models/coats/horse-saddled.horse.tulpar.coat.webp"
+          },
+          "wolf:wolf:tawny": {
+            "key": "/assets/nalati/models/coats/wolf.wolf.tawny.coat.phone.webp",
+            "image": "/assets/nalati/models/coats/wolf.wolf.tawny.coat.webp"
+          },
+          "wolf:wolf:dark": {
+            "key": "/assets/nalati/models/coats/wolf.wolf.dark.coat.phone.webp",
+            "image": "/assets/nalati/models/coats/wolf.wolf.dark.coat.webp"
+          },
+          "wolf:wolf:scout": {
+            "key": "/assets/nalati/models/coats/wolf.wolf.scout.coat.phone.webp",
+            "image": "/assets/nalati/models/coats/wolf.wolf.scout.coat.webp"
+          },
+          "wolf:wolf:alpha": {
+            "key": "/assets/nalati/models/coats/wolf.wolf.alpha.coat.phone.webp",
+            "image": "/assets/nalati/models/coats/wolf.wolf.alpha.coat.webp"
+          },
+          "wolf:kokbori:kokbori": {
+            "key": "/assets/nalati/models/coats/wolf.kokbori.kokbori.coat.phone.webp",
+            "image": "/assets/nalati/models/coats/wolf.kokbori.kokbori.coat.webp"
+          }
+        },
+        "vertexColours": true,
+        "doubleSided": [
+          "eagle"
+        ],
+        "coatDecode": "bitmap"
+      },
+      "desktop": {
+        "files": {
+          "horse-wild": "/assets/nalati/models/horse-wild.rigged.glb",
+          "horse-saddled": "/assets/nalati/models/horse-saddled.rigged.glb",
+          "wolf": "/assets/nalati/models/wolf.rigged.glb",
+          "snow-leopard": "/assets/nalati/models/snow-leopard.rigged.glb",
+          "sheep": "/assets/nalati/models/sheep.rigged.glb",
+          "eagle": "/assets/nalati/models/eagle.rigged.glb",
+          "collie": "/assets/nalati/models/collie.rigged.glb",
+          "ghost-horse": "/assets/nalati/models/ghost-horse.rigged.glb",
+          "golden-king": "/assets/nalati/models/golden-king.rigged.glb"
+        },
+        "coats": {
+          "horse-wild:horse:bay": {
+            "key": "/assets/nalati/models/coats/horse-wild.horse.bay.coat.webp",
+            "image": "/assets/nalati/models/coats/horse-wild.horse.bay.coat.webp"
+          },
+          "horse-wild:horse:chestnut": {
+            "key": "/assets/nalati/models/coats/horse-wild.horse.chestnut.coat.webp",
+            "image": "/assets/nalati/models/coats/horse-wild.horse.chestnut.coat.webp"
+          },
+          "horse-wild:horse:grey": {
+            "key": "/assets/nalati/models/coats/horse-wild.horse.grey.coat.webp",
+            "image": "/assets/nalati/models/coats/horse-wild.horse.grey.coat.webp"
+          },
+          "horse-wild:horse:black": {
+            "key": "/assets/nalati/models/coats/horse-wild.horse.black.coat.webp",
+            "image": "/assets/nalati/models/coats/horse-wild.horse.black.coat.webp"
+          },
+          "horse-wild:horse:foal-bay": {
+            "key": "/assets/nalati/models/coats/horse-wild.horse.foal-bay.coat.webp",
+            "image": "/assets/nalati/models/coats/horse-wild.horse.foal-bay.coat.webp"
+          },
+          "horse-wild:horse:foal-chestnut": {
+            "key": "/assets/nalati/models/coats/horse-wild.horse.foal-chestnut.coat.webp",
+            "image": "/assets/nalati/models/coats/horse-wild.horse.foal-chestnut.coat.webp"
+          },
+          "horse-wild:horse:stallion": {
+            "key": "/assets/nalati/models/coats/horse-wild.horse.stallion.coat.webp",
+            "image": "/assets/nalati/models/coats/horse-wild.horse.stallion.coat.webp"
+          },
+          "horse-wild:argymaq:stallion": {
+            "key": "/assets/nalati/models/coats/horse-wild.argymaq.stallion.coat.webp",
+            "image": "/assets/nalati/models/coats/horse-wild.argymaq.stallion.coat.webp"
+          },
+          "horse-saddled:horse:camp-black": {
+            "key": "/assets/nalati/models/coats/horse-saddled.horse.camp-black.coat.webp",
+            "image": "/assets/nalati/models/coats/horse-saddled.horse.camp-black.coat.webp"
+          },
+          "horse-saddled:horse:tulpar": {
+            "key": "/assets/nalati/models/coats/horse-saddled.horse.tulpar.coat.webp",
+            "image": "/assets/nalati/models/coats/horse-saddled.horse.tulpar.coat.webp"
+          },
+          "wolf:wolf:tawny": {
+            "key": "/assets/nalati/models/coats/wolf.wolf.tawny.coat.webp",
+            "image": "/assets/nalati/models/coats/wolf.wolf.tawny.coat.webp"
+          },
+          "wolf:wolf:dark": {
+            "key": "/assets/nalati/models/coats/wolf.wolf.dark.coat.webp",
+            "image": "/assets/nalati/models/coats/wolf.wolf.dark.coat.webp"
+          },
+          "wolf:wolf:scout": {
+            "key": "/assets/nalati/models/coats/wolf.wolf.scout.coat.webp",
+            "image": "/assets/nalati/models/coats/wolf.wolf.scout.coat.webp"
+          },
+          "wolf:wolf:alpha": {
+            "key": "/assets/nalati/models/coats/wolf.wolf.alpha.coat.webp",
+            "image": "/assets/nalati/models/coats/wolf.wolf.alpha.coat.webp"
+          },
+          "wolf:kokbori:kokbori": {
+            "key": "/assets/nalati/models/coats/wolf.kokbori.kokbori.coat.webp",
+            "image": "/assets/nalati/models/coats/wolf.kokbori.kokbori.coat.webp"
+          }
+        },
+        "vertexColours": true,
+        "doubleSided": [
+          "eagle"
+        ],
+        "coatDecode": "bitmap"
+      }
+    }
+  },
+  "pack": {
+    "bytes": 17203,
+    "hash": "e1b81f7e65acaefb31bc6eae8fb1049e38b2fae565c63cc04184ea94cf74b797"
+  }
+}
