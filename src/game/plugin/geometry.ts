@@ -1733,7 +1733,7 @@ const WholePartition = wholeV.pipe(wholeV.strictObject({ id: wholeV.string(), ve
   grid: wholeV.exactOptional(wholeV.strictObject({ origin: wholeV.tuple([wholeV.number(), wholeV.number(), wholeV.number()]), step: wholeV.pipe(wholeV.number(), wholeV.minValue(1 / 4096), wholeV.maxValue(1)) })) }),
   // The proof lives only in this parsed row: caller-owned explicit arrays
   // never qualify, even when they currently look like a complete run.
-  wholeV.transform(row => ({ ...row, vertices: row.vertices.values, triangles: row.triangles.values, denseVertices: row.vertices.dense, denseTriangles: row.triangles.dense })));
+  wholeV.transform(row => ({ ...row, vertices: row.vertices.values, triangles: row.triangles.values, denseVertices: row.vertices.dense })));
 function isWholeMesh(node: Object3D): node is Mesh { return node instanceof Mesh; }
 function wholeStorage(row: wholeV.InferOutput<typeof WholeAttribute>, count: number): BufferAttribute {
   const n = row.itemSize * count;
@@ -1909,18 +1909,6 @@ class WholeGeometryAssembler {
         }
       }
       const index = input.getIndex()?.array ?? null, output = group.output.index?.array ?? null, done = group.triangles, triangles = row.triangles;
-      // A first complete zero-based run has no ordinal remapping or earlier
-      // triangle to conflict with. Preserve index-bound refusals, then restore
-      // the whole index at once. Explicit lists and partial/shared rows retain
-      // the original per-corner checks below.
-      if (completeFreshVertices && row.denseTriangles && triangles.length === done.length) {
-        if (output === null && index === null) { done.fill(1); return; }
-        if (output !== null && (index instanceof Uint16Array || index instanceof Uint32Array) && ArrayBuffer.isView(index)
-          && index.length === triangles.length * 3 && index.length === row.indexCount) {
-          for (let at = 0; at < index.length; at++) if ((index[at] ?? Infinity) >= vertices.length) throw new Error('Whole missing triangle vertex');
-          output.set(index); done.fill(1); return;
-        }
-      }
       for (let local = 0; local < triangles.length; local++) {
         const triangle = triangles[local] ?? Number.NaN;
         if (!(triangle < done.length) || done[triangle] === 1) throw new Error('Whole duplicate or invalid triangle');

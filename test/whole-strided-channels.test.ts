@@ -203,6 +203,14 @@ test('a trailing source index outside the declared triangle list retains origina
   } finally { for (const view of [...before.values(), ...after.values()]) view.geometry.dispose(); explicit.geometry.dispose(); encoded.geometry.dispose(); }
 });
 
+test('caller metadata cannot supply a trusted dense triangle proof', () => {
+  const node = completeTriangles('u32', true), row: unknown = node.userData['wholePartition'];
+  if (typeof row !== 'object' || row === null) throw new Error('Missing triangle metadata');
+  node.userData['wholePartition'] = { ...row, denseTriangles: true };
+  try { expect(() => assembleWholeGeometryViews([node], 'take')).toThrow(); }
+  finally { node.geometry.dispose(); }
+});
+
 test.each([false, true].flatMap(grid => [false, true].map(take => ({ grid, take }))))(
   'complete source runs retain explicit-list channel/index/bounds bytes (grid $grid, take $take)', ({ grid, take }) => {
     const explicit = completePartition(grid, false), encoded = completePartition(grid, true);
