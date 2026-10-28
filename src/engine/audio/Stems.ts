@@ -172,11 +172,13 @@ export class Deck {
   readonly genre: MusicGenre;
   readonly t0: number;
   private readonly ctx: BaseAudioContext;
+  private readonly failed: ((error: unknown) => void) | undefined;
   constructor(ctx: BaseAudioContext, audio: SlotAudio, dest: AudioNode, t0: number, fadeIn: number, tension = 0, phase: BossPhase = 1, failed?: (error: unknown) => void) {
     if ([audio.calm, audio.tension].some(stem => stem instanceof AacTrack && (ctx.sampleRate !== stem.sampleRate || audio.layers.length > 0))) {
       this.scope.dispose(); throw new Error('Bounded AAC deck requires 48 kHz playback without boss layers');
     }
     this.ctx = ctx;
+    this.failed = failed;
     this.heldAudio = audio;
     this.spec = audio.spec;
     this.slot = audio.slot;
@@ -274,7 +276,8 @@ export class Deck {
       const planned = this.nextBar(ctx.currentTime + .05);
       const elapsed = (planned - this.t0) * 48000;
       const start = Math.round(spec.loopStart * 48000), end = Math.round(spec.loopEnd * 48000);
-      const initial = Math.round(elapsed < end ? elapsed : start + (elapsed - start) % (end - start));
+      const sample = Math.round(elapsed);
+      const initial = sample < end ? sample : start + (sample - start) % (end - start);
       const prepared = stem instanceof AacTrack && ctx.sampleRate !== stem.sampleRate ? await stem.decoded() : stem;
       if (prepared instanceof AacTrack) await prepared.primeAt(initial, owner);
       if (owner.disposed || owner.disposing || this.stopAt !== Infinity) { owner.dispose(); return; }
@@ -284,7 +287,7 @@ export class Deck {
       gain.connect(this.out);
       if (prepared instanceof AacTrack) {
         this.streams.push(new AacSource(prepared, { context: ctx, output: gain, scope: owner,
-          ended: () => owner.dispose(), failed: error => { owner.dispose(); console.info('[music] late tension source failed', error); } }, planned, { initial, at }));
+          ended: () => owner.dispose(), failed: error => { this.dispose(); this.failed?.(error); } }, planned, { initial, at }));
       } else {
         const source = withOwner(owner, () => ownAudioSource(ctx.createBufferSource()));
         owner.onDispose(() => { source.buffer = null; });
