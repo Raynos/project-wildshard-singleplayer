@@ -30,7 +30,7 @@ export function phonePageTarget(list,url) {
 /** Compose independently valid source statements before either browser executes them.
  * @param {string} paintScript */
 export function phoneBootstrap(paintScript) {
-  return `${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};\nwindow.__wildshardHarness={seed:357,capture:null};\n${paintScript};`;
+  return `${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};\nwindow.__wildshardHarness={seed:357,capture:null};\n${paintScript};\nwindow.__phoneRouteBootURL=location.href;`;
 }
 
 /** @param {string} engine @param {string} base @param {string} _out @returns {Promise<import('./phone-route.mjs').PhonePage>} */
@@ -107,9 +107,17 @@ export async function openPhoneBrowser(engine, base, _out) {
       if (inspector === null) throw new Error('Safari inspector unavailable');
       await inspector.send('Page.enable');
       await inspector.send('Page.setBootstrapScript', { source: phoneBootstrap(paintScript) });
-      // Bootstrap belongs to this page. simctl openurl may create another tab
-      // and leave both the settings/error observer and Inspector on the probe.
-      await inspector.send('Page.navigate', {url}); await connect(url);
+      // Bootstrap belongs to this page. simctl openurl may create another tab;
+      // this Safari's target protocol has Runtime.evaluate, not Page.navigate.
+      await raw(`setTimeout(()=>{location.href=${JSON.stringify(url)};},0);true`);
+      const deadline = Date.now() + 90000;
+      while (Date.now() < deadline) {
+        let document;
+        try { document = await raw('({url:location.href,boot:window.__phoneRouteBootURL})'); } catch { await sleep(100); continue; }
+        if (typeof document === 'object' && document !== null && 'url' in document && document.url === url && 'boot' in document && document.boot === url) return;
+        await sleep(100);
+      }
+      throw new Error('Native destination bootstrap did not complete');
     },
     async click(selector) {
       await raw(`(${phoneTouchButton.toString()})(${JSON.stringify(selector)})`);
