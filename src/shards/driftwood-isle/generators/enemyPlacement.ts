@@ -1,14 +1,15 @@
 import { islandFoliagePlacements } from './islandDressing';
-import { terrainTileHeight } from '@wildshard/format/terrainTileBytes';
+import { readNativeTriangleField } from '@wildshard/sdk/bake/terrain';
 import { driftwoodGroundSampler } from './groundSampling';
 import { Rng } from '@wildshard/sdk/random';
 import volleyData from '../data/coconutSlots.json' with { type: 'json' };
-import { BodySlotsSchema } from '@wildshard/format/bodySlots';
+import { authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
 import { parse, type InferOutput } from 'valibot';
 import { sampleCreatureGroup, selectCreatureSites } from '@wildshard/sdk/bake/creaturePlacement';
 import { ENEMY_COUNTS } from './fauna';
 import { driftwoodPhysics, driftwoodPhysicsGroundBytes } from './physics';
 
+const BodySlotsSchema: ReturnType<typeof authorFormatSchema<'bodySlots.BodySlotsSchema'>> = authorFormatSchema('bodySlots.BodySlotsSchema');
 const physics = driftwoodPhysics();
 
 const foliage = islandFoliagePlacements();
@@ -112,8 +113,7 @@ export function enemyPlacements(): { seed: number; volley: typeof volley; practi
     crabSites: physics.habitat.crabSites, palms: [...foliage.tiers[tier].palms.specs, ...extra] });
   const bytes = driftwoodPhysicsGroundBytes();
   const heights = new Float32Array(bytes.buffer);
-  const nativeHeight = (x: number, z: number): number => terrainTileHeight({ resolution: 256, x: -250, z: -250, size: 500, heights }, x, z,
-    { layout: 'column-major', boundary: 'clamp' });
+  const nativeHeight = readNativeTriangleField({ resolution: 256, x: -250, z: -250, size: 500, heights }).sample;
   return { seed, volley, practice: PRACTICE_AT, hold: holdCentre(), page: { phone: page('phone'), desktop: page('desktop') },
     native: pack({ seed, waterLevel, heightAt: nativeHeight, crabSites: physics.habitat.crabSites, palms: physics.habitat.perchBases }) };
 }

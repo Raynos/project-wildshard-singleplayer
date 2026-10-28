@@ -52,6 +52,29 @@ export function readNativeScalarField(input: unknown, blocks: ReadonlyMap<string
   return { resolution: row.res, size: row.size, values, sample: heightAt };
 }
 
+/** An admitted, detached column-major lattice and its original clamped triangular query. */
+export interface NativeTriangleField {
+  readonly resolution: number;
+  readonly x: number; readonly z: number; readonly size: number;
+  readonly heights: Float32Array;
+  readonly sample: (x: number, z: number) => number;
+}
+
+/** Admit original author collision samples without transposing or resampling them.
+ * The native column-major law keeps its per-cell diagonal and operation order.
+ * Each call owns its storage; no landscape, runtime binding or collider is installed. */
+export function readNativeTriangleField(input: Pick<TerrainTileData, 'resolution' | 'x' | 'z' | 'size' | 'heights'>): NativeTriangleField {
+  if (!Number.isSafeInteger(input.resolution) || input.resolution < 2 || input.resolution > 257
+    || !Number.isFinite(input.size) || input.size <= 0 || input.size > 500
+    || !Number.isFinite(input.x) || !Number.isFinite(input.z)
+    || input.heights.length !== input.resolution ** 2
+    || input.heights.some(height => !Number.isFinite(height) || height < -CELL_BELOW || height > CELL_ABOVE)) {
+    throw new Error('Invalid native triangular field');
+  }
+  const data = { resolution: input.resolution, x: input.x, z: input.z, size: input.size, heights: Float32Array.from(input.heights) };
+  return { ...data, sample: (x, z) => terrainTileHeight(data, x, z, { layout: 'column-major', boundary: 'clamp' }) };
+}
+
 /** Original-lattice query metadata; no render or collision mesh is generated. */
 export interface QueryTerrainBakeOptions { normalEpsilon?: number; datum?: number; family?: string }
 /** One critical, charged WTT query root; its runtime owner keeps rendering and collision. */

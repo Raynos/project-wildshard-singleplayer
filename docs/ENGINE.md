@@ -5271,6 +5271,11 @@ original bounded WSTR lattice for author placements. It copies the supplied
 view and exposes the defining bilinear height, normal and splat queries.
 It does not substitute the physics ground or install runtime services.
 
+`readNativeTriangleField({ resolution, x, z, size, heights })` in the same
+module admits a detached, bounded column-major collision lattice. Its
+`sample(x, z)` keeps the native triangular diagonal and clamped boundary
+arithmetic; authors install no runtime terrain or collider service.
+
 `bakeTerrain({ heightAt, colourAt, sampling: { source, normalEpsilon: 0.6,
 datum: -0.8 } })` can retain that original query lattice separately. The
 optional `terrain.sampling` section names a charged critical binary file,
