@@ -149,6 +149,7 @@ export function nextDrawnFrame(owner?: Scope): Promise<void> {
       if (lastDrawn > since || diagnosticNow() - start >= WAIT_CAP_MS || typeof globalThis.requestAnimationFrame !== 'function') { finish(); return; }
       // A task after rAF leaves paint first. A nested timer costs 4 ms of the next build's frame before any work starts.
       frame = scope.raf(() => {
+        if (done) return;
         frame = undefined;
         if (typeof globalThis.MessageChannel !== 'function') { task = scope.timeout(0, () => { task = undefined; check(); }); return; }
         const channel = new MessageChannel(), active = scope.child('frame-turn'); turn = active;
