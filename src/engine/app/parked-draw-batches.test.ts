@@ -14,6 +14,17 @@ test('matching instances retain every draw without paying one frame per copy', (
   geometry.dispose(); material.dispose();
 });
 
+test('exact copies (no new material, binding or buffer) take no drawables place (G808)', () => {
+  const geometry = new BoxGeometry(), material = new MeshBasicMaterial(), copies = Array.from({ length: 12 }, () => new Mesh(geometry, material));
+  const fresh = Array.from({ length: 9 }, () => new InstancedMesh(geometry, material, 1));
+  const slices = parkedDrawSlices([...copies, ...fresh], ONE_UNIT);
+  // the copies after the first upload nothing; the instanced binding is a new first use, and each instanced mesh brings
+  // its own instance buffer, so those still count
+  expect(slices.map(slice => slice.length)).toEqual([12, 8, 1]);
+  expect(slices.flat()).toEqual([...copies, ...fresh]);
+  geometry.dispose(); material.dispose();
+});
+
 test('a new geometry, material or instance layout retains its first-use boundary', () => {
   const geometry = new BoxGeometry(), other = new BoxGeometry(), material = new MeshBasicMaterial(), second = new MeshBasicMaterial();
   const objects = [new InstancedMesh(geometry, material, 1), new InstancedMesh(geometry, material, 1),

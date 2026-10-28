@@ -177,7 +177,7 @@ export function parkedDrawSlices<T extends THREE.Object3D>(drawables: readonly T
   const seen = new Set<THREE.Material>(), uploaded = new Set<ArrayBufferView>();
   const bindings = new Set<string>();
   const byteCap = budget.bufferBytes ?? Number.POSITIVE_INFINITY;
-  let slice: T[] = [], fresh = 0, bytes = 0, freshBindings = 0;
+  let slice: T[] = [], fresh = 0, bytes = 0, freshBindings = 0, counted = 0;
   for (const object of drawables) {
     // each material asked once: `known` may note a first pipeline as planned for the drawables after it
     const materials = drawableMaterials(object), built = materials.map(material => known(object, material));
@@ -185,13 +185,16 @@ export function parkedDrawSlices<T extends THREE.Object3D>(drawables: readonly T
     const binding = budget.newBindings === undefined ? undefined : drawBindingKey(object);
     // a fresh binding over pipelines already built paces as a copy: its first draw adds only bounded buffer uploads
     const firstUse = binding !== undefined && !bindings.has(binding) && !(materials.length > 0 && built.every(Boolean)) ? 1 : 0;
-    const buffers = Number.isFinite(byteCap) ? drawBuffers(object).filter(buffer => !uploaded.has(buffer)) : [];
+    const buffers = drawBuffers(object).filter(buffer => !uploaded.has(buffer));
     const size = buffers.reduce((sum, buffer) => sum + buffer.byteLength, 0);
-    if (slice.length > 0 && (slice.length >= budget.drawables || fresh + unseen.length > budget.newMaterials || bytes + size > byteCap
+    // G808: an exact copy (no new material, binding or buffer) builds and uploads nothing, so it rides along without a
+    // drawables place: 8-drawable cuts ahead of copies were about 9 of a Nalati arrival's 56 one-frame slices
+    const costs = unseen.length > 0 || firstUse > 0 || size > 0 ? 1 : 0;
+    if (slice.length > 0 && (counted + costs > budget.drawables || fresh + unseen.length > budget.newMaterials || bytes + size > byteCap
       || freshBindings + firstUse > (budget.newBindings ?? Number.POSITIVE_INFINITY))) {
-      slices.push(slice); slice = []; fresh = 0; bytes = 0; freshBindings = 0;
+      slices.push(slice); slice = []; fresh = 0; bytes = 0; freshBindings = 0; counted = 0;
     }
-    slice.push(object); fresh += unseen.length; bytes += size; freshBindings += firstUse;
+    slice.push(object); fresh += unseen.length; bytes += size; freshBindings += firstUse; counted += costs;
     if (binding !== undefined) bindings.add(binding);
     for (const material of unseen) seen.add(material);
     for (const buffer of buffers) uploaded.add(buffer);
