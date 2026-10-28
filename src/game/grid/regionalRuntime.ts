@@ -23,7 +23,7 @@ import type { ShardPlayHost, ShardRuntime } from '../shard/runtime';
 import type { ShardWorld } from '../shard/world';
 import type { HybridResident } from '../shardfile/hybrid';
 import type { AdmittedProduct } from '../shardfile/product';
-import { shardProductFromAdmission } from '../shardfile/runtimeProduct';
+import { admittedRuntimeProduct, shardProductFromAdmission } from '../shardfile/runtimeProduct';
 import type { GridCell } from './assembly';
 import { enteredFullMap, shiftedFullMap, shiftedMinimap } from './mapFrame';
 import type { ResidencyAllocator, ResidencyLease } from './allocator';
@@ -409,6 +409,12 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
                 await foundation.beforeWarm?.();
               }, arrivalAt()));
               restored = true;
+              // js-heap H6 for a grid region, as the solo page's finish.ts does: the entry has built and warmed everything
+              // its admitted transport fed, so keep none of it (Nalati's 45 MB of product files stayed in a Simulator
+              // interior's JS heap, T10). A later read rechecks the immutable cache or the network, as a released tile does;
+              // a file with no reread stays.
+              admittedRuntimeProduct(request.admitted.source.identity.slug)?.assets.releaseAll();
+              void request.admitted.releaseTransport?.(request.admitted.assets.keys(), 'cache-or-fetch').catch(() => undefined);
             },
           };
         } };
