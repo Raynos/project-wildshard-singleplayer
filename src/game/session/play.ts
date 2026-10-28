@@ -1,6 +1,7 @@
 
 import type { GridSession as DeclarationGridSession } from '../grid/session';
 import { initialHomeMetadataRequired } from '../grid/homeMetadata';
+import { timeClientPreparation } from '../shardfile/preparationTiming';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Music } from '@wildshard/engine/audio/Music';
@@ -149,7 +150,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
   // SF21a / the grid client: EXPERIMENTAL Wildshard's 3 × 3 around this home cell (deck, soft walls, neighbours' far proxies)
   const grid = await step('assembly', async p => {
     if (pageMode() !== 'grid') return null;
-    const { GridSession } = await waitFor('Read grid session module', import('../grid/session'), 'file');
+    const { GridSession } = await timeClientPreparation('grid', 'assembly.module', () => waitFor('Read grid session module', import('../grid/session'), 'file'));
     if (game.levelScope.disposed) throw new Error('Grid owner retired while loading its session');
     return GridSession.create({ scene: game.rootScene, physics: world.physics, scope: game.levelScope, feet: () => player.position, renderer: game.renderer,
     // Two nearby road tiles remain live 3D around the waiting screen. Only the

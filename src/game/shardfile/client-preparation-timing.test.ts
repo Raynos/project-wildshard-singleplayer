@@ -2,6 +2,26 @@ import { expect, test, vi } from 'vitest';
 import { isDev, setDev } from '@wildshard/engine/core/devMode';
 import { clientPreparationBatch, timeClientPreparation } from './preparationTiming';
 
+test('ordered marks partition the complete wall interval without counting overlapping children twice', () => {
+  const previous = isDev(), prefix = 'wildshard.prepare:fixture:ordered.';
+  const clock = vi.spyOn(performance, 'now'); let now = 100;
+  clock.mockImplementation(() => now);
+  try {
+    setDev(true);
+    const batch = clientPreparationBatch('fixture', 'ordered', ['read', 'join', 'publish']);
+    if (batch === undefined) throw new Error('Missing Developer sequence');
+    now = 137; batch.mark('read'); now = 225; batch.mark('join'); now = 252; batch.mark('publish'); batch.finish();
+    const spans = ['read', 'join', 'publish'].map(phase => performance.getEntriesByName(`${prefix}${phase}`)[0]);
+    expect(spans.map(span => span?.startTime)).toEqual([100, 137, 225]);
+    expect(spans.map(span => span?.duration)).toEqual([37, 88, 27]);
+    expect(spans.reduce((sum, span) => sum + (span?.duration ?? 0), 0)).toBe(152);
+    expect(() => batch.mark('read')).toThrow('Client preparation batch is finished');
+  } finally {
+    setDev(previous); clock.mockRestore();
+    for (const phase of ['read', 'join', 'publish']) performance.clearMeasures(`${prefix}${phase}`);
+  }
+});
+
 test('preparation spans replace reentry, preserve failures and skip public work', async () => {
   const dev = isDev(), name = 'wildshard.prepare:fixture:world.data';
   try {

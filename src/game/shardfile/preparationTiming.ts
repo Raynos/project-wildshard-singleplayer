@@ -18,6 +18,8 @@ interface PreparationBatch<Phase extends string> {
   readonly sync: <T>(phase: Phase, work: () => T) => T;
   /** Count a completion check without creating an async hop when it needs no pause. */
   readonly checkpoint: (phase: Phase, work: () => Promise<void> | undefined) => Promise<void> | undefined;
+  /** End one ordered wall interval, starting at creation or the preceding mark. */
+  readonly mark: (phase: Phase) => void;
   readonly finish: () => void;
 }
 /** Developer-only, bounded phase totals for a multi-file preparation. Await all work before finish().
@@ -26,6 +28,7 @@ interface PreparationBatch<Phase extends string> {
 export function clientPreparationBatch<Phase extends string>(slug: string, step: string, phases: readonly Phase[]): PreparationBatch<Phase> | undefined {
   if (!isDev()) return undefined;
   const rows = new Map<Phase, PreparationPhase>(phases.map(phase => [phase, { start: undefined, end: 0, calls: 0, failures: 0, elapsedMs: 0, longestMs: 0 }]));
+  let cursor = diagnosticNow();
   let finished = false;
   const begin = (phase: Phase) => {
     if (finished) throw new Error('Client preparation batch is finished');
@@ -39,6 +42,7 @@ export function clientPreparationBatch<Phase extends string>(slug: string, step:
     row.calls++; row.failures += failed ? 1 : 0; row.elapsedMs += elapsed; row.longestMs = Math.max(row.longestMs, elapsed);
   };
   return {
+    mark: phase => { const row = begin(phase); record(row, cursor, false); cursor = row.end; },
     run: async (phase, work) => {
       const row = begin(phase), start = diagnosticNow(); let failed = true;
       try { const result = await work(); failed = false; return result; }

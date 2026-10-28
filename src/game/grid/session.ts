@@ -109,6 +109,7 @@ import { readGridSeamData, type GridSeamAddress } from './seamData';
 import { readCompiledGridStrips } from './compiledStrips';
 import { startRoadGrain } from './roadGrainPreparation';
 import { startRoadSigns } from './roadSignPreparation';
+import { clientPreparationBatch } from '../shardfile/preparationTiming';
 import { declareDownloadFile } from '@wildshard/engine/boot/download';
 import { admittedRuntimeProduct } from '../shardfile/runtimeProduct';
 
@@ -367,6 +368,7 @@ export class GridSession {
    *  20 products' index and edge section through the serial content cache, 3.5 s on Jake's phone), then build the session. */
   static async create(host: GridSessionHost, progress?: StepProgress): Promise<GridSession> {
     if (host.residency === undefined) throw new Error('Grid session requires the early page residency owner');
+    const timing = clientPreparationBatch('grid', 'assembly', ['setup', 'seam-source', 'edge-admission', 'compiled-page', 'worker-wait', 'road-start', 'collider-join', 'session', 'final-yield']);
     const allocator = host.residency.allocator;
     const assembly = new GridAssembly(gridMode(DEVSERVER)), empty = assembly.emptyNeighbour.edge;
     const instance = pageGridInstance();
@@ -379,12 +381,14 @@ export class GridSession {
     let signs: ReturnType<typeof startRoadSigns>;
     try {
     signs = startRoadSigns(host.scope, allocator, instance, layout.signs.filter(sign => ring(sign.at.x, sign.at.z)));
+    timing?.mark('setup');
     let prepared = 0;
     progress?.set(0, 3, 'Grid seam data · 0 / 1 files');
     const address = __GRID_SEAM_ASSET__, abort = new AbortController();
     declareDownloadFile(address.url, address.bytes);
     const forget = host.scope.capture('disposers', () => { abort.abort(); });
     const data = await readGridSeamData(address, url => fetch(url, { signal: abort.signal })).finally(forget);
+    timing?.mark('seam-source');
     if (host.scope.disposed) throw new Error('Grid session left during seam preparation');
     const baked = new Map(data.edges), edgeCosts = data.edgeCosts;
     progress?.set(0, 3, `Cell edges · 0 / ${assembly.cells.length}`);
@@ -403,6 +407,7 @@ export class GridSession {
         prepared++; progress?.detail(`Cell edges · ${prepared} / ${assembly.cells.length}`);
       }
     });
+    timing?.mark('edge-admission');
     if (host.scope.disposed) throw new Error('Grid session left during cell preparation');
     // Loading has no game frames to wait for. Share the usual 30 ms loading budget across cheap generator batches;
     // workSlice still observes the drawn-frame budget if this is called while the game is presenting.
@@ -438,8 +443,10 @@ export class GridSession {
       if (host.scope.disposed || host.scope.disposing) throw new Error('Grid admission scope disposed');
       flatPlatform = true;
     }))];
+    timing?.mark('compiled-page');
     if (grain !== undefined) await waitFor('Grid road grain', grain.ready, 'worker');
     if (signs !== undefined) await waitFor('Grid road signs', signs.ready, 'worker');
+    timing?.mark('worker-wait');
     if (host.scope.disposed || host.scope.disposing) throw new Error('Grid session left during seam preparation');
     const roadScope = host.scope.child('grid-road-construction');
     progress?.set(2, 3, `Road geometry · ${strips.length} initial seams`);
@@ -480,6 +487,7 @@ export class GridSession {
       } finally { outerSigns?.release(); grain?.release(); strips.length = 0; } // Collision views retain positions/indices, never render-only colours.
     };
     road.catch(() => { grain?.release(); roadScope.dispose(); });
+    timing?.mark('road-start');
     try {
       await construction.yield();
       // H4: Rapier's strip constructors must not accumulate into one loading task.
@@ -490,12 +498,16 @@ export class GridSession {
         await construction.check();
       }
       if (host.scope.disposed || host.scope.disposing) throw new Error('Grid session left during collider preparation');
+      timing?.mark('collider-join');
       const session = new GridSession(host, edges, allocator, strips, { road, outer, outerStrips, publishStrips: added => { strips.push(...added); }, plans, collidersInstalled: true });
+      timing?.mark('session');
       progress?.set(3, 3, `${assembly.cells.length} cells · ${strips.length} seams`);
       await construction.yield();
+      timing?.mark('final-yield');
       return session;
     } catch (error) { roadScope.dispose(); throw error; }
     } catch (error) { signs?.release(); grain?.release(); throw error; }
+    finally { timing?.finish(); }
   }
 
   constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[], preparedRoad?: { readonly road: PlatformRoad | Promise<PlatformRoad>; readonly outer?: () => Promise<PlatformRoad>; readonly outerStrips?: (scope: Scope) => Promise<readonly GeneratedStrip[]>; readonly publishStrips?: (strips: readonly GeneratedStrip[]) => void; readonly plans: Map<Mesh, CullPlan>; readonly collidersInstalled?: true }) {
