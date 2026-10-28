@@ -4,11 +4,11 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { chromium, devices } from 'playwright';
-import { paintSignAtlas } from './signLettering.ts';
-import { nalatiRoadSignSites } from './roadSigns.ts';
-import { byteWriter, outputHash, jsonBytes } from '../../../../scripts/bake-output.mjs';
+import { paintSignAtlas } from '../src/shards/nalati-grasslands/generators/signLettering.ts';
+import { nalatiRoadSignSites } from '../src/shards/nalati-grasslands/generators/roadSigns.ts';
+import { byteWriter, outputHash, jsonBytes } from './bake-output.mjs';
 
-const root = resolve(import.meta.dirname, '../../../..');
+const root = resolve(import.meta.dirname, '..');
 const read = file => JSON.parse(readFileSync(resolve(root, 'src/shards/nalati-grasslands/data', file), 'utf8'));
 const roads = nalatiRoadSignSites();
 const specimen = read('campCatalogue.json').find(row => row.key === 'signpostBaked').model.defaults;

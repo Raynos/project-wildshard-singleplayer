@@ -4,14 +4,14 @@ import { resolve } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import * as THREE from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import { bakeModelPaint } from './modelPaint.mjs';
-import { fitRock } from './fittedRock.ts';
-import { hullCandidates, hullAt } from './solid.ts';
-import { nativeNalatiDressingPlacements } from './nativeDressingPlacements.mjs';
-import { byteWriter, jsonBytes } from '../../../../scripts/bake-output.mjs';
+import { bakeModelPaint } from '../src/shards/nalati-grasslands/generators/modelPaint.mjs';
+import { fitRock } from '../src/shards/nalati-grasslands/generators/fittedRock.ts';
+import { hullCandidates, hullAt } from '../src/shards/nalati-grasslands/generators/solid.ts';
+import { nativeNalatiDressingPlacements } from '../src/shards/nalati-grasslands/generators/nativeDressingPlacements.mjs';
+import { byteWriter, jsonBytes } from './bake-output.mjs';
 
 if (!process.argv.includes('--rebake-contacts')) throw new Error('Contact authoring requires --rebake-contacts');
-const root = resolve(import.meta.dirname, '../../../..');
+const root = resolve(import.meta.dirname, '..');
 const placements = await nativeNalatiDressingPlacements(file => readFileSync(resolve(root, file)));
 const placementRows = key => {
   const bytes = placements.get(`dressing-${key}.json`);

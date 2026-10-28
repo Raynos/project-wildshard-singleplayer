@@ -176,7 +176,7 @@ test('native crags keep all registered bytes without selecting a level', () => {
     import { bakeCragRockOnTerrain } from './src/shards/nalati-grasslands/generators/places.ts';
     assert.equal(selectedLevel(),null);
     assert.throws(()=>bakeCragRockOnTerrain(false,new Uint8Array()),/Native terrain byte cap/);
-    await import('./src/shards/nalati-grasslands/generators/bake-crag-rock.mjs');
+    await import('./scripts/bake-nalati-crags.mjs');
     assert.equal(selectedLevel(),null);
   `;
   execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '--eval', source, '--', '--check']);
