@@ -5,10 +5,12 @@ export const profiles: Record<string, Profile> = {
   lte: {cpu: 6, down: 20_000_000 / 8, up: 5_000_000 / 8, latency: 60},
   desktop: {cpu: 1, down: -1, up: -1, latency: 0},
 };
-export interface Row {key: string; label: string; start: number | null; end: number | null; duration: number; wallMs: number | null}
+export interface Row {key: string; label: string; start: number | null; end: number | null; duration: number; wallMs: number | null;
+  state?: 'todo' | 'on' | 'ok'; startBasis?: 'native' | 'observed'; endBasis?: 'native' | 'observed'; detail?: string}
+export interface ErrorRow {message: string; source: string; url: string; at: number}
 export interface RequestRow {url: string; start: number; end: number | null; source: 'worker' | 'service-worker' | 'network'; bytes: number; headerBytes?: number; status: number; failure: string | null}
 export interface Mark {name: string; start: number; duration: number; detail: unknown}
-export interface Capture {tap: number | null; control: number | null; fatal?: string; stoppedAt?: number; rows: Row[]; measures: Mark[]; longTasks: Mark[]; frameGaps: {start: number; duration: number}[]; errors: string[]; rowCoverage: string}
+export interface Capture {tap: number | null; control: number | null; fatal?: string; stoppedAt?: number; rows: Row[]; measures: Mark[]; longTasks: Mark[]; frameGaps: {start: number; duration: number}[]; errors: string[]; errorDetails?: ErrorRow[]; rowCoverage: string}
 export interface Run extends Capture {schema: 1; build: string; engine: string; flow: string; cache: string; preset: string; at: string; url: string; profile: Profile; applied: {pageCPU: boolean; pageNetwork: boolean; workerNetwork: boolean; notes: string[]}; requests: RequestRow[]; totalMs: number | null; video?: string; contactSheet?: string}
 export function record(value: unknown): Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value) ? Object.fromEntries(Object.entries(value)) : {};
@@ -39,5 +41,9 @@ export function printRun(run: Run): void {
   console.table([{seconds: run.totalMs === null ? 'INCOMPLETE' : (run.totalMs / 1000).toFixed(3),
     'page network': summary('network'), 'worker network': summary('worker'), 'page via SW': summary('service-worker'),
     longTasks: run.longTasks.length, frameGaps: run.frameGaps.length, errors: run.errors.length}]);
-  console.table(run.rows.map(row => ({step: row.label, start: row.start, end: row.end, exclusiveMs: row.duration, wallMs: row.wallMs})));
+  const secondsAt = (at: number | null): string => at === null ? 'pending' : ((at - (run.tap ?? 0)) / 1000).toFixed(3);
+  console.table(run.rows.filter(row => row.state !== 'todo').map(row => ({step: row.label, 'start +s': secondsAt(row.start), 'end +s': secondsAt(row.end),
+    'exclusive s': (row.duration / 1000).toFixed(3), 'wall s': row.wallMs === null ? 'unknown' : (row.wallMs / 1000).toFixed(3),
+    boundaries: `${row.startBasis ?? 'unknown'} / ${row.endBasis ?? 'pending'}`})));
+  if (run.errors.length > 0) console.table(run.errorDetails ?? run.errors.map(message => ({message, source: 'legacy capture', url: ''})));
 }

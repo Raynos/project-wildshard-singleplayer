@@ -2,11 +2,11 @@ import {spawn} from 'node:child_process';
 import {readFile, writeFile, mkdir} from 'node:fs/promises';
 import {resolve as resolvePath} from 'node:path';
 import {parseArgs} from 'node:util';
-import type {Request} from 'playwright';
 import {instrument} from './instrument.ts';
 import {launchChromium} from './chromium.ts';
 import {contactSheet} from './recording.ts';
-import {comparisons, printRun, profiles, record, type Capture, type RequestRow, type Run} from './model.ts';
+import {observeRequests} from './network.ts';
+import {comparisons, printRun, profiles, record, type Capture, type ErrorRow, type Run} from './model.ts';
 import {developerSettings} from '../debug-settings.mjs';
 import {loadingCardIndex} from '../loading-benchmark/catalogue.mjs';
 
@@ -64,6 +64,10 @@ try {
     const browser = chromium?.browser ?? await webkit.launch({headless: true});
     const context = await browser.newContext({...devices['iPhone 16 Pro'],
       ...(values.record ? {recordVideo: {dir: directory, size: {width: 402, height: 874}}} : {})});
+    const network = observeRequests((start, finish) => {
+      context.on('request', start); context.on('requestfinished', finish); context.on('requestfailed', finish);
+      return () => {context.off('request', start); context.off('requestfinished', finish); context.off('requestfailed', finish);};
+    });
     const interrupt = (): void => {process.exitCode = 130; void context.close();};
     process.once('SIGINT', interrupt); process.once('SIGTERM', interrupt);
     try {
@@ -77,29 +81,15 @@ try {
         await page.exposeBinding('__phoneLoadingTap', (_source, at: unknown) => {
           if (typeof at === 'number') tapAt = at;
         });
-        const requests: RequestRow[] = [], errors: string[] = [], jobs: Promise<void>[] = [];
-        const starts = new Map<Request, RequestRow>();
-        const start = (request: Request): void => {
-          const row: RequestRow = {url: request.url(), start: request.timing().startTime > 0 ? request.timing().startTime : Date.now(),
-            end: null, source: request.serviceWorker() !== null ? 'worker' : 'network', bytes: 0, status: 0, failure: null};
-          starts.set(request, row); requests.push(row);
+        const errors: ErrorRow[] = [], visitStart = Date.now();
+        const errorAt = (message: string, source: string, address = page.url()): void => {
+          errors.push({message, source, url: address, at: Date.now()});
         };
-        const finish = (request: Request): void => {
-          jobs.push((async () => {
-            try {
-            const response = await request.response();
-            const sizes = await request.sizes().catch(() => null);
-            const row = starts.get(request);
-            if (row === undefined) throw new Error('Finished request without a start');
-            row.end = Date.now(); row.source = request.serviceWorker() !== null ? 'worker' : response?.fromServiceWorker() ? 'service-worker' : 'network';
-            row.bytes = Math.max(0, sizes?.responseBodySize ?? 0); row.headerBytes = sizes?.responseHeadersSize ?? 0;
-            row.status = response?.status() ?? 0; row.failure = request.failure()?.errorText ?? null;
-            } catch (error) {errors.push(`Request accounting: ${String(error)}`);}
-          })());
-        };
-        context.on('request', start); context.on('requestfinished', finish); context.on('requestfailed', finish);
-        page.on('pageerror', error => errors.push(error.message));
-        page.on('console', message => {if (message.type() === 'error') errors.push(message.text());});
+        page.on('pageerror', error => {errorAt(error.message, error.stack ?? 'pageerror');});
+        page.on('console', message => {if (message.type() === 'error') {
+          const location = message.location();
+          errorAt(message.text(), `console.error:${location.lineNumber}:${location.columnNumber}`, location.url);
+        }});
         if (chromium !== undefined) {
           const cdp = await context.newCDPSession(page);
           await cdp.send('Network.enable');
@@ -142,13 +132,14 @@ try {
           // Match the original capture's background-copy window before the
           // warm visit; this time is outside tap-to-control accounting.
           if (reachedControl) await page.waitForTimeout(afterControl);
-        } catch (error) {errors.push(String(error));}
+        } catch (error) {errorAt(String(error), 'flow');}
         try {capture = await page.evaluate(() => Reflect.get(window, '__phoneLoading') as Capture);}
-        catch (error) {errors.push(`Capture: ${String(error)}`);}
+        catch (error) {errorAt(String(error), 'capture');}
         capture.tap = tapAt ?? capture.tap;
-        await Promise.all(jobs);
-        context.off('request', start); context.off('requestfinished', finish); context.off('requestfailed', finish);
+        await network.settle();
         const from = capture.tap ?? 0, to = capture.control ?? capture.stoppedAt ?? Date.now();
+        const errorDetails = [...capture.errorDetails ?? [], ...errors, ...network.errors.filter(error => error.at >= visitStart),
+          ...(chromium?.errors ?? []).map(message => ({message, source: 'CDP auto-attach', url, at: Date.now()}))];
         const run: Run = {...capture, schema: 1, at: new Date().toISOString(), build, url, engine, flow: values.flow,
           preset: values.preset, cache, profile, totalMs: capture.tap !== null && capture.control !== null ? capture.control - capture.tap : null,
           applied: {pageCPU: chromium !== undefined, pageNetwork: chromium !== undefined, workerNetwork: chromium?.workerNetwork() ?? false,
@@ -156,15 +147,19 @@ try {
           rows: capture.rows, measures: capture.measures.filter(row => row.start >= from && row.start <= to),
           longTasks: capture.longTasks.filter(row => row.start >= from && row.start <= to),
           frameGaps: capture.frameGaps.filter(row => row.start >= from && row.start <= to),
-          requests: requests.filter(row => row.start >= from && row.start <= to), errors: [...capture.errors, ...errors, ...(chromium?.errors ?? [])]};
+          requests: network.rows.filter(row => row.start >= from && row.start <= to), errorDetails,
+          errors: errorDetails.map(error => error.message)};
         const name = `${engine}-${values.flow.replace(':', '-')}-${cache}`;
-        await page.screenshot({path: `${directory}/${name}.jpg`, type: 'jpeg', quality: 75, timeout: 10_000}).catch((error: unknown) => {run.errors.push(String(error));});
+        await page.screenshot({path: `${directory}/${name}.jpg`, type: 'jpeg', quality: 75, timeout: 10_000}).catch((error: unknown) => {
+          const message = String(error); run.errors.push(message); run.errorDetails?.push({message, source: 'screenshot', url: page.url(), at: Date.now()});
+        });
         const video = page.video(); await page.close();
         if (video !== null) {
           run.video = await video.path();
           run.contactSheet = `${directory}/${name}-sheet.jpg`;
           await contactSheet(run.video, run.contactSheet, `${engine} ${values.flow} ${cache} / ${build} / ${values.preset}`)
-            .catch((error: unknown) => {run.errors.push(`Contact sheet: ${String(error)}`);});
+            .catch((error: unknown) => {const message = String(error); run.errors.push(message);
+              run.errorDetails?.push({message, source: 'contact sheet', url: run.video ?? '', at: Date.now()});});
         }
         await writeFile(`${directory}/${name}.json`, JSON.stringify(run, null, 2));
         printRun(run);
@@ -173,6 +168,7 @@ try {
         console.log(`JSON ${directory}/${name}.json`);
       }
     } finally {
+      network.stop();
       process.off('SIGINT', interrupt); process.off('SIGTERM', interrupt);
       try {await context.close();} finally {await (chromium !== undefined ? chromium.close() : browser.close());}
     }

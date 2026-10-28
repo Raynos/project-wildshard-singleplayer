@@ -4,14 +4,17 @@ export function instrument(flow: string): void {
   const epoch = (): number => performance.timeOrigin + performance.now();
   const key = 'phone-loading.tap';
   const tap = Number(sessionStorage.getItem(key));
-  const data: Capture = {tap: tap > 0 ? tap : null, control: null, rows: [], measures: [], longTasks: [], frameGaps: [], errors: [], rowCoverage: 'visible-only'};
+  const data: Capture = {tap: tap > 0 ? tap : null, control: null, rows: [], measures: [], longTasks: [], frameGaps: [], errors: [], errorDetails: [], rowCoverage: 'visible-only'};
   Reflect.set(window, '__phoneLoading', data);
   const seen = new Map<string, Row>();
   const sample = (): void => {
     if (document.documentElement?.dataset['wsState'] === 'error') {
       data.fatal = document.querySelector('.ws-load-error')?.textContent ?? 'Application entered error state';
       data.stoppedAt ??= epoch();
-      if (!data.errors.includes(data.fatal)) data.errors.push(data.fatal);
+      if (!data.errors.includes(data.fatal)) {
+        data.errors.push(data.fatal);
+        data.errorDetails?.push({message: data.fatal, source: '.ws-load-error / app state', url: location.href, at: epoch()});
+      }
     }
     for (const root of document.querySelectorAll('.ws-load')) {
       const snapshot: unknown = Reflect.get(root, Symbol.for('engine.loading.snapshot'));
@@ -24,15 +27,29 @@ export function instrument(flow: string): void {
           if (typeof row['key'] !== 'string' || typeof row['ms'] !== 'number') continue;
           const start = typeof row['startedAt'] === 'number' ? performance.timeOrigin + row['startedAt'] : null;
           const end = typeof row['endedAt'] === 'number' ? performance.timeOrigin + row['endedAt'] : null;
-          seen.set(row['key'], {key: row['key'], label: String(row['label']), start, end, duration: row['ms'], wallMs: start !== null && end !== null ? end - start : null});
+          const state = row['state'] === 'todo' || row['state'] === 'on' || row['state'] === 'ok' ? row['state'] : undefined;
+          seen.set(row['key'], {key: row['key'], label: String(row['label']), start, end, duration: row['ms'], state,
+            startBasis: start === null ? undefined : 'native', endBasis: end === null ? undefined : 'native',
+            wallMs: start !== null && end !== null ? end - start : null});
         }
       } else {
         for (const element of root.querySelectorAll<HTMLElement>('[data-key]')) {
           const name = element.dataset['key'];
           if (name === undefined) continue;
-          const text = element.textContent ?? '';
+          const label = (element.children[0]?.textContent ?? '').replace(/^▸\s*(?:\d+\s*·\s*)?/u, '').trim();
+          const id = name !== 'gap' ? name : /quick steps/u.test(label) ? 'quick-steps' : `gap:${label}`;
           const duration = Number(element.dataset['ms']);
-          seen.set(name, {key: name, label: text, start: null, end: null, duration: Number.isFinite(duration) ? duration : 0, wallMs: null});
+          const prior = seen.get(id), at = epoch();
+          const rawStart = element.dataset['startedAt'], rawEnd = element.dataset['endedAt'];
+          const knownStart = rawStart !== undefined && rawStart !== '' && Number.isFinite(Number(rawStart));
+          const knownEnd = rawEnd !== undefined && rawEnd !== '' && Number.isFinite(Number(rawEnd));
+          const start = knownStart ? performance.timeOrigin + Number(rawStart) : prior?.start ?? at;
+          const complete = element.classList.contains('ok');
+          const end = knownEnd ? performance.timeOrigin + Number(rawEnd)
+            : complete ? prior?.duration === duration ? prior.end ?? at : at : null;
+          seen.set(id, {key: id, label, detail: element.children[1]?.textContent ?? '', start, end,
+            startBasis: knownStart ? 'native' : 'observed', endBasis: end === null ? undefined : knownEnd ? 'native' : 'observed',
+            state: complete ? 'ok' : 'on', duration: Number.isFinite(duration) ? duration : 0, wallMs: end === null ? null : end - start});
         }
       }
     }
@@ -60,8 +77,10 @@ export function instrument(flow: string): void {
   window.addEventListener('pointerup', tapped, true);
   window.addEventListener('click', tapped, true);
   document.addEventListener('ws:control-ready', () => {sample(); data.control = epoch();}, {once: true});
-  window.addEventListener('error', event => {data.errors.push(event.message);});
-  window.addEventListener('unhandledrejection', event => {data.errors.push(String(event.reason));});
+  window.addEventListener('error', event => {data.errors.push(event.message);
+    data.errorDetails?.push({message: event.message, source: 'window.error', url: event.filename, at: epoch()});});
+  window.addEventListener('unhandledrejection', event => {data.errors.push(String(event.reason));
+    data.errorDetails?.push({message: String(event.reason), source: 'window.unhandledrejection', url: location.href, at: epoch()});});
   let last = performance.now();
   const frame = (now: number): void => {
     if (now - last > 50) data.frameGaps.push({start: performance.timeOrigin + last, duration: now - last});

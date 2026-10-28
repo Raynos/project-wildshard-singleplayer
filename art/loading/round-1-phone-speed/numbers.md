@@ -83,6 +83,15 @@ end. All console/page errors and incomplete attempts remain visible.
 `measures[].detail` is preserved, including batch calls / elapsedMs / longestMs:
 a first-to-last wall span is not the sum of waits. Older builds expose only
 visible rows, marked as such; they cannot recover collapsed quick-step clocks.
+Their labels, details and durations are read from separate DOM fields. The
+`data-started-at` boundary is native; the first completed-row observation is
+explicitly `endBasis: observed`, rather than an invented start + exclusive time.
+Aggregates without a native start use `startBasis: observed`; their wall field
+is the observation interval. Native snapshots retain exact boundaries. Todo
+rows remain in JSON but are omitted from the printed step table.
+`errorDetails` retains each message, source, URL and timestamp, and the printed
+error table shows those records. The request ledger belongs to the context,
+so a cold request completing during warm keeps its original start/window.
 
 The committed [baseline-a6701db71.json](baseline-a6701db71.json) normalizes the
 retained **original live capture**, not a rerun: 53.270 / 27.556 s, 548 / 288
