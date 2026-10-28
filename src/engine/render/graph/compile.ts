@@ -32,6 +32,7 @@
  * (`render/graphBackend.ts`), a lazy chunk; nothing on the default render path imports it.
  */
 import * as THREE from 'three';
+import { copyNodeMaterialAccessors } from '../nodeMaterialCopy';
 import { drawNeutral } from '../drawNeutral';
 import {
   ConditionalNode, ContextNode, ConvertNode, JoinNode, MathNode, MeshBasicNodeMaterial, MeshStandardNodeMaterial, OperatorNode,
@@ -432,6 +433,12 @@ class UnflippedNormalNode extends BaseNode<'vec3'> {
 /** A standard graph material: three's standard material lit by `FunctionLightingModel` */
 class GraphStandardMaterial extends MeshStandardNodeMaterial {
   override setupLightingModel(): PhysicalLightingModel { return new FunctionLightingModel(); }
+  // D189: three's NodeMaterial.copy drops Material's alphaTest; every graph class's clone keeps it
+  override copy(source: MeshStandardNodeMaterial): this { super.copy(source); copyNodeMaterialAccessors(this, source); return this; }
+}
+/** An unlit graph material with no extra inputs: three's basic node material whose clone keeps its alpha cutoff (D189) */
+class GraphBasicMaterial extends MeshBasicNodeMaterial {
+  override copy(source: MeshBasicNodeMaterial): this { super.copy(source); copyNodeMaterialAccessors(this, source); return this; }
 }
 
 /** Apply authored geometry normals before morph/skin/instance transforms. */
@@ -462,7 +469,7 @@ class GraphUnlitNormalMaterial extends MeshBasicNodeMaterial {
     return super.setupPosition(builder);
   }
   override copy(source: MeshBasicNodeMaterial): this {
-    super.copy(source);
+    super.copy(source); copyNodeMaterialAccessors(this, source);
     if (source instanceof GraphUnlitNormalMaterial) { this.vertexNormal = source.vertexNormal; this.graphFogScale = source.graphFogScale; this.graphTargetAlpha = source.graphTargetAlpha; }
     return this;
   }
@@ -1152,7 +1159,7 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
   /** a post graph: a fullscreen quad's material (its own pass), unfogged */
   const postMaterial = (): NodeMaterial => {
     const alpha = out(st.post?.alpha);
-    const m = alpha === null ? new MeshBasicNodeMaterial() : new GraphUnlitNormalMaterial();
+    const m = alpha === null ? new GraphBasicMaterial() : new GraphUnlitNormalMaterial();
     m.depthTest = false; m.depthWrite = false;
     if (alpha !== null && m instanceof GraphUnlitNormalMaterial) m.graphTargetAlpha = asFloat(alpha);
     const colour = out(st.post?.colour);
@@ -1300,7 +1307,7 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
     const targetAlpha = out(s.targetAlpha);
     const displayColour = ir.effectState?.output === 'colour';
     const plain = vertexNormal === null && fogScale === undefined && targetAlpha === null && !displayColour;
-    const m = ir.model === 'unlit' ? plain ? new MeshBasicNodeMaterial() : new GraphUnlitNormalMaterial() : ir.model === 'toon' ? new GraphLitMaterial(withScale(toonHooks())) : lit !== undefined ? new GraphLitMaterial(withScale(litHooks(lit))) : sunScale !== undefined ? new GraphLitMaterial(withScale(PHYSICAL_HOOKS)) : plain ? new GraphStandardMaterial() : new GraphNormalMaterial();
+    const m = ir.model === 'unlit' ? plain ? new GraphBasicMaterial() : new GraphUnlitNormalMaterial() : ir.model === 'toon' ? new GraphLitMaterial(withScale(toonHooks())) : lit !== undefined ? new GraphLitMaterial(withScale(litHooks(lit))) : sunScale !== undefined ? new GraphLitMaterial(withScale(PHYSICAL_HOOKS)) : plain ? new GraphStandardMaterial() : new GraphNormalMaterial();
     if (targetAlpha !== null && (m instanceof GraphNormalMaterial || m instanceof GraphUnlitNormalMaterial)) m.graphTargetAlpha = asFloat(targetAlpha);
     if (displayColour && m instanceof GraphUnlitNormalMaterial) m.graphTargetAlpha = float(-1);
     if (vertexNormal !== null && (m instanceof GraphNormalMaterial || m instanceof GraphUnlitNormalMaterial)) m.vertexNormal = new ConvertNode<'vec3'>(vertexNormal.n, 'vec3');
@@ -1365,7 +1372,7 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
   const outlineMaterial = (): NodeMaterial | null => {
     const o = st.outline;
     if (o === undefined) return null;
-    const m = new MeshBasicNodeMaterial();
+    const m = new GraphBasicMaterial();
     m.colorNode = new ConvertNode<'vec3'>(widen(ref(o.colour, root), 'vec3'), 'vec3');
     m.positionNode = positionLocal.add(new ConvertNode<'vec3'>(widen(ref(o.offset, root), 'vec3'), 'vec3'));
     m.side = THREE.BackSide;
@@ -1386,7 +1393,7 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
     } finally { fogIn = null; root.memo.clear(); }
   };
   if (fog !== null) fogKeys.set(fog, `${++fogSerial}`);
-  const fogCarrier = (): NodeMaterial => { const m = new MeshBasicNodeMaterial(); m.visible = false; m.userData['graphFog'] = true; return m; };
+  const fogCarrier = (): NodeMaterial => { const m = new GraphBasicMaterial(); m.visible = false; m.userData['graphFog'] = true; return m; };
   const material = ir.kind === 'post' ? postMaterial() : ir.kind === 'fog' ? fogCarrier() : surfaceMaterial();
   material.name = `graph:${ir.kind}`;
   if (Object.keys(attributeDefaults).length > 0) material.userData['graphAttributeDefaults'] = attributeDefaults;

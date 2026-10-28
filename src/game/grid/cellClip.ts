@@ -13,9 +13,9 @@ import { shareGraphOwner } from '@wildshard/engine/render/graphBackend';
 
 /** `material.clone()` with its `userData` shallow-copied by reference (G639: three's Material.copy deep-copies userData through
  *  JSON, and a painted ground's userData holds its textures, so every clipped variant serialised them to data URLs: 224 ms
- *  of one desktop Nalati drive frame, for a copy that kept no texture). D189: three's NodeMaterial.copy never reaches
- *  Material.copy and skips `_` fields, so a node material's clone lost its `alphaTest` (Material's own accessor): Pine's
- *  far tree cards crossing a cell edge drew as opaque teal quads. */
+ *  of one desktop Nalati drive frame, for a copy that kept no texture). D189: three's NodeMaterial.copy drops `alphaTest`;
+ *  the engine's graph classes restore it in their copy (engine/render/nodeMaterialCopy), and this keeps it for any other
+ *  node material a clip clones. */
 function cloneKeepingData(material: Material): Material {
   const data = material.userData;
   material.userData = {};
