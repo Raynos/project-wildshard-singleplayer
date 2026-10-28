@@ -22,7 +22,6 @@ import { gridPrefetchOrder, startGridPrefetch } from '../grid/prefetch';
 import { admittedRuntimeProduct, completeManifestCache, releaseManifestTransport } from '../shardfile/runtimeProduct';
 import { enterSkyClock } from './clockSettings';
 import { settleEntryPrograms } from './settlePrograms';
-import { harnessPins } from '@wildshard/engine/app/identity';
 import { observeTitlePreparation, prepareTitleFrame } from './titlePreparation';
 
 /** how often the in-play warm-up asks whether an arrival's Explorer has closed, and how long it waits for one to open */
@@ -143,9 +142,17 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   const drawnFrom = game.frameCount;
   const drawn = new Promise<void>((resolve) => { const check = (): void => { if (game.frameCount >= drawnFrom + 2) resolve(); else game.levelScope.raf(check); }; check(); });
   await Promise.race([Promise.all([drawn, ctx.minimap.prepare()]), new Promise<void>((resolve) => { game.levelScope.timeout(1500, resolve); })]);
-  // G717 A: the phone tier builds its first played frames' programs under the loader (settlePrograms.ts)
-  // until its added seconds are measured it runs only under the measurement pin (G717: <= ~2 s cold before it ships)
-  if (TIER === 'phone' && harnessPins()?.entrySettle === true) await settleEntryPrograms(game);
+  // P0: the phone's spawn programs settle while loading still covers the reveal.
+  // Undrawn world programs remain in the sliced after-control warm-up below.
+  if (TIER === 'phone') {
+    // The title gate otherwise prevents any real frame before enter(). Keep
+    // input/reveal closed, but draw the admitted spawn under the opaque loader.
+    const previousGate = game.frameGate;
+    const spawnGate = (): boolean => ctx.gridLive?.gameplayReady() ?? true;
+    game.frameGate = spawnGate;
+    try { await loadingStage('spawnPrograms', () => settleEntryPrograms(game)); }
+    finally { if (game.frameGate === spawnGate) game.frameGate = previousGate; }
+  }
   const readyFrameGate = game.frameGate, loadingFrameGate = (): boolean => false;
   if (loading.holdRequested) game.frameGate = loadingFrameGate;
   try { await loading.done(); }

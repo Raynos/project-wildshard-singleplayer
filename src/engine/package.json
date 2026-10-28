@@ -291,6 +291,7 @@
     "./render/offscreenBuild": "./render/offscreenBuild.ts",
     "./render/pmremSize": "./render/pmremSize.ts",
     "./render/skyEnvironment": "./render/skyEnvironment.ts",
+    "./render/entryWarmupBound": "./render/entryWarmupBound.ts",
     "./render/precompile": "./render/precompile.ts",
     "./render/renderer": "./render/renderer.ts",
     "./render/textureUploadEvents": "./render/textureUploadEvents.ts",

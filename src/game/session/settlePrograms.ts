@@ -1,37 +1,28 @@
-/**
- * G717 A: the phone tier's initial entry builds its first played frames' programs under the loader.
- *
- * The Shaders step compiles only what the first frame draws. The rest used to build in play: the undrawn programs a few a
- * frame (the in-play warm-up), and the ones a world first draws once its systems run (ground cover filling its instances
- * in). A stock node-program build costs the Simulator 50–110 ms, one slow frame each, so the spawn view missed its 30 fps
- * floor for the first seconds. On the phone tier the boot now runs that warm-up with the loop going under the loader and
- * waits until the drawn frames stop building programs (a run of quiet frames, capped at 2 s), then lets controls go (the loader
- * keeps its last boot step's line: a painted step after world setup is refused). Desktop
- * and every road crossing are unchanged: crossings never run this boot path.
- */
+/** The phone spawn view finishes linking under loading; undrawn programs stay deferred. */
 import type { Game } from '@wildshard/engine/core/Game';
-import { precompileLevel } from '@wildshard/engine/render/precompile';
+import { precompileLevel, waitForDrawnFrame } from '@wildshard/engine/render/precompile';
+import { boundEntryWarmup } from '@wildshard/engine/render/entryWarmupBound';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 
-/** drawn frames with no new node build before the settle ends */
+/** Actual drawn frames with no new node builds before spawn is ready. */
 const QUIET_FRAMES = 20;
-/** the settle never holds the loader longer than this (ms; G717: the coordinator's ~2 s cold bound) */
-const SETTLE_CAP_MS = 2000;
 
-/** Run the undrawn-program warm-up and wait for the drawn frames' builds to settle, under the loader as it stands (its
- *  boot steps are done: it shows the first frame's last line). Returns what it added (ms) and the node builds it caught. */
+/** Compile only the spawn view and observe its real rendered programs. The existing
+ * entry bound rejects a stall; reaching a deadline never admits unfinished shaders. */
 export async function settleEntryPrograms(game: Game): Promise<{ ms: number; builds: number }> {
   const start = diagnosticNow(), scope = game.levelScope, built = (): number => game.nodeBuilds?.builds ?? 0, from = built();
-  const inTime = (): boolean => diagnosticNow() - start < SETTLE_CAP_MS;
-  // the cap bounds the warm-up too: past it the warm-up stops here and the in-play warm-up finishes the rest, as before
-  try { await precompileLevel(game, undefined, { sliceMs: 12, current: () => !scope.disposed && inTime() }); }
-  catch (error) { if (scope.disposed || inTime()) throw error; }
-  let quiet = 0, last = built();
-  while (!scope.disposed && quiet < QUIET_FRAMES && inTime()) {
-    await new Promise<void>((resolve) => { scope.raf(() => { resolve(); }); });
-    const now = built();
-    if (now === last) quiet++; else { quiet = 0; last = now; }
-  }
+  let phase = 'spawn-program-links';
+  await boundEntryWarmup(scope, () => game.frameCount, () => phase, async current => {
+    await precompileLevel(game, undefined, { sliceMs: 12, current, owner: scope, drawnOnly: true, warmPost: true });
+    phase = 'spawn-program-settle';
+    let quiet = 0, last = built();
+    while (quiet < QUIET_FRAMES && current()) {
+      await waitForDrawnFrame(scope, () => game.frameCount, current);
+      const now = built();
+      if (now === last) quiet++; else { quiet = 0; last = now; }
+    }
+    if (!current()) throw new Error('Spawn program warm-up owner left');
+  });
   const result = { ms: diagnosticNow() - start, builds: built() - from };
   performance.mark('wildshard.entry.programs-settled', { detail: result });
   return result;
