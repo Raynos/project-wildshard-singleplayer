@@ -30,6 +30,10 @@ import { parseGraphArms } from '@wildshard/format/graphArmsRows';
 import { MountedLoadoutSchema } from '@wildshard/format/loadout';
 import { BowVariantSchema } from '@wildshard/format/bowVariantRows';
 import { parseHeldSlots, HeldArmsSchema } from '@wildshard/format/heldArms';
+import { parseCollectionDisplays } from '@wildshard/format/collectionDisplay';
+
+/** Admit complete authored collection mounts, ranges and drop geometry before publication. */
+export function collectionDisplayRows(input: unknown): ReturnType<typeof parseCollectionDisplays> { return parseCollectionDisplays(input); }
 
 /** Complete authored day clock, including readonly schedules and fixed/preset selections. */
 export type AuthorDayClock = DayClockRow;

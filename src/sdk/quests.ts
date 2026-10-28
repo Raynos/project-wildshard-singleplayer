@@ -8,6 +8,10 @@ import { parseCompletion } from '@wildshard/format/completion';
 import type { QuestWorldRows } from '@wildshard/format/questWorld';
 import { parseQuestHost } from '@wildshard/format/questHost';
 import { parsePanelDefinition, type PanelTemplate, type PanelValue } from '@wildshard/format/panelTemplate';
+import { parseChapterWake } from '@wildshard/format/chapterDirector';
+
+/** Admit native chapter cues and their complete encounter, effect and system ordering. */
+export function chapterWakeRows(input: unknown): ReturnType<typeof parseChapterWake> { return parseChapterWake(input); }
 
 /** Complete authored markup and expression grammar; no DOM or input owner is created. */
 export type AuthorPanelTemplate = PanelTemplate;

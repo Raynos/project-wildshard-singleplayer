@@ -1,4 +1,4 @@
-import { parseChapterWake } from '@wildshard/format/chapterDirector';
+import { chapterWakeRows as parseChapterWake } from '@wildshard/sdk/quests';
 import encounter from '../data/bossEncounter.json' with { type: 'json' };
 import { QUEST_SERVICES } from './questServiceEffects';
 

@@ -4245,6 +4245,13 @@ Root enforcement follows consumer migration; existing layer and sandbox guards
 remain active throughout.
 
 
+Author metadata ports also retain complete collection mounts (`collectionDisplayRows`),
+chapter encounters (`chapterWakeRows`), species programs (`speciesProgramRows`) and
+toon presentation (`toonSceneLook`). Each uses the defining finite format admission,
+including plain-data/refusal checks, before any native owner exists.
+`roadSocketMetrics()` returns detached midpoint cell/width/asphalt dimensions for
+authored terrain and piers; callers never borrow mutable runtime configuration.
+
 ### Existing runtime definitions under plugin modules
 
 The following modules contain the existing implementations; there is no facade

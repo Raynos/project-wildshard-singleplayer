@@ -1,5 +1,7 @@
 // Retained Driftwood landscape, trail bed and grading rows. Runtime manifest remains the native oracle.
-import { CHUNK_HALF } from '@wildshard/format/contentBounds';
+import { roadSocketMetrics } from '@wildshard/sdk/entries';
+
+const { half: CHUNK_HALF } = roadSocketMetrics();
 /** Native terrain seed, retained before the world datum is applied. */
 export const SEED = 0x5ea1;
 /** Authored waterline and the whole-world vertical offset (G164). */

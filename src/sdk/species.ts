@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { CreatureStrikeSchema } from '@wildshard/format/creatures';
-import { readSpecies, SpeciesSchema } from '@wildshard/format/speciesPrograms';
+import { readSpecies, readSpeciesProgram, SpeciesSchema } from '@wildshard/format/speciesPrograms';
 import { SocketRigCreatureSchema } from '@wildshard/format/socketRigCreature';
 
 /** The same strict portable strike admission used by native and page population rows. */
@@ -13,6 +13,9 @@ export function strike(data: unknown): StrikeData { return v.parse(StrikeSchema,
 export type SpeciesData = ReturnType<typeof readSpecies>;
 /** Refuse malformed species data before registration, actor construction or view creation. */
 export function species(data: unknown): SpeciesData { return readSpecies(data); }
+
+/** Admit complete native species, strike and module declarations before compiling actors. */
+export function speciesProgramRows(input: unknown): ReturnType<typeof readSpeciesProgram> { return readSpeciesProgram(input); }
 
 /** Prepare a strict reader for selected defining species fields. Only native
  * field names are accepted; original validators, defaults and issue order remain. */

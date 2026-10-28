@@ -2,6 +2,12 @@ import { Matrix4, Object3D, Vector3 } from 'three';
 import { updateAuthoringMatrix } from './sceneTransform';
 import { parsePortalLink, type PortalLink as PortalLinkData } from '@wildshard/format/portalLink';
 import { parseSocketLift, type SocketLift as SocketLiftData } from '@wildshard/format/socketLift';
+import { CHUNK_HALF, ENTRY_WIDTH, ENTRY_ASPHALT } from '@wildshard/format/contentBounds';
+
+/** Detached platform dimensions for authored midpoint sockets and their road reserve. */
+export function roadSocketMetrics(): { half: number; width: 8; asphalt: 15 } {
+    return { half: CHUNK_HALF, width: ENTRY_WIDTH, asphalt: ENTRY_ASPHALT };
+}
 /** A road socket's boundary edge, with +Z north. */
 export type EntryEdge = 'north' | 'east' | 'south' | 'west';
 /** Authored entry row for the four road-height midpoint openings. */

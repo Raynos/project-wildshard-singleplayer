@@ -1,4 +1,4 @@
-import {CHUNK_HALF,ENTRY_WIDTH} from '@wildshard/format/contentBounds';
+import { roadSocketMetrics } from '@wildshard/sdk/entries';
 import {PIER,JETTIES} from './worldSites';
 import authoredLayout from '../data/layout.json' with { type: 'json' };
 import { DECLARED_SEA, PIER_START } from './sea';
@@ -6,6 +6,7 @@ import { PIER_ROWS as authoredPierRows } from './pierRows';
 import type {PierSpec,PierParams} from './pierContract';
 
 const { PIER_PENNANT_AT } = authoredLayout;
+const { half: CHUNK_HALF, width: ENTRY_WIDTH } = roadSocketMetrics();
 const { PENNANT_WIND } = authoredPierRows;
 
 

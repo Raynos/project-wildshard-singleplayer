@@ -2,11 +2,13 @@
 import { CAPTAIN_BRAIN, CAPTAIN_BODY } from './captainDecision';
 import { DRIFTWOOD_SPAWNS } from './spawnTables';
 import { DRIFTWOOD_NATIVE_HUNT } from './nativeHunt';
-import { readSpeciesProgram , type SpeciesProgramData as SpeciesProgramDataType, type SpeciesData as SpeciesDataType } from '@wildshard/format/speciesPrograms';
+import { speciesProgramRows as readSpeciesProgram, type SpeciesData as SpeciesDataType } from '@wildshard/sdk/species';
 import type { BrainedSpecies } from '@wildshard/sdk/speciesBrains';
 import { DRIFTWOOD_ENEMY_SPECIES, DRIFTWOOD_ENEMY_STRIKES, ENEMY_SPECIES_METADATA } from './enemySpecies';
 import { bakeSpecies } from '@wildshard/sdk/bake/species';
 import { ISLAND_BOAR, ISLAND_BEAR } from './faunaSpecies';
+
+type SpeciesProgramDataType = ReturnType<typeof readSpeciesProgram>;
 
 const rows = [ISLAND_BOAR, ISLAND_BEAR].map(row => bakeSpecies(row, row.id));
 /** Both owners read the identical gameplay rows; the separate fauna look retains its rig and coat. */

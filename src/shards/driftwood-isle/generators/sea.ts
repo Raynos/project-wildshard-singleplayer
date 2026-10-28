@@ -1,6 +1,7 @@
-import { ENTRY_ASPHALT } from '@wildshard/format/contentBounds';
+import { roadSocketMetrics } from '@wildshard/sdk/entries';
 import { ENTRY_ROWS as authoredEntryRows } from './entryRows';
 
+const { asphalt: ENTRY_ASPHALT } = roadSocketMetrics();
 const { DRY_ENTRIES } = authoredEntryRows;
 
 /** Shared authoring and native sea facts; the world owns only its live water queries. */

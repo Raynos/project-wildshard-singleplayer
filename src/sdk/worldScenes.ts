@@ -19,6 +19,10 @@ import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import { parseWorldEntry } from '@wildshard/format/worldEntry';
 import { parseSceneMotion } from '@wildshard/format/sceneMotion';
 import type { WorldUpdatesRows } from '@wildshard/format/worldUpdates';
+import { parseToonLook } from '@wildshard/format/toonLook';
+
+/** Admit complete authored toon presentation, keeping its native plain-data and resource checks. */
+export function toonSceneLook(input: unknown): ReturnType<typeof parseToonLook> { return parseToonLook(input); }
 
 /** A source geometry's ordered tile files and its resident ownership flag. */
 export interface AuthorSceneTileGroup { files: string[]; resident: boolean }
