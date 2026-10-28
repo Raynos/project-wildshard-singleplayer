@@ -2,6 +2,8 @@ import { gridShardfileProduct, type GridProduct, type GridProductOwner } from '.
 import { ApproachInputsDeferredError } from './productInputs';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { timeClientPreparation } from '../shardfile/preparationTiming';
+import { prefetchEntryReads } from './entryReadPrefetch';
+import { TIER } from '@wildshard/engine/core/tier';
 
 type InputBorrow = Pick<GridProduct, 'releaseInputs' | 'release'>;
 
@@ -30,7 +32,14 @@ export function prepareApproachProductInputs(slug: string, owner: GridProductOwn
     // A missing metadata admission defers this optimization to actual entry.
     const pending = gridShardfileProduct(slug, owner, { signal });
     if (pending === null) return undefined;
-    try { return await pending; }
+    let product: GridProduct;
+    try { product = await pending; }
     catch (error) { if (error instanceof ApproachInputsDeferredError) return undefined; throw error; }
+    // T7.14: what this region's entry will read, nearest-first, into the content / HTTP cache while the approach lasts
+    void prefetchEntryReads(slug, TIER, { source: product.admitted.source, readBlob: hash => product.reader.read(hash),
+      fetchAsset: async (url, abort) => { const response = await fetch(url, { signal: abort, priority: 'low' }); await response.arrayBuffer(); },
+      fetchJson: async (url, abort) => { const response = await fetch(url, { signal: abort, cache: 'no-cache' }); if (!response.ok) throw new Error(`${String(response.status)} ${url}`); const json: unknown = await response.json(); return json; } }, signal)
+      .then(count => { if (count > 0) performance.mark('wildshard.approach.entry-reads', { detail: { slug, count } }); return undefined; }, () => undefined);
+    return product;
   }), signal, owner.scope);
 }

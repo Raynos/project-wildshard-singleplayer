@@ -1,0 +1,482 @@
+[
+ {
+  "region": "pine-hollow",
+  "tier": "phone",
+  "at": [
+   0,
+   0
+  ],
+  "reads": [
+   {
+    "url": "/assets/baked/pine-hollow/navmesh.bin?v=93aaa10d",
+    "hash": "93aaa10d8f76dd485af93d1db8c73e25a4ed680a676f1b3fa96974bfe0992242",
+    "bytes": 171456
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/forrest_ground_03/diffuse_1k.phone-b36089fb.ktx2",
+    "hash": "b36089fbf0d6fe3fef35be3aef54fbc021f8d7686a569aa6ad158fc40c63606a",
+    "bytes": 550908
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/leafy_grass/diffuse_1k.phone-0a74e3d2.ktx2",
+    "hash": "0a74e3d2b463f0d0b03cb37beaa4aee2c566e2c9e345eec5f5698eb2f05374a0",
+    "bytes": 622627
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/rock_ground/diffuse-0378fd4c.ktx2",
+    "hash": "0378fd4c25f7f3aa5ed8dfbc6159202cc59db379612bb5d25efa7d1402e03113",
+    "bytes": 585300
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/stony_dirt_path/diffuse-5bd12575.ktx2",
+    "hash": "5bd12575028851e5a20515cc375abcc6a70f3266deda2090c1c187da94e0a84b",
+    "bytes": 566627
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/forrest_ground_03/nor_gl_1k.phone-f900af69.ktx2",
+    "hash": "f900af69f0d5ff46f4cf6e69cacf6b2617a0d75102e1906b65865b89f5a46230",
+    "bytes": 603959
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/leafy_grass/nor_gl_1k-ad5715bd.ktx2",
+    "hash": "ad5715bda2216db92ea5f035148b19c88bcb8322ca520d7ee57f3b62f62beae4",
+    "bytes": 602318
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/rock_ground/nor_gl-be09de86.ktx2",
+    "hash": "be09de864cd1b36439220eaf92877c37eaa2a2ea38c1d5c3034680f81503300e",
+    "bytes": 604832
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/stony_dirt_path/nor_gl-347f7d82.ktx2",
+    "hash": "347f7d822071ebc052828f0f7ef139db39b35e8295cf154d1f69ee56cc306cf8",
+    "bytes": 592640
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/rock_ground/diffuse-90136f33.ktx2",
+    "hash": "90136f33d0cfa3a78595543494609c29d35cfe510b727be1899cc60f44ce2415",
+    "bytes": 584468
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/rock_ground/nor_gl-78bf8132.ktx2",
+    "hash": "78bf813232a7931f49590fb17594304568396fede0c300ba643485ee284f7180",
+    "bytes": 605170
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/models/pine-hollow-trees/cards-albedo.phone-cc9348ed.ktx2",
+    "hash": "cc9348ed4249fbfad3d2eb5abbdaecc145b8c837a57849e6530eb330d9e54afc",
+    "bytes": 155536
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/models/pine-hollow-trees/cards-normal.phone-5911500e.ktx2",
+    "hash": "5911500e857c15094f9e5d99a249ba9022a269c630d378c5316ecb439b2e6067",
+    "bytes": 186506
+   },
+   {
+    "url": "/assets/gpu/models/pine-hollow-trees/cards-arm.phone-7ed7156a.ktx2",
+    "hash": "7ed7156a571c31fa71a510400a6da0e018799738f7436ce26b8aa64bc0d781bb",
+    "bytes": 99802
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/models/pine-hollow-trees/impostor-albedo.phone-4dd23ba5.ktx2",
+    "hash": "4dd23ba5e77b1438d6b9c6ef555f51975b3a05fffeb7da35654cafdd70ec6660",
+    "bytes": 114017
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/models/pine-hollow-trees/impostor-normal.phone-be0710e6.ktx2",
+    "hash": "be0710e667556baed2a7fcd0d08ff9ed1a99c7766c66b4c2caf150d779d4d91b",
+    "bytes": 154886
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/pine_bark/diffuse-562fcb4d.ktx2",
+    "hash": "562fcb4d27628117a76c40e0dcd630541ccb909e54f5e74e35f60e9901e4978e",
+    "bytes": 626830
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/fir_bark/diffuse.phone-4f059111.ktx2",
+    "hash": "4f059111f2db80fae08c38369a08888c90464959e16a47e90267617ecd2b3e27",
+    "bytes": 143916
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/metasequoia_bark/diffuse.phone-9ed0c4d8.ktx2",
+    "hash": "9ed0c4d8465db309cc98a4507528f97a7c2b09cf7bc8e26ccd16374d1674c53f",
+    "bytes": 151477
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/birch_bark/diffuse.phone-23cdcb49.ktx2",
+    "hash": "23cdcb499965a1f55be32d65c39b3112f174e9c9335195de5ec6ed9563367227",
+    "bytes": 127306
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/bark_willow_02/diffuse.phone-2082b657.ktx2",
+    "hash": "2082b65714343736e82a44f4da698031c7b48ea5fbd8d30416c767996bfe555f",
+    "bytes": 149392
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/pine_bark/nor_gl-cf768d17.ktx2",
+    "hash": "cf768d170f91f7b44441e83c51f9c45d2b26fdd0dc8c4b7813360f116d21f977",
+    "bytes": 624757
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/fir_bark/nor_gl.phone-2fcc5a1c.ktx2",
+    "hash": "2fcc5a1cf534925ce6af7a85d5437bdcdd98b5c6181d8b8b7ce59bbcef37222e",
+    "bytes": 150569
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/metasequoia_bark/nor_gl.phone-c1227b9b.ktx2",
+    "hash": "c1227b9b95f06d5fc8460f12a89187ab2168e696b3fbe1346836d7b3ecdfab3b",
+    "bytes": 154743
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/birch_bark/nor_gl.phone-8dffe8d0.ktx2",
+    "hash": "8dffe8d0a991abaf64db40710fae7a6d545686182a5b0ec0e66c7e6b3e7f02b7",
+    "bytes": 141713
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/bark_willow_02/nor_gl.phone-344098d4.ktx2",
+    "hash": "344098d4ce81414304535f15bc6a5d7091357c808c218cfb22d77cade7059a29",
+    "bytes": 156407
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/glb/de784b9b6ae961d12e35bd1a5ddeee302d3c443da11c3b65464dd59e26359539.glb",
+    "hash": "de784b9b6ae961d12e35bd1a5ddeee302d3c443da11c3b65464dd59e26359539",
+    "bytes": 1766824
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/baked/pine-hollow/tex/clouds.phone-f783a8b8.ktx2",
+    "hash": "f783a8b872a8ff355e3ed5cb4bfb45063851f4b1d3ce273296865919978d53ce",
+    "bytes": 154483
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/baked/pine-hollow/tex/planet-0949cd4a.ktx2",
+    "hash": "0949cd4ae9110b7341b958813521294d0e695137a4ce1b73c3a6e3a82704fad7",
+    "bytes": 130357
+   },
+   {
+    "url": "/assets/lut/pine-hollow.bin?v=324cdc80",
+    "hash": "324cdc809d8de4451611f4e8ce47563fe38c99b8951ce608430f79298629b234",
+    "bytes": 143748
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/pack/aa7e09ec1e513a4066e6737d13b634828f03c70537e8033fc544536e6392ba8e.pack",
+    "hash": "aa7e09ec1e513a4066e6737d13b634828f03c70537e8033fc544536e6392ba8e",
+    "bytes": 4152479
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/wood_trunk_wall/diffuse_1k.phone-045e6afd.ktx2",
+    "hash": "045e6afd52b6372e00f299ca959152989e26988679dc662f38d98150a6dcf53b",
+    "bytes": 608075
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/wood_trunk_wall/nor_gl_1k.phone-cc529072.ktx2",
+    "hash": "cc5290720569424766e38a2602e99158c02631ac4ef1c3bd2b6b76983c6bc0db",
+    "bytes": 618103
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/wood_planks_grey/diffuse-323f103f.ktx2",
+    "hash": "323f103fb44fb9d3768027369a1b1cae598f0def10915f699c596c06a7649e07",
+    "bytes": 575735
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/wood_planks_grey/nor_gl-cce436f8.ktx2",
+    "hash": "cce436f88267378c593e4a810f88485f5cb2f154d2ed222f361b6d390f06a61b",
+    "bytes": 565935
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/pine_bark/diffuse-7b80dfb8.ktx2",
+    "hash": "7b80dfb87389824480e02c9c5815cbc28d87daa07dd3500f15c9393a69de52d7",
+    "bytes": 623925
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/pine_bark/nor_gl-57b0c519.ktx2",
+    "hash": "57b0c519f64b8b732a5a39d92f60894dbbf7bbfd5aaf42010b281560f173c3c2",
+    "bytes": 626168
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/image/e185aff0d8eb07386729a851909aed732ada61bbc1cae62c993bbbb5b17da1f1.webp",
+    "hash": "e185aff0d8eb07386729a851909aed732ada61bbc1cae62c993bbbb5b17da1f1",
+    "bytes": 23072
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/image/cc2eecbafaadfe9623a50c3e54da9b29657f5530f262a429f88b2351f25a9b59.png",
+    "hash": "cc2eecbafaadfe9623a50c3e54da9b29657f5530f262a429f88b2351f25a9b59",
+    "bytes": 13402
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/image/91945e857c8806d68723477781748bb8c82bba48ef4e36cc8b519bfe0fb62d2f.webp",
+    "hash": "91945e857c8806d68723477781748bb8c82bba48ef4e36cc8b519bfe0fb62d2f",
+    "bytes": 44582
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/image/2d507885c1b2ad5775e11fe3b09f9a972e1f269bdab1dcdc2836fecf35b049ab.webp",
+    "hash": "2d507885c1b2ad5775e11fe3b09f9a972e1f269bdab1dcdc2836fecf35b049ab",
+    "bytes": 21646
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/image/59b757158f450a07f47fa261ea770ae5aef9f8150e90843434ed59248cb41b5c.webp",
+    "hash": "59b757158f450a07f47fa261ea770ae5aef9f8150e90843434ed59248cb41b5c",
+    "bytes": 67784
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/image/11d3ed7b4ed25b3bae62b44115e5d02fe01afb4e54a1f9df8d74209f3d27c93a.webp",
+    "hash": "11d3ed7b4ed25b3bae62b44115e5d02fe01afb4e54a1f9df8d74209f3d27c93a",
+    "bytes": 4316
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/image/566ee5e13976a67e0374ae56cbb7fd77819ada8537a1bf9153d350781a33163f.webp",
+    "hash": "566ee5e13976a67e0374ae56cbb7fd77819ada8537a1bf9153d350781a33163f",
+    "bytes": 26760
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/image/177ea9a3f7ff1a1e08adf2802e48fa1878470901156acb391307852da37c705a.webp",
+    "hash": "177ea9a3f7ff1a1e08adf2802e48fa1878470901156acb391307852da37c705a",
+    "bytes": 3540
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/mossy_rock/diffuse-bf493a74.ktx2",
+    "hash": "bf493a747fedb12c3843b6942343c33da4df3e0d871d18e28f757f90bf7386d6",
+    "bytes": 610280
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/tex/mossy_rock/nor_gl-bcd9bcf8.ktx2",
+    "hash": "bcd9bcf8225c16563c84f7f25a0f39616316ad3f55cdeb09f5b5455176394f24",
+    "bytes": 615073
+   },
+   {
+    "url": "/assets/pine-hollow/baked/code-parts-bd582243b159.bin?v=38816de8",
+    "hash": "38816de84a7e775775a28de5d35fbce9c7c4fd03156bc943cf21998d4129044e",
+    "bytes": 177921
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/bin/aae95a9baa943943a87f427c91499413c01722741a7c50352a7942921dce3cea.bin",
+    "hash": "aae95a9baa943943a87f427c91499413c01722741a7c50352a7942921dce3cea",
+    "bytes": 234164
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/bin/d796c987b041bd2e7bf851d28a16d29c86939ef442628361b27d152e80d10ff8.bin",
+    "hash": "d796c987b041bd2e7bf851d28a16d29c86939ef442628361b27d152e80d10ff8",
+    "bytes": 65056
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/bin/2719ab27d8100e316fc03dcadf2617cb7317a9c81c91de8e1e331dac48334efb.bin",
+    "hash": "2719ab27d8100e316fc03dcadf2617cb7317a9c81c91de8e1e331dac48334efb",
+    "bytes": 258268
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/bin/6e60f03c7bff80c915812ef2590dfc8749bc9b1b23d0abbf7b7cb7eb343982f4.bin",
+    "hash": "6e60f03c7bff80c915812ef2590dfc8749bc9b1b23d0abbf7b7cb7eb343982f4",
+    "bytes": 60612
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/bin/e9c1ab87407818ae4a73e66cbe7f9bb649efd5c91c48b77079dc9bef9fe1e2e0.bin",
+    "hash": "e9c1ab87407818ae4a73e66cbe7f9bb649efd5c91c48b77079dc9bef9fe1e2e0",
+    "bytes": 202440
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/bin/40f9d5c7e2fbf1a44f065c52bff7be486dde8f079aa302a12257730be4613bc0.bin",
+    "hash": "40f9d5c7e2fbf1a44f065c52bff7be486dde8f079aa302a12257730be4613bc0",
+    "bytes": 55204
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/bin/7a72bf0b274cd7fc0b6d931ea7104a0fad4db52a512af157be28c3cada54b549.bin",
+    "hash": "7a72bf0b274cd7fc0b6d931ea7104a0fad4db52a512af157be28c3cada54b549",
+    "bytes": 878124
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/bin/284217c5fef3fc9b2b63c5d55888e1a65e594d9104c0fe3a94ef0916281594c5.bin",
+    "hash": "284217c5fef3fc9b2b63c5d55888e1a65e594d9104c0fe3a94ef0916281594c5",
+    "bytes": 1300860
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/bin/5baeb0335da106655d85706d96c3560b8b8da78a0dba7d0262f208a5ab4d3afd.bin",
+    "hash": "5baeb0335da106655d85706d96c3560b8b8da78a0dba7d0262f208a5ab4d3afd",
+    "bytes": 1289388
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/bin/0405c28876cc78b36835e74abace6c156f42ed836c2d776729d2e5537fa9d2b6.bin",
+    "hash": "0405c28876cc78b36835e74abace6c156f42ed836c2d776729d2e5537fa9d2b6",
+    "bytes": 35556
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/bin/f583c9a1e07f39ed65982544026f5c87c6662b0405ac638ab6ecfb26812a8bc9.bin",
+    "hash": "f583c9a1e07f39ed65982544026f5c87c6662b0405ac638ab6ecfb26812a8bc9",
+    "bytes": 80044
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/bin/5f9a03b53a7363005b35530db6cb5c1ab7120f46748501cb306a565d7d268430.bin",
+    "hash": "5f9a03b53a7363005b35530db6cb5c1ab7120f46748501cb306a565d7d268430",
+    "bytes": 39392
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/bin/1f6209d7c95abececcc052fbe2bf8e55059b80cfab92dac92f09ff09a3424984.bin",
+    "hash": "1f6209d7c95abececcc052fbe2bf8e55059b80cfab92dac92f09ff09a3424984",
+    "bytes": 38508
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/bin/fbe6429d0ee2078c53c43f141e1543cc44eab4470de335bdc7f0f478ba850938.bin",
+    "hash": "fbe6429d0ee2078c53c43f141e1543cc44eab4470de335bdc7f0f478ba850938",
+    "bytes": 77948
+   },
+   {
+    "url": "/assets/baked/pine-hollow/near.json?v=9888e0ea",
+    "hash": "9888e0ea1c71e4097ace30738c05a1b730767faa5f1a9f22874b7ddec6c40dca",
+    "bytes": 490
+   },
+   {
+    "url": "/assets/baked/pine-hollow/near.glb?v=11dcb0b8",
+    "hash": "11dcb0b8c092fd1d4942e2f7c9a9e4a788b88c34ee1c29aed135f5777e017825",
+    "bytes": 4201384
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/glb/f2082acfcfb9c9bdce0a6af1745f44de33d38c89ed6fd261f5d6dc346ec46159.glb",
+    "hash": "f2082acfcfb9c9bdce0a6af1745f44de33d38c89ed6fd261f5d6dc346ec46159",
+    "bytes": 542748
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/glb/7d4869c51562b6e42559e05bdb0e2a111e8b6f27e3677dce36d4e27ebb9090c1.glb",
+    "hash": "7d4869c51562b6e42559e05bdb0e2a111e8b6f27e3677dce36d4e27ebb9090c1",
+    "bytes": 1727600
+   },
+   {
+    "url": "/assets/pine-hollow/astc6/pine-hollow/weapons/lever-rifle.phone-4e6b381d.glb",
+    "hash": "4e6b381d80f2fdcf89c7fa5f4e7d64dc5a6354c10cc9a1b652070222f47bbcb5",
+    "bytes": 636696
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/glb/621ad7aae8c997f8249f86d55d90a4faa95c9d1aba612d7c51837d34908beb52.glb",
+    "hash": "621ad7aae8c997f8249f86d55d90a4faa95c9d1aba612d7c51837d34908beb52",
+    "bytes": 62596
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/glb/3d9b5fc17c7ac3e7fe148f4333b2ea62e2e9bf5999d89eea7f2ef0abf65e8220.glb",
+    "hash": "3d9b5fc17c7ac3e7fe148f4333b2ea62e2e9bf5999d89eea7f2ef0abf65e8220",
+    "bytes": 123000
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/glb/ca5ae104111ef7e1f3afb7be8bac96daf0b94cc95fc59609e9c7b832a6daec70.glb",
+    "hash": "ca5ae104111ef7e1f3afb7be8bac96daf0b94cc95fc59609e9c7b832a6daec70",
+    "bytes": 203700
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/pack/5810aaaa329c5f5656d1eea795e43a7689415fb0cb680889df3f4d785b22f5cf.pack",
+    "hash": "5810aaaa329c5f5656d1eea795e43a7689415fb0cb680889df3f4d785b22f5cf",
+    "bytes": 3665720
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/pack/8fae504553f9a3e193cf841ca68a9a2f834822433a8cdc55387f713752485712.pack",
+    "hash": "8fae504553f9a3e193cf841ca68a9a2f834822433a8cdc55387f713752485712",
+    "bytes": 4117777
+   },
+   {
+    "url": "/assets/gpu/pine-hollow/creatures/coats/bear-black.bear.black.phone-c3c0a7ad.ktx2",
+    "hash": "c3c0a7ade9d87177afa2a910275812cf97f22dcd101deabd40df0011d8c6a70f",
+    "bytes": 231591
+   },
+   {
+    "url": "/assets/gpu/pine-hollow/creatures/coats/bear-black.bear.black-blaze.phone-cb42331e.ktx2",
+    "hash": "cb42331e18d6eb09987f48a261085e3b4bc4ee2172d33c8d4c8e13a4debb5069",
+    "bytes": 232706
+   },
+   {
+    "url": "/assets/gpu/pine-hollow/creatures/coats/bear-black.bear.black-old.phone-0bb14a74.ktx2",
+    "hash": "0bb14a747101f7a899438e523563b66922f203d192310a62a36f223241135fb1",
+    "bytes": 229160
+   },
+   {
+    "url": "/assets/gpu/pine-hollow/creatures/coats/bear-brown.bear.brown-old.phone-578fcdf5.ktx2",
+    "hash": "578fcdf5a6754a202e5c3065a755f56b4852ee3766b3822d826d2fa5148191f5",
+    "bytes": 288270
+   },
+   {
+    "url": "/assets/gpu/pine-hollow/creatures/coats/bear-brown.bear.brown.phone-260c254d.ktx2",
+    "hash": "260c254d273e0d7a1b0eaeb110430950d4ce0a70eea2a836c7de9bdfe8f59016",
+    "bytes": 287483
+   },
+   {
+    "url": "/assets/gpu/pine-hollow/creatures/coats/boar.boar.black.phone-4b2abe5c.ktx2",
+    "hash": "4b2abe5c6e6449a1ee17c97cbc898a381b3c50b301833b92dd6a263a72824539",
+    "bytes": 228731
+   },
+   {
+    "url": "/assets/gpu/pine-hollow/creatures/coats/boar.boar.ironhide.phone-8241beef.ktx2",
+    "hash": "8241beef114480b9d63dfd8f4212e5846cf46172622230a14f26b8042800c2b7",
+    "bytes": 269728
+   },
+   {
+    "url": "/assets/gpu/pine-hollow/creatures/coats/boar.boar.scarback.phone-a7be9193.ktx2",
+    "hash": "a7be91936605dca43ba0ea4e32e4f9d7b6dada5264d87204aba6f97c880dd0ac",
+    "bytes": 273325
+   },
+   {
+    "url": "/assets/gpu/pine-hollow/creatures/coats/boar.boar.thrall.phone-e689fe8b.ktx2",
+    "hash": "e689fe8bf8ccbbab655bfe60174f349618a467527c105e47819e89a3a671a509",
+    "bytes": 271177
+   },
+   {
+    "url": "/assets/gpu/pine-hollow/creatures/coats/deer-stag.deer.ghost.phone-4cc0768e.ktx2",
+    "hash": "4cc0768e49bd3655b01654bfa17489ed54bff908b892bd9eebee58b7283a5a33",
+    "bytes": 207992
+   },
+   {
+    "url": "/assets/gpu/pine-hollow/creatures/coats/deer-stag.deer.white-stag.phone-30931233.ktx2",
+    "hash": "309312331cdbc8477d10d60bfbcdf791f51e52dc40054a740d502fd28b53d65b",
+    "bytes": 235391
+   },
+   {
+    "url": "/assets/gpu/pine-hollow/creatures/coats/deer-hind.deer.piebald.phone-b8be268e.ktx2",
+    "hash": "b8be268ec98e9a7719f60fc97f72cb95579779f1b0f50534e18da6829f50f1a8",
+    "bytes": 205841
+   },
+   {
+    "url": "/assets/gpu/pine-hollow/creatures/coats/deer-hind.deer.white-hind.phone-226ce3fe.ktx2",
+    "hash": "226ce3fe63d6d1aef60c1e63daafcbb374618b90263bb8a21b03b056f01af7e6",
+    "bytes": 201379
+   },
+   {
+    "url": "/assets/gpu/pine-hollow/creatures/coats/elk-bull.elk.imperial.phone-d40a27de.ktx2",
+    "hash": "d40a27defba1724bf37ff4c87f7da5bcc535e3ee1ef4ac7e410165fdcab28780",
+    "bytes": 270168
+   },
+   {
+    "url": "/assets/gpu/pine-hollow/creatures/coats/elk-bull.elk.thrall.phone-826a0e63.ktx2",
+    "hash": "826a0e63c1cbff00e432a25a7e628db97f3b6beb320e935ac8c86e32399bdba1",
+    "bytes": 262471
+   },
+   {
+    "url": "/assets/gpu/pine-hollow/creatures/coats/elk-cow.elk.pale.phone-52dd5bf0.ktx2",
+    "hash": "52dd5bf090b1214443f5024333b96f94a07949ce7e82b9517ebea48aa4039cdc",
+    "bytes": 240321
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/image/324cb6219661fc884b0e90a9ab61f3e144e4ae053571d4edd08cba9227e6b4ae.png",
+    "hash": "324cb6219661fc884b0e90a9ab61f3e144e4ae053571d4edd08cba9227e6b4ae",
+    "bytes": 11470
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/image/57869c6dae002e2a57e29720fcfc994b5b9d260f55fbb878195ff1280ada1a80.png",
+    "hash": "57869c6dae002e2a57e29720fcfc994b5b9d260f55fbb878195ff1280ada1a80",
+    "bytes": 38658
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/image/b5a0923780b2b35bee7eaf35b07cfc032d85e4c581143153cc829a878176832d.png",
+    "hash": "b5a0923780b2b35bee7eaf35b07cfc032d85e4c581143153cc829a878176832d",
+    "bytes": 14294
+   },
+   {
+    "url": "/assets/sfx/pine-hollow/oneshots-362ce515.m4a",
+    "hash": "c2e8552892361aff20e4355c58f800ce5fd64c68367e8a219447ef7a49cac679",
+    "bytes": 1163597
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/glb/09495edc5071c7b3f760c9cde94bed83f8e0adb783a0a6c0d3b63e88132fec3d.glb",
+    "hash": "09495edc5071c7b3f760c9cde94bed83f8e0adb783a0a6c0d3b63e88132fec3d",
+    "bytes": 191344
+   },
+   {
+    "url": "/shardfiles/pine-hollow/blobs/ktx2/ab669f25d6d287f895416e93beb6ad8dd42a746f2c14ffd5af11e3ced6be4585.ktx2",
+    "hash": "ab669f25d6d287f895416e93beb6ad8dd42a746f2c14ffd5af11e3ced6be4585",
+    "bytes": 175468
+   }
+  ]
+ }
+]

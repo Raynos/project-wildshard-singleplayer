@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./entryReads": "./entryReads.ts",
     "./admissionControl": "./admissionControl.ts",
     "./admissionLate": "./admissionLate.ts",
     "./typedDataBank": "./typedDataBank.ts",
