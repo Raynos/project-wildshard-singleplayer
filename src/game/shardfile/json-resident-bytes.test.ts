@@ -20,6 +20,11 @@ function original(input: unknown): number {
   }
   return heap;
 }
+test('fixed scalar, UTF16, container, slot and key charges stay exact', () => {
+  expect(jsonResidentBytes(null)).toBe(8); expect(jsonResidentBytes('Å🌴')).toBe(30);
+  expect(jsonResidentBytes([])).toBe(40); expect(jsonResidentBytes({})).toBe(64);
+  expect(jsonResidentBytes([0, 'A', null])).toBe(106); expect(jsonResidentBytes({ a: [] })).toBe(146);
+});
 test('complete scalar, string, container, repeated-reference and native edge costs match the old pass', () => {
   const shared = { colour: [0.125, 0.25, 0.5], height: 0 }, bare: Record<string, unknown> = { value: 17 }; Object.setPrototypeOf(bare, null);
   const row = { heights: Array.from({ length: 257 }, (_, i) => i / 257), colours: Array.from({ length: 257 }, () => [0.125, 0.25, 0.5]), roadHeight: 0 };
