@@ -819,6 +819,15 @@ export const LIVE_UPLOAD_BUDGET: UploadBudget = { ms: 8, bytes: 8 * 1024 * 1024 
 
 /** Live WebKit preparation settles one program per painted slice. A material can issue two side variants. */
 export const LIVE_PROGRAMS_PER_FRAME = 1;
+/** Whether issued links queue in WebKit's GPU process ahead of the next drawn frame (Safari and every iOS browser). */
+export const queuedLinks = (): boolean => navigator.userAgent.includes('AppleWebKit') && !/Chrome|Chromium|Edg/.test(navigator.userAgent);
+/** CO1: an in-play warm-up's pacing. On WebKit, one program and one upload budget per painted frame (as the grid's live
+ *  warm-up); a 6 ms slice alone issued every link at once there, and each drawn frame waited behind the GPU process's
+ *  queue (Jake's Driftwood spawn: 3 fps for ~30 s after the reveal). Elsewhere the driver links off the main thread.
+ *  The ordinary paint pause stays: a paused game that draws nothing still links one program a paint, never rejects. */
+export function liveWarmPacing(): { isolateImageUploads?: true; uploadBudget?: UploadBudget } {
+  return queuedLinks() ? { isolateImageUploads: true, uploadBudget: LIVE_UPLOAD_BUDGET } : {};
+}
 /** G580 T2: while the traveller waits at the cell this warm-up prepares (`setWarmUpHeld`), a live WebKit slice may issue
  *  and settle this many: its longer frames cost no movement, and the cell opens sooner. */
 export const LIVE_HELD_PROGRAMS_PER_FRAME = 4;

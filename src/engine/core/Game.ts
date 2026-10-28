@@ -994,12 +994,12 @@ export class Game {
     const gate = this.frameDrawRanges.gate(owner, rest), started = diagnosticNow();
     const live = (): boolean => !owner.disposed && !owner.disposing && this._composer === composer;
     try {
-      const { precompileLevel, waitForDrawnFrame, LIVE_PRECOMPILE_SLICE_MS } = await import('../render/precompile');
+      const { precompileLevel, waitForDrawnFrame, liveWarmPacing, LIVE_PRECOMPILE_SLICE_MS } = await import('../render/precompile');
       const { warmParkedDraws, LIVE_PARKED_BUDGET } = await import('../render/parkedDraws');
       const pause = (): Promise<void> => waitForDrawnFrame(owner, () => this.frameCount, live);
       while (live() && !root.visible) await pause();
       if (!live()) return;
-      await precompileLevel(this, undefined, { sliceMs: LIVE_PRECOMPILE_SLICE_MS, current: live, owner, nearest: true });
+      await precompileLevel(this, undefined, { sliceMs: LIVE_PRECOMPILE_SLICE_MS, current: live, owner, nearest: true, ...liveWarmPacing() });
       const wanted = new Set(rest);
       await warmParkedDraws(this.renderer, this.rootScene, this.camera, composer.inputBuffer, root, live, pause,
         { budget: LIVE_PARKED_BUDGET, environment, include: object => wanted.has(object), nearest: at, onDrawn: objects => { gate.release(objects); } });

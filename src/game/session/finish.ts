@@ -14,7 +14,7 @@ import { installGpuRecovery } from '@wildshard/engine/core/GpuRecovery';
 import { TIER } from '@wildshard/engine/core/tier';
 import { installProbe } from '@wildshard/engine/debug/probe';
 import { lockOn as lockState } from '@wildshard/engine/player/AimTargets';
-import { precompileLevel } from '@wildshard/engine/render/precompile';
+import { liveWarmPacing, precompileLevel } from '@wildshard/engine/render/precompile';
 import { textureBytes } from '@wildshard/engine/render/textureBytes';
 import { setPoseProvider } from '@wildshard/engine/ui/ReloadPrompt';
 import { registerBeforeReload } from '@wildshard/engine/boot/lastEnd';
@@ -181,7 +181,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
     await afterExplorer();
     // what the boot left (shaders: drawnOnly) links nearest-first under the live slice budget
     try {
-      await precompileLevel(game, undefined, { sliceMs: 6, current: () => !levelScope.disposed, nearest: true });
+      await precompileLevel(game, undefined, { sliceMs: 6, current: () => !levelScope.disposed, nearest: true, ...liveWarmPacing() });
       await game.warmDeferredEntryRoots(() => !levelScope.disposed);
     }
     catch (error: unknown) {
