@@ -146,7 +146,11 @@ export function demandTextureResponse(input: RequestInfo | URL, init: RequestIni
   const value = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
   if (digestOf(value) === undefined) return undefined;
   const request = input instanceof Request ? input : undefined;
-  if (init !== undefined && Object.keys(init).some(key => key !== 'signal') || (request?.method ?? 'GET') !== 'GET'
+  // Native loaders may spell fetch's defaults explicitly. They are the same
+  // ordinary GET; headers with content and nondefault credentials stay direct.
+  if (init !== undefined && Object.keys(init).some(key => key !== 'signal' && key !== 'headers' && key !== 'credentials')
+    || init?.credentials !== undefined && init.credentials !== 'same-origin'
+    || new Headers(init?.headers).keys().next().done === false || (request?.method ?? 'GET') !== 'GET'
     || new Headers(request?.headers).keys().next().done === false
     || request !== undefined && (request.credentials !== 'same-origin' || request.cache !== 'default' || request.integrity !== ''
       || request.mode !== 'cors' || request.redirect !== 'follow' || request.referrerPolicy !== '')) return undefined;

@@ -7,6 +7,11 @@ import { demandPack } from './pack';
 async function hash(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
   return [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(n => n.toString(16).padStart(2, '0')).join('').slice(0, 8);
 }
+function textureOrigin(): () => void {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'location');
+  Object.defineProperty(globalThis, 'location', { configurable: true, value: new URL('https://texture-fixture.test/') });
+  return () => { if (previous === undefined) Reflect.deleteProperty(globalThis, 'location'); else Object.defineProperty(globalThis, 'location', previous); };
+}
 async function fixture(sizes = [17, 23, 31]) {
   const bodies = sizes.map((size, i) => new Uint8Array(size).fill(i + 1)), scope = new Scope('texture-demand');
   const paths = await Promise.all(bodies.map(async body => `/assets/gpu/texture-${await hash(body)}.ktx2`));
@@ -137,7 +142,7 @@ test('retiring a queued texture wave publishes nothing and starts no fetch', asy
 });
 
 test('the public session binding preserves custom requests and disappears with its owner', async () => {
-  const f = await fixture(); vi.stubGlobal('location', new URL('https://texture-fixture.test/'));
+  const f = await fixture(), restoreLocation = textureOrigin();
   try {
     demandPack(f.pack, f.scope);
     const requests = f.paths.map(path => new Request(new URL(path, location.href)));
@@ -148,8 +153,26 @@ test('the public session binding preserves custom requests and disappears with i
     for (const [i, response] of responses.entries()) expect(new Uint8Array(await response.arrayBuffer())).toEqual(f.bodies[i]);
     const first = requests[0]; if (first === undefined) throw new Error('Missing session request');
     expect(demandTextureResponse(first, { headers: { Range: 'bytes=0-1' } }, f.net)).toBeUndefined();
+    expect(demandTextureResponse(first, { headers: { Authorization: 'private' }, credentials: 'same-origin' }, f.net)).toBeUndefined();
+    expect(demandTextureResponse(first, { headers: {}, credentials: 'include' }, f.net)).toBeUndefined();
+    expect(demandTextureResponse(first, { headers: {}, credentials: 'omit' }, f.net)).toBeUndefined();
+    expect(demandTextureResponse(first, { headers: {}, credentials: 'same-origin', cache: 'force-cache' }, f.net)).toBeUndefined();
     expect(demandTextureResponse(new Request(first, { method: 'POST' }), undefined, f.net)).toBeUndefined();
     expect(demandTextureResponse(new URL(first.url.replace('texture-fixture.test', 'elsewhere.test')), undefined, f.net)).toBeUndefined();
     f.scope.dispose(); expect(demandTextureResponse(first, undefined, f.net)).toBeUndefined();
-  } finally { f.reader.dispose(); f.scope.dispose(); vi.unstubAllGlobals(); }
+  } finally { f.reader.dispose(); f.scope.dispose(); restoreLocation(); }
+});
+
+test('explicit empty headers and same-origin credentials share the original verified texture wave', async () => {
+  const f = await fixture(), restoreLocation = textureOrigin();
+  try {
+    demandPack(f.pack, f.scope);
+    const responses = await Promise.all(f.paths.map(path => {
+      const response = demandTextureResponse(path, { headers: {}, credentials: 'same-origin' }, f.net);
+      if (response === undefined) throw new Error('Default fetch options bypassed the texture wave');
+      return response;
+    }));
+    expect(f.net).toHaveBeenCalledOnce(); expect(f.net.mock.calls[0]?.[0]).toBe(f.part.url);
+    for (const [i, response] of responses.entries()) expect(new Uint8Array(await response.arrayBuffer())).toEqual(f.bodies[i]);
+  } finally { f.reader.dispose(); f.scope.dispose(); restoreLocation(); }
 });
