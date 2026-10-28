@@ -739,12 +739,19 @@ export async function warmPostJobs(renderer: Pick<Renderer, 'getRenderTarget' | 
   // Some passes bind their sample arrays only inside render (desktop AO).
   // Linking is safe before that binding; a stand-in draw is not. Leave those
   // materials to their real pass rather than inventing values or advancing it.
+  // A material that samples its stand-in target's own attachment (the depth-sliced colour pass reads the scene target's
+  // depth, and its stand-in target is that scene target) is a feedback loop: WebGL refuses the draw with
+  // INVALID_OPERATION, which then fails the next texture upload's error check (the public Pine smoke's 'Graphics error
+  // 1282 before compressed texture'). The real composer draws it into its other buffer; it is left to that draw.
+  const feedback = (value: unknown, rt: THREE.WebGLRenderTarget | null): boolean => rt !== null && value instanceof THREE.Texture
+    && (value === rt.depthTexture || rt.textures.some(texture => texture === value));
   const drawable = jobs.filter(job => {
     const materials: THREE.Material[] = [];
     job.root.traverse(object => { materials.push(...materialsOf(object)); });
     return materials.every(material => !(material instanceof THREE.ShaderMaterial) || Object.values(material.uniforms).every(uniform => {
       const value: unknown = uniform.value;
-      return value !== undefined && !(Array.isArray(value) && value.length === 0) && !(ArrayBuffer.isView(value) && value.byteLength === 0);
+      return value !== undefined && !(Array.isArray(value) && value.length === 0) && !(ArrayBuffer.isView(value) && value.byteLength === 0)
+        && !feedback(value, job.rt) && !(Array.isArray(value) && value.some(item => feedback(item, job.rt)));
     }));
   });
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);

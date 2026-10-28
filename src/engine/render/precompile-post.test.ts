@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { N8AOPostPass } from 'n8ao';
 import { BloomEffect, EffectPass, Pass, ToneMappingEffect, ToneMappingMode } from 'postprocessing';
-import { Mesh, OrthographicCamera, PerspectiveCamera, Scene, ShaderMaterial, WebGLRenderTarget, type Camera, type Object3D } from 'three';
+import { DepthTexture, Mesh, OrthographicCamera, PerspectiveCamera, Scene, ShaderMaterial, WebGLRenderTarget, type Camera, type Object3D } from 'three';
 import { postJobs, warmPostJobs, type CompileJob } from './precompile';
 
 function preparedMaterials(jobs: readonly CompileJob[]): ShaderMaterial[] {
@@ -88,6 +88,24 @@ test('linked post draws use existing targets with a restored paint between each'
     }, () => true, done => { progress.push(done); });
     expect(f.draws).toEqual([f.target, null]); expect(painted).toEqual([1, 2]); expect(progress).toEqual([1, 2]);
   } finally { f.dispose(); }
+});
+
+test('a post material that samples its stand-in target is left to the real composer draw (no feedback loop)', async () => {
+  const f = warmFixture(), depth = new DepthTexture(8, 8);
+  f.target.depthTexture = depth;
+  const first = preparedMaterials(f.jobs.slice(0, 1))[0];
+  if (first === undefined) throw new Error('Missing post material');
+  try {
+    first.uniforms['depthBuffer'] = { value: depth };
+    await warmPostJobs(f.renderer, f.jobs, () => Promise.resolve(), () => true);
+    expect(f.draws).toEqual([null]);
+    f.draws.length = 0; first.uniforms['depthBuffer'] = { value: null }; first.uniforms['inputBuffer'] = { value: [f.target.texture] };
+    await warmPostJobs(f.renderer, f.jobs, () => Promise.resolve(), () => true);
+    expect(f.draws).toEqual([null]);
+    f.draws.length = 0; first.uniforms['inputBuffer'] = { value: new DepthTexture(8, 8) };
+    await warmPostJobs(f.renderer, f.jobs, () => Promise.resolve(), () => true);
+    expect(f.draws).toEqual([f.target, null]);
+  } finally { f.dispose(); depth.dispose(); }
 });
 
 test('post warm-up restores the target on draw failure and never starts stale work', async () => {
