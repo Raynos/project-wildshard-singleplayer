@@ -5,11 +5,11 @@ import { parseGlb, type AssetCost } from '@wildshard/sdk/assets';
 import { simplifyNativeLatticeTile, type NativeLatticeLod } from '@wildshard/sdk/bake/worldLod';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { PAINTED_TERRAIN_ATTRIBUTES as ATTR } from '@wildshard/format/materialFamilies';
-import { buildPainterlyGeometry, type TerrainPaintSource } from './terrainPainter';
+import { buildPainterlyGeometry } from './terrainPainter';
 import terrainPaintPolicy from '../data/terrainPaintPolicy.json' with { type: 'json' };
 import { TERRAIN, SEED, groundColor, surfaceAt } from './terrainRecipe';
 
-export const TERRAIN_PAINT_SOURCE = { seed: SEED, terrain: TERRAIN, groundColor, surfaceAt, slabDepth: terrainPaintPolicy.slabDepth } satisfies TerrainPaintSource;
+export const TERRAIN_PAINT_SOURCE: { seed: number; terrain: typeof TERRAIN; groundColor: typeof groundColor; surfaceAt: typeof surfaceAt; slabDepth: number } = { seed: SEED, terrain: TERRAIN, groundColor, surfaceAt, slabDepth: terrainPaintPolicy.slabDepth };
 
 const CHANNELS = { normal: 3, color: 3, surf: 4, rdir: 2, zone: 3 } as const;
 /** the painter names its masks as the painted-terrain layer reads them */
