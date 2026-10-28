@@ -53,7 +53,7 @@ commit (`test/test_push_loop.py`, `scripts/test_sim_quiet.py`).
 | MB9 | **No lane waits or sits finished.** Commits stay local; the push loop publishes them, and no lane watches it. Each lane holds two assigned counted rows (now + next, §4). Finishing one, it starts the next in the same turn; with none left it takes the top unclaimed row of its type in `lanes/ready-queue.md` and says so in one line. The coordinator answers every report with the next row in the same turn. | wildshard-new, every lane | Hourly herdr sweep: no lane idle > 10 min |
 | MB10 | **Rebalanced lanes.** Put §4 into `lanes/ready-queue.md`'s lane table, replacing the old lane plans. | wildshard-new | Table matches §4 |
 | MB11 | **Row marks same hour.** A landed row is marked done in its plan within the hour (G767) so `plan_pct.py` moves. Night Market pilot and grid-crossing get real status cells (they show "carried"). | every lane; wildshard-new reads `plan_pct.py` hourly | Counter shows no "carried" plan |
-| MB12 | **One damage list** (§5), only in [BURN-DAMAGE-LIST.md](../BURN-DAMAGE-LIST.md), never STATE.md (G800). | sp-ci-deploy adds (G802); wildshard-new trims | Every known break is on it with its first bad SHA |
+| MB12 | **One damage list** (§5), only in [BURN-DAMAGE-LIST.md](../../docs/plans/BURN-DAMAGE-LIST.md), never STATE.md (G800). | sp-ci-deploy adds (G802); wildshard-new trims | Every known break is on it with its first bad SHA |
 
 ## 4. Who builds what (after Jake's answers)
 
@@ -87,7 +87,7 @@ about a day at the G768 pace. Parking RP2–RP4 and R1–R3 takes about 2 days o
 
 ## 5. Damage list
 
-Its only home is [BURN-DAMAGE-LIST.md](../BURN-DAMAGE-LIST.md) (G800), never STATE.md: every red CI test, failing
+Its only home is [BURN-DAMAGE-LIST.md](../../docs/plans/BURN-DAMAGE-LIST.md) (G800), never STATE.md: every red CI test, failing
 boot-smoke leg, stuck deploy, check MB1–MB7 switched off, flaky test, deferred reading and landed budget overrun, with
 its first bad SHA, until it is fixed and marked. A break that stops lanes building (types fail on main, the app won't
 build or boot) is not listed; whoever broke it fixes it at once (G674). Burning it down after SHARD-PLATFORM is that

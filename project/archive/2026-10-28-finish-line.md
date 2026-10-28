@@ -2,8 +2,8 @@
 
 Written 2026-10-27 01:00 Cancun by a wildshard-v subagent; **rewritten ~02:45 after Jake answered every question
 (G770–G799)** and the answers were applied to the mini plans. Counter: `python3 -I tmp/plan-pct/plan_pct.py . --rev
-HEAD`. How lanes stop waiting is in [mega-build-mini-plan.md](mega-build-mini-plan.md). The damage list lives only in
-[BURN-DAMAGE-LIST.md](../BURN-DAMAGE-LIST.md) (G800).
+HEAD`. How lanes stop waiting is in [mega-build-mini-plan.md](2026-10-28-mega-build.md). The damage list lives only in
+[BURN-DAMAGE-LIST.md](../../docs/plans/BURN-DAMAGE-LIST.md) (G800).
 
 **Watch out:** the working-tree copy of `iphone-downloads-mini-plan.md` (and `tile-streaming-mini-plan.md`) is older
 than HEAD. Committing the whole file would undo landed marks, so patch only your own lines.
