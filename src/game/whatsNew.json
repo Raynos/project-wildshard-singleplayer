@@ -1,10 +1,10 @@
 {
   "date": "28 OCT 2026",
-  "updated": "2026-10-28T17:10:54Z",
+  "updated": "2026-10-28T19:02:30Z",
   "entries": [
-    "Pine Hollow: textured paths and trees without solid backings",
-    "Crossings finish loading on slow connections",
-    "Faster returns to recently visited places",
+    "Loading no longer waits forever on a stalled download",
+    "Loading and update screens keep a visible progress animation",
+    "Minimap tile debug labels are gone",
     "Safari: open the bag MAP without the 0 / 1 loading stall",
     "Developer: try the Night Market placeholder from SHARD SELECT"
   ]
