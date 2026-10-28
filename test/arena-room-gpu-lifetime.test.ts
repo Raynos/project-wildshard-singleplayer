@@ -1,5 +1,7 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Compare every native typed-array byte without enumerating millions of keys.
+import { deepStrictEqual } from 'node:assert';
 import { BufferAttribute, BufferGeometry, Material, Mesh, Scene, Vector3, Raycaster } from 'three';
 // oxlint-disable-next-line import/no-nodejs-modules -- Isolate collection with the actual fixture setup and exposed GC.
 import { execFileSync } from 'node:child_process';
@@ -61,7 +63,7 @@ function upload(geometry: BufferGeometry): number {
     const payload = attribute.array.slice();
     attribute.onUploadCallback();
     expect(attribute.count).toBe(count);
-    if (name === 'position') expect(attribute.array).toEqual(payload);
+    if (name === 'position') deepStrictEqual(attribute.array, payload);
     released += before - attribute.array.byteLength;
   }
   expect(geometry.getAttribute('position')).toBe(position);expect(geometry.index).toBe(index);
@@ -107,7 +109,7 @@ test('private room uploads release fixed channels, preserving templates, picking
       try {
         for (const [name, attribute] of Object.entries(geometry.attributes)) {
           if (name === 'light') continue;
-          expect(attribute.array).toEqual(template.getAttribute(name).array);
+          deepStrictEqual(attribute.array, template.getAttribute(name).array);
         }
         const bytes = upload(geometry);released += bytes;if (!main.has(id)) interiorOnly += bytes;
         if (geometry !== sand) for (const [name, attribute] of Object.entries(geometry.attributes)) {
