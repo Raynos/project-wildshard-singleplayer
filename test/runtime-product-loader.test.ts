@@ -287,6 +287,24 @@ test.each(['content', 'url'])('trusted %s bytes are hashed once and retain exact
   await expect(reader.read(f.ref)).rejects.toThrow('size mismatch');
 });
 
+test.each(['hit','miss','short','refusal'] as const)('packed admission honours a verified URL-cache %s before network', async mode => {
+  const f=fixture(),path=`blobs/pack/${f.ref}.pack`;
+  const index=parseOutputIndex({...f.index,packs:[{path,hash:f.ref,bytes:f.blob.length,entries:[{hash:f.ref,offset:0,bytes:f.blob.length}]}]});
+  trust({...f.receipt,indexHash:hashImmutableBytes(bytes(index))});f.wires.set(path,f.blob);
+  const fetch=vi.fn(f.options.fetch),transport=vi.fn((_url:string,hash:string)=>hash===f.ref
+    ?Promise.reject(new Error('Packed miss must use its pack')):Promise.resolve(null));
+  const verified=vi.fn((_url:string,hash:string)=>hash!==f.ref?Promise.resolve(null)
+    :mode==='refusal'?Promise.reject(new Error('Verified cache refused'))
+    :Promise.resolve(mode==='miss'?null:mode==='short'?Uint8Array.of(1):f.blob));
+  const pending=admitProduct(index,{...f.options,fetch,transport,verifiedResponse:verified});
+  if(mode==='short'||mode==='refusal')await expect(pending).rejects.toThrow(mode==='short'?'wire size':'Verified cache refused');
+  else expect((await pending).assets.get(f.ref)).toEqual(f.blob);
+  expect(verified.mock.calls.filter(([,hash])=>hash===f.ref)).toHaveLength(1);
+  expect(fetch.mock.calls.filter(([url])=>url.endsWith(path))).toHaveLength(mode==='miss'?1:0);
+  expect(fetch.mock.calls.some(([url])=>url.endsWith(`/bin/${f.ref}.bin`))).toBe(false);
+  expect(transport.mock.calls.filter(([,hash])=>hash===f.ref)).toHaveLength(0);
+});
+
 test('raw cache bytes remain isolated from a transferred failed hash and expose pending file/hash waits', async () => {
   const f = fixture(); trust(f.receipt); const source = await readProductDescriptor(f.options);
   let resolveCache: ((wire: Uint8Array) => void) | undefined, rejectHash: ((error: Error) => void) | undefined;

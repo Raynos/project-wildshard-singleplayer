@@ -391,8 +391,11 @@ async function admitProductWork(input: unknown, options: ProductOptions): Promis
   const load = async ([hash, cap]: [string, number]): Promise<Uint8Array> => {
     const url = outputBlobUrl(source, ownFiles.has(hash) ? hash : `commons:${hash}`, base);
     const inPack = packed?.has(hash) === true;
+    // Boot may have verified this member in the URL cache before admission.
+    // A pack replaces missing transports, not those already checked bytes.
+    // Cache-only lookup must not start a per-member worker fetch on a miss.
     const verified = await waitFor(`${options.transport === undefined ? 'Verified cache' : 'Read'} ${hash.slice(0, 12)}`, (async () =>
-      await options.cache?.verifiedAsset?.(hash) ?? (inPack ? null : await offPage(url, hash, cap)))(), 'file');
+      await options.cache?.verifiedAsset?.(hash) ?? (inPack ? await options.verifiedResponse?.(url, hash, cap) : await offPage(url, hash, cap)))(), 'file');
     let bytes = verified ?? await waitFor(`Cache ${hash.slice(0, 12)}`, (async () =>
       (options.cache?.verifiedAsset === undefined ? await options.cache?.asset(base, hash) : null)
         ?? (options.verifiedResponse === undefined ? await options.cachedResponse?.(url, hash, cap) : null))(), 'file');
