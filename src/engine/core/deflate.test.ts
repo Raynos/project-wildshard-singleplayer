@@ -53,6 +53,21 @@ test('an empty range returns its output without touching detached empty backing'
   expect(unshuffleLanes(new Uint8Array(0), output)).toBe(output);
 });
 
+test.each([4, 8, 12, 16384, 16388])('aligned four-lane blocks and tails preserve all %i words', words => {
+  const ranges: readonly (readonly [number, number])[] = [[0, words], [0, words - 1], [4, words], [1, words]];
+  for (const offset of [0, 4]) {
+    const source = Uint8Array.from({ length: words * 4 + 16 }, (_, index) => (index * 131 + Math.floor(index / 251) * 79) & 255);
+    const input = source.subarray(offset, offset + words * 4), original = source.slice();
+    for (const [start, end] of ranges) {
+      const backing = new Uint8Array(words * 4 + 16).fill(251), output = backing.subarray(8, 8 + words * 4), expected = backing.slice();
+      for (let word = start; word < end; word++) for (let lane = 0; lane < 4; lane++) expected[8 + word * 4 + lane] = input[lane * words + word] ?? 0;
+      expect(unshuffleLanes(input, output, start, end)).toBe(output);
+      expect(Buffer.compare(backing, expected)).toBe(0);
+      expect(Buffer.compare(source, original)).toBe(0);
+    }
+  }
+});
+
 test('range and alias refusals precede all writes', () => {
   const input = new Uint8Array(32).fill(9), output = new Uint8Array(32).fill(251);
   for (const [start, end] of [[-1, 2], [0, 9], [3, 2], [0.5, 2], [0, Number.NaN], [0, Infinity], [Number.MAX_SAFE_INTEGER + 1, 2]]) {

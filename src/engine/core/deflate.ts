@@ -52,7 +52,21 @@ export function unshuffleLanes(lanes: Uint8Array, out: Uint8Array<ArrayBuffer> =
   if (wordStart === wordEnd) return out;
   if (LITTLE_ENDIAN_WORDS && out.byteOffset % 4 === 0) {
     const words = new Uint32Array(out.buffer, out.byteOffset, n), third = n * 2, fourth = n * 3;
-    for (let i = wordStart; i < wordEnd; i++) {
+    let i = wordStart;
+    // Four aligned source words hold four bytes from each lane. Transpose
+    // those bits into four output words, without changing the slice boundary.
+    if (lanes.byteOffset % 4 === 0 && n % 4 === 0 && wordStart % 4 === 0) {
+      const source = new Uint32Array(lanes.buffer, lanes.byteOffset, n), lane = n / 4;
+      for (; i + 3 < wordEnd; i += 4) {
+        const at = i / 4, a = source[at] ?? 0, b = source[lane + at] ?? 0;
+        const c = source[lane * 2 + at] ?? 0, d = source[lane * 3 + at] ?? 0;
+        words[i] = (a & 255) | ((b & 255) << 8) | ((c & 255) << 16) | (d << 24);
+        words[i + 1] = ((a >>> 8) & 255) | (b & 65280) | ((c & 65280) << 8) | ((d & 65280) << 16);
+        words[i + 2] = ((a >>> 16) & 255) | ((b >>> 8) & 65280) | (c & 16711680) | ((d & 16711680) << 8);
+        words[i + 3] = (a >>> 24) | ((b >>> 16) & 65280) | ((c >>> 8) & 16711680) | (d & 4278190080);
+      }
+    }
+    for (; i < wordEnd; i++) {
       words[i] = (lanes[i] ?? 0) | ((lanes[n + i] ?? 0) << 8) | ((lanes[third + i] ?? 0) << 16) | ((lanes[fourth + i] ?? 0) << 24);
     }
     return out;
