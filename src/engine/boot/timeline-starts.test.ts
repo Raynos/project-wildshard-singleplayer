@@ -1,6 +1,19 @@
 import { expect, test } from 'vitest';
 import { LoadingTimeline, repeatedStep } from './timeline';
 
+test('wall boundaries retain nested duration without changing exclusive accounting', () => {
+  let now = 10;
+  const timeline = new LoadingTimeline({id: 'capture', steps: ['outer', 'inner'].map(key => ({key, label: key, weight: 1}))}, now, () => now);
+  const outer = timeline.begin('outer'); now = 20;
+  const inner = timeline.begin('inner'); now = 50; inner.end(); now = 80; outer.end();
+  expect(timeline.snapshot().rows).toMatchObject([
+    {key: 'outer', startedAt: 10, endedAt: 80, ms: 40},
+    {key: 'inner', startedAt: 20, endedAt: 50, ms: 30},
+  ]);
+  outer.end(); now = 100;
+  expect(timeline.snapshot().rows[0]?.endedAt).toBe(80);
+});
+
 test('the initial row accepts only a real setup fact tied to its original clock', () => {
   const path = {id: 'fixture', steps: [{key: 'modules', label: 'Modules', weight: 1}]};
   let shown = 80;

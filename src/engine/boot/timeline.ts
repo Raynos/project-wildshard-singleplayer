@@ -7,6 +7,8 @@ export interface LoadingRow {
   key: string; label: string; number: number; state: 'todo' | 'on' | 'ok'; ms: number; detail: string; fraction?: number;
   /** First accounted start on the monotonic timeline clock, not a paint timestamp. */
   startedAt?: number;
+  /** Last completed wall boundary; ms remains exclusive of nested work. */
+  endedAt?: number;
   /** DOM setup percentage already displayed at first entry, when supplied. */
   setupAtStart?: number;
 }
@@ -27,7 +29,7 @@ export class LoadingTimeline {
   /** Attempt identity for wait attribution; it carries no work or serialized state. */
   readonly waitOwner: symbol = Symbol('loading-waits');
   private path: LoadingPath;
-  private readonly rows = new Map<string, { ms: number; started: boolean; detail: string; fraction?: number; startedAt?: number; setupAtStart?: number }>();
+  private readonly rows = new Map<string, { ms: number; started: boolean; detail: string; fraction?: number; startedAt?: number; endedAt?: number; setupAtStart?: number }>();
   private readonly active = new Map<number, Stage>();
   private readonly aliases = new Map<string, string>();
   private readonly ignored = new Set<string>();
@@ -123,6 +125,7 @@ export class LoadingTimeline {
         if (shown !== undefined && Number.isInteger(shown) && shown >= 0 && shown <= 100) row.setupAtStart = shown;
       }
       row.started = true;
+      delete row.endedAt;
     }
     const previous = this.gaps.at(-1); if (previous?.state === 'on') previous.state = 'ok';
     const id = ++this.sequence, stage = { key, base, detail: initialDetail };
@@ -130,6 +133,7 @@ export class LoadingTimeline {
     return { end: () => {
       if (!this.active.has(id)) return;
       this.accrue(); this.active.delete(id); this.last = key;
+      if (row !== undefined && ![...this.active.values()].some(value => value.key === key)) row.endedAt = this.at;
     }, detail: text => { stage.detail = text; } };
   }
   snapshot(): { path: string; rows: LoadingRow[]; gaps: LoadingGap[]; current: string | null; display: string | null } {
@@ -142,6 +146,7 @@ export class LoadingTimeline {
         state: running.has(key) ? 'on' : row?.started ? 'ok' : 'todo', ms: row?.ms ?? 0, detail: row?.detail ?? '' };
       if (row?.fraction !== undefined) result.fraction = row.fraction;
       if (row?.startedAt !== undefined) result.startedAt = row.startedAt;
+      if (row?.endedAt !== undefined) result.endedAt = row.endedAt;
       if (row?.setupAtStart !== undefined) result.setupAtStart = row.setupAtStart;
       return result;
     });

@@ -335,6 +335,9 @@ export class Loading {
   }
 
   private paintRows(timeline: TimelineSnapshot): void {
+    // Passive capture of all rows, including collapsed quick steps. The DOM
+    // owns this data; importing the module installs no observer or service.
+    Reflect.set(this.root, Symbol.for('engine.loading.snapshot'), timeline);
     const current = timeline.rows.find(row => row.key === timeline.display);
     const currentGap = timeline.gaps.find(row => row.state === 'on');
     setData(this.root, 'step', current?.key ?? 'gap');

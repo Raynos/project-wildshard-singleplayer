@@ -19,6 +19,20 @@ beforeEach(() => {
 });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); document.body.replaceChildren(); });
 
+it('exposes completed quick rows to passive capture without changing their exclusive clocks', () => {
+  const loading = new Loading({id: 'capture', name: 'Capture'});
+  try {
+    loading.setPath({id: 'capture', steps: ['modules', 'quick'].map(key => ({key, label: key, weight: 1}))});
+    const timeline = currentLoadingTimeline(); if (timeline === undefined) throw new Error('Missing timeline');
+    const quick = timeline.begin('quick'); now = 150; quick.end();
+    loading.paintAdmission({phase: 'descriptor', detail: 'Capture completed rows', bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0});
+    vi.advanceTimersByTime(32);
+    const snapshot: unknown = Reflect.get(loading.root, Symbol.for('engine.loading.snapshot'));
+    expect(snapshot).toMatchObject({path: 'capture', rows: [expect.anything(), {key: 'quick', startedAt: 100, endedAt: 150, ms: 50}]});
+    expect(loading.root.querySelector('[data-key="quick"]')).toBeNull();
+  } finally {loading.scope.dispose();}
+});
+
 it('publishes completed step credit before the next step records its visible setup', () => {
   const loading = new Loading({id: 'boundaries', name: 'Boundaries'});
   try {
