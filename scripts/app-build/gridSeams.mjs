@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
+import { jsonDataHeapBytes } from '../../src/format/json.ts';
 
 /** The certified grid seams as the app build bakes them (gitignored, beside the title tables): the bundle defines only
  *  their small addresses (`__GRID_SEAM_ASSET__`, vite.config.ts). Native fallback plans are a separate verified file. */
@@ -26,7 +27,17 @@ export function gridSeamAsset(source, splitPlans = false) {
       && Array.isArray(row[1]) && row[1].every(line => Array.isArray(line) && line.every(value => typeof value === 'number' && Number.isFinite(value))))) return original;
   const plans = addressed(JSON.stringify({ plans: baked.plans, edges: [] }), 'grid-seam-plans');
   const edges = addressed(JSON.stringify({ ...baked, plans: [] }), 'grid-seams');
-  return { ...edges, plans, address: { ...edges.address, plans: plans.address } };
+  const asset = { ...edges, plans, address: { ...edges.address, plans: plans.address } };
+  // Derive the unchanged bounded JSON charge from the exact canonical source.
+  // Failed admission or ambiguous names keep the original runtime census.
+  const costs = [];
+  for (const row of baked.edges) {
+    if (!Array.isArray(row) || row.length !== 2 || typeof row[0] !== 'string') return asset;
+    const bytes = jsonDataHeapBytes(row[1]); if (bytes === undefined) return asset;
+    costs.push([row[0], bytes]);
+  }
+  if (costs.length > 512 || new Set(costs.map(row => row[0])).size !== costs.length) return asset;
+  return { ...asset, address: { ...asset.address, edgeCosts: { source: edges.address.sha256, rows: costs } } };
 }
 
 /** Certify the generated catalogue's seam plans and each slug's edge source before the page is bundled (was

@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
 import { readGridSeamData } from './seamData';
+import { jsonDataHeapBytes } from '@wildshard/format/json';
 
 async function fixture(source: string) {
   const wire = new TextEncoder().encode(source), hash = new Uint8Array(await crypto.subtle.digest('SHA-256', wire));
@@ -75,4 +76,22 @@ test('deferred plan addresses detach and cannot borrow the main asset namespace'
   let reads = 0;
   await expect(wrongNamespace.readPlans(() => { reads++; return Promise.resolve(new Response(plans.source)); })).rejects.toThrow('Invalid');
   expect(reads).toBe(0);
+});
+
+test('compiler costs require the verified source and complete unique edge names', async () => {
+  const row = { heights: Array.from({ length: 257 }, (_, index) => index / 257), colours: Array.from({ length: 257 }, () => [0.2, 0.4, 0.6]), roadHeight: 0 };
+  const observation = { entryWidth: 8 }, edge = { kind: 'declared', profiles: { north: row, east: row, south: row, west: row }, observations: { north: observation, east: observation, south: observation, west: observation } };
+  const asset = await fixture(JSON.stringify({ plans: [], edges: [['native', edge]], edgeCosts: 'not a compiler fact' }));
+  const bytes = jsonDataHeapBytes(edge); if (bytes === undefined) throw new Error('Missing exact fixture charge');
+  const facts = { source: asset.address.sha256, rows: [['native', bytes] as const] };
+  const data = await readGridSeamData({ ...asset.address, edgeCosts: facts }, () => Promise.resolve(new Response(asset.source)));
+  expect(data.edgeCosts?.get('native')).toBe(bytes);
+  facts.rows[0] = ['native', bytes + 1000]; expect(data.edgeCosts?.get('native')).toBe(bytes);
+  for (const bad of [undefined, { source: '0'.repeat(64), rows: [['native', bytes]] }, { source: asset.address.sha256, rows: [['other', bytes]] },
+    { source: asset.address.sha256, rows: [['native', bytes], ['native', bytes]] }, { source: asset.address.sha256, rows: [['native', -1]] },
+    { source: asset.address.sha256, rows: [['native', 1.5]] }, { source: asset.address.sha256, rows: [['native', 'not a number']] }]) {
+    const address = { ...asset.address }; Object.defineProperty(address, 'edgeCosts', { value: bad });
+    const fallback = await readGridSeamData(address, () => Promise.resolve(new Response(asset.source)));
+    expect(fallback.edgeCosts).toBeUndefined(); expect(jsonDataHeapBytes(fallback.edges[0]?.[1])).toBe(bytes);
+  }
 });

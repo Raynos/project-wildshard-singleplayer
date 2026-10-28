@@ -3,6 +3,7 @@ import { GRID_SEAMS, gridSeamAsset, readGridSeams, writeGridSeams } from '../scr
 import { checkChunks } from '../scripts/check-chunks.mjs';
 import { writeChunkReport } from '../scripts/app-build/chunkReport.mjs';
 import { build, type InlineConfig } from 'vite';
+import { jsonDataHeapBytes } from '../src/format/json';
 // oxlint-disable-next-line import/no-nodejs-modules -- The build guard fixture owns and removes only its small tmp tree.
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the isolated build fixture inside the ignored scratch root.
@@ -47,6 +48,18 @@ test('split native plans reconstruct the entire certified source and retain its 
     expect(gridSeamAsset('{"plans":[["native",[[-0]]]],"edges":[]}', true).plans).toBeUndefined();
     expect(gridSeamAsset('{"plans":[["native",[["bad"]]]],"edges":[]}', true).plans).toBeUndefined();
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('compiler edge costs retain the original bounded JSON charge and source identity', () => {
+  const row = { heights: Array.from({ length: 257 }, (_, index) => index / 257), colours: Array.from({ length: 257 }, () => [0.125, 0.25, 0.5]), roadHeight: 0 };
+  const observation = { entryWidth: 8 };
+  const edge = { kind: 'declared', profiles: { north: row, east: row, south: row, west: row }, observations: { north: observation, east: observation, south: observation, west: observation }, note: 'Å🌴' };
+  const source = JSON.stringify({ plans: [['native', [[0, 1]]]], edges: [['native', edge]] }), asset = gridSeamAsset(source, true);
+  expect(asset.address.edgeCosts).toEqual({ source: asset.address.sha256, rows: [['native', jsonDataHeapBytes(edge)]] });
+  const oversized = JSON.stringify({ plans: [['native', [[0, 1]]]], edges: [['native', { ...edge, extra: Array.from({ length: 100000 }, () => 0) }]] });
+  expect(gridSeamAsset(oversized, true).address.edgeCosts).toBeUndefined();
+  const duplicate = JSON.stringify({ plans: [['native', [[0, 1]]]], edges: [['native', edge], ['native', edge]] });
+  expect(gridSeamAsset(duplicate, true).address.edgeCosts).toBeUndefined();
 });
 
 test('the grid chunk guard refuses inline data, missing measurements and either exceeded ceiling', () => {

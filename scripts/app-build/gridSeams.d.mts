@@ -1,7 +1,9 @@
 export interface GridAssetAddress { readonly url: string; readonly bytes: number; readonly sha256: string }
 export interface GridSeamAsset { readonly fileName: string; readonly source: string; readonly files?: readonly GridAssetAddress[];
   readonly plans?: { readonly fileName: string; readonly source: string; readonly address: GridAssetAddress };
-  readonly address: GridAssetAddress & { readonly plans?: GridAssetAddress; readonly geometry?: { readonly directory: GridAssetAddress; readonly homes: readonly string[] } } }
+  readonly address: GridAssetAddress & { readonly plans?: GridAssetAddress;
+    readonly edgeCosts?: { readonly source: string; readonly rows: readonly (readonly [string, number])[] };
+    readonly geometry?: { readonly directory: GridAssetAddress; readonly homes: readonly string[] } } }
 /** The baked seams' path under the repo root (gitignored). */
 export const GRID_SEAMS: string;
 /** Preserve the original wire by default; optionally split canonical native fallback plans into a verified file. */

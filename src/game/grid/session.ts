@@ -386,12 +386,13 @@ export class GridSession {
     const forget = host.scope.capture('disposers', () => { abort.abort(); });
     const data = await readGridSeamData(address, url => fetch(url, { signal: abort.signal })).finally(forget);
     if (host.scope.disposed) throw new Error('Grid session left during seam preparation');
-    const baked = new Map(data.edges);
+    const baked = new Map(data.edges), edgeCosts = data.edgeCosts;
     progress?.set(0, 3, `Cell edges · 0 / ${assembly.cells.length}`);
     const edges = await loadGridEdgeProfiles(assembly.cells, async (cell) => {
       try {
-        const edge = baked.get(cell.slug) ?? await readGridEdges(cell, { edges: slug => gridShardfileEdges(slug, { allocator, scope: host.scope }), fetch: url => fetch(url) });
-        const claim = allocator.reserve({ id: `product:grid:edge:${cell.instance}`, category: 'product', owner: cell.instance, bytes: jsonResidentBytes(edge), distance: 0, needed: true });
+        const bakedEdge = baked.get(cell.slug), edge = bakedEdge ?? await readGridEdges(cell, { edges: slug => gridShardfileEdges(slug, { allocator, scope: host.scope }), fetch: url => fetch(url) });
+        const bytes = (bakedEdge === undefined ? undefined : edgeCosts?.get(cell.slug)) ?? jsonResidentBytes(edge);
+        const claim = allocator.reserve({ id: `product:grid:edge:${cell.instance}`, category: 'product', owner: cell.instance, bytes, distance: 0, needed: true });
         if (claim === null) throw new Error('Grid edge metadata residency deferred');
         host.scope.onDispose(claim.release); return edge;
       } catch (error) {

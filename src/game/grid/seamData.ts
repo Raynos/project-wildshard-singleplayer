@@ -3,11 +3,16 @@ import type { CompiledGridSelector } from './compiledStrips';
 import { readGridAssetBytes } from './gridAssetBytes';
 
 export interface GridSeamAddress { readonly url: string; readonly bytes: number; readonly sha256: string; readonly geometry?: CompiledGridSelector;
-  readonly plans?: { readonly url: string; readonly bytes: number; readonly sha256: string } }
-interface GridSeamData {
+  readonly plans?: { readonly url: string; readonly bytes: number; readonly sha256: string };
+  readonly edgeCosts?: { readonly source: string; readonly rows: readonly (readonly [string, number])[] } }
+interface GridSeamRows {
   readonly plans: readonly (readonly [string, readonly number[][]])[];
   readonly edges: readonly (readonly [string, Extract<GridEdgeSource, { kind: 'declared' }>])[];
+}
+interface GridSeamData extends GridSeamRows {
   readonly readPlans?: (read: (url: string) => Promise<Response>) => Promise<GridSeamData['plans']>;
+  /** Compiler charges for this exact verified wire only; never a caller-input cache. */
+  readonly edgeCosts?: ReadonlyMap<string, number>;
 }
 const sides = ['north', 'east', 'south', 'west'] as const;
 const record = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -29,11 +34,25 @@ function edge(value: unknown): value is Extract<GridEdgeSource, { kind: 'declare
     return record(row) && numbers(row['heights']) && matrix(row['colours']) && typeof row['roadHeight'] === 'number' && observation(observations[side]);
   });
 }
-function data(value: unknown): value is GridSeamData {
+function data(value: unknown): value is GridSeamRows {
   if (!record(value) || !Array.isArray(value['plans']) || !Array.isArray(value['edges'])) return false;
   const plans = value['plans'], edges = value['edges'];
   return plans.every((row: unknown) => Array.isArray(row) && row.length === 2 && typeof row[0] === 'string' && matrix(row[1]))
     && edges.every((row: unknown) => Array.isArray(row) && row.length === 2 && typeof row[0] === 'string' && edge(row[1]));
+}
+
+function verifiedCosts(value: unknown, source: string, rows: GridSeamRows): ReadonlyMap<string, number> | undefined {
+  if (!record(value) || value['source'] !== source || !Array.isArray(value['rows'])
+    || value['rows'].length !== rows.edges.length || value['rows'].length > 512) return undefined;
+  const names = new Set(rows.edges.map(([name]) => name));
+  if (names.size !== rows.edges.length) return undefined;
+  const costs = new Map<string, number>();
+  for (const row of value['rows']) {
+    if (!Array.isArray(row) || row.length !== 2 || typeof row[0] !== 'string' || !names.delete(row[0])
+      || typeof row[1] !== 'number' || !Number.isSafeInteger(row[1]) || row[1] < 64) return undefined;
+    costs.set(row[0], row[1]);
+  }
+  return costs;
 }
 
 /** No module cache owns the parsed rows. The session consumes them during construction;
@@ -42,9 +61,11 @@ export async function readGridSeamData(address: GridSeamAddress, read: (url: str
   const wire = await readGridAssetBytes(address, read, 'seams');
   const parsed: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(wire));
   if (!data(parsed) || address.plans !== undefined && parsed.plans.length > 0) throw new Error('Invalid grid seam data');
-  if (address.plans === undefined) return parsed;
+  const edgeCosts = verifiedCosts(address.edgeCosts, address.sha256, parsed);
+  const result = { plans: parsed.plans, edges: parsed.edges, ...(edgeCosts === undefined ? {} : { edgeCosts }) };
+  if (address.plans === undefined) return result;
   const plans = { ...address.plans };
-  return { plans: parsed.plans, edges: parsed.edges, readPlans: async fetchPlans => {
+  return { ...result, readPlans: async fetchPlans => {
     const bytes = await readGridAssetBytes(plans, fetchPlans, 'seam-plans');
     const value: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
     if (!data(value) || value.edges.length > 0) throw new Error('Invalid grid seam plans');
