@@ -46,7 +46,12 @@ async function schedule(options: { held?: boolean; cost?: number; prepare?: bool
     expect(uniforms).toBe(1);
     now = 1000; frame = 0; current = true; issued.length = 0;
     cost = options.cost ?? 3; noteFrameDrawn(now, now, 30); setBuildHeld(options.held ?? true);
-    const jobs = Array.from({ length: 9 }, () => ({ ...job, ...(options.prepare === true ? { prepare: () => undefined } : {}) }));
+    // cached-only jobs: other materials whose program is already linked (an exact repeat of the fencing job's material is
+    // not run at all, G808: precompile-repeat-jobs.test.ts)
+    const jobs = Array.from({ length: 9 }, () => {
+      const own = new Scene(); own.add(new Mesh(geometry, new MeshBasicMaterial()));
+      return { ...job, root: own, ...(options.prepare === true ? { prepare: () => undefined } : {}) };
+    });
     const warming = (async (): Promise<void> => {
       if (options.separate === true) {
         for (const rootJob of jobs) await runPrecompile(renderer, new PerspectiveCamera(), [rootJob], 1, undefined, [], () => current, true,

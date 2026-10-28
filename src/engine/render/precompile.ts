@@ -100,7 +100,7 @@ export interface PrecompileReport { materials: number; jobs: number; programs: n
 /** Scalar preparation stage observation. Elapsed time includes painted waits; units count completed jobs/resources. */
 /** Link preparation during compile counts queue completions (including group
  * refreshes); its time is already contained in compile, not an extra phase. */
-export type PrecompileStage = (phase: 'compile' | 'cached-compile' | 'link-preparation-during-compile' | 'link' | 'upload' | 'upload-kib' | `programs:${string}`, elapsedMs: number, units: number) => void;
+export type PrecompileStage = (phase: 'compile' | 'cached-compile' | 'repeat-jobs' | 'link-preparation-during-compile' | 'link' | 'upload' | 'upload-kib' | `programs:${string}`, elapsedMs: number, units: number) => void;
 
 const exteriorLighting = new WeakMap<THREE.Scene, { environment: THREE.Texture | null; roots: Set<THREE.Object3D> }>();
 
@@ -979,6 +979,72 @@ function drawnFrame(scope: Scope, drawn: () => number, current: () => boolean): 
  * An optional pause port requires a completed live draw between batches instead of a browser rAF the game may skip.
  * An optional upload budget batches image uploads per frame under it (op-hitch32).
  */
+/** G808: per renderer, each material's compile signatures a warm-up has run (its version, object key and the light /
+ *  environment / target state it compiled under). A later job repeating one adds no program. */
+const compiledUnder = new WeakMap<Renderer, WeakMap<THREE.Material, Set<string>>>();
+
+/** What three folds into a program's key beside the material and the object: the lights it counts (visible, in the
+ *  compile camera's layers, from the job's root, the lights about to be copied in and the target scene), fog,
+ *  environment, render target, tone mapping, shadow map, output colour space, clipping and the camera kind. */
+function compileSignature(renderer: Renderer, job: CompileJob, camera: THREE.Camera): string {
+  const view = job.camera ?? camera, lights: string[] = [], seen = new Set<THREE.Object3D>();
+  const collect = (root: THREE.Object3D): void => {
+    root.traverseVisible(object => {
+      if (seen.has(object) || !(object instanceof THREE.Light) || !object.layers.test(view.layers)) return;
+      seen.add(object); lights.push(`${object.type}${object.castShadow ? '+' : ''}`);
+    });
+  };
+  collect(job.root); if (job.target !== null) collect(job.target);
+  for (const light of job.futureLights ?? []) lights.push(`${light.type}${light.castShadow ? '+' : ''}`);
+  lights.sort();
+  const target = job.target, fog = job.fogOff === true ? null : target?.fog ?? null;
+  return [lights.join(','), fog === null ? '-' : fog.constructor.name, (job.environment ?? target?.environment)?.uuid ?? '-',
+    job.rt?.texture.uuid ?? 'canvas', job.toneMapping ?? field(renderer, 'toneMapping'), field(Reflect.get(renderer, 'shadowMap'), 'enabled'),
+    field(Reflect.get(renderer, 'shadowMap'), 'type'), field(renderer, 'outputColorSpace'), field(renderer, 'localClippingEnabled'), view.type].join('|');
+}
+/** A state field as text; test doubles of the renderer carry only some of them. */
+function field(holder: unknown, name: string): string {
+  return typeof holder === 'object' && holder !== null ? String(Reflect.get(holder, name)) : '-';
+}
+/** Each compiled object's material keys under `signature`; none for a node material (its build cache is its own). */
+function compiledKeys(job: CompileJob, signature: string, use: (material: THREE.Material, key: string) => boolean): boolean {
+  let any = false, all = true;
+  job.root.traverse(object => {
+    if (!all) return;
+    for (const material of materialsOf(object)) {
+      if (Reflect.get(material, 'isNodeMaterial') === true) { all = false; return; }
+      any = true;
+      if (!use(material, `${String(material.version)}|${object.type}|${programObjectKey(object)}|${String(object.receiveShadow)}|${signature}`)) { all = false; return; }
+    }
+  });
+  return any && all;
+}
+/** Whether every material of `job` already compiled under this signature (never a custom-prepared or forced-face job). */
+function repeatsCompiled(renderer: Renderer, job: CompileJob, camera: THREE.Camera): boolean {
+  if (job.prepare !== undefined || job.materialSide !== undefined) return false;
+  const known = compiledUnder.get(renderer);
+  if (known === undefined) return false;
+  const signature = compileSignature(renderer, job, camera);
+  // a material that was disposed (its programs released) builds again: only a material still holding a program repeats
+  return compiledKeys(job, signature, (material, key) => known.get(material)?.has(key) === true
+    && materialPrograms(renderer, material).some(program => program !== undefined && program !== null));
+}
+/** What `job` compiled under `signature` (its state before the compile, as `repeatsCompiled` reads it), kept by the
+ *  run and published to the renderer's record when the run completes: a run's own jobs schedule exactly as before. */
+function recordCompiled(job: CompileJob, signature: string, into: [THREE.Material, string][]): void {
+  if (job.prepare !== undefined || job.materialSide !== undefined) return;
+  compiledKeys(job, signature, (material, key) => { into.push([material, key]); return true; });
+}
+function publishCompiled(renderer: Renderer, records: readonly [THREE.Material, string][]): void {
+  let known = compiledUnder.get(renderer);
+  if (known === undefined) { known = new WeakMap(); compiledUnder.set(renderer, known); }
+  for (const [material, key] of records) {
+    let keys = known.get(material);
+    if (keys === undefined) { keys = new Set(); known.set(material, keys); }
+    keys.add(key);
+  }
+}
+
 export async function runPrecompile(
   renderer: Renderer, camera: THREE.Camera, jobs: CompileJob[], materials: number,
   onProgress?: (done: number, total: number, detail: string) => void,
@@ -1044,7 +1110,8 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   // enlarge this caller's explicit shader slice and join two slow native units.
   const spent = (start: number): boolean => performance.now() - start >= sliceMs || nativeBudgetSpent(sliceMs);
   let tFrame = performance.now(), programsAtFrame = programCount(renderer);
-  let nativeInSlice = false, cachedCpuJobs = 0, cachedCpuMs = 0, settledInFrame = 0, settledDuringIssue = 0;
+  let nativeInSlice = false, cachedCpuJobs = 0, cachedCpuMs = 0, settledInFrame = 0, settledDuringIssue = 0, repeatJobs = 0;
+  const compiledRecords: [THREE.Material, string][] = [];
   let issueFrame = 0;
   // Link readiness or first-use queries may need a completed frame internally.
   // The outer issue loop must then measure the frame actually receiving work,
@@ -1110,11 +1177,16 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
         await pause(); checkCurrent(); tFrame = performance.now(); programsAtFrame = programCount(renderer); nativeInSlice = false; settledInFrame = 0;
       }
     }
+    // G808: a job whose every material an earlier warm-up already compiled under this same light / environment / target
+    // signature adds no program (three would only look its keys up again), so it is not run: on the phone path a
+    // crossing's later passes re-ran ~1,300 such jobs, each still spending part of a slice
+    if (i < jobs.length - 1 && repeatsCompiled(renderer, job, camera)) { repeatJobs++; onProgress?.(i + 1, total(), `${materials} materials · ${i + 1} / ${jobs.length} batches · ${mode}`); continue; }
     const jobStart = performance.now(); issuedPrograms.clear();
     if (job.rt !== null && !watchedTargets.has(job.rt)) {
       const target = job.rt; watchedTargets.add(target);
       observer.listenOnceEmitter(target, 'dispose', () => { preparedTargets.delete(target); watchedTargets.delete(target); });
     }
+    const compiledSignature = compileSignature(renderer, job, camera);
     const programsBefore = programCount(renderer), targetBefore = allocatedTarget(renderer, job.rt);
     const prevRt = renderer.getRenderTarget(), prevTone = renderer.toneMapping;
     const fog = job.target?.fog ?? null;
@@ -1158,6 +1230,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       if (job.fogOff && job.target) job.target.fog = fog;
       if (job.environment !== undefined && job.target) job.target.environment = environment;
     }
+    recordCompiled(job, compiledSignature, compiledRecords);
     const made = programCount(renderer) - programsBefore;
     const targetKnown = preparedTargets.has(job.rt) || job.rt !== null && targetBefore !== undefined
       && targetFences.get(job.rt) === targetBefore && targetBefore === allocatedTarget(renderer, job.rt);
@@ -1220,6 +1293,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       }
     }
   }
+  publishCompiled(renderer, compiledRecords);
   created.push(...newProgramsSince(renderer, before));
   for (const program of before) if (jobPrograms.has(program)) created.push(program);
   // H4: distinguish repeated native identities from newly created identities
@@ -1237,6 +1311,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     for (const [kind, count] of programsByKind) onStage(`programs:${kind}`, 0, count);
     onStage('link-preparation-during-compile', 0, settledDuringIssue);
     onStage('cached-compile', cachedCpuMs, cachedCpuJobs);
+    onStage('repeat-jobs', 0, repeatJobs);
     onStage('compile', performance.now() - stageStart, jobs.length); stageStart = performance.now();
   }
   const pending = created.filter(needsPreparation);
