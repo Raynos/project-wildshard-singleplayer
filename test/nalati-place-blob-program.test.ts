@@ -432,6 +432,20 @@ test('the phone entry projection rejects changed native crag words and unproved 
   expect(() => originalDressingEntryTransport(scheduled, sceneOriginals, completeCrags, phoneCragDecoded)).toThrow('Unproved catalogue scheduling change');
 });
 
+test('the phone entry projection retains every original geometry address', () => {
+  const { contactScenes, sceneOriginals, phoneCragDecoded } = sceneParityFixture;
+  const rows = originalDressingCoverTransport(contactScenes, sceneOriginals), completeCrags = { bytes: readFileSync('public/assets/nalati/baked/crags.bin'), hash: cragOriginal.hash };
+  const changed = rows.map(blob => {
+    if (blob.file.name !== 'world/dressing-phone.json') return blob;
+    const scene = v.parse(SceneDressingSchema, JSON.parse(new TextDecoder().decode(blob.bytes)));
+    const geometry = Object.values(scene.geometry).find(row => row.kind === 'baked-file' && row.file === 'world/crags-phone.bin');
+    if (geometry?.kind !== 'baked-file') throw new Error('Missing selected phone address control');
+    geometry.address.word++;
+    return nameBlob(blob.file.name, 'json', new TextEncoder().encode(encodeCanonicalJson(scene)));
+  });
+  expect(() => originalDressingEntryTransport(changed, sceneOriginals, completeCrags, phoneCragDecoded)).toThrow('Original phone crag row differs');
+});
+
 test('missing authored and owned bytes refuse before output publication', async () => {
   for (const [name, pin] of [['crags', cragOriginal]] as const) {
     await expect(nalatiBakeBlob({ cached: (_step, generate) => Promise.resolve(generate(new Map())) }, name, pin.decoded)).rejects.toThrow(`Missing authored ${name} binary`);
