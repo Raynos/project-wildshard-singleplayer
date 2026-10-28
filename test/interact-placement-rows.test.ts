@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import { autoFlag, createQuestPlacements, bindInteractPlacements, readInteractPlacements, type InteractTable } from '../src/engine/world/interact/types';
 import { bindInteractionState, Flags } from '../src/engine/world/interact/flags';
+import { bindInteractionPlacements, readInteractionPlacements } from '../src/sdk/interactions';
 import { pineTableFromPlacements } from '../src/shards/pine-hollow/generators/questTable';
 import { pineSpots } from '../src/shards/pine-hollow/generators/spots';
 import { DRIFTWOOD_SPOTS as driftwood } from '../src/shards/driftwood-isle/generators/spots';
@@ -15,7 +16,9 @@ test('authored rest sites preserve quest laws and order; malformed or foreign si
     { kind: 'door', id: 'gate', look: 'sluice', w: 2, h: 2, at: { poi: 'world', x: 2, z: 3 }, opensWhen: { all: ['lever:handle'] } },
   ] };
   const placements = [{ id: 'gate', kind: 'door', x: 20, y: 4, z: 30, yaw: 1 }, { id: 'handle', kind: 'lever', x: 10, y: 3, z: 20, yaw: 0 }];
-  const bound = bindInteractPlacements(table, placements), flags = new Flags('rest-sites', false);
+  const bound = bindInteractionPlacements(table, placements), flags = new Flags('rest-sites', false);
+  expect(bound).toEqual(bindInteractPlacements(table, placements));
+  expect(JSON.stringify(bound)).toBe(JSON.stringify(bindInteractPlacements(table, placements)));
   expect(bound.rows.map(row => row.id)).toEqual(table.rows.map(row => row.id));
   const handle = bound.rows.find(row => row.id === 'handle'); if (handle?.kind !== 'lever') throw new Error('Missing handle');
   expect(handle.label).toBe('Pull'); expect(handle.at).toMatchObject({ poi: 'world', x: 10, y: 3, z: 20 });
@@ -27,6 +30,12 @@ test('authored rest sites preserve quest laws and order; malformed or foreign si
   expect(() => bindInteractPlacements(table, [{ ...placements[0], kind: 'key' }, placements[1]])).toThrow();
   expect(() => readInteractPlacements([{ id: 'bad', kind: 'lever', x: Infinity, y: 0, z: 0, yaw: 0 }])).toThrow();
   expect(() => readInteractPlacements({})).toThrow();
+  for (const input of [placements.slice(0, 1), [...placements, placements[0]],
+    [{ ...placements[0], id: 'foreign' }, placements[1]], [{ ...placements[0], kind: 'key' }, placements[1]]]) {
+    expect(() => bindInteractionPlacements(table, input)).toThrow();
+  }
+  expect(() => readInteractionPlacements([{ id: 'bad', kind: 'lever', x: Infinity, y: 0, z: 0, yaw: 0 }])).toThrow();
+  expect(() => readInteractionPlacements({})).toThrow();
 
   const grove = pineTableFromPlacements(pine.rows), island = bindInteractPlacements(DRIFTWOOD_INTERACT, driftwood.rows);
   expect(grove.rows.some(row => row.id === 'dam-sluice' && row.kind === 'door' && row.opensWhen?.all?.includes('lever:dam-log-b'))).toBe(true);

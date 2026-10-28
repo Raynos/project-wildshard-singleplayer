@@ -14,9 +14,12 @@
  *
  * Placement is world coordinates (`poi: 'world'`); `y` pins heights on the tower (its deck), the rest sit on the floor.
  */
-import { bindInteractPlacements, readInteractPlacements, type InteractTable, type PickupDef } from '@wildshard/engine/world/interact/types';
+import { bindInteractionPlacements as bindInteractPlacements, readInteractionPlacements as readInteractPlacements } from '@wildshard/sdk/interactions';
 
 import { RESIN_FLAG, TOKEN_FLAG, TOKEN_NAMES } from './interactions';
+
+type InteractTable = Parameters<typeof bindInteractPlacements>[0];
+type PickupDef = Extract<InteractTable['rows'][number], { kind: 'pickup' }>;
 
 /** a resin drop's placement (the runtime resolves it: the trunk's side facing the trail, ~1.1 m up) */
 export interface Spot { x: number; z: number; y?: number; dy?: number }
