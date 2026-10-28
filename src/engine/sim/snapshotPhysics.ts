@@ -15,10 +15,20 @@ function hash(view: DataView, at: number): number {
   value = Math.imul(value ^ view.getUint32(at + 12, true), 16777619);
   return (value >>> 0) & 0xfffff;
 }
-// Compare unaligned words first, then retain the exact first differing byte.
+// Only matches of at least 64 bytes can emit a reference. Reject shorter
+// candidates before extending their prefix; qualifying lengths stay exact.
 function matchedBytes(left: DataView, leftAt: number, right: DataView, rightAt: number): number {
   const limit = Math.min(left.byteLength - leftAt, right.byteLength - rightAt);
-  let length = 0;
+  if (limit < matchMinimum
+    || left.getUint32(leftAt + 60, true) !== right.getUint32(rightAt + 60, true)
+    || left.getUint32(leftAt + 48, true) !== right.getUint32(rightAt + 48, true)
+    || left.getUint32(leftAt + 32, true) !== right.getUint32(rightAt + 32, true)
+    || left.getUint32(leftAt + 16, true) !== right.getUint32(rightAt + 16, true)) return 0;
+  for (let offset = 0; offset < matchMinimum; offset += 4) {
+    if (offset === 16 || offset === 32 || offset === 48 || offset === 60) continue;
+    if (left.getUint32(leftAt + offset, true) !== right.getUint32(rightAt + offset, true)) return 0;
+  }
+  let length = matchMinimum;
   while (length + 16 <= limit
     && left.getUint32(leftAt + length, true) === right.getUint32(rightAt + length, true)
     && left.getUint32(leftAt + length + 4, true) === right.getUint32(rightAt + length + 4, true)
@@ -68,10 +78,7 @@ export function encodePhysicsReferences(bytes: Uint8Array, basis?: Uint8Array): 
     if (length < matchMinimum) { at++; continue; }
     flush(at);
     encoded[written++] = external ? 2 : 1; view.setUint32(written, external ? basisAt : at - previous, true); written += 4; view.setUint32(written, length, true); written += 4;
-    // A repeated 64-byte span contains an indexed start within fifteen bytes.
-    // Re-index copied ranges at the same stride as the immutable basis, rather
-    // than hashing every byte of native geometry again on every checkpoint.
-    if (!external) for (let i = at + 1; i < at + length && i + 16 <= bytes.length; i += basisStride) dictionary[hash(rawView, i)] = i;
+    if (!external) for (let i = at + 1; i < at + length && i + 16 <= bytes.length; i++) dictionary[hash(rawView, i)] = i;
     at += length; literal = at;
   }
   flush(bytes.length);
