@@ -170,7 +170,8 @@
     "./bossProfiles": "./bossProfiles.ts",
     "./arenaView": "./arenaView.ts",
     "./eliteEntryRows": "./eliteEntryRows.ts",
-    "./decisionScripts": "./decisionScripts.ts"
+    "./decisionScripts": "./decisionScripts.ts",
+    "./bake/facetedGeometry": "./bake/facetedGeometry.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -786,6 +787,10 @@
       "./decisionScripts": {
         "types": "./dist/types/sdk/decisionScripts.d.ts",
         "default": "./dist/decisionScripts.js"
+      },
+      "./bake/facetedGeometry": {
+        "types": "./dist/types/sdk/bake/facetedGeometry.d.ts",
+        "default": "./dist/bake/facetedGeometry.js"
       }
     }
   }

@@ -4927,6 +4927,8 @@ The adapter supplies the existing pattern ports: the ram's live home and shared 
 `@wildshard/sdk/bake/simplifier` provides `simplifyPaintedGeometry`: explicit vertex target, colour/normal weights and relative error reduce indexed authored geometry into detached position/normal/colour channels and first-use ordered indices. The caller retains the source and owns the result.
 
 `@wildshard/sdk/bake/riderArms` admits complete attachment policy with `reinPresentationRows` and bakes paired strap geometry with `bakeReinsGeometry`. Supply two finite six-anchor camera-space paths; the returned geometry is owned, with no live material or riding view.
+
+`@wildshard/sdk/bake/facetedGeometry` provides `FacetedGeometryBuilder` for offline seeded face painting, wobble, topped parts, sway attributes, AO and hidden-face removal. Added parts are consumed; `finish` returns owned geometry and clears the pending parts. Terrain contacts are explicit callbacks; no renderer, material or live level is constructed.
 `rows` admits achievement counters, quest steps/hints/services, page interactions/composition and cover ownership through their defining strict formats. These author data functions install no page, service, geometry or storage owner.
 `bake/placement.AuthorPlacement` retains the complete native author copy pose, including matrix, parameter overrides, variant, tint and weld host; it grants no runtime registration service.
 `bake/contactRows.treadBoxRows` compiles authored stair blocks with the native
