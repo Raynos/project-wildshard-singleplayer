@@ -4257,6 +4257,11 @@ metadata and cover-prefix metadata before baking. Each projection keeps the
 original strip/finite/recording-number grammar and detached result ownership;
 callers retain their own asset roots and JSON decoding policy.
 
+Effect author ports (`worldTargetRows`, `worldLightEmitters`, `worldEasedFields`,
+`declaredQuestPageRows`) admit complete native contact, draw, easing and prompt
+contracts. `bake/terrain.readTerrainTileSource` exposes the original WTT triangular
+height query, including its outside-grid refusal, without a runtime owner.
+
 ### Existing runtime definitions under plugin modules
 
 The following modules contain the existing implementations; there is no facade

@@ -9,9 +9,13 @@ import type { QuestWorldRows } from '@wildshard/format/questWorld';
 import { parseQuestHost } from '@wildshard/format/questHost';
 import { parsePanelDefinition, type PanelTemplate, type PanelValue } from '@wildshard/format/panelTemplate';
 import { parseChapterWake } from '@wildshard/format/chapterDirector';
+import { parseDeclaredQuestPage } from '@wildshard/format/declaredQuestPage';
 
 /** Admit native chapter cues and their complete encounter, effect and system ordering. */
 export function chapterWakeRows(input: unknown): ReturnType<typeof parseChapterWake> { return parseChapterWake(input); }
+
+/** Admit complete prompt/action/restore declarations before installing a quest page. */
+export function declaredQuestPageRows(input: unknown): ReturnType<typeof parseDeclaredQuestPage> { return parseDeclaredQuestPage(input); }
 
 /** Complete authored markup and expression grammar; no DOM or input owner is created. */
 export type AuthorPanelTemplate = PanelTemplate;

@@ -1,6 +1,6 @@
 import { PAINTED_TERRAIN_ATTRIBUTES } from '@wildshard/format/materialFamilies';
 import { CELL_ABOVE, CELL_BELOW, CONTENT_CAPS } from '@wildshard/format/contentBounds';
-import { bilinearTerrainSamplers, encodeTerrainTile, terrainTileCost, terrainTileHeight, type TerrainTileData } from '@wildshard/format/terrainTileBytes';
+import { bilinearTerrainSamplers, decodeTerrainTile, encodeTerrainTile, terrainTileCost, terrainTileHeight, type TerrainTileData } from '@wildshard/format/terrainTileBytes';
 import { validateTerrainAssets } from '@wildshard/format/product';
 import { TerrainSchema, type ShardTerrain } from '@wildshard/format/terrain';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -10,6 +10,13 @@ import { parseBakedTerrain, type BakedGrid } from '@wildshard/format/bakedTerrai
 import { bakedSamplers, type BakedTerrainSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { ScalarLatticeSchema, decodeScalarStorage } from '@wildshard/format/scalarChannel';
 import { unzlibSync } from 'fflate';
+
+/** Read an owned WTT source using its original native triangular sampling law.
+ * No resampling, physics owner or rendering allocation is introduced. */
+export function readTerrainTileSource(bytes: Uint8Array): { heightAt: (x: number, z: number) => number } {
+  const ground = decodeTerrainTile(bytes);
+  return { heightAt: (x, z) => terrainTileHeight(ground, x, z) };
+}
 /** Original renderer lattice and its defining native queries; this is not a physics-grid substitute. */
 export interface NativeTerrainSource extends BakedTerrainSamplers { readonly grid: BakedGrid }
 

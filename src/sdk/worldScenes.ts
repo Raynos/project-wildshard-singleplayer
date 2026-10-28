@@ -20,9 +20,19 @@ import { parseWorldEntry } from '@wildshard/format/worldEntry';
 import { parseSceneMotion } from '@wildshard/format/sceneMotion';
 import type { WorldUpdatesRows } from '@wildshard/format/worldUpdates';
 import { parseToonLook } from '@wildshard/format/toonLook';
+import { parseWorldTargets } from '@wildshard/format/worldTargets';
+import { parseLightEmitters } from '@wildshard/format/lightEmitters';
+import { parseEasedFields } from '@wildshard/format/easedFields';
 
 /** Admit complete authored toon presentation, keeping its native plain-data and resource checks. */
 export function toonSceneLook(input: unknown): ReturnType<typeof parseToonLook> { return parseToonLook(input); }
+
+/** Admit complete contact/scan laws before authoring world target bindings. */
+export function worldTargetRows(input: unknown): ReturnType<typeof parseWorldTargets> { return parseWorldTargets(input); }
+/** Admit ordered emitter draws, references and light waves without creating an effect owner. */
+export function worldLightEmitters(input: unknown): ReturnType<typeof parseLightEmitters> { return parseLightEmitters(input); }
+/** Admit bounded first-match field targets and their exact continuation/easing law. */
+export function worldEasedFields(input: unknown): ReturnType<typeof parseEasedFields> { return parseEasedFields(input); }
 
 /** A source geometry's ordered tile files and its resident ownership flag. */
 export interface AuthorSceneTileGroup { files: string[]; resident: boolean }

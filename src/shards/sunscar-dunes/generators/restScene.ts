@@ -4,7 +4,7 @@ import { clientSceneGlb, type ClientSceneBake } from '@wildshard/sdk/bake/glb';
 import { WELL_RIG, HD, CAMP_HD, COOK, LANTERN, WAYMARK_HD, DECK_BRAZIER } from './rows/places';
 import { BRAZIERS, CARAVAN, TOWER, WELL } from "./layout";
 import { signalDunesTiles, signalDunesField } from './tiles';
-import { decodeTerrainTile, terrainTileHeight } from '@wildshard/format/terrainTileBytes';
+import { readTerrainTileSource } from '@wildshard/sdk/bake/terrain';
 import { fireRows, lampRows, COOKFIRE, WAYMARK_FIRE, type FirePool } from './rows/fire';
 import { towerAnchors } from './tower';
 import { waymarkFrame } from './places';
@@ -126,7 +126,7 @@ export function fireRest(): ClientSceneBake {
   const terrain = signalDunesTiles(), collider = terrain.terrain.collider;
   const bytes = terrain.assets.get(collider);
   if (bytes === undefined) throw new Error('Fire pools require baked terrain');
-  const ground = decodeTerrainTile(bytes), heightAt = (x:number,z:number):number => terrainTileHeight(ground,x,z);
+  const { heightAt } = readTerrainTileSource(bytes);
   const pool = (id:string,row:FirePool,height:(x:number,z:number)=>number):void => {
     const geometry = new PlaneGeometry(row.r*2,row.r*2,row.n,row.n).rotateX(-Math.PI/2), positions=geometry.getAttribute('position');
     for(let i=0;i<positions.count;i++) positions.setY(i,height(positions.getX(i),positions.getZ(i))+0.06);

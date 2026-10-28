@@ -1,4 +1,4 @@
-import { parseSceneBuffers } from '@wildshard/format/sceneBuffers';
+import { worldSceneBuffers as parseSceneBuffers } from '@wildshard/sdk/worldScenes';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 
 export const SIGNAL_EMBER_BLOBS: NamedBlob[] = [];

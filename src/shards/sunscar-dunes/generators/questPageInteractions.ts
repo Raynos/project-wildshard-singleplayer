@@ -1,5 +1,5 @@
 import { FLAG } from './rows/flags';
-import { parseDeclaredQuestPage } from '@wildshard/format/declaredQuestPage';
+import { declaredQuestPageRows as parseDeclaredQuestPage } from '@wildshard/sdk/quests';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 
 /** Page beats for the same admitted logbook, well and crank rules. */

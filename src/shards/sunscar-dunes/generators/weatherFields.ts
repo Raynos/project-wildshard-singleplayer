@@ -1,4 +1,4 @@
-import { parseEasedFields } from '@wildshard/format/easedFields';
+import { worldEasedFields as parseEasedFields } from '@wildshard/sdk/worldScenes';
 import { FLAG, SCOUT_FLAG } from './rows/flags';
 
 /** Original first-match dusk targets. Saves snap; play keeps the 0.02 units/second law. */
