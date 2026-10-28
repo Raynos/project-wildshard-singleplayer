@@ -13,26 +13,39 @@ const SEED = [0.5];
 /** an empty array of double elements; `slice` copies the seed's kind and records no allocation site */
 function doubleArray(): number[] { const array = SEED.slice(); array.length = 0; return array; }
 
-interface Vector3Uniform { cache: number[]; addr: WebGLUniformLocation | null }
-interface Vector3Value { x?: number; y: number; z: number; r?: number; g: number; b: number }
+interface Vector3Uniform { cache: number[] | Float64Array; addr: WebGLUniformLocation | null }
+interface Vector3Value { x?: number; y?: number; z?: number; r?: number; g?: number; b?: number }
 /** WebGL converts each scalar argument to float32. Keep that exact payload in
  * one per-uniform buffer instead of boxing three changing native arguments.
  * Array inputs retain Three's own validation, length and cache behavior. */
-function bufferVector3(node: object): void {
+function bufferVector3(node: object, legacy: number[]): void {
   const native: unknown = Reflect.get(node, 'setValue');
   if (typeof native !== 'function') return;
   const arrayValue = native as (this: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value) => void;
-  const buffer = new Float32Array(3);
+  const buffer = new Float32Array(3), numbers = new Float64Array(3);
+  // Float64 cache stores cannot widen through native helpers shared with
+  // integer/boolean uniforms. Restore the native array only when an
+  // array (including malformed lengths) actually reaches the original setter.
+  function nativeValue(this: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value): void {
+    if (this.cache === numbers) {
+      legacy[0] = numbers[0] ?? 0; legacy[1] = numbers[1] ?? 0; legacy[2] = numbers[2] ?? 0;
+      this.cache = legacy;
+    }
+    arrayValue.call(this, gl, value);
+  }
   Reflect.set(node, 'setValue', function setVector3(this: Vector3Uniform, gl: WebGLRenderingContext, value: Vector3Value): void {
-    let x: number, y: number, z: number;
+    let x: number, y: number | undefined, z: number | undefined;
     if (value.x !== undefined) { x = value.x; y = value.y; z = value.z; }
     else if (value.r !== undefined) { x = value.r; y = value.g; z = value.b; }
-    else { arrayValue.call(this, gl, value); return; }
+    else { nativeValue.call(this, gl, value); return; }
     const cache = this.cache;
+    if (typeof y !== 'number' || typeof z !== 'number' || (cache.length > 0 && cache.length !== 3)) {
+      nativeValue.call(this, gl, value); return;
+    }
     if (cache[0] === x && cache[1] === y && cache[2] === z) return;
     buffer[0] = x; buffer[1] = y; buffer[2] = z;
     gl.uniform3fv(this.addr, buffer);
-    cache[0] = x; cache[1] = y; cache[2] = z;
+    numbers[0] = x; numbers[1] = y; numbers[2] = z; this.cache = numbers;
   });
 }
 
@@ -47,7 +60,7 @@ function rekind(node: unknown): void {
   for (const value of cache as readonly unknown[]) { if (typeof value !== 'number') return; fresh.push(value); }
   Reflect.set(node, 'cache', fresh);
   // PureArrayUniform has the same GL type but owns flattening and array length.
-  if (type === 0x8b51 && Reflect.get(node, 'size') === undefined) bufferVector3(node);
+  if (type === 0x8b51 && Reflect.get(node, 'size') === undefined) bufferVector3(node, fresh);
 }
 
 /** wrap one new program's `getUniforms`: its first call (three's own first use) builds the tree, then swaps the caches and

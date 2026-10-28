@@ -253,6 +253,10 @@ export class SimHost {
   private heightAt: (x: number, z: number) => number;
   private bands: { clocks: BodyBandClocks; rate: (body: AnimalSim) => string; present: ((body: AnimalSim) => boolean) | undefined; physics: boolean } | undefined;
   private bodyStep: SimBodyStep | undefined;
+  // Reused visitor state keeps this turn's captured hooks/band decision even
+  // when a callback enters another fixed step. No iterator tuples per body.
+  private visitingBodyBands = false;
+  private visitingBodyHooks: SimBodyStep | undefined;
   private floorQuery: ((x: number, z: number, fromY: number, maxDrop: number) => number | undefined) | undefined;
   private day: SimDayClock | undefined;
 
@@ -869,18 +873,23 @@ export class SimHost {
     this.day?.update(FIXED_STEP);
     const timers = this.state.timers; // for-in: a tick makes no key array
     for (const key in timers) if (Object.hasOwn(timers, key)) timers[key] = Math.max(0, (timers[key] ?? 0) - FIXED_STEP);
-    for (const run of this.callbacks.values()) run(FIXED_STEP, this);
-    for (const [id, runner] of this.strikes) this.updateStrike(id, runner);
-    const hooks = this.bodyStep;
-    for (const [id, entity] of this.entities) {
-      const dt = bands === undefined ? FIXED_STEP : this.bodyDt(id);
-      if (dt <= 0) continue;
-      hooks?.before?.(id, entity, dt);
-      entity.step(dt);
-      hooks?.after?.(id, entity, dt);
-    }
-    for (const run of this.afterCallbacks.values()) run(FIXED_STEP, this);
+    this.callbacks.forEach(this.visitStepCallback);
+    this.strikes.forEach(this.visitStrike);
+    const previousBands = this.visitingBodyBands, previousHooks = this.visitingBodyHooks;
+    this.visitingBodyBands = bands !== undefined; this.visitingBodyHooks = this.bodyStep;
+    try { this.entities.forEach(this.visitBody); }
+    finally { this.visitingBodyBands = previousBands; this.visitingBodyHooks = previousHooks; }
+    this.afterCallbacks.forEach(this.visitStepCallback);
   }
+  private readonly visitStepCallback = (run: (dt: number, host: SimHost) => void): void => { run(FIXED_STEP, this); };
+  private readonly visitStrike = (runner: StrikeRunner, id: string): void => { this.updateStrike(id, runner); };
+  private readonly visitBody = (entity: AnimalSim, id: string): void => {
+    const dt = this.visitingBodyBands ? this.bodyDt(id) : FIXED_STEP, hooks = this.visitingBodyHooks;
+    if (dt <= 0) return;
+    hooks?.before?.(id, entity, dt);
+    entity.step(dt);
+    hooks?.after?.(id, entity, dt);
+  };
   /** Accumulate elapsed simulation seconds; a caller can submit exactly the same command tape after restoration. */
   advance(seconds: number, command?: SimCommand): number {
     if (this.disposed) throw new Error('Simulation host is disposed');

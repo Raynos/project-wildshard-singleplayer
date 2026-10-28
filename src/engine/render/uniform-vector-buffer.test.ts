@@ -67,3 +67,12 @@ test('pure vector arrays keep native flattening and their complete upload', () =
   expect(after.uploads).toEqual(before.uploads);
   expect(after.uploads[0]).toHaveLength(6);
 });
+
+test('incomplete vector values keep native cache and upload behavior across numeric values', () => {
+  const before = fixture(false), after = fixture(true);
+  for (const value of [new Vector3(0.1, 0.2, 0.3), { x: 1 }, { x: 1 }, { r: 0.2, g: 0.3 },
+    new Vector3(0.1, 0.2, 0.3), new Vector3(0.1, 0.2, 0.3)]) {
+    before.set(value); after.set(value);
+  }
+  expect(after.uploads).toEqual(before.uploads);
+});
