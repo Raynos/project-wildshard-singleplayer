@@ -90,3 +90,18 @@ test('an explicitly empty LOD list remains live across the original clipping pau
   expect(counts).toEqual({ vertices: 4, clipped: geometry.getAttribute('position').count, source: plan.source.length });
   geometry.dispose();
 });
+
+test('count-only admission observes later source edits after each original triangle batch', () => {
+  const positions = new Float32Array(600 * 9), indices = Uint32Array.from({ length: 600 * 3 }, (_, index) => index);
+  for (let triangle = 0; triangle < 600; triangle++) positions.set([0, 0, 0, 1, 1, 0, 0, 0, 1], triangle * 9);
+  const steps = cullCountsSteps([{ vertices: positions.length / 3, position: index => positions[index] ?? 0, indices }], 562.5, undefined, 62.5);
+  expect(steps.next().done).toBe(false); // before triangle zero
+  expect(steps.next().done).toBe(false); // before triangle 256
+  positions[400 * 9 + 3] = 200; positions[400 * 9 + 8] = 180;
+  const counts = finishRoadSteps(steps), geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(positions, 3)).setIndex(new BufferAttribute(indices, 1));
+  finishRoadSteps(clipToBinsSteps(geometry, 562.5, 62.5));
+  const plan = finishRoadSteps(cullPlanSteps(geometry, 562.5, [], 62.5));
+  expect(counts).toEqual({ vertices: positions.length / 3, clipped: geometry.getAttribute('position').count, source: plan.source.length });
+  expect(counts.clipped).toBeGreaterThan(counts.vertices);
+  geometry.dispose();
+});
