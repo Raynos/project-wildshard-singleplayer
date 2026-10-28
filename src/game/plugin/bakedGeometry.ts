@@ -34,18 +34,24 @@ export function bakedGeometryBytes(row: BakedGeometryRow): number {
   return n + (row.index === null ? 0 : row.indexCount * 4);
 }
 
+/** one baked attribute block at `offset`, `count` vertices: a copy the attribute owns (as `readBakedGeometry` reads each) */
+export function readBakedAttribute(bytes: Uint8Array, offset: number, count: number, attr: BakedGeometryRow['attrs'][number]): BufferAttribute {
+  const [, type, size, normalized] = attr, buffer = bytes.slice(offset, offset + count * size * BAKED_BYTES[type]).buffer;
+  if (type === 'f32') return new BufferAttribute(new Float32Array(buffer), size, normalized);
+  if (type === 'f16') return new Float16BufferAttribute(new Uint16Array(buffer), size, normalized);
+  if (type === 'u16') return new BufferAttribute(new Uint16Array(buffer), size, normalized);
+  if (type === 'i8') return new BufferAttribute(new Int8Array(buffer), size, normalized);
+  return new BufferAttribute(new Uint8Array(buffer), size, normalized);
+}
+
 /** read geometry `row` from `bytes` at `offset` (the arrays are copies the geometry owns) */
 export function readBakedGeometry(bytes: Uint8Array, offset: number, row: BakedGeometryRow): BufferGeometry {
   const g = new BufferGeometry();
   let at = offset;
   const copy = (length: number): ArrayBuffer => { const b = bytes.slice(at, at + length).buffer; at += pad4(length); return b; };
-  for (const [name, type, size, normalized] of row.attrs) {
-    const buffer = copy(row.count * size * BAKED_BYTES[type]);
-    if (type === 'f32') g.setAttribute(name, new BufferAttribute(new Float32Array(buffer), size, normalized));
-    else if (type === 'f16') g.setAttribute(name, new Float16BufferAttribute(new Uint16Array(buffer), size, normalized));
-    else if (type === 'u16') g.setAttribute(name, new BufferAttribute(new Uint16Array(buffer), size, normalized));
-    else if (type === 'i8') g.setAttribute(name, new BufferAttribute(new Int8Array(buffer), size, normalized));
-    else g.setAttribute(name, new BufferAttribute(new Uint8Array(buffer), size, normalized));
+  for (const attr of row.attrs) {
+    const [name, type, size] = attr;
+    g.setAttribute(name, readBakedAttribute(bytes, at, row.count, attr)); at += pad4(row.count * size * BAKED_BYTES[type]);
   }
   if (row.index !== null) {
     const deltas = new Int32Array(copy(row.indexCount * 4));

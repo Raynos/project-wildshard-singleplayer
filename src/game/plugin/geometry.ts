@@ -5,7 +5,7 @@ import { unzlibSync } from 'fflate';
 import { type NativeAttributeSchema as WholeAttribute, admitNativeWholeGeometry } from '@wildshard/engine/models/nativeGeometry';
 import { fetchDeflatedBytes, fetchLaneBytes, unshuffleLanes as restoreLanes } from '@wildshard/engine/core/deflate';
 import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
-import { BAKED_BYTES as codecBakedBytes, appendGeometry as codecAppendGeometry, bakedGeometryBytes as codecBakedGeometryBytes, pad4 as codecPad4, readBakedGeometry as codecReadBakedGeometry, type BakedGeometryRow as CodecBakedGeometryRow, type BakedType as CodecBakedType } from './bakedGeometry';
+import { BAKED_BYTES as codecBakedBytes, appendGeometry as codecAppendGeometry, bakedGeometryBytes as codecBakedGeometryBytes, pad4 as codecPad4, readBakedAttribute, readBakedGeometry as codecReadBakedGeometry, type BakedGeometryRow as CodecBakedGeometryRow, type BakedType as CodecBakedType } from './bakedGeometry';
 import { workSlice } from '@wildshard/engine/core/workSlice';
 import { presenting } from '@wildshard/engine/core/framePacing';
 import { constructionCheckpoint } from '../shardfile/constructionCheckpoint';
@@ -1410,7 +1410,9 @@ export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array)
         const one = { ...source.row, index: null, indexCount: 0 }, [first, ...rest] = source.row.attrs;
         if (first === undefined) throw new Error('Packed creature part has no attributes');
         const g = readBakedGeometry(bytes, at(0), { ...one, attrs: [first] });
-        rest.forEach((attr, i) => { g.setAttribute(attr[0], readBakedGeometry(bytes, at(i + 1), { ...one, attrs: [attr] }).getAttribute(attr[0])); });
+        // each further attribute is its own block: read straight into its attribute (a geometry and a bounds pass per block
+        // were half of a Nalati entry's creature body copies at phone 4x, T10)
+        rest.forEach((attr, i) => { g.setAttribute(attr[0], readBakedAttribute(bytes, at(i + 1), one.count, attr)); });
         if (source.row.index !== null) {
           const start = at(source.row.attrs.length), size = source.row.index === 'u16' ? 2 : 4;
           if (source.indexEncoding === 'raw') {
