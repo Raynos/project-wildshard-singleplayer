@@ -31,7 +31,7 @@ tile-streaming fix, not art. **(b)** Even fully loaded, the plot is far below th
   entry instead of handing over controls) and `acf56cf5c4` (22:16, T4.2: re-entry restores the rank-0 tiles evicted on the
   previous entry) both landed **after** build 0b1ca136e (19:34). T4.3, the entered-stream milestone, is in flight (sp-x2).
   The Bag world map filling in "based on exploring" (G719) is the same symptom.
-- **Owner:** [tile-streaming](tile-streaming-mini-plan.md) T4.3, plus G719's up-front map atlas. Row RM0 below is only the
+- **Owner:** [tile-streaming](2026-10-28-tile-streaming.md) T4.3, plus G719's up-front map atlas. Row RM0 below is only the
   acceptance check on the Night Market walk; this plan builds nothing for it.
 
 ### 1b. The art gap once loaded (22:21 screenshots; NM11 board `art/grid/round-56-night-market-nm11/board.jpg`; round 58/59)
@@ -210,7 +210,7 @@ for the kit before the families switch on; `tiledPlot.mjs` `KIT_FAMILIES` lists 
 | RM9.1 gate model | done | r7's three-bay gate, Hunyuan3D 2.1 over TRELLIS.2 at the shipped budget (`art/grid/round-68-night-market-gate/board.jpg`), 12k near / 2.5k far, 45 m tall |
 | RM9.2 gate lanterns | done (opt-in with the strings family) | 14 paper lanterns (4.5x the kit's small one, ~2 m) under the bays' lintels: layouts/night-market.json landmark.lanterns |
 | RM9.3 gate trim and uplight | sp-o2 (RM6.4, landed) | Gold trim glow and uplight are sp-o2's landmark graph | r7 reference, Hunyuan3D 2.1 vs TRELLIS.2, hanging kit lanterns and trim (light with sp-o2's RM6.4) |
-| RM8.1 quantized tiles | done (sp-o1: 850a6efb5f, this commit; `tile-streaming-mini-plan.md` RM8.1a–d) | Quantized tile geometry in the authored-world bake: kit-on geometry tiles 17.7 B/tri (was ~121), 251 KB each, under the 0.3 MB cap |
+| RM8.1 quantized tiles | done (sp-o1: 850a6efb5f, this commit; `project/archive/2026-10-28-tile-streaming.md` RM8.1a–d) | Quantized tile geometry in the authored-world bake: kit-on geometry tiles 17.7 B/tri (was ~121), 251 KB each, under the 0.3 MB cap |
 | RM8.2 authored L1 | done (sp-o1, this commit) | World-source `detail` / `coarse` prefixes (worldSource, normalizeWorldGlb, bakeAuthoredWorld): `detail_` rows draw at L0 only, `coarse_` rows only in L1. The kit's models go to `detail_kit` / `detail_glow`; houses, stalls, trees and bridges each leave a 10-triangle box in `coarse_kit` (top and sides in their own faces' colours); every L1 tile is back under its caps |
 | RM8.3 plaza resident | done (sp-o1, this commit) | The four entry tiles (0/4/0, 0/0/3, 0/7/4, 0/3/7, with the entry poster's 3.1 MB texture) were 4.19 MB resident with the kit: its forecourt keeps every other tree (14 m apart), 9,414 → 6,522 triangles, under 4 MB and the pinned bytes |
 | RM8.4 plaza beds | done | r7's raised lawn beds flanking the lanes into the gate (8, two a plaza quarter); trees, planters and lanterns on them with the kit |

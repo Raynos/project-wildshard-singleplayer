@@ -31,7 +31,7 @@ what else I'm blocking on."* Then G834: the legacy rows stay in SHARD-PLATFORM, 
 
 **Shared tree, not ours to touch (list only):** `ffad75f6e3` / `9132329eee` / `8ba18aced3` are committed, not pushed.
 Uncommitted: `BURN-DAMAGE-LIST.md` (working copy is −326 lines against HEAD: stale, committing it whole would delete
-damage items), `tile-streaming-mini-plan.md` (+489 working, an old copy staged in the shared index), `iphone-downloads`
+damage items), `project/archive/2026-10-28-tile-streaming.md` (+489 working, an old copy staged in the shared index), `iphone-downloads`
 (I2 punctuation), `HOST-AUDIT.md`, `host-audit/custom-sections`, `project/archive/2026-10-27-js-heap.md` (staged).
 Anyone landing those files patches from HEAD (`commit.sh --patch`), never the whole working copy.
 
@@ -45,7 +45,7 @@ Anyone landing those files patches from HEAD (`commit.sh --patch`), never the wh
 | grid-crossing | 5 / 5 | none | State `superseded by G828`; archive | wildshard-new |
 | grid-ready | 9 / 10 | Nalati | closed unreachable (G828) in the plan, not in SHARD-PLATFORM.md's cell; fix the cell, archive | wildshard-new |
 | build-speed (CI) | 15 / 16 | none real | State `done` (G809); counter fix above; archive | wildshard-new |
-| tile-streaming | 10 / 12 | T6½, T7, T10½ | T10 closes on G832 (iPhone passed; Sim 13 / 15 recorded as the reading). T6 / T7: lanes cut to 18:00, then each moves to BURN-DAMAGE-LIST with its numbers and its whole done-when; archive | sp-x8 (T7), sp-o3 (T6.2); wildshard-new moves |
+| tile-streaming | 12 / 12 closed | none in this plan | archived 2026-10-28; T6 folded into D202 (da1d91c6ba, 0 MB), T7 slices into BURN-DAMAGE-LIST (35ee4f1c19 / later-entry record), G842. T10 G832 closed (4990c215fb); 13 / 15 frame floor retained | sp-x10 close-out |
 | night-market-pilot | 12 / 15 | R1–R3 | Jake's check passed (G827). R1 → OPEN-PLOTS OP7–OP9, OP13, OP21 (the five new ideas); R2 → OP5–OP22; R3 → OP24; archive | wildshard-new |
 | remaster-open-plots | 1 / 4 | RP2–RP4 | RP2 → OP5–OP22; RP3 → the cell swaps in OP7–OP21; RP4 → OP24; archive | wildshard-new |
 | open-plots (hologram) | P1–P8 done | none | not counted; archive | wildshard-new |

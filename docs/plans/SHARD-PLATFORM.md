@@ -61,7 +61,7 @@ plan? … what is in scope … and what do we all have to complete to be done?"*
 | [fail-fast](../../project/archive/2026-10-27-fail-fast.md) | G610, G612, G620 | **done** (F1–F9) |
 | WASM-HOST zero blockers ([WASM-HOST](WASM-HOST.md)) | G595, G600, G604 | **done**: H4, H5, view-target adapter, dismount / ignite / impulse |
 | [memory-strip](../../project/archive/2026-10-27-memory-strip.md) + leak fix (O18) | G628 | **open**: leak fix first (crossing-crash P0), then strip rows M1–M7 |
-| [tile-streaming](shard-platform/tile-streaming-mini-plan.md) (62.5 m tiles, memory + loading) | G626, G638 | **draft, being grilled**: 62.5 m gap now, 5×5/3×3 Debug A/B/C, Driftwood first; D5 open |
+| [tile-streaming](../../project/archive/2026-10-28-tile-streaming.md) (62.5 m tiles, memory + loading) | G626, G638 | **12 of 12 closed; archived 2026-10-28.** T6 → D202 (0 MB), T7 → damage (G842); T10 G832 iPhone passed, 13/15 frame floor retained |
 | [core-memory](../../project/archive/2026-10-27-core-memory.md) (core game floor, Templates 1 + 2 in SHARD SELECT) | G640, G762, G781 | **done** 10-27, archived: C4 ratcheted (G781), C2 dropped, C6 closed by G762 |
 | [js-heap](../../project/archive/2026-10-27-js-heap.md) (Template heap allocation, clean menu → Template path) | E501 | **done, archived 2026-10-27** (sp-o4, G804): G1 + H1–H11 met; clean Template boot 98.7 MiB (was 133.8), idle 2.8 MiB/s (was 5.6), ~12 major GCs a minute (was 34); D2's whole-page target not met |
 | [legacy-deletion](shard-platform/legacy-deletion-mini-plan.md) | G604, G606 | LD1–LD3 done; LD4 a Node list compare, built now (G795); LD5–LD8 only on Jake's word after his QA, counted (G779) |

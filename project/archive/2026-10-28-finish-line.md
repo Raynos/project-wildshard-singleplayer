@@ -5,7 +5,7 @@ Written 2026-10-27 01:00 Cancun by a wildshard-v subagent; **rewritten ~02:45 af
 HEAD`. How lanes stop waiting is in [mega-build-mini-plan.md](2026-10-28-mega-build.md). The damage list lives only in
 [BURN-DAMAGE-LIST.md](../../docs/plans/BURN-DAMAGE-LIST.md) (G800).
 
-**Watch out:** the working-tree copy of `iphone-downloads-mini-plan.md` (and `tile-streaming-mini-plan.md`) is older
+**Watch out:** the working-tree copy of `iphone-downloads-mini-plan.md` (and `project/archive/2026-10-28-tile-streaming.md`) is older
 than HEAD. Committing the whole file would undo landed marks, so patch only your own lines.
 
 ## Where we are (after the answers)

@@ -11,7 +11,7 @@ Jake, 2026-10-24 ~22:50 Cancun (E504): *"Build a mini plan to optimize downloadi
 
 Owned elsewhere and only referenced here: L18, H3, U1–U4, L10 ([loading-speed](2026-10-28-loading-speed.md),
 [loading](2026-10-28-loading.md)), J1–J10 ([js-payload](2026-10-27-js-payload.md), G727–G730), T3/T4/T8
-([tile-streaming](../../docs/plans/shard-platform/tile-streaming-mini-plan.md)), the G412 allowances ([download-diet](../../docs/plans/shard-platform/download-diet.md)).
+([tile-streaming](2026-10-28-tile-streaming.md)), the G412 allowances ([download-diet](../../docs/plans/shard-platform/download-diet.md)).
 
 ## How it was measured
 
