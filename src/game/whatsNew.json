@@ -1,10 +1,10 @@
 {
-  "date": "21 OCT 2026",
-  "updated": "2026-10-21T15:01:00Z",
+  "date": "28 OCT 2026",
+  "updated": "2026-10-28T14:57:17Z",
   "entries": [
-    "Infinite Wildshard: no more getting stuck on the arrival screen",
-    "Infinite Wildshard: distant cells show their ground, not blank fog",
-    "Entering a cell now shows the full loading screen",
-    "Infinite Wildshard: the whole grid downloads ahead of time"
+    "Pine Hollow: textured paths stay visible when you return",
+    "Pine Hollow: trees no longer have solid rectangular backings",
+    "Crossings finish loading on slow connections",
+    "Faster returns to places you have just visited"
   ]
 }
