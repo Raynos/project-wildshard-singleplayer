@@ -1,6 +1,12 @@
 import { Float32BufferAttribute, InterpolateDiscrete, InterpolateLinear, Matrix4, PropertyBinding, Uint16BufferAttribute, type AnimationClip, type BufferAttribute, type BufferGeometry, type Material, type MeshStandardMaterial } from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptEncoder } from 'meshoptimizer/encoder';
+import type { RiggedHullBook, RiggedHullUrls } from '@wildshard/format/riggedHulls';
+
+/** Complete authored rigged-hull family and tier resources, admitted by the product's defining grammar. */
+export type AuthorRiggedHullBook = RiggedHullBook;
+/** Ordered authored geometry, coat and attachment references without a live hull or material owner. */
+export type AuthorRiggedHullUrls = RiggedHullUrls;
 
 /**
  * Build-time only (SHARD-PLATFORM M3, the offline skinned-model bake): a shard's generator reads a source GLB offline

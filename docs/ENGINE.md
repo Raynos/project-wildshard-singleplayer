@@ -6309,6 +6309,8 @@ preserving native field order without importing the runtime wind owner or lendin
 `contractBoardPageRows` retains the defining catalogue, panel and store checks without constructing a board page.
 `nativePopulationRows.parseNativePopulationRoster` admits full fauna, reserved identity, home, encounter and pose
 metadata through the original bounds and cross-row checks, without installing actors or drawing from RNG.
+`bake/skinned.AuthorRiggedHullBook` / `AuthorRiggedHullUrls` retain complete authored family/tier resource contracts;
+the product's defining rigged-hull admission remains authoritative and no live hull/material is exposed by these types.
 `sdk/interactions.readInteractionPlacements` / `bindInteractionPlacements` compile bounded finite rest poses in
 native table order, retaining identity/kind/missing-row refusals. Table/pickup types derive from the actual compiler;
 no geometry, prompt, physics or registry owner is constructed or borrowed.
