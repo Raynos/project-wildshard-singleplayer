@@ -516,7 +516,17 @@
         "shardSelect": true,
         "blurb": "The open-plot pilot (G633): a Night Market of house courts, canals, stall rows and gardens round a pagoda gate, a world still to be built.",
         "bindings": {
-          "accent": "pink"
+          "accent": "pink",
+          "boot": {
+            "files": {
+              "module": "./data/nightMarketBootFiles.json",
+              "export": "default"
+            },
+            "sources": {
+              "module": "./data/nightMarketBootSources.json",
+              "export": "default"
+            }
+          }
         },
         "card": {
           "thumb": "/src/shards/open-plots/thumbs/night-market.jpg",
