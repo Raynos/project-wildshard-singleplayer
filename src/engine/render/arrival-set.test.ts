@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, SkinnedMesh, Vector3 } from 'three';
-import { arrivalSet } from './precompile';
+import { MeshStandardNodeMaterial } from 'three/webgpu';
+import { arrivalPrograms, arrivalSet } from './precompile';
 
 test('an arrival keeps page content, its nearby, unbounded or hidden drawables, and leaves far shown ones (D188)', () => {
   const page = new Group(), root = new Group(), geometry = new BoxGeometry(), material = new MeshBasicMaterial();
@@ -15,4 +16,17 @@ test('an arrival keeps page content, its nearby, unbounded or hidden drawables, 
   expect([keep(pageFar), keep(near), keep(far), keep(edge), keep(unbounded), keep(skinned), keep(underHidden)])
     .toEqual([true, true, false, true, true, true, true]);
   geometry.dispose(); material.dispose();
+});
+
+// T10 (G808): a far node-material drawable links before the reveal (its first build is one unsliceable job that landed
+// whole in a moving drive frame after it); a far classic one still waits for the after-reveal warm
+test('an arrival links every node material before its reveal, wherever it is', () => {
+  const root = new Group(), geometry = new BoxGeometry(), classic = new MeshBasicMaterial(), node = new MeshStandardNodeMaterial();
+  const at = (x: number, material: MeshBasicMaterial | MeshStandardNodeMaterial): Mesh => {
+    const mesh = new Mesh(geometry, material); mesh.position.x = x; root.add(mesh); return mesh; };
+  const farClassic = at(300, classic), farNode = at(300, node), nearClassic = at(10, classic);
+  root.visible = false; root.updateMatrixWorld(true);
+  const programs = arrivalPrograms(root, new Vector3(0, 0, 0), 125);
+  expect([programs(farClassic), programs(farNode), programs(nearClassic)]).toEqual([false, true, true]);
+  geometry.dispose(); classic.dispose(); node.dispose();
 });

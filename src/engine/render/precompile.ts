@@ -1514,6 +1514,17 @@ export function arrivalSet(root: THREE.Object3D, at: THREE.Vector3, radius: numb
   };
 }
 
+/**
+ * T10 (G808): the programs an arrival links before its reveal: `arrivalSet`, and every drawable of the destination that
+ * wears a node (TSL) material wherever it is. A node material's first build is one unsliceable 30-90 ms job at 4x; left
+ * to the after-reveal warm (`Game.warmArrivalRest`) it landed whole in a moving drive frame (a Pine drive's 67-133 ms
+ * frames). Its parked first draws still follow the reveal with the rest.
+ */
+export function arrivalPrograms(root: THREE.Object3D, at: THREE.Vector3, radius: number): (object: THREE.Object3D) => boolean {
+  const near = arrivalSet(root, at, radius);
+  return object => near(object) || materialsOf(object).some(material => Reflect.get(material, 'isNodeMaterial') === true);
+}
+
 /** The level supplies compile policy; the mechanism owns all shader jobs. */
 export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | 'scene' | 'rootScene' | 'composer' | 'level'>, onProgress?: (done: number, total: number, detail: string) => void,
   options: { /** Entered frames reuse their existing caster geometry. */ chunkCasters?: boolean; /** Fence yielded work to its entered owner. */ current?: () => boolean;

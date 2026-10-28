@@ -1016,7 +1016,7 @@ export class Game {
     progress: (done: number, total: number, detail: string) => void): Promise<void> {
     const futureLighting = futureRoot ?? this.scene, futureEnvironment = this.scene.environment;
     const isolateImageUploads = navigator.userAgent.includes('AppleWebKit') && !/Chrome|Chromium|Edg/.test(navigator.userAgent);
-    const { precompileLevel, waitForDrawnFrame, arrivalSet, LIVE_UPLOAD_BUDGET, LIVE_PRECOMPILE_SLICE_MS } = await import('../render/precompile');
+    const { precompileLevel, waitForDrawnFrame, arrivalPrograms, LIVE_UPLOAD_BUDGET, LIVE_PRECOMPILE_SLICE_MS } = await import('../render/precompile');
     const live = (): boolean => current() && this._composer === composer;
     const pause = this.frameCount > 0 ? () => waitForDrawnFrame(owner, () => this.frameCount, live) : undefined;
     const uploadBudget = isolateImageUploads ? LIVE_UPLOAD_BUDGET : undefined;
@@ -1024,7 +1024,7 @@ export class Game {
     // Camera equipment leaves with its owner, so its road variants are never needed.
     const leaving = this.viewmodel.staged(owner);
     await precompileLevel(this, progress, { chunkCasters: false, current: live, owner, futureLighting, isolateImageUploads, onStage, drawnOnly: this.frameCount === 0,
-      ...(arrival === undefined || futureRoot === undefined ? {} : { arrival: arrivalSet(futureRoot, arrival.at, arrival.radius) }),
+      ...(arrival === undefined || futureRoot === undefined ? {} : { arrival: arrivalPrograms(futureRoot, arrival.at, arrival.radius) }),
       ...(leaving === undefined ? {} : { leaving: [leaving] }), ...(sliceMs === undefined ? {} : { sliceMs }),
       ...(futureEnvironment === null ? {} : { futureEnvironment }), ...(pause === undefined ? {} : { pause }), ...(uploadBudget === undefined ? {} : { uploadBudget }) });
   }
