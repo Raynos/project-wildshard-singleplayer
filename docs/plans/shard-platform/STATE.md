@@ -1,6 +1,6 @@
 # SHARD-PLATFORM — State (wildshard-new; ≤ 3 KB)
 
-**(1) LIVE 8c07d58caa** (shipped 19:47 Cancun, full CI + six smoke legs). 94f30e1ee5's
+**(1) LIVE 8c07d58caa** (19:47 Cancun). 94f30e1ee5's
 Pine public smoke leg (GL 1282) stays an open incident with sp-o3 (no local repro; 3001d0dac3 logs it). Damage list:
 [BURN-DAMAGE-LIST](../BURN-DAMAGE-LIST.md) only. HOST-AUDIT parked (G679).
 
@@ -14,7 +14,7 @@ D185 or per-shard byte targets (recommend targets). 183 / 209 is flat because th
 Int8, like the baked outcrops): ~5-6 MB less upload in the hold, colours within 1/255. Recommend: yes (sp-o4).
 **Question (which instrument closes a crossing bar):** after 61e435deec (held WebKit 2 MiB slices) Nalati cold reads **6.65 s on
 the Simulator** (was 7.77; held 27.7 fps, memory flat) but 11.5 s on Chromium 4x CPU, the row's instrument (G807). Close on the Sim
-(the official final instrument)? Recommend: yes, Sim closes crossing bars; Chromium 4x stays the per-slice guide.
+Recommend: yes, Sim closes crossing bars; Chromium 4x guides slices.
 **Question (Pine cold 14.85 s, reopens T7.7):** inputs land ~11 s before the hold; the held span (15.7 s) runs foundation + forest
 page + kit / prepare-play (~7.9 s) then warm-up 7.5 s. T7.7 deleted building ahead on a guess. Allow a narrow exception: data-only
 parts (parse, placement rows; no scene / colliders / lights) once the approach is verified, dropped on a turn-away? Saves at most
@@ -23,10 +23,11 @@ parts (parse, placement rows; no scene / colliders / lights) once the approach i
 **FYI:** 430285601e gives Nine's crowd casts their authored colours back.
 **Jake picks open:** D183 / D185; LD5-LD8 / A1 / A2 / M2 / RM13.
 
-**Pine look (D189, FYI Jake):** white near ground came from e962089fb2 (G784 cover fix); fixed in a530c2fe07, after live 8c07.
-Nalati keeps its G784 fix via the cellGround declaration (bebaef8df0). Tree-card teal backings are older
-(since <= 10-26), open, sp-o4 next. The slow-link Pine crossing refusal (D190) is fixed by efcb18bed1.
-**Lanes (G818: 91 %, 2 Opus):** sp-o3 slow-link bug + T10, sp-o4 Pine look + Nalati cold, sp-o5 released (T7.14 half c5eb11b616);
-sp-x1 Nalati I2, sp-x2 Pine I2, sp-x8 + sp-x9 H4 / A1, sp-x6 + sp-x10 damage, sp-ci-deploy CI + release. sp-o1 / sp-o2 released.
+**Pine look (D189 closed, FYI Jake):** white near ground (e962089fb2) fixed in a530c2fe07; teal tree-card backings
+(three's NodeMaterial.copy drops alphaTest, since <= 10-24) fixed in 1668edb1e3. Both land after live 8c07, in the next release.
+Slow-link Pine crossing (Fast 4G): D190 fixed (efcb18bed1); D196 warm bound counted network time, sp-o4 fixing.
+**Nalati cold, Chromium 4x:** 12.67 -> ~10.5-11.5 s (sp-o3 tail cuts 8d4228dca2, 0d95b1368f, 3433c5f21a), Sim 6.65 s.
+**Lanes (G818: 92 %, 2 Opus):** sp-o3 Pine cold tail, sp-o4 D196 + Nalati precompile; sp-x1 / sp-x2 Nalati / Pine I2,
+sp-x8 + sp-x9 H4 / A1, sp-x6 + sp-x10 damage, sp-ci-deploy release. sp-o1 / o2 / o5 released.
 
 **Rules:** G704. G807. G818. No reverts (G674). No new Debug rows (G669). G670. Never herdr wildshard-v.
