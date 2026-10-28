@@ -87,6 +87,14 @@ facing-back, stall and sky. Capture muted through `scripts/browser-lane.sh` as a
   the top of 'back', and the look-down tassel (needs a runtime view-gravity input to the cloth sway, M). New: I (B back),
   the big gold sign draws dim grey on Chromium but bright on WebKit (one frame each; animation phase not ruled out).
   NR4's golden board: [14-nr4](../../../art/nine-dragon-stack/round-32-shardfile-regressions/14-nr4-board.jpg).
+- **Wall pallor: done** `8ee92dd4a3` (fix(tiles): rebuild programs after a placeholder). The facade shell's non-instanced
+  program was built against `RefiningWholeLibrary`'s channel-less placeholder (a vertex shader with no inputs), so the
+  shell drew collapsed and the silk fog behind it read as pale walls; the first fine union now rebuilds the mesh's
+  programs. Board [16-pallor](../../../art/nine-dragon-stack/round-32-shardfile-regressions/16-pallor-board.jpg)
+  (golden A-D, LEGACY live E / H, before / after on Chromium and WebKit).
+- **B-back gold sign: not a regression.** Three runs at `a0ea22591f` (two live 7.5 s series at 4 frames a second, and the
+  nine-view capture) hold it steady and bright in both modes (luma 179 LEGACY, 172-173 SHARDFILE). The earlier dim
+  frames were Chromium-only and in LEGACY too: a capture-timing artifact, not SHARDFILE.
 
 ## Order
 
