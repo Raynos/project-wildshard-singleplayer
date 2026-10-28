@@ -129,11 +129,21 @@ class GraphRig {
     this.trail = { mesh: new Mesh(this.ribbon.geometry, material) };
     this.trail.mesh.frustumCulled = false; this.trail.mesh.renderOrder = row.trail.order; this.trail.mesh.visible = false;
     rig.root.add(this.trail.mesh);
-    if (row.frame.some(entry => entry.source === 'projection')) for (const look of looks.materials.values()) look.onBeforeRender = (_renderer, _scene, camera) => {
-      const p = camera.projectionMatrix.elements, out = this.projection;
-      out[0] = p[0]; out[1] = p[5]; out[2] = p[10]; out[3] = p[14];
-      for (const entry of row.frame) if (entry.source === 'projection') this.write(entry, out);
+  }
+
+  /** The held camera's projection to the `projection` frame rows, from each drawn mesh's own hook: three's node handler
+   *  replaces `material.onBeforeRender` at every draw, so a material hook never ran and the ink hulls projected with
+   *  the param's default (NR1: black copies off the arms). Call once the pendants hang. */
+  bindProjection(): void {
+    if (!this.row.frame.some(entry => entry.source === 'projection')) return;
+    const looks = new Set<unknown>(this.looks.materials.values()), out = this.projection;
+    const hook = (_renderer: unknown, _scene: unknown, camera: { readonly projectionMatrix: { readonly elements: readonly number[] } }): void => {
+      const p = camera.projectionMatrix.elements;
+      if (out[0] === p[0] && out[1] === p[5] && out[2] === p[10] && out[3] === p[14]) return;
+      out[0] = p[0] ?? 0; out[1] = p[5] ?? 0; out[2] = p[10] ?? 0; out[3] = p[14] ?? 0;
+      for (const entry of this.row.frame) if (entry.source === 'projection') this.write(entry, out);
     };
+    this.rig.root.traverse(node => { if (node instanceof Mesh && [node.material].flat().some(material => looks.has(material))) node.onBeforeRender = hook; });
   }
 
   /** a frame row's value to its look, or to every look that declares its param */
@@ -364,6 +374,7 @@ export class HeldView {
     const socket = rig.nodes.get(row.pendants.socket);
     if (socket === undefined) throw new Error(`Held pendant socket ${row.pendants.socket} is missing`);
     socket.add(createClientScene(row.pendants.scene, { geometry, materials: looks.materials }).root);
+    result.bindProjection();
     owner.own(result.trail.mesh.geometry);
     return result;
   }
