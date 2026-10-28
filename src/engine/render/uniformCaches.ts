@@ -5,7 +5,8 @@
  * generic, and each changed matrix or vector element stored afterwards boxed a fresh number: three's setters were the
  * largest per-frame allocators on an idle Template (~0.2 MiB/s, Chromium, `f542b13d37`). A float uniform's cache is
  * swapped, on its program's first `getUniforms`, for an empty array of double elements made by a builtin copy (no
- * allocation-site feedback). Three's reads and writes of it are unchanged: the same values, compares and uploads.
+ * allocation-site feedback). Values and skip comparisons stay unchanged. Numeric scalar/vec3 uploads use reusable
+ * float32 buffers while retaining unrounded comparison values; other inputs use Three's original setters.
  */
 /** FLOAT, FLOAT_VEC2/3/4, FLOAT_MAT2/3/4: the setters that store doubles in their cache */
 const FLOAT_TYPES = new Set([0x1406, 0x8b50, 0x8b51, 0x8b52, 0x8b5a, 0x8b5b, 0x8b5c]);
@@ -14,6 +15,25 @@ const SEED = [0.5];
 function doubleArray(): number[] { const array = SEED.slice(); array.length = 0; return array; }
 
 interface Vector3Uniform { cache: number[] | Float64Array; addr: WebGLUniformLocation | null; setValue: (gl: WebGLRenderingContext, value: Vector3Value) => void }
+/** A numeric scalar uses the same native float32 payload without boxing a
+ * changing argument at every WebGL call. Other values retain native coercion. */
+function bufferScalar(node: object, legacy: number[]): void {
+  const native: unknown = Reflect.get(node, 'setValue');
+  if (typeof native !== 'function') return;
+  interface ScalarUniform { cache: unknown[] | Float64Array; addr: WebGLUniformLocation | null }
+  const setNative = native as (this: ScalarUniform, gl: WebGLRenderingContext, value: unknown) => void;
+  const buffer = new Float32Array(1), numbers = new Float64Array(1);
+  Reflect.set(node, 'setValue', function setFloat(this: ScalarUniform, gl: WebGLRenderingContext, value: unknown): void {
+    const cache = this.cache;
+    if (typeof value !== 'number' || (cache.length > 0 && cache.length !== 1)) {
+      if (cache === numbers) { legacy[0] = numbers[0] ?? 0; this.cache = legacy; }
+      setNative.call(this, gl, value); return;
+    }
+    if (cache[0] === value) return;
+    buffer[0] = value; gl.uniform1fv(this.addr, buffer);
+    numbers[0] = value; this.cache = numbers;
+  });
+}
 interface Vector3Value { x?: number; y?: number; z?: number; r?: number; g?: number; b?: number }
 interface Vector3State {
   legacy: number[]; buffer: Float32Array; numbers: Float64Array;
@@ -79,6 +99,7 @@ function rekind(node: unknown): void {
   Reflect.set(node, 'cache', fresh);
   // PureArrayUniform has the same GL type but owns flattening and array length.
   if (type === 0x8b51 && Reflect.get(node, 'size') === undefined) bufferVector3(node, fresh);
+  else if (type === 0x1406 && Reflect.get(node, 'size') === undefined) bufferScalar(node, fresh);
 }
 
 /** wrap one new program's `getUniforms`: its first call (three's own first use) builds the tree, then swaps the caches and
