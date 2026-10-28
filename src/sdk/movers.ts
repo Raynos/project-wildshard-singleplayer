@@ -9,6 +9,12 @@ export type MoverData = ReturnType<typeof parseMovers>;
 /** Admit detached numeric mover headers through the defining platform grammar, without installing an owner. */
 export function parseMoverRows(input: unknown): MoverData { return parseMovers(input); }
 
+/** Lower an admitted stop/trigger/driver recipe to the native fixed-step ABI.
+ * Rest coordinates remain caller-owned; all numeric limits and cross-field refusals are defining format checks. */
+export function compileMoverMotion(input: unknown, rest: Parameters<typeof lowerMoverMotion>[1]): ReturnType<typeof lowerMoverMotion> {
+  return lowerMoverMotion(input, rest);
+}
+
 /** Motion options on a real three.js object, with explicit gameplay activation. */
 export interface MoverOptions {
   clip?: AnimationClip;
@@ -53,7 +59,7 @@ export class Mover extends Object3D {
   }
   /** Bind authored motion to a numeric collider/rest row while retaining the fixed guest continuation ABI. */
   toMoverData(rest: Omit<MoverData[number], 'module' | 'input' | 'track' | 'trigger' | 'driver'>): MoverData[number] {
-    const motion = this.toMotionData(), compiled = lowerMoverMotion(motion, rest), row = { ...rest, ...compiled, ...motion };
+    const motion = this.toMotionData(), compiled = compileMoverMotion(motion, rest), row = { ...rest, ...compiled, ...motion };
     parseMovers([row]); return row;
   }
 }

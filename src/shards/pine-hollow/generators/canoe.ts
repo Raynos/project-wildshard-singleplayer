@@ -1,6 +1,5 @@
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
-import { parseMovers, type MoverData } from '@wildshard/format/movers';
-import { lowerMoverMotion } from '@wildshard/format/moverMotion';
+import { parseMoverRows as parseMovers, compileMoverMotion as lowerMoverMotion, type MoverData } from '@wildshard/sdk/movers';
 import * as LAYOUT from './layout';
 import { TERRAIN_SOURCE, type PineSources } from './pineSources';
 import { timberWorld, type TimberWorld } from './timberWorldRows';

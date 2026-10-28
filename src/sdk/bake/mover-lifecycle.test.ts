@@ -3,23 +3,29 @@ import { Scope } from '@wildshard/engine/app/scope';
 import { MoverLifecycle, moverEndState } from '@wildshard/engine/sim/moverLifecycle';
 import { parseMovers } from '@wildshard/format/movers';
 import { lowerMoverMotion } from '@wildshard/format/moverMotion';
+import { compileMoverMotion } from '../movers';
 import { compileMoverDriver } from '@wildshard/sdk/compileMovers';
 import { createMoverHost, MoverRuntime } from '@wildshard/game/shardfile/moverRuntime';
 
 const rest = { at: { x: 0, y: 3, z: 2 }, euler: { x: -1, y: -Math.PI / 4, z: 0 } };
+function ownedMotion(input: unknown, pose: Parameters<typeof compileMoverMotion>[1]): ReturnType<typeof compileMoverMotion> {
+  const rows = compileMoverMotion(input, pose);
+  expect(rows).toEqual(lowerMoverMotion(input, pose));
+  return rows;
+}
 function hinge() {
   const motion = { driver: { kind: 'winch', mode: 'hinge', speed: 0.5 }, trigger: { kind: 'interact', permission: 3 },
     track: { clip: 'raise', duration: 2, loop: 'once', speed: 1, times: [0, 2], quaternion: [[Math.sin(-0.5), 0, 0, Math.cos(-0.5)], [0, 0, 0, 1]] } };
   return { id: 'test.bridge', entity: 1, kind: 'platform', ...rest, enabled: false,
     boxes: [{ x: 0, y: 0, z: 0, hx: 1, hy: 0.1, hz: 2, rot: { x: 0, y: 0, z: 0, w: 1 } }],
-    ...lowerMoverMotion(motion, rest), ...motion, atEnd: { field: 5, equals: 1 }, restoreFrom: { flag: 'quest.raised', action: 'end' } };
+    ...ownedMotion(motion, rest), ...motion, atEnd: { field: 5, equals: 1 }, restoreFrom: { flag: 'quest.raised', action: 'end' } };
 }
 function channel() {
   const base = { at: { x: 0, y: -3, z: 0 }, euler: { x: 0, y: 0, z: 0 } };
   const motion = { driver: { kind: 'track' }, trigger: { kind: 'interact', permission: 0 },
     track: { clip: 'haul', duration: 1.2, loop: 'once', speed: 1, times: [0, 1.2], position: [[0, -3, 0], [0, 1.35, 0]] } };
   return { id: 'test.bucket', entity: 1, kind: 'channel', ...base, enabled: true, boxes: [],
-    ...lowerMoverMotion(motion, base), ...motion, atEnd: { field: 5, equals: 1 }, restoreFrom: { flag: 'quest.oil', action: 'end' } };
+    ...ownedMotion(motion, base), ...motion, atEnd: { field: 5, equals: 1 }, restoreFrom: { flag: 'quest.oil', action: 'end' } };
 }
 const modules = new Map<string, Promise<Uint8Array>>();
 function compile(kind: 'hinge' | 'clip'): Promise<Uint8Array> {
