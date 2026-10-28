@@ -34,6 +34,7 @@
 import * as THREE from 'three';
 import { copyNodeMaterialAccessors } from '../nodeMaterialCopy';
 import { drawNeutral } from '../drawNeutral';
+import { arrayReleased } from '../releasedArrays';
 import {
   ConditionalNode, ContextNode, ConvertNode, JoinNode, MathNode, MeshBasicNodeMaterial, MeshStandardNodeMaterial, OperatorNode,
   Node as BaseNode, PhysicalLightingModel, SplitNode, Texture3DNode, TextureNode, type Node, type NodeBuilder, type NodeFrame, type NodeMaterial, type UniformArrayNode,
@@ -758,6 +759,27 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   if (compiled.outline !== null) ownGraphNodes(compiled.outline, owner);
   return compiled;
 }
+/**
+ * RM8.1e: whether a drawn mesh is a grid-quantized tile primitive (6e9a4660dd: unnormalized Int16 positions that its own
+ * node's uniform scale and translation dequantize). Read once per geometry while its arrays are resident (the first
+ * object update precedes the upload the memory saver releases after); a released array is never read back.
+ */
+const codecGrids = new WeakMap<object, boolean>();
+function codecGridded(object: THREE.Object3D): object is THREE.Mesh {
+  if (!(object instanceof THREE.Mesh)) return false;
+  const geometry: unknown = object.geometry;
+  if (!(geometry instanceof THREE.BufferGeometry)) return false;
+  const known = codecGrids.get(geometry);
+  if (known !== undefined) return known;
+  const position: unknown = geometry.getAttribute('position');
+  if (!(position instanceof THREE.BufferAttribute) || arrayReleased(position)) return false;
+  const s = object.scale, q = object.quaternion;
+  const grid = position.array instanceof Int16Array && !position.normalized && s.x > 0 && Math.abs(s.y - s.x) < 1e-9 && Math.abs(s.z - s.x) < 1e-9
+    && Math.abs(q.x) + Math.abs(q.y) + Math.abs(q.z) < 1e-9;
+  codecGrids.set(geometry, grid);
+  return grid;
+}
+
 function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNodeOwner): CompiledGraph {
   if (opts.validated !== undefined && opts.validated.graph !== input) throw new Error('material graph: a validation of another graph');
   const checked = opts.validated ?? validateGraph(input, opts);
@@ -781,6 +803,19 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
 
   // params → uniforms (a colour is written in sRGB and held linear, as the families hold theirs)
   const uniforms = new Map<string, Val>();
+  // RM8.1e: the tile grid codec is transparent to a graph: on a grid-quantized primitive its model-space position reads
+  // the authored metres (origin + step x the grid value) and its model-space offsets (metres) are divided back into grid
+  // units; any other mesh has step 1 and origin 0 (no change), an authored scale included
+  let codec: { readonly step: Node<'float'>; readonly origin: Node<'vec3'> } | null = null;
+  const codecGrid = (): { readonly step: Node<'float'>; readonly origin: Node<'vec3'> } => {
+    if (codec !== null) return codec;
+    const at = new THREE.Vector3();
+    codec = {
+      step: uniform(1).onObjectUpdate(({ object }) => (object !== null && codecGridded(object) ? object.scale.x : 1)),
+      origin: uniform(at).onObjectUpdate(({ object }) => (object !== null && codecGridded(object) ? at.copy(object.position) : at.set(0, 0, 0))),
+    };
+    return codec;
+  };
   const setters = new Map<string, (v: GraphLiteral) => void>();
   const bindings: { param: string; bind: GraphBinding }[] = [];
   const texParams = new Map<string, { file: string; role?: 'colour' | 'data' | 'lent' }>();
@@ -966,8 +1001,8 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
       }
       case 'frontFacing': return { t: 'bool', n: frontFacing };
       case 'uv': return { t: 'vec2', n: uv() };
-      case 'positionLocal': return { t: 'vec3', n: positionLocal };
-      case 'positionGeometry': return { t: 'vec3', n: positionGeometry };
+      case 'positionLocal': { const g = codecGrid(); return { t: 'vec3', n: positionLocal.mul(g.step).add(g.origin) }; }
+      case 'positionGeometry': { const g = codecGrid(); return { t: 'vec3', n: positionGeometry.mul(g.step).add(g.origin) }; }
       case 'instanceTransform': return { t: 'vec4', n: instanceTransformNode(new ConvertNode<'vec4'>(one().n, 'vec4')) };
       case 'objectOrigin': return { t: 'vec3', n: objectOriginNode() };
       case 'positionWorld': return { t: 'vec3', n: fogIn?.position ?? positionWorld };
@@ -1446,7 +1481,7 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
     const position = out(st['vertex.position']?.position);
     if (position !== null) m.positionNode = new ConvertNode<'vec3'>(widen(position, 'vec3'), 'vec3');
     const offset = out(st['vertex.offset']?.offset);
-    if (offset !== null) m.positionNode = positionLocal.add(new ConvertNode<'vec3'>(widen(offset, 'vec3'), 'vec3'));
+    if (offset !== null) m.positionNode = positionLocal.add(new ConvertNode<'vec3'>(widen(offset, 'vec3'), 'vec3').div(codecGrid().step));
     const shadowOffset = out(st['shadow.offset']?.offset);
     if (shadowOffset !== null) m.receivedShadowPositionNode = positionWorld.add(new ConvertNode<'vec3'>(widen(shadowOffset, 'vec3'), 'vec3'));
     const clip = out(st['vertex.clip']?.position);
@@ -1488,7 +1523,7 @@ function compileOwned(input: unknown, opts: CompileGraphOptions, owner: GraphNod
     if (o === undefined) return null;
     const m = new GraphBasicMaterial();
     m.colorNode = new ConvertNode<'vec3'>(widen(ref(o.colour, root), 'vec3'), 'vec3');
-    m.positionNode = positionLocal.add(new ConvertNode<'vec3'>(widen(ref(o.offset, root), 'vec3'), 'vec3'));
+    m.positionNode = positionLocal.add(new ConvertNode<'vec3'>(widen(ref(o.offset, root), 'vec3'), 'vec3').div(codecGrid().step));
     m.side = THREE.BackSide;
     m.fog = true;
     m.name = 'graph:outline';
