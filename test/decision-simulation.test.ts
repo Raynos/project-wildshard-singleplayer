@@ -77,6 +77,43 @@ test('region observations retain ordered enter/leave events and exact continuati
   } finally { enqueue.mockRestore(); live.dispose(); }
 });
 
+test('region key reuse preserves renamed trigger order and exact silent continuation', async () => {
+  const f = fixture(await module('return 0;')), row = f.scripts[0];
+  if (row === undefined) throw new Error('Missing native region decision');
+  row.on = ['start', 'zone.enter', 'zone.leave'];
+  f.source.quests.flags.push('hut', 'meadow');
+  const hut = { id: 'hut', kind: 'region' as const, flag: 'hut', x: 0, z: 6, radius: 2 };
+  const meadow = { id: 'meadow', kind: 'region' as const, flag: 'meadow', x: 50, z: 6, radius: 2 };
+  f.source.quests.triggers = [hut, meadow];
+  const live = createShardfileSim(f.source, f.assets, { ...f.options, rapier: await rapier }), decision = live.decisions;
+  if (decision === undefined) throw new Error('Missing actual native observation owner');
+  const a = decision.registries.actors?.get('actor.a'), b = decision.registries.actors?.get('actor.b');
+  const h = decision.registries.zones?.get('hut'), m = decision.registries.zones?.get('meadow');
+  if (a === undefined || b === undefined || h === undefined || m === undefined) throw new Error('Missing admitted native handles');
+  const enqueue = vi.spyOn(decision.host, 'enqueue');
+  const events = (): unknown[] => enqueue.mock.calls.filter(([, event]) => event[0] === 4 || event[0] === 5);
+  const swapped = [[1, [4, m, a, 0, 0, 0]], [1, [4, m, b, 0, 0, 0]],
+    [1, [5, h, a, 0, 0, 0]], [1, [5, h, b, 0, 0, 0]]];
+  try {
+    live.host.step();
+    expect(events()).toEqual([[1, [4, h, a, 0, 0, 0]], [1, [4, h, b, 0, 0, 0]]]);
+    enqueue.mockClear();
+    live.host.step(); expect(events()).toEqual([]);
+    // Authored rows may change in place: cache identity cannot freeze their id,
+    // observation position, native registry selection or publication ordering.
+    hut.id = 'meadow'; meadow.id = 'hut';
+    live.host.step(); expect(events()).toEqual(swapped);
+    const saved = decision.snapshot(); enqueue.mockClear(); decision.restore(saved);
+    expect(decision.snapshot()).toBe(saved); expect(enqueue).not.toHaveBeenCalled();
+    live.host.step(); expect(events()).toEqual([]);
+    enqueue.mockClear();
+    f.source.quests.triggers.reverse(); live.host.step(); expect(events()).toEqual([]);
+    const actor = live.host.entities.get('actor.a'); if (actor === undefined) throw new Error('Missing real region body');
+    actor.place(50, 6, 0); live.host.step();
+    expect(events()).toEqual([[1, [4, h, a, 0, 0, 0]], [1, [5, m, a, 0, 0, 0]]]);
+  } finally { enqueue.mockRestore(); live.dispose(); }
+});
+
 test('achievement display rows preserve a pre-catalogue decision continuation silently', async () => {
   const f = fixture(), first = createShardfileSim(f.source, f.assets, { ...f.options, rapier: await rapier });
   let restored: ShardfileSimulation | undefined;

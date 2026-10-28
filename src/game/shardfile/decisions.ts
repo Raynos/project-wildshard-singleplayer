@@ -92,6 +92,12 @@ export class ShardDecisions {
   private readonly channels = new Map<number, number>();
   private readonly playerFlags = new Set<number>();
   private readonly zones = new Set<string>();
+  // Keys contain only private scalar handles, never a live actor or host.
+  // Weak source ownership drops retired trigger rows; a renamed zone refreshes
+  // its strings while positions and entry/leave membership remain live.
+  private readonly regionKeys = new WeakMap<Shardfile['quests']['triggers'][number], {
+    zone: number; actors: readonly { actor: number; key: string }[];
+  }>();
   private readonly phases = new Map<string, number>();
   private readonly encounters: ReadonlyMap<string, DecisionEncounter>;
   private readonly quest: DeclaredQuests | undefined;
@@ -425,8 +431,13 @@ export class ShardDecisions {
     for (const region of this.source.quests.triggers) {
       if (region.kind !== 'region') continue;
       const zone = requireValue(this.registries.zones?.get(region.id), 'zone');
-      for (const actor of this.actorHandles) {
-        const key = `${zone}:${actor}`, inside = this.inside(region.id, actor), before = this.zones.has(key);
+      let keys = this.regionKeys.get(region);
+      if (keys === undefined || keys.zone !== zone) {
+        keys = { zone, actors: this.actorHandles.map(actor => ({ actor, key: `${zone}:${actor}` })) };
+        this.regionKeys.set(region, keys);
+      }
+      for (const { actor, key } of keys.actors) {
+        const inside = this.inside(region.id, actor), before = this.zones.has(key);
         if (before === inside) continue;
         if (inside) this.zones.add(key); else this.zones.delete(key);
         this.publish([inside ? 4 : 5, zone, actor, 0, 0, 0]);
