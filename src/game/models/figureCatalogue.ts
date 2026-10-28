@@ -89,6 +89,7 @@ export class FigureCatalogue {
         if (late) {
           const owner = ctx.specimenScope;
           if (owner === undefined) throw new Error('Late figure specimen requires its view owner');
+          if (owner.disposed || owner.disposing) throw new Error('Figure specimen owner left');
           return loadingSpecimen(card.id, [1, 2, 1], async () => {
             await FigureRows.prepareSkins(skin === undefined ? [] : [skin]);
             if (owner.disposed || owner.disposing) throw new Error('Figure specimen owner left');

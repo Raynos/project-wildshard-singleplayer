@@ -241,7 +241,7 @@ test('a late figure inside the original draw distance still reads before control
   } finally { owner.dispose(); release(); load.mockRestore(); }
 });
 
-test.each(['ready', 'retired', 'refused'] as const)('a late figure card prepares only its opened view: %s', async mode => {
+test.each(['ready', 'closed', 'retired', 'refused'] as const)('a late figure card prepares only its opened view: %s', async mode => {
   const catalogueOwner = new Scope('figure-card-catalogue'), view = new Scope('figure-card-view');
   const handles = resources(), catalogue = new FigureCatalogue(), skin = skins.trader.phone;
   handles.publish('0', handles.geometry('body'));
@@ -272,6 +272,12 @@ test.each(['ready', 'retired', 'refused'] as const)('a late figure card prepares
     const model = catalogue.model('person');
     expect(live(model).prepare).toBeUndefined(); expect(prepare).not.toHaveBeenCalled(); expect(load).not.toHaveBeenCalled();
     expect(() => model.build(modelContext(SkyRig.prototype), {}, new Rng(1))).toThrow('view owner');
+    if (mode === 'closed') {
+      view.dispose();
+      expect(() => model.build({ ...modelContext(SkyRig.prototype), specimenScope: view }, {}, new Rng(1))).toThrow('owner left');
+      expect(prepare).not.toHaveBeenCalled(); expect(load).not.toHaveBeenCalled();
+      return;
+    }
     const root = view.run(() => model.build({ ...modelContext(SkyRig.prototype), specimenScope: view }, {}, new Rng(1)));
     if (!(root instanceof THREE.Group)) throw new Error('Missing real cold specimen root');
     const placeholder = root.children[0], ready = specimenReady(root);
