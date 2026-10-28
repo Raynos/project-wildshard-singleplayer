@@ -4164,6 +4164,10 @@ entry and hiding it again on leave.
 Game plugins are the `src/game/package.json` exports: trusted shard `runtime/` and type imports name defining modules, with no second runtime SDK, wrappers or allowlist. Authoring uses SDK/commons, never game runtime modules; frozen legacy inputs remain.
 
 `@wildshard/sdk/bake/byteCodec.decodeBuildDeflate` returns owned bounded zlib bytes. `ProjectGenerationContext.compileReturnProjection` injects dual AS compilation with unchanged source/ABI checks.
+`bake/sourceMetadata.cachedBlobSources(input,kinds)` re-admits cached author
+source metadata against an explicit file-kind vocabulary. Rows/options stay
+strict, dependency order is retained, and output arrays are owned; actual byte
+and cost claims still pass through `nameBlob` before publication.
 
 The current migration inventory is reproducible with `node scripts/game-plugins.mjs`:
 it follows primary shards' runtime closures to their SDK facade imports and lists

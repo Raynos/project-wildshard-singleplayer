@@ -1,0 +1,38 @@
+import { expect, expectTypeOf, test } from 'vitest';
+import * as v from 'valibot';
+import { cachedBlobSources, type CachedBlobSource } from '../src/sdk/bake/sourceMetadata';
+import { parseSignSourceRows } from '../src/shards/nine-dragon-stack/generators/signAtlasOutput';
+
+const kinds = ['glb', 'ktx2', 'json'] as const;
+const original = v.object({ sources: v.array(v.strictObject({ name: v.string(), kind: v.picklist(kinds), source: v.string(),
+  options: v.strictObject({ decoded: v.number(), gpu: v.number(), triangles: v.number(), draws: v.number(), critical: v.boolean(), dependencies: v.array(v.string()) }) })) });
+function source(): CachedBlobSource<'json'> {
+  return { name: 'ordered.json', kind: 'json', source: 'rows/ordered.json',
+    options: { decoded: 123, gpu: 0, triangles: 0, draws: 0, critical: true, dependencies: ['z', 'a', 'z'] } };
+}
+
+test('cached source metadata keeps original order, costs, ownership and kind types', () => {
+  const row = source(), input = { sources: [row], cacheKey: 'stripped' };
+  const actual = cachedBlobSources(input, kinds), before = v.parse(original, input).sources;
+  expectTypeOf(actual).toEqualTypeOf<CachedBlobSource<'glb' | 'ktx2' | 'json'>[]>();
+  expect(JSON.stringify(actual)).toBe(JSON.stringify(before));
+  expect(parseSignSourceRows(input)).toEqual(before);
+  expect(actual[0]).not.toBe(row);
+  expect(actual[0]?.options.dependencies).not.toBe(row.options.dependencies);
+  const recorded = { sources: [{ ...row, options: { ...row.options, decoded: Infinity, gpu: -0 } }] };
+  expect(cachedBlobSources(recorded, kinds)).toEqual(v.parse(original, recorded).sources);
+  expect(cachedBlobSources({ sources: [] }, kinds)).toEqual([]);
+});
+
+test('cached metadata preserves all row, option, type and missing-field refusals', () => {
+  const row = source();
+  for (const input of [null, {}, { sources: null }, { sources: [{ ...row, kind: 'bin' }] },
+    { sources: [{ ...row, extra: 1 }] }, { sources: [{ ...row, name: 1 }] },
+    { sources: [{ ...row, options: { ...row.options, extra: 1 } }] },
+    { sources: [{ ...row, options: { ...row.options, decoded: Number.NaN } }] },
+    { sources: [{ ...row, options: { ...row.options, dependencies: [1] } }] }]) {
+    expect(() => cachedBlobSources(input, kinds)).toThrow();
+    expect(() => v.parse(original, input)).toThrow();
+  }
+  expect(() => cachedBlobSources({ sources: [row] }, ['glb'])).toThrow();
+});

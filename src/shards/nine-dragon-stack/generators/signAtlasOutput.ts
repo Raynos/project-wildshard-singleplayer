@@ -1,4 +1,5 @@
-import * as v from 'valibot';
+import { cachedBlobSources } from '@wildshard/sdk/bake/sourceMetadata';
+import { parseSectionValue } from '@wildshard/sdk/sections';
 import { SignAtlasSchema, parseSignView } from './sections';
 import { encodeBuildBytes, decodeBuildDeflate } from '@wildshard/sdk/bake/byteCodec';
 import { NeonText } from './neonGeometry';
@@ -16,8 +17,7 @@ const signRows = parseSignView(rawSignRows);
 /** Re-admit cached source metadata beside the producer's existing sign validators. */
 export function parseSignSourceRows(input: unknown): { name: string; kind: 'glb' | 'ktx2' | 'json'; source: string;
   options: { decoded: number; gpu: number; triangles: number; draws: number; critical: boolean; dependencies: string[] } }[] {
-  return v.parse(v.object({ sources: v.array(v.strictObject({ name: v.string(), kind: v.picklist(['glb', 'ktx2', 'json']), source: v.string(),
-    options: v.strictObject({ decoded: v.number(), gpu: v.number(), triangles: v.number(), draws: v.number(), critical: v.boolean(), dependencies: v.array(v.string()) }) })) }), input).sources;
+  return cachedBlobSources(input, ['glb', 'ktx2', 'json']);
 }
 
 const specimenKey = (p: SignModelParams): string => `${signRows.model.key}:${p.style}:${p.text}:${p.color}:${p.ink ?? ''}:${String(p.vertical)}:${p.size}:${String(p.blade)}`;
@@ -26,7 +26,7 @@ type ReadSignBytes = (file: string) => Uint8Array;
 const slice = (buffer: Uint8Array, row: { byteOffset: number; byteLength: number }): Uint8Array => buffer.slice(row.byteOffset, row.byteOffset + row.byteLength);
 const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value, (_key, entry: unknown) =>
   typeof entry === 'number' && Object.is(entry, -0) ? '-0' : entry));
-const signJson = (value: unknown): Uint8Array => json(v.parse(SignAtlasSchema, JSON.parse(JSON.stringify(value), (_key, entry: unknown) => entry === '-0' ? -0 : entry)));
+const signJson = (value: unknown): Uint8Array => json(parseSectionValue(SignAtlasSchema, JSON.parse(JSON.stringify(value), (_key, entry: unknown) => entry === '-0' ? -0 : entry)));
 export const SIGN_CHANNELS: { name: string; source: string; width: number; }[] = [{ name: 'aTint', source: '_tint', width: 3 }, { name: 'aNeon', source: '_neon', width: 4 }];
 
 function textureBlob(tier: string, name: 'mono' | 'colour', row: { packed: string; bytes: number }, read: ReadSignBytes): NamedBlob {

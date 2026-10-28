@@ -18,6 +18,7 @@
     "./bake/colliders": "./bake/colliders.ts",
     "./bake/questPlacement": "./bake/questPlacement.ts",
     "./bake/contactRows": "./bake/contactRows.ts",
+    "./bake/sourceMetadata": "./bake/sourceMetadata.ts",
     "./bake/forest": "./bake/forest.ts",
     "./bake/materialGraph": "./bake/materialGraph.ts",
     "./bake/meadow": "./bake/meadow.ts",
