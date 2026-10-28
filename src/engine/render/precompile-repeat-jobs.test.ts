@@ -30,8 +30,8 @@ test('a later warm-up does not run a job whose materials already compiled under 
   const { renderer, compiled } = rendererDouble(), geometry = new BoxGeometry(), a = new MeshBasicMaterial(), b = new MeshBasicMaterial();
   const stages: { phase: string; units: number }[] = [], observe: PrecompileStage = (phase, _ms, units) => { stages.push({ phase, units }); };
   const pause = (): Promise<void> => Promise.resolve();
-  const run = (jobs: CompileJob[]): Promise<void> => runPrecompile(renderer, new PerspectiveCamera(), jobs, jobs.length, undefined, [], () => true, false,
-    pause, undefined, observe);
+  const run = async (jobs: CompileJob[]): Promise<void> => { await runPrecompile(renderer, new PerspectiveCamera(), jobs, jobs.length, undefined, [], () => true, false,
+    pause, undefined, observe); };
   try {
     await run([job('a', a, geometry), job('b', b, geometry)]);
     expect(compiled).toEqual(['a', 'b']);
