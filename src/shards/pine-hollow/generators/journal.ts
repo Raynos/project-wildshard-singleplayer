@@ -5,7 +5,7 @@ import { parseJournalRow, type JournalRow } from '@wildshard/sdk/rows';
 import { JOURNAL } from './journalContent';
 
 /** The journal's admitted row, its image files (as the declaration lists them) and their named blobs. */
-export interface PineJournal { row: JournalRow; files: Omit<NamedBlob['file'], 'name' | 'path'>[]; blobs: NamedBlob[] }
+export interface PineJournal { row: JournalRow; files: Omit<NamedBlob['file'], 'name' | 'path'>[]; blobs: NamedBlob[]; late: { hash: string }[] }
 
 /** The journal art folder's URL (every journal image sits directly in it). */
 const ART = JOURNAL.chalk.atlas.slice(0, JOURNAL.chalk.atlas.lastIndexOf('/') + 1);
@@ -41,5 +41,8 @@ export async function pineJournal(ctx: Pick<ProjectGenerationContext, 'cached' |
   const row = parseJournalRow({ ...JOURNAL, chalk: { ...JOURNAL.chalk, atlas: image(JOURNAL.chalk.atlas) }, entries });
   const files = new Map<string, PineJournal['files'][number]>();
   for (const blob of blobs.values()) { const { name: _name, path: _path, ...file } = blob.file; files.set(file.hash, file); }
-  return { row, files: [...files.values()].sort((a, b) => a.hash.localeCompare(b.hash)), blobs: [...blobs.values()] };
+  // Closed journals create no image nodes. Keep the wall's chalk atlas ready;
+  // pages resolve the unchanged named image URLs when the book actually opens.
+  const late = [...files.keys()].filter(hash => hash !== row.chalk?.atlas).map(hash => ({ hash }));
+  return { row, files: [...files.values()].sort((a, b) => a.hash.localeCompare(b.hash)), blobs: [...blobs.values()], late };
 }

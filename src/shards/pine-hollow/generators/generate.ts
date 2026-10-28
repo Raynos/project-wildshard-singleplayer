@@ -22,7 +22,7 @@ export async function generate(ctx: ProjectGenerationContext): Promise<Generated
   // GR8 G37: the timber world is baked in the program (readPineSources); its hash-named assets are the declaration's files
   const sources = await readPineSources(ctx);
   for (const key of sources.list('assets/')) ctx.asset(sources.bytes(key));
-  const output = await prepareOutput(ctx), product = pineProduct(await pineJournal(ctx), ground.rows, timberWorld(sources));
+  const output = await prepareOutput(ctx), journal = await pineJournal(ctx), product = pineProduct(journal, ground.rows, timberWorld(sources));
   // D71: the SDK charges each named critical file (the tree rest pool, the guests) to the sim budget as it admits the
   // output; the server holds the same bytes, so the declared server memory covers them too
   const critical = output.namedFiles.reduce((n, file) => file.critical ? n + file.decoded + file.gpu : n, 0);
@@ -33,7 +33,8 @@ export async function generate(ctx: ProjectGenerationContext): Promise<Generated
   const geography = pineGeographyRows();
   // GR8: the map lattice, painted from the map assembly over the same sources (the SDK publishes it as the product map)
   const scheduled = new Set(output.late?.map(row => row.hash));
-  const late = [...output.late ?? [], ...pineLateMaterialFiles(output.namedFiles, timberWorld(sources).landmarks).filter(row => !scheduled.has(row.hash))];
+  const late = [...output.late ?? [], ...[...journal.late, ...pineLateMaterialFiles(output.namedFiles, timberWorld(sources).landmarks)]
+    .filter(row => { if (scheduled.has(row.hash)) return false; scheduled.add(row.hash); return true; })];
   return { shard, output: { ...output, late }, map: { pixels: await pineMapPixels(sources), name: 'ui/images/map' },
     discovery: { 'ground.rows': geography.ground, 'forestQueries.rows': geography.forestQueries, 'pondClip.rows': geography.pondClip,
       ...await pineBootProgram(ctx) } };
