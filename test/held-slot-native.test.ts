@@ -318,3 +318,15 @@ test('an explicit spare registers one late fence without preparing during kit co
     f.scope.dispose();await expect(first()).rejects.toThrow();
   }finally{f.parent.dispose();}
 });
+
+test('a replaced late-view callable refuses before native preparation or selection publication',async()=>{
+  const f=fixture('slots','spare');
+  try{f.owner.installPage(f.ctx);const build=f.runtime.buildEquipment;if(build===undefined)throw new Error('Missing kit builder');
+    const targets=legacyDouble<Targets>({});bindEquipmentActors(targets,legacyDouble<AnimalManager>({}),f.scope);const result=await build(targets,false);
+    let first:(()=>Promise<void>)|undefined;
+    result.install?.(legacyDouble<EquipmentService>({prepareOnSelect:(_id,prepare)=>{first=prepare;},unlock:()=>undefined,select:()=>undefined}));
+    const spear=result.extras?.find(weapon=>weapon.id==='spear');if(spear===undefined||first===undefined)throw new Error('Missing spare preparation binding');
+    const changed=vi.fn(()=>Promise.resolve());Object.defineProperty(spear,'prepareView',{value:changed});
+    await expect(first()).rejects.toThrow('was replaced');expect(changed).not.toHaveBeenCalled();expect(f.events).not.toContain('polearm:prepare');
+  }finally{f.parent.dispose();}
+});
