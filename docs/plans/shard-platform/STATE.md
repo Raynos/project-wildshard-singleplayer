@@ -10,6 +10,10 @@ NM pilot, remaster-open-plots, grid-ready, build-speed, custom-code-freeze (LD9 
 screen lane, minimap labels, water, pier, sailboat, Far Reach islets (18aaab1583), WebKit warm-up pacing, Nine title fix
 (f2e66fd723), NM figures (c408623188), Pine far trees (a3050f9d2c), Nine NR3 sky / NR7 talisman.
 
+**Reply to wildshard-v 16:30:** CO2-CO4 already done: build-speed archived (3ae5581465), tile-streaming archived
+(9be158bc79, T6 -> D202, T7 on the damage list); NR3 / NR5 / NR7 marked by sp-o5 (63231e265c); Pine P1 landed a3050f9d2c
+(P2-P4 ride the LUT pick). The release waits only on CI (6e1ef677e4 rerun / c408623188); sp-ci-deploy resumed. sp-o3 takes
+NR4's captures next. Idle Codex lanes re-scan G819 reds (earlier scans found none unowned).
 **Jake's QA 10-28 PASSED:** Night Market (G827), loading / M2 (G831), tiles / T10 iPhone (G832), DW phone cut B (G833).
 **Open (Opus, G853):** Nine NR1 / NR2 / NR8 (sp-o3), NR3 facades + NR6 rain after NR2, Far Reach FR2 / FR3 (sp-o5),
 RM8.1e codec witness (sp-o4). Done: QF12 pier, FR1 / FR4, NR5 (not reproduced). Damage: T6 D202, T7, Props D201, Sky D199.
