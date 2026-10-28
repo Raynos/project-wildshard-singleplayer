@@ -97,9 +97,9 @@ export function nalatiLateCatalogueNames(input: unknown): readonly string[] {
 }
 
 /** The phone never opens the desktop dressing book. Only names exclusive to
- * that book may skip the eager warm; every other book's references win. Actual
- * desktop demand still reads the same admitted files immediately. */
-export function nalatiLateDressingNames(books: ReadonlyMap<string, unknown>, names: ReadonlySet<string>): readonly string[] {
+ * that book may skip the eager warm; other books and entered programme sources
+ * win. Actual desktop demand still reads the same files immediately. */
+export function nalatiLateDressingNames(books: ReadonlyMap<string, unknown>, names: ReadonlySet<string>, immediate: unknown): readonly string[] {
   const desktop = 'world/dressing-desktop.json', phone = 'world/dressing-phone.json';
   if (!books.has(desktop) || !books.has(phone)) throw new Error('Missing dressing timing books');
   const collect = (value: unknown, into: Set<string>): void => {
@@ -109,6 +109,7 @@ export function nalatiLateDressingNames(books: ReadonlyMap<string, unknown>, nam
   };
   const candidates = new Set<string>([desktop]), shared = new Set<string>();
   for (const [name, value] of books) collect(value, name === desktop ? candidates : shared);
+  collect(immediate, shared);
   return [...candidates].filter(name => names.has(name) && !shared.has(name)).sort();
 }
 

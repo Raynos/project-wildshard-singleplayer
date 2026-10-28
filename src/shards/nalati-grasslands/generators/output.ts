@@ -430,7 +430,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
   })], runtime.floors.map(floor => nameBlob(floor.name, 'bin', floor.bytes)), [propBlob], carvings, held, [...renderPairs, ...coarseTiles], ownedGeography, views, [kokpar.blob, kokpar.courseBlob], ridingModules, nalatiTitanBlobs(titan), nalatiAdmissionBlobs(admissionBank), [nalatiChargeBlob(charge)]));
   const fileByName=new Map([...sources.map(source=>source.file),...modelBlobs.map(blob=>blob.file),...namedFiles,specimenBank.file].flatMap(file=>file.name===undefined?[]:[[file.name,file] as const]));
   for(const name of catalogueNames)if(fileByName.has(name))lateNames.add(name);
-  for(const name of nalatiLateDressingNames(boundBooks,new Set(fileByName.keys())))lateNames.add(name);
+  for(const name of nalatiLateDressingNames(boundBooks,new Set(fileByName.keys()),shapeDraws))lateNames.add(name);
   const late=[...new Set([...lateNames].map(name=>{
     const file=fileByName.get(name);if(file===undefined)throw new Error('Missing late model source');return file.hash;
   }))].map(hash=>({hash}));

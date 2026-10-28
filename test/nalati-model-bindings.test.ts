@@ -12,12 +12,13 @@ test('desktop dressing warm excludes every shared or externally demanded named s
     ['models/cover-desktop.json', { packed: { file: 'card.bin' } }],
   ]);
   const names = new Set([desktop, phone, 'full.bin', 'shared.bin', 'card.bin', 'small.bin']), before = structuredClone(books);
-  expect(nalatiLateDressingNames(books, names)).toEqual(['full.bin', desktop]);
+  expect(nalatiLateDressingNames(books, names, [])).toEqual(['full.bin', desktop]);
+  expect(nalatiLateDressingNames(books, names, [{file:'full.bin'}])).toEqual([desktop]);
   expect(books).toStrictEqual(before);
   books.set('other.json', { dependency: desktop, source: 'full.bin' });
-  expect(nalatiLateDressingNames(books, names)).toEqual([]);
-  expect(() => nalatiLateDressingNames(new Map([[desktop, {}]]), names)).toThrow('Missing dressing');
-  expect(() => nalatiLateDressingNames(new Map([[phone, {}]]), names)).toThrow('Missing dressing');
+  expect(nalatiLateDressingNames(books, names, [])).toEqual([]);
+  expect(() => nalatiLateDressingNames(new Map([[desktop, {}]]), names, [])).toThrow('Missing dressing');
+  expect(() => nalatiLateDressingNames(new Map([[phone, {}]]), names, [])).toThrow('Missing dressing');
 });
 
 const prefix = '/assets/nalati/baked/painted-models/';
