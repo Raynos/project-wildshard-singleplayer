@@ -9,6 +9,7 @@ import { join, resolve } from 'node:path';
 import { chromium, devices, type Browser, type BrowserContext, type Page } from 'playwright';
 import * as v from 'valibot';
 import { crawlEntryReadSet, entryDemandUrls, type EntryCrawlDemand, type EntryCrawlRegion } from '@wildshard/sdk/entryReads';
+import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { parseOutputIndex } from '@wildshard/format/outputIndex';
 import type { RegionEntryReads } from '@wildshard/format/entryReads';
 import { saveFixture, harnessPins } from '../debug-settings.mjs';
@@ -74,7 +75,12 @@ try {
     read: async url => {
       const response = await fetch(new URL(url, origin), { headers: { 'accept-encoding': 'identity' } });
       if (!response.ok) throw new Error(`Entry body refused: ${response.status} ${url}`);
-      return new Uint8Array(await response.arrayBuffer());
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      for (const [slug, product] of index) {
+        const file = product.files.find(row => url.split('?')[0] === `/shardfiles/${slug}/${row.path}`);
+        if (file !== undefined && (bytes.length !== file.compressed || hashImmutableBytes(bytes) !== file.hash)) throw new Error('Crawled product body differs from its descriptor');
+      }
+      return bytes;
     },
     visit: async (entry, tier, read) => {
       const cell = cells.find(row => row.instance === entry.region), source = cell === undefined ? undefined : index.get(cell.slug);
