@@ -14,6 +14,7 @@ test('first-use code preparation is visible until the real module resolves', asy
   const loading = loadModuleWithProgress('Explore', () => module);
   const status = document.querySelector<HTMLElement>('.ws-x-load');
   expect(status?.hidden).toBe(false); expect(status?.textContent).toBe('Explore · 0 / 1');
+  expect(status?.querySelector('span')?.classList.contains('ws-mono')).toBe(true);
   expect(status?.style.zIndex).toBe('calc(var(--ws-layer-modal) + 0)');
   finish({ ready: true }); expect(await loading).toEqual({ ready: true });
   expect(document.querySelector('.ws-x-load')).toBeNull();

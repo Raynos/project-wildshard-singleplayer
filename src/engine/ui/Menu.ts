@@ -18,8 +18,7 @@ import type { FullMap } from './Map';
 import { icon, type IconId } from './icons';
 import { onReview, reviewUnlocked } from './review';
 import { settingsHint, type SettingsCat } from './settingsCats';
-import type { MenuSettingsState, SettingsCtx } from './menuSettings';
-import { loadModuleWithProgress } from './loadProgress';
+import { buildMenuSettings, type MenuSettingsState, type SettingsCtx } from './menuSettings';
 import { withOwner } from '../app/ownership';
 
 type BuiltInTab = 'map' | 'settings' | 'feedback';
@@ -259,7 +258,7 @@ export class GameMenu {
     this.openScope = this.scope.child('open');
     this.layer = app.ui.push('gameMenu', { root: this.root, order: 0, back: () => { this.close(); } }, this.openScope);
     app.setState('paused');
-    if (selected === 'settings') void this.prepareSettings(this.openScope);
+    if (selected === 'settings') this.prepareSettings();
     this.paintMemory();
     this.openScope.interval(2000, () => { this.paintMemory(); }); // while open only (close() stops it)
     this.root.classList.add('show');
@@ -299,7 +298,7 @@ export class GameMenu {
     this.syncTabs(); this.syncCats();
     if (this._open) { if (tab === 'map') { this.opts.fullMap.show(); this.syncZoom(); this.renderQuest(); } else this.opts.fullMap.hide(); }
     if (tab === 'settings') {
-      if (this.openScope !== null) void this.prepareSettings(this.openScope);
+      if (this.openScope !== null) this.prepareSettings();
       this.applies();
     }
     this.renderRegisteredTab(tab);
@@ -367,20 +366,17 @@ export class GameMenu {
    *  split): SETTINGS holds what ships with the finished game; DEBUG holds the variant pickers and taste toggles that
    *  exist only while the look and sound are being decided — each leaves that card once it is locked in (E78 the
    *  painted horizon, E83 the photo sky, E85 the colour grade, E87 the lighting, E88 the post) */
-  private settingsReady: Promise<void> | null = null;
   private readonly pendingSettings = new Set<() => void>();
-  private async buildSettings(): Promise<void> {
-    const { buildMenuSettings } = await import('./menuSettings');
+  private buildSettings(): void {
     if (this.scope.disposed) return;
     withOwner(this.scope, () => buildMenuSettings({scope:this.scope,panel:this.panels.settings,hint:this.hint,
       syncCats:()=>{this.syncCats();},tab:()=>this._tab},this.settingsView));
     for (const install of this.pendingSettings) install();
     this.syncCats();this.applies();
   }
-  private async prepareSettings(owner: Scope): Promise<void> {
+  private prepareSettings(): void {
     if (this.settingsView.cats !== undefined) return;
-    try { await loadModuleWithProgress('Settings', () => (this.settingsReady ??= this.buildSettings()), owner); }
-    catch (error) { this.settingsReady=null;console.warn('Settings unavailable',error); }
+    this.buildSettings();
   }
   /** A section the game adds to pause ▸ Settings: its label and rows join the Settings card under category `cat` (on a
    *  desktop they show with that category; on a phone in the one column). `first` puts them right under the card's title

@@ -15,6 +15,7 @@ export class LoadProgress {
 
   constructor(host: HTMLElement) {
     this.element.className = 'ws-x-load'; this.element.hidden = true;
+    this.label.className = 'ws-mono';
     this.element.setAttribute('role', 'status'); this.element.setAttribute('aria-live', 'polite');
     const spinner = document.createElement('i'); spinner.setAttribute('aria-hidden', 'true');
     this.element.append(spinner, this.label, this.bar); host.append(this.element);

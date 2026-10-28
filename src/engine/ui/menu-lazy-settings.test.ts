@@ -18,7 +18,7 @@ function fixture(){
   return {owner,menu};
 }
 
-test('first settings open keeps early sections in order and omits removed registrations',async()=>{
+test('first settings open synchronously keeps early sections and omits removed registrations',()=>{
   const {menu}=fixture(), first=document.createElement('div'), last=document.createElement('div'), removed=document.createElement('div');
   first.textContent='Early first';last.textContent='Early last';removed.textContent='Removed early';
   const refresh=vi.fn<()=>void>();
@@ -26,8 +26,9 @@ test('first settings open keeps early sections in order and omits removed regist
   const removeLast=menu.addSettingsSection('save',[last]);
   menu.addSettingsSection('save',[removed])();
   expect(menu.root.querySelector('.ws-gmenu-pane')).toBeNull();expect(refresh).not.toHaveBeenCalled();
-  menu.open('settings');await vi.dynamicImportSettled();
-  await vi.waitFor(()=>{expect(first.isConnected).toBe(true);});
+  menu.open('settings');
+  expect(document.querySelector('.ws-x-load')).toBeNull();
+  expect(first.isConnected).toBe(true);
   expect(last.isConnected).toBe(true);expect(removed.isConnected).toBe(false);
   expect(first.compareDocumentPosition(last)&Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0);
   expect(refresh).toHaveBeenCalled();
@@ -37,16 +38,17 @@ test('first settings open keeps early sections in order and omits removed regist
   expect(menu.root.textContent?.match(/Early first/gu)).toHaveLength(1);
 });
 
-test('closing during preparation never reopens the menu or changes the resumed app state',async()=>{
+test('closing never reopens the menu or changes the resumed app state',()=>{
   const {menu}=fixture();app.setState('play');
   menu.open('settings');menu.close();
   expect(document.querySelector('.ws-x-load')).toBeNull();
-  await vi.dynamicImportSettled();
   expect(menu.isOpen).toBe(false);expect(app.state).toBe('play');
 });
 
-test('retiring during preparation cannot mount a late settings pane',async()=>{
-  const {owner,menu}=fixture();menu.open('settings');owner.dispose();
-  await vi.dynamicImportSettled();
-  expect(menu.root.isConnected).toBe(false);expect(menu.root.querySelector('.ws-gmenu-pane')).toBeNull();
+test('retiring removes the synchronously mounted settings pane',()=>{
+  const {owner,menu}=fixture();menu.open('settings');
+  const pane=menu.root.querySelector('.ws-gmenu-pane');expect(pane?.isConnected).toBe(true);
+  owner.dispose();
+  expect(menu.root.isConnected).toBe(false);
+  expect(pane?.isConnected).toBe(false);
 });

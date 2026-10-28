@@ -31,15 +31,14 @@ function fixture() {
   return {map,scope,frames,fillText,drawImage};
 }
 
-test('first open loads painting without snapshotting early or subsequently changed POIs',async()=>{
+test('first open paints without an import wait and keeps changed POIs live',()=>{
   const {map,scope,frames,fillText,drawImage}=fixture();
   let pois:MapPoi[]=[{x:0,z:0,label:'BEFORE',kind:'place'}];
   try{
     map.setPois(()=>pois);map.update({x:12,z:14},0);
     expect(drawImage).not.toHaveBeenCalled();
     map.show();pois=[{x:0,z:0,label:'LATEST',kind:'place'}];
-    await vi.dynamicImportSettled();
-    await vi.waitFor(()=>{expect(document.querySelector('.ws-x-load')).toBeNull();});
+    expect(document.querySelector('.ws-x-load')).toBeNull();
     for(const frame of frames.splice(0))frame(16);
     expect(drawImage).toHaveBeenCalled();
     expect(fillText.mock.calls.some(([text])=>text==='LATEST')).toBe(true);
@@ -50,25 +49,22 @@ test('first open loads painting without snapshotting early or subsequently chang
   }finally{scope.dispose();}
 });
 
-test('closing before the module resolves removes progress and prevents a late draw',async()=>{
+test('closing before the first frame prevents a late draw',()=>{
   const {map,scope,frames,drawImage}=fixture();
   try{
     map.setPois(()=>[]);map.show();map.hide();
     expect(document.querySelector('.ws-x-load')).toBeNull();
-    await vi.dynamicImportSettled();
     for(const frame of frames.splice(0))frame(16);
     expect(drawImage).not.toHaveBeenCalled();expect(map.isOpen).toBe(false);
   }finally{scope.dispose();}
 });
 
 
-test('a second open owns progress while the same first import is still pending',async()=>{
+test('a second open is ready synchronously without progress',()=>{
   const {map,scope}=fixture();
   try{
     map.setPois(()=>[]);map.show();map.hide();map.show();
-    expect(document.querySelector<HTMLElement>('.ws-x-load')?.hidden).toBe(false);
-    await vi.dynamicImportSettled();
-    await vi.waitFor(()=>{expect(document.querySelector('.ws-x-load')).toBeNull();});
+    expect(document.querySelector('.ws-x-load')).toBeNull();
     expect(map.isOpen).toBe(true);
   }finally{scope.dispose();}
 });

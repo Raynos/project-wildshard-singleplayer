@@ -39,8 +39,7 @@ import { CHUNK_HALF, CHUNK_SIZE } from '../core/config';
 import { CABIN_SITES, POND, hasPond } from '../world/Heightfield';
 import { activeLevel } from '../level/selection';
 import type { MapExtras, MapFeatures, Minimap } from './Minimap';
-import type { MapPainter } from './mapPainter';
-import { loadModuleWithProgress } from './loadProgress';
+import { MapPainter } from './mapPainter';
 
 /** a point on the full map: a discovered place (named), an undiscovered one ("?"), or a live quest marker (pulsing diamond);
  *  `short` = a quest marker's short name ("SEA CAVE" for "SEA CAVE SHARD") — the map labels it with that */
@@ -160,7 +159,7 @@ export class FullMap {
     this.openScope = this.scope.child('open');
     this.layer = app.ui.push('gameMenu', { root: this.root, embedded: true, order: 0, back: () => { this.hide(); } }, this.openScope);
     this.root.style.display = 'block';
-    void this.loadPainter(this.openScope);
+    this.preparePainter();
     const b = this.bounds(this.extrasSource?.() ?? null);
     this.cx = (b.x0 + b.x1) / 2; this.cz = (b.z0 + b.z1) / 2; this._zoom = 1;
     this.fit();
@@ -229,24 +228,15 @@ export class FullMap {
   update(pos: { x: number; z: number }, yaw: number): void { this.pose.x = pos.x; this.pose.z = pos.z; this.pose.yaw = yaw; }
 
   private painter: MapPainter | null = null;
-  private painterReady: Promise<void> | null = null;
-  private async preparePainter(): Promise<void> {
-    const { MapPainter } = await import('./mapPainter');
-    if (this.scope.disposed) return;
+  private preparePainter(): void {
+    if (this.painter !== null || this.scope.disposed) return;
     this.painter = new MapPainter({
       canvas: this.canvas, ctx: this.ctx, minimap: this.minimap, pose: this.pose, poiSources: this.poiSources,
       open: () => this.open, _zoom: () => this._zoom, cx: () => this.cx, cz: () => this.cz,
       dpr: () => this.dpr, dash: () => this.dash, zones: () => this.zones,
-      pois: () => this.poiSource?.() ?? null, extras: () => this.extrasSource?.() ?? null,
+      pois: () => this.poiSource?.() ?? null, fallbackPois: levelPins, extras: () => this.extrasSource?.() ?? null,
       tally: () => this.tally, ppm: () => this.ppm(), now: () => performance.now(),
     });
-  }
-  private async loadPainter(owner: Scope): Promise<void> {
-    try {
-      if (this.painter !== null) return;
-      await loadModuleWithProgress('Map', () => (this.painterReady ??= this.preparePainter()), owner);
-    }
-    catch (error) { this.painterReady = null; console.warn('Map painter unavailable', error); }
   }
   private draw(): void { this.painter?.draw(); }
 

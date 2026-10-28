@@ -3,15 +3,15 @@ import { engineString } from '../strings';
 import { LAYER_PPM, type MapExtras, type Minimap } from './Minimap';
 import { ROOM_BG, fitRoom, paintRoom } from './roomMap';
 import { fitMapLabel } from './mapLabel';
-import { levelPins, type MapPoi, type MapZone } from './Map';
+import type { MapPoi, MapZone } from './Map';
 
 type Pin = MapPoi & { color?: string };
 const FOG_BRIGHTNESS = 0.3, TILE_PX = 256, TILE_CACHE = 64, TILE_BUDGET_MS = 6;
 const CYAN = '#8fe3ff', MERGE_M = 30;
 const NO_DASH: number[] = [];
 
-/** State and caller-owned sources remain in FullMap. The optional painter reads
- * them directly; loading never re-registers or snapshots callbacks. */
+/** State and caller-owned sources remain in FullMap. The painter reads them
+ * directly without re-registering or snapshotting callbacks. */
 export interface MapPaintView {
   readonly canvas: HTMLCanvasElement;
   readonly ctx: CanvasRenderingContext2D;
@@ -25,6 +25,7 @@ export interface MapPaintView {
   readonly pose: { readonly x: number; readonly z: number; readonly yaw: number };
   readonly zones: () => readonly MapZone[];
   readonly pois: () => MapPoi[] | null;
+  readonly fallbackPois: () => MapPoi[];
   readonly poiSources: ReadonlySet<() => MapPoi[]>;
   readonly extras: () => MapExtras | null;
   readonly tally: () => boolean;
@@ -131,7 +132,7 @@ export class MapPainter {
     const fs = Math.max(11 * this.view.dpr(), side * 0.022 / this.view._zoom());
     const px = sx(pos.x), py = sz(pos.z), r = Math.max(7 * this.view.dpr(), fs * 0.6);
     const ownPois = this.view.pois();
-    const list: Pin[] = ownPois === null ? levelPins() : [...ownPois];
+    const list: Pin[] = ownPois === null ? this.view.fallbackPois() : [...ownPois];
     if (this.view.poiSources.size > 0) list.push(...[...this.view.poiSources].flatMap((source) => source()));
     const tally = this.view.tally() ? this.layTally(list, ox, oy + side) : null;
     if (tally !== null) held.push(tally);
