@@ -281,7 +281,7 @@ export class LiveGridSession {
         return { physics: ports.physics, walls: ports.walls, dispose: () => { highwayScope.dispose(); } };
       } },
       admit: (cell, required) => this.admit(cell, required),
-      prepareTransport: (cell, signal) => prepareApproachProductInputs(cell.slug, { allocator: ports.allocator, scope }, signal),
+      prepareTransport: (cell, signal) => prepareApproachProductInputs(cell.slug, { allocator: ports.allocator, scope }, signal, assembly.local(traveller.position, cell)),
       ...(ports.prepareNeighbourTiles === undefined ? {} : { prepareNeighbour: ports.prepareNeighbourTiles }),
       prioritize: (cell) => prioritizeGridProduct(cell.slug, { allocator: ports.allocator, scope }),
       pause: () => yieldGridAdmission(scope),

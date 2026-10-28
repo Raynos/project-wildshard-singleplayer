@@ -14,15 +14,16 @@ const set: EntryReadSet = [
 ];
 
 test('the plan is the tier row in first-demand order, with the blobs this product still holds and every asset', () => {
-  const plan = entryReadPlan(set, 'phone', 'pine-hollow', { files: [{ hash: hash(1) }, { hash: hash(7) }] as never });
+  const plan = entryReadPlan(set, 'phone', 'pine-hollow', { files: [{ hash: hash(1), compressed: 1 }, { hash: hash(7), compressed: 7 }] as never });
   expect(plan.map(read => read.hash)).toEqual([hash(1), hash(2), hash(4)]);
 });
 
 const ports = (files: readonly string[], json: unknown = set, fetchJson: EntryReadPorts['fetchJson'] = () => Promise.resolve(json)): EntryReadPorts & { blobs: string[]; assets: string[] } => {
   const blobs: string[] = [], assets: string[] = [];
-  return { blobs, assets, source: { files: files.map(h => ({ hash: h })) as never },
+  return { blobs, assets, source: { files: files.map(h => ({ hash: h, compressed: Number.parseInt(h, 16) })) as never },
     readBlob: h => { blobs.push(h); return Promise.resolve(); },
-    fetchAsset: url => { assets.push(url); return Promise.resolve(); },
+    reserve: () => ({ release: () => undefined }),
+    fetchAsset: read => { assets.push(read.url); return Promise.resolve(); },
     fetchJson };
 };
 
@@ -40,4 +41,29 @@ test('a turn-away starts no read, and a missing or invalid record prefetches not
   expect(await prefetchEntryReads('pine-hollow', 'phone', ports([hash(1)], { not: 'a set' }), new AbortController().signal)).toBe(0);
   const missing = ports([hash(1)], set, () => Promise.reject(new Error('404')));
   expect(await prefetchEntryReads('pine-hollow', 'phone', missing, new AbortController().signal)).toBe(0);
+});
+
+
+test('turn-away drains every started read before releasing its speculative claim', async () => {
+  const controller = new AbortController(), p = ports([hash(1), hash(3)]), events: string[] = [];
+  let finish = (): void => undefined;
+  const body = new Promise<void>(resolve => { finish = resolve; });
+  const pending = prefetchEntryReads('pine-hollow', 'phone', { ...p,
+    reserve: read => { events.push(`reserve:${read.hash}`); return { release: () => { events.push(`release:${read.hash}`); } }; },
+    readBlob: () => body, fetchAsset: () => body,
+  }, controller.signal);
+  await Promise.resolve(); await Promise.resolve();
+  expect(events.filter(row => row.startsWith('reserve'))).toHaveLength(3);
+  controller.abort(); expect(events.filter(row => row.startsWith('release'))).toHaveLength(0);
+  finish(); expect(await pending).toBe(3);
+  expect(events.filter(row => row.startsWith('reserve'))).toHaveLength(3);
+  expect(events.filter(row => row.startsWith('release'))).toHaveLength(3);
+});
+
+test('headroom refusal starts no body and nearest entry retains its own read order', async () => {
+  const p = ports([hash(1)]), far = { region: 'near', tier: 'phone' as const, at: [50, 50] as const,
+    reads: [{ url: '/assets/fixture/near.bin', hash: hash(8), bytes: 8 }] };
+  expect(entryReadPlan([...set, far], 'phone', 'pine-hollow', p.source, { x: 49, z: 49 })).toEqual(far.reads);
+  expect(await prefetchEntryReads('pine-hollow', 'phone', { ...p, reserve: () => null }, new AbortController().signal)).toBe(0);
+  expect(p.blobs).toEqual([]); expect(p.assets).toEqual([]);
 });

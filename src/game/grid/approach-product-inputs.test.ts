@@ -56,3 +56,17 @@ test('a refused input release still releases its product owner', async () => {
   }, controller.signal);
   await expect(pending).rejects.toBe(failure); expect(release).toHaveBeenCalledOnce();
 });
+
+
+test('owner retirement cancels and drains its read-ahead before releasing product inputs', async () => {
+  const owner = new Scope('approach-reader'), controller = new AbortController(), events: string[] = [];
+  let finish = (): void => undefined, started = (): void => undefined;
+  const body = new Promise<void>(resolve => { finish = resolve; }), reading = new Promise<void>(resolve => { started = resolve; });
+  const pending = holdApproachInputs(async signal => {
+    signal.addEventListener('abort', () => { events.push('abort'); }, { once: true });
+    started(); await body;
+    return { releaseInputs: () => { events.push('inputs'); return Promise.resolve(); }, release: () => { events.push('product'); } };
+  }, controller.signal, owner);
+  await reading; owner.dispose(); expect(events).toEqual(['abort']);
+  finish(); await pending; expect(events).toEqual(['abort', 'inputs', 'product']);
+});
