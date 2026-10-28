@@ -6320,6 +6320,11 @@ admit complete encounter/profile, combat and rig/effect data without creating a 
 
 ### Static world scene recipes
 
+A model catalogue row may declare `load: 'demand'`: its unplaced
+geometry waits for explicit model construction. Catalogue admission stays
+complete. Real placements and direct scene references still prepare their
+inputs before publication; cold model views await verified input reads.
+
 `sdk/worldScenes` admits recipes (`worldSceneRecipe`), ports
 (`worldSceneBindings`), sections (`worldSceneRows`), model catalogues
 (`worldSceneModels`), typed draw buffers (`worldSceneBuffers`), frozen

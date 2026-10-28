@@ -284,7 +284,8 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
   for (const row of placements) if (row.drawnInto !== undefined && (!published.has(row.drawnInto.part) && !deferredPlacements.has(row.id) || row.drawnInto.boxes.length !== row.poses.length * 6)) throw new Error('Scene placement needs a published part and one box per copy');
   // Specimen graphs are fully admitted above; their buffers belong to a requested
   // Explorer choice, rather than every resident world and inactive profile.
-  const residentModels = catalogue === undefined ? undefined : { ...catalogue, models: catalogue.models.filter(model => model.assembly !== 'scene') };
+  const placedModelKeys = new Set(placements.map(row => row.model));
+  const residentModels = catalogue === undefined ? undefined : { ...catalogue, models: catalogue.models.filter(model => model.assembly !== 'scene' && (model.load !== 'demand' || placedModelKeys.has(model.key))) };
   const coldOnly = (ref: { readonly library: string }): boolean => { const row = libraryRows.get(ref.library); return row?.kind === 'whole' && (row.load === 'explorer' || row.load === 'refine'); };
   const modelGeometry = residentModels === undefined ? [] : worldSceneModelResources(residentModels).geometry.filter(ref => !coldOnly(ref));
   const activeSteps = section.steps.filter(step => step.load !== 'explorer' && (step.cube === undefined || step.cube === (ctx.cube === null ? 'standalone' : 'cell')));

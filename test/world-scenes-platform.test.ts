@@ -287,14 +287,16 @@ test('scene catalogue keeps fixed draws, authored floors and model collision own
   geometry.dispose(); material.dispose(); registry.retire();
 });
 
-test.each([false, true])('cold Explorer cards fill verified geometry while borrowing resident surfaces: %s', async borrowed => {
+test.each([false, true])('cold demand-loaded Explorer cards await geometry and borrow resident surfaces: %s', async borrowed => {
   const [{ defineWorldSceneCatalogue, bindWorldSceneModelSources }, { modelContext }, { Rng }, { withOwner }, runtime, assets, { parseWorldSceneModels }] = await Promise.all([
     import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('../src/engine/app/ownership'), import('../src/game/shardfile/runtimeProduct'), import('../src/engine/core/assets'), import('../src/format/worldSceneModels'),
   ]);
   const context = fixture(), owner = new Scope('cold-catalogue'), ctx = modelContext(null), rows = section();
-  const catalogueRows = { product: 'fixture-harbour', models: [{ key: 'cold', id: 'fixture-harbour/cold', name: 'Cold model', category: 'props', pipeline: 'code', file: 'models/cold.ts', defaults: {}, choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [{ id: 'stone', library: 'shapes', model: 'stone', material: 'paint' }] }] }] };
+  const catalogueRows = { product: 'fixture-harbour', models: [{ key: 'cold', id: 'fixture-harbour/cold', load: 'demand', name: 'Cold model', category: 'props', pipeline: 'code', file: 'models/cold.ts', defaults: {}, choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [{ id: 'stone', library: 'shapes', model: 'stone', material: 'paint' }] }] }] };
+  let supply: (bytes: Uint8Array) => void = () => { throw new Error('Missing geometry reader'); };
+  const pending = new Promise<Uint8Array>(resolve => { supply = resolve; });
   const oldFile = context.product.file.bind(context.product);
-  const file = vi.spyOn(context.product, 'file').mockImplementation(name => name === 'models/catalogue.json' ? Promise.resolve(new TextEncoder().encode(JSON.stringify(catalogueRows))) : oldFile(name));
+  const file = vi.spyOn(context.product, 'file').mockImplementation(name => name === 'models/catalogue.json' ? Promise.resolve(new TextEncoder().encode(JSON.stringify(catalogueRows))) : name === 'models/stone.glb' ? pending : oldFile(name));
   Object.assign(context.product, { section: () => parseWorldScenes({ ...rows, catalogue: 'models/catalogue.json',
     ...(borrowed ? { materials: [{ id: 'paint', kind: 'surface', scan: 'fixture_stone', properties: {} }] } : {}) }) });
   const product = vi.spyOn(runtime, 'loadFirstPartyProduct').mockResolvedValue(context.product);
@@ -305,6 +307,9 @@ test.each([false, true])('cold Explorer cards fill verified geometry while borro
     const catalogue = defineWorldSceneCatalogue(catalogueRows), built = withOwner(owner, () => catalogue.model('cold').build(ctx, {}, new Rng(1)));
     if (!(built instanceof Group)) throw new Error('Missing loading specimen');
     expect(built.children[0]).toBeInstanceOf(Mesh);
+    await vi.waitFor(() => { expect(file).toHaveBeenCalledWith('models/stone.glb'); });
+    expect(built.children[0]).toBeInstanceOf(Mesh);
+    supply(triangle());
     await vi.waitFor(() => { expect(built.children[0]).toBeInstanceOf(Group); });
     expect(product).toHaveBeenCalledWith('fixture-harbour', expect.objectContaining({ name: 'scene-models/fixture-harbour' }));
     expect(product.mock.calls[0]?.[1]?.belongsTo(owner)).toBe(true);
@@ -326,7 +331,28 @@ test.each([false, true])('cold Explorer cards fill verified geometry while borro
       await vi.waitFor(() => { expect(next.children[0]).toBeInstanceOf(Group); });
       expect(product).toHaveBeenCalledTimes(2);
     } finally { again.dispose(); }
-  } finally { file.mockRestore(); product.mockRestore(); scan.mockRestore(); owner.dispose(); context.scope.dispose(); material.dispose(); }
+  } finally { supply(triangle()); file.mockRestore(); product.mockRestore(); scan.mockRestore(); owner.dispose(); context.scope.dispose(); material.dispose(); }
+});
+
+test.each(['unplaced', 'placed', 'direct'] as const)('demand catalogue intake retains actual %s requirements', async mode => {
+  const { parseWorldSceneModels } = await import('../src/format/worldSceneModels');
+  const context = fixture(), rows = section();
+  const catalogue = { product: 'fixture-harbour', models: [{ key: 'optional', id: 'fixture-harbour/optional', load: 'demand', name: 'Optional', category: 'props', pipeline: 'code', file: 'optional.ts', defaults: {},
+    choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [{ id: 'spare', library: 'optional', model: 'spare', material: 'paint' }] }] }] };
+  const oldFile = context.product.file.bind(context.product), has = context.product.hasFile.bind(context.product);
+  const file = vi.spyOn(context.product, 'file').mockImplementation(name => name === 'models/catalogue.json'
+    ? Promise.resolve(new TextEncoder().encode(JSON.stringify(catalogue))) : name === 'models/spare.glb' ? Promise.resolve(triangle()) : oldFile(name));
+  vi.spyOn(context.product, 'hasFile').mockImplementation(name => ['models/catalogue.json', 'models/spare.glb'].includes(name) || has(name));
+  const first = rows.steps[0]; if (first === undefined) throw new Error('Missing direct step');
+  try {
+    await installWorldScenes(context, parseWorldScenes({ ...rows, catalogue: 'models/catalogue.json',
+      libraries: [...rows.libraries, { id: 'optional', kind: 'owned', models: [{ id: 'spare', file: 'models/spare.glb' }] }],
+      ...(mode === 'placed' ? { placements: [{ id: 'real-placement', model: 'optional', draw: 'single', poses: [{ x: 0, y: 0, z: 0, yxz: { yaw: 0, scale: 1 } }] }] } : {}),
+      ...(mode === 'direct' ? { steps: [{ ...first, geometry: { rock: { library: 'optional', model: 'spare' } } }] } : {}),
+    }));
+    expect(file.mock.calls.filter(([name]) => name === 'models/spare.glb')).toHaveLength(mode === 'unplaced' ? 0 : 1);
+    expect(() => parseWorldSceneModels({ ...catalogue, models: [{ ...catalogue.models[0], load: 'later-maybe' }] })).toThrow();
+  } finally { context.scope.dispose(); }
 });
 
 test('trail scene collider rows retain the native decoder output exactly', async () => {

@@ -150,6 +150,7 @@
     },
     {
       "key": "shrine",
+      "load": "demand",
       "id": "driftwood-isle/shrine",
       "name": "Ring shrine",
       "file": "src/shards/driftwood-isle/data/siteCatalogue.json",
