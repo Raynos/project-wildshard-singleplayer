@@ -1,4 +1,4 @@
-import { Euler, Quaternion, type Bone, type SkinnedMesh, type Vector3 } from 'three';
+import { Euler, Quaternion, type Bone, type SkinnedMesh } from 'three';
 import { validateSkinLayers, type SkinPoseLayer } from '@wildshard/format/skinLayers';
 
 interface CompiledTrack { bone: string; property: SkinPoseLayer['tracks'][number]['property']; axis: 'x' | 'y' | 'z'; order: SkinPoseLayer['tracks'][number]['order']; values: Float32Array }
@@ -13,17 +13,12 @@ export function compileSkinPoseLayers(layers: readonly SkinPoseLayer[], joints: 
 }
 
 const a = new Quaternion(), b = new Quaternion(), c = new Quaternion(), d = new Quaternion(), euler = new Euler();
-// Resolve the authored axis once. Keyed numeric stores box the changing value on
-// every pose; fixed property stores retain the existing numeric fields.
-function addX(target: Vector3 | Euler, value: number): void { target.x += value; }
-function addY(target: Vector3 | Euler, value: number): void { target.y += value; }
-function addZ(target: Vector3 | Euler, value: number): void { target.z += value; }
 /** Bind compiled layers to one skeleton; cached base poses prevent AnimationMixer's constant-track optimisation accumulating deltas. */
 export function bindSkinPoseLayers(compiled: CompiledSkinPoseLayers, bones: readonly Bone[]): { restore: () => void; apply: (time: number) => void } {
   const base = bones.map((bone) => ({ p: bone.position.clone(), q: bone.quaternion.clone(), s: bone.scale.clone() }));
   const layers = compiled.layers.map((layer) => ({ ...layer, tracks: layer.tracks.map((t) => {
     const bone = bones.find((candidate) => candidate.name === t.bone); if (bone === undefined) throw new Error('Missing skin layer bone');
-    return { ...t, bone, add: t.axis === 'x' ? addX : t.axis === 'y' ? addY : addZ };
+    return { ...t, bone };
   }) }));
   return {
     restore: () => { for (let i = 0; i < bones.length; i++) { const bone = bones[i], pose = base[i]; if (bone !== undefined && pose !== undefined) { bone.position.copy(pose.p); bone.quaternion.copy(pose.q); bone.scale.copy(pose.s); } } },
@@ -46,8 +41,18 @@ export function bindSkinPoseLayers(compiled: CompiledSkinPoseLayers, bones: read
             bone.quaternion.multiply(a).normalize();
           } else {
             const value = (values[lo] ?? 0) + ((values[hi] ?? 0) - (values[lo] ?? 0)) * blend;
-            if (track.property === 'rotation') { euler.setFromQuaternion(bone.quaternion, track.order); track.add(euler, value); bone.quaternion.setFromEuler(euler); }
-            else track.add(bone[track.property], value);
+            if (track.property === 'rotation') {
+              euler.setFromQuaternion(bone.quaternion, track.order);
+              if (track.axis === 'x') euler.x += value;
+              else if (track.axis === 'y') euler.y += value;
+              else euler.z += value;
+              bone.quaternion.setFromEuler(euler);
+            } else {
+              const target = bone[track.property];
+              if (track.axis === 'x') target.x += value;
+              else if (track.axis === 'y') target.y += value;
+              else target.z += value;
+            }
           }
         }
       }
