@@ -43,7 +43,7 @@ const hull = (row: ColliderDesc): NalatiCragTier['hulls'][number] => {
 /**
  * GR6: Nalati's crag rock over the native lattice, both tiers (the retired nalati-crags job's construction): `rows` as its
  * readers parse them, and `bin`, the shapes' lane-shuffled level-9 deflate bank committed at public/assets/nalati/baked/
- * crags.bin (rewritten by hand with bake-crag-rock.mjs when the crags change).
+ * crags.bin (rewritten by hand with scripts/bake-nalati-crags.mjs when the crags change).
  */
 export function nalatiCragRock(terrain: Uint8Array): { rows: NalatiCragRows; bin: Uint8Array } {
   const blocks: Uint8Array[] = [];
@@ -81,6 +81,6 @@ export async function nalatiCragRockProgram(ctx: Pick<ProjectGenerationContext, 
   if (lattice === undefined || committed === undefined) throw new Error('Missing Nalati crag inputs');
   const made = nalatiCragRock(lattice);
   if (made.bin.length !== committed.length || made.bin.some((value, i) => value !== committed[i]))
-    throw new Error('Committed crags.bin differs from the crag construction: run bake-crag-rock.mjs');
+    throw new Error('Committed crags.bin differs from the crag construction: run scripts/bake-nalati-crags.mjs');
   return made.rows;
 }

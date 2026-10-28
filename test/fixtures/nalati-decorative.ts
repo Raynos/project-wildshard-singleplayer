@@ -4,4 +4,4 @@ import { withPortableMath } from '../../src/commons/bake/portableMath';
 import { decorativeRows } from '../../src/shards/nalati-grasslands/generators/decorativeInput';
 
 /** Complete native profiles; no retired generated scene or decorative metadata is read. */
-export const nalatiDecorative = withPortableMath(() => decorativeRows(readFileSync('public/assets/baked/nalati-grasslands/terrain.bin')));
+export const nalatiDecorative: ReturnType<typeof decorativeRows> = withPortableMath(() => decorativeRows(readFileSync('public/assets/baked/nalati-grasslands/terrain.bin')));
