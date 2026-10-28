@@ -11,7 +11,7 @@ import { FERN_PAINT, LITTER_PAINT, MOSS_PAINT, REED_PAINT, SHRUB_PAINT, STONE_PA
 const ROWS: Readonly<Record<string, CanvasAtlasRow>> = { ferns: FERN_PAINT, shrubs: SHRUB_PAINT, litter: LITTER_PAINT, stones: STONE_PAINT, moss: MOSS_PAINT, reeds: REED_PAINT };
 
 /** Paint every ground-cover kind's texture from the level's `seed`, keyed by kind. */
-async function bakePineUndergrowth(seed: number, byteUrl: string): Promise<Record<string, PaintedBake>> {
+export async function bakePineUndergrowth(seed: number, byteUrl: string): Promise<Record<string, PaintedBake>> {
   const out: Record<string, PaintedBake> = {};
   for (const [kind, row] of Object.entries(ROWS)) {
     const canvas = document.createElement('canvas');
@@ -24,4 +24,3 @@ async function bakePineUndergrowth(seed: number, byteUrl: string): Promise<Recor
   return out;
 }
 
-Object.assign(window, { bakePineUndergrowth });

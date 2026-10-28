@@ -38,14 +38,14 @@ async function coat() {
 }
 
 /** one bake page's module, bundled on its own */
-async function bundlePage(file) {
-  const code = await bundleNativeRaster({ root: ROOT, entry: resolve(ROOT, 'src/shards/pine-hollow/generators', file), format: 'es', fileName: 'pinePaintedPage' });
+async function bundlePage(file, name) {
+  const code = await bundleNativeRaster({ root: ROOT, entry: resolve(ROOT, 'src/shards/pine-hollow/generators', file), format: 'iife', name, fileName: 'pinePaintedPage' });
   if (code === undefined) throw new Error(`bake-pine-painted: ${file} did not bundle`);
   return code;
 }
 
 async function page() {
-  const code = await bundlePage('paintedPage.ts'), underCode = await bundlePage('undergrowthPaintPage.ts');
+  const code = await bundlePage('paintedPage.ts', 'PinePainted'), underCode = await bundlePage('undergrowthPaintPage.ts', 'PineUndergrowth');
   const session = await openNativeRasterPage({ engine: 'chromium', args: ['--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
   try {
     const tab = session.page;
@@ -75,11 +75,11 @@ async function page() {
       await route.fulfill({ status: 204 });
     });
     await tab.goto(ORIGIN);
-    await tab.addScriptTag({ content: code, type: 'module' });
-    await tab.addScriptTag({ content: underCode, type: 'module' });
-    await tab.waitForFunction(() => 'bakePinePainted' in window && 'bakePineUndergrowth' in window, undefined, { timeout: 60000 });
-    const made = await tab.evaluate(({ seed, origin }) => window.bakePinePainted(seed, `${origin}chalk.webp`, `${origin}font.woff2`, `${origin}bytes/`), { seed: manifest.seed, origin: ORIGIN });
-    const under = await tab.evaluate(({ seed, origin }) => window.bakePineUndergrowth(seed, `${origin}bytes/`), { seed: manifest.seed, origin: ORIGIN });
+    await tab.addScriptTag({ content: code });
+    await tab.addScriptTag({ content: underCode });
+    await tab.waitForFunction(() => 'PinePainted' in window && 'PineUndergrowth' in window, undefined, { timeout: 60000 });
+    const made = await tab.evaluate(({ seed, origin }) => window.PinePainted.bakePinePainted(seed, `${origin}chalk.webp`, `${origin}font.woff2`, `${origin}bytes/`), { seed: manifest.seed, origin: ORIGIN });
+    const under = await tab.evaluate(({ seed, origin }) => window.PineUndergrowth.bakePineUndergrowth(seed, `${origin}bytes/`), { seed: manifest.seed, origin: ORIGIN });
     if (errors.length > 0) throw new Error(`bake-pine-painted: page errors: ${errors.join('; ')}`);
     const textures = {};
     const metadata = { ...made.textures, ...under };

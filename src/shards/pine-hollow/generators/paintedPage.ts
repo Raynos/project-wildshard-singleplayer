@@ -59,7 +59,7 @@ function load(src: string): Promise<HTMLImageElement> {
 }
 
 /** Paint every texture: `seed` the level's, `chalkAtlas` the outline atlas and `font` the hand font (same-origin file URLs). */
-async function bakePinePainted(seed: number, chalkAtlas: string, font: string, byteUrl: string): Promise<{ textures: Record<string, PaintedBake>; chalk: ChalkLayout }> {
+export async function bakePinePainted(seed: number, chalkAtlas: string, font: string, byteUrl: string): Promise<{ textures: Record<string, PaintedBake>; chalk: ChalkLayout }> {
   const face = new FontFace('WS Hand', `url(${font}) format("woff2")`, { weight: '600' });
   document.fonts.add(await face.load());
   const img = await load(chalkAtlas), def = JOURNAL;
@@ -106,4 +106,3 @@ async function bakePinePainted(seed: number, chalkAtlas: string, font: string, b
   };
 }
 
-Object.assign(window, { bakePinePainted });
