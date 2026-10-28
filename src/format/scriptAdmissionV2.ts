@@ -73,15 +73,20 @@ export interface ScriptAdmissionV2 {
 }
 /** G782: a page admits one module once per exact bytes and options. Nalati's crossing admitted its titan return module
  *  three or four times (220 ms of admission on a phone-4x cold crossing). Same bytes, same verdict; a refusal is never
- *  kept, and every hit compares the whole byte array. */
+ *  kept, and every hit compares the whole byte array. The key is the I/O size alone (T10): a runtime module has exactly
+ *  one work entry, so a requested lane admits only when it is the admitted one, and the contract (lane 'project'), the
+ *  projection and its ScriptModuleV2 (no lane) each inspected the same Nalati module again, ~5 ms an owner at phone 4x. */
 const RECENT_ADMISSIONS = 16, recentAdmissions: { readonly key: string; readonly bytes: Uint8Array; readonly admission: ScriptAdmissionV2 }[] = [];
 /** No instantiation, getters or initialization occurs during admission. The
  * runtime must still validate host-owned output regions before publishing. */
 export function admitScriptV2(bytes: Uint8Array,options: { readonly ioBytes?: number; readonly lane?: V2Lane; readonly compilerRevision?: number; readonly admissionRevision?: number } = {}): ScriptAdmissionV2 {
   if ((options.compilerRevision !== undefined && options.compilerRevision !== SCRIPT_V2_REVISIONS.compiler)
     || (options.admissionRevision !== undefined && options.admissionRevision !== SCRIPT_V2_REVISIONS.admission)) throw new Error('Unsupported v2 compiler/admission revision');
-  const key = `${String(options.lane)}:${String(options.ioBytes)}`, known = recentAdmissions.find(row => row.key === key && sameBytes(row.bytes,bytes));
-  if (known !== undefined) return { ...known.admission };
+  const key = String(options.ioBytes ?? 656), known = recentAdmissions.find(row => row.key === key && sameBytes(row.bytes,bytes));
+  if (known !== undefined) {
+    if (options.lane !== undefined && options.lane !== known.admission.lane) throw new Error('V2 lane has missing or extra work entries');
+    return { ...known.admission };
+  }
   const admission = inspectAdmission(bytes,options);
   recentAdmissions.unshift({ key,bytes: bytes.slice(),admission }); recentAdmissions.length = Math.min(recentAdmissions.length,RECENT_ADMISSIONS);
   return { ...admission };
