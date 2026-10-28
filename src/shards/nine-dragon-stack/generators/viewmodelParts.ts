@@ -7,12 +7,13 @@ import { ClassKit, type ClassLook, v3 } from './kit/classKit';
 import { tubeTopology, sheetTopology } from './kit/clothTopology';
 import viewmodel from '../data/decals.json' with { type: 'json' };
 import cloth from '../data/cloth.json' with { type: 'json' };
-import * as v from 'valibot';
+import { numberTupleRows } from '@wildshard/sdk/rows';
 
-const quad = v.tuple([v.number(), v.number(), v.number(), v.number()]);
-const breeze = v.tuple([v.number(), v.number(), v.number(), v.number(), v.number()]);
-const tuples = v.parse(v.object({ TASSEL: v.object({ strandTaper: quad, spread: quad, breezeX: breeze, breezeZ: breeze }),
-  TALISMAN: v.object({ flutter: breeze, sway: breeze }) }), cloth);
+const tuples = {
+  TASSEL: { strandTaper: numberTupleRows(cloth.TASSEL.strandTaper, 4), spread: numberTupleRows(cloth.TASSEL.spread, 4),
+    breezeX: numberTupleRows(cloth.TASSEL.breezeX, 5), breezeZ: numberTupleRows(cloth.TASSEL.breezeZ, 5) },
+  TALISMAN: { flutter: numberTupleRows(cloth.TALISMAN.flutter, 5), sway: numberTupleRows(cloth.TALISMAN.sway, 5) },
+};
 
 const classKit = (): ClassKit => new ClassKit({ fallback: viewmodel.classes.brass, glow: viewmodel.classes.glow });
 function tasselGeo(): BufferGeometry {

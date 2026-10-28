@@ -6405,7 +6405,7 @@ markup/expression grammar; these APIs construct no world, quest owner or UI.
 `bake/species.SpeciesGeometryCompiler` is the explicit loft/tube/skin/paint kernel port.
 `isLowPoly` and `toonPaint` read its owned author style set by `withSpeciesGeometry`;
 they lend no runtime registry. A recipe can take an independent compiler for native parity.
-`rows.numberArrayRows` and `numberTupleRows` admit numeric streams and three/four-word values
+`rows.numberArrayRows` and `numberTupleRows` admit numeric streams and three/four/five-word values
 through native number/array/tuple grammar, preserving signed zero and extra-word policy.
 The enclosing geometry schema still owns finiteness and spatial bounds.
 `buildingLookRows`, `buildingLifeRows` and `emptyBuildingLifeRows` admit

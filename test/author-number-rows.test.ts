@@ -7,11 +7,12 @@ function sparseNumbers(length: number): number[] { const rows: number[] = []; ro
 test('numeric tuple ports retain exact fixed-length native output types', () => {
   expectTypeOf(numberTupleRows([1, 2, 3], 3)).toEqualTypeOf<[number, number, number]>();
   expectTypeOf(numberTupleRows([1, 2, 3, 4], 4)).toEqualTypeOf<[number, number, number, number]>();
+  expectTypeOf(numberTupleRows([1, 2, 3, 4, 5], 5)).toEqualTypeOf<[number, number, number, number, number]>();
 });
 
-for (const width of [3, 4] as const) test(`native ${width}-word tuple admission and ownership stay exact`, () => {
-  const schema = width === 3 ? v.tuple([v.number(), v.number(), v.number()]) : v.tuple([v.number(), v.number(), v.number(), v.number()]);
-  for (const input of [[-0, 2, 3, 4], [Infinity, -Infinity, 0, 4], [1, 2, 3, 4, 5, 6]]) {
+for (const width of [3, 4, 5] as const) test(`native ${width}-word tuple admission and ownership stay exact`, () => {
+  const schema = width === 3 ? v.tuple([v.number(), v.number(), v.number()]) : width === 4 ? v.tuple([v.number(), v.number(), v.number(), v.number()]) : v.tuple([v.number(), v.number(), v.number(), v.number(), v.number()]);
+  for (const input of [[-0, 2, 3, 4, 5], [Infinity, -Infinity, 0, 4, 5], [1, 2, 3, 4, 5, 6]]) {
     const rows = numberTupleRows(input, width), native = v.parse(schema, input);
     expect(rows).toEqual(native); expect(rows).not.toBe(input);
     expect(Object.is(rows[0], -0)).toBe(Object.is(native[0], -0));
