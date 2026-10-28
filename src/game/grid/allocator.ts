@@ -41,10 +41,7 @@ export interface ResidencyClaim {
   readonly evictSync?: () => void;
 }
 /** A prepared eviction: commit disposes before uncharging; a throw preserves the claim. Abort keeps it. */
-export interface ResidencyEviction { commit: () => void; abort: () => void;
-  /** `commit` in steps, offered by an owner whose disposal can yield (a retained world, T10): one step per yield, its claim
-   *  charged until the last step; `reserveSteps` uses it, `reserve` always commits at once */
-  steps?: () => Generator<void, void> }
+export interface ResidencyEviction { commit: () => void; abort: () => void }
 /** A holder's handle on a claim. The last release frees the bytes. */
 export interface ResidencyLease {
   readonly id: string;
@@ -103,8 +100,6 @@ export class ResidencyAllocator {
   private evictableCredit = 0;
 
   private readonly playing: number;
-  /** claims whose eviction is running in steps (`reserveSteps`): still charged, never shared */
-  private readonly steppedEvictions = new Set<Entry>();
   private generation = 0;
   private evicting = false;
   constructor(options: { playing?: number; memory?: MemoryAdmission } = {}) {
@@ -143,9 +138,6 @@ export class ResidencyAllocator {
     this.validateCoverage(claim.id, claim.category, claim.bytes, claim.coveredBy);
     const existing = this.entries_.get(claim.id);
     if (existing !== undefined) {
-      // a claim whose owner disposes in steps (`reserveSteps`) is dropped at its last step: sharing it would lose the
-      // new holder's bytes then. Its owner admits again only after that (live.ts waits for the retirement).
-      if (this.steppedEvictions.has(existing)) throw new Error(`Residency claim ${claim.id} is still being evicted`);
       if (existing.category !== claim.category || existing.bytes !== claim.bytes || existing.baseCredit !== baseCredit) throw new Error(`Residency claim ${claim.id} changed shape`);
       existing.refs++; existing.needed ||= claim.needed; existing.distance = Math.min(existing.distance, claim.distance);
       this.refreshEviction(existing);
@@ -409,52 +401,6 @@ export class ResidencyAllocator {
     }
     if (errors.length > 1) throw new AggregateError(errors, 'Residency eviction failed', { cause: error });
     throw error;
-  }
-  /**
-   * `reserve`, with each prepared eviction that offers `steps` (a retained world's disposal) run one step per yield instead
-   * of at once (T10: a road's render admission in a drive disposed a whole world in one 118 ms frame). The same candidates in
-   * the same order; a claim is dropped only after its last step, so freed bytes never show before they are; the claim is
-   * then admitted as `reserve` would admit it now. Stopped early, unfinished evictions abort or finish on their own.
-   */
-  *reserveSteps(claim: ResidencyClaim): Generator<void, ResidencyLease | null> {
-    const extra = { ...claim, baseCredit: 0 };
-    if (this.evicting || this.entries_.has(claim.id) || this.fits(extra)) return this.reserve(claim);
-    let prepared: { entry: Entry; eviction: ResidencyEviction }[] | null;
-    this.evicting = true;
-    try { prepared = this.prepareEviction(extra); } finally { this.evicting = false; }
-    if (prepared === null) return this.reserve(claim);
-    // `settled`: every eviction committed, or a failure already aborted the rest; `active`: the stepped one now running
-    let index = 0, settled = false;
-    const active: { steps: Generator<void, void> | null } = { steps: null };
-    try {
-      for (; index < prepared.length; index++) {
-        const current = prepared[index];
-        if (current === undefined) throw new Error('Missing prepared eviction');
-        // another admission may have evicted or released it while this one yielded
-        if (this.entries_.get(current.entry.id) !== current.entry) { current.eviction.abort(); continue; }
-        try {
-          if (current.eviction.steps === undefined) {
-            this.evicting = true;
-            try { current.eviction.commit(); } finally { this.evicting = false; }
-          } else {
-            const steps = current.eviction.steps(); active.steps = steps;
-            this.steppedEvictions.add(current.entry);
-            try { for (let step = steps.next(); step.done !== true; step = steps.next()) yield; }
-            finally { this.steppedEvictions.delete(current.entry); }
-            active.steps = null;
-          }
-        } catch (error) { active.steps = null; settled = true; this.abortFrom(prepared, index, error); }
-        this.drop(current.entry);
-      }
-      settled = true;
-    } finally {
-      if (!settled) {
-        // stopped early: the running eviction finishes on its own (its owner drains it); the rest never started
-        active.steps?.return(undefined);
-        for (const { eviction } of prepared.slice(index + 1).reverse()) eviction.abort();
-      }
-    }
-    return this.reserve(claim);
   }
   /** the evictions that make room for `extra`, prepared farthest first; null (all aborted) when they cannot */
   private prepareEviction(extra: ResidencyClaim & { baseCredit: number }): { entry: Entry; eviction: ResidencyEviction }[] | null {

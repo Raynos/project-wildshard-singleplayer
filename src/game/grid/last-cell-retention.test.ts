@@ -3,7 +3,6 @@ import { BoxGeometry, Group } from 'three';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
 import { createSimHost, type SimLevel } from '@wildshard/engine/sim';
-import type { DisposeStep } from '@wildshard/engine/app/scope';
 import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import { GridAssembly } from './assembly';
 import { LiveGridHost } from './live';
@@ -15,13 +14,13 @@ const level: SimLevel = { version: 1, id: 'platform', seed: 1, ground: { size: 5
   player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: 30 }, entities: [], quests: [],
   weapon: { id: 'none', shape: { kind: 'point', radius: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
 
-async function fixture(options: { cap?: number; isolated?: boolean; beforeAdmit?: (instance: string, required: boolean) => Promise<void>; retireSteps?: number } = {}) {
+async function fixture(options: { cap?: number; isolated?: boolean; beforeAdmit?: (instance: string, required: boolean) => Promise<void> } = {}) {
   const rapier = await loadRapier(Uint8Array.from(fixtureBytes(new URL('../../../node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm', import.meta.url))));
   const assembly = new GridAssembly({ developer: false, devserver: false }), home = assembly.cell('driftwood-isle');
   const next = assembly.cells.find(cell => cell.instance !== home.instance);
   if (next === undefined) throw new Error('Missing second cell');
   const page = createSimHost(level, { rapier }), residency = new PageResidency(), created: string[] = [], disposed: string[] = [];
-  const objects = new Map<string, object>(), allocated: { instance: string; owners: string[] }[] = [], retiring: string[] = [];
+  const objects = new Map<string, object>(), allocated: { instance: string; owners: string[] }[] = [];
   const expiries: { run: () => void; delay: number; cancelled: boolean }[] = [];
   const control = { dispose: true, checkpoint: true };
   const player = { position: page.player.position, yaw: 0, health: page.player.health, owner: page.player, motor: page.releasePlayerMotor() };
@@ -40,15 +39,10 @@ async function fixture(options: { cap?: number; isolated?: boolean; beforeAdmit?
         created.push(cell.instance); objects.set(cell.instance, {});
         allocated.push({ instance: cell.instance, owners: [...residency.allocator.claims()].map(row => row.owner) });
         const host = createSimHost(level, { rapier, playerBody: false, ground: false });
-        const steps = options.retireSteps;
         return Promise.resolve({ host, checkpoint: () => control.checkpoint, dispose: () => {
           if (!control.dispose) throw new Error('Retirement refused');
           disposed.push(cell.instance); host.dispose();
-        }, ...(steps === undefined ? {} : { *retire(): Generator<DisposeStep, void> {
-          for (let i = 0; i < steps; i++) { retiring.push(`${cell.instance}:${String(i)}`); yield { scope: cell.instance, kind: 'disposers' }; }
-          if (!control.dispose) throw new Error('Retirement refused');
-          disposed.push(cell.instance); host.dispose();
-        } }) });
+        } });
       } }; },
   });
   const enter = async (instance: string): Promise<void> => { const frame = await live.prepare(null, instance); frame.commit(); };
@@ -57,7 +51,7 @@ async function fixture(options: { cap?: number; isolated?: boolean; beforeAdmit?
     const frame = await live.prepare(from, null); frame.commit(); return live.retainDeparted(from);
   };
   const settle = async (): Promise<void> => { live.beforeFixed(); await live.prefetch([]); };
-  return { live, home, next, assemblyPitch: assembly.pitch, residency, created, disposed, retiring, objects, allocated, expiries, control, enter, leave, settle,
+  return { live, home, next, assemblyPitch: assembly.pitch, residency, created, disposed, objects, allocated, expiries, control, enter, leave, settle,
     close: () => { control.dispose = true; live.dispose(); player.motor.dispose(); page.dispose(); residency.dispose(); } };
 }
 
@@ -128,66 +122,6 @@ test('allocator pressure durably evicts an unneeded kept world before admitting 
       expect(lease).not.toBeNull(); expect(f.disposed).toEqual([f.home.instance]);
       expect(f.live.state().retainedCell).toBeNull(); expect(f.live.ready(f.home.instance)).toBe(false);
     } finally { lease?.release(); }
-  } finally { f.close(); }
-});
-
-test('T10: a stepped reserve disposes the evicted kept world one step per yield, its claim charged until the last', async () => {
-  const f = await fixture({ retireSteps: 3 });
-  try {
-    await f.enter(f.home.instance); await f.leave();
-    const baseline = f.residency.allocator.ownerCost('pressure').playing;
-    const bytes = Math.floor((CONTENT_CAPS.playing - baseline) / CONTENT_CAPS.residentFactor) - 1000;
-    const world = (): boolean => f.residency.allocator.entries().some(row => row.owner !== 'pressure' && row.id.includes(f.home.instance));
-    expect(world()).toBe(true);
-    const steps = f.residency.allocator.reserveSteps({ id: 'pressure', owner: 'pressure', category: 'library', bytes, needed: true, distance: 0 });
-    let step = steps.next(), yields = 0;
-    while (step.done !== true) {
-      yields++;
-      // out of the residents (its readiness closed) at once, yet still charged and not yet disposed
-      expect(f.live.ready(f.home.instance)).toBe(false); expect(world()).toBe(true); expect(f.disposed).toEqual([]);
-      step = steps.next();
-    }
-    const lease = step.value;
-    try {
-      expect(yields).toBe(3); expect(f.retiring).toHaveLength(3);
-      expect(lease).not.toBeNull(); expect(f.disposed).toEqual([f.home.instance]); expect(world()).toBe(false);
-      expect(f.live.state().retainedCell).toBeNull();
-    } finally { lease?.release(); }
-  } finally { f.close(); }
-});
-
-test('T10: re-entering a world while its stepped eviction runs waits for it, then admits its own full claim', async () => {
-  const f = await fixture({ retireSteps: 3 });
-  try {
-    await f.enter(f.home.instance); await f.leave();
-    const baseline = f.residency.allocator.ownerCost('pressure').playing;
-    const bytes = Math.floor((CONTENT_CAPS.playing - baseline) / CONTENT_CAPS.residentFactor) - 1000;
-    const steps = f.residency.allocator.reserveSteps({ id: 'pressure', owner: 'pressure', category: 'library', bytes, needed: true, distance: 0 });
-    steps.next();
-    // the world is mid-disposal; its claim (same id as a new admission's) is still charged and must not be shared
-    let entered = false;
-    const reentry = f.enter(f.home.instance).then(() => { entered = true; return undefined; });
-    for (let i = 0; i < 20; i++) await Promise.resolve();
-    expect(entered).toBe(false); expect(f.disposed).toEqual([]);
-    let step = steps.next(); while (step.done !== true) step = steps.next();
-    step.value?.release();
-    await reentry;
-    expect(f.disposed).toEqual([f.home.instance]); expect(f.created.filter(id => id === f.home.instance)).toHaveLength(2);
-    expect(f.residency.allocator.entries().filter(row => row.owner === f.home.instance)).toHaveLength(1);
-  } finally { f.close(); }
-});
-
-test('T10: a stepped eviction whose disposal fails keeps the world charged and refuses the reserve', async () => {
-  const f = await fixture({ retireSteps: 2 });
-  try {
-    await f.enter(f.home.instance); await f.leave();
-    const baseline = f.residency.allocator.ownerCost('pressure').playing;
-    const bytes = Math.floor((CONTENT_CAPS.playing - baseline) / CONTENT_CAPS.residentFactor) - 1000;
-    f.control.dispose = false;
-    const steps = f.residency.allocator.reserveSteps({ id: 'pressure', owner: 'pressure', category: 'library', bytes, needed: true, distance: 0 });
-    expect(() => { for (let step = steps.next(); step.done !== true; step = steps.next()) { /* drained */ } }).toThrow('Retained world disposal failed');
-    expect(f.residency.allocator.entries().some(row => row.owner === 'pressure')).toBe(false);
-    expect(f.residency.allocator.entries().some(row => row.id.includes(f.home.instance))).toBe(true);
   } finally { f.close(); }
 });
 

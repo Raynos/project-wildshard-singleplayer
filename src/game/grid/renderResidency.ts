@@ -15,8 +15,6 @@ export interface PlatformRenderBytePlan {
 /** The look executes its existing builder only after this admission; register its resources on the supplied scope. */
 export interface PlatformRenderAdmission {
   allocate: <T>(plan: PlatformRenderBytePlan, build: (scope: Scope) => T) => T;
-  /** `allocate` whose admission may wait, in steps, for the evictions that make room (a retained world's disposal, T10) */
-  allocateSteps?: <T>(plan: PlatformRenderBytePlan, build: (scope: Scope) => T) => Generator<void, T>;
   /** Shrink only after native buffers are disposed; growth requires ordinary admission. */
   shrink?: (id: string, retainedBytes: number) => void;
 }
@@ -43,10 +41,6 @@ export class PlatformRenderResidency implements PlatformRenderAdmission {
 
   allocate<T>(plan: PlatformRenderBytePlan, build: (scope: Scope) => T): T {
     return this.adopt(plan, this.allocator.reserve(this.claim(plan)), build);
-  }
-  *allocateSteps<T>(plan: PlatformRenderBytePlan, build: (scope: Scope) => T): Generator<void, T> {
-    const claim = this.claim(plan);
-    return this.adopt(plan, yield* this.allocator.reserveSteps(claim), build);
   }
   private claim(plan: PlatformRenderBytePlan): ResidencyClaim {
     this.assertActive();
@@ -82,8 +76,7 @@ export class PlatformRenderResidency implements PlatformRenderAdmission {
 
 /** Admit before advancing a sliced builder; failure or cancellation disposes its resources before the claim. */
 export function* allocateRenderSteps<T>(admission: PlatformRenderAdmission, plan: PlatformRenderBytePlan, build: (scope: Scope) => Generator<void, T | undefined>): Generator<void, T | undefined> {
-  const start = (owner: Scope): { owner: Scope; steps: Generator<void, T | undefined> } => ({ owner, steps: build(owner) });
-  const admitted = admission.allocateSteps === undefined ? admission.allocate(plan, start) : yield* admission.allocateSteps(plan, start);
+  const admitted = admission.allocate(plan, owner => ({ owner, steps: build(owner) }));
   let completed = false;
   try {
     for (;;) {

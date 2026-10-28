@@ -11,7 +11,7 @@ export function startRoadSigns(parent: Scope, allocator: ResidencyAllocator, hom
   const layout = roadSignPaintLayout(signs), rows = [...layout.lines.values()], signature = JSON.stringify(rows), count = layout.width * layout.height;
   if (rows.length > 2048 || count > 16 * 1024 * 1024 || signature.length > 131072) return undefined;
   // Canvas + RGBA readback + final RG8 + conversion lookup; duplicated job text is bounded too.
-  // T10: claimed at once, not through allocator.reserveSteps: a stepped eviction here (6369cf2558) kept the evicted world
+  // T10: claimed at once: a stepped eviction here (6369cf2558, retired with the rest of it) kept the evicted world
   // resident while the drive's other admissions went on, raising the Pine drive's claims peak 182 -> 190-197 MB
   const lease = allocator.reserve({ id: `product:grid:road-signs:${home}${phase === 'outer' ? ':outer' : ''}`, category: 'product', owner: home,
     bytes: count * 10 + 131072 + signature.length * 4 + 1024, distance: 0, needed: true });

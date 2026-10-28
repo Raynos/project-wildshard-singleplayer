@@ -22,8 +22,7 @@ import type { RoadGrainSource } from './roadGrain';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import type { GridCell } from './assembly';
 import type { LookScope, RoadLayout } from './roadLayout';
-import { allocateRenderSteps, type PlatformRenderAdmission, type PlatformRenderBytePlan } from './renderResidency';
-import type { Scope } from '@wildshard/engine/app/scope';
+import { allocateRenderSteps, type PlatformRenderAdmission } from './renderResidency';
 import { installRoadLookSteps, RoadOverlayLight, type RoadLookState } from './roadLook';
 import { installVoidLook } from './voidLook';
 import { CURTAIN_FLOATS, curtainGeometry, curtainMaterial, curtainSource, gravel, riprap, seamSolidSteps, stone, strata, type SeamGeometryChannels, type SeamLookState, type SeamPiece } from './seamLook';
@@ -100,12 +99,6 @@ export async function installPlatformRoadSliced(input: PlatformRoadInput, pause:
   } finally { if (!completed) steps.return(undefined); }
 }
 
-/** the admission's stepped allocation (T10: it may wait for evictions in steps), its one-shot one without it */
-function* keyedAllocateSteps<T>(admission: PlatformRenderAdmission, plan: PlatformRenderBytePlan, build: (scope: Scope) => T): Generator<void, T> {
-  if (admission.allocateSteps === undefined) return admission.allocate(plan, build);
-  return yield* admission.allocateSteps(plan, build);
-}
-
 /** the layout's pieces standing at points `within` accepts (the rail stays: it belongs to the void floor) */
 function layoutWithin(layout: RoadLayout, within: (x: number, z: number) => boolean): RoadLayout {
   return { segments: layout.segments.filter(s => within(s.centre.x, s.centre.z)), junctions: layout.junctions.filter(j => within(j.centre.x, j.centre.z)),
@@ -133,7 +126,6 @@ function* platformRoadSteps(input: PlatformRoadInput): Generator<void, PlatformR
   if (allocationKey !== undefined && !/^[a-z][a-z0-9.-]{0,39}$/u.test(allocationKey)) throw new Error('Invalid road allocation namespace');
   const admission: PlatformRenderAdmission = allocationKey === undefined ? input.admission : {
     allocate: (plan, build) => input.admission.allocate({ ...plan, id: `${allocationKey}.${plan.id}` }, build),
-    ...(input.admission.allocateSteps === undefined ? {} : { allocateSteps: (plan, build) => keyedAllocateSteps(input.admission, { ...plan, id: `${allocationKey}.${plan.id}` }, build) }),
     ...(input.admission.shrink === undefined ? {} : { shrink: (id: string, bytes: number): void => { input.admission.shrink?.(`${allocationKey}.${id}`, bytes); } }),
   };
   const backing = input.tileBacking;

@@ -372,8 +372,8 @@ export class LiveGridHost {
       const admitted = timing === undefined ? await this.prefetchProduct(instance, true) : await timing.run('metadata', () => this.prefetchProduct(instance, true));
       admission = admitted;
       this.assertAlive();
-      // its previous world may still be retiring (a stepped eviction or `retire`): its claim, under the same id, is released
-      // only at its last step, so this admission's claim waits for it (T10 sliced eviction)
+      // its previous world may still be retiring (`retire`): its claim, under the same id, is released only at its last step,
+      // so this admission's claim waits for it
       for (let retiring = this.retiring.get(instance); retiring !== undefined; retiring = this.retiring.get(instance)) { await retiring.finished; this.assertAlive(); }
       // A failed disposal stays fully charged and blocks construction even if the pair's budget would fit.
       if ([...this.residents.values()].some((row) => row.disposalFailed === true)) throw new Error('Exclusive runtime awaits successful disposal');
@@ -456,14 +456,12 @@ export class LiveGridHost {
         bind(() => {
           if (this.residents.get(instance) !== resident) return null;
           const prepared = this.prepareUnload(instance);
-          if (prepared === null) return null;
-          const steps = prepared.steps;
-          return { abort: prepared.abort, commit: () => {
+          return prepared === null ? null : { abort: prepared.abort, commit: () => {
             prepared.commit();
             // A failed disposer keeps its full claim; never let allocator
             // eviction remove it merely because the callback returned.
             if (this.residents.get(instance) === resident) throw new Error('Retained world disposal failed');
-          }, ...(steps === undefined ? {} : { steps: () => this.checkedEviction(steps(), instance, resident) }) };
+          } };
         });
         resident.evictionBound = true;
       } catch { return false; }
@@ -656,13 +654,7 @@ export class LiveGridHost {
     try { if (!resident.disposalFailed && !this.checkpoint(instance)) return null; } catch { return null; }
     const checkpointMs = diagnosticNow() - checkpointStart;
     resident.evicting = true; let closed = false;
-    const retire = resident.region.retire;
-    return { abort: () => { if (closed) return; closed = true; resident.evicting = false; },
-      ...(retire === undefined || resident.disposalFailed === true ? {} : { steps: (): Generator<void, void> => {
-        if (closed) throw new Error('Residency eviction already settled');
-        closed = true; return this.evictionSteps(instance, resident, retire, checkpointMs);
-      } }),
-      commit: () => {
+    return { abort: () => { if (closed) return; closed = true; resident.evicting = false; }, commit: () => {
       if (closed) return; closed = true;
       this.ports.keepPrograms?.(instance);
       const disposeStart = diagnosticNow();
@@ -729,37 +721,6 @@ export class LiveGridHost {
       }
       this.finishRetirement(record, undefined);
     } catch (error) { this.finishRetirement(record, { error }); }
-  }
-  /** a stepped eviction, then the same check as its one-shot commit: a failed disposer keeps its full claim */
-  private *checkedEviction(steps: Generator<void, void>, instance: string, resident: Resident): Generator<void, void> {
-    yield* steps;
-    if (this.residents.get(instance) === resident) throw new Error('Retained world disposal failed');
-  }
-  /**
-   * T10: an allocator eviction of a world with stepped disposal, driven by the evicting caller one disposal step per yield
-   * (a road's render admission in a drive disposed a whole retained world in one 118 ms frame). The same order as `retire`:
-   * out of the residents first, its claim held until the last step, every later admission waiting on `sequence`. Left
-   * unfinished (the caller stopped), the rest drains on its own; a failure keeps the full claim, as `retire`'s does.
-   */
-  private *evictionSteps(instance: string, resident: Resident, retire: () => Generator<DisposeStep, void>, checkpointMs: number): Generator<void, void> {
-    const record = this.startRetirement(instance, resident, retire, checkpointMs);
-    let settle = (): void => undefined;
-    const finished = new Promise<void>(resolve => { settle = resolve; });
-    this.sequence = this.settle(Promise.all([this.sequence, finished]).then(() => undefined));
-    let ended = false;
-    try {
-      for (;;) {
-        if (record.done) { ended = true; return; }
-        let last: boolean;
-        try { last = this.advance(record); }
-        catch (error) { ended = true; this.finishRetirement(record, { error }); return; }
-        if (last) { ended = true; this.finishRetirement(record, undefined); return; }
-        yield;
-      }
-    } finally {
-      if (ended) settle();
-      else void this.drainRetirement(record).finally(settle);
-    }
   }
   private finishRetirement(record: RetiringRegion, failure: { readonly error: unknown } | undefined): void {
     if (record.done) return;
