@@ -1,7 +1,6 @@
-import { privateSceneRows as parsePrivateScene } from '@wildshard/sdk/worldScenes';
+import { privateSceneRows as parsePrivateScene, modelSceneSourceFile, bakedSceneSourceFile } from '@wildshard/sdk/worldScenes';
 import { QUEST_NPC } from './questNpc';
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
-import type { SceneModelSource, SceneBakeSource } from '@wildshard/game/shardfile/sceneSources';
+import type { NamedBlob } from '@wildshard/sdk/blobs';
 import * as files from './fileInventory';
 import { SKY_AO_FLOOR } from './modelFrames';
 import { BRIDGE_REST_URL, MILL_REST_URL, ISLET_POOL } from './restFiles';
@@ -14,6 +13,9 @@ import { skyFixedWorldColliders } from './fixedWorld';
 import { SKY_RIG_LIBRARY, SKY_MODEL_SPECIMENS } from './rigLibrary';
 import { GEAR_SCENE_ROWS } from './rows/gearModels';
 import { FAN_HELD_RECIPE } from './rows/heldWeapon';
+
+type SceneModelSource = Parameters<typeof modelSceneSourceFile>[1];
+type SceneBakeSource = Parameters<typeof bakedSceneSourceFile>[1];
 
 const { resources: _resources, attachments: _attachments, ...fanRecipe } = FAN_HELD_RECIPE;
 const { specimen: _fan, ...fan } = GEAR_SCENE_ROWS[0];
@@ -37,16 +39,15 @@ const bakeRows = Object.fromEntries(Object.entries(world.bakes).map(([id, row]) 
 const baked = { rows: bakeRows, urls: files.BAKED_URLS,
   placements: { rows: world.pieces, colliders: skyFixedWorldColliders() },
   materialLibrary: 'sky', attributes: { _shk: 'aShk', _farcloth: 'aFarCloth' } } satisfies SceneBakeSource;
-const json = (name: string, rows: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(rows)));
 /** Retain the complete native library while the caller supplies its owned geometry identity. */
 export function skyHeroSource(geometry: string, heroes: HeroLibraryRows): NamedBlob {
-  return json('world/sources/heroes.json', { rows: { meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: SKY_AO_FLOOR, geometryPools: [{ ...heroes.pool, url: geometry }], paintedModels: heroes.models } });
+  return modelSceneSourceFile('world/sources/heroes.json', { rows: { meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: SKY_AO_FLOOR, geometryPools: [{ ...heroes.pool, url: geometry }], paintedModels: heroes.models } });
 }
 /** Preserve the complete native library while replacing only its owned bridge, mill, fan and rest pool addresses. */
 export function skyModelSource(bridgeGeometry: string, millGeometry: string, fanGeometry: string, rigs?: SceneModelSource['rows']['rigs'], meshes?: Readonly<Record<'vane-post' | 'vane-rotor', string>>,
   rest: readonly { readonly url: string; readonly name: string }[] = []): NamedBlob {
   const owned = new Map(rest.map(pool => [pool.url, pool.name]));
-  return json('world/sources/sky.json', { ...sky, rows: { ...sky.rows,
+  return modelSceneSourceFile('world/sources/sky.json', { ...sky, rows: { ...sky.rows,
     ...(rigs === undefined ? {} : { rigs }),
     ...(meshes === undefined ? {} : { meshUrls: { ...sky.rows.meshUrls, ...meshes } }),
     geometryPools: sky.rows.geometryPools.map(pool => pool.url === BRIDGE_REST_URL ? { ...pool, url: bridgeGeometry }
@@ -55,10 +56,10 @@ export function skyModelSource(bridgeGeometry: string, millGeometry: string, fan
 }
 /** Retain every bake row and binding while the caller supplies its admitted geometry names. */
 export function skyBakeSource(urls: SceneBakeSource['urls']): NamedBlob {
-  return json('world/sources/bakes.json', { ...baked, urls });
+  return bakedSceneSourceFile('world/sources/bakes.json', { ...baked, urls });
 }
 export function skySourceBlobs(heroes: HeroLibraryRows): NamedBlob[] {
-  return [json('world/sources/sky.json', sky), skyHeroSource(heroes.pool.url, heroes), skyBakeSource(files.BAKED_URLS)];
+  return [modelSceneSourceFile('world/sources/sky.json', sky), skyHeroSource(heroes.pool.url, heroes), skyBakeSource(files.BAKED_URLS)];
 }
 export const SKY_SOURCE_LIBRARIES = [{ id: 'sky', kind: 'models', file: 'world/sources/sky.json' },
   { id: 'heroes', kind: 'models', file: 'world/sources/heroes.json' }, { id: 'bakes', kind: 'baked', file: 'world/sources/bakes.json' }] as const;

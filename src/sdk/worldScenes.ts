@@ -7,6 +7,9 @@ import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { WorldSceneSurfaceSchema, type WorldSceneSurface } from '@wildshard/format/worldSceneSurface';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
 import { parse } from 'valibot';
+import { SceneDrawsSchema, type SceneDrawsRows } from '@wildshard/format/sceneDraws';
+import type { SceneModelSource, SceneBakeSource } from '@wildshard/game/shardfile/sceneSources';
+import { nameBlob, type NamedBlob } from './blobs';
 import { ForestPageSchema, type ForestPageRows } from '@wildshard/format/forestPage';
 import { AdmissionLateSchema, type LateFile } from '@wildshard/format/admissionLate';
 import { BakedBuildingLookSchema, parseBuildingLifeRows as nativeBuildingLifeRows, emptyBuildingLifeRows as nativeEmptyBuildingLifeRows,
@@ -101,3 +104,18 @@ export function buildingLifeRows(input: unknown): ReturnType<typeof nativeBuildi
 
 /** A fresh native empty life batch; authored assembly owns every returned list. */
 export function emptyBuildingLifeRows(): ReturnType<typeof nativeEmptyBuildingLifeRows> { return nativeEmptyBuildingLifeRows(); }
+
+/** Admit complete authored effect draws through their existing geometry/material port grammar. */
+export function sceneDrawRows(input: unknown): SceneDrawsRows { return parse(SceneDrawsSchema, input); }
+
+/** Publish source-owned model/rig/held declarations with the native inventory limits.
+ * Preserve JSON property order and numeric spelling; runtime resource admission stays authoritative. */
+export function modelSceneSourceFile(name: string, input: SceneModelSource): NamedBlob {
+  if (input.rows.meshes.length > 256 || input.rows.hd.length > 256) throw new Error('Invalid declared model source');
+  return nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(input)));
+}
+/** Publish source-owned baked kinds, bindings and contacts with the native kind-table limit. */
+export function bakedSceneSourceFile(name: string, input: SceneBakeSource): NamedBlob {
+  if (Object.keys(input.rows).length > 128) throw new Error('Invalid declared bake source');
+  return nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(input)));
+}

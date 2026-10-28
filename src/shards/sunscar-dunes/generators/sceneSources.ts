@@ -1,12 +1,10 @@
-import * as v from 'valibot';
-import { SceneDrawsSchema } from '@wildshard/format/sceneDraws';
+import { sceneDrawRows, modelSceneSourceFile, bakedSceneSourceFile } from '@wildshard/sdk/worldScenes';
 import { FIRE_GRAPH_IDS } from './rows/fire';
 import { signalEmberBuffer } from './emberBuffers';
 import { placeEffects, type PlaceEffects } from './placeEffects';
 import type { CardGroupRow } from './rows/fireCards';
 import { QUEST_NPC } from './questNpc';
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
-import type { SceneModelSource, SceneBakeSource } from '@wildshard/game/shardfile/sceneSources';
+import type { NamedBlob } from '@wildshard/sdk/blobs';
 import * as models from './rows/files';
 import { SIGNAL_PIECES as pieces } from './rows/pieces';
 import * as surfaces from './rows/surfaces';
@@ -15,6 +13,8 @@ import { gearSceneRows } from './rows/gearModels';
 import { whipHeldRecipe } from './rows/heldWeapon';
 import { HD_GLOVE_SIZE } from './rows/whip';
 
+type SceneModelSource = Parameters<typeof modelSceneSourceFile>[1];
+type SceneBakeSource = Parameters<typeof bakedSceneSourceFile>[1];
 type ScenePiece = SceneBakeSource['rows'][string] & { readonly glb: string };
 /** Existing bake rows and the original specimen anchors; both published and owned inputs share this shape. */
 export type SceneWorldBakes = Readonly<Record<'rocks' | 'dressing' | 'tower' | 'caravan' | 'well' | 'lash' | 'braziers', ScenePiece>> & {
@@ -36,13 +36,12 @@ function effects(source: PlaceEffects | undefined) {
       draws.push({ kind: 'buffered', material: FIRE_GRAPH_IDS.embers, file: signalEmberBuffer(ember.count, ember.name), scale: ember.scale, y: ember.y }); cards(effect.rows.smoke);
     } else cards(effect.rows.halo);
     if (effect.pool !== null) draws.push({ kind: 'pool', material: FIRE_GRAPH_IDS.pool, geometry: { library: 'models', model: effect.pool } });
-    return { part: effect.part, draws: v.parse(SceneDrawsSchema, draws) };
+    return { part: effect.part, draws: sceneDrawRows(draws) };
   });
 }
 const bindings = placeEffects();
 const inputs = { dusk: 'dusk', lights: 'firelights' };
 const publicFiles = { urls: models.BAKED_URLS, resources: models.WORLD_BYTES };
-const json = (name: string, value: unknown) => nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(value)));
 /** Original models, material decorations and bakes from explicit world rows; no rendering builder is mirrored. */
 export function signalSceneSources(world: SceneWorldBakes, rigs: NonNullable<SceneModelSource['rows']['rigs']>, pools: NonNullable<SceneModelSource['rows']['geometryPools']>, files: { readonly urls: SceneBakeSource['urls']; readonly resources: NonNullable<SceneBakeSource['resources']> } = publicFiles): NamedBlob[] {
   if (pools.length !== 3 || new Set(pools.map(pool => pool.url)).size !== 3 || pools.some(pool => pool.parts.length === 0)) throw new Error('Missing original rest pool inventory');
@@ -64,7 +63,7 @@ export function signalSceneSources(world: SceneWorldBakes, rigs: NonNullable<Sce
     ...('warm' in kind && kind.warm === true ? { surface: surfaces.CAMP_SURFACE } : {}) })) }]));
   const baked = { rows, urls: files.urls, inputs, resources: files.resources,
     placements: { rows: pieces, colliders: world.braziers.braziers.map((row, index) => ({ id: `sunscar.brazier.${String(index)}`, colliders: row.colliders })) } } satisfies SceneBakeSource;
-  return [json('world/sources/models.json', library), json('world/sources/bakes.json', baked)];
+  return [modelSceneSourceFile('world/sources/models.json', library), bakedSceneSourceFile('world/sources/bakes.json', baked)];
 }
 export const SIGNAL_SOURCE_LIBRARIES = [{ id: 'models', kind: 'models', file: 'world/sources/models.json' },
   { id: 'bakes', kind: 'baked', file: 'world/sources/bakes.json' }] as const;
