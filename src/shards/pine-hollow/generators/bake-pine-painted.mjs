@@ -12,7 +12,7 @@
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { bundleNativeRaster } from '@wildshard/sdk/bake/nativeRaster';
+import { bundleNativeRaster, openNativeRasterPage } from '@wildshard/sdk/bake/nativeRaster';
 import { writeImagePixels } from '@wildshard/sdk/bake/image';
 import { COAT_SIZE, coatPixels } from './coatCanvas.ts';
 
@@ -46,10 +46,9 @@ async function bundlePage(file) {
 
 async function page() {
   const code = await bundlePage('paintedPage.ts'), underCode = await bundlePage('undergrowthPaintPage.ts');
-  const { chromium, devices } = await import('playwright');
-  const browser = await chromium.launch({ headless: true, args: ['--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
+  const session = await openNativeRasterPage({ engine: 'chromium', args: ['--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
   try {
-    const tab = await (await browser.newContext(devices['iPhone 16 Pro'])).newPage();
+    const tab = session.page;
     const errors = [];
     tab.on('pageerror', (e) => { errors.push(e.message); });
     const inputs = new Map([
@@ -91,7 +90,7 @@ async function page() {
       textures[key] = file;
     }
     return { textures, chalk: made.chalk };
-  } finally { await browser.close(); }
+  } finally { await session.dispose(); }
 }
 
 /** colour space and wrap per texture (the old painters' choices) */

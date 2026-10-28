@@ -1,5 +1,5 @@
 import { build } from 'vite';
-import { devices, webkit, type BrowserContextOptions, type Page } from 'playwright';
+import { devices, webkit, chromium, type BrowserContextOptions, type Page } from 'playwright';
 
 /** Setup operations required from a native reference page. */
 export interface NativeRasterPage {
@@ -8,7 +8,7 @@ export interface NativeRasterPage {
 }
 /** Explicit author browser factory; alternate hosts preserve the same setup and cleanup contract. */
 export interface NativeRasterHost<P extends NativeRasterPage> {
-  readonly launch: (options: { headless: true }) => Promise<{
+  readonly launch: (options: { headless: true; args?: string[] }) => Promise<{
     readonly newContext: (options: BrowserContextOptions | undefined) => Promise<{ readonly newPage: () => Promise<P> }>;
     readonly close: () => Promise<void>;
   }>;
@@ -26,6 +26,35 @@ export interface NativeRasterInput {
 }
 
 const nativeHost: NativeRasterHost<Page> = { launch: options => webkit.launch(options) };
+const chromiumHost: NativeRasterHost<Page> = { launch: options => chromium.launch(options) };
+
+/** An author page whose routes and document preparation remain caller-owned. */
+export interface NativeRasterBrowserInput {
+  readonly engine: 'webkit' | 'chromium';
+  readonly args?: readonly string[];
+}
+
+/** Open the original phone author context before the caller installs routes or navigates.
+ * Caller holds browser-lane; browser flags are copied before launch and setup refusals close partial resources. */
+export function openNativeRasterPage(input: NativeRasterBrowserInput): Promise<NativeRasterSession>;
+/** Use an explicit author host with the same profile, flag ownership and cleanup. */
+export function openNativeRasterPage<P extends NativeRasterPage>(input: NativeRasterBrowserInput, host: NativeRasterHost<P>): Promise<NativeRasterSession<P>>;
+export function openNativeRasterPage<P extends NativeRasterPage>(input: NativeRasterBrowserInput, host?: NativeRasterHost<P>): Promise<NativeRasterSession<P> | NativeRasterSession> {
+  return host === undefined ? openRasterPage(input.engine === 'chromium' ? chromiumHost : nativeHost, input.args) : openRasterPage(host, input.args);
+}
+
+async function openRasterPage<P extends NativeRasterPage>(host: NativeRasterHost<P>, args?: readonly string[]): Promise<NativeRasterSession<P>> {
+  const options = { headless: true as const, ...(args === undefined ? {} : { args: [...args] }) };
+  const browser = await host.launch(options);
+  try {
+    const context = await browser.newContext(devices['iPhone 16 Pro']);
+    const page = await context.newPage();
+    return { page, dispose: () => browser.close() };
+  } catch (error) {
+    await browser.close();
+    throw error;
+  }
+}
 
 /** Open the existing phone WebKit reference raster without installing a page/game service.
  * Snapshot input before yielding; release the browser if any preparation step refuses. */
@@ -38,15 +67,14 @@ export function openNativeRaster<P extends NativeRasterPage>(input: NativeRaster
 
 async function prepareNativeRaster<P extends NativeRasterPage>(input: NativeRasterInput, host: NativeRasterHost<P>): Promise<NativeRasterSession<P>> {
   const { html, source, module } = input;
-  const browser = await host.launch({ headless: true });
+  const session = await openRasterPage(host);
   try {
-    const context = await browser.newContext(devices['iPhone 16 Pro']);
-    const page = await context.newPage();
+    const { page } = session;
     await page.setContent(html);
     await page.addScriptTag(module === true ? { type: 'module', content: source } : { content: source });
-    return { page, dispose: () => browser.close() };
+    return session;
   } catch (error) {
-    await browser.close();
+    await session.dispose();
     throw error;
   }
 }

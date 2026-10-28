@@ -5937,6 +5937,9 @@ book/model lookup, canonical `nameSpecimenBook` JSON/schema, and fresh
 `paintCanvasAtlas` returns a mipmapped sRGB texture.
 `@wildshard/sdk/bake/nativeRaster.openNativeRaster` lends a phone WebKit
 page under browser-lane. Setup refusal/`dispose()` close it.
+`openNativeRasterPage` lends an unprepared route-owned page on explicit
+WebKit or Chromium, with copied launch flags and the same phone context.
+The caller retains document, route and native byte publication policy.
 `bundleNativeRaster` owns offline page compilation: explicit entry/root,
 ES/IIFE/name/fileName/side-effect policy; original target and no splitting.
 Painters and missing-code refusals remain caller-owned; no Vite plugin.

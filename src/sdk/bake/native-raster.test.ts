@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { devices } from 'playwright';
-import { openNativeRaster } from './nativeRaster';
+import { openNativeRaster, openNativeRasterPage } from './nativeRaster';
 
 function fixture() {
   const page = {
@@ -12,7 +12,7 @@ function fixture() {
     newContext: vi.fn((_options: unknown) => Promise.resolve(context)),
     close: vi.fn(() => Promise.resolve()),
   };
-  const launch = vi.fn((_options: { headless: true }) => Promise.resolve(browser));
+  const launch = vi.fn((_options: { headless: true; args?: string[] }) => Promise.resolve(browser));
   return { page, context, browser, launch, host: { launch } };
 }
 
@@ -40,13 +40,29 @@ test('native raster snapshots the document/code and preserves explicit module ta
   await session.dispose();
 });
 
-test.each(['context', 'document', 'script'] as const)('native raster closes partial resources when %s refuses', async step => {
+test.each(['context', 'page', 'document', 'script'] as const)('native raster closes partial resources when %s refuses', async step => {
   const native = fixture();
   const error = new Error(`Reference ${step} refused`);
   if (step === 'context') native.browser.newContext.mockRejectedValueOnce(error);
+  else if (step === 'page') native.context.newPage.mockRejectedValueOnce(error);
   else if (step === 'document') native.page.setContent.mockRejectedValueOnce(error);
   else native.page.addScriptTag.mockRejectedValueOnce(error);
   await expect(openNativeRaster({ html: '', source: '' }, native.host)).rejects.toBe(error);
+  expect(native.browser.close).toHaveBeenCalledTimes(1);
+});
+
+test('route-owned author pages snapshot launch flags and leave document preparation to the caller', async () => {
+  const native = fixture(), args = ['--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'];
+  const pending = openNativeRasterPage({ engine: 'chromium', args }, native.host);
+  args[0] = '--changed-after-launch';
+  const session = await pending;
+  expect(native.launch).toHaveBeenCalledWith({ headless: true,
+    args: ['--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
+  expect(native.browser.newContext).toHaveBeenCalledWith(devices['iPhone 16 Pro']);
+  expect(native.page.setContent).not.toHaveBeenCalled();
+  expect(native.page.addScriptTag).not.toHaveBeenCalled();
+  expect(session.page).toBe(native.page);
+  await session.dispose();
   expect(native.browser.close).toHaveBeenCalledTimes(1);
 });
 
