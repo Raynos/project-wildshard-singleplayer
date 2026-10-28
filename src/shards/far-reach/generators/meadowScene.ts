@@ -1,8 +1,11 @@
 import { unzlibSync } from 'fflate';
-import { parseSceneBuffers, type SceneBuffers } from '@wildshard/format/sceneBuffers';
+import { worldSceneBuffers as parseSceneBuffers } from '@wildshard/sdk/worldScenes';
+
 import { nameBlob } from '@wildshard/sdk/blobs';
 import { bakeMeadowBlades } from './meadowBlades';
 import { MEADOW, meadowCard } from './rows/meadowLook';
+
+type SceneBuffers = ReturnType<typeof parseSceneBuffers>;
 
 /** The original blade bytes, card channels and chunk LOD transforms, frozen before product compilation. */
 export function skyMeadowScene(publish: (id: string, bytes: Uint8Array) => { file: string; byteOffset: number }): SceneBuffers {

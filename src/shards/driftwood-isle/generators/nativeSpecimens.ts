@@ -2,14 +2,14 @@
 import { Box3, BufferGeometry, Group, Material, Mesh, MeshBasicMaterial, type Object3D, Vector3 } from 'three';
 import { createClientScene } from '@wildshard/game/plugin/scene';
 import { FigureRows } from '@wildshard/game/systems/npc/figureRows';
-import { worldSceneModels as parseWorldSceneModels } from '@wildshard/sdk/worldScenes';
+import { worldSceneModels as parseWorldSceneModels, worldSceneWeldRows as parseWorldSceneWeld } from '@wildshard/sdk/worldScenes';
 
-import { parseWorldSceneWeld, type WorldSceneWeldNode } from '@wildshard/format/worldSceneWeld';
 import { FIGURE_CATALOGUE } from './figureCatalogue';
 import { COUNTER_TOP } from './counterLayout';
 import { TRADER_SCENE } from './npcScenes';
 
 type WorldSceneModels = ReturnType<typeof parseWorldSceneModels>;
+type WorldSceneWeldNode = ReturnType<typeof parseWorldSceneWeld>['nodes'][number];
 
 const LIBRARY = 'native-specimens';
 const words = (values: readonly number[]): number[] => [...new Uint32Array(Float64Array.from(values).buffer)];

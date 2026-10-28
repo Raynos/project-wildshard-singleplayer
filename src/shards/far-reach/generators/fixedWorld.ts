@@ -2,7 +2,8 @@ import type { BakedColliderInput } from '@wildshard/game/shardfile/bakedKinds';
 import { skyBridgePhysicsPlacements } from './bridgeColliders';
 import { skyPhysicsPlacements } from './physicsPlacements';
 import { skyGroundValues, type SkyGroundValues } from './groundScene';
-import { parseWorldScene, type WorldSceneRecipe, type PrivateScene } from '@wildshard/format/clientChannels';
+import { worldSceneRecipe as parseWorldScene } from '@wildshard/sdk/worldScenes';
+
 import { restScenes } from './restScene';
 import { isletScenes } from './isletScene';
 import { crownScene } from './crownScene';
@@ -10,6 +11,9 @@ import { SKY_PIECES } from './worldRows';
 import { NOTES, WINCH, SUNREST, MILL } from "./layout";
 import { KEEPER_STAND } from './keeperStand';
 import { BOOK_STAND } from './rows/bookStand';
+
+type WorldSceneRecipe = ReturnType<typeof parseWorldScene>;
+type PrivateScene = WorldSceneRecipe['scene'];
 
 export interface FixedWorldRows {
   readonly recipe: WorldSceneRecipe; readonly models: readonly string[]; readonly textureOnly: readonly string[];
