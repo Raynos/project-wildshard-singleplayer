@@ -16,7 +16,9 @@ for (const row of originals) test(`${row.script} preserves every native command 
   expect(() => nineAuthorProgram(cwd(), row.script, source.replace("resolve(import.meta.dirname, '..')", "resolve(import.meta.dirname, '../outside')")))
     .toThrow('repository');
   expect(program(source.replace('decalAtlasPage.ts', 'wrongPage.ts'))).not.toBe(row.programSha256);
-  expect(program(source.replace('public/assets/nine-dragon/authored', 'public/assets/nine-dragon/elsewhere'))).not.toBe(row.programSha256);
+  const output = "resolve(root, 'public', source.url.slice(1))";
+  expect(source).toContain(output);
+  expect(program(source.replace(output, "resolve(root, 'elsewhere', source.url.slice(1))"))).not.toBe(row.programSha256);
   expect(program(source.replace("'--check'", "'--write'"))).not.toBe(row.programSha256);
   expect(program(source.replace('await session.dispose()', 'void session.dispose()'))).not.toBe(row.programSha256);
   expect(program(source.replace('!Buffer.from(image.pixels).equals(original)', 'false'))).not.toBe(row.programSha256);
