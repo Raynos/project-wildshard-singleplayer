@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
-import { BufferAttribute, BufferGeometry } from 'three';
-import { seamLookGeometrySteps, type SeamPiece } from '../src/game/grid/seamLook';
+import { BufferAttribute, BufferGeometry, Color } from 'three';
+import { SEAM_BUCKETS, seamLookGeometrySteps, seamSolidSteps, type SeamPiece } from '../src/game/grid/seamLook';
+import { linear, splitByKey, tintedPart, uniformPart, type GrainLayer } from '../src/game/grid/roadSolid';
 
 /** a strip of a jittered height grid: shared vertices, so normals accumulate across faces */
 function strip(seed: number, ox: number, oz: number): SeamPiece {
@@ -93,4 +94,33 @@ test('the final native index preserves feature order, first ownership and ground
     });
     expect(done.value.geometry.groups).toEqual(groups);
   } finally { done.value.geometry.dispose(); }
+});
+
+test('grouped seam parts retain every original split channel and local index', () => {
+  const a = strip(8, 7, -11), b = strip(19, -31, 23);
+  const kinds = ['deck', 'parapet', 'cliff', 'dike', 'guard-rail', 'road-wall'];
+  const pieces = [a, b].map((piece, pieceIndex): SeamPiece => ({ mesh: piece.mesh, features: kinds.map((kind, index) => ({ kind,
+    firstIndex: index * 30, indexCount: 30, sourceSurface: pieceIndex === 0 ? 'soil' : 'rock' })) }));
+  const home = { origin: { x: 5, z: -3 } }, layers: readonly GrainLayer[] = ['gravel', 'stone', 'strata', 'riprap', 'white', 'white'];
+  const surfaces = () => [0.3, 0.2, 0.7] as const;
+  const referenceSteps = seamLookGeometrySteps(pieces, home, surfaces);
+  let reference = referenceSteps.next(); while (!reference.done) reference = referenceSteps.next();
+  const geometry = reference.value.geometry, buckets = new Int8Array((geometry.index?.count ?? 0) / 3).fill(-1);
+  for (const group of geometry.groups) buckets.fill(group.materialIndex ?? 0, group.start / 3, (group.start + group.count) / 3);
+  const split = splitByKey(geometry, triangle => buckets[triangle] ?? 0, SEAM_BUCKETS.length);
+  const expected = split.flatMap((part, index) => {
+    const bucket = SEAM_BUCKETS[index]; if (part.indices.length === 0 || bucket === 'curtain') return [];
+    const layered = uniformPart(part, layers[index] ?? 'white', bucket === 'rail');
+    return [bucket === 'stone' ? tintedPart(layered, linear(0xc9c4b8)) : bucket === 'dike' ? tintedPart(layered, linear(0xe0dcd2)) : bucket === 'rail' ? tintedPart(layered, new Color(0x38e6ff).multiplyScalar(1.6)) : layered];
+  });
+  const steps = seamSolidSteps(pieces, home, surfaces); let actual = steps.next(); while (!actual.done) actual = steps.next();
+  expect(actual.value.state).toEqual(reference.value.state); expect(actual.value.parts).toHaveLength(expected.length);
+  for (const [index, part] of expected.entries()) for (const key of ['positions', 'normals', 'colours', 'uvs', 'grain', 'indices'] as const) {
+    const value = actual.value.parts[index]?.[key]; if (value === undefined) throw new Error('Missing seam part');
+    const bytes = (values: ArrayLike<number>): Buffer => Buffer.from(Uint8Array.from(new Uint8Array((key === 'indices' ? Uint32Array.from(values) : Float32Array.from(values)).buffer)));
+    expect(bytes(value)).toEqual(bytes(part[key]));
+  }
+  const curtain = split[SEAM_BUCKETS.indexOf('curtain')];
+  expect(actual.value.curtain.positions).toEqual(curtain?.positions); expect(actual.value.curtain.indices).toEqual(curtain?.indices);
+  geometry.dispose();
 });

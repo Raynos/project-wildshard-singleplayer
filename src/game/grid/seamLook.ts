@@ -255,13 +255,48 @@ void main() {
 const STONE = 0xc9c4b8, DIKE = 0xe0dcd2;
 const LAYER_OF: Readonly<Record<Exclude<SeamBucket, 'curtain'>, GrainLayer>> = { ground: 'gravel', stone: 'stone', rock: 'strata', dike: 'riprap', rail: 'white' };
 
+/** The private merge already has one ordered group per bucket. Retain that order
+ * without regrouping every triangle or boxing its final local indices. */
+function splitSeamGroups(geometry: BufferGeometry): Omit<ReturnType<typeof splitByKey>[number], 'source'>[] {
+  const index = geometry.getIndex(), position = geometry.getAttribute('position');
+  const capacity = position.count;
+  // Keep the general sparse path for unusually large caller-built seams. The
+  // one reused lookup is bounded by the splitter's existing transient limit.
+  if (index === null || !(index.array instanceof Uint32Array) || capacity * 4 > 16_000_000) {
+    const buckets = new Int8Array((index?.count ?? 0) / 3).fill(-1);
+    for (const group of geometry.groups) buckets.fill(group.materialIndex ?? 0, group.start / 3, (group.start + group.count) / 3);
+    return splitByKey(geometry, triangle => buckets[triangle] ?? 0, SEAM_BUCKETS.length);
+  }
+  const lookup = new Uint32Array(capacity);
+  const result: Omit<ReturnType<typeof splitByKey>[number], 'source'>[] = Array.from({ length: SEAM_BUCKETS.length }, () => ({ positions: new Float32Array(0), normals: new Float32Array(0), colours: new Float32Array(0), uvs: new Float32Array(0), indices: new Uint32Array(0) }));
+  for (const group of geometry.groups) {
+    const source: number[] = [], sparse = new Map<number, number>(), indices = new Uint32Array(group.count);
+    for (let corner = 0; corner < group.count; corner++) {
+      const vertex = index.array[group.start + corner] ?? 0;
+      let local = vertex < capacity ? (lookup[vertex] ?? 0) - 1 : sparse.get(vertex);
+      if (local === undefined || local < 0) {
+        local = source.length; source.push(vertex);
+        if (vertex < capacity) lookup[vertex] = local + 1; else sparse.set(vertex, local);
+      }
+      indices[corner] = local;
+    }
+    const pick = (name: string, size: number, fallback: number): Float32Array => {
+      const array = geometry.getAttribute(name).array, values = new Float32Array(source.length * size);
+      for (let ordinal = 0; ordinal < source.length; ordinal++) for (let channel = 0; channel < size; channel++) values[ordinal * size + channel] = array[(source[ordinal] ?? 0) * size + channel] ?? fallback;
+      return values;
+    };
+    result[group.materialIndex ?? 0] = { positions: pick('position', 3, 0), normals: pick('normal', 3, 0), colours: pick('color', 3, 1), uvs: pick('uv', 2, 0), indices };
+    for (const vertex of source) if (vertex < capacity) lookup[vertex] = 0;
+  }
+  return result;
+}
+
 /** `seamSolid` with the curtain still as arrays, so its geometry is built (and admitted, G144) by `roadLookPlatform.ts`; in
  *  steps (`seamLookGeometrySteps`), so the road's sliced install pauses inside it. */
 export function* seamSolidSteps(pieces: readonly SeamPiece[], home: { readonly origin: { readonly x: number; readonly z: number } }, surfaces?: SeamSurfaces, pitch: number = CONTENT_CAPS.pitch, channels?: SeamGeometryChannels): Generator<void, { parts: SolidPart[]; curtain: SeamCurtain; state: SeamLookState }> {
-  const { geometry, state } = yield* seamLookGeometrySteps(pieces, home, surfaces, pitch, channels), bucketOfTriangle = new Int8Array((geometry.getIndex()?.count ?? 0) / 3).fill(-1);
-  for (const g of geometry.groups) bucketOfTriangle.fill(g.materialIndex ?? 0, g.start / 3, (g.start + g.count) / 3);
+  const { geometry, state } = yield* seamLookGeometrySteps(pieces, home, surfaces, pitch, channels);
   yield;
-  const split = splitByKey(geometry, (t) => bucketOfTriangle[t] ?? 0, SEAM_BUCKETS.length), parts: SolidPart[] = [];
+  const split = splitSeamGroups(geometry), parts: SolidPart[] = [];
   yield;
   let curtain: SeamCurtain = { positions: new Float32Array(0), indices: new Uint32Array(0) };
   SEAM_BUCKETS.forEach((bucket, k) => {
