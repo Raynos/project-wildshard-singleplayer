@@ -25,6 +25,13 @@ function native(count = 257): { cells: PlatformCell[]; empty: StripProfile; stri
   return { cells, empty, strips: generatePlatform(cells, empty) };
 }
 const wire = (array: Float32Array | Uint32Array): Uint8Array => new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
+function sameWords(actual: ArrayBufferView | undefined, expected: ArrayBufferView | undefined): void {
+  if (actual === undefined || expected === undefined) throw new Error('Missing exact channel');
+  expect(actual.constructor).toBe(expected.constructor);
+  // Compare every byte, including signed zero, without enumerating numeric keys.
+  expect(Buffer.compare(new Uint8Array(actual.buffer, actual.byteOffset, actual.byteLength),
+    new Uint8Array(expected.buffer, expected.byteOffset, expected.byteLength))).toBe(0);
+}
 function sameStrips(actual: readonly GeneratedStrip[], expected: readonly GeneratedStrip[]): void {
   expect(actual.map(strip => strip.id)).toEqual(expected.map(strip => strip.id));
   for (const [index, source] of expected.entries()) {
@@ -78,9 +85,9 @@ test.each([256, 257])('baked seam channels retain every rendered word and bound 
     try {
       for (const name of ['position', 'normal', 'color', 'uv']) {
         const a = before.geometry.getAttribute(name).array, b = after.geometry.getAttribute(name).array;
-        expect(Buffer.from(b.buffer, b.byteOffset, b.byteLength)).toEqual(Buffer.from(a.buffer, a.byteOffset, a.byteLength));
+        sameWords(b, a);
       }
-      expect(after.geometry.getIndex()?.array).toEqual(before.geometry.getIndex()?.array);
+      sameWords(after.geometry.getIndex()?.array, before.geometry.getIndex()?.array);
       expect(after.geometry.groups).toEqual(before.geometry.groups);
       expect(after.geometry.boundingSphere).toEqual(before.geometry.boundingSphere);
       expect(after.state).toEqual(before.state);
@@ -95,7 +102,7 @@ test.each([256, 257])('baked seam channels retain every rendered word and bound 
   const oldBody = new Uint8Array(metadata.offset + metadata.vertices * 20); oldBody.set(page.body.bytes.subarray(0, metadata.offset));
   oldBody.set(wire(decoded.look.normals), metadata.offset); oldBody.set(wire(decoded.look.uvs), metadata.offset + metadata.vertices * 12);
   const old = decodeCompiledGridLook(oldHeader, oldBody, source, 'probe');
-  expect(old.look?.colours).toBeUndefined(); expect(old.look?.normals).toEqual(decoded.look.normals); expect(old.look?.uvs).toEqual(decoded.look.uvs);
+  expect(old.look?.colours).toBeUndefined(); sameWords(old.look?.normals, decoded.look.normals); sameWords(old.look?.uvs, decoded.look.uvs);
   const bad = page.body.bytes.slice(); new DataView(bad.buffer).setFloat32(metadata.offset, Number.NaN, true);
   expect(() => decodeCompiledGridLook(header, bad, source, 'probe')).toThrow('look channels');
   const wrongCount = structuredClone(header);
@@ -159,7 +166,7 @@ test.each([false, true])('only a completed exact page publishes arrays and a sco
     for (const channel of ['normals', 'uvs', 'colours'] as const) {
       const a = actual.look[channel], b = expected[channel];
       if (a === undefined || b === undefined) throw new Error('Missing exact look channel');
-      expect(wire(a)).toEqual(wire(b));
+      sameWords(a, b);
     }
     expect(allocator.entries().find(row => row.id.endsWith(':look-source'))?.bytes)
       .toBe(actual.look.normals.byteLength + actual.look.uvs.byteLength + (actual.look.colours?.byteLength ?? 0) + 1);

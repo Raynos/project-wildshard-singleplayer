@@ -95,3 +95,10 @@ test('compiler costs require the verified source and complete unique edge names'
     expect(fallback.edgeCosts).toBeUndefined(); expect(jsonDataHeapBytes(fallback.edges[0]?.[1])).toBe(bytes);
   }
 });
+
+test('wire fields cannot install a deferred reader or assert compiler facts', async () => {
+  const asset = await fixture('{"plans":[],"edges":[],"readPlans":"not a function capability","edgeCosts":{"source":"wire","rows":[]}}');
+  const data = await readGridSeamData(asset.address, () => Promise.resolve(new Response(asset.source)));
+  expect(data.plans).toEqual([]); expect(data.edges).toEqual([]);
+  expect(data.readPlans).toBeUndefined(); expect(data.edgeCosts).toBeUndefined();
+});
