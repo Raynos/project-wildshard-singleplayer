@@ -422,12 +422,19 @@ export class ShardDecisions {
       if (result.done !== undefined) { actor.setMotion(actor.yaw, 0); this.motions.delete(handle); this.host.enqueue(motion.binding, [10, handle, motion.move, Number(result.done), 0, 0]); }
     }
   }
+  // Native map visitors retain insertion/deletion order without allocating
+  // entry tuples on every fixed tick. Each owner installs its callbacks once.
+  private readonly observeStrike = (strike: Strike, handle: number): void => {
+    const runner = this.sim.strikes.get(requireValue(this.actors.get(handle), 'strike actor'));
+    if (runner?.busy === true) return;
+    this.striking.delete(handle); this.host.enqueue(strike.binding, [11, handle, strike.strike, Number(strike.hit), 0, 0]);
+  };
+  private readonly observeEncounter = (encounter: DecisionEncounter, id: string): void => {
+    const before = this.phases.get(id) ?? 0, phase = encounter.boss.phase;
+    this.phases.set(id, phase); if (phase !== before) { const row = requireValue(this.source.encounters.find(value => value.id === id), 'encounter'); this.publish([8, requireValue(this.names.get(row.entity), 'encounter actor'), phase, 0, 0, 0]); }
+  };
   private observe(): void {
-    for (const [handle, strike] of this.striking) {
-      const runner = this.sim.strikes.get(requireValue(this.actors.get(handle), 'strike actor'));
-      if (runner?.busy === true) continue;
-      this.striking.delete(handle); this.host.enqueue(strike.binding, [11, handle, strike.strike, Number(strike.hit), 0, 0]);
-    }
+    this.striking.forEach(this.observeStrike);
     for (const region of this.source.quests.triggers) {
       if (region.kind !== 'region') continue;
       const zone = requireValue(this.registries.zones?.get(region.id), 'zone');
@@ -451,10 +458,7 @@ export class ShardDecisions {
       if (control.phase !== before) for (const name of Object.values(row.actors))
         this.host.enqueue(index + 1, [8, requireValue(this.names.get(name), 'threshold actor'), control.phase, 0, 0, 0]);
     }
-    for (const [id, encounter] of this.encounters) {
-      const before = this.phases.get(id) ?? 0, phase = encounter.boss.phase;
-      this.phases.set(id, phase); if (phase !== before) { const row = requireValue(this.source.encounters.find(value => value.id === id), 'encounter'); this.publish([8, requireValue(this.names.get(row.entity), 'encounter actor'), phase, 0, 0, 0]); }
-    }
+    this.encounters.forEach(this.observeEncounter);
     if (this.movers !== undefined) for (const event of this.movers.drainEndEvents()) { const signal = this.registries.signals?.get(event.mover); if (signal !== undefined) this.publish([13, signal, Number(event.atEnd), 0, 0, 0]); }
   }
   /** Existing combat/interactions feed this queue; events never execute Wasm synchronously. */
