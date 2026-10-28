@@ -613,7 +613,7 @@ export function paintedLook(spec: PaintedLookSpec): LookStrategy {
         // out of the frame (E398), and a hidden source draws no rays.
         bind: (targets) => {
           if (spec.rays === undefined) targets.disc.visible = false;
-          air =() => (targets.underwater() ? null : targets.fog); live = targets;
+          air = () => (targets.underwater() ? null : targets.fog); live = targets;
           base.hemi = targets.hemi.intensity; base.fogSun.copy(targets.fogU.fogSunColor.value); base.haze.copy(targets.far.uHazeCol.value);
         },
         update: (dt: number) => {
