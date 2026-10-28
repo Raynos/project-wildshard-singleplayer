@@ -2169,7 +2169,7 @@ abstract class Tool extends Equipment { slot: 'tool' | 'offhand'; actions: reado
 | `EquipmentId`, `WeaponId`, `ToolId` | `'weapon.*'` / `'tool.*'` ids; `WeaponId` is a legacy slot from `EquipmentSlotMap` |
 | `EquipmentSlotMap`, `EquipmentIconMap`, `EquipmentTouchMap` | merge your slot, icon or touch mode into them |
 | `EquipContext`, `BlockSet`, `WeaponState`, `AimInfo`, `WeaponHooks`, `EquipmentAction`, `quiverState` | equipment plumbing |
-| `EquipmentService` | `app.equipment`: the loadout, `add`, `unlock`, swapping |
+| `EquipmentService` | `app.equipment`: the loadout, `add`, `unlock`, swapping; `availableInto(target)` fills a caller-owned array with live unlocked weapons in the same kit order. `available` still returns an independent array. |
 | `EquipmentHost` | `app.equipmentHost`: the scene/player ports and `viewmodel` root for camera-space equipment |
 
 `EquipmentService` accepts an explicit `input` binding port. The client session connects it to `app.input` and

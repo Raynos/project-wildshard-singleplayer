@@ -3,6 +3,7 @@ import { uiScope, mountUi } from './ownership';
 import { engineString } from '../strings';
 import type { EquipmentService } from '../combat/EquipmentService';
 import type { WeaponId } from '../combat/Equipment';
+import type { Weapon } from '../combat/Weapon';
 import { app } from '../app/runtime';
 
 /**
@@ -50,6 +51,9 @@ export class WeaponStrip {
   private readonly touch: boolean;
   private slots: Slot[] = [];
   private kitKey = '';
+  private readonly available: Weapon[] = [];
+  private shownIds: WeaponId[] = [];
+  private nextIds: WeaponId[] = [];
   private heldKey = '';
   // touch only: the ring's parts and the pie
   private ringIcon: SVGElement | null = null;
@@ -89,9 +93,18 @@ export class WeaponStrip {
   }
 
   update(): void {
-    const w = this.weapons, list = w.available;
-    const key = list.map((k) => k.id).join(',');
-    if (key !== this.kitKey) this.build(key);
+    const w = this.weapons, list = w.availableInto(this.available), ids = this.nextIds;
+    ids.length = list.length;
+    let changed = ids.length !== this.shownIds.length;
+    for (let index = 0; index < list.length; index++) {
+      const weapon = list[index]; if (weapon === undefined) throw new Error('Missing available weapon');
+      const id = weapon.id; ids[index] = id;
+      if (id !== this.shownIds[index]) changed = true;
+    }
+    if (changed) {
+      const key = ids.join(','); this.nextIds = this.shownIds; this.shownIds = ids;
+      if (key !== this.kitKey) this.build(key);
+    }
     const held = w.current.id;
     if (this.touch) {
       if (held !== this.heldKey) this.drawRing(held);
@@ -154,7 +167,7 @@ export class WeaponStrip {
       if (this.press !== null || !this.weapons.enabled) return;
       ring.setPointerCapture(e.pointerId);
       ring.classList.add('down');
-      const press = { id: e.pointerId, timer: 0, open: false };
+      const press: NonNullable<WeaponStrip['press']> = { id: e.pointerId, timer: 0, open: false };
       press.timer = this.scope.timeout(HOLD_MS, () => { press.open = true; this.openPie(); });
       this.press = press;
     });

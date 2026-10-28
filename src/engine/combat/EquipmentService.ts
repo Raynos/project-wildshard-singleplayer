@@ -185,6 +185,27 @@ export class EquipmentService implements WeaponHooks {
     const rank = (id: WeaponId) => { const i = order.indexOf(id); return i === -1 ? order.length : i; };
     return list.sort((a, b) => rank(a.id) - rank(b.id));
   }
+  private readonly compareAvailable = (a: Weapon, b: Weapon): number => {
+    const order = this.order; if (order === undefined) return 0;
+    const ai = order.indexOf(a.id), ar = ai === -1 ? order.length : ai;
+    const bi = order.indexOf(b.id), br = bi === -1 ? order.length : bi;
+    return ar - br;
+  };
+  /** Copy live unlocked weapons in the same order into a caller-owned array.
+   * The ordinary available getter retains its independent-array contract. */
+  availableInto(target: Weapon[]): Weapon[] {
+    const list = this.list, count = list.length;
+    if (target === list) throw new Error('Available equipment target must not be the installed list');
+    let length = 0;
+    for (let index = 0; index < count; index++) {
+      if (!(index in list)) continue;
+      const weapon = list[index]; if (weapon === undefined) throw new TypeError('Invalid installed weapon');
+      if (this.unlocked.has(weapon.id)) target[length++] = weapon;
+    }
+    target.length = length;
+    if (this.order !== undefined) target.sort(this.compareAvailable);
+    return target;
+  }
   unlock(id: Equipment['id']): void {
     if (this.unlocked.has(id) || !([...this.list, ...this.tools].some((w) => w.id === id))) return; // absent slots remain absent
     this.unlocked.add(id);
