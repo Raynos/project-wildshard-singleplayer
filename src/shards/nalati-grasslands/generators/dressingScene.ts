@@ -7,9 +7,8 @@ import { NALATI_FAR_HERD_CHANNELS } from './clientMotion';
 import { POI_CLEARINGS } from './clearings';
 import { KOKPAR, KURGANS, SUMMER_YURTS } from './layout';
 import * as THREE from 'three';
-import { zlibSync } from 'fflate';
-import { SceneDressingSchema, SceneBakedGeometrySchema,SceneFloorSchema, SceneDressingContactsSchema, type SceneDressingRows } from '@wildshard/format/sceneDressing';
-import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { encodePortableBytes } from '@wildshard/sdk/bake/portableBytes';
+import { authorFormatSchema, namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { writeGeometry, join } from './geometryWriter';
@@ -19,9 +18,19 @@ import { nalatiSpecimenRows } from './specimenRows';
 import contactInput from '../data/poiContacts.json' with {type:'json'};
 import atlases from '../data/signAtlases.json' with {type:'json'};
 import * as v from 'valibot';
-import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, SpecimenAssetSchema } from '@wildshard/format/specimenCatalogue';
-import { AmbientFlockSchema, AmbientPerchesSchema } from '@wildshard/format/ambientLife';
-import { PrivateSceneSchema } from '@wildshard/format/clientChannels';
+
+const SceneDressingSchema = authorFormatSchema('sceneDressing.SceneDressingSchema');
+const SceneBakedGeometrySchema = authorFormatSchema('sceneDressing.SceneBakedGeometrySchema');
+const SceneFloorSchema = authorFormatSchema('sceneDressing.SceneFloorSchema');
+const SceneDressingContactsSchema = authorFormatSchema('sceneDressing.SceneDressingContactsSchema');
+const SpecimenCatalogueSchema = authorFormatSchema('specimenCatalogue.SpecimenCatalogueSchema');
+const PackedSpecimenSchema = authorFormatSchema('specimenCatalogue.PackedSpecimenSchema');
+const SpecimenMaterialSchema = authorFormatSchema('specimenCatalogue.SpecimenMaterialSchema');
+const SpecimenAssetSchema = authorFormatSchema('specimenCatalogue.SpecimenAssetSchema');
+const AmbientFlockSchema = authorFormatSchema('ambientLife.AmbientFlockSchema');
+const AmbientPerchesSchema = authorFormatSchema('ambientLife.AmbientPerchesSchema');
+const PrivateSceneSchema = authorFormatSchema('clientChannels.PrivateSceneSchema');
+type SceneDressingRows = v.InferOutput<typeof SceneDressingSchema>;
 
 const text=v.string(),number=v.number(),xyz=v.tuple([number,number,number]);
 const memberSchema=v.object({draw:v.picklist(['instanced','merged']),placements:v.array(v.object({x:number,y:number,z:number,yaw:v.exactOptional(number),heading:v.exactOptional(v.tuple([number,number])),matrix:v.exactOptional(v.array(number))})),boxes:v.array(number),floors:v.array(SceneFloorSchema),solid:v.array(v.unknown()),descs:v.array(v.unknown())});
@@ -203,12 +212,12 @@ function clothGeometry(prepared:ReturnType<typeof readPreparedDressing>['prepare
 export function dressingSceneBlobs(input:unknown,runtime:unknown,balbal:unknown,specimens:unknown,paintRows:unknown,coverRows:unknown,cragRows:NalatiCragRows,cragFiles?:Readonly<Record<'phone'|'desktop',string>>):ReturnType<typeof nameBlob>[] {
   const profiles=v.parse(decorativeProfiles,input),prepared=readPreparedDressing(runtime),binaries=new Map<string,ReturnType<typeof nameBlob>>();
   const source:ContactSource=raw=>{
-    const bytes=zlibSync(raw),file=`world/dressing-contacts/${hashImmutableBytes(bytes)}.bin`;
+    const bytes=encodePortableBytes(raw,6),file=`world/dressing-contacts/${hashImmutableBytes(bytes)}.bin`;
     if(!binaries.has(file))binaries.set(file,nameBlob(file,'bin',bytes,{decoded:raw.byteLength}));
     return{file};
   };
   const cloth:ClothSource=raw=>{
-    const bytes=zlibSync(shuffleNalatiWords(raw)),file=`world/dressing-cloth/${hashImmutableBytes(bytes)}.bin`;
+    const bytes=encodePortableBytes(shuffleNalatiWords(raw),6),file=`world/dressing-cloth/${hashImmutableBytes(bytes)}.bin`;
     if(!binaries.has(file))binaries.set(file,nameBlob(file,'bin',bytes,{decoded:raw.byteLength}));
     return{kind:'baked-file',file};
   };

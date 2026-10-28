@@ -57,7 +57,9 @@ export async function sectionSchemaTables(root,slug) {
     if(node.type==='ImportDeclaration') {
       if(!('source' in node)||typeof node.source!=='object'||node.source===null||!('value' in node.source))throw new Error('Invalid schema import');
       const spec=node.source.value;
-      if(typeof spec!=='string'||spec!=='valibot'&&!(spec.startsWith('@wildshard/format/')&&Object.hasOwn(published,`./${spec.slice('@wildshard/format/'.length)}`)))throw new Error('Schema registry imports only valibot and public format schemas');
+      const authorSelector=spec==='@wildshard/sdk/formatJsonSchema'&&'specifiers' in node&&Array.isArray(node.specifiers)
+        &&node.specifiers.length===1&&node.specifiers.every(binding=>binding.type==='ImportSpecifier'&&binding.imported.type==='Identifier'&&binding.imported.name==='authorFormatSchema');
+      if(typeof spec!=='string'||spec!=='valibot'&&!authorSelector&&!(spec.startsWith('@wildshard/format/')&&Object.hasOwn(published,`./${spec.slice('@wildshard/format/'.length)}`)))throw new Error('Schema registry imports only valibot and public format schemas or the finite author selector');
     }
     for(const child of Object.values(node)) {
       if(Array.isArray(child))for(const item of child)visit(item);

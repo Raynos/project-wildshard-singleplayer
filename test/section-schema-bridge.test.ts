@@ -80,6 +80,23 @@ it('refuses runtime dependencies and unknown custom predicates instead of droppi
   }finally{rmSync(root,{recursive:true,force:true});}
 });
 
+it('admits only the finite defining author selector from the SDK',async()=>{
+  const {root,source}=fixture();
+  try {
+    writeFileSync(source,"import {authorFormatSchema as schema} from '@wildshard/sdk/formatJsonSchema'; export const ProbeSchema=schema('sceneDressing.SceneFloorSchema'); export const SECTIONS={'custom/probe':ProbeSchema};");
+    const first=await sectionSchemaTables(root,'sample');
+    expect(first.report.schemas).toBe(1);
+    expect(first.tables['src/shards/sample/generators/sectionSchemas.ts']).toContain('"custom/probe"');
+    expect(first.tables['src/shards/sample/runtime/productSections.d.ts']).not.toContain('valibot');
+    for(const binding of ['* as sdk','sdk','{formatJsonSchema}','{authorFormatSchema,formatJsonSchema}','{}']) {
+      writeFileSync(source,`import ${binding} from '@wildshard/sdk/formatJsonSchema'; export const SECTIONS={};`);
+      await expect(sectionSchemaTables(root,'sample')).rejects.toThrow('finite author selector');
+    }
+    writeFileSync(source,"import {authorFormatSchema} from '@wildshard/sdk/formatJsonSchema'; export const SECTIONS={'custom/probe':authorFormatSchema('missing.Schema')};");
+    await expect(sectionSchemaTables(root,'sample')).rejects.toThrow('Unknown author format');
+  }finally{rmSync(root,{recursive:true,force:true});}
+});
+
 it('keeps held semantic refusals on the public platform schema',()=>{
   expect(Object.keys(WIRE_SCHEMAS)).toEqual(Object.keys(runtime));
   expect(Object.keys(WIRE_SCHEMAS)).toEqual(Object.keys(runtime));

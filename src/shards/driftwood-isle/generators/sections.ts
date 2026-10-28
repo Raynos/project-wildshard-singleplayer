@@ -3,10 +3,19 @@
 
 
 import * as v from 'valibot';
-import { CollectionDisplaysSchema , type CollectionDisplaysRowsInput as CollectionDisplaysRowsInputType, type CollectionDisplaysRows as CollectionDisplaysRowsType } from '@wildshard/format/collectionDisplay';
-import { AmbientFlockSchema , type AmbientFlockData as AmbientFlockDataType } from '@wildshard/format/ambientLife';
-import { BodySlotsSchema , type BodySlotsData as BodySlotsDataType } from '@wildshard/format/bodySlots';
-import { ResolvedIslandLibrarySchema , type ResolvedIslandLibraryRowsInput as ResolvedIslandLibraryRowsInputType, type ResolvedIslandLibraryRows as ResolvedIslandLibraryRowsType } from '@wildshard/format/islandLibrary';
+import { authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
+
+const CollectionDisplaysSchema = authorFormatSchema('collectionDisplay.CollectionDisplaysSchema');
+type CollectionDisplaysRowsInputType = v.InferInput<typeof CollectionDisplaysSchema>;
+type CollectionDisplaysRowsType = v.InferOutput<typeof CollectionDisplaysSchema>;
+const AmbientFlockSchema = authorFormatSchema('ambientLife.AmbientFlockSchema');
+type AmbientFlockDataType = v.InferOutput<typeof AmbientFlockSchema>;
+const BodySlotsSchema = authorFormatSchema('bodySlots.BodySlotsSchema');
+type BodySlotsDataType = v.InferOutput<typeof BodySlotsSchema>;
+const ResolvedIslandLibrarySchema = authorFormatSchema('islandLibrary.ResolvedIslandLibrarySchema');
+type ResolvedIslandLibraryRowsInputType = v.InferInput<typeof ResolvedIslandLibrarySchema>;
+type ResolvedIslandLibraryRowsType = v.InferOutput<typeof ResolvedIslandLibrarySchema>;
+
 
 const text = v.pipe(v.string(), v.maxLength(512));
 const number = v.number();

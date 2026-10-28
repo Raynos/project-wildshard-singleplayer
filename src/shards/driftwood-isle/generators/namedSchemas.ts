@@ -1,11 +1,16 @@
-import { MixedPopulationSchema } from '@wildshard/format/mixedPopulation';
-import { NativeQuestCompositionSchema } from '@wildshard/format/nativeQuestComposition';
-import { HEADLESS_ASSEMBLY_JSON_SCHEMA, ReturnProgramSchema, PageReturnRowsSchema, QuestTraderSchema, PosedLibrarySchema } from '@wildshard/format/namedJsonContracts';
 import * as v from 'valibot';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
-import { namedFormatJsonSchema, namedJsonSchema, composeNamedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { authorFormatSchema, namedFormatJsonSchema, namedJsonSchema, composeNamedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { EnemyPlacementsSchema, FixedGeometryGroupsSchema } from './sections';
 import type { DriftwoodFixedLayouts } from './fixedLayouts';
+
+const MixedPopulationSchema = authorFormatSchema('mixedPopulation.MixedPopulationSchema');
+const NativeQuestCompositionSchema = authorFormatSchema('nativeQuestComposition.NativeQuestCompositionSchema');
+const HEADLESS_ASSEMBLY_JSON_SCHEMA = authorFormatSchema('namedJsonContracts.HEADLESS_ASSEMBLY_JSON_SCHEMA');
+const ReturnProgramSchema = authorFormatSchema('namedJsonContracts.ReturnProgramSchema');
+const PageReturnRowsSchema = authorFormatSchema('namedJsonContracts.PageReturnRowsSchema');
+const QuestTraderSchema = authorFormatSchema('namedJsonContracts.QuestTraderSchema');
+const PosedLibrarySchema = authorFormatSchema('namedJsonContracts.PosedLibrarySchema');
 
 const text = v.string(), number = v.number();
 const layoutNumber = v.pipe(v.number(), v.finite());
