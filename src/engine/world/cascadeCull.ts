@@ -73,22 +73,38 @@ const cross = (o: [number, number], a: [number, number], b: [number, number]): n
 /** Andrew's monotone chain: the convex hull of `pts` (sorted in place), counter-clockwise, flat into `out`; `lower` and
  *  `upper` are the caller's scratch chains */
 function hull(pts: [number, number][], lower: [number, number][], upper: [number, number][], out: number[]): void {
-  pts.sort(byXY);
-  lower.length = 0; upper.length = 0;
+  // A cascade supplies eight private points. Stable insertion order matches
+  // native sort without allocating its per-frame temporary array. Keep the
+  // original native path for non-finite/other-sized future inputs.
+  let finite = pts.length <= 8;
+  for (const point of pts) if (!Number.isFinite(point[0]) || !Number.isFinite(point[1])) { finite = false; break; }
+  if (!finite) pts.sort(byXY);
+  else for (let index = 1; index < pts.length; index++) {
+    const point = pts[index]; if (point === undefined) continue;
+    let at = index;
+    while (at > 0) {
+      const previous = pts[at - 1]; if (previous === undefined || !(byXY(previous, point) > 0)) break;
+      pts[at--] = previous;
+    }
+    pts[at] = point;
+  }
+  // Retain chain/output backing stores between frames. Pop the logical cursor;
+  // truncate only once at the end, releasing every no-longer-used point.
+  let lowerCount = 0, upperCount = 0, used = 0;
   for (const p of pts) {
-    while (lower.length >= 2) { const a = lower[lower.length - 2], b = lower[lower.length - 1]; if (a === undefined || b === undefined || cross(a, b, p) > 0) break; lower.pop(); }
-    lower.push(p);
+    while (lowerCount >= 2) { const a = lower[lowerCount - 2], b = lower[lowerCount - 1]; if (a === undefined || b === undefined || cross(a, b, p) > 0) break; lowerCount--; }
+    lower[lowerCount++] = p;
   }
   for (let i = pts.length - 1; i >= 0; i--) {
     const p = pts[i];
     if (p === undefined) continue;
-    while (upper.length >= 2) { const a = upper[upper.length - 2], b = upper[upper.length - 1]; if (a === undefined || b === undefined || cross(a, b, p) > 0) break; upper.pop(); }
-    upper.push(p);
+    while (upperCount >= 2) { const a = upper[upperCount - 2], b = upper[upperCount - 1]; if (a === undefined || b === undefined || cross(a, b, p) > 0) break; upperCount--; }
+    upper[upperCount++] = p;
   }
-  lower.pop(); upper.pop();
-  out.length = 0;
-  for (const p of lower) out.push(p[0], p[1]);
-  for (const p of upper) out.push(p[0], p[1]);
+  lowerCount = Math.max(0, lowerCount - 1); upperCount = Math.max(0, upperCount - 1);
+  for (let index = 0; index < lowerCount; index++) { const p = lower[index]; if (p !== undefined) { out[used++] = p[0]; out[used++] = p[1]; } }
+  for (let index = 0; index < upperCount; index++) { const p = upper[index]; if (p !== undefined) { out[used++] = p[0]; out[used++] = p[1]; } }
+  lower.length = lowerCount; upper.length = upperCount; out.length = used;
 }
 
 /**
