@@ -70,3 +70,18 @@ test('a raw look refuses an absent file reader before publishing',async()=>{
   await expect(postGraphLook(product,{file:'look/post.json',field:[]})).rejects.toThrow('file reader required');
   expect(()=>paintedWorldOf(product.slug)).toThrow('No painted world');
 });
+
+test('the selected channel bank must settle before a non-play look is published',async()=>{
+  const selected=grassPresentationFiles(grassRows,TIER),last=selected.at(-1);
+  if(last===undefined)throw new Error('Missing selected grass bank');
+  let enter:()=>void=()=>{throw new Error('Missing entry fence');},finish:(bytes:Uint8Array)=>void=()=>{throw new Error('Missing byte fence');};
+  const entered=new Promise<void>(resolve=>{enter=resolve;}),pending=new Promise<Uint8Array>(resolve=>{finish=resolve;});
+  const reads:string[]=[],product={slug:'non-play-selected-grass',json:()=>Promise.resolve(rawLook()),file:(file:string):Promise<Uint8Array>=>{
+    reads.push(file);const bytes=GRASS_FILES.get(file);if(bytes===undefined)throw new Error('Missing original grass bytes');
+    if(file===last){enter();return pending;}return Promise.resolve(bytes);
+  }};
+  const work=postGraphLook(product,{file:'look/post.json',field:[]});await entered;
+  expect(reads).toEqual(selected);expect(()=>paintedWorldOf(product.slug)).toThrow('No painted world');
+  const bytes=GRASS_FILES.get(last);if(bytes===undefined)throw new Error('Missing original channel bank');
+  finish(bytes);await work;expect(paintedWorldOf(product.slug).grass.input).toEqual(grassRows);
+});
