@@ -164,7 +164,9 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
 
 test('feature module facts follow literal rows and share one file table', () => {
   const actual = clientFeatureImports(readFileSync('src/game/shardfile/clientPlan.ts', 'utf8'));
-  expect(actual['world.scenes']).toEqual(['./worldScenes']);
+  // Hostless plans need the driver before controls (18aaab1583). worldScenes
+  // already imports it statically, so this explicit root adds no JS payload.
+  expect(actual['world.scenes']).toEqual(['./worldScenes', './tileDriver']);
   expect(actual['world.dressing']).toEqual(['./sceneDressing']);
   expect(clientFeatureImports(`export const CLIENT_FEATURES = {
     'world.first': { install: () => import('./first'), play: { install: () => import('./first') } },
@@ -180,4 +182,18 @@ test('feature module facts follow literal rows and share one file table', () => 
   expect(bank.groups['strings.register']).toEqual([]);
   expect(bank.groups['world.first']?.map(index => bank.files[index])).toEqual([['/assets/first.js',5],['/assets/shared.js',6]]);
   expect(bank.groups['world.second']?.map(index => bank.files[index])).toEqual([['/assets/second.js',6],['/assets/shared.js',6]]);
+});
+
+
+test('an explicit scene driver root adds no files or bytes to the scene static closure', () => {
+  const bundle = {
+    'assets/scenes.js': { type: 'chunk', code: 'scenes', modules: { '/worldScenes.ts': {} }, imports: ['assets/tiles.js'] },
+    'assets/tiles.js': { type: 'chunk', code: 'tiles', modules: { '/tileDriver.ts': {} }, imports: ['assets/shared.js'] },
+    'assets/shared.js': { type: 'chunk', code: 'shared' },
+    'assets/main.css': { type: 'asset', source: 'css' },
+    'assets/optional.js': { type: 'chunk', code: 'not booted', modules: { '/optional.ts': {} } },
+  };
+  const scenes = bootModuleFiles(bundle, ['/worldScenes.ts']);
+  expect(bootModuleFiles(bundle, ['/worldScenes.ts', '/tileDriver.ts'])).toEqual(scenes);
+  expect(scenes).toEqual([['/assets/main.css', 3], ['/assets/scenes.js', 6], ['/assets/shared.js', 6], ['/assets/tiles.js', 5]]);
 });
