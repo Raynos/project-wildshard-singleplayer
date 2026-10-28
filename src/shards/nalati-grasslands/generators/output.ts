@@ -288,6 +288,11 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
     return bytes;
   };
   const speciesBank = nameBlob('actors/bodies.bin', 'bin', speciesFile('bodies.bin'), { decoded: speciesRows.packedBodies.bytes });
+  // Validate independent producer inventories before rebuilding grass and
+  // assembling the scene. Invalid inputs never need those unrelated outputs.
+  const placements = emitNamedBlobs(nalatiDressingPlacementBlobs(await nalatiDressingPlacementProgram(ctx)));
+  const placeFiles = await nalatiPlacesProgram(ctx, 'i3');
+  const decorativeFiles = await nalatiDecorativeProgram(ctx);
   const renderFiles = await nalatiRenderTileProgram(ctx);
   const renderPairs = NALATI_L1_PAIRS.map(row => {
     const bytes = renderFiles.get(row.source);
@@ -327,9 +332,8 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
   const executable = heldModule(heldRows.held);
   const held = [nameBlob(heldWitness.name, 'bin', speciesFile('held-witness.bin'), heldWitness.options),
     nameBlob(executable.name, 'wasm', speciesFile('held-weapons.wasm'), executable.options)];
-  const placements = emitNamedBlobs(nalatiDressingPlacementBlobs(await nalatiDressingPlacementProgram(ctx)));
   // iPhone downloads I3: the shipped places bake carries byte normals and colours (nalati-places-i3.ts is its oracle)
-  const placeFiles = await nalatiPlacesProgram(ctx, 'i3'), placeBytes = placeFiles.get('places.bin');
+  const placeBytes = placeFiles.get('places.bin');
   if (placeBytes === undefined) throw new Error('Missing owned native places binary');
   const placeDocument = placeFiles.get('places.json');
   if (placeDocument === undefined) throw new Error('Missing owned native places metadata');
@@ -376,7 +380,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
   const dressingFiles = await nalatiDressingProgram(ctx), dressingBytes = dressingFiles.get('dressing.bin');
   if (dressingBytes === undefined) throw new Error('Missing owned native dressing binary');
   const dressingBlob = nameBlob('world/dressing.bin', 'bin', dressingBytes, { decoded: costs.dressing.bytes });
-  const decorativeFiles = await nalatiDecorativeProgram(ctx), decorativeBytes = decorativeFiles.get('decorative.json');
+  const decorativeBytes = decorativeFiles.get('decorative.json');
   if (decorativeBytes === undefined) throw new Error('Missing owned decorative profiles');
   const profiles: unknown = JSON.parse(new TextDecoder().decode(decorativeBytes));
   const sceneBlobs = dressingSceneBlobs(profiles,runtime.runtime,balbal,specimenRows,paintRows,cover.rows,cragRows,{phone:NALATI_PHONE_CRAG_FILE,desktop:'world/crags.bin'});
