@@ -4,7 +4,7 @@ Jake, 2026-10-28: *"how can we make the downloads reliable and fast? How can we 
 downloading way too many things ... we should be asking the server for a whole bunch of things, and not doing 250
 individual downloads."* A read-only review by the plan agent's subagent. No code. Sources: the live `9364930c3`
 recordings in `tmp/loading-freeze/` (each run's `requests.tsv`), `out/<slug>/shard.json`, `src/engine/pwa/sw.js`,
-`src/game/shardfile/clientAssets.ts`, the [iPhone downloads](../iphone-downloads-mini-plan.md) plan (I5),
+`src/game/shardfile/clientAssets.ts`, the [iPhone downloads](../../../../project/archive/2026-10-28-iphone-downloads.md) plan (I5),
 [js-payload](../../../../project/archive/2026-10-27-js-payload.md) and the
 [loading](../../../../project/archive/2026-10-28-loading.md) archives.
 

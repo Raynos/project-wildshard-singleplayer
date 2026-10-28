@@ -67,7 +67,7 @@ plan? … what is in scope … and what do we all have to complete to be done?"*
 | [legacy-deletion](shard-platform/legacy-deletion-mini-plan.md) | G604, G606 | LD1–LD3 done; LD4 a Node list compare, built now (G795); LD5–LD8 only on Jake's word after his QA, counted (G779) |
 | [custom-code-freeze](shard-platform/custom-code-freeze-mini-plan.md) | E496 | **active** 10-24: freeze F1–F5 (lock all shards, schema + lint refusals), delete-now D1–D6 (~5k lines), legacy LD5–LD8 built here, then A1–A2 |
 | [js-payload](../../project/archive/2026-10-27-js-payload.md) (draft, for Jake) | E500 | **draft** 10-24: J1–J10, biggest first: grid seam plans out of JS, title diet, shard entry diet, shard isolation; D1–D4 for Jake |
-| [iphone-downloads](shard-platform/iphone-downloads-mini-plan.md) (draft, for Jake) | E504 | **draft** 10-24: cold DW shardfile entry 1,021 req / 52.6 MB wire, all before control; I1–I12 (tier filter = L18, spawn-first, quantised geometry, UASTC RDO, packs, immutable blob headers, budgets guard); D1–D4 for Jake |
+| [iphone-downloads](../../project/archive/2026-10-28-iphone-downloads.md) (draft, for Jake) | E504 | **draft** 10-24: cold DW shardfile entry 1,021 req / 52.6 MB wire, all before control; I1–I12 (tier filter = L18, spawn-first, quantised geometry, UASTC RDO, packs, immutable blob headers, budgets guard); D1–D4 for Jake |
 
 **Out of scope here (their own plans, after this one):** [TOOLING-PERF](TOOLING-PERF.md) (parked draft, G659), [HOST-AUDIT](HOST-AUDIT.md) (starts after every shard is at
 zero, G596), [BURN-DAMAGE-LIST](BURN-DAMAGE-LIST.md) (parked draft: the mega build's damage list, G769),
