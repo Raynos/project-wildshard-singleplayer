@@ -83,3 +83,17 @@ test.each([false, true])('ordinary or directly placed documents retain eager wor
   try { await expect(installWorldScenes(f.context, f.section)).rejects.toThrow('Frozen specimens cannot install world services'); }
   finally { f.owner.dispose(); f.registry.retire(); }
 });
+
+test('a cold demand document still refuses hidden world services before any specimen publication', async () => {
+  const f = fixture(true, false, true);
+  try {
+    await installWorldScenes(f.context, f.section);
+    expect(f.reads).toEqual(['catalogue.json']);
+    const root = withOwner(f.owner, () => defineWorldSceneCatalogue(f.catalogue, f.product).model('cold').build(sharedModelContext(f.sky), {}, new Rng(1)));
+    if (!(root instanceof Group)) throw new Error('Missing awaited specimen');
+    await expect(specimenReady(root)).rejects.toThrow('Frozen specimens cannot install world services');
+    expect(root.getObjectByName('cold-original')).toBeUndefined();
+    expect(f.reads).not.toContain('unopened.json');
+    expect(f.registry.pieces).toHaveLength(0);
+  } finally { f.owner.dispose(); f.registry.retire(); }
+});
