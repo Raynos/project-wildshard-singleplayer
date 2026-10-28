@@ -7,6 +7,11 @@ import { NPC_FIGURE } from '../src/shards/pine-hollow/generators/peopleLook';
 import { ProductFigureCatalogue as FigureCatalogue } from '@wildshard/game/models/figureCatalogue';
 import * as packs from '../src/engine/core/deflate';
 import { FigureRows } from '../src/game/systems/npc/figureRows';
+import { Scope } from '../src/engine/app/scope';
+import { modelContext, specimenReady } from '../src/engine/models/model';
+import { SkyRig } from '../src/engine/world/skyRig';
+import { Rng } from '../src/engine/core/rng';
+import { Group } from 'three';
 import packed from '../src/shards/pine-hollow/data/codeParts.json' with { type: 'json' };
 
 
@@ -33,9 +38,25 @@ test('NPC catalogue admission preserves rows, refuses atomically and prepares co
     expect(figures.rows('ranger')).toBe(previous);
     await figures.admit(product(admitted, json));
     const models = ['ranger', 'miller', 'trader'].map(id => figures.model(id));
-    for (const model of models) {
-      if (model.prepare === undefined) throw new Error('Cold NPC card has no prepare');
-      await model.prepare();
+    skinsLoad.mockClear();
+    for (const [index, model] of models.entries()) {
+      expect(model.prepare).toBeUndefined(); expect(model.specimenLifetime).toBe('view');
+      expect(() => model.build(modelContext(SkyRig.prototype), {}, new Rng(1))).toThrow('view owner');
+      expect(skinsLoad).toHaveBeenCalledTimes(index);
+      const view = new Scope('cold-npc-card');
+      try {
+        const root = view.run(() => model.build({ ...modelContext(SkyRig.prototype), specimenScope: view }, {}, new Rng(1)));
+        if (!(root instanceof Group)) throw new Error('Cold NPC card requires its native specimen group');
+        expect(skinsLoad).toHaveBeenCalledTimes(index + 1);
+        const id = ['ranger', 'miller', 'trader'][index];
+        if (id === undefined) throw new Error('Missing original NPC');
+        expect(skinsLoad).toHaveBeenLastCalledWith([figures.rows(id).skin]);
+        const placeholder = [...root.children];
+        view.dispose(); await specimenReady(root);
+        expect(root.children).toEqual(placeholder);
+        expect(() => model.build({ ...modelContext(SkyRig.prototype), specimenScope: view }, {}, new Rng(1))).toThrow('owner left');
+        expect(skinsLoad).toHaveBeenCalledTimes(index + 1);
+      } finally { view.dispose(); }
       expect(figures.rows('ranger').motion).toEqual(NPC_FIGURE);
     }
     for (const model of models) { expect(model.pipeline).toEqual(['hunyuan', 'code']); expect(model.rig?.clips).toEqual(['idle', 'talk', 'point']); }
