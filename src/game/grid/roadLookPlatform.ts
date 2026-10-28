@@ -124,9 +124,12 @@ function* platformRoadSteps(input: PlatformRoadInput): Generator<void, PlatformR
   const { home, pitch, scene, scope, within } = input;
   const allocationKey = input.allocationKey;
   if (allocationKey !== undefined && !/^[a-z][a-z0-9.-]{0,39}$/u.test(allocationKey)) throw new Error('Invalid road allocation namespace');
-  const admission: PlatformRenderAdmission = allocationKey === undefined ? input.admission : {
-    allocate: (plan, build) => input.admission.allocate({ ...plan, id: `${allocationKey}.${plan.id}` }, build),
-    ...(input.admission.shrink === undefined ? {} : { shrink: (id: string, bytes: number): void => { input.admission.shrink?.(`${allocationKey}.${id}`, bytes); } }),
+  // Spawn heap (T10): no closure here may capture `input`. The returned road's hooks share this scope's context, so a
+  // captured input kept the seam look channels (10 MB of normals at the Driftwood spawn) and the strips for the page's life.
+  const inputAdmission = input.admission;
+  const admission: PlatformRenderAdmission = allocationKey === undefined ? inputAdmission : {
+    allocate: (plan, build) => inputAdmission.allocate({ ...plan, id: `${allocationKey}.${plan.id}` }, build),
+    ...(inputAdmission.shrink === undefined ? {} : { shrink: (id: string, bytes: number): void => { inputAdmission.shrink?.(`${allocationKey}.${id}`, bytes); } }),
   };
   const backing = input.tileBacking;
   if (backing !== undefined && admission.shrink === undefined) throw new Error('Road backing requires shrink-only admission');
