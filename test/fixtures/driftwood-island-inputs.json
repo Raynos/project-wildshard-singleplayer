@@ -1,0 +1,123 @@
+{
+  "source": "fe08f2a2c9",
+  "placements": {
+    "bytes": 264689,
+    "hash": "258e8fa18a8b6ffa94d3051f8b671446f96201e0cc5d32d09877c4dfba4122ee"
+  },
+  "blobs": [
+    {
+      "name": "world/hibiscus/phone.bin",
+      "kind": "bin",
+      "bytes": 5002936,
+      "hash": "3e1779a84ad4aaf5d2814319d916ca58a30a6c63aca6c0ebf83ef0ec14f6bae6"
+    },
+    {
+      "name": "models/hibiscus/phone/flowering.glb",
+      "kind": "glb",
+      "bytes": 62396,
+      "hash": "2c6a70b68edfffabe89d0ac2e9da6b8c4a966a48c208b682c11d13a6a9d08a3b"
+    },
+    {
+      "name": "models/hibiscus/phone/leaf.glb",
+      "kind": "glb",
+      "bytes": 43372,
+      "hash": "c40be28442e3c90e29daf344584f0a5a1755208bbecef90885550bed34877b5a"
+    },
+    {
+      "name": "models/hibiscus/phone/small.glb",
+      "kind": "glb",
+      "bytes": 62392,
+      "hash": "aeac7ca64346bdd2fada7caef7282ecf48239405035dfe80c034511c321ff606"
+    },
+    {
+      "name": "world/palms/phone.bin",
+      "kind": "bin",
+      "bytes": 5076592,
+      "hash": "b215817e315b21685f4860a94a6e706466ffaf53ac9edc4d1c29fec3aa6f2392"
+    },
+    {
+      "name": "models/palms/phone/tall.glb",
+      "kind": "glb",
+      "bytes": 41208,
+      "hash": "d36d04bdd1422b63288cafb727786e9620dc834b71f97cc57ed31c9bd9c89778"
+    },
+    {
+      "name": "models/palms/phone/young.glb",
+      "kind": "glb",
+      "bytes": 38520,
+      "hash": "885ecf0eaf989af2eb5230df72afa3a05db302c2fe0b601f5cb2163fad08d67b"
+    },
+    {
+      "name": "models/palms/phone/leaning.glb",
+      "kind": "glb",
+      "bytes": 40064,
+      "hash": "e94d0aac993f41fd5896fa109e66363f828df28f0b8bf9a1e57cba632a17fb06"
+    },
+    {
+      "name": "world/hibiscus/desktop.bin",
+      "kind": "bin",
+      "bytes": 14610208,
+      "hash": "38a4f8b6ba5c423dfa20a693ea244abf4f153305d869d71f22e2c2b2742af22d"
+    },
+    {
+      "name": "models/hibiscus/desktop/flowering.glb",
+      "kind": "glb",
+      "bytes": 101208,
+      "hash": "acbca3a2e7648a25850a9a4136c6d9a029b8e40e783864040d27898c9fa0e975"
+    },
+    {
+      "name": "models/hibiscus/desktop/leaf.glb",
+      "kind": "glb",
+      "bytes": 82980,
+      "hash": "1de27243c39cec65d43d65c46a92e3c434ffc74a1a04d46dc390c44db1043232"
+    },
+    {
+      "name": "models/hibiscus/desktop/small.glb",
+      "kind": "glb",
+      "bytes": 101200,
+      "hash": "fc5bf4dab40c5ef822fb213527b18e8ebeb6c12f5482660113baf1476d3abe74"
+    },
+    {
+      "name": "world/palms/desktop.bin",
+      "kind": "bin",
+      "bytes": 7774168,
+      "hash": "4a6d31124c14498f867d244c61c244b9855701711a051781f938e0a1df1a4e88"
+    },
+    {
+      "name": "models/palms/desktop/tall.glb",
+      "kind": "glb",
+      "bytes": 49272,
+      "hash": "f602a3eaae282c8dd8ac6deab657f2e48f07f10c29222c5e2ae3f6c1e0553055"
+    },
+    {
+      "name": "models/palms/desktop/young.glb",
+      "kind": "glb",
+      "bytes": 45052,
+      "hash": "558b3f163eae01e096627eab4aee28e80fa108de7b50c0a29d9781b245da16d3"
+    },
+    {
+      "name": "models/palms/desktop/leaning.glb",
+      "kind": "glb",
+      "bytes": 49664,
+      "hash": "f1068c4fcd0adadb4f85e0c48b99391046f09a722b182de67ca1d04bab0220f6"
+    }
+  ],
+  "aliases": {
+    "/assets/driftwood-isle/baked/hibiscus-3e1779a84ad4aaf5d2814319d916ca58a30a6c63aca6c0ebf83ef0ec14f6bae6.bin": "world/hibiscus/phone.bin",
+    "/assets/driftwood-isle/baked/hibiscus-2c6a70b68edfffabe89d0ac2e9da6b8c4a966a48c208b682c11d13a6a9d08a3b.glb": "models/hibiscus/phone/flowering.glb",
+    "/assets/driftwood-isle/baked/hibiscus-c40be28442e3c90e29daf344584f0a5a1755208bbecef90885550bed34877b5a.glb": "models/hibiscus/phone/leaf.glb",
+    "/assets/driftwood-isle/baked/hibiscus-aeac7ca64346bdd2fada7caef7282ecf48239405035dfe80c034511c321ff606.glb": "models/hibiscus/phone/small.glb",
+    "/assets/driftwood-isle/baked/palm-b215817e315b21685f4860a94a6e706466ffaf53ac9edc4d1c29fec3aa6f2392.bin": "world/palms/phone.bin",
+    "/assets/driftwood-isle/baked/palm-d36d04bdd1422b63288cafb727786e9620dc834b71f97cc57ed31c9bd9c89778.glb": "models/palms/phone/tall.glb",
+    "/assets/driftwood-isle/baked/palm-885ecf0eaf989af2eb5230df72afa3a05db302c2fe0b601f5cb2163fad08d67b.glb": "models/palms/phone/young.glb",
+    "/assets/driftwood-isle/baked/palm-e94d0aac993f41fd5896fa109e66363f828df28f0b8bf9a1e57cba632a17fb06.glb": "models/palms/phone/leaning.glb",
+    "/assets/driftwood-isle/baked/hibiscus-38a4f8b6ba5c423dfa20a693ea244abf4f153305d869d71f22e2c2b2742af22d.bin": "world/hibiscus/desktop.bin",
+    "/assets/driftwood-isle/baked/hibiscus-acbca3a2e7648a25850a9a4136c6d9a029b8e40e783864040d27898c9fa0e975.glb": "models/hibiscus/desktop/flowering.glb",
+    "/assets/driftwood-isle/baked/hibiscus-1de27243c39cec65d43d65c46a92e3c434ffc74a1a04d46dc390c44db1043232.glb": "models/hibiscus/desktop/leaf.glb",
+    "/assets/driftwood-isle/baked/hibiscus-fc5bf4dab40c5ef822fb213527b18e8ebeb6c12f5482660113baf1476d3abe74.glb": "models/hibiscus/desktop/small.glb",
+    "/assets/driftwood-isle/baked/palm-4a6d31124c14498f867d244c61c244b9855701711a051781f938e0a1df1a4e88.bin": "world/palms/desktop.bin",
+    "/assets/driftwood-isle/baked/palm-f602a3eaae282c8dd8ac6deab657f2e48f07f10c29222c5e2ae3f6c1e0553055.glb": "models/palms/desktop/tall.glb",
+    "/assets/driftwood-isle/baked/palm-558b3f163eae01e096627eab4aee28e80fa108de7b50c0a29d9781b245da16d3.glb": "models/palms/desktop/young.glb",
+    "/assets/driftwood-isle/baked/palm-f1068c4fcd0adadb4f85e0c48b99391046f09a722b182de67ca1d04bab0220f6.glb": "models/palms/desktop/leaning.glb"
+  }
+}

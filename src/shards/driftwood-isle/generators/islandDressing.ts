@@ -1,11 +1,8 @@
-import { CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/core/config';
 import { Noise2D } from '@wildshard/sdk/noise';
 import { islandKnobs } from './tiers';
+import foliagePolicy from '../data/foliagePolicy.json' with { type: 'json' };
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { _buildAs, buildTier, TIER, type Tier } from '@wildshard/engine/core/tier';
 import { Rng } from '@wildshard/sdk/random';
-import { bindLevelSelection } from '@wildshard/engine/level/selection';
-import { HeightfieldBinding, bindHeightfield, normalAt, waterLevel, inChunk } from '@wildshard/engine/world/Heightfield';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { HUT, LOOKOUT, SHRINE, WRECK } from './worldSites';
 import manifest from '../manifest.json' with { type: 'json' };
@@ -29,6 +26,16 @@ import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { hibiscusTransport, foliageTransport } from './hibiscusTransport';
 import publicInputs from '../data/publicInputs.json' with { type: 'json' };
 
+/** Explicit unshifted-bake samples plus the authored datum and scatter policy. */
+export interface IslandFoliageGround {
+ readonly heightAt: (x: number, z: number) => number;
+ readonly normalAt: (x: number, z: number, eps?: number) => [number, number, number];
+ readonly trailDistance: (x: number, z: number) => number;
+ readonly half: number; readonly water: number; readonly roadWidth: number;
+}
+const inside = (x: number, z: number, margin: number, half: number): boolean =>
+ Math.abs(x) <= half - margin && Math.abs(z) <= half - margin;
+
 /** These producers always supply complete parameter data beside the owned foliage pose. */
 export interface IslandFoliagePlacement<P extends object> extends FoliagePlacement { readonly params: P }
 
@@ -36,12 +43,12 @@ export interface PalmSpec { x: number; z: number; h: number; lean: number; leanD
 export interface BushSpec { x: number; z: number; r: number; flowers: boolean }
 
 /** The world's wet-sand perches, compiled under its original native height binding. */
-export function beachGullPerches(heightAt: (x: number, z: number) => number, seed: number): {x:number;y:number;z:number}[] {
- const rng = new Rng(seed ^ 0x6011), wl = waterLevel(), out: {x:number;y:number;z:number}[] = [];
+export function beachGullPerches(heightAt: (x: number, z: number) => number, seed: number, ground: Pick<IslandFoliageGround, 'half' | 'water'>): {x:number;y:number;z:number}[] {
+ const rng = new Rng(seed ^ 0x6011), wl = ground.water, out: {x:number;y:number;z:number}[] = [];
  let tries = 0;
  while (out.length < 10 && tries++ < 2000) {
   const x = rng.range(-90,90), z = -195 + rng.range(-90,90);
-  if (!inChunk(x,z,25)) continue;
+  if (!inside(x,z,25,ground.half)) continue;
   const h = heightAt(x,z) - wl;
   if (h < 0.15 || h > 1.2) continue;
   if ((Math.abs(x)<GULL_CORRIDORS.half && Math.abs(z)>GULL_CORRIDORS.beyond) || (Math.abs(z)<GULL_CORRIDORS.half && Math.abs(x)>GULL_CORRIDORS.beyond)) continue;
@@ -51,14 +58,14 @@ export function beachGullPerches(heightAt: (x: number, z: number) => number, see
  return out;
 }
 
-function scatterPalms(heightAt: (x: number, z: number) => number, seed: number, count = Math.round(islandKnobs().palmCount * 1.7), avoid: { x: number; z: number; r: number }[] = []): PalmSpec[] {
+function scatterPalms(ground: IslandFoliageGround, seed: number, count: number, avoid: { x: number; z: number; r: number }[] = []): PalmSpec[] {
     const rng = new Rng(seed ^ 0x9a1e), grove = new Noise2D(seed + 21);
-    const wl = waterLevel();
+    const { heightAt, normalAt, half: CHUNK_HALF, water: wl, roadWidth: ROAD_WIDTH } = ground;
     const out: PalmSpec[] = [];
     let tries = 0;
     while (out.length < count && tries++ < count * 80) {
       const x = rng.range(-CHUNK_HALF + 25, CHUNK_HALF - 25), z = rng.range(-CHUNK_HALF + 25, CHUNK_HALF - 25);
-      if (!inChunk(x, z, 20)) continue;
+      if (!inside(x, z, 20, ground.half)) continue;
       const h = heightAt(x, z) - wl;
       if (h < 1.4) continue;                                                       // land only, above the beach berm
       const [, ny] = normalAt(x, z, 1.5);
@@ -80,14 +87,14 @@ function palmPlacements(heightAt: (x: number, z: number) => number, specs: reado
     return specs.map((p) => ({ x: p.x, y: heightAt(p.x, p.z) - 0.2, z: p.z, params: { h: p.h, lean: p.lean, leanDir: p.leanDir, rot: p.rot, fronds: p.fronds } }));
   }
 
-function scatterBushes(heightAt: (x: number, z: number) => number, seed: number, count = islandKnobs().bushCount, avoid: { x: number; z: number; r: number }[] = []): BushSpec[] {
+function scatterBushes(ground: IslandFoliageGround, seed: number, count: number, avoid: { x: number; z: number; r: number }[] = []): BushSpec[] {
     const rng = new Rng(seed ^ 0xb054), clump = new Noise2D(seed + 33);
-    const wl = waterLevel();
+    const { heightAt, normalAt, half: CHUNK_HALF, water: wl, roadWidth: ROAD_WIDTH } = ground;
     const out: BushSpec[] = [];
     let tries = 0;
     while (out.length < count && tries++ < count * 60) {
       const x = rng.range(-CHUNK_HALF + 25, CHUNK_HALF - 25), z = rng.range(-CHUNK_HALF + 25, CHUNK_HALF - 25);
-      if (!inChunk(x, z, 20)) continue;
+      if (!inside(x, z, 20, ground.half)) continue;
       const h = heightAt(x, z) - wl;
       if (h < 1.5) continue;
       const [, ny] = normalAt(x, z, 1.2);
@@ -130,40 +137,29 @@ let foliagePlacements: IslandFoliagePlacements | undefined;
 const avoidSites=():{x:number;z:number;r:number}[]=>[{x:HUT.x,z:HUT.z,r:11},{x:LOOKOUT.x,z:LOOKOUT.z,r:12},{x:SHRINE.x,z:SHRINE.z,r:13},{x:WRECK.x,z:WRECK.z,r:14}];
 /** Built once per build process: both tiers' scatter on the bound native ground, as the dressing bakes it (its rows are
  *  these); every reader treats it as read-only. */
-export function islandFoliagePlacements(): IslandFoliagePlacements { foliagePlacements ??= scatterIslandFoliage(); return foliagePlacements; }
-/** Run `build` and put the build tier back as it was (a memo may first fill inside a caller's tier pass). */
-function keepingTier<T>(build: () => T): T {
- const previous: Tier = buildTier();
- try { return build(); } finally { _buildAs(previous === TIER ? null : previous); }
+export function islandFoliagePlacements(): IslandFoliagePlacements {
+ foliagePlacements ??= bakeIslandFoliagePlacements(islandFoliageGround()); return foliagePlacements;
 }
-/** A manifest colour (JSON types it as a plain array). */
-const rgb=(c:readonly number[]):[number,number,number]=>{const [r,g,b]=c;if(c.length!==3||r===undefined||g===undefined||b===undefined)throw new Error('Invalid manifest colour');return[r,g,b];};
-/** D76: the island's level over its declared ground, from the rows bake-interactables declares it with (its trails, the
- *  sea's rest level, the world drop as the datum; game declaredGround's terrain law over them), never the runtime manifest,
- *  so the product's author bundle stays one module. The native samples are installed over it (HeightfieldBinding). */
-function islandLevel() {
- const unready=():never=>{throw new Error('Native island ground is not installed');};
- const terrain={...nativeTerrainQueries(TERRAIN.seed,{trails:TRAILS,cabinSites:[]},()=>DECLARED_SEA.level),datum:-WORLD_DROP,heightAt:unready,normalAt:unready,splatAt:unready};
- const {sky,atmosphere,grade}=manifest;
- return{id:manifest.slug,ground:{terrain},spawn:manifest.spawn,
-  sky:{...sky,sunColor:rgb(sky.sunColor),fogSunColor:rgb(sky.fogSunColor),cloudSunColor:rgb(sky.cloudSunColor)},
-  atmosphere:{...atmosphere,volumetricSunColor:rgb(atmosphere.volumetricSunColor)},grade:{...grade,shadowTint:rgb(grade.shadowTint),highTint:rgb(grade.highTint),lift:rgb(grade.lift),gain:rgb(grade.gain)},
-  budgets:{},mechanisms:[],fight:{},boot:{files:[]},audio:{ambience:'none',score:'none'},loadout:{weapons:[],tools:[],start:[]},species:[],spawns:[],minimap:{},kitLook:'toon' as const};
+/** Native install arithmetic, expressed over owned bake samples without selecting/installing a level. */
+export function islandFoliageGround(): IslandFoliageGround {
+ const source = readNativeTerrain(driftwoodGroundBytes()), datum = -WORLD_DROP;
+ const metadata = nativeTerrainQueries(TERRAIN.seed, { trails: TRAILS, cabinSites: [] }, () => DECLARED_SEA.level);
+ return { heightAt: datum === 0 ? source.heightAt : (x, z) => source.heightAt(x, z) + datum,
+  normalAt: source.normalAt, trailDistance: metadata.trailDistance, half: source.grid.size / 2,
+  water: DECLARED_SEA.level, roadWidth: foliagePolicy.roadWidth };
 }
-function scatterIslandFoliage(): IslandFoliagePlacements { return keepingTier(scatterIslandFoliageRows); }
-function scatterIslandFoliageRows(): IslandFoliagePlacements {
- const level=islandLevel();
- const restoreLevel=bindLevelSelection(level),binding=new HeightfieldBinding(level);
- binding.install(readNativeTerrain(driftwoodGroundBytes()));const restoreGround=bindHeightfield(binding),ground=binding.field,avoid=avoidSites();
- try{
-  const tier=(name:'phone'|'desktop'):IslandFoliageTier=>{
-   _buildAs(name);
-   const palms=scatterPalms(ground.heightAt,manifest.seed,undefined,avoid),bushes=scatterBushes(ground.heightAt,manifest.seed,undefined,avoid);
-   return{palms:{specs:palms,placements:palmPlacements(ground.heightAt,palms)},bushes:{specs:bushes,placements:bushPlacements(ground.heightAt,bushes)}};
-  };
-  const phone=tier('phone'),desktop=tier('desktop');
-  return{seed:manifest.seed,gullPerches:beachGullPerches(ground.heightAt,manifest.seed),tiers:{phone,desktop}};
- }finally{restoreGround();restoreLevel();}
+/** Fresh source rows for both explicit tiers; no ambient tier/heightfield or memo is read. */
+export function bakeIslandFoliagePlacements(ground: IslandFoliageGround): IslandFoliagePlacements {
+ const avoid = avoidSites();
+ const tier = (name: 'phone' | 'desktop'): IslandFoliageTier => {
+  const knobs = islandKnobs(name);
+  const palms = scatterPalms(ground, manifest.seed, Math.round(knobs.palmCount * 1.7), avoid);
+  const bushes = scatterBushes(ground, manifest.seed, knobs.bushCount, avoid);
+  return { palms: { specs: palms, placements: palmPlacements(ground.heightAt, palms) },
+   bushes: { specs: bushes, placements: bushPlacements(ground.heightAt, bushes) } };
+ };
+ const phone = tier('phone'), desktop = tier('desktop');
+ return { seed: manifest.seed, gullPerches: beachGullPerches(ground.heightAt, manifest.seed, ground), tiers: { phone, desktop } };
 }
 /** One dressing blob: its product name's kind and bytes. */
 export interface IslandFoliageBlob { readonly kind: 'glb' | 'bin'; readonly bytes: Uint8Array }
@@ -173,33 +169,32 @@ export interface IslandFoliageBlob { readonly kind: 'glb' | 'bin'; readonly byte
 export interface IslandFoliageBatches { readonly blobs: ReadonlyMap<string, IslandFoliageBlob>; readonly byUrl: Readonly<Record<string, string>> }
 let foliageBatches: IslandFoliageBatches | undefined;
 /** Built once per build process from the foliage placements (no file is read); every reader treats it as read-only. */
-export function islandFoliageBatches(): IslandFoliageBatches { foliageBatches ??= buildIslandFoliageBatches(); return foliageBatches; }
-function buildIslandFoliageBatches(): IslandFoliageBatches { return keepingTier(buildIslandFoliageBatchRows); }
-function buildIslandFoliageBatchRows(): IslandFoliageBatches {
- // the placements first: their scatter ends by clearing the build tier, so they must not be filled inside a tier pass
- const placed=islandFoliagePlacements(),blobs=new Map<string,IslandFoliageBlob>(),byUrl:Record<string,string>={},names=new Map<string,string>();
+export function islandFoliageBatches(): IslandFoliageBatches { foliageBatches ??= bakeIslandFoliageBatches(islandFoliagePlacements()); return foliageBatches; }
+export function bakeIslandFoliageBatches(placed: IslandFoliagePlacements): IslandFoliageBatches {
+ // Each supplied tier layout feeds its explicit shape/RNG pass.
+ const blobs=new Map<string,IslandFoliageBlob>(),byUrl:Record<string,string>={},names=new Map<string,string>();
  const emit=(bytes:Uint8Array,kind:IslandFoliageBlob['kind'],prefix:string,name:string):void=>{
   const hash=hashImmutableBytes(bytes),owner=names.get(hash)??name;
   if(!names.has(hash)){names.set(hash,name);blobs.set(name,{kind,bytes});}
   byUrl[`${publicInputs.baked}${prefix}-${hash}.${kind}`]=owner;
  };
  for(const tier of ['phone','desktop'] as const){
-   _buildAs(tier);
+   const knobs = islandKnobs(tier);
    const rows=placed.tiers[tier],palms=rows.palms.specs;
    const palmRng=new Rng(palm.seed),bushRng=new Rng(hibiscusBush.seed);
-   const pg=rows.palms.placements.map(p=>palmGeometry({...palm.defaults,...p.params},palmRng).translate(p.x,p.y,p.z));
-   const bg=rows.bushes.placements.map(p=>leafClump({...hibiscusBush.defaults,...p.params},bushRng).translate(p.x,p.y,p.z));
+   const pg=rows.palms.placements.map(p=>palmGeometry({...palm.defaults,...p.params},palmRng,knobs).translate(p.x,p.y,p.z));
+   const bg=rows.bushes.placements.map(p=>leafClump({...hibiscusBush.defaults,...p.params},bushRng,knobs).translate(p.x,p.y,p.z));
    const mergedPalms=mergeGeometries(pg),mergedBushes=mergeGeometries(bg);
    try{
     emit(hibiscusTransport(mergedBushes,bg,retainedIslandRuns(mergedBushes,(x,z)=>!inArea(x,z))),'bin','hibiscus',`world/hibiscus/${tier}.bin`);
     for(const variant of hibiscusBush.variants){
-     const shape=leafClump({...hibiscusBush.defaults,...variant.params},new Rng(hibiscusBush.seed)),material=new MeshStandardMaterial();
+     const shape=leafClump({...hibiscusBush.defaults,...variant.params},new Rng(hibiscusBush.seed),knobs),material=new MeshStandardMaterial();
      try{emit(staticGlb([{geometry:shape,material,customAttributes:{_SWAY:'aSway'},compactIndex:true}],`hibiscus-${variant.id}`),'glb','hibiscus',`models/hibiscus/${tier}/${variant.id}.glb`);}
      finally{shape.dispose();material.dispose();}
     }
     emit(foliageTransport(mergedPalms,pg,retainedIslandRuns(mergedPalms,palmKeep(palms)),0x314d4c50,['position','color','sway']),'bin','palm',`world/palms/${tier}.bin`);
     for(const variant of palm.variants){
-     const shape=palmGeometry({...palm.defaults,...variant.params},new Rng(palm.seed)),material=new MeshStandardMaterial();
+     const shape=palmGeometry({...palm.defaults,...variant.params},new Rng(palm.seed),knobs),material=new MeshStandardMaterial();
      try{emit(staticGlb([{geometry:shape,material,customAttributes:{_SWAY:'sway'},compactIndex:true}],`palm-${variant.id}`),'glb','palm',`models/palms/${tier}/${variant.id}.glb`);}
      finally{shape.dispose();material.dispose();}
     }
@@ -216,18 +211,11 @@ export function islandCoverBank(readAsset: (url: string) => Uint8Array, facts: D
  coverBank ??= bakeIslandCoverBank(readAsset, facts); return coverBank;
 }
 async function bakeIslandCoverBank(readAsset: (url: string) => Uint8Array, facts: DriftwoodIslandFacts): Promise<ReadonlyMap<string, Uint8Array>> {
- // the placements before any tier pass: their scatter puts back the build tier it found
- const placed=islandFoliagePlacements(),files=new Map<string,Uint8Array>();
- const level=islandLevel();
- const restoreLevel=bindLevelSelection(level),binding=new HeightfieldBinding(level),previous:Tier=buildTier();
- binding.install(readNativeTerrain(driftwoodGroundBytes()));const restoreGround=bindHeightfield(binding),ground=binding.field;
- try{
-  for(const tier of ['phone','desktop'] as const){
-   _buildAs(tier);
-   const baked=await bakeFullIslandCover(readAsset,tier==='phone',placed.tiers[tier].palms.specs,ground,manifest.seed,facts);
-   if(hashImmutableBytes(baked.bytes)!==ISLAND_COVER_FILES[tier].hash)throw new Error(`Driftwood ${tier} cover differs from its committed islandCoverFiles.json row`);
-   files.set(`world/cover/${tier}.bin`,baked.bytes);files.set(`world/cover/cells/${tier}.bin`,baked.cells);
-  }
- }finally{_buildAs(previous===TIER?null:previous);restoreGround();restoreLevel();}
+ const placed = islandFoliagePlacements(), files = new Map<string, Uint8Array>(), ground = islandFoliageGround();
+ for (const tier of ['phone', 'desktop'] as const) {
+  const baked = await bakeFullIslandCover(readAsset, tier === 'phone', placed.tiers[tier].palms.specs, ground, manifest.seed, facts);
+  if (hashImmutableBytes(baked.bytes) !== ISLAND_COVER_FILES[tier].hash) throw new Error(`Driftwood ${tier} cover differs from its committed islandCoverFiles.json row`);
+  files.set(`world/cover/${tier}.bin`, baked.bytes); files.set(`world/cover/cells/${tier}.bin`, baked.cells);
+ }
  return files;
 }

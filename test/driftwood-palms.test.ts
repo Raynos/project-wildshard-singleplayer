@@ -6,10 +6,12 @@ import { palm } from '../src/shards/driftwood-isle/generators/foliageModels';
 import { palmGeometry } from '../src/shards/driftwood-isle/generators/palm';
 import { Rng } from '../src/engine/core/rng';
 import { seedOf } from '../src/engine/models/model';
+import { buildTier } from '../src/engine/core/tier';
+import { islandKnobs } from '../src/shards/driftwood-isle/generators/tiers';
 
 
 it('owns compacted palm channels independently while retaining full picking bounds and refusing corrupt data', () => {
-  const shape = palmGeometry(palm.defaults, new Rng(seedOf(palm))), vertices = shape.getAttribute('position').count;
+  const shape = palmGeometry(palm.defaults, new Rng(seedOf(palm)), islandKnobs(buildTier())), vertices = shape.getAttribute('position').count;
   const transport = foliageTransport(shape, [shape], {vertices, indices: 0, output: 3, runs: [{start: 0, count: 3}]}, 0x314d4c50, ['position', 'color', 'sway']);
   const {geometry, boxes} = decodePalmWorld(transport, 1);
   try {

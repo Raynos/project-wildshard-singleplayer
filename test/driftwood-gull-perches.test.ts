@@ -7,6 +7,7 @@ import { HeightfieldBinding, bindHeightfield } from '@wildshard/engine/world/Hei
 import { MANIFEST } from '../src/shards/driftwood-isle/discovery.generated';
 import { driftwoodGroundBytes } from '../src/shards/driftwood-isle/generators/groundRows';
 import { beachGullPerches } from '../src/shards/driftwood-isle/generators/islandDressing';
+import { CHUNK_HALF } from '../src/engine/core/config';
 import { WORLD_STAGES } from './fixtures/driftwood-world-stages';
 import { WorldAssemblySchema } from '../src/format/worldAssembly';
 import * as v from 'valibot';
@@ -24,7 +25,7 @@ it('admits the whole perch list with its original wet-sand suffix', () => {
   try {
     const original = frozen.perches;
     expect(frozen.seed).toBe(MANIFEST.seed); expect(original).toHaveLength(10);
-    expect(beachGullPerches(binding.field.heightAt, MANIFEST.seed)).toEqual(original);
+    expect(beachGullPerches(binding.field.heightAt, MANIFEST.seed, { half: CHUNK_HALF, water: binding.field.waterLevel() })).toEqual(original);
     const rows=v.parse(WorldAssemblySchema,WORLD_STAGES),flock=rows.stages.find(row=>row.kind==='ambient-flock');
     if(flock?.kind!=='ambient-flock')throw new Error('Missing gull stage');
     expect(flock.perches).toHaveLength(100);

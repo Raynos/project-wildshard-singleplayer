@@ -14,7 +14,7 @@ import { coveFamilyOf, type CoveFamily } from './coveModels';
 import { WORLD_DROP } from './sea';
 import { ISLAND_LOOK, ISLAND_TIERS } from './islandRows';
 import { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES } from '@wildshard/engine/core/config';
-import type { Tier } from '@wildshard/engine/core/tier';
+import type { IslandTier as Tier } from './tiers';
 
 
 /** one cover triangle in world space (`a`, `b`, `d` its corners) and its mean tinted colour */
