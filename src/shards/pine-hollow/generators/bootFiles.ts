@@ -8,9 +8,6 @@ const PINE_BOOT_ASSET_5="/assets/models/tree_stump_01/tree_stump_01_lod.glb";
 const PINE_BOOT_ASSET_6="/assets/models/dead_tree_trunk/dead_tree_trunk_lod.glb";
 const PINE_BOOT_ASSET_7="/assets/pine-hollow/weapons/lever-rifle.glb";
 const PINE_BOOT_ASSET_8="/assets/pine-hollow/weapons/skinning-knife.glb";
-const PINE_BOOT_ASSET_9="/assets/pine-hollow/npcs/ranger.glb";
-const PINE_BOOT_ASSET_10="/assets/pine-hollow/npcs/trader.glb";
-const PINE_BOOT_ASSET_11="/assets/pine-hollow/npcs/miller.glb";
 const PINE_BOOT_ASSET_12="/assets/baked/pine-hollow/navmesh.bin";
 const PINE_BOOT_ASSET_13="/assets/physics/rapier.wasm";
 
@@ -227,9 +224,6 @@ export const PINE_BOOT_FILES: {
                     "/assets/horizon/pine-hollow-night-phone.webp",
                     typeof PINE_BOOT_ASSET_7,
                     typeof PINE_BOOT_ASSET_8,
-                    typeof PINE_BOOT_ASSET_9,
-                    typeof PINE_BOOT_ASSET_10,
-                    typeof PINE_BOOT_ASSET_11,
                     ...string[],
                     "/assets/pine-hollow/baked/rain.phone.bin"
                 ];
@@ -239,9 +233,6 @@ export const PINE_BOOT_FILES: {
                     "/assets/horizon/pine-hollow-night.webp",
                     typeof PINE_BOOT_ASSET_7,
                     typeof PINE_BOOT_ASSET_8,
-                    typeof PINE_BOOT_ASSET_9,
-                    typeof PINE_BOOT_ASSET_10,
-                    typeof PINE_BOOT_ASSET_11,
                     ...string[],
                     "/assets/pine-hollow/baked/rain.bin"
                 ];
@@ -535,6 +526,7 @@ export const PINE_BOOT_FILES: {
     },
     "unique": true
   },
+  // Quest NPC appearances are demand-loaded by their figure: near figures before control, off-view figures afterward.
   "world": {
     "source": {
       "urls": {
@@ -544,9 +536,6 @@ export const PINE_BOOT_FILES: {
           "/assets/horizon/pine-hollow-night-phone.webp",
           PINE_BOOT_ASSET_7,
           PINE_BOOT_ASSET_8,
-          PINE_BOOT_ASSET_9,
-          PINE_BOOT_ASSET_10,
-          PINE_BOOT_ASSET_11,
           ...painted.urls,
           "/assets/pine-hollow/baked/rain.phone.bin"
         ],
@@ -556,9 +545,6 @@ export const PINE_BOOT_FILES: {
           "/assets/horizon/pine-hollow-night.webp",
           PINE_BOOT_ASSET_7,
           PINE_BOOT_ASSET_8,
-          PINE_BOOT_ASSET_9,
-          PINE_BOOT_ASSET_10,
-          PINE_BOOT_ASSET_11,
           ...painted.urls,
           "/assets/pine-hollow/baked/rain.bin"
         ]

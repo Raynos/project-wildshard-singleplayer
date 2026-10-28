@@ -1,6 +1,8 @@
 import { expect, test } from 'vitest';
 import { nameBlob } from '../src/sdk/blobs';
 import { pineLateMaterialFiles } from '../src/shards/pine-hollow/generators/lateMaterials';
+import { resolveBootFiles } from '../src/engine/boot/filePolicy';
+import { PINE_BOOT_FILES } from '../src/shards/pine-hollow/generators/bootFiles';
 
 const pose = (x: number, z: number) => ({ x, y: 0, z, yaw: 0, pitch: 0, roll: 0, scale: 1 });
 const landmarks = {
@@ -18,4 +20,18 @@ test('Pine schedules fine and cabin materials with original nearby coarse famili
   expect(hints.find(row => row.hash === files[0]?.hash)?.at).toEqual([10, -200]);
   expect(hints.find(row => row.hash === files[19]?.hash)?.at).toEqual([-150, -138]);
   expect(blobs).toEqual(before);
+});
+
+test.each(['phone', 'desktop'] as const)('Pine keeps NPC appearances out of speculative boot reads: %s', tier => {
+  const names = ['ranger', 'miller', 'trader'];
+  const files = Object.fromEntries(names.map((name, index) => [`/assets/pine-hollow/npcs/${name}.glb`, `/assets/gpu/npcs/${String(index)}.glb`]));
+  const inventory = Object.fromEntries([...Object.keys(files), ...Object.values(files),
+    '/assets/lut/pine-hollow.bin', '/assets/pine-hollow/weapons/lever-rifle.glb', '/assets/pine-hollow/weapons/skinning-knife.glb'].map(path => [path, true] as const));
+  for (const mode of ['img', 'ktx2'] as const) {
+    const boot = resolveBootFiles(PINE_BOOT_FILES, 'world', tier, mode, { phone: files, desktop: files }, { inventory });
+    expect(boot).toContain('/assets/lut/pine-hollow.bin');
+    expect(boot).toContain('/assets/pine-hollow/weapons/lever-rifle.glb');
+    expect(boot).toContain('/assets/pine-hollow/weapons/skinning-knife.glb');
+    for (const url of [...Object.keys(files), ...Object.values(files)]) expect(boot).not.toContain(url);
+  }
 });
