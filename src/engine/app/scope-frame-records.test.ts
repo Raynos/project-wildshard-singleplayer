@@ -188,3 +188,44 @@ test('a frame completing inside sliced retirement retains the captured native ca
     expect(retiring.next().done).toBe(true); expect(scope.census.rafs).toBe(0);
   } finally { scope.dispose(); installScopeEnvironment(f.native); }
 });
+
+test.each([7, Number.NaN, -0])('duplicate injected id %s retains native Map cancellation semantics', id => {
+  const native = scopeEnvironment(), scope = new Scope('duplicate-frame-id'), callbacks: FrameRequestCallback[] = [], cancelled: number[] = [], seen: string[] = [];
+  installScopeEnvironment({ ...native, frame: fn => { callbacks.push(fn); return id; }, cancelFrame: value => { cancelled.push(value); } });
+  const key = Object.is(id, -0) ? 0 : id;
+  try {
+    scope.raf(() => { seen.push('first'); scope.raf(() => { seen.push('third'); }); });
+    scope.raf(() => { seen.push('second'); });
+    scope.cancelRaf(key); expect(cancelled).toEqual([id]); expect(scope.census.rafs).toBe(1);
+    const first = callbacks[0], second = callbacks[1];
+    if (first === undefined || second === undefined) throw new Error('Missing independently dispatched frames');
+    first(1); second(2); // a previously dispatched cancelled callback still removes its native id
+    expect(seen).toEqual(['first', 'second']); expect(scope.census.rafs).toBe(1);
+    scope.cancelRaf(key); expect(cancelled).toEqual([id]);
+    scope.dispose(); expect(cancelled).toEqual([id, id]); expect(scope.census.rafs).toBe(0);
+  } finally { scope.dispose(); installScopeEnvironment(native); }
+});
+
+test('reused direct and spilled identifiers cancel the latest registration without changing disposal order', () => {
+  const native = scopeEnvironment(), scope = new Scope('spilled-frame-id'), ids = [1, 2, 1, 2], cancelled: number[] = [];
+  let cursor = 0;
+  installScopeEnvironment({ ...native, frame: () => ids[cursor++] ?? 0, cancelFrame: id => { cancelled.push(id); } });
+  try {
+    for (let index = 0; index < 4; index++) scope.raf(() => undefined);
+    scope.cancelRaf(2); scope.cancelRaf(1);
+    expect(cancelled).toEqual([2, 1]); expect(scope.census.rafs).toBe(2);
+    scope.dispose(); expect(cancelled).toEqual([2, 1, 2, 1]); expect(scope.census.rafs).toBe(0);
+  } finally { scope.dispose(); installScopeEnvironment(native); }
+});
+
+test('a synchronous injected scheduler retains the first-call and later id-initialization refusal', () => {
+  const native = scopeEnvironment(), scope = new Scope('synchronous-frame'), cancelled: number[] = [];
+  let calls = 0;
+  installScopeEnvironment({ ...native, frame: fn => { fn(.25); return 0; }, cancelFrame: id => { cancelled.push(id); } });
+  try {
+    expect(scope.raf(time => { expect(time).toBe(.25); calls++; })).toBe(0);
+    expect(scope.census.rafs).toBe(1);
+    expect(() => scope.raf(() => { calls++; })).toThrow(ReferenceError);
+    expect(calls).toBe(1); scope.dispose(); expect(cancelled).toEqual([0]); expect(scope.census.rafs).toBe(0);
+  } finally { scope.dispose(); installScopeEnvironment(native); }
+});

@@ -49,6 +49,8 @@ interface FrameRecord {
 function frameDriver(ref: WeakRef<FrameRecord>): FrameRequestCallback {
   return (time) => { dispatchFrame(ref, time); };
 }
+// Native identifiers use Map's SameValueZero equality, including injected NaN.
+function sameFrameId(a: number | undefined, b: number): boolean { return a === b || Number.isNaN(a) && Number.isNaN(b); }
 function dispatchFrame(ref: WeakRef<FrameRecord>, time: number): void {
   const record = ref.deref(); if (record === undefined) return; // retired native request
   const fn = record.fn, owner = record.owner;
@@ -336,9 +338,20 @@ export class Scope {
     return id;
   }
   private rafCancels: Map<number, () => void> | undefined;
+  private directRaf: FrameRecord | undefined;
+  private rafIndexInitialized = false;
   private freeFrames: (FrameRecord | undefined)[] | undefined;
   private freeFrameCount = 0;
-  cancelRaf(id: number): void { this.rafCancels?.get(id)?.(); }
+  cancelRaf(id: number): void {
+    const direct = this.directRaf;
+    if (direct !== undefined && sameFrameId(direct.id, id)) direct.cancel();
+    else this.rafCancels?.get(id)?.();
+  }
+  private forgetRaf(id: number): void {
+    const direct = this.directRaf;
+    if (direct !== undefined && sameFrameId(direct.id, id)) this.directRaf = undefined;
+    this.rafCancels?.delete(id);
+  }
   /** Created outside raf(fn)'s activation: an empty record never keeps the
    * first callback's closure alive. Only completed callbacks return a record
    * to the empty cache; a cancelled request keeps its own fn/id until then. */
@@ -350,7 +363,7 @@ export class Scope {
       cancel: () => {
         const id = record.id;
         if (id !== undefined) record.native?.cancelFrame(id);
-        if (id !== undefined) this.rafCancels?.delete(id);
+        if (id !== undefined) this.forgetRaf(id);
         registrations.delete(registration); this.cleanups.delete(record.cleanup);
         // Keep this request's values for an already-dispatched callback.
         // A cancelled request is not returned to the empty cache.
@@ -358,12 +371,12 @@ export class Scope {
       beforeId: () => {
         // Match the old optional-map/id ordering for injected synchronous
         // schedulers. Native RAF always calls after its identifier returns.
-        if (this.rafCancels !== undefined) throw new ReferenceError("Cannot access 'id' before initialization");
+        if (this.rafIndexInitialized) throw new ReferenceError("Cannot access 'id' before initialization");
       },
       begin: () => {
         const id = record.id;
         registrations.delete(registration); this.cleanups.delete(record.cleanup);
-        if (id !== undefined) this.rafCancels?.delete(id);
+        if (id !== undefined) this.forgetRaf(id);
         record.fn = undefined;
         // Sliced teardown may already hold this cleanup. Keep its original
         // native cancellation after a callback fires during retirement.
@@ -395,7 +408,13 @@ export class Scope {
     // Keep the original immediate cleanup for injected hosts that do so.
     if (this.closed) record.cancel();
     else { registrations.add(record.registration); this.cleanups.add(record.cleanup); }
-    (this.rafCancels ??= new Map()).set(id, record.cancel);
+    // One pending request is the ordinary recursive frame chain. A direct
+    // slot avoids deleting/reinserting unique ids into a Map every vsync.
+    // Independent concurrent requests retain the full native identifier map.
+    this.rafIndexInitialized = true;
+    if (this.directRaf === undefined || sameFrameId(this.directRaf.id, id)) {
+      this.rafCancels?.delete(id); this.directRaf = record;
+    } else (this.rafCancels ??= new Map()).set(id, record.cancel);
     return id;
   }
 
