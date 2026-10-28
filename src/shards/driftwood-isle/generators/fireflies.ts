@@ -5,7 +5,7 @@
  * `shrine-fireflies` through the shard's geometry intake.
  */
 import * as THREE from 'three';
-import { SEED } from '@wildshard/engine/core/config';
+import { SEED } from './landscapeRows';
 import { Rng } from '@wildshard/sdk/random';
 import { FIREFLY_COUNT } from './fireflyLook';
 

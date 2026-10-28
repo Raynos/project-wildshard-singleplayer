@@ -1,0 +1,26 @@
+{
+  "row": {
+    "bytes": 27937,
+    "hash": "4f61d6ca982a531fd5399e55ec4393dcf37dc6c73ab4baceec0b4f127f857c8c"
+  },
+  "files": [
+    {
+      "tier": "phone",
+      "bytes": 1563904,
+      "hash": "e29cd70d60cff4eed17da3621629db3cc7de24f9b98a4a9738470026ea4c9328",
+      "url": "/assets/driftwood-isle/baked/ocean-e29cd70d60cff4eed17da3621629db3cc7de24f9b98a4a9738470026ea4c9328.glb"
+    },
+    {
+      "tier": "desktop",
+      "bytes": 3315552,
+      "hash": "93422f68838c3c52f063ad95964c770570ff11f395e78e71a111077558378022",
+      "url": "/assets/driftwood-isle/baked/ocean-93422f68838c3c52f063ad95964c770570ff11f395e78e71a111077558378022.glb"
+    },
+    {
+      "tier": "floor",
+      "bytes": 524288,
+      "hash": "4594171dad0831c9522dd54adc6c3c5f306ada75dec05bdfaea40699eb934ad8",
+      "url": "/assets/driftwood-isle/baked/ocean-4594171dad0831c9522dd54adc6c3c5f306ada75dec05bdfaea40699eb934ad8.bin"
+    }
+  ]
+}

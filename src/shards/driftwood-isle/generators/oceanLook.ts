@@ -31,6 +31,8 @@
 export const OCEAN_LOOK = 'driftwood-ocean';
 /** the dry rectangles the sea can clip (params `dry0` … `dry3`) */
 export const OCEAN_DRY_SLOTS = 4;
+/** Authored clipping inset and the end of this sea's horizon fade. */
+export const OCEAN_LIMITS: { readonly edgeInset: 0.8; readonly seaEnd: 2300 } = { edgeInset: 0.8, seaEnd: 2300 };
 /** an empty dry rectangle (min past max): clips nothing */
 export const OCEAN_NO_DRY: readonly [number, number, number, number] = [1e9, 1e9, -1e9, -1e9];
 

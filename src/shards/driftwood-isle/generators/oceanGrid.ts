@@ -10,9 +10,11 @@
  * - **sea floor**: `SEA_RES`² half floats over the chunk, the floor height at each texel's centre.
  */
 import * as THREE from 'three';
-import { CHUNK_HALF, CHUNK_SIZE } from '@wildshard/engine/core/config';
+import geometryPolicy from '../data/groundGeometryPolicy.json' with { type: 'json' };
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { SEA_RES } from './oceanLook';
+
+const CHUNK_SIZE = geometryPolicy.size, CHUNK_HALF = CHUNK_SIZE / 2;
 
 /** the ground the bake samples */
 export interface OceanGround { readonly heightAt: (x: number, z: number) => number; readonly inChunk: (x: number, z: number) => boolean }

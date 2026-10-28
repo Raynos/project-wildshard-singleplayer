@@ -1,9 +1,13 @@
-import { CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/core/config';
+import geometryPolicy from '../data/groundGeometryPolicy.json' with { type: 'json' };
 import { Rng } from '@wildshard/sdk/random';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { SEED, WORLD_DROP, SHORE_LEVEL } from './landscapeRows';
 import WRECK_SITES from '../data/wreckSites.json' with { type: 'json' };
 import { driftwoodGroundBytes } from './groundRows';
+
+const CHUNK_HALF = geometryPolicy.size / 2;
+// The authored exclusion width of each native shoreline pier corridor.
+const ROAD_WIDTH = 15;
 
 export interface BoulderSpec { x: number; z: number; r: number; rot?: number; squash?: number }
 

@@ -1,4 +1,4 @@
-import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
+import { boxDesc, type ColliderDesc } from '@wildshard/sdk/bake/placement';
 import type { PierParams } from './pierContract';
 
 /**

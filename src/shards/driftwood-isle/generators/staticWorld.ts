@@ -1,5 +1,5 @@
 /** Fixed world facts compiled beside the existing geometry and foliage products. */
-import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import geometryPolicy from '../data/groundGeometryPolicy.json' with { type: 'json' };
 import type { ColliderDesc } from '@wildshard/sdk/bake/placement';
 import authoredLayout from '../data/layout.json' with { type: 'json' };
 import { SHORE_LEVEL, WORLD_DROP } from './landscapeRows';
@@ -8,6 +8,8 @@ import { ENTRY_DECKS } from './entryDecks';
 import { shoreBoulderFacts } from './shoreBoulders';
 import { driftwoodPierRows } from './fixedFacts';
 import { islandFoliagePlacements } from './islandDressing';
+
+const CHUNK_HALF = geometryPolicy.size / 2;
 
 const foliage = islandFoliagePlacements();
 
