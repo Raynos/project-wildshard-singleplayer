@@ -696,3 +696,14 @@ test('a permanent data refusal is not retried or published as offline content',a
   expect(f.responses[0]?.status).toBe(404);expect(await f.responses[0]?.text()).toBe('not found');
   expect(f.fetch).toHaveBeenCalledTimes(1);expect(await(await f.open('ws-static-unit-assets')).match(url)).toBeUndefined();
 });
+
+test.each(['/assets/failed-data.json',`/shardfiles/sample/blobs/bin/${'d'.repeat(64)}.bin`])(
+  'three failed %s attempts preserve the final error and drain their owners',async path=>{
+    vi.useFakeTimers();const errors=[new Error('first drop'),new Error('second drop'),new Error('final drop')];let attempts=0;
+    const f=fixture(()=>{const error=errors[attempts++];if(error===undefined)throw new Error('Unexpected fourth attempt');return Promise.reject(error);});
+    const work=expect(f.dispatch('fetch',{request:new Request(new URL(path,base))})).rejects.toBe(errors[2]);
+    await vi.advanceTimersByTimeAsync(2700);await work;
+    expect(attempts).toBe(3);expect(f.responses).toHaveLength(0);expect(vi.getTimerCount()).toBe(0);
+    expect((await(await f.open('ws-static-unit-assets')).keys())).toHaveLength(0);
+    expect((await(await f.open(CONTENT_CACHE_NAME)).keys())).toHaveLength(0);
+  });
