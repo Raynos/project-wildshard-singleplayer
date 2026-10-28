@@ -509,8 +509,8 @@ export class ShardfileClient {
           // copies it. A creature's former fresh tuple is a numeric snapshot.
           if (target.kind === 'particles') return { position: target.at, frozen: !simulationActive };
           const p = target.kind === 'creature' ? animals.get(target.id)?.mesh.position : undefined;
-          const observed = captureClientScriptPosition(p, false, capture);
-          observed.frozen = !simulationActive; return observed;
+          captureClientScriptPosition(p, false, capture);
+          capture.frozen = !simulationActive; return undefined;
         } });
       ctx.scope.onDispose(() => { scripts.dispose(); });
       const targets = scripts.targets.map(({ entity, target }): ClientScriptViewTarget => {

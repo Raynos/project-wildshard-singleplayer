@@ -3,26 +3,29 @@ import type { DeclaredScriptWorld } from '@wildshard/engine/script/state';
 import { clientScriptRules, parseClientScripts, type ClientScriptContent, type ClientScriptTarget } from '@wildshard/format/clientScripts';
 
 /** A caller-owned numeric destination for a synchronous target capture. */
-export interface ClientScriptTargetCapture { position: [number, number, number]; frozen: boolean }
+export interface ClientScriptTargetCapture { x: number; y: number; z: number; frozen: boolean }
 
 /** Capture one live numeric point before field reads. A supplied destination
  * belongs to this bridge call, including a separate one for nested observers. */
 export function captureClientScriptPosition(position: Readonly<{ x: number; y: number; z: number }> | undefined,
-  frozen: boolean, capture?: ClientScriptTargetCapture): ClientScriptTargetCapture {
+  frozen: boolean): { position: [number, number, number]; frozen: boolean };
+export function captureClientScriptPosition(position: Readonly<{ x: number; y: number; z: number }> | undefined,
+  frozen: boolean, capture: ClientScriptTargetCapture): undefined;
+export function captureClientScriptPosition(position: Readonly<{ x: number; y: number; z: number }> | undefined,
+  frozen: boolean, capture?: ClientScriptTargetCapture): { position: [number, number, number]; frozen: boolean } | undefined {
   if (capture === undefined) return { position: position === undefined ? [0, 0, 0] : [position.x, position.y, position.z], frozen };
-  const point: number[] = capture.position;
-  point[0] = position === undefined ? 0 : position.x;
-  point[1] = position === undefined ? 0 : position.y;
-  point[2] = position === undefined ? 0 : position.z;
-  point.length = 3; capture.frozen = frozen; return capture;
+  capture.x = position === undefined ? 0 : position.x;
+  capture.y = position === undefined ? 0 : position.y;
+  capture.z = position === undefined ? 0 : position.z;
+  capture.frozen = frozen; return undefined;
 }
 
 /** Trusted input ports; the actor comes from the page, and observation never exposes a simulation object to bytecode. */
 export interface ShardfileClientScriptPorts {
   actorId: string; state?: DeclaredScriptWorld;
   observe: (target: ClientScriptTarget) => { position: readonly [number, number, number]; frozen: boolean };
-  /** Optional synchronous capture; legacy observers retain their one-argument call. */
-  observeInto?: (target: ClientScriptTarget, capture: ClientScriptTargetCapture) => { position: readonly [number, number, number]; frozen: boolean };
+  /** Fill numeric capture, or return an iterable observation. Legacy observers retain their one-argument call. */
+  observeInto?: (target: ClientScriptTarget, capture: ClientScriptTargetCapture) => { position: readonly [number, number, number]; frozen: boolean } | undefined;
   memoryBytes?: number;
 }
 /** Construct one isolated presentation lane and copy only the selected public/owner values on each presentation tick. */
@@ -62,13 +65,14 @@ export function createShardfileClientScripts(source: ClientScriptContent, assets
         for (const binding of declaration.bindings) {
           const row: ObservationFrame['rows'][number] = { position: [0, 0, 0], frozen: false, values: [] };
           frame.rows.push(row); frame.observations.set(binding.entity, row);
-          frame.captures.push({ position: [0, 0, 0], frozen: false });
+          frame.captures.push({ x: 0, y: 0, z: 0, frozen: false });
         }
       }
       for (let index = 0; index < declaration.bindings.length; index++) {
         const binding = declaration.bindings[index]; if (binding === undefined) throw new Error('Missing client binding');
         const capture = frame.captures[index]; if (capture === undefined) throw new Error('Missing client target capture');
-        const observed = ports.observeInto === undefined ? ports.observe(binding.target) : ports.observeInto(binding.target, capture);
+        const into = ports.observeInto, captured = into !== undefined;
+        const observed = into === undefined ? ports.observe(binding.target) : into.call(ports, binding.target, capture);
         const reads = fieldNames[index], row = frame.rows[index];
         if (reads === undefined || row === undefined) throw new Error('Missing client read contract');
         for (let field = 0; field < reads.length; field++) {
@@ -81,8 +85,14 @@ export function createShardfileClientScripts(source: ClientScriptContent, assets
         // Retain the original iterable-copy semantics (including an authored
         // iterator) and the position-before-frozen getter order.
         const position: number[] = row.position;
-        let coordinate = 0; for (const value of observed.position) position[coordinate++] = value;
-        position.length = coordinate; row.frozen = observed.frozen;
+        if (captured && observed === undefined) {
+          position[0] = capture.x; position[1] = capture.y; position[2] = capture.z;
+          position.length = 3; row.frozen = capture.frozen;
+        } else {
+          if (observed === undefined) throw new TypeError('Missing client observation');
+          let coordinate = 0; for (const value of observed.position) position[coordinate++] = value;
+          position.length = coordinate; row.frozen = observed.frozen;
+        }
       }
       lane.step(tick, frame.observations);
     } finally { depth--; }

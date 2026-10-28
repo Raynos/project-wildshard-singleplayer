@@ -127,9 +127,9 @@ test('the real point-capture producer preserves original guest bytes across nest
     const view = f.state.viewField.bind(f.state);
     let inner = false, nestedTick = 0, nest = false;
     f.ports.observe = target => captureClientScriptPosition(target.id === 'one' ? point : undefined, !inner);
-    f.ports.observeInto = (target, capture) => {
-      captures.add(capture);
-      return captureClientScriptPosition(target.id === 'one' ? point : undefined, !inner, capture);
+    f.ports.observeInto = function observeInto(this: ShardfileClientScriptPorts, target, capture) {
+      expect(this).toBe(f.ports); captures.add(capture);
+      captureClientScriptPosition(target.id === 'one' ? point : undefined, !inner, capture); return undefined;
     };
     f.state.viewField = (actor, scope, name) => {
       if (nest && !inner) {
@@ -164,4 +164,35 @@ test('the real point-capture producer preserves original guest bytes across nest
   const old = run(before), now = run(current);
   expect(now.snapshots).toEqual(old.snapshots);
   expect(old.captures).toBe(0); expect(now.captures).toBe(4);
+});
+
+test('an iterable returned by the capture port retains its live alias and exact copy order', () => {
+  const run = (make: typeof current): { snapshot: string; log: string[] } => {
+    const f = fixture(make), position: [number, number, number] = [0, 0, 0], view = f.state.viewField.bind(f.state);
+    function* coordinates(): Generator<number> { f.log.push('iterator'); yield position[0]; yield position[1]; yield position[2]; }
+    Object.defineProperty(position, Symbol.iterator, { value: coordinates });
+    f.ports.observe = target => ({ get position() { f.log.push(`position:${target.id}`); return position; }, frozen: false });
+    f.ports.observeInto = target => f.ports.observe(target);
+    f.state.viewField = (actor, scope, name) => { position[0] += .125; return view(actor, scope, name); };
+    try {
+      for (let tick = 0; tick < 8; tick++) f.bridge.step(tick);
+      return { snapshot: f.bridge.lane.snapshot(), log: f.log };
+    } finally { f.bridge.dispose(); }
+  };
+  expect(run(current)).toEqual(run(before));
+});
+
+test('a malformed legacy observation cannot select the numeric capture path or publish', () => {
+  const run = (make: typeof current): { snapshot: string; log: string[] } => {
+    const f = fixture(make), observe = f.ports.observe;
+    try {
+      const saved = f.bridge.lane.snapshot();
+      Reflect.set(f.ports, 'observe', () => undefined);
+      expect(() => f.bridge.step(0)).toThrow(TypeError);
+      expect(f.bridge.lane.snapshot()).toBe(saved);
+      f.ports.observe = observe; f.bridge.step(0);
+      return { snapshot: f.bridge.lane.snapshot(), log: f.log };
+    } finally { f.bridge.dispose(); }
+  };
+  expect(run(current)).toEqual(run(before));
 });
