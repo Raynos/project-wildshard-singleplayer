@@ -1,0 +1,29 @@
+{
+  "area": {
+    "x0": -110.7843137254902,
+    "x1": 110.78431372549016,
+    "z0": -214.7058823529412,
+    "z1": -20.588235294117652
+  },
+  "root": "/assets/models/driftwood-blender/",
+  "aliases": {
+    "/assets/driftwood-isle/baked/ground-c71039a949f150fe1ad02fa56556dd795c6ab691f28dd65e97899bbacdaf80fd.glb": "world/ground/ground.glb",
+    "/assets/driftwood-isle/baked/ground-c1b1903f1ee18926f7489a52f4f5eddd224d57f030fbca0dd4e0e2893f609b92.glb": "world/ground/slab.glb"
+  },
+  "blobs": [
+    {
+      "name": "world/ground/ground.glb",
+      "bytes": 2219896,
+      "sha256": "c71039a949f150fe1ad02fa56556dd795c6ab691f28dd65e97899bbacdaf80fd"
+    },
+    {
+      "name": "world/ground/slab.glb",
+      "bytes": 130212,
+      "sha256": "c1b1903f1ee18926f7489a52f4f5eddd224d57f030fbca0dd4e0e2893f609b92"
+    }
+  ],
+  "areaSamples": {
+    "count": 12675,
+    "sha256": "abd857f852944ce49ab790d97cb6d1886f3658af03cde06fdf1505a283bdbaaf"
+  }
+}

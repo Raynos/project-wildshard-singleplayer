@@ -7,12 +7,13 @@
  * (game/looks/toonLook.ts).
  */
 import * as THREE from 'three';
-import { CHUNK_SIZE, CHUNK_HALF, CHUNK_DEPTH, TERRAIN_RES } from '@wildshard/engine/core/config';
-import type { PainterField } from '@wildshard/engine/render/look';
+import geometryPolicy from '../data/groundGeometryPolicy.json' with { type: 'json' };
 import { GROUND_PATHS } from './groundLook';
 import { LP, hash2, lowPolyGroundColor } from './groundColor';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { islandClippedIndex } from './islandClips';
+
+const CHUNK_SIZE = geometryPolicy.size, CHUNK_HALF = CHUNK_SIZE / 2, CHUNK_DEPTH = geometryPolicy.slabDepth, TERRAIN_RES = geometryPolicy.resolution;
 
 /** A faceted ground's numbers as data. */
 interface FacetedGroundRow {
@@ -31,7 +32,11 @@ interface FacetedGroundRow {
 }
 
 /** the field the bake samples: the bound ground's heights, normals and trail distance */
-export type FacetedGroundField = Pick<PainterField, 'heightAt' | 'normalAt' | 'trailDistance'>;
+export interface FacetedGroundField {
+  heightAt: (x: number, z: number) => number;
+  normalAt: (x: number, z: number, eps?: number) => [number, number, number];
+  trailDistance: (x: number, z: number) => number;
+}
 
 /** One grid vertex as the paint reads it: height above the sea (a wall's middle height), slope (1 − normal y), where,
  *  the ground's height and the cliff-lip weight (0‥1). */

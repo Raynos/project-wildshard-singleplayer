@@ -1,6 +1,8 @@
 import ISLAND_GRID from '../data/islandClipRows.json' with { type: 'json' };
-import { CHUNK_HALF } from '@wildshard/engine/core/config';
-import { CELL, type BlenderArea } from '@wildshard/engine/world/blenderArea';
+import geometryPolicy from '../data/groundGeometryPolicy.json' with { type: 'json' };
+
+const CHUNK_HALF = geometryPolicy.size / 2, CELL = geometryPolicy.size / (geometryPolicy.resolution - 1);
+interface BlenderArea { x0: number; x1: number; z0: number; z1: number }
 
 /**
  * Driftwood Isle's Blender area (DRIFTWOOD-REMASTER X2, E52): the spawn cove, the crescent beach, the plank stair and the
