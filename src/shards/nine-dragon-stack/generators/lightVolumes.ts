@@ -1,6 +1,6 @@
 import { Color, Matrix4, Quaternion, Vector3, Vector4 } from 'three';
 import { encodePortableBytes } from '@wildshard/sdk/bake/portableBytes';
-import * as v from 'valibot';
+import { defineNamedRows, type NamedRowValue } from '@wildshard/sdk/formatJsonSchema';
 import { bakeLightSources, type AuthoredLightEmitter } from '@wildshard/sdk/bake/lightSources';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { bakeLightVolume } from './lightVolume';
@@ -21,17 +21,22 @@ interface WindowLike { m: Matrix4; win: Vector4; light: Color }
 /** This factory supplies initial state explicitly; the generic author input also permits an omitted default. */
 type InitialLightRow = AuthoredLightEmitter & { initially: boolean };
 const isLamp = (e: EmitterLike): boolean => e.w < 0.5 && e.h < 0.5;
-const number = v.pipe(v.number(), v.finite(), v.minValue(0));
-/** Author-side validation; the page receives only baked voxel data. */
-export const LightPoolProfilesSchema: v.StrictObjectSchema<{ readonly maximum: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly lantern: v.StrictObjectSchema<{ readonly k: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly r: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly cut: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly tint: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly redShare: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; }, undefined>; readonly shop: v.StrictObjectSchema<{ readonly k: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly rPerW: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly rMin: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly cut: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly out: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly tint: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; }, undefined>; readonly lamp: v.StrictObjectSchema<{ readonly k: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly r: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly cut: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly tint: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; }, undefined>; readonly sign: v.StrictObjectSchema<{ readonly k: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly rPerSize: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly rMin: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly cut: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; }, undefined>; readonly window: v.StrictObjectSchema<{ readonly k: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly r: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly cut: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly out: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.FiniteAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; }, undefined>; }, undefined> = v.strictObject({
-  maximum: number,
-  lantern: v.strictObject({ k: number, r: number, cut: number, tint: number, redShare: number }),
-  shop: v.strictObject({ k: number, rPerW: number, rMin: number, cut: number, out: number, tint: number }),
-  lamp: v.strictObject({ k: number, r: number, cut: number, tint: number }),
-  sign: v.strictObject({ k: number, rPerSize: number, rMin: number, cut: number }),
-  window: v.strictObject({ k: number, r: number, cut: number, out: number }),
-});
-type LightPoolProfiles = v.InferOutput<typeof LightPoolProfilesSchema>;
+const number: { readonly kind: 'number'; readonly finite: true; readonly min: 0 } = { kind: 'number', finite: true, min: 0 } as const;
+/** Complete original numeric pool grammar; the page receives only baked voxel data. */
+const LightPoolProfilesShape: { readonly kind: 'object'; readonly entries: { readonly maximum: typeof number; readonly lantern: { readonly kind: 'object'; readonly entries: { readonly k: typeof number; readonly r: typeof number; readonly cut: typeof number; readonly tint: typeof number; readonly redShare: typeof number } }; readonly shop: { readonly kind: 'object'; readonly entries: { readonly k: typeof number; readonly rPerW: typeof number; readonly rMin: typeof number; readonly cut: typeof number; readonly out: typeof number; readonly tint: typeof number } }; readonly lamp: { readonly kind: 'object'; readonly entries: { readonly k: typeof number; readonly r: typeof number; readonly cut: typeof number; readonly tint: typeof number } }; readonly sign: { readonly kind: 'object'; readonly entries: { readonly k: typeof number; readonly rPerSize: typeof number; readonly rMin: typeof number; readonly cut: typeof number } }; readonly window: { readonly kind: 'object'; readonly entries: { readonly k: typeof number; readonly r: typeof number; readonly cut: typeof number; readonly out: typeof number } } } } = {
+  kind: 'object', entries: {
+    maximum: number,
+    lantern: { kind: 'object', entries: { k: number, r: number, cut: number, tint: number, redShare: number } },
+    shop: { kind: 'object', entries: { k: number, rPerW: number, rMin: number, cut: number, out: number, tint: number } },
+    lamp: { kind: 'object', entries: { k: number, r: number, cut: number, tint: number } },
+    sign: { kind: 'object', entries: { k: number, rPerSize: number, rMin: number, cut: number } },
+    window: { kind: 'object', entries: { k: number, r: number, cut: number, out: number } },
+  },
+} as const;
+const lightPools: ReturnType<typeof defineNamedRows<typeof LightPoolProfilesShape>> = defineNamedRows(LightPoolProfilesShape);
+export const LightPoolProfilesSchema: typeof lightPools.schema = lightPools.schema;
+export const LIGHT_POOL_INPUTS: typeof LightPoolProfilesShape = LightPoolProfilesShape;
+type LightPoolProfiles = NamedRowValue<typeof LightPoolProfilesShape>;
 /** The existing emitter layout projects numeric pool rows; the shared host materialises both volume and uniform views. */
 export function lightPoolRows(opt: { readonly lanterns: readonly EmitterLike[]; readonly ctxEmitters: readonly EmitterLike[];
   readonly signs: readonly EmitterLike[]; readonly windows: readonly WindowLike[] }, POOL: LightPoolProfiles): InitialLightRow[] {
@@ -114,7 +119,7 @@ function volumeData(layout: NineSourceWorld['layout'], atlas: NineNativeAtlas): 
   const found = cached.get(layout); if (found?.atlas === identity) return found.data;
   const blobs: NamedBlob[] = [], rows: Record<string, VolumeRow> = {};
   for (const tier of ['phone', 'desktop'] as const) for (const caps of [false, true]) {
-    const lights = bakeLightSources(lightPoolRows(volumeSources(tier, caps, layout, atlas), v.parse(LightPoolProfilesSchema, pools)));
+    const lights = bakeLightSources(lightPoolRows(volumeSources(tier, caps, layout, atlas), lightPools.parse(pools)));
     const key = `looks/volumes-${tier}-${caps ? 'capped' : 'open'}`;
     const boxes = [{ min: new Vector3(-30, 123, -175), max: new Vector3(110, 171, 28), cell: 1 },
       { min: new Vector3(-30, -100, -46), max: new Vector3(2, 123, 18), cell: 1.5 }];
