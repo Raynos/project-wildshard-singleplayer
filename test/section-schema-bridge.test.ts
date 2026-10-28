@@ -108,3 +108,42 @@ it('keeps held semantic refusals on the public platform schema',()=>{
   expect(()=>v.parse(schema,value({...program,nodes:[{op:'sin',a:0}]}))).toThrow();
   expect(()=>v.parse(schema,value({...program,reads:[123]}))).toThrow();
 });
+
+it('derives identical complete tables from finite source-owned contracts and keeps file admission strict', async () => {
+  const { root, source } = fixture();
+  const registries = "export const SECTIONS={'custom/probe':ProbeSchema,'custom/floor':FloorSchema}; export const FILE_SCHEMAS={'data/probe.json':ProbeSchema};";
+  const floor = "export const FloorSchema=native('sceneDressing.SceneFloorSchema');";
+  try {
+    mkdirSync(join(root, 'src/shards/sample/data'), { recursive: true });
+    const data = join(root, 'src/shards/sample/data/probe.json');
+    writeFileSync(data, '{"n":2,"at":[1,2]}');
+    writeFileSync(source, `import * as v from 'valibot'; import {authorFormatSchema as native} from '@wildshard/sdk/formatJsonSchema'; export const ProbeSchema=v.strictObject({n:v.pipe(v.number(),v.finite(),v.minValue(1)),at:v.tuple([v.number(),v.number()]),maybe:v.exactOptional(v.boolean())});${floor}${registries}`);
+    const before = await sectionSchemaTables(root, 'sample');
+    writeFileSync(source, `import {authorFormatSchema as native,defineNamedRows as contract,type NamedRows,type NamedRowValue} from '@wildshard/sdk/formatJsonSchema'; import type {NamedRowInput,NamedJsonComposition} from '@wildshard/sdk/formatJsonSchema'; const shape={kind:'object',mode:'strict',entries:{n:{kind:'number',finite:true,min:1},at:{kind:'tuple',items:[{kind:'number'},{kind:'number'}]},maybe:{kind:'exact-optional',item:{kind:'boolean'}}}} as const satisfies NamedJsonComposition; type Input=NamedRowInput<typeof shape>; type Output=NamedRowValue<typeof shape>; export const ProbeSchema:NamedRows<Output,Input>['schema']=contract(shape).schema;${floor}${registries}`);
+    const after = await sectionSchemaTables(root, 'sample');
+    expect(after.report.schemas).toBe(2);
+    expect(after.report.sourceHash).not.toBe(before.report.sourceHash);
+    for (const [path, table] of Object.entries(before.tables))
+      expect(after.tables[path]?.split('\n').slice(1).join('\n')).toBe(table.split('\n').slice(1).join('\n'));
+    await writeSectionSchemaTables(root, 'sample');
+    await writeSectionSchemaTables(root, 'sample', { check: true });
+    writeFileSync(data, '{"n":2,"at":[1,2],"unregistered":true}');
+    await expect(sectionSchemaTables(root, 'sample')).rejects.toThrow();
+    writeFileSync(data, '{"n":2,"at":[1]}');
+    await expect(sectionSchemaTables(root, 'sample')).rejects.toThrow();
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+it('refuses unregistered SDK exports, value imports of types and unknown source refinements', async () => {
+  const { root, source } = fixture();
+  try {
+    for (const binding of ['* as sdk', 'sdk', '{}', '{defineNamedRows,formatJsonSchema}', '{NamedRowValue}', 'type {Unregistered}']) {
+      writeFileSync(source, `import ${binding} from '@wildshard/sdk/formatJsonSchema'; export const SECTIONS={};`);
+      await expect(sectionSchemaTables(root, 'sample')).rejects.toThrow('finite author selector');
+    }
+    writeFileSync(source, "import {defineNamedRows} from '@wildshard/sdk/formatJsonSchema'; export const ProbeSchema=defineNamedRows({kind:'number'},n=>n>0,'positive').schema; export const SECTIONS={'custom/probe':ProbeSchema};");
+    await expect(sectionSchemaTables(root, 'sample')).rejects.toThrow();
+    writeFileSync(source, "import {defineNamedRows} from '@wildshard/sdk/formatJsonSchema'; const module=await import('./runtime'); export const SECTIONS={};");
+    await expect(sectionSchemaTables(root, 'sample')).rejects.toThrow('dynamically import');
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
