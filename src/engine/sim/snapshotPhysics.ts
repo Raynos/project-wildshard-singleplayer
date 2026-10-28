@@ -68,7 +68,10 @@ export function encodePhysicsReferences(bytes: Uint8Array, basis?: Uint8Array): 
     if (length < matchMinimum) { at++; continue; }
     flush(at);
     encoded[written++] = external ? 2 : 1; view.setUint32(written, external ? basisAt : at - previous, true); written += 4; view.setUint32(written, length, true); written += 4;
-    if (!external) for (let i = at + 1; i < at + length && i + 16 <= bytes.length; i++) dictionary[hash(rawView, i)] = i;
+    // A repeated 64-byte span contains an indexed start within fifteen bytes.
+    // Re-index copied ranges at the same stride as the immutable basis, rather
+    // than hashing every byte of native geometry again on every checkpoint.
+    if (!external) for (let i = at + 1; i < at + length && i + 16 <= bytes.length; i += basisStride) dictionary[hash(rawView, i)] = i;
     at += length; literal = at;
   }
   flush(bytes.length);
