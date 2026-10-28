@@ -2,7 +2,23 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { SpecimenAssetSchema } from '../src/format/specimenCatalogue';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { nalatiPaintedAtlasFile, nalatiPaintedGeometryFile, nalatiPaintedBindings, nalatiPaintedModelNames, nalatiLatePaintedNames, nalatiLateCatalogueNames, nalatiDeferredCatalogueScene } from '../src/shards/nalati-grasslands/generators/modelBindings';
+import { nalatiPaintedAtlasFile, nalatiPaintedGeometryFile, nalatiPaintedBindings, nalatiPaintedModelNames, nalatiLatePaintedNames, nalatiLateCatalogueNames, nalatiLateDressingNames, nalatiDeferredCatalogueScene } from '../src/shards/nalati-grasslands/generators/modelBindings';
+
+test('desktop dressing warm excludes every shared or externally demanded named source', () => {
+  const desktop = 'world/dressing-desktop.json', phone = 'world/dressing-phone.json';
+  const books = new Map<string, unknown>([
+    [desktop, { contacts: [{ file: 'full.bin' }, { file: 'shared.bin' }, { file: 'card.bin' }], label: 'not-a-file' }],
+    [phone, { contacts: [{ file: 'small.bin' }, { file: 'shared.bin' }] }],
+    ['models/cover-desktop.json', { packed: { file: 'card.bin' } }],
+  ]);
+  const names = new Set([desktop, phone, 'full.bin', 'shared.bin', 'card.bin', 'small.bin']), before = structuredClone(books);
+  expect(nalatiLateDressingNames(books, names)).toEqual(['full.bin', desktop]);
+  expect(books).toStrictEqual(before);
+  books.set('other.json', { dependency: desktop, source: 'full.bin' });
+  expect(nalatiLateDressingNames(books, names)).toEqual([]);
+  expect(() => nalatiLateDressingNames(new Map([[desktop, {}]]), names)).toThrow('Missing dressing');
+  expect(() => nalatiLateDressingNames(new Map([[phone, {}]]), names)).toThrow('Missing dressing');
+});
 
 const prefix = '/assets/nalati/baked/painted-models/';
 const material = { id: 'rock', family: 'painterly', rim: .3, bands: .8, floor: .2 } as const;

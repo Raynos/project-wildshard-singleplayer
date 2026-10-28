@@ -8,7 +8,7 @@ import { nalatiSpeciesProgram } from './speciesProgram';
 import { nalatiHeldSource, type NalatiHeldRows } from './heldMetadata';
 import type { NalatiSpeciesSourceInputs } from './speciesPreparation';
 import { nalatiModelPartsProgram } from './modelPartsProgram';
-import { nalatiPaintedAtlasFile, nalatiPaintedGeometryFile, nalatiPaintedBindings, nalatiPaintedModelNames, nalatiLatePaintedNames, nalatiLateCatalogueNames, nalatiDeferredCatalogueScene } from './modelBindings';
+import { nalatiPaintedAtlasFile, nalatiPaintedGeometryFile, nalatiPaintedBindings, nalatiPaintedModelNames, nalatiLatePaintedNames, nalatiLateCatalogueNames, nalatiLateDressingNames, nalatiDeferredCatalogueScene } from './modelBindings';
 import { nalatiQuestProp } from './questProp';
 import { nalatiBalbalSpecimen } from './balbalSpecimen';
 import modelMetrics from '../data/modelMetrics.json' with { type: 'json' };
@@ -403,20 +403,20 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
     }
   }
   const modelBlobs = [...modelFiles.values()];
-  const boundBooks: unknown[] = [];
+  const boundBooks = new Map<string, unknown>();
   const ownedBooks = new Map(documents.map(({ blob, rows }) => {
     const name = blob.file.name;
     if (name === undefined) throw new Error('Missing named Nalati model book');
     let bound = nalatiPaintedBindings(rows, parts);
     if(name==='world/dressing-phone.json')bound=nalatiDeferredCatalogueScene(bound);
-    boundBooks.push(bound);
+    boundBooks.set(name, bound);
     const owned = nameBlob(name, 'json', new TextEncoder().encode(encodeCanonicalJson(bound)), {
       critical: blob.file.critical, dependencies: blob.file.dependencies,
       ...(blob.file.jsonSchema === undefined ? {} : { jsonSchema: blob.file.jsonSchema }),
     });
     return [name, owned] as const;
   }));
-  const lateNames=new Set(nalatiLatePaintedNames(boundBooks));
+  const lateNames=new Set(nalatiLatePaintedNames([...boundBooks.values()]));
   const phoneBook=ownedBooks.get('world/dressing-phone.json');
   if(phoneBook===undefined)throw new Error('Missing phone dressing book');
   const catalogueNames=nalatiLateCatalogueNames(JSON.parse(new TextDecoder().decode(phoneBook.bytes)) as unknown);
@@ -430,6 +430,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
   })], runtime.floors.map(floor => nameBlob(floor.name, 'bin', floor.bytes)), [propBlob], carvings, held, [...renderPairs, ...coarseTiles], ownedGeography, views, [kokpar.blob, kokpar.courseBlob], ridingModules, nalatiTitanBlobs(titan), nalatiAdmissionBlobs(admissionBank), [nalatiChargeBlob(charge)]));
   const fileByName=new Map([...sources.map(source=>source.file),...modelBlobs.map(blob=>blob.file),...namedFiles,specimenBank.file].flatMap(file=>file.name===undefined?[]:[[file.name,file] as const]));
   for(const name of catalogueNames)if(fileByName.has(name))lateNames.add(name);
+  for(const name of nalatiLateDressingNames(boundBooks,new Set(fileByName.keys())))lateNames.add(name);
   const late=[...new Set([...lateNames].map(name=>{
     const file=fileByName.get(name);if(file===undefined)throw new Error('Missing late model source');return file.hash;
   }))].map(hash=>({hash}));

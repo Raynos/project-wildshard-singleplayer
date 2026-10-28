@@ -96,6 +96,22 @@ export function nalatiLateCatalogueNames(input: unknown): readonly string[] {
   return [...late].filter(name=>!early.has(name)).sort();
 }
 
+/** The phone never opens the desktop dressing book. Only names exclusive to
+ * that book may skip the eager warm; every other book's references win. Actual
+ * desktop demand still reads the same admitted files immediately. */
+export function nalatiLateDressingNames(books: ReadonlyMap<string, unknown>, names: ReadonlySet<string>): readonly string[] {
+  const desktop = 'world/dressing-desktop.json', phone = 'world/dressing-phone.json';
+  if (!books.has(desktop) || !books.has(phone)) throw new Error('Missing dressing timing books');
+  const collect = (value: unknown, into: Set<string>): void => {
+    if (typeof value === 'string') { if (names.has(value)) into.add(value); }
+    else if (Array.isArray(value)) { for (const child of value) collect(child, into); }
+    else if (value !== null && typeof value === 'object') { for (const child of Object.values(value)) collect(child, into); }
+  };
+  const candidates = new Set<string>([desktop]), shared = new Set<string>();
+  for (const [name, value] of books) collect(value, name === desktop ? candidates : shared);
+  return [...candidates].filter(name => names.has(name) && !shared.has(name)).sort();
+}
+
 /** Annotate already-constructed scene data; the original complete named-file
  * schema remains its publication guard. No geometry or catalogue row changes. */
 export function nalatiDeferredCatalogueScene(input:unknown):unknown{
