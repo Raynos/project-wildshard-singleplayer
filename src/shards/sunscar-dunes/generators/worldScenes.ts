@@ -1,6 +1,5 @@
 import type { placeBindings } from './restScene';
-import { parseWorldSceneBindings, parseWorldScene } from '@wildshard/format/clientChannels';
-import { parseWorldScenes } from '@wildshard/format/worldScenes';
+import { worldSceneBindings as parseWorldSceneBindings, worldSceneRecipe as parseWorldScene, worldSceneRows as parseWorldScenes } from '@wildshard/sdk/worldScenes';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { SIGNAL_PIECES as pieces } from './rows/pieces';
 import { SIGNAL_SOURCE_LIBRARIES, type SceneWorldBakes } from './sceneSources';

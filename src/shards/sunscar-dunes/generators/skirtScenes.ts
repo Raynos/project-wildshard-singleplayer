@@ -3,8 +3,7 @@ import { GeometryPack, packedRows } from '@wildshard/sdk/kit/geometryPack';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
-import { parseWorldScene } from '@wildshard/format/clientChannels';
-import type { WorldScenesSection } from '@wildshard/format/worldScenes';
+import { worldSceneRecipe as parseWorldScene, type AuthorWorldScenes as WorldScenesSection } from '@wildshard/sdk/worldScenes';
 import { bakeSignalSkirt } from './skirt';
 
 // Read the original pack at build time. Lossless GLB encoding retains every

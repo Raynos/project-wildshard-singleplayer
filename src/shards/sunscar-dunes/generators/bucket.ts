@@ -1,5 +1,4 @@
-import { lowerMoverMotion } from '@wildshard/format/moverMotion';
-import { parseMovers } from '@wildshard/format/movers';
+import { compileMoverMotion as lowerMoverMotion, parseMoverRows as parseMovers } from '@wildshard/sdk/movers';
 import { ClientChannels } from '@wildshard/sdk/clientChannels';
 import { FLAG } from './rows/flags';
 import STRINGS from '../data/strings.json' with { type: 'json' };
