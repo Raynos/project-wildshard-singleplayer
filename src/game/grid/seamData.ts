@@ -2,10 +2,12 @@ import type { GridEdgeSource } from './edgeProfiles';
 import type { CompiledGridSelector } from './compiledStrips';
 import { readGridAssetBytes } from './gridAssetBytes';
 
-export interface GridSeamAddress { readonly url: string; readonly bytes: number; readonly sha256: string; readonly geometry?: CompiledGridSelector }
+export interface GridSeamAddress { readonly url: string; readonly bytes: number; readonly sha256: string; readonly geometry?: CompiledGridSelector;
+  readonly plans?: { readonly url: string; readonly bytes: number; readonly sha256: string } }
 interface GridSeamData {
   readonly plans: readonly (readonly [string, readonly number[][]])[];
   readonly edges: readonly (readonly [string, Extract<GridEdgeSource, { kind: 'declared' }>])[];
+  readonly readPlans?: (read: (url: string) => Promise<Response>) => Promise<GridSeamData['plans']>;
 }
 const sides = ['north', 'east', 'south', 'west'] as const;
 const record = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -39,6 +41,13 @@ function data(value: unknown): value is GridSeamData {
 export async function readGridSeamData(address: GridSeamAddress, read: (url: string) => Promise<Response>): Promise<GridSeamData> {
   const wire = await readGridAssetBytes(address, read, 'seams');
   const parsed: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(wire));
-  if (!data(parsed)) throw new Error('Invalid grid seam data');
-  return parsed;
+  if (!data(parsed) || address.plans !== undefined && parsed.plans.length > 0) throw new Error('Invalid grid seam data');
+  if (address.plans === undefined) return parsed;
+  const plans = { ...address.plans };
+  return { plans: parsed.plans, edges: parsed.edges, readPlans: async fetchPlans => {
+    const bytes = await readGridAssetBytes(plans, fetchPlans, 'seam-plans');
+    const value: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+    if (!data(value) || value.edges.length > 0) throw new Error('Invalid grid seam plans');
+    return value.plans;
+  } };
 }

@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
-import { gridSeamAsset } from '../scripts/app-build/gridSeams.mjs';
+import { GRID_SEAMS, gridSeamAsset, readGridSeams, writeGridSeams } from '../scripts/app-build/gridSeams.mjs';
 import { checkChunks } from '../scripts/check-chunks.mjs';
 import { writeChunkReport } from '../scripts/app-build/chunkReport.mjs';
 import { build, type InlineConfig } from 'vite';
 // oxlint-disable-next-line import/no-nodejs-modules -- The build guard fixture owns and removes only its small tmp tree.
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the isolated build fixture inside the ignored scratch root.
 import { resolve } from 'node:path';
 
@@ -18,6 +18,35 @@ test('the build keeps exact seam JSON in a content-addressed asset, not a JS lit
   expect(gridSeamAsset(source)).toEqual(asset);
   expect(gridSeamAsset(source.replace('0.125', '0.250')).address.url).not.toBe(asset.address.url);
   expect(() => gridSeamAsset('{"plans":[]}')).toThrow('plans and edges');
+});
+
+test('split native plans reconstruct the entire certified source and retain its index fence', () => {
+  const source = JSON.stringify({ plans: [['native', [[0, 0.125, 1], [0.1, 0.9]]]], edges: [] });
+  const whole = gridSeamAsset(source), compact = gridSeamAsset(source, true), root = mkdtempSync(resolve('tmp/grid-plan-input-'));
+  try {
+    const plans = compact.plans; if (plans === undefined) throw new Error('Missing native plans');
+    expect(compact.address.plans).toEqual(plans.address);
+    expect(plans.fileName).toBe(`assets/grid-seam-plans-${plans.address.sha256.slice(0, 8)}.json`);
+    const edgeData: unknown = JSON.parse(compact.source), planData: unknown = JSON.parse(plans.source);
+    if (typeof edgeData !== 'object' || edgeData === null || !('plans' in edgeData)
+      || typeof planData !== 'object' || planData === null || !('plans' in planData)) throw new Error('Invalid split fixture');
+    expect(edgeData.plans).toEqual([]);
+    expect(JSON.stringify({ ...edgeData, plans: planData.plans })).toBe(source);
+    mkdirSync(resolve(root, 'out/.app'), { recursive: true });
+    writeFileSync(resolve(root, GRID_SEAMS), source);
+    const index = resolve(root, 'out/.app/grid-strip-index.json');
+    writeFileSync(index, JSON.stringify({ seams: whole.address.sha256, files: [] }));
+    expect(readGridSeams(root)).toEqual(compact);
+    writeGridSeams(resolve(root, 'dist'), root);
+    expect(readFileSync(resolve(root, 'dist', compact.fileName), 'utf8')).toBe(compact.source);
+    expect(readFileSync(resolve(root, 'dist', plans.fileName), 'utf8')).toBe(plans.source);
+    // The sealed page index still names the full original certification source,
+    // never just the smaller edge document or an unchecked missing-input case.
+    writeFileSync(index, JSON.stringify({ seams: compact.address.sha256, files: [] }));
+    expect(() => readGridSeams(root)).toThrow('differs from its seam source');
+    expect(gridSeamAsset('{"plans":[["native",[[-0]]]],"edges":[]}', true).plans).toBeUndefined();
+    expect(gridSeamAsset('{"plans":[["native",[["bad"]]]],"edges":[]}', true).plans).toBeUndefined();
+  } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
 test('the grid chunk guard refuses inline data, missing measurements and either exceeded ceiling', () => {

@@ -68,3 +68,12 @@ test('a later private RGB run cannot reuse an earlier valid leaf admission', () 
   for (let index = 128; index < input.colours.length; index++) input.colours[index] = [0.2, 0.4, 2];
   expect(() => immutableEdgeProfile(input)).toThrow('Invalid edge colour');
 });
+
+test('all source colours are copied before the original height refusal', () => {
+  const input = row(); input.heights[0] = 251; let copies = 0;
+  Object.defineProperty(input.colours, Symbol.iterator, { *value() {
+    for (let index = 0; index < 256; index++) { copies++; yield [0.2, 0.4, 0.6]; }
+  } });
+  expect(() => immutableEdgeProfile(input)).toThrow('Invalid edge profile');
+  expect(copies).toBe(256);
+});

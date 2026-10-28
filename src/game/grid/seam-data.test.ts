@@ -35,3 +35,28 @@ test('native edge samples and physical observations survive transport exactly', 
   const asset = await fixture(JSON.stringify(value));
   expect(await readGridSeamData(asset.address, () => Promise.resolve(new Response(asset.source)))).toEqual(value);
 });
+
+test('native plans stay unread until demanded and each verified read is detached', async () => {
+  const main = await fixture('{"plans":[],"edges":[]}'), plans = await fixture('{"plans":[["native",[[0,0.125,1]]]],"edges":[]}');
+  const address = { ...plans.address, url: plans.address.url.replace('grid-seams-', 'grid-seam-plans-') };
+  const urls: string[] = [], data = await readGridSeamData({ ...main.address, plans: address }, url => { urls.push(url); return Promise.resolve(new Response(main.source)); });
+  expect(urls).toEqual([main.address.url]); expect(data.plans).toEqual([]);
+  if (data.readPlans === undefined) throw new Error('Missing native plan reader');
+  const read = (url: string): Promise<Response> => { urls.push(url); return Promise.resolve(new Response(plans.source)); };
+  const first = await data.readPlans(read), second = await data.readPlans(read);
+  expect(first).toEqual([['native', [[0, 0.125, 1]]]]); expect(second).toEqual(first); expect(second).not.toBe(first);
+  first[0]?.[1][0]?.fill(17); expect(second).toEqual([['native', [[0, 0.125, 1]]]]);
+  expect(urls).toEqual([main.address.url, address.url, address.url]);
+  await expect(data.readPlans(() => Promise.resolve(new Response(`${plans.source} `)))).rejects.toThrow('size');
+  await expect(data.readPlans(() => Promise.resolve(new Response(plans.source.replace('0.125', '0.250'))))).rejects.toThrow('differs from the build');
+  await expect(data.readPlans(() => Promise.resolve(new Response(null, { status: 404 })))).rejects.toThrow('404');
+  const abort = new DOMException('Plan input retired', 'AbortError');
+  await expect(data.readPlans(() => Promise.reject(abort))).rejects.toBe(abort);
+});
+
+test('deferred native plans keep the original complete matrix guard', async () => {
+  const main = await fixture('{"plans":[],"edges":[]}'), plans = await fixture('{"plans":[["native",[["bad"]]]],"edges":[]}');
+  const data = await readGridSeamData({ ...main.address, plans: { ...plans.address, url: plans.address.url.replace('grid-seams-', 'grid-seam-plans-') } }, () => Promise.resolve(new Response(main.source)));
+  if (data.readPlans === undefined) throw new Error('Missing native plan reader');
+  await expect(data.readPlans(() => Promise.resolve(new Response(plans.source)))).rejects.toThrow('Invalid grid seam plans');
+});

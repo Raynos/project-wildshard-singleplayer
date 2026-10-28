@@ -1,9 +1,9 @@
 // oxlint-disable-next-line typescript/unbound-method -- Snapshot native identity only; bind the concrete reader before invoking it.
 const directRead = typeof ReadableStreamBYOBReader === 'undefined' ? undefined : ReadableStreamBYOBReader.prototype.read;
 /** Read one build-addressed grid asset, refusing size, path and digest changes. */
-export async function readGridAssetBytes(address: { readonly url: string; readonly bytes: number; readonly sha256: string }, read: (url: string) => Promise<Response>, kind: 'seams' | 'strips'): Promise<Uint8Array<ArrayBuffer>> {
-  const path = kind === 'seams' ? /^\/assets\/grid-seams-[a-f0-9]{8}\.json$/u : /^\/assets\/grid-strip-(?:(?:book|page)-[a-f0-9]{8}\.json|mesh-[a-f0-9]{8}\.bin)$/u;
-  const label = kind === 'seams' ? 'Grid seam data' : 'Grid strip data';
+export async function readGridAssetBytes(address: { readonly url: string; readonly bytes: number; readonly sha256: string }, read: (url: string) => Promise<Response>, kind: 'seams' | 'strips' | 'seam-plans'): Promise<Uint8Array<ArrayBuffer>> {
+  const path = kind === 'seams' ? /^\/assets\/grid-seams-[a-f0-9]{8}\.json$/u : kind === 'seam-plans' ? /^\/assets\/grid-seam-plans-[a-f0-9]{8}\.json$/u : /^\/assets\/grid-strip-(?:(?:book|page)-[a-f0-9]{8}\.json|mesh-[a-f0-9]{8}\.bin)$/u;
+  const label = kind === 'seams' ? 'Grid seam data' : kind === 'seam-plans' ? 'Grid seam plans' : 'Grid strip data';
   if (!path.test(address.url) || !/^[a-f0-9]{64}$/u.test(address.sha256)
     || !address.url.includes(address.sha256.slice(0, 8))
     || !Number.isSafeInteger(address.bytes) || address.bytes <= 0 || address.bytes > 16 * 1024 * 1024) throw new Error(kind === 'seams' ? 'Invalid grid seam address' : 'Invalid grid strip address');

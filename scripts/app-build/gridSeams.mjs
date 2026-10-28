@@ -4,18 +4,29 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 
 /** The certified grid seams as the app build bakes them (gitignored, beside the title tables): the bundle defines only
- *  their small address (`__GRID_SEAM_ASSET__`, vite.config.ts) and ships the exact JSON bytes as one hashed asset. */
+ *  their small addresses (`__GRID_SEAM_ASSET__`, vite.config.ts). Native fallback plans are a separate verified file. */
 export const GRID_SEAMS = 'out/.app/grid-seams.json';
 
-/** Keep the certifier's exact JSON bytes; only its small address enters JavaScript. */
-export function gridSeamAsset(source) {
+/** Keep the original wire by default; the app may split canonical native plans without changing any certified value. */
+export function gridSeamAsset(source, splitPlans = false) {
   const baked = JSON.parse(source);
   if (typeof baked !== 'object' || baked === null || !Array.isArray(Reflect.get(baked, 'plans'))
     || !Array.isArray(Reflect.get(baked, 'edges'))) throw new Error('Grid seam bake needs plans and edges');
-  const bytes = Buffer.byteLength(source);
-  if (bytes === 0 || bytes > 16 * 1024 * 1024) throw new Error('Grid seam bake exceeds its transport cap');
-  const sha256 = createHash('sha256').update(source).digest('hex'), fileName = `assets/grid-seams-${sha256.slice(0, 8)}.json`;
-  return { fileName, source, address: { url: `/${fileName}`, bytes, sha256 } };
+  const addressed = (value, prefix) => {
+    const bytes = Buffer.byteLength(value);
+    if (bytes === 0 || bytes > 16 * 1024 * 1024) throw new Error('Grid seam bake exceeds its transport cap');
+    const sha256 = createHash('sha256').update(value).digest('hex'), fileName = `assets/${prefix}-${sha256.slice(0, 8)}.json`;
+    return { fileName, source: value, address: { url: `/${fileName}`, bytes, sha256 } };
+  };
+  const original = addressed(source, 'grid-seams');
+  // Noncanonical or malformed isolated inputs retain the original complete
+  // wire and runtime refusal. The normal certifier writes canonical numbers.
+  if (!splitPlans || baked.plans.length === 0 || JSON.stringify(baked) !== source
+    || !baked.plans.every(row => Array.isArray(row) && row.length === 2 && typeof row[0] === 'string'
+      && Array.isArray(row[1]) && row[1].every(line => Array.isArray(line) && line.every(value => typeof value === 'number' && Number.isFinite(value))))) return original;
+  const plans = addressed(JSON.stringify({ plans: baked.plans, edges: [] }), 'grid-seam-plans');
+  const edges = addressed(JSON.stringify({ ...baked, plans: [] }), 'grid-seams');
+  return { ...edges, plans, address: { ...edges.address, plans: plans.address } };
 }
 
 /** Certify the generated catalogue's seam plans and each slug's edge source before the page is bundled (was
@@ -35,12 +46,12 @@ export function readGridSeams(root) {
   let source;
   try { source = readFileSync(join(root, GRID_SEAMS), 'utf8'); }
   catch { throw new Error(`Missing ${GRID_SEAMS}: build the app through scripts/build-app.mjs, which bakes the grid seams first`); }
-  const asset = gridSeamAsset(source), index = join(root, 'out/.app/grid-strip-index.json');
+  const asset = gridSeamAsset(source, true), index = join(root, 'out/.app/grid-strip-index.json');
   // Old isolated fixtures have no optional geometry capability. The normal
   // app bake writes its sealed index together with the producer's assets.
   if (!existsSync(index)) return asset;
   const metadata = JSON.parse(readFileSync(index, 'utf8'));
-  if (metadata?.seams !== asset.address.sha256 || !Array.isArray(metadata.files) || metadata.files.length > 2048) throw new Error('Grid strip index differs from its seam source');
+  if (metadata?.seams !== createHash('sha256').update(source).digest('hex') || !Array.isArray(metadata.files) || metadata.files.length > 2048) throw new Error('Grid strip index differs from its seam source');
   const files = metadata.files.map(file => {
     if (typeof file?.url !== 'string' || !/^\/assets\/grid-strip-(?:(?:book|page)-[a-f0-9]{8}\.json|mesh-[a-f0-9]{8}\.bin)$/u.test(file.url)
       || typeof file.sha256 !== 'string' || !/^[a-f0-9]{64}$/u.test(file.sha256) || !file.url.includes(file.sha256.slice(0, 8))
@@ -62,6 +73,7 @@ export function writeGridSeams(outDir, root) {
   const asset = readGridSeams(root);
   mkdirSync(dirname(join(outDir, asset.fileName)), { recursive: true });
   writeFileSync(join(outDir, asset.fileName), asset.source);
+  if (asset.plans !== undefined) writeFileSync(join(outDir, asset.plans.fileName), asset.plans.source);
   for (const file of asset.files ?? []) {
     const bytes = readFileSync(join(root, 'out/.app/grid-strip-pages', basename(file.url)));
     if (bytes.length !== file.bytes || createHash('sha256').update(bytes).digest('hex') !== file.sha256) throw new Error('Grid strip artifact differs from its address');
