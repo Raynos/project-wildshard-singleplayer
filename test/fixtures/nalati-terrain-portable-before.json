@@ -1,0 +1,15 @@
+{
+  "sourceRevision": "948a86620988e0c8b7bc2a771cdac466151c13eb",
+  "sourceSha256": "6c6340cd319aa7bccd18ebe5d7603c22a364f020f164b5852248244bc8a88a28",
+  "nativeBefore": {
+    "values": 92950,
+    "bytes": 743600,
+    "sha256": "114839356aa4db7d25c13cd00bbe484adb960e41955a9e0f4c7f1c5acbbc5855"
+  },
+  "portableBefore": {
+    "values": 92950,
+    "bytes": 743600,
+    "sha256": "9ea3e673cfb30f211dbf73083d4ee23c2ce85b57aaa035a99fba9fafaa14554b"
+  },
+  "codec": "portable-math + ES2015 exponent lowering"
+}

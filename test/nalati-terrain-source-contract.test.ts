@@ -1,10 +1,12 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Initialize the terrain under portable math in a fresh guarded Node realm.
+import { execFileSync } from 'node:child_process';
 import { expect, expectTypeOf, test } from 'vitest';
-import { TERRAIN, groundColor, surfaceAt, edgeBermAt } from '../src/shards/nalati-grasslands/generators/terrainRecipe';
+import { TERRAIN } from '../src/shards/nalati-grasslands/generators/terrainRecipe';
 import type { ChunkTerrain } from '../src/game/shard/manifest';
 import { CHUNK_HALF } from '../src/engine/core/config';
-import { hashImmutableBytes } from '../src/sdk/immutable';
 import bounds from '../src/shards/nalati-grasslands/data/terrainBounds.json' with { type: 'json' };
 import original from './fixtures/nalati-terrain-source-original.json' with { type: 'json' };
+import before from './fixtures/nalati-terrain-portable-before.json' with { type: 'json' };
 
 test('the author field retains the complete mutable native terrain port and bounds', () => {
   expectTypeOf<typeof TERRAIN>().toEqualTypeOf<ChunkTerrain>();
@@ -15,16 +17,22 @@ test('the author field retains the complete mutable native terrain port and boun
   expect(TERRAIN.datum).toBeUndefined();
 });
 
-test('all terrain samples retain predecessor Float64 bits across the entire cell', () => {
-  const values: number[] = [], out: [number, number, number] = [0, 0, 0];
-  for (let z = -250; z <= 250; z += 500 / 64) for (let x = -250; x <= 250; x += 500 / 64) {
-    const h = TERRAIN.heightAt(x, z), n = TERRAIN.normalAt(x, z), slope = 1 - n[1];
-    values.push(h, ...n, ...TERRAIN.normalAt(x, z, 1), ...TERRAIN.splatAt(x, z),
-      TERRAIN.trailDistance(x, z), TERRAIN.cabinMask(x, z), TERRAIN.pondMask(x, z), TERRAIN.waterLevel(),
-      ...groundColor(x, z, h, slope, TERRAIN, out), ...surfaceAt(x, z, h, slope), edgeBermAt(x, z));
-  }
-  const bytes = new Uint8Array(Float64Array.from(values).buffer);
-  expect(values.length).toBe(original.values);
-  expect(bytes.length).toBe(original.bytes);
-  expect(hashImmutableBytes(bytes)).toBe(original.sha256);
+test('all terrain samples retain predecessor portable Float64 bits across the entire cell', () => {
+  // c9's raw pin was measured with ARM64 native transcendentals. Keep it as
+  // the explicit before-control; initialize the independent cross-host oracle
+  // before terrain construction so graded shelves use portable math too.
+  expect(before.nativeBefore).toEqual({ values: original.values, bytes: original.bytes, sha256: original.sha256 });
+  const source = `import {installPortableMath} from './src/commons/bake/portableMath.ts';
+    const {registerPortableTerrain}=await import('./test/fixtures/portable-terrain-loader.mjs');
+    registerPortableTerrain();const restore=installPortableMath();
+    try {
+      const terrain=await import('./src/shards/nalati-grasslands/generators/terrainRecipe.ts');
+      const {observeTerrain}=await import('./test/fixtures/nalati-terrain-observation.ts');
+      const observed=observeTerrain(terrain);
+      console.log(JSON.stringify({values:observed.values,bytes:observed.bytes.length,sha256:observed.sha256}));
+    }finally{restore();}`;
+  const output = execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/sim-node-loader.mjs', '--input-type=module', '-e', source], { encoding: 'utf8', timeout: 30_000 });
+  expect(JSON.parse(output)).toEqual(before.portableBefore);
+  expect(before.portableBefore.values).toBe(original.values);
+  expect(before.portableBefore.bytes).toBe(original.bytes);
 });
