@@ -1,5 +1,5 @@
 import type { Rolldown } from 'vite';
-import { resolve } from 'node:path';
+import { relative, resolve } from 'node:path';
 import { startupModuleRoots, homeModuleRoots, gridModuleRoots } from './bootModules';
 
 interface ModuleGraph {
@@ -61,7 +61,11 @@ export function controlChunkGroups(root: string): Rolldown.CodeSplittingGroup[] 
   const startup = startupModuleRoots(root), grid = gridModuleRoots(root);
   const base = [...startup, ...['src/main.ts', 'src/game/shardfile/client.ts', 'src/game/session/session.ts'].map(file => resolve(root, file))];
   const homes = homeModuleRoots(root).flatMap(optional => [[...base, ...optional], [...base, ...optional, ...grid]]);
+  const dataRoots = new Set([...startup, ...homes.flat()].filter(id => id.endsWith('.json')));
   return [
+    // Named JSON imports are boot-bank roots too. Give each an explicit owner
+    // instead of depending on its residual locations in a coarse source map.
+    { name: id => dataRoots.has(id) ? `startup-data-${relative(root, id)}` : null, includeDependenciesRecursively: false },
     // HTML proxies and compiler helpers are entry dependencies too. Their actual
     // entry sets keep calibration's initial Three graph off the public shell.
     { name: controlChunkSelector(root, startup, 'initial', homes), tags: ['$initial'], includeDependenciesRecursively: false, maxSize: 2_000_000 },
