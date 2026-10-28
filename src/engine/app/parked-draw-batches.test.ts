@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import { BoxGeometry, InstancedMesh, Mesh, MeshBasicMaterial, type Object3D } from 'three';
 import { parkedDrawSlices, type ParkedDrawBudget } from '../render/parkedDraws';
+import { markArrayReleased } from '../render/releasedArrays';
 
 /** The slicing rules at one native unit a slice (the WebKit live budget before G782 raised it to two, D152). */
 const ONE_UNIT: ParkedDrawBudget = { drawables: 8, newMaterials: 1, newBindings: 1, bufferBytes: 256 * 1024 };
@@ -55,4 +56,14 @@ test('an oversized first buffer goes alone and all following copies remain bound
   expect(slices.map(slice => slice.length)).toEqual([1, 8, 1]);
   expect(slices.flat()).toEqual([first, ...rest]);
   geometry.dispose(); material.dispose();
+});
+
+// T10: an attribute the memory saver released is on the GPU already; reading its array reads it back from the GPU
+test('a released attribute is never read and uploads nothing', () => {
+  const geometry = new BoxGeometry(), material = new MeshBasicMaterial(), normal = geometry.getAttribute('normal');
+  markArrayReleased(normal);
+  Object.defineProperty(normal, 'array', { configurable: true, get: () => { throw new Error('read back a released array'); } });
+  const objects = Array.from({ length: 3 }, () => new Mesh(geometry, material));
+  expect(parkedDrawSlices(objects, ONE_UNIT).flat()).toEqual(objects);
+  material.dispose();
 });

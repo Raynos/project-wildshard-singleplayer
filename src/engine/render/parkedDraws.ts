@@ -8,6 +8,7 @@ import { diagnosticNow } from '../core/clock';
 import { geometryBoundsSteps } from '../world/geometryBounds';
 import { pageScope } from '../app/resources';
 import { isDrawNeutral } from './drawNeutral';
+import { arrayReleased } from './releasedArrays';
 import type { Scope } from '../app/scope';
 
 /**
@@ -148,12 +149,14 @@ function drawBindingKey(object: THREE.Object3D): string {
 
 
 /** The typed arrays a drawable's first draw uploads with `bufferData`: its geometry's attributes (an interleaved buffer
- * once), its index and an instanced mesh's per-instance matrices and colours. */
+ * once), its index and an instanced mesh's per-instance matrices and colours. An attribute the memory saver released is
+ * already on the GPU (it uploads nothing) and is never read: reading its `array` reads it back from the GPU and keeps
+ * it on the CPU for good (T10: a Nalati after-reveal plan ran one 57 ms Simulator task of such read-backs). */
 function drawBuffers(object: THREE.Object3D): ArrayBufferView[] {
   const out = new Set<ArrayBufferView>();
   const geometry: unknown = (object as THREE.Object3D & { geometry?: unknown }).geometry;
   const add = (attribute: THREE.BufferAttribute | THREE.InterleavedBufferAttribute | null | undefined): void => {
-    if (attribute === null || attribute === undefined) return;
+    if (attribute === null || attribute === undefined || arrayReleased(attribute)) return;
     out.add(attribute instanceof THREE.InterleavedBufferAttribute ? attribute.data.array : attribute.array);
   };
   if (isBufferGeometry(geometry)) {
