@@ -1,4 +1,8 @@
-import type { UniformRows } from '@wildshard/game/plugin/shaderFamily';
+import type { AuthorWorldScenes } from '@wildshard/sdk/worldScenes';
+
+// Scene admission already defines every uniform variant and read-only vector.
+type SceneUniformRows = NonNullable<AuthorWorldScenes['uniforms']>[number]['rows'];
+type UniformRows = Readonly<Record<string, Readonly<SceneUniformRows[string]>>>;
 /** A card uniform's pulse as data: each `update(t)` writes `base + amp · sin(t · rate + phase)`. */
 export interface CardPulseRow {
   readonly uniform: string;

@@ -1,6 +1,17 @@
-import type { ModelLibraryRows } from '@wildshard/game/plugin/geometry';
+import type { modelSceneSourceFile } from '@wildshard/sdk/worldScenes';
 import { HD_LOOKS } from './surfaces';
 import FACET_AO_FLOOR from '../../data/facets.json' with { type: 'json' };
+
+// Refine the emitter's complete model-library port to this shard's authored keys.
+type SourceLibrary = Parameters<typeof modelSceneSourceFile>[1]['rows'];
+type ModelLibraryRows<M extends string, H extends string> = Omit<SourceLibrary, 'meshes' | 'preparedMeshes' | 'meshUrls' | 'hd' | 'hdUrls' | 'hdLooks'> & {
+  readonly meshes: readonly M[];
+  readonly preparedMeshes?: readonly M[];
+  readonly meshUrls: Readonly<Record<M, string>>;
+  readonly hd: readonly H[];
+  readonly hdUrls: Readonly<Record<H, string>>;
+  readonly hdLooks: Readonly<Partial<Record<H, NonNullable<SourceLibrary['hdLooks'][string]>>>>;
+};
 
 /**
  * Signal Dunes' asset files as rows: the generated models, the baked world pieces and creature rigs, the painted skies. The

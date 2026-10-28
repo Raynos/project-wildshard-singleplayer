@@ -1,7 +1,7 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import type { modelSceneSourceFile, bakedSceneSourceFile } from '../src/sdk/worldScenes';
 import type { readManifestSource } from '../src/sdk/projectManifest';
-import type { RigLibraryRows, ModelSpecimenRow } from '../src/game/plugin/geometry';
+import type { RigLibraryRows, ModelSpecimenRow, ModelLibraryRows } from '../src/game/plugin/geometry';
 import type { BakedColliderInput, WorldPieceRow } from '../src/game/shardfile/bakedKinds';
 import type { ChunkHorizon } from '../src/game/shard/manifest';
 import type { skyRigLibrary } from '../src/shards/far-reach/generators/rigLibrary';
@@ -10,6 +10,9 @@ import { nalatiDayChannels } from '../src/shards/nalati-grasslands/generators/da
 import { NALATI_HORIZON_V2 } from '../src/shards/nalati-grasslands/generators/horizon';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import original from './fixtures/nalati-sky-author-original.json' with { type: 'json' };
+import type { UniformRows } from '../src/game/plugin/shaderFamily';
+import type { DUNE_MODELS, DuneMeshName, DuneHdName } from '../src/shards/sunscar-dunes/generators/rows/files';
+import type { CardRow } from '../src/shards/sunscar-dunes/generators/rows/fireCards';
 
 test('source emitter ports retain complete native rigs, specimens, contacts and generic world rows', () => {
   type Models = Parameters<typeof modelSceneSourceFile>[1];
@@ -33,4 +36,14 @@ test('horizon ports retain all mutable native ring and band fields', () => {
 test('every original Nalati day-channel and horizon declaration byte remains unchanged', () => {
   const bytes = new TextEncoder().encode(JSON.stringify({ day: nalatiDayChannels(), horizon: NALATI_HORIZON_V2 }));
   expect({ bytes: bytes.byteLength, hash: hashImmutableBytes(bytes) }).toEqual(original);
+});
+
+
+test('Sunscar model and card ports retain every native key, uniform variant and ownership qualifier', () => {
+  type NativeLibrary = ModelLibraryRows<DuneMeshName, DuneHdName>;
+  expectTypeOf<typeof DUNE_MODELS extends NativeLibrary ? true : false>().toEqualTypeOf<true>();
+  expectTypeOf<NativeLibrary extends typeof DUNE_MODELS ? true : false>().toEqualTypeOf<true>();
+  expectTypeOf<NonNullable<CardRow['uniforms']>>().toEqualTypeOf<UniformRows>();
+  expectTypeOf<typeof DUNE_MODELS.meshes[number]>().toEqualTypeOf<DuneMeshName>();
+  expectTypeOf<keyof typeof DUNE_MODELS.hdLooks>().toEqualTypeOf<DuneHdName>();
 });
