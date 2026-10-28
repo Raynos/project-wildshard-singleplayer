@@ -1,8 +1,7 @@
 /** Frozen native cabin world/specimen topology; all merging ends at author time. */
 import * as THREE from 'three';
 import * as v from 'valibot';
-import type { WorldSceneWeld, WorldSceneWeldNode } from '@wildshard/format/worldSceneWeld';
-import { WorldSceneSurfaceSchema } from '@wildshard/format/worldSceneSurface';
+import { worldSceneSurfaceProperties, type worldSceneWeldRows } from '@wildshard/sdk/worldScenes';
 import { BakedBuildingLookSchema, emptyBuildingLifeRows, parseBuildingLifeRows, type BuildingAssemblyRows } from '@wildshard/format/buildings';
 import type { CabinRows, BakedBuilding, PropKind } from './cabinShapes';
 import look from '../data/buildingLook.json' with { type: 'json' };
@@ -10,6 +9,9 @@ import plumbing from '../data/plumbing.json' with { type: 'json' };
 import { CABIN_MATERIALS } from './cabinAssembly';
 import { CabinAuthorAssembly, CabinAuthorResources } from './cabinSceneAssembly';
 import { CabinAuthorWeld, CabinUnitParts, CabinWeldBatch, CabinWeldView, cabinNearProxy, cabinTwoSidedPositions } from './cabinWeld';
+
+type WorldSceneWeld = ReturnType<typeof worldSceneWeldRows>;
+type WorldSceneWeldNode = WorldSceneWeld['nodes'][number];
 
 interface SourceModel { readonly scene: THREE.Group; readonly descriptors: readonly { readonly url: string; readonly part: number; readonly material: number; readonly name: string }[] }
 /** Geometry-only source intake retains the original parts and hierarchy. */
@@ -263,7 +265,7 @@ export class CabinSceneRecorder {
     for (const owner of owners) for (const [index, row] of owner.resources.materials.entries()) {
       const local = `specimen.${owner.record.id}.material-${String(index)}`;
       this.materialIds.set(row.material, local);
-      materials.push({ id: local, kind: 'standard', properties: v.parse(WorldSceneSurfaceSchema.entries.properties, row.properties), sky: true,
+      materials.push({ id: local, kind: 'standard', properties: worldSceneSurfaceProperties(row.properties), sky: true,
         ...(row.source === undefined ? {} : { source: { material: this.material(row.source), maps: ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap'] } }) });
     }
     parent.add(body); parent.updateMatrixWorld(true);
@@ -295,7 +297,7 @@ export class CabinSceneRecorder {
       for (const [index, entry] of owner.resources.materials.entries()) {
         const id = `cabins.${record.id}.lantern.material-${String(index)}`;
         if (this.material(entry.material) !== id) throw new Error('Living lantern material order differs');
-        materials.push({ id, kind: 'standard', properties: v.parse(WorldSceneSurfaceSchema.entries.properties, entry.properties), sky: true,
+        materials.push({ id, kind: 'standard', properties: worldSceneSurfaceProperties(entry.properties), sky: true,
           ...(entry.source === undefined ? {} : { source: { material: this.material(entry.source), maps: ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap'] } }) });
       }
       const rows = building.lifeRows;

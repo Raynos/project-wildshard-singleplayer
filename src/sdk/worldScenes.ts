@@ -1,4 +1,6 @@
 import { parseWorldScene, parseWorldSceneBindings, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
+import { parseSceneBuffers } from '@wildshard/format/sceneBuffers';
+import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { WorldSceneSurfaceSchema, type WorldSceneSurface } from '@wildshard/format/worldSceneSurface';
@@ -56,3 +58,12 @@ export function lateSceneMaterialFiles(files: readonly Pick<OutputFile, 'hash' |
   }
   return parse(AdmissionLateSchema, [...selected.values()]);
 }
+
+/** Admit named typed channels, shared attributes and ordered buffered draws before publication. */
+export function worldSceneBuffers(input: unknown): ReturnType<typeof parseSceneBuffers> { return parseSceneBuffers(input); }
+
+/** Admit frozen scene topology, exact transform words and ordered hosted cull lanes. */
+export function worldSceneWeldRows(input: unknown): ReturnType<typeof parseWorldSceneWeld> { return parseWorldSceneWeld(input); }
+
+/** Admit the defining finite surface properties without inventing a material or resource owner. */
+export function worldSceneSurfaceProperties(input: unknown): WorldSceneSurface['properties'] { return parse(WorldSceneSurfaceSchema.entries.properties, input); }

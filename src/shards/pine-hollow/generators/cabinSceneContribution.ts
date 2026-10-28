@@ -4,8 +4,7 @@ import { Matrix4 } from 'three';
 import * as v from 'valibot';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { nameCompactBlobs } from '@wildshard/sdk/bake/compactGlb';
-import { parseWorldSceneWeld, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
-import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
+import { worldSceneWeldRows as parseWorldSceneWeld, worldScenePlacement as parseWorldScenePlacement } from '@wildshard/sdk/worldScenes';
 import { cabinSceneBake } from './bake-cabin-scenes.mjs';
 import { pineCabins } from './bake-pine-cabins.mjs';
 import logKit from '../data/logKit.json' with { type: 'json' };
@@ -14,6 +13,8 @@ import { HEARTH_LOOKS } from './hearthLook';
 import { cabinLiving, cabinSites } from './cabinLivingContribution';
 import { perSources, type PineSources } from './pineSources';
 import { HAMLET } from './layout';
+
+type WorldSceneWeld = ReturnType<typeof parseWorldSceneWeld>;
 
 const text = v.string(), words = v.array(v.number()), contacts = v.array(v.unknown());
 const registration = v.variant('kind', [

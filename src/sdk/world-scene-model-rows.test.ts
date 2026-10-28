@@ -1,6 +1,10 @@
 import { expect, test } from 'vitest';
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
-import { worldSceneModels } from './worldScenes';
+import { parse } from 'valibot';
+import { parseSceneBuffers } from '@wildshard/format/sceneBuffers';
+import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
+import { WorldSceneSurfaceSchema } from '@wildshard/format/worldSceneSurface';
+import { worldSceneModels, worldSceneBuffers, worldSceneWeldRows, worldSceneSurfaceProperties } from './worldScenes';
 
 const model = {
   key: 'marker', id: 'author-scene/marker', name: 'Marker', category: 'props',
@@ -18,4 +22,38 @@ test('author model catalogues retain identity, finite data and callback refusals
   expect(() => worldSceneModels({ product: 'other', models: [model] })).toThrow();
   expect(() => worldSceneModels({ product: 'author-scene', models: [model], callback: () => undefined })).toThrow();
   expect(() => worldSceneModels({ product: 'author-scene', models: [{ ...model, choices: [{ ...model.choices[0], size: [1, Number.NaN, 3] }] }] })).toThrow();
+});
+
+test('author buffered scenes retain defaults, named range references and refusals', () => {
+  const input = { version: 1, name: 'sparks', buffers: [{ id: 'positions', storage: 'f32', file: 'world/points.bin', byteLength: 24 }],
+    attributes: [{ id: 'position', buffer: 'positions', size: 3 }], geometries: [{ id: 'points', attributes: { position: 'position' } }],
+    draws: [{ id: 'points', draw: { kind: 'points', geometry: 'points' } }] };
+  expect(worldSceneBuffers(input)).toEqual(parseSceneBuffers(input));
+  for (const invalid of [{ ...input, attributes: [{ id: 'position', buffer: 'missing', size: 3 }] },
+    { ...input, buffers: [{ ...input.buffers[0], bytes: 'AAAA' }] }, { ...input, draws: [{ id: 'points', draw: { kind: 'points', geometry: 'missing' } }] }]) {
+    expect(() => worldSceneBuffers(invalid)).toThrow();
+    expect(() => parseSceneBuffers(invalid)).toThrow();
+  }
+});
+
+test('author frozen topology retains original transform words, defaults and uniqueness', () => {
+  const matrixBits = Array.from(new Uint32Array(Float64Array.of(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -0, 0, 0, 1).buffer));
+  const input = { id: 'shell', root: 'root', nodes: [{ id: 'group', kind: 'group', parent: 'root', layers: -1, matrixBits, matrixAutoUpdate: false }],
+    materials: [{ id: 'wood', kind: 'standard', properties: { roughness: 0.8, color: [0.1, 0.2, 0.3] } }] };
+  expect(worldSceneWeldRows(input)).toEqual(parseWorldSceneWeld(input));
+  for (const invalid of [{ ...input, nodes: [...input.nodes, ...input.nodes] },
+    { ...input, nodes: [{ ...input.nodes[0], matrixBits: [1] }] }, { ...input, callback: () => undefined }]) {
+    expect(() => worldSceneWeldRows(invalid)).toThrow();
+    expect(() => parseWorldSceneWeld(invalid)).toThrow();
+  }
+});
+
+test('author surface properties retain complete tuples and finite-property refusals', () => {
+  const input = { color: [0.1, 0.2, 0.3], normalScale: [1, -1], roughness: 0.8, metalness: 0.1, transparent: true, opacity: 0.5,
+    emissive: [0, 0.2, 0.3], side: 2, depthWrite: false, vertexColors: true };
+  expect(worldSceneSurfaceProperties(input)).toEqual(parse(WorldSceneSurfaceSchema.entries.properties, input));
+  for (const invalid of [{ ...input, color: [1, 2] }, { ...input, roughness: Number.NaN }, { ...input, side: 4 }, { ...input, callback: () => undefined }]) {
+    expect(() => worldSceneSurfaceProperties(invalid)).toThrow();
+    expect(() => parse(WorldSceneSurfaceSchema.entries.properties, invalid)).toThrow();
+  }
 });

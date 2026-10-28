@@ -1,11 +1,11 @@
 import { CircleGeometry, Matrix4, MeshBasicMaterial, TorusGeometry } from 'three';
-import { parseSceneBuffers } from '@wildshard/format/sceneBuffers';
-import { parseWorldScene } from '@wildshard/format/clientChannels';
+import { worldSceneBuffers as parseSceneBuffers, worldSceneRecipe as parseWorldScene, worldSceneRows as parseWorldScenes } from '@wildshard/sdk/worldScenes';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
-import { parseWorldScenes, type WorldScenesSection } from '@wildshard/format/worldScenes';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { portalPlanRows } from './portalEntries';
+
+type WorldScenesSection = ReturnType<typeof parseWorldScenes>;
 
 /** Original instanced rings/discs and deterministic sparks on the three look
  * graphs. Local disc positions stay local: its swirl reads positionGeometry. */

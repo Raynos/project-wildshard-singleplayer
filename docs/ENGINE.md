@@ -6242,8 +6242,10 @@ Signal well prompts use these rows on their existing input owners.
 ### Static world scene recipes
 
 `sdk/worldScenes` admits recipes (`worldSceneRecipe`), ports
-(`worldSceneBindings`), sections (`worldSceneRows`) and model catalogues
-(`worldSceneModels`) through defining format parsers.
+(`worldSceneBindings`), sections (`worldSceneRows`), model catalogues
+(`worldSceneModels`), typed draw buffers (`worldSceneBuffers`), frozen
+welds (`worldSceneWeldRows`) and surface properties
+(`worldSceneSurfaceProperties`) through defining format parsers.
 `game/plugin/scene.createWorldScene` borrows geometry/model/material ports and
 returns Group/parts/baked data. `worldPieces.scene` registers parts
 without reparenting or double transforms.
