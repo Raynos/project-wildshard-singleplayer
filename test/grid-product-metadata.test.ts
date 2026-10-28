@@ -43,7 +43,8 @@ function fixture(offline = false, playing?: number) {
   const options: product.ProductOptions = { base: 'https://metadata.test/', offline, firstParty: true, fetch, hash,
     cache: { asset: read, product: () => Promise.resolve(null), putProduct: () => Promise.resolve(), putAsset: () => Promise.resolve(true) } };
   vi.spyOn(runtime, 'browserShardfileOptions').mockReturnValue(options);
-  const admit = vi.spyOn(product, 'admitProduct').mockImplementation((_input, opts) => { opts.reserve?.(source); return Promise.resolve(admitted); });
+  // the real admission awaits its reserve (the residency walk runs in steps, f149370022) before it continues
+  const admit = vi.spyOn(product, 'admitProduct').mockImplementation(async (_input, opts) => { await opts.reserve?.(source); return admitted; });
   const scope = new Scope('metadata product'); scopes.push(scope);
   const allocator = new ResidencyAllocator(playing === undefined ? {} : { playing });
   return { source, wire, ref, graph, json, read, hash, fetch, admit, release, owner: { scope, allocator } };
@@ -230,7 +231,7 @@ test('required metadata retries when a joined optional reserve already declined'
   const rejected = new Promise<void>(resolve => { declined = resolve; });
   const gate = new Promise<void>(resolve => { finish = resolve; });
   f.admit.mockImplementationOnce(async (_input, options) => {
-    try { options.reserve?.(f.source); }
+    try { await options.reserve?.(f.source); }
     catch (error) { declined(); await gate; throw error; }
     throw new Error('Optional reservation unexpectedly fit');
   });
