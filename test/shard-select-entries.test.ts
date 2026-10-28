@@ -81,13 +81,22 @@ test('the boot honours a LEGACY pick only with the legacy buttons on', () => {
 });
 
 
-test('SHARD SELECT omits every open plot in public and Developer while retaining the grid catalogue', () => {
+test('SHARD SELECT shows only experimental Night Market among open plots and retains the full grid catalogue', () => {
   installShards([...SHARDS, ...LEGACY_SHARDS]);
-  const main = ['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-stack', 'sunscar-dunes', 'far-reach'];
+  const main = ['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-stack', 'sunscar-dunes', 'far-reach', 'open-plot-night-market'];
   const developer = [...main, '_template', 'blender-template', 'pastel-plain', 'ink-cel-valley'];
   expect(titleCards(false).map(item => item.slug).sort()).toEqual(main.sort());
   expect(titleCards(true).map(item => item.slug).sort()).toEqual(developer.sort());
   const plotSlugs = new Set(plots.outputs.map(item => item.slug));
+  expect(plotSlugs.size).toBe(14);
+  for (const developerMode of [false, true]) {
+    expect(titleCards(developerMode).filter(item => plotSlugs.has(item.slug)).map(item => [item.slug, item.badge]))
+      .toEqual([['open-plot-night-market', 'Experimental']]);
+  }
+  const hidden = SHARDS.filter(item => plotSlugs.has(item.slug) && item.slug !== 'open-plot-night-market');
+  expect(hidden).toHaveLength(13);
+  for (const manifest of hidden) expect(manifest).toMatchObject({ status: 'hidden', shardSelect: false });
+  expect(SHARDS.find(item => item.slug === 'open-plot-night-market')).toMatchObject({ status: 'experimental', shardSelect: true });
   expect(SHARDS.filter(item => plotSlugs.has(item.slug)).map(item => item.slug).sort()).toEqual([...plotSlugs].sort());
   expect(shards()).toHaveLength(SHARDS.length + LEGACY_SHARDS.length);
   installShards([]);
