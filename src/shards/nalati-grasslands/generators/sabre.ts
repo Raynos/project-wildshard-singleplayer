@@ -2,11 +2,11 @@ import ARM_STYLE from '../data/armsStyle.json' with {type:'json'};
 import items from '../data/items.json' with { type: 'json' };
 import { equipmentRows } from '@wildshard/sdk/rows';
 import * as THREE from 'three';
-import { parseMeleeWeaponProfile, meleeKey as key, meleeColour as lin, type MeleeRig as SwordRig, type MeleeMoveSet as SwordMoveSet, type MeleeMove as Move, type MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
-import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
+import { sharedMeleeAuthorBase, parseMeleeWeaponProfile, meleeKey as key, meleeColour as lin, type MeleeRig as SwordRig, type MeleeMoveSet as SwordMoveSet, type MeleeMove as Move, type MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
 import { bakeForearm as forearm } from '@wildshard/sdk/bake/riderArms';
 import { tube, blob, xf, merge, withUV, sweep, helix, section, type ColorAt } from './meleeGeo';
 
+const SWORD_WOOD = sharedMeleeAuthorBase();
 
 /**
  * Sabre — the Nalati kylysh (ASKS N6, plan row B3; design docs/design/nalati/combat.md § D; mockup

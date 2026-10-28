@@ -1,12 +1,11 @@
 import items from '../data/items.json' with { type: 'json' };
 import { equipmentRows } from '@wildshard/sdk/rows';
-import { ThrownWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
-import * as schema from 'valibot';
-import { meleeColour as lin, type MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
-import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
+import { parseThrownWeaponProfile } from '@wildshard/sdk/weapons/thrownProfile';
+import { sharedMeleeAuthorBase, meleeColour as lin, type MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
 import * as THREE from 'three';
 import { tube, blob, xf, merge, withUV, sweep, helix, section, type ColorAt } from './meleeGeo';
 
+const SWORD_WOOD = sharedMeleeAuthorBase();
 
 
 /**
@@ -39,7 +38,7 @@ import { tube, blob, xf, merge, withUV, sweep, helix, section, type ColorAt } fr
  * onImpact · onDry (THROW with none left) · onPickup (a javelin recovered).
  */
 
-const JAVELIN_WEAPON_PROFILE = schema.parse(ThrownWeaponProfileSchema, items.rows.find(row => row.id === 'weapon.spear')?.profile);
+const JAVELIN_WEAPON_PROFILE = parseThrownWeaponProfile(items.rows.find(row => row.id === 'weapon.spear')?.profile);
 export const REACH = 3.2;
 const THRUST_DAMAGE = 30, THRUST_STAGGER = 0.5;
 const T_WIND = 0.12, T_ACTIVE_END = 0.22, T_TOTAL = 0.35;
