@@ -1,5 +1,6 @@
-import { type BufferAttribute, BufferGeometry, InterleavedBufferAttribute, Matrix4, type Mesh } from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { BufferGeometry, type Mesh } from 'three';
+import { workSlice } from '@wildshard/engine/core/workSlice';
+import { joinWholePieceSteps } from './wholePieceJoin';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ownSceneResource } from '@wildshard/engine/app/sceneOwnership';
 import type { WorldScenesSection } from '@wildshard/format/worldScenes';
@@ -10,41 +11,17 @@ import type { ControlRefinement } from './controlRefinement';
 import { readWholePieces } from './wholePieces';
 
 type Library = Extract<WorldScenesSection['libraries'][number], { kind: 'whole' }>;
-function raw(attribute: BufferAttribute | InterleavedBufferAttribute, vertex: number, lane: number): number | undefined {
-  return attribute instanceof InterleavedBufferAttribute ? attribute.data.array[vertex * attribute.data.stride + attribute.offset + lane] : attribute.array[vertex * attribute.itemSize + lane];
-}
-/** Validate the active original pieces before publishing a new one-draw union.
- * A shared vertex must retain every native lane, including signed zero. */
+/** The same exact join cursor is also available to synchronous oracles and
+ * retirement, where publication must finish before a tile releases its lease. */
 export function joinWholePieces(pieces: readonly WholeGeometryPiece[], pose?: readonly number[], forceIdentityTransform = false): BufferGeometry {
-  const first = pieces[0]; if (first === undefined) return new BufferGeometry();
-  const vertices = new Map<number, { readonly piece: WholeGeometryPiece; readonly local: number }>(), triangles = new Set<number>();
-  for (const piece of pieces) {
-    if (piece.part !== first.part || piece.layout !== first.layout || !piece.matrix.equals(first.matrix)
-      || piece.vertexCount !== first.vertexCount || piece.indexCount !== first.indexCount) throw new Error('Whole source layout or transform differs');
-    for (const triangle of piece.triangles) { if (triangles.has(triangle)) throw new Error('Whole duplicate or invalid triangle'); triangles.add(triangle); }
-    for (const [local, ordinal] of piece.vertices.entries()) {
-      const prior = vertices.get(ordinal);
-      if (prior === undefined) { vertices.set(ordinal, { piece, local }); continue; }
-      for (const [name, attribute] of Object.entries(piece.geometry.attributes)) {
-        const other = prior.piece.geometry.getAttribute(name);
-        if (other === undefined || attribute.itemSize !== other.itemSize) throw new Error('Whole channel layout differs');
-        for (let lane = 0; lane < attribute.itemSize; lane++) if (!Object.is(raw(attribute, local, lane), raw(other, prior.local, lane))) throw new Error('Whole shared vertex differs');
-      }
+  const steps = joinWholePieceSteps(pieces, pose, forceIdentityTransform);
+  for (;;) {
+    const next = steps.next();
+    if (next.done) {
+      if (next.value === undefined) throw new Error('Whole piece join did not complete');
+      return next.value;
     }
   }
-  const copies: BufferGeometry[] = [], identity = new Matrix4();
-  try {
-    // Apply the original draw's matrix and its declared alias in the same order
-    // and Float32 boundaries as readWholeLibrary. There is still one mesh/draw.
-    for (const piece of pieces) {
-      const copy = piece.geometry.clone(); copies.push(copy);
-      if (forceIdentityTransform || pose !== undefined || !piece.matrix.equals(identity)) copy.applyMatrix4(piece.matrix);
-      if (pose !== undefined) copy.applyMatrix4(new Matrix4().fromArray(pose));
-    }
-    const joined = mergeGeometries(copies, false);
-    if (joined === null) throw new Error('Whole piece channels cannot join');
-    return joined;
-  } finally { for (const copy of copies) copy.dispose(); }
 }
 
 /** Resident fine geometry lives only in held ring tiles. Named mesh/material,
@@ -95,14 +72,47 @@ export class RefiningWholeLibrary {
     const model = this.row.models.find(candidate => candidate.id === id); if (model === undefined) throw new Error('Missing refining model');
     const files = new Set(model.files), tiles = new Set([...this.files].filter(([, hashes]) => hashes.some(hash => files.has(hash))).map(([key]) => key));
     const held = new Map<number, readonly WholeGeometryPiece[]>(), sphere = mesh.geometry.boundingSphere?.clone(), box = mesh.geometry.boundingBox?.clone();
-    let closed = false, owned: BufferGeometry | undefined;
-    const redraw = (): void => {
-      if (closed || this.owner.disposed || this.owner.disposing) return;
-      const geometry = joinWholePieces([...held.values()].flat(), model.matrix, forceIdentityTransform);
+    let closed = false, owned: BufferGeometry | undefined, revision = 0, published = 0;
+    let building: Promise<void> | undefined;
+    const retired = (): boolean => closed || this.owner.disposed || this.owner.disposing || lifetime.disposed || lifetime.disposing;
+    const publish = (geometry: BufferGeometry): void => {
       if (sphere !== undefined) geometry.boundingSphere = sphere.clone();
       if (box !== undefined) geometry.boundingBox = box.clone();
       ownSceneResource(geometry, lifetime);
       const previous = owned; mesh.geometry = geometry; owned = geometry; previous?.dispose();
+    };
+    // Retirement remains synchronous: no disposed fine tile survives in the
+    // draw while an asynchronous replacement is prepared.
+    const redraw = (): void => {
+      revision++;
+      if (retired()) return;
+      publish(joinWholePieces([...held.values()].flat(), model.matrix, forceIdentityTransform)); published = revision;
+    };
+    const redrawSliced = (): Promise<void> => {
+      revision++;
+      if (building !== undefined) return building;
+      const drain = async (): Promise<void> => {
+        const slice = workSlice(undefined, lifetime);
+        while (!retired() && published < revision) {
+          const generation = revision, steps = joinWholePieceSteps([...held.values()].flat(), model.matrix, forceIdentityTransform);
+          try {
+            for (;;) {
+              if (retired() || generation !== revision) break;
+              const next = steps.next();
+              if (next.done) {
+                if (next.value === undefined) throw new Error('Whole piece join did not complete');
+                publish(next.value); published = generation; break;
+              }
+              const pause = slice.check(); if (pause !== undefined) await pause;
+            }
+          } catch (error) { if (!retired()) throw error; }
+          finally { steps.return(undefined); }
+        }
+      };
+      const pending = drain(); building = pending;
+      const complete = (): void => { if (building === pending) building = undefined; };
+      void pending.then(complete, complete);
+      return pending;
     };
     lifetime.onDispose(() => { closed = true; held.clear(); owned?.dispose(); owned = undefined; });
     return { id: `refine:${this.row.id}:${id}:${mesh.uuid}`, tiles: () => tiles, ready: () => this.queue.ready,
@@ -113,8 +123,10 @@ export class RefiningWholeLibrary {
         const pieces = read.filter(piece => piece.part === model.part);
         if (pieces.length === 0) throw new Error('Fine tile omits its declared whole partition');
         held.set(tile, pieces);
-        try { redraw(); } catch (error) { held.delete(tile); throw error; }
-        scope.onDispose(() => { held.delete(tile); redraw(); });
+        scope.onDispose(() => { if (held.get(tile) === pieces) { held.delete(tile); redraw(); } });
+        // A concurrent arrival joins the same publication promise. Never mark
+        // its fine tile ready while a stale generation is still being rebuilt.
+        try { await redrawSliced(); } catch (error) { if (held.get(tile) === pieces) held.delete(tile); throw error; }
       } };
   }
 }

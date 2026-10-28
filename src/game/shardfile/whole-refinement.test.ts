@@ -1,7 +1,9 @@
 import { afterEach, expect, test } from 'vitest';
-import { BufferAttribute, BufferGeometry, Float16BufferAttribute, Matrix4, Mesh, MeshBasicMaterial } from 'three';
+import { BufferAttribute, BufferGeometry, Float16BufferAttribute, Matrix4, Mesh, MeshBasicMaterial, Vector3 } from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { assembleWholeGeometryViews, wholeGeometryPieces, type WholeGeometryPiece } from '../plugin/geometry';
 import { joinWholePieces } from './refiningWholeLibrary';
+import { joinWholePieceSteps } from './wholePieceJoin';
 
 const geometries: BufferGeometry[] = [], materials: MeshBasicMaterial[] = [];
 afterEach(() => { for (const geometry of geometries.splice(0)) geometry.dispose(); for (const material of materials.splice(0)) material.dispose(); });
@@ -83,4 +85,50 @@ test('partial pieces reuse only their own invocation channel admission', () => {
   mesh.geometry.deleteAttribute('normal');
   expect(() => wholeGeometryPieces([mesh])).toThrow('missing typed channel');
   expect(reads).toBe(2); mesh.geometry.setAttribute('normal', normal);
+});
+
+test('sliced join retains exact transform rounding, half words and native merger output', () => {
+  const pieces = wholeGeometryPieces([tile(0), tile(1)]); own(pieces);
+  const matrix = new Matrix4().makeRotationX(0.31).scale(new Vector3(-2, 1 / 3, 7 / 5));
+  const alias = new Matrix4().makeRotationY(-0.19).setPosition(1 / 7, -3, 9);
+  const input: WholeGeometryPiece[] = [];
+  for (const piece of pieces) input.push({ ...piece, matrix });
+  for (const piece of input) piece.geometry.setAttribute('tangent', new BufferAttribute(Float32Array.of(1, 0, 0, -1, 0, 1, 0, 1, 0, 0, 1, -1), 4));
+  const copies = input.map(piece => piece.geometry.clone().applyMatrix4(matrix).applyMatrix4(alias)); geometries.push(...copies);
+  const oracle = mergeGeometries(copies, false); if (oracle === null) throw new Error('Original merge refused'); geometries.push(oracle);
+  const cursor = joinWholePieceSteps(input, alias.elements); let yields = 0, actual: BufferGeometry | undefined;
+  for (;;) { const next = cursor.next(); if (next.done) { actual = next.value; break; } yields++; }
+  if (actual === undefined) throw new Error('Join did not complete'); geometries.push(actual);
+  expect(yields).toBeGreaterThan(10);
+  for (const [name, expected] of Object.entries(oracle.attributes)) {
+    const found = actual.getAttribute(name);
+    if (!(found instanceof BufferAttribute) || !(expected instanceof BufferAttribute)) throw new Error('Missing native channel');
+    expect(new Uint8Array(found.array.buffer, found.array.byteOffset, found.array.byteLength)).toEqual(new Uint8Array(expected.array.buffer, expected.array.byteOffset, expected.array.byteLength));
+    expect(found.array.constructor).toBe(expected.array.constructor); expect(found.normalized).toBe(expected.normalized);
+    expect(found.itemSize).toBe(expected.itemSize); expect(found.gpuType).toBe(expected.gpuType);
+  }
+  expect(actual.index?.array).toEqual(oracle.index?.array); expect(actual.groups).toEqual(oracle.groups);
+});
+
+test('one large original piece has bounded validation, transform and index progress', () => {
+  const count = 3072, geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array(count * 3), 3)); geometries.push(geometry);
+  geometry.setIndex(Array.from({ length: count }, (_, index) => index));
+  const piece: WholeGeometryPiece = { geometry, matrix: new Matrix4().makeTranslation(1, 2, 3), part: 'large', layout: 'plain',
+    vertices: Array.from({ length: count }, (_, index) => index), triangles: Array.from({ length: count / 3 }, (_, index) => index), vertexCount: count, indexCount: count };
+  const cursor = joinWholePieceSteps([piece]); let yields = 0, joined: BufferGeometry | undefined;
+  for (;;) { const next = cursor.next(); if (next.done) { joined = next.value; break; } yields++; }
+  if (joined === undefined) throw new Error('Join did not complete'); geometries.push(joined);
+  expect(yields).toBeGreaterThan(30); expect(joined.getAttribute('position').count).toBe(count);
+  expect(Array.from(joined.getAttribute('position').array.slice(0, 3))).toEqual([1, 2, 3]);
+  expect(geometry.getAttribute('position').getX(0)).toBe(0);
+});
+
+test.each([65534, 65535])('sliced index merger keeps the original restart boundary at %s', vertex => {
+  const count = 65536, geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array(count * 3), 3)); geometries.push(geometry);
+  geometry.setIndex([vertex, 0, 1]);
+  const piece: WholeGeometryPiece = { geometry, matrix: new Matrix4(), part: 'boundary', layout: 'plain',
+    vertices: Array.from({ length: count }, (_, index) => index), triangles: [0], vertexCount: count, indexCount: 3 };
+  const actual = joinWholePieces([piece]), oracle = mergeGeometries([geometry], false);
+  if (oracle === null) throw new Error('Original merge refused'); geometries.push(actual, oracle);
+  expect(actual.index?.array.constructor).toBe(oracle.index?.array.constructor); expect(actual.index?.array).toEqual(oracle.index?.array);
 });

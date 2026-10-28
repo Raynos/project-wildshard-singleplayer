@@ -10,6 +10,7 @@ import { provideRuntimeProduct, runtimeProduct } from '../src/game/shardfile/run
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { ControlRefinement } from '../src/game/shardfile/controlRefinement';
 import { RefiningWholeLibrary } from '../src/game/shardfile/refiningWholeLibrary';
+import * as work from '../src/engine/core/workSlice';
 
 function fixture() {
   const owner = new Scope('fine-resident'), source = emptyShardfile({ slug: 'fine-fixture', name: 'Fine', author: 'Fixture', revision: 1, seed: 1 });
@@ -81,4 +82,23 @@ test('a declared GLB outside the fine tile inventory refuses before any read or 
     expect(() => new RefiningWholeLibrary(f.owner, f.product, f.row, f.queue, f.cover)).toThrow(`Refinement requires declared fine geometry: fine ${hash}`);
     expect(f.read).not.toHaveBeenCalled(); expect(f.mesh.geometry.attributes).toEqual({});
   } finally { f.close(); }
+});
+
+test('retirement during a spent join drains without publishing the stale fine piece', async () => {
+  const f = fixture(), holder = f.owner.child('joining'), key = [...f.content.tiles()][0];
+  if (key === undefined) throw new Error('Missing original tile');
+  let release = (): void => undefined, started = (): void => undefined;
+  const paused = new Promise<void>(resolve => { started = resolve; }), resume = new Promise<void>(resolve => { release = resolve; });
+  const original = work.workSlice; let held = false;
+  vi.spyOn(work, 'workSlice').mockImplementation((budget, owner) => owner !== f.owner ? original(budget, owner) : {
+    due: () => !held, yield: () => Promise.resolve(), check: () => { if (held) return undefined; held = true; started(); return resume; },
+  });
+  const initial = f.mesh.geometry, pending = f.content.attach(key, holder);
+  try {
+    await paused; expect(f.mesh.geometry).toBe(initial);
+    holder.dispose(); const retired = f.mesh.geometry;
+    expect(retired.attributes).toEqual({}); release(); await pending;
+    expect(f.mesh.geometry).toBe(retired); expect(f.mesh.geometry.attributes).toEqual({});
+    expect(f.cover).toHaveBeenCalledOnce();
+  } finally { release(); f.close(); }
 });
