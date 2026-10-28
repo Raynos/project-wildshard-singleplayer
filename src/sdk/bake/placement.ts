@@ -1,4 +1,6 @@
 import type { Color, Matrix4 } from 'three';
+import { parse } from 'valibot';
+import { FigureRowSchema } from '@wildshard/format/figures';
 
 /** Complete author copy pose. Numeric contacts are compiled before any live registration. */
 export interface AuthorPlacement<P extends object> {
@@ -23,6 +25,13 @@ export type ColliderDesc =
   | Placed & { kind: 'hull'; points: Float32Array }
   | Placed & { kind: 'trimesh'; vertices: Float32Array; indices: Uint32Array }
   | { kind: 'treads'; from: Vec3; to: Vec3; width: number; count: number; surface?: ContactSurface };
+/** Admit a complete authored figure before compiling its native anchor contacts.
+ * Preserve box arithmetic, capsule fields and absent-collider behavior without constructing a live figure. */
+export function figureColliderRows(input: unknown): readonly ColliderDesc[] {
+  const box = parse(FigureRowSchema, input).collider;
+  return box === undefined ? [] : box.kind === 'box' ? [{ kind: 'box', x: 0, y: (box.top - box.bottom) / 2,
+    z: 0, hx: box.half, hy: (box.top + box.bottom) / 2, hz: box.half }] : [{ ...box, x: 0, z: 0 }];
+}
 /** A world-space box rotated by negative rot about +Y. */
 export interface BoxSpec { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number }
 /** Compile the native authored box convention without importing a live registry. */
