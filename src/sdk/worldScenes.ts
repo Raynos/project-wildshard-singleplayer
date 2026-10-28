@@ -1,4 +1,5 @@
 import { parseWorldScene, parseWorldSceneBindings, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
+import { CaveInteriorSchema, type CaveInteriorRows } from '@wildshard/format/caveInterior';
 import { parseSceneBuffers } from '@wildshard/format/sceneBuffers';
 import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
@@ -67,3 +68,6 @@ export function worldSceneWeldRows(input: unknown): ReturnType<typeof parseWorld
 
 /** Admit the defining finite surface properties without inventing a material or resource owner. */
 export function worldSceneSurfaceProperties(input: unknown): WorldSceneSurface['properties'] { return parse(WorldSceneSurfaceSchema.entries.properties, input); }
+
+/** Admit bounded cave ownership, frame, packed roof and material ports before publication. */
+export function caveInteriorRows(input: unknown): CaveInteriorRows { return parse(CaveInteriorSchema, input); }

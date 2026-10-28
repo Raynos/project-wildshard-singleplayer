@@ -6257,6 +6257,7 @@ Signal well prompts use these rows on their existing input owners.
 (`worldSceneModels`), typed draw buffers (`worldSceneBuffers`), frozen
 welds (`worldSceneWeldRows`) and surface properties
 (`worldSceneSurfaceProperties`) through defining format parsers.
+`caveInteriorRows` admits bounded packed cave roofs, frames and material ports.
 `game/plugin/scene.createWorldScene` borrows geometry/model/material ports and
 returns Group/parts/baked data. `worldPieces.scene` registers parts
 without reparenting or double transforms.

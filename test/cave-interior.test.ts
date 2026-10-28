@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
+import { caveInteriorRows } from '../src/sdk/worldScenes';
 import { CaveFileSchema, CaveInteriorSchema } from '../src/format/caveInterior';
 import { CAVE_LOOK, CRAG_LOOK } from '../src/shards/pine-hollow/generators/cragLook';
 
@@ -15,6 +16,7 @@ const meta = { version: 1, holes: [], cuts: [{ lx: 0, lz: 0, hw: 2, hd: 3, below
 
 test('cave rows admit an unrelated quarry adit and Pine Hollow\'s look', () => {
   expect(v.parse(CaveInteriorSchema, adit).look.near).toBe(30);
+  expect(caveInteriorRows(adit)).toEqual(v.parse(CaveInteriorSchema, adit));
   expect(v.parse(CaveFileSchema, { meta, shell: [] }).meta.cuts).toHaveLength(1);
   expect(v.safeParse(CaveInteriorSchema, { ...adit, rock: { ...adit.rock, look: CRAG_LOOK } }).success).toBe(true);
 });
@@ -23,4 +25,6 @@ test('cave rows refuse a callback, an unbounded shaft and a foreign surface', ()
   expect(v.safeParse(CaveInteriorSchema, { ...adit, update: () => undefined }).success).toBe(false);
   expect(v.safeParse(CaveInteriorSchema, { ...adit, look: { ...adit.look, shaft: { ...adit.look.shaft, radialSegments: 512 } } }).success).toBe(false);
   expect(v.safeParse(CaveInteriorSchema, { ...adit, look: { ...adit.look, surface: 'ice' } }).success).toBe(false);
+  for (const invalid of [{ ...adit, update: () => undefined }, { ...adit, look: { ...adit.look, shaft: { ...adit.look.shaft, radialSegments: 512 } } },
+    { ...adit, look: { ...adit.look, surface: 'ice' } }]) expect(() => caveInteriorRows(invalid)).toThrow();
 });

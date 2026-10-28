@@ -4,19 +4,20 @@ import * as v from 'valibot';
 import { CaveRowsSchema } from './sections';
 import { Matrix4 } from 'three';
 import { cragScene } from './cragSceneContribution';
-import { CaveInteriorSchema } from '@wildshard/format/caveInterior';
+import { caveInteriorRows, type worldSceneRows } from '@wildshard/sdk/worldScenes';
 import { CRAG_LOOK, CAVE_LOOK } from './cragLook';
 import * as layout from './layout';
 import { sceneModelRows } from './sceneModelRows';
 import { cabinScene } from './cabinSceneContribution';
 import { nameBlob, nameMeshoptBlob, type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
 import { pineWorldSceneModels } from './bake-world-scene-models.mjs';
-import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 import spray from '../data/sprayPuffs.json' with { type: 'json' };
 import { SPRAY_LOOK } from './streamLook';
 import waterRows from '../data/waterLook.json' with { type: 'json' };
 import { QUEST_RIDE_BLOBS, QUEST_RIDE_LIBRARY, QUEST_RIDE_MATERIAL, QUEST_RIDE_STEP, questRideModels } from './questRideScenes';
 import { perSources, type PineSources } from './pineSources';
+
+type WorldScenesSection = ReturnType<typeof worldSceneRows>;
 
 const { surfaces: WATER_SURFACES } = waterRows;
 
@@ -51,7 +52,7 @@ export const worldScenes: (sources: PineSources) => Promise<WorldScenes> = perSo
   const { raw: QUEST_RIDE_RAW_MODELS, packed: QUEST_RIDE_PACKED_MODELS } = await questRideModels(sources);
   v.parse(CaveRowsSchema, CRAG_CAVE_ROWS);
   /** The bear cave (G483 world scene assembly): its baked interior, its mouth's frame, its look near the mouth and its rock. */
-  const CAVE_INTERIOR = v.parse(CaveInteriorSchema, { product: 'pine-hollow', file: 'world/crag-cave.json', roof: { url: codeParts.url, rows: codeParts.rows, part: codeParts.parts['cave-roof'] }, look: CAVE_LOOK,
+  const CAVE_INTERIOR = caveInteriorRows({ product: 'pine-hollow', file: 'world/crag-cave.json', roof: { url: codeParts.url, rows: codeParts.rows, part: codeParts.parts['cave-roof'] }, look: CAVE_LOOK,
     frame: { x: layout.BEAR_CAVE.x, z: layout.BEAR_CAVE.z, yaw: layout.BEAR_CAVE.rot }, rock: { look: CRAG_LOOK, fill: 'caveFill', pbr: 'mossy_rock', grit: 'rock_ground' } });
   const SCENE_BLOBS: NamedBlobType[] = [nameBlob('world/crag-cave.json', 'json', encode(CRAG_CAVE_ROWS)), nameBlob('world/cave-interior.json', 'json', encode(CAVE_INTERIOR)), nameBlob('scenes/streams.json', 'json', encode(recipe)), nameBlob('scenes/pool.json', 'json', encode(poolRecipe)),
     nameBlob(SPRAY, 'bin', new Uint8Array(Float32Array.from([...matrices, ...spray.seed, ...spray.size]).buffer)),

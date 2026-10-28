@@ -10,7 +10,6 @@ import crowdRows from '../data/crowdModels.json' with { type: 'json' };
 import lodRows from '../data/lod.json' with { type: 'json' };
 import hookRows from '../data/hookSpecimen.json' with { type: 'json' };
 import hookBounds from '../data/hookBounds.json' with { type: 'json' };
-import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { portalLookRows } from './portalLook';
 // Nine Dragon's models on the shared world-scene host (G465): the Explorer catalogue (data/explorerModels.json) plus the
 // code-built specimens the page placed itself (the brush figures, the banyan and what stands at its foot, the paper
@@ -19,7 +18,7 @@ import { portalLookRows } from './portalLook';
 // and layout-set tiles. The world's banyan crown, the Well's mist, the painted sky and the scroll screen are one
 // `dressing` scene step over the same tiles and two owned shapes.
 import * as v from 'valibot';
-import { worldSceneRecipe as parseWorldScene, worldSceneModels as parseWorldSceneModels, worldSceneRows as parseWorldScenes } from '@wildshard/sdk/worldScenes';
+import { worldSceneRecipe as parseWorldScene, worldSceneModels as parseWorldSceneModels, worldSceneRows as parseWorldScenes, worldSceneWeldRows as parseWorldSceneWeld } from '@wildshard/sdk/worldScenes';
 import { NINE_SHARED } from './sharedRows';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
