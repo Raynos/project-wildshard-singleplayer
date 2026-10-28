@@ -1,5 +1,6 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import { inflateScalarBlocks,readScalarChannel,readScalarLattice,ScalarLatticeBindings } from '@wildshard/engine/world/scalarChannel';
+import { readFileInputs } from '../shardfile/fileInputs';
 import { ScalarLatticeSchema,ScalarTripletSchema,type ScalarLatticeRows,type ScalarTripletRows } from '@wildshard/format/scalarChannel';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { basinBody,type WaterBody } from '@wildshard/engine/world/water/body';
@@ -908,13 +909,11 @@ export async function prepareManifestScalarBlocks(manifest: ShardManifest, produ
     if (!hasFile.call(product, name)) throw new Error('Missing manifest scalar file');
     live();
   }
-  const blocks = new Map<string, Uint8Array>();
-  for (const name of names) {
-    live();
+  const blocks = await readFileInputs(names,async name=>{
     const bytes = await file.call(product, name);
     live();
-    blocks.set(name, Uint8Array.from(bytes));
-  }
+    return Uint8Array.from(bytes);
+  },live);
   live();
   const inflated = await inflateScalarBlocks(blocks);
   live();

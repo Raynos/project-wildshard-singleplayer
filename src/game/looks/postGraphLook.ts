@@ -33,6 +33,7 @@ import { paintedAir } from './paintedLook';
 import { PaintedPanorama, PainterKeyLight, paintedGroundPainter, type PainterSkyLook } from './painterlyLook';
 import { GrassPresentation, GrassPresentationProfile } from './grassPresentation';
 import { GrassPresentationSchema, grassPresentationFiles } from '@wildshard/format/fieldPresentation';
+import { readFileInputs } from '../shardfile/fileInputs';
 import { StaticCapture, staticCaptureUniforms, type StaticCaptureUniforms } from './staticCapture';
 import { installChannelPrograms } from '../plugin/channelPrograms';
 import { graphParamRoots } from './graphDaySky';
@@ -205,11 +206,13 @@ export async function postGraphLook(product: { readonly slug: string; readonly j
   const live=():void=>{if(product.json!==json||product.file!==readFile)throw new Error('Painted world product reader changed');};
   let at: unknown = await json.call(product,source.file);live();
   for (const key of source.field) at = typeof at === 'object' && at !== null ? Reflect.get(at, key) : undefined;
-  const painted = v.parse(PostGraphLookSchema, at).painted,files=new Map<string,Uint8Array>();
-  if(painted!==undefined)for(const file of grassPresentationFiles(v.parse(GrassPresentationSchema,painted.grass.rows),tier)){
+  const painted = v.parse(PostGraphLookSchema, at).painted;
+  const names=painted===undefined?[]:grassPresentationFiles(v.parse(GrassPresentationSchema,painted.grass.rows),tier);
+  if(names.length>0&&readFile===undefined)throw new Error('Painted world product file reader required');
+  const files=await readFileInputs(names,name=>{
     if(readFile===undefined)throw new Error('Painted world product file reader required');
-    live();const bytes=await readFile.call(product,file);live();files.set(file,bytes);
-  }
+    return readFile.call(product,name);
+  },live);
   const look = postGraphLookOf(product.slug, at);
   // a painterly level's painted world (fog, ground, grass, sky) beside its graphs
   return painted === undefined ? look : { ...look, ...paintedWorld(product.slug, painted,files,tier).look };

@@ -23,6 +23,7 @@
     "src/format/waterWaves.ts",
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/_template/discovery.generated.ts",
     "src/shards/_template/manifest.json"
   ],
@@ -50,6 +51,7 @@
     "src/format/waterWaves.ts",
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/blender-template/discovery.generated.ts",
     "src/shards/blender-template/manifest.json",
     "src/shards/blender-template/thumbs/card.jpg"
@@ -78,6 +80,7 @@
     "src/format/waterWaves.ts",
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/driftwood-isle/data/heldArms.json",
     "src/shards/driftwood-isle/data/runtimeCost.json",
     "src/shards/driftwood-isle/discovery.generated.ts",
@@ -164,6 +167,7 @@
     "src/format/waterWaves.ts",
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/far-reach/data/cues.json",
     "src/shards/far-reach/discovery.generated.ts",
     "src/shards/far-reach/explore/models-far-reach.webp",
@@ -222,6 +226,7 @@
     "src/format/waterWaves.ts",
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/ink-cel-valley/discovery.generated.ts",
     "src/shards/ink-cel-valley/manifest.json"
   ],
@@ -249,6 +254,7 @@
     "src/format/waterWaves.ts",
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/nalati-grasslands/data/runtimeCost.json",
     "src/shards/nalati-grasslands/discovery.generated.ts",
     "src/shards/nalati-grasslands/explore/compare/nalati-camp-live.jpg",
@@ -335,6 +341,7 @@
     "src/format/waterWaves.ts",
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/nine-dragon-stack/data/ground.json",
     "src/shards/nine-dragon-stack/data/heldCards.json",
     "src/shards/nine-dragon-stack/data/runtimeCost.json",
@@ -414,6 +421,7 @@
     "src/format/waterWaves.ts",
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/open-plots/discovery.open-plot-alien-plain.generated.ts",
     "src/shards/open-plots/thumbs/alien-plain.jpg"
   ],
@@ -441,6 +449,7 @@
     "src/format/waterWaves.ts",
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/open-plots/discovery.open-plot-clockwork-canyon.generated.ts",
     "src/shards/open-plots/thumbs/clockwork-canyon.jpg"
   ],
@@ -468,6 +477,7 @@
     "src/format/waterWaves.ts",
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/open-plots/discovery.open-plot-coral-drift.generated.ts",
     "src/shards/open-plots/thumbs/coral-drift.jpg"
   ],
@@ -495,6 +505,7 @@
     "src/format/waterWaves.ts",
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/open-plots/discovery.open-plot-desert-ruin.generated.ts",
     "src/shards/open-plots/thumbs/desert-ruin.jpg"
   ],
@@ -522,6 +533,7 @@
     "src/format/waterWaves.ts",
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/open-plots/discovery.open-plot-ember-forge.generated.ts",
     "src/shards/open-plots/thumbs/ember-forge.jpg"
   ],
@@ -549,6 +561,7 @@
     "src/format/waterWaves.ts",
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/open-plots/discovery.open-plot-frostline-peaks.generated.ts",
     "src/shards/open-plots/thumbs/frostline-peaks.jpg"
   ],
@@ -576,6 +589,7 @@
     "src/format/waterWaves.ts",
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/open-plots/discovery.open-plot-lantern-bayou.generated.ts",
     "src/shards/open-plots/thumbs/lantern-bayou.jpg"
   ],
@@ -603,6 +617,7 @@
     "src/format/waterWaves.ts",
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/open-plots/discovery.open-plot-mosslight-ruins.generated.ts",
     "src/shards/open-plots/thumbs/mosslight-ruins.jpg"
   ],
@@ -630,6 +645,7 @@
     "src/format/waterWaves.ts",
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/open-plots/discovery.open-plot-night-market.generated.ts",
     "src/shards/open-plots/thumbs/night-market.jpg"
   ],
@@ -657,6 +673,7 @@
     "src/format/waterWaves.ts",
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/open-plots/discovery.open-plot-showcase-template.generated.ts",
     "src/shards/open-plots/thumbs/showcase-template.jpg"
   ],
@@ -684,6 +701,7 @@
     "src/format/waterWaves.ts",
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/open-plots/discovery.open-plot-sky-harbor.generated.ts",
     "src/shards/open-plots/thumbs/sky-harbor.jpg"
   ],
@@ -711,6 +729,7 @@
     "src/format/waterWaves.ts",
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/open-plots/discovery.open-plot-sky-race.generated.ts",
     "src/shards/open-plots/thumbs/sky-race.jpg"
   ],
@@ -738,6 +757,7 @@
     "src/format/waterWaves.ts",
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/open-plots/discovery.open-plot-starfall-observatory.generated.ts",
     "src/shards/open-plots/thumbs/starfall-observatory.jpg"
   ],
@@ -765,6 +785,7 @@
     "src/format/waterWaves.ts",
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/open-plots/discovery.open-plot-thin-ice.generated.ts",
     "src/shards/open-plots/thumbs/thin-ice.jpg"
   ],
@@ -792,6 +813,7 @@
     "src/format/waterWaves.ts",
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/pastel-plain/discovery.generated.ts",
     "src/shards/pastel-plain/manifest.json"
   ],
@@ -820,6 +842,7 @@
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
     "src/game/shard/pageBoot.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/pine-hollow/data/pagePolicy.json",
     "src/shards/pine-hollow/data/runtimeCost.json",
     "src/shards/pine-hollow/data/skyLook.json",
@@ -909,6 +932,7 @@
     "src/format/waterWaves.ts",
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
+    "src/game/shardfile/fileInputs.ts",
     "src/shards/sunscar-dunes/data/runtimeCost.json",
     "src/shards/sunscar-dunes/discovery.generated.ts",
     "src/shards/sunscar-dunes/explore/models-sunscar-dunes.webp",
