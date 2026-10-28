@@ -471,10 +471,14 @@ export class GridSession {
       scope: roadScope, camera: () => host.frame?.camera, plans, admission, ...(tileBacking === undefined ? {} : { tileBacking }),
       ...(grain === undefined ? {} : { grain: grain.get }), ...(signs === undefined ? {} : { signs: signs.get }) };
     const pause = async (): Promise<void> => { await construction.check(); };
+    // Spawn heap (T10): no closure here may capture `compiled`. Every closure of this scope shares one context, and the
+    // session's cleanups keep some of them, so a captured read kept its decoded strips and seam look (~14 MB at the
+    // Driftwood spawn, 10 MB of it look normals) for the page's life. The inner road gets the look and lets it go.
+    let seamChannels = compiled?.look;
     const road = (async () => {
       try { return await installPlatformRoadSliced({ ...roadInput, allocationKey: 'road.inner', within: ring,
-        ...(compiled?.look === undefined ? {} : { seamChannels: compiled.look }) }, pause); }
-      finally { signs?.release(); }
+        ...(seamChannels === undefined ? {} : { seamChannels }) }, pause); }
+      finally { signs?.release(); seamChannels = undefined; }
     })();
     const outer = async (): Promise<PlatformRoad> => {
       let outerSigns: ReturnType<typeof startRoadSigns>;
