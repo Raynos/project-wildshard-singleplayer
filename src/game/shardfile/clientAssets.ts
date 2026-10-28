@@ -57,7 +57,7 @@ export class ClientAssets {
     // phone-tier home region); every other read is checked here, off the page where a worker can
     const url = outputDescriptor(this.source) === undefined ? undefined : outputBlobUrl(this.source, ref, base);
     const verified = await this.options.cache?.verifiedAsset?.(hash)
-      ?? (url === undefined ? undefined : await this.options.verifiedResponse?.(url, hash, cap));
+      ?? (url === undefined ? undefined : await this.urlHint(url, hash, cap, priority));
     if (verified !== null && verified !== undefined) {
       if (verified.length !== cap) throw new Error('Resident tile hash or size mismatch');
       return this.observe(ref, verified);
@@ -87,6 +87,17 @@ export class ClientAssets {
     else recordCachedDownload(hash, bytes.length);
     return this.observe(ref, bytes);
   }
+  /** Optional URL hints cannot hold foreground demand behind unrelated browser cache work. */
+  private async urlHint(url: string, hash: string, cap: number, priority?: 'low'): Promise<Uint8Array | null | undefined> {
+    const read = this.options.verifiedResponse, turn = this.options.cacheHintTurn;
+    if (read === undefined) return undefined;
+    if (this.options.offline || priority === 'low' || turn === undefined) return read(url, hash, cap);
+    const controller = new AbortController();
+    try {
+      return await Promise.race([read(url, hash, cap, controller.signal), turn(controller.signal).then(() => null)]);
+    } finally { controller.abort(); }
+  }
+
   /** Share only an in-flight named pack across concurrent demand reads. No settled
    * pack backing survives the borrowers; each decoder receives its owned member. */
   private async readPacked(ref: string, cap: number, priority?: 'low'): Promise<Uint8Array | undefined> {

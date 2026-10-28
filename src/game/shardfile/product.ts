@@ -72,7 +72,10 @@ export interface ProductOptions {
   /** Optional URL-cache hint for sections and blobs; readers still verify declared sizes and hashes. */
   cachedResponse?: (url: string, hash: string, maximum: number) => Promise<Uint8Array | null>;
   /** Trusted URL-cache read returning owned checked bytes; replaces raw URL hints for asset reads when present. */
-  verifiedResponse?: (url: string, hash: string, maximum: number) => Promise<Uint8Array | null>;
+  verifiedResponse?: (url: string, hash: string, maximum: number, signal?: AbortSignal) => Promise<Uint8Array | null>;
+  /** Foreground online URL hints may borrow this paint turn; afterward demand uses normal verified transport.
+   * Offline and low-priority warming keep their original cache completion. */
+  cacheHintTurn?: (signal: AbortSignal) => Promise<void>;
   fetch: (url: string) => Promise<Response>;
   /** Optional exact HTTP byte ranges for adjacent concurrently demanded pack members. */
   fetchRange?: (url: string, start: number, end: number, priority?: 'low') => Promise<Response>;

@@ -5465,6 +5465,11 @@ a transferred worker failure uses the retained source for page fallback.
 The browser URL-cache reader hashes through the same content worker and
 falls through on a corrupt hint. Cache lookup, hash and durable-publication
 waits name their file; whole-bank validation and persistence pins stay intact.
+For foreground online resident reads, `cacheHintTurn(signal)` lends an optional
+URL hint one existing drawn-frame turn. A pending hint then yields to the ordinary
+verified pack/direct transport; its late response is cancelled before body/hash
+work. Fast immutable and URL-cache hits still win. Offline and low-priority
+warming retain their original cache completion; no data hash or size check changes.
 `prepareContentHash()` explicitly starts the page-owned worker with loader
 transport, with the existing idle retirement and unsupported-worker fallback.
 It installs nothing on module import.

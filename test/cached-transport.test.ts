@@ -38,3 +38,14 @@ test('the URL reader returns the once-verified worker bytes and retains detached
   expect(await cachedTransport(storage, 'https://game.test/blob.bin', 3, hash, () => false, worker)).toBeNull();
   expect(bytes).toEqual(new Uint8Array([2, 4, 6]));
 });
+
+test('an abandoned URL hint drains a late response without reading or hashing its body', async () => {
+  const owner = new AbortController();
+  let complete: ((response: Response) => void) | undefined;
+  const cancel = vi.fn(), hash = vi.fn(() => Promise.resolve('a'.repeat(64)));
+  const response = new Response(new ReadableStream<Uint8Array>({ cancel }));
+  const pending = cachedTransport({ match: () => new Promise<Response>(resolve => { complete = resolve; }) },
+    'https://game.test/late.bin', 3, hash, () => true, undefined, owner.signal);
+  owner.abort(); if (complete === undefined) throw new Error('Missing pending hint'); complete(response);
+  expect(await pending).toBeNull(); expect(cancel).toHaveBeenCalledOnce(); expect(hash).not.toHaveBeenCalled();
+});

@@ -1412,3 +1412,56 @@ test('a shared member keeps its claimed envelope offset across legal overlapping
   expect(await Promise.all([reader.read(a), reader.read(b)])).toEqual(f.bodies.slice(0, 2));
   expect(ranges).toEqual([[0, 4]]);
 });
+
+test('foreground demand starts verified transport after the URL hint paint turn, sharing one read', async () => {
+  const f = fixture(); trust(f.receipt);
+  const admitted = await admitProduct(f.index, f.options);
+  let finish: (() => void) | undefined, signal: AbortSignal | undefined;
+  const fetch = vi.fn(f.options.fetch), hint = vi.fn((_url: string, _hash: string, _cap: number, owner?: AbortSignal) => {
+    signal = owner; return new Promise<Uint8Array | null>(() => { /* An unavailable browser cache never answers. */ });
+  });
+  const reader = new ClientAssets(admitted.source, new Map(), { ...f.options, fetch, verifiedResponse: hint,
+    cacheHintTurn: () => new Promise<void>(resolve => { finish = resolve; }) });
+  const first = reader.read(f.ref), second = reader.read(f.ref);
+  for (let i = 0; i < 8; i++) await Promise.resolve();
+  expect(hint).toHaveBeenCalledOnce(); expect(fetch).not.toHaveBeenCalled();
+  if (finish === undefined) throw new Error('Missing foreground turn');
+  finish();
+  const result = await first; expect(await second).toBe(result); expect(result).toEqual(f.blob);
+  expect(fetch).toHaveBeenCalledOnce(); expect(signal?.aborted).toBe(true); expect(reader.retained.size).toBe(0);
+});
+
+test('a fast verified URL hint wins without transport and retires its unused turn', async () => {
+  const f = fixture(); trust(f.receipt);
+  const admitted = await admitProduct(f.index, f.options);
+  let signal: AbortSignal | undefined;
+  const fetch = vi.fn(f.options.fetch), reader = new ClientAssets(admitted.source, new Map(), { ...f.options, fetch,
+    verifiedResponse: () => Promise.resolve(f.blob), cacheHintTurn: owner => {
+      signal = owner; return new Promise<void>(resolve => { owner.addEventListener('abort', () => { resolve(); }, { once: true }); });
+    } });
+  expect(await reader.read(f.ref)).toBe(f.blob); expect(fetch).not.toHaveBeenCalled(); expect(signal?.aborted).toBe(true);
+});
+
+test.each(['offline', 'background'] as const)('%s demand keeps its original URL-cache completion', async mode => {
+  const f = fixture(); trust(f.receipt);
+  const admitted = await admitProduct(f.index, f.options);
+  let complete: ((value: Uint8Array) => void) | undefined;
+  const fetch = vi.fn(f.options.fetch), turn = vi.fn(() => Promise.resolve());
+  const reader = new ClientAssets(admitted.source, new Map(), { ...f.options, offline: mode === 'offline', fetch, cacheHintTurn: turn,
+    verifiedResponse: () => new Promise<Uint8Array>(resolve => { complete = resolve; }) });
+  const pending = mode === 'offline' ? reader.read(f.ref) : reader.read(f.ref, 'low');
+  for (let i = 0; i < 8; i++) await Promise.resolve();
+  expect(turn).not.toHaveBeenCalled(); expect(fetch).not.toHaveBeenCalled();
+  if (complete === undefined) throw new Error('Missing cache read'); complete(f.blob);
+  expect(await pending).toBe(f.blob); expect(fetch).not.toHaveBeenCalled();
+});
+
+test('foreground hint expiry retains exact size and SHA refusals', async () => {
+  const f = fixture(); trust(f.receipt);
+  const admitted = await admitProduct(f.index, f.options);
+  const options = { ...f.options, verifiedResponse: () => new Promise<Uint8Array | null>(() => { /* Pending hint. */ }), cacheHintTurn: () => Promise.resolve() };
+  for (const body of [new Uint8Array([1]), new Uint8Array(f.blob.length).fill(9)]) {
+    const reader = new ClientAssets(admitted.source, new Map(), { ...options, fetch: () => Promise.resolve(new Response(body)) });
+    await expect(reader.read(f.ref)).rejects.toThrow(/hash or size|size differs|larger|oversized|length/iu);
+  }
+});

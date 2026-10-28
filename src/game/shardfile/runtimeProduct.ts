@@ -9,6 +9,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { ClientAssets } from './clientAssets';
 import { buildYield, pacedResolve, workSlice, type WorkSlice } from '@wildshard/engine/core/workSlice';
+import { nextDrawnFrame } from '@wildshard/engine/core/framePacing';
 import { pageScope } from '@wildshard/engine/app/resources';
 import { waitFor } from '@wildshard/engine/boot/waits';
 import { currentOwner } from '@wildshard/engine/app/ownership';
@@ -95,9 +96,16 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
     ...(firstParty ? { fetchRange: (url: string, start: number, end: number, priority?: 'low') => waitFor(`Fetch pack range ${start}-${end}`, fetch(url, { headers: { Range: `bytes=${start}-${end}` }, ...(priority === undefined ? {} : { priority }) }), 'file') } : {}),
     ...(indexed === undefined ? {} : { cachedResponse: async (url: string, hash: string, maximum: number) =>
       (await cachedTransport(caches, url, maximum, browserContentHash, actual => actual === hash))?.bytes ?? null,
-    verifiedResponse: async (url: string, hash: string, maximum: number) =>
-      (await cachedTransport(caches, url, maximum, browserContentHash, actual => actual === hash, hashOwnedBytes))?.bytes ?? null }),
+    verifiedResponse: async (url: string, hash: string, maximum: number, signal?: AbortSignal) =>
+      (await cachedTransport(caches, url, maximum, browserContentHash, actual => actual === hash, hashOwnedBytes, signal))?.bytes ?? null }),
     ...(transport === undefined ? {} : { transport }),
+    cacheHintTurn: signal => {
+      const owner = pageScope.child('foreground-url-cache-turn');
+      const cancel = (): void => { owner.dispose(); };
+      owner.listen(signal, 'abort', cancel, { once: true });
+      if (signal.aborted) owner.dispose();
+      return nextDrawnFrame(owner).finally(() => { owner.dispose(); });
+    },
     pause: pauseDescriptor(), cacheBatch: true,
     ...(firstParty && builtIndexes !== null ? { built: { indexes: builtIndexes, stale: staleRecovery } } : {}),
     ...(typeof caches === 'undefined' ? {} : { cache: browserProductCache(caches) }),
