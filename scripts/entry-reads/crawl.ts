@@ -72,71 +72,78 @@ try {
     if (!response.ok) throw new Error(`Entry descriptor unavailable: ${slug}`);
     index.set(slug, parseOutputIndex(await response.json()));
   }
-  const rows = await crawlEntryReadSet(entries, {
-    read: async url => {
-      const response = await fetch(new URL(url, origin), { headers: { 'accept-encoding': 'identity' } });
-      if (!response.ok) throw new Error(`Entry body refused: ${response.status} ${url}`);
-      const bytes = new Uint8Array(await response.arrayBuffer());
-      for (const [slug, product] of index) {
-        const file = product.files.find(row => url.split('?')[0] === `/shardfiles/${slug}/${row.path}`);
-        if (file !== undefined && (bytes.length !== file.compressed || hashImmutableBytes(bytes) !== file.hash)) throw new Error('Crawled product body differs from its descriptor');
-      }
-      return bytes;
-    },
-    visit: async (entry, tier, read) => {
-      const cell = cells.find(row => row.instance === entry.region), source = cell === undefined ? undefined : index.get(cell.slug);
-      if (cell === undefined || source === undefined) throw new Error('Crawl region lacks its descriptor');
-      const home = declared.cells.find(row => row.slug === '_template' && row.instance !== cell.instance)
-        ?? declared.cells.find(row => row.slug === 'driftwood-isle' && row.instance !== cell.instance);
-      if (home === undefined) throw new Error('Crawl requires a distinct cold source');
-      const context = await contextFor(browser, tier), demands: (EntryCrawlDemand & { readonly at: number })[] = [];
-      try {
-        const catalogueId = JSON.stringify({ pitch: declared.pitch, cells: declared.cells.map(row => [row.instance, row.slug, ...row.cell]).sort((a, b) => String(a[0]).localeCompare(String(b[0]))) });
-        await saveFixture(context, { scope: 'session', key: 'grid.recovery.once', once: 'entry-read-cold-source', data: {
-          instance: home.instance, slug: home.slug, catalogue: catalogueId, at: Date.now(), reason: 'reload',
-          road: { x: home.cell[0] * declared.pitch + declared.pitch / 2 + 3.6, z: home.cell[1] * declared.pitch, yaw: 0 } } });
-        const page = await context.newPage(), errors: string[] = [];
-        const cdp = await context.newCDPSession(page);
-        if (network === 'fast4g-crossing') await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
-        page.on('pageerror', error => { errors.push(error.stack ?? error.message); });
-        context.on('request', request => {
-          const url = new URL(request.url());
-          if (url.origin !== origin.origin || !['/assets/', `/shardfiles/${cell.slug}/blobs/`].some(prefix => url.pathname.startsWith(prefix))) return;
-          const { range } = request.headers();
-          demands.push({ url: `${url.pathname}${url.search}`, at: Date.now(), ...(range === undefined ? {} : { range }) });
-        });
-        await openGrid(page, false);
-        const state = await page.evaluate(stateCode) as FloorGridState;
-        if (state.home !== home.instance || state.live.live.residents.includes(cell.instance)) throw new Error('Crawl target is not a cold entry');
-        if (network === 'fast4g-crossing') {
-          await cdp.send('Network.enable');
-          await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: 150, downloadThroughput: 9e6 / 8, uploadThroughput: 1.5e6 / 8 });
-        }
-        const identity = await page.evaluate(gridFloorDocumentIdentity), route = floorGridEntryRoute(gridFloorPlans(state, 'cell', { cell: cell.instance, roadApproach: true }), cell.instance);
-        for (const plan of [...route.setup, route.entry]) {
-          const live = await page.evaluate(stateCode) as FloorGridState, resolved = await gridFloorDeclaredPlan(page, live, plan);
-          await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(resolved)},${JSON.stringify(identity)},(${driveFloorGrid.toString()}))`);
-          const witness = await page.evaluate<FloorGridWitness>(`(${driveFloorGrid.toString()})(${JSON.stringify(resolved)},${JSON.stringify(identity)})`);
-          const failures = gridFloorWitnessFailures(witness);
-          if (failures.length > 0) throw new Error(`Entry crawl refused: ${failures.join('; ')}`);
-        }
-        if (errors.length > 0) throw new Error(`Entry crawl page errors: ${errors.join('; ')}`);
-        const timeOrigin = v.parse(v.number(), await page.evaluate('performance.timeOrigin'));
-        const spans = v.parse(spansSchema, await page.evaluate('performance.getEntriesByType("measure").map(row=>({name:row.name,startTime:row.startTime,duration:row.duration}))'));
-        const spansForEntry = spans.filter(row => row.name === `wildshard.prepare:${cell.slug}:grid.prepare:${cell.instance}.create`);
-        if (spansForEntry.length !== 1) throw new Error(`Expected one completed cold entry span: ${cell.slug}`);
-        const hold = spansForEntry[0]; if (hold === undefined) throw new Error('Entry span missing');
-        const urls = entryDemandUrls(cell.slug, source, demands.filter(row => row.at >= timeOrigin + hold.startTime && row.at <= timeOrigin + hold.startTime + hold.duration));
-        for (const url of urls) await read(url);
-        console.log(JSON.stringify({ region: cell.instance, tier, pin, network, complete: true, errors, heldMs: hold.duration, files: urls.length }));
-      } finally { await context.close(); }
-    },
-  });
-  // Nothing is published unless every selected region/tier and all its reads
-  // completed. Each product gets only its own regions, in declaration order.
-  for (const slug of new Set(cells.map(cell => cell.slug))) {
-    const regions = new Set(cells.filter(cell => cell.slug === slug).map(cell => cell.instance));
-    const path = join(out, slug, 'entry-reads.json'); await mkdir(join(out, slug), { recursive: true });
-    await writeFile(path, `${JSON.stringify(rows.filter(row => regions.has(row.region)), null, 1)}\n`);
+  const productFailures: unknown[] = [];
+  for (const productSlug of new Set(cells.map(cell => cell.slug))) {
+    const regions = new Set(cells.filter(cell => cell.slug === productSlug).map(cell => cell.instance));
+    try {
+      const rows = await crawlEntryReadSet(entries.filter(entry => regions.has(entry.region)), {
+        read: async url => {
+          const response = await fetch(new URL(url, origin), { headers: { 'accept-encoding': 'identity' } });
+          if (!response.ok) throw new Error(`Entry body refused: ${response.status} ${url}`);
+          const bytes = new Uint8Array(await response.arrayBuffer());
+          for (const [slug, product] of index) {
+            const file = product.files.find(row => url.split('?')[0] === `/shardfiles/${slug}/${row.path}`);
+            if (file !== undefined && (bytes.length !== file.compressed || hashImmutableBytes(bytes) !== file.hash)) throw new Error('Crawled product body differs from its descriptor');
+          }
+          return bytes;
+        },
+        visit: async (entry, tier, read) => {
+          const cell = cells.find(row => row.instance === entry.region), source = cell === undefined ? undefined : index.get(cell.slug);
+          if (cell === undefined || source === undefined) throw new Error('Crawl region lacks its descriptor');
+          const home = declared.cells.find(row => row.slug === '_template' && row.instance !== cell.instance)
+            ?? declared.cells.find(row => row.slug === 'driftwood-isle' && row.instance !== cell.instance);
+          if (home === undefined) throw new Error('Crawl requires a distinct cold source');
+          const context = await contextFor(browser, tier), demands: (EntryCrawlDemand & { readonly at: number })[] = [];
+          try {
+            const catalogueId = JSON.stringify({ pitch: declared.pitch, cells: declared.cells.map(row => [row.instance, row.slug, ...row.cell]).sort((a, b) => String(a[0]).localeCompare(String(b[0]))) });
+            await saveFixture(context, { scope: 'session', key: 'grid.recovery.once', once: 'entry-read-cold-source', data: {
+              instance: home.instance, slug: home.slug, catalogue: catalogueId, at: Date.now(), reason: 'reload',
+              road: { x: home.cell[0] * declared.pitch + declared.pitch / 2 + 3.6, z: home.cell[1] * declared.pitch, yaw: 0 } } });
+            const page = await context.newPage(), errors: string[] = [];
+            const cdp = await context.newCDPSession(page);
+            if (network === 'fast4g-crossing') await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+            page.on('pageerror', error => { errors.push(error.stack ?? error.message); });
+            context.on('request', request => {
+              const url = new URL(request.url());
+              if (url.origin !== origin.origin || !['/assets/', `/shardfiles/${cell.slug}/blobs/`].some(prefix => url.pathname.startsWith(prefix))) return;
+              const { range } = request.headers();
+              demands.push({ url: `${url.pathname}${url.search}`, at: Date.now(), ...(range === undefined ? {} : { range }) });
+            });
+            await openGrid(page, false);
+            const state = await page.evaluate(stateCode) as FloorGridState;
+            if (state.home !== home.instance || state.live.live.residents.includes(cell.instance)) throw new Error('Crawl target is not a cold entry');
+            if (network === 'fast4g-crossing') {
+              await cdp.send('Network.enable');
+              await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: 150, downloadThroughput: 9e6 / 8, uploadThroughput: 1.5e6 / 8 });
+            }
+            const identity = await page.evaluate(gridFloorDocumentIdentity), route = floorGridEntryRoute(gridFloorPlans(state, 'cell', { cell: cell.instance, roadApproach: true }), cell.instance);
+            for (const plan of [...route.setup, route.entry]) {
+              const live = await page.evaluate(stateCode) as FloorGridState, resolved = await gridFloorDeclaredPlan(page, live, plan);
+              await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(resolved)},${JSON.stringify(identity)},(${driveFloorGrid.toString()}))`);
+              const witness = await page.evaluate<FloorGridWitness>(`(${driveFloorGrid.toString()})(${JSON.stringify(resolved)},${JSON.stringify(identity)})`);
+              const failures = gridFloorWitnessFailures(witness);
+              if (failures.length > 0) throw new Error(`Entry crawl refused: ${failures.join('; ')}`);
+            }
+            if (errors.length > 0) throw new Error(`Entry crawl page errors: ${errors.join('; ')}`);
+            const timeOrigin = v.parse(v.number(), await page.evaluate('performance.timeOrigin'));
+            const spans = v.parse(spansSchema, await page.evaluate('performance.getEntriesByType("measure").map(row=>({name:row.name,startTime:row.startTime,duration:row.duration}))'));
+            const spansForEntry = spans.filter(row => row.name === `wildshard.prepare:${cell.slug}:grid.prepare:${cell.instance}.create`);
+            if (spansForEntry.length !== 1) throw new Error(`Expected one completed cold entry span: ${cell.slug}`);
+            const hold = spansForEntry[0]; if (hold === undefined) throw new Error('Entry span missing');
+            const urls = entryDemandUrls(cell.slug, source, demands.filter(row => row.at >= timeOrigin + hold.startTime && row.at <= timeOrigin + hold.startTime + hold.duration));
+            for (const url of urls) await read(url);
+            console.log(JSON.stringify({ region: cell.instance, tier, pin, network, complete: true, errors, heldMs: hold.duration, files: urls.length }));
+          } finally { await context.close(); }
+        },
+      });
+      // Publish only a complete product: every selected region/tier and all its
+      // bodies succeeded. An independent product failure never erases this data.
+      const path = join(out, productSlug, 'entry-reads.json'); await mkdir(join(out, productSlug), { recursive: true });
+      await writeFile(path, `${JSON.stringify(rows, null, 1)}\n`);
+    } catch (error: unknown) {
+      productFailures.push(error);
+      console.error({ product: productSlug, error: error instanceof Error ? error.stack ?? error.message : String(error) });
+    }
   }
+  if (productFailures.length > 0) throw new AggregateError(productFailures, 'Entry crawl has refused products; completed tables are retained');
 } finally { await browser.close(); }
