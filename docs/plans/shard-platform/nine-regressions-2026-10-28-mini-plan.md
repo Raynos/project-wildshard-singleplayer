@@ -53,6 +53,13 @@ facing-back, stall and sky. Capture muted through `scripts/browser-lane.sh` as a
 | NR7 | Held cloth (fu, tassel) after NR1 | Opus | S | Board 1 row 1 matches LEGACY on Chromium and WebKit, shown on a labelled board |
 | NR8 | One closing sheet: CO6's A–D plus the 5 extra views, LEGACY against SHARDFILE, at the fixed SHA | Opus | S | The sheet matches LEGACY on Chromium and WebKit, shown on a labelled board; linked from close-out CO6 |
 
+### Marks (sp-o5, 2026-10-28)
+
+- **NR3, sky half: done** `d64a1ade37` (fix(tiles): keep never-culled meshes whole). The painted sky is a 2 km sphere its scene marks `frustumCulled: false`; `tiledMesh` partitioned it, its triangles clamped into the border tiles the 5 x 5 ring never holds, and its draw range stayed 0: no gradient, clouds or far lit towers. Board [7-nr3-sky](../../../art/nine-dragon-stack/round-32-shardfile-regressions/7-nr3-sky-board.jpg) (B and up 38 deg, Chromium + WebKit). **Facade half: open**, waiting on NR2: the window quads draw with the right data (83 % of 8,383 lit, warm tints) but shade flat like every kit surface; sp-o3's Float16 join fix is the likely cause, re-check on its SHA.
+- **NR5: done, does not reproduce** `2097debb65`. CO6's entry (seed 357, saved midday / clear, phone tier): the reflection streaks draw at A-D on Chromium and WebKit, as strong as LEGACY. Board [8-nr5](../../../art/nine-dragon-stack/round-32-shardfile-regressions/8-nr5-reflections-board.jpg).
+- **NR6: open, no rain cause found.** The composite's rain is LEGACY's term for term (cell 7 x 70 px, density, length, falloff, mix 0.55) with the same live values (`uRain` 0.55 / 0.14 / 520 / 2, `uDpr` 0.8, buffer 804 x 1362) and `uTime` advancing 1 s a second; the strokes read brighter on NR2's flat navy. Re-read after NR2.
+- **NR7: done** `e2531efa60` (fix(nine): hang the jian cloth at the idle down). The cloth bake settled in the weapon bone's frame along its own -Y (the hilt); it now settles with the idle's down (`REST_GRAVITY`, measured on the shared rig). Board [9-nr7](../../../art/nine-dragon-stack/round-32-shardfile-regressions/9-nr7-cloth-board.jpg).
+
 ## Order
 
 NR1 first (Jake's headline, one small fix) → NR2 bisect (it may fix the wall pallor in NR3) → NR3 → NR4 → NR5 → NR6, NR7 → NR8. NR4 runs
