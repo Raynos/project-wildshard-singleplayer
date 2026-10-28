@@ -28,6 +28,7 @@ import { CueDirectorWireSchema } from '@wildshard/format/cueDirector';
 import { ExchangeSchema } from '@wildshard/format/exchange';
 import { LootBagSchema } from '@wildshard/format/lootBag';
 import { CatalogueEconomySchema } from '@wildshard/format/catalogueEconomy';
+import { ClaimedPickupSchema } from '@wildshard/format/lootEconomy';
 import { ContractCatalogueSchema, ContractBoardPageSchema } from '@wildshard/format/contracts';
 import { AchievementCounterDataSchema } from '@wildshard/format/achievementCounters';
 import { PopulationShelterSchema } from '@wildshard/format/herdShelter';
@@ -656,6 +657,7 @@ export function composeNamedJsonSchema(composition: NamedJsonComposition): Reado
 
 /** Exact defining pure-format objects for checked author compositions. */
 interface AuthorFormatObjects {
+  readonly 'lootEconomy.ClaimedPickupSchema': typeof ClaimedPickupSchema;
   readonly 'lootBag.LootBagSchema': typeof LootBagSchema;
   readonly 'questContinuation.QuestContinuationSchema': typeof QuestContinuationSchema;
   readonly 'npcs.QuestNpcBindingsSchema': typeof QuestNpcBindingsSchema;
@@ -693,6 +695,7 @@ interface AuthorFormatObjects {
   readonly 'nativePhysics.nativeColliderRecordSchema': typeof nativeColliderRecordSchema;
 }
 const authorFormats: AuthorFormatObjects = {
+  'lootEconomy.ClaimedPickupSchema': ClaimedPickupSchema,
   'lootBag.LootBagSchema': LootBagSchema,
   'questContinuation.QuestContinuationSchema': QuestContinuationSchema,
   'npcs.QuestNpcBindingsSchema': QuestNpcBindingsSchema,

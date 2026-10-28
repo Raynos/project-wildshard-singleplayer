@@ -8,6 +8,19 @@ import { SceneFloorSchema } from '../src/format/sceneDressing';
 import { HEADLESS_ASSEMBLY_JSON_SCHEMA } from '../src/format/namedJsonContracts';
 import { PracticeSceneSchema, PracticeControllerSchema } from '../src/format/practiceCourseRows';
 import { nativeBodySchema, nativeColliderRecordSchema } from '../src/format/nativePhysics';
+import { ClaimedPickupSchema } from '../src/format/lootEconomy';
+
+test('claimed pickup composition keeps the complete native validator and JSON grammar', () => {
+  const pickup = authorFormatSchema('lootEconomy.ClaimedPickupSchema');
+  expectTypeOf<typeof pickup>().toEqualTypeOf<typeof ClaimedPickupSchema>();
+  expect(pickup).toBe(ClaimedPickupSchema);
+  const current = v.strictObject({ one: pickup }), native = v.strictObject({ one: ClaimedPickupSchema });
+  expect(namedJsonSchema(current)).toEqual(namedJsonSchema(native));
+  for (const bad of [{}, { one: { unique: 'true' } }, { one: {}, extra: {} }]) {
+    expect(v.safeParse(current, bad).success).toBe(false);
+    expect(v.safeParse(native, bad).success).toBe(false);
+  }
+});
 
 test('pure native physics grammar factories retain complete signatures and defining identity', () => {
   const body = authorFormatSchema('nativePhysics.nativeBodySchema'), collider = authorFormatSchema('nativePhysics.nativeColliderRecordSchema');
