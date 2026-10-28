@@ -24,7 +24,7 @@ function fixture(){
   vi.spyOn(geometry,'createModelLibrary').mockReturnValue(legacyDouble<ReturnType<typeof geometry.createModelLibrary>>({preload,geometry:lookup}));
   vi.spyOn(paint,'painterlyMaterial').mockImplementation(()=>new MeshLambertMaterial());
   vi.spyOn(ranged,'viewmodelMaterial').mockImplementation(()=>new MeshPhysicalMaterial());
-  const set=new PolearmSet({file:'weapons/polearm.json',item:'weapon.spear'}),warm=vi.fn(()=>Promise.resolve());
+  const set=new PolearmSet({file:'weapons/polearm.json',item:'weapon.spear'}),warm=vi.fn<HeldPolearmWorld['game']['warmSceneRoots']>(()=>Promise.resolve());
   const product={shardfile:{...emptyShardfile({slug:'held-fixture',name:'Held',author:'Fixture',revision:1,seed:1}),items:parseItems(items)},
     file:vi.fn(()=>Promise.resolve(new TextEncoder().encode(JSON.stringify(spear)))),hasFile:()=>false,url:(name:string)=>name};
   const world:HeldPolearmWorld={game:legacyDouble<HeldPolearmWorld['game']>({levelScope:scope,camera:new PerspectiveCamera(),scene:new Scene(),warmSceneRoots:warm,
@@ -40,7 +40,7 @@ test('explicit spare geometry keeps admitted numeric state and native decision c
     expect(weapon.needsPreparation).toBe(true);expect(f.lookup).not.toHaveBeenCalled();const state=weapon.state;
     weapon.update(.05,1);weapon.update(.05,1.05);expect(f.decision).toHaveBeenCalledOnce();expect(f.decision.mock.calls[0]?.[0]).toBe(.1);
     expect(weapon.state).toBe(state);expect(weapon.state.ammo).toBe(weapon.maxJavelins);expect(()=>weapon.setActive(true)).toThrow('not prepared');
-    await Promise.all([weapon.prepareView(),weapon.prepareView()]);expect(f.preload).toHaveBeenCalledOnce();expect(f.warm).toHaveBeenCalledOnce();expect(weapon.needsPreparation).toBe(false);
+    await Promise.all([weapon.prepareView(),weapon.prepareView()]);expect(f.preload).toHaveBeenCalledOnce();expect(f.warm).toHaveBeenCalledOnce();const call=f.warm.mock.calls[0];if(call===undefined)throw new Error('Missing visual warm');expect(call[0][0]).toBe(weapon.model);expect(call[3]).toEqual([call[0][1]]);expect(call[3]).not.toContain(weapon.model);expect(weapon.needsPreparation).toBe(false);
     expect(weapon.state).toBe(state);weapon.setActive(true);expect(weapon.model.visible).toBe(true);expect(weapon.model.children.length).toBeGreaterThan(0);
     await weapon.prepareView();expect(f.preload).toHaveBeenCalledOnce();
   }finally{f.scope.dispose();f.part.dispose();}
@@ -55,4 +55,14 @@ test('owner retirement during first pool read prevents visual construction and p
   try{await f.set.prepare(f.product,{geometry:'on-select'});const weapon=new f.set.Weapon(f.world,undefined,{owner:f.scope});weapon.setActive(false);
     const pending=weapon.prepareView();f.scope.dispose();finish();await expect(pending).rejects.toThrow('owner left');expect(f.lookup).not.toHaveBeenCalled();expect(f.warm).not.toHaveBeenCalled();expect(weapon.needsPreparation).toBe(true);}
   finally{f.scope.dispose();f.part.dispose();}
+});
+
+
+test('a failed visual warm keeps the old hidden view unready and retries without rebuilding the pool',async()=>{
+  const f=fixture(),failure=new Error('Exact link refusal');let refused=true;
+  f.warm.mockImplementation(()=>refused?Promise.reject(failure):Promise.resolve());
+  try{await f.set.prepare(f.product,{geometry:'on-select'});const weapon=new f.set.Weapon(f.world,undefined,{owner:f.scope});weapon.setActive(false);const state=weapon.state;
+    await expect(weapon.prepareView()).rejects.toBe(failure);expect(weapon.needsPreparation).toBe(true);expect(weapon.model.visible).toBe(false);expect(()=>weapon.setActive(true)).toThrow('not prepared');
+    const lookedUp=f.lookup.mock.calls.length;refused=false;await weapon.prepareView();expect(f.preload).toHaveBeenCalledOnce();expect(f.lookup).toHaveBeenCalledTimes(lookedUp);expect(f.warm).toHaveBeenCalledTimes(2);expect(weapon.state).toBe(state);weapon.setActive(true);expect(weapon.model.visible).toBe(true);
+  }finally{f.scope.dispose();f.part.dispose();}
 });

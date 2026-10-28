@@ -4092,6 +4092,7 @@ the current page and its declared exterior lighting. It borrows the real
 materials, leaves the live scene untouched, and fences work to the resident
 owner. `Game.warmSceneRoots(roots, current)` supplies the real composer target
 on every browser; early boot retains ordinary whole-world preparation.
+Its optional fourth `exteriorRoots` argument limits future-world variants to a subset of the supplied roots; all roots retain current-scene readiness within the same owner and deadline. Camera-owned equipment can omit exterior variants while its world projectiles retain them.
 The grid's optional `prepareFar(view)` port prepares a hidden, already-admitted
 proxy during fetch. Its upload exposes the same mesh and material; cancellation
 or failure disposes the staged view with its existing ring lease.

@@ -200,7 +200,7 @@ export class HeldPolearm<P extends HeldPolearmProfile = HeldPolearmProfile> exte
           this.worldDraw=withOwner(owner,()=>this.build());
           ownSceneTree(this.model,owner,app.assets);ownSceneTree(this.worldDraw,owner,app.assets);ownSceneTree(this.arc,owner,app.assets);
         }
-        await this.game.warmSceneRoots([this.model,this.worldDraw],live);check();
+        await this.game.warmSceneRoots([this.model,this.worldDraw],live,undefined,[this.worldDraw]);check();
         this.visualReady=true;
       }catch(error:unknown){this.viewPending=undefined;throw error;}
     })();
