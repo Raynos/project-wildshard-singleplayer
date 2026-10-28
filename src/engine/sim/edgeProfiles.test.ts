@@ -53,3 +53,18 @@ test('RGB source iterators are still consumed independently before sharing', () 
   expect(() => immutableEdgeProfile(input)).toThrow('Invalid edge colour');
   expect(reads).toBe(2);
 });
+
+test('repeated caller RGB objects still validate independently, even under a frozen row', () => {
+  const input = row(), rgb = [0.2, 0.4, 0.6]; let reads = 0;
+  Object.defineProperty(rgb, '0', { get: () => ++reads > 2 ? 2 : 0.2 });
+  for (let index = 0; index < input.colours.length; index++) input.colours[index] = rgb;
+  Object.freeze(input);
+  expect(() => validateEdgeProfile(input)).toThrow('Invalid edge colour');
+  expect(reads).toBeGreaterThan(2);
+});
+
+test('a later private RGB run cannot reuse an earlier valid leaf admission', () => {
+  const input = row();
+  for (let index = 128; index < input.colours.length; index++) input.colours[index] = [0.2, 0.4, 2];
+  expect(() => immutableEdgeProfile(input)).toThrow('Invalid edge colour');
+});

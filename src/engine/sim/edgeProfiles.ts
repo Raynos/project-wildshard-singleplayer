@@ -21,9 +21,17 @@ function colour(rgb: readonly number[]): EdgeColour {
 /** Validate complete native rows before allocating a platform mesh. */
 export function validateEdgeProfile(profile: StripProfile): void {
   if (admittedProfiles.has(profile)) return;
+  validateProfile(profile, false);
+}
+function validateProfile(profile: StripProfile, privateLeaves: boolean): void {
   resolution(profile.heights.length);
   if (profile.colours.length !== profile.heights.length || profile.roadHeight !== 0 || profile.heights.some((h) => !Number.isFinite(h) || Math.abs(h) > 250)) throw new RangeError('Invalid edge profile');
-  profile.colours.forEach((rgb) => { colour(rgb); });
+  let previous: readonly number[] | undefined;
+  profile.colours.forEach((rgb) => {
+    // Only the constructor's detached, equal private copies share leaves.
+    // Public mutable or caller-frozen rows still validate every occurrence.
+    if (!privateLeaves || rgb !== previous) { colour(rgb); previous = rgb; }
+  });
 }
 /** Copy and admit a complete row, then freeze its numeric leaves. Later seam checks
  * reuse this exact snapshot's proof; mutable and caller-frozen rows are always checked. */
@@ -37,7 +45,7 @@ export function immutableEdgeProfile(profile: StripProfile): StripProfile {
       if (previous !== undefined && copy.length === previous.length && copy.every((value, index) => Object.is(value, previous?.[index]))) return previous;
       previous = copy; return copy;
     }) };
-  validateEdgeProfile(snapshot);
+  validateProfile(snapshot, true);
   let frozen: readonly number[] | undefined;
   for (const rgb of snapshot.colours) if (rgb !== frozen) { Object.freeze(rgb); frozen = rgb; }
   Object.freeze(snapshot.heights); Object.freeze(snapshot.colours); Object.freeze(snapshot);
