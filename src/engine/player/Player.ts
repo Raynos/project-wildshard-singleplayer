@@ -241,6 +241,28 @@ export class Player {
   private readonly swimOut: { water: number | null } = { water: null };
   private swimGround: () => number = () => 0;
   private swimPortsCache: SwimPorts | null = null;
+  /** Player-owned live ground queries; no fixed-step values are captured. */
+  private readonly sampleGround = (): number => {
+    const p = this.position;
+    let g = this.groundHeightAt(p.x, p.z);
+    for (const f of this.walkableSurfaces()) {
+      const y = f(p.x, p.z);
+      if (y !== undefined && y > g && p.y >= y - 0.5) g = y;
+    }
+    // decks, floors, stairs, rocks as colliders (P4): the first surface below the feet + 0.5 m
+    const c = floorBelow(this.physics, p.x, p.z, p.y + 0.5, 80, this.motor.collider);
+    return c !== undefined && c > g ? c : g;
+  };
+  /** the highest platform floor under the feet that they can stand on (at or above it, or ≤ 0.5 m below its top) */
+  private readonly samplePlatform = (): number | undefined => {
+    let best: number | undefined;
+    for (const p of this.walkableSurfaces()) {
+      const y = p(this.position.x, this.position.z);
+      if (y !== undefined && this.position.y >= y - 0.5 && (best === undefined || y > best)) best = y;
+    }
+    return best;
+  };
+
   /** The swim law's ports (player/swim.ts) over this Player's motor, water, platforms and colliders; `ground` is the step's. */
   private swimPorts(ground: () => number): SwimPorts {
     this.swimGround = ground;
@@ -519,26 +541,7 @@ export class Player {
     // ground for the hover spring, the swim float and the water depth: terrain, or a deck / floor / stair platform we
     // are at or above (step up ≤ 0.5 m). Walking collides through the motor; this is the P2 bridge for the platforms
     // (floor functions) that are not Rapier colliders until P4 / P3.
-    const groundAt = () => {
-      const p = this.position;
-      let g = this.groundHeightAt(p.x, p.z);
-      for (const f of this.walkableSurfaces()) {
-        const y = f(p.x, p.z);
-        if (y !== undefined && y > g && p.y >= y - 0.5) g = y;
-      }
-      // decks, floors, stairs, rocks as colliders (P4): the first surface below the feet + 0.5 m
-      const c = floorBelow(this.physics, p.x, p.z, p.y + 0.5, 80, this.motor.collider);
-      return c !== undefined && c > g ? c : g;
-    };
-    /** the highest platform floor under the feet that they can stand on (at or above it, or ≤ 0.5 m below its top) */
-    const platformAt = (): number | undefined => {
-      let best: number | undefined;
-      for (const p of this.walkableSurfaces()) {
-        const y = p(this.position.x, this.position.z);
-        if (y !== undefined && this.position.y >= y - 0.5 && (best === undefined || y > best)) best = y;
-      }
-      return best;
-    };
+    const groundAt = this.sampleGround, platformAt = this.samplePlatform;
     const want = this.want, impulse = this.impulseVelocity;
     if (swim) impulse.set(0, 0, 0);
 
