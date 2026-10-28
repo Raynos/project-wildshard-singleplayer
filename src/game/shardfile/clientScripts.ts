@@ -94,7 +94,7 @@ export function createShardfileClientScripts(source: ClientScriptContent, assets
           position.length = coordinate; row.frozen = observed.frozen;
         }
       }
-      lane.step(tick, frame.observations);
+      lane.stepWithoutResults(tick, frame.observations);
     } finally { depth--; }
   } };
 }

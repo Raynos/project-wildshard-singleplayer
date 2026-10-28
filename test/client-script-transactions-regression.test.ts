@@ -24,8 +24,8 @@ export function on_tick():void{
 }
 `, { maximumPages: 1 });
 });
-function fixture(readCount = 2): ClientScriptLane {
-  return new ClientScriptLane({ divisor: 1, modules: [{ name: 'visual', bytes, seedLo: 3, seedHi: 5 }],
+function fixture(readCount = 2, divisor = 1): ClientScriptLane {
+  return new ClientScriptLane({ divisor, modules: [{ name: 'visual', bytes, seedLo: 3, seedHi: 5 }],
     bindings: [2, 1].map(entity => ({ module: 'visual', entity, name: `visual.${String(entity)}`, readCount, parameters: [],
       pose: true, maxOffset: 2, minScale: 0.5, maxScale: 2, emitters: [] })) });
 }
@@ -101,4 +101,28 @@ test('detached outputs and saved continuation retain exact replay bytes', () => 
     lane.restore(saved); lane.step(1, observations([0.75, 1.5]));
     expect(lane.snapshot() === next).toBe(true);
   } finally { lane.dispose(); }
+});
+
+
+test('frame-only steps retain complete guest state through failure, resume, restore and skipped ticks', () => {
+  const kept = fixture(), dropped = fixture();
+  let saved = '';
+  try {
+    for (let tick = 0; tick < 128; tick++) {
+      const values = observations();
+      if (tick === 19 || tick === 39 || tick === 59) values.set(1, { position: [1, 0, 0], frozen: false, values: [.75, 3] });
+      kept.step(tick, values); dropped.stepWithoutResults(tick, values);
+      expect(dropped.snapshot()).toBe(kept.snapshot()); expect(dropped.frames()).toEqual(kept.frames());
+      if (tick === 10) saved = kept.snapshot();
+      if (tick === 19 || tick === 39) { kept.resume(1); dropped.resume(1); }
+      if (tick === 64) { kept.restore(saved); dropped.restore(saved); }
+    }
+  } finally { kept.dispose(); dropped.dispose(); }
+  expect(() => dropped.stepWithoutResults(129, observations())).toThrow('Disposed client script lane');
+  const slow = fixture(2, 2);
+  try {
+    slow.stepWithoutResults(0, observations()); const skipped = slow.snapshot();
+    slow.stepWithoutResults(1, new Map()); expect(slow.snapshot()).toBe(skipped);
+    expect(() => slow.stepWithoutResults(-1, observations())).toThrow('Invalid client script tick');
+  } finally { slow.dispose(); }
 });

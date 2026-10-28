@@ -3454,6 +3454,11 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 `@wildshard/engine/script/host` owns bounded module instances and complete snapshots;
 `@wildshard/engine/script/effects` publishes validated numeric batches atomically.
 
+`ScriptHost.callWithoutResult` executes the same checked call as `call`, omitting only the unused result envelope.
+`ClientScriptLane.stepWithoutResults` likewise publishes frames and continuation without constructing a call-result
+list. Both paths retain admission, input copying, fuel/quotas, atomic commits, rollback, quarantine and notifications;
+the ordinary result-returning methods retain their result envelopes and existing ownership contracts.
+
 `prepareScriptMemoryLease(modules, scope, yieldMode)` allocates fresh AS memories across task/frame yields before an owned installer consumes them. Callers retain the returned release function through installation and invoke it in finally; asynchronous installers explicitly carry that owner across awaits. Every module is admitted before any allocation, and each request describes a separate default-limit host. Matching descriptors are consumed once by that owner or its child, including its admitted construction binding after an await; explicit foreign or unowned callbacks, lower custom ceilings allocate normally, and restores ignore that owner lease. Seeds, initialization, quota accounting and snapshots remain in `ScriptHost.install`. Owner retirement rejects cancelled frame waits and pending installers. Cancellation, failure and return clear unused references; every prepared allocation remains in the CPU inventory. The caller keeps input/readiness fenced until installation finishes. This schedules allocation work; it is no memory discount or proven frame-rate saving.
 `@wildshard/engine/script/queries` adapts read-only collision/navigation queries with stable numeric handles.
 

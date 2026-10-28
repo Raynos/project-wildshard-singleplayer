@@ -380,9 +380,19 @@ export class ScriptHost {
   resume(name: string, entity: number): void { const state = this.modules.get(name); if (!state || state.disabled || this.active) throw new Error('Disabled or active module'); this.world.freeze(entity, false); }
   /** Execute and validate a full batch, then publish numeric world state and script snapshot together. */
   call(name: string, entity: number, input: readonly number[], events: readonly number[] = NO_NUMBERS): ScriptCall {
+    return this.runCall(name, entity, input, events, true);
+  }
+  /** The identical committed call when its caller does not consume a result
+   * envelope. Validation, quotas, snapshots and failure notifications still run. */
+  callWithoutResult(name: string, entity: number, input: readonly number[], events: readonly number[] = NO_NUMBERS): void {
+    this.runCall(name, entity, input, events, false);
+  }
+  private runCall(name: string, entity: number, input: readonly number[], events: readonly number[], retain: true): ScriptCall;
+  private runCall(name: string, entity: number, input: readonly number[], events: readonly number[], retain: false): void;
+  private runCall(name: string, entity: number, input: readonly number[], events: readonly number[], retain: boolean): ScriptCall | void {
     const state = this.modules.get(name), available = this.world.callable(entity);
-    if (!state || !available || state.disabled) return { ok: false, effects: [], events: [], fuel: 0, reason: 'Unavailable script/entity', disabled: state?.disabled ?? false };
-    if (this.used.fuel >= this.limits.fuelPerTick) return { ok: false, effects: [], events: [], fuel: 0, reason: 'Script tick fuel allowance', disabled: false };
+    if (!state || !available || state.disabled) return retain ? { ok: false, effects: [], events: [], fuel: 0, reason: 'Unavailable script/entity', disabled: state?.disabled ?? false } : undefined;
+    if (this.used.fuel >= this.limits.fuelPerTick) return retain ? { ok: false, effects: [], events: [], fuel: 0, reason: 'Script tick fuel allowance', disabled: false } : undefined;
     if (this.active || this.tick < 0) throw new Error('Reentrant call or missing fixed tick');
     state.remaining = this.limits.fuelPerCall; state.depth = 0; state.entity = entity; state.busy = true; this.active = true;
     const currentRunning = currentInstance(state);
@@ -414,7 +424,8 @@ export class ScriptHost {
       const tx = this.world.prepare(effects, entity, this.limits.spawns - this.used.spawns, eventAllowance);
       const good = snapshot(state, state.spare); tx.commit(); state.spare = state.good; state.good = good;
       this.used.effects += count; this.used.spawns += tx.spawns; this.used.events += tx.events.length; if (tx.events.length > 0) this.pending.push(...tx.events);
-      return { ok: true, effects, events: tx.events, fuel: this.limits.fuelPerCall - state.remaining, reason: undefined, disabled: false };
+      const publishedEvents = tx.events, fuel = this.limits.fuelPerCall - state.remaining;
+      return retain ? { ok: true, effects, events: publishedEvents, fuel, reason: undefined, disabled: false } : undefined;
     } catch (error) {
       const fuel = this.limits.fuelPerCall - state.remaining;
       state.failures++; state.disabled = state.failures >= this.limits.failures;
@@ -424,7 +435,7 @@ export class ScriptHost {
       if (this.options.development) this.options.toast?.(scriptFailure(this.world.entity(entity)?.name ?? String(entity), name, reason, state.disabled));
       // a disabled module never reaches this call, so this is its one crossing
       if (state.disabled) this.options.onDisabled?.({ module: name, entity: this.world.entity(entity)?.name ?? String(entity), reason, failures: state.failures });
-      return { ok: false, effects: [], events: [], fuel, reason, disabled: state.disabled };
+      return retain ? { ok: false, effects: [], events: [], fuel, reason, disabled: state.disabled } : undefined;
     } finally { state.busy = false; this.active = false; }
   }
 }

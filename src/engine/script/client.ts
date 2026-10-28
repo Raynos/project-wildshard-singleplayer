@@ -180,9 +180,19 @@ export class ClientScriptLane {
   }
   /** Fixed presentation ticks are supplied by the page, independently of each authoritative sim's frozen tick. */
   step(tick: number, observations: ReadonlyMap<number, ClientScriptObservation>): readonly ScriptCall[] {
+    return this.advance(tick, observations, true);
+  }
+  /** Publish the same guest step when only frames/continuation are consumed;
+   * no call-result envelopes or result list are constructed. */
+  stepWithoutResults(tick: number, observations: ReadonlyMap<number, ClientScriptObservation>): void {
+    this.advance(tick, observations, false);
+  }
+  private advance(tick: number, observations: ReadonlyMap<number, ClientScriptObservation>, retain: true): readonly ScriptCall[];
+  private advance(tick: number, observations: ReadonlyMap<number, ClientScriptObservation>, retain: false): void;
+  private advance(tick: number, observations: ReadonlyMap<number, ClientScriptObservation>, retain: boolean): readonly ScriptCall[] | void {
     const host = this.host; if (host === undefined) throw new Error('Disposed client script lane');
     if (!Number.isSafeInteger(tick) || tick < 0) throw new Error('Invalid client script tick');
-    if (tick % this.divisor !== 0) return [];
+    if (tick % this.divisor !== 0) return retain ? [] : undefined;
     // Every observation is admitted and copied before any host or visual tick.
     const order = this.world.order;
     for (let at = 0; at < order.length; at++) {
@@ -191,7 +201,7 @@ export class ClientScriptLane {
       observe(observations.get(binding.entity), binding.readCount, slot);
     }
     host.beginTick(tick); this.world.beginTick(tick);
-    const calls: ScriptCall[] = [];
+    const calls: ScriptCall[] | undefined = retain ? [] : undefined;
     for (let at = 0; at < order.length; at++) {
       const binding = order[at]; if (binding === undefined) continue;
       const o = this.slots.get(binding.entity); if (o === undefined) throw new Error('Missing client observation');
@@ -199,7 +209,8 @@ export class ClientScriptLane {
       input[0] = tick; input[1] = this.divisor / 60; input[2] = Number(o.frozen); input[3] = binding.entity;
       input[4] = o.position[0]; input[5] = o.position[1]; input[6] = o.position[2]; input[7] = binding.readCount;
       for (let field = 0; field < o.values.length; field++) input[8 + field] = o.values[field] ?? Number.NaN;
-      calls.push(host.call(binding.module, binding.entity, input));
+      if (calls === undefined) host.callWithoutResult(binding.module, binding.entity, input);
+      else calls.push(host.call(binding.module, binding.entity, input));
     }
     return calls;
   }
