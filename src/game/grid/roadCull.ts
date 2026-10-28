@@ -88,8 +88,8 @@ function* clipCore(triangles: number, indexAt: (i: number) => number, count: num
   /** Split a convex polygon by the line axis = c into its below and above parts (new vertices interpolated). */
   const split = (poly: readonly V[], axis: number, c: number): [V[], V[]] => {
     const lo: V[] = [], hi: V[] = [];
-    poly.forEach((a, i) => {
-      const b = poly[(i + 1) % poly.length]; if (b === undefined) return;
+    for (let i = 0; i < poly.length; i++) {
+      const a = poly[i], b = poly[(i + 1) % poly.length]; if (a === undefined || b === undefined) continue;
       const da = (a.v[px + axis] ?? 0) - c, db = (b.v[px + axis] ?? 0) - c;
       (da < 0 ? lo : hi).push(a);
       if ((da < 0) !== (db < 0)) {
@@ -97,7 +97,7 @@ function* clipCore(triangles: number, indexAt: (i: number) => number, count: num
         for (let k = 0; k < stride; k++) v[k] = (a.v[k] ?? 0) + ((b.v[k] ?? 0) - (a.v[k] ?? 0)) * t;
         v[px + axis] = c; const m = { n: add(v), v }; lo.push(m); hi.push(m);
       }
-    });
+    }
     return [lo, hi];
   };
   for (let t = 0; t < triangles; t++) {
@@ -109,12 +109,18 @@ function* clipCore(triangles: number, indexAt: (i: number) => number, count: num
       && !crossesBin(coordinate(a, 2), coordinate(b, 2), coordinate(third, 2), s, offset)) {
       corners += 3; if (retain) out.push(a, b, third); continue;
     }
-    const tri: V[] = [a, b, third].map((n) => ({ n, v: read(n) }));
+    const tri: V[] = [{ n: a, v: read(a) }, { n: b, v: read(b) }, { n: third, v: read(third) }];
     let polys: V[][] = [tri];
     for (const axis of [0, 2]) {
       const next: V[][] = [];
       for (let poly of polys) {
-        const values = poly.map((p) => p.v[px + axis] ?? 0), lo = Math.min(...values), hi = Math.max(...values);
+        // These private dense polygons need only their extrema. Preserve the
+        // same read/order/arithmetic without a boxed list per split polygon.
+        let lo = Infinity, hi = -Infinity;
+        for (const point of poly) {
+          const value = point.v[px + axis] ?? 0;
+          lo = Math.min(lo, value); hi = Math.max(hi, value);
+        }
         for (let k = Math.ceil(lo / s - offset); (k + offset) * s < hi; k++) {
           const c = (k + offset) * s; if (c <= lo) continue;
           const [below, above] = split(poly, axis, c);
