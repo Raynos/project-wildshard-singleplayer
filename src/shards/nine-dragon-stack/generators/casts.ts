@@ -5,14 +5,17 @@ import castRows from '../data/casts.json' with { type: 'json' };
 import { loadPropGlb, propGlbBox } from './propGlb';
 import { guardMatrix } from './propFrame';
 import { SignRecorder } from './layout';
-import * as v from 'valibot';
+import { recordedSignGroups } from '@wildshard/sdk/bake/signPlacements';
 import { Ctx } from './ctx';
 import { buildEntryDecks } from './entries';
 import { Rng } from '@wildshard/sdk/random';
 import { WORDS } from './words';
 
 const { CAST_CHANNELS } = castRows;
-const CASTS = v.parse(v.array(v.picklist(['walker-dark', 'walker-light', 'sitter-dark', 'sitter-light', 'lion', 'guard'])), castRows.CASTS);
+const CASTS = castRows.CASTS.map((value): Cast => {
+  if (value === 'walker-dark' || value === 'walker-light' || value === 'sitter-dark' || value === 'sitter-light' || value === 'lion' || value === 'guard') return value;
+  throw new Error('Unknown Nine cast');
+});
 
 
 const HUES = { skin: 0xc9a58a, red: 0xa23a28, blue: 0x5d7f9e, green: 0x3e5a4a };
@@ -23,13 +26,11 @@ const CAST_FILES = {
   'sitter-dark': '/assets/nine-dragon/lab/sitter.glb', 'sitter-light': '/assets/nine-dragon/lab/sitter.glb',
 } as const;
 const STONE = [0x2f2f33, 0x45454a, 0x5b5b60, 0x6e6e73, 0x808086, 0x94949a];
-const vector = v.tuple([v.number(), v.number(), v.number()]);
-const slot = v.strictObject({ at: vector, normal: vector, size: v.number(), color: v.number(), blade: v.boolean() });
-const slots: v.StrictObjectSchema<{ readonly early: v.ArraySchema<v.StrictObjectSchema<{ readonly at: v.TupleSchema<[v.NumberSchema<undefined>, v.NumberSchema<undefined>, v.NumberSchema<undefined>], undefined>; readonly normal: v.TupleSchema<[v.NumberSchema<undefined>, v.NumberSchema<undefined>, v.NumberSchema<undefined>], undefined>; readonly size: v.NumberSchema<undefined>; readonly color: v.NumberSchema<undefined>; readonly blade: v.BooleanSchema<undefined>; }, undefined>, undefined>; readonly late: v.ArraySchema<v.StrictObjectSchema<{ readonly at: v.TupleSchema<[v.NumberSchema<undefined>, v.NumberSchema<undefined>, v.NumberSchema<undefined>], undefined>; readonly normal: v.TupleSchema<[v.NumberSchema<undefined>, v.NumberSchema<undefined>, v.NumberSchema<undefined>], undefined>; readonly size: v.NumberSchema<undefined>; readonly color: v.NumberSchema<undefined>; readonly blade: v.BooleanSchema<undefined>; }, undefined>, undefined>; }, undefined> = v.strictObject({ early: v.array(slot), late: v.array(slot) });
+type FixedSlots = ReturnType<typeof recordedSignGroups<readonly ['early', 'late']>>;
 
 /** Read only the recorded slot inputs; no runtime schema or layout recomputation enters the author. */
-export function readFixedSlots(input: unknown): v.InferOutput<typeof slots> {
-  return v.parse(v.object({ rows: v.object({ slots }) }), input).rows.slots;
+export function readFixedSlots(input: unknown): FixedSlots {
+  return recordedSignGroups(input, ['early', 'late'], ['rows', 'slots']);
 }
 
 /** The old prop writer, with its original intake, transform and float32 rounding order. */
@@ -66,7 +67,7 @@ export function packGeometry(name: string, geometry: BufferGeometry): Uint8Array
 }
 
 /** Both reachable deck variants and the single Rng(4242) slot sequence, including lantern and sign replay rows. */
-export function bakeFixedKits(recorded: v.InferOutput<typeof slots>): { packs: Map<PreparedGeometry, Uint8Array>; geometries: Map<PreparedGeometry, BufferGeometry>; signs: SignRecorder['calls']; lanterns: number[][] } {
+export function bakeFixedKits(recorded: FixedSlots): { packs: Map<PreparedGeometry, Uint8Array>; geometries: Map<PreparedGeometry, BufferGeometry>; signs: SignRecorder['calls']; lanterns: number[][] } {
   const packs = new Map<PreparedGeometry, Uint8Array>();
   const geometries = new Map<PreparedGeometry, BufferGeometry>();
   let lanterns: number[][] = [];
@@ -90,7 +91,7 @@ export function bakeFixedKits(recorded: v.InferOutput<typeof slots>): { packs: M
 }
 
 /** Direct metadata handoff; geometry belongs only to this call and is released immediately. */
-export function fixedKitRows(recorded: v.InferOutput<typeof slots>): Pick<ReturnType<typeof bakeFixedKits>, 'signs' | 'lanterns'> {
+export function fixedKitRows(recorded: FixedSlots): Pick<ReturnType<typeof bakeFixedKits>, 'signs' | 'lanterns'> {
   const fixed = bakeFixedKits(recorded);
   for (const geometry of fixed.geometries.values()) geometry.dispose();
   return { signs: fixed.signs, lanterns: fixed.lanterns };

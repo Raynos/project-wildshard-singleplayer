@@ -133,6 +133,7 @@
     "./bake/rig": "./bake/rig.ts",
     "./bake/skinned": "./bake/skinned.ts",
     "./bake/riggedHullRecipes": "./bake/riggedHullRecipes.ts",
+    "./bake/signPlacements": "./bake/signPlacements.ts",
     "./bake/image": "./bake/image.ts",
     "./sceneGraph": "./sceneGraph.ts",
     "./materials": "./materials.ts",
@@ -643,6 +644,10 @@
       "./bake/riggedHullRecipes": {
         "types": "./dist/types/sdk/bake/riggedHullRecipes.d.ts",
         "default": "./dist/bake/riggedHullRecipes.js"
+      },
+      "./bake/signPlacements": {
+        "types": "./dist/types/sdk/bake/signPlacements.d.ts",
+        "default": "./dist/bake/signPlacements.js"
       },
       "./bake/image": {
         "types": "./dist/types/sdk/bake/image.d.ts",
