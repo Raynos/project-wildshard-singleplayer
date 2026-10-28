@@ -5,7 +5,7 @@ import { ResolvedIslandLibrarySchema } from '@wildshard/format/islandLibrary';
 import { CollectionDisplaysSchema } from '@wildshard/format/collectionDisplay';
 import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, SpecimenAssetSchema } from '@wildshard/format/specimenCatalogue';
 import { BinarySourceSchema } from '@wildshard/format/binarySource';
-import { NativeGroundFileSchema } from '@wildshard/format/nativePhysics';
+import { NativeGroundFileSchema, nativeBodySchema, nativeColliderRecordSchema } from '@wildshard/format/nativePhysics';
 import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import { ReturnModulesSchema } from '@wildshard/format/scriptContract';
 import { BowVariantSchema } from '@wildshard/format/bowVariantRows';
@@ -679,6 +679,8 @@ interface AuthorFormatObjects {
   readonly 'contracts.ContractBoardPageSchema': typeof ContractBoardPageSchema;
   readonly 'practiceCourseRows.PracticeSceneSchema': typeof PracticeSceneSchema;
   readonly 'practiceCourseRows.PracticeControllerSchema': typeof PracticeControllerSchema;
+  readonly 'nativePhysics.nativeBodySchema': typeof nativeBodySchema;
+  readonly 'nativePhysics.nativeColliderRecordSchema': typeof nativeColliderRecordSchema;
 }
 const authorFormats: AuthorFormatObjects = {
   'sceneDressing.SceneDressingSchema': SceneDressingSchema,
@@ -706,8 +708,10 @@ const authorFormats: AuthorFormatObjects = {
   'contracts.ContractBoardPageSchema': ContractBoardPageSchema,
   'practiceCourseRows.PracticeSceneSchema': PracticeSceneSchema,
   'practiceCourseRows.PracticeControllerSchema': PracticeControllerSchema,
+  'nativePhysics.nativeBodySchema': nativeBodySchema,
+  'nativePhysics.nativeColliderRecordSchema': nativeColliderRecordSchema,
 };
-/** Select a defining validator or structural document by its finite module/export identity.
+/** Select a defining validator, pure grammar factory or structural document by its finite module/export identity.
  * The original object, exact type, custom checks and metadata identity are retained;
  * no engine/game runtime binding or unregistered dynamic grammar is borrowed. */
 export function authorFormatSchema<Name extends keyof AuthorFormatObjects>(name: Name): AuthorFormatObjects[Name] {

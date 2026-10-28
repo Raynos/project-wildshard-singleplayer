@@ -7,6 +7,15 @@ import { BodySlotsSchema } from '../src/format/bodySlots';
 import { SceneFloorSchema } from '../src/format/sceneDressing';
 import { HEADLESS_ASSEMBLY_JSON_SCHEMA } from '../src/format/namedJsonContracts';
 import { PracticeSceneSchema, PracticeControllerSchema } from '../src/format/practiceCourseRows';
+import { nativeBodySchema, nativeColliderRecordSchema } from '../src/format/nativePhysics';
+
+test('pure native physics grammar factories retain complete signatures and defining identity', () => {
+  const body = authorFormatSchema('nativePhysics.nativeBodySchema'), collider = authorFormatSchema('nativePhysics.nativeColliderRecordSchema');
+  expectTypeOf<typeof body>().toEqualTypeOf<typeof nativeBodySchema>();
+  expectTypeOf<typeof collider>().toEqualTypeOf<typeof nativeColliderRecordSchema>();
+  expect(body).toBe(nativeBodySchema);
+  expect(collider).toBe(nativeColliderRecordSchema);
+});
 
 test('practice validators retain complete native types and defining object identity', () => {
   const scene = authorFormatSchema('practiceCourseRows.PracticeSceneSchema'), controller = authorFormatSchema('practiceCourseRows.PracticeControllerSchema');

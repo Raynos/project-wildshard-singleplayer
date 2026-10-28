@@ -4955,7 +4955,9 @@ pose with the native matrix/quaternion/scale law, returning contact data only.
 `engine/physics/wasmUrl` metadata module, without importing or initializing Rapier.
 `composeNamedJsonSchema` composes named roots, local Valibot leaves, objects and tuples; normal check refusals remain.
 
-`authorFormatSchema("module.ExportName")` selects a finite, exactly typed defining format validator or structural document for checked author compositions. It preserves object identity, object entries, custom checks and named metadata; unknown/prototype names refuse. The migrated wire-root registry is unchanged.
+`authorFormatSchema("module.ExportName")` selects a finite, exactly typed defining format validator, pure grammar factory or structural document for checked author compositions. It preserves object identity, object entries, custom checks and named metadata; unknown/prototype names refuse. The migrated wire-root registry is unchanged.
+The native physics body/collider grammar factories retain exact rig, shape, range and provenance signatures;
+selecting or using them allocates no runtime body, collider, registry or world.
 
 The author CLI `wildshard schema list` lists format schemas and the shardfile declaration. `wildshard schema shardfile /properties` discovers all sections without Valibot internals. `schemaDeclaration` and `schemaAt` are defined in `@wildshard/sdk/formatJsonSchema`; discovery preserves native semantic checks and grants no admission. See [schema discovery](authoring/schema-discovery.md) for pointers, tuple arity, identifier grammars and installed declaration locations.
 
