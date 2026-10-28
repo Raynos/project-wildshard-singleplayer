@@ -1,0 +1,61 @@
+[
+ {
+  "region": "open-plot-1-4",
+  "tier": "phone",
+  "at": [
+   0,
+   0
+  ],
+  "reads": [
+   {
+    "url": "/shardfiles/open-plot-thin-ice/blobs/glb/9da3c41e03f6ba53b59944b31682be0d47b791e2d53309c9453baf664f13a01e.glb",
+    "hash": "9da3c41e03f6ba53b59944b31682be0d47b791e2d53309c9453baf664f13a01e",
+    "bytes": 4028
+   },
+   {
+    "url": "/shardfiles/open-plot-thin-ice/blobs/glb/32512a8340282a0e1462c91119c7000639e486a000d059414db5238eba31d92d.glb",
+    "hash": "32512a8340282a0e1462c91119c7000639e486a000d059414db5238eba31d92d",
+    "bytes": 4036
+   },
+   {
+    "url": "/shardfiles/open-plot-thin-ice/blobs/glb/5493945987014c9ec7e1728ea4b8fd999edea8f5e4fd6f0978e9b8ef518ec901.glb",
+    "hash": "5493945987014c9ec7e1728ea4b8fd999edea8f5e4fd6f0978e9b8ef518ec901",
+    "bytes": 3976
+   },
+   {
+    "url": "/shardfiles/open-plot-thin-ice/blobs/glb/3a443d95b5558de6caf5f706fdb914a960843755f7acbf23c7848828bc330a43.glb",
+    "hash": "3a443d95b5558de6caf5f706fdb914a960843755f7acbf23c7848828bc330a43",
+    "bytes": 3968
+   },
+   {
+    "url": "/shardfiles/open-plot-thin-ice/blobs/glb/cc9ed683d3bf2867ef5a4b7a24a35c544e7f82ad062f4ac8e6cee2928201e7e2.glb",
+    "hash": "cc9ed683d3bf2867ef5a4b7a24a35c544e7f82ad062f4ac8e6cee2928201e7e2",
+    "bytes": 3976
+   },
+   {
+    "url": "/shardfiles/open-plot-thin-ice/blobs/glb/7a2c4180430f0029ee335a78ae4266dfc0adbd3a88977b3dbc8a9232e2a6547a.glb",
+    "hash": "7a2c4180430f0029ee335a78ae4266dfc0adbd3a88977b3dbc8a9232e2a6547a",
+    "bytes": 3968
+   },
+   {
+    "url": "/shardfiles/open-plot-thin-ice/blobs/glb/26682b46b59f9c24ab8f58cd4efcdcbe18f201ac8c3d89d0262fd4fe30d9a00c.glb",
+    "hash": "26682b46b59f9c24ab8f58cd4efcdcbe18f201ac8c3d89d0262fd4fe30d9a00c",
+    "bytes": 3976
+   },
+   {
+    "url": "/shardfiles/open-plot-thin-ice/blobs/glb/f63aa857975b34996f19b92abb379d4181e4f4d70fba05ca10e57251dc72b793.glb",
+    "hash": "f63aa857975b34996f19b92abb379d4181e4f4d70fba05ca10e57251dc72b793",
+    "bytes": 3984
+   }
+  ]
+ },
+ {
+  "region": "open-plot-1-4",
+  "tier": "desktop",
+  "at": [
+   0,
+   0
+  ],
+  "reads": []
+ }
+]

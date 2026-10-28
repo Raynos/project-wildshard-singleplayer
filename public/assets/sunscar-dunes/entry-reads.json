@@ -1,0 +1,317 @@
+[
+ {
+  "region": "sunscar-dunes",
+  "tier": "phone",
+  "at": [
+   0,
+   0
+  ],
+  "reads": [
+   {
+    "url": "/assets/sunscar-dunes/sky/dusk-early.webp?v=d71305a8",
+    "hash": "d71305a86e126d4180eafb1a6d5f9a22e7dd83fe82103b53f66a67271d3f5ea0",
+    "bytes": 84814
+   },
+   {
+    "url": "/assets/sunscar-dunes/sky/dusk-late.webp?v=f5d35500",
+    "hash": "f5d35500ba0def7cd9b5168c9951cc34bc7367cf0fea0355a29fe2bfc262e67a",
+    "bytes": 33376
+   },
+   {
+    "url": "/assets/sunscar-dunes/models/caravan-scout/caravan-scout.glb?v=2045d503",
+    "hash": "2045d503c5fdbfcb1aa9bf25e036b9945099543c192cab7d7a969ce032a349e3",
+    "bytes": 309596
+   },
+   {
+    "url": "/assets/sunscar-dunes/models/wagon-hd2/wagon-hd2.glb?v=cfb31631",
+    "hash": "cfb3163122fb1dcd4d4cc6f804e3b7a3d784e81e1280a27b4efd86cb9e43cc4f",
+    "bytes": 252464
+   },
+   {
+    "url": "/assets/sunscar-dunes/models/crates-hd/crates-hd.glb?v=4fd64689",
+    "hash": "4fd64689f52372fb799a8d6cd854f4e9e090cd1c265cbaeff6e0f971ef65f0cf",
+    "bytes": 86300
+   },
+   {
+    "url": "/assets/sunscar-dunes/models/sacks-hd/sacks-hd.glb?v=3b85f3b6",
+    "hash": "3b85f3b6029b5787c653d8b25f2cce3766a6fa88eb81e67d8936ff74a18e2a92",
+    "bytes": 203668
+   },
+   {
+    "url": "/assets/sunscar-dunes/models/brazier-hd/brazier-hd.glb?v=90d164a1",
+    "hash": "90d164a1cba584d75a955885a67ed68b058f571f4e6e61e1fa3434263a7260c1",
+    "bytes": 218476
+   },
+   {
+    "url": "/assets/sunscar-dunes/models/glove-hd4/glove-hd4.glb?v=3b66b69b",
+    "hash": "3b66b69be2777804a9e18de574f1b163bd5fbee010aae864aacc83925e075eac",
+    "bytes": 202288
+   },
+   {
+    "url": "/assets/sunscar-dunes/models/horse-hd/horse-hd.glb?v=90352ca9",
+    "hash": "90352ca9dbe523f90e61ecb1086bc8843bc65a53879a59b5aaf83a5c2f06342e",
+    "bytes": 166220
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/3988eb3478c078ebfedade1758cee01dd369677763fbe8cf93cd5d65ddab735a.glb",
+    "hash": "3988eb3478c078ebfedade1758cee01dd369677763fbe8cf93cd5d65ddab735a",
+    "bytes": 8124
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/a19aba1b540638622b3763162cd5a3bef554c839006cebb92df09b57858288f5.glb",
+    "hash": "a19aba1b540638622b3763162cd5a3bef554c839006cebb92df09b57858288f5",
+    "bytes": 3336
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/9a0dfb440ed07bf4338467add4ea7c0941b62294c1ae7efd4a9802d776eb1f42.glb",
+    "hash": "9a0dfb440ed07bf4338467add4ea7c0941b62294c1ae7efd4a9802d776eb1f42",
+    "bytes": 72196
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/e9914c2166c6ec003abe417270436df0012c9c1af6b223dc6c6583157b433e8f.glb",
+    "hash": "e9914c2166c6ec003abe417270436df0012c9c1af6b223dc6c6583157b433e8f",
+    "bytes": 5740
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/e21cdbc0c48d79d48670fd5f0d34c6eb9329da64635947c286247e702eb24def.glb",
+    "hash": "e21cdbc0c48d79d48670fd5f0d34c6eb9329da64635947c286247e702eb24def",
+    "bytes": 84196
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/5a7790638935b07e4ef27e09810b71c2c0ce563e078dac79c5750257e75c25a5.glb",
+    "hash": "5a7790638935b07e4ef27e09810b71c2c0ce563e078dac79c5750257e75c25a5",
+    "bytes": 643436
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/dd8580bbb0828b7eef30f9489e013995d8b96edb0c5f4399a5b791b22aeb07fa.glb",
+    "hash": "dd8580bbb0828b7eef30f9489e013995d8b96edb0c5f4399a5b791b22aeb07fa",
+    "bytes": 638824
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/bin/e639b9a3713a917ada2b1e6ab29bd79b9eadc1161b3e5165a03375923b219c96.bin",
+    "hash": "e639b9a3713a917ada2b1e6ab29bd79b9eadc1161b3e5165a03375923b219c96",
+    "bytes": 20679
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/6d086b333d977e96e8721ac62f817aa9c20d4567c7c17b13e8e9e68fa916258f.glb",
+    "hash": "6d086b333d977e96e8721ac62f817aa9c20d4567c7c17b13e8e9e68fa916258f",
+    "bytes": 11552
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/ce5da45133af709d5a329ffe0b4b94239bdda09a5c40c0e5a7f12406cd484545.glb",
+    "hash": "ce5da45133af709d5a329ffe0b4b94239bdda09a5c40c0e5a7f12406cd484545",
+    "bytes": 127120
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/4d937a502808a271475f76f820dcefd074a4baf21a56cd71f2db0b52b23bd372.glb",
+    "hash": "4d937a502808a271475f76f820dcefd074a4baf21a56cd71f2db0b52b23bd372",
+    "bytes": 27540
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/3200bd2f7802608da58aebb9b2f2227231eca460ff540bd318331cfe829b88ea.glb",
+    "hash": "3200bd2f7802608da58aebb9b2f2227231eca460ff540bd318331cfe829b88ea",
+    "bytes": 28508
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/51d36e84d4f99f00400d62093f9b2bd9f66ec2f928a759907f6f51acdad650c8.glb",
+    "hash": "51d36e84d4f99f00400d62093f9b2bd9f66ec2f928a759907f6f51acdad650c8",
+    "bytes": 186244
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/038f9844fe769aaf65e3f55a66162769c479e5fd33270c5987c843458b4ddeba.glb",
+    "hash": "038f9844fe769aaf65e3f55a66162769c479e5fd33270c5987c843458b4ddeba",
+    "bytes": 357220
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/daf253c6818575b665bef51f110b623f8e081bb28d1aa525d176156c31ff3fa0.glb",
+    "hash": "daf253c6818575b665bef51f110b623f8e081bb28d1aa525d176156c31ff3fa0",
+    "bytes": 26592
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/tile/5758725abdd2c4a320e4115155c24f704a073991563052b7999e1e69c44967dc.wtt",
+    "hash": "5758725abdd2c4a320e4115155c24f704a073991563052b7999e1e69c44967dc",
+    "bytes": 4656
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/tile/d0db7f6886162442f57c21591d690462fbf59a8c1af938e95d0c5867ab3a7a36.wtt",
+    "hash": "d0db7f6886162442f57c21591d690462fbf59a8c1af938e95d0c5867ab3a7a36",
+    "bytes": 4656
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/tile/70c9c84af74de5bcee9c3044ca32e820c58cb9f5b6ff2f2b0201b73bb8c1675b.wtt",
+    "hash": "70c9c84af74de5bcee9c3044ca32e820c58cb9f5b6ff2f2b0201b73bb8c1675b",
+    "bytes": 17456
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/tile/5dc42fd78aee20db8852c6677f7d5ab504a27a08ca300d5a96c8054cd2081d4c.wtt",
+    "hash": "5dc42fd78aee20db8852c6677f7d5ab504a27a08ca300d5a96c8054cd2081d4c",
+    "bytes": 17456
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/tile/600416e2fce99d17e30bb88d9ef482df92fe3ba1104eb59ea34ecd7a08b5c052.wtt",
+    "hash": "600416e2fce99d17e30bb88d9ef482df92fe3ba1104eb59ea34ecd7a08b5c052",
+    "bytes": 17456
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/tile/d5b3e6175402cf19c38a1a2abf9a56c9c7bcc5d1d835e4c27c10a92b6811c6d7.wtt",
+    "hash": "d5b3e6175402cf19c38a1a2abf9a56c9c7bcc5d1d835e4c27c10a92b6811c6d7",
+    "bytes": 17456
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/tile/6cdb022ffb552096dcddb0fa4cb2332f1d655e9fc3e328783543111f784df82d.wtt",
+    "hash": "6cdb022ffb552096dcddb0fa4cb2332f1d655e9fc3e328783543111f784df82d",
+    "bytes": 17456
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/tile/ba05b685c729475258d3610c975dea4691fafdb1b70f9aca36cb86479adfbb13.wtt",
+    "hash": "ba05b685c729475258d3610c975dea4691fafdb1b70f9aca36cb86479adfbb13",
+    "bytes": 17456
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/tile/a7a7acac6a4f58060e9b14917d0f0bf1e41d0031822d70e92af1e309ee511f48.wtt",
+    "hash": "a7a7acac6a4f58060e9b14917d0f0bf1e41d0031822d70e92af1e309ee511f48",
+    "bytes": 4656
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/tile/2dff5184d3978ffcd55f070d1e1c91fed7fae2494cc0d2475c7d5cc0d6d27039.wtt",
+    "hash": "2dff5184d3978ffcd55f070d1e1c91fed7fae2494cc0d2475c7d5cc0d6d27039",
+    "bytes": 4656
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/tile/12743fb3aa9b1fd71316ff1c6010b5bc29b0aaf8f68e55cc781dd89f4a743ef2.wtt",
+    "hash": "12743fb3aa9b1fd71316ff1c6010b5bc29b0aaf8f68e55cc781dd89f4a743ef2",
+    "bytes": 17456
+   }
+  ]
+ },
+ {
+  "region": "sunscar-dunes",
+  "tier": "desktop",
+  "at": [
+   0,
+   0
+  ],
+  "reads": [
+   {
+    "url": "/assets/sunscar-dunes/sky/dusk-early.webp?v=d71305a8",
+    "hash": "d71305a86e126d4180eafb1a6d5f9a22e7dd83fe82103b53f66a67271d3f5ea0",
+    "bytes": 84814
+   },
+   {
+    "url": "/assets/sunscar-dunes/sky/dusk-late.webp?v=f5d35500",
+    "hash": "f5d35500ba0def7cd9b5168c9951cc34bc7367cf0fea0355a29fe2bfc262e67a",
+    "bytes": 33376
+   },
+   {
+    "url": "/assets/sunscar-dunes/models/caravan-scout/caravan-scout.glb?v=2045d503",
+    "hash": "2045d503c5fdbfcb1aa9bf25e036b9945099543c192cab7d7a969ce032a349e3",
+    "bytes": 309596
+   },
+   {
+    "url": "/assets/sunscar-dunes/models/wagon-hd2/wagon-hd2.glb?v=cfb31631",
+    "hash": "cfb3163122fb1dcd4d4cc6f804e3b7a3d784e81e1280a27b4efd86cb9e43cc4f",
+    "bytes": 252464
+   },
+   {
+    "url": "/assets/sunscar-dunes/models/crates-hd/crates-hd.glb?v=4fd64689",
+    "hash": "4fd64689f52372fb799a8d6cd854f4e9e090cd1c265cbaeff6e0f971ef65f0cf",
+    "bytes": 86300
+   },
+   {
+    "url": "/assets/sunscar-dunes/models/sacks-hd/sacks-hd.glb?v=3b85f3b6",
+    "hash": "3b85f3b6029b5787c653d8b25f2cce3766a6fa88eb81e67d8936ff74a18e2a92",
+    "bytes": 203668
+   },
+   {
+    "url": "/assets/sunscar-dunes/models/brazier-hd/brazier-hd.glb?v=90d164a1",
+    "hash": "90d164a1cba584d75a955885a67ed68b058f571f4e6e61e1fa3434263a7260c1",
+    "bytes": 218476
+   },
+   {
+    "url": "/assets/sunscar-dunes/models/glove-hd4/glove-hd4.glb?v=3b66b69b",
+    "hash": "3b66b69be2777804a9e18de574f1b163bd5fbee010aae864aacc83925e075eac",
+    "bytes": 202288
+   },
+   {
+    "url": "/assets/sunscar-dunes/models/horse-hd/horse-hd.glb?v=90352ca9",
+    "hash": "90352ca9dbe523f90e61ecb1086bc8843bc65a53879a59b5aaf83a5c2f06342e",
+    "bytes": 166220
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/3988eb3478c078ebfedade1758cee01dd369677763fbe8cf93cd5d65ddab735a.glb",
+    "hash": "3988eb3478c078ebfedade1758cee01dd369677763fbe8cf93cd5d65ddab735a",
+    "bytes": 8124
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/a19aba1b540638622b3763162cd5a3bef554c839006cebb92df09b57858288f5.glb",
+    "hash": "a19aba1b540638622b3763162cd5a3bef554c839006cebb92df09b57858288f5",
+    "bytes": 3336
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/9a0dfb440ed07bf4338467add4ea7c0941b62294c1ae7efd4a9802d776eb1f42.glb",
+    "hash": "9a0dfb440ed07bf4338467add4ea7c0941b62294c1ae7efd4a9802d776eb1f42",
+    "bytes": 72196
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/e9914c2166c6ec003abe417270436df0012c9c1af6b223dc6c6583157b433e8f.glb",
+    "hash": "e9914c2166c6ec003abe417270436df0012c9c1af6b223dc6c6583157b433e8f",
+    "bytes": 5740
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/e21cdbc0c48d79d48670fd5f0d34c6eb9329da64635947c286247e702eb24def.glb",
+    "hash": "e21cdbc0c48d79d48670fd5f0d34c6eb9329da64635947c286247e702eb24def",
+    "bytes": 84196
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/5a7790638935b07e4ef27e09810b71c2c0ce563e078dac79c5750257e75c25a5.glb",
+    "hash": "5a7790638935b07e4ef27e09810b71c2c0ce563e078dac79c5750257e75c25a5",
+    "bytes": 643436
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/dd8580bbb0828b7eef30f9489e013995d8b96edb0c5f4399a5b791b22aeb07fa.glb",
+    "hash": "dd8580bbb0828b7eef30f9489e013995d8b96edb0c5f4399a5b791b22aeb07fa",
+    "bytes": 638824
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/bin/e639b9a3713a917ada2b1e6ab29bd79b9eadc1161b3e5165a03375923b219c96.bin",
+    "hash": "e639b9a3713a917ada2b1e6ab29bd79b9eadc1161b3e5165a03375923b219c96",
+    "bytes": 20679
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/6d086b333d977e96e8721ac62f817aa9c20d4567c7c17b13e8e9e68fa916258f.glb",
+    "hash": "6d086b333d977e96e8721ac62f817aa9c20d4567c7c17b13e8e9e68fa916258f",
+    "bytes": 11552
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/ce5da45133af709d5a329ffe0b4b94239bdda09a5c40c0e5a7f12406cd484545.glb",
+    "hash": "ce5da45133af709d5a329ffe0b4b94239bdda09a5c40c0e5a7f12406cd484545",
+    "bytes": 127120
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/4d937a502808a271475f76f820dcefd074a4baf21a56cd71f2db0b52b23bd372.glb",
+    "hash": "4d937a502808a271475f76f820dcefd074a4baf21a56cd71f2db0b52b23bd372",
+    "bytes": 27540
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/3200bd2f7802608da58aebb9b2f2227231eca460ff540bd318331cfe829b88ea.glb",
+    "hash": "3200bd2f7802608da58aebb9b2f2227231eca460ff540bd318331cfe829b88ea",
+    "bytes": 28508
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/51d36e84d4f99f00400d62093f9b2bd9f66ec2f928a759907f6f51acdad650c8.glb",
+    "hash": "51d36e84d4f99f00400d62093f9b2bd9f66ec2f928a759907f6f51acdad650c8",
+    "bytes": 186244
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/038f9844fe769aaf65e3f55a66162769c479e5fd33270c5987c843458b4ddeba.glb",
+    "hash": "038f9844fe769aaf65e3f55a66162769c479e5fd33270c5987c843458b4ddeba",
+    "bytes": 357220
+   },
+   {
+    "url": "/shardfiles/sunscar-dunes/blobs/glb/daf253c6818575b665bef51f110b623f8e081bb28d1aa525d176156c31ff3fa0.glb",
+    "hash": "daf253c6818575b665bef51f110b623f8e081bb28d1aa525d176156c31ff3fa0",
+    "bytes": 26592
+   }
+  ]
+ }
+]
