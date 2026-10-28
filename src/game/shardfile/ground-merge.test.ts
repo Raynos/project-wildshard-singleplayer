@@ -120,3 +120,26 @@ test('merged bounds are the union of the drawn members bounds', async () => {
   check();
   b.dispose();
 });
+
+test('T10: merged attributes read as three reads them, plain, interleaved, normalized or half float', async () => {
+  const parent = new THREE.Group(), merge = new GroundMerge(parent, new THREE.MeshBasicMaterial(), 'ground.reads'), scope = new Scope('reads');
+  const mesh = tile(-250, -250), g = mesh.geometry, position = g.getAttribute('position');
+  const interleaved = new THREE.InterleavedBuffer(new Float32Array(Array.from({ length: 6 * 5 }, (_, i) => i * 0.37 - 3)), 5);
+  g.setAttribute('position', new THREE.InterleavedBufferAttribute(interleaved, 3, 1));
+  g.setAttribute('normal', new THREE.InterleavedBufferAttribute(interleaved, 2, 0));
+  g.setAttribute('color', new THREE.BufferAttribute(new Uint8Array(Array.from({ length: 18 }, (_, i) => i * 13)), 3, true));
+  g.setAttribute('uv', new THREE.Float16BufferAttribute(new Uint16Array(Array.from({ length: 12 }, (_, i) => THREE.DataUtils.toHalfFloat(i * 0.1 + 0.03))), 2));
+  mesh.position.set(3, 4, 5); mesh.rotation.y = 0.3; mesh.updateMatrix();
+  merge.add(mesh, scope); await settle();
+  const merged = merge.mesh?.geometry; if (merged === undefined) throw new Error('no merged mesh');
+  for (const name of ['splat', 'normal', 'color', 'uv']) {
+    const source = g.getAttribute(name), out = merged.getAttribute(name);
+    for (let i = 0; i < source.count; i++) for (let c = 0; c < source.itemSize; c++) expect(out.getComponent(i, c)).toBe(Math.fround(source.getComponent(i, c)));
+  }
+  const moved = merged.getAttribute('position');
+  for (let i = 0; i < position.count; i++) {
+    const want = new THREE.Vector3().fromBufferAttribute(g.getAttribute('position'), i).applyMatrix4(mesh.matrix);
+    expect([moved.getX(i), moved.getY(i), moved.getZ(i)]).toEqual([Math.fround(want.x), Math.fround(want.y), Math.fround(want.z)]);
+  }
+  scope.dispose();
+});

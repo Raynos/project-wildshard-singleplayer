@@ -19,6 +19,13 @@ import type { Scope } from '@wildshard/engine/app/scope';
 const HALF = 250, COARSE = 125, BLOCK = 250;
 /** an attribute's change count (an interleaved one counts on its buffer) */
 const versionOf = (attribute: BufferAttribute | InterleavedBufferAttribute): number => attribute instanceof InterleavedBufferAttribute ? attribute.data.version : attribute.version;
+/** an attribute's float storage and layout when three's readers would return its stored values unchanged (not normalized,
+ *  Float32 storage), else null (T10: per-component getComponent reads were a third of a Nalati entry's merges at phone 4x) */
+function plainFloats(attribute: BufferAttribute | InterleavedBufferAttribute): { array: Float32Array; stride: number; offset: number } | null {
+  if (attribute.normalized) return null;
+  if (attribute instanceof InterleavedBufferAttribute) return attribute.data.array instanceof Float32Array ? { array: attribute.data.array, stride: attribute.data.stride, offset: attribute.offset } : null;
+  return attribute.array instanceof Float32Array ? { array: attribute.array, stride: attribute.itemSize, offset: 0 } : null;
+}
 interface Cached<T> { readonly key: string; readonly version: number; readonly values: T }
 interface Member {
   readonly mesh: Mesh; readonly corner: { readonly x: number; readonly z: number } | null; hidden: ReadonlySet<number>;
@@ -103,14 +110,21 @@ export class GroundMerge {
         const size = attribute.itemSize, out = new Float32Array(attribute.count * size);
         if (name === 'position') {
           // Vector3.applyMatrix4, inlined
-          const e = toParent.elements;
+          const e = toParent.elements, plain = plainFloats(position);
           for (let i = 0; i < attribute.count; i++) {
-            const x = position.getX(i), y = position.getY(i), z = position.getZ(i), w = 1 / ((e[3] ?? 0) * x + (e[7] ?? 0) * y + (e[11] ?? 0) * z + (e[15] ?? 1));
+            const at = plain === null ? 0 : i * plain.stride + plain.offset;
+            const x = plain === null ? position.getX(i) : plain.array[at] ?? 0, y = plain === null ? position.getY(i) : plain.array[at + 1] ?? 0;
+            const z = plain === null ? position.getZ(i) : plain.array[at + 2] ?? 0, w = 1 / ((e[3] ?? 0) * x + (e[7] ?? 0) * y + (e[11] ?? 0) * z + (e[15] ?? 1));
             out[i * 3] = ((e[0] ?? 1) * x + (e[4] ?? 0) * y + (e[8] ?? 0) * z + (e[12] ?? 0)) * w;
             out[i * 3 + 1] = ((e[1] ?? 0) * x + (e[5] ?? 1) * y + (e[9] ?? 0) * z + (e[13] ?? 0)) * w;
             out[i * 3 + 2] = ((e[2] ?? 0) * x + (e[6] ?? 0) * y + (e[10] ?? 1) * z + (e[14] ?? 0)) * w;
           }
-        } else for (let i = 0; i < attribute.count; i++) for (let c = 0; c < size; c++) out[i * size + c] = attribute.getComponent(i, c);
+        } else {
+          const plain = plainFloats(attribute);
+          if (plain === null) for (let i = 0; i < attribute.count; i++) for (let c = 0; c < size; c++) out[i * size + c] = attribute.getComponent(i, c);
+          else if (plain.stride === size && plain.offset === 0) out.set(plain.array.subarray(0, attribute.count * size));
+          else for (let i = 0; i < attribute.count; i++) for (let c = 0; c < size; c++) out[i * size + c] = plain.array[i * plain.stride + plain.offset + c] ?? 0;
+        }
         member.attributes.set(name, { key, version: versionOf(attribute), values: out });
         return out;
       });
