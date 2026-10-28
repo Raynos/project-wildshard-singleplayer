@@ -5,26 +5,25 @@
 Archived today: loading, iphone-downloads, grid-crossing, shared-waits, open-plots (hologram), mega-build, finish-line,
 NM pilot, remaster-open-plots, grid-ready, build-speed, custom-code-freeze (LD9 / LD10), tile-streaming (9be158bc79).
 
-**LIVE a6701db713** (14:26). **Release late (17:25), two reds block it:** 288396674e (FR2) breaks
-test/vite-boot-modules:169 (world.scenes gained ./tileContent; sp-o5 fixes forward), and 1575ab8de4 (hologram codec fix,
-cyan sheets gone) puts the 13 small open plots ~0.15 MB over phone-wire ceilings (sp-o4 raises them, approved). The release
-is the first SHA with both fixes, full CI and the exact six-leg smoke green (sp-ci-deploy).
+**LIVE a6701db713** (14:26). **Release (17:40):** every push CI since a670 is red or cancelled; no newer green SHA exists
+(1be05217ea's "success" was a dispatch that re-deployed a670). Reds, all fixed: e1c296b9cb / c408 B7 + B12 NR7 pins (sp-o5,
+0681662319); 288396674e vite-boot-modules:169 (sp-o5, b9424194e0); 1575ab8de4 small-plot wire (sp-o4, c60699507e, no raise).
+The release is b9424194e0: CI 40779291111 running since 17:21; then the exact six and an immediate deploy (sp-ci-deploy).
 
 **Jake's QA 10-28 PASSED:** Night Market (G827), loading / M2 (G831), tiles / T10 (G832), DW phone cut B (G833).
-**Done today (Opus):** Far Reach islets (18aaab1583) + FR2 whole-cell ring (288396674e, G857 nothing past the cell), FR1 / FR4,
-pier QF12, Nine title (f2e66fd723), NR2 (3cadfddf16), NR3 sky, NR5 n/r, NR7, NM figures (c408623188), Pine far trees (a3050f9d2c).
-RM8.1e witness: half A parity; half B breaks 13 hologram open plots (cyan sheets; 6e9a4660dd Int16 positions).
+**Marks (boards):** Nine 4/8 done (NR1, NR2, NR5, NR7); NR3 sky done, windows open; NR4, NR6, NR8 (sign, pallor) open.
+Far Reach 3/4 (FR1, FR2, FR4; FR3 open on the dressing-tufts lead). Pine LUT (3a2af030ec) + far trees (a3050f9d2c) done.
 
-**Open Opus queue (G853 order):**
-- sp-o3: NR4 board + NR8 sheet done; Nine B-back gold sign (dim on Chromium) and wall pallor.
-- sp-o4: hologram codec fix 1575ab8de4 (RM8.1e), then the small-plot wire ceilings and its visual preview.
-- sp-o5: boot-modules red, FR3 Sunrest underside + darker keel, then the Nine brown facade windows (programShare lead).
-Driftwood keeps its clouds / planks (G855). B6 accepted miss at 69 (G856, sp-x2 marks). Damage: T6 D202, T7, D199, D201.
+**Opus:** sp-o3 Nine sign + pallor; sp-o4 hologram G858 board, then the Pine pond gap (490716bbbc); sp-o5 stopped at its
+context end (notes 61e78aa305), a fresh lane in its pane takes FR3 dressing + NR3 windows.
+G855 DW clouds / planks stay. B6 miss at 69 (G856). Damage: T6 D202, T7, D199, D201.
 
+**G860 + lint-speed, queued at each lane's boundary:** x1 DL1, x2 DL3 + DL4, x6 DL2 + TP1 / TP3 / TP4, x10 DO1 + LT1, x9 LS1-LS9;
+MT2 for every lane. x10's N4 done (e4887d98fb).
 **Rules (10-28):** G848 no visual work on Codex. G844 / G858 look commits land with a labelled golden-or-before vs after
 from the same camera. G846 detailed loading screen for everyone. G828 no crossing cuts, no one-world plan drafts.
-**Lanes:** 3 Opus (sp-o3 / o4 / o5; G853: 2 from 60 %, 1 from 80 % weekly; now 7 %), 5 Codex (x1 NR4 data, x2 B6 mark,
-x6 / x9 / x10 standby; G819 scans found no unowned non-visual red) + sp-ci-deploy.
+**Lanes:** 3 Opus (o3, o4, fresh o5; G853: 2 from 60 %, 1 from 80 % weekly; now 8 %), 5 Codex on N1-N3, D15 and G860
+(x1 / x2 / x6 / x9 / x10) + sp-ci-deploy.
 **Still open for wildshard-v / Jake:** herd clock, material variants / mesh quantising, D53 CLIs; picks D183 / D185;
 whether the dev standalone Far Reach keeps G99's 5 horizon isles (sp-o5 left them; trimming it fails the build's distinct-blob rule).
 
