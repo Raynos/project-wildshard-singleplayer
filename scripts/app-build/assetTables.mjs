@@ -14,6 +14,13 @@ export function assetTableAsset(source) {
   const sha256 = createHash('sha256').update(source).digest('hex'), fileName = `assets/boot-tables-${sha256.slice(0, 8)}.json`;
   return { source, fileName, address: { url: `/${fileName}`, bytes, sha256 } };
 }
+/** A selected phone loads its geometry and its own late audio metadata together.
+ * Unpacked homes still get an audio bank; unrelated homes remain excluded.
+ * @param {Readonly<Record<string,unknown>>} packs @param {readonly string[]} homes */
+export function selectedPackTables(packs, homes) {
+  return Object.fromEntries(homes.map(slug => [slug, JSON.stringify({ bytes: {}, versions: {}, music: {}, sfx: {},
+    packs: Object.fromEntries(Object.entries(packs).filter(([name]) => name === slug || name.startsWith(`${slug}-audio-`))) })]));
+}
 /** Common URL/tier/audio facts are shared; each selected pack bank has its own bytes. */
 export function assetTableBanks(source) {
   const input = JSON.parse(source);

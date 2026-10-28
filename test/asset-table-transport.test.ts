@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { assetTableAsset, assetTableBanks } from '../scripts/app-build/assetTables.mjs';
+import { assetTableAsset, assetTableBanks, selectedPackTables } from '../scripts/app-build/assetTables.mjs';
 import { prepareAssetTables, prepareAssetPacks, readAssetTables } from '../src/assetTables';
 
 function fixture() {
@@ -61,4 +61,17 @@ test('pack projection keeps shared facts exact and excludes another shard bank',
   expect(JSON.parse(banks.packs['legacy']?.source ?? '')).toEqual(f.data);
   expect(banks.packs['legacy']?.address).not.toEqual(banks.packs['another']?.address);
   expect(banks.all.source).toBe(f.source);
+});
+
+test('selected phone banks retain their own late audio even without a geometry pack', () => {
+  const f = fixture(), geometry = f.data.packs.legacy;
+  const input = { legacy: geometry, 'legacy-audio-piano': geometry, 'legacy-audio-folk': geometry,
+    'unpacked-audio-piano': geometry, foreign: geometry, 'foreign-audio-piano': geometry };
+  const selected = selectedPackTables(input, ['legacy', 'unpacked']);
+  expect(Object.keys(selected)).toEqual(['legacy', 'unpacked']);
+  expect(JSON.parse(selected['legacy'] ?? '')).toEqual({ bytes: {}, versions: {}, music: {}, sfx: {},
+    packs: { legacy: geometry, 'legacy-audio-piano': geometry, 'legacy-audio-folk': geometry } });
+  expect(JSON.parse(selected['unpacked'] ?? '')).toEqual({ bytes: {}, versions: {}, music: {}, sfx: {},
+    packs: { 'unpacked-audio-piano': geometry } });
+  expect(input.foreign).toBe(geometry);
 });

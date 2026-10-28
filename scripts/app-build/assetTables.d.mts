@@ -5,6 +5,8 @@ export interface AssetTableBanks { readonly common: AssetTableAsset; readonly al
 export const ASSET_TABLES: string;
 /** Move the exact generated values across a JSON transport, not into compiled JS. */
 export function assetTableAsset(source: string): AssetTableAsset;
+/** Selected homes include their own late-audio parts, including unpacked homes. */
+export function selectedPackTables(packs: Readonly<Record<string, unknown>>, homes: readonly string[]): Record<string, string>;
 /** Common URL/tier/audio facts are shared; each selected pack bank has its own bytes. */
 export function assetTableBanks(source: string): AssetTableBanks;
 /** Serialize the boot tables into ASSET_TABLES. */
