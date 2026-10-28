@@ -85,3 +85,25 @@ test('the selected channel bank must settle before a non-play look is published'
   const bytes=GRASS_FILES.get(last);if(bytes===undefined)throw new Error('Missing original channel bank');
   finish(bytes);await work;expect(paintedWorldOf(product.slug).grass.input).toEqual(grassRows);
 });
+
+test('a refused selected grass bank drains borrowed readers without publishing a partial look',async()=>{
+  const selected=grassPresentationFiles(grassRows,TIER),first=selected[0],second=selected[1];
+  if(first===undefined||second===undefined)throw new Error('Missing original selected grass files');
+  let release:(bytes:Uint8Array)=>void=()=>{throw new Error('Missing borrowed reader');};
+  const blocked=new Promise<Uint8Array>(resolve=>{release=resolve;}),reads:string[]=[];
+  const product={slug:'refused-overlapping-grass',json:()=>Promise.resolve(rawLook()),file:(name:string):Promise<Uint8Array>=>{
+    reads.push(name);
+    if(name===first)return blocked;
+    if(name===second)return Promise.reject(new Error('Original grass bank refusal'));
+    const bytes=GRASS_FILES.get(name);if(bytes===undefined)throw new Error('Missing original grass file');
+    return Promise.resolve(bytes);
+  }};
+  const work=postGraphLook(product,{file:'look/post.json',field:[]});
+  let settled=false;void work.then(()=>{settled=true;return undefined;},()=>{settled=true;return undefined;});
+  await Promise.resolve();await Promise.resolve();await Promise.resolve();
+  expect(reads).toEqual(selected.slice(0,4));expect(settled).toBe(false);
+  expect(()=>paintedWorldOf(product.slug)).toThrow('No painted world');
+  const bytes=GRASS_FILES.get(first);if(bytes===undefined)throw new Error('Missing original held grass bytes');
+  release(bytes);await expect(work).rejects.toThrow('Original grass bank refusal');
+  expect(reads).toEqual(selected.slice(0,4));expect(()=>paintedWorldOf(product.slug)).toThrow('No painted world');
+});
