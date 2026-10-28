@@ -1,4 +1,4 @@
-import { Euler, Quaternion, type Bone, type SkinnedMesh } from 'three';
+import { Euler, Quaternion, type Bone, type SkinnedMesh, type Vector3 } from 'three';
 import { validateSkinLayers, type SkinPoseLayer } from '@wildshard/format/skinLayers';
 
 interface CompiledTrack { bone: string; property: SkinPoseLayer['tracks'][number]['property']; axis: 'x' | 'y' | 'z'; order: SkinPoseLayer['tracks'][number]['order']; values: Float32Array }
@@ -13,12 +13,17 @@ export function compileSkinPoseLayers(layers: readonly SkinPoseLayer[], joints: 
 }
 
 const a = new Quaternion(), b = new Quaternion(), c = new Quaternion(), d = new Quaternion(), euler = new Euler();
+// Resolve the authored axis once. Keyed numeric stores box the changing value on
+// every pose; fixed property stores retain the existing numeric fields.
+function addX(target: Vector3 | Euler, value: number): void { target.x += value; }
+function addY(target: Vector3 | Euler, value: number): void { target.y += value; }
+function addZ(target: Vector3 | Euler, value: number): void { target.z += value; }
 /** Bind compiled layers to one skeleton; cached base poses prevent AnimationMixer's constant-track optimisation accumulating deltas. */
 export function bindSkinPoseLayers(compiled: CompiledSkinPoseLayers, bones: readonly Bone[]): { restore: () => void; apply: (time: number) => void } {
   const base = bones.map((bone) => ({ p: bone.position.clone(), q: bone.quaternion.clone(), s: bone.scale.clone() }));
   const layers = compiled.layers.map((layer) => ({ ...layer, tracks: layer.tracks.map((t) => {
     const bone = bones.find((candidate) => candidate.name === t.bone); if (bone === undefined) throw new Error('Missing skin layer bone');
-    return { ...t, bone };
+    return { ...t, bone, add: t.axis === 'x' ? addX : t.axis === 'y' ? addY : addZ };
   }) }));
   return {
     restore: () => { for (let i = 0; i < bones.length; i++) { const bone = bones[i], pose = base[i]; if (bone !== undefined && pose !== undefined) { bone.position.copy(pose.p); bone.quaternion.copy(pose.q); bone.scale.copy(pose.s); } } },
@@ -26,12 +31,14 @@ export function bindSkinPoseLayers(compiled: CompiledSkinPoseLayers, bones: read
       if (!Number.isFinite(time) || time < 0) throw new Error('Invalid skin layer clock');
       // index loops, not forEach: a frame's apply makes no closure (D2 idle heap churn)
       for (let i = 0; i < bones.length; i++) { const bone = bones[i], pose = base[i]; if (bone !== undefined && pose !== undefined) { pose.p.copy(bone.position); pose.q.copy(bone.quaternion); pose.s.copy(bone.scale); } }
-      for (const layer of layers) {
+      for (let layerIndex = 0; layerIndex < layers.length; layerIndex++) {
+        const layer = layers[layerIndex]; if (layer === undefined) continue;
         const t = time % layer.period, times = layer.times; let lo = 0, hi = times.length - 1;
         while (hi - lo > 1) { const mid = (lo + hi) >> 1; if ((times[mid] ?? 0) > t) hi = mid; else lo = mid; }
         const blend = (t - (times[lo] ?? 0)) / ((times[hi] ?? layer.period) - (times[lo] ?? 0));
         const phase = (time % layer.phasePeriod) / layer.phasePeriod * layer.phaseSteps, p = Math.floor(phase), fraction = phase - p, stride = layer.phaseSteps + 1;
-        for (const track of layer.tracks) {
+        for (let trackIndex = 0; trackIndex < layer.tracks.length; trackIndex++) {
+          const track = layer.tracks[trackIndex]; if (track === undefined) continue;
           const values = track.values, bone = track.bone;
           if (track.property === 'quaternion') {
             a.fromArray(values, (lo * stride + p) * 4); b.fromArray(values, (hi * stride + p) * 4); a.slerp(b, blend);
@@ -39,8 +46,8 @@ export function bindSkinPoseLayers(compiled: CompiledSkinPoseLayers, bones: read
             bone.quaternion.multiply(a).normalize();
           } else {
             const value = (values[lo] ?? 0) + ((values[hi] ?? 0) - (values[lo] ?? 0)) * blend;
-            if (track.property === 'rotation') { euler.setFromQuaternion(bone.quaternion, track.order); euler[track.axis] += value; bone.quaternion.setFromEuler(euler); }
-            else bone[track.property][track.axis] += value;
+            if (track.property === 'rotation') { euler.setFromQuaternion(bone.quaternion, track.order); track.add(euler, value); bone.quaternion.setFromEuler(euler); }
+            else track.add(bone[track.property], value);
           }
         }
       }
