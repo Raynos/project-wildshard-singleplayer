@@ -17,8 +17,8 @@ import { portalLookRows } from './portalLook';
 // model names only the tiles that hold it, so an Explorer card reads its own and the resident world reads only the boot
 // and layout-set tiles. The world's banyan crown, the Well's mist, the painted sky and the scroll screen are one
 // `dressing` scene step over the same tiles and two owned shapes.
-import * as v from 'valibot';
-import { worldSceneRecipe as parseWorldScene, worldSceneModels as parseWorldSceneModels, worldSceneRows as parseWorldScenes, worldSceneWeldRows as parseWorldSceneWeld } from '@wildshard/sdk/worldScenes';
+import { parseSectionValue } from '@wildshard/sdk/sections';
+import { worldSceneTileGroups, worldSceneRecipe as parseWorldScene, worldSceneModels as parseWorldSceneModels, worldSceneRows as parseWorldScenes, worldSceneWeldRows as parseWorldSceneWeld } from '@wildshard/sdk/worldScenes';
 import { NINE_SHARED } from './sharedRows';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
@@ -59,7 +59,7 @@ function signDraw(id: string, part: string, material: string, renderOrder = 0) {
   return { id, library, model: part, material, castShadow: false, receiveShadow: false, renderOrder };
 }
 // Which admitted tiles hold each whole partition, and whether the page loads them at boot.
-const wholeTiles = v.parse(v.record(v.string(), v.strictObject({ files: v.array(v.string()), resident: v.boolean() })), worldRows.wholeTiles);
+const wholeTiles = worldSceneTileGroups(worldRows.wholeTiles);
 const tiles = new Map(Object.entries(wholeTiles).map(([id, row]) => [id, row.files])), resident = new Set(Object.entries(wholeTiles).flatMap(([id, row]) => row.resident ? [id] : []));
 const sets = new Map(layout.rows.sets.map(row => [`set:${row.name}`, `layout_${row.geo}`]));
 /** the layout-set tiles: the catalogue's to read, never the layout restore's (generators/layoutBlobs.ts) */
@@ -79,7 +79,7 @@ function alias(id: string, key: string, matrix?: readonly number[]): void {
   aliases[library].set(id, { id, part, files, ...(matrix === undefined ? {} : { matrix }) }); libraryOf.set(id, library);
 }
 // The original layout partitions are native resources; the scene owner reads each tile once.
-const layoutRows = v.parse(LayoutRowsSchema, JSON.parse(JSON.stringify(layout.rows), (_key, value: unknown) =>
+const layoutRows = parseSectionValue(LayoutRowsSchema, JSON.parse(JSON.stringify(layout.rows), (_key, value: unknown) =>
   value === '-0' ? -0 : value === 'Infinity' ? Infinity : value === '-Infinity' ? -Infinity : value));
 const layoutIds = [...new Set([...layoutRows.kits.flatMap(row => row.geo === null ? [] : [row.geo]), ...layoutRows.alphaKits.map(row => row.geo), ...layoutRows.shell === null ? [] : [layoutRows.shell]])];
 for (const id of layoutIds) alias(`layout-${id}`, `layout_${id}`);

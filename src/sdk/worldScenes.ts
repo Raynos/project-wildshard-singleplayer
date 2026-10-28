@@ -6,7 +6,7 @@ import { parseWorldScenes, type WorldScenesSection } from '@wildshard/format/wor
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { WorldSceneSurfaceSchema, type WorldSceneSurface } from '@wildshard/format/worldSceneSurface';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
-import { parse } from 'valibot';
+import { parse, record, string, strictObject, array, boolean } from 'valibot';
 import { SceneDrawsSchema, type SceneDrawsRows } from '@wildshard/format/sceneDraws';
 import type { SceneModelSource, SceneBakeSource } from '@wildshard/game/shardfile/sceneSources';
 import { nameBlob, type NamedBlob } from './blobs';
@@ -17,6 +17,13 @@ import { BakedBuildingLookSchema, parseBuildingLifeRows as nativeBuildingLifeRow
 import type { OutputFile } from '@wildshard/format/outputIndex';
 import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import { parseWorldEntry } from '@wildshard/format/worldEntry';
+
+/** A source geometry's ordered tile files and its resident ownership flag. */
+export interface AuthorSceneTileGroup { files: string[]; resident: boolean }
+/** Admit owned source tile groups before constructing model aliases or borrowing geometry. */
+export function worldSceneTileGroups(input: unknown): Record<string, AuthorSceneTileGroup> {
+  return parse(record(string(), strictObject({ files: array(string()), resident: boolean() })), input);
+}
 
 /** Admit ordered entry blocks and their native resource/variant checks before constructing a world. */
 export function worldEntryRows(input: unknown): ReturnType<typeof parseWorldEntry> { return parseWorldEntry(input); }

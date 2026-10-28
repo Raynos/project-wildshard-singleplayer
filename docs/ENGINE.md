@@ -6384,6 +6384,8 @@ grammar; runtime weld admission retains its immutable result.
 a runtime scene host or any file reads.
 
 `sceneDrawRows` admits bounded effect draws. `modelSceneSourceFile` and `bakedSceneSourceFile` publish typed model/rig/held and baked-kind source libraries with their native inventory limits, preserving JSON ordering and numeric spelling. Runtime resource admission remains authoritative.
+`worldSceneTileGroups` admits strict source tile-file groups with their resident
+flags, preserving group/file order and duplicates while owning the output arrays.
 `worldAssemblyRows` admits ordered construction stages, resource variants and their native cross-row rules
 without constructing a scene or lending runtime handles.
 `worldEntryRows` admits ordered entry blocks through the native resource and variant checks.
