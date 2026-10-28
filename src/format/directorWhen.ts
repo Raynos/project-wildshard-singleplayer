@@ -37,26 +37,42 @@ export function compileDirectorWhen(source: string, names: readonly string[]): r
   return instructions;
 }
 
+// Conditions execute synchronously. A getter can re-enter the evaluator, so
+// each active call owns a distinct scratch stack. Retain at most eight bounded
+// boolean rows; larger/deeper public calls keep their original behavior without
+// leaving unbounded storage or observation values in this module.
+const conditionStacks: (boolean[] | undefined)[] = [];
+let conditionDepth = 0;
+
 /** Execute admitted condition data against complete native boolean observations. Missing or nonboolean inputs refuse. */
 export function evaluateDirectorWhen(instructions: readonly DirectorWhenInstruction[], observation: Readonly<Record<string, boolean>>): boolean {
-  const stack: boolean[] = [];
-  for (const instruction of instructions) {
-    if ('input' in instruction) {
-      const value = observation[instruction.input];
-      if (!Object.hasOwn(observation, instruction.input) || typeof value !== 'boolean') throw new Error('Invalid director condition observation');
-      stack.push(value);
-    } else if ('literal' in instruction) stack.push(instruction.literal);
-    else {
-      const right = stack.pop();
-      if (right === undefined) throw new Error('Invalid director condition program');
-      if (instruction.op === 'not') stack.push(!right);
+  const level = conditionDepth++, stack = conditionStacks[level] ?? [];
+  let top = 0;
+  try {
+    for (const instruction of instructions) {
+      if ('input' in instruction) {
+        const value = observation[instruction.input];
+        if (!Object.hasOwn(observation, instruction.input) || typeof value !== 'boolean') throw new Error('Invalid director condition observation');
+        stack[top++] = value;
+      } else if ('literal' in instruction) stack[top++] = instruction.literal;
       else {
-        const left = stack.pop();
-        if (left === undefined) throw new Error('Invalid director condition program');
-        stack.push(instruction.op === 'and' ? left && right : left || right);
+        const right = top === 0 ? undefined : stack[--top];
+        if (right === undefined) throw new Error('Invalid director condition program');
+        if (instruction.op === 'not') stack[top++] = !right;
+        else {
+          const left = top === 0 ? undefined : stack[--top];
+          if (left === undefined) throw new Error('Invalid director condition program');
+          stack[top++] = instruction.op === 'and' ? left && right : left || right;
+        }
       }
     }
+    if (top !== 1 || stack[0] === undefined) throw new Error('Invalid director condition program');
+    return stack[0];
+  } finally {
+    if (level < 8) {
+      if (stack.length <= 128) { stack.fill(false); conditionStacks[level] = stack; }
+      else conditionStacks[level] = undefined;
+    }
+    conditionDepth--;
   }
-  if (stack.length !== 1 || stack[0] === undefined) throw new Error('Invalid director condition program');
-  return stack[0];
 }

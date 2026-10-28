@@ -165,10 +165,11 @@ export class DirectorStageLane {
   private readonly successors: readonly (readonly { target: number; condition: readonly DirectorWhenInstruction[] }[])[];
   private currentTick = -1;
   private currentStage = -1;
+  private inputNames: readonly string[];
   constructor(data: unknown) {
     this.definition = structuredClone(parseDirectorStages(data));
     if (this.definition.script !== null) throw new Error('Scripted stage directors require a typed script installation');
-    const names = Object.keys(this.definition.inputs);
+    const names = Object.keys(this.definition.inputs); this.inputNames = names;
     this.conditions = this.definition.stages.map(stage => compileDirectorWhen(stage.when ?? 'true', names));
     this.successors = this.definition.stages.map((stage, index) => {
       const targets = typeof stage.next === 'string' ? [{ target: stage.next, when: 'true' }] : stage.next;
@@ -185,8 +186,11 @@ export class DirectorStageLane {
   /** Validate a complete native observation before advancing; commands retain author order and cannot mutate installed rows. */
   step(tick: number, observation: Readonly<Record<string, boolean>>): readonly DirectorAction[] {
     if (!Number.isSafeInteger(tick) || tick < 0 || tick <= this.currentTick) throw new Error('Invalid stage director tick');
-    const names = Object.keys(this.definition.inputs);
-    if (Object.keys(observation).length !== names.length || names.some(name => !Object.hasOwn(observation, name) || typeof observation[name] !== 'boolean')) throw new Error('Invalid stage director observation');
+    if (observation === null || observation === undefined) throw new Error('Invalid stage director observation');
+    const names = this.inputNames;
+    let count = 0; for (const name in observation) if (Object.hasOwn(observation, name)) count++;
+    if (count !== names.length) throw new Error('Invalid stage director observation');
+    for (const name of names) if (!Object.hasOwn(observation, name) || typeof observation[name] !== 'boolean') throw new Error('Invalid stage director observation');
     let target = this.currentStage, entered = false;
     if (target < 0) { target = 0; entered = true; }
     else {
@@ -211,7 +215,7 @@ export class DirectorStageLane {
     const contract = restoredStageContract(saved.contract, this.definition);
     if (saved.state.stage >= this.definition.stages.length
       || (saved.state.tick === -1) !== (saved.state.stage === -1)) throw new Error('Incompatible stage director snapshot');
-    this.definition.inputs = contract.inputs;
+    this.definition.inputs = contract.inputs; this.inputNames = Object.keys(contract.inputs);
     this.currentTick = saved.state.tick; this.currentStage = saved.state.stage;
   }
 }
