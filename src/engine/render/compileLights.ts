@@ -30,10 +30,14 @@ export function compileSceneSource(scene: Object3D): Object3D {
 
 export class CompileLights {
   private readonly copies: Copy[] = [];
+  /** One copy per source light (G808: a shared set re-parents into each job's root instead of cloning per job) */
+  private readonly made = new Map<Light, Light>();
 
   copy(source: Light): Light {
+    const made = this.made.get(source);
+    if (made !== undefined) return made;
     const light = source.clone(false);
-    sources.set(light, source);
+    sources.set(light, source); this.made.set(source, light);
     if (shadowLight(source) && shadowLight(light)) this.copies.push({ source, light, borrowed: null });
     return light;
   }
@@ -65,6 +69,7 @@ export class CompileLights {
       light.dispose();
       light.removeFromParent();
     }
-    this.copies.length = 0;
+    for (const light of this.made.values()) light.removeFromParent();
+    this.copies.length = 0; this.made.clear();
   }
 }

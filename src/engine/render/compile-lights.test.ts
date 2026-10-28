@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { DepthTexture, DirectionalLight, Group, Scene, WebGLRenderTarget } from 'three';
-import { CompileLights, compileSceneSource, createCompileScene } from './compileLights';
+import { CompileLights, compileLightSource, compileSceneSource, createCompileScene } from './compileLights';
+import { includeFutureLights, type CompileJob } from './precompile';
 import { realGc } from '@wildshard/engine/test/realGc';
 
 function sceneLoan(): {warm: Scene; source: WeakRef<Scene>} {
@@ -64,4 +65,23 @@ describe('compile-only light storage', () => {
       expect(retired).toHaveBeenCalledOnce(); source.dispose();
     }
   });
+});
+
+// G808: a warm's jobs share one copy of each future light (re-parented into the compiling job's root), not a clone a job
+it('jobs share one copy of each future light, cloned again after the warm disposes it', () => {
+  const page = new Scene(), future = new Group(), sun = new DirectionalLight();
+  future.add(sun);
+  const jobs: CompileJob[] = [0, 1, 2].map(i => ({ label: `job ${String(i)}`, root: new Group(), target: page, rt: null }));
+  includeFutureLights(jobs, page, future);
+  const lights = jobs[0]?.lights;
+  if (lights === undefined) throw new Error('Expected compile lights');
+  expect(jobs.every(job => job.lights === lights)).toBe(true);
+  const first = lightCopy(lights, sun), again = lightCopy(lights, sun);
+  expect(again).toBe(first); expect(compileLightSource(first)).toBe(sun);
+  jobs[0]?.root.add(first); jobs[1]?.root.add(again);
+  expect(first.parent).toBe(jobs[1]?.root);
+  lights.dispose();
+  expect(first.parent).toBeNull();
+  expect(lightCopy(lights, sun)).not.toBe(first);
+  lights.dispose();
 });

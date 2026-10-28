@@ -547,8 +547,11 @@ export function includeFutureLights(jobs: readonly CompileJob[], target: THREE.S
     for (const child of object.children) visit(child);
   };
   visit(future);
+  // G808: the jobs share one copy of each future light, re-parented into each job's root as it compiles (a Pine entry
+  // cloned every future light for each of its ~480 jobs: ~80 ms of light.clone at 4x)
+  const shared = new CompileLights();
   for (const job of jobs) if (job.target === target) {
-    job.lights ??= new CompileLights();
+    job.lights ??= shared;
     job.futureLights = [...job.futureLights ?? [], ...added];
     if (environment !== null) job.environment = environment;
   }
