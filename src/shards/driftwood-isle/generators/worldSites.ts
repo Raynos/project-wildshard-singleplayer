@@ -1,5 +1,4 @@
-import { CHUNK_HALF, ROAD_LENGTH } from '@wildshard/engine/core/config';
-import type { OceanDef } from '@wildshard/game/shard/manifest';
+import entryPiers from '../data/entryPierLayout.json' with { type: 'json' };
 import authoredLayout from '../data/layout.json' with { type: 'json' };
 import { BRIDGE_SPANS } from './bridgeSpans';
 import SHRINE_SITES from '../data/shrineSites.json' with { type: 'json' };
@@ -11,7 +10,7 @@ const LOWERED_SEA = SHORE_LEVEL - WORLD_DROP;
 const { PLATEAU, HEADLAND } = authoredLayout;
 /** Sea surface. The four entry roads are forced to y = 0 by `buildTerrain`, so a level a little above 0 turns them into submerged sandbars under the piers. */
 
-export const OCEAN: OceanDef = {
+export const OCEAN: { level: number; shallowColor: [number, number, number]; deepColor: [number, number, number]; deepDepth: number } = {
 
   level: LOWERED_SEA,
   
@@ -21,14 +20,14 @@ export const OCEAN: OceanDef = {
 };
 
 /** Where the south pier lands (the crescent beach) — the island's origin for the later pieces. */
-export const PIER: { x: number; z: number; length: number; width: number; deckAbove: number; } = { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckAbove: 1.2 };
+export const PIER: { x: number; z: number; length: number; width: number; deckAbove: number; } = entryPiers.pier;
 /** the other three jetties at the N / W / E edge midpoints (the mandated entry roads are their sandbars); the E one runs on into Wreck Cove.
  *  `landing`: the deck runs on to the dry sand and ramps down onto it, like the south pier (agent playtest round 1, #6: the
  *  north jetty ended 1.45 m over the beach, a step the hoverboard could not climb back up) */
 export const JETTIES: readonly { readonly x: number; readonly z: number; readonly rot: number; readonly length: number; readonly landing?: boolean | 'end' }[] = [
-  { x: 0, z: CHUNK_HALF, rot: Math.PI, length: ROAD_LENGTH, landing: true },
-  { x: -CHUNK_HALF, z: 0, rot: Math.PI / 2, length: 95 },
-  { x: CHUNK_HALF, z: 0, rot: -Math.PI / 2, length: 72, landing: 'end' }, 
+  { x: entryPiers.north.x, z: entryPiers.north.z, rot: Math.PI, length: entryPiers.north.length, landing: true },
+  { x: entryPiers.west.x, z: entryPiers.west.z, rot: Math.PI / 2, length: entryPiers.west.length },
+  { x: entryPiers.east.x, z: entryPiers.east.z, rot: -Math.PI / 2, length: entryPiers.east.length, landing: 'end' }, 
 ];
 
 

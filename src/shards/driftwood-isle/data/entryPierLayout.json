@@ -1,0 +1,24 @@
+{
+  "pier": {
+    "x": 0,
+    "z": -250,
+    "length": 60,
+    "width": 4,
+    "deckAbove": 1.2
+  },
+  "north": {
+    "x": 0,
+    "z": 250,
+    "length": 60
+  },
+  "west": {
+    "x": -250,
+    "z": 0,
+    "length": 95
+  },
+  "east": {
+    "x": 250,
+    "z": 0,
+    "length": 72
+  }
+}
