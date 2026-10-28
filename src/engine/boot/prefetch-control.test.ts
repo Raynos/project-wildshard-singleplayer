@@ -36,6 +36,9 @@ test('sample warm-up waits for its actual level control and a retired borrower c
     retired.dispose(); reachControl(level); reachControl(level);
     expect(warm).toHaveBeenCalledOnce(); expect(stale).not.toHaveBeenCalled();
     whenControl(level, retired, stale); expect(stale).not.toHaveBeenCalled();
+    const outside = new Scope('external-sample-borrower');
+    try { level.dispose(); whenControl(level, outside, stale); expect(stale).not.toHaveBeenCalled(); }
+    finally { outside.dispose(); }
   } finally { level.dispose(); }
 });
 

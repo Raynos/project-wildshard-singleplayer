@@ -46,7 +46,7 @@ export function reachControl(level: Scope): void {
 /** I2: run once `level` has reached control, at once when it already has (a cell assembled in play); `owner`'s
  *  retirement cancels it. */
 export function whenControl(level: Scope, owner: Scope, run: () => void): void {
-  if (owner.disposed || owner.disposing) return;
+  if (level.disposed || level.disposing || owner.disposed || owner.disposing) return;
   if (controlled.has(level)) { run(); return; }
   let queued = awaitingControl.get(level);
   if (queued === undefined) { queued = new Set(); awaitingControl.set(level, queued); }
