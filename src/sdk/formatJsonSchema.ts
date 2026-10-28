@@ -677,6 +677,8 @@ interface AuthorFormatObjects {
   readonly 'namedJsonContracts.PosedLibrarySchema': typeof PosedLibrarySchema;
   readonly 'npcs.QuestPageTalksSchema': typeof QuestPageTalksSchema;
   readonly 'contracts.ContractBoardPageSchema': typeof ContractBoardPageSchema;
+  readonly 'practiceCourseRows.PracticeSceneSchema': typeof PracticeSceneSchema;
+  readonly 'practiceCourseRows.PracticeControllerSchema': typeof PracticeControllerSchema;
 }
 const authorFormats: AuthorFormatObjects = {
   'sceneDressing.SceneDressingSchema': SceneDressingSchema,
@@ -702,6 +704,8 @@ const authorFormats: AuthorFormatObjects = {
   'namedJsonContracts.PosedLibrarySchema': PosedLibrarySchema,
   'npcs.QuestPageTalksSchema': QuestPageTalksSchema,
   'contracts.ContractBoardPageSchema': ContractBoardPageSchema,
+  'practiceCourseRows.PracticeSceneSchema': PracticeSceneSchema,
+  'practiceCourseRows.PracticeControllerSchema': PracticeControllerSchema,
 };
 /** Select a defining validator or structural document by its finite module/export identity.
  * The original object, exact type, custom checks and metadata identity are retained;

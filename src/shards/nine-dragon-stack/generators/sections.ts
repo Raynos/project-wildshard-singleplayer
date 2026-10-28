@@ -1,8 +1,11 @@
-import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
-import { PracticeSceneSchema,PracticeControllerSchema } from '@wildshard/format/practiceCourseRows';
+import { authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
 import * as v from 'valibot';
 import type { NineNativeAtlas, NineNativeSignInputs } from './nativeSignMetadata';
 import type { GrappleRows } from '../data/grappleTypes';
+
+const ReturnProgramSchema: ReturnType<typeof authorFormatSchema<'namedJsonContracts.ReturnProgramSchema'>> = authorFormatSchema('namedJsonContracts.ReturnProgramSchema');
+const PracticeSceneSchema: ReturnType<typeof authorFormatSchema<'practiceCourseRows.PracticeSceneSchema'>> = authorFormatSchema('practiceCourseRows.PracticeSceneSchema');
+const PracticeControllerSchema: ReturnType<typeof authorFormatSchema<'practiceCourseRows.PracticeControllerSchema'>> = authorFormatSchema('practiceCourseRows.PracticeControllerSchema');
 
 const BurstFieldSchema: v.StrictObjectSchema<{ readonly name: v.StringSchema<undefined>; readonly shape: v.PicklistSchema<["flake", "streak"], undefined>; readonly count: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.IntegerAction<number, undefined>, v.MinValueAction<number, 1, undefined>, v.MaxValueAction<number, 24, undefined>]>; readonly life: v.SchemaWithPipe<readonly [v.NumberSchema<undefined>, v.MinValueAction<number, 0.001, undefined>, v.MaxValueAction<number, 1, undefined>]>; }, undefined> = v.strictObject({ name: v.string(), shape: v.picklist(['flake', 'streak']), count: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(24)), life: v.pipe(v.number(), v.minValue(0.001), v.maxValue(1)) });
 const BurstFieldsSchema: v.StrictObjectSchema<{ readonly muzzle: typeof BurstFieldSchema; readonly bite: typeof BurstFieldSchema; readonly dock: typeof BurstFieldSchema; readonly sparks: typeof BurstFieldSchema; }, undefined> = v.strictObject({ muzzle: BurstFieldSchema, bite: BurstFieldSchema, dock: BurstFieldSchema, sparks: BurstFieldSchema });

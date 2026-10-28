@@ -6,6 +6,15 @@ import { QuestPageTalksSchema } from '../src/format/npcs';
 import { BodySlotsSchema } from '../src/format/bodySlots';
 import { SceneFloorSchema } from '../src/format/sceneDressing';
 import { HEADLESS_ASSEMBLY_JSON_SCHEMA } from '../src/format/namedJsonContracts';
+import { PracticeSceneSchema, PracticeControllerSchema } from '../src/format/practiceCourseRows';
+
+test('practice validators retain complete native types and defining object identity', () => {
+  const scene = authorFormatSchema('practiceCourseRows.PracticeSceneSchema'), controller = authorFormatSchema('practiceCourseRows.PracticeControllerSchema');
+  expectTypeOf<typeof scene>().toEqualTypeOf<typeof PracticeSceneSchema>();
+  expectTypeOf<typeof controller>().toEqualTypeOf<typeof PracticeControllerSchema>();
+  expect(scene).toBe(PracticeSceneSchema);
+  expect(controller).toBe(PracticeControllerSchema);
+});
 
 test('checked board projections retain exact object types, entries and original validators', () => {
   const board = authorFormatSchema('contracts.ContractBoardPageSchema');
