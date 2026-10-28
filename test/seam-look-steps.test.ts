@@ -96,14 +96,17 @@ test('the final native index preserves feature order, first ownership and ground
   } finally { done.value.geometry.dispose(); }
 });
 
-test('grouped seam parts retain every original split channel and local index', () => {
+test.each([false, true])('grouped seam parts retain every original split channel and local index (sparse %s)', sparse => {
   const a = strip(8, 7, -11), b = strip(19, -31, 23);
+  if (sparse) a.mesh.indices[45] = 4_000_000_000;
   const kinds = ['deck', 'parapet', 'cliff', 'dike', 'guard-rail', 'road-wall'];
   const pieces = [a, b].map((piece, pieceIndex): SeamPiece => ({ mesh: piece.mesh, features: kinds.map((kind, index) => ({ kind,
     firstIndex: index * 30, indexCount: 30, sourceSurface: pieceIndex === 0 ? 'soil' : 'rock' })) }));
   const home = { origin: { x: 5, z: -3 } }, layers: readonly GrainLayer[] = ['gravel', 'stone', 'strata', 'riprap', 'white', 'white'];
+  const vertices = pieces.reduce((sum, piece) => sum + piece.mesh.positions.length / 3, 0);
+  const channels = sparse ? { origin: home.origin, pitch: 562.5, normals: new Float32Array(vertices * 3).fill(0.25), uvs: new Float32Array(vertices * 2).fill(-0), sphere: { centre: [0, 0, 0] as const, radius: 100 } } : undefined;
   const surfaces = () => [0.3, 0.2, 0.7] as const;
-  const referenceSteps = seamLookGeometrySteps(pieces, home, surfaces);
+  const referenceSteps = seamLookGeometrySteps(pieces, home, surfaces, 562.5, channels);
   let reference = referenceSteps.next(); while (!reference.done) reference = referenceSteps.next();
   const geometry = reference.value.geometry, buckets = new Int8Array((geometry.index?.count ?? 0) / 3).fill(-1);
   for (const group of geometry.groups) buckets.fill(group.materialIndex ?? 0, group.start / 3, (group.start + group.count) / 3);
@@ -113,7 +116,7 @@ test('grouped seam parts retain every original split channel and local index', (
     const layered = uniformPart(part, layers[index] ?? 'white', bucket === 'rail');
     return [bucket === 'stone' ? tintedPart(layered, linear(0xc9c4b8)) : bucket === 'dike' ? tintedPart(layered, linear(0xe0dcd2)) : bucket === 'rail' ? tintedPart(layered, new Color(0x38e6ff).multiplyScalar(1.6)) : layered];
   });
-  const steps = seamSolidSteps(pieces, home, surfaces); let actual = steps.next(); while (!actual.done) actual = steps.next();
+  const steps = seamSolidSteps(pieces, home, surfaces, 562.5, channels); let actual = steps.next(); while (!actual.done) actual = steps.next();
   expect(actual.value.state).toEqual(reference.value.state); expect(actual.value.parts).toHaveLength(expected.length);
   for (const [index, part] of expected.entries()) for (const key of ['positions', 'normals', 'colours', 'uvs', 'grain', 'indices'] as const) {
     const value = actual.value.parts[index]?.[key]; if (value === undefined) throw new Error('Missing seam part');
