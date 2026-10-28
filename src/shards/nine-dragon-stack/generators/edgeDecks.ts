@@ -6,7 +6,7 @@
 //
 //   const f = edgeFrame('north', CHUNK_HALF);
 //   const { slab, rails, walls } = deckParts(f, { half: 4, depth: 16, slab: 1.2, railT: 0.6, railH: 1.1, wallT: 0.8, wallH: 6 });
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import type { ColliderDesc } from '@wildshard/sdk/bake/placement';
 
 /** a cell edge, as the shardfile names them (north is +z) */
 export type DeckEdge = 'north' | 'east' | 'south' | 'west';

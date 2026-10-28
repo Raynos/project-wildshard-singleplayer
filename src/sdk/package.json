@@ -15,6 +15,7 @@
     "./bake/typedDataBank": "./bake/typedDataBank.ts",
     "./bake/basisGlb": "./bake/basisGlb.ts",
     "./bake/placement": "./bake/placement.ts",
+    "./bake/contactRows": "./bake/contactRows.ts",
     "./bake/forest": "./bake/forest.ts",
     "./bake/materialGraph": "./bake/materialGraph.ts",
     "./bake/meadow": "./bake/meadow.ts",
@@ -213,6 +214,10 @@
       "./bake/placement": {
         "types": "./dist/types/sdk/bake/placement.d.ts",
         "default": "./dist/bake/placement.js"
+      },
+      "./bake/contactRows": {
+        "types": "./dist/types/sdk/bake/contactRows.d.ts",
+        "default": "./dist/bake/contactRows.js"
       },
       "./bake/forest": {
         "types": "./dist/types/sdk/bake/forest.d.ts",

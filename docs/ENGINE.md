@@ -4925,6 +4925,10 @@ The adapter supplies the existing pattern ports: the ram's live home and shared 
 `bake/placement.figureColliderRows` admits the complete figure row, then compiles its original box/capsule anchor contacts. It constructs no figure, skin, scene or service; missing colliders retain empty contact ownership.
 `rows` admits achievement counters, quest steps/hints/services, page interactions/composition and cover ownership through their defining strict formats. These author data functions install no page, service, geometry or storage owner.
 `bake/placement.AuthorPlacement` retains the complete native author copy pose, including matrix, parameter overrides, variant, tint and weld host; it grants no runtime registration service.
+`bake/contactRows.treadBoxRows` compiles authored stair blocks with the native
+word arithmetic, minimum height, surface and order; it allocates data only.
+Rapier shapes, registration and queries stay in the engine.
+
 `bootInventory.bootRecipeFiles` / `bootRecipeSources` resolve ordered author recipes against a required explicit inventory, GPU aliases and optional page/alias tables. Native transform order, duplicates, recursion/file limits and missing-metadata refusals remain; these functions never borrow the live page's inventory.
 `composeNamedJsonSchema` composes named roots, local Valibot leaves, objects and tuples; normal check refusals remain.
 

@@ -1,7 +1,7 @@
 import grappleProfile from '../data/grappleProfile.json' with { type: 'json' };
 import * as v from 'valibot';
 import type { ContactSurface, ColliderDesc } from '@wildshard/sdk/bake/placement';
-import { treadBoxes } from '@wildshard/engine/physics/pieces';
+import { treadBoxRows as treadBoxes } from '@wildshard/sdk/bake/contactRows';
 import { bakedColliderDesc, bakedColliderSchemas } from './bakedColliders';
 import { deckCapRows } from './portalFloors';
 import portals from '../data/portals.json' with { type: 'json' };
