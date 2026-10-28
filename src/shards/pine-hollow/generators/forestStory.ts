@@ -1,6 +1,5 @@
 
 
-import * as v from 'valibot';
 import water from '../data/waterLook.json' with { type: 'json' };
 import { contractCatalogue } from './contractRows';
 import { WEAPON_FINISHES } from './weaponFinishes';
@@ -15,18 +14,27 @@ import { pineQuestNpcs } from './questNpcs';
 import * as layout from './layout';
 import sky from '../data/sky.json' with { type: 'json' };
 import { BEATS, beatFlags, type Beat } from './questBeats';
-import { contractBoardPageRows as parseContractBoardPage } from '@wildshard/sdk/rows';
+import { contractBoardPageRows as parseContractBoardPage, numberTupleRows } from '@wildshard/sdk/rows';
 import { PINE_PANELS } from './panels';
-import { authorFormatSchema, namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { authorFormatSchema, authorFormatRows, composeNamedJsonSchema, type NamedJsonComposition } from '@wildshard/sdk/formatJsonSchema';
 
 const QuestPageTalksSchema: ReturnType<typeof authorFormatSchema<'npcs.QuestPageTalksSchema'>> = authorFormatSchema('npcs.QuestPageTalksSchema');
 const ContractBoardPageSchema: ReturnType<typeof authorFormatSchema<'contracts.ContractBoardPageSchema'>> = authorFormatSchema('contracts.ContractBoardPageSchema');
-type QuestPageTalksRowsType = v.InferOutput<typeof QuestPageTalksSchema>;
+type QuestPageTalksRowsType = ReturnType<typeof authorFormatRows<'npcs.QuestPageTalksSchema'>>;
 
 // GR8: called, not read from a scheduler job's output
 const roster = pineQuestNpcs();
 
-const triple = (input: unknown): [number, number, number] => v.parse(v.tuple([v.number(), v.number(), v.number()]), input);
+const triple = (input: unknown): [number, number, number] => numberTupleRows(input, 3);
+function forestStoryContract(): Readonly<Record<string, unknown>> {
+  const board = Object.fromEntries<NamedJsonComposition>(Object.entries(ContractBoardPageSchema.entries)
+    .filter(([key]) => !['contracts', 'panel', 'store'].includes(key)));
+  return composeNamedJsonSchema({ kind: 'object', mode: 'strip', entries: {
+    quest: { kind: 'literal', value: policy.quest }, spawns: { kind: 'literal', value: policy.spawns },
+    board: { kind: 'object', mode: 'strict', entries: board },
+    store: ContractBoardPageSchema.entries.store, talks: QuestPageTalksSchema,
+  } });
+}
 /** The forest story rows. */
 export interface ForestStory { talks: QuestPageTalksRowsType; content: string; board: { at: { x: number; z: number; yaw: number; }; finishes: Record<string, string>; ammunition: { loadout: string; kind: string; }; height: number; radius: number; notices: { claimed: string; filled: string; progress: string; }; label: string; filled: string; }; door: { id: string; flag: string; }; signals: { id: string; x: number; z: number; height: number; }[]; cable: { id: string; scene: string; trolley: string; prompt: [number, number, number]; radius: number; label: string; top: [number, number, number]; launch: [number, number, number]; landing: [number, number, number]; arrival: string; audio: string; shot: string; }; mover: { id: string; mesh: string; binding: { systemId: string; bindings: { id: string; target: string; group: string; visibility: string; order: string; }[]; }; rest: string; }; secret: { mid: [number, number, number]; mouths: [number, number, number][]; scene: string; projection: string; x: number; z: number; yaw: number; floorY: number; floor: { x: number; z: number; hw: number; hd: number; y: number; rot: number; }; }; 
 // the views' rows (game/quest/questPageViews): the journal-complete achievement; the dam sluice's flag lowers the pool
@@ -65,7 +73,7 @@ export const forestStory: (sources: PineSources) => ForestStoryRows = perSources
   const boardRows = { ...policy.board, at: board, finishes: finishToasts, ammunition: { loadout: loadout.persistence.state, kind: 'iron' } };
   parseContractBoardPage({ contracts, panel: PINE_PANELS.board, store: policy.store, ...boardRows });
   const FOREST_STORY: ForestStory = {
-    ...policy, talks: v.parse(QuestPageTalksSchema, policy.talks), content: 'custom/questRuntime',
+    ...policy, talks: authorFormatRows('npcs.QuestPageTalksSchema', policy.talks), content: 'custom/questRuntime',
     board: boardRows,
     door: { id: `cabin-${mill.index + 1}-door`, flag: policy.door.flag },
     signals: Object.entries(landmarks.waystoneSites).map(([id, at]) => ({ id, x: at.x, z: at.z, height: 1.2 })),
@@ -82,9 +90,6 @@ export const forestStory: (sources: PineSources) => ForestStoryRows = perSources
       level: { look: water.looks.pool, param: 'level' }, fade: { look: water.looks.trickle, param: 'fade' } },
     map: { pois: layout.PINE_HOLLOW_POIS, zones: layout.PINE_HOLLOW_ZONES.filter(zone => !placeNames.has(zone.label)) }, jumps,
   };
-  const FOREST_STORY_BLOB: NamedBlobType = nameBlob('quests/forest-story.json', 'json', new TextEncoder().encode(JSON.stringify(FOREST_STORY)), { jsonSchema: namedJsonSchema(v.object({
-    quest: v.literal(policy.quest), spawns: v.literal(policy.spawns),
-    board: v.omit(ContractBoardPageSchema, ['contracts', 'panel', 'store']), store: ContractBoardPageSchema.entries.store, talks: QuestPageTalksSchema,
-  })) });
+  const FOREST_STORY_BLOB: NamedBlobType = nameBlob('quests/forest-story.json', 'json', new TextEncoder().encode(JSON.stringify(FOREST_STORY)), { jsonSchema: forestStoryContract() });
   return { FOREST_STORY, FOREST_STORY_BLOB };
 });

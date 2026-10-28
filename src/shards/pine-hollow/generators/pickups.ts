@@ -1,18 +1,13 @@
 
-import * as v from 'valibot';
-import { authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
+import { authorCatalogueRows } from '@wildshard/sdk/formatJsonSchema';
 import rows from '../data/skinPickups.json' with { type: 'json' };
 import { WEAPON_FINISHES } from './weaponFinishes';
 
-const ClaimedPickupSchema: ReturnType<typeof authorFormatSchema<'lootEconomy.ClaimedPickupSchema'>> = authorFormatSchema('lootEconomy.ClaimedPickupSchema');
-type ClaimedPickupRowsType = v.InferOutput<typeof ClaimedPickupSchema>;
-
-const catalogue: v.StrictObjectSchema<{ readonly 'ghost-stag': v.GenericSchema<ClaimedPickupRowsType, ClaimedPickupRowsType>; readonly 'hollow-ash': v.GenericSchema<ClaimedPickupRowsType, ClaimedPickupRowsType>; readonly ironhide: v.GenericSchema<ClaimedPickupRowsType, ClaimedPickupRowsType>; readonly blackpaw: v.GenericSchema<ClaimedPickupRowsType, ClaimedPickupRowsType>; readonly imperial: v.GenericSchema<ClaimedPickupRowsType, ClaimedPickupRowsType>; readonly warden: v.GenericSchema<ClaimedPickupRowsType, ClaimedPickupRowsType>; readonly 'scarback-furnace': v.GenericSchema<ClaimedPickupRowsType, ClaimedPickupRowsType>; }, undefined> = v.strictObject({ 'ghost-stag': ClaimedPickupSchema, 'hollow-ash': ClaimedPickupSchema, ironhide: ClaimedPickupSchema,
-  blackpaw: ClaimedPickupSchema, imperial: ClaimedPickupSchema, warden: ClaimedPickupSchema, 'scarback-furnace': ClaimedPickupSchema });
+const PICKUP_KEYS = ['ghost-stag', 'hollow-ash', 'ironhide', 'blackpaw', 'imperial', 'warden', 'scarback-furnace'] as const;
 /** The same seven authored skins, with their existing death selector compiled into the portable item catalogue. */
-export function pinePickups(input: unknown = rows): v.InferOutput<typeof catalogue> {
-  const pickups = v.parse(catalogue, input);
-  return v.parse(catalogue, Object.fromEntries(Object.entries(pickups).map(([id, row]) => {
+export function pinePickups(input: unknown = rows): ReturnType<typeof authorCatalogueRows<'lootEconomy.ClaimedPickupSchema', typeof PICKUP_KEYS>> {
+  const pickups = authorCatalogueRows('lootEconomy.ClaimedPickupSchema', PICKUP_KEYS, input);
+  return authorCatalogueRows('lootEconomy.ClaimedPickupSchema', PICKUP_KEYS, Object.fromEntries(Object.entries(pickups).map(([id, row]) => {
     const skin = WEAPON_FINISHES[id as keyof typeof WEAPON_FINISHES];
     return [id, { ...row, ...('dropsFrom' in skin ? { death: { ...skin.dropsFrom, floor: 'max' } } : {}) }];
   })));

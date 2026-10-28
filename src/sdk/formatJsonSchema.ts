@@ -57,7 +57,7 @@ import { BossProfileSchema, ArenaBossProfileSchema, RoamingBossProfileSchema, Sp
 import { NpcRowSchema, NpcMotionSchema, NpcDialogueRowSchema, QuestNpcBindingSchema, QuestNpcBindingsSchema, QuestPageTalksSchema } from '@wildshard/format/npcs';
 import { WeaponProfileSchema, MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema, LashWeaponProfileSchema, ConeWeaponProfileSchema, HeldBowBaseSchema, HeldBowRowsSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
 import { toJsonSchema, type JsonSchema } from '@valibot/to-json-schema';
-import { finite, strictObject, object, looseObject, tuple, array, parse, type GenericSchema, type InferOutput } from 'valibot';
+import { finite, strictObject, object, looseObject, tuple, array, literal as literalSchema, parse, type GenericSchema, type InferOutput } from 'valibot';
 import { PopulationKeeperRowsSchema } from '@wildshard/format/populationKeeper';
 import { EdgeProfileSchema, EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { PlumbingSchema } from '@wildshard/format/plumbing';
@@ -637,6 +637,7 @@ export function schemaAt(document: object, pointer = ''): unknown {
 
 /** Declarative author composition; named strings resolve only defining format roots. */
 export type NamedJsonComposition = string | GenericSchema
+  | { readonly kind: 'literal'; readonly value: string | number | boolean }
   | { readonly kind: 'object'; readonly entries: Readonly<Record<string, NamedJsonComposition>>; readonly mode?: 'strict' | 'strip' | 'loose' }
   | { readonly kind: 'tuple'; readonly items: readonly NamedJsonComposition[] };
 
@@ -651,6 +652,10 @@ export function composeNamedJsonSchema(composition: NamedJsonComposition): Reado
       return root;
     }
     if (node.kind === 'schema') return node;
+    if (node.kind === 'literal') {
+      if (typeof node.value === 'number' && !Number.isFinite(node.value)) throw new Error('Named JSON literal must be finite');
+      return literalSchema(node.value);
+    }
     if (node.kind === 'tuple') return tuple(node.items.map(resolve));
     const entries = Object.fromEntries(Object.entries(node.entries).map(([name, item]) => [name, resolve(item)]));
     return node.mode === 'strip' ? object(entries) : node.mode === 'loose' ? looseObject(entries) : strictObject(entries);
@@ -780,6 +785,19 @@ export function authorFormatRows<Name extends AuthorSchemaName>(name: Name, rows
   const schema = authorFormatSchema(name);
   if (schema.kind !== 'schema') throw new Error('Author admission requires a validator');
   return parse(schema, rowsValue);
+}
+
+/** Admit every explicitly named catalogue member through its defining format.
+ * Key order and native member defaults/checks remain; missing or extra members refuse. */
+export function authorCatalogueRows<Name extends AuthorSchemaName, const Keys extends readonly string[]>(name: Name, keys: Keys,
+  rowsValue: unknown): Record<Keys[number], InferOutput<AuthorFormatObjects[Name]>>;
+export function authorCatalogueRows(name: AuthorSchemaName, keys: readonly string[], rowsValue: unknown): Record<string, unknown> {
+  if (keys.length > 1024 || new Set(keys).size !== keys.length
+    || keys.some(key => typeof key !== 'string' || key === '' || ['__proto__', 'prototype', 'constructor'].includes(key))) throw new Error('Invalid author catalogue keys');
+  const schema = authorFormatSchema(name);
+  if (schema.kind !== 'schema') throw new Error('Author catalogue requires a validator');
+  const entries = Object.fromEntries<GenericSchema>(keys.map(key => [key, schema]));
+  return parse(strictObject(entries), rowsValue);
 }
 
 /** Admit authored native collider arrays with the defining shape/provenance

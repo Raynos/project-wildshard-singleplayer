@@ -4994,7 +4994,11 @@ the separate `admitContactRows` operation. No physics owner is constructed.
 `bootInventory.bootRecipeFiles` / `bootRecipeSources` resolve ordered author recipes against a required explicit inventory, GPU aliases and optional page/alias tables. Native transform order, duplicates, recursion/file limits and missing-metadata refusals remain; these functions never borrow the live page's inventory.
 `sharedBootPhysics` returns a fresh native-order physics input row. Its identity comes from the defining
 `engine/physics/wasmUrl` metadata module, without importing or initializing Rapier.
-`composeNamedJsonSchema` composes named roots, local Valibot leaves, objects and tuples; normal check refusals remain.
+`composeNamedJsonSchema` composes named roots, local Valibot leaves, finite literals, objects and tuples; normal check refusals remain.
+`authorCatalogueRows(name,keys,input)` admits a bounded, exact-key author catalogue
+through one finite defining format, preserving native member types, defaults,
+checks and order. Missing, extra, duplicate or unsafe keys refuse; no runtime
+service or ad-hoc validator is installed.
 
 `authorFormatSchema("module.ExportName")` selects a finite, exactly typed defining format validator, pure grammar factory or structural document for checked author compositions. It preserves object identity, object entries, custom checks and named metadata; unknown/prototype names refuse. The migrated wire-root registry is unchanged.
 `authorFormatRows("module.Schema", value)` admits data through only the finite
