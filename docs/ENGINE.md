@@ -5014,6 +5014,11 @@ native JSON actor projection. ABI2, declared signal/field/channel names and
 operation references are checked by the defining parser before publication;
 no compiler, live actor or continuation is created. The finite author format
 selectors also retain the exact mounted-seat and client-riding validators.
+The species module prepares speciesFieldReader from finite defining native
+field names, preserving strict selected-field grammar, complete inferred
+outputs, defaults and issue order. The interactions module exposes
+puzzleBarrelBody as the exact native physical descriptor. Neither metadata
+port constructs a species, body, watch, query or live interaction owner.
 The bake terrain module exposes createTerrainField for the complete native
 author field and terrainFieldPolicy for its mandatory cell/entry-road
 dimensions. The bake forest module exposes forestDefaultTreeSpecs with the

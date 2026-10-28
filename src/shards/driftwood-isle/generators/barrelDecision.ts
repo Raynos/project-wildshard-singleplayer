@@ -1,4 +1,4 @@
-import { BARREL_BODY, BARREL_HALF } from '@wildshard/engine/world/interact/barrel';
+import { puzzleBarrelBody } from '@wildshard/sdk/interactions';
 import { NATIVE_BARRELS, NATIVE_FLOORS, NATIVE_PLATES, NATIVE_WATER } from './nativeQuestProps';
 
 /**
@@ -6,6 +6,7 @@ import { NATIVE_BARRELS, NATIVE_FLOORS, NATIVE_PLATES, NATIVE_WATER } from './na
  * from the same native prop rows the kit law read: its home, leash, the tide plates, the sea and the captured cave floors.
  */
 const zero = '0'.repeat(64);
+const BARREL_BODY = puzzleBarrelBody(), BARREL_HALF = BARREL_BODY.shape.cylinder.halfHeight;
 const [barrel] = NATIVE_BARRELS, [plateA, plateB] = NATIVE_PLATES;
 if (barrel === undefined || plateA === undefined || plateB === undefined || NATIVE_BARRELS.length !== 1 || NATIVE_PLATES.length !== 2
   || plateA.when !== undefined || plateB.when !== undefined) throw new Error('The barrel watch expects one barrel and two unconditional tide plates');

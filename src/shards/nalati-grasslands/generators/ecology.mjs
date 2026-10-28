@@ -5,9 +5,7 @@ import author from '../data/ecology.json' with { type: 'json' };
 import * as world from './layout.ts';
 import * as places from './poiLayout.ts';
 import { flock } from '@wildshard/sdk/crowds';
-import { species } from '@wildshard/sdk/species';
-import { SpeciesSchema } from '@wildshard/format/speciesPrograms';
-import * as v from 'valibot';
+import { species, speciesFieldReader } from '@wildshard/sdk/species';
 
 /** Resolve symbolic placement once; no native clock, id allocation or RNG runs here. */
 export function ecologyRows() {
@@ -27,8 +25,8 @@ export function ecologyRows() {
   const gameplay = { ...author.gameplay, horse: { ...author.gameplay.horse, walkSpeed: author.modes.ride[0].gaits.walk } };
   // Validate the existing full native species admission without material/view fields.
   for (const row of Object.values(author.species)) species(row);
-  const fields = v.pick(SpeciesSchema, ['aggressive', 'walkSpeed', 'chargeSpeed', 'chargeDamage', 'sounds', 'tuning', 'tick', 'trampleRadius']);
-  for (const row of Object.values(gameplay)) v.parse(fields, row);
+  const fields = speciesFieldReader(['aggressive', 'walkSpeed', 'chargeSpeed', 'chargeDamage', 'sounds', 'tuning', 'tick', 'trampleRadius']);
+  for (const row of Object.values(gameplay)) fields(row);
   const elites = Object.fromEntries(Object.entries(author.elites).map(([id, row]) => [id, { ...row, lair: { x: at(row.lair.at).x, z: at(row.lair.at).z, r: row.lair.r } }]));
   const keeperElites = [
     { id: 'aqbars', kind: 'leopard', pattern: 'pouncer', spec: aqbars.spec, yaw: 0, offset: [0, 0], memory: { low: .3 }, tell: [2.4, .9, .35], messages: { opened: aqbars.opened } },

@@ -1,6 +1,11 @@
 import * as v from 'valibot';
 import type { InteractTable, InteractPlacement } from '@wildshard/engine/world/interact/types';
 import { InteractionRowsSchema as schema, parseInteractionRows as parseRows, type InteractionRowsData as Data } from '@wildshard/format/questInteractions';
+import { BARREL_BODY } from '@wildshard/engine/world/interact/barrel';
+
+/** The defining native puzzle barrel's complete physical declaration, without
+ * constructing a body, watch, query or live interaction owner. */
+export function puzzleBarrelBody(): typeof BARREL_BODY { return BARREL_BODY; }
 
 /** Declared interaction rows: transient marks, prompt / crack rows at named spots with ordered needs and their sets (SF72). */
 export const InteractionRowsSchema: v.SchemaWithPipe<readonly [typeof schema]> = v.pipe(schema);
