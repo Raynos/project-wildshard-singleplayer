@@ -145,6 +145,8 @@ export class HUD {
   /** touch layout E (E42): the vitals + bolts strips rendered into TouchControls' top-left status column (`.ws-touch-status`, under PAUSE) */
   private bar?: { vitals: HTMLElement; hval: HTMLElement; hbar: HTMLElement; bolts: HTMLButtonElement; glyph: HTMLElement; bcount: HTMLElement; segs: HTMLElement[]; segBox: HTMLElement; label: HTMLElement; weapon: HTMLElement; max: HTMLElement; reserve: HTMLElement };
   private lastMark = { house: Number.NaN, paw: Number.NaN, range: '' };
+  /** The displayed distance, so an unchanged frame does not rebuild its text. */
+  private cabinMetres: number | null | undefined;
   private ppd = 1.2; // compass px per degree — measured from the band (`--ppd`), see build()
   /** the band's width, measured when it resizes (build()'s fit): placeMark ran every frame and read clientWidth after the
    *  frame's HUD writes — a forced layout per frame (E142 aggro-perf) */
@@ -475,21 +477,25 @@ export class HUD {
   /** compass markers: the nearest cabin (house + "CABIN · 180 m") and the nearest animal (paw), each at its bearing on the band */
   private updateMarkers(s: HUDState, heading: number): void {
     const { x, z } = s.pos;
-    let cabin: { d: number; b: number } | null = null;
+    let hasCabin = false, cabinDistance = 0, cabinBearing = 0;
     for (const c of CABIN_SITES) {
       const d = Math.hypot(c.x - x, c.z - z);
-      if (!cabin || d < cabin.d) cabin = { d, b: bearingTo(x, z, c.x, c.z) };
+      if (!hasCabin || d < cabinDistance) { hasCabin = true; cabinDistance = d; cabinBearing = bearingTo(x, z, c.x, c.z); }
     }
-    let paw: { d: number; b: number } | null = null;
-    if (s.nearest) { if (s.nearest.distance <= PAW_RANGE) paw = { d: s.nearest.distance, b: s.nearest.bearing }; }
+    let hasPaw = false, pawDistance = 0, pawBearing = 0;
+    if (s.nearest) { if (s.nearest.distance <= PAW_RANGE) { hasPaw = true; pawDistance = s.nearest.distance; pawBearing = s.nearest.bearing; } }
     else for (const a of this.animals) {
       const d = Math.hypot(a.x - x, a.z - z);
-      if (d <= PAW_RANGE && (!paw || d < paw.d)) paw = { d, b: bearingTo(x, z, a.x, a.z) };
+      if (d <= PAW_RANGE && (!hasPaw || d < pawDistance)) { hasPaw = true; pawDistance = d; pawBearing = bearingTo(x, z, a.x, a.z); }
     }
-    this.placeMark(this.markHouse, 'house', cabin ? cabin.b - heading : Number.NaN);
-    this.placeMark(this.markPaw, 'paw', paw ? paw.b - heading : Number.NaN);
-    const range = cabin ? `Cabin · ${Math.round(cabin.d)} m` : '';
-    if (range !== this.lastMark.range) { this.lastMark.range = range; this.range.textContent = range; this.range.classList.toggle('show', range !== ''); }
+    this.placeMark(this.markHouse, 'house', hasCabin ? cabinBearing - heading : Number.NaN);
+    this.placeMark(this.markPaw, 'paw', hasPaw ? pawBearing - heading : Number.NaN);
+    const metres = hasCabin ? Math.round(cabinDistance) : null;
+    if (!Object.is(metres, this.cabinMetres)) {
+      this.cabinMetres = metres;
+      const range = metres === null ? '' : `Cabin · ${metres} m`;
+      if (range !== this.lastMark.range) { this.lastMark.range = range; this.range.textContent = range; this.range.classList.toggle('show', range !== ''); }
+    }
   }
 
   private placeMark(m: HTMLElement, key: 'house' | 'paw', rel: number): void {
