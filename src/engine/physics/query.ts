@@ -48,7 +48,7 @@ export function floorBelow(physics: Physics, x: number, z: number, fromY: number
   const ray = rayOf(physics);
   ray.origin.x = x; ray.origin.y = fromY; ray.origin.z = z;
   ray.dir.x = 0; ray.dir.y = -1; ray.dir.z = 0;
-  const hit = physics.world.castRay(ray, maxDrop, true, physics.R.QueryFilterFlags.EXCLUDE_SENSORS, queryGroups(WORLD), exclude);
+  const hit = physics.castRay(ray, maxDrop, true, physics.R.QueryFilterFlags.EXCLUDE_SENSORS, queryGroups(WORLD), exclude);
   return hit ? fromY - hit.timeOfImpact : undefined;
 }
 
@@ -60,7 +60,7 @@ export function castRay(physics: Physics, origin: Vec3, dir: Vec3, maxDist: numb
   const ray = rayOf(physics);
   ray.origin.x = origin.x; ray.origin.y = origin.y; ray.origin.z = origin.z;
   ray.dir.x = dir.x; ray.dir.y = dir.y; ray.dir.z = dir.z;
-  const hit = physics.world.castRayAndGetNormal(ray, maxDist, true, physics.R.QueryFilterFlags.EXCLUDE_SENSORS, queryGroups(sees), exclude);
+  const hit = physics.castRayAndGetNormal(ray, maxDist, true, physics.R.QueryFilterFlags.EXCLUDE_SENSORS, queryGroups(sees), exclude);
   if (!hit) return null;
   const t = hit.timeOfImpact, tag = tagOf(hit.collider);
   return {

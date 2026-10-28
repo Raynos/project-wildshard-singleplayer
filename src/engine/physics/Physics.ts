@@ -5,9 +5,11 @@
  * loop's unscaled dt, so visual hit-stop leaves gameplay time running and a skipped frame (menu, rotate gate) steps
  * nothing. `step()` is registered in the `step` slot; colliders that move are placed in `pre`, and characters move
  * against the stepped world in `post`. Rapier 0.21's World owns its empty SoftBodySet and supplies it to the
- * changed low-level step/remove/debug APIs; gameplay uses only these World wrappers.
+ * changed low-level step/remove/debug APIs. Physics owns reusable native query inputs;
+ * callers receive the same detached Rapier results.
  */
-import type { Collider, RigidBody, World } from '@dimforge/rapier3d-simd';
+import { RawVector } from '@dimforge/rapier3d-simd/raw.js';
+import type { Collider, RigidBody, World, Ray, RayColliderHit, RayColliderIntersection, QueryFilterFlags, InteractionGroups } from '@dimforge/rapier3d-simd';
 import type { Rapier } from './rapier';
 import { FIXED_STEP } from '../core/fixedStep';
 import { currentOwner, ownerOr } from '../app/ownership';
@@ -31,6 +33,19 @@ function repairRestoredParents(world: World): World {
   return world;
 }
 
+interface RayVectors { origin: RawVector; direction: RawVector }
+function createRayVectors(): RayVectors {
+  const origin = new RawVector(0, 0, 0);
+  try { return { origin, direction: new RawVector(0, 0, 0) }; }
+  catch (error) { origin.free(); throw error; }
+}
+function writeRayVector(target: RawVector, value: { x: number; y: number; z: number }): void {
+  const x = value.x, y = value.y, z = value.z;
+  target.x = x; target.y = y; target.z = z;
+}
+// Identical to Rapier's absent-predicate adapter, without a collider-set capture.
+function noRayPredicate(_handle: number): undefined { return undefined; }
+
 /** Owns one fixed-step collision world and its complete same-version continuation. */
 export class Physics {
   /** Trusted native captures read the same surface/owner metadata as collision queries, without inferring identity. */
@@ -40,6 +55,8 @@ export class Physics {
   stepMs = 0;
 
   readonly R: Rapier;
+  private readonly rayVectors: RayVectors[] = [];
+  private rayDepth = 0;
   private readonly bodyCaptures = new Map<number, () => void>();
   private readonly colliderCaptures = new Map<number, () => void>();
   private readonly bodyOwners = new Map<number, Scope>();
@@ -92,6 +109,47 @@ export class Physics {
     return { bodies: count(this.bodyOwners), colliders: count(this.colliderOwners) };
   }
 
+  private borrowRay(ray: Ray): RayVectors {
+    if (this.freed) throw new Error('Cannot query a disposed physics world');
+    const at = this.rayDepth++;
+    let vectors = this.rayVectors[at];
+    try {
+      if (vectors === undefined) { vectors = createRayVectors(); if (at < 4) this.rayVectors[at] = vectors; }
+      writeRayVector(vectors.origin, ray.origin); writeRayVector(vectors.direction, ray.dir);
+      return vectors;
+    } catch (error) {
+      this.rayDepth--;
+      if (at >= 4 && vectors !== undefined) { vectors.origin.free(); vectors.direction.free(); }
+      throw error;
+    }
+  }
+  private releaseRay(vectors: RayVectors): void {
+    if (--this.rayDepth >= 4) { vectors.origin.free(); vectors.direction.free(); }
+  }
+  /** Rapier's native ray query with world-owned input vectors; results remain detached.
+   * All flags, groups, exclusions and collider predicates retain World.castRay semantics. */
+  castRay(ray: Ray, maxToi: number, solid: boolean, flags?: QueryFilterFlags, groups?: InteractionGroups,
+    exclude?: Collider, excludeBody?: RigidBody, predicate?: (collider: Collider) => boolean): RayColliderHit | null {
+    const vectors = this.borrowRay(ray), w = this.world;
+    try {
+      const hit = w.broadPhase.raw.castRay(w.narrowPhase.raw, w.bodies.raw, w.colliders.raw, vectors.origin, vectors.direction,
+        maxToi, solid, flags ?? 0, groups, exclude?.handle ?? null, excludeBody?.handle ?? null,
+        predicate === undefined ? noRayPredicate : w.colliders.castClosure(predicate));
+      return hit === undefined ? null : this.R.RayColliderHit.fromRaw(w.colliders, hit);
+    } finally { this.releaseRay(vectors); }
+  }
+  /** Native normal/feature results with the same detached Rapier conversion and bounded input scratch. */
+  castRayAndGetNormal(ray: Ray, maxToi: number, solid: boolean, flags?: QueryFilterFlags, groups?: InteractionGroups,
+    exclude?: Collider, excludeBody?: RigidBody, predicate?: (collider: Collider) => boolean): RayColliderIntersection | null {
+    const vectors = this.borrowRay(ray), w = this.world;
+    try {
+      const hit = w.broadPhase.raw.castRayAndGetNormal(w.narrowPhase.raw, w.bodies.raw, w.colliders.raw, vectors.origin, vectors.direction,
+        maxToi, solid, flags ?? 0, groups, exclude?.handle ?? null, excludeBody?.handle ?? null,
+        predicate === undefined ? noRayPredicate : w.colliders.castClosure(predicate));
+      return hit === undefined ? null : this.R.RayColliderIntersection.fromBuffer(w.colliders, hit);
+    } finally { this.releaseRay(vectors); }
+  }
+
   /** Capture outside-scope native identities; later reads exclude only those exact handles still alive. */
   captureRetainedCensus(scope: Scope): () => { bodies: number; colliders: number } {
     const bodies: RigidBody[] = [], colliders: Collider[] = [];
@@ -130,6 +188,8 @@ export class Physics {
 
   dispose(): void {
     this.world.forEachCollider(untagCollider); this.world.free(); this.freed = true;
+    for (const vectors of this.rayVectors) { vectors.origin.free(); vectors.direction.free(); }
+    this.rayVectors.length = 0;
     // Whole-world retirement has freed these handles. Their scopes may outlive this world (cold regions);
     // unregister native cleanup callbacks so they cannot later dereference a freed Rapier set.
     for (const forget of this.bodyCaptures.values()) forget();
