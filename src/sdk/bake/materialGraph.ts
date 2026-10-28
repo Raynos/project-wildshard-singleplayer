@@ -1,6 +1,12 @@
 import { validateGraph, type GraphIr, type GraphNode, type GraphRef, type GraphParam, type GraphStages, type GraphArrayParam } from '@wildshard/format/materialGraph';
 import type { ScaledPostRow } from '@wildshard/format/scaledPost';
 import type { PostGraphLookRow } from '@wildshard/format/postGraphLook';
+import { COLOUR_LUT_EDGE } from '@wildshard/format/colourLut';
+
+/** Map clamped display-sRGB to cube texel centres, preserving native graph arithmetic order. */
+export function colourLutSampleTransform(): { readonly scale: number; readonly offset: number } {
+  return { scale: (COLOUR_LUT_EDGE - 1) / COLOUR_LUT_EDGE, offset: 0.5 / COLOUR_LUT_EDGE };
+}
 
 /** Portable authored graph grammar; no shader compiler, renderer or material is installed. */
 export type AuthorGraph = GraphIr;

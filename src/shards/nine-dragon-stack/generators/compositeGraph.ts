@@ -1,6 +1,5 @@
-import { checkAuthorGraph, type AuthorGraph as GraphIr, type AuthorGraphNode as GraphNode,
+import { checkAuthorGraph, colourLutSampleTransform, type AuthorGraph as GraphIr, type AuthorGraphNode as GraphNode,
   type AuthorGraphRef as GraphRef, type AuthorScaledPost as ScaledPostRow } from '@wildshard/sdk/bake/materialGraph';
-import { LUT_SIZE } from '@wildshard/engine/render/lut';
 import fog from '../data/lookGraphs.json' with { type: 'json' };
 import { Screen } from './screenGraph';
 
@@ -138,7 +137,8 @@ function grade(): GraphIr {
   const toSRGB = (x: GraphRef): string => { const k = clamp(x); return mix(mul(k, 12.92), sub(mul(1.055, g.pow(k, 1 / 2.4)), 0.055), g.op('step', [0.0031308, k])); };
   const fromSRGB = (x: GraphRef): string => { const k = clamp(x); return mix(div(k, 12.92), g.pow(div(add(k, 0.055), 1.055), 2.4), g.op('step', [0.04045, k])); };
   const srgb = toSRGB(sw(input, 'xyz'));
-  const lut = sw(g.tex('uLut', add(mul(clamp(srgb), (LUT_SIZE - 1) / LUT_SIZE), 0.5 / LUT_SIZE), true), 'xyz');
+  const lutTransform = colourLutSampleTransform();
+  const lut = sw(g.tex('uLut', add(mul(clamp(srgb), lutTransform.scale), lutTransform.offset), true), 'xyz');
   let o: GraphRef = choose(gt(lutAmt, 0), mix(srgb, lut, lutAmt), srgb);
   o = add(o, div(mul(sub(g.hash(add(frag, mul(g.fract(mul(time, 7.13)), 91))), 0.5), sw(look, 'y')), 255));
   return g.finishScreen(fromSRGB(o), sw(input, 'w'));

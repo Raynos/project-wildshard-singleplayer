@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./colourLut": "./colourLut.ts",
     "./entryReads": "./entryReads.ts",
     "./admissionControl": "./admissionControl.ts",
     "./admissionLate": "./admissionLate.ts",
