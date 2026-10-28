@@ -1,10 +1,8 @@
 
 
 
-import * as v from 'valibot';
 import debugLap from '../data/perfLap.json' with { type: 'json' };
-import { RangedPageSchema, ForestWeatherObservationSchema , type RangedPageRows as RangedPageRowsType, type ForestWeatherObservationRows as ForestWeatherObservationRowsType } from '@wildshard/format/rangedPage';
-import { RainPresentationSchema , type RainPresentationRows as RainPresentationRowsType } from '@wildshard/format/rainPresentation';
+import { parseRangedPage, parseForestWeatherObservation, parseRainPresentation } from '@wildshard/sdk/rows';
 import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
 import { PINE_OUTPUT } from './outputInputs';
 import { tradeCatalogue } from './trades';
@@ -20,17 +18,17 @@ import weather from '../data/weatherLook.json' with { type: 'json' };
 const { PINE_CAVE_HOOD, PINE_RAIN, PINE_RAIN_PROGRAMS } = weather;
 
 const painted = PINE_OUTPUT.custom['custom/paintedTextures'], pack = PINE_OUTPUT.custom['custom/trophyMounts'];
-export const WEATHER_OBSERVATIONS: ForestWeatherObservationRowsType = v.parse(ForestWeatherObservationSchema, { page: 'pine.forest', audio: 'pine.ranged', guide: PINE_QUEST_RUNTIME.leadPage.quest });
+export const WEATHER_OBSERVATIONS: ReturnType<typeof parseForestWeatherObservation> = parseForestWeatherObservation({ page: 'pine.forest', audio: 'pine.ranged', guide: PINE_QUEST_RUNTIME.leadPage.quest });
 /** The rows `rangedPage` makes. */
 export interface RangedPage {
-  readonly RANGED_PAGE: RangedPageRowsType;
-  readonly RAIN: RainPresentationRowsType;
+  readonly RANGED_PAGE: ReturnType<typeof parseRangedPage>;
+  readonly RAIN: ReturnType<typeof parseRainPresentation>;
   readonly RANGED_PAGE_BLOBS: NamedBlobType[];
 }
 /** D65: the ranged page, the rain and their blobs over the program's sources (the rifle's site, the cave's roof), made once per sources. */
 export const rangedPage: (sources: PineSources) => Promise<RangedPage> = perSources(async (sources: PineSources): Promise<RangedPage> => {
   const { rifle } = pineQuestSites(sources), { CRAG_CAVE_ROWS } = await cragScene(sources);
-  const RANGED_PAGE: RangedPageRowsType = v.parse(RangedPageSchema, {
+  const RANGED_PAGE: ReturnType<typeof parseRangedPage> = parseRangedPage({
     id: 'pine.ranged', forest: 'pine.forest', elites: 'actors/elites.json', combat: 'combat/roaming.json', finishSource: 'held-finishes',
     menu: { title: 'Finishes', note: "Everything here trades at Mott's stall", hint: "Trade at Mott's stall", gearHint: 'Tap a weapon to hold it · a finish to wear it', noTrade: 'Mott has no use for it', lines: tradeCatalogue().lines },
     drops: { stream: 'skin-drops', rifleStream: 'cabin-rifle', labels: { rifle: 'lever-action', crossbow: 'crossbow' },
@@ -42,7 +40,7 @@ export const rangedPage: (sources: PineSources) => Promise<RangedPage> = perSour
   });
   const cave = layout.BEAR_CAVE, baked = '/assets/pine-hollow/baked/rain';
   /** The rain (G474 weather presentation): no rain under the bear cave's rock, nor in its mouth's hood. */
-  const RAIN: RainPresentationRowsType = v.parse(RainPresentationSchema, {
+  const RAIN: ReturnType<typeof parseRainPresentation> = parseRainPresentation({
     name: 'pine-weather', programs: PINE_RAIN_PROGRAMS, water: waterRows.surfaces.puddle, rings: Object.values(waterRows.looks),
     look: { coverN: PINE_RAIN.coverN, streaks: PINE_RAIN.streaks, splashes: PINE_RAIN.splashes, lensDrops: PINE_RAIN.lensDrops },
     cover: { page: 'pine.forest', roofs: [{ frame: { x: cave.x, z: cave.z, yaw: cave.rot }, polygon: CRAG_CAVE_ROWS.meta.inside }] },

@@ -6239,6 +6239,10 @@ spot callback or paired lift/gate commands; a retired mover is inert.
 The original function binding remains supported. Sky lift prompts and
 Signal well prompts use these rows on their existing input owners.
 
+`sdk/rows` admits page composition (`parseRangedPage`), bounded rain
+(`parseRainPresentation`) and page/audio/guide observations
+(`parseForestWeatherObservation`) through the original row grammars.
+
 ### Static world scene recipes
 
 `sdk/worldScenes` admits recipes (`worldSceneRecipe`), ports

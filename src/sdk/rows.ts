@@ -11,6 +11,8 @@ import { parseAmbientLife as gameParseAmbientLife, type AmbientLifeData as GameA
 import { parsePageLife as gameParsePageLife, type PageLifeRows as GamePageLifeRows } from '@wildshard/format/pageLife';
 import { PopulationEnvironmentSchema as GamePopulationEnvironmentSchema, type PopulationEnvironmentRows as GamePopulationEnvironment } from '@wildshard/format/populationEnvironment';
 import { FigureCatalogueSchema as GameFigureCatalogueSchema, type FigureCatalogueRow as GameFigureCatalogue } from '@wildshard/format/figures';
+import { RangedPageSchema, ForestWeatherObservationSchema } from '@wildshard/format/rangedPage';
+import { RainPresentationSchema } from '@wildshard/format/rainPresentation';
 import * as v from 'valibot';
 import { ItemCatalogue } from '@wildshard/game/loadout/itemCatalogue';
 
@@ -73,3 +75,12 @@ export function parsePopulationEnvironment(input: unknown): PopulationEnvironmen
 export type FigureCatalogue = GameFigureCatalogue;
 /** Validate a figure catalogue before it is serialized (GR8: a shard program calls this). */
 export function parseFigureCatalogue(input: unknown): FigureCatalogue { return v.parse(GameFigureCatalogueSchema, input); }
+
+/** Admit data-only equipment, collection and ambience page composition. */
+export function parseRangedPage(input: unknown): v.InferOutput<typeof RangedPageSchema> { return v.parse(RangedPageSchema, input); }
+
+/** Admit a declared page/audio/guide observation binding without installing a service. */
+export function parseForestWeatherObservation(input: unknown): v.InferOutput<typeof ForestWeatherObservationSchema> { return v.parse(ForestWeatherObservationSchema, input); }
+
+/** Admit bounded rain presentation, ordered roof polygons and native bake rows. */
+export function parseRainPresentation(input: unknown): v.InferOutput<typeof RainPresentationSchema> { return v.parse(RainPresentationSchema, input); }
