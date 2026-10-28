@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, test, vi } from 'vitest';
-import { DownloadAccounting, installDownloadAccounting, observeDownloadAccounting, declareModuleGroups, preloadModuleFiles, preloadModuleGroups } from '../src/engine/boot/download';
+import { DownloadAccounting, installDownloadAccounting, observeDownloadAccounting, declareModuleFiles, declareModuleGroups, preloadModuleFiles, preloadModuleGroups } from '../src/engine/boot/download';
 import { declareProductClientModules, prepareClientModuleGroups } from '../src/game/shardfile/clientModules';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
@@ -69,6 +69,22 @@ test('changed or replaced banks republish exact new facts to the same ledger', (
     declareModuleGroups(['models.gltf']);
     expect(declared).toHaveBeenCalledTimes(3);
     expect(accounting.snapshot().declaredBytes).toBe(12); // Original max-size merge remains authoritative.
+  } finally { dispose(); }
+});
+
+test('private publication receipts never cache mutable caller banks or lower later facts', () => {
+  bank({files:[['/assets/parser.js',8]],groups:{'models.gltf':[0]}});
+  const accounting = new DownloadAccounting('https://fixture.invalid/'), dispose = installDownloadAccounting(accounting);
+  const input: [string, number][] = [['/assets/parser.js',12]];
+  try {
+    declareModuleGroups(['models.gltf']); declareModuleFiles(input);
+    declareModuleGroups(['models.gltf']);
+    expect(accounting.snapshot().declaredBytes).toBe(12);
+    input.push(['/assets/next.js',4]); declareModuleFiles(input);
+    expect(accounting.snapshot()).toMatchObject({declaredFiles:2,declaredBytes:16});
+    input.push(['/assets/prefix.js',3],['https://foreign.invalid/bad.js',1]);
+    expect(() => declareModuleFiles(input)).toThrow('Invalid boot module file');
+    expect(accounting.snapshot()).toMatchObject({declaredFiles:2,declaredBytes:16,networkBytes:0,cachedBytes:0});
   } finally { dispose(); }
 });
 
