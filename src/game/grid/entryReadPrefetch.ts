@@ -1,5 +1,6 @@
 import { parseEntryReadSet, nearestEntryReads, type EntryRead, type EntryReadSet, type RegionEntryReads } from '@wildshard/format/entryReads';
 import type { Shardfile } from '@wildshard/format/shardSchema';
+import { outputDescriptor } from '../shardfile/outputDescriptor';
 
 /** A region's recorded entry reads: `public/assets/<slug>/entry-reads.json` (the T7.14 runtime slice: one real entry's
  *  first-demand reads, committed as data; the bake-time crawl replaces the file). */
@@ -25,7 +26,11 @@ export function entryReadPlan(rows: EntryReadSet, tier: RegionEntryReads['tier']
   // the record lives at the region's own path (`entryReadsUrl`): its rows are that region's
   const row = nearestEntryReads(rows, tier, at);
   if (row === undefined) return [];
-  const held = new Map(source.files.map(file => [file.hash, file.compressed])), blobs = `/shardfiles/${slug}/blobs/`;
+  // A record may predate an added device tag while the immutable body/hash is
+  // unchanged. Do not let that stale hint reintroduce the other device's bytes.
+  // Actual admission/readers retain their authoritative critical/dependency rules.
+  const otherTier = new Set(outputDescriptor(source)?.index.files.filter(file => file.tier !== undefined && file.tier !== tier).map(file => file.hash));
+  const held = new Map(source.files.filter(file => !otherTier.has(file.hash)).map(file => [file.hash, file.compressed])), blobs = `/shardfiles/${slug}/blobs/`;
   return row.reads.filter(read => read.url.startsWith(blobs) ? held.get(read.hash) === read.bytes : read.url.startsWith('/assets/'));
 }
 

@@ -23,6 +23,8 @@ import { game, setActiveChunk } from '../src/game/shard/registry';
 import { Scope } from '../src/engine/app/scope';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { leaseClientLibrary } from '../src/game/shardfile/clientLibrary';
+import { entryReadPlan } from '../src/game/grid/entryReadPrefetch';
+import { parseEntryReadSet } from '../src/format/entryReads';
 
 const encodeCanonicalJson = (value: unknown): Uint8Array => new TextEncoder().encode(canonicalJson(value));
 const base = 'https://example.test/shardfiles/loader-fixture/';
@@ -125,6 +127,23 @@ test('receipt lookup refuses authored accessors without invoking them', async ()
   Object.defineProperty(input, 'build', { enumerable: true, get: () => { reads++; return f.index.build; } });
   await expect(resolveOutputDescriptor(input, { read: sectionReader(f.wires), hash, offline: false, firstParty: true })).rejects.toThrow('bounded plain JSON');
   expect(reads).toBe(0);
+});
+
+test('an unchanged entry-read hash cannot prefetch a newly tagged other-device payload', async () => {
+  const f = fixture(true), file = f.index.files[0];
+  if (file === undefined) throw new Error('Missing device fixture file');
+  file.tier = 'desktop';
+  const restore = installIndexReceipt(f.index);
+  try {
+    const source = await resolveOutputDescriptor(f.index, { read: sectionReader(f.wires), hash, offline: false, firstParty: true });
+    if (!isBuildValidatedOutput(source)) throw new Error('Missing exact fixture receipt');
+    const read = { url: `/shardfiles/${f.index.identity.slug}/${file.path}`, hash: file.hash, bytes: file.compressed };
+    const rows = parseEntryReadSet(['phone', 'desktop'].map(tier => ({ region: f.index.identity.slug, tier, at: [0, 0], reads: [read] })));
+    expect(entryReadPlan(rows, 'phone', f.index.identity.slug, source)).toEqual([]);
+    expect(entryReadPlan(rows, 'desktop', f.index.identity.slug, source)).toEqual([read]);
+    expect(source.library).toContain(file.hash); // Scheduling never rewrites admission or actual demand authority.
+    expect(source.files).toHaveLength(1);
+  } finally { restore(); }
 });
 
 test('build receipt skips descriptor grammar and owns the index across pauses', async () => {
