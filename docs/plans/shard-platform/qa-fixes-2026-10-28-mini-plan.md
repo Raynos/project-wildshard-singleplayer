@@ -72,8 +72,7 @@ From the service-worker review's part (b); all Codex, size M:
   `/assets/…?v=`, so T3's race goes away (`sw.js` 560, `product.ts`).
 - **QF2.N3 — one shared wait list** (review B3): the inline script and `Loading` share one registry (label, bytes,
   deadline, retry) from the first byte, so no await is unlabelled (`index.html`, `Loading.ts`, `boot/download.ts`).
-- **QF2.N4 — faster worker start, yielding prefetch** (review B4): sw.js stamps parsed lazily; background revalidates
-  and PREFETCH abort on a navigation (`prefetchOne` 485-503) (`sw.js`, `scripts/app-build/serviceWorker.ts`).
+- **QF2.N4 — done (this commit, sp-x10)**: lazy BUNDLE/WARM/CODE_PACKS, shared URL ordinals; the same frozen metadata reduces worker core 95,728 → 88,686 B and startup JSON input 39,649 → 1,061 characters (no CPU-time gain claimed). Navigation aborts prefetch, warming and refresh owners; deferred document refresh resumes only at control, with exact cache/pack identity and unrelated-error refusals intact. **Before landing**, combined N2/N4 worker over the real `2883966` built page, Chromium/WebKit iPhone 16 Pro: cached navigation/reload commits 9/12 and 5/9 ms; first-contentful paint 100/64 and 44/32 ms; prefetch/header/refresh aborts 2–5 ms, indicator advances, no partial cache bodies or page errors. Four labelled portraits inspected; browsers/fixture servers closed. Three suites 55/55 PASS (includes peer N2), types/typed lint/scoped ratchet pass. Raw `tmp/sp-x10-qf2-n4/browser-qualified/reading.json`; screenshot-only font-ready wait disabled while a real module body was intentionally withheld; application timing/validation guards unchanged. Earlier capture/preflight refusals retained.
 
 ## Ship
 

@@ -64,17 +64,26 @@ import { codePackEntries, readCodePackTransport } from './codePack.js';
 const BUILD = '__BUILD_ID__';
 const ASSETS = '__ASSET_ID__';
 /** @type {string[]} */
-const BUNDLE = JSON.parse('__BUNDLE__');
+let bundle;
+const BUNDLE = () => (bundle ??= JSON.parse('__BUNDLE__'));
 /** Public title/select/grid/shardfile static closures only. Developer/legacy/
  * Explore/Sentry-only chunks remain in BUNDLE and cache on their first use. */
-const WARM = JSON.parse('__WARM__');
+let warm;
+const WARM = () => (warm ??= JSON.parse('__WARM__').map(index => BUNDLE()[index]));
 /** @type {string[]} */
 const INSTALL = JSON.parse('__INSTALL__');
 /** @type {string[]} */
 const FONTS = JSON.parse('__FONTS__');
 /** Build-owned per-entry code transport. Unselected entries are never fetched. */
 /** @type {{files: string[], entries: Record<string, readonly [string, number, number, readonly number[]]>}} */
-const CODE_PACKS = JSON.parse('__CODE_PACKS__');
+let codePacks;
+const CODE_PACKS = () => {
+  if (codePacks === undefined) {
+    const packed = JSON.parse('__CODE_PACKS__');
+    codePacks = { ...packed, files: packed.files.map(index => BUNDLE()[index]) };
+  }
+  return codePacks;
+};
 /** @type {Map<string, {work:Promise<string>, ports:Set<MessagePort>}>} */
 const codePackJobs = new Map();
 const cachePublications = new Map();
@@ -182,17 +191,40 @@ if (workerTransport) {
   observer.observe({ type: 'resource' });
 }
 
-async function backgroundCache(cache, url) {
-  const response = await fetchAttempt(abs(url));
+// Background reads belong to one navigation generation, never the next page's boot.
+class WorkerBackgroundAbortError extends Error { constructor() { super('Background work yielded to navigation'); this.name = 'WorkerBackgroundAbortError'; } }
+let backgroundPaused = false;
+const backgroundJobs = new Set();
+let documentRefresh = null;
+function pauseBackground() {
+  backgroundPaused = true; documentRefresh = null;
+  for (const controller of backgroundJobs) controller.abort(new WorkerBackgroundAbortError());
+}
+async function backgroundWork(work) {
+  if (backgroundPaused) return undefined;
+  const controller = new AbortController(); backgroundJobs.add(controller);
+  try { return await work(controller.signal); }
+  catch (error) { if (!controller.signal.aborted || error !== controller.signal.reason) throw error; return undefined; }
+  finally { backgroundJobs.delete(controller); }
+}
+function resumeBackground() {
+  backgroundPaused = false;
+  const refresh = documentRefresh; documentRefresh = null;
+  return refresh === null ? Promise.resolve() : refresh();
+}
+
+async function backgroundCache(cache, url, signal) {
+  signal?.throwIfAborted();
+  const response = await fetchAttempt(new Request(abs(url), signal === undefined ? {} : { signal, priority: 'low' }));
   if (!response.ok) throw new Error(`precache: ${url} ${response.status}`);
-  await cache.put(abs(url), response);
+  signal?.throwIfAborted(); await cache.put(abs(url), response);
 }
 
 /**
  * `cache.add` only what is missing: a deploy must not spend the player's bytes re-fetching bytes it still has.
  * `strict`: a file that cannot be fetched rejects (the install fails) instead of being skipped.
  */
-async function fillMissing(cache, urls, strict = false) {
+async function fillMissing(cache, urls, strict, signal) {
   await Promise.all(urls.map(async (u) => {
     await cachePublications.get(abs(u));
     if (await cache.match(abs(u), MATCH_OPTS)) return;
@@ -200,11 +232,13 @@ async function fillMissing(cache, urls, strict = false) {
     // deploy names a new static cache before `activate` carries the old one over, and install re-fetched ~0.5 MB here)
     const held = await caches.match(abs(u), MATCH_OPTS);
     if (held) { await cache.put(abs(u), held); return; }
-    await (strict ? backgroundCache(cache, u) : backgroundCache(cache, u).catch(() => undefined));
+    signal?.throwIfAborted();
+    await (strict ? backgroundCache(cache, u, signal) : backgroundCache(cache, u, signal).catch(() => undefined));
   }));
 }
 
-const BUNDLE_SET = new Set(BUNDLE);
+let bundleSet;
+const BUNDLE_SET = () => (bundleSet ??= new Set(BUNDLE()));
 /** the hashed code a document names (its entry script, its stylesheet): `/assets/<name>-<hash>.js|css` */
 const CODE_REF_RE = /\/assets\/[^/"'?#\s]+-[\w-]{8}\.(?:js|css)(?=["'?#\s<>\\)]|$)/g;
 
@@ -215,9 +249,9 @@ const CODE_REF_RE = /\/assets\/[^/"'?#\s]+-[\w-]{8}\.(?:js|css)(?=["'?#\s<>\\)]|
  * @param {Response} res
  */
 async function foreignRefs(res) {
-  if (BUNDLE.length === 0) return [];
+  if (BUNDLE().length === 0) return [];
   const refs = (await res.text()).match(CODE_REF_RE);
-  return refs ? [...new Set(refs)].filter((p) => !BUNDLE_SET.has(p)) : [];
+  return refs ? [...new Set(refs)].filter((p) => !BUNDLE_SET().has(p)) : [];
 }
 
 /**
@@ -259,7 +293,7 @@ workerScope.listen(self, 'install', (event) => {
         // STRICT (E144): every static entry dependency and extracted stylesheet
         // must exist before this worker can serve its document. Lazy shard code
         // is verified on demand, then warmed after the title is usable.
-        const shellPack = CODE_PACKS.entries.$shell;
+        const shellPack = CODE_PACKS().entries.$shell;
         if (shellPack) await prepareWorkerCodePack(shellPack);
         await fillMissing(await caches.open(IMMUTABLE_CACHE), INSTALL, true);
       } catch (error) {
@@ -291,6 +325,7 @@ function collectCaches() {
   if (gcComplete) return Promise.resolve({ type: 'GC', status: 'complete' });
   if (gcWork) return gcWork;
   const owner = new WorkerScope(), controller = new AbortController(), signal = controller.signal;
+  backgroundJobs.add(controller);
   const deadline = new Promise(resolve => {
     owner.timeout(30000, () => { controller.abort(); resolve('timed-out'); });
   });
@@ -307,7 +342,7 @@ function collectCaches() {
     return 'complete';
   };
   gcWork = Promise.race([run().catch(() => 'failed'), deadline])
-    .then(status => ({ type: 'GC', status })).finally(() => { owner.dispose(); gcWork = null; });
+    .then(status => ({ type: 'GC', status })).finally(() => { owner.dispose(); backgroundJobs.delete(controller); gcWork = null; });
   return gcWork;
 }
 
@@ -408,8 +443,8 @@ async function gcStatic(named, signal) {
 
 /** Drop only the content-addressed entries this build no longer names. An empty bundle list → no prune (never a wipe). */
 async function pruneImmutable(signal) {
-  if (BUNDLE.length === 0) return;
-  const names = new Set(BUNDLE.map((p) => new URL(p, self.registration.scope).pathname));
+  if (BUNDLE().length === 0) return;
+  const names = new Set(BUNDLE().map((p) => new URL(p, self.registration.scope).pathname));
   const cache = await caches.open(IMMUTABLE_CACHE);
   for (const req of await cache.keys()) {
     signal.throwIfAborted();
@@ -425,33 +460,36 @@ let warming = null, warmAbort = null, foregroundAt = 0;
  *  "Download everything" for offline play (G727 / iPhone downloads I9). */
 async function warmBundle(all = false) {
   if (warming !== null) { await warming; if (!all) return; }
-  const run = async () => {
+  const run = () => backgroundWork(async signal => {
     // The host sends WARM_CODE only after a real controllable frame. Fonts
     // needed earlier still use the ordinary cache-first fetch handler; copy
     // the complete optional offline set now, without rereading cache hits.
     await Promise.all([
-      fillMissing(await caches.open(SHELL), SHELL_OPTIONAL),
-      fillMissing(await caches.open(STATIC), [...STATIC_OPTIONAL, ...FONTS]),
+      fillMissing(await caches.open(SHELL), SHELL_OPTIONAL, false, signal),
+      fillMissing(await caches.open(STATIC), [...STATIC_OPTIONAL, ...FONTS], false, signal),
     ]);
     const cache = await caches.open(IMMUTABLE_CACHE);
-    for (const path of all ? BUNDLE : WARM.filter(p => !IMAGE_RE.test(p))) {
+    signal.throwIfAborted();
+    for (const path of all ? BUNDLE() : WARM().filter(p => !IMAGE_RE.test(p))) {
       if (await cache.match(abs(path), MATCH_OPTS)) continue;
       let complete = false;
       while (!complete) {
-        while (Date.now() - foregroundAt < 500) await sleep(100);
+        while (Date.now() - foregroundAt < 500) { await sleep(100); signal.throwIfAborted(); }
+        signal.throwIfAborted();
         if (await cache.match(abs(path), MATCH_OPTS)) break;
-        const controller = new AbortController(); warmAbort = controller;
+        const controller = new AbortController(), owner = new WorkerScope(); warmAbort = controller;
+        owner.listen(signal, 'abort', () => { controller.abort(signal.reason); });
         try {
           const response = await fetch(abs(path), { priority: 'low', signal: controller.signal });
           if (!response.ok) return; // Unavailable/offline code is never published as a successful warm.
           await cache.put(abs(path), response);
           complete = true;
         } catch {
-          if (!controller.signal.aborted) return;
-        } finally { if (warmAbort === controller) warmAbort = null; }
+          if (signal.aborted || !controller.signal.aborted) return;
+        } finally { owner.dispose(); if (warmAbort === controller) warmAbort = null; }
       }
     }
-  };
+  });
   warming = run();
   try { await warming; } finally { warming = null; }
 }
@@ -460,8 +498,8 @@ workerScope.listen(self, 'message', (event) => {
   const data = event.data;
   if (!data) return;
   if (data.type === 'SKIP_WAITING') self.skipWaiting();
-  else if (data.type === 'WARM_CODE') event.waitUntil(warmBundle());
-  else if (data.type === 'WARM_ALL_CODE') event.waitUntil(warmBundle(true));
+  else if (data.type === 'WARM_CODE') event.waitUntil(resumeBackground().then(() => warmBundle()));
+  else if (data.type === 'WARM_ALL_CODE') event.waitUntil(resumeBackground().then(() => warmBundle(true)));
   // A replacement document can start listening after install fetches finish.
   // Replay the browser's existing bounded timing buffer; live/replayed entries
   // share the same identity in the page accounting. Do not grow that buffer.
@@ -470,13 +508,13 @@ workerScope.listen(self, 'message', (event) => {
     timings: performance.getEntriesByType('resource').map(entry => entry.toJSON()),
   })));
   else if (data.type === 'VERSION') event.waitUntil(reply(event, version()));
-  else if (data.type === 'GC') { blobLimit = 2; event.waitUntil(reply(event, collectCaches())); }
+  else if (data.type === 'GC') { blobLimit = 2; const resumed = resumeBackground(); event.waitUntil(reply(event, Promise.all([resumed, collectCaches()]).then(([, result]) => result))); }
   else if (data.type === 'BUILD') event.waitUntil(reply(event, Promise.resolve({ type: 'BUILD', build: BUILD, activationStage })));
   else if (data.type === 'PREFETCH' && typeof data.url === 'string') event.waitUntil(reply(event, prefetchOne(data.url)));
   else if (data.type === 'STORE' && typeof data.url === 'string' && data.blob instanceof Blob) event.waitUntil(reply(event, storeOne(data.url, data.blob)));
   else if (data.type === 'PREPARE_CODE_PACK' && typeof data.url === 'string') {
     const port = event.ports?.[0];
-    const declared = Object.values(CODE_PACKS.entries).find(row => Array.isArray(row) && row[0] === data.url && row[1] === data.bytes && row[2] === data.decoded);
+    const declared = Object.values(CODE_PACKS().entries).find(row => Array.isArray(row) && row[0] === data.url && row[1] === data.bytes && row[2] === data.decoded);
     if (!declared || !port) { if (port) port.postMessage({ type: 'CODE_PACK_DONE', status: 'unsupported' }); return; }
     port.postMessage({ type: 'CODE_PACK_STARTED' });
     let job = codePackJobs.get(data.url);
@@ -504,8 +542,8 @@ workerScope.listen(self, 'message', (event) => {
 async function prepareWorkerCodePack(row, progress) {
   try {
     const [url, bytes, decoded, members] = row, cache = await caches.open(IMMUTABLE_CACHE);
-    const paths = members.map(index => CODE_PACKS.files[index]);
-    if (paths.some(path => typeof path !== 'string' || !BUNDLE.includes(path))) throw new Error('Invalid code pack registry');
+    const paths = members.map(index => CODE_PACKS().files[index]);
+    if (paths.some(path => typeof path !== 'string' || !BUNDLE().includes(path))) throw new Error('Invalid code pack registry');
     let complete = true;
     for (const path of paths) if (!await cache.match(abs(path), MATCH_OPTS)) { complete = false; break; }
     if (complete) return 'hit';
@@ -554,25 +592,28 @@ async function prefetchOne(u) {
   const url = new URL(u, self.registration.scope);
   const out = (status, bytes = 0) => ({ type: 'PREFETCHED', status, bytes });
   if (url.origin !== self.location.origin) return out('failed');
-  const blobHash = SHARD_BLOB_RE.exec(url.pathname)?.[1];
-  if (blobHash !== undefined) {
-    const cache = await caches.open(CONTENT_CACHE);
-    return out(await cache.match(new URL(blobHash, abs(CONTENT_ROOT)).href, MATCH_OPTS) ? 'hit' : 'failed');
-  }
-  const cache = await caches.open(cacheFor(url.pathname));
-  if (await cache.match(url.href, MATCH_OPTS)) return out('hit');
-  try {
-    const res = await fetch(url.href, { priority: 'low' });
-    if (!res.ok || !res.body) return out('failed');
-    let bytes = 0;
-    const [keep, count] = res.body.tee();
-    const counted = (async () => { const r = count.getReader(); for (;;) { const { done, value } = await r.read(); if (done) return; bytes += value.byteLength; } })();
-    await cache.put(url.href, new Response(keep, { status: res.status, statusText: res.statusText, headers: res.headers }));
-    await counted;
-    return out('stored', bytes);
-  } catch {
-    return out('failed');
-  }
+  return await backgroundWork(async signal => {
+    const blobHash = SHARD_BLOB_RE.exec(url.pathname)?.[1];
+    if (blobHash !== undefined) {
+      const cache = await caches.open(CONTENT_CACHE);
+      return out(await cache.match(new URL(blobHash, abs(CONTENT_ROOT)).href, MATCH_OPTS) ? 'hit' : 'failed');
+    }
+    const cache = await caches.open(cacheFor(url.pathname));
+    if (await cache.match(url.href, MATCH_OPTS)) return out('hit');
+    try {
+      signal.throwIfAborted();
+      const res = await fetchAttempt(new Request(url.href, { priority: 'low', signal }));
+      if (!res.ok || !res.body) return out('failed');
+      let bytes = 0;
+      const [keep, count] = res.body.tee();
+      const counted = (async () => { const r = count.getReader(); for (;;) { const { done, value } = await r.read(); if (done) return; bytes += value.byteLength; } })();
+      await Promise.all([cache.put(url.href, new Response(keep, { status: res.status, statusText: res.statusText, headers: res.headers })), counted]);
+      signal.throwIfAborted();
+      return out('stored', bytes);
+    } catch {
+      return out('failed');
+    }
+  }).catch(() => out('failed')) ?? out('failed');
 }
 
 async function reply(event, work) {
@@ -613,6 +654,7 @@ workerScope.listen(self, 'fetch', (event) => {
   if (url.origin !== self.location.origin) return; // Google Fonts: untouched
   foregroundAt = Date.now();
   warmAbort?.abort();
+  if (req.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html') pauseBackground();
   if (url.searchParams.get('sw') === '0') return; // the bench measures the network, not the cache
   if (url.pathname === '/version.json') return; // network-only: the build pill must see the server
   const isDoc = req.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html';
@@ -671,11 +713,12 @@ async function documentResponse(event, req) {
   const hit = await cache.match(key, MATCH_OPTS);
   if (hit) {
     if (offline()) return transportReceipt(hit, true); // no revalidate that can only fail
-    event.waitUntil(
-      fetchAttempt(req)
-        .then((res) => putDocument(cache, key, res))
-        .catch(() => undefined),
-    );
+    const refresh = () => backgroundWork(async signal => {
+      const response = await fetchAttempt(new Request(req, { signal, priority: 'low' }));
+      signal.throwIfAborted(); await putDocument(cache, key, response);
+    }).catch(() => undefined);
+    if (backgroundPaused) documentRefresh = refresh;
+    else event.waitUntil(refresh());
     return transportReceipt(hit, true);
   }
   const res = await fetchAttempt(req, { stallMs: 3000, deadlineMs: 3000 });

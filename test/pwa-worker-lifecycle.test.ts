@@ -3,6 +3,7 @@ import { readFileSync, mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'nod
 // oxlint-disable-next-line import/no-nodejs-modules -- The isolated context executes the original worker rather than a copied implementation.
 import { runInNewContext } from 'node:vm';
 import { afterEach, expect, test, vi } from 'vitest';
+import { workerIndexedStamps } from '../scripts/app-build/serviceWorker';
 import { contentNamed } from '../scripts/app-build/assetHashes';
 import { writeCodePacks } from '../scripts/app-build/codePacks';
 import { CONTENT_CACHE_NAME, CONTENT_CACHE_ROOT } from '../src/engine/boot/contentCache';
@@ -56,21 +57,24 @@ function fixture(read?: (url: string, init?: RequestInit) => Promise<Response>, 
     } };
   const owner = readFileSync('src/engine/app/workerScope.js', 'utf8').replaceAll(/^export /gmu, '');
   const packSource = readFileSync('src/engine/pwa/codePack.js', 'utf8').replaceAll(/^export /gmu, '');
+  const stamps = workerIndexedStamps(bundle, warm, packs ?? { files: [], entries: {} });
   const worker = readFileSync('src/engine/pwa/sw.js', 'utf8').replace("import { workerScope, WorkerScope } from '../app/workerScope.js';\n", '').replace("import { codePackEntries, readCodePackTransport } from './codePack.js';\n", '')
     .replaceAll('__BUILD_ID__', 'unit-build').replaceAll('__ASSET_ID__', 'unit-assets')
     .replaceAll('__CONTENT_CACHE__', CONTENT_CACHE_NAME).replaceAll('__CONTENT_ROOT__', CONTENT_CACHE_ROOT)
     .replace("'__BUNDLE__'", JSON.stringify(JSON.stringify(bundle)))
-    .replace("'__WARM__'", JSON.stringify(JSON.stringify(warm)))
+    .replace("'__WARM__'", JSON.stringify(JSON.stringify(stamps.warm)))
     .replace("'__INSTALL__'", JSON.stringify(JSON.stringify([entry, dependency, css])))
-    .replace("'__CODE_PACKS__'", JSON.stringify(JSON.stringify(packs ?? { files: [], entries: {} })))
+    .replace("'__CODE_PACKS__'", JSON.stringify(JSON.stringify(stamps.packs)))
     .replace("'__FONTS__'", JSON.stringify(JSON.stringify(fonts)));
-  runInNewContext(`${owner}\n${packSource}\n${worker}`, { self, caches, fetch, URL, Request, Response, Headers, Blob, ReadableStream, DecompressionStream, TextDecoder, AbortController, Error, setTimeout, clearTimeout, Date, console, crypto });
+  const parsed: string[] = [];
+  const json = { parse: (text: string): unknown => { parsed.push(text); return JSON.parse(text); }, stringify: JSON.stringify };
+  runInNewContext(`${owner}\n${packSource}\n${worker}`, { JSON: json, self, caches, fetch, URL, Request, Response, Headers, Blob, ReadableStream, DecompressionStream, TextDecoder, AbortController, Error, setTimeout, clearTimeout, Date, console, crypto });
   const dispatch = async (kind: string, payload: Pick<WorkerEvent, 'data' | 'request' | 'ports'> = {}): Promise<void> => {
     const pending: Promise<unknown>[] = [];
     for (const listener of listeners.get(kind) ?? []) listener({ ...payload, source: { postMessage: (value: unknown) => { replies.push(value); } }, waitUntil: work => { pending.push(work); }, respondWith: work => { pending.push(work.then(response => { responses.push(response); return response; })); } });
     await Promise.all(pending);
   };
-  return { fetch, open, dispatch, navigator, installErrors, replies, responses };
+  return { fetch, open, dispatch, navigator, installErrors, replies, responses, parsed };
 }
 afterEach(() => { vi.useRealTimers(); });
 
@@ -478,14 +482,17 @@ test('stylesheet body stalls are bounded after successful headers and retry exac
 
 test('an explicit navigation reload serves its exact shell before a stalled revalidation', async () => {
   vi.useFakeTimers();
-  const f = fixture(() => new Promise<Response>(() => { /* Radio remains pending. */ }));
+  const f = fixture(url => url.endsWith('/asset-manifest.json') ? Promise.resolve(Response.json({})) : new Promise<Response>(() => { /* Radio remains pending. */ }));
   const previous = `<script src="${entry}"></script>previous shell`;
   await (await f.open('ws-shell-unit-build')).put(new URL('/index.html', base).href, new Response(previous));
   const work = f.dispatch('fetch', { request: new Request(new URL('/?v=reload', base)) });
   await vi.advanceTimersByTimeAsync(0);
   expect(await f.responses.at(-1)?.text()).toBe(previous);
-  expect(f.fetch).toHaveBeenCalledTimes(1);
-  await vi.advanceTimersByTimeAsync(10000); await work;
+  await work; expect(f.fetch).not.toHaveBeenCalled();
+  const ready = f.dispatch('message', { data: { type: 'GC' } });
+  await vi.advanceTimersByTimeAsync(0);
+  expect(f.fetch.mock.calls.filter(([url]) => new URL(typeof url === 'string' ? url : url.url).pathname === '/')).toHaveLength(1);
+  await vi.advanceTimersByTimeAsync(10000); await ready;
   expect(f.responses.at(-1)?.headers.get('server-timing')).toContain('ws-cache');
   f.navigator.onLine = false; f.fetch.mockClear();
   await f.dispatch('fetch', { request: new Request(new URL('/?v=offline', base)) });
@@ -707,3 +714,100 @@ test.each(['/assets/failed-data.json',`/shardfiles/sample/blobs/bin/${'d'.repeat
     expect((await(await f.open('ws-static-unit-assets')).keys())).toHaveLength(0);
     expect((await(await f.open(CONTENT_CACHE_NAME)).keys())).toHaveLength(0);
   });
+
+
+test('large worker stamps stay unparsed at startup and BUILD; indexed URLs restore only on demand', async () => {
+  const f = fixture();
+  expect(f.parsed).toEqual([JSON.stringify([entry, dependency, css]), JSON.stringify([])]);
+  await f.dispatch('message', { data: { type: 'BUILD' } });
+  expect(f.parsed).toHaveLength(2);
+  await f.dispatch('message', { data: { type: 'WARM_CODE' } });
+  expect(f.parsed).toContain(JSON.stringify([0, 1, 2, 3, 4]));
+  expect(f.parsed).toContain(JSON.stringify([entry, dependency, css, lazy, later]));
+  expect(f.parsed).not.toContain(JSON.stringify({ files: [], entries: {} }));
+  for (const path of [entry, dependency, css, lazy, later])
+    expect(await (await f.open('ws-immutable')).match(new URL(path, base).href)).toBeDefined();
+});
+
+test.each(['headers', 'body'] as const)('navigation aborts PREFETCH %s, rejects late prefetch and preserves exact later demand', async phase => {
+  const path = '/assets/other-shard-12345678.bin', signals: AbortSignal[] = [];
+  const f = fixture((url, init) => {
+    if (url.endsWith(path) && signals.length === 0) {
+      const signal = init?.signal; if (signal === undefined || signal === null) throw new Error('Prefetch needs its abort owner'); signals.push(signal);
+      if (phase === 'headers') return new Promise((_resolve, reject) => { signal.addEventListener('abort', () => { reject(signal.reason instanceof Error ? signal.reason : new Error('Background read cancelled')); }, { once: true }); });
+      return Promise.resolve(new Response(new ReadableStream<Uint8Array>({
+        start(controller) { controller.enqueue(Uint8Array.of(1, 2)); signal.addEventListener('abort', () => { controller.error(signal.reason); }, { once: true }); },
+      })));
+    }
+    return Promise.resolve(new Response(url.endsWith('/index.html') ? `<script src="${entry}"></script>` : 'complete demand'));
+  });
+  await f.dispatch('install');
+  const pending = f.dispatch('message', { data: { type: 'PREFETCH', url: path } });
+  await vi.waitFor(() => { expect(signals).toHaveLength(1); });
+  await f.dispatch('fetch', { request: new Request(new URL('/?v=priority', base)) });
+  await pending;
+  expect(signals[0]?.aborted).toBe(true);
+  expect(f.replies.at(-1)).toEqual({ type: 'PREFETCHED', status: 'failed', bytes: 0 });
+  expect(await (await f.open('ws-immutable')).match(new URL(path, base).href)).toBeUndefined();
+  const requests = f.fetch.mock.calls.length;
+  await f.dispatch('message', { data: { type: 'PREFETCH', url: '/assets/not-started-23456789.bin' } });
+  expect(f.fetch).toHaveBeenCalledTimes(requests);
+  await f.dispatch('fetch', { request: new Request(new URL(path, base)) });
+  expect(await f.responses.at(-1)?.text()).toBe('complete demand');
+  await f.dispatch('message', { data: { type: 'GC' } });
+});
+
+test('navigation aborts the preceding document refresh and defers its replacement until control', async () => {
+  const signals: AbortSignal[] = [];
+  const f = fixture((url, init) => {
+    if (new URL(url).searchParams.has('visit')) {
+      const signal = init?.signal; if (signal === undefined || signal === null) throw new Error('Refresh needs its abort owner'); signals.push(signal);
+      if (signals.length === 1) return new Promise((_resolve, reject) => { signal.addEventListener('abort', () => { reject(signal.reason instanceof Error ? signal.reason : new Error('Background read cancelled')); }, { once: true }); });
+    }
+    return Promise.resolve(url.endsWith('/asset-manifest.json') ? Response.json({}) : new Response(`<script src="${entry}"></script>`));
+  });
+  await f.dispatch('install');
+  await f.dispatch('fetch', { request: new Request(new URL('/?visit=one', base)) });
+  expect(signals).toHaveLength(0);
+  const ready = f.dispatch('message', { data: { type: 'GC' } });
+  await vi.waitFor(() => { expect(signals).toHaveLength(1); });
+  await f.dispatch('fetch', { request: new Request(new URL('/?visit=two', base)) });
+  await ready;
+  expect(signals[0]?.aborted).toBe(true); expect(signals).toHaveLength(1);
+  await f.dispatch('message', { data: { type: 'GC' } });
+  expect(signals).toHaveLength(2);
+});
+
+test('indexed worker stamps preserve exact member ordinals and refuse undeclared paths', () => {
+  const urls = [entry, dependency, css, lazy], entries = { selected: ['/code.pack', 7, 9, [1, 0]] };
+  const stamped = workerIndexedStamps(urls, [lazy, css], { files: [dependency, entry], entries });
+  expect(stamped).toEqual({ warm: [3, 2], packs: { files: [1, 0], entries } });
+  expect(stamped.packs.entries).toBe(entries);
+  expect(stamped.warm.map(index => urls[index])).toEqual([lazy, css]);
+  expect(stamped.packs.files.map(index => urls[index])).toEqual([dependency, entry]);
+  expect(() => workerIndexedStamps(urls, ['/missing'], { files: [], entries: {} })).toThrow('absent');
+  expect(() => workerIndexedStamps(urls, [], { files: ['/missing'], entries: {} })).toThrow('absent');
+});
+
+test('concurrent warm requests settle on navigation without restarting during the new boot', async () => {
+  vi.useFakeTimers(); vi.setSystemTime(1000);
+  const f = fixture(); await f.dispatch('install');
+  await f.dispatch('fetch', { request: new Request(new URL('/assets/foreground-ffffffff.js', base)) });
+  const first = f.dispatch('message', { data: { type: 'WARM_CODE' } });
+  const second = f.dispatch('message', { data: { type: 'WARM_CODE' } });
+  const settled = Promise.allSettled([first, second]);
+  await vi.advanceTimersByTimeAsync(0);
+  await f.dispatch('fetch', { request: new Request(new URL('/', base)) });
+  const reads = f.fetch.mock.calls.length;
+  await vi.advanceTimersByTimeAsync(1000);
+  expect((await settled).map(result => result.status)).toEqual(['fulfilled', 'fulfilled']);
+  expect(f.fetch).toHaveBeenCalledTimes(reads);
+});
+
+test('background cancellation does not swallow an unrelated cache refusal', async () => {
+  const f = fixture(), failure = new Error('Background cache unavailable');
+  const cache = await f.open('ws-immutable');
+  const match = vi.spyOn(cache, 'match').mockRejectedValueOnce(failure);
+  try { await expect(f.dispatch('message', { data: { type: 'WARM_CODE' } })).rejects.toBe(failure); }
+  finally { match.mockRestore(); }
+});

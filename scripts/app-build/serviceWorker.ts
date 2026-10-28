@@ -151,11 +151,29 @@ export function serviceWorkerCore(bundle: Readonly<Record<string, EmittedFile>>,
   const install = workerInstallFiles(bundle, join(root, 'index.html'));
   const warm = workerWarmFiles(input, publicProducts(root), [...install, ...title]);
   if (warm.some(file => !hashed.includes(file))) throw new Error('Worker warm file is absent from the emitted bundle');
+  const stamps = workerIndexedStamps(hashed, warm, code);
   const core = src.replaceAll('__BUILD_ID__', build).replaceAll('__ASSET_ID__', assets).replace("'__BUNDLE__'", JSON.stringify(JSON.stringify(hashed)))
-    .replace("'__INSTALL__'", JSON.stringify(JSON.stringify(install))).replace("'__WARM__'", JSON.stringify(JSON.stringify(warm)))
-    .replace("'__FONTS__'", JSON.stringify(JSON.stringify(fonts))).replace("'__CODE_PACKS__'", JSON.stringify(JSON.stringify(code))).replace('__PRODUCT_CACHE__', PRODUCT_CACHE_NAME)
+    .replace("'__INSTALL__'", JSON.stringify(JSON.stringify(install))).replace("'__WARM__'", JSON.stringify(JSON.stringify(stamps.warm)))
+    .replace("'__FONTS__'", JSON.stringify(JSON.stringify(fonts))).replace("'__CODE_PACKS__'", JSON.stringify(JSON.stringify(stamps.packs))).replace('__PRODUCT_CACHE__', PRODUCT_CACHE_NAME)
     .replaceAll('__CONTENT_CACHE__', CONTENT_CACHE_NAME).replaceAll('__CONTENT_ROOT__', CONTENT_CACHE_ROOT);
   return { core, build, assets, hashed };
+}
+
+/** Private worker stamps share one URL bank; their JSON stays cold until the
+ * corresponding worker capability is requested. Entry members keep their exact
+ * original ordinals, hashes, lengths and URLs after decoding. */
+export function workerIndexedStamps(bundle: readonly string[], warm: readonly string[], input: unknown): {
+  readonly warm: number[]; readonly packs: { readonly files: number[]; readonly entries: unknown };
+} {
+  const indexes = new Map(bundle.map((url, index) => [url, index]));
+  const index = (url: unknown): number => {
+    const found = typeof url === 'string' ? indexes.get(url) : undefined;
+    if (found === undefined) throw new Error('Worker stamp file is absent from the bundle');
+    return found;
+  };
+  const code = metadata(input);
+  if (!Array.isArray(code.files)) throw new Error('Invalid packed code files');
+  return { warm: warm.map(index), packs: { files: code.files.map(index), entries: code.entries } };
 }
 
 /** Write `sw.js` and its core beside the web bundle in `outDir` (scripts/build-app.mjs runs it after the chunk report). */
