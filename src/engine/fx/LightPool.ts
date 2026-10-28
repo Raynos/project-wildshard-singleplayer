@@ -83,12 +83,16 @@ export class LightPool {
     scope.onDispose(() => { page.sources.delete(this); if (this.mirroredBy === page) this.mirroredBy = null; for (const light of this.lights) light.layers.enable(0); });
   }
 
-  acquire(color: THREE.ColorRepresentation, intensity: number, distance: number, decay = 2, owner?: THREE.Object3D): THREE.PointLight {
+  /** `grow` (G808): a sealed, full pool adds the light anyway (the count moves this once) instead of handing out a detached
+   *  one. For content that keeps its lights for the session and would otherwise add them to the scene itself: as its own
+   *  scene lights they left the count whenever their content hid (home content seen from another cell), so every lit
+   *  program was built again; pooled and owned, they dim and stay counted. */
+  acquire(color: THREE.ColorRepresentation, intensity: number, distance: number, decay = 2, owner?: THREE.Object3D, grow = false): THREE.PointLight {
     let light = this.lights.find((l) => !this.busy.has(l));
     if (light === undefined) {
       light = new THREE.PointLight();
       light.castShadow = false;
-      if (this.sealed) {
+      if (this.sealed && !grow) {
         if (!this.warned) { this.warned = true; console.warn('[LightPool] sealed and full: a mid-play light was asked for — handing out an unlit one (no recompile)'); }
         light.color.set(color); light.intensity = intensity; light.distance = distance; light.decay = decay;
         return light; // detached: never in the scene

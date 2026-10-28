@@ -43,3 +43,15 @@ test('a nested pool shows through the page pool reserved lights and leaves three
   root.visible = true; scope.dispose(); render(page);
   expect(a?.intensity).toBe(0); expect(late.layers.mask).toBe(1);
 });
+
+// G808: content that keeps its light for the session grows a sealed pool once instead of adding a light of its own, so
+// the light stays counted (and dims) while its content hides: a home's creature light left the count when Pine showed
+test('a growing acquire adds to a sealed, full pool; an ordinary one is handed a detached light', () => {
+  const scene = new THREE.Scene(), home = new THREE.Group(); scene.add(home);
+  const pool = LightPool.for(scene); render(scene);
+  const loose = pool.acquire(0xffffff, 1, 7, 2, home);
+  expect(loose.parent).toBeNull(); expect(pool.size).toBe(0);
+  const kept = pool.acquire(0x7fe8ff, 4, 7, 2, home, true);
+  expect(kept.parent).toBe(pool.group); expect(pool.size).toBe(1);
+  home.visible = false; render(scene); expect(kept.intensity).toBe(0); expect(kept.parent).toBe(pool.group);
+});
