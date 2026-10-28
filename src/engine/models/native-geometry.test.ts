@@ -1,9 +1,25 @@
 import { expect, test } from 'vitest';
 import { BufferAttribute, BufferGeometry, InterleavedBuffer, InterleavedBufferAttribute, Mesh, type TypedArray } from 'three';
-import { admitNativeWholeGeometry, nativeWholeGeometry } from './nativeGeometry';
+import { admitNativeWholeGeometry, nativeWholeGeometry, restoreDrawnChannels } from './nativeGeometry';
 
 const constructors = [Float32Array, Uint16Array, Uint32Array, Int16Array, Int8Array, Uint8Array];
 const bytes = (array: TypedArray): Uint8Array => new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
+
+test('drawn custom-channel intake keeps missing, width, normalization and storage refusals', () => {
+  for (const mode of ['missing', 'width', 'normalized', 'storage'] as const) {
+    const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array(9), 3));
+    const mesh = new Mesh(geometry);
+    mesh.userData['nativeAttributes'] = { aFace: { semantic: '_AFACE', storage: 'Float32Array', itemSize: 4, normalized: false } };
+    if (mode !== 'missing') geometry.setAttribute('_aface', mode === 'storage'
+      ? new BufferAttribute(new Uint16Array(12), 4) : new BufferAttribute(new Float32Array(12), mode === 'width' ? 3 : 4, mode === 'normalized'));
+    expect(() => restoreDrawnChannels(mesh)).toThrow(mode === 'storage' ? 'storage mismatch' : 'missing typed channel');
+    expect(geometry.hasAttribute('aFace')).toBe(false); geometry.dispose();
+  }
+  const mesh = new Mesh(new BufferGeometry().setAttribute('_aface', new BufferAttribute(new Float32Array(12), 4)));
+  restoreDrawnChannels(mesh);
+  expect(mesh.geometry.hasAttribute('_aface')).toBe(true); expect(mesh.geometry.hasAttribute('aFace')).toBe(false);
+  mesh.geometry.dispose();
+});
 
 test('packed and padded native channels retain the original copy bits', () => {
   for (const Constructor of constructors) for (const size of [1, 2, 3, 4]) for (const padding of [0, 1, 3]) for (const normalized of [false, true]) {

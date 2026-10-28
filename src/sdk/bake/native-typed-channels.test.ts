@@ -56,3 +56,35 @@ it('a native node with a vec4 shader normal draws with that normal once its draw
   restoreDrawnChannels(node);
   expect(node.geometry.getAttribute('normal')).toBe(normal);
 });
+
+it('native coarse GLB application channels recover their declared names with identical storage and bytes (NR4)', async () => {
+  const geometry = new BoxGeometry(2, 3, 4), count = geometry.getAttribute('position').count;
+  geometry.setAttribute('aFace', new BufferAttribute(Float32Array.from({ length: count * 4 }, (_, i) => i % 5 === 0 ? -0 : i / 8), 4));
+  geometry.setAttribute('aMisc', new BufferAttribute(Uint8Array.from({ length: count * 2 }, (_, i) => (i * 37) % 256), 2, true));
+  geometry.setAttribute('aOff', new BufferAttribute(Float32Array.from({ length: count * 3 }, (_, i) => i - 11.5), 3));
+  geometry.setAttribute('aPat', new Float16BufferAttribute(Uint16Array.from({ length: count * 4 }, (_, i) => 0x3c00 + i % 512), 4));
+  geometry.setAttribute('aSpill', new BufferAttribute(Uint16Array.from({ length: count * 4 }, (_, i) => i * 19), 4));
+  geometry.setAttribute('aTan', new BufferAttribute(Int8Array.from({ length: count * 4 }, (_, i) => i % 127 - 63), 4, true));
+  const channels = { _AFACE: 'aFace', _AMISC: 'aMisc', _AOFF: 'aOff', _APAT: 'aPat', _ASPILL: 'aSpill', _ATAN: 'aTan' };
+  const glb = staticGlb([{ geometry, material: new MeshStandardMaterial(), nativeAttributes: true, nativeOnce: true, compactIndex: true, customAttributes: channels }]);
+  const original = glb.slice(), gltf = await createRigLoader().parseBytesAsync(glb, '');
+  let node: Mesh | undefined;
+  gltf.scene.traverse(child => { if (child instanceof Mesh) node = child; });
+  if (node === undefined) throw new Error('Missing native coarse mesh');
+  const positions = node.geometry.getAttribute('position'), indices = node.geometry.getIndex();
+  expect(node.geometry.hasAttribute('aFace')).toBe(false);
+  restoreDrawnChannels(node);
+  for (const name of Object.values(channels)) {
+    const source = geometry.getAttribute(name), restored = node.geometry.getAttribute(name);
+    expect(restored.itemSize).toBe(source.itemSize); expect(restored.normalized).toBe(source.normalized);
+    expect(restored.array.constructor).toBe(source.array.constructor);
+    expect(new Uint8Array(restored.array.buffer, restored.array.byteOffset, restored.array.byteLength))
+      .toEqual(new Uint8Array(source.array.buffer, source.array.byteOffset, source.array.byteLength));
+    if (name === 'aPat') expect(restored).toBeInstanceOf(Float16BufferAttribute);
+  }
+  expect(Object.keys(node.geometry.attributes).sort()).toEqual(Object.keys(geometry.attributes).sort());
+  expect(node.geometry.getAttribute('position')).toBe(positions); expect(node.geometry.getIndex()).toBe(indices);
+  expect(glb).toEqual(original);
+  const face = node.geometry.getAttribute('aFace'); restoreDrawnChannels(node);
+  expect(node.geometry.getAttribute('aFace')).toBe(face);
+});
