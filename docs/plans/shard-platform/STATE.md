@@ -1,6 +1,6 @@
 # SHARD-PLATFORM — State (wildshard-new; ≤ 3 KB)
 
-**(1) LIVE 56c7bf51f5** (07:31 Cancun; full CI + six smoke). Damage list:
+**(1) LIVE 5c3800eb13** (full CI + six smoke). Damage list:
 [BURN-DAMAGE-LIST](../BURN-DAMAGE-LIST.md) only.
 
 **Counter (sp-x8 recount, cc69600):** raw 186 / 209; true **188.5 / 209 = 90 %** (SW13 done, GR10 folded, build-CI carry done;
@@ -12,7 +12,7 @@ G784); DW T2-T4 halves closed f54c5464f9. I2 closes only with D179 / D185 or per
 (colour Uint8, normals Int8): ~5-6 MB less upload, colours within 1/255? Recommend: yes to both.
 **Question (crossing instrument):** Sim cold: Nalati 6.65, Pine 7.42, DW 5.48 s (< 8); Chromium 4x DW 7.50, Nalati 10.4, Pine 14.7.
 Close on the Sim? Recommend: yes.
-**Question (Pine cold, T7.7):** build data-only parts once the approach is verified (<= 2.5-3 s)? Recommend: yes.
+**Question (Pine cold, T7.7):** build data-only parts on a verified approach (<= 3 s)? Recommend: yes.
 **Jake picks open:** D183 / D185; LD5-LD8 / A1 / A2 / M2 / RM13; DW -7 MB board (round-21-phone-geometry-ab).
 
 **FYI Jake:** Pine white ground / teal tree cards (D189) and the slow-link Pine crossing (D190 / D196) are fixed and live.
