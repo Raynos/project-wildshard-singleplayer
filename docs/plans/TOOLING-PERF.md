@@ -4,7 +4,7 @@
 `.git/push.log`, the hooks, workflows and every check script; cheap checks timed at load ~30, the rest marked est.).
 Nothing is worked here until Jake says go; decided SHARD-PLATFORM tooling rows (G609, G610/G612, G620, G627, G628, G634,
 G636) keep landing there and move here when it starts; decisions stay in [decisions.md](shard-platform/decisions.md);
-absorbs [BUILD-SPEED](BUILD-SPEED.md) waves 3–5. Jake, G651: *"the tooling perf is everything else. Like, everything that
+absorbs [BUILD-SPEED](../../project/archive/2026-10-28-build-speed.md) waves 3–5. Jake, G651: *"the tooling perf is everything else. Like, everything that
 I don't know about yet … all the things that we should be running in pre-commit if they were fast, all the things that we
 should be running in pre-push if they were fast."*
 

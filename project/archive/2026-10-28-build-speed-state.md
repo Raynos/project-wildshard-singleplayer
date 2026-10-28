@@ -1,5 +1,8 @@
 # BUILD-SPEED — State (wildshard pane; ≤ 3 KB)
 
+**State: done (2026-10-28, Jake via wildshard-v):** its last CI row closed on the first green run (G809, `fa319ebead`,
+first green `0012c73e11`); archived with SHARD-PLATFORM's close-out. Waves 2-5 were never started.
+
 **Phase: Wave 1 wrap-up (2026-10-21 10:35 Cancun). Done when three things land: Jake's Spotlight step, the six
 commits on origin (the pusher's push in flight carries them), and the 24 h Verify numbers here tomorrow 10:30.**
 Waves 2–5 are planned in full, not asked, not started. Jake (10-21): keep the Wave 1 work, revert nothing.

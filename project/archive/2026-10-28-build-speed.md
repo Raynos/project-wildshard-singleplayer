@@ -8,14 +8,14 @@ a time."* Earlier the same morning: *"I think we have resource contention as a b
 fucking heavy for worktrees until we fix the size of the repo which is its own plan"*, *"I don't have a second Mac for
 the simulator lol. Can we partition this one MacBook with containers or virtualization?"*
 
-**State:** `in progress` 2026-10-21 — **Wave 1 ruled and landed (10-21 ~10:50 Cancun) except 1.3 A1, which needs
+**State:** `done` 2026-10-28 (G809: last CI row closed on the first green run; archived, Waves 2-5 not started). Was: `in progress` 2026-10-21 — **Wave 1 ruled and landed (10-21 ~10:50 Cancun) except 1.3 A1, which needs
 Jake's hand (Spotlight); Waves 2–5 planned in full, not asked, not started.** Rulings: 1.1 A · 1.2 A · 1.3 A1+A2+A3 ·
 1.4 A1+A2+A3 · 1.5 fix both, never quarantine. D1 ruled no: keep a local pre-push of at most 45 s with very little
 duplication of pre-commit (Phase 2.4 re-planned below). The `wildshard` pane built Wave 1 after the rulings without
 being asked to build; Jake (10-21): keep it, revert nothing. Landed SHAs and the Verify still owed:
-[build-speed/STATE.md](build-speed/STATE.md). Wave 2 is asked when Jake wants it.
+[build-speed/STATE.md](2026-10-28-build-speed-state.md). Wave 2 is asked when Jake wants it.
 
-**Already landed before this plan (SHARD-PLATFORM, 10-20/21; this plan builds on them, never undoes them without a ruling):** G547 two builds at a time and check slots `check`..`check5` (`29d62fc9ef`, `b3b0b19824`); G548 [build-speed-mini-plan](shard-platform/build-speed-mini-plan.md) B1–B6: shard products keyed on the files each build reads, a six-process shard pool, a shared input-hash memo, one parse for the census, normal build priority; a no-change ruler build 13.4 s (was 204–282 s), 26.6 s when `src/sdk` changes. From 10-21 BUILD-SPEED is the one owner of build and lane tooling (SHARD-PLATFORM opens no new tooling rows).
+**Already landed before this plan (SHARD-PLATFORM, 10-20/21; this plan builds on them, never undoes them without a ruling):** G547 two builds at a time and check slots `check`..`check5` (`29d62fc9ef`, `b3b0b19824`); G548 [build-speed-mini-plan](../../docs/plans/shard-platform/build-speed-mini-plan.md) B1–B6: shard products keyed on the files each build reads, a six-process shard pool, a shared input-hash memo, one parse for the census, normal build priority; a no-change ruler build 13.4 s (was 204–282 s), 26.6 s when `src/sdk` changes. From 10-21 BUILD-SPEED is the one owner of build and lane tooling (SHARD-PLATFORM opens no new tooling rows).
 
 Audit: [Wildshard Build Speed Audit](https://claude.ai/artifact/FDEUjZcmiBxQ8uPTVajAVB) (review page
 `docs/reviews/build-speed-audit.md`). The numbers every wave is measured against: 1,613 commits in 72 h, 723 with no
@@ -34,7 +34,7 @@ Claude 50 % and Codex 54 % of the week used at day 1.9 and 1.3; `scripts/` 33 �
   the next phase starts. Wave N+1 is asked when Wave N's Verify is in.
 - **No lane is interrupted** (G492): lanes adopt a change at their next task boundary.
 - **Constraints** (Jake, 10-21): one checkout, main only, small frequent commits; no worktrees until
-  [REPO-WEIGHT](REPO-WEIGHT.md) (tracked art 2 GB + progress 1.9 GB on a 5.9 GB pack); one MacBook (M5 Max, 6 Super +
+  [REPO-WEIGHT](../../docs/plans/REPO-WEIGHT.md) (tracked art 2 GB + progress 1.9 GB on a 5.9 GB pack); one MacBook (M5 Max, 6 Super +
   12 Performance cores, 128 GB, macOS 26.7.1); no cloud VMs; fix-forward (10-15): CI runs everything on every push and
   the deploy ships only the newest CI-green commit.
 

@@ -7,7 +7,7 @@ Lock contention, waiting, queuing, shared resources. Like, we almost need to loo
 
 Related, never copied here: [fail-fast](2026-10-27-fail-fast.md) (G610/G612: 5-minute caps, pooled slots, no pre-land
 checks), G620 (red main 30-minute cap, shared previews, third build lease), G662 (dirty tree burn-down),
-[BUILD-SPEED](../../docs/plans/BUILD-SPEED.md) (Wave 1 landed; 3.4/3.5 quiet-vs-not not asked), [TOOLING-PERF](../../docs/plans/TOOLING-PERF.md)
+[BUILD-SPEED](2026-10-28-build-speed.md) (Wave 1 landed; 3.4/3.5 quiet-vs-not not asked), [TOOLING-PERF](../../docs/plans/TOOLING-PERF.md)
 (G671 quick wins un-parked: H1 H3 H4 C4 C5 C6 P1 P3 K4 L4 V1 V3 S3; P4 and M1–M3 still parked).
 
 ## Latest reading (2026-10-28 13:45 Cancun review: 10-27 17:23 → 10-28 13:40, 20.3 h; G818 Opus release overnight, G819 damage-list burn from 09:53, archive day G824; rates per hour to compare with the 10-27 17:23 reading)
