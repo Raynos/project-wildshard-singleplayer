@@ -25,6 +25,16 @@ import { QuestTraderSchema } from '@wildshard/format/namedJsonContracts';
 import { parseBarterEconomy } from '@wildshard/format/lootEconomy';
 import type { ExchangeRows } from '@wildshard/format/exchange';
 import { parseGraphArms } from '@wildshard/format/graphArmsRows';
+import { MountedLoadoutSchema } from '@wildshard/format/loadout';
+import { BowVariantSchema } from '@wildshard/format/bowVariantRows';
+import { parseHeldSlots } from '@wildshard/format/heldArms';
+
+/** Admit the complete native mounted arsenal declaration before compiling its slot rows. */
+export function mountedLoadoutRows(input: unknown): v.InferOutput<typeof MountedLoadoutSchema> { return v.parse(MountedLoadoutSchema, input); }
+/** Admit the complete bounded reward-bow tuning, bindings and presentation policy. */
+export function bowVariantRows(input: unknown): v.InferOutput<typeof BowVariantSchema> { return v.parse(BowVariantSchema, input); }
+/** Admit JSON-only held slots with the original registration/equipment/refill/upgrade ownership checks. */
+export function heldSlotsRows(input: unknown): ReturnType<typeof parseHeldSlots> { return parseHeldSlots(input); }
 
 /** Admit ordered model references without installing a species, scene or Explorer owner. */
 export function explorerCatalogueRows(input: unknown): ReturnType<typeof parseExplorerCatalogue> { return parseExplorerCatalogue(input); }

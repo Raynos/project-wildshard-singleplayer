@@ -4948,6 +4948,8 @@ The adapter supplies the existing pattern ports: the ram's live home and shared 
 
 `quests.questPropRows` admits captured quest floor grids, drops, body identities and gate contacts through the defining strict schema. `quests.questAutomaticFlag` compiles the shared interaction kind/id flag policy without raising flags or constructing physical or page owners.
 
+`rows.mountedLoadoutRows`, `rows.bowVariantRows` and `rows.heldSlotsRows` admit the complete mounted arsenal, reward-bow tuning and held ownership table. The original JSON-only, unique registration/item, equipment destination, mount, refill and upgrade crosschecks all run before any view, weapon or save owner exists.
+
 `rows` admits achievement counters, quest steps/hints/services, page interactions/composition and cover ownership through their defining strict formats. These author data functions install no page, service, geometry or storage owner.
 `bake/placement.AuthorPlacement` retains the complete native author copy pose, including matrix, parameter overrides, variant, tint and weld host; it grants no runtime registration service.
 `bake/contactRows.treadBoxRows` compiles authored stair blocks with the native

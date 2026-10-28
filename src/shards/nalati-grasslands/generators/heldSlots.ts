@@ -1,12 +1,9 @@
-import { parse } from 'valibot';
-import { MountedLoadoutSchema } from '@wildshard/format/loadout';
-import { BowVariantSchema } from '@wildshard/format/bowVariantRows';
-import { parseHeldSlots, type HeldSlotsRows } from '@wildshard/format/heldArms';
+import { mountedLoadoutRows, bowVariantRows, heldSlotsRows as parseHeldSlots } from '@wildshard/sdk/rows';
 
 /** Compile the original native arsenal order and reward identities to finite
  * held slot rows. No native owner, view builder or callable leaves this bake. */
-export function heldSlotRows(input:unknown,power:unknown):HeldSlotsRows {
-  const rows=parse(MountedLoadoutSchema,input),variant=parse(BowVariantSchema,power),page=rows.page;
+export function heldSlotRows(input:unknown,power:unknown):ReturnType<typeof parseHeldSlots> {
+  const rows=mountedLoadoutRows(input),variant=bowVariantRows(power),page=rows.page;
   if(page===undefined)throw new Error('Held slot bake requires its native firearm declaration');
   const order=page.order.map(id=>id==='sabre'?'blade':id==='spear'?'polearm':id==='rifle'?'firearm':id);
   return parseHeldSlots({version:1,id:'nalati.arsenal',bindAt:'equipment',pause:true,
