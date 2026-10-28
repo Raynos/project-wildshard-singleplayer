@@ -2,8 +2,8 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { parse } from 'valibot';
-import { HeldBowFileSchema } from '@wildshard/format/weaponProfiles';
-import { parseHeldBowFile } from './bowProfile';
+import { BowWeaponProfileSchema, HeldBowFileSchema } from '@wildshard/format/weaponProfiles';
+import { parseBowProfile, parseHeldBowFile } from './bowProfile';
 
 const original: unknown = JSON.parse(readFileSync('public/assets/nalati/baked/recurve-pool.json', 'utf8'));
 
@@ -17,4 +17,15 @@ test('author bow admission keeps strict missing and unknown field refusals', () 
   const { pool, ...missing } = admitted;
   expect(pool).toBeDefined();
   expect(() => parseHeldBowFile(missing)).toThrow();
+});
+
+test('author numeric bow policy retains complete tracked rows and strict refusals', () => {
+  const input: unknown = JSON.parse(readFileSync('src/shards/pine-hollow/data/bowProfile.json', 'utf8'));
+  const actual = parseBowProfile(input);
+  expect(actual).toEqual(parse(BowWeaponProfileSchema, input));
+  for (const invalid of [{ ...actual, quiver: Number.NaN }, { ...actual, callback: () => undefined },
+    { ...actual, flight: { ...actual.flight, gravity: Number.POSITIVE_INFINITY } }]) {
+    expect(() => parseBowProfile(invalid)).toThrow();
+    expect(() => parse(BowWeaponProfileSchema, invalid)).toThrow();
+  }
 });

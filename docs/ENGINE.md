@@ -4730,6 +4730,10 @@ SF81 Nine portal stages: walkInRide uses the admitted nine.portal-ride DirectorS
 SF85 WP1: `@wildshard/format/weaponProfiles` defines JSON-only, bounded melee/swept, bow, firearm and thrown numeric profiles. An item may attach `profile` with a matching family (`swept` consumes `melee`); absent profiles retain their exact pre-existing rows. `ItemFamily.profiles` explicitly admits supported profile kinds, and `installDeclaredItems` refuses unsupported profiles before calling icons, allocating a scope or constructing a controller. The admitted data reaches the native constructor through `ItemFamilyPorts.profile`. Contact, aim, wind, targets, RNG, inventory, clocks and rendering remain the existing native owners. This contract alone does not migrate a native weapon.
 
 
+Build-only numeric bow policy is admitted by `sdk/weapons/bowProfile.parseBowProfile`;
+`sdk/weapons/firearmRows.parseFirearmProfile` owns the equivalent firearm grammar.
+Their return types retain the original authored profile contracts without a view service.
+
 SF85 WP2 bows: Pine and Nalati declare numeric bow profiles in data/bowProfile.ts and attach them to their shared bow item family. The existing Bow/BowDraw reads those clocks, draw/fatigue, cone, muzzle, quiver, speed/damage and projectile integration numbers; original defaults remain exact for callers without authored parameters. Page views, mounted/reward modifiers, native body queries, weather, random stream and pickup law retain their original owners. Pine’s renderer-free installer reads its admitted item profile; its isolated native fixtures use the same authored default. A prebuilt page bow refuses a different profile at adoption. No second weapon, body, model or input owner is constructed.
 
 SF85 WP-2: Pine's lever rifle reads a `firearm` profile with its explicit per-round lever clocks. The local `parseLeverProfile` refuses other actions/delivery, unhosted bloom and inconsistent cycle intervals before install. The existing page action and native host consume the same authored row; body queries, target damage, aim, RNG, chamber/gate order and restore remain their native owners. View rigs are unchanged.

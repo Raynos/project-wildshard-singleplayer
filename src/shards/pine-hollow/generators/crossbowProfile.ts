@@ -1,5 +1,4 @@
-import type * as v from 'valibot';
-import type { FirearmWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
+import type { parseFirearmProfile } from '@wildshard/sdk/weapons/firearmRows';
 
 /** The native single-bolt rail, quiver, reload clock and physical flight. Range is the host's fixed world boundary, not hitscan reach. */
 export const CROSSBOW_WEAPON_PROFILE: { family: "firearm"; action: "bolt"; magazine: number; reserve: number; interval: number; reload: number; reloadMode: "single"; autoReload: number; damageScale: number; range: number; spreadAds: number; spreadHip: number; spreadRadius: "linear"; spreadAxisScale: 2; bloomShot: number; bloomMax: number; movingSpread: number; movingAimReduction: number; projectile: { kind: "bolt"; delivery: "flight"; speed: number; radius: number; muzzle: number; flight: { gravity: number; drag: number; windCoupling: number; }; pool: number; substeps: number; lifetime: number; }; } = {
@@ -9,4 +8,4 @@ export const CROSSBOW_WEAPON_PROFILE: { family: "firearm"; action: "bolt"; magaz
   bloomShot: 0, bloomMax: 0, movingSpread: 0, movingAimReduction: 0,
   projectile: { kind: 'bolt', delivery: 'flight', speed: 62, radius: 0.03, muzzle: 0.35,
     flight: { gravity: 9.8, drag: 0.012, windCoupling: 0 }, pool: 8, substeps: 4, lifetime: 12 },
-} satisfies v.InferOutput<typeof FirearmWeaponProfileSchema>;
+} satisfies ReturnType<typeof parseFirearmProfile>;
