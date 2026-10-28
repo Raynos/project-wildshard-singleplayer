@@ -45,6 +45,14 @@ test('proof-only native physics stays byte-exact and out of the entered warm', (
   for (const [path, bytes] of nalatiEnvelope.output.platform?.files ?? []) {
     if (path.startsWith('sections/')) collect(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)) as unknown);
   }
+  // A future client JSON book must not silently turn a proof-only buffer into
+  // an entered input while its authoring hint still excludes the initial warm.
+  for (const file of nalatiEnvelope.output.namedFiles ?? []) {
+    if (file.kind !== 'json') continue;
+    const bytes = nalatiEnvelope.assets.get(file.hash);
+    if (bytes === undefined) throw new Error(`Missing admitted named JSON: ${file.name ?? file.hash}`);
+    collect(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)) as unknown);
+  }
   for (const [name, hash] of expected) {
     expect(references.has(name), name).toBe(false);
     expect(references.has(hash), name).toBe(false);
