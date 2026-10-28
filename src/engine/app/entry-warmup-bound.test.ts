@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { Scope } from './scope';
 import { installScopeEnvironment, scopeEnvironment, type ScopeEnvironment } from './scopeEnvironment';
-import { boundEntryWarmup, EntryWarmupStallError } from '../render/entryWarmupBound';
+import { boundEntryWarmup, EntryContentStallError, EntryWarmupStallError } from '../render/entryWarmupBound';
 import { waitForDrawnFrame } from '../render/precompile';
 
 /** A hand-driven rAF: `frame(ms)` advances the clock and runs every queued callback once. */
@@ -111,5 +111,49 @@ describe('entered-frame warm-up bound', () => {
     await expect(boundEntryWarmup(owner, () => 1, () => 'streamed-scene-roots', () => { throw new Error('bad material'); }))
       .rejects.toThrow('bad material');
     owner.dispose();
+  });
+
+  // D196: a destination's hooks (kit / afterKit / play, network-bound) took 24.4 s of a Fast4G Pine entry's 30 s warm-up
+  // bound, and the deadline landed in parked-draws with frames flowing
+  const content = { ...limits, contentMs: 6000 };
+  it('a slow content wait no longer spends the warm-up\'s own bound, which starts fresh once the content is in', async () => {
+    const frames = manualFrames(), owner = new Scope('owner');
+    let drawn = 1, start: () => void = () => undefined, finish: () => void = () => undefined;
+    const run = settled(boundEntryWarmup(owner, () => drawn, () => 'parked-draws', (_current, startWarm) => new Promise<void>(resolve => {
+      start = startWarm; finish = resolve; }), content));
+    for (let i = 0; i < 200; i++) { drawn++; frames.frame(16); } // 3.2 s of content: past the 2 s warm bound
+    start();
+    for (let i = 0; i < 100; i++) { drawn++; frames.frame(16); } // 1.6 s of warm-up: inside a fresh 2 s
+    finish();
+    expect((await run).error).toBeUndefined();
+  });
+
+  it('the warm-up bound still holds after the content arrives', async () => {
+    const frames = manualFrames(), owner = new Scope('owner');
+    let drawn = 1, start: () => void = () => undefined;
+    const run = settled(boundEntryWarmup(owner, () => drawn, () => 'parked-draws', (_current, startWarm) => { start = startWarm; return never(); }, content));
+    for (let i = 0; i < 200; i++) { drawn++; frames.frame(16); }
+    start();
+    for (let i = 0; i < 200; i++) { drawn++; frames.frame(16); }
+    const { error } = await run;
+    expect(error).toBeInstanceOf(EntryWarmupStallError); expect(error).not.toBeInstanceOf(EntryContentStallError);
+    expect(String(error)).toMatch(/warm-up stalled in parked-draws: over 2000 ms/u);
+  });
+
+  it('a content wait that never ends is named by its own network-time bound', async () => {
+    const frames = manualFrames(), owner = new Scope('owner');
+    let drawn = 1;
+    const run = settled(boundEntryWarmup(owner, () => drawn, () => 'before-warm', () => never(), content));
+    for (let i = 0; i < 400; i++) { drawn++; frames.frame(16); }
+    const { error } = await run;
+    expect(error).toBeInstanceOf(EntryContentStallError);
+    expect(String(error)).toMatch(/content stalled in before-warm: over 6000 ms/u);
+  });
+
+  it('the no-frame guard holds during the content wait', async () => {
+    const frames = manualFrames(), owner = new Scope('owner');
+    const run = settled(boundEntryWarmup(owner, () => 3, () => 'before-warm', () => never(), content));
+    for (let i = 0; i < 40; i++) frames.frame(16);
+    expect(String((await run).error)).toMatch(/stalled in before-warm: no drawn frame/u);
   });
 });

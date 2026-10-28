@@ -46,7 +46,7 @@ import { frameCost } from './frameCost';
 import { diagnosticNow } from './clock';
 import { buildHeld, heldDrawDeferred, noteFrameDrawn } from './framePacing';
 import { isDev } from './devMode';
-import { boundEntryWarmup } from '../render/entryWarmupBound';
+import { boundEntryWarmup, ENTRY_CONTENT_MS, ENTRY_NO_FRAME_MS, ENTRY_WARMUP_MS } from '../render/entryWarmupBound';
 import { dropOutputDepth, installMemorySaver, shadowLights } from '../render/memorySaver';
 import { dropShadowColour } from '../world/shadowVariants';
 import { recordGpuCheckpoint, traceBootPasses } from '../boot/gpuTrace';
@@ -911,7 +911,10 @@ export class Game {
     // silent hang. `current` turns false with the bound, so the abandoned stages stop at their next check.
     const enter = (phase: string): void => { trace.phase = phase; trace.progress = null; };
     const stage = (): string => { const last = trace.stages.at(-1); return last === undefined ? trace.phase : `${trace.phase} (after ${last.phase})`; };
-    await boundEntryWarmup(owner, () => this.frameCount, stage, async current => {
+    // D196: with a `before` (the destination's hooks and their reads, network-bound) the 30 s warm-up clock starts when it
+    // resolves; the wait itself has its own named content bound, and the no-frame guard holds throughout
+    const limits = { noFrameMs: ENTRY_NO_FRAME_MS, totalMs: ENTRY_WARMUP_MS, ...(before === undefined ? {} : { contentMs: ENTRY_CONTENT_MS }) };
+    await boundEntryWarmup(owner, () => this.frameCount, stage, async (current, startWarm) => {
       if (before !== undefined) {
         await before(async (roots, exteriorPrograms = true) => {
           const started = diagnosticNow();
@@ -930,6 +933,7 @@ export class Game {
         });
         if (!current()) throw new Error('Shader warm-up owner left');
         enter('post-preparation');
+        startWarm();
       }
       for (;;) {
         const pending = this.postPreparation;
@@ -939,7 +943,7 @@ export class Game {
       }
       enter('shaders-and-composer');
       await this.warmEnteredStages(owner, composer, trace, current, futureRoot, enter, arrival);
-    });
+    }, limits);
   }
 
   /** Early roots use the enclosing entry's bound; they cannot renew its deadline or publish readiness. */

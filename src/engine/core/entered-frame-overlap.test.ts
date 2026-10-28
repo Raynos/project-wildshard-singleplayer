@@ -8,7 +8,7 @@ import { runInNewContext } from 'node:vm';
 import { DataTexture, Group, Scene, Vector3, type Object3D } from 'three';
 import { Scope } from '../app/scope';
 import { installScopeEnvironment, scopeEnvironment } from '../app/scopeEnvironment';
-import { boundEntryWarmup } from '../render/entryWarmupBound';
+import { boundEntryWarmup, ENTRY_CONTENT_MS, ENTRY_NO_FRAME_MS, ENTRY_WARMUP_MS } from '../render/entryWarmupBound';
 
 const original = scopeEnvironment();
 afterEach(() => { installScopeEnvironment(original); });
@@ -29,7 +29,7 @@ function fixture(early: () => Promise<void> = () => Promise.resolve(), final: ()
   const start = source.indexOf('  async warmEnteredFrame('), end = source.indexOf('\n  private async ', start);
   if (start === -1 || end < start) throw new Error('Entered-frame method missing');
   const method: unknown = runInNewContext(stripTypeScriptTypes(`class Harness { ${source.slice(start, end)} }\nHarness.prototype.warmEnteredFrame`),
-    { boundEntryWarmup, diagnosticNow: () => 0 });
+    { boundEntryWarmup, ENTRY_CONTENT_MS, ENTRY_NO_FRAME_MS, ENTRY_WARMUP_MS, diagnosticNow: () => 0 });
   if (typeof method !== 'function') throw new Error('Entered-frame method is not callable');
   const owner = new Scope('overlap'), root = new Group(), scene = new Scene();
   const calls: string[] = [];
@@ -81,7 +81,9 @@ test('page programs overlap content without drawing or replacing the final inven
   } finally {content.resolve(); f.owner.dispose(); await observed;}
 });
 
-test.each(['roots', 'page'])('%s preparation and final preparation share the original total deadline', async mode => {
+// D196: the content wait (the destination's network-bound hooks) no longer spends the warm-up's 30 s; the final warm-up
+// gets its own 30 s once the content is in
+test.each(['roots', 'page'])('%s preparation waits for content, then the final warm-up has its own total deadline', async mode => {
   const prepared = deferred(), content = deferred(), final = deferred(), enteredFinal = deferred();
   const f = fixture(() => prepared.promise, () => { enteredFinal.resolve(); return final.promise; });
   const run = f.run(async (prepare, prepareFrame) => {
@@ -93,7 +95,9 @@ test.each(['roots', 'page'])('%s preparation and final preparation share the ori
     prepared.resolve(); content.resolve();
     expect(await Promise.race([enteredFinal.promise.then(() => 'final'), observed])).toBe('final');
     for (let i = 0; i < 185; i++) f.frame();
-    expect(String(await observed)).toMatch(/stalled in shaders-and-composer.*over 30000 ms/u);
+    expect(await Promise.race([observed, new Promise(resolve => { setTimeout(() => { resolve('pending'); }, 0); })])).toBe('pending');
+    for (let i = 0; i < 120; i++) f.frame();
+    expect(String(await observed)).toMatch(/warm-up stalled in shaders-and-composer.*over 30000 ms/u);
     expect(f.current()).toBe(false);
   } finally { prepared.resolve(); content.resolve(); final.resolve(); f.owner.dispose(); await observed; }
 });
