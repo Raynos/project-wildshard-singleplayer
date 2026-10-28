@@ -11,6 +11,9 @@ export class ClientAssets {
   private readonly wire: Map<string, Uint8Array>;
   private readonly pending = new Map<string, Promise<Uint8Array>>();
   private readonly packs = new Map<string, Promise<Uint8Array>>();
+  // A demand belongs to exactly one live envelope (null means direct fetch).
+  // Its original read releases the assignment, including cache hits/refusals.
+  private readonly packedDemands = new Map<string, { readonly start: number; readonly wire: Promise<Uint8Array> } | null>();
   private readonly source: Shardfile;
   private readonly options: ProductOptions;
   // The admitted source's files by hash, built on the first lease (every tile scope leases its closure at boot).
@@ -43,7 +46,7 @@ export class ClientAssets {
     const read = this.readReleased(ref, file?.compressed ?? this.source.requires.commonsWire[ref.replace(/^commons:/u, '')] ?? 0, priority);
     this.pending.set(ref, read);
     try { return await read; }
-    finally { this.pending.delete(ref); }
+    finally { this.pending.delete(ref); this.packedDemands.delete(ref); }
   }
   private async readReleased(ref: string, cap: number, priority?: 'low'): Promise<Uint8Array> {
     const hash = ref.replace(/^commons:/u, ''), base = new URL('.', this.options.base).href;
@@ -92,16 +95,25 @@ export class ClientAssets {
     const member = pack?.entries.find(entry => entry.hash === ref);
     if (pack === undefined || member === undefined) return undefined;
     if (member.bytes !== cap) throw new Error('Resident packed member size mismatch');
+    const claimed = this.packedDemands.get(ref);
+    if (claimed === null) return undefined;
+    if (claimed !== undefined) {
+      const offset = member.offset - claimed.start;
+      return (await claimed.wire).slice(offset, offset + member.bytes);
+    }
     // Cache awaits above admit the caller's current read-ahead wave before this
     // snapshot. Only contiguous demanded members may share a partial envelope.
     const index = pack.entries.indexOf(member);
     let first = index, last = index;
-    while (first > 0 && this.pending.has(pack.entries[first - 1]?.hash ?? '')) first--;
-    while (last + 1 < pack.entries.length && this.pending.has(pack.entries[last + 1]?.hash ?? '')) last++;
+    const available = (hash: string): boolean => this.pending.has(hash) && !this.packedDemands.has(hash);
+    while (first > 0 && available(pack.entries[first - 1]?.hash ?? '')) first--;
+    while (last + 1 < pack.entries.length && available(pack.entries[last + 1]?.hash ?? '')) last++;
     const whole = first === 0 && last === pack.entries.length - 1;
     const left = pack.entries[first], right = pack.entries[last];
     if (left === undefined || right === undefined) throw new Error('Resident packed member missing');
-    if (!whole && (first === last || this.options.fetchRange === undefined)) return undefined;
+    if (!whole && (first === last || this.options.fetchRange === undefined)) {
+      this.packedDemands.set(ref, null); return undefined;
+    }
     const start = left.offset, end = right.offset + right.bytes - 1, size = end - start + 1;
     const key = `${pack.hash}:${start}-${end}`;
     let pending = this.packs.get(key);
@@ -124,6 +136,11 @@ export class ClientAssets {
         return wire;
       })();
       this.packs.set(key, pending);
+    }
+    const envelope = { start, wire: pending };
+    for (let i = first; i <= last; i++) {
+      const entry = pack.entries[i];
+      if (entry !== undefined) this.packedDemands.set(entry.hash, envelope);
     }
     try {
       const offset = member.offset - start;

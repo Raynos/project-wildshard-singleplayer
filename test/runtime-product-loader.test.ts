@@ -1306,3 +1306,90 @@ test('fresh unpinned and external products retain ordinary source validation', a
     expect(admitted.assets.get(f.ref)).toEqual(f.blob); parse.mockRestore();
   }
 });
+
+async function packedDemandFixture() {
+  const bodies = [new Uint8Array([1, 2, 3]), ...[4, 6, 8, 10].map(n => new Uint8Array([n, n + 1]))];
+  const fWires = new Map<string, Uint8Array>();
+  const hashes = bodies.map(hashImmutableBytes), names = new Map(hashes.map((hash, i) => [hash, `models/demand-${i}.bin`]));
+  const f = fixture(false, source => {
+    for (const body of bodies.slice(1)) {
+      const hash = hashImmutableBytes(body);
+      source.files.push({ hash, kind: 'binary', compressed: body.length, decoded: body.length, gpu: 0, draws: 0, triangles: 0, dependencies: [], critical: false });
+      source.library.push(hash); source.budgets.library.compressed += body.length; source.budgets.library.resident += body.length;
+      fWires.set(`blobs/bin/${hash}.bin`, body);
+    }
+    return new Map();
+  }, names);
+  for (const [path, body] of fWires) f.wires.set(path, body);
+  const wire = new Uint8Array(bodies.reduce((n, body) => n + body.length, 0));
+  let offset = 0;
+  const entries = bodies.map(body => { const row = { hash: hashImmutableBytes(body), offset, bytes: body.length }; wire.set(body, offset); offset += body.length; return row; });
+  const pack = { path: `blobs/pack/${hashImmutableBytes(wire)}.pack`, hash: hashImmutableBytes(wire), bytes: wire.length, entries };
+  const index = parseOutputIndex({ ...f.index, packs: [pack] });
+  const resolved = await resolveOutputDescriptor(index, { offline: false, hash: f.options.hash,
+    read: path => { const body = f.wires.get(path); if (body === undefined) throw new Error('Missing demand section'); return Promise.resolve(body); } });
+  const source = schema.parseShardfile(resolved); carryOutputDescriptor(resolved, source);
+  return { ...f, bodies, hashes, pack, wire, source };
+}
+function demandGate<T>() {
+  let finish: (value: T) => void = () => { throw new Error('Demand gate not initialized'); };
+  const promise = new Promise<T>(resolve => { finish = resolve; });
+  return { promise, resolve: finish };
+}
+
+test('growing packed demand waves claim disjoint envelopes and release them after use', async () => {
+  const f = await packedDemandFixture(), first = demandGate<undefined>(), second = demandGate<undefined>(), release = demandGate<undefined>();
+  const ranges: [number, number][] = [];
+  const fetchRange: NonNullable<ProductOptions['fetchRange']> = async (_url, start, end) => {
+    ranges.push([start, end]); (ranges.length === 1 ? first : second).resolve(undefined);
+    await release.promise;
+    return new Response(Uint8Array.from(f.wire.slice(start, end + 1)), { status: 206, headers: { 'content-range': `bytes ${start}-${end}/${f.wire.length}` } });
+  };
+  const reader = new ClientAssets(f.source, new Map(), { ...f.options, fetchRange });
+  const [a, b, c, d] = f.hashes;
+  if (a === undefined || b === undefined || c === undefined || d === undefined) throw new Error('Missing demand hashes');
+  const early = [reader.read(a), reader.read(b)]; await first.promise;
+  const later = [reader.read(c), reader.read(d)]; await second.promise;
+  release.resolve(undefined);
+  expect(await Promise.all([...early, ...later])).toEqual(f.bodies.slice(0, 4));
+  expect(ranges).toEqual([[0, 4], [5, 8]]);
+  expect(await Promise.all([reader.read(a), reader.read(b)])).toEqual(f.bodies.slice(0, 2));
+  expect(ranges).toEqual([[0, 4], [5, 8], [0, 4]]);
+  expect(reader.retained.size).toBe(0);
+});
+
+test('a packed wave cannot fetch an already started direct borrower again', async () => {
+  const f = await packedDemandFixture(), direct = demandGate<undefined>(), range = demandGate<undefined>(), release = demandGate<undefined>();
+  const [a, b, c] = f.hashes;
+  if (a === undefined || b === undefined || c === undefined) throw new Error('Missing demand hashes');
+  const ranges: [number, number][] = [];
+  const fetch = vi.fn(async (url: string) => { direct.resolve(undefined); await release.promise; return f.options.fetch(url); });
+  const fetchRange: NonNullable<ProductOptions['fetchRange']> = async (_url, start, end) => {
+    ranges.push([start, end]); range.resolve(undefined); await release.promise;
+    return new Response(Uint8Array.from(f.wire.slice(start, end + 1)), { status: 206, headers: { 'content-range': `bytes ${start}-${end}/${f.wire.length}` } });
+  };
+  const reader = new ClientAssets(f.source, new Map(), { ...f.options, fetch, fetchRange });
+  const initial = reader.read(a); await direct.promise;
+  const later = [reader.read(b), reader.read(c)]; await range.promise; release.resolve(undefined);
+  expect(await Promise.all([initial, ...later])).toEqual(f.bodies.slice(0, 3));
+  expect(ranges).toEqual([[3, 6]]); expect(fetch).toHaveBeenCalledTimes(1);
+});
+
+test.each(['hash', 'short', 'range'] as const)('failed packed demand %s releases every assignment before retry', async mode => {
+  const f = await packedDemandFixture(), ranges: [number, number][] = [];
+  const [a, b] = f.hashes;
+  if (a === undefined || b === undefined) throw new Error('Missing demand hashes');
+  let bad = true;
+  const fetchRange: NonNullable<ProductOptions['fetchRange']> = (_url, start, end) => {
+    ranges.push([start, end]); let wire = Uint8Array.from(f.wire.slice(start, end + 1));
+    if (bad && mode === 'hash') wire[0] = 99;
+    if (bad && mode === 'short') wire = wire.slice(0, -1);
+    return Promise.resolve(new Response(wire, { status: 206, headers: { 'content-range': bad && mode === 'range' ? 'bytes 0-0/1' : `bytes ${start}-${end}/${f.wire.length}` } }));
+  };
+  const reader = new ClientAssets(f.source, new Map(), { ...f.options, fetchRange });
+  const first = await Promise.allSettled([reader.read(a), reader.read(b)]);
+  expect(first[0]?.status).toBe('rejected');
+  bad = false;
+  expect(await Promise.all([reader.read(a), reader.read(b)])).toEqual(f.bodies.slice(0, 2));
+  expect(ranges).toEqual([[0, 4], [0, 4]]); expect(reader.retained.size).toBe(0);
+});
