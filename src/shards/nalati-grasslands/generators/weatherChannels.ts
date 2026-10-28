@@ -1,5 +1,7 @@
-import {ClientChannels} from '@wildshard/sdk/clientChannels';
-import {parseClientChannels,CLIENT_CHANNEL_LIMITS,type ClientChannelProgram} from '@wildshard/format/clientChannels';
+import {ClientChannels,clientChannelLimits} from '@wildshard/sdk/clientChannels';
+import {parseClientChannels,type ClientChannelProgram} from '@wildshard/sdk/rows';
+
+const CLIENT_CHANNEL_LIMITS = clientChannelLimits();
 
 type Expr=number|string|readonly [Op,...Expr[]];
 type Op='+'|'-'|'*'|'/'|'min'|'max'|'gt'|'if'|'lerp'|'ss';

@@ -1,6 +1,6 @@
 import { NALATI_ECOLOGY as ecology } from './ecology.mjs';
 import { COVER_FLOCKS } from './coverBake.mjs';
-import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
+import { explorerCatalogueRows as parseExplorerCatalogue } from '@wildshard/sdk/rows';
 import PEOPLE from '../data/peopleVariants.json' with {type:'json'};
 import { peopleRows } from './peopleRows.mjs';
 import mountedSpecimen from '../data/mountedSpecimen.json' with {type:'json'};

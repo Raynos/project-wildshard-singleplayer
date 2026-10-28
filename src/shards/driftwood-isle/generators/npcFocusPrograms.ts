@@ -2,7 +2,7 @@
 // glance and gesture look, compiled from each NPC's profile (npcFocus.ts) for game/systems/npc/kitFigure, which fills
 // owner `focus` natively each frame and keeps the pose in owner `figure` (Nalati's camp people move the same way).
 import { ClientChannels } from '@wildshard/sdk/clientChannels';
-import { parseClientChannels, type ClientChannelProgram } from '@wildshard/format/clientChannels';
+import { parseClientChannels, type ClientChannelProgram } from '@wildshard/sdk/rows';
 import { CASTAWAY_FACING, CASTAWAY_HEAD_FOCUS, TRADER_FACING, TRADER_HEAD_FOCUS } from './npcFocus';
 
 interface Facing { readonly range: number; readonly rate: number; readonly maxSpeed?: number; readonly wrapTarget?: boolean; readonly wrapOutput?: boolean }

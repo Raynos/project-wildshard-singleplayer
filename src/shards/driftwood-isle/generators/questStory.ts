@@ -6,9 +6,11 @@
  * `dead:captain` on the kills, `seen:reward` after the reward view).
  */
 import { SHARD_FLAGS } from './interactables';
-import { parseNpcDialogueRow , type NpcDialogueRow as NpcDialogueRowType } from '@wildshard/format/npcs';
+import { parseNpcDialogueRow } from '@wildshard/sdk/questGraph';
 import type { QuestData } from '@wildshard/sdk/quests';
 import { QUEST_DONE } from './questConstants';
+
+type NpcDialogueRowType = ReturnType<typeof parseNpcDialogueRow>;
 
 type DeclaredQuest = QuestData['quests'][number];
 type DeclaredMarker = NonNullable<DeclaredQuest['steps'][number]['markers']>[number];

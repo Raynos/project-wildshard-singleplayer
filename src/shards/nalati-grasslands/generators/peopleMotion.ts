@@ -1,7 +1,7 @@
 import frames from '../data/peopleFrames.json' with { type: 'json' };
 import motions from '../data/peopleMotion.json' with { type: 'json' };
 import { ClientChannels } from '@wildshard/sdk/clientChannels';
-import { parseClientChannels, type ClientChannelProgram } from '@wildshard/format/clientChannels';
+import { parseClientChannels, type ClientChannelProgram } from '@wildshard/sdk/rows';
 
 type Expr = number | string | readonly [string, ...Expr[]];
 const add = (a: Expr, b: Expr): Expr => ['add', a, b], sub = (a: Expr, b: Expr): Expr => ['sub', a, b];
