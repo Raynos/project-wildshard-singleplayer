@@ -95,6 +95,11 @@ facing-back, stall and sky. Capture muted through `scripts/browser-lane.sh` as a
 - **B-back gold sign: not a regression.** Three runs at `a0ea22591f` (two live 7.5 s series at 4 frames a second, and the
   nine-view capture) hold it steady and bright in both modes (luma 179 LEGACY, 172-173 SHARDFILE). The earlier dim
   frames were Chromium-only and in LEGACY too: a capture-timing artifact, not SHARDFILE.
+- **NR6 rain: done, no rain change.** At `ded7bfb272`, camera B, 8 frames each way on Chromium and WebKit: the strokes
+  match (frame-to-frame stroke contrast 24.5 / 24.9 LEGACY, 25.9 / 25.8 SHARDFILE; same length, angle and density). The
+  drizzle reads stronger only because the street behind it is darker and has no haze (background luma 91 LEGACY,
+  69 SHARDFILE), so more faint tails show: that is B's haze (NR3), not the rain. Board
+  [17-nr6](../../../art/nine-dragon-stack/round-32-shardfile-regressions/17-nr6-board.jpg).
 
 ## Order
 
