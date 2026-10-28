@@ -4912,6 +4912,7 @@ The adapter supplies the existing pattern ports: the ram's live home and shared 
 ## Author schema discovery (OS-F3)
 
 `bake/species`, `bootInventory`, `rows`, `weapons/meleeProfile` and `formatJsonSchema` are offline APIs.
+`bootInventory.bootRecipeFiles` / `bootRecipeSources` resolve ordered author recipes against a required explicit inventory, GPU aliases and optional page/alias tables. Native transform order, duplicates, recursion/file limits and missing-metadata refusals remain; these functions never borrow the live page's inventory.
 `composeNamedJsonSchema` composes named roots, local Valibot leaves, objects and tuples; normal check refusals remain.
 
 The author CLI `wildshard schema list` lists format schemas and the shardfile declaration. `wildshard schema shardfile /properties` discovers all sections without Valibot internals. `schemaDeclaration` and `schemaAt` are defined in `@wildshard/sdk/formatJsonSchema`; discovery preserves native semantic checks and grants no admission. See [schema discovery](authoring/schema-discovery.md) for pointers, tuple arity, identifier grammars and installed declaration locations.
