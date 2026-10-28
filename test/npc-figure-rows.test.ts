@@ -13,6 +13,10 @@ import { Scope } from '../src/engine/app/scope';
 import { reachControl } from '../src/engine/boot/prefetch';
 import { ControlRefinement } from '../src/game/shardfile/controlRefinement';
 import { FigureCatalogue, type FigureSkinTiming } from '../src/game/models/figureCatalogue';
+import { modelContext, specimenReady } from '../src/engine/models/model';
+import { live } from '../src/engine/models/live';
+import { Rng } from '../src/engine/core/rng';
+import { SkyRig } from '../src/engine/world/skyRig';
 
 function row(): FigureRow {
   return v.parse(FigureRowSchema, { id: 'person', name: 'standing', feet: [2, 3, 4], yaw: 0.3,
@@ -235,4 +239,49 @@ test('a late figure inside the original draw distance still reads before control
     expect(near.colliders).toEqual(far.colliders); expect(near.group.position.toArray()).toEqual([1, 0, 1]);
     owner.dispose(); release(); await Promise.all([near.ready, far.ready]);
   } finally { owner.dispose(); release(); load.mockRestore(); }
+});
+
+test.each(['ready', 'retired', 'refused'] as const)('a late figure card prepares only its opened view: %s', async mode => {
+  const catalogueOwner = new Scope('figure-card-catalogue'), view = new Scope('figure-card-view');
+  const handles = resources(), catalogue = new FigureCatalogue(), skin = skins.trader.phone;
+  handles.publish('0', handles.geometry('body'));
+  const spec = { ...row(), skin: { ...skin, late: true, surface: { name: 'coat', roughness: .85, metalness: 0, normalScale: [1, -1] } } };
+  const hand = new THREE.Bone(); hand.name = 'handR';
+  const mesh = new THREE.SkinnedMesh(new THREE.BoxGeometry(), new THREE.MeshStandardMaterial()); mesh.add(hand); mesh.bind(new THREE.Skeleton([hand]));
+  const rig: FigureRig = { mesh, handR: hand, handAt: new THREE.Vector3(), height: 1.8, lanternAt: null, walkSpeed: .72, walkCycle: .72, pose: () => undefined };
+  let release = (): void => undefined;
+  const refusal = new Error('Original cold figure source refusal');
+  const prepare = vi.spyOn(FigureRows, 'prepareSkins').mockImplementation(async selected => {
+    if (selected.length === 0) return;
+    await new Promise<void>(resolve => { release = resolve; });
+    if (mode === 'refused') throw refusal;
+  });
+  const load = vi.spyOn(FigureSkins.prototype, 'load').mockResolvedValue({ rig: { geometry: mesh.geometry, rest: [], height: 1.8, y0: 0,
+    lantern: null, ball: [new THREE.Vector3(), new THREE.Vector3()], walkSpeed: .72, walkCycle: .72, webs: skin.webs }, map: null, normalMap: null });
+  const makeRig = vi.spyOn(FigureSkins.prototype, 'rig').mockReturnValue(rig);
+  const material = vi.spyOn(SkyRig.prototype, 'setupMaterial').mockImplementation(() => undefined);
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+  try {
+    await catalogue.admit({ material: { name: 'figure', roughness: .85, metalness: 0 }, figures: { person: {
+      phone: spec, desktop: spec, body: 0, card: { id: `test/late-figure-${mode}`, name: 'Person', file: 'test/npc-figure-rows.test.ts', pipeline: 'code' },
+    } } }, handles, catalogueOwner);
+    prepare.mockClear();
+    const model = catalogue.model('person');
+    expect(live(model).prepare).toBeUndefined(); expect(prepare).not.toHaveBeenCalled(); expect(load).not.toHaveBeenCalled();
+    expect(() => model.build(modelContext(SkyRig.prototype), {}, new Rng(1))).toThrow('view owner');
+    const root = view.run(() => model.build({ ...modelContext(SkyRig.prototype), specimenScope: view }, {}, new Rng(1)));
+    if (!(root instanceof THREE.Group)) throw new Error('Missing real cold specimen root');
+    const placeholder = root.children[0], ready = specimenReady(root);
+    const result = (async (): Promise<unknown> => { try { await ready; return undefined; } catch (error: unknown) { return error; } })();
+    expect(prepare).toHaveBeenCalledOnce(); expect(load).not.toHaveBeenCalled();
+    if (mode === 'retired') view.dispose();
+    release();
+    expect(await result).toBe(mode === 'refused' ? refusal : undefined);
+    expect(makeRig).toHaveBeenCalledTimes(mode === 'ready' ? 1 : 0);
+    if (mode === 'ready') { expect(root.children).not.toContain(placeholder); expect(root.getObjectById(mesh.id)).toBe(mesh); }
+    else expect(root.children).toEqual([placeholder]);
+    expect(warn).toHaveBeenCalledTimes(mode === 'refused' ? 1 : 0);
+  } finally {
+    view.dispose(); catalogueOwner.dispose(); prepare.mockRestore(); load.mockRestore(); makeRig.mockRestore(); material.mockRestore(); warn.mockRestore();
+  }
 });

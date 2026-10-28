@@ -10,6 +10,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { TIER } from '@wildshard/engine/core/tier';
 import { ResourceMemo } from '@wildshard/engine/app/cachedAssets';
 import { defineModel, announceModelReady, type ModelDef } from '@wildshard/engine/models/model';
+import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { FigureCatalogueSchema, type FigureCatalogueRow, type FigureRow } from '@wildshard/format/figures';
 import { FigureRows } from '../systems/npc/figureRows';
 import { SceneHandles } from '../shardfile/sceneHandles';
@@ -80,9 +81,24 @@ export class FigureCatalogue {
     const { row } = this.row(id);
     const card = row.card, skin = row[TIER].skin;
     if (card === undefined) throw new Error('Figure requires its declared Explorer card');
+    const late = skin?.late === true;
     return defineModel<object>({ ...card, category: 'people', surface: 'flesh',
-      defaults: {}, prepare: async () => { await FigureRows.prepareSkins(skin === undefined ? [] : [skin]); },
+      defaults: {}, ...(late ? { specimenLifetime: 'view' as const }
+        : { prepare: async () => { await FigureRows.prepareSkins(skin === undefined ? [] : [skin]); } }),
       build: ctx => {
+        if (late) {
+          const owner = ctx.specimenScope;
+          if (owner === undefined) throw new Error('Late figure specimen requires its view owner');
+          return loadingSpecimen(card.id, [1, 2, 1], async () => {
+            await FigureRows.prepareSkins(skin === undefined ? [] : [skin]);
+            if (owner.disposed || owner.disposing) throw new Error('Figure specimen owner left');
+            const fig = owner.run(() => this.create(id, new SceneHandles(ctx.sky), [0, 0, 0], 0, owner));
+            await fig.ready;
+            if (owner.disposed || owner.disposing) throw new Error('Figure specimen owner left');
+            fig.update(0, 0, nobody);
+            return fig.group;
+          }, owner);
+        }
         const fig = this.create(id, new SceneHandles(ctx.sky), [0, 0, 0], 0);
         fig.update(0, 0, nobody);
         void fig.ready.then(() => { if (fig.active) { fig.update(0, 0, nobody); announceModelReady(card.id); } return undefined; });
