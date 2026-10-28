@@ -4,6 +4,16 @@ import { Window } from 'happy-dom';
 import { phoneEngine } from '../scripts/parity/phone-route-runner.mjs';
 import { phoneRouteFailures, phoneRoutePlans, type PhoneReceipt, type PhoneObservation } from '../scripts/parity/phone-route.mjs';
 import { phoneTouchButton, phoneWallTarget } from '../scripts/parity/phone-route-page.mjs';
+import { phonePageTarget } from '../scripts/parity/phone-route-browser.mjs';
+
+test('native route selects its exact document instead of the older version probe',()=>{
+  const base='http://127.0.0.1:4403/',probe={url:`${base}version.json`,webSocketDebuggerUrl:'ws://localhost:9232/probe'},game={url:base,webSocketDebuggerUrl:'ws://localhost:9232/game'};
+  expect(phonePageTarget([probe,game],base)).toEqual(game);
+  expect(phonePageTarget([game,probe],probe.url)).toEqual(probe);
+  expect(phonePageTarget([probe],base)).toBeUndefined();
+  expect(phonePageTarget([{url:base,webSocketDebuggerUrl:7}],base)).toBeUndefined();
+  expect(phonePageTarget(null,base)).toBeUndefined();
+});
 
 test('wall locator admits the real steep plinth bevel but refuses walkable or disconnected upper surfaces',()=>{
   let upperNormal=.4735059772376924,upperDistance=5.598276735510306;

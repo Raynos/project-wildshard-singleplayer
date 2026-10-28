@@ -15,6 +15,18 @@ function value(result) {
   return 'value' in result.result ? result.result.value : undefined;
 }
 
+/** Select the actual requested Safari document, not its same-origin version
+ * probe or a previous game tab. @param {unknown} list @param {string} url */
+export function phonePageTarget(list,url) {
+  if (!Array.isArray(list)) return undefined;
+  /** @type {readonly unknown[]} */ const rows = list;
+  for (const row of rows) {
+    if (typeof row !== 'object' || row === null || !('url' in row) || row.url !== url || !('webSocketDebuggerUrl' in row) || typeof row.webSocketDebuggerUrl !== 'string') continue;
+    return {url,webSocketDebuggerUrl:row.webSocketDebuggerUrl};
+  }
+  return undefined;
+}
+
 /** Compose independently valid source statements before either browser executes them.
  * @param {string} paintScript */
 export function phoneBootstrap(paintScript) {
@@ -48,16 +60,15 @@ export async function openPhoneBrowser(engine, base, _out) {
   const sock = simctl(['getenv', udid, 'RWI_LISTEN_SOCKET']).trim();
   const proxy = spawn('ios_webkit_debug_proxy', ['-s', `unix:${sock}`, '-c', 'null:9221,:9232-9240'], { stdio:'ignore' });
   /** @type {Inspector|null} */ let inspector = null;
-  async function connect() {
+  async function connect(/** @type {string} */ url) {
     inspector?.close(); inspector = null;
     const deadline = Date.now() + 90000;
     while (Date.now() < deadline) {
       for (let port = 9232; port <= 9240; port++) {
         let list;
         try { list = /** @type {unknown} */ (await (await fetch(`http://127.0.0.1:${port}/json`, { signal: AbortSignal.timeout(500) })).json()); } catch { continue; }
-        if (!Array.isArray(list)) continue;
-        const found = list.find((/** @type {unknown} */ row) => typeof row === 'object' && row !== null && 'url' in row && typeof row.url === 'string' && row.url.startsWith(base));
-        if (typeof found !== 'object' || found === null || !('webSocketDebuggerUrl' in found) || typeof found.webSocketDebuggerUrl !== 'string') continue;
+        const found = phonePageTarget(list,url);
+        if (found === undefined) continue;
         inspector = soakInspector(found.webSocketDebuggerUrl);
         await inspector.opened;
         await inspector.waitForPageTarget(Math.max(0, Math.min(30000, deadline - Date.now())));
@@ -90,12 +101,13 @@ export async function openPhoneBrowser(engine, base, _out) {
   return { engine: 'simulator-safari', faults,
     async cold(url, paintScript) {
       spawnSync('xcrun', ['simctl','terminate',udid,'com.apple.mobilesafari'], { stdio:'ignore' });
-      simctl(['openurl',udid,new URL('/version.json',base).href]); await connect();
+      const probe = new URL('/version.json',base).href;
+      simctl(['openurl',udid,probe]); await connect(probe);
       await evaluate(`(async()=>{localStorage.clear();sessionStorage.clear();await Promise.all((await caches.keys()).map(key=>caches.delete(key)));await Promise.all((await navigator.serviceWorker.getRegistrations()).map(row=>row.unregister()));return true;})()`);
       if (inspector === null) throw new Error('Safari inspector unavailable');
       await inspector.send('Page.enable');
       await inspector.send('Page.setBootstrapScript', { source: phoneBootstrap(paintScript) });
-      simctl(['openurl',udid,url]); await connect();
+      simctl(['openurl',udid,url]); await connect(url);
     },
     async click(selector) {
       await raw(`(${phoneTouchButton.toString()})(${JSON.stringify(selector)})`);
