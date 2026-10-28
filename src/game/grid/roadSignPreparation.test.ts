@@ -39,24 +39,24 @@ test('one complete charged plane is handed to the matching layout and released',
     job.release(); expect(job.get(layout)).toBeUndefined(); expect(allocator.entries()).toEqual([]); expect(worker().terminated).toBe(1);
   } finally { scope.dispose(); }
 });
-test('retirement settles readiness, rejects late publication and clears the transient lease', async () => {
+test.each(['initial', 'outer'] as const)('retirement settles readiness, rejects late publication and clears the transient lease (%s)', async phase => {
   support(); const scope = new Scope('sign-retire'), allocator = new ResidencyAllocator(), layout = roadSignPaintLayout(signs);
-  const job = startRoadSigns(scope, allocator, 'home', signs); if (job === undefined) throw new Error('Missing preparation');
+  const job = startRoadSigns(scope, allocator, 'home', signs, phase); if (job === undefined) throw new Error('Missing preparation');
   const own = worker(); scope.dispose(); await job.ready;
   own.reply({ width: layout.width, height: layout.height, pixels: new Uint8Array(layout.width * layout.height * 2) });
   expect(job.get(layout)).toBeUndefined(); expect(allocator.entries()).toEqual([]); expect(own.terminated).toBe(1);
 });
-test('malformed coverage settles to the original painter without partial bytes', async () => {
+test.each(['initial', 'outer'] as const)('malformed coverage settles to the original painter without partial bytes (%s)', async phase => {
   support(); const scope = new Scope('sign-malformed'), allocator = new ResidencyAllocator(), layout = roadSignPaintLayout(signs);
-  const job = startRoadSigns(scope, allocator, 'home', signs); if (job === undefined) throw new Error('Missing preparation');
+  const job = startRoadSigns(scope, allocator, 'home', signs, phase); if (job === undefined) throw new Error('Missing preparation');
   try { worker().reply({ width: layout.width, height: layout.height, pixels: new Uint8Array(2) }); await job.ready;
     expect(job.get(layout)).toBeUndefined(); expect(worker().terminated).toBe(1); expect(allocator.entries()).toEqual([]);
   } finally { scope.dispose(); }
 });
-test('unsupported hosts allocate no worker or retained plane', () => {
+test.each(['initial', 'outer'] as const)('unsupported hosts allocate no worker or retained plane (%s)', phase => {
   Object.defineProperty(globalThis, 'Worker', { value: undefined, configurable: true, writable: true });
   const scope = new Scope('sign-unsupported'), allocator = new ResidencyAllocator();
-  try { expect(startRoadSigns(scope, allocator, 'home', signs)).toBeUndefined(); expect(allocator.entries()).toEqual([]); expect(workers).toEqual([]); }
+  try { expect(startRoadSigns(scope, allocator, 'home', signs, phase)).toBeUndefined(); expect(allocator.entries()).toEqual([]); expect(workers).toEqual([]); }
   finally { scope.dispose(); }
 });
 test('layout keeps unique line order, last matching row, slots and exact non-power-of-two height', () => {
