@@ -1,7 +1,7 @@
 /** Native card snapshots over the same fixed geometry and rest scenes as the entered people. */
 import { Box3, BufferGeometry, Group, Material, Mesh, MeshBasicMaterial, type Object3D, Vector3 } from 'three';
 import { createClientScene } from '@wildshard/game/plugin/scene';
-import { FigureRows } from '@wildshard/game/systems/npc/figureRows';
+import { figureColliderRows } from '@wildshard/sdk/bake/placement';
 import { worldSceneModels as parseWorldSceneModels, worldSceneWeldRows as parseWorldSceneWeld } from '@wildshard/sdk/worldScenes';
 
 import { FIGURE_CATALOGUE } from './figureCatalogue';
@@ -73,7 +73,7 @@ export function nativeSpecimenCatalogue(geometry: ReadonlyMap<string, BufferGeom
       [{ kind: 'box', x: 0, y: COUNTER_TOP.y / 2, z: 0, hx: COUNTER_TOP.w / 2, hy: COUNTER_TOP.y / 2, hz: COUNTER_TOP.d / 2 + 0.02 }], { geometry: 'tradeCounter', material: 'still' });
     const kit = (rows: Readonly<Record<string, string>>): Map<string, BufferGeometry> => new Map(Object.entries(rows).map(([part, slot]) => [part, get(slot)]));
     const trader = createClientScene(TRADER_SCENE, { geometry: kit(groups.trader), materials: new Map([['coat', coat]]) }).root;
-    add('trader', 'trader', 'The trader', 'people', 'flesh', trader, {}, undefined, FigureRows.collidersFor(FIGURE_CATALOGUE.figures['trader']?.phone));
+    add('trader', 'trader', 'The trader', 'people', 'flesh', trader, {}, undefined, figureColliderRows(FIGURE_CATALOGUE.figures['trader']?.phone));
     return parseWorldSceneModels({ product: 'driftwood-isle', models });
   } finally { coat.dispose(); still.dispose(); }
 }
