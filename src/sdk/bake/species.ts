@@ -8,7 +8,11 @@ import { BOAR } from '@wildshard/game/systems/species/boar';
 import { BEAR_LOOK } from '@wildshard/game/systems/species/view/bear';
 import { BOAR_LOOK } from '@wildshard/game/systems/species/view/boar';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
+import type { SpeciesDef } from '@wildshard/engine/entities/species/registry';
 import { readSpecies, SpeciesSchema, type SpeciesData } from '@wildshard/format/speciesPrograms';
+
+/** Complete authored gameplay, fur, variant and rig policy before an owned body builder is attached. */
+export type AuthorSpeciesRows = Omit<SpeciesDef, 'build'>;
 
 /** Build-only extraction of gameplay fields from a resolved species. Visual variants stay with their look;
  * a species with native think/act callbacks refuses instead of silently discarding its behaviour. */

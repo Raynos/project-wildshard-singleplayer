@@ -1,8 +1,7 @@
 // The red deer's rows (moved from the engine's species folder, E405 LAYER-PURITY; out of the kit, SF54). Only Pine Hollow
 // spawns it, on its rigged hulls (src/shards/pine-hollow/species/looks.ts registers the row and look); its procedural lofts
 // are Pine's offline rig input (src/shards/pine-hollow/generators/creatureLofts.ts, sp-o194).
-import type { SpeciesDef } from '@wildshard/engine/entities/species/registry';
-import type { RGB } from '@wildshard/sdk/bake/species';
+import type { AuthorSpeciesRows, RGB } from '@wildshard/sdk/bake/species';
 
 /**
  * Deer — red-deer proportions: 0.92 m at the spine, long neck, stags carry a 6-point rack.
@@ -30,7 +29,7 @@ const GHOST_TINT: Record<string, RGB> = {
 
 
 /** The deer's rows and look fields; the body (`build`) is the look's (Pine: the baked hull body, species/bodies.ts). */
-export const DEER: Omit<SpeciesDef, 'build'> = {
+export const DEER: AuthorSpeciesRows = {
   rigContract: { skeleton: 'quadruped.v1', clips: [], sockets: ['body', 'head'] },
   kind: 'deer',
   trampleRadius: 0.5,

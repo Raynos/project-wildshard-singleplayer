@@ -1,8 +1,7 @@
 // The elk's rows (moved from the engine's species folder, E405 LAYER-PURITY; out of the kit, SF54). Only Pine Hollow
 // spawns it, on its rigged hulls, with its own spawn-only thrall (src/shards/pine-hollow/species/rows.ts); its procedural
 // lofts are Pine's offline rig input (src/shards/pine-hollow/generators/creatureLofts.ts, sp-o194).
-import type { SpeciesDef } from '@wildshard/engine/entities/species/registry';
-import type { bakeSpecies, RGB } from '@wildshard/sdk/bake/species';
+import type { bakeSpecies, AuthorSpeciesRows, RGB } from '@wildshard/sdk/bake/species';
 
 /**
  * Elk (wapiti) — a much bigger beast than the deer: 1.5 m at the shoulder, ~2.4 m of body, a heavy neck
@@ -52,7 +51,7 @@ export const ELK_TUNING: NonNullable<ReturnType<typeof bakeSpecies>['tuning']> =
 };
 
 /** The elk's rows and look fields; the body (`build`) is the look's (Pine: the baked hull body, species/bodies.ts). */
-export const ELK: Omit<SpeciesDef, 'build'> = {
+export const ELK: AuthorSpeciesRows = {
   rigContract: { skeleton: 'quadruped.v1', clips: [], sockets: ['body', 'head'] },
   kind: 'elk',
   trampleRadius: 0.65,

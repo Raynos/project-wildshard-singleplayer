@@ -1,4 +1,7 @@
-import type { EquipmentRow, RangedFeelProfile } from '@wildshard/engine/combat/Equipment';
+import type { equipmentRows } from '@wildshard/sdk/rows';
+
+type EquipmentRow = ReturnType<typeof equipmentRows>;
+type RangedFeelProfile = NonNullable<EquipmentRow['rangedFeel']>;
 
 export const PINE_BOLT_HIT_STOP = { body: 0.035, head: 0.055, kill: 0.075 } as const;
 export const PINE_RANGED_FEEL: RangedFeelProfile = {
