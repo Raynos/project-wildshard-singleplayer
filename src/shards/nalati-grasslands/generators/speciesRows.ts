@@ -1,9 +1,12 @@
-import type { SpeciesDef, VariantDef } from '@wildshard/engine/entities/species/registry';
+import type { AuthorSpeciesRows } from '@wildshard/sdk/bake/species';
 import * as v from 'valibot';
 import rows from '../data/speciesLooks.json' with { type: 'json' };
-import { SpeciesLookBookSchema } from '@wildshard/format/speciesBookRows';
+import { authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
+
+const SpeciesLookBookSchema = authorFormatSchema('speciesBookRows.SpeciesLookBookSchema');
+type VariantDef = AuthorSpeciesRows['variants'][number];
 /** Build-only variant facts shared with the admitted body catalogue. */
-export function bodySpecies(kind: string): Pick<SpeciesDef, 'kind' | 'label' | 'variants' | 'spawnOnly' | 'pose' | 'gait'> {
+export function bodySpecies(kind: string): Pick<AuthorSpeciesRows, 'kind' | 'label' | 'variants' | 'spawnOnly' | 'pose' | 'gait'> {
   const source = rows.find(row => row.metadata.kind === kind);
   if (source === undefined) throw new Error('Missing body species row');
   const row = v.parse(SpeciesLookBookSchema, { slug: 'nalati-grasslands', body: {}, rows: [source] }).rows[0];
