@@ -1,6 +1,8 @@
-import type { ViewProgramRows } from '@wildshard/format/viewProgram';
+import type { clientPlanSection } from '@wildshard/sdk/platformSections';
 import plan from '../data/layoutPlan.json' with { type: 'json' };
 import worldDressingRows from '../data/worldDressing.json' with { type: 'json' };
+
+type ViewProgramRows = Extract<ReturnType<typeof clientPlanSection>['features'][number], { kind: 'view.program' }>['rows'];
 
 const { MOVERS } = worldDressingRows;
 const datum = plan.Y0;

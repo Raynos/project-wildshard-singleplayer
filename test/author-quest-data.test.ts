@@ -8,6 +8,12 @@ import { parseWorldEntry } from '../src/format/worldEntry';
 import { PAGE_STORY } from '../src/shards/pine-hollow/generators/pageStory';
 import { PINE_QUEST_HOST } from '../src/shards/pine-hollow/generators/questHost';
 import { PINE_PANELS } from '../src/shards/pine-hollow/generators/panels';
+import type { nineMoversView } from '../src/shards/nine-dragon-stack/generators/moversView';
+import type { ViewProgramRows } from '../src/format/viewProgram';
+
+test('mover author rows derive the entire native view grammar from the admitted client feature', () => {
+  expectTypeOf<ReturnType<typeof nineMoversView>>().toEqualTypeOf<ViewProgramRows>();
+});
 
 test('author quest admissions preserve complete native story, routing and markup rows', () => {
   expectTypeOf<ReturnType<typeof questStoryRows>>().toEqualTypeOf<ReturnType<typeof parseQuestStory>>();

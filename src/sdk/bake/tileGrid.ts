@@ -3,6 +3,11 @@ import { CHUNK_HALF, CHUNK_SIZE, CONTENT_CAPS } from '@wildshard/format/contentB
 import { TilesSchema } from '@wildshard/format/shardSections';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
+/** Native local-cell footprint in [minX, maxX, minZ, maxZ] order, owned by each author call. */
+export function authorCellBounds(): readonly [number, number, number, number] {
+  return [-CHUNK_HALF, CHUNK_HALF, -CHUNK_HALF, CHUNK_HALF];
+}
+
 function checkedTiles(input: readonly Shardfile['tiles'][number][]): Shardfile['tiles'] {
   const tiles = v.parse(TilesSchema, input), seen = new Set<string>();
   for (const tile of tiles) {

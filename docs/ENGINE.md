@@ -6358,6 +6358,8 @@ markup/expression grammar; these APIs construct no world, quest owner or UI.
 `AuthorBuildingAssembly` carries the complete native building grammar.
 `checkBuildingAssembly` runs its native strict resource grammar without assembling a scene;
 `AuthorBuildingCloud` describes numeric cloud geometry/material references only.
+`bake/tileGrid.authorCellBounds` returns a fresh native local-cell footprint in
+`[minX, maxX, minZ, maxZ]` order, matching the complete L0 tile lattice.
 `buildingLookRows`, `buildingLifeRows` and `emptyBuildingLifeRows` admit
 original building policy or create a fresh empty life batch without a service.
 `game/plugin/scene.createWorldScene` borrows geometry/model/material ports and

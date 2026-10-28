@@ -1,9 +1,11 @@
 import { Rng } from '@wildshard/sdk/random';
-import { CHUNK_HALF } from '@wildshard/format/contentBounds';
+import { authorCellBounds } from '@wildshard/sdk/bake/tileGrid';
 import identity from '../data/identity.json' with { type: 'json' };
 import { PINE_ELITE_DEFS, PINE_ELITE_ANIMALS, ORDINARY } from './eliteRoster';
 import { PINE_LANES, PINE_STRIKES } from './strikes';
 import * as LAYOUT from './layout';
+
+const cellBounds = authorCellBounds(), CHUNK_HALF = cellBounds[1];
 
 const streams = { spawn: 'pine.elite.spawn.', fight: 'pine.elite.', pickup: 'pine.pickup.' };
 const fields = ['x', 'z', 'scripted', 'lookWeight', 'lookHeight', 'hidden', 'heading', 'speed', 'turn',
@@ -35,7 +37,7 @@ export const ELITE_FEATURE_ROWS: { step: string; version: number; legacy: { vers
     { id: 'reappear', effect: { kind: 'puff', at: 'body', height: 1.1, speed: 2.8, size: 0.8, lifetime: 0.5, opacity: 0.8 } },
     { id: 'burst', effect: { kind: 'dirt', height: 0.4, count: 18 } },
   ] },
-  bounds: [-CHUNK_HALF, CHUNK_HALF, -CHUNK_HALF, CHUNK_HALF],
+  bounds: [...cellBounds],
   streams, ordinary: ORDINARY,
   fights: Object.values(PINE_ELITE_DEFS).map(def => {
     const who = PINE_ELITE_ANIMALS[def.id]; if (who === undefined) throw new Error('Missing elite identity');
