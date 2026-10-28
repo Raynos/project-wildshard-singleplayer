@@ -1,3 +1,4 @@
+import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
 import type { MeleeProfile as PlatformMeleeProfile, ViewmodelFeel as PlatformViewmodelFeel } from '@wildshard/engine/combat/meleeProfile';
 import * as THREE from 'three';
 import { parse } from 'valibot';
@@ -43,3 +44,28 @@ export function meleeKey(t: number, px: number, py: number, pz: number, dx: numb
 
 /** Retain the held-model sRGB-to-linear paint law, including its optional gain. */
 export function meleeColour(hex: number, gain = 1): THREE.Color { return new THREE.Color(hex).convertSRGBToLinear().multiplyScalar(gain); }
+
+/** A detached copy of the shared authored melee policy, including complete native poses.
+ * Preserve original property order and every metadata field; restore owned rich
+ * pose values after cloning plain state. No runtime view or owner is constructed. */
+export function sharedMeleeAuthorBase(): MeleeProfile {
+  const owned = structuredClone(SWORD_WOOD), native = SWORD_WOOD.moves;
+  if (native === undefined) return owned;
+  const moves = owned.moves;
+  if (moves === undefined) throw new Error('Owned melee pose inventory is missing');
+  type Moves = NonNullable<MeleeProfile['moves']>;
+  const restoreKey = (target: Moves['rest'], source: Moves['rest']): void => {
+    target.pos = source.pos.clone(); target.q = source.q.clone();
+  };
+  const restoreMove = (target: Moves['heavy'], source: Moves['heavy']): void => {
+    for (const index of [0, 1, 2] as const) restoreKey(target.keys[index], source.keys[index]);
+    target.trail.color = source.trail.color.clone();
+  };
+  restoreKey(moves.rest, native.rest); restoreKey(moves.charge, native.charge); restoreKey(moves.sprint, native.sprint);
+  native.combo.forEach((move, index) => {
+    const copy = moves.combo[index]; if (copy === undefined) throw new Error('Owned melee combo is missing');
+    restoreMove(copy, move);
+  });
+  restoreMove(moves.heavy, native.heavy);
+  return owned;
+}
