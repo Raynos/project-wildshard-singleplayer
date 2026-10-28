@@ -9,7 +9,6 @@
 // Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/pine-hollow/generators/bake-pine-rain.mjs [--check]
 import weather from '../data/weatherLook.json' with { type: 'json' };
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
 import { GeometryPackWriter } from '@wildshard/sdk/kit/geometryPack';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
@@ -22,9 +21,9 @@ import { creekWaterAt } from './geography.ts';
 import { wildlifeWordLanes as shuffleLanes } from './wildlifeWords.ts';
 import { crownCover, puddleGeometry } from './rainBake.ts';
 
-const root = resolve(import.meta.dirname, '../../../..'), check = process.argv.includes('--check');
+const root = new URL('../../../../', import.meta.url), check = process.argv.includes('--check');
 const { PINE_RAIN } = weather;
-const terrain = Uint8Array.from(readFileSync(resolve(root, terrainBindings.terrain))), native = readNativeTerrain(terrain);
+const terrain = Uint8Array.from(readFileSync(new URL(terrainBindings.terrain.split('/').map(encodeURIComponent).join('/'), root))), native = readNativeTerrain(terrain);
 const declaredGround = pineGeographyRows().ground;
 const { trees } = bakePlantedForest({
   seed: manifest.seed, treeCount: manifest.treeCount, forest: manifest.forest, candidates: pineForestRows(manifest), terrain,
@@ -52,13 +51,13 @@ for (const tier of /** @type {const} */ (['phone', 'desktop'])) {
   pack.add(puddles); pack.addFloats(cover, 1);
   rows[tier] = pack.rows();
   const bin = encodeBuildBytes(shuffleLanes(pack.bytes()), 'deflate', 9, 'native');
-  const path = resolve(root, `public/assets/pine-hollow/baked/rain${tier === 'phone' ? '.phone' : ''}.bin`);
+  const path = new URL(`public/assets/pine-hollow/baked/rain${tier === 'phone' ? '.phone' : ''}.bin`, root);
   if (check) {
     if (!existsSync(path) || Buffer.compare(readFileSync(path), bin) !== 0) { console.error(`Pine rain stale: ${path}`); stale = true; }
-  } else { mkdirSync(resolve(path, '..'), { recursive: true }); writeFileSync(path, bin); }
+  } else { mkdirSync(new URL('.', path), { recursive: true }); writeFileSync(path, bin); }
   console.info(`Pine rain (${tier}): ${String(puddles.getAttribute('position').count)} puddle vertices, ${String(trees.length)} trees, ${String(pack.bytes().length)} → ${String(bin.length)} zlib${check ? (stale ? ' STALE' : ' match') : ''}`);
 }
-const json = `${JSON.stringify(rows)}\n`, rowsPath = resolve(root, 'src/shards/pine-hollow/data/rain.json');
+const json = `${JSON.stringify(rows)}\n`, rowsPath = new URL('src/shards/pine-hollow/data/rain.json', root);
 if (check) { if (!existsSync(rowsPath) || readFileSync(rowsPath, 'utf8') !== json) { console.error(`Pine rain rows stale: ${rowsPath}`); stale = true; } }
 else writeFileSync(rowsPath, json);
 if (stale) process.exitCode = 1;
