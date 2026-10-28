@@ -6,8 +6,17 @@ import { nalatiLateHeldNames } from '../src/shards/nalati-grasslands/generators/
 const file = 'weapons/spear.json', pool = 'models/held/spear.glb';
 const pools = new Map([[file, pool]]);
 
-test('the emitted spare marker hints only its unchanged declared geometry pool', () => {
-  const rows = parseHeldSlots(slots), before = structuredClone(rows);
+function deferredRows(): ReturnType<typeof parseHeldSlots> {
+  const rows = parseHeldSlots(slots);
+  for (const row of rows.slots) if (row.kind === 'polearm') row.geometry = 'on-select';
+  return rows;
+}
+
+test('shipping keeps spare geometry eager; an explicit inactive marker hints only its declared pool', () => {
+  const shipping = parseHeldSlots(slots);
+  expect(shipping.slots.find(row => row.id === 'polearm')).not.toHaveProperty('geometry');
+  expect(nalatiLateHeldNames(shipping, pools)).toEqual([]);
+  const rows = deferredRows(), before = structuredClone(rows);
   expect(rows.slots.find(row => row.id === 'polearm')).toMatchObject({ file, geometry: 'on-select' });
   expect(nalatiLateHeldNames(rows, pools)).toEqual([pool]);
   expect(nalatiLateHeldNames(rows, new Map())).toEqual([]);
@@ -19,7 +28,7 @@ test('the emitted spare marker hints only its unchanged declared geometry pool',
 });
 
 test('primary, declared initial and shared eager pool references stay ready', () => {
-  const rows = parseHeldSlots(slots);
+  const rows = deferredRows();
   expect(nalatiLateHeldNames({ ...rows, equipment: { ...rows.equipment, primary: 'polearm' } }, pools)).toEqual([]);
   expect(nalatiLateHeldNames({ ...rows, selection: { ...rows.selection, initial: 'polearm' } }, pools)).toEqual([]);
   const alias = { id: 'alternate', kind: 'polearm' as const, item: 'weapon.alternate', file: 'weapons/alias.json' };
