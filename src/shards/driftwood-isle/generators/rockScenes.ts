@@ -5,8 +5,7 @@ import { Rng } from '@wildshard/sdk/random';
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 import { drawnHullWorld, poseGeometry, poseOf } from '@wildshard/engine/models/colliders';
 import { supportPoints } from '@wildshard/engine/models/hull';
-import type { Placement } from '@wildshard/engine/models/model';
-import type { ColliderDesc } from '@wildshard/sdk/bake/placement';
+import type { AuthorPlacement as Placement, ColliderDesc } from '@wildshard/sdk/bake/placement';
 import { authoredRockGeometry } from './rocks';
 import { REEF_ROCK, SHORE_ROCK } from './rockProfiles';
 

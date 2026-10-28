@@ -1,7 +1,8 @@
-import { expect, test } from 'vitest';
+import { expect, expectTypeOf, test } from 'vitest';
+import type { Placement } from '@wildshard/engine/models/model';
 import { boxDesc as nativeBox } from '@wildshard/engine/world/registry';
 import { yawWorld as nativeWorld } from '@wildshard/engine/world/yawFrame';
-import { boxDesc, yawWorld, type BoxSpec, type ContactSurface } from './placement';
+import { boxDesc, yawWorld, type BoxSpec, type ContactSurface, type AuthorPlacement } from './placement';
 
 const rows: readonly BoxSpec[] = [
   { x: 0, z: 0, hw: 2, hd: 3, rot: 0, yBottom: -1, yTop: 5 },
@@ -26,4 +27,10 @@ test('author yaw frames retain exact native axes, signs and double arithmetic', 
       expect(yawWorld(frame, x, z)).toEqual(nativeWorld(frame, x, z));
     }
   }
+});
+
+
+test('author copy poses retain the complete native placement contract', () => {
+  expectTypeOf<AuthorPlacement<{ radius: number; tint: string }>>().toEqualTypeOf<Placement<{ radius: number; tint: string }>>();
+  expectTypeOf<AuthorPlacement<object>>().toEqualTypeOf<Placement<object>>();
 });

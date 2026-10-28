@@ -1,3 +1,14 @@
+import type { Color, Matrix4 } from 'three';
+
+/** Complete author copy pose. Numeric contacts are compiled before any live registration. */
+export interface AuthorPlacement<P extends object> {
+  readonly x: number; readonly y: number; readonly z: number;
+  readonly yaw?: number; readonly leanX?: number; readonly leanZ?: number;
+  readonly scale?: number; readonly matrix?: Matrix4;
+  readonly params?: Partial<P>; readonly variant?: string;
+  readonly color?: number | Color; readonly host?: number;
+}
+
 /** Author contact tags retain the native surface vocabulary. */
 export type ContactSurface = 'sand' | 'wetSand' | 'grass' | 'rock' | 'planks' | 'stone' | 'water' |
   'wood' | 'metal' | 'flesh' | 'shell' | 'ground' | 'edge' | 'felt' | 'earth';

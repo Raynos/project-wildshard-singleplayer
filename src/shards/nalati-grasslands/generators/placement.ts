@@ -2,9 +2,7 @@ import * as THREE from 'three';
 import type { Box, Platform } from '../data/placeTypes';
 import type { ModelLod, ModelLook, ModelPlacement, NalatiModelName } from '../data/modelTypes';
 import modelMetrics from '../data/modelMetrics.json' with { type: 'json' };
-import type { ModelContext, Placement } from '@wildshard/engine/models/model';
-import type { Draw } from '@wildshard/engine/models/place';
-import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
+import type { AuthorPlacement as Placement, Draw, ColliderDesc } from '@wildshard/sdk/bake/placement';
 
 
 export interface GeneratedSpec<P> {
@@ -55,17 +53,6 @@ export function instanceTris(instances: Iterable<readonly [NalatiModelName, Inst
   let n = 0;
   for (const [name, l] of instances) n += modelMetrics.triangles[name] * l.placements.length;
   return n;
-}
-
-export interface SetRegister {
-  readonly ctx: ModelContext;
-  readonly registry?: WorldRegistry | null;
-  /** the set's painted mesh (its painted models' tap target) */
-  readonly object: THREE.Object3D;
-  /** where its generated models' instances land (default: `object`) */
-  readonly group?: THREE.Object3D;
-  /** register each model's colliders `every` at a time, a task apart (the phone's per-task collider budget: `Placed.registered`) */
-  readonly split?: { readonly every: number; readonly yieldTask: () => Promise<void> };
 }
 
 /** Exact numeric floor profile recorded by the static painter. */
