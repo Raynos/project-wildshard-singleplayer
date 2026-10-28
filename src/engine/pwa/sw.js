@@ -736,6 +736,7 @@ async function fetchAttempt(input, { stallMs = FETCH_ATTEMPT_MS, deadlineMs, onF
         async pull(target) {
           try {
             const part = await Promise.race([reader.read(), deadline]);
+            if (ended) return; // Cancellation can settle this native read after its owner has released the slot.
             if (part.done) { target.close(); reader.releaseLock(); cleanup(); }
             else { if (part.value.byteLength > 0) reset(); target.enqueue(part.value); }
           } catch (error) { target.error(error); cancelBody(); cleanup(); }
@@ -759,6 +760,23 @@ async function fetchAttempt(input, { stallMs = FETCH_ATTEMPT_MS, deadlineMs, onF
 
 function sleep(ms) { return new Promise((resolve) => { workerScope.timeout(ms, resolve); }); }
 
+/** Finite backoff with jitter below the original 0.7/2s retry bounds. The
+ * request owns the timer so turning away never leaves an invisible retry. */
+function retryPause(req, maximum) {
+  return new Promise((resolve, reject) => {
+    const owner = new WorkerScope(), sample = new Uint32Array(1);
+    crypto.getRandomValues(sample);
+    const abort = () => {
+      const reason = req.signal.reason; owner.dispose();
+      reject(reason instanceof Error ? reason : new Error('Download retry cancelled', { cause: reason }));
+    };
+    if (req.signal.aborted) { abort(); return; }
+    owner.listen(req.signal, 'abort', abort);
+    owner.timeout(Math.floor(maximum * (0.5 + sample[0] / 0x100000000 * 0.5)), () => { owner.dispose(); resolve(); });
+  });
+}
+const retryableResponse = response => response.status === 408 || response.status === 429 || response.status >= 500;
+
 /** Report provenance through Resource Timing, without reading or copying the response body. */
 function transportReceipt(response, cached = false) {
   const headers = new Headers(response.headers);
@@ -780,13 +798,18 @@ async function shardBlob(req, hash) {
       if (hit) return transportReceipt(hit, true);
     } catch { /* Storage denial keeps the original verified online reader. */ }
   }
-  for (let attempt = 0; attempt < 2; attempt++) {
+  for (let attempt = 0; attempt < 3; attempt++) {
     const release = await reserveBlob(req);
     try {
-      return transportReceipt(await fetchAttempt(attempt === 0 ? req : new Request(req, { cache: 'reload' }), { onFinish: release }));
+      const response = await fetchAttempt(attempt === 0 ? req : new Request(req, { cache: 'reload' }), { onFinish: release });
+      if (attempt < 2 && retryableResponse(response)) {
+        await response.body?.cancel(); release(); throw new Error(`HTTP ${response.status}`);
+      }
+      return transportReceipt(response);
     } catch (error) {
       release();
-      if (!(error instanceof WorkerFetchStallError) || req.signal.aborted || attempt > 0) throw error;
+      if (req.signal.aborted || offline() || attempt === 2) throw error;
+      await retryPause(req, attempt === 0 ? 700 : 2000);
     }
   }
   throw new Error('Unreachable content download');
@@ -817,7 +840,7 @@ async function cacheFirst(req, name) {
 
 /**
  * E188: a code file is read WHOLE here before the page gets a byte of it, and a download that breaks is tried twice
- * more, 0.7 s and 2 s later. On LTE a hand-over drops the ~1.1 MB main chunk mid-file: the headers had already said
+ * more, with jittered backoff bounded by 0.7 s and 2 s. On LTE a hand-over drops the ~1.1 MB main chunk mid-file: the headers had already said
  * 200, so streaming it through let the page's module import fail outright ("Importing a module script failed" — the
  * stuck card, whose RELOAD met the same radio). Reading the body first turns that into a throw we can retry. The
  * retries go around the HTTP cache (`cache: 'reload'`): /assets/* is `immutable` on every response the host sends,
@@ -840,8 +863,8 @@ async function fetchWhole(req, cache) {
       await cache.put(req, whole.clone()).catch(() => undefined);
       return transportReceipt(whole);
     } catch (e) {
-      if (last) throw e;
-      await sleep(wait);
+      if (last || req.signal.aborted || offline()) throw e;
+      await retryPause(req, wait);
       attempt = new Request(req, { cache: 'reload' });
     }
   }
@@ -858,18 +881,21 @@ async function networkFirst(req, name, key, doc = false) {
     const hit = await cache.match(key ?? req, MATCH_OPTS);
     if (hit) return transportReceipt(hit, true);
   }
-  try {
-    const res = await fetchAttempt(req);
-    if (doc) putDocument(cache, key ?? req, res.clone()).catch(() => undefined);
-    else if (res.ok) publishCached(cache, key ?? req, res.clone());
-    return transportReceipt(res);
-  } catch (e) {
-    const hit = await cache.match(key ?? req, MATCH_OPTS);
-    if (hit) return transportReceipt(hit, true);
-    if (!(e instanceof WorkerFetchStallError) || req.signal.aborted) throw e;
-    const res = await fetchAttempt(new Request(req, { cache: 'reload' }));
-    if (doc) putDocument(cache, key ?? req, res.clone()).catch(() => undefined);
-    else if (res.ok) publishCached(cache, key ?? req, res.clone());
-    return transportReceipt(res);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetchAttempt(attempt === 0 ? req : new Request(req, { cache: 'reload' }));
+      if (attempt < 2 && retryableResponse(res)) {
+        await res.body?.cancel(); throw new Error(`HTTP ${res.status}`);
+      }
+      if (doc) putDocument(cache, key ?? req, res.clone()).catch(() => undefined);
+      else if (res.ok) publishCached(cache, key ?? req, res.clone());
+      return transportReceipt(res);
+    } catch (error) {
+      const hit = await cache.match(key ?? req, MATCH_OPTS);
+      if (hit) return transportReceipt(hit, true);
+      if (req.signal.aborted || offline() || attempt === 2) throw error;
+      await retryPause(req, attempt === 0 ? 700 : 2000);
+    }
   }
+  throw new Error('Unreachable download retry');
 }

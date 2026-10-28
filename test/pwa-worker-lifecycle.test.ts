@@ -662,3 +662,37 @@ test('shard download slots cover whole bodies, cancel queued work, and drop to t
   await Promise.all(f.responses.slice(7).map(async r=>{await r.body?.cancel();}));
   expect(f.fetch.mock.calls.filter(([input])=>(typeof input==='string'?input:input.url).includes('/blobs/'))).toHaveLength(9);
 });
+
+test.each(['/assets/retry-data.json',`/shardfiles/sample/blobs/bin/${'c'.repeat(64)}.bin`])(
+  'dropped and transient %s downloads recover with bounded jittered backoff',async path=>{
+    vi.useFakeTimers();const starts:number[]=[];
+    const f=fixture(()=>{starts.push(Date.now());return starts.length===1?Promise.reject(new Error('dropped connection')):Promise.resolve(new Response(starts.length===2?'busy':'complete verified body',{status:starts.length===2?503:200}));});
+    const work=f.dispatch('fetch',{request:new Request(new URL(path,base))});
+    await vi.advanceTimersByTimeAsync(349);expect(starts).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(3000);await work;
+    expect(starts).toHaveLength(3);
+    expect((starts[1]??0)-(starts[0]??0)).toBeGreaterThanOrEqual(350);
+    expect((starts[1]??0)-(starts[0]??0)).toBeLessThanOrEqual(700);
+    expect((starts[2]??0)-(starts[1]??0)).toBeGreaterThanOrEqual(1000);
+    expect((starts[2]??0)-(starts[1]??0)).toBeLessThanOrEqual(2000);
+    expect(await f.responses[0]?.text()).toBe('complete verified body');
+    for(const call of f.fetch.mock.calls.slice(1))expect(call[0] instanceof Request&&call[0].cache).toBe('reload');
+    await vi.advanceTimersByTimeAsync(0); // Drain the native Response stream's final completion turn too.
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+test('turning away during retry backoff cancels the timer and preserves the abort reason',async()=>{
+  vi.useFakeTimers();const abort=new AbortController(),reason=new Error('left entry');
+  const f=fixture(()=>Promise.reject(new Error('dropped connection')));
+  const work=expect(f.dispatch('fetch',{request:new Request(new URL('/assets/retry-data.json',base),{signal:abort.signal})})).rejects.toBe(reason);
+  await vi.advanceTimersByTimeAsync(0);expect(f.fetch).toHaveBeenCalledTimes(1);
+  abort.abort(reason);await work;await vi.advanceTimersByTimeAsync(3000);
+  expect(f.fetch).toHaveBeenCalledTimes(1);expect(vi.getTimerCount()).toBe(0);
+});
+
+test('a permanent data refusal is not retried or published as offline content',async()=>{
+  const f=fixture(()=>Promise.resolve(new Response('not found',{status:404}))),url=new URL('/assets/missing-data.json',base).href;
+  await f.dispatch('fetch',{request:new Request(url)});
+  expect(f.responses[0]?.status).toBe(404);expect(await f.responses[0]?.text()).toBe('not found');
+  expect(f.fetch).toHaveBeenCalledTimes(1);expect(await(await f.open('ws-static-unit-assets')).match(url)).toBeUndefined();
+});
