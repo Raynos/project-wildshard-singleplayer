@@ -223,14 +223,18 @@ export async function placeForestPageModels(ctx: ShardContext, id: string): Prom
       const pls = forest.trees.map((t): Placement<TreeSetParams> => { const variant = variants[t.variant]?.id; if (variant === undefined) throw new Error('Forest tree variant out of range');
         return { x: t.x, y: t.y, z: t.z, variant, color: t.tint, params: { height: t.height, r: t.r, scale: t.scale },
           matrix: new Matrix4().compose(at.set(t.x, t.y, t.z), q.setFromAxisAngle(up, t.rot), sc.set(t.scale, t.scale, t.scale)) }; });
-      // P3: only the trees of the tiles around the viewer draw, and only the 3 x 3's trunks collide (one piece per tile, its
-      // scope ending as the viewer leaves)
+      // P3: only the 3 x 3's trunks collide (one piece per tile, its scope ending as the viewer leaves); every tree draws at
+      // its own LOD (G848, below)
       await placeSliced({ ...trees.model, colliders: () => [] }, pls, { ctx: models, draw: forest.path, registry, piece: { id: trees.model.id }, sortObjects: false,
         cull: { view: forest, test: forest.keeps, from: 'origin', flat: true }, parent: forest.group }, due);
       {
         // one capsule per tree, in the trees' order: bucket the trees, index the capsules
         const trunks = forest.colliderDescs(), byTile = bucketByTile(forest.trees, tree => tree), colliding = new Map<number, Scope>();
         let centre: CellTile | null = null;
+        // G848 P1: every tree draws at its own LOD. Past the ring that is only its lo cards or its impostor (the phone's hi
+        // band, 80 m, ends inside the 5 x 5 ring's nearest edge, 94 m), as LEGACY's forest drew; the far stand-in's cones
+        // filled that band instead. The ring keeps the floor cover and the trunk colliders.
+        const everyTree = (): boolean => true;
         const collide = (wanted: ReadonlySet<number>): void => {
           for (const [key, scope] of colliding) if (!wanted.has(key)) { colliding.delete(key); scope.dispose(); }
           for (const key of wanted) {
@@ -247,7 +251,7 @@ export async function placeForestPageModels(ctx: ShardContext, id: string): Prom
             residency.resident = (x, z) => keys.has(tileKey(tileOf(x, z)));
             collide(ring(next, Math.min(radius, 1)));
           }
-          return residency.resident;
+          return everyTree;
         });
         ctx.scope.onDispose(() => { forest.setResidency(null); });
       }

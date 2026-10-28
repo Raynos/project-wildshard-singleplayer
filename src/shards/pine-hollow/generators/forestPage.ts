@@ -36,7 +36,7 @@ export const forestPage: (sources: PineSources) => ForestPage = perSources((sour
   const FOREST_PAGE: ForestPageRowsType = forestPageRows({
     treeLooks: [{ look: FOREST_LOOKS.bark, band: 'trunk' }, { look: FOREST_LOOKS.needles, band: 'cards' }, { look: FOREST_LOOKS.twigs, band: 'twigs' }, { look: FOREST_LOOKS.far, band: 'far' }].map(row => ({ look: row.look, band: row.band, fade: 'fade', viewer: 'viewer' })),
     water: { object: 'pond', look: water.looks.pond, looks: Object.values(water.looks), ripples: 'ripples', skyline: 'skyline', centre: 'skyC', probe: 'waterSkyline' },
-    id: 'pine.forest', sliceMs: 30, farStandIn: true, graphs: looks.runtime, wildlife: 'look/wildlife-draw.json',
+    id: 'pine.forest', sliceMs: 30, graphs: looks.runtime, wildlife: 'look/wildlife-draw.json',
     streams: { group: 'streams.root', water: 'streams.water', spray: 'streams.spray' },
     ground: { appearance: 'look/cover-appearance.json', layout: 'world/floor.json', sources: groundSources,
       kinds: kinds.map(([id, model, name]) => ({ id, geometry: `pine-undergrowth-${id}`, model: `pine-hollow/${model}`, name })),
