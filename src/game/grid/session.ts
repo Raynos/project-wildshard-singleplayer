@@ -642,10 +642,11 @@ export class GridSession {
       const marks = copyMarks(cell.instance, cell.identity);
       if (marks !== null) { root.add(marks.object); marks.object.updateMatrixWorld(true); host.scope.onDispose(marks.dispose); }
     }
-    // G223: an entered regional runtime draws its own cell; its coarse root (far proxy, tiles) hides until it leaves. One
-    // that entered the tile registration waits for its coarse replacement (H3.2); one that owns no tiles there draws its
-    // whole cell itself, so its root hides at once (G784: Nalati's ground and its neighbour tiles both drew, z-fighting)
-    const cover = cellCoverPort(id => roots.get(id), id => !this.clientTiles.owns(id) || (this.clientTiles.coverageReady?.(id) ?? true));
+    // G223: an entered regional runtime draws its own cell; its coarse root (far proxy, tiles) hides until it leaves, once
+    // its coarse replacement is ready (H3.2). A world outside the tile registration keeps its root: Pine's ground is those
+    // tiles (e962089fb2 hid them at once for G784's Nalati z-fighting and Pine's cell went white); telling a world that
+    // draws its own ground (Nalati) from one that doesn't needs the shard to say so (BURN-DAMAGE-LIST D189)
+    const cover = cellCoverPort(id => roots.get(id), id => this.clientTiles.coverageReady?.(id) ?? true);
     this.refreshCellCover = cover.refresh;
     host.scope.onDispose(bindCellCover(host.scene, cover));
     const preparedBands = new WeakMap<FarProxyView, Object3D>();
