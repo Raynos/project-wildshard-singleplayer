@@ -78,9 +78,12 @@ export function* clipToBinsSteps(geometry: BufferGeometry, pitch: number, tileSi
  * x then z, a new vertex interpolating all `stride` values linearly (position at `px`). A plan that reads only positions
  * gets exactly the builder's positions, new vertices and triangles: every value interpolates on its own.
  */
-function* clipCore(triangles: number, indexAt: (i: number) => number, count: number, stride: number, px: number, read: (n: number) => Float64Array, coordinate: (n: number, axis: number) => number, pitch: number, tileSize?: number): Generator<void, { extra: number[]; out: number[] }> {
+function* clipCore(triangles: number, indexAt: (i: number) => number, count: number, stride: number, px: number, read: (n: number) => Float64Array, coordinate: (n: number, axis: number) => number, pitch: number, tileSize?: number, retain = true): Generator<void, { extra: number[]; out: number[]; added: number; corners: number }> {
   const { size: s, offset } = binGrid(pitch, tileSize), extra: number[] = [], out: number[] = [];
-  const add = (v: Float64Array): number => { for (const x of v) extra.push(x); return count + extra.length / stride - 1; };
+  let added = 0, corners = 0;
+  // Count-only admission needs no final index or copied interpolation channels.
+  // Polygon vertices still retain every value used by the original split.
+  const add = (v: Float64Array): number => { if (retain) for (const x of v) extra.push(x); return count + added++; };
   interface V { n: number; v: Float64Array }
   /** Split a convex polygon by the line axis = c into its below and above parts (new vertices interpolated). */
   const split = (poly: readonly V[], axis: number, c: number): [V[], V[]] => {
@@ -104,7 +107,7 @@ function* clipCore(triangles: number, indexAt: (i: number) => number, count: num
     // polygons or copying attributes; only an interior cut needs interpolation.
     if (!crossesBin(coordinate(a, 0), coordinate(b, 0), coordinate(third, 0), s, offset)
       && !crossesBin(coordinate(a, 2), coordinate(b, 2), coordinate(third, 2), s, offset)) {
-      out.push(a, b, third); continue;
+      corners += 3; if (retain) out.push(a, b, third); continue;
     }
     const tri: V[] = [a, b, third].map((n) => ({ n, v: read(n) }));
     let polys: V[][] = [tri];
@@ -122,9 +125,12 @@ function* clipCore(triangles: number, indexAt: (i: number) => number, count: num
       }
       polys = next;
     }
-    for (const poly of polys) for (let k = 1; k + 1 < poly.length; k++) out.push(poly[0]?.n ?? 0, poly[k]?.n ?? 0, poly[k + 1]?.n ?? 0);
+    for (const poly of polys) for (let k = 1; k + 1 < poly.length; k++) {
+      corners += 3;
+      if (retain) out.push(poly[0]?.n ?? 0, poly[k]?.n ?? 0, poly[k + 1]?.n ?? 0);
+    }
   }
-  return { extra, out };
+  return { extra, out, added, corners };
 }
 
 
@@ -270,14 +276,16 @@ export interface CullCounts { readonly vertices: number; readonly clipped: numbe
 
 
 /** Exact pre-allocation counts, with the same clipping arithmetic yielded in bounded batches. */
-export function* cullCountsSteps(sources: readonly CullSource[], pitch: number, lod: readonly CullLod[] = [], tileSize?: number): Generator<void, CullCounts> {
+export function* cullCountsSteps(sources: readonly CullSource[], pitch: number, lod?: readonly CullLod[], tileSize?: number): Generator<void, CullCounts> {
   let vertices = 0, clipped = 0, source = 0;
   for (const run of sources) {
     const read = (n: number): Float64Array => Float64Array.of(run.position(n * 3), run.position(n * 3 + 1), run.position(n * 3 + 2));
-    const { extra, out } = yield* clipCore(run.indices.length / 3, (i) => run.indices[i] ?? 0, run.vertices, 3, 0, read, (n, axis) => run.position(n * 3 + axis), pitch, tileSize);
-    vertices += run.vertices; clipped += run.vertices + extra.length / 3; source += out.length;
+    // Only an omitted tier list is privately known to stay empty. A supplied
+    // empty array may acquire a tier while the original generator is paused.
+    const { extra, out, added, corners } = yield* clipCore(run.indices.length / 3, (i) => run.indices[i] ?? 0, run.vertices, 3, 0, read, (n, axis) => run.position(n * 3 + axis), pitch, tileSize, lod !== undefined);
+    vertices += run.vertices; clipped += run.vertices + added; source += corners;
     const at = (n: number, c: number): number => (n < run.vertices ? run.position(n * 3 + c) : Math.fround(extra[(n - run.vertices) * 3 + c] ?? 0));
-    for (const tier of lod) {
+    for (const tier of lod ?? []) {
       const memo = new Int32Array(run.vertices + extra.length / 3).fill(-1), first = new Map<number | string, number>();
       const representative = (n: number): number => {
         const known = memo[n] ?? -1; if (known >= 0) return known;

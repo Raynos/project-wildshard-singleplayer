@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { BufferAttribute, BufferGeometry } from 'three';
-import { clipToBinsSteps, cullCountsSteps, cullPlanSteps, finishRoadSteps, ROAD_LOD } from './roadCull';
+import { clipToBinsSteps, cullCountsSteps, cullPlanSteps, finishRoadSteps, ROAD_LOD, type CullLod } from './roadCull';
 
 test('road clipping preserves edge vertices, interpolated UVs and exact LOD byte plans', async () => {
   const geometry = new BufferGeometry();
@@ -56,5 +56,37 @@ test('road tiles share world-grid edges and the exact allocation arithmetic', ()
       expect(uv.getX(vertex)).toBeCloseTo(x); expect(uv.getY(vertex)).toBeCloseTo(z);
     }
   }
+  geometry.dispose();
+});
+
+test.each([undefined, 62.5])('count-only admission matches actual clipped storage without LOD (tiles %s)', tileSize => {
+  const values: number[] = [], indices: number[] = [];
+  // More than one unchanged 256-triangle batch, with strict boundary points,
+  // interior crossings on both axes, shared indices and unused vertices.
+  for (let triangle = 0; triangle < 600; triangle++) {
+    const base = values.length / 3, x = (triangle % 13 - 6) * 62.5, z = (triangle % 17 - 8) * 62.5;
+    values.push(x, -0, z, x + (triangle % 2 ? 0 : 250), 3, z + 0.125, x + 4, -7, z + 750);
+    indices.push(base, base + 1, triangle % 11 === 0 && base > 0 ? base - 1 : base + 2);
+  }
+  values.push(10000, 0, 10000);
+  const positions = Float32Array.from(values), geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(positions, 3)).setIndex(indices);
+  const steps = cullCountsSteps([{ vertices: positions.length / 3, position: index => positions[index] ?? 0, indices }], 562.5, undefined, tileSize);
+  let result = steps.next(), yields = 0; while (!result.done) { yields++; result = steps.next(); }
+  expect(yields).toBe(3);
+  finishRoadSteps(clipToBinsSteps(geometry, 562.5, tileSize));
+  const plan = finishRoadSteps(cullPlanSteps(geometry, 562.5, [], tileSize));
+  expect(result.value).toEqual({ vertices: positions.length / 3, clipped: geometry.getAttribute('position').count, source: plan.source.length });
+  expect(result.value.clipped).toBeGreaterThan(result.value.vertices);
+  geometry.dispose();
+});
+
+test('an explicitly empty LOD list remains live across the original clipping pause', () => {
+  const positions = Float32Array.of(-125, 0, -125, 125, 0, -125, 125, 0, 125, -125, 0, 125), indices = [0, 1, 2, 0, 2, 3];
+  const lod: CullLod[] = [], steps = cullCountsSteps([{ vertices: 4, position: index => positions[index] ?? 0, indices }], 562.5, lod, 62.5);
+  expect(steps.next().done).toBe(false); lod.push(...ROAD_LOD);
+  const counts = finishRoadSteps(steps), geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(positions, 3)).setIndex(indices);
+  finishRoadSteps(clipToBinsSteps(geometry, 562.5, 62.5));
+  const plan = finishRoadSteps(cullPlanSteps(geometry, 562.5, lod, 62.5));
+  expect(counts).toEqual({ vertices: 4, clipped: geometry.getAttribute('position').count, source: plan.source.length });
   geometry.dispose();
 });
