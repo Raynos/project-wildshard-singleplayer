@@ -56,11 +56,32 @@ test('stepped preflight gives the same verdict and message as preflightShardfile
     s => { s['files'] = [{ hash: 'nothex', compressed: 1 }]; },
     s => { s['bounds'] = { min: [0, 0, 0], max: [300, 1, 1] }; },
     s => { s['bad'] = -0; },
+    // A long ordinary value can enter the length memo before the same text
+    // appears as an identifier. Its stricter limit must still refuse it.
+    s => { const text = 'é🐟'.repeat(50); s['extra'] = { text, id: text }; },
+    s => { s['extra'] = Array.from({ length: 600 }, () => 'é🐟\\\"\n'.repeat(400)); },
   ];
   for (const vary of variants) {
     const one = source(), two = source(); vary(one); vary(two);
     expect(outcome(() => { drain(preflightShardfileSteps(two, 16)); })).toBe(outcome(() => { preflightShardfile(one); }));
   }
+});
+
+test('preflight string lengths stay local and count repeated escaped values', () => {
+  const source = { ...emptyShardfile({ slug: 'steps', name: 'Steps', author: 'T', revision: 1, seed: 1 }),
+    extra: { value: 'é🐟\\\"\n', rows: Array.from({ length: 20 }, () => 'é🐟\\\"\n') } };
+  expect(() => preflightShardfile(source)).not.toThrow();
+  expect(() => drain(preflightShardfileSteps(source, 1))).not.toThrow();
+  source.extra.rows = Array.from({ length: 600 }, () => 'x'.repeat(4000));
+  expect(() => preflightShardfile(source)).toThrow('source exceeds admission cap');
+  expect(() => drain(preflightShardfileSteps(source, 16))).toThrow('source exceeds admission cap');
+  source.extra.rows = ['é🐟\\\"\n'];
+  expect(() => preflightShardfile(source)).not.toThrow();
+  expect(() => drain(preflightShardfileSteps(source, 1))).not.toThrow();
+  const text = 'é🐟'.repeat(50);
+  Reflect.set(source, 'extra', { text, id: text });
+  expect(() => preflightShardfile(source)).toThrow('string exceeds admission cap');
+  expect(() => drain(preflightShardfileSteps(source, 1))).toThrow('string exceeds admission cap');
 });
 
 test('stepped residency bytes equal productResidentBytes', () => {

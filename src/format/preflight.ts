@@ -27,11 +27,14 @@ export function preflightShardfile(input: unknown): void {
 
   let bytes = 0;
   const add = (count: number): void => { bytes += count; if (bytes > limits.sourceBytes) throw new Error('Shardfile source exceeds admission cap'); };
+  const lengths = new Map<string, number>();
   const string = (value: string, maximum: number): void => {
     if (value.length > maximum) throw new Error('Shardfile string exceeds admission cap');
-    add(utf8Length(JSON.stringify(value)));
+    let length = lengths.get(value);
+    if (length === undefined) { length = utf8Length(JSON.stringify(value)); lengths.set(value, length); }
+    add(length);
   };
-  // T10: keep this walk on builtins (JSON.stringify per value, Object.entries per object). Admission runs it a few times a
+  // T10: keep encoding on builtins (JSON.stringify, Object.entries per object). Admission runs this walk a few times a
   // crossing, mostly before it is optimised, and per-value JS helpers in their place made it ~3x slower in a Chromium phone
   // 4x Pine drive (dc806989b0; preflight 334 -> 960 ms over the drive) although warm Node timings were faster.
   const visit = (value: unknown): void => {
@@ -105,9 +108,15 @@ export function* preflightShardfileSteps(input: unknown, every = 4096): Generato
   try { yield* assertCellBoundsSteps(input, 'shardfile', every); } catch (error) { throw boundsRefusal(error); }
   let bytes = 0, since = 0;
   const add = (count: number): void => { bytes += count; if (bytes > limits.sourceBytes) throw new Error('Shardfile source exceeds admission cap'); };
+  // Repeated field names, ids and hashes have the same escaped UTF-8 length.
+  // Memoize only that length within this walk; count every occurrence and
+  // check its own field limit before consulting the memo.
+  const lengths = new Map<string, number>();
   const string = (value: string, maximum: number): void => {
     if (value.length > maximum) throw new Error('Shardfile string exceeds admission cap');
-    add(utf8Length(JSON.stringify(value)));
+    let length = lengths.get(value);
+    if (length === undefined) { length = utf8Length(JSON.stringify(value)); lengths.set(value, length); }
+    add(length);
   };
   // pre-order through a stack: a field is pushed as its key with its value, so its key is counted just before its subtree
   const values: unknown[] = [input], keys: (string | null)[] = [null];
