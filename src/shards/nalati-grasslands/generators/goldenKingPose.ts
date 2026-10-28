@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import speciesFrameRows from '../data/speciesRows.json' with {type:'json'};
 import { creaturePoseRows, numericChannelPrograms, type ClientChannels, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
-import type { ClipChannel, ClipFactor, ClipTerm, ClipWhen } from '@wildshard/game/plugin/animation';
+import type { ClipChannel, ClipFactor, ClipTerm, ClipWhen } from '@wildshard/sdk/species/clips';
 
 // Ordered scalar rows retain the original procedural pose's arithmetic. The
 // page supplies only frame observations, floor smoothing and look angles.
