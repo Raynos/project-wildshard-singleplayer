@@ -1,7 +1,6 @@
 # SHARD-PLATFORM — State (wildshard-new; ≤ 3 KB)
 
-**(1) LIVE 8c07d58caa** (19:47 Cancun). 94f30e1ee5's
-Pine public smoke leg (GL 1282) stays an open incident with sp-o3 (no local repro; 3001d0dac3 logs it). Damage list:
+**(1) LIVE 8c07d58caa** (19:47). Pine GL 1282 smoke fixed (7ed7f1ecee, depth feedback loop). Damage list:
 [BURN-DAMAGE-LIST](../BURN-DAMAGE-LIST.md) only. HOST-AUDIT parked (G679).
 
 **19:30 reply:** I1 / I7 / I11 done; I2 is open only on its 12 MB bar: needs D179 / D185 or per-shard byte targets
@@ -18,16 +17,17 @@ Recommend: yes, Sim closes crossing bars; Chromium 4x guides slices.
 page + kit / prepare-play (~7.9 s) then warm-up 7.5 s. T7.7 deleted building ahead on a guess. Allow a narrow exception: data-only
 parts (parse, placement rows; no scene / colliders / lights) once the approach is verified, dropped on a turn-away? Saves at most
 ~2.5-3 s (sp-o5 sized it). Recommend: yes.
-**For Jake (G812):** Driftwood -7 MB A / B board `art/driftwood-isle/round-21-phone-geometry-ab/board.jpg`.
+**For Jake:** DW -7 MB board `art/driftwood-isle/round-21-phone-geometry-ab/board.jpg`.
 **Jake picks open:** D183 / D185; LD5-LD8 / A1 / A2 / M2 / RM13.
 
-**Pine look (D189 closed, FYI Jake):** white near ground (e962089fb2) fixed in a530c2fe07; teal tree-card backings
-(three's NodeMaterial.copy drops alphaTest, since <= 10-24) fixed in 1668edb1e3. Both land after live 8c07, in the next release.
-Slow-link Pine crossing (Fast 4G): D190 fixed (efcb18bed1); D196 warm bound counted network time, sp-o4 fixing.
+**Pine look (D189 closed, FYI Jake):** white ground fixed a530c2fe07, teal tree cards 1668edb1e3; next release.
+Slow-link Pine crossing (Fast 4G): D190 (efcb18bed1) and D196 (6232aaece6) fixed; a Fast 4G pair completes.
 **T10 official Sim frame floor (5c04e9e034): 11 / 15** (was 10). Fails: spawn p95 43, Pine drive 43, Nalati drive 38, Nalati
-standing 46 ms (a periodic regression; sp-o3). **I2:** DW 33.4, Nalati 56.2, Pine 79.4 MB. **H4** warm home 3.85 s.
-**Nalati cold, Chromium 4x:** 12.67 -> ~10.5-11.5 s (sp-o3 tail cuts).
-**Lanes (G818: 92 %, 2 Opus):** sp-o3 Pine cold tail, sp-o4 D196 + Nalati precompile; sp-x1 / sp-x2 Nalati / Pine I2,
-sp-x8 + sp-x9 H4 / A1, sp-x6 + sp-x10 damage, sp-ci-deploy release. sp-o1 / o2 / o5 released.
+standing 46 ms. Standing = JSC full GCs every ~0.65 s under memory pressure: **Sim WebContent Nalati 1.49 GB, Pine 1.82 GB**
+(over the 1.2 GB per-shard limit; Chromium phone 1.16 / 1.20). sp-o3 cuts memory; sp-o4 the drive frames' JS tasks.
+**Misses stated with breakdowns:** H4 warm home 3.85 s (first-time construction), A1 770 ms (first-time Rapier + road).
+**I2:** DW 33.3 (near floor), Nalati 55.0, Pine 77.4 MB; Nine (sp-x9) next.
+**Lanes (G818: 94 %, 2 Opus):** sp-o3 memory + spawn, sp-o4 drive JS tasks; sp-x1 / x2 / x9 I2, sp-x8 D105, sp-x6 / x10 damage,
+sp-ci-deploy release (next candidate needs fbeec3ecda + bd51640c49 + 3e0ab079de). sp-o1 / o2 / o5 released.
 
 **Rules:** G704. G807. G818. No reverts (G674). No new Debug rows (G669). G670. Never herdr wildshard-v.
