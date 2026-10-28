@@ -47,6 +47,10 @@
       .ws-load[data-shell] .ws-load-bar { height: 4px; margin: 16px 0; background: #8fe3ff33; }
       .ws-load[data-shell] .ws-load-track, .ws-load[data-shell] .ws-load-meta, .ws-load[data-shell] .ws-load-log, .ws-load[data-shell] .ws-load-diagnostics, .ws-load[data-shell] .ws-load-clock, .ws-load[data-shell] .ws-load-kicker { display: none; }
       :root[data-dev] .ws-load[data-shell] .ws-load-simple { display: block; }
+      .ws-load[data-shell] .ws-load-foot { display: flex; gap: 12px; align-items: center; padding: 16px; }
+      .ws-load-retry, .ws-launch-wait button { min-height: 44px; padding: 8px 16px; border: 1px solid #8fe3ff; background: #091624; color: #8fe3ff; font: inherit; cursor: pointer; }
+      .ws-load-retry[hidden], .ws-launch-wait[hidden] { display: none; }
+      .ws-launch-wait { position: absolute; bottom: 110px; left: 16px; right: 16px; display: flex; align-items: center; gap: 12px; padding: 12px; background: #091624ed; border: 1px solid #8fe3ff66; font: 12px/1.5 ui-monospace, monospace; }
       html.title-first #game, html.title-first .ws-load { display: none; }
       .ws-launch { display: none; }
       html.title-first .ws-launch { position: fixed; inset: 0; z-index: 90; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; background: #0b1622; color: #eaf8ff; font-family: Rajdhani, system-ui, sans-serif; }
@@ -113,6 +117,7 @@
     <div class="ws-launch" data-title-shell>
       <div class="ws-launch-hero" aria-hidden="true"></div>
       <div class="ws-launch-brand">WILDSHARD</div>
+      <div class="ws-launch-wait" role="status" hidden><span></span><button type="button">Retry</button></div>
       <div class="ws-launch-progress" role="progressbar" aria-label="Loading title">
         <svg class="ws-launch-boat" viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M24 4v29M20 9 6 29h14V9Zm8 4v16h13L28 13ZM5 35h38l-7 8H13l-8-8Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
       </div>
@@ -144,27 +149,32 @@
 <div class="ws-load-diagnostics" data-el="diagnostics">Memory: checking · CPU: checking</div>
 </div>
 </div>
-<div class="ws-load-foot"><span data-el="foot"></span></div></div>
+<div class="ws-load-foot"><span data-el="foot"></span><button type="button" class="ws-load-retry" data-el="retry" hidden>Retry</button></div></div>
     <script data-loading-first-paint>
       // This clock and the existing fields work before any application module has downloaded.
       // Loading adopts the same DOM and time origin; title arrival is read here, never consumed.
       (() => {
-        if (document.documentElement.classList.contains('title-first')) return;
-        const root = document.querySelector('.ws-load[data-shell]');
+        const running = new WeakMap();
+        const start = () => {
+        const root = document.querySelector('.ws-load[data-navigation], .ws-load[data-shell]');
         if (!root) return;
+        const navigation = root.hasAttribute('data-navigation');
+        if (running.has(root) && !navigation) return;
+        const token = {}; running.set(root, token);
         const initialSetup = root.querySelector('[data-el="suPct"]')?.textContent;
         const started = performance.now();
         root.dataset.startedAt = String(started);
         if (/^(?:100|\d{1,2})$/.test(initialSetup ?? '')) root.dataset.initialSetup = initialSetup;
-        root.dataset.step = 'admission.modules';
+        root.dataset.step = navigation ? 'navigation.document' : 'admission.modules';
         const field = (key, text) => { const el = root.querySelector('[data-el="' + key + '"]'); if (el && el.textContent !== text) el.textContent = text; };
         const slug = new URLSearchParams(location.search).get('chunk') || 'driftwood-isle';
-        let name = slug.replace(/[_-]+/g, ' ').trim() || 'Selected shard';
+        let name = (navigation ? root.querySelector('[data-el="slug"]')?.textContent : '') || slug.replace(/[_-]+/g, ' ').trim() || 'Selected shard';
         let tier = /iPhone|iPad|Android|Mobile/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'phone' : 'desktop';
         try {
           const session = JSON.parse(sessionStorage.getItem('wildshard.save.v2.session') || '{}').keys?.titleArrival?.data;
           const backup = JSON.parse(localStorage.getItem('wildshard.save.v2.device') || '{}').keys?.['titleArrival.once']?.data;
           for (const raw of [session, backup]) {
+            if (navigation) break;
             const arrival = typeof raw === 'string' ? JSON.parse(raw) : raw;
             if (!arrival || typeof arrival !== 'object') continue;
             if (arrival.slug === slug && typeof arrival.name === 'string' && arrival.name.length <= 256 && Date.now() - arrival.at >= 0 && Date.now() - arrival.at <= 60000) { name = arrival.name; break; }
@@ -174,30 +184,55 @@
         } catch { /* denied storage: device tier and destination slug remain available */ }
         field('slug', name);
         field('tier', tier + ' · selecting quality');
-        field('line', 'Loading application modules');
-        field('suFact', 'Loading application modules');
+        const waitLabel = navigation ? 'Opening ' + name : 'Application modules';
+        field('line', navigation ? waitLabel : 'Loading application modules');
+        field('suFact', navigation ? waitLabel : 'Loading application modules');
         // H7 (js-heap): each module entry counted once as it arrives, not every entry rescanned every frame
-        let bytes = 0;
+        let bytes = 0, progressAt = started, packUrl = '', packLoaded = 0;
         const add = (entries) => {
-          for (const item of entries) if (item.initiatorType === 'script' || item.initiatorType === 'link') bytes += item.encodedBodySize || item.transferSize || 0;
+          const previous = bytes;
+          for (const item of entries) if ((!navigation || item.startTime >= started) && (item.initiatorType === 'script' || item.initiatorType === 'link')) bytes += item.encodedBodySize || item.transferSize || 0;
+          if (bytes > previous) progressAt = performance.now();
         };
         let observer = null;
         try { observer = new PerformanceObserver((list) => add(list.getEntries())); observer.observe({ type: 'resource', buffered: true }); }
         catch { add(performance.getEntriesByType('resource')); }
         const resources = () => {
           root.dataset.moduleBytes = String(bytes);
-          field('dlFact', bytes > 0 ? (bytes / 1048576).toFixed(2) + ' MB modules read · total pending' : 'Waiting for application modules');
+          const url = root.dataset.codePackUrl || '', loaded = Number(root.dataset.codePackLoaded), total = Number(root.dataset.codePackTotal);
+          if (url && Number.isSafeInteger(loaded) && Number.isSafeInteger(total) && loaded >= 0 && total > 0 && loaded <= total) {
+            const samePack = url === packUrl;
+            if (!samePack || loaded > packLoaded) progressAt = performance.now();
+            packLoaded = samePack ? Math.max(packLoaded, loaded) : loaded; packUrl = url;
+            field('dlFact', (packLoaded / 1048576).toFixed(2) + ' / ' + (total / 1048576).toFixed(2) + ' MB application code');
+          } else field('dlFact', bytes > 0 ? (bytes / 1048576).toFixed(2) + ' MB modules read · total pending' : 'Waiting for application modules');
         };
+        const retry = root.querySelector('[data-el="retry"]');
+        const titleWait = document.querySelector('.ws-launch-wait');
+        const reload = () => { if (running.get(root) === token) location.reload(); };
+        if (retry) retry.onclick = reload;
+        const titleRetry = titleWait?.querySelector('button'); if (titleRetry) titleRetry.onclick = reload;
         // the loop ends when Loading adopts the panel, or when the page turns out to be the title (a URL with harness
         // parameters is not title-first while this script runs, so the loop otherwise ran on under the menu forever)
         const tick = () => {
-          if (!root.isConnected || !root.hasAttribute('data-shell') || document.documentElement.classList.contains('title-first')) { observer?.disconnect(); return; }
+          if (running.get(root) !== token) { observer?.disconnect(); return; }
+          const title = document.documentElement.classList.contains('title-first') && !root.hasAttribute('data-navigation');
+          if (!root.isConnected || (!root.hasAttribute('data-shell') && !root.hasAttribute('data-navigation')) || (title && !document.querySelector('[data-title-shell]'))) { observer?.disconnect(); running.delete(root); if (titleWait) titleWait.hidden = true; return; }
           const seconds = (performance.now() - started) / 1000;
           field('clock', String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + (seconds % 60).toFixed(1).padStart(4, '0'));
           resources();
+          const quiet = performance.now() - progressAt, stalled = quiet >= 8000;
+          const waiting = 'Waiting for ' + waitLabel + ' · ' + (quiet / 1000).toFixed(1) + ' s';
+          root.dataset.stalled = String(stalled);
+          if (retry) retry.hidden = !stalled;
+          if (stalled) field('foot', waiting);
+          if (titleWait) { titleWait.hidden = !title || !stalled; const label = titleWait.querySelector('span'); if (label) label.textContent = waiting; }
           requestAnimationFrame(tick);
         };
         tick();
+        };
+        document.addEventListener('ws:loading-navigation', start);
+        start();
       })();
     </script>
     <!-- app-switch resume screen (E61, src/engine/ui/Resume.ts; test/resume.test.ts keeps the two identical): a GPU-recovery reload

@@ -1149,6 +1149,10 @@ Developer only. Completed steps below500ms collapse into one count/time line;
 the timeline retains every original row. Title entry paints the shell before
 its durable handoff. Reload uses a CSS transform, and inline document styling
 paints while external stylesheets are still in flight.
+The navigation shell restarts that inline clock. Eight seconds without new
+bytes exposes a labelled Retry; changing diagnostics cannot renew it. The boot
+card appears at10s, and Retry reloads immediately. Code-pack progress is
+display-only until existing verified download receipts arrive.
 The application supplies its committed timing table with Simulator receipts; paths
 without measurements use the declared step weights as a fallback.
 

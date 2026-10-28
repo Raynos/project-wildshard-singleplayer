@@ -27,7 +27,10 @@
 .ws-load .ws-load-hold { flex: none; width: calc(100% - 32px); max-width: 560px; min-height: 48px; border: 1px solid var(--ws-cyan-line); background: var(--ws-glass-deep); color: var(--ws-text); font: 12px var(--ws-mono); text-align: left; padding: 12px 16px; cursor: pointer; }
 .ws-load .ws-load-hold.on { border-color: var(--ws-cyan); color: var(--ws-cyan); }
 .ws-load .ws-load-hold[hidden] { display: none; }
-.ws-load .ws-load-panel { width: 560px; padding: 22px 26px 20px; }
+.ws-load .ws-load-retry { flex: none; min-height: 44px; padding: 8px 16px; border: 1px solid var(--ws-cyan); color: var(--ws-cyan); background: var(--ws-glass-deep); font: 12px var(--ws-mono); cursor: pointer; }
+.ws-load .ws-load-retry[hidden] { display: none; }
+.ws-load .ws-load-foot { align-items: center; gap: 12px; }
+.ws-load .ws-load-panel { box-sizing: border-box; width: 560px; padding: 22px 26px 20px; }
 .ws-load .ws-load-title { font-family: var(--ws-display); font-weight: 700; font-size: 20px; letter-spacing: 0.14em; text-transform: uppercase; color: #fff; }
 .ws-load .ws-load-title b { color: var(--ws-cyan); }
 .ws-load .ws-load-meta { margin: 14px 0 18px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 26px; row-gap: 7px; }

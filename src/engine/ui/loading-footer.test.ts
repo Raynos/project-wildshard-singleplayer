@@ -78,7 +78,8 @@ it('adopts the original shell setup fact without replacing it with a later perce
     expect(timeline.snapshot().rows[0]).toMatchObject({startedAt: 50, setupAtStart: 7});
     shell.dataset['initialSetup'] = '99'; loading.waiting('Preparing application services');
     now = 400; vi.advanceTimersByTime(32);
-    expect(loading.root.querySelector<HTMLElement>('[data-key="modules"]')?.dataset['setupAtStart']).toBe('7');
+    expect(currentLoadingTimeline()?.snapshot().rows.find(row => row.key === 'modules')?.setupAtStart).toBe(7);
+    expect(loading.root.querySelector('[data-key="modules"]')).toBeNull();
   } finally { loading.scope.dispose(); }
 });
 
@@ -140,14 +141,34 @@ it('groups only completed sub-500ms steps and keeps the exact 500ms boundary vis
     const timeline = currentLoadingTimeline(); if (timeline === undefined) throw new Error('Missing timeline');
     const quick = timeline.begin('quick'); now = 699; quick.end();
     const slow = timeline.begin('slow'); now = 1199; slow.end();
+    // WebKit can still have a short external finalizer at completed-panel paint.
+    const tail = timeline.begin('quick');
     const completed = loading.done();
     const rows = [...loading.root.querySelectorAll<HTMLElement>('[data-el="rows"] > div')];
     expect(rows).toHaveLength(2);
     expect(rows[0]?.dataset['key']).toBe('slow'); expect(rows[0]?.dataset['ms']).toBe('500');
     expect(rows[1]?.textContent).toContain('2 quick steps'); expect(rows[1]?.dataset['ms']).toBe('599');
     expect(timeline.snapshot().rows.map(row => row.ms)).toEqual([100, 499, 500]);
+    tail.end();
     await vi.advanceTimersByTimeAsync(1000); await completed;
   } finally { loading.scope.dispose(); }
+});
+
+it('offers Retry after eight seconds without bytes, including changing diagnostic text', () => {
+  const loading = new Loading({ id: 'wait', name: 'Wait' }, { scoped: true });
+  const reload = vi.spyOn(location, 'reload').mockImplementation(() => undefined);
+  try {
+    loading.setPath({ id: 'cell', steps: [{ key: 'read', label: 'Read world', weight: 1 }] });
+    loading.scopedStep('read', 'Reading terrain'); vi.advanceTimersByTime(32);
+    now = 8100; loading.scopedStep('read', 'Still reading terrain'); vi.advanceTimersByTime(32);
+    const retry = loading.root.querySelector<HTMLButtonElement>('[data-el="retry"]');
+    expect(loading.root.dataset['stalled']).toBe('true'); expect(retry?.hidden).toBe(false);
+    expect(loading.root.querySelector('[data-el="foot"]')?.textContent).toContain('Waiting for Read world');
+    recordCachedDownload('eight-second-progress', 32); now = 8400; vi.advanceTimersByTime(240);
+    expect(retry?.hidden).toBe(true);
+    now = 16400; vi.advanceTimersByTime(240); expect(retry?.hidden).toBe(false);
+    retry?.click(); expect(reload).toHaveBeenCalledTimes(1);
+  } finally { reload.mockRestore(); loading.scope.dispose(); }
 });
 
 it('does not invent a one-step total before the actual path is declared', () => {

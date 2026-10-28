@@ -18,6 +18,7 @@ import { getSetting, onSetting } from './Settings';
 import { listenTap } from '../input/dom';
 import { withOwner } from '../app/ownership';
 import { holdLoadingSwitch } from './devSwitch';
+import { markReload } from '../boot/lastEnd';
 import './loading.css';
 
 const savedStorage = saveStorage('session');
@@ -34,7 +35,7 @@ const savedStorage = saveStorage('session');
  * index.html before the first paint — src/engine/core/devMode.ts; loading.css does the hiding).
  */
 type TimelineSnapshot = ReturnType<LoadingTimeline['snapshot']>;
-type ElKey = 'clock' | 'dlFact' | 'dlPct' | 'dlBar' | 'pfRow' | 'pfFact' | 'pfPct' | 'suFact' | 'suPct' | 'suBar' | 'rows' | 'foot' | 'slug' | 'tier' | 'bar' | 'line' | 'diagnostics';
+type ElKey = 'clock' | 'dlFact' | 'dlPct' | 'dlBar' | 'pfRow' | 'pfFact' | 'pfPct' | 'suFact' | 'suPct' | 'suBar' | 'rows' | 'foot' | 'slug' | 'tier' | 'bar' | 'line' | 'diagnostics' | 'retry';
 
 /** Write text only when it changed: an unchanged textContent write still dirties layout. */
 const set = (el: HTMLElement, text: string): void => { if (el.textContent !== text) el.textContent = text; };
@@ -128,7 +129,10 @@ export class Loading {
     this.scope.onDispose(() => { this.downloadObserver.disconnect(); });
     const tagline = this.root.querySelector('.ws-load-tagline'); if (tagline === null) throw new Error('Loading: no tagline'); tagline.textContent = appIdentity().tagline;
     const el = (key: ElKey): HTMLElement => { const e = this.root.querySelector<HTMLElement>(`[data-el="${key}"]`); if (!e) throw new Error(`Loading: no [data-el="${key}"]`); return e; };
-    this.els = { slug: el('slug'), tier: el('tier'), clock: el('clock'), dlFact: el('dlFact'), dlPct: el('dlPct'), dlBar: el('dlBar'), pfRow: el('pfRow'), pfFact: el('pfFact'), pfPct: el('pfPct'), suFact: el('suFact'), suPct: el('suPct'), suBar: el('suBar'), rows: el('rows'), foot: el('foot'), bar: el('bar'), line: el('line'), diagnostics: el('diagnostics') };
+    this.els = { slug: el('slug'), tier: el('tier'), clock: el('clock'), dlFact: el('dlFact'), dlPct: el('dlPct'), dlBar: el('dlBar'), pfRow: el('pfRow'), pfFact: el('pfFact'), pfPct: el('pfPct'), suFact: el('suFact'), suPct: el('suPct'), suBar: el('suBar'), rows: el('rows'), foot: el('foot'), bar: el('bar'), line: el('line'), diagnostics: el('diagnostics'), retry: el('retry') };
+    this.els.retry.onclick = null; // Adopt the inline retry without keeping its document-only handler.
+    set(this.els.retry, engineString('s_loading_retry'));
+    listenTap(this.scope, this.els.retry, () => { markReload('loading wait retry'); location.reload(); });
     this.els.slug.textContent = chunk.name;
     this.els.tier.textContent = engineString('s_783b614ae363', [TIER, Math.round(innerWidth * devicePixelRatio), Math.round(innerHeight * devicePixelRatio), nav.hardwareConcurrency ?? engineString('s_8a8de823d5ed'), navigator.serviceWorker?.controller ? engineString('s_5c75b0e90774') : '']);
     const key = 'loadAttempt';
@@ -343,8 +347,8 @@ export class Loading {
       shown.push(row);
       for (const gap of timeline.gaps) if (gap.after === row.key) shown.push(gap);
     }
-    const quick = shown.filter(row => 'key' in row && row.state === 'ok' && row.ms < 500);
-    const visible = shown.filter(row => row.state === 'on' || row.ms >= 500);
+    const quick = shown.filter(row => 'key' in row && (row.state === 'ok' || this.finished) && row.ms < 500);
+    const visible = shown.filter(row => row.ms >= 500);
     if (quick.length > 0) visible.push({ label: engineString('s_loading_quick_steps', [quick.length]), state: 'ok', ms: quick.reduce((sum, row) => sum + row.ms, 0), after: null });
     while (this.rowsEl.children.length > visible.length) this.rowsEl.lastElementChild?.remove();
     this.paintedRows.length = visible.length;
@@ -409,18 +413,19 @@ export class Loading {
     const wait = files[0] ?? pending.find(row => row.kind !== 'admission');
     const transfer = this.downloads.snapshot();
     const current = timeline.rows.find(row => row.key === timeline.display);
-    const signature = `${timeline.display}:${timeline.rows.map(row => `${row.state}:${row.detail}`).join('|')}:${transfer.networkBytes}:${transfer.cachedBytes}:${this.downloads.progressVersion}:${wait?.id ?? 0}`;
+    const signature = `${timeline.display}:${timeline.current}:${transfer.networkBytes}:${transfer.cachedBytes}:${this.downloads.progressVersion}:${wait?.id ?? 0}`;
     const quietMs = this.stall.quietMs(signature, performance.now());
-    const stalled = !this.finished && quietMs >= 10_000;
+    const stalled = !this.finished && quietMs >= 8_000;
+    this.els.retry.hidden = !stalled;
     setData(this.root, 'stalled', String(stalled));
     setData(this.root, 'waiting', wait?.label ?? '');
     setData(this.root, 'filesInFlight', String(files.length));
     const label = wait?.label ?? (current === undefined ? undefined : `${current.label}${current.detail ? ` · ${current.detail}` : ''}`) ?? timeline.gaps.find(row => row.state === 'on')?.label ?? 'Final activation';
     const detail = wait === undefined ? `Now working on: ${label}` : `Now waiting for: ${label} · ${(wait.ageMs / 1000).toFixed(1)} s${files.length > 0 ? ` · ${files.length} files in flight` : ''}${pending.length > 1 ? ` · ${pending.length} waits` : ''}`;
     // A quiet phase still reports its actual age, without advancing a byte,
-    // file or setup credit. Keep the ten-second stall classification separate
+    // file or setup credit. Keep the eight-second retry classification separate
     // from this visible acknowledgement that the current work is still pending.
-    set(this.els.foot, !this.finished && quietMs >= 500
+    set(this.els.foot, stalled ? `Waiting for ${label} · ${(quietMs / 1000).toFixed(1)} s` : !this.finished && quietMs >= 500
       ? `No reported progress for ${(quietMs / 1000).toFixed(1)} s · ${detail}` : detail);
   }
 

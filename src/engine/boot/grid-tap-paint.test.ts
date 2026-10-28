@@ -5,6 +5,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { Scope } from '../app/scope';
 import { installScopeEnvironment, scopeEnvironment } from '../app/scopeEnvironment';
 import { loadShellTemplate, beginNavigationShell } from './shell';
+import { guardBoot } from './stuck';
 
 const native = scopeEnvironment();
 let owner = new Scope('tap-test'), next = 1;
@@ -28,8 +29,10 @@ test('the loader stylesheet is available before any application module executes'
 test('a tap displays the real shell, paints a 30 Hz frame, then hands off exactly once', () => {
   document.body.insertAdjacentHTML('beforeend', `<div class="ws-load hide" data-shell>${loadShellTemplate()}</div>`);
   const navigate = vi.fn<() => void>(), button = card();
+  const clock = vi.fn<() => void>(); owner.listen(document, 'ws:loading-navigation', clock);
   owner.listen(button, 'click', () => { beginNavigationShell('The Home Island', owner, navigate, button); });
   button.click(); button.click();
+  expect(clock).toHaveBeenCalledTimes(1);
   const shell = document.querySelector('.ws-load'); if (shell === null) throw new Error('Tap removed its shell');
   expect(document.querySelectorAll('.ws-load')).toHaveLength(1); expect(getComputedStyle(shell).display).toBe('flex');
   expect(shell.querySelector('[data-el="slug"]')?.textContent).toBe('The Home Island');
@@ -78,4 +81,20 @@ test('a retired owner refuses before creating a loader or scheduling work', () =
   owner.dispose(); const navigate = vi.fn<() => void>();
   expect(() => beginNavigationShell('Home', owner, navigate, card())).toThrow('live owner');
   expect(document.querySelector('.ws-load')).toBeNull(); expect(queued.size).toBe(0); expect(navigate).not.toHaveBeenCalled();
+});
+
+test('a ten-second boot wait exposes a direct reload without a network or worker probe', async () => {
+  vi.useFakeTimers();
+  const reload = vi.fn<() => void>(), fetch = vi.fn();
+  vi.stubGlobal('location', { href: 'https://boot.test/', pathname: '/', search: '', reload });
+  vi.stubGlobal('fetch', fetch);
+  let finish = (): void => undefined;
+  const pending = new Promise<void>(resolve => { finish = resolve; });
+  try {
+    guardBoot(pending);
+    await vi.advanceTimersByTimeAsync(9999); expect(document.querySelector('#wsstuck')).toBeNull();
+    await vi.advanceTimersByTimeAsync(1); expect(document.querySelector('#wsstuck')?.textContent).toContain('Still starting');
+    document.querySelector<HTMLButtonElement>('#wsstuck button')?.click();
+    expect(reload).toHaveBeenCalledTimes(1); expect(fetch).not.toHaveBeenCalled();
+  } finally { finish(); await Promise.resolve(); vi.unstubAllGlobals(); vi.useRealTimers(); }
 });

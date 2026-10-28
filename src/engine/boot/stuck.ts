@@ -15,10 +15,8 @@ import { saveStorage } from '../saves/slots';
  *                    with a RELOAD button instead: it never loops.
  *     STALL_MS without settling → the card ("Still starting"), RELOAD on a tap; it goes away if main starts after all.
  *
- *   recover()   only when the host answers (else the card says "No connection" and nothing is touched): hand over to
- *               a waiting worker if there is one, delete the controlling worker's shell cache if its document names
- *               code that is no longer in the code cache (the poisoned shell: the build it describes cannot boot from
- *               here), then a `?v=` reload, which the worker answers network-first (src/engine/pwa/sw.js).
+ *   recover()   records the deliberate retry and reloads immediately. Shell delivery and bounded network fallback
+ *               belong to the worker; the page does not probe, adopt or run cache maintenance before navigating.
  */
 import { ErrorReporter, safeUrl, sendReport } from '../core/errorReport';
 import { RELOADS_MAX, countReload, recentReloads } from '../core/reloadGuard';
@@ -29,11 +27,7 @@ const recoveryScope = new Scope('boot.recovery');
 declare const __BUILD_ID__: string; // vite.config.ts define
 
 /** a boot whose main module has not arrived by then gets the card (it stays out of the way and leaves if main starts) */
-const STALL_MS = 25_000;
-/** the longest recover() waits for a waiting worker to take over before it reloads anyway */
-const HANDOVER_MS = 2500;
-/** the reachability probe's cap */
-const PROBE_MS = 5000;
+const STALL_MS = 10_000;
 
 let card: HTMLElement | null = null;
 /** what went wrong, for the card's small print */
@@ -55,73 +49,13 @@ function report(error: unknown): void {
   } catch { /* the net must never throw */ }
 }
 
-/** the shell cache of the worker controlling this page (`ws-shell-<its build>`, src/engine/pwa/sw.js), null if none answers */
-function controllerShell(): Promise<string | null> {
-  const ctl = nav.serviceWorker?.controller;
-  if (!ctl) return Promise.resolve(null);
-  return new Promise((resolve) => {
-    const ch = new MessageChannel();
-    const timer = pageScope.timeout(HANDOVER_MS, () => { resolve(null); });
-    ch.port1.onmessage = (e: MessageEvent<{ build?: unknown }>) => { pageScope.cancelTimer(timer); resolve(typeof e.data.build === 'string' ? `ws-shell-${e.data.build}` : null); };
-    ctl.postMessage({ type: 'BUILD' }, [ch.port2]);
-  });
-}
-
-/**
- * The controlling worker's shell cache, when its document names a script the code cache does not hold: that document
- * is what just failed. Only the controller's: a worker still installing has put its document in its own shell before
- * its code, and would look poisoned for a moment.
- */
-async function dropPoisonedShell(): Promise<void> {
-  const name = await controllerShell();
-  if (name === null || !(await caches.has(name))) return;
-  const immutable = await caches.open('ws-immutable');
-  const doc = await (await caches.open(name)).match(new URL('/index.html', location.origin).href, { ignoreVary: true });
-  const refs = doc ? (await doc.text()).match(/\/assets\/[^/"'?#\s]+-[\w-]{8}\.js(?=["'?#\s<>\\)]|$)/g) ?? [] : [];
-  const missing = await Promise.all(refs.map(async (r) => (await immutable.match(new URL(r, location.origin).href, { ignoreVary: true })) === undefined));
-  if (!doc || missing.includes(true)) await caches.delete(name);
-}
-
-/** a waiting worker takes over (it holds a complete build: src/engine/pwa/sw.js installs strictly), capped */
-async function adoptWaiting(): Promise<void> {
-  const sw = nav.serviceWorker;
-  const waiting = sw ? (await sw.getRegistration())?.waiting : null;
-  if (!sw || !waiting) return;
-  await new Promise<void>((resolve) => {
-    const timer = pageScope.timeout(HANDOVER_MS, resolve);
-    pageScope.listen(sw, 'controllerchange', () => { pageScope.cancelTimer(timer); resolve(); }, { once: true });
-    // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker.postMessage has no targetOrigin parameter (that is Window.postMessage)
-    waiting.postMessage({ type: 'SKIP_WAITING' });
-  });
-}
-
-/** can the host be reached at all? (version.json: the worker never answers it from a cache) */
-async function reachable(): Promise<boolean> {
-  const abort = new AbortController();
-  const timer = pageScope.timeout(PROBE_MS, () => { abort.abort(); });
-  try { return (await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store', signal: abort.signal })).ok; } catch { return false; } finally { pageScope.cancelTimer(timer); }
-}
-
-/**
- * Clear what cannot boot and fetch the document again, counted against the shared reload budget. With no way to reach
- * the host it changes nothing (the shell may be all an offline launch has) and says so instead: a reload could only
- * trade the loader for the browser's own "no connection" page.
- */
-export async function recover(): Promise<void> {
-  if (!(await reachable())) {
-    show('No connection', 'This build isn’t fully downloaded yet. Reconnect, then tap Reload.', detail, true);
-    return;
-  }
+/** A player's retry navigates immediately. The worker owns bounded shell delivery;
+ * UI recovery never waits for a probe, activation or cache maintenance. */
+export function recover(): Promise<void> {
   countReload();
-  try {
-    await adoptWaiting();
-    if ('caches' in window) await dropPoisonedShell();
-  } catch { /* reload regardless */ }
-  const url = new URL(location.href);
-  url.searchParams.delete('crash');
-  url.searchParams.set('v', Date.now().toString(36)); // network-first in the worker: the host's live document
   markReload(`stuck boot recovery (${detail.slice(0, 80)})`);
-  location.replace(url.toString());
+  location.reload();
+  return Promise.resolve();
 }
 
 /**
