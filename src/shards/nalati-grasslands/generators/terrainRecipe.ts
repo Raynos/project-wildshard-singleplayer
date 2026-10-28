@@ -1,7 +1,7 @@
 import terrainBounds from '../data/terrainBounds.json' with { type: 'json' };
 import { SEED as TERRAIN_SEED } from './terrainSeed';
 import { Noise2D, smoothstep, clamp, lerp } from '@wildshard/sdk/noise';
-import { createTerrainField as buildTerrain } from '@wildshard/sdk/bake/terrain';
+import { createTerrainField as buildTerrain } from '@wildshard/sdk/bake/nativeTerrainField';
 import * as layoutRows from './layout';
 import { edgeRise, riverZAt, riverHalfAt } from './edgeRecipe';
 import * as clearings from './clearings';

@@ -1,5 +1,5 @@
 import { expect, expectTypeOf, test } from 'vitest';
-import { createTerrainField, terrainFieldPolicy } from '../src/sdk/bake/terrain';
+import { createTerrainField, terrainFieldPolicy } from '../src/sdk/bake/nativeTerrainField';
 import { forestDefaultTreeSpecs } from '../src/sdk/bake/forest';
 import { buildTerrain } from '../src/engine/world/terrainField';
 import { CHUNK_HALF, ROAD_WIDTH, ROAD_LENGTH } from '../src/engine/core/config';

@@ -50,11 +50,13 @@ test('the complete terrain author graph resolves under the unchanged source-only
       import assert from 'node:assert/strict';
       import { zlibSync } from 'fflate';
       import { readNativeScalarField } from '@wildshard/sdk/bake/terrain';
+      import { parseInteractionRows } from '@wildshard/sdk/interactions';
       import { templateTerrain } from './src/shards/_template/generators/terrain.ts';
       const raw = new Float32Array([-0,1,2,3]);
       const rows={res:2,size:500,values:{type:'f32',count:4,data:{file:'scalar.bin'}}};
       const made=readNativeScalarField(rows,new Map([['scalar.bin',zlibSync(new Uint8Array(raw.buffer))]]));
       assert.equal(typeof templateTerrain,'function');
+      assert.equal(typeof parseInteractionRows,'function');
       assert.equal(Object.is(made.values[0],-0),true);assert.equal(made.sample(0,0),1.5);
     `, 'src/shards/_template/generators/terrain.ts']);
 });

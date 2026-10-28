@@ -1,4 +1,4 @@
-import { puzzleBarrelBody } from '@wildshard/sdk/interactions';
+import { puzzleBarrelBody } from '@wildshard/sdk/bake/nativeInteractionFacts';
 import { NATIVE_BARRELS, NATIVE_FLOORS, NATIVE_PLATES, NATIVE_WATER } from './nativeQuestProps';
 
 /**

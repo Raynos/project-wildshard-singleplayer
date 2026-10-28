@@ -176,7 +176,9 @@
     "./arenaView": "./arenaView.ts",
     "./eliteEntryRows": "./eliteEntryRows.ts",
     "./decisionScripts": "./decisionScripts.ts",
-    "./bake/facetedGeometry": "./bake/facetedGeometry.ts"
+    "./bake/facetedGeometry": "./bake/facetedGeometry.ts",
+    "./bake/nativeTerrainField": "./bake/nativeTerrainField.ts",
+    "./bake/nativeInteractionFacts": "./bake/nativeInteractionFacts.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -804,6 +806,14 @@
       "./bake/facetedGeometry": {
         "types": "./dist/types/sdk/bake/facetedGeometry.d.ts",
         "default": "./dist/bake/facetedGeometry.js"
+      },
+      "./bake/nativeTerrainField": {
+        "types": "./dist/types/sdk/bake/nativeTerrainField.d.ts",
+        "default": "./dist/bake/nativeTerrainField.js"
+      },
+      "./bake/nativeInteractionFacts": {
+        "types": "./dist/types/sdk/bake/nativeInteractionFacts.d.ts",
+        "default": "./dist/bake/nativeInteractionFacts.js"
       }
     }
   }

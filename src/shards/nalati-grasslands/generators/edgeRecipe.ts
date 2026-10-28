@@ -21,7 +21,7 @@
  * def adds the rise on top of buildTerrain's field (nalati-grasslands.ts TERRAIN), and the one bake —
  * public/assets/baked/nalati-grasslands/terrain.bin and navmesh.bin — carries it.
  */
-import { terrainFieldPolicy } from '@wildshard/sdk/bake/terrain';
+import { terrainFieldPolicy } from '@wildshard/sdk/bake/nativeTerrainField';
 import { Noise2D, smoothstep, clamp } from '@wildshard/sdk/noise';
 import * as layout from './layout';
 

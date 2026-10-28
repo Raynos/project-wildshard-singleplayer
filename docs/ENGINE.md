@@ -5020,12 +5020,12 @@ retain exact identity. The rows module exposes AuthorDayClock as the complete
 native readonly schedule/selection contract, with no clock construction.
 The species module prepares speciesFieldReader from finite defining native
 field names, preserving strict selected-field grammar, complete inferred
-outputs, defaults and issue order. The interactions module exposes
-puzzleBarrelBody as the exact native physical descriptor. Neither metadata
+outputs, defaults and issue order. The nativeInteractionFacts bake module
+exposes puzzleBarrelBody as the exact native physical descriptor. Neither metadata
 port constructs a species, body, watch, query or live interaction owner.
-The bake terrain module exposes createTerrainField for the complete native
-author field and terrainFieldPolicy for its mandatory cell/entry-road
-dimensions. The bake forest module exposes forestDefaultTreeSpecs with the
+The nativeTerrainField bake module exposes createTerrainField for the complete
+native author field and terrainFieldPolicy for mandatory cell/entry-road
+dimensions. Plain terrain/scalar compilation stays in the terrain bake module. The bake forest module exposes forestDefaultTreeSpecs with the
 original readonly ordered traits and identity. These ports compile or select
 build metadata without installing a runtime terrain, forest or service.
 `arenaView.AuthorViewProgramRows` retains the complete mutable native view
