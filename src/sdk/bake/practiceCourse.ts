@@ -1,10 +1,14 @@
 import * as THREE from 'three';
-import { parsePracticeScene, type PracticeScene, type HookPracticeLayout } from '@wildshard/format/practiceCourseRows';
+import { parsePracticeScene, parseRidingPractice, type RidingPracticeLayout, type PracticeScene, type HookPracticeLayout } from '@wildshard/format/practiceCourseRows';
 
 /** Complete authored course parts, collision descriptions and map records. */
 export type AuthorPracticeScene = PracticeScene;
 /** Native practice anchors and routes; authoring keeps the whole layout grammar. */
 export type AuthorHookPracticeLayout = HookPracticeLayout;
+/** Complete native riding-course declaration, including controller and return program. */
+export type AuthorRidingPracticeLayout = RidingPracticeLayout;
+/** Admit all native course geometry, map, controller and program invariants. */
+export function ridingPracticeRows(input: unknown): RidingPracticeLayout { return parseRidingPractice(input); }
 
 type Part = PracticeScene['parts'][number];
 type Tone = Extract<Part, { kind: 'box' }>['tone'];

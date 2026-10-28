@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import type { NalatiKokpar } from './kokparRows';
-import { CourseKit as DevKit, courseLabel as devLabel, courseMaterial as devMaterial, courseChecker as checkerLine, captureCourse } from '@wildshard/sdk/bake/practiceCourse';
-import {parseRidingPractice,type RidingPracticeLayout,type PracticeScene} from '@wildshard/format/practiceCourseRows';
+import { CourseKit as DevKit, courseLabel as devLabel, courseMaterial as devMaterial, courseChecker as checkerLine, captureCourse, ridingPracticeRows as parseRidingPractice, type AuthorRidingPracticeLayout as RidingPracticeLayout, type AuthorPracticeScene as PracticeScene } from '@wildshard/sdk/bake/practiceCourse';
 import { FIELD_AT, RIDER_PITCH, SHOULDER, FIELD, HORSE_START, JUMPS, JUMP_WIDTH, LINE_X, OVAL, POST_GAP, POST_OFF, RIDER_START, ovalLine } from './horseCourse';
 
 type ColliderDesc = PracticeScene['colliders'][number];

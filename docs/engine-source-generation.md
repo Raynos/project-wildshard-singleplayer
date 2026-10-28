@@ -153,3 +153,12 @@ transport, cache and cancellation checks apply to both paths.
 the GLB and the generic props installer. Omitted flags keep the existing
 true default and unchanged bytes. A whole scene mesh that received no
 shadows can move onto tiles with `receiveShadow: false`.
+
+`@wildshard/sdk/rows` supplies complete author atlas, external-elite and
+keyed-look types (`AuthorFigureAtlas`, `AuthorExternalElite`, `AuthorDayLook`).
+These retain native readonly, recursive and discriminated fields without
+constructing presentation owners. `scriptV1ReferenceKinds()` in
+`@wildshard/sdk/decisionScripts` returns the defining reference-map tuple
+for default elision. `ridingPracticeRows()` in `@wildshard/sdk/bake/practiceCourse`
+admits the complete native course, including controller and return-program
+checks; `AuthorRidingPracticeLayout` retains its full output shape.

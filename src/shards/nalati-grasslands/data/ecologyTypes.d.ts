@@ -1,4 +1,4 @@
-import type { ExternalEliteData } from '@wildshard/format/eliteFeature';
+import type { AuthorExternalElite as ExternalEliteData } from '@wildshard/sdk/rows';
 import type AqbarsProfile from './aqbarsProfile.json';
 import type KokboriProfile from './kokboriProfile.json';
 import type QyranProfile from './qyranProfile.json';

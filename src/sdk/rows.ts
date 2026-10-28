@@ -1,9 +1,10 @@
 import { RowsSchema as GameRowsSchema, parseRows as gameParseRows, type ShardRows as GameShardRows } from '@wildshard/format/rows';
 import type { DayClockRow } from '@wildshard/format/dayCycle';
+import type { DayLookRow, DayLookSchema } from '@wildshard/format/dayLook';
 import { isJsonData as gameIsJsonData } from '@wildshard/format/json';
 import { parseItems as gameParseItems, type ShardItems as GameShardItems } from '@wildshard/format/items';
 import { parseClientChannels as gameParseClientChannels, type ClientChannelProgram as GameClientChannelProgram } from '@wildshard/format/clientChannels';
-import { parseEliteFeature as gameParseEliteFeature, type EliteFeatureRows as GameEliteFeatureRows } from '@wildshard/format/eliteFeature';
+import { parseEliteFeature as gameParseEliteFeature, type EliteFeatureRows as GameEliteFeatureRows, type ExternalEliteData } from '@wildshard/format/eliteFeature';
 import { parseSpawnScript as gameParseSpawnScript, spawnScriptRegistries as gameSpawnScriptRegistries, type SpawnScriptRows as GameSpawnScriptRows } from '@wildshard/format/spawnScripts';
 import type { DecisionRegistries as GameDecisionRegistries } from '@wildshard/format/decisionBindings';
 import { JournalRowSchema as GameJournalRowSchema, journalRowRules as gameJournalRowRules, type JournalRow as GameJournalRow } from '@wildshard/format/compendiumRows';
@@ -11,7 +12,7 @@ import { parseContractCatalogue as gameParseContractCatalogue, parseContractBoar
 import { parseAmbientLife as gameParseAmbientLife, type AmbientLifeData as GameAmbientLife } from '@wildshard/format/ambientLife';
 import { parsePageLife as gameParsePageLife, type PageLifeRows as GamePageLifeRows } from '@wildshard/format/pageLife';
 import { PopulationEnvironmentSchema as GamePopulationEnvironmentSchema, type PopulationEnvironmentRows as GamePopulationEnvironment } from '@wildshard/format/populationEnvironment';
-import { FigureCatalogueSchema as GameFigureCatalogueSchema, NpcFigureRowsSchema, type FigureCatalogueRow as GameFigureCatalogue } from '@wildshard/format/figures';
+import { FigureCatalogueSchema as GameFigureCatalogueSchema, NpcFigureRowsSchema, type FigureCatalogueRow as GameFigureCatalogue, type FigureAtlasRow } from '@wildshard/format/figures';
 import { RangedPageSchema, ForestWeatherObservationSchema } from '@wildshard/format/rangedPage';
 import { RainPresentationSchema } from '@wildshard/format/rainPresentation';
 import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
@@ -32,6 +33,12 @@ import { parseHeldSlots, HeldArmsSchema } from '@wildshard/format/heldArms';
 
 /** Complete authored day clock, including readonly schedules and fixed/preset selections. */
 export type AuthorDayClock = DayClockRow;
+/** Complete merged-atlas metadata; no skin, texture or figure is allocated. */
+export type AuthorFigureAtlas = FigureAtlasRow;
+/** Complete external elite declaration, including the script/herd discriminant. */
+export type AuthorExternalElite = ExternalEliteData;
+/** Native keyed-look grammar and its recursive, readonly value mapping. */
+export type AuthorDayLook<Schema extends DayLookSchema> = DayLookRow<Schema>;
 
 /** Admit the complete native mounted arsenal declaration before compiling its slot rows. */
 export function mountedLoadoutRows(input: unknown): v.InferOutput<typeof MountedLoadoutSchema> { return v.parse(MountedLoadoutSchema, input); }

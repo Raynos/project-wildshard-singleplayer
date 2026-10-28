@@ -1,5 +1,5 @@
 import { parseReturnProjectionV2 as parseProjection, type ReturnProjectionV2Rows as Projection } from '@wildshard/format/returnProjectionV2';
-import { parseDecisionScripts as parse, type DecisionScriptRow as Row } from '@wildshard/format/decisionScripts';
+import { parseDecisionScripts as parse, SCRIPT_V1_REFERENCE_KINDS, type DecisionScriptRow as Row } from '@wildshard/format/decisionScripts';
 import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
 import { parseActorProjectionV2 as nativeActorProjection } from '@wildshard/format/actorProjectionV2';
 import type { GroupStepProfileV2 } from '@wildshard/format/scriptGroupStepV2';
@@ -9,6 +9,9 @@ export type AuthorGroupStepProfile = GroupStepProfileV2;
 
 /** Version stamps for source-owned projection metadata; no compiler is loaded. */
 export function scriptV2Revisions(): typeof SCRIPT_V2_REVISIONS { return SCRIPT_V2_REVISIONS; }
+
+/** Defining v1 reference maps whose empty defaults may be omitted from author wires. */
+export function scriptV1ReferenceKinds(): typeof SCRIPT_V1_REFERENCE_KINDS { return SCRIPT_V1_REFERENCE_KINDS; }
 
 /** Admitted decision-script metadata, independent of source readers and compilation services. */
 export type DecisionScriptRow = Row;
