@@ -51,6 +51,21 @@ test('renderer-free title Settings refuses corrupt inventory and can reopen afte
     expect(open).toHaveBeenCalledTimes(1); expect(read).toHaveBeenCalledTimes(2);
   } finally { f.restore(); }
 });
+
+test('title Settings preserves registry refusal after verified inventory and opens only after registry recovery', async () => {
+  let wire = '';
+  const read = vi.fn(() => Promise.resolve(new Response(wire))), f = titleFixture(read);
+  wire = f.source;
+  try {
+    const ready = f.inventory(), open = vi.fn(() => { expect(publicBytes()).toEqual(f.data.bytes); });
+    await expect(openTitleSettings(open, { inventory: () => ready, registry: async () => {
+      await ready; throw new Error('Registry unavailable');
+    } })).rejects.toThrow('Registry unavailable');
+    expect(open).not.toHaveBeenCalled(); expect(publicBytes()).toEqual(f.data.bytes);
+    await openTitleSettings(open, { inventory: () => ready, registry: () => Promise.resolve() });
+    expect(open).toHaveBeenCalledTimes(1); expect(read).toHaveBeenCalledTimes(1);
+  } finally { f.restore(); }
+});
 test('selected-entry transport retains every original table value and pack tuple', async () => {
   const f = fixture();
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(f.source)));
