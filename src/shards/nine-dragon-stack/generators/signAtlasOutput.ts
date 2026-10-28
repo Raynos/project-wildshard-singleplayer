@@ -1,7 +1,6 @@
 import * as v from 'valibot';
 import { SignAtlasSchema, parseSignView } from './sections';
-import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
-import { unzlibSync } from 'fflate';
+import { encodeBuildBytes, decodeBuildDeflate } from '@wildshard/sdk/bake/byteCodec';
 import { NeonText } from './neonGeometry';
 import rawSignRows from '../data/signView.json' with { type: 'json' };
 import { signCopies } from './signCopies';
@@ -44,7 +43,7 @@ function textureBlob(tier: string, name: 'mono' | 'colour', row: { packed: strin
 /** Ordinary RG8 KTX2; the existing texture reader owns decompression. */
 function glyphTexture(tier: string, field: { size: number; packed: readonly string[] }, read: ReadSignBytes): NamedBlob {
   const pixels = new Uint8Array(field.size * field.size * 2);
-  field.packed.forEach((part, i) => pixels.set(unzlibSync(read(part)), i * 2_097_152));
+  field.packed.forEach((part, i) => pixels.set(decodeBuildDeflate(read(part), 2_097_152), i * 2_097_152));
   const packed = encodeBuildBytes(pixels, 'zstd', 3), offset = 168, data = new Uint8Array(offset + packed.length), view = new DataView(data.buffer);
   data.set([171, 75, 84, 88, 32, 50, 48, 187, 13, 10, 26, 10]);
   [16, 1, field.size, field.size, 0, 0, 1, 1, 2, 104, 60].forEach((n, i) => view.setUint32(12 + i * 4, n, true));
