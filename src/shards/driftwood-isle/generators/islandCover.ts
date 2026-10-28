@@ -13,8 +13,10 @@ import type { DriftwoodIslandFacts } from './islandFacts';
 import { coveFamilyOf, type CoveFamily } from './coveModels';
 import { WORLD_DROP } from './sea';
 import { ISLAND_LOOK, ISLAND_TIERS } from './islandRows';
-import { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES } from '@wildshard/engine/core/config';
+import geometryPolicy from '../data/groundGeometryPolicy.json' with { type: 'json' };
 import type { IslandTier as Tier } from './tiers';
+
+const CHUNK_SIZE = geometryPolicy.size, CHUNK_HALF = CHUNK_SIZE / 2, TERRAIN_RES = geometryPolicy.resolution;
 
 
 /** one cover triangle in world space (`a`, `b`, `d` its corners) and its mean tinted colour */

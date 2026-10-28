@@ -1,5 +1,5 @@
 import { Color } from 'three';
-import { CHUNK_HALF, CHUNK_SIZE } from '@wildshard/engine/core/config';
+import geometryPolicy from '../data/groundGeometryPolicy.json' with { type: 'json' };
 import { HUT, LOOKOUT, SHRINE, WRECK } from './worldSites';
 import authoredLayout from '../data/layout.json' with { type: 'json' };
 import { islandCoveSpec } from './coveLayout';
@@ -7,6 +7,7 @@ import { driftwoodCoverLook } from './fixedFacts';
 import * as authoredCoverLook from './coverRows';
 import { DENSITY, type Site } from './coverSites';
 
+const CHUNK_SIZE = geometryPolicy.size, CHUNK_HALF = CHUNK_SIZE / 2;
 const { ISLAND } = authoredLayout;
 const { GROUND_COVER } = authoredCoverLook;
 const COVER_LOOK = driftwoodCoverLook();

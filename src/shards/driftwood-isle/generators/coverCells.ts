@@ -1,11 +1,12 @@
 import { Color } from 'three';
 import { Rng } from '@wildshard/sdk/random';
-import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import geometryPolicy from '../data/groundGeometryPolicy.json' with { type: 'json' };
 import * as authoredCoverLook from './coverRows';
 import { facetColour } from './facetedGround';
 import { DENSITY, beach, type Site } from './coverSites';
 import { coverAvoid, type AuthorCoverGrid } from './coverGrid';
 
+const CHUNK_HALF = geometryPolicy.size / 2;
 const { GROUND_COVER } = authoredCoverLook;
 
 /**
