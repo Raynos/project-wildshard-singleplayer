@@ -158,7 +158,10 @@ export class IslandLibrary<Groups> {
     const candidate = this.geometryRead;
     const prepared = bytes === undefined && candidate !== undefined && candidate.owner === owner && candidate.sourceOwner === sourceOwner ? candidate : undefined;
     if (prepared !== undefined) this.geometryRead = undefined;
-    this.intake ??= (async () => { try { await this.draws().load(bytes, owner, prepared?.pending); } catch (error: unknown) { this.intake = undefined; throw error; } })();
+    this.intake ??= (async () => { try {
+      const whole = prepared === undefined ? undefined : timeClientPreparation(product.slug, 'fixed-draws:whole.join', () => prepared.pending);
+      await this.draws().load(bytes, owner, whole);
+    } catch (error: unknown) { this.intake = undefined; throw error; } })();
     await this.intake; live();
   };
 }

@@ -23,6 +23,31 @@ const enteredScopes = new WeakSet<ShardContext['scope']>();
 const residents = new WeakMap<IslandLibrary<unknown> | ShardProduct, {
   readonly recipe: string; readonly scenes: unknown; readonly world: HybridResidentWorld<SceneHandles>;
 }>();
+/** Start only bounded, owner-bound geometry intake before the ordered world
+ * features. The original assembly still admits figures and publishes templates;
+ * the phase drains this work even when an earlier feature fails. */
+export function prepareClientWorldAssembly(ctx: ShardContext, row: Extract<ClientFeatureRow, { kind: 'world.assembly' }>): (() => Promise<void>) | undefined {
+  if (row.native !== undefined || row.library === undefined) return undefined;
+  const { scope, product } = ctx, owner = boundResidentWorldScope(scope) ?? scope;
+  const source = product.shardfile, read = product.file, json = product.json, library = row.library;
+  const game = ctx.game, runtime = game.runtime, world = runtime?.world, host = world?.game, registration = host?.registrationScope;
+  const pending = scope.run(async () => {
+    const book = await admittedIslandBook(product, library);
+    if (scope.disposed || scope.disposing || owner.disposed || owner.disposing || ctx.scope !== scope || ctx.product !== product
+      || product.shardfile !== source || product.file !== read || product.json !== json
+      || (boundResidentWorldScope(scope) ?? scope) !== owner || runtime === undefined || world === undefined || world === null
+      || host === undefined || registration === undefined || ctx.game !== game || game.runtime !== runtime || runtime.world !== world
+      || world.game !== host || host.registrationScope !== registration) throw new Error('Island preparation owner left or changed');
+    return book.library.prepareGeometry(registration, owner);
+  });
+  // A speculative failure surfaces at the original assembly admission cursor.
+  // Earlier feature errors keep priority, but never strand started intake.
+  void pending.catch(() => undefined);
+  return async () => {
+    const [result] = await Promise.allSettled([pending]);
+    if (result?.status === 'fulfilled') await result.value?.();
+  };
+}
 /** Construction remains on its original bound owner; entered reads borrow only
  * after it completes. Leaving an entry never cancels a still-live resident. */
 export async function installClientWorldAssembly(ctx: ShardContext, row: Extract<ClientFeatureRow, { kind: 'world.assembly' }>): Promise<void> {

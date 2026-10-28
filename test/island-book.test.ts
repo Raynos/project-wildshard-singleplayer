@@ -18,7 +18,9 @@ import { Scope } from '../src/engine/app/scope';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseClientPlan } from '../src/format/clientPlan';
-import { CLIENT_FEATURES,admitClientPlan } from '../src/game/shardfile/clientPlan';
+import { CLIENT_FEATURES,admitClientPlan,installClientPhase } from '../src/game/shardfile/clientPlan';
+import { prepareClientWorldAssembly } from '../src/game/shardfile/clientWorldAssembly';
+import { IslandLibrary } from '../src/game/models/islandLibrary';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import { ResolvedIslandLibrarySchema } from '../src/format/islandLibrary';
 import { admittedIslandBook,preflightIslandBook } from '../src/game/shardfile/islandBook';
@@ -103,6 +105,58 @@ function nativeFixture(f: ReturnType<typeof fixture>, construction?: Scope) {
   const world=legacyDouble<ShardWorld>({game:legacyDouble<ShardWorld['game']>({registrationScope}),registry:legacyDouble<ShardWorld['registry']>({}),sky:legacyDouble<ShardWorld['sky']>({}),physics:legacyDouble<ShardWorld['physics']>({})}),runtime=legacyDouble<ShardRuntime>({world});
   const ctx=legacyDouble<ShardContext>({scope,product:f.product,cube:null,progress:legacyDouble<ShardContext['progress']>({set:()=>undefined,detail:()=>undefined}),game:legacyDouble<ShardContext['game']>({runtime})});
   return{scope,world,runtime,ctx};
+}
+
+for (const refuses of [false,true]) {
+  test(`world intake overlaps earlier features and drains before ${refuses?'original refusal':'phase completion'}`, async () => {
+    const f=fixture(),owner=new Scope('early-resident'),native=nativeFixture(f,owner),events:string[]=[];
+    const record=await native.scope.run(()=>admittedIslandBook(f.product,book.id));
+    let started:()=>void=()=>{throw new Error('No intake gate');},finish:()=>void=()=>{throw new Error('No drain gate');},draining:()=>void=()=>{throw new Error('No drain start');};
+    const begin=new Promise<void>(resolve=>{started=resolve;}),gate=new Promise<void>(resolve=>{finish=resolve;}),atDrain=new Promise<void>(resolve=>{draining=resolve;});
+    const drain=vi.fn(async()=>{events.push('drain');draining();await gate;if(refuses)throw new Error('cleanup refusal');});
+    const preparation=vi.spyOn(record.library,'prepareGeometry').mockImplementation((registration,source)=>{
+      expect(registration).toBe(owner);expect(source).toBe(owner);events.push('intake');started();return drain;
+    });
+    const strings=vi.spyOn(CLIENT_FEATURES['strings.register'],'install').mockImplementation(async()=>{
+      events.push('earlier');await begin;events.push('earlier completed');if(refuses)throw new Error('original feature refusal');
+    });
+    const construct=vi.spyOn(CLIENT_FEATURES['world.assembly'],'install').mockImplementation(()=>{
+      events.push('assembly');expect(record.library.ready).toBe(false);
+    });
+    try {
+      const pending=installClientPhase(native.ctx,{features:[assembly,{kind:'strings.register'}]},'world',owner,'entered');
+      const result=(async()=>{try{await pending;events.push('completed');return 'done';}catch(error:unknown){events.push('refused');throw error;}})();
+      void result.catch(()=>undefined);
+      await begin;
+      // The geometry loan is bounded/private: neither installation nor phase
+      // completion can publish around the earlier feature or the final drain.
+      expect(events).not.toContain('completed');
+      await atDrain;expect(events).not.toContain(refuses?'refused':'completed');
+      finish();
+      if(refuses){await expect(result).rejects.toThrow('original feature refusal');expect(construct).not.toHaveBeenCalled();}
+      else {await expect(result).resolves.toBe('done');expect(events.indexOf('assembly')).toBeGreaterThan(events.indexOf('earlier completed'));}
+      expect(drain).toHaveBeenCalledTimes(1);expect(preparation).toHaveBeenCalledTimes(1);
+      expect(events.indexOf('drain')).toBeLessThan(events.indexOf(refuses?'refused':'completed'));
+    } finally {finish();for(const spy of[preparation,strings,construct])spy.mockRestore();native.scope.dispose();owner.dispose();}
+  });
+}
+
+for (const change of ['entered','resident','world'] as const) {
+  test(`early island intake refuses ${change} replacement while its catalogue is pending`, async () => {
+    const f=fixture(),owner=new Scope('early-owner'),native=nativeFixture(f,owner);
+    let release:(bytes:Uint8Array<ArrayBuffer>)=>void=()=>{throw new Error('No catalogue gate');};
+    const gate=new Promise<Uint8Array<ArrayBuffer>>(resolve=>{release=resolve;});f.reads.mockImplementation(()=>gate);
+    const preparation=vi.spyOn(IslandLibrary.prototype,'prepareGeometry');
+    try {
+      const drain=prepareClientWorldAssembly(native.ctx,assembly);
+      expect(drain).toBeTypeOf('function');
+      if(change==='entered')native.scope.dispose();
+      else if(change==='resident')owner.dispose();
+      else Object.assign(native.runtime,{world:legacyDouble<ShardWorld>({})});
+      release(new TextEncoder().encode(JSON.stringify(siteCatalogue)));
+      await drain?.();expect(preparation).not.toHaveBeenCalled();
+    } finally {preparation.mockRestore();native.scope.dispose();owner.dispose();}
+  });
 }
 
 test('native entered dispatch retains one bound build through leave/reentry and lends the original owners',async()=>{

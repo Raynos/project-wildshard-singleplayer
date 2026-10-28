@@ -500,23 +500,37 @@ export async function installClientPhase(ctx: ShardContext, plan: AdmittedClient
   const live = (): void => {
     if (ctx.scope.disposed || ctx.scope.disposing || resident.disposed || resident.disposing) throw new Error('Client feature owner is disposed');
   };
-  // The platform's look phase precedes every entered world step, including
-  // trusted runtimes whose data client intentionally skips presentation. A
-  // metadata-only phase leaves look construction to its original native owner.
-  if (phase === 'world' && lifetime !== 'resident' && rows.some(({ row }) => CLIENT_FEATURES[row.kind].needsWorldLooks !== false)) {
-    live();
-    const missing = Object.keys(ctx.product.shardfile.look.materials).filter(id => !hasLentLook(id));
-    if (missing.length > 0) await timeClientPreparation(ctx.product.slug, 'world.looks', async () => {
-      lendLooks(ctx.scope, await runtimeLookMaterials(ctx, ctx.product.shardfile, true, missing));
-    });
+  const assembly = phase === 'world' ? rows.find(({ row }) => row.kind === 'world.assembly')?.row : undefined;
+  let drainAssembly: (() => Promise<void>) | undefined;
+  if (assembly?.kind === 'world.assembly' && assembly.library !== undefined && assembly.native === undefined) {
+    const { prepareClientWorldAssembly } = await import('./clientWorldAssembly');
+    live(); drainAssembly = prepareClientWorldAssembly(ctx, assembly);
   }
-  for (const { row, install } of rows) {
-    live();
-    await timeClientPreparation(ctx.product.slug, `${phase}.${row.kind}`, () => install(ctx, row, resident));
-    // A completed install may already have yielded through reads/decodes.
-    // Keep the shared frame budget, not a mandatory turn per tiny feature.
-    const pause = constructionCheckpoint(ctx.scope);
-    if (pause !== undefined) await pause;
-    live();
+  let completed = false;
+  try {
+    // The platform's look phase precedes every entered world step, including
+    // trusted runtimes whose data client intentionally skips presentation. A
+    // metadata-only phase leaves look construction to its original native owner.
+    if (phase === 'world' && lifetime !== 'resident' && rows.some(({ row }) => CLIENT_FEATURES[row.kind].needsWorldLooks !== false)) {
+      live();
+      const missing = Object.keys(ctx.product.shardfile.look.materials).filter(id => !hasLentLook(id));
+      if (missing.length > 0) await timeClientPreparation(ctx.product.slug, 'world.looks', async () => {
+        lendLooks(ctx.scope, await runtimeLookMaterials(ctx, ctx.product.shardfile, true, missing));
+      });
+    }
+    for (const { row, install } of rows) {
+      live();
+      await timeClientPreparation(ctx.product.slug, `${phase}.${row.kind}`, () => install(ctx, row, resident));
+      // A completed install may already have yielded through reads/decodes.
+      // Keep the shared frame budget, not a mandatory turn per tiny feature.
+      const pause = constructionCheckpoint(ctx.scope);
+      if (pause !== undefined) await pause;
+      live();
+    }
+    completed = true;
+  } finally {
+    if (drainAssembly !== undefined) {
+      await (completed ? drainAssembly() : Promise.allSettled([drainAssembly()]));
+    }
   }
 }
