@@ -4,6 +4,7 @@ import { GeometryPackData, PackedGeometryRowsSchema, type PackedGeometryRows } f
 import type { Scope } from '@wildshard/engine/app/scope';
 import { declareDownloadFile } from '@wildshard/engine/boot/download';
 import type { GeneratedStrip, PlatformCell, StripMesh, StripProfile } from '@wildshard/engine/sim/strips';
+import { edgeProfileJson } from '@wildshard/engine/sim/edgeProfiles';
 import type { ResidencyAllocator } from './allocator';
 import { readGridAssetBytes } from './gridAssetBytes';
 import type { SeamGeometryChannels } from './seamLook';
@@ -52,7 +53,7 @@ export async function platformGeometrySource(cells: readonly PlatformCell[], emp
   const byObject = new Map<StripProfile, number>(), byValue = new Map<string, number>(), profiles: string[] = [];
   const profile = (row: StripProfile): number => {
     const previous = byObject.get(row); if (previous !== undefined) return previous;
-    const encoded = JSON.stringify([row.roadHeight, row.heights, row.colours], zero);
+    const encoded = edgeProfileJson(row);
     let index = byValue.get(encoded);
     if (index === undefined) { index = profiles.length; profiles.push(encoded); byValue.set(encoded, index); }
     byObject.set(row, index); return index;

@@ -2,6 +2,32 @@ import { expect, test } from 'vitest';
 import { BufferAttribute, BufferGeometry } from 'three';
 import { clipToBinsSteps, cullCountsSteps, cullPlanSteps, finishRoadSteps, ROAD_LOD, type CullLod } from './roadCull';
 
+test.each([undefined, 62.5])('split extrema retain all boundary and signed-zero words (tiles %s)', async tileSize => {
+  const coordinates: number[] = [], indices: number[] = [];
+  const points = [-281.25, -140.625, -62.5, -0, 0, 0.0005, 62.5, 140.625, 281.25];
+  for (const x of points) for (const z of points) {
+    const n = coordinates.length / 3;
+    coordinates.push(x, -0, z, x + 125, 1, z, x + 62.5, -1, z + 125); indices.push(n, n + 1, n + 2);
+  }
+  const positions = Float32Array.from(coordinates), geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(positions, 3))
+    .setAttribute('uv', new BufferAttribute(Float32Array.from({ length: positions.length / 3 * 2 }, (_, i) => i % 3 === 0 ? -0 : i / 13), 2)).setIndex(indices);
+  try {
+    const counts = finishRoadSteps(cullCountsSteps([{ vertices: positions.length / 3, position: k => positions[k] ?? 0, indices }], 562.5, ROAD_LOD, tileSize));
+    finishRoadSteps(clipToBinsSteps(geometry, 562.5, tileSize));
+    const plan = finishRoadSteps(cullPlanSteps(geometry, 562.5, ROAD_LOD, tileSize)), index = geometry.getIndex();
+    if (index === null) throw new Error('Missing clipped boundary index');
+    const arrays = [geometry.getAttribute('position').array, geometry.getAttribute('uv').array, index.array, plan.source];
+    const facts = new TextEncoder().encode(JSON.stringify({ bins: plan.bins, lod: plan.lod, counts }));
+    const wire = new Uint8Array(arrays.reduce((sum, row) => sum + row.byteLength, facts.length));
+    let cursor = 0;
+    for (const row of arrays) { wire.set(new Uint8Array(row.buffer, row.byteOffset, row.byteLength), cursor); cursor += row.byteLength; }
+    wire.set(facts, cursor);
+    const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', wire)), byte => byte.toString(16).padStart(2, '0')).join('');
+    // Complete predecessor words, including -0, plus every LOD bin/bound/count.
+    expect(hash).toBe(tileSize === undefined ? '0a992660477f272b8ed5d456230d7b3e41d361b9265fa4f2a28e9be86179c4a5' : '76af552e1f0c5c92496c6b031caca3b3533fcde6da0e05646897e0349344f194');
+  } finally { geometry.dispose(); }
+});
+
 test('road clipping preserves edge vertices, interpolated UVs and exact LOD byte plans', async () => {
   const geometry = new BufferGeometry();
   const positions: number[] = [], weights: number[] = [], indices: number[] = [];

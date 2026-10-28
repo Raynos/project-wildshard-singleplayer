@@ -1,8 +1,34 @@
 import { expect, test } from 'vitest';
-import { immutableEdgeProfile, validateEdgeProfile } from './edgeProfiles';
+import { edgeProfileJson, immutableEdgeProfile, validateEdgeProfile } from './edgeProfiles';
 
 const row = () => ({ roadHeight: 0, heights: Array.from({ length: 256 }, () => 0),
   colours: Array.from({ length: 256 }, () => [0.2, 0.4, 0.6]) });
+
+test.each(['plain', 'road', 'height', 'colour'] as const)('private row JSON retains the complete original numeric identity (%s)', kind => {
+  const input = row();
+  if (kind === 'road') input.roadHeight = -0;
+  if (kind === 'height') input.heights[19] = -0;
+  if (kind === 'colour') input.colours[23] = [0.2, -0, 0.6];
+  const zero = (_key: string, value: unknown): unknown => typeof value === 'number' && Object.is(value, -0) ? '-0' : value;
+  const expected = JSON.stringify([input.roadHeight, input.heights, input.colours], zero);
+  const admitted = immutableEdgeProfile(input);
+  expect(edgeProfileJson(admitted)).toBe(expected);
+  input.heights[0] = 250; input.colours[0]?.fill(0);
+  expect(edgeProfileJson(admitted)).toBe(expected);
+});
+
+test('caller-frozen rows keep the original JSON callbacks and observe later mutations', () => {
+  const input = row(), reads: string[] = [];
+  Object.defineProperty(input.heights, 'toJSON', { value: () => { reads.push('heights'); return [-0, input.heights[0]]; } });
+  Object.freeze(input);
+  const zero = (_key: string, value: unknown): unknown => typeof value === 'number' && Object.is(value, -0) ? '-0' : value;
+  const original = (): string => JSON.stringify([input.roadHeight, input.heights, input.colours], zero);
+  for (const value of [1, 2]) {
+    input.heights[0] = value;
+    const expected = original(); expect(reads.splice(0)).toEqual(['heights']);
+    expect(edgeProfileJson(input)).toBe(expected); expect(reads.splice(0)).toEqual(['heights']);
+  }
+});
 
 test('admitted edge rows detach and freeze every numeric leaf', () => {
   const input = row(), admitted = immutableEdgeProfile(input);

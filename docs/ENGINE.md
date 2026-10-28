@@ -139,6 +139,9 @@ part of the collider), and a shard clips its sea at `SHORE_REVETMENT_INNER_FACE`
 `sim/seamGeometry` and `sim/seamLattice` expose the ordered steps/tolerances.
 `sim/edgeProfiles.immutableEdgeProfile` copies/validates/freezes rows; only its
 snapshots reuse proof. Other rows revalidate.
+`sim/edgeProfiles.edgeProfileJson` serializes the same numeric row words,
+including signed zero; only private immutable snapshots without signed zero
+or inherited JSON hooks omit the numeric replacer. Other callers retain it.
 `grid/compiledStrips`: source-hashed rings, exact look channels, I12-bound.
 Missing entries generate; corrupt declared files refuse.
 `@wildshard/engine/physics/frame` prepares rider/mount

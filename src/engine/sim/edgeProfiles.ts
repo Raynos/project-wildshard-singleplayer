@@ -23,6 +23,24 @@ export function validateEdgeProfile(profile: StripProfile): void {
   if (admittedProfiles.has(profile)) return;
   validateProfile(profile, false);
 }
+/** Canonical numeric row JSON, retaining signed zero. Only detached private
+ * snapshots may omit the replacer after checking their immutable numbers. */
+export function edgeProfileJson(profile: StripProfile): string {
+  const zero = (_key: string, value: unknown): unknown => typeof value === 'number' && Object.is(value, -0) ? '-0' : value;
+  let plain = admittedProfiles.has(profile) && !('toJSON' in Array.prototype) && !Object.is(profile.roadHeight, -0);
+  if (plain) {
+    for (let i = 0; i < profile.heights.length; i++) if (Object.is(profile.heights[i], -0)) { plain = false; break; }
+    let previous: readonly number[] | undefined;
+    for (let i = 0; plain && i < profile.colours.length; i++) {
+      const rgb = profile.colours[i];
+      if (rgb === previous || rgb === undefined) continue;
+      for (let c = 0; c < rgb.length; c++) if (Object.is(rgb[c], -0)) { plain = false; break; }
+      previous = rgb;
+    }
+  }
+  const row = [profile.roadHeight, profile.heights, profile.colours];
+  return plain ? JSON.stringify(row) : JSON.stringify(row, zero);
+}
 function validateProfile(profile: StripProfile, privateLeaves: boolean): void {
   resolution(profile.heights.length);
   if (profile.colours.length !== profile.heights.length || profile.roadHeight !== 0 || profile.heights.some((h) => !Number.isFinite(h) || Math.abs(h) > 250)) throw new RangeError('Invalid edge profile');
