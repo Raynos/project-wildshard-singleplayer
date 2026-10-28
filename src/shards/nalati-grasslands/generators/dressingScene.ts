@@ -95,7 +95,7 @@ const preparedContacts=(inputs:readonly unknown[],source:ContactSource)=>{
 
 
 /** Existing baked shapes and placements become Z2 rows; no page-side scatter or model constructors. */
-function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<typeof decorativeProfiles>,input:ReturnType<typeof readPreparedDressing>,balbal:v.InferOutput<typeof balbalSchema>,specimens:v.InferOutput<typeof specimensSchema>,paint:v.InferOutput<typeof paintSchema>,cover:v.InferOutput<typeof coverSchema>,cragRows:NalatiCragRows,contactSource:ContactSource,clothSource:ClothSource) {
+function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<typeof decorativeProfiles>,input:ReturnType<typeof readPreparedDressing>,balbal:v.InferOutput<typeof balbalSchema>,specimens:v.InferOutput<typeof specimensSchema>,paint:v.InferOutput<typeof paintSchema>,cover:v.InferOutput<typeof coverSchema>,cragRows:NalatiCragRows,contactSource:ContactSource,clothSource:ClothSource,cragFile='world/crags.bin') {
   const {prepared,scenes,placed}=input;
   const phone=tier==='phone',profile=cover[tier];
   const geometry:Record<string,unknown>={},materials:Record<string,unknown>={},addresses:number[]=[];
@@ -145,7 +145,7 @@ function compileDressingScene(tier:'phone'|'desktop',profiles:v.InferOutput<type
   materials['butterfly']={kind:'painterly',rim:.3,bands:.5,shade:.6,emissive:0x101010};materials['raptor']={kind:'painterly',rim:.6,bands:.6};
   const bowl=bowlScene(tier,profiles[tier],geometry,materials,prepared,specimens,paint);statics.push(...bowl.statics);
   const crags=cragRows[tier],cragGeometry:Record<string,string>={};
-  for(const part of crags.meshes){geometry[part.key]=baked('world/crags.bin',part.offset,v.parse(SceneBakedGeometrySchema,part.row));cragGeometry[part.key]=part.key;}
+  for(const part of crags.meshes){geometry[part.key]=baked(cragFile,part.offset,v.parse(SceneBakedGeometrySchema,part.row));cragGeometry[part.key]=part.key;}
   const rockTexture=specimens.materials['rock']?.texture,snowTexture=specimens.materials['snow']?.texture;
   if(rockTexture===undefined||snowTexture===undefined)throw new Error('Missing prepared crag tiles');
   materials['crag']={kind:'look',look:phone?'nalati-crag-phone':'nalati-crag',params:{rockMean:paintedTextures.mean.rock,scale:[1/paintedTextures.metres.rock,1/paintedTextures.metres.snow],snowBand:[layout.SNOW_LINE-14,layout.SNOW_LINE-2]},textures:{rock:rockTexture,snow:snowTexture}};
@@ -200,7 +200,7 @@ function clothGeometry(prepared:ReturnType<typeof readPreparedDressing>['prepare
 }
 
 /** Supplied profiles retain exact tier rows; hulls and cloth share content-addressed binary loans. */
-export function dressingSceneBlobs(input:unknown,runtime:unknown,balbal:unknown,specimens:unknown,paintRows:unknown,coverRows:unknown,cragRows:NalatiCragRows):ReturnType<typeof nameBlob>[] {
+export function dressingSceneBlobs(input:unknown,runtime:unknown,balbal:unknown,specimens:unknown,paintRows:unknown,coverRows:unknown,cragRows:NalatiCragRows,cragFiles?:Readonly<Record<'phone'|'desktop',string>>):ReturnType<typeof nameBlob>[] {
   const profiles=v.parse(decorativeProfiles,input),prepared=readPreparedDressing(runtime),binaries=new Map<string,ReturnType<typeof nameBlob>>();
   const source:ContactSource=raw=>{
     const bytes=zlibSync(raw),file=`world/dressing-contacts/${hashImmutableBytes(bytes)}.bin`;
@@ -212,7 +212,7 @@ export function dressingSceneBlobs(input:unknown,runtime:unknown,balbal:unknown,
     if(!binaries.has(file))binaries.set(file,nameBlob(file,'bin',bytes,{decoded:raw.byteLength}));
     return{kind:'baked-file',file};
   };
-  const tiers=(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier,profiles,prepared,v.parse(balbalSchema,balbal),v.parse(specimensSchema,specimens),v.parse(paintSchema,paintRows),v.parse(coverSchema,coverRows),cragRows,source,cloth);return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:namedJsonSchema(SceneDressingSchema)}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});
+  const tiers=(['phone','desktop']as const).flatMap(tier=>{const result=compileDressingScene(tier,profiles,prepared,v.parse(balbalSchema,balbal),v.parse(specimensSchema,specimens),v.parse(paintSchema,paintRows),v.parse(coverSchema,coverRows),cragRows,source,cloth,cragFiles?.[tier]);return[nameBlob(`world/dressing-${tier}.json`,'json',new TextEncoder().encode(encodeCanonicalJson(result.rows)),{jsonSchema:namedJsonSchema(SceneDressingSchema)}),nameBlob(`world/dressing-addresses-${tier}.bin`,'bin',result.addresses)];});
   return[...tiers,...binaries.values()];
 }
 

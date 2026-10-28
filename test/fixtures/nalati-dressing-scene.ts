@@ -15,6 +15,6 @@ export function dressingScene(tier: 'phone' | 'desktop', input: unknown, runtime
     contact: raw => ({ data: encoded(raw) }), cloth: raw => ({ kind: 'inline', data: encoded(raw) }),
   });
 }
-export function dressingSceneBlobs(input: unknown, runtime: unknown, balbal: unknown, specimens: unknown): ReturnType<typeof blobs> {
-  return blobs(input, runtime, balbal, specimens, paint, nalatiPredecessorCoverRows, nalatiCragRows);
+export function dressingSceneBlobs(input: unknown, runtime: unknown, balbal: unknown, specimens: unknown, cragFiles?: Readonly<Record<'phone'|'desktop',string>>): ReturnType<typeof blobs> {
+  return blobs(input, runtime, balbal, specimens, paint, nalatiPredecessorCoverRows, nalatiCragRows,cragFiles);
 }

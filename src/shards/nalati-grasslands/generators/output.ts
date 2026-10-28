@@ -101,7 +101,7 @@ import { peopleRows as peopleFrames } from './peopleRows.mjs';
 import { nalatiPeopleBlobs } from './peopleBake';
 import { nalatiTerrainSceneProgram } from './terrainSceneProgram';
 import { nalatiMap } from './mapProgram';
-import { nalatiCragRockProgram } from './cragRockProgram';
+import { nalatiCragRockProgram, nalatiPhoneCragBank, NALATI_PHONE_CRAG_FILE } from './cragRockProgram';
 import { nalatiSprucePool, SPRUCE_POOL_NAME } from './sprucePool';
 import { ChapterViewSchema } from '@wildshard/format/questPageComposition';
 import namePanel from '../data/namePanel.json' with {type:'json'};
@@ -368,6 +368,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
   }))), nameBlob('models/shape-book.json', 'json', new TextEncoder().encode(encodeCanonicalJson(shapeDraws)),
     { jsonSchema: namedJsonSchema(FixedDrawRowsSchema) })]);
   const cragRows = await nalatiCragRockProgram(ctx), crags = await nalatiBakeBlob(ctx, 'crags', dressingCragDecoded(cragRows)), people = await nalatiPeopleBlobs(ctx);
+  const phoneCragBytes=nalatiPhoneCragBank(crags.bytes,cragRows),phoneCrags=nameBlob(NALATI_PHONE_CRAG_FILE,'bin',phoneCragBytes.bytes,{decoded:phoneCragBytes.decoded});
   // GR6: the slab and the water mesh ship; the painted ground draws from its tiles, so its whole mesh feeds only the map
   const terrainDraws = (await nalatiTerrainSceneProgram(ctx)).filter(blob => blob.file.name !== 'world/terrain/ground.glb');
   terrainDraws.push(nameBlob(SPRUCE_POOL_NAME, 'glb', nalatiSprucePool()), nameBlob(SPEAR_POOL_NAME, 'glb', spear.glb));
@@ -377,7 +378,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
   const decorativeFiles = await nalatiDecorativeProgram(ctx), decorativeBytes = decorativeFiles.get('decorative.json');
   if (decorativeBytes === undefined) throw new Error('Missing owned decorative profiles');
   const profiles: unknown = JSON.parse(new TextDecoder().decode(decorativeBytes));
-  const sceneBlobs = dressingSceneBlobs(profiles,runtime.runtime,balbal,specimenRows,paintRows,cover.rows,cragRows);
+  const sceneBlobs = dressingSceneBlobs(profiles,runtime.runtime,balbal,specimenRows,paintRows,cover.rows,cragRows,{phone:NALATI_PHONE_CRAG_FILE,desktop:'world/crags.bin'});
   const coverNames = new Set(['models/cover-phone.json', 'models/cover-desktop.json']);
   const books = [...freshEmission.files.filter(file => file.name !== undefined && coverNames.has(file.name)).map(file => {
     const bytes = freshEmission.assets.get(file.hash);
@@ -417,6 +418,9 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
     return [name, owned] as const;
   }));
   const lateNames=new Set(nalatiLatePaintedNames([...boundBooks.values()]));
+  // The selected dressing reader awaits its bank before world publication;
+  // general warm must not pull the phone copy into a desktop entry.
+  lateNames.add(NALATI_PHONE_CRAG_FILE);
   const phoneBook=ownedBooks.get('world/dressing-phone.json');
   if(phoneBook===undefined)throw new Error('Missing phone dressing book');
   const catalogueNames=nalatiLateCatalogueNames(JSON.parse(new TextDecoder().decode(phoneBook.bytes)) as unknown);
@@ -427,7 +431,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
     const bytes = paintFiles.get(row.source);
     if (bytes === undefined) throw new Error(`Missing owned paint shape ${row.source}`);
     return nameBlob(row.name, row.kind, bytes);
-  })], runtime.floors.map(floor => nameBlob(floor.name, 'bin', floor.bytes)), [propBlob], carvings, held, [...renderPairs, ...coarseTiles], ownedGeography, views, [kokpar.blob, kokpar.courseBlob], ridingModules, nalatiTitanBlobs(titan), nalatiAdmissionBlobs(admissionBank), [nalatiChargeBlob(charge)]));
+  })], runtime.floors.map(floor => nameBlob(floor.name, 'bin', floor.bytes)), [propBlob,phoneCrags], carvings, held, [...renderPairs, ...coarseTiles], ownedGeography, views, [kokpar.blob, kokpar.courseBlob], ridingModules, nalatiTitanBlobs(titan), nalatiAdmissionBlobs(admissionBank), [nalatiChargeBlob(charge)]));
   const fileByName=new Map([...sources.map(source=>source.file),...modelBlobs.map(blob=>blob.file),...namedFiles,specimenBank.file,...terrainDraws.map(blob=>blob.file),...people.map(blob=>blob.file),...grassBlobs.map(blob=>blob.file)].flatMap(file=>file.name===undefined?[]:[[file.name,file] as const]));
   const slotSource=sources.find(source=>source.file.name==='held/slots.json');
   if(slotSource===undefined)throw new Error('Missing held timing declaration');

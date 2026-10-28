@@ -1,5 +1,5 @@
 import type { ColliderDesc } from '@wildshard/sdk/bake/placement';
-import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
+import { encodeBuildBytes, decodeBuildDeflate } from '@wildshard/sdk/bake/byteCodec';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { bakeCragRockOnTerrain, type CragRockBake } from './places';
 import { join, writeGeometry, type PlaceGeometryRow } from './geometryWriter';
@@ -12,6 +12,27 @@ export interface NalatiCragTier {
   count: CragRockBake['count']; triangles: number; hulls: { x: number; y: number; z: number; points: number[] }[];
 }
 export interface NalatiCragRows { phone: NalatiCragTier; desktop: NalatiCragTier }
+
+export const NALATI_PHONE_CRAG_FILE = 'world/crags-phone.bin';
+
+/** Extract complete phone geometry from the original four-lane bank. Offsets, words and every distant phone crag stay exact. */
+export function nalatiPhoneCragBank(bytes: Uint8Array, rows: NalatiCragRows): { readonly bytes: Uint8Array; readonly decoded: number } {
+  let end=0,phoneEnd=0;
+  for(const tier of ['phone','desktop']as const){
+    if(rows[tier].meshes.length===0)throw new Error('Missing crag tier geometry');
+    for(const part of rows[tier].meshes){
+      const row=part.row;
+      if(part.offset!==end||row.attrs.some(attribute=>attribute[1]!=='f32'))throw new Error('Crag bank requires contiguous float32 geometry');
+      const length=row.attrs.reduce((total,attribute)=>total+row.count*attribute[2]*4,0)+(row.index===null?0:row.indexCount*4);
+      if(!Number.isSafeInteger(length)||length<=0)throw new Error('Invalid crag geometry byte length');
+      end+=length;
+    }
+    if(tier==='phone')phoneEnd=end;
+  }
+  const original=decodeBuildDeflate(bytes,end),selected=new Uint8Array(phoneEnd);
+  for(let lane=0;lane<4;lane++)selected.set(original.subarray(lane*end/4,lane*end/4+phoneEnd/4),lane*phoneEnd/4);
+  return {bytes:encodeBuildBytes(selected,'deflate',9,'native'),decoded:phoneEnd};
+}
 
 const LATTICE = '/assets/baked/nalati-grasslands/terrain.bin', BANK = '/assets/nalati/baked/crags.bin';
 const hull = (row: ColliderDesc): NalatiCragTier['hulls'][number] => {

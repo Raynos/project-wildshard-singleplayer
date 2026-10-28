@@ -22,7 +22,7 @@ import { zlibSync, unzlibSync } from 'fflate';
 import { writeGeometry, join } from '../src/shards/nalati-grasslands/generators/geometryWriter';
 import * as v from 'valibot';
 import { SceneDressingSchema } from '../src/format/sceneDressing';
-import { dressingScene } from './fixtures/nalati-dressing-scene';
+import { dressingScene, dressingSceneBlobs } from './fixtures/nalati-dressing-scene';
 import { dressingCragDecoded } from '../src/shards/nalati-grasslands/generators/dressingScene';
 import { nalatiCragRows } from './fixtures/nalati-crags';
 import { nalatiBakeBlob } from '../src/shards/nalati-grasslands/generators/placeBlobProgram';
@@ -32,6 +32,20 @@ import { nameBlob } from '../src/sdk/blobs';
 import { isJsonData } from '../src/format/json';
 import { readBakedGeometry } from '../src/game/plugin/geometry';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
+
+test('tier-specific crag transport changes only the phone file binding',()=>{
+  const original=dressingSceneBlobs(nalatiDecorative,nalatiRuntime,nalatiBalbal,nalatiSpecimens);
+  const selected=dressingSceneBlobs(nalatiDecorative,nalatiRuntime,nalatiBalbal,nalatiSpecimens,{phone:'world/crags-phone.bin',desktop:'world/crags.bin'});
+  expect(selected.map(blob=>blob.file.name)).toEqual(original.map(blob=>blob.file.name));
+  for(const before of original){
+    const after=selected.find(blob=>blob.file.name===before.file.name);if(after===undefined)throw new Error('Missing original dressing file');
+    if(before.file.name!=='world/dressing-phone.json'){expect(after).toEqual(before);continue;}
+    const rows=v.parse(SceneDressingSchema,JSON.parse(new TextDecoder().decode(after.bytes))),changed:string[]=[];
+    for(const [key,row]of Object.entries(rows.geometry))if(row.kind==='baked-file'&&row.file==='world/crags-phone.bin'){changed.push(key);row.file='world/crags.bin';}
+    expect(changed).toEqual(nalatiCragRows.phone.meshes.map(row=>row.key));
+    expect(encodeCanonicalJson(rows)).toBe(new TextDecoder().decode(before.bytes));
+  }
+});
 
 const finite=v.pipe(v.number(),v.finite());
 const cragTier=v.object({recipe:PrivateSceneSchema,placements:v.array(v.unknown()),boxes:v.array(finite),
