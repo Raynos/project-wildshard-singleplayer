@@ -428,7 +428,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
     if (bytes === undefined) throw new Error(`Missing owned paint shape ${row.source}`);
     return nameBlob(row.name, row.kind, bytes);
   })], runtime.floors.map(floor => nameBlob(floor.name, 'bin', floor.bytes)), [propBlob], carvings, held, [...renderPairs, ...coarseTiles], ownedGeography, views, [kokpar.blob, kokpar.courseBlob], ridingModules, nalatiTitanBlobs(titan), nalatiAdmissionBlobs(admissionBank), [nalatiChargeBlob(charge)]));
-  const fileByName=new Map([...sources.map(source=>source.file),...modelBlobs.map(blob=>blob.file),...namedFiles,specimenBank.file,...terrainDraws.map(blob=>blob.file),...people.map(blob=>blob.file)].flatMap(file=>file.name===undefined?[]:[[file.name,file] as const]));
+  const fileByName=new Map([...sources.map(source=>source.file),...modelBlobs.map(blob=>blob.file),...namedFiles,specimenBank.file,...terrainDraws.map(blob=>blob.file),...people.map(blob=>blob.file),...grassBlobs.map(blob=>blob.file)].flatMap(file=>file.name===undefined?[]:[[file.name,file] as const]));
   const slotSource=sources.find(source=>source.file.name==='held/slots.json');
   if(slotSource===undefined)throw new Error('Missing held timing declaration');
   const slotInput:unknown=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(slotSource.bytes));
