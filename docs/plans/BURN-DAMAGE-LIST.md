@@ -161,7 +161,7 @@ Parked: none of these is built until SHARD-PLATFORM completes and Jake says go.
 | BD2 | Main green. | One push CI run on main is fully green |
 | BD3 | Deploy resumes on the newest green main (`.github/deploy-pin.json`, hourly). Then Jake's phone check (G558). | Live build id is a green main SHA newer than `59a595ab10`; D11 `fixed` |
 | BD4 | Decide which switched-off checks come back (Q1). Default (G768): the 45 s push gate and 5 s pre-commit stay; CF1, the red hold, `ci-subset` and fail-closed inputs stay deleted unless Jake asks. Delete the dormant code and its tests (Q2). | D16–D22 each `kept off` or `back`; no dormant gate file left |
-| BD5 | Fix each quarantined flaky test deterministically (G690) and move it back to the blocking job. | D13–D15 `fixed`; the quarantine job is empty (Q3) |
+| BD5 | Fix each quarantined flaky test deterministically (G690) and move it back to the blocking job. | DL2 done (this source): expired Nine title reporting leg and helper retired; normal public/Developer PNG assertions stay unconditional. D15 heavy-lane remains owned by sp-x9; complete row still requires D13–D15 fixed and an empty quarantine job. |
 | BD6 | Run the deferred readings, one per plan, in official quiet windows (G777, G780). | Each reading in D23 is recorded in its plan; its rows close or reopen |
 | BD7 | Cut Vite to bundling only (G799): each `vite/` file is deleted, or its data becomes a committed file made by a plain script (G798); `titleCatalogue` stops being a virtual module. | `vite/` holds only what bundling needs (Q4); D24, D25 `fixed` |
 | BD8 | Clean the tree: owners land or drop the abandoned gate edits; the `.push-config-*` leftovers go. | `git status` shows none of D26, D27 |

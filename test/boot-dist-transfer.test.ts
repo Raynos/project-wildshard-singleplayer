@@ -18,10 +18,15 @@ test('smoke downloads each exact source-run leg directly without a full-dist rel
   expect(central).not.toContain('actions/upload-artifact');
   expect(workflow).toMatch(/run-id: \$\{\{ needs\.build\.outputs\.source_run \}\}/u);
   expect(workflow).toContain('python3 scripts/boot-dist.py restore');
-  expect(workflow).toMatch(/continue-on-error: \$\{\{ matrix\.part == 'phone-route' \|\| matrix\.part == 'title-quarantine' \}\}/u);
+  expect(workflow).toMatch(/continue-on-error: \$\{\{ matrix\.part == 'phone-route' \}\}/u);
   expect(workflow.match(/timeout-minutes: 20/gu)).toHaveLength(2);
-  expect(workflow).toContain('part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer, phone-route, title-quarantine]');
-  expect(workflow).toMatch(/SMOKE_PART: \$\{\{ matrix\.part == 'title-quarantine' && 'boot-developer' \|\| matrix\.part \}\}/u);
+  expect(workflow).toContain('part: [boot-public, boot-developer, boot-grid, hover-chromium, hover-webkit, explorer, phone-route]');
+  expect(workflow).toMatch(/SMOKE_PART: \$\{\{ matrix\.part \}\}/u);
+  expect(workflow).not.toContain('title-quarantine');
+  const runner = readFileSync('scripts/parity/boot-smoke.mjs', 'utf8');
+  expect(runner).not.toContain('quarantinedTitle');
+  expect(runner).not.toContain('titleOnly');
+  expect(runner).toMatch(/^ {4}await observeTitleCapture\(page, join\(out, `\$\{receipt\}-title`\), \(\) => captureBootFrame\(page, 'title', deadline, frames\)\);$/mu);
 });
 
 
