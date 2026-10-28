@@ -20,6 +20,10 @@ import { QuestPageCompositionSchema } from '@wildshard/format/questPageCompositi
 import { CoverCompositionSchema } from '@wildshard/format/streamedCover';
 import * as v from 'valibot';
 import { ItemCatalogue } from '@wildshard/game/loadout/itemCatalogue';
+import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
+
+/** Admit ordered model references without installing a species, scene or Explorer owner. */
+export function explorerCatalogueRows(input: unknown): ReturnType<typeof parseExplorerCatalogue> { return parseExplorerCatalogue(input); }
 
 /** Resolve admitted equipment presentation without lending a catalogue or weapon service. */
 export function equipmentRows(input: unknown, id: string): ReturnType<ItemCatalogue['equipment']> { return new ItemCatalogue(input).equipment(id); }

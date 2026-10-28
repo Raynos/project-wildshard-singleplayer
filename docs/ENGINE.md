@@ -6281,6 +6281,7 @@ Signal well prompts use these rows on their existing input owners.
 `sdk/rows` admits page composition (`parseRangedPage`), bounded rain
 (`parseRainPresentation`) and page/audio/guide observations
 (`parseForestWeatherObservation`) through the original row grammars.
+`explorerCatalogueRows` admits ordered model references with the defining JSON/identity checks and no runtime installer.
 
 ### Static world scene recipes
 
