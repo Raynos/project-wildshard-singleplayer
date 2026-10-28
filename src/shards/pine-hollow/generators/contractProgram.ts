@@ -1,5 +1,5 @@
-import { parseDecisionScripts,type DecisionScriptRow } from '@wildshard/format/decisionScripts';
-import type { DecisionRegistries } from '@wildshard/format/decisionBindings';
+import { parseDecisionScripts,type DecisionScriptRow } from '@wildshard/sdk/decisionScripts';
+import type { DecisionRegistries } from '@wildshard/sdk/decisionBindingMap';
 
 const roles=['serial','salt','attempts','first','fallback','kind','target','variant','label','elite','rank','targetRank','knownRank','below','excludeElite','excluded','tagged','match','have','need','x','y','z','px','py','pz','radius','next','claimed','streak','best','slot','slots','open','value','valid','pointValid','count','candidate','accepted'];
 const fields=[...roles,...['a','b','c'].flatMap(prefix=>Array.from({length:4},(_,i)=>`${prefix}${String(i).padStart(2,'0')}`))];
