@@ -160,6 +160,11 @@ export class GroundMerge {
     }
     const mesh = new Mesh(geometry, this.material);
     mesh.name = this.name; mesh.castShadow = false; mesh.receiveShadow = true;
+    // A merge has no per-tile scene groups. Publish only coarse members whose
+    // kept indices actually contribute to this draw, after fine masking.
+    mesh.userData['coarseTiles'] = parts.flatMap(part => part.member.corner === null || part.triangles.length === 0 ? [] : [{
+      x: (part.member.corner.x + HALF) / COARSE, z: (part.member.corner.z + HALF) / COARSE, visible: true,
+    }]);
     this.onRebuild?.(mesh);
     this.parent.add(mesh); block.merged = mesh;
   }

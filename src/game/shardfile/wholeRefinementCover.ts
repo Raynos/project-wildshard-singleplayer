@@ -8,10 +8,10 @@ import { tileRing } from './tileDriver';
 import { runtimeLookMaterials, runtimeProduct } from './runtimeProduct';
 import type { ControlRefinement } from './controlRefinement';
 
-/** Declared L1 props cover a refine-only native library. The entry ring's
- * parents precede control; other parents share the nearest-first late cursor.
+/** Declared L1 props cover a native library. Without a refinement queue all
+ * parents precede entry; with one, distant parents use its nearest-first cursor.
  * A fine read always awaits its parent, and masks it only after publication. */
-export function wholeRefinementCover(ctx: ShardContext, owner: Scope, queue: ControlRefinement, entry: { readonly x: number; readonly z: number }): {
+export function wholeRefinementCover(ctx: ShardContext, owner: Scope, queue: ControlRefinement | undefined, entry: { readonly x: number; readonly z: number }): {
   readonly content: TileContent; readonly ensure: (tile: number) => Promise<void>;
 } {
   const source = ctx.product.shardfile, props = source.props, product = runtimeProduct(source);
@@ -48,8 +48,8 @@ export function wholeRefinementCover(ctx: ShardContext, owner: Scope, queue: Con
     const at = entry, spawn = new Set([...ring(tileOf(at.x, at.z), tileRing())].map(tile => Math.floor(tile / 16) * 4 + Math.floor(tile % 8 / 2)));
     const distance = (key: number): number => (-250 + (key % 4 + 0.5) * 125 - at.x) ** 2 + (-250 + (Math.floor(key / 4) + 0.5) * 125 - at.z) ** 2;
     const order = [...parents.keys()].sort((a, b) => distance(a) - distance(b));
-    for (const key of order) if (spawn.has(key)) await load(key);
-    for (const key of order) if (!spawn.has(key)) void queue.add(`coarse:${String(key)}`, { x: -250 + (key % 4 + 0.5) * 125, z: -250 + (Math.floor(key / 4) + 0.5) * 125 }, () => load(key));
+    for (const key of order) if (spawn.has(key) || queue === undefined) await load(key);
+    for (const key of order) if (!spawn.has(key) && queue !== undefined) void queue.add(`coarse:${String(key)}`, { x: -250 + (key % 4 + 0.5) * 125, z: -250 + (Math.floor(key / 4) + 0.5) * 125 }, () => load(key));
     ctx.system({ id: 'client.world.refinement-mask', phase: 'update', run: () => {
       if (scope.disposed || scope.disposing) return;
       for (const [key, tiles] of masks) {

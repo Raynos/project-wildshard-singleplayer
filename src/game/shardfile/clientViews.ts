@@ -169,7 +169,14 @@ export function clientTileViews(ports: ViewPorts): ClientTileViews {
         if (box.max.y - box.min.y < FLAT && box.max.y <= floor + FLOOR) mesh.castShadow = false; else casters.push(mesh);
       }
       const shadow = (enabled: boolean): void => { for (const mesh of casters) mesh.castShadow = enabled; };
-      if (row.lod === 1) { const mask = coarseTileMask(root, row.x, row.z, scope); shadow(false); return { mask, shadow: () => undefined }; }
+      if (row.lod === 1) {
+        const apply = coarseTileMask(root, row.x, row.z, scope);
+        const mask = (excluded: ReadonlySet<number>): void => {
+          apply(excluded);
+          root.userData['coarseTiles'] = [{ x: row.x, z: row.z, visible: excluded.size < 4 }];
+        };
+        mask(new Set()); shadow(false); return { mask, shadow: () => undefined };
+      }
       return { mask: noMask, shadow };
     },
     panels: async (props, assets, root, scope) => {

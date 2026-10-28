@@ -2,10 +2,11 @@
 export const TILE_STATE = String.raw`(() => {
   const api=window.__wildshard,world=api?.world,game=world?.game;
   if(!game) return null;
-  const scopes=[],seen=new Set();
+  const scopes=[],coarseScopes=[],seen=new Set();
   const visit=(scope,path)=>{
     if(!scope||seen.has(scope)||scope.disposed||scope.disposing)return;
     seen.add(scope);const name=path+'/'+scope.name;
+    if(/^painted\.ground\.l1\.[0-3]\.[0-3]$/.test(scope.name)||/^refinement\.coarse:\d+$/.test(scope.name))coarseScopes.push(name);
     if(/^tile:(render|colliders):\d+$/.test(scope.name)||/^ring:.*:l[01]\//.test(scope.name))scopes.push(name);
     for(const child of scope.children??[])visit(child,name);
   };
@@ -23,7 +24,7 @@ export const TILE_STATE = String.raw`(() => {
     tier:api.boot.tier,scale:game.renderer.getPixelRatio(),clock:api.app.clock.mode,
     frame:game.frameCount,controls:world.hud.entered&&!world.hud.paused&&game.frameGate(),
     lost:game.renderer.getContext().isContextLost(),feet:{x:world.player.position.x,z:world.player.position.z},
-    render:[...render].sort((a,b)=>a-b),colliders:[...colliders].sort((a,b)=>a-b),scopes,
+    render:[...render].sort((a,b)=>a-b),colliders:[...colliders].sort((a,b)=>a-b),scopes,coarseScopes,
     settings:api.debugSettings?.()??[],claims:resident?.allocator?.entries()??null,
     grid:state===undefined?null:{home:state.home,current:live?.current,inside:state.inside,
       ready:live?.gameplayReady,pending:live?.pending??[],retiring:live?.retiring??[],

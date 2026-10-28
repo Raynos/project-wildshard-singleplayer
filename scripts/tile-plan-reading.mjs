@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// One plan-end cohort, one already-served main SHA; no build, retry, Simulator or quiet marker.
+// One census cohort, one already-served main SHA; no build, retry, Simulator or quiet marker.
 import { mkdirSync, existsSync, writeFileSync, readFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
 import { createHash } from 'node:crypto';
@@ -24,6 +24,7 @@ const arg = (/** @type {string} */ name) => process.argv.find(s => s.startsWith(
 if (process.argv.includes('--help')) {
   console.info('browser-lane.sh --max 45 node --experimental-transform-types --import ./scripts/shard-platform-format.mjs scripts/tile-plan-reading.mjs --base=URL --pin=FULL_SHA --out=FRESH_DIR');
   console.info('8 families x 3x3/5x5 spawn; one resident-road reference and streamed-road DW/Sky handoff cohort. No retry/build/GC/Simulator.');
+  console.info('--shards=SLUGS --rings=5x5 --spawn-only restricts a repair census to its requested rows.');
   console.info('--report=READING_JSON renders the retained cohort offline, without opening a browser.');
   process.exit(0);
 }
@@ -40,11 +41,13 @@ const allShards = ['driftwood-isle', 'nalati-grasslands', 'pine-hollow', 'nine-d
 const shards=arg('shards')?.split(',')??allShards;
 if(new Set(shards).size!==shards.length||shards.some(shard=>!allShards.includes(shard)))throw new Error('Unknown or duplicate requested shard');
 const spawnOnly=process.argv.includes('--spawn-only');
+const rings = arg('rings')?.split(',') ?? ['3x3','5x5'];
+if (new Set(rings).size !== rings.length || rings.length === 0 || rings.some(ring => ring !== '3x3' && ring !== '5x5')) throw new Error('Unknown or duplicate requested ring');
 /** @type {{protocol:string,pin:string,version:unknown,complete:boolean,rows:object[],grid:object[],errors:string[],limits:object}} */
 const result = {protocol:'tile-plan-chromium/1',pin,version,complete:false,rows:[],grid:[],errors:[],limits:{
   tools:Object.fromEntries(['tile-plan-reading.mjs','tile-plan-page.mjs','tile-retirement-proof.mjs','frame-floor-grid.mjs'].map(path=>
     [path,createHash('sha256').update(readFileSync(new URL(path,import.meta.url))).digest('hex')])),
-  shards,spawnOnly,sourceRepairOf:arg('source-repair-of')??null,
+  shards,rings,spawnOnly,sourceRepairOf:arg('source-repair-of')??null,
   device:'iPhone 16 Pro',tier:'phone',cpu:4,renderScale:2,spawnSettleFrames:120,frameSampleMs:8000,
   whole:'Declared unique fine-file dependency closure, not a restored whole-cell renderer or measured native RAM.',
   memory:'GL capacities, scene backing/ledger capacities, allocator claims and process footprints remain separate.',
@@ -130,10 +133,13 @@ async function sample(page,label){
   const share=summarizeTileCensus({...census.tile,observed:census.observed});
   const overlay=await page.evaluate('window.__tilePlanPaint()');
   const process=await processMemory(label);
-  return {frames,state,share,overlay,process};
+  const coarse = census.tile?.coarseTiles ?? [];
+  const coarseDrawn = [...new Set(coarse.filter(row => row.visible).map(row => `${row.x}/${row.z}`))].sort((a,b)=>a.localeCompare(b));
+  return {frames,state,share,overlay,process,coarseDrawn};
 }
 try{
-  for(const shard of shards)for(const ring of /** @type {const} */(['3x3','5x5'])){
+  for(const shard of shards)for(const requestedRing of rings){
+    const ring = v.parse(v.picklist(['3x3','5x5']), requestedRing);
     const visit=await open(ring,'resident'),label=`${shard}-${ring}`;
     try{
       const source=await declaration(shard);

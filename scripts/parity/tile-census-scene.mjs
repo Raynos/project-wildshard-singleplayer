@@ -40,7 +40,23 @@ export function captureTileScene(scene, sourceIds) {
     if (![min.x, min.y, min.z, max.x, max.y, max.z].every(Number.isFinite)) return null;
     return { min, max };
   };
+  /** @type {{path:string,x:number,z:number,visible:boolean}[]} */
+  const coarseTiles = [];
   scene.traverse(node => {
+    /** @type {unknown} */
+    const declared = node.userData.coarseTiles;
+    if (declared !== undefined) {
+      if (!Array.isArray(declared)) throw new Error('Invalid coarse tile readout');
+      let visible = true;
+      /** @type {import('three').Object3D | null} */
+      let at = node;
+      for (; at !== null; at = at.parent) visible &&= at.visible;
+      for (const row of declared) {
+        if (!object(row) || !Number.isInteger(row.x) || !Number.isInteger(row.z) ||
+            typeof row.x !== 'number' || typeof row.z !== 'number' || row.x < 0 || row.x > 3 || row.z < 0 || row.z > 3 || typeof row.visible !== 'boolean') throw new Error('Invalid coarse tile coordinate');
+        coarseTiles.push({path:node.name,x:row.x,z:row.z,visible:visible && row.visible});
+      }
+    }
     const geometry = /** @type {unknown} */ (Reflect.get(node, 'geometry'));
     if (!object(geometry) || geometry.isBufferGeometry !== true) return;
     if (!object(geometry.attributes)) throw new Error('Invalid census geometry attributes');
@@ -80,7 +96,7 @@ export function captureTileScene(scene, sourceIds) {
     nodes.push({ path: parents.join('/'), type: node.type, buffers: [...buffers], cpuBuffers: cpu,
       missingCpuRoles, worldBounds: bounds(node, geometry) });
   });
-  return { nodes, cpuBuffers };
+  return { nodes, cpuBuffers, coarseTiles };
 }
 
 /** GL, ledger and scene must be read in one synchronous browser job. Awaiting

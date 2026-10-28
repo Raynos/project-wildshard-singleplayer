@@ -35,8 +35,10 @@ test('a coarse tile leaves out the quadrants fine tiles cover', async () => {
   const parent = new THREE.Group(), merge = new GroundMerge(parent, new THREE.MeshBasicMaterial(), 'ground.coarse'), scope = new Scope('c');
   const hide = merge.add(tile(-250, -250), scope, { x: 0, z: 0 }); await settle();
   expect(merge.mesh?.geometry.getIndex()?.count).toBe(6);
+  expect(merge.mesh?.userData['coarseTiles']).toEqual([{ x: 0, z: 0, visible: true }]);
   hide(new Set([0])); await settle();                      // the -x -z quadrant: its triangle goes
   expect(merge.mesh?.geometry.getIndex()?.count).toBe(3);
+  expect(merge.mesh?.userData['coarseTiles']).toEqual([{ x: 0, z: 0, visible: true }]);
   hide(new Set([0, 1, 2, 3])); await settle();             // all four: the tile draws nothing
   expect(merge.mesh).toBeNull();
   scope.dispose();

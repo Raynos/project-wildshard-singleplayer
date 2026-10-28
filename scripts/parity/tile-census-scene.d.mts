@@ -11,7 +11,7 @@ export interface CensusSceneNode {
   path: string; type: string; buffers: string[]; cpuBuffers: SceneBufferUse[];
   missingCpuRoles: string[]; worldBounds: SceneBounds | null;
 }
-export interface CensusSceneSnapshot { nodes: CensusSceneNode[]; cpuBuffers: SceneCpuBuffer[] }
+export interface CensusSceneSnapshot { nodes: CensusSceneNode[]; cpuBuffers: SceneCpuBuffer[]; coarseTiles: { path: string; x: number; z: number; visible: boolean }[] }
 /** Serialisable, synchronous scene read. Buffer ids belong to this read only;
  * backing capacities are not resident RAM or a promise that caches can retire. */
 export function captureTileScene(scene: Object3D, sourceIds: (source: object) => string[]): CensusSceneSnapshot;

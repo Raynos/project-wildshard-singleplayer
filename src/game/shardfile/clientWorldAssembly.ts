@@ -18,6 +18,7 @@ import { publishEntryOwner, lendEntryOwner, entryOwner, presentEntryOwner } from
 import { timeClientPreparation } from './preparationTiming';
 import { followResidentTiles, noteTileBytes, residentTiles } from './tileDriver';
 import { farStandIn } from './farStandIn';
+import { wholeRefinementCover } from './wholeRefinementCover';
 
 const enteredScopes = new WeakSet<ShardContext['scope']>();
 const residents = new WeakMap<IslandLibrary<unknown> | ShardProduct, {
@@ -108,8 +109,11 @@ export async function installClientWorldAssembly(ctx: ShardContext, row: Extract
   const owner = resident ?? scope;
   // G748 (shipped G761): beyond the render ring a shard that declares it (its drawn world tiled)
   // draws its own near view for its occupied tiles; once per resident (its scene handles survive a re-entry)
-  if (row.farStandIn === true && !scenes.tiled().some(content => content.id === `${product.slug}.far-stand-in`)) {
-    const standIn = farStandIn(ctx);
+  if (row.farStandIn === true && !scenes.tiled().some(content => content.id === 'whole.refinement.coarse' || content.id === `${product.slug}.far-stand-in`)) {
+    // Runtime-bound props bypass the data renderer. Prefer their actual T8
+    // parents to a second near-view proxy; both use the same fine-ring mask.
+    const standIn = source.props?.tiles.some(tile => tile.lod === 1)
+      ? wholeRefinementCover(ctx, owner, undefined, source.spawn).content : farStandIn(ctx);
     if (standIn !== null) scenes.addTiled(standIn);
   }
   noteTileBytes(owner, source.tiles); await residentTiles(owner, scenes.tiled(), source.spawn, source.entryways); live();

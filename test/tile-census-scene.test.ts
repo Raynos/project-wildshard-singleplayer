@@ -116,3 +116,19 @@ test('GL, scene and ledger are captured before a queued frame can add buffers', 
   // A second evaluation after an await would see an identity absent from GL.
   expect(captureTileScene(f.scene, sourceIds).nodes.flatMap(row => row.buffers)).toContain('gpu:late');
 });
+
+
+test('coarse census reads merged parents and respects masks and ancestor visibility', () => {
+  const f = fixture();
+  f.a.userData['coarseTiles'] = [{ x: 0, z: 1, visible: true }, { x: 1, z: 1, visible: false }];
+  f.b.userData['coarseTiles'] = [{ x: 2, z: 3, visible: true }];
+  f.b.visible = false;
+  expect(captureTileScene(f.scene, f.sourceIds).coarseTiles).toEqual([
+    { path: 'a', x: 0, z: 1, visible: true }, { path: 'a', x: 1, z: 1, visible: false },
+    { path: 'b', x: 2, z: 3, visible: false },
+  ]);
+  f.scene.visible = false;
+  expect(captureTileScene(f.scene, f.sourceIds).coarseTiles.every(row => !row.visible)).toBe(true);
+  f.a.userData['coarseTiles'] = [{ x: 4, z: 0, visible: true }];
+  expect(() => captureTileScene(f.scene, f.sourceIds)).toThrow('Invalid coarse tile coordinate');
+});
