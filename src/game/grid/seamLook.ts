@@ -113,15 +113,21 @@ export function* seamLookGeometrySteps(pieces: readonly SeamPiece[], home: { rea
     base += count;
     yield;
   }
-  const index: number[] = [], groups: { start: number; count: number; bucket: SeamBucket }[] = [];
+  // Bucket lists already establish the exact feature/triangle order. Copy
+  // them directly into the final native index, without a second boxed list
+  // and a scalar append loop over every corner.
+  let indices = 0;
+  for (const list of lists.values()) indices += list.length;
+  const index = new Uint32Array(indices), groups: { start: number; count: number; bucket: SeamBucket }[] = [];
+  let cursor = 0;
   for (const bucket of SEAM_BUCKETS) {
     const list = lists.get(bucket) ?? [];
     if (list.length === 0) continue;
-    groups.push({ start: index.length, count: list.length, bucket });
-    for (const n of list) index.push(n);
+    groups.push({ start: cursor, count: list.length, bucket });
+    index.set(list, cursor); cursor += list.length;
   }
   const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(position, 3)).setAttribute('color', new BufferAttribute(colour, 3))
-    .setIndex(new BufferAttribute(new Uint32Array(index), 1));
+    .setIndex(new BufferAttribute(index, 1));
   // the zeroed normal three's computeVertexNormals makes, then its arithmetic in steps
   const normal = new BufferAttribute(channels?.normals ?? new Float32Array(vertices * 3), 3);
   geometry.setAttribute('normal', normal);

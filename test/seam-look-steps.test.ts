@@ -58,3 +58,39 @@ test('palette lookup preserves negative-zero bins, neighbour order and explicit 
     } finally { geometry.dispose(); }
   }
 });
+
+test('the final native index preserves feature order, first ownership and ground fallback across strips', () => {
+  const first = strip(91, 12, -7), second = strip(27, -4, 9);
+  const features = [
+    { kind: 'cliff', firstIndex: 9, indexCount: 9 },
+    { kind: 'road-wall', firstIndex: 3, indexCount: 9 },
+    { kind: 'deck', firstIndex: 0, indexCount: 6 },
+    { kind: 'new-feature', firstIndex: 18, indexCount: 3 },
+    { kind: 'parapet', firstIndex: 21, indexCount: 6 },
+  ];
+  const pieces = [{ ...first, features }, { ...second, features: [...features].reverse() }], buckets = ['ground', 'stone', 'rock', 'dike', 'rail', 'curtain'];
+  const expected = new Map(buckets.map(bucket => [bucket, [] as number[]]));
+  let base = 0;
+  for (const piece of pieces) {
+    const named = new Set<number>();
+    for (const feature of piece.features) {
+      const bucket = feature.kind === 'cliff' ? 'rock' : feature.kind === 'road-wall' ? 'curtain' : feature.kind === 'parapet' ? 'stone' : 'ground';
+      for (let i = feature.firstIndex; i < feature.firstIndex + feature.indexCount; i++) {
+        if (named.has(i)) continue; named.add(i); expected.get(bucket)?.push((piece.mesh.indices[i] ?? 0) + base);
+      }
+    }
+    for (let i = 0; i < piece.mesh.indices.length; i++) if (!named.has(i)) expected.get('ground')?.push((piece.mesh.indices[i] ?? 0) + base);
+    base += piece.mesh.positions.length / 3;
+  }
+  const steps = seamLookGeometrySteps(pieces, { origin: { x: 0, z: 0 } });
+  let done = steps.next(); while (!done.done) done = steps.next();
+  try {
+    expect(done.value.geometry.index?.array).toEqual(Uint32Array.from(buckets.flatMap(bucket => expected.get(bucket) ?? [])));
+    let start = 0;
+    const groups = buckets.flatMap((bucket, materialIndex) => {
+      const count = expected.get(bucket)?.length ?? 0; if (count === 0) return [];
+      const group = { start, count, materialIndex }; start += count; return [group];
+    });
+    expect(done.value.geometry.groups).toEqual(groups);
+  } finally { done.value.geometry.dispose(); }
+});
