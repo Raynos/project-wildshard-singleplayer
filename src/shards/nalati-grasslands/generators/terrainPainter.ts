@@ -1,22 +1,30 @@
 /** Build-only native terrain painter. The client consumes its lossless geometry. */
 import * as THREE from 'three';
-import { CHUNK_SIZE, CHUNK_HALF, CHUNK_DEPTH, TERRAIN_RES } from '@wildshard/engine/core/config';
 import { Noise2D } from '@wildshard/sdk/noise';
-import type { PainterField } from '@wildshard/engine/render/look';
+import type { NativeTerrainSource } from '@wildshard/sdk/bake/terrain';
 import { PAINTED_TERRAIN_ATTRIBUTES as ATTR } from '@wildshard/format/materialFamilies';
-import type { ShardManifest, ChunkTerrain } from '@wildshard/game/shard/manifest';
+import type { groundColor, surfaceAt } from './terrainRecipe';
 import { zoneWeights } from './zones';
 
-export interface TerrainPaintSource { readonly seed: number; readonly terrain: ChunkTerrain; readonly groundColor: NonNullable<ShardManifest['groundColor']>; readonly surfaceAt: NonNullable<ShardManifest['surfaceAt']> }
+/** The author samples the supplied native lattice and trails; no runtime field is installed. */
+export interface TerrainPaintField extends Pick<NativeTerrainSource, 'heightAt' | 'normalAt'> {
+  readonly grid: Pick<NativeTerrainSource['grid'], 'res' | 'size'>;
+  readonly trails: () => readonly (readonly [number, number])[][];
+}
+export interface TerrainPaintSource {
+  readonly seed: number; readonly slabDepth: number;
+  readonly terrain: Parameters<typeof groundColor>[4];
+  readonly groundColor: typeof groundColor; readonly surfaceAt: typeof surfaceAt;
+}
 
 /** the painted terrain grid (G227: public so a bake runs the one painter on its native samplers; no behaviour change) */
-export function* buildPainterlyGeometry(f: PainterField, source: TerrainPaintSource): Generator<void, THREE.BufferGeometry, undefined> {
+export function* buildPainterlyGeometry(f: TerrainPaintField, source: TerrainPaintSource): Generator<void, THREE.BufferGeometry, undefined> {
   const paint = source.groundColor;
-  const res = TERRAIN_RES, n = res - 1, d = CHUNK_SIZE / n;
+  const res = f.grid.res, half = f.grid.size / 2, n = res - 1, d = f.grid.size / n;
   const hs = new Float32Array(res * res);
   for (let iz = 0; iz < res; iz++) {
     if (iz > 0 && iz % 32 === 0) yield; // SF67: 64 rows of heights were ~100 ms at 4x CPU
-    for (let ix = 0; ix < res; ix++) hs[iz * res + ix] = f.heightAt(-CHUNK_HALF + ix * d, -CHUNK_HALF + iz * d);
+    for (let ix = 0; ix < res; ix++) hs[iz * res + ix] = f.heightAt(-half + ix * d, -half + iz * d);
   }
   yield;
   const H = (ix: number, iz: number) => hs[Math.min(n, Math.max(0, iz)) * res + Math.min(n, Math.max(0, ix))] ?? 0;
@@ -29,7 +37,7 @@ export function* buildPainterlyGeometry(f: PainterField, source: TerrainPaintSou
   for (let iz = 0; iz < res; iz++) {
     if (iz > 0 && iz % 24 === 0) yield; // SF67: 48 rows a task were 95-130 ms at 4x CPU
     for (let ix = 0; ix < res; ix++) {
-      const i = iz * res + ix, x = -CHUNK_HALF + ix * d, z = -CHUNK_HALF + iz * d;
+      const i = iz * res + ix, x = -half + ix * d, z = -half + iz * d;
       const y = H(ix, iz);
       pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z;
       const nx = H(ix - 1, iz) - H(ix + 1, iz), nz = H(ix, iz - 1) - H(ix, iz + 1), ny = 2 * d;
@@ -70,9 +78,9 @@ export function* buildPainterlyGeometry(f: PainterField, source: TerrainPaintSou
  * a ragged rocky cliff, not a ruled line. Same material as the ground (one program), masks in `surf` (rock = 1 below
  * the lip). Indexed, smooth normals.
  */
-export function buildPainterlySlab(f: PainterField, source: TerrainPaintSource): THREE.BufferGeometry {
+export function buildPainterlySlab(f: TerrainPaintField, source: TerrainPaintSource): THREE.BufferGeometry {
   const segs = 256;
-  const H = CHUNK_HALF, D = -CHUNK_DEPTH;
+  const H = f.grid.size / 2, D = -source.slabDepth;
   const n = new Noise2D(source.seed + 404);
   // rows down the wall: [metres below the lip (negative = depth fraction of the slab), outward bulge scale, rock 0/1]
   const ROWS: [number, number, number][] = [[0, 0, 0], [0.6, 1.2, 0], [1.6, 1.6, 1], [4, 0.6, 1], [8, 2.2, 1], [14, 1.0, 1], [22, 2.8, 1], [34, 1.4, 1], [-0.55, 3.5, 1], [-1, 0.5, 1]];
@@ -98,7 +106,7 @@ export function buildPainterlySlab(f: PainterField, source: TerrainPaintSource):
         const k = r === 0 ? 0 : (0.35 + 0.65 * (n.get(u * (1 + r * 0.7), r * 3.3) * 0.5 + 0.5)) * bulge + (r === 1 ? 0.6 : 0);
         const out = r === ROWS.length - 1 ? 2 : k * (r > 7 ? 1.4 : 1);
         verts.push(x + s.n[0] * out, y, z + s.n[1] * out);
-        const depth = Math.min(1, Math.max(0, (y0 - y) / CHUNK_DEPTH));
+        const depth = Math.min(1, Math.max(0, (y0 - y) / source.slabDepth));
         if (rock === 0) c.setRGB(grass[0], grass[1], grass[2]);
         else c.copy(rockTop).lerp(rockMid, Math.min(1, depth * 3)).lerp(deep, Math.max(0, depth * 1.3 - 0.3)).multiplyScalar(0.9 + 0.2 * (n.get(u * 4 + r, 9.1) * 0.5 + 0.5));
         cols.push(c.r, c.g, c.b);
@@ -129,7 +137,7 @@ export function buildPainterlySlab(f: PainterField, source: TerrainPaintSource):
 }
 
 type Seg = [number, number, number, number];
-function trailSegments(f: PainterField): Seg[] {
+function trailSegments(f: TerrainPaintField): Seg[] {
   const out: Seg[] = [];
   for (const poly of f.trails()) for (let i = 0; i < poly.length - 1; i++) { const a = poly[i], b = poly[i + 1]; if (a && b) out.push([a[0], a[1], b[0], b[1]]); }
   return out;

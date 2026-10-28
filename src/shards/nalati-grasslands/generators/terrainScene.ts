@@ -2,11 +2,10 @@ import { BufferGeometry, Float32BufferAttribute, MeshBasicMaterial } from 'three
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
-import type { PainterField } from '@wildshard/engine/render/look';
-import { buildPainterlyGeometry, buildPainterlySlab, type TerrainPaintSource } from './terrainPainter';
+import { buildPainterlyGeometry, buildPainterlySlab, type TerrainPaintField, type TerrainPaintSource } from './terrainPainter';
 
 /** The original native sampler and arithmetic run offline, without a renderer or physics world. */
-export function terrainSceneBlobs(field: PainterField, source: TerrainPaintSource): NamedBlob[] {
+export function terrainSceneBlobs(field: TerrainPaintField, source: TerrainPaintSource): NamedBlob[] {
   const steps = buildPainterlyGeometry(field, source);
   let step = steps.next();
   while (step.done !== true) step = steps.next();

@@ -16,7 +16,7 @@ const LATTICE = '/assets/baked/nalati-grasslands/terrain.bin';
  */
 export function nalatiTerrainScene(lattice: Uint8Array): NamedBlob[] {
   const { grid, ...samplers } = readNativeTerrain(lattice), terrain = TERRAIN_PAINT_SOURCE.terrain;
-  const field = { ...samplers, ready: () => Promise.resolve(true), trails: () => terrain.trails, trailDistance: terrain.trailDistance };
+  const field = { ...samplers, grid, trails: () => terrain.trails };
   const water = bakeWaterStrips({ heightAt: samplers.heightAt, river: RIVER, brook: MELT_STREAM, chunkHalf: grid.size / 2 });
   return [...terrainSceneBlobs(field, TERRAIN_PAINT_SOURCE), waterSceneBlob(water)];
 }

@@ -1,0 +1,153 @@
+{
+  "turns": 18,
+  "ground": {
+    "channels": [
+      {
+        "name": "position",
+        "storage": "Float32Array",
+        "count": 65536,
+        "width": 3,
+        "normalized": false,
+        "hash": "dfe730a5addb67d986144d46b5e2bb0a779fbc4bcf20a3995b7e772d5a9b39c0"
+      },
+      {
+        "name": "normal",
+        "storage": "Float32Array",
+        "count": 65536,
+        "width": 3,
+        "normalized": false,
+        "hash": "1658e0e9d6db56d27d232c93524a40aee7d7cfd9d93cfb7426e970db414619fd"
+      },
+      {
+        "name": "color",
+        "storage": "Float32Array",
+        "count": 65536,
+        "width": 3,
+        "normalized": false,
+        "hash": "b67ed633a57a82dbd8ce086dc235a2c7d610b22f0214c5ff250d9f50f1e52fc8"
+      },
+      {
+        "name": "_surf",
+        "storage": "Float32Array",
+        "count": 65536,
+        "width": 4,
+        "normalized": false,
+        "hash": "28dba38774500d259c9aa7f8fae50fb5b13a5835fe0751583647764cda6a31b4"
+      },
+      {
+        "name": "_rdir",
+        "storage": "Float32Array",
+        "count": 65536,
+        "width": 2,
+        "normalized": false,
+        "hash": "f6190b81fde91ac5e5d962977a8cecaeed3684ec4f47593975df6031d877429a"
+      },
+      {
+        "name": "_zone",
+        "storage": "Float32Array",
+        "count": 65536,
+        "width": 3,
+        "normalized": false,
+        "hash": "64fae72a726728744419f47e39e23836f70a4ca462ff367d39cd4c1d15cc6754"
+      },
+      {
+        "name": "index",
+        "storage": "Uint32Array",
+        "count": 390150,
+        "width": 1,
+        "normalized": false,
+        "hash": "34be30dba0f15586c854b50a669265cd997815f88aa4796d356a5a4142fb831e"
+      }
+    ],
+    "box": null,
+    "sphere": {
+      "radius": 356.0347730389222,
+      "center": [
+        0,
+        49.7004132270813,
+        0
+      ]
+    }
+  },
+  "slab": {
+    "channels": [
+      {
+        "name": "position",
+        "storage": "Float32Array",
+        "count": 10284,
+        "width": 3,
+        "normalized": false,
+        "hash": "c7d992c72c32e135c6d74d232c359ae992d60ce4ca7ccc64ef946f73a840c814"
+      },
+      {
+        "name": "color",
+        "storage": "Float32Array",
+        "count": 10284,
+        "width": 3,
+        "normalized": false,
+        "hash": "a55a5bcd1a131fcef24673f202c09166c1fa0970e671bd295cb361e46334d9aa"
+      },
+      {
+        "name": "_surf",
+        "storage": "Float32Array",
+        "count": 10284,
+        "width": 4,
+        "normalized": false,
+        "hash": "96d5e5574f8b593aa85e6c3de63e3d3300f249bf22046bc81b4873a387077888"
+      },
+      {
+        "name": "_rdir",
+        "storage": "Float32Array",
+        "count": 10284,
+        "width": 2,
+        "normalized": false,
+        "hash": "91125fe2eac6f64ee5b06807fe01cbcfba98e6eeb63146fd9662b3bc84965d74"
+      },
+      {
+        "name": "_zone",
+        "storage": "Float32Array",
+        "count": 10284,
+        "width": 3,
+        "normalized": false,
+        "hash": "b3054e286d0be2e6d5c811d10e6dc237cb0620787f831e4da25a81bd39e4116d"
+      },
+      {
+        "name": "normal",
+        "storage": "Float32Array",
+        "count": 10284,
+        "width": 3,
+        "normalized": false,
+        "hash": "18e636428713f05f093e76875354702c92ae4329586e97dd893f45df74b829a1"
+      },
+      {
+        "name": "index",
+        "storage": "Uint16Array",
+        "count": 55302,
+        "width": 1,
+        "normalized": false,
+        "hash": "a4a75aecb53c0a1c45cc6892df86c867778950d4c563ee2c7ffb7a4b6aa7ec5b"
+      }
+    ],
+    "box": null,
+    "sphere": {
+      "radius": 368.71346359077916,
+      "center": [
+        0.0365447998046875,
+        -0.3678703308105469,
+        0.00127410888671875
+      ]
+    }
+  },
+  "blobs": [
+    {
+      "name": "world/terrain/ground.glb",
+      "length": 2389028,
+      "hash": "a2a849cae1380ade7b28eda81afcfe1a5de867a2e541ca3ada363a7b769515cb"
+    },
+    {
+      "name": "world/terrain/slab.glb",
+      "length": 355896,
+      "hash": "78290f6451162b4c1e7f8cda388589ff116cd583650fb96cd8022a6763ca06fa"
+    }
+  ]
+}
