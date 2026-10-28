@@ -30,6 +30,23 @@ test('caller-frozen rows keep the original JSON callbacks and observe later muta
   }
 });
 
+test('private rows retain signed zero introduced by an inherited JSON hook', () => {
+  const admitted = immutableEdgeProfile(row()), previous = Object.getOwnPropertyDescriptor(Array.prototype, 'toJSON');
+  try {
+    // oxlint-disable-next-line no-extend-native -- This isolated hook-refusal fixture restores the exact native descriptor in finally.
+    Object.defineProperty(Array.prototype, 'toJSON', { configurable: true, value(this: readonly unknown[]): readonly unknown[] {
+      return this.length === 256 ? [-0] : this;
+    } });
+    const zero = (_key: string, value: unknown): unknown => typeof value === 'number' && Object.is(value, -0) ? '-0' : value;
+    const expected = JSON.stringify([admitted.roadHeight, admitted.heights, admitted.colours], zero);
+    expect(edgeProfileJson(admitted)).toBe(expected); expect(expected).toContain('"-0"');
+  } finally {
+    if (previous === undefined) Reflect.deleteProperty(Array.prototype, 'toJSON');
+    // oxlint-disable-next-line no-extend-native -- Restore only the descriptor this fixture temporarily replaced.
+    else Object.defineProperty(Array.prototype, 'toJSON', previous);
+  }
+});
+
 test('admitted edge rows detach and freeze every numeric leaf', () => {
   const input = row(), admitted = immutableEdgeProfile(input);
   expect(admitted).toEqual(input);
