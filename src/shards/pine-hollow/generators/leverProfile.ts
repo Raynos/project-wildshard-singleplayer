@@ -1,5 +1,4 @@
-import type * as v from 'valibot';
-import type { FirearmWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
+import type { parseFirearmProfile } from '@wildshard/sdk/weapons/firearmRows';
 
 /** Pine's chamber, tube, timed per-round gate and native hitscan; sight poses and effects remain their own view owner. */
 export const LEVER_WEAPON_PROFILE: { family: "firearm"; action: "lever"; magazine: number; reserve: number; interval: number; reload: number; reloadMode: "perRound"; autoReload: number; damageScale: number; range: number; spreadAds: number; spreadHip: number; spreadRadius: "sqrt"; bloomShot: number; bloomMax: number; movingSpread: number; movingAimReduction: number; lever: { cycleDelay: number; cycleTime: number; reloadIn: number; reloadOut: number; ejectAt: number; cockAt: number; autoReloadClose: number; }; projectile: { kind: "bullet"; delivery: "hitscan"; speed: number; radius: number; flight: { gravity: number; drag: number; windCoupling: number; }; pool: number; substeps: number; lifetime: number; }; } = {
@@ -9,4 +8,4 @@ export const LEVER_WEAPON_PROFILE: { family: "firearm"; action: "lever"; magazin
   lever: { cycleDelay: 0.12, cycleTime: 0.56, reloadIn: 0.22, reloadOut: 0.2, ejectAt: 0.34, cockAt: 0.2, autoReloadClose: 5 },
   projectile: { kind: 'bullet', delivery: 'hitscan', speed: 0, radius: 0,
     flight: { gravity: 0, drag: 0, windCoupling: 0 }, pool: 1, substeps: 1, lifetime: 1 },
-} satisfies v.InferOutput<typeof FirearmWeaponProfileSchema>;
+} satisfies ReturnType<typeof parseFirearmProfile>;
