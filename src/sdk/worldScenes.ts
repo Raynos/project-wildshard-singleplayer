@@ -13,7 +13,7 @@ import { nameBlob, type NamedBlob } from './blobs';
 import { ForestPageSchema, type ForestPageRows } from '@wildshard/format/forestPage';
 import { AdmissionLateSchema, type LateFile } from '@wildshard/format/admissionLate';
 import { BakedBuildingLookSchema, parseBuildingLifeRows as nativeBuildingLifeRows, emptyBuildingLifeRows as nativeEmptyBuildingLifeRows,
-  type BuildingAssemblyRows, type BakedBuildingLookRows } from '@wildshard/format/buildings';
+  admitBuildingAssembly, type BuildingAssemblyRows, type BakedBuildingLookRows, type BuildingCloudRow } from '@wildshard/format/buildings';
 import type { OutputFile } from '@wildshard/format/outputIndex';
 import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import { parseWorldEntry } from '@wildshard/format/worldEntry';
@@ -99,6 +99,10 @@ export function caveInteriorRows(input: unknown): CaveInteriorRows { return pars
 
 /** Complete authored building assembly grammar; no building instance or resource service is lent. */
 export type AuthorBuildingAssembly<K extends string = string, P extends string = string> = BuildingAssemblyRows<K, P>;
+/** Numeric cloud geometry/material references before any particle owner is constructed. */
+export type AuthorBuildingCloud = BuildingCloudRow;
+/** Check complete building resource bindings through the native strict grammar, without assembling it. */
+export function checkBuildingAssembly(input: unknown): void { admitBuildingAssembly(input); }
 
 /** Admit original building material, particle, door and lantern policy before baking. */
 export function buildingLookRows(input: unknown): BakedBuildingLookRows { return parse(BakedBuildingLookSchema, input); }

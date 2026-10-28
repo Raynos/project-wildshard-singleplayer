@@ -3,8 +3,21 @@
  * The independent native assembly oracle checks these geometry and append-order
  * operations; this module never imports runtime, engine or game code. */
 import * as THREE from 'three';
-import { admitBuildingAssembly, emptyBuildingLifeRows, type BuildingAssemblyRows, type BakedBuildingLight, type BakedBuildingNode, type BakedBuildingRecord, type BakedBuildingLook, type BakedBuildingRole, type BakedBuildingTier, type BuildingFloor, type BuildingRoom, type BuildingBox, type BuildingCollider, type BuildingCloudRow, type Xyz , type BuildingLifeRows as BuildingLifeRowsType } from '@wildshard/format/buildings';
+import { checkBuildingAssembly as admitBuildingAssembly, emptyBuildingLifeRows, type AuthorBuildingAssembly as BuildingAssemblyRows, type AuthorBuildingCloud as BuildingCloudRow } from '@wildshard/sdk/worldScenes';
 import { cabinShadowProxy, cabinFlatPositions, cabinTwoSidedPositions, type CabinWeldPart, type CabinWeldCopy } from './cabinWeld';
+
+type BakedBuildingRecord<K extends string, P extends string> = BuildingAssemblyRows<K, P>['record'];
+type BakedBuildingNode<P extends string> = BakedBuildingRecord<string, P>['nodes'][number];
+type BakedBuildingLight = Extract<BakedBuildingNode<string>, { t: 'light' }>['light'];
+type BakedBuildingLook<K extends string = string> = BuildingAssemblyRows<K>['look'];
+type BakedBuildingRole = BuildingAssemblyRows['role'];
+type BakedBuildingTier = BuildingAssemblyRows['tier'];
+type BuildingFloor = BakedBuildingRecord<string, string>['floors'][number];
+type BuildingRoom = BakedBuildingRecord<string, string>['rooms'][number];
+type BuildingBox = BakedBuildingRecord<string, string>['colliders'][number];
+type BuildingCollider = BakedBuildingRecord<string, string>['solids'][number]['d'];
+type Xyz = BakedBuildingRecord<string, string>['at'];
+type BuildingLifeRowsType = ReturnType<typeof emptyBuildingLifeRows>;
 
 const isMesh = (node: THREE.Object3D): node is THREE.Mesh => node instanceof THREE.Mesh;
 interface BuildingLightAnchor { readonly anchor: THREE.Object3D; readonly color: number; readonly intensity: number; readonly distance: number; readonly decay: number; readonly seed: number; readonly kind: 'fire' | 'lamp'; readonly rank: number }
