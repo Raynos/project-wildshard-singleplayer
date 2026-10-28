@@ -331,7 +331,9 @@ export class SceneDressing {
     }
     });
     for(const row of rows.sites){
-      const sites=new EncounterSites(row.rows),placed=withOwner(ctx.scope,()=>sites.place(needModel(row.model),models,ctx.app.registry,sky,files));
+      const model=needModel(row.model);
+      if(model.prepare!==undefined){await model.prepare();if(ctx.scope.disposed||ctx.scope.disposing)throw new Error('Scene specimen demand owner retired');}
+      const sites=new EncounterSites(row.rows),placed=withOwner(ctx.scope,()=>sites.place(model,models,ctx.app.registry,sky,files));
       this.group.add(sites.object);withOwner(ctx.scope,()=>{sites.register(ctx.app.registry);});this.sites.set(row.name,{sites,placed});await pause();
     }
     for(const row of rows.emitters){

@@ -101,10 +101,15 @@ export function nalatiLateCatalogueNames(input: unknown): readonly string[] {
 export function nalatiDeferredCatalogueScene(input:unknown):unknown{
   if(input===null||typeof input!=='object'||!('catalogues'in input)||!Array.isArray(input.catalogues))throw new Error('Missing scene catalogues');
   const books:readonly unknown[]=input.catalogues;
+  const sites:readonly unknown[]='sites'in input&&Array.isArray(input.sites)?input.sites:[];
+  const drawn=new Set(sites.flatMap(site=>site!==null&&typeof site==='object'&&'model'in site&&typeof site.model==='string'?[site.model]:[]));
   const catalogues:object[]=[];
   for(const book of books){
     if(book===null||typeof book!=='object'||Array.isArray(book))throw new Error('Invalid scene catalogue');
-    catalogues.push({...book,load:'after-control'});
+    const rows:readonly unknown[]='rows'in book&&Array.isArray(book.rows)?book.rows:[];
+    const direct=rows.some(row=>row!==null&&typeof row==='object'&&'model'in row&&row.model!==null&&typeof row.model==='object'
+      &&'id'in row.model&&typeof row.model.id==='string'&&drawn.has(row.model.id));
+    catalogues.push(direct?{...book}:{...book,load:'after-control'});
   }
   return{...input,catalogues};
 }

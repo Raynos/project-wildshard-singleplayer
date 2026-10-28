@@ -12,6 +12,9 @@ test('live phone annotation preserves every existing scene and catalogue field',
   const scene={name:'owned',geometry:{shape:{file:'world.bin'}},catalogues:[book],statics:[{name:'camp',pose:[1,2,3]}]},before=structuredClone(scene);
   expect(nalatiDeferredCatalogueScene(scene)).toEqual({...scene,catalogues:[{...book,load:'after-control'}]});
   expect(scene).toStrictEqual(before);
+  const encounter={rows:[{model:{id:'encounter'},source:{file:'contact.bin'}}]};
+  expect(nalatiDeferredCatalogueScene({...scene,catalogues:[book,encounter],sites:[{model:'encounter'}]}))
+    .toEqual({...scene,catalogues:[{...book,load:'after-control'},encounter],sites:[{model:'encounter'}]});
   expect(()=>nalatiDeferredCatalogueScene({})).toThrow('Missing scene');
   expect(()=>nalatiDeferredCatalogueScene({catalogues:[null]})).toThrow('Invalid scene');
 });
