@@ -1,6 +1,7 @@
 import {zlibSync} from 'fflate';
 import * as THREE from 'three';
 import {afterEach,expect,test,vi} from 'vitest';
+import {place} from '../src/engine/models/place';
 import {listModel} from '../src/engine/models/live';
 import {withOwner} from '../src/engine/app/ownership';
 import {Scope} from '../src/engine/app/scope';
@@ -218,7 +219,7 @@ test('the existing Explorer and dressing adapters prepare admitted banks without
 });
 
 // The Explorer calls object() before ready(); listing itself must remain free of IO.
-test.each([false,true])('direct deferred specimen listing awaits sources; retired=%s',async retired=>{
+test.each([{placed:false,retired:false},{placed:false,retired:true},{placed:true,retired:false},{placed:true,retired:true}])('deferred specimen awaits sources; placed=$placed retired=$retired',async({placed,retired})=>{
   const owner=new Scope('direct-specimen'),files=new Map<string,Uint8Array>(),reply=deferred<Uint8Array>();
   let reads=0;
   const read=planSpecimenCatalogue({file:()=>{reads++;return reply.promise;},hasFile:()=>true},forge.rows,owner,[forge.packed]);
@@ -227,9 +228,12 @@ test.each([false,true])('direct deferred specimen listing awaits sources; retire
   });
   const model=catalogue.model('anvil'),ctx=modelContext(skyFixture()),registry=new WorldRegistry();
   try{
-    withOwner(owner,()=>{listModel(model,{ctx,registry});});
+    withOwner(owner,()=>{
+      if(placed)place(model,[{x:0,y:0,z:0}],{ctx,registry,draw:'instanced',drawnInto:{object:new THREE.Group(),boxes:new Float32Array(6),colliders:[]}});
+      else listModel(model,{ctx,registry});
+    });
     expect(reads).toBe(0);expect(()=>model.build(ctx,{},new Rng(1))).toThrow('requires preparation');
-    const card=registry.get('model:fixture/anvil')?.model;if(card?.ready===undefined||card.release===undefined)throw new Error('Missing prepared view contract');
+    const card=registry.get(placed?'fixture/anvil':'model:fixture/anvil')?.model;if(card?.ready===undefined||card.release===undefined)throw new Error('Missing prepared view contract');
     const root=card.object(),placeholder=root.children[0]?.children[0],ready=card.ready();
     expect(reads).toBe(1);expect(placeholder).toBeInstanceOf(THREE.Mesh);
     if(retired)card.release();
@@ -241,13 +245,16 @@ test.each([false,true])('direct deferred specimen listing awaits sources; retire
   }finally{owner.dispose();}
 });
 
-test('direct deferred specimen failure refuses Explorer readiness without building',async()=>{
+test.each([false,true])('deferred specimen failure refuses Explorer readiness; placed=%s',async placed=>{
   const owner=new Scope('failed-direct-specimen'),ctx=modelContext(skyFixture()),registry=new WorldRegistry();
   const catalogue=defineSpecimenCatalogue<Record<string,object>>(forge.rows,forge.packed,materials,new Map(),()=>Promise.reject(new Error('Exact source refused')));
   const warn=vi.spyOn(console,'warn').mockImplementation(()=>undefined);
   try{
-    withOwner(owner,()=>{listModel(catalogue.model('anvil'),{ctx,registry});});
-    const card=registry.get('model:fixture/anvil')?.model;if(card?.ready===undefined)throw new Error('Missing readiness');
+    withOwner(owner,()=>{const model=catalogue.model('anvil');
+      if(placed)place(model,[{x:0,y:0,z:0}],{ctx,registry,draw:'instanced',drawnInto:{object:new THREE.Group(),boxes:new Float32Array(6),colliders:[]}});
+      else listModel(model,{ctx,registry});
+    });
+    const card=registry.get(placed?'fixture/anvil':'model:fixture/anvil')?.model;if(card?.ready===undefined)throw new Error('Missing readiness');
     const root=card.object(),holder=root.children[0],placeholder=holder?.children[0];
     await expect(card.ready()).rejects.toThrow('Exact source refused');
     expect(holder?.children).toEqual([placeholder]);expect(warn).toHaveBeenCalledOnce();

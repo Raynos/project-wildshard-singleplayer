@@ -34,6 +34,7 @@ import type { ColliderDesc, DrawnAs, ModelEntry, WorldRegistry } from '../world/
 import { FrameCamera } from '../world/frameCamera';
 import { geometryBoundsSteps } from '../world/geometryBounds';
 import { withTier } from '../explore/tiers';
+import { loadingSpecimen } from './gear';
 import { specimenReady, paramsOf, seedOf, type ModelBuild, type ModelBuildVisit, type ModelContext, type ModelDef, type ModelPart, type Placement } from './model';
 import { drawnHullOwn, drawnHullWorld, placeCollider, poseGeometry, poseOf, type Pose } from './colliders';
 import { BatchedCull, CelledCopiesCull, CellCull, InstancedCull, SetCull, UntilCull, WeldCull, type BatchedSlot, type CullOptions, type HostedSet, type InstancedSink } from './cull';
@@ -1118,24 +1119,38 @@ function modelEntry<P extends object>(def: ModelDef<P>, o: PlaceOptions, rec: Mo
   specimen.name = `model:${def.id}`;
   // Explore queues cards across tile retirement; their resources belong to the resident world.
   const registrationOwner = resourceScope(), parent = registry.scope ?? (registry === app.registryValue ? app.levelScope : null) ?? registrationOwner, owners = new Set<Scope>();
-  const requireSpecimenOwner = (): void => { if (def.specimenLifetime === 'view' && (parent.disposed || parent.disposing || registry.retired)) throw new Error('Model specimen owner is not live'); };
+  const scoped = def.specimenLifetime === 'view' || def.prepare !== undefined;
+  const requireSpecimenOwner = (): void => { if (scoped && (parent.disposed || parent.disposing || registry.retired)) throw new Error('Model specimen owner is not live'); };
   const build = (variant?: string): THREE.Object3D => {
     requireSpecimenOwner();
-    const owner = def.specimenLifetime === 'view' ? parent.child(`specimen/${def.id}`) : undefined;
+    const owner = scoped ? parent.child(`specimen/${def.id}`) : undefined;
     if (owner !== undefined) owners.add(owner);
     const make = () => (def.specimen ?? def.build)(owner === undefined ? o.ctx : { ...o.ctx, specimenScope: owner }, paramsOf(def, variant, undefined), new Rng(seedOf(def)));
-    let built: ReturnType<typeof make>;
-    try { built = owner === undefined ? make() : withOwner(owner, make); }
-    catch (error) { owner?.dispose(); if (owner !== undefined) owners.delete(owner); throw error; }
-    // (a model its shard culls draws with its in-world program, which may need instancing: the specimen is one instance)
-    const one = (x: ModelPart): THREE.Mesh => (o.culler === undefined ? meshOf(x) : instanceOf(x));
-    const obj = Array.isArray(built) ? wrap((built as readonly ModelPart[]).map(one), def.id) : built as THREE.Object3D;
-    if (owner !== undefined) {
-      obj.traverse(node => { if (node instanceof THREE.InstancedMesh) ownSceneResource(node, owner); });
-      owner.onDispose(() => { obj.removeFromParent(); });
+    const makeObject = (): THREE.Object3D => {
+      const built = owner === undefined ? make() : withOwner(owner, make);
+      // Culled models retain their native instanced specimen program.
+      const one = (x: ModelPart): THREE.Mesh => (o.culler === undefined ? meshOf(x) : instanceOf(x));
+      const obj = Array.isArray(built) ? wrap((built as readonly ModelPart[]).map(one), def.id) : built as THREE.Object3D;
+      if (owner !== undefined) {
+        obj.traverse(node => { if (node instanceof THREE.InstancedMesh) ownSceneResource(node, owner); });
+        owner.onDispose(() => { obj.removeFromParent(); });
+      }
+      if (def.specimenYaw !== undefined) obj.rotation.y = def.specimenYaw;
+      return obj;
+    };
+    const prepared = def.prepare;
+    if (prepared !== undefined && owner !== undefined) {
+      return loadingSpecimen(def.id, [1, 1, 1], async () => {
+        await prepared();
+        requireSpecimenOwner();
+        if (owner.disposed || owner.disposing) throw new Error('Specimen view retired during preparation');
+        const obj = makeObject();
+        await specimenReady(obj);
+        return obj;
+      }, owner);
     }
-    if (def.specimenYaw !== undefined) obj.rotation.y = def.specimenYaw;
-    return obj;
+    try { return makeObject(); }
+    catch (error) { owner?.dispose(); if (owner !== undefined) owners.delete(owner); throw error; }
   };
   // World copies retain their own resources; scoped catalogue choices retire on close.
   const specimens = new Map<string, THREE.Object3D>();
@@ -1145,7 +1160,7 @@ function modelEntry<P extends object>(def: ModelDef<P>, o: PlaceOptions, rec: Mo
   };
   // O18: the entry lives on its registry's piece: a world that retires releases it too, and drops the ambient owner's
   // hold (the page's scope after an await), or every visit's release (and the placement it closes over) outlived the visit
-  if (def.specimenLifetime === 'view') { const forget = registrationOwner.capture('disposers', release); registry.onRetire(() => { forget(); release(); }); }
+  if (scoped) { const forget = registrationOwner.capture('disposers', release); registry.onRetire(() => { forget(); release(); }); }
   const kept = (variant?: string): THREE.Object3D => {
     const key = variant ?? '';
     let obj = specimens.get(key);
@@ -1154,14 +1169,14 @@ function modelEntry<P extends object>(def: ModelDef<P>, o: PlaceOptions, rec: Mo
   };
   const rebuild = (variant?: string): void => {
     const container = specimen.parent;
-    if (def.specimenLifetime === 'view') release();
+    if (scoped) release();
     specimen.clear();
     specimen.add(kept(variant));
     container?.add(specimen);
     if ('document' in globalThis) document.dispatchEvent(new CustomEvent('ws:model-ready', { detail: { id: def.id } }));
   };
   const entry: ModelEntry = {
-    ...(def.specimenLifetime === 'view' ? { release, ready: () => specimenReady(specimen) } : {}),
+    ...(scoped ? { release, ready: () => specimenReady(specimen) } : {}),
     id: def.id, category: def.category, live: false, pipeline: def.pipeline, drawnAs,
     object: () => { requireSpecimenOwner(); if (specimen.children.length === 0) specimen.add(kept()); return specimen; },
     buildAt: (tier) => withTier(tier, () => build()),
