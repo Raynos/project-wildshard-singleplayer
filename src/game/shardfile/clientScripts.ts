@@ -2,8 +2,29 @@ import { ClientScriptLane, type ClientScriptObservation } from '@wildshard/engin
 import type { DeclaredScriptWorld } from '@wildshard/engine/script/state';
 import { clientScriptRules, parseClientScripts, type ClientScriptContent, type ClientScriptTarget } from '@wildshard/format/clientScripts';
 
+/** A caller-owned numeric destination for a synchronous target capture. */
+export interface ClientScriptTargetCapture { position: [number, number, number]; frozen: boolean }
+
+/** Capture one live numeric point before field reads. A supplied destination
+ * belongs to this bridge call, including a separate one for nested observers. */
+export function captureClientScriptPosition(position: Readonly<{ x: number; y: number; z: number }> | undefined,
+  frozen: boolean, capture?: ClientScriptTargetCapture): ClientScriptTargetCapture {
+  if (capture === undefined) return { position: position === undefined ? [0, 0, 0] : [position.x, position.y, position.z], frozen };
+  const point: number[] = capture.position;
+  point[0] = position === undefined ? 0 : position.x;
+  point[1] = position === undefined ? 0 : position.y;
+  point[2] = position === undefined ? 0 : position.z;
+  point.length = 3; capture.frozen = frozen; return capture;
+}
+
 /** Trusted input ports; the actor comes from the page, and observation never exposes a simulation object to bytecode. */
-export interface ShardfileClientScriptPorts { actorId: string; state?: DeclaredScriptWorld; observe: (target: ClientScriptTarget) => { position: readonly [number, number, number]; frozen: boolean }; memoryBytes?: number }
+export interface ShardfileClientScriptPorts {
+  actorId: string; state?: DeclaredScriptWorld;
+  observe: (target: ClientScriptTarget) => { position: readonly [number, number, number]; frozen: boolean };
+  /** Optional synchronous capture; legacy observers retain their one-argument call. */
+  observeInto?: (target: ClientScriptTarget, capture: ClientScriptTargetCapture) => { position: readonly [number, number, number]; frozen: boolean };
+  memoryBytes?: number;
+}
 /** Construct one isolated presentation lane and copy only the selected public/owner values on each presentation tick. */
 export function createShardfileClientScripts(source: ClientScriptContent, assets: ReadonlyMap<string, Uint8Array>, ports: ShardfileClientScriptPorts): {
   lane: ClientScriptLane; targets: readonly { entity: number; target: ClientScriptTarget }[]; step: (tick: number) => void; dispose: () => void;
@@ -28,6 +49,7 @@ export function createShardfileClientScripts(source: ClientScriptContent, assets
   interface ObservationFrame {
     observations: Map<number, ClientScriptObservation>;
     rows: { position: [number, number, number]; frozen: boolean; values: number[] }[];
+    captures: ClientScriptTargetCapture[];
   }
   const frames: ObservationFrame[] = [], readsState = declaration.bindings.some((b) => b.reads.length > 0);
   let depth = 0;
@@ -36,15 +58,18 @@ export function createShardfileClientScripts(source: ClientScriptContent, assets
     try {
       let frame = frames[at];
       if (frame === undefined) {
-        frame = { observations: new Map(), rows: [] }; frames[at] = frame;
+        frame = { observations: new Map(), rows: [], captures: [] }; frames[at] = frame;
         for (const binding of declaration.bindings) {
           const row: ObservationFrame['rows'][number] = { position: [0, 0, 0], frozen: false, values: [] };
           frame.rows.push(row); frame.observations.set(binding.entity, row);
+          frame.captures.push({ position: [0, 0, 0], frozen: false });
         }
       }
       for (let index = 0; index < declaration.bindings.length; index++) {
         const binding = declaration.bindings[index]; if (binding === undefined) throw new Error('Missing client binding');
-        const observed = ports.observe(binding.target), reads = fieldNames[index], row = frame.rows[index];
+        const capture = frame.captures[index]; if (capture === undefined) throw new Error('Missing client target capture');
+        const observed = ports.observeInto === undefined ? ports.observe(binding.target) : ports.observeInto(binding.target, capture);
+        const reads = fieldNames[index], row = frame.rows[index];
         if (reads === undefined || row === undefined) throw new Error('Missing client read contract');
         for (let field = 0; field < reads.length; field++) {
           const read = reads[field]; if (read === undefined) throw new Error('Missing client read contract');

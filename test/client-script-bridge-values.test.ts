@@ -1,6 +1,6 @@
 import { beforeAll, expect, test } from 'vitest';
 import { compileScript } from '@wildshard/sdk/compileScript';
-import { createShardfileClientScripts as current, type ShardfileClientScriptPorts } from '../src/game/shardfile/clientScripts';
+import { createShardfileClientScripts as current, captureClientScriptPosition, type ShardfileClientScriptPorts } from '../src/game/shardfile/clientScripts';
 import { createShardfileClientScripts as before } from './fixtures/client-script-bridge-before';
 import { DeclaredScriptWorld } from '../src/engine/script/state';
 import type { ClientScriptContent } from '@wildshard/format/clientScripts';
@@ -119,4 +119,49 @@ test('late missing/private fields refuse before guest publication and scratch is
     } finally { f.bridge.dispose(); }
   };
   expect(run(current)).toEqual(run(before));
+});
+
+test('the real point-capture producer preserves original guest bytes across nested field reads', () => {
+  const run = (make: typeof current): { snapshots: string[]; captures: number } => {
+    const f = fixture(make), point = { x: .25, y: .5, z: .75 }, snapshots: string[] = [], captures = new Set<object>();
+    const view = f.state.viewField.bind(f.state);
+    let inner = false, nestedTick = 0, nest = false;
+    f.ports.observe = target => captureClientScriptPosition(target.id === 'one' ? point : undefined, !inner);
+    f.ports.observeInto = (target, capture) => {
+      captures.add(capture);
+      return captureClientScriptPosition(target.id === 'one' ? point : undefined, !inner, capture);
+    };
+    f.state.viewField = (actor, scope, name) => {
+      if (nest && !inner) {
+        nest = false; inner = true;
+        try { f.bridge.step(nestedTick); snapshots.push(f.bridge.lane.snapshot()); }
+        finally { inner = false; }
+        // The earlier point snapshot must survive both a nested producer call
+        // and a later change to the live point during state observation.
+        point.x = -.5; point.y = -.25; point.z = .125;
+      }
+      return view(actor, scope, name);
+    };
+    try {
+      for (let tick = 0; tick < 64; tick++) {
+        point.x = tick / 256; point.y = tick / 512; point.z = tick / 1024;
+        nestedTick = tick * 2; nest = true;
+        f.bridge.step(tick * 2 + 1); snapshots.push(f.bridge.lane.snapshot());
+      }
+      const accepted = f.bridge.lane.snapshot(); nest = false;
+      for (const invalid of [Number.NaN, Infinity, 251, undefined, null]) {
+        Reflect.set(point, 'x', invalid);
+        expect(() => f.bridge.step(128)).toThrow('Invalid read-only client observation');
+        expect(f.bridge.lane.snapshot()).toBe(accepted);
+      }
+      point.x = .25; f.bridge.step(128); snapshots.push(f.bridge.lane.snapshot());
+      const capturesBeforeDispose = captures.size;
+      f.bridge.dispose(); expect(() => f.bridge.step(200)).toThrow('Disposed client script lane');
+      expect(captures.size).toBe(capturesBeforeDispose);
+      return { snapshots, captures: capturesBeforeDispose };
+    } finally { f.bridge.dispose(); }
+  };
+  const old = run(before), now = run(current);
+  expect(now.snapshots).toEqual(old.snapshots);
+  expect(old.captures).toBe(0); expect(now.captures).toBe(4);
 });

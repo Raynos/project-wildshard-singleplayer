@@ -57,7 +57,7 @@ import { clientSpeciesLooks, type ShardViewRecipe } from './clientRecipes';
 import { loadItemModels } from './itemModels';
 import { loadClientSkins, type ClientSkin } from './clientSkins';
 import { clientViews } from './clientViews';
-import { createShardfileClientScripts } from './clientScripts';
+import { createShardfileClientScripts, captureClientScriptPosition } from './clientScripts';
 
 import { installClientWater } from './clientWater';
 import { standaloneClientTiles } from './tileContent';
@@ -503,6 +503,14 @@ export class ShardfileClient {
           if (target.kind === 'particles') return { position: target.at, frozen: !simulationActive };
           const p = target.kind === 'creature' ? animals.get(target.id)?.mesh.position : undefined;
           return { position: p === undefined ? [0, 0, 0] : [p.x, p.y, p.z], frozen: !simulationActive };
+        },
+        observeInto: (target, capture) => {
+          // Particle rows retain their authored iterable alias until the bridge
+          // copies it. A creature's former fresh tuple is a numeric snapshot.
+          if (target.kind === 'particles') return { position: target.at, frozen: !simulationActive };
+          const p = target.kind === 'creature' ? animals.get(target.id)?.mesh.position : undefined;
+          const observed = captureClientScriptPosition(p, false, capture);
+          observed.frozen = !simulationActive; return observed;
         } });
       ctx.scope.onDispose(() => { scripts.dispose(); });
       const targets = scripts.targets.map(({ entity, target }): ClientScriptViewTarget => {
