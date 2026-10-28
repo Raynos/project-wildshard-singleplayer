@@ -180,6 +180,28 @@ export function setShapeFn(fn: ((x: number, y: number, z: number, part: string) 
  * `isLowPoly()` for a different palette or part (the boar's crest becomes a row of spikes).
  */
 let lowPoly = false;
+const authorPaints = new Map<string, (variant?: VariantDef) => Paint>();
+/** Current explicit offline geometry style; independent of any runtime species owner. */
+export function isLowPoly(): boolean { return lowPoly; }
+/** Palette supplied to the author geometry context; no runtime registry is lent out. */
+export function toonPaint(kind: string): ((variant?: VariantDef) => Paint) | null { return authorPaints.get(kind) ?? null; }
+
+/** Pure geometry kernels a recipe consumes; native before-controls may supply an independent compiler. */
+export interface SpeciesGeometryCompiler {
+  readonly loft: typeof loft;
+  readonly tube: typeof tube;
+  readonly skinPlain: typeof skinPlain;
+  readonly S: typeof S;
+  readonly boneIndex: typeof boneIndex;
+  readonly srgb: typeof srgb;
+  readonly mix: typeof mix;
+  readonly paintNoise: Pick<Noise2D, 'fbm'>;
+  readonly setShag: typeof setShag;
+  readonly isLowPoly: typeof isLowPoly;
+  readonly toonPaint: typeof toonPaint;
+  readonly paletteColors: typeof paletteColors;
+}
+
 /** ring sides for a loft that asks for `seg` in PBR: big parts 6, legs 5, ears / hooves / tusks 4 */
 export function lowPolySides(seg: number): number { return seg >= 16 ? 6 : seg >= 11 ? 5 : 4; }
 
@@ -321,7 +343,7 @@ export function tube(points: [number, number, number][], r0: number, r1: number,
 export function withSpeciesGeometry<T>(paints: Readonly<Record<string, (variant?: VariantDef) => Paint>>, run: () => T): T {
   lowPoly = true;
   setNativeLowPoly(true);
-  for (const [kind, paint] of Object.entries(paints)) registerNativePaint(kind, paint);
+  for (const [kind, paint] of Object.entries(paints)) { authorPaints.set(kind, paint); registerNativePaint(kind, paint); }
   try { return run(); }
   finally { lowPoly = false; setNativeLowPoly(false); }
 }

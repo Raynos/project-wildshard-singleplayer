@@ -6360,6 +6360,9 @@ markup/expression grammar; these APIs construct no world, quest owner or UI.
 `AuthorBuildingCloud` describes numeric cloud geometry/material references only.
 `bake/tileGrid.authorCellBounds` returns a fresh native local-cell footprint in
 `[minX, maxX, minZ, maxZ]` order, matching the complete L0 tile lattice.
+`bake/species.SpeciesGeometryCompiler` is the explicit loft/tube/skin/paint kernel port.
+`isLowPoly` and `toonPaint` read its owned author style set by `withSpeciesGeometry`;
+they lend no runtime registry. A recipe can take an independent compiler for native parity.
 `buildingLookRows`, `buildingLifeRows` and `emptyBuildingLifeRows` admit
 original building policy or create a fresh empty life batch without a service.
 `game/plugin/scene.createWorldScene` borrows geometry/model/material ports and
