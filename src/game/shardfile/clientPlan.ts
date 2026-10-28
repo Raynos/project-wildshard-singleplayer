@@ -282,10 +282,20 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
   })},
   'world.scenes': { phase: 'world', rank: 20, lifetime: 'resident', sections: ['world/scenes'],
     install: loadFeature(async () => {
-      const { installWorldScenes } = await import('./worldScenes');
+      const [{ installWorldScenes }, { noteTileBytes, residentTiles, followResidentTiles }] = await Promise.all([import('./worldScenes'), import('./tileDriver')]);
       return async (ctx, _row, resident) => {
         const value = await installWorldScenes(ctx, ctx.product.section('world/scenes'), resident);
         publishClientSceneHandles(ctx.product, resident, value);
+        // LD4 / CO6: a scene's tiled parts (T3) draw nothing until a tile driver attaches their tiles. The world.assembly and
+        // forest-page hosts drive their own scenes; a plan with neither (Far Reach) left these hidden: its trees, decorative
+        // isles and islet bodies drew no instances. Drive them here as those hosts do (spawn ring first, then the player).
+        if (ctx.product.section('client/plan').features.some(row => row.kind === 'world.assembly' || row.kind === 'world.forest-page')) return;
+        const source = ctx.product.shardfile, world = ctx.game.runtime?.world;
+        if (value.tiled().length === 0) return;
+        if (world === undefined || world === null) throw new Error('Tiled world scenes require a world');
+        noteTileBytes(resident, source.tiles); await residentTiles(resident, value.tiled(), source.spawn, source.entryways);
+        const follow = followResidentTiles(resident, () => world.player.position);
+        if (follow !== null) ctx.system({ id: 'client.world.scene-tiles', phase: 'update', run: () => { follow(); } });
       };
     }) },
   'light.emitters': { phase: 'world', rank: 30, lifetime: 'resident', sections: ['world/scenes'],
