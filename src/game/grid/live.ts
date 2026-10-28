@@ -113,7 +113,9 @@ export interface LiveGridState {
 /** O20: one region retirement: its checkpoint, its disposal's whole span, and for a sliced one its steps and slowest step */
 export interface Retirement { instance: string; checkpointMs: number; disposeMs: number; steps?: number; workMs?: number; slowestStepMs?: number; slowestStep?: string; failed?: boolean }
 interface RetiringRegion { readonly instance: string; readonly resident: Resident; readonly steps: Generator<DisposeStep, void>;
-  readonly checkpointMs: number; readonly start: number; count: number; workMs: number; slowestMs: number; slowest: string; done: boolean }
+  readonly checkpointMs: number; readonly start: number; count: number; workMs: number; slowestMs: number; slowest: string; done: boolean;
+  /** settles when `finishRetirement` ran (its claim released, or kept on failure) */
+  readonly finished: Promise<void>; readonly settle: () => void }
 interface Resident { region: LiveGridRegion; lease: ResidencyLease; reloadsCheckpoint: boolean; reservations: number; evicting: boolean; retainable: boolean; evictionBound?: boolean; disposalFailed?: boolean }
 
 // Contact corrections at a closed readiness wall are not a U-turn. Accumulate real horizontal travel
@@ -370,6 +372,9 @@ export class LiveGridHost {
       const admitted = timing === undefined ? await this.prefetchProduct(instance, true) : await timing.run('metadata', () => this.prefetchProduct(instance, true));
       admission = admitted;
       this.assertAlive();
+      // its previous world may still be retiring (a stepped eviction or `retire`): its claim, under the same id, is released
+      // only at its last step, so this admission's claim waits for it (T10 sliced eviction)
+      for (let retiring = this.retiring.get(instance); retiring !== undefined; retiring = this.retiring.get(instance)) { await retiring.finished; this.assertAlive(); }
       // A failed disposal stays fully charged and blocks construction even if the pair's budget would fit.
       if ([...this.residents.values()].some((row) => row.disposalFailed === true)) throw new Error('Exclusive runtime awaits successful disposal');
       this.products.delete(instance);
@@ -698,7 +703,9 @@ export class LiveGridHost {
     this.forgetLastCell(instance);
     this.residents.delete(instance); this.readiness.invalidate(instance);
     this.ghosts.retired(instance, resident.region.ghostRoots ?? [resident.region]);
-    const record: RetiringRegion = { instance, resident, steps: retire(), checkpointMs, start: diagnosticNow(), count: 0, workMs: 0, slowestMs: 0, slowest: '', done: false };
+    let settle = (): void => undefined;
+    const finished = new Promise<void>(resolve => { settle = resolve; });
+    const record: RetiringRegion = { instance, resident, steps: retire(), checkpointMs, start: diagnosticNow(), count: 0, workMs: 0, slowestMs: 0, slowest: '', done: false, finished, settle };
     this.retiring.set(instance, record);
     return record;
   }
@@ -756,7 +763,7 @@ export class LiveGridHost {
   }
   private finishRetirement(record: RetiringRegion, failure: { readonly error: unknown } | undefined): void {
     if (record.done) return;
-    record.done = true; this.retiring.delete(record.instance);
+    record.done = true; this.retiring.delete(record.instance); record.settle();
     const { instance, resident } = record, row = { instance, checkpointMs: record.checkpointMs, disposeMs: diagnosticNow() - record.start,
       steps: record.count, workMs: Math.round(record.workMs), slowestStepMs: Math.round(record.slowestMs), slowestStep: record.slowest };
     if (failure !== undefined) {

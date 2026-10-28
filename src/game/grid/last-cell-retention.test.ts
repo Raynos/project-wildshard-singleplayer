@@ -156,6 +156,27 @@ test('T10: a stepped reserve disposes the evicted kept world one step per yield,
   } finally { f.close(); }
 });
 
+test('T10: re-entering a world while its stepped eviction runs waits for it, then admits its own full claim', async () => {
+  const f = await fixture({ retireSteps: 3 });
+  try {
+    await f.enter(f.home.instance); await f.leave();
+    const baseline = f.residency.allocator.ownerCost('pressure').playing;
+    const bytes = Math.floor((CONTENT_CAPS.playing - baseline) / CONTENT_CAPS.residentFactor) - 1000;
+    const steps = f.residency.allocator.reserveSteps({ id: 'pressure', owner: 'pressure', category: 'library', bytes, needed: true, distance: 0 });
+    steps.next();
+    // the world is mid-disposal; its claim (same id as a new admission's) is still charged and must not be shared
+    let entered = false;
+    const reentry = f.enter(f.home.instance).then(() => { entered = true; return undefined; });
+    for (let i = 0; i < 20; i++) await Promise.resolve();
+    expect(entered).toBe(false); expect(f.disposed).toEqual([]);
+    let step = steps.next(); while (step.done !== true) step = steps.next();
+    step.value?.release();
+    await reentry;
+    expect(f.disposed).toEqual([f.home.instance]); expect(f.created.filter(id => id === f.home.instance)).toHaveLength(2);
+    expect(f.residency.allocator.entries().filter(row => row.owner === f.home.instance)).toHaveLength(1);
+  } finally { f.close(); }
+});
+
 test('T10: a stepped eviction whose disposal fails keeps the world charged and refuses the reserve', async () => {
   const f = await fixture({ retireSteps: 2 });
   try {

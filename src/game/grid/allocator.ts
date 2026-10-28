@@ -103,6 +103,8 @@ export class ResidencyAllocator {
   private evictableCredit = 0;
 
   private readonly playing: number;
+  /** claims whose eviction is running in steps (`reserveSteps`): still charged, never shared */
+  private readonly steppedEvictions = new Set<Entry>();
   private generation = 0;
   private evicting = false;
   constructor(options: { playing?: number; memory?: MemoryAdmission } = {}) {
@@ -141,6 +143,9 @@ export class ResidencyAllocator {
     this.validateCoverage(claim.id, claim.category, claim.bytes, claim.coveredBy);
     const existing = this.entries_.get(claim.id);
     if (existing !== undefined) {
+      // a claim whose owner disposes in steps (`reserveSteps`) is dropped at its last step: sharing it would lose the
+      // new holder's bytes then. Its owner admits again only after that (live.ts waits for the retirement).
+      if (this.steppedEvictions.has(existing)) throw new Error(`Residency claim ${claim.id} is still being evicted`);
       if (existing.category !== claim.category || existing.bytes !== claim.bytes || existing.baseCredit !== baseCredit) throw new Error(`Residency claim ${claim.id} changed shape`);
       existing.refs++; existing.needed ||= claim.needed; existing.distance = Math.min(existing.distance, claim.distance);
       this.refreshEviction(existing);
@@ -433,7 +438,9 @@ export class ResidencyAllocator {
             try { current.eviction.commit(); } finally { this.evicting = false; }
           } else {
             const steps = current.eviction.steps(); active.steps = steps;
-            for (let step = steps.next(); step.done !== true; step = steps.next()) yield;
+            this.steppedEvictions.add(current.entry);
+            try { for (let step = steps.next(); step.done !== true; step = steps.next()) yield; }
+            finally { this.steppedEvictions.delete(current.entry); }
             active.steps = null;
           }
         } catch (error) { active.steps = null; settled = true; this.abortFrom(prepared, index, error); }
