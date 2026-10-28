@@ -9,25 +9,36 @@ test('shared preview ports, pinned builds and caller releases retain their lease
 
 test('queue and scheduler deadlines name holders without launching or taking their locks', () => {
   const result = execFileSync('python3', ['-c', `
-import contextlib, fcntl, importlib.util, json, os, pathlib, subprocess, sys, tempfile, time
+import contextlib, fcntl, importlib.util, json, os, pathlib, subprocess, sys, tempfile, time, types
 sys.path.insert(0, str(pathlib.Path('scripts').resolve()))
 spec = importlib.util.spec_from_file_location('heavy_lane', 'scripts/heavy-lane.py')
 module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
 assert module.WAIT_SECONDS == 300
 module.WAIT_SECONDS = .02
+# The real lock remains held. Only elapsed admission time is virtual: a busy
+# machine cannot turn the scheduler's immediate refusal into a timing failure.
+class Clock:
+ def __init__(self): self.now = 0.0; self.sleeps = []
+ def monotonic(self): return self.now
+ def sleep(self, seconds):
+  assert 0 < seconds <= module.WAIT_SECONDS, seconds
+  self.sleeps.append(seconds); self.now += seconds
+clock = Clock()
+module.time = types.SimpleNamespace(monotonic=clock.monotonic, sleep=clock.sleep, time=time.time)
 with tempfile.TemporaryDirectory(prefix='deadline-test-', dir='tmp') as temporary:
  root = pathlib.Path(temporary).resolve()
  owner = {'pid':os.getpid(), 'command':['node','owned-build.mjs'], 'startedAt':time.time()}
  owner['lane'] = 'fixture-lane'
  with (root/'scheduler.lock').open('w+') as lock:
   json.dump(owner,lock); lock.flush(); fcntl.flock(lock,fcntl.LOCK_EX)
-  started = time.monotonic()
+  started = clock.monotonic()
   try:
    with module.scheduler(root): raise AssertionError('stole scheduler lock')
   except TimeoutError as error:
    message = str(error)
    assert all(value in message for value in ('5 min','slot=scheduler','pid='+str(os.getpid()),'owned-build.mjs','start=20','lane=fixture-lane','age=')), message
-  assert time.monotonic()-started < 1
+  assert clock.monotonic()-started < 1
+  assert clock.sleeps == [module.WAIT_SECONDS], clock.sleeps
  # Main exercises the actual FIFO/resource admission and its ticket cleanup.
  (root/'queue.json').write_text(json.dumps({'next':1,'queue':[dict(owner,token='older',ticket=0,resources=['build'],priority=1,queuedAt=time.time())]}))
  for slot in module.BUILD_SLOTS: (root/(slot+'.active.json')).write_text(json.dumps(owner))
@@ -69,21 +80,23 @@ with tempfile.TemporaryDirectory(prefix='capacity-test-', dir=repo / 'tmp') as t
  env = {k: v for k, v in os.environ.items() if k not in ('WS_HEAVY_TOKEN', 'WS_HEAVY_GATE', 'WS_HEAVY_SCHEDULER_ROOT')}
  env['WS_HEAVY_ROOT'] = str(root)
  worker = root / 'worker.py'
- worker.write_text("import pathlib, subprocess, sys, time\\nroot=pathlib.Path(sys.argv[1]); name=sys.argv[2]\\nsubprocess.run(['node','--input-type=module','-e',sys.argv[3]],check=True)\\n(root/(name+'.started')).write_text('yes')\\ndeadline=time.monotonic()+8\\nwhile not (root/(name+'.release')).exists():\\n if time.monotonic()>deadline: raise TimeoutError(name)\\n time.sleep(.01)\\n")
+ worker.write_text("import pathlib, subprocess, sys\\nroot=pathlib.Path(sys.argv[1]); name=sys.argv[2]\\nsubprocess.run(['node','--input-type=module','-e',sys.argv[3]],check=True)\\n(root/(name+'.started')).write_text('yes')\\nassert sys.stdin.read(1) == 'r', 'owner closed before release'\\n")
  processes = []
+ releases = {}
  def launch(kind, name):
-  process = subprocess.Popen([sys.executable, wrapper, kind, '--', sys.executable, str(worker), str(root), name, guard], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+  process = subprocess.Popen([sys.executable, wrapper, kind, '--', sys.executable, str(worker), str(root), name, guard], env=env, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
   processes.append(process)
+  releases[name] = process
   return process
+ def release(name):
+  process = releases[name]
+  process.stdin.write('r'); process.stdin.flush(); process.stdin.close(); process.stdin = None
  def wait_for(predicate):
-  deadline = time.monotonic() + 6
   while not predicate():
    for process in processes:
     if process.poll() not in (None, 0):
      out, err = process.communicate()
      raise AssertionError((process.returncode, out, err))
-   if time.monotonic() > deadline:
-    raise TimeoutError('fixture synchronization')
    time.sleep(.01)
  def queue_size(n):
   try: return len(json.loads((root/'queue.json').read_text())['queue']) >= n
@@ -97,12 +110,12 @@ with tempfile.TemporaryDirectory(prefix='capacity-test-', dir=repo / 'tmp') as t
   d = launch('build', 'd'); wait_for(lambda: queue_size(1))
   e = launch('build', 'e'); wait_for(lambda: queue_size(2))
   assert not (root/'d.started').exists() and not (root/'e.started').exists()
-  (root/'a.release').touch(); wait_for(lambda: (root/'d.started').exists())
+  release('a'); wait_for(lambda: (root/'d.started').exists())
   assert not (root/'e.started').exists()
   state = json.loads(subprocess.check_output([sys.executable,wrapper,'status'], env=env))
   assert len([entry for entry in state['active'] if entry['resource'] in ('build','build-2','build-3')]) == 3
-  (root/'c.release').touch(); wait_for(lambda: (root/'e.started').exists())
-  (root/'b.release').touch(); (root/'d.release').touch(); (root/'e.release').touch()
+  release('c'); wait_for(lambda: (root/'e.started').exists())
+  release('b'); release('d'); release('e')
   for process in processes:
    out, err = process.communicate(timeout=6)
    assert process.returncode == 0, (out, err)

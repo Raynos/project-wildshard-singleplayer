@@ -19,7 +19,7 @@ test('quarantine preserves the whole suite and returns expired cases to blocking
 });
 
 test('D15 qualified suites stay blocking without a reporting quarantine', () => {
-  const repaired = ['test/nalati-creature-views.test.ts', 'test/shard-headless.test.ts'];
+  const repaired = ['test/nalati-creature-views.test.ts', 'test/shard-headless.test.ts', 'test/heavy-lane.test.ts'];
   const listed = readQuarantines(process.cwd(), true);
   expect(listed.some(row => repaired.includes(row.file))).toBe(false);
   expect(quarantineCohort(repaired, listed, 'product-free')).toEqual(repaired);
