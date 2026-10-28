@@ -1,13 +1,12 @@
 # SHARD-PLATFORM — State (wildshard-new; ≤ 3 KB)
 
-**(1) LIVE 8a5223ab8c** (01:47 Cancun; full CI + six smoke): ships tonight's Pine look, slow-link and GL 1282 fixes. Damage list:
+**(1) LIVE 0f4a65357b** (02:48 Cancun; full CI + six smoke), with tonight's Pine and slow-link fixes. Damage list:
 [BURN-DAMAGE-LIST](../BURN-DAMAGE-LIST.md) only. HOST-AUDIT parked (G679).
 
 **I2** closes only with D179 / D185 or per-shard byte targets (recommend targets); open rows are measured misses.
-**Question (Nalati herds, T10):** herd clocks run faster the more members' thinks are staggered. Tick once per 0.1 s per herd
-(real time): ~5-7 % of Nalati's frame, herd paths change. Recommend: yes (bug fix).
-**Question (cold crossings):** next lever is fewer material variants (look, G717.O3.5b): A / B board per shard. Also: quantize Nalati's big generated meshes (Float32 colour -> Uint8, normals ->
-Int8, like the baked outcrops): ~5-6 MB less upload in the hold, colours within 1/255. Recommend: yes (sp-o4).
+**Question (Nalati herds):** herd clocks run fast when thinks stagger; tick once per 0.1 s per herd (paths change)? Recommend: yes.
+**Question (cold crossings):** fewer material variants (look, G717.O3.5b): A / B board per shard? Quantize Nalati's big meshes
+(colour Uint8, normals Int8): ~5-6 MB less upload, colours within 1/255? Recommend: yes to both.
 **Question (crossing instrument):** cold on the Sim: Nalati 6.65, Pine 7.42, DW 5.48 s (all < 8); Chromium 4x 10.9 / 14-15 s
 (G807's instrument). Close on the Sim? Recommend: yes; Chromium 4x guides slices.
 **Question (Pine cold, reopens T7.7):** build data-only parts (parse, placement rows; no scene / lights) once the approach is
@@ -22,9 +21,11 @@ limit (1.07-1.11 GB; the 1.49 / 1.82 GB were allocator claims).
 **Question (T10 spawn):** p95 39-43 ms is post-boot settling (GC, GPU backlog), 33 / 34 settled. Sample after a settle? Recommend: yes.
 **Question (RM8.1e):** all 24 products and tile caps pass at 35281b4d8e. The codec (850a6efb5f) has no per-shard pixel A/B,
 only RM13's look board. Accept on the existing looks, or wait for an Opus witness after the morning switch? Recommend: an Opus witness.
+**Question (D53):** 8 Pine / Nine manual refresh CLIs still import Node I/O; moving them breaks no-runtime-generator. Add a confined
+SDK author-command host (owned reads, named byte outputs, --check), or keep them as stated debt? Recommend: keep as debt until HOST-AUDIT.
 **Misses stated with breakdowns:** H4 warm home 3.85 s (first-time construction), A1 770 ms (first-time Rapier + road).
-**I2:** DW 30.8 (floor), Nine 20.8, Nalati 55.0, Pine 77.5 MB (stated).
-**Lanes (G818: 95 %, Opus released at boundary 02:00):** sp-o3 / sp-o4 finishing standing GC / spawn heap; sp-x1 / x9 I2, sp-x2 D197, sp-x8 RM8.1e, sp-x6 / x10 damage,
-sp-ci-deploy release. sp-o1 / o2 / o5 released.
+**I2:** 18 / 24 entries meet both bars; floors: DW 30.8, Nine 19.2, Nalati ~55, Pine 77.5 MB (stated).
+**Lanes (G818: 95 %, all Opus released 02:00):** sp-x1 + sp-x9 Explorer-after-play stall (cache contention); D53 / D94 split
+x6 Pine, x8 Nine, x10 Nalati, x2 rest; sp-ci-deploy release. Graphical rows (Pine drive, D154, D197 render, RM8.1e pixels) wait for Opus.
 
 **Rules:** G704. G807. G818. No reverts (G674). No new Debug rows (G669). G670. Never herdr wildshard-v.
