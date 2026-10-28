@@ -12,7 +12,9 @@
  * A mesh that is skinned, morphing or multi-material stays whole, as does one whose triangles (or instances) all fall in a
  * single tile (a moving part, say: its install pose says nothing about where it goes) and an instanced part with a
  * per-frame hook of its own (a culler that owns its count). Static content (`single`: a frozen weld's mesh) never moves,
- * so a mesh wholly in one tile follows that tile.
+ * so a mesh wholly in one tile follows that tile. A mesh its scene never culls (`frustumCulled` false: a painted sky sphere
+ * kept on the eye, a backdrop) stays whole too: its triangles past the cell clamped into the border tiles, so the ring
+ * around the city drew none of Nine's sky.
  */
 import { BufferAttribute, DynamicDrawUsage, InstancedBufferAttribute, InstancedMesh, type Matrix4, type Mesh, Object3D, SkinnedMesh } from 'three';
 import { compactResident, tileKey, tileRanges, type TileContent } from './tileContent';
@@ -44,7 +46,7 @@ function centroidArrays(index: BufferAttribute, position: BufferAttribute): { in
 export function tiledMesh(id: string, mesh: Mesh, toCell: Matrix4, options: { readonly single?: boolean } = {}): TileContent | null {
   if (instanced(mesh)) return tiledInstances(id, mesh, toCell);
   const geometry = mesh.geometry, position = geometry.getAttribute('position');
-  if (mesh instanceof SkinnedMesh || Array.isArray(mesh.material) || geometry.groups.length > 0
+  if (mesh instanceof SkinnedMesh || !mesh.frustumCulled || Array.isArray(mesh.material) || geometry.groups.length > 0
     || Object.keys(geometry.morphAttributes).length > 0 || !(position instanceof BufferAttribute) || position.count === 0) return null;
   const index = geometry.index ?? new BufferAttribute(position.count > 65535 ? Uint32Array.from({ length: position.count }, (_, k) => k) : Uint16Array.from({ length: position.count }, (_, k) => k), 1);
   const triangles = Math.floor(index.count / 3), keys = new Int32Array(triangles), e = toCell.elements;

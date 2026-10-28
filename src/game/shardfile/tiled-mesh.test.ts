@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { BufferAttribute, BufferGeometry, DynamicDrawUsage, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial } from 'three';
+import { BufferAttribute, BufferGeometry, DynamicDrawUsage, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, SphereGeometry } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
 import { tiledMesh } from './tiledMesh';
 import { compactResident, tileKey, tileRanges } from './tileContent';
@@ -94,6 +94,16 @@ test('the cell transform places the triangles; a mesh in one tile stays whole', 
   const one = new BufferGeometry();
   one.setAttribute('position', new BufferAttribute(Float32Array.from([0, 0, 0, 1, 0, 0, 0, 0, 1]), 3));
   expect(tiledMesh('trolley', new Mesh(one, new MeshBasicMaterial()), new Matrix4())).toBeNull();
+});
+
+test('a mesh its scene never culls stays whole (a painted sky sphere kept on the eye)', () => {
+  // Nine's sky: a 2 km sphere whose triangles clamped into the border tiles and drew nothing from the city's ring
+  const sky = new Mesh(new SphereGeometry(2000, 16, 8), new MeshBasicMaterial());
+  sky.frustumCulled = false;
+  expect(tiledMesh('sky', sky, new Matrix4())).toBeNull();
+  expect(sky.geometry.drawRange.count).toBe(Infinity);
+  // the same sphere culled as usual is tiled like any merged mesh
+  expect(tiledMesh('sphere', new Mesh(new SphereGeometry(2000, 16, 8), new MeshBasicMaterial()), new Matrix4())).not.toBeNull();
 });
 
 test('an instanced part draws only its resident tiles\' instances, every channel alike, one draw', () => {
