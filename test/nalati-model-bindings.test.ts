@@ -13,6 +13,9 @@ test('compiled support timing retains all published consumer aliases and source 
   expect(nalatiLateSupportNames(files,consumers,[section])).toEqual([]);
   expect(section).toStrictEqual(sectionBefore);
   expect(()=>nalatiLateSupportNames(files,consumers,[Uint8Array.of(255)])).toThrow();
+  const shared=[{name:'first',hash:'same',path:'blobs/shared.bin'},{name:'second',hash:'same',path:'blobs/shared.bin'}];
+  for(const file of ['first','second','same','blobs/shared.bin'])expect(nalatiLateSupportNames(shared,[{file}])).toEqual([]);
+  expect(()=>nalatiLateSupportNames([...shared,{name:'conflict',hash:'different',path:'blobs/shared.bin'}],[])).toThrow('Conflicting support');
   expect({files,consumers}).toStrictEqual(before);
   expect(()=>nalatiLateSupportNames([{hash:'h',path:'p'}],[])).toThrow('owned name');
 });

@@ -100,20 +100,25 @@ export function nalatiLateCatalogueNames(input: unknown): readonly string[] {
  * Keep every name/hash/path alias demanded by any published programme early;
  * unreferenced originals remain available through the verified async reader. */
 export function nalatiLateSupportNames(files: readonly { readonly name?: string; readonly hash: string; readonly path: string }[], consumers: unknown, sections: Iterable<Uint8Array> = []): readonly string[] {
-  const aliases=new Map<string,string>(),names:string[]=[];
+  const aliases=new Map<string,string>(),named:{name:string;hash:string}[]=[];
   for(const file of files){
     if(file.name===undefined)throw new Error('Support file requires its owned name');
-    names.push(file.name);for(const alias of [file.name,file.hash,file.path])aliases.set(alias,file.name);
+    named.push({name:file.name,hash:file.hash});
+    for(const alias of [file.name,file.hash,file.path]){
+      const previous=aliases.get(alias);
+      if(previous!==undefined&&previous!==file.hash)throw new Error('Conflicting support source alias');
+      aliases.set(alias,file.hash);
+    }
   }
   const required=new Set<string>();
   const visit=(value:unknown):void=>{
-    if(typeof value==='string'){const name=aliases.get(value);if(name!==undefined)required.add(name);}
+    if(typeof value==='string'){const hash=aliases.get(value);if(hash!==undefined)required.add(hash);}
     else if(Array.isArray(value)){for(const item of value)visit(item);}
     else if(value!==null&&typeof value==='object'){for(const item of Object.values(value))visit(item);}
   };
   visit(consumers);
   for(const bytes of sections){const value:unknown=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));visit(value);}
-  return names.filter(name=>!required.has(name)).sort();
+  return named.filter(file=>!required.has(file.hash)).map(file=>file.name).sort();
 }
 
 /** The phone never opens the desktop dressing book. Only names exclusive to
