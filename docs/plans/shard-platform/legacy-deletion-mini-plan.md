@@ -3,7 +3,7 @@
 **2026-10-27:** LD4 is a Node list compare, built now; it deletes nothing (G795). LD5–LD8 (and custom-code-freeze
 A1–A2) still wait for Jake's word after his QA and stay in the plan % (G779); nobody touches them before that.
 
-**2026-10-24 (E496):** [custom-code-freeze](custom-code-freeze-mini-plan.md) lists the concrete loader and module lists for LD5–LD8, but **they are not approved**: Jake, ~15:00, *"there's no go ahead to delete the 6 legacy shards and the legacy button … I haven't done the QA yet."* G606 stands.
+**2026-10-24 (E496):** [custom-code-freeze](../../../project/archive/2026-10-28-custom-code-freeze.md) lists the concrete loader and module lists for LD5–LD8, but **they are not approved**: Jake, ~15:00, *"there's no go ahead to delete the 6 legacy shards and the legacy button … I haven't done the QA yet."* G606 stands.
 
 Jake, 2026-10-22: *"Explore world … is that still built on top of the legacy shards, or is that built on top of the shard
 files? … What other things in the game are going to break when we delete all the legacy shards?"* Then (G604): legacy
@@ -51,6 +51,8 @@ Rows LD1–LD4 delete nothing and need no QA; LD5–LD8 wait for Jake's word (G6
 | **LD6** | Delete the folders, one commit per shard: Sky + Signal (already unreachable), then Driftwood + Pine, then Nalati + Nine; each drops its list entry, regenerates `slugs.generated.json`, prunes lint entries | M | gates green per commit |
 | **LD7** | Delete legacy-only engine/game code with each LD6 commit (~16 modules, exports, frozen exceptions) | M | nothing left whose only importer was legacy |
 | **LD8** | Retire the legacy tooling: `legacy-shards.json`/`.mjs`, lint/script exemptions, `LEGACY_SHARDS`, synthetic legacy tests | S | `git grep legacy-shards` finds nothing |
+| **LD9** (was custom-code-freeze A1, G838; after LD8) | Collapse the internal plugin plumbing to one client-plan boot: generated `load` thunk → a platform constant, `declaredClientPlanEntry` + empty `ShardPlugin` + `standaloneHybridEntry` + `prepareStandaloneHybrid` → one path; `retainHomeRuntime` / `stagesOwner` policy flags settled per shard as data or removed; `game/shard/plugin.ts`, `scopedRuntime.ts`, the hybrid-only parts of `hybrid.ts` (539). ~700 lines; Codex | L | no `ShardPlugin` subclass outside the game; boot smoke + one Chromium walk per shard |
+| **LD10** (was custom-code-freeze A2, G838; after LD9) | Regraph and sweep the second wave: modules whose only importers were LD7 or LD9 deletions, `sdk/runtime/**` and the `sdk-no-facade` ratchet, `ShardContext` methods with no caller (export- and member-level), stale ENGINE.md sections. ~500 lines (measured then); Codex | M | the graph lists no orphan or test-only module except the kept tools |
 
 
 ## LD4 Node comparison (2026-10-27, sp-x9)
