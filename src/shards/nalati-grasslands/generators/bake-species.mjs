@@ -1,10 +1,10 @@
 import { compileDecisionScripts } from '@wildshard/sdk/buildDecisionScripts';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import * as v from 'valibot';
-import { CreatureGuestSchema } from '@wildshard/format/speciesBookRows';
+import { authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
 import { compileReturnProjectionV2 } from '@wildshard/sdk/returnProjectionV2';
 import { nalatiSpeciesProgram } from './speciesProgram.ts';
+
+const CreatureGuestSchema = authorFormatSchema('speciesBookRows.CreatureGuestSchema');
 
 const inputSchema = v.object({
   body: v.object({ bytes: v.number(), bodies: v.array(v.object({ key: v.string(), bones: v.array(v.looseObject({ name: v.string() })),
@@ -13,11 +13,12 @@ const inputSchema = v.object({
   strike: v.unknown(), kingPose: v.object({ programs: v.unknown(), group: v.string() }),
 });
 
-/** Construct from explicitly declared source loans; this retained CLI helper has no publication path. */
-export async function nalatiSpeciesSource() {
+/** Construct from explicitly declared source loans; this retained witness has no publication or implicit file access.
+ * @param {(url: URL) => Uint8Array} readSource */
+export async function nalatiSpeciesSource(readSource) {
   const files = await nalatiSpeciesProgram({ compileDecisionRows: compileDecisionScripts, compileReturnProjection: compileReturnProjectionV2, cached: (step, make) => {
-    const inputs = new Map(step.inputs?.map(name => [name, Uint8Array.from(readFileSync(fileURLToPath(
-      new URL(name.startsWith('/') ? `../../../../public${name}` : `../${name}`, import.meta.url))))]));
+    const inputs = new Map(step.inputs?.map(name => [name, Uint8Array.from(readSource(
+      new URL(name.startsWith('/') ? `../../../../public${name}` : `../${name}`, import.meta.url)))]));
     return Promise.resolve(make(inputs));
   } }, input => {
     if (!v.is(inputSchema, input)) throw new Error('Invalid species CLI source metadata');

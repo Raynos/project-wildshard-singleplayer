@@ -11,7 +11,11 @@ export function checkNalatiSpeciesSource(): void {
     import {originalSpeciesOutput} from './test/fixtures/nalati-original-species.ts';
     const pins=JSON.parse(readFileSync('test/fixtures/nalati-species-files.json','utf8'));
     const names=['species.json','bodies.bin','boot.json','held-weapons.wasm','held-witness.bin'];
-    const {files}=await nalatiSpeciesSource();
+    const requested=[];
+    const {files}=await nalatiSpeciesSource(url=>{assert.equal(url.protocol,'file:');requested.push(url.href);return readFileSync(url);});
+    assert.ok(requested.length>0,'real declared source-byte reads');
+    assert.ok(requested.some(url=>url.includes('/data/')),'authored source metadata');
+    assert.ok(requested.some(url=>url.includes('/public/assets/')),'committed public source bytes');
     assert.equal(files.size,pins.length);
     for(const [index,pin]of pins.entries()){
       const bytes=files.get(names[index]);assert.ok(bytes,pin.path);

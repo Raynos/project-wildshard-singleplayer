@@ -15,7 +15,7 @@ import { RuntimeBoundsSchema } from '@wildshard/format/clientPlan';
 import { WorldUpdatesSchema } from '@wildshard/format/worldUpdates';
 import { StreamedCoverSchema, CoverCompositionSchema } from '@wildshard/format/streamedCover';
 import { MountedSpecimenSeatSchema } from '@wildshard/format/mountedSpecimenRows';
-import { SpeciesActorsFileSchema, SpeciesLookBookSchema } from '@wildshard/format/speciesBookRows';
+import { SpeciesActorsFileSchema, SpeciesLookBookSchema, CreatureGuestSchema } from '@wildshard/format/speciesBookRows';
 import { PaintedLookSchema } from '@wildshard/format/paintedLook';
 import { MaterialsSchema } from '@wildshard/format/materials';
 import { ArenaScriptFightFileSchema,ArenaScriptGeometrySchema } from '@wildshard/format/arenaScriptRows';
@@ -656,6 +656,7 @@ export function composeNamedJsonSchema(composition: NamedJsonComposition): Reado
 
 /** Exact defining pure-format objects for checked author compositions. */
 interface AuthorFormatObjects {
+  readonly 'speciesBookRows.CreatureGuestSchema': typeof CreatureGuestSchema;
   readonly 'speciesBookRows.SpeciesLookBookSchema': typeof SpeciesLookBookSchema;
   readonly 'paintedLook.PaintedLookSchema': typeof PaintedLookSchema;
   readonly 'materials.MaterialsSchema': typeof MaterialsSchema;
@@ -688,6 +689,7 @@ interface AuthorFormatObjects {
   readonly 'nativePhysics.nativeColliderRecordSchema': typeof nativeColliderRecordSchema;
 }
 const authorFormats: AuthorFormatObjects = {
+  'speciesBookRows.CreatureGuestSchema': CreatureGuestSchema,
   'speciesBookRows.SpeciesLookBookSchema': SpeciesLookBookSchema,
   'paintedLook.PaintedLookSchema': PaintedLookSchema,
   'materials.MaterialsSchema': MaterialsSchema,
