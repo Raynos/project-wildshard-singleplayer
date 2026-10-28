@@ -1,4 +1,4 @@
-import { parseNativeQuestComposition } from '@wildshard/format/nativeQuestComposition';
+import { nativeQuestCompositionRows as parseNativeQuestComposition } from '@wildshard/sdk/quests';
 import authored from '../data/nativeQuest.json' with { type: 'json' };
 import { DRIFTWOOD_SPOTS as spots } from './spots';
 

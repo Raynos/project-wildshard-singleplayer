@@ -1,12 +1,9 @@
 import { SKY_PAINTED } from './rows/skyPaintedLook';
-import { authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
+import { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
 import { checkAuthorGraph } from '@wildshard/sdk/bake/materialGraph';
-import * as v from 'valibot';
 import { SKY_WORLD_PREPARATION } from './worldTextures';
 
-const PaintedLookSchema: ReturnType<typeof authorFormatSchema<'paintedLook.PaintedLookSchema'>> = authorFormatSchema('paintedLook.PaintedLookSchema');
-const MaterialsSchema: ReturnType<typeof authorFormatSchema<'materials.MaterialsSchema'>> = authorFormatSchema('materials.MaterialsSchema');
-type PaintedLookRow = v.InferOutput<typeof PaintedLookSchema>;
+type PaintedLookRow = ReturnType<typeof authorFormatRows<'paintedLook.PaintedLookSchema'>>;
 
 /** Original authored per-instance float32 storage, read through the normal named-file intake. */
 const cumulus=SKY_PAINTED.dressing.cumulus.cards.cards[0];
@@ -24,7 +21,7 @@ export function skyPaintedPresentation(): PaintedLookRow {
     ...('spin' in row ? { spin: row.spin } : {}), geometry: { kind: 'disc', radius: row.radius, segments: row.segments } });
   const cards = (row: typeof dressing.glow.cards | typeof dressing.cumulus.cards, graph: string, image?: string) => row.cards.map(card => ({ name: row.name, graph,
     ...(image === undefined ? {} : { image }), order: row.order, geometry: { kind: 'plane', size: row.plane, instances: card.instances } }));
-  return v.parse(PaintedLookSchema, { look: { ...look, lightScope: 'page', clock: SKY_PAINTED.day, sky: { kind: 'haze', row: SKY_PAINTED.haze } },
+  return authorFormatRows('paintedLook.PaintedLookSchema', { look: { ...look, lightScope: 'page', clock: SKY_PAINTED.day, sky: { kind: 'haze', row: SKY_PAINTED.haze } },
     lut: '/assets/lut/far-reach.bin', images: { pano: images.pano, cloud: images.rest[0], sea: images.rest[1], vortex: images.rest[2],
       ...Object.fromEntries(SKY_WORLD_PREPARATION.textures.map(({ id, phase: _phase, ...image }) => [id, image])) },
     bumps: SKY_WORLD_PREPARATION.bumps.map(({ material, texture, channel, scale }) => ({ material, image: texture, channel, scale })),
@@ -39,7 +36,7 @@ const graphs: Readonly<Record<string, unknown>> = {
   'sky-glow': SKY_PAINTED.dressing.glow.graph, 'sky-maelstrom': SKY_PAINTED.dressing.maelstrom.graph,
   ...Object.fromEntries(SKY_PAINTED.dressing.seas.map((row, i) => [`sky-sea-${i}`, row.graph])), 'sky-cumulus': SKY_PAINTED.dressing.cumulus.graph,
 };
-export const SKY_PAINTED_GRAPHS: v.InferOutput<typeof MaterialsSchema> = v.parse(MaterialsSchema, Object.fromEntries(Object.entries(graphs).map(([id, input]) => {
+export const SKY_PAINTED_GRAPHS: ReturnType<typeof authorFormatRows<'materials.MaterialsSchema'>> = authorFormatRows('materials.MaterialsSchema', Object.fromEntries(Object.entries(graphs).map(([id, input]) => {
   const checked = checkAuthorGraph(input);
   if (!checked.ok) throw new Error(checked.errors.join('; '));
   const graph = checked.graph;

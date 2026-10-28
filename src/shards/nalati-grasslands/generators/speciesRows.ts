@@ -1,15 +1,13 @@
 import type { AuthorSpeciesRows } from '@wildshard/sdk/bake/species';
-import * as v from 'valibot';
 import rows from '../data/speciesLooks.json' with { type: 'json' };
-import { authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
+import { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
 
-const SpeciesLookBookSchema: ReturnType<typeof authorFormatSchema<'speciesBookRows.SpeciesLookBookSchema'>> = authorFormatSchema('speciesBookRows.SpeciesLookBookSchema');
 type VariantDef = AuthorSpeciesRows['variants'][number];
 /** Build-only variant facts shared with the admitted body catalogue. */
 export function bodySpecies(kind: string): Pick<AuthorSpeciesRows, 'kind' | 'label' | 'variants' | 'spawnOnly' | 'pose' | 'gait'> {
   const source = rows.find(row => row.metadata.kind === kind);
   if (source === undefined) throw new Error('Missing body species row');
-  const row = v.parse(SpeciesLookBookSchema, { slug: 'nalati-grasslands', body: {}, rows: [source] }).rows[0];
+  const row = authorFormatRows('speciesBookRows.SpeciesLookBookSchema', { slug: 'nalati-grasslands', body: {}, rows: [source] }).rows[0];
   if (row === undefined) throw new Error('Missing admitted body species');
   const paint = (variant: VariantDef): VariantDef => {
     const view = row.variants[variant.id];

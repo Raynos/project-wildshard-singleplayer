@@ -4,8 +4,7 @@
  * share `world`, the Explorer shows `deep` and `shallow`. The specimen catalogue job and the world scenes section import it.
  */
 import type * as THREE from 'three';
-import * as v from 'valibot';
-import { SpecimenCatalogueSchema } from '@wildshard/format/specimenCatalogue';
+import { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
 import { entryDeckGeometries } from './entryDeckGeometry';
 
 const raw = (geometry: THREE.BufferGeometry) => {
@@ -22,10 +21,10 @@ export function entryDeckFiles(): {name:string;source:string;bytes:Uint8Array}[]
   return Object.entries(entryDeckGeometries()).map(([deck,geometry])=>({name:`models/entry-deck-${deck}.bin`,source:`data/entry-deck-${deck}.generated.bin`,bytes:raw(geometry).bytes}));
 }
 
-export function entryDeckSpecimen(): v.InferOutput<typeof SpecimenCatalogueSchema>[number] {
+export function entryDeckSpecimen(): ReturnType<typeof authorFormatRows<'specimenCatalogue.SpecimenCatalogueSchema'>>[number] {
   const decks = entryDeckGeometries(), material = { id: 'driftwood-entry-deck', family: 'lowpoly', variant: 'still' } as const;
   const select = (deck: keyof typeof decks) => ({ params: { deck }, source: { kind: 'file', representation: 'parts', file:`models/entry-deck-${deck}.bin`, geometry:raw(decks[deck]).geometry, material } });
-  const [row] = v.parse(SpecimenCatalogueSchema, [{ key: 'entryDeck', model: { id: 'driftwood-isle/entry-deck', name: 'Entry road deck', category: 'buildings', pipeline: 'code',
+  const [row] = authorFormatRows('specimenCatalogue.SpecimenCatalogueSchema', [{ key: 'entryDeck', model: { id: 'driftwood-isle/entry-deck', name: 'Entry road deck', category: 'buildings', pipeline: 'code',
     file: 'src/shards/driftwood-isle/generators/entryDeckSpecimen.ts', surface: 'stone', defaults: { deck: 'deep' },
     variants: [{ id: 'deep', label: 'Over deep water', params: {} }, { id: 'shallow', label: 'Over the shallows', params: { deck: 'shallow' } }], seed: 0xdec4 },
   source: { kind: 'selection', variants: [select('deep'), select('shallow'), select('world')] } }]);

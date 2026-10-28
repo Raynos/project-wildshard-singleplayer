@@ -3,18 +3,16 @@ import { readNativeTriangleField } from '@wildshard/sdk/bake/terrain';
 import { driftwoodGroundSampler } from './groundSampling';
 import { Rng } from '@wildshard/sdk/random';
 import volleyData from '../data/coconutSlots.json' with { type: 'json' };
-import { authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
-import { parse, type InferOutput } from 'valibot';
+import { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
 import { sampleCreatureGroup, selectCreatureSites } from '@wildshard/sdk/bake/creaturePlacement';
 import { ENEMY_COUNTS } from './fauna';
 import { driftwoodPhysics, driftwoodPhysicsGroundBytes } from './physics';
 
-const BodySlotsSchema: ReturnType<typeof authorFormatSchema<'bodySlots.BodySlotsSchema'>> = authorFormatSchema('bodySlots.BodySlotsSchema');
 const physics = driftwoodPhysics();
 
 const foliage = islandFoliagePlacements();
 
-const volley: InferOutput<typeof BodySlotsSchema> = parse(BodySlotsSchema, volleyData);
+const volley: ReturnType<typeof authorFormatRows<'bodySlots.BodySlotsSchema'>> = authorFormatRows('bodySlots.BodySlotsSchema', volleyData);
 
 /** manifest.ts's `WRECK` site and heading, `PRACTICE_CRAB` and the troops' default keep-away point (creatures/Enemies.ts),
  *  spelled here because the manifest imports views; test/shards/driftwood-isle/physics-bake.test.ts holds them equal. */

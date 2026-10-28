@@ -1,10 +1,9 @@
-import type * as v from 'valibot';
-import type { SpecimenCatalogueSchema, SpecimenMaterialSchema, PackedSpecimenSchema } from '@wildshard/format/specimenCatalogue';
+import type { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
 
-type SpecimenModelRow = v.InferOutput<typeof SpecimenCatalogueSchema>[number];
-type SpecimenMaterialRow = v.InferOutput<typeof SpecimenMaterialSchema>;
+type SpecimenModelRow = ReturnType<typeof authorFormatRows<'specimenCatalogue.SpecimenCatalogueSchema'>>[number];
+type SpecimenMaterialRow = ReturnType<typeof authorFormatRows<'specimenCatalogue.SpecimenMaterialSchema'>>;
 type SpecimenAssetRow = Extract<SpecimenModelRow['source'], { readonly kind: 'asset' }>['asset'];
-type PackedSpecimenBake = v.InferOutput<typeof PackedSpecimenSchema>;
+type PackedSpecimenBake = ReturnType<typeof authorFormatRows<'specimenCatalogue.PackedSpecimenSchema'>>;
 type NalatiTexName = 'meadow' | 'path' | 'gravel' | 'rock' | 'snow' | 'bark' | 'felt';
 
 /** Pre-admission asset and surface bindings emitted by the specimen baker. */

@@ -1,4 +1,4 @@
-import { parsePageLife } from '@wildshard/format/pageLife';
+import { parsePageLife } from '@wildshard/sdk/rows';
 import { GULL_FLOCK } from './gullsLook';
 import { FISH_FLOCK } from './fishDraw';
 

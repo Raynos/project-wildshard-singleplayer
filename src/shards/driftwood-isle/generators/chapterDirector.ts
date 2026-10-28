@@ -1,5 +1,5 @@
 import { NATIVE_VIEW } from './nativeView';
-import { parseChapterDirector } from '@wildshard/format/chapterDirector';
+import { chapterDirectorRows as parseChapterDirector } from '@wildshard/sdk/director';
 
 /** Same baked reward pose as the native keeper; stage decisions remain in its director. */
 export const CHAPTER_DIRECTOR: ReturnType<typeof parseChapterDirector> = parseChapterDirector({

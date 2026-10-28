@@ -12,13 +12,11 @@ import authoredPoolLook from '../data/poolLook.json' with { type: 'json' };
 import { CASCADE_LOOKS } from './waterfallLook';
 import { worldPlacements, TRAIL_PLACEMENTS } from './worldPlacements';
 import trailSpecimens from '../data/trailCatalogue.json' with { type: 'json' };
-import { authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
+import { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
 import { trailSpecimenBank } from './trailsideModels';
 import { entryDeckSpecimen } from './entryDeckSpecimen';
-import * as v from 'valibot';
 
-const SpecimenCatalogueSchema: ReturnType<typeof authorFormatSchema<'specimenCatalogue.SpecimenCatalogueSchema'>> = authorFormatSchema('specimenCatalogue.SpecimenCatalogueSchema');
-type SpecimenCatalogueRows = v.InferOutput<typeof SpecimenCatalogueSchema>;
+type SpecimenCatalogueRows = ReturnType<typeof authorFormatRows<'specimenCatalogue.SpecimenCatalogueSchema'>>;
 type SpecimenLocationRows = Extract<SpecimenCatalogueRows[number]['source'], { kind: 'owned' }>['variants'][number]['url'];
 
 const trail = driftwoodTrailRows();
@@ -35,7 +33,7 @@ function trailProductSpecimens(): SpecimenCatalogueRows {
     if (file === undefined || bytes === undefined) throw new Error(`Trail specimen has no banked file: ${url}`);
     return { file, bytes: bytes.byteLength };
   };
-  for (const row of v.parse(SpecimenCatalogueSchema, trailSpecimens)) {
+  for (const row of authorFormatRows('specimenCatalogue.SpecimenCatalogueSchema', trailSpecimens)) {
     if (row.source.kind === 'owned') for (const variant of row.source.variants) variant.url = located(variant.url);
     rows.push(row);
   }

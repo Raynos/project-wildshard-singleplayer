@@ -2,7 +2,7 @@ import { DRIFTWOOD_MARKERS } from './quests';
 import { QUEST_PRESENTATION } from './questPresentation';
 import journal from '../data/questJournal.json' with { type: 'json' };
 import bench from '../data/questBench.json' with { type: 'json' };
-import { parseQuestStory } from '@wildshard/format/questStory';
+import { questStoryRows as parseQuestStory } from '@wildshard/sdk/quests';
 
 /** The shipped strings, flag filters, migration and seat pose; no live state. */
 const base = parseQuestStory({
