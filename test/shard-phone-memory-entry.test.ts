@@ -6,7 +6,7 @@ import { jsonSlot } from '../src/engine/saves/slots';
 import { buildTitleDeck, type TitleCard } from '../src/game/titleDeck';
 
 afterEach(() => { jsonSlot(compiledFloorSave.key, compiledFloorSave.scope).reset(); setDev(false); document.body.replaceChildren(); });
-test('the compiled floor fixture exposes and enters the real SHARDFILE button for a template without legacy', () => {
+test('the compiled floor fixture exposes and enters the real SHARDFILE button for a template without legacy', async () => {
   setDev(true);
   const selected: [string, string][] = [];
   const card: TitleCard = { slug: '_template', name: 'Template', label: 'Template',
@@ -29,7 +29,11 @@ test('the compiled floor fixture exposes and enters the real SHARDFILE button fo
       if (compiled === null) throw new Error('Missing configured compiled button');
       expect(compiled.hidden).toBe(false); expect(compiled.disabled).toBe(false);
       expect(configured.root.querySelector<HTMLButtonElement>('.ws-menu-play')?.disabled).toBe(true);
-      compiled.click(); expect(selected).toEqual([['_template', 'shardfile']]);
+      compiled.click();
+      expect(selected).toEqual([]);
+      expect(document.querySelector('[data-navigation] [data-el="slug"]')?.textContent).toBe('Template');
+      await new Promise<void>(resolve => { requestAnimationFrame(() => { requestAnimationFrame(() => { resolve(); }); }); });
+      expect(selected).toEqual([['_template', 'shardfile']]);
     } finally { configured.dispose(); }
   } finally { deck.dispose(); }
 });
