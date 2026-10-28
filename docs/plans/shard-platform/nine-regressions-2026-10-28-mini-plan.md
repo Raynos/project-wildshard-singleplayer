@@ -80,6 +80,13 @@ facing-back, stall and sky. Capture muted through `scripts/browser-lane.sh` as a
   WebKit, 36 captures, 0 page errors. Hands, floor, stairs, sky and reflections match. **Still off:** B's haze and wall
   pallor (SHARDFILE deeper navy, NR3 facade half); A down shows no red jian tassel over the blade and the left rail's
   carved gold panel is plain stone (NR7 / NR3). Re-run the sheet once those land.
+- **NR8 golden sheet (G858) at `f43f3adba3`**, [15-nr8](../../../art/nine-dragon-stack/round-32-shardfile-regressions/15-nr8-sheet.jpg):
+  the same 9 views, golden (A-D; LEGACY live for the 5 extra views, which have no golden) | SHARDFILE Chromium |
+  SHARDFILE WebKit, 0 page errors. Same residuals as above, now with sp-o5's causes: near facade windows brown (the
+  nine-windows interior ray misses the glass, `inGlass` 0; NR3 facade half, test pending a quiet tree), wall pallor at
+  the top of 'back', and the look-down tassel (needs a runtime view-gravity input to the cloth sway, M). New: I (B back),
+  the big gold sign draws dim grey on Chromium but bright on WebKit (one frame each; animation phase not ruled out).
+  NR4's golden board: [14-nr4](../../../art/nine-dragon-stack/round-32-shardfile-regressions/14-nr4-board.jpg).
 
 ## Order
 
