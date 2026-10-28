@@ -16,7 +16,7 @@ test('minimum-match qualification reconstructs every byte across offsets, tails 
     const decoded = decodePhysicsReferences(packed, length);
     expect(decoded.length).toBe(length);
     expect(decoded.every((value, i) => value === raw[i])).toBe(true);
-    expect(backing).toEqual(before);
+    expect(backing.every((value, i) => value === before[i])).toBe(true);
     expect(decoded.buffer).not.toBe(raw.buffer);
   }
 });
@@ -71,6 +71,7 @@ test('previous external references and malformed bounds retain their defining be
 
 
 test('dense sliding hash windows keep original collision order, unaligned views and 64-byte tails', () => {
+  // Scan every byte without the assertion framework enumerating millions of numeric keys.
   const block = Uint8Array.from({ length: 257 }, (_, i) => (Math.imul(i, 73) ^ (i >>> 3)) & 255), digest = createHash('sha256');
   for (const offset of [0, 1, 2, 3, 15]) for (const tail of [0, 63, 64, 65]) for (const basis of [undefined, block]) {
     const backing = new Uint8Array(offset + 131072 + tail + 3).fill(189), raw = backing.subarray(offset, offset + 131072 + tail);
@@ -78,8 +79,11 @@ test('dense sliding hash windows keep original collision order, unaligned views 
     for (let i = raw.length - tail; i < raw.length; i++) raw[i] = (Math.imul(i, 31) + tail) & 255;
     const before = backing.slice(), encoded = encodePhysicsReferences(raw, basis);
     digest.update(String(encoded.length)).update(':').update(encoded);
-    expect(decodePhysicsReferences(encoded, raw.length, basis)).toEqual(raw);
-    expect(backing).toEqual(before);
+    const decoded = decodePhysicsReferences(encoded, raw.length, basis);
+    expect(decoded.length).toBe(raw.length);
+    expect(decoded.every((value, i) => value === raw[i])).toBe(true);
+    expect(decoded.buffer).not.toBe(raw.buffer);
+    expect(backing.every((value, i) => value === before[i])).toBe(true);
   }
   // Forty complete encoded outputs captured from 98035eec39 before this cut.
   expect(digest.digest('hex')).toBe('d1bfd6f13193a7dd5ef207ee1aac72246d32869b997fcbbe020168957d8801b5');
