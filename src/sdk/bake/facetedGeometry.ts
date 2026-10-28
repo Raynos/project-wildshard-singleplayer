@@ -3,6 +3,11 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '../random';
 import { voxelAO, aoTint, hemisphere, addVoxelAOBake } from '@wildshard/engine/world/voxelAO';
+import { bakedGeometry } from '@wildshard/engine/world/geometryBake';
+
+/** Compile an offline geometry through the native scoped bake/recorder protocol.
+ * IDs, quantized keys, owned cache copies and complete RNG continuation stay native. */
+export function bakeCachedGeometry(...args: Parameters<typeof bakedGeometry>): ReturnType<typeof bakedGeometry> { return bakedGeometry(...args); }
 
 /** Compile ordered offline hemisphere rays with the native ring arithmetic. */
 export function bakeOcclusionDirections(...args: Parameters<typeof hemisphere>): ReturnType<typeof hemisphere> { return hemisphere(...args); }

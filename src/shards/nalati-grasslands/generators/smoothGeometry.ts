@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Noise2D } from '@wildshard/sdk/noise';
-import { bakedGeometry } from '@wildshard/engine/world/geometryBake';
+import { bakeCachedGeometry as bakedGeometry } from '@wildshard/sdk/bake/facetedGeometry';
 
 // Cache continuations retain the exact stream accepted by the defining native bake.
 type Rng = NonNullable<Parameters<typeof bakedGeometry>[2]>;

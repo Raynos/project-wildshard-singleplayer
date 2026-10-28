@@ -4967,6 +4967,10 @@ the native offline ring, raster/march and colour operations in the same
 module. Face, welded-position and vertex modes keep complete native
 parameters, ground-call order, Float64 samples, recorder/cache identity and
 packed/interleaved colour update semantics. No live service is installed.
+The same faceted bake module offers bakeCachedGeometry for the native
+scoped geometry-bake protocol. Existing IDs, numeric-key quantization,
+recording-producer hooks, detached attribute/index/group copies, fallback
+compilation and complete RNG continuation retain their defining behavior.
 `@wildshard/sdk/bake/questPlacement.createAuthorQuestPlacements` compiles bounded authored frames, explicit/model anchors and borrowed floor callbacks with the native anchor precedence and strict registry reach. It owns only its validated anchor map, never a physical, prompt or save service. `quests.completionCardRows` and `platformSections.clientPlanSection` retain the defining complete schema/reference checks; admitted client plans keep their original immutable identity.
 
 `quests.questPropRows` admits captured quest floor grids, drops, body identities and gate contacts through the defining strict schema. `quests.questAutomaticFlag` compiles the shared interaction kind/id flag policy without raising flags or constructing physical or page owners.
@@ -4985,9 +4989,6 @@ pose with the native matrix/quaternion/scale law, returning contact data only.
 hull, mesh and stair grammars with an explicit surface vocabulary. Recording
 retains finite words and integer indices; runtime lane/size admission remains
 the separate `admitContactRows` operation. No physics owner is constructed.
-`recordedPhysicsPieces`, `recordedPhysicsPoints` and `recordedColliderRows`
-admit strict captured registry data, identity-frame follows and optional exact
-contact counts; selection, ownership and registration remain with the caller.
 
 
 `bootInventory.bootRecipeFiles` / `bootRecipeSources` resolve ordered author recipes against a required explicit inventory, GPU aliases and optional page/alias tables. Native transform order, duplicates, recursion/file limits and missing-metadata refusals remain; these functions never borrow the live page's inventory.
