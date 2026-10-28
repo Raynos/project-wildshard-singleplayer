@@ -30,7 +30,8 @@ import { GL_INIT } from './parity/glbytes.mjs';
 import { GL_TIMING_SCRIPT } from './frame-floor-gl-time.mjs';
 import { TASK_CLOCK_SCRIPT } from './frame-floor-task-clock.mjs';
 import { startScriptProfile, startPrefixScriptProfile, startDriveWindowScriptProfile, STEADY_SCRIPT_WINDOW, STEADY_TIMELINE_WINDOW } from './frame-floor-script-profile.mjs';
-import { startWebKitTimeline, timelineLongFrames } from './frame-floor-webkit-timeline.mjs';
+import { TimelineRecordingError, timelineLongFrames } from './frame-floor-webkit-timeline.mjs';
+import { createWebKitTimelineSession } from './frame-floor-timeline-session.ts';
 import { BUFFER_PRESSURE_SCRIPT } from './frame-floor-buffer-pressure.mjs';
 import { ABLATION_NORMAL, ablationPhases, refreshAblationInspector } from './frame-floor-pause-ablation.mjs';
 import { startJscGcLog, jscGcProcessIds } from './frame-floor-jsc-gc.mjs';
@@ -541,7 +542,11 @@ async function measureShard(driver, shard, deadline) {
           try { stopTimeline = await driver.timeline.start(); }
           catch (error) {
             timelineFailure = { valid: false, invalid: [errorText(error)], frames: [] };
-            if (webkitTimelineDir !== '') throw error;
+            if (webkitTimelineDir !== '') {
+              if (error instanceof TimelineRecordingError) writeFileSync(join(webkitTimelineDir, `${encodeURIComponent(plan.name)}.json`),
+                JSON.stringify({ plan, timeline: error.timeline, failure: errorText(error), diagnostic: true }));
+              throw error;
+            }
           }
         }
         const prefixFile = join(safariProfileDir, `${plan.name}-prefix20s-${Date.now()}.scriptprofile.json`);
@@ -562,7 +567,7 @@ async function measureShard(driver, shard, deadline) {
           catch (error) { return { error: error instanceof Error ? error : new Error('Grid floor drive failed', { cause: error }) }; }
         })();
         await sleep(1000);
-        let motion, driven, whole, profile, timeline, earlyPlay, prefixRange, scriptMemoryAfter;
+        let motion, driven, whole, profile, timeline, earlyPlay, prefixRange, scriptMemoryAfter, timelineDriveFailure;
         try {
           motion = await driver.evaluate(`(${sample.toString()})(${frames},${frameTimeline})`);
           driven = await moving; if (driven.error) throw driven.error;
@@ -572,14 +577,23 @@ async function measureShard(driver, shard, deadline) {
           // A matching steady selection instead starts its own later profile.
           if (stopScriptProfile !== undefined && safariDrive === plan.name && safariSteadyPose === '')
             earlyPlay = await driver.evaluate(STEADY_SCRIPT_WINDOW, 35000);
-        } finally {
+        } catch (error) { timelineDriveFailure = errorText(error); throw error; }
+        finally {
           try {
             if (stopWindow !== undefined) {
               const selected = await stopWindow();
               if (selected !== undefined) { profile = selected.profile; prefixRange = selected.pageRange; }
             } else if (stopPrefix !== undefined) { const prefix = await stopPrefix(); profile = prefix.profile; prefixRange = prefix.pageRange; }
             else if (stopScriptProfile !== undefined) profile = await stopScriptProfile();
-          } finally { if (stopTimeline !== undefined) timeline = await stopTimeline(); }
+          } finally {
+            if (stopTimeline !== undefined) {
+              timeline = await stopTimeline();
+              if (webkitTimelineDir !== '') writeFileSync(join(webkitTimelineDir, `${encodeURIComponent(plan.name)}.json`), JSON.stringify({
+                plan, timeline, frames: whole?.value?.longFrames?.at ?? [], sampleRange: whole?.value?.sampleRange,
+                ...(timelineDriveFailure === undefined ? {} : { failure: timelineDriveFailure }), diagnostic: true,
+              }));
+            }
+          }
         }
         const scriptProfile = profile === undefined ? undefined : await saveSafariProfile(plan.name, profile,
           prefixRange ?? (earlyPlay === undefined ? whole.value.sampleRange : { drive: whole.value.sampleRange, earlyPlay }),
@@ -814,8 +828,27 @@ function summarizeTravelProfile(profile, startedAt, longTasks, name) {
 function webkit(wsUrl) {
   const ws = new WebSocket(wsUrl), pending = new Map(), listeners = new Map();
   let constructorsLastRead = 0;
-  let seq = 0, target = null;
-  const opened = new Promise((resolve, reject) => { ws.addEventListener('open', resolve, { once: true }); ws.addEventListener('error', reject, { once: true }); });
+  let seq = 0, target = null, clock = {};
+  let targetReady, targetRefuse;
+  const targetAdmission = new Promise((resolve, reject) => { targetReady = resolve; targetRefuse = reject; });
+  const targetDeadline = new AbortController();
+  const expireTarget = async () => {
+    try { await sleep(10000, undefined, { signal: targetDeadline.signal }); targetRefuse(new Error('Web Inspector timed out: page target')); }
+    catch (error) { if (!targetDeadline.signal.aborted) targetRefuse(error); }
+  };
+  void expireTarget();
+  const changeTarget = (next) => {
+    if (next === target) return;
+    const previous = target; target = next; clock = {};
+    targetReady(); targetDeadline.abort();
+    if (previous === null) return;
+    for (const [id, waiter] of pending) {
+      if (waiter.target !== previous) continue;
+      pending.delete(id); clearTimeout(waiter.timer); waiter.reject(new Error('Web Inspector target changed'));
+    }
+    for (const listener of listeners.get('Target.changed') ?? []) listener({ previousTargetId: previous, targetId: next });
+  };
+  const opened = Promise.all([targetAdmission, new Promise((resolve, reject) => { ws.addEventListener('open', resolve, { once: true }); ws.addEventListener('error', reject, { once: true }); })]);
   const inner = (message) => {
     const waiter = pending.get(message.id);
     if (waiter) { pending.delete(message.id); clearTimeout(waiter.timer); if (message.error) waiter.reject(new Error(message.error.message)); else waiter.done(message.result); }
@@ -823,19 +856,19 @@ function webkit(wsUrl) {
   };
   ws.addEventListener('message', (event) => {
     const message = JSON.parse(String(event.data));
-    if (message.method === 'Target.targetCreated' && message.params.targetInfo.type === 'page') target = message.params.targetInfo.targetId;
-    else if (message.method === 'Target.didCommitProvisionalTarget') target = message.params.newTargetId;
-    else if (message.method === 'Target.dispatchMessageFromTarget') inner(JSON.parse(message.params.message));
+    if (message.method === 'Target.targetCreated' && message.params.targetInfo.type === 'page') changeTarget(message.params.targetInfo.targetId);
+    else if (message.method === 'Target.didCommitProvisionalTarget') changeTarget(message.params.newTargetId);
+    else if (message.method === 'Target.dispatchMessageFromTarget') { if (message.params.targetId === undefined || message.params.targetId === target) inner(JSON.parse(message.params.message)); }
     else inner(message);
   });
   const send = (method, params = {}) => new Promise((resolve, reject) => {
     const id = ++seq;
     const timer = setTimeout(() => { pending.delete(id); reject(new Error(`Web Inspector timed out: ${method}`)); }, 10000);
-    pending.set(id, { done: resolve, reject, timer });
+    pending.set(id, { done: resolve, reject, timer, target });
     const message = { id, method, params };
     ws.send(JSON.stringify(target ? { id: ++seq, method: 'Target.sendMessageToTarget', params: { targetId: target, message: JSON.stringify(message) } } : message));
   });
-  return { opened, send, on: (method, receive) => {
+  return { opened, send, get clock() { return clock; }, get targetId() { return target ?? undefined; }, on: (method, receive) => {
     const set = listeners.get(method) ?? new Set(); set.add(receive); listeners.set(method, set);
     return () => { set.delete(receive); if (set.size === 0) listeners.delete(method); };
   }, raw: async (expression) => {
@@ -855,7 +888,7 @@ function webkit(wsUrl) {
       }
     }
     return result.result?.value;
-  }, close: () => { for (const p of pending.values()) { clearTimeout(p.timer); p.reject(new Error('Inspector closed')); } pending.clear(); listeners.clear(); ws.close(); } };
+  }, close: () => { targetRefuse(new Error('Inspector closed')); targetDeadline.abort(); for (const p of pending.values()) { clearTimeout(p.timer); p.reject(new Error('Inspector closed')); } pending.clear(); listeners.clear(); ws.close(); } };
 }
 async function safariPage(base) {
   const start = Date.now();
@@ -876,6 +909,7 @@ async function worker() {
   // Native memory owns a bounded Simulator window, not time spent queued for it.
   const deadline = nativeDirectory === '' ? Number(flag('deadline', '0')) : Date.now() + 570_000;
   let browser, context, page, proxy, inspector, nativeMemory, wasmProbeResult;
+  const timelineSession = createWebKitTimelineSession();
   /** @type {ReturnType<typeof startFloorNative> | undefined} */
   let stopNative;
   let quietHeld = false, stopJscGc;
@@ -950,15 +984,17 @@ async function worker() {
         currentUrl = url;
         inspector = webkit(await safariPage(url)); await inspector.opened; await sleep(500);
         evaluate = evaluator(inspector.raw, observe);
+        const attachedInspector = inspector;
+        timelineSession.attach(attachedInspector, expression => attachedInspector.raw(expression));
       };
       // A timed-out evaluation may already have started movement or an async admission. Reconnect for diagnostics,
       // but never replay it: losing the document/target invalidates that route's witnesses.
       const retryEvaluate = async (expr, timeout) => {
         try { return await evaluate(expr, timeout); }
         catch (error) {
-          if (!errorText(error).includes('Web Inspector timed out: Runtime.evaluate')) throw error;
+          if (!errorText(error).includes('Web Inspector timed out: Runtime.evaluate') && !errorText(error).includes('Web Inspector target changed')) throw error;
           console.log('Safari inspector target swapped; reconnecting');
-          await connect(currentUrl);
+          if (!errorText(error).includes('Web Inspector target changed')) await connect(currentUrl);
           const documentOrigin = await inspector.raw('performance.timeOrigin').catch(() => undefined);
           throw Object.assign(new Error('Safari inspector lost the active evaluation; refusing to replay the measurement', { cause: error }), { documentOrigin });
         }
@@ -988,7 +1024,7 @@ async function worker() {
         followed: async () => { await sleep(1500); await connect(`${base}frame-floor-safari.html`); },
         scriptProfile: safariProfileDir === '' ? null : { start: () => startScriptProfile(inspector), prefix: persist => startPrefixScriptProfile(inspector, expression => retryEvaluate(expression), persist),
           window: (driveMs, selected, persist) => startDriveWindowScriptProfile(inspector, expression => retryEvaluate(expression), driveMs, selected.fromMs, selected.toMs, persist) },
-        timeline: glTime || webkitTimelineDir !== '' ? { start: () => startWebKitTimeline(inspector, (expression) => retryEvaluate(expression)) } : null,
+        timeline: glTime || webkitTimelineDir !== '' ? { start: () => timelineSession.start() } : null,
       };
     }
     if (wasmMemoryProbe) {
@@ -1017,7 +1053,7 @@ async function worker() {
       try { nativeMemory = await stopNative(); }
       catch (error) { nativeMemory = { error: errorText(error) }; }
     }
-    try { inspector?.close(); proxy?.kill('SIGTERM'); await context?.close(); await browser?.close(); }
+    try { timelineSession.close(); inspector?.close(); proxy?.kill('SIGTERM'); await context?.close(); await browser?.close(); }
     finally { try { if (stopJscGc !== undefined) await stopJscGc(); } finally { if (quietHeld) quiet('release'); } }
   }
   writeFileSync(flag('worker-out', ''), JSON.stringify({ surface, rows, memoryJourney: [...memoryJourney.values()], ...(nativeMemory === undefined ? {} : { nativeMemory }), ...(wasmProbeResult === undefined ? {} : { wasmMemoryProbe: wasmProbeResult }) }));

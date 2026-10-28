@@ -1,4 +1,5 @@
 // WebKit Timeline attribution of Safari long frames (sp-o3, SF63 Simulator frame floor; diagnostic, no timing credit).
+import { addAbortListener } from 'node:events';
 // On Cocoa, WebKit wraps every busy main-thread run-loop iteration in a `RenderingFrame` record whose children say what ran
 // (FireAnimationFrame = rAF callbacks, TimerFire, EventDispatch such as MessageChannel `message`, Composite, Layout...).
 // With a valid clock and sufficient coverage, gaps mean no recorded main-thread work. They cannot distinguish display
@@ -18,14 +19,21 @@ const COVERAGE_FLOOR = 0.8;
 const pageClocks = new WeakMap();
 const heapObservers = new WeakSet();
 
+/** Startup failures retain the observed prefix, including its clock points. */
+export class TimelineRecordingError extends Error {
+  /** @param {string} message @param {import('./frame-floor-webkit-timeline.mjs').WebKitTimeline} timeline @param {unknown} cause */
+  constructor(message, timeline, cause) { super(message, { cause }); this.name = 'TimelineRecordingError'; this.timeline = timeline; }
+}
+
 /** Start the Inspector clock once per concrete connection, before either recorder.
  * @param {import('./frame-floor-webkit-timeline.mjs').TimelinePort} inspector
  */
 export async function ensureWebKitPageClock(inspector) {
-  let clock = pageClocks.get(inspector);
+  const identity = inspector.clock ?? inspector;
+  let clock = pageClocks.get(identity);
   if (clock === undefined) {
     clock = inspector.send('Page.enable');
-    pageClocks.set(inspector, clock);
+    pageClocks.set(identity, clock);
   }
   await clock;
 }
@@ -53,8 +61,9 @@ function category(record) {
  * `console.timeStamp`. The returned stop resolves to the raw records and both anchors (start, end).
  * @param {import('./frame-floor-webkit-timeline.mjs').TimelinePort} inspector
  * @param {(expression: string) => Promise<unknown>} evaluate
+ * @param {AbortSignal} [signal]
  */
-export async function startWebKitTimeline(inspector, evaluate) {
+export async function startWebKitTimeline(inspector, evaluate, signal) {
   /** @type {unknown[]} */
   const records = [];
   let dropped = 0;
@@ -62,14 +71,43 @@ export async function startWebKitTimeline(inspector, evaluate) {
   const collections = [];
   let collectionsDropped = 0;
   let heapAvailable = false;
+  const startedAt = Date.now(), identity = inspector.clock ?? inspector;
+  const targetId = inspector.targetId;
+  /** @type {string[]} */
+  const incomplete = [];
+  let stopAttempted = false;
+  const reason = (/** @type {unknown} */ error) => error instanceof Error ? error.message : String(error);
+  const snapshot = () => ({ records, anchors: timelineAnchors(records), dropped, startedAt, endedAt: Date.now(),
+    ...(targetId === undefined ? {} : { targetId }), ...(incomplete.length === 0 ? {} : { incomplete: [...new Set(incomplete)] }),
+    garbageCollection: { available: heapAvailable, events: collections, dropped: collectionsDropped } });
+  /** @template T @param {Promise<T>} pending @returns {Promise<T>} */
+  const abortable = async (pending) => {
+    if (signal === undefined) return pending;
+    /** @type {{ [Symbol.dispose](): void } | undefined} */
+    let subscription;
+    /** @type {Promise<never>} */
+    const cancelled = new Promise((_resolve, reject) => {
+      subscription = addAbortListener(signal, () => reject(signal.reason instanceof Error ? signal.reason : new Error('Inspector recording cancelled')));
+    });
+    try {
+      return await Promise.race([pending, cancelled]);
+    } finally { subscription?.[Symbol.dispose](); }
+  };
+  /** @param {string} method @param {Readonly<Record<string, unknown>>} [params] */
+  const send = (method, params) => {
+    if (signal?.aborted) return Promise.reject(signal.reason instanceof Error ? signal.reason : new Error('Inspector recording cancelled'));
+    return abortable(inspector.send(method, params));
+  };
   // Heap.enable observes real collections; it neither forces GC nor snapshots.
   const offHeap = inspector.on('Heap.garbageCollected', (params) => {
+    if (signal?.aborted) return;
     if (collections.length < RECORD_CAP) collections.push(params); else collectionsDropped++;
   });
   /** @type {((anchor: [number, number]) => void) | undefined} */
   let receiveAnchor;
   let started = false;
   const off = inspector.on('Timeline.eventRecorded', (params) => {
+    if (signal?.aborted) return;
     if (params === null || typeof params !== 'object' || !('record' in params)) return;
     if (records.length < RECORD_CAP) records.push(params.record); else dropped++;
     if (receiveAnchor !== undefined) {
@@ -90,8 +128,8 @@ export async function startWebKitTimeline(inspector, evaluate) {
       // until Timeline.stop; stop only after its evaluation has acknowledged,
       // then await the recorded point too. Missing/zero anchors still refuse.
       const [, anchor] = await Promise.all([
-        evaluate("(console.timeStamp('ff-anchor:' + performance.now()), true)").then(async () => {
-          if (flush) { await inspector.send('Timeline.stop'); started = false; }
+        abortable(evaluate("(console.timeStamp('ff-anchor:' + performance.now()), true)")).then(async () => {
+          if (flush) { stopAttempted = true; await send('Timeline.stop'); started = false; }
           return true;
         }), recorded,
       ]);
@@ -100,29 +138,37 @@ export async function startWebKitTimeline(inspector, evaluate) {
     } finally { clearTimeout(timer); receiveAnchor = undefined; }
   };
   try {
-    await ensureWebKitPageClock(inspector);
+    await abortable(ensureWebKitPageClock(inspector));
     try {
-      if (!heapObservers.has(inspector)) {
-        await inspector.send('Heap.enable');
-        heapObservers.add(inspector);
+      if (!heapObservers.has(identity)) {
+        await send('Heap.enable');
+        heapObservers.add(identity);
       }
       heapAvailable = true;
     } catch { /* Unsupported Heap domain stays explicitly unavailable. */ }
-    await inspector.send('Timeline.enable').catch(() => undefined); // older WebKit has no enable; start alone records
-    await inspector.send('Timeline.start', { maxCallStackDepth: 0 });
+    await send('Timeline.enable').catch(() => undefined); // older WebKit has no enable; start alone records
+    await send('Timeline.start', { maxCallStackDepth: 0 });
     started = true;
     await stamp(); // Refuse a zero Inspector clock before the drive starts.
   } catch (error) {
-    try { if (started) await inspector.send('Timeline.stop'); }
+    try { if (started && !stopAttempted && !signal?.aborted) { stopAttempted = true; await send('Timeline.stop'); } }
     catch { /* Cleanup must preserve the original admission refusal. */ }
     off(); offHeap();
-    throw error;
+    incomplete.push(reason(error));
+    throw new TimelineRecordingError(reason(error), snapshot(), error);
   }
   return async () => {
-    try { await stamp(true); }
-    finally { try { if (started) await inspector.send('Timeline.stop'); } finally { off(); offHeap(); } }
-    return { records, anchors: timelineAnchors(records), dropped,
-      garbageCollection: { available: heapAvailable, events: collections, dropped: collectionsDropped } };
+    try {
+      if (signal?.aborted) throw signal.reason;
+      await stamp(true);
+    } catch (error) { incomplete.push(reason(error)); }
+    finally {
+      try {
+        if (started && !stopAttempted && !signal?.aborted) { stopAttempted = true; await send('Timeline.stop'); }
+      } catch (error) { incomplete.push(reason(error)); }
+      finally { off(); offHeap(); }
+    }
+    return snapshot();
   };
 }
 
@@ -152,11 +198,20 @@ const round = (/** @type {number} */ v) => Math.round(v * 10) / 10;
  * idleMs: no run-loop work at all. afterRafMs: the rendering update after the last rAF callback of an iteration that ran
  * them. tasksMs: busy iterations that ran no rAF callback (timers, messages, script, GC). The rest of `busy` is rAF
  * callbacks, layout, or the part of an iteration before its callbacks. Verdict: the largest of idle, afterRaf, tasks, raf.
- * @param {{ records: readonly unknown[], anchors: readonly [number, number][] }} timeline
+ * @param {import('./frame-floor-webkit-timeline.mjs').WebKitTimeline} timeline
  * @param {readonly (readonly number[])[]} frames
+ * @returns {import('./frame-floor-webkit-timeline.mjs').TimelineSummary}
  */
 export function timelineLongFrames(timeline, frames) {
-  if (timeline.anchors.length < 2) return { valid: false, invalid: [`${timeline.anchors.length} ff-anchor TimeStamp records (2 needed): the timeline cannot be placed on the page clock`], frames: [] };
+  if (timeline.segments !== undefined) {
+    const segments = timeline.segments.map(segment => {
+      const first = segment.anchors[0]?.[1], last = segment.anchors.at(-1)?.[1];
+      return timelineLongFrames(segment, first === undefined || last === undefined ? [] : frames.filter(([at, ms]) => at >= first && at + ms <= last));
+    });
+    return { valid: false, invalid: ['Inspector target changed: separate clock segments retained; transition coverage is incomplete'],
+      segments, frames: segments.flatMap(segment => segment.frames) };
+  }
+  if (timeline.anchors.length < 2) return { valid: false, invalid: [...(timeline.incomplete ?? []), `${timeline.anchors.length} ff-anchor TimeStamp records (2 needed): the timeline cannot be placed on the page clock`], frames: [] };
   const [anchorSec, anchorMs] = timeline.anchors[0];
   const last = timeline.anchors.at(-1) ?? timeline.anchors[0];
   const driftMs = round((last[0] - anchorSec) * 1000 - (last[1] - anchorMs));
@@ -188,7 +243,7 @@ export function timelineLongFrames(timeline, frames) {
   // Coverage: rAF runs every vsync (60 Hz) even under the 30 fps cap, so a window shows ~windowMs / 16.7 rAF iterations.
   const coverage = windowMs > 0 ? rafFrames / (windowMs / (1000 / 60)) : 0;
   /** @type {string[]} */
-  const invalid = [];
+  const invalid = [...(timeline.incomplete ?? [])];
   if (Math.abs(driftMs) > DRIFT_LIMIT_MS) invalid.push(`anchor drift ${driftMs} ms > ${DRIFT_LIMIT_MS} ms`);
   if (anchorSec <= 0 || last[0] <= 0) invalid.push('zero timeline timestamps (Inspector Page clock not running)');
   if ((timeline.dropped ?? 0) > 0) invalid.push(`${timeline.dropped} records past the ${RECORD_CAP} cap`);

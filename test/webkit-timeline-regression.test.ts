@@ -1,6 +1,7 @@
 import {expect, test, vi} from 'vitest';
 import {startScriptProfile} from '../scripts/frame-floor-script-profile.mjs';
 import {ensureWebKitPageClock, startWebKitTimeline, timelineLongFrames, type TimelinePort} from '../scripts/frame-floor-webkit-timeline.mjs';
+import {createWebKitTimelineSession} from '../scripts/frame-floor-timeline-session';
 
 function fixture(frozen = false) {
   let enabled = false, pageMs = 1000;
@@ -174,4 +175,93 @@ test('concurrent recorders await the same clock admission without resetting it',
   expect(methods).toEqual(['Page.enable']);
   release(); await Promise.all([first, second]);
   await ensureWebKitPageClock(inspector); expect(methods).toEqual(['Page.enable']);
+});
+
+test('a stop timeout retains raw records, clock anchors and its named reason without another stop', async () => {
+  const f = fixture(), inspector: TimelinePort = { ...f.inspector, send: method => {
+    const sent = f.inspector.send(method);
+    return method === 'Timeline.stop' ? Promise.reject(new Error('Web Inspector timed out: Timeline.stop')) : sent;
+  } };
+  const stop = await startWebKitTimeline(inspector, f.evaluate);
+  const capture = await stop();
+  expect(capture.anchors).toEqual([[1.1, 1100], [1.2, 1200]]);
+  expect(capture.records).toHaveLength(2);
+  expect(capture.incomplete).toEqual(['Web Inspector timed out: Timeline.stop']);
+  expect(f.methods.filter(method => method === 'Timeline.stop')).toHaveLength(1);
+  expect(timelineLongFrames(capture, []).invalid).toContain('Web Inspector timed out: Timeline.stop');
+  expect(f.listening()).toBe(false);
+});
+
+function changingTarget(name = 'page') {
+  let clock = {}, targetId = `${name}-1`, pageMs = 1000;
+  const listeners = new Map<string, Set<(value: unknown) => void>>();
+  const methods: { method: string; target: string }[] = [];
+  const emit = (method: string, value: unknown): void => { for (const listener of listeners.get(method) ?? []) listener(value); };
+  let pendingStart: (() => void) | undefined;
+  const port: TimelinePort = {
+    get clock() { return clock; }, get targetId() { return targetId; },
+    send(method) {
+      methods.push({method, target: targetId});
+      if (method === 'Timeline.start' && pendingStart !== undefined) {
+        const notify = pendingStart; pendingStart = undefined; notify();
+        return new Promise(() => { /* The removed target never acknowledges this command. */ });
+      }
+      return Promise.resolve({});
+    },
+    on(method, listener) {
+      const set = listeners.get(method) ?? new Set(); set.add(listener); listeners.set(method, set);
+      return () => { set.delete(listener); if (set.size === 0) listeners.delete(method); };
+    },
+  };
+  return {port, methods,
+    evaluate: (): Promise<unknown> => {
+      pageMs += 100;
+      emit('Timeline.eventRecorded', {record: {type: 'TimeStamp', startTime: pageMs / 1000, data: {message: `ff-anchor:${pageMs}`}}});
+      return Promise.resolve(true);
+    },
+    swap: (): void => { const previousTargetId = targetId; targetId = `${name}-2`; clock = {}; emit('Target.changed', {previousTargetId, targetId}); },
+    holdNextStart: (): Promise<void> => new Promise(resolve => { pendingStart = resolve; }),
+    listening: (): number => listeners.size,
+  };
+}
+
+test('an actual target swap reattaches recording once and retains separate positive clock segments', async () => {
+  const f = changingTarget(), session = createWebKitTimelineSession(); session.attach(f.port, f.evaluate);
+  const stop = await session.start(); f.swap();
+  const capture = await stop(); session.close();
+  expect(capture.segments).toHaveLength(2);
+  expect(capture.segments?.map(segment => segment.targetId)).toEqual(['page-1', 'page-2']);
+  expect(capture.segments?.[0]?.incomplete).toContain('Inspector target changed');
+  expect(capture.segments?.[1]?.anchors).toHaveLength(2);
+  expect(capture.segments?.every(segment => segment.anchors.every(([time]) => time > 0))).toBe(true);
+  expect(f.methods.filter(row => row.method === 'Page.enable')).toHaveLength(2);
+  expect(f.methods.filter(row => row.method === 'Timeline.start')).toHaveLength(2);
+  expect(f.methods.filter(row => row.method === 'Timeline.stop').map(row => row.target)).toEqual(['page-2']);
+  expect(timelineLongFrames(capture, []).valid).toBe(false);
+  expect(f.listening()).toBe(0);
+});
+
+test('a replacement Inspector connection keeps the old prefix and starts the new connection clock', async () => {
+  const first = changingTarget('first'), second = changingTarget('second'), session = createWebKitTimelineSession();
+  session.attach(first.port, first.evaluate); const stop = await session.start();
+  session.attach(second.port, second.evaluate);
+  const capture = await stop(); session.close();
+  expect(capture.segments?.[0]?.incomplete).toContain('Inspector connection replaced');
+  expect(capture.segments?.[0]?.anchors).toHaveLength(1);
+  expect(capture.segments?.[1]?.anchors).toHaveLength(2);
+  expect(first.methods.some(row => row.method === 'Timeline.stop')).toBe(false);
+  expect(second.methods.filter(row => row.method === 'Timeline.start')).toHaveLength(1);
+  expect(first.listening() + second.listening()).toBe(0);
+});
+
+test('a target change interrupts a lost startup command without replaying page work', async () => {
+  const f = changingTarget(), reached = f.holdNextStart(), session = createWebKitTimelineSession();
+  session.attach(f.port, f.evaluate); const starting = session.start();
+  await reached; f.swap();
+  const capture = await (await starting)(); session.close();
+  expect(capture.segments).toHaveLength(2);
+  expect(capture.segments?.[0]?.records).toHaveLength(0);
+  expect(capture.segments?.[1]?.anchors).toHaveLength(2);
+  expect(f.methods.filter(row => row.method === 'Timeline.start')).toHaveLength(2);
+  expect(f.listening()).toBe(0);
 });
