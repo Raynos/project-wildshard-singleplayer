@@ -8,8 +8,7 @@ import * as geometry from '../src/game/plugin/geometry';
 import * as paint from '../src/engine/world/painterly';
 import * as ranged from '../src/engine/combat/view/ranged';
 import { PolearmSet, type HeldPolearmWorld } from '../src/game/weapons/heldPolearm';
-// oxlint-disable-next-line import/no-nodejs-modules -- Node fixture reads a tracked header and validates every native field.
-import { readFileSync } from 'node:fs';
+import { nalatiSpear } from './fixtures/nalati-spear';
 import { parse } from 'valibot';
 import { PolearmRowsSchema } from '../src/format/heldMelee';
 import { HeldDecision } from '../src/game/weapons/heldDecision';
@@ -18,7 +17,7 @@ import { lendNalatiHeld } from './fixtures/nalati-return-modules';
 import powers from '../src/shards/nalati-grasslands/data/weaponPowers.json' with { type: 'json' };
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
 
-const spear=parse(PolearmRowsSchema,{...JSON.parse(readFileSync(new URL('../src/shards/nalati-grasslands/data/spear.generated.json',import.meta.url),'utf8')),program:originalHeldMetadata().held.programs.polearm,presentation:powers.polearm});
+const spear=parse(PolearmRowsSchema,{...nalatiSpear.rows,program:originalHeldMetadata().held.programs.polearm,presentation:powers.polearm});
 afterEach(()=>{vi.restoreAllMocks();});
 function fixture(){
   const scope=new Scope('held-pool');lendNalatiHeld(scope);const decision=vi.spyOn(HeldDecision.prototype,'update');const part=new BoxGeometry(),preload=vi.fn(()=>Promise.resolve()),lookup=vi.fn(()=>part);
