@@ -46,7 +46,8 @@ test('orchard population emits crowd work between native groups and mount placem
     groups: { ...source.groups,pack: { ...source.groups.pack,id: 'orchard.pack' },herd: { ...source.groups.herd,id: 'orchard.herd' } },
     packs: [{ x: 1,z: 1,variants: ['elder'] }],herds: [],flocks: [{ x: 4,z: 4,count: 24,dog: false,range: 12 }],
     mountables: [{ x: 8,z: 8,yaw: 0,variant: 'tame' }],foragers: null };
-  const population = new PageWildlife(manager,rows,scope,playerPoint),build = population.buildSteps();
+  const pages=vi.spyOn(ReturnProgram,'page');
+  const population = new PageWildlife(manager,rows,scope,playerPoint),build = population.buildSteps(),built=pages.mock.calls.length;
   // one pause per spawned member, then the pack's own
   expect(build.next().value).toEqual({ kind: 'pause' }); expect(bodies.map(body => body.kind)).toEqual(['boar']);
   expect(build.next().value).toEqual({ kind: 'pause' });
@@ -57,6 +58,9 @@ test('orchard population emits crowd work between native groups and mount placem
   controller.initialize(); const view = new CrowdTargets(controller,{ preyY: .5,hits: [[0,.5,.4]] });
   expect(population.attachCrowd(command.index,view)).toBeNull(); expect(build.next().value).toEqual({ kind: 'pause' }); expect(build.next().done).toBe(true);
   expect(population.mountables[0]?.kind).toBe('deer'); expect(population.flocks).toEqual([view]);
+  // T10: the pack's guest program reaches ReturnProgram.page frozen, so its admission is reused by every later group
+  const guests=pages.mock.calls.slice(built).map(([input])=>input).filter(input=>JSON.stringify(input)===JSON.stringify(source.groups.packGuest?.program));
+  pages.mockRestore(); expect(guests.length).toBeGreaterThan(0); expect(guests.every(input=>Object.isFrozen(input))).toBe(true);
   population.beginFrame(.1,{ position: new Vector3(),forward: new Vector3(0,0,-1),crouching: true },{});
   expect(wildEnv.playerHealth01).toBe(.4);health.attributes.health=25;
   population.beginFrame(.1,{position:new Vector3(),forward:new Vector3(0,0,-1),crouching:true},{});expect(wildEnv.playerHealth01).toBe(.25);

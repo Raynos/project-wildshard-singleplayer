@@ -219,6 +219,12 @@ export function observeHerdDamage(actor: Animal): void {
   actor.mem['damageScale'] = v.parse(v.number(),policy.program.project('damage',{ owned: Number(actor.mem['owned'] === 1),stallion: Number(actor.variant === policy.variant),health: actor.hp/actor.maxHp })['scale']);
 }
 
+function freezeProgram(value: unknown): void {
+  if (typeof value !== 'object' || value === null || Object.isFrozen(value)) return;
+  for (const child of Object.values(value)) freezeProgram(child);
+  Object.freeze(value);
+}
+
 /** Client-only group factories bind native app authorities internally. Rows
  * choose brains, strikes, water and prey ids; no shard port object is accepted. */
 export class PageGroups {
@@ -229,6 +235,9 @@ export class PageGroups {
   private readonly contact: ReturnType<typeof groupContact>;
   constructor(private readonly animals: AnimalManager, crowds: readonly CrowdTargets[], input: unknown, private readonly groupOwner?: {readonly scope:Scope;readonly player:Vector3}) {
     this.rows = v.parse(PageGroupRowsSchema,input);
+    // T10: every herd and pack lends its guest program to ReturnProgram.page, which reuses a frozen declaration's
+    // admission (~9 ms a herd of a Nalati entry at phone 4x); these parsed rows are this owner's own copy
+    freezeProgram(this.rows.guest?.program); freezeProgram(this.rows.packGuest?.program);
     const pack = nativeGroupBrain(this.rows.pack),herd = nativeGroupBrain(this.rows.herd);
     if (pack.kind !== 'pack' || herd.kind !== 'herd') throw new Error('Invalid rendered group presets');
     this.packRow = pack; this.herdRow = herd;
