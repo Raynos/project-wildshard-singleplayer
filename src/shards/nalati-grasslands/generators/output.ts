@@ -8,7 +8,7 @@ import { nalatiSpeciesProgram } from './speciesProgram';
 import { nalatiHeldSource, type NalatiHeldRows } from './heldMetadata';
 import type { NalatiSpeciesSourceInputs } from './speciesPreparation';
 import { nalatiModelPartsProgram } from './modelPartsProgram';
-import { nalatiPaintedAtlasFile, nalatiPaintedGeometryFile, nalatiPaintedBindings, nalatiPaintedModelNames, nalatiLatePaintedNames, nalatiLateCatalogueNames, nalatiLateDressingNames, nalatiLateHeldNames, nalatiLateFigureNames, nalatiLateGrassNames, nalatiDeferredCatalogueScene } from './modelBindings';
+import { nalatiPaintedAtlasFile, nalatiPaintedGeometryFile, nalatiPaintedBindings, nalatiPaintedModelNames, nalatiLatePaintedNames, nalatiLateCatalogueNames, nalatiLateSupportNames, nalatiLateDressingNames, nalatiLateHeldNames, nalatiLateFigureNames, nalatiLateGrassNames, nalatiDeferredCatalogueScene } from './modelBindings';
 import { nalatiQuestProp } from './questProp';
 import { nalatiBalbalSpecimen } from './balbalSpecimen';
 import modelMetrics from '../data/modelMetrics.json' with { type: 'json' };
@@ -446,10 +446,18 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
   for(const name of nalatiLateGrassNames(grass.rows))lateNames.add(name);
   for(const name of catalogueNames)if(fileByName.has(name))lateNames.add(name);
   for(const name of nalatiLateDressingNames(boundBooks,new Set(fileByName.keys()),shapeDraws))lateNames.add(name);
+  const assets = new Map([...template.assets, ...freshEmission.assets, ...[...ownedBooks.values()].map(blob => [blob.file.hash, blob.bytes] as const), ...sources.map(source => [source.file.hash, source.bytes] as const), ...modelBlobs.map(source => [source.file.hash, source.bytes] as const), ...ownedMetadata.assets, ...placements.assets, ...scenes.assets, [carriedBlob.file.hash, carriedBlob.bytes], [places.file.hash, places.bytes], [crags.file.hash, crags.bytes], [dressingBlob.file.hash, dressingBlob.bytes], [specimenBank.file.hash, specimenBank.bytes], [speciesBank.file.hash, speciesBank.bytes], ...people.map(blob => [blob.file.hash, blob.bytes] as const), ...terrainDraws.map(blob => [blob.file.hash, blob.bytes] as const), ...grassBlobs.map(blob => [blob.file.hash, blob.bytes] as const)]);
+  const consumerRows=publishedFiles.filter(file=>file.kind==='json').map(file=>{
+    const bytes=assets.get(file.hash);if(bytes===undefined)throw new Error('Missing published support consumer');
+    const value:unknown=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));return value;
+  });
+  const supportNames=new Set(DRESSING_ATLAS_SOURCES.map(row=>row.name));
+  const supportFiles=[...placements.files,...sources.filter(row=>row.file.name!==undefined&&supportNames.has(row.file.name)).map(row=>row.file)];
+  for(const name of nalatiLateSupportNames(supportFiles,[platform,template.look,template.props,template.map,template.critical,...consumerRows]))lateNames.add(name);
   const late=[...new Set([...lateNames].map(name=>{
     const file=fileByName.get(name);if(file===undefined)throw new Error('Missing late model source');return file.hash;
   }))].map(hash=>({hash}));
-  return { ...template, platform, late, blobs: [], namedFiles: publishedFiles, assets: new Map([...template.assets, ...freshEmission.assets, ...[...ownedBooks.values()].map(blob => [blob.file.hash, blob.bytes] as const), ...sources.map(source => [source.file.hash, source.bytes] as const), ...modelBlobs.map(source => [source.file.hash, source.bytes] as const), ...ownedMetadata.assets, ...placements.assets, ...scenes.assets, [carriedBlob.file.hash, carriedBlob.bytes], [places.file.hash, places.bytes], [crags.file.hash, crags.bytes], [dressingBlob.file.hash, dressingBlob.bytes], [specimenBank.file.hash, specimenBank.bytes], [speciesBank.file.hash, speciesBank.bytes], ...people.map(blob => [blob.file.hash, blob.bytes] as const), ...terrainDraws.map(blob => [blob.file.hash, blob.bytes] as const), ...grassBlobs.map(blob => [blob.file.hash, blob.bytes] as const)]) };
+  return { ...template, platform, late, blobs: [], namedFiles: publishedFiles, assets };
 }
 
 /** GR6: Nalati's boot declaration as discovery (bootProgram.ts; the retired nalati-boot-metadata job's rows). */

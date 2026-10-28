@@ -2,7 +2,16 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { SpecimenAssetSchema } from '../src/format/specimenCatalogue';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { nalatiPaintedAtlasFile, nalatiPaintedGeometryFile, nalatiPaintedBindings, nalatiPaintedModelNames, nalatiLatePaintedNames, nalatiLateCatalogueNames, nalatiLateDressingNames, nalatiDeferredCatalogueScene } from '../src/shards/nalati-grasslands/generators/modelBindings';
+import { nalatiPaintedAtlasFile, nalatiPaintedGeometryFile, nalatiPaintedBindings, nalatiPaintedModelNames, nalatiLatePaintedNames, nalatiLateCatalogueNames, nalatiLateSupportNames, nalatiLateDressingNames, nalatiDeferredCatalogueScene } from '../src/shards/nalati-grasslands/generators/modelBindings';
+
+test('compiled support timing retains all published consumer aliases and source bytes',()=>{
+  const files=['unused','named','hashed','physical'].map(name=>({name,hash:`hash-${name}`,path:`blobs/${name}.bin`}));
+  const consumers=[{world:{file:'named'}},{specimen:['hash-hashed']},{other:{nested:{source:'blobs/physical.bin'}}}],before=structuredClone({files,consumers});
+  expect(nalatiLateSupportNames(files,consumers)).toEqual(['unused']);
+  expect(nalatiLateSupportNames(files,[...consumers,{future:{file:'unused'}}])).toEqual([]);
+  expect({files,consumers}).toStrictEqual(before);
+  expect(()=>nalatiLateSupportNames([{hash:'h',path:'p'}],[])).toThrow('owned name');
+});
 
 test('desktop dressing warm excludes every shared or externally demanded named source', () => {
   const desktop = 'world/dressing-desktop.json', phone = 'world/dressing-phone.json';

@@ -96,6 +96,24 @@ export function nalatiLateCatalogueNames(input: unknown): readonly string[] {
   return [...late].filter(name=>!early.has(name)).sort();
 }
 
+/** These owned support files have already been compiled into the live rows.
+ * Keep every name/hash/path alias demanded by any published programme early;
+ * unreferenced originals remain available through the verified async reader. */
+export function nalatiLateSupportNames(files: readonly { readonly name?: string; readonly hash: string; readonly path: string }[], consumers: unknown): readonly string[] {
+  const aliases=new Map<string,string>(),names:string[]=[];
+  for(const file of files){
+    if(file.name===undefined)throw new Error('Support file requires its owned name');
+    names.push(file.name);for(const alias of [file.name,file.hash,file.path])aliases.set(alias,file.name);
+  }
+  const required=new Set<string>();
+  const visit=(value:unknown):void=>{
+    if(typeof value==='string'){const name=aliases.get(value);if(name!==undefined)required.add(name);}
+    else if(Array.isArray(value)){for(const item of value)visit(item);}
+    else if(value!==null&&typeof value==='object'){for(const item of Object.values(value))visit(item);}
+  };
+  visit(consumers);return names.filter(name=>!required.has(name)).sort();
+}
+
 /** The phone never opens the desktop dressing book. Only names exclusive to
  * that book may skip the eager warm; other books and entered programme sources
  * win. Actual desktop demand still reads the same files immediately. */
