@@ -71,8 +71,13 @@ async function staleRecovery(): Promise<void> {
   if (await recoverStaleClient()) await new Promise<never>(() => { /* The replacement document resumes loading. */ });
 }
 
+let productControlsReady = false, observesProductControl = false;
 /** Browser connectivity and visited-product storage feed the same admission path as headless validation. */
 export function browserShardfileOptions(base: string, firstParty = false): ProductOptions {
+  if (typeof document !== 'undefined' && !observesProductControl) {
+    observesProductControl = true;
+    pageScope.listen(document, 'ws:control-ready', () => { productControlsReady = true; });
+  }
   prepareContentHash();
   const quality = Object.fromEntries(Object.entries(TIER_CONFIG).filter((entry): entry is [string, number | boolean] => entry[0].includes('.') && (typeof entry[1] === 'number' || typeof entry[1] === 'boolean')));
   const indexed = firstParty && builtIndexes !== null && typeof caches !== 'undefined' ? builtIndexes : undefined;
@@ -85,14 +90,21 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
     return sent === null || sent.fetched === null ? null : { bytes: sent.fetched, cached: sent.cached, stored: sent.stored };
   } : undefined;
   return { base, firstParty, tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: browserContentHash, hashOwned: hashOwnedBytes,
-    backgroundFetch: url => fetch(url, { priority: 'low' }),
-    fetch: url => waitFor(`Read ${new URL(url, base).pathname}`, (async () => {
+    backgroundFetch: (url, signal) => fetch(url, { priority: 'low', ...(signal === undefined ? {} : { signal }) }),
+    fetch: (url, signal) => waitFor(`Read ${new URL(url, base).pathname}`, (async () => {
       if (indexed !== undefined && new URL(url, base).pathname.endsWith('/shard.json')) {
-        const held = await cachedTransport(caches, url, limits.sourceBytes, browserContentHash, hash => indexed.has(hash));
+        const held = await cachedTransport(caches, url, limits.sourceBytes, browserContentHash, hash => indexed.has(hash), undefined, signal);
         if (held !== null) { recordCachedDownload(held.hash, held.bytes.length, url); return new Response(new Uint8Array(held.bytes)); }
       }
-      return fetch(url);
+      signal?.throwIfAborted();
+      return fetch(url, signal === undefined ? {} : { signal });
     })(), 'file'),
+    revalidateAfterControl: run => {
+      if (typeof document === 'undefined') return;
+      const refresh = async (): Promise<void> => { try { await run(); } catch (error: unknown) { console.info('[cache] descriptor revalidation', error); } };
+      if (productControlsReady) void refresh();
+      else pageScope.listen(document, 'ws:control-ready', () => { void refresh(); }, { once: true });
+    },
     ...(firstParty ? { fetchRange: (url: string, start: number, end: number, priority?: 'low') => waitFor(`Fetch pack range ${start}-${end}`, fetch(url, { headers: { Range: `bytes=${start}-${end}` }, ...(priority === undefined ? {} : { priority }) }), 'file') } : {}),
     ...(indexed === undefined ? {} : { cachedResponse: async (url: string, hash: string, maximum: number) =>
       (await cachedTransport(caches, url, maximum, browserContentHash, actual => actual === hash))?.bytes ?? null,

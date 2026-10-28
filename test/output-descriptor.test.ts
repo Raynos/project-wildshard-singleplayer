@@ -71,6 +71,67 @@ function cacheStore(): { cache: ProductCache; bytes: Map<string, Uint8Array>; pr
   } };
 }
 
+test('descriptor deadline uses a verified revisit at 3 seconds for stalled headers and bodies', async () => {
+  for (const body of [false, true]) {
+    const f = fixture(), store = cacheStore(), opts = options(f.wires, store.cache);
+    await admitProduct(await readProductDescriptor(opts), opts);
+    let aborted = false, resolved = false;
+    const refreshes: (() => Promise<void>)[] = [];
+    const held: ProductOptions = { ...opts, descriptorHash: hashImmutableBytes(encodeCanonicalJson(f.index)),
+      revalidateAfterControl: run => { refreshes.push(run); },
+      fetch: (url, signal) => {
+        if (!url.endsWith('/shard.json')) throw new Error('A revisit must verify cached sections without network');
+        if (signal === undefined) throw new Error('Missing descriptor cancellation');
+        if (body) return Promise.resolve(new Response(new ReadableStream<Uint8Array>({ start(controller) {
+          controller.enqueue(new TextEncoder().encode('{'));
+          signal.addEventListener('abort', () => { aborted = true; controller.error(signal.reason); }, { once: true });
+        } })));
+        return new Promise((_resolve, reject) => { signal.addEventListener('abort', () => { aborted = true; reject(new DOMException('Descriptor aborted', 'AbortError')); }, { once: true }); });
+      } };
+    vi.useFakeTimers();
+    try {
+      const pending = readProductDescriptor(held).then(value => { resolved = true; return value; });
+      await vi.advanceTimersByTimeAsync(2999); expect(resolved).toBe(false);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(await pending).toStrictEqual(f.source);
+      expect(aborted).toBe(true); expect(refreshes).toHaveLength(1);
+      expect(vi.getTimerCount()).toBe(0);
+      // Only the real control callback starts freshness I/O; it cannot publish
+      // a replacement visited index before its assets have been admitted.
+      held.fetch = opts.fetch;
+      const refresh = refreshes[0]; if (refresh === undefined) throw new Error('Missing refresh');
+      await refresh(); expect(store.product()?.source).toStrictEqual(f.index);
+      expect(vi.getTimerCount()).toBe(0);
+    } finally { vi.useRealTimers(); }
+  }
+});
+
+test('descriptor deadline cannot admit an absent, foreign, changed or incomplete visited product', async () => {
+  for (const refused of ['absent', 'foreign', 'changed', 'incomplete'] as const) {
+    const f = fixture(), store = cacheStore(), opts = options(f.wires, store.cache);
+    if (refused !== 'absent') await admitProduct(await readProductDescriptor(opts), opts);
+    if (refused === 'foreign') await store.cache.putProduct(base, { source: f.index, firstParty: false });
+    if (refused === 'incomplete') store.bytes.clear();
+    const held: ProductOptions = { ...opts, ...(refused === 'changed' ? { descriptorHash: 'f'.repeat(64) } : {}), fetch: (_url, signal) =>
+      new Promise((_resolve, reject) => { signal?.addEventListener('abort', () => { reject(new DOMException('Descriptor aborted', 'AbortError')); }, { once: true }); }) };
+    vi.useFakeTimers();
+    try {
+      const expected = expect(readProductDescriptor(held)).rejects.toThrow(refused === 'changed' ? 'descriptor hash mismatch'
+        : refused === 'incomplete' ? 'incomplete section cache' : 'no visited offline copy');
+      await vi.advanceTimersByTimeAsync(3000); await expected;
+      expect(vi.getTimerCount()).toBe(0);
+    } finally { vi.useRealTimers(); }
+  }
+});
+
+test('descriptor deadline retains immediate network hash, HTTP and size refusals even on a revisit', async () => {
+  const f = fixture(), store = cacheStore(), opts = options(f.wires, store.cache);
+  await admitProduct(await readProductDescriptor(opts), opts);
+  await expect(readProductDescriptor({ ...opts, descriptorHash: 'f'.repeat(64) })).rejects.toThrow('descriptor hash mismatch');
+  await expect(readProductDescriptor({ ...opts, fetch: () => Promise.resolve(new Response(null, { status: 503 })) })).rejects.toThrow('Unavailable');
+  await expect(readProductDescriptor({ ...opts, fetch: () => Promise.resolve(new Response('{}', { headers: { 'content-length': '999999999' } })) })).rejects.toThrow('size exceeds cap');
+});
+
 function installIndexReceipt(index: OutputIndex): () => void {
   const values = { __SHARDFILE_VALIDATOR__: 'index-receipt-test', __SHARDFILE_VERDICTS__: [{ revision: 'index-receipt-test', sourceHash: index.build.sourceHash,
     indexHash: hashImmutableBytes(encodeCanonicalJson(index)), worst: { playing: 0, loading: 0, accounted: 0, location: [0, 0] } }] };

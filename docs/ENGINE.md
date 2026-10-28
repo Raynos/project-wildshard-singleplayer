@@ -8840,6 +8840,13 @@ that same parser/comment counting law for author tools.
 ### Split shardfile loading (P1b)
 
 `game/shardfile/product.readProductDescriptor` reads the v2 index.
+Online descriptor headers and body share a three-second deadline. A
+visited fallback rechecks the canonical index against the catalogue /
+bundle hashes, then reads only verified cached sections; an absent or
+incomplete offline copy refuses. `ProductOptions.fetch(url, signal)`
+honors cancellation. `revalidateAfterControl(run)` queues a fresh bounded
+index read after actual control, without publishing an unadmitted offline
+copy; the browser host supplies that fence and low-priority transport.
 An optional trusted `descriptorHash` checks the
 exact index bytes before section requests. The reader fetches sections in
 parallel, verifies every section's declared size and SHA-256, and assembles

@@ -3,7 +3,7 @@ import { declareDownloadFile, noteDownloadRead, recordCachedDownload, recordPack
 import { waitFor } from '@wildshard/engine/boot/waits';
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import type { Scope } from '@wildshard/engine/app/scope';
+import { Scope } from '@wildshard/engine/app/scope';
 import { controlFiles, deferredFiles } from './controlFiles';
 import { productCacheCompletion } from './productCacheCompletion';
 import { builtValidationReceipt, readValidationReceipt, validationRevision, validationSourceBytes, type ValidationReceipt } from "@wildshard/format/validationReceipt";
@@ -76,11 +76,13 @@ export interface ProductOptions {
   /** Foreground online URL hints may borrow this paint turn; afterward demand uses normal verified transport.
    * Offline and low-priority warming keep their original cache completion. */
   cacheHintTurn?: (signal: AbortSignal) => Promise<void>;
-  fetch: (url: string) => Promise<Response>;
+  fetch: (url: string, signal?: AbortSignal) => Promise<Response>;
+  /** Queue descriptor freshness work after actual play control; never publishes an unadmitted offline copy. */
+  revalidateAfterControl?: (run: () => Promise<void>) => void;
   /** Optional exact HTTP byte ranges for adjacent concurrently demanded pack members. */
   fetchRange?: (url: string, start: number, end: number, priority?: 'low') => Promise<Response>;
   /** Same verified network capability at low priority, used only by after-control warming. */
-  backgroundFetch?: (url: string) => Promise<Response>;
+  backgroundFetch?: (url: string, signal?: AbortSignal) => Promise<Response>;
   /** Optional off-page asset read (the content-cache worker): the URL cache when trusted, else the network, verified
    *  against `hash` and stored, its body transferred to the page. Null where no worker can; the page then reads it. */
   transport?: (url: string, hash: string, bytes: number) => Promise<{ bytes: Uint8Array; cached: boolean; stored: boolean } | null>;
@@ -236,16 +238,56 @@ function resolveDescriptor(input: unknown, options: ProductOptions, lineage = fa
   });
 }
 
-/** Read a format-2 output, verifying the catalogue hash before any section fetch. */
+const DESCRIPTOR_WAIT_MS = 3000;
+/** Bound the complete descriptor transfer, including a body stalled after headers. */
+async function descriptorWire(options: ProductOptions, refresh = false): Promise<Uint8Array | null> {
+  const controller = new AbortController();
+  const owner = new Scope('product-descriptor-transfer');
+  try {
+    const elapsed = new Promise<null>(resolve => { owner.timeout(DESCRIPTOR_WAIT_MS, () => { resolve(null); controller.abort(); }); });
+    const fetcher = refresh ? options.backgroundFetch ?? options.fetch : options.fetch;
+    const network = (async () => boundedResponse(await fetcher(new URL('shard.json', options.base).href, controller.signal), limits.sourceBytes))();
+    return await Promise.race([network, elapsed]);
+  } finally { owner.dispose(); }
+}
+async function checkedDescriptorWire(bytes: Uint8Array, options: ProductOptions): Promise<unknown> {
+  if (options.descriptorHash !== undefined && (!HASH.test(options.descriptorHash) || await options.hash(bytes) !== options.descriptorHash)) throw new Error('Shardfile descriptor hash mismatch');
+  return readIndexBytes(bytes, options);
+}
+/** Read a format-2 output, verifying the catalogue hash before any section fetch.
+ * A stalled online revisit uses only its completely admitted cached index and verified cached sections. */
 export async function readProductDescriptor(options: ProductOptions): Promise<Shardfile> {
   const base = new URL('.', options.base).href;
-  const visited = options.offline ? await options.cache?.product(base) : undefined;
+  // Observe a failed cache read without making a healthy network response depend on it.
+  const cached = (async () => { try { return { value: await options.cache?.product(base) }; } catch (error: unknown) { return { error }; } })();
+  let visited: CachedProduct | null | undefined;
+  if (options.offline) {
+    const held = await cached;
+    if ('error' in held) throw held.error;
+    visited = held.value;
+  }
   if (options.offline && (visited === null || visited === undefined || (options.firstParty && !visited.firstParty))) throw new Error('Shardfile has not been visited offline');
   let input: unknown = visited?.source;
   if (!options.offline) {
-    const bytes = await boundedResponse(await options.fetch(new URL('shard.json', base).href), limits.sourceBytes);
-    if (options.descriptorHash !== undefined && (!HASH.test(options.descriptorHash) || await options.hash(bytes) !== options.descriptorHash)) throw new Error('Shardfile descriptor hash mismatch');
-    input = await readIndexBytes(bytes, options);
+    const bytes = await descriptorWire({ ...options, base });
+    if (bytes !== null) input = await checkedDescriptorWire(bytes, options);
+    else {
+      const held = await cached;
+      if ('error' in held) throw held.error;
+      const previous = held.value;
+      if (previous === null || previous === undefined || options.firstParty && !previous.firstParty) throw new Error('Shardfile download exceeded 3 seconds and has no visited offline copy');
+      preflightShardfile(previous);
+      if (!isOutputIndex(previous.source)) throw new Error('Cached shardfile requires a format-2 rebuild');
+      // The visited JSON is canonicalized by the same writer as publication;
+      // neither its saved receipt nor its firstParty flag replaces hash checks.
+      await checkedDescriptorWire(validationSourceBytes(previous.source), options);
+      const source = await readProductInput(previous.source, { ...options, offline: true });
+      options.revalidateAfterControl?.(async () => {
+        const fresh = await descriptorWire({ ...options, base }, true);
+        if (fresh !== null) await checkedDescriptorWire(fresh, options);
+      });
+      return source;
+    }
   }
   if (!isOutputIndex(input)) throw new Error('Shardfile requires a format-2 output; rebuild it with wildshard build');
   return readProductInput(input, options);
