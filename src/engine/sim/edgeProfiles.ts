@@ -28,10 +28,18 @@ export function validateEdgeProfile(profile: StripProfile): void {
 /** Copy and admit a complete row, then freeze its numeric leaves. Later seam checks
  * reuse this exact snapshot's proof; mutable and caller-frozen rows are always checked. */
 export function immutableEdgeProfile(profile: StripProfile): StripProfile {
+  let previous: number[] | undefined;
   const snapshot = { roadHeight: profile.roadHeight, heights: Array.from(profile.heights),
-    colours: Array.from(profile.colours, rgb => Array.from(rgb)) };
+    colours: Array.from(profile.colours, rgb => {
+      // Copy every caller row before comparison/validation, including custom
+      // iterators. Only equal private leaves share one frozen snapshot.
+      const copy = Array.from(rgb);
+      if (previous !== undefined && copy.length === previous.length && copy.every((value, index) => Object.is(value, previous?.[index]))) return previous;
+      previous = copy; return copy;
+    }) };
   validateEdgeProfile(snapshot);
-  for (const rgb of snapshot.colours) Object.freeze(rgb);
+  let frozen: readonly number[] | undefined;
+  for (const rgb of snapshot.colours) if (rgb !== frozen) { Object.freeze(rgb); frozen = rgb; }
   Object.freeze(snapshot.heights); Object.freeze(snapshot.colours); Object.freeze(snapshot);
   admittedProfiles.add(snapshot);
   return snapshot;
