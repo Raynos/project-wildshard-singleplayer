@@ -22,13 +22,44 @@ export function createShardfileClientScripts(source: ClientScriptContent, assets
   const lane = new ClientScriptLane({ modules, divisor: declaration.divisor, ...(ports.memoryBytes === undefined ? {} : { memoryBytes: ports.memoryBytes }),
     bindings: declaration.bindings.map((b) => ({ module: b.module, entity: b.entity, name: b.name, readCount: b.reads.length, parameters: b.parameters, pose: b.pose, maxOffset: b.maxOffset, minScale: b.minScale, maxScale: b.maxScale,
       emitters: b.emitters.map((e) => ({ id: e.id, perTick: e.perTick, live: e.live, lifetimeTicks: e.lifetimeTicks })) })) });
+  // The lane admits and copies the entire map synchronously. Keep the bridge's
+  // private numeric rows between ticks; nested observation callbacks borrow a
+  // separate frame, so they cannot overwrite an outer tick's completed rows.
+  interface ObservationFrame {
+    observations: Map<number, ClientScriptObservation>;
+    rows: { position: [number, number, number]; frozen: boolean; values: number[] }[];
+  }
+  const frames: ObservationFrame[] = [], readsState = declaration.bindings.some((b) => b.reads.length > 0);
+  let depth = 0;
   return { lane, targets: declaration.bindings.map((b) => ({ entity: b.entity, target: structuredClone(b.target) })), dispose: () => lane.dispose(), step: (tick) => {
-    const state = declaration.bindings.some((b) => b.reads.length > 0) ? ports.state : undefined, observations = new Map<number, ClientScriptObservation>();
-    declaration.bindings.forEach((binding, index) => {
-      const observed = ports.observe(binding.target), reads = fieldNames[index]; if (!reads) throw new Error('Missing client read contract');
-      const values = reads.map((read) => { const value = state?.viewField(ports.actorId, read.scope, read.name); if (value === undefined) throw new Error('Private or missing client state field'); return value; });
-      observations.set(binding.entity, { position: [...observed.position], frozen: observed.frozen, values });
-    });
-    lane.step(tick, observations);
+    const state = readsState ? ports.state : undefined, at = depth++;
+    try {
+      let frame = frames[at];
+      if (frame === undefined) {
+        frame = { observations: new Map(), rows: [] }; frames[at] = frame;
+        for (const binding of declaration.bindings) {
+          const row: ObservationFrame['rows'][number] = { position: [0, 0, 0], frozen: false, values: [] };
+          frame.rows.push(row); frame.observations.set(binding.entity, row);
+        }
+      }
+      for (let index = 0; index < declaration.bindings.length; index++) {
+        const binding = declaration.bindings[index]; if (binding === undefined) throw new Error('Missing client binding');
+        const observed = ports.observe(binding.target), reads = fieldNames[index], row = frame.rows[index];
+        if (reads === undefined || row === undefined) throw new Error('Missing client read contract');
+        for (let field = 0; field < reads.length; field++) {
+          const read = reads[field]; if (read === undefined) throw new Error('Missing client read contract');
+          const value = state?.viewField(ports.actorId, read.scope, read.name);
+          if (value === undefined) throw new Error('Private or missing client state field');
+          row.values[field] = value;
+        }
+        row.values.length = reads.length;
+        // Retain the original iterable-copy semantics (including an authored
+        // iterator) and the position-before-frozen getter order.
+        const position: number[] = row.position;
+        let coordinate = 0; for (const value of observed.position) position[coordinate++] = value;
+        position.length = coordinate; row.frozen = observed.frozen;
+      }
+      lane.step(tick, frame.observations);
+    } finally { depth--; }
   } };
 }
