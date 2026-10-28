@@ -4345,8 +4345,10 @@ The page-bound physics producers still need their G320 authoring-only conversion
 
 `bake/materialGraph.checkAuthorGraph` validates portable offline graph rows
 with the existing trusted author budget, normalization and diagnostics. Its
-`AuthorGraph*` and `AuthorScaledPost` types retain complete native grammar;
+`AuthorGraph*`, `AuthorScaledPost` and `AuthorPostGraphLook` retain complete native grammar;
 it installs no shader compiler, renderer or runtime admission policy.
+`bake/practiceCourse.AuthorPracticeScene` / `AuthorHookPracticeLayout` preserve the entire authored
+course/contact/map and route contracts. `spawns.AuthorSpawnTables` carries native population/placement data only.
 
 `@wildshard/sdk/materials` defines the authoring materials a generator puts on its
 three.js meshes. Each is an ordinary three.js material (a generator previews in

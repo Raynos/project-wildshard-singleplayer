@@ -1,5 +1,6 @@
 import { validateGraph, type GraphIr, type GraphNode, type GraphRef, type GraphParam, type GraphStages, type GraphArrayParam } from '@wildshard/format/materialGraph';
 import type { ScaledPostRow } from '@wildshard/format/scaledPost';
+import type { PostGraphLookRow } from '@wildshard/format/postGraphLook';
 
 /** Portable authored graph grammar; no shader compiler, renderer or material is installed. */
 export type AuthorGraph = GraphIr;
@@ -15,6 +16,8 @@ export type AuthorGraphStages = GraphStages;
 export type AuthorGraphArrayParam = GraphArrayParam;
 /** Data-only scaled post pass topology and resource wiring. */
 export type AuthorScaledPost = ScaledPostRow;
+/** Complete authored post look, including ordered pass topology and resource wiring. */
+export type AuthorPostGraphLook = PostGraphLookRow;
 
 /** Validate an offline author's complete graph under the existing trusted author budget.
  * Keep diagnostics and graph normalization identical; runtime admission still owns its own caps. */

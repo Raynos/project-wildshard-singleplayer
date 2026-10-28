@@ -1,4 +1,4 @@
-import type { SpawnTables } from '@wildshard/format/spawnTables';
+import type { AuthorSpawnTables as SpawnTables } from '@wildshard/sdk/spawns';
 
 /** Each-mode keeps the scheduler's existing species choice and consumes no extra random draw. */
 export const PINE_SPAWNS: SpawnTables = [{ id: 'pine.spawn.thrall', table: { mode: 'each', rows: [

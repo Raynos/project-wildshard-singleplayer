@@ -1,5 +1,9 @@
 import { Matrix4, Object3D, Quaternion, Vector3 } from 'three';
 import { updateAuthoringMatrix } from './sceneTransform';
+import type { SpawnTables } from '@wildshard/format/spawnTables';
+
+/** Complete authored spawn populations and fixed placement tables, without a live spawn owner. */
+export type AuthorSpawnTables = SpawnTables;
 /** One player start in the ordinary scene graph; position is feet and rotation faces local -Z. */
 export class PlayerStart extends Object3D {
     constructor() { super(); this.name = 'player'; }

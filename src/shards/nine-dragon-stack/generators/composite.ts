@@ -4,7 +4,7 @@ import light from '../data/light.json' with { type: 'json' };
 import ao from '../data/aoLook.json' with { type: 'json' };
 import bindings from '../data/lookBindings.json' with { type: 'json' };
 import sharedUniforms from '../data/sharedUniforms.json' with { type: 'json' };
-import type { PostGraphLookRow } from '@wildshard/format/postGraphLook';
+import type { AuthorPostGraphLook as PostGraphLookRow } from '@wildshard/sdk/bake/materialGraph';
 import type { postRows } from './postGraphs';
 import { parseGlowRows } from './sections';
 import { NINE_MANIFEST_ROWS } from './manifestRows';
