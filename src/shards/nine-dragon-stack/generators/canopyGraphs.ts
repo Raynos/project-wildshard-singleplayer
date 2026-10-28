@@ -1,5 +1,6 @@
 import { Color } from 'three';
-import { validateGraph, type GraphIr, type GraphNode, type GraphParam, type GraphRef } from '@wildshard/format/materialGraph';
+import { checkAuthorGraph, type AuthorGraph as GraphIr, type AuthorGraphNode as GraphNode,
+  type AuthorGraphParam as GraphParam, type AuthorGraphRef as GraphRef } from '@wildshard/sdk/bake/materialGraph';
 
 type Mode = 'cards' | 'depth' | 'inner';
 type FogSource = Readonly<Record<string, unknown>>;
@@ -7,7 +8,7 @@ type FogSource = Readonly<Record<string, unknown>>;
 /** The selected banyan crown, expressed in the same arithmetic as its original shaders.
  * Authoring only: the product consumes the resulting JSON, never this module. */
 export function canopyGraphs(source: FogSource): Readonly<Record<string, GraphIr>> {
-  const admitted = validateGraph(source['nine-silk-fog'], { trustedBudget: true });
+  const admitted = checkAuthorGraph(source['nine-silk-fog']);
   if (!admitted.ok) throw new Error(admitted.errors.join('\n'));
   const fog = admitted.graph, output = fog.stages.fog?.colour;
   if (typeof output !== 'string') throw new Error('Silk fog needs its compositing output');
@@ -149,7 +150,7 @@ export function canopyGraphs(source: FogSource): Readonly<Record<string, GraphIr
       params: Object.fromEntries(Object.entries(params).filter(([name]) => parameterNames.has(name))),
       arrays: Object.fromEntries(Object.entries(arrays).filter(([name]) => arrayNames.has(name))),
       nodes: liveNodes, stages: { surface: { colour: out, targetAlpha: alpha } } };
-    const checked = validateGraph(graph, { trustedBudget: true });
+    const checked = checkAuthorGraph(graph);
     if (!checked.ok) throw new Error(`${mode}: ${checked.errors.join('\n')}`);
     return { ...checked.graph, budget: { nodes: Math.max(1, checked.cost.nodes), samplers: Math.max(1, checked.cost.samplers), instructions: Math.max(1, checked.cost.instructions) } };
   };

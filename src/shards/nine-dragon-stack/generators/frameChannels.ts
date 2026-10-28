@@ -1,6 +1,6 @@
 import { Color } from 'three';
 import { numericChannelPrograms, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
-import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
+import { checkAuthorGraph, type AuthorGraph as GraphIr } from '@wildshard/sdk/bake/materialGraph';
 import { architectureGraphs } from './architectureGraphs';
 import { streakGraph } from './streakGraph';
 import { haloGraph } from './haloGraph';
@@ -68,7 +68,7 @@ const CONSTANT: Readonly<Record<string, readonly number[]>> = {
 
 function admitted(rows: Readonly<Record<string, unknown>>): Record<string, GraphIr> {
   return Object.fromEntries(Object.entries(rows).map(([id, row]) => {
-    const graph = validateGraph(row, { trustedBudget: true });
+    const graph = checkAuthorGraph(row);
     if (!graph.ok) throw new Error(`Nine look ${id}: ${graph.errors.join('; ')}`);
     return [id, graph.graph];
   }));
