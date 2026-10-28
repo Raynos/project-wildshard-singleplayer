@@ -1,7 +1,6 @@
 import { smoothstep as sstep } from '@wildshard/sdk/noise';
 import type { Rng } from '@wildshard/sdk/random';
-import { loft, tube, skinPlain, S, boneIndex, mix, srgb, paletteColors, type Station, type Paint } from '@wildshard/engine/entities/species/loft';
-import type { AnimalSpecies, BoneDef, VariantDef } from '@wildshard/sdk/bake/species';
+import { loft, tube, skinPlain, S, boneIndex, mix, srgb, paletteColors, type Station, type Paint, type AnimalSpecies, type BoneDef, type VariantDef } from '@wildshard/sdk/bake/species';
 import * as THREE from 'three';
 import { lock, hash01, wrapPatch, type V3, type Skin, type Section } from './shape';
 import horseRows from '../species/horse.json' with { type: 'json' };
