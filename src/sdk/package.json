@@ -132,6 +132,7 @@
     "./formatJsonSchema": "./formatJsonSchema.ts",
     "./bake/rig": "./bake/rig.ts",
     "./bake/skinned": "./bake/skinned.ts",
+    "./bake/riggedHullRecipes": "./bake/riggedHullRecipes.ts",
     "./bake/image": "./bake/image.ts",
     "./sceneGraph": "./sceneGraph.ts",
     "./materials": "./materials.ts",
@@ -638,6 +639,10 @@
       "./bake/skinned": {
         "types": "./dist/types/sdk/bake/skinned.d.ts",
         "default": "./dist/bake/skinned.js"
+      },
+      "./bake/riggedHullRecipes": {
+        "types": "./dist/types/sdk/bake/riggedHullRecipes.d.ts",
+        "default": "./dist/bake/riggedHullRecipes.js"
       },
       "./bake/image": {
         "types": "./dist/types/sdk/bake/image.d.ts",

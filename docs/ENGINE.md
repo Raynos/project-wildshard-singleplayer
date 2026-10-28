@@ -6396,6 +6396,10 @@ preserving native field order without importing the runtime wind owner or lendin
 metadata through the original bounds and cross-row checks, without installing actors or drawing from RNG.
 `bake/skinned.AuthorRiggedHullBook` / `AuthorRiggedHullUrls` retain complete authored family/tier resource contracts;
 the product's defining rigged-hull admission remains authoritative and no live hull/material is exposed by these types.
+`bake/riggedHullRecipes.riggedHullRecipeRows(input,palettes)` admits owned source
+families, finite flap planes and RGB coat/fur recipes against an explicit palette
+vocabulary. Strict objects, absent optional records and native field order stay
+intact; this source grammar does not replace product resource admission.
 `sdk/interactions.readInteractionPlacements` / `bindInteractionPlacements` compile bounded finite rest poses in
 native table order, retaining identity/kind/missing-row refusals. Table/pickup types derive from the actual compiler;
 no geometry, prompt, physics or registry owner is constructed or borrowed.
