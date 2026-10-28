@@ -57,7 +57,9 @@ function fixture(blob = false, spawnX = 0, revision = 1, slug = 'loader-fixture'
   return { source, index, wires };
 }
 function options(wires: ReadonlyMap<string, Uint8Array>, cache?: ProductCache): ProductOptions {
-  return { base, offline: false, firstParty: true, hash, ...(cache === undefined ? {} : { cache }), fetch: url => {
+  // Each fixture owns its transport/verifier service. Repeated reads through
+  // these options still coalesce; unrelated fixtures cannot lend verified packs.
+  return { base, offline: false, firstParty: true, hash: bytes => hash(bytes), ...(cache === undefined ? {} : { cache }), fetch: url => {
     const bytes = wires.get(url.slice(base.length));
     return Promise.resolve(bytes === undefined ? new Response(null, { status: 404 }) : new Response(Uint8Array.from(bytes)));
   } };
@@ -539,8 +541,11 @@ test.each(['offline', 'unpacked'] as const)('descriptor %s reads keep the origin
 test('a slow descriptor cache never excuses corrupt fallback pack bytes', async () => {
   const f = packedSectionFixture(), store = cacheStore(), corrupt = Uint8Array.from(f.bytes); corrupt[0] = 255;
   f.wires.set(f.path, corrupt);
-  await expect(readProductDescriptor({ ...options(f.wires, { ...store.cache, asset: () => new Promise<Uint8Array | null>(() => { /* Cache stays pending while the pack refuses. */ }) }),
+  const plain = options(f.wires, { ...store.cache, asset: () => new Promise<Uint8Array | null>(() => { /* Cache stays pending while the pack refuses. */ }) });
+  const reads: string[] = [];
+  await expect(readProductDescriptor({ ...plain, fetch: url => { reads.push(url.slice(base.length)); return plain.fetch(url); },
     cacheHintTurn: () => Promise.resolve() })).rejects.toThrow('pack hash or size mismatch');
+  expect(reads).toEqual(['shard.json', f.path]);
 });
 
 test('packed sections and files come from one read of each pack (iPhone downloads I5)', async () => {
@@ -577,7 +582,7 @@ async function demandPackFixture(corruptMember = false) {
   return {source,wires,first,second,path,wire};
 }
 
-test('concurrent native demand reads share one pack, return owned members and retain no settled backing',async()=>{
+test('concurrent native demand reads share one verified pack and retain no settled member backing',async()=>{
   const f=await demandPackFixture(),plain=options(f.wires),reads:string[]=[];
   const assets=new ClientAssets(f.source,new Map(),{...plain,fetch:url=>{reads.push(url.slice(base.length));return plain.fetch(url);}});
   const [first,second]=await Promise.all([assets.read(f.first.hash),assets.read(f.second.hash)]);
@@ -585,7 +590,7 @@ test('concurrent native demand reads share one pack, return owned members and re
   expect(first.buffer).not.toBe(second.buffer);first[0]=99;
   expect(assets.retained.size).toBe(0);
   expect(await assets.read(f.first.hash)).toEqual(new Uint8Array([1,2,3]));
-  expect(reads).toEqual([f.path,f.first.path]); // no cache: a settled pack is not a hidden H6 owner
+  expect(reads).toEqual([f.path]); // QF17.B1: the immutable product owns its verified whole pack.
 });
 
 test('native demand packs refuse corruption for every borrower and release the failed read for repair',async()=>{
@@ -596,7 +601,7 @@ test('native demand packs refuse corruption for every borrower and release the f
   }});
   const results=await Promise.allSettled([assets.read(f.first.hash),assets.read(f.second.hash)]);
   expect(results.map(result=>result.status)).toEqual(['rejected','rejected']);expect(reads).toBe(1);
-  for(const result of results)if(result.status==='rejected')expect(String(result.reason)).toContain('Resident pack hash or size mismatch');
+  for(const result of results)if(result.status==='rejected')expect(String(result.reason)).toContain('Shardfile pack hash or size mismatch');
   corrupt=false;expect(await Promise.all([assets.read(f.first.hash),assets.read(f.second.hash)])).toEqual([new Uint8Array([1,2,3]),new Uint8Array([4,5,6])]);expect(reads).toBe(2);
 });
 
@@ -1048,33 +1053,39 @@ async function rangeDemandFixture() {
   return {...f,third,wire,path,source:await readProductDescriptor(options(f.wires))};
 }
 
-test('adjacent partial native demands share only their exact pack range, then release it',async()=>{
+test('adjacent native demands share one whole pack and release detached member backing',async()=>{
   const f=await rangeDemandFixture(),plain=options(f.wires),ranges:number[][]=[],reads:string[]=[];
   const assets=new ClientAssets(f.source,new Map(),{...plain,fetch:url=>{reads.push(url.slice(base.length));return plain.fetch(url);},fetchRange:(url,start,end)=>{
     expect(url).toBe(base+f.path);ranges.push([start,end]);return Promise.resolve(new Response(f.wire.slice(start,end+1),{status:206,headers:{'content-range':`bytes ${start}-${end}/9`}}));
   }});
   const values=await Promise.all([assets.read(f.first.hash),assets.read(f.second.hash)]);
-  expect(values).toEqual([new Uint8Array([1,2,3]),new Uint8Array([4,5,6])]);expect(ranges).toEqual([[0,5]]);expect(reads).toEqual([]);
+  expect(values).toEqual([new Uint8Array([1,2,3]),new Uint8Array([4,5,6])]);expect(ranges).toEqual([]);expect(reads).toEqual([f.path]);
   expect(values[0]?.buffer).not.toBe(values[1]?.buffer);expect(assets.retained.size).toBe(0);
-  expect(await assets.read(f.first.hash)).toEqual(new Uint8Array([1,2,3]));expect(reads).toEqual([f.first.path]);expect(ranges).toEqual([[0,5]]);
+  expect(await assets.read(f.first.hash)).toEqual(new Uint8Array([1,2,3]));expect(reads).toEqual([f.path]);expect(ranges).toEqual([]);
+  expect(await assets.read(f.third.hash)).toEqual(new Uint8Array([7,8,9]));expect(reads).toEqual([f.path]);
 });
 
-test('a gap never pulls an unrequested member into a range',async()=>{
+test('disjoint demands verify the whole pack but admit only their requested members',async()=>{
   const f=await rangeDemandFixture(),plain=options(f.wires),ranges=vi.fn(()=>Promise.reject(new Error('Unexpected range'))),reads:string[]=[];
-  const assets=new ClientAssets(f.source,new Map(),{...plain,fetch:url=>{reads.push(url.slice(base.length));return plain.fetch(url);},fetchRange:ranges});
+  const verify=vi.fn(plain.hash);
+  const assets=new ClientAssets(f.source,new Map(),{...plain,hash:verify,fetch:url=>{reads.push(url.slice(base.length));return plain.fetch(url);},fetchRange:ranges});
   expect(await Promise.all([assets.read(f.first.hash),assets.read(f.third.hash)])).toEqual([new Uint8Array([1,2,3]),new Uint8Array([7,8,9])]);
-  expect(reads.sort()).toEqual([f.first.path,f.third.path].sort());expect(ranges).not.toHaveBeenCalled();
+  expect(reads).toEqual([f.path]);expect(ranges).not.toHaveBeenCalled();expect(assets.retained.size).toBe(0);
+  expect(verify.mock.calls.map(([bytes])=>Array.from(bytes))).toEqual([Array.from(f.wire),[1,2,3],[7,8,9]]);
 });
 
-test('partial pack responses retain exact range, size and independent member guards',async()=>{
-  const f=await rangeDemandFixture();
-  for(const mode of ['header','short','member'] as const){
-    const assets=new ClientAssets(f.source,new Map(),{...options(f.wires),fetchRange:()=>{
-      const wire=f.wire.slice(0,mode==='short'?5:6);if(mode==='member')wire[0]=99;
-      return Promise.resolve(new Response(wire,{status:206,headers:{'content-range':mode==='header'?'bytes 1-6/9':'bytes 0-5/9'}}));
-    }});
+test('whole pack responses retain status, size, envelope hash and independent member guards',async()=>{
+  for(const mode of ['partial','short','hash','member'] as const){
+    const f=mode==='member'?await demandPackFixture(true):await rangeDemandFixture();
+    const range=vi.fn(()=>Promise.reject(new Error('Unexpected range'))),reads:string[]=[];
+    const assets=new ClientAssets(f.source,new Map(),{...options(f.wires),fetch:url=>{
+      reads.push(url.slice(base.length));const wire=f.wire.slice(0,mode==='short'?f.wire.length-1:f.wire.length);
+      if(mode==='hash')wire[0]=99;
+      return Promise.resolve(new Response(wire,{status:mode==='partial'?206:200,headers:{'content-range':`bytes 0-${wire.length-1}/${f.wire.length}`}}));
+    },fetchRange:range});
     const values=await Promise.allSettled([assets.read(f.first.hash),assets.read(f.second.hash)]);
     expect(values[0]?.status).toBe('rejected');expect(values[1]?.status).toBe(mode==='member'?'fulfilled':'rejected');expect(assets.retained.size).toBe(0);
+    expect(reads).toEqual([f.path]);expect(range).not.toHaveBeenCalled();
   }
 });
 
@@ -1088,14 +1099,15 @@ test('offline partial native demand never invokes the range capability',async()=
   expect(fetchRange).not.toHaveBeenCalled();expect(fetch).not.toHaveBeenCalled();expect(assets.retained.size).toBe(0);
 });
 
-test('an unsupported range refuses without a whole-pack fallback and a repaired wave retries',async()=>{
-  const f=await rangeDemandFixture(),fetch=vi.fn(()=>Promise.reject(new Error('Unexpected fallback')));let supported=false,reads=0;
-  const assets=new ClientAssets(f.source,new Map(),{...options(f.wires),fetch,fetchRange:()=>{
-    reads++;return Promise.resolve(new Response(f.wire.slice(0,6),{status:supported?206:200,headers:{'content-range':'bytes 0-5/9'}}));
-  }});
+test('a partial response refuses without per-file fallback and a repaired whole wave retries',async()=>{
+  const f=await rangeDemandFixture(),range=vi.fn(()=>Promise.reject(new Error('Unexpected range')));let supported=false,reads=0;
+  const assets=new ClientAssets(f.source,new Map(),{...options(f.wires),fetch:url=>{
+    expect(url).toBe(base+f.path);reads++;
+    return Promise.resolve(new Response(supported?f.wire:f.wire.slice(0,6),{status:supported?200:206,headers:{'content-range':'bytes 0-5/9'}}));
+  },fetchRange:range});
   const refused=await Promise.allSettled([assets.read(f.first.hash),assets.read(f.second.hash)]);
-  for(const value of refused){expect(value.status).toBe('rejected');if(value.status==='rejected')expect(String(value.reason)).toContain('Resident pack range response differs');}
-  expect(reads).toBe(1);expect(fetch).not.toHaveBeenCalled();supported=true;
+  for(const value of refused){expect(value.status).toBe('rejected');if(value.status==='rejected')expect(String(value.reason)).toContain('Resident pack requires a whole response');}
+  expect(reads).toBe(1);expect(range).not.toHaveBeenCalled();supported=true;
   expect(await Promise.all([assets.read(f.first.hash),assets.read(f.second.hash)])).toEqual([new Uint8Array([1,2,3]),new Uint8Array([4,5,6])]);
   expect(reads).toBe(2);expect(assets.retained.size).toBe(0);
 });
@@ -1119,18 +1131,18 @@ test('low-priority read-ahead and actual demand share one exact verified body', 
 });
 
 
-test('low-priority adjacent demands keep their exact range and independent member hashes', async () => {
+test('low-priority adjacent demands share one whole response and independent member hashes', async () => {
   const f = await rangeDemandFixture(), plain = options(f.wires);
-  const fetch = vi.fn(() => Promise.reject(new Error('Unexpected full body')));
-  const fetchRange = vi.fn((url: string, start: number, end: number, priority?: 'low') => {
-    expect(url).toBe(new URL(f.path, base).href); expect(priority).toBe('low');
-    return Promise.resolve(new Response(f.wire.slice(start, end + 1), { status: 206, headers: { 'content-range': `bytes ${start}-${end}/${f.wire.length}` } }));
-  });
-  const assets = new ClientAssets(f.source, new Map(), { ...plain, fetch, backgroundFetch: fetch, fetchRange });
+  const fetch = vi.fn(() => Promise.reject(new Error('Unexpected foreground body')));
+  const fetchRange = vi.fn(() => Promise.reject(new Error('Unexpected range')));
+  const backgroundFetch=vi.fn((url:string)=>{expect(url).toBe(new URL(f.path,base).href);return Promise.resolve(new Response(f.wire));});
+  const verify=vi.fn(plain.hash);
+  const assets = new ClientAssets(f.source, new Map(), { ...plain, hash:verify, fetch, backgroundFetch, fetchRange });
   expect(await Promise.all([assets.read(f.first.hash, 'low'), assets.read(f.second.hash, 'low')])).toEqual([
     new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6]),
   ]);
-  expect(fetchRange).toHaveBeenCalledOnce();
-  expect(fetchRange).toHaveBeenCalledWith(new URL(f.path, base).href, 0, 5, 'low');
+  expect(backgroundFetch).toHaveBeenCalledExactlyOnceWith(new URL(f.path,base).href);
+  expect(fetchRange).not.toHaveBeenCalled();
+  expect(verify.mock.calls.map(([bytes])=>Array.from(bytes))).toEqual([Array.from(f.wire),[1,2,3],[4,5,6]]);
   expect(fetch).not.toHaveBeenCalled(); expect(assets.retained.size).toBe(0);
 });
