@@ -41,24 +41,40 @@ export function preflightShardfile(input: unknown): void {
     return text.length;
   };
   const add = (count: number): void => { bytes += count; if (bytes > limits.sourceBytes) throw new Error('Shardfile source exceeds admission cap'); };
+  // T10: the serialized length of each value without serializing it where that is plain (a JSON string per string and per
+  // number, and a pair array per object, were most of this walk in a Pine crossing's product admission at phone 4x)
+  const quoted = (text: string): number => {
+    // printable ASCII with no quote or backslash is written as itself between two quotes; anything else is escaped
+    for (let i = 0; i < text.length; i++) { const c = text.codePointAt(i) ?? 0; if (c < 0x20 || c > 0x7e || c === 0x22 || c === 0x5c) return utf8Length(JSON.stringify(text)); }
+    return text.length + 2;
+  };
   const string = (value: string, maximum: number): void => {
     if (value.length > maximum) throw new Error('Shardfile string exceeds admission cap');
-    add(utf8Length(JSON.stringify(value)));
+    add(quoted(value));
+  };
+  const scalar = (value: unknown): number => {
+    if (value === null) return 4;
+    if (value === true) return 4;
+    if (value === false) return 5;
+    // a safe integer is its digits and sign (the plain-JSON fence refused NaN, the infinities and -0)
+    if (typeof value === 'number' && Number.isSafeInteger(value)) { let digits = 1; for (let n = Math.abs(value); n >= 10; n = Math.floor(n / 10)) digits++; return digits + (value < 0 ? 1 : 0); }
+    return JSON.stringify(value).length;
   };
   const visit = (value: unknown): void => {
     if (typeof value === 'string') { string(value, limits.textCharacters); return; }
     if (Array.isArray(value)) {
-      add(2 + Math.max(0, value.length - 1)); for (const item of value) visit(item); return;
+      add(2 + Math.max(0, value.length - 1)); for (let i = 0; i < value.length; i++) visit(value[i]); return;
     }
     if (typeof value === 'object' && value !== null) {
-      const entries = Object.entries(value); add(2 + Math.max(0, entries.length - 1));
-      for (const [key, item] of entries) {
+      const keys = Object.keys(value), fields = value as Readonly<Record<string, unknown>>; add(2 + Math.max(0, keys.length - 1));
+      for (const key of keys) {
+        const item = fields[key];
         string(key, limits.idCharacters); add(1);
         if (typeof item === 'string' && identifierKeys.has(key)) string(item, limits.idCharacters); else visit(item);
       }
       return;
     }
-    add(JSON.stringify(value).length);
+    add(scalar(value));
   };
   visit(input);
 

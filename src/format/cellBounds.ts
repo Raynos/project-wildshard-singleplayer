@@ -9,14 +9,23 @@ const coordinates = (value: unknown): value is [number, number, number] => Array
  * they are not visual cell AABBs. Admission of their placed draws checks actual world bounds. */
 export function assertCellBounds(input: unknown, section = 'shardfile'): void {
   if (!isJsonData(input)) throw new Error('Cell bounds require plain JSON data');
-  const visit = (value: unknown, path: string): void => {
-    if (Array.isArray(value)) { for (let i = 0; i < value.length; i++) { const child: unknown = value[i]; if (typeof child === 'object' && child !== null) visit(child, `${path}[${i}]`); } return; }
+  // T10: the walk keeps its path as a stack of steps and spells it only for a refusal (a string per node, and a pair array
+  // and a corner array per object, were most of this walk in a Pine crossing's product admission at phone 4x)
+  const steps: (string | number)[] = [];
+  const path = (): string => { let text = section; for (const step of steps) text += typeof step === 'number' ? `[${String(step)}]` : `.${step}`; return text; };
+  const finite = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n);
+  const visit = (value: unknown): void => {
+    if (Array.isArray(value)) {
+      for (let i = 0; i < value.length; i++) { const child: unknown = value[i]; if (typeof child === 'object' && child !== null) { steps.push(i); visit(child); steps.pop(); } }
+      return;
+    }
     if (!record(value)) return;
     const min = value['min'], max = value['max'];
-    if (coordinates(min) && coordinates(max) && (min.some((n, axis) => n > (max[axis] ?? -Infinity)) || min[0] < -WIRE_CELL.half || max[0] > WIRE_CELL.half || min[2] < -WIRE_CELL.half || max[2] > WIRE_CELL.half || min[1] < -WIRE_CELL.below || max[1] > WIRE_CELL.above)) throw new Error(`Out-of-cell bounds: ${path}`);
-    const rect = [value['x0'], value['x1'], value['z0'], value['z1']];
-    if (rect.every((n): n is number => typeof n === 'number' && Number.isFinite(n)) && (rect.some(n => Math.abs(n) > WIRE_CELL.half) || (rect[0] ?? 0) > (rect[1] ?? 0) || (rect[2] ?? 0) > (rect[3] ?? 0))) throw new Error(`Out-of-cell bounds: ${path}`);
-    for (const [key, child] of Object.entries(value)) if (typeof child === 'object' && child !== null) visit(child, `${path}.${key}`);
+    if (coordinates(min) && coordinates(max) && (min.some((n, axis) => n > (max[axis] ?? -Infinity)) || min[0] < -WIRE_CELL.half || max[0] > WIRE_CELL.half || min[2] < -WIRE_CELL.half || max[2] > WIRE_CELL.half || min[1] < -WIRE_CELL.below || max[1] > WIRE_CELL.above)) throw new Error(`Out-of-cell bounds: ${path()}`);
+    const x0 = value['x0'], x1 = value['x1'], z0 = value['z0'], z1 = value['z1'];
+    if (finite(x0) && finite(x1) && finite(z0) && finite(z1) && (Math.abs(x0) > WIRE_CELL.half || Math.abs(x1) > WIRE_CELL.half || Math.abs(z0) > WIRE_CELL.half
+      || Math.abs(z1) > WIRE_CELL.half || x0 > x1 || z0 > z1)) throw new Error(`Out-of-cell bounds: ${path()}`);
+    for (const key of Object.keys(value)) { const child = value[key]; if (typeof child === 'object' && child !== null) { steps.push(key); visit(child); steps.pop(); } }
   };
-  visit(input, section);
+  visit(input);
 }
