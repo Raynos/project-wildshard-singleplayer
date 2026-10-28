@@ -1,11 +1,11 @@
 {
   "date": "28 OCT 2026",
-  "updated": "2026-10-28T15:03:03Z",
+  "updated": "2026-10-28T15:12:30Z",
   "entries": [
-    "Pine Hollow: textured paths stay visible when you return",
-    "Pine Hollow: trees no longer have solid rectangular backings",
+    "Pine Hollow: textured paths and trees without solid backings",
     "Crossings finish loading on slow connections",
     "Faster returns to places you have just visited",
+    "Safari: the bag MAP no longer waits at 0 / 1",
     "Developer: open the Night Market placeholder from SHARD SELECT"
   ]
 }
