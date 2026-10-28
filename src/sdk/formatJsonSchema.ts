@@ -1,3 +1,9 @@
+import { HEADLESS_ASSEMBLY_JSON_SCHEMA, ReturnProgramSchema, PageReturnRowsSchema, QuestTraderSchema, PosedLibrarySchema } from '@wildshard/format/namedJsonContracts';
+import { NativeQuestCompositionSchema } from '@wildshard/format/nativeQuestComposition';
+import { MixedPopulationSchema } from '@wildshard/format/mixedPopulation';
+import { ResolvedIslandLibrarySchema } from '@wildshard/format/islandLibrary';
+import { CollectionDisplaysSchema } from '@wildshard/format/collectionDisplay';
+import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, SpecimenAssetSchema } from '@wildshard/format/specimenCatalogue';
 import { BinarySourceSchema } from '@wildshard/format/binarySource';
 import { NativeGroundFileSchema } from '@wildshard/format/nativePhysics';
 import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
@@ -15,12 +21,12 @@ import { TimedEncountersSchema,CloudSpecimenSchema } from '@wildshard/format/enc
 import { RoamingCombatSchema } from '@wildshard/format/roamingCombat';
 import { PopulationProjectionSchema } from '@wildshard/format/populationProjection';
 import { CreatureInstallSchema, PackedCreatureLooksSchema } from '@wildshard/format/speciesLooks';
-import { SceneDressingSchema } from '@wildshard/format/sceneDressing';
+import { SceneDressingSchema, SceneBakedGeometrySchema, SceneFloorSchema, SceneDressingContactsSchema } from '@wildshard/format/sceneDressing';
 import { CueDirectorWireSchema } from '@wildshard/format/cueDirector';
 import { ExchangeSchema } from '@wildshard/format/exchange';
 import { LootBagSchema } from '@wildshard/format/lootBag';
 import { CatalogueEconomySchema } from '@wildshard/format/catalogueEconomy';
-import { ContractCatalogueSchema } from '@wildshard/format/contracts';
+import { ContractCatalogueSchema, ContractBoardPageSchema } from '@wildshard/format/contracts';
 import { AchievementCounterDataSchema } from '@wildshard/format/achievementCounters';
 import { PopulationShelterSchema } from '@wildshard/format/herdShelter';
 import { PanelDefinitionSchema } from '@wildshard/format/panelTemplate';
@@ -42,7 +48,7 @@ import { GraphArmsSchema } from '@wildshard/format/graphArmsRows';
 import { PracticeSceneSchema,RidingPracticeSchema,PracticeControllerSchema } from '@wildshard/format/practiceCourseRows';
 import { RoamingEncounterSchema, WakeEncounterSchema, BossEncounterPresentationSchema, NativeBossBindingSchema } from '@wildshard/format/bossEncounter';
 import { BossProfileSchema, ArenaBossProfileSchema, RoamingBossProfileSchema, SpawnedBossProfileSchema, HeldBossProfileSchema, ScriptBossProfileSchema } from '@wildshard/format/bossProfiles';
-import { NpcRowSchema, NpcMotionSchema, NpcDialogueRowSchema, QuestNpcBindingSchema, QuestNpcBindingsSchema } from '@wildshard/format/npcs';
+import { NpcRowSchema, NpcMotionSchema, NpcDialogueRowSchema, QuestNpcBindingSchema, QuestNpcBindingsSchema, QuestPageTalksSchema } from '@wildshard/format/npcs';
 import { WeaponProfileSchema, MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema, LashWeaponProfileSchema, ConeWeaponProfileSchema, HeldBowBaseSchema, HeldBowRowsSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
 import { toJsonSchema, type JsonSchema } from '@valibot/to-json-schema';
 import { finite, strictObject, object, looseObject, tuple, type GenericSchema } from 'valibot';
@@ -110,7 +116,7 @@ import { UiSchema } from '@wildshard/format/ui';
 import { ClientScriptsSchema } from '@wildshard/format/clientScripts';
 import { ClientChannelsSchema, ClientChannelProgramSchema, PrivateSceneSchema, WorldSceneSchema, NumericPoseSchema } from '@wildshard/format/clientChannels';
 
-import { ForestLifeSchema } from '@wildshard/format/ambientLife';
+import { ForestLifeSchema, AmbientFlockSchema, AmbientPerchesSchema } from '@wildshard/format/ambientLife';
 
 import { MemoryMeasurementSchema, RuntimeCostSchema, RegionalSimCostSchema } from '@wildshard/format/runtimeCost';
 import { RuntimeSchema, LegacyRuntimeSchema, ClientPlanRuntimeSchema } from '@wildshard/format/runtime';
@@ -644,4 +650,63 @@ export function composeNamedJsonSchema(composition: NamedJsonComposition): Reado
     return node.mode === 'strip' ? object(entries) : node.mode === 'loose' ? looseObject(entries) : strictObject(entries);
   };
   return namedJsonSchema(resolve(composition));
+}
+
+/** Exact defining pure-format objects for checked author compositions. */
+interface AuthorFormatObjects {
+  readonly 'sceneDressing.SceneDressingSchema': typeof SceneDressingSchema;
+  readonly 'sceneDressing.SceneBakedGeometrySchema': typeof SceneBakedGeometrySchema;
+  readonly 'sceneDressing.SceneFloorSchema': typeof SceneFloorSchema;
+  readonly 'sceneDressing.SceneDressingContactsSchema': typeof SceneDressingContactsSchema;
+  readonly 'specimenCatalogue.SpecimenCatalogueSchema': typeof SpecimenCatalogueSchema;
+  readonly 'specimenCatalogue.PackedSpecimenSchema': typeof PackedSpecimenSchema;
+  readonly 'specimenCatalogue.SpecimenMaterialSchema': typeof SpecimenMaterialSchema;
+  readonly 'specimenCatalogue.SpecimenAssetSchema': typeof SpecimenAssetSchema;
+  readonly 'ambientLife.AmbientFlockSchema': typeof AmbientFlockSchema;
+  readonly 'ambientLife.AmbientPerchesSchema': typeof AmbientPerchesSchema;
+  readonly 'clientChannels.PrivateSceneSchema': typeof PrivateSceneSchema;
+  readonly 'collectionDisplay.CollectionDisplaysSchema': typeof CollectionDisplaysSchema;
+  readonly 'bodySlots.BodySlotsSchema': typeof BodySlotsSchema;
+  readonly 'islandLibrary.ResolvedIslandLibrarySchema': typeof ResolvedIslandLibrarySchema;
+  readonly 'mixedPopulation.MixedPopulationSchema': typeof MixedPopulationSchema;
+  readonly 'nativeQuestComposition.NativeQuestCompositionSchema': typeof NativeQuestCompositionSchema;
+  readonly 'namedJsonContracts.HEADLESS_ASSEMBLY_JSON_SCHEMA': typeof HEADLESS_ASSEMBLY_JSON_SCHEMA;
+  readonly 'namedJsonContracts.ReturnProgramSchema': typeof ReturnProgramSchema;
+  readonly 'namedJsonContracts.PageReturnRowsSchema': typeof PageReturnRowsSchema;
+  readonly 'namedJsonContracts.QuestTraderSchema': typeof QuestTraderSchema;
+  readonly 'namedJsonContracts.PosedLibrarySchema': typeof PosedLibrarySchema;
+  readonly 'npcs.QuestPageTalksSchema': typeof QuestPageTalksSchema;
+  readonly 'contracts.ContractBoardPageSchema': typeof ContractBoardPageSchema;
+}
+const authorFormats: AuthorFormatObjects = {
+  'sceneDressing.SceneDressingSchema': SceneDressingSchema,
+  'sceneDressing.SceneBakedGeometrySchema': SceneBakedGeometrySchema,
+  'sceneDressing.SceneFloorSchema': SceneFloorSchema,
+  'sceneDressing.SceneDressingContactsSchema': SceneDressingContactsSchema,
+  'specimenCatalogue.SpecimenCatalogueSchema': SpecimenCatalogueSchema,
+  'specimenCatalogue.PackedSpecimenSchema': PackedSpecimenSchema,
+  'specimenCatalogue.SpecimenMaterialSchema': SpecimenMaterialSchema,
+  'specimenCatalogue.SpecimenAssetSchema': SpecimenAssetSchema,
+  'ambientLife.AmbientFlockSchema': AmbientFlockSchema,
+  'ambientLife.AmbientPerchesSchema': AmbientPerchesSchema,
+  'clientChannels.PrivateSceneSchema': PrivateSceneSchema,
+  'collectionDisplay.CollectionDisplaysSchema': CollectionDisplaysSchema,
+  'bodySlots.BodySlotsSchema': BodySlotsSchema,
+  'islandLibrary.ResolvedIslandLibrarySchema': ResolvedIslandLibrarySchema,
+  'mixedPopulation.MixedPopulationSchema': MixedPopulationSchema,
+  'nativeQuestComposition.NativeQuestCompositionSchema': NativeQuestCompositionSchema,
+  'namedJsonContracts.HEADLESS_ASSEMBLY_JSON_SCHEMA': HEADLESS_ASSEMBLY_JSON_SCHEMA,
+  'namedJsonContracts.ReturnProgramSchema': ReturnProgramSchema,
+  'namedJsonContracts.PageReturnRowsSchema': PageReturnRowsSchema,
+  'namedJsonContracts.QuestTraderSchema': QuestTraderSchema,
+  'namedJsonContracts.PosedLibrarySchema': PosedLibrarySchema,
+  'npcs.QuestPageTalksSchema': QuestPageTalksSchema,
+  'contracts.ContractBoardPageSchema': ContractBoardPageSchema,
+};
+/** Select a defining validator or structural document by its finite module/export identity.
+ * The original object, exact type, custom checks and metadata identity are retained;
+ * no engine/game runtime binding or unregistered dynamic grammar is borrowed. */
+export function authorFormatSchema<Name extends keyof AuthorFormatObjects>(name: Name): AuthorFormatObjects[Name] {
+  if (!Object.hasOwn(authorFormats, name)) throw new Error(`Unknown author format: ${name}`);
+  return authorFormats[name];
 }
