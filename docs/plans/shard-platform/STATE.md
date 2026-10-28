@@ -12,6 +12,9 @@ reload CSS + quick steps + hold toggle (sp-x6), minimap labels off (792fa39d79),
 (a87795e6bd), sailboat (828dd585c8), Far Reach islets / Keeper / windmill (18aaab1583), WebKit warm-up pacing (91fb71d907),
 B1 whole-pack reads (B2 count a measured miss), shard.json 3 s race, audio first-use loading (16afe / dfe).
 
+**Reply to wildshard-v 15:30:** already done: QF1, QF2 T1-T3 / T5 / T7 / T8, B1 / B3-B6 (f3bf5b331b, 568e5ef8a8), QF7 / QF8
+bisected (no regression; D201 / D199), build-speed archived (3ae5581465), T6 -> D202, T7 slices on the damage list (sp-x10
+now marks both and archives tile-streaming), NR4 on sp-x1. Release blocked by 2 owned reds (sp-x1, sp-o5). sp-x6 re-prompted.
 **Jake's QA 10-28 PASSED:** Night Market (G827), loading / M2 (G831), tiles / T10 iPhone (G832), DW phone cut B (G833).
 **Open (Opus, G853 order):** Nine plan NR1 / NR2 / NR8 (sp-o3) and NR3 / NR5-NR7 (sp-o5); Far Reach FR2 / FR3 (sp-o3 next);
 Pine blob / crag + NM figures (sp-o4). Done: Nine title red (f2e66fd723), pier QF12, Far Reach FR4. Codex: NR4, FR1; tile T6 / T7 quick wins then damage list (G842); Props D201, Sky D199.
