@@ -1,10 +1,7 @@
 import * as THREE from 'three';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import { VertexLayout, WebIO } from '@gltf-transform/core';
-import { EXTMeshoptCompression } from '@gltf-transform/extensions';
-import { dedup } from '@gltf-transform/functions';
-import { MeshoptEncoder, MeshoptDecoder } from 'meshoptimizer';
+import { meshoptGlb } from '@wildshard/sdk/bake/glbCompression';
 
 type TreeSetPart = 'trunk' | 'trunkLo' | 'hi' | 'lo' | 'twigs' | 'far';
 const PARTS = ['trunk','trunkLo','hi','lo','twigs','far'] as const;
@@ -72,12 +69,6 @@ export async function bakeTreeRest(bytes: Uint8Array, variants: readonly { name:
           restSphere: [sphere.center.x,sphere.center.y,sphere.center.z,sphere.radius], restBox: [box.min.x,box.min.y,box.min.z,box.max.x,box.max.y,box.max.z] },
       };
     }));
-    await Promise.all([MeshoptEncoder.ready, MeshoptDecoder.ready]);
-    const io = new WebIO().setVertexLayout(VertexLayout.SEPARATE).registerExtensions([EXTMeshoptCompression])
-      .registerDependencies({'meshopt.encoder': MeshoptEncoder, 'meshopt.decoder': MeshoptDecoder});
-    const document = await io.readBinary(staticGlb(primitives, 'pine-tree-rest'));
-    await document.transform(dedup());
-    document.createExtension(EXTMeshoptCompression).setRequired(true).setEncoderOptions({method: EXTMeshoptCompression.EncoderMethod.QUANTIZE});
-    return await io.writeBinary(document);
+    return await meshoptGlb(staticGlb(primitives, 'pine-tree-rest'), { deduplicate: true });
   } finally { material.dispose(); for (const g of geometry) g.dispose(); for (const mesh of meshes.values()) mesh.geometry.dispose(); }
 }
