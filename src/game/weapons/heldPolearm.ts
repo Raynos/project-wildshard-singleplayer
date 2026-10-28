@@ -5,6 +5,7 @@ import { aimRay, fovForAspect } from '@wildshard/engine/combat/blocks/melee';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { withOwner } from '@wildshard/engine/app/ownership';
+import { loadRigFile } from '@wildshard/engine/anim/rig';
 import { ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
 import { Melee } from '@wildshard/engine/combat/Melee';
 import type { MeleeProfile } from '@wildshard/engine/combat/meleeProfile';
@@ -577,8 +578,11 @@ export class PolearmSet {
   const pool=product.hasFile(rows.pool.url)?{...rows.pool,url:product.url(rows.pool.url)}:rows.pool;
   const item=product.shardfile.items.rows.find(row=>row.id===this.rows.item);
   const javelin=schema.parse(ThrownWeaponProfileSchema,item?.kind==='weapon'?item.profile:undefined);
-  const parts=createModelLibrary<never,never>({meshes:[],hd:[],meshUrls:{},hdUrls:{},hdLooks:{},aoFloor:1,geometryPools:[pool]},'held-polearm');
-  const deferred=options?.geometry==='on-select';if(!deferred)await parts.preload();
+  const deferred=options?.geometry==='on-select';
+  const config={meshes:[],hd:[],meshUrls:{},hdUrls:{},hdLooks:{},aoFloor:1,geometryPools:[pool]};
+  const parts=deferred?createModelLibrary<never,never>(config,'held-polearm',{},url=>loadRigFile(url,{}, {decodePriority:'interactive'}))
+    :createModelLibrary<never,never>(config,'held-polearm');
+  if(!deferred)await parts.preload();
   const p=rows.view.poses;
   this.data={parts,rows,deferred,profile:{...SWORD_WOOD,...new ItemCatalogue(product.shardfile.items).equipment(this.rows.item),parent:SWORD_WOOD.id,...rows.profile},javelin,view:{...rows.view,poses:{rest:spearPose(p.rest),cock:spearPose(p.cock),jab:spearPose(p.jab),leftLow:spearPose(p.leftLow),sprint:spearPose(p.sprint),lance:spearPose(p.lance),javCock:spearPose(p.javCock),javOut:spearPose(p.javOut)},wrists:{left:new THREE.Vector3(...rows.view.wrists.left),right:new THREE.Vector3(...rows.view.wrists.right)},elbows:{left:new THREE.Vector3(...rows.view.elbows.left),right:new THREE.Vector3(...rows.view.elbows.right)}}};
  }

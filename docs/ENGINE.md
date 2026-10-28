@@ -2072,6 +2072,7 @@ The credits "Music: MiniMax-Music3" and "Powered by Stability AI" are licence co
 | `RigContract`, `RigRef`, `RigInstance`, `RigBake`, `ClipName`, `SocketName`, `AnimService` | the contract a species, NPC or viewmodel declares |
 
 `loadRigFile(url, aliases?)` can lend a file's dependency aliases by resolved URL pathname.
+An optional third `{ decodePriority: "interactive" }` gives actual player demand precedence over queued background parses. The active parse is never preempted, one native decode remains active, and each priority keeps FIFO. Ordinary calls and resource alias routing are unchanged.
 Alias and ordinary dependency URLs still pass through the default loading manager's tier and pack routing;
 the aliases use a private manager and never replace the session's resolver.
 

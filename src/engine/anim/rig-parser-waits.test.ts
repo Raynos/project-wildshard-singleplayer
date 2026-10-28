@@ -77,3 +77,18 @@ test('a paced parser reports its existing draw wait before starting native decod
   expect(parse).toHaveBeenCalledOnce();
   expect(bootWaits().filter(wait => wait.label.startsWith('GLTF '))).toEqual([]);
 });
+
+test('interactive loader waits for the active native parse, then passes only queued ordinary decodes', async () => {
+  const file=await new GLTFLoader().parseAsync(empty,''),ordinary=createRigLoader(),interactive=createRigLoader(undefined,'interactive');
+  const paths:string[]=[],completed:((file:GLTF)=>void)[]=[];
+  const parse=vi.spyOn(GLTFLoader.prototype,'parse').mockImplementation((_data,path,onLoad)=>{paths.push(path);completed.push(onLoad);});
+  const first=ordinary.parseAsync(empty,'/active/');await vi.waitFor(()=>{expect(paths).toEqual(['/active/']);});
+  const second=ordinary.parseAsync(empty,'/background-1/'),third=ordinary.parseAsync(empty,'/background-2/'),demand=interactive.parseAsync(empty,'/demand/');
+  try{
+    expect(paths).toEqual(['/active/']);completed[0]?.(file);await first;
+    await vi.waitFor(()=>{expect(paths).toEqual(['/active/','/demand/']);});completed[1]?.(file);expect(await demand).toBe(file);
+    await vi.waitFor(()=>{expect(paths).toEqual(['/active/','/demand/','/background-1/']);});completed[2]?.(file);await second;
+    await vi.waitFor(()=>{expect(paths).toEqual(['/active/','/demand/','/background-1/','/background-2/']);});completed[3]?.(file);await third;
+    expect(bootWaits().filter(wait=>wait.label.startsWith('GLTF '))).toEqual([]);
+  }finally{parse.mockImplementation((_data,_path,onLoad)=>{onLoad(file);});for(const finish of completed)finish(file);await Promise.all([first,second,third,demand]);}
+});

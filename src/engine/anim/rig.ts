@@ -44,12 +44,14 @@ export function prepareRigLoader(): Promise<typeof RigParser> {
 let loader: RigParser.RigLoader | undefined;
 /** Cache/clone policy stays with the owning asset scope. All rig GLBs use this parser.
  * Optional resource aliases match the resolved URL pathname; both aliases and
- * ordinary dependencies retain the default manager's tier/pack resolution. */
-export async function loadRigFile(url: string, aliases: Readonly<Record<string, string>> = {}): Promise<GLTF> {
+ * ordinary dependencies retain the default manager's tier/pack resolution.
+ * Explicit interactive decode priority passes queued background parses, never
+ * the active parser; reads, default FIFO and single-decode admission remain. */
+export async function loadRigFile(url: string, aliases: Readonly<Record<string, string>> = {}, options?: { readonly decodePriority: 'interactive' }): Promise<GLTF> {
   const { createRigLoader } = await prepareRigLoader();
   loader ??= createRigLoader();
-  const read = Object.keys(aliases).length === 0 ? loader : createRigLoader(new LoadingManager());
-  if (read !== loader) {
+  const read = Object.keys(aliases).length === 0 && options === undefined ? loader : createRigLoader(Object.keys(aliases).length === 0 ? undefined : new LoadingManager(), options?.decodePriority);
+  if (Object.keys(aliases).length > 0) {
     const page = new URL(location.href), original = new URL(url, page);
     // Aliased glTFs can declare root-relative images. Three needs an absolute
     // original base to resolve those, rather than appending /assets twice.
