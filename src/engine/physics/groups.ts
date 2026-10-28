@@ -42,8 +42,23 @@ export function groups(kind: GroupName): number {
   return ((GROUP[kind] << 16) | MEETS[kind]) >>> 0;
 }
 
+// Independent name tags deduplicate the finite group vocabulary without a new
+// Set/array/reducer for each ray. Tags identify names, not collision bit values:
+// distinct groups still sum exactly even if their configured bits overlap.
+const QUERY_TAGS = new Map(Object.keys(GROUP).map((kind, index) => [kind, 1 << index]));
+function originalQueryMask(sees: readonly GroupName[]): number {
+  return [...new Set(sees)].reduce((mask, kind) => mask + GROUP[kind], 0);
+}
+
 /** A query filter's packed groups: the querier is `as`, and it sees only the kinds in `sees`. */
 export function queryGroups(sees: readonly GroupName[], as: GroupName = 'PLAYER'): number {
-  const mask = [...new Set(sees)].reduce((m, k) => m + GROUP[k], 0); // distinct single bits: the sum is the union
+  if (sees === null || sees === undefined) return ((GROUP[as] << 16) | originalQueryMask(sees)) >>> 0;
+  let seen = 0, mask = 0;
+  for (const kind of sees) {
+    const tag = QUERY_TAGS.get(kind);
+    // Keep the original coercion/refusal behavior for undeclared runtime data.
+    if (tag === undefined) return ((GROUP[as] << 16) | originalQueryMask(sees)) >>> 0;
+    if ((seen & tag) === 0) { seen |= tag; mask += GROUP[kind]; }
+  }
   return ((GROUP[as] << 16) | mask) >>> 0;
 }
