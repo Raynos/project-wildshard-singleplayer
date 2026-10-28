@@ -34,20 +34,41 @@ export function facetGeometry(geo: THREE.BufferGeometry, jitter = 0.12): THREE.B
   const col = g.attributes['color'] as THREE.BufferAttribute;
   const pos = g.attributes['position'] as THREE.BufferAttribute;
   const skip = (v: number): boolean => g.groups.some((gr) => NO_JITTER_GROUPS.has(gr.materialIndex ?? 0) && v >= gr.start && v < gr.start + gr.count);
+  // T10 (H4 warm home): plain Float32 storage is read and written directly, as three's accessors would (the same sums in
+  // the same order); any other storage keeps the accessors
+  const p = plainVectors(pos), c = plainVectors(col);
   for (let v = 0; v < pos.count; v += 3) {
     if (skip(v)) continue;
     // deterministic per-face hash from the centroid so instances of the same model match
-    const cx = pos.getX(v) + pos.getX(v + 1) + pos.getX(v + 2);
-    const cy = pos.getY(v) + pos.getY(v + 1) + pos.getY(v + 2);
-    const cz = pos.getZ(v) + pos.getZ(v + 1) + pos.getZ(v + 2);
+    const cx = p === null ? pos.getX(v) + pos.getX(v + 1) + pos.getX(v + 2) : (p[v * 3] ?? 0) + (p[v * 3 + 3] ?? 0) + (p[v * 3 + 6] ?? 0);
+    const cy = p === null ? pos.getY(v) + pos.getY(v + 1) + pos.getY(v + 2) : (p[v * 3 + 1] ?? 0) + (p[v * 3 + 4] ?? 0) + (p[v * 3 + 7] ?? 0);
+    const cz = p === null ? pos.getZ(v) + pos.getZ(v + 1) + pos.getZ(v + 2) : (p[v * 3 + 2] ?? 0) + (p[v * 3 + 5] ?? 0) + (p[v * 3 + 8] ?? 0);
     const h = Math.sin(cx * 127.1 + cy * 311.7 + cz * 74.7) * 43758.5453;
     const m = 1 + (h - Math.floor(h) - 0.5) * 2 * jitter;
-    for (let k = 0; k < 3; k++) col.setXYZ(v + k, col.getX(v + k) * m, col.getY(v + k) * m, col.getZ(v + k) * m);
+    if (c === null) for (let k = 0; k < 3; k++) col.setXYZ(v + k, col.getX(v + k) * m, col.getY(v + k) * m, col.getZ(v + k) * m);
+    else for (let i = v * 3; i < v * 3 + 9; i++) c[i] = (c[i] ?? 0) * m;
   }
-  g.computeBoundingSphere();
-  if (g.boundingSphere !== null) g.boundingSphere.radius += 0.6;
+  // the bounds from one box pass: three's computeBoundingSphere centres on this same box (no morph targets here) and takes
+  // the farthest vertex's distance from it
   g.computeBoundingBox();
+  const box = g.boundingBox;
+  if (box === null || p === null || g.morphAttributes.position !== undefined) g.computeBoundingSphere();
+  else {
+    const centre = box.getCenter(new THREE.Vector3());
+    let farthest = 0;
+    for (let i = 0; i < pos.count; i++) {
+      const dx = centre.x - (p[i * 3] ?? 0), dy = centre.y - (p[i * 3 + 1] ?? 0), dz = centre.z - (p[i * 3 + 2] ?? 0);
+      farthest = Math.max(farthest, dx * dx + dy * dy + dz * dz);
+    }
+    g.boundingSphere = new THREE.Sphere(centre, Math.sqrt(farthest));
+  }
+  if (g.boundingSphere !== null) g.boundingSphere.radius += 0.6;
   return g;
+}
+
+/** a vec3 attribute's own Float32 array when three's accessors would read and write it unchanged, else null */
+function plainVectors(attribute: THREE.BufferAttribute): Float32Array | null {
+  return !attribute.normalized && attribute.itemSize === 3 && attribute.array instanceof Float32Array && attribute.array.length >= attribute.count * 3 ? attribute.array : null;
 }
 
 /**
