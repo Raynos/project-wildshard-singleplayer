@@ -407,7 +407,11 @@ export class Loading {
     setData(this.root, 'filesInFlight', String(files.length));
     const label = wait?.label ?? (current === undefined ? undefined : `${current.label}${current.detail ? ` · ${current.detail}` : ''}`) ?? timeline.gaps.find(row => row.state === 'on')?.label ?? 'Final activation';
     const detail = wait === undefined ? `Now working on: ${label}` : `Now waiting for: ${label} · ${(wait.ageMs / 1000).toFixed(1)} s${files.length > 0 ? ` · ${files.length} files in flight` : ''}${pending.length > 1 ? ` · ${pending.length} waits` : ''}`;
-    set(this.els.foot, stalled ? `No reported progress for ${Math.floor(quietMs / 1000)} s · ${detail}` : detail);
+    // A quiet phase still reports its actual age, without advancing a byte,
+    // file or setup credit. Keep the ten-second stall classification separate
+    // from this visible acknowledgement that the current work is still pending.
+    set(this.els.foot, !this.finished && quietMs >= 500
+      ? `No reported progress for ${(quietMs / 1000).toFixed(1)} s · ${detail}` : detail);
   }
 
   /** Estimated scene texture allocation; render targets and the browser's own surfaces are outside this estimate. */

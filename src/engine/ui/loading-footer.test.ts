@@ -242,6 +242,33 @@ it('names uncounted admission work without inventing an empty file batch', () =>
   } finally { loading.scope.dispose(); }
 });
 
+it('keeps quiet work visibly current without inventing completed work', () => {
+  const loading = new Loading({id: 'quiet-work', name: 'Quiet work'});
+  const foot = (): string => loading.root.querySelector('[data-el="foot"]')?.textContent ?? '';
+  try {
+    loading.paintAdmission({phase: 'cache-read', detail: 'Checking visited product',
+      bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0});
+    declareDownloadFile('/assets/pending.bin', 100);
+    now = 400; vi.advanceTimersByTime(32);
+    const counters = {network: loading.root.dataset['networkBytes'], cached: loading.root.dataset['cachedBytes'],
+      pending: loading.root.dataset['pendingBytes'], setup: loading.root.dataset['setup']};
+    now = 1000; vi.advanceTimersByTime(32);
+    expect(foot()).toContain('No reported progress for 0.9 s');
+    expect(foot()).toContain('Checking visited product');
+    expect(loading.root.dataset['stalled']).toBe('false');
+    now = 1400; vi.advanceTimersByTime(32);
+    expect(foot()).toContain('No reported progress for 1.3 s');
+    expect({network: loading.root.dataset['networkBytes'], cached: loading.root.dataset['cachedBytes'],
+      pending: loading.root.dataset['pendingBytes'], setup: loading.root.dataset['setup']}).toEqual(counters);
+    now = 10_500; vi.advanceTimersByTime(32);
+    expect(loading.root.dataset['stalled']).toBe('true');
+    recordCachedDownload('pending-cache', 100);
+    now = 10_900; vi.advanceTimersByTime(32);
+    expect(foot()).not.toContain('No reported progress');
+    expect(loading.root.dataset['stalled']).toBe('false');
+  } finally { loading.scope.dispose(); }
+});
+
 it('does not count one parsed descriptor as half the complete admission stage', () => {
   const loading = new Loading({id: 'admission-units', name: 'Admission units'});
   try {
