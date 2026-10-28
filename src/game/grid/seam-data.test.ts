@@ -60,3 +60,19 @@ test('deferred native plans keep the original complete matrix guard', async () =
   if (data.readPlans === undefined) throw new Error('Missing native plan reader');
   await expect(data.readPlans(() => Promise.resolve(new Response(plans.source)))).rejects.toThrow('Invalid grid seam plans');
 });
+
+test('deferred plan addresses detach and cannot borrow the main asset namespace', async () => {
+  const main = await fixture('{"plans":[],"edges":[]}'), plans = await fixture('{"plans":[["native",[[0,1]]]],"edges":[]}');
+  const address = { ...plans.address, url: plans.address.url.replace('grid-seams-', 'grid-seam-plans-') }, original = address.url;
+  const data = await readGridSeamData({ ...main.address, plans: address }, () => Promise.resolve(new Response(main.source)));
+  if (data.readPlans === undefined) throw new Error('Missing native plan reader');
+  address.url = '/assets/foreign.json'; address.sha256 = '0'.repeat(64); address.bytes = 1;
+  const urls: string[] = [];
+  expect(await data.readPlans(url => { urls.push(url); return Promise.resolve(new Response(plans.source)); })).toEqual([['native', [[0, 1]]]]);
+  expect(urls).toEqual([original]);
+  const wrongNamespace = await readGridSeamData({ ...main.address, plans: plans.address }, () => Promise.resolve(new Response(main.source)));
+  if (wrongNamespace.readPlans === undefined) throw new Error('Missing refused plan reader');
+  let reads = 0;
+  await expect(wrongNamespace.readPlans(() => { reads++; return Promise.resolve(new Response(plans.source)); })).rejects.toThrow('Invalid');
+  expect(reads).toBe(0);
+});
