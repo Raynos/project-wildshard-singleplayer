@@ -84,3 +84,14 @@ test('dense sliding hash windows keep original collision order, unaligned views 
   // Forty complete encoded outputs captured from 98035eec39 before this cut.
   expect(digest.digest('hex')).toBe('d1bfd6f13193a7dd5ef207ee1aac72246d32869b997fcbbe020168957d8801b5');
 });
+
+test('native-sized terminal references retain their original framing and every decoded byte', () => {
+  const raw = new Uint8Array(8 * 1024 * 1024), encoded = encodePhysicsReferences(raw);
+  // Captured from the predecessor before skipping its unused terminal indexing.
+  expect(encoded.length).toBe(13);
+  expect(createHash('sha256').update(encoded).digest('hex')).toBe('aa709aedb8546e944ce683a55eb4f3cbcd2bb7f77d9780b84b925f555748786b');
+  const decoded = decodePhysicsReferences(encoded, raw.length);
+  expect(decoded.length).toBe(raw.length);
+  expect(decoded.some(value => value !== 0)).toBe(false);
+  expect(decoded.buffer).not.toBe(raw.buffer);
+});
