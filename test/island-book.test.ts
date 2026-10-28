@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { Group, type Material } from 'three';
+import { BufferGeometry, Group, Matrix4, type Material } from 'three';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardWorld } from '../src/game/shard/world';
 import type { ShardRuntime } from '../src/game/shard/runtime';
@@ -19,8 +19,7 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseClientPlan } from '../src/format/clientPlan';
 import { CLIENT_FEATURES,admitClientPlan,installClientPhase } from '../src/game/shardfile/clientPlan';
-import { prepareClientWorldAssembly } from '../src/game/shardfile/clientWorldAssembly';
-import { IslandLibrary } from '../src/game/models/islandLibrary';
+import * as wholeGeometry from '../src/game/plugin/geometry';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import { ResolvedIslandLibrarySchema } from '../src/format/islandLibrary';
 import { admittedIslandBook,preflightIslandBook } from '../src/game/shardfile/islandBook';
@@ -107,83 +106,34 @@ function nativeFixture(f: ReturnType<typeof fixture>, construction?: Scope) {
   return{scope,world,runtime,ctx};
 }
 
-for (const refuses of [false,true]) {
-  test(`world intake overlaps earlier features and drains before ${refuses?'original refusal':'phase completion'}`, async () => {
-    const f=fixture(),owner=new Scope('early-resident'),native=nativeFixture(f,owner),events:string[]=[];
-    const record=await native.scope.run(()=>admittedIslandBook(f.product,book.id));
-    let started:()=>void=()=>{throw new Error('No intake gate');},finish:()=>void=()=>{throw new Error('No drain gate');},draining:()=>void=()=>{throw new Error('No drain start');};
-    const begin=new Promise<void>(resolve=>{started=resolve;}),gate=new Promise<void>(resolve=>{finish=resolve;}),atDrain=new Promise<void>(resolve=>{draining=resolve;});
-    const drain=vi.fn(async()=>{events.push('drain');draining();await gate;if(refuses)throw new Error('cleanup refusal');});
-    const preparation=vi.spyOn(record.library,'prepareGeometry').mockImplementation((registration,source)=>{
-      expect(registration).toBe(owner);expect(source).toBe(owner);events.push('intake');started();return drain;
-    });
-    const strings=vi.spyOn(CLIENT_FEATURES['strings.register'],'install').mockImplementation(async()=>{
-      events.push('earlier');await begin;events.push('earlier completed');if(refuses)throw new Error('original feature refusal');
-    });
-    const construct=vi.spyOn(CLIENT_FEATURES['world.assembly'],'install').mockImplementation(()=>{
-      events.push('assembly');expect(record.library.ready).toBe(false);
-    });
-    try {
-      const pending=installClientPhase(native.ctx,{features:[assembly,{kind:'strings.register'}]},'world',owner,'entered');
-      const result=(async()=>{try{await pending;events.push('completed');return 'done';}catch(error:unknown){events.push('refused');throw error;}})();
-      void result.catch(()=>undefined);
-      await begin;
-      // The geometry loan is bounded/private: neither installation nor phase
-      // completion can publish around the earlier feature or the final drain.
-      expect(events).not.toContain('completed');
-      await atDrain;expect(events).not.toContain(refuses?'refused':'completed');
-      finish();
-      if(refuses){await expect(result).rejects.toThrow('original feature refusal');expect(construct).not.toHaveBeenCalled();}
-      else {await expect(result).resolves.toBe('done');expect(events.indexOf('assembly')).toBeGreaterThan(events.indexOf('earlier completed'));}
-      expect(drain).toHaveBeenCalledTimes(1);expect(preparation).toHaveBeenCalledTimes(1);
-      expect(events.indexOf('drain')).toBeLessThan(events.indexOf(refuses?'refused':'completed'));
-    } finally {finish();for(const spy of[preparation,strings,construct])spy.mockRestore();native.scope.dispose();owner.dispose();}
-  });
-}
-
-for (const change of ['entered','resident','world'] as const) {
-  test(`early island intake refuses ${change} replacement while its catalogue is pending`, async () => {
-    const f=fixture(),owner=new Scope('early-owner'),native=nativeFixture(f,owner);
-    let release:(bytes:Uint8Array<ArrayBuffer>)=>void=()=>{throw new Error('No catalogue gate');};
-    const gate=new Promise<Uint8Array<ArrayBuffer>>(resolve=>{release=resolve;});f.reads.mockImplementation(()=>gate);
-    const preparation=vi.spyOn(IslandLibrary.prototype,'prepareGeometry');
-    try {
-      const drain=prepareClientWorldAssembly(native.ctx,assembly);
-      expect(drain).toBeTypeOf('function');
-      if(change==='entered')native.scope.dispose();
-      else if(change==='resident')owner.dispose();
-      else Object.assign(native.runtime,{world:legacyDouble<ShardWorld>({})});
-      release(new TextEncoder().encode(JSON.stringify(siteCatalogue)));
-      await drain?.();expect(preparation).not.toHaveBeenCalled();
-    } finally {preparation.mockRestore();native.scope.dispose();owner.dispose();}
-  });
-}
-
-test('early catalogue refusal reaches its original assembly cursor without a second read', async () => {
-  const f=fixture(),owner=new Scope('early-failure'),native=nativeFixture(f,owner);
-  let started:()=>void=()=>{throw new Error('No read gate');};const began=new Promise<void>(resolve=>{started=resolve;});
-  f.reads.mockImplementationOnce(()=>{started();return Promise.reject(new Error('original catalogue refusal'));});
-  const materials=vi.spyOn(runtimeProduct,'runtimeLookMaterials').mockResolvedValue(emptyLooks());
-  const drain=prepareClientWorldAssembly(native.ctx,assembly);
-  try {
-    await began;
-    await expect(CLIENT_FEATURES['world.assembly'].install(native.ctx,assembly,owner)).rejects.toThrow('original catalogue refusal');
-    expect(f.reads.mock.calls).toEqual([['models.json']]);expect(materials).not.toHaveBeenCalled();
-  } finally {await drain?.();materials.mockRestore();native.scope.dispose();owner.dispose();}
-});
-
-test('shared early intake drains only after every caller releases once', async () => {
-  const f=fixture(),owner=new Scope('early-shared'),native=nativeFixture(f,owner);
+test('the ordered phase consumes its whole loan once before publishing real templates', async () => {
+  const f=fixture(),owner=new Scope('phase-real-loan'),native=nativeFixture(f,owner),geometry=new BufferGeometry();
+  f.reads.mockImplementation(name=>Promise.resolve(new TextEncoder().encode(JSON.stringify(name==='models.json'?siteCatalogue:name==='figures.json'?{figures:{}}:{}))));
   const record=await native.scope.run(()=>admittedIslandBook(f.product,book.id));
-  let started:()=>void=()=>{throw new Error('No preparation gate');};const begin=new Promise<void>(resolve=>{started=resolve;});
-  const drain=vi.fn(async()=>{await Promise.resolve();});
-  const preparation=vi.spyOn(record.library,'prepareGeometry').mockImplementation(()=>{started();return drain;});
-  const first=prepareClientWorldAssembly(native.ctx,assembly),second=prepareClientWorldAssembly(native.ctx,assembly);
+  const whole=vi.spyOn(wholeGeometry,'readWholeGeometry').mockImplementation(scope=>{
+    const release=scope.capture('geometries',()=>{geometry.dispose();});
+    return Promise.resolve(new Map([['mesh',{geometry,matrix:new Matrix4(),release}]]));
+  });
+  const materials=vi.spyOn(runtimeProduct,'runtimeLookMaterials').mockResolvedValue(emptyLooks());
+  const handles=new SceneHandles({setupMaterial:()=>undefined});
+  const scenes=vi.spyOn(sceneHost,'installWorldScenes').mockImplementation(()=>{
+    expect(record.library.ready).toBe(false);expect(()=>record.library.loaded()).toThrow('not loaded');
+    return Promise.resolve(handles);
+  });
+  const baked=vi.spyOn(bakedHost,'residentBakedTiles').mockResolvedValue(new Map());
+  const construct=vi.spyOn(WorldAssembly,'construct').mockImplementation(async(_rows,ports)=>{
+    if(ports.library===undefined||ports.runtime.world===null)throw new Error('Missing actual library/world');
+    await ports.library.load(undefined,ports.runtime.world.game.registrationScope,ports.scope);
+    publishEntryOwner(ports.scope,'object','root',new Group());return {};
+  });
   try {
-    expect(first).toBeTypeOf('function');expect(second).toBeTypeOf('function');await begin;
-    await first?.();await first?.();expect(drain).not.toHaveBeenCalled();
-    await second?.();await second?.();expect(drain).toHaveBeenCalledTimes(1);expect(preparation).toHaveBeenCalledTimes(1);
-  } finally {await first?.();await second?.();preparation.mockRestore();native.scope.dispose();owner.dispose();}
+    await installClientPhase(native.ctx,{features:[assembly,{kind:'world.scenes'}]},'world',owner);
+    expect(record.library.ready).toBe(true);expect(whole).toHaveBeenCalledTimes(1);
+    expect(scenes).toHaveBeenCalledTimes(2);
+    expect(f.reads.mock.calls.map(([name])=>name)).toEqual(['models.json','groups.json','figures.json']);
+    expect(entryOwner(native.scope,'fixed-draws','draws')).toBe(record.library.loaded());
+    const copy=record.library.loaded().handle('chime').copy();expect(copy.attributes).toEqual(geometry.attributes);copy.dispose();
+  } finally {for(const spy of[whole,materials,scenes,baked,construct])spy.mockRestore();native.scope.dispose();owner.dispose();geometry.dispose();}
 });
 
 test('native entered dispatch retains one bound build through leave/reentry and lends the original owners',async()=>{
