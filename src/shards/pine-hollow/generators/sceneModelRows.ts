@@ -84,9 +84,9 @@ export const sceneModelRows: (sources: PineSources) => Promise<SceneModelRows> =
   heroPlacement('closed-arch', 'cave-arch', 'cave-arch', [authored.landmarks.arch], 'closed');
 
   const sourceRows = [
-    { key: 'rocks', url: 'rock_moss_set_01', name: 'Mossy boulder', id: 'mossy-boulder', surface: 'rock' },
-    { key: 'stumps', url: 'tree_stump_01', name: 'Tree stump', id: 'tree-stump', surface: 'wood' },
-    { key: 'log', url: 'dead_tree_trunk', name: 'Fallen log', id: 'fallen-log', surface: 'wood' },
+    { key: 'rocks', url: '/assets/models/rock_moss_set_01/rock_moss_set_01_lod.glb', name: 'Mossy boulder', id: 'mossy-boulder', surface: 'rock' },
+    { key: 'stumps', url: '/assets/models/tree_stump_01/tree_stump_01_lod.glb', name: 'Tree stump', id: 'tree-stump', surface: 'wood' },
+    { key: 'log', url: '/assets/models/dead_tree_trunk/dead_tree_trunk_lod.glb', name: 'Fallen log', id: 'fallen-log', surface: 'wood' },
   ] as const;
   for (const source of sourceRows) {
     const shapes = source.key === 'rocks' ? authored.propShapes.rocks : source.key === 'stumps' ? authored.propShapes.stumps : authored.propShapes.log.parts;
@@ -94,7 +94,7 @@ export const sceneModelRows: (sources: PineSources) => Promise<SceneModelRows> =
       material: source.key === 'rocks' ? 'props.rocks' : `props.${source.key}.${i}`, sphere: shape.sphere, castShadow: true, receiveShadow: true });
     const materialParts = source.key === 'rocks' ? [0] : shapes.map((_row, i) => i);
     for (const i of materialParts) materials.push({ id: source.key === 'rocks' ? 'props.rocks' : `props.${source.key}.${i}`, kind: 'source', load: 'placement',
-      url: `/assets/models/${source.url}/${source.url}_lod.glb`, aliases: authored.propMaterials, part: i, anisotropy: 8,
+      url: source.url, aliases: authored.propMaterials, part: i, anisotropy: 8,
       anisotropyMaps: ['map', 'normalMap', 'roughnessMap', 'aoMap'] });
     const hull = (shape: typeof shapes[number]) => ({ kind: 'hull', x: 0, y: 0, z: 0, points: shape.hull });
     models.push({ key: `props.${source.key}`, id: `pine-hollow/${source.id}`, name: source.name, category: 'nature', pipeline: 'cc0',

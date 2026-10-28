@@ -18,6 +18,10 @@ const CASTS = v.parse(v.array(v.picklist(['walker-dark', 'walker-light', 'sitter
 const HUES = { skin: 0xc9a58a, red: 0xa23a28, blue: 0x5d7f9e, green: 0x3e5a4a };
 const DARK = [0x1f2126, 0x2a2c31, 0x3b3f4a, 0x55585f, 0x6b6f78, 0x8a8f96];
 const LIGHT = [0x3a3630, 0x5a5448, 0x7a7262, 0x958c78, 0xafa590, 0xc6bea8];
+const CAST_FILES = {
+  'walker-dark': '/assets/nine-dragon/lab/walker.glb', 'walker-light': '/assets/nine-dragon/lab/walker.glb',
+  'sitter-dark': '/assets/nine-dragon/lab/sitter.glb', 'sitter-light': '/assets/nine-dragon/lab/sitter.glb',
+} as const;
 const STONE = [0x2f2f33, 0x45454a, 0x5b5b60, 0x6e6e73, 0x808086, 0x94949a];
 const vector = v.tuple([v.number(), v.number(), v.number()]);
 const slot = v.strictObject({ at: vector, normal: vector, size: v.number(), color: v.number(), blade: v.boolean() });
@@ -36,8 +40,8 @@ export async function castGeometry(name: Cast, read: (url: string) => Uint8Array
       matrix: guardMatrix(await propGlbBox(bytes), 0.115, -0.004, 0.006, 0) });
   }
   if (name === 'lion') return loadPropGlb(read('/assets/nine-dragon/lab/organic/lion.glb'), { kind: 9, line: 0, ao: 0.85, ramp: STONE, hues: {} });
-  const [model, ramp] = name.split('-');
-  return loadPropGlb(read(`/assets/nine-dragon/lab/${model}.glb`), { kind: 0, line: 0, ao: 0.6, ramp: ramp === 'dark' ? DARK : LIGHT, hues: HUES });
+  const [, ramp] = name.split('-');
+  return loadPropGlb(read(CAST_FILES[name]), { kind: 0, line: 0, ao: 0.6, ramp: ramp === 'dark' ? DARK : LIGHT, hues: HUES });
 }
 
 /** Each pack is independently loaded at the former conversion call, including the optional guard. */
