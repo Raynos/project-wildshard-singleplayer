@@ -1,8 +1,7 @@
 /** Frozen native cabin world/specimen topology; all merging ends at author time. */
 import * as THREE from 'three';
-import * as v from 'valibot';
-import { worldSceneSurfaceProperties, type worldSceneWeldRows } from '@wildshard/sdk/worldScenes';
-import { BakedBuildingLookSchema, emptyBuildingLifeRows, parseBuildingLifeRows, type BuildingAssemblyRows } from '@wildshard/format/buildings';
+import { worldSceneSurfaceProperties, buildingLookRows, emptyBuildingLifeRows, buildingLifeRows as parseBuildingLifeRows,
+  type worldSceneWeldRows, type AuthorBuildingAssembly } from '@wildshard/sdk/worldScenes';
 import type { CabinRows, BakedBuilding, PropKind } from './cabinShapes';
 import look from '../data/buildingLook.json' with { type: 'json' };
 import plumbing from '../data/plumbing.json' with { type: 'json' };
@@ -100,11 +99,11 @@ export class CabinSceneRecorder {
     for (const [ordinal, shape] of source.geometry) geometry[String(ordinal)] = resources.register(`cabins.live.${String(ordinal)}`, shape);
     for (const key of partKeys) parts[key] = resources.register(`materials.timber.${key}`, need(surfaces.get(key), 'Cabin material absent'));
     for (const key of particleKeys) particles[key] = resources.register(`materials.cabin.${key}`, need(surfaces.get(key), 'Cabin particle material absent'));
-    const input: BuildingAssemblyRows<string, 'flame' | 'ember' | 'smoke'> = { id: record.id, record, geometry,
+    const input: AuthorBuildingAssembly<string, 'flame' | 'ember' | 'smoke'> = { id: record.id, record, geometry,
       materials: { parts, particles: { flame: need(particles['flame'], 'Flame absent'), ember: need(particles['ember'], 'Ember absent'), smoke: need(particles['smoke'], 'Smoke absent') },
         glass: resources.register('materials.timber.glass', need(surfaces.get('glass'), 'Glass absent')), glow: resources.register('materials.cabin.glow', need(surfaces.get('glow'), 'Glow absent')) },
       models: { firePit: resources.register('source.pit', source.firePit.scene), lantern: resources.register('source.lantern', source.lantern.scene) },
-      role, look: v.parse(BakedBuildingLookSchema, look), tier: { detailDist: detailFor(source.tier), detailShadows: shadow, sharedLights } };
+      role, look: buildingLookRows(look), tier: { detailDist: detailFor(source.tier), detailShadows: shadow, sharedLights } };
     const assembly = new CabinAuthorAssembly(resources, input);
     let part = 0;
     assembly.lanternObj?.traverse(node => {

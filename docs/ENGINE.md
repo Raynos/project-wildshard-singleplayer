@@ -6259,6 +6259,10 @@ Signal well prompts use these rows on their existing input owners.
 welds (`worldSceneWeldRows`) and surface properties
 (`worldSceneSurfaceProperties`) through defining format parsers.
 `caveInteriorRows` admits bounded packed cave roofs, frames and material ports.
+`AuthorWorldScenes` preserves authored fields before parser defaults;
+`AuthorBuildingAssembly` carries the complete native building grammar.
+`buildingLookRows`, `buildingLifeRows` and `emptyBuildingLifeRows` admit
+original building policy or create a fresh empty life batch without a service.
 `game/plugin/scene.createWorldScene` borrows geometry/model/material ports and
 returns Group/parts/baked data. `worldPieces.scene` registers parts
 without reparenting or double transforms.

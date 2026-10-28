@@ -4,7 +4,8 @@ import { parse } from 'valibot';
 import { parseSceneBuffers } from '@wildshard/format/sceneBuffers';
 import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { WorldSceneSurfaceSchema } from '@wildshard/format/worldSceneSurface';
-import { worldSceneModels, worldSceneBuffers, worldSceneWeldRows, worldSceneSurfaceProperties } from './worldScenes';
+import { BakedBuildingLookSchema, parseBuildingLifeRows, emptyBuildingLifeRows as nativeEmptyBuildingLifeRows } from '@wildshard/format/buildings';
+import { worldSceneModels, worldSceneBuffers, worldSceneWeldRows, worldSceneSurfaceProperties, buildingLookRows, buildingLifeRows, emptyBuildingLifeRows } from './worldScenes';
 
 const model = {
   key: 'marker', id: 'author-scene/marker', name: 'Marker', category: 'props',
@@ -55,5 +56,27 @@ test('author surface properties retain complete tuples and finite-property refus
   for (const invalid of [{ ...input, color: [1, 2] }, { ...input, roughness: Number.NaN }, { ...input, side: 4 }, { ...input, callback: () => undefined }]) {
     expect(() => worldSceneSurfaceProperties(invalid)).toThrow();
     expect(() => parse(WorldSceneSurfaceSchema.entries.properties, invalid)).toThrow();
+  }
+});
+
+test('author building policy preserves the original look and living defaults', () => {
+  const input = { detail: ['wood'], far: ['stone'], door: { leaf: 'wood', hinges: 'iron', battens: 'wood', reach: 2, open: 'Open', close: 'Close' },
+    wheel: 'wood', lantern: { ring: 'iron', ringY: 1, drop: 2, scale: 0.5, glassName: 'glass',
+      glass: { color: 1, emissive: [0, 0, 0], emissiveIntensity: 1, roughness: 0.5, metalness: 0, opacity: 1 },
+      frame: { color: 2, roughness: 0.7, metalness: 1 } }, particles: { center: [0, 1, 0], radius: 3 }, deck: [0.1, 0.2] };
+  expect(buildingLookRows(input)).toEqual(parse(BakedBuildingLookSchema, input));
+  const life = { doors: [], swings: [], wheels: [], flickers: [], lamps: [], sites: [], shared: [] };
+  expect(buildingLifeRows(life)).toEqual(parseBuildingLifeRows(life));
+  const first = emptyBuildingLifeRows(), second = emptyBuildingLifeRows();
+  expect(first).toEqual(nativeEmptyBuildingLifeRows());
+  first.shared.push('owned');
+  expect(second.shared).toEqual([]);
+  for (const invalid of [{ ...input, deck: [1] }, { ...input, wheel: '' }, { ...input, callback: () => undefined }]) {
+    expect(() => buildingLookRows(invalid)).toThrow();
+    expect(() => parse(BakedBuildingLookSchema, invalid)).toThrow();
+  }
+  for (const invalid of [{ ...life, shared: Array.from({ length: 9 }, () => 'light') }, { ...life, callback: () => undefined }]) {
+    expect(() => buildingLifeRows(invalid)).toThrow();
+    expect(() => parseBuildingLifeRows(invalid)).toThrow();
   }
 });

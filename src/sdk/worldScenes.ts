@@ -9,6 +9,8 @@ import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement'
 import { parse } from 'valibot';
 import { ForestPageSchema, type ForestPageRows } from '@wildshard/format/forestPage';
 import { AdmissionLateSchema, type LateFile } from '@wildshard/format/admissionLate';
+import { BakedBuildingLookSchema, parseBuildingLifeRows as nativeBuildingLifeRows, emptyBuildingLifeRows as nativeEmptyBuildingLifeRows,
+  type BuildingAssemblyRows, type BakedBuildingLookRows } from '@wildshard/format/buildings';
 import type { OutputFile } from '@wildshard/format/outputIndex';
 
 /** Source-owned effect declarations retain the platform field contract. */
@@ -74,3 +76,15 @@ export function worldSceneSurfaceProperties(input: unknown): WorldSceneSurface['
 
 /** Admit bounded cave ownership, frame, packed roof and material ports before publication. */
 export function caveInteriorRows(input: unknown): CaveInteriorRows { return parse(CaveInteriorSchema, input); }
+
+/** Complete authored building assembly grammar; no building instance or resource service is lent. */
+export type AuthorBuildingAssembly<K extends string = string, P extends string = string> = BuildingAssemblyRows<K, P>;
+
+/** Admit original building material, particle, door and lantern policy before baking. */
+export function buildingLookRows(input: unknown): BakedBuildingLookRows { return parse(BakedBuildingLookSchema, input); }
+
+/** Admit bounded moving doors, wheels, lights and site bindings through their defining checks. */
+export function buildingLifeRows(input: unknown): ReturnType<typeof nativeBuildingLifeRows> { return nativeBuildingLifeRows(input); }
+
+/** A fresh native empty life batch; authored assembly owns every returned list. */
+export function emptyBuildingLifeRows(): ReturnType<typeof nativeEmptyBuildingLifeRows> { return nativeEmptyBuildingLifeRows(); }
