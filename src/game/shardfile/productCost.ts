@@ -100,10 +100,20 @@ function* specimenCosts(source: Shardfile, assets: ReadonlyMap<string, Uint8Arra
   };
   const eligible = new Set<string>(), retained = new Set(source.critical);
   if (quality !== undefined) for (const library of libraries.values()) for (const model of library.models) for (const hash of refs(library.id, model.id)) eligible.add(hash);
-  let largest = 0;
+  let largest = 0, unreadDemand = false;
   for (const model of catalogue.models) {
     for (const choice of model.choices) {
       const leaves = worldSceneModelGraphs(choice);
+      // A cold-only document has no admitted body yet. Its geometry remains
+      // fully charged rather than fetching the body merely to claim a saving.
+      // Unknown inventory and ordinary missing bodies retain their refusal.
+      let unread = false;
+      for (const leaf of leaves) if ('file' in leaf) {
+        const hash = names.get(leaf.file);
+        if (hash === undefined) throw new Error(`Missing specimen cost bytes: ${leaf.file}`);
+        if (!assets.has(hash) && model.load === 'demand') unread = true;
+      }
+      if (unread) { unreadDemand = true; yield; continue; }
       const graphs = leaves.map(leaf => 'file' in leaf ? checkedWeld(leaf.file) : leaf);
       const resources = worldSceneModelResources({ ...catalogue, models: [{ ...model, choices: [choice] }] }, graphs);
       const hashes = new Set(resources.geometry.flatMap(ref => refs(ref.library, ref.model)));
@@ -162,7 +172,7 @@ function* specimenCosts(source: Shardfile, assets: ReadonlyMap<string, Uint8Arra
   for (const file of source.files) for (const dependency of file.dependencies) retained.add(dependency);
   const charged = new Set(source.library);
   const removable = source.files.reduce((sum, file) => sum + (charged.has(file.hash) && eligible.has(file.hash) && !retained.has(file.hash) ? file.decoded + file.gpu : 0), 0);
-  const saving = Math.max(0, removable - largest * 4);
+  const saving = unreadDemand ? 0 : Math.max(0, removable - largest * 4);
   return saving === 0 ? source : { ...source, budgets: { ...source.budgets, library: { ...source.budgets.library, resident: Math.max(0, source.budgets.library.resident - saving) } } };
 }
 

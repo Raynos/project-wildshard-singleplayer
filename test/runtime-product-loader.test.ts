@@ -933,7 +933,7 @@ test('tier residency excludes the other tier of a rigged-hull book', async () =>
   expect(tierLibrarySource(source, 'desktop').library).toContain(desktop);
 });
 
-async function specimenCostFixture(profiles = false, fileScene = false) {
+async function specimenCostFixture(profiles = false, fileScene = false, demand = false) {
   const assets = new Map<string, Uint8Array>(), names = new Map<string, string>();
   const add = (source: schema.Shardfile, name: string, wire: Uint8Array, decoded: number): string => {
     const hash = hashImmutableBytes(wire); assets.set(hash, wire); names.set(hash, name);
@@ -945,7 +945,7 @@ async function specimenCostFixture(profiles = false, fileScene = false) {
       const id = `m${String(i)}`, name = `models/${id}.bin`;
       add(source, name, new Uint8Array([30 + i]), 100); return { id, file: name };
     });
-    const catalogue = { product: 'runtime-loader', models: [{ key: 'crate', id: 'runtime-loader/crate', name: 'Crate', file: 'crate.json', category: 'props', pipeline: 'code', assembly: 'scene', defaults: { style: 0 },
+    const catalogue = { product: 'runtime-loader', models: [{ ...(demand ? { load: 'demand' } : {}), key: 'crate', id: 'runtime-loader/crate', name: 'Crate', file: 'crate.json', category: 'props', pipeline: 'code', assembly: 'scene', defaults: { style: 0 },
       choices: models.map((model, i) => ({ id: model.id, params: { style: i }, size: [1, 1, 1], colliders: [], draws: [], scene: fileScene && i === 0 ? { knob: 'fixture.rich', false: { phone: { file: 'scenes/plain.json' }, desktop: { file: 'scenes/plain.json' } }, true: { phone: { file: 'scenes/rich.json' }, desktop: { file: 'scenes/rich.json' } } } : { id: model.id, root: 'root', nodes: [
         { id: 'mesh', parent: 'root', kind: 'mesh', geometry: { library: 'shapes', model: model.id }, material: 'paint', sphere: [0, 0, 0, 1] },
       ] } })) }] };
@@ -1021,6 +1021,27 @@ test('specimen selection reuses admitted leaves and still rejects an unselected 
   assets.set(rich, bytes({ id: 'world', root: 'root', nodes: [{ kind: 'mesh' }] }));
   expect(() => scopedSpecimenLibrarySource(source, assets, { tier: 'phone' })).toThrow();
   await expect(scopedSpecimenLibrarySourcePaced(source, assets, { tier: 'phone' }, () => Promise.resolve())).rejects.toThrow();
+});
+
+test('unread demand documents retain the full cost without weakening inventory or malformed-body guards', async () => {
+  const { source, assets } = await specimenCostFixture(true, true, true);
+  const graph = bytes({ id: 'world', root: 'root', nodes: [{ kind: 'mesh', id: 'wall', parent: 'root', geometry: { library: 'shapes', model: 'wide' }, material: 'paint', sphere: [0, 0, 0, 1] }] });
+  const rich = hashImmutableBytes(graph), original = assets.get(rich);
+  if (original === undefined) throw new Error('Missing demand cost fixture');
+  assets.delete(rich);
+  // The world selects the other leaf. No cost-only fetch or guessed saving.
+  expect(scopedSpecimenLibrarySource(source, assets, { tier: 'phone' })).toBe(source);
+  expect(await scopedSpecimenLibrarySourcePaced(source, assets, { tier: 'phone' }, () => Promise.resolve())).toBe(source);
+  assets.set(rich, original);
+  expect(scopedSpecimenLibrarySource(source, assets, { tier: 'phone' }).budgets.library.resident).toBeLessThan(source.budgets.library.resident);
+  assets.set(rich, bytes({ id: 'world', root: 'root', nodes: [{ kind: 'mesh' }] }));
+  expect(() => scopedSpecimenLibrarySource(source, assets, { tier: 'phone' })).toThrow();
+  assets.delete(rich);
+  const descriptor = outputDescriptor(source);
+  if (descriptor === undefined) throw new Error('Missing fixture descriptor');
+  const row = descriptor.index.files.findIndex(file => file.hash === rich);
+  descriptor.index.files.splice(row, 1);
+  expect(() => scopedSpecimenLibrarySource(source, assets, { tier: 'phone' })).toThrow('Missing specimen cost bytes');
 });
 
 test('a lower exact estimate clears a previous warning without changing the cap', () => {
