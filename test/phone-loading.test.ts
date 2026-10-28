@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import {expect, test} from 'vitest';
 import {comparisons, profiles, record, type Run} from '../scripts/phone-loading/model';
-import baseline from '../art/loading/round-1-phone-speed/baseline-a6701db71.json';
+import baseline from './fixtures/phone-loading-a6701db71.json';
 import {instrument} from '../scripts/phone-loading/instrument';
 
 function run(): Run {
