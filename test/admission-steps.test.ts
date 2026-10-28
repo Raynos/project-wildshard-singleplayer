@@ -84,6 +84,25 @@ test('preflight string lengths stay local and count repeated escaped values', ()
   expect(() => drain(preflightShardfileSteps(source, 1))).toThrow('string exceeds admission cap');
 });
 
+test('repeated escaped text spends the exact serialized UTF-8 source cap', () => {
+  const source = { files: [], requires: { commons: [] }, rows: [] as string[] };
+  const encoded = (): number => new TextEncoder().encode(JSON.stringify(source)).length;
+  const cap = 2_000_000, text = 'é🐟"\\\n\uD800'.repeat(100);
+  const width = new TextEncoder().encode(JSON.stringify(text)).length + 1;
+  source.rows = Array.from({ length: Math.floor((cap - encoded() - 3) / width) }, () => text);
+  source.rows.push('');
+  const remaining = cap - encoded();
+  expect(remaining).toBeLessThanOrEqual(4096);
+  source.rows[source.rows.length - 1] = 'x'.repeat(remaining);
+  expect(encoded()).toBe(cap);
+  expect(() => preflightShardfile(source)).not.toThrow();
+  expect(() => drain(preflightShardfileSteps(source, 64))).not.toThrow();
+  source.rows[source.rows.length - 1] += 'é';
+  expect(encoded()).toBe(cap + 2);
+  expect(() => preflightShardfile(source)).toThrow('source exceeds admission cap');
+  expect(() => drain(preflightShardfileSteps(source, 64))).toThrow('source exceeds admission cap');
+});
+
 test('stepped residency bytes equal productResidentBytes', () => {
   const source = emptyShardfile({ slug: 'steps', name: 'Steps', author: 'T', revision: 1, seed: 1 });
   Reflect.set(source, 'rows', Array.from({ length: 3000 }, (_, i) => ({ id: `row-${i}`, x: i * 0.5, tags: ['a', 'é'] })));
