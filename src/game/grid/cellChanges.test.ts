@@ -183,3 +183,20 @@ test('field snapshots retain removed-and-readded listeners and release retained 
   expect(calls).toEqual(['first', 'second', 'first', 'second']);
   expect(target.value).toBe(2);
 });
+
+test('a field listener failure keeps the assigned value and original next-write order', () => {
+  const target = { value: 0 }, calls: string[] = [], failure = new Error('listener refusal');
+  let refuse = true;
+  const first = onCellField(target, 'value', () => {
+    calls.push(`first:${target.value}`);
+    if (refuse) throw failure;
+  });
+  const second = onCellField(target, 'value', () => { calls.push(`second:${target.value}`); });
+  try {
+    expect(() => { target.value = 1; }).toThrow(failure);
+    expect(target.value).toBe(1); expect(calls).toEqual(['first:1']);
+    refuse = false; target.value = 2; target.value = 2;
+    expect(calls).toEqual(['first:1', 'first:2', 'second:2']);
+  } finally { first(); second(); }
+  expect(Object.getOwnPropertyDescriptor(target, 'value')).toEqual({ value: 2, configurable: true, writable: true, enumerable: true });
+});
