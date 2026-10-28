@@ -81,19 +81,29 @@ if (sw !== null) {
 }
 
 let pageReady = false, controlsReady = false, sameBuild: ServiceWorker | null = null;
-function warmCode(): void {
-  if (!pageReady || !swAllowed()) return;
-  if (sameBuild !== null) {
-    const candidate = sameBuild; sameBuild = null;
-    if (candidate.state === 'installed') {
-      // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker.postMessage has no targetOrigin parameter.
-      candidate.postMessage({ type: 'SKIP_WAITING' });
-    }
+let gcController: ServiceWorker | null = null;
+function activateSameBuild(): void {
+  const candidate = sameBuild; sameBuild = null;
+  if (candidate?.state === 'installed') {
+    // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker.postMessage has no targetOrigin parameter.
+    candidate.postMessage({ type: 'SKIP_WAITING' });
   }
-  // A healthy title can adopt updates, but speculative code waits for actual world control (I2).
-  if (controlsReady) sw?.controller?.postMessage({ type: 'WARM_CODE' });
+}
+function warmCode(): void {
+  if (!swAllowed()) return;
+  const controller = sw?.controller;
+  if (controlsReady && controller && controller !== gcController) {
+    gcController = controller;
+    // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker.postMessage has no targetOrigin parameter.
+    controller.postMessage({ type: 'GC' });
+  }
+  if (pageReady && controlsReady) {
+    // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker.postMessage has no targetOrigin parameter.
+    controller?.postMessage({ type: 'WARM_CODE' });
+  }
 }
 if (sw !== null) {
+  pageScope.listen(window, 'pagehide', activateSameBuild);
   pageScope.listen(document, 'ws:ready', () => { pageReady = true; warmCode(); });
   pageScope.listen(document, 'ws:control-ready', () => { controlsReady = true; warmCode(); });
   pageScope.listen(sw, 'controllerchange', warmCode);
@@ -114,15 +124,15 @@ function swAllowed(): boolean {
  * this page already runs. That happens when the pill was tapped before the worker finished installing: the `?v=`
  * reload fetched the new build from the network under the old worker, and the new worker then came up waiting. Lighting
  * the pill for it asked for a second tap and a second loading screen for the build already on screen (E95), so it is
- * activated quietly instead (no reload: the page is that build already).
+ * adopted quietly at pagehide instead (no mid-session replacement or extra reload).
  */
 function announce(w: ServiceWorker): void {
   void (async () => {
     const build = await buildOf(w);
     if (w.state === 'redundant') return;
     if (build?.startsWith(`${__BUILD_ID__}-`) === true) {
-      // Do not replace the old controller in the middle of this document's
-      // dynamic module graph. The existing usable-page signal ends that work.
+      // Keep even a same-build replacement waiting until the document leaves.
+      // A usable title/control signal is still the middle of this session.
       sameBuild = w;
       warmCode();
       return;

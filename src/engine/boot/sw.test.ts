@@ -63,8 +63,12 @@ test('adoption skips stale workers, fences its controller and retires expired na
   await vi.waitFor(()=>{expect(vi.getTimerCount()).toBe(initial);});
   expect(installing.messages).toEqual([{type:'BUILD'}]);
   document.dispatchEvent(new Event('ws:ready'));
-  expect(installing.messages).toEqual([{type:'BUILD'},{type:'SKIP_WAITING'}]);
+  expect(installing.messages).toEqual([{type:'BUILD'}]);
   expect(expired.messages).not.toContainEqual({type:'WARM_CODE'});
   document.dispatchEvent(new Event('ws:control-ready'));
   expect(expired.messages).toContainEqual({type:'WARM_CODE'});
+  expect(expired.messages).toContainEqual({type:'GC'});
+  expect(installing.messages).toEqual([{type:'BUILD'}]);
+  window.dispatchEvent(new Event('pagehide'));
+  expect(installing.messages).toEqual([{type:'BUILD'},{type:'SKIP_WAITING'}]);
 });

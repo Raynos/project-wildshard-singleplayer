@@ -39,9 +39,9 @@ import { codePackEntries, readCodePackTransport } from './codePack.js';
  *             names another build's code, or a code file the host no longer serves fails the install, so the old
  *             worker keeps serving (E144). Optional icons/fonts/index wait for control; everything only what is missing;
  *             hashed images on use. After control, warm lazy code serially at low priority, yielding to real reads.
- *   activate  carry the previous ws-static-* entries that are still current BY CONTENT into the new static cache and
- *             drop everything /asset-manifest.json no longer names (E160 / E161, gcStatic below), drop stale
- *             ws-shell/ws-static caches, prune (never wipe) the immutable cache, claim.
+ *   activate  claim immediately; no network, hashing or cache traversal may gate navigation (G837).
+ *   GC        after page control, carry still-current static entries by content (E160 / E161), remove stale
+ *             entries/caches and prune immutable code under one bounded background deadline.
  *   fetch     hashed bundle: cache-first into ws-immutable;
  *             `/assets/…?v=<content hash>` (src/engine/boot/bytes.ts versionedUrl, E160): cache-first into the static cache;
  *             tex / models / hdri / basis / fonts / icons / music + sfx audio: cache-first into the static cache;
@@ -239,25 +239,35 @@ workerScope.listen(self, 'install', (event) => {
 
 let activationStage = 'waiting';
 workerScope.listen(self, 'activate', (event) => {
-  event.waitUntil(
-    (async () => {
-      activationStage = 'manifest';
-      const named = await assetManifest(); // null offline: nothing is dropped that cannot be verified
-      activationStage = 'migration';
-      await migrateStatic(named);
-      activationStage = 'static-gc';
-      await gcStatic(named);
-      activationStage = 'cache-gc';
-      for (const k of await caches.keys()) if (k.startsWith('ws-') && !KEEP.includes(k)) { gc.caches++; await caches.delete(k); }
-      activationStage = 'code-gc';
-      await pruneImmutable();
-      if (gc.entries > 0 || gc.caches > 0) console.info(`[sw] gc: freed ${(gc.bytes / 1048576).toFixed(2)} MB in ${gc.entries} entries + ${gc.caches} old caches; kept ${gc.kept} (${gc.migrated} carried over, ${gc.hashed} verified by hash)`);
-      activationStage = 'claim';
-      await self.clients.claim();
-      activationStage = 'complete';
-    })(),
-  );
+  // Activation gates every fetch in every tab. Never put disk traversal,
+  // hashing or a manifest download before this first claim.
+  event.waitUntil(self.clients.claim().then(() => { activationStage = 'complete'; return undefined; }));
 });
+
+let gcWork = null, gcComplete = false;
+function collectCaches() {
+  if (gcComplete) return Promise.resolve({ type: 'GC', status: 'complete' });
+  if (gcWork) return gcWork;
+  const owner = new WorkerScope(), controller = new AbortController(), signal = controller.signal;
+  const deadline = new Promise(resolve => {
+    owner.timeout(30000, () => { controller.abort(); resolve('timed-out'); });
+  });
+  const run = async () => {
+    const named = await assetManifest(signal);
+    signal.throwIfAborted(); await migrateStatic(named, signal);
+    signal.throwIfAborted(); await gcStatic(named, signal);
+    for (const k of await caches.keys()) {
+      signal.throwIfAborted();
+      if (k.startsWith('ws-') && !KEEP.includes(k)) { gc.caches++; await caches.delete(k); }
+    }
+    signal.throwIfAborted(); await pruneImmutable(signal);
+    signal.throwIfAborted(); gcComplete = true;
+    return 'complete';
+  };
+  gcWork = Promise.race([run().catch(() => 'failed'), deadline])
+    .then(status => ({ type: 'GC', status })).finally(() => { owner.dispose(); gcWork = null; });
+  return gcWork;
+}
 
 /**
  * E160 / E161 — keep what the build names, by content; drop the rest.
@@ -275,9 +285,9 @@ workerScope.listen(self, 'activate', (event) => {
  */
 
 /** path → hash8 of every file this build ships under public/assets, or null (offline at activate: verify nothing, drop nothing) */
-async function assetManifest() {
+async function assetManifest(signal) {
   try {
-    const r = await fetch(abs('/asset-manifest.json'), { cache: 'no-store' });
+    const r = await fetchAttempt(new Request(abs('/asset-manifest.json'), { cache: 'no-store', signal }));
     if (r.ok) return await r.json();
   } catch { /* offline */ }
   return null;
@@ -312,13 +322,15 @@ async function verdict(req, res, named, fromOld) {
 }
 
 /** A new static cache name = some asset's bytes changed. Carry every entry of the old caches that is still current. */
-async function migrateStatic(named) {
+async function migrateStatic(named, signal) {
   const old = (await caches.keys()).filter((k) => k.startsWith('ws-static-') && k !== STATIC);
   if (old.length === 0) return;
   const next = await caches.open(STATIC);
   for (const k of old) {
+    signal.throwIfAborted();
     const prev = await caches.open(k);
     for (const req of await prev.keys()) {
+      signal.throwIfAborted();
       try {
         const res = await prev.match(req, MATCH_OPTS);
         if (!res) continue;
@@ -327,10 +339,10 @@ async function migrateStatic(named) {
         // A verified plain URL still has live readers (the inline title hero).
         // Keep that alias in this content-named cache as well as its versioned
         // key, instead of downloading identical bytes on the next document.
-        if (to !== 'keep' && !await next.match(req, MATCH_OPTS)) await next.put(req, res.clone());
+        if (to !== 'keep' && !await next.match(req, MATCH_OPTS)) { signal.throwIfAborted(); await next.put(req, res.clone()); }
         const key = to === 'keep' ? req : to;
         if (await next.match(key, MATCH_OPTS)) continue;
-        await next.put(key, res);
+        signal.throwIfAborted(); await next.put(key, res);
         gc.migrated++;
       } catch { /* one bad entry must not stop the migration */ }
     }
@@ -338,25 +350,27 @@ async function migrateStatic(named) {
 }
 
 /** Every entry of the current static cache the build no longer names: gone (a JS-only deploy prunes nothing it still ships). */
-async function gcStatic(named) {
+async function gcStatic(named, signal) {
   if (!named) return;
   const cache = await caches.open(STATIC);
   for (const req of await cache.keys()) {
+    signal.throwIfAborted();
     try {
       const res = await cache.match(req, MATCH_OPTS);
       if (!res) continue;
-      if ((await verdict(req, res, named, false)) === 'drop') { gc.entries++; gc.bytes += await sizeOf(res); await cache.delete(req, MATCH_OPTS); }
+      if ((await verdict(req, res, named, false)) === 'drop') { gc.entries++; gc.bytes += await sizeOf(res); signal.throwIfAborted(); await cache.delete(req, MATCH_OPTS); }
       else gc.kept++;
     } catch { /* keep what cannot be judged */ }
   }
 }
 
 /** Drop only the content-addressed entries this build no longer names. An empty bundle list → no prune (never a wipe). */
-async function pruneImmutable() {
+async function pruneImmutable(signal) {
   if (BUNDLE.length === 0) return;
   const names = new Set(BUNDLE.map((p) => new URL(p, self.registration.scope).pathname));
   const cache = await caches.open(IMMUTABLE_CACHE);
   for (const req of await cache.keys()) {
+    signal.throwIfAborted();
     const p = new URL(req.url).pathname;
     if (IMMUTABLE_RE.test(p) && !names.has(p)) await cache.delete(req);
   }
@@ -414,6 +428,7 @@ workerScope.listen(self, 'message', (event) => {
     timings: performance.getEntriesByType('resource').map(entry => entry.toJSON()),
   })));
   else if (data.type === 'VERSION') event.waitUntil(reply(event, version()));
+  else if (data.type === 'GC') event.waitUntil(reply(event, collectCaches()));
   else if (data.type === 'BUILD') event.waitUntil(reply(event, Promise.resolve({ type: 'BUILD', build: BUILD, activationStage })));
   else if (data.type === 'PREFETCH' && typeof data.url === 'string') event.waitUntil(reply(event, prefetchOne(data.url)));
   else if (data.type === 'STORE' && typeof data.url === 'string' && data.blob instanceof Blob) event.waitUntil(reply(event, storeOne(data.url, data.blob)));
@@ -599,7 +614,9 @@ async function documentResponse(event, req) {
     );
     return transportReceipt(hit, true);
   }
-  return networkFirst(req, SHELL, key, true);
+  const res = await fetchAttempt(req, { stallMs: 3000, deadlineMs: 3000 });
+  putDocument(cache, key, res.clone()).catch(() => undefined);
+  return transportReceipt(res);
 }
 
 // A flapping radio may never reject a request or finish its body. Bound each
@@ -610,8 +627,8 @@ const FETCH_ATTEMPT_MS = 10000;
 class WorkerFetchStallError extends Error {
   constructor(url) { super(`Service worker fetch stalled: ${url}`); this.name = 'WorkerFetchStallError'; }
 }
-/** @param {Request|string} input @returns {Promise<Response>} */
-async function fetchAttempt(input) {
+/** @param {Request|string} input @param {{stallMs?:number, deadlineMs?:number}} [options] @returns {Promise<Response>} */
+async function fetchAttempt(input, { stallMs = FETCH_ATTEMPT_MS, deadlineMs } = {}) {
   const req = typeof input === 'string' ? new Request(input) : input;
   const owner = new WorkerScope(), controller = new AbortController();
   const abort = () => { controller.abort(req.signal.reason); };
@@ -623,11 +640,11 @@ async function fetchAttempt(input) {
   let reader;
   /** @type {Promise<never>} */
   const deadline = new Promise((_resolve, reject) => {
+    const expire = () => { reject(new WorkerFetchStallError(req.url)); controller.abort(); };
+    if (deadlineMs !== undefined) owner.timeout(deadlineMs, expire);
     reset = () => {
       watch.dispose(); watch = new WorkerScope();
-      watch.timeout(FETCH_ATTEMPT_MS, () => {
-        reject(new WorkerFetchStallError(req.url)); controller.abort();
-      });
+      watch.timeout(stallMs, expire);
     };
     reset();
   });
@@ -672,9 +689,13 @@ async function cacheFirst(req, name) {
   // content can now use its plain URL, including immediately after an offline
   // update. Match only its own hash prefix; never ignore arbitrary queries.
   const url = new URL(req.url);
+  if (name === STATIC && (CONTENT_NAMED_RE.test(url.pathname) || url.searchParams.has('v'))) {
+    const previous = await caches.match(req, MATCH_OPTS);
+    if (previous) return transportReceipt(previous, true);
+  }
   const namedHash = /\/([0-9a-f]{64})\.[a-z0-9]+$/.exec(url.pathname)?.[1];
   if (name === STATIC && url.pathname.startsWith('/assets/') && url.search === '' && namedHash !== undefined) {
-    const held = await cache.match(`${abs(url.pathname)}?v=${namedHash.slice(0, 8)}`, MATCH_OPTS);
+    const held = await caches.match(`${abs(url.pathname)}?v=${namedHash.slice(0, 8)}`, MATCH_OPTS);
     if (held) {
       await cache.put(req, held.clone()).catch(() => undefined);
       return transportReceipt(held, true);

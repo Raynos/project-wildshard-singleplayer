@@ -125,6 +125,7 @@ test('emitted grid data stays cold at install and survives activation for offlin
     });
   }
   await f.dispatch('activate');
+  await f.dispatch('message', { data: { type: 'GC' } });
   f.navigator.onLine = false; f.fetch.mockRejectedValue(new Error('offline')); f.fetch.mockClear();
   for (const [url, bytes] of bodies) {
     await f.dispatch('fetch', { request: new Request(url) });
@@ -313,6 +314,7 @@ test('activation carries unchanged packs without downloading and fetches only a 
   await old.put(new URL(kept, base).href, new Response('unchanged pack bytes'));
   await old.put(new URL(obsolete, base).href, new Response('retired pack bytes'));
   await f.dispatch('activate');
+  await f.dispatch('message', { data: { type: 'GC' } });
   const current = await f.open('ws-static-unit-assets');
   expect(await (await current.match(new URL(kept, base).href))?.text()).toBe('unchanged pack bytes');
   expect(await current.match(new URL(obsolete, base).href)).toBeUndefined();
@@ -340,6 +342,7 @@ test('verified plain image aliases survive migration without an identical downlo
   await old.put(new URL(stale, base).href, new Response('old image'));
   await old.put(new URL(removed, base).href, new Response('removed image'));
   await f.dispatch('activate');
+  await f.dispatch('message', { data: { type: 'GC' } });
   const current = await f.open('ws-static-unit-assets');
   expect(await (await current.match(new URL(path, base).href))?.text()).toBe('unchanged hero');
   expect(await (await current.match(new URL(`${path}?v=${hash}`, base).href))?.text()).toBe('unchanged hero');
@@ -365,6 +368,7 @@ test('full content names survive static-cache migration without repeating baked 
   await old.put(new URL(`${kept}?v=11111111`, base).href, new Response('unchanged bytes'));
   await old.put(new URL(removed, base).href, new Response('removed bytes'));
   await f.dispatch('activate');
+  await f.dispatch('message', { data: { type: 'GC' } });
   const current = await f.open('ws-static-unit-assets');
   expect(await (await current.match(new URL(kept, base).href))?.text()).toBe('unchanged bytes');
   expect(await current.match(new URL(removed, base).href)).toBeUndefined();
@@ -438,7 +442,7 @@ test('background code is serial, yields its body to foreground reads, then suppo
 });
 
 
-test.each([entry, css, '/shardfiles/driftwood-isle/shard.json', '/assets/map/paint.json', '/index.html'])(
+test.each([entry, css, '/shardfiles/driftwood-isle/shard.json', '/assets/map/paint.json'])(
   'a stalled %s request aborts and retries the network without publishing partial bytes', async path => {
     vi.useFakeTimers();
     let reads = 0;
@@ -509,5 +513,69 @@ test('a healthy slow body keeps progressing beyond the per-stall limit without a
   expect(await f.responses[0]?.text()).toBe('firstsecond');
   expect(f.fetch).toHaveBeenCalledTimes(1);
   expect(f.fetch.mock.calls[0]?.[1]?.signal?.aborted).toBe(false);
+  expect(vi.getTimerCount()).toBe(0);
+});
+
+
+test('activation claims without downloading a manifest or traversing any cache', async () => {
+  const f = fixture(() => new Promise<Response>(() => { /* A dead radio cannot block claim. */ }));
+  await f.dispatch('activate');
+  expect(f.fetch).not.toHaveBeenCalled();
+  expect(f.replies).toEqual([]);
+});
+
+test('a cold uncached navigation has one3s total deadline even while its HTML trickles', async () => {
+  vi.useFakeTimers(); let stream: ReadableStreamDefaultController<Uint8Array> | undefined;
+  const f = fixture(() => Promise.resolve(new Response(new ReadableStream<Uint8Array>({ start(c) { stream = c; } }))));
+  const work = expect(f.dispatch('fetch', { request: new Request(new URL('/index.html', base)) })).rejects.toThrow('Service worker fetch stalled');
+  await vi.advanceTimersByTimeAsync(2500);
+  if (stream === undefined) throw new Error('Missing response stream');
+  stream.enqueue(new TextEncoder().encode('<html>'));
+  await vi.advanceTimersByTimeAsync(500); await work;
+  expect(f.fetch).toHaveBeenCalledTimes(1);
+  expect(f.fetch.mock.calls[0]?.[1]?.signal?.aborted).toBe(true);
+  expect(vi.getTimerCount()).toBe(0);
+});
+
+test('post-control GC tolerates an unavailable manifest and carries offline bytes', async () => {
+  vi.useFakeTimers();
+  const f = fixture(() => new Promise<Response>(() => { /* Manifest cannot arrive. */ }));
+  await (await f.open('ws-static-old')).put(new URL('/assets/needed.bin', base).href, new Response('old body'));
+  await f.dispatch('activate');
+  const work = f.dispatch('message', { data: { type: 'GC' } });
+  await vi.advanceTimersByTimeAsync(10000); await work;
+  expect(f.replies).toContainEqual({ type: 'GC', status: 'complete' });
+  // Offline/unavailable manifest keeps carried bytes; no current-content guess.
+  expect(await (await f.open('ws-static-unit-assets')).match(new URL('/assets/needed.bin', base).href).then(r=>r?.text())).toBe('old body');
+});
+
+test('versioned and content-addressed old static bodies remain usable before GC', async () => {
+  const path = `/assets/baked/fixture/${'1'.repeat(64)}.bin`;
+  const f = fixture();
+  await (await f.open('ws-static-old')).put(new URL(path,base).href,new Response('exact visited body'));
+  f.navigator.onLine=false;
+  await f.dispatch('activate');
+  await f.dispatch('fetch',{request:new Request(new URL(path,base))});
+  expect(await f.responses[0]?.text()).toBe('exact visited body');
+  expect(f.fetch).not.toHaveBeenCalled();
+});
+
+
+test('GC stops at30s and late cache traversal cannot delete or publish after expiry', async () => {
+  vi.useFakeTimers();
+  const f = fixture(() => Promise.resolve(new Response(null, { status: 204 })));
+  const old = await f.open('ws-static-old'), key = new URL('/assets/needed.bin',base).href;
+  await old.put(key,new Response('retained'));
+  let finish: ((rows: Request[]) => void) | undefined;
+  old.keys = () => new Promise<Request[]>(resolve => { finish = resolve; });
+  await f.dispatch('activate');
+  const work = f.dispatch('message',{data:{type:'GC'}});
+  await vi.waitFor(() => { expect(finish).toBeTypeOf('function'); });
+  await vi.advanceTimersByTimeAsync(30000); await work;
+  expect(f.replies).toContainEqual({type:'GC',status:'timed-out'});
+  if(finish===undefined)throw new Error('GC never reached old cache');
+  finish([new Request(key)]); await vi.advanceTimersByTimeAsync(0);
+  expect(await (await f.open('ws-static-old')).match(key).then(r=>r?.text())).toBe('retained');
+  expect(await (await f.open('ws-static-unit-assets')).match(key)).toBeUndefined();
   expect(vi.getTimerCount()).toBe(0);
 });
