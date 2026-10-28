@@ -1,6 +1,5 @@
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { ResidencyAllocator, ResidencyLease } from './allocator';
-import { workSlice } from '@wildshard/engine/core/workSlice';
+import type { ResidencyAllocator } from './allocator';
 import type { RoadSign } from './roadLayout';
 import { coverageTable } from './roadSolid';
 import { roadSignPaintLayout, type RoadSignSource } from './roadSignPaint';
@@ -12,20 +11,19 @@ export function startRoadSigns(parent: Scope, allocator: ResidencyAllocator, hom
   const layout = roadSignPaintLayout(signs), rows = [...layout.lines.values()], signature = JSON.stringify(rows), count = layout.width * layout.height;
   if (rows.length > 2048 || count > 16 * 1024 * 1024 || signature.length > 131072) return undefined;
   // Canvas + RGBA readback + final RG8 + conversion lookup; duplicated job text is bounded too.
-  const claim = { id: `product:grid:road-signs:${home}${phase === 'outer' ? ':outer' : ''}`, category: 'product' as const, owner: home,
-    bytes: count * 10 + 131072 + signature.length * 4 + 1024, distance: 0, needed: true };
+  // T10: claimed at once, not through allocator.reserveSteps: a stepped eviction here (6369cf2558) kept the evicted world
+  // resident while the drive's other admissions went on, raising the Pine drive's claims peak 182 -> 190-197 MB
+  const lease = allocator.reserve({ id: `product:grid:road-signs:${home}${phase === 'outer' ? ':outer' : ''}`, category: 'product', owner: home,
+    bytes: count * 10 + 131072 + signature.length * 4 + 1024, distance: 0, needed: true });
+  if (lease === null) return undefined;
+  if (parent.disposed || parent.disposing) { lease.release(); return undefined; }
   const scope = parent.child(phase === 'outer' ? 'road-signs-outer' : 'road-signs'); let worker: Worker | undefined, plane: Uint8Array<ArrayBuffer> | undefined;
-  let settled = false, complete: (() => void) | undefined, deadline: ReturnType<Scope['timeout']> | undefined, lease: ResidencyLease | null = null;
+  let settled = false, complete: (() => void) | undefined, deadline: ReturnType<Scope['timeout']> | undefined;
   const ready = new Promise<void>(resolve => { complete = resolve; }), listeners: (() => void)[] = [];
   const stop = (): void => { scope.cancelTimer(deadline); deadline = undefined; for (const forget of listeners.splice(0)) forget(); worker?.terminate(); worker = undefined; };
   const finish = (): void => { if (!settled) { settled = true; complete?.(); complete = undefined; } };
-  scope.onDispose(() => { stop(); plane = undefined; lease?.release(); finish(); });
+  scope.onDispose(() => { stop(); plane = undefined; lease.release(); finish(); });
   const failed = (message: string): void => { console.warn(`[grid] worker signs use original painting: ${message}`); scope.dispose(); };
-  // T10: the claim is admitted in steps. With room it is taken at once and the worker starts in this call, as before; when it
-  // needs an eviction (a retained world's disposal, 114 ms in one frame of a Pine drive) the eviction runs one step at a time
-  // under the frame's work slice first. Refused, the bank settles to the original painter, as before.
-  const steps = allocator.reserveSteps(claim), slice = workSlice();
-  const run = (): void => {
   try {
     worker = new Worker(new URL('roadSign.worker.ts', import.meta.url), { type: 'module', name: 'grid-road-signs' });
     listeners.push(scope.listen(worker, 'message', event => {
@@ -42,21 +40,6 @@ export function startRoadSigns(parent: Scope, allocator: ResidencyAllocator, hom
     const colours = { from: '#0d6b3c', to: '#e9ebe6', blueFromRed: 0.45, sentinel: { v: 1.5, colour: '#6f7378' } };
     worker.postMessage({ rows, red: coverageTable(colours, 0), green: coverageTable(colours, 1) }, { transfer: [] });
   } catch (error) { failed(error instanceof Error ? error.message : String(error)); }
-  };
-  const admit = async (): Promise<void> => {
-    try {
-      let step = steps.next();
-      while (step.done !== true) {
-        if (scope.disposed || scope.disposing) { steps.return(null); return; }
-        if (slice.due()) await slice.yield();
-        step = steps.next();
-      }
-      if (step.value === null) { scope.dispose(); return; }
-      if (scope.disposed || scope.disposing) { step.value.release(); return; }
-      lease = step.value; run();
-    } catch (error) { failed(error instanceof Error ? error.message : String(error)); }
-  };
-  void admit();
   return { ready, get: current => settled && current.width === layout.width && current.height === layout.height
     && JSON.stringify([...current.lines.values()]) === signature ? plane : undefined, release: () => { scope.dispose(); } };
 }

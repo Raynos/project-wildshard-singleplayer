@@ -1,8 +1,6 @@
 import { afterEach, expect, test } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
 import { ResidencyAllocator } from './allocator';
-import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
-import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { roadSignPaintLayout } from './roadSignPaint';
 import { startRoadSigns } from './roadSignPreparation';
 import type { RoadSign } from './roadLayout';
@@ -90,28 +88,4 @@ test('initial and later banks keep distinct claims, planes and cleanup under the
     outer.release(); expect(allocator.entries()).toEqual([]);
     expect([a.terminated, b.terminated]).toEqual([1, 1]);
   } finally { scope.dispose(); }
-});
-
-test('T10: a bank whose claim needs an eviction runs it in steps, then charges its plane and starts its worker', async () => {
-  support(); const scope = new Scope('sign-evict'), layout = roadSignPaintLayout(signs);
-  const bytes = layout.width * layout.height * 10 + 131072 + JSON.stringify([...layout.lines.values()]).length * 4 + 1024;
-  const allocator = new ResidencyAllocator({ playing: CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + Math.ceil(bytes * 1.5 * CONTENT_CAPS.residentFactor), memory: new MemoryAdmission(() => false) });
-  const log: string[] = [];
-  allocator.reserve({ id: 'world:kept', owner: 'kept', category: 'product', bytes, needed: false, distance: 50, prepareEvict: () => ({
-    commit: () => { log.push('commit'); }, abort: () => { log.push('abort'); },
-    *steps() { for (let i = 0; i < 3; i++) { log.push(`step${String(i)}`); yield; } } }) });
-  const job = startRoadSigns(scope, allocator, 'home', signs); if (job === undefined) throw new Error('Missing preparation');
-  try {
-    for (let i = 0; i < 10 && workers.length === 0; i++) await new Promise(resolve => { setTimeout(resolve, 0); });
-    expect(log).toEqual(['step0', 'step1', 'step2']);
-    expect(allocator.entries().map(row => row.id)).toEqual(['product:grid:road-signs:home']); expect(worker().sent).toHaveLength(1);
-  } finally { scope.dispose(); }
-});
-
-test('T10: a refused bank settles to the original painter without a worker or a claim', async () => {
-  support(); const scope = new Scope('sign-refused');
-  const allocator = new ResidencyAllocator({ playing: CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap, memory: new MemoryAdmission(() => false) });
-  const job = startRoadSigns(scope, allocator, 'home', signs); if (job === undefined) throw new Error('Missing preparation');
-  try { await job.ready; expect(job.get(roadSignPaintLayout(signs))).toBeUndefined(); expect(workers).toEqual([]); expect(allocator.entries()).toEqual([]); }
-  finally { scope.dispose(); }
 });
