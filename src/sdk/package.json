@@ -57,6 +57,7 @@
     "./bake/specimenCatalogue": "./bake/specimenCatalogue.ts",
     "./bake/lightSources": "./bake/lightSources.ts",
     "./bake/canvasAtlas": "./bake/canvasAtlas.ts",
+    "./bake/nativeRaster": "./bake/nativeRaster.ts",
     "./bake/coarseCopy": "./bake/coarseCopy.ts",
     "./bake/glbCompression": "./bake/glbCompression.ts",
     "./bake/compactGlb": "./bake/compactGlb.ts",
@@ -337,6 +338,10 @@
       "./bake/glb": {
         "types": "./dist/types/sdk/bake/glb.d.ts",
         "default": "./dist/bake/glb.js"
+      },
+      "./bake/nativeRaster": {
+        "types": "./dist/types/sdk/bake/nativeRaster.d.ts",
+        "default": "./dist/bake/nativeRaster.js"
       },
       "./bake/canvasAtlas": {
         "types": "./dist/types/sdk/bake/canvasAtlas.d.ts",

@@ -5919,7 +5919,9 @@ book/model lookup, canonical `nameSpecimenBook` JSON/schema, and fresh
 `sharedPickupCatalogue()` metadata without runtime/I/O.
 `@wildshard/sdk/bake/canvasAtlas`: `canvasAtlasRows` admits JSON;
 `paintSteps` replays ordered expressions/RNG; browser-only
-`paintCanvasAtlas` returns the original mipmapped sRGB texture.
+`paintCanvasAtlas` returns a mipmapped sRGB texture.
+`@wildshard/sdk/bake/nativeRaster.openNativeRaster` lends a phone WebKit
+page under browser-lane. Setup refusal/`dispose()` close it.
 
 `@wildshard/engine/core/ktx2.parseKtx2Bytes(bytes)` validates bounded KTX2,
 copies its view and uses the configured loader/Zstd worker without asset URL

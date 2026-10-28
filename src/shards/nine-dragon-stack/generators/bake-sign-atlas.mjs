@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
 import { build } from 'vite';
-import { webkit, devices } from 'playwright';
+import { openNativeRaster } from '@wildshard/sdk/bake/nativeRaster';
 import { byteWriter, outputHash, browserBakeBytes } from '../../../../scripts/bake-output.mjs';
 import { readImagePixels } from '@wildshard/sdk/bake/image';
 import { parseSignView } from './sections.ts';
@@ -43,11 +43,9 @@ async function ktx(png, mono, file) {
   return { packed: file, bytes: pixels.length, pixelHash: outputHash(pixels) };
 }
 
-const browser = await webkit.launch({ headless: true }), tiers = {};
+const session = await openNativeRaster({ html: '<!doctype html><meta charset="utf-8"><title>Nine sign bake</title>', source: code }), tiers = {};
 try {
-  const context = await browser.newContext(devices['iPhone 16 Pro']), page = await context.newPage();
-  await page.setContent('<!doctype html><meta charset="utf-8"><title>Nine sign bake</title>');
-  await page.addScriptTag({ content: code });
+  const { page } = session;
   for (const tier of ['phone', 'desktop']) {
     const sink = await browserBakeBytes(page);
     let row, geometryBytes, mono, colour;
@@ -85,7 +83,7 @@ try {
     tiers[tier] = { ...row, mono: await ktx(mono, true, `signAtlas-${tier}-mono.ktx2`), colour: await ktx(colour, false, `signAtlas-${tier}-colour.ktx2`), buffer };
     console.log(`Nine ${tier}: ${Object.keys(row.cells).length} cells, ${row.placed.length} signs, ${Object.keys(row.keys).length} specimens; R8 ${tiers[tier].mono.pixelHash}, RGBA8 ${tiers[tier].colour.pixelHash}`);
   }
-} finally { await browser.close(); }
+} finally { await session.dispose(); }
 writer.put(process.env.NINE_SIGN_OUTPUT === undefined ? resolve(outputData, 'signAtlas.json') : resolve(root, process.env.NINE_SIGN_OUTPUT),
   Buffer.from(`${JSON.stringify(tiers, (_key, value) => typeof value === 'number' && Object.is(value, -0) ? '-0' : value)}\n`));
 writer.finish();
