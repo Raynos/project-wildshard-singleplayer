@@ -79,7 +79,13 @@ export class RefiningWholeLibrary {
       if (sphere !== undefined) geometry.boundingSphere = sphere.clone();
       if (box !== undefined) geometry.boundingBox = box.clone();
       ownSceneResource(geometry, lifetime);
+      // A channel-less geometry (the placeholder before the first fine tile, or an emptied union) may have had programs
+      // built against it, every attribute read as a constant, position too: a collapsed draw (Nine's pale facades, the
+      // shell gone and the fog behind it). three keys programs by material, not by the geometry's channels, so the first
+      // union after one rebuilds this mesh's programs.
+      const rebuild = !mesh.geometry.hasAttribute('position') && geometry.hasAttribute('position');
       const previous = owned; mesh.geometry = geometry; owned = geometry; previous?.dispose();
+      if (rebuild) for (const material of [mesh.material].flat()) material.needsUpdate = true;
     };
     // Retirement remains synchronous: no disposed fine tile survives in the
     // draw while an asynchronous replacement is prepared.

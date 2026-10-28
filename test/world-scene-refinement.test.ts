@@ -45,9 +45,13 @@ test('original tile pieces append to one stable draw and leave with their actual
   const a = keys[0], b = keys[1]; if (a === undefined || b === undefined) throw new Error('Missing original tiles');
   try {
     expect(f.read).not.toHaveBeenCalled(); expect(f.mesh.geometry.attributes).toEqual({});
+    const material = [f.mesh.material].flat()[0], version = material?.version ?? -1;
     await f.content.attach(a, first); expect(f.read).toHaveBeenCalledTimes(1); expect(f.cover).toHaveBeenCalledTimes(1);
+    // the first union over the channel-less placeholder rebuilds the programs built against it; a later union does not
+    expect(material?.version).toBe(version + 1);
     const firstGeometry = f.mesh.geometry, firstDisposed = vi.fn<() => void>(); firstGeometry.addEventListener('dispose', firstDisposed);
     await f.content.attach(b, second);
+    expect(material?.version).toBe(version + 1);
     expect(f.read).toHaveBeenCalledTimes(2); expect(firstDisposed).toHaveBeenCalledOnce();
     expect(f.mesh.geometry.getAttribute('position').array).toEqual(f.original.getAttribute('position').array);
     expect(f.mesh.geometry.groups).toEqual([]); expect(f.mesh.children).toEqual([]);
