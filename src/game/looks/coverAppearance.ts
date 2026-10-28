@@ -3,7 +3,7 @@ import { ResourceMemo } from '@wildshard/engine/app/cachedAssets';
 import { loadTexture } from '@wildshard/engine/core/assets';
 import { parseCoverAppearance, type CoverAppearanceRow } from '@wildshard/format/coverAppearance';
 import type { ShardProduct } from '../shardfile/shardProduct';
-import { lentLook, lentMappedLook, setLentParam } from '../shardfile/lentLooks';
+import { lentLook, lentLooksOf, lentMappedLook, setLentParam, type LentLooks } from '../shardfile/lentLooks';
 
 export type CoverMaterial = Material & { map: Texture | null; roughness: number };
 
@@ -16,6 +16,7 @@ class CoverAppearanceBook {
   });
   private readonly materials = new ResourceMemo<string, Material>();
   private readonly graphs: readonly string[];
+  private readonly lends = new Map<string, LentLooks>();
   private readonly viewer = new Vector3();
   private readonly vector = [0, 0, 0];
   constructor(input: unknown) {
@@ -45,6 +46,8 @@ class CoverAppearanceBook {
     if (row.texture !== undefined && texture === undefined) throw new Error(`Cover texture is not prepared: ${row.texture}`);
     const material = texture === undefined ? lentLook(row.graph) : lentMappedLook(row.graph, texture);
     if (texture !== undefined && (!mapped(material) || material.map !== texture)) throw new Error(`Cover look is not mapped: ${row.graph}`);
+    // QF21: params go to the compile these materials came from; a frame's owner can resolve the id to another lend
+    if (!this.lends.has(row.graph)) this.lends.set(row.graph, lentLooksOf(row.graph));
     if (row.name !== undefined) material.name = row.name;
     Object.assign(material, row.properties);
     return material;
@@ -60,7 +63,9 @@ class CoverAppearanceBook {
       new BufferAttribute(new Float32Array(geometry.getAttribute('position').count).fill(value), 1));
     return geometry;
   }
-  set(name: string, value: number | readonly number[]): void { for (const id of this.graphs) setLentParam(id, name, value); }
+  set(name: string, value: number | readonly number[]): void {
+    for (const id of this.graphs) { const lend = this.lends.get(id); if (lend === undefined) setLentParam(id, name, value); else lend.setParam(id, name, value); }
+  }
   /** The view is already in world space for streams; fixed fields supply their frame. */
   update(viewer: Vector3, frame?: Matrix4, sun?: Color): void {
     const at = this.viewer.copy(viewer); if (frame !== undefined) at.applyMatrix4(frame);

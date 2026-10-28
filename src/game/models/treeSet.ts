@@ -10,10 +10,11 @@ import { BARK_LAYERS, treeSetUrls } from '@wildshard/engine/world/forest/treeSet
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { TreeFactory, isTreeMaterial, type TreeMaterial } from '@wildshard/engine/world/TreeFactory';
+import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import type { TreeSetRows } from '@wildshard/format/treeSetRows';
 import { createModelLibrary } from '../plugin/geometry';
 import { lookGraphMaterials } from '../plugin/shaderFamily';
-import { lendLooks } from '../shardfile/lentLooks';
+import { lendLooks, type LentLooks } from '../shardfile/lentLooks';
 import { firstPartyDescriptor, loadFirstPartyProduct } from '../shardfile/runtimeProduct';
 
 /** A first-party product's tree set rows (its `world/trees` section). */
@@ -34,7 +35,15 @@ export function productTreePool(product: { readonly hasFile: (name: string) => b
  * with its card and impostor atlases and bark array lent (the bark tiles the bark array by its per-vertex layer).
  */
 export class TreeSetFactory extends TreeFactory {
+  private looks: LentLooks | null = null;
   constructor(private readonly renderer: LookReplaceContext['renderer'], private readonly rows: TreeSetRows, private readonly sky: SkyRig) { super(renderer); }
+
+  /** Set a param of the compile these graph materials came from (a page's fade and viewer, once a frame); false for a
+   *  painterly set. QF22: a lent look id can resolve to another live compile of the same graph under a frame's owner. */
+  setLookParam(id: string, name: string, value: GraphLiteral): boolean {
+    if (this.looks === null) return false;
+    this.looks.setParam(id, name, value); return true;
+  }
 
   override async build(): Promise<this> {
     const rows = this.rows, graphs = rows.looks;
@@ -71,7 +80,7 @@ export class TreeSetFactory extends TreeFactory {
       loadPBRArray([...BARK_LAYERS], TIER_CONFIG.layerSize),
       firstPartyDescriptor(rows.product).then(source => lookGraphMaterials(resourceScope(), { renderer: this.renderer }, source, [graphs.bark, graphs.needles, graphs.twigs, graphs.far])),
     ]);
-    lendLooks(resourceScope(), looks);
+    lendLooks(resourceScope(), looks); this.looks = looks;
     const look = (id: string, lent: Readonly<Record<string, THREE.Texture>>): TreeMaterial => {
       for (const [name, texture] of Object.entries(lent)) looks.setTexture(id, name, texture);
       const m = looks.materials.get(id);

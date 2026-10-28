@@ -11,7 +11,7 @@ import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import { defineModel, sharedModelContext, type ModelDef, type Placement } from '@wildshard/engine/models/model';
 import { placeSliced } from '@wildshard/engine/models/place';
-import { productTreePool, treeSetModel, type TreeSetParams } from '../models/treeSet';
+import { productTreePool, treeSetModel, TreeSetFactory, type TreeSetParams } from '../models/treeSet';
 import { farStandIn } from './farStandIn';
 import { ForestPageSchema, LivingPageInputSchema, LivingPageSitesSchema, type ForestPageRows } from '@wildshard/format/forestPage';
 import { ForestGround } from '../looks/forestGround';
@@ -154,7 +154,9 @@ export async function prepareForestPage(ctx: ShardContext, input: unknown): Prom
         if (follow !== null) ctx.system({ id: `client.forest.tiles.${rows.id}`, phase: 'update', run: () => { follow(); } }); }); },
     roofAt: (x, z) => floorAtRects(row.floors, x, z, 'first') !== undefined, setLantern: lanterns.set,
     update: (dt, time) => { const viewer = runtime.viewer();
-      for (const binding of rows.treeLooks) { const fade = world.forest.factory.fade[binding.band].value; setLentParam(binding.look, binding.fade, [fade.x, fade.y]); setLentParam(binding.look, binding.viewer, [viewer.x, viewer.y, viewer.z]); }
+      const trees = world.forest.factory, treeParam = (id: string, name: string, value: readonly number[]): void => {
+        if (!(trees instanceof TreeSetFactory && trees.setLookParam(id, name, value))) setLentParam(id, name, value); };
+      for (const binding of rows.treeLooks) { const fade = trees.fade[binding.band].value; treeParam(binding.look, binding.fade, [fade.x, fade.y]); treeParam(binding.look, binding.viewer, [viewer.x, viewer.y, viewer.z]); }
       carpet.grass.update(dt, viewer); carpet.under.update(dt, viewer); carpet.particles.update(dt, viewer, game.camera);
       sky.viewCamera.getWorldPosition(eye); cabins.life.tick(dt, time, eye, sky.lamps); lanterns.present(time, eye, sky.lamps); sun[0] = sky.sunColor.r; sun[1] = sky.sunColor.g; sun[2] = sky.sunColor.b;
       setLentParam(row.hearth, row.sunParam, sun); setLentParam(row.hearth, row.lampsParam, sky.lamps); setLentParam(row.hearth, row.shadeParam, 1 - row.nightShade * sky.night); } };
