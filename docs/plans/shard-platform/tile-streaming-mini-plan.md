@@ -240,7 +240,7 @@ browsers and the owned preview are closed; no Sim was used.
 | T4 | The entered world streams (H3 generalised, joined with sp-o1): shard-global state + rank-0 tiles before controls, the rest via T2; SHARD SELECT and grid | `grid/liveSession.ts` `enterInitialHome`, `shardfile/client.ts` | Codex (sp-x2, G708) | ≤1 h slices below | **done (latest path qualifications):** grid30f cold/warm9.899/12.478s,45/41ms worst; compiled730f cold/warm7.108/7.424s,81/96ms worst, PASS100ms. Pins differ and one cohort each supplies no causal gain claim; no standalone M1 exists for a percentage claim.  Plan-end control observations on repairedbc0: Pine18.941/18.511s; compiled-only Night Market6.464/6.088s (3x3/5x5). These are fresh-context first-observed control walls, not warm crossings. Nalati/Nine readiness unqualified; no new T4 milestone PASS.  Latest a423 recovery: Nine controls17.388/18.558s (3x3/5x5), both miss15s cold; Nalati2x120s readiness refuses. Historical cold/warm path passes do not qualify these rows.  Final Nalati325 controls14.710/15.047s:3x3 below15s,5x5 misses47ms. Nine a42317.388/18.558s remains a cold miss. No extra warm or grid acceptance. | T2, T3 |
 | T5 — **done** (G807 Chromium reading `dacd6816cd` (sp-o5, 2026-10-27; `scripts/tile-plan-reading.mjs`, phone 4x): every shard paints its tile rects and MB labels at 3x3 and 5x5, rect records / unique MB strings DW 18/2 · 24/2, Nalati 18/1 · 24/1 (its labels since `0bc40c7b19`), Pine 18/2 · 24/2, Nine 24/9 · 31/9, Sky 17/4 · 21/4, Sunscar 37/1 · 57/1, Template 23/1 · 39/1, Night Market 16/4 · 27/4; the Debug row is 3 x 3 / 5 x 5 since T10 deleted whole cell). Reopened by G775 (Jake: build as written: overlay + 3x3/5x5/whole Debug row). **T5.1** code landed (sp-o5, this commit): Developer ▸ Debug ▸ Performance ▸ Tile residency (5 x 5 shipped / 3 x 3 / whole cell, a reload; `tileRing()`); **T5.2** source landed, runtime reopened (sp-o5, this commit): with Developer on, a SHARD SELECT world's minimap shows every tile border, the resident render ring (green) and collider 3 x 3 (amber), and each tile's declared MB (`tileOverlay.ts`, `Minimap.setDebugExtras`); **T5.3** source landed (sp-o5, this commit): the same borders and resident ring on a grid page's entered cell (`GridSession.tileOverlayState`), and each resident tile's declared MB from the entered cell's admitted product (sp-o2, this commit) | Debug row "Tile residency: 3 × 3 / 5 × 5 / whole shard" (A/B/C, E451) and a Developer overlay (tile borders, resident colour, MB per tile) | Settings Debug, minimap | Opus | 0.5 d | Jake can feel it on Driftwood (first playable slice: T2 + T3 (DW only) + T4 + T5)  Plan-end: DW clipped paint18/24 rectangles +2 labels, Pine18/24 +1; Sky/Signal/Template/Night Market0/0 despite resident fine tiles. Generic data-world telemetry source fixedf1222a6cfd; both reading pins predate it, so this remains in flight.  Latest a423 Nine native overlay observed24/26 rectangle records and9 unique MB strings. This does not reread the previously missing generic data-world overlay; f1222a6cfd remains source-fixed, not broadly browser-qualified.  Final Nalati325 paints18/24 rectangle records but0MB strings, so label coverage is still unqualified; source audit finds the collider-only sceneDressing driver registers without tile-byte metadata (candidate seam, not a proven fix). | T4 |
 | T6 | Creatures, NPCs and figures by tile: presentation in resident tiles; brains global, dormant outside 5 × 5; patrols that cross tiles hand over | population, quest figures | Codex | 1.5 d **open: 0 MB dropped against "memory drops by its T0 share" (no T6 runtime change; DW boar / captain fights untouched, so unchanged) (G807 reading `dacd6816cd`).** Recorded as it stands (G807 Chromium reading `dacd6816cd` (sp-o5, 2026-10-27; `scripts/tile-plan-reading.mjs`, phone 4x): no T6 runtime change, so no boar-fight or T0-share reading to take; Nalati's 5x5 census draws its far-herd batch beside the full rigs).** **(2026-10-27, sp-o5, G782 cold crossing):** at Nalati's spawn (0, 232) the wolf pack (5) and the horse herd (15) sit outside the 5x5 ring (~207 m, open steppe); their spawn is ~217 ms of the cold crossing's afterKit (phone 4x). The phone draws distant animals as full rigs (the far-herd batch is desktop-only), so spawning them after control pops them in: a four-heading spawn probe differs above noise at every heading. No runtime change until T6.2's far stand-in (the presentation lease) lands; coordinator, 2026-10-27. | DW boar / captain fights unchanged; memory drops by its T0 share | T3 |
-| T7 — **open (2026-10-28, sp-x8): five-cycle timing / frames / ghosts / return memory miss; per-shard peak unqualified.** [Current five-cycle verdict](#t7-five-cycle-head-reading-2026-10-28-sp-x8). **Fresh individual Pine pair (sp-x6, 2026-10-28): open, cold timing/cadence misses.** Own 2026-10-28 HEAD `f54c5464f9` reading: 14.7246s cold /0.0333s retained warm against8/5s; cold drive p95/max50.0/116.7ms; warm50.0/66.7ms against the original35/200ms pair limits. One original muted Chromium iPhone16Pro phone4x/DPR2 pair, cold0priorworlds, actual road departure then warm1. Both complete/ready/current, runtime/page/console/transport errors0, skipped0/context intact; both labelled portraits inspected. No profiler/GL observer/forcedGC/quiet claim, no runtime or threshold change. Raw `tmp/sp-x6-nalati-pine-current/pine/receipt.json`. Cold max116.7ms also misses T7 worst-frame100ms. This two-visit pair does not repeat/qualify the separate DW-Sky five-leg memory-return/ghost census; T7 stays open. Earlier readings: **Pine cold (sp-o4 `427a699706`, Chromium phone 4x pair): 14.85 s (was 17.2–18.3), 86 programs linked in the crossing (149 of 150 re-keyed before): the home's projection light now stays in the sealed page pool, so the point-light count matches (sp-o5 census: home 6, Pine 5 before; fog, shadow type, tone mapping, environment identical).** **open, misses (G807 Chromium reading `dacd6816cd` (sp-o5, 2026-10-27; `scripts/tile-plan-reading.mjs`, phone 4x), DW↔Sky x5 on the streamed road):** entry walls road → Sky 10.7 / 9.0 / 8.0 / 7.9 / 9.5 s and road → DW 11.3 / 12.1 / 10.9 / 8.4 / 12.2 s (bar 8 s cold, 5 s warm: every leg misses); worst crossing frames 150–233 ms (bar 100); return renderer+GPU deltas −31 / +41 / +263 / +7 / +65 MiB (bar ±20: 4 of 5 miss); every crossing and return leaves retired tile/region ghosts. Per-shard peak is not isolated (process renderer+GPU 2.07–2.36 GiB at the returns). Earlier: in flight (G782 reading completed; misses open; source `d27bab4e35`, `17a5b1a5c0`, `7a06597f33`, `e38c4ef905`; retained controls `4dbf4b1160`); G780 `5f1eadb19e` reading completed, G782 still open (three cold/warm runs below) | Crossings by tiles: neighbour region = small state; tiles by distance; the source evicts behind the player; delete whole-world `warmAhead` and the 4-world cap | `grid/live.ts`, `liveSession.ts`, `hybrid.ts` | Opus + Codex | 2.5 d | DW↔Sky ×5 on Chromium phone tier: peak ≤ 1.2 GB per shard, back to baseline ±20 MB, every crossing under 5 s warm and under 8 s cold (G782; was < 5 s), worst frame ≤ 100 ms  Called plan-end5f1 cohort: both road modes refused initial home seed streaming at120s before any crossing/census. Zero measured legs; cold8s/warm5s,100ms and memory-return gates remain unqualified. Routed sp-x8; no retry.  Latest authorized a423 recovery still misses initial staging: Resident120.341s/Tiles120.315s, home ready/entered/crossing settled but8far preparations in flight and0publishedfar. Zero measured legs/returns, not a crossing or memory PASS. Exact boundary routed sp-x8, D110. | T1, T4, T6 |
+| T7 — **open after lifetime repair `e52800cc55` (2026-10-28):** same-pin original full-census recovery still misses entry/frame/region-ghost/native-footprint gates; tile ghosts0 on all10legs. [Retirement repair / full-versus-default comparison](#t7-retirement-repair-and-observer-comparison-2026-10-28-sp-x8). Earlier: **open (2026-10-28, sp-x8): five-cycle timing / frames / ghosts / return memory miss; per-shard peak unqualified.** [Current five-cycle verdict](#t7-five-cycle-head-reading-2026-10-28-sp-x8). **Fresh individual Pine pair (sp-x6, 2026-10-28): open, cold timing/cadence misses.** Own 2026-10-28 HEAD `f54c5464f9` reading: 14.7246s cold /0.0333s retained warm against8/5s; cold drive p95/max50.0/116.7ms; warm50.0/66.7ms against the original35/200ms pair limits. One original muted Chromium iPhone16Pro phone4x/DPR2 pair, cold0priorworlds, actual road departure then warm1. Both complete/ready/current, runtime/page/console/transport errors0, skipped0/context intact; both labelled portraits inspected. No profiler/GL observer/forcedGC/quiet claim, no runtime or threshold change. Raw `tmp/sp-x6-nalati-pine-current/pine/receipt.json`. Cold max116.7ms also misses T7 worst-frame100ms. This two-visit pair does not repeat/qualify the separate DW-Sky five-leg memory-return/ghost census; T7 stays open. Earlier readings: **Pine cold (sp-o4 `427a699706`, Chromium phone 4x pair): 14.85 s (was 17.2–18.3), 86 programs linked in the crossing (149 of 150 re-keyed before): the home's projection light now stays in the sealed page pool, so the point-light count matches (sp-o5 census: home 6, Pine 5 before; fog, shadow type, tone mapping, environment identical).** **open, misses (G807 Chromium reading `dacd6816cd` (sp-o5, 2026-10-27; `scripts/tile-plan-reading.mjs`, phone 4x), DW↔Sky x5 on the streamed road):** entry walls road → Sky 10.7 / 9.0 / 8.0 / 7.9 / 9.5 s and road → DW 11.3 / 12.1 / 10.9 / 8.4 / 12.2 s (bar 8 s cold, 5 s warm: every leg misses); worst crossing frames 150–233 ms (bar 100); return renderer+GPU deltas −31 / +41 / +263 / +7 / +65 MiB (bar ±20: 4 of 5 miss); every crossing and return leaves retired tile/region ghosts. Per-shard peak is not isolated (process renderer+GPU 2.07–2.36 GiB at the returns). Earlier: in flight (G782 reading completed; misses open; source `d27bab4e35`, `17a5b1a5c0`, `7a06597f33`, `e38c4ef905`; retained controls `4dbf4b1160`); G780 `5f1eadb19e` reading completed, G782 still open (three cold/warm runs below) | Crossings by tiles: neighbour region = small state; tiles by distance; the source evicts behind the player; delete whole-world `warmAhead` and the 4-world cap | `grid/live.ts`, `liveSession.ts`, `hybrid.ts` | Opus + Codex | 2.5 d | DW↔Sky ×5 on Chromium phone tier: peak ≤ 1.2 GB per shard, back to baseline ±20 MB, every crossing under 5 s warm and under 8 s cold (G782; was < 5 s), worst frame ≤ 100 ms  Called plan-end5f1 cohort: both road modes refused initial home seed streaming at120s before any crossing/census. Zero measured legs; cold8s/warm5s,100ms and memory-return gates remain unqualified. Routed sp-x8; no retry.  Latest authorized a423 recovery still misses initial staging: Resident120.341s/Tiles120.315s, home ready/entered/crossing settled but8far preparations in flight and0publishedfar. Zero measured legs/returns, not a crossing or memory PASS. Exact boundary routed sp-x8, D110. | T1, T4, T6 |
 | T7.1 — superseded by T7.7–T7.10 ( source `379647e12b` + `e5f73af853`) | Approach declared tiled destinations through the existing render scheduler, pinning only their entry ring. No regional constructor or entered-root replacement on a guess. Abort the pin on redirect, distant departure, owner retirement or completed entry. While pinned, the whole-near fallback permits fine refinement; masks still cover partial parents. Releasing the final pin restores its old refinement policy, and registration disposal releases all pins. Actual demand retains all runtime/save/collider/readiness gates. T7.7–T7.10 remove every speculative whole-world constructor, paired-world budget port and the four-product selection cap; neighbour preparation owns tiles only. | `grid/live.ts`, `liveSession.ts`, `session.ts`, `shardfile/tileContent.ts` | sp-x8 | bounded slice | types + typed lint + scoped ratchet clean; full ratchet stops on D37; D47 fixed `15f149539c`; cause-fixed preview `8422baac07` passes generation then refuses new Nine coarse L1 debt (`82ac81812d`, sp-o5), zero browser samples; runtime/G782 qualification still blocked | T2, T4, T6 |
 | T8 | Every shard on tiles, all seven as written (G790: Nalati, Pine, Nine, Sky, Sunscar, open plots, template); complete grid plus bounded tile costs and fine-file ownership | shard generators / shared SDK tile producer | sp-x2 / sp-x10 / sp-o3 / sp-o5 | ≤1h slices | **done (plan-end reading 2026-10-27, sp-o4; reading at the end of this cell):** the old four-tile split is not done merely because metadata now has64L0. Current audit below: Pine wire cut in this commit; Nine dense L0 work sp-o3; Sky whole fine-library ownership sp-x10; open-plot cost/draw work sp-x2. Nalati/Sunscar/Template retained64/16 grids have no cap debt, not fresh runtime qualification. Preserve Driftwood B and its exact6/4 exception; D87 lossless coarse repair b80fee8ea6 is separate. No previews/readings until plan end (G780).  Plan-end measured6/8 families at both ring choices: DW6/15, Pine6/15, Sky8/14, Signal9/25, Template9/25, Night Market9/25 observed render keys (edge-clipped actual scopes, not proof of every expected key). Nalati/Nine unavailable. Declared resident closures and whole-fine comparisons below; no all-seven runtime PASS.  Authorized a423 recovery now measures Nine9/11 render scopes and9collider scopes,132.93/151.55 MiB declared fine closure versus160.49 MiB all-fine. Nalati remains blocked before controls. No all-seven runtime qualification.  Final source-repaired Nalati325 now reaches controls with6/15 render and6collider scopes:1.35/3.40 MiB declared closure versus14.38 MiB all-fine. Every family has a spawn record across pins; cold/overlay/T7 memory misses keep the full milestone in flight.  **Plan-end reading, all eight on one pin** (sp-o4, `scripts/tile-plan-reading.mjs` on HEAD `340346c059`, cohort complete): every family reaches controls on tiles at both rings. Render/collider scopes 3x3 / 5x5: DW, Nalati and Pine 6/6 and 15/6; Nine and Sky 9/9 and 25/9; Sunscar, Template and Night Market 9/0 and 25/0. Declared resident closure vs whole-fine MiB (3x3 / 5x5): DW 0.39 / 1.33 of 10.34, Nalati 1.35 / 3.40 of 14.38, Pine 70.28 / 71.72 of 82.14, Nine 132.93 / 155.36 of 160.49, Sky 1.36 / 1.75 of 2.76, Sunscar 1.29 / 3.58 of 9.16, Template 1.85 / 5.05 of 12.51, Night Market 17.79 / 32.71 of 60.43. Colliders never exceed 3x3; every closure is below whole-fine (Nine 5 x 5 at 97 % and Pine at 87 % stay heavy). Only raw failures: Nalati's T5 minimap paint (T5's row) and the S3.7 road census ('Invalid census morph attributes', S3.7's row). All-seven T8 qualification done. | T3 |
 | T9 | G638 picked A: 62.5 m gap, pitch 562.5; asphalt unchanged at 15 m, side strips 23.75 m, seams/junction/routes follow the lattice | strips, roadLook, roadLayout, config | Codex (sp-x6) | 2 d | **done** (2026-10-24): runtime `ae2dca27dc`; native 15/30 m/s peer routes each 4 crossings / 0 stuck; labelled phone road/junction witnesses; current-origin `57d1344dc1` EWNS held walks all complete / 0 stuck / gates open. [Compact receipts](../../../progress/shard-platform/tile-streaming/t9-lattice.md); T1 retirement and T10 broader milestone stay separate | T2 |
@@ -1535,3 +1535,237 @@ Natural exit2 reports the above acceptance failures. Browser closed and
 owned4401 borrower stopped (`release.log`). The already-active run began
 09:37:33Z and continued naturally across the announced09:38 M2 quiet
 start; its overlap was disclosed to sp-x2. This is not a quiet reading.
+
+## T7 retirement repair and observer comparison (2026-10-28, sp-x8)
+
+**OPEN. Source lifetime repair is built/pushed `e52800cc55`; acceptance
+still misses.** Both completed runs below use exact
+`89870fa5b3a06e2dced93ebc5d929d3301064816`, iPhone16Pro/phone4x/DPR2,
+muted Chromium, the original ten DW/Sky legs and five return censuses.
+Both have errors[], no skipped route, no context loss, no forced GC,
+no profiling or snapshots. The same maintained instrument hashes match.
+
+The original instrument remains the full-census record. The separately
+authorized extra pass changes only `GL_FULL_INIT` to default `GL_INIT`
+(the amortised label path). Neither the original bar nor harness defaults
+changed. Passive existing resource/ghost-owner readouts are copied after
+measured windows in both passes; the full reader delta is retained at
+`tmp/sp-x8-t7-retire/reader-detail.patch`. This is ordinary shared-machine
+Chromium, including sp-x1's disclosed independent profile overlap.
+
+| Entry / bar | Full census, seconds | Default amortised, seconds |
+| --- | --- | --- |
+| Sky first round, under8s | 8.419 | 5.969 |
+| Sky later rounds2–5, under5s | 6.603 / 6.123 / 5.867 / 5.936 | 4.868 / 4.448 / 4.431 / 4.868 |
+| DW first round, under8s | 7.456 | 6.185 |
+| DW later rounds2–5, under5s | 8.803 / 7.321 / 7.103 / 9.030 | 5.531 / 4.850 / 4.815 / 5.247 |
+
+First-round limits follow the unchanged instrument (both first entries
+use8s, later rounds5s). Full census passes1/2 first entries and0/8 later;
+default passes2/2 first entries and6/8 later. The default DW misses are
+5531.3ms (+531.3) and5246.7ms (+246.7); Sky passes all four later entries.
+
+| Criterion | Original full census | Extra default-amortised pass |
+| --- | --- | --- |
+| All five rounds complete | PASS,10legs/5returns | PASS,10legs/5returns |
+| Worst crossing frame≤100ms | MISS,200.0ms (+100.0) | MISS,183.4ms (+83.4) |
+| Zero ghost counters every crossing | MISS,region counter nonzero on9/10; tile0 throughout | MISS,region counter nonzero on10/10; first Sky tile16, all later tile0 |
+| Zero ghosts at returns | MISS,tile0 each / region2,2,3,3,3 | MISS,tile0 each / region2,2,3,3,3 |
+| Every return footprint within±20,000,000B | MISS,5/5 | MISS,5/5 |
+| Settled original home / controls / queues | MISS,first return has3tile preparations; later4settled | PASS,all5settled |
+| Physical peak≤1.2GB per shard | UNQUALIFIED by this instrument | UNQUALIFIED by this instrument |
+
+| Return | Full renderer+GPU delta MB | Default renderer+GPU delta MB | Full over±20MB by MB | Default over±20MB by MB |
+| --- | ---: | ---: | ---: | ---: |
+| 1 | 198.428 | -45.219 | 178.428 | 25.219 |
+| 2 | 260.195 | -112.884 | 240.195 | 92.884 |
+| 3 | 42.256 | 39.995 | 22.256 | 19.995 |
+| 4 | 156.010 | 106.744 | 136.010 | 86.744 |
+| 5 | 190.794 | 414.992 | 170.794 | 394.992 |
+
+These are signed differences from each pass's own baseline, not bytes
+added cumulatively each cycle. The no-travel Resident reference itself
+changes+72.712MB full /−57.917MB default between its two samples. No
+native-footprint cause or per-shard physical peak is proven by the
+allocator ledger. T7 is not regraded from the adjunct observer result.
+
+What remains resident after **each** return: only DW is in the live
+resident registry. DW's whole-runtime claim remains283,809,208B; Sky's
+whole-runtime claim is absent. No pending region request or stepped
+retirement remains. Retired-root counters are collection diagnostics,
+separate from that live registry; their remaining2–3region entries keep
+the gate open. A first-return heap snapshot cannot qualify five unforced
+returns or prove every remaining counter entry benign.
+
+| Return | Full L0/L1/far tile leases | Default L0/L1/far tile leases | Full allocator leases / product leases | Default allocator leases / product leases | Full accounted MB | Default accounted MB |
+| --- | --- | --- | --- | --- | ---: | ---: |
+| 1 | 41/61/25 | 38/47/25 | 2162/42 | 2098/42 | 797.902 | 798.444 |
+| 2 | 41/60/25 | 38/47/25 | 2161/42 | 2098/42 | 797.641 | 798.444 |
+| 3 | 38/47/25 | 38/49/25 | 2098/42 | 2100/42 | 798.444 | 792.847 |
+| 4 | 38/47/25 | 38/47/25 | 2098/42 | 2098/42 | 798.444 | 798.444 |
+| 5 | 38/47/25 | 38/49/25 | 2098/42 | 2100/42 | 798.444 | 792.847 |
+
+Tiles include the page's desired/cached neighbours and road tiles; they
+are not extra entered worlds. Page/highway state, needed tile parents,
+product metadata and explicit charged revisit templates are expected to
+remain. Previous runtime scopes, their view roots, consumer bindings
+and final whole-runtime leases must retire. The complete claim id,
+owner, product name, hold and byte tables for every return are retained
+in `recovery-verdict.json` and `amortised-verdict.json` under the task
+path. Product inventory stays42leases; all product owner groups follow.
+Values in every sequence are returns1/2/3/4/5 (MB is1,000,000B).
+
+| Product budget owner | Lease count full/default | Full MB sequence | Default MB sequence |
+| --- | --- | --- | --- |
+| `blender-template-1` | 1/1 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 |
+| `driftwood-isle` | 3/3 | 33.357 / 33.357 / 33.357 / 33.357 / 33.357 | 33.357 / 33.357 / 33.357 / 33.357 / 33.357 |
+| `far-reach` | 1/1 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 |
+| `grid` | 16/16 | 82.004 / 82.004 / 82.004 / 82.004 / 82.004 | 82.004 / 82.004 / 82.004 / 82.004 / 82.004 |
+| `ink-cel-valley-1` | 1/1 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 |
+| `nalati-grasslands` | 1/1 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 |
+| `nine-dragon-stack` | 1/1 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 |
+| `open-plot-0-0` | 1/1 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 |
+| `open-plot-0-1` | 1/1 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 |
+| `open-plot-0-3` | 1/1 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 |
+| `open-plot-0-4` | 1/1 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 |
+| `open-plot-1-4` | 1/1 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 |
+| `open-plot-2-0` | 1/1 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 |
+| `open-plot-2-4` | 1/1 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 |
+| `open-plot-3-0` | 1/1 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 |
+| `open-plot-3-4` | 1/1 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 |
+| `open-plot-4-0` | 1/1 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 |
+| `open-plot-4-1` | 1/1 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 |
+| `open-plot-4-3` | 1/1 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 |
+| `open-plot-4-4` | 1/1 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 |
+| `open-plot-nw` | 1/1 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 |
+| `pastel-plain-1` | 1/1 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 |
+| `pine-hollow` | 1/1 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 |
+| `sunscar-dunes` | 1/1 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 |
+| `template-2` | 1/1 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 | 0.118 / 0.118 / 0.118 / 0.118 / 0.118 |
+
+GPU-side **buffer capacities by creation-owner label**, excluding
+textures, renderbuffers and driver/program overhead, follow. A creation
+label is not proof that its former world is live: shared/revisit storage
+has its own charged cache lifetime. All smaller allocations, textures,
+renderbuffers and exact ids are in the passive resource sidecars; these
+capacities are not native physical memory.
+
+| Buffer creation owner | Full MB R1/R2/R3/R4/R5 | Default MB R1/R2/R3/R4/R5 |
+| --- | --- | --- |
+| `scene:region:driftwood-isle` | 17.830 / 17.830 / 39.656 / 39.656 / 39.656 | 20.201 / 15.372 / 15.362 / 20.199 / 15.872 |
+| `engine/scene` | 0.325 / 0.325 / 0.325 / 0.325 / 0.325 | 7.127 / 7.127 / 7.127 / 7.127 / 7.127 |
+| `grid.world:driftwood-isle` | 2.904 / 2.904 / 3.156 / 3.156 / 3.156 | 3.156 / 6.690 / 6.816 / 3.156 / 6.631 |
+| `scene:grid-cell:pine-hollow` | 0.238 / 0.238 / 4.439 / 4.439 / 4.439 | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 |
+| `scene:far-proxy` | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 | 4.338 / 4.338 / 4.338 / 4.338 / 4.338 |
+| `unattributed` | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 | 3.071 / 4.218 / 4.092 / 3.071 / 3.906 |
+| `scene:near-placeholder` | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 | 4.200 / 4.200 / 4.200 / 4.200 / 4.200 |
+| `scene:driftwood-isle/shore-boulder` | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 | 3.802 / 3.802 / 3.802 / 3.802 / 3.802 |
+| `trailside` | 3.249 / 3.249 / 3.249 / 3.249 / 3.249 | 3.249 / 3.249 / 3.249 / 3.249 / 3.249 |
+| `scene:driftwood-isle/palm` | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 | 3.218 / 3.218 / 3.218 / 3.218 / 3.218 |
+| `scene:grid-deck` | 2.750 / 2.750 / 2.937 / 2.937 / 2.937 | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 |
+| `cove` | 0.000 / 0.000 / 2.044 / 2.044 / 2.044 | 2.044 / 2.044 / 2.044 / 2.044 / 2.044 |
+| `scene:grid-cell:driftwood-isle` | 1.456 / 1.456 / 1.456 / 1.456 / 1.456 | 1.215 / 1.215 / 1.215 / 1.215 / 1.215 |
+| `grid.view:driftwood-isle` | 1.082 / 1.082 / 1.082 / 1.082 / 1.082 | 1.082 / 1.152 / 1.152 / 1.082 / 1.082 |
+| `shrine` | 0.000 / 0.000 / 1.138 / 1.138 / 1.138 | 1.138 / 1.138 / 1.138 / 1.138 / 1.138 |
+| `scene:driftwood-ocean` | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 | 1.000 / 1.000 / 1.000 / 1.000 / 1.000 |
+| `cove-palm` | 0.848 / 0.848 / 0.848 / 0.848 / 0.848 | 0.848 / 0.848 / 0.848 / 0.848 / 0.848 |
+| `scene:grid-cell:blender-template-1` | 0.780 / 0.781 / 0.781 / 0.781 / 0.781 | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 |
+| `scene:ground-cover-tuft-far` | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 | 0.760 / 0.760 / 0.761 / 0.761 / 0.761 |
+| `scene:seabed` | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 | 0.717 / 0.717 / 0.717 / 0.717 / 0.717 |
+| `lookout` | 0.000 / 0.000 / 0.691 / 0.691 / 0.691 | 0.691 / 0.691 / 0.691 / 0.691 / 0.691 |
+| `scene:lookout_p5_5_n0` | 0.632 / 0.632 / 0.632 / 0.632 / 0.632 | 0.632 / 0.632 / 0.632 / 0.632 / 0.632 |
+| `engine/loadRigFile` | 0.552 / 0.552 / 0.552 / 0.552 / 0.552 | 0.552 / 0.552 / 0.552 / 0.552 / 0.552 |
+| `scene:grid-cell:open-plot-nw` | 0.529 / 0.529 / 0.529 / 0.529 / 0.529 | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 |
+| `scene:grid-cell:open-plot-1-0` | 0.529 / 0.529 / 0.529 / 0.529 / 0.529 | 0.529 / 0.529 / 0.529 / 0.529 / 0.529 |
+| `scene:props112` | 0.253 / 0.253 / 0.253 / 0.253 / 0.253 | 0.485 / 0.485 / 0.485 / 0.485 / 0.485 |
+| `scene:props132` | 0.245 / 0.245 / 0.245 / 0.245 / 0.245 | 0.469 / 0.469 / 0.469 / 0.469 / 0.469 |
+| `scene:ground-cover-tuft` | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 | 0.412 / 0.412 / 0.413 / 0.413 / 0.413 |
+| `hut` | 0.000 / 0.000 / 0.379 / 0.379 / 0.379 | 0.379 / 0.379 / 0.379 / 0.379 / 0.379 |
+| `scene:props122` | 0.187 / 0.187 / 0.187 / 0.187 / 0.187 | 0.358 / 0.358 / 0.358 / 0.358 / 0.358 |
+| `scene:grid-cell:far-reach` | 0.354 / 0.354 / 0.354 / 0.354 / 0.354 | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 |
+| `jetty-0.t60` | 0.354 / 0.354 / 0.354 / 0.354 / 0.354 | 0.354 / 0.354 / 0.354 / 0.354 / 0.354 |
+| `scene:ground-cover-fern-far` | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 | 0.348 / 0.348 / 0.350 / 0.348 / 0.350 |
+| `scene:props111` | 0.179 / 0.179 / 0.179 / 0.179 / 0.179 | 0.343 / 0.343 / 0.343 / 0.343 / 0.343 |
+| `scene:grid-border-shimmer-line` | 0.337 / 0.337 / 0.337 / 0.337 / 0.337 | 0.337 / 0.337 / 0.337 / 0.337 / 0.337 |
+| `scene:ground-cover-bush-far` | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 | 0.317 / 0.317 / 0.317 / 0.317 / 0.317 |
+| `trade-counter` | 0.000 / 0.000 / 0.311 / 0.311 / 0.311 | 0.311 / 0.311 / 0.311 / 0.311 / 0.311 |
+| `scene:props131` | 0.152 / 0.152 / 0.152 / 0.152 / 0.152 | 0.292 / 0.292 / 0.292 / 0.292 / 0.292 |
+| `cove-bpalm` | 0.222 / 0.222 / 0.277 / 0.277 / 0.277 | 0.277 / 0.277 / 0.277 / 0.277 / 0.277 |
+| `scene:ground-cover-hibiscus-far` | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 | 0.253 / 0.253 / 0.256 / 0.253 / 0.256 |
+| `scene:grid-cell:template-2` | 0.254 / 0.240 / 0.254 / 0.240 / 0.254 | 0.004 / 0.004 / 0.004 / 0.004 / 0.000 |
+| `scene:grid-cell:pastel-plain-1` | 0.238 / 0.238 / 0.238 / 0.238 / 0.238 | 0.238 / 0.238 / 0.238 / 0.238 / 0.238 |
+| `scene:grid-cell:ink-cel-valley-1` | 0.238 / 0.238 / 0.238 / 0.238 / 0.238 | 0.238 / 0.238 / 0.238 / 0.238 / 0.238 |
+| `scene:grid-cell:sunscar-dunes` | 0.238 / 0.238 / 0.238 / 0.238 / 0.238 | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 |
+| `scene:grid-cell:nalati-grasslands` | 0.238 / 0.238 / 0.238 / 0.238 / 0.238 | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 |
+| `scene:grid-cell:nine-dragon-stack` | 0.238 / 0.238 / 0.238 / 0.238 / 0.238 | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 |
+| `scene:props121` | 0.119 / 0.119 / 0.119 / 0.119 / 0.119 | 0.229 / 0.229 / 0.229 / 0.229 / 0.229 |
+| `bridge` | 0.197 / 0.197 / 0.197 / 0.197 / 0.197 | 0.197 / 0.197 / 0.197 / 0.197 / 0.197 |
+| `scene:ground-cover-shells` | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 | 0.127 / 0.127 / 0.127 / 0.127 / 0.127 |
+| `scene:ground-cover-daisy-far` | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 | 0.127 / 0.127 / 0.127 / 0.127 / 0.127 |
+| `trader` | 0.000 / 0.000 / 0.117 / 0.117 / 0.117 | 0.117 / 0.117 / 0.117 / 0.117 / 0.117 |
+| `scene:ground-cover-fern` | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 | 0.111 / 0.111 / 0.115 / 0.111 / 0.115 |
+| `scene:grid-cell:open-plot-4-3` | 0.112 / 0.112 / 0.112 / 0.112 / 0.112 | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 |
+| `scene:grid-boulevard` | 0.104 / 0.104 / 0.109 / 0.109 / 0.109 | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 |
+| `scene:grid-cell:open-plot-3-4` | 0.109 / 0.109 / 0.109 / 0.109 / 0.109 | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 |
+| `scene:grid-cell:open-plot-3-0` | 0.109 / 0.109 / 0.109 / 0.109 / 0.109 | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 |
+| `trophy-plaques` | 0.000 / 0.000 / 0.106 / 0.106 / 0.106 | 0.106 / 0.106 / 0.106 / 0.106 / 0.106 |
+| `scene:grid-cell:open-plot-2-4` | 0.106 / 0.106 / 0.106 / 0.106 / 0.106 | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 |
+| `scene:grid-cell:open-plot-0-0` | 0.106 / 0.106 / 0.106 / 0.106 / 0.106 | 0.106 / 0.106 / 0.106 / 0.106 / 0.106 |
+| `scene:grid-cell:open-plot-4-1` | 0.105 / 0.105 / 0.105 / 0.105 / 0.105 | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 |
+| `scene:grid-cell:open-plot-0-1` | 0.105 / 0.105 / 0.105 / 0.105 / 0.105 | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 |
+| `scene:grid-cell:open-plot-0-3` | 0.105 / 0.105 / 0.105 / 0.105 / 0.105 | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 |
+| `scene:grid-cell:open-plot-4-0` | 0.104 / 0.104 / 0.104 / 0.104 / 0.104 | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 |
+| `scene:grid-cell:open-plot-0-4` | 0.104 / 0.104 / 0.104 / 0.104 / 0.104 | 0.000 / 0.000 / 0.000 / 0.000 / 0.000 |
+
+The full-census live buffer ledger removes948/574/565/851/842ids between
+successive boundaries (baseline→R1 onward), and adds678/570/851/842/851.
+Only206ids persist across each of the last three transitions. This is
+ledger turnover evidence, not proof of when a driver releases physical
+storage. It does not establish accumulation of five complete GPU worlds.
+
+The actual missed retirement paths and source correction:
+
+- `assetResidency.ts`: an independent tile's shared-cache consumer held
+  its disposed Scope while another page consumer kept the asset active.
+  Detach that user at disposal; retain acquired/revisit storage and its
+  charge. Covered-runtime stepped eviction/error ordering stays intact.
+- `tileContent.ts`: the page's single check callback shared the first
+  tile's closure environment. A module-level callback factory now owns
+  only the check set. Original one-callback order/matrix checks remain.
+- `compile.ts`: `sunLayouts` retained the first compiler's full closure,
+  including its texture resolver and retired runtime. The cached layout
+  now owns only pure node records, argument types and scalar lowering
+  policy. The D189 clone work was preserved via a fresh-HEAD-only patch.
+
+Real-GC controls reproduce the old retained owners and pass after the
+repair (47focused cases across8suites; types/touched lint/scoped ratchet
+pass). All85graph material entries from the admitted DW/Sky products
+emit byte-identical vertex/fragment sources and program keys before/after;
+combined SHA256 `7fe765883f50be0ff8f5ee84842cb3aa72cdb47f73253d999dbaae2ac0675a3e`.
+The original compiler fails the independent lifetime test; the repair
+passes while another material still uses the cached function.
+
+A **separate collecting diagnostic**, one real return on the containing
+pin, leaves zero disposed named runtime/world/tile Scopes in the heap
+(old diagnostic had3); post-snapshot tile/region registries0/0. It is
+not acceptance credit and was not inserted into either five-cycle run.
+`browser-before-retainers.json` / `browser-after-retainers.json` retain
+the paths and explicit properties beside their raw heap snapshots.
+
+Sp-x1's same-pin CPU diagnostic finds all87DW template lookups hit,
+zero DW product-path HTTPs, no owned-template evictions, and JS heap
+288.1/290.5/290.5MB across three returns. There are12other public/decoder
+request events per return, including3Basis JS/WASM pairs (1–55ms each,
+not proven transfer bytes). Its disjoint sample split attributes about
+2.6s/entry to the maintained full-census GPU-label walk. No independent
+loading cache cut survived that audit; no persistent decoder was added.
+Source/profile details: `tmp/sp-x1-t7-return/cpu-reading/comparison.md`.
+
+Both complete readings, return owner sidecars, exact driver copies and
+bounded verdicts are under `tmp/sp-x8-t7-retire/{recovery,amortised}`
+and `{recovery,amortised}-verdict.json`. Both browsers closed; each owned
+preview borrower released (the final amortised release stopped4403).
+No Simulator/quiet qualification, cap increase, source look change or
+Escape CLI input is part of this evidence. Remaining cadence/native
+footprint/retired-root-count gates remain OPEN; instrument choice is
+with the coordinator, with no default or threshold change in this work.
