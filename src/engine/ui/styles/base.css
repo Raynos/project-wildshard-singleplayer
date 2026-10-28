@@ -1,6 +1,6 @@
 /* ─── Wildshard UI base ─── dark glass, cyan accents, Rajdhani display / JetBrains Mono data ───
    ONLY shared primitives live here: tokens, page resets, .ws-glass / .ws-label / .ws-mono / .ws-display /
-   .ws-wordmark / .ws-bar and the keyframes. Everything else is sculpted per screen in a sibling file with
+   .ws-wordmark / .ws-bar / .ws-progress and the keyframes. Everything else is sculpted per screen in a sibling file with
    its own class prefix (game.css → ws-game-, menu.css → ws-menu-, …); scripts/check-css.mjs enforces it. */
 :root {
   /* top edge of the HUD on phones: 6px from the top of the page. The page never runs under the status bar — not in the
@@ -72,3 +72,12 @@ html, body { margin: 0; padding: 0; overflow: clip; height: 100%; background: #0
 @keyframes ws-update-pulse { 50% { opacity: 0.3; } }
 
 :root { --ws-layer-hud: 0; --ws-layer-gameMenu: 70; --ws-layer-menu: 70; --ws-layer-modal: 80; --ws-layer-error: 2147482500; }
+
+/* Shared preparation status is available before any lazy view stylesheet. */
+.ws-progress { position: absolute; z-index: calc(var(--ws-layer-hud) + 1); left: 50%; top: 45%; transform: translate(-50%, -50%); display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; width: min(280px, 85%); box-sizing: border-box; padding: 10px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); font-size: 11px; text-align: center; pointer-events: none; }
+.ws-progress[hidden] { display: none; }
+.ws-progress i { flex: 0 0 12px; height: 12px; border: 2px solid var(--ws-cyan); border-right-color: transparent; border-radius: 50%; animation: ws-progress-spin 0.8s linear infinite; }
+@keyframes ws-progress-spin { to { transform: rotate(360deg); } }
+.ws-progress progress { width: 100%; height: 4px; accent-color: var(--ws-cyan); }
+.ws-progress.failed i { display: none; }
+@media (prefers-reduced-motion: reduce) { .ws-progress i { animation: none; } }

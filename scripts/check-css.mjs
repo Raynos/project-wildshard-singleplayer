@@ -29,7 +29,7 @@ import { join, relative, resolve } from 'node:path';
 const ROOT = resolve(import.meta.dirname, '..');
 
 /** shared primitives — the only unprefixed classes, and only base.css may define them */
-const SHARED = new Set(['ws-glass', 'ws-label', 'ws-mono', 'ws-display', 'ws-wordmark', 'ws-bar']);
+const SHARED = new Set(['ws-glass', 'ws-label', 'ws-mono', 'ws-display', 'ws-wordmark', 'ws-bar', 'ws-progress']);
 
 /** file → { prefix, strict }. `prefix: null` = base.css (shared list only). */
 const FILES = [

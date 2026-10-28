@@ -47,16 +47,16 @@ test('picker and comparison images stay lazy and report only completed decodes',
   const { root, compare, picker, overlay } = fixture();
   expect(decodes).toHaveLength(0); expect(root.querySelectorAll('.ws-x-target-img img')).toHaveLength(0);
   compare.button.click(); expect(decodes).toHaveLength(2);
-  expect(picker.querySelector('.ws-x-load')?.textContent).toBe('Compare · 0 / 2');
+  expect(picker.querySelector('.ws-progress')?.textContent).toBe('Compare · 0 / 2');
   decodes[0]?.done();
-  await vi.waitFor(() => { expect(picker.querySelector('.ws-x-load')?.textContent).toBe('Compare · 1 / 2'); });
+  await vi.waitFor(() => { expect(picker.querySelector('.ws-progress')?.textContent).toBe('Compare · 1 / 2'); });
   picker.querySelector<HTMLButtonElement>('.ws-x-target')?.click();
   expect(compare.isOpen).toBe(true); expect(decodes).toHaveLength(4);
-  expect(overlay.querySelector('.ws-x-load')?.textContent).toBe('First · 0 / 2');
+  expect(overlay.querySelector('.ws-progress')?.textContent).toBe('First · 0 / 2');
   decodes[2]?.done();
-  await vi.waitFor(() => { expect(overlay.querySelector('.ws-x-load')?.textContent).toBe('First · 1 / 2'); });
+  await vi.waitFor(() => { expect(overlay.querySelector('.ws-progress')?.textContent).toBe('First · 1 / 2'); });
   decodes[3]?.done();
-  await vi.waitFor(() => { expect(overlay.querySelector<HTMLElement>('.ws-x-load')?.hidden).toBe(true); });
+  await vi.waitFor(() => { expect(overlay.querySelector<HTMLElement>('.ws-progress')?.hidden).toBe(true); });
   expect(root.querySelector<HTMLImageElement>('.ws-x-compare-live')?.getAttribute('src')).toBe('/first-live.jpg');
 });
 
@@ -64,9 +64,9 @@ test('image failure is visible; closing prevents late decoders from reopening pr
   const { compare, picker, overlay } = fixture();
   compare.button.click(); picker.querySelector<HTMLButtonElement>('.ws-x-target')?.click();
   decodes[2]?.fail(new Error('Invalid image bytes'));
-  await vi.waitFor(() => { expect(overlay.querySelector('.ws-x-load')?.textContent).toContain('Could not load'); });
-  expect(overlay.querySelector<HTMLElement>('.ws-x-load')?.hidden).toBe(false);
+  await vi.waitFor(() => { expect(overlay.querySelector('.ws-progress')?.textContent).toContain('Could not load'); });
+  expect(overlay.querySelector<HTMLElement>('.ws-progress')?.hidden).toBe(false);
   compare.close(); decodes[3]?.done();
-  expect(compare.isOpen).toBe(false); expect(overlay.querySelector<HTMLElement>('.ws-x-load')?.hidden).toBe(true);
+  expect(compare.isOpen).toBe(false); expect(overlay.querySelector<HTMLElement>('.ws-progress')?.hidden).toBe(true);
   expect(overlay.querySelector('img')?.hasAttribute('src')).toBe(false);
 });

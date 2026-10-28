@@ -38,7 +38,7 @@ test('first open paints without an import wait and keeps changed POIs live',()=>
     map.setPois(()=>pois);map.update({x:12,z:14},0);
     expect(drawImage).not.toHaveBeenCalled();
     map.show();pois=[{x:0,z:0,label:'LATEST',kind:'place'}];
-    expect(document.querySelector('.ws-x-load')).toBeNull();
+    expect(document.querySelector('.ws-progress')).toBeNull();
     for(const frame of frames.splice(0))frame(16);
     expect(drawImage).toHaveBeenCalled();
     expect(fillText.mock.calls.some(([text])=>text==='LATEST')).toBe(true);
@@ -53,7 +53,7 @@ test('closing before the first frame prevents a late draw',()=>{
   const {map,scope,frames,drawImage}=fixture();
   try{
     map.setPois(()=>[]);map.show();map.hide();
-    expect(document.querySelector('.ws-x-load')).toBeNull();
+    expect(document.querySelector('.ws-progress')).toBeNull();
     for(const frame of frames.splice(0))frame(16);
     expect(drawImage).not.toHaveBeenCalled();expect(map.isOpen).toBe(false);
   }finally{scope.dispose();}
@@ -64,7 +64,7 @@ test('a second open is ready synchronously without progress',()=>{
   const {map,scope}=fixture();
   try{
     map.setPois(()=>[]);map.show();map.hide();map.show();
-    expect(document.querySelector('.ws-x-load')).toBeNull();
+    expect(document.querySelector('.ws-progress')).toBeNull();
     expect(map.isOpen).toBe(true);
   }finally{scope.dispose();}
 });

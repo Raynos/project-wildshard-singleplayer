@@ -32,7 +32,7 @@ test('opening keeps synchronous pause callbacks and reads the latest saved disco
 
 test('canceling a pending journal cannot reopen it or repeat the pause callbacks',async()=>{
   const {journal,opened,closed}=fixture();
-  journal.open();journal.close();expect(document.querySelector('.ws-x-load')).toBeNull();
+  journal.open();journal.close();expect(document.querySelector('.ws-progress')).toBeNull();
   await vi.dynamicImportSettled();
   expect(journal.isOpen).toBe(false);expect(journal.root.classList.contains('show')).toBe(false);
   expect(opened).toHaveBeenCalledOnce();expect(closed).toHaveBeenCalledOnce();

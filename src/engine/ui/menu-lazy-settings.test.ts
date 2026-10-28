@@ -27,7 +27,7 @@ test('first settings open synchronously keeps early sections and omits removed r
   menu.addSettingsSection('save',[removed])();
   expect(menu.root.querySelector('.ws-gmenu-pane')).toBeNull();expect(refresh).not.toHaveBeenCalled();
   menu.open('settings');
-  expect(document.querySelector('.ws-x-load')).toBeNull();
+  expect(document.querySelector('.ws-progress')).toBeNull();
   expect(first.isConnected).toBe(true);
   expect(last.isConnected).toBe(true);expect(removed.isConnected).toBe(false);
   expect(first.compareDocumentPosition(last)&Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0);
@@ -41,7 +41,7 @@ test('first settings open synchronously keeps early sections and omits removed r
 test('closing never reopens the menu or changes the resumed app state',()=>{
   const {menu}=fixture();app.setState('play');
   menu.open('settings');menu.close();
-  expect(document.querySelector('.ws-x-load')).toBeNull();
+  expect(document.querySelector('.ws-progress')).toBeNull();
   expect(menu.isOpen).toBe(false);expect(app.state).toBe('play');
 });
 
