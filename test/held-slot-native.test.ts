@@ -42,11 +42,15 @@ function slots(){return parseHeldSlots({version:1,id:'native-kit',bindAt:'equipm
     {id:'blade-reward',slot:'blade',kind:'blade-pass',replacement:{item:'weapon.naizagai',name:'Naizagai'}}]});}
 
 afterEach(()=>{vi.restoreAllMocks();});
-function fixture(mode:'original'|'slots'){
+function fixture(mode:'original'|'slots',preparation?:'spare'|'initial'|'primary'){
   const parent=new Scope('slot-parent'),scope=parent.child('slot-entry');lendNalatiKokpar(scope);
   const source={...emptyShardfile({slug:'native-slots',name:'Native slots',author:'Fixture',revision:1,seed:1}),items:parseItems(items)};
   const catalogue=new ItemCatalogue(source.items),events:string[]=[],registered:string[]=[];
-  const owner=mode==='original'?new MountedArsenal(original):HeldClaims.fromSlots(slots());
+  const declared=slots();
+  const admitted=preparation===undefined?declared:parseHeldSlots({...declared,slots:declared.slots.map(row=>row.kind==='polearm'?Object.assign(structuredClone(row),{geometry:'on-select'}):row),
+    ...(preparation==='primary'?{equipment:{...declared.equipment,primary:'polearm',extras:['bow','blade']}}:{}),
+    ...(preparation==='initial'?{selection:{...declared.selection,initial:'polearm'}}:{})});
+  const owner=mode==='original'?new MountedArsenal(original):HeldClaims.fromSlots(admitted);
   const blade=owner instanceof MountedArsenal?owner.blade:owner.blade('blade');
   const polearm=owner instanceof MountedArsenal?owner.polearm:owner.polearm('polearm');
   const bladeProfile=legacyDouble<ReturnType<typeof blade.profile>>({...catalogue.equipment(loadout.blade.item)});
@@ -67,7 +71,9 @@ function fixture(mode:'original'|'slots'){
   vi.spyOn(blade,'Weapon').mockImplementation(legacyDouble<typeof blade.Weapon>(Object.assign(makeBlade,{prototype:blade.Weapon.prototype})));
   function makePolearm():Polearm {
     const row=catalogue.equipment(loadout.polearm.item),id=row.legacySlot;if(id===undefined)throw new Error('Missing native polearm slot');
-    events.push(`polearm:${row.id}`);return legacyDouble<Polearm>({row,id,meta:row.meta,mount:null,javelins:1,maxJavelins:6});
+    events.push(`polearm:${row.id}`);let prepared=false;
+    if(preparation===undefined)return legacyDouble<Polearm>({row,id,meta:row.meta,mount:null,javelins:1,maxJavelins:6});
+    return legacyDouble<Polearm>({row,id,meta:row.meta,mount:null,javelins:1,maxJavelins:6,get needsPreparation(){return !prepared;},prepareView:()=>{events.push('polearm:prepare');prepared=true;return Promise.resolve();}});
   }
   vi.spyOn(polearm,'Weapon').mockImplementation(legacyDouble<typeof polearm.Weapon>(Object.assign(makePolearm,{prototype:legacyDouble<Polearm>({})})));
   function makeBow(...args:ConstructorParameters<typeof bowBinding.Bow>):Bow {
@@ -291,4 +297,24 @@ test.each([false,true])('a pending live slot build cannot publish after retireme
     else f.scope.dispose();pause.resolve(undefined);await refusal;
     expect(f.events).toEqual(['blade:weapon.sabre']);expect(f.read).not.toHaveBeenCalled();expect(f.bind).not.toHaveBeenCalled();expect(f.owner.pageKit(f.ctx)).toBeNull();
   }finally{if(retirement!==undefined)for(const _step of retirement){/* Complete real ancestor retirement. */}f.parent.dispose();}
+});
+
+
+for(const required of ['initial','primary'] as const)test(`explicit deferred ${required} geometry is ready before kit publication`,async()=>{
+  const f=fixture('slots',required);
+  try{f.owner.installPage(f.ctx);const build=f.runtime.buildEquipment;if(build===undefined)throw new Error('Missing kit builder');
+    const targets=legacyDouble<Targets>({});bindEquipmentActors(targets,legacyDouble<AnimalManager>({}),f.scope);
+    await build(targets,false);expect(f.events.filter(event=>event==='polearm:prepare')).toEqual(['polearm:prepare']);
+  }finally{f.parent.dispose();}
+});
+test('an explicit spare registers one late fence without preparing during kit construction',async()=>{
+  const f=fixture('slots','spare');
+  try{f.owner.installPage(f.ctx);const build=f.runtime.buildEquipment;if(build===undefined)throw new Error('Missing kit builder');
+    const targets=legacyDouble<Targets>({});bindEquipmentActors(targets,legacyDouble<AnimalManager>({}),f.scope);const result=await build(targets,false);
+    expect(f.events).not.toContain('polearm:prepare');let first:(()=>Promise<void>)|undefined;
+    const register=vi.fn<EquipmentService['prepareOnSelect']>((id,prepare)=>{expect(id).toBe('spear');first=prepare;});
+    result.install?.(legacyDouble<EquipmentService>({prepareOnSelect:register,unlock:()=>undefined,select:()=>undefined}));expect(register).toHaveBeenCalledOnce();
+    if(first===undefined)throw new Error('Missing first-select fence');await first();expect(f.events.filter(event=>event==='polearm:prepare')).toEqual(['polearm:prepare']);
+    f.scope.dispose();await expect(first()).rejects.toThrow();
+  }finally{f.parent.dispose();}
 });
