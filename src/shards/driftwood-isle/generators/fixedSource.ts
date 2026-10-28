@@ -33,6 +33,7 @@ import { CASTAWAY_SMOKE } from './smokeLook';
 /** The original ordered fixed builders, shared by their retained byte oracle and the scene producer. */
 export function driftwoodFixedSource(aoBytes: Uint8Array): {
   geometries: Map<string, BufferGeometry>; world: Map<string, Matrix4>; rows: Record<string, unknown>;
+  piers: ReturnType<typeof originalPiers>['rows'];
 } {
   const geometries = new Map<string, BufferGeometry>(), world = new Map<string, Matrix4>(), rows: Record<string, unknown> = {};
   for (const [part, geometry] of Object.entries(ironSwordGeometry())) geometries.set(`iron-sword-${part}`, geometry);
@@ -103,5 +104,5 @@ export function driftwoodFixedSource(aoBytes: Uint8Array): {
   for (const [name, geometry] of npcKitGeometry()) geometries.set(name, geometry);
   // the entry road decks (generators/entryDeckGeometry.ts), last so the earlier templates keep their keys
   for (const [name, geometry] of Object.entries(entryDeckGeometries())) geometries.set(`entry-deck-${name}`, geometry);
-  return { geometries, world, rows };
+  return { geometries, world, rows, piers: piers.rows };
 }

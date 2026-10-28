@@ -64,10 +64,11 @@ export async function driftwoodFixedBytes(inputs: ReadonlyMap<string, Uint8Array
     const libraryFiles = [...library.values()].sort((a, b) => a.hash < b.hash ? -1 : a.hash > b.hash ? 1 : 0);
     const queries = bakeQueryTerrain(readNativeTerrain(driftwoodGroundBytes()), { normalEpsilon: 0.6, datum: -0.8 });
     for (const [hash, bytes] of queries.assets) baked.assets.set(hash, bytes);
-    const coarse = driftwoodCoarseTiles(aoBytes), coarseTiles = coarse.tiles.filter(tile => !baked.shardfile.tiles.some(row => row.lod === 1 && row.x === tile.x && row.z === tile.z));
+    const coarse = driftwoodCoarseTiles(aoBytes), coarseTiles = coarse.tiles.filter(tile => !baked.shardfile.tiles.some(row => row.lod === 1 && row.files.length > 0 && row.x === tile.x && row.z === tile.z));
+    const coarseParents = new Set(coarseTiles.map(tile => `${tile.x}/${tile.z}`));
     const product = { terrain: queries.terrain, props: { ...baked.props.props,
       tiles: [...baked.props.props.tiles, ...coarse.models.filter(model => coarseTiles.some(tile => tile.files.includes(model.file)))], wholeLibrary: templateFiles },
-      tiles: [...baked.shardfile.tiles, ...coarseTiles],
+      tiles: [...baked.shardfile.tiles.filter(tile => tile.lod !== 1 || !coarseParents.has(`${tile.x}/${tile.z}`)), ...coarseTiles],
       files: [...baked.shardfile.files, ...libraryFiles, ...queries.files, ...coarse.files].sort((a, b) => a.hash.localeCompare(b.hash)),
       library: templateFiles, critical: [...baked.shardfile.critical, ...queries.critical], templateFiles,
       report: baked.props.report, libraryCost: { resident: libraryFiles.reduce((sum, file) => sum + file.decoded + file.gpu, 0),

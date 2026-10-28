@@ -40,3 +40,25 @@ it('refuses the CLI far bake when its actual image envelope exceeds the cap', as
   const loaded = await emittedWorld();
   await expect(projectPlaceholders(loaded.shard, new Map(loaded.assets))).rejects.toThrow('Far proxy exceeds content caps');
 });
+
+it('publishes real pier parents in place of vacant L1 metadata without duplicate addresses', async () => {
+  const { shard, assets } = await emittedWorld();
+  if (shard.props === null) throw new Error('Missing emitted Driftwood props');
+  const parents = shard.tiles.filter(tile => tile.lod === 1), models = shard.props.tiles.filter(tile => tile.lod === 1);
+  expect(parents).toHaveLength(16);
+  expect(new Set(parents.map(tile => `${tile.x}/${tile.z}`)).size).toBe(16);
+  expect(models).toHaveLength(12);
+  expect(parents.filter(tile => tile.files.length > 0)).toHaveLength(12);
+  for (const model of models) {
+    const parent = parents.find(tile => tile.x === model.x && tile.z === model.z);
+    expect(parent?.files).toContain(model.file);
+    const bytes = assets.get(model.file);
+    if (bytes === undefined) throw new Error('Missing emitted pier parent bytes');
+    expect(hashImmutableBytes(bytes)).toBe(model.file);
+  }
+  // West and north pier parents used to be declared empty because their near
+  // meshes are runtime library templates, with no static L0 geometry here.
+  for (const [x, z] of [[0, 1], [0, 2], [2, 3]]) {
+    expect(models.some(model => model.x === x && model.z === z)).toBe(true);
+  }
+});
