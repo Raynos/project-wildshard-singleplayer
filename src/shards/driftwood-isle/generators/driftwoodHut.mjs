@@ -1,7 +1,7 @@
 // Driftwood's fixed buildings on their sites (the castaway's hut, the lookout tower) over the same retained terrain
 // binding as the native level (original WSTR samples plus its authored datum), their AO answered by the committed voxel
 // table as on the page. Explicit function calls only; import selects no world, service or level.
-import { addVoxelAOBake } from '@wildshard/engine/world/voxelAO';
+import { withFacetedAO } from '@wildshard/sdk/bake/facetedGeometry';
 import { driftwoodGroundSampler } from './groundSampling.ts';
 import { PLATEAU, HEADLAND } from './landscapeRows.ts';
 import { hutBake } from './hut.ts';
@@ -14,13 +14,7 @@ const LOOKOUT = { x: HEADLAND.x - 4, z: HEADLAND.z - 2, rot: 0.6 };
 /** @template T @param {Uint8Array} aoBytes @param {(ground: (x: number, z: number) => number) => T} build @returns {T} */
 function onNativeTerrain(aoBytes, build) {
   const ground = driftwoodGroundSampler();
-  const ao = Uint8Array.from(aoBytes);
-  const release = addVoxelAOBake(ao.buffer);
-  try {
-    return build(ground);
-  } finally {
-    release();
-  }
+  return withFacetedAO(aoBytes, () => build(ground));
 }
 
 /** Bake the hut where the island stands it, against the native height binding. */

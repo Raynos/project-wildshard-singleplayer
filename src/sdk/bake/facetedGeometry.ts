@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '../random';
-import { voxelAO, aoTint, hemisphere } from '@wildshard/engine/world/voxelAO';
+import { voxelAO, aoTint, hemisphere, addVoxelAOBake } from '@wildshard/engine/world/voxelAO';
 
 function wobble(g: THREE.BufferGeometry, amp: number, rng: Pick<Rng, 'range'>): void {
   const pos = g.getAttribute('position');
@@ -340,4 +340,17 @@ function dropTriangles(geometry: THREE.BufferGeometry, hidden: Uint8Array): THRE
   out.userData = geometry.userData;
   geometry.dispose();
   return out;
+}
+
+/** Compile synchronously with a private copy of a committed native AO table.
+ * Nested scopes retain prior entries; the new entries are released after success or failure.
+ * Malformed tables keep the native fallback march. Thenable results refuse. */
+export function withFacetedAO<T>(bytes: Uint8Array, compile: () => T): T {
+  const owned = Uint8Array.from(bytes), release = addVoxelAOBake(owned.buffer);
+  try {
+    const result = compile();
+    if (result !== null && (typeof result === 'object' || typeof result === 'function') && 'then' in result && typeof result.then === 'function')
+      throw new TypeError('Faceted AO compilation must be synchronous');
+    return result;
+  } finally { release(); }
 }

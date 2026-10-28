@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { addVoxelAOBake } from '@wildshard/engine/world/voxelAO';
-import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
+import { withFacetedAO } from '@wildshard/sdk/bake/facetedGeometry';
+import { nativeTerrainQueries } from '@wildshard/sdk/bake/forest';
 import { driftwoodGroundSampler } from './groundSampling.ts';
 import { SEED, TRAILS, PLATEAU, HEADLAND } from './landscapeRows.ts';
 import SHRINE_SITES from '../data/shrineSites.json' with { type: 'json' };
@@ -18,10 +18,8 @@ export function originalDuneLogs(aoBytes) {
     { x: SHRINE_SITES.world.x, z: SHRINE_SITES.world.z, r: 9.5 }, { x: WRECK_SITES.world.x, z: WRECK_SITES.world.z, r: 13 },
     { x: cave.x, z: cave.z + cave.depth / 2, r: 8 }, { x: 0, z: -151, r: 3.2 },
   ];
-  const trailDistance = buildTerrainMetadata(SEED, { trails: TRAILS, cabinSites: [] }, () => 0).trailDistance;
-  const ao = Uint8Array.from(aoBytes);
-  const release = addVoxelAOBake(ao.buffer);
-  try {
+  const trailDistance = nativeTerrainQueries(SEED, { trails: TRAILS, cabinSites: [] }, () => 0).trailDistance;
+  return withFacetedAO(aoBytes, () => {
     const { geometry, logs } = duneLogs(ground, trailDistance, avoid, 0, SEED);
     /** @type {number[]} */
     const boxes = []; const box = new THREE.Box3();
@@ -32,5 +30,5 @@ export function originalDuneLogs(aoBytes) {
       return { x: (l.a.x + l.b.x) / 2, y: (l.a.y + l.b.y) / 2, z: (l.a.z + l.b.z) / 2, yaw: Math.atan2(-d.z, d.x), params: { len: d.length(), r0: l.r, r1: l.r * 0.7, tone: ((l.tone % 3) + 3) % 3 } };
     });
     return { geometry, catalogue: { placements, boxes } };
-  } finally { release(); }
+  });
 }

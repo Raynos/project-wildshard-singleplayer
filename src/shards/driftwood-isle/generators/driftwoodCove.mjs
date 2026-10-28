@@ -1,7 +1,7 @@
 // The same retained terrain binding as the native level: original WSTR samples plus its authored datum.
 // Explicit function call only; import selects no world, service or level.
 import { Vector3 } from 'three';
-import { addVoxelAOBake } from '@wildshard/engine/world/voxelAO';
+import { withFacetedAO } from '@wildshard/sdk/bake/facetedGeometry';
 import { driftwoodGroundSampler } from './groundSampling.ts';
 import { coveGeometry } from './cove.ts';
 import { coveNative } from './coveNative.ts';
@@ -11,9 +11,7 @@ import { coveFloors, islandCoveSpec } from './coveLayout.ts';
 /** @param {Uint8Array} aoBytes caller-owned committed native AO table */
 export function originalCove(aoBytes) {
   const ground = driftwoodGroundSampler();
-  const ao = Uint8Array.from(aoBytes);
-  const release = addVoxelAOBake(ao.buffer);
-  try {
+  return withFacetedAO(aoBytes, () => {
     const spec = islandCoveSpec(), built = coveGeometry(spec, ground);
     // E150: the toon cascade in three terraces over the crag; its foam rings stay inside the 2.4 m pool
     const [tx, tz] = spec.fall.top, [fx, fz] = spec.fall.foot, dx = fx - tx, dz = fz - tz, len = Math.hypot(dx, dz);
@@ -29,5 +27,5 @@ export function originalCove(aoBytes) {
         boxes: built.placements.flatMap(row => [row.box.min.x,row.box.min.y,row.box.min.z,row.box.max.x,row.box.max.y,row.box.max.z]),
       } },
     };
-  } finally { release(); }
+  });
 }
